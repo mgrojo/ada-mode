@@ -99,7 +99,7 @@ package body WisiToken.Syntax_Trees is
    function Action
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
-     return Semantic_Action
+     return Post_Parse_Action
    is
       pragma Unreferenced (Tree);
    begin
@@ -130,7 +130,7 @@ package body WisiToken.Syntax_Trees is
      (Tree            : in out Syntax_Trees.Tree;
       Production      : in     WisiToken.Production_ID;
       Children        : in     Valid_Node_Access_Array;
-      Action          : in     Semantic_Action;
+      Action          : in     Post_Parse_Action;
       Default_Virtual : in     Boolean;
       Clear_Parents   : in     Boolean)
      return Valid_Node_Access
@@ -180,7 +180,7 @@ package body WisiToken.Syntax_Trees is
       Production      : in     WisiToken.Production_ID;
       Children        : in     Valid_Node_Access_Array;
       Clear_Parents   : in     Boolean;
-      Action          : in     Semantic_Action := null;
+      Action          : in     Post_Parse_Action := null;
       Default_Virtual : in     Boolean         := False)
      return Valid_Node_Access
    is begin
@@ -2989,9 +2989,9 @@ package body WisiToken.Syntax_Trees is
       Stream          : in     Stream_ID;
       Production      : in     WisiToken.Production_ID;
       Child_Count     : in     Ada.Containers.Count_Type;
-      Action          : in     Semantic_Action := null;
+      Action          : in     Post_Parse_Action := null;
       State           : in     State_Index;
-      Default_Virtual : in     Boolean         := False)
+      Default_Virtual : in     Boolean           := False)
      return Rooted_Ref
    is
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);

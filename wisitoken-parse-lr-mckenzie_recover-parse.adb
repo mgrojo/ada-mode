@@ -68,10 +68,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Action                   : in              Reduce_Action_Rec;
       Nonterm                  :    out          Syntax_Trees.Recover_Token;
       Default_Contains_Virtual : in              Boolean)
-     return Semantic_Checks.Check_Status
+     return In_Parse_Actions.Status
    is
-      use all type Semantic_Checks.Semantic_Check;
-      use all type Semantic_Checks.Check_Status_Label;
+      use all type In_Parse_Actions.In_Parse_Action;
+      use all type In_Parse_Actions.Status_Label;
 
       Last   : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type (Action.Token_Count);
       Tokens : Syntax_Trees.Recover_Token_Array (1 .. Last);
@@ -82,13 +82,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
       Compute_Nonterm (Super.Tree.all, Action.Production.LHS, Stack, Tokens, Nonterm, Default_Contains_Virtual);
 
-      if Action.Check = null then
+      if Action.In_Parse_Action = null then
          --  Now we can pop the stack.
          Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
          return (Label => Ok);
       else
-         return Status : constant Semantic_Checks.Check_Status :=
-           Action.Check (Shared.Lexer, Nonterm, Tokens, Recover_Active => True)
+         return Status : constant In_Parse_Actions.Status :=
+           Action.In_Parse_Action (Shared.Lexer, Nonterm, Tokens, Recover_Active => True)
          do
             if Status.Label = Ok then
                Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
@@ -670,7 +670,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  encounters an error (return False) or Shared_Token_Goal is shifted
    --  (return True).
    --
-   --  We return Boolean, not Check_Status, because Abandon and Continue
+   --  We return Boolean, not Status, because Abandon and Continue
    --  are up to the caller.
    --
    --  If any actions have conflicts, append the conflict configs and actions to
@@ -679,7 +679,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    is
       use Parse_Item_Arrays;
       use Config_Op_Arrays;
-      use all type Semantic_Checks.Check_Status_Label;
+      use all type In_Parse_Actions.Status_Label;
 
       Trace      : WisiToken.Trace'Class renames Super.Trace.all;
       Descriptor : WisiToken.Descriptor renames Super.Tree.Descriptor.all;
@@ -833,11 +833,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             declare
                Nonterm : Syntax_Trees.Recover_Token;
             begin
-               Config.Check_Status := Reduce_Stack
+               Config.User_Parse_Action_Status := Reduce_Stack
                  (Super, Shared, Config.Stack, Action, Nonterm,
                   Default_Contains_Virtual => Config.Current_Insert_Delete /= No_Insert_Delete);
 
-               case Config.Check_Status.Label is
+               case Config.User_Parse_Action_Status.Label is
                when Ok =>
                   New_State := Config.Stack.Peek.State;
                   New_State := Goto_For (Table, New_State, Action.Production.LHS);
@@ -856,10 +856,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
                   Config.Stack.Push ((New_State, Nonterm));
 
-               when Semantic_Checks.Error =>
-                  Config.Error_Token       := Nonterm;
-                  Config.Check_Token_Count := Action.Token_Count;
-                  Success                  := False;
+               when In_Parse_Actions.Error =>
+                  Config.Error_Token                   := Nonterm;
+                  Config.User_Parse_Action_Token_Count := Action.Token_Count;
+                  Success                              := False;
                end case;
             end;
 
@@ -913,8 +913,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          Config : Configuration renames Parse_Item_Array_Refs.Variable_Ref
            (Parse_Items, First_Index (Parse_Items)).Config;
       begin
-         Config.Error_Token  := Syntax_Trees.Invalid_Recover_Token;
-         Config.Check_Status := (Label => Semantic_Checks.Ok);
+         Config.Error_Token              := Syntax_Trees.Invalid_Recover_Token;
+         Config.User_Parse_Action_Status := (Label => In_Parse_Actions.Ok);
       end;
 
       Last_Parsed := First_Index (Parse_Items);

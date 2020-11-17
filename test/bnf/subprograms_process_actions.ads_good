@@ -19,7 +19,7 @@
 
 with WisiToken.Syntax_Trees;
 with WisiToken.Lexer;
-with WisiToken.Semantic_Checks;
+with WisiToken.In_Parse_Actions;
 package Subprograms_Process_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=
@@ -263,29 +263,29 @@ package Subprograms_Process_Actions is
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.Semantic_Checks.Check_Status;
+    return WisiToken.In_Parse_Actions.Status;
    function block_2_check
     (Lexer          : access constant WisiToken.Lexer.Instance'Class;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.Semantic_Checks.Check_Status;
+    return WisiToken.In_Parse_Actions.Status;
    function compilation_unit_0_check
     (Lexer          : access constant WisiToken.Lexer.Instance'Class;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.Semantic_Checks.Check_Status;
+    return WisiToken.In_Parse_Actions.Status;
    function name_0_check
     (Lexer          : access constant WisiToken.Lexer.Instance'Class;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.Semantic_Checks.Check_Status;
+    return WisiToken.In_Parse_Actions.Status;
    function name_1_check
     (Lexer          : access constant WisiToken.Lexer.Instance'Class;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.Semantic_Checks.Check_Status;
+    return WisiToken.In_Parse_Actions.Status;
 end Subprograms_Process_Actions;

@@ -988,7 +988,7 @@ package body WisiToken_Grammar_Runtime is
       end if;
    end Add_Nonterminal;
 
-   function Image_Grammar_Action (Action : in WisiToken.Syntax_Trees.Semantic_Action) return String
+   function Image_Grammar_Action (Action : in WisiToken.Syntax_Trees.Post_Parse_Action) return String
    is
       pragma Unreferenced (Action);
    begin

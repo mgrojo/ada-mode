@@ -204,37 +204,37 @@ package body WisiToken.Parse.LR is
    end Add_Action;
 
    procedure Add_Action
-     (State           : in out LR.Parse_State;
-      Symbol          : in     Token_ID;
-      Verb            : in     LR.Parse_Action_Verbs;
-      Production      : in     Production_ID;
-      RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check  : in     Semantic_Checks.Semantic_Check)
+     (State             : in out LR.Parse_State;
+      Symbol            : in     Token_ID;
+      Verb              : in     LR.Parse_Action_Verbs;
+      Production        : in     Production_ID;
+      RHS_Token_Count   : in     Ada.Containers.Count_Type;
+      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : in     In_Parse_Actions.In_Parse_Action)
    is
       Action : constant Parse_Action_Rec :=
         (case Verb is
-         when Reduce    => (Reduce, Production, Semantic_Action, Semantic_Check, RHS_Token_Count),
-         when Accept_It => (Accept_It, Production, Semantic_Action, Semantic_Check, RHS_Token_Count),
+         when Reduce    => (Reduce, Production, Post_Parse_Action, In_Parse_Action, RHS_Token_Count),
+         when Accept_It => (Accept_It, Production, Post_Parse_Action, In_Parse_Action, RHS_Token_Count),
          when others    => raise SAL.Programmer_Error);
    begin
       Add (State.Action_List, Symbol, Action);
    end Add_Action;
 
    procedure Add_Action
-     (State           : in out Parse_State;
-      Symbols         : in     Token_ID_Array;
-      Production      : in     Production_ID;
-      RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check)
+     (State             : in out Parse_State;
+      Symbols           : in     Token_ID_Array;
+      Production        : in     Production_ID;
+      RHS_Token_Count   : in     Ada.Containers.Count_Type;
+      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : in     WisiToken.In_Parse_Actions.In_Parse_Action)
    is begin
       --  We assume WisiToken.BNF.Output_Ada_Common.Duplicate_Reduce is True
       --  for this state; no conflicts, all the same action, Recursive.
       for Symbol of Symbols loop
          Add_Action
            (State, Symbol, Reduce, Production, RHS_Token_Count,
-            Semantic_Action, Semantic_Check);
+            Post_Parse_Action, In_Parse_Action);
       end loop;
    end Add_Action;
 
@@ -243,11 +243,11 @@ package body WisiToken.Parse.LR is
       Symbol            : in     Token_ID;
       Reduce_Production : in     Production_ID;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
-      Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check    : in     Semantic_Checks.Semantic_Check)
+      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : in     In_Parse_Actions.In_Parse_Action)
    is
       Conflict : constant Parse_Action_Rec :=
-        (Reduce, Reduce_Production, Semantic_Action, Semantic_Check, RHS_Token_Count);
+        (Reduce, Reduce_Production, Post_Parse_Action, In_Parse_Action, RHS_Token_Count);
 
       Ref : constant Action_Arrays.Find_Reference_Constant_Type := State.Action_List.Find_Constant (Symbol);
 
@@ -365,7 +365,7 @@ package body WisiToken.Parse.LR is
 
    function Get_Text_Rep
      (File_Name : in String;
-      Actions   : in Semantic_Action_Array_Arrays.Vector)
+      Actions   : in Parse_Actions_Array_Arrays.Vector)
      return Parse_Table_Ptr
    is
       use Ada.Text_IO;
@@ -529,16 +529,16 @@ package body WisiToken.Parse.LR is
 
                         when Reduce | Accept_It =>
                            if Next_Boolean then
-                              Node_J.Item.Action := Actions
-                                (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS).Action;
+                              Node_J.Item.Post_Parse_Action := Actions
+                                (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS).Post_Parse;
                            else
-                              Node_J.Item.Action := null;
+                              Node_J.Item.Post_Parse_Action := null;
                            end if;
                            if Next_Boolean then
-                              Node_J.Item.Check := Actions
-                                (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS).Check;
+                              Node_J.Item.In_Parse_Action := Actions
+                                (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS).In_Parse;
                            else
-                              Node_J.Item.Check := null;
+                              Node_J.Item.In_Parse_Action := null;
                            end if;
                            Node_J.Item.Token_Count := Next_Count_Type;
 

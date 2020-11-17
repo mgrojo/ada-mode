@@ -22,7 +22,7 @@ with AUnit.Assertions;
 with AUnit.Checks.Containers;
 with SAL.AUnit;
 with WisiToken.AUnit;
-with WisiToken.Semantic_Checks.AUnit;
+with WisiToken.In_Parse_Actions.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
 package body WisiToken.Parse.LR.AUnit is
 
@@ -56,7 +56,7 @@ package body WisiToken.Parse.LR.AUnit is
       use Standard.AUnit.Checks;
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
-      use WisiToken.Semantic_Checks.AUnit;
+      use WisiToken.In_Parse_Actions.AUnit;
    begin
       Check (Label & ".Verb", Computed.Verb, Expected.Verb);
       case Computed.Verb is
@@ -65,8 +65,8 @@ package body WisiToken.Parse.LR.AUnit is
       when Reduce | Accept_It =>
          Check (Label & ".Production", Computed.Production, Expected.Production);
          if Strict then
-            Check (Label & ".Action", Computed.Action, Expected.Action);
-            Check (Label & ".Check", Computed.Check, Expected.Check);
+            Check (Label & ".Post_Parse_Action", Computed.Post_Parse_Action, Expected.Post_Parse_Action);
+            Check (Label & ".In_Parse_Action", Computed.In_Parse_Action, Expected.In_Parse_Action);
          end if;
          Check (Label & ".Token_Count", Computed.Token_Count, Expected.Token_Count);
       when Error =>

@@ -41,7 +41,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
 
       Nonterm : constant Syntax_Trees.Stream_Node_Ref := Shared_Parser.Tree.Reduce
-        (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Action, New_State);
+        (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Post_Parse_Action, New_State);
    begin
       if Trace_Parse > Detail then
          Trace.Put_Line
@@ -106,7 +106,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
          Reduce_Stack_1
            (Shared_Parser, Current_Parser,
-            (Reduce, Action.Production, Action.Action, Action.Check, Action.Token_Count),
+            (Reduce, Action.Production, Action.Post_Parse_Action, Action.In_Parse_Action, Action.Token_Count),
             Accept_State, Trace);
 
          pragma Assert
@@ -129,7 +129,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
               (Shared_Parser.Table.all, Shared_Parser.Tree.State (Current_Parser.Stream));
          begin
             Parser_State.Errors.Append
-              ((Label          => LR.Action,
+              ((Label          => LR_Parse_Action,
                 First_Terminal => Shared_Parser.Descriptor.First_Terminal,
                 Last_Terminal  => Shared_Parser.Descriptor.Last_Terminal,
                 Error_Token    => Parser_State.Current_Token,
@@ -463,7 +463,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          end if;
 
          declare
-            use all type Syntax_Trees.Semantic_Action;
+            use all type Syntax_Trees.Post_Parse_Action;
             Tree_Children : constant Node_Access_Array := Tree.Children (Node);
          begin
             Parser.User_Data.Reduce (Tree, Node, Tree_Children);
@@ -530,7 +530,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
       for Item of Parser_State.Errors loop
          case Item.Label is
-         when Action =>
+         when LR_Parse_Action =>
             declare
                Token : Base_Token renames Parser.Tree.Base_Token (Item.Error_Token.Node);
             begin
@@ -542,7 +542,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                        ", found '" & Parser.Lexer.Buffer_Text (Token.Byte_Region) & "'"));
             end;
 
-         when Check =>
+         when User_Parse_Action =>
             null;
 
          when Message =>

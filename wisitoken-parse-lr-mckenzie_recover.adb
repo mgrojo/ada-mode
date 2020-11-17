@@ -151,8 +151,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
               " Resume_Token_Goal" & Config.Resume_Token_Goal'Image);
          Trace.Put_Line
            ((case Error.Label is
-             when Action => "Action",
-             when Check => "Check, " & Semantic_Checks.Image (Error.Check_Status, Shared_Parser.Tree),
+             when LR_Parse_Action => "LR_Parse_Action",
+             when User_Parse_Action => "User_Parse_Action, " & In_Parse_Actions.Image
+               (Error.Status, Shared_Parser.Tree),
              when Message => raise SAL.Programmer_Error));
          if Trace_McKenzie > Detail then
             Trace.Put_Line ("parse stream:");
@@ -173,14 +174,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Config.Input_Stream.Initialize;
 
       case Error.Label is
-      when Action =>
+      when LR_Parse_Action =>
          Config.Error_Token := Shared_Parser.Tree.Get_Recover_Token (Error.Error_Token);
 
          if Trace_McKenzie > Detail then
             Put ("enqueue", Trace, Shared_Parser.Tree, Parser_State.Stream, Config, Task_ID => False);
          end if;
 
-      when Check =>
+      when User_Parse_Action =>
          if Shared_Parser.Language_Fixes = null then
             --  The only fix is to ignore the error.
             if Trace_McKenzie > Detail then
@@ -196,14 +197,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
             --  Undo_Reduce can be invalid here; see ada-mode/test/ada_mode-recover_27.adb
             if Undo_Reduce_Valid (Shared_Parser.Tree, Config) then
-               Config.Check_Status      := Error.Check_Status;
-               Config.Error_Token       := Config.Stack.Peek.Token;
-               Config.Check_Token_Count := Unchecked_Undo_Reduce
+               Config.User_Parse_Action_Status      := Error.Status;
+               Config.Error_Token                   := Config.Stack.Peek.Token;
+               Config.User_Parse_Action_Token_Count := Unchecked_Undo_Reduce
                  (Config.Stack, Shared_Parser.Tree, Shared_Parser.Table.all);
 
                Config_Op_Arrays.Append
                  (Config.Ops,
-                  (Undo_Reduce, Syntax_Trees.ID (Config.Error_Token), Config.Check_Token_Count,
+                  (Undo_Reduce, Syntax_Trees.ID (Config.Error_Token), Config.User_Parse_Action_Token_Count,
                    Shared_Parser.Tree.Get_Node_Index (First_Terminal (Shared_Parser.Tree, Config.Error_Token))));
 
                if Trace_McKenzie > Detail then
@@ -427,14 +428,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Error     : Parse_Error renames Parser_State.Errors (Parser_State.Errors.Last);
                      Error_Pos : constant Buffer_Pos :=
                        (case Error.Label is
-                        when Action  => Tree.Base_Token (Error.Error_Token.Node).Char_Region.First,
-                        when Check   =>
-                          (if Name (Error.Check_Status.Begin_Name).First /= Invalid_Buffer_Pos
-                           then Name (Error.Check_Status.Begin_Name).First
-                           elsif Name (Error.Check_Status.End_Name).First /= Invalid_Buffer_Pos
-                           then Name (Error.Check_Status.End_Name).First
+                        when LR_Parse_Action   => Tree.Base_Token (Error.Error_Token.Node).Char_Region.First,
+                        when User_Parse_Action =>
+                          (if Name (Error.Status.Begin_Name).First /= Invalid_Buffer_Pos
+                           then Name (Error.Status.Begin_Name).First
+                           elsif Name (Error.Status.End_Name).First /= Invalid_Buffer_Pos
+                           then Name (Error.Status.End_Name).First
                            else Buffer_Pos'First),
-                        when Message => raise SAL.Programmer_Error);
+                        when Message           => raise SAL.Programmer_Error);
 
                      Stack_Matches_Ops : Boolean := True;
                      First_Insert      : Boolean := True;
@@ -1200,7 +1201,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    is
       use Config_Op_Array_Refs;
       use all type Ada.Strings.Unbounded.Unbounded_String;
-      use all type WisiToken.Semantic_Checks.Check_Status_Label;
+      use all type WisiToken.In_Parse_Actions.Status_Label;
       use all type Bounded_Streams.Cursor;
 
       --  Build a string, call trace.put_line once, so output from multiple
@@ -1223,8 +1224,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       else
          Result := Result & ", ";
       end if;
-      if Config.Check_Status.Label /= Ok then
-         Result := Result & Semantic_Checks.Check_Status_Label'Image (Config.Check_Status.Label) & " ";
+      if Config.User_Parse_Action_Status.Label /= Ok then
+         Result := Result & In_Parse_Actions.Status_Label'Image (Config.User_Parse_Action_Status.Label) & " ";
       elsif Syntax_Trees.ID (Config.Error_Token) /= Invalid_Token_ID then
          Result := Result & "Error " & Syntax_Trees.Image (Tree, Config.Error_Token) & " ";
       end if;

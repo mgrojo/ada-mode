@@ -94,7 +94,7 @@ package body Association_Grammar_Test is
 
    use WisiToken.Wisi_Ada;   --  "and", "+"
 
-   Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
+   Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    --  valid syntax:
    --  (identifier)

@@ -239,7 +239,7 @@ package WisiToken.Syntax_Trees is
 
       --  Maintaining a syntax tree during error recovery is too slow, so we
       --  store enough information in the recover stack to perform
-      --  Semantic_Checks, Language_Fixes, Push_Back and Undo_Reduce
+      --  In_Parse_Actions, Language_Fixes, Push_Back and Undo_Reduce
       --  operations. and to apply the solution to the main parser state. We
       --  make thousands of copies of the parse stack during recover, so
       --  minimizing size and compute time for this is critical.
@@ -258,7 +258,7 @@ package WisiToken.Syntax_Trees is
          --  Invalid_Node_Access.
 
          Name : Buffer_Region := Null_Buffer_Region;
-         --  Set and used by semantic_checks.
+         --  Set and used by In_Parse_Actions.
 
          Contains_Virtual_Terminal : Boolean := False;
          --  True if any contained terminal is Virtual.
@@ -418,7 +418,7 @@ package WisiToken.Syntax_Trees is
    --  computed by caller. Called by Parser.Execute_Actions, just before
    --  processing Nonterm.
 
-   type Semantic_Action is access procedure
+   type Post_Parse_Action is access procedure
      (User_Data : in out User_Data_Type'Class;
       Tree      : in out Syntax_Trees.Tree;
       Nonterm   : in     Valid_Node_Access;
@@ -427,7 +427,7 @@ package WisiToken.Syntax_Trees is
    --  WisiToken.LR.Parser.Execute_Actions when it processes a Nonterm
    --  node in the syntax tree. Tokens are the children of Nonterm.
 
-   Null_Action : constant Semantic_Action := null;
+   Null_Action : constant Post_Parse_Action := null;
 
    ----------
    --
@@ -548,7 +548,7 @@ package WisiToken.Syntax_Trees is
       Stream          : in     Stream_ID;
       Production      : in     WisiToken.Production_ID;
       Child_Count     : in     Ada.Containers.Count_Type;
-      Action          : in     Semantic_Action := null;
+      Action          : in     Post_Parse_Action := null;
       State           : in     State_Index;
       Default_Virtual : in     Boolean         := False)
      return Rooted_Ref
@@ -930,7 +930,7 @@ package WisiToken.Syntax_Trees is
    function Action
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
-     return Semantic_Action
+     return Post_Parse_Action
    with Pre => Tree.Is_Nonterm (Node);
 
    function Find_Ancestor
@@ -1393,7 +1393,7 @@ package WisiToken.Syntax_Trees is
       Production      : in     WisiToken.Production_ID;
       Children        : in     Valid_Node_Access_Array;
       Clear_Parents   : in     Boolean;
-      Action          : in     Semantic_Action := null;
+      Action          : in     Post_Parse_Action := null;
       Default_Virtual : in     Boolean         := False)
      return Valid_Node_Access
    with Pre => not Tree.Traversing and Children'First = 1;
@@ -1630,7 +1630,7 @@ package WisiToken.Syntax_Trees is
    --  than once.
 
    type Image_Augmented is access function (Aug : in Augmented_Class_Access_Constant) return String;
-   type Image_Action is access function (Action : in Semantic_Action) return String;
+   type Image_Action is access function (Action : in Post_Parse_Action) return String;
 
    procedure Print_Tree
      (Tree            : in Syntax_Trees.Tree;
@@ -1666,7 +1666,7 @@ private
 
       Byte_Region : aliased Buffer_Region := Null_Buffer_Region;
       Char_Region : aliased Buffer_Region := Null_Buffer_Region;
-      --  Computed by Update_Cache, used in Semantic_Check actions and debug
+      --  Computed by Update_Cache, used in In_Parse_Actions and debug
       --  messages.
 
       Line : Line_Number_Type := Invalid_Line_Number;
@@ -1698,15 +1698,15 @@ private
       when Nonterm =>
          Virtual : Boolean := False;
          --  True if any child node is Virtual_Terminal or Nonterm with Virtual
-         --  set. Used by Semantic_Check actions and error recover.
+         --  set. Used by In_Parse_Actions and error recover.
 
          RHS_Index : Natural;
          --  With ID, index into Productions.
 
-         Action : Semantic_Action := null;
+         Action : Post_Parse_Action := null;
 
          Name : Buffer_Region := Null_Buffer_Region;
-         --  Name is set and checked by Semantic_Check actions.
+         --  Name is set and checked by In_Parse_Actions.
 
          Children : Node_Access_Array (1 .. Child_Count);
          --  We use an explicit array, rather than a pointer to the first

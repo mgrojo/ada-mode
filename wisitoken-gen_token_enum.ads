@@ -87,7 +87,7 @@ package WisiToken.Gen_Token_Enum is
       Right : in Token_Enum_ID)
      return Token_ID_Arrays.Vector;
 
-   function "+" (Left : in Token_Enum_ID; Right : in Syntax_Trees.Semantic_Action) return Productions.Right_Hand_Side;
+   function "+" (Left : in Token_Enum_ID; Right : in Syntax_Trees.Post_Parse_Action) return Productions.Right_Hand_Side;
 
    function "<="
      (Left  : in Token_Enum_ID;

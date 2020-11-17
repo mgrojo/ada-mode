@@ -33,7 +33,7 @@ with WisiToken.Parse.LR.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Parse.LR.Parser_Lists;
-with WisiToken.Semantic_Checks.AUnit;
+with WisiToken.In_Parse_Actions.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
 with WisiToken.Text_IO_Trace;
 package body Test_McKenzie_Recover is
@@ -45,7 +45,7 @@ package body Test_McKenzie_Recover is
    use all type WisiToken.BNF.LR_Generate_Algorithm;
    use all type WisiToken.Parse.LR.Config_Op_Label;
    use all type WisiToken.Parse.LR.Strategies;
-   use all type WisiToken.Semantic_Checks.Check_Status_Label;
+   use all type WisiToken.In_Parse_Actions.Status_Label;
 
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
@@ -104,28 +104,30 @@ package body Test_McKenzie_Recover is
    end Parse_Text;
 
    procedure Check_Recover
-     (Label                   : in String                                       := "";
+     (Label                   : in String                    := "";
       Errors_Length           : in Ada.Containers.Count_Type;
-      Checking_Error          : in Ada.Containers.Count_Type                    := 1;
+      Checking_Error          : in Ada.Containers.Count_Type := 1;
       Error_Token_ID          : in WisiToken.Token_ID;
-      Error_Token_Byte_Region : in WisiToken.Buffer_Region                      := WisiToken.Null_Buffer_Region;
-      Ops                     : in WisiToken.Parse.LR.AUnit.Test_Config_Op_Arrays.Vector :=
+      Error_Token_Byte_Region : in WisiToken.Buffer_Region   := WisiToken.Null_Buffer_Region;
+
+      Ops : in WisiToken.Parse.LR.AUnit.Test_Config_Op_Arrays.Vector :=
         WisiToken.Parse.LR.AUnit.Test_Config_Op_Arrays.Empty_Vector;
-      Ops_Race_Condition      : in Boolean                                      := False;
-      Enqueue_Low             : in Integer                                      := 0;
-      Enqueue_High            : in Integer                                      := Integer'Last;
-      Check_Low               : in Integer                                      := 0;
-      Check_High              : in Integer                                      := Integer'Last;
-      Cost                    : in Integer;
-      Strategy_Counts         : in WisiToken.Parse.LR.Strategy_Counts           := (others => 0);
-      Expecting               : in WisiToken.Token_ID_Set                       := Empty_Token_ID_Set;
-      Code                    : in WisiToken.Semantic_Checks.Check_Status_Label := WisiToken.Semantic_Checks.Ok)
+
+      Ops_Race_Condition : in Boolean                                 := False;
+      Enqueue_Low        : in Integer                                 := 0;
+      Enqueue_High       : in Integer                                 := Integer'Last;
+      Check_Low          : in Integer                                 := 0;
+      Check_High         : in Integer                                 := Integer'Last;
+      Cost               : in Integer;
+      Strategy_Counts    : in WisiToken.Parse.LR.Strategy_Counts      := (others => 0);
+      Expecting          : in WisiToken.Token_ID_Set                  := Empty_Token_ID_Set;
+      Code               : in WisiToken.In_Parse_Actions.Status_Label := WisiToken.In_Parse_Actions.Ok)
    is
       --  Only set Ops_Race_Condition True when Parse_Text.Multiple_Tasks is
       --  True; otherwise, add case on LALR | LR1.
 
       use WisiToken.Parse.LR.AUnit;
-      use WisiToken.Semantic_Checks.AUnit;
+      use WisiToken.In_Parse_Actions.AUnit;
       use WisiToken.Syntax_Trees;
       use all type WisiToken.Buffer_Region;
       use all type WisiToken.Token_ID;
@@ -151,8 +153,9 @@ package body Test_McKenzie_Recover is
          end if;
 
          if Code = Ok then
-            --  Expecting an Action error. Label is "code" so prj.el wisitoken-goto-aunit-fail can find it.
-            Check (Label_I & ".Code", Error.Label, Action);
+            --  Expecting a Post_Parse_Action error. Label is "code" so prj.el
+            --  wisitoken-goto-aunit-fail can find it.
+            Check (Label_I & ".Code", Error.Label, LR_Parse_Action);
             declare
                Token : Recover_Token renames Parser.Tree.Get_Recover_Token (Error.Error_Token);
             begin
@@ -165,17 +168,17 @@ package body Test_McKenzie_Recover is
          else
             --  Expecting a Check error. We put "Error_Token_ID" in the check
             --  label, so wisitoken-dtrt can find the right place.
-            Check (Label_I & ".Code", Error.Label, Check);
-            Check (Label_I & ".Code", Error.Check_Status.Label, Code);
-            if Byte_Region (Error.Check_Status.End_Name) = WisiToken.Null_Buffer_Region then
+            Check (Label_I & ".Code", Error.Label, User_Parse_Action);
+            Check (Label_I & ".Code", Error.Status.Label, Code);
+            if Byte_Region (Error.Status.End_Name) = WisiToken.Null_Buffer_Region then
                --  End_Name is empty; check begin_name
-               Check (Label_I & ".Error_Token_ID", ID (Error.Check_Status.Begin_Name), Error_Token_ID);
+               Check (Label_I & ".Error_Token_ID", ID (Error.Status.Begin_Name), Error_Token_ID);
                Check (Label_I & ".Error_Token_Byte_Region",
-                      Byte_Region (Error.Check_Status.Begin_Name),
+                      Byte_Region (Error.Status.Begin_Name),
                       Error_Token_Byte_Region);
             else
-               Check (Label_I & ".Error_Token_ID", ID (Error.Check_Status.End_Name), Error_Token_ID);
-               Check (Label_I & ".Error_Token_Byte_Region", Byte_Region (Error.Check_Status.End_Name),
+               Check (Label_I & ".Error_Token_ID", ID (Error.Status.End_Name), Error_Token_ID);
+               Check (Label_I & ".Error_Token_Byte_Region", Byte_Region (Error.Status.End_Name),
                       Error_Token_Byte_Region);
             end if;
          end if;
@@ -1398,7 +1401,7 @@ package body Test_McKenzie_Recover is
       --
       --  This is similar to an Extra_Name_Error from a semantic check, and
       --  the fix is the same. It provided the first rationale for expanding
-      --  Semantic_Check_Fixes into Language_Fixes.
+      --  In_Parse_Action_Fixes into Language_Fixes.
       --
       --  Language_Fixes returns two solutions.
 

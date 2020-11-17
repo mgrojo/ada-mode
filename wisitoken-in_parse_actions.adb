@@ -18,15 +18,15 @@
 pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
-package body WisiToken.Semantic_Checks is
+package body WisiToken.In_Parse_Actions is
 
-   function Image (Item : in Check_Status; Tree : in Syntax_Trees.Tree) return String
+   function Image (Item : in Status; Tree : in Syntax_Trees.Tree) return String
    is begin
       case Item.Label is
       when Ok =>
-         return Check_Status_Label'Image (Item.Label);
+         return Status_Label'Image (Item.Label);
       when Error =>
-         return '(' & Check_Status_Label'Image (Item.Label) & ", " &
+         return '(' & Status_Label'Image (Item.Label) & ", " &
            Syntax_Trees.Image (Tree, Item.Begin_Name) & ',' &
            Syntax_Trees.Image (Tree, Item.End_Name) & ')';
       end case;
@@ -39,7 +39,7 @@ package body WisiToken.Semantic_Checks is
       Start_Index  : in     Positive_Index_Type;
       End_Index    : in     Positive_Index_Type;
       End_Optional : in     Boolean)
-     return Check_Status
+     return Status
    is
       use Syntax_Trees;
    begin
@@ -103,7 +103,7 @@ package body WisiToken.Semantic_Checks is
      (Nonterm    : in out Syntax_Trees.Recover_Token;
       Tokens     : in     Syntax_Trees.Recover_Token_Array;
       Name_Index : in     Positive_Index_Type)
-     return Check_Status
+     return Status
    is begin
       Syntax_Trees.Set_Name (Nonterm, Syntax_Trees.Name (Tokens (Name_Index)));
       return (Label => Ok);
@@ -114,7 +114,7 @@ package body WisiToken.Semantic_Checks is
       Tokens      : in     Syntax_Trees.Recover_Token_Array;
       First_Index : in     Positive_Index_Type;
       Last_Index  : in     Positive_Index_Type)
-     return Check_Status
+     return Status
    is
       use Syntax_Trees;
    begin
@@ -127,7 +127,7 @@ package body WisiToken.Semantic_Checks is
       Partial_Parse_Byte_Goal : in Buffer_Pos;
       Recover_Active          : in Boolean;
       Nonterm                 : in Syntax_Trees.Recover_Token)
-     return Check_Status
+     return Status
    is begin
       if Partial_Parse_Active and then
         (not Recover_Active) and then
@@ -139,4 +139,4 @@ package body WisiToken.Semantic_Checks is
       end if;
    end Terminate_Partial_Parse;
 
-end WisiToken.Semantic_Checks;
+end WisiToken.In_Parse_Actions;

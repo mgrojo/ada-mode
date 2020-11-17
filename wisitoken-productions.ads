@@ -21,7 +21,7 @@
 pragma License (Modified_GPL);
 
 with SAL.Gen_Unbounded_Definite_Vectors;
-with WisiToken.Semantic_Checks;
+with WisiToken.In_Parse_Actions;
 with WisiToken.Syntax_Trees;
 package WisiToken.Productions is
    use all type Ada.Containers.Count_Type;
@@ -38,8 +38,8 @@ package WisiToken.Productions is
       --  Recursion for each token. There may be more than one recursion cycle for any token,
       --  but we don't track that.
 
-      Action : WisiToken.Syntax_Trees.Semantic_Action;
-      Check  : WisiToken.Semantic_Checks.Semantic_Check;
+      Post_Parse_Action : Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : In_Parse_Actions.In_Parse_Action;
    end record
    with Dynamic_Predicate =>
      (Tokens.Length = 0 or Tokens.First_Index = 1) and

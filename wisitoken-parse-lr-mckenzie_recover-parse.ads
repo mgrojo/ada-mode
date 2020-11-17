@@ -29,7 +29,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Action                   : in              Reduce_Action_Rec;
       Nonterm                  :    out          Syntax_Trees.Recover_Token;
       Default_Contains_Virtual : in              Boolean)
-     return Semantic_Checks.Check_Status;
+     return In_Parse_Actions.Status;
    --  Reduce Stack according to Action, setting Nonterm.
 
    function Delete_Current_Applies
@@ -153,14 +153,14 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       --  conflict, but not parsed; it should be ignored.
       --
       --  Otherwise, if Config.Error_Token.ID = Invalid_Token_ID and
-      --  Config.Check_Status.Label = Ok, Config was parsed successfully to
-      --  the goal.
+      --  Config.User_Parse_Action_Status.Label = Ok, Config was parsed
+      --  successfully to the goal.
       --
       --  Otherwise, the parser failed a semantic check, or encountered an
       --  Error action. Action gives the last action processed. Shift_Count
-      --  gives the number of shifts performed. If Check_Status.Label is
-      --  Error, Action.Item.Verb must be Reduce, and Config is in the
-      --  pre-reduce state.
+      --  gives the number of shifts performed. If
+      --  User_Parse_Action_Status.Label is Error, Action.Item.Verb must be
+      --  Reduce, and Config is in the pre-reduce state.
    end record;
 
    package Parse_Item_Arrays is new SAL.Gen_Bounded_Definite_Vectors

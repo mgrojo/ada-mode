@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Grammar semantic check routines.
+--  Grammar in parse action routines.
 --
 --  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
 --
@@ -19,17 +19,17 @@ pragma License (Modified_GPL);
 
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
-package WisiToken.Semantic_Checks is
+package WisiToken.In_Parse_Actions is
 
-   type Check_Status_Label is
+   type Status_Label is
      (Ok,
       Missing_Name_Error, -- block start has name, required block end name missing
       Extra_Name_Error,   -- block start has no name, end has one
       Match_Names_Error); -- both names present, but don't match
 
-   subtype Error is Check_Status_Label range Check_Status_Label'Succ (Ok) .. Check_Status_Label'Last;
+   subtype Error is Status_Label range Status_Label'Succ (Ok) .. Status_Label'Last;
 
-   type Check_Status (Label : Check_Status_Label := Ok) is record
+   type Status (Label : Status_Label := Ok) is record
       case Label is
       when Ok =>
          null;
@@ -40,21 +40,21 @@ package WisiToken.Semantic_Checks is
       end case;
    end record;
 
-   subtype Error_Check_Status is Check_Status
-   with Dynamic_Predicate => Error_Check_Status.Label /= Ok;
+   subtype Error_Status is Status
+   with Dynamic_Predicate => Error_Status.Label /= Ok;
 
-   function Image (Item : in Check_Status; Tree : in Syntax_Trees.Tree) return String;
+   function Image (Item : in Status; Tree : in Syntax_Trees.Tree) return String;
 
-   type Semantic_Check is access function
+   type In_Parse_Action is access function
      (Lexer          : access constant WisiToken.Lexer.Instance'Class;
       Nonterm        : in out Syntax_Trees.Recover_Token;
       Tokens         : in     Syntax_Trees.Recover_Token_Array;
       Recover_Active : in     Boolean)
-     return Check_Status;
+     return Status;
    --  Called during parsing and error recovery to implement higher level
    --  checks, such as block name matching in Ada.
 
-   Null_Check : constant Semantic_Check := null;
+   Null_Check : constant In_Parse_Action := null;
 
    function Match_Names
      (Lexer        : access constant WisiToken.Lexer.Instance'Class;
@@ -63,7 +63,7 @@ package WisiToken.Semantic_Checks is
       Start_Index  : in     Positive_Index_Type;
       End_Index    : in     Positive_Index_Type;
       End_Optional : in     Boolean)
-     return Check_Status;
+     return Status;
    --  Check that buffer text at Tokens (Start_Index).Name matches buffer
    --  text at Tokens (End_Index).Name. Comparison is controlled by
    --  Descriptor.Case_Insensitive.
@@ -72,12 +72,12 @@ package WisiToken.Semantic_Checks is
      (Nonterm    : in out Syntax_Trees.Recover_Token;
       Tokens     : in     Syntax_Trees.Recover_Token_Array;
       Name_Index : in     Positive_Index_Type)
-     return Check_Status;
+     return Status;
    function Merge_Names
      (Nonterm    : in out Syntax_Trees.Recover_Token;
       Tokens     : in     Syntax_Trees.Recover_Token_Array;
       Name_Index : in     Positive_Index_Type)
-     return Check_Status
+     return Status
    renames Propagate_Name;
    --  Set Nonterm.Name to Tokens (Name_Index).Name, or .Byte_Region, if
    --  .Name is Null_Buffer_Region. Return Ok.
@@ -87,7 +87,7 @@ package WisiToken.Semantic_Checks is
       Tokens      : in     Syntax_Trees.Recover_Token_Array;
       First_Index : in     Positive_Index_Type;
       Last_Index  : in     Positive_Index_Type)
-     return Check_Status;
+     return Status;
    --  Set Nonterm.Name to the merger of Tokens (First_Index ..
    --  Last_Index).Name, return Ok.
    --
@@ -99,9 +99,9 @@ package WisiToken.Semantic_Checks is
       Partial_Parse_Byte_Goal : in Buffer_Pos;
       Recover_Active          : in Boolean;
       Nonterm                 : in Syntax_Trees.Recover_Token)
-     return Check_Status;
+     return Status;
    pragma Inline (Terminate_Partial_Parse);
    --  If partial parse is complete, raise Wisitoken.Partial_Parse;
    --  otherwise return Ok.
 
-end WisiToken.Semantic_Checks;
+end WisiToken.In_Parse_Actions;

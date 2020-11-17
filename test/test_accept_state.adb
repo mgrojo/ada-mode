@@ -70,7 +70,7 @@ package body Test_Accept_State is
        EOF_ID        => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
-   Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
+   Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
      --  First production in Grammar must be the terminating

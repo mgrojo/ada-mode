@@ -45,19 +45,19 @@ package body WisiToken.Wisi_Ada is
       end return;
    end "&";
 
-   function "+" (Tokens : in Token_ID_Arrays.Vector; Action : in Syntax_Trees.Semantic_Action) return Right_Hand_Side
+   function "+" (Tokens : in Token_ID_Arrays.Vector; Action : in Syntax_Trees.Post_Parse_Action) return Right_Hand_Side
    is begin
-      return (Tokens, Recursion => <>, Action => Action, Check => null);
+      return (Tokens, Recursion => <>, Post_Parse_Action => Action, In_Parse_Action => null);
    end "+";
 
-   function "+" (Tokens : in Token_ID; Action : in Syntax_Trees.Semantic_Action) return Right_Hand_Side
+   function "+" (Tokens : in Token_ID; Action : in Syntax_Trees.Post_Parse_Action) return Right_Hand_Side
    is begin
-      return (Only (Tokens), Recursion => <>, Action => Action, Check => null);
+      return (Only (Tokens), Recursion => <>, Post_Parse_Action => Action, In_Parse_Action => null);
    end "+";
 
-   function "+" (Action : in Syntax_Trees.Semantic_Action) return Right_Hand_Side
+   function "+" (Action : in Syntax_Trees.Post_Parse_Action) return Right_Hand_Side
    is begin
-      return (Tokens => <>, Recursion => <>, Action => Action, Check => null);
+      return (Tokens => <>, Recursion => <>, Post_Parse_Action => Action, In_Parse_Action => null);
    end "+";
 
    function Only (Item : in WisiToken.Productions.Right_Hand_Side) return WisiToken.Productions.RHS_Arrays.Vector

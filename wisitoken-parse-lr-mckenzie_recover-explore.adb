@@ -66,7 +66,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end if;
 
       Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
-      Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
+      Config.User_Parse_Action_Status   := (Label => WisiToken.In_Parse_Actions.Ok);
 
       if Config.Stack.Is_Full then
          Super.Config_Full ("do_shift stack", Parser_Index);
@@ -93,7 +93,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Action            : in              Reduce_Action_Rec;
       Do_Language_Fixes : in              Boolean := True)
    is
-      use all type Semantic_Checks.Check_Status_Label;
+      use all type In_Parse_Actions.Status_Label;
       use all type WisiToken.Parse.LR.Parser.Language_Fixes_Access;
 
       Prev_State : constant Unknown_State_Index := Config.Stack.Peek.State;
@@ -103,15 +103,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Nonterm    : Syntax_Trees.Recover_Token;
       New_State  : Unknown_State_Index;
    begin
-      Config.Check_Status := Parse.Reduce_Stack
+      Config.User_Parse_Action_Status := Parse.Reduce_Stack
         (Super, Shared, Config.Stack, Action, Nonterm, Default_Contains_Virtual => True);
-      case Config.Check_Status.Label is
+      case Config.User_Parse_Action_Status.Label is
       when Ok =>
          null;
 
-      when Semantic_Checks.Error =>
-         Config.Error_Token       := Nonterm;
-         Config.Check_Token_Count := Action.Token_Count;
+      when In_Parse_Actions.Error =>
+         Config.Error_Token                   := Nonterm;
+         Config.User_Parse_Action_Token_Count := Action.Token_Count;
 
          if Do_Language_Fixes then
             if Shared.Language_Fixes /= null then
@@ -122,13 +122,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          end if;
 
          --  Finish the reduce; ignore the check fail.
-         if Config.Stack.Depth < SAL.Base_Peek_Type (Config.Check_Token_Count) then
+         if Config.Stack.Depth < SAL.Base_Peek_Type (Config.User_Parse_Action_Token_Count) then
             raise SAL.Programmer_Error;
          else
-            Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
+            Config.Stack.Pop (SAL.Base_Peek_Type (Config.User_Parse_Action_Token_Count));
          end if;
          Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
-         Config.Check_Status   := (Label => Ok);
+         Config.User_Parse_Action_Status   := (Label => Ok);
       end case;
 
       if Config.Stack.Depth = 0 or else Config.Stack.Peek.State = Unknown_State then
@@ -268,7 +268,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
       Config            : in              Configuration)
    --  Apply the ops in Config.Insert_Delete; they were inserted by some
-   --  fix. Leaves Config.Error_Token, Config.Check_Status set. If there
+   --  fix. Leaves Config.Error_Token, Config.User_Parse_Action_Status set. If there
    --  are conflicts, all are parsed. All succeeding configs are enqueued
    --  in Local_Config_Heap.
    is
@@ -337,7 +337,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    is
       use Config_Op_Arrays, Config_Op_Array_Refs;
       use Parse.Parse_Item_Arrays;
-      use all type Semantic_Checks.Check_Status_Label;
+      use all type In_Parse_Actions.Status_Label;
 
       Parse_Items : aliased Parse.Parse_Item_Arrays.Vector;
 
@@ -384,9 +384,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                return Continue;
 
             when Undo_Reduce =>
-               if Config.Check_Status.Label /= Ok then
+               if Config.User_Parse_Action_Status.Label /= Ok then
                   --  This is the "ignore error" solution for a check fail; check it.
-                  Config.Check_Status   := (Label => Ok);
+                  Config.User_Parse_Action_Status   := (Label => Ok);
                   Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
 
                else
@@ -419,8 +419,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             Item : Parse.Parse_Item renames Parse.Parse_Item_Array_Refs.Variable_Ref
               (Parse_Items, First_Index (Parse_Items));
          begin
-            if Item.Config.Check_Status.Label /= Ok then
-               Config.Check_Status := Item.Config.Check_Status;
+            if Item.Config.User_Parse_Action_Status.Label /= Ok then
+               Config.User_Parse_Action_Status := Item.Config.User_Parse_Action_Status;
                Config.Error_Token  := Item.Config.Error_Token;
 
                if Item.Shift_Count > 0 then
@@ -442,7 +442,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   --  did that. So the very first token caused an error, and Config is
                   --  unchanged. Just set the error.
                   Config.Error_Token  := Item.Config.Error_Token;
-                  Config.Check_Status := (Label => Ok);
+                  Config.User_Parse_Action_Status := (Label => Ok);
                   return Continue;
                else
                   --  Item.Config differs from Config, so enqueue it.
@@ -453,7 +453,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   --  test_mckenzie_recover.adb Extra_Begin). On the other hand, this
                   --  can lead to lots of bogus configs (see If_In_Handler).
                   Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
-                  Config.Check_Status   := (Label => Ok);
+                  Config.User_Parse_Action_Status   := (Label => Ok);
 
                   return Continue;
                end if;
@@ -562,7 +562,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  forever, making no progress. So we give it a cost.
 
       New_Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
-      New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
+      New_Config.User_Parse_Action_Status   := (Label => WisiToken.In_Parse_Actions.Ok);
 
       if Is_Full (New_Config.Ops) then
          Super.Config_Full ("push_back 1", Parser_Index);
@@ -661,7 +661,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       pragma Assert (not Token.Virtual); -- We assume caller used Undo_Reduce_Valid.
 
       New_Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
-      New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
+      New_Config.User_Parse_Action_Status   := (Label => WisiToken.In_Parse_Actions.Ok);
 
       Token_Count := Unchecked_Undo_Reduce (New_Config.Stack, Super.Tree.all, Shared.Table.all);
 
@@ -768,7 +768,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                               New_Config : Configuration := Config;
                            begin
                               New_Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
-                              New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
+                              New_Config.User_Parse_Action_Status   := (Label => WisiToken.In_Parse_Actions.Ok);
 
                               Do_Reduce_1
                                 ("Insert", Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action);
@@ -861,7 +861,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   "Minimal_Complete_Actions: abandon " & Image (Action.ID, Descriptor) & ": undo push back");
             end if;
          else
-            Config.Check_Status           := (Label => WisiToken.Semantic_Checks.Ok);
+            Config.User_Parse_Action_Status           := (Label => WisiToken.In_Parse_Actions.Ok);
             Config.Minimal_Complete_State := Active;
             Inserted_Last                 := Inserted_Last + 1;
             if Inserted_Last <= Inserted'Last then
@@ -1171,7 +1171,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      Item.Config.Cost := Item.Config.Cost + Table.McKenzie_Param.Matching_Begin;
                      Item.Config.Strategy_Counts (Matching_Begin) := Item.Config.Strategy_Counts (Matching_Begin) + 1;
                      Item.Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
-                     Item.Config.Check_Status := (Label => WisiToken.Semantic_Checks.Ok);
+                     Item.Config.User_Parse_Action_Status := (Label => WisiToken.In_Parse_Actions.Ok);
 
                      if Trace_McKenzie > Detail then
                         Base.Put
@@ -1650,7 +1650,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          end if;
 
          Config.Error_Token  := Syntax_Trees.Invalid_Recover_Token;
-         Config.Check_Status := (Label => WisiToken.Semantic_Checks.Ok);
+         Config.User_Parse_Action_Status := (Label => WisiToken.In_Parse_Actions.Ok);
 
          --  This is a guess, so we give it a nominal cost
          Config.Cost := Config.Cost + 1;
@@ -1894,7 +1894,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             end Matching_Push_Back;
          begin
             New_Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
-            New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
+            New_Config.User_Parse_Action_Status   := (Label => WisiToken.In_Parse_Actions.Ok);
 
             New_Config.Cost := New_Config.Cost + McKenzie_Param.Delete (Next_ID);
             New_Config.Strategy_Counts (Delete) := Config.Strategy_Counts (Delete) + 1;
@@ -1943,7 +1943,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       use all type Base.Config_Status;
       use all type Parser.Language_Fixes_Access;
-      use all type Semantic_Checks.Check_Status_Label;
+      use all type In_Parse_Actions.Status_Label;
 
       Trace      : WisiToken.Trace'Class renames Super.Trace.all;
       Descriptor : WisiToken.Descriptor renames Super.Tree.Descriptor.all;
@@ -1994,7 +1994,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             --  others (typically 0), so they will be checked first.
          end if;
 
-         if Config.Check_Status.Label = Ok then
+         if Config.User_Parse_Action_Status.Label = Ok then
             --  Parse table Error action.
             --
             --  We don't clear Config.Error_Token here, because
@@ -2027,7 +2027,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                end;
 
                --  finish reduce.
-               Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
+               Config.Stack.Pop (SAL.Base_Peek_Type (Config.User_Parse_Action_Token_Count));
 
                New_State := Goto_For (Table, Config.Stack.Peek.State, Syntax_Trees.ID (Config.Error_Token));
 
@@ -2113,7 +2113,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       --  This is run once per input line, independent of what other ops
       --  have been done.
-      if Config.Check_Status.Label = Ok and
+      if Config.User_Parse_Action_Status.Label = Ok and
         (Descriptor.String_1_ID /= Invalid_Token_ID or Descriptor.String_2_ID /= Invalid_Token_ID) and
         (Config.String_Quote_Checked = Invalid_Line_Number or else Config.String_Quote_Checked <
            Super.Tree.Base_Token (Parse.Peek_Current_First_Shared_Terminal (Super.Tree.all, Config)).Line)

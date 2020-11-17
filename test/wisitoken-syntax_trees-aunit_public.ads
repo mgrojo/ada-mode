@@ -30,8 +30,8 @@ package WisiToken.Syntax_Trees.AUnit_Public is
 
    procedure Check
      (Label    : in String;
-      Computed : in Semantic_Action;
-      Expected : in Semantic_Action);
+      Computed : in Post_Parse_Action;
+      Expected : in Post_Parse_Action);
 
    procedure Check
      (Label           : in String;

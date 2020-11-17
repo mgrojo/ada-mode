@@ -65,7 +65,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                  (State            => Success,
                   Result           => Tree.Add_Nonterm
                     (Production    => (R, RHS_Index),
-                     Action        => RHS.Action,
+                     Action        => RHS.Post_Parse_Action,
                      Children      => (1 .. 0 => Syntax_Trees.Invalid_Node_Access),
                      Clear_Parents => False),
                   Last_Pos         => Pos);
@@ -106,7 +106,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                     (State              => Success,
                      Result             => Parser.Tree.Add_Nonterm
                        (Production      => (R, RHS_Index),
-                        Action          => RHS.Action,
+                        Action          => RHS.Post_Parse_Action,
                         Children        => Syntax_Trees.To_Valid_Node_Access (Children),
                         Default_Virtual => False,
                         Clear_Parents   => True),

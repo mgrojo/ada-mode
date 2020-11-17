@@ -40,19 +40,19 @@ package body WisiToken.Parse.LR.Parser is
       New_State      : in     State_Index;
       Lexer          : in     WisiToken.Lexer.Handle;
       Trace          : in out WisiToken.Trace'Class)
-     return WisiToken.Semantic_Checks.Check_Status_Label
+     return WisiToken.In_Parse_Actions.Status_Label
    is
       --  We treat semantic check errors as parse errors here, to allow
       --  error recovery to take better advantage of them. One recovery
       --  strategy is to fix things so the semantic check passes.
 
-      use all type Semantic_Checks.Check_Status_Label;
-      use all type Semantic_Checks.Semantic_Check;
+      use all type In_Parse_Actions.Status_Label;
+      use all type In_Parse_Actions.In_Parse_Action;
 
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
 
       Nonterm : constant Syntax_Trees.Stream_Node_Ref := Shared_Parser.Tree.Reduce
-        (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Action, New_State,
+        (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Post_Parse_Action, New_State,
          Default_Virtual => Shared_Parser.Tree.Is_Virtual (Parser_State.Current_Token.Node));
       --  Default_Virtual is used if Nonterm is empty; we set it True
       --  because if Current_Token (that triggered the reduce) is virtual,
@@ -67,7 +67,7 @@ package body WisiToken.Parse.LR.Parser is
                RHS_Index             => True));
       end if;
 
-      if Action.Check = null then
+      if Action.In_Parse_Action = null then
          return Ok;
 
       else
@@ -78,29 +78,29 @@ package body WisiToken.Parse.LR.Parser is
 
             Children_Token : constant Syntax_Trees.Recover_Token_Array :=
               Shared_Parser.Tree.Children_Recover_Tokens (Parser_State.Stream, Nonterm.Element);
-            Status         : Semantic_Checks.Check_Status;
+            Status         : In_Parse_Actions.Status;
          begin
-            Status := Action.Check (Lexer, Nonterm_Token, Children_Token, Recover_Active => False);
+            Status := Action.In_Parse_Action (Lexer, Nonterm_Token, Children_Token, Recover_Active => False);
 
             if Trace_Parse > Detail then
-               Trace.Put_Line ("semantic check " & Semantic_Checks.Image (Status, Shared_Parser.Tree));
+               Trace.Put_Line ("semantic check " & In_Parse_Actions.Image (Status, Shared_Parser.Tree));
             end if;
 
             case Status.Label is
             when Ok =>
                return Ok;
 
-            when Semantic_Checks.Error =>
+            when In_Parse_Actions.Error =>
                if Parser_State.Resume_Active then
                   --  Ignore this error; that's how McKenzie_Recover decided to fix it
                   return Ok;
 
                else
                   Parser_State.Errors.Append
-                    ((Label          => Check,
+                    ((Label          => User_Parse_Action,
                       First_Terminal => Shared_Parser.Descriptor.First_Terminal,
                       Last_Terminal  => Shared_Parser.Descriptor.Last_Terminal,
-                      Check_Status   => Status,
+                      Status         => Status,
                       Recover        => (others => <>)));
                   return Status.Label;
                end if;
@@ -202,11 +202,11 @@ package body WisiToken.Parse.LR.Parser is
       Shared_Parser  : in out LR.Parser.Parser)
    --  Apply Action to Current_Parser; sets Current_Parser.Verb.
    is
-      use all type Semantic_Checks.Check_Status_Label;
+      use all type In_Parse_Actions.Status_Label;
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
       Trace        : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
-      Status       : Semantic_Checks.Check_Status_Label;
+      Status       : In_Parse_Actions.Status_Label;
    begin
       if Trace_Parse > Detail then
          Trace.Put
@@ -257,7 +257,7 @@ package body WisiToken.Parse.LR.Parser is
                            else Trimmed_Image (New_State)));
                   end if;
 
-               when Semantic_Checks.Error =>
+               when In_Parse_Actions.Error =>
                   Parser_State.Set_Verb (Error);
                   Parser_State.Zombie_Token_Count := 1;
                end case;
@@ -298,13 +298,13 @@ package body WisiToken.Parse.LR.Parser is
       when Accept_It =>
          case Reduce_Stack_1
            (Shared_Parser, Current_Parser,
-            (Reduce, Action.Production, Action.Action, Action.Check, Action.Token_Count),
+            (Reduce, Action.Production, Action.Post_Parse_Action, Action.In_Parse_Action, Action.Token_Count),
             Accept_State, Shared_Parser.Lexer, Trace)
          is
          when Ok =>
             Parser_State.Set_Verb (Action.Verb);
 
-         when Semantic_Checks.Error =>
+         when In_Parse_Actions.Error =>
             Parser_State.Set_Verb (Error);
             Parser_State.Zombie_Token_Count := 1;
          end case;
@@ -323,7 +323,7 @@ package body WisiToken.Parse.LR.Parser is
               (Shared_Parser.Table.all, Shared_Parser.Tree.State (Parser_State.Stream));
          begin
             Parser_State.Errors.Append
-              ((Label          => LR.Action,
+              ((Label          => LR_Parse_Action,
                 First_Terminal => Expecting'First,
                 Last_Terminal  => Expecting'Last,
                 Error_Token    => Parser_State.Current_Token,
@@ -641,7 +641,7 @@ package body WisiToken.Parse.LR.Parser is
       Image_Augmented : in     Syntax_Trees.Image_Augmented := null)
    is
       use all type Syntax_Trees.User_Data_Access;
-      use all type WisiToken.Syntax_Trees.Semantic_Action;
+      use all type WisiToken.Syntax_Trees.Post_Parse_Action;
 
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
@@ -936,7 +936,7 @@ package body WisiToken.Parse.LR.Parser is
 
       for Item of Parser_State.Errors loop
          case Item.Label is
-         when Action =>
+         when LR_Parse_Action =>
             if Parser.Tree.Is_Virtual (Item.Error_Token.Node) then
                Put_Line
                  (Current_Error,
@@ -957,11 +957,11 @@ package body WisiToken.Parse.LR.Parser is
                end;
             end if;
 
-         when Check =>
+         when User_Parse_Action =>
             Put_Line
               (Current_Error,
                Parser.Lexer.File_Name & ":1:0: semantic check error: " &
-                 Semantic_Checks.Image (Item.Check_Status, Parser.Tree));
+                 In_Parse_Actions.Image (Item.Status, Parser.Tree));
 
          when Message =>
             Put_Line (Current_Error, -Item.Msg);

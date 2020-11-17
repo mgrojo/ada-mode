@@ -120,7 +120,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       end if;
       if Input_Data.Check_Count > 0 then
          Put_Line ("with WisiToken.Lexer;");
-         Put_Line ("with WisiToken.Semantic_Checks;");
+         Put_Line ("with WisiToken.In_Parse_Actions;");
       end if;
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Spec_Context));
       Put_Line ("package " & Package_Name & " is");
@@ -228,7 +228,7 @@ package body WisiToken.BNF.Output_Ada_Common is
                   Indent_Line ("  Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
                   Indent_Line ("  Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
                   Indent_Line ("  Recover_Active : in     Boolean)");
-                  Indent_Line (" return WisiToken.Semantic_Checks.Check_Status;");
+                  Indent_Line (" return WisiToken.In_Parse_Actions.Status;");
                end if;
             end loop;
          end if;
@@ -317,7 +317,6 @@ package body WisiToken.BNF.Output_Ada_Common is
             Put_Line ("with Emacs_Module_Aux;");
             Put_Line ("with emacs_module_h;");
             Put_Line ("with Interfaces.C;");
-            Put_Line ("with WisiToken.Semantic_State;");
          end case;
       end case;
 
@@ -473,10 +472,10 @@ package body WisiToken.BNF.Output_Ada_Common is
       end if;
 
       if Common_Data.Text_Rep then
-         Indent_Line ("function Actions return WisiToken.Parse.LR.Semantic_Action_Array_Arrays.Vector");
+         Indent_Line ("function Actions return WisiToken.Parse.LR.Parse_Actions_Array_Arrays.Vector");
          Indent_Line ("is begin");
          Indent := Indent + 3;
-         Indent_Line ("return Acts : WisiToken.Parse.LR.Semantic_Action_Array_Arrays.Vector do");
+         Indent_Line ("return Acts : WisiToken.Parse.LR.Parse_Actions_Array_Arrays.Vector do");
          Indent := Indent + 3;
          Indent_Line
            ("Acts.Set_First_Last (" & Trimmed_Image (Generate_Data.Grammar.First_Index) & ", " &

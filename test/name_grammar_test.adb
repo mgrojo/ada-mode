@@ -88,7 +88,7 @@ package body Name_Grammar_Test is
        EOF_ID         => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
-   Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
+   Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    --  valid names:
    --  Module.Symbol

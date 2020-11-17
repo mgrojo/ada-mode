@@ -31,8 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-rename Semantic_Action to in_parse_action
-
 update ada-mode.stephe-6
     change/enhance test/*recover_partial to test incremental parse
     include two edit cycles, to catch issues with virtuals in shared_stream

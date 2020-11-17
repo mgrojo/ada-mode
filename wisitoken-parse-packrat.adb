@@ -35,7 +35,7 @@ package body WisiToken.Parse.Packrat is
          end if;
 
          declare
-            use all type Syntax_Trees.Semantic_Action;
+            use all type Syntax_Trees.Post_Parse_Action;
             Tree_Children : constant Syntax_Trees.Node_Access_Array := Tree.Children (Node);
          begin
             Parser.User_Data.Reduce (Tree, Node, Tree_Children);

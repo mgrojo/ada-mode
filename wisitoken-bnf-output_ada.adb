@@ -97,7 +97,7 @@ is
       New_Line;
 
       if Input_Data.Check_Count > 0 then
-         Indent_Line ("use WisiToken.Semantic_Checks;");
+         Indent_Line ("use WisiToken.In_Parse_Actions;");
          New_Line;
       end if;
 
@@ -247,7 +247,7 @@ is
                      Indent_Line ("  Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
                      Indent_Line ("  Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
                      Indent_Line ("  Recover_Active : in     Boolean)");
-                     Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");
+                     Indent_Line (" return WisiToken.In_Parse_Actions.Status");
                      Indent_Line ("is");
 
                      Indent := Indent + 3;

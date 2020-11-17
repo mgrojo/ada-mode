@@ -144,7 +144,7 @@ package body WisiToken.BNF.Generate_Utils is
                      end loop;
                   end if;
                   RHSs (RHS_Index) :=
-                    (Tokens => Tokens, Action => null, Check => null, Recursion => <>);
+                    (Tokens => Tokens, Post_Parse_Action => null, In_Parse_Action => null, Recursion => <>);
                   if Length (Right_Hand_Side.Action) > 0 then
                      Action_All_Empty := False;
                      Action_Names (RHS_Index) := new String'

@@ -61,7 +61,7 @@ package body Dragon_4_45_LALR_Test is
       Case_Insensitive  => False);
    use Token_Enum;
 
-   Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
+   Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
      Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1

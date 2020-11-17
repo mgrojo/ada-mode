@@ -15,7 +15,7 @@
  McKenzie error recovery
 
 parser 0: State 21 Current_Token (-1, 7:(RIGHT_CURLY_BRACKET, (125 . 125))) Resume_Token_Goal 11
-Action
+LR_Parse_Action
 
  1 parallel tasks
 new Worker_Task 1
@@ -168,7 +168,7 @@ recover: succeed, parser count 2
  McKenzie error recovery
 
 parser 1: State 61 Current_Token (-1, 13:(RIGHT_CURLY_BRACKET, (281 . 281))) Resume_Token_Goal 17
-Action
+LR_Parse_Action
 
  1 parallel tasks
  1: succeed 2, enqueue 186, check  49, cost:  6
@@ -287,7 +287,7 @@ recover: succeed, parser count 2
  McKenzie error recovery
 
 parser 2: State 16 Current_Token (-1, 22:(RIGHT_CURLY_BRACKET, (417 . 417))) Resume_Token_Goal 26
-Action
+LR_Parse_Action
 
  1 parallel tasks
  2: succeed 1, enqueue 4, check  2, cost:  1

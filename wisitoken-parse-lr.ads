@@ -44,7 +44,7 @@ with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
 with System.Multiprocessors;
-with WisiToken.Semantic_Checks;
+with WisiToken.In_Parse_Actions;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
    use all type WisiToken.Syntax_Trees.Node_Index;
@@ -81,9 +81,9 @@ package WisiToken.Parse.LR is
 
       when Reduce | Accept_It =>
          --  Production.LHS is the result nonterm
-         Action      : WisiToken.Syntax_Trees.Semantic_Action   := null;
-         Check       : WisiToken.Semantic_Checks.Semantic_Check := null;
-         Token_Count : Ada.Containers.Count_Type                := 0;
+         Post_Parse_Action : WisiToken.Syntax_Trees.Post_Parse_Action   := null;
+         In_Parse_Action   : WisiToken.In_Parse_Actions.In_Parse_Action := null;
+         Token_Count       : Ada.Containers.Count_Type                  := 0;
 
       when Error =>
          null;
@@ -225,22 +225,22 @@ package WisiToken.Parse.LR is
    --  Add a Shift action to tail of State action list.
 
    procedure Add_Action
-     (State           : in out Parse_State;
-      Symbol          : in     Token_ID;
-      Verb            : in     Parse_Action_Verbs;
-      Production      : in     Production_ID;
-      RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
+     (State             : in out Parse_State;
+      Symbol            : in     Token_ID;
+      Verb              : in     Parse_Action_Verbs;
+      Production        : in     Production_ID;
+      RHS_Token_Count   : in     Ada.Containers.Count_Type;
+      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : in     WisiToken.In_Parse_Actions.In_Parse_Action);
    --  Add a Reduce or Accept_It action to tail of State action list.
 
    procedure Add_Action
-     (State           : in out Parse_State;
-      Symbols         : in     Token_ID_Array;
-      Production      : in     Production_ID;
-      RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
+     (State             : in out Parse_State;
+      Symbols           : in     Token_ID_Array;
+      Production        : in     Production_ID;
+      RHS_Token_Count   : in     Ada.Containers.Count_Type;
+      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : in     WisiToken.In_Parse_Actions.In_Parse_Action);
    --  Add duplicate Reduce actions, and final Error action, to tail of
    --  State action list.
 
@@ -249,8 +249,8 @@ package WisiToken.Parse.LR is
       Symbol            : in     Token_ID;
       Reduce_Production : in     Production_ID;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
-      Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check    : in     WisiToken.Semantic_Checks.Semantic_Check);
+      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : in     WisiToken.In_Parse_Actions.In_Parse_Action);
    --  Add a Reduce conflict to State.
 
    procedure Add_Goto
@@ -377,18 +377,18 @@ package WisiToken.Parse.LR is
    type Parse_Table_Ptr is access Parse_Table;
    procedure Free_Table (Table : in out Parse_Table_Ptr);
 
-   type Semantic_Action is record
-      Action : WisiToken.Syntax_Trees.Semantic_Action := null;
-      Check  : WisiToken.Semantic_Checks.Semantic_Check := null;
+   type Parse_Actions is record
+      Post_Parse : Syntax_Trees.Post_Parse_Action   := null;
+      In_Parse   : In_Parse_Actions.In_Parse_Action := null;
    end record;
 
-   package Semantic_Action_Arrays is new SAL.Gen_Unbounded_Definite_vectors (Natural, Semantic_Action, (others => <>));
-   package Semantic_Action_Array_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Token_ID, Semantic_Action_Arrays.Vector, Semantic_Action_Arrays.Empty_Vector);
+   package Parse_Actions_Arrays is new SAL.Gen_Unbounded_Definite_vectors (Natural, Parse_Actions, (others => <>));
+   package Parse_Actions_Array_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Token_ID, Parse_Actions_Arrays.Vector, Parse_Actions_Arrays.Empty_Vector);
 
    function Get_Text_Rep
      (File_Name : in String;
-      Actions   : in Semantic_Action_Array_Arrays.Vector)
+      Actions   : in Parse_Actions_Array_Arrays.Vector)
      return Parse_Table_Ptr;
    --  Read machine-readable text format of states (as output by
    --  WisiToken.Generate.LR.Put_Text_Rep) from file File_Name. Result
@@ -681,9 +681,9 @@ package WisiToken.Parse.LR is
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
-      Error_Token       : Syntax_Trees.Recover_Token;
-      Check_Token_Count : Ada.Containers.Count_Type;
-      Check_Status      : Semantic_Checks.Check_Status;
+      Error_Token                   : Syntax_Trees.Recover_Token;
+      User_Parse_Action_Token_Count : Ada.Containers.Count_Type;
+      User_Parse_Action_Status      : In_Parse_Actions.Status;
       --  If parsing this config ended with a parse error, Error_Token is
       --  the token that failed to shift, Check_Status.Label is Ok.
       --
@@ -737,7 +737,7 @@ package WisiToken.Parse.LR is
    procedure Accumulate (Data : in McKenzie_Data; Counts : in out Strategy_Counts);
    --  Sum Results.Strategy_Counts.
 
-   type Parse_Error_Label is (Action, Check, Message);
+   type Parse_Error_Label is (LR_Parse_Action, User_Parse_Action, Message);
 
    type Parse_Error
      (Label          : Parse_Error_Label;
@@ -747,15 +747,15 @@ package WisiToken.Parse.LR is
       Recover : Configuration;
 
       case Label is
-      when Action =>
+      when LR_Parse_Action =>
          Error_Token : Syntax_Trees.Terminal_Ref;
          --  If Shared_Terminal, it is from the Shared_Stream; if Virtual, from
          --  the parse stream.
 
          Expecting : Token_ID_Set (First_Terminal .. Last_Terminal);
 
-      when Check =>
-         Check_Status : Semantic_Checks.Check_Status;
+      when User_Parse_Action =>
+         Status : In_Parse_Actions.Status;
 
       when Message =>
          Msg : Ada.Strings.Unbounded.Unbounded_String;

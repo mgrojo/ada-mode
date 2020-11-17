@@ -66,7 +66,7 @@ package body WisiToken.Gen_Token_Enum is
 
    function "+"
      (Left  : in Token_Enum_ID;
-      Right : in WisiToken.Syntax_Trees.Semantic_Action)
+      Right : in WisiToken.Syntax_Trees.Post_Parse_Action)
      return WisiToken.Productions.Right_Hand_Side
    is begin
       return WisiToken.Wisi_Ada."+" (+Left, Right);
