@@ -554,6 +554,7 @@ See `ff-other-file-alist'.")
     task_body
     task_type_declaration
     use_clause
+    use_type_clause
     )
   "wisi-cache nonterminal symbols that are Ada declarations.")
 
