@@ -61,6 +61,25 @@ private
    --  The various Check subprograms raise Bad_Config for check fail, and
    --  there are no preconditions, so the checks are always performed.
 
+   type Peek_Shared_State is record
+      Current_Input_Stream_Element : Bounded_Streams.Cursor;
+      Current_Input_Stream_Node    : Syntax_Trees.Node_Access;
+      Input_Stream_Parents         : Syntax_Trees.Node_Stacks.Stack;
+      Current_Shared_Token         : Syntax_Trees.Terminal_Ref;
+   end record;
+
+   function Peek_Shared_Start
+     (Tree   : in     Syntax_Trees.Tree;
+      Config : in     Configuration)
+     return Peek_Shared_State;
+
+   function Peek_Shared_Terminal (State : in Peek_Shared_State) return Syntax_Trees.Node_Access;
+
+   procedure Peek_Next_Shared_Terminal
+     (Tree   : in     Syntax_Trees.Tree;
+      Config : in     Configuration;
+      State  : in out Peek_Shared_State);
+
    procedure Check (ID : Token_ID; Expected_ID : in Token_ID)
    with Inline => True;
    --  Check that ID = Expected_ID; raise Bad_Config if not.
@@ -69,7 +88,7 @@ private
      (Tree   : in     Syntax_Trees.Tree;
       Config : in out Configuration;
       ID     : in     Token_ID);
-   --  Check that Config.Current_Shared_Token has ID. Append a Delete op
+   --  Check that the next input token in Config has ID. Append a Delete op
    --  to Config.Ops, and append it to Config.Insert_Delete.
    --
    --  This or the next routine must be used instead of Config.Ops.Append
@@ -82,7 +101,20 @@ private
      (Tree   : in     Syntax_Trees.Tree;
       Config : in out Configuration;
       IDs    : in     Token_ID_Array);
-   --  Call Delete_Check for each ID in IDs.
+   --  Call Delete_Check for each ID in IDs, incrementing to the next
+   --  token for each.
+
+   procedure Delete_Check
+     (Tree       : in     Syntax_Trees.Tree;
+      Config     : in out Configuration;
+      Peek_State : in out Peek_Shared_State;
+      ID         : in     Token_ID);
+   --  If ID is not Invalid_Token_ID, check that
+   --  Parse.Peek_Shared_Terminal (Peek_State) has ID. Append a Delete op
+   --  to Config.Ops, and append it to Config.Insert_Delete. Then
+   --  increment Peek_State to the next shared terminal.
+   --
+   --  Peek_State is initialized by Parse.Peek_Shared_Start
 
    procedure Do_Push_Back
      (Tree   : in     Syntax_Trees.Tree;
@@ -165,7 +197,8 @@ private
    --  Call Insert for each item in IDs.
 
    procedure Insert
-     (Config : in out Configuration;
+     (Tree   : in     Syntax_Trees.Tree;
+      Config : in out Configuration;
       Before : in     Syntax_Trees.Valid_Node_Access;
       ID     : in     Token_ID);
    --  Same as Insert, but before Before.
@@ -173,9 +206,11 @@ private
    function Push_Back_Valid
      (Tree             : in Syntax_Trees.Tree;
       Config           : in Configuration;
-      Prev_Recover_End : in Syntax_Trees.Node_Index)
+      Prev_Recover_End : in Syntax_Trees.Node_Index := 0)
      return Boolean;
    --  True if Push_Back is a valid op for Config.
+   --
+   --  Language_Fixes may use the default Prev_Recover_End = 0.
 
    procedure Push_Back
      (Tree   : in     Syntax_Trees.Tree;

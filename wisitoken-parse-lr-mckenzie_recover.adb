@@ -708,6 +708,46 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    ----------
    --  Spec private subprograms; for child packages. Declaration order
 
+   function Peek_Shared_Start
+     (Tree   : in     Syntax_Trees.Tree;
+      Config : in     Configuration)
+     return Peek_Shared_State
+   is begin
+      return State : Peek_Shared_State do
+         State.Current_Input_Stream_Element := Config.Input_Stream.First;
+         State.Current_Input_Stream_Node    := Parse.First_Shared_Terminal
+           (Tree, Config.Input_Stream, State.Input_Stream_Parents);
+         State.Current_Shared_Token         := Config.Current_Shared_Token;
+      end return;
+   end Peek_Shared_Start;
+
+   function Peek_Shared_Terminal (State : in Peek_Shared_State) return Syntax_Trees.Node_Access
+   is begin
+      if State.Current_Input_Stream_Node = Syntax_Trees.Invalid_Node_Access then
+         return State.Current_Shared_Token.Node;
+
+      else
+         return State.Current_Input_Stream_Node;
+      end if;
+   end Peek_Shared_Terminal;
+
+   procedure Peek_Next_Shared_Terminal
+     (Tree   : in     Syntax_Trees.Tree;
+      Config : in     Configuration;
+      State  : in out Peek_Shared_State)
+   is
+      use Syntax_Trees;
+   begin
+      if State.Current_Input_Stream_Node = Invalid_Node_Access then
+         Tree.Next_Shared_Terminal (State.Current_Shared_Token);
+
+      else
+         Parse.Next_Shared_Terminal
+           (Tree, Config.Input_Stream, State.Current_Input_Stream_Element, State.Current_Input_Stream_Node,
+            State.Input_Stream_Parents);
+      end if;
+   end Peek_Next_Shared_Terminal;
+
    procedure Check (ID : Token_ID; Expected_ID : in Token_ID)
    is begin
       if ID /= Expected_ID then
@@ -724,7 +764,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       use Config_Op_Arrays;
       Op : constant Config_Op := (Delete, Expected_ID, Tree.Get_Node_Index (Node));
    begin
-      Check (Tree.ID (Node), Expected_ID);
+      if Expected_ID /= Invalid_Token_ID then
+         Check (Tree.ID (Node), Expected_ID);
+      end if;
       if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
          raise Bad_Config;
       end if;
@@ -748,21 +790,22 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Config : in out Configuration;
       IDs    : in     Token_ID_Array)
    is
-      Current_Input_Stream_Element : Bounded_Streams.Cursor;
-      Current_Input_Stream_Node    : Syntax_Trees.Node_Access;
-      Input_Stream_Parents         : Syntax_Trees.Node_Stacks.Stack;
-      Current_Shared_Token         : Syntax_Trees.Terminal_Ref;
+      State : Peek_Shared_State := Peek_Shared_Start (Tree, Config);
    begin
-      Parse.Peek_Shared_Start
-        (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Input_Stream_Parents,
-         Current_Shared_Token);
-
       for ID of IDs loop
-         Delete_Check (Tree, Config, Parse.Peek_Shared_Terminal (Current_Input_Stream_Node, Current_Shared_Token), ID);
-         Parse.Peek_Next_Shared_Terminal
-           (Tree, Config, Current_Input_Stream_Element, Current_Input_Stream_Node, Input_Stream_Parents,
-            Current_Shared_Token);
+         Delete_Check (Tree, Config, Peek_Shared_Terminal (State), ID);
+         Peek_Next_Shared_Terminal (Tree, Config, State);
       end loop;
+   end Delete_Check;
+
+   procedure Delete_Check
+     (Tree       : in     Syntax_Trees.Tree;
+      Config     : in out Configuration;
+      Peek_State : in out Peek_Shared_State;
+      ID         : in     Token_ID)
+   is begin
+      Delete_Check (Tree, Config, Peek_Shared_Terminal (Peek_State), ID);
+      Peek_Next_Shared_Terminal (Tree, Config, Peek_State);
    end Delete_Check;
 
    procedure Do_Push_Back
@@ -934,7 +977,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Config : in out Configuration;
       ID     : in     Token_ID)
    is begin
-      Insert (Config, Parse.Peek_Current_First_Shared_Terminal (Tree, Config), ID);
+      Insert (Tree, Config, Parse.Peek_Current_First_Shared_Terminal (Tree, Config), ID);
    end Insert;
 
    procedure Insert
@@ -947,10 +990,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end loop;
    end Insert;
 
-   procedure Insert (Config : in out Configuration; Before : in Syntax_Trees.Valid_Node_Access; ID : in Token_ID)
+   procedure Insert
+     (Tree   : in     Syntax_Trees.Tree;
+      Config : in out Configuration;
+      Before : in     Syntax_Trees.Valid_Node_Access;
+      ID     : in     Token_ID)
    is
       use Config_Op_Arrays;
-      Op : constant Config_Op := (Insert, ID, Syntax_Trees.Get_Node_Index (Before));
+      Op : constant Config_Op := (Insert, ID, Tree.Get_Node_Index (Before));
    begin
       if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
          raise Bad_Config;
@@ -1124,7 +1171,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    function Push_Back_Valid
      (Tree             : in Syntax_Trees.Tree;
       Config           : in Configuration;
-      Prev_Recover_End : in Syntax_Trees.Node_Index)
+      Prev_Recover_End : in Syntax_Trees.Node_Index := 0)
      return Boolean
    is (Config.Stack.Depth > 1 and then
          (declare

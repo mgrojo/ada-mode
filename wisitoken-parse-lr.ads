@@ -614,9 +614,9 @@ package WisiToken.Parse.LR is
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean with
      Pre => Stack.Depth >= Depth;
-   --  Return True if Stack top Depth items have valid Tree_Indices,
-   --  which is true if they were copied from the parser stack, and not
-   --  pushed by recover.
+   --  Return True if Stack top Depth items are not Virtual, which is
+   --  true if they were copied from the parser stack, and not pushed by
+   --  recover.
 
    package Bounded_Streams is new SAL.Gen_Bounded_Definite_Doubly_Linked_Lists (Syntax_Trees.Node_Access);
 

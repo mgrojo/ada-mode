@@ -733,12 +733,12 @@ package body WisiToken.Parse.LR.Parser is
             end if;
             Parser.Trace.Put_Line
               (Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": root node: " & Parser.Tree.Image
-                 (Parser.Tree.Root));
+                 (Parser.Tree.Root, Node_Numbers => Trace_Action > Extra));
          end if;
 
          --  We do this here, not at the end of Parse, for compatibility with
          --  existing tests.
-         Parser.Tree.Set_Parents;
+         Parser.Tree.Set_Parents (Parser_State.Stream);
 
          declare
             --  Recompute Parser.Line_Begin_Token using final parse tree terminal
@@ -846,10 +846,10 @@ package body WisiToken.Parse.LR.Parser is
                exit when Tree.ID (I) = Parser.Descriptor.EOI_ID;
                --  From a wisitoken_accept production containing EOI
 
-               exit when not Tree.Has_Parent (I);
-               --  From a partial parse; no EOI in the parse tree.
-
                I := Tree.Next_Terminal (I);
+
+               exit when I = Invalid_Node_Access;
+               --  From a partial parse; no EOI in the parse tree.
             end loop;
          end;
 

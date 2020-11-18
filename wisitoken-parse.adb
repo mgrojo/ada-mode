@@ -60,7 +60,12 @@ package body WisiToken.Parse is
    begin
       if Token.ID = Parser.Descriptor.New_Line_ID then
          if Parser.Line_Begin_Char_Pos.Length = 0 then
-            Parser.Line_Begin_Char_Pos.Set_First_Last (Token.Line + 1, Token.Line + 1);
+            if Token.Line = 1 then
+               Parser.Line_Begin_Char_Pos.Set_First_Last (1, Token.Line + 1);
+               Parser.Line_Begin_Char_Pos (1) := 1;
+            else
+               Parser.Line_Begin_Char_Pos.Set_First_Last (Token.Line + 1, Token.Line + 1);
+            end if;
          elsif Token.Line + 1 > Parser.Line_Begin_Char_Pos.Last_Index then
             Parser.Line_Begin_Char_Pos.Set_First_Last (Parser.Line_Begin_Char_Pos.First_Index, Token.Line + 1);
          end if;

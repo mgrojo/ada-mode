@@ -2016,6 +2016,22 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Name;
 
+   function Name (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return Buffer_Region
+   is
+      --  We use the Element node because the nonterminal has the most valid Name.
+      Node : constant Valid_Node_Access := Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node;
+   begin
+         if Node.Label = Nonterm then
+            if Node.Name = Null_Buffer_Region then
+               return Node.Byte_Region;
+            else
+               return Node.Name;
+            end if;
+         else
+            return Node.Byte_Region;
+         end if;
+   end Name;
+
    function Next_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    is
       Result : Node_Access := Node;
@@ -3156,7 +3172,9 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Set_Name;
 
-   procedure Set_Parents (Tree : in out Syntax_Trees.Tree)
+   procedure Set_Parents
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID := Invalid_Stream_ID)
    is
       procedure Set_Parents
         (Tree   : in out Syntax_Trees.Tree;
@@ -3181,14 +3199,20 @@ package body WisiToken.Syntax_Trees is
          end case;
       end Set_Parents;
    begin
-      if Tree.Streams.Length = 0 then
-         if Tree.Root = Invalid_Node_Access then
-            raise SAL.Parameter_Error with "invalid_tree: no streams, Tree.Root not set";
+      if Stream = Invalid_Stream_ID then
+         if Tree.Streams.Length = 0 then
+            if Tree.Root = Invalid_Node_Access then
+               raise SAL.Parameter_Error with "invalid_tree: no streams, Tree.Root not set";
+            else
+               Set_Parents (Tree, Tree.Root, Invalid_Node_Access);
+            end if;
          else
-            Set_Parents (Tree, Tree.Root, Invalid_Node_Access);
+            for Element of Tree.Streams (Tree.Shared_Stream.Cur).Elements loop
+               Set_Parents (Tree, Element.Node, Invalid_Node_Access);
+            end loop;
          end if;
       else
-         for Element of Tree.Streams (Tree.Shared_Stream.Cur).Elements loop
+         for Element of Tree.Streams (Stream.Cur).Elements loop
             Set_Parents (Tree, Element.Node, Invalid_Node_Access);
          end loop;
       end if;
@@ -3509,8 +3533,7 @@ package body WisiToken.Syntax_Trees is
       Node        : in Valid_Node_Access;
       Byte_Region : in Buffer_Region;
       Char_Region : in Buffer_Region;
-      Line        : in Line_Number_Type;
-      Column      : in Ada.Text_IO.Count)
+      Line        : in Line_Number_Type)
    is begin
       Node.Byte_Region := Byte_Region;
       Node.Char_Region := Char_Region;

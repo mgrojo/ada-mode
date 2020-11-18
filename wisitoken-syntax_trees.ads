@@ -346,15 +346,15 @@ package WisiToken.Syntax_Trees is
    --  Insert_Token/Delete_Token.
 
    procedure Lexer_To_Augmented
-     (User_Data          : in out User_Data_Type;
-      Tree               : in out Syntax_Trees.Tree'Class;
-      Token              : in     Base_Token;
-      Prev_Grammar_Token : in     Node_Access)
+     (User_Data     : in out User_Data_Type;
+      Tree          : in out Syntax_Trees.Tree'Class;
+      Token         : in     Base_Token;
+      Grammar_Token : in     Node_Access)
    is null;
    --  Token is a grammar or non-grammar token that was just returned by
-   --  User_Data.Lexer. If grammar, it is Prev_Grammar_Token; if
-   --  non-grammar, it has already been added to Prev_Grammar_Token, or
-   --  to Parser.Leading_Non_Grammar if Prev_Grammar_Token is
+   --  User_Data.Lexer. If grammar, it is Grammar_Token; if
+   --  non-grammar, it has already been added to Grammar_Token, or
+   --  to Parser.Leading_Non_Grammar if Grammar_Token is
    --  Invalid_Token_Index. Read auxiliary data from User_Data.Lexer, do
    --  something useful with it. Called before parsing, once for each
    --  non-grammar token in the input stream.
@@ -776,8 +776,7 @@ package WisiToken.Syntax_Trees is
       Node        : in Valid_Node_Access;
       Byte_Region : in Buffer_Region;
       Char_Region : in Buffer_Region;
-      Line        : in Line_Number_Type;
-      Column      : in Ada.Text_IO.Count)
+      Line        : in Line_Number_Type)
    with Pre => Tree.Label (Node) in Virtual_Terminal | Virtual_Identifier;
 
    procedure Shift
@@ -884,6 +883,11 @@ package WisiToken.Syntax_Trees is
    with Pre => Index /= Invalid_Stream_Index;
 
    function Byte_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Buffer_Region;
+
+   function Name (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return Buffer_Region
+   with Pre => Valid_Stream_Node (Tree, Ref);
+   --  If Ref.Element.Name = Null_Buffer_Region, return
+   --  Ref.Element.Byte_Region; else return Ref.Element.Name.
 
    function RHS_Index
      (Tree : in Syntax_Trees.Tree;
@@ -1368,9 +1372,13 @@ package WisiToken.Syntax_Trees is
 
    function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean;
 
-   procedure Set_Parents (Tree : in out Syntax_Trees.Tree);
-   --  If Tree.Root is set, sets parents in tree rooted at Tree.Root.
-   --  Else sets parents in all elements of Tree.Shared_Stream.
+   procedure Set_Parents
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID := Invalid_Stream_ID);
+   --  If Stream is not Invalid_Stream_ID, set parents in all elements of
+   --  Stream. Otherwise, if Tree.Root is set, sets parents in tree
+   --  rooted at Tree.Root. Otherwise sets parents in all elements of
+   --  Tree.Shared_Stream.
    --
    --  No precondition for packrat.
 
