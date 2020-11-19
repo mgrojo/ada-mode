@@ -689,6 +689,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
                         --  FIXME: don't need breakdown if action on first_terminal is reduce;
                         --  see wisitoken-parse-lr-parser.adb Get_Action
+                        --  FIXME: don't do Undo_Reduce here?
                         Breakdown (Super.Tree.all, Config.Input_Stream);
 
                         Current_Token := Get_Current_Token

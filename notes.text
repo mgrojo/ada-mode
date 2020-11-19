@@ -31,6 +31,9 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+wisitoken-bnf-generate cache recursion
+    doesn't change between lalr, lr1, packrat
+
 update ada-mode.stephe-6
     change/enhance test/*recover_partial to test incremental parse
     include two edit cycles, to catch issues with virtuals in shared_stream

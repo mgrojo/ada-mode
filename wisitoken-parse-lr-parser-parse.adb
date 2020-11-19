@@ -411,7 +411,7 @@ begin
                      if Shared_Parser.Tree.Has_Input (Parser_State.Stream) then
                         Trace.Put_Line
                           ("    stream input: " & Shared_Parser.Tree.Image
-                             (Parser_State.Stream, Stack => False, Input => True, Children => Trace_Parse >= Detail));
+                             (Parser_State.Stream, Stack => False, Input => True, Children => Trace_Parse >= Extra));
                      end if;
                      Trace.Put_Line
                        ("    recover_insert_delete:" &

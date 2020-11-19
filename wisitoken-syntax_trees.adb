@@ -475,7 +475,8 @@ package body WisiToken.Syntax_Trees is
                Augmented   =>
                  (if Node.Augmented = null or User_Data = null
                   then null
-                  else Copy_Augmented (User_Data.all, Node.Augmented)));
+                  else Copy_Augmented (User_Data.all, Node.Augmented)),
+               VT_Non_Grammar => Node.VT_Non_Grammar);
 
             Tree.Nodes.Append (New_Node);
             Tree.Next_Terminal_Node_Index := @ + 1;
@@ -594,7 +595,8 @@ package body WisiToken.Syntax_Trees is
                Augmented   =>
                  (if Source_Node.Augmented = null or User_Data = null
                   then null
-                  else Copy_Augmented (User_Data.all, Source_Node.Augmented)));
+                  else Copy_Augmented (User_Data.all, Source_Node.Augmented)),
+               VT_Non_Grammar => Source_Node.VT_Non_Grammar);
 
             Destination.Nodes.Append (New_Dest_Node);
 
@@ -1296,6 +1298,30 @@ package body WisiToken.Syntax_Trees is
       end return;
    end First_Terminal;
 
+   function First_Terminal
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
+     return Terminal_Ref
+   is begin
+      if Ref.Node = Invalid_Node_Access then
+         if Ref.Element = Invalid_Stream_Index then
+            return Invalid_Stream_Node_Ref;
+         else
+            return
+              (Stream  => Ref.Stream,
+               Element => Ref.Element,
+               Node    => First_Terminal (Tree, Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node));
+         end if;
+      elsif Ref.Node.Label in Terminal_Label then
+         return Ref;
+      else
+         return
+           (Stream  => Ref.Stream,
+            Element => Ref.Element,
+            Node    => First_Terminal (Tree, Ref.Node));
+      end if;
+   end First_Terminal;
+
    function First_Terminal_ID (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID
    is
    begin
@@ -1455,6 +1481,20 @@ package body WisiToken.Syntax_Trees is
      return Token_ID
    is begin
       return Node.ID;
+   end ID;
+
+   function ID
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
+     return WisiToken.Token_ID
+   is begin
+      if Ref.Node /= Invalid_Node_Access then
+         return Ref.Node.ID;
+      elsif Ref.Element /= Invalid_Stream_Index then
+         return Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node.ID;
+      else
+         return Invalid_Token_ID;
+      end if;
    end ID;
 
    function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Base_Identifier_Index
@@ -2510,6 +2550,7 @@ package body WisiToken.Syntax_Trees is
         (Element =>
            (case Terminal.Label is
             when Source_Terminal    => Terminal.Non_Grammar'Access,
+            when Virtual_Terminal   => Terminal.VT_Non_Grammar'Access,
             when Virtual_Identifier => Terminal.VI_Non_Grammar'Access,
             when others             => raise SAL.Programmer_Error),
          Dummy => 0);
@@ -2524,6 +2565,7 @@ package body WisiToken.Syntax_Trees is
         (Element =>
            (case Terminal.Label is
             when Source_Terminal    => Terminal.Non_Grammar'Access,
+            when Virtual_Terminal   => Terminal.VT_Non_Grammar'Access,
             when Virtual_Identifier => Terminal.VI_Non_Grammar'Access,
             when others             => raise SAL.Programmer_Error),
          Dummy => 0);

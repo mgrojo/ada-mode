@@ -195,7 +195,7 @@ package WisiToken.Syntax_Trees is
      (Tree : in Syntax_Trees.Tree;
       Ref  : in Stream_Node_Ref)
      return Boolean;
-   --  True if Ref refers to a node.
+   --  True if Ref refers to a node (possibly an empty nonterm).
 
    subtype Terminal_Ref is Stream_Node_Ref
    with Dynamic_Predicate =>
@@ -732,13 +732,13 @@ package WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Terminal  : in     Valid_Node_Access)
      return Base_Token_Array_Var_Ref
-   with Pre => Tree.Label (Terminal) in Source_Terminal | Virtual_Identifier;
+   with Pre => Tree.Label (Terminal) in Terminal_Label;
 
    function Non_Grammar_Const
      (Tree     : in Syntax_Trees.Tree;
       Terminal : in Valid_Node_Access)
      return Base_Token_Array_Const_Ref
-   with Pre => Tree.Label (Terminal) in Source_Terminal | Virtual_Identifier;
+   with Pre => Tree.Label (Terminal) in Terminal_Label;
 
    function Insert_Source_Terminal
      (Tree     : in out Syntax_Trees.Tree;
@@ -873,6 +873,12 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Access)
      return WisiToken.Token_ID;
 
+   function ID
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
+     return WisiToken.Token_ID;
+   --  One of Ref.Node.ID, Ref.Element.Node.ID, Invalid_Token_ID
+
    function Production_ID
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
@@ -888,6 +894,8 @@ package WisiToken.Syntax_Trees is
    with Pre => Valid_Stream_Node (Tree, Ref);
    --  If Ref.Element.Name = Null_Buffer_Region, return
    --  Ref.Element.Byte_Region; else return Ref.Element.Name.
+
+   function Char_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Buffer_Region;
 
    function RHS_Index
      (Tree : in Syntax_Trees.Tree;
@@ -1135,6 +1143,18 @@ package WisiToken.Syntax_Trees is
    --  Element is empty.
    --
    --  Note that the result cannot be empty; all streams are terminated by EOI.
+
+   function First_Terminal
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
+     return Terminal_Ref
+   with Pre => Valid_Stream_Node (Tree, Ref);
+   --  If Ref.Node is a terminal, return Ref. Else if Ref.Node is a
+   --  nonterm, return First_Terminal (Ref.Node). Else Ref.Node is
+   --  invalid; return First_Terminal (Ref.Element.Node).
+   --
+   --  Note that the result can be Invalid_Stream_Node if Ref is an empty
+   --  nonterm.
 
    function First_Terminal
      (Tree    : in     Syntax_Trees.Tree;
@@ -1690,12 +1710,14 @@ private
       case Label is
       when Source_Terminal =>
          Non_Grammar : aliased Base_Token_Arrays.Vector;
-         --  Immediately following Node. In initial parse, this can only be in
-         --  a Source_Terminal node. But editing the tree can copy it to a
+         --  Immediately following Node. In initial lex, this can only be in a
+         --  Source_Terminal node. User Insert_Terminal can move it to a
+         --  Virtual_Terminal node, editing the tree can copy it to a
          --  Virtual_Identifier node.
 
       when Virtual_Terminal =>
-         null;
+         VT_Non_Grammar : aliased Base_Token_Arrays.Vector;
+         --  Immediately following Node.
 
       when Virtual_Identifier =>
          Identifier : Identifier_Index; -- into user data
@@ -1831,6 +1853,9 @@ private
 
    function Byte_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Buffer_Region
    is (Node.Byte_Region);
+
+   function Char_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Buffer_Region
+   is (Node.Char_Region);
 
    function Child_Count (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return SAL.Base_Peek_Type
    is (Node.Child_Count);
@@ -2033,8 +2058,9 @@ private
       Ref  : in Stream_Node_Ref)
      return Boolean
    is (Tree.Contains (Ref.Stream, Ref.Element) and
-         ((not Tree.Parents_Set or Ref.Node = Invalid_Node_Access) or else
-            Tree.Subtree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element)));
+         (Ref.Node = Invalid_Node_Access or else
+            (not Tree.Parents_Set or else
+               Tree.Subtree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element))));
 
    Dummy_Node : constant Node_Access := new Node'(Label => Virtual_Identifier, Child_Count => 0, others => <>);
 

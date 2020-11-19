@@ -168,11 +168,8 @@ package body WisiToken.Parse.LR.Parser is
                      Action_Cur := Action_For (Table, Current_State, Tree.ID (First_In_Current));
                      Action     := Action_Cur.Item;
 
-                     if Action.Verb /= Shift then
-                        --  Don't need breakdown.
-                        return;
-
-                     else
+                     case Action.Verb is
+                     when Shift =>
                         if Parser_State.Current_Token.Stream /= Parser_State.Stream then
                            --  To breakdown a shared_stream token, we first have to create a
                            --  parse stream input element for it, and do the breakdown in the
@@ -188,7 +185,34 @@ package body WisiToken.Parse.LR.Parser is
                         end if;
 
                         return;
-                     end if;
+
+                     when Accept_It | Reduce =>
+                        return;
+
+                     when Error =>
+                        if Tree.Label (Tree.Peek (Parser_State.Stream)) in Terminal_Label then
+                           return;
+
+                        else
+                           --  [Wagner Graham 1998] has Right_Breakdown here, but that is often
+                           --  overkill; we only need Undo_Reduce until Current_Token is
+                           --  shiftable.
+                           --
+                           --  IMPROVEME: if error recovery is correct here, we do more
+                           --  Undo_Reduce than necessary (and it will never happen in
+                           --  Error_Recovery).
+                           --
+                           --  Note that we don't need to check if we've just done a reduce here;
+                           --  we would have gotten Error for that action instead.
+
+                           Undo_Reduce (Tree, Table, Parser_State.Stream);
+
+                           if Trace_Parse > Detail then
+                              Shared_Parser.Trace.Put_Line (" ... undo_reduce");
+                           end if;
+                        end if;
+
+                     end case;
                   end if;
                end if;
             end;
@@ -326,9 +350,12 @@ package body WisiToken.Parse.LR.Parser is
               ((Label          => LR_Parse_Action,
                 First_Terminal => Expecting'First,
                 Last_Terminal  => Expecting'Last,
-                Error_Token    => Parser_State.Current_Token,
-                Expecting      => Expecting,
-                Recover        => (others => <>)));
+
+                Error_Token => Shared_Parser.Tree.First_Terminal (Parser_State.Current_Token),
+                --  Current_Token is never an empty nonterm
+
+                Expecting => Expecting,
+                Recover   => (others => <>)));
 
             if Trace_Parse > Outline then
                Put
