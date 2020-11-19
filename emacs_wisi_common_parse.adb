@@ -339,11 +339,11 @@ package body Emacs_Wisi_Common_Parse is
                   end if;
                   if Params.Zombie_Limit > 0 then
                      Parser.Table.McKenzie_Param.Zombie_Limit :=
-                       WisiToken.Syntax_Trees.Element_Index (Params.Zombie_Limit);
+                       WisiToken.Syntax_Trees.Node_Index (Params.Zombie_Limit);
                   end if;
                   if Params.Check_Limit > 0 then
                      Parser.Table.McKenzie_Param.Check_Limit :=
-                       WisiToken.Syntax_Trees.Element_Index (Params.Check_Limit);
+                       WisiToken.Syntax_Trees.Node_Index (Params.Check_Limit);
                   end if;
                   if Params.Enqueue_Limit > 0 then
                      Parser.Table.McKenzie_Param.Enqueue_Limit := Params.Enqueue_Limit;

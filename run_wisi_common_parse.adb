@@ -44,8 +44,7 @@ package body Run_Wisi_Common_Parse is
       Put_Line ("refactor_action:");
       Parse_Data.Refactor_Help;
       Put_Line ("options:");
-      Put_Line ("--verbosity n m l: (no 'm' for refactor)");
-      Put_Line ("   n: parser; m: mckenzie; l: action");
+      Put_Line ("--verbosity <trace config>");
       Put_Line ("   0 - only report parse errors");
       Put_Line ("   1 - shows spawn/terminate parallel parsers, error recovery enter/exit");
       Put_Line ("   2 - add each parser cycle, error recovery enqueue/check");
@@ -68,7 +67,6 @@ package body Run_Wisi_Common_Parse is
                    else "; default" & Parser.Table.Max_Parallel'Image));
       Put_Line ("--task_count n : worker tasks in error recovery");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
-      Put_Line ("--debug_mode : tracebacks from unhandled exceptions; default disabled");
       Put_Line ("--lang_params <language-specific params>");
       Put_Line ("--repeat_count n : repeat parse count times, for profiling; default 1");
       New_Line;
@@ -135,36 +133,22 @@ package body Run_Wisi_Common_Parse is
             exit when Arg > Argument_Count;
 
             if Argument (Arg) = "--verbosity" then
-               WisiToken.Trace_Parse    := Integer'Value (Argument (Arg + 1));
-               case Command is
-               when Parse =>
-                  WisiToken.Trace_McKenzie := Integer'Value (Argument (Arg + 2));
-                  WisiToken.Trace_Action   := Integer'Value (Argument (Arg + 3));
-                  Arg                      := Arg + 4;
-               when Refactor =>
-                  WisiToken.Trace_Action   := Integer'Value (Argument (Arg + 2));
-                  Arg                      := Arg + 3;
-               end case;
-
-               WisiToken.Debug_Mode := WisiToken.Trace_Parse > Outline or WisiToken.Trace_McKenzie > Outline;
+               WisiToken.Enable_Trace (Argument (Arg + 1));
+               Arg := Arg + 2;
 
             elsif Argument (Arg) = "--zombie_limit" then
-               Parser.Table.McKenzie_Param.Zombie_Limit := WisiToken.Syntax_Trees.Element_Index'Value
+               Parser.Table.McKenzie_Param.Zombie_Limit := WisiToken.Syntax_Trees.Node_Index'Value
                  (Argument (Arg + 1));
                Arg := Arg + 2;
 
             elsif Argument (Arg) = "--check_limit" then
-               Parser.Table.McKenzie_Param.Check_Limit := WisiToken.Syntax_Trees.Element_Index'Value
+               Parser.Table.McKenzie_Param.Check_Limit := WisiToken.Syntax_Trees.Node_Index'Value
                  (Argument (Arg + 1));
                Arg := Arg + 2;
 
             elsif Argument (Arg) = "--check_delta" then
                Parser.Table.McKenzie_Param.Check_Delta_Limit := Integer'Value (Argument (Arg + 1));
                Arg := Arg + 2;
-
-            elsif Argument (Arg) = "--debug_mode" then
-               WisiToken.Debug_Mode := True;
-               Arg := Arg + 1;
 
             elsif Argument (Arg) = "--disable_recover" then
                Parser.Enable_McKenzie_Recover := False;

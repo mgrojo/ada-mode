@@ -25,8 +25,8 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1): incremental parse
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-1")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
+  (xgit . "/Projects/org.wisitoken.stephe-2")
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-6")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
@@ -43,10 +43,24 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+wisitoken-bnf-generate cache recursion
+    doesn't change between lalr, lr1
+
+incremental parse
+    run all tests
+    test/ada_mode-options.ads parse indent ada-indent-comment-col-0 t Prev_Terminal precondition fail
+        wisi_eoi; has_parent is false. should have a parent!
+        not in the tree; wisitoken_accept does not push wisi_eoi; wisitoken-generate-lr.adb
+        so how did it find wisi-eoi?
+            data.line_begin_token has wisi_eoi, from shared_stream end.
+
+    add incremental tests
+
+    Incremental indent - store line indent result in auxilliary? Delta? for contained lines in each nonterm?
+        Or fast enough to recompute all?
+
 in ada_annex_p.wy:
     wisi-parse-buffer indent doesn't use lisp-indent-buffer
-
-    try full recursion since eliminated some conflicts
 
 indent bug:
     indent_line had delta_indent.hanging_paren_state for delta_2, but not delta_1
@@ -97,10 +111,6 @@ indent bug
 
 doc wisi-enable-parse in skeleton-end-hook?
 
-
-incremental parse
-    Incremental indent - store line indent result in auxilliary? Delta? for contained lines in each nonterm?
-        Or fast enough to recompute all?
 
 ada2020
     recursion reduces power of Minimal_Complete in error recover too much
