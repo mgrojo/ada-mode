@@ -371,6 +371,7 @@ begin
          raise;
       end Parse_Check;
 
+      Cached_Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
       --  Get the the input file quads
       Parse_Check (None, None, WisiToken_Grammar_Runtime.Meta);
@@ -504,6 +505,10 @@ begin
                Time_Start : Time;
                Time_End   : Time;
 
+               --  We could use a cached Generate_Data if not
+               --  (Input_Data.If_Lexer_Present or Input_Data.If_Parser_Present), but
+               --  that would not save much time, and would complicate this logic. We
+               --  do cache Recursions.
                Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
                  WisiToken.BNF.Generate_Utils.Initialize (Input_Data'Unchecked_Access, Ignore_Conflicts);
 
@@ -568,9 +573,11 @@ begin
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                         Input_Data.Max_Parallel,
                         Parse_Table_File_Name,
-                        Include_Extra     => Test_Main,
-                        Ignore_Conflicts  => Ignore_Conflicts,
-                        Partial_Recursion => Input_Data.Language_Params.Partial_Recursion);
+                        Include_Extra         => Test_Main,
+                        Ignore_Conflicts      => Ignore_Conflicts,
+                        Partial_Recursion     => Input_Data.Language_Params.Partial_Recursion,
+                        Use_Cached_Recursions => not (Input_Data.If_Lexer_Present or Input_Data.If_Parser_Present),
+                        Recursions            => Cached_Recursions);
 
                      if WisiToken.Trace_Time then
                         Time_End := Clock;
@@ -604,11 +611,13 @@ begin
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                         Input_Data.Max_Parallel,
                         Parse_Table_File_Name,
-                        Include_Extra     => Test_Main,
-                        Ignore_Conflicts  => Ignore_Conflicts,
-                        Partial_Recursion => Input_Data.Language_Params.Partial_Recursion,
-                        Task_Count        => Generate_Task_Count,
-                        Hash_Table_Size   => Input_Data.Language_Params.LR1_Hash_Table_Size);
+                        Include_Extra         => Test_Main,
+                        Ignore_Conflicts      => Ignore_Conflicts,
+                        Partial_Recursion     => Input_Data.Language_Params.Partial_Recursion,
+                        Task_Count            => Generate_Task_Count,
+                        Hash_Table_Size       => Input_Data.Language_Params.LR1_Hash_Table_Size,
+                        Use_Cached_Recursions => not (Input_Data.If_Lexer_Present or Input_Data.If_Parser_Present),
+                        Recursions            => Cached_Recursions);
 
                      if Trace_Time then
                         Time_End := Clock;

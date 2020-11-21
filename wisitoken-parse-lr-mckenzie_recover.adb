@@ -1291,9 +1291,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end if;
 
       Result := Result & Image (Config.Ops, Descriptor);
-      if Config.Minimal_Complete_State /= None then
-         Result := Result & " minimal_complete " & Config.Minimal_Complete_State'Image;
-      end if;
       Trace.Put_Line (-Result);
    end Put;
 

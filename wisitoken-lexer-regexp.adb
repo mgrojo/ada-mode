@@ -259,4 +259,14 @@ package body WisiToken.Lexer.Regexp is
       return Lexer.Source.Buffer (Integer (Byte_Region.First) .. Integer (Byte_Region.Last));
    end Buffer_Text;
 
+   overriding
+   procedure Begin_Pos
+     (Lexer      : in     Instance;
+      Begin_Byte :    out Buffer_Pos;
+      Begin_Char :    out Buffer_Pos;
+      Begin_Line :    out Line_Number_Type)
+   is begin
+      Begin_Pos (Lexer.Source, Begin_Byte, Begin_Char, Begin_Line);
+   end Begin_Pos;
+
 end WisiToken.Lexer.Regexp;

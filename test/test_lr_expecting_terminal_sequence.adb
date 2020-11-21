@@ -156,12 +156,15 @@ package body Test_LR_Expecting_Terminal_Sequence is
 
       First : WisiToken.Token_ID renames LR1_Descriptor.First_Terminal;
       Last  : WisiToken.Token_ID renames LR1_Descriptor.Last_Terminal;
+
+      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Parser.Descriptor, Syntax),
-         WisiToken.Generate.LR.LALR_Generate.Generate (Top_Level.Grammar, LALR_Descriptor, Grammar_File_Name => ""),
+         WisiToken.Generate.LR.LALR_Generate.Generate
+           (Top_Level.Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

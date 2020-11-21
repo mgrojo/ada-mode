@@ -20,6 +20,17 @@ pragma License (Modified_GPL);
 with GNAT.Strings;
 package body WisiToken.Lexer is
 
+   procedure Begin_Pos
+     (Object     : in     Source;
+      Begin_Byte :    out Buffer_Pos;
+      Begin_Char :    out Buffer_Pos;
+      Begin_Line :    out Line_Number_Type)
+   is begin
+      Begin_Byte := Object.Buffer_Nominal_First_Byte;
+      Begin_Char := Object.Buffer_Nominal_First_Char;
+      Begin_Line := Object.Line_Nominal_First;
+   end Begin_Pos;
+
    procedure Finalize (Object : in out Source)
    is begin
       case Object.Label is

@@ -152,12 +152,14 @@ package body Grune_9_30 is
          AUnit.Assertions.Assert (False, "'" & Command & "': " & Ada.Exceptions.Exception_Message (E));
       end Execute_Command;
 
+      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Parser.Descriptor, Syntax),
-         WisiToken.Generate.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor, Grammar_File_Name => ""),
+         WisiToken.Generate.LR.LR1_Generate.Generate
+           (Grammar, LR1_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

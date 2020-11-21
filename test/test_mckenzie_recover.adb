@@ -853,9 +853,9 @@ package body Test_McKenzie_Recover is
       --  ada_mode-recover_string_quote_*.
 
       Parse_Text
-        ("procedure Remove is begin A := ""B""; A := ""C"" &" & ASCII.LF & "at""; " & ASCII.LF & "end Remove;");
-      --            |10       |20       |30         |40    |45                 |50     |52
-      --  1         2      3  4     5 6   7   8 9 10 11    12               13 14 15              16  17    18
+        ("procedure Remove is begin A := ""B""; A := ""C"" &" & ASCII.LF & "at"" ; " & ASCII.LF & "end Remove;");
+      --            |10       |20       |30         |40    |45                 |50     |53
+      --  1         2      3  4     5 6   7   8 9 10 11    12               13 14 15               16  17    18
 
       --  In process of splitting a string across two lines; missing open
       --  quote at 48.
@@ -1544,7 +1544,8 @@ package body Test_McKenzie_Recover is
       --  It inserts a virtual quote before '/' 98, succeeds.
 
       Check_Recover
-        (Errors_Length           => 1,
+        (Label                   => "1",
+         Errors_Length           => 1,
          Error_Token_ID          => +SLASH_ID,
          Error_Token_Byte_Region => (99, 99),
          Ops                     => +(Delete, +SLASH_ID, 16) & (Delete, +BODY_ID, 17) & (Delete, +GREATER_ID, 18) &
@@ -1554,6 +1555,26 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 43,
          Check_Low               => 6,
          Cost                    => 1);
+
+      --  This case involves breakdown of parse stream input in order to
+      --  Delete a token.
+      Parse_Text
+        ("procedure Remove is begin A := ""B""; A := ""C"" &" & ASCII.LF & "at D  "" ; " & ASCII.LF & "end Remove;");
+      --            |10       |20       |30         |40    |45                 |50   |55
+      --  1         2      3  4     5 6   7   8 9 10 11    12               13 14 15 16                17  18
+
+      Check_Recover
+        (Label                   => "2",
+         Errors_Length           => 1,
+         Error_Token_ID          => +IDENTIFIER_ID,
+         Error_Token_Byte_Region => (51, 51),
+         Ops                     => +(Push_Back, +IDENTIFIER_ID, 13) & (Delete, +IDENTIFIER_ID, 13) &
+           (Delete, +IDENTIFIER_ID, 14) & (Fast_Forward, 15),
+         Strategy_Counts         => (String_Quote => 1, others => 0),
+         Enqueue_Low             => 60,
+         Check_Low               => 6,
+         Cost                    => 1);
+
    end String_Quote_1;
 
    procedure String_Quote_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -2100,8 +2121,8 @@ package body Test_McKenzie_Recover is
            +(Delete, +RIGHT_PAREN_ID, 12) & (Insert, +SEMICOLON_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +NUMERIC_LITERAL_ID, 13) & (Insert, +THEN_ID, 13),
          Strategy_Counts         => (Minimal_Complete => 3, Matching_Begin => 1, Delete => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 951, when LR1 => 972),
-         Check_Low               => (case Test.Alg is when LALR => 128, when LR1 => 125),
+         Enqueue_Low             => (case Test.Alg is when LALR => 934, when LR1 => 972),
+         Check_Low               => (case Test.Alg is when LALR => 125, when LR1 => 125),
          Cost                    => 7);
    end Do_Delete_First;
 
@@ -2262,6 +2283,40 @@ package body Test_McKenzie_Recover is
       end case;
    end Check_Multiple_Delete_For_Insert;
 
+   procedure Pushback_Nonterm_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+   begin
+      --  This encountered a bug in mckenzie_recover.parse that caused an infinite loop
+
+      WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions := True;
+
+      Parse_Text ("procedure A is begin loop Put (Cache) ;  end A  ;");
+      --           1        10        20        30        40
+      --           1         2 3  4     5    6   7 8   9 10 11  12 13
+
+      --  There is a missing 'end loop;'.
+
+      --  Language_Fixes enqueues:
+      --
+      --  ((PUSH_BACK, END, 11), (PUSH_BACK, sequence_of_statements, 6), (INSERT, END, 6), (INSERT, LOOP, 6))
+      --
+      --  which requires parsing a nonterm from Config.Input_Stream. That is
+      --  more expensive than the solution below.
+
+      Check_Recover
+        (Label                   => "1",
+         Errors_Length           => 1,
+         Error_Token_ID          => +IDENTIFIER_ID,
+         Error_Token_Byte_Region => (46, 46),
+         Ops                     => +(Push_Back, +END_ID, 11) & (Insert, +END_ID, 11) & (Insert, +LOOP_ID, 11) &
+           (Insert, +SEMICOLON_ID, 11),
+         Strategy_Counts         => (Language_Fix => 1, others => 0),
+         Enqueue_Low             => (case Test.Alg is when LALR => 144, when LR1 => 109),
+         Check_Low               => (case Test.Alg is when LALR => 29, when LR1 => 23),
+         Cost                    => 0);
+   end Pushback_Nonterm_1;
+
    ----------
    --  Public subprograms
 
@@ -2326,6 +2381,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Forbid_Minimal_Complete'Access, "Forbid_Minimal_Complete");
       Register_Routine (T, Matching_Begin_Parse_All_Conflicts'Access, "Matching_Begin_Parse_All_Conflicts");
       Register_Routine (T, Check_Multiple_Delete_For_Insert'Access, "Check_Multiple_Delete_For_Insert");
+      Register_Routine (T, Pushback_Nonterm_1'Access, "Pushback_Nonterm_1");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
@@ -2370,6 +2426,8 @@ package body Test_McKenzie_Recover is
    begin
       --  Run after all tests in register; ie, after LALR, before LR1
       End_Name_Optional := Orig_End_Name_Optional;
+
+      WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions := False;
    end Tear_Down_Case;
 
    overriding procedure Set_Up (T : in out Test_Case)

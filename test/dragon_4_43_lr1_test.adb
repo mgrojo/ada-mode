@@ -227,8 +227,10 @@ package body Dragon_4_43_LR1_Test is
       use WisiToken.Parse.LR;
       use WisiToken.Parse.LR.AUnit;
 
+      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
+
       Computed : constant Parse_Table_Ptr := WisiToken.Generate.LR.LR1_Generate.Generate
-        (Grammar, LR1_Descriptor, Grammar_File_Name => "");
+        (Grammar, LR1_Descriptor, Grammar_File_Name => "", Recursions => Recursions);
 
       Expected : Parse_Table
         (State_First       => 0,
@@ -293,12 +295,14 @@ package body Dragon_4_43_LR1_Test is
          AUnit.Assertions.Assert (False, "'" & Command & "': " & Ada.Exceptions.Exception_Message (E));
       end Execute_Command;
 
+      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (LR1_Descriptor'Access, Syntax),
-         WisiToken.Generate.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor, Grammar_File_Name => ""),
+         WisiToken.Generate.LR.LR1_Generate.Generate
+           (Grammar, LR1_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

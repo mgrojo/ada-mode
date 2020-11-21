@@ -130,15 +130,21 @@ package body WisiToken.Parse.LR.Parser_Lists is
 
                   Temp : Syntax_Trees.Stream_Index := Tree.First_Input (Parser_State.Stream).Element;
 
-                  Node : constant Syntax_Trees.Valid_Node_Access := Tree.Get_Node (Parser_State.Stream, Temp);
+                  Ref : Syntax_Trees.Stream_Node_Ref :=
+                    (Parser_State.Stream, Temp, Tree.Get_Node (Parser_State.Stream, Temp));
                begin
-                  Tree.Stream_Delete (Parser_State.Stream, Temp);
-
-                  if Tree.Label (Node) = Syntax_Trees.Nonterm then
-                     --  We only support Delete for terminals; that includes deleting
-                     --  preceding empty nonterms.
-                     pragma Assert (Tree.Child_Count (Node) = 0 and Tree.Has_Input (Parser_State.Stream));
+                  if Tree.Label (Ref.Node) = Syntax_Trees.Nonterm then
+                     if Tree.Child_Count (Ref.Node) = 0 then
+                        --  Delete an empty nonterm preceding the target terminal.
+                        Tree.Stream_Delete (Parser_State.Stream, Temp);
+                        pragma Assert (Tree.Has_Input (Parser_State.Stream));
+                     else
+                        --  We only support Delete for terminals. See
+                        --  test_mckenzie_recover.adb String_Quote_1 second case.
+                        Tree.Left_Breakdown (Ref);
+                     end if;
                   else
+                     Tree.Stream_Delete (Parser_State.Stream, Temp);
                      exit;
                   end if;
                end;

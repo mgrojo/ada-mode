@@ -477,7 +477,9 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Parse_Table_File_Name : in     String              := "";
       Include_Extra         : in     Boolean             := False;
       Ignore_Conflicts      : in     Boolean             := False;
-      Partial_Recursion     : in     Boolean             := True)
+      Partial_Recursion     : in     Boolean             := True;
+      Use_Cached_Recursions : in     Boolean             := False;
+      Recursions            : in out WisiToken.Generate.Recursions)
      return Parse_Table_Ptr
    is
       Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate_Table > Detail;
@@ -489,11 +491,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Nullable : constant Token_Array_Production_ID := WisiToken.Generate.Nullable (Grammar);
       Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Nullable);
 
-      Recursions : constant WisiToken.Generate.Recursions :=
-        (if Partial_Recursion
-         then WisiToken.Generate.Compute_Partial_Recursion (Grammar, Descriptor)
-         else WisiToken.Generate.Compute_Full_Recursion (Grammar, Descriptor));
-      Recursions_Time : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+      Recursions_Time : Ada.Calendar.Time;
 
       Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=
         Compute_Minimal_Terminal_Sequences (Descriptor, Grammar, Grammar_File_Name);
@@ -516,6 +514,15 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Table_Time           : Ada.Calendar.Time;
       Minimal_Actions_Time : Ada.Calendar.Time;
    begin
+      if not Use_Cached_Recursions or Recursions = Empty_Recursions then
+         Recursions :=
+           (if Partial_Recursion
+            then WisiToken.Generate.Compute_Partial_Recursion (Grammar, Descriptor)
+            else WisiToken.Generate.Compute_Full_Recursion (Grammar, Descriptor));
+      end if;
+      Set_Grammar_Recursions (Recursions, Grammar);
+      Recursions_Time := Ada.Calendar.Clock;
+
       WisiToken.Generate.Error := False; -- necessary in unit tests; some previous test might have encountered an error.
 
       if Trace_Generate_Table + Trace_Generate_Minimal_Complete > Outline then

@@ -149,6 +149,8 @@ package WisiToken.Generate is
       --  path (I) are from path (I).
    end record;
 
+   Empty_Recursions : constant Recursions := (Full => False, Recursions => <>);
+
    package Recursion_Lists is new Ada.Containers.Doubly_Linked_Lists (Recursion_Index);
    function Image is new SAL.Ada_Containers.Gen_Doubly_Linked_Lists_Image
      (Recursion_Index, "=", Recursion_Lists, Trimmed_Image);
@@ -156,22 +158,23 @@ package WisiToken.Generate is
    function To_Graph (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Grammar_Graphs.Graph;
 
    function Compute_Full_Recursion
-     (Grammar    : in out WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in     WisiToken.Descriptor)
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor)
      return Recursions;
-   --  Each element of result is a cycle in the grammar. Also sets
-   --  Recursive components in Grammar.
+   --  Each element of result is a cycle in the grammar.
 
    function Compute_Partial_Recursion
-     (Grammar    : in out WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in     WisiToken.Descriptor)
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor)
      return Recursions;
    --  Each element of the result contains all members of a non-trivial
    --  strongly connected component in the grammar, in arbitrary order.
    --  This is an approximation to the full recursion, when that is too
    --  hard to compute (ie for Java).
-   --
-   --  Also sets Recursive components in Grammar.
+
+   procedure Set_Grammar_Recursions
+     (Recursions : in     WisiToken.Generate.Recursions;
+      Grammar    : in out WisiToken.Productions.Prod_Arrays.Vector);
 
    ----------
    --  Indented text output. Mostly used for code generation in wisi,

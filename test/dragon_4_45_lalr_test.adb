@@ -183,8 +183,10 @@ package body Dragon_4_45_LALR_Test is
 
       pragma Unreferenced (T);
 
+      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
+
       Computed : constant Parse_Table_Ptr := WisiToken.Generate.LR.LALR_Generate.Generate
-        (Grammar, LALR_Descriptor, Grammar_File_Name => "");
+        (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions);
 
       Expected : Parse_Table
         (State_First       => 0,
@@ -243,12 +245,14 @@ package body Dragon_4_45_LALR_Test is
          AUnit.Assertions.Assert (False, "'" & Command & "': " & Exception_Name (E) & ": " & Exception_Message (E));
       end Execute_Command;
 
+      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Parser.Descriptor, Syntax),
-         WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor, Grammar_File_Name => ""),
+         WisiToken.Generate.LR.LALR_Generate.Generate
+           (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

@@ -147,6 +147,8 @@ package body Association_Grammar_Test is
 
       Trace_File_Name : constant String := "association_grammar_test.out";
       Expected_Trace_File_Name : constant String := "../test/association_grammar_test.out_good";
+
+      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
       --  The test is that there are no exceptions, and that the parse
       --  trace matches the known good trace.
@@ -161,7 +163,8 @@ package body Association_Grammar_Test is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Parser.Descriptor, Syntax),
-         WisiToken.Generate.LR.LALR_Generate.Generate (Full_Grammar, LALR_Descriptor, Grammar_File_Name => ""),
+         WisiToken.Generate.LR.LALR_Generate.Generate
+           (Full_Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

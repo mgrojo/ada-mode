@@ -1254,8 +1254,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Config            : in out          Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
-      --  FIXME: not updated to Config.Input_Stream
-
       use Config_Op_Arrays;
       use all type Parser.Language_String_ID_Set_Access;
       use WisiToken.Syntax_Trees;

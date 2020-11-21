@@ -141,6 +141,13 @@ package WisiToken.Lexer.re2c is
 
    overriding function File_Name (Lexer : in Instance) return String;
 
+   overriding
+   procedure Begin_Pos
+     (Lexer      : in     Instance;
+      Begin_Byte :    out Buffer_Pos;
+      Begin_Char :    out Buffer_Pos;
+      Begin_Line :    out Line_Number_Type);
+
 private
 
    type Instance is new WisiToken.Lexer.Instance with

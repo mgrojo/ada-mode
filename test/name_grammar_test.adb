@@ -160,12 +160,15 @@ package body Name_Grammar_Test is
       Put_Line ("Full Parser");
       declare
          Parser : WisiToken.Parse.LR.Parser.Parser (LALR_Descriptor'Access);
+
+         Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
       begin
          WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
             Trace'Access,
             Lexer.New_Lexer (Parser.Descriptor, Syntax),
-            WisiToken.Generate.LR.LALR_Generate.Generate (Full_Grammar, LALR_Descriptor, Grammar_File_Name => ""),
+            WisiToken.Generate.LR.LALR_Generate.Generate
+              (Full_Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
             User_Data                      => null,
             Language_Fixes                 => null,
             Language_Matching_Begin_Tokens => null,

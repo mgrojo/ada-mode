@@ -71,14 +71,14 @@ package WisiToken.Lexer is
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
      is abstract;
-   --  Reset Lexer to start a new parse, reading from Input. File_Name is
-   --  used for error messages.
+   --  Reset Lexer to start a new parse, reading from Input. Input'First
+   --  is Begin_Byte. File_Name is used for error messages.
 
    procedure Reset_With_File
      (Lexer      : in out Instance;
       File_Name  : in     String;
-      Begin_Pos  : in     Buffer_Pos       := Invalid_Buffer_Pos;
-      End_Pos    : in     Buffer_Pos       := Invalid_Buffer_Pos;
+      Begin_Byte : in     Buffer_Pos       := Invalid_Buffer_Pos;
+      End_Byte   : in     Buffer_Pos       := Invalid_Buffer_Pos;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
      is abstract;
@@ -153,6 +153,14 @@ package WisiToken.Lexer is
    function File_Name (Lexer : in Instance) return String is abstract;
    --  Return input file name; empty string if there is no file.
 
+   procedure Begin_Pos
+     (Lexer      : in     Instance;
+      Begin_Byte :    out Buffer_Pos;
+      Begin_Char :    out Buffer_Pos;
+      Begin_Line :    out Line_Number_Type)
+   is abstract;
+   --  Return values from Reset*.
+
 private
 
    type Source_Labels is (String_Label, File_Label);
@@ -198,5 +206,10 @@ private
 
    function File_Name (Source : in Lexer.Source) return String;
    function To_Char_Pos (Source : in Lexer.Source; Lexer_Char_Pos : in Integer) return Base_Buffer_Pos;
+   procedure Begin_Pos
+     (Object     : in     Source;
+      Begin_Byte :    out Buffer_Pos;
+      Begin_Char :    out Buffer_Pos;
+      Begin_Line :    out Line_Number_Type);
 
 end WisiToken.Lexer;

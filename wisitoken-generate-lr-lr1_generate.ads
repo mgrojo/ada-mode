@@ -42,7 +42,9 @@ package WisiToken.Generate.LR.LR1_Generate is
       Ignore_Conflicts      : in     Boolean                          := False;
       Partial_Recursion     : in     Boolean                          := True;
       Task_Count            : in     System.Multiprocessors.CPU_Range := 1;
-      Hash_Table_Size       : in     Positive                         := LR1_Items.Item_Set_Trees.Default_Rows)
+      Hash_Table_Size       : in     Positive                         := LR1_Items.Item_Set_Trees.Default_Rows;
+      Use_Cached_Recursions : in     Boolean                          := False;
+      Recursions            : in out WisiToken.Generate.Recursions)
      return Parse_Table_Ptr
    with Pre => Descriptor.First_Nonterminal = Descriptor.Accept_ID;
    --  Generate a generalized LR1 parse table for Grammar. The

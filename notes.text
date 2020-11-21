@@ -31,15 +31,11 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-wisitoken-bnf-generate cache recursion
-    doesn't change between lalr, lr1, packrat
-
 update ada-mode.stephe-6
     change/enhance test/*recover_partial to test incremental parse
     include two edit cycles, to catch issues with virtuals in shared_stream
 
 incremental parse
-
     run all tests
         t_mck:
             make -r t_mck RUN_ARGS="LALR \"\" \"debug=1 tests=1 \" "
@@ -53,7 +49,6 @@ incremental parse
         parse_incremental with current_token = empty nonterm
         left_breakdown with first_terminal = virtual
         Mckenzie current_Terminal skip virtual terminals in input and shared
-            breakdown virtual nonterms if first is virtual
 
     error recover delete left_breakdown (shared_stream)
         wisitoken-parse-lr-mckenzie_recover-parse.adb Get_Action

@@ -105,6 +105,13 @@ package WisiToken.Lexer.Regexp is
    overriding function Line_Start_Char_Pos (Lexer : in Instance) return Buffer_Pos is (1);
    overriding function File_Name (Lexer : in Instance) return String is ("");
 
+   overriding
+   procedure Begin_Pos
+     (Lexer      : in     Instance;
+      Begin_Byte :    out Buffer_Pos;
+      Begin_Char :    out Buffer_Pos;
+      Begin_Line :    out Line_Number_Type);
+
 private
 
    type String_Access is access String;

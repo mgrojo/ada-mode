@@ -754,13 +754,11 @@ package body WisiToken.Parse.LR.Parser is
 
       begin
          if Trace_Action > Outline then
-            if Trace_Action > Extra then
-               Parser.Tree.Print_Tree (Parser.Tree.Root, Image_Augmented);
-               Parser.Trace.New_Line;
-            end if;
             Parser.Trace.Put_Line
               (Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": root node: " & Parser.Tree.Image
-                 (Parser.Tree.Root, Node_Numbers => Trace_Action > Extra));
+                 (Parser.Tree.Root,
+                  Children     => Trace_Action > Extra,
+                  Node_Numbers => Trace_Action > Detail));
          end if;
 
          --  We do this here, not at the end of Parse, for compatibility with

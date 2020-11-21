@@ -21,8 +21,8 @@ LR_Parse_Action
 new Worker_Task 1
  0: succeed 2, enqueue 19, check  5, cost:  1
 spawn parser 1 from 0 (2 active)
- 1:  1, ( 0 0 1 0 0 0 0 0 0), (93 : (RIGHT_PAREN))|(-1, 7:(RIGHT_CURLY_BRACKET, (125 . 125)))|((INSERT, RIGHT_PAREN, 7)) minimal_complete ACTIVE
- 0:  1, ( 0 0 3 0 0 0 0 0 0), (93 : (RIGHT_PAREN))|(-1, 7:(RIGHT_CURLY_BRACKET, (125 . 125)))|((INSERT, MINUS_GREATER, 7), (INSERT, Identifier, 7), (INSERT, RIGHT_PAREN, 7)) minimal_complete ACTIVE
+ 1:  1, ( 0 0 1 0 0 0 0 0 0), (93 : (RIGHT_PAREN))|(-1, 7:(RIGHT_CURLY_BRACKET, (125 . 125)))|((INSERT, RIGHT_PAREN, 7))
+ 0:  1, ( 0 0 3 0 0 0 0 0 0), (93 : (RIGHT_PAREN))|(-1, 7:(RIGHT_CURLY_BRACKET, (125 . 125)))|((INSERT, MINUS_GREATER, 7), (INSERT, Identifier, 7), (INSERT, RIGHT_PAREN, 7))
 
 recover: succeed, parser count 2
  1: stack (1, (0, -24:(-)), (1, 1:(LEFT_CURLY_BRACKET, (105 . 105))), (6, -25:(LeftHandSide, (107 . 107))), (16, 3:(EQUAL, (109 . 109))), (35, 4:(Identifier, (111 . 120))), (62, 5:(LEFT_PAREN, (122 . 122))), ^(21, 6:(Identifier, (123 . 123))))
@@ -291,7 +291,7 @@ LR_Parse_Action
 
  1 parallel tasks
  2: succeed 1, enqueue 4, check  2, cost:  1
- 2:  1, ( 0 0 1 0 0 0 0 0 0), (35 : (Identifier))|(-1, 22:(RIGHT_CURLY_BRACKET, (417 . 417)))|((INSERT, Identifier, 22)) minimal_complete ACTIVE
+ 2:  1, ( 0 0 1 0 0 0 0 0 0), (35 : (Identifier))|(-1, 22:(RIGHT_CURLY_BRACKET, (417 . 417)))|((INSERT, Identifier, 22))
 
 recover: succeed, parser count 1
  2: stack (2, (0, -24:(-)), (2, -90:(CompilationUnit, (105 . 349))), (1, 19:(LEFT_CURLY_BRACKET, (411 . 411))), (6, -91:(LeftHandSide, (413 . 413))), ^(16, 21:(EQUAL, (415 . 415))))

@@ -1511,14 +1511,10 @@ package body WisiToken.Syntax_Trees is
          return "(" & Image (Item.ID, Tree.Descriptor.all) &
            (if Item.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Item.Byte_Region)) & ")";
       else
-         if Tree.Incremental_Parse then
-            return "(" & Image (Tree, Item.Element_Node, Node_Numbers => True) &
-              (if Item.Element_Node.Node_Index = Item.Node.Node_Index
-               then ""
-               else ", " & Image (Tree, Item.Node, Terminal_Node_Numbers => True)) & ")";
-         else
-            return Image (Tree, Item.Node, Node_Numbers => True);
-         end if;
+         return "(" & Image (Tree, Item.Element_Node, Node_Numbers => True) &
+           (if Item.Element_Node.Node_Index = Item.Node.Node_Index
+            then ""
+            else ", " & Image (Tree, Item.Node, Terminal_Node_Numbers => True)) & ")";
       end if;
    end Image;
 
@@ -2743,12 +2739,14 @@ package body WisiToken.Syntax_Trees is
                   Parents.Pop (Parents.Depth - Parent_Depth); -- discard parents from this call to Last_Child.
                end loop;
                --  All previous Children are empty
+               if Parents.Is_Empty then
+                  return Invalid_Node_Access;
+               end if;
                Parents.Pop;
                if Parents.Is_Empty then
                   return Invalid_Node_Access;
-               else
-                  return Prev_Child (Node, Parents.Pop);
                end if;
+               return Prev_Child (Node, Parents.Pop);
             end if;
          end loop;
          raise SAL.Programmer_Error;

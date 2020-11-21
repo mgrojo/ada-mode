@@ -60,12 +60,20 @@ package body WisiToken.Parse is
    begin
       if Token.ID = Parser.Descriptor.New_Line_ID then
          if Parser.Line_Begin_Char_Pos.Length = 0 then
-            if Token.Line = 1 then
-               Parser.Line_Begin_Char_Pos.Set_First_Last (1, Token.Line + 1);
-               Parser.Line_Begin_Char_Pos (1) := 1;
-            else
-               Parser.Line_Begin_Char_Pos.Set_First_Last (Token.Line + 1, Token.Line + 1);
-            end if;
+            declare
+               Byte_First : Buffer_Pos;
+               Char_First : Buffer_Pos;
+               Line_First : Line_Number_Type;
+            begin
+               Parser.Lexer.Begin_Pos (Byte_First, Char_First, Line_First);
+
+               if Token.Line = Line_First then
+                  Parser.Line_Begin_Char_Pos.Set_First_Last (Line_First, Token.Line + 1);
+                  Parser.Line_Begin_Char_Pos (Line_First) := Char_First;
+               else
+                  Parser.Line_Begin_Char_Pos.Set_First_Last (Token.Line + 1, Token.Line + 1);
+               end if;
+            end;
          elsif Token.Line + 1 > Parser.Line_Begin_Char_Pos.Last_Index then
             Parser.Line_Begin_Char_Pos.Set_First_Last (Parser.Line_Begin_Char_Pos.First_Index, Token.Line + 1);
          end if;
@@ -106,6 +114,12 @@ package body WisiToken.Parse is
             Ref := Parser.Tree.Add_Terminal (Parser.Tree.Shared_Stream, Token);
             Process_Grammar_Token (Parser, Token, Ref);
          else
+            if Trace_Lexer > Detail then
+               Parser.Trace.Put_Line
+                 (if Parser.Last_Grammar_Node = Invalid_Node_Access
+                  then "leading non-grammar"
+                  else "non-grammar in " & Parser.Tree.Image (Parser.Last_Grammar_Node));
+            end if;
             Process_Non_Grammar_Token (Parser, Token);
             Ref := Invalid_Stream_Node_Ref;
          end if;

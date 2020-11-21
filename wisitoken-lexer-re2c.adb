@@ -281,7 +281,7 @@ package body WisiToken.Lexer.re2c is
 
    overriding function Line_Start_Char_Pos (Lexer : in Instance) return Buffer_Pos
    is begin
-      return Base_Buffer_Pos (Lexer.Char_Line_Start);
+      return To_Char_Pos (Lexer.Source, Lexer.Char_Line_Start);
    end Line_Start_Char_Pos;
 
    overriding procedure Set_Position
@@ -293,6 +293,7 @@ package body WisiToken.Lexer.re2c is
    is begin
       Lexer.Prev_ID := Prev_Token_ID;
 
+      --  FIXME: respect partial parse lexer.source.*_Nominal_first_*
       Set_Position
         (Lexer.Lexer,
          Byte_Position => Interfaces.C.size_t (Byte_Position),
@@ -320,5 +321,15 @@ package body WisiToken.Lexer.re2c is
    is begin
       return File_Name (Lexer.Source);
    end File_Name;
+
+   overriding
+   procedure Begin_Pos
+     (Lexer      : in     Instance;
+      Begin_Byte :    out Buffer_Pos;
+      Begin_Char :    out Buffer_Pos;
+      Begin_Line :    out Line_Number_Type)
+   is begin
+      Begin_Pos (Lexer.Source, Begin_Byte, Begin_Char, Begin_Line);
+   end Begin_Pos;
 
 end WisiToken.Lexer.re2c;

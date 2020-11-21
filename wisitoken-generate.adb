@@ -485,8 +485,8 @@ package body WisiToken.Generate is
    end Set_Grammar_Recursions;
 
    function Compute_Full_Recursion
-     (Grammar    : in out WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in     WisiToken.Descriptor)
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor)
      return Recursions
    is
       Time_Start : constant Ada.Real_Time.Time := Ada.Real_Time.Clock;
@@ -498,8 +498,6 @@ package body WisiToken.Generate is
          Recursions => Graph.Find_Cycles)
       do
          Grammar_Graphs.Sort_Paths.Sort (Result.Recursions);
-
-         Set_Grammar_Recursions (Result, Grammar);
 
          if Trace_Time then
             declare
@@ -526,8 +524,8 @@ package body WisiToken.Generate is
    end Compute_Full_Recursion;
 
    function Compute_Partial_Recursion
-     (Grammar    : in out WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in     WisiToken.Descriptor)
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor)
      return Recursions
    is
       use Grammar_Graphs;
@@ -563,8 +561,6 @@ package body WisiToken.Generate is
             end loop;
             Result.Recursions.Append (Path);
          end;
-
-         Set_Grammar_Recursions (Result, Grammar);
 
          if Trace_Time then
             declare

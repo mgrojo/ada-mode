@@ -108,6 +108,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       --  terminals, to allow insert before, delete.
 
       Cur       : Cursor            := Stream.First;
+      To_Delete : Cursor            := Cur;
       Node      : Valid_Node_Access := Stream (Cur);
       Next_Node : Node_Access;
    begin
@@ -141,11 +142,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
                Stream.Insert (Element => Node, Before => Cur);
 
-               declare
-                  To_Delete : Cursor := Cur;
-               begin
-                  Stream.Delete (To_Delete);
-               end;
+               Stream.Delete (To_Delete);
                exit;
             else
                --  Node is an empty nonterm. Note that Next_Node cannot be null; the
@@ -625,6 +622,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       use all type In_Parse_Actions.Status_Label;
 
       Trace      : WisiToken.Trace'Class renames Super.Trace.all;
+      Tree       : WisiToken.Syntax_Trees.Tree renames Super.Tree.all;
       Descriptor : WisiToken.Descriptor renames Super.Tree.Descriptor.all;
       Table      : Parse_Table renames Shared.Table.all;
 
@@ -637,7 +635,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Inc_Shared_Stream_Token : Boolean;
       Inc_Input_Stream_Token  : Boolean;
       Current_Token           : Syntax_Trees.Recover_Token := Get_Current_Token
-        (Super.Tree.all, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
+        (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
 
       New_State : Unknown_State_Index;
       Success   : Boolean := True;
@@ -655,7 +653,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          First_In_Current : Syntax_Trees.Node_Access;
       begin
-         loop --  Skip empty nonterms, handle Breakdown
+         loop --  Skip empty nonterms
             if Is_Terminal (Syntax_Trees.ID (Current_Token), Descriptor) then
                Action_Cur := Action_For (Table, Current_State, Syntax_Trees.ID (Current_Token));
                Action     := Action_Cur.Item;
@@ -665,6 +663,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                declare
                   New_State : constant Unknown_State_Index := Goto_For
                     (Table, Current_State, Syntax_Trees.ID (Current_Token));
+
+                  Dummy : Ada.Containers.Count_Type;
+                  pragma Unreferenced (Dummy);
                begin
                   if New_State /= Unknown_State then
                      Action_Cur := null;
@@ -678,22 +679,40 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
                      if First_In_Current = Syntax_Trees.Invalid_Node_Access then
                         --  Current_Token is an empty nonterm; skip it.
-                        Next_Token (Super.Tree.all, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
+                        Next_Token (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
 
                         Current_Token := Get_Current_Token
-                          (Super.Tree.all, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
+                          (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
                      else
-                        pragma Assert
-                          (Config.Input_Stream.Length > 0,
-                           "FIXME: mckenzie_recover.parse handle nonterm in Shared_Stream");
+                        Action_Cur := Action_For (Table, Current_State, Tree.ID (First_In_Current));
+                        Action     := Action_Cur.Item;
 
-                        --  FIXME: don't need breakdown if action on first_terminal is reduce;
-                        --  see wisitoken-parse-lr-parser.adb Get_Action
-                        --  FIXME: don't do Undo_Reduce here?
-                        Breakdown (Super.Tree.all, Config.Input_Stream);
+                        case Action.Verb is
+                        when Shift =>
+                           pragma Assert
+                             (Config.Input_Stream.Length > 0,
+                              "FIXME: mckenzie_recover.parse handle nonterm in Shared_Stream");
 
-                        Current_Token := Get_Current_Token
-                          (Super.Tree.all, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
+                           Breakdown (Tree, Config.Input_Stream);
+
+                           Current_Token := Get_Current_Token
+                             (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
+
+                           if Trace_McKenzie > Extra then
+                              Trace.Put_Line
+                                (Trace_Prefix & ": breakdown; input_stream: " & LR.Image
+                                   (Config.Input_Stream, Tree));
+                              Trace.Put_Line (" ... current_token: " & Super.Tree.Image (Current_Token));
+                           end if;
+                           return;
+
+                        when Accept_It | Reduce =>
+                           return;
+
+                        when Error =>
+                           --  We don't do Undo_Reduce here; Explore will do that with an appropriate cost.
+                           return;
+                        end case;
                      end if;
                   end if;
                end;
@@ -704,15 +723,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    begin
       if Trace_McKenzie > Detail then
          if Trace_McKenzie > Extra then
-            Put_Line (Trace, Trace_Prefix & ": stack: " & LR.Image (Config.Stack, Super.Tree.all));
+            Put_Line (Trace, Trace_Prefix & ": stack: " & LR.Image (Config.Stack, Tree));
             if Config.Current_Insert_Delete /= No_Insert_Delete then
-               Put_Line (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ": Insert_Delete: " &
+               Put_Line (Trace, Tree, Super.Stream (Parser_Index), Trace_Prefix & ": Insert_Delete: " &
                            Image (Config.Insert_Delete, Descriptor));
+            end if;
+            if Config.Input_Stream.Length > 0 then
+               Put_Line (Trace, Trace_Prefix & ": input_stream: " & LR.Image (Config.Input_Stream, Tree));
             end if;
          end if;
 
          if Shared_Token_Goal /= Syntax_Trees.Invalid_Node_Index then
-            Put_Line (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ": Shared_Token_Goal :" &
+            Put_Line (Trace, Tree, Super.Stream (Parser_Index), Trace_Prefix & ": Shared_Token_Goal :" &
                         Shared_Token_Goal'Image);
          end if;
       end if;
@@ -735,14 +757,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             if Conflict /= null then
                if Is_Full (Parse_Items) then
                   if Trace_McKenzie > Outline then
-                     Put_Line (Trace, Super.Tree.all, Super.Stream (Parser_Index),
+                     Put_Line (Trace, Tree, Super.Stream (Parser_Index),
                                Trace_Prefix & ": too many conflicts; abandoning");
                      raise Bad_Config;
                   end if;
                else
                   if Trace_McKenzie > Detail then
                      Put_Line
-                       (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ":" & State_Index'Image
+                       (Trace, Tree, Super.Stream (Parser_Index), Trace_Prefix & ":" & State_Index'Image
                           (Config.Stack.Peek.State) & ": add conflict " &
                           Image (Conflict.Item, Descriptor));
                   end if;
@@ -754,9 +776,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          if Trace_McKenzie > Extra then
             Put_Line
-              (Trace, Super.Tree.all, Super.Stream (Parser_Index), Trace_Prefix & ":" &
+              (Trace, Tree, Super.Stream (Parser_Index), Trace_Prefix & ":" &
                  Config.Stack.Peek.State'Image &
-                 ":" & Syntax_Trees.Image (Super.Tree.all, Current_Token) &
+                 ":" & Syntax_Trees.Image (Tree, Current_Token) &
                  " : " & Image (Action, Descriptor) &
                  (if Action.Verb = Reduce
                   then " via" & Config.Stack.Peek (SAL.Peek_Type (Action.Token_Count + 1)).State'Image
@@ -769,9 +791,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
             Config.Stack.Push ((Action.State, Current_Token));
 
-            Next_Token (Super.Tree.all, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
+            Next_Token (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
             Current_Token := Get_Current_Token
-              (Super.Tree.all, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
+              (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
 
          when Reduce =>
             declare
@@ -791,7 +813,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                      if Trace_McKenzie > Outline then
                         Base.Put (Trace_Prefix & ": Unknown_State: ", Super, Parser_Index, Config);
                         Put_Line
-                          (Trace, Trace_Prefix & ": stack: " & LR.Image (Config.Stack, Super.Tree.all));
+                          (Trace, Trace_Prefix & ": stack: " & LR.Image (Config.Stack, Tree));
                      end if;
 
                      --  We can't just return False here; user must abandon this config.
@@ -823,7 +845,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
            Action.Verb = Accept_It or
            (if Shared_Token_Goal = Syntax_Trees.Invalid_Node_Index
             then Length (Config.Insert_Delete) = 0
-            else Super.Tree.Get_Node_Index (Peek_Current_First_Shared_Terminal (Super.Tree.all, Config)) >
+            else Super.Tree.Get_Node_Index (Peek_Current_First_Shared_Terminal (Tree, Config)) >
               Shared_Token_Goal);
 
          Get_Action;
