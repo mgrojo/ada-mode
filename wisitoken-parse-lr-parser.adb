@@ -417,6 +417,10 @@ package body WisiToken.Parse.LR.Parser is
       end loop;
    end Do_Deletes;
 
+   procedure Parse_Verb
+     (Shared_Parser : in out LR.Parser.Parser;
+      Verb          :    out All_Parse_Action_Verbs;
+      Zombie_Count  :    out SAL.Base_Peek_Type)
    --  Verb: the type of parser cycle to execute;
    --
    --  Accept : all Parsers.Verb return Accept - done parsing.
@@ -432,10 +436,6 @@ package body WisiToken.Parse.LR.Parser is
    --  Error : all Parsers.Verb return Error.
    --
    --  Zombie_Count: count of parsers in Error state
-   procedure Parse_Verb
-     (Shared_Parser : in out LR.Parser.Parser;
-      Verb          :    out All_Parse_Action_Verbs;
-      Zombie_Count  :    out SAL.Base_Peek_Type)
    is
       Shift_Count   : SAL.Base_Peek_Type := 0;
       Accept_Count  : SAL.Base_Peek_Type := 0;
@@ -556,49 +556,6 @@ package body WisiToken.Parse.LR.Parser is
       Flush (Shared_Parser.Recover_Log_File);
    end Recover_To_Log;
 
-   ----------
-   --  Public subprograms, declaration order
-
-   overriding procedure Finalize (Object : in out LR.Parser.Parser)
-   is begin
-      Free_Table (Object.Table);
-   end Finalize;
-
-   procedure New_Parser
-     (Parser                         :    out          LR.Parser.Parser;
-      Trace                          : not null access WisiToken.Trace'Class;
-      Lexer                          : in              WisiToken.Lexer.Handle;
-      Table                          : in              Parse_Table_Ptr;
-      Language_Fixes                 : in              Language_Fixes_Access;
-      Language_Matching_Begin_Tokens : in              Language_Matching_Begin_Tokens_Access;
-      Language_String_ID_Set         : in              Language_String_ID_Set_Access;
-      User_Data                      : in              Syntax_Trees.User_Data_Access)
-   is
-      use all type Syntax_Trees.User_Data_Access;
-   begin
-      Parser.Trace     := Trace;
-      Parser.Lexer     := Lexer;
-      Parser.User_Data := User_Data;
-
-      --  In Base_Parser; Tree, Line_Begin_Token, Last_Grammar_Node are default initialized.
-
-      Parser.Table                          := Table;
-      Parser.Language_Fixes                 := Language_Fixes;
-      Parser.Language_Matching_Begin_Tokens := Language_Matching_Begin_Tokens;
-      Parser.Language_String_ID_Set         := Language_String_ID_Set;
-
-      Parser.Enable_McKenzie_Recover := not McKenzie_Defaulted (Table.all);
-
-      --  In Parser; String_Quote_Checked, Post_Recover, Parsers are default
-      --  initialized. Recover_Log_File, Partial_Parse_Active are set by
-      --  user after this.
-
-      if User_Data /= null then
-         User_Data.Set_Lexer (Lexer, Parser.Line_Begin_Char_Pos'Unchecked_Access);
-         --  Parser will last as long as Lexer.
-      end if;
-   end New_Parser;
-
    procedure Check_Error
      (Shared_Parser : in out LR.Parser.Parser;
       Check_Parser  : in out Parser_Lists.Cursor)
@@ -656,6 +613,49 @@ package body WisiToken.Parse.LR.Parser is
          Check_Parser.Next;
       end if;
    end Check_Error;
+
+   ----------
+   --  Public subprograms, declaration order
+
+   overriding procedure Finalize (Object : in out LR.Parser.Parser)
+   is begin
+      Free_Table (Object.Table);
+   end Finalize;
+
+   procedure New_Parser
+     (Parser                         :    out          LR.Parser.Parser;
+      Trace                          : not null access WisiToken.Trace'Class;
+      Lexer                          : in              WisiToken.Lexer.Handle;
+      Table                          : in              Parse_Table_Ptr;
+      Language_Fixes                 : in              Language_Fixes_Access;
+      Language_Matching_Begin_Tokens : in              Language_Matching_Begin_Tokens_Access;
+      Language_String_ID_Set         : in              Language_String_ID_Set_Access;
+      User_Data                      : in              Syntax_Trees.User_Data_Access)
+   is
+      use all type Syntax_Trees.User_Data_Access;
+   begin
+      Parser.Trace     := Trace;
+      Parser.Lexer     := Lexer;
+      Parser.User_Data := User_Data;
+
+      --  In Base_Parser; Tree, Line_Begin_Token, Last_Grammar_Node are default initialized.
+
+      Parser.Table                          := Table;
+      Parser.Language_Fixes                 := Language_Fixes;
+      Parser.Language_Matching_Begin_Tokens := Language_Matching_Begin_Tokens;
+      Parser.Language_String_ID_Set         := Language_String_ID_Set;
+
+      Parser.Enable_McKenzie_Recover := not McKenzie_Defaulted (Table.all);
+
+      --  In Parser; String_Quote_Checked, Post_Recover, Parsers are default
+      --  initialized. Recover_Log_File, Partial_Parse_Active are set by
+      --  user after this.
+
+      if User_Data /= null then
+         User_Data.Set_Lexer (Lexer, Parser.Line_Begin_Char_Pos'Unchecked_Access);
+         --  Parser will last as long as Lexer.
+      end if;
+   end New_Parser;
 
    overriding procedure Parse
      (Shared_Parser : in out LR.Parser.Parser;
@@ -723,51 +723,42 @@ package body WisiToken.Parse.LR.Parser is
          use Recover_Op_Arrays;
 
          Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
-
-         function Validate_Recover_Ops return Boolean
-         is
-            use Syntax_Trees;
-         begin
-            for I in First_Index (Parser_State.Recover_Insert_Delete) ..
-              Last_Index (Parser_State.Recover_Insert_Delete)
-            loop
-               declare
-                  Op : constant Recover_Op := Element (Parser_State.Recover_Insert_Delete, I);
-               begin
-                  case Op.Op is
-                  when Insert =>
-                     if Op.Ins_Node = Invalid_Node_Access then
-                        return False;
-                     end if;
-                  when Delete =>
-                     if Op.Del_Node = Invalid_Node_Access or
-                       (I > First_Index (Parser_State.Recover_Insert_Delete) and
-                          Op.Del_After_Node = Invalid_Node_Access)
-                     then
-                        return False;
-                     end if;
-                  end case;
-               end;
-            end loop;
-            return True;
-         end Validate_Recover_Ops;
-
       begin
          if Trace_Action > Outline then
-            Parser.Trace.Put_Line
-              (Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": root node: " & Parser.Tree.Image
-                 (Parser.Tree.Root,
-                  Children     => Trace_Action > Extra,
-                  Node_Numbers => Trace_Action > Detail));
+            if Trace_Action > Extra then
+               Parser.Trace.Put_Line
+                 (Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": parse stream: " & Parser.Tree.Image
+                    (Parser_State.Stream, Children => True, Non_Grammar => True));
+            else
+               Parser.Trace.Put_Line
+                 (Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": root node: " & Parser.Tree.Image
+                    (Parser.Tree.Root));
+            end if;
          end if;
 
          --  We do this here, not at the end of Parse, for compatibility with
-         --  existing tests.
-         Parser.Tree.Set_Parents (Parser_State.Stream);
+         --  existing tests. FIXME: move to end of Parse.
+         Parser.Tree.Clear_Parse_Streams;
+
+         for Error of Parser_State.Errors loop
+            case Error.Label is
+            when LR_Parse_Action =>
+               Error.Error_Token.Stream  := Syntax_Trees.Invalid_Stream_ID;
+               Error.Error_Token.Element := Syntax_Trees.Invalid_Stream_Index;
+            when others =>
+               null;
+            end case;
+         end loop;
 
          declare
             --  Recompute Parser.Line_Begin_Token using final parse tree terminal
-            --  sequence, and compute recover_op.Del_After_Node.
+            --  sequence, and clearing Stream_ID, Stream_Index. It is tempting to
+            --  not do this, because user may want to insert a token after the
+            --  previous token, changing which is the first one a line. However,
+            --  it is simpler to handle deleted tokens here, and the user can move
+            --  change Line_Begin_Token in Insert_Token anyway.
+            --
+            --  Compute recover_op.Del_After_Node.
             --
             --  We do not move non_grammar from deleted tokens, because the user
             --  code may want to do something different.
@@ -832,6 +823,9 @@ package body WisiToken.Parse.LR.Parser is
                   Get_Next_Recover_Op;
                end loop;
 
+               exit when I = Invalid_Node_Access;
+               --  There is no EOI in the parse tree.
+
                case Tree.Label (I) is
                when Source_Terminal =>
                   if Tree.Base_Token (I).Line /= Last_Line then
@@ -868,24 +862,27 @@ package body WisiToken.Parse.LR.Parser is
                   raise SAL.Programmer_Error with "Nonterm as Next_Terminal";
                end case;
 
-               exit when Tree.ID (I) = Parser.Descriptor.EOI_ID;
-               --  From a wisitoken_accept production containing EOI
-
                I := Tree.Next_Terminal (I);
-
-               exit when I = Invalid_Node_Access;
-               --  From a partial parse; no EOI in the parse tree.
             end loop;
+
+            if Last_Line < Parser.Line_Begin_Token.Last_Index then
+               declare
+                  Ref : Stream_Node_Ref renames Parser.Line_Begin_Token (Parser.Line_Begin_Token.Last_Index);
+               begin
+                  pragma Assert (Tree.ID (Ref.Node) = Tree.Descriptor.EOI_ID);
+                  Ref.Stream := Invalid_Stream_ID;
+                  Ref.Element := Invalid_Stream_Index;
+               end;
+            end if;
          end;
 
          if Trace_Action > Detail then
             Parser.Trace.Put_Line
               ("recover_insert_delete: " & Image (Parser_State.Recover_Insert_Delete, Parser.Tree));
+            Parser.Trace.Put_Line
+              ("line_begin_token: " & Image (Parser.Line_Begin_Token, Parser.Tree, Association => True));
+            Parser.Trace.New_Line;
          end if;
-
-         pragma Assert (Validate_Recover_Ops);
-
-         Parser.Tree.Clear_Parse_Streams;
 
          --  In ada-mode, Delete_Token modifies Next_Terminal
          --  (Deleted_Token).Augmented, which may be an inserted token; call
@@ -923,6 +920,12 @@ package body WisiToken.Parse.LR.Parser is
                end case;
             end;
          end loop;
+
+         if Trace_Action > Detail then
+            Parser.Trace.Put_Line
+              ("line_begin_token: " & Image (Parser.Line_Begin_Token, Parser.Tree, Association => True));
+            Parser.Trace.New_Line;
+         end if;
 
          Parser.User_Data.Initialize_Actions (Parser.Tree);
 

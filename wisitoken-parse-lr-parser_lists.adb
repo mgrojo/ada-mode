@@ -427,38 +427,9 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Verb                    => Item.Verb);
 
          if Item.Shared_Token /= Item.Current_Token then
-            --  Item has a virtual terminal from Insert in the parse stream
-            --
-            --  We know it's from Insert because don't spawn parsers while in
-            --  Resume, and Stream input from Push_Back is emptied in Resume.
-            --
-            --  FIXME: this fails when called from Recover to spawn a parser for a
-            --  config.
+            --  Item has a virtual terminal from Insert or a token from Push_Back
+            --  in the parse stream input.
             New_Item.Current_Token := Tree.First_Input (New_Item.Stream);
-
-            --  Set New_Item op.ins_node to node in new tree.
-            declare
-               use all type WisiToken.Syntax_Trees.Node_Access;
-               use Recover_Op_Arrays;
-               Item_Op : Recover_Op_Arrays.Constant_Reference_Type renames Item.Recover_Insert_Delete.Constant_Ref
-                 ((if Item.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
-                   then Recover_Op_Arrays.Last_Index (Item.Recover_Insert_Delete)
-                   else Item.Recover_Insert_Delete_Current - 1));
-            begin
-               pragma Assert (Item_Op.Op = Insert);
-
-               if Item.Current_Token.Node = Item_Op.Ins_Node then
-                  declare
-                     New_Item_Op : Recover_Op_Arrays.Variable_Reference_Type renames
-                       New_Item.Recover_Insert_Delete.Variable_Ref
-                         ((if New_Item.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
-                           then Recover_Op_Arrays.Last_Index (New_Item.Recover_Insert_Delete)
-                           else New_Item.Recover_Insert_Delete_Current - 1));
-                  begin
-                     New_Item_Op.Ins_Node := New_Item.Current_Token.Node;
-                  end;
-               end if;
-            end;
          end if;
       end;
 

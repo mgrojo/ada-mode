@@ -255,13 +255,11 @@ private
      return Boolean;
    --  True if Undo_Reduce is valid for Config.
 
-   function Unchecked_Undo_Reduce
-     (Stack : in out Recover_Stacks.Stack;
+   procedure Unchecked_Undo_Reduce
+     (Config : in out Configuration;
       Tree  : in     Syntax_Trees.Tree;
-      Table : in     Parse_Table)
-     return Ada.Containers.Count_Type;
-   --  Undo the reduction that produced the top stack item, return the
-   --  token count for that reduction.
+      Table : in     Parse_Table);
+   --  Undo the reduction that produced the top stack item, append op.
 
    procedure Undo_Reduce_Check
      (Config   : in out Configuration;
@@ -269,7 +267,9 @@ private
       Table    : in     Parse_Table;
       Expected : in     Token_ID)
    with Inline => True;
-   --  If not Undo_Reduce_Valid, raise Bad_Config. Else call Check, Undo_Reduce.
+   --  If not Undo_Reduce_Valid, raise Bad_Config. Else call Check,
+   --  Unchecked_Undo_Reduce. Caller should check for space in
+   --  Config.Ops.
 
    procedure Undo_Reduce_Check
      (Config   : in out Configuration;

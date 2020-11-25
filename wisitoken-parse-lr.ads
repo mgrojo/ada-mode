@@ -468,7 +468,7 @@ package WisiToken.Parse.LR is
          --  The nonterm ID popped off the stack.
 
          PB_Token_Index : Syntax_Trees.Node_Index;
-         --  First terminal in the pushd_back token; Invalid_Node_Index if
+         --  First terminal in the pushed_back token; Invalid_Node_Index if
          --  empty. Used to check that successive Push_Backs are valid.
 
       when Insert =>
@@ -561,20 +561,18 @@ package WisiToken.Parse.LR is
 
       when Delete =>
          Del_ID : Token_ID;
-         --  The token ID deleted.
+         --  The token ID deleted; a terminal token. IMPROVEME: allow delete nonterm?
 
          Del_Index : Syntax_Trees.Node_Index;
-         --  Token at Del_Index in Shared_Stream is deleted; used by parser
-         --  to skip the token.
+         --  Token at Del_Index is deleted; used by parser to skip the token.
 
          Del_Node : Syntax_Trees.Node_Access;
-         --  Del_Node (was in Shared_Stream) is deleted; used by post-parse
-         --  actions to adjust for the deleted token.
+         --  Del_Node is deleted; used by post-parse actions to adjust for the
+         --  deleted token.
 
          Del_After_Node : Syntax_Trees.Node_Access;
          --  Previous terminal (shared or virtual) in parse stream; used by
          --  post-parse actions to adjust for the deleted token.
-
       end case;
    end record;
 
@@ -744,13 +742,11 @@ package WisiToken.Parse.LR is
       First_Terminal : Token_ID;
       Last_Terminal  : Token_ID)
    is record
-      Recover : Configuration;
+      Recover : Configuration; --  FIXME: replace by recover_op_array; add hook for test_mckenzie_recover
 
       case Label is
       when LR_Parse_Action =>
          Error_Token : Syntax_Trees.Terminal_Ref;
-         --  If Shared_Terminal, it is from the Shared_Stream; if Virtual, from
-         --  the parse stream.
 
          Expecting : Token_ID_Set (First_Terminal .. Last_Terminal);
 

@@ -656,14 +656,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
       Token          : constant Syntax_Trees.Recover_Token := Config.Stack.Peek.Token;
       New_Config     : Configuration                       := Config;
-      Token_Count    : Ada.Containers.Count_Type;
    begin
       pragma Assert (not Token.Virtual); -- We assume caller used Undo_Reduce_Valid.
 
       New_Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
       New_Config.User_Parse_Action_Status   := (Label => WisiToken.In_Parse_Actions.Ok);
-
-      Token_Count := Unchecked_Undo_Reduce (New_Config.Stack, Super.Tree.all, Shared.Table.all);
 
       if not Super.Tree.Buffer_Region_Is_Empty (Token.Element_Node) then
          --  Token is not empty.
@@ -673,13 +670,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       if Is_Full (New_Config.Ops) then
          Super.Config_Full ("undo_reduce 1", Parser_Index);
          raise Bad_Config;
-      else
-         Append
-           (New_Config.Ops,
-            (Undo_Reduce, Syntax_Trees.ID (Token), Token_Count, Super.Tree.Get_Node_Index
-               (Super.Tree.First_Terminal (Token))));
       end if;
-      New_Config.Strategy_Counts (Undo_Reduce) := New_Config.Strategy_Counts (Undo_Reduce) + 1;
+
+      Unchecked_Undo_Reduce (New_Config, Super.Tree.all, Shared.Table.all);
+
+      New_Config.Strategy_Counts (Undo_Reduce) := @ + 1;
 
       Local_Config_Heap.Add (New_Config);
 
@@ -1149,6 +1144,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       declare
          New_Config : Configuration := Config;
       begin
+         if Undo_Reduce_Valid (Super.Tree.all, New_Config) then
+            --  We may need Undo_Reduce to shift the matching token; see
+            --  ada_mode-recover_40.adb
+            Unchecked_Undo_Reduce (New_Config, Super.Tree.all, Shared.Table.all);
+         end if;
+
          for ID of Matching_Begin_Tokens loop
             Insert (Super.Tree.all, New_Config, ID);
          end loop;
@@ -1341,7 +1342,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Target_Node    : in     Valid_Node_Access;
          Parents        : in     Syntax_Trees.Node_Stacks.Stack;
          Max_Node_Index :    out Node_Index)
-      with Pre => Length (Config.Input_Stream) > 0
+      with Pre => Length (Config.Input_Stream) > 0 and Tree.Is_Terminal (Target_Node)
       --  Delete terminals First .. Target_Node - 1 in Config.Input_Stream;
       --  Target_Element must contain Target_Node, via Parents.
       --  Max_Node_Index is the last node_index deleted. Target_Element is
@@ -1358,6 +1359,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                raise Bad_Config;
             end if;
 
+            pragma Assert (Is_Terminal (Tree.ID (Stream (To_Delete)), Super.Tree.Descriptor.all));
             Append
               (Config.Ops,
                (Delete,
@@ -1372,9 +1374,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       begin
          Max_Node_Index := Invalid_Node_Index;
          loop
-            if Target_Element = Stream.First then
-               exit when Target_Node = Stream (Stream.First);
+            exit when Target_Element = Stream.First and Target_Node = Stream (Stream.First);
 
+            if Tree.Label (Stream (Stream.First)) = Nonterm then
                Parse.Breakdown (Tree, Stream);
 
                exit when Target_Node = Stream (Stream.First);
@@ -1546,7 +1548,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             end if;
 
             Item  := Config.Stack.Peek;
-            First := Tree.First_Shared_Terminal (Tree.First_Terminal (Item.Token));
+            First := Tree.First_Terminal (Item.Token);
+            if First /= Invalid_Node_Access then
+               First := Tree.First_Shared_Terminal (First);
+            end if;
 
             Do_Push_Back (Tree, Config);
 
@@ -1733,7 +1738,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  token would not be the lexer repaired string literal, since a
          --  string literal would be legal here.
 
-      elsif Lexer_Error_Token.Byte_Region.First < Config.Error_Token.Byte_Region.First then
+      elsif Lexer_Error_Token.Byte_Region.First < Config.Error_Token.Byte_Region.First and
+        (declare First_Token : constant Terminal_Ref := Shared.Line_Begin_Token.all (Current_Line + 1);
+         begin First_Token /= Invalid_Stream_Node_Ref and then
+            Tree.Prev_Shared_Terminal (First_Token).Node /= Invalid_Node_Access)
+      then
          --  The unbalanced quote is before the parse error token; see
          --  test_mckenzie_recover.adb String_Quote_2.
          --
@@ -1779,8 +1788,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       else
          --  The unbalanced quote is after the parse error token.
 
-         --  case c: Assume a missing quote belongs immediately before the current token.
-         --  See test_mckenzie_recover.adb String_Quote_3.
+         --  case c: Assume a missing quote belongs immediately before the
+         --  current token. See test_mckenzie_recover.adb String_Quote_3.
          declare
             New_Config : Configuration := Config;
          begin
@@ -1793,7 +1802,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
          --  case d: Assume a missing quote belongs somewhere farther before
          --  the current token; try one non-empty (as in case a above). See
-         --  test_mckenzie_recover.adb String_Quote_4, String_Quote_6.
+         --  test_mckenzie_recover.adb String_Quote_4, String_Quote_6,
+         --  test/ada_mode-recover_string_quote_1.adb.
          declare
             New_Config            : Configuration := Config;
             Min_Pushed_Back_Index : Syntax_Trees.Node_Index;

@@ -30,6 +30,12 @@ package WisiToken.Parse is
    --  recover Try_Insert_Quote. In post-parse actions, Element is
    --  Invalid_Stream_Index.
 
+   function Terminal_Ref_Image (Item : in Syntax_Trees.Terminal_Ref; Aux : in Syntax_Trees.Tree'Class) return String
+   is (Aux.Image (Item));
+
+   function Image is new Line_Token_Vectors.Gen_Image_Aux
+     (Syntax_Trees.Tree'Class, WisiToken.Trimmed_Image, Terminal_Ref_Image);
+
    type Wrapped_Lexer_Error is record
       Recover_Token_Ref : Syntax_Trees.Terminal_Ref;
       --  Token that lexer returned at the error.
@@ -163,6 +169,7 @@ package WisiToken.Parse is
      (Parser          : in out Base_Parser;
       Image_Augmented : in     Syntax_Trees.Image_Augmented := null)
      is abstract;
-   --  Execute all actions in Parser.Tree.
+   --  Execute all actions in Parser.Tree. See wisitoken-syntax_trees.ads
+   --  for other actions performed by Execute_Actions.
 
 end WisiToken.Parse;

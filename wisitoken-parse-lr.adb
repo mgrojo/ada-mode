@@ -717,11 +717,11 @@ package body WisiToken.Parse.LR is
               Item.Ins_Before'Image,
          when Delete =>
            (if Item.Del_Node = Invalid_Node_Access
-            then Item.Del_Index'Image
-            else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)) & ", " &
+            then Trimmed_Image (Item.Del_Index) & ":" & Image (Item.Del_ID, Tree.Descriptor.all)
+            else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)) &
              (if Item.Del_After_Node = Invalid_Node_Access
-              then "-"
-              else Tree.Image (Item.Del_After_Node, Terminal_Node_Numbers => True)))
+              then ""
+              else ", " & Tree.Image (Item.Del_After_Node, Terminal_Node_Numbers => True)))
         & ")";
    end Image;
 

@@ -164,7 +164,7 @@ package WisiToken.Syntax_Trees is
    function Shared_Stream (Tree : in Syntax_Trees.Tree) return Stream_ID;
 
    type Stream_Node_Ref is record
-      Stream  : Syntax_Trees.Stream_ID;
+      Stream  : Syntax_Trees.Stream_ID    := Invalid_Stream_ID;
       Element : Syntax_Trees.Stream_Index := Invalid_Stream_Index;
       Node    : Syntax_Trees.Node_Access  := Invalid_Node_Access;
       --  If both valid, Element contains Node in Stream. In some cases,
@@ -1925,8 +1925,7 @@ private
       Stream : in Stream_ID)
      return Boolean
    is (declare Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
-       begin Parse_Stream.Stack_Top /= Parse_Stream.Elements.First and
-          Parse_Stream.Stack_Top /= Parse_Stream.Elements.Last);
+       begin Parse_Stream.Stack_Top /= Parse_Stream.Elements.Last);
 
    function ID (Item : in Recover_Token) return Token_ID
    is (if Item.Virtual then Item.ID else Item.Element_Node.ID);

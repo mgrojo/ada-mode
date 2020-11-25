@@ -180,12 +180,12 @@ recover: succeed, parser count 3
     Current_Token: (6, -52:(SEMI))
     Shared_Token: (-1, 22:(IDENTIFIER, (150 . 152)))
     stream input: (6, (-1, -52:(SEMI)))
-    recover_insert_delete:((DELETE,  25, -), (DELETE,  26, -))
+    recover_insert_delete:((DELETE, 25:SEMI), (DELETE, 26:RBRACE))
     resume_active: True, token goal 30, inc_shared_stream_token: FALSE
  5: stack (5, (0, -28:(-)), (1, 1:(LBRACE, (1 . 1))), (10, -48:(statement_list, (3 . 97))), (3, 18:(LPAREN, (142 . 142))), (12, -49:(classOrInterfaceType, (143 . 145))), ^(19, 20:(RPAREN, (146 . 146))))
     Current_Token: (-1, 22:(IDENTIFIER, (150 . 152)))
     Shared_Token: (-1, 22:(IDENTIFIER, (150 . 152)))
-    recover_insert_delete:((DELETE,  25, -), (DELETE,  26, -))
+    recover_insert_delete:((DELETE, 25:SEMI), (DELETE, 26:RBRACE))
     resume_active: True, token goal 30, inc_shared_stream_token: TRUE
  1: stack (1, (0, -28:(-)), (1, 1:(LBRACE, (1 . 1))), (10, -48:(statement_list, (3 . 97))), (9, -51:(lambdaParameters, (142 . 146))), ^(15, 21:(ARROW, (147 . 148))))
     Current_Token: (1, -53:(LBRACE))

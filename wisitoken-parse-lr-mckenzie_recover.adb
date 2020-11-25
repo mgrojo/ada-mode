@@ -131,6 +131,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
      (Shared_Parser : in out LR.Parser.Parser;
       Parser_State  : in out Parser_Lists.Parser_State)
    is
+      use Config_Op_Arrays;
       use all type WisiToken.Parse.LR.Parser.Language_Fixes_Access;
 
       Trace  : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
@@ -197,15 +198,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
             --  Undo_Reduce can be invalid here; see ada-mode/test/ada_mode-recover_27.adb
             if Undo_Reduce_Valid (Shared_Parser.Tree, Config) then
-               Config.User_Parse_Action_Status      := Error.Status;
-               Config.Error_Token                   := Config.Stack.Peek.Token;
-               Config.User_Parse_Action_Token_Count := Unchecked_Undo_Reduce
-                 (Config.Stack, Shared_Parser.Tree, Shared_Parser.Table.all);
+               Config.User_Parse_Action_Status := Error.Status;
+               Config.Error_Token              := Config.Stack.Peek.Token;
 
-               Config_Op_Arrays.Append
-                 (Config.Ops,
-                  (Undo_Reduce, Syntax_Trees.ID (Config.Error_Token), Config.User_Parse_Action_Token_Count,
-                   Shared_Parser.Tree.Get_Node_Index (First_Terminal (Shared_Parser.Tree, Config.Error_Token))));
+               Unchecked_Undo_Reduce (Config, Shared_Parser.Tree, Shared_Parser.Table.all);
+
+               Config.User_Parse_Action_Token_Count := Element (Config.Ops, Last_Index (Config.Ops)).Token_Count;
 
                if Trace_McKenzie > Detail then
                   Put ("undo_reduce " & Image (Syntax_Trees.ID (Config.Error_Token), Shared_Parser.Descriptor.all),
@@ -566,7 +564,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               if Stack_Matches_Ops then
                                  Tree.Push_Back (Parser_State.Stream);
 
-                                 pragma Assert (not Tree.Incremental_Parse);
                                  Parser_State.Current_Token := Tree.First_Input (Parser_State.Stream);
 
                                  Parser_State.Inc_Shared_Stream_Token := False;
@@ -660,8 +657,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                 (Parser_State.Stream, Stack => False, Input => True));
                         end if;
                         Trace.Put_Line ("   recover_insert_delete " & Image
-                               (Parser_State.Recover_Insert_Delete, Tree,
-                                First => Parser_State.Recover_Insert_Delete_Current));
+                                          (Parser_State.Recover_Insert_Delete, Tree,
+                                           First => Parser_State.Recover_Insert_Delete_Current));
                         Trace.Put_Line ("   inc_shared_stream_token " & Parser_State.Inc_Shared_Stream_Token'Image);
                         Trace.Put_Line ("   resume_token_goal" & Parser_State.Resume_Token_Goal'Image);
                      end if;
@@ -762,7 +759,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Expected_ID : in     Token_ID)
    is
       use Config_Op_Arrays;
-      Op : constant Config_Op := (Delete, Expected_ID, Tree.Get_Node_Index (Node));
+      Op : constant Config_Op :=
+        (Delete,
+         (if Expected_ID = Invalid_Token_ID
+          then Tree.ID (Node)
+          else Expected_ID),
+         Tree.Get_Node_Index (Node));
    begin
       if Expected_ID /= Invalid_Token_ID then
          Check (Tree.ID (Node), Expected_ID);
@@ -1341,12 +1343,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end;
    end Undo_Reduce_Valid;
 
-   function Unchecked_Undo_Reduce
-     (Stack : in out Recover_Stacks.Stack;
-      Tree  : in     Syntax_Trees.Tree;
-      Table : in     Parse_Table)
-     return Ada.Containers.Count_Type
+   procedure Unchecked_Undo_Reduce
+     (Config : in out Configuration;
+      Tree   : in     Syntax_Trees.Tree;
+      Table  : in     Parse_Table)
    is
+      Stack        : Recover_Stacks.Stack renames Config.Stack;
       Nonterm_Item : constant Recover_Stack_Item             := Recover_Stacks.Pop (Stack);
       Prev_State   : State_Index                             := Stack.Peek.State;
       Children     : constant Syntax_Trees.Node_Access_Array := Tree.Children (Nonterm_Item.Token.Element_Node);
@@ -1359,7 +1361,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          end if;
          Stack.Push ((Prev_State, Tree.Get_Recover_Token (C)));
       end loop;
-      return Children'Length;
+
+      Config_Op_Arrays.Append
+        (Config.Ops,
+         (Undo_Reduce, Tree.ID (Nonterm_Item.Token.Element_Node), Children'Length,
+         Tree.Get_Node_Index (Tree.First_Terminal (Nonterm_Item.Token.Element_Node))));
+   exception
+   when SAL.Container_Full =>
+      raise Bad_Config;
    end Unchecked_Undo_Reduce;
 
    procedure Undo_Reduce_Check
@@ -1372,13 +1381,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          raise Bad_Config;
       end if;
       Check (Syntax_Trees.ID (Config.Stack.Peek (1).Token), Expected);
-      Config_Op_Arrays.Append
-        (Config.Ops,
-         (Undo_Reduce, Expected, Unchecked_Undo_Reduce (Config.Stack, Tree, Table),
-         Tree.Get_Node_Index (Tree.First_Terminal (Config.Stack.Peek.Token.Element_Node))));
-   exception
-   when SAL.Container_Full =>
-      raise Bad_Config;
+      Unchecked_Undo_Reduce (Config, Tree, Table);
    end Undo_Reduce_Check;
 
    procedure Undo_Reduce_Check

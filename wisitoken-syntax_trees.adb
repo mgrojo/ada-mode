@@ -1710,17 +1710,28 @@ package body WisiToken.Syntax_Trees is
       First_Terminal : in Boolean := False)
      return String
    is
-      Element_Node : constant Valid_Node_Access := Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node;
+      use Stream_Element_Lists;
    begin
-      return "(" & Trimmed_Image (Tree.Streams (Ref.Stream.Cur).Label) & ", " &
-        Image (Tree, Ref.Element, Node_Numbers => True) &
-        (if Ref.Node.Label in Terminal_Label or
-           (Element_Node.Node_Index = Ref.Node.Node_Index and not First_Terminal)
-         then ""
-         else ", " & Image
-           (Tree,
-            (if First_Terminal then Tree.First_Terminal (Ref.Node) else Ref.Node),
-            Terminal_Node_Numbers => True)) & ")";
+      if Ref.Element.Cur /= No_Element then
+         declare
+            Element_Node : constant Valid_Node_Access := Constant_Ref (Ref.Element.Cur).Node;
+         begin
+            return "(" & Trimmed_Image (Tree.Streams (Ref.Stream.Cur).Label) & ", " &
+              Image (Tree, Ref.Element, Node_Numbers => True) &
+              (if Ref.Node = Invalid_Node_Access or else
+                 (Ref.Node.Label in Terminal_Label or
+                    (Element_Node.Node_Index = Ref.Node.Node_Index and not First_Terminal))
+               then ""
+               else ", " & Image
+                 (Tree,
+                  (if First_Terminal then Tree.First_Terminal (Ref.Node) else Ref.Node),
+                  Terminal_Node_Numbers => True)) & ")";
+         end;
+      elsif Ref.Node /= Invalid_Node_Access then
+         return "(" & Image (Tree, Ref.Node, Terminal_Node_Numbers => True) & ")";
+      else
+         return "()";
+      end if;
    end Image;
 
    function Insert_After
