@@ -190,7 +190,9 @@ tick : TICK_1 | TICK_2 ;
 %mckenzie_cost_insert EQUAL_GREATER 3
 
 ;; This cost is applied once, independent of token count.
-%mckenzie_cost_matching_begin 3
+;; test/ada_mode-recover_40.adb requires cost < 3, so insert 'if
+;; identifier then' is as cheap as 'delete else'.
+%mckenzie_cost_matching_begin 2
 
 ;; Prefer doing more work at the current error point over moving
 ;; forward to a new one; there is normally only one real error point.
@@ -2421,8 +2423,8 @@ generic_formal_parameter_declaration
   ;
 
 generic_instantiation
-  : 'package' name 'is' 'new' name actual_parameter_part [aspect_specification] ';' ;;:edited; generic_actual_part redundant with actual_parameter_part
-    %((wisi-statement-action [1 statement-start 8 statement-end])
+  : 'package' name 'is' 'new' name [aspect_specification] ';' ;;:edited; generic_actual_part redundant with actual_parameter_part in function_call in name
+    %((wisi-statement-action [1 statement-start 7 statement-end])
       (wisi-name-action 2)
       (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face
                                  5 font-lock-function-name-face font-lock-function-name-face])
@@ -2430,9 +2432,9 @@ generic_instantiation
                            (wisi-hanging* ada-indent-broken ada-indent-broken)
                            nil ada-indent-broken
                            (wisi-hanging* ada-indent-broken ada-indent-broken)
-                           ada-indent-broken nil ada-indent-broken]))%
-  | [overriding_indicator] 'procedure' name 'is' 'new' name actual_parameter_part [aspect_specification] ';' ;;:edited; generic_actual_part covered by name
-    %((wisi-statement-action [1 statement-start 2 statement-override 9 statement-end])
+                           nil ada-indent-broken]))%
+  | [overriding_indicator] 'procedure' name 'is' 'new' name [aspect_specification] ';' ;;:edited; generic_actual_part covered by name
+    %((wisi-statement-action [1 statement-start 2 statement-override 8 statement-end])
       (wisi-name-action 3)
       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
                                  6 font-lock-function-name-face font-lock-function-name-face])
@@ -2441,9 +2443,9 @@ generic_instantiation
                            (wisi-hanging* ada-indent-broken ada-indent-broken)
                            ada-indent-broken ada-indent-broken
                            (wisi-hanging* ada-indent-broken ada-indent-broken)
-                           ada-indent-broken nil ada-indent-broken]))%
-  | [overriding_indicator] 'function' name 'is' 'new' name actual_parameter_part [aspect_specification] ';' ;;:edited; generic_actual_part covered by name
-    %((wisi-statement-action [1 statement-start 2 statement-override 9 statement-end])
+                           nil ada-indent-broken]))%
+  | [overriding_indicator] 'function' name 'is' 'new' name [aspect_specification] ';' ;;:edited; generic_actual_part covered by name
+    %((wisi-statement-action [1 statement-start 2 statement-override 8 statement-end])
       (wisi-name-action 3)
       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
                                  6 font-lock-function-name-face font-lock-function-name-face])
@@ -2452,7 +2454,7 @@ generic_instantiation
                            (wisi-hanging* ada-indent-broken ada-indent-broken)
                            ada-indent-broken ada-indent-broken
                            (wisi-hanging* ada-indent-broken ada-indent-broken)
-                           ada-indent-broken nil ada-indent-broken]))%
+                           nil ada-indent-broken]))%
   ;
 
 ;; generic_actual_part ;;:redundant with actual_parameter_part
@@ -2575,14 +2577,14 @@ default_name
   ;
 
 formal_package_declaration
-  : 'with' 'package' IDENTIFIER 'is' 'new' name actual_parameter_part [aspect_specification] ';'
-    ;;:edited formal_package_actual_part => actual_parameter_part
-    %((wisi-statement-action [1 statement-start 9 statement-end])
+  : 'with' 'package' IDENTIFIER 'is' 'new' name [aspect_specification] ';'
+    ;;:edited formal_package_actual_part redundant with actual_parameter_part in name
+    %((wisi-statement-action [1 statement-start 8 statement-end])
       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
                                  6 font-lock-function-name-face font-lock-function-name-face])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
                                (wisi-hanging* ada-indent-broken ada-indent-broken)
-                               ada-indent-broken ada-indent-broken ada-indent-broken]))%
+                               ada-indent-broken ada-indent-broken]))%
   ;
 
 ;; formal_package_actual_part ;;:redundant with expanded formal_part

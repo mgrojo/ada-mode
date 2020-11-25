@@ -232,6 +232,10 @@ begin
                        (Length (Result) - Line_End)) * ' ';
                end Indent_To;
             begin
+               if WisiToken.Trace_Action > Detail then
+                  Put_Line (";; open_paren_col:" & Open_Paren_Col'Image);
+               end if;
+
                for Param of Params loop
                   if Need_New_Line then
                      Result   := Result & ";" & ASCII.LF;

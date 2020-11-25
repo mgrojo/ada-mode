@@ -802,7 +802,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  <statement> <variable_identifier> : [aliased constant] <subtype_indication> <expression> ...
          --
          --  The variable_name looks like a statement_identifier (ie block
-         --  name). compare to "variable decl as param" case above.
+         --  name). compare to "variable decl as expression" case above.
          --
          --  1) This is a copied variable declaration that the user is converting
          --  to an assignment. See
@@ -833,6 +833,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             Push_Back_Check (Tree, New_Config, +COLON_ID);
 
             Peek_State := Peek_Shared_Start (Tree, New_Config);
+
+            Delete_Check (Tree, New_Config, Peek_State, +COLON_ID);
 
             if Tree.ID (Peek_Shared_Terminal (Peek_State)) = +ALIASED_ID then
                Delete_Check (Tree, New_Config, Peek_State, +ALIASED_ID);
@@ -870,7 +872,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
             Local_Config_Heap.Add (New_Config);
             if Trace_McKenzie > Detail then
-               Put ("Language_Fixes variable decl as statement", New_Config);
+               Put ("Language_Fixes constant decl as statement 1", New_Config);
             end if;
          exception
          when Bad_Config =>
@@ -880,39 +882,44 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          declare
             New_Config_1 : Configuration := Config;
          begin
-            --  Case 2
-            Push_Back_Check (Tree, New_Config_1, (+COLON_ID, +IDENTIFIER_ID));
+            Push_Back_Check (Tree, New_Config_1, (+COLON_ID, +statement_identifier_ID));
 
-            --  maybe case 3.
-            if -ID (New_Config_1.Stack.Peek.Token) = BEGIN_ID and Push_Back_Valid (Tree, New_Config_1) then
+            if ID (New_Config_1.Stack.Peek.Token) = +sequence_of_statements_ID then
+               --  Case 2
+               null;
+
+            elsif ID (New_Config_1.Stack.Peek.Token) = +BEGIN_ID then
+               --  Case 2 or 3
                declare
                   New_Config_2 : Configuration := New_Config_1;
                begin
-                  Push_Back_Check (Tree, New_Config_2, +BEGIN_ID);
-                  if Undo_Reduce_Valid (Tree, New_Config_2) then
-                     if -ID (New_Config_2.Stack.Peek.Token) = declarative_part_ID then
-                        Undo_Reduce_Check (New_Config_2, Tree, Parse_Table, +declarative_part_ID);
+                  if Push_Back_Valid (Tree, New_Config_1) then
+                     Push_Back_Check (Tree, New_Config_2, +BEGIN_ID);
+                     if Undo_Reduce_Valid (Tree, New_Config_2) then
+                        if -ID (New_Config_2.Stack.Peek.Token) = declarative_part_ID then
+                           Undo_Reduce_Check (New_Config_2, Tree, Parse_Table, +declarative_part_ID);
+                        end if;
                      end if;
-                  end if;
-                  Delete_Check (Tree, New_Config_2, +BEGIN_ID);
+                     Delete_Check (Tree, New_Config_2, +BEGIN_ID);
 
-                  --  This is a guess, so add a cost, equal to case 1, 2.
-                  New_Config_2.Cost := New_Config_2.Cost + 1;
-                  New_Config_2.Strategy_Counts (Language_Fix) := New_Config_2.Strategy_Counts (Language_Fix) + 1;
-                  Local_Config_Heap.Add (New_Config_2);
+                     --  This is a guess, so add a cost, equal to case 1, 2.
+                     New_Config_2.Cost := New_Config_2.Cost + 1;
+                     New_Config_2.Strategy_Counts (Language_Fix) := New_Config_2.Strategy_Counts (Language_Fix) + 1;
+                     Local_Config_Heap.Add (New_Config_2);
 
-                  if Trace_McKenzie > Detail then
-                     Put ("Language_Fixes extra begin 1", New_Config_2);
+                     if Trace_McKenzie > Detail then
+                        Put ("Language_Fixes constant decl as statement 3", New_Config_2);
+                     end if;
                   end if;
                exception
                when Bad_Config =>
                   null;
                end;
+
+               Insert (Tree, New_Config_1, (+NULL_ID, +SEMICOLON_ID));
             end if;
 
-            Insert (Tree, New_Config_1, +END_ID);
-
-            Insert (Tree, New_Config_1, +SEMICOLON_ID);
+            Insert (Tree, New_Config_1, (+END_ID, +SEMICOLON_ID));
             --  If we don't insert the ';' here, <variable_name> looks like a
             --  block end name.
 
@@ -922,7 +929,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             Local_Config_Heap.Add (New_Config_1);
 
             if Trace_McKenzie > Detail then
-               Put ("Language_Fixes missing end 1", New_Config_1);
+               Put ("Language_Fixes constant decl as statement 2", New_Config_1);
             end if;
          end;
 
@@ -1348,8 +1355,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       when END_ID =>
          Matching_Tokens := Matching_Begin_For_End (2);
 
-      when ELSE_ID | ELSIF_ID | THEN_ID =>
-         Matching_Tokens := To_Vector (+IF_ID);
+      when ELSE_ID | ELSIF_ID =>
+         Matching_Tokens := To_Vector ((+IF_ID, +IDENTIFIER_ID, +THEN_ID));
+
+      when THEN_ID =>
+         Matching_Tokens := To_Vector ((+IF_ID, +IDENTIFIER_ID));
 
       when EXCEPTION_ID =>
          Matching_Tokens := To_Vector (+BEGIN_ID);

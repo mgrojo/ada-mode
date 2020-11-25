@@ -11,11 +11,11 @@ package body Ada_Mode.Recover_String_Quote_1 is
       Put_Line (Test_File, "8" & Tab & """nine");
 
       ten" & Tab & """ eleven""");
-      --  Actual error: missing 'Put_Line ("'
+--  Actual error: missing 'Put_Line ("'
 
-      Close (Test_File);
+Close (Test_File);
 
-   end Quote_Unquote;
+end Quote_Unquote;
 
 end Ada_Mode.Recover_String_Quote_1;
 --  Local Variables:

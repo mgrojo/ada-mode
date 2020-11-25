@@ -169,7 +169,7 @@ not wait for command to complete. PARSE-END is end of desired
 parse region."
   ;; Must match "parse" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Parse_Params.
-  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
+  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d \"%s\" %d %d %d %d %d %d %d %s"
 		      (cl-ecase wisi--parse-action
 			(navigate 0)
 			(face 1)
@@ -201,10 +201,7 @@ parse region."
 		      (if (or (and (= begin (point-min)) (= parse-end (point-max)))
 			      (< (point-max) wisi-partial-parse-threshold))
 			  0 1) ;; partial parse active
-		      (if (> wisi-debug 0) 1 0) ;; debug_mode
-		      (1- wisi-debug) ;; trace_parse
-		      wisi-trace-mckenzie
-		      wisi-trace-action
+		      wisi-parse-verbosity
 		      (if wisi-mckenzie-disable 1 0)
 		      (or wisi-mckenzie-task-count -1)
 		      (or wisi-mckenzie-zombie-limit -1)
@@ -233,7 +230,7 @@ PARSE-END, wait for command to complete. PARSER will respond with
 one or more Edit messages."
   ;; Must match "refactor" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Refactor_Params.
-  (let* ((cmd (format "refactor %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d"
+  (let* ((cmd (format "refactor %d \"%s\" %d %d %d %d %d %d %d \"%s\" %d %d"
 		      refactor-action
 		      (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
 		      (position-bytes parse-begin)
@@ -243,9 +240,7 @@ one or more Edit messages."
 		      (line-number-at-pos parse-begin)
 		      (line-number-at-pos parse-end)
 		      (save-excursion (goto-char parse-begin) (back-to-indentation) (current-column));; begin_indent
-		      (if (> wisi-debug 0) 1 0) ;; debug-mode
-		      (1- wisi-debug) ;; trace_parse
-		      wisi-trace-action
+		      wisi-parse-verbosity
 		      (or wisi-parse-max-parallel -1)
 		      (- (position-bytes parse-end) (position-bytes parse-begin)) ;; parse-end is after last byte
 		      ))

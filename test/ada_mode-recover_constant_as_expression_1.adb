@@ -10,7 +10,7 @@ is begin
    --  Copied a list of constant declarations to construct a boolean
    -- expression. Desired solution: delete ': constant Stream_Element'.
 
-   end loop;
+end loop;
 exception
    when  Sal.Invalid_Format =>
       raise;

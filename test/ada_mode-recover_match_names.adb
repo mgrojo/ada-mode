@@ -121,13 +121,13 @@ package body Ada_Mode.Recover_Match_Names is
       A : Integer;
    private
       type A is record
-         record; -- meant 'end record'
+        record; -- meant 'end record'
    end Package_Specification_0;
 
    package Package_Specification_1 is
       A : Integer;
       type A is record
-         record; -- meant 'end record'
+        record; -- meant 'end record'
    end Package_Specification_1;
 
    protected body Protected_Body_0 is

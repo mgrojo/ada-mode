@@ -597,7 +597,7 @@ package body Wisi.Ada is
       Format_Parameter_List          : constant Positive := 5;
 
    begin
-      if WisiToken.Trace_Action > Detail then
+      if WisiToken.Trace_Action > Extra then
          Tree.Print_Tree;
       end if;
       case Action is

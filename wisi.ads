@@ -43,7 +43,7 @@ package Wisi is
    type Post_Parse_Action_Type is (Navigate, Face, Indent);
 
    type Parse_Data_Type
-     (Line_Begin_Token    : not null access constant WisiToken.Parse.Line_Token_Vectors.Vector;
+     (Line_Begin_Token    : not null access WisiToken.Parse.Line_Token_Vectors.Vector;
       Line_Begin_Char_Pos : not null access constant WisiToken.Line_Pos_Vectors.Vector)
      is new WisiToken.Syntax_Trees.User_Data_Type with private;
 
@@ -56,7 +56,7 @@ package Wisi is
       End_Line          : in     WisiToken.Line_Number_Type;
       Begin_Indent      : in     Integer;
       Params            : in     String);
-   --  Begin_Line, Begin_Indent, Line_Count only used for Indent. Params
+   --  Begin_Line, Begin_Indent only used for Indent. Params
    --  contains language-specific indent parameter values.
 
    overriding procedure Reset (Data : in out Parse_Data_Type);
@@ -400,6 +400,10 @@ private
       --  Trailing comment or blank lines (after the last contained grammar
       --  token) that need indenting. Excludes comments following code on a
       --  line. If there are no such lines, these are Invalid_Line_Number.
+
+      Inserted_After : Boolean := False;
+      --  True if Insert_Token moved the token from before the next to
+      --  after the previous.
    end record;
    type Augmented_Access is access all Augmented;
    type Augmented_Access_Constant is access constant Augmented;
@@ -408,7 +412,7 @@ private
      Implicit_Dereference => Element;
 
    function To_Augmented_Const_Ref (Item : in WisiToken.Syntax_Trees.Augmented_Class_Access) return Augmented_Const_Ref
-     is (Element => Augmented_Access_Constant (Item));
+   is (Element => Augmented_Access_Constant (Item));
 
    type Augmented_Var_Ref (Element : not null access Augmented) is null record with
      Implicit_Dereference => Element;
@@ -436,9 +440,6 @@ private
      (WisiToken.Line_Number_Type, Integer, Default_Element => Integer'Last);
 
    function Image is new Line_Paren_Vectors.Gen_Image (WisiToken.Trimmed_Image);
-
-   package Line_Begin_Pos_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (WisiToken.Line_Number_Type, WisiToken.Buffer_Pos, Default_Element => WisiToken.Invalid_Buffer_Pos);
 
    type Nil_Buffer_Pos (Set : Boolean := False) is record
       case Set is
@@ -544,7 +545,7 @@ private
      (Navigate_Cache_Trees.Cursor, Navigate_Cache_Trees."=");
 
    type Parse_Data_Type
-     (Line_Begin_Token    : not null access constant WisiToken.Parse.Line_Token_Vectors.Vector;
+     (Line_Begin_Token    : not null access WisiToken.Parse.Line_Token_Vectors.Vector;
       Line_Begin_Char_Pos : not null access constant WisiToken.Line_Pos_Vectors.Vector)
      is new WisiToken.Syntax_Trees.User_Data_Type with
    record
@@ -639,9 +640,10 @@ private
 
    function First
      (Data  : in Parse_Data_Type'Class;
-      Token : in WisiToken.Base_Token)
-     return Boolean
-   is (Data.Line_Begin_Char_Pos.all (Token.Line) = Token.Char_Region.First);
+      Tree  : in WisiToken.Syntax_Trees.Tree'Class;
+      Token : in WisiToken.Syntax_Trees.Node_Access)
+     return Boolean;
+   --  True if Token is first token on Token.Line; False if Token is Invalid_Node_Access
 
    function Current_Indent_Offset
      (Data         : in Parse_Data_Type'Class;
