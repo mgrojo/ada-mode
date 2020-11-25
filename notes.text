@@ -1189,6 +1189,8 @@ in cygwin console for gpg prompts:
     # no 'sync' here; all on savannah via cvs, scp
     ada-mode
 
+add elpa .tar.gz to savannah?
+
 commit savannah
     if emacs cvs-examine fails, do 'cvs status' in shell to see real error message (probably IP address confusion)
         # see projects.text "conflicting keys for savannah"
@@ -1202,6 +1204,9 @@ commit savannah
     C-c C-c
 
     takes ~ 10 min for http://www.nongnu.org/ada-mode/ to reflect cvs commit
+
+publish on Alire?
+    https://alire.ada.dev/
 
 post on emacs-ada-mode mailing list, c.l.a newsgroup:
 

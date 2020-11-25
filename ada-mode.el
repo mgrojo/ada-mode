@@ -544,6 +544,7 @@ See `ff-other-file-alist'.")
     private_type_declaration
     protected_body
     protected_type_declaration
+    renaming_declaration
     single_protected_declaration
     single_task_declaration
     subprogram_body

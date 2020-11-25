@@ -208,7 +208,12 @@ is the package spec.")
 (defun ada-refactor (action)
   (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
   (save-excursion
+    ;; We include punctuation and quote for operators.
     (skip-syntax-backward "w_.\"")
+
+    ;; Skip leading punctuation, for "-Foo.Bar".
+    (skip-syntax-forward ".")
+
     (let* ((edit-begin (point))
 	   (cache (wisi-goto-statement-start))
 	   (parse-begin (point))
