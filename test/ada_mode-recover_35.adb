@@ -8,6 +8,6 @@ is
    --  Error on next line; missing ': Valid_node_Access' after 'Junk'.
    Junk := Push (Tree, Tree.Streams (Stream.Cur), New_Node);
    pragma Unreferenced (Junk);
-   begin
-      null;
+begin
+   null;
 end Push;

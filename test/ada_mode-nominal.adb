@@ -170,7 +170,7 @@ is -- target 0
                     =>        -- ""
                      raise Constraint_Error
                        with Integer'Image (1) &
-                       "help!";
+                         "help!";
 
                      --EMASCMD:(progn (forward-line 1)(back-to-indentation)(backward-sexp)(looking-at "when -- 2"))
                   when -- 3
@@ -632,7 +632,8 @@ is -- target 0
    end;
 
    function "+" (Left, Right : in Record_Type_1) return Record_Type_1 -- body
-   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 2)(wisi-goto-spec/body)(looking-at "\"+\" (Left, Right : in Record_Type_1) return Record_Type_1;"))
+
+   --EMACSCMD:(progn (forward-line -2)(forward-word 1)(forward-char 2)(call-interactively 'wisi-goto-spec/body)(looking-at "+\" (Left, Right : in Record_Type_1) return Record_Type_1;"))
    --EMACSRESULT:t
    is begin
       return
@@ -642,13 +643,14 @@ is -- target 0
    end "+";
 
    function "and" (Left, Right : in Record_Type_1) return Boolean -- body
-   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 2)(wisi-goto-spec/body)(looking-at "\"and\" (Left, Right : in Record_Type_1) return Record_Type_1;"))
+
+   --EMACSCMD:(progn (forward-line -2)(forward-word 1)(forward-char 2)(call-interactively 'wisi-goto-spec/body)(looking-at "and\" (Left, Right : in Record_Type_1) return Boolean;"))
    --EMACSRESULT:t
    is begin
       return
-        (Component_1   => Left.Component_1 > 0 and Right.Component_1 > 0,
-         Component_2   => Left.Component_2 > 0 and Right.Component_2 > 0,
-         Component_356 => Left.Component_356 > 0.0 and Right.Component_356 > 0.0);
+        Left.Component_1 > 0 and Right.Component_1 > 0 and
+        Left.Component_2 > 0 and Right.Component_2 > 0 and
+        Left.Component_356 > 0.0 and Right.Component_356 > 0.0;
    end "and";
 
    function Function_2a (Param : in Parent_Type_1) return Float

@@ -110,14 +110,14 @@ begin
    --EMACSCMD:(progn (forward-line 3)(kill-line 2))
    --EMACSCMD:(progn (end-of-line 2)(execute-kbd-macro "\n-- Comment 1")(current-indentation))
    if (A and B
-      -- Comment 1
-         )
+       -- Comment 1
+      )
      -- Comment 2
      or C
    then
       null;
    end if;
-   --EMACSRESULT:6
-   --EMACSCMD:(progn (forward-line -7)(forward-word 1)(forward-char 1)(insert "(")(end-of-line 2)(insert "\n)")(indent-for-tab-command))
+   --EMACSRESULT:5
+   --EMACSCMD:(progn (forward-line -8)(forward-word 1)(forward-char 1)(insert "(")(end-of-line 2)(insert "\n)")(indent-for-tab-command))
 
 end Ada_Mode.Interactive_2;

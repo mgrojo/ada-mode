@@ -11,9 +11,9 @@ begin
         (Prev_3 = Invalid_Token_ID or
            Prev_3 /= Left_Paren_ID))
       -- missing paren around this; mixed boolean operators.
-     or
-       B
-   then
+      or
+        B
+      then
    --  missing 'end if;' - all inserted after 'then'.
 
 end Ada_Mode.Recover_20;

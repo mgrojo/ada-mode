@@ -26,7 +26,7 @@ procedure Gen_Run_Wisi_LR_Text_Rep_Parse
 is
    Trace      : aliased WisiToken.Text_IO_Trace.Trace;
    Parser     : WisiToken.Parse.LR.Parser.Parser (Descriptor);
-   Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
+   Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access, Parser.Line_Begin_Char_Pos'Access);
 begin
    --  Create parser first so Put_Usage has defaults from Parser.Table,
    --  and Get_CL_Params can override them.

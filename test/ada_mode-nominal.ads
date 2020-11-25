@@ -1,19 +1,18 @@
+
+-- No comment on the first line, to make sure we can handle that :)
+-- blank on first line, to test beginning-of-buffer logic for "with-context"
+
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
 --EMACSCMD:(test-face "Text_IO" font-lock-function-name-face)
 with -- context_clause_start
   Ada.Text_IO;
-
--- don't indent this comment with the previous; blank line between
---
--- No comment on the first line, to make sure we can handle that :)
--- blank on first line, to test beginning-of-buffer logic for "with-context"
 
 -- testing xref-find-definitions, ada-find-other-file with an Emacs
 -- Ada project file.
 --
 -- .adp and .gpr is tested here
 -- .gpr only is tested in ada_mode-find_file.adb
--- .adp only is tested in -- ada_mode-generic_instantiation.ads
+-- .adp only is tested in ada_mode-generic_instantiation.ads
 --
 -- 'eval' is not a safe local variable, so we can't use local
 -- variables for this in batch mode.
@@ -391,13 +390,13 @@ is -- target 0
    function "+" (Left, Right : in Record_Type_1) return Record_Type_1;
    --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 2)(xref-backend-identifier-at-point (project-current)))
    --EMACSRESULT: "\"+\""
-   --EMACSCMD:(progn (forward-line -3)(forward-word 1)(forward-char 2)(wisi-goto-spec/body)(looking-at "\"+\" (Left, Right : in Record_Type_1) return Record_Type_1 -- body"))
+   --EMACSCMD:(progn (forward-line -3)(forward-word 1)(forward-char 2)(call-interactively 'wisi-goto-spec/body)(looking-at "+\" (Left, Right : in Record_Type_1) return Record_Type_1 -- body"))
    --EMACSRESULT:t
 
    function "and" (Left, Right : in Record_Type_1) return Boolean;
    --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 2)(xref-backend-identifier-at-point (project-current)))
    --EMACSRESULT: "\"and\""
-   --EMACSCMD:(progn (forward-line -3)(forward-word 1)(forward-char 2)(wisi-goto-spec/body)(looking-at "\"and\" (Left, Right : in Record_Type_1) return Record_Type_1 -- body"))
+   --EMACSCMD:(progn (forward-line -3)(forward-word 1)(forward-char 2)(call-interactively 'wisi-goto-spec/body)(looking-at "and\" (Left, Right : in Record_Type_1) return Boolean -- body"))
    --EMACSRESULT:t
 
    type Record_Type_2 is limited record

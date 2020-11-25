@@ -33,16 +33,18 @@ with WisiToken.Lexer;
 with WisiToken.Parse.LR;
 with WisiToken.Syntax_Trees;
 package Wisi is
+   use all type WisiToken.Syntax_Trees.Augmented_Class_Access;
    use all type WisiToken.Base_Buffer_Pos;
 
    function Image_Augmented (Aug : in WisiToken.Syntax_Trees.Augmented_Class_Access_Constant) return String;
-   function Image_Action (Action : in WisiToken.Syntax_Trees.Semantic_Action) return String;
+   function Image_Action (Action : in WisiToken.Syntax_Trees.Post_Parse_Action) return String;
    --  For Image_Augmented, Image_Action in Syntax_Trees.Print_Tree, Parser.Execute_Action
 
    type Post_Parse_Action_Type is (Navigate, Face, Indent);
 
    type Parse_Data_Type
-     (Line_Begin_Token : not null access constant WisiToken.Parse.Line_Begin_Token_Vectors.Vector)
+     (Line_Begin_Token    : not null access WisiToken.Parse.Line_Token_Vectors.Vector;
+      Line_Begin_Char_Pos : not null access constant WisiToken.Line_Pos_Vectors.Vector)
      is new WisiToken.Syntax_Trees.User_Data_Type with private;
 
    procedure Initialize
@@ -54,7 +56,7 @@ package Wisi is
       End_Line          : in     WisiToken.Line_Number_Type;
       Begin_Indent      : in     Integer;
       Params            : in     String);
-   --  Begin_Line, Begin_Indent, Line_Count only used for Indent. Params
+   --  Begin_Line, Begin_Indent only used for Indent. Params
    --  contains language-specific indent parameter values.
 
    overriding procedure Reset (Data : in out Parse_Data_Type);
@@ -65,10 +67,10 @@ package Wisi is
 
    overriding
    procedure Lexer_To_Augmented
-     (Data               : in out Parse_Data_Type;
-      Tree               : in out WisiToken.Syntax_Trees.Tree'Class;
-      Token              : in     WisiToken.Base_Token;
-      Prev_Grammar_Token : in     WisiToken.Syntax_Trees.Node_Access);
+     (Data          : in out Parse_Data_Type;
+      Tree          : in out WisiToken.Syntax_Trees.Tree'Class;
+      Token         : in     WisiToken.Base_Token;
+      Grammar_Token : in     WisiToken.Syntax_Trees.Node_Access);
 
    overriding
    function Copy_Augmented
@@ -398,6 +400,10 @@ private
       --  Trailing comment or blank lines (after the last contained grammar
       --  token) that need indenting. Excludes comments following code on a
       --  line. If there are no such lines, these are Invalid_Line_Number.
+
+      Inserted_After : Boolean := False;
+      --  True if Insert_Token moved the token from before the next to
+      --  after the previous.
    end record;
    type Augmented_Access is access all Augmented;
    type Augmented_Access_Constant is access constant Augmented;
@@ -406,13 +412,14 @@ private
      Implicit_Dereference => Element;
 
    function To_Augmented_Const_Ref (Item : in WisiToken.Syntax_Trees.Augmented_Class_Access) return Augmented_Const_Ref
-     is (Element => Augmented_Access_Constant (Item));
+   is (Element => Augmented_Access_Constant (Item));
 
    type Augmented_Var_Ref (Element : not null access Augmented) is null record with
      Implicit_Dereference => Element;
 
    function To_Augmented_Var_Ref (Item : in WisiToken.Syntax_Trees.Augmented_Class_Access) return Augmented_Var_Ref
-     is (Element => Augmented_Access (Item));
+   is (Element => Augmented_Access (Item))
+   with Pre => Item /= null;
 
    type Augmented_Token is record
       Base : WisiToken.Base_Token;
@@ -433,9 +440,6 @@ private
      (WisiToken.Line_Number_Type, Integer, Default_Element => Integer'Last);
 
    function Image is new Line_Paren_Vectors.Gen_Image (WisiToken.Trimmed_Image);
-
-   package Line_Begin_Pos_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (WisiToken.Line_Number_Type, WisiToken.Buffer_Pos, Default_Element => WisiToken.Invalid_Buffer_Pos);
 
    type Nil_Buffer_Pos (Set : Boolean := False) is record
       case Set is
@@ -541,7 +545,8 @@ private
      (Navigate_Cache_Trees.Cursor, Navigate_Cache_Trees."=");
 
    type Parse_Data_Type
-     (Line_Begin_Token : not null access constant WisiToken.Parse.Line_Begin_Token_Vectors.Vector)
+     (Line_Begin_Token    : not null access WisiToken.Parse.Line_Token_Vectors.Vector;
+      Line_Begin_Char_Pos : not null access constant WisiToken.Line_Pos_Vectors.Vector)
      is new WisiToken.Syntax_Trees.User_Data_Type with
    record
       --  Aux token info
@@ -553,11 +558,6 @@ private
       Embedded_Quote_Escape_Doubled : Boolean := False;
 
       --  Data from parsing
-
-      Line_Begin_Char_Pos : Line_Begin_Pos_Vectors.Vector;
-      --  Character position at the start of the first grammar or
-      --  non-grammar token on each line. Cached by Initialize_Actions to
-      --  simplify indent computations.
 
       Line_Paren_State : Line_Paren_Vectors.Vector;
       --  Parenthesis nesting state at the start of each line; used by
@@ -640,12 +640,14 @@ private
 
    function First
      (Data  : in Parse_Data_Type'Class;
-      Token : in WisiToken.Base_Token)
-     return Boolean
-   is (Data.Line_Begin_Char_Pos (Token.Line) = Token.Char_Region.First);
+      Tree  : in WisiToken.Syntax_Trees.Tree'Class;
+      Token : in WisiToken.Syntax_Trees.Node_Access)
+     return Boolean;
+   --  True if Token is first token on Token.Line; False if Token is Invalid_Node_Access
 
    function Current_Indent_Offset
      (Data         : in Parse_Data_Type'Class;
+      Tree         : in WisiToken.Syntax_Trees.Tree'Class;
       Anchor_Token : in WisiToken.Base_Token;
       Offset       : in Integer)
      return Integer;
@@ -657,17 +659,20 @@ private
       Token : in WisiToken.Syntax_Trees.Valid_Node_Access)
      return Augmented_Token
    is ((Base => Tree.Base_Token (Token),
-        Aug  => Augmented_Access (Tree.Augmented (Token)).all));
+        Aug  => Augmented_Access (Tree.Augmented (Token)).all))
+   with Pre => Tree.Augmented (Token) /= null;
 
    function Get_Augmented_Const
      (Tree  : in WisiToken.Syntax_Trees.Tree'Class;
       Token : in WisiToken.Syntax_Trees.Valid_Node_Access)
-     return Augmented_Const_Ref;
+     return Augmented_Const_Ref
+   with Pre => Tree.Augmented (Token) /= null;
 
    function Get_Augmented_Var
      (Tree  : in WisiToken.Syntax_Trees.Tree'Class;
       Token : in WisiToken.Syntax_Trees.Valid_Node_Access)
-     return Augmented_Var_Ref;
+     return Augmented_Var_Ref
+   with Pre => Tree.Augmented (Token) /= null;
 
    function Get_Text
      (Data       : in Parse_Data_Type;

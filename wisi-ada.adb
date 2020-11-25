@@ -88,7 +88,7 @@ package body Wisi.Ada is
             Anchor_Line => Anchor_Token.Line,
             Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
             Offset      => Current_Indent_Offset
-              (Data, Anchor_Token,
+              (Data, Tree, Anchor_Token,
                Offset   =>
                  (if Anchor_Token.Line = Record_Token.Base.Line
                   then Offset
@@ -597,7 +597,7 @@ package body Wisi.Ada is
       Format_Parameter_List          : constant Positive := 5;
 
    begin
-      if WisiToken.Trace_Action > Detail then
+      if WisiToken.Trace_Action > Extra then
          Tree.Print_Tree;
       end if;
       case Action is
@@ -703,7 +703,7 @@ package body Wisi.Ada is
               (Data,
                Anchor_Line => Anchor_Token.Line,
                Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
-               Offset      => Current_Indent_Offset (Data, Anchor_Token, 3)).Simple_Delta);
+               Offset      => Current_Indent_Offset (Data, Tree, Anchor_Token, 3)).Simple_Delta);
       end if;
    end Ada_Indent_Aspect;
 
@@ -743,7 +743,7 @@ package body Wisi.Ada is
                  (Data,
                   Anchor_Line => Paren_Tok.Line,
                   Last_Line   => Last_Line (Renames_Tok, Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Data, Paren_Tok, abs Ada_Indent_Renames));
+                  Offset      => Current_Indent_Offset (Data, Tree, Paren_Tok, abs Ada_Indent_Renames));
             end;
          end if;
       else
@@ -789,7 +789,7 @@ package body Wisi.Ada is
                  (Data,
                   Anchor_Line => Anchor_Token.Line,
                   Last_Line   => Last_Line (Indenting, Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Data, Anchor_Token, Args (2) + abs Ada_Indent_Return));
+                  Offset      => Current_Indent_Offset (Data, Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
             end;
          else
             declare
@@ -801,7 +801,7 @@ package body Wisi.Ada is
                  (Data,
                   Anchor_Line => Anchor_Token.Line,
                   Last_Line   => Last_Line (Indenting, Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Data, Anchor_Token, Args (2) + abs Ada_Indent_Return));
+                  Offset      => Current_Indent_Offset (Data, Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
             end;
          end if;
 

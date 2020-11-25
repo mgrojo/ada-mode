@@ -233,20 +233,18 @@ Returns cache, or nil if at end of buffer."
 (defvar wisi-debug 0
   "wisi debug mode:
 0 : normal - ignore parse errors, for indenting new code
-1 : report parse errors (for running tests)
-2 : show parse states, position point at parse errors
-3 : also show top 10 items of parser stack.")
+1 : report parse errors (for running tests)")
 
 ;; The following parameters are easily changeable for debugging.
 (defvar wisi-action-disable nil
   "If non-nil, disable all elisp actions during parsing.
 Allows timing parse separate from actions.")
 
-(defvar-local wisi-trace-mckenzie 0
-  "McKenzie trace level; 0 for none")
-
-(defvar-local wisi-trace-action 0
-  "Parse action trace level; 0 for none")
+(defvar-local wisi-parse-verbosity ""
+  "WisiToken trace config; empty string for none.
+See WisiToken Trace_Enable for complete set of options.
+Examples:
+debug=1 lexer=1 parse=2 action=3")
 
 (defvar-local wisi-mckenzie-disable nil
   "If non-nil, disable McKenzie error recovery. Otherwise, use parser default.")

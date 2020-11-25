@@ -84,7 +84,7 @@ is
       Tree : WisiToken.Syntax_Trees.Tree renames Parser.Tree;
       ID   : constant Token_ID := Tree.ID (Node);
    begin
-      if Tree.Label (Node) = Shared_Terminal then
+      if Tree.Label (Node) = Source_Terminal then
          declare
             Token : constant WisiToken.Base_Token := Tree.Base_Token (Node);
          begin

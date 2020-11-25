@@ -180,10 +180,7 @@ package body Emacs_Wisi_Common_Parse is
          Result.End_Line             := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
          Result.Begin_Indent         := Get_Integer (Command_Line, Last);
          Result.Partial_Parse_Active := 1 = Get_Integer (Command_Line, Last);
-         Result.Debug_Mode           := 1 = Get_Integer (Command_Line, Last);
-         Result.Parse_Verbosity      := Get_Integer (Command_Line, Last);
-         Result.McKenzie_Verbosity   := Get_Integer (Command_Line, Last);
-         Result.Action_Verbosity     := Get_Integer (Command_Line, Last);
+         Result.Verbosity            := +Get_String (Command_Line, Last);
          Result.McKenzie_Disable     := Get_Integer (Command_Line, Last);
          Result.Task_Count           := Get_Integer (Command_Line, Last);
          Result.Zombie_Limit         := Get_Integer (Command_Line, Last);
@@ -212,9 +209,7 @@ package body Emacs_Wisi_Common_Parse is
          Result.Parse_Begin_Line     := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
          Result.Parse_End_Line       := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
          Result.Parse_Begin_Indent   := Get_Integer (Command_Line, Last);
-         Result.Debug_Mode           := 1 = Get_Integer (Command_Line, Last);
-         Result.Parse_Verbosity      := Get_Integer (Command_Line, Last);
-         Result.Action_Verbosity     := Get_Integer (Command_Line, Last);
+         Result.Verbosity            := +Get_String (Command_Line, Last);
          Result.Max_Parallel         := Get_Integer (Command_Line, Last);
          Result.Byte_Count           := Get_Integer (Command_Line, Last);
       end return;
@@ -307,10 +302,7 @@ package body Emacs_Wisi_Common_Parse is
                   end Clean_Up;
 
                begin
-                  Trace_Parse    := Params.Parse_Verbosity;
-                  Trace_McKenzie := Params.McKenzie_Verbosity;
-                  Trace_Action   := Params.Action_Verbosity;
-                  Debug_Mode     := Params.Debug_Mode;
+                  WisiToken.Enable_Trace (-Params.Verbosity);
 
                   Partial_Parse_Active        := Params.Partial_Parse_Active;
                   Parser.Partial_Parse_Active := Params.Partial_Parse_Active;
@@ -339,11 +331,11 @@ package body Emacs_Wisi_Common_Parse is
                   end if;
                   if Params.Zombie_Limit > 0 then
                      Parser.Table.McKenzie_Param.Zombie_Limit :=
-                       WisiToken.Syntax_Trees.Element_Index (Params.Zombie_Limit);
+                       WisiToken.Syntax_Trees.Node_Index (Params.Zombie_Limit);
                   end if;
                   if Params.Check_Limit > 0 then
                      Parser.Table.McKenzie_Param.Check_Limit :=
-                       WisiToken.Syntax_Trees.Element_Index (Params.Check_Limit);
+                       WisiToken.Syntax_Trees.Node_Index (Params.Check_Limit);
                   end if;
                   if Params.Enqueue_Limit > 0 then
                      Parser.Table.McKenzie_Param.Enqueue_Limit := Params.Enqueue_Limit;
@@ -411,9 +403,7 @@ package body Emacs_Wisi_Common_Parse is
                   end Clean_Up;
 
                begin
-                  Trace_Parse  := Params.Parse_Verbosity;
-                  Trace_Action := Params.Action_Verbosity;
-                  Debug_Mode   := Params.Debug_Mode;
+                  WisiToken.Enable_Trace (-Params.Verbosity);
 
                   Partial_Parse_Active := True;
 

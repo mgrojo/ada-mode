@@ -108,7 +108,7 @@ begin
          --EMACSCMD:(progn (forward-line -1)(delete-char 2)(indent-for-tab-command)(back-to-indentation)(current-column))
          --EMACSRESULT: 9
 
-         --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(back-to-indentation)(current-column))
+         --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(back-to-indentation) (current-column))
          --EMACSRESULT: 9
       when Face =>
 

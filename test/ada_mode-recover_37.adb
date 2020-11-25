@@ -11,7 +11,7 @@
 procedure Update_Containing_Nonterms (Modified_Token_Index : in WisiToken.Token_Index)
 is
    --  recover inserts 'procedure <identifier> (' here.
-     Node : in     Valid_Node_Index)
+   Node : in     Valid_Node_Index)
    is begin
       if Tree.Max_Terminal_Index (Node) = Modified_Token_Index then
       --  recover inserts 'end if;' after 'then'

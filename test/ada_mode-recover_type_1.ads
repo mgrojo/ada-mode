@@ -10,8 +10,5 @@ package Ada_Mode.Recover_Type_1 is
          when Dvdecimal=>
    --  missing 'end case; end record;' recover inserts that at end of previous line.
 
-   procedure Parse (Input : in String)
-   is begin
-
-end Parse;
+   procedure Parse (Input : in String);
 end Ada_Mode.Recover_Type_1;

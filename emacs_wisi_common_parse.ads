@@ -109,10 +109,7 @@ package Emacs_Wisi_Common_Parse is
       --  Indentation of Line_Begin
 
       Partial_Parse_Active : Boolean;
-      Debug_Mode           : Boolean;
-      Parse_Verbosity      : Integer;
-      McKenzie_Verbosity   : Integer;
-      Action_Verbosity     : Integer;
+      Verbosity            : Ada.Strings.Unbounded.Unbounded_String;
       McKenzie_Disable     : Integer;
       Task_Count           : Integer;
       Zombie_Limit         : Integer;
@@ -148,11 +145,9 @@ package Emacs_Wisi_Common_Parse is
       Parse_Begin_Indent : Integer;
       --  Indentation of Parse_Begin_Line
 
-      Debug_Mode       : Boolean;
-      Parse_Verbosity  : Integer;
-      Action_Verbosity : Integer;
-      Max_Parallel     : Integer;
-      Byte_Count       : Integer;
+      Verbosity    : Ada.Strings.Unbounded.Unbounded_String;
+      Max_Parallel : Integer;
+      Byte_Count   : Integer;
       --  Count of bytes of source file sent.
    end record;
 

@@ -14,10 +14,10 @@ package body Ada_Mode.Recover_Navigate_1 is
       --  Deleted 'if then' here
       Statement := Statement & Name & " = ?";
       else
-      Statement := Statement & Name;
-      Values    := Values & "?";
-   end if;
-Last := Last + 1;
-Params (Last) := +Value;
-end Add_Param;
+         Statement := Statement & Name;
+         Values    := Values & "?";
+      end if;
+      Last := Last + 1;
+      Params (Last) := +Value;
+   end Add_Param;
 end Ada_Mode.Recover_Navigate_1;

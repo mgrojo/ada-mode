@@ -152,7 +152,9 @@ begin
                   Param.Default_Exp := Tree.Byte_Region (Tree.Child (Children (I), 2));
 
                when others =>
-                  Raise_Programmer_Error ("unknown format_parameter_list token id", Data.Lexer, Tree, Children (I));
+                  Raise_Programmer_Error
+                    ("unknown format_parameter_list token id", Data.Lexer, Tree, Data.Line_Begin_Char_Pos.all,
+                     Children (I));
                end case;
             end loop;
          end;
@@ -205,7 +207,8 @@ begin
             end loop;
             declare
                subtype Count is Standard.Ada.Text_IO.Count;
-               Open_Paren_Col : constant Count := Tree.Base_Token (Formal_Part).Column;
+               Open_Paren_Col : constant Count := WisiToken.Column
+                 (Tree.Base_Token (Formal_Part), Data.Line_Begin_Char_Pos.all);
                Ident_Col      : constant Count := Open_Paren_Col + 1;
                Colon_Col      : constant Count := Ident_Col + Count (Ident_Len) + 1;
                In_Col         : constant Count := Colon_Col + (if Aliased_P then 10 else 2);
@@ -229,6 +232,10 @@ begin
                        (Length (Result) - Line_End)) * ' ';
                end Indent_To;
             begin
+               if WisiToken.Trace_Action > Detail then
+                  Put_Line (";; open_paren_col:" & Open_Paren_Col'Image);
+               end if;
+
                for Param of Params loop
                   if Need_New_Line then
                      Result   := Result & ";" & ASCII.LF;
