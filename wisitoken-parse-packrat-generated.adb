@@ -19,15 +19,24 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Parse.Packrat.Generated is
 
-   overriding procedure Parse (Parser : in out Generated.Parser)
+   overriding procedure Parse
+     (Parser : in out Generated.Parser;
+      Edits  : in     KMN_Lists.List := KMN_Lists.Empty_List)
    is
       use all type WisiToken.Syntax_Trees.User_Data_Access;
-
+      use all type Ada.Containers.Count_Type;
       Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;
 
       Result : Memo_Entry;
    begin
+      if Edits.Length > 0 then
+         raise Parse_Error;
+      end if;
+
       Parser.Tree.Clear;
+      --  Creates Shared_Stream, but no parse stream; packrat does not
+      --  use a parse stream.
+
       if Parser.User_Data /= null then
          Parser.User_Data.Reset;
       end if;
@@ -39,8 +48,10 @@ package body WisiToken.Parse.Packrat.Generated is
       for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);
          Parser.Derivs (Nonterm).Set_First_Last
-           (Parser.Tree.Get_Element_Index (Parser.Tree.Stream_First (Parser.Tree.Terminal_Stream)),
-            Parser.Tree.Get_Element_Index (Parser.Tree.Stream_Last (Parser.Tree.Terminal_Stream)));
+           (Parser.Tree.Get_Node_Index
+              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream)),
+            Parser.Tree.Get_Node_Index
+              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_Last (Parser.Tree.Shared_Stream)));
       end loop;
 
       Result := Parser.Parse_WisiToken_Accept (Parser, Syntax_Trees.Invalid_Stream_Index);
@@ -53,7 +64,6 @@ package body WisiToken.Parse.Packrat.Generated is
          raise Syntax_Error with "parse failed"; --  FIXME: need better error message!
       else
          Parser.Tree.Set_Root (Result.Result);
-         Parser.Tree.Set_Parents;
       end if;
 
    end Parse;
@@ -77,19 +87,5 @@ package body WisiToken.Parse.Packrat.Generated is
 
       --  FIXME: Packrat parser does not report errors yet.
    end Put_Errors;
-
-   function Image_Pos
-     (Tree    : in Syntax_Trees.Tree;
-      Element : in Syntax_Trees.Stream_Index)
-     return String
-   is
-      use Syntax_Trees;
-   begin
-      if Element = Invalid_Stream_Index then
-         return "0";
-      else
-         return Tree.Get_Element_Index (Element)'Image;
-      end if;
-   end Image_Pos;
 
 end WisiToken.Parse.Packrat.Generated;

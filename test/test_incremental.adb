@@ -23,111 +23,211 @@ with AUnit.Checks;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
-with WisiToken.Parse.LR;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Parse.LR.Parser_Lists;
+with WisiToken.Parse.LR;
 with WisiToken.Syntax_Trees.AUnit_Public;
+with WisiToken.Text_IO_Trace;
 package body Test_Incremental is
    use Ada_Lite_Actions;
 
+   Trace     : aliased WisiToken.Text_IO_Trace.Trace;
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
-   Parser : WisiToken.Parse.LR.Parser.Parser;
-
-   Expected_User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
-   Expected_Parser    : WisiToken.Parse.LR.Parser.Parser;
+   Parser : WisiToken.Parse.LR.Parser.Parser (Ada_Lite_Actions.Descriptor'Access);
 
    procedure Parse_Text
      (Initial   : in String;
-      Delete_At : in Integer;
+      Edit_At   : in Integer;
       Delete    : in String;
-      Insert_At : in Integer;
-      Insert    : in String)
+      Insert    : in String;
+      Edit_2_At : in Integer := 0;
+      Delete_2  : in String  := "";
+      Insert_2  : in String  := "")
+   with Pre => Edit_2_At = 0 or Edit_2_At > Edit_At
    is
       use Ada.Text_IO;
       use AUnit.Checks;
       use WisiToken.Syntax_Trees.AUnit_Public;
+      use WisiToken.Parse;
+      use all type WisiToken.Base_Buffer_Pos;
 
-      Initial_First  : Integer := Initial'First;
-      Initial_Last   : Integer := Initial'First - 1;
+      Saved_Trace_Parse : constant Integer := WisiToken.Trace_Parse;
 
-      Expected : String (Initial'First .. Initial'Last + Insert'Length);
-      Expected_First  : Integer := Expected'First;
-      Expected_Last   : Integer := Expected'First - 1;
+      Edited : String (Initial'First .. Initial'Last + Insert'Length + Insert_2'Length) := (others => ' ');
+
+      Edited_Last : Integer := Initial'Last;
+
+      Edited_Tree_Batch : WisiToken.Syntax_Trees.Tree (Ada_Lite_Actions.Descriptor'Access);
+
+      Edits : KMN_Lists.List;
+
+      KMN_Next_Bytes : Integer := Initial'First;
+      KMN_Next_Chars : Integer := Initial'First;
+
+      procedure Edit_Text
+        (Edit_At : in Integer;
+         Delete  : in String;
+         Insert  : in String)
+      is begin
+         if Delete'Length > 0 then
+            if Initial (Edit_At .. Edit_At + Delete'Length - 1) /= Delete then
+               AUnit.Assertions.Assert (False, "invalid delete");
+            end if;
+            Edited (Edit_At .. Edited'Last - Delete'Length) := Edited (Edit_At + Delete'Length .. Edited'Last);
+            Edited (Edited'Last - Delete'Length + 1 .. Edited'Last) := (others => ' ');
+         end if;
+
+         if Insert'Length > 0 then
+            Edited (Edit_At + Insert'Length .. Edited'Last) := Edited (Edit_At .. Edited'Last - Insert'Length);
+            Edited (Edit_At .. Edit_At + Insert'Length - 1) := Insert;
+         end if;
+
+         Edited_Last := Edited_Last - Delete'Length + Insert'Length;
+      end Edit_Text;
+
+      procedure To_KMN
+        (Edit_At : in Integer;
+         Delete  : in String;
+         Insert  : in String)
+      is
+         use WisiToken;
+
+         Edit_1 : constant KMN :=
+           (Stable_Bytes   => Base_Buffer_Pos (Edit_At - KMN_Next_Bytes),
+            Stable_Chars   => Base_Buffer_Pos (Edit_At - KMN_Next_Bytes), --  FIXME: test utf-8
+            Deleted_Bytes  => Delete'Length,
+            Deleted_Chars  => Delete'Length,
+            Inserted_Bytes => Insert'Length,
+            Inserted_Chars => Insert'Length);
+      begin
+         Edits.Append (Edit_1);
+
+         KMN_Next_Bytes := @ + Integer (Edit_1.Stable_Bytes + Edit_1.Deleted_Bytes);
+         KMN_Next_Chars := @ + Integer (Edit_1.Stable_Chars + Edit_1.Deleted_Chars);
+      end To_KMN;
+
+      procedure Last_KMN
+      is
+         use WisiToken;
+      begin
+         if KMN_Next_Bytes < Initial'Last then
+            Edits.Append
+              ((Stable_Bytes   => Base_Buffer_Pos (Initial'Last - KMN_Next_Bytes + 1),
+                Stable_Chars   => Base_Buffer_Pos (Initial'Last - KMN_Next_Chars + 1),
+                Deleted_Bytes  => 0,
+                Deleted_Chars  => 0,
+                Inserted_Bytes => 0,
+                Inserted_Chars => 0));
+         end if;
+         --  EOI is also in a "stable region", but that is handled specially in
+         --  Edit_Tree.
+      end Last_KMN;
+
+      procedure Put_Tree (Label : in String; Tree : in WisiToken.Syntax_Trees.Tree)
+      is begin
+         Put_Line (Label & ":");
+         Parser.Put_Errors;
+
+         Put_Line (" ... streams:");
+         Tree.Print_Streams (Non_Grammar => True);
+
+         if WisiToken.Trace_Tests > WisiToken.Detail then
+            Put_Line (" ... tree:");
+            Tree.Print_Tree (Non_Grammar => True);
+         end if;
+      end Put_Tree;
 
    begin
-      --  FIXME: use Validate_Stream
-      if Delete_At in Initial'Range then
-         Expected_Last  := Delete_At - 1;
-         Initial_Last := Expected_Last;
+      --  Create Edited string
+      Edited (Initial'First .. Initial'Last) := Initial;
 
-         Expected (Expected_First .. Expected_Last) := Initial (Initial_First .. Initial_Last);
-
-         Initial_Last := Delete_At + Delete'Length - 1;
-
-         if Initial (Delete_At .. Initial_Last) /= Delete then
-            AUnit.Assertions.Assert (False, "invalid delete");
+      if Edit_At in Initial'Range then
+         if Edit_2_At in Initial'Range then
+            Edit_Text (Edit_2_At, Delete_2, Insert_2);
          end if;
+         Edit_Text (Edit_At, Delete, Insert);
       end if;
 
-      if Insert_At in Initial'Range then
-         Expected_First := Expected_Last + 1;
-         Expected_Last := Expected_Last + Insert'Length;
-
-         Expected (Expected_First .. Expected_Last) := Insert;
-      end if;
-
-      Initial_First := Initial_Last + 1;
-      Initial_Last := Initial'Last;
-      if Initial_First <= Initial_Last then
-         Expected_First := Expected_Last + 1;
-         Expected_Last  := Expected_Last + Initial_Last - Initial_First + 1;
-
-         Expected (Expected_First .. Expected_Last) := Initial (Initial_First .. Initial_Last);
-      end if;
-
-      if WisiToken.Trace_Action > WisiToken.Outline then
+      if WisiToken.Trace_Tests > WisiToken.Outline then
          Ada.Text_IO.New_Line;
-         Ada.Text_IO.Put_Line ("initial: '" & Initial & "'");
-         Ada.Text_IO.Put_Line ("edited : '" & Expected (Expected'First .. Expected_Last) & "'");
+         Ada.Text_IO.Put_Line ("initial source: '" & Initial & "'");
+         Ada.Text_IO.Put_Line ("edited source : '" & Edited (Edited'First .. Edited_Last) & "'");
       end if;
 
+      --  Batch parse of Edited
+      if WisiToken.Trace_Tests < 2 then
+         --  Don't trace parse in batch parser.
+         WisiToken.Trace_Parse := 0;
+      end if;
+
+      Parser.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
+
+      Parser.Parse;
+
+      Parser.Tree.Copy_Tree (Edited_Tree_Batch, User_Data'Access);
+
+      if WisiToken.Trace_Tests > WisiToken.Outline then
+         Put_Tree ("edited source batch parse", Edited_Tree_Batch);
+      end if;
+
+      --  Batch parse of Initial
       Parser.Lexer.Reset_With_String (Initial);
 
       Parser.Parse;
 
-      if WisiToken.Trace_Action > WisiToken.Outline then
-         Parser.Put_Errors;
+      WisiToken.Trace_Parse := Saved_Trace_Parse;
 
-         Put_Line ("initial terminals:" & Parser.Tree.Image (Parser.Tree.Terminal_Stream, Descriptor));
+      if WisiToken.Trace_Tests > WisiToken.Outline then
+         New_Line;
+         Put_Tree ("initial source batch parse result", Parser.Tree);
       end if;
 
-      --  FIXME: apply edit to Parser
+      --  Prepare for incremental parse
+      Parser.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
 
-      Expected_Parser.Lexer.Reset_With_String (Expected (Expected'First .. Expected_Last));
-
-      Expected_Parser.Parse;
-
-      if WisiToken.Trace_Action > WisiToken.Outline then
-         Expected_Parser.Put_Errors;
-
-         Put_Line ("edited terminals  :" & Parser.Tree.Image (Parser.Tree.Terminal_Stream, Descriptor));
-         Put_Line
-           ("expected terminals:" & Expected_Parser.Tree.Image (Expected_Parser.Tree.Terminal_Stream, Descriptor));
+      if Edit_At in Initial'Range then
+         To_KMN (Edit_At, Delete, Insert);
+         if Edit_2_At in Initial'Range then
+            To_KMN (Edit_2_At, Delete_2, Insert_2);
+         end if;
+         Last_KMN;
       end if;
 
-      Check ("terminals", Parser.Tree, Parser.Tree.Terminal_Stream, Expected_Parser.Tree,
-             Expected_Parser.Tree.Terminal_Stream);
-      Check ("syntax_tree", Parser.Tree, Expected_Parser.Tree);
+      Validate_KMN
+        (List => Edits,
+         Stable_Byte_First        => WisiToken.Base_Buffer_Pos (Initial'First),
+         Stable_Char_First        => WisiToken.Base_Buffer_Pos (Initial'First),
+         Initial_Text_Byte_Region =>
+           (WisiToken.Base_Buffer_Pos (Initial'First), WisiToken.Base_Buffer_Pos (Initial'Last)),
+         Initial_Text_Char_Region =>
+           (WisiToken.Base_Buffer_Pos (Initial'First), WisiToken.Base_Buffer_Pos (Initial'Last)),
+         --  FIXME: test utf-8
+         Edited_Text_Byte_Region  =>
+           (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited'Last)),
+         Edited_Text_Char_Region  =>
+           (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited'Last)));
 
+      if WisiToken.Trace_Parse + WisiToken.Trace_Incremental_Parse > WisiToken.Outline then
+         New_Line;
+         Put_Line ("incremental parse:");
+      end if;
+
+      Parser.Parse (Edits);
+
+      if WisiToken.Trace_Tests > WisiToken.Outline then
+         New_Line;
+         Put_Tree ("incremental parse result", Parser.Tree);
+      end if;
+
+      Check ("1", Parser.Tree, Edited_Tree_Batch, Shared_Stream => False);
    exception
    when WisiToken.Syntax_Error =>
-      if WisiToken.Trace_Parse > WisiToken.Outline then
-         Parser.Put_Errors;
-      end if;
-
       Check ("exception", True, False);
+
+   when WisiToken.Parse_Error =>
+      Check ("unexpected exception", True, False);
    end Parse_Text;
 
    ----------
@@ -138,11 +238,11 @@ package body Test_Incremental is
       pragma Unreferenced (T);
    begin
       Parse_Text
-        (Initial   => "A := B + C;",
-         Delete_At => 0,
-         Delete    => "",
-         Insert_At => 0,
-         Insert    => "");
+        (Initial => "A := B + C;",
+         --          1        |10
+         Edit_At => 0,
+         Delete  => "",
+         Insert  => "");
    end No_Change;
 
    procedure Edit_Comment (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -152,11 +252,131 @@ package body Test_Incremental is
       Parse_Text
         (Initial => "A := B + C; --  A comment",
          --          1        |10       |20
-         Delete_At => 19,
+         Edit_At => 19,
          Delete  => "comment",
-         Insert_At => 19,
          Insert  => "cool explanation");
+      --             |19        |30
+
    end Edit_Comment;
+
+   procedure Edit_Code_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert at start of initial text
+      Parse_Text
+        (Initial => "A := --  comment 1" & ASCII.LF & "B + C; -- comment 2",
+         --          1        |10     |18              |20       |30     |38
+         Edit_At => 1,
+         Delete  => "",
+         Insert  => "A_");
+      --             |1
+   end Edit_Code_1;
+
+   procedure Edit_Code_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert, delete in middle
+      Parse_Text
+        (Initial => "A := --  comment 1" & ASCII.LF & "B + C; -- comment 2",
+         --          1        |10     |18              |20       |30     |38
+         Edit_At => 20,
+         Delete  => "B",
+         Insert  => "A_1");
+      --             |20
+   end Edit_Code_2;
+
+   procedure Edit_Code_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert, delete at last grammar token
+      Parse_Text
+        (Initial => "A := --  comment 1" & ASCII.LF & "B + C;",
+         --          1        |10     |18              |20
+         Edit_At => 25,
+         Delete  => ";",
+         Insert  => "_1;");
+      --             |25
+   end Edit_Code_3;
+
+   procedure Edit_Code_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert, delete at different places, insert first. Insert potentially extends token
+      Parse_Text
+        (Initial => "A := --  comment 1" & ASCII.LF & "B + C;",
+         --          |1       |10     |18              |20
+         Edit_At => 5,
+         Delete  => "",
+         Insert  => "1 + ",
+         --          |5
+
+         Edit_2_At => 20,
+         Delete_2  => "B + ",
+         Insert_2  => "");
+
+      --  Edited: "A :=1 +  --  comment 1" & ASCII.LF & "C;",
+      --           |1       |10       |20                |24
+   end Edit_Code_4;
+
+   procedure Edit_Code_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert, delete at different places, delete first. Delete part of token.
+      Parse_Text
+        (Initial => "A_23 := --  comment 1" & ASCII.LF & "B + C;",
+         --          1        |10       |20               |23  |27
+         Edit_At => 4,
+         Delete  => "3",
+         Insert  => "",
+
+         Edit_2_At => 24,
+         Delete_2  => "",
+         Insert_2  => "_2");
+   end Edit_Code_5;
+
+   procedure Edit_Code_6 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Delete after insert, modifying token
+      Parse_Text
+        (Initial => "A := B + C;",
+         --          |1   |6  |10
+         Edit_At => 2,
+         Delete  => "",
+         Insert  => "_1",
+         --          |2
+
+         Edit_2_At => 7,
+         Delete_2  => " + ",
+         Insert_2  => "");
+
+      --  Edited: "A_1 := BC;",
+      --           |1     |8
+   end Edit_Code_6;
+
+   procedure Edit_Code_7 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Delete whitespace after insert, _not_ modifying token
+      Parse_Text
+        (Initial => "A := B +  C;",
+         --          |1       |10
+         Edit_At => 2,
+         Delete  => "",
+         Insert  => "_1",
+         --          |2
+
+         Edit_2_At => 9,
+         Delete_2  => " ",
+         Insert_2  => "");
+   end Edit_Code_7;
 
    ----------
    --  Public subprograms
@@ -167,7 +387,13 @@ package body Test_Incremental is
    begin
       Register_Routine (T, No_Change'Access, "No_Change");
       Register_Routine (T, Edit_Comment'Access, "Edit_Comment");
-
+      Register_Routine (T, Edit_Code_1'Access, "Edit_Code_1");
+      Register_Routine (T, Edit_Code_2'Access, "Edit_Code_2");
+      Register_Routine (T, Edit_Code_3'Access, "Edit_Code_3");
+      Register_Routine (T, Edit_Code_4'Access, "Edit_Code_4");
+      Register_Routine (T, Edit_Code_5'Access, "Edit_Code_5");
+      Register_Routine (T, Edit_Code_6'Access, "Edit_Code_6");
+      Register_Routine (T, Edit_Code_7'Access, "Edit_Code_7");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
@@ -186,16 +412,6 @@ package body Test_Incremental is
          Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
          Trace                          => Trace'Access,
          User_Data                      => User_Data'Access,
-         Text_Rep_File_Name             => "ada_lite_lr1_t1_re2c_parse_table.txt");
-
-      Ada_Lite_LR1_T1_Main.Create_Parser
-        (Expected_Parser,
-         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
-         Language_Matching_Begin_Tokens =>
-           WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
-         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-         Trace                          => Trace'Access,
-         User_Data                      => Expected_User_Data'Access,
          Text_Rep_File_Name             => "ada_lite_lr1_t1_re2c_parse_table.txt");
    end Set_Up_Case;
 

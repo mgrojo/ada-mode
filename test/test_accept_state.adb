@@ -70,7 +70,7 @@ package body Test_Accept_State is
        EOF_ID        => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
-   Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
+   Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
      --  First production in Grammar must be the terminating
@@ -88,6 +88,8 @@ package body Test_Accept_State is
    procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
+
+      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
       --  The test is that there are no exceptions.
 
@@ -95,7 +97,8 @@ package body Test_Accept_State is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Parser.Descriptor, Syntax),
-         WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor, Grammar_File_Name => ""),
+         WisiToken.Generate.LR.LALR_Generate.Generate
+           (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

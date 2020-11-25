@@ -67,7 +67,7 @@ package body WisiToken_Grammar_Runtime is
       end if;
 
       case Tree.Label (Tree_Index) is
-      when Shared_Terminal =>
+      when Source_Terminal =>
          return Strip_Delimiters (Tree_Index);
 
       when Virtual_Terminal =>
@@ -315,10 +315,12 @@ package body WisiToken_Grammar_Runtime is
 
    overriding
    procedure Set_Lexer
-     (User_Data : in out User_Data_Type;
-      Lexer     : in     WisiToken.Lexer.Handle)
+     (User_Data           : in out User_Data_Type;
+      Lexer               : in     WisiToken.Lexer.Handle;
+      Line_Begin_Char_Pos : in     Line_Pos_Vector_Access)
    is begin
-      User_Data.Grammar_Lexer := Lexer;
+      User_Data.Grammar_Lexer       := Lexer;
+      User_Data.Line_Begin_Char_Pos := Line_Begin_Char_Pos;
    end Set_Lexer;
 
    overriding procedure Reset (Data : in out User_Data_Type)
@@ -443,10 +445,10 @@ package body WisiToken_Grammar_Runtime is
       begin
          if Tokens'Last < Index then
             raise SAL.Programmer_Error;
-         elsif Tree.Label (Tokens (Index)) /= WisiToken.Syntax_Trees.Shared_Terminal then
+         elsif Tree.Label (Tokens (Index)) /= WisiToken.Syntax_Trees.Source_Terminal then
             raise SAL.Programmer_Error with "token at " & Image (Tree.Byte_Region (Tokens (Index))) &
               " is a " & WisiToken.Syntax_Trees.Node_Label'Image (Tree.Label (Tokens (Index))) &
-              ", expecting Shared_Terminal";
+              ", expecting Source_Terminal";
          else
             return Tree.Base_Token (Tokens (Index));
          end if;
@@ -457,7 +459,7 @@ package body WisiToken_Grammar_Runtime is
 
    begin
       if Data.Phase = Meta then
-         if Tree.Label (Tokens (2)) = WisiToken.Syntax_Trees.Shared_Terminal then
+         if Tree.Label (Tokens (2)) = WisiToken.Syntax_Trees.Source_Terminal then
             case Enum_ID (2) is
             when IDENTIFIER_ID =>
                declare
@@ -493,7 +495,8 @@ package body WisiToken_Grammar_Runtime is
                                     Token : Base_Token renames Tree.Base_Token (Children (I));
                                  begin
                                     raise Grammar_Error with Error_Message
-                                      (Data.Grammar_Lexer.File_Name, Token.Line, Token.Column,
+                                      (Data.Grammar_Lexer.File_Name, Token.Line,
+                                       Column (Token, Data.Line_Begin_Char_Pos.all),
                                        "invalid generate param '" & Text & "'");
                                  end;
                               end if;
@@ -574,7 +577,7 @@ package body WisiToken_Grammar_Runtime is
             end case;
          end;
 
-      when Syntax_Trees.Shared_Terminal =>
+      when Syntax_Trees.Source_Terminal =>
          case Enum_ID (2) is
          when CODE_ID =>
             declare
@@ -665,7 +668,7 @@ package body WisiToken_Grammar_Runtime is
             when Grammar_Error =>
                Put_Error
                  (Error_Message
-                    (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column,
+                    (Data.Grammar_Lexer.File_Name, Token (2).Line, Column (Token (2), Data.Line_Begin_Char_Pos.all),
                      "invalid raw code location; actions {spec | body} {context | pre | post}"));
             end;
 
@@ -813,7 +816,7 @@ package body WisiToken_Grammar_Runtime is
 
                elsif Kind = "mckenzie_check_limit" then
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Check_Limit := Syntax_Trees.Element_Index'Value
+                  Data.McKenzie_Recover.Check_Limit := Syntax_Trees.Node_Index'Value
                     (Get_Text (Data, Tree, Tokens (3)));
 
                elsif Kind = "mckenzie_check_delta_limit" then
@@ -887,7 +890,7 @@ package body WisiToken_Grammar_Runtime is
 
                elsif Kind = "mckenzie_zombie_limit" then
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Zombie_Limit := Syntax_Trees.Element_Index'Value
+                  Data.McKenzie_Recover.Zombie_Limit := Syntax_Trees.Node_Index'Value
                     (Get_Text (Data, Tree, Tokens (3)));
 
                elsif Kind = "meta_syntax" then
@@ -913,14 +916,16 @@ package body WisiToken_Grammar_Runtime is
 
                else
                   raise Grammar_Error with Error_Message
-                    (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column, "unexpected syntax");
+                    (Data.Grammar_Lexer.File_Name, Token (2).Line, Column
+                       (Token (2), Data.Line_Begin_Char_Pos.all), "unexpected syntax");
 
                end if;
             end;
 
          when others =>
             raise Grammar_Error with Error_Message
-              (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column, "unexpected syntax");
+              (Data.Grammar_Lexer.File_Name, Token (2).Line, Column (Token (2), Data.Line_Begin_Char_Pos.all),
+               "unexpected syntax");
          end case;
 
       when Syntax_Trees.Virtual_Terminal | Syntax_Trees.Virtual_Identifier =>
@@ -954,12 +959,13 @@ package body WisiToken_Grammar_Runtime is
 
       if WisiToken.BNF.Is_Present (Data.Tokens.Rules, LHS_String) then
          case Tree.Label (LHS_Node) is
-         when Shared_Terminal =>
+         when Source_Terminal =>
             declare
                LHS_Token : WisiToken.Base_Token renames Tree.Base_Token (LHS_Node);
             begin
                raise Grammar_Error with Error_Message
-                 (Data.Grammar_Lexer.File_Name, LHS_Token.Line, LHS_Token.Column, "duplicate nonterm");
+                 (Data.Grammar_Lexer.File_Name, LHS_Token.Line, Column (LHS_Token, Data.Line_Begin_Char_Pos.all),
+                  "duplicate nonterm");
             end;
 
          when Virtual_Identifier =>
@@ -976,13 +982,13 @@ package body WisiToken_Grammar_Runtime is
            ((+LHS_String, Right_Hand_Sides, Labels,
              Source_Line =>
                (case Tree.Label (LHS_Node) is
-                when Shared_Terminal    => Tree.Base_Token (LHS_Node).Line,
+                when Source_Terminal    => Tree.Base_Token (LHS_Node).Line,
                 when Virtual_Identifier => Invalid_Line_Number, -- IMPROVEME: get line from Right_Hand_Sides
                 when others             => raise SAL.Programmer_Error)));
       end if;
    end Add_Nonterminal;
 
-   function Image_Grammar_Action (Action : in WisiToken.Syntax_Trees.Semantic_Action) return String
+   function Image_Grammar_Action (Action : in WisiToken.Syntax_Trees.Post_Parse_Action) return String
    is
       pragma Unreferenced (Action);
    begin
@@ -1010,7 +1016,7 @@ package body WisiToken_Grammar_Runtime is
                Tok  : Base_Token renames Tree.Base_Token (Tokens (Token));
             begin
                raise Grammar_Error with Error_Message
-                 (Data.Grammar_Lexer.File_Name, Tok.Line, Tok.Column,
+                 (Data.Grammar_Lexer.File_Name, Tok.Line, Column (Tok, Data.Line_Begin_Char_Pos.all),
                   "EBNF syntax used, but BNF specified; set '%meta_syntax EBNF'");
             end;
          end if;
@@ -1026,7 +1032,7 @@ package body WisiToken_Grammar_Runtime is
       Node  : in WisiToken.Syntax_Trees.Node_Access)
    is begin
       WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
-        (Label, Data.Grammar_Lexer, Tree, Node);
+        (Label, Data.Grammar_Lexer, Tree, Data.Line_Begin_Char_Pos.all, Node);
    end Raise_Programmer_Error;
 
 end WisiToken_Grammar_Runtime;

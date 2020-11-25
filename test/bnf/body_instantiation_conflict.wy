@@ -5,7 +5,7 @@
 ;; Also tests wisi rules parser
 
 %code copyright_license %{
-;;  Copyright (C) 2013, 2017 - 2019 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2013, 2017 - 2020 Stephen Leake.  All Rights Reserved.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -50,9 +50,9 @@
 
 %start compilation_unit
 
-;; don't actually need this %if (the states are ignored), but we are testing it.
+;; don't actually need this %if, but we are testing it. The states in parens are ignored,
 %if parser = LALR
-%conflict SHIFT generic_instantiation | REDUCE parameter_list on token IS ( 7)
+%conflict SHIFT generic_instantiation | REDUCE parameter_list on token IS
 %end if
 %if parser = LR1
 %conflict SHIFT generic_instantiation | REDUCE parameter_list on token IS ( 7, 17)

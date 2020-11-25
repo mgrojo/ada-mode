@@ -34,7 +34,9 @@ package WisiToken.Generate.LR.LALR_Generate is
       Parse_Table_File_Name : in     String              := "";
       Include_Extra         : in     Boolean             := False;
       Ignore_Conflicts      : in     Boolean             := False;
-      Partial_Recursion     : in     Boolean             := True)
+      Partial_Recursion     : in     Boolean             := True;
+      Use_Cached_Recursions : in     Boolean             := False;
+      Recursions            : in out WisiToken.Generate.Recursions)
      return Parse_Table_Ptr
    with Pre =>
      Descriptor.Last_Lookahead = Descriptor.First_Nonterminal and

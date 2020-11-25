@@ -111,10 +111,11 @@ is
       --  verbosity meaning is actually determined by output choice;
       --  they should be consistent with this description.
       Put_Line
-        (Standard_Error, "  -v <EBNF level> <Table level> <Minimal_Complete level>: sets verbosity (default 0):");
+        (Standard_Error, "  --verbosity <key=value ...> sets verbosity levels (default 0):");
       Put_Line (Standard_Error, "     0 - only error messages to standard error");
       Put_Line (Standard_Error, "     1 - add diagnostics to standard out");
       Put_Line (Standard_Error, "     2 - more diagnostics to standard out, ignore unused tokens, unknown conflicts");
+      Put_Line (Standard_Error, "     keys: ebnf, table, minimal_complete, debug");
       Put_Line (Standard_Error, "  --generate ...: override grammar file %generate directive");
       Put_Line (Standard_Error, "  --output_bnf : output translated EBNF source to <grammar file name base>_bnf.wy");
       Put_Line (Standard_Error, "  --suffix <string>; appended to grammar file name");
@@ -122,7 +123,6 @@ is
       Put_Line (Standard_Error,
                 "  --test_main; generate standalone main program for running the generated parser, modify file names");
       Put_Line (Standard_Error, "  --time; output execution time of various stages");
-      Put_Line (Standard_Error, "  --debug_mode; enable various debug output");
       Put_Line (Standard_Error,
                 "  --task_count n; number of tasks used to compute LR1 items; 0 means CPU count." &
                   " Default 1 unless %lr1_hash_table_size specified; then 0.");
@@ -185,24 +185,16 @@ begin
       loop
          exit when Argument (Arg_Next)(1) /= '-';
 
-         --   --help, -v first, then alphabetical
+         --   --help, --verbosity first, then alphabetical
 
          if Argument (Arg_Next) = "--help" then
             Put_Usage;
             return;
 
-         elsif Argument (Arg_Next) = "-v" then
-            Arg_Next  := Arg_Next + 1;
-            WisiToken.Trace_Generate_EBNF := Integer'Value (Argument (Arg_Next));
-            Arg_Next  := Arg_Next + 1;
-            WisiToken.Trace_Generate_Table := Integer'Value (Argument (Arg_Next));
-            Arg_Next  := Arg_Next + 1;
-            WisiToken.Trace_Generate_Minimal_Complete := Integer'Value (Argument (Arg_Next));
-            Arg_Next  := Arg_Next + 1;
-
-         elsif Argument (Arg_Next) = "--debug_mode" then
-            WisiToken.Debug_Mode := True;
-            Arg_Next             := Arg_Next + 1;
+         elsif Argument (Arg_Next) = "--verbosity" then
+            Arg_Next := Arg_Next + 1;
+            WisiToken.Enable_Trace (Argument (Arg_Next));
+            Arg_Next := Arg_Next + 1;
 
          elsif Argument (Arg_Next) = "--ignore_conflicts" then
             Ignore_Conflicts := True;
@@ -379,6 +371,7 @@ begin
          raise;
       end Parse_Check;
 
+      Cached_Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
       --  Get the the input file quads
       Parse_Check (None, None, WisiToken_Grammar_Runtime.Meta);
@@ -512,6 +505,10 @@ begin
                Time_Start : Time;
                Time_End   : Time;
 
+               --  We could use a cached Generate_Data if not
+               --  (Input_Data.If_Lexer_Present or Input_Data.If_Parser_Present), but
+               --  that would not save much time, and would complicate this logic. We
+               --  do cache Recursions.
                Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
                  WisiToken.BNF.Generate_Utils.Initialize (Input_Data'Unchecked_Access, Ignore_Conflicts);
 
@@ -576,9 +573,11 @@ begin
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                         Input_Data.Max_Parallel,
                         Parse_Table_File_Name,
-                        Include_Extra     => Test_Main,
-                        Ignore_Conflicts  => Ignore_Conflicts,
-                        Partial_Recursion => Input_Data.Language_Params.Partial_Recursion);
+                        Include_Extra         => Test_Main,
+                        Ignore_Conflicts      => Ignore_Conflicts,
+                        Partial_Recursion     => Input_Data.Language_Params.Partial_Recursion,
+                        Use_Cached_Recursions => not (Input_Data.If_Lexer_Present or Input_Data.If_Parser_Present),
+                        Recursions            => Cached_Recursions);
 
                      if WisiToken.Trace_Time then
                         Time_End := Clock;
@@ -612,11 +611,13 @@ begin
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                         Input_Data.Max_Parallel,
                         Parse_Table_File_Name,
-                        Include_Extra     => Test_Main,
-                        Ignore_Conflicts  => Ignore_Conflicts,
-                        Partial_Recursion => Input_Data.Language_Params.Partial_Recursion,
-                        Task_Count        => Generate_Task_Count,
-                        Hash_Table_Size   => Input_Data.Language_Params.LR1_Hash_Table_Size);
+                        Include_Extra         => Test_Main,
+                        Ignore_Conflicts      => Ignore_Conflicts,
+                        Partial_Recursion     => Input_Data.Language_Params.Partial_Recursion,
+                        Task_Count            => Generate_Task_Count,
+                        Hash_Table_Size       => Input_Data.Language_Params.LR1_Hash_Table_Size,
+                        Use_Cached_Recursions => not (Input_Data.If_Lexer_Present or Input_Data.If_Parser_Present),
+                        Recursions            => Cached_Recursions);
 
                      if Trace_Time then
                         Time_End := Clock;

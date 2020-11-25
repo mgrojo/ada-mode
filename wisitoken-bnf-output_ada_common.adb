@@ -120,7 +120,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       end if;
       if Input_Data.Check_Count > 0 then
          Put_Line ("with WisiToken.Lexer;");
-         Put_Line ("with WisiToken.Semantic_Checks;");
+         Put_Line ("with WisiToken.In_Parse_Actions;");
       end if;
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Spec_Context));
       Put_Line ("package " & Package_Name & " is");
@@ -228,7 +228,7 @@ package body WisiToken.BNF.Output_Ada_Common is
                   Indent_Line ("  Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
                   Indent_Line ("  Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
                   Indent_Line ("  Recover_Active : in     Boolean)");
-                  Indent_Line (" return WisiToken.Semantic_Checks.Check_Status;");
+                  Indent_Line (" return WisiToken.In_Parse_Actions.Status;");
                end if;
             end loop;
          end if;
@@ -317,7 +317,6 @@ package body WisiToken.BNF.Output_Ada_Common is
             Put_Line ("with Emacs_Module_Aux;");
             Put_Line ("with emacs_module_h;");
             Put_Line ("with Interfaces.C;");
-            Put_Line ("with WisiToken.Semantic_State;");
          end case;
       end case;
 
@@ -473,10 +472,10 @@ package body WisiToken.BNF.Output_Ada_Common is
       end if;
 
       if Common_Data.Text_Rep then
-         Indent_Line ("function Actions return WisiToken.Parse.LR.Semantic_Action_Array_Arrays.Vector");
+         Indent_Line ("function Actions return WisiToken.Parse.LR.Parse_Actions_Array_Arrays.Vector");
          Indent_Line ("is begin");
          Indent := Indent + 3;
-         Indent_Line ("return Acts : WisiToken.Parse.LR.Semantic_Action_Array_Arrays.Vector do");
+         Indent_Line ("return Acts : WisiToken.Parse.LR.Parse_Actions_Array_Arrays.Vector do");
          Indent := Indent + 3;
          Indent_Line
            ("Acts.Set_First_Last (" & Trimmed_Image (Generate_Data.Grammar.First_Index) & ", " &
@@ -1044,6 +1043,18 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("}");
       New_Line;
 
+      Indent_Line ("void");
+      Indent_Line (Output_File_Name_Root & "_set_position");
+      Indent_Line ("   (wisi_lexer* lexer, size_t byte_position, size_t char_position, int line)");
+      Indent_Line ("{");
+      Indent := Indent + 3;
+      Indent_Line ("lexer->cursor   = lexer->buffer + byte_position - 1;");
+      Indent_Line ("lexer->char_pos = char_position;");
+      Indent_Line ("lexer->line     = line;");
+      Indent := Indent - 3;
+      Indent_Line ("}");
+      New_Line;
+
       ----------
       --  next_token utils
 
@@ -1086,7 +1097,8 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("   else");
       Indent_Line ("     ++lexer->char_pos;");
       Indent_Line ("   if (*lexer->cursor == 0x0A) ++lexer->line;");
-      Indent_Line ("}");
+      Indent_Line ("} else ");
+      Indent_Line ("   ++lexer->char_pos;");
       Indent := Indent - 3;
       Indent_Line ("}");
       Indent_Start ("#define YYSKIP() skip(lexer)");
@@ -1153,7 +1165,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("*id            =" & WisiToken.Token_ID'Image (Generate_Data.Descriptor.EOI_ID) & ";");
       Indent_Line ("*byte_position = lexer->buffer_last - lexer->buffer + 1;");
       Indent_Line ("*byte_length   = 0;");
-      Indent_Line ("*char_position = lexer->char_token_start;");
+      Indent_Line ("*char_position = lexer->char_pos + 1;");
       Indent_Line ("*char_length   = 0;");
       Indent_Line ("*line_start    = lexer->line;");
       Indent_Line ("return status;");
@@ -1299,6 +1311,16 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("with Import        => True,");
          Indent_Line ("     Convention    => C,");
          Indent_Line ("     External_Name => """ & Output_File_Name_Root & "_reset_lexer"";");
+         New_Line;
+
+         Indent_Line ("procedure Set_Position");
+         Indent_Line ("  (Lexer         : in System.Address;");
+         Indent_Line ("   Byte_Position : in Interfaces.C.size_t;");
+         Indent_Line ("   Char_Position : in Interfaces.C.size_t;");
+         Indent_Line ("   Line          : in Interfaces.C.int)");
+         Indent_Line ("with Import        => True,");
+         Indent_Line ("     Convention    => C,");
+         Indent_Line ("     External_Name => """ & Output_File_Name_Root & "_set_position"";");
          New_Line;
 
          Indent_Line ("function Next_Token");

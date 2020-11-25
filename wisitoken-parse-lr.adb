@@ -204,37 +204,37 @@ package body WisiToken.Parse.LR is
    end Add_Action;
 
    procedure Add_Action
-     (State           : in out LR.Parse_State;
-      Symbol          : in     Token_ID;
-      Verb            : in     LR.Parse_Action_Verbs;
-      Production      : in     Production_ID;
-      RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check  : in     Semantic_Checks.Semantic_Check)
+     (State             : in out LR.Parse_State;
+      Symbol            : in     Token_ID;
+      Verb              : in     LR.Parse_Action_Verbs;
+      Production        : in     Production_ID;
+      RHS_Token_Count   : in     Ada.Containers.Count_Type;
+      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : in     In_Parse_Actions.In_Parse_Action)
    is
       Action : constant Parse_Action_Rec :=
         (case Verb is
-         when Reduce    => (Reduce, Production, Semantic_Action, Semantic_Check, RHS_Token_Count),
-         when Accept_It => (Accept_It, Production, Semantic_Action, Semantic_Check, RHS_Token_Count),
+         when Reduce    => (Reduce, Production, Post_Parse_Action, In_Parse_Action, RHS_Token_Count),
+         when Accept_It => (Accept_It, Production, Post_Parse_Action, In_Parse_Action, RHS_Token_Count),
          when others    => raise SAL.Programmer_Error);
    begin
       Add (State.Action_List, Symbol, Action);
    end Add_Action;
 
    procedure Add_Action
-     (State           : in out Parse_State;
-      Symbols         : in     Token_ID_Array;
-      Production      : in     Production_ID;
-      RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check)
+     (State             : in out Parse_State;
+      Symbols           : in     Token_ID_Array;
+      Production        : in     Production_ID;
+      RHS_Token_Count   : in     Ada.Containers.Count_Type;
+      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : in     WisiToken.In_Parse_Actions.In_Parse_Action)
    is begin
       --  We assume WisiToken.BNF.Output_Ada_Common.Duplicate_Reduce is True
       --  for this state; no conflicts, all the same action, Recursive.
       for Symbol of Symbols loop
          Add_Action
            (State, Symbol, Reduce, Production, RHS_Token_Count,
-            Semantic_Action, Semantic_Check);
+            Post_Parse_Action, In_Parse_Action);
       end loop;
    end Add_Action;
 
@@ -243,11 +243,11 @@ package body WisiToken.Parse.LR is
       Symbol            : in     Token_ID;
       Reduce_Production : in     Production_ID;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
-      Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check    : in     Semantic_Checks.Semantic_Check)
+      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : in     In_Parse_Actions.In_Parse_Action)
    is
       Conflict : constant Parse_Action_Rec :=
-        (Reduce, Reduce_Production, Semantic_Action, Semantic_Check, RHS_Token_Count);
+        (Reduce, Reduce_Production, Post_Parse_Action, In_Parse_Action, RHS_Token_Count);
 
       Ref : constant Action_Arrays.Find_Reference_Constant_Type := State.Action_List.Find_Constant (Symbol);
 
@@ -299,6 +299,35 @@ package body WisiToken.Parse.LR is
       return Ref.Actions;
    end Action_For;
 
+   function Shift_State (Action_List : in Parse_Action_Node_Ptr) return State_Index
+   is begin
+      --  There can be only one shift action, and it is always first.
+      return Action_List.Item.State;
+   end Shift_State;
+
+   procedure Undo_Reduce
+     (Tree   : in out Syntax_Trees.Tree;
+      Table  : in     Parse_Table;
+      Stream : in     Syntax_Trees.Stream_ID)
+   is
+      use Syntax_Trees;
+      Nonterm    : constant Node_Access := Tree.Pop (Stream);
+      Prev_State : State_Index          := Tree.State (Stream);
+   begin
+      for Child of Tree.Children (Nonterm) loop
+         if Tree.Parents_Set then
+            Tree.Clear_Parent (Child);
+         end if;
+
+         if Is_Terminal (Tree.ID (Child), Tree.Descriptor.all) then
+            Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (Child)));
+         else
+            Prev_State := Goto_For (Table, Prev_State, Tree.ID (Child));
+         end if;
+         Tree.Push (Stream, Child, Prev_State);
+      end loop;
+   end Undo_Reduce;
+
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set
    is
       Result : Token_ID_Set := (Table.First_Terminal .. Table.Last_Terminal => False);
@@ -336,7 +365,7 @@ package body WisiToken.Parse.LR is
 
    function Get_Text_Rep
      (File_Name : in String;
-      Actions   : in Semantic_Action_Array_Arrays.Vector)
+      Actions   : in Parse_Actions_Array_Arrays.Vector)
      return Parse_Table_Ptr
    is
       use Ada.Text_IO;
@@ -500,16 +529,16 @@ package body WisiToken.Parse.LR is
 
                         when Reduce | Accept_It =>
                            if Next_Boolean then
-                              Node_J.Item.Action := Actions
-                                (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS).Action;
+                              Node_J.Item.Post_Parse_Action := Actions
+                                (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS).Post_Parse;
                            else
-                              Node_J.Item.Action := null;
+                              Node_J.Item.Post_Parse_Action := null;
                            end if;
                            if Next_Boolean then
-                              Node_J.Item.Check := Actions
-                                (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS).Check;
+                              Node_J.Item.In_Parse_Action := Actions
+                                (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS).In_Parse;
                            else
-                              Node_J.Item.Check := null;
+                              Node_J.Item.In_Parse_Action := null;
                            end if;
                            Node_J.Item.Token_Count := Next_Count_Type;
 
@@ -639,9 +668,7 @@ package body WisiToken.Parse.LR is
    end Get_Text_Rep;
 
    function Equal (Left : in Config_Op; Right : in Insert_Op) return Boolean
-   is
-      use all type WisiToken.Syntax_Trees.Stream_Index;
-   begin
+   is begin
       return Left.Op = Insert and then
         Left.Ins_ID = Right.Ins_ID and then
         Left.Ins_Before = Right.Ins_Before;
@@ -676,44 +703,6 @@ package body WisiToken.Parse.LR is
       return True;
    end None_Since_FF;
 
-   function Only_Since_FF (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
-   is
-      use Config_Op_Arrays, Config_Op_Array_Refs;
-      use all type Ada.Containers.Count_Type;
-   begin
-      if Length (Ops) = 0 or else Constant_Ref (Ops, Last_Index (Ops)).Op /= Op then
-         return False;
-      else
-         for I in reverse First_Index (Ops) .. Last_Index (Ops) loop
-            declare
-               O : Config_Op renames Constant_Ref (Ops, I);
-            begin
-               exit when O.Op = Fast_Forward;
-               if O.Op /= Op then
-                  return False;
-               end if;
-            end;
-         end loop;
-         return True;
-      end if;
-   end Only_Since_FF;
-
-   function Any (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
-   is
-      use Config_Op_Arrays, Config_Op_Array_Refs;
-   begin
-      for I in First_Index (Ops) .. Last_Index (Ops) loop
-         declare
-            O : Config_Op renames Constant_Ref (Ops, I);
-         begin
-            if O.Op = Op then
-               return True;
-            end if;
-         end;
-      end loop;
-      return False;
-   end Any;
-
    function Image (Item : in Recover_Op; Tree : in Syntax_Trees.Tree) return String
    is
       use Syntax_Trees;
@@ -722,17 +711,17 @@ package body WisiToken.Parse.LR is
         "(" & Image (Item.Op) & ", " &
         (case Item.Op is
          when Insert =>
-             (if Item.Ins_Node = Invalid_Node_Access
-              then Image (Item.Ins_ID, Tree.Descriptor.all)
-              else Tree.Image (Item.Ins_Node, Terminal_Node_Numbers => True)) & ", " &
-             Tree.Image (Item.Ins_Before, Terminal_Node_Numbers => True),
+           (if Item.Ins_Node = Invalid_Node_Access
+            then Image (Item.Ins_ID, Tree.Descriptor.all)
+            else Tree.Image (Item.Ins_Node, Terminal_Node_Numbers => True)) & "," &
+              Item.Ins_Before'Image,
          when Delete =>
-             (if Item.Del_Node = Invalid_Node_Access
-              then Tree.Image (Item.Del_Index, Terminal_Node_Numbers => True)
-              else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)) & ", " &
-              (if Item.Del_After_Node = Invalid_Node_Access
-              then "-"
-              else Tree.Image (Item.Del_After_Node, Terminal_Node_Numbers => True)))
+           (if Item.Del_Node = Invalid_Node_Access
+            then Trimmed_Image (Item.Del_Index) & ":" & Image (Item.Del_ID, Tree.Descriptor.all)
+            else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)) &
+             (if Item.Del_After_Node = Invalid_Node_Access
+              then ""
+              else ", " & Tree.Image (Item.Del_After_Node, Terminal_Node_Numbers => True)))
         & ")";
    end Image;
 
@@ -741,7 +730,9 @@ package body WisiToken.Parse.LR is
       use all type WisiToken.Syntax_Trees.Node_Access;
    begin
       for I in 1 .. Depth loop
-         if Stack.Peek (I).Node = Syntax_Trees.Invalid_Node_Access then
+         if Stack.Peek (I).Token.Virtual and then
+           Stack.Peek (I).Token.First_Terminal = Syntax_Trees.Invalid_Node_Access
+         then
             return False;
          end if;
       end loop;

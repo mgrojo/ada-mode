@@ -141,8 +141,11 @@ wisitoken-followed_by.exe : force
 	gprbuild -p -j8 -P wisitoken.gpr wisitoken-followed_by
 
 test-executables : force
-	gprbuild -p -j8 --autoconf=obj/auto.cpgr -P wisitoken_test.gpr
+	gprbuild -p -j8 -P wisitoken_test.gpr
 
+# gprbuild can run gnatprep as part of the compiler, but that requires
+# putting the gnatprep symbols in the .ad? file, which means we have
+# no way to distinguish between ada_lite and ada_lite_ebnf.
 wisitoken-parse-lr-mckenzie_recover-ada_lite.% : wisitoken-parse-lr-mckenzie_recover-ada_lite.%.gp
 	gnatprep -b -r -T -DADA_LITE=Ada_Lite $^ $@
 

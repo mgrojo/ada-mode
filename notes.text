@@ -3,7 +3,11 @@ build/Makefile
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
 org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - work, used by o.e.a-2
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - incremental parse
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - incremental parse, used by o.e.a-6
+org.wisitoken.stephe-3/o.s_l.sal.stephe-1 - from o.w.s-2; incremental parse error recover config.input_stream
+
+possible branch tags:
+incremental_parse-pre-config.input_stream o.w.s-2
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -19,7 +23,7 @@ org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - incremental parse
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"        . "../org.wisitoken.stephe-1")))
+   ("../org.wisitoken"        . "../org.wisitoken.stephe-2")))
 
 update-wisitoken_grammar
 (dvc-propagate-multiple
@@ -35,30 +39,51 @@ wisitoken_grammar_1.wy
     need error
 
 incremental parse
-    Rename terminal_stream to shared_stream
+    run all tests
+        t_mck:
+            make -r t_mck RUN_ARGS="LALR \"\" \"debug=1 tests=1 \" "
 
-    test/test_incremental.adb
+        test/test_incremental.adb :
+            make -r t_one RUN_ARGS="test_incremental.adb \"\" \"debug=1 \" "
 
-    apply edit:
-        wi.parse.lr.incremental?
-        kmn list; must also store inserted text
-            paper assumes versioned file contents directly available; we don't
+        t_all: pass
 
-        LSP didchangeTextDocumentParams sends changed range, inserted text.
-            presumably a delete is represented by a non-null range and an empty insert.
+    more tests;
+        parse_incremental with current_token = empty nonterm
+        left_breakdown with first_terminal = virtual
+        Mckenzie current_Terminal skip virtual terminals in input and shared
 
-        Parser.line_begin_token must be updated; used in error recover
+    error recover delete left_breakdown (shared_stream)
+        wisitoken-parse-lr-mckenzie_recover-parse.adb Get_Action
+        add to config.input_stream first
+
+    edit after error recovery:
+        no virtuals adjacent to edits; keep other virtuals
 
     review fixmes
 
-    consider switch back to array tree
-        measure parse speed, memory use
+    could merge edit_tree, parse_incremental
+        wagner graham 1998
+        is edit_tree useful for packrat incremental?
+        tree-sitter has edit_tree
 
-    branched parse stack eliminates need for duplicate_state check?
+    [Wagner Graham 1998] doesn't modify the tree structure for
+        Left_Breakdown; it just moves the Current_Token pointer around.
+        requires significantly different tree structure.
+            child pointers are bastardized as stream pointers.
+        rest of parser must understand that.
+        requires merge edit_tree into incremental parse
+        faster? less allocate/deallocate
+
+    branched parse stack would simplify duplicate_state check?
         but have to move branch point in error recover for push_back, undo_reduce.
             or not; the other parser will do that?
 
-    since we are copying stream node to set state, might as well also set parent?
+edit_tree delete unreachable nodes (from terminated parse streams)
+    use mark and sweep
+
+Mckenzie parallel gain
+    eliminate super access that does not require lock
 
 recover supervisor should provide Put_Trace_line
     to control access to Trace
@@ -445,6 +470,10 @@ automatically augment grammar with empty productions
 
 integrate with emacs module
 
- build/release_process.text
+ refs
+build/release_process.text
+
+d:/Books/eBooks/Parsing/Wagner, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
+d:/Books/eBooks/Parsing/Lahav 2004 Efficient Semantic Analysis for Text Editors.pdf
 
 # end of file

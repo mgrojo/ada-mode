@@ -45,8 +45,11 @@ package WisiToken.Parse.Packrat.Generated is
       end case;
    end record;
 
+   subtype Positive_Node_Index is Syntax_Trees.Node_Index range 1 .. Syntax_Trees.Node_Index'Last;
    package Memos is new SAL.Gen_Unbounded_Definite_Vectors
-     (Syntax_Trees.Element_Index, Memo_Entry, Default_Element => (others => <>));
+     (Positive_Node_Index, Memo_Entry, Default_Element => (others => <>));
+   --  Memos is indexed by Node_Index of terminals in Shared_Stream
+   --  (incremental parse is not supported).
 
    subtype Result_Type is Memo_Entry
    with Dynamic_Predicate => Result_Type.State in Result_States;
@@ -64,14 +67,12 @@ package WisiToken.Parse.Packrat.Generated is
       Parse_WisiToken_Accept : Generated.Parse_WisiToken_Accept;
    end record;
 
-   overriding procedure Parse (Parser : in out Generated.Parser);
+   overriding procedure Parse
+     (Parser : in out Generated.Parser;
+      Edits  : in     KMN_Lists.List := KMN_Lists.Empty_List);
+   --  Raises Parse_Error if Edits is not empty.
+
    overriding function Any_Errors (Parser : in Generated.Parser) return Boolean;
    overriding procedure Put_Errors (Parser : in Generated.Parser);
-
-   function Image_Pos
-     (Tree    : in Syntax_Trees.Tree;
-      Element : in Syntax_Trees.Stream_Index)
-     return String;
-   --  "0" for Invalid_Stream_Index, Node_Index'image otherwise.
 
 end WisiToken.Parse.Packrat.Generated;

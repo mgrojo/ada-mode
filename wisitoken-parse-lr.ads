@@ -37,16 +37,17 @@ pragma License (Modified_GPL);
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Array_Image;
+with SAL.Gen_Bounded_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Stacks.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
 with System.Multiprocessors;
-with WisiToken.Semantic_Checks;
+with WisiToken.In_Parse_Actions;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
-   use all type WisiToken.Syntax_Trees.Element_Index;
+   use all type WisiToken.Syntax_Trees.Node_Index;
    use all type SAL.Base_Peek_Type;
 
    type All_Parse_Action_Verbs is (Pause, Shift, Reduce, Accept_It, Error);
@@ -80,9 +81,9 @@ package WisiToken.Parse.LR is
 
       when Reduce | Accept_It =>
          --  Production.LHS is the result nonterm
-         Action      : WisiToken.Syntax_Trees.Semantic_Action   := null;
-         Check       : WisiToken.Semantic_Checks.Semantic_Check := null;
-         Token_Count : Ada.Containers.Count_Type                := 0;
+         Post_Parse_Action : WisiToken.Syntax_Trees.Post_Parse_Action   := null;
+         In_Parse_Action   : WisiToken.In_Parse_Actions.In_Parse_Action := null;
+         Token_Count       : Ada.Containers.Count_Type                  := 0;
 
       when Error =>
          null;
@@ -224,22 +225,22 @@ package WisiToken.Parse.LR is
    --  Add a Shift action to tail of State action list.
 
    procedure Add_Action
-     (State           : in out Parse_State;
-      Symbol          : in     Token_ID;
-      Verb            : in     Parse_Action_Verbs;
-      Production      : in     Production_ID;
-      RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
+     (State             : in out Parse_State;
+      Symbol            : in     Token_ID;
+      Verb              : in     Parse_Action_Verbs;
+      Production        : in     Production_ID;
+      RHS_Token_Count   : in     Ada.Containers.Count_Type;
+      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : in     WisiToken.In_Parse_Actions.In_Parse_Action);
    --  Add a Reduce or Accept_It action to tail of State action list.
 
    procedure Add_Action
-     (State           : in out Parse_State;
-      Symbols         : in     Token_ID_Array;
-      Production      : in     Production_ID;
-      RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
+     (State             : in out Parse_State;
+      Symbols           : in     Token_ID_Array;
+      Production        : in     Production_ID;
+      RHS_Token_Count   : in     Ada.Containers.Count_Type;
+      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : in     WisiToken.In_Parse_Actions.In_Parse_Action);
    --  Add duplicate Reduce actions, and final Error action, to tail of
    --  State action list.
 
@@ -248,8 +249,8 @@ package WisiToken.Parse.LR is
       Symbol            : in     Token_ID;
       Reduce_Production : in     Production_ID;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
-      Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check    : in     WisiToken.Semantic_Checks.Semantic_Check);
+      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : in     WisiToken.In_Parse_Actions.In_Parse_Action);
    --  Add a Reduce conflict to State.
 
    procedure Add_Goto
@@ -288,13 +289,16 @@ package WisiToken.Parse.LR is
       --  Number of parallel tasks during recovery. If 0, use
       --  System.Multiprocessors.Number_Of_CPUs - 1.
 
-      Zombie_Limit : Syntax_Trees.Element_Index;
+      Zombie_Limit : Syntax_Trees.Node_Index;
       --  Shared tokens to wait before terminating parser that encountered
       --  an error. See test_mckenzie_recover.adb Revive_Zombie for example
       --  of why this is not hard-coded at 0. Setting it the same as
       --  Check_Limit is often a good choice.
 
-      Check_Limit       : Syntax_Trees.Element_Index; -- max tokens to parse ahead when checking a configuration.
+      Check_Limit       : Syntax_Trees.Node_Index;
+      --  Max count of shared tokens to parse ahead when checking a
+      --  configuration.
+
       Check_Delta_Limit : Natural;     -- max configs checked, delta over successful parser.
       Enqueue_Limit     : Natural;     -- max configs enqueued.
    end record;
@@ -337,18 +341,29 @@ package WisiToken.Parse.LR is
      (Table : in Parse_Table;
       State : in State_Index;
       ID    : in Token_ID)
-     return Unknown_State_Index;
+     return Unknown_State_Index
+   with Pre => ID in Table.First_Nonterminal .. Table.Last_Nonterminal;
    --  Return next state after reducing stack by nonterminal ID;
    --  Unknown_State if none (only possible during error recovery).
-   --  Second form allows retrieving Production.
 
    function Action_For
      (Table : in Parse_Table;
       State : in State_Index;
       ID    : in Token_ID)
      return Parse_Action_Node_Ptr
-   with Post => Action_For'Result /= null;
+   with Pre => ID in Table.First_Terminal .. Table.Last_Terminal,
+     Post => Action_For'Result /= null;
    --  Return the action for State, terminal ID.
+
+   function Shift_State (Action_List : in Parse_Action_Node_Ptr) return State_Index;
+   --  Return State from the shift action in Action_List.
+
+   procedure Undo_Reduce
+     (Tree   : in out Syntax_Trees.Tree;
+      Table  : in     Parse_Table;
+      Stream : in     Syntax_Trees.Stream_ID);
+   --  Undo reduction of nonterm at Stream.Stack_Top; Stack_Top is then
+   --  the last Child of the nonterm.
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
 
@@ -362,18 +377,18 @@ package WisiToken.Parse.LR is
    type Parse_Table_Ptr is access Parse_Table;
    procedure Free_Table (Table : in out Parse_Table_Ptr);
 
-   type Semantic_Action is record
-      Action : WisiToken.Syntax_Trees.Semantic_Action := null;
-      Check  : WisiToken.Semantic_Checks.Semantic_Check := null;
+   type Parse_Actions is record
+      Post_Parse : Syntax_Trees.Post_Parse_Action   := null;
+      In_Parse   : In_Parse_Actions.In_Parse_Action := null;
    end record;
 
-   package Semantic_Action_Arrays is new SAL.Gen_Unbounded_Definite_vectors (Natural, Semantic_Action, (others => <>));
-   package Semantic_Action_Array_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Token_ID, Semantic_Action_Arrays.Vector, Semantic_Action_Arrays.Empty_Vector);
+   package Parse_Actions_Arrays is new SAL.Gen_Unbounded_Definite_vectors (Natural, Parse_Actions, (others => <>));
+   package Parse_Actions_Array_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Token_ID, Parse_Actions_Arrays.Vector, Parse_Actions_Arrays.Empty_Vector);
 
    function Get_Text_Rep
      (File_Name : in String;
-      Actions   : in Semantic_Action_Array_Arrays.Vector)
+      Actions   : in Parse_Actions_Array_Arrays.Vector)
      return Parse_Table_Ptr;
    --  Read machine-readable text format of states (as output by
    --  WisiToken.Generate.LR.Put_Text_Rep) from file File_Name. Result
@@ -434,9 +449,8 @@ package WisiToken.Parse.LR is
 
       case Op is
       when Fast_Forward =>
-         FF_Token_Index : Syntax_Trees.Stream_Index;
-         --  Config.Current_Shared_Token after the operation is done; the last
-         --  token shifted.
+         FF_Token_Index : Syntax_Trees.Node_Index;
+         --  Config current_token after the operation is done.
 
       when Undo_Reduce =>
          Nonterm : Token_ID;
@@ -445,34 +459,38 @@ package WisiToken.Parse.LR is
          Token_Count : Ada.Containers.Count_Type;
          --  The number of tokens pushed on the stack.
 
+         UR_Token_Index : Syntax_Trees.Node_Index;
+         --  First terminal in the undo_reduce token; Invalid_Node_Index if
+         --  empty. Used to check that successive Undo_Reduce are valid.
+
       when Push_Back =>
          PB_ID : Token_ID;
          --  The nonterm ID popped off the stack.
 
-         PB_Token_Index : Syntax_Trees.Stream_Index;
-         --  Config.Current_Shared_Token after the operation is done;
-         --  Invalid_Stream_Index if the pushed_back nonterm is empty.
+         PB_Token_Index : Syntax_Trees.Node_Index;
+         --  First terminal in the pushed_back token; Invalid_Node_Index if
+         --  empty. Used to check that successive Push_Backs are valid.
 
       when Insert =>
          Ins_ID : Token_ID;
          --  The token ID inserted.
 
-         Ins_Before : Syntax_Trees.Stream_Index;
+         Ins_Before : Syntax_Trees.Node_Index;
          --  Ins_ID is inserted before Ins_Before.
 
       when Delete =>
          Del_ID : Token_ID;
-         --  The token ID deleted.
+         --  The token ID deleted; a terminal token. IMPROVEME: allow delete nonterm?
 
-         Del_Token_Index : Syntax_Trees.Stream_Index;
-         --  Token at Token_Index is deleted.
+         Del_Token_Index : Syntax_Trees.Node_Index;
+         --  Token at Del_Token_Index is deleted.
 
       end case;
    end record;
    subtype Insert_Delete_Op is Config_Op with Dynamic_Predicate => (Insert_Delete_Op.Op in Insert_Delete_Op_Label);
    subtype Insert_Op is Config_Op with Dynamic_Predicate => (Insert_Op.Op = Insert);
 
-   function Token_Index (Op : in Insert_Delete_Op) return Syntax_Trees.Stream_Index
+   function Token_Index (Op : in Insert_Delete_Op) return Syntax_Trees.Node_Index
      is (case Insert_Delete_Op_Label'(Op.Op) is
          when Insert => Op.Ins_Before,
          when Delete => Op.Del_Token_Index);
@@ -486,7 +504,7 @@ package WisiToken.Parse.LR is
 
    package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
      (Positive_Index_Type, Config_Op, Default_Element =>
-        (Fast_Forward, Syntax_Trees.Invalid_Stream_Index), Capacity => 80);
+        (Fast_Forward, Syntax_Trees.Invalid_Node_Index), Capacity => 80);
    --  Using a fixed size vector significantly speeds up
    --  McKenzie_Recover. The capacity is determined by the maximum number
    --  of repair operations, which is limited by the cost_limit McKenzie
@@ -502,7 +520,7 @@ package WisiToken.Parse.LR is
          (case Item.Op is
           when Fast_Forward => Syntax_Trees.Trimmed_Image (Item.FF_Token_Index),
           when Undo_Reduce  => Image (Item.Nonterm, Descriptor) & "," &
-               Ada.Containers.Count_Type'Image (Item.Token_Count),
+            Item.Token_Count'Image & ", " & Syntax_Trees.Trimmed_Image (Item.UR_Token_Index),
           when Push_Back    => Image (Item.PB_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.PB_Token_Index),
           when Insert       => Image (Item.Ins_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.Ins_Before),
           when Delete       => Image (Item.Del_ID, Descriptor) & ", " &
@@ -523,13 +541,6 @@ package WisiToken.Parse.LR is
    --  True if Ops contains no Op after the last Fast_Forward (or ops.first, if
    --  no Fast_Forward).
 
-   function Only_Since_FF (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
-   --  True if Ops contains only Op (at least one) after the last Fast_Forward (or ops.first, if
-   --  no Fast_Forward).
-
-   function Any (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
-   --  True if Ops contains at least one Op.
-
    type Recover_Op (Op : Insert_Delete_Op_Label := Insert) is record
       --  Add Ins_Tree_Node to Config_Op info, set when item is
       --  parsed; used to create user augmented token.
@@ -541,8 +552,8 @@ package WisiToken.Parse.LR is
          Ins_ID : Token_ID := Invalid_Token_ID;
          --  The token ID inserted.
 
-         Ins_Before : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
-         --  Ins_ID is inserted before Ins_Before in the Terminal_Stream.
+         Ins_Before : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+         --  Ins_ID is inserted before Ins_Before in the Shared_Stream.
 
          Ins_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
          --  The parse stream node holding the inserted token; valid after
@@ -550,20 +561,18 @@ package WisiToken.Parse.LR is
 
       when Delete =>
          Del_ID : Token_ID;
-         --  The token ID deleted.
+         --  The token ID deleted; a terminal token. IMPROVEME: allow delete nonterm?
 
-         Del_Index : Syntax_Trees.Stream_Index;
-         --  Token at Del_Index in Terminal_Stream is deleted; used by parser
-         --  to skip the token.
+         Del_Index : Syntax_Trees.Node_Index;
+         --  Token at Del_Index is deleted; used by parser to skip the token.
 
          Del_Node : Syntax_Trees.Node_Access;
-         --  Del_Node (was in terminal_stream) is deleted; used by post-parse
-         --  actions to adjust for the deleted token.
+         --  Del_Node is deleted; used by post-parse actions to adjust for the
+         --  deleted token.
 
          Del_After_Node : Syntax_Trees.Node_Access;
          --  Previous terminal (shared or virtual) in parse stream; used by
          --  post-parse actions to adjust for the deleted token.
-
       end case;
    end record;
 
@@ -580,10 +589,6 @@ package WisiToken.Parse.LR is
    type Recover_Stack_Item is record
       State : Unknown_State_Index := Unknown_State;
 
-      Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
-      --  Valid if copied at recover initialize, Invalid if pushed during
-      --  recover.
-
       Token : Syntax_Trees.Recover_Token;
       --  Virtual is False if token is from input text; True if inserted
       --  during recover.
@@ -591,25 +596,32 @@ package WisiToken.Parse.LR is
 
    package Recover_Stacks is new SAL.Gen_Bounded_Definite_Stacks (Recover_Stack_Item);
 
-   function Image (Item : in Recover_Stack_Item; Descriptor : in WisiToken.Descriptor) return String
+   function Image (Item : in Recover_Stack_Item; Tree : in Syntax_Trees.Tree) return String
      is ((if Item.State = Unknown_State then " " else Trimmed_Image (Item.State)) & " : " &
-           Syntax_Trees.Image (Item.Token, Descriptor));
+           Syntax_Trees.Image (Tree, Item.Token));
 
-   function Recover_Stack_Image is new Recover_Stacks.Gen_Image_Aux (WisiToken.Descriptor, Image);
+   function Recover_Stack_Image is new Recover_Stacks.Gen_Image_Aux (Syntax_Trees.Tree, Image);
    --  Unique name for calling from debugger
 
    function Image
-     (Stack      : in Recover_Stacks.Stack;
-      Descriptor : in WisiToken.Descriptor;
-      Depth      : in SAL.Base_Peek_Type := 0)
+     (Stack : in Recover_Stacks.Stack;
+      Tree  : in Syntax_Trees.Tree;
+      Depth : in SAL.Base_Peek_Type := 0)
      return String
      renames Recover_Stack_Image;
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean with
      Pre => Stack.Depth >= Depth;
-   --  Return True if Stack top Depth items have valid Tree_Indices,
-   --  which is true if they were copied from the parser stack, and not
-   --  pushed by recover.
+   --  Return True if Stack top Depth items are not Virtual, which is
+   --  true if they were copied from the parser stack, and not pushed by
+   --  recover.
+
+   package Bounded_Streams is new SAL.Gen_Bounded_Definite_Doubly_Linked_Lists (Syntax_Trees.Node_Access);
+
+   function Image (Item : in Syntax_Trees.Node_Access; Tree : in Syntax_Trees.Tree) return String
+   is (Tree.Image (Item, Node_Numbers => True));
+
+   function Image is new Bounded_Streams.Gen_Image_Aux (Syntax_Trees.Tree, LR.Image);
 
    type Strategies is
      (Ignore_Error, Language_Fix, Minimal_Complete, Matching_Begin,
@@ -629,31 +641,47 @@ package WisiToken.Parse.LR is
       --  larger size slows down recover due to memory cache thrashing and
       --  allocation.
       --
-      --  Emacs Ada mode wisi.adb needs > 50
+      --  Emacs ada-mode wisi.adb needs > 50
 
-      Resume_Token_Goal : Syntax_Trees.Element_Index := Syntax_Trees.Invalid_Element_Index;
-      --  A successful solution shifts this token from Tree.Terminal_Stream.
+      Current_Shared_Token : Syntax_Trees.Terminal_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
+      --  Current input token in Shared_Stream; to be input after all of
+      --  Input_Stream and Insert_Delete is input. Initially the error
+      --  token. In batch parse, always a Shared_Terminal; in incremental
+      --  parse, may be a nonterm or virtual terminal (from error correction
+      --  in the previous parse).
+
+      Input_Stream : Bounded_Streams.List (20);
+      --  Holds tokens copied from Shared_Stream when Push_Back operations
+      --  are performed, or added by Insert. Delete may be applied to these,
+      --  which requires that nonterms be broken down (similar to
+      --  Syntax_Trees.Left_Breakdown).
+      --
+      --  Current token is root of Input_Stream.First.
+      --
+      --  To justify the size; in a typical recover we might need to push
+      --  back a few terminals, and one nonterm that is then broken down
+      --  (max of 15 tokens for most languages). For
+      --  test_mckenzie_recover.adb, 10 is too small, 20 is enough.
+
+      Insert_Delete : aliased Config_Op_Arrays.Vector;
+      --  Edits to the input stream that are not yet parsed; contains only
+      --  Insert and Delete ops, in node_index order.
+
+      Current_Insert_Delete : SAL.Base_Peek_Type := No_Insert_Delete;
+      --  Index of the next op in Insert_Delete. If No_Insert_Delete, use
+      --  Current_Tree_Token.
+
+      Resume_Token_Goal : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+      --  A successful solution shifts this terminal token from Tree.Shared_Stream.
       --  Per-config because it increases with Delete; we increase
       --  Shared_Parser.Resume_Token_Goal only from successful configs.
-
-      Current_Shared_Token : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
-      --  Index into Shared_Parser.Tree.Terminal_Stream for current input
-      --  token, after all of Inserted is input. Initially the error token.
 
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
-      Insert_Delete : aliased Config_Op_Arrays.Vector;
-      --  Edits to the input stream that are not yet parsed; contains only
-      --  Insert and Delete ops, in token_index order.
-
-      Current_Insert_Delete : SAL.Base_Peek_Type := No_Insert_Delete;
-      --  Index of the next op in Insert_Delete. If No_Insert_Delete, use
-      --  Current_Shared_Token.
-
-      Error_Token       : Syntax_Trees.Recover_Token;
-      Check_Token_Count : Ada.Containers.Count_Type;
-      Check_Status      : Semantic_Checks.Check_Status;
+      Error_Token                   : Syntax_Trees.Recover_Token;
+      User_Parse_Action_Token_Count : Ada.Containers.Count_Type;
+      User_Parse_Action_Status      : In_Parse_Actions.Status;
       --  If parsing this config ended with a parse error, Error_Token is
       --  the token that failed to shift, Check_Status.Label is Ok.
       --
@@ -707,24 +735,23 @@ package WisiToken.Parse.LR is
    procedure Accumulate (Data : in McKenzie_Data; Counts : in out Strategy_Counts);
    --  Sum Results.Strategy_Counts.
 
-   type Parse_Error_Label is (Action, Check, Message);
+   type Parse_Error_Label is (LR_Parse_Action, User_Parse_Action, Message);
 
    type Parse_Error
      (Label          : Parse_Error_Label;
       First_Terminal : Token_ID;
       Last_Terminal  : Token_ID)
    is record
-      Recover : Configuration;
+      Recover : Configuration; --  FIXME: replace by recover_op_array; add hook for test_mckenzie_recover
 
       case Label is
-      when Action =>
-         Error_Token : Syntax_Trees.Valid_Node_Access;
-         --  Error_Token is used by post-parse actions, so need Node_Access.
+      when LR_Parse_Action =>
+         Error_Token : Syntax_Trees.Terminal_Ref;
 
          Expecting : Token_ID_Set (First_Terminal .. Last_Terminal);
 
-      when Check =>
-         Check_Status : Semantic_Checks.Check_Status;
+      when User_Parse_Action =>
+         Status : In_Parse_Actions.Status;
 
       when Message =>
          Msg : Ada.Strings.Unbounded.Unbounded_String;

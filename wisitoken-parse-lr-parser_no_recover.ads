@@ -1,6 +1,7 @@
 --  Abstract :
 --
---  A generalized LR parser, with no error recovery, no semantic checks.
+--  A generalized LR parser, with no error recovery, no semantic
+--  checks, no incremental parse.
 --
 --  This allows wisi-generate (which uses the generated wisi_grammar)
 --  to not depend on wisitoken-lr-mckenzie_recover, so editing that
@@ -48,7 +49,9 @@ package WisiToken.Parse.LR.Parser_No_Recover is
       User_Data            : in              Syntax_Trees.User_Data_Access;
       First_Parser_Label   : in              Integer            := 1);
 
-   overriding procedure Parse (Shared_Parser : in out LR.Parser_No_Recover.Parser);
+   overriding procedure Parse
+     (Shared_Parser : in out LR.Parser_No_Recover.Parser;
+      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
    --  input setting Shared_Parser.Terminals, then parses tokens.
    --
@@ -58,6 +61,8 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    --
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
+   --
+   --  Raises SAL.Programmer_Error if Edits is not empty.
 
    overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean;
 

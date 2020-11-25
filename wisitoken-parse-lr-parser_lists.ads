@@ -24,6 +24,7 @@ with Ada.Iterator_Interfaces;
 with SAL.Gen_Indefinite_Doubly_Linked_Lists;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR.Parser_Lists is
+   use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
 
    function Parser_Stack_Image
      (Stack : in Syntax_Trees.Stream_ID;
@@ -44,9 +45,12 @@ package WisiToken.Parse.LR.Parser_Lists is
    type Base_Parser_State is tagged
    record
       --  Visible components for direct access
+      --
+      --  The parse stack is in Shared_Parser.Tree (Parser_State.Stream).
 
-      Shared_Token : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
-      --  Last token read from input text, in Terminal_Stream.
+      Shared_Token : Syntax_Trees.Rooted_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
+      --  Next token to shift in Tree.Shared_Stream. For batch parse, this
+      --  is a Shared_Terminal; for incremental parse, any Node_Label.
 
       Recover_Insert_Delete : aliased Recover_Op_Arrays.Vector;
       --  Tokens that were inserted or deleted during error recovery.
@@ -60,30 +64,74 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  Next item in Recover_Insert_Delete to be processed by main parse;
       --  No_Index if all done.
 
-      Current_Token : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index;
-      --  Shared_Token in Tree.Terminal_Stream when there are no error
-      --  recover tokens to insert; inserted token in parse stream when
-      --  there are.
+      Current_Token : Syntax_Trees.Rooted_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
+      --  Next token to shift, in either Tree.Shared_Stream or
+      --  Parser_State.Stream. May be a nonterm in incremental parse.
 
-      Inc_Shared_Token : Boolean := True;
-
-      --  The parse stack is Shared_Parser.Tree (Stream).
+      Inc_Shared_Stream_Token : Boolean := True;
+      --  Whether Parse should increment Shared_Token before using it as the
+      --  next input. This is set False in error recover when it sets
+      --  Current_Token, True in main parser when Current_Token is set to
+      --  Shared_Token. This reflects the fact that the main parser should
+      --  not have set Current_Token as it did, and thus should not have
+      --  incremented Shared_Token.
 
       Recover : aliased LR.McKenzie_Data := (others => <>);
 
-      Zombie_Token_Count : Syntax_Trees.Element_Index := 0;
+      Zombie_Token_Count : Syntax_Trees.Node_Index := 0;
       --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
       --  to see if other parsers do also.
 
-      Resume_Active          : Boolean                    := False;
-      Resume_Token_Goal      : Syntax_Trees.Element_Index := Syntax_Trees.Invalid_Element_Index;
-      Conflict_During_Resume : Boolean                    := False;
+      Resume_Active : Boolean := False;
+
+      Resume_Token_Goal : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+      --  Set at the end of recovery, so during recovery it is the end of
+      --  the previous recover session.
+
+      Conflict_During_Resume : Boolean := False;
 
       Errors : Parse_Error_Lists.List;
    end record;
 
    type Parser_State is new Base_Parser_State with private;
    type State_Access is access all Parser_State;
+
+   function Peek_Current_Shared_Terminal
+     (Parser_State : in Parser_Lists.Parser_State;
+      Tree         : in Syntax_Trees.Tree)
+     return Syntax_Trees.Terminal_Ref;
+   --  Return first shared terminal from current token, ignoring
+   --  insert/delete, or a following token if that is an empty nonterm.
+   --  For comparison with insert/delete token index in
+   --  error recover.
+   --
+   --  In error recover we compare insert/delete to the current token,
+   --  because the main parse should have done the insert/delete before
+   --  making that token current.
+
+   function Peek_Next_Shared_Terminal
+     (Parser_State : in Parser_Lists.Parser_State;
+      Tree         : in Syntax_Trees.Tree)
+     return Syntax_Trees.Terminal_Ref;
+   --  Return first shared terminal from token that will be current after
+   --  Next_Token, ignoring insert/delete, or a following token if that
+   --  is an empty nonterm. For comparison with insert/delete token index
+   --  in main parse.
+   --
+   --  We compare insert/delete to the next token, because the
+   --  insert/delete should be done instead of making that token current.
+
+   procedure Next_Token
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in out Syntax_Trees.Tree;
+      Set_Current  : in     Boolean;
+      Delete       : in     Boolean);
+   --  Increment Parser_State.Shared_Token or Tree.Parse_Stream to next
+   --  token. If Set_Current, also update Current_Token,
+   --  Inc_Shared_Stream_Token, Inc_Parse_Stream_Token.
+   --
+   --  If Delete, implements the Delete recover operation. Otherwise
+   --  implement the main parser next token operation.
 
    type List is tagged private
    with
@@ -92,7 +140,9 @@ package WisiToken.Parse.LR.Parser_Lists is
      Default_Iterator  => Iterate,
      Iterator_Element  => Parser_State;
 
-   function New_List (Tree : in out Syntax_Trees.Tree) return List;
+   function New_List (Tree : in out Syntax_Trees.Tree) return List
+   with Pre => Tree.Parseable;
+   --  Create the first parse stream in Tree.
 
    function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type;
 

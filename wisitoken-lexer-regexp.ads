@@ -6,7 +6,7 @@
 --  used in most of the WisiToken unit tests. Since it uses regexp, it
 --  is easy to convert to an Aflex lexer.
 --
---  Copyright (C) 2015, 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -87,11 +87,30 @@ package WisiToken.Lexer.Regexp is
       Token :    out Base_Token)
      return Boolean;
 
+   overriding function Buffer_Region_Byte (Lexer : in Instance) return Buffer_Region;
+
    overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String;
+
+   overriding
+   procedure Set_Position
+     (Lexer         : in out Instance;
+      Byte_Position : in     Buffer_Pos;
+      Char_Position : in     Buffer_Pos;
+      Line          : in     Line_Number_Type;
+      Prev_Token_ID : in     Token_ID)
+     is null;
 
    overriding function First (Lexer : in Instance) return Boolean is (False);
 
+   overriding function Line_Start_Char_Pos (Lexer : in Instance) return Buffer_Pos is (1);
    overriding function File_Name (Lexer : in Instance) return String is ("");
+
+   overriding
+   procedure Begin_Pos
+     (Lexer      : in     Instance;
+      Begin_Byte :    out Buffer_Pos;
+      Begin_Char :    out Buffer_Pos;
+      Begin_Line :    out Line_Number_Type);
 
 private
 

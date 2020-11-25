@@ -52,6 +52,15 @@ OK grune_9_30.adb : Test_Parse
 OK name_grammar_test.adb : Nominal
 OK test_accept_state.adb : Nominal
 OK test_follow.adb : Subprograms.One
+OK test_incremental.adb : No_Change
+OK test_incremental.adb : Edit_Comment
+OK test_incremental.adb : Edit_Code_1
+OK test_incremental.adb : Edit_Code_2
+OK test_incremental.adb : Edit_Code_3
+OK test_incremental.adb : Edit_Code_4
+OK test_incremental.adb : Edit_Code_5
+OK test_incremental.adb : Edit_Code_6
+OK test_incremental.adb : Edit_Code_7
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
 OK test_mckenzie_recover.adb LALR : No_Error
 OK test_mckenzie_recover.adb LALR : Empty_Comments
@@ -110,6 +119,7 @@ OK test_mckenzie_recover.adb LALR : Do_Delete_First
 OK test_mckenzie_recover.adb LALR : Forbid_Minimal_Complete
 OK test_mckenzie_recover.adb LALR : Matching_Begin_Parse_All_Conflicts
 OK test_mckenzie_recover.adb LALR : Check_Multiple_Delete_For_Insert
+OK test_mckenzie_recover.adb LALR : Pushback_Nonterm_1
 OK test_mckenzie_recover.adb LR1 : No_Error
 OK test_mckenzie_recover.adb LR1 : Empty_Comments
 OK test_mckenzie_recover.adb LR1 : Error_1
@@ -167,6 +177,7 @@ OK test_mckenzie_recover.adb LR1 : Do_Delete_First
 OK test_mckenzie_recover.adb LR1 : Forbid_Minimal_Complete
 OK test_mckenzie_recover.adb LR1 : Matching_Begin_Parse_All_Conflicts
 OK test_mckenzie_recover.adb LR1 : Check_Multiple_Delete_For_Insert
+OK test_mckenzie_recover.adb LR1 : Pushback_Nonterm_1
 OK test_partial_parse.adb : Plain_String
 OK test_partial_parse.adb : File_String_Access
 OK test_skip_to.adb : Nominal
@@ -175,7 +186,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   175
-Successful Tests:  175
+Total Tests Run:   186
+Successful Tests:  186
 Failed Assertions: 0
 Unexpected Errors: 0

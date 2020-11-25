@@ -1,5 +1,6 @@
 GNATCOLL
 RHSs
+VI_Non_Grammar
 Wisitoken_Grammar_Actions
 *ABC
 *AC
@@ -16,6 +17,7 @@ Wisitoken_Grammar_Actions
 *ID
 *IDs
 *IO
+*KMN
 *LALR
 *LALRs
 *LF
@@ -29,6 +31,8 @@ Wisitoken_Grammar_Actions
 *RHSs
 *TS
 *UD
+*UR
+*VT
 *WGA
 *WY
 *WisiToken

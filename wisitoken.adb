@@ -26,6 +26,7 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
+with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 package body WisiToken is
 
@@ -330,6 +331,39 @@ package body WisiToken is
       return (Buffer_Pos'Min (Left.First, Right.First), Buffer_Pos'Max (Left.Last, Right.Last));
    end "and";
 
+   function Contains
+     (Outer, Inner   : in Buffer_Region;
+      First_Boundary : in Boundary := Inclusive;
+      Last_Boundary  : in Boundary := Inclusive)
+     return Boolean
+   is
+      Result : Boolean;
+   begin
+      case First_Boundary is
+      when Inclusive =>
+         Result := Outer.First <= Inner.First;
+      when Exclusive =>
+         Result := Outer.First < Inner.First;
+      end case;
+
+      case Last_Boundary is
+      when Inclusive =>
+         Result := @ and  Outer.Last >= Inner.Last;
+      when Exclusive =>
+         Result := @ and  Outer.Last > Inner.Last;
+      end case;
+      return Result;
+   end Contains;
+
+   function Overlaps (A, B : in Buffer_Region) return Boolean
+   is begin
+      if Length (A) > 0 and Length (B) > 0 then
+         return Inside (A.First, B) or Inside (A.Last, B) or Inside (B.First, A) or Inside (B.Last, A);
+      else
+         return False;
+      end if;
+   end Overlaps;
+
    function Trimmed_Image (Item : in Line_Number_Type) return String
    is
       function Base_Trimmed_Image is new SAL.Gen_Trimmed_Image (Line_Number_Type);
@@ -340,6 +374,21 @@ package body WisiToken is
          return Base_Trimmed_Image (Item);
       end if;
    end Trimmed_Image;
+
+   function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Line_Pos_Vectors.Vector) return Ada.Text_IO.Count
+   is begin
+      --  We should check for Token.ID = EOI, and return column 0, because
+      --  there is no actual EOI character in files created by Emacs. But
+      --  that would require a Descriptor arg, and might be wrong for other
+      --  files.
+      if Token.Line = 1 then
+         return Ada.Text_IO.Count (Token.Char_Region.First);
+      elsif Token.Line in Line_Begin_Char_Pos.First_Index .. Line_Begin_Char_Pos.Last_Index then
+         return Ada.Text_IO.Count (Token.Char_Region.First - Line_Begin_Char_Pos (Token.Line));
+      else
+         return 0;
+      end if;
+   end Column;
 
    function Image
      (Item       : in Base_Token;
@@ -355,5 +404,71 @@ package body WisiToken is
          return "(" & ID_Image & ", " & Image (Item.Char_Region) & ")";
       end if;
    end Image;
+
+   procedure Enable_Trace (Config : in String)
+   is
+      use Ada.Characters.Handling;
+      use Ada.Strings.Fixed;
+      Name_First : Integer := Config'First;
+      Name_Last  : Integer;
+
+      Value_First : Integer;
+      Value_Last  : Integer;
+   begin
+      loop
+         Name_Last := Index (Config, "=", Name_First);
+         exit when Name_Last = 0;
+
+         Value_First := Name_Last + 1;
+         Name_Last   := Name_Last - 1;
+         Value_Last  := Index (Config, " ", Value_First);
+         if Value_Last = 0 then
+            Value_Last := Config'Last;
+         end if;
+         declare
+            Name : constant String := To_Lower (Config (Name_First .. Name_Last));
+
+            function Get_Value return Integer
+            is begin
+               return Integer'Value (Config (Value_First .. Value_Last));
+            exception
+            when Constraint_Error =>
+               raise User_Error with "expecting integer trace value, found '" & Config (Value_First .. Value_Last);
+            end Get_Value;
+
+            Value : constant Integer := Get_Value;
+         begin
+            --  Trace var alphabetical order
+            if Name = "debug" then
+               Debug_Mode := Value > 0;
+            elsif Name = "action" then
+               Trace_Action := Value;
+            elsif Name = "ebnf" or Name = "generate_ebnf" then
+               Trace_Generate_EBNF := Value;
+            elsif Name = "minimal_complete" or Name = "generate_minimal_complete" then
+               Trace_Generate_Minimal_Complete := Value;
+            elsif Name = "table" or Name = "generate_table" then
+               Trace_Generate_Table := Value;
+            elsif Name = "incremental" or Name = "incremental_parse" then
+               Trace_Incremental_Parse := Value;
+            elsif Name = "lexer" then
+               Trace_Lexer := Value;
+            elsif Name = "mckenzie" then
+               Trace_McKenzie := Value;
+            elsif Name = "parse" then
+               Trace_Parse := Value;
+            elsif Name = "tests" then
+               Trace_Tests := Value;
+            elsif Name = "time" then
+               Trace_Time := Value > 0;
+            else
+               raise User_Error with "expecting trace name, found '" & Config (Name_First .. Name_Last) & "'";
+            end if;
+         end;
+
+         Name_First := Value_Last + 1;
+         exit when Name_First > Config'Last;
+      end loop;
+   end Enable_Trace;
 
 end WisiToken;

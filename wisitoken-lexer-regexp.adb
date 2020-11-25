@@ -244,15 +244,29 @@ package body WisiToken.Lexer.Regexp is
         (ID          => Lexer.ID,
          Byte_Region => (Buffer_Pos (Lexer.Lexeme_Head), Buffer_Pos (Lexer.Lexeme_Tail)),
          Line        => Invalid_Line_Number,
-         Column      => Ada.Text_IO.Count (Lexer.Lexeme_Head),
          Char_Region => (Buffer_Pos (Lexer.Lexeme_Head), Buffer_Pos (Lexer.Lexeme_Tail)));
 
       return False;
    end Find_Next;
 
+   overriding function Buffer_Region_Byte (Lexer : in Instance) return Buffer_Region
+   is begin
+      return Buffer_Region_Byte (Lexer.Source);
+   end Buffer_Region_Byte;
+
    overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String
    is begin
       return Lexer.Source.Buffer (Integer (Byte_Region.First) .. Integer (Byte_Region.Last));
    end Buffer_Text;
+
+   overriding
+   procedure Begin_Pos
+     (Lexer      : in     Instance;
+      Begin_Byte :    out Buffer_Pos;
+      Begin_Char :    out Buffer_Pos;
+      Begin_Line :    out Line_Number_Type)
+   is begin
+      Begin_Pos (Lexer.Source, Begin_Byte, Begin_Char, Begin_Line);
+   end Begin_Pos;
 
 end WisiToken.Lexer.Regexp;

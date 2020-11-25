@@ -25,6 +25,7 @@ with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line;
+with Ada.Exceptions;
 with Ada.Text_IO;
 with Association_Grammar_Test;
 with Dragon_4_43_LR1_Test;
@@ -36,6 +37,7 @@ with Name_Grammar_Test;
 with Test_Accept_State;
 with Test_BNF_Suite;
 with Test_Follow;
+with Test_Incremental;
 with Test_LR_Expecting_Terminal_Sequence;
 with Test_McKenzie_Recover;
 with Test_Partial_Parse;
@@ -45,12 +47,14 @@ with Warth_Left_Recurse_Expr_1;
 with WisiToken.BNF;
 procedure Test_All_Harness
 is
-   --  command line arguments (all optional, order matters):
-   --  <verbose> test_name routine_name trace_generate_table trace_parse trace_mckenzie trace_action
-   --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
+   Usage : constant String :=
+     --  command line arguments (all optional, order matters):
+     "test_name routine_name trace_config";
+   --  1         2            3
+   --  trace_config is passed to Wisitoken.Enable_Trace
    --
-   --  test_name, routine_name can be "" to set trace for all test, routines.
-   --  Trace_Action is used for verbosity in tests.
+   --  routine_name can be '' to set trace for all routines.
+   --  test_name cannot be ''
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
@@ -71,16 +75,16 @@ begin
       Filter.Verbose := Argument_Count > 0 and then Argument (1) = "1";
 
       case Argument_Count is
-      when 0 | 1 =>
+      when 0 =>
          null;
 
-      when 2 =>
-         Filter.Set_Name (Argument (2));
+      when 1 =>
+         Filter.Set_Name (Argument (1));
 
-      when others =>
+      when 2 | 3 =>
          declare
-            Test_Name    : String renames Argument (2);
-            Routine_Name : String renames Argument (3);
+            Test_Name    : String renames Argument (1);
+            Routine_Name : String renames Argument (2);
          begin
             if Test_Name = "" then
                Filter.Set_Name (Routine_Name);
@@ -90,14 +94,16 @@ begin
                Filter.Set_Name (Test_Name & " : " & Routine_Name);
             end if;
          end;
-      end case;
+         if Argument_Count = 3 then
+            WisiToken.Enable_Trace (Argument (3));
+         end if;
 
-      WisiToken.Trace_Generate_Table := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
-      WisiToken.Trace_Parse          := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
-      WisiToken.Trace_McKenzie       := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
-      WisiToken.Debug_Mode           := WisiToken.Trace_McKenzie > 0;
-      WisiToken.Trace_Action         := (if Argument_Count >= 7 then Integer'Value (Argument (7)) else 0);
+      when others =>
+         raise Constraint_Error with Usage;
+      end case;
    end;
+
+   Filter.Verbose := WisiToken.Trace_Tests > 0;
 
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
@@ -109,7 +115,7 @@ begin
    Add_Test (Suite, Test_Case_Access'(new Name_Grammar_Test.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Accept_State.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Follow.Test_Case (Debug => False)));
-   --  FIXME: Add_Test (Suite, Test_Case_Access'(new Test_Incremental.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Incremental.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_LR_Expecting_Terminal_Sequence.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, False, False)));
    Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LR1, False, False)));
@@ -133,5 +139,6 @@ begin
 exception
 when E : others =>
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+   Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
 end Test_All_Harness;

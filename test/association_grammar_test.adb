@@ -54,6 +54,21 @@ package body Association_Grammar_Test is
       Association_ID,
       Association_List_ID);
 
+   Real_Image : constant WisiToken.Token_ID_Array_String :=
+     --  WORKAROUND for 'Image bug in GNAT Community 2020 -gnat2020
+     (new String'("WHITESPACE_ID"),
+      new String'("COMMA_ID"),
+      new String'("EQUAL_GREATER_ID"),
+      new String'("IDENTIFIER_ID"),
+      new String'("INT_ID"),
+      new String'("PAREN_LEFT_ID"),
+      new String'("PAREN_RIGHT_ID"),
+      new String'("EOF_ID"),
+      new String'("statement_id"),
+      new String'("aggregate_id"),
+      new String'("association_id"),
+      new String'("association_list_id"));
+
    package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_Enum_ID,
       First_Terminal    => Comma_ID,
@@ -79,7 +94,7 @@ package body Association_Grammar_Test is
 
    use WisiToken.Wisi_Ada;   --  "and", "+"
 
-   Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
+   Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    --  valid syntax:
    --  (identifier)
@@ -132,6 +147,8 @@ package body Association_Grammar_Test is
 
       Trace_File_Name : constant String := "association_grammar_test.out";
       Expected_Trace_File_Name : constant String := "../test/association_grammar_test.out_good";
+
+      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
       --  The test is that there are no exceptions, and that the parse
       --  trace matches the known good trace.
@@ -146,7 +163,8 @@ package body Association_Grammar_Test is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Parser.Descriptor, Syntax),
-         WisiToken.Generate.LR.LALR_Generate.Generate (Full_Grammar, LALR_Descriptor, Grammar_File_Name => ""),
+         WisiToken.Generate.LR.LALR_Generate.Generate
+           (Full_Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,
@@ -193,4 +211,6 @@ package body Association_Grammar_Test is
       Register_Routine (T, Nominal'Access, "Nominal");
    end Register_Tests;
 
+begin
+   LALR_Descriptor.Image := Real_Image;
 end Association_Grammar_Test;

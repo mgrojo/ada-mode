@@ -1374,7 +1374,7 @@ is
             Indent_Line ("  Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
             Indent_Line ("  Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
             Indent_Line ("  Recover_Active : in     Boolean)");
-            Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");
+            Indent_Line (" return WisiToken.In_Parse_Actions.Status");
             declare
                Unref_Lexer   : constant Boolean := 0 = Index (Check_Line, "Lexer");
                Unref_Nonterm : constant Boolean := 0 = Index (Check_Line, "Nonterm");
@@ -1577,7 +1577,7 @@ is
       New_Line;
 
       if Input_Data.Check_Count > 0 then
-         Indent_Line ("use WisiToken.Semantic_Checks;");
+         Indent_Line ("use WisiToken.In_Parse_Actions;");
       end if;
       if Motion_Actions then
          Indent_Line ("use all type Motion_Param_Array;");
@@ -1682,6 +1682,7 @@ is
          Indent_Line ("  (" & Output_File_Name_Root & "_re2c_c.New_Lexer,");
          Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Free_Lexer,");
          Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Reset_Lexer,");
+         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Set_Position,");
          Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token);");
          New_Line;
       end case;

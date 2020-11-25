@@ -33,8 +33,8 @@ package body WisiToken.Syntax_Trees.AUnit_Public is
 
    procedure Check
      (Label    : in String;
-      Computed : in Semantic_Action;
-      Expected : in Semantic_Action)
+      Computed : in Post_Parse_Action;
+      Expected : in Post_Parse_Action)
    is begin
       Standard.AUnit.Assertions.Assert (Computed = Expected, Label & ": access type mismatch");
    end Check;
@@ -44,18 +44,21 @@ package body WisiToken.Syntax_Trees.AUnit_Public is
       Computed_Tree   : in Syntax_Trees.Tree;
       Computed_Stream : in Stream_ID;
       Expected_Tree   : in Syntax_Trees.Tree;
-      Expected_Stream : in Stream_ID)
+      Expected_Stream : in Stream_ID;
+      Check_Label     : in Boolean;
+      Parents         : in Boolean)
    is begin
       WisiToken.Syntax_Trees.AUnit_Private.Check
-        (Label, Computed_Tree, Computed_Stream, Expected_Tree, Expected_Stream);
+        (Label, Computed_Tree, Computed_Stream, Expected_Tree, Expected_Stream, Check_Label, Parents);
    end Check;
 
    procedure Check
-     (Label    : in String;
-      Computed : in Tree;
-      Expected : in Tree)
+     (Label         : in String;
+      Computed      : in Tree;
+      Expected      : in Tree;
+      Shared_Stream : in Boolean)
    is begin
-      WisiToken.Syntax_Trees.AUnit_Private.Check (Label, Computed, Expected);
+      WisiToken.Syntax_Trees.AUnit_Private.Check (Label, Computed, Expected, Shared_Stream);
    end Check;
 
 end WisiToken.Syntax_Trees.AUnit_Public;

@@ -85,7 +85,7 @@ package body Warth_Left_Recurse_Expr_1 is
       end Execute_Parse;
 
    begin
-      User_Data.Set_Lexer (Parser.Lexer);
+      User_Data.Set_Lexer (Parser.Lexer, null);
 
       Execute_Parse ("1 - 3", Success, -2);
       Execute_Parse ("1", Success, 1);
@@ -121,6 +121,14 @@ package body Warth_Left_Recurse_Expr_1 is
          AUnit.Assertions.Assert
            (Expected_State = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
 
+         if WisiToken.Trace_Tests > WisiToken.Outline then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("parse tree:");
+            Parser.Tree.Print_Tree (Parser.Tree.Root, null);
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("root node: " & Parser.Tree.Image (Parser.Tree.Root));
+         end if;
+
          Parser.Execute_Actions;
          Check ("result", User_Data.Stack.Pop, Expected_Result);
 
@@ -140,7 +148,7 @@ package body Warth_Left_Recurse_Expr_1 is
       end Execute_Parse;
 
    begin
-      User_Data.Set_Lexer (Parser.Lexer);
+      User_Data.Set_Lexer (Parser.Lexer, null);
 
       declare
          Expected : WisiToken.Token_ID_Set (+wisitoken_accept_ID .. +expr_ID) := (others => False);

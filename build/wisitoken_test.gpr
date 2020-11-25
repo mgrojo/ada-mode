@@ -145,15 +145,6 @@ project WisiToken_Test is
       when "Debug" =>
          for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C_Non_Pedantic & "-save-temps";
 
-         --  WORKAROUND: 'Image in GNAT Community 2020 with -gnat2020
-         --  returns integer; no source workaround for generic parameter.
-         for Switches ("association_grammar_test.adb") use
-           Standard_Common.Compiler.Base_Debug_Switches &
-           Standard_Common.Compiler.Style_Checks & ("-gnat2012");
-         for Switches ("name_grammar_test.adb") use
-           Standard_Common.Compiler.Base_Debug_Switches &
-           Standard_Common.Compiler.Style_Checks & ("-gnat2012");
-
          for Switches ("character_literal_actions.adb") use Generated_Debug_Switches;
          for Switches ("character_literal_main.adb") use Generated_Debug_Switches;
 
@@ -165,15 +156,6 @@ project WisiToken_Test is
 
       when "Normal" =>
          for Default_Switches ("C") use Standard_Common.Compiler.Release_Switches_C_Non_Pedantic;
-
-         --  WORKAROUND: 'Image in GNAT Community 2020 with -gnat2020
-         --  returns integer; no source workaround for generic parameter.
-         for Switches ("association_grammar_test.adb") use
-           Standard_Common.Compiler.Base_Release_Switches &
-           Standard_Common.Compiler.Style_Checks & ("-gnat2012");
-         for Switches ("name_grammar_test.adb") use
-           Standard_Common.Compiler.Base_Release_Switches &
-           Standard_Common.Compiler.Style_Checks & ("-gnat2012");
 
          for Switches ("character_literal_actions.adb") use Generated_Release_Switches;
          for Switches ("character_literal_main.adb") use Generated_Release_Switches;

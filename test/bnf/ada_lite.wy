@@ -187,13 +187,13 @@ aspect_specification_opt
   ;
 
 assignment_statement
-  : name COLON_EQUAL expression_opt SEMICOLON
+  : name COLON_EQUAL expression SEMICOLON
   ;
 
 ;; Allowing empty items makes many partially written programs legal;
 ;; make sure they don't confuse the error recovery.
 association_opt
-  : IDENTIFIER EQUAL_GREATER expression_opt
+  : IDENTIFIER EQUAL_GREATER expression
   | expression
   | ;; empty
   ;
@@ -236,7 +236,7 @@ body_stub :
   ;
 
 case_statement
-  : CASE expression_opt IS case_statement_alternative_list END CASE SEMICOLON
+  : CASE expression IS case_statement_alternative_list END CASE SEMICOLON
   ;
 
 case_statement_alternative
@@ -303,7 +303,7 @@ declarative_part
 discrete_subtype_definition : subtype_indication | range_g ;
 
 elsif_statement_item
-  : ELSIF expression_opt THEN sequence_of_statements
+  : ELSIF expression THEN sequence_of_statements
   ;
 
 elsif_statement_list
@@ -337,7 +337,7 @@ exception_handler_list_opt
   ;
 
 exit_statement
-  : EXIT identifier_opt WHEN expression_opt SEMICOLON
+  : EXIT identifier_opt WHEN expression SEMICOLON
   | EXIT identifier_opt SEMICOLON
   ;
 
@@ -346,11 +346,6 @@ expression
   | relation_and_list
   | relation_or_list
   | relation_xor_list
-  ;
-
-expression_opt
-  : expression
-  | ;; empty for user friendly
   ;
 
 extended_return_object_declaration
@@ -398,10 +393,10 @@ identifier_opt
   ;
 
 if_statement
-  : IF expression_opt THEN sequence_of_statements elsif_statement_list ELSE sequence_of_statements END IF SEMICOLON
-  | IF expression_opt THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON
-  | IF expression_opt THEN sequence_of_statements elsif_statement_list END IF SEMICOLON
-  | IF expression_opt THEN sequence_of_statements END IF SEMICOLON
+  : IF expression THEN sequence_of_statements elsif_statement_list ELSE sequence_of_statements END IF SEMICOLON
+  | IF expression THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON
+  | IF expression THEN sequence_of_statements elsif_statement_list END IF SEMICOLON
+  | IF expression THEN sequence_of_statements END IF SEMICOLON
   ;
 
 index_constraint
@@ -438,7 +433,7 @@ name_opt
   ;
 
 object_declaration
-  : IDENTIFIER COLON subtype_indication COLON_EQUAL expression_opt SEMICOLON
+  : IDENTIFIER COLON subtype_indication COLON_EQUAL expression SEMICOLON
   | IDENTIFIER COLON subtype_indication SEMICOLON
   ;
 
@@ -468,7 +463,7 @@ parameter_profile_opt
   ;
 
 parameter_specification
-  : IDENTIFIER COLON IDENTIFIER COLON_EQUAL expression_opt
+  : IDENTIFIER COLON IDENTIFIER COLON_EQUAL expression
   | IDENTIFIER COLON IDENTIFIER
   | ;; empty
   ;
@@ -479,7 +474,7 @@ parameter_specification_list
   ;
 
 paren_expression
-  : LEFT_PAREN expression_opt RIGHT_PAREN
+  : LEFT_PAREN expression RIGHT_PAREN
   ;
 
 primary
@@ -560,7 +555,7 @@ simple_expression
   ;
 
 simple_return_statement
-  : RETURN expression_opt SEMICOLON
+  : RETURN expression SEMICOLON
   ;
 
 simple_statement

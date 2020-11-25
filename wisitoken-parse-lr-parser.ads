@@ -109,7 +109,9 @@ package WisiToken.Parse.LR.Parser is
       Language_String_ID_Set         : in              Language_String_ID_Set_Access;
       User_Data                      : in              WisiToken.Syntax_Trees.User_Data_Access);
 
-   overriding procedure Parse (Shared_Parser : in out LR.Parser.Parser);
+   overriding procedure Parse
+     (Shared_Parser : in out LR.Parser.Parser;
+      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
    --  input setting Shared_Parser.Terminals, then parses tokens.
    --

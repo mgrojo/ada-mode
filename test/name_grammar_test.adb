@@ -51,6 +51,20 @@ package body Name_Grammar_Test is
       Name_ID,
       Symbol_Name_ID);
 
+   Real_Image : constant WisiToken.Token_ID_Array_String :=
+     --  WORKAROUND for 'Image bug in GNAT Community 2020 -gnat2020
+     (new String'("WHITESPACE_ID"),
+      new String'("DOT_ID"),
+      new String'("PAREN_LEFT_ID"),
+      new String'("PAREN_RIGHT_ID"),
+      new String'("IDENTIFIER_ID"),
+      new String'("EOF_ID"),
+      new String'("statement_id"),
+      new String'("component_id"),
+      new String'("component_list_id"),
+      new String'("name_id"),
+      new String'("symbol_name_id"));
+
    package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_ID,
       First_Terminal    => Dot_ID,
@@ -74,7 +88,7 @@ package body Name_Grammar_Test is
        EOF_ID         => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
-   Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
+   Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    --  valid names:
    --  Module.Symbol
@@ -146,12 +160,15 @@ package body Name_Grammar_Test is
       Put_Line ("Full Parser");
       declare
          Parser : WisiToken.Parse.LR.Parser.Parser (LALR_Descriptor'Access);
+
+         Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
       begin
          WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
             Trace'Access,
             Lexer.New_Lexer (Parser.Descriptor, Syntax),
-            WisiToken.Generate.LR.LALR_Generate.Generate (Full_Grammar, LALR_Descriptor, Grammar_File_Name => ""),
+            WisiToken.Generate.LR.LALR_Generate.Generate
+              (Full_Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
             User_Data                      => null,
             Language_Fixes                 => null,
             Language_Matching_Begin_Tokens => null,
@@ -196,4 +213,6 @@ package body Name_Grammar_Test is
       Register_Routine (T, Nominal'Access, "Nominal");
    end Register_Tests;
 
+begin
+   LALR_Descriptor.Image := Real_Image;
 end Name_Grammar_Test;

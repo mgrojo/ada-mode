@@ -18,6 +18,14 @@
 --
 --  [gnu_coding] https://www.gnu.org/prep/standards/standards.html#Errors
 --
+--  [Lahav 2004] - Elad Lahav. Efficient Semantic Analysis for Text
+--  Editors. final project for CS842 School of Computer Science,
+--  University of Waterloo.
+--
+--  [Wagner Graham 1998] - Tim A. Wagner and Susan L. Graham.
+--  Efficient and flexible incremental parsing. ACM Transactions on
+--  Programming Languages and Systems,20(5):980-1013, 1998
+--
 --  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
@@ -73,6 +81,7 @@ package WisiToken is
    type Unknown_State_Index is new Integer range -1 .. Integer'Last;
    subtype State_Index is Unknown_State_Index range 0 .. Unknown_State_Index'Last;
    Unknown_State : constant Unknown_State_Index := -1;
+   Accept_State  : constant State_Index         := State_Index'Last;
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Unknown_State_Index);
 
@@ -85,7 +94,11 @@ package WisiToken is
    ----------
    --  Token IDs
 
-   type Token_ID is range 0 .. Integer'Last; -- 0 origin to match elisp array
+   type Token_ID is range 0 .. 2**15 - 1;
+   for Token_ID'Size use 16;
+   --  0 origin to match elisp array, 16 bits to reduce storage, signed
+   --  to match generics. Biggest language will have < 500 token ids; Ada
+   --  2020 has 481, Java 19 has 321.
 
    Invalid_Token_ID : constant Token_ID := Token_ID'Last;
 
@@ -150,6 +163,12 @@ package WisiToken is
    procedure Put_Tokens (Descriptor : in WisiToken.Descriptor);
    --  Put user readable token list (token_id'first ..
    --  descriptor.last_nonterminal) to Ada.Text_IO.Current_Output
+
+   function Is_Terminal (ID : in Token_ID; Descriptor : in WisiToken.Descriptor) return Boolean
+   is (ID in Descriptor.First_Terminal .. Descriptor.Last_Terminal);
+
+   function Is_Nonterminal (ID : in Token_ID; Descriptor : in WisiToken.Descriptor) return Boolean
+   is (ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal);
 
    function Find_ID (Descriptor : in WisiToken.Descriptor; Name : in String) return Token_ID;
    --  Return index of Name in Descriptor.Image. If not found, raise Programmer_Error.
@@ -269,7 +288,10 @@ package WisiToken is
    ----------
    --  Tokens
 
-   type Base_Buffer_Pos is range 0 .. Integer'Last;
+   type Base_Buffer_Pos is new Integer;
+   --  Token shift amounts in edited source can be arbitrarily large
+   --  positive or negative.
+
    subtype Buffer_Pos is Base_Buffer_Pos range 1 .. Base_Buffer_Pos'Last; -- match Emacs buffer origin.
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Base_Buffer_Pos);
@@ -288,20 +310,42 @@ package WisiToken is
        then Natural (Region.Last - Region.First + 1)
        else 0));
 
-   function Inside (Pos : in Buffer_Pos; Region : in Buffer_Region) return Boolean
+   function Inside (Pos : in Base_Buffer_Pos; Region : in Buffer_Region) return Boolean
      is (Region.First <= Pos and Pos <= Region.Last);
+
+   type Boundary is (Inclusive, Exclusive);
+
+   function Contains
+     (Outer, Inner   : in Buffer_Region;
+      First_Boundary : in Boundary := Inclusive;
+      Last_Boundary  : in Boundary := Inclusive)
+     return Boolean;
+   --  True if Outer entirely contains Inner, according to Boundaries.
+
+   function Overlaps (A, B : in Buffer_Region) return Boolean;
+   --  True if A and B have some positions in common.
 
    function Image (Item : in Buffer_Region) return String;
 
    function "and" (Left, Right : in Buffer_Region) return Buffer_Region;
    --  Return region enclosing both Left and Right.
 
-   type Line_Number_Type is range 1 .. Natural'Last; -- Match Emacs buffer line numbers.
+   function "+" (Left : in Buffer_Region; Right : in Base_Buffer_Pos) return Buffer_Region
+     is (Left.First + Right, Left.Last + Right);
+
+   type Base_Line_Number_Type is new Integer; -- for delta line numbers.
+   subtype Line_Number_Type is Base_Line_Number_Type range 1 .. Base_Line_Number_Type'Last;
+   --  Match Emacs buffer line numbers.
 
    Invalid_Line_Number : constant Line_Number_Type := Line_Number_Type'Last;
 
    function Trimmed_Image (Item : in Line_Number_Type) return String;
    --  '-' if Invalid_Line_Number
+
+   package Line_Pos_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
+     (Line_Number_Type, Buffer_Pos, Default_Element => Invalid_Buffer_Pos);
+
+   type Line_Pos_Vector_Access is access all Line_Pos_Vectors.Vector;
 
    type Base_Token is record
       --  The parser only needs ID; semantic checks need Byte_Region to
@@ -313,14 +357,17 @@ package WisiToken is
       Byte_Region : Buffer_Region := Null_Buffer_Region;
       --  Index into the Lexer buffer for the token text.
 
-      Line   : Line_Number_Type  := Invalid_Line_Number;
-      Column : Ada.Text_IO.Count := 0;
-      --  At start of token.
+      Line : Line_Number_Type := Invalid_Line_Number;
+      --  At start of token. Column can be computed from Char_Region.First
+      --  and Parser.Line_Begin_Char_Pos.
 
       Char_Region : Buffer_Region := Null_Buffer_Region;
       --  Character position, useful for finding the token location in Emacs
       --  buffers.
    end record;
+
+   function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Line_Pos_Vectors.Vector) return Ada.Text_IO.Count;
+   --  Result is origin 0 (WisiToken and Emacs standard)
 
    function Image
      (Item       : in Base_Token;
@@ -332,6 +379,8 @@ package WisiToken is
 
    package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Positive_Index_Type, Base_Token, Default_Element => (others => <>));
+
+   function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Image);
 
    type Base_Token_Array_Var_Ref (Element : not null access Base_Token_Arrays.Vector) is private
    with Implicit_Dereference => Element;
@@ -359,7 +408,7 @@ package WisiToken is
    Outline     : constant := 0; -- spawn/terminate parallel parsers, error recovery enter/exit
    Detail      : constant := 1; -- add each parser cycle
    Extra       : constant := 2; -- add pending semantic state operations
-   Lexer_Debug : constant := 3; -- add lexer debug
+   Extreme     : constant := 3; -- add ?
 
    Trace_McKenzie : Integer  := 0;
    --  If Trace_McKenzie > 0, Parse prints messages helpful for debugging error recovery.
@@ -368,8 +417,15 @@ package WisiToken is
    --  Detail  - add each error recovery configuration
    --  Extra   - add error recovery parse actions
 
+   Trace_Lexer : Integer := 0;
+
+   Trace_Incremental_Parse : Integer := 0;
+
    Trace_Action : Integer := 0;
-   --  Output during Execute_Action, and unit tests.
+   --  Output during Execute_Action
+
+   Trace_Tests : Integer := 0;
+   --  Output during unit tests
 
    Trace_Generate_EBNF             : Integer := 0;
    Trace_Generate_Table            : Integer := 0;
@@ -383,8 +439,20 @@ package WisiToken is
    --  For test_lr1_parallel.adb
 
    Debug_Mode : Boolean := False;
-   --  If True, Output stack traces, propagate exceptions to top level.
+   --  If True, output stack traces, propagate exceptions to top level.
    --  Otherwise, be robust to errors, so user does not notice them.
+
+   procedure Enable_Trace (Config : in String);
+   --  Config has the format:
+   --
+   --  name=value ...
+   --
+   --  where "name" is the suffix of on of the Trace_* variables above,
+   --  and "value" is an integer.
+   --
+   --  For Boolean variables, value > 0 is True, 0 is False.
+   --
+   --  In addition, the name "debug" sets Debug_Mode.
 
    type Trace is abstract tagged limited null record;
    --  Output for tests/debugging.

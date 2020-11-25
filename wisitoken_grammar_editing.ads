@@ -40,7 +40,7 @@ package WisiToken_Grammar_Editing is
       Byte_Region : WisiToken.Buffer_Region;
 
       case Label is
-      when Shared_Terminal =>
+      when Source_Terminal =>
          Node_Index : WisiToken.Syntax_Trees.Node_Index;
          Line       : WisiToken.Line_Number_Type;
 
@@ -54,8 +54,7 @@ package WisiToken_Grammar_Editing is
 
    function Image (Item : in Identifier_Token_Index) return String
    is ((case Item.Label is
-        when Shared_Terminal => WisiToken.Syntax_Trees.Trimmed_Image (Item.Node_Index) & ":",
-        when Virtual_Terminal => "",
+        when Source_Terminal | Virtual_Terminal => WisiToken.Syntax_Trees.Trimmed_Image (Item.Node_Index) & ":",
         when Virtual_Identifier => Trimmed_Image (Item.Identifier) & ";") &
          Image (Item.ID, Wisitoken_Grammar_Actions.Descriptor));
 
@@ -102,7 +101,7 @@ package WisiToken_Grammar_Editing is
      (Tree : in out WisiToken.Syntax_Trees.Tree;
       Item : in     WisiToken.Syntax_Trees.Valid_Node_Access)
      return WisiToken.Syntax_Trees.Valid_Node_Access
-   with Pre => Tree.ID (Item) = +IDENTIFIER_ID,
+   with Pre => To_Token_Enum (Tree.ID (Item)) in IDENTIFIER_ID | STRING_LITERAL_2_ID,
      Post => Tree.ID (Add_RHS_Item'Result) = +rhs_item_ID;
 
    function Add_RHS_Element
@@ -157,7 +156,8 @@ package WisiToken_Grammar_Editing is
    --  type WisiToken_Grammar_Runtime.User_Data_Type. Uses
    --  Data.EBNF_Allowed, Data.Error_Reported.
    --
-   --  For use with Syntax_Trees.Validate_Tree.
+   --  For use with Syntax_Trees.Validate_Tree; User_Data must be of type
+   --  Wisitoken_Grammar_Runtime.User_Data_Type.
 
    procedure Translate_EBNF_To_BNF
      (Tree : in out WisiToken.Syntax_Trees.Tree;

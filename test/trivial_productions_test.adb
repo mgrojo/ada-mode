@@ -72,7 +72,7 @@ package body Trivial_Productions_Test is
            ((EOF_ID    => Lexer.Get ("" & Ada.Characters.Latin_1.EOT),
              Symbol_ID => Lexer.Get ("symbol")));
 
-         Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
+         Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
          Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
            E_ID <= T_ID & EOF_ID + Null_Action and
@@ -82,6 +82,8 @@ package body Trivial_Productions_Test is
          Parser : WisiToken.Parse.LR.Parser.Parser (LR1_Descriptor'Access);
 
          Text : constant String := "symbol";
+
+         Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
       begin
          --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
@@ -89,7 +91,8 @@ package body Trivial_Productions_Test is
            (Parser,
             Trace'Access,
             Lexer.New_Lexer (Parser.Descriptor, Syntax),
-            WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor, Grammar_File_Name => ""),
+            WisiToken.Generate.LR.LALR_Generate.Generate
+              (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
             User_Data                      => null,
             Language_Fixes                 => null,
             Language_Matching_Begin_Tokens => null,
@@ -158,7 +161,7 @@ package body Trivial_Productions_Test is
              EOF_ID         => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
             ));
 
-         Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
+         Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
          Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
            WisiToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and
@@ -173,6 +176,8 @@ package body Trivial_Productions_Test is
          Parser : WisiToken.Parse.LR.Parser.Parser (LR1_Descriptor'Access);
 
          Text : constant String := "function (symbol) symbol procedure";
+
+         Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
       begin
          --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
@@ -180,7 +185,8 @@ package body Trivial_Productions_Test is
            (Parser,
             Trace'Access,
             Lexer.New_Lexer (Parser.Descriptor, Syntax),
-            WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor, Grammar_File_Name => ""),
+            WisiToken.Generate.LR.LALR_Generate.Generate
+              (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
             User_Data                      => null,
             Language_Fixes                 => null,
             Language_Matching_Begin_Tokens => null,

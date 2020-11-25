@@ -842,7 +842,9 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Ignore_Conflicts      : in     Boolean                          := False;
       Partial_Recursion     : in     Boolean                          := True;
       Task_Count            : in     System.Multiprocessors.CPU_Range := 1;
-      Hash_Table_Size       : in     Positive                         := LR1_Items.Item_Set_Trees.Default_Rows)
+      Hash_Table_Size       : in     Positive                         := LR1_Items.Item_Set_Trees.Default_Rows;
+      Use_Cached_Recursions : in     Boolean                          := False;
+      Recursions            : in out WisiToken.Generate.Recursions)
      return Parse_Table_Ptr
    is
       use all type System.Multiprocessors.CPU_Range;
@@ -855,11 +857,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Nullable : constant Token_Array_Production_ID := WisiToken.Generate.Nullable (Grammar);
       Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Nullable);
 
-      Recursions : constant WisiToken.Generate.Recursions :=
-        (if Partial_Recursion
-         then WisiToken.Generate.Compute_Partial_Recursion (Grammar, Descriptor)
-         else WisiToken.Generate.Compute_Full_Recursion (Grammar, Descriptor));
-      Recursions_Time : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+      Recursions_Time : Ada.Calendar.Time := Ada.Calendar.Clock;
 
       Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=
         Compute_Minimal_Terminal_Sequences (Descriptor, Grammar, Grammar_File_Name);
@@ -891,6 +889,15 @@ package body WisiToken.Generate.LR.LR1_Generate is
       Minimal_Actions_Time   : Ada.Calendar.Time;
       Collect_Conflict_Time  : Ada.Calendar.Time;
    begin
+      if not Use_Cached_Recursions or Recursions = Empty_Recursions then
+         Recursions :=
+           (if Partial_Recursion
+            then WisiToken.Generate.Compute_Partial_Recursion (Grammar, Descriptor)
+            else WisiToken.Generate.Compute_Full_Recursion (Grammar, Descriptor));
+      end if;
+      Set_Grammar_Recursions (Recursions, Grammar);
+      Recursions_Time := Ada.Calendar.Clock;
+
       if Trace_Time then
          Ada.Text_IO.Put_Line
            ("initial item_sets time:" & Duration'Image (Ada.Calendar."-" (Initial_Item_Sets_Time, Recursions_Time)));

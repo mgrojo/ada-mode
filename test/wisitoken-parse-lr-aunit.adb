@@ -22,7 +22,7 @@ with AUnit.Assertions;
 with AUnit.Checks.Containers;
 with SAL.AUnit;
 with WisiToken.AUnit;
-with WisiToken.Semantic_Checks.AUnit;
+with WisiToken.In_Parse_Actions.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
 package body WisiToken.Parse.LR.AUnit is
 
@@ -56,7 +56,7 @@ package body WisiToken.Parse.LR.AUnit is
       use Standard.AUnit.Checks;
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
-      use WisiToken.Semantic_Checks.AUnit;
+      use WisiToken.In_Parse_Actions.AUnit;
    begin
       Check (Label & ".Verb", Computed.Verb, Expected.Verb);
       case Computed.Verb is
@@ -65,8 +65,8 @@ package body WisiToken.Parse.LR.AUnit is
       when Reduce | Accept_It =>
          Check (Label & ".Production", Computed.Production, Expected.Production);
          if Strict then
-            Check (Label & ".Action", Computed.Action, Expected.Action);
-            Check (Label & ".Check", Computed.Check, Expected.Check);
+            Check (Label & ".Post_Parse_Action", Computed.Post_Parse_Action, Expected.Post_Parse_Action);
+            Check (Label & ".In_Parse_Action", Computed.In_Parse_Action, Expected.In_Parse_Action);
          end if;
          Check (Label & ".Token_Count", Computed.Token_Count, Expected.Token_Count);
       when Error =>
@@ -170,15 +170,16 @@ package body WisiToken.Parse.LR.AUnit is
       Check (Label & ".op", Computed.Op, Expected.Op);
       case Computed.Op is
       when Fast_Forward =>
-         Check (Label & ".ff_token_index", Tree.Get_Element_Index (Computed.FF_Token_Index), Expected.FF_Token_Index);
+         Check (Label & ".ff_token_index", Computed.FF_Token_Index, Expected.FF_Token_Index);
 
       when Undo_Reduce =>
          Check (Label & ".nonterm", Computed.Nonterm, Expected.Nonterm);
-         Check (Label & ".id", Computed.Token_Count, Expected.Token_Count);
+         Check (Label & ".token_count", Computed.Token_Count, Expected.Token_Count);
+         Check (Label & ".ur_token_index", Computed.UR_Token_Index, Expected.UR_Token_Index);
 
       when Push_Back =>
          Check (Label & ".id", Computed.PB_ID, Expected.PB_ID);
-         Check (Label & ".token_index", Tree.Get_Element_Index (Computed.PB_Token_Index), Expected.PB_Token_Index);
+         Check (Label & ".token_index", Computed.PB_Token_Index, Expected.PB_Token_Index);
 
       when Insert =>
          Check (Label & ".id", Computed.Ins_ID, Expected.Ins_ID);
@@ -187,12 +188,12 @@ package body WisiToken.Parse.LR.AUnit is
             --  Execute_Actions has been run; .ins_before is invalid
             null;
          else
-            Check (Label & ".ins_before", Tree.Get_Element_Index (Computed.Ins_Before), Expected.Ins_Before);
+            Check (Label & ".ins_before", Computed.Ins_Before, Expected.Ins_Before);
          end if;
 
       when Delete =>
          Check (Label & ".id", Computed.Del_ID, Expected.Del_ID);
-         Check (Label & ".token_index", Tree.Get_Element_Index (Computed.Del_Token_Index), Expected.Del_Token_Index);
+         Check (Label & ".token_index", Computed.Del_Token_Index, Expected.Del_Token_Index);
       end case;
    end Check;
 

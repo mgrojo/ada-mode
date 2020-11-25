@@ -28,7 +28,7 @@
  ... goto state 36
  0: 22: 8:(RIGHT_PAREN, (39 . 39)) : reduce 1 tokens to primary
  ... error
- 0: terminate (1 active):  8:(RIGHT_PAREN, (39 . 39))
+ 0: terminate (1 active):  (-1, 8:(RIGHT_PAREN, (39 . 39)))
  1: 36: 8:(RIGHT_PAREN, (39 . 39)) : reduce 2 tokens to simple_expression
 (simple_expression, (38 . 38)) <= ((unary_adding_operator_opt), (primary, (38 . 38)))
  ... goto state 24

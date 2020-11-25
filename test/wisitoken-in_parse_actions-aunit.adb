@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Instantiation
+--  See parent.
 --
---  Copyright (C) 2019 - 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2020 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,8 +18,15 @@
 
 pragma License (GPL);
 
-with Gen_LR_Parser_No_Recover_Run;
-with Wisitoken_Grammar_Actions;
-with Wisitoken_Grammar_Main;
-procedure Run_WisiToken_Grammar is new Gen_LR_Parser_No_Recover_Run
-  (Wisitoken_Grammar_Actions.Descriptor'Access, Wisitoken_Grammar_Main.Create_Parser);
+with AUnit.Assertions;
+package body WisiToken.In_Parse_Actions.AUnit is
+
+   procedure Check
+     (Label    : in String;
+      Computed : in In_Parse_Action;
+      Expected : in In_Parse_Action)
+   is begin
+      Standard.AUnit.Assertions.Assert (Computed = Expected, Label & ": access type mismatch");
+   end Check;
+
+end WisiToken.In_Parse_Actions.AUnit;

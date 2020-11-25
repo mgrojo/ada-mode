@@ -530,7 +530,7 @@ package body WisiToken.Generate.LR is
                      begin
                         Add_Action
                           (Dot_ID,
-                           (Accept_It, P_ID, RHS.Action, RHS.Check, RHS.Tokens.Length - 1),
+                           (Accept_It, P_ID, RHS.Post_Parse_Action, RHS.In_Parse_Action, RHS.Tokens.Length - 1),
                            --  EOF is not pushed on stack in parser, because the action for EOF
                            --  is Accept, not Shift.
                            Table.States (State).Action_List, Descriptor);
@@ -576,7 +576,8 @@ package body WisiToken.Generate.LR is
    is
       Prod   : Productions.Instance renames Grammar (Item.Prod.LHS);
       RHS    : Productions.Right_Hand_Side renames Prod.RHSs (Item.Prod.RHS);
-      Action : constant Parse_Action_Rec := (Reduce, Item.Prod, RHS.Action, RHS.Check, RHS.Tokens.Length);
+      Action : constant Parse_Action_Rec :=
+        (Reduce, Item.Prod, RHS.Post_Parse_Action, RHS.In_Parse_Action, RHS.Tokens.Length);
    begin
       if Trace_Generate_Table > Detail then
          Ada.Text_IO.Put_Line ("processing lookaheads");
@@ -1433,7 +1434,7 @@ package body WisiToken.Generate.LR is
       Descriptor            : in WisiToken.Descriptor;
       Include_Extra         : in Boolean := False)
    is
-      use all type WisiToken.Syntax_Trees.Element_Index;
+      use all type WisiToken.Syntax_Trees.Node_Index;
       use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
 

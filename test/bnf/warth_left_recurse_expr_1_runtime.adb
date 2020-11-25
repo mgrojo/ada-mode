@@ -20,9 +20,12 @@ package body Warth_Left_Recurse_Expr_1_Runtime is
 
    overriding
    procedure Set_Lexer
-     (User_Data : in out User_Data_Type;
-      Lexer     : in     WisiToken.Lexer.Handle)
-   is begin
+     (User_Data           : in out User_Data_Type;
+      Lexer               : in     WisiToken.Lexer.Handle;
+      Line_Begin_Char_Pos : in     WisiToken.Line_Pos_Vector_Access)
+   is
+      pragma Unreferenced (Line_Begin_Char_Pos);
+   begin
       User_Data.Lexer := Lexer;
    end Set_Lexer;
 

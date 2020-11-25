@@ -46,17 +46,135 @@ package body WisiToken.Parse.LR.Parser_Lists is
               (if State = Unknown_State then " - : " else Trimmed_Image (State) & " : ") &
               (if I = Stack_Depth
                then ""
-               else Tree.Image (Tree.Get_Node (Stack, Item)) & ", ");
+               else Tree.Image (Tree.Get_Node (Stack, Item), Terminal_Node_Numbers => True) & ", ");
          end;
       end loop;
       return To_String (Result & ")");
    end Parser_Stack_Image;
 
+   function Peek_Current_Shared_Terminal
+     (Parser_State : in Parser_Lists.Parser_State;
+      Tree         : in Syntax_Trees.Tree)
+     return Syntax_Trees.Terminal_Ref
+   is
+      use Syntax_Trees;
+      Parents : Node_Stacks.Stack;
+   begin
+      if Tree.Has_Input (Parser_State.Stream) then
+         declare
+            Result : constant Stream_Node_Ref := Tree.First_Shared_Terminal
+              (Tree.First_Input (Parser_State.Stream), Parents);
+         begin
+            if Result /= Invalid_Stream_Node_Ref then
+               return Result;
+            end if;
+         end;
+      end if;
+      --  No next shared token in Parser_State.Stream input
+
+      return Tree.First_Shared_Terminal (Parser_State.Shared_Token, Parents);
+   end Peek_Current_Shared_Terminal;
+
+   function Peek_Next_Shared_Terminal
+     (Parser_State : in Parser_Lists.Parser_State;
+      Tree         : in Syntax_Trees.Tree)
+     return Syntax_Trees.Terminal_Ref
+   is
+      use Syntax_Trees;
+      Parents : Node_Stacks.Stack;
+   begin
+      if Parser_State.Shared_Token = Invalid_Stream_Node_Ref then
+         return Tree.First_Shared_Terminal (Tree.Stream_First (Tree.Shared_Stream), Parents);
+      end if;
+
+      declare
+         Result : Stream_Node_Ref;
+      begin
+         if Tree.Has_Input (Parser_State.Stream) then
+            Result := Tree.First_Input (Parser_State.Stream);
+
+            if Result /= Invalid_Stream_Node_Ref then
+               Result := Tree.First_Shared_Terminal (Result, Parents);
+
+               if Result /= Invalid_Stream_Node_Ref then
+                  return Result;
+               end if;
+            end if;
+         end if;
+
+         --  No next shared token in Parser_State.Stream input
+
+         Result := Parser_State.Shared_Token;
+         if Parser_State.Inc_Shared_Stream_Token then
+            Tree.Stream_Next (Result);
+         end if;
+         Result := Tree.First_Shared_Terminal (Result, Parents);
+         return Result;
+      end;
+   end Peek_Next_Shared_Terminal;
+
+   procedure Next_Token
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in out Syntax_Trees.Tree;
+      Set_Current  : in     Boolean;
+      Delete       : in     Boolean)
+   is begin
+      if Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref then
+         Parser_State.Shared_Token := Tree.Stream_First (Tree.Shared_Stream);
+
+      elsif Tree.Has_Input (Parser_State.Stream) then
+         if Delete then
+            loop
+               declare
+                  use all type WisiToken.Syntax_Trees.Node_Label;
+
+                  Temp : Syntax_Trees.Stream_Index := Tree.First_Input (Parser_State.Stream).Element;
+
+                  Ref : Syntax_Trees.Stream_Node_Ref :=
+                    (Parser_State.Stream, Temp, Tree.Get_Node (Parser_State.Stream, Temp));
+               begin
+                  if Tree.Label (Ref.Node) = Syntax_Trees.Nonterm then
+                     if Tree.Child_Count (Ref.Node) = 0 then
+                        --  Delete an empty nonterm preceding the target terminal.
+                        Tree.Stream_Delete (Parser_State.Stream, Temp);
+                        pragma Assert (Tree.Has_Input (Parser_State.Stream));
+                     else
+                        --  We only support Delete for terminals. See
+                        --  test_mckenzie_recover.adb String_Quote_1 second case.
+                        Tree.Left_Breakdown (Ref);
+                     end if;
+                  else
+                     Tree.Stream_Delete (Parser_State.Stream, Temp);
+                     exit;
+                  end if;
+               end;
+            end loop;
+         end if;
+
+      else
+         if Parser_State.Inc_Shared_Stream_Token or Delete then
+            Tree.Stream_Next (Parser_State.Shared_Token);
+         end if;
+      end if;
+
+      if Set_Current then
+         if Tree.Has_Input (Parser_State.Stream) then
+            Parser_State.Current_Token := Tree.First_Input (Parser_State.Stream);
+
+         else
+            Parser_State.Current_Token           := Parser_State.Shared_Token;
+            Parser_State.Inc_Shared_Stream_Token := True;
+         end if;
+      end if;
+   end Next_Token;
+
    function New_List (Tree : in out Syntax_Trees.Tree) return List
    is begin
       return Result : List
       do
-         Result.Elements.Append ((Stream => Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID, null), others => <>));
+         Result.Elements.Append
+           ((Stream => Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID, null),
+             others => <>));
       end return;
    end New_List;
 
@@ -157,7 +275,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Trace.Put_Line
               (" " & Tree.Trimmed_Image (Current.Stream) & ": terminate (" &
                  Trimmed_Image (Integer (Parsers.Count) - 1) & " active)" &
-                 ": " & Message & " " & Tree.Image (State.Current_Token, Terminal_Node_Numbers => True));
+                 ": " & Message & " " & Tree.Image (State.Current_Token));
          end if;
 
          Tree.Delete_Stream (State.Stream);
@@ -279,8 +397,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
       New_Item : Parser_State;
    begin
       declare
-         use all type WisiToken.Syntax_Trees.Stream_Index;
-
          Item : Parser_State renames Parser_State_Lists.Variable_Ref (Cursor.Ptr);
          --  We can't do 'Prepend' in the scope of this 'renames';
          --  that would be tampering with cursors.
@@ -295,46 +411,25 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Current_Token                 =>
               (if Item.Shared_Token = Item.Current_Token
                then Item.Current_Token
-               else Syntax_Trees.Invalid_Stream_Index), --  corrected below.
-            Inc_Shared_Token              => Item.Inc_Shared_Token,
-            Recover                       =>
-              (Enqueue_Count              => Item.Recover.Enqueue_Count,
-               Config_Full_Count          => Item.Recover.Config_Full_Count,
-               Check_Count                => Item.Recover.Check_Count,
-               others                     => <>),
-            Resume_Active                 => Item.Resume_Active,
-            Resume_Token_Goal             => Item.Resume_Token_Goal,
-            Conflict_During_Resume        => Item.Conflict_During_Resume,
-            Zombie_Token_Count            => 0,
-            Errors                        => Item.Errors,
-            Stream                        => Tree.New_Stream (Item.Stream, User_Data),
-            Verb                          => Item.Verb);
+               else Syntax_Trees.Invalid_Stream_Node_Ref), --  corrected below.
+            Inc_Shared_Stream_Token => Item.Inc_Shared_Stream_Token,
+            Recover                 =>
+              (Enqueue_Count        => Item.Recover.Enqueue_Count,
+               Config_Full_Count    => Item.Recover.Config_Full_Count,
+               Check_Count          => Item.Recover.Check_Count,
+               others               => <>),
+            Resume_Active           => Item.Resume_Active,
+            Resume_Token_Goal       => Item.Resume_Token_Goal,
+            Conflict_During_Resume  => Item.Conflict_During_Resume,
+            Zombie_Token_Count      => 0,
+            Errors                  => Item.Errors,
+            Stream                  => Tree.New_Stream (Item.Stream, User_Data),
+            Verb                    => Item.Verb);
 
          if Item.Shared_Token /= Item.Current_Token then
-            New_Item.Current_Token := Tree.Stream_Next (New_Item.Stream, Tree.Peek (New_Item.Stream));
-
-            declare
-               use all type WisiToken.Syntax_Trees.Node_Access;
-               use Recover_Op_Arrays;
-               Item_Op : Recover_Op_Arrays.Constant_Reference_Type renames Item.Recover_Insert_Delete.Constant_Ref
-                 ((if Item.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
-                   then Recover_Op_Arrays.Last_Index (Item.Recover_Insert_Delete)
-                   else Item.Recover_Insert_Delete_Current - 1));
-            begin
-               pragma Assert (Item_Op.Op = Insert);
-
-               if Tree.Get_Node (Item.Stream, Item.Current_Token) = Item_Op.Ins_Node then
-                  declare
-                     New_Item_Op : Recover_Op_Arrays.Variable_Reference_Type renames
-                       New_Item.Recover_Insert_Delete.Variable_Ref
-                         ((if New_Item.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
-                           then Recover_Op_Arrays.Last_Index (New_Item.Recover_Insert_Delete)
-                           else New_Item.Recover_Insert_Delete_Current - 1));
-                  begin
-                     New_Item_Op.Ins_Node := Tree.Get_Node (New_Item.Stream, New_Item.Current_Token);
-                  end;
-               end if;
-            end;
+            --  Item has a virtual terminal from Insert or a token from Push_Back
+            --  in the parse stream input.
+            New_Item.Current_Token := Tree.First_Input (New_Item.Stream);
          end if;
       end;
 

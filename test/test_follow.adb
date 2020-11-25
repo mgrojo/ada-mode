@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017, 2018 Stephen Leake
+--  Copyright (C) 2017, 2018, 2020 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -61,7 +61,7 @@ package body Test_Follow is
          Case_Insensitive  => False);
       use Token_Enum;
 
-      Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
+      Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
       --  This grammar has right recursion on Declarations_ID, and an
       --  empty production for Parameter_List_ID

@@ -19,26 +19,33 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Finalization;
+with SAL.Gen_Definite_Doubly_Linked_Lists;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
 
-   type Tree_Ref is record
-      Node  : Syntax_Trees.Node_Access  := Syntax_Trees.Invalid_Node_Access;  -- For post-parse actions
-      Index : Syntax_Trees.Stream_Index := Syntax_Trees.Invalid_Stream_Index; -- For error recover stream_prev/_next
-   end record;
-   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (Line_Number_Type, Tree_Ref, Default_Element => (others => <>));
+   package Line_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
+     (Line_Number_Type, Syntax_Trees.Terminal_Ref, Default_Element => (others => <>));
+   --  Tree_Ref in Shared_Stream; needed by Prev_Shared_Terminal in error
+   --  recover Try_Insert_Quote. In post-parse actions, Element is
+   --  Invalid_Stream_Index.
+
+   function Terminal_Ref_Image (Item : in Syntax_Trees.Terminal_Ref; Aux : in Syntax_Trees.Tree'Class) return String
+   is (Aux.Image (Item));
+
+   function Image is new Line_Token_Vectors.Gen_Image_Aux
+     (Syntax_Trees.Tree'Class, WisiToken.Trimmed_Image, Terminal_Ref_Image);
 
    type Wrapped_Lexer_Error is record
-      Recover_Token_Node  : Syntax_Trees.Valid_Node_Access;
-      Recover_Token_Index : Syntax_Trees.Stream_Index;
+      Recover_Token_Ref : Syntax_Trees.Terminal_Ref;
       --  Token that lexer returned at the error.
       --
-      --  Stream_Index is needed by error recovery, for Stream_Prev/_Next.
+      --  If the error token is a grammar token, Recover_Token_Ref is in
+      --  Shared_Stream; it is needed by error recovery, for
+      --  Stream_Prev/_Next in Try_Insert_Quote.
       --
-      --  Node_Access is needed for post parse actions, when
-      --  Tree.Terminal_Stream does not exist.
+      --  If the error token is a non-grammar token, Recover_Token_Index is
+      --  Invalid_Terminal_Ref.
 
       Error : WisiToken.Lexer.Error;
    end record;
@@ -55,7 +62,11 @@ package WisiToken.Parse is
       Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List;
       --  For access by error recover.
 
-      Line_Begin_Token : aliased Line_Begin_Token_Vectors.Vector;
+      Line_Begin_Char_Pos : aliased Line_Pos_Vectors.Vector;
+      --  Character position of the character at the start of each line. May
+      --  be Invalid_Buffer_Pos for lines contained in a multi-line token.
+
+      Line_Begin_Token : aliased Line_Token_Vectors.Vector;
       --  Line_Begin_Token (I) is the node in Tree of the first
       --  Shared_Terminal token on line I; Invalid_Node_Access if there are
       --  no grammar tokens on the line (ie only comment or whitespace).
@@ -79,12 +90,67 @@ package WisiToken.Parse is
    procedure Lex_All (Parser : in out Base_Parser'Class);
    --  Clear Line_Begin_Token, Last_Grammar_Node; reset User_Data. Then
    --  call Next_Grammar_Token repeatedly until EOF_ID is returned,
-   --  storing all tokens in Parser.Tree Terminal_Stream.
+   --  storing all tokens in Parser.Tree.Shared_Stream.
    --
    --  The user must first call Lexer.Reset_* to set the input text.
 
-   procedure Parse (Parser : in out Base_Parser) is abstract;
-   --  Call Lex_All, then execute parse algorithm to parse the tokens,
+   type KMN is record
+      --  Similar to [Lahav 2004] page 6; describes changed and unchanged
+      --  regions in a text buffer. We assume the range boundaries do not
+      --  break a multi-byte character.
+
+      Stable_Bytes : Base_Buffer_Pos; -- Count of unmodified bytes before change
+      Stable_Chars : Base_Buffer_Pos; -- "" characters
+
+      Deleted_Bytes : Base_Buffer_Pos; -- Count of deleted bytes, after Stable
+      Deleted_Chars : Base_Buffer_Pos;
+
+      Inserted_Bytes : Base_Buffer_Pos; -- Count of inserted bytes, after Stable.
+      Inserted_Chars : Base_Buffer_Pos;
+   end record;
+
+   procedure Validate_KMN
+     (KMN                      : in WisiToken.Parse.KMN;
+      Initial_Stable_Byte_First : in Buffer_Pos;
+      Initial_Stable_Char_First : in Buffer_Pos;
+      Edited_Stable_Byte_First  : in Buffer_Pos;
+      Edited_Stable_Char_First  : in Buffer_Pos;
+      Initial_Text_Byte_Region  : in Buffer_Region;
+      Initial_Text_Char_Region  : in Buffer_Region;
+      Edited_Text_Byte_Region   : in Buffer_Region;
+      Edited_Text_Char_Region   : in Buffer_Region);
+   --  Raise User_Error if KMN violates text regions.
+
+   package KMN_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (KMN);
+
+   procedure Validate_KMN
+     (List                     : in KMN_Lists.List;
+      Stable_Byte_First        : in Buffer_Pos;
+      Stable_Char_First        : in Buffer_Pos;
+      Initial_Text_Byte_Region : in Buffer_Region;
+      Initial_Text_Char_Region : in Buffer_Region;
+      Edited_Text_Byte_Region  : in Buffer_Region;
+      Edited_Text_Char_Region  : in Buffer_Region);
+
+   procedure Edit_Tree
+     (Parser : in out Base_Parser'Class;
+      Edits  : in     KMN_Lists.List)
+   with Pre => Parser.Tree.Fully_Parsed,
+     Post => Parser.Tree.Stream_Count = 1;
+   --  Assumes Parser.Lexer.Source has changed in a way reflected in
+   --  Edits. Uses Edits to direct editing Parser.Tree parse
+   --  stream to reflect lexing the changed source, in preparation for
+   --  Incremental_Parse; result is in Tree.Shared_Stream.
+   --
+   --  FIXME: handle Editable; we don't actually use the parse stream,
+   --  just the one tree element.
+
+   procedure Parse
+     (Parser : in out Base_Parser;
+      Edits  : in     KMN_Lists.List := KMN_Lists.Empty_List)
+   is abstract;
+   --  If Edits is empty, call Lex_All. If Edits is not empty, call
+   --  Edit_Tree. Then execute parse algorithm to parse the new tokens,
    --  storing the result in Parser for Execute_Actions.
    --
    --  If a parse error is encountered, raises Syntax_Error.
@@ -103,6 +169,7 @@ package WisiToken.Parse is
      (Parser          : in out Base_Parser;
       Image_Augmented : in     Syntax_Trees.Image_Augmented := null)
      is abstract;
-   --  Execute all actions in Parser.Tree.
+   --  Execute all actions in Parser.Tree. See wisitoken-syntax_trees.ads
+   --  for other actions performed by Execute_Actions.
 
 end WisiToken.Parse;

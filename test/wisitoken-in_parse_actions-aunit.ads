@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Instantiation
+--  AUnit checks for parent
 --
---  Copyright (C) 2019 - 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2020 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,8 +18,14 @@
 
 pragma License (GPL);
 
-with Gen_LR_Parser_No_Recover_Run;
-with Wisitoken_Grammar_Actions;
-with Wisitoken_Grammar_Main;
-procedure Run_WisiToken_Grammar is new Gen_LR_Parser_No_Recover_Run
-  (Wisitoken_Grammar_Actions.Descriptor'Access, Wisitoken_Grammar_Main.Create_Parser);
+with AUnit.Checks;
+package WisiToken.In_Parse_Actions.AUnit is
+
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Status_Label);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in In_Parse_Action;
+      Expected : in In_Parse_Action);
+
+end WisiToken.In_Parse_Actions.AUnit;
