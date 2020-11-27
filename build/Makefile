@@ -42,7 +42,7 @@ EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 endif
 
 # compile with debug to get assertions for testing new code
-#export Standard_Common_Build := Debug
+export Standard_Common_Build := Debug
 #export Gnatcoll_Build := Debug
 
 elisp : byte-compile-clean compile-ada-test-clean update compile-ada-test test-clean test
@@ -97,8 +97,8 @@ summarize :
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
 ONE_TEST_FILES ?= ada_mode-nominal.adb
-#one :: build_executables
-#one :: byte-compile autoloads
+one :: build_executables
+one :: byte-compile autoloads
 #one :: compile-ada-test
 one :: one-clean
 one-clean :: force
@@ -108,15 +108,15 @@ one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
-#	find . -name "*.diff" -not -size 0 >> test.log
 #one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
 # With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
 # to get begin, end pos.
 # partial indent args: begin-byte send-end parse-end begin-char begin-line end-line begin-indent
-#two : RUN_ARGS ?= parse indent ../test/ada_mode-recover_20.adb --verbosity 1 1 4
+two : RUN_ARGS ?= parse indent ../test/ada_mode-recover_partial_04_lr1.adb --verbosity "debug=1 action=3"
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
-two : ../ada_annex_p_re2c.c
+two : ../run_ada_lalr_parse.exe
+	../run_ada_lalr_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_executables
@@ -127,6 +127,9 @@ two_pro : export Standard_Common_Profile := On
 two_pro : build_executables
 	../exec_pro/run_ada_lalr_parse.exe ../test/ada_mode-recover_partial_02_lr1.adb Indent --enqueue_limit 120_000 --task_count 1
 	gprof ../exec_pro/run_ada_lalr_parse.exe > recover_partial_02-lalr.profile
+
+three : $(WISITOKEN)/build/wisitoken-bnf-generate.exe
+	cd ..; $(WISITOKEN_GENERATE) --generate LALR Ada_Emacs Process re2c --time --output_bnf -v 0 0 2 ada.wy > generate.log
 
 # WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an

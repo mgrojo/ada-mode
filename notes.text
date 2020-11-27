@@ -30,8 +30,8 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1): incremental parse
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
-   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
+   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
+   ("../org.emacs.ada-mode.stephe-6"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
@@ -43,14 +43,6 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-build/test.log
-    ada_mode-interactive_2.adb:111 indent is nil
-        not when that test is isolated in debug.adb; due to preceding errors?
-        clean up preceding errors; no help
-        edebug broken; ignore for now
-
-    all others pass
-
 use trace in wisi.adb
 
 incremental parse
