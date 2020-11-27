@@ -1627,7 +1627,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Adj_First : constant Node_Index := (if First = Invalid_Node_Index then Last else First);
          Adj_Last  : constant Node_Index := (if Last = Invalid_Node_Index then First else Last);
 
-         Last_Deleted : Node_Index;
+         Last_Deleted : Node_Index := Invalid_Node_Index;
       begin
          if Adj_Last = Invalid_Node_Index or Adj_First = Invalid_Node_Index then
             raise Bad_Config;

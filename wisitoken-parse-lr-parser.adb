@@ -662,10 +662,7 @@ package body WisiToken.Parse.LR.Parser is
       Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List)
    is separate;
 
-   overriding
-   procedure Execute_Actions
-     (Parser          : in out LR.Parser.Parser;
-      Image_Augmented : in     Syntax_Trees.Image_Augmented := null)
+   overriding procedure Execute_Actions (Parser : in out LR.Parser.Parser)
    is
       use all type Syntax_Trees.User_Data_Access;
       use all type WisiToken.Syntax_Trees.Post_Parse_Action;
@@ -865,15 +862,14 @@ package body WisiToken.Parse.LR.Parser is
                I := Tree.Next_Terminal (I);
             end loop;
 
-            if Last_Line < Parser.Line_Begin_Token.Last_Index then
+            for Line in Last_Line + 1 .. Parser.Line_Begin_Token.Last_Index loop
                declare
-                  Ref : Stream_Node_Ref renames Parser.Line_Begin_Token (Parser.Line_Begin_Token.Last_Index);
+                  Ref : Stream_Node_Ref renames Parser.Line_Begin_Token (Line);
                begin
-                  pragma Assert (Tree.ID (Ref.Node) = Tree.Descriptor.EOI_ID);
                   Ref.Stream := Invalid_Stream_ID;
                   Ref.Element := Invalid_Stream_Index;
                end;
-            end if;
+            end loop;
          end;
 
          if Trace_Action > Detail then

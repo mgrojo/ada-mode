@@ -165,10 +165,7 @@ package WisiToken.Parse is
    procedure Put_Errors (Parser : in Base_Parser) is abstract;
    --  Output error messages to Ada.Text_IO.Current_Error.
 
-   procedure Execute_Actions
-     (Parser          : in out Base_Parser;
-      Image_Augmented : in     Syntax_Trees.Image_Augmented := null)
-     is abstract;
+   procedure Execute_Actions (Parser : in out Base_Parser) is abstract;
    --  Execute all actions in Parser.Tree. See wisitoken-syntax_trees.ads
    --  for other actions performed by Execute_Actions.
 

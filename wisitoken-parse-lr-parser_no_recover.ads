@@ -70,9 +70,7 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    --  Put user-friendly error messages from the parse to
    --  Ada.Text_IO.Current_Error.
 
-   overriding procedure Execute_Actions
-     (Parser          : in out LR.Parser_No_Recover.Parser;
-      Image_Augmented : in     Syntax_Trees.Image_Augmented := null);
+   overriding procedure Execute_Actions (Parser : in out LR.Parser_No_Recover.Parser);
    --  Execute the grammar actions in Parser.
 
 end WisiToken.Parse.LR.Parser_No_Recover;

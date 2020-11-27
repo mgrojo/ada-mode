@@ -318,6 +318,10 @@ package WisiToken.Syntax_Trees is
    --  User_Data_Type
 
    type Base_Augmented is tagged null record;
+
+   function Image_Augmented (Aug : in Base_Augmented) return String
+   is ("");
+
    type Augmented_Class_Access is access all Base_Augmented'Class;
    type Augmented_Class_Access_Constant is access constant Base_Augmented'Class;
 
@@ -1544,22 +1548,26 @@ package WisiToken.Syntax_Trees is
    function Next_Stream_ID_Trimmed_Image (Tree : in Syntax_Trees.Tree) return String;
    --  Trimmed integer.
 
+   type Image_Action is access function (Action : in Post_Parse_Action) return String;
+
    function Image
-     (Tree        : in Syntax_Trees.Tree;
-      Children    : in Boolean     := False;
-      Non_Grammar : in Boolean     := False;
-      Root        : in Node_Access := Invalid_Node_Access)
+     (Tree         : in Syntax_Trees.Tree;
+      Children     : in Boolean                   := False;
+      Non_Grammar  : in Boolean                   := False;
+      Root         : in Node_Access               := Invalid_Node_Access;
+      Image_Action : in Syntax_Trees.Image_Action := null)
      return String;
    --  Image of all streams, or root node if no streams.
    --  If Children, subtree of each stream element is included.
 
    function Image
-     (Tree        : in Syntax_Trees.Tree;
-      Stream      : in Stream_ID;
-      Stack       : in Boolean := True;
-      Input       : in Boolean := True;
-      Children    : in Boolean := False;
-      Non_Grammar : in Boolean := False)
+     (Tree         : in Syntax_Trees.Tree;
+      Stream       : in Stream_ID;
+      Stack        : in Boolean                   := True;
+      Input        : in Boolean                   := True;
+      Children     : in Boolean                   := False;
+      Non_Grammar  : in Boolean                   := False;
+      Image_Action : in Syntax_Trees.Image_Action := null)
      return String;
    --  Image of each node. If Stack, includes stack; if Input, includes
    --  input. If Children, each entire subtree is included, with
@@ -1568,35 +1576,39 @@ package WisiToken.Syntax_Trees is
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Element               : in Stream_Index;
-      Children              : in Boolean := False;
-      RHS_Index             : in Boolean := False;
-      Node_Numbers          : in Boolean := False;
-      Terminal_Node_Numbers : in Boolean := False)
+      Children              : in Boolean                      := False;
+      RHS_Index             : in Boolean                      := False;
+      Node_Numbers          : in Boolean                      := False;
+      Terminal_Node_Numbers : in Boolean                      := False;
+      Image_Action          : in Syntax_Trees.Image_Action    := null)
      return String;
    --  Element can be from any stream, or Invalid_Stream_Index
 
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Node                  : in Node_Access;
-      Children              : in Boolean := False;
-      RHS_Index             : in Boolean := False;
-      Node_Numbers          : in Boolean := False;
-      Terminal_Node_Numbers : in Boolean := False;
-      Non_Grammar           : in Boolean := False)
+      Children              : in Boolean                   := False;
+      RHS_Index             : in Boolean                   := False;
+      Node_Numbers          : in Boolean                   := False;
+      Terminal_Node_Numbers : in Boolean                   := False;
+      Non_Grammar           : in Boolean                   := False;
+      Image_Action          : in Syntax_Trees.Image_Action := null)
      return String;
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Nodes                 : in Node_Access_Array;
-      Node_Numbers          : in Boolean := False;
-      Terminal_Node_Numbers : in Boolean := False;
-      Non_Grammar           : in Boolean := False)
+      Node_Numbers          : in Boolean                   := False;
+      Terminal_Node_Numbers : in Boolean                   := False;
+      Non_Grammar           : in Boolean                   := False;
+      Image_Action          : in Syntax_Trees.Image_Action := null)
      return String;
    --  Includes Node.Node_Index, Node.ID
 
    function Image
      (Tree           : in Syntax_Trees.Tree;
       Ref            : in Stream_Node_Ref;
-      First_Terminal : in Boolean := False)
+      First_Terminal : in Boolean                   := False;
+      Image_Action   : in Syntax_Trees.Image_Action := null)
      return String;
    --  If First_Terminal, show First_Terminal of Ref.Node if Ref is rooted.
 
@@ -1657,19 +1669,13 @@ package WisiToken.Syntax_Trees is
    --  Error_Reported is used to avoid outputing an error for a node more
    --  than once.
 
-   type Image_Augmented is access function (Aug : in Augmented_Class_Access_Constant) return String;
-   type Image_Action is access function (Action : in Post_Parse_Action) return String;
-
    procedure Print_Tree
-     (Tree            : in Syntax_Trees.Tree;
-      Root            : in Node_Access                  := Invalid_Node_Access;
-      Image_Augmented : in Syntax_Trees.Image_Augmented := null;
-      Image_Action    : in Syntax_Trees.Image_Action    := null;
-      Non_Grammar     : in Boolean                      := False);
+     (Tree         : in Syntax_Trees.Tree;
+      Root         : in Node_Access               := Invalid_Node_Access;
+      Image_Action : in Syntax_Trees.Image_Action := null;
+      Non_Grammar  : in Boolean                   := False);
    --  Print tree rooted at Root (default Tree.Root) to
-   --  Text_IO.Current_Output, for debugging. For each node,
-   --  Image_Augmented is called if it is not null and node.augmented is
-   --  not null.
+   --  Text_IO.Current_Output, for debugging.
 
    procedure Print_Streams (Tree : in Syntax_Trees.Tree; Non_Grammar : in Boolean := False);
 

@@ -445,11 +445,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       --  character.
    end Parse;
 
-   overriding procedure Execute_Actions
-     (Parser          : in out LR.Parser_No_Recover.Parser;
-      Image_Augmented : in     Syntax_Trees.Image_Augmented := null)
+   overriding procedure Execute_Actions (Parser : in out LR.Parser_No_Recover.Parser)
    is
-      pragma Unreferenced (Image_Augmented);
       use all type Syntax_Trees.User_Data_Access;
 
       procedure Process_Node

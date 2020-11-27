@@ -123,12 +123,13 @@ package WisiToken.Parse.LR.Parser is
    --  For errors where no recovery is possible, raises Parse_Error with
    --  an appropriate error message.
 
-   overriding procedure Execute_Actions
-     (Parser          : in out LR.Parser.Parser;
-      Image_Augmented : in     Syntax_Trees.Image_Augmented := null);
-   --  Call User_Data.Delete_Token on any tokens deleted by error
-   --  recovery, then User_Data.Reduce and the grammar semantic actions
-   --  on all nonterms in the syntax tree.
+   overriding procedure Execute_Actions (Parser : in out LR.Parser.Parser);
+   --  Call Parser.User_Data.Insert_Token, Parser.User_Data.Delete_Token
+   --  on any tokens inserted/deleted by error recovery. Update
+   --  Parser.Line_Begin_Tokens to reflect error recovery. Then call
+   --  User_Data.Reduce and the grammar post parse actions on all
+   --  nonterms in the syntax tree, by traversing the tree in depth-first
+   --  order.
 
    overriding function Any_Errors (Parser : in LR.Parser.Parser) return Boolean;
    --  Return True if any errors where encountered, recovered or not.

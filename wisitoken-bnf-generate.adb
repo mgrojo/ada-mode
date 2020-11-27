@@ -420,8 +420,7 @@ begin
                Ada.Text_IO.New_Line;
                Ada.Text_IO.Put_Line ("BNF tree:");
                Tree.Print_Tree
-                 (Image_Action    => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access,
-                  Image_Augmented => WisiToken_Grammar_Runtime.Image'Access);
+                 (Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
             end if;
 
             if Output_BNF then
