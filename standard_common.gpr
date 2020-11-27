@@ -74,7 +74,7 @@ project Standard_Common is
         );
 
       Debug_Switches := Base_Debug_Switches &
-        ("-gnat2020", -- @
+        ("-gnat2020", -- @, declare_expression
          "-gnatX"); -- reduction expressions
 
       --  -O3 is measurably faster than -O2 for wisitoken generate
