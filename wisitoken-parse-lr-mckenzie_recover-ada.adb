@@ -708,12 +708,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       end Put;
    begin
       if (ID (Config.Error_Token) = +COLON_ID and
-            ID (Config.Stack.Peek.Token) = +IDENTIFIER_ID) and then
+            (ID (Config.Stack.Peek.Token) /= Invalid_Token_ID and then
+               -ID (Config.Stack.Peek.Token) in direct_name_ID | IDENTIFIER_ID)) and then
         Push_Back_Valid (Tree, Config)
       then
          --  Code looks like:
          --
-         --  ... <variable_identifier> : [aliased constant] <subtype_indication> := <expression> ...
+         --  ... <variable_name> : [aliased constant] <subtype_indication> := <expression> ...
          --
          --  Assume the user copied a declaration with an initializer, and is
          --  converting it to an expression; see ada_mode-recover_02.adb,
@@ -736,7 +737,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             New_Config : Configuration := Config;
             Peek_State : Peek_Shared_State;
          begin
-            Push_Back_Check (Tree, New_Config, +IDENTIFIER_ID);
+            Push_Back (Tree, New_Config); -- variable_name
 
             Peek_State := Peek_Shared_Start (Tree, New_Config);
 
@@ -1154,7 +1155,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                Push_Back_Check (Tree, New_Config, +BEGIN_ID);
 
-               if -ID (New_Config.Stack.Peek.Token) = declarative_part_ID then
+               if ID (New_Config.Stack.Peek.Token) = +declarative_part_ID then
                   if Undo_Reduce_Valid (Tree, New_Config) then
                      Undo_Reduce_Check (New_Config, Tree, Parse_Table, +declarative_part_ID);
                   else
@@ -1373,7 +1374,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          null;
       end case;
 
-      if WisiToken.Syntax_Trees.ID (Config.Stack.Peek.Token) = +END_ID and
+      if Syntax_Trees.ID (Config.Stack.Peek.Token) = +END_ID and
         ((Tokens (1) = +IDENTIFIER_ID and
             (Tokens (2) /= Invalid_Token_ID and then
                -Tokens (2) in DOT_ID | SEMICOLON_ID)) or

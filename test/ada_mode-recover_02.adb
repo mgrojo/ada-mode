@@ -30,11 +30,11 @@ package body Ada_Mode.Recover_02 is
    -- Copied from above, intending to move the function call here.
    -- detailed recovery is not important; just verify there is no crash,
    -- and the indent is reasonable.
-   Current_Input : constant Token_ID := Get_Current_Input (Shared_Lookahead, Config);
+Current_Input : constant Token_ID := Get_Current_Input (Shared_Lookahead, Config);
 
 if Check (Data, Config, Current_Input) then
-   return;
-end if;
+      return;
+   end if;
 end Check_One;
 
 task type Check_Parser_Config (Config_Store : not null access McKenzie_Recover.Config_Store) is

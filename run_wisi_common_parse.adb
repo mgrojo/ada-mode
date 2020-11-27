@@ -292,7 +292,7 @@ package body Run_Wisi_Common_Parse is
                   null;
                end;
 
-               Parser.Execute_Actions (Wisi.Image_Augmented'Access);
+               Parser.Execute_Actions;
 
                case Cl_Params.Command is
                when Parse =>

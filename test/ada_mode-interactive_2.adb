@@ -31,6 +31,9 @@ is
    procedure Local_Proc_1 (Param_1 : in Float);
    --EMACSRESULT:26
 
+   -- Clean up syntax errors so later tests work.
+   --EMACSCMD:(progn (end-of-line -4)(delete-char -1))
+
    -- Adding a body interactively leaves it properly indented, and caches
    -- updated. Start with invalid syntax (missing final ';'), automatic
    -- indent after syntax fixed should indent entire statement correctly.
@@ -87,6 +90,7 @@ is
    end record;
 
    --EMACSRESULT:6
+   --EMACSCMD:(progn (end-of-line -1)(insert "Component_1 : Integer; end record;"))
 
 begin
    --  extending block; no errors
@@ -117,7 +121,7 @@ begin
    then
       null;
    end if;
-   --EMACSRESULT:5
+   --EMACSRESULT:6
    --EMACSCMD:(progn (forward-line -8)(forward-word 1)(forward-char 1)(insert "(")(end-of-line 2)(insert "\n)")(indent-for-tab-command))
 
 end Ada_Mode.Interactive_2;

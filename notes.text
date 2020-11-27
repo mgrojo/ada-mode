@@ -43,6 +43,14 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+build/test.log
+    ada_mode-interactive_2.adb:111 indent is nil
+        not when that test is isolated in debug.adb; due to preceding errors?
+        clean up preceding errors; no help
+        edebug broken; ignore for now
+
+    all others pass
+
 use trace in wisi.adb
 
 incremental parse
@@ -926,6 +934,8 @@ update benchmarks above
 generate ada.wy LR1 with --task_count 1 to minimize changes from previous ELPA commit
 
 lr1 text rep file got significantly larger; ask about moving to external ELPA branch
+
+savannah support tickets work; mention in readme
 
 (dvc-status ".")
 

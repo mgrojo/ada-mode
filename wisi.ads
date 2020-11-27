@@ -36,9 +36,8 @@ package Wisi is
    use all type WisiToken.Syntax_Trees.Augmented_Class_Access;
    use all type WisiToken.Base_Buffer_Pos;
 
-   function Image_Augmented (Aug : in WisiToken.Syntax_Trees.Augmented_Class_Access_Constant) return String;
    function Image_Action (Action : in WisiToken.Syntax_Trees.Post_Parse_Action) return String;
-   --  For Image_Augmented, Image_Action in Syntax_Trees.Print_Tree, Parser.Execute_Action
+   --  For Image_Action in Syntax_Trees.Image
 
    type Post_Parse_Action_Type is (Navigate, Face, Indent);
 
@@ -407,6 +406,9 @@ private
    end record;
    type Augmented_Access is access all Augmented;
    type Augmented_Access_Constant is access constant Augmented;
+
+   overriding
+   function Image_Augmented (Aug : in Augmented) return String;
 
    type Augmented_Const_Ref (Element : not null access constant Augmented) is null record with
      Implicit_Dereference => Element;

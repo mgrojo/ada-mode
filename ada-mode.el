@@ -1351,11 +1351,17 @@ Point must have been set by `ada-wisi-find-begin'."
     ;;
     ;;    end
     ;;
-    (if (looking-at "end")
-	;; Indenting first 'end'; that 'end' was deleted.
-	(- indent ada-indent)
+    (cond
+     ((= (point) (wisi--parse-error-repair-pos repair))
+	;; Indenting the 'end' that was deleted.
+      (- indent ada-indent))
+
+     ((< (point) (wisi--parse-error-repair-pos repair))
       ;; indenting something else after "B;"
-      (- indent (* 2 ada-indent))))
+      (- indent (* 2 ada-indent)))
+
+     (t ;; indenting something after 'end'; test/ada_mode-recover-partial_10.adb
+      (- indent ada-indent))))
 
    ((equal '(CASE IDENTIFIER IS) (wisi--parse-error-repair-inserted repair))
     ;; test/ada_mode-partial_parse.adb
