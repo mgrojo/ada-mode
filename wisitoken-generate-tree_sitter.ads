@@ -13,14 +13,15 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken_Grammar_Runtime;
+with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
+with WisiToken_Grammar_Runtime;
 package WisiToken.Generate.Tree_Sitter is
 
    procedure Eliminate_Empty_Productions
-     (Data            : in out WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree            : in out WisiToken.Syntax_Trees.Tree;
-      Input_File_Name : in     String);
+     (Data  : in out WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree  : in out WisiToken.Syntax_Trees.Tree;
+      Lexer : in     WisiToken.Lexer.Handle);
    --  Edit Tree to eliminate productions that can be empty, which are
    --  forbidden by the tree-sitter generator.
    --
@@ -29,7 +30,7 @@ package WisiToken.Generate.Tree_Sitter is
    procedure Print_Tree_Sitter
      (Data             : in     WisiToken_Grammar_Runtime.User_Data_Type;
       Tree             : in out WisiToken.Syntax_Trees.Tree;
-      Input_File_Name  : in     String;
+      Lexer            : in     WisiToken.Lexer.Handle;
       Output_File_Name : in     String;
       Language_Name    : in     String);
    --  Tree is 'in out' because we use WisiToken.Syntax_Tree.LR_Utils lists.

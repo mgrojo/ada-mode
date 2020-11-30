@@ -26,10 +26,10 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 package body Wisitoken_Grammar_Actions is
 
    procedure declaration_0
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -37,10 +37,10 @@ package body Wisitoken_Grammar_Actions is
    end declaration_0;
 
    procedure declaration_1
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -48,10 +48,10 @@ package body Wisitoken_Grammar_Actions is
    end declaration_1;
 
    procedure declaration_2
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -59,10 +59,10 @@ package body Wisitoken_Grammar_Actions is
    end declaration_2;
 
    procedure declaration_3
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -70,10 +70,10 @@ package body Wisitoken_Grammar_Actions is
    end declaration_3;
 
    procedure declaration_4
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -81,10 +81,10 @@ package body Wisitoken_Grammar_Actions is
    end declaration_4;
 
    procedure declaration_5
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -92,10 +92,10 @@ package body Wisitoken_Grammar_Actions is
    end declaration_5;
 
    procedure declaration_6
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -103,10 +103,10 @@ package body Wisitoken_Grammar_Actions is
    end declaration_6;
 
    procedure declaration_7
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -114,10 +114,10 @@ package body Wisitoken_Grammar_Actions is
    end declaration_7;
 
    procedure declaration_8
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Tree, Nonterm, Tokens);
    begin
@@ -125,10 +125,10 @@ package body Wisitoken_Grammar_Actions is
    end declaration_8;
 
    procedure nonterminal_0
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -136,10 +136,10 @@ package body Wisitoken_Grammar_Actions is
    end nonterminal_0;
 
    procedure nonterminal_1
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -147,10 +147,10 @@ package body Wisitoken_Grammar_Actions is
    end nonterminal_1;
 
    procedure rhs_item_1
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -158,10 +158,10 @@ package body Wisitoken_Grammar_Actions is
    end rhs_item_1;
 
    procedure rhs_item_2
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -169,10 +169,10 @@ package body Wisitoken_Grammar_Actions is
    end rhs_item_2;
 
    procedure rhs_item_3
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -180,10 +180,10 @@ package body Wisitoken_Grammar_Actions is
    end rhs_item_3;
 
    procedure rhs_item_4
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -191,10 +191,10 @@ package body Wisitoken_Grammar_Actions is
    end rhs_item_4;
 
    procedure rhs_item_5
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -202,10 +202,10 @@ package body Wisitoken_Grammar_Actions is
    end rhs_item_5;
 
    procedure rhs_optional_item_3
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
    is
       pragma Unreferenced (Nonterm);
    begin

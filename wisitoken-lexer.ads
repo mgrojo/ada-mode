@@ -47,9 +47,10 @@ package WisiToken.Lexer is
 
    package Error_Lists is new Ada.Containers.Doubly_Linked_Lists (Error);
 
-   type Instance (Descriptor  : not null access constant WisiToken.Descriptor)
+   type Instance
    is abstract new Ada.Finalization.Limited_Controlled with record
-      Errors : Error_Lists.List;
+      Descriptor : WisiToken.Descriptor_Access;
+      Errors     : Error_Lists.List;
    end record;
 
    subtype Class is Instance'Class;

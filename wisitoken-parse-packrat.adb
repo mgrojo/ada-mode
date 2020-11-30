@@ -20,9 +20,7 @@ pragma License (Modified_GPL);
 package body WisiToken.Parse.Packrat is
 
    overriding
-   procedure Execute_Actions
-     (Parser          : in out Packrat.Parser;
-      Image_Augmented : in     Syntax_Trees.Image_Augmented := null)
+   procedure Execute_Actions (Parser : in out Packrat.Parser)
    is
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
@@ -49,7 +47,7 @@ package body WisiToken.Parse.Packrat is
    begin
       if Trace_Action > Outline then
          if Trace_Action > Extra then
-            Parser.Tree.Print_Tree (Parser.Tree.Root, Image_Augmented);
+            Parser.Tree.Print_Tree (Parser.Tree.Root);
             Parser.Trace.New_Line;
          end if;
          Parser.Trace.Put_Line ("root node: " & Parser.Tree.Image (Parser.Tree.Root));

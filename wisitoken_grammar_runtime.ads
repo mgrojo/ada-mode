@@ -33,10 +33,6 @@ package WisiToken_Grammar_Runtime is
 
    type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
-      Grammar_Lexer : WisiToken.Lexer.Handle; -- used to read the .wy file now.
-
-      Line_Begin_Char_Pos : WisiToken.Line_Pos_Vector_Access; -- from the .wy file parser.
-
       User_Lexer : WisiToken.BNF.Lexer_Type := WisiToken.BNF.None;
       --  Used to read the user language file, after user parser is generated;
       --  used now in '%if lexer' statements.
@@ -107,12 +103,6 @@ package WisiToken_Grammar_Runtime is
       Augmented : in WisiToken.Syntax_Trees.Augmented_Class_Access)
      return WisiToken.Syntax_Trees.Augmented_Class_Access;
 
-   overriding
-   procedure Set_Lexer
-     (User_Data           : in out User_Data_Type;
-      Lexer               : in     WisiToken.Lexer.Handle;
-      Line_Begin_Char_Pos : in     WisiToken.Line_Pos_Vector_Access);
-
    overriding procedure Reset (Data : in out User_Data_Type);
 
    overriding
@@ -121,9 +111,9 @@ package WisiToken_Grammar_Runtime is
       Tree : in WisiToken.Syntax_Trees.Tree'Class);
 
    function Get_Lexer_Set
-     (User_Data : in out User_Data_Type;
-      Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Node      : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+     (User_Data     : in out User_Data_Type;
+      Tree          : in out WisiToken.Syntax_Trees.Tree;
+      Node          : in     WisiToken.Syntax_Trees.Valid_Node_Access)
      return WisiToken.BNF.Lexer_Set
    with Pre => To_Token_Enum (Tree.ID (Node)) in IDENTIFIER_ID | IDENTIFIER_BAR_list_ID;
 
@@ -170,8 +160,7 @@ package WisiToken_Grammar_Runtime is
      return WisiToken.Line_Number_Type;
 
    function Get_Text
-     (Grammar_Lexer       : in WisiToken.Lexer.Handle;
-      Virtual_Identifiers : in WisiToken.BNF.String_Arrays.Vector;
+     (Virtual_Identifiers : in WisiToken.BNF.String_Arrays.Vector;
       Tree                : in WisiToken.Syntax_Trees.Tree;
       Tree_Index          : in WisiToken.Syntax_Trees.Node_Access;
       Strip_Quotes        : in Boolean := False)
@@ -194,12 +183,5 @@ package WisiToken_Grammar_Runtime is
    with Pre => Tree.Is_Nonterm (Node);
    --  Find first descendant of Node that has rhs_item_ID, return source
    --  text for it.
-
-   procedure Raise_Programmer_Error
-     (Label : in String;
-      Data  : in User_Data_Type;
-      Tree  : in WisiToken.Syntax_Trees.Tree;
-      Node  : in WisiToken.Syntax_Trees.Node_Access);
-   pragma No_Return (Raise_Programmer_Error);
 
 end WisiToken_Grammar_Runtime;

@@ -29,11 +29,11 @@ package body WisiToken.Generate.Tree_Sitter is
    use WisiToken.Syntax_Trees;
 
    procedure Eliminate_Empty_Productions
-     (Data            : in out WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree            : in out WisiToken.Syntax_Trees.Tree;
-      Input_File_Name : in     String)
+     (Data  : in out WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree  : in out WisiToken.Syntax_Trees.Tree;
+      Lexer : in     WisiToken.Lexer.Handle)
    is
-      pragma Unreferenced (Input_File_Name); --  FIXME: delete if not used for error message
+      Input_File_Name : String renames Lexer.File_Name;
 
       Ignore_Lines    : Boolean := False;
 
@@ -632,7 +632,7 @@ package body WisiToken.Generate.Tree_Sitter is
       Data.Error_Reported.Clear;
 
       Tree.Validate_Tree
-        (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
+        (Data, Tree.Line_Begin_Char_Pos, Input_File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       if Trace_Generate_EBNF > Outline then
@@ -653,7 +653,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
+        (Data, Tree.Line_Begin_Char_Pos, Input_File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       for Nonterm of Empty_Nonterms loop
@@ -666,7 +666,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
+        (Data, Tree.Line_Begin_Char_Pos, Input_File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       declare
@@ -707,7 +707,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Tree.Validate_Tree
-        (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
+        (Data, Tree.Line_Begin_Char_Pos, Input_File_Name,
          Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       if Trace_Generate_EBNF > Detail then
@@ -720,11 +720,13 @@ package body WisiToken.Generate.Tree_Sitter is
    procedure Print_Tree_Sitter
      (Data             : in     WisiToken_Grammar_Runtime.User_Data_Type;
       Tree             : in out Syntax_Trees.Tree;
-      Input_File_Name  : in     String;
+      Lexer            : in     WisiToken.Lexer.Handle;
       Output_File_Name : in     String;
       Language_Name    : in     String)
    is
       use all type Ada.Containers.Count_Type;
+
+      Input_File_Name : String renames Lexer.File_Name;
 
       File : File_Type;
 
@@ -748,11 +750,11 @@ package body WisiToken.Generate.Tree_Sitter is
          begin
             if -Tree.ID (Tree_Index) in RAW_CODE_ID | REGEXP_ID | ACTION_ID then
                --  Strip delimiters. We don't strip leading/trailing spaces to preserve indent.
-               return Data.Grammar_Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
+               return Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
 
                --  We don't strip string delimiters; tree-setter can use the same ones.
             else
-               return Data.Grammar_Lexer.Buffer_Text (Region);
+               return Lexer.Buffer_Text (Region);
             end if;
          end Strip_Delimiters;
 
@@ -795,7 +797,7 @@ package body WisiToken.Generate.Tree_Sitter is
          Put_Line
            (Current_Error,
             Tree.Error_Message
-              (Node, Data.Line_Begin_Char_Pos.all, Input_File_Name,
+              (Node, Tree.Line_Begin_Char_Pos, Input_File_Name,
                "not translated: " &
                  Tree.Image
                    (Node,
@@ -1223,7 +1225,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Create (File, Out_File, Output_File_Name);
-      Put_Line (File, "// generated from " & Data.Grammar_Lexer.File_Name & " -*- buffer-read-only:t -*-");
+      Put_Line (File, "// generated from " & Input_File_Name & " -*- buffer-read-only:t -*-");
 
       Put_Line (File, "module.exports = grammar({");
       Put_Line (File, "  name: '" & Language_Name & "',");

@@ -148,7 +148,7 @@ package WisiToken is
       --  Last_Lookahead. After the LR table is generated, Last_Lookahead is
       --  no longer used.
    end record;
-   type Descriptor_Access is access Descriptor;
+   type Descriptor_Access is access all Descriptor;
    type Descriptor_Access_Constant is not null access constant Descriptor;
 
    function Padded_Image (Item : in Token_ID; Desc : in Descriptor) return String;
@@ -455,6 +455,7 @@ package WisiToken is
    --  In addition, the name "debug" sets Debug_Mode.
 
    type Trace is abstract tagged limited null record;
+   type Trace_Access is access all Trace'Class;
    --  Output for tests/debugging.
 
    procedure Set_Prefix (Trace : in out WisiToken.Trace; Prefix : in String) is abstract;

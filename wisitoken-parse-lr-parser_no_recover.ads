@@ -42,15 +42,16 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    --  Deep free Object.Table.
 
    procedure New_Parser
-     (Parser               :    out          LR.Parser_No_Recover.Parser;
-      Trace                : not null access WisiToken.Trace'Class;
-      Lexer                : in              WisiToken.Lexer.Handle;
-      Table                : in              Parse_Table_Ptr;
-      User_Data            : in              Syntax_Trees.User_Data_Access;
-      First_Parser_Label   : in              Integer            := 1);
+     (Parser             :    out LR.Parser_No_Recover.Parser;
+      Trace              : in     WisiToken.Trace_Access;
+      Lexer              : in     WisiToken.Lexer.Handle;
+      Table              : in     Parse_Table_Ptr;
+      User_Data          : in     Syntax_Trees.User_Data_Access;
+      First_Parser_Label : in     Integer := 1);
 
    overriding procedure Parse
      (Shared_Parser : in out LR.Parser_No_Recover.Parser;
+      Log_File      : in     Ada.Text_IO.File_Type;
       Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
    --  input setting Shared_Parser.Terminals, then parses tokens.
@@ -62,7 +63,8 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
    --
-   --  Raises SAL.Programmer_Error if Edits is not empty.
+   --  Raises SAL.Programmer_Error if Edits is not empty. Log_File is
+   --  ignored.
 
    overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean;
 

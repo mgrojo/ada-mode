@@ -96,10 +96,10 @@ package body WisiToken.BNF.Output_Ada_Common is
    is
       use Generate_Utils;
 
-      Descriptor  : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
-      Spec_File : File_Type;
-      Paren_Done  : Boolean      := False;
-      Cursor      : Token_Cursor := First (Generate_Data, Non_Grammar => True, Nonterminals => True);
+      Descriptor : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
+      Spec_File  : File_Type;
+      Paren_Done : Boolean      := False;
+      Cursor     : Token_Cursor := First (Generate_Data, Non_Grammar => True, Nonterminals => True);
    begin
       Create (Spec_File, Out_File, Output_File_Name);
       Set_Output (Spec_File);
@@ -119,8 +119,8 @@ package body WisiToken.BNF.Output_Ada_Common is
          Put_Line ("with WisiToken.Syntax_Trees;");
       end if;
       if Input_Data.Check_Count > 0 then
-         Put_Line ("with WisiToken.Lexer;");
          Put_Line ("with WisiToken.In_Parse_Actions;");
+         Put_Line ("with WisiToken.Lexer;");
       end if;
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Spec_Context));
       Put_Line ("package " & Package_Name & " is");
@@ -210,10 +210,10 @@ package body WisiToken.BNF.Output_Ada_Common is
             for Name of Name_List.all loop
                if Name /= null then
                   Indent_Line ("procedure " & Name.all);
-                  Indent_Line (" (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
-                  Indent_Line ("  Tree      : in out WisiToken.Syntax_Trees.Tree;");
-                  Indent_Line ("  Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;");
-                  Indent_Line ("  Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);");
+                  Indent_Line ("  (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
+                  Indent_Line ("   Tree      : in out WisiToken.Syntax_Trees.Tree;");
+                  Indent_Line ("   Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;");
+                  Indent_Line ("   Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);");
                end if;
             end loop;
          end if;
@@ -254,28 +254,13 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       procedure LR_Process
       is begin
-         Indent_Line ("procedure Create_Parser");
-         if Input_Data.Language_Params.Error_Recover then
-            Indent_Line ("  (Parser                         :    out WisiToken.Parse.LR.Parser.Parser;");
-            Indent_Line ("   Language_Fixes                 : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;");
-            Indent_Line ("   Language_Matching_Begin_Tokens : in     " &
-                           "WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;");
-            Indent_Line ("   Language_String_ID_Set         : in     " &
-                           "WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;");
-         else
-            Indent_Line ("  (Parser                       :    out WisiToken.Parse.LR.Parser_No_Recover.Parser;");
-            Indent_Line ("   --  no error recovery");
-         end if;
-         Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
-         Indent_Start ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access");
-
+         Indent_Line ("function Create_Parse_Table");
          if Common_Data.Text_Rep then
-            Put_Line (";");
-            Indent_Line ("   Text_Rep_File_Name : in String);");
-         else
-            Put_Line (");");
+            Indent_Line ("  (Text_Rep_File_Name : in String);");
          end if;
+         Indent_Line ("  return WisiToken.Parse.LR.Parse_Table_Ptr;");
          New_Line;
+         Indent_Line ("function Create_Lexer return WisiToken.Lexer.Handle;");
       end LR_Process;
 
       procedure Packrat_Process
@@ -304,36 +289,8 @@ package body WisiToken.BNF.Output_Ada_Common is
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
-      case Common_Data.Output_Language is
-      when Ada_Lang =>
-         Put_Line ("with WisiToken.Syntax_Trees;");
-
-      when Ada_Emacs_Lang =>
-         case Common_Data.Interface_Kind is
-         when Process =>
-            Put_Line ("with WisiToken.Syntax_Trees;");
-
-         when Module =>
-            Put_Line ("with Emacs_Module_Aux;");
-            Put_Line ("with emacs_module_h;");
-            Put_Line ("with Interfaces.C;");
-         end case;
-      end case;
-
-      case Common_Data.Generate_Algorithm is
-      when LR_Generate_Algorithm =>
-         if Input_Data.Language_Params.Error_Recover then
-            Put_Line ("with WisiToken.Parse.LR.Parser;");
-         else
-            Put_Line ("with WisiToken.Parse.LR.Parser_No_Recover;");
-         end if;
-
-      when Packrat_Generate_Algorithm =>
-         Put_Line ("with WisiToken.Parse;");
-
-      when External | Tree_Sitter =>
-         null;
-      end case;
+      Put_Line ("with WisiToken.Lexer;");
+      Put_Line ("with WisiToken.Parse.LR;");
 
       Put_Line ("package " & Main_Package_Name & " is");
       Indent := Indent + 3;
@@ -748,41 +705,20 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("end;");
    end Create_LR_Parser_Table;
 
-   procedure LR_Create_Create_Parser
-     (Input_Data    :         in     WisiToken_Grammar_Runtime.User_Data_Type;
-      Common_Data   :         in out Output_Ada_Common.Common_Data;
-      Generate_Data : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data)
+   procedure LR_Create_Create_Parse_Table
+     (Input_Data           :         in     WisiToken_Grammar_Runtime.User_Data_Type;
+      Common_Data          :         in out Output_Ada_Common.Common_Data;
+      Generate_Data        : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data;
+      Actions_Package_Name :         in     String)
    is
       Table : WisiToken.Parse.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
    begin
-      Indent_Line ("procedure Create_Parser");
-      case Common_Data.Interface_Kind is
-      when Process =>
-         if Input_Data.Language_Params.Error_Recover then
-            Indent_Line ("  (Parser                         :    out WisiToken.Parse.LR.Parser.Parser;");
-            Indent_Line ("   Language_Fixes                 : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;");
-            Indent_Line ("   Language_Matching_Begin_Tokens : in     " &
-                           "WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;");
-            Indent_Line
-              ("   Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;");
-         else
-            Indent_Line ("  (Parser                         :    out WisiToken.Parse.LR.Parser_No_Recover.Parser;");
-         end if;
-         Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
-         Indent_Start ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access");
-
-      when Module =>
-         Indent_Line ("  (Parser              :    out WisiToken.Parse.LR.Parser.Parser;");
-         Indent_Line ("   Env                 : in     Emacs_Env_Access;");
-         Indent_Start ("   Lexer_Elisp_Symbols : in     Lexers.Elisp_Array_Emacs_Value");
-      end case;
+      Indent_Line ("function Create_Parse_Table");
 
       if Common_Data.Text_Rep then
-         Put_Line (";");
-         Indent_Line ("   Text_Rep_File_Name : in String)");
-      else
-         Put_Line (")");
+         Indent_Line (" (Text_Rep_File_Name : in String)");
       end if;
+      Indent_Line ("  return WisiToken.Parse.LR.Parse_Table_Ptr");
 
       Indent_Line ("is");
       Indent := Indent + 3;
@@ -821,32 +757,16 @@ package body WisiToken.BNF.Output_Ada_Common is
       end if;
       Indent_Line ("Table.Max_Parallel :=" & Table.Max_Parallel'Image & ";");
 
-      if Input_Data.Language_Params.Error_Recover then
-         Indent_Line ("WisiToken.Parse.LR.Parser.New_Parser");
-      else
-         Indent_Line ("WisiToken.Parse.LR.Parser_No_Recover.New_Parser");
-      end if;
-      Indent_Line ("  (Parser,");
-      case Common_Data.Interface_Kind is
-      when Process =>
-         Indent_Line ("   Trace,");
-         Indent_Line ("   Lexer.New_Lexer (Parser.Descriptor),");
-         Indent_Line ("   Table,");
-         if Input_Data.Language_Params.Error_Recover then
-            Indent_Line ("   Language_Fixes,");
-            Indent_Line ("   Language_Matching_Begin_Tokens,");
-            Indent_Line ("   Language_String_ID_Set,");
-         end if;
-         Indent_Line ("   User_Data);");
+      Indent_Line ("return Table;");
 
-      when Module =>
-         Indent_Line ("   Lexer.New_Lexer (Env, Lexer_Elisp_Symbols),");
-         Indent_Line ("   Table);");
-
-      end case;
       Indent := Indent - 3;
-      Indent_Line ("end Create_Parser;");
-   end LR_Create_Create_Parser;
+      Indent_Line ("end Create_Parse_Table;");
+      New_Line;
+      Indent_Line ("function Create_Lexer return WisiToken.Lexer.Handle");
+      Indent_Line ("is begin");
+      Indent_Line ("   return Lexer.New_Lexer (" & Actions_Package_Name & ".Descriptor'Access);");
+      Indent_Line ("end Create_Lexer;");
+   end LR_Create_Create_Parse_Table;
 
    procedure Packrat_Create_Create_Parser
      (Common_Data   :         in out Output_Ada_Common.Common_Data;
@@ -1363,6 +1283,7 @@ package body WisiToken.BNF.Output_Ada_Common is
    function Initialize
      (Input_Data        : in WisiToken_Grammar_Runtime.User_Data_Type;
       Tuple             : in Generate_Tuple;
+      Grammar_File_Name : in String;
       Output_File_Root  : in String;
       Check_Interface   : in Boolean)
      return Common_Data
@@ -1383,9 +1304,7 @@ package body WisiToken.BNF.Output_Ada_Common is
             if Tuple.Interface_Kind in Valid_Interface then
                Data.Interface_Kind := Valid_Interface (Tuple.Interface_Kind);
             else
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, 1, "Interface_Kind not set"));
+               Put_Error (Error_Message (Grammar_File_Name, 1, "Interface_Kind not set"));
             end if;
          else
             Data.Interface_Kind := Process;

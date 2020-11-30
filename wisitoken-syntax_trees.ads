@@ -126,7 +126,37 @@ package WisiToken.Syntax_Trees is
    subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
    Invalid_Node_Index : constant Node_Index := 0;
 
-   type Tree (Descriptor : Descriptor_Access_Constant) is new Ada.Finalization.Limited_Controlled with private;
+   package Line_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
+     (Line_Number_Type, Node_Access, Default_Element => Invalid_Node_Access);
+   --  Tree_Ref in Shared_Stream; needed by Prev_Shared_Terminal in error
+   --  recover Try_Insert_Quote. In post-parse actions, Element is
+   --  Invalid_Stream_Index.
+
+   type Base_Tree is new Ada.Finalization.Limited_Controlled with record
+      --  Visible components of Tree.
+
+      Lexer : WisiToken.Lexer.Handle;
+      --  Declared here because it provides access to the source text; any
+      --  code that needs access to Tree mostly likely also needs access to
+      --  the source text.
+
+      Leading_Non_Grammar : aliased Base_Token_Arrays.Vector;
+      --  Non-grammar tokens before first grammar token; leading blank lines
+      --  and comments.
+
+      Line_Begin_Char_Pos : aliased Line_Pos_Vectors.Vector;
+      --  Character position of the character at the start of each line. May
+      --  be Invalid_Buffer_Pos for lines contained in a multi-line token.
+
+      Line_Begin_Token : aliased Line_Token_Vectors.Vector;
+      --  Line_Begin_Token (I) is the node in Tree of the first
+      --  Shared_Terminal token on line I; Invalid_Node_Access if there are
+      --  no grammar tokens on the line (ie only comment or whitespace).
+      --  Line_Begin_Token.First_Index is the first line containing a
+      --  grammar token (after leading comments).
+   end record;
+
+   type Tree is new Base_Tree with private;
    --  Use Copy_Tree to get a copy.
 
    type Tree_Variable_Reference (Element : not null access Tree) is null record with
@@ -164,9 +194,9 @@ package WisiToken.Syntax_Trees is
    function Shared_Stream (Tree : in Syntax_Trees.Tree) return Stream_ID;
 
    type Stream_Node_Ref is record
-      Stream  : Syntax_Trees.Stream_ID    := Invalid_Stream_ID;
-      Element : Syntax_Trees.Stream_Index := Invalid_Stream_Index;
-      Node    : Syntax_Trees.Node_Access  := Invalid_Node_Access;
+      Stream  : Stream_ID    := Invalid_Stream_ID;
+      Element : Stream_Index := Invalid_Stream_Index;
+      Node    : Node_Access  := Invalid_Node_Access;
       --  If both valid, Element contains Node in Stream. In some cases,
       --  Element is valid but Node is Invalid_Node_Access (for example, if
       --  the ref is the First_Terminal in an empty nonterm). In post-parse
@@ -333,11 +363,9 @@ package WisiToken.Syntax_Trees is
 
    type User_Data_Access is access all User_Data_Type'Class;
 
-   procedure Set_Lexer
-     (User_Data           : in out User_Data_Type;
-      Lexer               : in     WisiToken.Lexer.Handle;
-      Line_Begin_Char_Pos : in     WisiToken.Line_Pos_Vector_Access)
-   is null;
+   function New_User_Data (Template : in User_Data_Type) return User_Data_Access
+   is (null);
+   --  Return a new empty object with the same type as Template.
 
    procedure Reset (User_Data : in out User_Data_Type) is null;
    --  Reset to start a new parse.
@@ -438,10 +466,6 @@ package WisiToken.Syntax_Trees is
    --  Parsing operations (including error recovery and incremental
    --  parse), Tree and Node attributes.
 
-   function Leading_Non_Grammar (Tree : aliased in out Syntax_Trees.Tree) return Base_Token_Array_Var_Ref;
-
-   function Leading_Non_Grammar_Const (Tree : aliased in Syntax_Trees.Tree) return Base_Token_Array_Const_Ref;
-
    function New_Stream
      (Tree       : in out Syntax_Trees.Tree;
       Old_Stream : in     Stream_ID;
@@ -525,7 +549,8 @@ package WisiToken.Syntax_Trees is
       Stream    : in     Stream_ID;
       Token     : in     Stream_Index;
       User_Data : in     User_Data_Access)
-   with Pre => not Tree.Traversing and Tree.Is_Valid (Stream) and Tree.ID (Stream, Token) = Tree.Descriptor.EOI_ID;
+   with Pre => not Tree.Traversing and Tree.Is_Valid (Stream) and Tree.ID (Stream, Token) =
+               Tree.Lexer.Descriptor.EOI_ID;
    --  If Token is from Shared_Stream, copy it from Shared_Stream to
    --  Parse_Stream, after Stack_Top, to mark end of parse stream.
    --  Otherwise Token is from the parse stream; do nothing.
@@ -1386,10 +1411,9 @@ package WisiToken.Syntax_Trees is
 
    procedure Clear_Parse_Streams (Tree : in out Syntax_Trees.Tree)
    with Post => Tree.Editable;
-   --  If Tree.Root is not set, first set Tree.Root to the root of the
-   --  single remaining parse stream. Delete the parse stream and
-   --  shared stream, but not the nodes they contain. This allows Tree
-   --  to be edited without corrupting the parse stream. Also call
+   --  If Tree.Root is not set, set it to the root of the single
+   --  remaining parse stream. Delete the parse stream and shared stream.
+   --  Delete all nodes not reachable from the root. Also call
    --  Set_Parents if not Tree.Parents_Set.
    --
    --  No precondition for Packrat parser.
@@ -1549,6 +1573,12 @@ package WisiToken.Syntax_Trees is
    --  Trimmed integer.
 
    type Image_Action is access function (Action : in Post_Parse_Action) return String;
+
+   function Image
+     (Tree        : in Syntax_Trees.Tree;
+      Item        : in Line_Token_Vectors.Vector;
+      Association : in Boolean := False)
+     return String;
 
    function Image
      (Tree         : in Syntax_Trees.Tree;
@@ -1813,11 +1843,7 @@ private
 
    package Node_Access_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node_Access, null);
 
-   type Tree (Descriptor : Descriptor_Access_Constant) is new Ada.Finalization.Limited_Controlled with record
-      Leading_Non_Grammar : aliased WisiToken.Base_Token_Arrays.Vector;
-      --  Non-grammar tokens before first grammar token; leading blank lines
-      --  and comments.
-
+   type Tree is new Base_Tree with record
       Next_Stream_Label : Stream_Label := Shared_Stream_Label + 1;
 
       Next_Terminal_Node_Index : Node_Index := 1;
@@ -2039,6 +2065,9 @@ private
           Element : Stream_Element renames Stream_Element_Lists.Constant_Ref (Ref.Element.Cur);
        begin
           Element.Node = Ref.Node and Ref.Node.Label in Terminal_Label);
+
+   function Terminal_Ref_Image (Item : in Syntax_Trees.Terminal_Ref; Aux : in Syntax_Trees.Tree'Class) return String
+   is (Aux.Image (Item));
 
    function To_Real_Recover_Token (Item : in Stream_Node_Ref) return Real_Recover_Token
    is ((Virtual      => False,

@@ -15,8 +15,9 @@ pragma License (Modified_GPL);
 
 separate (WisiToken.Parse.LR.Parser)
 overriding procedure Parse
-  (Shared_Parser : in out LR.Parser.Parser;
-   Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List)
+  (Shared_Parser    : in out LR.Parser.Parser;
+   Recover_Log_File : in     Ada.Text_IO.File_Type;
+   Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List)
 is
    use all type KMN_Lists.List;
    use all type Ada.Strings.Unbounded.Unbounded_String;
@@ -57,7 +58,7 @@ begin
 
    if Edits /= KMN_Lists.Empty_List then
       if Shared_Parser.Tree.ID (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream).Node) =
-        Shared_Parser.Descriptor.Accept_ID
+        Shared_Parser.Tree.Lexer.Descriptor.Accept_ID
       then
          --  Parsed tree was not changed in Edit_Tree.
          declare
@@ -109,15 +110,13 @@ begin
 
          for Parser_State of Shared_Parser.Parsers loop
             if Parser_State.Verb = Error then
-               if Shared_Parser.Enable_McKenzie_Recover then
-                  Parser_State.Zombie_Token_Count := Parser_State.Zombie_Token_Count + 1;
-                  if Trace_Parse > Extra then
-                     Trace.Put_Line
-                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": zombie (" &
-                          Syntax_Trees.Node_Index'Image
-                            (Shared_Parser.Table.McKenzie_Param.Zombie_Limit - Parser_State.Zombie_Token_Count) &
-                          " tokens remaining)");
-                  end if;
+               Parser_State.Zombie_Token_Count := Parser_State.Zombie_Token_Count + 1;
+               if Trace_Parse > Extra then
+                  Trace.Put_Line
+                    (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": zombie (" &
+                       Syntax_Trees.Node_Index'Image
+                         (Shared_Parser.Table.McKenzie_Param.Zombie_Limit - Parser_State.Zombie_Token_Count) &
+                       " tokens remaining)");
                end if;
 
             elsif Parser_State.Verb = Shift then
@@ -239,7 +238,7 @@ begin
                --  More than one parser is active.
                declare
                   use all type Parser_Lists.Cursor;
-                  Error_Parser_Count : Integer := (if Shared_Parser.Lexer.Errors.Length > 0 then 1 else 0);
+                  Error_Parser_Count : Integer := (if Shared_Parser.Tree.Lexer.Errors.Length > 0 then 1 else 0);
 
                   Recover_Cost           : Integer;
                   Min_Recover_Cost       : Integer                   := Integer'Last;
@@ -329,8 +328,8 @@ begin
                              (Current_Parser.Stream, Shared_Parser.Tree.Stream_Last (Current_Parser.Stream)));
                      begin
                         raise WisiToken.Parse_Error with Error_Message
-                          (Shared_Parser.Lexer.File_Name, Token.Line,
-                           Column (Token, Shared_Parser.Line_Begin_Char_Pos),
+                          (Shared_Parser.Tree.Lexer.File_Name, Token.Line,
+                           Column (Token, Shared_Parser.Tree.Line_Begin_Char_Pos),
                            "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
                      end;
                   end if;
@@ -357,41 +356,35 @@ begin
             --  deletions, adjust Parsers(*).Stack, and set
             --  Parsers(*).Current_Token and Parsers(*).Verb.
 
-            if Shared_Parser.Enable_McKenzie_Recover then
-               if Trace_Time then
-                  Trace.Put_Clock ("pre-recover" & Shared_Parser.Parsers.Count'Img & " active");
-                  Start := Ada.Calendar.Clock;
-               end if;
-               Recover_Result := McKenzie_Recover.Recover (Shared_Parser);
-               if Trace_Time then
-                  declare
-                     use Ada.Calendar;
-                     Recover_Duration : constant Duration := Clock - Start;
-                  begin
-                     Trace.Put_Clock
-                       ("post-recover" & Shared_Parser.Parsers.Count'Img & " active," & Recover_Duration'Image);
-                  end;
-               end if;
+            if Trace_Time then
+               Trace.Put_Clock ("pre-recover" & Shared_Parser.Parsers.Count'Img & " active");
+               Start := Ada.Calendar.Clock;
+            end if;
+            Recover_Result := McKenzie_Recover.Recover (Shared_Parser);
+            if Trace_Time then
+               declare
+                  use Ada.Calendar;
+                  Recover_Duration : constant Duration := Clock - Start;
+               begin
+                  Trace.Put_Clock
+                    ("post-recover" & Shared_Parser.Parsers.Count'Img & " active," & Recover_Duration'Image);
+               end;
+            end if;
 
-               if Trace_Parse > Outline then
-                  if Recover_Result = Success  then
-                     Trace.New_Line;
-                     Trace.Put_Line
-                       ("recover: succeed, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
-                  else
-                     Trace.Put_Line
-                       ("recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result) &
-                          ", parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
-                  end if;
+            if Trace_Parse > Outline then
+               if Recover_Result = Success  then
+                  Trace.New_Line;
+                  Trace.Put_Line
+                    ("recover: succeed, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
+               else
+                  Trace.Put_Line
+                    ("recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result) &
+                       ", parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
                end if;
+            end if;
 
-               if Ada.Text_IO.Is_Open (Shared_Parser.Recover_Log_File) then
-                  Recover_To_Log (Shared_Parser, Recover_Result, Pre_Recover_Parser_Count);
-               end if;
-            else
-               if Trace_Parse > Outline or Trace_McKenzie > Outline then
-                  Trace.Put_Line ("recover disabled");
-               end if;
+            if Ada.Text_IO.Is_Open (Recover_Log_File) then
+               Recover_To_Log (Shared_Parser, Recover_Log_File, Recover_Result, Pre_Recover_Parser_Count);
             end if;
 
             if Recover_Result = Success then
@@ -418,8 +411,8 @@ begin
                           (if Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
                            then ""
                            else Image
-                               (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree,
-                                First => Parser_State.Recover_Insert_Delete_Current)));
+                             (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree,
+                              First => Parser_State.Recover_Insert_Delete_Current)));
 
                      if Trace_Parse > Detail then
                         Shared_Parser.Trace.Put_Line
@@ -433,9 +426,7 @@ begin
                   case Parser_State.Verb is
                   when Error =>
                      --  Force this parser to be terminated.
-                     if Shared_Parser.Enable_McKenzie_Recover then
-                        Parser_State.Zombie_Token_Count := Shared_Parser.Table.McKenzie_Param.Zombie_Limit + 1;
-                     end if;
+                     Parser_State.Zombie_Token_Count := Shared_Parser.Table.McKenzie_Param.Zombie_Limit + 1;
 
                   when Shift =>
                      null;
@@ -456,13 +447,10 @@ begin
                for Parser_State of Shared_Parser.Parsers loop
                   Parser_State.Errors.Append
                     ((Label          => LR.Message,
-                      First_Terminal => Shared_Parser.Descriptor.First_Terminal,
-                      Last_Terminal  => Shared_Parser.Descriptor.Last_Terminal,
+                      First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
+                      Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
                       Recover        => <>,
-                      Msg            =>
-                        (if Shared_Parser.Enable_McKenzie_Recover
-                         then +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result)
-                         else +"recover disabled")));
+                      Msg            => +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result)));
                end loop;
                raise WisiToken.Syntax_Error;
             end if;
@@ -510,8 +498,7 @@ begin
                --  This parser is a zombie; see Check_Error.
                --
                --  Check to see if it is time to terminate it
-               if Shared_Parser.Enable_McKenzie_Recover and then
-                 Current_Parser.State_Ref.Zombie_Token_Count <= Shared_Parser.Table.McKenzie_Param.Zombie_Limit
+               if Current_Parser.State_Ref.Zombie_Token_Count <= Shared_Parser.Table.McKenzie_Param.Zombie_Limit
                then
                   if Trace_Parse > Detail then
                      Trace.Put_Line (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": zombie");
@@ -585,8 +572,8 @@ begin
                              (Parser_State.Shared_Token.Node);
                         begin
                            raise WisiToken.Parse_Error with Error_Message
-                             (Shared_Parser.Lexer.File_Name, Token.Line,
-                              Column (Token, Shared_Parser.Line_Begin_Char_Pos),
+                             (Shared_Parser.Tree.Lexer.File_Name, Token.Line,
+                              Column (Token, Shared_Parser.Tree.Line_Begin_Char_Pos),
                               "too many parallel parsers required in grammar state" &
                                 Shared_Parser.Tree.State (Parser_State.Stream)'Image &
                                 "; simplify grammar, or increase max-parallel (" &
@@ -664,8 +651,8 @@ when E : others =>
          --  Emacs displays errors in the *syntax-errors* buffer
          Shared_Parser.Parsers.First_State_Ref.Errors.Append
            ((Label          => LR.Message,
-             First_Terminal => Shared_Parser.Descriptor.First_Terminal,
-             Last_Terminal  => Shared_Parser.Descriptor.Last_Terminal,
+             First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
+             Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
              Recover        => <>,
              Msg            => +Msg));
       end if;

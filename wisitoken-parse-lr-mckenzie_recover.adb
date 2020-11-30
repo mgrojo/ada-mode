@@ -206,7 +206,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                Config.User_Parse_Action_Token_Count := Element (Config.Ops, Last_Index (Config.Ops)).Token_Count;
 
                if Trace_McKenzie > Detail then
-                  Put ("undo_reduce " & Image (Syntax_Trees.ID (Config.Error_Token), Shared_Parser.Descriptor.all),
+                  Put
+                    ("undo_reduce " & Image
+                       (Syntax_Trees.ID (Config.Error_Token), Shared_Parser.Tree.Lexer.Descriptor.all),
                        Trace, Shared_Parser.Tree, Parser_State.Stream, Config, Task_ID => False);
                end if;
             else
@@ -245,13 +247,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Parser_Count      => Parsers.Count);
 
       Shared : aliased Base.Shared
-        (Shared_Parser.Lexer.all'Access,
-         Shared_Parser.Table,
+        (Shared_Parser.Table,
          Shared_Parser.Language_Fixes,
          Shared_Parser.Language_Matching_Begin_Tokens,
          Shared_Parser.Language_String_ID_Set,
-         Shared_Parser.Wrapped_Lexer_Errors'Access,
-         Shared_Parser.Line_Begin_Token'Access);
+         Shared_Parser.Wrapped_Lexer_Errors'Access);
 
       Task_Count : constant System.Multiprocessors.CPU_Range :=
         (if Shared_Parser.Table.McKenzie_Param.Task_Count = 0
@@ -1256,7 +1256,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  Build a string, call trace.put_line once, so output from multiple
       --  tasks is not interleaved (mostly).
 
-      Descriptor : WisiToken.Descriptor renames Tree.Descriptor.all;
+      Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
         (if Task_ID then +"task" & Task_Attributes.Value'Image & " " else +" ") &
@@ -1354,7 +1354,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Children     : constant Syntax_Trees.Node_Access_Array := Tree.Children (Nonterm_Item.Token.Element_Node);
    begin
       for C of Children loop
-         if Is_Terminal (Tree.ID (C), Tree.Descriptor.all) then
+         if Is_Terminal (Tree.ID (C), Tree.Lexer.Descriptor.all) then
             Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (C)));
          else
             Prev_State := Goto_For (Table, Prev_State, Tree.ID (C));

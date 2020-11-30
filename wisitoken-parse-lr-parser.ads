@@ -31,7 +31,6 @@ package WisiToken.Parse.LR.Parser is
 
    type Language_Fixes_Access is access procedure
      (Trace             : in out WisiToken.Trace'Class;
-      Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Syntax_Trees.Stream_ID;
       Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
       Tree              : in     Syntax_Trees.Tree;
@@ -90,9 +89,7 @@ package WisiToken.Parse.LR.Parser is
 
       Parsers : aliased Parser_Lists.List;
 
-      Enable_McKenzie_Recover : Boolean;
-      Recover_Log_File        : Ada.Text_IO.File_Type;
-      Partial_Parse_Active    : Boolean := False;
+      Partial_Parse_Active : Boolean := False;
       --  Partial_Parse_Active is only used in recover log messages.
    end record;
 
@@ -100,18 +97,19 @@ package WisiToken.Parse.LR.Parser is
    --  Deep free Object.Table.
 
    procedure New_Parser
-     (Parser                         :    out          LR.Parser.Parser;
-      Trace                          : not null access WisiToken.Trace'Class;
-      Lexer                          : in              WisiToken.Lexer.Handle;
-      Table                          : in              Parse_Table_Ptr;
-      Language_Fixes                 : in              Language_Fixes_Access;
-      Language_Matching_Begin_Tokens : in              Language_Matching_Begin_Tokens_Access;
-      Language_String_ID_Set         : in              Language_String_ID_Set_Access;
-      User_Data                      : in              WisiToken.Syntax_Trees.User_Data_Access);
+     (Parser                         :    out LR.Parser.Parser;
+      Trace                          : in     WisiToken.Trace_Access;
+      Lexer                          : in     WisiToken.Lexer.Handle;
+      Table                          : in     Parse_Table_Ptr;
+      Language_Fixes                 : in     Language_Fixes_Access;
+      Language_Matching_Begin_Tokens : in     Language_Matching_Begin_Tokens_Access;
+      Language_String_ID_Set         : in     Language_String_ID_Set_Access;
+      User_Data                      : in     WisiToken.Syntax_Trees.User_Data_Access);
 
    overriding procedure Parse
-     (Shared_Parser : in out LR.Parser.Parser;
-      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List);
+     (Shared_Parser    : in out LR.Parser.Parser;
+      Recover_Log_File : in     Ada.Text_IO.File_Type;
+      Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
    --  input setting Shared_Parser.Terminals, then parses tokens.
    --

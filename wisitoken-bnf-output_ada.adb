@@ -31,6 +31,7 @@ with WisiToken.Generate.Packrat;
 with WisiToken_Grammar_Runtime;
 procedure WisiToken.BNF.Output_Ada
   (Input_Data            :         in WisiToken_Grammar_Runtime.User_Data_Type;
+   Grammar_File_Name     :         in String;
    Output_File_Name_Root :         in String;
    Generate_Data         : aliased in WisiToken.BNF.Generate_Utils.Generate_Data;
    Packrat_Data          :         in WisiToken.Generate.Packrat.Data;
@@ -40,7 +41,7 @@ procedure WisiToken.BNF.Output_Ada
    Generate_Task_Count   :         in System.Multiprocessors.CPU_Range)
 is
    Common_Data : Output_Ada_Common.Common_Data := WisiToken.BNF.Output_Ada_Common.Initialize
-     (Input_Data, Tuple, Output_File_Name_Root, Check_Interface => False);
+     (Input_Data, Tuple, Grammar_File_Name, Output_File_Name_Root, Check_Interface => False);
 
    Gen_Alg_Name : constant String :=
      (if Test_Main or Multiple_Tuples
@@ -369,7 +370,7 @@ is
 
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
-         LR_Create_Create_Parser (Input_Data, Common_Data, Generate_Data);
+         LR_Create_Create_Parse_Table (Input_Data, Common_Data, Generate_Data, Actions_Package_Name);
 
       when Packrat_Gen =>
          WisiToken.BNF.Generate_Packrat (Packrat_Data, Generate_Data);
@@ -475,7 +476,7 @@ begin
 
    when Module | Process =>
       raise User_Error with WisiToken.Generate.Error_Message
-        (Input_Data.Grammar_Lexer.File_Name, 1, "Ada output language does not support setting Interface");
+        (Grammar_File_Name, 1, "Ada output language does not support setting Interface");
    end case;
 
    declare

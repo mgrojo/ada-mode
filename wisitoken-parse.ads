@@ -24,18 +24,6 @@ with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
 
-   package Line_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (Line_Number_Type, Syntax_Trees.Terminal_Ref, Default_Element => (others => <>));
-   --  Tree_Ref in Shared_Stream; needed by Prev_Shared_Terminal in error
-   --  recover Try_Insert_Quote. In post-parse actions, Element is
-   --  Invalid_Stream_Index.
-
-   function Terminal_Ref_Image (Item : in Syntax_Trees.Terminal_Ref; Aux : in Syntax_Trees.Tree'Class) return String
-   is (Aux.Image (Item));
-
-   function Image is new Line_Token_Vectors.Gen_Image_Aux
-     (Syntax_Trees.Tree'Class, WisiToken.Trimmed_Image, Terminal_Ref_Image);
-
    type Wrapped_Lexer_Error is record
       Recover_Token_Ref : Syntax_Trees.Terminal_Ref;
       --  Token that lexer returned at the error.
@@ -52,26 +40,14 @@ package WisiToken.Parse is
 
    package Wrapped_Lexer_Error_Lists is new Ada.Containers.Doubly_Linked_Lists (Wrapped_Lexer_Error);
 
-   type Base_Parser (Descriptor : Descriptor_Access_Constant) is abstract new Ada.Finalization.Limited_Controlled
+   type Base_Parser is abstract new Ada.Finalization.Limited_Controlled
    with record
-      Trace     : access WisiToken.Trace'Class;
-      Lexer     : WisiToken.Lexer.Handle;
-      Tree      : aliased Syntax_Trees.Tree (Descriptor);
+      Trace     : WisiToken.Trace_Access;
+      Tree      : aliased Syntax_Trees.Tree;
       User_Data : WisiToken.Syntax_Trees.User_Data_Access;
 
       Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List;
       --  For access by error recover.
-
-      Line_Begin_Char_Pos : aliased Line_Pos_Vectors.Vector;
-      --  Character position of the character at the start of each line. May
-      --  be Invalid_Buffer_Pos for lines contained in a multi-line token.
-
-      Line_Begin_Token : aliased Line_Token_Vectors.Vector;
-      --  Line_Begin_Token (I) is the node in Tree of the first
-      --  Shared_Terminal token on line I; Invalid_Node_Access if there are
-      --  no grammar tokens on the line (ie only comment or whitespace).
-      --  Line_Begin_Token.First_Index is the first line containing a
-      --  grammar token (after leading comments).
 
       Last_Grammar_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
       --  Last grammar token returned from Lexer; for storing non_grammar
@@ -79,6 +55,9 @@ package WisiToken.Parse is
 
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
+
+   function Source_File_Name (Item : in Base_Parser'Class) return String
+   is (Item.Tree.Lexer.File_Name);
 
    function Next_Grammar_Token (Parser : in out Base_Parser'Class) return Token_ID;
    --  Get next token from Lexer, call User_Data.Lexer_To_Augmented. If
@@ -146,8 +125,9 @@ package WisiToken.Parse is
    --  just the one tree element.
 
    procedure Parse
-     (Parser : in out Base_Parser;
-      Edits  : in     KMN_Lists.List := KMN_Lists.Empty_List)
+     (Parser   : in out Base_Parser;
+      Log_File : in     Ada.Text_IO.File_Type;
+      Edits    : in     KMN_Lists.List := KMN_Lists.Empty_List)
    is abstract;
    --  If Edits is empty, call Lex_All. If Edits is not empty, call
    --  Edit_Tree. Then execute parse algorithm to parse the new tokens,

@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with SAL.Gen_Definite_Doubly_Linked_Lists;
+with WisiToken.Lexer;
 with WisiToken.Syntax_Trees.LR_Utils;
 with WisiToken.Syntax_Trees;
 with WisiToken_Grammar_Runtime;
@@ -137,9 +138,9 @@ package WisiToken_Grammar_Editing is
      Post => Tree.ID (Add_RHS'Result) = +rhs_ID;
 
    function Find_Declaration
-     (Data : in     WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree : in out WisiToken.Syntax_Trees.Tree;
-      Name : in     String)
+     (Data  : in     WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree  : in out WisiToken.Syntax_Trees.Tree;
+      Name  : in     String)
      return WisiToken.Syntax_Trees.Node_Access
    with Post => Find_Declaration'Result = WisiToken.Syntax_Trees.Invalid_Node_Access or else
                 To_Token_Enum (Tree.ID (Find_Declaration'Result)) in declaration_ID | nonterminal_ID;

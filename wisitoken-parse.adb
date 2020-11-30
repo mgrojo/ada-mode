@@ -22,12 +22,15 @@ package body WisiToken.Parse is
    procedure Process_Grammar_Token
      (Parser : in out Base_Parser'Class;
       Token  : in     Base_Token;
-      Ref    : in     Syntax_Trees.Single_Terminal_Ref)
+      Node   : in     Syntax_Trees.Valid_Node_Access)
    is
       use all type Ada.Containers.Count_Type;
       use all type Syntax_Trees.User_Data_Access;
+
+      Tree  : Syntax_Trees.Tree renames Parser.Tree;
+      Lexer : WisiToken.Lexer.Handle renames Parser.Tree.Lexer;
    begin
-      Parser.Last_Grammar_Node := Ref.Node;
+      Parser.Last_Grammar_Node := Node;
 
       if Parser.User_Data /= null then
          Parser.User_Data.Lexer_To_Augmented (Parser.Tree, Token, Parser.Last_Grammar_Node);
@@ -35,17 +38,17 @@ package body WisiToken.Parse is
 
       if Token.Line /= Invalid_Line_Number then
          --  Some lexers don't support line numbers.
-         if Parser.Lexer.First then
-            if Parser.Line_Begin_Token.Length = 0 then
-               Parser.Line_Begin_Token.Set_First_Last (Token.Line, Token.Line);
+         if Lexer.First then
+            if Tree.Line_Begin_Token.Length = 0 then
+               Tree.Line_Begin_Token.Set_First_Last (Token.Line, Token.Line);
             else
-               Parser.Line_Begin_Token.Set_First_Last (Parser.Line_Begin_Token.First_Index, Token.Line);
+               Tree.Line_Begin_Token.Set_First_Last (Tree.Line_Begin_Token.First_Index, Token.Line);
             end if;
-            Parser.Line_Begin_Token (Token.Line) := Ref;
+            Tree.Line_Begin_Token (Token.Line) := Node;
 
-         elsif Token.ID = Parser.Descriptor.EOI_ID then
-            Parser.Line_Begin_Token.Set_First_Last (Parser.Line_Begin_Token.First_Index, Token.Line + 1);
-            Parser.Line_Begin_Token (Token.Line + 1) := Ref;
+         elsif Token.ID = Lexer.Descriptor.EOI_ID then
+            Tree.Line_Begin_Token.Set_First_Last (Tree.Line_Begin_Token.First_Index, Token.Line + 1);
+            Tree.Line_Begin_Token (Token.Line + 1) := Node;
          end if;
       end if;
    end Process_Grammar_Token;
@@ -57,28 +60,31 @@ package body WisiToken.Parse is
       use all type Ada.Containers.Count_Type;
       use all type Syntax_Trees.Node_Access;
       use all type Syntax_Trees.User_Data_Access;
+
+      Tree  : Syntax_Trees.Tree renames Parser.Tree;
+      Lexer : WisiToken.Lexer.Handle renames Parser.Tree.Lexer;
    begin
-      if Token.ID = Parser.Descriptor.New_Line_ID then
-         if Parser.Line_Begin_Char_Pos.Length = 0 then
+      if Token.ID = Lexer.Descriptor.New_Line_ID then
+         if Tree.Line_Begin_Char_Pos.Length = 0 then
             declare
                Byte_First : Buffer_Pos;
                Char_First : Buffer_Pos;
                Line_First : Line_Number_Type;
             begin
-               Parser.Lexer.Begin_Pos (Byte_First, Char_First, Line_First);
+               Lexer.Begin_Pos (Byte_First, Char_First, Line_First);
 
                if Token.Line = Line_First then
-                  Parser.Line_Begin_Char_Pos.Set_First_Last (Line_First, Token.Line + 1);
-                  Parser.Line_Begin_Char_Pos (Line_First) := Char_First;
+                  Tree.Line_Begin_Char_Pos.Set_First_Last (Line_First, Token.Line + 1);
+                  Tree.Line_Begin_Char_Pos (Line_First) := Char_First;
                else
-                  Parser.Line_Begin_Char_Pos.Set_First_Last (Token.Line + 1, Token.Line + 1);
+                  Tree.Line_Begin_Char_Pos.Set_First_Last (Token.Line + 1, Token.Line + 1);
                end if;
             end;
-         elsif Token.Line + 1 > Parser.Line_Begin_Char_Pos.Last_Index then
-            Parser.Line_Begin_Char_Pos.Set_First_Last (Parser.Line_Begin_Char_Pos.First_Index, Token.Line + 1);
+         elsif Token.Line + 1 > Tree.Line_Begin_Char_Pos.Last_Index then
+            Tree.Line_Begin_Char_Pos.Set_First_Last (Tree.Line_Begin_Char_Pos.First_Index, Token.Line + 1);
          end if;
 
-         Parser.Line_Begin_Char_Pos (Token.Line + 1) := Parser.Lexer.Line_Start_Char_Pos;
+         Tree.Line_Begin_Char_Pos (Token.Line + 1) := Lexer.Line_Start_Char_Pos;
       end if;
 
       if Parser.Last_Grammar_Node = Syntax_Trees.Invalid_Node_Access then
@@ -99,20 +105,23 @@ package body WisiToken.Parse is
    is
       use Syntax_Trees;
 
+      Tree  : Syntax_Trees.Tree renames Parser.Tree;
+      Lexer : WisiToken.Lexer.Handle renames Parser.Tree.Lexer;
+
       Token : Base_Token;
       Error : Boolean;
       Ref   : Terminal_Ref;
    begin
       loop
-         Error := Parser.Lexer.Find_Next (Token);
+         Error := Lexer.Find_Next (Token);
 
          if Trace_Lexer > Outline then
-            Parser.Trace.Put_Line (Image (Token, Parser.Descriptor.all));
+            Parser.Trace.Put_Line (Image (Token, Lexer.Descriptor.all));
          end if;
 
-         if Token.ID >= Parser.Descriptor.First_Terminal then
-            Ref := Parser.Tree.Add_Terminal (Parser.Tree.Shared_Stream, Token);
-            Process_Grammar_Token (Parser, Token, Ref);
+         if Token.ID >= Lexer.Descriptor.First_Terminal then
+            Ref := Tree.Add_Terminal (Parser.Tree.Shared_Stream, Token);
+            Process_Grammar_Token (Parser, Token, Ref.Node);
          else
             if Trace_Lexer > Detail then
                Parser.Trace.Put_Line
@@ -127,10 +136,10 @@ package body WisiToken.Parse is
          if Error then
             Parser.Wrapped_Lexer_Errors.Append
               ((Recover_Token_Ref => Ref,
-                Error             => Parser.Lexer.Errors (Parser.Lexer.Errors.Last)));
+                Error             => Lexer.Errors (Lexer.Errors.Last)));
          end if;
 
-         exit when Token.ID >= Parser.Descriptor.First_Terminal;
+         exit when Token.ID >= Lexer.Descriptor.First_Terminal;
       end loop;
 
       return Token.ID;
@@ -138,11 +147,11 @@ package body WisiToken.Parse is
 
    procedure Lex_All (Parser : in out Base_Parser'Class)
    is
-      EOF_ID : constant Token_ID := Parser.Descriptor.EOI_ID;
+      EOF_ID : constant Token_ID := Parser.Tree.Lexer.Descriptor.EOI_ID;
    begin
-      Parser.Lexer.Errors.Clear;
-      Parser.Line_Begin_Token.Clear;
-      Parser.Line_Begin_Char_Pos.Clear;
+      Parser.Tree.Lexer.Errors.Clear;
+      Parser.Tree.Line_Begin_Token.Clear;
+      Parser.Tree.Line_Begin_Char_Pos.Clear;
       Parser.Last_Grammar_Node := WisiToken.Syntax_Trees.Invalid_Node_Access;
 
       loop
@@ -334,7 +343,7 @@ package body WisiToken.Parse is
             --  stable, deleted are inside the initial text. Caller should use
             --  Validate_KMN.
 
-            if not Contains (Outer => Parser.Lexer.Buffer_Region_Byte, Inner => Inserted_Region) then
+            if not Contains (Outer => Parser.Tree.Lexer.Buffer_Region_Byte, Inner => Inserted_Region) then
                raise User_Error with "KMN insert region outside edited source text";
             end if;
 
@@ -366,7 +375,7 @@ package body WisiToken.Parse is
                                      then Inclusive
                                      else Exclusive));
 
-               exit Unchanged_Loop when Tree.ID (Terminal.Node) = Tree.Descriptor.EOI_ID;
+               exit Unchanged_Loop when Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.EOI_ID;
 
                Tree.Shift (Terminal.Node, Shift_Bytes, Shift_Chars, Shift_Line);
 
@@ -405,7 +414,7 @@ package body WisiToken.Parse is
             --  position; the start of token index or in the preceding
             --  non_grammar. FIXME: handle Tree.Leading_Non_Grammar.
             if Tree.Byte_Region (Terminal.Node).Last + Shift_Bytes > Scanned_Byte_Pos then
-               if Tree.ID (Terminal.Node) /= Parser.Descriptor.EOI_ID and
+               if Tree.ID (Terminal.Node) /= Tree.Lexer.Descriptor.EOI_ID and
                  ((Length (Inserted_Region) > 0 and then
                      Tree.Byte_Region (Terminal.Node).Last + Shift_Bytes >= Inserted_Region.First - 1)
                  or
@@ -480,16 +489,16 @@ package body WisiToken.Parse is
 
                declare
                   Prev_Token_ID : constant Token_ID :=
-                    (if Old_Line in Parser.Line_Begin_Char_Pos.First_Index .. Parser.Line_Begin_Char_Pos.Last_Index
-                       and then Parser.Line_Begin_Char_Pos (Old_Line) = Old_Char_Pos
-                     then Parser.Descriptor.New_Line_ID
+                    (if Old_Line in Tree.Line_Begin_Char_Pos.First_Index .. Tree.Line_Begin_Char_Pos.Last_Index
+                       and then Tree.Line_Begin_Char_Pos (Old_Line) = Old_Char_Pos
+                     then Tree.Lexer.Descriptor.New_Line_ID
                      else Invalid_Token_ID);
                begin
                   if Trace_Incremental_Parse > Outline then
                      Parser.Trace.Put_Line ("lexer.set_position" & Buffer_Pos'Image (Old_Byte_Pos + Shift_Bytes));
                   end if;
 
-                  Parser.Lexer.Set_Position
+                  Parser.Tree.Lexer.Set_Position
                     (Byte_Position => Buffer_Pos'Max (Buffer_Pos'First, Old_Byte_Pos + Shift_Bytes),
                      Char_Position => Buffer_Pos'Max (Buffer_Pos'First, Old_Char_Pos + Shift_Chars),
                      Line          => Old_Line + Shift_Line,
@@ -503,16 +512,16 @@ package body WisiToken.Parse is
                loop
                   declare
                      Token : Base_Token;
-                     Error : constant Boolean := Parser.Lexer.Find_Next (Token);
+                     Error : constant Boolean := Parser.Tree.Lexer.Find_Next (Token);
                      Ref   : Terminal_Ref;
                   begin
                      if Trace_Lexer > Outline then
-                        Parser.Trace.Put_Line ("lex: " & Image (Token, Parser.Descriptor.all));
+                        Parser.Trace.Put_Line ("lex: " & Image (Token, Parser.Tree.Lexer.Descriptor.all));
                      end if;
 
-                     exit Scan_Changed_Loop when Token.ID = Parser.Descriptor.EOI_ID;
+                     exit Scan_Changed_Loop when Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID;
                      exit Scan_Changed_Loop when
-                       Token.ID >= Parser.Descriptor.First_Terminal and then
+                       Token.ID >= Parser.Tree.Lexer.Descriptor.First_Terminal and then
                        not (Token.Byte_Region.First - Shift_Bytes <= Stable_Region.Last or
                               (KMN.Inserted_Bytes > 0 and then Token.Byte_Region.First <= Inserted_Region.Last) or
                               (KMN.Deleted_Bytes > 0 and then
@@ -520,7 +529,7 @@ package body WisiToken.Parse is
 
                      Scanned_Byte_Pos := Token.Byte_Region.Last;
 
-                     if Token.ID >= Parser.Descriptor.First_Terminal then
+                     if Token.ID >= Parser.Tree.Lexer.Descriptor.First_Terminal then
                         --  grammar token
                         Ref := Tree.Insert_Source_Terminal
                           (Stream, Token, Next_Terminal_Index, Before => Terminal.Element);
@@ -531,16 +540,16 @@ package body WisiToken.Parse is
 
                         Next_Terminal_Index := @ + 1;
 
-                        Process_Grammar_Token (Parser, Token, Ref);
+                        Process_Grammar_Token (Parser, Token, Ref.Node);
 
                      else
                         if Trace_Incremental_Parse > Detail then
                            Parser.Trace.Put_Line
-                             ("scan new " & Image (Token, Parser.Descriptor.all));
+                             ("scan new " & Image (Token, Parser.Tree.Lexer.Descriptor.all));
                         end if;
 
                         Process_Non_Grammar_Token (Parser, Token);
-                        if Token.ID = Parser.Descriptor.New_Line_ID then
+                        if Token.ID = Parser.Tree.Lexer.Descriptor.New_Line_ID then
                            Line_Delta := @ + 1;
                         end if;
                      end if;
@@ -548,7 +557,7 @@ package body WisiToken.Parse is
                      if Error then
                         Parser.Wrapped_Lexer_Errors.Append
                           ((Recover_Token_Ref => Ref,
-                            Error             => Parser.Lexer.Errors (Parser.Lexer.Errors.Last)));
+                            Error             => Parser.Tree.Lexer.Errors (Parser.Tree.Lexer.Errors.Last)));
                      end if;
                   end;
                end loop Scan_Changed_Loop;
@@ -557,7 +566,7 @@ package body WisiToken.Parse is
             Delete_Loop :
             --  Delete tokens that were deleted or modified.
             loop
-               exit Delete_Loop when Tree.ID (Terminal.Node) = Parser.Descriptor.EOI_ID;
+               exit Delete_Loop when Tree.ID (Terminal.Node) = Parser.Tree.Lexer.Descriptor.EOI_ID;
 
                exit Delete_Loop when
                  Tree.Label (Terminal.Node) in Syntax_Trees.Source_Terminal | Syntax_Trees.Nonterm and
@@ -610,7 +619,7 @@ package body WisiToken.Parse is
          --  EOI is from wisitoken_accept if full parse, and/or at stream end
          --  for full and partial parse; shift both.
 
-         if Token.ID = Parser.Descriptor.EOI_ID then
+         if Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID then
             Tree.Set_Terminal_Index (Terminal.Node, Next_Terminal_Index);
             Tree.Shift (Terminal.Node, Shift_Bytes, Shift_Chars, Shift_Line);
 

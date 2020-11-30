@@ -374,6 +374,9 @@ package body WisiToken.Syntax_Trees is
       Tree.Nodes.Clear (Free_Memory);
 
       Tree.Leading_Non_Grammar.Clear (Free_Memory);
+      Tree.Line_Begin_Char_Pos.Clear (Free_Memory);
+      Tree.Line_Begin_Token.Clear (Free_Memory);
+
       Tree.Streams.Clear;
 
       Tree.Root                     := Invalid_Node_Access;
@@ -406,6 +409,34 @@ package body WisiToken.Syntax_Trees is
       if not Tree.Parents_Set then
          Set_Parents (Tree);
       end if;
+
+      for Node of Tree.Nodes loop
+         if Node.Parent = null and Node /= Tree.Root then
+            Free (Node);
+         end if;
+      end loop;
+
+      --  Compact Tree.Nodes
+      declare
+         Free : Node_Index := Tree.Nodes.First_Index - 1;
+      begin
+         for I in Tree.Nodes.First_Index .. Tree.Nodes.Last_Index loop
+            if Free < Tree.Nodes.First_Index then
+               if Tree.Nodes (I) = Invalid_Node_Access then
+                  Free := I;
+               end if;
+            else
+               if Tree.Nodes (I) /= Invalid_Node_Access then
+                  Tree.Nodes (Free) := Tree.Nodes (I);
+                  Free := @ + 1;
+               end if;
+            end if;
+         end loop;
+
+         if Free > Tree.Nodes.First_Index then
+            Tree.Nodes.Set_First_Last (First => Tree.Nodes.First_Index, Last => Free - 1);
+         end if;
+      end;
    end Clear_Parse_Streams;
 
    function Contains_Virtual_Terminal (Item : in Recover_Token) return Boolean
@@ -664,6 +695,8 @@ package body WisiToken.Syntax_Trees is
    begin
       Destination.Clear (Free_Memory => False, Initialize_Parse => False);
       Destination.Leading_Non_Grammar := Source.Leading_Non_Grammar;
+      Destination.Line_Begin_Char_Pos := Source.Line_Begin_Char_Pos;
+      Destination.Line_Begin_Token    := Source.Line_Begin_Token;
       Destination.Traversing          := False;
       Destination.Parents_Set         := True;
 
@@ -1509,7 +1542,7 @@ package body WisiToken.Syntax_Trees is
      return String
    is begin
       if Item.Virtual then
-         return "(" & Image (Item.ID, Tree.Descriptor.all) &
+         return "(" & Image (Item.ID, Tree.Lexer.Descriptor.all) &
            (if Item.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Item.Byte_Region)) & ")";
       else
          return "(" & Image (Tree, Item.Element_Node, Node_Numbers => True) &
@@ -1671,7 +1704,7 @@ package body WisiToken.Syntax_Trees is
                 then Trimmed_Image (Node.Node_Index) & ":"
                 else "");
          begin
-            Result := Result & "(" & Image (Node.ID, Tree.Descriptor.all) &
+            Result := Result & "(" & Image (Node.ID, Tree.Lexer.Descriptor.all) &
               (if RHS_Index and Node.Label = Nonterm then "_" & Trimmed_Image (Node.RHS_Index) else "") &
               (if Node.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Node.Byte_Region)) & ")";
 
@@ -1683,15 +1716,15 @@ package body WisiToken.Syntax_Trees is
                case Node.Label is
                when Source_Terminal =>
                   if Node.Non_Grammar.Length > 0 then
-                     Result := @ & Image (Node.Non_Grammar, Tree.Descriptor.all);
+                     Result := @ & Image (Node.Non_Grammar, Tree.Lexer.Descriptor.all);
                   end if;
                when Virtual_Terminal =>
                   if Node.VT_Non_Grammar.Length > 0 then
-                     Result := @ & Image (Node.VT_Non_Grammar, Tree.Descriptor.all);
+                     Result := @ & Image (Node.VT_Non_Grammar, Tree.Lexer.Descriptor.all);
                   end if;
                when Virtual_Identifier =>
                   if Node.VI_Non_Grammar.Length > 0 then
-                     Result := @ & Image (Node.VI_Non_Grammar, Tree.Descriptor.all);
+                     Result := @ & Image (Node.VI_Non_Grammar, Tree.Lexer.Descriptor.all);
                   end if;
                when others =>
                   null;
@@ -1772,6 +1805,21 @@ package body WisiToken.Syntax_Trees is
       else
          return "()";
       end if;
+   end Image;
+
+   function Image
+     (Tree        : in Syntax_Trees.Tree;
+      Item        : in Line_Token_Vectors.Vector;
+      Association : in Boolean := False)
+     return String
+   is
+      function Node_Image (Item : in Node_Access; Tree : in Syntax_Trees.Tree) return String
+      is (Image (Tree, Item));
+
+      function Line_Token_Vector_Image is new Line_Token_Vectors.Gen_Image_Aux
+        (Syntax_Trees.Tree, WisiToken.Trimmed_Image, Node_Image);
+   begin
+      return Line_Token_Vector_Image (Item, Tree, Association => Association);
    end Image;
 
    function Insert_After
@@ -1998,16 +2046,6 @@ package body WisiToken.Syntax_Trees is
       end case;
    end Last_Terminal;
 
-   function Leading_Non_Grammar (Tree : aliased in out Syntax_Trees.Tree) return Base_Token_Array_Var_Ref
-   is begin
-      return (Element => Tree.Leading_Non_Grammar'Access, Dummy => 0);
-   end Leading_Non_Grammar;
-
-   function Leading_Non_Grammar_Const (Tree : aliased in Syntax_Trees.Tree) return Base_Token_Array_Const_Ref
-   is begin
-      return (Element => Tree.Leading_Non_Grammar'Access, Dummy => 0);
-   end Leading_Non_Grammar_Const;
-
    procedure Left_Breakdown
      (Tree : in out Syntax_Trees.Tree;
       Ref  : in out Stream_Node_Ref)
@@ -2174,7 +2212,7 @@ package body WisiToken.Syntax_Trees is
 
    begin
       loop
-         if Ref.Node.ID = Tree.Descriptor.EOI_ID then
+         if Ref.Node.ID = Tree.Lexer.Descriptor.EOI_ID then
             --  There are two EOI in a fully parsed stream; one in the accept
             --  production, one at end of stream. In addition, partial parse
             --  inserts an EOI at end of parse, which is usually before end of
@@ -2242,7 +2280,7 @@ package body WisiToken.Syntax_Trees is
 
    begin
       loop
-         if Ref.Node.ID = Tree.Descriptor.EOI_ID then
+         if Ref.Node.ID = Tree.Lexer.Descriptor.EOI_ID then
             --  There are two EOI in a fully parsed stream; one in the accept
             --  production, one at end of stream. In addition, partial parse
             --  inserts an EOI at end of parse, which is usually before end of

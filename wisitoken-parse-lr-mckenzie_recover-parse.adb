@@ -63,7 +63,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    function Reduce_Stack
      (Super                    : not null access Base.Supervisor;
-      Shared                   : not null access Base.Shared;
       Stack                    : in out          Recover_Stacks.Stack;
       Action                   : in              Reduce_Action_Rec;
       Nonterm                  :    out          Syntax_Trees.Recover_Token;
@@ -88,7 +87,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          return (Label => Ok);
       else
          return Status : constant In_Parse_Actions.Status :=
-           Action.In_Parse_Action (Shared.Lexer, Nonterm, Tokens, Recover_Active => True)
+           Action.In_Parse_Action (Super.Tree.Lexer, Nonterm, Tokens, Recover_Active => True)
          do
             if Status.Label = Ok then
                Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
@@ -269,7 +268,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             end if;
          end;
 
-         exit when Tokens (Tokens_Last) = Tree.Descriptor.EOI_ID or Tokens_Last = 3;
+         exit when Tokens (Tokens_Last) = Tree.Lexer.Descriptor.EOI_ID or Tokens_Last = 3;
 
          if Inc_Shared_Token then
             Peek_Next_Shared_Terminal (Tree, Config, Peek_State);
@@ -527,7 +526,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                           others                    => <>);
 
                when Delete =>
-                  pragma Assert (Is_Terminal (Op.Del_ID, Tree.Descriptor.all), "IMPROVEME: allow delete nonterm");
+                  pragma Assert (Is_Terminal (Op.Del_ID, Tree.Lexer.Descriptor.all), "IMPROVEME: allow delete nonterm");
 
                   Do_Delete (Tree, Config);
 
@@ -623,7 +622,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
       Trace      : WisiToken.Trace'Class renames Super.Trace.all;
       Tree       : WisiToken.Syntax_Trees.Tree renames Super.Tree.all;
-      Descriptor : WisiToken.Descriptor renames Super.Tree.Descriptor.all;
+      Descriptor : WisiToken.Descriptor renames Super.Tree.Lexer.Descriptor.all;
       Table      : Parse_Table renames Shared.Table.all;
 
       Item       : Parse_Item renames Parse_Item_Array_Refs.Variable_Ref
@@ -800,7 +799,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                Nonterm : Syntax_Trees.Recover_Token;
             begin
                Config.User_Parse_Action_Status := Reduce_Stack
-                 (Super, Shared, Config.Stack, Action, Nonterm,
+                 (Super, Config.Stack, Action, Nonterm,
                   Default_Contains_Virtual => Config.Current_Insert_Delete /= No_Insert_Delete);
 
                case Config.User_Parse_Action_Status.Label is
