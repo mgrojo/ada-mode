@@ -72,6 +72,7 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    function Has_Element (Cursor : in Pkg.Cursor) return Boolean;
    function Direction (Cursor : in Pkg.Cursor) return Direction_Type;
    function Key (Cursor : in Pkg.Cursor) return Key_Type;
+   function Element (Cursor : in Pkg.Cursor) return Element_Type;
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
      Implicit_Dereference => Element;
@@ -242,6 +243,9 @@ private
 
    function Key (Cursor : in Pkg.Cursor) return Key_Type
    is (Key (Cursor.Node.Element));
+
+   function Element (Cursor : in Pkg.Cursor) return Element_Type
+   is (Cursor.Node.Element);
 
    type Constant_Reference_Type (Element : not null access constant Element_Type)
    is record

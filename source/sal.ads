@@ -73,4 +73,7 @@ package SAL is
    Invalid_Peek_Index : constant Base_Peek_Type := 0;
 
    type Compare_Result is (Less, Equal, Greater);
+
+   function String_Compare (Left, Right : in String) return Compare_Result;
+
 end SAL;

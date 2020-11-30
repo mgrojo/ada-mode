@@ -31,4 +31,40 @@ package body SAL is
       return "SAL 3.5";
    end Version;
 
+   function String_Compare (Left, Right : in String) return Compare_Result
+   is
+      J : Integer := Right'First;
+   begin
+      if Left'Length = 0 then
+         if Right'Length = 0 then
+            return Equal;
+         else
+            return Less;
+         end if;
+      else
+         if Right'Length = 0 then
+            return Greater;
+         end if;
+
+         for I in Left'Range loop
+            if Left (I) > Right (J) then
+               return Greater;
+            elsif Left (I) < Right (J) then
+               return Less;
+            end if;
+
+            J := J + 1;
+            if J > Right'Last then
+               return Greater;
+            end if;
+         end loop;
+
+         if J < Right'Last then
+            return Less;
+         else
+            return Equal;
+         end if;
+      end if;
+   end String_Compare;
+
 end SAL;
