@@ -41,15 +41,18 @@ package Wisi is
 
    type Post_Parse_Action_Type is (Navigate, Face, Indent);
 
-   type Parse_Data_Type
-     (Line_Begin_Token    : not null access WisiToken.Parse.Line_Token_Vectors.Vector;
-      Line_Begin_Char_Pos : not null access constant WisiToken.Line_Pos_Vectors.Vector)
-     is new WisiToken.Syntax_Trees.User_Data_Type with private;
+   type Parse_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with private;
+   type Parse_Data_Access is access all Parse_Data_Type'Class;
+
+   overriding
+   function New_User_Data (Template : in Parse_Data_Type) return WisiToken.Syntax_Trees.User_Data_Access
+   is (new Parse_Data_Type);
+
+   function New_Parse_Data (Template : in Parse_Data_Type'Class) return Parse_Data_Access
+   is (Parse_Data_Access (New_User_Data (Template)));
 
    procedure Initialize
      (Data              : in out Parse_Data_Type;
-      Lexer             : in     WisiToken.Lexer.Handle;
-      Descriptor        : access constant WisiToken.Descriptor;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
       End_Line          : in     WisiToken.Line_Number_Type;
@@ -61,7 +64,6 @@ package Wisi is
    overriding procedure Reset (Data : in out Parse_Data_Type);
    --  Reset for a new parse, with data from previous Initialize.
 
-   function Source_File_Name (Data : in Parse_Data_Type) return String;
    function Post_Parse_Action (Data : in Parse_Data_Type) return Post_Parse_Action_Type;
 
    overriding
@@ -366,7 +368,10 @@ package Wisi is
    --  as encoded error responses as defined in [3]
    --  wisi-process-parse--execute.
 
-   procedure Put_Error (Data : in Parse_Data_Type; Line_Number : in WisiToken.Line_Number_Type; Message : in String);
+   procedure Put_Error
+     (Tree        : in WisiToken.Syntax_Trees.Tree;
+      Line_Number : in WisiToken.Line_Number_Type;
+      Message     : in String);
    --  Put an error elisp form to Ada.Text_IO.Standard_Output.
 
 private
@@ -546,10 +551,7 @@ private
    package Navigate_Cursor_Lists is new Ada.Containers.Doubly_Linked_Lists
      (Navigate_Cache_Trees.Cursor, Navigate_Cache_Trees."=");
 
-   type Parse_Data_Type
-     (Line_Begin_Token    : not null access WisiToken.Parse.Line_Token_Vectors.Vector;
-      Line_Begin_Char_Pos : not null access constant WisiToken.Line_Pos_Vectors.Vector)
-     is new WisiToken.Syntax_Trees.User_Data_Type with
+   type Parse_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
       --  Aux token info
       First_Comment_ID : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
@@ -571,8 +573,6 @@ private
 
       --  Data for post-parse actions
 
-      Lexer             : WisiToken.Lexer.Handle;
-      Descriptor        : access constant WisiToken.Descriptor;
       Post_Parse_Action : Post_Parse_Action_Type;
       Navigate_Caches   : Navigate_Cache_Trees.Tree;  -- Set by Navigate.
       Name_Caches       : Name_Cache_Trees.Tree;      -- Set by Navigate.
@@ -641,15 +641,13 @@ private
    --  Utilities for language-specific child packages
 
    function First
-     (Data  : in Parse_Data_Type'Class;
-      Tree  : in WisiToken.Syntax_Trees.Tree'Class;
+     (Tree  : in WisiToken.Syntax_Trees.Tree'Class;
       Token : in WisiToken.Syntax_Trees.Node_Access)
      return Boolean;
    --  True if Token is first token on Token.Line; False if Token is Invalid_Node_Access
 
    function Current_Indent_Offset
-     (Data         : in Parse_Data_Type'Class;
-      Tree         : in WisiToken.Syntax_Trees.Tree'Class;
+     (Tree         : in WisiToken.Syntax_Trees.Tree'Class;
       Anchor_Token : in WisiToken.Base_Token;
       Offset       : in Integer)
      return Integer;

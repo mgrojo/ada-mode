@@ -246,9 +246,6 @@ See WisiToken Trace_Enable for complete set of options.
 Examples:
 debug=1 lexer=1 parse=2 action=3")
 
-(defvar-local wisi-mckenzie-disable nil
-  "If non-nil, disable McKenzie error recovery. Otherwise, use parser default.")
-
 (defcustom wisi-mckenzie-task-count nil
   "If integer, sets McKenzie error recovery task count.
 Higher value (up to system processor limit) runs error recovery

@@ -42,6 +42,8 @@ package body Emacs_Wisi_Common_Parse is
       Put_Line ("See wisi-process-parse.el *--send-parse, *--send-noop for arguments.");
    end Usage;
 
+   Trace : aliased WisiToken.Text_IO_Trace.Trace;
+
    procedure Read_Input (A : System.Address; N : Integer)
    is
       use System.Storage_Elements;
@@ -220,9 +222,7 @@ package body Emacs_Wisi_Common_Parse is
       Language_Protocol_Version : in     String;
       Partial_Parse_Active      : in out Boolean;
       Params                    : in     Process_Start_Params;
-      Parser                    : in out WisiToken.Parse.LR.Parser.Parser;
-      Parse_Data                : in out Wisi.Parse_Data_Type'Class;
-      Descriptor                : in     WisiToken.Descriptor)
+      Language                  : in     Wisi_Parse_Context.Language)
    is
       use Ada.Text_IO;
       use WisiToken; -- "+", "-" Unbounded_string
@@ -251,7 +251,7 @@ package body Emacs_Wisi_Common_Parse is
          end if;
       end;
 
-      Parser.Trace.Set_Prefix (";; "); -- so debug messages don't confuse Emacs.
+      Trace.Set_Prefix (";; "); -- so debug messages don't confuse Emacs.
 
       Put_Line
         (Name & " protocol: process version " & Protocol_Version & " language version " & Language_Protocol_Version);
@@ -284,7 +284,12 @@ package body Emacs_Wisi_Common_Parse is
                --  prompt
                declare
                   Params : constant Parse_Params := Get_Parse_Params (Command_Line, Last);
-                  Buffer : Ada.Strings.Unbounded.String_Access;
+
+                  Parse_Context : Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find_Create
+                    (Params.Source_File_Name, Language, Trace'Access);
+
+                  Parser : WisiToken.Parse.Base_Parser'Class renames Parse_Context.Parser;
+                  Buffer : Ada.Strings.Unbounded.String_Access renames Parse_Context.Text_Buffer;
 
                   procedure Clean_Up
                   is
@@ -304,18 +309,10 @@ package body Emacs_Wisi_Common_Parse is
                begin
                   WisiToken.Enable_Trace (-Params.Verbosity);
 
-                  Partial_Parse_Active        := Params.Partial_Parse_Active;
-                  Parser.Partial_Parse_Active := Params.Partial_Parse_Active;
+                  Partial_Parse_Active    := Params.Partial_Parse_Active;
+                  Partial_Parse_Byte_Goal := Params.Goal_Byte_Pos;
 
-                  if WisiToken.Parse.LR.McKenzie_Defaulted (Parser.Table.all) then
-                     --  There is no McKenzie information; don't override that.
-                     null;
-                  elsif Params.McKenzie_Disable = -1 then
-                     --  Use default
-                     Parser.Enable_McKenzie_Recover := True;
-                  else
-                     Parser.Enable_McKenzie_Recover := Params.McKenzie_Disable = 0;
-                  end if;
+                  Parse_Context.Parser.Partial_Parse_Active := Params.Partial_Parse_Active;
 
                   Parse_Data.Initialize
                     (Post_Parse_Action => Params.Post_Parse_Action,
@@ -332,10 +329,6 @@ package body Emacs_Wisi_Common_Parse is
                   if Params.Zombie_Limit > 0 then
                      Parser.Table.McKenzie_Param.Zombie_Limit :=
                        WisiToken.Syntax_Trees.Node_Index (Params.Zombie_Limit);
-                  end if;
-                  if Params.Check_Limit > 0 then
-                     Parser.Table.McKenzie_Param.Check_Limit :=
-                       WisiToken.Syntax_Trees.Node_Index (Params.Check_Limit);
                   end if;
                   if Params.Enqueue_Limit > 0 then
                      Parser.Table.McKenzie_Param.Enqueue_Limit := Params.Enqueue_Limit;

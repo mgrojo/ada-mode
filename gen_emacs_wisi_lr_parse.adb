@@ -23,11 +23,11 @@ with WisiToken.Parse.LR.Parser;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Emacs_Wisi_LR_Parse
 is
-   Trace      : aliased WisiToken.Text_IO_Trace.Trace;
-   Parser     : WisiToken.Parse.LR.Parser.Parser (Descriptor);
-   Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access, Parser.Line_Begin_Char_Pos'Access);
+   Parse_Data_Template : aliased Parse_Data_Type;
 
    Params : constant Process_Start_Params := Get_Process_Start_Params;
+
+   Recover_Log_File : Ada.Text_IO.File_Type;
 begin
    Create_Parser
      (Parser, Language_Fixes, Language_Matching_Begin_Tokens, Language_String_ID_Set,

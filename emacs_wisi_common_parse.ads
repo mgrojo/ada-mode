@@ -77,9 +77,7 @@ package Emacs_Wisi_Common_Parse is
       Language_Protocol_Version : in     String;
       Partial_Parse_Active      : in out Boolean;
       Params                    : in     Process_Start_Params;
-      Parser                    : in out WisiToken.Parse.LR.Parser.Parser;
-      Parse_Data                : in out Wisi.Parse_Data_Type'Class;
-      Descriptor                : in     WisiToken.Descriptor);
+      Language                  : in     Wisi_Parse_Context.Language);
 
    ----------
    --  Parse command
@@ -110,10 +108,8 @@ package Emacs_Wisi_Common_Parse is
 
       Partial_Parse_Active : Boolean;
       Verbosity            : Ada.Strings.Unbounded.Unbounded_String;
-      McKenzie_Disable     : Integer;
       Task_Count           : Integer;
       Zombie_Limit         : Integer;
-      Check_Limit          : Integer;
       Enqueue_Limit        : Integer;
       Max_Parallel         : Integer;
       Byte_Count           : Integer;

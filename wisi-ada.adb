@@ -88,7 +88,7 @@ package body Wisi.Ada is
             Anchor_Line => Anchor_Token.Line,
             Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
             Offset      => Current_Indent_Offset
-              (Data, Tree, Anchor_Token,
+              (Tree, Anchor_Token,
                Offset   =>
                  (if Anchor_Token.Line = Record_Token.Base.Line
                   then Offset
@@ -413,11 +413,10 @@ package body Wisi.Ada is
 
    procedure Format_Parameter_List
      (Tree       : in out WisiToken.Syntax_Trees.Tree;
-      Data       : in out Parse_Data_Type;
       Edit_Begin : in     WisiToken.Buffer_Pos)
    is separate;
-   --  Data.Tree contains a subprogram declaration or body; Edit_Begin is
-   --  at the start of a parameter list. Format the parameter list.
+   --  Tree contains a subprogram declaration or body; Edit_Begin is
+   --  at the start of the parameter list. Format the parameter list.
    --
    --  Handle virtual tokens as much as possible; at least closing paren.
 
@@ -427,8 +426,6 @@ package body Wisi.Ada is
    overriding
    procedure Initialize
      (Data              : in out Parse_Data_Type;
-      Lexer             : in     WisiToken.Lexer.Handle;
-      Descriptor        : access constant WisiToken.Descriptor;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
       End_Line          : in     WisiToken.Line_Number_Type;
@@ -440,9 +437,7 @@ package body Wisi.Ada is
       First : Integer := Params'First;
       Last  : Integer := Index (Params, " ");
    begin
-      Wisi.Initialize
-        (Wisi.Parse_Data_Type (Data), Lexer, Descriptor, Post_Parse_Action, Begin_Line, End_Line,
-         Begin_Indent, "");
+      Wisi.Initialize (Wisi.Parse_Data_Type (Data), Post_Parse_Action, Begin_Line, End_Line, Begin_Indent, "");
 
       Data.First_Comment_ID := +COMMENT_ID;
       Data.Last_Comment_ID  := WisiToken.Invalid_Token_ID;
@@ -610,7 +605,7 @@ package body Wisi.Ada is
       when Object_Index_To_Element_Object =>
          Wisi.Ada.Object_Index_To_Element_Object (Tree, Data, Edit_Begin);
       when Format_Parameter_List =>
-         Wisi.Ada.Format_Parameter_List (Tree, Data, Edit_Begin);
+         Wisi.Ada.Format_Parameter_List (Tree, Edit_Begin);
 
       when others =>
          Standard.Ada.Text_IO.Put_Line ("(error ""unrecognized refactor action " & Action'Image & """)");
@@ -697,13 +692,17 @@ package body Wisi.Ada is
                Offset      => Ada_Indent_Broken).Simple_Delta);
       else
          --  aspect_definition starts on same line as '=>'; anchor the aspect_definition to '=>' with offset 3
-         return
-           (Simple,
-            Indent_Anchored_2
-              (Data,
-               Anchor_Line => Anchor_Token.Line,
-               Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
-               Offset      => Current_Indent_Offset (Data, Tree, Anchor_Token, 3)).Simple_Delta);
+         declare
+            Offset : constant Integer := Current_Indent_Offset (Tree, Anchor_Token, 3);
+         begin
+            return
+              (Simple,
+               Indent_Anchored_2
+                 (Data,
+                  Anchor_Line => Anchor_Token.Line,
+                  Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
+                  Offset      => Offset).Simple_Delta);
+         end;
       end if;
    end Ada_Indent_Aspect;
 
@@ -743,7 +742,7 @@ package body Wisi.Ada is
                  (Data,
                   Anchor_Line => Paren_Tok.Line,
                   Last_Line   => Last_Line (Renames_Tok, Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Data, Tree, Paren_Tok, abs Ada_Indent_Renames));
+                  Offset      => Current_Indent_Offset (Tree, Paren_Tok, abs Ada_Indent_Renames));
             end;
          end if;
       else
@@ -789,7 +788,7 @@ package body Wisi.Ada is
                  (Data,
                   Anchor_Line => Anchor_Token.Line,
                   Last_Line   => Last_Line (Indenting, Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Data, Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
+                  Offset      => Current_Indent_Offset (Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
             end;
          else
             declare
@@ -801,7 +800,7 @@ package body Wisi.Ada is
                  (Data,
                   Anchor_Line => Anchor_Token.Line,
                   Last_Line   => Last_Line (Indenting, Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Data, Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
+                  Offset      => Current_Indent_Offset (Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
             end;
          end if;
 

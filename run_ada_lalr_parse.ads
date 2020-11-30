@@ -29,4 +29,5 @@ procedure Run_Ada_LALR_Parse is new Gen_Run_Wisi_LR_Parse
    WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
    WisiToken.Parse.LR.McKenzie_Recover.Ada.Matching_Begin_Tokens'Access,
    WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
-   Ada_Annex_P_Process_LALR_Main.Create_Parser);
+   Ada_Annex_P_Process_LALR_Main.Create_Lexer,
+   Ada_Annex_P_Process_LALR_Main.Create_Parse_Table);

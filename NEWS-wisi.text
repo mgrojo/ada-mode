@@ -13,6 +13,7 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
     add zombie_limit
     add error-pos in Recover
     replace debug-mode, trace-mckenzie, trace-action with verbosity string
+    delete wisi-mckenzie-disable, -check-limit
 
 ** Redesign how indents add, and what some indent functions mean; see
    wisi.info for details. In general, it is easier to arrange indent

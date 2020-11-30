@@ -46,6 +46,12 @@ for ada_mode_wisi_parse.gpr:
 use trace in wisi.adb
 
 incremental parse
+    add incremental code
+        wisi_parse_context.ads
+        gen_run_wisi_lr_parse use it, so we can test it
+        add command-line 'edit' command
+
+
     add incremental tests
         preserve errors, recover_ops for complete error list after incr parse
             change parser_state.recover_insert_delete to use error_list.recover?
