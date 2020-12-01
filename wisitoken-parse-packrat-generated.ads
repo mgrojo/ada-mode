@@ -68,8 +68,9 @@ package WisiToken.Parse.Packrat.Generated is
    end record;
 
    overriding procedure Parse
-     (Parser : in out Generated.Parser;
-      Edits  : in     KMN_Lists.List := KMN_Lists.Empty_List);
+     (Parser   : in out Generated.Parser;
+      Log_File : in     Ada.Text_IO.File_Type;
+      Edits    : in     KMN_Lists.List := KMN_Lists.Empty_List);
    --  Raises Parse_Error if Edits is not empty.
 
    overriding function Any_Errors (Parser : in Generated.Parser) return Boolean;

@@ -20,16 +20,15 @@
 
 pragma License (GPL);
 
-with WisiToken.Parse.LR.Parser_No_Recover;
+with WisiToken.Lexer;
+with WisiToken.Parse.LR;
 with WisiToken.Syntax_Trees;
 generic
-   Descriptor         : in WisiToken.Descriptor_Access_Constant;
    Text_Rep_File_Name : in String;
 
-   with procedure Create_Parser
-     (Parser             :    out          WisiToken.Parse.LR.Parser_No_Recover.Parser;
-      Trace              : not null access WisiToken.Trace'Class;
-      User_Data          : in              WisiToken.Syntax_Trees.User_Data_Access;
-      Text_Rep_File_Name : in              String);
+   with function Create_Parse_Table
+     (Text_Rep_File_Name : in String)
+     return WisiToken.Parse.LR.Parse_Table_Ptr;
+   with function Create_Lexer return WisiToken.Lexer.Handle;
 
 procedure Gen_LR_Text_Rep_Parser_No_Recover_Run;

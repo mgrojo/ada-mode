@@ -51,7 +51,8 @@ package body Test_McKenzie_Recover is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
-   Parser : WisiToken.Parse.LR.Parser.Parser (Ada_Lite_Actions.Descriptor'Access);
+   Parser   : WisiToken.Parse.LR.Parser.Parser;
+   Log_File : Ada.Text_IO.File_Type; -- not used
 
    Orig_Params : WisiToken.Parse.LR.McKenzie_Param_Type
      (First_Terminal    => Descriptor.First_Terminal,
@@ -78,13 +79,13 @@ package body Test_McKenzie_Recover is
          Ada.Text_IO.Put_Line ("input: '" & Text & "'");
       end if;
 
-      Parser.Lexer.Reset_With_String (Text);
+      Parser.Tree.Lexer.Reset_With_String (Text);
 
       if not Multiple_Tasks then
          Parser.Table.McKenzie_Param.Task_Count := 1;
       end if;
 
-      Parser.Parse;
+      Parser.Parse (Log_File);
 
       --  We don't run Parser.Execute_Actions, so Error.Recover.Ops
       --  Stream_Index values are still valid.
@@ -227,8 +228,8 @@ package body Test_McKenzie_Recover is
    begin
       --  The test is that there is no exception and no errors.
 
-      Parser.Lexer.Reset_With_File (File_Name);
-      Parser.Parse;
+      Parser.Tree.Lexer.Reset_With_File (File_Name);
+      Parser.Parse (Log_File);
       Check ("errors length", Parser.Parsers.First.State_Ref.Errors.Length, 0);
    end No_Error;
 
@@ -2420,26 +2421,23 @@ package body Test_McKenzie_Recover is
    is begin
       --  Run before all tests in register
       case T.Alg is
-      when WisiToken.BNF.LALR              =>
-         Ada_Lite_LALR_Main.Create_Parser
-           (Parser,
-            Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
-            Language_Matching_Begin_Tokens =>
-              WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
-            Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-            Trace                          => Trace'Access,
-            User_Data                      => User_Data'Access);
+      when WisiToken.BNF.LALR =>
+         WisiToken.Parse.LR.Parser.New_Parser
+           (Parser, Trace'Access, Ada_Lite_LALR_Main.Create_Lexer, Ada_Lite_LALR_Main.Create_Parse_Table,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
+            User_Data'Access);
 
-      when WisiToken.BNF.LR1               =>
-         Ada_Lite_LR1_T1_Main.Create_Parser
-           (Parser,
-            Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
-            Language_Matching_Begin_Tokens =>
-              WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
-            Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-            Trace                          => Trace'Access,
-            User_Data                      => User_Data'Access,
-            Text_Rep_File_Name             => "ada_lite_lr1_t1_re2c_parse_table.txt");
+      when WisiToken.BNF.LR1 =>
+         WisiToken.Parse.LR.Parser.New_Parser
+           (Parser, Trace'Access, Ada_Lite_LR1_T1_Main.Create_Lexer,
+            Ada_Lite_LR1_T1_Main.Create_Parse_Table
+              (Text_Rep_File_Name => "ada_lite_lr1_t1_re2c_parse_table.txt"),
+            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
+            User_Data'Access);
       end case;
 
       Orig_Params := Parser.Table.McKenzie_Param;

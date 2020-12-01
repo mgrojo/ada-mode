@@ -53,16 +53,18 @@ is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace;
+   Trace    : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File : Ada.Text_IO.File_Type;
 
    procedure Parse
    is
-      Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser (Descriptor);
+      Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
    begin
-      Create_Parser (Parser, Trace'Unchecked_Access, User_Data => null);
+      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
+        (Parser, Trace'Unchecked_Access, Create_Lexer, Create_Parse_Table, User_Data => null);
 
-      Parser.Lexer.Reset_With_File (-File_Name);
-      Parser.Parse;
+      Parser.Tree.Lexer.Reset_With_File (-File_Name);
+      Parser.Parse (Log_File);
 
       --  No user data, so no point in calling Execute_Actions
 

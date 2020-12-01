@@ -46,8 +46,8 @@ is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
-   Parser : WisiToken.Parse.Base_Parser'Class := Create_Parser (Descriptor, Trace'Unchecked_Access, User_Data => null);
-
+   Parser : WisiToken.Parse.Base_Parser'Class := Create_Parser (Trace'Unchecked_Access, User_Data => null);
+   Log_File : Ada.Text_IO.File_Type; -- not used
 begin
    declare
       use Ada.Command_Line;
@@ -80,8 +80,8 @@ begin
       return;
    end;
 
-   Parser.Lexer.Reset_With_File (-File_Name);
-   Parser.Parse;
+   Parser.Tree.Lexer.Reset_With_File (-File_Name);
+   Parser.Parse (Log_File);
 
    --  No user data, so no point in Execute_Actions
 

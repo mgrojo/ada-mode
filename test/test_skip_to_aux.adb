@@ -81,7 +81,7 @@ package body Test_Skip_To_Aux is
          begin
             Check ("compilation_unit_0 PREAMBLE byte region", Bytes, (0 + 1, 5 + 1));
             Check ("compilation_unit_0 PREAMBLE text",
-                   Parser.Lexer.Buffer_Text (Bytes),
+                   Parser.Tree.Lexer.Buffer_Text (Bytes),
                    "%{" & ASCII.CR & ASCII.LF & "%}");
          end;
       end if;

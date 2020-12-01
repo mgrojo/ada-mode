@@ -345,7 +345,7 @@ begin
          declare
             use all type McKenzie_Recover.Recover_Status;
 
-            Recover_Result : McKenzie_Recover.Recover_Status := McKenzie_Recover.Recover_Status'First;
+            Recover_Result : McKenzie_Recover.Recover_Status := Fail_Check_Delta;
 
             Pre_Recover_Parser_Count : constant SAL.Base_Peek_Type := Shared_Parser.Parsers.Count;
             Start : Ada.Calendar.Time;
@@ -360,31 +360,39 @@ begin
                Trace.Put_Clock ("pre-recover" & Shared_Parser.Parsers.Count'Img & " active");
                Start := Ada.Calendar.Clock;
             end if;
-            Recover_Result := McKenzie_Recover.Recover (Shared_Parser);
-            if Trace_Time then
-               declare
-                  use Ada.Calendar;
-                  Recover_Duration : constant Duration := Clock - Start;
-               begin
-                  Trace.Put_Clock
-                    ("post-recover" & Shared_Parser.Parsers.Count'Img & " active," & Recover_Duration'Image);
-               end;
-            end if;
 
-            if Trace_Parse > Outline then
-               if Recover_Result = Success  then
-                  Trace.New_Line;
-                  Trace.Put_Line
-                    ("recover: succeed, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
-               else
-                  Trace.Put_Line
-                    ("recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result) &
-                       ", parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
+            if McKenzie_Defaulted (Shared_Parser.Table.all) then
+               --  McKenzie parameters not set, so don't attempt recover.
+               if Trace_Parse > Outline or Trace_McKenzie > Outline then
+                  Trace.Put_Line ("recover disabled");
                end if;
-            end if;
+            else
+               Recover_Result := McKenzie_Recover.Recover (Shared_Parser);
+               if Trace_Time then
+                  declare
+                     use Ada.Calendar;
+                     Recover_Duration : constant Duration := Clock - Start;
+                  begin
+                     Trace.Put_Clock
+                       ("post-recover" & Shared_Parser.Parsers.Count'Img & " active," & Recover_Duration'Image);
+                  end;
+               end if;
 
-            if Ada.Text_IO.Is_Open (Recover_Log_File) then
-               Recover_To_Log (Shared_Parser, Recover_Log_File, Recover_Result, Pre_Recover_Parser_Count);
+               if Trace_Parse > Outline then
+                  if Recover_Result = Success  then
+                     Trace.New_Line;
+                     Trace.Put_Line
+                       ("recover: succeed, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
+                  else
+                     Trace.Put_Line
+                       ("recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result) &
+                          ", parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
+                  end if;
+               end if;
+
+               if Ada.Text_IO.Is_Open (Recover_Log_File) then
+                  Recover_To_Log (Shared_Parser, Recover_Log_File, Recover_Result, Pre_Recover_Parser_Count);
+               end if;
             end if;
 
             if Recover_Result = Success then
@@ -450,7 +458,10 @@ begin
                       First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
                       Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
                       Recover        => <>,
-                      Msg            => +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result)));
+                      Msg            =>
+                        (if McKenzie_Defaulted (Shared_Parser.Table.all)
+                         then +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result)
+                         else +"recover disabled")));
                end loop;
                raise WisiToken.Syntax_Error;
             end if;

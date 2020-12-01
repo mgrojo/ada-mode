@@ -694,6 +694,7 @@ package body WisiToken.Syntax_Trees is
       end Copy_Node;
    begin
       Destination.Clear (Free_Memory => False, Initialize_Parse => False);
+      Destination.Lexer               := Source.Lexer;
       Destination.Leading_Non_Grammar := Source.Leading_Non_Grammar;
       Destination.Line_Begin_Char_Pos := Source.Line_Begin_Char_Pos;
       Destination.Line_Begin_Token    := Source.Line_Begin_Token;

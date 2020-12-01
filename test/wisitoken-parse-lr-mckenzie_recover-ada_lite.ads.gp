@@ -21,7 +21,6 @@ package WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
    procedure Fixes
      (Trace             : in out WisiToken.Trace'Class;
-      Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Syntax_Trees.Stream_ID;
       Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
       Tree              : in     Syntax_Trees.Tree;

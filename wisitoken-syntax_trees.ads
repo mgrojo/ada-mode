@@ -40,8 +40,7 @@
 --  them to Invalid_Node_Access as appropriate.
 --
 --  During parsing, nodes are never copied or edited in any way once
---  they are created. FIXME: could set parent links in all nodes when
---  there is only one parse stream.
+--  they are created.
 --
 --  Incremental parse and error recover need to use terminal
 --  navigation operations on nodes that are not from the shared
@@ -67,10 +66,8 @@
 --  when streams are terminated or during Finalize; in general Nodes
 --  are referenced multiple times in multiple streams. So we keep
 --  track of nodes to deallocate in Tree.Nodes. Therefore Nodes are
---  never deleted, except when the entire tree is Finalized. Thus all
---  nodes created by parsers that are terminated are still in the
---  tree; to prune them, copy the surviving tree to a new tree,
---  finalize the original. FIXME: add mark and sweep.
+--  never deleted, except in Clear_Parse_Streams and when the entire
+--  tree is Finalized.
 --
 --  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
 --

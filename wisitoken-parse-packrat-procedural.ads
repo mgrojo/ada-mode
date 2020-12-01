@@ -57,10 +57,8 @@ package WisiToken.Parse.Packrat.Procedural is
 
    type Derivs is array (Token_ID range <>) of Memos.Vector;
 
-   type Parser
-     (Descriptor : Descriptor_Access_Constant;
-      First_Nonterminal, Last_Nonterminal : Token_ID) is new Packrat.Parser (Descriptor) with
-   record
+   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new Packrat.Parser
+   with record
       Grammar               : WisiToken.Productions.Prod_Arrays.Vector;
       Start_ID              : Token_ID;
       Direct_Left_Recursive : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
@@ -68,18 +66,18 @@ package WisiToken.Parse.Packrat.Procedural is
    end record;
 
    function Create
-     (Grammar               : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor            : in     WisiToken.Descriptor_Access_Constant;
-      Direct_Left_Recursive : in     Token_ID_Set;
-      Start_ID              : in     Token_ID;
-      Trace                 : access WisiToken.Trace'Class;
-      Lexer                 :        WisiToken.Lexer.Handle;
-      User_Data             :        WisiToken.Syntax_Trees.User_Data_Access)
+     (Grammar               : in WisiToken.Productions.Prod_Arrays.Vector;
+      Direct_Left_Recursive : in Token_ID_Set;
+      Start_ID              : in Token_ID;
+      Trace                 : in WisiToken.Trace_Access;
+      Lexer                 : in WisiToken.Lexer.Handle;
+      User_Data             : in WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser;
 
    overriding procedure Parse
-     (Parser : in out Procedural.Parser;
-      Edits  : in     KMN_Lists.List := KMN_Lists.Empty_List);
+     (Parser   : in out Procedural.Parser;
+      Log_File : in     Ada.Text_IO.File_Type;
+      Edits    : in     KMN_Lists.List := KMN_Lists.Empty_List);
    --  Raises Parse_Error if Edits is not empty.
 
    overriding function Any_Errors (Parser : in Procedural.Parser) return Boolean

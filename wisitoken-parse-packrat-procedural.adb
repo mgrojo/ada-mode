@@ -46,8 +46,8 @@ package body WisiToken.Parse.Packrat.Procedural is
    is
       use all type WisiToken.Syntax_Trees.Stream_Index;
 
-      Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;
       Tree       : Syntax_Trees.Tree renames Parser.Tree;
+      Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
       subtype Terminal is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
 
@@ -147,8 +147,8 @@ package body WisiToken.Parse.Packrat.Procedural is
       use all type WisiToken.Syntax_Trees.Stream_Index;
       use all type WisiToken.Syntax_Trees.Node_Index;
 
-      Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;
       Tree       : Syntax_Trees.Tree renames Parser.Tree;
+      Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
       Pos       : Syntax_Trees.Stream_Index          := Last_Pos; --  last token parsed.
       Start_Pos : constant Syntax_Trees.Stream_Index := Tree.Stream_Next
@@ -239,18 +239,17 @@ package body WisiToken.Parse.Packrat.Procedural is
    --  Public subprograms
 
    function Create
-     (Grammar               : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor            : in     WisiToken.Descriptor_Access_Constant;
-      Direct_Left_Recursive : in     Token_ID_Set;
-      Start_ID              : in     Token_ID;
-      Trace                 : access WisiToken.Trace'Class;
-      Lexer                 :        WisiToken.Lexer.Handle;
-      User_Data             :        WisiToken.Syntax_Trees.User_Data_Access)
+     (Grammar               : in WisiToken.Productions.Prod_Arrays.Vector;
+      Direct_Left_Recursive : in Token_ID_Set;
+      Start_ID              : in Token_ID;
+      Trace                 : in WisiToken.Trace_Access;
+      Lexer                 : in WisiToken.Lexer.Handle;
+      User_Data             : in WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser
    is begin
-      return Parser : Procedural.Parser (Descriptor, Grammar.First_Index, Grammar.Last_Index) do
+      return Parser                   : Procedural.Parser (Grammar.First_Index, Grammar.Last_Index) do
          Parser.Trace                 := Trace;
-         Parser.Lexer                 := Lexer;
+         Parser.Tree.Lexer            := Lexer;
          Parser.User_Data             := User_Data;
          Parser.Grammar               := Grammar;
          Parser.Start_ID              := Start_ID;
@@ -259,13 +258,15 @@ package body WisiToken.Parse.Packrat.Procedural is
    end Create;
 
    overriding procedure Parse
-     (Parser : in out Procedural.Parser;
-      Edits  : in     KMN_Lists.List := KMN_Lists.Empty_List)
+     (Parser   : in out Procedural.Parser;
+      Log_File : in     Ada.Text_IO.File_Type;
+      Edits    : in     KMN_Lists.List := KMN_Lists.Empty_List)
    is
+      pragma Unreferenced (Log_File);
       use all type Ada.Containers.Count_Type;
       use all type WisiToken.Syntax_Trees.User_Data_Access;
 
-      Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;
+      Descriptor : WisiToken.Descriptor renames Parser.Tree.Lexer.Descriptor.all;
 
       Result : Memo_Entry;
    begin

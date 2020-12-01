@@ -22,14 +22,15 @@
 pragma License (GPL);
 
 with Ada.Characters.Latin_1;
+with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.Lexer.Regexp;
-with WisiToken.Productions;
 with WisiToken.Generate.LR.LALR_Generate;
+with WisiToken.Lexer.Regexp;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
-with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 with WisiToken.Text_IO_Trace;
+with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 package body Trivial_Productions_Test is
 
    ----------
@@ -61,6 +62,7 @@ package body Trivial_Productions_Test is
       use Token_Enum;
 
       Trace : aliased WisiToken.Text_IO_Trace.Trace;
+      Log_File : Ada.Text_IO.File_Type;
 
       procedure Test_One (Test : in out AUnit.Test_Cases.Test_Case'Class)
       is
@@ -79,7 +81,7 @@ package body Trivial_Productions_Test is
            T_ID <= F_ID + Null_Action and
            F_ID <= Symbol_ID + Null_Action;
 
-         Parser : WisiToken.Parse.LR.Parser.Parser (LR1_Descriptor'Access);
+         Parser : WisiToken.Parse.LR.Parser.Parser;
 
          Text : constant String := "symbol";
 
@@ -90,7 +92,7 @@ package body Trivial_Productions_Test is
          WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
             Trace'Access,
-            Lexer.New_Lexer (Parser.Descriptor, Syntax),
+            Lexer.New_Lexer (LALR_Descriptor'Access, Syntax),
             WisiToken.Generate.LR.LALR_Generate.Generate
               (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
             User_Data                      => null,
@@ -98,9 +100,9 @@ package body Trivial_Productions_Test is
             Language_Matching_Begin_Tokens => null,
             Language_String_ID_Set         => null);
 
-         Parser.Lexer.Reset_With_String (Text);
+         Parser.Tree.Lexer.Reset_With_String (Text);
 
-         Parser.Parse;
+         Parser.Parse (Log_File);
 
       end Test_One;
    end Expression;
@@ -143,6 +145,7 @@ package body Trivial_Productions_Test is
       use Token_Enum;
 
       Trace : aliased WisiToken.Text_IO_Trace.Trace;
+      Log_File : Ada.Text_IO.File_Type;
 
       procedure Test_One (T : in out AUnit.Test_Cases.Test_Case'Class)
       is
@@ -173,7 +176,7 @@ package body Trivial_Productions_Test is
            (Parameter_List_ID  <= +Null_Action or
                                   Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action);
 
-         Parser : WisiToken.Parse.LR.Parser.Parser (LR1_Descriptor'Access);
+         Parser : WisiToken.Parse.LR.Parser.Parser;
 
          Text : constant String := "function (symbol) symbol procedure";
 
@@ -184,7 +187,7 @@ package body Trivial_Productions_Test is
          WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
             Trace'Access,
-            Lexer.New_Lexer (Parser.Descriptor, Syntax),
+            Lexer.New_Lexer (LALR_Descriptor'Access, Syntax),
             WisiToken.Generate.LR.LALR_Generate.Generate
               (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
             User_Data                      => null,
@@ -192,8 +195,8 @@ package body Trivial_Productions_Test is
             Language_Matching_Begin_Tokens => null,
             Language_String_ID_Set         => null);
 
-         Parser.Lexer.Reset_With_String (Text);
-         Parser.Parse;
+         Parser.Tree.Lexer.Reset_With_String (Text);
+         Parser.Parse (Log_File);
 
       end Test_One;
    end Subprograms;

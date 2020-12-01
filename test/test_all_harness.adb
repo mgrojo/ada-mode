@@ -53,8 +53,7 @@ is
    --  1         2            3
    --  trace_config is passed to Wisitoken.Enable_Trace
    --
-   --  routine_name can be '' to set trace for all routines.
-   --  test_name cannot be ''
+   --  test_name, routine_name can be '' to set trace for all routines.
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
@@ -87,7 +86,7 @@ begin
             Routine_Name : String renames Argument (2);
          begin
             if Test_Name = "" then
-               Filter.Set_Name (Routine_Name);
+               null;
             elsif Routine_Name = "" then
                Filter.Set_Name (Test_Name);
             else

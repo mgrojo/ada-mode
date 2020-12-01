@@ -22,18 +22,16 @@ with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with Dragon_4_43_Actions;
 with Dragon_4_43_Packrat_Gen_Main;
 with WisiToken.Parse.Packrat.Generated;
 with WisiToken.Text_IO_Trace;
 package body Dragon_4_43_Packrat_Gen is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File : Ada.Text_IO.File_Type;
 
    Parser : aliased WisiToken.Parse.Base_Parser'Class := Dragon_4_43_Packrat_Gen_Main.Create_Parser
-     (Dragon_4_43_Actions.Descriptor'Access,
-      Trace     => Trace'Access,
-      User_Data => null);
+     (Trace'Access, User_Data => null);
 
    ----------
    --  Test procedures
@@ -48,8 +46,8 @@ package body Dragon_4_43_Packrat_Gen is
         (Input    : in String;
          Expected : in Result_States)
       is begin
-         Parser.Lexer.Reset_With_String (Input);
-         Parser.Parse;
+         Parser.Tree.Lexer.Reset_With_String (Input);
+         Parser.Parse (Log_File);
 
          AUnit.Assertions.Assert (Expected = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
 

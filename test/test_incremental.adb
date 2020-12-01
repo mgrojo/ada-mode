@@ -21,21 +21,18 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Text_IO;
-with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
-with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Parse.LR.Parser_Lists;
-with WisiToken.Parse.LR;
+with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Syntax_Trees.AUnit_Public;
 with WisiToken.Text_IO_Trace;
 package body Test_Incremental is
-   use Ada_Lite_Actions;
-
    Trace     : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File  : Ada.Text_IO.File_Type;
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
-   Parser : WisiToken.Parse.LR.Parser.Parser (Ada_Lite_Actions.Descriptor'Access);
+   Parser : WisiToken.Parse.LR.Parser.Parser;
 
    procedure Parse_Text
      (Initial   : in String;
@@ -59,7 +56,7 @@ package body Test_Incremental is
 
       Edited_Last : Integer := Initial'Last;
 
-      Edited_Tree_Batch : WisiToken.Syntax_Trees.Tree (Ada_Lite_Actions.Descriptor'Access);
+      Edited_Tree_Batch : WisiToken.Syntax_Trees.Tree;
 
       Edits : KMN_Lists.List;
 
@@ -162,9 +159,9 @@ package body Test_Incremental is
          WisiToken.Trace_Parse := 0;
       end if;
 
-      Parser.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
+      Parser.Tree.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
 
-      Parser.Parse;
+      Parser.Parse (Log_File);
 
       Parser.Tree.Copy_Tree (Edited_Tree_Batch, User_Data'Access);
 
@@ -173,9 +170,9 @@ package body Test_Incremental is
       end if;
 
       --  Batch parse of Initial
-      Parser.Lexer.Reset_With_String (Initial);
+      Parser.Tree.Lexer.Reset_With_String (Initial);
 
-      Parser.Parse;
+      Parser.Parse (Log_File);
 
       WisiToken.Trace_Parse := Saved_Trace_Parse;
 
@@ -185,7 +182,7 @@ package body Test_Incremental is
       end if;
 
       --  Prepare for incremental parse
-      Parser.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
+      Parser.Tree.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
 
       if Edit_At in Initial'Range then
          To_KMN (Edit_At, Delete, Insert);
@@ -214,7 +211,7 @@ package body Test_Incremental is
          Put_Line ("incremental parse:");
       end if;
 
-      Parser.Parse (Edits);
+      Parser.Parse (Log_File, Edits);
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
          New_Line;
@@ -404,15 +401,17 @@ package body Test_Incremental is
    overriding procedure Set_Up_Case (T : in out Test_Case)
    is begin
       --  Run before all tests in register
-      Ada_Lite_LR1_T1_Main.Create_Parser
+      WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
+         Trace'Access,
+         Ada_Lite_LR1_T1_Main.Create_Lexer,
+         Ada_Lite_LR1_T1_Main.Create_Parse_Table
+           (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
          Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
          Language_Matching_Begin_Tokens =>
            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
          Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-         Trace                          => Trace'Access,
-         User_Data                      => User_Data'Access,
-         Text_Rep_File_Name             => "ada_lite_lr1_t1_re2c_parse_table.txt");
+         User_Data                      => User_Data'Access);
    end Set_Up_Case;
 
    overriding procedure Tear_Down_Case (T : in out Test_Case)

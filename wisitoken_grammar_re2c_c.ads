@@ -32,29 +32,29 @@ package wisitoken_grammar_re2c_c is
       Verbosity : in Interfaces.C.int)
      return System.Address
    with Import        => True,
-     Convention    => C,
-     External_Name => "wisitoken_grammar_new_lexer";
+        Convention    => C,
+        External_Name => "wisitoken_grammar_new_lexer";
    --  Create the lexer object, passing it the full text to process.
 
    procedure Free_Lexer (Lexer : in out System.Address)
    with Import        => True,
-     Convention    => C,
-     External_Name => "wisitoken_grammar_free_lexer";
+        Convention    => C,
+        External_Name => "wisitoken_grammar_free_lexer";
    --  Free the lexer object
 
    procedure Reset_Lexer (Lexer : in System.Address)
    with Import        => True,
-     Convention    => C,
-     External_Name => "wisitoken_grammar_reset_lexer";
+        Convention    => C,
+        External_Name => "wisitoken_grammar_reset_lexer";
 
    procedure Set_Position
      (Lexer         : in System.Address;
       Byte_Position : in Interfaces.C.size_t;
       Char_Position : in Interfaces.C.size_t;
       Line          : in Interfaces.C.int)
-   with Import     => True,
-     Convention    => C,
-     External_Name => "wisitoken_grammar_set_position";
+   with Import        => True,
+        Convention    => C,
+        External_Name => "wisitoken_grammar_set_position";
 
    function Next_Token
      (Lexer         : in     System.Address;
@@ -66,7 +66,7 @@ package wisitoken_grammar_re2c_c is
       Line_Start    :    out Interfaces.C.int)
      return Interfaces.C.int
    with Import        => True,
-     Convention    => C,
-     External_Name => "wisitoken_grammar_next_token";
+        Convention    => C,
+        External_Name => "wisitoken_grammar_next_token";
 
 end wisitoken_grammar_re2c_c;

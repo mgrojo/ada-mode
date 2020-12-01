@@ -20,6 +20,7 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Characters.Latin_1;
+with Ada.Text_IO;
 with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Generate.LR.LALR_Generate;
@@ -116,9 +117,10 @@ package body Test_LR_Expecting_Terminal_Sequence is
            Verify_Statement.Grammar;
       end Top_Level;
 
-      Parser : WisiToken.Parse.LR.Parser.Parser (LR1_Descriptor'Access);
+      Parser : WisiToken.Parse.LR.Parser.Parser;
 
       Trace : aliased WisiToken.Text_IO_Trace.Trace;
+      Log_File : Ada.Text_IO.File_Type;
 
       procedure Execute
         (Command  : in String;
@@ -130,8 +132,8 @@ package body Test_LR_Expecting_Terminal_Sequence is
         (Command  : in String;
          Expected : in WisiToken.Token_ID_Set)
       is begin
-         Parser.Lexer.Reset_With_String (Command);
-         Parser.Parse;
+         Parser.Tree.Lexer.Reset_With_String (Command);
+         Parser.Parse (Log_File);
          AUnit.Assertions.Assert (False, Command & "; no exception");
       exception
       when WisiToken.Syntax_Error =>
@@ -162,7 +164,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
-         Lexer.New_Lexer (Parser.Descriptor, Syntax),
+         Lexer.New_Lexer (LALR_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate
            (Top_Level.Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,

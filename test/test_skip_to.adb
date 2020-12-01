@@ -29,6 +29,7 @@ with WisiToken.Text_IO_Trace;
 package body Test_Skip_To is
 
    Trace     : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File  : Ada.Text_IO.File_Type;
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
    ----------
@@ -42,8 +43,8 @@ package body Test_Skip_To is
    begin
       Test_Skip_To_Aux.Enable := True;
 
-      Test_Skip_To_Aux.Parser.Lexer.Reset_With_File (File_Name);
-      Test_Skip_To_Aux.Parser.Parse;
+      Test_Skip_To_Aux.Parser.Tree.Lexer.Reset_With_File (File_Name);
+      Test_Skip_To_Aux.Parser.Parse (Log_File);
       Test_Skip_To_Aux.Parser.Execute_Actions;
    exception
    when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>
@@ -77,8 +78,12 @@ package body Test_Skip_To is
    is
       pragma Unreferenced (T);
    begin
-      Skip_To_Grammar_LALR_Main.Create_Parser
-        (Test_Skip_To_Aux.Parser, Trace'Access, User_Data'Access, "skip_to_grammar_lalr_parse_table.txt");
+      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
+        (Test_Skip_To_Aux.Parser,
+         Trace'Access,
+         Skip_To_Grammar_LALR_Main.Create_Lexer,
+         Skip_To_Grammar_LALR_Main.Create_Parse_Table ("skip_to_grammar_lalr_parse_table.txt"),
+         User_Data'Access);
    end Set_Up_Case;
 
 end Test_Skip_To;

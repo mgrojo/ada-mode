@@ -25,7 +25,6 @@ with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada;
 with WisiToken_Grammar_Editing;
-with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
 package body WisiToken.BNF.Generate_Utils is
 
@@ -263,11 +262,9 @@ package body WisiToken.BNF.Generate_Utils is
       Input_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
       Log_File   : Ada.Text_IO.File_Type;
    begin
-      Wisitoken_Grammar_Main.Create_Parser
-        (Parser     => Grammar_Parser,
-         Descriptor => Wisitoken_Grammar_Actions.Descriptor'Access,
-         Trace      => Trace'Unchecked_Access,
-         User_Data  => Input_Data'Unchecked_Access);
+      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
+        (Grammar_Parser, Trace'Unchecked_Access, Wisitoken_Grammar_Main.Create_Lexer,
+         Wisitoken_Grammar_Main.Create_Parse_Table, Input_Data'Unchecked_Access);
 
       Grammar_Parser.Tree.Lexer.Reset_With_File (Grammar_File_Name);
 
@@ -295,11 +292,9 @@ package body WisiToken.BNF.Generate_Utils is
       Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
       Log_File       : Ada.Text_IO.File_Type;
    begin
-      Wisitoken_Grammar_Main.Create_Parser
-        (Parser     => Grammar_Parser,
-         Descriptor => Wisitoken_Grammar_Actions.Descriptor'Access,
-         Trace      => Trace'Unchecked_Access,
-         User_Data  => Syntax_Trees.User_Data_Access (Input_Data));
+      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
+        (Grammar_Parser, Trace'Unchecked_Access, Wisitoken_Grammar_Main.Create_Lexer,
+         Wisitoken_Grammar_Main.Create_Parse_Table, Syntax_Trees.User_Data_Access (Input_Data));
 
       Grammar_Parser.Tree.Lexer.Reset_With_File (Grammar_File_Name);
 

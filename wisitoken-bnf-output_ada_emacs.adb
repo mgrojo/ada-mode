@@ -1694,10 +1694,10 @@ is
 
       when Packrat_Gen =>
          WisiToken.BNF.Generate_Packrat (Packrat_Data, Generate_Data);
-         Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
+         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
 
       when Packrat_Proc =>
-         Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
+         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
 
       when External =>
          External_Create_Create_Grammar (Generate_Data);

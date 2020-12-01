@@ -29,13 +29,8 @@ package body Subprograms_Process_LALR_Main is
       subprograms_re2c_c.Set_Position,
       subprograms_re2c_c.Next_Token);
 
-   procedure Create_Parser
-     (Parser                         :    out WisiToken.Parse.LR.Parser.Parser;
-      Language_Fixes                 : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;
-      Language_Matching_Begin_Tokens : in     WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;
-      Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
-      Trace                        : not null access WisiToken.Trace'Class;
-      User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)
+   function Create_Parse_Table
+     return WisiToken.Parse.LR.Parse_Table_Ptr
    is
       use WisiToken.Parse.LR;
       McKenzie_Param : constant McKenzie_Param_Type :=
@@ -488,14 +483,11 @@ package body Subprograms_Process_LALR_Main is
 
       Table.McKenzie_Param := McKenzie_Param;
       Table.Max_Parallel := 10;
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Parser,
-         Trace,
-         Lexer.New_Lexer (Parser.Descriptor),
-         Table,
-         Language_Fixes,
-         Language_Matching_Begin_Tokens,
-         Language_String_ID_Set,
-         User_Data);
-   end Create_Parser;
+      return Table;
+   end Create_Parse_Table;
+
+   function Create_Lexer return WisiToken.Lexer.Handle
+   is begin
+      return Lexer.New_Lexer (Subprograms_Process_Actions.Descriptor'Access);
+   end Create_Lexer;
 end Subprograms_Process_LALR_Main;

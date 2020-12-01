@@ -22,7 +22,6 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Syntax_Trees;
-with WisiToken.Lexer;
 package Wisitoken_Grammar_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=

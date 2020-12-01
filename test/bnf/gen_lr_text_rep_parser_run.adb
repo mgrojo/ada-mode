@@ -49,29 +49,29 @@ is
      renames Ada.Strings.Unbounded.To_String;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File : Ada.Text_IO.File_Type; -- not used
 
    Task_Count : System.Multiprocessors.CPU_Range := System.Multiprocessors.CPU_Range'Last;
 
    procedure Parse
    is
       use all type System.Multiprocessors.CPU_Range;
-      Parser : WisiToken.Parse.LR.Parser.Parser (Descriptor);
+      Parser : WisiToken.Parse.LR.Parser.Parser;
    begin
-      Create_Parser
-        (Parser,
-         Language_Fixes                 => Language_Fixes,
-         Language_Matching_Begin_Tokens => Language_Matching_Begin_Tokens,
-         Language_String_ID_Set         => Language_String_ID_Set,
-         Trace                          => Trace'Unchecked_Access,
-         User_Data                      => null,
-         Text_Rep_File_Name             => Text_Rep_File_Name);
+      WisiToken.Parse.LR.Parser.New_Parser
+        (Parser, Trace'Unchecked_Access, Create_Lexer, Create_Parse_Table
+           (Text_Rep_File_Name => Text_Rep_File_Name),
+         Language_Fixes,
+         Language_Matching_Begin_Tokens,
+         Language_String_ID_Set,
+         User_Data             => null);
 
       if Task_Count /= System.Multiprocessors.CPU_Range'Last then
          Parser.Table.McKenzie_Param.Task_Count := Task_Count;
       end if;
 
-      Parser.Lexer.Reset_With_File (-File_Name);
-      Parser.Parse;
+      Parser.Tree.Lexer.Reset_With_File (-File_Name);
+      Parser.Parse (Log_File);
 
       --  No user data, so no point in calling Execute_Actions
 

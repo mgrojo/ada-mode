@@ -244,11 +244,11 @@ is
                      Need_Comma    : Boolean          := False;
                   begin
                      Indent_Line ("function " & Name);
-                     Indent_Line (" (Lexer          : access constant WisiToken.Lexer.Instance'Class;");
-                     Indent_Line ("  Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
-                     Indent_Line ("  Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
-                     Indent_Line ("  Recover_Active : in     Boolean)");
-                     Indent_Line (" return WisiToken.In_Parse_Actions.Status");
+                     Indent_Line ("  (Lexer          : access constant WisiToken.Lexer.Instance'Class;");
+                     Indent_Line ("   Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
+                     Indent_Line ("   Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
+                     Indent_Line ("   Recover_Active : in     Boolean)");
+                     Indent_Line ("  return WisiToken.In_Parse_Actions.Status");
                      Indent_Line ("is");
 
                      Indent := Indent + 3;
@@ -319,13 +319,6 @@ is
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
-      if (case Common_Data.Generate_Algorithm is
-          when LR_Generate_Algorithm => Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0,
-          when Packrat_Generate_Algorithm | External | Tree_Sitter => Input_Data.Action_Count > 0)
-      then
-         Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
-      end if;
-
       case Common_Data.Lexer is
       when None | Tree_Sitter_Lexer =>
          null;
@@ -334,6 +327,8 @@ is
          Put_Line ("with WisiToken.Lexer.re2c;");
          Put_Line ("with " & re2c_Package_Name & ";");
       end case;
+
+      Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
 
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm | Tree_Sitter =>
@@ -375,10 +370,10 @@ is
       when Packrat_Gen =>
          WisiToken.BNF.Generate_Packrat (Packrat_Data, Generate_Data);
 
-         Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
+         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
 
       when Packrat_Proc =>
-         Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
+         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
 
       when External =>
          External_Create_Create_Grammar (Generate_Data);
@@ -392,9 +387,7 @@ is
       Set_Output (Standard_Output);
    end Create_Ada_Main_Body;
 
-   procedure Create_Ada_Test_Main
-     (Actions_Package_Name : in String;
-      Main_Package_Name    : in String)
+   procedure Create_Ada_Test_Main (Main_Package_Name    : in String)
    is
       use WisiToken.Generate;
 
@@ -432,7 +425,6 @@ is
       New_Line;
 
       Put_Line ("with " & Generic_Package_Name & ";");
-      Put_Line ("with " & Actions_Package_Name & ";");
       Put_Line ("with " & Main_Package_Name & ";");
       if Input_Data.Language_Params.Error_Recover and
         Input_Data.Language_Params.Use_Language_Runtime
@@ -450,21 +442,30 @@ is
       end if;
 
       Put_Line ("procedure " & Unit_Name & " is new " & Generic_Package_Name);
-      Put_Line ("  (" & Actions_Package_Name & ".Descriptor'Access,");
-      if Common_Data.Text_Rep then
-         Put_Line
-           ("   """ &
-              Text_Rep_File_Name
-                (Output_File_Name_Root, Tuple, Generate_Task_Count, Input_Data.If_Lexer_Present, Test_Main) & """,");
-      end if;
-      if Input_Data.Language_Params.Error_Recover then
-         if Input_Data.Language_Params.Use_Language_Runtime then
-            Put_Line ("Fixes'Access, Matching_Begin_Tokens'Access, String_ID_Set'Access,");
-         else
-            Put_Line ("null, null, null,");
+      Put_Line ("  (");
+      case Common_Data.Generate_Algorithm is
+      when LR_Generate_Algorithm =>
+         if Common_Data.Text_Rep then
+            Put_Line
+              ("   """ &
+                 Text_Rep_File_Name
+                   (Output_File_Name_Root, Tuple, Generate_Task_Count, Input_Data.If_Lexer_Present, Test_Main) & """,");
          end if;
-      end if;
-      Put_Line (Main_Package_Name & ".Create_Parser);");
+         if Input_Data.Language_Params.Error_Recover then
+            if Input_Data.Language_Params.Use_Language_Runtime then
+               Put_Line ("   Fixes'Access, Matching_Begin_Tokens'Access, String_ID_Set'Access,");
+            else
+               Put_Line ("   null, null, null,");
+            end if;
+         end if;
+         Put_Line ("   " & Main_Package_Name & ".Create_Parse_Table, " & Main_Package_Name & ".Create_Lexer);");
+
+      when Packrat_Generate_Algorithm | Tree_Sitter =>
+         Put_Line ("   " & Main_Package_Name & ".Create_Parser);");
+
+      when External =>
+         raise SAL.Programmer_Error;
+      end case;
       Close (File);
       Set_Output (Standard_Output);
    end Create_Ada_Test_Main;
@@ -501,7 +502,7 @@ begin
          Create_Ada_Main_Spec (To_Lower (Main_Package_Name) & ".ads", Main_Package_Name, Input_Data, Common_Data);
 
          if Test_Main then
-            Create_Ada_Test_Main (Actions_Package_Name, Main_Package_Name);
+            Create_Ada_Test_Main (Main_Package_Name);
          end if;
       end if;
    end;

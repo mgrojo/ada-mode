@@ -457,7 +457,7 @@ package body WisiToken is
                Trace_McKenzie := Value;
             elsif Name = "parse" then
                Trace_Parse := Value;
-            elsif Name = "tests" then
+            elsif Name = "test" then
                Trace_Tests := Value;
             elsif Name = "time" then
                Trace_Time := Value > 0;

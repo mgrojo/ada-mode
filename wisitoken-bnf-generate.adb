@@ -44,7 +44,6 @@ with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Generate.Tree_Sitter;
-with Wisitoken_Grammar_Actions;
 with WisiToken_Grammar_Editing;
 with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Main;
@@ -152,11 +151,9 @@ is
    begin
       Output_File_Name_Root := +Ada.Directories.Base_Name (File_Name) & Suffix;
 
-      Wisitoken_Grammar_Main.Create_Parser
-        (Parser     => Grammar_Parser,
-         Descriptor => Wisitoken_Grammar_Actions.Descriptor'Access,
-         Trace      => Trace'Unchecked_Access,
-         User_Data  => Input_Data'Unchecked_Access);
+      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
+        (Grammar_Parser, Trace'Unchecked_Access, Wisitoken_Grammar_Main.Create_Lexer,
+         Wisitoken_Grammar_Main.Create_Parse_Table, Input_Data'Unchecked_Access);
 
       Grammar_Parser.Tree.Lexer.Reset_With_File (File_Name);
 

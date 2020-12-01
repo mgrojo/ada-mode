@@ -74,9 +74,10 @@ package WisiToken.BNF.Output_Ada_Common is
    --  call Put_Text_Rep to create file.
 
    procedure Packrat_Create_Create_Parser
-     (Common_Data   :         in out Output_Ada_Common.Common_Data;
-      Generate_Data : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data;
-      Packrat_Data  :         in     WisiToken.Generate.Packrat.Data);
+     (Actions_Package_Name :         in     String;
+      Common_Data          :         in out Output_Ada_Common.Common_Data;
+      Generate_Data        : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data;
+      Packrat_Data         :         in     WisiToken.Generate.Packrat.Data);
 
    procedure External_Create_Create_Grammar
      (Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data);

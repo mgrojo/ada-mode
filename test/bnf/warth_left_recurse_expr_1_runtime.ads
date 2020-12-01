@@ -14,7 +14,6 @@
 pragma License (GPL);
 
 with SAL.Gen_Unbounded_Definite_Stacks;
-with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package Warth_Left_Recurse_Expr_1_Runtime is
 
@@ -22,15 +21,8 @@ package Warth_Left_Recurse_Expr_1_Runtime is
 
    type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
-      Lexer : WisiToken.Lexer.Handle;
       Stack : Integer_Stacks.Stack;
    end record;
-
-   overriding
-   procedure Set_Lexer
-     (User_Data           : in out User_Data_Type;
-      Lexer               : in     WisiToken.Lexer.Handle;
-      Line_Begin_Char_Pos : in     WisiToken.Line_Pos_Vector_Access);
 
    overriding procedure Reset (Data : in out User_Data_Type);
 

@@ -40,13 +40,7 @@ wisitoken_grammar_1.wy
 
 incremental parse
     run all tests
-        t_mck:
-            make -r t_mck RUN_ARGS="LALR \"\" \"debug=1 tests=1 \" "
-
-        test/test_incremental.adb :
-            make -r t_one RUN_ARGS="test_incremental.adb \"\" \"debug=1 \" "
-
-        t_all: pass
+        t_all:
 
     more tests;
         parse_incremental with current_token = empty nonterm

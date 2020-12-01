@@ -106,7 +106,8 @@ package body Name_Grammar_Test is
      (Component_ID      <= Dot_ID & Identifier_ID + Null_Action or
                            Paren_Left_ID & Identifier_ID & Paren_Right_ID + Null_Action);
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace;
+   Trace    : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File : Ada.Text_IO.File_Type;
 
    procedure Parse_Command
      (Label   : in     String;
@@ -115,8 +116,8 @@ package body Name_Grammar_Test is
    is begin
       Ada.Text_IO.Put_Line ("'" & Command & "'");
 
-      Parser.Lexer.Reset_With_String (Command);
-      Parser.Parse;
+      Parser.Tree.Lexer.Reset_With_String (Command);
+      Parser.Parse (Log_File);
 
       Ada.Text_IO.Put_Line ("success");
       Ada.Text_IO.New_Line;
@@ -159,14 +160,14 @@ package body Name_Grammar_Test is
       New_Line;
       Put_Line ("Full Parser");
       declare
-         Parser : WisiToken.Parse.LR.Parser.Parser (LALR_Descriptor'Access);
+         Parser : WisiToken.Parse.LR.Parser.Parser;
 
          Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
       begin
          WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
             Trace'Access,
-            Lexer.New_Lexer (Parser.Descriptor, Syntax),
+            Lexer.New_Lexer (Token_Enum.LALR_Descriptor'Access, Syntax),
             WisiToken.Generate.LR.LALR_Generate.Generate
               (Full_Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
             User_Data                      => null,
