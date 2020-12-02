@@ -21,7 +21,8 @@ pragma License (GPL);
 with Ada.Strings.Unbounded;
 with System;
 with Wisi;
-with WisiToken.Parse.LR.Parser;
+with WisiToken;
+with Wisi_Parse_Context;
 package Emacs_Wisi_Common_Parse is
 
    Protocol_Version : constant String := "6";
@@ -75,7 +76,6 @@ package Emacs_Wisi_Common_Parse is
    procedure Process_Stream
      (Name                      : in     String;
       Language_Protocol_Version : in     String;
-      Partial_Parse_Active      : in out Boolean;
       Params                    : in     Process_Start_Params;
       Language                  : in     Wisi_Parse_Context.Language);
 

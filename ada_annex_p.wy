@@ -51,8 +51,8 @@
 
 %code actions spec post
 %{
-   Partial_Parse_Active    : Boolean := False;
-   Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
+   Partial_Parse_Active    : aliased Boolean := False;
+   Partial_Parse_Byte_Goal : aliased WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 }%
 
 %generate LALR Ada_Emacs re2c Process

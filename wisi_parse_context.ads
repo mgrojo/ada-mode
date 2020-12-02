@@ -21,13 +21,15 @@ with WisiToken.Syntax_Trees;
 package Wisi_Parse_Context is
 
    type Language is record
-      Descriptor            : WisiToken.Descriptor_Access_Constant;
-      Lexer                 : WisiToken.Lexer.Handle;
-      Table                 : WisiToken.Parse.LR.Parse_Table_Ptr;
-      Fixes                 : WisiToken.Parse.LR.Parser.Language_Fixes_Access;
-      Matching_Begin_Tokens : WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;
-      String_ID_Set         : WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
-      Parse_Data_Template   : Wisi.Parse_Data_Access;
+      Descriptor              : WisiToken.Descriptor_Access_Constant;
+      Lexer                   : WisiToken.Lexer.Handle;
+      Table                   : WisiToken.Parse.LR.Parse_Table_Ptr;
+      Partial_Parse_Active    : access Boolean;
+      Partial_Parse_Byte_Goal : access WisiToken.Buffer_Pos;
+      Fixes                   : WisiToken.Parse.LR.Parser.Language_Fixes_Access;
+      Matching_Begin_Tokens   : WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;
+      String_ID_Set           : WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
+      Parse_Data_Template     : Wisi.Parse_Data_Access;
    end record;
 
    type Parse_Context is limited record

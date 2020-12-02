@@ -266,19 +266,7 @@ be active at once.  If nil, uses %mckenzie_zombie_limit value from grammar file.
   :type 'integer
   :group 'wisi
   :safe 'integerp)
-(make-variable-buffer-local 'wisi-mckenzie-check-limit)
-
-(defcustom wisi-mckenzie-check-limit nil
-  "If integer, overrides %mckenzie_check_limit.
-This sets the number of tokens past the error point that must be
-parsed successfully for a solution to be deemed successful.
-Higher value gives better solutions, but may fail if there are
-two errors close together.  If nil, uses %mckenzie_check_limit
-value from grammar file."
-  :type 'integer
-  :group 'wisi
-  :safe 'integerp)
-(make-variable-buffer-local 'wisi-mckenzie-check-limit)
+(make-variable-buffer-local 'wisi-mckenzie-zombie-limit)
 
 (defcustom wisi-mckenzie-enqueue-limit nil
   "If integer, overrides %mckenzie_enqueue_limit.

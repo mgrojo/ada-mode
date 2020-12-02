@@ -41,8 +41,9 @@ is
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
 
-   Trace  : aliased WisiToken.Text_IO_Trace.Trace;
-   Parser : WisiToken.Parse.LR.Parser.Parser (Ada_Annex_P_Process_Actions.Descriptor'Access);
+   Trace    : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File : Ada.Text_IO.File_Type;
+   Parser   : WisiToken.Parse.LR.Parser.Parser;
 
    function Image (Node : in WisiToken.Syntax_Trees.Valid_Node_Access) return String
    is
@@ -90,15 +91,15 @@ is
          begin
             case To_Token_Enum (ID) is
             when IDENTIFIER_ID =>
-               return "IDENTIFIER " & Parser.Lexer.Buffer_Text (Token.Byte_Region);
+               return "IDENTIFIER " & Parser.Tree.Lexer.Buffer_Text (Token.Byte_Region);
             when CHARACTER_LITERAL_ID =>
-               return "CHARACTER_LITERAL " & Parser.Lexer.Buffer_Text (Token.Byte_Region);
+               return "CHARACTER_LITERAL " & Parser.Tree.Lexer.Buffer_Text (Token.Byte_Region);
             when NUMERIC_LITERAL_ID =>
                return "NUMERIC_LITERAL";
             when STRING_LITERAL_ID =>
                return "STRING_LITERAL";
             when others =>
-               return Parser.Lexer.Buffer_Text (Token.Byte_Region);
+               return Parser.Tree.Lexer.Buffer_Text (Token.Byte_Region);
             end case;
          end;
       else
@@ -127,27 +128,31 @@ begin
       end if;
 
       if Argument (1) = "LR1" then
-         Ada_Annex_P_Process_LR1_Main.Create_Parser
+         WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
+            Trace'Unrestricted_Access,
+            Ada_Annex_P_Process_LR1_Main.Create_Lexer,
+            Ada_Annex_P_Process_LR1_Main.Create_Parse_Table
+              (Text_Rep_File_Name => Containing_Directory (Command_Name) & "/ada_lr1_parse_table.txt"),
             WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada.Matching_Begin_Tokens'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
-            Trace'Unrestricted_Access,
-            User_Data => null,
-            Text_Rep_File_Name => Containing_Directory (Command_Name) & "/ada_lr1_parse_table.txt");
+            User_Data => null);
       else
-         Ada_Annex_P_Process_LALR_Main.Create_Parser
+         WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
+            Trace'Unrestricted_Access,
+            Ada_Annex_P_Process_LALR_Main.Create_Lexer,
+            Ada_Annex_P_Process_LALR_Main.Create_Parse_Table,
             WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada.Matching_Begin_Tokens'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
-            Trace'Unrestricted_Access,
             User_Data => null);
       end if;
 
       File_Name := +Argument (2);
       begin
-         Parser.Lexer.Reset_With_File (-File_Name);
+         Parser.Tree.Lexer.Reset_With_File (-File_Name);
       exception
       when Ada.IO_Exceptions.Name_Error =>
          Put_Line (Standard_Error, "'" & (-File_Name) & "' cannot be opened");
@@ -168,7 +173,7 @@ begin
 
    Parser.Table.McKenzie_Param.Task_Count := 1; -- minimize race conditions
 
-   Parser.Parse;
+   Parser.Parse (Log_File);
 
    if Trace_Parse > 0 then
       Parser.Put_Errors;

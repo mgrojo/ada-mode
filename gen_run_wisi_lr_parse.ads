@@ -28,6 +28,8 @@ generic
    type Parse_Data_Type is new Wisi.Parse_Data_Type with private;
 
    Descriptor                     : in WisiToken.Descriptor_Access_Constant;
+   Partial_Parse_Active           : in WisiToken.Boolean_Access;
+   Partial_Parse_Byte_Goal        : in WisiToken.Buffer_Pos_Access;
    Language_Fixes                 : in WisiToken.Parse.LR.Parser.Language_Fixes_Access;
    Language_Matching_Begin_Tokens : in WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;
    Language_String_ID_Set         : in WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;

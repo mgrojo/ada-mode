@@ -252,20 +252,6 @@ one or more Edit messages."
     (wisi-process-parse--wait parser)
     ))
 
-(defun wisi-process-parse--send-noop (parser)
-  "Send a noop command to PARSER external process, followed by
-the content of the current buffer.  Does not wait for command to
-complete."
-  (let* ((cmd (format "noop %d" (1- (position-bytes (point-max)))))
-	 (msg (format "%03d%s" (length cmd) cmd))
-	 (process (wisi-process--parser-process parser)))
-    (with-current-buffer (wisi-process--parser-buffer parser)
-      (erase-buffer))
-
-    (process-send-string process msg)
-    (process-send-string process (buffer-substring-no-properties (point-min) (point-max)))
-    ))
-
 (defun wisi-process-parse--marker-or-nil (item)
   (if (= -1 item) nil (copy-marker item t)))
 
@@ -786,53 +772,6 @@ complete."
   )
 
 (defvar wisi--parser nil) ;; wisi.el
-
-(defun wisi-process-send-tokens-noop ()
-  "Run lexer, send tokens to subprocess; otherwise no operation.
-For use with ’wisi-time’."
-  (wisi-process-parse--require-process wisi--parser)
-  (if (wisi-process--parser-busy wisi--parser)
-      (error "%s parser busy" wisi--parse-action)
-
-    ;; not busy
-    (let* ((source-buffer (current-buffer))
-	   (action-buffer (wisi-process--parser-buffer wisi--parser))
-	   (process (wisi-process--parser-process wisi--parser))
-	   (sexp-start (point-min))
-	   (need-more nil)
-	   (done nil))
-
-      (setf (wisi-process--parser-busy wisi--parser) t)
-      (wisi-process-parse--send-noop wisi--parser)
-
-      (set-buffer action-buffer)
-      (while (and (process-live-p process)
-		  (not done))
-	(goto-char sexp-start)
-	(cond
-	 ((eobp)
-	  (setq need-more t))
-
-	 ((looking-at wisi-process-parse-prompt)
-	  (setq done t))
-
-	 (t
-	  (forward-line 1)
-	  (setq sexp-start (point)))
-	 )
-
-	(unless done
-	  ;; end of response buffer
-	  (unless (process-live-p process)
-	    (wisi-process-parse-show-buffer wisi--parser)
-	    (error "wisi-process-parse process died"))
-
-	  (accept-process-output process 1.0 nil nil)
-	  (setq need-more nil))
-	)
-      (set-buffer source-buffer)
-      (setf (wisi-process--parser-busy wisi--parser) nil)
-      )))
 
 ;;;;; debugging
 (defun wisi-process-parse-ids-to-enum (token-table &rest int-ids)

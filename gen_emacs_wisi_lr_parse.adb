@@ -20,20 +20,14 @@ pragma License (GPL);
 
 with Emacs_Wisi_Common_Parse; use Emacs_Wisi_Common_Parse;
 with WisiToken.Parse.LR.Parser;
-with WisiToken.Text_IO_Trace;
 procedure Gen_Emacs_Wisi_LR_Parse
 is
    Parse_Data_Template : aliased Parse_Data_Type;
 
    Params : constant Process_Start_Params := Get_Process_Start_Params;
-
-   Recover_Log_File : Ada.Text_IO.File_Type;
 begin
-   Create_Parser
-     (Parser, Language_Fixes, Language_Matching_Begin_Tokens, Language_String_ID_Set,
-      Trace'Unrestricted_Access,
-      Parse_Data'Unchecked_Access);
-
-   Process_Stream (Name, Language_Protocol_Version, Partial_Parse_Active, Params, Parser, Parse_Data, Descriptor.all);
-
+   Process_Stream
+     (Name, Language_Protocol_Version, Params,
+      (Descriptor, Create_Lexer, Create_Parse_Table, Partial_Parse_Active, Partial_Parse_Byte_Goal, Language_Fixes,
+       Language_Matching_Begin_Tokens, Language_String_ID_Set, Parse_Data_Template'Unchecked_Access));
 end Gen_Emacs_Wisi_LR_Parse;

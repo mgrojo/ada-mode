@@ -28,7 +28,9 @@ with SAL;
 with System.Multiprocessors;
 with System.Storage_Elements;
 with WisiToken.Lexer;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Syntax_Trees;
+with WisiToken.Text_IO_Trace;
 package body Emacs_Wisi_Common_Parse is
 
    procedure Usage (Name : in String)
@@ -183,10 +185,8 @@ package body Emacs_Wisi_Common_Parse is
          Result.Begin_Indent         := Get_Integer (Command_Line, Last);
          Result.Partial_Parse_Active := 1 = Get_Integer (Command_Line, Last);
          Result.Verbosity            := +Get_String (Command_Line, Last);
-         Result.McKenzie_Disable     := Get_Integer (Command_Line, Last);
          Result.Task_Count           := Get_Integer (Command_Line, Last);
          Result.Zombie_Limit         := Get_Integer (Command_Line, Last);
-         Result.Check_Limit          := Get_Integer (Command_Line, Last);
          Result.Enqueue_Limit        := Get_Integer (Command_Line, Last);
          Result.Max_Parallel         := Get_Integer (Command_Line, Last);
          Result.Byte_Count           := Get_Integer (Command_Line, Last);
@@ -220,17 +220,18 @@ package body Emacs_Wisi_Common_Parse is
    procedure Process_Stream
      (Name                      : in     String;
       Language_Protocol_Version : in     String;
-      Partial_Parse_Active      : in out Boolean;
       Params                    : in     Process_Start_Params;
       Language                  : in     Wisi_Parse_Context.Language)
    is
       use Ada.Text_IO;
       use WisiToken; -- "+", "-" Unbounded_string
 
+      Recover_Log_File : Ada.Text_IO.File_Type;
+
       procedure Cleanup
       is begin
-         if Is_Open (Parser.Recover_Log_File) then
-            Close (Parser.Recover_Log_File);
+         if Is_Open (Recover_Log_File) then
+            Close (Recover_Log_File);
          end if;
       end Cleanup;
 
@@ -244,9 +245,9 @@ package body Emacs_Wisi_Common_Parse is
             --  to Current_Output, visible from Emacs
 
             if Exists (-Params.Recover_Log_File_Name) then
-               Open (Parser.Recover_Log_File, Append_File, -Params.Recover_Log_File_Name);
+               Open (Recover_Log_File, Append_File, -Params.Recover_Log_File_Name);
             else
-               Create (Parser.Recover_Log_File, Out_File, -Params.Recover_Log_File_Name);
+               Create (Recover_Log_File, Out_File, -Params.Recover_Log_File_Name);
             end if;
          end if;
       end;
@@ -285,20 +286,21 @@ package body Emacs_Wisi_Common_Parse is
                declare
                   Params : constant Parse_Params := Get_Parse_Params (Command_Line, Last);
 
-                  Parse_Context : Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find_Create
-                    (Params.Source_File_Name, Language, Trace'Access);
+                  Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find_Create
+                    (-Params.Source_File_Name, Language, Trace'Access);
 
-                  Parser : WisiToken.Parse.Base_Parser'Class renames Parse_Context.Parser;
-                  Buffer : Ada.Strings.Unbounded.String_Access renames Parse_Context.Text_Buffer;
+                  Parser     : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
+                  Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
+                  Buffer     : Ada.Strings.Unbounded.String_Access renames Parse_Context.Text_Buffer;
 
                   procedure Clean_Up
                   is
                      use all type SAL.Base_Peek_Type;
                   begin
-                     Parser.Lexer.Discard_Rest_Of_Input;
+                     Parser.Tree.Lexer.Discard_Rest_Of_Input;
                      if Parser.Parsers.Count > 0 then
                         Parse_Data.Put
-                          (Parser.Lexer.Errors,
+                          (Parser.Tree.Lexer.Errors,
                            Parser.Parsers.First.State_Ref.Errors,
                            Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                            Parser.Tree);
@@ -309,15 +311,11 @@ package body Emacs_Wisi_Common_Parse is
                begin
                   WisiToken.Enable_Trace (-Params.Verbosity);
 
-                  Partial_Parse_Active    := Params.Partial_Parse_Active;
-                  Partial_Parse_Byte_Goal := Params.Goal_Byte_Pos;
-
-                  Parse_Context.Parser.Partial_Parse_Active := Params.Partial_Parse_Active;
+                  Parser.Partial_Parse_Active.all    := Params.Partial_Parse_Active;
+                  Parser.Partial_Parse_Byte_Goal.all := WisiToken.Buffer_Pos (Params.Goal_Byte_Pos);
 
                   Parse_Data.Initialize
                     (Post_Parse_Action => Params.Post_Parse_Action,
-                     Lexer             => Parser.Lexer,
-                     Descriptor        => Descriptor'Unrestricted_Access,
                      Begin_Line        => Params.Begin_Line,
                      End_Line          => Params.End_Line,
                      Begin_Indent      => Params.Begin_Indent,
@@ -342,12 +340,12 @@ package body Emacs_Wisi_Common_Parse is
 
                   Read_Input (Buffer (Params.Begin_Byte_Pos)'Address, Params.Byte_Count);
 
-                  Parser.Lexer.Reset_With_String_Access
+                  Parser.Tree.Lexer.Reset_With_String_Access
                     (Buffer, Params.Source_File_Name, Params.Begin_Char_Pos, Params.Begin_Line);
 
                   --  Parser.Line_Begin_Token First, Last set by Lex_All
                   begin
-                     Parser.Parse;
+                     Parser.Parse (Recover_Log_File);
                   exception
                   when WisiToken.Partial_Parse =>
                      null;
@@ -378,16 +376,22 @@ package body Emacs_Wisi_Common_Parse is
                --  prompt
                declare
                   Params : constant Refactor_Params := Get_Refactor_Params (Command_Line, Last);
-                  Buffer : Ada.Strings.Unbounded.String_Access;
+
+                  Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find_Create
+                    (-Params.Source_File_Name, Language, Trace'Access);
+
+                  Parser     : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
+                  Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
+                  Buffer     : Ada.Strings.Unbounded.String_Access renames Parse_Context.Text_Buffer;
 
                   procedure Clean_Up
                   is
                      use all type SAL.Base_Peek_Type;
                   begin
-                     Parser.Lexer.Discard_Rest_Of_Input;
+                     Parser.Tree.Lexer.Discard_Rest_Of_Input;
                      if Parser.Parsers.Count > 0 then
                         Parse_Data.Put
-                          (Parser.Lexer.Errors,
+                          (Parser.Tree.Lexer.Errors,
                            Parser.Parsers.First.State_Ref.Errors,
                            Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                            Parser.Tree);
@@ -398,12 +402,11 @@ package body Emacs_Wisi_Common_Parse is
                begin
                   WisiToken.Enable_Trace (-Params.Verbosity);
 
-                  Partial_Parse_Active := True;
+                  Parser.Partial_Parse_Active.all    := True;
+                  Parser.Partial_Parse_Byte_Goal.all := WisiToken.Buffer_Pos'Last;
 
                   Parse_Data.Initialize
                     (Post_Parse_Action => Wisi.Navigate, -- mostly ignored
-                     Lexer             => Parser.Lexer,
-                     Descriptor        => Descriptor'Unrestricted_Access,
                      Begin_Line        => Params.Parse_Begin_Line,
                      End_Line          => Params.Parse_End_Line,
                      Begin_Indent      => Params.Parse_Begin_Indent,
@@ -417,10 +420,10 @@ package body Emacs_Wisi_Common_Parse is
 
                   Read_Input (Buffer (Buffer'First)'Address, Params.Byte_Count);
 
-                  Parser.Lexer.Reset_With_String_Access
+                  Parser.Tree.Lexer.Reset_With_String_Access
                     (Buffer, Params.Source_File_Name, Params.Parse_Begin_Char_Pos, Params.Parse_Begin_Line);
                   begin
-                     Parser.Parse;
+                     Parser.Parse (Recover_Log_File);
                   exception
                   when WisiToken.Partial_Parse =>
                      null;
@@ -443,30 +446,6 @@ package body Emacs_Wisi_Common_Parse is
                when E : others => -- includes Fatal_Error
                   Clean_Up;
                   Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
-               end;
-
-            elsif Match ("noop") then
-               --  Args: <source byte count>
-               --  Input: <source text>
-               --  Response: prompt
-               declare
-                  Byte_Count  : constant Integer                             := Get_Integer (Command_Line, Last);
-                  Buffer      : constant Ada.Strings.Unbounded.String_Access := new String (1 .. Byte_Count);
-                  Token       : Base_Token;
-                  Lexer_Error : Boolean;
-                  pragma Unreferenced (Lexer_Error);
-               begin
-                  Token.ID := Invalid_Token_ID;
-                  Read_Input (Buffer (1)'Address, Byte_Count);
-
-                  Parser.Lexer.Reset_With_String_Access (Buffer, +"");
-                  loop
-                     exit when Token.ID = Parser.Descriptor.EOI_ID;
-                     Lexer_Error := Parser.Lexer.Find_Next (Token);
-                  end loop;
-               exception
-               when Syntax_Error =>
-                  Parser.Lexer.Discard_Rest_Of_Input;
                end;
 
             elsif Match ("quit") then

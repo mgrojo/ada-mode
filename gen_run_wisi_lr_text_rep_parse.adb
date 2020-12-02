@@ -21,24 +21,13 @@ pragma License (GPL);
 with Ada.Command_Line;
 with Ada.Directories;
 with Run_Wisi_Common_Parse;
-with WisiToken.Text_IO_Trace;
 procedure Gen_Run_Wisi_LR_Text_Rep_Parse
 is
-   Trace      : aliased WisiToken.Text_IO_Trace.Trace;
-   Parser     : WisiToken.Parse.LR.Parser.Parser (Descriptor);
-   Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access, Parser.Line_Begin_Char_Pos'Access);
+   Parse_Data_Template : aliased Parse_Data_Type;
 begin
-   --  Create parser first so Put_Usage has defaults from Parser.Table,
-   --  and Get_CL_Params can override them.
-   declare
-      use Ada.Command_Line;
-   begin
-      --  text_rep file is in same directory as exectuable.
-      Create_Parser
-        (Parser, Language_Fixes, Language_Matching_Begin_Tokens, Language_String_ID_Set,
-         Trace'Unrestricted_Access, Parse_Data'Unchecked_Access,
-         Ada.Directories.Containing_Directory (Command_Name) & "/" & Text_Rep_File_Name);
-
-      Run_Wisi_Common_Parse.Parse_File (Parser, Parse_Data, Descriptor.all);
-   end;
+   Run_Wisi_Common_Parse.Parse_File
+     ((Descriptor, Create_Lexer, Create_Parse_Table
+         (Ada.Directories.Containing_Directory (Ada.Command_Line.Command_Name) & "/" & Text_Rep_File_Name),
+       Partial_Parse_Active, Partial_Parse_Byte_Goal, Language_Fixes, Language_Matching_Begin_Tokens,
+       Language_String_ID_Set, Parse_Data_Template'Unchecked_Access));
 end Gen_Run_Wisi_LR_Text_Rep_Parse;

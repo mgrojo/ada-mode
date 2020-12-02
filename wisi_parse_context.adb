@@ -52,6 +52,8 @@ package body Wisi_Parse_Context is
                Language_Fixes                 => Language.Fixes,
                Language_Matching_Begin_Tokens => Language.Matching_Begin_Tokens,
                Language_String_ID_Set         => Language.String_ID_Set,
+               Partial_Parse_Active           => Language.Partial_Parse_Active,
+               Partial_Parse_Byte_Goal        => Language.Partial_Parse_Byte_Goal,
                others                         => <>)))
       do
          Result.Parser.Tree.Lexer := Language.Lexer;
