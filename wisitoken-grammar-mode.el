@@ -288,6 +288,13 @@ Otherwise insert a plain new line."
   ;; syntax-propertize-wholelines by default.
   (let ((inhibit-read-only t)
 	(inhibit-point-motion-hooks t))
+
+    ;; WORKAROUND: Something in mmm-mode causes fontification with the wrong
+    ;; syntax table; ' is string, comment-start is wrong, and a stray
+    ;; ' in a comment applies string face to lots of stuff in 'face
+    ;; text property. For some reason, comments remain ok.
+    (remove-text-properties start end '(face nil))
+
     (goto-char start)
     (save-match-data
       (while (re-search-forward

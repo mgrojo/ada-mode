@@ -213,13 +213,15 @@ declaration_item
   ;; "|", ",", "token", "/", "(", ")", "in" appear in %conflict declarations
   ;
 
+nonterm_colon : COLON | COLON_COLON_EQUAL ;; ;; split out for action
+
 nonterminal
-  : IDENTIFIER (COLON | COLON_COLON_EQUAL) rhs_list semicolon_opt
-    %((wisi-statement-action [1 statement-start 5 statement-end])
-      (wisi-motion-action [1 [4 rhs] 5])
+  : IDENTIFIER nonterm_colon rhs_list semicolon_opt
+    %((wisi-statement-action [1 statement-start 4 statement-end])
+      (wisi-motion-action [1 [3 rhs] 4])
       (wisi-name-action 1)
       (wisi-face-apply-action [1 nil font-lock-function-name-face])
-      (wisi-indent-action [[nil 2] 2 2 2 2]))%
+      (wisi-indent-action [[nil 2] 2 (wisi-block 2) 2]))%
   ;
 
 semicolon_opt :
@@ -232,8 +234,8 @@ rhs_list
     %((wisi-statement-action [1 motion])
       (wisi-indent-action [[2 nil]]))%
   | rhs_list BAR rhs
-  %((wisi-statement-action [3 motion])
-    (wisi-indent-action [nil nil 2]))%
+    %((wisi-statement-action [3 motion])
+      (wisi-indent-action [nil nil 2]))%
   | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
     %((wisi-face-apply-action [2 nil font-lock-constant-face 3 nil font-lock-keyword-face]))%
   | rhs_list PERCENT IF IDENTIFIER IN IDENTIFIER_BAR_list

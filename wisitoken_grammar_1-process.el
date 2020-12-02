@@ -70,6 +70,7 @@
    IDENTIFIER_BAR_list
    declaration_item_list
    declaration_item
+   nonterm_colon
    nonterminal
    semicolon_opt
    rhs_list
@@ -84,7 +85,6 @@
    rhs_alternative_list
    compilation_unit
    compilation_unit_list
-   nonterminal_009
    ])
 
 (defconst wisitoken_grammar_1-process-face-table
