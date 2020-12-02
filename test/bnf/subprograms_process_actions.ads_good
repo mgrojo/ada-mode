@@ -22,7 +22,7 @@ with WisiToken.In_Parse_Actions;
 with WisiToken.Lexer;
 package Subprograms_Process_Actions is
 
-   Descriptor : aliased WisiToken.Descriptor :=
+   Descriptor : aliased constant WisiToken.Descriptor :=
      (First_Terminal    => 4,
       Last_Terminal     => 21,
       First_Nonterminal => 22,

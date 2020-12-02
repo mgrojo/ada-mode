@@ -129,7 +129,7 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Spec_Pre));
 
-      Indent_Line ("Descriptor : aliased WisiToken.Descriptor :=");
+      Indent_Line ("Descriptor : aliased constant WisiToken.Descriptor :=");
       Indent_Line ("  (First_Terminal    =>" & WisiToken.Token_ID'Image (Descriptor.First_Terminal) & ",");
       Indent := Indent + 3;
       Indent_Line ("Last_Terminal     =>" & WisiToken.Token_ID'Image (Descriptor.Last_Terminal) & ",");

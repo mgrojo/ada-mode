@@ -84,9 +84,7 @@ package WisiToken.Lexer.re2c is
 
    overriding procedure Finalize (Object : in out Instance);
 
-   function New_Lexer
-     (Descriptor : in WisiToken.Descriptor_Access)
-     return WisiToken.Lexer.Handle;
+   function New_Lexer (Descriptor : in WisiToken.Descriptor_Access_Constant) return WisiToken.Lexer.Handle;
    --  If the tokens do not include a reporting New_Line token, set
    --  New_Line_ID to Invalid_Token_ID.
 

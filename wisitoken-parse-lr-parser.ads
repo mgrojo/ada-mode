@@ -89,8 +89,9 @@ package WisiToken.Parse.LR.Parser is
 
       Parsers : aliased Parser_Lists.List;
 
-      Partial_Parse_Active : Boolean := False;
-      --  Partial_Parse_Active is only used in recover log messages.
+      Partial_Parse_Active    : access Boolean;
+      Partial_Parse_Byte_Goal : access WisiToken.Buffer_Pos;
+      --  Used by In_Parse_Actions to terminate Partial_Parse.
    end record;
 
    overriding procedure Finalize (Object : in out LR.Parser.Parser);

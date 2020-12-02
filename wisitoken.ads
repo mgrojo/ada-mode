@@ -149,7 +149,7 @@ package WisiToken is
       --  no longer used.
    end record;
    type Descriptor_Access is access all Descriptor;
-   type Descriptor_Access_Constant is not null access constant Descriptor;
+   type Descriptor_Access_Constant is access constant Descriptor;
 
    function Padded_Image (Item : in Token_ID; Desc : in Descriptor) return String;
    --  Return Desc.Image (Item), padded to Terminal_Image_Width (if Item
@@ -293,6 +293,8 @@ package WisiToken is
    --  positive or negative.
 
    subtype Buffer_Pos is Base_Buffer_Pos range 1 .. Base_Buffer_Pos'Last; -- match Emacs buffer origin.
+
+   type Buffer_Pos_Access is access all Buffer_Pos;
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Base_Buffer_Pos);
 
@@ -476,6 +478,8 @@ package WisiToken is
 
    ----------
    --  Misc
+
+   type Boolean_Access is access all Boolean;
 
    function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String
      renames Ada.Strings.Unbounded.To_Unbounded_String;
