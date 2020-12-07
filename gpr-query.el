@@ -703,7 +703,7 @@ FILE is from gpr-query."
   (gpr-query-cached-session project)
   nil)
 
-(cl-defmethod wisi-xref-refresh-cache ((_xref gpr-query-xref) project no-full)
+(cl-defmethod wisi-xref-refresh-cache ((xref gpr-query-xref) project no-full)
   ;; Kill the current session and delete the database, to get changed
   ;; env vars etc when it restarts.
   ;;
@@ -711,19 +711,32 @@ FILE is from gpr-query."
   ;; changed, or the database was built with an incorrect environment
   ;; variable, or something else screwed up. However, rebuilding after
   ;; that is a lot slower, so we only do that with permission.
-  (let* ((session (gpr-query-cached-session project))
+  (let* ((gpr-file (gnat-compiler-gpr-file xref))
+	 (session (gpr-query-cached-session project))
 	 (db-filename
-	  (with-current-buffer (gpr-query--session-send session "db_name" t)
-	    (goto-char (point-min))
-	    (buffer-substring-no-properties (line-beginning-position) (line-end-position)))))
+	  (condition-case nil
+	      ;; gpr-query--session-send can fail if the .gpr file
+	      ;; contains errors, for example if GPR_PROJECT_PATH is
+	      ;; wrong.
+	      (with-current-buffer (gpr-query--session-send session "db_name" t)
+		(goto-char (point-min))
+		(buffer-substring-no-properties (line-beginning-position) (line-end-position)))
+	    (error
+	     nil)
+	    )))
 
     ;; We have to kill the process to delete the database. If we are
     ;; not deleting the db, this is an easy way to refresh everything
     ;; else.
     (gpr-query-kill-session session)
-    (when (and (not no-full)
+    (when (and db-filename
+	       (not no-full)
 	       (file-exists-p db-filename))
       (delete-file db-filename))
+
+    ;; recreate session from newly parsed project
+    (setq gpr-query--sessions (delete (cons gpr-file session) gpr-query--sessions))
+    (setq session (gpr-query-cached-session project))
 
     (gpr-query--start-process session 'xref)
     ))

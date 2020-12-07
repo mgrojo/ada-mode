@@ -531,11 +531,13 @@ See `ff-other-file-alist'.")
     entry_body
     entry_declaration
     expression_function_declaration
+    exception_declaration
     full_type_declaration
     generic_instantiation
     generic_package_declaration
     generic_subprogram_declaration
     null_procedure_declaration
+    number_declaration
     object_declaration
     package_body
     package_declaration

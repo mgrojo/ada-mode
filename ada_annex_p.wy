@@ -182,6 +182,10 @@ tick : TICK_1 | TICK_2 ;
 ;; keyword to follow.
 %mckenzie_cost_insert END 3
 
+;; make inserting an expression to finish a production cheap; see
+;; test/ada_mode-recover_41.adb.
+%mckenzie_cost_insert IDENTIFIER 2
+
 ;; Ada 2020 syntax caused a drastic increase in recursion, which
 ;; increased the number of parse states with no Minimal_Complete
 ;; action. So we reduce the cost of ';' and '=>' to compensate; see
@@ -229,6 +233,7 @@ tick : TICK_1 | TICK_2 ;
 ;; Missing or extra closing paren are common; missing handled by
 ;; Minimal_Complete.
 %mckenzie_cost_delete RIGHT_PAREN 1
+%mckenzie_cost_insert RIGHT_PAREN 3
 
 ;; test/ada_mode-recover_partial_02_lr1.adb requires 45_000; wisitoken got 30% faster
 %mckenzie_enqueue_limit 58_000
