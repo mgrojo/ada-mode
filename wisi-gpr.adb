@@ -24,6 +24,7 @@ package body Wisi.Gpr is
    overriding
    procedure Initialize
      (Data              : in out Parse_Data_Type;
+      Trace             : in     WisiToken.Trace_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
       End_Line          : in     WisiToken.Line_Number_Type;
@@ -35,7 +36,7 @@ package body Wisi.Gpr is
       First : Integer := Params'First;
       Last  : Integer := Index (Params, " ");
    begin
-      Wisi.Initialize (Wisi.Parse_Data_Type (Data), Post_Parse_Action, Begin_Line, End_Line, Begin_Indent, "");
+      Wisi.Initialize (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Begin_Line, End_Line, Begin_Indent, "");
 
       Data.First_Comment_ID := +COMMENT_ID;
       Data.Last_Comment_ID  := WisiToken.Invalid_Token_ID;

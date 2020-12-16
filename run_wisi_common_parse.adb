@@ -273,7 +273,8 @@ package body Run_Wisi_Common_Parse is
          end if;
 
          Parse_Data.Initialize
-           (Post_Parse_Action =>
+           (Trace             => Parser.Trace,
+            Post_Parse_Action =>
               (case Cl_Params.Command is
                when Parse    => Cl_Params.Post_Parse_Action,
                when Refactor => Wisi.Navigate),

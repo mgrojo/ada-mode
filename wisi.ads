@@ -53,6 +53,7 @@ package Wisi is
 
    procedure Initialize
      (Data              : in out Parse_Data_Type;
+      Trace             : in     WisiToken.Trace_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
       End_Line          : in     WisiToken.Line_Number_Type;
@@ -553,6 +554,8 @@ private
 
    type Parse_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
+      Trace : WisiToken.Trace_Access;
+
       --  Aux token info
       First_Comment_ID : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
       Last_Comment_ID  : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;

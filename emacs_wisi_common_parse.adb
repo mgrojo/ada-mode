@@ -169,7 +169,7 @@ package body Emacs_Wisi_Common_Parse is
    begin
       return Result : Parse_Params do
          --  We don't use an aggregate, to enforce execution order.
-         --  Match wisi-process-parse.el wisi-process--send-parse
+         --  Match wisi-process-parse.el wisi-process-parse--send-parse
 
          Result.Post_Parse_Action    := Wisi.Post_Parse_Action_Type'Val (Get_Integer (Command_Line, Last));
          Result.Source_File_Name     := +Get_String (Command_Line, Last);
@@ -315,7 +315,8 @@ package body Emacs_Wisi_Common_Parse is
                   Parser.Partial_Parse_Byte_Goal.all := WisiToken.Buffer_Pos (Params.Goal_Byte_Pos);
 
                   Parse_Data.Initialize
-                    (Post_Parse_Action => Params.Post_Parse_Action,
+                    (Trace             => Parser.Trace,
+                     Post_Parse_Action => Params.Post_Parse_Action,
                      Begin_Line        => Params.Begin_Line,
                      End_Line          => Params.End_Line,
                      Begin_Indent      => Params.Begin_Indent,
@@ -406,7 +407,8 @@ package body Emacs_Wisi_Common_Parse is
                   Parser.Partial_Parse_Byte_Goal.all := WisiToken.Buffer_Pos'Last;
 
                   Parse_Data.Initialize
-                    (Post_Parse_Action => Wisi.Navigate, -- mostly ignored
+                    (Trace             => Parser.Trace,
+                     Post_Parse_Action => Wisi.Navigate, -- mostly ignored
                      Begin_Line        => Params.Parse_Begin_Line,
                      End_Line          => Params.Parse_End_Line,
                      Begin_Indent      => Params.Parse_Begin_Indent,

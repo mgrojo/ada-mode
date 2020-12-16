@@ -241,7 +241,7 @@ package body Wisi is
       end case;
 
       if Trace_Action > Extra then
-         Ada.Text_IO.Put_Line (";; indent_line: " & Line_Number_Type'Image (Line) & " => " & Image (Indent));
+         Data.Trace.Put_Line ("indent_line: " & Line_Number_Type'Image (Line) & " => " & Image (Indent));
       end if;
 
       Data.Indents.Replace_Element (Line, Indent);
@@ -458,7 +458,7 @@ package body Wisi is
       end Terminate_Edit_Region;
    begin
       if Trace_Action > Outline then
-         Ada.Text_IO.Put_Line (";; " & Parse.LR.Image (Item, Tree));
+         Data.Trace.Put_Line (Parse.LR.Image (Item, Tree));
       end if;
 
       if Length (Item) = 0 or not Tree.Parents_Set then
@@ -574,12 +574,12 @@ package body Wisi is
       Anchor_Indent : array (First_Anchor_ID .. Data.Max_Anchor_ID) of Integer;
    begin
       if Trace_Action > Outline then
-         Ada.Text_IO.New_Line;
-         Ada.Text_IO.Put_Line (";; Begin_Indent: " & Integer'Image (Data.Begin_Indent));
+         Data.Trace.New_Line;
+         Data.Trace.Put_Line ("Begin_Indent: " & Integer'Image (Data.Begin_Indent));
          for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
-            Ada.Text_IO.Put_Line (";; " & Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
+            Data.Trace.Put_Line ("" & Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
          end loop;
-         Ada.Text_IO.Put_Line (";; resolve anchors");
+         Data.Trace.Put_Line ("resolve anchors");
       end if;
 
       for Line in Data.Indents.First_Index .. Data.Indents.Last_Index loop
@@ -598,7 +598,7 @@ package body Wisi is
                for I of Indent.Anchor_Nil_IDs loop
                   Anchor_Indent (I) := Begin_Indent;
                   if Trace_Action > Extra then
-                     Ada.Text_IO.Put_Line
+                     Data.Trace.Put_Line
                        ("anchor line" & Line'Image & " id" & I'Image & " indent" & Anchor_Indent (I)'Image);
                   end if;
                end loop;
@@ -608,7 +608,7 @@ package body Wisi is
                for I of Indent.Anchor_Int_IDs loop
                   Anchor_Indent (I) := Indent.Anchor_Int_Indent + Begin_Indent;
                   if Trace_Action > Extra then
-                     Ada.Text_IO.Put_Line
+                     Data.Trace.Put_Line
                        ("anchor line" & Line'Image & " id" & I'Image & " indent" & Anchor_Indent (I)'Image);
                   end if;
                end loop;
@@ -626,7 +626,7 @@ package body Wisi is
                   for I of Indent.Anchor_Anchored_IDs loop
                      Anchor_Indent (I) := Temp;
                      if Trace_Action > Extra then
-                        Ada.Text_IO.Put_Line
+                        Data.Trace.Put_Line
                           ("anchor line" & Line'Image & " id" & I'Image & " indent" & Anchor_Indent (I)'Image);
                      end if;
                   end loop;
@@ -654,8 +654,8 @@ package body Wisi is
          begin
             if Cache.Pos in Containing_Pos .. End_Pos then
                Cache.End_Pos := (True, End_Pos);
-               if WisiToken.Trace_Action > Detail then
-                  Ada.Text_IO.Put_Line ("   " & Cache.Pos'Image & " end to " & Cache.End_Pos.Item'Image);
+               if Trace_Action > Detail then
+                  Data.Trace.Put_Line ("   " & Cache.Pos'Image & " end to " & Cache.End_Pos.Item'Image);
                end if;
                Delete_Cache := True;
             else
@@ -679,6 +679,7 @@ package body Wisi is
 
    procedure Initialize
      (Data              : in out Parse_Data_Type;
+      Trace             : in     WisiToken.Trace_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     Line_Number_Type;
       End_Line          : in     Line_Number_Type;
@@ -693,6 +694,7 @@ package body Wisi is
          Last    => End_Line + 1);
 
       Data.Post_Parse_Action := Post_Parse_Action;
+      Data.Trace             := Trace;
 
       case Post_Parse_Action is
       when Navigate | Face =>
@@ -875,7 +877,7 @@ package body Wisi is
       end loop;
 
       if Trace_Action > Detail then
-         Ada.Text_IO.Put_Line (";; Line_Paren_State: " & Image (Data.Line_Paren_State));
+         Data.Trace.Put_Line ("Line_Paren_State: " & Image (Data.Line_Paren_State));
          --  We print the tree after all actions have executed, to include the
          --  effects of Reduce on augmented in nonterms.
       end if;
@@ -996,9 +998,9 @@ package body Wisi is
             if Insert_After then
                New_Aug.Inserted_After := True;
 
-               if WisiToken.Trace_Action > WisiToken.Detail then
-                  Ada.Text_IO.Put_Line
-                    (";; insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
+               if Trace_Action > WisiToken.Detail then
+                  Data.Trace.Put_Line
+                    ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
                        " after " & Tree.Image (Prev_Terminal, Node_Numbers => True) &
                        (if Blank_Line = Invalid_Line_Number
                         then ""
@@ -1063,9 +1065,9 @@ package body Wisi is
             end if;
          end;
       else
-         if WisiToken.Trace_Action > WisiToken.Detail then
-            Ada.Text_IO.Put_Line
-              (";; insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
+         if Trace_Action > WisiToken.Detail then
+            Data.Trace.Put_Line
+              ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
                  " before " & Tree.Image (Inserted_Before, Node_Numbers => True));
          end if;
       end if;
@@ -1090,7 +1092,6 @@ package body Wisi is
       Deleted_Token : in     Syntax_Trees.Valid_Node_Access;
       Prev_Token    : in     Syntax_Trees.Node_Access)
    is
-      pragma Unreferenced (Data);
       use all type Syntax_Trees.Node_Access;
       use all type Ada.Containers.Count_Type;
 
@@ -1107,13 +1108,13 @@ package body Wisi is
    begin
       if Deleted_Aug.Deleted then
          --  This can happen if error recovery screws up.
-         if WisiToken.Trace_Action > WisiToken.Detail then
-            Ada.Text_IO.Put_Line (";; delete token again; ignored " & Tree.Image (Deleted_Token, Node_Numbers => True));
+         if Trace_Action > WisiToken.Detail then
+            Data.Trace.Put_Line ("delete token again; ignored " & Tree.Image (Deleted_Token, Node_Numbers => True));
          end if;
          return;
       end if;
-      if WisiToken.Trace_Action > WisiToken.Detail then
-         Ada.Text_IO.Put_Line (";; delete token " & Tree.Image (Deleted_Token, Node_Numbers => True));
+      if Trace_Action > WisiToken.Detail then
+         Data.Trace.Put_Line ("delete token " & Tree.Image (Deleted_Token, Node_Numbers => True));
       end if;
 
       Deleted_Aug.Deleted := True;
@@ -1261,8 +1262,8 @@ package body Wisi is
       Override_Start_Set : Boolean        := False;
       Containing_Pos     : Nil_Buffer_Pos := Nil;
    begin
-      if WisiToken.Trace_Action > Outline then
-         Ada.Text_IO.Put_Line ("Statement_Action " & Tree.Image (Nonterm, Children => True));
+      if Trace_Action > Outline then
+         Data.Trace.Put_Line ("Statement_Action " & Tree.Image (Nonterm, Children => True));
       end if;
 
       for Pair of Params loop
@@ -1309,8 +1310,8 @@ package body Wisi is
                      end if;
                      Cache.Statement_ID   := Tree.ID (Nonterm);
                      Cache.Containing_Pos := Containing_Pos;
-                     if WisiToken.Trace_Action > Detail then
-                        Ada.Text_IO.Put_Line
+                     if Trace_Action > Detail then
+                        Data.Trace.Put_Line
                           ("   " & Cache.Pos'Image & " nonterm to " & Image (Cache.Statement_ID, Descriptor) &
                              " containing to" & Image (Cache.Containing_Pos));
                      end if;
@@ -1331,11 +1332,11 @@ package body Wisi is
                       Containing_Pos => Containing_Pos,
                       others         => Nil));
 
-                  if WisiToken.Trace_Action > Detail then
+                  if Trace_Action > Detail then
                      declare
                         Cache : Navigate_Cache_Type renames Data.Navigate_Caches.Constant_Ref (Cursor);
                      begin
-                        Ada.Text_IO.Put_Line
+                        Data.Trace.Put_Line
                           ("   " & Cache.Pos'Image & " create " & Image (Cache.ID, Descriptor) &
                              ", containing to " & Image (Data.Navigate_Caches.Constant_Ref (Cursor).Containing_Pos));
                      end;
@@ -1371,8 +1372,8 @@ package body Wisi is
                            begin
                               if not Cache.Containing_Pos.Set then
                                  Cache.Containing_Pos := Containing_Pos;
-                                 if WisiToken.Trace_Action > Detail then
-                                    Ada.Text_IO.Put_Line
+                                 if Trace_Action > Detail then
+                                    Data.Trace.Put_Line
                                       ("   " & Cache.Pos'Image & " containing to " & Image
                                          (Data.Navigate_Caches.Constant_Ref (Cursor).Containing_Pos));
                                  end if;
@@ -1444,19 +1445,19 @@ package body Wisi is
                Column          => WisiToken.Column (Name_Token, Tree.Line_Begin_Char_Pos),
                Message         => Tree.Image
                  (Node         => Tokens (Name),
-                  Node_Numbers => WisiToken.Trace_Action > Extra,
-                  RHS_Index    => WisiToken.Trace_Action > Extra)
+                  Node_Numbers => Trace_Action > Extra,
+                  RHS_Index    => Trace_Action > Extra)
                  & ": wisi-name-action: name set twice.");
          else
             if Trace_Action > Detail then
-               Ada.Text_IO.Put_Line
+               Data.Trace.Put_Line
                  ("Name_Action " & Tree.Image
                     (Nonterm,
-                     Node_Numbers    => WisiToken.Trace_Action > Extra,
-                     RHS_Index       => WisiToken.Trace_Action > Extra) & " " & Tree.Image
+                     Node_Numbers    => Trace_Action > Extra,
+                     RHS_Index       => Trace_Action > Extra) & " " & Tree.Image
                        (Tokens (Name),
-                        Node_Numbers => WisiToken.Trace_Action > Extra,
-                        RHS_Index    => WisiToken.Trace_Action > Extra));
+                        Node_Numbers => Trace_Action > Extra,
+                        RHS_Index    => Trace_Action > Extra));
             end if;
 
             if Name_Token.Char_Region /= Null_Buffer_Region then
@@ -1479,8 +1480,8 @@ package body Wisi is
       Iter           : constant Iterator := Data.Navigate_Caches.Iterate;
       Prev_Cache_Cur : Cursor;
    begin
-      if WisiToken.Trace_Action > Outline then
-         Ada.Text_IO.Put_Line
+      if Trace_Action > Outline then
+         Data.Trace.Put_Line
            ("Motion_Action " & Image (Tree.ID (Nonterm), Descriptor) & " " &
               Image (Tree.Byte_Region (Nonterm)));
       end if;
@@ -1554,28 +1555,28 @@ package body Wisi is
                            Prev_Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Prev_Cache_Cur);
                         begin
                            if Cache.Prev_Pos.Set then
-                              if WisiToken.Trace_Action > Detail then
-                                 Ada.Text_IO.Put_Line
+                              if Trace_Action > Detail then
+                                 Data.Trace.Put_Line
                                    ("   " & Cache.Pos'Image & " prev already at " & Cache.Prev_Pos.Item'Image);
                               end if;
                            else
                               Cache.Prev_Pos := (True, Prev_Cache.Pos);
-                              if WisiToken.Trace_Action > Detail then
-                                 Ada.Text_IO.Put_Line
+                              if Trace_Action > Detail then
+                                 Data.Trace.Put_Line
                                    ("   " & Cache.Pos'Image & " prev to " & Cache.Prev_Pos.Item'Image);
                               end if;
                            end if;
 
                            if Prev_Cache.Next_Pos.Set then
-                              if WisiToken.Trace_Action > Detail then
-                                 Ada.Text_IO.Put_Line
+                              if Trace_Action > Detail then
+                                 Data.Trace.Put_Line
                                    ("   " & Prev_Cache.Pos'Image & " next already at " &
                                       Prev_Cache.Next_Pos.Item'Image);
                               end if;
                            else
                               Prev_Cache.Next_Pos := (True, Cache.Pos);
-                              if WisiToken.Trace_Action > Detail then
-                                 Ada.Text_IO.Put_Line
+                              if Trace_Action > Detail then
+                                 Data.Trace.Put_Line
                                    ("   " & Prev_Cache.Pos'Image & " next to " & Prev_Cache.Next_Pos.Item'Image);
                               end if;
                            end if;
@@ -1618,7 +1619,7 @@ package body Wisi is
       for Param of Params loop
          if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
             if Trace_Action > Outline then
-               Ada.Text_IO.Put_Line
+               Data.Trace.Put_Line
                  (";; face_apply_action: " & Image (Tree.Byte_Region (Tokens (Param.Index))) &
                     " " & Param.Prefix_Face'Image & " " & Param.Suffix_Face'Image);
             end if;
@@ -1904,7 +1905,7 @@ package body Wisi is
       Params  : in     Indent_Param_Array)
    is begin
       if Trace_Action > Outline then
-         Ada.Text_IO.Put_Line (";; indent_action_0: " & Tree.Image (Nonterm, RHS_Index => True));
+         Data.Trace.Put_Line (";; indent_action_0: " & Tree.Image (Nonterm, RHS_Index => True));
       end if;
 
       for I in Tokens'Range loop
@@ -1924,7 +1925,7 @@ package body Wisi is
                Comment_Delta     : Delta_Type;
             begin
                if Trace_Action > Detail then
-                  Ada.Text_IO.Put_Line
+                  Data.Trace.Put_Line
                     (";; indent_action_0 code: " & Tree.Image (Tree_Token) & ": " & Image (Pair.Code_Delta));
                end if;
 
@@ -1950,7 +1951,7 @@ package body Wisi is
 
                   if Comment_Param_Set then
                      if Trace_Action > Detail then
-                        Ada.Text_IO.Put_Line
+                        Data.Trace.Put_Line
                           (";; indent_action_0 comment: " & Tree.Image (Controlling_Token) & ": " &
                              Image (Comment_Param));
                      end if;
@@ -2401,16 +2402,16 @@ package body Wisi is
          Indent := (Anchor_Nil, Invalid_Line_Number, To_Vector (Anchor_ID, 1));
 
          if Trace_Action > Extra then
-            Ada.Text_IO.Put_Line
-              (";; indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
+            Data.Trace.Put_Line
+              ("indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
          end if;
 
       when Int =>
          Indent := (Anchor_Int, Invalid_Line_Number, To_Vector (Anchor_ID, 1), Indent.Int_Indent);
 
          if Trace_Action > Extra then
-            Ada.Text_IO.Put_Line
-              (";; indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
+            Data.Trace.Put_Line
+              ("indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
          end if;
 
       when Anchor_Nil =>
@@ -2509,8 +2510,8 @@ package body Wisi is
       Last_Line  : constant Line_Number_Type := Wisi.Last_Line (Indenting_Token, Indenting_Comment);
    begin
       if Trace_Action > Detail then
-         Ada.Text_IO.Put_Line
-           (";; indent_token_1:      " &
+         Data.Trace.Put_Line
+           ("indent_token_1:      " &
               Image (Indenting_Token.Base, Descriptor) & " " & Image (Delta_Indent) &
               Line_Number_Type'Image (First_Line) & " .." & Line_Number_Type'Image (Last_Line) &
               (if Indenting_Comment then " comment" else ""));

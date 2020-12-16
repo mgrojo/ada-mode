@@ -43,16 +43,21 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-use trace in wisi.adb
-
 incremental parse
     add incremental code
-        wisi_parse_context.ads
-        gen_run_wisi_lr_parse use it, so we can test it
-        add command-line 'edit' command
+        need to build kmn list
+            add to wisi-before/after-change?
+                ~/.emacs.d/elpa/eglot-1.6/eglot.el eglot--after-change
+                    appends all args to before/after-change to eglot--recent-changes, sends them all to server
+                    from a timer
+                tree-sitter calls edit-tree, parse from after-change
+
+        add command-line 'edit' command to run_*?
 
 
     add incremental tests
+        test/ada_mode-incremental_parse.adb
+
         preserve errors, recover_ops for complete error list after incr parse
             change parser_state.recover_insert_delete to use error_list.recover?
 
@@ -60,9 +65,14 @@ incremental parse
         Or fast enough to recompute all?
         only need to process terminals in changed region, and containing nonterms?
 
+    handle parser process die, lose all state for open buffers
+        parser report error "not parsed" when next parser action invoked
+        -> invalidate caches, retry
+
     run all tests
         build/test.log
 
+still need wisi-lexer?
 
 in ada_annex_p.wy:
     wisi-parse-buffer indent doesn't use lisp-indent-buffer

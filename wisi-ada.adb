@@ -148,9 +148,9 @@ package body Wisi.Ada is
          raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin'Image;
       end if;
 
-      if WisiToken.Trace_Action > Detail then
-         Put_Line
-           (";; refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
+      if Trace_Action > Detail then
+         Data.Trace.Put_Line
+           ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
       Actual_Parameter_Part := Tree.Child (Call, 2);
@@ -236,7 +236,6 @@ package body Wisi.Ada is
       --  Object.Method (...) to Method (Object, ...).
       use Ada_Annex_P_Process_Actions;
       use Standard.Ada.Strings.Unbounded;
-      use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
       Call          : Node_Access := Find_ID_At (Tree, +name_ID, Edit_Begin);
@@ -252,9 +251,9 @@ package body Wisi.Ada is
          raise SAL.Parameter_Error with "no 'name' at byte_pos" & Edit_Begin'Image;
       end if;
 
-      if WisiToken.Trace_Action > Detail then
-         Put_Line
-           (";; refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
+      if Trace_Action > Detail then
+         Data.Trace.Put_Line
+           ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
       if Tree.ID (Tree.Child (Call, 1)) = +attribute_reference_ID then
@@ -294,8 +293,9 @@ package body Wisi.Ada is
          Result := Result & ", " & Get_Text (Data, Tree, Args);
       end if;
       Result := Result & ")";
-      Put_Line ("[" & Edit_Action_Code & Edit_Begin'Image & Edit_End'Image & " """ &
-                  Elisp_Escape_Quotes (To_String (Result)) & """]");
+      Standard.Ada.Text_IO.Put_Line
+        ("[" & Edit_Action_Code & Edit_Begin'Image & Edit_End'Image & " """ &
+           Elisp_Escape_Quotes (To_String (Result)) & """]");
    end Object_Method_To_Method_Object;
 
    procedure Element_Object_To_Object_Index
@@ -322,9 +322,9 @@ package body Wisi.Ada is
          raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin'Image;
       end if;
 
-      if WisiToken.Trace_Action > Detail then
-         Put_Line
-           (";; refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
+      if Trace_Action > Detail then
+         Data.Trace.Put_Line
+           ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
       Association_List := Tree.Child (Tree.Child (Call, 2), 2);
@@ -380,9 +380,9 @@ package body Wisi.Ada is
          raise SAL.Parameter_Error with "no subprogram_call found at byte_pos" & Edit_Begin'Image;
       end if;
 
-      if WisiToken.Trace_Action > Detail then
-         Put_Line
-           (";; refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
+      if Trace_Action > Detail then
+         Data.Trace.Put_Line
+           ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
       Object := Tree.Child (Call, 1);
@@ -426,6 +426,7 @@ package body Wisi.Ada is
    overriding
    procedure Initialize
      (Data              : in out Parse_Data_Type;
+      Trace             : in     WisiToken.Trace_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
       End_Line          : in     WisiToken.Line_Number_Type;
@@ -437,7 +438,7 @@ package body Wisi.Ada is
       First : Integer := Params'First;
       Last  : Integer := Index (Params, " ");
    begin
-      Wisi.Initialize (Wisi.Parse_Data_Type (Data), Post_Parse_Action, Begin_Line, End_Line, Begin_Indent, "");
+      Wisi.Initialize (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Begin_Line, End_Line, Begin_Indent, "");
 
       Data.First_Comment_ID := +COMMENT_ID;
       Data.Last_Comment_ID  := WisiToken.Invalid_Token_ID;
@@ -592,8 +593,8 @@ package body Wisi.Ada is
       Format_Parameter_List          : constant Positive := 5;
 
    begin
-      if WisiToken.Trace_Action > Extra then
-         Tree.Print_Tree;
+      if Trace_Action > Extra then
+         Data.Trace.Put_Line (Tree.Image (Children => True));
       end if;
       case Action is
       when Method_Object_To_Object_Method =>

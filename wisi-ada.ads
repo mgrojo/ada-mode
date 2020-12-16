@@ -57,6 +57,7 @@ package Wisi.Ada is
    overriding
    procedure Initialize
      (Data              : in out Parse_Data_Type;
+      Trace             : in     WisiToken.Trace_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
       End_Line          : in     WisiToken.Line_Number_Type;

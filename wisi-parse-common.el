@@ -86,9 +86,12 @@ handle gracefully."
 (defvar-local wisi--parser nil
   "The current wisi parser; a ‘wisi-parser’ object.")
 
+(defconst wisi-post-parse-actions '(face navigate indent)
+  "Actions that the parser can perform after parsing.")
+
 (defun wisi-read-parse-action ()
   "Read a parse action symbol from the minibuffer."
-  (intern-soft (completing-read "parse action (indent): " '(face navigate indent) nil t nil nil 'indent)))
+  (intern-soft (completing-read "parse action (indent): " wisi-post-parse-actions nil t nil nil 'indent)))
 
 (defun wisi-search-backward-skip (regexp skip-p)
   "Search backward for REGEXP. If SKIP-P returns non-nil, search again.
@@ -123,13 +126,31 @@ Return nil if no match found before eob."
   "Adjust INDENT for REPAIR (a wisi--parse-error-repair struct). Return new indent."
   indent)
 
-(cl-defgeneric wisi-parse-current ((parser wisi-parser) begin send-end parse-end)
+(cl-defgeneric wisi-parse-current ((parser wisi-parser) parse-action begin send-end parse-end)
   "Parse current buffer starting at BEGIN, continuing at least thru PARSE-END.
-If using an external parser, send it BEGIN thru SEND-END.")
+Send the parser BEGIN thru SEND-END, which does a full or partial
+parse, and performs post-parse action PARSE-ACTION (one of
+`wisi-post-parse-actions') on region BEGIN PARSE-END")
 
-(cl-defgeneric wisi-refactor ((parser wisi-parser) refactor-action parse-begin parse-end edit-begin)
-  "Send parser command to perform REFACTOR-ACTION on region PARSE-BEGIN PARSE-END at point EDIT_BEGIN.
-The parse region is not expanded first; it must be the statement
+(cl-defgeneric wisi-parse-incremental ((parser wisi-parser) edits)
+  "Incrementally parse EDITS in current buffer.
+EDITS is a (possibly empty) list of
+ (STABLE_BYTES STABLE_CHARS DELETED_BYTES DELETED_CHARS
+INSERTED_BYTES INSERTED_CHARS INSERTED_TEXT) where 'stable'
+counts the bytes (chars) that have not changed, 'deleted' counts
+the bytes (chars) that were deleted, 'inserted' counts the
+bytes (chars) that were inserted, and INSERTED_TEXT is the text
+that was inserted.")
+
+(cl-defgeneric wisi-post-parse ((parser wisi-parser) parse-action begin end)
+  "Perform PARSE-ACTION on region BEGIN END.
+PARSE-ACTION is one of `wisi-post-parse-actions'. Buffer must
+have been previously parsed by `wisi-parse-current' or
+`wisi-parse-incremental'");
+
+(cl-defgeneric wisi-refactor ((parser wisi-parser) refactor-action stmt-begin stmt-end edit-begin)
+  "Perform REFACTOR-ACTION on region STMT-BEGIN STMT-END at point EDIT_BEGIN.
+No parse is performed. STMT-BEGIN STMT-END must be the statement
 or declaration containing EDIT_BEGIN.")
 
 (cl-defgeneric wisi-parse-reset ((parser wisi-parser))
@@ -302,11 +323,6 @@ the grammar has excessive conflicts."
   "Maximum parse stack size.
 Larger stack size allows more deeply nested constructs.")
 ;; end of easily changeable parameters
-
-(defvar wisi--parse-action nil
-  ;; not buffer-local; only let-bound in wisi-indent-region, wisi-validate-cache
-  "Reason current parse is begin run; one of
-{indent, face, navigate}.")
 
 (defvar-local wisi-indent-comment-col-0 nil
   "If non-nil, comments currently starting in column 0 are left in column 0.

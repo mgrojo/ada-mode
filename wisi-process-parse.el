@@ -162,15 +162,15 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (pop-to-buffer (wisi-process--parser-buffer parser))
     (error "wisi-process-parse process not active")))
 
-(defun wisi-process-parse--send-parse (parser begin send-end parse-end)
-  "Send a parse command to PARSER external process, followed by
-the content of the current buffer from BEGIN thru SEND-END.  Does
-not wait for command to complete. PARSE-END is end of desired
-parse region."
+(defun wisi-process-parse--send-parse (parser parse-action begin send-end parse-end)
+  "Send a full or partial PARSE-ACTION command to PARSER external process.
+The command is followed by the content of the current buffer from
+BEGIN thru SEND-END.  Does not wait for command to
+complete. PARSE-END is end of desired parse region."
   ;; Must match "parse" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Parse_Params.
   (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d \"%s\" %d %d %d %d %d %d %d %s"
-		      (cl-ecase wisi--parse-action
+		      (cl-ecase parse-action
 			(navigate 0)
 			(face 1)
 			(indent 2))
@@ -537,7 +537,7 @@ one or more Edit messages."
 		:message (format "%s:%d:%d: parser busy (try ’wisi-kill-parser’)"
 				 (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "") 1 1))
 	       ))
-	(error "%s parse abandoned; parser busy - use partial parse?" wisi--parse-action)
+	(error "parse abandoned; parser busy - use partial parse?")
 	)
 
     ;; It is not possible for a background elisp function (ie
@@ -750,11 +750,11 @@ one or more Edit messages."
        (signal (car err) (cdr err))
        )))
 
-(cl-defmethod wisi-parse-current ((parser wisi-process--parser) begin send-end parse-end)
+(cl-defmethod wisi-parse-current ((parser wisi-process--parser) parse-action begin send-end parse-end)
   (wisi-process-parse--prepare parser)
   (let ((total-line-count (1+ (count-lines (point-max) (point-min)))))
     (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin total-line-count))
-    (wisi-process-parse--send-parse parser begin send-end parse-end)
+    (wisi-process-parse--send-parse parser parse-action begin send-end parse-end)
 
     ;; We reset the elisp lexer, because post-parse actions may use it.
     (when wisi--lexer
@@ -764,10 +764,10 @@ one or more Edit messages."
   (cons begin (point))
   )
 
-(cl-defmethod wisi-refactor ((parser wisi-process--parser) refactor-action parse-begin parse-end edit-begin)
+(cl-defmethod wisi-refactor ((parser wisi-process--parser) refactor-action stmt-begin stmt-end edit-begin)
   (save-excursion
     (wisi-process-parse--prepare parser)
-    (wisi-process-parse--send-refactor parser refactor-action parse-begin parse-end edit-begin)
+    (wisi-process-parse--send-refactor parser refactor-action stmt-begin stmt-end edit-begin)
     (wisi-process-parse--handle-messages parser))
   )
 
