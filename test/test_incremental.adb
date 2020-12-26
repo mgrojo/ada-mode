@@ -202,9 +202,9 @@ package body Test_Incremental is
            (WisiToken.Base_Buffer_Pos (Initial'First), WisiToken.Base_Buffer_Pos (Initial'Last)),
          --  FIXME: test utf-8
          Edited_Text_Byte_Region  =>
-           (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited'Last)),
+           (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited_Last)),
          Edited_Text_Char_Region  =>
-           (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited'Last)));
+           (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited_Last)));
 
       if WisiToken.Trace_Parse + WisiToken.Trace_Incremental_Parse > WisiToken.Outline then
          New_Line;

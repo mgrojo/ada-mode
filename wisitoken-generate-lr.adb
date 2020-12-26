@@ -343,6 +343,7 @@ package body WisiToken.Generate.LR is
       Found_Iter : constant Iterator := Found_Conflicts.Iterate;
       Found      : Cursor   := Found_Iter.First;
 
+      To_Delete : Conflict_Lists.Tree;
    begin
       loop
          exit when Known = No_Element or Found = No_Element;
@@ -358,17 +359,15 @@ package body WisiToken.Generate.LR is
             Known := Known_Iter.Next (Known);
 
          when Equal =>
-            declare
-               Temp : Cursor := Known;
-            begin
-               Known := Known_Iter.Next (Known);
-               Known_Conflicts.Delete (Temp);
-
-               Temp  := Found;
-               Found := Found_Iter.Next (Found);
-               Found_Conflicts.Delete (Temp);
-            end;
+            To_Delete.Insert (Element (Known));
+            Known := Known_Iter.Next (Known);
+            Found := Found_Iter.Next (Found);
          end case;
+      end loop;
+
+      for Conflict of To_Delete loop
+         Known_Conflicts.Delete (Conflict);
+         Found_Conflicts.Delete (Conflict);
       end loop;
 
       if Found_Conflicts.Length > 0 then

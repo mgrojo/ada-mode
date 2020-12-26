@@ -50,7 +50,7 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers;
+with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with SAL.Gen_Trimmed_Image;
@@ -295,6 +295,8 @@ package WisiToken is
    subtype Buffer_Pos is Base_Buffer_Pos range 1 .. Base_Buffer_Pos'Last; -- match Emacs buffer origin.
 
    type Buffer_Pos_Access is access all Buffer_Pos;
+
+   package Buffer_Pos_Lists is new Ada.Containers.Doubly_Linked_Lists (Buffer_Pos);
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Base_Buffer_Pos);
 

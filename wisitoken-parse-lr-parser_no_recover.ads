@@ -34,8 +34,8 @@ package WisiToken.Parse.LR.Parser_No_Recover is
       Table   : Parse_Table_Ptr;
       Parsers : aliased Parser_Lists.List;
 
-      First_Parser_Label   : Integer;
-      Terminate_Same_State : Boolean; -- IMPROVEME: delete, never set False
+      First_Parser_Label   : Integer; -- FIXME: delete, always 1
+      Terminate_Same_State : Boolean; -- FIXME: delete, never set False
    end record;
 
    overriding procedure Finalize (Object : in out LR.Parser_No_Recover.Parser);
