@@ -130,17 +130,12 @@ Return nil if no match found before eob."
   "Parse current buffer starting at BEGIN, continuing at least thru PARSE-END.
 Send the parser BEGIN thru SEND-END, which does a full or partial
 parse, and performs post-parse action PARSE-ACTION (one of
-`wisi-post-parse-actions') on region BEGIN PARSE-END")
+`wisi-post-parse-actions') on region BEGIN PARSE-END.  Returns
+parsed region.")
 
-(cl-defgeneric wisi-parse-incremental ((parser wisi-parser) edits)
-  "Incrementally parse EDITS in current buffer.
-EDITS is a (possibly empty) list of
- (STABLE_BYTES STABLE_CHARS DELETED_BYTES DELETED_CHARS
-INSERTED_BYTES INSERTED_CHARS INSERTED_TEXT) where 'stable'
-counts the bytes (chars) that have not changed, 'deleted' counts
-the bytes (chars) that were deleted, 'inserted' counts the
-bytes (chars) that were inserted, and INSERTED_TEXT is the text
-that was inserted.")
+(cl-defgeneric wisi-parse-incremental ((parser wisi-parser) &optional full)
+  "Incrementally parse current buffer. If FULL, do initial full parse.
+Text changes are stored in `wisi--changes', created by `wisi-after-change'.")
 
 (cl-defgeneric wisi-post-parse ((parser wisi-parser) parse-action begin end)
   "Perform PARSE-ACTION on region BEGIN END.
@@ -261,7 +256,7 @@ Returns cache, or nil if at end of buffer."
   "If non-nil, disable all elisp actions during parsing.
 Allows timing parse separate from actions.")
 
-(defvar-local wisi-parse-verbosity ""
+(defvar-local wisi-parser-verbosity ""
   "WisiToken trace config; empty string for none.
 See WisiToken Trace_Enable for complete set of options.
 Examples:

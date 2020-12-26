@@ -52,20 +52,32 @@ package Wisi is
    is (Parse_Data_Access (New_User_Data (Template)));
 
    procedure Initialize
-     (Data              : in out Parse_Data_Type;
-      Trace             : in     WisiToken.Trace_Access;
-      Post_Parse_Action : in     Post_Parse_Action_Type;
-      Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type;
-      Begin_Indent      : in     Integer;
-      Params            : in     String);
+     (Data                : in out Parse_Data_Type;
+      Trace               : in     WisiToken.Trace_Access;
+      Post_Parse_Action   : in     Post_Parse_Action_Type;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region;
+      Begin_Line          : in     WisiToken.Line_Number_Type;
+      End_Line            : in     WisiToken.Line_Number_Type;
+      Begin_Indent        : in     Integer;
+      Params              : in     String);
    --  Begin_Line, Begin_Indent only used for Indent. Params
-   --  contains language-specific indent parameter values.
+   --  contains language-specific parameter values.
+
+   procedure Reset
+     (Data                : in out Parse_Data_Type;
+      Post_Parse_Action   : in     Post_Parse_Action_Type;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region);
+   --  Reset for a new post-parse, with data from previous parse.
 
    overriding procedure Reset (Data : in out Parse_Data_Type);
-   --  Reset for a new parse, with data from previous Initialize.
 
    function Post_Parse_Action (Data : in Parse_Data_Type) return Post_Parse_Action_Type;
+
+   procedure Edit
+     (Data  : in out Parse_Data_Type;
+      Edits : in     WisiToken.Parse.KMN_Lists.List);
+   --  Apply edits to Data. Will be followed by Execute_Actions on a
+   --  region of text.
 
    overriding
    procedure Lexer_To_Augmented
@@ -492,6 +504,7 @@ private
 
    package Name_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees
      (WisiToken.Buffer_Region, WisiToken.Buffer_Pos);
+   --  Character positions of names.
 
    type Nil_Integer (Set : Boolean := False) is record
       case Set is
@@ -576,7 +589,10 @@ private
 
       --  Data for post-parse actions
 
-      Post_Parse_Action : Post_Parse_Action_Type;
+      Post_Parse_Action   : Post_Parse_Action_Type;
+      Action_Region_Bytes : WisiToken.Buffer_Region;
+      --  Actions are applied to tokens that overlap this region.
+
       Navigate_Caches   : Navigate_Cache_Trees.Tree;  -- Set by Navigate.
       Name_Caches       : Name_Cache_Trees.Tree;      -- Set by Navigate.
       End_Positions     : Navigate_Cursor_Lists.List; -- Dynamic data for Navigate.

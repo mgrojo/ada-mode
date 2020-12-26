@@ -425,20 +425,23 @@ package body Wisi.Ada is
 
    overriding
    procedure Initialize
-     (Data              : in out Parse_Data_Type;
-      Trace             : in     WisiToken.Trace_Access;
-      Post_Parse_Action : in     Post_Parse_Action_Type;
-      Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type;
-      Begin_Indent      : in     Integer;
-      Params            : in     String)
+     (Data                : in out Parse_Data_Type;
+      Trace               : in     WisiToken.Trace_Access;
+      Post_Parse_Action   : in     Post_Parse_Action_Type;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region;
+      Begin_Line          : in     WisiToken.Line_Number_Type;
+      End_Line            : in     WisiToken.Line_Number_Type;
+      Begin_Indent        : in     Integer;
+      Params              : in     String)
    is
       use Standard.Ada.Strings.Fixed;
       use all type Ada_Annex_P_Process_Actions.Token_Enum_ID;
       First : Integer := Params'First;
       Last  : Integer := Index (Params, " ");
    begin
-      Wisi.Initialize (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Begin_Line, End_Line, Begin_Indent, "");
+      Wisi.Initialize
+        (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Action_Region_Bytes, Begin_Line, End_Line,
+         Begin_Indent, "");
 
       Data.First_Comment_ID := +COMMENT_ID;
       Data.Last_Comment_ID  := WisiToken.Invalid_Token_ID;

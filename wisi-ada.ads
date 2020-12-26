@@ -56,13 +56,14 @@ package Wisi.Ada is
 
    overriding
    procedure Initialize
-     (Data              : in out Parse_Data_Type;
-      Trace             : in     WisiToken.Trace_Access;
-      Post_Parse_Action : in     Post_Parse_Action_Type;
-      Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type;
-      Begin_Indent      : in     Integer;
-      Params            : in     String);
+     (Data                : in out Parse_Data_Type;
+      Trace               : in     WisiToken.Trace_Access;
+      Post_Parse_Action   : in     Post_Parse_Action_Type;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region;
+      Begin_Line          : in     WisiToken.Line_Number_Type;
+      End_Line            : in     WisiToken.Line_Number_Type;
+      Begin_Indent        : in     Integer;
+      Params              : in     String);
    --  Call Wisi_Runtime.Initialize, then:
    --
    --  If Params /= "", set all language-specific parameters from Params,

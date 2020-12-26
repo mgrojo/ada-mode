@@ -43,17 +43,20 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+report gnat bug:
+    wisi.adb
+                   Data.Name_Caches (Name).Element.all := @ + Shift_Chars;
+               --  WORKAROUND: GNAT Community 2020 requires the .Element.all here
+
+
 incremental parse
-    add incremental code
-        need to build kmn list
-            add to wisi-before/after-change?
-                ~/.emacs.d/elpa/eglot-1.6/eglot.el eglot--after-change
-                    appends all args to before/after-change to eglot--recent-changes, sends them all to server
-                    from a timer
-                tree-sitter calls edit-tree, parse from after-change
+    test/ada_mode-incremental_parse.adb
+        dies with no error message in parse face
 
-        add command-line 'edit' command to run_*?
+    wisi.adb
+        edit wisi actions to respect data.action_region_bytes
 
+    add command-line 'edit' command to run_*?
 
     add incremental tests
         test/ada_mode-incremental_parse.adb
@@ -68,6 +71,8 @@ incremental parse
     handle parser process die, lose all state for open buffers
         parser report error "not parsed" when next parser action invoked
         -> invalidate caches, retry
+
+    change refactor to require previous parse
 
     run all tests
         build/test.log

@@ -277,8 +277,9 @@ package body Run_Wisi_Common_Parse is
             Post_Parse_Action =>
               (case Cl_Params.Command is
                when Parse    => Cl_Params.Post_Parse_Action,
-               when Refactor => Wisi.Navigate),
-            Begin_Line       =>
+               when Refactor    => Wisi.Navigate),
+            Action_Region_Bytes => (Cl_Params.Begin_Byte_Pos, Cl_Params.Goal_Byte_Pos),
+            Begin_Line          =>
               (case Cl_Params.Command is
                when Parse => Cl_Params.Begin_Line,
                when Refactor => WisiToken.Line_Number_Type'First),

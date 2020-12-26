@@ -40,6 +40,152 @@ package body Wisi is
    ----------
    --  body subprograms bodies, alphabetical
 
+   procedure Edit
+     (Data  : in out Parse_Data_Type;
+      Edits : in     WisiToken.Parse.KMN_Lists.List)
+   is
+      use all type Ada.Containers.Count_Type;
+
+      Old_Point : Buffer_Pos := Buffer_Pos'First; -- in original source text
+
+      Navigate_Iterator : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
+      Name_Iterator     : constant Name_Cache_Trees.Iterator     := Data.Name_Caches.Iterate;
+      Face_Iterator     : constant Face_Cache_Trees.Iterator     := Data.Face_Caches.Iterate;
+
+      Navigate : Navigate_Cache_Trees.Cursor := Navigate_Iterator.First;
+      Name     : Name_Cache_Trees.Cursor     := Name_Iterator.First;
+      Face     : Face_Cache_Trees.Cursor     := Face_Iterator.First;
+
+      Shift_Chars : Base_Buffer_Pos := 0;
+
+      type Old_New is record
+         Old_Char_First : Base_Buffer_Pos;
+         Shift_Chars  : Base_Buffer_Pos;
+      end record;
+
+      Shifts : array (1 .. Edits.Length) of Old_New;
+      Shifts_Next : Ada.Containers.Count_Type := Shifts'First;
+
+      Navigate_Delete : WisiToken.Buffer_Pos_Lists.List;
+      Name_Delete     : WisiToken.Buffer_Pos_Lists.List;
+      Face_Delete     : WisiToken.Buffer_Pos_Lists.List;
+
+      function Map (Old_Pos : in Base_Buffer_Pos) return Base_Buffer_Pos
+      is begin
+         for I in Shifts'Range loop
+            if Old_Pos >= Shifts (I).Old_Char_First and
+              (I = Shifts'Last or else Old_Pos < Shifts (I + 1).Old_Char_First)
+            then
+               return Old_Pos + Shifts (I).Shift_Chars;
+            end if;
+         end loop;
+         raise SAL.Programmer_Error; -- can't get here.
+      end Map;
+
+   begin
+      --  Elisp handles deleting text properties in edited regions; delete
+      --  the same data here. Execute_Actions will computed new text
+      --  properties for the edited regions.
+
+      for Edit of Edits loop
+         Shifts (Shifts_Next) := (Old_Point, Shift_Chars);
+         Shifts_Next := @ + 1;
+
+         Old_Point := @ + Edit.Stable_Chars;
+         declare
+            Old_Edit_Region_Chars : constant Buffer_Region := (Old_Point, Old_Point + Edit.Deleted_Chars);
+         begin
+            loop
+               exit when not Navigate_Cache_Trees.Has_Element (Navigate);
+               exit when Data.Navigate_Caches (Navigate).Pos >= Old_Point;
+
+               --  Navigate positions are updated below using Map.
+
+               Navigate := Navigate_Iterator.Next (Navigate);
+            end loop;
+
+            if Navigate_Cache_Trees.Has_Element (Navigate) and then
+              Inside (Data.Navigate_Caches (Navigate).Pos, Old_Edit_Region_Chars)
+            then
+               Navigate_Delete.Append (Data.Navigate_Caches (Navigate).Pos);
+               Navigate := Navigate_Iterator.Next (Navigate);
+            end if;
+
+            loop
+               exit when not Name_Cache_Trees.Has_Element (Name);
+               exit when Data.Name_Caches (Name).First >= Old_Point;
+
+               Data.Name_Caches.Variable_Ref (Name).Element.all := @ + Shift_Chars;
+               --  WORKAROUND: GNAT Community 2020 requires the .Element.all here
+
+               Name := Name_Iterator.Next (Name);
+            end loop;
+
+            if Name_Cache_Trees.Has_Element (Name) and then
+              Overlaps (Data.Name_Caches (Name), Old_Edit_Region_Chars)
+            then
+                  Name_Delete.Append (Data.Name_Caches (Name).First);
+                  Name := Name_Iterator.Next (Name);
+            end if;
+
+            loop
+               exit when not Face_Cache_Trees.Has_Element (Face);
+               exit when Data.Face_Caches (Face).Char_Region.First >= Old_Point;
+
+               Data.Face_Caches (Face).Char_Region := @ + Shift_Chars;
+
+               Face := Face_Iterator.Next (Face);
+            end loop;
+
+            if Face_Cache_Trees.Has_Element (Face) and then
+              Overlaps (Data.Face_Caches (Face).Char_Region, Old_Edit_Region_Chars)
+            then
+               Face_Delete.Append (Data.Face_Caches (Face).Char_Region.First);
+               Face := Face_Iterator.Next (Face);
+            end if;
+         end;
+
+         Shift_Chars := @ - Edit.Deleted_Chars + Edit.Inserted_Chars;
+      end loop;
+
+      for Pos of Navigate_Delete loop
+         Data.Navigate_Caches.Delete (Pos);
+      end loop;
+
+      for Pos of Name_Delete loop
+         Data.Name_Caches.Delete (Pos);
+      end loop;
+
+      for Pos of Face_Delete loop
+         Data.Face_Caches.Delete (Pos);
+      end loop;
+
+      --  Now Map is valid; finish shifting Navigate
+      Navigate := Navigate_Iterator.First;
+      loop
+         exit when not Navigate_Cache_Trees.Has_Element (Navigate);
+
+         declare
+            Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Navigate);
+         begin
+            Cache.Pos := Map (@);
+            if Cache.Containing_Pos.Set then
+               Cache.Containing_Pos := (True, Map (@.Item));
+            end if;
+            if Cache.Prev_Pos.Set then
+               Cache.Prev_Pos := (True, Map (@.Item));
+            end if;
+            if Cache.Next_Pos.Set then
+               Cache.Next_Pos := (True, Map (@.Item));
+            end if;
+            if Cache.End_Pos.Set then
+               Cache.End_Pos := (True, Map (@.Item));
+            end if;
+         end;
+         Navigate := Navigate_Iterator.Next (Navigate);
+      end loop;
+   end Edit;
+
    overriding
    function Image_Augmented (Aug : in Augmented) return String
    is
@@ -678,13 +824,14 @@ package body Wisi is
    --  public subprograms (declaration order)
 
    procedure Initialize
-     (Data              : in out Parse_Data_Type;
-      Trace             : in     WisiToken.Trace_Access;
-      Post_Parse_Action : in     Post_Parse_Action_Type;
-      Begin_Line        : in     Line_Number_Type;
-      End_Line          : in     Line_Number_Type;
-      Begin_Indent      : in     Integer;
-      Params            : in     String)
+     (Data                : in out Parse_Data_Type;
+      Trace               : in     WisiToken.Trace_Access;
+      Post_Parse_Action   : in     Post_Parse_Action_Type;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region;
+      Begin_Line          : in     Line_Number_Type;
+      End_Line            : in     Line_Number_Type;
+      Begin_Indent        : in     Integer;
+      Params              : in     String)
    is
       pragma Unreferenced (Params);
    begin
@@ -693,8 +840,9 @@ package body Wisi is
         (First   => Begin_Line,
          Last    => End_Line + 1);
 
-      Data.Post_Parse_Action := Post_Parse_Action;
-      Data.Trace             := Trace;
+      Data.Post_Parse_Action   := Post_Parse_Action;
+      Data.Action_Region_Bytes := Action_Region_Bytes;
+      Data.Trace               := Trace;
 
       case Post_Parse_Action is
       when Navigate | Face =>
@@ -713,6 +861,15 @@ package body Wisi is
       raise SAL.Programmer_Error with "wisi.initialize: " & Ada.Exceptions.Exception_Name (E) & ": " &
         Ada.Exceptions.Exception_Message (E);
    end Initialize;
+
+   procedure Reset
+     (Data                : in out Parse_Data_Type;
+      Post_Parse_Action   : in     Post_Parse_Action_Type;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region)
+   is begin
+      Data.Post_Parse_Action   := Post_Parse_Action;
+      Data.Action_Region_Bytes := Action_Region_Bytes;
+   end Reset;
 
    overriding procedure Reset (Data : in out Parse_Data_Type)
    is begin
@@ -1727,18 +1884,21 @@ package body Wisi is
                      Cache : Face_Cache_Type renames Data.Face_Caches (Cache_Cur);
                      Other_Cur : Cursor := Find_In_Range
                        (Iter, Ascending, Cache.Char_Region.Last + 1, Token.Char_Region.Last);
-                     Temp : Cursor;
+                     To_Delete : Buffer_Pos_Lists.List;
                   begin
                      loop
                         exit when not Has_Element (Other_Cur) or else
                           Data.Face_Caches (Other_Cur).Char_Region.First > Token.Char_Region.Last;
-                        Temp := Other_Cur;
+                        To_Delete.Append (Data.Face_Caches (Other_Cur).Char_Region.First);
                         Other_Cur := Next (Iter, Other_Cur);
-                        Delete (Data.Face_Caches, Temp);
                      end loop;
 
                      Cache.Class            := Param.Class;
                      Cache.Char_Region.Last := Token.Char_Region.Last;
+
+                     for Face of To_Delete loop
+                        Data.Face_Caches.Delete (Face);
+                     end loop;
                   end;
                else
                   Data.Face_Caches.Insert ((Token.Char_Region, Param.Class, (Set => False)));
@@ -1760,20 +1920,22 @@ package body Wisi is
 
       Iter      : constant Iterator := Data.Face_Caches.Iterate;
       Cache_Cur : Cursor;
-      Temp      : Cursor;
    begin
       for I of Params loop
          if Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region then
             declare
                Token : constant Base_Token := Tree.Base_Token (Tokens (I));
+               To_Delete : Buffer_Pos_Lists.List;
             begin
                Cache_Cur := Find_In_Range (Iter, Ascending, Token.Char_Region.First, Token.Char_Region.Last);
                loop
                   exit when not Has_Element (Cache_Cur) or else
                     Data.Face_Caches (Cache_Cur).Char_Region.First > Token.Char_Region.Last;
-                  Temp := Cache_Cur;
+                  To_Delete.Append (Data.Face_Caches (Cache_Cur).Char_Region.First);
                   Cache_Cur := Next (Iter, Cache_Cur);
-                  Delete (Data.Face_Caches, Temp);
+               end loop;
+               for Face of To_Delete loop
+                  Data.Face_Caches.Delete (Face);
                end loop;
             end;
          end if;

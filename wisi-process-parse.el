@@ -167,9 +167,9 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 The command is followed by the content of the current buffer from
 BEGIN thru SEND-END.  Does not wait for command to
 complete. PARSE-END is end of desired parse region."
-  ;; Must match "parse" command arguments read by
+  ;; Must match "full/partial parse" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Parse_Params.
-  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d \"%s\" %d %d %d %d %d %d %d %s"
+  (let* ((cmd (format "parse 0 %d \"%s\" %d %d %d %d %d %d \"%s\" %d %d %d %d %d %d %d %s"
 		      (cl-ecase parse-action
 			(navigate 0)
 			(face 1)
@@ -201,7 +201,7 @@ complete. PARSE-END is end of desired parse region."
 		      (if (or (and (= begin (point-min)) (= parse-end (point-max)))
 			      (< (point-max) wisi-partial-parse-threshold))
 			  0 1) ;; partial parse active
-		      wisi-parse-verbosity
+		      wisi-parser-verbosity
 		      (or wisi-mckenzie-task-count -1)
 		      (or wisi-mckenzie-zombie-limit -1)
 		      (or wisi-mckenzie-enqueue-limit -1)
@@ -217,8 +217,65 @@ complete. PARSE-END is end of desired parse region."
     (process-send-string process msg)
     (process-send-string process (buffer-substring-no-properties begin send-end))
 
-    ;; We don’t wait for the send to complete; the external process
-    ;; may start parsing and send an error message.
+    ;; We don’t wait for the send to complete here.
+    ))
+
+(defun wisi-process-parse--send-incremental-parse (parser full)
+  "Send an incremental parse command to PARSER external process.
+If FULL, do initial full parse.  Does not wait for command to
+complete."
+  ;; Must match "incremental parse" command arguments read by
+  ;; emacs_wisi_common_parse.adb Get_Parse_Params.
+  (let* ((cmd (format "parse 1 \"%s\" \"%s\" %d %d %d %d %d %s \"%s\""
+		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		      wisi-parser-verbosity
+		      (or wisi-mckenzie-task-count -1)
+		      (or wisi-mckenzie-zombie-limit -1)
+		      (or wisi-mckenzie-enqueue-limit -1)
+		      (or wisi-parse-max-parallel -1)
+		      (if full 1 0)
+		      (if (or full
+			      (null wisi--changes))
+			  "()"
+			(prin1-to-string wisi--changes))
+		      (wisi-parse-format-language-options parser)
+		      ))
+	 (msg (format "%03d%s" (length cmd) cmd))
+	 (process (wisi-process--parser-process parser)))
+
+    (with-current-buffer (wisi-process--parser-buffer parser)
+      (erase-buffer))
+
+    (process-send-string process msg)
+    (setq wisi--changes nil)
+
+    ;; We don’t wait for the send to complete here.
+    ))
+
+(defun wisi-process-parse--send-action (parser parse-action begin end)
+  "Send a post-parse PARSE-ACTION command to PARSER external process.
+Does not wait for command to complete."
+  ;; Must match emacs_wisi_common_parse.adb Get_Parse_Action.
+  (let* ((cmd (format "post-parse \"%s\" \"%s\" %d %d %d \"%s\""
+		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		      wisi-parser-verbosity
+		      (cl-ecase parse-action
+			(navigate 0)
+			(face 1)
+			(indent 2))
+		      (position-bytes begin)
+		      (position-bytes end)
+		      (wisi-parse-format-language-options parser)
+		      ))
+	 (msg (format "%03d%s" (length cmd) cmd))
+	 (process (wisi-process--parser-process parser)))
+
+    (with-current-buffer (wisi-process--parser-buffer parser)
+      (erase-buffer))
+
+    (process-send-string process msg)
+
+    ;; We don’t wait for the send to complete here.
     ))
 
 (defun wisi-process-parse--send-refactor (parser refactor-action parse-begin parse-end edit-begin)
@@ -238,7 +295,7 @@ one or more Edit messages."
 		      (line-number-at-pos parse-begin)
 		      (line-number-at-pos parse-end)
 		      (save-excursion (goto-char parse-begin) (back-to-indentation) (current-column));; begin_indent
-		      wisi-parse-verbosity
+		      wisi-parser-verbosity
 		      (or wisi-parse-max-parallel -1)
 		      (- (position-bytes parse-end) (position-bytes parse-begin)) ;; parse-end is after last byte
 		      ))
@@ -762,6 +819,18 @@ one or more Edit messages."
     )
   (wisi-process-parse--handle-messages parser)
   (cons begin (point))
+  )
+
+(cl-defmethod wisi-parse-incremental ((parser wisi-process--parser) &optional full)
+  (wisi-process-parse--prepare parser)
+  (wisi-process-parse--send-incremental-parse parser full)
+  (wisi-process-parse--handle-messages parser)
+  )
+
+(cl-defmethod wisi-post-parse ((parser wisi-process--parser) parse-action begin end)
+  (wisi-process-parse--prepare parser)
+  (wisi-process-parse--send-action parser parse-action begin end)
+  (wisi-process-parse--handle-messages parser)
   )
 
 (cl-defmethod wisi-refactor ((parser wisi-process--parser) refactor-action stmt-begin stmt-end edit-begin)

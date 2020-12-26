@@ -152,14 +152,17 @@ Useful when debugging parser or parser actions."
   :group 'wisi
   :safe 'booleanp)
 
+(defcustom wisi-incremental-parse-enable nil
+  "If non-nil, use incremental parse when possible."
+  :type 'boolean
+  :group 'wisi
+  :safe 'booleanp)
+
 (defconst wisi-error-buffer-name "*wisi syntax errors*"
   "Name of buffer for displaying syntax errors.")
 
 (defvar wisi-error-buffer nil
   "Buffer for displaying syntax errors.")
-
-(defvar wisi-incremental-parse-enable nil
-  "If non-nil, use incremental parse when possible.")
 
 (defvar wisi-inhibit-parse nil
   "When non-nil, don't run the parser.
@@ -446,6 +449,7 @@ Truncate any region that overlaps POS."
     (wisi-parse-reset wisi--parser))
   (syntax-ppss-flush-cache (point-min)) ;; necessary after edit during ediff-regions
 
+  (setq wisi--changes nil)
   (setq wisi--change-beg most-positive-fixnum)
   (setq wisi--change-end nil)
   (setq wisi--deleted-syntax nil)
@@ -493,9 +497,20 @@ Used to ignore whitespace changes in before/after change hooks.")
 (defvar-local wisi--last-parse-action nil
   "Value of parse-action when `wisi-validate-cache' was last run.")
 
+(defvar-local wisi--changes nil
+  "Cached list of args to wisi-after-change, for incremental parse.
+Each element is (BEGIN-CHARS END-CHARS DELETED-BYTES DELETED-CHARS)")
+
+(defvar-local wisi--deleted-bytes 0
+  "Cached count of bytes deleted.
+Set by `wisi-before-change', used by 'wisi-after-change'")
+
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
   ;; begin . (1- end) is range of text being deleted
+  (when wisi-incremental-parse-enable
+    (setq wisi--deleted-bytes (string-bytes (buffer-substring-no-properties begin end))))
+
   (unless wisi-indenting-p
     ;; We set wisi--change-beg, -end even if only inserting, so we
     ;; don't have to do it again in wisi-after-change.
@@ -528,7 +543,7 @@ Used to ignore whitespace changes in before/after change hooks.")
 	)
        ))))
 
-(defun wisi-after-change (begin end _length)
+(defun wisi-after-change (begin end length)
   "For `after-change-functions'"
   ;; begin . end is range of text being inserted (empty if equal);
   ;; length is the size of the deleted text.
@@ -539,6 +554,12 @@ Used to ignore whitespace changes in before/after change hooks.")
   ;; If the insertion changes a word that has wisi fontification,
   ;; remove fontification from the entire word, so it is all
   ;; refontified consistently.
+
+  (when wisi-incremental-parse-enable
+    (push
+     (list (position-bytes begin) begin (position-bytes end) end wisi--deleted-bytes length
+	   (buffer-substring-no-properties begin end))
+     wisi--changes))
 
   (let (word-begin word-end)
     (save-excursion
@@ -783,6 +804,7 @@ Usefull if the parser appears to be hung."
 
 (defun wisi-partial-parse-p (begin end)
   (and (wisi-process--parser-p wisi--parser)
+       (not wisi-incremental-parse-enable)
        (not (and (= begin (point-min))
 		 (= end (point-max))))
        (>= (point-max) wisi-partial-parse-threshold)))
@@ -826,16 +848,24 @@ Usefull if the parser appears to be hung."
 
       (condition-case-unless-debug err
 	  (save-excursion
-	    (if partial-parse-p
+	    (cond
+	     (partial-parse-p
 	      (let ((send-region (wisi-parse-expand-region wisi--parser begin parse-end)))
 		(setq parsed-region (wisi-parse-current wisi--parser (car send-region) (cdr send-region) parse-end))
-		(wisi-cache-add-region parsed-region parse-action))
+		(wisi-cache-add-region parsed-region parse-action)))
 
-	      ;; parse full buffer
+	     (wisi-incremental-parse-enable
+	      (when wisi--changes
+		(wisi-parse-incremental wisi--parser))
+	      (wisi-post-parse wisi--parser parse-action begin parse-end)
+	      (wisi-cache-add-region (cons begin parse-end) parse-action))
+
+	     (t ;; parse full buffer
 	      (setq parsed-region (cons (point-min) (point-max)))
 	      (wisi-cache-set-region
 	       (wisi-parse-current wisi--parser (point-min) (point-max) (point-max))
 	       parse-action))
+	     )
 
 	    (when (> wisi-debug 0) (message "... parsed %s" parsed-region))
 	    (setq wisi-parse-failed nil))
@@ -1726,9 +1756,6 @@ where the car is a list (FILE LINE COL)."
 
 (cl-defun wisi-setup (&key indent-calculate post-indent-fail parser)
   "Set up a buffer for parsing files with wisi."
-  (when wisi--parser
-    (wisi-kill-parser))
-
   (setq wisi--parser parser)
   (setq wisi--cached-regions
 	(list
@@ -1772,8 +1799,14 @@ where the car is a list (FILE LINE COL)."
   (remove-hook 'hack-local-variables-hook #'wisi-post-local-vars)
 
   (unless wisi-disable-face
-    (jit-lock-register #'wisi-fontify-region)))
+    (jit-lock-register #'wisi-fontify-region))
 
+  ;; We don't run this in the background, because the next action is
+  ;; most likely font-lock, which would then have to wait for the
+  ;; parse anyway. IMPROVEME: do partial parse + incremental on that
+  ;; until actually need full parse.
+  (when wisi-incremental-parse-enable
+    (wisi-parse-incremental wisi--parser t)))
 
 (provide 'wisi)
 ;;; wisi.el ends here

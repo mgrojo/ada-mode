@@ -18,10 +18,11 @@
 
 pragma License (GPL);
 
+with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Strings.Unbounded;
 with System;
 with Wisi;
-with WisiToken;
+with WisiToken.Parse;
 with Wisi_Parse_Context;
 package Emacs_Wisi_Common_Parse is
 
@@ -64,6 +65,13 @@ package Emacs_Wisi_Common_Parse is
       Last   : in out Integer)
      return Integer;
 
+   procedure Skip
+     (Source : in     String;
+      Last   : in out Integer;
+      Char   : in     Character);
+   --  Check that Source (Last + 1) = Char. If so, increment Last.
+   --  If not, raise Protocol_Error.
+
    type Process_Start_Params is record
       Recover_Log_File_Name : Ada.Strings.Unbounded.Unbounded_String;
       --  log enabled if non-empty.
@@ -82,41 +90,84 @@ package Emacs_Wisi_Common_Parse is
    ----------
    --  Parse command
 
-   type Parse_Params is record
-      Post_Parse_Action : Wisi.Post_Parse_Action_Type;
+   type Change is record
+      Begin_Byte_Pos : WisiToken.Buffer_Pos;
+      Begin_Char_Pos : WisiToken.Buffer_Pos;
+      End_Byte_Pos   : WisiToken.Buffer_Pos;
+      End_Char_Pos   : WisiToken.Buffer_Pos; --  emacs convention: end is _after_ last inserted char
+      Inserted_Text  : Ada.Strings.Unbounded.Unbounded_String;
+      Deleted_Bytes  : Integer;
+      Deleted_Chars  : Integer;
+   end record;
+
+   package Change_Lists is new Ada.Containers.Doubly_Linked_Lists (Change);
+
+   procedure Edit_Source
+     (Source           : in out Ada.Strings.Unbounded.String_Access;
+      Source_Byte_Last : in out Integer;
+      Source_Char_Last : in out Integer;
+      Changes          : in     Change_Lists.List;
+      KMN_List         :    out WisiToken.Parse.KMN_Lists.List);
+
+   type Parse_Params (Incremental : Boolean) is record
+
       Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
 
-      Begin_Byte_Pos : Integer;
-      --  Source file byte position of first char sent; start parse here.
+      Verbosity     : Ada.Strings.Unbounded.Unbounded_String;
+      Task_Count    : Integer;
+      Zombie_Limit  : Integer;
+      Enqueue_Limit : Integer;
+      Max_Parallel  : Integer;
 
-      End_Byte_Pos : Integer;
-      --  Byte position of last char sent.
+      case Incremental is
+      when False =>
+         Post_Parse_Action : Wisi.Post_Parse_Action_Type;
+         Begin_Byte_Pos : Integer;
+         --  Source file byte position of first char sent; start parse here.
 
-      Goal_Byte_Pos : Integer;
-      --  Byte position of end of desired parse region; terminate parse at
-      --  or after here.
+         End_Byte_Pos : Integer;
+         --  Byte position of last char sent.
 
-      Begin_Char_Pos : WisiToken.Buffer_Pos;
-      --  Char position of first char sent.
+         Goal_Byte_Pos : Integer;
+         --  Byte position of end of desired parse region; terminate parse at
+         --  or after here.
 
-      Begin_Line : WisiToken.Line_Number_Type;
-      End_Line   : WisiToken.Line_Number_Type;
-      --  Line number of line containing Begin_Byte_Pos, End_Byte_Pos
+         Begin_Char_Pos : WisiToken.Buffer_Pos;
+         --  Char position of first char sent.
 
-      Begin_Indent : Integer;
-      --  Indentation of Line_Begin
+         Begin_Line : WisiToken.Line_Number_Type;
+         End_Line   : WisiToken.Line_Number_Type;
+         --  Line number of line containing Begin_Byte_Pos, End_Byte_Pos
 
-      Partial_Parse_Active : Boolean;
-      Verbosity            : Ada.Strings.Unbounded.Unbounded_String;
-      Task_Count           : Integer;
-      Zombie_Limit         : Integer;
-      Enqueue_Limit        : Integer;
-      Max_Parallel         : Integer;
-      Byte_Count           : Integer;
-      --  Count of bytes of source file sent.
+         Begin_Indent : Integer;
+         --  Indentation of Line_Begin
+
+         Partial_Parse_Active : Boolean;
+         Byte_Count           : Integer;
+         --  Count of bytes of source file sent.
+
+      when True =>
+         Initial_Full_Parse : Boolean;
+         Changes            : Change_Lists.List;
+
+      end case;
    end record;
 
    function Get_Parse_Params (Command_Line : in String; Last : in out Integer) return Parse_Params;
+
+   ----------
+   --  Post-Parse command
+
+   type Post_Parse_Params is record
+      Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
+      Verbosity         : Ada.Strings.Unbounded.Unbounded_String;
+      Post_Parse_Action : Wisi.Post_Parse_Action_Type;
+      Begin_Byte_Pos    : Integer;
+      End_Byte_Pos      : Integer;
+      --  Region to execute action in.
+   end record;
+
+   function Get_Post_Parse_Params (Command_Line : in String; Last : in out Integer) return Post_Parse_Params;
 
    ----------
    --  Refactor command

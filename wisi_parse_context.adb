@@ -44,6 +44,8 @@ package body Wisi_Parse_Context is
       return Result : constant Parse_Context_Access :=
         (new Parse_Context'
            (Text_Buffer                       => null,
+            Text_Buffer_Byte_Last             => 0,
+            Text_Buffer_Char_Last             => 0,
             Parser                            => WisiToken.Parse.LR.Parser.Parser'
               (Ada.Finalization.Limited_Controlled with
                Trace                          => Trace,
