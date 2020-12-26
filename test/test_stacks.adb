@@ -22,6 +22,7 @@ with AUnit.Checks;
 with Ada.Exceptions;
 with SAL.AUnit;
 with SAL.Gen_Unbounded_Definite_Stacks;
+with System.Assertions;
 package body Test_Stacks is
 
    type Integer_Array_Type is array (SAL.Peek_Type range <>) of Integer;
@@ -103,7 +104,7 @@ package body Test_Stacks is
          Junk := Stack.Pop;
          AUnit.Assertions.Assert (False, "10 did not get exception");
       exception
-      when SAL.Container_Empty =>
+      when SAL.Container_Empty | System.Assertions.Assert_Failure =>
          null;
       end;
 

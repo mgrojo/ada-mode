@@ -325,9 +325,7 @@ package body Test_Red_Black_Trees is
 
       Check_Null ("in_range not found", Find_In_Range (Tree.Iterate, Ascending, 4, 5));
 
-      I := Find (Tree.Iterate, 10, Unknown);
-      Tree.Delete (I);
-      Check_Null ("delete.i", I);
+      Tree.Delete (10);
       Check_Null ("delete.find", Find (Tree.Iterate, 10, Unknown));
       --                12b
       --          7r          15r
@@ -341,8 +339,7 @@ package body Test_Red_Black_Trees is
       Check ("delete 10.2", Tree, I, 9, Black);
       Validate ("delete 10", Tree);
 
-      I := Find (Tree.Iterate, 7, Unknown);
-      Tree.Delete (I);
+      Tree.Delete (7);
       --                12b
       --          2r          15r
       --      1b     9b    14b   16b
@@ -357,24 +354,21 @@ package body Test_Red_Black_Trees is
       Check ("delete 7.3", Tree, I, 3, Red);
       Validate ("delete 7", Tree);
 
-      I := Find (Tree.Iterate, 17, Unknown);
-      Tree.Delete (I);
+      Tree.Delete (17);
       --                12b
       --          2r          15r
       --      1b     9b    14b   16b
       --           3r
       Validate ("delete 17", Tree);
 
-      I := Find (Tree.Iterate, 16, Unknown);
-      Tree.Delete (I);
+      Tree.Delete (16);
       --                12b
       --          2r          15r
       --      1b     9b    14b        FIXME: wrong
       --           3r
       Validate ("delete 16", Tree);
 
-      I := Find (Tree.Iterate, 15, Unknown);
-      Tree.Delete (I);
+      Tree.Delete (15);
       Validate ("delete 15", Tree);
    end Nominal;
 

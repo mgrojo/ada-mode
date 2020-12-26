@@ -43,10 +43,8 @@ package body SAL.Gen_Unbounded_Sparse_Ordered_Sets is
    end Contains;
 
    procedure Delete (Set : in out Pkg.Set; Item : in Index_Type)
-   is
-      Found : Boolean_Trees.Cursor := Set.Tree.Find (Item);
-   begin
-      Set.Tree.Delete (Found);
+   is begin
+      Set.Tree.Delete (Item);
    end Delete;
 
    function Has_Element (Position : in Cursor) return Boolean

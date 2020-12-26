@@ -929,15 +929,19 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       return Find_Or_Insert (Tree, Element, Found, Duplicate => Ignore, No_Find => False);
    end Find_Or_Insert;
 
-   procedure Delete (Tree : in out Pkg.Tree; Position : in out Cursor)
+   procedure Delete (Tree : in out Pkg.Tree; Key : in Key_Type)
    is
       Nil          : Node_Access renames Tree.Nil;
       T            : Pkg.Tree renames Tree;
-      Z            : constant Node_Access := Position.Node;
+      Z            : constant Node_Access := Find (Tree.Root, Key, Tree.Nil);
       Y            : Node_Access          := Z;
       Y_Orig_Color : Color                := Y.Color;
       X            : Node_Access;
    begin
+      if Z = null then
+         raise SAL.Not_Found;
+      end if;
+
       --  Catch logic errors in use of Nil; these should never be referenced.
       Nil.Parent := null;
       Nil.Left   := null;
@@ -982,8 +986,6 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       if Y_Orig_Color = Black then
          Delete_Fixup (T, X);
       end if;
-
-      Free (Position.Node);
    end Delete;
 
 end SAL.Gen_Unbounded_Definite_Red_Black_Trees;
