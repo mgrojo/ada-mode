@@ -340,6 +340,7 @@ Prompt user if more than one."
 	  ((looking-at (concat ada-gnat-quoted-name-regexp " not declared in " ada-gnat-quoted-name-regexp))
 	   (save-excursion
 	     (let ((child-name (match-string 1))
+		   (partial-parent-name (match-string 2))
 		   (correct-spelling (ada-gnat-misspelling))
 		   (qualified (ada-gnat-qualified)))
 	       (cond
@@ -357,7 +358,7 @@ Prompt user if more than one."
 		(t
 		 ;; else guess that "child" is a child package, and extend the with_clause
 		 (pop-to-buffer source-buffer)
-		 (ada-fix-extend-with-clause child-name))))
+		 (ada-fix-extend-with-clause partial-parent-name child-name))))
 	   t))
 
 	  ((looking-at (concat ada-gnat-quoted-punctuation-regexp

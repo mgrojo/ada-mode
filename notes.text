@@ -977,8 +977,6 @@ update benchmarks above
 
 generate ada.wy LR1 with --task_count 1 to minimize changes from previous ELPA commit
 
-lr1 text rep file got significantly larger; ask about moving to external ELPA branch
-
 savannah support tickets work; mention in readme
 
 https://en.wikipedia.org/wiki/Comparison_of_parser_generators
@@ -986,16 +984,24 @@ https://en.wikipedia.org/wiki/Comparison_of_parser_generators
 add wisitoken grammar doc to wisi package
     doc Ada grammar actions
 
+provide wisitoken_rules.make
+    for %.re2c etc
 
 (dvc-status ".")
 
 # uninstall elpa packages before change version
 build/Makefile uninstall-elpa
 
-wisi is now an external elpa branches
+all packages are now an external elpa branch
     do fresh checkout
-    ada-mode also?
-        if not, convert
+       git clone --single-branch -b externals/ack .../elpa.git
+       or
+       git worktree add packages/ack externals/ack
+        worktree has repo root as parent dir
+       elpa builds info; don't check them into .git
+        specify .texi files in elpa-packages
+       to test local tarball, make build/ada-mode should work
+
 
 check for ELPA patches by others
     (dvc-status "/Projects/elpa")
@@ -1278,6 +1284,9 @@ commit savannah
     C-c C-c
 
     takes ~ 10 min for http://www.nongnu.org/ada-mode/ to reflect cvs commit
+
+update gnu ada-mode manual?
+     https://www.gnu.org/software/emacs/manual/html_mono/ada-mode.html
 
 publish on Alire?
     https://alire.ada.dev/

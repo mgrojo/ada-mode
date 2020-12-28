@@ -426,14 +426,17 @@ sort-lines."
       (ada-fix-sort-context-clause (car context-clause) (point)))
     ))
 
-(defun ada-fix-extend-with-clause (child-name)
+(defun ada-fix-extend-with-clause (partial-parent-name child-name)
   "Assuming point is in a selected name, just before CHILD-NAME, add or
-extend a with_clause to include CHILD-NAME  .	"
+extend a with_clause to include CHILD-NAME."
+  ;; In GNAT Community 2020, point is before partial-parent-name; in
+  ;; earlier gnat, it is after.
+  (search-forward partial-parent-name (line-end-position) t)
   (let ((parent-name-end (point)))
     ;; Find the full parent name; skip back to whitespace, then match
     ;; the name forward.
     (skip-syntax-backward "w_.")
-    (search-forward-regexp ada-name-regexp parent-name-end)
+    (search-forward-regexp ada-name-regexp parent-name-end t)
     (let ((parent-name (match-string 0))
 	  (context-clause (ada-fix-context-clause)))
       (goto-char (car context-clause))
