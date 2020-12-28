@@ -108,15 +108,15 @@ one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
-#	find . -name "*.diff" -not -size 0 >> test.log
 #one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
 # With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
 # to get begin, end pos.
 # partial indent args: begin-byte send-end parse-end begin-char begin-line end-line begin-indent
-#two : RUN_ARGS ?= parse indent ../test/ada_mode-recover_20.adb --verbosity 1 1 4
+two : RUN_ARGS ?= parse indent ../test/ada_mode-recover_41.adb --verbosity "mckenzie=1"
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
-two : ../ada_annex_p_re2c.c
+two : ../ada_annex_p_re2c.c ../run_ada_lalr_parse.exe
+	../run_ada_lalr_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_executables
@@ -486,7 +486,7 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 %$(EXE_EXT) : %.adb force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $*.adb
 
-build_executables : ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_annex_p_re2c.c force
+build_executables :  ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables

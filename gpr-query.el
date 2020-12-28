@@ -202,13 +202,13 @@ Must match gpr_query.adb Version.")
 	     (set-marker (process-mark process) (point-min))
 	     (setf (gpr-query--session-symbols-count-total gpr-query--local-session) nil)
 	     (process-send-string process "complete \"\"\n")
-	     (setf (gpr-query--session-symbols gpr-query--local-session) 'sent-complete))
+	     (setf (gpr-query--session-symbols gpr-query--local-session) 'sent-complete)
+	     (setq gpr-query--symbols-progress "0%"))
 
 	   ((eq (gpr-query--session-symbols gpr-query--local-session) 'sent-complete)
 	    (message "gpr-query symbols received; processing ...")
 	    (gpr-query--read-symbols gpr-query--local-session)
 	    (set-process-filter process nil)
-	    (setq gpr-query--symbols-progress "")
 	    (message "gpr-query symbols processing done")
 	    (process-send-string process "exit\n"))
 
@@ -315,8 +315,7 @@ If NO-SYMBOLS is non-nil, don't create the symbols process."
     ;; returns its first prompt.
     (gpr-query-session-wait session 'xref))
 
-  (let ((user-buffer (current-buffer))
-	(process
+  (let ((process
 	 (cl-ecase command-type
 	   (xref (gpr-query--session-xref-process session))
 	   (symbols (gpr-query--session-symbols-process session))))
@@ -701,32 +700,30 @@ FILE is from gpr-query."
   (let* ((gpr-file (gnat-compiler-gpr-file xref))
 	 (session (gpr-query-cached-session project t)) ;; no-symbols; we only need the db file name.
 	 (db-filename
-	  (condition-case nil
-	      ;; gpr-query--session-send can fail if the .gpr file
-	      ;; contains errors, for example if GPR_PROJECT_PATH is
-	      ;; wrong.
-	      (with-current-buffer (gpr-query--session-send session "db_name" t)
-		(goto-char (point-min))
-		(buffer-substring-no-properties (line-beginning-position) (line-end-position)))
-	    (error
-	     nil)
-	    )))
+	  (unless no-full
+	    (condition-case nil
+		;; gpr-query--session-send can fail if the .gpr file
+		;; contains errors, for example if GPR_PROJECT_PATH is
+		;; wrong.
+		(with-current-buffer (gpr-query--session-send session "db_name" t)
+		  (goto-char (point-min))
+		  (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
+	      (error
+	       nil)
+	      ))))
 
     ;; We have to kill the process to delete the database. If we are
     ;; not deleting the db, this is an easy way to refresh everything
     ;; else.
     (gpr-query-kill-session session)
     (when (and db-filename
-	       (not no-full)
 	       (file-exists-p db-filename))
       (delete-file db-filename))
 
     ;; recreate session from newly parsed project
     (setq gpr-query--sessions (delete (cons gpr-file session) gpr-query--sessions))
-    (setq session (gpr-query-cached-session project))
 
-    (setf (gpr-query--session-no-symbols session) nil)
-    (gpr-query--start-process session 'xref)
+    (setq session (gpr-query-cached-session project))
     ))
 
 (defun gpr-query-tree-refs (project item op)
