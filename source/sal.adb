@@ -54,7 +54,7 @@ package body SAL is
             end if;
 
             J := J + 1;
-            if J > Right'Last then
+            if I < Left'Last and J > Right'Last then
                return Greater;
             end if;
          end loop;
