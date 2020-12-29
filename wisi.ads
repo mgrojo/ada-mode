@@ -51,31 +51,45 @@ package Wisi is
    function New_Parse_Data (Template : in Parse_Data_Type'Class) return Parse_Data_Access
    is (Parse_Data_Access (New_User_Data (Template)));
 
-   procedure Initialize
+   procedure Initialize_Partial_Parse
      (Data                : in out Parse_Data_Type;
       Trace               : in     WisiToken.Trace_Access;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
       Begin_Line          : in     WisiToken.Line_Number_Type;
       End_Line            : in     WisiToken.Line_Number_Type;
-      Begin_Indent        : in     Integer;
-      Params              : in     String);
-   --  Begin_Line, Begin_Indent only used for Indent. Params
-   --  contains language-specific parameter values.
+      Begin_Indent        : in     Integer);
+   --  Begin_Line, Begin_Indent only used for Indent.
 
-   procedure Reset
+   procedure Initialize_Full_Parse
+     (Data     : in out Parse_Data_Type;
+      Trace    : in     WisiToken.Trace_Access;
+      End_Line : in     WisiToken.Line_Number_Type);
+   --  Initialize Data for a new full parse.
+
+   procedure Parse_Language_Params
+     (Data   : in out Parse_Data_Type;
+      Params : in     String)
+   is null;
+   --  If Params /= "", set all language-specific parameters from Params,
+   --  in declaration order; otherwise keep default values. Boolean is
+   --  represented by 0 | 1. Parameter values are space delimited.
+
+   procedure Reset_Post_Parse
      (Data                : in out Parse_Data_Type;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
-      Action_Region_Bytes : in     WisiToken.Buffer_Region);
-   --  Reset for a new post-parse, with data from previous parse.
+      Action_Region_Bytes : in     WisiToken.Buffer_Region;
+      Language_Params     : in     String);
+   --  Reset for a new post-parse action, preserving data from previous parse.
 
    overriding procedure Reset (Data : in out Parse_Data_Type);
 
    function Post_Parse_Action (Data : in Parse_Data_Type) return Post_Parse_Action_Type;
 
    procedure Edit
-     (Data  : in out Parse_Data_Type;
-      Edits : in     WisiToken.Parse.KMN_Lists.List);
+     (Data            : in out Parse_Data_Type;
+      Edits           : in     WisiToken.Parse.KMN_Lists.List;
+      Language_Params : in     String);
    --  Apply edits to Data. Will be followed by Execute_Actions on a
    --  region of text.
 
@@ -96,6 +110,7 @@ package Wisi is
    procedure Initialize_Actions
      (Data : in out Parse_Data_Type;
       Tree : in     WisiToken.Syntax_Trees.Tree'Class);
+   --  FIXME: called when? delete?
 
    overriding
    procedure Insert_Token

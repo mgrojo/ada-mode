@@ -256,11 +256,15 @@ Returns cache, or nil if at end of buffer."
   "If non-nil, disable all elisp actions during parsing.
 Allows timing parse separate from actions.")
 
-(defvar-local wisi-parser-verbosity ""
+(defcustom wisi-parser-verbosity ""
   "WisiToken trace config; empty string for none.
 See WisiToken Trace_Enable for complete set of options.
 Examples:
-debug=1 lexer=1 parse=2 action=3")
+debug=1 lexer=1 parse=2 action=3"
+  :type 'string
+  :group 'wisi
+  :safe 'stringp)
+(make-variable-buffer-local 'wisi-mckenzie-task-count)
 
 (defcustom wisi-mckenzie-task-count nil
   "If integer, sets McKenzie error recovery task count.

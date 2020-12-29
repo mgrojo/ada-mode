@@ -169,6 +169,7 @@ BEGIN thru SEND-END.  Does not wait for command to
 complete. PARSE-END is end of desired parse region."
   ;; Must match "full/partial parse" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Parse_Params.
+  ;; Parse_Kind is always Partial here; that really means "legacy".
   (let* ((cmd (format "parse 0 %d \"%s\" %d %d %d %d %d %d \"%s\" %d %d %d %d %d %d %d %s"
 		      (cl-ecase parse-action
 			(navigate 0)
@@ -226,20 +227,35 @@ If FULL, do initial full parse.  Does not wait for command to
 complete."
   ;; Must match "incremental parse" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Parse_Params.
-  (let* ((cmd (format "parse 1 \"%s\" \"%s\" %d %d %d %d %d %s \"%s\""
-		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
-		      wisi-parser-verbosity
-		      (or wisi-mckenzie-task-count -1)
-		      (or wisi-mckenzie-zombie-limit -1)
-		      (or wisi-mckenzie-enqueue-limit -1)
-		      (or wisi-parse-max-parallel -1)
-		      (if full 1 0)
-		      (if (or full
-			      (null wisi--changes))
-			  "()"
-			(prin1-to-string wisi--changes))
-		      (wisi-parse-format-language-options parser)
-		      ))
+
+  (cl-assert (or full wisi--changes) "incremental parse with no changes is not supported")
+
+  (let* ((cmd
+	  (apply #'format
+		 (concat
+		  "parse %d \"%s\" \"%s\" %d %d %d %d %d "
+		  (if full "%d %d" "%s")
+		  " \"%s\""
+		  )
+		 (append
+		  (list
+		   (if full 2 1) ;; Parse_Kind
+		   (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		   wisi-parser-verbosity
+		   (or wisi-mckenzie-task-count -1)
+		   (or wisi-mckenzie-zombie-limit -1)
+		   (or wisi-mckenzie-enqueue-limit -1)
+		   (or wisi-parse-max-parallel -1)
+		   (if full (- (position-bytes (point-max)) (position-bytes (point-min))) 0)
+		   )
+		  (if full
+		      (list
+		       (point-max) ;; end_char_pos
+		       (line-number-at-pos (point-max)) ;; End_Line
+		       )
+		    (list (prin1-to-string wisi--changes)))
+		  (list (wisi-parse-format-language-options parser))
+		  )))
 	 (msg (format "%03d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
 
@@ -248,6 +264,8 @@ complete."
 
     (process-send-string process msg)
     (setq wisi--changes nil)
+    (when full
+      (process-send-string process (buffer-substring-no-properties (point-min) (point-max))))
 
     ;; We don’t wait for the send to complete here.
     ))
@@ -793,9 +811,6 @@ one or more Edit messages."
 
 	  (setf (wisi-process--parser-busy parser) nil)
 	  (set-buffer source-buffer)
-	  ;; If we get here, the parse succeeded (possibly with error
-	  ;; recovery); move point to end of parsed region.
-	  (goto-char (wisi-process--parser-end-pos parser))
 	  )
 
       (wisi-parse-error
@@ -818,7 +833,7 @@ one or more Edit messages."
       (wisi-elisp-lexer-reset total-line-count wisi--lexer))
     )
   (wisi-process-parse--handle-messages parser)
-  (cons begin (point))
+  (cons begin (wisi-process--parser-end-pos parser))
   )
 
 (cl-defmethod wisi-parse-incremental ((parser wisi-process--parser) &optional full)

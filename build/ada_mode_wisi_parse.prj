@@ -9,6 +9,7 @@ gpr_project_path=../../org.stephe_leake.aunit_ext/build
 gpr_file=ada_mode_wisi_parse.gpr
 
 casing=libadalang.casing
+casing=ada-mode.casing
 casing=$WISITOKEN/build/emacs_case_exceptions
 casing=$SAL/build/sal.casing
 

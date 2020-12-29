@@ -31,22 +31,47 @@ package Wisi.Ada is
    --  required, record new version in NEWS-ada-mode.text.
 
    --  Indent parameters from [2]
-   Ada_Indent                 : Integer := 3;
-   Ada_Indent_Broken          : Integer := 2;
-   Ada_Indent_Comment_Col_0   : Boolean := False;
-   Ada_Indent_Comment_GNAT    : Boolean := False;
-   Ada_Indent_Label           : Integer := -3;
-   Ada_Indent_Record_Rel_Type : Integer := 3;
-   Ada_Indent_Renames         : Integer := 2;
-   Ada_Indent_Return          : Integer := 0;
-   Ada_Indent_Use             : Integer := 2;
-   Ada_Indent_When            : Integer := 3;
-   Ada_Indent_With            : Integer := 2;
+   Ada_Indent_Default : constant Integer := 3;
+   Ada_Indent         : Integer          := Ada_Indent_Default;
+
+   Ada_Indent_Broken_Default : constant Integer := 2;
+   Ada_Indent_Broken         : Integer          := Ada_Indent_Broken_Default;
+
+   Ada_Indent_Comment_Col_0_Default : constant Boolean := False;
+   Ada_Indent_Comment_Col_0         : Boolean          := Ada_Indent_Comment_Col_0_Default;
+
+   Ada_Indent_Comment_GNAT_Default : constant Boolean := False;
+   Ada_Indent_Comment_GNAT         : Boolean          := Ada_Indent_Comment_GNAT_Default;
+
+   Ada_Indent_Label_Default : constant Integer := -3;
+   Ada_Indent_Label         : Integer          := Ada_Indent_Label_Default;
+
+   Ada_Indent_Record_Rel_Type_Default : constant Integer := 3;
+   Ada_Indent_Record_Rel_Type         : Integer          := Ada_Indent_Record_Rel_Type_Default;
+
+   Ada_Indent_Renames_Default : constant Integer := 2;
+   Ada_Indent_Renames         : Integer          := Ada_Indent_Renames_Default;
+
+   Ada_Indent_Return_Default : constant Integer := 0;
+   Ada_Indent_Return         : Integer          := Ada_Indent_Return_Default;
+
+   Ada_Indent_Use_Default : constant Integer := 2;
+   Ada_Indent_Use         : Integer          := Ada_Indent_Use_Default;
+
+   Ada_Indent_When_Default : constant Integer := 3;
+   Ada_Indent_When         : Integer          := Ada_Indent_When_Default;
+
+   Ada_Indent_With_Default : constant Integer := 2;
+   Ada_Indent_With         : Integer          := Ada_Indent_With_Default;
+
    --  ada-indent-after-trailing-comment is implemented in elisp
-   Ada_Indent_Subprogram_Is   : Integer := 2;
+
+   Ada_Indent_Subprogram_Is_Default : constant Integer := 2;
+   Ada_Indent_Subprogram_Is         : Integer          := Ada_Indent_Subprogram_Is_Default;
 
    --  Other parameters
-   End_Names_Optional : Boolean := False;
+   End_Names_Optional_Default : constant Boolean := False;
+   End_Names_Optional         : Boolean          := End_Names_Optional_Default;
 
    type Parse_Data_Type is new Wisi.Parse_Data_Type with null record;
 
@@ -55,22 +80,29 @@ package Wisi.Ada is
    is (new Parse_Data_Type);
 
    overriding
-   procedure Initialize
+   procedure Initialize_Partial_Parse
      (Data                : in out Parse_Data_Type;
       Trace               : in     WisiToken.Trace_Access;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
       Begin_Line          : in     WisiToken.Line_Number_Type;
       End_Line            : in     WisiToken.Line_Number_Type;
-      Begin_Indent        : in     Integer;
-      Params              : in     String);
-   --  Call Wisi_Runtime.Initialize, then:
-   --
-   --  If Params /= "", set all language-specific parameters from Params,
-   --  in declaration order; otherwise keep default values. Boolean is
-   --  represented by 0 | 1. Parameter values are space delimited.
-   --
-   --  Also do any other initialization that Data needs.
+      Begin_Indent        : in     Integer);
+   --  Call Wisi.Initialize_Partial_Parse, then do any other
+   --  initialization that Data needs.
+
+   overriding
+   procedure Initialize_Full_Parse
+     (Data     : in out Parse_Data_Type;
+      Trace    : in     WisiToken.Trace_Access;
+      End_Line : in     WisiToken.Line_Number_Type);
+   --  Call Wisi.Initialize_Full_Parse, then do any other
+   --  initialization that Data needs.
+
+   overriding
+   procedure Parse_Language_Params
+     (Data   : in out Parse_Data_Type;
+      Params : in     String);
 
    overriding
    function Insert_After

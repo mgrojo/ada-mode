@@ -14,11 +14,12 @@
 pragma License (Modified_GPL);
 
 with Ada.Finalization;
+with Ada.Text_IO;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 package body Wisi_Parse_Context is
 
    function Source_File_Name (Item : in Parse_Context_Access) return String
-   is (WisiToken.Parse.Source_File_Name (Item.Parser));
+   is (Ada.Strings.Unbounded.To_String (Item.File_Name));
 
    package File_Parse_Context_Maps is new SAL.Gen_Unbounded_Definite_Red_Black_Trees
      (Element_Type => Parse_Context_Access,
@@ -35,15 +36,25 @@ package body Wisi_Parse_Context is
      return Parse_Context_Access
    is
       use File_Parse_Context_Maps;
+      use WisiToken;
+
       Found : constant Cursor := Map.Find (File_Name);
    begin
       if Has_Element (Found) then
-         return Element (Found);
+         return Result : constant Parse_Context_Access := Element (Found) do
+            if Language.Descriptor /= Result.Parser.Tree.Lexer.Descriptor then
+               raise WisiToken.User_Error with "language does not match for buffer '" & File_Name & "'";
+            end if;
+            if Trace_Incremental_Parse > Outline then
+               Trace.Put_Line ("parse_context found");
+            end if;
+         end return;
       end if;
 
       return Result : constant Parse_Context_Access :=
         (new Parse_Context'
-           (Text_Buffer                       => null,
+           (File_Name                         => +File_Name,
+            Text_Buffer                       => null,
             Text_Buffer_Byte_Last             => 0,
             Text_Buffer_Char_Last             => 0,
             Parser                            => WisiToken.Parse.LR.Parser.Parser'
@@ -60,8 +71,39 @@ package body Wisi_Parse_Context is
       do
          Result.Parser.Tree.Lexer := Language.Lexer;
          Map.Insert (Result);
+         if Trace_Incremental_Parse > Outline then
+            Trace.Put_Line ("parse_context created");
+         end if;
       end return;
    end Find_Create;
+
+   function Find
+     (File_Name : in String;
+      Language  : in Wisi_Parse_Context.Language)
+     return Parse_Context_Access
+   is
+      use File_Parse_Context_Maps;
+      use WisiToken;
+      use all type WisiToken.Descriptor_Access_Constant;
+
+      Found : constant Cursor := Map.Find (File_Name);
+   begin
+      if Has_Element (Found) then
+         return Result : constant Parse_Context_Access := Element (Found) do
+            if Language.Descriptor /= Result.Parser.Tree.Lexer.Descriptor then
+               raise WisiToken.User_Error with "language does not match for buffer '" & File_Name & "'";
+            end if;
+            if Trace_Incremental_Parse > Outline then
+               Result.Parser.Trace.Put_Line ("parse_context found");
+            end if;
+         end return;
+      else
+         if Trace_Incremental_Parse > Outline then
+            Ada.Text_IO.Put_Line ("parse_context not found");
+         end if;
+         return null;
+      end if;
+   end Find;
 
    procedure Clear
    is begin

@@ -33,10 +33,18 @@ package Wisi_Parse_Context is
    end record;
 
    type Parse_Context is limited record
-      Text_Buffer           : Ada.Strings.Unbounded.String_Access;
+      File_Name   : Ada.Strings.Unbounded.Unbounded_String;
+      Text_Buffer : Ada.Strings.Unbounded.String_Access;
+      --  Text_Buffer may hold all or part of the actual Emacs buffer
+      --  content. If partial, the lexer holds the mapping from Text_Buffer
+      --  index to Emacs buffer position.
+
       Text_Buffer_Byte_Last : Integer;
       Text_Buffer_Char_Last : Integer;
-      Parser                : WisiToken.Parse.LR.Parser.Parser;
+      --  For Incremental parse; after editing, there may be empty space at
+      --  the end of Text_Buffer.
+
+      Parser : WisiToken.Parse.LR.Parser.Parser;
    end record;
    type Parse_Context_Access is access all Parse_Context;
 
@@ -46,8 +54,16 @@ package Wisi_Parse_Context is
       Trace     : in WisiToken.Trace_Access)
      return Parse_Context_Access;
    --  If a context for File_Name exists, return it if Language matches.
-   --  Raise SAL.User_Error if language does not match. Otherwise, create
-   --  a context, return it.
+   --  Raise WisiToken.User_Error if language does not match. Otherwise,
+   --  create a context, return it.
+
+   function Find
+     (File_Name : in String;
+      Language  : in Wisi_Parse_Context.Language)
+     return Parse_Context_Access;
+   --  If a context for File_Name exists, return it if Language matches.
+   --  Raise WisiToken.User_Error if language does not match. Otherwise
+   --  return null.
 
    procedure Clear;
    --  Delete all contexts.

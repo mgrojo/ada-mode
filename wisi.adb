@@ -41,8 +41,9 @@ package body Wisi is
    --  body subprograms bodies, alphabetical
 
    procedure Edit
-     (Data  : in out Parse_Data_Type;
-      Edits : in     WisiToken.Parse.KMN_Lists.List)
+     (Data            : in out Parse_Data_Type;
+      Edits           : in     WisiToken.Parse.KMN_Lists.List;
+      Language_Params : in     String)
    is
       use all type Ada.Containers.Count_Type;
 
@@ -83,6 +84,8 @@ package body Wisi is
       end Map;
 
    begin
+      Data.Parse_Language_Params (Language_Params);
+
       --  Elisp handles deleting text properties in edited regions; delete
       --  the same data here. Execute_Actions will computed new text
       --  properties for the edited regions.
@@ -823,18 +826,15 @@ package body Wisi is
    ----------
    --  public subprograms (declaration order)
 
-   procedure Initialize
+   procedure Initialize_Partial_Parse
      (Data                : in out Parse_Data_Type;
       Trace               : in     WisiToken.Trace_Access;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
       Begin_Line          : in     Line_Number_Type;
       End_Line            : in     Line_Number_Type;
-      Begin_Indent        : in     Integer;
-      Params              : in     String)
-   is
-      pragma Unreferenced (Params);
-   begin
+      Begin_Indent        : in     Integer)
+   is begin
       --  + 1 for data on line following last line; see Lexer_To_Augmented.
       Data.Line_Paren_State.Set_First_Last
         (First   => Begin_Line,
@@ -860,16 +860,33 @@ package body Wisi is
    when E : others =>
       raise SAL.Programmer_Error with "wisi.initialize: " & Ada.Exceptions.Exception_Name (E) & ": " &
         Ada.Exceptions.Exception_Message (E);
-   end Initialize;
+   end Initialize_Partial_Parse;
 
-   procedure Reset
+   procedure Initialize_Full_Parse
+     (Data     : in out Parse_Data_Type;
+      Trace    : in     WisiToken.Trace_Access;
+      End_Line : in     WisiToken.Line_Number_Type)
+   is begin
+      Data.Trace := Trace;
+
+      --  + 1 for data on line following last line; see Lexer_To_Augmented.
+      Data.Line_Paren_State.Set_First_Last
+        (First   => WisiToken.Line_Number_Type'First,
+         Last    => End_Line + 1);
+
+      Data.Reset;
+   end Initialize_Full_Parse;
+
+   procedure Reset_Post_Parse
      (Data                : in out Parse_Data_Type;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
-      Action_Region_Bytes : in     WisiToken.Buffer_Region)
+      Action_Region_Bytes : in     WisiToken.Buffer_Region;
+      Language_Params     : in     String)
    is begin
       Data.Post_Parse_Action   := Post_Parse_Action;
       Data.Action_Region_Bytes := Action_Region_Bytes;
-   end Reset;
+      Data.Parse_Language_Params (Language_Params);
+   end Reset_Post_Parse;
 
    overriding procedure Reset (Data : in out Parse_Data_Type)
    is begin

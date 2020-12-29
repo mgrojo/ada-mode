@@ -420,36 +420,58 @@ package body Wisi.Ada is
    --
    --  Handle virtual tokens as much as possible; at least closing paren.
 
-   ----------
-   --  Public subprograms, declaration order
-
-   overriding
-   procedure Initialize
-     (Data                : in out Parse_Data_Type;
-      Trace               : in     WisiToken.Trace_Access;
-      Post_Parse_Action   : in     Post_Parse_Action_Type;
-      Action_Region_Bytes : in     WisiToken.Buffer_Region;
-      Begin_Line          : in     WisiToken.Line_Number_Type;
-      End_Line            : in     WisiToken.Line_Number_Type;
-      Begin_Indent        : in     Integer;
-      Params              : in     String)
+   procedure Initialize (Data : in out Parse_Data_Type)
    is
-      use Standard.Ada.Strings.Fixed;
       use all type Ada_Annex_P_Process_Actions.Token_Enum_ID;
-      First : Integer := Params'First;
-      Last  : Integer := Index (Params, " ");
    begin
-      Wisi.Initialize
-        (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Action_Region_Bytes, Begin_Line, End_Line,
-         Begin_Indent, "");
-
       Data.First_Comment_ID := +COMMENT_ID;
       Data.Last_Comment_ID  := WisiToken.Invalid_Token_ID;
       Data.Left_Paren_ID    := +LEFT_PAREN_ID;
       Data.Right_Paren_ID   := +RIGHT_PAREN_ID;
 
       Data.Embedded_Quote_Escape_Doubled := True;
+   end Initialize;
 
+   ----------
+   --  Public subprograms, declaration order
+
+   overriding
+   procedure Initialize_Partial_Parse
+     (Data                : in out Parse_Data_Type;
+      Trace               : in     WisiToken.Trace_Access;
+      Post_Parse_Action   : in     Post_Parse_Action_Type;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region;
+      Begin_Line          : in     WisiToken.Line_Number_Type;
+      End_Line            : in     WisiToken.Line_Number_Type;
+      Begin_Indent        : in     Integer)
+   is begin
+      Wisi.Initialize_Partial_Parse
+        (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Action_Region_Bytes, Begin_Line, End_Line,
+         Begin_Indent);
+
+      Initialize (Data);
+   end Initialize_Partial_Parse;
+
+   overriding
+   procedure Initialize_Full_Parse
+     (Data     : in out Parse_Data_Type;
+      Trace    : in     WisiToken.Trace_Access;
+      End_Line : in     WisiToken.Line_Number_Type)
+   is begin
+      Wisi.Initialize_Full_Parse (Wisi.Parse_Data_Type (Data), Trace, End_Line);
+
+      Initialize (Data);
+   end Initialize_Full_Parse;
+
+   overriding
+   procedure Parse_Language_Params
+     (Data   : in out Parse_Data_Type;
+      Params : in     String)
+   is
+      use Standard.Ada.Strings.Fixed;
+      First : Integer := Params'First;
+      Last  : Integer := Index (Params, " ");
+   begin
       if Params /= "" then
          Ada_Indent := Integer'Value (Params (First .. Last - 1));
 
@@ -500,10 +522,24 @@ package body Wisi.Ada is
          First := Last + 1;
          Last := First + 1;
          End_Names_Optional := Params (First) = '1';
+      else
+         Ada_Indent                 := Ada_Indent_Default;
+         Ada_Indent_Broken          := Ada_Indent_Broken_Default;
+         Ada_Indent_Comment_Col_0   := Ada_Indent_Comment_Col_0_Default;
+         Ada_Indent_Comment_GNAT    := Ada_Indent_Comment_GNAT_Default;
+         Ada_Indent_Label           := Ada_Indent_Label_Default;
+         Ada_Indent_Record_Rel_Type := Ada_Indent_Record_Rel_Type_Default;
+         Ada_Indent_Renames         := Ada_Indent_Renames_Default;
+         Ada_Indent_Return          := Ada_Indent_Return_Default;
+         Ada_Indent_Use             := Ada_Indent_Use_Default;
+         Ada_Indent_When            := Ada_Indent_When_Default;
+         Ada_Indent_With            := Ada_Indent_With_Default;
+         Ada_Indent_Subprogram_Is   := Ada_Indent_Subprogram_Is_Default;
+         End_Names_Optional         := End_Names_Optional_Default;
       end if;
 
       Data.Indent_Comment_Col_0 := Ada_Indent_Comment_Col_0;
-   end Initialize;
+   end Parse_Language_Params;
 
    overriding function Insert_After
      (User_Data            : in out Parse_Data_Type;

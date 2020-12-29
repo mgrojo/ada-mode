@@ -1,8 +1,5 @@
 --  Tests for incremental parser
 
---EMACSDEBUG:(setq debug-on-error t)
---EMACSDEBUG:(setq wisi-parser-verbosity "debug=1")
-
 package body Ada_Mode.Incremental_Parse is
 
    --EMACSCMD:(progn (end-of-line 4)(kill-line 2)(insert ";"))

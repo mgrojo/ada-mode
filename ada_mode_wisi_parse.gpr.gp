@@ -19,6 +19,9 @@
 #if ELPA="yes"
 with "wisi";
 #else
+with "aunit";
+with "aunit_ext";
+with "sal_devel";
 with "wisitoken";
 #end if;
 with "standard_common";

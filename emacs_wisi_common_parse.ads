@@ -91,13 +91,13 @@ package Emacs_Wisi_Common_Parse is
    --  Parse command
 
    type Change is record
-      Begin_Byte_Pos : WisiToken.Buffer_Pos;
-      Begin_Char_Pos : WisiToken.Buffer_Pos;
-      End_Byte_Pos   : WisiToken.Buffer_Pos;
-      End_Char_Pos   : WisiToken.Buffer_Pos; --  emacs convention: end is _after_ last inserted char
-      Inserted_Text  : Ada.Strings.Unbounded.Unbounded_String;
-      Deleted_Bytes  : Integer;
-      Deleted_Chars  : Integer;
+      Begin_Byte_Pos        : WisiToken.Buffer_Pos; -- inserted or deleted
+      Begin_Char_Pos        : WisiToken.Buffer_Pos;
+      Inserted_End_Byte_Pos : WisiToken.Buffer_Pos;
+      Inserted_End_Char_Pos : WisiToken.Buffer_Pos; --  emacs convention: end is after last inserted char
+      Inserted_Text         : Ada.Strings.Unbounded.Unbounded_String;
+      Deleted_Bytes         : Natural;
+      Deleted_Chars         : Natural;
    end record;
 
    package Change_Lists is new Ada.Containers.Doubly_Linked_Lists (Change);
@@ -109,7 +109,9 @@ package Emacs_Wisi_Common_Parse is
       Changes          : in     Change_Lists.List;
       KMN_List         :    out WisiToken.Parse.KMN_Lists.List);
 
-   type Parse_Params (Incremental : Boolean) is record
+   type Parse_Kind is (Partial, Incremental, Full);
+
+   type Parse_Params (Kind : Parse_Kind) is record
 
       Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
 
@@ -119,9 +121,16 @@ package Emacs_Wisi_Common_Parse is
       Enqueue_Limit : Integer;
       Max_Parallel  : Integer;
 
-      case Incremental is
-      when False =>
+      Language_Params : Ada.Strings.Unbounded.Unbounded_String;
+
+      Byte_Count : Integer;
+      --  Count of bytes of source file sent; 0 for Incremental, redundant
+      --  for Partial.
+
+      case Kind is
+      when Partial =>
          Post_Parse_Action : Wisi.Post_Parse_Action_Type;
+
          Begin_Byte_Pos : Integer;
          --  Source file byte position of first char sent; start parse here.
 
@@ -133,7 +142,8 @@ package Emacs_Wisi_Common_Parse is
          --  or after here.
 
          Begin_Char_Pos : WisiToken.Buffer_Pos;
-         --  Char position of first char sent.
+         --  Char position of first char sent. Lexer tracks character positions
+         --  from there.
 
          Begin_Line : WisiToken.Line_Number_Type;
          End_Line   : WisiToken.Line_Number_Type;
@@ -143,12 +153,13 @@ package Emacs_Wisi_Common_Parse is
          --  Indentation of Line_Begin
 
          Partial_Parse_Active : Boolean;
-         Byte_Count           : Integer;
-         --  Count of bytes of source file sent.
 
-      when True =>
-         Initial_Full_Parse : Boolean;
-         Changes            : Change_Lists.List;
+      when Incremental =>
+         Changes : Change_Lists.List;
+
+      when Full =>
+         End_Char_Pos  : Integer;
+         Full_End_Line : WisiToken.Line_Number_Type;
 
       end case;
    end record;
@@ -165,6 +176,7 @@ package Emacs_Wisi_Common_Parse is
       Begin_Byte_Pos    : Integer;
       End_Byte_Pos      : Integer;
       --  Region to execute action in.
+      Language_Params   : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
    function Get_Post_Parse_Params (Command_Line : in String; Last : in out Integer) return Post_Parse_Params;
@@ -196,6 +208,8 @@ package Emacs_Wisi_Common_Parse is
       Max_Parallel : Integer;
       Byte_Count   : Integer;
       --  Count of bytes of source file sent.
+
+      --  no Language_Params
    end record;
 
    function Get_Refactor_Params (Command_Line : in String; Last : in out Integer) return Refactor_Params;

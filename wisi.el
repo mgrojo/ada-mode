@@ -810,7 +810,8 @@ Usefull if the parser appears to be hung."
        (>= (point-max) wisi-partial-parse-threshold)))
 
 (defun wisi--run-parse (parse-action begin parse-end)
-  "Run the parser, on at least region BEGIN PARSE-END."
+  "Run post-parse actions on region BEGIN PARSE-END.
+Run the parser first if needed."
   ;; The buffer might be narrowed for several reasons: the user
   ;; narrowed to focus on a region or subprogram, or we are in an
   ;; mmm-mode and indenting an Ada subregion. In the latter two cases,
@@ -822,8 +823,12 @@ Usefull if the parser appears to be hung."
 		   (null font-lock-mode))) ;; disabling font-lock in a buffer does _not_ prevent it calling parse!
     (let* ((partial-parse-p (wisi-partial-parse-p begin parse-end))
 	   (msg (when (> wisi-debug 0)
-		  (format "wisi: %sparsing %s %s:%d %d %d ..."
-			  (if partial-parse-p "partial " "")
+		  (format "wisi: %s %s %s:%d %d %d ..."
+			  (cond
+			   (partial-parse-p "parse partial ")
+			   (wisi-incremental-parse-enable
+			    (if wisi--changes "parse incremental " "post-parse "))
+			   (t "parse "))
 			  parse-action
 			  (buffer-name)
 			  begin
@@ -1806,6 +1811,7 @@ where the car is a list (FILE LINE COL)."
   ;; parse anyway. IMPROVEME: do partial parse + incremental on that
   ;; until actually need full parse.
   (when wisi-incremental-parse-enable
+    (when (> wisi-debug 0) (message "parse incremental initial full"))
     (wisi-parse-incremental wisi--parser t)))
 
 (provide 'wisi)

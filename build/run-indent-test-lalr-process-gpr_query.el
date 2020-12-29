@@ -15,6 +15,6 @@
 
 (setq debug-on-error nil)
 (setq wisi-debug 1) ;; abort on non-syntax errors
-(setq wisi-parse-verbosity "debug=1");; enable wisitoken.debug_mode
+(setq wisi-parser-verbosity "debug=1");; enable wisitoken.debug_mode
 
 ;;; end of file

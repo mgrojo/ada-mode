@@ -51,7 +51,15 @@ report gnat bug:
 
 incremental parse
     test/ada_mode-incremental_parse.adb
-        dies with no error message in parse face
+
+to reproduce:
+    C-/ ;; undo de-indent
+    M-: (wisi-parse-incremental wisi--parser t) ;; full parse
+    M-: (indent-rigidly (point-min) (point-max) -1) ;; fill wisi--changes
+    M-x (wisi-parse-incremental wisi--parser)   ;; incremental parse
+
+        not doing EMACSCMD actions?
+            because font-lock is off for now
 
     wisi.adb
         edit wisi actions to respect data.action_region_bytes
@@ -69,8 +77,9 @@ incremental parse
         only need to process terminals in changed region, and containing nonterms?
 
     handle parser process die, lose all state for open buffers
-        parser report error "not parsed" when next parser action invoked
-        -> invalidate caches, retry
+        parser report error "not found" when next parser action invoked
+            different from protocol_error?
+            -> emacs notify user, do full parse
 
     change refactor to require previous parse
 
