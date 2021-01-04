@@ -2,7 +2,7 @@
 --
 --  Common utilities for Gen_Run_Wisi_*_Parse
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -29,24 +29,27 @@ package Run_Wisi_Common_Parse is
    procedure Usage (Parser : in out WisiToken.Parse.LR.Parser.Parser);
    --  Puts parameter description to Current_Output.
 
-   type Command_Type is (Parse, Refactor);
+   type Command_Type is (Parse_Partial, Parse_Incremental, Refactor);
 
    type Command_Line_Params (Command : Command_Type) is record
 
       Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
-      Lang_Params      : Ada.Strings.Unbounded.Unbounded_String;
-      Repeat_Count     : Integer := 1;
+      Language_Params  : Ada.Strings.Unbounded.Unbounded_String;
+      Repeat_Count     : Integer                    := 1;
+      End_Line         : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
 
       case Command is
-      when Parse =>
+      when Parse_Partial =>
          Post_Parse_Action : Wisi.Post_Parse_Action_Type;
          Begin_Byte_Pos    : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
          End_Byte_Pos      : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
          Goal_Byte_Pos     : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
          Begin_Char_Pos    : WisiToken.Buffer_Pos       := WisiToken.Buffer_Pos'First;
          Begin_Line        : WisiToken.Line_Number_Type := WisiToken.Line_Number_Type'First;
-         End_Line          : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
          Begin_Indent      : Integer                    := 0;
+
+      when Parse_Incremental =>
+         Changes : Wisi.Change_Lists.List;
 
       when Refactor =>
          --  We assume the file contains only the one statement/declaration

@@ -1,6 +1,6 @@
 ;;; ada-core.el --- core facilities for ada-mode -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1995, 1997 - 2017, 2019 - 2020  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2017, 2019 - 2021  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -733,10 +733,10 @@ Deselects the current project first."
 (make-obsolete 'ada-select-prj-file 'wisi-prj-select-cache "ada-mode 7.0")
 
 (cl-defgeneric ada-prj-select-compiler (compiler project)
-  "PROJECT has been selected; set any project options that are both Ada and compiler specific.")
+  "Set PROJECT options that are Ada and compiler specific.")
 
 (cl-defgeneric ada-prj-deselect-compiler (compiler project)
-  "PROJECT has been deselected; unset any project options that are both Ada and compiler specific.")
+  "Unset any PROJECT options that are both Ada and compiler specific.")
 
 (cl-defmethod wisi-prj-select :after ((project ada-prj))
   (ada-prj-select-compiler (ada-prj-compiler project) project))

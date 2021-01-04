@@ -1,6 +1,6 @@
 ;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LR parser -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012 - 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2021  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -236,7 +236,8 @@ If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
    (cons 'face t)
    (cons 'navigate t)
    (cons 'indent t))
-  "Non-nil when parse is needed because text has changed - cleared when parse succeeds.")
+  "Non-nil when parse is needed due to text change.
+Cleared when parse succeeds.")
 
 (defun wisi-parse-try (parse-action)
   (cdr (assoc parse-action wisi--parse-try)))
@@ -863,7 +864,8 @@ Run the parser first if needed."
 	      (when wisi--changes
 		(wisi-parse-incremental wisi--parser))
 	      (wisi-post-parse wisi--parser parse-action begin parse-end)
-	      (wisi-cache-add-region (cons begin parse-end) parse-action))
+	      (setq parsed-region (cons begin parse-end))
+	      (wisi-cache-add-region parsed-region parse-action))
 
 	     (t ;; parse full buffer
 	      (setq parsed-region (cons (point-min) (point-max)))
@@ -1285,7 +1287,8 @@ failing; assumes user was editing code that is now syntactically
 correct. Must leave point at indentation of current line.")
 
 (defvar-local wisi-indent-failed nil
-  "Non-nil when wisi-indent-region fails due to parse failing; cleared when indent succeeds.")
+  "Non-nil when indent fails due to parse fail.
+Cleared when indent succeeds.")
 
 (defvar-local wisi-indent-region-fallback 'wisi-indent-region-fallback-default
   "Function to compute indent for lines in region when wisi parse fails.

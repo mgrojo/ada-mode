@@ -253,7 +253,7 @@ complete."
 		       (point-max) ;; end_char_pos
 		       (line-number-at-pos (point-max)) ;; End_Line
 		       )
-		    (list (prin1-to-string wisi--changes)))
+		    (list (prin1-to-string (nreverse wisi--changes)))) ;; wisi--changes is in reverse time order.
 		  (list (wisi-parse-format-language-options parser))
 		  )))
 	 (msg (format "%03d%s" (length cmd) cmd))

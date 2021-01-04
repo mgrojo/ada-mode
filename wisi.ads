@@ -10,7 +10,7 @@
 --
 --  [3] wisi-process-parse.el - defines elisp/process API
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -27,6 +27,7 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
+with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
 with WisiToken.Lexer;
@@ -35,6 +36,50 @@ with WisiToken.Syntax_Trees;
 package Wisi is
    use all type WisiToken.Syntax_Trees.Augmented_Class_Access;
    use all type WisiToken.Base_Buffer_Pos;
+
+   Protocol_Error : exception;
+
+   procedure Skip
+     (Source : in     String;
+      Last   : in out Integer;
+      Char   : in     Character);
+   --  Check that Source (Last + 1) = Char. If so, increment Last.
+   --  If not, raise Protocol_Error.
+
+   function Get_String
+     (Source : in     String;
+      Last   : in out Integer)
+     return String;
+
+   function Get_Integer
+     (Source : in     String;
+      Last   : in out Integer)
+     return Integer;
+
+   type Change is record
+      Begin_Byte_Pos        : WisiToken.Buffer_Pos; -- inserted or deleted
+      Begin_Char_Pos        : WisiToken.Buffer_Pos;
+      Inserted_End_Byte_Pos : WisiToken.Buffer_Pos;
+      Inserted_End_Char_Pos : WisiToken.Buffer_Pos; --  emacs convention: end is after last inserted char
+      Inserted_Text         : Ada.Strings.Unbounded.Unbounded_String;
+      Deleted_Bytes         : Natural;
+      Deleted_Chars         : Natural;
+   end record;
+
+   package Change_Lists is new Ada.Containers.Doubly_Linked_Lists (Change);
+
+   function Get_Emacs_Change_List
+     (Command_Line          : in     String;
+      Last                  : in out Integer;
+      Handle_String_Escapes : in     Boolean)
+     return Change_Lists.List;
+
+   procedure Edit_Source
+     (Source           : in out Ada.Strings.Unbounded.String_Access;
+      Source_Byte_Last : in out Integer;
+      Source_Char_Last : in out Integer;
+      Changes          : in     Change_Lists.List;
+      KMN_List         :    out WisiToken.Parse.KMN_Lists.List);
 
    function Image_Action (Action : in WisiToken.Syntax_Trees.Post_Parse_Action) return String;
    --  For Image_Action in Syntax_Trees.Image

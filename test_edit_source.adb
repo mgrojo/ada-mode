@@ -162,7 +162,220 @@ package body Test_Edit_Source is
       Check ("4", Source (1 .. Source_Byte_Last), Expected_Source);
    end Deindent;
 
-   --  FIXME: test change start in prev change insert
+   procedure Complex_Noop (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use WisiToken;
+      use AUnit.Checks;
+      use KMN_Lists_AUnit;
+
+      Changes  : Change_Lists.List;
+      KMN_List : WisiToken.Parse.KMN_Lists.List;
+
+      Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
+
+      Line_3 : constant String := "     is (Float (A));" & ASCII.LF;
+      Expected_Source : constant String :=
+        "package body Ada_Mode.Incremental_Parse is" & ASCII.LF &
+        "   function Func_1 (A : in Integer) return Float" & ASCII.LF &
+        Line_3 &
+        "end Ada_Mode.Incremental_Parse;" & ASCII.LF;
+
+   begin
+      --  Modeled on test/ada_mode-incremental_parse.adb; parse after
+      --  delete/insert 'is (float(A))'; tests merge delete into KMN insert.
+
+      Source := new String'(Expected_Source);
+      Source_Byte_Last := Source'Last;
+      Source_Char_Last := Source'Last;
+
+      declare
+         use Ada.Strings.Fixed;
+         Line_3_Start : constant Base_Buffer_Pos := Base_Buffer_Pos (Index (Source.all, "     is (Float"));
+         Line_4_Start : constant Base_Buffer_Pos := Base_Buffer_Pos (Index (Source.all, "end"));
+      begin
+         --  Delete line 3, insert ';', delete ';', insert line_3. Actually a
+         --  noop, but the code doesn't realize the inserted text = the deleted
+         --  text. Insert/delete ';' cancels out, so the KMN just has the
+         --  line_3 text.
+         Expected_KMN_List.Append
+           ((Stable_Bytes | Stable_Chars     => Line_3_Start - 1,
+             Deleted_Bytes | Deleted_Chars   => Line_3'Length,
+             Inserted_Bytes | Inserted_Chars => Line_3'Length));
+
+         --  Rest of code
+         Expected_KMN_List.Append
+           ((Stable_Bytes | Stable_Chars     => Buffer_Pos (Source'Last) + 1 - Line_4_Start,
+             Deleted_Bytes | Deleted_Chars   => 0,
+             Inserted_Bytes | Inserted_Chars => 0));
+
+         --  Delete line 3
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start,
+             Inserted_Text                                 => +"",
+             Deleted_Bytes | Deleted_Chars                 => Line_3'Length));
+
+         --  insert ';'
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start + 1,
+             Inserted_Text                                 => +";",
+             Deleted_Bytes | Deleted_Chars                 => 0));
+
+         --  delete ';'
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start,
+             Inserted_Text                                 => +"",
+             Deleted_Bytes | Deleted_Chars                 => 1));
+
+         --  insert line_3.
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start + Line_3'Length,
+             Inserted_Text                                 => +Line_3,
+             Deleted_Bytes | Deleted_Chars                 => 0));
+      end;
+
+      Edit_Source (Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
+
+      Check ("1", KMN_List, Expected_KMN_List);
+
+      Check ("2", Source_Byte_Last, Expected_Source'Last);
+      Check ("3", Source_Char_Last, Expected_Source'Last);
+      Check ("4", Source (1 .. Source_Byte_Last), Expected_Source);
+   end Complex_Noop;
+
+   procedure Complex_Noop_Deindent (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use WisiToken;
+      use AUnit.Checks;
+      use KMN_Lists_AUnit;
+
+      Changes  : Change_Lists.List;
+      KMN_List : WisiToken.Parse.KMN_Lists.List;
+
+      Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
+
+      Line_3 : constant String := "     is (Float (A));" & ASCII.LF;
+      Expected_Source : constant String :=
+        "package body Ada_Mode.Incremental_Parse is" & ASCII.LF &
+        "  function Func_1 (A : in Integer) return Float" & ASCII.LF &
+        Line_3 (2 .. Line_3'Last) &
+        "end Ada_Mode.Incremental_Parse;" & ASCII.LF;
+
+   begin
+      --  Complex_Noop followed by Deindent, all in one change list. This
+      --  happens in test/ada_mode-incremental_parse when run with font-lock
+      --  off. It encounters another case in Insert_KMN.
+
+      Source := new String'
+        ("package body Ada_Mode.Incremental_Parse is" & ASCII.LF &
+         "   function Func_1 (A : in Integer) return Float" & ASCII.LF &
+         Line_3 &
+         "end Ada_Mode.Incremental_Parse;" & ASCII.LF);
+      Source_Byte_Last := Source'Last;
+      Source_Char_Last := Source'Last;
+
+      declare
+         use Ada.Strings.Fixed;
+         Line_2_Start : constant Base_Buffer_Pos := Base_Buffer_Pos (Index (Source.all, "   function"));
+         Line_3_Start :          Base_Buffer_Pos := Base_Buffer_Pos (Index (Source.all, "     is (Float"));
+      begin
+         --  De-indent line 2
+         Expected_KMN_List.Append
+           ((Stable_Bytes | Stable_Chars     => Line_2_Start - 1,
+             Deleted_Bytes | Deleted_Chars   => 3,
+             Inserted_Bytes | Inserted_Chars => 2));
+
+         --  De-indent line 3
+         Expected_KMN_List.Append
+           ((Stable_Bytes | Stable_Chars     => Line_3_Start - (Line_2_Start + 3),
+             Deleted_Bytes | Deleted_Chars   => 5,
+             Inserted_Bytes | Inserted_Chars => 4));
+
+         --  Remaining complex noop
+         Expected_KMN_List.Append
+           ((Stable_Bytes | Stable_Chars     => 0,
+             Deleted_Bytes | Deleted_Chars   => Line_3'Length - 5,
+             Inserted_Bytes | Inserted_Chars => Line_3'Length - 5));
+
+         --  Rest of code
+         Expected_KMN_List.Append
+           ((Stable_Bytes | Stable_Chars     => Buffer_Pos (Source'Last) + 1 - (Line_3_Start + 5),
+             Deleted_Bytes | Deleted_Chars   => 0,
+             Inserted_Bytes | Inserted_Chars => 0));
+
+
+         --  Delete line 3
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start,
+             Inserted_Text                                 => +"",
+             Deleted_Bytes | Deleted_Chars                 => Line_3'Length));
+
+         --  insert ';'
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start + 1,
+             Inserted_Text                                 => +";",
+             Deleted_Bytes | Deleted_Chars                 => 0));
+
+         --  delete ';'
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start,
+             Inserted_Text                                 => +"",
+             Deleted_Bytes | Deleted_Chars                 => 1));
+
+         --  insert line_3.
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start + Line_3'Length,
+             Inserted_Text                                 => +Line_3,
+             Deleted_Bytes | Deleted_Chars                 => 0));
+
+         --  (indent-rigidly begin end -1) deletes all leading space, then inserts one less
+         --  De-indent line 2
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_2_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_2_Start,
+             Inserted_Text                                 => +"",
+             Deleted_Bytes | Deleted_Chars                 => 3));
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_2_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_2_Start + 2,
+             Inserted_Text                                 => +"  ",
+             Deleted_Bytes | Deleted_Chars                 => 0));
+
+         --  That moves line_3_start
+         Line_3_Start := @ - 1;
+
+         --  De-indent line 3; the complex noop starts in this delete region
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start,
+             Inserted_Text                                 => +"",
+             Deleted_Bytes | Deleted_Chars                 => 5));
+         Changes.Append -- ; the complex noop starts in this insert region
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start + 4,
+             Inserted_Text                                 => +"    ",
+             Deleted_Bytes | Deleted_Chars                 => 0));
+      end;
+
+      Edit_Source (Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
+
+      Check ("1", KMN_List, Expected_KMN_List);
+
+      Check ("2", Source_Byte_Last, Expected_Source'Last);
+      Check ("3", Source_Char_Last, Expected_Source'Last);
+      Check ("4", Source (1 .. Source_Byte_Last), Expected_Source);
+   end Complex_Noop_Deindent;
+
+   --  FIXME: test change start in prev kmn insert/delete
    --  FIXME: test insert at end
 
    ----------
@@ -174,6 +387,8 @@ package body Test_Edit_Source is
    begin
       Register_Routine (T, No_Change'Access, "No_Change");
       Register_Routine (T, Deindent'Access, "Deindent");
+      Register_Routine (T, Complex_Noop'Access, "Complex_Noop");
+      Register_Routine (T, Complex_Noop_Deindent'Access, "Complex_Noop_Deindent");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

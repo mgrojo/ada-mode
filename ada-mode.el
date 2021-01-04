@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1994, 1995, 1997 - 2020  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2021  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -144,7 +144,7 @@ rather than to the same column."
   :safe #'booleanp)
 
 (defcustom ada-which-func-parse-size 30000
-  "Minimum size of the region surrounding point that is parsed for `which-function-mode'."
+  "Minimum size of region around point parsed for `which-function-mode'."
   :group 'ada
   :type 'integer
   :safe #'integerp)
@@ -1661,8 +1661,6 @@ Prompts with completion, defaults to filename at point."
 		 (modes   . '(ada-mode))))
 
   (setq align-mode-rules-list ada-align-rules)
-
-  (easy-menu-add ada-mode-menu ada-mode-map)
 
   (wisi-setup
    :indent-calculate '(ada-wisi-comment)
