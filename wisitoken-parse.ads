@@ -2,7 +2,7 @@
 --
 --  Subprograms common to more than one parser, higher-level than in wisitoken.ads
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -114,15 +114,12 @@ package WisiToken.Parse is
    procedure Edit_Tree
      (Parser : in out Base_Parser'Class;
       Edits  : in     KMN_Lists.List)
-   with Pre => Parser.Tree.Fully_Parsed,
+   with Pre => Parser.Tree.Fully_Parsed or Parser.Tree.Editable,
      Post => Parser.Tree.Stream_Count = 1;
    --  Assumes Parser.Lexer.Source has changed in a way reflected in
-   --  Edits. Uses Edits to direct editing Parser.Tree parse
-   --  stream to reflect lexing the changed source, in preparation for
-   --  Incremental_Parse; result is in Tree.Shared_Stream.
-   --
-   --  FIXME: handle Editable; we don't actually use the parse stream,
-   --  just the one tree element.
+   --  Edits. Uses Edits to direct editing Parser.Tree to reflect lexing
+   --  the changed source, in preparation for Incremental_Parse; result
+   --  is in Tree.Shared_Stream.
 
    procedure Parse
      (Parser   : in out Base_Parser;

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -213,6 +213,9 @@ package body WisiToken.Syntax_Trees is
          Char_Region => Terminal.Char_Region,
          others      => <>)
       do
+         if Terminal.ID = Tree.Lexer.Descriptor.EOI_ID then
+            Tree.EOI := Result;
+         end if;
          if Node_Index = Invalid_Node_Index and In_Shared_Stream then
             Tree.Next_Terminal_Node_Index := @ + 1;
          end if;
@@ -380,10 +383,10 @@ package body WisiToken.Syntax_Trees is
       Tree.Streams.Clear;
 
       Tree.Root                     := Invalid_Node_Access;
+      Tree.EOI                      := Invalid_Node_Access;
       Tree.Next_Stream_Label        := Shared_Stream_Label + 1;
       Tree.Next_Terminal_Node_Index := 1;
       Tree.Traversing               := False;
-      Tree.Incremental_Parse        := False;
       Tree.Parents_Set              := False;
 
       if Initialize_Parse then
@@ -709,7 +712,6 @@ package body WisiToken.Syntax_Trees is
                 Elements  => <>)));
 
          for Element of Source.Streams (Source.Shared_Stream.Cur).Elements loop
-            pragma Assert (not Source.Incremental_Parse, "FIXME: syntax_trees.copy_tree support incremental parse");
             declare
                Ref : constant Terminal_Ref := Add_Terminal
                  (Destination, Destination.Shared_Stream, Source.Base_Token (Element.Node));
@@ -3431,33 +3433,53 @@ package body WisiToken.Syntax_Trees is
    end Stack_Depth;
 
    procedure Start_Edit (Tree : in out Syntax_Trees.Tree)
-   is begin
-      Tree.Streams.Delete (Tree.Shared_Stream.Cur);
-      Tree.Shared_Stream := (Cur => Tree.Streams.First);
-      declare
-         --  Ensure compiler makes 'Element' writable
-         Stream : Parse_Stream renames Tree.Streams.Variable_Reference (Tree.Shared_Stream.Cur);
-      begin
-         Stream.Label := Shared_Stream_Label;
+   is
+      use Stream_Element_Lists;
+   begin
+      if Tree.Streams.Length = 0 then
+         Tree.Shared_Stream :=
+           (Cur => Tree.Streams.Append
+              ((Label     => Shared_Stream_Label,
+                Stack_Top => Invalid_Stream_Index.Cur,
+                Elements  => <>)));
 
-         for Element of Stream.Elements loop
-            Element.Label := Shared_Stream_Label;
-         end loop;
-         Stream.Stack_Top := Stream_Element_Lists.No_Element;
+         Tree.Streams (Tree.Shared_Stream.Cur).Elements.Append
+           ((Node  => Tree.Root,
+             State => Unknown_State,
+             Label => Shared_Stream_Label));
 
+         Tree.Streams (Tree.Shared_Stream.Cur).Elements.Append
+           ((Node  => Tree.EOI,
+             State => Unknown_State,
+             Label => Shared_Stream_Label));
+      else
+         Tree.Streams.Delete (Tree.Shared_Stream.Cur);
+         Tree.Shared_Stream := (Cur => Tree.Streams.First);
          declare
-            Temp : Stream_Element_Lists.Cursor := Stream.Elements.First; -- state 0, invalid node
+            --  Ensure compiler makes 'Element' writable
+            Stream : Parse_Stream renames Tree.Streams.Variable_Reference (Tree.Shared_Stream.Cur);
          begin
-            Stream.Elements.Delete (Temp);
-         end;
-      end;
+            Stream.Label := Shared_Stream_Label;
 
-      if not Tree.Parents_Set then
+            for Element of Stream.Elements loop
+               Element.Label := Shared_Stream_Label;
+            end loop;
+            Stream.Stack_Top := Stream_Element_Lists.No_Element;
+
+            declare
+               Temp : Stream_Element_Lists.Cursor := Stream.Elements.First; -- state 0, invalid node
+            begin
+               Stream.Elements.Delete (Temp);
+            end;
+         end;
+      end if;
+
+      if Tree.Parents_Set then
+         Tree.Parents_Set := False;
+      else
          Set_Parents (Tree);
          Tree.Parents_Set := False;
       end if;
-
-      Tree.Incremental_Parse := True;
    end Start_Edit;
 
    procedure Start_Parse

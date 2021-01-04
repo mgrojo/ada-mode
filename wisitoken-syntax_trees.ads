@@ -553,12 +553,17 @@ package WisiToken.Syntax_Trees is
    --  Otherwise Token is from the parse stream; do nothing.
 
    procedure Start_Edit (Tree : in out Syntax_Trees.Tree)
-   with Pre => Tree.Fully_Parsed,
+   with Pre => Tree.Fully_Parsed or Tree.Editable,
      Post => Tree.Parseable;
-   --  Delete Tree.Shared_Stream, relabel the parse stream as
-   --  Shared_Stream, delete first element, ready for Parse.Edit_Tree.
+   --  If Fully_Parsed: delete Tree.Shared_Stream, relabel the parse
+   --  stream as Shared_Stream, delete first element.
+   --
+   --  If Editable, construct Tree.Shared_Stream from Tree.Root.
+   --
+   --  On return, Tree is ready for Parse.Edit_Tree.
+   --
    --  Calls Set_Parents on relabeled Shared_Stream, but leaves
-   --  Tree.Parents_Set false. Sets Tree.Incremental_Parse True.
+   --  Tree.Parents_Set false.
 
    procedure Update_Cache (Tree : in out Syntax_Trees.Tree; Stream : in Stream_ID);
    --  In all nodes in Stream, update cached token positions from terminals.
@@ -566,8 +571,6 @@ package WisiToken.Syntax_Trees is
    function Parseable (Tree : in Syntax_Trees.Tree) return Boolean;
    --  True if there are no parse streams and
    --  Shared_Stream holds a lexed or edited stream.
-
-   function Incremental_Parse (Tree : in Syntax_Trees.Tree) return Boolean;
 
    function Reduce
      (Tree            : in out Syntax_Trees.Tree;
@@ -636,7 +639,7 @@ package WisiToken.Syntax_Trees is
                Tree.Stack_Top (Ref.Stream) /= Ref.Element,
      Post => Valid_Single_Terminal (Tree, Ref);
    --  Part of [Wagner Graham 1998] Left_Breakdown of Ref.Element for
-   --  Parse_Incremental. Bring the first terminal in Ref.Element (which
+   --  incremental parse. Bring the first terminal in Ref.Element (which
    --  cannot be empty) to the parse stream. Ref.Element is updated to
    --  the element containing the first terminal.
    --
@@ -1800,6 +1803,7 @@ private
 
       State : Unknown_State_Index := Unknown_State;
       --  Parse state that is on the parse stack with this token.
+      --  Unknown_State in Shared_Stream or a parse stream input.
 
       Label : Stream_Label; -- allows checking if Element is from Shared_Stream or a parse stream.
    end record;
@@ -1846,6 +1850,7 @@ private
       Next_Terminal_Node_Index : Node_Index := 1;
 
       Root : Node_Access := Invalid_Node_Access;
+      EOI  : Node_Access := Invalid_Node_Access;
 
       Streams : Parse_Stream_Lists.List;
 
@@ -1861,8 +1866,6 @@ private
       Parents_Set : Boolean := False;
       --  We don't set Node.Parent until after parse is done; see Design
       --  note above.
-
-      Incremental_Parse : Boolean := False;
    end record;
 
    procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Access);
@@ -1965,9 +1968,6 @@ private
       Element : in Stream_Index)
      return Token_ID
    is (Stream_Element_Lists.Constant_Ref (Element.Cur).Node.ID);
-
-   function Incremental_Parse (Tree : in Syntax_Trees.Tree) return Boolean
-   is (Tree.Incremental_Parse);
 
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Streams.Length = 0 and Tree.Root = Invalid_Node_Access);

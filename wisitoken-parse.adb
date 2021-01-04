@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -41,7 +41,7 @@ package body WisiToken.Parse is
          if Lexer.First then
             if Tree.Line_Begin_Token.Length = 0 then
                Tree.Line_Begin_Token.Set_First_Last (Token.Line, Token.Line);
-            else
+            elsif Token.Line > Tree.Line_Begin_Token.Last_Index then
                Tree.Line_Begin_Token.Set_First_Last (Tree.Line_Begin_Token.First_Index, Token.Line);
             end if;
             Tree.Line_Begin_Token (Token.Line) := Node;

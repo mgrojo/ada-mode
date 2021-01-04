@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -738,7 +738,7 @@ package body WisiToken.Parse.LR.Parser is
             --  sequence, and clearing Stream_ID, Stream_Index. It is tempting to
             --  not do this, because user may want to insert a token after the
             --  previous token, changing which is the first one a line. However,
-            --  it is simpler to handle deleted tokens here, and the user can move
+            --  it is simpler to handle deleted tokens here, and the user can
             --  change Line_Begin_Token in Insert_Token anyway.
             --
             --  Compute recover_op.Del_After_Node.
