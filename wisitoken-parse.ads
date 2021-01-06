@@ -81,12 +81,14 @@ package WisiToken.Parse is
       Stable_Bytes : Base_Buffer_Pos; -- Count of unmodified bytes before change
       Stable_Chars : Base_Buffer_Pos; -- "" characters
 
-      Deleted_Bytes : Base_Buffer_Pos; -- Count of deleted bytes, after Stable
-      Deleted_Chars : Base_Buffer_Pos;
-
       Inserted_Bytes : Base_Buffer_Pos; -- Count of inserted bytes, after Stable.
       Inserted_Chars : Base_Buffer_Pos;
+
+      Deleted_Bytes : Base_Buffer_Pos; -- Count of deleted bytes, after Stable
+      Deleted_Chars : Base_Buffer_Pos;
    end record;
+
+   function Image (KMN : in WisiToken.Parse.KMN) return String;
 
    procedure Validate_KMN
      (KMN                      : in WisiToken.Parse.KMN;

@@ -163,6 +163,16 @@ package body WisiToken.Parse is
 
    end Lex_All;
 
+   function Image (KMN : in WisiToken.Parse.KMN) return String
+   is begin
+      return "(" & KMN.Stable_Bytes'Image & "," &
+        KMN.Stable_Chars'Image & "," &
+        KMN.Inserted_Bytes'Image & "," &
+        KMN.Inserted_Chars'Image & "," &
+        KMN.Deleted_Bytes'Image & "," &
+        KMN.Deleted_Chars'Image & ")";
+   end Image;
+
    procedure Validate_KMN
      (KMN                       : in WisiToken.Parse.KMN;
       Initial_Stable_Byte_First : in Buffer_Pos;
@@ -179,17 +189,17 @@ package body WisiToken.Parse is
       Stable_Char_Region : constant Buffer_Region :=
         (Initial_Stable_Char_First, Initial_Stable_Char_First + KMN.Stable_Chars - 1);
 
-      Deleted_Byte_Region : constant Buffer_Region :=
-        (Stable_Byte_Region.Last + 1, Stable_Byte_Region.Last + KMN.Deleted_Bytes);
-      Deleted_Char_Region : constant Buffer_Region :=
-        (Stable_Char_Region.Last + 1, Stable_Char_Region.Last + KMN.Deleted_Chars);
-
       Inserted_Byte_Region : constant Buffer_Region :=
         (Edited_Stable_Byte_First + KMN.Stable_Bytes,
          Edited_Stable_Byte_First + KMN.Stable_Bytes + KMN.Inserted_Bytes - 1);
       Inserted_Char_Region : constant Buffer_Region :=
         (Edited_Stable_Char_First + KMN.Stable_Chars,
          Edited_Stable_Char_First + KMN.Stable_Chars + KMN.Inserted_Chars - 1);
+
+      Deleted_Byte_Region : constant Buffer_Region :=
+        (Stable_Byte_Region.Last + 1, Stable_Byte_Region.Last + KMN.Deleted_Bytes);
+      Deleted_Char_Region : constant Buffer_Region :=
+        (Stable_Char_Region.Last + 1, Stable_Char_Region.Last + KMN.Deleted_Chars);
    begin
       if not Contains (Outer => Initial_Text_Byte_Region, Inner => Stable_Byte_Region) then
          raise User_Error with "KMN stable byte region outside initial source text";
@@ -198,18 +208,23 @@ package body WisiToken.Parse is
          raise User_Error with "KMN stable char region outside initial source text";
       end if;
 
-      if not Contains (Outer => Initial_Text_Byte_Region, Inner => Deleted_Byte_Region) then
-         raise User_Error with "KMN deleted byte region outside initial source text";
-      end if;
-      if not Contains (Outer => Initial_Text_Char_Region, Inner => Deleted_Char_Region) then
-         raise User_Error with "KMN deleted char region outside initial source text";
+      if KMN.Inserted_Bytes > 0 then
+         if not Contains (Outer => Edited_Text_Byte_Region, Inner => Inserted_Byte_Region) then
+            raise User_Error with "KMN inserted byte region outside initial source text";
+         end if;
+         if not Contains (Outer => Edited_Text_Char_Region, Inner => Inserted_Char_Region) then
+            raise User_Error with "KMN inserted char region outside edited source text";
+         end if;
       end if;
 
-      if not Contains (Outer => Edited_Text_Byte_Region, Inner => Inserted_Byte_Region) then
-         raise User_Error with "KMN inserted byte region outside initial source text";
-      end if;
-      if not Contains (Outer => Edited_Text_Char_Region, Inner => Inserted_Char_Region) then
-         raise User_Error with "KMN inserted char region outside edited source text";
+
+      if KMN.Deleted_Bytes > 0 then
+         if not Contains (Outer => Initial_Text_Byte_Region, Inner => Deleted_Byte_Region) then
+            raise User_Error with "KMN deleted byte region outside initial source text";
+         end if;
+         if not Contains (Outer => Initial_Text_Char_Region, Inner => Deleted_Char_Region) then
+            raise User_Error with "KMN deleted char region outside initial source text";
+         end if;
       end if;
    end Validate_KMN;
 
@@ -222,28 +237,37 @@ package body WisiToken.Parse is
       Edited_Text_Byte_Region  : in Buffer_Region;
       Edited_Text_Char_Region  : in Buffer_Region)
    is
-      Initial_Byte_Pos : Buffer_Pos := Stable_Byte_First;
-      Initial_Char_Pos : Buffer_Pos := Stable_Char_First;
-      Edited_Byte_Pos  : Buffer_Pos := Stable_Byte_First;
-      Edited_Char_Pos  : Buffer_Pos := Stable_Char_First;
+      Initial_Byte_First : Base_Buffer_Pos := Stable_Byte_First;
+      Initial_Char_First : Base_Buffer_Pos := Stable_Char_First;
+      Edited_Byte_First  : Base_Buffer_Pos := Stable_Byte_First;
+      Edited_Char_First  : Base_Buffer_Pos := Stable_Char_First;
    begin
       for KMN of List loop
          Validate_KMN
            (KMN,
-            Initial_Stable_Byte_First => Initial_Byte_Pos,
-            Initial_Stable_Char_First => Initial_Char_Pos,
-            Edited_Stable_Byte_First  => Edited_Byte_Pos,
-            Edited_Stable_Char_First  => Edited_Char_Pos,
+            Initial_Stable_Byte_First => Initial_Byte_First,
+            Initial_Stable_Char_First => Initial_Char_First,
+            Edited_Stable_Byte_First  => Edited_Byte_First,
+            Edited_Stable_Char_First  => Edited_Char_First,
             Initial_Text_Byte_Region  => Initial_Text_Byte_Region,
             Initial_Text_Char_Region  => Initial_Text_Char_Region,
             Edited_Text_Byte_Region   => Edited_Text_Byte_Region,
             Edited_Text_Char_Region   => Edited_Text_Char_Region);
 
-         Initial_Byte_Pos := @ + KMN.Stable_Bytes + KMN.Deleted_Bytes;
-         Initial_Char_Pos := @ + KMN.Stable_Chars + KMN.Deleted_Chars;
-         Edited_Byte_Pos  := @ + KMN.Stable_Bytes + KMN.Inserted_Bytes;
-         Edited_Char_Pos  := @ + KMN.Stable_Chars + KMN.Inserted_Chars;
+         Initial_Byte_First := @ + KMN.Stable_Bytes + KMN.Deleted_Bytes;
+         Initial_Char_First := @ + KMN.Stable_Chars + KMN.Deleted_Chars;
+         Edited_Byte_First  := @ + KMN.Stable_Bytes + KMN.Inserted_Bytes;
+         Edited_Char_First  := @ + KMN.Stable_Chars + KMN.Inserted_Chars;
       end loop;
+
+      if Initial_Byte_First - 1 /= Initial_Text_Byte_Region.Last then
+         raise User_Error with "KMN list (deleted last" & Base_Buffer_Pos'Image (Initial_Byte_First - 1) &
+           ") does not match initial text (last" & Initial_Text_Byte_Region.Last'Image & ")";
+      end if;
+      if Edited_Byte_First - 1 /= Edited_Text_Byte_Region.Last then
+         raise User_Error with "KMN list (inserted last" & Base_Buffer_Pos'Image (Edited_Byte_First - 1) &
+           ") does not match edited text (last" & Edited_Text_Byte_Region.Last'Image & ")";
+      end if;
    end Validate_KMN;
 
    procedure Edit_Tree
