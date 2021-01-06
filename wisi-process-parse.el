@@ -1,6 +1,6 @@
 ;;; wisi-process-parse.el --- interface to external parse program
 ;;
-;; Copyright (C) 2014, 2017 - 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2017 - 2021 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -274,7 +274,7 @@ complete."
   "Send a post-parse PARSE-ACTION command to PARSER external process.
 Does not wait for command to complete."
   ;; Must match emacs_wisi_common_parse.adb Get_Parse_Action.
-  (let* ((cmd (format "post-parse \"%s\" \"%s\" %d %d %d \"%s\""
+  (let* ((cmd (format "post-parse \"%s\" \"%s\" %d %d %d %d \"%s\""
 		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		      wisi-parser-verbosity
 		      (cl-ecase parse-action
@@ -283,6 +283,7 @@ Does not wait for command to complete."
 			(indent 2))
 		      (position-bytes begin)
 		      (position-bytes end)
+		      (save-excursion (goto-char begin) (back-to-indentation) (current-column)) ;; begin_indent
 		      (wisi-parse-format-language-options parser)
 		      ))
 	 (msg (format "%03d%s" (length cmd) cmd))
@@ -838,7 +839,13 @@ one or more Edit messages."
 
 (cl-defmethod wisi-parse-incremental ((parser wisi-process--parser) &optional full)
   (wisi-process-parse--prepare parser)
-  (wisi-process-parse--send-incremental-parse parser full)
+  (let ((total-line-count (1+ (count-lines (point-max) (point-min)))))
+    (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin total-line-count))
+    (wisi-process-parse--send-incremental-parse parser full)
+    ;; We reset the elisp lexer, because post-parse actions may use it.
+    (when wisi--lexer
+      (wisi-elisp-lexer-reset total-line-count wisi--lexer))
+    )
   (wisi-process-parse--handle-messages parser)
   )
 

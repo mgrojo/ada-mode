@@ -29,7 +29,7 @@ package Run_Wisi_Common_Parse is
    procedure Usage (Parser : in out WisiToken.Parse.LR.Parser.Parser);
    --  Puts parameter description to Current_Output.
 
-   type Command_Type is (Parse_Partial, Parse_Incremental, Refactor);
+   type Command_Type is (Parse_Partial, Parse_Incremental, Post_Parse, Refactor);
 
    type Command_Line_Params (Command : Command_Type) is record
 
@@ -40,16 +40,22 @@ package Run_Wisi_Common_Parse is
 
       case Command is
       when Parse_Partial =>
-         Post_Parse_Action : Wisi.Post_Parse_Action_Type;
-         Begin_Byte_Pos    : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
-         End_Byte_Pos      : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
-         Goal_Byte_Pos     : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
-         Begin_Char_Pos    : WisiToken.Buffer_Pos       := WisiToken.Buffer_Pos'First;
-         Begin_Line        : WisiToken.Line_Number_Type := WisiToken.Line_Number_Type'First;
-         Begin_Indent      : Integer                    := 0;
+         Partial_Post_Parse_Action : Wisi.Post_Parse_Action_Type;
+         Partial_Begin_Byte_Pos    : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
+         Partial_End_Byte_Pos      : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
+         Partial_Goal_Byte_Pos     : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
+         Partial_Begin_Char_Pos    : WisiToken.Buffer_Pos       := WisiToken.Buffer_Pos'First;
+         Partial_Begin_Line        : WisiToken.Line_Number_Type := WisiToken.Line_Number_Type'First;
+         Partial_Begin_Indent      : Integer                    := 0;
 
       when Parse_Incremental =>
          Changes : Wisi.Change_Lists.List;
+
+      when Post_Parse =>
+         Post_Post_Parse_Action : Wisi.Post_Parse_Action_Type;
+         Post_Begin_Byte_Pos    : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
+         Post_End_Byte_Pos      : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
+         Post_Begin_Indent      : Integer                    := 0;
 
       when Refactor =>
          --  We assume the file contains only the one statement/declaration

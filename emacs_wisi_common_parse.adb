@@ -183,6 +183,7 @@ package body Emacs_Wisi_Common_Parse is
          Result.Post_Parse_Action := Wisi.Post_Parse_Action_Type'Val (Get_Integer (Command_Line, Last));
          Result.Begin_Byte_Pos    := Get_Integer (Command_Line, Last);
          Result.End_Byte_Pos      := Get_Integer (Command_Line, Last) - 1; --  Emacs end is after last char.
+         Result.Begin_Indent      := Get_Integer (Command_Line, Last);
          Result.Language_Params   := +Get_String (Command_Line, Last);
 
          WisiToken.Enable_Trace (-Result.Verbosity);
@@ -479,6 +480,7 @@ package body Emacs_Wisi_Common_Parse is
                        (Params.Post_Parse_Action,
                         Action_Region_Bytes =>
                           (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
+                        Begin_Indent        => Params.Begin_Indent,
                         Language_Params     => -Params.Language_Params);
                      Parser.Execute_Actions;
                      Parse_Data.Put (Parser);

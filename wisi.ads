@@ -126,6 +126,7 @@ package Wisi is
      (Data                : in out Parse_Data_Type;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
+      Begin_Indent        : in     Integer;
       Language_Params     : in     String);
    --  Reset for a new post-parse action, preserving data from previous parse.
 

@@ -44,40 +44,19 @@ for ada_mode_wisi_parse.gpr:
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
 incremental parse
-    test/ada_mode-incremental_parse.adb
-
-    parse after delete/insert 'is (float (A))', deindent:
-;; parse 1 "c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-incremental_parse.adb" "debug=1 parse=1 mckenzie=1" -1 -1 -1 -1 0 ((433 433 433 433 22 22 "") (433 433 434 434 0 0 ";") (433 433 433 433 1 1 "") (433 433 455 455 0 0 "
-     is (Float (A));
-") (188 188 190 190 0 0 "  ") (190 190 190 190 3 3 "") (250 250 252 252 0 0 "  ") (252 252 252 252 3 3 "") (363 363 365 365 0 0 "  ") (365 365 365 365 3 3 "") (382 382 384 384 0 0 "  ") (384 384 384 384 3 3 "") (430 430 434 434 0 0 "    ") (434 434 434 434 5 5 "") (451 451 453 453 0 0 "  ") (453 453 453 453 3 3 "")) "3 2 0 0 -3 3 2 0 2 3 2 2 0"
-
-
-(error "unhandled exception: SYSTEM.ASSERTIONS.ASSERT_FAILURE: wisi.adb:1213") -- last KMN invariant
-[c:\Projects\org.emacs.ada-mode.stephe-6\ada_mode_wisi_lalr_parse.exe]
-Gnatcoll.Io.Native.Is_Directory at s-assert.adb:46
-Wisi.Edit_Source.Insert_Kmn at wisi.adb:1213
-Wisi.Edit_Source at wisi.adb:1251
-Emacs_Wisi_Common_Parse.Process_Stream at emacs_wisi_common_parse.adb:393
-        happens in run_ada
-
-        duplicate in test_edit_source
-
     parse error recover after delete 'is (float (A))' gets bad_config
+
+    preserve errors, recover_ops for complete error list after incr parse
+        only in elisp; delete errors in requested parse region, parse, add new.
 
     wisi.adb
         edit wisi actions to respect data.action_region_bytes
 
-    add command-line 'edit' command to run_*?
+        Incremental indent - store line indent result in augmented? Delta? for contained lines in each nonterm?
+            Or fast enough to recompute all?
+            only need to process terminals in requested region, and containing nonterms?
 
-    add incremental tests
         test/ada_mode-incremental_parse.adb
-
-        preserve errors, recover_ops for complete error list after incr parse
-            change parser_state.recover_insert_delete to use error_list.recover?
-
-    Incremental indent - store line indent result in augmented? Delta? for contained lines in each nonterm?
-        Or fast enough to recompute all?
-        only need to process terminals in changed region, and containing nonterms?
 
     handle parser process die, lose all state for open buffers
         parser report error "not found" when next parser action invoked

@@ -135,10 +135,13 @@ package Emacs_Wisi_Common_Parse is
       Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
       Verbosity         : Ada.Strings.Unbounded.Unbounded_String;
       Post_Parse_Action : Wisi.Post_Parse_Action_Type;
-      Begin_Byte_Pos    : Integer;
-      End_Byte_Pos      : Integer;
+
+      Begin_Byte_Pos : Integer;
+      End_Byte_Pos   : Integer;
       --  Region to execute action in.
-      Language_Params   : Ada.Strings.Unbounded.Unbounded_String;
+
+      Begin_Indent    : Integer;
+      Language_Params : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
    function Get_Post_Parse_Params (Command_Line : in String; Last : in out Integer) return Post_Parse_Params;

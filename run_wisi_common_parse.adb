@@ -36,7 +36,10 @@ package body Run_Wisi_Common_Parse is
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("usage: parse <parse_action> <file_name> [partial parse params] [options]");
+      Put_Line ("usage: parse_partial <post_parse_action> <file_name> [partial parse params] [options]");
+      Put_Line ("   or: parse_incremental <file_name> <changes> [options]");
+      Put_Line ("   or: post_parse <post_parse_action> <file_name> <action_begin_byte> <action_end_byte>");
+      Put_Line ("          <action_begin_indent> [options]");
       Put_Line ("   or: refactor <refactor_action> <file_name> <edit_begin> [options]");
       Put_Line ("parse_action: {Navigate | Face | Indent}");
       Put_Line ("refactor_action:");
@@ -97,11 +100,15 @@ package body Run_Wisi_Common_Parse is
       return Result : Command_Line_Params (Command) do
          case Command is
          when Parse_Partial =>
-            Result.Post_Parse_Action := Wisi.Post_Parse_Action_Type'Value (Ada.Command_Line.Argument (2));
+            Result.Partial_Post_Parse_Action := Wisi.Post_Parse_Action_Type'Value (Ada.Command_Line.Argument (2));
             Result.Source_File_Name  := +Ada.Command_Line.Argument (3);
 
          when Parse_Incremental =>
             Result.Source_File_Name  := +Ada.Command_Line.Argument (2);
+
+         when Post_Parse =>
+            Result.Post_Post_Parse_Action := Wisi.Post_Parse_Action_Type'Value (Ada.Command_Line.Argument (2));
+            Result.Source_File_Name  := +Ada.Command_Line.Argument (3);
 
          when Refactor =>
             Result.Refactor_Action  := Integer'Value (Argument (2));
@@ -135,20 +142,19 @@ package body Run_Wisi_Common_Parse is
       case Params.Command is
       when Parse_Partial =>
          if Argument_Count >= 4 and then Argument (4)(1) /= '-' then
-            Params.Begin_Byte_Pos := WisiToken.Buffer_Pos'Value (Argument (4));
-            Params.End_Byte_Pos   := WisiToken.Buffer_Pos'Value (Argument (5)) - 1; -- match emacs region
-            Params.Goal_Byte_Pos  := WisiToken.Buffer_Pos'Value (Argument (6));
-            Params.Begin_Char_Pos := WisiToken.Buffer_Pos'Value (Argument (7));
-            Params.Begin_Line     := WisiToken.Line_Number_Type'Value (Argument (8));
-            Params.End_Line       := WisiToken.Line_Number_Type'Value (Argument (9));
-            Params.Begin_Indent   := Integer'Value (Argument (10));
-            Arg                   := 11;
+            Params.Partial_Begin_Byte_Pos := WisiToken.Buffer_Pos'Value (Argument (4));
+            Params.Partial_End_Byte_Pos   := WisiToken.Buffer_Pos'Value (Argument (5)) - 1; -- match emacs region
+            Params.Partial_Goal_Byte_Pos  := WisiToken.Buffer_Pos'Value (Argument (6));
+            Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'Value (Argument (7));
+            Params.Partial_Begin_Line     := WisiToken.Line_Number_Type'Value (Argument (8));
+            Params.End_Line               := WisiToken.Line_Number_Type'Value (Argument (9));
+            Params.Partial_Begin_Indent   := Integer'Value (Argument (10));
+            Arg                           := 11;
          else
-            Params.Begin_Byte_Pos := WisiToken.Invalid_Buffer_Pos;
-            Params.End_Byte_Pos   := WisiToken.Invalid_Buffer_Pos;
-            Params.Begin_Char_Pos := WisiToken.Buffer_Pos'First;
-            Params.Begin_Line     := WisiToken.Line_Number_Type'First;
-            Arg                   := 4;
+            Params.Partial_Begin_Byte_Pos := WisiToken.Invalid_Buffer_Pos;
+            Params.Partial_End_Byte_Pos   := WisiToken.Invalid_Buffer_Pos;
+            Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
+            Params.Partial_Begin_Line     := WisiToken.Line_Number_Type'First;
          end if;
 
       when Parse_Incremental =>
@@ -159,6 +165,12 @@ package body Run_Wisi_Common_Parse is
             Arg := Arg + 1;
             Params.Changes := Wisi.Get_Emacs_Change_List (Text, Last, Handle_String_Escapes => True);
          end;
+
+      when Post_Parse =>
+         Params.Post_Begin_Byte_Pos := WisiToken.Buffer_Pos'Value (Argument (4));
+         Params.Post_End_Byte_Pos   := WisiToken.Buffer_Pos'Value (Argument (5)) - 1; -- match emacs region
+         Params.Post_Begin_Indent   := Integer'Value (Argument (6));
+         Arg                        := 7;
 
       when Refactor =>
          Params.Edit_Begin := WisiToken.Buffer_Pos'Value (Argument (4));
@@ -261,10 +273,10 @@ package body Run_Wisi_Common_Parse is
             case Cl_Params.Command is
             when Parse_Partial =>
                Parser.Tree.Lexer.Reset_With_File
-                 (-Cl_Params.Source_File_Name, Cl_Params.Begin_Byte_Pos, Cl_Params.End_Byte_Pos,
-                  Cl_Params.Begin_Char_Pos, Cl_Params.Begin_Line);
+                 (-Cl_Params.Source_File_Name, Cl_Params.Partial_Begin_Byte_Pos, Cl_Params.Partial_End_Byte_Pos,
+                  Cl_Params.Partial_Begin_Char_Pos, Cl_Params.Partial_Begin_Line);
 
-            when Refactor =>
+            when Post_Parse | Refactor =>
                Parser.Tree.Lexer.Reset_With_File (-Cl_Params.Source_File_Name);
 
             when Parse_Incremental =>
@@ -309,11 +321,11 @@ package body Run_Wisi_Common_Parse is
          when Parse_Partial        =>
             Parse_Data.Initialize_Partial_Parse
               (Trace               => Parser.Trace,
-               Post_Parse_Action   => Cl_Params.Post_Parse_Action,
-               Action_Region_Bytes => (Cl_Params.Begin_Byte_Pos, Cl_Params.Goal_Byte_Pos),
-               Begin_Line          => Cl_Params.Begin_Line,
+               Post_Parse_Action   => Cl_Params.Partial_Post_Parse_Action,
+               Action_Region_Bytes => (Cl_Params.Partial_Begin_Byte_Pos, Cl_Params.Partial_Goal_Byte_Pos),
+               Begin_Line          => Cl_Params.Partial_Begin_Line,
                End_Line            => Cl_Params.End_Line,
-               Begin_Indent        => Cl_Params.Begin_Indent);
+               Begin_Indent        => Cl_Params.Partial_Begin_Indent);
 
             Parse_Data.Parse_Language_Params (-Cl_Params.Language_Params);
 
@@ -387,7 +399,7 @@ package body Run_Wisi_Common_Parse is
                end;
             end if;
 
-         when Parse_Incremental | Refactor =>
+         when Parse_Incremental | Post_Parse | Refactor =>
             --  First do a full parse to get the syntax tree
             Parse_Data.Initialize_Full_Parse (Trace'Access, Cl_Params.End_Line);
             Parse_Data.Parse_Language_Params (-Cl_Params.Language_Params);
@@ -414,9 +426,27 @@ package body Run_Wisi_Common_Parse is
                   Parser.Tree.Lexer.Reset_With_String_Access (Parse_Context.Text_Buffer, Cl_Params.Source_File_Name);
 
                   Parser.Parse (Log_File, KMN_List);
+               exception
+               when WisiToken.Syntax_Error =>
+                  Put_Line ("(parse_error)");
+
+               when E : WisiToken.Parse_Error =>
+                  Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
+                              Ada.Exceptions.Exception_Message (E) & """)");
                end;
 
-               when Refactor =>
+            when Post_Parse           =>
+               Parse_Data.Reset_Post_Parse
+                 (Cl_Params.Post_Post_Parse_Action,
+                  Action_Region_Bytes => (Cl_Params.Post_Begin_Byte_Pos, Cl_Params.Post_End_Byte_Pos),
+                  Begin_Indent        => Cl_Params.Post_Begin_Indent,
+                  Language_Params     => -Cl_Params.Language_Params);
+
+               Parser.Execute_Actions;
+
+               Parse_Data.Put (Parser);
+
+            when Refactor =>
                Parse_Data.Refactor
                  (Parser.Tree,
                   Cl_Params.Refactor_Action, Cl_Params.Edit_Begin);

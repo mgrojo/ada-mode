@@ -85,6 +85,7 @@ byte-compile-clean :
 ifeq ($(TEST_DIR),source)
 test : build_executables
 endif
+test : test-all-harness.run
 test : test-ada-lalr-process-gpr_query.stamp
 test : test-ada-lalr-process-gnatxref.stamp
 test : gpr-skel.gpr.diff
@@ -96,7 +97,7 @@ summarize :
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
-ONE_TEST_FILES ?= ada_mode-nominal.adb
+ONE_TEST_FILES ?= ada_mode-incremental_parse.adb
 one :: build_executables
 one :: byte-compile autoloads
 #one :: compile-ada-test
@@ -110,10 +111,7 @@ one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
-# With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
-# to get begin, end pos.
-# partial indent args: begin-byte send-end parse-end begin-char begin-line end-line begin-indent
-two : RUN_ARGS ?= parse indent ../test/ada_mode-recover_partial_04_lr1.adb --verbosity "debug=1 action=3"
+two : RUN_ARGS ?= post_parse indent ../test/ada_mode-incremental_parse.adb 1 642 0 --verbosity "debug=1 action=2"
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 two : ../run_ada_lalr_parse.exe
 	../run_ada_lalr_parse.exe $(RUN_ARGS)
@@ -170,6 +168,9 @@ include rules.make
 
 update-test-log : force
 	find . -name "*.diff" -not -size 0 >> test.log
+
+test-all-harness.run : ../test_all_harness.exe force
+	../test_all_harness.exe $(RUN_ARGS)
 
 test-ada-lalr-process-gnatxref : RUNTEST := run-indent-test-lalr-process-gnatxref.el
 test-ada-lalr-process-gnatxref : $(addsuffix .diff, $(subst subdir/,,$(GNATXREF_TEST_FILES)))

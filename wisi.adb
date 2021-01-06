@@ -1289,6 +1289,10 @@ package body Wisi is
         (First   => WisiToken.Line_Number_Type'First,
          Last    => End_Line + 1);
 
+      Data.Indents.Set_First_Last
+        (First   => WisiToken.Line_Number_Type'First,
+         Last    => End_Line);
+
       Data.Reset;
    end Initialize_Full_Parse;
 
@@ -1296,10 +1300,12 @@ package body Wisi is
      (Data                : in out Parse_Data_Type;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
+      Begin_Indent        : in     Integer;
       Language_Params     : in     String)
    is begin
       Data.Post_Parse_Action   := Post_Parse_Action;
       Data.Action_Region_Bytes := Action_Region_Bytes;
+      Data.Begin_Indent := Begin_Indent;
       Data.Parse_Language_Params (Language_Params);
    end Reset_Post_Parse;
 
