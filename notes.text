@@ -60,6 +60,8 @@ Wisi.Edit_Source at wisi.adb:1251
 Emacs_Wisi_Common_Parse.Process_Stream at emacs_wisi_common_parse.adb:393
         happens in run_ada
 
+        duplicate in test_edit_source
+
     parse error recover after delete 'is (float (A))' gets bad_config
 
     wisi.adb

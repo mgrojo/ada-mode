@@ -328,11 +328,6 @@ Larger stack size allows more deeply nested constructs.")
 Otherwise, they are indented with previous comments or code.
 Normally set from a language-specific option.")
 
-(defconst wisi-eoi-term 'Wisi_EOI
-  ;; must match FastToken wisi-output_elisp.adb EOI_Name, which must
-  ;; be part of a valid Ada identifer.
-  "End Of Input token.")
-
 (defconst wisi-class-list
   [motion ;; motion-action
    statement-end

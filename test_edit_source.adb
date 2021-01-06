@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2020 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020, 2021 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -16,8 +16,10 @@ pragma License (GPL);
 with AUnit.Checks;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
-with Emacs_Wisi_Common_Parse; use Emacs_Wisi_Common_Parse;
+with Ada.Text_IO;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_AUnit;
+with System.Assertions;
+with Wisi;
 with WisiToken.Parse;
 package body Test_Edit_Source is
 
@@ -43,6 +45,27 @@ package body Test_Edit_Source is
    Source_Byte_Last : Integer;
    Source_Char_Last : Integer;
 
+   procedure Check_Valid_KMN
+     (KMN_List        : in WisiToken.Parse.KMN_Lists.List;
+      Initial_Source  : in String;
+      Expected_Source : in String)
+   is
+      use WisiToken;
+      Source_First          : constant Base_Buffer_Pos := Base_Buffer_Pos (Initial_Source'First);
+      Source_Last           : constant Base_Buffer_Pos := Base_Buffer_Pos (Initial_Source'Last);
+      Expected_Source_First : constant Base_Buffer_Pos := Base_Buffer_Pos (Expected_Source'First);
+      Expected_Source_Last  : constant Base_Buffer_Pos := Base_Buffer_Pos (Expected_Source'Last);
+   begin
+      WisiToken.Parse.Validate_KMN
+        (KMN_List,
+         Stable_Byte_First        => Source_First,
+         Stable_Char_First        => Source_First,
+         Initial_Text_Byte_Region => (Source_First, Source_Last),
+         Initial_Text_Char_Region => (Source_First, Source_Last),
+         Edited_Text_Byte_Region  => (Expected_Source_First, Expected_Source_Last),
+         Edited_Text_Char_Region  => (Expected_Source_First, Expected_Source_Last));
+   end Check_Valid_KMN;
+
    ----------
    --  Test procedures
 
@@ -52,7 +75,7 @@ package body Test_Edit_Source is
       use WisiToken;
       use KMN_Lists_AUnit;
 
-      Changes  : Change_Lists.List;
+      Changes  : Wisi.Change_Lists.List;
       KMN_List : WisiToken.Parse.KMN_Lists.List;
 
       Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
@@ -61,7 +84,7 @@ package body Test_Edit_Source is
       Source_Byte_Last := Source'Last;
       Source_Char_Last := Source'Last;
 
-      Edit_Source (Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
+      Wisi.Edit_Source (Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
 
       Expected_KMN_List.Append
         ((Stable_Bytes   => Base_Buffer_Pos (Source'Last),
@@ -77,6 +100,7 @@ package body Test_Edit_Source is
    procedure Deindent (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
+      use Wisi;
       use WisiToken;
       use AUnit.Checks;
       use KMN_Lists_AUnit;
@@ -95,9 +119,13 @@ package body Test_Edit_Source is
       --  Modeled on de-indent in test/ada_mode-incremental_parse.adb
       Source := new String'
         ("package body Ada_Mode.Incremental_Parse is" & ASCII.LF &
+         --        |10       |20       |30       |40
          "   function Func_1 (A : in Integer) return Float" & ASCII.LF &
+         --     |50       |60       |70       |80       |90
          "     is (Float (A));" & ASCII.LF &
+         --      |100      |110
          "end Ada_Mode.Incremental_Parse;" & ASCII.LF);
+         --     |120      |130      |140
       Source_Byte_Last := Source'Last;
       Source_Char_Last := Source'Last;
 
@@ -124,7 +152,19 @@ package body Test_Edit_Source is
              Deleted_Bytes | Deleted_Chars   => 0,
              Inserted_Bytes | Inserted_Chars => 0));
 
-         --  (indent-rigidly begin end -1) deletes all leading space, then inserts one less
+         if Trace_Tests > Detail then
+            Ada.Text_IO.Put_Line ("Expected_KMN_List:");
+            for KMN of Expected_KMN_List loop
+               Ada.Text_IO.Put_Line (Parse.Image (KMN));
+            end loop;
+         end if;
+
+         Check_Valid_KMN (Expected_KMN_List, Source.all, Expected_Source);
+
+         --  (indent-rigidly begin end -1) inserts one less space, then deletes
+         --  all leading space. We do that in the opposite order here, to test
+         --  another case in Edit_Source.
+
          --  De-indent line 2
          Changes.Append
            ((Begin_Byte_Pos | Begin_Char_Pos               => Line_2_Start,
@@ -165,6 +205,7 @@ package body Test_Edit_Source is
    procedure Complex_Noop (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
+      use Wisi;
       use WisiToken;
       use AUnit.Checks;
       use KMN_Lists_AUnit;
@@ -209,6 +250,15 @@ package body Test_Edit_Source is
              Deleted_Bytes | Deleted_Chars   => 0,
              Inserted_Bytes | Inserted_Chars => 0));
 
+         if Trace_Tests > Detail then
+            Ada.Text_IO.Put_Line ("Expected_KMN_List:");
+            for KMN of Expected_KMN_List loop
+               Ada.Text_IO.Put_Line (Parse.Image (KMN));
+            end loop;
+         end if;
+
+         Check_Valid_KMN (Expected_KMN_List, Source.all, Expected_Source);
+
          --  Delete line 3
          Changes.Append
            ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start,
@@ -250,6 +300,7 @@ package body Test_Edit_Source is
    procedure Complex_Noop_Deindent (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
+      use Wisi;
       use WisiToken;
       use AUnit.Checks;
       use KMN_Lists_AUnit;
@@ -283,6 +334,7 @@ package body Test_Edit_Source is
          use Ada.Strings.Fixed;
          Line_2_Start : constant Base_Buffer_Pos := Base_Buffer_Pos (Index (Source.all, "   function"));
          Line_3_Start :          Base_Buffer_Pos := Base_Buffer_Pos (Index (Source.all, "     is (Float"));
+         Line_4_Start : constant Base_Buffer_Pos := Base_Buffer_Pos (Index (Source.all, "end Ada"));
       begin
          --  De-indent line 2
          Expected_KMN_List.Append
@@ -290,24 +342,26 @@ package body Test_Edit_Source is
              Deleted_Bytes | Deleted_Chars   => 3,
              Inserted_Bytes | Inserted_Chars => 2));
 
-         --  De-indent line 3
+         --  delete/insert line 3, de-indent line 3
          Expected_KMN_List.Append
            ((Stable_Bytes | Stable_Chars     => Line_3_Start - (Line_2_Start + 3),
-             Deleted_Bytes | Deleted_Chars   => 5,
-             Inserted_Bytes | Inserted_Chars => 4));
-
-         --  Remaining complex noop
-         Expected_KMN_List.Append
-           ((Stable_Bytes | Stable_Chars     => 0,
-             Deleted_Bytes | Deleted_Chars   => Line_3'Length - 5,
-             Inserted_Bytes | Inserted_Chars => Line_3'Length - 5));
+             Deleted_Bytes | Deleted_Chars   => Line_3'Length,
+             Inserted_Bytes | Inserted_Chars => Line_3'Length - 1));
 
          --  Rest of code
          Expected_KMN_List.Append
-           ((Stable_Bytes | Stable_Chars     => Buffer_Pos (Source'Last) + 1 - (Line_3_Start + 5),
+           ((Stable_Bytes | Stable_Chars     => Buffer_Pos (Source'Last) + 1 - Line_4_Start,
              Deleted_Bytes | Deleted_Chars   => 0,
              Inserted_Bytes | Inserted_Chars => 0));
 
+         if Trace_Tests > Detail then
+            Ada.Text_IO.Put_Line ("Expected_KMN_List:");
+            for KMN of Expected_KMN_List loop
+               Ada.Text_IO.Put_Line (Parse.Image (KMN));
+            end loop;
+         end if;
+
+         Check_Valid_KMN (Expected_KMN_List, Source.all, Expected_Source);
 
          --  Delete line 3
          Changes.Append
@@ -375,6 +429,152 @@ package body Test_Edit_Source is
       Check ("4", Source (1 .. Source_Byte_Last), Expected_Source);
    end Complex_Noop_Deindent;
 
+   procedure Insert_Deindent (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Wisi;
+      use WisiToken;
+      use AUnit.Checks;
+      use KMN_Lists_AUnit;
+
+      Changes  : Change_Lists.List;
+      KMN_List : WisiToken.Parse.KMN_Lists.List;
+
+      Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
+
+      Expected_Source : constant String :=
+        "package body Ada_Mode.Incremental_Parse is" & ASCII.LF &
+        --  |4    |10       |20       |30       |40
+        "  function Func_1 (A : in Integer) return Float" & ASCII.LF &
+        --     |50       |60       |70       |80       |90
+        "    is (Float (A));" & ASCII.LF &
+        --       |100      |110
+        "end Ada_Mode.Incremental_Parse;" & ASCII.LF;
+        --       |120      |130      |140
+
+   begin
+      --  Insert followed by Deindent, all in one change list. This
+      --  happens in test/ada_mode-incremental_parse when run with font-lock
+      --  on. It encounters another case in Insert_KMN.
+
+      Source := new String'
+        ("package body Ada_Mode.Incremental_Parse is" & ASCII.LF &
+         --  |4    |10       |20       |30       |40
+         "   function Func_1 (A : in Integer) return Float;" & ASCII.LF &
+         --     |50       |60       |70       |80       |90
+         "end Ada_Mode.Incremental_Parse;" & ASCII.LF);
+         --     |100      |110      |120
+      Source_Byte_Last := Source'Last;
+      Source_Char_Last := Source'Last;
+
+      declare
+         use Ada.Strings.Fixed;
+         Line_2_Start : constant Base_Buffer_Pos := Base_Buffer_Pos (Index (Source.all, "   function"));
+         Line_3_Start :          Base_Buffer_Pos := Base_Buffer_Pos (Index (Source.all, "end Ada"));
+
+         Insert : constant String := ASCII.LF & "     is (Float (A));";
+      begin
+         --  De-indent line 2
+         --  stable_bytes = last_stable_byte - first_stable_byte + 1
+         Expected_KMN_List.Append
+           ((Stable_Bytes | Stable_Chars     => (Line_2_Start - 1) - 1 + 1,
+             Inserted_Bytes | Inserted_Chars => 0,
+             Deleted_Bytes | Deleted_Chars   => 1));
+
+         --  Delete ';', insert Insert, deindent new line 3
+         Expected_KMN_List.Append
+           ((Stable_Bytes | Stable_Chars     => (Line_3_Start - 3) - (Line_2_Start + 1) + 1,
+             Inserted_Bytes | Inserted_Chars => Insert'Length - 1,
+             Deleted_Bytes | Deleted_Chars   => 1));
+
+         --  Rest of code
+         Expected_KMN_List.Append
+           ((Stable_Bytes | Stable_Chars     => Buffer_Pos (Source'Last) - (Line_3_Start - 1) + 1,
+             Inserted_Bytes | Inserted_Chars => 0,
+             Deleted_Bytes | Deleted_Chars   => 0));
+
+         if Trace_Tests > Detail then
+            Ada.Text_IO.Put_Line ("Expected_KMN_List:");
+            for KMN of Expected_KMN_List loop
+               Ada.Text_IO.Put_Line (Parse.Image (KMN));
+            end loop;
+         end if;
+
+         Check_Valid_KMN (Expected_KMN_List, Source.all, Expected_Source);
+
+         --  Delete ';'
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start - 2,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start - 2,
+             Inserted_Text                                 => +"",
+             Deleted_Bytes | Deleted_Chars                 => 1));
+
+         --  That moves line_3_start
+         Line_3_Start := @ - 1;
+
+         --  insert Insert
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start - 1,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start - 1 + Insert'Length,
+             Inserted_Text                                 => +Insert,
+             Deleted_Bytes | Deleted_Chars                 => 0));
+
+         --  (indent-rigidly begin end -1) inserts spaces, then deletes spaces (weird!)
+         --  De-indent line 2
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_2_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_2_Start + 2,
+             Inserted_Text                                 => +"  ",
+             Deleted_Bytes | Deleted_Chars                 => 0));
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_2_Start + 2,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_2_Start + 2,
+             Inserted_Text                                 => +"",
+             Deleted_Bytes | Deleted_Chars                 => 3));
+
+         --  That moves line_3_start
+         Line_3_Start := @ - 1;
+
+         --  De-indent line 3
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start + 4,
+             Inserted_Text                                 => +"    ",
+             Deleted_Bytes | Deleted_Chars                 => 0));
+         Changes.Append
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start + 4,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start + 4,
+             Inserted_Text                                 => +"",
+             Deleted_Bytes | Deleted_Chars                 => 5));
+      end;
+
+      begin
+         Edit_Source (Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
+
+         if Trace_Tests > Detail then
+            Ada.Text_IO.Put_Line ("Computed KMN_List:");
+            for KMN of KMN_List loop
+               Ada.Text_IO.Put_Line (Parse.Image (KMN));
+            end loop;
+         end if;
+      exception
+      when System.Assertions.Assert_Failure =>
+         if Trace_Tests > Detail then
+            Ada.Text_IO.Put_Line ("Computed KMN_List:");
+            for KMN of KMN_List loop
+               Ada.Text_IO.Put_Line (Parse.Image (KMN));
+            end loop;
+         end if;
+         raise;
+      end;
+
+      Check ("kmn_list", KMN_List, Expected_KMN_List);
+
+      Check ("source_byte_last", Source_Byte_Last, Expected_Source'Last);
+      Check ("source_char_last", Source_Char_Last, Expected_Source'Last);
+      Check ("source", Source (1 .. Source_Byte_Last), Expected_Source);
+   end Insert_Deindent;
+
    --  FIXME: test change start in prev kmn insert/delete
    --  FIXME: test insert at end
 
@@ -389,6 +589,7 @@ package body Test_Edit_Source is
       Register_Routine (T, Deindent'Access, "Deindent");
       Register_Routine (T, Complex_Noop'Access, "Complex_Noop");
       Register_Routine (T, Complex_Noop_Deindent'Access, "Complex_Noop_Deindent");
+      Register_Routine (T, Insert_Deindent'Access, "Insert_Deindent");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

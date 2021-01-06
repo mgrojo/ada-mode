@@ -66,6 +66,8 @@ package Wisi is
       Deleted_Chars         : Natural;
    end record;
 
+   function Image (Item : in Change) return String;
+
    package Change_Lists is new Ada.Containers.Doubly_Linked_Lists (Change);
 
    function Get_Emacs_Change_List
