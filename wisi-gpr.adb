@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -21,31 +21,54 @@ with Ada.Strings.Fixed;
 with Gpr_Process_Actions;
 package body Wisi.Gpr is
 
+   procedure Initialize (Data : in out Parse_Data_Type)
+   is
+      use all type Gpr_Process_Actions.Token_Enum_ID;
+   begin
+      Data.First_Comment_ID := +COMMENT_ID;
+      Data.Last_Comment_ID  := WisiToken.Invalid_Token_ID;
+      Data.Left_Paren_ID    := WisiToken.Invalid_Token_ID;
+      Data.Right_Paren_ID   := WisiToken.Invalid_Token_ID;
+   end Initialize;
+
    overriding
-   procedure Initialize
+   procedure Initialize_Partial_Parse
      (Data                : in out Parse_Data_Type;
       Trace               : in     WisiToken.Trace_Access;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
       Begin_Line          : in     WisiToken.Line_Number_Type;
       End_Line            : in     WisiToken.Line_Number_Type;
-      Begin_Indent        : in     Integer;
-      Params              : in     String)
+      Begin_Indent        : in     Integer)
+   is begin
+      Wisi.Initialize_Partial_Parse
+        (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Action_Region_Bytes, Begin_Line, End_Line,
+         Begin_Indent);
+
+      Initialize (Data);
+   end Initialize_Partial_Parse;
+
+   overriding
+   procedure Initialize_Full_Parse
+     (Data     : in out Parse_Data_Type;
+      Trace    : in     WisiToken.Trace_Access;
+      End_Line : in     WisiToken.Line_Number_Type)
+   is begin
+      Wisi.Initialize_Full_Parse (Wisi.Parse_Data_Type (Data), Trace, End_Line);
+
+      Initialize (Data);
+   end Initialize_Full_Parse;
+
+   overriding
+   procedure Parse_Language_Params
+     (Data   : in out Parse_Data_Type;
+      Params : in     String)
    is
+      pragma Unreferenced (Data);
       use Ada.Strings.Fixed;
-      use all type Gpr_Process_Actions.Token_Enum_ID;
       First : Integer := Params'First;
       Last  : Integer := Index (Params, " ");
    begin
-      Wisi.Initialize
-        (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Action_Region_Bytes, Begin_Line, End_Line,
-         Begin_Indent, "");
-
-      Data.First_Comment_ID := +COMMENT_ID;
-      Data.Last_Comment_ID  := WisiToken.Invalid_Token_ID;
-      Data.Left_Paren_ID    := WisiToken.Invalid_Token_ID;
-      Data.Right_Paren_ID   := WisiToken.Invalid_Token_ID;
-
       if Params /= "" then
          --  must match [1] wisi-parse-format-language-options
          Gpr_Indent := Integer'Value (Params (First .. Last - 1));
@@ -57,6 +80,6 @@ package body Wisi.Gpr is
          First := Last + 1;
          Gpr_Indent_When := Integer'Value (Params (First .. Params'Last));
       end if;
-   end Initialize;
+   end Parse_Language_Params;
 
 end Wisi.Gpr;

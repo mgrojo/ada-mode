@@ -44,6 +44,8 @@ package body Emacs_Wisi_Common_Parse is
       Put_Line ("See wisi-process-parse.el *--send-parse, *--send-noop for arguments.");
    end Usage;
 
+   Parse_Context_Not_Found : exception;
+
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
    procedure Read_Input (A : System.Address; N : Integer)
@@ -232,6 +234,7 @@ package body Emacs_Wisi_Common_Parse is
       use Ada.Text_IO;
       use WisiToken; -- "+", "-" Unbounded_string
       use all type Ada.Strings.Unbounded.String_Access;
+      use all type Wisi_Parse_Context.Parse_Context_Access;
 
       Recover_Log_File : Ada.Text_IO.File_Type;
 
@@ -287,8 +290,6 @@ package body Emacs_Wisi_Common_Parse is
             end Match;
          begin
             Read_Input (Command_Line'Address, Command_Length);
-
-            Put_Line (";; " & Command_Line);
 
             if Match ("parse") then
                --  Args: see wisi-process-parse.el wisi-process-parse--send-parse,
@@ -385,14 +386,15 @@ package body Emacs_Wisi_Common_Parse is
                      Parser.Partial_Parse_Active.all := False;
 
                      if Parse_Context.Text_Buffer = null then
-                        raise Wisi.Protocol_Error with "incremental parse with no preceding full parse";
+                        raise Parse_Context_Not_Found;
                      end if;
 
                      declare
                         KMN_List : WisiToken.Parse.KMN_Lists.List;
                      begin
                         Wisi.Edit_Source
-                          (Parse_Context.Text_Buffer,
+                          (Trace,
+                           Parse_Context.Text_Buffer,
                            Parse_Context.Text_Buffer_Byte_Last,
                            Parse_Context.Text_Buffer_Char_Last,
                            Params.Changes,
@@ -439,6 +441,10 @@ package body Emacs_Wisi_Common_Parse is
 
                   Clean_Up;
                exception
+               when Parse_Context_Not_Found =>
+                  --  Tell Emacs to send full text
+                  Put_Line ("(file_not_found)");
+
                when Syntax_Error =>
                   Clean_Up;
                   Put_Line ("(parse_error)");
@@ -460,8 +466,6 @@ package body Emacs_Wisi_Common_Parse is
                --  [elisp error form]...
                --  prompt
                declare
-                  use all type Wisi_Parse_Context.Parse_Context_Access;
-
                   Params : constant Post_Parse_Params := Get_Post_Parse_Params (Command_Line, Last);
 
                   Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find
@@ -470,8 +474,9 @@ package body Emacs_Wisi_Common_Parse is
                   Check_Command_Length (Command_Length, Last);
 
                   if Parse_Context = null then
-                     raise Wisi.Protocol_Error with "post-parse without previous parse";
+                     raise Parse_Context_Not_Found;
                   end if;
+
                   declare
                      Parser     : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
                      Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
@@ -486,6 +491,10 @@ package body Emacs_Wisi_Common_Parse is
                      Parse_Data.Put (Parser);
                   end;
                exception
+               when Parse_Context_Not_Found =>
+                  --  Tell Emacs to send full text
+                  Put_Line ("(file_not_found)");
+
                when E : others =>
                   Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
                end;
@@ -499,16 +508,24 @@ package body Emacs_Wisi_Common_Parse is
                declare
                   Params : constant Refactor_Params := Get_Refactor_Params (Command_Line, Last);
 
-                  Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find_Create
-                    (-Params.Source_File_Name, Language, Trace'Access);
+                  Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find
+                    (-Params.Source_File_Name, Language);
 
                   Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class
                     (Parse_Context.Parser.User_Data.all);
                begin
                   Check_Command_Length (Command_Length, Last);
 
+                  if Parse_Context = null then
+                     raise Parse_Context_Not_Found;
+                  end if;
+
                   Parse_Data.Refactor (Parse_Context.Parser.Tree, Params.Refactor_Action, Params.Edit_Begin);
                exception
+               when Parse_Context_Not_Found =>
+                  --  Tell Emacs to send full text
+                  Put_Line ("(file_not_found)");
+
                when Syntax_Error =>
                   Put_Line ("(parse_error ""refactor " & Params.Parse_Region.First'Image &
                               Params.Parse_Region.Last'Image & ": syntax error"")");
@@ -517,6 +534,41 @@ package body Emacs_Wisi_Common_Parse is
                   Put_Line ("(parse_error ""refactor " & Params.Parse_Region.First'Image &
                               Params.Parse_Region.Last'Image & ": " & Ada.Exceptions.Exception_Message (E) & """)");
 
+               when E : others => -- includes Fatal_Error
+                  Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
+               end;
+
+            elsif Match ("save_text") then
+               --  Args: source_file_name save_file_name
+               --  Input: <none>
+               --  Response:
+               --  (message "text saved ...)
+               --  prompt
+               declare
+                  use Ada.Directories;
+
+                  Source_File_Name : constant String := Wisi.Get_String (Command_Line, Last);
+                  Save_File_Name   : constant String := Wisi.Get_String (Command_Line, Last);
+                  Save_File        : File_Type;
+
+                  Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find
+                    (Source_File_Name, Language);
+               begin
+                  Check_Command_Length (Command_Length, Last);
+
+                  if Parse_Context = null then
+                     raise Parse_Context_Not_Found;
+                  end if;
+
+                  if Exists (Save_File_Name) then
+                     Delete_File (Save_File_Name);
+                  end if;
+                  Create (Save_File, Out_File, Save_File_Name);
+                  Put (Save_File, Parse_Context.Text_Buffer (1 .. Parse_Context.Text_Buffer_Byte_Last));
+                  Close (Save_File);
+
+                  Put_Line ("(message ""text saved to '" & Save_File_Name & "'"")");
+               exception
                when E : others => -- includes Fatal_Error
                   Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
                end;

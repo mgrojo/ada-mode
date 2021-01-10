@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -963,7 +963,8 @@ package body Wisi is
    end Get_Emacs_Change_List;
 
    procedure Edit_Source
-     (Source           : in out Ada.Strings.Unbounded.String_Access;
+     (Trace            : in out WisiToken.Trace'Class;
+      Source           : in out Ada.Strings.Unbounded.String_Access;
       Source_Byte_Last : in out Integer;
       Source_Char_Last : in out Integer;
       Changes          : in     Change_Lists.List;
@@ -997,7 +998,8 @@ package body Wisi is
             pragma Assert
               (Ada.Strings.Unbounded.Length (Change.Inserted_Text) =
                  Integer (Change.Inserted_End_Byte_Pos - Change.Begin_Byte_Pos),
-               "inconsistent Change");
+               "inconsistent Change: text length" & Ada.Strings.Unbounded.Length (Change.Inserted_Text)'Image &
+                 " region length" & Integer (Change.Inserted_End_Byte_Pos - Change.Begin_Byte_Pos)'Image);
 
             Total_Inserted_Bytes := @ + Ada.Strings.Unbounded.Length (Change.Inserted_Text);
 
@@ -1220,10 +1222,10 @@ package body Wisi is
          Insert_KMN (Change);
 
          if Trace_Incremental_Parse > Detail then
-            Ada.Text_IO.Put_Line ("change:" & Image (Change));
-            Ada.Text_IO.Put_Line ("kmn_list:");
+            Trace.Put_Line ("change:" & Image (Change));
+            Trace.Put_Line ("kmn_list:");
             for KMN of KMN_List loop
-               Ada.Text_IO.Put_Line (Parse.Image (KMN));
+               Trace.Put_Line (Parse.Image (KMN));
             end loop;
          end if;
       end loop;
@@ -1352,7 +1354,7 @@ package body Wisi is
       if Grammar_Token /= Invalid_Node_Access and then Tree.Augmented (Grammar_Token) /= null then
          pragma Assert
            (Tree.Label (Grammar_Token) = Source_Terminal,
-            "FIXME: wisi.adb support incremental parse");
+            "FIXME: wisi.adb support multi-line token");
 
          --  If Token is a non-grammar token following a multi-line grammar
          --  token, Prev_Grammar.Non_Grammar.length is 1, for Token. If Token
@@ -2505,7 +2507,7 @@ package body Wisi is
       Params  : in     Indent_Param_Array)
    is begin
       if Trace_Action > Outline then
-         Data.Trace.Put_Line (";; indent_action_0: " & Tree.Image (Nonterm, RHS_Index => True));
+         Data.Trace.Put_Line ("indent_action_0: " & Tree.Image (Nonterm, RHS_Index => True));
       end if;
 
       for I in Tokens'Range loop
@@ -2526,7 +2528,7 @@ package body Wisi is
             begin
                if Trace_Action > Detail then
                   Data.Trace.Put_Line
-                    (";; indent_action_0 code: " & Tree.Image (Tree_Token) & ": " & Image (Pair.Code_Delta));
+                    ("indent_action_0 code: " & Tree.Image (Tree_Token) & ": " & Image (Pair.Code_Delta));
                end if;
 
                if Token.Aug.First_Indent_Line /= Invalid_Line_Number then
@@ -2552,7 +2554,7 @@ package body Wisi is
                   if Comment_Param_Set then
                      if Trace_Action > Detail then
                         Data.Trace.Put_Line
-                          (";; indent_action_0 comment: " & Tree.Image (Controlling_Token) & ": " &
+                          ("indent_action_0 comment: " & Tree.Image (Controlling_Token) & ": " &
                              Image (Comment_Param));
                      end if;
 
@@ -2745,7 +2747,7 @@ package body Wisi is
          Resolve_Anchors (Data);
 
          if Trace_Action > Outline then
-            Parser.Trace.Put_Line (";; indent leading non_grammar");
+            Parser.Trace.Put_Line ("indent leading non_grammar");
          end if;
          declare
             Non_Grammar : WisiToken.Base_Token_Arrays.Vector renames Parser.Tree.Leading_Non_Grammar;
@@ -2761,7 +2763,7 @@ package body Wisi is
 
          --  It may be that not all lines in Data.Indents were parsed.
          if Trace_Action > Outline then
-            Parser.Trace.Put_Line (";; indent grammar");
+            Parser.Trace.Put_Line ("indent grammar");
          end if;
          for I in Data.Indents.First_Index .. Get_Last_Line loop
             Put (I, Data.Indents (I));

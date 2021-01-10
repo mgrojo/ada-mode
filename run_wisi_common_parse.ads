@@ -29,7 +29,7 @@ package Run_Wisi_Common_Parse is
    procedure Usage (Parser : in out WisiToken.Parse.LR.Parser.Parser);
    --  Puts parameter description to Current_Output.
 
-   type Command_Type is (Parse_Partial, Parse_Incremental, Post_Parse, Refactor);
+   type Command_Type is (Parse_Partial, Parse_Incremental, Refactor);
 
    type Command_Line_Params (Command : Command_Type) is record
 
@@ -49,13 +49,12 @@ package Run_Wisi_Common_Parse is
          Partial_Begin_Indent      : Integer                    := 0;
 
       when Parse_Incremental =>
-         Changes : Wisi.Change_Lists.List;
-
-      when Post_Parse =>
-         Post_Post_Parse_Action : Wisi.Post_Parse_Action_Type;
-         Post_Begin_Byte_Pos    : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
-         Post_End_Byte_Pos      : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
-         Post_Begin_Indent      : Integer                    := 0;
+         --  Incremental edit, parse, post_parse_action
+         Changes               : Wisi.Change_Lists.List;
+         Inc_Post_Parse_Action : Wisi.Post_Parse_Action_Type;
+         Inc_Begin_Byte_Pos    : WisiToken.Buffer_Pos := WisiToken.Invalid_Buffer_Pos;
+         Inc_End_Byte_Pos      : WisiToken.Buffer_Pos := WisiToken.Invalid_Buffer_Pos;
+         Inc_Begin_Indent      : Integer              := 0;
 
       when Refactor =>
          --  We assume the file contains only the one statement/declaration
@@ -69,12 +68,16 @@ package Run_Wisi_Common_Parse is
       end case;
    end record;
 
-   function Command_File_Name (Parse_Data : Wisi.Parse_Data_Type'Class) return Command_Line_Params;
+   function Command_File_Name
+     (Parse_Data : in     Wisi.Parse_Data_Type'Class;
+      Next_Arg   :    out Integer)
+     return Command_Line_Params;
    --  Read command, command action, file name.
 
    procedure Remaining_Command_Params
      (Parser : in out WisiToken.Parse.LR.Parser.Parser;
-      Params : in out Command_Line_Params);
+      Params : in out Command_Line_Params;
+      Arg    : in out Integer);
    --  Read rest of command line parameters.
    --
    --  For any errors, calls Usage, raises SAL.Parameter_Error.

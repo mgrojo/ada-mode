@@ -59,8 +59,17 @@ Must match emacs_wisi_common_parse.ads Protocol_Version.")
   language-action-table   ;; array of function pointers, each taking an sexp sent by the process
   )
 
+(cl-defmethod wisi-parser-transaction-log-buffer-name ((parser wisi-process--parser))
+  (concat "*"(wisi-process--parser-label parser) "-wisi-parser-log*"))
+
 (defvar wisi-process--alist nil
   "Alist mapping string label to ‘wisi-process--session’ struct")
+
+(defvar wisi-file_not_found nil
+  "Signal handled internally by functions in this file")
+(put 'wisi-file_not_found
+     'error-conditions
+     '(wisi-file_not_found))
 
 ;;;###autoload
 (defun wisi-process-parse-get (parser)
@@ -215,7 +224,10 @@ complete. PARSE-END is end of desired parse region."
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
+    (wisi-parse-log-message parser cmd)
     (process-send-string process msg)
+
+    ;; we don't log the buffer text; may be huge
     (process-send-string process (buffer-substring-no-properties begin send-end))
 
     ;; We don’t wait for the send to complete here.
@@ -227,9 +239,6 @@ If FULL, do initial full parse.  Does not wait for command to
 complete."
   ;; Must match "incremental parse" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Parse_Params.
-
-  (cl-assert (or full wisi--changes) "incremental parse with no changes is not supported")
-
   (let* ((cmd
 	  (apply #'format
 		 (concat
@@ -253,7 +262,15 @@ complete."
 		       (point-max) ;; end_char_pos
 		       (line-number-at-pos (point-max)) ;; End_Line
 		       )
-		    (list (prin1-to-string (nreverse wisi--changes)))) ;; wisi--changes is in reverse time order.
+		    (if wisi--changes
+			(list (prin1-to-string (nreverse wisi--changes)));; wisi--changes is in reverse time order.
+
+		      ;; Incremental parse requestted, but
+		      ;; wisi--changes is empty. This is most likely
+		      ;; after a wisi-reset-parser; either in a unit
+		      ;; test or by the user.
+		      "()"
+		      ))
 		  (list (wisi-parse-format-language-options parser))
 		  )))
 	 (msg (format "%03d%s" (length cmd) cmd))
@@ -262,6 +279,7 @@ complete."
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
+    (wisi-parse-log-message parser cmd)
     (process-send-string process msg)
     (setq wisi--changes nil)
     (when full
@@ -292,6 +310,7 @@ Does not wait for command to complete."
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
+    (wisi-parse-log-message parser cmd)
     (process-send-string process msg)
 
     ;; We don’t wait for the send to complete here.
@@ -323,8 +342,8 @@ one or more Edit messages."
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
+    (wisi-parse-log-message parser msg)
     (process-send-string process msg)
-    (process-send-string process (buffer-substring-no-properties parse-begin parse-end))
     (wisi-process-parse--wait parser)
     ))
 
@@ -492,9 +511,10 @@ one or more Edit messages."
 
 (defun wisi-process-parse--Edit (parser sexp)
   ;; sexp is [Edit begin end text]
-  (delete-region (aref sexp 1) (1+ (aref sexp 2)))
-  (goto-char (aref sexp 1))
-  (insert (aref sexp 3)))
+  (save-excursion
+    (delete-region (aref sexp 1) (1+ (aref sexp 2)))
+    (goto-char (aref sexp 1))
+    (insert (aref sexp 3))))
 
 (defun wisi-process-parse--Language (parser sexp)
   ;; sexp is [Language language-action ...]
@@ -635,148 +655,142 @@ one or more Edit messages."
     ))
 
 (defun wisi-process-parse--handle-messages (parser)
-  (condition-case-unless-debug err
-      (let* ((source-buffer (current-buffer))
-	     (response-buffer (wisi-process--parser-buffer parser))
-	     (process (wisi-process--parser-process parser))
-	     (w32-pipe-read-delay 0) ;; fastest subprocess read
-	     response
-	     response-end
-	     (response-count 0)
-	     sexp-start
-	     (need-more nil) ;; point-max if need more, to check for new input
-	     (done nil)
-	     start-wait-time)
+  (let ((response-buffer (wisi-process--parser-buffer parser))
+	log-start)
+    (condition-case-unless-debug err
+	(let* ((source-buffer (current-buffer))
+	       (process (wisi-process--parser-process parser))
+	       (w32-pipe-read-delay 0) ;; fastest subprocess read
+	       response
+	       response-end
+	       (response-count 0)
+	       sexp-start
+	       (need-more nil) ;; point-max if need more, to check for new input
+	       (done nil)
+	       start-wait-time)
 
-	(set-buffer response-buffer)
+	  (set-buffer response-buffer)
+	  (setq log-start (point-min))
 
-	;; User will set wisi-process-time-out in source-buffer, but
-	;; we reference it from response-buffer.
-	(setq-local wisi-process-time-out (with-current-buffer source-buffer wisi-process-time-out))
+	  ;; User will set wisi-process-time-out in source-buffer, but
+	  ;; we reference it from response-buffer.
+	  (setq-local wisi-process-time-out (with-current-buffer source-buffer wisi-process-time-out))
 
-	(setq sexp-start (point-min))
+	  (setq sexp-start (point-min))
 
-	;; process responses until prompt received
-	(while (not done)
+	  ;; process responses until prompt received
+	  (while (not done)
 
-	  ;; process all complete responses currently in buffer
-	  (while (and (not need-more)
-		      (not done))
+	    ;; process all complete responses currently in buffer
+	    (while (and (not need-more)
+			(not done))
 
-	    (goto-char sexp-start)
+	      (goto-char sexp-start)
 
-	    (cond
-	     ((eobp)
-	      (setq need-more (point-max)))
+	      (cond
+	       ((eobp)
+		(setq need-more (point-max)))
 
-	     ((looking-at wisi-process-parse-prompt)
-	      (setq done t))
+	       ((looking-at wisi-process-parse-prompt)
+		(setq done t))
 
-	     ((or (looking-at "\\[") ;; encoded action
-		  (looking-at "(")) ;; error or other elisp expression to eval
-	      (condition-case nil
-		  (setq response-end (scan-sexps (point) 1))
-		(error
-		 ;; incomplete response
-		 (setq need-more (point-max))
-		 nil))
+	       ((or (looking-at "\\[") ;; encoded action
+		    (looking-at "(")) ;; error or other elisp expression to eval
+		(condition-case nil
+		    (setq response-end (scan-sexps (point) 1))
+		  (error
+		   ;; incomplete response
+		   (setq need-more (point-max))
+		   nil))
 
-	      (unless need-more
-		(setq response-count (1+ response-count))
-		(setq response (car (read-from-string (buffer-substring-no-properties (point) response-end))))
-		(goto-char response-end)
-		(forward-line 1)
-		(setq sexp-start (point))
+		(unless need-more
+		  (setq response-count (1+ response-count))
+		  (setq response (car (read-from-string (buffer-substring-no-properties (point) response-end))))
 
-		(set-buffer source-buffer) ;; for put-text-property in actions
-		(cond
-		 ((listp response)
-		  ;; non-syntax error of some sort
+		  (goto-char response-end)
+		  (forward-line 1)
+		  (setq sexp-start (point))
+
+		  (set-buffer source-buffer) ;; for put-text-property in actions
 		  (cond
-		   ((equal '(parse_error) response)
-		    ;; Parser detected a syntax error, and recovery failed, so signal it.
+		   ((listp response)
+		    ;; non-syntax error of some sort
+		    (cond
+		     ((equal 'file_not_found (car response))
+		      ;; Parser does not have full text for file; most
+		      ;; likely because it crashed or was killed since
+		      ;; we last did a full parse. Signal it; caller
+		      ;; will do a full parse.
+		      (signal 'wisi-file_not_found nil))
 
-		    (when (> wisi-debug 0)
-		      ;; Save a copy of parser output; may be overwritten by subsequent parse face attempts.
-		      (set-buffer response-buffer)
-		      (let ((content (buffer-substring-no-properties (point-min) (point-max)))
-			    (buf-name (concat (buffer-name) "-save-error")))
-			(set-buffer (get-buffer-create buf-name))
-			(insert content)))
+		     ((equal '(parse_error) response)
+		      ;; Parser detected a syntax error, and recovery failed, so signal it.
+		      (if (wisi-parser-parse-errors parser)
+			  (signal 'wisi-parse-error
+				  (wisi--parse-error-message (car (wisi-parser-parse-errors parser))))
 
-		    (if (wisi-parser-parse-errors parser)
-			(signal 'wisi-parse-error
-				(wisi--parse-error-message (car (wisi-parser-parse-errors parser))))
+			;; Can have no errors when testing a new parser
+			(push
+			 (make-wisi--parse-error :pos 0 :message "parser failed with no message")
+			 (wisi-parser-parse-errors parser))
+			(signal 'wisi-parse-error "parser failed with no message")))
 
-		      ;; can have no errors when testing a new parser
+		     ((equal 'parse_error (car response))
+		      ;; Parser detected some other error non-fatal error, so signal it.
 		      (push
-		       (make-wisi--parse-error :pos 0 :message "parser failed with no message")
+		       (make-wisi--parse-error :pos 0 :message (cadr response))
 		       (wisi-parser-parse-errors parser))
-		      (signal 'wisi-parse-error "parser failed with no message")))
+		      (signal 'wisi-parse-error (cdr response)))
 
-		   ((equal 'parse_error (car response))
-		    ;; Parser detected some other error non-fatal error, so signal it.
-		    (push
-		     (make-wisi--parse-error :pos 0 :message (cadr response))
-		     (wisi-parser-parse-errors parser))
-		    (signal 'wisi-parse-error (cdr response)))
+		     ((and (eq 'error (car response))
+			   (string-prefix-p "bad command:" (cadr response)))
+		      ;; Parser dropped bytes, is treating buffer
+		      ;; content bytes as commands. Kill the process
+		      ;; to kill the pipes; there is no other way to
+		      ;; flush them.
+		      (kill-process (wisi-process--parser-process parser))
+		      (signal 'wisi-parse-error "parser lost sync; killed"))
 
-		   ((and (eq 'error (car response))
-			 (string-prefix-p "bad command:" (cadr response)))
-		    ;; Parser dropped bytes, is treating buffer
-		    ;; content bytes as commands. Kill the process
-		    ;; to kill the pipes; there is no other way to
-		    ;; flush them.
-		    (kill-process (wisi-process--parser-process parser))
-		    (signal 'wisi-parse-error "parser lost sync; killed"))
+		     (t
+		      ;; Some other error
+		      (condition-case-unless-debug err
+			  (eval response)
+			(error
+			 (push (make-wisi--parse-error
+				:pos (point)
+				:message (cadr err))
+			       (wisi-parser-parse-errors parser))
+			 (signal (car err) (cdr err)))))
+		     ))
 
-		   (t
-		    ;; Some other error
+		   ((arrayp response)
+		    ;; encoded action
 		    (condition-case-unless-debug err
-			(eval response)
-		      (error
+			(wisi-process-parse--execute parser response)
+
+		      (wisi-parse-error
 		       (push (make-wisi--parse-error :pos (point) :message (cadr err)) (wisi-parser-parse-errors parser))
-		       (signal (car err) (cdr err)))))
-		   ))
+		       (signal (car err) (cdr err)))
 
-		 ((arrayp response)
-		  ;; encoded action
-		  (condition-case-unless-debug err
-		      (wisi-process-parse--execute parser response)
-		    (wisi-parse-error
-		     (push (make-wisi--parse-error :pos (point) :message (cadr err)) (wisi-parser-parse-errors parser))
-		     (signal (car err) (cdr err)))
+		      (error ;; ie from un-commented [C:\Windows\system32\KERNEL32.DLL], or bug in action code above.
+		       (error "parser failed"))
+		      ))
+		   )
 
-		    (error ;; ie from un-commented [C:\Windows\system32\KERNEL32.DLL], or bug in action code above.
-		     (set-buffer response-buffer)
-		     (let ((content (buffer-substring-no-properties (point-min) (point-max)))
-			   (buf-name (concat (buffer-name) "-save-error")))
-		       (set-buffer (get-buffer-create buf-name))
-		       (insert content)
-		       (insert (format "%s" err))
-		       (error "parser failed; error messages in %s" buf-name)))
-		    ))
-		 )
+		  (set-buffer response-buffer)
+		  ))
 
-		(set-buffer response-buffer)
-		))
-
-	     (t
-	      ;; debug output
-	      (forward-line 1)
-	      (setq sexp-start (point)))
-	     )
+	       (t
+		;; debug output
+		(forward-line 1)
+		(setq sexp-start (point)))
+	       )
 	      )
 
 	    (unless done
 	      ;; end of response buffer
 	      (unless (process-live-p process)
-		(set-buffer response-buffer)
-		(let ((content (buffer-substring-no-properties (point-min) (point-max)))
-		      (buf-name (concat (buffer-name) "-save-error")))
-		  (set-buffer (get-buffer-create buf-name))
-		  (insert content)
-		  (error "parser failed; error messages in %s" buf-name)))
+		(error "parser failed"))
 
 	      (setq start-wait-time (float-time))
 
@@ -798,30 +812,33 @@ one or more Edit messages."
 
 	      (when (and (= (point-max) need-more)
 			 (> (wisi-process--parser-total-wait-time parser) wisi-process-time-out))
-		(error "wisi-process-parse timing out; increase `wisi-process-time-out'? (or bad syntax in process output)"))
+		(error (concat "wisi-process-parse timing out; increase `wisi-process-time-out'?"
+			       " (or bad syntax in process output)")))
 
 	      (setq need-more nil))
 	    );; while not done
 
 	  ;; got command prompt
-	  (unless (process-live-p process)
-	    (wisi-process-parse-show-buffer parser)
-	    (error "wisi-process-parse process died"))
+	  (set-buffer response-buffer)
+	  (wisi-parse-log-message parser (buffer-substring log-start (point)))
 
 	  (setf (wisi-process--parser-response-count parser) response-count)
-
 	  (setf (wisi-process--parser-busy parser) nil)
 	  (set-buffer source-buffer)
 	  )
 
       (wisi-parse-error
+       (set-buffer response-buffer)
+       (wisi-parse-log-message parser (buffer-substring log-start (point)))
        (setf (wisi-process--parser-busy parser) nil)
        (signal (car err) (cdr err)))
 
       (error
+       (set-buffer response-buffer)
+       (wisi-parse-log-message parser (buffer-substring log-start (point)))
        (setf (wisi-process--parser-busy parser) nil)
        (signal (car err) (cdr err))
-       )))
+       ))))
 
 (cl-defmethod wisi-parse-current ((parser wisi-process--parser) parse-action begin send-end parse-end)
   (wisi-process-parse--prepare parser)
@@ -845,54 +862,57 @@ one or more Edit messages."
     ;; We reset the elisp lexer, because post-parse actions may use it.
     (when wisi--lexer
       (wisi-elisp-lexer-reset total-line-count wisi--lexer))
-    )
-  (wisi-process-parse--handle-messages parser)
-  )
+    (condition-case-unless-debug _err
+	(wisi-process-parse--handle-messages parser)
+      ('wisi-file_not_found
+       (message "parsing buffer ...")
+       (wisi-process-parse--send-incremental-parse parser t)
+       (message "parsing buffer ... done")
+       (wisi-process-parse--send-incremental-parse parser full)
+       ))
+    ))
 
 (cl-defmethod wisi-post-parse ((parser wisi-process--parser) parse-action begin end)
   (wisi-process-parse--prepare parser)
   (wisi-process-parse--send-action parser parse-action begin end)
-  (wisi-process-parse--handle-messages parser)
-  )
+  (condition-case-unless-debug _err
+      (wisi-process-parse--handle-messages parser)
+    ('wisi-file_not_found
+     (message "parsing buffer ...")
+     (wisi-process-parse--send-incremental-parse parser t)
+     (message "parsing buffer ... done")
+     (wisi-process-parse--send-action parser parse-action begin end)
+     (wisi-process-parse--handle-messages parser)
+     )))
 
 (cl-defmethod wisi-refactor ((parser wisi-process--parser) refactor-action stmt-begin stmt-end edit-begin)
-  (save-excursion
-    (wisi-process-parse--prepare parser)
-    (wisi-process-parse--send-refactor parser refactor-action stmt-begin stmt-end edit-begin)
-    (wisi-process-parse--handle-messages parser))
-  )
-
-(defvar wisi--parser nil) ;; wisi.el
+  (wisi-process-parse--prepare parser)
+  (wisi-process-parse--send-refactor parser refactor-action stmt-begin stmt-end edit-begin)
+  (condition-case-unless-debug _err
+      (wisi-process-parse--handle-messages parser)
+    ('wisi-file_not_found
+     (message "parsing buffer ...")
+     (wisi-process-parse--send-incremental-parse parser t)
+     (message "parsing buffer ... done")
+     (wisi-process-parse--send-refactor parser refactor-action stmt-begin stmt-end edit-begin)
+     (wisi-process-parse--handle-messages parser)
+     )))
 
 ;;;;; debugging
-(defun wisi-process-parse-ids-to-enum (token-table &rest int-ids)
-  "Translate INT-IDS from process integer token ids to elisp enumeral ids.
-Returns reversed sequence."
-  (let ((enum-ids nil))
-    (cl-dolist (i int-ids)
-      (push (aref token-table i) enum-ids))
-    enum-ids))
+(defun wisi-process-parse-save-text (parser save-file-name)
+  (let* ((cmd
+	  (apply #'format
+		  "parse %d \"%s\" \"%s\" "
+		  (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		  save-file-name))
+	 (msg (format "%03d%s" (length cmd) cmd))
+	 (process (wisi-process--parser-process parser)))
+    (with-current-buffer (wisi-process--parser-buffer parser)
+      (erase-buffer))
 
-(defun wisi-process-parse-show-args ()
-  "Show the partial parse command-line args for run_ada_[lalr | lr1]_parse for current region.
-Also add it to the kill ring."
-  (interactive)
-  (let* ((begin (region-beginning))
-	 (end   (region-end))
-	 (parse-action (wisi-read-parse-action))
-	 (msg
-	  (format "%s %s %d %d %d %d %d %d %d"
-		  (file-name-nondirectory (buffer-file-name))
-		  parse-action
-		  (position-bytes begin)
-		  (position-bytes end)
-		  (position-bytes end)
-		  begin ;; char_pos
-		  (line-number-at-pos begin)
-		  (line-number-at-pos end)
-		  (save-excursion (goto-char begin) (back-to-indentation) (current-column));; indent-begin
-		  )))
-    (kill-new msg)
-    (message msg)))
+    (wisi-parse-log-message parser cmd)
+    (process-send-string process msg)
+    (wisi-process-parse--wait parser)
+    (wisi-process-parse--handle-messages parser)))
 
 (provide 'wisi-process-parse)

@@ -2,13 +2,21 @@
 
 package body Ada_Mode.Incremental_Parse is
 
-   --EMACSCMD:(progn (end-of-line 4)(kill-line 2)(insert ";"))
-   --EMACSCMD:(progn (font-lock-ensure (point-min) (point-max)) (length (wisi-parser-parse-errors wisi--parser)))
-   --EMACSRESULT: 0
+   -- Edit a comment, invoke incremental parse
+   --EMACSCMD:(progn (end-of-line 0)(delete-char -5)(insert "parse")(wisi-indent-statement))
+
+   --EMACSCMD:(progn (end-of-line 2)(kill-line 2)(insert "\n is (Float (A));\n")(wisi-indent-statement))
    function Func_1 (A : in Integer) return Float
      is (Float (A));
 
-   --EMACSCMD:(progn (end-of-line 0)(delete-char -1)(insert "\n     is (Float (A));\n"))
+   -- Deliberately kill parser to emulate it crashing for some reason.
+   -- Then request a partial parse, which causes a "file_not_found"
+   -- error; error will be handled by requesting a full parse.
+   --EMACSCMD:(progn (wisi-kill-parser)(wisi-reset-parser))
+
+   --EMACSCMD:(progn (end-of-line 2)(kill-line 2)(insert "\n is (-A);\n")(wisi-indent-statement))
+   function Func_2 (A : in Integer) return Integer
+     is (-A);
 
 end Ada_Mode.Incremental_Parse;
 -- Local Variables:

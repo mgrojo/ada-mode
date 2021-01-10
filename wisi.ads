@@ -77,7 +77,8 @@ package Wisi is
      return Change_Lists.List;
 
    procedure Edit_Source
-     (Source           : in out Ada.Strings.Unbounded.String_Access;
+     (Trace            : in out WisiToken.Trace'Class;
+      Source           : in out Ada.Strings.Unbounded.String_Access;
       Source_Byte_Last : in out Integer;
       Source_Char_Last : in out Integer;
       Changes          : in     Change_Lists.List;

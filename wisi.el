@@ -874,7 +874,6 @@ Run the parser first if needed."
 	       parse-action))
 	     )
 
-	    (when (> wisi-debug 0) (message "... parsed %s" parsed-region))
 	    (setq wisi-parse-failed nil))
 	(wisi-parse-error
 	 (cl-ecase parse-action
@@ -1814,8 +1813,10 @@ where the car is a list (FILE LINE COL)."
   ;; parse anyway. IMPROVEME: do partial parse + incremental on that
   ;; until actually need full parse.
   (when wisi-incremental-parse-enable
-    (when (> wisi-debug 0) (message "parse incremental initial full"))
-    (wisi-parse-incremental wisi--parser t)))
+    (message "parsing buffer ...")
+    (wisi-parse-incremental wisi--parser t)
+    (message "parsing buffer ... done")
+    ))
 
 (provide 'wisi)
 ;;; wisi.el ends here

@@ -70,12 +70,41 @@ and parse the whole buffer."
 
   repair-image
   ;; alist of (TOKEN-ID . STRING); used by repair error
+
+  transaction-log-buffer
+  ;; Buffer holding history of communications with parser
+
+  (transaction-log-buffer-size 300000)
+  ;; Max character count to retain in transaction-log-buffer. Set to 0
+  ;; to disable log. Default is large enough for all transactions in
+  ;; test/ada_mode-incremental_parse.adb with lots of verbosity.
 )
+
+(cl-defgeneric wisi-parser-transaction-log-buffer-name ((parser wisi-parser))
+  "Return a buffer name for the transaction log buffer.")
+
+(defun wisi-parse-log-message (parser message)
+  "Write MESSAGE (a string) to PARSER transaction-log-buffer.
+Text properties on MESSAGE are preserved,"
+  (let ((max (wisi-parser-transaction-log-buffer-size parser)))
+    (when (> max 0)
+      (unless (buffer-live-p (wisi-parser-transaction-log-buffer parser))
+	(setf (wisi-parser-transaction-log-buffer parser)
+	      (get-buffer-create (wisi-parser-transaction-log-buffer-name parser) t)))
+      (with-current-buffer (wisi-parser-transaction-log-buffer parser)
+	(goto-char (point-max))
+	(insert (format "%s:\n%s\n" (current-time-string) message))
+	(when (> (buffer-size) max)
+	  (save-excursion
+	    (goto-char (- (buffer-size) max))
+	    ;; search for tail of time stamp ":mm:ss yyyy:\n"
+	    (search-forward-regexp ":[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]:$" nil t)
+	    (forward-line -1)
+	    (delete-region (point-min) (point))))))))
 
 (cl-defgeneric wisi-parse-format-language-options ((parser wisi-parser))
   "Return a string to be sent to the parser, containing settings
-for the language-specific parser options."
-  )
+for the language-specific parser options.")
 
 (cl-defgeneric wisi-parse-expand-region ((_parser wisi-parser) begin end)
   "Return a cons SEND-BEGIN . SEND-END that is an expansion of

@@ -5,7 +5,7 @@
 --  [1] gpr-wisi.el
 --  [2] gpr-indent-user-options.el
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -39,21 +39,28 @@ package Wisi.Gpr is
    type Parse_Data_Type is new Wisi.Parse_Data_Type with null record;
 
    overriding
-   procedure Initialize
+   procedure Initialize_Partial_Parse
      (Data                : in out Parse_Data_Type;
       Trace               : in     WisiToken.Trace_Access;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
       Begin_Line          : in     WisiToken.Line_Number_Type;
       End_Line            : in     WisiToken.Line_Number_Type;
-      Begin_Indent        : in     Integer;
-      Params              : in     String);
-   --  Call Wisi_Runtime.Initialize, then:
-   --
-   --  If Params /= "", set all indent parameters from Params, in
-   --  declaration order; otherwise keep default values. Boolean is
-   --  represented by 0 | 1. Parameter values are space delimited.
-   --
-   --  Also do any other initialization that Gpr_Data needs.
+      Begin_Indent        : in     Integer);
+   --  Call Wisi_Runtime.Initialize, also do any other initialization
+   --  that Gpr_Data needs.
+
+   overriding
+   procedure Initialize_Full_Parse
+     (Data     : in out Parse_Data_Type;
+      Trace    : in     WisiToken.Trace_Access;
+      End_Line : in     WisiToken.Line_Number_Type);
+   --  Call Wisi.Initialize_Full_Parse, then do any other
+   --  initialization that Data needs.
+
+   overriding
+   procedure Parse_Language_Params
+     (Data   : in out Parse_Data_Type;
+      Params : in     String);
 
 end Wisi.Gpr;
