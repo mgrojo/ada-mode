@@ -414,7 +414,7 @@ package body WisiToken.Syntax_Trees is
       end if;
 
       for Node of Tree.Nodes loop
-         if Node.Parent = null and Node /= Tree.Root then
+         if Node.Parent = null and Node /= Tree.Root and Node /= Tree.EOI then
             Free (Node);
          end if;
       end loop;
@@ -3452,6 +3452,8 @@ package body WisiToken.Syntax_Trees is
            ((Node  => Tree.EOI,
              State => Unknown_State,
              Label => Shared_Stream_Label));
+
+         Tree.Root := Invalid_Node_Access;
       else
          Tree.Streams.Delete (Tree.Shared_Stream.Cur);
          Tree.Shared_Stream := (Cur => Tree.Streams.First);

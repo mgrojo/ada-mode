@@ -308,22 +308,32 @@ package body WisiToken.Parse is
       is
          Target : constant Valid_Node_Access := Terminal.Node;
       begin
+         if Trace_Incremental_Parse > Detail then
+            Parser.Trace.Put_Line
+              ("breakdown " & Tree.Image (Tree.Get_Node (Terminal.Stream, Terminal.Element)) &
+                 " target " & Tree.Image (Target));
+         end if;
          loop
             exit when Tree.First_Terminal (Stream, Terminal.Element).Node = Target and
               (not Single or Single_Terminal (Terminal));
 
             if Tree.Label (Terminal.Element) = Nonterm then
+               if Trace_Incremental_Parse > Extra then
+                  Parser.Trace.Put_Line
+                    ("left_breakdown: " & Tree.Image
+                       (Tree.Get_Node (Terminal.Stream, Terminal.Element), Non_Grammar => True));
+               end if;
+
                Tree.Left_Breakdown (Terminal);
 
-               if Trace_Incremental_Parse > Detail then
-                  Parser.Trace.Put_Line ("left_breakdown stream: " & Tree.Image (Stream, Non_Grammar => True));
-                  Parser.Trace.Put_Line ("terminal: " & Tree.Image (Terminal));
+               if Trace_Incremental_Parse > Extra then
+                  Parser.Trace.Put_Line ("... first terminal: " & Tree.Image (Terminal));
                end if;
             else
                Tree.Next_Terminal (Terminal);
 
-               if Trace_Incremental_Parse > Detail then
-                  Parser.Trace.Put_Line ("terminal: " & Tree.Image (Terminal));
+               if Trace_Incremental_Parse > Extra then
+                  Parser.Trace.Put_Line ("next terminal: " & Tree.Image (Terminal));
                end if;
             end if;
          end loop;
@@ -547,9 +557,15 @@ package body WisiToken.Parse is
                      exit Scan_Changed_Loop when
                        Token.ID >= Parser.Tree.Lexer.Descriptor.First_Terminal and then
                        not (Token.Byte_Region.First - Shift_Bytes <= Stable_Region.Last or
-                              (KMN.Inserted_Bytes > 0 and then Token.Byte_Region.First <= Inserted_Region.Last) or
-                              (KMN.Deleted_Bytes > 0 and then
-                                 Token.Byte_Region.First - Shift_Bytes = Stable_Region.Last + 1));
+                              (KMN.Inserted_Bytes > 0 and then
+                                 --  Token starts in inserted region (test_incremental.adb Edit_Code_4 '1 +')
+                                 Token.Byte_Region.First <= Inserted_Region.Last
+                              ) or
+                              --  Token starts immediately after deleted or inserted region; it may
+                              --  have been truncated (test_incremental.adb Edit_Code_4 'Cc') or
+                              --  extended; the old token will be deleted below (Edit_Code_8 ';'):
+                              Token.Byte_Region.First - (Shift_Bytes + KMN.Inserted_Bytes) = Stable_Region.Last + 1
+                              );
 
                      Scanned_Byte_Pos := Token.Byte_Region.Last;
 
@@ -558,15 +574,16 @@ package body WisiToken.Parse is
                         Ref := Tree.Insert_Source_Terminal
                           (Stream, Token, Next_Terminal_Index, Before => Terminal.Element);
 
-                        if Trace_Incremental_Parse > Detail then
-                           Parser.Trace.Put_Line ("scan new " & Tree.Image (Ref));
-                        end if;
-
                         Next_Terminal_Index := @ + 1;
 
                         Process_Grammar_Token (Parser, Token, Ref.Node);
 
+                        if Trace_Incremental_Parse > Detail then
+                           Parser.Trace.Put_Line ("scan new " & Tree.Image (Ref));
+                        end if;
+
                      else
+                        --  non-grammar token
                         if Trace_Incremental_Parse > Detail then
                            Parser.Trace.Put_Line
                              ("scan new " & Image (Token, Parser.Tree.Lexer.Descriptor.all));

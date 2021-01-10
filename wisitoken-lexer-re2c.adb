@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -293,6 +293,7 @@ package body WisiToken.Lexer.re2c is
       Prev_Token_ID : in Token_ID)
    is begin
       Lexer.Prev_ID := Prev_Token_ID;
+      Lexer.ID      := Prev_Token_ID;
 
       --  FIXME: respect partial parse lexer.source.*_Nominal_first_*
       Set_Position

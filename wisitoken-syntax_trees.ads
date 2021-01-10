@@ -1850,7 +1850,7 @@ private
       Next_Terminal_Node_Index : Node_Index := 1;
 
       Root : Node_Access := Invalid_Node_Access;
-      EOI  : Node_Access := Invalid_Node_Access;
+      EOI  : Node_Access := Invalid_Node_Access; --  Not in Nodes
 
       Streams : Parse_Stream_Lists.List;
 

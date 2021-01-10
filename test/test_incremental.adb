@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,11 +20,12 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with AUnit.Checks;
+with Ada.Containers;
 with Ada.Text_IO;
 with Ada_Lite_LR1_T1_Main;
+with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Parse.LR.Parser_Lists;
-with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Syntax_Trees.AUnit_Public;
 with WisiToken.Text_IO_Trace;
 package body Test_Incremental is
@@ -49,6 +50,7 @@ package body Test_Incremental is
       use WisiToken.Syntax_Trees.AUnit_Public;
       use WisiToken.Parse;
       use all type WisiToken.Base_Buffer_Pos;
+      use all type Ada.Containers.Count_Type;
 
       Saved_Trace_Parse : constant Integer := WisiToken.Trace_Parse;
 
@@ -109,7 +111,7 @@ package body Test_Incremental is
       is
          use WisiToken;
       begin
-         if KMN_Next_Bytes < Initial'Last then
+         if KMN_Next_Bytes <= Initial'Last then
             Edits.Append
               ((Stable_Bytes   => Base_Buffer_Pos (Initial'Last - KMN_Next_Bytes + 1),
                 Stable_Chars   => Base_Buffer_Pos (Initial'Last - KMN_Next_Chars + 1),
@@ -192,19 +194,25 @@ package body Test_Incremental is
          Last_KMN;
       end if;
 
-      Validate_KMN
-        (List => Edits,
-         Stable_Byte_First        => WisiToken.Base_Buffer_Pos (Initial'First),
-         Stable_Char_First        => WisiToken.Base_Buffer_Pos (Initial'First),
-         Initial_Text_Byte_Region =>
-           (WisiToken.Base_Buffer_Pos (Initial'First), WisiToken.Base_Buffer_Pos (Initial'Last)),
-         Initial_Text_Char_Region =>
-           (WisiToken.Base_Buffer_Pos (Initial'First), WisiToken.Base_Buffer_Pos (Initial'Last)),
-         --  FIXME: test utf-8
-         Edited_Text_Byte_Region  =>
-           (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited_Last)),
-         Edited_Text_Char_Region  =>
-           (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited_Last)));
+      if Edits.Length > 0 then
+         if WisiToken.Trace_Tests > WisiToken.Outline then
+            Put_Line ("KMN_List:" & Image (Edits));
+         end if;
+
+         Validate_KMN
+           (List => Edits,
+            Stable_Byte_First        => WisiToken.Base_Buffer_Pos (Initial'First),
+            Stable_Char_First        => WisiToken.Base_Buffer_Pos (Initial'First),
+            Initial_Text_Byte_Region =>
+              (WisiToken.Base_Buffer_Pos (Initial'First), WisiToken.Base_Buffer_Pos (Initial'Last)),
+            Initial_Text_Char_Region =>
+              (WisiToken.Base_Buffer_Pos (Initial'First), WisiToken.Base_Buffer_Pos (Initial'Last)),
+            --  FIXME: test utf-8
+            Edited_Text_Byte_Region  =>
+              (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited_Last)),
+            Edited_Text_Char_Region  =>
+              (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited_Last)));
+      end if;
 
       if WisiToken.Trace_Parse + WisiToken.Trace_Incremental_Parse > WisiToken.Outline then
          New_Line;
@@ -302,9 +310,11 @@ package body Test_Incremental is
    is
       pragma Unreferenced (T);
    begin
-      --  Insert, delete at different places, insert first. Insert potentially extends token
+      --  Insert, delete at different places, insert first. Insert
+      --  potentially extends a preceding token, delete modifies
+      --  a following token.
       Parse_Text
-        (Initial => "A := --  comment 1" & ASCII.LF & "B + C;",
+        (Initial => "A := --  comment 1" & ASCII.LF & "Bd + Cc;",
          --          |1       |10     |18              |20
          Edit_At => 5,
          Delete  => "",
@@ -312,10 +322,10 @@ package body Test_Incremental is
          --          |5
 
          Edit_2_At => 20,
-         Delete_2  => "B + ",
+         Delete_2  => "Bd + C",
          Insert_2  => "");
 
-      --  Edited: "A :=1 +  --  comment 1" & ASCII.LF & "C;",
+      --  Edited: "A :=1 +  --  comment 1" & ASCII.LF & "c;",
       --           |1       |10       |20                |24
    end Edit_Code_4;
 
@@ -323,7 +333,8 @@ package body Test_Incremental is
    is
       pragma Unreferenced (T);
    begin
-      --  Insert, delete at different places, delete first. Delete part of token.
+      --  Insert, delete at different places, delete first. Delete part of
+      --  preceding token, insert extends preceding token.
       Parse_Text
         (Initial => "A_23 := --  comment 1" & ASCII.LF & "B + C;",
          --          1        |10       |20               |23  |27
@@ -375,6 +386,19 @@ package body Test_Incremental is
          Insert_2  => "");
    end Edit_Code_7;
 
+   procedure Edit_Code_8 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Delete/insert same length text
+      Parse_Text
+        (Initial => "A := B + Cab;",
+         --          |1       |10
+         Edit_At => 10,
+         Delete  => "Cab",
+         Insert  => "Cad");
+   end Edit_Code_8;
+
    ----------
    --  Public subprograms
 
@@ -391,6 +415,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_5'Access, "Edit_Code_5");
       Register_Routine (T, Edit_Code_6'Access, "Edit_Code_6");
       Register_Routine (T, Edit_Code_7'Access, "Edit_Code_7");
+      Register_Routine (T, Edit_Code_8'Access, "Edit_Code_8");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

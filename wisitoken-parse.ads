@@ -19,7 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Finalization;
-with SAL.Gen_Definite_Doubly_Linked_Lists;
+with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
@@ -103,6 +103,8 @@ package WisiToken.Parse is
    --  Raise User_Error if KMN violates text regions.
 
    package KMN_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (KMN);
+
+   function Image is new KMN_Lists.Gen_Image (Image);
 
    procedure Validate_KMN
      (List                     : in KMN_Lists.List;

@@ -704,10 +704,11 @@ package body WisiToken.Parse.LR.Parser is
 
       declare
          use Recover_Op_Arrays;
+         use all type WisiToken.Syntax_Trees.Stream_ID;
 
          Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
       begin
-         if Trace_Action > Outline then
+         if Trace_Action > Outline and Parser_State.Stream /= WisiToken.Syntax_Trees.Invalid_Stream_ID then
             if Trace_Action > Extra then
                Parser.Trace.Put_Line
                  (Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": parse stream: " & Parser.Tree.Image
@@ -722,6 +723,7 @@ package body WisiToken.Parse.LR.Parser is
          --  We do this here, not at the end of Parse, for compatibility with
          --  existing tests. FIXME: move to end of Parse.
          Parser.Tree.Clear_Parse_Streams;
+         Parser_State.Clear_Stream;
 
          for Error of Parser_State.Errors loop
             case Error.Label is
@@ -843,7 +845,7 @@ package body WisiToken.Parse.LR.Parser is
             end loop;
          end;
 
-         if Trace_Action > Detail then
+         if Trace_Action > Extra then
             Parser.Trace.Put_Line
               ("recover_insert_delete: " & Image (Parser_State.Recover_Insert_Delete, Parser.Tree));
             Parser.Trace.Put_Line

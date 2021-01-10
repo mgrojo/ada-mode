@@ -2,7 +2,7 @@
 --
 --  Generalized LR parser state.
 --
---  Copyright (C) 2014-2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2014-2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -268,6 +268,7 @@ package WisiToken.Parse.LR.Parser_Lists is
    --  Access to private Parser_State components
 
    function Stream (State : in Parser_State) return Syntax_Trees.Stream_ID;
+   procedure Clear_Stream (State : in out Parser_State);
    procedure Set_Verb (State : in out Parser_State; Verb : in All_Parse_Action_Verbs);
    function Verb (State : in Parser_State) return All_Parse_Action_Verbs;
 

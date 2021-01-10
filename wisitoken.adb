@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2009, 2014-2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2009, 2014-2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -384,7 +384,11 @@ package body WisiToken is
       if Token.Line = 1 then
          return Ada.Text_IO.Count (Token.Char_Region.First);
       elsif Token.Line in Line_Begin_Char_Pos.First_Index .. Line_Begin_Char_Pos.Last_Index then
-         return Ada.Text_IO.Count (Token.Char_Region.First - Line_Begin_Char_Pos (Token.Line));
+         if Line_Begin_Char_Pos (Token.Line) = Invalid_Buffer_Pos then
+            return 0;
+         else
+            return Ada.Text_IO.Count (Token.Char_Region.First - Line_Begin_Char_Pos (Token.Line));
+         end if;
       else
          return 0;
       end if;
