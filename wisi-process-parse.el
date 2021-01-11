@@ -711,7 +711,6 @@ one or more Edit messages."
 		  (forward-line 1)
 		  (setq sexp-start (point))
 
-		  (set-buffer source-buffer) ;; for put-text-property in actions
 		  (cond
 		   ((listp response)
 		    ;; non-syntax error of some sort
@@ -721,6 +720,7 @@ one or more Edit messages."
 		      ;; likely because it crashed or was killed since
 		      ;; we last did a full parse. Signal it; caller
 		      ;; will do a full parse.
+		      (wisi-parse-log-message parser (buffer-substring log-start (point)))
 		      (signal 'wisi-file_not_found nil))
 
 		     ((equal '(parse_error) response)
@@ -765,11 +765,15 @@ one or more Edit messages."
 
 		   ((arrayp response)
 		    ;; encoded action
+		    (set-buffer source-buffer) ;; for put-text-property in actions
 		    (condition-case-unless-debug err
 			(wisi-process-parse--execute parser response)
 
 		      (wisi-parse-error
-		       (push (make-wisi--parse-error :pos (point) :message (cadr err)) (wisi-parser-parse-errors parser))
+		       (push (make-wisi--parse-error
+			      :pos (point)
+			      :message (cadr err))
+			     (wisi-parser-parse-errors parser))
 		       (signal (car err) (cdr err)))
 
 		      (error ;; ie from un-commented [C:\Windows\system32\KERNEL32.DLL], or bug in action code above.

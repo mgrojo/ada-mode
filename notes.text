@@ -45,8 +45,9 @@ for ada_mode_wisi_parse.gpr:
  current work
 incremental parse
     test/ada_mode-incremental_parse.adb
-Error during redisplay: (jit-lock-function 1001) signaled (wrong-type-argument listp 497)
+Error during redisplay: (jit-lock-function 1) signaled (error "Format specifier doesn’t match argument type")
 
+        indent is wrong
 
 
 
