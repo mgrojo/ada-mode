@@ -22,6 +22,7 @@ with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Containers;
 with Ada.Text_IO;
+with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
@@ -399,6 +400,33 @@ package body Test_Incremental is
          Insert  => "Cad");
    end Edit_Code_8;
 
+   procedure Test_Names (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Test that Names are preserved by incremental edits
+      Parse_Text
+        (Initial => "procedure Name is begin null; end Name;",
+         --          |1       |10       |20
+         Edit_At => 25,
+         Delete  => "null",
+         Insert  => "A := A + 1");
+
+      declare
+         use WisiToken.Syntax_Trees;
+         use Ada_Lite_Actions;
+         use AUnit.Checks;
+         Tree : WisiToken.Syntax_Trees.Tree renames Parser.Tree;
+         Begin_Name_Node : constant Valid_Node_Access := Tree.Find_Descendant (Tree.Root, +subprogram_specification_ID);
+         End_Name_Node   : constant Valid_Node_Access := Tree.Find_Descendant (Tree.Root, +name_opt_ID);
+      begin
+         Check
+           ("name",
+            Tree.Lexer.Buffer_Text (Tree.Name (Begin_Name_Node)),
+            Tree.Lexer.Buffer_Text (Tree.Name (End_Name_Node)));
+      end;
+   end Test_Names;
+
    ----------
    --  Public subprograms
 
@@ -416,6 +444,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_6'Access, "Edit_Code_6");
       Register_Routine (T, Edit_Code_7'Access, "Edit_Code_7");
       Register_Routine (T, Edit_Code_8'Access, "Edit_Code_8");
+      Register_Routine (T, Test_Names'Access, "Test_Names");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

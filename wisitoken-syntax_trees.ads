@@ -919,6 +919,7 @@ package WisiToken.Syntax_Trees is
 
    function Byte_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Buffer_Region;
 
+   function Name (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Buffer_Region;
    function Name (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return Buffer_Region
    with Pre => Valid_Stream_Node (Tree, Ref);
    --  If Ref.Element.Name = Null_Buffer_Region, return
@@ -1771,8 +1772,16 @@ private
 
          Action : Post_Parse_Action := null;
 
-         Name : Buffer_Region := Null_Buffer_Region;
-         --  Name is set and checked by In_Parse_Actions.
+         Name_Offset : Base_Buffer_Pos := 0;
+         Name_Length : Base_Buffer_Pos := 0;
+         --  Name_* are set and checked by In_Parse_Actions. We use an offset
+         --  from Byte_Region.First and length, rather than a Buffer_Region, to
+         --  avoid needing to shift it during Edit_Tree for incremental parse.
+         --  In_Parse_Actions are not called on a nonterm when it is shifted,
+         --  so Name is not recomputed. Name_Offset will only change when the
+         --  text in the region Byte_Region.First .. Byte_Region.First +
+         --  Name_Offset is edited, in which case the nonterm will be broken
+         --  down, and the In_Parse_Actions rerun.
 
          Children : Node_Access_Array (1 .. Child_Count);
          --  We use an explicit array, rather than a pointer to the first

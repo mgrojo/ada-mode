@@ -73,6 +73,10 @@ incremental parse
         but have to move branch point in error recover for push_back, undo_reduce.
             or not; the other parser will do that?
 
+    tree-sitter doesn't store text regions in syntax_tree, just text length
+        no Shift in Edit_Tree
+        byte_region (node) requires compute begin_pos for each node in path from root.
+
 Mckenzie parallel gain
     eliminate super access that does not require lock
 

@@ -49,6 +49,8 @@ package body WisiToken.Syntax_Trees is
    --
    --  Caller must change Stream.Stack_Top if necessary.
 
+   function Name (Node : in Valid_Node_Access) return Buffer_Region;
+
    function New_Stream (Tree : in out Syntax_Trees.Tree) return Stream_ID;
 
    function Pop (Parse_Stream : in out Syntax_Trees.Parse_Stream) return Valid_Node_Access;
@@ -80,6 +82,10 @@ package body WisiToken.Syntax_Trees is
      (Tree     : in out Syntax_Trees.Tree;
       Parent   : in out Valid_Node_Access;
       Children : in     Node_Access_Array);
+
+   procedure Set_Name
+     (Node   : in Valid_Node_Access;
+      Region : in Buffer_Region);
 
    function Subtree_Image
      (Tree         : in Syntax_Trees.Tree;
@@ -560,7 +566,8 @@ package body WisiToken.Syntax_Trees is
                   Virtual        => Node.Virtual,
                   RHS_Index      => Node.RHS_Index,
                   Action         => Node.Action,
-                  Name           => Node.Name,
+                  Name_Offset    => Node.Name_Offset,
+                  Name_Length    => Node.Name_Length,
                   Children       => New_Children,
                   First_Terminal => Node.First_Terminal);
 
@@ -682,7 +689,8 @@ package body WisiToken.Syntax_Trees is
                   Virtual        => Source_Node.Virtual,
                   RHS_Index      => Source_Node.RHS_Index,
                   Action         => Source_Node.Action,
-                  Name           => Source_Node.Name,
+                  Name_Offset    => Source_Node.Name_Offset,
+                  Name_Length    => Source_Node.Name_Length,
                   Children       => New_Children,
                   First_Terminal => Source_Node.First_Terminal);
 
@@ -1301,7 +1309,7 @@ package body WisiToken.Syntax_Trees is
             exit when Result.Node /= Invalid_Node_Access;
             --  Element is not empty
 
-            Result.Element.Cur := Next (Element.Cur);
+            Result.Element.Cur := Next (Result.Element.Cur);
             exit when not Has_Element (Result.Element.Cur);
             --  Not at end of stream
 
@@ -1326,7 +1334,7 @@ package body WisiToken.Syntax_Trees is
             exit when Result.Node /= Invalid_Node_Access;
             --  Element is not empty
 
-            Result.Element.Cur := Next (Element.Cur);
+            Result.Element.Cur := Next (Result.Element.Cur);
             exit when not Has_Element (Result.Element.Cur);
             --  Not at end of stream
 
@@ -1707,12 +1715,16 @@ package body WisiToken.Syntax_Trees is
                 then Trimmed_Image (Node.Node_Index) & ":"
                 else "");
          begin
-            Result := Result & "(" & Image (Node.ID, Tree.Lexer.Descriptor.all) &
+            Result := @ & "(" & Image (Node.ID, Tree.Lexer.Descriptor.all) &
               (if RHS_Index and Node.Label = Nonterm then "_" & Trimmed_Image (Node.RHS_Index) else "") &
               (if Node.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Node.Byte_Region)) & ")";
 
             if Children and Node.Label = Nonterm then
-               Result := Result & " <= " & Image (Tree, Node.Children, Node_Numbers, Terminal_Node_Numbers);
+               Result := @ & " <= " & Image (Tree, Node.Children, Node_Numbers, Terminal_Node_Numbers);
+            end if;
+
+            if Node.Label = Nonterm and then Node.Name_Length /= 0 then
+               Result := @ & " name:" & Image (Name (Node));
             end if;
 
             if Non_Grammar then
@@ -2132,32 +2144,38 @@ package body WisiToken.Syntax_Trees is
             return Item.Name;
          end if;
       else
-         if Item.Element_Node.Label = Nonterm then
-            if Item.Element_Node.Name = Null_Buffer_Region then
-               return Item.Element_Node.Byte_Region;
-            else
-               return Item.Element_Node.Name;
-            end if;
-         else
-            return Item.Element_Node.Byte_Region;
-         end if;
+         return Name (Item.Element_Node);
       end if;
+   end Name;
+
+   function Name (Node : in Valid_Node_Access) return Buffer_Region
+   is begin
+      if Node.Label = Nonterm then
+         if Node.Name_Length = 0 then
+            return Node.Byte_Region;
+         else
+            return
+              (Node.Byte_Region.First + Node.Name_Offset,
+               Node.Byte_Region.First + Node.Name_Offset + Node.Name_Length - 1);
+         end if;
+      else
+         return Node.Byte_Region;
+      end if;
+   end Name;
+
+   function Name (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Buffer_Region
+   is
+      pragma Unreferenced (Tree);
+   begin
+      return Name (Node);
    end Name;
 
    function Name (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return Buffer_Region
    is
-      --  We use the Element node because the nonterminal has the most valid Name.
-      Node : constant Valid_Node_Access := Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node;
+      pragma Unreferenced (Tree);
    begin
-         if Node.Label = Nonterm then
-            if Node.Name = Null_Buffer_Region then
-               return Node.Byte_Region;
-            else
-               return Node.Name;
-            end if;
-         else
-            return Node.Byte_Region;
-         end if;
+      --  We use the Element node because the nonterminal has the most valid Name.
+      return Name (Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node);
    end Name;
 
    function Next_Shared_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
@@ -3246,7 +3264,8 @@ package body WisiToken.Syntax_Trees is
                Virtual        => False,
                RHS_Index      => Parent.RHS_Index,
                Action         => Parent.Action,
-               Name           => Parent.Name,
+               Name_Offset    => Parent.Name_Offset,
+               Name_Length    => Parent.Name_Length,
                Children       => Children,
                First_Terminal => Parent.First_Terminal);
          begin
@@ -3299,9 +3318,28 @@ package body WisiToken.Syntax_Trees is
       if Item.Virtual then
          Item.Name := Name;
       else
-         Item.Element_Node.Name := Name;
+         Set_Name (Item.Element_Node, Name);
       end if;
    end Set_Name;
+
+   procedure Set_Name
+     (Node   : in     Valid_Node_Access;
+      Region : in     Buffer_Region)
+   is
+   begin
+      Node.Name_Offset := Region.First - Node.Byte_Region.First;
+      Node.Name_Length := Region.Last - Region.First + 1;
+   end Set_Name;
+
+   procedure Set_Name_Region
+     (Tree   : in out Syntax_Trees.Tree;
+      Node   : in     Valid_Node_Access;
+      Region : in     Buffer_Region)
+   is
+      pragma Unreferenced (Tree);
+   begin
+      Set_Name (Node, Region);
+   end Set_Name_Region;
 
    procedure Set_Parents
      (Tree   : in out Syntax_Trees.Tree;
@@ -3350,22 +3388,6 @@ package body WisiToken.Syntax_Trees is
       Tree.Parents_Set := True;
    end Set_Parents;
 
-   procedure Set_Terminal_Index
-     (Tree     : in out Syntax_Trees.Tree;
-      Terminal : in     Valid_Node_Access;
-      Index    : in     Valid_Node_Index)
-   is begin
-      Terminal.Node_Index := Index;
-   end Set_Terminal_Index;
-
-   procedure Set_Name_Region
-     (Tree   : in out Syntax_Trees.Tree;
-      Node   : in     Valid_Node_Access;
-      Region : in     Buffer_Region)
-   is begin
-      Node.Name := Region;
-   end Set_Name_Region;
-
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; New_Root : in Valid_Node_Access)
    is begin
       Tree.Root := New_Root;
@@ -3380,6 +3402,14 @@ package body WisiToken.Syntax_Trees is
    begin
       Parse_Stream.Stack_Top := Element.Cur;
    end Set_Stack_Top;
+
+   procedure Set_Terminal_Index
+     (Tree     : in out Syntax_Trees.Tree;
+      Terminal : in     Valid_Node_Access;
+      Index    : in     Valid_Node_Index)
+   is begin
+      Terminal.Node_Index := Index;
+   end Set_Terminal_Index;
 
    procedure Shift
      (Tree   : in out Syntax_Trees.Tree;
