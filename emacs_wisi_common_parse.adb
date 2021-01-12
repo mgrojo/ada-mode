@@ -400,7 +400,8 @@ package body Emacs_Wisi_Common_Parse is
                            Params.Changes,
                            KMN_List);
 
-                        Parse_Data.Edit (KMN_List, -Params.Language_Params);
+                        Parse_Data.Edit (KMN_List);
+                        Parse_Data.Parse_Language_Params (-Params.Language_Params);
 
                         Parser.Tree.Lexer.Reset_With_String_Access (Parse_Context.Text_Buffer, Params.Source_File_Name);
 
@@ -485,8 +486,8 @@ package body Emacs_Wisi_Common_Parse is
                        (Params.Post_Parse_Action,
                         Action_Region_Bytes =>
                           (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
-                        Begin_Indent        => Params.Begin_Indent,
-                        Language_Params     => -Params.Language_Params);
+                        Begin_Indent        => Params.Begin_Indent);
+                     Parse_Data.Parse_Language_Params (-Params.Language_Params);
                      Parser.Execute_Actions;
                      Parse_Data.Put (Parser);
                   end;

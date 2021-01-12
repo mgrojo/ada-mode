@@ -635,6 +635,8 @@ package body Run_Wisi_Common_Parse is
                   Cl_Params.Refactor_Action, Cl_Params.Edit_Begin);
 
             when Command_File =>
+               Ada.Text_IO.Put_Line ('"' & (-Cl_Params.Source_File_Name) & '"' & (-Cl_Params.Language_Params));
+               Ada.Text_IO.New_Line;
                Parse_Data.Parse_Language_Params (-Cl_Params.Language_Params);
                declare
                   Cmd_File : Ada.Text_IO.File_Type;
@@ -647,10 +649,12 @@ package body Run_Wisi_Common_Parse is
                         Line : constant String := Get_Line (Cmd_File);
                      begin
                         if Line'Length > 0 then
+                           Ada.Text_IO.Put_Line (Line);
                            if Line (1 .. 2) = "--" then
                               null;
                            else
                               Process_Command (Parse_Context, Line);
+                              Ada.Text_IO.New_Line;
                            end if;
                         end if;
                      end;

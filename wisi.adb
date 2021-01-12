@@ -2490,7 +2490,8 @@ package body Wisi is
         (case Item.Label is
          when Simple => Image (Item.Param),
          when Hanging_Label =>
-            Image (Item.Hanging_Delta_1) & ", "  & Image (Item.Hanging_Delta_2) & ")");
+            Image (Item.Hanging_Delta_1) & ", "  & Image (Item.Hanging_Delta_2))
+        & ")";
    end Image;
 
    function Image (Item : in Indent_Pair) return String

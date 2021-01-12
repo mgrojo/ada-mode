@@ -257,11 +257,11 @@ complete."
 		   (or wisi-mckenzie-zombie-limit -1)
 		   (or wisi-mckenzie-enqueue-limit -1)
 		   (or wisi-parse-max-parallel -1)
-		   (if full (- (position-bytes (point-max)) (position-bytes (point-min))) 0)
+		   (if full (- (position-bytes (point-max)) (position-bytes (point-min))) 0) ;; byte_count
 		   )
 		  (if full
 		      (list
-		       (point-max) ;; end_char_pos
+		       (1- (point-max)) ;; end_char_pos
 		       (line-number-at-pos (point-max)) ;; End_Line
 		       )
 		    (if wisi--changes

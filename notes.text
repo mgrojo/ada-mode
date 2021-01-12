@@ -44,30 +44,16 @@ for ada_mode_wisi_parse.gpr:
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
 incremental parse
+    wisi.adb
+        edit wisi actions to respect data.action_region_bytes
+            only need to process terminals in requested region, and containing nonterms
+
     test/ada_mode-incremental_parse.adb
         make one
-        final indent whole buffer is wrong
-        duplicated in debug.adb
-        'function' apparently not first, but it is in line-begin-token
-
-        duplicate with command_file
-
 
 
     preserve errors, recover_ops for complete error list after incr parse
         only in elisp; delete errors in requested parse region, parse, add new.
-
-    wisi.adb
-
-        edit wisi actions to respect data.action_region_bytes
-
-        Incremental indent - store line indent result in augmented? Delta? for contained lines in each nonterm?
-            Or fast enough to recompute all?
-            only need to process terminals in requested region, and containing nonterms?
-
-        test/ada_mode-incremental_parse.adb
-
-    change refactor to require previous parse
 
     run all tests with incremental mode enabled
         build/test.log
