@@ -2,7 +2,7 @@
 --
 --  Generic unbounded red-black tree with definite elements.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -935,7 +935,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       T            : Pkg.Tree renames Tree;
       Z            : constant Node_Access := Find (Tree.Root, Key, Tree.Nil);
       Y            : Node_Access          := Z;
-      Y_Orig_Color : Color                := Y.Color;
+      Y_Orig_Color : Color := (if Y = null then Color'First else Y.Color);
       X            : Node_Access;
    begin
       if Z = null then
