@@ -130,6 +130,8 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (with-current-buffer (wisi-process--parser-buffer parser)
 	(erase-buffer)); delete any previous messages, prompt
 
+      (wisi-parse-log-message parser "create process")
+
       (setf (wisi-process--parser-process parser)
 	    (make-process
 	     :name process-name
@@ -161,7 +163,7 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	(accept-process-output process 0.1))
 
       (unless found
-	(wisi-process-parse-show-buffer parser)
+	(wisi-parse-log-message parser "process died")
 	(error "%s process died" (wisi-process--parser-exec-file parser)))
       )))
 
@@ -263,9 +265,8 @@ complete."
 		       (line-number-at-pos (point-max)) ;; End_Line
 		       )
 		    (if wisi--changes
-			(list (prin1-to-string (nreverse wisi--changes)));; wisi--changes is in reverse time order.
-
-		      ;; Incremental parse requestted, but
+			  (list (prin1-to-string (nreverse wisi--changes)));; wisi--changes is in reverse time order.
+		      ;; Incremental parse requested, but
 		      ;; wisi--changes is empty. This is most likely
 		      ;; after a wisi-reset-parser; either in a unit
 		      ;; test or by the user.
@@ -612,9 +613,12 @@ one or more Edit messages."
     ;; We used to send a quit command first, to be nice. But there's
     ;; no timeout on that, so it would hang when the process
     ;; executable is not reading command input.
-    (when (process-live-p (wisi-process--parser-process parser))
-      (kill-process (wisi-process--parser-process parser)))
-    )
+
+    ;; Don't let font-lock start a parse for face while waiting for
+    ;; the process to die.
+    (setf (wisi-process--parser-busy parser) t)
+    (wisi-parse-log-message parser "kill process")
+    (kill-process (wisi-process--parser-process parser)))
   (setf (wisi-process--parser-busy parser) nil))
 
 (defvar wisi--lexer nil) ;; wisi-elisp-lexer.el
@@ -656,10 +660,10 @@ one or more Edit messages."
 
 (defun wisi-process-parse--handle-messages (parser)
   (let ((response-buffer (wisi-process--parser-buffer parser))
+        (source-buffer (current-buffer))
 	log-start)
     (condition-case-unless-debug err
-	(let* ((source-buffer (current-buffer))
-	       (process (wisi-process--parser-process parser))
+	(let* ((process (wisi-process--parser-process parser))
 	       (w32-pipe-read-delay 0) ;; fastest subprocess read
 	       response
 	       response-end
@@ -721,6 +725,7 @@ one or more Edit messages."
 		      ;; we last did a full parse. Signal it; caller
 		      ;; will do a full parse.
 		      (wisi-parse-log-message parser (buffer-substring log-start (point)))
+		      (set-buffer source-buffer)
 		      (signal 'wisi-file_not_found nil))
 
 		     ((equal '(parse_error) response)
@@ -794,7 +799,8 @@ one or more Edit messages."
 	    (unless done
 	      ;; end of response buffer
 	      (unless (process-live-p process)
-		(error "parser failed"))
+		(wisi-parse-log-message parser "process died")
+		(error "parser process died"))
 
 	      (setq start-wait-time (float-time))
 
@@ -835,14 +841,16 @@ one or more Edit messages."
        (set-buffer response-buffer)
        (wisi-parse-log-message parser (buffer-substring log-start (point)))
        (setf (wisi-process--parser-busy parser) nil)
+       (set-buffer source-buffer)
        (signal (car err) (cdr err)))
 
       (error
        (set-buffer response-buffer)
        (wisi-parse-log-message parser (buffer-substring log-start (point)))
        (setf (wisi-process--parser-busy parser) nil)
-       (signal (car err) (cdr err))
-       ))))
+       (set-buffer source-buffer)
+       (signal (car err) (cdr err)))
+      )))
 
 (cl-defmethod wisi-parse-current ((parser wisi-process--parser) parse-action begin send-end parse-end)
   (wisi-process-parse--prepare parser)
@@ -872,7 +880,7 @@ one or more Edit messages."
        (message "parsing buffer ...")
        (wisi-process-parse--send-incremental-parse parser t)
        (message "parsing buffer ... done")
-       (wisi-process-parse--send-incremental-parse parser full)
+       (wisi-process-parse--handle-messages parser)
        ))
     ))
 
@@ -903,10 +911,17 @@ one or more Edit messages."
      )))
 
 ;;;;; debugging
+(defun wisi-process-parse-soft-kill (parser)
+  "Send 'quit' command to parser, for repeatable termination in unit tests."
+  (let ((process (wisi-process--parser-process parser)))
+    (wisi-parse-log-message parser "soft kill process")
+    (process-send-string process "004quit")
+    (while (process-live-p process)
+      (accept-process-output process))))
+
 (defun wisi-process-parse-save-text (parser save-file-name)
   (let* ((cmd
-	  (apply #'format
-		  "parse %d \"%s\" \"%s\" "
+	  (format "save_text \"%s\" \"%s\""
 		  (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		  save-file-name))
 	 (msg (format "%03d%s" (length cmd) cmd))
@@ -916,7 +931,6 @@ one or more Edit messages."
 
     (wisi-parse-log-message parser cmd)
     (process-send-string process msg)
-    (wisi-process-parse--wait parser)
     (wisi-process-parse--handle-messages parser)))
 
 (provide 'wisi-process-parse)

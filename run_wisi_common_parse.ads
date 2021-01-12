@@ -20,16 +20,11 @@ pragma License (GPL);
 
 with Ada.Strings.Unbounded;
 with Wisi;
-with WisiToken.Parse.LR.Parser;
+with WisiToken;
 with Wisi_Parse_Context;
 package Run_Wisi_Common_Parse is
 
-   Finish : exception;
-
-   procedure Usage (Parser : in out WisiToken.Parse.LR.Parser.Parser);
-   --  Puts parameter description to Current_Output.
-
-   type Command_Type is (Parse_Partial, Parse_Incremental, Refactor);
+   type Command_Type is (Parse_Partial, Parse_Incremental, Refactor, Command_File);
 
    type Command_Line_Params (Command : Command_Type) is record
 
@@ -65,26 +60,13 @@ package Run_Wisi_Common_Parse is
 
          Edit_Begin : WisiToken.Buffer_Pos;
          --  Source file byte position at start of expression to refactor.
+
+      when Command_File =>
+         Command_File_Name : Ada.Strings.Unbounded.Unbounded_String;
       end case;
    end record;
 
-   function Command_File_Name
-     (Parse_Data : in     Wisi.Parse_Data_Type'Class;
-      Next_Arg   :    out Integer)
-     return Command_Line_Params;
-   --  Read command, command action, file name.
-
-   procedure Remaining_Command_Params
-     (Parser : in out WisiToken.Parse.LR.Parser.Parser;
-      Params : in out Command_Line_Params;
-      Arg    : in out Integer);
-   --  Read rest of command line parameters.
-   --
-   --  For any errors, calls Usage, raises SAL.Parameter_Error.
-   --
-   --  Handles --help by outputing help, raising Finish.
-
    procedure Parse_File (Language : in Wisi_Parse_Context.Language);
-   --  Reads command line, reads in file, parses, does post-parse actions.
+   --  Reads command line, processes command(s).
 
 end Run_Wisi_Common_Parse;

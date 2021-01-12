@@ -45,9 +45,12 @@ for ada_mode_wisi_parse.gpr:
  current work
 incremental parse
     test/ada_mode-incremental_parse.adb
-Error during redisplay: (jit-lock-function 1) signaled (error "Format specifier doesn’t match argument type")
+        make one
+        final indent whole buffer is wrong
+        duplicated in debug.adb
+        'function' apparently not first, but it is in line-begin-token
 
-        indent is wrong
+        duplicate with command_file
 
 
 
@@ -55,6 +58,7 @@ Error during redisplay: (jit-lock-function 1) signaled (error "Format specifier 
         only in elisp; delete errors in requested parse region, parse, add new.
 
     wisi.adb
+
         edit wisi actions to respect data.action_region_bytes
 
         Incremental indent - store line indent result in augmented? Delta? for contained lines in each nonterm?

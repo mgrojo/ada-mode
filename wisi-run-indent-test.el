@@ -27,7 +27,10 @@
 (defvar skip-write nil)
 
 (defvar save-parser-log nil
-  "If non-nil, must be a file name telling where save wisi parser transaction log")
+  "If non-nil, a file name telling where to save wisi parser transaction log")
+
+(defvar save-edited-text nil
+  "If non-nil, a file name telling where to save wisi parser edited text")
 
 (defun test-in-comment-p ()
   (nth 4 (syntax-ppss)))
@@ -174,6 +177,11 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
     (with-current-buffer (wisi-parser-transaction-log-buffer wisi--parser)
       (message "saving parser transaction log '%s' to '%s'" (buffer-name) save-parser-log)
       (write-region nil nil save-parser-log))))
+
+(defun wisi-test-save-edited ()
+  (when (and (stringp save-edited-text))
+    (message "saving parser edited text to '%s'" save-edited-text)
+    (wisi-process-parse-save-text wisi--parser save-edited-text)))
 
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."
@@ -342,9 +350,11 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	  (message "casing")
 	  (wisi-case-adjust-buffer))
 
-	(wisi-test-save-log))
+	(wisi-test-save-log)
+	(wisi-test-save-edited))
     (error
      (wisi-test-save-log)
+     (wisi-test-save-edited)
      (signal (car err) (cdr err)))
     ))
 

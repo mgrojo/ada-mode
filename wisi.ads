@@ -127,8 +127,7 @@ package Wisi is
      (Data                : in out Parse_Data_Type;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
-      Begin_Indent        : in     Integer;
-      Language_Params     : in     String);
+      Begin_Indent        : in     Integer);
    --  Reset for a new post-parse action, preserving data from previous parse.
 
    overriding procedure Reset (Data : in out Parse_Data_Type);
@@ -136,9 +135,8 @@ package Wisi is
    function Post_Parse_Action (Data : in Parse_Data_Type) return Post_Parse_Action_Type;
 
    procedure Edit
-     (Data            : in out Parse_Data_Type;
-      Edits           : in     WisiToken.Parse.KMN_Lists.List;
-      Language_Params : in     String);
+     (Data  : in out Parse_Data_Type;
+      Edits : in     WisiToken.Parse.KMN_Lists.List);
    --  Apply edits to Data. Will be followed by Execute_Actions on a
    --  region of text.
 

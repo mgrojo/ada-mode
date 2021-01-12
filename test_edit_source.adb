@@ -21,7 +21,10 @@ with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_AUnit;
 with System.Assertions;
 with Wisi;
 with WisiToken.Parse;
+with WisiToken.Text_IO_Trace;
 package body Test_Edit_Source is
+
+   Trace : WisiToken.Text_IO_Trace.Trace;
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Base_Buffer_Pos);
 
@@ -84,7 +87,7 @@ package body Test_Edit_Source is
       Source_Byte_Last := Source'Last;
       Source_Char_Last := Source'Last;
 
-      Wisi.Edit_Source (Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
+      Wisi.Edit_Source (Trace, Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
 
       Expected_KMN_List.Append
         ((Stable_Bytes   => Base_Buffer_Pos (Source'Last),
@@ -193,7 +196,7 @@ package body Test_Edit_Source is
              Deleted_Bytes | Deleted_Chars                 => 0));
       end;
 
-      Edit_Source (Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
+      Edit_Source (Trace, Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
 
       Check ("1", KMN_List, Expected_KMN_List);
 
@@ -288,7 +291,7 @@ package body Test_Edit_Source is
              Deleted_Bytes | Deleted_Chars                 => 0));
       end;
 
-      Edit_Source (Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
+      Edit_Source (Trace, Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
 
       Check ("1", KMN_List, Expected_KMN_List);
 
@@ -420,7 +423,7 @@ package body Test_Edit_Source is
              Deleted_Bytes | Deleted_Chars                 => 0));
       end;
 
-      Edit_Source (Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
+      Edit_Source (Trace, Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
 
       Check ("1", KMN_List, Expected_KMN_List);
 
@@ -549,7 +552,7 @@ package body Test_Edit_Source is
       end;
 
       begin
-         Edit_Source (Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
+         Edit_Source (Trace, Source, Source_Byte_Last, Source_Char_Last, Changes, KMN_List);
 
          if Trace_Tests > Detail then
             Ada.Text_IO.Put_Line ("Computed KMN_List:");

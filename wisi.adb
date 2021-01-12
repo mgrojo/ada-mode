@@ -41,9 +41,8 @@ package body Wisi is
    --  body subprograms bodies, alphabetical
 
    procedure Edit
-     (Data            : in out Parse_Data_Type;
-      Edits           : in     WisiToken.Parse.KMN_Lists.List;
-      Language_Params : in     String)
+     (Data  : in out Parse_Data_Type;
+      Edits : in     WisiToken.Parse.KMN_Lists.List)
    is
       use all type Ada.Containers.Count_Type;
 
@@ -84,8 +83,6 @@ package body Wisi is
       end Map;
 
    begin
-      Data.Parse_Language_Params (Language_Params);
-
       --  Elisp handles deleting text properties in edited regions; delete
       --  the same data here. Execute_Actions will computed new text
       --  properties for the edited regions.
@@ -159,7 +156,13 @@ package body Wisi is
       end loop;
 
       for Pos of Face_Delete loop
-         Data.Face_Caches.Delete (Pos);
+         begin
+            Data.Face_Caches.Delete (Pos);
+         exception
+         when SAL.Not_Found =>
+            --  Code above can enter Pos into Face_Delete more than once
+            null;
+         end;
       end loop;
 
       --  Now Map is valid; finish shifting Navigate
@@ -895,6 +898,7 @@ package body Wisi is
         Item.Begin_Char_Pos'Image & "," &
         Item.Inserted_End_Byte_Pos'Image & "," &
         Item.Inserted_End_Char_Pos'Image & "," &
+        " +""" & (-Item.Inserted_Text) & """," &
         Item.Deleted_Bytes'Image & "," &
         Item.Deleted_Chars'Image & ")";
    end Image;
@@ -1302,13 +1306,11 @@ package body Wisi is
      (Data                : in out Parse_Data_Type;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
-      Begin_Indent        : in     Integer;
-      Language_Params     : in     String)
+      Begin_Indent        : in     Integer)
    is begin
       Data.Post_Parse_Action   := Post_Parse_Action;
       Data.Action_Region_Bytes := Action_Region_Bytes;
-      Data.Begin_Indent := Begin_Indent;
-      Data.Parse_Language_Params (Language_Params);
+      Data.Begin_Indent        := Begin_Indent;
    end Reset_Post_Parse;
 
    overriding procedure Reset (Data : in out Parse_Data_Type)
