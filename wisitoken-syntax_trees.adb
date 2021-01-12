@@ -167,7 +167,7 @@ package body WisiToken.Syntax_Trees is
                      Other_Parent.Children (Child_Index) := Invalid_Node_Access;
                   end;
                else
-                  pragma Assert (False);
+                  pragma Assert (False, "attempt to use children with existing parents");
                end if;
             end if;
 
