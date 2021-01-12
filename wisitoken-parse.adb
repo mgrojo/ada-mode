@@ -445,7 +445,7 @@ package body WisiToken.Parse is
             --  deleted region overlaps or is adjacent to a preceding or following
             --  token. If insert/delete is inside or after a comment, the scanning
             --  may already have been done. Set Do_Scan, Old_* to the scan start
-            --  position; the start of token index or in the preceding
+            --  position; the start of Terminal or in the preceding
             --  non_grammar. FIXME: handle Tree.Leading_Non_Grammar.
             if Tree.Byte_Region (Terminal.Node).Last + Shift_Bytes > Scanned_Byte_Pos then
                if Tree.ID (Terminal.Node) /= Tree.Lexer.Descriptor.EOI_ID and
@@ -523,13 +523,18 @@ package body WisiToken.Parse is
 
                declare
                   Prev_Token_ID : constant Token_ID :=
-                    (if Old_Line in Tree.Line_Begin_Char_Pos.First_Index .. Tree.Line_Begin_Char_Pos.Last_Index
-                       and then Tree.Line_Begin_Char_Pos (Old_Line) = Old_Char_Pos
+                    (if Old_Line in Tree.Line_Begin_Token.First_Index .. Tree.Line_Begin_Token.Last_Index
+                       and then Tree.Line_Begin_Token (Old_Line) = Terminal.Node
                      then Tree.Lexer.Descriptor.New_Line_ID
                      else Invalid_Token_ID);
                begin
                   if Trace_Incremental_Parse > Outline then
-                     Parser.Trace.Put_Line ("lexer.set_position" & Buffer_Pos'Image (Old_Byte_Pos + Shift_Bytes));
+                     Parser.Trace.Put_Line
+                       ("lexer.set_position" & Buffer_Pos'Image (Old_Byte_Pos + Shift_Bytes) &
+                          " prev_token_id " &
+                          (if Prev_Token_ID = Invalid_Token_ID
+                           then "<invalid>"
+                           else Image (Prev_Token_ID, Tree.Lexer.Descriptor.all)));
                   end if;
 
                   Parser.Tree.Lexer.Set_Position
