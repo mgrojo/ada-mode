@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018, 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018, 2020 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -30,7 +30,6 @@ with Warth_Left_Recurse_Expr_1_Runtime;
 with WisiToken.AUnit;
 with WisiToken.Parse.Packrat.Generated;
 with WisiToken.Parse.Packrat.Procedural;
-with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 package body Warth_Left_Recurse_Expr_1 is
 

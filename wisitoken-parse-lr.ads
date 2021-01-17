@@ -9,7 +9,7 @@
 --
 --  See wisitoken.ads
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -127,7 +127,7 @@ package WisiToken.Parse.LR is
        else SAL.Greater);
 
    package Action_Arrays is new SAL.Gen_Unbounded_Definite_Vectors_Sorted
-     (Action_Node, Token_ID, To_Key, Compare);
+     (Action_Node, Token_ID, To_Key, Compare, Default_Element => (others => <>));
 
    procedure Add
      (List   : in out Action_Arrays.Vector;
@@ -136,14 +136,14 @@ package WisiToken.Parse.LR is
    --  Add action to List, sorted on ascending Symbol.
 
    type Goto_Node is record
-      Symbol : Token_ID;
-      State  : State_Index;
+      Symbol : Token_ID    := Invalid_Token_ID;
+      State  : State_Index := State_Index'Last;
    end record;
 
    function To_Key (Item : in Goto_Node) return Token_ID is (Item.Symbol);
 
    package Goto_Arrays is  new SAL.Gen_Unbounded_Definite_Vectors_Sorted
-     (Goto_Node, Token_ID, To_Key, Compare);
+     (Goto_Node, Token_ID, To_Key, Compare, Default_Element => (others => <>));
 
    type Kernel_Info is record
       Production       : Production_ID;
@@ -680,7 +680,7 @@ package WisiToken.Parse.LR is
       --  Max line checked for missing string quote.
 
       Error_Token                   : Syntax_Trees.Recover_Token;
-      User_Parse_Action_Token_Count : Ada.Containers.Count_Type;
+      User_Parse_Action_Token_Count : Ada.Containers.Count_Type := 0;
       User_Parse_Action_Status      : In_Parse_Actions.Status;
       --  If parsing this config ended with a parse error, Error_Token is
       --  the token that failed to shift, Check_Status.Label is Ok.

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002, 2003, 2008, 2009, 2012 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2008, 2009, 2012 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -508,8 +508,8 @@ package body WisiToken.Generate.LR1_Items is
          else
             Result := Result & " ";
          end if;
-         Result := Result & Image (Element (I), Descriptor);
-         Next (I);
+         Result := Result & Image (RHS.Tokens (I), Descriptor);
+         RHS.Tokens.Next (I);
       end loop;
 
       if Item.Dot = No_Index then

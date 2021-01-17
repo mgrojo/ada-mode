@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -699,9 +699,7 @@ package body WisiToken.Generate.LR is
      (Descriptor                 : in WisiToken.Descriptor;
       Minimal_Terminal_Sequences : in Minimal_Sequence_Array)
      return Token_Array_Token_ID
-   is
-      use Token_ID_Arrays;
-   begin
+   is begin
       return Result : Token_Array_Token_ID (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) do
          for ID in Result'Range loop
             declare
@@ -711,7 +709,7 @@ package body WisiToken.Generate.LR is
                if Min_Seq.Length = 0 then
                   Result (ID) := Invalid_Token_ID;
                else
-                  Result (ID) := Element (Min_Seq.First);
+                  Result (ID) := Min_Seq (Min_Seq.First);
                end if;
             end;
          end loop;
@@ -791,12 +789,12 @@ package body WisiToken.Generate.LR is
          loop
             exit when not Has_Element (I);
 
-            if Element (I) in Terminals then
+            if Tokens (I) in Terminals then
                Result := Result + 1;
             else
                Result := Result + Min_Length (Minimal_Terminal_Sequences (Tokens (I)).Sequence);
             end if;
-            Next (I);
+            Tokens.Next (I);
          end loop;
          return Result;
       end Length_After_Dot;

@@ -2,7 +2,7 @@
 --
 --  Stuff needed by Skip_To_Grammar and Test_Skip_To.
 --
---  Copyright (C) 2017, 2018, 2019, 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018, 2019, 2020, 2021 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -15,7 +15,6 @@ pragma License (GPL);
 
 with Skip_To_Grammar_Actions;
 with WisiToken.Parse.LR.Parser_No_Recover;
-with WisiToken.Syntax_Trees;
 package Test_Skip_To_Aux is
 
    Enable : Boolean;
