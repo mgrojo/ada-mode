@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -13,7 +13,6 @@
 
 pragma License (GPL);
 
-with AUnit.Assertions;
 with AUnit.Checks.Containers;
 with SAL.AUnit;
 package body SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit is
@@ -43,9 +42,6 @@ package body SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit is
       Computed : in Cursor;
       Expected : in Cursor)
    is begin
-      Standard.AUnit.Assertions.Assert
-        (Computed.Container = Expected.Container,
-         Label & ".container: access mismatch");
       SAL.AUnit.Check (Label & ".index", Computed.Index, Expected.Index);
    end Check;
 

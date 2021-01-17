@@ -15,7 +15,7 @@
 --  [1] Introduction to Algorithms, Thomas H. Cormen, Charles E.
 --  Leiserson, Ronald L. Rivest, Clifford Stein.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -109,7 +109,7 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    package Iterators is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
-   type Iterator (<>) is new Iterators.Reversible_Iterator with private;
+   type Iterator (Container : not null access constant Tree) is new Iterators.Reversible_Iterator with private;
 
    function Iterate (Tree : aliased in Pkg.Tree'Class) return Iterator;
 

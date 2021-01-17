@@ -5,16 +5,16 @@
 --
 --  Prepend is as fast (in amortized time) as Append.
 --
---  It provides no checking of cursor tampering; higher level code
---  must ensure that.
---
 --  Design:
+--
+--  See sal-gen_unbounded_definite_vectors.ads for discussion of
+--  reference controls.
 --
 --  See ARM 3.10.2 "explicitly aliased" for why we need 'aliased' in
 --  several subprogram argument modes, and why Container must be an
 --  access discriminant in Cursor and Iterator.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -54,8 +54,8 @@ package SAL.Gen_Unbounded_Indefinite_Vectors is
    overriding procedure Finalize (Container : in out Vector);
    overriding procedure Adjust (Container : in out Vector);
 
-   overriding function "=" (Left, Right : in Vector) return Boolean is
-     (raise Programmer_Error);
+   overriding function "=" (Left, Right : in Vector) return Boolean
+   is (raise Programmer_Error);
    --  Use Gen_Comparable child.
 
    function Length (Container : in Vector) return Ada.Containers.Count_Type;
@@ -135,7 +135,7 @@ package SAL.Gen_Unbounded_Indefinite_Vectors is
    --  null value.
 
    procedure Delete (Container : in out Vector; Index : in Index_Type);
-   --  Replace Index element contents with default. If Index =
+   --  Replace Index element contents with null. If Index =
    --  Container.Last_Index, Container.Last_Index is decremented.
 
    function Contains (Container : in Vector; Element : in Element_Type) return Boolean;
@@ -153,20 +153,20 @@ package SAL.Gen_Unbounded_Indefinite_Vectors is
    function Variable_Ref (Container : aliased in Vector; Index : in Index_Type) return Variable_Reference_Type
    with Inline, Pre => Index in Container.First_Index .. Container.Last_Index;
 
-   type Cursor (<>) is private;
+   type Cursor is private;
 
    function Has_Element (Position : Cursor) return Boolean;
-   function Element (Position : Cursor) return Element_Type
+   function Element (Container : in Vector; Position : Cursor) return Element_Type
    with Pre => Has_Element (Position);
-   function First (Container : aliased in Vector) return Cursor;
-   function Next (Position : in Cursor) return Cursor;
-   procedure Next (Position : in out Cursor);
-   function Prev (Position : in Cursor) return Cursor;
-   procedure Prev (Position : in out Cursor);
+   function First (Container : in Vector) return Cursor;
+   function Next (Container : in Vector; Position : in Cursor) return Cursor;
+   procedure Next (Container : in Vector; Position : in out Cursor);
+   function Prev (Container : in Vector; Position : in Cursor) return Cursor;
+   procedure Prev (Container : in Vector; Position : in out Cursor);
 
    function To_Cursor
-     (Container : aliased in Vector;
-      Index     :         in Extended_Index)
+     (Container : in Vector;
+      Index     : in Extended_Index)
      return Cursor
    with Pre => Index = No_Index or Index in Container.First_Index .. Container.Last_Index;
 
@@ -177,10 +177,12 @@ package SAL.Gen_Unbounded_Indefinite_Vectors is
    function Iterate (Container : aliased in Vector) return Iterator_Interfaces.Reversible_Iterator'Class;
 
    function Constant_Ref (Container : aliased in Vector; Position : in Cursor) return Constant_Reference_Type
-   with Inline, Pre => Has_Element (Position);
+   with Pre => Has_Element (Position) and then
+               To_Index (Position) in Container.First_Index .. Container.Last_Index;
 
    function Variable_Ref (Container : aliased in Vector; Position  : in Cursor) return Variable_Reference_Type
-   with Pre => Has_Element (Position);
+   with Pre => Has_Element (Position) and then
+               To_Index (Position) in Container.First_Index .. Container.Last_Index;
    pragma Inline (Variable_Ref);
 
 private
@@ -198,11 +200,7 @@ private
       Last     : Extended_Index := No_Index;
    end record;
 
-   type Vector_Access is access constant Vector;
-   for Vector_Access'Storage_Size use 0;
-
-   type Cursor (Container : not null access constant Vector) is
-   record
+   type Cursor is record
       Index : Base_Peek_Type := Invalid_Peek_Index;
    end record;
 

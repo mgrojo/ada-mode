@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -53,8 +53,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_AUnit is
       Expected : in Cursor)
    is begin
       AUnit.Assertions.Assert
-        (Computed.Container = Expected.Container and Computed.Ptr = Expected.Ptr, Label & ": cursors not equal");
+        (Computed.Ptr = Expected.Ptr, Label & ": cursors not equal");
    end Check;
-
 
 end SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_AUnit;

@@ -2,7 +2,7 @@
 --
 --  A generic sorted doubly linked list with definite elements.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -83,7 +83,7 @@ package SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
    --
    --  Added is True if any element was not already present.
 
-   type Cursor (<>) is private;
+   type Cursor is private;
 
    function No_Element (Container : aliased in List) return Cursor;
 
@@ -158,8 +158,7 @@ private
    function Is_Empty (Container : in List) return Boolean
    is (Container.Head = null);
 
-   type Cursor (Container : not null access constant List) is
-   record
+   type Cursor is record
       Ptr : Node_Access;
    end record;
 
@@ -176,7 +175,7 @@ private
    Empty_List : constant List := (Ada.Finalization.Controlled with null, null, 0);
 
    function No_Element (Container : aliased in List) return Cursor
-     is (Container'Access, null);
+     is (Ptr => null);
 
    type Iterator (Container : not null access constant List) is new Iterator_Interfaces.Reversible_Iterator with
    null record;

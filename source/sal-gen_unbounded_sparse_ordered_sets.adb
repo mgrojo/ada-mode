@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2020 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020 - 2021 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -68,39 +68,20 @@ package body SAL.Gen_Unbounded_Sparse_Ordered_Sets is
    end Constant_Ref;
 
    function Iterate (Container : aliased in Pkg.Set'Class) return Iterator
-   is
-      --  Let Initialize call Tree.Iterate; calling it directly here gives
-      --  accessibility error.
-      Iter_1 : Wrapped_Boolean_Iterator (Container'Access);
-   begin
+   is begin
       return
-        (Container => Container'Access,
-         Iter_1    => Iter_1);
+        (Container => Container.Tree'Access,
+         Iter      => Container.Tree.Iterate);
    end Iterate;
 
    overriding function First (Iterator : in Pkg.Iterator) return Cursor
    is begin
-      return (Cur => Iterator.Iter_1.Iter_2.First);
+      return (Cur => Iterator.Iter.First);
    end First;
 
    overriding function Next (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor
    is begin
-      return (Cur => Iterator.Iter_1.Iter_2.Next (Position.Cur));
+      return (Cur => Iterator.Iter.Next (Position.Cur));
    end Next;
-
-   overriding procedure Initialize (Iter : in out Wrapped_Boolean_Iterator)
-   is begin
-      Iter.Iter_2 := new Boolean_Trees.Iterator'(Iter.Container.Tree.Iterate);
-   end Initialize;
-
-   overriding procedure Finalize (Iter : in out Wrapped_Boolean_Iterator)
-   is begin
-      Free (Iter.Iter_2);
-   end Finalize;
-
-   overriding procedure Adjust (Iter : in out Wrapped_Boolean_Iterator)
-   is begin
-      Iter.Iter_2 := new Boolean_Trees.Iterator'(Iter.Container.Tree.Iterate);
-   end Adjust;
 
 end SAL.Gen_Unbounded_Sparse_Ordered_Sets;

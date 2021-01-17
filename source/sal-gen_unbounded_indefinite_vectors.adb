@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -455,72 +455,72 @@ package body SAL.Gen_Unbounded_Indefinite_Vectors is
       end if;
    end Contains;
 
-   function Element (Position : Cursor) return Element_Type
+   function Element (Container : in Vector; Position : Cursor) return Element_Type
    is begin
-      return Position.Container.Elements (Position.Index).all;
+      return Container.Elements (Position.Index).all;
    end Element;
 
-   function First (Container : aliased in Vector) return Cursor
+   function First (Container : in Vector) return Cursor
    is
       use all type Ada.Containers.Count_Type;
    begin
       if Container.Length = 0 then
-         return (Container'Access, Invalid_Peek_Index);
+         return (Index => Invalid_Peek_Index);
       else
-         return (Container'Access, To_Peek_Type (Container.First));
+         return (Index => To_Peek_Type (Container.First));
       end if;
    end First;
 
-   function Next (Position : in Cursor) return Cursor
+   function Next (Container : in Vector; Position : in Cursor) return Cursor
    is begin
       if Position.Index = Invalid_Peek_Index then
-         return (Position.Container, Invalid_Peek_Index);
-      elsif Position.Index < To_Peek_Type (Position.Container.Last) then
-         return (Position.Container, Position.Index + 1);
+         return (Index => Invalid_Peek_Index);
+      elsif Position.Index < To_Peek_Type (Container.Last) then
+         return (Index => Position.Index + 1);
       else
-         return (Position.Container, Invalid_Peek_Index);
+         return (Index => Invalid_Peek_Index);
       end if;
    end Next;
 
-   procedure Next (Position : in out Cursor)
+   procedure Next (Container : in Vector; Position : in out Cursor)
    is begin
       if Position.Index = Invalid_Peek_Index then
          null;
-      elsif Position.Index < To_Peek_Type (Position.Container.Last) then
+      elsif Position.Index < To_Peek_Type (Container.Last) then
          Position.Index := Position.Index + 1;
       else
-         Position := (Position.Container, Invalid_Peek_Index);
+         Position := (Index => Invalid_Peek_Index);
       end if;
    end Next;
 
-   function Prev (Position : in Cursor) return Cursor
+   function Prev (Container : in Vector; Position : in Cursor) return Cursor
    is begin
       if Position.Index = Invalid_Peek_Index then
-         return (Position.Container, Invalid_Peek_Index);
-      elsif Position.Index > To_Peek_Type (Position.Container.First) then
-         return (Position.Container, Position.Index - 1);
+         return (Index => Invalid_Peek_Index);
+      elsif Position.Index > To_Peek_Type (Container.First) then
+         return (Index => Position.Index - 1);
       else
-         return (Position.Container, Invalid_Peek_Index);
+         return (Index => Invalid_Peek_Index);
       end if;
    end Prev;
 
-   procedure Prev (Position : in out Cursor)
+   procedure Prev (Container : in Vector; Position : in out Cursor)
    is begin
       if Position.Index = Invalid_Peek_Index then
          null;
-      elsif Position.Index > To_Peek_Type (Position.Container.First) then
+      elsif Position.Index > To_Peek_Type (Container.First) then
          Position.Index := Position.Index - 1;
       else
-         Position := (Position.Container, Invalid_Peek_Index);
+         Position := (Index => Invalid_Peek_Index);
       end if;
    end Prev;
 
    function To_Cursor
-     (Container : aliased in Vector;
-      Index     :         in Extended_Index)
+     (Container : in Vector;
+      Index     : in Extended_Index)
      return Cursor
    is begin
-      return (Container'Access, To_Peek_Type (Index));
+      return (Index => To_Peek_Type (Index));
    end To_Cursor;
 
    function To_Index (Position : in Cursor) return Extended_Index
@@ -552,36 +552,36 @@ package body SAL.Gen_Unbounded_Indefinite_Vectors is
    overriding function First (Object : Iterator) return Cursor
    is begin
       if Object.Container.Elements = null then
-         return (Object.Container, Invalid_Peek_Index);
+         return (Index => Invalid_Peek_Index);
       else
-         return (Object.Container, To_Peek_Type (Object.Container.First_Index));
+         return (Index => To_Peek_Type (Object.Container.First_Index));
       end if;
    end First;
 
    overriding function Last  (Object : Iterator) return Cursor
    is begin
       if Object.Container.Elements = null then
-         return (Object.Container, Invalid_Peek_Index);
+         return (Index => Invalid_Peek_Index);
       else
-         return (Object.Container, To_Peek_Type (Object.Container.Last_Index));
+         return (Index => To_Peek_Type (Object.Container.Last_Index));
       end if;
    end Last;
 
    overriding function Next (Object : in Iterator; Position : in Cursor) return Cursor
    is begin
       if Position.Index = To_Peek_Type (Object.Container.Last) then
-         return (Object.Container, Invalid_Peek_Index);
+         return (Index => Invalid_Peek_Index);
       else
-         return (Object.Container, Position.Index + 1);
+         return (Index => Position.Index + 1);
       end if;
    end Next;
 
    overriding function Previous (Object : in Iterator; Position : in Cursor) return Cursor
    is begin
       if Position.Index = To_Peek_Type (Index_Type'First) then
-         return (Object.Container, Invalid_Peek_Index);
+         return (Index => Invalid_Peek_Index);
       else
-         return (Object.Container, Position.Index - 1);
+         return (Index => Position.Index - 1);
       end if;
    end Previous;
 

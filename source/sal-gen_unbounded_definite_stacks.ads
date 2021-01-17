@@ -2,7 +2,7 @@
 --
 --  Stack implementation.
 --
---  Copyright (C) 1998-2000, 2002-2003, 2009, 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 1998-2000, 2002-2003, 2009, 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -121,7 +121,7 @@ package SAL.Gen_Unbounded_Definite_Stacks is
      return Constant_Reference_Type
    with Inline, Pre => Position in 1 .. Container.Depth;
 
-   type Cursor (<>) is private;
+   type Cursor is private;
 
    function Constant_Reference
      (Container : aliased in Stack'Class;
@@ -156,9 +156,8 @@ private
 
    Empty_Stack : constant Stack := (Ada.Finalization.Controlled with Invalid_Peek_Index, null);
 
-   type Cursor (Container : not null access constant Stack) is
-   record
-      Ptr : Peek_Type;
+   type Cursor is record
+      Ptr : Base_Peek_Type := Invalid_Peek_Index;
    end record;
 
 end SAL.Gen_Unbounded_Definite_Stacks;

@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019, 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -33,10 +33,11 @@ is
      (if Left < Right then SAL.Less elsif Left = Right then SAL.Equal else SAL.Greater);
 
    package Sorted_Pair_Vectors is new SAL.Gen_Unbounded_Definite_Vectors_Sorted
-     (Element_Type => Pair,
-      Key_Type     => Integer,
-      To_Key       => To_Key,
-      Key_Compare  => Compare);
+     (Element_Type    => Pair,
+      Key_Type        => Integer,
+      To_Key          => To_Key,
+      Key_Compare     => Compare,
+      Default_Element => (others => <>));
    use Sorted_Pair_Vectors;
 
    type Check_Array_Type is array (Positive range <>) of Pair;
