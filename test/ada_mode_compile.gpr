@@ -127,6 +127,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_virtual.adb",
       "ada_mode-recover_virtual_renames.adb",
 
+      "refactor_dos.ads",
       "ada_mode-refactor_object_index_to_element_object.adb",
       "ada_mode-refactor_object_method_to_method_object.adb",
 

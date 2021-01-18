@@ -1,32 +1,24 @@
---  generated parser support file. -*- buffer-read-only:t  -*-
---  command line: wisitoken-bnf-generate.exe
---   --generate PACKRAT_GEN Ada re2c PROCESS ../test/bnf/body_instantiation_conflict.wy
---
+-- Test refactor 3, 4 with DOS line endings; causes byte-pos /= char-pos
 
---  Copyright (C) 2013, 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+--EMACSCMD:(setq skip-recase-test t)
+package body Ada_Mode.Refactor_Object_Index_To_Element_Object is
 
---  This program is free software; you can redistribute it and/or
---  modify it under the terms of the GNU General Public License as
---  published by the Free Software Foundation; either version 3, or (at
---  your option) any later version.
---
---  This software is distributed in the hope that it will be useful,
---  but WITHOUT ANY WARRANTY; without even the implied warranty of
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
---  General Public License for more details.
---
---  You should have received a copy of the GNU General Public License
---  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+   --EMACSCMD:(test-oieo "Config_Op" "Err.Recover.Op (I)")
+   Op : Config_Op := Err.Recover.Op (I);
+   --EMACSCMD:(test-refactor-inverse)
 
-with WisiToken.Lexer;
-with WisiToken.Parse.LR;
-with WisiToken.Syntax_Trees;
-package Body_Instantiation_Conflict_Packrat_Gen_Main is
+   --EMACSCMD:(test-oieo "Boolean" "Item.Config.Ops (")
+   A : Boolean := Item.Config.Ops (Item.Config.Ops.Last_Index).Op = Fast_Forward;
+   --EMACSCMD:(test-refactor-inverse)
 
-   function Create_Parser
-     (Descriptor : in WisiToken.Descriptor_Access;
-      Trace      : in WisiToken.Trace_Access;
-      User_Data  : in WisiToken.Syntax_Trees.User_Data_Access)
-     return WisiToken.Parse.Base_Parser'Class;
+begin
+   --EMACSCMD:(test-oieo nil "Err.Recover.Op (I)")
+   Err.Recover.Op (I);
+   --EMACSCMD:(test-refactor-inverse)
 
-end Body_Instantiation_Conflict_Packrat_Gen_Main;
+   --EMACSCMD:(test-oieo nil "Item.Config.Ops (")
+   Item.Config.Ops (Item.Config.Ops.Last_Index).Op;
+   --EMACSCMD:(test-refactor-inverse)
+
+end Ada_Mode.Refactor_Object_Index_To_Element_Object;

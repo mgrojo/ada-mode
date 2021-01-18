@@ -43,8 +43,6 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
-
 delete ada-language-version
 
 refactor fails if file has DOS line endings
@@ -56,14 +54,11 @@ test/ada_mode-interactive_2.adb
     has nil indent
 
 build/test.log
-    ada_mode-interactive_2.adb:111 indent is nil
-        not when that test is isolated in debug.adb; due to preceding errors?
-        clean up preceding errors; no help
-        edebug broken; ignore for now
+    ada_mode-interactive_2.adb Local_Proc_1
+        right paren indented 1 too much when error correction present
+            Delete_Token update line_begin_char_pos?
 
-    all others pass
-
-use trace in wisi.adb
+    gpr-skel-test.el parse navigate unhandled exception: CONSTRAINT_ERROR: sal-gen_unb
 
 incremental parse
     add incremental tests
@@ -77,6 +72,8 @@ incremental parse
     run all tests
         build/test.log
 
+
+split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
 
 in ada_annex_p.wy:
     wisi-parse-buffer indent doesn't use lisp-indent-buffer
