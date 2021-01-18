@@ -40,6 +40,7 @@ package Run_Wisi_Common_Parse is
          Partial_End_Byte_Pos      : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
          Partial_Goal_Byte_Pos     : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
          Partial_Begin_Char_Pos    : WisiToken.Buffer_Pos       := WisiToken.Buffer_Pos'First;
+         Partial_End_Char_Pos      : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
          Partial_Begin_Line        : WisiToken.Line_Number_Type := WisiToken.Line_Number_Type'First;
          Partial_Begin_Indent      : Integer                    := 0;
 
@@ -48,8 +49,9 @@ package Run_Wisi_Common_Parse is
          Changes               : Wisi.Change_Lists.List;
          Inc_Post_Parse_Action : Wisi.Post_Parse_Action_Type;
          Inc_Begin_Byte_Pos    : WisiToken.Buffer_Pos := WisiToken.Invalid_Buffer_Pos;
+         Inc_Begin_Char_Pos    : WisiToken.Buffer_Pos := WisiToken.Invalid_Buffer_Pos;
          Inc_End_Byte_Pos      : WisiToken.Buffer_Pos := WisiToken.Invalid_Buffer_Pos;
-         Inc_Begin_Indent      : Integer              := 0;
+         Inc_End_Char_Pos      : WisiToken.Buffer_Pos := WisiToken.Invalid_Buffer_Pos;
 
       when Refactor =>
          --  We assume the file contains only the one statement/declaration

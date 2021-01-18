@@ -104,6 +104,7 @@ package Wisi is
       Trace               : in     WisiToken.Trace_Access;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
+      Action_Region_Chars : in     WisiToken.Buffer_Region;
       Begin_Line          : in     WisiToken.Line_Number_Type;
       End_Line            : in     WisiToken.Line_Number_Type;
       Begin_Indent        : in     Integer);
@@ -127,7 +128,7 @@ package Wisi is
      (Data                : in out Parse_Data_Type;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
-      Begin_Indent        : in     Integer);
+      Action_Region_Chars : in     WisiToken.Buffer_Region);
    --  Reset for a new post-parse action, preserving data from previous parse.
 
    overriding procedure Reset (Data : in out Parse_Data_Type);
@@ -653,6 +654,7 @@ private
 
       Post_Parse_Action   : Post_Parse_Action_Type;
       Action_Region_Bytes : WisiToken.Buffer_Region;
+      Action_Region_Chars : WisiToken.Buffer_Region;
       --  Actions are applied to tokens that overlap this region.
 
       Navigate_Caches   : Navigate_Cache_Trees.Tree;  -- Set by Navigate.

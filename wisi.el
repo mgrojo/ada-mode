@@ -1244,7 +1244,7 @@ the comment on the previous line."
 	(let ((start (progn (wisi-goto-start cache) (point)))
 	      (end (if (wisi-cache-end cache)
 			 ;; nil when cache is statement-end
-			 (wisi-cache-end cache)
+			 (marker-position (wisi-cache-end cache))
 		       (point))))
 	  (indent-region start end)
 	  ))

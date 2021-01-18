@@ -41,7 +41,7 @@ package body Run_Wisi_Common_Parse is
    begin
       Put_Line ("usage: parse_partial <post_parse_action> <file_name> [partial parse params] [options]");
       Put_Line ("   or: parse_incremental <post_parse_action> <file_name> <changes> ");
-      Put_Line ("          <action_begin_byte> <action_end_byte> <action_begin_indent> [options]");
+      Put_Line ("          <action_begin_byte> <action_end_byte> [options]");
       Put_Line ("   or: refactor <refactor_action> <file_name> <edit_begin> [options]");
       Put_Line ("   or: command_file <command_file_name> <source_file_name>");
       Put_Line ("post_parse_action: {Navigate | Face | Indent}");
@@ -168,10 +168,11 @@ package body Run_Wisi_Common_Parse is
             Params.Partial_End_Byte_Pos   := WisiToken.Buffer_Pos'Value (Argument (5)) - 1; -- match emacs region
             Params.Partial_Goal_Byte_Pos  := WisiToken.Buffer_Pos'Value (Argument (6));
             Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'Value (Argument (7));
-            Params.Partial_Begin_Line     := WisiToken.Line_Number_Type'Value (Argument (8));
-            Params.End_Line               := WisiToken.Line_Number_Type'Value (Argument (9));
-            Params.Partial_Begin_Indent   := Integer'Value (Argument (10));
-            Arg                           := 11;
+            Params.Partial_End_Char_Pos   := WisiToken.Buffer_Pos'Value (Argument (8));
+            Params.Partial_Begin_Line     := WisiToken.Line_Number_Type'Value (Argument (9));
+            Params.End_Line               := WisiToken.Line_Number_Type'Value (Argument (10));
+            Params.Partial_Begin_Indent   := Integer'Value (Argument (11));
+            Arg                           := 12;
          else
             Params.Partial_Begin_Byte_Pos := WisiToken.Invalid_Buffer_Pos;
             Params.Partial_End_Byte_Pos   := WisiToken.Invalid_Buffer_Pos;
@@ -189,8 +190,7 @@ package body Run_Wisi_Common_Parse is
 
          Params.Inc_Begin_Byte_Pos := WisiToken.Buffer_Pos'Value (Argument (5));
          Params.Inc_End_Byte_Pos   := WisiToken.Buffer_Pos'Value (Argument (6)) - 1; -- match emacs region
-         Params.Inc_Begin_Indent   := Integer'Value (Argument (7));
-         Arg                       := 8;
+         Arg                       := 7;
 
       when Refactor =>
          Params.Edit_Begin := WisiToken.Buffer_Pos'Value (Argument (4));
@@ -368,20 +368,16 @@ package body Run_Wisi_Common_Parse is
             Action : constant Wisi.Post_Parse_Action_Type := Wisi.Post_Parse_Action_Type'Value (Line (First .. Last));
 
             Begin_Byte_Pos : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
+            Begin_Char_Pos : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
             End_Byte_Pos   : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
-
-            Begin_Indent : Integer := 0;
+            End_Char_Pos   : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
          begin
-            if Action = Wisi.Indent then
-               Begin_Indent := Wisi.Get_Integer (Line, Last);
-            end if;
-
             Parse_Data.Reset_Post_Parse
               (Action,
                Action_Region_Bytes => (Begin_Byte_Pos, End_Byte_Pos),
-               Begin_Indent        => Begin_Indent);
+               Action_Region_Chars => (Begin_Char_Pos, End_Char_Pos));
 
-            Parser.Execute_Actions;
+            Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, End_Byte_Pos));
 
             Parse_Data.Put (Parser);
          end;
@@ -482,7 +478,8 @@ package body Run_Wisi_Common_Parse is
             Parse_Data.Initialize_Partial_Parse
               (Trace               => Parser.Trace,
                Post_Parse_Action   => Cl_Params.Partial_Post_Parse_Action,
-               Action_Region_Bytes => (Cl_Params.Partial_Begin_Byte_Pos, Cl_Params.Partial_Goal_Byte_Pos),
+               Action_Region_Bytes => (Cl_Params.Partial_Begin_Byte_Pos, Cl_Params.Partial_End_Byte_Pos),
+               Action_Region_Chars => (Cl_Params.Partial_Begin_Char_Pos, Cl_Params.Partial_End_Char_Pos),
                Begin_Line          => Cl_Params.Partial_Begin_Line,
                End_Line            => Cl_Params.End_Line,
                Begin_Indent        => Cl_Params.Partial_Begin_Indent);
@@ -521,7 +518,7 @@ package body Run_Wisi_Common_Parse is
                      null;
                   end;
 
-                  Parser.Execute_Actions;
+                  Parser.Execute_Actions (Action_Region_Bytes => Null_Buffer_Region);
 
                   if Cl_Params.Repeat_Count = 1 then
                      Parse_Data.Put (Parser);
@@ -613,9 +610,10 @@ package body Run_Wisi_Common_Parse is
                   Parse_Data.Reset_Post_Parse
                     (Cl_Params.Inc_Post_Parse_Action,
                      Action_Region_Bytes => (Cl_Params.Inc_Begin_Byte_Pos, Cl_Params.Inc_End_Byte_Pos),
-                     Begin_Indent        => Cl_Params.Inc_Begin_Indent);
+                     Action_Region_Chars => (Cl_Params.Inc_Begin_Char_Pos, Cl_Params.Inc_End_Char_Pos));
 
-                  Parser.Execute_Actions;
+                  Parser.Execute_Actions
+                    (Action_Region_Bytes => (Cl_Params.Inc_Begin_Byte_Pos, Cl_Params.Inc_End_Byte_Pos));
 
                   Parse_Data.Put (Parser);
                exception

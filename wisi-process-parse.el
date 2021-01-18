@@ -192,7 +192,7 @@ complete. PARSE-END is end of desired parse region."
 		      (position-bytes (min (point-max) parse-end))
 		      begin ;; char_pos
 		      (line-number-at-pos begin)
-		      (line-number-at-pos send-end)
+		      (line-number-at-pos (1- send-end))
 
 		      ;; begin_indent. Example:
 		      ;;
@@ -261,8 +261,8 @@ complete."
 		   )
 		  (if full
 		      (list
-		       (1- (point-max)) ;; end_char_pos
-		       (line-number-at-pos (point-max)) ;; End_Line
+		       (point-max) ;; end_char_pos (after last char)
+		       (line-number-at-pos (1- (point-max))) ;; End_Line (at last char)
 		       )
 		    (if wisi--changes
 			  (list (prin1-to-string (nreverse wisi--changes)));; wisi--changes is in reverse time order.
@@ -293,7 +293,7 @@ complete."
   "Send a post-parse PARSE-ACTION command to PARSER external process.
 Does not wait for command to complete."
   ;; Must match emacs_wisi_common_parse.adb Get_Parse_Action.
-  (let* ((cmd (format "post-parse \"%s\" \"%s\" %d %d %d %d \"%s\""
+  (let* ((cmd (format "post-parse \"%s\" \"%s\" %d %d %d %d %d \"%s\""
 		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		      wisi-parser-verbosity
 		      (cl-ecase parse-action
@@ -301,8 +301,9 @@ Does not wait for command to complete."
 			(face 1)
 			(indent 2))
 		      (position-bytes begin)
+		      begin
 		      (position-bytes end)
-		      (save-excursion (goto-char begin) (back-to-indentation) (current-column)) ;; begin_indent
+		      end
 		      (wisi-parse-format-language-options parser)
 		      ))
 	 (msg (format "%03d%s" (length cmd) cmd))
@@ -317,26 +318,18 @@ Does not wait for command to complete."
     ;; We don’t wait for the send to complete here.
     ))
 
-(defun wisi-process-parse--send-refactor (parser refactor-action parse-begin parse-end edit-begin)
+(defun wisi-process-parse--send-refactor (parser refactor-action edit-begin)
   "Send a refactor command to PARSER external process, followed
 by the content of the current buffer from PARSE-BEGIN thru
 PARSE-END, wait for command to complete. PARSER will respond with
 one or more Edit messages."
   ;; Must match "refactor" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Refactor_Params.
-  (let* ((cmd (format "refactor %d \"%s\" %d %d %d %d %d %d %d \"%s\" %d %d"
+  (let* ((cmd (format "refactor %d \"%s\" %d \"%s\""
 		      refactor-action
 		      (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
-		      (position-bytes parse-begin)
-		      (position-bytes parse-end)
 		      (position-bytes edit-begin)
-		      parse-begin ;; char_pos
-		      (line-number-at-pos parse-begin)
-		      (line-number-at-pos parse-end)
-		      (save-excursion (goto-char parse-begin) (back-to-indentation) (current-column));; begin_indent
 		      wisi-parser-verbosity
-		      (or wisi-parse-max-parallel -1)
-		      (- (position-bytes parse-end) (position-bytes parse-begin)) ;; parse-end is after last byte
 		      ))
 	 (msg (format "%03d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
@@ -899,14 +892,15 @@ one or more Edit messages."
 
 (cl-defmethod wisi-refactor ((parser wisi-process--parser) refactor-action stmt-begin stmt-end edit-begin)
   (wisi-process-parse--prepare parser)
-  (wisi-process-parse--send-refactor parser refactor-action stmt-begin stmt-end edit-begin)
+  (wisi-process-parse--send-refactor parser refactor-action edit-begin)
   (condition-case-unless-debug _err
       (wisi-process-parse--handle-messages parser)
     ('wisi-file_not_found
      (message "parsing buffer ...")
+     ;; FIXME: only if incremental enabled; otherwise do partial parse
      (wisi-process-parse--send-incremental-parse parser t)
      (message "parsing buffer ... done")
-     (wisi-process-parse--send-refactor parser refactor-action stmt-begin stmt-end edit-begin)
+     (wisi-process-parse--send-refactor parser refactor-action edit-begin)
      (wisi-process-parse--handle-messages parser)
      )))
 

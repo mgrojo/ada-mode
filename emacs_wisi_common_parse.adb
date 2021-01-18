@@ -133,9 +133,9 @@ package body Emacs_Wisi_Common_Parse is
             Result.End_Byte_Pos      := Get_Integer (Command_Line, Last) - 1; --  Emacs end is after last char.
 
             Result.Goal_Byte_Pos        := Get_Integer (Command_Line, Last);
-            Result.Begin_Char_Pos       := WisiToken.Buffer_Pos (Get_Integer (Command_Line, Last));
-            Result.Begin_Line           := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
-            Result.End_Line             := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
+            Result.Begin_Char_Pos       := Buffer_Pos (Get_Integer (Command_Line, Last));
+            Result.Begin_Line           := Line_Number_Type (Get_Integer (Command_Line, Last));
+            Result.End_Line             := Line_Number_Type (Get_Integer (Command_Line, Last));
             Result.Begin_Indent         := Get_Integer (Command_Line, Last);
             Result.Partial_Parse_Active := 1 = Get_Integer (Command_Line, Last);
             Result.Verbosity            := +Get_String (Command_Line, Last);
@@ -159,14 +159,14 @@ package body Emacs_Wisi_Common_Parse is
                Result.Changes := Wisi.Get_Emacs_Change_List (Command_Line, Last, Handle_String_Escapes => False);
 
             when Full =>
-               Result.End_Char_Pos  := Get_Integer (Command_Line, Last);
-               Result.Full_End_Line := Line_Number_Type (Get_Integer (Command_Line, Last));
+               Result.Full_End_Char_Pos := Buffer_Pos (Get_Integer (Command_Line, Last));
+               Result.Full_End_Line     := Line_Number_Type (Get_Integer (Command_Line, Last));
             end case;
          end case;
 
          Result.Language_Params := +Get_String (Command_Line, Last);
 
-         WisiToken.Enable_Trace (-Result.Verbosity);
+         Enable_Trace (-Result.Verbosity);
       end return;
    exception
    when E : others =>
@@ -184,11 +184,12 @@ package body Emacs_Wisi_Common_Parse is
          Result.Verbosity         := +Get_String (Command_Line, Last);
          Result.Post_Parse_Action := Wisi.Post_Parse_Action_Type'Val (Get_Integer (Command_Line, Last));
          Result.Begin_Byte_Pos    := Get_Integer (Command_Line, Last);
+         Result.Begin_Char_Pos    := Get_Integer (Command_Line, Last);
          Result.End_Byte_Pos      := Get_Integer (Command_Line, Last) - 1; --  Emacs end is after last char.
-         Result.Begin_Indent      := Get_Integer (Command_Line, Last);
+         Result.End_Char_Pos      := Get_Integer (Command_Line, Last) - 1;
          Result.Language_Params   := +Get_String (Command_Line, Last);
 
-         WisiToken.Enable_Trace (-Result.Verbosity);
+         Enable_Trace (-Result.Verbosity);
       end return;
    exception
    when E : others =>
@@ -206,19 +207,11 @@ package body Emacs_Wisi_Common_Parse is
 
          Result.Refactor_Action    := Get_Integer (Command_Line, Last);
          Result.Source_File_Name   := +Get_String (Command_Line, Last);
-         Result.Parse_Region.First := WisiToken.Buffer_Pos (Get_Integer (Command_Line, Last));
-         Result.Parse_Region.Last  := WisiToken.Buffer_Pos (Get_Integer (Command_Line, Last) - 1);
 
-         Result.Edit_Begin           := WisiToken.Buffer_Pos (Get_Integer (Command_Line, Last));
-         Result.Parse_Begin_Char_Pos := WisiToken.Buffer_Pos (Get_Integer (Command_Line, Last));
-         Result.Parse_Begin_Line     := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
-         Result.Parse_End_Line       := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
-         Result.Parse_Begin_Indent   := Get_Integer (Command_Line, Last);
-         Result.Verbosity            := +Get_String (Command_Line, Last);
-         Result.Max_Parallel         := Get_Integer (Command_Line, Last);
-         Result.Byte_Count           := Get_Integer (Command_Line, Last);
+         Result.Edit_Begin := Buffer_Pos (Get_Integer (Command_Line, Last));
+         Result.Verbosity  := +Get_String (Command_Line, Last);
 
-         WisiToken.Enable_Trace (-Result.Verbosity);
+         Enable_Trace (-Result.Verbosity);
       end return;
    exception
    when E : others =>
@@ -305,7 +298,7 @@ package body Emacs_Wisi_Common_Parse is
                   Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find_Create
                     (-Params.Source_File_Name, Language, Trace'Access);
 
-                  Parser     : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
+                  Parser     : Parse.LR.Parser.Parser renames Parse_Context.Parser;
                   Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
 
                   procedure Clean_Up
@@ -333,7 +326,7 @@ package body Emacs_Wisi_Common_Parse is
                   end if;
                   if Params.Zombie_Limit > 0 then
                      Parser.Table.McKenzie_Param.Zombie_Limit :=
-                       WisiToken.Syntax_Trees.Node_Index (Params.Zombie_Limit);
+                       Syntax_Trees.Node_Index (Params.Zombie_Limit);
                   end if;
                   if Params.Enqueue_Limit > 0 then
                      Parser.Table.McKenzie_Param.Enqueue_Limit := Params.Enqueue_Limit;
@@ -345,13 +338,14 @@ package body Emacs_Wisi_Common_Parse is
                   case Params.Kind is
                   when Partial =>
                      Parser.Partial_Parse_Active.all    := Params.Partial_Parse_Active;
-                     Parser.Partial_Parse_Byte_Goal.all := WisiToken.Buffer_Pos (Params.Goal_Byte_Pos);
+                     Parser.Partial_Parse_Byte_Goal.all := Buffer_Pos (Params.Goal_Byte_Pos);
 
                      Parse_Data.Initialize_Partial_Parse
                        (Trace               => Parser.Trace,
                         Post_Parse_Action   => Params.Post_Parse_Action,
                         Action_Region_Bytes =>
-                          (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.Goal_Byte_Pos)),
+                          (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
+                        Action_Region_Chars => (Params.Begin_Char_Pos, Params.End_Char_Pos),
                         Begin_Line          => Params.Begin_Line,
                         End_Line            => Params.End_Line,
                         Begin_Indent        => Params.Begin_Indent);
@@ -361,7 +355,7 @@ package body Emacs_Wisi_Common_Parse is
                      Ada.Strings.Unbounded.Free (Parse_Context.Text_Buffer);
                      Parse_Context.Text_Buffer := new String (Params.Begin_Byte_Pos .. Params.End_Byte_Pos);
                      Parse_Context.Text_Buffer_Byte_Last := Params.Byte_Count;
-                     Parse_Context.Text_Buffer_Char_Last := Params.End_Char_Pos;
+                     Parse_Context.Text_Buffer_Char_Last := Integer (Params.End_Char_Pos);
 
                      Read_Input (Parse_Context.Text_Buffer (Params.Begin_Byte_Pos)'Address, Params.Byte_Count);
 
@@ -372,11 +366,11 @@ package body Emacs_Wisi_Common_Parse is
                      begin
                         Parser.Parse (Recover_Log_File);
                      exception
-                     when WisiToken.Partial_Parse =>
+                     when Partial_Parse =>
                         null;
                      end;
 
-                     Parser.Execute_Actions;
+                     Parser.Execute_Actions (Action_Region_Bytes => Null_Buffer_Region);
                      Parse_Data.Put (Parser);
 
                   when Incremental =>
@@ -390,7 +384,7 @@ package body Emacs_Wisi_Common_Parse is
                      end if;
 
                      declare
-                        KMN_List : WisiToken.Parse.KMN_Lists.List;
+                        KMN_List : Parse.KMN_Lists.List;
                      begin
                         Wisi.Edit_Source
                           (Trace,
@@ -421,13 +415,13 @@ package body Emacs_Wisi_Common_Parse is
                      Ada.Strings.Unbounded.Free (Parse_Context.Text_Buffer);
                      Parse_Context.Text_Buffer := new String (Integer (Buffer_Pos'First) .. Params.Byte_Count);
                      Parse_Context.Text_Buffer_Byte_Last := Params.Byte_Count;
-                     Parse_Context.Text_Buffer_Char_Last := Params.End_Char_Pos;
+                     Parse_Context.Text_Buffer_Char_Last := Integer (Params.Full_End_Char_Pos);
                      Read_Input
                           (Parse_Context.Text_Buffer (Parse_Context.Text_Buffer'First)'Address,
                            Params.Byte_Count);
 
                      declare
-                        KMN_List : WisiToken.Parse.KMN_Lists.List;
+                        KMN_List : Parse.KMN_Lists.List;
                         --  Leave KMN_List empty to do full parse.
                      begin
                         Parse_Data.Initialize_Full_Parse (Trace'Access, Params.Full_End_Line);
@@ -479,16 +473,19 @@ package body Emacs_Wisi_Common_Parse is
                   end if;
 
                   declare
-                     Parser     : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
+                     Parser     : Parse.LR.Parser.Parser renames Parse_Context.Parser;
                      Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
                   begin
                      Parse_Data.Reset_Post_Parse
                        (Params.Post_Parse_Action,
                         Action_Region_Bytes =>
                           (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
-                        Begin_Indent        => Params.Begin_Indent);
+                        Action_Region_Chars =>
+                          (Base_Buffer_Pos (Params.Begin_Char_Pos), Base_Buffer_Pos (Params.End_Char_Pos)));
                      Parse_Data.Parse_Language_Params (-Params.Language_Params);
-                     Parser.Execute_Actions;
+                     Parser.Execute_Actions
+                       (Action_Region_Bytes =>
+                          (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)));
                      Parse_Data.Put (Parser);
                   end;
                exception
@@ -526,14 +523,6 @@ package body Emacs_Wisi_Common_Parse is
                when Parse_Context_Not_Found =>
                   --  Tell Emacs to send full text
                   Put_Line ("(file_not_found)");
-
-               when Syntax_Error =>
-                  Put_Line ("(parse_error ""refactor " & Params.Parse_Region.First'Image &
-                              Params.Parse_Region.Last'Image & ": syntax error"")");
-
-               when E : Parse_Error =>
-                  Put_Line ("(parse_error ""refactor " & Params.Parse_Region.First'Image &
-                              Params.Parse_Region.Last'Image & ": " & Ada.Exceptions.Exception_Message (E) & """)");
 
                when E : others => -- includes Fatal_Error
                   Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
@@ -599,7 +588,7 @@ package body Emacs_Wisi_Common_Parse is
         ("(error ""unhandled exception: " & Ada.Exceptions.Exception_Name (E) & ": " &
            Ada.Exceptions.Exception_Message (E) & """)");
 
-      if WisiToken.Debug_Mode then
+      if Debug_Mode then
          Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
       end if;
    end Process_Stream;

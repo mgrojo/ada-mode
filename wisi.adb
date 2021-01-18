@@ -602,7 +602,7 @@ package body Wisi is
       end Terminate_Edit_Region;
    begin
       if Trace_Action > Outline then
-         Data.Trace.Put_Line (Parse.LR.Image (Item, Tree));
+         Data.Trace.Put_Line ("recover: " & Parse.LR.Image (Item, Tree));
       end if;
 
       if Length (Item) = 0 or not Tree.Parents_Set then
@@ -1252,6 +1252,7 @@ package body Wisi is
       Trace               : in     WisiToken.Trace_Access;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
+      Action_Region_Chars : in     WisiToken.Buffer_Region;
       Begin_Line          : in     Line_Number_Type;
       End_Line            : in     Line_Number_Type;
       Begin_Indent        : in     Integer)
@@ -1263,6 +1264,7 @@ package body Wisi is
 
       Data.Post_Parse_Action   := Post_Parse_Action;
       Data.Action_Region_Bytes := Action_Region_Bytes;
+      Data.Action_Region_Chars := Action_Region_Chars;
       Data.Trace               := Trace;
 
       case Post_Parse_Action is
@@ -1306,11 +1308,12 @@ package body Wisi is
      (Data                : in out Parse_Data_Type;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
-      Begin_Indent        : in     Integer)
+      Action_Region_Chars : in     WisiToken.Buffer_Region)
    is begin
       Data.Post_Parse_Action   := Post_Parse_Action;
       Data.Action_Region_Bytes := Action_Region_Bytes;
-      Data.Begin_Indent        := Begin_Indent;
+      Data.Action_Region_Chars := Action_Region_Chars;
+      Data.Begin_Indent        := 0;
    end Reset_Post_Parse;
 
    overriding procedure Reset (Data : in out Parse_Data_Type)
@@ -1876,7 +1879,7 @@ package body Wisi is
                  " not in tokens range (" & SAL.Peek_Type'Image (Tokens'First) & " .." &
                  SAL.Peek_Type'Image (Tokens'Last) & "); bad grammar action.");
 
-         elsif Tree.Byte_Region (Tokens (Pair.Index)) /= Null_Buffer_Region then
+         elsif Overlaps (Tree.Byte_Region (Tokens (Pair.Index)), Data.Action_Region_Bytes) then
             declare
                use all type Syntax_Trees.Node_Label;
                Token  : constant Base_Token := Tree.Base_Token
@@ -2026,6 +2029,8 @@ package body Wisi is
          --  Virtual tokens don't appear in the actual buffer, so we can't set
          --  a text property on them.
          return;
+      elsif not Overlaps (Tree.Byte_Region (Tokens (Name)), Data.Action_Region_Bytes) then
+         return;
       end if;
 
       pragma Assert (Tree.Label (Tokens (Name)) in Source_Terminal | Syntax_Trees.Nonterm);
@@ -2085,7 +2090,7 @@ package body Wisi is
               Image (Tree.Byte_Region (Nonterm)));
       end if;
       for Param of Params loop
-         if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
+         if Overlaps (Tree.Byte_Region (Tokens (Param.Index)), Data.Action_Region_Bytes) then
             declare
                use all type Syntax_Trees.Node_Label;
                Token     : constant Base_Token    := Tree.Base_Token (Tokens (Param.Index));
@@ -2216,7 +2221,7 @@ package body Wisi is
       Suffix_Cur : Cursor;
    begin
       for Param of Params loop
-         if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
+         if Overlaps (Tree.Byte_Region (Tokens (Param.Index)), Data.Action_Region_Bytes) then
             if Trace_Action > Outline then
                Data.Trace.Put_Line
                  (";; face_apply_action: " & Image (Tree.Byte_Region (Tokens (Param.Index))) &
@@ -2275,7 +2280,7 @@ package body Wisi is
       Cache_Cur : Cursor;
    begin
       for Param of Params loop
-         if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
+         if Overlaps (Tree.Byte_Region (Tokens (Param.Index)), Data.Action_Region_Bytes) then
             declare
                Token : constant Base_Token := Tree.Base_Token (Tokens (Param.Index));
             begin
@@ -2316,7 +2321,7 @@ package body Wisi is
       Cache_Cur : Cursor;
    begin
       for Param of Params loop
-         if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
+         if Overlaps (Tree.Byte_Region (Tokens (Param.Index)), Data.Action_Region_Bytes) then
             declare
                Token : constant Base_Token := Tree.Base_Token (Tokens (Param.Index));
             begin
@@ -2364,7 +2369,7 @@ package body Wisi is
       Cache_Cur : Cursor;
    begin
       for I of Params loop
-         if Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region then
+         if Overlaps (Tree.Byte_Region (Tokens (I)), Data.Action_Region_Bytes) then
             declare
                Token : constant Base_Token := Tree.Base_Token (Tokens (I));
                To_Delete : Buffer_Pos_Lists.List;
@@ -2514,8 +2519,8 @@ package body Wisi is
       end if;
 
       for I in Tokens'Range loop
-         if (Tree.Is_Virtual_Terminal (Tokens (I)) or
-               Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region) and
+         if (Tree.Is_Virtual_Terminal (Tokens (I)) or else
+               Overlaps (Tree.Byte_Region (Tokens (I)), Data.Action_Region_Bytes)) and
            I in Params'Range -- in some translated EBNF, not every token has an indent param
          then
             declare
@@ -2700,16 +2705,12 @@ package body Wisi is
 
       function Get_Last_Line return Line_Number_Type
       is begin
-         for I in Tree.Line_Begin_Char_Pos.First_Index .. Tree.Line_Begin_Char_Pos.Last_Index loop
+         for I in reverse Tree.Line_Begin_Char_Pos.First_Index .. Tree.Line_Begin_Char_Pos.Last_Index loop
             if Tree.Line_Begin_Char_Pos (I) = Invalid_Buffer_Pos then
                raise SAL.Programmer_Error with "line_begin_char_pos" & Line_Number_Type'Image (I) & " invalid";
             end if;
-            if Tree.Line_Begin_Char_Pos (I) > Last_Char_Pos then
-               if I > Line_Number_Type'First then
-                  return I - 1;
-               else
-                  return I;
-               end if;
+            if Tree.Line_Begin_Char_Pos (I) < Last_Char_Pos then
+               return I;
             end if;
          end loop;
          return Tree.Line_Begin_Char_Pos.Last_Index;
@@ -2735,15 +2736,21 @@ package body Wisi is
       case Data.Post_Parse_Action is
       when Navigate =>
          for Cache of Data.Navigate_Caches loop
-            Put (Cache);
+            if Inside (Cache.Pos, Data.Action_Region_Chars) then
+               Put (Cache);
+            end if;
          end loop;
          for Cache of Data.Name_Caches loop
-            Put (Cache);
+            if Cache in Data.Action_Region_Chars then
+               Put (Cache);
+            end if;
          end loop;
 
       when Face =>
          for Cache of Data.Face_Caches loop
-            Put (Cache);
+            if Overlaps (Cache.Char_Region, Data.Action_Region_Chars) then
+               Put (Cache);
+            end if;
          end loop;
 
       when Indent =>
@@ -2759,7 +2766,11 @@ package body Wisi is
                for Line in Non_Grammar (Non_Grammar.First_Index).Line ..
                  Non_Grammar (Non_Grammar.Last_Index).Line
                loop
-                  Put (Line, (Int, Invalid_Line_Number, Data.Begin_Indent));
+                  if Line in Tree.Line_Begin_Char_Pos.First_Index .. Tree.Line_Begin_Char_Pos.Last_Index and then
+                    Inside (Tree.Line_Begin_Char_Pos (Line), Data.Action_Region_Chars)
+                  then
+                     Put (Line, (Int, Invalid_Line_Number, Data.Begin_Indent));
+                  end if;
                end loop;
             end if;
          end;
@@ -2768,8 +2779,12 @@ package body Wisi is
          if Trace_Action > Outline then
             Parser.Trace.Put_Line ("indent grammar");
          end if;
-         for I in Data.Indents.First_Index .. Get_Last_Line loop
-            Put (I, Data.Indents (I));
+         for Line in Data.Indents.First_Index .. Get_Last_Line loop
+            if Line in Tree.Line_Begin_Char_Pos.First_Index .. Tree.Line_Begin_Char_Pos.Last_Index and then
+              Inside (Tree.Line_Begin_Char_Pos (Line), Data.Action_Region_Chars)
+            then
+               Put (Line, Data.Indents (Line));
+            end if;
          end loop;
       end case;
    end Put;

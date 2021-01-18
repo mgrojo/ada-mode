@@ -98,14 +98,16 @@ package Emacs_Wisi_Common_Parse is
 
          End_Byte_Pos : Integer;
          --  Byte position of last char sent.
+         --  Emacs convention; after last char
 
          Goal_Byte_Pos : Integer;
          --  Byte position of end of desired parse region; terminate parse at
          --  or after here.
 
          Begin_Char_Pos : WisiToken.Buffer_Pos;
-         --  Char position of first char sent. Lexer tracks character positions
-         --  from there.
+         End_Char_Pos   : WisiToken.Buffer_Pos;
+         --  Char positions of first, last char sent.
+         --  Emacs convention; End is after last char
 
          Begin_Line : WisiToken.Line_Number_Type;
          End_Line   : WisiToken.Line_Number_Type;
@@ -120,8 +122,8 @@ package Emacs_Wisi_Common_Parse is
          Changes : Wisi.Change_Lists.List;
 
       when Full =>
-         End_Char_Pos  : Integer;
-         Full_End_Line : WisiToken.Line_Number_Type;
+         Full_End_Char_Pos : WisiToken.Buffer_Pos; -- Emacs convention; after last char
+         Full_End_Line     : WisiToken.Line_Number_Type;
 
       end case;
    end record;
@@ -137,10 +139,12 @@ package Emacs_Wisi_Common_Parse is
       Post_Parse_Action : Wisi.Post_Parse_Action_Type;
 
       Begin_Byte_Pos : Integer;
+      Begin_Char_Pos : Integer;
       End_Byte_Pos   : Integer;
+      End_Char_Pos   : Integer;
       --  Region to execute action in.
+      --  Emacs convention; end is after last char
 
-      Begin_Indent    : Integer;
       Language_Params : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
@@ -153,26 +157,10 @@ package Emacs_Wisi_Common_Parse is
       Refactor_Action  : Positive; -- Language-specific
       Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
 
-      Parse_Region : WisiToken.Buffer_Region;
-      --  Source file byte region to parse.
-
       Edit_Begin : WisiToken.Buffer_Pos;
       --  Source file byte position at start of expression to refactor.
 
-      Parse_Begin_Char_Pos : WisiToken.Buffer_Pos;
-      --  Char position of first char sent.
-
-      Parse_Begin_Line : WisiToken.Line_Number_Type;
-      Parse_End_Line   : WisiToken.Line_Number_Type;
-      --  Line numbers of lines containing Parse_Begin_Byte_Pos, Parse_End_Byte_Pos
-
-      Parse_Begin_Indent : Integer;
-      --  Indentation of Parse_Begin_Line
-
-      Verbosity    : Ada.Strings.Unbounded.Unbounded_String;
-      Max_Parallel : Integer;
-      Byte_Count   : Integer;
-      --  Count of bytes of source file sent.
+      Verbosity : Ada.Strings.Unbounded.Unbounded_String;
 
       --  no Language_Params
    end record;

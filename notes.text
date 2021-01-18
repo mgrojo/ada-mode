@@ -43,17 +43,32 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+report gnat bug
+    Tree.Line_Begin_Char_Pos (L) := Tree.Line_Begin_Char_Pos (L) + Shift_Chars;
+        @ doesn't work here
+
 incremental parse
-    wisi.adb
-        edit wisi actions to respect data.action_region_bytes
-            only need to process terminals in requested region, and containing nonterms
+    in parser-log, disable undo, set read-only
 
     test/ada_mode-incremental_parse.adb
         make one
+        added shift line_begin_char_pos in stable
+            cause exceptions
 
+    post_parse navigate
+        only need to edit changed caches?
+        use kmn_list?
+        change one 'begin' to 'end' => lots more invalid
 
     preserve errors, recover_ops for complete error list after incr parse
         only in elisp; delete errors in requested parse region, parse, add new.
+
+    redesign navigation?
+        on another branch
+        don't compute text properties
+        always get destination from parser
+
+    never need begin_indent; compute it from line_begin_char_pos, line_begin_token
 
     run all tests with incremental mode enabled
         build/test.log
