@@ -66,7 +66,7 @@ is
       Label_Count  : in              Ada.Containers.Count_Type;
       Package_Name : in              String)
    is
-      use all type Ada.Containers.Count_Type;
+      pragma Unreferenced (Label_Count);
       use GNAT.Regexp;
       use Generate_Utils;
       use WisiToken.Generate;
@@ -88,9 +88,10 @@ is
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Body_Context));
       New_Line;
 
-      if Label_Count > 0 then
-         Put_Line ("with SAL;");
-      end if;
+      --  If labels are used in actions, we need to add 'with SAL;' here,
+      --  for Peek_Type. However, we can't just check Label_Count > 0,
+      --  because some declared labels are not actually used in actions. The
+      --  user will have to add 'with SAL;' in a code declaration.
 
       Put_Line ("package body " & Package_Name & " is");
       Indent := Indent + 3;
@@ -113,13 +114,6 @@ is
 
             LHS_ID    : constant WisiToken.Token_ID := Find_Token_ID (Generate_Data, -Rule.Left_Hand_Side);
             RHS_Index : Integer                     := 0;
-
-            function Is_Elisp (Action : in Unbounded_String) return Boolean
-            is begin
-               return Length (Action) >= 6 and then
-                 (Slice (Action, 1, 6) = "(progn" or
-                    Slice (Action, 1, 5) = "wisi-");
-            end Is_Elisp;
 
             procedure Put_Labels (RHS : in RHS_Type; Line : in String)
             is
@@ -159,7 +153,7 @@ is
 
          begin
             for RHS of Rule.Right_Hand_Sides loop
-               if Length (RHS.Action) > 0 and then not Is_Elisp (RHS.Action) then
+               if Length (RHS.Action) > 0 then
                   declare
                      Line : constant String := -RHS.Action;
                      --  Actually multiple lines; we assume the formatting is adequate.
@@ -231,7 +225,7 @@ is
                   end;
                end if;
 
-               if Length (RHS.Check) > 0 and then not Is_Elisp (RHS.Check) then
+               if Length (RHS.Check) > 0 then
                   declare
                      use Ada.Strings.Fixed;
                      Line          : constant String  := -RHS.Check;

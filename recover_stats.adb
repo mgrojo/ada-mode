@@ -2,7 +2,7 @@
 --
 --  Summarize error recover log.
 --
---  Copyright (C) 2019 - 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -73,7 +73,7 @@ begin
       exit when End_Of_File (File);
       declare
          --  The recover log is written by code in
-         --  wisitoken-parse-lr-parser.adb Parse (search for Recover_Log).
+         --  wisitoken-parse-lr-parser.adb Recover_To_Log
          --
          --  A line has the syntax:
          --  yyyy-mm-dd hh:mm:ss <partial> <success> pre_parser_count '<file_name>' (<parser_data>)...

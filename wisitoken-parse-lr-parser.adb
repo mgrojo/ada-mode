@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -534,8 +534,8 @@ package body WisiToken.Parse.LR.Parser is
            Pre_Recover_Parser_Count'Image & " '" &
            Shared_Parser.Lexer.File_Name & "'");
 
-      Put (Shared_Parser.Recover_Log_File, '(');
       for Parser of Shared_Parser.Parsers loop
+         Put (Shared_Parser.Recover_Log_File, '(');
          if Parser.Recover.Results.Count > 0 then
             --  Count can be 0 when error recovery fails
             Put (Shared_Parser.Recover_Log_File, Image (Parser.Recover.Results.Peek.Strategy_Counts));
@@ -545,8 +545,8 @@ package body WisiToken.Parse.LR.Parser is
             Integer'Image (Parser.Recover.Enqueue_Count) &
               Integer'Image (Parser.Recover.Check_Count) & " " &
               Boolean'Image (Parser.Recover.Success));
+         Put (Shared_Parser.Recover_Log_File, ')');
       end loop;
-      Put (Shared_Parser.Recover_Log_File, ')');
 
       New_Line (Shared_Parser.Recover_Log_File);
       Flush (Shared_Parser.Recover_Log_File);

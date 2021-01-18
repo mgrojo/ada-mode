@@ -2684,6 +2684,8 @@ package body WisiToken_Grammar_Editing is
                  (WisiToken.Generate.Error_Message
                     (Data.Grammar_Lexer.File_Name, Get_Line (Data, Tree, Node),
                      "punctuation token '" & Value & "' not declared"));
+
+               Clear_EBNF_Node (Node); -- So we don't try again
                return;
             end if;
          end if;
