@@ -47,6 +47,13 @@ report gnat bug
     Tree.Line_Begin_Char_Pos (L) := Tree.Line_Begin_Char_Pos (L) + Shift_Chars;
         @ doesn't work here
 
+delete ada-language-version
+
+refactor fails if file has DOS line endings
+    test/refactor_dos.ads
+        not ./run_ada_lalr_parse.exe refactor 5 test/refactor_dos.ads 1105 --verbosity "action=3"
+        not "" lr1
+
 incremental parse
     in parser-log, disable undo, set read-only
 
@@ -76,11 +83,20 @@ incremental parse
     error recover try prev solution
         edit it?
 
+build/test.log
+    ada_mode-interactive_2.adb Local_Proc_1
+        right paren indented 1 too much when error correction present
+            Delete_Token update line_begin_char_pos?
+
+    gpr-skel-test.el parse navigate unhandled exception: CONSTRAINT_ERROR: sal-gen_unb
+
 still need wisi-lexer?
 
 optimize initial full parse
     generated packrat should be faster than generalized LR1
     if encounter error, save partial trees, do incremental generalized LR1 error correcting to finish
+
+split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
 
 in ada_annex_p.wy:
     wisi-parse-buffer indent doesn't use lisp-indent-buffer
@@ -507,7 +523,7 @@ d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
     7252 lines, 29461 tokens, 254989 characters
 
 wisitoken-bnf-generate
-    $WISITOKEN/wisitoken-bnf-generate.exe --time ada.wy
+    $WISITOKEN/wisitoken-bnf-generate.exe --time ada_annex_p.wy
 
     04 mar 2018
         o.e.a.s-2 12.919s
@@ -569,8 +585,24 @@ wisitoken-bnf-generate
         0 accept/reduce conflicts, 41267 shift/reduce conflicts, 1616 reduce/reduce conflicts
         initial item_sets time: 126.852255667
 
+    27 Nov 2020 removed some conflicts, restore full recursion, cache recursion between LALR, LR1
+        translate to bnf time: 0.076125248
+        compute full recursion time: 27.081835029
+        compute parse table time: 0.491019990
+        compute minimal actions time: 0.005436412
+        LALR re2c generate time: 48.579241802
+        initial item_sets time:-5.803985594
+        add_actions time: 8.118982585
+        compute minimal actions time: 1.863305087
+        compute conflicts time: 0.311614998
+        LR1 re2c generate time: 121.018392728
+
 mckenzie recover
-    ./run_ada_lr1_parse.exe parse indent test/ada_mode-recover_partial_02_lr1.adb --debug_mode --enqueue_limit 120_000 --check_delta 20_000 --verbosity 0 1 0 --task_count 8
+    ./run_ada_lr1_parse.exe parse indent test/ada_mode-recover_partial_02_lr1.adb --enqueue_limit 120_000 --check_delta 20_000 --verbosity "debug=1 time=1 mckenzie=1" --task_count 8
+        record all recover sessions
+            start all parsers
+            end all parsers 'succeed/fail' line
+        subtract times: post-recover - pre-recover
 
     12 Jul 2019 ada-mode 6.1.1
         0: succeed 2, enqueue 110, check  14, cost:  2
@@ -694,6 +726,21 @@ mckenzie recover
         ;;  0: succeed 2, enqueue 2533, check  216, cost:  1
         total parse time per iteration 0.022099088
 
+    27 Nov 2020 incremental parse, syntax_trees never copies nodes, ada-mode tests pass
+        ;; parser 2: State 20013 Current_Token (-1, 47:(LEFT_PAREN, (978 . 978))) Resume_Token_Goal 51
+        ;;  2: succeed 2, enqueue 183, check  19, cost:  2
+        time : 0.01 seconds
+
+        ;; parser 5: State 3141 Current_Token (-1, 62:(RIGHT_PAREN, (1025 . 1025))) Resume_Token_Goal 66
+        ;;  5: succeed 6, enqueue 7649, check  628, cost:  5
+        ;; parser 4: State 3108 Current_Token (-1, 62:(RIGHT_PAREN, (1025 . 1025))) Resume_Token_Goal 66
+        ;;  4: succeed 2, enqueue 1772, check  141, cost:  3
+        ;; parser 3: State 3107 Current_Token (-1, 62:(RIGHT_PAREN, (1025 . 1025))) Resume_Token_Goal 66
+        ;;  3: succeed 2, enqueue 1769, check  141, cost:  3
+        ;; parser 2: State 3140 Current_Token (-1, 62:(RIGHT_PAREN, (1025 . 1025))) Resume_Token_Goal 66
+        ;;  2: succeed 6, enqueue 7554, check  622, cost:  5
+            time: 0.22 seconds
+
 navigate, face, indent
     make -r benchmark
         copy per iteration values here
@@ -737,6 +784,11 @@ navigate, face, indent
         navigate 1.411824 seconds 5 gcs 6240 responses 0.362340 wait
         face     1.567617 seconds 7 gcs 2149 responses 0.345864 wait
         indent   1.435476 seconds 2 gcs 7252 responses 0.366811 wait
+
+    27 Nov 2020 syntax tree never copies nodes
+        navigate 1.093543 seconds 5 gcs 6240 responses 0.186905 wait
+        face     1.334711 seconds 8 gcs 2149 responses 0.182050 wait
+        indent   1.229119 seconds 2 gcs 7252 responses 0.204471 wait
 
  wisi work
 
@@ -947,21 +999,36 @@ in ~/.gitconfig:
 	merge = refs/heads/master
 
  release process
+split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
+
 keep status in ~/projects.text
 do wisitoken release ../org.wisitoken/build/release_process.text
 
 update benchmarks above
 
-generate ada.wy LR1 with --task_count 1 to minimize changes from previous ELPA commit
+generate ada.wy LR1 with --task_count 1 in build.sh; not in git
 
-lr1 text rep file got significantly larger; ask about moving to external ELPA branch
 
 savannah support tickets work; mention in readme
+
+https://en.wikipedia.org/wiki/Comparison_of_parser_generators
+
+add wisitoken grammar doc to wisi package
+    doc Ada grammar actions
+
+provide wisitoken_rules.make
+    for %.re2c etc
 
 (dvc-status ".")
 
 # uninstall elpa packages before change version
 build/Makefile uninstall-elpa
+
+elpa builds info; don't check them into .git
+    specify .texi files in elpa-packages
+
+to test local elpa tarball, elpa make build/ada-mode should work
+
 
 check for ELPA patches by others
     (dvc-status "/Projects/elpa")
@@ -1002,8 +1069,11 @@ run all tests without elpa:
     (dvc-push)
     - Debian testing, Emacs master, current gnat (community or pro)
     - Debian testing, Emacs master, Debian gnat
+        su -l root
+            aptitude update
+            aptitude full-upgrade --without-recommends
         gnat
-        libgnatcoll-xref18-dev
+        libgnatcoll-xrefnn-dev
         gprbuild
 
 compare:
@@ -1149,6 +1219,9 @@ sync for Debian check bogus execute permissions:
     (dvc-push)
 
 Debian testing has elpa checkout
+    build/Makefile uninstall-elpa
+        # before versions change
+
     (dvc-pull ".")
     (dvc-sync-review ".")
 
@@ -1245,6 +1318,9 @@ commit savannah
 
     takes ~ 10 min for http://www.nongnu.org/ada-mode/ to reflect cvs commit
 
+update gnu ada-mode manual?
+     https://www.gnu.org/software/emacs/manual/html_mono/ada-mode.html
+
 publish on Alire?
     https://alire.ada.dev/
 
@@ -1259,8 +1335,10 @@ Gnu Emacs Ada mode 7.1.3 is now available in GNU ELPA.
 Relative to the previous Ada mode release (7.1.2), this is a
 bug fix release.
 
-* There was a bug in wisi--before-change that made it miss many buffer
-  changes.
+Changed default of ada-end-name-optional; t is better for newbies,
+and nil is pre-mature optimization
+
+
 
 See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.1.3 and wisi-3.1.3,
 or at http://www.nongnu.org/ada-mode/, for more details.
@@ -1272,14 +1350,6 @@ cd ~/.emacs.d/elpa/ada-mode-7.1.1
 ./build.sh
 ./install.sh
 
-If you get an error like:
-
-sal-gen_unbounded_definite_red_black_trees.adb:326:29: access
-discriminant in return aggregate would be a dangling reference
-
-it is due to a bug in all recent versions of GNAT. Edit the file in
-~/.emacs.d/elpa/wisi-3.1.3; see the WORKAROUND comment there.
-Different versions of GNAT either require the .all or forbid it.
 
 This requires AdaCore gnatcoll packages which you may not have
 installed; see ada-mode.info Installation for help in installing them.

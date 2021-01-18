@@ -340,6 +340,7 @@ Prompt user if more than one."
 	  ((looking-at (concat ada-gnat-quoted-name-regexp " not declared in " ada-gnat-quoted-name-regexp))
 	   (save-excursion
 	     (let ((child-name (match-string 1))
+		   (partial-parent-name (match-string 2))
 		   (correct-spelling (ada-gnat-misspelling))
 		   (qualified (ada-gnat-qualified)))
 	       (cond
@@ -357,7 +358,7 @@ Prompt user if more than one."
 		(t
 		 ;; else guess that "child" is a child package, and extend the with_clause
 		 (pop-to-buffer source-buffer)
-		 (ada-fix-extend-with-clause child-name))))
+		 (ada-fix-extend-with-clause partial-parent-name child-name))))
 	   t))
 
 	  ((looking-at (concat ada-gnat-quoted-punctuation-regexp
@@ -446,8 +447,8 @@ Prompt user if more than one."
 	   (let ((package-name (match-string-no-properties 1)))
 	     (pop-to-buffer source-buffer)
 	     ;; Could check if prefix is already with'd, extend
-	     ;; it. But no one has reported that case yet; this
-	     ;; message only occurs for predefined Ada packages.
+	     ;; it. But that's not easy. This message only occurs for
+	     ;; compiler-provided Ada and GNAT packages.
 	     (ada-fix-add-with-clause package-name))
 	   t)
 

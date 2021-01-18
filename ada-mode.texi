@@ -2,7 +2,7 @@
 @settitle Ada Mode
 
 @copying
-Copyright @copyright{} 1999 - 2020  Free Software Foundation, Inc.
+Copyright @copyright{} 1999 - 2021  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -324,10 +324,112 @@ found in @code{PATH}.
 @node Customization, Compiling Executing, Installation, Top
 @chapter Customizing Ada mode
 
-Here we assume you are familiar with setting variables in Emacs,
-either thru 'customize' or in elisp (in your @file{.emacs} file). For
-a basic introduction to customize, elisp, and Emacs in general, see
-the tutorial (@kbd{C-h t}).
+All user-settable Ada mode variables can be set via the menu @samp{Ada
+| Customize}; some can also be set in wisi project files
+(@pxref{Project files}).
+
+To modify a specific variable, you can directly call the function
+@code{customize-variable}; just type @kbd{M-x customize-variable
+@key{RET} @var{variable-name} @key{RET}}.
+
+Alternately, you can specify variable settings in the Emacs
+configuration file, @file{~/.emacs}. This file is coded in Emacs lisp,
+and the syntax to set a variable is the following:
+
+@example
+(setq variable-name value)
+@end example
+
+ada-mode variables that you might consider changing:
+@table @code
+@item Matching end names
+By default, the option @code{ada-end-name-optional} is set to
+@code{t}, which matches the Ada standard. This is useful for new Ada
+users. Experienced users that follow a
+   style guide requiring matching end names should set this to 't',
+   since that gives better error correction.
+
+@end table
+
+Some general (non ada-mode) Emacs settings that are useful for Ada files:
+
+@table @code
+@item context menu
+By default, the context menu is bound to @key{C-down-mouse-3},
+i.e. control-right-click. @key{down-mouse-3} is already bound in the
+global map; you can override that global binding in the
+@code{ada-mode-hook} (see below for code).
+@item other-frame-window-mode
+Ada mode does not provide any @code{other-frame} or
+@code{other-window} variants of user operations. Instead, it is
+recommended to use the Gnu ELPA package @code{other-frame-window}.
+@item delete-trailing-whitespace
+Deletes space, tab at end of line and blank lines at end of buffer.
+@item xref configuration
+@table @code
+@item xref-prompt-for-identifier
+Set to @code{nil} to be prompted less when finding definitions or
+references.
+@item xref-show-xrefs-function
+Determine placement of the window where references are shown.
+@item xref-show-definitions-function
+Determine placement of the window where definitions are shown.
+@item xref--transient-buffer-mode-map
+keymap used in some xref windows; you may want to disable the
+@key{RET} binding there.
+@end table
+@item untabify
+Deletes tab characters that have crept into the file.
+@item indent-tabs-mode
+Don't insert tab characters when indenting.
+@item copyright-update
+Updates the copyright date in the file header comment, to the current
+year.
+@item electric-pair-mode
+Insert a matching right paren when you type a left paren.
+@item hippie-expand
+Bind @code{hippie-expand} to a key; it expands the word before point,
+using words from current buffer, other buffers, file names, etc; see
+@code{hippie-expand-try-functions-list}. You can also add
+@code{wisi-skel-hippie-try} to that list. Note that
+@code{wisi-skel-expand} is bound to @key{C-c C-e} (@pxref{Statement
+skeletons}).
+@item imenu
+Navigate to subprograms and types by name, from a minibuffer menu.
+@item speedbar
+Navigate to subprograms and types by name, from a list in a dedicated window.
+@item which-func
+Display the current subprogram name in the mode bar.
+@end table
+
+The above can all be set by the following code in your
+@file{~/.emacs}. Note that some are functions are added to
+@code{before-save-hook}; they run just before a buffer is written to
+disk. Also, the order is important; ada-mode does not set up the
+Ada-specific features of imenu and speedbar unless imenu is loaded
+first.
+
+@example
+(setq-default indent-tabs-mode nil)
+(define-key xref--transient-buffer-mode-map (kbd "RET") 'xref-goto-xref)
+(setq xref-prompt-for-identifier nil) ;; only prompt on C-u
+(setq xref-show-xrefs-function #'xref--show-defs-buffer-at-bottom)
+(setq xref-show-definitions-function #'xref--show-defs-buffer-at-bottom)
+
+(electric-pair-mode 1)
+(require 'imenu) ;; also enables speedbar
+(require 'ada-mode)
+(add-to-list 'hippie-expand-try-functions-list 'wisi-skel-hippie-try)
+(define-key ada-mode-map "\C-e"     'hippie-expand)
+(define-key ada-mode-map [down-mouse-3] 'ada-popup-menu)
+(add-hook 'ada-mode-hook
+   (lambda ()
+    (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+    (add-hook 'before-save-hook 'copyright-update nil t)
+    (add-hook 'before-save-hook
+              (lambda () (untabify (point-min) (point-max)))
+               nil t)))
+@end example
 
 @menu
 * Slow response::
@@ -471,102 +573,6 @@ See @file{ada-gnat-xref.el} and @file{gpr-query.el} for examples.
 
 @node Other customization,  , Other cross-reference, Customization
 @section Other customization
-
-All user-settable Ada mode variables can be set via the menu @samp{Ada
-| Customize}; some can also be set in wisi project files
-(@pxref{Project files}).
-
-To modify a specific variable, you can directly call the function
-@code{customize-variable}; just type @kbd{M-x customize-variable
-@key{RET} @var{variable-name} @key{RET}}.
-
-Alternately, you can specify variable settings in the Emacs
-configuration file, @file{~/.emacs}. This file is coded in Emacs lisp,
-and the syntax to set a variable is the following:
-
-@example
-(setq variable-name value)
-@end example
-
-Some general Emacs settings that are useful for Ada files:
-
-@table @code
-@item context menu
-By default, the context menu is bound to @key{C-down-mouse-3},
-i.e. control-right-click. @key{down-mouse-3} is already bound in the
-global map; you can override that global binding in the
-@code{ada-mode-hook} (see below for code).
-@item other-frame-window-mode
-Ada mode does not provide any @code{other-frame} or
-@code{other-window} variants of user operations. Instead, it is
-recommended to use the Gnu ELPA package @code{other-frame-window}.
-@item delete-trailing-whitespace
-Deletes space, tab at end of line and blank lines at end of buffer.
-@item xref configuration
-@table @code
-@item xref-prompt-for-identifier
-Set to @code{nil} to be prompted less when finding definitions or
-references.
-@item xref-show-xrefs-function
-Determine placement of the window where references are shown.
-@item xref-show-definitions-function
-Determine placement of the window where definitions are shown.
-@item xref--transient-buffer-mode-map
-keymap used in some xref windows; you may want to disable the
-@key{RET} binding there.
-@end table
-@item untabify
-Deletes tab characters that have crept into the file.
-@item indent-tabs-mode
-Don't insert tab characters when indenting.
-@item copyright-update
-Updates the copyright date in the file header comment, to the current
-year.
-@item electric-pair-mode
-Insert a matching right paren when you type a left paren.
-@item hippie-expand
-Bind @code{hippie-expand} to a key; it expands the word before point,
-using words from current buffer, other buffers, file names, etc; see
-@code{hippie-expand-try-functions-list}. You can also add
-@code{wisi-skel-hippie-try} to that list. Note that
-@code{wisi-skel-expand} is bound to @key{C-c C-e} (@pxref{Statement
-skeletons}).
-@item imenu
-Navigate to subprograms and types by name, from a minibuffer menu.
-@item speedbar
-Navigate to subprograms and types by name, from a list in a dedicated window.
-@item which-func
-Display the current subprogram name in the mode bar.
-@end table
-
-The above can all be set by the following code in your
-@file{~/.emacs}. Note that some are functions are added to
-@code{before-save-hook}; they run just before a buffer is written to
-disk. Also, the order is important; ada-mode does not set up the
-Ada-specific features of imenu and speedbar unless imenu is loaded
-first.
-
-@example
-(setq-default indent-tabs-mode nil)
-(define-key xref--transient-buffer-mode-map (kbd "RET") 'xref-goto-xref)
-(setq xref-prompt-for-identifier nil) ;; only prompt on C-u
-(setq xref-show-xrefs-function #'xref--show-defs-buffer-at-bottom)
-(setq xref-show-definitions-function #'xref--show-defs-buffer-at-bottom)
-
-(electric-pair-mode 1)
-(require 'imenu) ;; also enables speedbar
-(require 'ada-mode)
-(add-to-list 'hippie-expand-try-functions-list 'wisi-skel-hippie-try)
-(define-key ada-mode-map "\C-e"     'hippie-expand)
-(define-key ada-mode-map [down-mouse-3] 'ada-popup-menu)
-(add-hook 'ada-mode-hook
-   (lambda ()
-    (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
-    (add-hook 'before-save-hook 'copyright-update nil t)
-    (add-hook 'before-save-hook
-              (lambda () (untabify (point-min) (point-max)))
-               nil t)))
-@end example
 
 @node Compiling Executing, Project files, Customization, Top
 @chapter Compiling Executing

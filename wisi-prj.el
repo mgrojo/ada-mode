@@ -185,8 +185,9 @@ slow refresh operations may be skipped."
   nil)
 
 (cl-defgeneric wisi-xref-completion-table (xref project)
-  "Return a completion table of names defined in PROJECT.
-The table is an alist of (ANNOTATED-SYMBOL . LOC), where:
+  "Return a completion table of names defined in PROJECT,
+for navigating to the declarations.  The table is an alist
+of (ANNOTATED-SYMBOL . LOC), where:
 
 - ANNOTATED-SYMBOL is the simple name and possibly annotations
 such as function arguments, controlling type, containing package,
@@ -200,16 +201,16 @@ COLUMN).")
 to be used with `wisi-xref-completion-table'.")
 
 (cl-defgeneric wisi-xref-completion-regexp (xref)
-  "Return a regular expression matching the result of `wisi-xref-completion-table'.
-Group 1 must be the simple symbol; the rest of the item may be annotations.")
+  "Regular expression matching completion with `wisi-xref-completion-table'.
+Group 1 must be the simple symbol; the rest of the item may be
+annotations.")
 
 (cl-defgeneric wisi-xref-completion-at-point-table (xref project)
   "Return a completion table of names defined in PROJECT.
 The table is a simple list of symbols.")
 
 (cl-defgeneric wisi-xref-definitions (xref project item)
-  "Return all definitions (classwide) of ITEM (an xref-item),
-as a list of xref-items.")
+  "All definitions of ITEM (an xref-item), as a list of xref-items.")
 
 (cl-defgeneric wisi-xref-references (xref project item)
   "Return all references to ITEM (an xref-item), as a list of xref-items.")
@@ -494,7 +495,7 @@ With prefix, keep previous references in output buffer."
     ))
 
 (cl-defgeneric wisi-xref-overriding (xref project &key identifier filename line column)
-  "Display a compilation-mode buffer giving locations of overriding declarations.
+  "Displays a buffer giving locations of the overriding declarations.
 XREF    - dispatching object.
 PROJECT - a `wisi-prj' object.
 IDENTIFIER - an identifier or operator_symbol

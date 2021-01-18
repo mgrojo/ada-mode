@@ -197,11 +197,11 @@ An example is:
   :safe  #'integerp)
 (make-variable-buffer-local 'ada-indent-subprogram-is)
 
-(defcustom ada-end-name-optional nil
+(defcustom ada-end-name-optional t
   "If t, names at ends of blocks/subprograms are optional (as in
 standard Ada). If nil, they are required; this helps in error
 recovery, and matches the gnat style option -gnatye.
-Default is nil because it significantly improves error recovery."
+Default is t for new Ada users."
   :type 'boolean
   :safe #'booleanp)
 (make-variable-buffer-local 'ada-indent-hanging-rel-exp)
