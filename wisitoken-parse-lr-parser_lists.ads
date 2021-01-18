@@ -286,13 +286,11 @@ private
       Elements : aliased Parser_State_Lists.List;
    end record;
 
-   type Cursor (Elements : access Parser_State_Lists.List) is tagged
-   record
+   type Cursor is tagged record
       Ptr : Parser_State_Lists.Cursor;
    end record;
 
-   type Parser_Node_Access (Elements : access Parser_State_Lists.List) is
-   record
+   type Parser_Node_Access is record
       Ptr : Parser_State_Lists.Cursor;
    end record;
 

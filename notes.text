@@ -31,6 +31,13 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+factor out tree-sitter support
+    so ada-mode elpa release does not require tree-sitter
+
+in wisitoken-bnf-generate_utils
+    delete Token_Container
+    move iterator aspects to Data
+
 wisitoken_grammar_1.wy
     nonterminal
   : IDENTIFIER (COLON | COLON_COLON_EQUAL) rhs_list semicolon_opt
@@ -39,9 +46,6 @@ wisitoken_grammar_1.wy
     need error
 
 incremental parse
-    run all tests
-        t_all:
-
     more tests;
         parse_incremental with current_token = empty nonterm
         left_breakdown with first_terminal = virtual

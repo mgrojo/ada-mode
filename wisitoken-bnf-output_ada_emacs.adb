@@ -12,7 +12,7 @@
 --  If run in an Emacs dynamically loaded module, the parser actions
 --  call the elisp actions directly.
 --
---  Copyright (C) 2012 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -1799,10 +1799,10 @@ is
       Indent := Indent + 3;
       for Cursor in All_Tokens (Generate_Data).Iterate loop
          if Paren_1_Done then
-            Indent_Line (Name (Cursor));
+            Indent_Line (Name (Generate_Data, Cursor));
          else
             Paren_1_Done := True;
-            Put_Line (Name (Cursor));
+            Put_Line (Name (Generate_Data, Cursor));
          end if;
 
       end loop;

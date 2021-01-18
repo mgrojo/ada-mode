@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -25,7 +25,6 @@ with WisiToken.BNF.Utils;
 with WisiToken.Generate; use WisiToken.Generate;
 with WisiToken.Parse.LR;
 with WisiToken.Productions;
-with WisiToken.Syntax_Trees;
 package body WisiToken.BNF.Output_Ada_Common is
 
    --  Body subprograms, alphabetical
@@ -147,12 +146,12 @@ package body WisiToken.BNF.Output_Ada_Common is
       loop
          exit when Is_Done (Cursor);
          if Paren_Done then
-            Indent_Start ("new String'(""" & (Name (Cursor)));
+            Indent_Start ("new String'(""" & (Name (Generate_Data, Cursor)));
          else
-            Put ("new String'(""" & (Name (Cursor)));
+            Put ("new String'(""" & (Name (Generate_Data, Cursor)));
             Paren_Done := True;
          end if;
-         Next (Cursor, Nonterminals => True);
+         Next (Generate_Data, Cursor, Nonterminals => True);
          if Is_Done (Cursor) then
             Put_Line (""")),");
          else
@@ -177,12 +176,12 @@ package body WisiToken.BNF.Output_Ada_Common is
          loop
             exit when Is_Done (Cursor);
             if Paren_Done then
-               Indent_Start (To_Token_Ada_Name (Name (Cursor)));
+               Indent_Start (To_Token_Ada_Name (Name (Generate_Data, Cursor)));
             else
-               Put (To_Token_Ada_Name (Name (Cursor)));
+               Put (To_Token_Ada_Name (Name (Generate_Data, Cursor)));
                Paren_Done := True;
             end if;
-            Next (Cursor, Nonterminals => True);
+            Next (Generate_Data, Cursor, Nonterminals => True);
             if Is_Done (Cursor) then
                Put_Line (");");
             else
@@ -1129,25 +1128,25 @@ package body WisiToken.BNF.Output_Ada_Common is
       --  definitions
       for I in All_Tokens (Generate_Data).Iterate (Non_Grammar => True, Nonterminals => False) loop
 
-         if 0 /= Index (Source => Value (I), Pattern => "/") then
+         if 0 /= Index (Source => Value (Generate_Data, I), Pattern => "/") then
             --  trailing context syntax; forbidden in definitions
             null;
 
-         elsif Kind (I) = "EOI" then
-            Indent_Line (Name (I) & " = [\x04];");
+         elsif Kind (Generate_Data, I) = "EOI" then
+            Indent_Line (Name (Generate_Data, I) & " = [\x04];");
 
-         elsif Kind (I) = "delimited-text" then
+         elsif Kind (Generate_Data, I) = "delimited-text" then
             --  not declared in definitions
             null;
 
-         elsif Kind (I) = "keyword" and Input_Data.Language_Params.Case_Insensitive then
+         elsif Kind (Generate_Data, I) = "keyword" and Input_Data.Language_Params.Case_Insensitive then
             --  This assumes re2c regular expression syntax, where single quote
             --  means case insensitive.
-            Indent_Line (Name (I) & " = '" & Strip_Quotes (Value (I)) & "';");
+            Indent_Line (Name (Generate_Data, I) & " = '" & Strip_Quotes (Value (Generate_Data, I)) & "';");
 
          else
             --  Other kinds have values that are regular expressions, in lexer syntax
-            Indent_Line (Name (I) & " = " & Value (I) & ";");
+            Indent_Line (Name (Generate_Data, I) & " = " & Value (Generate_Data, I) & ";");
          end if;
       end loop;
       New_Line;
@@ -1155,11 +1154,11 @@ package body WisiToken.BNF.Output_Ada_Common is
       --  lexer rules
       for I in All_Tokens (Generate_Data).Iterate (Non_Grammar => True, Nonterminals => False) loop
          declare
-            Val : constant String := Value (I);
+            Val : constant String := Value (Generate_Data, I);
          begin
 
-            if Kind (I) = "non-reporting" then
-               Indent_Line (Name (I) & " { lexer->byte_token_start = lexer->cursor;");
+            if Kind (Generate_Data, I) = "non-reporting" then
+               Indent_Line (Name (Generate_Data, I) & " { lexer->byte_token_start = lexer->cursor;");
                Indent_Line ("    lexer->char_token_start = lexer->char_pos;");
                Indent_Line ("    if (*lexer->cursor == 0x0A)");
                Indent_Line ("       lexer->line_token_start = lexer->line-1;");
@@ -1167,16 +1166,16 @@ package body WisiToken.BNF.Output_Ada_Common is
                Indent_Line ("       lexer->line_token_start = lexer->line;");
                Indent_Line ("    continue; }");
 
-            elsif Kind (I) = "delimited-text" then
+            elsif Kind (Generate_Data, I) = "delimited-text" then
                Indent_Line
                     (Val & " {*id = " & WisiToken.Token_ID'Image (ID (I)) &
-                       "; skip_to(lexer, " & Repair_Image (I) & "); continue;}");
+                       "; skip_to(lexer, " & Repair_Image (Generate_Data, I) & "); continue;}");
 
             elsif 0 /= Index (Source => Val, Pattern => "/") then
                Indent_Line (Val & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
 
             else
-               Indent_Line (Name (I) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
+               Indent_Line (Name (Generate_Data, I) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
             end if;
          end;
       end loop;

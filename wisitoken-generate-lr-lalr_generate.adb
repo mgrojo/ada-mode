@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -109,10 +109,11 @@ package body WisiToken.Generate.LR.LALR_Generate is
          if Item.Dot /= No_Index then
 
             declare
-               Dot      : constant Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
-                 (Grammar, Item.Prod).Tokens.To_Cursor (Item.Dot);
-               Dot_ID   : constant Token_ID               := Element (Dot);
-               Next_Dot : constant Token_ID_Arrays.Cursor := Next (Dot);
+               Tokens      : Token_ID_Arrays.Vector renames Productions.Constant_Ref_RHS
+                 (Grammar, Item.Prod).Tokens;
+               Dot      : constant Token_ID_Arrays.Cursor := Tokens.To_Cursor (Item.Dot);
+               Dot_ID   : constant Token_ID               := Tokens (Dot);
+               Next_Dot : constant Token_ID_Arrays.Cursor := Tokens.Next (Dot);
             begin
                --  If Symbol = EOF_Token, this is the start symbol accept
                --  production; don't need a kernel with dot after EOF.
@@ -142,10 +143,10 @@ package body WisiToken.Generate.LR.LALR_Generate is
                            P_ID       : constant Production_ID          := (Prod.LHS, RHS_2_I);
                            Tokens     : Token_ID_Arrays.Vector renames Prod.RHSs (RHS_2_I).Tokens;
                            Dot_2      : constant Token_ID_Arrays.Cursor := Tokens.First;
-                           Next_Dot_2 : constant Token_ID_Arrays.Cursor := Next (Dot_2);
+                           Next_Dot_2 : constant Token_ID_Arrays.Cursor := Tokens.Next (Dot_2);
                         begin
                            if (Dot_ID = Prod.LHS or First_Nonterm_Set (Dot_ID, Prod.LHS)) and
-                             (Has_Element (Dot_2) and then Element (Dot_2) = Symbol)
+                             (Has_Element (Dot_2) and then Tokens (Dot_2) = Symbol)
                            then
                               if not Has_Element (Find (P_ID, To_Index (Next_Dot_2), Goto_Set)) then
                                  Goto_Set.Set.Insert
@@ -226,8 +227,8 @@ package body WisiToken.Generate.LR.LALR_Generate is
                   Compute_Key_Hash (New_Item_Set, Kernel_Tree.Rows, Grammar, Descriptor, Include_Lookaheads => False);
 
                   declare
-                     Found     : Boolean;
-                     Found_Ref : constant Item_Set_Trees.Constant_Reference_Type := Kernel_Tree.Find_Or_Insert
+                     Found      : Boolean;
+                     Found_Ref  : constant Item_Set_Trees.Constant_Reference_Type := Kernel_Tree.Find_Or_Insert
                        (New_Item_Set.Tree_Node, Found);
                   begin
                      if not Found then
@@ -246,7 +247,6 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
                         Kernels (Checking_State).Goto_List.Insert ((Symbol, Kernels.Last_Index));
                      else
-
                         --  If there's not already a goto entry between these two sets, create one.
                         if not Is_In ((Symbol, Found_Ref.State), Kernels (Checking_State).Goto_List) then
                            if Trace_Generate_Table > Detail then
@@ -342,10 +342,11 @@ package body WisiToken.Generate.LR.LALR_Generate is
       end if;
 
       declare
-         Dot        : constant Token_ID_Arrays.Cursor := Productions.Constant_Ref_RHS
-           (Grammar, Closure_Item.Prod).Tokens.To_Cursor (Closure_Item.Dot);
-         ID         : constant Token_ID               := Element (Dot);
-         Next_Dot   : constant Token_ID_Arrays.Cursor := Next (Dot);
+         Tokens     : Token_ID_Arrays.Vector renames Productions.Constant_Ref_RHS
+           (Grammar, Closure_Item.Prod).Tokens;
+         Dot        : constant Token_ID_Arrays.Cursor := Tokens.To_Cursor (Closure_Item.Dot);
+         ID         : constant Token_ID               := Tokens (Dot);
+         Next_Dot   : constant Token_ID_Arrays.Cursor := Tokens.Next (Dot);
          Goto_State : constant Unknown_State_Index    := LR1_Items.Goto_State (Source_Set, ID);
       begin
          if Goto_State /= Unknown_State then

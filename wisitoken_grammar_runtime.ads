@@ -2,7 +2,7 @@
 --
 --  Runtime utils for wisitoken_grammar.wy actions.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -21,7 +21,7 @@ with Ada.Containers;
 with SAL;
 with WisiToken.BNF;
 with WisiToken.Lexer;
-with WisiToken.Syntax_Trees.LR_Utils;
+with WisiToken.Syntax_Trees;
 with Wisitoken_Grammar_Actions;
 package WisiToken_Grammar_Runtime is
    use all type Wisitoken_Grammar_Actions.Token_Enum_ID;

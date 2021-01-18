@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -20,6 +20,7 @@ pragma License (Modified_GPL);
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with WisiToken.Generate;   use WisiToken.Generate;
+with WisiToken.Syntax_Trees.LR_Utils;
 package body WisiToken_Grammar_Runtime is
 
    use WisiToken;
@@ -201,8 +202,9 @@ package body WisiToken_Grammar_Runtime is
                when 0 =>
                   --  rhs_item
                   RHS.Tokens.Append
-                    ((Label      => +"",
-                      Identifier => +Get_Text (Data, Tree, Tree.Child (I, 1))));
+                    (WisiToken.BNF.Labeled_Token'
+                       (Label      => +"",
+                        Identifier => +Get_Text (Data, Tree, Tree.Child (I, 1))));
 
                when 1 =>
                   --  IDENTIFIER = rhs_item
@@ -210,8 +212,9 @@ package body WisiToken_Grammar_Runtime is
                      Label : constant String := Get_Text (Data, Tree, Tree.Child (I, 1));
                   begin
                      RHS.Tokens.Append
-                       ((Label      => +Label,
-                         Identifier => +Get_Text (Data, Tree, Tree.Child (I, 3))));
+                       (WisiToken.BNF.Labeled_Token'
+                          (Label      => +Label,
+                           Identifier => +Get_Text (Data, Tree, Tree.Child (I, 3))));
 
                      if (for all L of Labels => -L /= Label) then
                         Labels.Append (+Label);
@@ -249,6 +252,7 @@ package body WisiToken_Grammar_Runtime is
       begin
          WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
            ("Get_RHS: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Token);
+         raise; -- WORKAROUND; GNAT pro_22.0w-20201222 ignores 'pragma no_return' on Raise_Programmer_Error
       end;
    end Get_RHS;
 

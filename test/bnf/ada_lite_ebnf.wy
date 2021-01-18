@@ -6,7 +6,7 @@
 ;; See ada_lite_ebnf_bnf.wy for translation to BNF for parser generator.
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -32,6 +32,8 @@
    Partial_Parse_Active    : Boolean := False;
    Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 }%
+
+%code actions body context %{with SAL;}%
 
 %code actions body pre %{
    procedure Handle_Aspect

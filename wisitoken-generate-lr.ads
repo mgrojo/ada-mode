@@ -2,7 +2,7 @@
 --
 --  Common utilities for LR parser table generators.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -27,8 +27,8 @@ package WisiToken.Generate.LR is
 
    subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
    type Conflict_Item is record
-      Action : Conflict_Parse_Actions;
-      LHS    : Token_ID;
+      Action : Conflict_Parse_Actions := Conflict_Parse_Actions'First;
+      LHS    : Token_ID := Invalid_Token_ID;
    end record;
 
    function Conflict_Item_Compare (Left, Right : in Conflict_Item) return SAL.Compare_Result
@@ -47,10 +47,11 @@ package WisiToken.Generate.LR is
    is (Item);
 
    package Conflict_Item_Lists is new SAL.Gen_Unbounded_Definite_Vectors_Sorted
-     (Element_type => Conflict_Item,
-      Key_Type     => Conflict_Item,
-      To_Key       => To_Key,
-      Key_Compare  => Conflict_Item_Compare);
+     (Element_type    => Conflict_Item,
+      Key_Type        => Conflict_Item,
+      To_Key          => To_Key,
+      Key_Compare     => Conflict_Item_Compare,
+      Default_Element => (others => <>));
 
    type Conflict is record
       --  In the parse table, a "conflict" occurs when there are two or more

@@ -19,7 +19,7 @@ section entitled "GNU Free Documentation License".
 
 @dircategory Parser generators
 @direntry
-* wisitoken-bnf-generate: (wisitoken-bnf-generate).         Ada and Elisp parser generator
+* wisitoken-bnf-generate: (wisitoken-bnf-generate).         Ada parser generator
 @end direntry
 
 @titlepage
@@ -50,9 +50,10 @@ section entitled "GNU Free Documentation License".
 
 WisiToken is a parser and parser generator toolkit, supporting
 generalized LR (both LALR and LR1) and packrat parsers; the LR parser
-provides robust error recovery. The grammar can be expressed as either
-Ada source code statements, or in an EBNF file. The parser generator
-generates Ada, either plain or assuming the Emacs wisi package.
+provides robust error recovery and incremental parsing. The grammar
+can be expressed as either Ada source code statements, or in an EBNF
+file. The parser generator generates Ada, either plain or assuming the
+Emacs wisi package.
 
 At one point, ``wisi'' was short for ``Wisent Indentation engine'';
 the Emacs 'wisi' package implements an indentation engine that used to
@@ -245,6 +246,10 @@ parameters.
 Raw code declarations contain arbitrary code, copied verbatim into the
 output. The keywords following @code{%code} determine where
 the section is output.
+
+Sometimes the generator cannot tell what context clauses for other
+packages are required in the actions package body; then you must use a
+@verb|%code| declaration to add them.
 
 @node Keywords
 @subsection Keywords
@@ -582,7 +587,7 @@ generates code that impements the grammar actions.
 what language is used for the grammar actions. For @code{Ada}, the
 grammar action language is Ada, and it is copied verbatim into the
 generated grammar action code. For @code{Emacs_Ada}, the grammar
-action language is elisp, which is translated in to Ada by assuming
+action language is elisp, which is translated to Ada by assuming
 it will be used by the GNU ELPA package @code{wisi} (see
 @code{https://elpa.gnu.org/packages/wisi.html}).
 
@@ -673,7 +678,7 @@ The actions are written in output-language code; for @code{Ada_Emacs}
 output, this is elisp (a hold-over from when WisiToken only output
 elisp code).
 
-If using BNF:
+If using BNF, the syntax of an @verb|rhs_item| is:
 @verbatim
 rhs_item : token ;
 @end verbatim

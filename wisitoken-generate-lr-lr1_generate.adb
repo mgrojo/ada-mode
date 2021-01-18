@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -238,9 +238,6 @@ package body WisiToken.Generate.LR.LR1_Generate is
       package State_Array_Worker_Data is new SAL.Gen_Unbounded_Definite_Vectors
         (State_Index, Worker_Data, (others => <>));
 
-      package State_Array_Item_Set_Tree_Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-        (State_Index, Item_Set_Tree_Node_Arrays.Vector, Item_Set_Tree_Node_Arrays.Empty_Vector);
-
       protected Supervisor is
 
          procedure Initialize
@@ -322,11 +319,12 @@ package body WisiToken.Generate.LR.LR1_Generate is
          Summary_Last_Output : State_Index := 0;
       end Supervisor;
 
-      function Image (Node_Ref : Item_Set_Trees.Constant_Reference_Type) return String
+      function Image (Node_Ref : Item_Set_Trees.Variable_Reference_Type) return String
       is
          package Convert is new System.Address_To_Access_Conversions (Item_Set_Tree_Node);
       begin
-         return Convert.To_Address (Node_Ref.Element)'Image & ":" & Node_Ref.Hash'Image & ":" & Node_Ref.State'Image;
+         return Convert.To_Address (Convert.Object_Pointer (Node_Ref))'Image & ":" &
+           Node_Ref.Hash'Image & ":" & Node_Ref.State'Image;
       end Image;
 
       protected body Supervisor is
@@ -667,7 +665,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
                            Ada.Text_IO.Put_Line
                              ("(worker" & ID'Image & ")  state" & Worker_Data.From_State'Image & " adding goto on " &
                                 Image (Symbol, Descriptor) & " to existing state" & Image
-                                  (C_Tree.Constant_Ref (Found_Cur)));
+                                  (C_Tree.Variable_Ref (Found_Cur)));
                         end if;
                      end if;
                   end;

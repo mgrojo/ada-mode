@@ -529,8 +529,8 @@ package body WisiToken.Parse.LR.Parser is
            Pre_Recover_Parser_Count'Image & " '" &
            Shared_Parser.Tree.Lexer.File_Name & "'");
 
-      Put (Recover_Log_File, '(');
       for Parser of Shared_Parser.Parsers loop
+         Put (Recover_Log_File, '(');
          if Parser.Recover.Results.Count > 0 then
             --  Count can be 0 when error recovery fails
             Put (Recover_Log_File, Image (Parser.Recover.Results.Peek.Strategy_Counts));
@@ -540,8 +540,8 @@ package body WisiToken.Parse.LR.Parser is
             Integer'Image (Parser.Recover.Enqueue_Count) &
               Integer'Image (Parser.Recover.Check_Count) & " " &
               Boolean'Image (Parser.Recover.Success));
+         Put (Recover_Log_File, ')');
       end loop;
-      Put (Recover_Log_File, ')');
 
       New_Line (Recover_Log_File);
       Flush (Recover_Log_File);

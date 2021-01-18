@@ -2,7 +2,7 @@
 --
 --  Types and operatorion for LR(1) items.
 --
---  Copyright (C) 2003, 2008, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2003, 2008, 2013 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -255,6 +255,8 @@ package WisiToken.Generate.LR1_Items is
    package Item_Set_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (State_Index, Item_Set, Default_Element => (others => <>));
    subtype Item_Set_List is Item_Set_Arrays.Vector;
+   --  Item_Set_Arrays.Vector holds state item sets indexed by state, for
+   --  iterating in state order. See also Item_Set_Trees.
 
    package Item_Set_Tree_Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Positive_Index_Type, Item_Set_Tree_Node, (others => <>));
@@ -280,10 +282,9 @@ package WisiToken.Generate.LR1_Items is
       Key          => To_Item_Set_Tree_Key,
       Key_Compare  => Unsigned_16_Arrays_Comparable.Compare,
       Hash         => To_Item_Set_Tree_Hash);
-   --  Item_Set_Arrays.Vector holds state item sets indexed by state, for
-   --  iterating in state order. Item_Set_Trees holds state
-   --  indices sorted by Item_Set_Tree_Key, for fast Find in LR1_Item_Sets
-   --  and LALR_Kernels.
+   --  Item_Set_Trees holds state indices sorted by Item_Set_Tree_Key,
+   --  for fast Find in LR1_Item_Sets and LALR_Kernels. See also
+   --  Item_Set_Arrays.
 
    subtype Item_Set_Tree is Item_Set_Trees.Hash_Table;
 

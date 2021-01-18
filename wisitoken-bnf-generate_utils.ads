@@ -3,7 +3,7 @@
 --  Utilities for translating input file structures to WisiToken
 --  structures needed for LALR.Generate.
 --
---  Copyright (C) 2014, 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2014, 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -118,33 +118,34 @@ package WisiToken.BNF.Generate_Utils is
      return Iterator_Interfaces.Forward_Iterator'Class;
 
    function First
-     (Data         : aliased in Generate_Data;
-      Non_Grammar  :         in Boolean;
-      Nonterminals :         in Boolean)
+     (Data         : in Generate_Data;
+      Non_Grammar  : in Boolean;
+      Nonterminals : in Boolean)
      return Token_Cursor;
-   procedure Next (Cursor : in out Token_Cursor; Nonterminals : in Boolean);
+
+   procedure Next (Data : in Generate_Data; Cursor : in out Token_Cursor; Nonterminals : in Boolean);
 
    function ID (Cursor : in Token_Cursor) return Token_ID;
 
-   function Name (Cursor : in Token_Cursor) return String;
+   function Name (Data : in Generate_Data; Cursor : in Token_Cursor) return String;
    --  Return the token name from the .wy file:
    --  Keywords: Keywords (i).name
    --  Tokens  : Tokens (i).Tokens (j).name
    --  Rules   : Rules (i).Left_Hand_Side
 
-   function Kind (Cursor : in Token_Cursor) return String;
+   function Kind (Data : in Generate_Data; Cursor : in Token_Cursor) return String;
    --  Return the token kind from the .wy file:
    --  Keywords: "keyword"
    --  Tokens  : Tokens (i).Kind
    --  Rules   : "nonterminal"
 
-   function Value (Cursor : in Token_Cursor) return String;
+   function Value (Data : in Generate_Data; Cursor : in Token_Cursor) return String;
    --  Return the token value from the .wy file:
    --  Keywords: Keywords (i).value
    --  Tokens  : Tokens (i).Tokens (j).Value
    --  Rules   : empty string (they have no Value)
 
-   function Repair_Image (Cursor : in Token_Cursor) return String;
+   function Repair_Image (Data : in Generate_Data; Cursor : in Token_Cursor) return String;
    --  Return the token repair image from the .wy file:
    --  Keywords: empty string
    --  Tokens  : Tokens (i).Tokens (j).Repair_Image
@@ -176,7 +177,7 @@ private
    type Token_Cursor_Kind is
      (Non_Grammar_Kind, Terminals_Keywords, Terminals_Others, EOI, WisiToken_Accept, Nonterminal, Done);
 
-   type Token_Cursor (Data : not null access constant Generate_Data) is record
+   type Token_Cursor is record
       Kind        : Token_Cursor_Kind;
       ID          : Token_ID;
       Token_Kind  : WisiToken.BNF.Token_Lists.Cursor; -- Non_Grammar or Tokens, depending on Kind
