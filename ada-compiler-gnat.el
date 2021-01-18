@@ -447,8 +447,8 @@ Prompt user if more than one."
 	   (let ((package-name (match-string-no-properties 1)))
 	     (pop-to-buffer source-buffer)
 	     ;; Could check if prefix is already with'd, extend
-	     ;; it. But no one has reported that case yet; this
-	     ;; message only occurs for predefined Ada packages.
+	     ;; it. But that's not easy. This message only occurs for
+	     ;; compiler-provided Ada and GNAT packages.
 	     (ada-fix-add-with-clause package-name))
 	   t)
 

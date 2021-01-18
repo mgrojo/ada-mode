@@ -1,6 +1,6 @@
 ;; user options shared by Ada mode indentation engines  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012, 2013, 2015, 2017 - 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2012, 2013, 2015, 2017 - 2021  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Contributors: Simon Wright <simon.j.wright@mac.com>
@@ -70,7 +70,8 @@ Otherwise, they are indented as previous comments or code."
 (make-variable-buffer-local 'ada-indent-comment-gnat)
 
 (defcustom ada-indent-label -3
-  "Indentation for a loop, block, or statement label, relative to the item it labels.
+  "Indentation for a loop, block, or statement label,
+relative to the item it labels.
 
 Example :
    Label_1 :
@@ -170,7 +171,8 @@ An example is:
 
 (defcustom ada-indent-hanging-rel-exp nil
   "If nil, indent hanging lines in an expression relative to the first line.
-Otherwise, indent by `ada-indent-broken' relative to the start of the expression."
+Otherwise, indent by `ada-indent-broken' relative to the start of
+the expression."
   :type 'boolean
   :safe #'booleanp)
 (make-obsolete-variable 'ada-indent-hanging-rel-exp "" "ada-mode 4.0.0")
@@ -195,11 +197,11 @@ An example is:
   :safe  #'integerp)
 (make-variable-buffer-local 'ada-indent-subprogram-is)
 
-(defcustom ada-end-name-optional nil
+(defcustom ada-end-name-optional t
   "If t, names at ends of blocks/subprograms are optional (as in
 standard Ada). If nil, they are required; this helps in error
 recovery, and matches the gnat style option -gnatye.
-Default is nil because it significantly improves error recovery."
+Default is t for new Ada users."
   :type 'boolean
   :safe #'booleanp)
 (make-variable-buffer-local 'ada-indent-hanging-rel-exp)

@@ -1,6 +1,6 @@
 ;;; wisi-parse-common.el --- declarations used by wisi-parse.el, wisi-ada-parse.el, and wisi.el -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2014, 2015, 2017 - 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2015, 2017 - 2021  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -128,7 +128,7 @@ Return nil if no match found before eob."
 If using an external parser, send it BEGIN thru SEND-END.")
 
 (cl-defgeneric wisi-refactor ((parser wisi-parser) refactor-action parse-begin parse-end edit-begin)
-  "Send parser command to perform REFACTOR-ACTION on region PARSE-BEGIN PARSE-END at point EDIT_BEGIN.
+  "Perform REFACTOR-ACTION on region PARSE-BEGIN PARSE-END at point EDIT_BEGIN.
 The parse region is not expanded first; it must be the statement
 or declaration containing EDIT_BEGIN.")
 
@@ -329,7 +329,7 @@ Otherwise, they are indented with previous comments or code.
 Normally set from a language-specific option.")
 
 (defvar-local wisi-end-caches nil
-  "List of buffer positions of caches in current statement that need wisi-cache-end set.")
+  "Buffer positions of caches in current statement that need wisi-cache-end set.")
 
 (defconst wisi-eoi-term 'Wisi_EOI
   ;; must match FastToken wisi-output_elisp.adb EOI_Name, which must
@@ -343,7 +343,8 @@ Normally set from a language-specific option.")
    statement-start
    misc ;; other stuff
    ]
-  "array of valid token classes; checked in wisi-statement-action, used in wisi-process-parse.")
+  "Array of valid token classes.
+Checked in wisi-statement-action, used in wisi-process-parse.")
 
 (defun wisi-error-msg (message &rest args)
   (let ((line (line-number-at-pos))

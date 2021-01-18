@@ -9,6 +9,11 @@ Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 * Ada Mode ?
 ?
 
+** Change default value of ada-end-name-optional to 't', to match
+   the expectations of new Ada users. Experienced users that follow a
+   style guide requiring matching end names should set this to 't',
+   since that gives better error correction.
+
 ** parser Ada language protocol version 4; delete ada-indent-hanging-rel-exp, add ada-indent-subprogram-is
 
 ** New indent option add ada-indent-subprogram-is; indentation of 'is'

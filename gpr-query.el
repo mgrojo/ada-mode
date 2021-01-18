@@ -724,6 +724,7 @@ FILE is from gpr-query."
     (setq gpr-query--sessions (delete (cons gpr-file session) gpr-query--sessions))
 
     (setq session (gpr-query-cached-session project))
+    (message "project cache refreshed")
     ))
 
 (defun gpr-query-tree-refs (project item op)
