@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2008 - 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2008 - 2018, 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -376,8 +376,11 @@ package body SAL.CSV is
    end Name;
 
    function Line (File : in File_Type) return Ada.Text_IO.Positive_Count
-   is begin
-      return Ada.Text_IO.Line (File.File);
+   is
+      use all type Ada.Text_IO.Count;
+   begin
+      --  Report the file line for the current text
+      return -1 + Ada.Text_IO.Line (File.File);
    end Line;
 
 end SAL.CSV;
