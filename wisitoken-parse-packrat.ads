@@ -14,7 +14,7 @@
 --  [warth 2008]  Warth, A., Douglass, J.R. and Millstein, T.D., 2008. Packrat
 --                parsers can support left recursion. PEPM, 8, pp.103-110.
 --
---  Copyright (C) 2018, 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2020 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -50,9 +50,7 @@ package WisiToken.Parse.Packrat is
    type Parser is abstract new Base_Parser with null record;
 
    overriding
-   procedure Execute_Actions
-     (Parser          : in out Packrat.Parser;
-      Image_Augmented : in     Syntax_Trees.Image_Augmented := null);
+   procedure Execute_Actions (Parser : in out Packrat.Parser);
 
    function Image_Pos
      (Tree    : in Syntax_Trees.Tree;

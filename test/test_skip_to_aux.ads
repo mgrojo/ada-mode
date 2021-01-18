@@ -15,6 +15,7 @@ pragma License (GPL);
 
 with Skip_To_Grammar_Actions;
 with WisiToken.Parse.LR.Parser_No_Recover;
+with WisiToken.Syntax_Trees;
 package Test_Skip_To_Aux is
 
    Enable : Boolean;
