@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -442,10 +442,13 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       --  character.
    end Parse;
 
-   overriding procedure Execute_Actions (Parser : in out LR.Parser_No_Recover.Parser)
+   overriding procedure Execute_Actions
+     (Parser              : in out LR.Parser_No_Recover.Parser;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region)
    is
-      use all type Syntax_Trees.User_Data_Access;
+      pragma Unreferenced (Action_Region_Bytes);
 
+      use all type Syntax_Trees.User_Data_Access;
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
          Node : in     Syntax_Trees.Valid_Node_Access)

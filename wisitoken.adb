@@ -437,7 +437,8 @@ package body WisiToken is
                return Integer'Value (Config (Value_First .. Value_Last));
             exception
             when Constraint_Error =>
-               raise User_Error with "expecting integer trace value, found '" & Config (Value_First .. Value_Last);
+               raise User_Error with "expecting integer trace value, found '" &
+                 Config (Value_First .. Value_Last) & "'";
             end Get_Value;
 
             Value : constant Integer := Get_Value;

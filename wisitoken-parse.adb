@@ -370,7 +370,7 @@ package body WisiToken.Parse is
 
             Do_Scan : Boolean := KMN.Inserted_Bytes > 0;
 
-            Last_Stable_Line : Line_Number_Type      := Invalid_Line_Number;
+            Last_Stable_Line : Line_Number_Type      := Line_Number_Type'First;
             Line_Delta       : Base_Line_Number_Type := 0; -- counts new_lines inserted
          begin
             --  Parser.Lexer contains the edited text, so we can't check that
@@ -413,6 +413,21 @@ package body WisiToken.Parse is
 
                Tree.Shift (Terminal.Node, Shift_Bytes, Shift_Chars, Shift_Line);
 
+               declare
+                  Non_Grammar : Base_Token_Array_Const_Ref renames Tree.Non_Grammar_Const (Terminal.Node);
+                  Line : constant Line_Number_Type :=
+                    (if Non_Grammar.Length > 0
+                     then Non_Grammar (Non_Grammar.Last_Index).Line
+                     else Tree.Base_Token (Terminal.Node).Line);
+               begin
+                  if Last_Stable_Line < Line then
+                     for L in Last_Stable_Line + 1 .. Line loop
+                        Tree.Line_Begin_Char_Pos (L) := Tree.Line_Begin_Char_Pos (L) + Shift_Chars;
+                     end loop;
+                     Last_Stable_Line := Line;
+                  end if;
+               end;
+
                Parser.Last_Grammar_Node := Terminal.Node;
                --  for non_grammar, Shift_Line below
 
@@ -428,18 +443,6 @@ package body WisiToken.Parse is
             end loop Unchanged_Loop;
 
             --  FIXME: delete trailing virtual_terminals in stable_region
-
-            declare
-               --  Terminal is the terminal token overlapping or after the end of the
-               --  stable region.
-               Non_Grammar : Base_Token_Array_Const_Ref renames Tree.Non_Grammar_Const (Terminal.Node);
-            begin
-               if Non_Grammar.Length > 0 then
-                  Last_Stable_Line := Non_Grammar (Non_Grammar.Last_Index).Line;
-               else
-                  Last_Stable_Line := Tree.Base_Token (Terminal.Node).Line;
-               end if;
-            end;
 
             --  Scanning is needed if Inserted_Region is not empty, or if the
             --  deleted region overlaps or is adjacent to a preceding or following

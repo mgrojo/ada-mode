@@ -5,7 +5,7 @@
 --  In a child package of Parser.LR partly for historical reasons,
 --  partly to allow McKenzie_Recover to be in a sibling package.
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -122,13 +122,15 @@ package WisiToken.Parse.LR.Parser is
    --  For errors where no recovery is possible, raises Parse_Error with
    --  an appropriate error message.
 
-   overriding procedure Execute_Actions (Parser : in out LR.Parser.Parser);
+   overriding procedure Execute_Actions
+     (Parser              : in out LR.Parser.Parser;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region);
    --  Call Parser.User_Data.Insert_Token, Parser.User_Data.Delete_Token
    --  on any tokens inserted/deleted by error recovery. Update
    --  Parser.Line_Begin_Tokens to reflect error recovery. Then call
    --  User_Data.Reduce and the grammar post parse actions on all
-   --  nonterms in the syntax tree, by traversing the tree in depth-first
-   --  order.
+   --  nonterms in the syntax tree that overlap Action_Region_Bytes, by
+   --  traversing the tree in depth-first order.
 
    overriding function Any_Errors (Parser : in LR.Parser.Parser) return Boolean;
    --  Return True if any errors where encountered, recovered or not.

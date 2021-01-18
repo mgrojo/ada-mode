@@ -648,10 +648,13 @@ package body WisiToken.Parse.LR.Parser is
       Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List)
    is separate;
 
-   overriding procedure Execute_Actions (Parser : in out LR.Parser.Parser)
+   overriding procedure Execute_Actions
+     (Parser              : in out LR.Parser.Parser;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region)
    is
+      use all type Syntax_Trees.Node_Access;
+      use all type Syntax_Trees.Post_Parse_Action;
       use all type Syntax_Trees.User_Data_Access;
-      use all type WisiToken.Syntax_Trees.Post_Parse_Action;
 
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
@@ -659,13 +662,21 @@ package body WisiToken.Parse.LR.Parser is
       is
          use all type Syntax_Trees.Node_Label;
       begin
-         if Tree.Label (Node) /= Nonterm then
+         if Tree.Label (Node) /= Nonterm or else
+           not Overlaps (Tree.Byte_Region (Node), Action_Region_Bytes)
+         then
             return;
          end if;
 
          declare
             Tree_Children : constant Syntax_Trees.Node_Access_Array := Tree.Children (Node);
          begin
+            for Child of Tree_Children loop
+               if Child /= null and then Overlaps (Tree.Byte_Region (Child), Action_Region_Bytes) then
+                  Process_Node (Tree, Child);
+               end if;
+            end loop;
+
             Parser.User_Data.Reduce (Tree, Node, Tree_Children);
             if Tree.Action (Node) /= null then
                begin
@@ -850,6 +861,8 @@ package body WisiToken.Parse.LR.Parser is
               ("recover_insert_delete: " & Image (Parser_State.Recover_Insert_Delete, Parser.Tree));
             Parser.Trace.Put_Line
               ("line_begin_token: " & Parser.Tree.Image (Parser.Tree.Line_Begin_Token, Association => True));
+            Parser.Trace.Put_Line
+              ("line_begin_char_os: " & Image (Parser.Tree.Line_Begin_Char_Pos, Association => True));
             Parser.Trace.New_Line;
          end if;
 
@@ -898,7 +911,7 @@ package body WisiToken.Parse.LR.Parser is
 
          Parser.User_Data.Initialize_Actions (Parser.Tree);
 
-         Parser.Tree.Process_Tree (Process_Node'Access);
+         Process_Node (Parser.Tree, Parser.Tree.Root);
       end;
    exception
    when E : others =>

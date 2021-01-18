@@ -26,7 +26,7 @@
 --  Efficient and flexible incremental parsing. ACM Transactions on
 --  Programming Languages and Systems,20(5):980-1013, 1998
 --
---  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -348,6 +348,8 @@ package WisiToken is
 
    package Line_Pos_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
      (Line_Number_Type, Buffer_Pos, Default_Element => Invalid_Buffer_Pos);
+
+   function Image is new Line_Pos_Vectors.Gen_Image (Trimmed_Image);
 
    type Line_Pos_Vector_Access is access all Line_Pos_Vectors.Vector;
 

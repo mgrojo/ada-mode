@@ -7,7 +7,7 @@
 --  to not depend on wisitoken-lr-mckenzie_recover, so editing that
 --  does not cause everything to be regenerated/compiled.
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -69,10 +69,10 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean;
 
    overriding procedure Put_Errors (Parser : in LR.Parser_No_Recover.Parser);
-   --  Put user-friendly error messages from the parse to
-   --  Ada.Text_IO.Current_Error.
 
-   overriding procedure Execute_Actions (Parser : in out LR.Parser_No_Recover.Parser);
-   --  Execute the grammar actions in Parser.
+   overriding procedure Execute_Actions
+     (Parser              : in out LR.Parser_No_Recover.Parser;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region);
+   --  Action_Region_Bytes is ignored (all nodes always processed).
 
 end WisiToken.Parse.LR.Parser_No_Recover;
