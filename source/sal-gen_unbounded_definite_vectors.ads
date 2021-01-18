@@ -24,7 +24,7 @@
 --  several subprogram argument modes, and why Container must be an
 --  access discriminant in Cursor and Iterator.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -168,22 +168,22 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    function Variable_Ref (Container : aliased in Vector; Index : in Index_Type) return Variable_Reference_Type
    with Inline, Pre => Index in Container.First_Index .. Container.Last_Index;
 
-   type Cursor (<>) is private;
+   type Cursor is private;
 
    function Has_Element (Position : Cursor) return Boolean;
-   function Element (Position : Cursor) return Element_Type
+   function Element (Container : in Vector; Position : Cursor) return Element_Type
    with Pre => Has_Element (Position);
-   function First (Container : aliased in Vector) return Cursor;
-   function Next (Position : in Cursor) return Cursor;
-   procedure Next (Position : in out Cursor);
-   function Prev (Position : in Cursor) return Cursor;
-   procedure Prev (Position : in out Cursor);
+   function First (Container : in Vector) return Cursor;
+   function Next (Container : in Vector; Position : in Cursor) return Cursor;
+   procedure Next (Container : in Vector; Position : in out Cursor);
+   function Prev (Container : in Vector; Position : in Cursor) return Cursor;
+   procedure Prev (Container : in Vector; Position : in out Cursor);
 
-   function No_Element (Container : aliased in Vector) return Cursor;
+   function No_Element (Container : in Vector) return Cursor;
 
    function To_Cursor
-     (Container : aliased in Vector;
-      Index     :         in Extended_Index)
+     (Container : in Vector;
+      Index     : in Extended_Index)
      return Cursor
    with Pre => Index = No_Index or Index in Container.First_Index .. Container.Last_Index;
 
@@ -218,8 +218,7 @@ private
       Last     : Extended_Index := No_Index;
    end record;
 
-   type Cursor (Container : not null access constant Vector) is
-   record
+   type Cursor is record
       Index : Base_Peek_Type := Invalid_Peek_Index;
    end record;
 

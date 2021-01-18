@@ -15,7 +15,7 @@
 --  [1] Introduction to Algorithms, Thomas H. Cormen, Charles E.
 --  Leiserson, Ronald L. Rivest, Clifford Stein.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -78,14 +78,14 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
      Implicit_Dereference => Element;
 
    function Constant_Ref
-     (Container : aliased in Tree;
-      Position  :         in Cursor)
+     (Container : in Tree;
+      Position  : in Cursor)
      return Constant_Reference_Type
    with Inline, Pre => Has_Element (Position);
 
    function Constant_Ref
-     (Container : aliased in Tree;
-      Key       :         in Key_Type)
+     (Container : in Tree;
+      Key       : in Key_Type)
      return Constant_Reference_Type
    with Inline;
    --  Raises Not_Found if Key not found in Container.
@@ -108,9 +108,13 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    with Inline;
    --  Raises Not_Found if Key not found in Container.
 
+   function Unchecked_Const_Ref (Container : in Tree; Position  : in Cursor) return access constant Element_Type;
+   function Unchecked_Var_Ref (Container : in Tree; Position  : in Cursor) return access Element_Type;
+   --  For higher level containers.
+
    package Iterators is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
-   type Iterator (<>) is new Iterators.Reversible_Iterator with private;
+   type Iterator (Container : not null access constant Tree) is new Iterators.Reversible_Iterator with private;
 
    function Iterate (Tree : aliased in Pkg.Tree'Class) return Iterator;
 

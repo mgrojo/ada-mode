@@ -2,7 +2,7 @@
 --
 --  Unbounded sparse sets.
 --
---  Copyright (C) 2020 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020 - 2021 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -13,9 +13,7 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Finalization;
 with Ada.Iterator_Interfaces;
-with Ada.Unchecked_Deallocation;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 generic
    type Index_Type is private;
@@ -99,21 +97,9 @@ private
 
    Empty_Set : constant Set := (Tree => Boolean_Trees.Empty_Tree);
 
-   type Boolean_Iterator_Access is access Boolean_Trees.Iterator;
-   procedure Free is new Ada.Unchecked_Deallocation (Boolean_Trees.Iterator, Boolean_Iterator_Access);
-
-   type Wrapped_Boolean_Iterator (Container : not null access constant Set'Class) is new Ada.Finalization.Controlled
+   type Iterator (Container : not null access constant Boolean_Trees.Tree) is new Iterators.Forward_Iterator
    with record
-      Iter_2 : Boolean_Iterator_Access;
-   end record;
-
-   overriding procedure Initialize (Iter : in out Wrapped_Boolean_Iterator);
-   overriding procedure Finalize (Iter : in out Wrapped_Boolean_Iterator);
-   overriding procedure Adjust (Iter : in out Wrapped_Boolean_Iterator);
-
-   type Iterator (Container : not null access constant Set'Class) is new Iterators.Forward_Iterator
-   with record
-      Iter_1 : Wrapped_Boolean_Iterator (Container);
+      Iter : Boolean_Trees.Iterator (Container);
    end record;
 
 end SAL.Gen_Unbounded_Sparse_Ordered_Sets;

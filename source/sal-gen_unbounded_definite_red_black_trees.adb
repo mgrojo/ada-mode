@@ -431,8 +431,8 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    end Clear;
 
    function Constant_Ref
-     (Container : aliased in Tree;
-      Position  :         in Cursor)
+     (Container : in Tree;
+      Position  : in Cursor)
      return Constant_Reference_Type
    is
       pragma Unreferenced (Container);
@@ -441,8 +441,8 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    end Constant_Ref;
 
    function Constant_Ref
-     (Container : aliased in Tree;
-      Key       :         in Key_Type)
+     (Container : in Tree;
+      Key       : in Key_Type)
      return Constant_Reference_Type
    is
       Node : constant Node_Access := Find (Container.Root, Key, Container.Nil);
@@ -484,6 +484,23 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
          return (Element => Node.Element'Access, Dummy => 1);
       end if;
    end Variable_Ref;
+
+   function Unchecked_Const_Ref
+     (Container : in Tree;
+      Position  : in Cursor)
+     return access constant Element_Type
+   is
+      pragma Unreferenced (Container);
+   begin
+      return Position.Node.all.Element'Access;
+   end Unchecked_Const_Ref;
+
+   function Unchecked_Var_Ref (Container : in Tree; Position  : in Cursor) return access Element_Type
+   is
+      pragma Unreferenced (Container);
+   begin
+      return Position.Node.all.Element'Access;
+   end Unchecked_Var_Ref;
 
    function Iterate (Tree : aliased in Pkg.Tree'Class) return Iterator
    is begin
