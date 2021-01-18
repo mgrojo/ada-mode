@@ -4,7 +4,7 @@
 --
 --  Notice
 --
---  Copyright (C) 2020 Free Software Foundation, Inc. All Rights Reserved.
+--  Copyright (C) 2020 - 2021 Free Software Foundation, Inc. All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -130,7 +130,7 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
          Tree : Element_Trees.Tree renames Table.Table (Hash (Element, Table.Table.Last_Index));
          Tree_Cur : constant Element_Trees.Cursor := Tree.Find_Or_Insert (Element, Found);
       begin
-         return (Tree.Constant_Ref (Tree_Cur).Element, 0);
+         return Tree.Unchecked_Const_Ref (Tree_Cur);
       end;
    end Find_Or_Insert;
 
@@ -148,7 +148,7 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
          Tree : Element_Trees.Tree renames Table.Table (Hash (Element, Table.Table.Last_Index));
          Tree_Cur : constant Element_Trees.Cursor := Tree.Find_Or_Insert (Element, Found);
       begin
-         return (Tree.Variable_Ref (Tree_Cur).Element, 0);
+         return Variable_Reference_Type (Tree.Unchecked_Var_Ref (Tree_Cur));
       end;
    end Find_Or_Insert_Var;
 
@@ -162,11 +162,20 @@ package body SAL.Gen_Unbounded_Definite_Hash_Tables is
       Position :         in Cursor)
      return Constant_Reference_Type
    is
-      Tree     : Element_Trees.Tree renames Table.Table (Position.Row);
-      Tree_Ref : Element_Trees.Constant_Reference_Type renames Tree.Constant_Ref (Position.Cur);
+      Tree : Element_Trees.Tree renames Table.Table (Position.Row);
    begin
-      return (Tree_Ref.Element, 0);
+      return Tree.Unchecked_Const_Ref (Position.Cur);
    end Constant_Ref;
+
+   function Variable_Ref
+     (Table    : aliased in Hash_Table;
+      Position :         in Cursor)
+     return Variable_Reference_Type
+   is
+      Tree : Element_Trees.Tree renames Table.Table (Position.Row);
+   begin
+      return Tree.Unchecked_Var_Ref (Position.Cur);
+   end Variable_Ref;
 
    function Find
      (Table   : aliased in Hash_Table;

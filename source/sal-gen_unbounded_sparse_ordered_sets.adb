@@ -64,7 +64,7 @@ package body SAL.Gen_Unbounded_Sparse_Ordered_Sets is
       Position  :         in Cursor)
      return Constant_Reference_Type
    is begin
-      return (Element => Container.Tree.Constant_Ref (Position.Cur).Element, Dummy => 0);
+      return (Element => Container.Tree.Unchecked_Const_Ref (Position.Cur), Dummy => 0);
    end Constant_Ref;
 
    function Iterate (Container : aliased in Pkg.Set'Class) return Iterator

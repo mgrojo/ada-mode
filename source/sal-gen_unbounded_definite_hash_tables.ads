@@ -15,7 +15,7 @@
 --
 --  Notice
 --
---  Copyright (C) 2020 Free Software Foundation, Inc. All Rights Reserved.
+--  Copyright (C) 2020 - 2021 Free Software Foundation, Inc. All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -82,12 +82,14 @@ package SAL.Gen_Unbounded_Definite_Hash_Tables is
    --  If Key (Element) is already in Table: if Duplicate is Ignore, does
    --  nothing; otherwise, raises Duplicate_Key.
 
-   type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
-     Implicit_Dereference => Element;
+   type Constant_Reference_Type is access constant Element_Type;
+   --  The name lies; this is not a "reference type" as defined by Ada.
+   --  But gnat pro 22.0w 20201222 does not support using a real
+   --  reference type here. See AdaCore ticket U117-010.
 
-   type Variable_Reference_Type (Element : not null access Element_Type) is private with
-     Implicit_Dereference => Element;
-   --  User must not change Key or Hash via this reference.
+   type Variable_Reference_Type is access all Element_Type;
+   --  Similarly, this is not a "reference type"; therefore we cannot
+   --  implement aspect Variable_Indexing.
 
    function Find_Or_Insert
      (Table   : in out Hash_Table;
@@ -100,8 +102,7 @@ package SAL.Gen_Unbounded_Definite_Hash_Tables is
       Element : in     Element_Type;
       Found   :    out Boolean)
      return Variable_Reference_Type;
-   --  WORKAROUND: GNAT Community 2019 uses the wrong Find_Or_Insert if
-   --  rely on overload resolution on result type.
+   --  User must not change Key or Hash via this reference.
 
    type Cursor is private;
 
@@ -113,6 +114,12 @@ package SAL.Gen_Unbounded_Definite_Hash_Tables is
      (Table    : aliased in Hash_Table;
       Position :         in Cursor)
      return Constant_Reference_Type
+   with Inline, Pre => Has_Element (Position);
+
+   function Variable_Ref
+     (Table    : aliased in Hash_Table;
+      Position :         in Cursor)
+     return Variable_Reference_Type
    with Inline, Pre => Has_Element (Position);
 
    function Find
@@ -158,16 +165,6 @@ private
 
    function Rows (Table : in Hash_Table) return Positive
    is (if Table.Table.Last_Index = Hash_Arrays.No_Index then Default_Init_Rows else Table.Table.Last_Index);
-
-   type Constant_Reference_Type (Element : not null access constant Element_Type) is
-   record
-      Dummy : Integer := raise Program_Error with "uninitialized reference";
-   end record;
-
-   type Variable_Reference_Type (Element : not null access Element_Type) is
-   record
-      Dummy : Integer := raise Program_Error with "uninitialized reference";
-   end record;
 
    type Cursor is record
       Row : Integer              := Hash_Arrays.No_Index; --  index into Table.Table.

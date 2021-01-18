@@ -77,14 +77,14 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
      Implicit_Dereference => Element;
 
    function Constant_Ref
-     (Container : aliased in Tree;
-      Position  :         in Cursor)
+     (Container : in Tree;
+      Position  : in Cursor)
      return Constant_Reference_Type
    with Inline, Pre => Has_Element (Position);
 
    function Constant_Ref
-     (Container : aliased in Tree;
-      Key       :         in Key_Type)
+     (Container : in Tree;
+      Key       : in Key_Type)
      return Constant_Reference_Type
    with Inline;
    --  Raises Not_Found if Key not found in Container.
@@ -106,6 +106,10 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
      return Variable_Reference_Type
    with Inline;
    --  Raises Not_Found if Key not found in Container.
+
+   function Unchecked_Const_Ref (Container : in Tree; Position  : in Cursor) return access constant Element_Type;
+   function Unchecked_Var_Ref (Container : in Tree; Position  : in Cursor) return access Element_Type;
+   --  For higher level containers.
 
    package Iterators is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
