@@ -21,6 +21,7 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Containers;
+with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
@@ -137,6 +138,10 @@ package body Test_Incremental is
             Put_Line (" ... tree:");
             Tree.Print_Tree (Non_Grammar => True);
          end if;
+
+         Put_Line (" ... line_begin_char_pos:" & WisiToken.Image (Tree.Line_Begin_Char_Pos, Association => True));
+         Put_Line
+           (" ... line_begin_token:" & WisiToken.Syntax_Trees.Image (Tree, Tree.Line_Begin_Token, Association => True));
       end Put_Tree;
 
    begin
@@ -166,6 +171,7 @@ package body Test_Incremental is
 
       Parser.Parse (Log_File);
 
+      Parser.Tree.Clear_Parse_Streams;
       Parser.Tree.Copy_Tree (Edited_Tree_Batch, User_Data'Access);
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
@@ -176,6 +182,8 @@ package body Test_Incremental is
       Parser.Tree.Lexer.Reset_With_String (Initial);
 
       Parser.Parse (Log_File);
+
+      Parser.Tree.Clear_Parse_Streams;
 
       WisiToken.Trace_Parse := Saved_Trace_Parse;
 
@@ -221,6 +229,7 @@ package body Test_Incremental is
       end if;
 
       Parser.Parse (Log_File, Edits);
+      Parser.Tree.Clear_Parse_Streams;
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
          New_Line;
@@ -230,10 +239,15 @@ package body Test_Incremental is
       Check ("1", Parser.Tree, Edited_Tree_Batch, Shared_Stream => False);
    exception
    when WisiToken.Syntax_Error =>
-      Check ("exception", True, False);
+      if WisiToken.Trace_Tests > WisiToken.Outline then
+         New_Line;
+         Put_Tree ("(syntax_error) incremental parse result", Parser.Tree);
+      end if;
 
-   when WisiToken.Parse_Error =>
-      Check ("unexpected exception", True, False);
+      Check ("syntax_error", True, False);
+
+   when E : WisiToken.Parse_Error =>
+      Check ("parse_error: " & Ada.Exceptions.Exception_Message (E), True, False);
    end Parse_Text;
 
    ----------
@@ -264,6 +278,47 @@ package body Test_Incremental is
       --             |19        |30
 
    end Edit_Comment;
+
+   procedure Edit_Comment_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      Parse_Text
+        (Initial   =>
+           "package Test is" & ASCII.LF &
+           --        |10       |16
+           "   --  A comment" & ASCII.LF &
+           --  |20       |30
+           "   function Bar return Integer;" & ASCII.LF &
+           --  |34   |40       |50       |60
+           "end Test;",
+           --  |65
+         Edit_At   => 19,
+         Delete    => " ",
+         Insert    => "",
+         Edit_2_At => 36,
+         Delete_2  => " ",
+         Insert_2  => "");
+
+   end Edit_Comment_2;
+
+   procedure Edit_Leading_Non_Grammar (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      Parse_Text
+        (Initial   =>
+           "--  Leading comment" & ASCII.LF &
+           --        |10           |20
+           "package Test is" & ASCII.LF &
+           "   --  A comment" & ASCII.LF &
+           "   function Bar return Integer;" & ASCII.LF &
+           "end Test;",
+         Edit_At   => 3,
+         Delete    => " ",
+         Insert    => "");
+
+   end Edit_Leading_Non_Grammar;
 
    procedure Edit_Code_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -436,6 +491,8 @@ package body Test_Incremental is
    begin
       Register_Routine (T, No_Change'Access, "No_Change");
       Register_Routine (T, Edit_Comment'Access, "Edit_Comment");
+      Register_Routine (T, Edit_Comment_2'Access, "Edit_Comment_2");
+      Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");
       Register_Routine (T, Edit_Code_1'Access, "Edit_Code_1");
       Register_Routine (T, Edit_Code_2'Access, "Edit_Code_2");
       Register_Routine (T, Edit_Code_3'Access, "Edit_Code_3");

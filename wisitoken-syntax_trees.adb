@@ -692,12 +692,13 @@ package body WisiToken.Syntax_Trees is
                   Name_Offset    => Source_Node.Name_Offset,
                   Name_Length    => Source_Node.Name_Length,
                   Children       => New_Children,
-                  First_Terminal => Source_Node.First_Terminal);
+                  First_Terminal => Invalid_Node_Access);
 
                for Child of New_Dest_Node.Children loop
                   Child.Parent := New_Dest_Node;
                end loop;
 
+               Update_Cache (New_Dest_Node);
                Destination.Nodes.Append (New_Dest_Node);
             end;
          end case;
@@ -708,61 +709,41 @@ package body WisiToken.Syntax_Trees is
       Destination.Lexer               := Source.Lexer;
       Destination.Leading_Non_Grammar := Source.Leading_Non_Grammar;
       Destination.Line_Begin_Char_Pos := Source.Line_Begin_Char_Pos;
-      Destination.Line_Begin_Token    := Source.Line_Begin_Token;
+      Destination.Line_Begin_Token.Set_First_Last
+        (Source.Line_Begin_Token.First_Index, Source.Line_Begin_Token.Last_Index);
+      --  Line_Begin_Token is set below, after nodes are copied
       Destination.Traversing          := False;
       Destination.Parents_Set         := True;
 
-      if Source.Streams.Length = 2 then
-         Destination.Shared_Stream :=
-           (Cur           => Destination.Streams.Append
-              ((Label     => Shared_Stream_Label,
-                Stack_Top => Stream_Element_Lists.No_Element,
-                Elements  => <>)));
+      Destination.Root := Copy_Node (Source.Root, Invalid_Node_Access);
+      Destination.EOI  := Destination.Add_Source_Terminal_1 (Source.Base_Token (Source.EOI), In_Shared_Stream => True);
+      declare
+         Dest_Node : Node_Access := Destination.First_Shared_Terminal (Destination.Root);
+      begin
+         for I in Destination.Line_Begin_Token.First_Index .. Destination.Line_Begin_Token.Last_Index loop
+            if Source.Line_Begin_Token (I) = Invalid_Node_Access then
+               Destination.Line_Begin_Token (I) := Invalid_Node_Access;
 
-         for Element of Source.Streams (Source.Shared_Stream.Cur).Elements loop
-            declare
-               Ref : constant Terminal_Ref := Add_Terminal
-                 (Destination, Destination.Shared_Stream, Source.Base_Token (Element.Node));
-            begin
-               Ref.Node.Non_Grammar := Element.Node.Non_Grammar;
-            end;
-         end loop;
+            elsif Source.Line_Begin_Token (I) = Source.EOI then
+               Destination.Line_Begin_Token (I) := Destination.EOI;
 
-         declare
-            Source_Parse_Stream  : Parse_Stream renames Source.Streams (Source.Streams.Last);
-            Source_Root_Cur      : constant Stream_Element_Lists.Cursor := Stream_Element_Lists.Previous
-              (Source_Parse_Stream.Elements.Last);
-            Source_First_Element : Stream_Element renames Source_Parse_Stream.Elements
-              (Source_Parse_Stream.Elements.First);
-            Source_Root_Element  : Stream_Element renames Source_Parse_Stream.Elements (Source_Root_Cur);
-            Dest_Stream_ID       : constant Stream_ID                   := New_Stream (Destination);
-            Dest_Shared_Stream   : Parse_Stream renames Destination.Streams (Destination.Shared_Stream.Cur);
-            Dest_Parse_Stream    : Parse_Stream renames Destination.Streams (Dest_Stream_ID.Cur);
-            New_Element          : Stream_Element_Lists.Cursor;
-         begin
-            Start_Parse
-              (Destination, Dest_Stream_ID, State => Source_First_Element.State);
-
-            Destination.Root := Copy_Node (Source_Root_Element.Node, Invalid_Node_Access);
-
-            New_Element := Dest_Parse_Stream.Elements.Insert
-              (Element  =>
-                 (Node  => Destination.Root,
-                  State => Source_Root_Element.State,
-                  Label => Dest_Parse_Stream.Label),
-               Before   => Stream_Element_Lists.No_Element);
-
-            Dest_Parse_Stream.Stack_Top := New_Element;
-
-            Finish_Parse (Destination, Dest_Stream_ID, (Cur => Dest_Shared_Stream.Elements.Last), User_Data);
-
-            if Source.Root = null then
-               Destination.Root := null;
+            else
+               declare
+                  Source_Node : Node renames Source.Line_Begin_Token (I).all;
+               begin
+                  loop
+                     if Source_Node.Byte_Region = Dest_Node.Byte_Region then
+                        Destination.Line_Begin_Token (I) := Dest_Node;
+                        Dest_Node := Destination.Next_Shared_Terminal (Dest_Node);
+                        exit;
+                     else
+                        Dest_Node := Destination.Next_Shared_Terminal (Dest_Node);
+                     end if;
+                  end loop;
+               end;
             end if;
-         end;
-      else
-         Destination.Root := Copy_Node (Source.Root, Invalid_Node_Access);
-      end if;
+         end loop;
+      end;
    end Copy_Tree;
 
    procedure Delete_Subtree
@@ -3207,12 +3188,16 @@ package body WisiToken.Syntax_Trees is
    function Root (Tree : in Syntax_Trees.Tree) return Node_Access
    is begin
       if Tree.Root = Invalid_Node_Access then
-         declare
-            use Stream_Element_Lists;
-            Stream : Parse_Stream renames Tree.Streams (Tree.Streams.Last);
-         begin
-            return Stream.Elements (Stream.Stack_Top).Node;
-         end;
+         if Tree.Streams.Length = 0 then
+            return Invalid_Node_Access;
+         else
+            declare
+               use Stream_Element_Lists;
+               Stream : Parse_Stream renames Tree.Streams (Tree.Streams.Last);
+            begin
+               return Stream.Elements (Stream.Stack_Top).Node;
+            end;
+         end if;
       else
          return Tree.Root;
       end if;

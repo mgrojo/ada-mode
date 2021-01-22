@@ -31,6 +31,10 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+test_incremental
+    need test cases of insert and delete new_line
+
+
 factor out tree-sitter support
     so ada-mode elpa release does not require tree-sitter
 

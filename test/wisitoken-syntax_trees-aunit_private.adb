@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2018 - 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -131,6 +131,8 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
    is
       use Standard.AUnit.Checks;
       use WisiToken.AUnit.Base_Token_Arrays_AUnit;
+      use WisiToken.AUnit.Line_Pos_Vectors_AUnit;
+      use WisiToken.Syntax_Trees.AUnit_Public.Line_Token_Vectors_AUnit;
       use Parse_Stream_Lists;
 
       Computed_Stream : Parse_Stream_Lists.Cursor := Computed.Streams.First;
@@ -138,6 +140,8 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
 
    begin
       Check (Label & ".leading_non_grammar", Computed.Leading_Non_Grammar, Expected.Leading_Non_Grammar);
+      Check (Label & ".line_begin_char_pos", Computed.Line_Begin_Char_Pos, Expected.Line_Begin_Char_Pos);
+      Check (Label & ".line_begin_token", Computed.Line_Begin_Token, Expected.Line_Begin_Token);
       Check (Label & ".root set", Computed.Root /= null, Expected.Root /= null);
       Check (Label & ".stream_count", Computed.Stream_Count, Expected.Stream_Count);
       loop
@@ -159,6 +163,8 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
          --  If stream_count > 0, root is in one of the streams.
          Check (Label, Computed.Root.all, Expected.Root.all, Parents => True);
       end if;
+
+
    end Check;
 
 end WisiToken.Syntax_Trees.AUnit_Private;

@@ -2,7 +2,7 @@
 --
 --  AUnit Checks for parent
 --
---  Copyright (C) 2017 - 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -27,7 +27,14 @@ package WisiToken.AUnit is
      (Check_Index   => Standard.AUnit.Checks.Check,
       Check_Element => Check);
 
+   procedure Check_Valid is new Standard.AUnit.Checks.Gen_Check_Valid (Buffer_Pos);
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Base_Buffer_Pos);
+
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Line_Number_Type);
+
+   package Line_Pos_Vectors_AUnit is new Line_Pos_Vectors.Gen_AUnit
+     (Check_Index   => Check,
+      Check_Element => Check);
 
    function To_Base_Token_Array (Item : in Token_ID_Array) return Base_Token_Arrays.Vector;
 
@@ -60,9 +67,6 @@ package WisiToken.AUnit is
    package Token_Sequence_Arrays_AUnit is new Token_Sequence_Arrays.Gen_AUnit
      (Check_Index   => Check,
       Check_Element => Token_ID_Arrays_AUnit.Check);
-
-   procedure Check_Valid is new Standard.AUnit.Checks.Gen_Check_Valid (Buffer_Pos);
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Buffer_Pos);
 
    procedure Check
      (Label    : in String;

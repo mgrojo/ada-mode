@@ -1403,10 +1403,8 @@ package WisiToken.Syntax_Trees is
      (Source      : in     Tree;
       Destination :    out Tree;
       User_Data   : in     User_Data_Access)
-   with Pre => Fully_Parsed (Source) or Editable (Source);
-   --  If Editable, the subtree at Tree.Root is copied; if Fully_Parsed,
-   --  the subtree rooted in the single remaining parse stream, the parse
-   --  stream and shared stream are copied. Destination parents are set.
+   with Pre => Editable (Source);
+   --  The subtree at Tree.Root is copied. Destination parents are set.
    --  All references are deep copied; Source may be finalized after this
    --  operation.
 
