@@ -2,7 +2,7 @@
 --
 --  Utilities for AUnit tests, including checks for types in Standard.
 --
---  Copyright (C) 2004 - 2007, 2009, 2012, 2015, 2018 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2007, 2009, 2012, 2015, 2018 - 2019, 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -21,6 +21,8 @@ package AUnit.Checks is
    procedure Gen_Check_Valid
      (Label    : in     String;
       Computed : access Item_Type);
+   --  Assert Computed'Valid.
+   --
    --  We need 'access' to avoid the 'Valid check on parameter passing.
    --  You will probably need 'Unrestricted_Access.
 
