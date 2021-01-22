@@ -56,22 +56,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
 
       New_Array := new Array_Type (New_First .. New_Last);
 
-      --  We'd like to use this:
-      --
-      --  New_Array (New_First .. Old_First - 1) := (others => Default_Element);
-      --
-      --  but that can overflow the stack, since the aggregate is allocated
-      --  on the stack.
-
-      for I in New_First .. Old_First - 1 loop
-         New_Array (I) := Default_Element;
-      end loop;
-
       New_Array (Old_First .. Old_Last) := Elements.all;
-
-      for I in Old_Last + 1 .. New_Last loop
-         New_Array (I) := Default_Element;
-      end loop;
 
       Free (Elements);
       Elements := New_Array;
@@ -390,7 +375,8 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
 
    procedure Set_First (Container : in out Vector; First : in Index_Type)
    is
-      J : constant Peek_Type := To_Peek_Type (First);
+      J         : constant Peek_Type      := To_Peek_Type (First);
+      Old_First : constant Extended_Index := Container.First;
    begin
       Container.First := First;
       if Container.Last = No_Index then
@@ -407,16 +393,26 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
             end loop;
          end if;
 
-      elsif Container.Elements'First > J then
-         --  We have to ensure Elements contains Container.First even if Last <
-         --  First, in case we are reusing Elements after Clear
-         Grow (Container.Elements, J);
+      else
+         if Container.Elements'First > J then
+            --  We have to ensure Elements contains Container.First even if Last <
+            --  First, in case we are reusing Elements after Clear
+            Grow (Container.Elements, J);
+         end if;
+
+         if Container.First <= Container.Last then
+            for I in To_Peek_Type (First) .. To_Peek_Type (Old_First - 1) loop
+               Container.Elements (I) := Default_Element;
+            end loop;
+         end if;
       end if;
+
    end Set_First;
 
    procedure Set_Last (Container : in out Vector; Last : in Extended_Index)
    is
-      J : constant Base_Peek_Type := To_Peek_Type (Last);
+      J        : constant Base_Peek_Type := To_Peek_Type (Last);
+      Old_Last : constant Extended_Index := Container.Last;
    begin
       Container.Last := Last;
       if Container.First = No_Index then
@@ -432,10 +428,18 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
                Container.Elements (I) := Default_Element;
             end loop;
          end if;
-      elsif Container.Elements'Last < J then
-         --  We have to ensure Elements contains Container.Last even if Last <
-         --  First, in case we are reusing Elements after Clear
-         Grow (Container.Elements, J);
+      else
+         if Container.Elements'Last < J then
+            --  We have to ensure Elements contains Container.Last even if Last <
+            --  First, in case we are reusing Elements after Clear
+            Grow (Container.Elements, J);
+         end if;
+
+         if Container.First <= Container.Last then
+            for I in To_Peek_Type (Old_Last + 1) .. To_Peek_Type (Last) loop
+               Container.Elements (I) := Default_Element;
+            end loop;
+         end if;
       end if;
    end Set_Last;
 

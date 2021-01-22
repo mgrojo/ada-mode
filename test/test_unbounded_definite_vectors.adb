@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2018 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018 - 2019, 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -119,6 +119,11 @@ is
       Test_Item.Set_First_Last (3, 2);
       Test_Item.Append (Test_Item_2);
       Check ("3", Test_Item, (3 => 4, 4 => 5));
+
+      --  Check that newly accessible elements are set to Default_Value
+      Test_Item.Set_First_Last (1, 0);
+      Test_Item.Set_First_Last (0, 3);
+      Check ("4", Test_Item, (0 .. 3 => Integer'Last));
    end Test_Set_First_Last;
 
    procedure Prepend (T : in out AUnit.Test_Cases.Test_Case'Class)

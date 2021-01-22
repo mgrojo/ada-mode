@@ -146,8 +146,8 @@ package SAL.Gen_Unbounded_Definite_Vectors is
      (Container : in out Vector;
       First     : in     Index_Type;
       Last      : in     Extended_Index);
-   --  Elements in First .. Last that have not been set have
-   --  Default_Element value.
+   --  Elements in the expansion from previous First .. Last are set to
+   --  Default_Element.
 
    procedure Delete (Container : in out Vector; Index : in Index_Type);
    --  Replace Index element contents with Default_Element. If Index =
