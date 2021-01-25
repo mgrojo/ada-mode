@@ -85,7 +85,8 @@ package SAL.Gen_Unbounded_Definite_Hash_Tables is
    type Constant_Reference_Type is access constant Element_Type;
    --  The name lies; this is not a "reference type" as defined by Ada.
    --  But gnat pro 22.0w 20201222 does not support using a real
-   --  reference type here. See AdaCore ticket U117-010.
+   --  reference type here. See AdaCore ticket U117-010 (on the
+   --  Eurocontrol contract).
 
    type Variable_Reference_Type is access all Element_Type;
    --  Similarly, this is not a "reference type"; therefore we cannot

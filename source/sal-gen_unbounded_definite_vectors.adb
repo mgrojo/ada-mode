@@ -19,6 +19,11 @@ pragma License (Modified_GPL);
 
 package body SAL.Gen_Unbounded_Definite_Vectors is
 
+   --  Body specs, as needed.
+
+   procedure Set_First (Container : in out Vector; First : in Index_Type);
+   procedure Set_Last (Container : in out Vector; Last : in Extended_Index);
+
    --  Body subprograms, no order
 
    function To_Peek_Type (Item : in Extended_Index) return Base_Peek_Type
@@ -304,6 +309,19 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Insert;
 
+   procedure Add
+     (Container : in out Vector;
+      Element   : in     Element_Type;
+      Index     : in     Index_Type)
+   is begin
+      if Index < Container.First then
+         Set_First (Container, Index);
+      elsif Index > Container.Last then
+         Set_Last (Container, Index);
+      end if;
+      Container.Elements (To_Peek_Type (Index)) := Element;
+   end Add;
+
    procedure Merge
      (Target : in out Vector;
       Source : in out Vector)
@@ -406,7 +424,6 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
             end loop;
          end if;
       end if;
-
    end Set_First;
 
    procedure Set_Last (Container : in out Vector; Last : in Extended_Index)

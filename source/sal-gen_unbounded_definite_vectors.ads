@@ -129,6 +129,13 @@ package SAL.Gen_Unbounded_Definite_Vectors is
       Before    : in     Index_Type);
    --  Existing elements at Before and after are slid to higher indices.
 
+   procedure Add
+     (Container : in out Vector;
+      Element   : in     Element_Type;
+      Index     : in     Index_Type);
+   --  If Index is not in Container.First_Index .. Container.Last_Index,
+   --  grow Container to include Index. Then store Element at Index.
+
    procedure Merge
      (Target : in out Vector;
       Source : in out Vector);
