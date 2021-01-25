@@ -50,7 +50,9 @@ package WisiToken.Parse.Packrat is
    type Parser is abstract new Base_Parser with null record;
 
    overriding
-   procedure Execute_Actions (Parser : in out Packrat.Parser);
+   procedure Execute_Actions
+     (Parser              : in out Packrat.Parser;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region);
 
    function Image_Pos
      (Tree    : in Syntax_Trees.Tree;

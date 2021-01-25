@@ -2,7 +2,7 @@
 --
 --  Run Test_McKenzie_Recover
 --
---  Copyright (C) 2019 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -30,8 +30,8 @@ procedure Test_McKenzie_Harness
 is
    Usage : constant String :=
      --  command line arguments (all optional, order matters):
-     "[LALR | LR1] routine_name trace_config";
-   --  1           2            3
+     "[LALR | LR1] routine_name trace_config enqueue_limit";
+   --  1           2            3            4
    --  trace_config is passed to Wisitoken.Enable_Trace
    --
    --  routine_name can be '' to set trace for all routines.
@@ -40,6 +40,8 @@ is
 
    Alg : constant WisiToken.BNF.Generate_Algorithm :=
      (if Argument_Count >= 1 then WisiToken.BNF.Generate_Algorithm'Value (Argument (1)) else None);
+
+   Enqueue_Limit : Natural := 0;
 
    Force_High_Cost_Solutions : constant Boolean := False;
    --    (if Argument_Count >= 7 then 0 /= Integer'Value (Argument (7)) else False);
@@ -65,11 +67,15 @@ begin
       Filter.Set_Name ("test_mckenzie_recover.adb " & Alg'Image & " : " & Argument (2));
    end if;
 
-   if Argument_Count = 3 then
+   if Argument_Count >= 3 then
       WisiToken.Enable_Trace (Argument (3));
    end if;
 
-   if Argument_Count > 3 then
+   if Argument_Count = 4 then
+      Enqueue_Limit := Integer'Value (Argument (4));
+   end if;
+
+   if Argument_Count > 4 then
       raise Constraint_Error with Usage;
    end if;
 
@@ -80,7 +86,7 @@ begin
         (Suite,
          Test_Case_Access'
            (new Test_McKenzie_Recover.Test_Case
-              (WisiToken.BNF.LALR, Force_Full_Explore, Force_High_Cost_Solutions)));
+              (WisiToken.BNF.LALR, Enqueue_Limit, Force_Full_Explore, Force_High_Cost_Solutions)));
    end if;
 
    if Alg in None | LR1 then
@@ -88,7 +94,7 @@ begin
         (Suite,
          Test_Case_Access'
            (new Test_McKenzie_Recover.Test_Case
-              (WisiToken.BNF.LR1, Force_Full_Explore, Force_High_Cost_Solutions)));
+              (WisiToken.BNF.LR1, Enqueue_Limit, Force_Full_Explore, Force_High_Cost_Solutions)));
    end if;
 
    Run (Suite, Options, Result, Status);

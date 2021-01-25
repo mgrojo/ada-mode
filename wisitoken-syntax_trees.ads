@@ -123,12 +123,6 @@ package WisiToken.Syntax_Trees is
    subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
    Invalid_Node_Index : constant Node_Index := 0;
 
-   package Line_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (Line_Number_Type, Node_Access, Default_Element => Invalid_Node_Access);
-   --  Tree_Ref in Shared_Stream; needed by Prev_Shared_Terminal in error
-   --  recover Try_Insert_Quote. In post-parse actions, Element is
-   --  Invalid_Stream_Index.
-
    type Base_Tree is new Ada.Finalization.Limited_Controlled with record
       --  Visible components of Tree.
 
@@ -140,17 +134,6 @@ package WisiToken.Syntax_Trees is
       Leading_Non_Grammar : aliased Base_Token_Arrays.Vector;
       --  Non-grammar tokens before first grammar token; leading blank lines
       --  and comments.
-
-      Line_Begin_Char_Pos : aliased Line_Pos_Vectors.Vector;
-      --  Character position of the character at the start of each line. May
-      --  be Invalid_Buffer_Pos for lines contained in a multi-line token.
-
-      Line_Begin_Token : aliased Line_Token_Vectors.Vector;
-      --  Line_Begin_Token (I) is the node in Tree of the first
-      --  Shared_Terminal token on line I; Invalid_Node_Access if there are
-      --  no grammar tokens on the line (ie only comment or whitespace).
-      --  Line_Begin_Token.First_Index is the first line containing a
-      --  grammar token (after leading comments).
    end record;
 
    type Tree is new Base_Tree with private;
@@ -927,6 +910,22 @@ package WisiToken.Syntax_Trees is
 
    function Char_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Buffer_Region;
 
+   function Line (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Line_Number_Type;
+   --  Line of first character in Node; Invalid_Line_Number if Node is virtual or empty.
+
+   function Column (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Ada.Text_IO.Count
+   with Pre => Tree.Editable and Tree.Subtree_Root (Node) = Tree.Root;
+   --  Column of first char of Node; offset from first character on line,
+   --  origin 0 (WisiToken and Emacs standard). If Node is empty or
+   --  Virtual, result is 0.
+
+   function Column
+     (Tree   : in Syntax_Trees.Tree;
+      Node   : in Valid_Node_Access;
+      Stream : in Stream_ID)
+     return Ada.Text_IO.Count;
+   --  Same as Column, but Node must be in Stream or Shared_Stream.
+
    function RHS_Index
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
@@ -1443,6 +1442,44 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Parents_Set;
    --  Return Count parent of Node.
 
+   function Line_Begin_Char_Pos
+     (Tree : in Syntax_Trees.Tree;
+      Line : in Line_Number_Type)
+     return Base_Buffer_Pos
+     with Pre => Tree.Editable;
+   --  First character on Line in text spanned by tree under Tree.Root;
+   --  it may be in no token, or in a grammar or non-grammar token.
+   --  Result is Invalid_Buffer_Pos if Line is not in the text spanned by
+   --  Tree, or if Line is inside a multi-line token.
+
+   function Line_Begin_Char_Pos
+     (Tree : in Syntax_Trees.Tree;
+      Line : in Line_Number_Type;
+      Stream : in Stream_ID)
+     return Base_Buffer_Pos;
+   --  Same as other Line_Begin_Token, but searches in Stream instead of
+   --  Tree.Root. If not found there, continues searching input in
+   --  Shared_Stream.
+
+   function Line_Begin_Token
+     (Tree : in Syntax_Trees.Tree;
+      Line : in Line_Number_Type)
+     return Node_Access
+   with Pre => Tree.Editable;
+   --  Tree.Line_Begin_Token (I) is the node in Tree (under Tree.Root) of
+   --  the first terminal token on line I; Invalid_Node_Access if
+   --  there are no grammar tokens on the line (ie only comment or
+   --  whitespace).
+
+   function Line_Begin_Token
+     (Tree   : in Syntax_Trees.Tree;
+      Line   : in Line_Number_Type;
+      Stream : in Stream_ID)
+     return Node_Access;
+   --  Same as other Line_Begin_Token, but searches in Stream instead of
+   --  Tree.Root. If not found there, continues searching input in
+   --  Shared_Stream.
+
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
       Production      : in     WisiToken.Production_ID;
@@ -1574,12 +1611,6 @@ package WisiToken.Syntax_Trees is
    type Image_Action is access function (Action : in Post_Parse_Action) return String;
 
    function Image
-     (Tree        : in Syntax_Trees.Tree;
-      Item        : in Line_Token_Vectors.Vector;
-      Association : in Boolean := False)
-     return String;
-
-   function Image
      (Tree         : in Syntax_Trees.Tree;
       Children     : in Boolean                   := False;
       Non_Grammar  : in Boolean                   := False;
@@ -1661,18 +1692,16 @@ package WisiToken.Syntax_Trees is
    package Node_Sets is new SAL.Gen_Unbounded_Sparse_Ordered_Sets (Node_Access, Node_Access_Compare);
 
    function Error_Message
-     (Tree                : in Syntax_Trees.Tree;
-      Node                : in Valid_Node_Access;
-      Line_Begin_Char_Pos : in Line_Pos_Vectors.Vector;
-      File_Name           : in String;
-      Message             : in String)
+     (Tree    : in Syntax_Trees.Tree;
+      Node    : in Valid_Node_Access;
+      Message : in String)
      return String;
+   --  File_Name from Tree.Lexer
 
    type Validate_Node is access procedure
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
       Data                : in out User_Data_Type'Class;
-      File_Name           : in     String;
       Node_Image_Output   : in out Boolean;
       Node_Error_Reported : in out Boolean);
    --  Called by Validate_Tree for each node visited; perform checks
@@ -1685,13 +1714,11 @@ package WisiToken.Syntax_Trees is
    --  Node_Numbers => True) once before any error messages.
 
    procedure Validate_Tree
-     (Tree                : in out Syntax_Trees.Tree;
-      User_Data           : in out User_Data_Type'Class;
-      Line_Begin_Char_Pos : in     WisiToken.Line_Pos_Vectors.Vector;
-      File_Name           : in     String;
-      Error_Reported      : in out Node_Sets.Set;
-      Root                : in     Node_Access                := Invalid_Node_Access;
-      Validate_Node       : in     Syntax_Trees.Validate_Node := null);
+     (Tree           : in out Syntax_Trees.Tree;
+      User_Data      : in out User_Data_Type'Class;
+      Error_Reported : in out Node_Sets.Set;
+      Root           : in     Node_Access                := Invalid_Node_Access;
+      Validate_Node  : in     Syntax_Trees.Validate_Node := null);
    --  Verify that no children are Invalid_Node_Access. Verify
    --  child/parent links. Call Validate_Node for each visited node.
    --  Violations output a message to Text_IO.Current_Error.
@@ -1729,11 +1756,17 @@ private
 
       Byte_Region : aliased Buffer_Region := Null_Buffer_Region;
       Char_Region : aliased Buffer_Region := Null_Buffer_Region;
-      --  Computed by Update_Cache, used in In_Parse_Actions and debug
-      --  messages.
+      --  For terminals, from lexer. For nonterms, computed by Update_Cache,
+      --  used by Line_Begin_Char_Pos, In_Parse_Actions and debug messages.
 
       Line : Line_Number_Type := Invalid_Line_Number;
-      --  For nonterms, computed by Update_Cache, used in debug messages.
+      --  For terminals, first line in token, from lexer. For nonterms,
+      --  first line in contained tokens, not including trailing
+      --  non_grammar.
+
+      Line_Last : Line_Number_Type := Invalid_Line_Number;
+      --  For terminals, last line in token, from lexer. For nonterms, last
+      --  line in contained tokens, not including trailing non_grammar.
 
       Parent : Node_Access := Invalid_Node_Access;
 

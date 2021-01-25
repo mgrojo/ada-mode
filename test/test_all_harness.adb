@@ -2,7 +2,7 @@
 --
 --  Run all WisiToken AUnit tests; see Makefile for other tests.
 --
---  Copyright (C) 2009, 2010, 2012 - 2015, 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012 - 2015, 2017 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -116,8 +116,8 @@ begin
    Add_Test (Suite, Test_Case_Access'(new Test_Follow.Test_Case (Debug => False)));
    Add_Test (Suite, Test_Case_Access'(new Test_Incremental.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_LR_Expecting_Terminal_Sequence.Test_Case));
-   Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, False, False)));
-   Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LR1, False, False)));
+   Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, 0, False, False)));
+   Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LR1, 0, False, False)));
    Add_Test (Suite, Test_Case_Access'(new Test_Partial_Parse.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Skip_To.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Trivial_Productions_Test.Test_Case));

@@ -309,14 +309,11 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
                else
                   --  More than one parser is active; ambiguous parse.
-                  declare
-                     Token : constant Base_Token := Shared_Parser.Tree.Base_Token (State.Current_Token.Node);
-                  begin
-                     raise WisiToken.Parse_Error with Error_Message
-                       (Shared_Parser.Tree.Lexer.File_Name, Token.Line, Column
-                          (Token, Shared_Parser.Tree.Line_Begin_Char_Pos),
-                        "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
-                  end;
+                  raise WisiToken.Parse_Error with Error_Message
+                    (Shared_Parser.Tree.Lexer.File_Name,
+                     Shared_Parser.Tree.Line (State.Current_Token.Node),
+                     Shared_Parser.Tree.Column (State.Current_Token.Node, State.Stream),
+                     "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
                end if;
             end;
 
@@ -385,12 +382,11 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                         if Shared_Parser.Parsers.Count = Shared_Parser.Table.Max_Parallel then
                            declare
                               Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
-                              Token        : constant Base_Token := Shared_Parser.Tree.Base_Token
-                                (Parser_State.Shared_Token.Node);
                            begin
                               raise WisiToken.Parse_Error with Error_Message
-                                (Shared_Parser.Tree.Lexer.File_Name, Token.Line,
-                                 Column (Token, Shared_Parser.Tree.Line_Begin_Char_Pos),
+                                (Shared_Parser.Tree.Lexer.File_Name,
+                                 Shared_Parser.Tree.Line (Parser_State.Shared_Token.Node),
+                                 Shared_Parser.Tree.Column (Parser_State.Shared_Token.Node, Parser_State.Stream),
                                  ": too many parallel parsers required in grammar state" &
                                    Shared_Parser.Tree.State (Parser_State.Stream)'Image &
                                    "; simplify grammar, or increase max-parallel (" &
@@ -471,19 +467,15 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                     (Parser.User_Data.all, Tree, Node, Syntax_Trees.To_Valid_Node_Access (Tree_Children));
                exception
                when E : others =>
-                  declare
-                     Token : Base_Token renames Tree.Base_Token (Node);
-                  begin
-                     if WisiToken.Debug_Mode then
-                        Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
-                        Parser.Trace.New_Line;
-                     end if;
+                  if WisiToken.Debug_Mode then
+                     Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
+                     Parser.Trace.New_Line;
+                  end if;
 
-                     raise WisiToken.Parse_Error with Error_Message
-                       (Parser.Tree.Lexer.File_Name, Token.Line, Column (Token, Parser.Tree.Line_Begin_Char_Pos),
-                        "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
-                          Ada.Exceptions.Exception_Message (E));
-                  end;
+                  raise WisiToken.Parse_Error with Error_Message
+                    (Parser.Tree.Lexer.File_Name, Parser.Tree.Line (Node), Parser.Tree.Column (Node),
+                     "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
+                       Ada.Exceptions.Exception_Message (E));
                end;
             end if;
          end;
@@ -528,16 +520,14 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       for Item of Parser_State.Errors loop
          case Item.Label is
          when LR_Parse_Action =>
-            declare
-               Token : Base_Token renames Parser.Tree.Base_Token (Item.Error_Token.Node);
-            begin
-               Put_Line
-                 (Current_Error,
-                  Error_Message
-                    (Parser.Tree.Lexer.File_Name, Token.Line, Column (Token, Parser.Tree.Line_Begin_Char_Pos),
-                     "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                       ", found '" & Parser.Tree.Lexer.Buffer_Text (Token.Byte_Region) & "'"));
-            end;
+            Put_Line
+              (Current_Error,
+               Error_Message
+                 (Parser.Tree.Lexer.File_Name, Parser.Tree.Line (Item.Error_Token.Node),
+                  Parser.Tree.Column (Item.Error_Token.Node),
+                  "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                    ", found '" & Parser.Tree.Lexer.Buffer_Text (Parser.Tree.Byte_Region (Item.Error_Token.Node)) &
+                    "'"));
 
          when User_Parse_Action =>
             null;

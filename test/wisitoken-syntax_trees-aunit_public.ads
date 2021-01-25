@@ -19,8 +19,6 @@
 pragma License (GPL);
 
 with AUnit.Checks;
-with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
-with WisiToken.AUnit;
 package WisiToken.Syntax_Trees.AUnit_Public is
 
    procedure Check_Address is new Standard.AUnit.Checks.Gen_Check_Access (Node, Node_Access);
@@ -32,10 +30,6 @@ package WisiToken.Syntax_Trees.AUnit_Public is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Label);
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index);
-
-   package Line_Token_Vectors_AUnit is new Line_Token_Vectors.Gen_AUnit
-     (Check_Index   => WisiToken.AUnit.Check,
-      Check_Element => Check_Content);
 
    procedure Check (Label : in String; Computed, Expected : in Recover_Token);
    --  Not all components checked.

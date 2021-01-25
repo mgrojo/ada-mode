@@ -370,8 +370,8 @@ package WisiToken.Parse.LR is
    function McKenzie_Defaulted (Table : in Parse_Table) return Boolean is
      --  We can't use Table.McKenzie_Param = Default_McKenzie_Param here,
      --  because the discriminants are different.
-     (Table.McKenzie_Param.Check_Limit = Default_McKenzie_Param.Check_Limit and
-        Table.McKenzie_Param.Check_Delta_Limit = Default_McKenzie_Param.Check_Delta_Limit and
+     --  FIXME: provide boolean mckenzie_specified from .wy
+     (Table.McKenzie_Param.Check_Delta_Limit = Default_McKenzie_Param.Check_Delta_Limit and
         Table.McKenzie_Param.Enqueue_Limit = Default_McKenzie_Param.Enqueue_Limit);
 
    type Parse_Table_Ptr is access Parse_Table;

@@ -19,6 +19,7 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with WisiToken.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Private;
 package body WisiToken.Syntax_Trees.AUnit_Public is
 

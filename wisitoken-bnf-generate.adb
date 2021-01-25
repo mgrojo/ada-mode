@@ -3,7 +3,7 @@
 --  Parser for Wisi grammar files, producing Ada source
 --  files for a parser.
 --
---  Copyright (C) 2012 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -464,7 +464,7 @@ begin
                      Ada.Text_IO.Put_Line ("output tree_sitter grammar");
                   end if;
 
-                  Eliminate_Empty_Productions (Input_Data, Tree, Grammar_Parser.Tree.Lexer);
+                  Eliminate_Empty_Productions (Input_Data, Tree);
 
                   Print_Tree_Sitter
                     (Input_Data,

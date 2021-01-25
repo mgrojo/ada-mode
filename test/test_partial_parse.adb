@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2019, 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -51,7 +51,7 @@ package body Test_Partial_Parse is
          use all type WisiToken.Token_ID;
          Node  : Valid_Node_Access := Parser.Tree.Root;
       begin
-         Parser.Execute_Actions;
+         Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, Parse_End_Byte_Pos));
 
          if Action_ID = WisiToken.Invalid_Token_ID then
             --  Only parsed comments, no user compilation units. Recover provided

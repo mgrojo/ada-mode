@@ -31,9 +31,15 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-test_incremental
-    need test cases of insert and delete new_line
+wisitoken-parse-lr-parser.adb Execute_Actions:
+    FIXME: uses Parser_State.REcover_Insert_Delete, which is overridden by next parse!
+    Move to end of Parse, move Execute_Actions to wisitoken.parse
+    add version that ignores action_region_bytes, for no_recover, packrat
 
+
+mckenzie_recover-explore Try_Insert_Quote
+    often don't know where parse error is; do both b and c
+        actually, parse error is after current_token; that might help.
 
 factor out tree-sitter support
     so ada-mode elpa release does not require tree-sitter

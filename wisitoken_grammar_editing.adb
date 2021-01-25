@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -282,7 +282,6 @@ package body WisiToken_Grammar_Editing is
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
       User_Data           : in out Syntax_Trees.User_Data_Type'Class;
-      File_Name           : in     String;
       Node_Image_Output   : in out Boolean;
       Node_Error_Reported : in out Boolean)
    is
@@ -303,14 +302,13 @@ package body WisiToken_Grammar_Editing is
             Put_Line
               (Current_Error,
                Tree.Error_Message
-                 (Node, Tree.Line_Begin_Char_Pos, File_Name, Tree.Image
+                 (Node, Tree.Image
                     (Node,
                      RHS_Index    => True,
                      Children     => True,
                      Node_Numbers => True)));
          end if;
-         Put_Line (Current_Error, Tree.Error_Message
-                     (Node, Tree.Line_Begin_Char_Pos, File_Name, "... invalid tree: " & Msg));
+         Put_Line (Current_Error, Tree.Error_Message (Node, "... invalid tree: " & Msg));
          WisiToken.Generate.Error := True;
       end Put_Error;
 
@@ -2834,11 +2832,7 @@ package body WisiToken_Grammar_Editing is
          for N of Data.EBNF_Nodes loop
             Subtree_Root := Tree.Subtree_Root (N);
             if Subtree_Root /= Tree.Root then
-               Put_Line
-                 (Current_Error,
-                  Error_Message
-                    (Tree, N, Tree.Line_Begin_Char_Pos, Tree.Lexer.File_Name,
-                     Tree.Image (N, Node_Numbers => True)));
+               Put_Line (Current_Error, Tree.Error_Message (N, Tree.Image (N, Node_Numbers => True)));
                Put_Line (Current_Error, "... not in tree; in root " & Trimmed_Image (Get_Node_Index (Subtree_Root)));
                WisiToken.Generate.Error := True;
             end if;
@@ -2853,11 +2847,7 @@ package body WisiToken_Grammar_Editing is
          for N of Copied_EBNF_Nodes loop
             Subtree_Root := Tree.Subtree_Root (N);
             if Subtree_Root /= Tree.Root then
-               Put_Line
-                 (Current_Error,
-                  Error_Message
-                    (Tree, N, Tree.Line_Begin_Char_Pos, Tree.Lexer.File_Name,
-                     Tree.Image (N, Node_Numbers      => True)));
+               Put_Line (Current_Error, Tree.Error_Message (N, Tree.Image (N, Node_Numbers      => True)));
                Put_Line (Current_Error, "... not in tree; in root" & Trimmed_Image (Get_Node_Index (Subtree_Root)));
                WisiToken.Generate.Error := True;
             end if;
@@ -2902,9 +2892,7 @@ package body WisiToken_Grammar_Editing is
       end if;
 
       if Debug_Mode then
-         Tree.Validate_Tree
-           (Data, Tree.Line_Begin_Char_Pos, Tree.Lexer.File_Name,
-            Data.Error_Reported, Tree.Root, Validate_Node'Access);
+         Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
          Check_Original_EBNF;
          Check_Copied_EBNF;
       end if;
@@ -2942,9 +2930,7 @@ package body WisiToken_Grammar_Editing is
                Process_Node (Node);
 
                if Debug_Mode then
-                  Tree.Validate_Tree
-                    (Data, Tree.Line_Begin_Char_Pos, Tree.Lexer.File_Name,
-                     Data.Error_Reported, Tree.Root, Validate_Node'Access);
+                  Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
                   Check_Original_EBNF;
                   Check_Copied_EBNF;
                end if;
@@ -2958,8 +2944,8 @@ package body WisiToken_Grammar_Editing is
          for Node of Data.EBNF_Nodes loop
             Put_Line
               (Current_Error,
-               Error_Message
-                 (Tree, Node, Tree.Line_Begin_Char_Pos, Tree.Lexer.File_Name,
+               Tree.Error_Message
+                 (Node,
                   Tree.Image
                     (Node,
                      RHS_Index    => True,
@@ -2997,9 +2983,7 @@ package body WisiToken_Grammar_Editing is
                   Process_Node (Node);
 
                   if Debug_Mode then
-                     Tree.Validate_Tree
-                       (Data, Tree.Line_Begin_Char_Pos, Tree.Lexer.File_Name,
-                        Data.Error_Reported, Tree.Root, Validate_Node'Access);
+                     Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
                      Check_Copied_EBNF;
                   end if;
                end if;
@@ -3013,8 +2997,8 @@ package body WisiToken_Grammar_Editing is
          for Node of Copied_EBNF_Nodes loop
             Put_Line
               (Current_Error,
-               Error_Message
-                 (Tree, Node, Tree.Line_Begin_Char_Pos, Tree.Lexer.File_Name,
+               Tree.Error_Message
+                 (Node,
                   Tree.Image
                     (Node,
                      RHS_Index    => True,
@@ -3025,9 +3009,7 @@ package body WisiToken_Grammar_Editing is
       end;
 
       Data.EBNF_Allowed := False;
-      Tree.Validate_Tree
-        (Data, Tree.Line_Begin_Char_Pos, Tree.Lexer.File_Name,
-         Data.Error_Reported, Tree.Root, Validate_Node'Access);
+      Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
 
       Data.Meta_Syntax := BNF_Syntax;
 

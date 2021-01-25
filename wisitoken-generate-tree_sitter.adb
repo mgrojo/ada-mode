@@ -6,7 +6,7 @@
 --
 --  [1] tree-sitter grammar: https://tree-sitter.github.io/tree-sitter/creating-parsers#the-grammar-dsl
 --
---  Copyright (C) 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2020 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -29,12 +29,9 @@ package body WisiToken.Generate.Tree_Sitter is
    use WisiToken.Syntax_Trees;
 
    procedure Eliminate_Empty_Productions
-     (Data  : in out WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree  : in out WisiToken.Syntax_Trees.Tree;
-      Lexer : in     WisiToken.Lexer.Handle)
+     (Data : in out WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree : in out WisiToken.Syntax_Trees.Tree)
    is
-      Input_File_Name : String renames Lexer.File_Name;
-
       Ignore_Lines    : Boolean := False;
 
       type Empty_Nonterm is record
@@ -631,9 +628,7 @@ package body WisiToken.Generate.Tree_Sitter is
       Data.EBNF_Allowed := True;
       Data.Error_Reported.Clear;
 
-      Tree.Validate_Tree
-        (Data, Tree.Line_Begin_Char_Pos, Input_File_Name,
-         Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
+      Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       if Trace_Generate_EBNF > Outline then
          Ada.Text_IO.Put_Line ("empty nonterms:");
@@ -652,9 +647,7 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.New_Line;
       end if;
 
-      Tree.Validate_Tree
-        (Data, Tree.Line_Begin_Char_Pos, Input_File_Name,
-         Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
+      Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       for Nonterm of Empty_Nonterms loop
          Make_Optional (-Nonterm.Name);
@@ -665,9 +658,7 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.New_Line;
       end if;
 
-      Tree.Validate_Tree
-        (Data, Tree.Line_Begin_Char_Pos, Input_File_Name,
-         Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
+      Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       declare
          use WisiToken_Grammar_Editing.Valid_Node_Access_Lists;
@@ -706,9 +697,7 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.New_Line;
       end if;
 
-      Tree.Validate_Tree
-        (Data, Tree.Line_Begin_Char_Pos, Input_File_Name,
-         Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
+      Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       if Trace_Generate_EBNF > Detail then
          Ada.Text_IO.New_Line;
@@ -725,8 +714,6 @@ package body WisiToken.Generate.Tree_Sitter is
       Language_Name    : in     String)
    is
       use all type Ada.Containers.Count_Type;
-
-      Input_File_Name : String renames Lexer.File_Name;
 
       File : File_Type;
 
@@ -797,7 +784,7 @@ package body WisiToken.Generate.Tree_Sitter is
          Put_Line
            (Current_Error,
             Tree.Error_Message
-              (Node, Tree.Line_Begin_Char_Pos, Input_File_Name,
+              (Node,
                "not translated: " &
                  Tree.Image
                    (Node,
@@ -899,7 +886,7 @@ package body WisiToken.Generate.Tree_Sitter is
                if Decl = Invalid_Node_Access then
                   Generate.Put_Error
                     (Generate.Error_Message
-                       (Input_File_Name,
+                       (Tree.Lexer.File_Name,
                         WisiToken_Grammar_Runtime.Get_Line (Data, Tree, Node),
                         "decl for '" & Ident & "' not found"));
 
@@ -1011,7 +998,7 @@ package body WisiToken.Generate.Tree_Sitter is
          when 0 =>
             Generate.Put_Error
               (Generate.Error_Message
-                 (Input_File_Name,
+                 (Tree.Lexer.File_Name,
                   WisiToken_Grammar_Runtime.Get_Line
                     (Data, Tree,
                      --  Locate the error message on the preceding ':' or '|'
@@ -1225,7 +1212,7 @@ package body WisiToken.Generate.Tree_Sitter is
       end if;
 
       Create (File, Out_File, Output_File_Name);
-      Put_Line (File, "// generated from " & Input_File_Name & " -*- buffer-read-only:t -*-");
+      Put_Line (File, "// generated from " & Tree.Lexer.File_Name & " -*- buffer-read-only:t -*-");
 
       Put_Line (File, "module.exports = grammar({");
       Put_Line (File, "  name: '" & Language_Name & "',");
@@ -1236,7 +1223,7 @@ package body WisiToken.Generate.Tree_Sitter is
       --  it's the start symbol. accept rule with wisi-eoi is implicit in
       --  tree-sitter (as in .wy).
       if -Data.Language_Params.Start_Token = "" then
-         Generate.Put_Error (Generate.Error_Message (Input_File_Name, 1, "%start not specified"));
+         Generate.Put_Error (Generate.Error_Message (Tree.Lexer.File_Name, 1, "%start not specified"));
       else
          declare
             Temp : constant Node_Access := WisiToken_Grammar_Editing.Find_Declaration

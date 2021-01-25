@@ -2,7 +2,7 @@
 --
 --  WisiToken utilities for using the tree-sitter parser.
 --
---  Copyright (C) 2020 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020, 2021 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -19,9 +19,8 @@ with WisiToken_Grammar_Runtime;
 package WisiToken.Generate.Tree_Sitter is
 
    procedure Eliminate_Empty_Productions
-     (Data  : in out WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree  : in out WisiToken.Syntax_Trees.Tree;
-      Lexer : in     WisiToken.Lexer.Handle);
+     (Data : in out WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree : in out WisiToken.Syntax_Trees.Tree);
    --  Edit Tree to eliminate productions that can be empty, which are
    --  forbidden by the tree-sitter generator.
    --

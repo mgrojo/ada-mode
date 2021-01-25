@@ -165,10 +165,7 @@ package body WisiToken_Grammar_Runtime is
          end;
 
       else
-         raise Grammar_Error with
-           Error_Message
-             (Tree.Lexer.File_Name, Tree.Base_Token (A_Index).Line,
-              "invalid '%if'; must be one of {lexer | parser}");
+         raise Grammar_Error with Tree.Error_Message ((A_Index), "invalid '%if'; must be one of {lexer | parser}");
       end if;
    end Start_If_1;
 
@@ -487,14 +484,8 @@ package body WisiToken_Grammar_Runtime is
                               elsif WisiToken.BNF.Is_Valid_Interface (Text) then
                                  Tuple.Interface_Kind := WisiToken.BNF.Valid_Interface'Value (Text);
                               else
-                                 declare
-                                    Token : Base_Token renames Tree.Base_Token (Children (I));
-                                 begin
-                                    raise Grammar_Error with Error_Message
-                                      (Tree.Lexer.File_Name, Token.Line,
-                                       Column (Token, Tree.Line_Begin_Char_Pos),
-                                       "invalid generate param '" & Text & "'");
-                                 end;
+                                 raise Grammar_Error with Tree.Error_Message
+                                   (Children (I), "invalid generate param '" & Text & "'");
                               end if;
                            end;
                         end loop;
@@ -636,18 +627,14 @@ package body WisiToken_Grammar_Runtime is
                         elsif Get_Loc (3) = "pre" then WisiToken.BNF.Actions_Spec_Pre
                         elsif Get_Loc (3) = "post" then WisiToken.BNF.Actions_Spec_Post
                         else raise Grammar_Error with
-                          Error_Message
-                            (Tree.Lexer.File_Name, Tree.Base_Token (Loc_List (2)).Line,
-                             "expecting {context | pre | post}"))
+                          Tree.Error_Message (Loc_List (2), "expecting {context | pre | post}"))
 
                      elsif Get_Loc (2) = "body" then
                        (if Get_Loc (3) = "context" then WisiToken.BNF.Actions_Body_Context
                         elsif Get_Loc (3) = "pre" then WisiToken.BNF.Actions_Body_Pre
                         elsif Get_Loc (3) = "post" then WisiToken.BNF.Actions_Body_Post
                         else raise Grammar_Error with
-                          Error_Message
-                            (Tree.Lexer.File_Name, Tree.Base_Token (Loc_List (2)).Line,
-                             "expecting {context | pre | post}"))
+                          Tree.Error_Message (Loc_List (2), "expecting {context | pre | post}"))
 
                      else raise Grammar_Error);
 
@@ -656,18 +643,15 @@ package body WisiToken_Grammar_Runtime is
 
                else
                   raise Grammar_Error with
-                    Error_Message
-                      (Tree.Lexer.File_Name, Tree.Base_Token (Loc_List (Loc_List'First)).Line,
-                       "expecting {actions | copyright_license}");
+                    Tree.Error_Message (Loc_List (Loc_List'First), "expecting {actions | copyright_license}");
                end if;
 
                Data.Raw_Code (Location) := WisiToken.BNF.Split_Lines (Get_Text (Data, Tree, Tokens (4)));
             exception
             when Grammar_Error =>
                Put_Error
-                 (Error_Message
-                    (Tree.Lexer.File_Name, Token (2).Line, Column (Token (2), Tree.Line_Begin_Char_Pos),
-                     "invalid raw code location; actions {spec | body} {context | pre | post}"));
+                 (Tree.Error_Message
+                    (Tokens (2), "invalid raw code location; actions {spec | body} {context | pre | post}"));
             end;
 
          when IDENTIFIER_ID =>
@@ -824,9 +808,8 @@ package body WisiToken_Grammar_Runtime is
                elsif Kind = "mckenzie_cost_default" then
                   if Tree.Get_Terminals (Tokens (3))'Length /= 4 then
                      raise Grammar_Error with
-                       Error_Message
-                         (Tree.Lexer.File_Name,
-                          Tree.Base_Token (Tokens (3)).Line,
+                       Tree.Error_Message
+                         (Tokens (3),
                           "too " & (if Tree.Get_Terminals (Tokens (3))'Length > 4 then "many" else "few") &
                             " default costs; should be 'insert, delete, push back, ignore check fail'.");
                   end if;
@@ -913,17 +896,12 @@ package body WisiToken_Grammar_Runtime is
                       +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
                else
-                  raise Grammar_Error with Error_Message
-                    (Tree.Lexer.File_Name, Token (2).Line, Column
-                       (Token (2), Tree.Line_Begin_Char_Pos), "unexpected syntax");
-
+                  raise Grammar_Error with Tree.Error_Message (Tokens (2), "unexpected syntax");
                end if;
             end;
 
          when others =>
-            raise Grammar_Error with Error_Message
-              (Tree.Lexer.File_Name, Token (2).Line, Column (Token (2), Tree.Line_Begin_Char_Pos),
-               "unexpected syntax");
+            raise Grammar_Error with Tree.Error_Message (Tokens (2), "unexpected syntax");
          end case;
 
       when Syntax_Trees.Virtual_Terminal | Syntax_Trees.Virtual_Identifier =>
@@ -958,13 +936,7 @@ package body WisiToken_Grammar_Runtime is
       if WisiToken.BNF.Is_Present (Data.Tokens.Rules, LHS_String) then
          case Tree.Label (LHS_Node) is
          when Source_Terminal =>
-            declare
-               LHS_Token : WisiToken.Base_Token renames Tree.Base_Token (LHS_Node);
-            begin
-               raise Grammar_Error with Error_Message
-                 (Tree.Lexer.File_Name, LHS_Token.Line, Column (LHS_Token, Tree.Line_Begin_Char_Pos),
-                  "duplicate nonterm");
-            end;
+            raise Grammar_Error with Tree.Error_Message (LHS_Node, "duplicate nonterm");
 
          when Virtual_Identifier =>
             raise Grammar_Error with Error_Message
@@ -1010,13 +982,8 @@ package body WisiToken_Grammar_Runtime is
          Data.EBNF_Nodes.Insert (Tokens (Token));
 
          if Data.Meta_Syntax /= EBNF_Syntax then
-            declare
-               Tok  : Base_Token renames Tree.Base_Token (Tokens (Token));
-            begin
-               raise Grammar_Error with Error_Message
-                 (Tree.Lexer.File_Name, Tok.Line, Column (Tok, Tree.Line_Begin_Char_Pos),
-                  "EBNF syntax used, but BNF specified; set '%meta_syntax EBNF'");
-            end;
+            raise Grammar_Error with Tree.Error_Message
+              (Tokens (Token), "EBNF syntax used, but BNF specified; set '%meta_syntax EBNF'");
          end if;
       when Other =>
          WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error

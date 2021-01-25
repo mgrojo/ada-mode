@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -1266,6 +1266,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       Current_Line      : constant Line_Number_Type := Tree.Base_Token
         (Parse.Peek_Current_First_Shared_Terminal (Tree, Config)).Line;
+      Next_Line_Begin_Token : constant Node_Access := Tree.Line_Begin_Token
+        (Current_Line + 1, Super.Stream (Parser_Index));
       Lexer_Error_Token : Base_Token;
 
       function Recovered_Lexer_Error return Syntax_Trees.Terminal_Ref
@@ -1678,6 +1680,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          if Trace_McKenzie > Detail then
             Base.Put ("insert quote " & Label & " ", Super, Parser_Index, Config);
          end if;
+      exception
+      when Bad_Config =>
+         if Trace_McKenzie > Detail then
+            Put_Line (Super.Trace.all, Tree, Super.Stream (Parser_Index), "insert quote Bad_Config " & Label);
+         end if;
+         raise;
       end Finish;
 
    begin
@@ -1738,13 +1746,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  token would not be the lexer repaired string literal, since a
          --  string literal would be legal here.
 
-      elsif Lexer_Error_Token.Byte_Region.First < Config.Error_Token.Byte_Region.First and
-        (declare First_Token : constant Node_Access := Tree.Line_Begin_Token (Current_Line + 1);
-         begin First_Token /= Invalid_Node_Access and then
-            Tree.Get_Node_Index (First_Token) /= Node_Index'First)
+      elsif Config.Error_Token.ID = Invalid_Token_ID or else
+        (Lexer_Error_Token.Byte_Region.First < Config.Error_Token.Byte_Region.First and
+           (Next_Line_Begin_Token /= Invalid_Node_Access and then
+              Tree.Get_Node_Index (Next_Line_Begin_Token) /= Node_Index'First))
       then
-         --  The unbalanced quote is before the parse error token; see
-         --  test_mckenzie_recover.adb String_Quote_2.
+         --  The unbalanced quote is before the parse error token, or we don't
+         --  know where the parse error token is; case b. See
+         --  test_mckenzie_recover.adb String_Quote_2, String_Quote_5.
          --
          --  The missing quote belongs after the parse error token, before or
          --  at the end of the current line; try inserting it at the end of
@@ -1779,13 +1788,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                Finish
                  ("b", New_Config,
                   First => Syntax_Trees.Get_Node_Index (Config.Current_Shared_Token.Node),
-                  Last  => Syntax_Trees.Get_Node_Index (Tree.Line_Begin_Token (Current_Line + 1)) - 1);
+                  Last  => Syntax_Trees.Get_Node_Index (Next_Line_Begin_Token) - 1);
                Local_Config_Heap.Add (New_Config);
             end;
          end;
 
       else
-         --  The unbalanced quote is after the parse error token.
+         --  The unbalanced quote is after the parse error token. FIXME: also
+         --  do case c when we don't know where the error token is.
 
          --  case c: Assume a missing quote belongs immediately before the
          --  current token. See test_mckenzie_recover.adb String_Quote_3.

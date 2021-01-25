@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -323,14 +323,11 @@ begin
                      --  ambiguous parse.
                      Current_Parser := Shared_Parser.Parsers.First;
                      declare
-                        Token : Base_Token renames Shared_Parser.Tree.Base_Token
-                          (Shared_Parser.Tree.Get_Node
-                             (Current_Parser.Stream, Shared_Parser.Tree.Stream_Last (Current_Parser.Stream)));
+                        Node : constant Syntax_Trees.Node_Access := Shared_Parser.Tree.Get_Node
+                             (Current_Parser.Stream, Shared_Parser.Tree.Stream_Last (Current_Parser.Stream));
                      begin
-                        raise WisiToken.Parse_Error with Error_Message
-                          (Shared_Parser.Tree.Lexer.File_Name, Token.Line,
-                           Column (Token, Shared_Parser.Tree.Line_Begin_Char_Pos),
-                           "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
+                        raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
+                          (Node, "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
                      end;
                   end if;
                end;
@@ -460,8 +457,8 @@ begin
                       Recover        => <>,
                       Msg            =>
                         (if McKenzie_Defaulted (Shared_Parser.Table.all)
-                         then +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result)
-                         else +"recover disabled")));
+                         then +"recover disabled"
+                         else +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result))));
                end loop;
                raise WisiToken.Syntax_Error;
             end if;
@@ -579,14 +576,11 @@ begin
                      if Shared_Parser.Parsers.Count = Shared_Parser.Table.Max_Parallel then
                         declare
                            Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
-                           Token : constant Base_Token := Shared_Parser.Tree.Base_Token
-                             (Parser_State.Shared_Token.Node);
                         begin
-                           raise WisiToken.Parse_Error with Error_Message
-                             (Shared_Parser.Tree.Lexer.File_Name, Token.Line,
-                              Column (Token, Shared_Parser.Tree.Line_Begin_Char_Pos),
+                           raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
+                             (Parser_State.Shared_Token.Node,
                               "too many parallel parsers required in grammar state" &
-                                Shared_Parser.Tree.State (Parser_State.Stream)'Image &
+                                Shared_Parser.Tree.State (Current_Parser.Stream)'Image &
                                 "; simplify grammar, or increase max-parallel (" &
                                 SAL.Base_Peek_Type'Image (Shared_Parser.Table.Max_Parallel) & ")");
                         end;

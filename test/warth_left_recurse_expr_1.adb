@@ -65,7 +65,8 @@ package body Warth_Left_Recurse_Expr_1 is
 
          AUnit.Assertions.Assert (Expected_State = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
 
-         Parser.Execute_Actions;
+         Parser.Execute_Actions
+           (Action_Region_Bytes => (WisiToken.Buffer_Pos (Input'First), WisiToken.Buffer_Pos (Input'Last)));
          Check ("result", User_Data.Stack.Pop, Expected_Result);
 
       exception
@@ -126,7 +127,8 @@ package body Warth_Left_Recurse_Expr_1 is
             Ada.Text_IO.Put_Line ("root node: " & Parser.Tree.Image (Parser.Tree.Root));
          end if;
 
-         Parser.Execute_Actions;
+         Parser.Execute_Actions
+           (Action_Region_Bytes => (WisiToken.Buffer_Pos (Input'First), WisiToken.Buffer_Pos (Input'Last)));
          Check ("result", User_Data.Stack.Pop, Expected_Result);
 
       exception

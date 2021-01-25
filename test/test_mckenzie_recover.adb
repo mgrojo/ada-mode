@@ -6,7 +6,7 @@
 --  written, but as the algorithm evolved, the tests behavior changed.
 --  They all still test something useful.
 --
---  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -101,7 +101,7 @@ package body Test_McKenzie_Recover is
          Parser.Put_Errors;
       end if;
 
-      Check ("exception", True, Expect_Exception);
+      Check ("syntax_error", True, Expect_Exception);
    end Parse_Text;
 
    procedure Check_Recover
@@ -1700,7 +1700,7 @@ package body Test_McKenzie_Recover is
       --  ada_mode-recover_string_quote_*.
 
       Parse_Text
-        ("procedure Remove is begin A := B"";" & ASCII.CR & "-- trailing comment");
+        ("procedure Remove is begin A := B"";" & ASCII.LF & "-- trailing comment");
       --           |10       |20       |30
       --  1         2      3  4     5 6  7 8 9               10
 
@@ -2439,6 +2439,10 @@ package body Test_McKenzie_Recover is
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
             User_Data'Access);
       end case;
+
+      if T.Enqueue_Limit > 0 then
+         Parser.Table.McKenzie_Param.Enqueue_Limit := T.Enqueue_Limit;
+      end if;
 
       Orig_Params := Parser.Table.McKenzie_Param;
 

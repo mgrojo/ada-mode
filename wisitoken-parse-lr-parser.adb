@@ -684,21 +684,17 @@ package body WisiToken.Parse.LR.Parser is
                     (Parser.User_Data.all, Tree, Node, Syntax_Trees.To_Valid_Node_Access (Tree_Children));
                exception
                when E : others =>
-                  declare
-                     Token : Base_Token renames Tree.Base_Token (Node);
-                  begin
-                     if WisiToken.Debug_Mode then
-                        Parser.Trace.Put_Line
-                          (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-                        Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-                        Parser.Trace.New_Line;
-                     end if;
+                  if WisiToken.Debug_Mode then
+                     Parser.Trace.Put_Line
+                       (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+                     Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+                     Parser.Trace.New_Line;
+                  end if;
 
-                     raise WisiToken.Parse_Error with Error_Message
-                       (Tree.Lexer.File_Name, Token.Line, Column (Token, Tree.Line_Begin_Char_Pos),
-                        "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
-                          Ada.Exceptions.Exception_Message (E));
-                  end;
+                  raise WisiToken.Parse_Error with Tree.Error_Message
+                    (Node,
+                     "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
+                       Ada.Exceptions.Exception_Message (E));
                end;
             end if;
          end;
@@ -710,7 +706,7 @@ package body WisiToken.Parse.LR.Parser is
       end if;
 
       if Parser.Parsers.Count > 1 then
-         raise Syntax_Error with "ambiguous parse; can't execute actions";
+         raise WisiToken.Parse_Error with "ambiguous parse; can't execute actions";
       end if;
 
       declare
@@ -746,15 +742,11 @@ package body WisiToken.Parse.LR.Parser is
             end case;
          end loop;
 
+         --  FIXME: uses Parser_State.REcover_Insert_Delete, which is overridden by next parse!
+         --  Move to end of Parse, move Execute_Actions to wisitoken.parse
          declare
-            --  Recompute Parser.Line_Begin_Token using final parse tree terminal
-            --  sequence, and clearing Stream_ID, Stream_Index. It is tempting to
-            --  not do this, because user may want to insert a token after the
-            --  previous token, changing which is the first one a line. However,
-            --  it is simpler to handle deleted tokens here, and the user can
-            --  change Line_Begin_Token in Insert_Token anyway.
-            --
-            --  Compute recover_op.Del_After_Node.
+            --  Clear Recover_Op Stream_ID, Stream_Index, compute
+            --  recover_op.Del_After_Node.
             --
             --  We do not move non_grammar from deleted tokens, because the user
             --  code may want to do something different.
@@ -763,7 +755,6 @@ package body WisiToken.Parse.LR.Parser is
             Tree : Syntax_Trees.Tree renames Parser.Tree;
 
             I                    : Node_Access        := Tree.First_Terminal (Tree.Root);
-            Last_Line            : Line_Number_Type   := Invalid_Line_Number;
             Last_Terminal        : Node_Access        := Invalid_Node_Access;
             Last_Shared_Terminal : Node_Access        := Invalid_Node_Access;
             Next_Shared_Terminal : Node_Access        := Tree.First_Shared_Terminal (Tree.Root);
@@ -824,12 +815,6 @@ package body WisiToken.Parse.LR.Parser is
 
                case Tree.Label (I) is
                when Source_Terminal =>
-                  if Tree.Base_Token (I).Line /= Last_Line then
-                     Tree.Line_Begin_Token (Tree.Base_Token (I).Line) := I;
-
-                     Last_Line := Tree.Base_Token (I).Line;
-                  end if;
-
                   Last_Terminal        := I;
                   Last_Shared_Terminal := I;
                   Next_Shared_Terminal :=
@@ -838,11 +823,6 @@ package body WisiToken.Parse.LR.Parser is
                      else Invalid_Node_Access);
 
                when Virtual_Terminal =>
-                  if Tree.Base_Token (I).Line /= Last_Line then
-                     Tree.Line_Begin_Token (Tree.Base_Token (I).Line) := I;
-
-                     Last_Line := Tree.Base_Token (I).Line;
-                  end if;
                   Last_Terminal := I;
 
                when Virtual_Identifier =>
@@ -859,10 +839,6 @@ package body WisiToken.Parse.LR.Parser is
          if Trace_Action > Extra then
             Parser.Trace.Put_Line
               ("recover_insert_delete: " & Image (Parser_State.Recover_Insert_Delete, Parser.Tree));
-            Parser.Trace.Put_Line
-              ("line_begin_token: " & Parser.Tree.Image (Parser.Tree.Line_Begin_Token, Association => True));
-            Parser.Trace.Put_Line
-              ("line_begin_char_os: " & Image (Parser.Tree.Line_Begin_Char_Pos, Association => True));
             Parser.Trace.New_Line;
          end if;
 
@@ -903,17 +879,14 @@ package body WisiToken.Parse.LR.Parser is
             end;
          end loop;
 
-         if Trace_Action > Detail then
-            Parser.Trace.Put_Line
-              ("line_begin_token: " & Parser.Tree.Image (Parser.Tree.Line_Begin_Token, Association => True));
-            Parser.Trace.New_Line;
-         end if;
-
          Parser.User_Data.Initialize_Actions (Parser.Tree);
 
          Process_Node (Parser.Tree, Parser.Tree.Root);
       end;
    exception
+   when WisiToken.Parse_Error =>
+      raise;
+
    when E : others =>
       if Debug_Mode then
          Parser.Trace.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
@@ -955,16 +928,13 @@ package body WisiToken.Parse.LR.Parser is
                      "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                        ", found " & Image (Parser.Tree.ID (Item.Error_Token.Node), Descriptor)));
             else
-               declare
-                  Token : constant Base_Token := Parser.Tree.Base_Token (Item.Error_Token.Node);
-               begin
-                  Put_Line
-                    (Current_Error,
-                     Error_Message
-                       (Parser.Tree.Lexer.File_Name, Token.Line, Column (Token, Parser.Tree.Line_Begin_Char_Pos),
-                        "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                          ", found '" & Parser.Tree.Lexer.Buffer_Text (Token.Byte_Region) & "'"));
-               end;
+               Put_Line
+                 (Current_Error,
+                  Parser.Tree.Error_Message
+                    (Item.Error_Token.Node,
+                     "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                       ", found '" & Parser.Tree.Lexer.Buffer_Text (Parser.Tree.Byte_Region (Item.Error_Token.Node)) &
+                       "'"));
             end if;
 
          when User_Parse_Action =>

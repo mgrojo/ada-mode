@@ -138,10 +138,6 @@ package body Test_Incremental is
             Put_Line (" ... tree:");
             Tree.Print_Tree (Non_Grammar => True);
          end if;
-
-         Put_Line (" ... line_begin_char_pos:" & WisiToken.Image (Tree.Line_Begin_Char_Pos, Association => True));
-         Put_Line
-           (" ... line_begin_token:" & WisiToken.Syntax_Trees.Image (Tree, Tree.Line_Begin_Token, Association => True));
       end Put_Tree;
 
    begin
@@ -455,6 +451,32 @@ package body Test_Incremental is
          Insert  => "Cad");
    end Edit_Code_8;
 
+   procedure Delete_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Delete a newline
+      Parse_Text
+        (Initial => "A := B + C;" & ASCII.LF & "D;",
+         --          |1       |10
+         Edit_At => 12,
+         Delete  => "" & ASCII.LF,
+         Insert  => "");
+   end Delete_New_Line;
+
+   procedure Insert_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert a newline
+      Parse_Text
+        (Initial => "A := B + C; D;",
+         --          |1       |10
+         Edit_At => 12,
+         Delete  => " ",
+         Insert  => "" & ASCII.LF);
+   end Insert_New_Line;
+
    procedure Test_Names (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -501,6 +523,8 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_6'Access, "Edit_Code_6");
       Register_Routine (T, Edit_Code_7'Access, "Edit_Code_7");
       Register_Routine (T, Edit_Code_8'Access, "Edit_Code_8");
+      Register_Routine (T, Delete_New_Line'Access, "Delete_New_Line");
+      Register_Routine (T, Insert_New_Line'Access, "Insert_New_Line");
       Register_Routine (T, Test_Names'Access, "Test_Names");
    end Register_Tests;
 
