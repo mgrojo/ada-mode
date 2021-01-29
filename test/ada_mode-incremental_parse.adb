@@ -16,7 +16,7 @@ package body Ada_Mode.Incremental_Parse is
 
    --EMACSCMD:(progn (end-of-line 3)(kill-line 2)(insert "\n is (-A);\n"))
    --EMACSCMD:(progn (end-of-line 3)(wisi-indent-statement))
-   function Func_2 (A : in Integer) return Integer
+   function Func_2 return Integer
      is (-A);
 
 end Ada_Mode.Incremental_Parse;

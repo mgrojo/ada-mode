@@ -2,7 +2,7 @@
 --
 --
 --
---  Copyright (C) 2019 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2019 - 2021 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -204,8 +204,7 @@ begin
             end loop;
             declare
                subtype Count is Standard.Ada.Text_IO.Count;
-               Open_Paren_Col : constant Count := WisiToken.Column
-                 (Tree.Base_Token (Formal_Part), Tree.Line_Begin_Char_Pos);
+               Open_Paren_Col : constant Count := Tree.Column (Formal_Part);
                Ident_Col      : constant Count := Open_Paren_Col + 1;
                Colon_Col      : constant Count := Ident_Col + Count (Ident_Len) + 1;
                In_Col         : constant Count := Colon_Col + (if Aliased_P then 10 else 2);

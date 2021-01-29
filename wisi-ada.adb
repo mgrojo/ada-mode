@@ -447,7 +447,7 @@ package body Wisi.Ada is
       Begin_Indent        : in     Integer)
    is begin
       Wisi.Initialize_Partial_Parse
-        (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Action_Region_Bytes, Action_Region_Bytes,
+        (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Action_Region_Bytes, Action_Region_Chars,
          Begin_Line, End_Line, Begin_Indent);
 
       Initialize (Data);

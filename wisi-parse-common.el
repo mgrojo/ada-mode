@@ -90,17 +90,21 @@ Text properties on MESSAGE are preserved,"
     (when (> max 0)
       (unless (buffer-live-p (wisi-parser-transaction-log-buffer parser))
 	(setf (wisi-parser-transaction-log-buffer parser)
-	      (get-buffer-create (wisi-parser-transaction-log-buffer-name parser) t)))
+	      (get-buffer-create (wisi-parser-transaction-log-buffer-name parser) t))
+	(with-current-buffer (wisi-parser-transaction-log-buffer parser)
+	  (read-only-mode 1)
+	  (buffer-disable-undo)))
       (with-current-buffer (wisi-parser-transaction-log-buffer parser)
 	(goto-char (point-max))
-	(insert (format "%s:\n%s\n" (current-time-string) message))
-	(when (> (buffer-size) max)
-	  (save-excursion
-	    (goto-char (- (buffer-size) max))
-	    ;; search for tail of time stamp ":mm:ss yyyy:\n"
-	    (search-forward-regexp ":[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]:$" nil t)
-	    (forward-line -1)
-	    (delete-region (point-min) (point))))))))
+	(let ((inhibit-read-only t))
+	  (insert (format "%s:\n%s\n" (current-time-string) message))
+	  (when (> (buffer-size) max)
+	    (save-excursion
+	      (goto-char (- (buffer-size) max))
+	      ;; search for tail of time stamp ":mm:ss yyyy:\n"
+	      (search-forward-regexp ":[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]:$" nil t)
+	      (forward-line -1)
+	      (delete-region (point-min) (point)))))))))
 
 (cl-defgeneric wisi-parse-format-language-options ((parser wisi-parser))
   "Return a string to be sent to the parser, containing settings

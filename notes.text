@@ -43,24 +43,21 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-report gnat bug
-    Tree.Line_Begin_Char_Pos (L) := Tree.Line_Begin_Char_Pos (L) + Shift_Chars;
-        @ doesn't work here
-
-delete ada-language-version
-
-refactor fails if file has DOS line endings
-    test/refactor_dos.ads
-        not ./run_ada_lalr_parse.exe refactor 5 test/refactor_dos.ads 1105 --verbosity "action=3"
-        not "" lr1
-
 incremental parse
-    in parser-log, disable undo, set read-only
+    add test case with deleted lines
 
-    test/ada_mode-incremental_parse.adb
-        make one
-        added shift line_begin_char_pos in stable
-            cause exceptions
+    add test case with inserted lines
+
+    add test case with two edits in one token
+
+    add recover_incremental
+        get some virtual tokens in there
+        check that wisi-show-errors accumulates all errors
+        but deletes them when fixed
+            if parse succeeds, delete errors in regions parsed
+            could do that in ada, send current list of errors (aka diagnostics) on request?
+
+
 
     post_parse navigate
         only need to edit changed caches?
@@ -82,6 +79,10 @@ incremental parse
 
     error recover try prev solution
         edit it?
+
+    store shared_stream_index in parse stream element, for faster "continue search in shared_stream"
+        or just shard_stream_index for stack_top
+            may be broken down?
 
 build/test.log
     ada_mode-interactive_2.adb Local_Proc_1
@@ -857,6 +858,29 @@ wisi.adb insert_token
     p data.descriptor.image (tree.shared_tree.nodes.elements (token).id).all
 
 gdb run_ada_parse
+    syntax_trees.adb
+        Find_New_Line
+        show_id node.id
+        show_id child.id
+        p line
+        p child.line
+        p child.line_last
+        p child.byte_region
+
+        Update_Cache
+        show_id node.id
+        show_id child.id
+        p child.byte_region
+        p child.line
+        p child.line_last
+
+    wisi.adb
+        reduce
+        show_id nonterm.id
+        show_id token.base.id
+        p token.base.byte_region
+        p token.aug
+
     in wisitoken-wisi_runtime.adb Indent_Action_0:
         break on 'if token.first_indent_line then' line 1050
         call wisitoken.syntax_trees.id (tree, nonterm)
