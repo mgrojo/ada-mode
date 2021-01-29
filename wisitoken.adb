@@ -375,6 +375,19 @@ package body WisiToken is
       end if;
    end Trimmed_Image;
 
+   function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count
+   is begin
+      if Token.Line = 1 then
+         return Ada.Text_IO.Count (Token.Char_Region.First);
+
+      elsif Line_Begin_Char_Pos = Invalid_Buffer_Pos then
+         return 0;
+
+      else
+         return Ada.Text_IO.Count (Token.Char_Region.First - Line_Begin_Char_Pos);
+      end if;
+   end Column;
+
    function Image
      (Item       : in Base_Token;
       Descriptor : in WisiToken.Descriptor)

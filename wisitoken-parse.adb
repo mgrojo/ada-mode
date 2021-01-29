@@ -47,6 +47,10 @@ package body WisiToken.Parse is
             Containing : Base_Token_Array_Var_Ref renames Parser.Tree.Non_Grammar_Var (Parser.Last_Grammar_Node);
          begin
             Containing.Append (Token);
+
+            --  If the last non_grammar is New_Line, the token contains the line
+            --  up to that point, not after.
+            Parser.Tree.Set_Line_Last (Parser.Last_Grammar_Node, Token.Line);
          end;
       end if;
       if Parser.User_Data /= null then
@@ -242,8 +246,8 @@ package body WisiToken.Parse is
       KMN_Node         : Cursor                := Edits.First;
       Old_Byte_Pos     : Base_Buffer_Pos       := 0;
       Old_Char_Pos     : Base_Buffer_Pos       := 0;
-      Old_Line         : Line_Number_Type      := 1;
       New_Byte_Pos     : Base_Buffer_Pos       := 0;
+      New_Char_Pos     : Base_Buffer_Pos       := 0;
       Scanned_Byte_Pos : Base_Buffer_Pos       := 0;
       Shift_Bytes      : Base_Buffer_Pos       := 0;
       Shift_Chars      : Base_Buffer_Pos       := 0;
@@ -326,8 +330,11 @@ package body WisiToken.Parse is
 
             Inserted_Region : constant Buffer_Region :=
               (New_Byte_Pos + KMN.Stable_Bytes + 1, New_Byte_Pos + KMN.Stable_Bytes + KMN.Inserted_Bytes);
+            --  Inserted_Region.First is the first char after the stable region in
+            --  the edited text.
 
-            Do_Scan : Boolean := KMN.Inserted_Bytes > 0;
+            Inserted_Region_Chars : constant Buffer_Region :=
+              (New_Char_Pos + KMN.Stable_Chars + 1, New_Char_Pos + KMN.Stable_Chars + KMN.Inserted_Chars);
          begin
             --  Parser.Lexer contains the edited text, so we can't check that
             --  stable, deleted are inside the initial text. Caller should use
@@ -340,8 +347,8 @@ package body WisiToken.Parse is
             if Trace_Incremental_Parse > Outline then
                Parser.Trace.New_Line;
                Parser.Trace.Put_Line
-                 ("KMN: " & Image (Stable_Region) & Image (Deleted_Region) & Image (Inserted_Region));
-               Parser.Trace.Put_Line ("old  :" & Old_Byte_Pos'Image & Old_Char_Pos'Image & Old_Line'Image);
+                 ("KMN: " & Image (Stable_Region) & Image (Inserted_Region) & Image (Deleted_Region));
+               Parser.Trace.Put_Line ("old  :" & Old_Byte_Pos'Image & Old_Char_Pos'Image);
                Parser.Trace.Put_Line ("shift: " & Shift_Bytes'Image & " " & Shift_Chars'Image & " " & Shift_Line'Image);
                Parser.Trace.Put_Line ("terminal:" & Tree.Image (Terminal));
 
@@ -388,22 +395,21 @@ package body WisiToken.Parse is
             --  Scanning is needed if Inserted_Region is not empty, or if the
             --  deleted region overlaps or is adjacent to a preceding or following
             --  token. If insert/delete is inside or after a comment, the scanning
-            --  may already have been done. Set Do_Scan, Old_* to the scan start
+            --  may already have been done. Set Lex_Start_* to the scan start
             --  position; the start of Terminal or in the preceding
-            --  non_grammar. FIXME: handle Tree.Leading_Non_Grammar.
+            --  non_grammar or whitespace.
             declare
                Token : constant Base_Token := Tree.Base_Token (Terminal.Node);
 
                Prev_Token_ID : Token_ID := Invalid_Token_ID; --  New_Line or Invalid, for Lexer.Set_Position
 
+               --  We don't modify Shift_Line until after we use it to set Lex_Start_Line
                Delta_Line : Base_Line_Number_Type := 0;
 
-               procedure Set_Old (Token : in Base_Token)
-               is begin
-                  Old_Byte_Pos := Buffer_Pos'Min (Token.Byte_Region.First, Stable_Region.Last + 1);
-                  Old_Char_Pos := Buffer_Pos'Min (Token.Char_Region.First, Stable_Region_Chars.Last + 1);
-                  Old_Line     := Token.Line;
-               end Set_Old;
+               Do_Scan        : Boolean := KMN.Inserted_Bytes > 0;
+               Lex_Start_Byte : Buffer_Pos;
+               Lex_Start_Char : Buffer_Pos;
+               Lex_Start_Line : Line_Number_Type;
 
             begin
                if Token.Byte_Region.Last + Shift_Bytes > Scanned_Byte_Pos and
@@ -415,62 +421,72 @@ package body WisiToken.Parse is
                   if Overlaps (Token.Byte_Region + Shift_Bytes, Adjust (Inserted_Region, -1, +1)) or
                     Overlaps (Token.Byte_Region, Adjust (Deleted_Region, -1, +1))
                   then
+                     --  Terminal is possibly modified; scan it.
+
                      if Token.ID = Tree.Lexer.Descriptor.EOI_ID then
                         --  We never re-scan eoi; we just shift it.
                         null;
 
                      else
-                        --  Terminal is possibly modified; it will be deleted in Delete_Loop
-                        --  below.
                         Do_Scan := True;
-                        Set_Old (Token);
+                        --  Edit start is in or before Token; set Lex_Start_* to scan from
+                        --  edit start or start of Token, whichever is earlier.
 
-                        --  IMPROVEME: We might be able to provide Line_Begin_Token a better
-                        --  starting point than the beginning of the stream.
-                        if Tree.Line_Begin_Token (Old_Line, Stream) = Terminal.Node then
-                           Prev_Token_ID := Tree.Lexer.Descriptor.New_Line_ID;
-                        else
-                           Prev_Token_ID := Invalid_Token_ID;
-                        end if;
+                        --  FIXME (used to have 'Min (buffer_Pos'first, ...):
+                        --  Token.byte_region.first can be before edits that caused
+                        --  Shift_Bytes, if those edits where within the same token. But then
+                        --  Token should already be scanned, so we should never see that case.
+
+                        Lex_Start_Byte := Buffer_Pos'Min (Token.Byte_Region.First + Shift_Bytes, Inserted_Region.First);
+                        Lex_Start_Char := Buffer_Pos'Min
+                          (Token.Char_Region.First + Shift_Chars, Inserted_Region_Chars.First);
+                        Lex_Start_Line := Line_Number_Type'Max (Line_Number_Type'First, Token.Line + Shift_Line);
+
+                        --  Prev_Token has been shifted, Terminal has not.
+                        declare
+                           Prev_Terminal : constant Node_Access := Tree.Prev_Terminal (Terminal).Node;
+                        begin
+                           if Prev_Terminal /= Invalid_Node_Access and then
+                             Tree.Line_Last (Prev_Terminal) = Token.Line + Shift_Line
+                           then
+                              Prev_Token_ID := Invalid_Token_ID;
+                           else
+                              Prev_Token_ID := Tree.Lexer.Descriptor.New_Line_ID;
+                           end if;
+                        end;
                      end if;
 
                   else
-                     --  Edit start is in some preceding non-grammar token or whitespace;
-                     --  delete tokens after the edit start. Deleted New_Lines decrement
-                     --  Shift_Line, but only after we use Shift_Line in
-                     --  Lexer.Set_Position.
+                     --  Edit start is in some non_grammar token or whitespace preceding
+                     --  Terminal; delete non_grammar tokens after the edit start. Deleted
+                     --  New_Lines decrement Shift_Line, but only after we use Shift_Line
+                     --  to set Lex_Start_Line.
                      declare
-                        procedure Handle_Non_Grammar (Containing : in out Base_Token_Arrays.Vector)
+                        procedure Handle_Non_Grammar (Non_Grammar : in out Base_Token_Arrays.Vector)
                         is
                            Delete        : SAL.Base_Peek_Type := 0;
                            Last_New_Line : SAL.Base_Peek_Type := 0;
                         begin
-                           if Containing.Length = 0 then
-                              --  Edit is in whitespace before Terminal
+                           if Non_Grammar.Length = 0 then
+                              --  Edit start is in whitespace before Terminal
+                              Lex_Start_Byte := Inserted_Region.First;
+                              Lex_Start_Char := Inserted_Region_Chars.First;
+                              Lex_Start_Line := Tree.Line (Terminal.Node) + Shift_Line;
+
                               if Parser.Last_Grammar_Node = Invalid_Node_Access then
-                                 --  No previous grammar or non-grammar token
-                                 Old_Byte_Pos  := Stable_Region.Last + 1;
-                                 Old_Char_Pos  := Stable_Region_Chars.Last + KMN.Stable_Chars + 1;
-                                 Prev_Token_ID := Tree.Lexer.Descriptor.New_Line_ID;
-
+                                 --  No previous grammar or non_grammar token; at start of file.
+                                 Prev_Token_ID  := Tree.Lexer.Descriptor.New_Line_ID;
                               else
-                                 declare
-                                    Token : constant Base_Token := Tree.Base_Token (Parser.Last_Grammar_Node);
-                                 begin
-                                    Old_Byte_Pos := Token.Byte_Region.Last + 1;
-                                    Old_Char_Pos := Token.Char_Region.Last + 1;
-                                    Old_Line     := Token.Line;
-                                 end;
-
+                                 --  No new_line between grammar token and edit start.
                                  Prev_Token_ID := Invalid_Token_ID;
                               end if;
                            else
-                              for I in Containing.First_Index .. Containing.Last_Index loop
-                                 if Containing (I).ID = Tree.Lexer.Descriptor.New_Line_ID then
+                              for I in Non_Grammar.First_Index .. Non_Grammar.Last_Index loop
+                                 if Non_Grammar (I).ID = Tree.Lexer.Descriptor.New_Line_ID then
                                     Last_New_Line := I;
                                  end if;
 
-                                 if Containing (I).Byte_Region.Last >= Stable_Region.Last + 1 then
+                                 if Non_Grammar (I).Byte_Region.Last >= Stable_Region.Last + 1 then
                                     Delete  := I;
                                     Do_Scan := True;
                                     exit;
@@ -478,21 +494,34 @@ package body WisiToken.Parse is
                               end loop;
 
                               if Delete > 0 then
-                                 --  Edit is in or before a nongrammar (ie a comment); scan the entire token.
-                                 Set_Old (Containing (Delete));
+                                 --  Edit is in or before Non_Grammar (Delete) (ie a comment); set
+                                 --  Lex_Start_* to scan from edit start or start of Token, whichever
+                                 --  is earlier.
+                                 --
+                                 --  Since Non_Grammar (Delete) is before Terminal, it has already been
+                                 --  shifted, so we don't add Shift_* here.
+
+                                 declare
+                                    Token : Base_Token renames Non_Grammar (Delete);
+                                 begin
+                                    Lex_Start_Byte := Buffer_Pos'Min (Token.Byte_Region.First, Inserted_Region.First);
+                                    Lex_Start_Char := Buffer_Pos'Min
+                                      (Token.Char_Region.First, Inserted_Region_Chars.First);
+                                    Lex_Start_Line := Line_Number_Type'Max (Line_Number_Type'First, Token.Line);
+                                 end;
 
                                  if Trace_Incremental_Parse > Detail then
                                     Parser.Trace.Put_Line
                                       ("delete non_grammar" & Tree.Get_Node_Index (Parser.Last_Grammar_Node)'Image &
-                                         Delete'Image & " .." & Containing.Last_Index'Image);
+                                         Delete'Image & " .." & Non_Grammar.Last_Index'Image);
                                  end if;
-                                 for I in Delete .. Containing.Last_Index loop
-                                    if Containing (I).ID = Tree.Lexer.Descriptor.New_Line_ID then
+                                 for I in Delete .. Non_Grammar.Last_Index loop
+                                    if Non_Grammar (I).ID = Tree.Lexer.Descriptor.New_Line_ID then
                                        Delta_Line := @ - 1;
                                     end if;
                                  end loop;
 
-                                 Containing.Set_First_Last (Containing.First_Index, Delete - 1);
+                                 Non_Grammar.Set_First_Last (Non_Grammar.First_Index, Delete - 1);
 
                                  if Last_New_Line = Delete - 1 then
                                     Prev_Token_ID := Tree.Lexer.Descriptor.New_Line_ID;
@@ -501,15 +530,19 @@ package body WisiToken.Parse is
                                  end if;
 
                               else
-                                 --  Edit is in whitespace between Last_Grammar_Node and Terminal
-                                 declare
-                                    Token : constant Base_Token := Tree.Base_Token (Parser.Last_Grammar_Node);
-                                 begin
-                                    Old_Byte_Pos  := Token.Byte_Region.Last + 1;
-                                    Old_Char_Pos  := Token.Char_Region.Last + 1;
-                                    Old_Line      := Token.Line;
-                                    Prev_Token_ID := Invalid_Token_ID;
-                                 end;
+                                 --  Edit is in whitespace between last non_grammar and Terminal
+                                 Lex_Start_Byte := Inserted_Region.First;
+                                 Lex_Start_Char := Inserted_Region_Chars.First;
+                                 Lex_Start_Line := Tree.Line (Terminal.Node) + Shift_Line;
+
+                                 if Parser.Last_Grammar_Node = Invalid_Node_Access then
+                                    Prev_Token_ID := Tree.Lexer.Descriptor.New_Line_ID;
+                                 else
+                                    Prev_Token_ID :=
+                                      (if Non_Grammar (Non_Grammar.Last_Index).ID = Tree.Lexer.Descriptor.New_Line_ID
+                                       then Tree.Lexer.Descriptor.New_Line_ID
+                                       else Invalid_Token_ID);
+                                 end if;
                               end if;
                            end if;
                         end Handle_Non_Grammar;
@@ -524,31 +557,22 @@ package body WisiToken.Parse is
                end if;
 
                if Do_Scan then
-                  --  Scan a possibly modified token + new text + following posibbly
-                  --  modified token for new/changed tokens.
-                  declare
-                     Start_Byte : constant Buffer_Pos := Buffer_Pos'Max (Buffer_Pos'First, Old_Byte_Pos + Shift_Bytes);
-                     Start_Char : constant Buffer_Pos := Buffer_Pos'Max (Buffer_Pos'First, Old_Char_Pos + Shift_Chars);
-                     Start_Line : constant Line_Number_Type := Line_Number_Type'Max
-                       (Line_Number_Type'First, Old_Line + Shift_Line);
-                  begin
-                     Shift_Line := @ + Delta_Line;
+                  Shift_Line := @ + Delta_Line;
 
-                     if Trace_Incremental_Parse > Outline then
-                        Parser.Trace.Put_Line
-                          ("lexer.set_position" & Start_Byte'Image & Start_Char'Image & Start_Line'Image &
-                             " prev_token_id " &
-                             (if Prev_Token_ID = Invalid_Token_ID
-                              then "<invalid>"
-                              else Image (Prev_Token_ID, Tree.Lexer.Descriptor.all)));
-                     end if;
+                  if Trace_Incremental_Parse > Outline then
+                     Parser.Trace.Put_Line
+                       ("lexer.set_position" & Lex_Start_Byte'Image & Lex_Start_Char'Image & Lex_Start_Line'Image &
+                          " prev_token_id " &
+                          (if Prev_Token_ID = Invalid_Token_ID
+                           then "<invalid>"
+                           else Image (Prev_Token_ID, Tree.Lexer.Descriptor.all)));
+                  end if;
 
-                     Parser.Tree.Lexer.Set_Position
-                       (Byte_Position => Start_Byte,
-                        Char_Position => Start_Char,
-                        Line          => Start_Line,
-                        Prev_Token_ID => Prev_Token_ID);
-                  end;
+                  Parser.Tree.Lexer.Set_Position
+                    (Byte_Position => Lex_Start_Byte,
+                     Char_Position => Lex_Start_Char,
+                     Line          => Lex_Start_Line,
+                     Prev_Token_ID => Prev_Token_ID);
 
                   --  Ensure Terminal.Node is first in Terminal.Element, so we can insert before it.
                   Breakdown;
@@ -594,7 +618,7 @@ package body WisiToken.Parse is
                            end if;
 
                         else
-                           --  non-grammar token
+                           --  non_grammar token
                            if Trace_Incremental_Parse > Detail then
                               Parser.Trace.Put_Line
                                 ("scan new " & Image (Token, Parser.Tree.Lexer.Descriptor.all));
@@ -617,7 +641,7 @@ package body WisiToken.Parse is
             end;
 
             Delete_Loop :
-            --  Delete tokens that were deleted or modified. Deleted non-grammar
+            --  Delete tokens that were deleted or modified. Deleted non_grammar
             --  New_Lines decrement Shift_Line.
             loop
                exit Delete_Loop when Tree.ID (Terminal.Node) = Parser.Tree.Lexer.Descriptor.EOI_ID;
@@ -658,6 +682,7 @@ package body WisiToken.Parse is
             Old_Byte_Pos := Stable_Region.Last + KMN.Deleted_Bytes;
             Old_Char_Pos := Stable_Region_Chars.Last + KMN.Deleted_Chars;
             New_Byte_Pos := Inserted_Region.Last;
+            New_Char_Pos := Inserted_Region_Chars.Last;
             pragma Assert (New_Byte_Pos - Old_Byte_Pos = Shift_Bytes);
 
             KMN_Node := Next (KMN_Node);

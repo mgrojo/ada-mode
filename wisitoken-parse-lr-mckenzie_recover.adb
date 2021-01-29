@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -171,7 +171,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  here). Therefore Parser_State current token is in
       --  Shared_Parser.Shared_Token.
 
-      Config.Current_Shared_Token := Parser_State.Shared_Token;
+      Config.Current_Shared_Token := Shared_Parser.Tree.First_Terminal (Parser_State.Shared_Token);
       Config.Input_Stream.Initialize;
 
       case Error.Label is
@@ -304,9 +304,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          --  otherwise local variables disappear while the task is still trying
          --  to access them.
          for I in Worker_Tasks'First .. Task_Count loop
-            if not Worker_Tasks (I)'Terminated then
-               Worker_Tasks (I).Done;
-            end if;
+            begin
+               if not Worker_Tasks (I)'Terminated then
+                  Worker_Tasks (I).Done;
+               end if;
+            exception
+            when Tasking_Error =>
+               --  Worker terminated after we checked 'Terminated; it's a race condition.
+               null;
+            end;
          end loop;
 
          if ID /= Null_Id then
@@ -696,7 +702,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       if Debug_Mode then
          Trace.Put (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E), Prefix => True);
          Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
-         raise;
+         raise SAL.Programmer_Error;
       else
          return Fail_Programmer_Error;
       end if;

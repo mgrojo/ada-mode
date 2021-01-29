@@ -410,8 +410,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          Error_ID       := Exception_Identity (E);
          Error_Message  := +Exception_Message (E);
          if Debug_Mode then
-            Trace.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
-            Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
+            Trace.Put_Line
+              ("task " & Task_Attributes.Value'Image & ": " & Exception_Name (E) & ": " & Exception_Message (E) &
+                 ASCII.LF & -- keep the message together
+                 GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
          end if;
       end Fatal;
 

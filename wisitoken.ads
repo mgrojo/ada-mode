@@ -315,7 +315,7 @@ package WisiToken is
        else 0));
 
    function Inside (Pos : in Base_Buffer_Pos; Region : in Buffer_Region) return Boolean
-     is (Region.First <= Pos and Pos <= Region.Last);
+   is (Region.First <= Pos and Pos <= Region.Last);
 
    type Boundary is (Inclusive, Exclusive);
 
@@ -350,13 +350,6 @@ package WisiToken is
    function Trimmed_Image (Item : in Line_Number_Type) return String;
    --  '-' if Invalid_Line_Number
 
-   package Line_Pos_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (Line_Number_Type, Buffer_Pos, Default_Element => Invalid_Buffer_Pos);
-
-   function Image is new Line_Pos_Vectors.Gen_Image (Trimmed_Image);
-
-   type Line_Pos_Vector_Access is access all Line_Pos_Vectors.Vector;
-
    type Base_Token is record
       --  The parser only needs ID; semantic checks need Byte_Region to
       --  compare names. Line, Col, and Char_Region are included for error
@@ -375,6 +368,8 @@ package WisiToken is
       --  Character position, useful for finding the token location in Emacs
       --  buffers.
    end record;
+
+   function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count;
 
    function Image
      (Item       : in Base_Token;

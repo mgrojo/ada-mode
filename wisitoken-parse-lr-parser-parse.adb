@@ -78,13 +78,13 @@ begin
          end;
       end if;
 
-      if Trace_Parse > Detail then
+      if Trace_Parse > Detail or Trace_Incremental_Parse > Detail then
          Trace.New_Line;
          Trace.Put_Line ("edited stream:");
          Trace.Put_Line
            (Shared_Parser.Tree.Image
-              (Non_Grammar => Trace_Parse > Extra,
-               Children    => Trace_Parse > Extra));
+              (Non_Grammar => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
+               Children    => Trace_Parse > Extra or Trace_Incremental_Parse > Extra));
          Trace.New_Line;
       end if;
    end if;
@@ -662,7 +662,9 @@ when E : others =>
              Msg            => +Msg));
       end if;
 
-      if Debug_Mode then
+      if Debug_Mode and Ada.Exceptions.Exception_Name (E) /= "SAL.PROGRAMMER_ERROR" then
+         --  If SAL.Programmer_Error, we assume this is from McKenzie_Recover,
+         --  and we've already output the traceback.
          Trace.Put_Line ("exception: " & Msg);
          Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
          Trace.New_Line;

@@ -913,6 +913,15 @@ package WisiToken.Syntax_Trees is
    function Line (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Line_Number_Type;
    --  Line of first character in Node; Invalid_Line_Number if Node is virtual or empty.
 
+   function Line_Last (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Line_Number_Type;
+   --  Line of last character in Node, including trailing non_grammar;
+   --  Invalid_Line_Number if Node is empty.
+
+   procedure Set_Line_Last
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access;
+      Line : in Line_Number_Type);
+
    function Column (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Ada.Text_IO.Count
    with Pre => Tree.Editable and Tree.Subtree_Root (Node) = Tree.Root;
    --  Column of first char of Node; offset from first character on line,
@@ -1170,8 +1179,6 @@ package WisiToken.Syntax_Trees is
      Post => First_Terminal'Result.Stream = Stream and Valid_Terminal (Tree, First_Terminal'Result);
    --  Return the first terminal in Element or a following Element if
    --  Element is empty.
-   --
-   --  Note that the result cannot be empty; all streams are terminated by EOI.
 
    function First_Terminal
      (Tree : in Syntax_Trees.Tree;
@@ -1218,6 +1225,13 @@ package WisiToken.Syntax_Trees is
    --  Same as Prev_Terminal (Tree, Node), for nodes with unset parent
    --  links. Parents is initialized by Last_Terminal.
 
+   function Prev_Terminal
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Terminal_Ref)
+     return Terminal_Ref
+   with Pre => (Tree.Parents_Set or Ref.Stream = Tree.Shared_Stream) and Valid_Terminal (Tree, Ref),
+     Post => Correct_Stream_Node (Tree, Prev_Terminal'Result);
+
    function Next_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    with Pre => Tree.Has_Parent (Node) and Tree.Label (Node) in Terminal_Label,
      Post => Next_Terminal'Result = Invalid_Node_Access or else
@@ -1249,7 +1263,7 @@ package WisiToken.Syntax_Trees is
      (Tree    : in     Syntax_Trees.Tree;
       Parents : in out Node_Stacks.Stack;
       Ref     : in out Terminal_Ref)
-   with Pre => not (Tree.Parents_Set or Ref.Stream = Tree.Shared_Stream) and Valid_Terminal (Tree, Ref),
+   with Pre => Valid_Terminal (Tree, Ref),
      Post => Correct_Stream_Node (Tree, Ref);
    --  Same as Next_Terminal (Tree, Ref), for Refs with unset parent
    --  links. Parents is initialized by First_Terminal.
@@ -1434,6 +1448,10 @@ package WisiToken.Syntax_Trees is
 
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; New_Root : in Valid_Node_Access);
 
+   function EOI (Tree : in Syntax_Trees.Tree) return Valid_Node_Access
+   with Pre => Tree.Editable;
+   --  Return node representing end of input.
+
    function Parent
      (Tree  : in Syntax_Trees.Tree;
       Node  : in Valid_Node_Access;
@@ -1441,6 +1459,15 @@ package WisiToken.Syntax_Trees is
      return Node_Access
    with Pre => Tree.Parents_Set;
    --  Return Count parent of Node.
+
+   function Find_New_Line
+     (Tree : in Syntax_Trees.Tree;
+      Line : in Line_Number_Type)
+     return Node_Access
+   with Pre => Tree.Editable;
+   --  Return node that that ends Line - 1; either EOI or contains the
+   --  non-grammar New_Line. Invalid_Node_Access if Line is in
+   --  Tree.Leading_Non_Grammar, or outside text spanned by Tree.
 
    function Line_Begin_Char_Pos
      (Tree : in Syntax_Trees.Tree;
@@ -1627,6 +1654,7 @@ package WisiToken.Syntax_Trees is
       Input        : in Boolean                   := True;
       Children     : in Boolean                   := False;
       Non_Grammar  : in Boolean                   := False;
+      Augmented    : in Boolean                   := False;
       Image_Action : in Syntax_Trees.Image_Action := null)
      return String;
    --  Image of each node. If Stack, includes stack; if Input, includes
@@ -1636,11 +1664,12 @@ package WisiToken.Syntax_Trees is
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Element               : in Stream_Index;
-      Children              : in Boolean                      := False;
-      RHS_Index             : in Boolean                      := False;
-      Node_Numbers          : in Boolean                      := False;
-      Terminal_Node_Numbers : in Boolean                      := False;
-      Image_Action          : in Syntax_Trees.Image_Action    := null)
+      Children              : in Boolean                   := False;
+      RHS_Index             : in Boolean                   := False;
+      Node_Numbers          : in Boolean                   := False;
+      Terminal_Node_Numbers : in Boolean                   := False;
+      Augmented             : in Boolean                   := False;
+      Image_Action          : in Syntax_Trees.Image_Action := null)
      return String;
    --  Element can be from any stream, or Invalid_Stream_Index
 
@@ -1652,14 +1681,17 @@ package WisiToken.Syntax_Trees is
       Node_Numbers          : in Boolean                   := False;
       Terminal_Node_Numbers : in Boolean                   := False;
       Non_Grammar           : in Boolean                   := False;
+      Augmented             : in Boolean                   := False;
       Image_Action          : in Syntax_Trees.Image_Action := null)
      return String;
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Nodes                 : in Node_Access_Array;
+      RHS_Index             : in Boolean                   := False;
       Node_Numbers          : in Boolean                   := False;
       Terminal_Node_Numbers : in Boolean                   := False;
       Non_Grammar           : in Boolean                   := False;
+      Augmented             : in Boolean                   := False;
       Image_Action          : in Syntax_Trees.Image_Action := null)
      return String;
    --  Includes Node.Node_Index, Node.ID
@@ -1668,6 +1700,7 @@ package WisiToken.Syntax_Trees is
      (Tree           : in Syntax_Trees.Tree;
       Ref            : in Stream_Node_Ref;
       First_Terminal : in Boolean                   := False;
+      Augmented      : in Boolean                   := False;
       Image_Action   : in Syntax_Trees.Image_Action := null)
      return String;
    --  If First_Terminal, show First_Terminal of Ref.Node if Ref is rooted.
@@ -1766,7 +1799,7 @@ private
 
       Line_Last : Line_Number_Type := Invalid_Line_Number;
       --  For terminals, last line in token, from lexer. For nonterms, last
-      --  line in contained tokens, not including trailing non_grammar.
+      --  line in contained tokens, _including_ trailing non_grammar.
 
       Parent : Node_Access := Invalid_Node_Access;
 

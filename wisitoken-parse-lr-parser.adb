@@ -238,8 +238,8 @@ package body WisiToken.Parse.LR.Parser is
               (if Trace_Parse_No_State_Numbers
                then "-- : "
                else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream)) & ": ") &
-              Shared_Parser.Tree.Image (Parser_State.Current_Token, First_Terminal => True) & " : ");
-         Put (Trace, Trace_Image (Action, Shared_Parser.Tree.Lexer.Descriptor.all));
+              Shared_Parser.Tree.Image (Parser_State.Current_Token, First_Terminal => True) & " : " &
+              Trace_Image (Action, Shared_Parser.Tree.Lexer.Descriptor.all));
          Trace.New_Line;
       end if;
 
@@ -663,7 +663,8 @@ package body WisiToken.Parse.LR.Parser is
          use all type Syntax_Trees.Node_Label;
       begin
          if Tree.Label (Node) /= Nonterm or else
-           not Overlaps (Tree.Byte_Region (Node), Action_Region_Bytes)
+           not (Tree.Buffer_Region_Is_Empty (Node) or
+                  Overlaps (Tree.Byte_Region (Node), Action_Region_Bytes))
          then
             return;
          end if;
@@ -672,7 +673,11 @@ package body WisiToken.Parse.LR.Parser is
             Tree_Children : constant Syntax_Trees.Node_Access_Array := Tree.Children (Node);
          begin
             for Child of Tree_Children loop
-               if Child /= null and then Overlaps (Tree.Byte_Region (Child), Action_Region_Bytes) then
+               --  Child can be null in an edited tree
+               if Child /= null and then
+                 (Tree.Buffer_Region_Is_Empty (Child) or
+                    Overlaps (Tree.Byte_Region (Child), Action_Region_Bytes))
+               then
                   Process_Node (Tree, Child);
                end if;
             end loop;
