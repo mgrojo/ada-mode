@@ -36,6 +36,8 @@ wisitoken-parse-lr-parser.adb Execute_Actions:
     Move to end of Parse, move Execute_Actions to wisitoken.parse
     add version that ignores action_region_bytes, for no_recover, packrat
 
+syntax_table find_new_line
+    If line - 1 = .line_last, start at .line_last. Do binary search?
 
 mckenzie_recover-explore Try_Insert_Quote
     often don't know where parse error is; do both b and c

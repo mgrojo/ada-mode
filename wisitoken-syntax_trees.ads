@@ -335,6 +335,14 @@ package WisiToken.Syntax_Trees is
    type Augmented_Class_Access is access all Base_Augmented'Class;
    type Augmented_Class_Access_Constant is access constant Base_Augmented'Class;
 
+   procedure Shift
+     (Augmented   : in out Base_Augmented;
+      Shift_Bytes : in     Base_Buffer_Pos;
+      Shift_Chars : in     Base_Buffer_Pos;
+      Shift_Line  : in     Base_Line_Number_Type)
+   is null;
+   --  Add Shift_* to Augmented positions.
+
    procedure Free is new Ada.Unchecked_Deallocation (Base_Augmented'Class, Augmented_Class_Access);
 
    type User_Data_Type is tagged limited null record;
@@ -618,15 +626,28 @@ package WisiToken.Syntax_Trees is
      (Tree : in out Syntax_Trees.Tree;
       Ref  : in out Stream_Node_Ref)
    with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
-               Tree.First_Terminal (Tree.Get_Node (Ref.Stream, Ref.Element)) /= Invalid_Node_Access and
+               Ref.Node /= Invalid_Node_Access and
                Tree.Stack_Top (Ref.Stream) /= Ref.Element,
      Post => Valid_Single_Terminal (Tree, Ref);
-   --  Part of [Wagner Graham 1998] Left_Breakdown of Ref.Element for
-   --  incremental parse. Bring the first terminal in Ref.Element (which
-   --  cannot be empty) to the parse stream. Ref.Element is updated to
-   --  the element containing the first terminal.
+   --  Bring first terminal of Ref.Element to the parse stream.
+   --  Ref.Element is updated to the element containing the first terminal.
    --
    --  The stack top is unchanged. Note that Ref.Node is ignored on input.
+
+   procedure Breakdown
+     (Tree : in out Syntax_Trees.Tree;
+      Ref  : in out Terminal_Ref)
+   with Pre => Ref.Stream = Tree.Shared_Stream and
+               Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
+               Ref.Node /= Invalid_Node_Access and
+               Tree.Stack_Top (Ref.Stream) /= Ref.Element,
+     Post => Ref.Node = Ref'Old.Node and Tree.First_Terminal (Ref).Node = Ref.Node;
+   --  Bring descendants of Ref.Element to the parse stream, until
+   --  First_Terminal of one of the parse stream elements = Ref.Node.
+   --  Ref.Element is updated to the element whose first terminal is
+   --  Ref.Node.
+   --
+   --  The stack top is unchanged.
 
    function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return State_Index
    with Pre => Tree.Is_Valid (Stream);
@@ -710,6 +731,14 @@ package WisiToken.Syntax_Trees is
      Post => Correct_Stream_Node (Tree, Ref) and
              (Ref = Invalid_Stream_Node_Ref or else Tree.Get_Node (Ref.Stream, Ref.Element) = Ref.Node);
    --  Update Ref to root of next stream element after Ref.Element.
+
+   procedure Stream_Next_Terminal_Ref
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Terminal_Ref)
+   with Pre => Valid_Stream_Node (Tree, Ref),
+     Post => Correct_Stream_Node (Tree, Ref);
+   --  Update Ref to root of next stream element after Ref.Element;
+   --  Ref.Node is First_Terminal (Ref.Element).
 
    function Stream_Prev
      (Tree    : in Syntax_Trees.Tree;
@@ -1448,9 +1477,9 @@ package WisiToken.Syntax_Trees is
 
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; New_Root : in Valid_Node_Access);
 
-   function EOI (Tree : in Syntax_Trees.Tree) return Valid_Node_Access
-   with Pre => Tree.Editable;
-   --  Return node representing end of input.
+   function EOI (Tree : in Syntax_Trees.Tree) return Node_Access;
+   --  Return node representing end of input; Invalid_Node_Access if it
+   --  has not yet been seen by the lexer.
 
    function Parent
      (Tree  : in Syntax_Trees.Tree;
@@ -1641,6 +1670,8 @@ package WisiToken.Syntax_Trees is
      (Tree         : in Syntax_Trees.Tree;
       Children     : in Boolean                   := False;
       Non_Grammar  : in Boolean                   := False;
+      Augmented    : in Boolean                   := False;
+      Line_Numbers : in Boolean                   := False;
       Root         : in Node_Access               := Invalid_Node_Access;
       Image_Action : in Syntax_Trees.Image_Action := null)
      return String;
@@ -1655,6 +1686,7 @@ package WisiToken.Syntax_Trees is
       Children     : in Boolean                   := False;
       Non_Grammar  : in Boolean                   := False;
       Augmented    : in Boolean                   := False;
+      Line_Numbers : in Boolean                   := False;
       Image_Action : in Syntax_Trees.Image_Action := null)
      return String;
    --  Image of each node. If Stack, includes stack; if Input, includes
@@ -1668,6 +1700,7 @@ package WisiToken.Syntax_Trees is
       RHS_Index             : in Boolean                   := False;
       Node_Numbers          : in Boolean                   := False;
       Terminal_Node_Numbers : in Boolean                   := False;
+      Line_Numbers          : in Boolean                   := False;
       Augmented             : in Boolean                   := False;
       Image_Action          : in Syntax_Trees.Image_Action := null)
      return String;
@@ -1680,6 +1713,7 @@ package WisiToken.Syntax_Trees is
       RHS_Index             : in Boolean                   := False;
       Node_Numbers          : in Boolean                   := False;
       Terminal_Node_Numbers : in Boolean                   := False;
+      Line_Numbers          : in Boolean                   := False;
       Non_Grammar           : in Boolean                   := False;
       Augmented             : in Boolean                   := False;
       Image_Action          : in Syntax_Trees.Image_Action := null)
@@ -1690,6 +1724,7 @@ package WisiToken.Syntax_Trees is
       RHS_Index             : in Boolean                   := False;
       Node_Numbers          : in Boolean                   := False;
       Terminal_Node_Numbers : in Boolean                   := False;
+      Line_Numbers          : in Boolean                   := False;
       Non_Grammar           : in Boolean                   := False;
       Augmented             : in Boolean                   := False;
       Image_Action          : in Syntax_Trees.Image_Action := null)

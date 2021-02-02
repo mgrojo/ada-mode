@@ -83,8 +83,11 @@ begin
          Trace.Put_Line ("edited stream:");
          Trace.Put_Line
            (Shared_Parser.Tree.Image
-              (Non_Grammar => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
-               Children    => Trace_Parse > Extra or Trace_Incremental_Parse > Extra));
+              (Shared_Parser.Tree.Shared_Stream,
+               Children     => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
+               Non_Grammar  => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
+               Augmented    => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
+               Line_Numbers => Trace_Parse > Extra or Trace_Incremental_Parse > Extra));
          Trace.New_Line;
       end if;
    end if;

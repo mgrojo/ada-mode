@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -584,7 +584,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             else
                if Config.Input_Stream.First = Bounded_Streams.No_Element then
                   if Inc_Shared_Stream_Token then
-                     Tree.Stream_Next (Config.Current_Shared_Token);
+                     Tree.Stream_Next_Terminal_Ref (Config.Current_Shared_Token);
                   end if;
                else
                   if Inc_Input_Stream_Token then

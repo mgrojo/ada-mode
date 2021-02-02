@@ -32,10 +32,6 @@ package WisiToken.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Line_Number_Type);
 
-   package Line_Pos_Vectors_AUnit is new Line_Pos_Vectors.Gen_AUnit
-     (Check_Index   => Check,
-      Check_Element => Check);
-
    function To_Base_Token_Array (Item : in Token_ID_Array) return Base_Token_Arrays.Vector;
 
    procedure Check (Label : in String; Computed, Expected : in Base_Token);

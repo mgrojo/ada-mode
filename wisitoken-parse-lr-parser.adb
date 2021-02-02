@@ -357,14 +357,20 @@ package body WisiToken.Parse.LR.Parser is
                 Recover   => (others => <>)));
 
             if Trace_Parse > Outline then
-               Put
-                 (Trace,
-                  " " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
+               if Trace_Parse <= Detail then
+                  Trace.Put_Line
+                    (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
+                       (if Trace_Parse_No_State_Numbers
+                        then "--"
+                        else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream))) &
+                       ": error: " & Shared_Parser.Tree.Image (Parser_State.Current_Token));
+               end if;
+               Trace.Put_Line
+                 (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
                     (if Trace_Parse_No_State_Numbers
                      then "--"
                      else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream))) & ": expecting: " &
                     Image (Expecting, Shared_Parser.Tree.Lexer.Descriptor.all));
-               Trace.New_Line;
             end if;
          end;
       end case;
@@ -724,7 +730,8 @@ package body WisiToken.Parse.LR.Parser is
             if Trace_Action > Extra then
                Parser.Trace.Put_Line
                  (Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": parse stream: " & Parser.Tree.Image
-                    (Parser_State.Stream, Children => True, Non_Grammar => True));
+                    (Parser_State.Stream, Children => True, Non_Grammar => True, Augmented => True,
+                     Line_Numbers => True));
             else
                Parser.Trace.Put_Line
                  (Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": root node: " & Parser.Tree.Image
