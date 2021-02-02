@@ -1339,7 +1339,7 @@ for parse errors. BEGIN, END is the parsed region."
       ;; go away soon as the user edits the code, so just return 0.
       (if (= wisi-debug 0)
 	  (setq indent 0)
-	(error "nil indent for line %d" (line-number-at-pos (point)))))
+	(error "error: nil indent for line %d" (line-number-at-pos (point)))))
 
     indent))
 

@@ -128,7 +128,8 @@ package Wisi is
      (Data                : in out Parse_Data_Type;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
-      Action_Region_Chars : in     WisiToken.Buffer_Region);
+      Action_Region_Chars : in     WisiToken.Buffer_Region;
+      End_Line            : in     WisiToken.Line_Number_Type);
    --  Reset for a new post-parse action, preserving data from previous parse.
 
    overriding procedure Reset (Data : in out Parse_Data_Type);
@@ -490,6 +491,13 @@ private
 
    overriding
    function Image_Augmented (Aug : in Augmented) return String;
+
+   overriding
+   procedure Shift
+     (Augmented   : in out Wisi.Augmented;
+      Shift_Bytes : in     WisiToken.Base_Buffer_Pos;
+      Shift_Chars : in     WisiToken.Base_Buffer_Pos;
+      Shift_Line  : in     WisiToken.Base_Line_Number_Type);
 
    type Augmented_Const_Ref (Element : not null access constant Augmented) is null record with
      Implicit_Dereference => Element;

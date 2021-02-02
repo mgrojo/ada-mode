@@ -15,6 +15,7 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
     replace debug-mode, trace-mckenzie, trace-action with verbosity string
     delete wisi-mckenzie-disable, -check-limit
     add incremental parse
+    increase command length to 4 digits
 
 ** New user custom variable wisi-incremental-parse-enable; when
    non-nil, wisi uses incremental parse.

@@ -213,6 +213,24 @@ package body Wisi is
       return -Result;
    end Image_Augmented;
 
+   overriding
+   procedure Shift
+     (Augmented   : in out Wisi.Augmented;
+      Shift_Bytes : in     Base_Buffer_Pos;
+      Shift_Chars : in     Base_Buffer_Pos;
+      Shift_Line  : in     Base_Line_Number_Type)
+   is begin
+      if Augmented.First_Indent_Line /= Invalid_Line_Number then
+         Augmented.First_Indent_Line := @ + Shift_Line;
+         Augmented.Last_Indent_Line := @ + Shift_Line;
+      end if;
+
+      if Augmented.First_Trailing_Comment_Line /= Invalid_Line_Number then
+         Augmented.First_Trailing_Comment_Line := @ + Shift_Line;
+         Augmented.Last_Trailing_Comment_Line := @ + Shift_Line;
+      end if;
+   end Shift;
+
    function Image (Anchor_IDs : in Anchor_ID_Vectors.Vector) return String
    is
       use Ada.Strings.Unbounded;
@@ -1257,10 +1275,9 @@ package body Wisi is
       End_Line            : in     Line_Number_Type;
       Begin_Indent        : in     Integer)
    is begin
-      --  + 1 for data on line following last line; see Lexer_To_Augmented.
       Data.Line_Paren_State.Set_First_Last
         (First   => Begin_Line,
-         Last    => End_Line + 1);
+         Last    => End_Line);
 
       Data.Post_Parse_Action   := Post_Parse_Action;
       Data.Action_Region_Bytes := Action_Region_Bytes;
@@ -1292,10 +1309,9 @@ package body Wisi is
    is begin
       Data.Trace := Trace;
 
-      --  + 1 for data on line following last line; see Lexer_To_Augmented.
       Data.Line_Paren_State.Set_First_Last
         (First   => WisiToken.Line_Number_Type'First,
-         Last    => End_Line + 1);
+         Last    => End_Line);
 
       Data.Indents.Set_First_Last
         (First   => WisiToken.Line_Number_Type'First,
@@ -1308,12 +1324,21 @@ package body Wisi is
      (Data                : in out Parse_Data_Type;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
-      Action_Region_Chars : in     WisiToken.Buffer_Region)
+      Action_Region_Chars : in     WisiToken.Buffer_Region;
+      End_Line            : in     WisiToken.Line_Number_Type)
    is begin
       Data.Post_Parse_Action   := Post_Parse_Action;
       Data.Action_Region_Bytes := Action_Region_Bytes;
       Data.Action_Region_Chars := Action_Region_Chars;
       Data.Begin_Indent        := 0;
+
+      Data.Line_Paren_State.Set_First_Last
+        (First   => WisiToken.Line_Number_Type'First,
+         Last    => End_Line);
+
+      Data.Indents.Set_First_Last
+        (First   => WisiToken.Line_Number_Type'First,
+         Last    => End_Line);
    end Reset_Post_Parse;
 
    overriding procedure Reset (Data : in out Parse_Data_Type)
@@ -1479,6 +1504,12 @@ package body Wisi is
       end loop;
 
       if Trace_Action > Detail then
+         Data.Trace.Put_Line
+           ("Tree.Root.line first, last:" & Tree.Line (Tree.Root)'Image & Tree.Line_Last (Tree.Root)'Image);
+         Data.Trace.Put_Line ("Tree.EOI.line:" & Tree.Line (Tree.EOI)'Image);
+         Data.Trace.Put_Line
+           ("Data.Line_Paren_State first, last" & Data.Line_Paren_State.First_Index'Image &
+              Data.Line_Paren_State.Last_Index'Image);
          Data.Trace.Put_Line ("Line_Paren_State: " & Image (Data.Line_Paren_State));
          --  We print the tree after all actions have executed, to include the
          --  effects of Reduce on augmented in nonterms.
@@ -1803,11 +1834,16 @@ package body Wisi is
       Nonterm : in     Syntax_Trees.Valid_Node_Access;
       Tokens  : in     Syntax_Trees.Node_Access_Array)
    is
-      Nonterm_Aug : constant Augmented_Access := new Augmented'(others => <>);
+      Nonterm_Aug : Augmented_Access := Augmented_Access (Tree.Augmented (Nonterm));
 
       Trailing_Comment_Done : Boolean := False;
    begin
-      Tree.Set_Augmented (Nonterm, Syntax_Trees.Augmented_Class_Access (Nonterm_Aug));
+      if Nonterm_Aug = null then
+         Nonterm_Aug := new Augmented'(others => <>);
+         Tree.Set_Augmented (Nonterm, Syntax_Trees.Augmented_Class_Access (Nonterm_Aug));
+      else
+         Nonterm_Aug.all := (others => <>);
+      end if;
 
       for I in reverse Tokens'Range loop
          --  'reverse' to find token containing trailing comments; last
@@ -2498,7 +2534,7 @@ package body Wisi is
       Params  : in     Indent_Param_Array)
    is begin
       if Trace_Action > Outline then
-         Data.Trace.Put_Line ("indent_action_0: " & Tree.Image (Nonterm, RHS_Index => True));
+         Data.Trace.Put_Line ("indent_action_0: " & Tree.Image (Nonterm, RHS_Index => True, Augmented => True));
       end if;
 
       for I in Tokens'Range loop
@@ -2665,7 +2701,8 @@ package body Wisi is
             Parser.Trace.Put_Line
               (Parser.Tree.Image
                  (Children    => True,
-                  Non_Grammar => True));
+                  Non_Grammar => True,
+                  Augmented   => True));
             Parser.Trace.New_Line;
          end if;
          Parser.Trace.Put_Line

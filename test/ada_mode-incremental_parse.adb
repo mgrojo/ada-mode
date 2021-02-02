@@ -1,4 +1,4 @@
---  Tests for incremental parser
+--  Initial test for incremental parser
 
 package body Ada_Mode.Incremental_Parse is
 

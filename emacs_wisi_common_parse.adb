@@ -76,7 +76,7 @@ package body Emacs_Wisi_Common_Parse is
 
    function Get_Command_Length return Integer
    is
-      Temp : aliased String (1 .. 3) := (others => ' '); -- initialize for error message
+      Temp : aliased String (1 .. 4) := (others => ' '); -- initialize for error message
    begin
       Read_Input (Temp'Address, Temp'Length);
       return Integer'Value (Temp);
@@ -481,8 +481,11 @@ package body Emacs_Wisi_Common_Parse is
                         Action_Region_Bytes =>
                           (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
                         Action_Region_Chars =>
-                          (Base_Buffer_Pos (Params.Begin_Char_Pos), Base_Buffer_Pos (Params.End_Char_Pos)));
+                          (Base_Buffer_Pos (Params.Begin_Char_Pos), Base_Buffer_Pos (Params.End_Char_Pos)),
+                        End_Line => Parser.Tree.Line (Parser.Tree.EOI));
+
                      Parse_Data.Parse_Language_Params (-Params.Language_Params);
+
                      Parser.Execute_Actions
                        (Action_Region_Bytes =>
                           (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)));

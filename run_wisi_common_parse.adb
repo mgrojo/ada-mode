@@ -47,6 +47,7 @@ package body Run_Wisi_Common_Parse is
       Put_Line ("post_parse_action: {Navigate | Face | Indent}");
       Put_Line ("refactor_action:");
       Parse_Data.Refactor_Help;
+      New_Line;
    end Usage_1;
 
    procedure Usage
@@ -339,6 +340,22 @@ package body Run_Wisi_Common_Parse is
                Changes,
                KMN_List);
 
+            if Ada.Strings.Unbounded.Length (Save_File_Name) > 0 then
+               declare
+                  use Ada.Text_IO;
+                  use Ada.Directories;
+                  Save_File : File_Type;
+               begin
+                  if Exists (-Save_File_Name) then
+                     Delete_File (-Save_File_Name);
+                  end if;
+                  Create (Save_File, Out_File, -Save_File_Name);
+                  Put (Save_File, Parse_Context.Text_Buffer (1 .. Parse_Context.Text_Buffer_Byte_Last));
+                  Close (Save_File);
+                  Save_File_Name := +"";
+               end;
+            end if;
+
             Parse_Data.Edit (KMN_List);
 
             Parser.Tree.Lexer.Reset_With_String_Access (Parse_Context.Text_Buffer, +Parser.Tree.Lexer.File_Name);
@@ -375,7 +392,8 @@ package body Run_Wisi_Common_Parse is
             Parse_Data.Reset_Post_Parse
               (Action,
                Action_Region_Bytes => (Begin_Byte_Pos, End_Byte_Pos),
-               Action_Region_Chars => (Begin_Char_Pos, End_Char_Pos));
+               Action_Region_Chars => (Begin_Char_Pos, End_Char_Pos),
+               End_Line            => Parser.Tree.Line (Parser.Tree.EOI));
 
             Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, End_Byte_Pos));
 
@@ -383,20 +401,7 @@ package body Run_Wisi_Common_Parse is
          end;
 
       when Save_Text =>
-         declare
-            use Ada.Directories;
-            use Ada.Text_IO;
-
-            Save_File_Name : constant String := Line (Last + 1 .. Line'Last);
-            Save_File : File_Type;
-         begin
-            if Exists (Save_File_Name) then
-               Delete_File (Save_File_Name);
-            end if;
-            Create (Save_File, Out_File, Save_File_Name);
-            Put (Save_File, Parse_Context.Text_Buffer (1 .. Parse_Context.Text_Buffer_Byte_Last));
-            Close (Save_File);
-         end;
+            Save_File_Name := +Line (Last + 1 .. Line'Last);
 
       when Verbosity =>
          WisiToken.Enable_Trace (Line (Last + 1 .. Line'Last));
@@ -610,7 +615,8 @@ package body Run_Wisi_Common_Parse is
                   Parse_Data.Reset_Post_Parse
                     (Cl_Params.Inc_Post_Parse_Action,
                      Action_Region_Bytes => (Cl_Params.Inc_Begin_Byte_Pos, Cl_Params.Inc_End_Byte_Pos),
-                     Action_Region_Chars => (Cl_Params.Inc_Begin_Char_Pos, Cl_Params.Inc_End_Char_Pos));
+                     Action_Region_Chars => (Cl_Params.Inc_Begin_Char_Pos, Cl_Params.Inc_End_Char_Pos),
+                     End_Line            => Parser.Tree.Line (Parser.Tree.EOI));
 
                   Parser.Execute_Actions
                     (Action_Region_Bytes => (Cl_Params.Inc_Begin_Byte_Pos, Cl_Params.Inc_End_Byte_Pos));

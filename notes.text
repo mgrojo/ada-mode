@@ -43,10 +43,13 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-incremental parse
-    add test case with deleted lines
+save_text writes with DOS line endings.
+    use something else
 
-    add test case with inserted lines
+incremental parse
+    test/ada_mode-incremented_delete_lines.adb passing
+
+    see wisitoken notes, FIXMEs
 
     add test case with two edits in one token
 
@@ -58,6 +61,7 @@ incremental parse
             could do that in ada, send current list of errors (aka diagnostics) on request?
 
 
+        Edit previous error correction, try that first
 
     post_parse navigate
         only need to edit changed caches?

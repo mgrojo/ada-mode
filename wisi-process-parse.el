@@ -221,8 +221,9 @@ complete. PARSE-END is end of desired parse region."
 		      (- (position-bytes send-end) (position-bytes begin)) ;; byte_count: send-end is after last byte
 		      (wisi-parse-format-language-options parser)
 		      ))
-	 (msg (format "%03d%s" (length cmd) cmd))
+	 (msg (format "%04d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
+
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
@@ -274,7 +275,7 @@ complete."
 		      ))
 		  (list (wisi-parse-format-language-options parser))
 		  )))
-	 (msg (format "%03d%s" (length cmd) cmd))
+	 (msg (format "%04d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
 
     (with-current-buffer (wisi-process--parser-buffer parser)
@@ -306,7 +307,7 @@ Does not wait for command to complete."
 		      end
 		      (wisi-parse-format-language-options parser)
 		      ))
-	 (msg (format "%03d%s" (length cmd) cmd))
+	 (msg (format "%04d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
 
     (with-current-buffer (wisi-process--parser-buffer parser)
@@ -331,8 +332,9 @@ one or more Edit messages."
 		      (position-bytes edit-begin)
 		      wisi-parser-verbosity
 		      ))
-	 (msg (format "%03d%s" (length cmd) cmd))
+	 (msg (format "%04d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
+
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
@@ -630,7 +632,7 @@ one or more Edit messages."
 		:message (format "%s:%d:%d: parser busy (try ’wisi-kill-parser’)"
 				 (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "") 1 1))
 	       ))
-	(error "parse abandoned; parser busy - use partial parse?")
+	(error "parse abandoned; parser busy")
 	)
 
     ;; It is not possible for a background elisp function (ie
@@ -649,6 +651,9 @@ one or more Edit messages."
     (setf (wisi-process--parser-total-wait-time parser) 0.0)
     (setf (wisi-parser-lexer-errors parser) nil)
     (setf (wisi-parser-parse-errors parser) nil)
+
+    ;; We don't erase the parser-buffer here, because we call --send*
+    ;; without --prepare in response to wisi-file_not_found.
     ))
 
 (defun wisi-process-parse--handle-messages (parser)
@@ -830,6 +835,7 @@ one or more Edit messages."
 	  (set-buffer source-buffer)
 	  )
 
+      ;; These do _not_ catch 'wisi-file_not_found
       (wisi-parse-error
        (set-buffer response-buffer)
        (wisi-parse-log-message parser (buffer-substring log-start (point)))
@@ -918,7 +924,7 @@ one or more Edit messages."
 	  (format "save_text \"%s\" \"%s\""
 		  (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		  save-file-name))
-	 (msg (format "%03d%s" (length cmd) cmd))
+	 (msg (format "%04d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
