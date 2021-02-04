@@ -2,8 +2,8 @@
 
 package body Ada_Mode.Incremental_Parse is
 
-   -- Edit a comment, invoke incremental parse
-   --EMACSCMD:(progn (end-of-line 0)(delete-char -5)(insert "parse")(wisi-indent-statement))
+   -- Edit a comment twice, invoke incremental parse
+   --EMACSCMD:(progn (beginning-of-line 0)(forward-word 3)(delete-char 6)(insert " twice")(forward-word 2)(delete-char 6)(insert " parse")(wisi-indent-statement))
 
    --EMACSCMD:(progn (end-of-line 2)(kill-line 2)(insert "\n is (Float (A));\n")(wisi-indent-statement))
    function Func_1 (A : in Integer) return Float

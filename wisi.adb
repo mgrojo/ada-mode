@@ -1266,23 +1266,19 @@ package body Wisi is
    end Image_Action;
 
    procedure Initialize_Partial_Parse
-     (Data                : in out Parse_Data_Type;
-      Trace               : in     WisiToken.Trace_Access;
-      Post_Parse_Action   : in     Post_Parse_Action_Type;
-      Action_Region_Bytes : in     WisiToken.Buffer_Region;
-      Action_Region_Chars : in     WisiToken.Buffer_Region;
-      Begin_Line          : in     Line_Number_Type;
-      End_Line            : in     Line_Number_Type;
-      Begin_Indent        : in     Integer)
+     (Data              : in out Parse_Data_Type;
+      Trace             : in     WisiToken.Trace_Access;
+      Post_Parse_Action : in     Post_Parse_Action_Type;
+      Begin_Line        : in     Line_Number_Type;
+      End_Line          : in     Line_Number_Type;
+      Begin_Indent      : in     Integer)
    is begin
       Data.Line_Paren_State.Set_First_Last
         (First   => Begin_Line,
          Last    => End_Line);
 
-      Data.Post_Parse_Action   := Post_Parse_Action;
-      Data.Action_Region_Bytes := Action_Region_Bytes;
-      Data.Action_Region_Chars := Action_Region_Chars;
-      Data.Trace               := Trace;
+      Data.Post_Parse_Action := Post_Parse_Action;
+      Data.Trace             := Trace;
 
       case Post_Parse_Action is
       when Navigate | Face =>
@@ -1369,6 +1365,11 @@ package body Wisi is
    is begin
       return Data.Post_Parse_Action;
    end Post_Parse_Action;
+
+   function Action_Region_Bytes (Data : in Parse_Data_Type) return WisiToken.Buffer_Region
+   is begin
+      return Data.Action_Region_Bytes;
+   end Action_Region_Bytes;
 
    overriding
    procedure Lexer_To_Augmented
@@ -2534,7 +2535,8 @@ package body Wisi is
       Params  : in     Indent_Param_Array)
    is begin
       if Trace_Action > Outline then
-         Data.Trace.Put_Line ("indent_action_0: " & Tree.Image (Nonterm, RHS_Index => True, Augmented => True));
+         Data.Trace.Put_Line
+           ("indent_action_0: " & Tree.Image (Nonterm, RHS_Index => True, Augmented => True, Line_Numbers => True));
       end if;
 
       for I in Tokens'Range loop
@@ -2555,7 +2557,8 @@ package body Wisi is
             begin
                if Trace_Action > Detail then
                   Data.Trace.Put_Line
-                    ("indent_action_0 code: " & Tree.Image (Tree_Token) & ": " & Image (Pair.Code_Delta));
+                    ("indent_action_0 code: " & Tree.Image (Tree_Token, Line_Numbers => True) & ": " &
+                       Image (Pair.Code_Delta));
                end if;
 
                if Token.Aug.First_Indent_Line /= Invalid_Line_Number then
@@ -2581,7 +2584,7 @@ package body Wisi is
                   if Comment_Param_Set then
                      if Trace_Action > Detail then
                         Data.Trace.Put_Line
-                          ("indent_action_0 comment: " & Tree.Image (Controlling_Token) & ": " &
+                          ("indent_action_0 comment: " & Tree.Image (Controlling_Token, Line_Numbers => True) & ": " &
                              Image (Comment_Param));
                      end if;
 
@@ -2700,9 +2703,10 @@ package body Wisi is
          if Trace_Action > Extra then
             Parser.Trace.Put_Line
               (Parser.Tree.Image
-                 (Children    => True,
-                  Non_Grammar => True,
-                  Augmented   => True));
+                 (Children     => True,
+                  Non_Grammar  => True,
+                  Augmented    => True,
+                  Line_Numbers => True));
             Parser.Trace.New_Line;
          end if;
          Parser.Trace.Put_Line

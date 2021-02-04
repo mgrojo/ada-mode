@@ -405,6 +405,10 @@ package body Run_Wisi_Common_Parse is
 
       when Verbosity =>
          WisiToken.Enable_Trace (Line (Last + 1 .. Line'Last));
+
+         if Trace_McKenzie > Detail then
+            Parser.Table.McKenzie_Param.Task_Count := 1;
+         end if;
       end case;
    end Process_Command;
 
@@ -479,15 +483,13 @@ package body Run_Wisi_Common_Parse is
          end if;
 
          case Cl_Params.Command is
-         when Parse_Partial        =>
+         when Parse_Partial      =>
             Parse_Data.Initialize_Partial_Parse
-              (Trace               => Parser.Trace,
-               Post_Parse_Action   => Cl_Params.Partial_Post_Parse_Action,
-               Action_Region_Bytes => (Cl_Params.Partial_Begin_Byte_Pos, Cl_Params.Partial_End_Byte_Pos),
-               Action_Region_Chars => (Cl_Params.Partial_Begin_Char_Pos, Cl_Params.Partial_End_Char_Pos),
-               Begin_Line          => Cl_Params.Partial_Begin_Line,
-               End_Line            => Cl_Params.End_Line,
-               Begin_Indent        => Cl_Params.Partial_Begin_Indent);
+              (Trace             => Parser.Trace,
+               Post_Parse_Action => Cl_Params.Partial_Post_Parse_Action,
+               Begin_Line        => Cl_Params.Partial_Begin_Line,
+               End_Line          => Cl_Params.End_Line,
+               Begin_Indent      => Cl_Params.Partial_Begin_Indent);
 
             Command_Options (Parser, Cl_Params, Arg);
             Parse_Data.Parse_Language_Params (-Cl_Params.Language_Params);
@@ -523,7 +525,13 @@ package body Run_Wisi_Common_Parse is
                      null;
                   end;
 
-                  Parser.Execute_Actions (Action_Region_Bytes => Null_Buffer_Region);
+                  Parse_Data.Reset_Post_Parse
+                    (Post_Parse_Action   => Cl_Params.Partial_Post_Parse_Action,
+                     Action_Region_Bytes => Parser.Tree.Byte_Region (Parser.Tree.Root),
+                     Action_Region_Chars => Parser.Tree.Char_Region (Parser.Tree.Root),
+                     End_Line            => Parser.Tree.Line_Last (Parser.Tree.EOI));
+
+                  Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
 
                   if Cl_Params.Repeat_Count = 1 then
                      Parse_Data.Put (Parser);

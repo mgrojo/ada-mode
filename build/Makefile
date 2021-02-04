@@ -77,7 +77,7 @@ install : install_executables
 #
 # 'package-initialize' is required for 'uniquify-files'.
 byte-compile : byte-compile-clean
-	cd ../; $(EMACS_EXE) -Q -batch -L . --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
+	cd ../; $(EMACS_EXE) -Q -batch -L . -l build/exclude-ada-mode.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
 
 byte-compile-clean :
 	cd ..; rm -f *.elc
@@ -97,7 +97,8 @@ summarize :
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
-ONE_TEST_FILES ?= ada_mode-incremental_parse.adb
+ONE_TEST_FILES ?= ada_mode-incremental_delete_lines.adb
+one :: IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 one :: build_executables
 one :: byte-compile autoloads
 #one :: compile-ada-test
@@ -111,7 +112,7 @@ one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
-two : RUN_ARGS ?= post_parse indent ../test/ada_mode-incremental_parse.adb 1 642 0 --verbosity "debug=1 action=2"
+two : RUN_ARGS ?= command_file ../debug.cmd ../test/ada_mode-incremental_delete_lines.adb
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 two : ../run_ada_lalr_parse.exe
 	../run_ada_lalr_parse.exe $(RUN_ARGS)
@@ -153,13 +154,13 @@ endif
 
 # WISITOKEN_GENERATE must be after WISITOKEN
 ifeq ($(TEST_DIR),source)
-# test with mtn controlled source
-ADA_MODE_DIR := -L .. -l autoloads.el
+# test with development source
+ADA_MODE_DIR := -L .. -l autoloads.el -l build/exclude-ada-mode.el
 WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 
 else
 # test with installed elpa package; don't rebuild grammars
-ADA_MODE_DIR := -f package-initialize
+ADA_MODE_DIR :=
 WISITOKEN_GENERATE :=
 endif
 

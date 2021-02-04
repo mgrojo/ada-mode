@@ -45,16 +45,12 @@ for ada_mode_wisi_parse.gpr:
  current work
 save_text writes with DOS line endings.
     use something else
+        gnatcoll.mmap?
 
 incremental parse
-    test/ada_mode-incremented_delete_lines.adb passing
+    need test with multiple inc_parse with recover  before post_parse
+        to show that Insert_Token/Delete_Token must be done in parse
 
-    see wisitoken notes, FIXMEs
-
-    add test case with two edits in one token
-
-    add recover_incremental
-        get some virtual tokens in there
         check that wisi-show-errors accumulates all errors
         but deletes them when fixed
             if parse succeeds, delete errors in regions parsed
@@ -62,6 +58,8 @@ incremental parse
 
 
         Edit previous error correction, try that first
+
+    see wisitoken notes, FIXMEs
 
     post_parse navigate
         only need to edit changed caches?

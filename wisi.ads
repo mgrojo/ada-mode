@@ -100,14 +100,12 @@ package Wisi is
    is (Parse_Data_Access (New_User_Data (Template)));
 
    procedure Initialize_Partial_Parse
-     (Data                : in out Parse_Data_Type;
-      Trace               : in     WisiToken.Trace_Access;
-      Post_Parse_Action   : in     Post_Parse_Action_Type;
-      Action_Region_Bytes : in     WisiToken.Buffer_Region;
-      Action_Region_Chars : in     WisiToken.Buffer_Region;
-      Begin_Line          : in     WisiToken.Line_Number_Type;
-      End_Line            : in     WisiToken.Line_Number_Type;
-      Begin_Indent        : in     Integer);
+     (Data              : in out Parse_Data_Type;
+      Trace             : in     WisiToken.Trace_Access;
+      Post_Parse_Action : in     Post_Parse_Action_Type;
+      Begin_Line        : in     WisiToken.Line_Number_Type;
+      End_Line          : in     WisiToken.Line_Number_Type;
+      Begin_Indent      : in     Integer);
    --  Begin_Line, Begin_Indent only used for Indent.
 
    procedure Initialize_Full_Parse
@@ -135,6 +133,7 @@ package Wisi is
    overriding procedure Reset (Data : in out Parse_Data_Type);
 
    function Post_Parse_Action (Data : in Parse_Data_Type) return Post_Parse_Action_Type;
+   function Action_Region_Bytes (Data : in Parse_Data_Type) return WisiToken.Buffer_Region;
 
    procedure Edit
      (Data  : in out Parse_Data_Type;
@@ -661,8 +660,8 @@ private
       --  Data for post-parse actions
 
       Post_Parse_Action   : Post_Parse_Action_Type;
-      Action_Region_Bytes : WisiToken.Buffer_Region;
-      Action_Region_Chars : WisiToken.Buffer_Region;
+      Action_Region_Bytes : WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region;
+      Action_Region_Chars : WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region;
       --  Actions are applied to tokens that overlap this region.
 
       Navigate_Caches   : Navigate_Cache_Trees.Tree;  -- Set by Navigate.

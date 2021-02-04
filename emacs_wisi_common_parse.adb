@@ -343,9 +343,6 @@ package body Emacs_Wisi_Common_Parse is
                      Parse_Data.Initialize_Partial_Parse
                        (Trace               => Parser.Trace,
                         Post_Parse_Action   => Params.Post_Parse_Action,
-                        Action_Region_Bytes =>
-                          (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
-                        Action_Region_Chars => (Params.Begin_Char_Pos, Params.End_Char_Pos),
                         Begin_Line          => Params.Begin_Line,
                         End_Line            => Params.End_Line,
                         Begin_Indent        => Params.Begin_Indent);
@@ -369,6 +366,13 @@ package body Emacs_Wisi_Common_Parse is
                      when Partial_Parse =>
                         null;
                      end;
+
+                     Parse_Data.Reset_Post_Parse
+                       (Params.Post_Parse_Action,
+                        Action_Region_Bytes =>
+                          (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
+                        Action_Region_Chars => (Params.Begin_Char_Pos, Params.End_Char_Pos),
+                        End_Line => Params.End_Line);
 
                      Parser.Execute_Actions (Action_Region_Bytes => Null_Buffer_Region);
                      Parse_Data.Put (Parser);

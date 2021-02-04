@@ -81,14 +81,12 @@ package Wisi.Ada is
 
    overriding
    procedure Initialize_Partial_Parse
-     (Data                : in out Parse_Data_Type;
-      Trace               : in     WisiToken.Trace_Access;
-      Post_Parse_Action   : in     Post_Parse_Action_Type;
-      Action_Region_Bytes : in     WisiToken.Buffer_Region;
-      Action_Region_Chars : in     WisiToken.Buffer_Region;
-      Begin_Line          : in     WisiToken.Line_Number_Type;
-      End_Line            : in     WisiToken.Line_Number_Type;
-      Begin_Indent        : in     Integer);
+     (Data              : in out Parse_Data_Type;
+      Trace             : in     WisiToken.Trace_Access;
+      Post_Parse_Action : in     Post_Parse_Action_Type;
+      Begin_Line        : in     WisiToken.Line_Number_Type;
+      End_Line          : in     WisiToken.Line_Number_Type;
+      Begin_Indent      : in     Integer);
    --  Call Wisi.Initialize_Partial_Parse, then do any other
    --  initialization that Data needs.
 
