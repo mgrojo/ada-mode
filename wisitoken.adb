@@ -323,7 +323,7 @@ package body WisiToken is
 
    function Image (Item : in Buffer_Region) return String
    is begin
-      return "(" & Trimmed_Image (Integer (Item.First)) & " ." & Buffer_Pos'Image (Item.Last) & ")";
+      return "(" & Trimmed_Image (Item.First) & " ." & Base_Buffer_Pos'Image (Item.Last) & ")";
    end Image;
 
    function "and" (Left, Right : in Buffer_Region) return Buffer_Region

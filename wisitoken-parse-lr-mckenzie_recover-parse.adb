@@ -688,9 +688,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
                         case Action.Verb is
                         when Shift =>
-                           pragma Assert
-                             (Config.Input_Stream.Length > 0,
-                              "FIXME: mckenzie_recover.parse handle nonterm in Shared_Stream");
+                           if Config.Input_Stream.Length = 0 then
+                              --  Current_Token is from Shared_Stream. We can't do Breakdown in
+                              --  Shared_Stream; that might invalidate other Config.Current_Token.
+                              --  So add token to Config.Input_Stream, then breakdown.
+                              Config.Input_Stream.Append (Current_Token.Element_Node);
+                              Tree.Stream_Next_Terminal_Ref (Config.Current_Shared_Token);
+                           end if;
 
                            Breakdown (Tree, Config.Input_Stream);
 

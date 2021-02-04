@@ -747,6 +747,22 @@ package WisiToken.Syntax_Trees is
      return Stream_Index
    with Pre => Tree.Contains (Stream, Element);
 
+   function Stream_Prev
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
+     return Rooted_Ref
+   with Pre => Valid_Stream_Node (Tree, Ref),
+     Post => Correct_Stream_Node (Tree, Stream_Prev'Result);
+   --  Return stream element before Ref.Element.
+
+   procedure Stream_Prev
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Stream_Node_Ref)
+   with Pre => Valid_Stream_Node (Tree, Ref),
+     Post => Correct_Stream_Node (Tree, Ref) and
+             (Ref = Invalid_Stream_Node_Ref or else Tree.Get_Node (Ref.Stream, Ref.Element) = Ref.Node);
+   --  Update Ref to root of stream element before Ref.Element.
+
    function Peek
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID;
@@ -826,7 +842,7 @@ package WisiToken.Syntax_Trees is
       Shift_Bytes : in Base_Buffer_Pos;
       Shift_Chars : in Base_Buffer_Pos;
       Shift_Line  : in Base_Line_Number_Type)
-   with Pre => Tree.Label (Node) = Source_Terminal;
+   with Pre => Tree.Label (Node) in Terminal_Label;
    --  Add Shift_* to token positions.
 
    procedure Stream_Delete
@@ -1261,6 +1277,12 @@ package WisiToken.Syntax_Trees is
    with Pre => (Tree.Parents_Set or Ref.Stream = Tree.Shared_Stream) and Valid_Terminal (Tree, Ref),
      Post => Correct_Stream_Node (Tree, Prev_Terminal'Result);
 
+   procedure Prev_Terminal
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Terminal_Ref)
+   with Pre => (Tree.Parents_Set or Ref.Stream = Tree.Shared_Stream) and Valid_Terminal (Tree, Ref),
+     Post => Correct_Stream_Node (Tree, Ref);
+
    function Next_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    with Pre => Tree.Has_Parent (Node) and Tree.Label (Node) in Terminal_Label,
      Post => Next_Terminal'Result = Invalid_Node_Access or else
@@ -1274,7 +1296,7 @@ package WisiToken.Syntax_Trees is
       Parents : in out Node_Stacks.Stack;
       Node    : in     Valid_Node_Access)
      return Node_Access
-   with Pre => not Tree.Has_Parent (Node) and Tree.Label (Node) in Terminal_Label,
+   with Pre => Tree.Label (Node) in Terminal_Label,
      Post => Next_Terminal'Result = Invalid_Node_Access or else
              Tree.Label (Next_Terminal'Result) in Terminal_Label;
    --  Same as Next_Terminal (Tree, Node), for nodes with unset parent
@@ -1570,6 +1592,12 @@ package WisiToken.Syntax_Trees is
    with Pre => not Tree.Traversing and Tree.Editable;
    --  Add a new Virtual_Terminal node with no parent, on no stream.
    --  Result points to the added node.
+
+   procedure Delete_Stream_Element
+     (Tree    : in out Syntax_Trees.Tree;
+      Stream  : in     Stream_ID;
+      Element : in out Stream_Index);
+   --  Delete Element from Stream; no nodes are deleted.
 
    procedure Delete_Subtree
      (Tree : in out Syntax_Trees.Tree;

@@ -325,6 +325,8 @@ package WisiToken is
       Last_Boundary  : in Boundary := Inclusive)
      return Boolean;
    --  True if Outer entirely contains Inner, according to Boundaries.
+   --
+   --  Note that any region contains Null_Buffer_Region.
 
    function Overlaps (A, B : in Buffer_Region) return Boolean;
    --  True if A and B have some positions in common.

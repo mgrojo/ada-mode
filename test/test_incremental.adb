@@ -477,7 +477,7 @@ package body Test_Incremental is
          Insert  => "" & ASCII.LF);
    end Insert_New_Line;
 
-   procedure Test_Names (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Names (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -502,7 +502,23 @@ package body Test_Incremental is
             Tree.Lexer.Buffer_Text (Tree.Name (Begin_Name_Node)),
             Tree.Lexer.Buffer_Text (Tree.Name (End_Name_Node)));
       end;
-   end Test_Names;
+   end Names;
+
+   procedure Recover_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Full parse uses error recovery to place missing return type.
+      --  Incremental parse fixes the error.
+      Parse_Text
+        (Initial =>
+           "function Func_1 (A : Integer) return " & ASCII.LF & -- missing "Integer"
+           --        |10       |20       |30
+           "is begin return 1; end;",
+         Edit_At => 38,
+         Delete  => "",
+         Insert  => "Integer");
+   end Recover_1;
 
    ----------
    --  Public subprograms
@@ -525,7 +541,8 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_8'Access, "Edit_Code_8");
       Register_Routine (T, Delete_New_Line'Access, "Delete_New_Line");
       Register_Routine (T, Insert_New_Line'Access, "Insert_New_Line");
-      Register_Routine (T, Test_Names'Access, "Test_Names");
+      Register_Routine (T, Names'Access, "Names");
+      Register_Routine (T, Recover_1'Access, "Recover_1");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

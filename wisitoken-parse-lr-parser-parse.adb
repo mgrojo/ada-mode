@@ -141,14 +141,13 @@ begin
                     (Parser_State, Tree);
                   pragma Assert
                     (Tree.Label (Next_Shared_Terminal.Node) = Syntax_Trees.Source_Terminal,
-                     "virtual terminal first in Next_Shared_Terminal");
+                     "virtual terminal first in Next_Shared_Terminal " & Tree.Image (Next_Shared_Terminal));
                   --  Next_Shared_Terminal should never be Virtual. There can be Virtual
                   --  terminals in the Shared_Stream from previous error recovery, but
                   --  if they are the first terminal in a Shared_Stream nonterminal,
-                  --  Edit_Tree Breakdown should have deleted them. There can be no
-                  --  Virtual terminals in the parse stream input; error recover does
-                  --  not push back over them, since recomputing them is a waste of
-                  --  time.
+                  --  Edit_Tree should have deleted them. There can be no Virtual
+                  --  terminals in the parse stream input; error recover does not push
+                  --  back over them, since recomputing them is a waste of time.
 
                   function Insert_Virtual return Boolean
                   is

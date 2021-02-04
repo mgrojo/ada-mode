@@ -1025,7 +1025,6 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("     }");
       Indent_Line ("   else");
       Indent_Line ("     ++lexer->char_pos;");
-      Indent_Line ("   if (*lexer->cursor == 0x0A) ++lexer->line;");
       Indent_Line ("} else ");
       Indent_Line ("   ++lexer->char_pos;");
       Indent := Indent - 3;
@@ -1104,10 +1103,7 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       Indent_Line ("lexer->byte_token_start = lexer->cursor;");
       Indent_Line ("lexer->char_token_start = lexer->char_pos;");
-      Indent_Line ("if (*lexer->cursor == 0x0A)");
-      Indent_Line ("   lexer->line_token_start = lexer->line-1;");
-      Indent_Line ("else");
-      Indent_Line ("   lexer->line_token_start = lexer->line;");
+      Indent_Line ("lexer->line_token_start = lexer->line;");
       New_Line;
 
       Indent_Line ("while (*id == -1 && status == 0)");
@@ -1160,16 +1156,16 @@ package body WisiToken.BNF.Output_Ada_Common is
             if Kind (Generate_Data, I) = "non-reporting" then
                Indent_Line (Name (Generate_Data, I) & " { lexer->byte_token_start = lexer->cursor;");
                Indent_Line ("    lexer->char_token_start = lexer->char_pos;");
-               Indent_Line ("    if (*lexer->cursor == 0x0A)");
-               Indent_Line ("       lexer->line_token_start = lexer->line-1;");
-               Indent_Line ("    else");
-               Indent_Line ("       lexer->line_token_start = lexer->line;");
+               Indent_Line ("    lexer->line_token_start = lexer->line;");
                Indent_Line ("    continue; }");
 
             elsif Kind (Generate_Data, I) = "delimited-text" then
                Indent_Line
-                    (Val & " {*id = " & WisiToken.Token_ID'Image (ID (I)) &
-                       "; skip_to(lexer, " & Repair_Image (Generate_Data, I) & "); continue;}");
+                 (Val & " {*id = " & WisiToken.Token_ID'Image (ID (I)) &
+                    "; skip_to(lexer, " & Repair_Image (Generate_Data, I) & "); continue;}");
+
+            elsif Kind (Generate_Data, I) = "new-line" then
+               Indent_Line (Val & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; lexer->line++; continue;}");
 
             elsif 0 /= Index (Source => Val, Pattern => "/") then
                Indent_Line (Val & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");

@@ -48,21 +48,21 @@ package WisiToken.Parse is
 
       Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List;
       --  For access by error recover.
-
-      Last_Grammar_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
-      --  Last grammar token returned from Lexer; for storing non_grammar
-      --  tokens in it.
-
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 
    function Source_File_Name (Item : in Base_Parser'Class) return String
    is (Item.Tree.Lexer.File_Name);
 
-   function Next_Grammar_Token (Parser : in out Base_Parser'Class) return Token_ID;
+   function Next_Grammar_Token
+     (Parser            : in out Base_Parser'Class;
+      Last_Grammar_Node : in out WisiToken.Syntax_Trees.Node_Access)
+     return Token_ID;
    --  Get next token from Lexer, call User_Data.Lexer_To_Augmented. If
    --  it is a grammar token, store in Parser.Tree (Stream) and return
-   --  its ID. Otherwise, repeat.
+   --  its ID. If is it a non_grammar token, store it in
+   --  Last_Grammar_Node.Non_Grammar or Parser.Tree.Non_Grammar, and
+   --  repeat.
    --
    --  Propagates Fatal_Error from Lexer.
 
