@@ -181,7 +181,7 @@ complete. PARSE-END is end of desired parse region."
   ;; Must match "full/partial parse" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Parse_Params.
   ;; Parse_Kind is always Partial here; that really means "legacy".
-  (let* ((cmd (format "parse 0 %d \"%s\" %d %d %d %d %d %d \"%s\" %d %d %d %d %d %d %d %s"
+  (let* ((cmd (format "parse 0 %d \"%s\" %d %d %d %d %d %d %d %d %d \"%s\" %d %d %d %d %d \"%s\""
 		      (cl-ecase parse-action
 			(navigate 0)
 			(face 1)
@@ -190,9 +190,10 @@ complete. PARSE-END is end of desired parse region."
 		      (position-bytes begin)
 		      (position-bytes send-end)
 		      (position-bytes (min (point-max) parse-end))
-		      begin ;; char_pos
+		      begin ;; begin_char_pos
+		      send-end ;; end_char_pos
 		      (line-number-at-pos begin)
-		      (line-number-at-pos (1- send-end))
+		      (line-number-at-pos send-end) ;; line-end (at EOI)
 
 		      ;; begin_indent. Example:
 		      ;;
@@ -620,8 +621,9 @@ one or more Edit messages."
 (declare-function wisi-elisp-lexer-reset "wisi-elisp-lexer")
 
 (defun wisi-process-parse--prepare (parser)
-  ;; font-lock can trigger a face parse while navigate or indent parse
-  ;; is active, due to ‘accept-process-output’ below. Signaling an
+  ;; font-lock can trigger a face parse via a timer delay while
+  ;; navigate or indent parse is active, due to
+  ;; ‘accept-process-output’ in w-p-p--handle-messages. Signaling an
   ;; error tells font-lock to try again later.
   (if (wisi-process--parser-busy parser)
       (progn
@@ -638,7 +640,7 @@ one or more Edit messages."
     ;; It is not possible for a background elisp function (ie
     ;; font-lock) to interrupt this code between checking and setting
     ;; parser-busy; background elisp can only run when we call
-    ;; accept-process-output below.
+    ;; accept-process-output in w-p-p--handle-messages.
     (setf (wisi-process--parser-busy parser) t)
 
     ;; If the parser process has not started yet,
@@ -898,17 +900,29 @@ one or more Edit messages."
 
 (cl-defmethod wisi-refactor ((parser wisi-process--parser) refactor-action stmt-begin stmt-end edit-begin)
   (wisi-process-parse--prepare parser)
+  (cond
+   (wisi-incremental-parse-enable
+    (when wisi--changes
+      (wisi-process-parse--send-incremental-parse parser nil)))
+
+   (t
+    ;; IMPROVEME: stmt-begin, stmt-end not used if only incremental supported.
+    (wisi-process-parse--send-parse parser 'navigate stmt-begin stmt-end stmt-end)
+    (wisi-process-parse--handle-messages parser)
+    (wisi-process-parse--prepare parser)
+    ))
+
   (wisi-process-parse--send-refactor parser refactor-action edit-begin)
   (condition-case-unless-debug _err
       (wisi-process-parse--handle-messages parser)
     ('wisi-file_not_found
+     ;; We must have wisi-incremental-parse-enable t, with no changes.
      (message "parsing buffer ...")
-     ;; FIXME: only if incremental enabled; otherwise do partial parse
      (wisi-process-parse--send-incremental-parse parser t)
-     (message "parsing buffer ... done")
-     (wisi-process-parse--send-refactor parser refactor-action edit-begin)
-     (wisi-process-parse--handle-messages parser)
-     )))
+     (message "parsing buffer ... done"))
+    (wisi-process-parse--send-refactor parser refactor-action edit-begin)
+    (wisi-process-parse--handle-messages parser)
+    ))
 
 ;;;;; debugging
 (defun wisi-process-parse-soft-kill (parser)

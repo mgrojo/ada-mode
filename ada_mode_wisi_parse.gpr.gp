@@ -73,28 +73,23 @@ project Ada_Mode_Wisi_Parse is
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Style_Checks &
-           Standard_Common.Compiler.Debug_Switches & "-gnat2020";
+           Standard_Common.Compiler.Debug_Switches;
 
          --  Generated files; lines too long, don't need debug
          for Switches ("ada_process_actions.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
 
          for Switches ("ada_process_main.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
-
-         for Switches ("gpr_process_actions.adb") use
-           Standard_Common.Compiler.Common_Switches &
-           Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
 
          for Switches ("gpr_process_main.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
 
          for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C;
 
@@ -102,22 +97,22 @@ project Ada_Mode_Wisi_Parse is
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Style_Checks &
-           Standard_Common.Compiler.Release_Switches & "-gnat2020";
+           Standard_Common.Compiler.Release_Switches;
 
          for Switches ("ada_process_actions.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
 
          for Switches ("ada_process_main.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
 
          for Switches ("gpr_process.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
 
          for Default_Switches ("C") use Standard_Common.Compiler.Release_Switches_C;
       end case;

@@ -57,8 +57,8 @@ package body Run_Wisi_Common_Parse is
       use Ada.Text_IO;
    begin
       Usage_1 (Wisi.Parse_Data_Type'Class (Parser.User_Data.all));
-      Put_Line ("partial parse params: begin_byte_pos end_byte_pos goal_byte_pos begin_char_pos begin_line" &
-                  " end_line begin_indent");
+      Put_Line ("partial parse params: begin_byte_pos end_byte_pos goal_byte_pos begin_char_pos end_char_pos" &
+                  " begin_line end_line begin_indent");
       Put_Line ("options:");
       Put_Line ("--verbosity <trace config>");
       Put_Line ("   0 - only report parse errors");
@@ -82,7 +82,7 @@ package body Run_Wisi_Common_Parse is
       Put_Line ("--max_parallel n  : set maximum count of parallel parsers" &
                   (if Parser.Table = null then ""
                    else "; default" & Parser.Table.Max_Parallel'Image));
-      Put_Line ("--task_count n : worker tasks in error recovery");
+      Put_Line ("--mckenzie_task_count n : worker tasks in error recovery");
       Put_Line ("--lang_params <language-specific params>");
       Put_Line ("--repeat_count n : repeat parse count times, for profiling; default 1");
       New_Line;
@@ -281,6 +281,10 @@ package body Run_Wisi_Common_Parse is
             raise SAL.Parameter_Error;
          end if;
       end loop;
+
+      if Trace_McKenzie > Detail then
+         Parser.Table.McKenzie_Param.Task_Count := 1;
+      end if;
    exception
    when SAL.Parameter_Error =>
       raise;
@@ -478,7 +482,11 @@ package body Run_Wisi_Common_Parse is
                   Lexer_Error := Parser.Tree.Lexer.Find_Next (Token);
                   exit when Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID;
                end loop;
-               Cl_Params.End_Line := Token.Line;
+               Cl_Params.End_Line       := Token.Line;
+               Cl_Params.Partial_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
+               Cl_Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
+               Cl_Params.Partial_End_Byte_Pos   := Token.Byte_Region.Last;
+               Cl_Params.Partial_End_Char_Pos   := Token.Char_Region.Last;
             end;
          end if;
 
@@ -527,9 +535,9 @@ package body Run_Wisi_Common_Parse is
 
                   Parse_Data.Reset_Post_Parse
                     (Post_Parse_Action   => Cl_Params.Partial_Post_Parse_Action,
-                     Action_Region_Bytes => Parser.Tree.Byte_Region (Parser.Tree.Root),
-                     Action_Region_Chars => Parser.Tree.Char_Region (Parser.Tree.Root),
-                     End_Line            => Parser.Tree.Line_Last (Parser.Tree.EOI));
+                     Action_Region_Bytes => (Cl_Params.Partial_Begin_Byte_Pos, Cl_Params.Partial_End_Byte_Pos),
+                     Action_Region_Chars => (Cl_Params.Partial_Begin_Char_Pos, Cl_Params.Partial_End_Char_Pos),
+                     End_Line            => Cl_Params.End_Line);
 
                   Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
 

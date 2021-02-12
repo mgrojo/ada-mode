@@ -1540,14 +1540,6 @@ package body Wisi is
 
       --  Set data that allows using Inserted_Token when computing indent.
 
-      --  Execute_Actions has already updated Data.Line_Begin_Token to
-      --  respect inserted and deleted tokens, assuming that all inserted
-      --  tokens go before Inserted_Before (ie Insert_After is False). It
-      --  has not moved non_grammars, because that is impossible to undo
-      --  here.
-      --
-      --  Thus we check First (Inserted_Token), not First (Inserted_Before).
-
       Indent_Line : constant Line_Number_Type :=
         (if Inserted_Before = Syntax_Trees.Invalid_Node_Access
          then Invalid_Line_Number
@@ -2244,7 +2236,7 @@ package body Wisi is
          if Overlaps (Tree.Byte_Region (Tokens (Param.Index)), Data.Action_Region_Bytes) then
             if Trace_Action > Outline then
                Data.Trace.Put_Line
-                 (";; face_apply_action: " & Image (Tree.Byte_Region (Tokens (Param.Index))) &
+                 ("face_apply_action: " & Image (Tree.Byte_Region (Tokens (Param.Index))) &
                     " " & Param.Prefix_Face'Image & " " & Param.Suffix_Face'Image);
             end if;
 
@@ -2725,7 +2717,7 @@ package body Wisi is
             end if;
          end loop;
          for Cache of Data.Name_Caches loop
-            if Cache in Data.Action_Region_Chars then
+            if Contains (Outer => Data.Action_Region_Chars, Inner => Cache) then
                Put (Cache);
             end if;
          end loop;
@@ -2822,7 +2814,7 @@ package body Wisi is
             Put_Line
               ('[' & Parser_Error_Code & Buffer_Pos'Image (Safe_Pos (Item.Error_Token.Node)) &
                  " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                 ", found '" & Image (Tree.ID (Item.Error_Token), Descriptor) & "'""]");
+                 ", found '" & Image (Tree.ID (Item.Error_Token.Node), Descriptor) & "'""]");
 
          when Parse.LR.User_Parse_Action =>
             Put_Line

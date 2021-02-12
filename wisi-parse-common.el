@@ -176,10 +176,10 @@ PARSE-ACTION is one of `wisi-post-parse-actions'. Buffer must
 have been previously parsed by `wisi-parse-current' or
 `wisi-parse-incremental'");
 
-(cl-defgeneric wisi-refactor ((parser wisi-parser) refactor-action stmt-begin stmt-end edit-begin)
-  "Perform REFACTOR-ACTION on region STMT-BEGIN STMT-END at point EDIT_BEGIN.
-No parse is performed. STMT-BEGIN STMT-END must be the statement
-or declaration containing EDIT_BEGIN.")
+(cl-defgeneric wisi-refactor ((parser wisi-parser) refactor-action stmt-start stmt-end edit-begin)
+  "Perform REFACTOR-ACTION at point EDIT_BEGIN.
+STMT-START, STMT-END are the start and end positions of the
+statement containing EDIT_BEGIN.")
 
 (cl-defgeneric wisi-parse-reset ((parser wisi-parser))
   "Ensure parser is ready to process a new parse.")
@@ -297,7 +297,7 @@ debug=1 lexer=1 parse=2 action=3"
   :type 'string
   :group 'wisi
   :safe 'stringp)
-(make-variable-buffer-local 'wisi-mckenzie-task-count)
+(make-variable-buffer-local 'wisi-parser-verbosity)
 
 (defcustom wisi-mckenzie-task-count nil
   "If integer, sets McKenzie error recovery task count.

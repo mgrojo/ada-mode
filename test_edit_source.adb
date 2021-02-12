@@ -592,7 +592,6 @@ package body Test_Edit_Source is
         "package body Ada_Mode.Incremental_Parse is" & ASCII.LF &
         --  |4    |10       |20       |30       |40
         "  -- preceding comment 1 " & ASCII.LF &
-        "  -- preceding comment 2 " & ASCII.LF &
         "  function Func_1 (A : in Integer) return Float;" & ASCII.LF &
         "end Ada_Mode.Incremental_Parse;" & ASCII.LF;
 
@@ -634,14 +633,14 @@ package body Test_Edit_Source is
          --  De-indent line 3
          Changes.Append
            ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start,
-             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start + 4,
-             Inserted_Text                                 => +"    ",
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start + 2,
+             Inserted_Text                                 => +"  ",
              Deleted_Bytes | Deleted_Chars                 => 0));
          Changes.Append
-           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start + 4,
-             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start + 4,
+           ((Begin_Byte_Pos | Begin_Char_Pos               => Line_3_Start + 2,
+             Inserted_End_Byte_Pos | Inserted_End_Char_Pos => Line_3_Start + 2,
              Inserted_Text                                 => +"",
-             Deleted_Bytes | Deleted_Chars                 => 5));
+             Deleted_Bytes | Deleted_Chars                 => 3));
       end;
 
       begin
@@ -664,6 +663,10 @@ package body Test_Edit_Source is
          raise;
       end;
 
+      if Trace_Tests > Detail then
+         Ada.Text_IO.Put_Line ("edited source:");
+         Ada.Text_IO.Put_Line (Source (1 .. Source_Byte_Last));
+      end if;
       Check ("source_byte_last", Source_Byte_Last, Expected_Source'Last);
       Check ("source_char_last", Source_Char_Last, Expected_Source'Last);
       Check ("source", Source (1 .. Source_Byte_Last), Expected_Source);

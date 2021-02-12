@@ -24,12 +24,14 @@ is
    function Local_Function_1 return Float;
    --EMACSRESULT:3
 
-   -- New parameter in a subpgrogram. See comment in
-   -- ada_mode-parens.adb Local_10 on hanging paren indent.
+   -- New parameter in a subpgrogram. See comment in ada_mode-parens.adb
+   -- Local_10 on hanging paren indent; this is new code, and there are
+   -- virtual tokens before ')', so it is indented according to those
+   -- tokens.
 
    --EMACSCMD:(progn (end-of-line 2)(forward-char -2)(insert ";")(wisi-indent-newline-indent) (current-column))
    procedure Local_Proc_1 (Param_1 : in Float);
-   --EMACSRESULT:26
+   --EMACSRESULT:27
 
    -- Clean up syntax errors so later tests work.
    --EMACSCMD:(progn (end-of-line -4)(delete-char -1))
@@ -121,7 +123,7 @@ begin
    then
       null;
    end if;
-   --EMACSRESULT:6
+   --EMACSRESULT:3
    --EMACSCMD:(progn (forward-line -8)(forward-word 1)(forward-char 1)(insert "(")(end-of-line 2)(insert "\n)")(indent-for-tab-command))
 
 end Ada_Mode.Interactive_2;

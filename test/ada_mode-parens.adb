@@ -70,11 +70,11 @@ package body Ada_Mode.Parens is
          "123" &
            "456" &
            "789"
-         -- There are conflicting requirements on indenting a hanging
-         -- right paren; when entering new code, we want it aligned
-         -- where the new code would be. When left hanging, we want it
-         -- aligned with the matching left paren. We choose the
-         -- latter, partly for backward compatibility.
+         -- There are conflicting requirements on indenting a hanging right
+         -- paren; when entering new code, we want it aligned where the new
+         -- code would be. When left hanging, we want it aligned with the
+         -- matching left paren. Here it is left hanging. See
+         -- ada_mode-interactive_2.adb for new code.
         );
 
       --  function call (actually type conversion, but it's the same indentation) in aggregate

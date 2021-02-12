@@ -857,7 +857,7 @@ Run the parser first if needed."
 	    (cond
 	     (partial-parse-p
 	      (let ((send-region (wisi-parse-expand-region wisi--parser begin parse-end)))
-		(setq parsed-region (wisi-parse-current wisi--parser (car send-region) (cdr send-region) parse-end))
+		(setq parsed-region (wisi-parse-current wisi--parser parse-action (car send-region) (cdr send-region) parse-end))
 		(wisi-cache-add-region parsed-region parse-action)))
 
 	     (wisi-incremental-parse-enable
@@ -870,7 +870,7 @@ Run the parser first if needed."
 	     (t ;; parse full buffer
 	      (setq parsed-region (cons (point-min) (point-max)))
 	      (wisi-cache-set-region
-	       (wisi-parse-current wisi--parser (point-min) (point-max) (point-max))
+	       (wisi-parse-current wisi--parser parse-action (point-min) (point-max) (point-max))
 	       parse-action))
 	     )
 

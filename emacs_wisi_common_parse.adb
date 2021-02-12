@@ -111,6 +111,9 @@ package body Emacs_Wisi_Common_Parse is
             elsif Next_Arg + 1 <= Argument_Count and then Argument (Next_Arg) = "--recover-log" then
                Result.Recover_Log_File_Name := Ada.Strings.Unbounded.To_Unbounded_String (Argument (Next_Arg + 1));
                Next_Arg := Next_Arg + 2;
+
+            else
+               raise Wisi.Protocol_Error with "invalid process arg '" & Argument (Next_Arg) & "'";
             end if;
          end loop;
       end return;
@@ -134,6 +137,7 @@ package body Emacs_Wisi_Common_Parse is
 
             Result.Goal_Byte_Pos        := Get_Integer (Command_Line, Last);
             Result.Begin_Char_Pos       := Buffer_Pos (Get_Integer (Command_Line, Last));
+            Result.End_Char_Pos         := Buffer_Pos (Get_Integer (Command_Line, Last));
             Result.Begin_Line           := Line_Number_Type (Get_Integer (Command_Line, Last));
             Result.End_Line             := Line_Number_Type (Get_Integer (Command_Line, Last));
             Result.Begin_Indent         := Get_Integer (Command_Line, Last);
@@ -143,6 +147,7 @@ package body Emacs_Wisi_Common_Parse is
             Result.Zombie_Limit         := Get_Integer (Command_Line, Last);
             Result.Enqueue_Limit        := Get_Integer (Command_Line, Last);
             Result.Max_Parallel         := Get_Integer (Command_Line, Last);
+            Result.Byte_Count           := Get_Integer (Command_Line, Last);
 
          when Incremental | Full =>
             Result.Source_File_Name := +Get_String (Command_Line, Last);
@@ -374,7 +379,7 @@ package body Emacs_Wisi_Common_Parse is
                         Action_Region_Chars => (Params.Begin_Char_Pos, Params.End_Char_Pos),
                         End_Line => Params.End_Line);
 
-                     Parser.Execute_Actions (Action_Region_Bytes => Null_Buffer_Region);
+                     Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
                      Parse_Data.Put (Parser);
 
                   when Incremental =>
@@ -490,9 +495,7 @@ package body Emacs_Wisi_Common_Parse is
 
                      Parse_Data.Parse_Language_Params (-Params.Language_Params);
 
-                     Parser.Execute_Actions
-                       (Action_Region_Bytes =>
-                          (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)));
+                     Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
                      Parse_Data.Put (Parser);
                   end;
                exception

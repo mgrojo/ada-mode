@@ -1,6 +1,6 @@
 --  Test for incremental parser with error recovery.
 
-package body Ada_Mode.Recover_Incremental is
+procedure Ada_Mode.Recover_Incremental_01 is
 
    --EMACSCMD:(progn (end-of-line 4)(delete-char -5)(wisi-indent-statement))
    --EMACSCMD:(progn (forward-line 3)(back-to-indentation)(current-column))
@@ -9,7 +9,9 @@ package body Ada_Mode.Recover_Incremental is
      is (Float (A));
    --EMACSCMD:(progn (end-of-line -1)(insert "Float"))
 
-end Ada_Mode.Recover_Incremental;
+begin
+   null;
+end Ada_Mode.Recover_Incremental_01;
 -- Local Variables:
 -- wisi-incremental-parse-enable: t
 -- End:

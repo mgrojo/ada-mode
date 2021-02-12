@@ -43,21 +43,23 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+running all tests
+    test/ada_mode-partial_parse.adb
+run-test-here: error: nil indent for line 2
+
+
 save_text writes with DOS line endings.
     use something else
         gnatcoll.mmap?
+        direct_io?
+        stream_io?
 
 incremental parse
-    need test with multiple inc_parse with recover  before post_parse
-        to show that Insert_Token/Delete_Token must be done in parse
+    wisi-show-errors show _all_ errors in buffer
+        if parse succeeds, delete errors in regions parsed
+        could do that in ada, send current list of errors (aka diagnostics) on request?
 
-        check that wisi-show-errors accumulates all errors
-        but deletes them when fixed
-            if parse succeeds, delete errors in regions parsed
-            could do that in ada, send current list of errors (aka diagnostics) on request?
-
-
-        Edit previous error correction, try that first
+    Edit previous error correction, try that first
 
     see wisitoken notes, FIXMEs
 

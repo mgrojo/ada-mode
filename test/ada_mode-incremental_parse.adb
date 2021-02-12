@@ -1,6 +1,7 @@
 --  Initial test for incremental parser
 
-package body Ada_Mode.Incremental_Parse is
+procedure Ada_Mode.Incremental_Parse
+is
 
    -- Edit a comment twice, invoke incremental parse
    --EMACSCMD:(progn (beginning-of-line 0)(forward-word 3)(delete-char 6)(insert " twice")(forward-word 2)(delete-char 6)(insert " parse")(wisi-indent-statement))
@@ -14,11 +15,13 @@ package body Ada_Mode.Incremental_Parse is
    -- error; error will be handled by requesting a full parse.
    --EMACSCMD:(progn (wisi-process-parse-soft-kill wisi--parser)(wisi-reset-parser))
 
-   --EMACSCMD:(progn (end-of-line 3)(kill-line 2)(insert "\n is (-A);\n"))
+   --EMACSCMD:(progn (end-of-line 3)(kill-line 2)(insert "\n is (-1);\n"))
    --EMACSCMD:(progn (end-of-line 3)(wisi-indent-statement))
    function Func_2 return Integer
-     is (-A);
+     is (-1);
 
+begin
+   null;
 end Ada_Mode.Incremental_Parse;
 -- Local Variables:
 -- wisi-incremental-parse-enable: t
