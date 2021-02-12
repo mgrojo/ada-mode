@@ -636,6 +636,8 @@ begin
       Trace.Put_Line (" " & Shared_Parser.Tree.Trimmed_Image (Shared_Parser.Parsers.First.Stream) & ": succeed");
    end if;
 
+   Finish_Parse (Shared_Parser);
+
    if Trace_Time then
       Trace.Put_Clock ("finish parse");
    end if;
@@ -644,7 +646,14 @@ begin
    --  recovered, either by inserting a quote, or by ignoring the
    --  character.
 exception
-when Syntax_Error | WisiToken.Parse_Error | Partial_Parse =>
+when Partial_Parse =>
+   Finish_Parse (Shared_Parser);
+   if Trace_Time then
+      Trace.Put_Clock ("finish partial parse");
+   end if;
+   raise;
+
+when Syntax_Error | WisiToken.Parse_Error =>
    if Trace_Time then
       Trace.Put_Clock ("finish - error");
    end if;

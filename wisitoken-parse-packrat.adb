@@ -72,7 +72,6 @@ package body WisiToken.Parse.Packrat is
          Parser.Trace.Put_Line ("root node: " & Parser.Tree.Image (Parser.Tree.Root));
       end if;
 
-      Parser.Tree.Clear_Parse_Streams;
       Parser.User_Data.Initialize_Actions (Parser.Tree);
       Process_Node (Parser.Tree, Parser.Tree.Root);
    exception

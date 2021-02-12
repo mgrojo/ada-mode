@@ -37,6 +37,9 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Check (Label & ".label", Computed.Label, Expected.Label);
       Check (Label & ".child_count", Computed.Child_Count, Expected.Child_Count);
       Check (Label & ".id", Computed.ID, Expected.ID);
+      if Computed.Node_Index > 0 then
+         Check (Label & ".node_index", Computed.Node_Index, Expected.Node_Index);
+      end if;
       Check (Label & ".byte_region", Computed.Byte_Region, Expected.Byte_Region);
       Check (Label & ".char_region", Computed.Char_Region, Expected.Char_Region);
       Check (Label & ".line", Computed.Line, Expected.Line);
@@ -156,8 +159,9 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       end loop;
 
       if Computed.Stream_Count = 0 and Computed.Root /= null then
-         --  If stream_count > 0, root is in one of the streams.
-         Check (Label, Computed.Root.all, Expected.Root.all, Parents => True);
+         --  If stream_count > 0, root and EOI are in one of the streams.
+         Check (Label & ".root", Computed.Root.all, Expected.Root.all, Parents => True);
+         Check (Label & ".eoi", Computed.EOI.all, Expected.EOI.all, Parents => True);
       end if;
    end Check;
 

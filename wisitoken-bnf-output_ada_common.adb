@@ -967,7 +967,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent := Indent + 3;
       Indent_Line ("lexer->cursor   = lexer->buffer;");
       Indent_Line ("lexer->char_pos = 1;");
-      Indent_Line ("lexer->line     = (*lexer->cursor == 0x0A) ? 2 : 1;");
+      Indent_Line ("lexer->line     = 1;");
       Indent := Indent - 3;
       Indent_Line ("}");
       New_Line;

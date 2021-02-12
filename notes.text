@@ -31,9 +31,10 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-wisitoken-parse-lr-parser.adb Execute_Actions:
-    FIXME: uses Parser_State.REcover_Insert_Delete, which is overridden by next parse!
-    Move to end of Parse, move Execute_Actions to wisitoken.parse
+add %no_error_recover, instead of detecting mckenzie /= default
+
+move Execute_Actions to wisitoken.parse?
+    lots of shared code
     add version that ignores action_region_bytes, for no_recover, packrat
 
 syntax_table find_new_line

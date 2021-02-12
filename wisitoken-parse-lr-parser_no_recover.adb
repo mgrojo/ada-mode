@@ -433,6 +433,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          end;
       end loop Main_Loop;
 
+      Shared_Parser.Tree.Clear_Parse_Streams;
+
       --  We don't raise Syntax_Error for lexer errors, since they are all
       --  recovered, either by inserting a quote, or by ignoring the
       --  character.
@@ -472,9 +474,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                      Parser.Trace.New_Line;
                   end if;
 
-                  raise WisiToken.Parse_Error with Error_Message
-                    (Parser.Tree.Lexer.File_Name, Parser.Tree.Line (Node), Parser.Tree.Column (Node),
-                     "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
+                  raise WisiToken.Parse_Error with Tree.Error_Message
+                    (Node, "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
                        Ada.Exceptions.Exception_Message (E));
                end;
             end if;
@@ -487,10 +488,6 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             raise Syntax_Error with "ambiguous parse; can't execute actions";
          end if;
 
-         --  FIXME: incremental reparse requires parse_streams. They are
-         --  cleared here because we are editing the tree; does that actually
-         --  invalidate the parse streams?
-         Parser.Tree.Clear_Parse_Streams;
          Parser.User_Data.Initialize_Actions (Parser.Tree);
          Parser.Tree.Process_Tree (Process_Node'Access);
       end if;

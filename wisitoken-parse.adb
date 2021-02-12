@@ -326,7 +326,8 @@ package body WisiToken.Parse is
             Unchanged_Loop :
             loop
                exit Unchanged_Loop when Terminal = Invalid_Stream_Node_Ref;
-               exit Unchanged_Loop when not Contains
+               exit Unchanged_Loop when Tree.ID (Terminal.Node) /= Tree.Lexer.Descriptor.EOI_ID and then
+                 not Contains
                  --  Virtual_Terminals have null byte_region so they are contained in
                  --  any region.
                  (Inner          => Tree.Byte_Region (Terminal.Node),
@@ -495,6 +496,7 @@ package body WisiToken.Parse is
                                  Lex_Start_Byte := Inserted_Region.First;
                                  Lex_Start_Char := Inserted_Region_Chars.First;
                                  Lex_Start_Line := Tree.Line (Terminal.Node) + Shift_Line;
+                                 Do_Scan        := True;
 
                                  if Last_Grammar.Node = Invalid_Node_Access then
                                     Prev_Token_ID := Tree.Lexer.Descriptor.New_Line_ID;
@@ -568,9 +570,29 @@ package body WisiToken.Parse is
                      declare
                         I         : Rooted_Ref := Tree.Stream_Prev (Terminal);
                         To_Delete : Stream_Index;
+
+                        procedure Delete
+                        is begin
+                           if Tree.Get_Node_Index (I.Stream, To_Delete) = Next_Terminal_Index - 1 then
+                              Next_Terminal_Index := @ - 1;
+                              --  IMPROVEME: if we are deleting multiple terminals, this will leave
+                              --  a gap in Node_Index, which is tolerated by the parser and error
+                              --  recovery.
+                           end if;
+
+                           if Trace_Incremental_Parse > Detail then
+                              Parser.Trace.Put_Line
+                                ("delete " & Tree.Image (To_Delete, Terminal_Node_Numbers => True));
+                           end if;
+                           Tree.Stream_Delete (I.Stream, To_Delete);
+
+                        end Delete;
+
                      begin
                         Delete_Virtuals_Loop :
                         loop
+                           exit Delete_Virtuals_Loop when I.Node = Invalid_Node_Access;
+
                            declare
                               Last_Term : constant Node_Access := Tree.Last_Terminal (I.Node);
                            begin
@@ -591,11 +613,7 @@ package body WisiToken.Parse is
                                           Tree.Breakdown (Temp);
                                           To_Delete := Temp.Element;
                                           I := Tree.Stream_Prev (Temp);
-                                          Tree.Delete_Stream_Element (I.Stream, To_Delete);
-
-                                          --  We do not adjust Next_Terminal_Index here (just to keep things
-                                          --  simple); we leave a gap in Node_Index, which is tolerated by the
-                                          --  parser and error recovery.
+                                          Delete;
                                        end if;
                                     end;
                                  else
@@ -605,7 +623,7 @@ package body WisiToken.Parse is
                               when Virtual_Terminal =>
                                  To_Delete := I.Element;
                                  Tree.Stream_Prev (I);
-                                 Tree.Delete_Stream_Element (I.Stream, To_Delete);
+                                 Delete;
 
                               when Virtual_Identifier =>
                                  raise SAL.Programmer_Error with "support virtual_identifier in edit_tree";
@@ -747,7 +765,26 @@ package body WisiToken.Parse is
             pragma Assert (New_Byte_Pos - Old_Byte_Pos = Shift_Bytes);
 
             KMN_Node := Next (KMN_Node);
-            exit KMN_Loop when not Has_Element (KMN_Node);
+
+            if not Has_Element (KMN_Node) then
+               if Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.EOI_ID and
+                 (KMN.Deleted_Bytes /= 0 or KMN.Inserted_Bytes /= 0)
+               then
+                  --  EOI moved, but there is no next KMN, so it won't be shifted by
+                  --  Unchanged_Loop.
+                  Tree.Shift (Terminal.Node, Shift_Bytes, Shift_Chars, Shift_Line);
+
+                  Tree.Set_Terminal_Index (Terminal.Node, Next_Terminal_Index);
+
+                  if Trace_Incremental_Parse > Detail then
+                     Parser.Trace.Put_Line
+                       ("stable shift " & Tree.Image
+                          (Terminal.Node, Terminal_Node_Numbers => True, Line_Numbers => True));
+                  end if;
+               end if;
+
+               exit KMN_Loop;
+            end if;
          end;
       end loop KMN_Loop;
 

@@ -442,9 +442,13 @@ package body WisiToken.Parse.LR.Parser is
    --
    --  Zombie_Count: count of parsers in Error state
    is
+      use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
+
       Shift_Count   : SAL.Base_Peek_Type := 0;
       Accept_Count  : SAL.Base_Peek_Type := 0;
       Resume_Active : Boolean            := False;
+
+      Min_Shared_Node_Index : Syntax_Trees.Node_Index := Syntax_Trees.Node_Index'Last;
    begin
       Zombie_Count := 0;
 
@@ -481,6 +485,12 @@ package body WisiToken.Parse.LR.Parser is
                else
                   Resume_Active := True;
                end if;
+            else
+               if Parser_State.Shared_Token /= Syntax_Trees.Invalid_Stream_Node_Ref then
+                  Min_Shared_Node_Index := Syntax_Trees.Node_Index'Min
+                    (@, Shared_Parser.Tree.Get_Node_Index
+                       (Shared_Parser.Tree.First_Shared_Terminal (Parser_State.Shared_Token).Node));
+               end if;
             end if;
 
          when Reduce =>
@@ -513,6 +523,16 @@ package body WisiToken.Parse.LR.Parser is
       if Resume_Active then
          for Parser_State of Shared_Parser.Parsers loop
             if Parser_State.Verb = Shift and not Parser_State.Resume_Active then
+               Parser_State.Set_Verb (Pause);
+            end if;
+         end loop;
+      else
+         for Parser_State of Shared_Parser.Parsers loop
+            if Parser_State.Shared_Token /= Syntax_Trees.Invalid_Stream_Node_Ref and then
+              (Parser_State.Verb = Shift and Min_Shared_Node_Index /=
+                 Shared_Parser.Tree.Get_Node_Index
+                   (Shared_Parser.Tree.First_Shared_Terminal (Parser_State.Shared_Token).Node))
+            then
                Parser_State.Set_Verb (Pause);
             end if;
          end loop;
@@ -614,6 +634,179 @@ package body WisiToken.Parse.LR.Parser is
          Check_Parser.Next;
       end if;
    end Check_Error;
+
+   procedure Finish_Parse (Parser : in out LR.Parser.Parser)
+   --  Final actions after LR accept state reached; call
+   --  User_Data.Insert_Token, Delete_Token.
+   is
+      use all type WisiToken.Syntax_Trees.User_Data_Access;
+      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
+   begin
+      --  We need parents set in the following code, and we also need
+      --  Recover_Op.Del_Node not yet free'd; later we need error_Token
+      --  nodes not free'd.
+      declare
+         Keep_Nodes : Syntax_Trees.Valid_Node_Access_Lists.List;
+      begin
+         for Error of Parser_State.Errors loop
+            case Error.Label is
+            when LR_Parse_Action =>
+               Error.Error_Token.Stream  := Syntax_Trees.Invalid_Stream_ID;
+               Error.Error_Token.Element := Syntax_Trees.Invalid_Stream_Index;
+
+               Keep_Nodes.Append (Error.Error_Token.Node);
+            when others =>
+               null;
+            end case;
+         end loop;
+
+         for Op of Parser_State.Recover_Insert_Delete loop
+            if Op.Op = Delete then
+               Keep_Nodes.Append (Op.Del_Node);
+            end if;
+         end loop;
+
+         Parser.Tree.Clear_Parse_Streams (Keep_Nodes);
+         Parser_State.Clear_Stream;
+      end;
+
+      declare
+         --  Clear Recover_Op Stream_ID, Stream_Index, compute
+         --  recover_op.Del_After_Node.
+         --
+         --  We do not move non_grammar from deleted tokens, because the user
+         --  code may want to do something different.
+
+         use Syntax_Trees;
+         Tree : Syntax_Trees.Tree renames Parser.Tree;
+
+         I                    : Node_Access        := Tree.First_Terminal (Tree.Root);
+         Last_Terminal        : Node_Access        := Invalid_Node_Access;
+         Last_Shared_Terminal : Node_Access        := Invalid_Node_Access;
+         Next_Shared_Terminal : Node_Access        := Tree.First_Shared_Terminal (Tree.Root);
+         J                    : SAL.Base_Peek_Type := Parser_State.Recover_Insert_Delete.First_Index;
+
+         Next_Delete_Index : Node_Index;
+
+         procedure Get_Next_Recover_Op
+         is begin
+            loop
+               if J > Parser_State.Recover_Insert_Delete.Last_Index then
+                  Next_Delete_Index := Invalid_Node_Index;
+                  exit;
+               end if;
+               declare
+                  Op : Recover_Op renames Parser_State.Recover_Insert_Delete.Constant_Ref (J);
+               begin
+                  case Op.Op is
+                  when Insert =>
+                     null;
+
+                  when Delete =>
+                     Next_Delete_Index := Op.Del_Index;
+                     exit;
+                  end case;
+               end;
+               J := J + 1;
+            end loop;
+         end Get_Next_Recover_Op;
+
+      begin
+         Get_Next_Recover_Op;
+
+         loop
+            loop
+               exit when Next_Delete_Index = Invalid_Node_Index;
+
+               if (Last_Shared_Terminal = Invalid_Node_Access or else
+                     Next_Delete_Index > Tree.Get_Node_Index (Last_Shared_Terminal)) and
+                 (Next_Shared_Terminal = Invalid_Node_Access or else
+                    Next_Delete_Index < Tree.Get_Node_Index (Next_Shared_Terminal))
+               then
+                  declare
+                     Op : Recover_Op renames Parser_State.Recover_Insert_Delete.Variable_Ref (J);
+                  begin
+                     pragma Assert (Op.Op = Delete);
+                     Op.Del_After_Node := Last_Terminal;
+                  end;
+               else
+                  exit;
+               end if;
+               J := J + 1;
+               Get_Next_Recover_Op;
+            end loop;
+
+            exit when I = Invalid_Node_Access;
+            --  There is no EOI in the parse tree.
+
+            case Tree.Label (I) is
+            when Source_Terminal =>
+               Last_Terminal        := I;
+               Last_Shared_Terminal := I;
+               Next_Shared_Terminal :=
+                 (if Tree.Has_Parent (I)
+                  then Tree.Next_Shared_Terminal (I)
+                  else Invalid_Node_Access);
+
+            when Virtual_Terminal =>
+               Last_Terminal := I;
+
+            when Virtual_Identifier =>
+               raise SAL.Programmer_Error with "Virtual_Identifier in parse tree";
+
+            when Nonterm =>
+               raise SAL.Programmer_Error with "Nonterm as Next_Terminal";
+            end case;
+
+            I := Tree.Next_Terminal (I);
+         end loop;
+      end;
+
+      if Trace_Action > Extra then
+         Parser.Trace.Put_Line
+           ("recover_insert_delete: " & Image (Parser_State.Recover_Insert_Delete, Parser.Tree));
+         Parser.Trace.New_Line;
+      end if;
+
+      if Parser.User_Data /= null then
+
+         --  In ada-mode, Delete_Token modifies Next_Terminal
+         --  (Deleted_Token).Augmented, which may be an inserted token; call
+         --  all Insert_Token before any Delete_Token.
+         for I in Parser_State.Recover_Insert_Delete.First_Index .. Parser_State.Recover_Insert_Delete.Last_Index
+         loop
+            declare
+               Op : Recover_Op renames Parser_State.Recover_Insert_Delete.Constant_Ref (I);
+            begin
+               case Op.Op is
+               when Insert =>
+                  Parser.User_Data.Insert_Token (Parser.Tree, Op.Ins_Node);
+                  Parser.Tree.Update_Ancestor_Cache (Op.Ins_Node);
+
+               when Delete =>
+                  null;
+               end case;
+            end;
+         end loop;
+
+         for I in Parser_State.Recover_Insert_Delete.First_Index .. Parser_State.Recover_Insert_Delete.Last_Index
+         loop
+            declare
+               Op : Recover_Op renames Parser_State.Recover_Insert_Delete.Variable_Ref (I);
+            begin
+               case Op.Op is
+               when Insert =>
+                  null;
+               when Delete         =>
+                  Parser.User_Data.Delete_Token
+                    (Parser.Tree,
+                     Deleted_Token => Op.Del_Node,
+                     Prev_Token    => Op.Del_After_Node);
+               end case;
+            end;
+         end loop;
+      end if;
+   end Finish_Parse;
 
    ----------
    --  Public subprograms, declaration order
@@ -721,7 +914,6 @@ package body WisiToken.Parse.LR.Parser is
       end if;
 
       declare
-         use Recover_Op_Arrays;
          use all type WisiToken.Syntax_Trees.Stream_ID;
 
          Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
@@ -738,158 +930,6 @@ package body WisiToken.Parse.LR.Parser is
                     (Parser.Tree.Root));
             end if;
          end if;
-
-         --  We do this here, not at the end of Parse, for compatibility with
-         --  existing tests. FIXME: move to end of Parse.
-         Parser.Tree.Clear_Parse_Streams;
-         Parser_State.Clear_Stream;
-
-         for Error of Parser_State.Errors loop
-            case Error.Label is
-            when LR_Parse_Action =>
-               Error.Error_Token.Stream  := Syntax_Trees.Invalid_Stream_ID;
-               Error.Error_Token.Element := Syntax_Trees.Invalid_Stream_Index;
-            when others =>
-               null;
-            end case;
-         end loop;
-
-         --  FIXME: uses Parser_State.REcover_Insert_Delete, which is overridden by next parse!
-         --  Move to end of Parse, move Execute_Actions to wisitoken.parse
-         declare
-            --  Clear Recover_Op Stream_ID, Stream_Index, compute
-            --  recover_op.Del_After_Node.
-            --
-            --  We do not move non_grammar from deleted tokens, because the user
-            --  code may want to do something different.
-
-            use Syntax_Trees;
-            Tree : Syntax_Trees.Tree renames Parser.Tree;
-
-            I                    : Node_Access        := Tree.First_Terminal (Tree.Root);
-            Last_Terminal        : Node_Access        := Invalid_Node_Access;
-            Last_Shared_Terminal : Node_Access        := Invalid_Node_Access;
-            Next_Shared_Terminal : Node_Access        := Tree.First_Shared_Terminal (Tree.Root);
-            J                    : SAL.Base_Peek_Type := Parser_State.Recover_Insert_Delete.First_Index;
-
-            Next_Delete_Index : Node_Index;
-
-            procedure Get_Next_Recover_Op
-            is begin
-               loop
-                  if J > Parser_State.Recover_Insert_Delete.Last_Index then
-                     Next_Delete_Index := Invalid_Node_Index;
-                     exit;
-                  end if;
-                  declare
-                     Op : Recover_Op renames Constant_Ref (Parser_State.Recover_Insert_Delete, J);
-                  begin
-                     case Op.Op is
-                     when Insert =>
-                        null;
-
-                     when Delete =>
-                        Next_Delete_Index := Op.Del_Index;
-                        exit;
-                     end case;
-                  end;
-                  J := J + 1;
-               end loop;
-            end Get_Next_Recover_Op;
-
-         begin
-            Get_Next_Recover_Op;
-
-            loop
-               loop
-                  exit when Next_Delete_Index = Invalid_Node_Index;
-
-                  if (Last_Shared_Terminal = Invalid_Node_Access or else
-                        Next_Delete_Index > Tree.Get_Node_Index (Last_Shared_Terminal)) and
-                    (Next_Shared_Terminal = Invalid_Node_Access or else
-                       Next_Delete_Index < Tree.Get_Node_Index (Next_Shared_Terminal))
-                  then
-                     declare
-                        Op : Recover_Op renames Parser_State.Recover_Insert_Delete.Variable_Ref (J);
-                     begin
-                        pragma Assert (Op.Op = Delete);
-                        Op.Del_After_Node := Last_Terminal;
-                     end;
-                  else
-                     exit;
-                  end if;
-                  J := J + 1;
-                  Get_Next_Recover_Op;
-               end loop;
-
-               exit when I = Invalid_Node_Access;
-               --  There is no EOI in the parse tree.
-
-               case Tree.Label (I) is
-               when Source_Terminal =>
-                  Last_Terminal        := I;
-                  Last_Shared_Terminal := I;
-                  Next_Shared_Terminal :=
-                    (if Tree.Has_Parent (I)
-                     then Tree.Next_Shared_Terminal (I)
-                     else Invalid_Node_Access);
-
-               when Virtual_Terminal =>
-                  Last_Terminal := I;
-
-               when Virtual_Identifier =>
-                  raise SAL.Programmer_Error with "Virtual_Identifier in parse tree";
-
-               when Nonterm =>
-                  raise SAL.Programmer_Error with "Nonterm as Next_Terminal";
-               end case;
-
-               I := Tree.Next_Terminal (I);
-            end loop;
-         end;
-
-         if Trace_Action > Extra then
-            Parser.Trace.Put_Line
-              ("recover_insert_delete: " & Image (Parser_State.Recover_Insert_Delete, Parser.Tree));
-            Parser.Trace.New_Line;
-         end if;
-
-         --  In ada-mode, Delete_Token modifies Next_Terminal
-         --  (Deleted_Token).Augmented, which may be an inserted token; call
-         --  all Insert_Token before any Delete_Token.
-         for I in First_Index (Parser_State.Recover_Insert_Delete) ..
-           Last_Index (Parser_State.Recover_Insert_Delete)
-         loop
-            declare
-               Op : Recover_Op renames Constant_Ref (Parser_State.Recover_Insert_Delete, I);
-            begin
-               case Op.Op is
-               when Insert =>
-                  Parser.User_Data.Insert_Token (Parser.Tree, Op.Ins_Node);
-
-               when Delete =>
-                  null;
-               end case;
-            end;
-         end loop;
-
-         for I in First_Index (Parser_State.Recover_Insert_Delete) ..
-           Last_Index (Parser_State.Recover_Insert_Delete)
-         loop
-            declare
-               Op : Recover_Op renames Constant_Ref (Parser_State.Recover_Insert_Delete, I);
-            begin
-               case Op.Op is
-               when Insert =>
-                  null;
-               when Delete         =>
-                  Parser.User_Data.Delete_Token
-                    (Parser.Tree,
-                     Deleted_Token => Op.Del_Node,
-                     Prev_Token    => Op.Del_After_Node);
-               end case;
-            end;
-         end loop;
 
          Parser.User_Data.Initialize_Actions (Parser.Tree);
 

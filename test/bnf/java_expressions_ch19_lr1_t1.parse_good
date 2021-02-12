@@ -266,7 +266,7 @@ recover: succeed, parser count 2
  1: 12: (-1, 17:(SEMICOLON, (348 . 348))) : shift and goto state 20
  2: resume_active: False
  1: resume_active: False
- 1: terminate (1 active): duplicate state: random (-1, 18:(RIGHT_CURLY_BRACKET, (349 . 349)))
+ 1: terminate (1 active): duplicate state: random (-1, 17:(SEMICOLON, (348 . 348)))
  2: 20: (-1, 18:(RIGHT_CURLY_BRACKET, (349 . 349))) : shift and goto state 48
  2: 48: (-1, 19:(LEFT_CURLY_BRACKET, (411 . 411))) : reduce 4 tokens to Statement
 (Statement_1, (343 . 349)) <= (14:(LEFT_CURLY_BRACKET, (343 . 343)), (StatementExpression, (345 . 347)), 17:(SEMICOLON, (348 . 348)), 18:(RIGHT_CURLY_BRACKET, (349 . 349)))

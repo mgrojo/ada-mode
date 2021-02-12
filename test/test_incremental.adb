@@ -131,13 +131,8 @@ package body Test_Incremental is
          Put_Line (Label & ":");
          Parser.Put_Errors;
 
-         Put_Line (" ... streams:");
-         Tree.Print_Streams (Non_Grammar => True);
-
-         if WisiToken.Trace_Tests > WisiToken.Detail then
-            Put_Line (" ... tree:");
-            Tree.Print_Tree (Non_Grammar => True);
-         end if;
+         Put_Line (" ... tree:");
+         Tree.Print_Tree (Non_Grammar => True);
       end Put_Tree;
 
    begin
@@ -275,7 +270,7 @@ package body Test_Incremental is
 
    end Edit_Comment;
 
-   procedure Edit_Comment_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Whitespace (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -286,9 +281,9 @@ package body Test_Incremental is
            "   --  A comment" & ASCII.LF &
            --  |20       |30
            "   function Bar return Integer;" & ASCII.LF &
-           --  |34   |40       |50       |60
+           --     |40       |50       |60
            "end Test;",
-           --  |65
+           --   |70
          Edit_At   => 19,
          Delete    => " ",
          Insert    => "",
@@ -296,7 +291,7 @@ package body Test_Incremental is
          Delete_2  => " ",
          Insert_2  => "");
 
-   end Edit_Comment_2;
+   end Edit_Whitespace;
 
    procedure Edit_Leading_Non_Grammar (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -529,7 +524,7 @@ package body Test_Incremental is
    begin
       Register_Routine (T, No_Change'Access, "No_Change");
       Register_Routine (T, Edit_Comment'Access, "Edit_Comment");
-      Register_Routine (T, Edit_Comment_2'Access, "Edit_Comment_2");
+      Register_Routine (T, Edit_Whitespace'Access, "Edit_Whitespace");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");
       Register_Routine (T, Edit_Code_1'Access, "Edit_Code_1");
       Register_Routine (T, Edit_Code_2'Access, "Edit_Code_2");

@@ -560,17 +560,17 @@ package WisiToken.Parse.LR is
          --  parse is complete.
 
       when Delete =>
-         Del_ID : Token_ID;
+         Del_ID : Token_ID := Invalid_Token_ID;
          --  The token ID deleted; a terminal token. IMPROVEME: allow delete nonterm?
 
-         Del_Index : Syntax_Trees.Node_Index;
+         Del_Index : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
          --  Token at Del_Index is deleted; used by parser to skip the token.
 
-         Del_Node : Syntax_Trees.Node_Access;
+         Del_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
          --  Del_Node is deleted; used by post-parse actions to adjust for the
          --  deleted token.
 
-         Del_After_Node : Syntax_Trees.Node_Access;
+         Del_After_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
          --  Previous terminal (shared or virtual) in parse stream; used by
          --  post-parse actions to adjust for the deleted token.
       end case;
