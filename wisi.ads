@@ -104,8 +104,7 @@ package Wisi is
       Trace             : in     WisiToken.Trace_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type;
-      Begin_Indent      : in     Integer);
+      End_Line          : in     WisiToken.Line_Number_Type);
    --  Begin_Line, Begin_Indent only used for Indent.
 
    procedure Initialize_Full_Parse
@@ -127,7 +126,8 @@ package Wisi is
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
       Action_Region_Chars : in     WisiToken.Buffer_Region;
-      End_Line            : in     WisiToken.Line_Number_Type);
+      End_Line            : in     WisiToken.Line_Number_Type;
+      Begin_Indent        : in     Integer);
    --  Reset for a new post-parse action, preserving data from previous parse.
 
    overriding procedure Reset (Data : in out Parse_Data_Type);
@@ -169,16 +169,21 @@ package Wisi is
    overriding
    procedure Delete_Token
      (Data          : in out Parse_Data_Type;
-      Tree          : in out WisiToken.Syntax_Trees.Tree'Class;
+      Tree          : in     WisiToken.Syntax_Trees.Tree'Class;
       Deleted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Prev_Token    : in     WisiToken.Syntax_Trees.Node_Access);
 
    overriding
+   procedure Delete_Token
+     (Data      : in out Parse_Data_Type;
+      Tree      : in     WisiToken.Syntax_Trees.Tree'Class;
+      To_Delete : in     WisiToken.Syntax_Trees.Terminal_Ref);
+
+   overriding
    procedure Reduce
      (Data    : in out Parse_Data_Type;
-      Tree    : in out WisiToken.Syntax_Trees.Tree'Class;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     WisiToken.Syntax_Trees.Node_Access_Array);
+      Tree    : in     WisiToken.Syntax_Trees.Tree'Class;
+      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access);
 
    type Navigate_Class_Type is (Motion, Statement_End, Statement_Override, Statement_Start, Misc);
    --  Matches [1] wisi-class-list.

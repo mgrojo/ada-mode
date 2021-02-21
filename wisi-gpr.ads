@@ -39,13 +39,16 @@ package Wisi.Gpr is
    type Parse_Data_Type is new Wisi.Parse_Data_Type with null record;
 
    overriding
+   function New_User_Data (Template : in Parse_Data_Type) return WisiToken.Syntax_Trees.User_Data_Access
+   is (new Parse_Data_Type);
+
+   overriding
    procedure Initialize_Partial_Parse
-     (Data                : in out Parse_Data_Type;
-      Trace               : in     WisiToken.Trace_Access;
-      Post_Parse_Action   : in     Post_Parse_Action_Type;
-      Begin_Line          : in     WisiToken.Line_Number_Type;
-      End_Line            : in     WisiToken.Line_Number_Type;
-      Begin_Indent        : in     Integer);
+     (Data              : in out Parse_Data_Type;
+      Trace             : in     WisiToken.Trace_Access;
+      Post_Parse_Action : in     Post_Parse_Action_Type;
+      Begin_Line        : in     WisiToken.Line_Number_Type;
+      End_Line          : in     WisiToken.Line_Number_Type);
    --  Call Wisi_Runtime.Initialize, also do any other initialization
    --  that Gpr_Data needs.
 

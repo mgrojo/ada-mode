@@ -323,6 +323,11 @@ PARSE-RESULT must be the result of `syntax-ppss'."
       (wisi-goto-open-paren)
     (error
      (user-error "Not in parameter list")))
+  (when (not (looking-back "^[ \t]*" (line-beginning-position)))
+    ;;  Left paren after code; ensure nominal spacing. See
+    ;;  test/ada_mode-parens.adb If_Statement.
+    (delete-horizontal-space)
+    (insert " "))
   (funcall indent-line-function); so reformatted list is indented properly
   (ada-refactor ada-refactor-format-paramlist))
 

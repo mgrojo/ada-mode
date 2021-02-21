@@ -186,7 +186,7 @@ complete. PARSE-END is end of desired parse region."
 			(navigate 0)
 			(face 1)
 			(indent 2))
-		      (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
+		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		      (position-bytes begin)
 		      (position-bytes send-end)
 		      (position-bytes (min (point-max) parse-end))
@@ -449,22 +449,28 @@ one or more Edit messages."
   ;; sexp is [Check_Error code name-1-pos name-2-pos <string>]
   ;; see ‘wisi-process-parse--execute’
   (let* ((name-1-pos (aref sexp 2))
-	(name-1-col (1+ (progn (goto-char name-1-pos)(current-column)))) ;; gnat columns are 1 + emacs columns
-	(name-2-pos (aref sexp 3))
-	(name-2-col (1+ (progn (goto-char name-2-pos)(current-column))))
-	(file-name (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) ""))
-	;; file-name can be nil during vc-resolve-conflict
-	(err (make-wisi--parse-error
-	      :pos (copy-marker name-1-pos)
-	      :pos-2 (copy-marker name-2-pos)
-	      :message
-	      (format "%s:%d:%d: %s %s:%d:%d"
-		      file-name (line-number-at-pos name-1-pos) name-1-col
-		      (aref sexp 4)
-		      file-name (line-number-at-pos name-2-pos) name-2-col)))
-	)
+	 (column-at-pos (lambda (pos) (goto-char pos)(current-column)))
+	 (name-2-pos (aref sexp 3))
+	 (file-name (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")))
+    ;; file-name can be nil during vc-resolve-conflict
 
-    (push err (wisi-parser-parse-errors parser))
+    (when (= 0 name-1-pos)
+      (setq name-1-pos name-2-pos)
+      (setq name-2-pos 0))
+
+
+    (push (make-wisi--parse-error
+	   :pos (copy-marker name-1-pos)
+	   :pos-2 (copy-marker name-2-pos)
+	   :message
+	   (format
+	    (concat "%s:%d:%d: %s"
+		    (when (> 0 name-2-pos) " %s:%d:%d"))
+	    file-name (line-number-at-pos name-1-pos) (funcall column-at-pos name-1-pos)
+	    (aref sexp 4)
+	    (when (> 0 name-2-pos)
+	      file-name (line-number-at-pos name-2-pos) (funcall column-at-pos name-2-pos))))
+	  (wisi-parser-parse-errors parser))
     ))
 
 (defun wisi-process-parse--find-err (pos errors)
@@ -553,23 +559,26 @@ one or more Edit messages."
   ;;    error reported during a parse.
   ;;
   ;; [Check_Error code name-1-pos name-2-pos <string>]
-  ;;    The parser detected a semantic check error; save information
-  ;;    for later reporting.
+  ;;    The parser detected an in-parse action error; save information
+  ;;    for later reporting. Either of the name-*-pos may be 0,
+  ;;    indicating a missing name.
   ;;
   ;;    If error recovery is successful, there can be more than one
   ;;    error reported during a parse.
   ;;
-  ;; [Recover [pos [inserted] [deleted] deleted-region]...]
+  ;; [Recover [error-pos edit-pos [inserted] [deleted] deleted-region]...]
   ;;    The parser finished a successful error recovery.
   ;;
-  ;;    pos: Buffer position
+  ;;    error-pos: Buffer position where error was detected
+  ;;
+  ;;    edit-pos: Buffer position of inserted/deleted tokens
   ;;
   ;;    inserted: Virtual tokens (terminal or non-terminal) inserted
-  ;;    before pos.
+  ;;    before edit-pos.
   ;;
-  ;;    deleted: Tokens deleted after pos.
+  ;;    deleted: Tokens deleted after edit-pos.
   ;;
-  ;;    deleted-region: source buffer region containing deleted tokens
+  ;;    deleted-region: source buffer char region containing deleted tokens
   ;;
   ;;    Args are token ids; index into parser-token-table. Save the
   ;;    information for later use by ’wisi-repair-error’.

@@ -397,7 +397,8 @@ package body Run_Wisi_Common_Parse is
               (Action,
                Action_Region_Bytes => (Begin_Byte_Pos, End_Byte_Pos),
                Action_Region_Chars => (Begin_Char_Pos, End_Char_Pos),
-               End_Line            => Parser.Tree.Line (Parser.Tree.EOI));
+               End_Line            => Parser.Tree.Line (Parser.Tree.EOI),
+               Begin_Indent        => 0);
 
             Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, End_Byte_Pos));
 
@@ -482,11 +483,25 @@ package body Run_Wisi_Common_Parse is
                   Lexer_Error := Parser.Tree.Lexer.Find_Next (Token);
                   exit when Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID;
                end loop;
-               Cl_Params.End_Line       := Token.Line;
-               Cl_Params.Partial_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
-               Cl_Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
-               Cl_Params.Partial_End_Byte_Pos   := Token.Byte_Region.Last;
-               Cl_Params.Partial_End_Char_Pos   := Token.Char_Region.Last;
+
+               Cl_Params.End_Line := Token.Line;
+
+               case Cl_Params.Command is
+               when Parse_Partial =>
+                  Cl_Params.Partial_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
+                  Cl_Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
+                  Cl_Params.Partial_End_Byte_Pos   := Token.Byte_Region.Last;
+                  Cl_Params.Partial_End_Char_Pos   := Token.Char_Region.Last;
+
+               when Parse_Incremental =>
+                  Cl_Params.Inc_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
+                  Cl_Params.Inc_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
+                  Cl_Params.Inc_End_Byte_Pos   := Token.Byte_Region.Last;
+                  Cl_Params.Inc_End_Char_Pos   := Token.Char_Region.Last;
+
+               when Refactor | Command_File =>
+                  null;
+               end case;
             end;
          end if;
 
@@ -496,8 +511,7 @@ package body Run_Wisi_Common_Parse is
               (Trace             => Parser.Trace,
                Post_Parse_Action => Cl_Params.Partial_Post_Parse_Action,
                Begin_Line        => Cl_Params.Partial_Begin_Line,
-               End_Line          => Cl_Params.End_Line,
-               Begin_Indent      => Cl_Params.Partial_Begin_Indent);
+               End_Line          => Cl_Params.End_Line);
 
             Command_Options (Parser, Cl_Params, Arg);
             Parse_Data.Parse_Language_Params (-Cl_Params.Language_Params);
@@ -537,7 +551,8 @@ package body Run_Wisi_Common_Parse is
                     (Post_Parse_Action   => Cl_Params.Partial_Post_Parse_Action,
                      Action_Region_Bytes => (Cl_Params.Partial_Begin_Byte_Pos, Cl_Params.Partial_End_Byte_Pos),
                      Action_Region_Chars => (Cl_Params.Partial_Begin_Char_Pos, Cl_Params.Partial_End_Char_Pos),
-                     End_Line            => Cl_Params.End_Line);
+                     End_Line            => Cl_Params.End_Line,
+                     Begin_Indent        => Cl_Params.Partial_Begin_Indent);
 
                   Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
 
@@ -632,7 +647,8 @@ package body Run_Wisi_Common_Parse is
                     (Cl_Params.Inc_Post_Parse_Action,
                      Action_Region_Bytes => (Cl_Params.Inc_Begin_Byte_Pos, Cl_Params.Inc_End_Byte_Pos),
                      Action_Region_Chars => (Cl_Params.Inc_Begin_Char_Pos, Cl_Params.Inc_End_Char_Pos),
-                     End_Line            => Parser.Tree.Line (Parser.Tree.EOI));
+                     End_Line            => Parser.Tree.Line (Parser.Tree.EOI),
+                     Begin_Indent        => 0);
 
                   Parser.Execute_Actions
                     (Action_Region_Bytes => (Cl_Params.Inc_Begin_Byte_Pos, Cl_Params.Inc_End_Byte_Pos));

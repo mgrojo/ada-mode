@@ -111,6 +111,20 @@ procedure Ada_Mode.Conditional_Expressions is
               + 2) = 3);
 
    L : Integer := L0;
+
+   M1 : String :=
+     A &
+     B &
+     (case C is
+         when A => "a",
+         when B => "b",
+         when Z =>
+            "z" &
+              "foo" &
+              (case C is
+                  when A => "a",
+                  when B | Z => "other"));
+
 begin
    K := (if K < 0 then 42 elsif K = 0 then 43 else
            (if J > 42 then 44 else 45));

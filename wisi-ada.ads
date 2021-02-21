@@ -85,8 +85,7 @@ package Wisi.Ada is
       Trace             : in     WisiToken.Trace_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type;
-      Begin_Indent      : in     Integer);
+      End_Line          : in     WisiToken.Line_Number_Type);
    --  Call Wisi.Initialize_Partial_Parse, then do any other
    --  initialization that Data needs.
 
@@ -109,6 +108,7 @@ package Wisi.Ada is
       Tree                 : in     WisiToken.Syntax_Trees.Tree'Class;
       Insert_Token         : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Insert_Before_Token  : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Comment_Present      : in     Boolean;
       Insert_On_Blank_Line : in     Boolean)
      return Boolean;
 

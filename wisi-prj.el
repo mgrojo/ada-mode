@@ -547,9 +547,14 @@ COLUMN - Emacs column of the start of the identifier")
 
 ;;;; wisi-prj specific methods
 
-(cl-defmethod project-roots ((_project wisi-prj))
-  ;; Not meaningful
-  nil)
+;; FIXME: obsolete, but default definition is recursive with project-root
+;; needed in emacs < 28?
+;; (cl-defmethod project-roots ((_project wisi-prj))
+;;   ;; Not meaningful
+;;   nil)
+(cl-defmethod project-root ((_project wisi-prj))
+   ;; Not meaningful
+   nil)
 
 (cl-defmethod project-files ((project wisi-prj) &optional dirs)
   (let (result)

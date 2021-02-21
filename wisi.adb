@@ -40,6 +40,75 @@ package body Wisi is
    ----------
    --  body subprograms bodies, alphabetical
 
+   procedure Update_Indent_Lines
+     (Tree          : in     Syntax_Trees.Tree'Class;
+      Deleted_Tok   : in     WisiToken.Base_Token;
+      Deleted_Aug   : in out Augmented_Var_Ref;
+      Prev_Token    : in     Syntax_Trees.Node_Access;
+      Next_Token    : in     Syntax_Trees.Node_Access;
+      Prev_Modified : in out Boolean)
+   is
+      use all type WisiToken.Syntax_Trees.Node_Access;
+
+      Next_Modified : Boolean := False;
+   begin
+      if (Prev_Token = Syntax_Trees.Invalid_Node_Access or else
+           Tree.Base_Token (Prev_Token).Line < Deleted_Tok.Line) and
+        (Next_Token = Syntax_Trees.Invalid_Node_Access or else
+           Tree.Base_Token (Next_Token).Line > Deleted_Tok.Line)
+      then
+         --  Deleted_Tok.Line is now blank; add to previous token indent range
+         if Prev_Token /= Syntax_Trees.Invalid_Node_Access then
+            Prev_Modified := True;
+            declare
+               Prev_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Prev_Token);
+            begin
+               if Prev_Aug.First_Trailing_Comment_Line = Invalid_Line_Number then
+                  Prev_Aug.First_Trailing_Comment_Line := Deleted_Tok.Line;
+                  Prev_Aug.Last_Trailing_Comment_Line  := Deleted_Tok.Line;
+               else
+                  if Prev_Aug.First_Trailing_Comment_Line > Deleted_Tok.Line then
+                     Prev_Aug.First_Trailing_Comment_Line := Deleted_Tok.Line;
+                  end if;
+                  if Prev_Aug.Last_Trailing_Comment_Line < Deleted_Tok.Line then
+                     Prev_Aug.Last_Trailing_Comment_Line := Deleted_Tok.Line;
+                  end if;
+               end if;
+            end;
+         end if;
+      end if;
+
+      if Prev_Modified then
+         --  May need this for First in next block; test/ada_mode-recover_partial_01.adb
+         Tree.Update_Ancestor_Cache (Prev_Token);
+      end if;
+
+      if Next_Token /= Syntax_Trees.Invalid_Node_Access
+        and then Tree.Augmented (Next_Token) /= null
+      then
+         declare
+            Next_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Next_Token);
+         begin
+            if First (Tree, Next_Token) then
+               if Next_Aug.First_Indent_Line = Invalid_Line_Number then
+                  Next_Aug.First_Indent_Line := Tree.Line (Next_Token);
+                  Next_Aug.Last_Indent_Line  := Tree.Line (Next_Token);
+               else
+                  Next_Aug.First_Indent_Line := Tree.Line (Next_Token);
+               end if;
+            else
+               Next_Aug.First_Indent_Line := Deleted_Aug.First_Indent_Line;
+               Next_Aug.Last_Indent_Line  := Deleted_Aug.Last_Indent_Line;
+            end if;
+            Next_Modified := True;
+         end;
+      end if;
+
+      if Next_Modified then
+         Tree.Update_Ancestor_Cache (Next_Token);
+      end if;
+   end Update_Indent_Lines;
+
    procedure Edit
      (Data  : in out Parse_Data_Type;
       Edits : in     WisiToken.Parse.KMN_Lists.List)
@@ -1270,8 +1339,7 @@ package body Wisi is
       Trace             : in     WisiToken.Trace_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     Line_Number_Type;
-      End_Line          : in     Line_Number_Type;
-      Begin_Indent      : in     Integer)
+      End_Line          : in     Line_Number_Type)
    is begin
       Data.Line_Paren_State.Set_First_Last
         (First   => Begin_Line,
@@ -1287,8 +1355,6 @@ package body Wisi is
          Data.Indents.Set_First_Last
            (First   => Begin_Line,
             Last    => End_Line);
-
-         Data.Begin_Indent := Begin_Indent;
       end case;
 
       Data.Reset;
@@ -1321,12 +1387,13 @@ package body Wisi is
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
       Action_Region_Chars : in     WisiToken.Buffer_Region;
-      End_Line            : in     WisiToken.Line_Number_Type)
+      End_Line            : in     WisiToken.Line_Number_Type;
+      Begin_Indent        : in     Integer)
    is begin
       Data.Post_Parse_Action   := Post_Parse_Action;
       Data.Action_Region_Bytes := Action_Region_Bytes;
       Data.Action_Region_Chars := Action_Region_Chars;
-      Data.Begin_Indent        := 0;
+      Data.Begin_Indent := Begin_Indent;
 
       Data.Line_Paren_State.Set_First_Last
         (First   => WisiToken.Line_Number_Type'First,
@@ -1439,7 +1506,7 @@ package body Wisi is
                Paren_State                 => 0,
                First_Indent_Line           => (if Tree.Lexer.First then Token.Line else Invalid_Line_Number),
                Last_Indent_Line            => (if Tree.Lexer.First then Token.Line else Invalid_Line_Number),
-               First_Trailing_Comment_Line => Invalid_Line_Number, -- Set by Reduce
+               First_Trailing_Comment_Line => Invalid_Line_Number, -- Set by following non_grammar tokens
                Last_Trailing_Comment_Line  => Invalid_Line_Number,
                Inserted_After              => False);
          begin
@@ -1481,6 +1548,8 @@ package body Wisi is
       Data.Current_Paren_State := 0;
 
       loop
+         exit when I = Invalid_Node_Access;
+
          declare
             Token : constant WisiToken.Base_Token := Tree.Base_Token (I);
             Aug   : Augmented_Var_Ref renames To_Augmented_Var_Ref (Tree.Augmented (I));
@@ -1500,8 +1569,6 @@ package body Wisi is
          end;
 
          I := Tree.Next_Terminal (I);
-
-         exit when I = Invalid_Node_Access;
       end loop;
 
       if Trace_Action > Detail then
@@ -1569,11 +1636,10 @@ package body Wisi is
 
       if Prev_Terminal /= Syntax_Trees.Invalid_Node_Access and
         Inserted_Before /= Syntax_Trees.Invalid_Node_Access and
-         First (Tree, Inserted_Token)
+        First (Tree, Inserted_Token)
       then
          declare
             use all type SAL.Base_Peek_Type;
-            use all type Ada.Containers.Count_Type;
 
             --  See test/ada_mode-interactive_2.adb, "Typing ..."; three tests.
             --
@@ -1597,31 +1663,42 @@ package body Wisi is
             --
             --  If the first two tokens in Prev_Non_Grammar are both New_Lines,
             --  there is a blank line after the code line (and before any
-            --  comments); assume that is the edit point. FIXME: use Edits list to
-            --  determine edit point? If Insert_On_Blank_Line, don't need to call
-            --  Insert_After.
-            Blank_Line : Line_Number_Type := Invalid_Line_Number;
+            --  comments); assume that is the edit point; see
+            --  test/ada_mode-interactive_2.adb "A := B \n+C;"
+            Blank_Line      : Line_Number_Type := Invalid_Line_Number;
+            Comment_Present : Boolean          := False;
 
-            function Insert_On_Blank_Line return Boolean
-            is begin
-               if Prev_Non_Grammar.Length >= 2 and then
-                 (Prev_Non_Grammar (Prev_Non_Grammar.First_Index).ID = Descriptor.New_Line_ID and
-                    Prev_Non_Grammar (Prev_Non_Grammar.First_Index + 1).ID = Descriptor.New_Line_ID)
-               then
-                  Blank_Line := Prev_Non_Grammar (Prev_Non_Grammar.First_Index + 1).Line;
-                  return True;
-               else
-                  return False;
-               end if;
-            end Insert_On_Blank_Line;
+            procedure Check_Non_Grammar
+            --  Set Blank_Line if there is a blank line immediately after
+            --  Prev_Terminal.
+            is
+               I : SAL.Base_Peek_Type := Prev_Non_Grammar.First_Index;
+            begin
+               loop
+                  exit when I > Prev_Non_Grammar.Last_Index;
 
-            --  In Ada, 'end' is Insert_After except when Insert_On_Blank_Line is
-            --  True (see test/ada_mode-interactive_2.adb Record_1,
-            --  test/ada_mode-recover_9.adb), so Insert_After needs
-            --  Insert_On_Blank_Line.
+                  if Prev_Non_Grammar (I).ID /= Descriptor.New_Line_ID then
+                     Comment_Present := True;
+                     return;
+                  end if;
+
+                  if I < Prev_Non_Grammar.Last_Index and then
+                    Prev_Non_Grammar (I + 1).ID = Descriptor.New_Line_ID
+                  then
+                     Blank_Line := Prev_Non_Grammar (I + 1).Line;
+                     return;
+                  end if;
+
+                  I := I + 1;
+               end loop;
+            end Check_Non_Grammar;
          begin
+            Check_Non_Grammar;
+
             Insert_After := Parse_Data_Type'Class (Data).Insert_After
-              (Tree, Inserted_Token, Inserted_Before, Insert_On_Blank_Line);
+              (Tree, Inserted_Token, Inserted_Before,
+               Comment_Present      => Comment_Present,
+               Insert_On_Blank_Line => Blank_Line /= Invalid_Line_Number);
 
             if Insert_After then
                New_Aug.Inserted_After := True;
@@ -1683,12 +1760,12 @@ package body Wisi is
                end if;
             end if;
          end;
-      else
-         if Trace_Action > WisiToken.Detail then
-            Data.Trace.Put_Line
-              ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
-                 " before " & Tree.Image (Inserted_Before, Node_Numbers => True));
-         end if;
+      end if;
+
+      if not Insert_After and Trace_Action > WisiToken.Detail then
+         Data.Trace.Put_Line
+           ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
+              " before " & Tree.Image (Inserted_Before, Node_Numbers => True));
       end if;
 
       if First (Tree, Inserted_Token) and
@@ -1707,7 +1784,7 @@ package body Wisi is
    overriding
    procedure Delete_Token
      (Data          : in out Parse_Data_Type;
-      Tree          : in out Syntax_Trees.Tree'Class;
+      Tree          : in     Syntax_Trees.Tree'Class;
       Deleted_Token : in     Syntax_Trees.Valid_Node_Access;
       Prev_Token    : in     Syntax_Trees.Node_Access)
    is
@@ -1718,12 +1795,12 @@ package body Wisi is
       Deleted_Aug         : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Deleted_Token);
       Deleted_Non_Grammar : WisiToken.Base_Token_Array_Var_Ref renames Tree.Non_Grammar_Var (Deleted_Token);
 
-      Prev_Token_Actual : Syntax_Trees.Node_Access := Prev_Token;
-
-      Next_Token : Syntax_Trees.Node_Access :=
+      Next_Token : constant Syntax_Trees.Node_Access :=
         (if Prev_Token = Syntax_Trees.Invalid_Node_Access
          then Tree.First_Terminal (Tree.Root)
          else Tree.Next_Terminal (Prev_Token));
+
+      Prev_Modified : Boolean := False;
    begin
       if Deleted_Aug.Deleted then
          --  This can happen if error recovery screws up.
@@ -1738,30 +1815,23 @@ package body Wisi is
 
       Deleted_Aug.Deleted := True;
 
-      loop
-         exit when Next_Token = Syntax_Trees.Invalid_Node_Access or else
-           not Get_Augmented_Const (Tree, Next_Token).Inserted_After;
-
-         Prev_Token_Actual := Next_Token;
-         Next_Token        := Tree.Next_Terminal (Next_Token);
-      end loop;
-
       if Deleted_Non_Grammar.Length > 0 then
          --  Move Non_Grammar to previous non-deleted token
 
-         if Prev_Token_Actual /= Syntax_Trees.Invalid_Node_Access then
+         if Prev_Token /= Syntax_Trees.Invalid_Node_Access then
             declare
-               Prev_Non_Grammar : WisiToken.Base_Token_Array_Var_Ref renames Tree.Non_Grammar_Var (Prev_Token_Actual);
-               Aug : constant Syntax_Trees.Augmented_Class_Access := Tree.Augmented (Prev_Token_Actual);
+               Prev_Non_Grammar : WisiToken.Base_Token_Array_Var_Ref renames Tree.Non_Grammar_Var (Prev_Token);
+               Aug : constant Syntax_Trees.Augmented_Class_Access := Tree.Augmented (Prev_Token);
             begin
                if Aug = null then
                   raise SAL.Programmer_Error with "null augmented: " & Tree.Image
-                    (Prev_Token_Actual, Node_Numbers => True);
+                    (Prev_Token, Node_Numbers => True);
                end if;
                declare
-                  Prev_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Prev_Token_Actual);
+                  Prev_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Prev_Token);
                begin
                   Prev_Non_Grammar.Append (Deleted_Non_Grammar);
+                  Prev_Modified := True;
 
                   if Deleted_Aug.First_Trailing_Comment_Line /= Invalid_Line_Number then
                      if Prev_Aug.First_Trailing_Comment_Line = Invalid_Line_Number then
@@ -1775,57 +1845,36 @@ package body Wisi is
          end if;
       end if;
 
-      if (Prev_Token_Actual = Syntax_Trees.Invalid_Node_Access or else
-           Tree.Base_Token (Prev_Token_Actual).Line < Deleted_Tok.Line) and
-        (Next_Token = Syntax_Trees.Invalid_Node_Access or else
-           Tree.Base_Token (Next_Token).Line > Deleted_Tok.Line)
-      then
-         --  Deleted_Tok.Line is now blank; add to previous token indent range
-         if Prev_Token_Actual /= Syntax_Trees.Invalid_Node_Access then
-            declare
-               Prev_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Prev_Token_Actual);
-            begin
-               if Prev_Aug.First_Trailing_Comment_Line = Invalid_Line_Number then
-                  Prev_Aug.First_Trailing_Comment_Line := Deleted_Tok.Line;
-                  Prev_Aug.Last_Trailing_Comment_Line  := Deleted_Tok.Line;
-               else
-                  if Prev_Aug.First_Trailing_Comment_Line > Deleted_Tok.Line then
-                     Prev_Aug.First_Trailing_Comment_Line := Deleted_Tok.Line;
-                  end if;
-                  if Prev_Aug.Last_Trailing_Comment_Line < Deleted_Tok.Line then
-                     Prev_Aug.Last_Trailing_Comment_Line := Deleted_Tok.Line;
-                  end if;
-               end if;
-            end;
-            --  FIXME: else move to Tree.Leading_Non_Grammar
-         end if;
-      end if;
+      Update_Indent_Lines (Tree, Deleted_Tok, Deleted_Aug, Prev_Token, Next_Token, Prev_Modified);
+   end Delete_Token;
 
-      if Next_Token /= Syntax_Trees.Invalid_Node_Access then
-         declare
-            Next_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Next_Token);
-         begin
-            if First (Tree, Next_Token) then
-               if Next_Aug.First_Indent_Line = Invalid_Line_Number then
-                  Next_Aug.First_Indent_Line := Tree.Base_Token (Next_Token).Line;
-                  Next_Aug.Last_Indent_Line  := Tree.Base_Token (Next_Token).Line;
-               else
-                  Next_Aug.First_Indent_Line := Tree.Base_Token (Next_Token).Line;
-               end if;
-            else
-               Next_Aug.First_Indent_Line := Deleted_Aug.First_Indent_Line;
-               Next_Aug.Last_Indent_Line  := Deleted_Aug.Last_Indent_Line;
-            end if;
-         end;
-      end if;
+   overriding
+   procedure Delete_Token
+     (Data      : in out Parse_Data_Type;
+      Tree      : in     Syntax_Trees.Tree'Class;
+      To_Delete : in     Syntax_Trees.Terminal_Ref)
+   is
+      pragma Unreferenced (Data);
+
+      Deleted_Tok : constant WisiToken.Base_Token     := Tree.Base_Token (To_Delete.Node);
+      Deleted_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, To_Delete.Node);
+      Prev_Token  : constant Syntax_Trees.Node_Access := Tree.Prev_Terminal (To_Delete).Node;
+      Next_Token  : constant Syntax_Trees.Node_Access := Tree.Next_Terminal (To_Delete).Node;
+
+      Prev_Modified : Boolean := False;
+   begin
+      --  Edit_Tree is about to delete To_Delete. To_Delete.Non_Grammar will be scanned.
+
+      --  We don't set Aug.Deleted True; that's for error recovery.
+
+      Update_Indent_Lines (Tree, Deleted_Tok, Deleted_Aug, Prev_Token, Next_Token, Prev_Modified);
    end Delete_Token;
 
    overriding
    procedure Reduce
      (Data    : in out Parse_Data_Type;
-      Tree    : in out Syntax_Trees.Tree'Class;
-      Nonterm : in     Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     Syntax_Trees.Node_Access_Array)
+      Tree    : in     Syntax_Trees.Tree'Class;
+      Nonterm : in     Syntax_Trees.Valid_Node_Access)
    is
       Nonterm_Aug : Augmented_Access := Augmented_Access (Tree.Augmented (Nonterm));
 
@@ -1838,14 +1887,14 @@ package body Wisi is
          Nonterm_Aug.all := (others => <>);
       end if;
 
-      for I in reverse Tokens'Range loop
+      for Child of reverse Tree.Children (Nonterm) loop
          --  'reverse' to find token containing trailing comments; last
          --  non-empty token.
 
-         if Tree.Augmented (Tokens (I)) /= null then
-            --  Augmented is invalid if Token is outside Action_Region
+         if Tree.Augmented (Child) /= null then
+            --  Augmented is invalid if Child is outside Action_Region
             declare
-               Token : constant Augmented_Token := Get_Augmented_Token (Tree, Tokens (I));
+               Token : constant Augmented_Token := Get_Augmented_Token (Tree, Child);
             begin
                if Data.Post_Parse_Action = Indent then
                   if Token.Aug.First_Indent_Line /= Invalid_Line_Number then
@@ -2792,17 +2841,26 @@ package body Wisi is
       use all type Syntax_Trees.Node_Access;
       Descriptor  : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
-      function Safe_Pos (Token : in Syntax_Trees.Recover_Token) return Buffer_Pos
-      is begin
-         return Syntax_Trees.Name (Token).First;
+      function Safe_Pos (Token : in Syntax_Trees.Recover_Token) return Base_Buffer_Pos
+      is
+         Result : Base_Buffer_Pos := Syntax_Trees.Name (Token).First;
+      begin
+         if Result = Invalid_Buffer_Pos then
+            Result := 0;
+         end if;
+         return Result;
       end Safe_Pos;
 
-      function Safe_Pos (Token : in Syntax_Trees.Node_Access) return Buffer_Pos
+      function Safe_Pos (Token : in Syntax_Trees.Node_Access) return Base_Buffer_Pos
       is begin
          if Token = Syntax_Trees.Invalid_Node_Access then
-            return Buffer_Pos'First;
+            return 0; --  elisp interprets this as invalid buffer pos, and it takes fewer bytes to transmit.
          else
-            return Tree.Char_Region (Token).First;
+            return Result : Base_Buffer_Pos := Tree.Char_Region (Token).First do
+               if Result = Invalid_Buffer_Pos then
+                  Result := 0;
+               end if;
+            end return;
          end if;
       end Safe_Pos;
    begin
@@ -2812,7 +2870,7 @@ package body Wisi is
          case Item.Label is
          when Parse.LR.LR_Parse_Action =>
             Put_Line
-              ('[' & Parser_Error_Code & Buffer_Pos'Image (Safe_Pos (Item.Error_Token.Node)) &
+              ('[' & Parser_Error_Code & Base_Buffer_Pos'Image (Safe_Pos (Item.Error_Token.Node)) &
                  " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                  ", found '" & Image (Tree.ID (Item.Error_Token.Node), Descriptor) & "'""]");
 
@@ -2823,9 +2881,13 @@ package body Wisi is
                  (case Item.Status.Label is
                   when Ok => "",
                   when Error =>
-                     Buffer_Pos'Image (Safe_Pos (Item.Status.Begin_Name)) &
-                       Buffer_Pos'Image (Safe_Pos (Item.Status.End_Name)) &
-                       " ""block name error""]"));
+                     Base_Buffer_Pos'Image (Safe_Pos (Item.Status.Begin_Name)) &
+                       Base_Buffer_Pos'Image (Safe_Pos (Item.Status.End_Name)) & " """ &
+                      (case Error'(Item.Status.Label) is
+                       when Missing_Name_Error => "missing",
+                       when Extra_Name_Error => "extra",
+                       when Match_Names_Error => "match") &
+                       " name error""]"));
 
          when Parse.LR.Message =>
             Put_Line
@@ -2886,16 +2948,23 @@ package body Wisi is
    end Current_Indent_Offset;
 
    function First
-     (Tree  : in WisiToken.Syntax_Trees.Tree'Class;
-      Token : in WisiToken.Syntax_Trees.Node_Access)
+     (Tree  : in Syntax_Trees.Tree'Class;
+      Token : in Syntax_Trees.Node_Access)
      return Boolean
    is
-      use all type WisiToken.Syntax_Trees.Node_Access;
+      use all type Syntax_Trees.Node_Access;
    begin
-      if Token = WisiToken.Syntax_Trees.Invalid_Node_Access then
+      if Token = Syntax_Trees.Invalid_Node_Access then
          return False;
       else
-         return Tree.Line_Begin_Token (Tree.Line (Token)) = Token;
+         declare
+            First_Token : constant Syntax_Trees.Node_Access :=
+              (if Tree.Root = Syntax_Trees.Invalid_Node_Access
+               then Tree.Line_Begin_Token (Tree.Line (Token), Tree.Shared_Stream)
+               else Tree.Line_Begin_Token (Tree.Line (Token)));
+         begin
+            return First_Token = Token;
+         end;
       end if;
    end First;
 

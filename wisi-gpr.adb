@@ -33,15 +33,13 @@ package body Wisi.Gpr is
 
    overriding
    procedure Initialize_Partial_Parse
-     (Data                : in out Parse_Data_Type;
-      Trace               : in     WisiToken.Trace_Access;
-      Post_Parse_Action   : in     Post_Parse_Action_Type;
-      Begin_Line          : in     WisiToken.Line_Number_Type;
-      End_Line            : in     WisiToken.Line_Number_Type;
-      Begin_Indent        : in     Integer)
+     (Data              : in out Parse_Data_Type;
+      Trace             : in     WisiToken.Trace_Access;
+      Post_Parse_Action : in     Post_Parse_Action_Type;
+      Begin_Line        : in     WisiToken.Line_Number_Type;
+      End_Line          : in     WisiToken.Line_Number_Type)
    is begin
-      Wisi.Initialize_Partial_Parse
-        (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Begin_Line, End_Line, Begin_Indent);
+      Wisi.Initialize_Partial_Parse (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Begin_Line, End_Line);
 
       Initialize (Data);
    end Initialize_Partial_Parse;

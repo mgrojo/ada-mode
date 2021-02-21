@@ -43,10 +43,11 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-running all tests
-    test/ada_mode-partial_parse.adb
-run-test-here: error: nil indent for line 2
+running all tests again
+    revew test.log
 
+
+use (1 . 0) for null_buffer_region, 0 for emacs_invalid_buffer_pos; save communication time
 
 save_text writes with DOS line endings.
     use something else

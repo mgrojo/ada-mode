@@ -24,7 +24,7 @@ test-elisp :
 	$(EMACS_EXE) -Q -batch -L ../test -L . $(ADA_MODE_DIR) -l ada-mode-test.el
 
 gpr-skel.gpr.tmp :
-	$(EMACS_EXE) -Q -batch -L ../test/gpr -L . $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
+	$(EMACS_EXE) -Q -batch -L ../test/gpr -L . $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn $(ELISP)(setq vc-handled-backends nil)(gpr-skel-test))'
 
 %.diff : % %.tmp
 	-diff -u $< $(*F).tmp > $(*F).diff
@@ -97,7 +97,7 @@ autoloads : force
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP)(run-test "$<")(kill-emacs))'
 
 %.debug : %
-	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (package-initialize)(setq debug-on-error t))' $<
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP)(package-initialize)(setq debug-on-error t))' $<
 
 benchmark :
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l benchmark.el

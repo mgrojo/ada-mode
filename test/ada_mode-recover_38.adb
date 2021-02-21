@@ -2,5 +2,5 @@
 loop
    exit when Name_Last = 0;
    declare
-   Name : constant String :=
+      Name : constant String :=
 end loop;

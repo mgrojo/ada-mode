@@ -1,4 +1,4 @@
---  From a real editing session; LALR used to get FAIL_ENQUEUE_LIMIT with limit at 58_000; LR1 does not
+--  From a real editing session; LALR gets FAIL_ENQUEUE_LIMIT with limit at 58_000; LR1 does not
 --EMACSCMD:(switch-to-lr1)
 procedure Edit_Tree
   (Parser : in Base_Parser;
@@ -13,7 +13,6 @@ is
    Scan_Pos     : Buffer_Pos      := 1;
 
    Terminal_Node : Syntax_Trees.Stream_Index := Parser.Tree.First_Shared_Terminal (Tree.Terminal_Stream);
-   --  FIXME: Parse_Node : Syntax_Trees.Stream_Index := Parser.Tree.First (Parser.Stream);
 begin
 Kmn_Loop :
    loop
@@ -29,12 +28,15 @@ Kmn_Loop :
             begin
                exit when not Node_Byte_Region in Stable_Region;
                Node_Byte_Regin := @ + Shift_Bytes;
-            , Char_Offset => Shift_Chars);
+               , Char_Offset => Shift_Chars);
 
-            Terminal_Node := Next (Terminal_Node);
+                     Terminal_Node := Next (Terminal_Node);
          end loop Unchanged_Loop;
 
          Kmn_Node := Next (Kmn_Node);
          exit Kmn_Loop when not Has_Element (Kmn_Node);
    end loop Kmn_Loop;
 end Edit_Tree;
+-- Local Variables:
+-- wisi-mckenzie-task-count: 1
+-- End:

@@ -441,11 +441,9 @@ package body Wisi.Ada is
       Trace             : in     WisiToken.Trace_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type;
-      Begin_Indent      : in     Integer)
+      End_Line          : in     WisiToken.Line_Number_Type)
    is begin
-      Wisi.Initialize_Partial_Parse
-        (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Begin_Line, End_Line, Begin_Indent);
+      Wisi.Initialize_Partial_Parse (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Begin_Line, End_Line);
 
       Initialize (Data);
    end Initialize_Partial_Parse;
@@ -544,6 +542,7 @@ package body Wisi.Ada is
       Tree                 : in     WisiToken.Syntax_Trees.Tree'Class;
       Insert_Token         : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Insert_Before_Token  : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Comment_Present      : in     Boolean;
       Insert_On_Blank_Line : in     Boolean)
      return Boolean
    is
@@ -563,41 +562,113 @@ package body Wisi.Ada is
       --
       --  COLON is similar to RIGHT_PAREN.
 
-      Insert_ID        : constant Token_ID := Tree.ID (Insert_Token);
-      Insert_Before_ID : constant Token_ID := Tree.ID (Insert_Before_Token);
+      Insert_ID        : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Insert_Token));
+      Insert_Before_ID : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Insert_Before_Token));
 
-      Result : constant array (Ada_Annex_P_Process_Actions.Token_Enum_ID) of Boolean :=
+      Default_Result : constant array (Token_Enum_ID) of Boolean :=
         (BEGIN_ID |         -- test/ada_mode-recover_exception_1.adb, test/ada_mode-recover_extra_declare.adb
            COLON_ID |       -- test/ada_mode-recover_partial_22.adb
            DECLARE_ID |
            RIGHT_PAREN_ID | -- test/ada_mode-recover_20.adb
-           SEMICOLON_ID |   -- test/ada_mode-recover_13.adb
            THEN_ID          -- test/ada_mode-recover_19
                 => True,
          others => False);
+
+      After_End : constant array (Token_Enum_ID) of Boolean :=
+        --  Terminals that appear after 'end', other than ';'.
+        (
+           CASE_ID |
+           DO_ID |
+           IDENTIFIER_ID |
+           IF_ID |
+           LOOP_ID |
+           RECORD_ID |
+           RETURN_ID |
+           SELECT_ID => True,
+         others => False);
+
+      After_Comment : constant array (Token_Enum_ID) of Boolean :=
+        --  Terminals that go after comment, before Insert_Before, rather than
+        --  after prev terminal.
+        (
+         ABORT_ID |
+           ACCEPT_ID |
+           BEGIN_ID |
+           CASE_ID |
+           DECLARE_ID |
+           DELAY_ID |
+           ELSE_ID |
+           ELSIF_ID |
+           ENTRY_ID |
+           EXCEPTION_ID |
+           EXIT_ID |
+           FOR_ID |
+           FUNCTION_ID |
+           GENERIC_ID |
+           GOTO_ID |
+           IF_ID |
+           LOOP_ID |
+           OVERRIDING_ID |
+           PRAGMA_ID |
+           PROCEDURE_ID |
+           RAISE_ID |
+           REQUEUE_ID |
+           SELECT_ID |
+           TYPE_ID |
+           WHILE_ID => True,
+         others => False);
    begin
-      case To_Token_Enum (Insert_Before_ID) is
-      when BEGIN_ID | DECLARE_ID | PACKAGE_ID | PROCEDURE_ID | FUNCTION_ID |
-        END_ID =>
-         --  test/ada_mode-interactive_2.adb Record_1: BEGIN_ID
-         --  test/ada_mode-recover_03.adb: BEGIN_ID
-         --  test/ada_mode-recover_37.adb: END_ID
-         return not Insert_On_Blank_Line;
+      if After_End (Insert_ID) and then -Tree.ID (Tree.Prev_Terminal (Insert_Token)) = END_ID then
+         return True;
+
+      elsif Comment_Present then
+         return not After_Comment (Insert_ID);
+      end if;
+
+      case Insert_Before_ID is
+      when END_ID | IS_ID | RETURN_ID =>
+         --  Before END_ID :
+         --     test/ada_mode-recover_10.adb,
+         --     test/ada_mode-recover_37.adb,
+         --     Always put trailing 'end' in correct column.
+         --
+         --     test/ada_mode-partial_parse_indent_begin.adb after "Foo;"
+         --     Full and incremental parse get this right (because there is no
+         --     syntax error); partial parse gets it wrong. We used to check for
+         --     blank line here, but incremental parse is better.
+         --
+         --  Before IS_ID : test/ada_mode-recover_incremental_01.adb insert "Float"
+         --  'is' should be first.
+         --
+         --  Before RETURN_ID : test/ada_mode-recover_16.adb
+         --  There is never code before 'return'.
+         return True;
 
       when others =>
-         case To_Token_Enum (Insert_ID) is
-         when CASE_ID | IF_ID | LOOP_ID | RECORD_ID | RETURN_ID | SELECT_ID =>
-            return -Tree.ID (Tree.Prev_Terminal (Insert_Token)) = END_ID;
-
+         case Insert_ID is
          when END_ID =>
-            --  test/ada_mode-recover_20.adb, test/ada_mode-interactive_2.adb Record_1.
+            --  test/ada_mode-recover_20.adb,
+            --  test/ada_mode-interactive_2.adb Record_1.
+            return False;
+
+         when IDENTIFIER_ID | NUMERIC_LITERAL_ID =>
+            --  test/ada_mode-recover_03.adb after 'renames'; completing an expression: true.
+            --  Starting a procedure call or assignment statement: false
+            return -Tree.ID (Tree.Prev_Terminal (Insert_Token)) /= SEMICOLON_ID;
+
+         when SEMICOLON_ID =>
+            --  test/ada_mode-recover_03.adb after 'renames', _13.adb not on blank line: True
+            --  ada_mode-interactive_2.adb A := B \n+C; on blank line: False
+            --  ada_mode-recover_36.adb after 'function Update\n comments': True
+            --  FIXME: check for comments.
+            --
+            --  ada_mode-recover_07.adb after 'loop' on blank line: ideally True,
+            --  but we return False because we can't distinguish this from
+            --  interactive_2 case.
             return not Insert_On_Blank_Line;
 
-         when IDENTIFIER_ID =>
-            return -Tree.ID (Tree.Prev_Terminal (Insert_Token)) in END_ID | COLON_ID;
-
          when others =>
-            return Result (-Insert_ID);
+            return Default_Result (Insert_ID);
          end case;
       end case;
    end Insert_After;
@@ -672,12 +743,15 @@ package body Wisi.Ada is
       --  In our grammar, 'aggregate' can be an Ada aggregate, or a
       --  parenthesized expression.
       --
-      --  We always want an 'aggregate' to be indented by ada-indent-broken.
-      --  However, in some places in the grammar, 'aggregate' is indented by
-      --  ada-indent. The following checks for those places, and returns a
-      --  correction value. The aggregate may be nested inside a conditional
-      --  expression, so we search for 'name' as well; see
+      --  We always want an 'aggregate' that begins an expression to be
+      --  indented by ada-indent-broken. However, in some places in the
+      --  grammar, 'aggregate' is indented by ada-indent. The following
+      --  checks for those places, and returns a correction value. The
+      --  aggregate may be nested inside a conditional expression, so we
+      --  search for 'name' as well; see
       --  test/ada_mode-conditional_expressions-more_1.adb.
+
+      pragma Assert (Tree.ID (Tree_Indenting) = +aggregate_ID);
 
       Expression : constant Node_Access := Tree.Find_Ancestor (Tree_Indenting, (+expression_ID, +name_ID));
    begin
@@ -689,9 +763,22 @@ package body Wisi.Ada is
         +case_expression_alternative_ID
       then
          --  test/ada_mode-conditional_expressions.adb K; value expression in
-         --  if_expression is indented by ada-indent. Invalid
-         --  Controlling_Token_Line, so this correction is always added.
-         return (Simple, (Int, Invalid_Line_Number, Ada_Indent_Broken - Ada_Indent));
+         --  if_expression is indented by ada-indent.
+         --
+         --  test/ada_mode-conditional_expressions.adb M1 nested "(case C";
+         --  value expression in case_expression-alternative is indented by
+         --  ada-indent. But this aggregate does not start the value expression.
+         declare
+            List : constant Node_Access := Tree.Find_Ancestor (Tree_Indenting, +term_binary_adding_operator_list_ID);
+         begin
+            if Tree.RHS_Index (List) = 0 then
+               --  Aggregate starts expression
+               return (Simple, (Int, Invalid_Line_Number, Ada_Indent_Broken - Ada_Indent));
+            else
+               return Null_Delta;
+            end if;
+         end;
+
       else
          return Null_Delta;
       end if;
