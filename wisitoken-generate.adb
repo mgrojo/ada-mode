@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -18,7 +18,6 @@
 pragma License (Modified_GPL);
 
 with Ada.Directories;
-with Ada.Real_Time;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
 package body WisiToken.Generate is
@@ -489,8 +488,6 @@ package body WisiToken.Generate is
       Descriptor : in WisiToken.Descriptor)
      return Recursions
    is
-      Time_Start : constant Ada.Real_Time.Time := Ada.Real_Time.Clock;
-
       Graph : constant Grammar_Graphs.Graph := To_Graph (Grammar);
    begin
       return Result : Recursions :=
@@ -498,17 +495,6 @@ package body WisiToken.Generate is
          Recursions => Graph.Find_Cycles)
       do
          Grammar_Graphs.Sort_Paths.Sort (Result.Recursions);
-
-         if Trace_Time then
-            declare
-               use Ada.Real_Time;
-               Time_End : constant Time := Clock;
-            begin
-               Ada.Text_IO.Put_Line
-                 (Ada.Text_IO.Standard_Error, "compute full recursion time:" &
-                    Duration'Image (To_Duration (Time_End - Time_Start)));
-            end;
-         end if;
 
          if Trace_Generate_Minimal_Complete > Extra then
             Ada.Text_IO.New_Line;
@@ -529,8 +515,6 @@ package body WisiToken.Generate is
      return Recursions
    is
       use Grammar_Graphs;
-      Time_Start : constant Ada.Real_Time.Time := Ada.Real_Time.Clock;
-
       Graph      : constant Grammar_Graphs.Graph := To_Graph (Grammar);
       Components : constant Component_Lists.List := Strongly_Connected_Components
         (To_Adjancency (Graph), Non_Trivial_Only => True);
@@ -561,17 +545,6 @@ package body WisiToken.Generate is
             end loop;
             Result.Recursions.Append (Path);
          end;
-
-         if Trace_Time then
-            declare
-               use Ada.Real_Time;
-               Time_End : constant Time := Clock;
-            begin
-               Ada.Text_IO.Put_Line
-                 (Ada.Text_IO.Standard_Error, "compute partial recursion time:" &
-                    Duration'Image (To_Duration (Time_End - Time_Start)));
-            end;
-         end if;
 
          if Trace_Generate_Minimal_Complete > Extra then
             Ada.Text_IO.New_Line;

@@ -266,7 +266,41 @@ package body WisiToken.Parse.LR.Parser is
                end if;
 
             else
-               Status := Reduce_Stack_1 (Shared_Parser, Current_Parser, Action, New_State);
+               begin
+                  Status := Reduce_Stack_1 (Shared_Parser, Current_Parser, Action, New_State);
+               exception
+               when Partial_Parse =>
+                  if Parser_State.Resume_Active or Shared_Parser.Parsers.Count > 1 then
+                     --  Wait until there is one parser not in resume.
+                     null;
+                  else
+                     --  Insert EOI on parse stream and Shared_Stream.
+                     declare
+                        Last_Token : constant Base_Token := Shared_Parser.Tree.Base_Token
+                          (Parser_State.Current_Token.Node);
+                        EOI_Token  : constant Base_Token :=
+                          (ID          => Shared_Parser.Tree.Lexer.Descriptor.EOI_ID,
+                           Byte_Region =>
+                             (First    => Last_Token.Byte_Region.Last + 1,
+                              Last     => Last_Token.Byte_Region.Last),
+                           Line        => Last_Token.Line,
+                           Char_Region =>
+                             (First    => Last_Token.Char_Region.Last + 1,
+                              Last     => Last_Token.Char_Region.Last));
+                     begin
+                        if Shared_Parser.Tree.ID (Parser_State.Current_Token.Node) /=
+                          Shared_Parser.Tree.Lexer.Descriptor.EOI_ID
+                        then
+                           Parser_State.Current_Token := Shared_Parser.Tree.Insert_Source_Terminal
+                             (Shared_Parser.Tree.Shared_Stream,
+                              Terminal => EOI_Token,
+                              Index    => Shared_Parser.Tree.Get_Node_Index (Parser_State.Current_Token.Node) + 1,
+                              Before   => Shared_Parser.Tree.Stream_Next (Parser_State.Current_Token).Element);
+                        end if;
+                     end;
+                     raise;
+                  end if;
+               end;
 
                case Status is
                when Ok =>
@@ -285,37 +319,6 @@ package body WisiToken.Parse.LR.Parser is
                   Parser_State.Zombie_Token_Count := 1;
                end case;
             end if;
-         exception
-         when Partial_Parse =>
-            --  Insert EOI on parse stream and Shared_Stream.
-            declare
-               Last_Token : constant Base_Token := Shared_Parser.Tree.Base_Token (Parser_State.Current_Token.Node);
-               EOI_Token  : constant Base_Token :=
-                 (ID          => Shared_Parser.Tree.Lexer.Descriptor.EOI_ID,
-                  Byte_Region =>
-                    (First    => Last_Token.Byte_Region.Last + 1,
-                     Last     => Last_Token.Byte_Region.Last),
-                  Line        => Last_Token.Line,
-                  Char_Region =>
-                    (First    => Last_Token.Char_Region.Last + 1,
-                     Last     => Last_Token.Char_Region.Last));
-            begin
-               if Shared_Parser.Tree.ID (Parser_State.Current_Token.Node) /=
-                 Shared_Parser.Tree.Lexer.Descriptor.EOI_ID
-               then
-                  Parser_State.Current_Token := Shared_Parser.Tree.Insert_Source_Terminal
-                    (Shared_Parser.Tree.Shared_Stream,
-                     Terminal => EOI_Token,
-                     Index    => Shared_Parser.Tree.Get_Node_Index (Parser_State.Current_Token.Node) + 1,
-                     Before   => Shared_Parser.Tree.Stream_Next
-                       (Shared_Parser.Tree.Shared_Stream, Parser_State.Current_Token.Element));
-                  --  FIXME: delete rest of Shared_Stream?
-               end if;
-
-               Shared_Parser.Tree.Finish_Parse
-                 (Parser_State.Stream, Parser_State.Current_Token.Element, Shared_Parser.User_Data);
-            end;
-            raise;
          end;
 
       when Accept_It =>
@@ -770,9 +773,9 @@ package body WisiToken.Parse.LR.Parser is
 
       if Parser.User_Data /= null then
 
-         --  In ada-mode, Delete_Token modifies Next_Terminal
-         --  (Deleted_Token).Augmented, which may be an inserted token; call
-         --  all Insert_Token before any Delete_Token.
+         --  ada-mode-recover_33.adb requires calling Insert_Token,
+         --  Delete_Token in lexical order, which is Recover_Insert_Delete
+         --  order.
          for I in Parser_State.Recover_Insert_Delete.First_Index .. Parser_State.Recover_Insert_Delete.Last_Index
          loop
             declare
@@ -784,20 +787,6 @@ package body WisiToken.Parse.LR.Parser is
                   Parser.Tree.Update_Ancestor_Cache (Op.Ins_Node);
 
                when Delete =>
-                  null;
-               end case;
-            end;
-         end loop;
-
-         for I in Parser_State.Recover_Insert_Delete.First_Index .. Parser_State.Recover_Insert_Delete.Last_Index
-         loop
-            declare
-               Op : Recover_Op renames Parser_State.Recover_Insert_Delete.Variable_Ref (I);
-            begin
-               case Op.Op is
-               when Insert =>
-                  null;
-               when Delete         =>
                   Parser.User_Data.Delete_Token
                     (Parser.Tree,
                      Deleted_Token => Op.Del_Node,
@@ -881,7 +870,7 @@ package body WisiToken.Parse.LR.Parser is
                end if;
             end loop;
 
-            Parser.User_Data.Reduce (Tree, Node, Tree_Children);
+            Parser.User_Data.Reduce (Tree, Node);
             if Tree.Action (Node) /= null then
                begin
                   Tree.Action (Node)
@@ -929,6 +918,11 @@ package body WisiToken.Parse.LR.Parser is
                  (Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": root node: " & Parser.Tree.Image
                     (Parser.Tree.Root));
             end if;
+         end if;
+
+         if Parser.Tree.Root = Syntax_Trees.Invalid_Node_Access then
+            --  No code in file, and error recovery failed to insert valid code.
+            return;
          end if;
 
          Parser.User_Data.Initialize_Actions (Parser.Tree);

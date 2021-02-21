@@ -51,7 +51,7 @@ package body WisiToken.Parse.Packrat is
                end if;
             end loop;
 
-            Parser.User_Data.Reduce (Tree, Node, Tree_Children);
+            Parser.User_Data.Reduce (Tree, Node);
 
             if Tree.Action (Node) /= null then
                Tree.Action (Node) (Parser.User_Data.all, Tree, Node, Syntax_Trees.To_Valid_Node_Access (Tree_Children));

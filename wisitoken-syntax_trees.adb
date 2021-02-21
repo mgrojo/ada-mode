@@ -1105,7 +1105,7 @@ package body WisiToken.Syntax_Trees is
 
       case Node.Label is
       when Terminal_Label =>
-         if Node.ID = Tree.Lexer.Descriptor.EOI_ID  and Node.Line = Line - 1 then
+         if Node.ID = Tree.Lexer.Descriptor.EOI_ID and Node.Line = Line - 1 then
             Char_Pos := Node.Char_Region.First;
             return Node;
          elsif Check_Non_Grammar (Node) then
@@ -1120,7 +1120,9 @@ package body WisiToken.Syntax_Trees is
             return Invalid_Node_Access;
 
          elsif Line - 1 in Node.Line .. Node.Line_Last then
-            if Node.Line = Node.Line_Last and Node.Children (Node.Child_Count).Byte_Region /= Null_Buffer_Region then
+            if (Node.Line = Node.Line_Last or Line - 1 = Node.Line_Last) and then
+              Node.Children (Node.Child_Count).Byte_Region /= Null_Buffer_Region
+            then
                --  Only need to check last child
                if not Tree.Parents_Set then Parents.Push (Node); end if;
                declare
@@ -2029,10 +2031,11 @@ package body WisiToken.Syntax_Trees is
       Tree                 : in     Syntax_Trees.Tree'Class;
       Insert_Token         : in     Valid_Node_Access;
       Insert_Before_Token  : in     Valid_Node_Access;
+      Comment_Present      : in     Boolean;
       Insert_On_Blank_Line : in     Boolean)
      return Boolean
    is
-      pragma Unreferenced (User_Data, Tree, Insert_Token, Insert_Before_Token, Insert_On_Blank_Line);
+      pragma Unreferenced (User_Data, Tree, Insert_Token, Insert_Before_Token, Comment_Present, Insert_On_Blank_Line);
    begin
       return False;
    end Insert_After;
@@ -2540,6 +2543,18 @@ package body WisiToken.Syntax_Trees is
    is
       Node : Node_Access := Root (Tree);
    begin
+      if Tree.Leading_Non_Grammar.Length > 0 then
+         declare
+            Token : WisiToken.Base_Token renames Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.Last_Index);
+         begin
+            if Line - 1 < Token.Line then
+               --  No grammar token on Line.
+               return Invalid_Node_Access;
+            elsif Token.ID = Tree.Lexer.Descriptor.New_Line_ID and Line - 1 = Token.Line then
+               return Tree.First_Terminal (Tree.Root);
+            end if;
+         end;
+      end if;
       Line_Begin_Token (Tree, Line, Node);
       return Node;
    end Line_Begin_Token;
@@ -3137,8 +3152,8 @@ package body WisiToken.Syntax_Trees is
    end Non_Grammar_Var;
 
    function Non_Grammar_Var
-     (Tree      : in out Syntax_Trees.Tree;
-      Terminal  : in     Valid_Node_Access)
+     (Tree     : in Syntax_Trees.Tree;
+      Terminal : in     Valid_Node_Access)
      return Base_Token_Array_Var_Ref
    is
       pragma Unreferenced (Tree);
@@ -3784,9 +3799,9 @@ package body WisiToken.Syntax_Trees is
    end Root;
 
    procedure Set_Augmented
-     (Tree  : in out Syntax_Trees.Tree;
-      Node  : in     Valid_Node_Access;
-      Value : in     Augmented_Class_Access)
+     (Tree  : in Syntax_Trees.Tree;
+      Node  : in Valid_Node_Access;
+      Value : in Augmented_Class_Access)
    is begin
       Node.Augmented := Value;
    end Set_Augmented;
@@ -4159,6 +4174,17 @@ package body WisiToken.Syntax_Trees is
    function Stream_Length (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type
    is (SAL.Base_Peek_Type (Tree.Streams (Stream.Cur).Elements.Length));
 
+   function Stream_Next
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
+     return Rooted_Ref
+   is
+      Result : Stream_Node_Ref := Ref;
+   begin
+      Stream_Next (Tree, Result);
+      return Result;
+   end Stream_Next;
+
    procedure Stream_Next
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Stream_Node_Ref)
@@ -4288,9 +4314,9 @@ package body WisiToken.Syntax_Trees is
       return Node_Index'(Tree.Nodes.Last_Index)'Image;
    end Tree_Size_Image;
 
-   procedure Update_Ancestor_Cache (Tree : in out Syntax_Trees.Tree; Node : in Valid_Node_Access)
+   procedure Update_Ancestor_Cache (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access)
    is
-      Parent : Node_Access := Node.Parent;
+      Parent : Node_Access := Node;
    begin
       loop
          exit when Parent = Invalid_Node_Access;

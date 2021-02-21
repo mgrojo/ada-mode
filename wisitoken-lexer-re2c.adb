@@ -28,6 +28,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Directories;
+with Ada.IO_Exceptions;
 with Ada.Strings.Unbounded;
 with GNATCOLL.Mmap;
 package body WisiToken.Lexer.re2c is
@@ -86,15 +87,28 @@ package body WisiToken.Lexer.re2c is
       File_Name  : in     Ada.Strings.Unbounded.Unbounded_String;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
-   is begin
+   is
+      function Valid_Short_File_Name return Ada.Strings.Unbounded.Unbounded_String
+      is
+         use Ada.Strings.Unbounded;
+      begin
+         if Length (File_Name) = 0 then
+            return +"";
+         else
+            return +Ada.Directories.Simple_Name (-File_Name);
+         end if;
+      exception
+      when Ada.IO_Exceptions.Name_Error =>
+         --  Probably an editor temp buffer name.,,
+         return File_Name;
+      end Valid_Short_File_Name;
+   begin
       Finalize (Lexer);
 
       --  We assume Input is in UTF-8 encoding
       Lexer.Source :=
         (Label       => String_Label,
-         File_Name   =>
-           +(if Ada.Strings.Unbounded.Length (File_Name) = 0 then ""
-             else Ada.Directories.Simple_Name (-File_Name)),
+         File_Name   => Valid_Short_File_Name,
          Buffer_Nominal_First_Byte => Base_Buffer_Pos (Input'First),
          Buffer_Nominal_First_Char => Begin_Char,
          Line_Nominal_First        => Begin_Line,

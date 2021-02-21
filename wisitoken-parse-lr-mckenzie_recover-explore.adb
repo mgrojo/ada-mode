@@ -122,6 +122,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          end if;
 
          --  Finish the reduce; ignore the check fail.
+         Config.Cost := @ + Table.McKenzie_Param.Ignore_Check_Fail;
+
          if Config.Stack.Depth < SAL.Base_Peek_Type (Config.User_Parse_Action_Token_Count) then
             raise SAL.Programmer_Error;
          else
@@ -169,69 +171,55 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Inserted_ID       : in              Token_ID;
       Cost_Delta        : in              Integer;
       Strategy          : in              Strategies)
+   --  Perform reduce actions until shift Inserted_ID, add the final
+   --  configuration to the heap. If a conflict is encountered, process the
+   --  other actions the same way. If a user in-parse action fails, enqueue
+   --  possible solutions. For parse table error or accept actions, or
+   --  exception Bad_Config, do nothing.
    is
-      --  Perform reduce actions until shift Inserted_ID; if all succeed,
-      --  add the final configuration to the heap, return True. If a conflict is
-      --  encountered, process the other action the same way. If a semantic
-      --  check fails, enqueue possible solutions. For parse table error
-      --  actions, or exception Bad_Config, return False.
-
       Orig_Config : Configuration;
       Table       : Parse_Table renames Shared.Table.all;
       Next_Action : Parse_Action_Node_Ptr := Action_For (Table, Config.Stack.Peek.State, Inserted_ID);
+
+      procedure Do_One (Config : in out Configuration; Action : in Parse_Action_Rec)
+      is begin
+         case Action.Verb is
+         when Shift =>
+            Do_Shift
+              (Label, Super, Shared, Parser_Index, Local_Config_Heap, Config, Action.State, Inserted_ID,
+               Cost_Delta, Strategy);
+
+         when Reduce =>
+            Do_Reduce_1 (Label, Super, Shared, Parser_Index, Local_Config_Heap, Config, Action);
+            Do_Reduce_2
+              (Label, Super, Shared, Parser_Index, Local_Config_Heap, Config, Inserted_ID, Cost_Delta, Strategy);
+
+         when Accept_It | Error  =>
+            if Trace_McKenzie > Extra and Label'Length > 0 then
+               Put_Line
+                 (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index), Label & ": " &
+                    (if Action.Verb = Accept_It then "accept" else "error") & " on " &
+                    Image (Inserted_ID, Super.Tree.Lexer.Descriptor.all) &
+                    " in state" & State_Index'Image (Config.Stack.Peek.State));
+            end if;
+         end case;
+      end Do_One;
    begin
       if Next_Action.Next /= null then
          Orig_Config := Config;
       end if;
 
-      case Next_Action.Item.Verb is
-      when Shift =>
-         Do_Shift
-           (Label, Super, Shared, Parser_Index, Local_Config_Heap, Config, Next_Action.Item.State, Inserted_ID,
-            Cost_Delta, Strategy);
+      Do_One (Config, Next_Action.Item);
 
-      when Reduce =>
-         Do_Reduce_1 (Label, Super, Shared, Parser_Index, Local_Config_Heap, Config, Next_Action.Item);
-         Do_Reduce_2
-           (Label, Super, Shared, Parser_Index, Local_Config_Heap, Config, Inserted_ID, Cost_Delta, Strategy);
-
-      when Accept_It =>
-         raise SAL.Programmer_Error with "found test case for Do_Reduce Accept_It";
-
-      when Error =>
-         if Trace_McKenzie > Extra and Label'Length > 0 then
-            Put_Line
-              (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index), Label & ": error on " &
-                 Image (Inserted_ID, Super.Tree.Lexer.Descriptor.all) &
-                 " in state" & State_Index'Image (Config.Stack.Peek.State));
-         end if;
-      end case;
+      Next_Action := Next_Action.Next;
 
       loop
-         exit when Next_Action.Next = null;
+         exit when Next_Action = null;
          --  There is a conflict; create a new config to shift or reduce.
          declare
             New_Config : Configuration := Orig_Config;
-            Action     : Parse_Action_Rec renames Next_Action.Next.Item;
          begin
-            case Action.Verb is
-            when Shift =>
-               Do_Shift
-                 (Label, Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, Inserted_ID,
-                  Cost_Delta, Strategy);
-
-            when Reduce =>
-               Do_Reduce_1 (Label, Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action);
-               Do_Reduce_2
-                 (Label, Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Inserted_ID,
-                  Cost_Delta, Strategy);
-
-            when Accept_It =>
-               raise SAL.Programmer_Error with "found test case for Do_Reduce Accept_It conflict";
-
-            when Error =>
-               null;
-            end case;
+            Do_One (New_Config, Next_Action.Item);
          end;
 
          Next_Action := Next_Action.Next;

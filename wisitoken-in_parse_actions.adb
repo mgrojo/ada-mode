@@ -67,14 +67,7 @@ package body WisiToken.In_Parse_Actions is
                then To_Lower (Lexer.Buffer_Text (End_Name_Region))
                else Lexer.Buffer_Text (End_Name_Region));
          begin
-            return Result : constant Boolean := Start_Name = End_Name do
-               if not Result and WisiToken.Trace_Parse > Detail then
-                  --  FIXME: need Trace parameter or delete; compare to trace in Do_Action
-                  Ada.Text_IO.Put_Line
-                    ("match_names_error: '" & Image (Start_Name_Region) & Start_Name & "' /= '" &
-                       Image (End_Name_Region) & End_Name & "'");
-               end if;
-            end return;
+            return Start_Name = End_Name;
          end Equal;
       begin
 

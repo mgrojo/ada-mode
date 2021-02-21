@@ -1093,7 +1093,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("*id            =" & WisiToken.Token_ID'Image (Generate_Data.Descriptor.EOI_ID) & ";");
       Indent_Line ("*byte_position = lexer->buffer_last - lexer->buffer + 1;");
       Indent_Line ("*byte_length   = 0;");
-      Indent_Line ("*char_position = lexer->char_pos + 1;");
+      Indent_Line ("*char_position = lexer->char_pos;");
       Indent_Line ("*char_length   = 0;");
       Indent_Line ("*line_start    = lexer->line;");
       Indent_Line ("return status;");

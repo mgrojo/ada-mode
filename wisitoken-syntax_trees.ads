@@ -391,6 +391,7 @@ package WisiToken.Syntax_Trees is
       Tree                 : in     Syntax_Trees.Tree'Class;
       Insert_Token         : in     Valid_Node_Access;
       Insert_Before_Token  : in     Valid_Node_Access;
+      Comment_Present      : in     Boolean;
       Insert_On_Blank_Line : in     Boolean)
      return Boolean;
    --  Return True if Insert_Token should be treated as if inserted after
@@ -398,8 +399,12 @@ package WisiToken.Syntax_Trees is
    --  Insert_Before_Token. This can affect which line it appears on,
    --  which affects indentation. Called from Insert_Token.
    --
-   --  If Insert_On_Blank_Line is True, there is at least one blank line
-   --  before Insert_Before_Token.
+   --  If Comment_Present, there is a comment between Tree.Prev_Terminal
+   --  (Insert_Before_Token) and Insert_Before_Token.
+   --
+   --  If Insert_On_Blank_Line, there is at least one blank line
+   --  immediately after Tree.Prev_Terminal (Insert_Before_Token) (before
+   --  any comment).
    --
    --  The default implementation always returns False.
 
@@ -415,7 +420,7 @@ package WisiToken.Syntax_Trees is
 
    procedure Delete_Token
      (User_Data     : in out User_Data_Type;
-      Tree          : in out Syntax_Trees.Tree'Class;
+      Tree          : in     Syntax_Trees.Tree'Class;
       Deleted_Token : in     Valid_Node_Access;
       Prev_Token    : in     Node_Access)
    is null
@@ -428,15 +433,21 @@ package WisiToken.Syntax_Trees is
    --  anywhere. Called from Execute_Actions for each deleted token,
    --  before Initialize_Actions.
 
+   procedure Delete_Token
+     (User_Data : in out User_Data_Type;
+      Tree      : in     Syntax_Trees.Tree'Class;
+      To_Delete : in     Syntax_Trees.Terminal_Ref)
+   is null;
+   --  To_Deleted is about to be deleted in Edit_Tree. Update remaining
+   --  tokens as needed.
+
    procedure Reduce
      (User_Data : in out User_Data_Type;
-      Tree      : in out Syntax_Trees.Tree'Class;
-      Nonterm   : in     Valid_Node_Access;
-      Tokens    : in     Node_Access_Array)
+      Tree      : in     Syntax_Trees.Tree'Class;
+      Nonterm   : in     Valid_Node_Access)
    is null;
-   --  Reduce Tokens to Nonterm. Nonterm Base_Token components are
-   --  computed by caller. Called by Parser.Execute_Actions, just before
-   --  processing Nonterm.
+   --  Called by Parser.Execute_Actions, just before processing Nonterm;
+   --  Nonterm was created by a 'reduce' parse action.
 
    type Post_Parse_Action is access procedure
      (User_Data : in out User_Data_Type'Class;
@@ -559,7 +570,7 @@ package WisiToken.Syntax_Trees is
    procedure Update_Cache (Tree : in out Syntax_Trees.Tree; Stream : in Stream_ID);
    --  In all nodes in Stream, update cached token positions from terminals.
 
-   procedure Update_Ancestor_Cache (Tree : in out Syntax_Trees.Tree; Node : in Valid_Node_Access);
+   procedure Update_Ancestor_Cache (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access);
    --  In all ancestors of Node, update cached token positions from terminals.
 
    function Parseable (Tree : in Syntax_Trees.Tree) return Boolean;
@@ -727,6 +738,14 @@ package WisiToken.Syntax_Trees is
                (Tree.Contains (Stream, Element) or Tree.Contains (Tree.Shared_Stream, Element));
    --  If Element is Invalid_Stream_Index, result is Stream_First
 
+   function Stream_Next
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
+     return Rooted_Ref
+   with Pre => Valid_Stream_Node (Tree, Ref),
+     Post => Correct_Stream_Node (Tree, Stream_Next'Result);
+   --  Return stream element after Ref.Element.
+
    procedure Stream_Next
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Stream_Node_Ref)
@@ -789,8 +808,8 @@ package WisiToken.Syntax_Trees is
    --  node.
 
    function Non_Grammar_Var
-     (Tree      : in out Syntax_Trees.Tree;
-      Terminal  : in     Valid_Node_Access)
+     (Tree     : in Syntax_Trees.Tree;
+      Terminal : in Valid_Node_Access)
      return Base_Token_Array_Var_Ref
    with Pre => Tree.Label (Terminal) in Terminal_Label;
 
@@ -807,7 +826,7 @@ package WisiToken.Syntax_Trees is
       Index    : in     Node_Index;
       Before   : in     Stream_Index)
      return Single_Terminal_Ref
-   with Pre => not Tree.Traversing and Tree.Contains (Stream, Before),
+   with Pre => not Tree.Traversing and (Before = Invalid_Stream_Index or else Tree.Contains (Stream, Before)),
      Post => Tree.Label (Insert_Source_Terminal'Result.Node) = Source_Terminal;
    --  Insert a new Source_Terminal element on Stream, before Before.
    --  Index should give the source token order. Result points to the
@@ -1008,9 +1027,9 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Contains (Stream, Element) and Tree.Label (Element) = Nonterm;
 
    procedure Set_Augmented
-     (Tree  : in out Syntax_Trees.Tree;
-      Node  : in     Valid_Node_Access;
-      Value : in     Augmented_Class_Access);
+     (Tree  : in Syntax_Trees.Tree;
+      Node  : in Valid_Node_Access;
+      Value : in Augmented_Class_Access);
    --  Value will be deallocated when Tree is finalized.
 
    function Augmented
@@ -1563,10 +1582,9 @@ package WisiToken.Syntax_Trees is
      (Tree : in Syntax_Trees.Tree;
       Line : in Line_Number_Type)
      return Node_Access;
-   --  Tree.Line_Begin_Token (I) is the node under Root (Tree) of
-   --  the first terminal token on line I; Invalid_Node_Access if
-   --  there are no grammar tokens on the line (ie only comment or
-   --  whitespace).
+   --  Return the node under Root (Tree) of the first terminal token on
+   --  line Line; Invalid_Node_Access if there are no grammar tokens on
+   --  the line (ie only comment or whitespace).
 
    function Line_Begin_Token
      (Tree   : in Syntax_Trees.Tree;
