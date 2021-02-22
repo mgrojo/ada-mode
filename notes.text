@@ -43,18 +43,6 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-running all tests again
-    revew test.log
-
-
-use (1 . 0) for null_buffer_region, 0 for emacs_invalid_buffer_pos; save communication time
-
-save_text writes with DOS line endings.
-    use something else
-        gnatcoll.mmap?
-        direct_io?
-        stream_io?
-
 incremental parse
     wisi-show-errors show _all_ errors in buffer
         if parse succeeds, delete errors in regions parsed

@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -43,10 +43,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
    --  protected_body                IDENTIFIER                identifier_opt
    --  protected_type_declaration    IDENTIFIER                protected_definition
    --  single_protected_declaration  IDENTIFIER                protected_definition
-   --  single_task_declaration       IDENTIFIER                identifier_opt
+   --  single_task_declaration       IDENTIFIER                task_definition
    --  subprogram_body               subprogram_specification  name_opt
    --  task_body                     IDENTIFIER                identifier_opt
-   --  task_type_declaration         IDENTIFIER                identifier_opt
+   --  task_type_declaration         IDENTIFIER                task_definition
 
    No_Statements_Nonterm_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set
      --  Nonterms that cannot contain a handled_sequence_of_statements

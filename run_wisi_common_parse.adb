@@ -318,7 +318,7 @@ package body Run_Wisi_Common_Parse is
       use Ada.Strings.Fixed;
       use WisiToken; -- "+" unbounded
 
-      type File_Command_Type is (Parse_Incremental, Post_Parse, Save_Text, Verbosity);
+      type File_Command_Type is (Parse_Incremental, Post_Parse, Refactor, Save_Text, Verbosity);
 
       Parser : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
 
@@ -403,6 +403,14 @@ package body Run_Wisi_Common_Parse is
             Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, End_Byte_Pos));
 
             Parse_Data.Put (Parser);
+         end;
+
+      when Refactor =>
+         declare
+            Refactor_Action : constant Positive             := Wisi.Get_Integer (Line, Last);
+            Edit_Begin      : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
+         begin
+            Parse_Data.Refactor (Parser.Tree, Refactor_Action, Edit_Begin);
          end;
 
       when Save_Text =>

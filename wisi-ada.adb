@@ -620,9 +620,6 @@ package body Wisi.Ada is
    begin
       if After_End (Insert_ID) and then -Tree.ID (Tree.Prev_Terminal (Insert_Token)) = END_ID then
          return True;
-
-      elsif Comment_Present then
-         return not After_Comment (Insert_ID);
       end if;
 
       case Insert_Before_ID is
@@ -645,31 +642,35 @@ package body Wisi.Ada is
          return True;
 
       when others =>
-         case Insert_ID is
-         when END_ID =>
-            --  test/ada_mode-recover_20.adb,
-            --  test/ada_mode-interactive_2.adb Record_1.
-            return False;
+         if Comment_Present then
+            return not After_Comment (Insert_ID);
+         else
+            case Insert_ID is
+            when END_ID =>
+               --  test/ada_mode-recover_20.adb,
+               --  test/ada_mode-interactive_2.adb Record_1.
+               return False;
 
-         when IDENTIFIER_ID | NUMERIC_LITERAL_ID =>
-            --  test/ada_mode-recover_03.adb after 'renames'; completing an expression: true.
-            --  Starting a procedure call or assignment statement: false
-            return -Tree.ID (Tree.Prev_Terminal (Insert_Token)) /= SEMICOLON_ID;
+            when IDENTIFIER_ID | NUMERIC_LITERAL_ID =>
+               --  test/ada_mode-recover_03.adb after 'renames'; completing an expression: true.
+               --  Starting a procedure call or assignment statement: false
+               return -Tree.ID (Tree.Prev_Terminal (Insert_Token)) /= SEMICOLON_ID;
 
-         when SEMICOLON_ID =>
-            --  test/ada_mode-recover_03.adb after 'renames', _13.adb not on blank line: True
-            --  ada_mode-interactive_2.adb A := B \n+C; on blank line: False
-            --  ada_mode-recover_36.adb after 'function Update\n comments': True
-            --  FIXME: check for comments.
-            --
-            --  ada_mode-recover_07.adb after 'loop' on blank line: ideally True,
-            --  but we return False because we can't distinguish this from
-            --  interactive_2 case.
-            return not Insert_On_Blank_Line;
+            when SEMICOLON_ID =>
+               --  test/ada_mode-recover_03.adb after 'renames', _13.adb not on blank line: True
+               --  ada_mode-interactive_2.adb A := B \n+C; on blank line: False
+               --  ada_mode-recover_36.adb after 'function Update\n comments': True
+               --  FIXME: check for comments.
+               --
+               --  ada_mode-recover_07.adb after 'loop' on blank line: ideally True,
+               --  but we return False because we can't distinguish this from
+               --  interactive_2 case.
+               return not Insert_On_Blank_Line;
 
-         when others =>
-            return Default_Result (Insert_ID);
-         end case;
+            when others =>
+               return Default_Result (Insert_ID);
+            end case;
+         end if;
       end case;
    end Insert_After;
 

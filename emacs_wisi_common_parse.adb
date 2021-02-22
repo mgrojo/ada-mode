@@ -532,9 +532,6 @@ package body Emacs_Wisi_Common_Parse is
 
                   Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find
                     (-Params.Source_File_Name, Language);
-
-                  Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class
-                    (Parse_Context.Parser.User_Data.all);
                begin
                   Check_Command_Length (Command_Length, Last);
 
@@ -542,7 +539,12 @@ package body Emacs_Wisi_Common_Parse is
                      raise Parse_Context_Not_Found;
                   end if;
 
-                  Parse_Data.Refactor (Parse_Context.Parser.Tree, Params.Refactor_Action, Params.Edit_Begin);
+                  declare
+                     Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class
+                       (Parse_Context.Parser.User_Data.all);
+                  begin
+                     Parse_Data.Refactor (Parse_Context.Parser.Tree, Params.Refactor_Action, Params.Edit_Begin);
+                  end;
                exception
                when Parse_Context_Not_Found =>
                   --  Tell Emacs to send full text

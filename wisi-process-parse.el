@@ -329,7 +329,7 @@ one or more Edit messages."
   ;; emacs_wisi_common_parse.adb Get_Refactor_Params.
   (let* ((cmd (format "refactor %d \"%s\" %d \"%s\""
 		      refactor-action
-		      (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
+		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		      (position-bytes edit-begin)
 		      wisi-parser-verbosity
 		      ))
