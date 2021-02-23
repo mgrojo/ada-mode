@@ -6,7 +6,7 @@
 --  written, but as the algorithm evolved, the tests behavior changed.
 --  They all still test something useful.
 --
---  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -2441,6 +2441,10 @@ package body Test_McKenzie_Recover is
             User_Data                      => User_Data'Access,
             Text_Rep_File_Name             => "ada_lite_lr1_t1_re2c_parse_table.txt");
       end case;
+
+      if T.Enqueue_Limit > 0 then
+         Parser.Table.McKenzie_Param.Enqueue_Limit := T.Enqueue_Limit;
+      end if;
 
       Orig_Params := Parser.Table.McKenzie_Param;
 

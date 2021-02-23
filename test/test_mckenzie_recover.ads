@@ -2,7 +2,7 @@
 --
 --  Test McKenzie error recovery.
 --
---  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -24,6 +24,7 @@ package Test_McKenzie_Recover is
 
    type Test_Case
      (Alg                       : WisiToken.BNF.LR_Generate_Algorithm;
+      Enqueue_Limit             : Natural;
       Force_Full_Explore        : Boolean;
       Force_High_Cost_Solutions : Boolean)
      is new AUnit.Test_Cases.Test_Case with null record;

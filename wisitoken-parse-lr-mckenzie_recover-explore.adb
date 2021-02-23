@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -1743,7 +1743,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          begin First_Token /= Invalid_Stream_Node_Ref and then
             Tree.Prev_Shared_Terminal (First_Token).Node /= Invalid_Node_Access)
       then
-         --  The unbalanced quote is before the parse error token; see
+         --  case b: the unbalanced quote is before the parse error token; see
          --  test_mckenzie_recover.adb String_Quote_2.
          --
          --  The missing quote belongs after the parse error token, before or
