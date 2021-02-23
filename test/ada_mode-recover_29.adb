@@ -28,8 +28,8 @@ begin
       Matching_Begin_Token := Invalid_Token_ID;
    end if;
    else
-   Use_Complete := False;
-   Matching_Begin_Token := Invalid_Token_ID;
+      Use_Complete := False;
+      Matching_Begin_Token := Invalid_Token_ID;
    end if;
 end Use_Minimal_Complete_Actions;
 --  Local Variables:

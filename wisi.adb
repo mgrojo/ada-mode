@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -19,7 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Exceptions;
 with Ada.Strings.Bounded;
-with Ada.Strings.Unbounded;
+with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with SAL;
 with WisiToken.In_Parse_Actions;
@@ -39,6 +39,226 @@ package body Wisi is
 
    ----------
    --  body subprograms bodies, alphabetical
+
+   procedure Update_Indent_Lines
+     (Tree          : in     Syntax_Trees.Tree'Class;
+      Deleted_Tok   : in     WisiToken.Base_Token;
+      Deleted_Aug   : in out Augmented_Var_Ref;
+      Prev_Token    : in     Syntax_Trees.Node_Access;
+      Next_Token    : in     Syntax_Trees.Node_Access;
+      Prev_Modified : in out Boolean)
+   is
+      use all type WisiToken.Syntax_Trees.Node_Access;
+
+      Next_Modified : Boolean := False;
+   begin
+      if (Prev_Token = Syntax_Trees.Invalid_Node_Access or else
+           Tree.Base_Token (Prev_Token).Line < Deleted_Tok.Line) and
+        (Next_Token = Syntax_Trees.Invalid_Node_Access or else
+           Tree.Base_Token (Next_Token).Line > Deleted_Tok.Line)
+      then
+         --  Deleted_Tok.Line is now blank; add to previous token indent range
+         if Prev_Token /= Syntax_Trees.Invalid_Node_Access then
+            Prev_Modified := True;
+            declare
+               Prev_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Prev_Token);
+            begin
+               if Prev_Aug.First_Trailing_Comment_Line = Invalid_Line_Number then
+                  Prev_Aug.First_Trailing_Comment_Line := Deleted_Tok.Line;
+                  Prev_Aug.Last_Trailing_Comment_Line  := Deleted_Tok.Line;
+               else
+                  if Prev_Aug.First_Trailing_Comment_Line > Deleted_Tok.Line then
+                     Prev_Aug.First_Trailing_Comment_Line := Deleted_Tok.Line;
+                  end if;
+                  if Prev_Aug.Last_Trailing_Comment_Line < Deleted_Tok.Line then
+                     Prev_Aug.Last_Trailing_Comment_Line := Deleted_Tok.Line;
+                  end if;
+               end if;
+            end;
+         end if;
+      end if;
+
+      if Prev_Modified then
+         --  May need this for First in next block; test/ada_mode-recover_partial_01.adb
+         Tree.Update_Ancestor_Cache (Prev_Token);
+      end if;
+
+      if Next_Token /= Syntax_Trees.Invalid_Node_Access
+        and then Tree.Augmented (Next_Token) /= null
+      then
+         declare
+            Next_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Next_Token);
+         begin
+            if First (Tree, Next_Token) then
+               if Next_Aug.First_Indent_Line = Invalid_Line_Number then
+                  Next_Aug.First_Indent_Line := Tree.Line (Next_Token);
+                  Next_Aug.Last_Indent_Line  := Tree.Line (Next_Token);
+               else
+                  Next_Aug.First_Indent_Line := Tree.Line (Next_Token);
+               end if;
+            else
+               Next_Aug.First_Indent_Line := Deleted_Aug.First_Indent_Line;
+               Next_Aug.Last_Indent_Line  := Deleted_Aug.Last_Indent_Line;
+            end if;
+            Next_Modified := True;
+         end;
+      end if;
+
+      if Next_Modified then
+         Tree.Update_Ancestor_Cache (Next_Token);
+      end if;
+   end Update_Indent_Lines;
+
+   procedure Edit
+     (Data  : in out Parse_Data_Type;
+      Edits : in     WisiToken.Parse.KMN_Lists.List)
+   is
+      use all type Ada.Containers.Count_Type;
+
+      Old_Point : Buffer_Pos := Buffer_Pos'First; -- in original source text
+
+      Navigate_Iterator : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
+      Name_Iterator     : constant Name_Cache_Trees.Iterator     := Data.Name_Caches.Iterate;
+      Face_Iterator     : constant Face_Cache_Trees.Iterator     := Data.Face_Caches.Iterate;
+
+      Navigate : Navigate_Cache_Trees.Cursor := Navigate_Iterator.First;
+      Name     : Name_Cache_Trees.Cursor     := Name_Iterator.First;
+      Face     : Face_Cache_Trees.Cursor     := Face_Iterator.First;
+
+      Shift_Chars : Base_Buffer_Pos := 0;
+
+      type Old_New is record
+         Old_Char_First : Base_Buffer_Pos;
+         Shift_Chars  : Base_Buffer_Pos;
+      end record;
+
+      Shifts : array (1 .. Edits.Length) of Old_New;
+      Shifts_Next : Ada.Containers.Count_Type := Shifts'First;
+
+      Navigate_Delete : WisiToken.Buffer_Pos_Lists.List;
+      Name_Delete     : WisiToken.Buffer_Pos_Lists.List;
+      Face_Delete     : WisiToken.Buffer_Pos_Lists.List;
+
+      function Map (Old_Pos : in Base_Buffer_Pos) return Base_Buffer_Pos
+      is begin
+         for I in Shifts'Range loop
+            if Old_Pos >= Shifts (I).Old_Char_First and
+              (I = Shifts'Last or else Old_Pos < Shifts (I + 1).Old_Char_First)
+            then
+               return Old_Pos + Shifts (I).Shift_Chars;
+            end if;
+         end loop;
+         raise SAL.Programmer_Error; -- can't get here.
+      end Map;
+
+   begin
+      --  Elisp handles deleting text properties in edited regions; delete
+      --  the same data here. Execute_Actions will computed new text
+      --  properties for the edited regions.
+
+      for Edit of Edits loop
+         Shifts (Shifts_Next) := (Old_Point, Shift_Chars);
+         Shifts_Next := @ + 1;
+
+         Old_Point := @ + Edit.Stable_Chars;
+         declare
+            Old_Edit_Region_Chars : constant Buffer_Region := (Old_Point, Old_Point + Edit.Deleted_Chars);
+         begin
+            loop
+               exit when not Navigate_Cache_Trees.Has_Element (Navigate);
+               exit when Data.Navigate_Caches (Navigate).Pos >= Old_Point;
+
+               --  Navigate positions are updated below using Map.
+
+               Navigate := Navigate_Iterator.Next (Navigate);
+            end loop;
+
+            if Navigate_Cache_Trees.Has_Element (Navigate) and then
+              Inside (Data.Navigate_Caches (Navigate).Pos, Old_Edit_Region_Chars)
+            then
+               Navigate_Delete.Append (Data.Navigate_Caches (Navigate).Pos);
+               Navigate := Navigate_Iterator.Next (Navigate);
+            end if;
+
+            loop
+               exit when not Name_Cache_Trees.Has_Element (Name);
+               exit when Data.Name_Caches (Name).First >= Old_Point;
+
+               Data.Name_Caches.Variable_Ref (Name).Element.all := @ + Shift_Chars;
+
+               Name := Name_Iterator.Next (Name);
+            end loop;
+
+            if Name_Cache_Trees.Has_Element (Name) and then
+              Overlaps (Data.Name_Caches (Name), Old_Edit_Region_Chars)
+            then
+                  Name_Delete.Append (Data.Name_Caches (Name).First);
+                  Name := Name_Iterator.Next (Name);
+            end if;
+
+            loop
+               exit when not Face_Cache_Trees.Has_Element (Face);
+               exit when Data.Face_Caches (Face).Char_Region.First >= Old_Point;
+
+               Data.Face_Caches (Face).Char_Region := @ + Shift_Chars;
+
+               Face := Face_Iterator.Next (Face);
+            end loop;
+
+            if Face_Cache_Trees.Has_Element (Face) and then
+              Overlaps (Data.Face_Caches (Face).Char_Region, Old_Edit_Region_Chars)
+            then
+               Face_Delete.Append (Data.Face_Caches (Face).Char_Region.First);
+               Face := Face_Iterator.Next (Face);
+            end if;
+         end;
+
+         Shift_Chars := @ - Edit.Deleted_Chars + Edit.Inserted_Chars;
+      end loop;
+
+      for Pos of Navigate_Delete loop
+         Data.Navigate_Caches.Delete (Pos);
+      end loop;
+
+      for Pos of Name_Delete loop
+         Data.Name_Caches.Delete (Pos);
+      end loop;
+
+      for Pos of Face_Delete loop
+         begin
+            Data.Face_Caches.Delete (Pos);
+         exception
+         when SAL.Not_Found =>
+            --  Code above can enter Pos into Face_Delete more than once
+            null;
+         end;
+      end loop;
+
+      --  Now Map is valid; finish shifting Navigate
+      Navigate := Navigate_Iterator.First;
+      loop
+         exit when not Navigate_Cache_Trees.Has_Element (Navigate);
+
+         declare
+            Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Navigate);
+         begin
+            Cache.Pos := Map (@);
+            if Cache.Containing_Pos.Set then
+               Cache.Containing_Pos := (True, Map (@.Item));
+            end if;
+            if Cache.Prev_Pos.Set then
+               Cache.Prev_Pos := (True, Map (@.Item));
+            end if;
+            if Cache.Next_Pos.Set then
+               Cache.Next_Pos := (True, Map (@.Item));
+            end if;
+            if Cache.End_Pos.Set then
+               Cache.End_Pos := (True, Map (@.Item));
+            end if;
+         end;
+         Navigate := Navigate_Iterator.Next (Navigate);
+      end loop;
+   end Edit;
 
    overriding
    function Image_Augmented (Aug : in Augmented) return String
@@ -62,12 +282,23 @@ package body Wisi is
       return -Result;
    end Image_Augmented;
 
-   function Image_Action (Action : in Syntax_Trees.Post_Parse_Action) return String
-   is
-      pragma Unreferenced (Action);
-   begin
-      return "action";
-   end Image_Action;
+   overriding
+   procedure Shift
+     (Augmented   : in out Wisi.Augmented;
+      Shift_Bytes : in     Base_Buffer_Pos;
+      Shift_Chars : in     Base_Buffer_Pos;
+      Shift_Line  : in     Base_Line_Number_Type)
+   is begin
+      if Augmented.First_Indent_Line /= Invalid_Line_Number then
+         Augmented.First_Indent_Line := @ + Shift_Line;
+         Augmented.Last_Indent_Line := @ + Shift_Line;
+      end if;
+
+      if Augmented.First_Trailing_Comment_Line /= Invalid_Line_Number then
+         Augmented.First_Trailing_Comment_Line := @ + Shift_Line;
+         Augmented.Last_Trailing_Comment_Line := @ + Shift_Line;
+      end if;
+   end Shift;
 
    function Image (Anchor_IDs : in Anchor_ID_Vectors.Vector) return String
    is
@@ -241,7 +472,7 @@ package body Wisi is
       end case;
 
       if Trace_Action > Extra then
-         Ada.Text_IO.Put_Line (";; indent_line: " & Line_Number_Type'Image (Line) & " => " & Image (Indent));
+         Data.Trace.Put_Line ("indent_line: " & Line_Number_Type'Image (Line) & " => " & Image (Indent));
       end if;
 
       Data.Indents.Replace_Element (Line, Indent);
@@ -413,6 +644,8 @@ package body Wisi is
       use Parse.LR.Recover_Op_Arrays;
       use all type Ada.Containers.Count_Type;
 
+      Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
+
       --  Output is a sequence of edit regions; each is:
       --  [error-pos edit-pos [inserted token-ids] [deleted token-ids] deleted-region]
 
@@ -456,7 +689,7 @@ package body Wisi is
       end Terminate_Edit_Region;
    begin
       if Trace_Action > Outline then
-         Ada.Text_IO.Put_Line (";; " & Parse.LR.Image (Item, Tree));
+         Data.Trace.Put_Line ("recover: " & Parse.LR.Image (Item, Tree));
       end if;
 
       if Length (Item) = 0 or not Tree.Parents_Set then
@@ -526,10 +759,10 @@ package body Wisi is
 
                   when Deleted =>
                      if Data.Embedded_Quote_Escape_Doubled and then
-                       ((Last_Deleted.Del_ID = Data.Descriptor.String_1_ID and
-                           Op.Del_ID = Data.Descriptor.String_1_ID) or
-                          (Last_Deleted.Del_ID = Data.Descriptor.String_2_ID and
-                             Op.Del_ID = Data.Descriptor.String_2_ID))
+                       ((Last_Deleted.Del_ID = Descriptor.String_1_ID and
+                           Op.Del_ID = Descriptor.String_1_ID) or
+                          (Last_Deleted.Del_ID = Descriptor.String_2_ID and
+                             Op.Del_ID = Descriptor.String_2_ID))
                      then
                         declare
                            Tok_1 : constant WisiToken.Base_Token := Tree.Base_Token (Last_Deleted.Del_Node);
@@ -572,12 +805,12 @@ package body Wisi is
       Anchor_Indent : array (First_Anchor_ID .. Data.Max_Anchor_ID) of Integer;
    begin
       if Trace_Action > Outline then
-         Ada.Text_IO.New_Line;
-         Ada.Text_IO.Put_Line (";; Begin_Indent: " & Integer'Image (Data.Begin_Indent));
+         Data.Trace.New_Line;
+         Data.Trace.Put_Line ("Begin_Indent: " & Integer'Image (Data.Begin_Indent));
          for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
-            Ada.Text_IO.Put_Line (";; " & Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
+            Data.Trace.Put_Line ("" & Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
          end loop;
-         Ada.Text_IO.Put_Line (";; resolve anchors");
+         Data.Trace.Put_Line ("resolve anchors");
       end if;
 
       for Line in Data.Indents.First_Index .. Data.Indents.Last_Index loop
@@ -596,7 +829,7 @@ package body Wisi is
                for I of Indent.Anchor_Nil_IDs loop
                   Anchor_Indent (I) := Begin_Indent;
                   if Trace_Action > Extra then
-                     Ada.Text_IO.Put_Line
+                     Data.Trace.Put_Line
                        ("anchor line" & Line'Image & " id" & I'Image & " indent" & Anchor_Indent (I)'Image);
                   end if;
                end loop;
@@ -606,7 +839,7 @@ package body Wisi is
                for I of Indent.Anchor_Int_IDs loop
                   Anchor_Indent (I) := Indent.Anchor_Int_Indent + Begin_Indent;
                   if Trace_Action > Extra then
-                     Ada.Text_IO.Put_Line
+                     Data.Trace.Put_Line
                        ("anchor line" & Line'Image & " id" & I'Image & " indent" & Anchor_Indent (I)'Image);
                   end if;
                end loop;
@@ -624,7 +857,7 @@ package body Wisi is
                   for I of Indent.Anchor_Anchored_IDs loop
                      Anchor_Indent (I) := Temp;
                      if Trace_Action > Extra then
-                        Ada.Text_IO.Put_Line
+                        Data.Trace.Put_Line
                           ("anchor line" & Line'Image & " id" & I'Image & " indent" & Anchor_Indent (I)'Image);
                      end if;
                   end loop;
@@ -652,8 +885,8 @@ package body Wisi is
          begin
             if Cache.Pos in Containing_Pos .. End_Pos then
                Cache.End_Pos := (True, End_Pos);
-               if WisiToken.Trace_Action > Detail then
-                  Ada.Text_IO.Put_Line ("   " & Cache.Pos'Image & " end to " & Cache.End_Pos.Item'Image);
+               if Trace_Action > Detail then
+                  Data.Trace.Put_Line ("   " & Cache.Pos'Image & " end to " & Cache.End_Pos.Item'Image);
                end if;
                Delete_Cache := True;
             else
@@ -675,26 +908,445 @@ package body Wisi is
    ----------
    --  public subprograms (declaration order)
 
-   procedure Initialize
+   procedure Skip
+     (Source : in     String;
+      Last   : in out Integer;
+      Char   : in     Character)
+   is begin
+      loop
+         if Last = Source'Last then
+            raise Protocol_Error with "at" & Last'Image & ": expecting '" & Char & "' found EOI";
+
+         elsif Source (Last + 1) = ' ' then
+            Last := Last + 1;
+
+         elsif Source (Last + 1) = Char then
+            Last := Last + 1;
+            exit;
+         else
+            raise Protocol_Error with
+              "at" & Last'Image & ": expecting '" & Char & "' found '" & Source (Last + 1) & "'";
+         end if;
+      end loop;
+   end Skip;
+
+   function Get_String
+     (Source : in     String;
+      Last   : in out Integer)
+     return String
+   is
+      use Ada.Strings.Fixed;
+      First : constant Integer := Index
+        (Source  => Source,
+         Pattern => """",
+         From    => Last + 1);
+   begin
+      Last := Index
+        (Source  => Source,
+         Pattern => """",
+         From    => First + 1);
+
+      if First = 0 or Last = 0 then
+         raise Protocol_Error with "at" & Last'Image & ": no '""' found for string";
+      end if;
+
+      return Source (First + 1 .. Last - 1);
+   end Get_String;
+
+   function Get_Integer
+     (Source : in     String;
+      Last   : in out Integer)
+     return Integer
+   is
+      use Ada.Strings.Fixed;
+      First : constant Integer := Last + 1;
+   begin
+      Last := Index
+        (Source  => Source,
+         Pattern => " ",
+         From    => First + 1); -- Skip a leading space if present.
+
+      if Last = 0 then
+         Last := Source'Last;
+      else
+         Last := Last - 1;
+      end if;
+
+      return Integer'Value (Source (First .. Last));
+   exception
+   when others =>
+      raise Protocol_Error with "at" & First'Image & ": bad integer '" & Source (First .. Last) & "'";
+   end Get_Integer;
+
+   function Image (Item : in Change) return String
+   is begin
+      return "(" &
+        Item.Begin_Byte_Pos'Image & "," &
+        Item.Begin_Char_Pos'Image & "," &
+        Item.Inserted_End_Byte_Pos'Image & "," &
+        Item.Inserted_End_Char_Pos'Image & "," &
+        " +""" & (-Item.Inserted_Text) & """," &
+        Item.Deleted_Bytes'Image & "," &
+        Item.Deleted_Chars'Image & ")";
+   end Image;
+
+   function Get_Emacs_Change_List
+     (Command_Line          : in     String;
+      Last                  : in out Integer;
+      Handle_String_Escapes : in     Boolean)
+     return Change_Lists.List
+   is
+      function Substitute_Escapes (Item : in String) return String
+      is begin
+         if not Handle_String_Escapes then
+            return Item;
+         elsif Item'Length = 0 then
+            return Item;
+         else
+            declare
+               I : Integer := Item'First;
+               J : Integer := Item'First;
+               Result : String (Item'Range);
+            begin
+               loop
+                  if Item (I) = '\' and
+                    (I < Item'Last and then Item (I + 1) = 'n')
+                  then
+                     Result (J) := ASCII.LF;
+                     I := @ + 2;
+                  else
+                     Result (J) := Item (I);
+                     I := @ + 1;
+                  end if;
+                  exit when I > Item'Last;
+                  J := @ + 1;
+               end loop;
+               return Result (Result'First .. J);
+            end;
+         end if;
+      end Substitute_Escapes;
+
+   begin
+      return Result : Change_Lists.List do
+         Skip (Command_Line, Last, '('); --  start of changes list
+         loop
+            exit when Last = Command_Line'Last;
+            exit when Command_Line (Last + 1) = ')';
+
+            declare
+               Item : Change;
+            begin
+               Skip (Command_Line, Last, '(');
+               Item.Begin_Byte_Pos        := Base_Buffer_Pos (Get_Integer (Command_Line, Last));
+               Item.Begin_Char_Pos        := Base_Buffer_Pos (Get_Integer (Command_Line, Last));
+               Item.Inserted_End_Byte_Pos := Base_Buffer_Pos (Get_Integer (Command_Line, Last));
+               Item.Inserted_End_Char_Pos := Base_Buffer_Pos (Get_Integer (Command_Line, Last));
+               Item.Deleted_Bytes         := Get_Integer (Command_Line, Last);
+               Item.Deleted_Chars         := Get_Integer (Command_Line, Last);
+               Item.Inserted_Text         := +Substitute_Escapes (Get_String (Command_Line, Last));
+               Skip (Command_Line, Last, ')');
+
+               Result.Append (Item);
+            end;
+         end loop;
+         Skip (Command_Line, Last, ')'); --  end of edits list
+      end return;
+   end Get_Emacs_Change_List;
+
+   procedure Edit_Source
+     (Trace            : in out WisiToken.Trace'Class;
+      Source           : in out Ada.Strings.Unbounded.String_Access;
+      Source_Byte_Last : in out Integer;
+      Source_Char_Last : in out Integer;
+      Changes          : in     Change_Lists.List;
+      KMN_List         :    out WisiToken.Parse.KMN_Lists.List)
+   is
+      use Ada.Containers;
+
+      --  Changes is in time order (ie _not_ in buffer pos order); KMN_List
+      --  is in buffer pos order.
+
+      Gap_First : Integer := Source_Byte_Last + 1;
+      Gap_Last  : Integer := Source'Last;
+
+      function Gap_Invariant return Boolean
+      is (Gap_Last - Gap_First = Source'Last - (Source_Byte_Last + 1));
+
+      Total_Inserted_Bytes : Integer := 0;
+
+      function Reallocate return Boolean
+      is
+         Last_Begin : Base_Buffer_Pos := 0;
+         Result     : Boolean         := False;
+      begin
+         if Changes.Length = 0 then
+            return False;
+         end if;
+
+         for Change of Changes loop
+            --  We loop thru all changes to compute Total_Inserted_Bytes.
+
+            pragma Assert
+              (Ada.Strings.Unbounded.Length (Change.Inserted_Text) =
+                 Integer (Change.Inserted_End_Byte_Pos - Change.Begin_Byte_Pos),
+               "inconsistent Change: text length" & Ada.Strings.Unbounded.Length (Change.Inserted_Text)'Image &
+                 " region length" & Integer (Change.Inserted_End_Byte_Pos - Change.Begin_Byte_Pos)'Image);
+
+            Total_Inserted_Bytes := @ + Ada.Strings.Unbounded.Length (Change.Inserted_Text);
+
+            if Change.Begin_Byte_Pos < Last_Begin then
+               Result := True;
+            end if;
+            Last_Begin := Change.Begin_Byte_Pos;
+         end loop;
+
+         if Source_Byte_Last + Total_Inserted_Bytes > Source'Last then
+            return True;
+         else
+            return Result;
+         end if;
+      end Reallocate;
+
+      procedure Move_Gap (New_Gap_First : in Integer)
+      with Pre => New_Gap_First /= Gap_First and Gap_Invariant,
+        Post => Gap_Invariant
+      is
+         --  Examples:
+         --  gap_first : 15
+         --  gap_last  : 19
+         --
+         --  new_gap_first: 5
+         --     new_gap_last := 9
+         --     source (10 .. 19) := source (5 .. 14)
+         --
+         --  new_gap_first: 25
+         --  new_gap_last : 29
+         --      source (15 .. 24) := source (20 .. 29)
+
+         New_Gap_Last : constant Integer := New_Gap_First + Gap_Last - Gap_First;
+      begin
+         if New_Gap_First < Gap_First then
+            Source (New_Gap_Last + 1 .. Gap_Last) := Source (New_Gap_First .. Gap_First - 1);
+         else
+            Source (Gap_First .. New_Gap_First - 1) := Source (Gap_Last + 1 .. New_Gap_Last);
+         end if;
+
+         Gap_First := New_Gap_First;
+         Gap_Last  := New_Gap_Last;
+      end Move_Gap;
+
+      procedure Edit_Text (Change : in Wisi.Change)
+      with Pre => Gap_Invariant, Post => Gap_Invariant
+      --  Apply Change to Source. Leaves Gap at edit point.
+      is
+         use Ada.Strings.Unbounded;
+         Inserted_Bytes : constant Integer := Integer (Change.Inserted_End_Byte_Pos - Change.Begin_Byte_Pos);
+      begin
+         if Gap_First /= Integer (Change.Begin_Byte_Pos) then
+            Move_Gap (Integer (Change.Begin_Byte_Pos));
+         end if;
+
+         if Change.Deleted_Bytes > 0 then
+            Gap_Last         := @ + Change.Deleted_Bytes;
+            pragma Assert (Gap_Last <= Source'Last);
+            Source_Byte_Last := @ - Change.Deleted_Bytes;
+            Source_Char_Last := @ - Change.Deleted_Chars;
+         end if;
+
+         if Inserted_Bytes > 0 then
+            pragma Assert (Gap_Last + 1 - Gap_First >= Inserted_Bytes);
+            Source (Gap_First .. Gap_First + Inserted_Bytes - 1) := -Change.Inserted_Text;
+
+            Gap_First        := Gap_First + Inserted_Bytes;
+            Source_Byte_Last := @ + Inserted_Bytes;
+            Source_Char_Last := @ + Integer (Change.Inserted_End_Char_Pos - Change.Begin_Char_Pos);
+         end if;
+      end Edit_Text;
+
+      procedure Insert_KMN (Change : in Wisi.Change)
+      is
+         use Parse.KMN_Lists;
+         Cur : Cursor := KMN_List.First;
+
+         KMN_Last_Byte : Base_Buffer_Pos := 0; --  Last byte of prev KMN.
+         KMN_Last_Char : Base_Buffer_Pos := 0; --  Last char of prev KMN.
+
+         function Max_Byte_Pos (Item : in Wisi.Change) return Buffer_Pos
+         is begin
+            return Buffer_Pos'Max
+              (Item.Begin_Byte_Pos + Base_Buffer_Pos (Item.Deleted_Bytes),
+               Item.Inserted_End_Byte_Pos);
+         end Max_Byte_Pos;
+
+         function To_KMN (Item : in Wisi.Change) return Parse.KMN
+         is (Stable_Bytes   => Item.Begin_Byte_Pos - KMN_Last_Byte - 1, -- Begin_Byte_Pos is deleted or inserted
+             Stable_Chars   => Item.Begin_Char_Pos - KMN_Last_Char - 1,
+             Inserted_Bytes => Item.Inserted_End_Byte_Pos - Item.Begin_Byte_Pos, -- End_Byte_Pos is after last inserted
+             Inserted_Chars => Item.Inserted_End_Char_Pos - Item.Begin_Char_Pos,
+             Deleted_Bytes  => Base_Buffer_Pos (Item.Deleted_Bytes),
+             Deleted_Chars  => Base_Buffer_Pos (Item.Deleted_Chars));
+
+      begin
+         loop
+            declare
+               Cur_KMN : Parse.KMN renames KMN_List (Cur);
+            begin
+               pragma Assert (KMN_Last_Byte < Change.Begin_Byte_Pos);
+
+               if Max_Byte_Pos (Change) < KMN_Last_Byte + Cur_KMN.Stable_Bytes + 1 then
+                  --  Change is entirely within Cur_KMN.Stable_Bytes
+                  declare
+                     KMN : constant Parse.KMN := To_KMN (Change);
+                  begin
+                     Cur_KMN.Stable_Bytes := @ - (KMN.Stable_Bytes + KMN.Deleted_Bytes);
+                     Cur_KMN.Stable_Chars := @ - (KMN.Stable_Chars + KMN.Deleted_Chars);
+
+                     KMN_List.Insert (Before => Cur, Element => KMN);
+                  end;
+
+                  Edit_Text (Change);
+                  return;
+
+               elsif Change.Begin_Byte_Pos < KMN_Last_Byte + Cur_KMN.Stable_Bytes + 1 then
+                  --  Change starts in Cur_KMN.Stable_Bytes, ends in or after Cur_KMN.Insert.
+                  declare
+                     KMN : constant Parse.KMN := To_KMN (Change);
+                  begin
+                     Cur_KMN.Stable_Bytes := @ - (KMN.Stable_Bytes + KMN.Deleted_Bytes);
+                     Cur_KMN.Stable_Chars := @ - (KMN.Stable_Chars + KMN.Deleted_Chars);
+
+                     KMN_List.Insert (Before => Cur, Element => KMN);
+                  end;
+
+                  Edit_Text (Change);
+                  return;
+
+               elsif Change.Begin_Byte_Pos <= KMN_Last_Byte + Cur_KMN.Stable_Bytes + Cur_KMN.Inserted_Bytes + 1 or
+                 Change.Begin_Byte_Pos <= KMN_Last_Byte + Cur_KMN.Stable_Bytes + Cur_KMN.Deleted_Bytes + 1
+               then
+                  --  Change starts in or immediately after Cur_KMN inserted or deleted text; merge
+                  --  them.
+
+                  if Change.Deleted_Bytes > 0 then
+                     declare
+                        Next_KMN : Parse.KMN renames KMN_List (Next (Cur));
+                        --  FIXME: fails if Change inserts text at end of Source
+
+                        --  Change.Deleted first reduces Cur_KMN.Inserted, then reduces
+                        --  Next_KMN.Stable and increases Cur_KMN.Deleted
+                     begin
+                        if Base_Buffer_Pos (Change.Deleted_Bytes) <= Cur_KMN.Inserted_Bytes then
+                           Cur_KMN.Inserted_Bytes := @ - Base_Buffer_Pos (Change.Deleted_Bytes) +
+                             (Change.Inserted_End_Byte_Pos - Change.Begin_Byte_Pos);
+                           Cur_KMN.Inserted_Chars := @ - Base_Buffer_Pos (Change.Deleted_Chars) +
+                             (Change.Inserted_End_Char_Pos - Change.Begin_Char_Pos);
+
+                        else
+                           declare
+                              Remaining_Deleted_Bytes : constant Base_Buffer_Pos :=
+                                Base_Buffer_Pos (Change.Deleted_Bytes) - Cur_KMN.Inserted_Bytes;
+                              Remaining_Deleted_Chars : constant Base_Buffer_Pos :=
+                                Base_Buffer_Pos (Change.Deleted_Chars) - Cur_KMN.Inserted_Chars;
+                           begin
+                              Next_KMN.Stable_Bytes := @ - Remaining_Deleted_Bytes;
+                              Next_KMN.Stable_Chars := @ - Remaining_Deleted_Chars;
+
+                              Cur_KMN.Inserted_Bytes := 0 + Change.Inserted_End_Char_Pos - Change.Begin_Char_Pos;
+                              Cur_KMN.Inserted_Chars := 0 + Change.Inserted_End_Char_Pos - Change.Begin_Char_Pos;
+
+                              Cur_KMN.Deleted_Bytes := @ + Remaining_Deleted_Bytes;
+                              Cur_KMN.Deleted_Chars := @ + Remaining_Deleted_Chars;
+                           end;
+                        end if;
+                     end;
+                  else
+                     Cur_KMN.Inserted_Bytes := @ + Change.Inserted_End_Byte_Pos - Change.Begin_Byte_Pos;
+                     Cur_KMN.Inserted_Chars := @ + Change.Inserted_End_Char_Pos - Change.Begin_Char_Pos;
+                  end if;
+
+                  Edit_Text (Change);
+                  return;
+
+               else
+                  --  Change is entirely after Cur_KMN
+                  KMN_Last_Byte := @ + Cur_KMN.Stable_Bytes + Cur_KMN.Inserted_Bytes;
+                  KMN_Last_Char := @ + Cur_KMN.Stable_Chars + Cur_KMN.Inserted_Chars;
+
+                  Cur := Next (Cur);
+
+                  if not Has_Element (Cur) then
+                     --  Since KMN_List starts with one KMN covering all of Source, we
+                     --  should never get here. FIXME: not true if insert text at end of Source!
+                     raise SAL.Programmer_Error;
+                  end if;
+               end if;
+            end;
+         end loop;
+      end Insert_KMN;
+
+   begin
+      if Reallocate then
+         declare
+            New_Source : constant Ada.Strings.Unbounded.String_Access := new String
+              (Source'First .. Source_Byte_Last + Total_Inserted_Bytes);
+         begin
+            New_Source (Source'First .. Source_Byte_Last) := Source (Source'First .. Source_Byte_Last);
+            Ada.Strings.Unbounded.Free (Source);
+            Source := New_Source;
+         end;
+
+         Gap_Last := Source'Last;
+      end if;
+
+      --  Start with one KMN with stable region = entire source. Insert_KMN
+      --  edits this, leaving it to cover the final stable region or insert
+      --  after Source end.
+      KMN_List.Append
+        ((Stable_Bytes   => Base_Buffer_Pos (Source_Byte_Last),
+          Stable_Chars   => Base_Buffer_Pos (Source_Char_Last),
+          Deleted_Bytes  => 0,
+          Deleted_Chars  => 0,
+          Inserted_Bytes => 0,
+          Inserted_Chars => 0));
+
+      for Change of Changes loop
+         Insert_KMN (Change);
+
+         if Trace_Incremental_Parse > Detail then
+            Trace.Put_Line ("change:" & Image (Change));
+            Trace.Put_Line ("kmn_list:");
+            for KMN of KMN_List loop
+               Trace.Put_Line (Parse.Image (KMN));
+            end loop;
+         end if;
+      end loop;
+
+      if Gap_Last /= Source'Last then
+         --  Remove the gap
+         Source (Gap_First .. Source_Byte_Last) := Source (Gap_Last + 1 .. Source'Last);
+      end if;
+   end Edit_Source;
+
+   function Image_Action (Action : in Syntax_Trees.Post_Parse_Action) return String
+   is
+      pragma Unreferenced (Action);
+   begin
+      return "action";
+   end Image_Action;
+
+   procedure Initialize_Partial_Parse
      (Data              : in out Parse_Data_Type;
-      Lexer             : in     WisiToken.Lexer.Handle;
-      Descriptor        : access constant WisiToken.Descriptor;
+      Trace             : in     WisiToken.Trace_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     Line_Number_Type;
-      End_Line          : in     Line_Number_Type;
-      Begin_Indent      : in     Integer;
-      Params            : in     String)
-   is
-      pragma Unreferenced (Params);
-   begin
-      --  + 1 for data on line following last line; see Lexer_To_Augmented.
+      End_Line          : in     Line_Number_Type)
+   is begin
       Data.Line_Paren_State.Set_First_Last
         (First   => Begin_Line,
-         Last    => End_Line + 1);
+         Last    => End_Line);
 
-      Data.Lexer             := Lexer;
-      Data.Descriptor        := Descriptor;
       Data.Post_Parse_Action := Post_Parse_Action;
+      Data.Trace             := Trace;
 
       case Post_Parse_Action is
       when Navigate | Face =>
@@ -703,8 +1355,6 @@ package body Wisi is
          Data.Indents.Set_First_Last
            (First   => Begin_Line,
             Last    => End_Line);
-
-         Data.Begin_Indent := Begin_Indent;
       end case;
 
       Data.Reset;
@@ -712,7 +1362,47 @@ package body Wisi is
    when E : others =>
       raise SAL.Programmer_Error with "wisi.initialize: " & Ada.Exceptions.Exception_Name (E) & ": " &
         Ada.Exceptions.Exception_Message (E);
-   end Initialize;
+   end Initialize_Partial_Parse;
+
+   procedure Initialize_Full_Parse
+     (Data     : in out Parse_Data_Type;
+      Trace    : in     WisiToken.Trace_Access;
+      End_Line : in     WisiToken.Line_Number_Type)
+   is begin
+      Data.Trace := Trace;
+
+      Data.Line_Paren_State.Set_First_Last
+        (First   => WisiToken.Line_Number_Type'First,
+         Last    => End_Line);
+
+      Data.Indents.Set_First_Last
+        (First   => WisiToken.Line_Number_Type'First,
+         Last    => End_Line);
+
+      Data.Reset;
+   end Initialize_Full_Parse;
+
+   procedure Reset_Post_Parse
+     (Data                : in out Parse_Data_Type;
+      Post_Parse_Action   : in     Post_Parse_Action_Type;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region;
+      Action_Region_Chars : in     WisiToken.Buffer_Region;
+      End_Line            : in     WisiToken.Line_Number_Type;
+      Begin_Indent        : in     Integer)
+   is begin
+      Data.Post_Parse_Action   := Post_Parse_Action;
+      Data.Action_Region_Bytes := Action_Region_Bytes;
+      Data.Action_Region_Chars := Action_Region_Chars;
+      Data.Begin_Indent := Begin_Indent;
+
+      Data.Line_Paren_State.Set_First_Last
+        (First   => WisiToken.Line_Number_Type'First,
+         Last    => End_Line);
+
+      Data.Indents.Set_First_Last
+        (First   => WisiToken.Line_Number_Type'First,
+         Last    => End_Line);
+   end Reset_Post_Parse;
 
    overriding procedure Reset (Data : in out Parse_Data_Type)
    is begin
@@ -738,15 +1428,15 @@ package body Wisi is
       Data.Max_Anchor_ID := First_Anchor_ID - 1;
    end Reset;
 
-   function Source_File_Name (Data : in Parse_Data_Type) return String
-   is begin
-      return Data.Lexer.File_Name;
-   end Source_File_Name;
-
    function Post_Parse_Action (Data : in Parse_Data_Type) return Post_Parse_Action_Type
    is begin
       return Data.Post_Parse_Action;
    end Post_Parse_Action;
+
+   function Action_Region_Bytes (Data : in Parse_Data_Type) return WisiToken.Buffer_Region
+   is begin
+      return Data.Action_Region_Bytes;
+   end Action_Region_Bytes;
 
    overriding
    procedure Lexer_To_Augmented
@@ -757,11 +1447,12 @@ package body Wisi is
    is
       use Syntax_Trees;
       use all type Ada.Containers.Count_Type;
+      Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
    begin
       if Grammar_Token /= Invalid_Node_Access and then Tree.Augmented (Grammar_Token) /= null then
          pragma Assert
            (Tree.Label (Grammar_Token) = Source_Terminal,
-            "FIXME: wisi.adb support incremental parse");
+            "FIXME: wisi.adb support multi-line token");
 
          --  If Token is a non-grammar token following a multi-line grammar
          --  token, Prev_Grammar.Non_Grammar.length is 1, for Token. If Token
@@ -769,9 +1460,9 @@ package body Wisi is
 
          --  FIXME: check for actual multi-line grammar token! (not in Ada; in wisitoken-grammar)
          null;
-         --  if (Token.ID < Data.Descriptor.First_Terminal and Tree.Non_Grammar_Const (Grammar_Token).Length = 1)
+         --  if (Token.ID < Descriptor.First_Terminal and Tree.Non_Grammar_Const (Grammar_Token).Length = 1)
          --    or
-         --    (Token.ID >= Data.Descriptor.First_Terminal and Tree.Non_Grammar_Const (Grammar_Token).Length = 0)
+         --    (Token.ID >= Descriptor.First_Terminal and Tree.Non_Grammar_Const (Grammar_Token).Length = 0)
          --  then
          --     declare
          --        Prev_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Grammar_Token);
@@ -781,7 +1472,7 @@ package body Wisi is
          --  end if;
       end if;
 
-      if Token.ID < Data.Descriptor.First_Terminal then
+      if Token.ID < Descriptor.First_Terminal then
          --  Non-grammar token
 
          if Grammar_Token /= Invalid_Node_Access then
@@ -790,12 +1481,12 @@ package body Wisi is
                Containing_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Grammar_Token);
 
                Trailing_Blank : constant Boolean :=
-                 Token.ID = Data.Descriptor.New_Line_ID and
+                 Token.ID = Descriptor.New_Line_ID and
                  (Containing_Non_Grammar.Length > 0 and then
                     Containing_Non_Grammar
-                      (Containing_Non_Grammar.Last_Index).ID = Data.Descriptor.New_Line_ID);
+                      (Containing_Non_Grammar.Last_Index).ID = Descriptor.New_Line_ID);
             begin
-               if Data.Lexer.First and
+               if Tree.Lexer.First and
                  (Token.ID in Data.First_Comment_ID .. Data.Last_Comment_ID or
                     Trailing_Blank)
                then
@@ -813,9 +1504,9 @@ package body Wisi is
             Temp : constant Augmented_Access := new Augmented'
               (Deleted                     => False,
                Paren_State                 => 0,
-               First_Indent_Line           => (if Data.Lexer.First then Token.Line else Invalid_Line_Number),
-               Last_Indent_Line            => (if Data.Lexer.First then Token.Line else Invalid_Line_Number),
-               First_Trailing_Comment_Line => Invalid_Line_Number, -- Set by Reduce
+               First_Indent_Line           => (if Tree.Lexer.First then Token.Line else Invalid_Line_Number),
+               Last_Indent_Line            => (if Tree.Lexer.First then Token.Line else Invalid_Line_Number),
+               First_Trailing_Comment_Line => Invalid_Line_Number, -- Set by following non_grammar tokens
                Last_Trailing_Comment_Line  => Invalid_Line_Number,
                Inserted_After              => False);
          begin
@@ -857,6 +1548,8 @@ package body Wisi is
       Data.Current_Paren_State := 0;
 
       loop
+         exit when I = Invalid_Node_Access;
+
          declare
             Token : constant WisiToken.Base_Token := Tree.Base_Token (I);
             Aug   : Augmented_Var_Ref renames To_Augmented_Var_Ref (Tree.Augmented (I));
@@ -876,14 +1569,20 @@ package body Wisi is
          end;
 
          I := Tree.Next_Terminal (I);
-
-         exit when I = Invalid_Node_Access;
       end loop;
 
       if Trace_Action > Detail then
-         Ada.Text_IO.Put_Line (";; Line_Paren_State: " & Image (Data.Line_Paren_State));
+         Data.Trace.Put_Line
+           ("Tree.Root.line first, last:" & Tree.Line (Tree.Root)'Image & Tree.Line_Last (Tree.Root)'Image);
+         Data.Trace.Put_Line ("Tree.EOI.line:" & Tree.Line (Tree.EOI)'Image);
+         Data.Trace.Put_Line
+           ("Data.Line_Paren_State first, last" & Data.Line_Paren_State.First_Index'Image &
+              Data.Line_Paren_State.Last_Index'Image);
+         Data.Trace.Put_Line ("Line_Paren_State: " & Image (Data.Line_Paren_State));
          --  We print the tree after all actions have executed, to include the
          --  effects of Reduce on augmented in nonterms.
+
+         Data.Trace.Put_Line ("Action_Region_Bytes: " & Image (Data.Action_Region_Bytes));
       end if;
    end Initialize_Actions;
 
@@ -894,6 +1593,8 @@ package body Wisi is
       Inserted_Token : in     Syntax_Trees.Valid_Node_Access)
    is
       use all type Syntax_Trees.Node_Access;
+
+      Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
       Inserted_Before : constant Syntax_Trees.Node_Access := Tree.Next_Shared_Terminal (Inserted_Token);
       --  Invalid_Node_Access when Inserted_Token is inserted before
@@ -906,18 +1607,10 @@ package body Wisi is
 
       --  Set data that allows using Inserted_Token when computing indent.
 
-      --  Execute_Actions has already updated Data.Line_Begin_Token to
-      --  respect inserted and deleted tokens, assuming that all inserted
-      --  tokens go before Inserted_Before (ie Insert_After is False). It
-      --  has not moved non_grammars, because that is impossible to undo
-      --  here.
-      --
-      --  Thus we check First (Inserted_Token), not First (Inserted_Before).
-
       Indent_Line : constant Line_Number_Type :=
         (if Inserted_Before = Syntax_Trees.Invalid_Node_Access
          then Invalid_Line_Number
-         elsif First (Data, Tree, Inserted_Token)
+         elsif First (Tree, Inserted_Token)
          then Before_Token.Line
          else Invalid_Line_Number);
 
@@ -943,11 +1636,10 @@ package body Wisi is
 
       if Prev_Terminal /= Syntax_Trees.Invalid_Node_Access and
         Inserted_Before /= Syntax_Trees.Invalid_Node_Access and
-         First (Data, Tree, Inserted_Token)
+        First (Tree, Inserted_Token)
       then
          declare
             use all type SAL.Base_Peek_Type;
-            use all type Ada.Containers.Count_Type;
 
             --  See test/ada_mode-interactive_2.adb, "Typing ..."; three tests.
             --
@@ -971,62 +1663,64 @@ package body Wisi is
             --
             --  If the first two tokens in Prev_Non_Grammar are both New_Lines,
             --  there is a blank line after the code line (and before any
-            --  comments); assume that is the edit point. FIXME: use Edits list to
-            --  determine edit point? If Insert_On_Blank_Line, don't need to call
-            --  Insert_After.
-            Blank_Line : Line_Number_Type := Invalid_Line_Number;
+            --  comments); assume that is the edit point; see
+            --  test/ada_mode-interactive_2.adb "A := B \n+C;"
+            Blank_Line      : Line_Number_Type := Invalid_Line_Number;
+            Comment_Present : Boolean          := False;
 
-            function Insert_On_Blank_Line return Boolean
-            is begin
-               if Prev_Non_Grammar.Length >= 2 and then
-                 (Prev_Non_Grammar (Prev_Non_Grammar.First_Index).ID = Data.Descriptor.New_Line_ID and
-                    Prev_Non_Grammar (Prev_Non_Grammar.First_Index + 1).ID = Data.Descriptor.New_Line_ID)
-               then
-                  Blank_Line := Prev_Non_Grammar (Prev_Non_Grammar.First_Index + 1).Line;
-                  return True;
-               else
-                  return False;
-               end if;
-            end Insert_On_Blank_Line;
+            procedure Check_Non_Grammar
+            --  Set Blank_Line if there is a blank line immediately after
+            --  Prev_Terminal.
+            is
+               I : SAL.Base_Peek_Type := Prev_Non_Grammar.First_Index;
+            begin
+               loop
+                  exit when I > Prev_Non_Grammar.Last_Index;
 
-            --  In Ada, 'end' is Insert_After except when Insert_On_Blank_Line is
-            --  True (see test/ada_mode-interactive_2.adb Record_1,
-            --  test/ada_mode-recover_9.adb), so Insert_After needs
-            --  Insert_On_Blank_Line.
+                  if Prev_Non_Grammar (I).ID /= Descriptor.New_Line_ID then
+                     Comment_Present := True;
+                     return;
+                  end if;
+
+                  if I < Prev_Non_Grammar.Last_Index and then
+                    Prev_Non_Grammar (I + 1).ID = Descriptor.New_Line_ID
+                  then
+                     Blank_Line := Prev_Non_Grammar (I + 1).Line;
+                     return;
+                  end if;
+
+                  I := I + 1;
+               end loop;
+            end Check_Non_Grammar;
          begin
+            Check_Non_Grammar;
+
             Insert_After := Parse_Data_Type'Class (Data).Insert_After
-              (Tree, Inserted_Token, Inserted_Before, Insert_On_Blank_Line);
+              (Tree, Inserted_Token, Inserted_Before,
+               Comment_Present      => Comment_Present,
+               Insert_On_Blank_Line => Blank_Line /= Invalid_Line_Number);
 
             if Insert_After then
                New_Aug.Inserted_After := True;
 
-               if WisiToken.Trace_Action > WisiToken.Detail then
-                  Ada.Text_IO.Put_Line
-                    (";; insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
+               if Trace_Action > WisiToken.Detail then
+                  Data.Trace.Put_Line
+                    ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
                        " after " & Tree.Image (Prev_Terminal, Node_Numbers => True) &
                        (if Blank_Line = Invalid_Line_Number
                         then ""
                         else " on blank line" & Blank_Line'Image));
                end if;
 
-               if Inserted_Before /= Syntax_Trees.Invalid_Node_Access then
-                  if Data.Line_Begin_Token.all (Before_Token.Line).Node = Inserted_Token then
-                     Data.Line_Begin_Token.all (Before_Token.Line).Node := Tree.Next_Terminal (Inserted_Token);
-                     --  Not ':= Inserted_Before;' Next_Terminal could be another virtual.
-                  end if;
-               end if;
-
                if Blank_Line /= Invalid_Line_Number then
                   Tree.Update
                     (Inserted_Token,
                      Byte_Region => Null_Buffer_Region,
-                     Char_Region => (First | Last => Data.Line_Begin_Char_Pos.all (Blank_Line)),
+                     Char_Region => (First | Last => Tree.Line_Begin_Char_Pos (Blank_Line)),
                      Line        => Blank_Line);
 
                   New_Aug.First_Indent_Line := Blank_Line;
                   New_Aug.Last_Indent_Line  := Blank_Line;
-
-                  Data.Line_Begin_Token.all (Blank_Line).Node := Inserted_Token;
 
                   for I in Prev_Non_Grammar.First_Index + 1 .. Prev_Non_Grammar.Last_Index loop
                      Token_Non_Grammar.Append (Prev_Non_Grammar (I));
@@ -1066,15 +1760,15 @@ package body Wisi is
                end if;
             end if;
          end;
-      else
-         if WisiToken.Trace_Action > WisiToken.Detail then
-            Ada.Text_IO.Put_Line
-              (";; insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
-                 " before " & Tree.Image (Inserted_Before, Node_Numbers => True));
-         end if;
       end if;
 
-      if First (Data, Tree, Inserted_Token) and
+      if not Insert_After and Trace_Action > WisiToken.Detail then
+         Data.Trace.Put_Line
+           ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
+              " before " & Tree.Image (Inserted_Before, Node_Numbers => True));
+      end if;
+
+      if First (Tree, Inserted_Token) and
         (Inserted_Before /= Syntax_Trees.Invalid_Node_Access and then
            Tree.Base_Token (Inserted_Token).Line = Before_Token.Line)
       then
@@ -1090,7 +1784,7 @@ package body Wisi is
    overriding
    procedure Delete_Token
      (Data          : in out Parse_Data_Type;
-      Tree          : in out Syntax_Trees.Tree'Class;
+      Tree          : in     Syntax_Trees.Tree'Class;
       Deleted_Token : in     Syntax_Trees.Valid_Node_Access;
       Prev_Token    : in     Syntax_Trees.Node_Access)
    is
@@ -1101,50 +1795,43 @@ package body Wisi is
       Deleted_Aug         : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Deleted_Token);
       Deleted_Non_Grammar : WisiToken.Base_Token_Array_Var_Ref renames Tree.Non_Grammar_Var (Deleted_Token);
 
-      Prev_Token_Actual : Syntax_Trees.Node_Access := Prev_Token;
-
-      Next_Token : Syntax_Trees.Node_Access :=
+      Next_Token : constant Syntax_Trees.Node_Access :=
         (if Prev_Token = Syntax_Trees.Invalid_Node_Access
          then Tree.First_Terminal (Tree.Root)
          else Tree.Next_Terminal (Prev_Token));
+
+      Prev_Modified : Boolean := False;
    begin
       if Deleted_Aug.Deleted then
          --  This can happen if error recovery screws up.
-         if WisiToken.Trace_Action > WisiToken.Detail then
-            Ada.Text_IO.Put_Line (";; delete token again; ignored " & Tree.Image (Deleted_Token, Node_Numbers => True));
+         if Trace_Action > WisiToken.Detail then
+            Data.Trace.Put_Line ("delete token again; ignored " & Tree.Image (Deleted_Token, Node_Numbers => True));
          end if;
          return;
       end if;
-      if WisiToken.Trace_Action > WisiToken.Detail then
-         Ada.Text_IO.Put_Line (";; delete token " & Tree.Image (Deleted_Token, Node_Numbers => True));
+      if Trace_Action > WisiToken.Detail then
+         Data.Trace.Put_Line ("delete token " & Tree.Image (Deleted_Token, Node_Numbers => True));
       end if;
 
       Deleted_Aug.Deleted := True;
 
-      loop
-         exit when Next_Token = Syntax_Trees.Invalid_Node_Access or else
-           not Get_Augmented_Const (Tree, Next_Token).Inserted_After;
-
-         Prev_Token_Actual := Next_Token;
-         Next_Token        := Tree.Next_Terminal (Next_Token);
-      end loop;
-
       if Deleted_Non_Grammar.Length > 0 then
          --  Move Non_Grammar to previous non-deleted token
 
-         if Prev_Token_Actual /= Syntax_Trees.Invalid_Node_Access then
+         if Prev_Token /= Syntax_Trees.Invalid_Node_Access then
             declare
-               Prev_Non_Grammar : WisiToken.Base_Token_Array_Var_Ref renames Tree.Non_Grammar_Var (Prev_Token_Actual);
-               Aug : constant Syntax_Trees.Augmented_Class_Access := Tree.Augmented (Prev_Token_Actual);
+               Prev_Non_Grammar : WisiToken.Base_Token_Array_Var_Ref renames Tree.Non_Grammar_Var (Prev_Token);
+               Aug : constant Syntax_Trees.Augmented_Class_Access := Tree.Augmented (Prev_Token);
             begin
                if Aug = null then
                   raise SAL.Programmer_Error with "null augmented: " & Tree.Image
-                    (Prev_Token_Actual, Node_Numbers => True);
+                    (Prev_Token, Node_Numbers => True);
                end if;
                declare
-                  Prev_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Prev_Token_Actual);
+                  Prev_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Prev_Token);
                begin
                   Prev_Non_Grammar.Append (Deleted_Non_Grammar);
+                  Prev_Modified := True;
 
                   if Deleted_Aug.First_Trailing_Comment_Line /= Invalid_Line_Number then
                      if Prev_Aug.First_Trailing_Comment_Line = Invalid_Line_Number then
@@ -1158,94 +1845,82 @@ package body Wisi is
          end if;
       end if;
 
-      if (Prev_Token_Actual = Syntax_Trees.Invalid_Node_Access or else
-           Tree.Base_Token (Prev_Token_Actual).Line < Deleted_Tok.Line) and
-        (Next_Token = Syntax_Trees.Invalid_Node_Access or else
-           Tree.Base_Token (Next_Token).Line > Deleted_Tok.Line)
-      then
-         --  Deleted_Tok.Line is now blank; add to previous token indent range
-         if Prev_Token_Actual /= Syntax_Trees.Invalid_Node_Access then
-            declare
-               Prev_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Prev_Token_Actual);
-            begin
-               if Prev_Aug.First_Trailing_Comment_Line = Invalid_Line_Number then
-                  Prev_Aug.First_Trailing_Comment_Line := Deleted_Tok.Line;
-                  Prev_Aug.Last_Trailing_Comment_Line  := Deleted_Tok.Line;
-               else
-                  if Prev_Aug.First_Trailing_Comment_Line > Deleted_Tok.Line then
-                     Prev_Aug.First_Trailing_Comment_Line := Deleted_Tok.Line;
-                  end if;
-                  if Prev_Aug.Last_Trailing_Comment_Line < Deleted_Tok.Line then
-                     Prev_Aug.Last_Trailing_Comment_Line := Deleted_Tok.Line;
-                  end if;
-               end if;
-            end;
-            --  FIXME: else move to Tree.Leading_Non_Grammar
-         end if;
-      end if;
+      Update_Indent_Lines (Tree, Deleted_Tok, Deleted_Aug, Prev_Token, Next_Token, Prev_Modified);
+   end Delete_Token;
 
-      if Next_Token /= Syntax_Trees.Invalid_Node_Access then
-         declare
-            Next_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, Next_Token);
-         begin
-            if First (Data, Tree, Next_Token) then
-               if Next_Aug.First_Indent_Line = Invalid_Line_Number then
-                  Next_Aug.First_Indent_Line := Tree.Base_Token (Next_Token).Line;
-                  Next_Aug.Last_Indent_Line  := Tree.Base_Token (Next_Token).Line;
-               else
-                  Next_Aug.First_Indent_Line := Tree.Base_Token (Next_Token).Line;
-               end if;
-            else
-               Next_Aug.First_Indent_Line := Deleted_Aug.First_Indent_Line;
-               Next_Aug.Last_Indent_Line  := Deleted_Aug.Last_Indent_Line;
-            end if;
-         end;
-      end if;
+   overriding
+   procedure Delete_Token
+     (Data      : in out Parse_Data_Type;
+      Tree      : in     Syntax_Trees.Tree'Class;
+      To_Delete : in     Syntax_Trees.Terminal_Ref)
+   is
+      pragma Unreferenced (Data);
+
+      Deleted_Tok : constant WisiToken.Base_Token     := Tree.Base_Token (To_Delete.Node);
+      Deleted_Aug : Augmented_Var_Ref renames Get_Augmented_Var (Tree, To_Delete.Node);
+      Prev_Token  : constant Syntax_Trees.Node_Access := Tree.Prev_Terminal (To_Delete).Node;
+      Next_Token  : constant Syntax_Trees.Node_Access := Tree.Next_Terminal (To_Delete).Node;
+
+      Prev_Modified : Boolean := False;
+   begin
+      --  Edit_Tree is about to delete To_Delete. To_Delete.Non_Grammar will be scanned.
+
+      --  We don't set Aug.Deleted True; that's for error recovery.
+
+      Update_Indent_Lines (Tree, Deleted_Tok, Deleted_Aug, Prev_Token, Next_Token, Prev_Modified);
    end Delete_Token;
 
    overriding
    procedure Reduce
      (Data    : in out Parse_Data_Type;
-      Tree    : in out Syntax_Trees.Tree'Class;
-      Nonterm : in     Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     Syntax_Trees.Node_Access_Array)
+      Tree    : in     Syntax_Trees.Tree'Class;
+      Nonterm : in     Syntax_Trees.Valid_Node_Access)
    is
-      Nonterm_Aug : constant Augmented_Access := new Augmented'(others => <>);
+      Nonterm_Aug : Augmented_Access := Augmented_Access (Tree.Augmented (Nonterm));
 
       Trailing_Comment_Done : Boolean := False;
    begin
-      Tree.Set_Augmented (Nonterm, Syntax_Trees.Augmented_Class_Access (Nonterm_Aug));
+      if Nonterm_Aug = null then
+         Nonterm_Aug := new Augmented'(others => <>);
+         Tree.Set_Augmented (Nonterm, Syntax_Trees.Augmented_Class_Access (Nonterm_Aug));
+      else
+         Nonterm_Aug.all := (others => <>);
+      end if;
 
-      for I in reverse Tokens'Range loop
+      for Child of reverse Tree.Children (Nonterm) loop
          --  'reverse' to find token containing trailing comments; last
          --  non-empty token.
-         declare
-            Token : constant Augmented_Token := Get_Augmented_Token (Tree, Tokens (I));
-         begin
-            if Data.Post_Parse_Action = Indent then
-               if Token.Aug.First_Indent_Line /= Invalid_Line_Number then
-                  Nonterm_Aug.First_Indent_Line := Token.Aug.First_Indent_Line;
-               elsif Trailing_Comment_Done and Token.Aug.First_Trailing_Comment_Line /= Invalid_Line_Number then
-                  Nonterm_Aug.First_Indent_Line := Token.Aug.First_Trailing_Comment_Line;
-               end if;
 
-               if Nonterm_Aug.Last_Indent_Line = Invalid_Line_Number then
-                  if Trailing_Comment_Done and Token.Aug.Last_Trailing_Comment_Line /= Invalid_Line_Number then
-                     Nonterm_Aug.Last_Indent_Line := Token.Aug.Last_Trailing_Comment_Line;
-                  elsif Token.Aug.Last_Indent_Line /= Invalid_Line_Number then
-                     Nonterm_Aug.Last_Indent_Line := Token.Aug.Last_Indent_Line;
+         if Tree.Augmented (Child) /= null then
+            --  Augmented is invalid if Child is outside Action_Region
+            declare
+               Token : constant Augmented_Token := Get_Augmented_Token (Tree, Child);
+            begin
+               if Data.Post_Parse_Action = Indent then
+                  if Token.Aug.First_Indent_Line /= Invalid_Line_Number then
+                     Nonterm_Aug.First_Indent_Line := Token.Aug.First_Indent_Line;
+                  elsif Trailing_Comment_Done and Token.Aug.First_Trailing_Comment_Line /= Invalid_Line_Number then
+                     Nonterm_Aug.First_Indent_Line := Token.Aug.First_Trailing_Comment_Line;
+                  end if;
+
+                  if Nonterm_Aug.Last_Indent_Line = Invalid_Line_Number then
+                     if Trailing_Comment_Done and Token.Aug.Last_Trailing_Comment_Line /= Invalid_Line_Number then
+                        Nonterm_Aug.Last_Indent_Line := Token.Aug.Last_Trailing_Comment_Line;
+                     elsif Token.Aug.Last_Indent_Line /= Invalid_Line_Number then
+                        Nonterm_Aug.Last_Indent_Line := Token.Aug.Last_Indent_Line;
+                     end if;
+                  end if;
+
+                  if not Trailing_Comment_Done then
+                     Nonterm_Aug.First_Trailing_Comment_Line := Token.Aug.First_Trailing_Comment_Line;
+                     Nonterm_Aug.Last_Trailing_Comment_Line  := Token.Aug.Last_Trailing_Comment_Line;
+                     Trailing_Comment_Done := True;
                   end if;
                end if;
 
-               if not Trailing_Comment_Done then
-                  Nonterm_Aug.First_Trailing_Comment_Line := Token.Aug.First_Trailing_Comment_Line;
-                  Nonterm_Aug.Last_Trailing_Comment_Line  := Token.Aug.Last_Trailing_Comment_Line;
-                  Trailing_Comment_Done := True;
-               end if;
-            end if;
-
-            Nonterm_Aug.Paren_State := Token.Aug.Paren_State;
-         end;
+               Nonterm_Aug.Paren_State := Token.Aug.Paren_State;
+            end;
+         end if;
       end loop;
    end Reduce;
 
@@ -1256,29 +1931,27 @@ package body Wisi is
       Tokens  : in     Syntax_Trees.Valid_Node_Access_Array;
       Params  : in     Statement_Param_Array)
    is
-      Nonterm_Tok : constant Base_Token := Tree.Base_Token (Nonterm);
+      Descriptor  : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
       First_Item         : Boolean        := True;
       Start_Set          : Boolean        := False;
       Override_Start_Set : Boolean        := False;
       Containing_Pos     : Nil_Buffer_Pos := Nil;
    begin
-      if WisiToken.Trace_Action > Outline then
-         Ada.Text_IO.Put_Line ("Statement_Action " & Tree.Image (Nonterm, Children => True));
+      if Trace_Action > Outline then
+         Data.Trace.Put_Line ("Statement_Action " & Tree.Image (Nonterm, Children => True));
       end if;
 
       for Pair of Params loop
          if not (Pair.Index in Tokens'Range) then
-            raise Fatal_Error with Error_Message
-              (File_Name => Data.Lexer.File_Name,
-               Line      => Nonterm_Tok.Line,
-               Column    => WisiToken.Column (Nonterm_Tok, Data.Line_Begin_Char_Pos.all),
-               Message   => "wisi-statement-action: " & Trimmed_Image (Tree.Production_ID (Nonterm)) &
+            raise Fatal_Error with Tree.Error_Message
+              (Nonterm,
+               "wisi-statement-action: " & Trimmed_Image (Tree.Production_ID (Nonterm)) &
                  " token index" & SAL.Peek_Type'Image (Pair.Index) &
                  " not in tokens range (" & SAL.Peek_Type'Image (Tokens'First) & " .." &
                  SAL.Peek_Type'Image (Tokens'Last) & "); bad grammar action.");
 
-         elsif Tree.Byte_Region (Tokens (Pair.Index)) /= Null_Buffer_Region then
+         elsif Overlaps (Tree.Byte_Region (Tokens (Pair.Index)), Data.Action_Region_Bytes) then
             declare
                use all type Syntax_Trees.Node_Label;
                Token  : constant Base_Token := Tree.Base_Token
@@ -1311,9 +1984,9 @@ package body Wisi is
                      end if;
                      Cache.Statement_ID   := Tree.ID (Nonterm);
                      Cache.Containing_Pos := Containing_Pos;
-                     if WisiToken.Trace_Action > Detail then
-                        Ada.Text_IO.Put_Line
-                          ("   " & Cache.Pos'Image & " nonterm to " & Image (Cache.Statement_ID, Data.Descriptor.all) &
+                     if Trace_Action > Detail then
+                        Data.Trace.Put_Line
+                          ("   " & Cache.Pos'Image & " nonterm to " & Image (Cache.Statement_ID, Descriptor) &
                              " containing to" & Image (Cache.Containing_Pos));
                      end if;
                   end;
@@ -1333,12 +2006,12 @@ package body Wisi is
                       Containing_Pos => Containing_Pos,
                       others         => Nil));
 
-                  if WisiToken.Trace_Action > Detail then
+                  if Trace_Action > Detail then
                      declare
                         Cache : Navigate_Cache_Type renames Data.Navigate_Caches.Constant_Ref (Cursor);
                      begin
-                        Ada.Text_IO.Put_Line
-                          ("   " & Cache.Pos'Image & " create " & Image (Cache.ID, Data.Descriptor.all) &
+                        Data.Trace.Put_Line
+                          ("   " & Cache.Pos'Image & " create " & Image (Cache.ID, Descriptor) &
                              ", containing to " & Image (Data.Navigate_Caches.Constant_Ref (Cursor).Containing_Pos));
                      end;
                   end if;
@@ -1373,8 +2046,8 @@ package body Wisi is
                            begin
                               if not Cache.Containing_Pos.Set then
                                  Cache.Containing_Pos := Containing_Pos;
-                                 if WisiToken.Trace_Action > Detail then
-                                    Ada.Text_IO.Put_Line
+                                 if Trace_Action > Detail then
+                                    Data.Trace.Put_Line
                                       ("   " & Cache.Pos'Image & " containing to " & Image
                                          (Data.Navigate_Caches.Constant_Ref (Cursor).Containing_Pos));
                                  end if;
@@ -1411,22 +2084,18 @@ package body Wisi is
       use all type Syntax_Trees.Node_Label;
    begin
       if not (Name in Tokens'Range) then
-         declare
-            Token : constant Base_Token := Tree.Base_Token (Tokens (Tokens'First));
-         begin
-            raise Grammar_Error with Error_Message
-              (File_Name => Data.Lexer.File_Name,
-               Line      => Token.Line,
-               Column    => WisiToken.Column (Token, Data.Line_Begin_Char_Pos.all),
-               Message   => "wisi-name-action: " & Trimmed_Image (Tree.Production_ID (Nonterm)) & " name (" &
-                 Trimmed_Image (Name) & ") not in Tokens range (" & SAL.Peek_Type'Image (Tokens'First) & " .." &
-                 SAL.Peek_Type'Image (Tokens'Last) & "); bad grammar action.");
-         end;
+         raise Grammar_Error with Tree.Error_Message
+           (Tokens (Tokens'First),
+            "wisi-name-action: " & Trimmed_Image (Tree.Production_ID (Nonterm)) & " name (" &
+              Trimmed_Image (Name) & ") not in Tokens range (" & SAL.Peek_Type'Image (Tokens'First) & " .." &
+              SAL.Peek_Type'Image (Tokens'Last) & "); bad grammar action.");
       end if;
 
       if Tree.Is_Virtual (Tokens (Name)) then
          --  Virtual tokens don't appear in the actual buffer, so we can't set
          --  a text property on them.
+         return;
+      elsif not Overlaps (Tree.Byte_Region (Tokens (Name)), Data.Action_Region_Bytes) then
          return;
       end if;
 
@@ -1440,25 +2109,22 @@ package body Wisi is
             Direction => Name_Cache_Trees.Unknown);
       begin
          if Has_Element (Cursor) then
-            raise Fatal_Error with Error_Message
-              (File_Name       => Data.Lexer.File_Name,
-               Line            => Name_Token.Line,
-               Column          => WisiToken.Column (Name_Token, Data.Line_Begin_Char_Pos.all),
-               Message         => Tree.Image
+            raise Fatal_Error with Tree.Error_Message
+              (Tokens (Name), Tree.Image
                  (Node         => Tokens (Name),
-                  Node_Numbers => WisiToken.Trace_Action > Extra,
-                  RHS_Index    => WisiToken.Trace_Action > Extra)
+                  Node_Numbers => Trace_Action > Extra,
+                  RHS_Index    => Trace_Action > Extra)
                  & ": wisi-name-action: name set twice.");
          else
             if Trace_Action > Detail then
-               Ada.Text_IO.Put_Line
+               Data.Trace.Put_Line
                  ("Name_Action " & Tree.Image
                     (Nonterm,
-                     Node_Numbers    => WisiToken.Trace_Action > Extra,
-                     RHS_Index       => WisiToken.Trace_Action > Extra) & " " & Tree.Image
+                     Node_Numbers    => Trace_Action > Extra,
+                     RHS_Index       => Trace_Action > Extra) & " " & Tree.Image
                        (Tokens (Name),
-                        Node_Numbers => WisiToken.Trace_Action > Extra,
-                        RHS_Index    => WisiToken.Trace_Action > Extra));
+                        Node_Numbers => Trace_Action > Extra,
+                        RHS_Index    => Trace_Action > Extra));
             end if;
 
             if Name_Token.Char_Region /= Null_Buffer_Region then
@@ -1476,17 +2142,18 @@ package body Wisi is
       Params  : in     Motion_Param_Array)
    is
       use Navigate_Cache_Trees;
+      Descriptor  : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
       Iter           : constant Iterator := Data.Navigate_Caches.Iterate;
       Prev_Cache_Cur : Cursor;
    begin
-      if WisiToken.Trace_Action > Outline then
-         Ada.Text_IO.Put_Line
-           ("Motion_Action " & Image (Tree.ID (Nonterm), Data.Descriptor.all) & " " &
+      if Trace_Action > Outline then
+         Data.Trace.Put_Line
+           ("Motion_Action " & Image (Tree.ID (Nonterm), Descriptor) & " " &
               Image (Tree.Byte_Region (Nonterm)));
       end if;
       for Param of Params loop
-         if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
+         if Overlaps (Tree.Byte_Region (Tokens (Param.Index)), Data.Action_Region_Bytes) then
             declare
                use all type Syntax_Trees.Node_Label;
                Token     : constant Base_Token    := Tree.Base_Token (Tokens (Param.Index));
@@ -1539,12 +2206,10 @@ package body Wisi is
 
                   if not Skip then
                      if not Has_Element (Cache_Cur) then
-                        raise Fatal_Error with Error_Message
-                          (File_Name => Data.Lexer.File_Name,
-                           Line      => Token.Line,
-                           Column    => WisiToken.Column (Token, Data.Line_Begin_Char_Pos.all),
+                        raise Fatal_Error with Tree.Error_Message
+                          (Tokens (Param.Index),
                            Message   => "wisi-motion-action: token " &
-                             WisiToken.Image (Token.ID, Data.Descriptor.all) &
+                             WisiToken.Image (Token.ID, Descriptor) &
                              " has no cache; add to statement-action for " &
                              Trimmed_Image (Tree.Production_ID (Nonterm)) & ".");
                      end if;
@@ -1555,28 +2220,28 @@ package body Wisi is
                            Prev_Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Prev_Cache_Cur);
                         begin
                            if Cache.Prev_Pos.Set then
-                              if WisiToken.Trace_Action > Detail then
-                                 Ada.Text_IO.Put_Line
+                              if Trace_Action > Detail then
+                                 Data.Trace.Put_Line
                                    ("   " & Cache.Pos'Image & " prev already at " & Cache.Prev_Pos.Item'Image);
                               end if;
                            else
                               Cache.Prev_Pos := (True, Prev_Cache.Pos);
-                              if WisiToken.Trace_Action > Detail then
-                                 Ada.Text_IO.Put_Line
+                              if Trace_Action > Detail then
+                                 Data.Trace.Put_Line
                                    ("   " & Cache.Pos'Image & " prev to " & Cache.Prev_Pos.Item'Image);
                               end if;
                            end if;
 
                            if Prev_Cache.Next_Pos.Set then
-                              if WisiToken.Trace_Action > Detail then
-                                 Ada.Text_IO.Put_Line
+                              if Trace_Action > Detail then
+                                 Data.Trace.Put_Line
                                    ("   " & Prev_Cache.Pos'Image & " next already at " &
                                       Prev_Cache.Next_Pos.Item'Image);
                               end if;
                            else
                               Prev_Cache.Next_Pos := (True, Cache.Pos);
-                              if WisiToken.Trace_Action > Detail then
-                                 Ada.Text_IO.Put_Line
+                              if Trace_Action > Detail then
+                                 Data.Trace.Put_Line
                                    ("   " & Prev_Cache.Pos'Image & " next to " & Prev_Cache.Next_Pos.Item'Image);
                               end if;
                            end if;
@@ -1617,10 +2282,10 @@ package body Wisi is
       Suffix_Cur : Cursor;
    begin
       for Param of Params loop
-         if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
+         if Overlaps (Tree.Byte_Region (Tokens (Param.Index)), Data.Action_Region_Bytes) then
             if Trace_Action > Outline then
-               Ada.Text_IO.Put_Line
-                 (";; face_apply_action: " & Image (Tree.Byte_Region (Tokens (Param.Index))) &
+               Data.Trace.Put_Line
+                 ("face_apply_action: " & Image (Tree.Byte_Region (Tokens (Param.Index))) &
                     " " & Param.Prefix_Face'Image & " " & Param.Suffix_Face'Image);
             end if;
 
@@ -1676,7 +2341,7 @@ package body Wisi is
       Cache_Cur : Cursor;
    begin
       for Param of Params loop
-         if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
+         if Overlaps (Tree.Byte_Region (Tokens (Param.Index)), Data.Action_Region_Bytes) then
             declare
                Token : constant Base_Token := Tree.Base_Token (Tokens (Param.Index));
             begin
@@ -1717,7 +2382,7 @@ package body Wisi is
       Cache_Cur : Cursor;
    begin
       for Param of Params loop
-         if Tree.Byte_Region (Tokens (Param.Index)) /= Null_Buffer_Region then
+         if Overlaps (Tree.Byte_Region (Tokens (Param.Index)), Data.Action_Region_Bytes) then
             declare
                Token : constant Base_Token := Tree.Base_Token (Tokens (Param.Index));
             begin
@@ -1727,18 +2392,21 @@ package body Wisi is
                      Cache : Face_Cache_Type renames Data.Face_Caches (Cache_Cur);
                      Other_Cur : Cursor := Find_In_Range
                        (Iter, Ascending, Cache.Char_Region.Last + 1, Token.Char_Region.Last);
-                     Temp : Cursor;
+                     To_Delete : Buffer_Pos_Lists.List;
                   begin
                      loop
                         exit when not Has_Element (Other_Cur) or else
                           Data.Face_Caches (Other_Cur).Char_Region.First > Token.Char_Region.Last;
-                        Temp := Other_Cur;
+                        To_Delete.Append (Data.Face_Caches (Other_Cur).Char_Region.First);
                         Other_Cur := Next (Iter, Other_Cur);
-                        Delete (Data.Face_Caches, Temp);
                      end loop;
 
                      Cache.Class            := Param.Class;
                      Cache.Char_Region.Last := Token.Char_Region.Last;
+
+                     for Face of To_Delete loop
+                        Data.Face_Caches.Delete (Face);
+                     end loop;
                   end;
                else
                   Data.Face_Caches.Insert ((Token.Char_Region, Param.Class, (Set => False)));
@@ -1760,20 +2428,22 @@ package body Wisi is
 
       Iter      : constant Iterator := Data.Face_Caches.Iterate;
       Cache_Cur : Cursor;
-      Temp      : Cursor;
    begin
       for I of Params loop
-         if Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region then
+         if Overlaps (Tree.Byte_Region (Tokens (I)), Data.Action_Region_Bytes) then
             declare
                Token : constant Base_Token := Tree.Base_Token (Tokens (I));
+               To_Delete : Buffer_Pos_Lists.List;
             begin
                Cache_Cur := Find_In_Range (Iter, Ascending, Token.Char_Region.First, Token.Char_Region.Last);
                loop
                   exit when not Has_Element (Cache_Cur) or else
                     Data.Face_Caches (Cache_Cur).Char_Region.First > Token.Char_Region.Last;
-                  Temp := Cache_Cur;
+                  To_Delete.Append (Data.Face_Caches (Cache_Cur).Char_Region.First);
                   Cache_Cur := Next (Iter, Cache_Cur);
-                  Delete (Data.Face_Caches, Temp);
+               end loop;
+               for Face of To_Delete loop
+                  Data.Face_Caches.Delete (Face);
                end loop;
             end;
          end if;
@@ -1886,7 +2556,8 @@ package body Wisi is
         (case Item.Label is
          when Simple => Image (Item.Param),
          when Hanging_Label =>
-            Image (Item.Hanging_Delta_1) & ", "  & Image (Item.Hanging_Delta_2) & ")");
+            Image (Item.Hanging_Delta_1) & ", "  & Image (Item.Hanging_Delta_2))
+        & ")";
    end Image;
 
    function Image (Item : in Indent_Pair) return String
@@ -1905,12 +2576,13 @@ package body Wisi is
       Params  : in     Indent_Param_Array)
    is begin
       if Trace_Action > Outline then
-         Ada.Text_IO.Put_Line (";; indent_action_0: " & Tree.Image (Nonterm, RHS_Index => True));
+         Data.Trace.Put_Line
+           ("indent_action_0: " & Tree.Image (Nonterm, RHS_Index => True, Augmented => True, Line_Numbers => True));
       end if;
 
       for I in Tokens'Range loop
-         if (Tree.Is_Virtual_Terminal (Tokens (I)) or
-               Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region) and
+         if (Tree.Is_Virtual_Terminal (Tokens (I)) or else
+               Overlaps (Tree.Byte_Region (Tokens (I)), Data.Action_Region_Bytes)) and
            I in Params'Range -- in some translated EBNF, not every token has an indent param
          then
             declare
@@ -1925,8 +2597,9 @@ package body Wisi is
                Comment_Delta     : Delta_Type;
             begin
                if Trace_Action > Detail then
-                  Ada.Text_IO.Put_Line
-                    (";; indent_action_0 code: " & Tree.Image (Tree_Token) & ": " & Image (Pair.Code_Delta));
+                  Data.Trace.Put_Line
+                    ("indent_action_0 code: " & Tree.Image (Tree_Token, Line_Numbers => True) & ": " &
+                       Image (Pair.Code_Delta));
                end if;
 
                if Token.Aug.First_Indent_Line /= Invalid_Line_Number then
@@ -1951,8 +2624,8 @@ package body Wisi is
 
                   if Comment_Param_Set then
                      if Trace_Action > Detail then
-                        Ada.Text_IO.Put_Line
-                          (";; indent_action_0 comment: " & Tree.Image (Controlling_Token) & ": " &
+                        Data.Trace.Put_Line
+                          ("indent_action_0 comment: " & Tree.Image (Controlling_Token, Line_Numbers => True) & ": " &
                              Image (Comment_Param));
                      end if;
 
@@ -2038,7 +2711,7 @@ package body Wisi is
                  (if Indenting_Token.Base.Line = Indenting_Token.Aug.First_Indent_Line then 1 else 0)
                  .. Indenting_Token.Aug.Last_Indent_Line
                loop
-                  if Data.Line_Begin_Token.all (Line).Node /= Syntax_Trees.Invalid_Node_Access then
+                  if Tree.Line_Begin_Token (Line) /= Syntax_Trees.Invalid_Node_Access then
                      Result.Hanging_Delta_2.Controlling_Token_Line := Line;
                      exit;
                   end if;
@@ -2061,66 +2734,25 @@ package body Wisi is
    is
       use all type Ada.Containers.Count_Type;
       use all type WisiToken.Syntax_Trees.Node_Access;
-      use all type WisiToken.Syntax_Trees.Node_Label;
 
-      Last_Term : constant Syntax_Trees.Node_Access := Parser.Tree.Last_Shared_Terminal (Parser.Tree.Root);
+      Tree : WisiToken.Syntax_Trees.Tree renames Parser.Tree;
 
-      function Get_Last_Char_Pos return Buffer_Pos
-      is begin
-         if Last_Term = Syntax_Trees.Invalid_Node_Access or else
-           Parser.Tree.Label (Last_Term) /= Syntax_Trees.Source_Terminal
-         then
-            --  All comments, or empty
-            if Parser.Tree.Leading_Non_Grammar_Const.Length > 0 then
-               return Parser.Tree.Leading_Non_Grammar_Const.Element.all
-                 (Parser.Tree.Leading_Non_Grammar_Const.Last_Index).Char_Region.Last;
-            else
-               return Buffer_Pos'First;
-            end if;
-         else
-            declare
-               Non_Grammar : Base_Token_Array_Const_Ref renames Parser.Tree.Non_Grammar_Const (Last_Term);
-            begin
-               if Non_Grammar.Length = 0 then
-                  return Parser.Tree.Base_Token (Last_Term).Char_Region.Last;
-               else
-                  return Non_Grammar (Non_Grammar.Last_Index).Char_Region.Last;
-               end if;
-            end;
-         end if;
-      end Get_Last_Char_Pos;
-
-      Last_Char_Pos : constant Buffer_Pos := Get_Last_Char_Pos;
-
-      function Get_Last_Line return Line_Number_Type
-      is begin
-         for I in Data.Line_Begin_Char_Pos.First_Index .. Data.Line_Begin_Char_Pos.Last_Index loop
-            if Data.Line_Begin_Char_Pos.all (I) = Invalid_Buffer_Pos then
-               raise SAL.Programmer_Error with "line_begin_char_pos" & Line_Number_Type'Image (I) & " invalid";
-            end if;
-            if Data.Line_Begin_Char_Pos.all (I) > Last_Char_Pos then
-               if I > Line_Number_Type'First then
-                  return I - 1;
-               else
-                  return I;
-               end if;
-            end if;
-         end loop;
-         return Data.Line_Begin_Char_Pos.Last_Index;
-      end Get_Last_Line;
-
+      Last_Char_Pos : constant Buffer_Pos       := Tree.Base_Token (Tree.EOI).Char_Region.Last;
+      Last_Line     : constant Line_Number_Type := Tree.Base_Token (Tree.EOI).Line;
    begin
       if Trace_Action > Outline then
          if Trace_Action > Extra then
             Parser.Trace.Put_Line
               (Parser.Tree.Image
-                 (Children    => True,
-                  Non_Grammar => True));
+                 (Children     => True,
+                  Non_Grammar  => True,
+                  Augmented    => True,
+                  Line_Numbers => True));
             Parser.Trace.New_Line;
          end if;
          Parser.Trace.Put_Line
            ("last_char_pos:" & Buffer_Pos'Image (Last_Char_Pos + 1) &
-              " last_line:" & Line_Number_Type'Image (Get_Last_Line));
+              " last_line:" & Line_Number_Type'Image (Last_Line));
       end if;
 
       --  +1 to match Emacs region
@@ -2129,41 +2761,52 @@ package body Wisi is
       case Data.Post_Parse_Action is
       when Navigate =>
          for Cache of Data.Navigate_Caches loop
-            Put (Cache);
+            if Inside (Cache.Pos, Data.Action_Region_Chars) then
+               Put (Cache);
+            end if;
          end loop;
          for Cache of Data.Name_Caches loop
-            Put (Cache);
+            if Contains (Outer => Data.Action_Region_Chars, Inner => Cache) then
+               Put (Cache);
+            end if;
          end loop;
 
       when Face =>
          for Cache of Data.Face_Caches loop
-            Put (Cache);
+            if Overlaps (Cache.Char_Region, Data.Action_Region_Chars) then
+               Put (Cache);
+            end if;
          end loop;
 
       when Indent =>
          Resolve_Anchors (Data);
 
          if Trace_Action > Outline then
-            Parser.Trace.Put_Line (";; indent leading non_grammar");
+            Parser.Trace.Put_Line ("indent leading non_grammar");
          end if;
          declare
-            Non_Grammar : WisiToken.Base_Token_Arrays.Vector renames Parser.Tree.Leading_Non_Grammar_Const;
+            Non_Grammar : WisiToken.Base_Token_Arrays.Vector renames Parser.Tree.Leading_Non_Grammar;
          begin
             if Non_Grammar.Length > 0 then
                for Line in Non_Grammar (Non_Grammar.First_Index).Line ..
                  Non_Grammar (Non_Grammar.Last_Index).Line
                loop
-                  Put (Line, (Int, Invalid_Line_Number, Data.Begin_Indent));
+                  if Inside (Tree.Line_Begin_Char_Pos (Line), Data.Action_Region_Chars)
+                  then
+                     Put (Line, (Int, Invalid_Line_Number, Data.Begin_Indent));
+                  end if;
                end loop;
             end if;
          end;
 
          --  It may be that not all lines in Data.Indents were parsed.
          if Trace_Action > Outline then
-            Parser.Trace.Put_Line (";; indent grammar");
+            Parser.Trace.Put_Line ("indent grammar");
          end if;
-         for I in Data.Indents.First_Index .. Get_Last_Line loop
-            Put (I, Data.Indents (I));
+         for Line in Data.Indents.First_Index .. Line_Number_Type'Min (Data.Indents.Last_Index, Last_Line) loop
+            if Inside (Tree.Line_Begin_Char_Pos (Line), Data.Action_Region_Chars) then
+               Put (Line, Data.Indents (Line));
+            end if;
          end loop;
       end case;
    end Put;
@@ -2196,18 +2839,28 @@ package body Wisi is
       use Ada.Text_IO;
       use In_Parse_Actions;
       use all type Syntax_Trees.Node_Access;
+      Descriptor  : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
-      function Safe_Pos (Token : in Syntax_Trees.Recover_Token) return Buffer_Pos
-      is begin
-         return Syntax_Trees.Name (Token).First;
+      function Safe_Pos (Token : in Syntax_Trees.Recover_Token) return Base_Buffer_Pos
+      is
+         Result : Base_Buffer_Pos := Syntax_Trees.Name (Token).First;
+      begin
+         if Result = Invalid_Buffer_Pos then
+            Result := 0;
+         end if;
+         return Result;
       end Safe_Pos;
 
-      function Safe_Pos (Token : in Syntax_Trees.Node_Access) return Buffer_Pos
+      function Safe_Pos (Token : in Syntax_Trees.Node_Access) return Base_Buffer_Pos
       is begin
          if Token = Syntax_Trees.Invalid_Node_Access then
-            return Buffer_Pos'First;
+            return 0; --  elisp interprets this as invalid buffer pos, and it takes fewer bytes to transmit.
          else
-            return Tree.Char_Region (Token).First;
+            return Result : Base_Buffer_Pos := Tree.Char_Region (Token).First do
+               if Result = Invalid_Buffer_Pos then
+                  Result := 0;
+               end if;
+            end return;
          end if;
       end Safe_Pos;
    begin
@@ -2217,9 +2870,9 @@ package body Wisi is
          case Item.Label is
          when Parse.LR.LR_Parse_Action =>
             Put_Line
-              ('[' & Parser_Error_Code & Buffer_Pos'Image (Safe_Pos (Item.Error_Token.Node)) &
-                 " ""syntax error: expecting " & Image (Item.Expecting, Data.Descriptor.all) &
-                 ", found '" & Image (Tree.ID (Item.Error_Token), Data.Descriptor.all) & "'""]");
+              ('[' & Parser_Error_Code & Base_Buffer_Pos'Image (Safe_Pos (Item.Error_Token.Node)) &
+                 " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                 ", found '" & Image (Tree.ID (Item.Error_Token.Node), Descriptor) & "'""]");
 
          when Parse.LR.User_Parse_Action =>
             Put_Line
@@ -2228,9 +2881,13 @@ package body Wisi is
                  (case Item.Status.Label is
                   when Ok => "",
                   when Error =>
-                     Buffer_Pos'Image (Safe_Pos (Item.Status.Begin_Name)) &
-                       Buffer_Pos'Image (Safe_Pos (Item.Status.End_Name)) &
-                       " ""block name error""]"));
+                     Base_Buffer_Pos'Image (Safe_Pos (Item.Status.Begin_Name)) &
+                       Base_Buffer_Pos'Image (Safe_Pos (Item.Status.End_Name)) & " """ &
+                      (case Error'(Item.Status.Label) is
+                       when Missing_Name_Error => "missing",
+                       when Extra_Name_Error => "extra",
+                       when Match_Names_Error => "match") &
+                       " name error""]"));
 
          when Parse.LR.Message =>
             Put_Line
@@ -2242,11 +2899,14 @@ package body Wisi is
       Put (Recover, Data, Tree);
    end Put;
 
-   procedure Put_Error (Data : in Parse_Data_Type; Line_Number : in Line_Number_Type; Message : in String)
+   procedure Put_Error
+     (Tree        : in Syntax_Trees.Tree;
+      Line_Number : in Line_Number_Type;
+      Message     : in String)
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("(error """ & Error_Message (Data.Lexer.File_Name, Line_Number, 0, Message) & """)");
+      Put_Line ("(error """ & Error_Message (Tree.Lexer.File_Name, Line_Number, 0, Message) & """)");
    end Put_Error;
 
    ----------
@@ -2272,42 +2932,38 @@ package body Wisi is
    end Image;
 
    function Current_Indent_Offset
-     (Data         : in Parse_Data_Type'Class;
-      Tree         : in Syntax_Trees.Tree'Class;
+     (Tree         : in Syntax_Trees.Tree'Class;
       Anchor_Token : in Base_Token;
       Offset       : in Integer)
      return Integer
    is
       use all type Syntax_Trees.Node_Access;
-      Line_Begin_Token : constant Syntax_Trees.Terminal_Ref := Data.Line_Begin_Token.all (Anchor_Token.Line);
+      Line_Begin_Token : constant Syntax_Trees.Node_Access := Tree.Line_Begin_Token (Anchor_Token.Line);
    begin
       return Offset + Integer
         (Anchor_Token.Char_Region.First -
-           (if Line_Begin_Token.Node = WisiToken.Syntax_Trees.Invalid_Node_Access
+           (if Line_Begin_Token = WisiToken.Syntax_Trees.Invalid_Node_Access
             then 0
-            else Tree.Char_Region (Line_Begin_Token.Node).First));
+            else Tree.Char_Region (Line_Begin_Token).First));
    end Current_Indent_Offset;
 
    function First
-     (Data  : in Parse_Data_Type'Class;
-      Tree  : in WisiToken.Syntax_Trees.Tree'Class;
-      Token : in WisiToken.Syntax_Trees.Node_Access)
+     (Tree  : in Syntax_Trees.Tree'Class;
+      Token : in Syntax_Trees.Node_Access)
      return Boolean
    is
-      use all type WisiToken.Syntax_Trees.Node_Index;
-      use all type WisiToken.Syntax_Trees.Node_Access;
+      use all type Syntax_Trees.Node_Access;
    begin
-      if Token = WisiToken.Syntax_Trees.Invalid_Node_Access then
+      if Token = Syntax_Trees.Invalid_Node_Access then
          return False;
       else
          declare
-            Line : constant Line_Number_Type := Tree.Base_Token (Token).Line;
+            First_Token : constant Syntax_Trees.Node_Access :=
+              (if Tree.Root = Syntax_Trees.Invalid_Node_Access
+               then Tree.Line_Begin_Token (Tree.Line (Token), Tree.Shared_Stream)
+               else Tree.Line_Begin_Token (Tree.Line (Token)));
          begin
-            if Line in Data.Line_Begin_Token.First_Index .. Data.Line_Begin_Token.Last_Index then
-               return Tree.Get_Node_Index (Data.Line_Begin_Token.all (Line).Node) = Tree.Get_Node_Index (Token);
-            else
-               raise SAL.Programmer_Error;
-            end if;
+            return First_Token = Token;
          end;
       end if;
    end First;
@@ -2354,7 +3010,7 @@ package body Wisi is
    begin
       case Tree.Label (Tree_Index) is
       when Source_Terminal | Nonterm =>
-         return Data.Lexer.Buffer_Text (Tree.Byte_Region (Tree_Index));
+         return Tree.Lexer.Buffer_Text (Tree.Byte_Region (Tree_Index));
 
       when Virtual_Terminal | Virtual_Identifier =>
          raise SAL.Programmer_Error;
@@ -2400,16 +3056,16 @@ package body Wisi is
          Indent := (Anchor_Nil, Invalid_Line_Number, To_Vector (Anchor_ID, 1));
 
          if Trace_Action > Extra then
-            Ada.Text_IO.Put_Line
-              (";; indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
+            Data.Trace.Put_Line
+              ("indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
          end if;
 
       when Int =>
          Indent := (Anchor_Int, Invalid_Line_Number, To_Vector (Anchor_ID, 1), Indent.Int_Indent);
 
          if Trace_Action > Extra then
-            Ada.Text_IO.Put_Line
-              (";; indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
+            Data.Trace.Put_Line
+              ("indent_anchored: " & Line_Number_Type'Image (Anchor_Line) & " => " & Image (Indent));
          end if;
 
       when Anchor_Nil =>
@@ -2476,7 +3132,7 @@ package body Wisi is
                     (case Simple_Param_Anchored'(Param.Param.Label) is
                      when Anchored_0 =>
                         --  test/ada_mode-interactive_2.adb 'if (A and B -- Comment 1'
-                        Current_Indent_Offset (Data, Tree, Anchor_Token.Base, Param.Param.Anchored_Delta),
+                        Current_Indent_Offset (Tree, Anchor_Token.Base, Param.Param.Anchored_Delta),
                      when Anchored_1 =>
                         Paren_In_Anchor_Line (Data, Tree, Anchor_Node, Param.Param.Anchored_Delta)));
             end;
@@ -2502,14 +3158,15 @@ package body Wisi is
    --  Apply Delta_Indent to Indenting_Token
    is
       use all type WisiToken.Syntax_Trees.Node_Access;
+      Descriptor  : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
       First_Line : constant Line_Number_Type := Wisi.First_Line (Indenting_Token, Indenting_Comment);
       Last_Line  : constant Line_Number_Type := Wisi.Last_Line (Indenting_Token, Indenting_Comment);
    begin
       if Trace_Action > Detail then
-         Ada.Text_IO.Put_Line
-           (";; indent_token_1:      " &
-              Image (Indenting_Token.Base, Data.Descriptor.all) & " " & Image (Delta_Indent) &
+         Data.Trace.Put_Line
+           ("indent_token_1:      " &
+              Image (Indenting_Token.Base, Descriptor) & " " & Image (Delta_Indent) &
               Line_Number_Type'Image (First_Line) & " .." & Line_Number_Type'Image (Last_Line) &
               (if Indenting_Comment then " comment" else ""));
       end if;
@@ -2517,88 +3174,42 @@ package body Wisi is
       for Line in First_Line .. Last_Line loop
          if Data.Indent_Comment_Col_0 then
             declare
+               use all type Ada.Containers.Count_Type;
                use all type Ada.Text_IO.Count;
-               function Containing_Token return Syntax_Trees.Node_Access
-               --  Return terminal containing leading comment on Line;
-               --  Invalid_Node_Access if none.
-               is
-                  I : Line_Number_Type := Line;
-               begin
-                  if Line < Data.Line_Begin_Token.First_Index then
-                     --  Line is before first grammar token; Leading_Non_Grammar checked
-                     --  below.
-                     return Syntax_Trees.Invalid_Node_Access;
-                  end if;
-
-                  loop
-                     --  The grammar token containing the comment on Line I is the last
-                     --  grammar token on the previous line. So find the first grammar
-                     --  token on line I or a subsequent line, then find the previous
-                     --  terminal. Note that we are supporting C style comments here, where
-                     --  code can follow a comment on a line.
-                     exit when Data.Line_Begin_Token.all (I).Node /= Syntax_Trees.Invalid_Node_Access;
-                     I := I + 1;
-
-                     if I > Data.Line_Begin_Token.Last_Index then
-                        --  We should always find Wisi_EOI
-                        raise SAL.Programmer_Error;
-                     end if;
-                  end loop;
-
-                  if Tree.ID (Data.Line_Begin_Token.all (I).Node) = Data.Descriptor.EOI_ID then
-                     --  EOI is not in parse tree; it's the last token in the
-                     --  shared_stream, but is not included when the accept production is
-                     --  reduced.
-                     return Tree.Last_Terminal (Tree.Root);
-                  end if;
-
-                  declare
-                     J   : constant Syntax_Trees.Node_Access := Tree.Prev_Terminal (Data.Line_Begin_Token.all (I).Node);
-                  begin
-                     if J = Syntax_Trees.Invalid_Node_Access then
-                        return J;
-                     end if;
-
-                     declare
-                        Aug : Augmented_Const_Ref renames Get_Augmented_Const (Tree, J);
-                     begin
-                        if Line in Aug.First_Trailing_Comment_Line .. Aug.Last_Trailing_Comment_Line then
-                           return J;
-                        else
-                           return Syntax_Trees.Invalid_Node_Access;
-                        end if;
-                     end;
-                  end;
-               end Containing_Token;
-
                Indent : Boolean := True;
-
-               Containing : constant Syntax_Trees.Node_Access := Containing_Token;
             begin
-               if Line < Data.Line_Begin_Token.First_Index then
+               if Tree.Leading_Non_Grammar.Length > 0 and then
+                 Line < Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.Last_Index).Line
+               then
                   --  Line is before the first grammar token. We may be doing a partial
                   --  parse where the initial indent is non-zero, so we still have to
                   --  check for column 0.
-                  for Tok of Tree.Leading_Non_Grammar_Const loop
+                  for Tok of Tree.Leading_Non_Grammar loop
                      if Tok.Line = Line and then
                        Tok.ID in Data.First_Comment_ID .. Data.Last_Comment_ID and then
-                       WisiToken.Column (Tok, Data.Line_Begin_Char_Pos.all) = 0
+                       WisiToken.Column (Tok, Tree.Line_Begin_Char_Pos (Line)) = 0
                      then
                         Indent := False;
                         exit;
                      end if;
                   end loop;
 
-               elsif Containing /= Syntax_Trees.Invalid_Node_Access then
-                  for Tok of Tree.Non_Grammar_Const (Containing) loop
-                     if Tok.Line = Line and then
-                       Tok.ID in Data.First_Comment_ID .. Data.Last_Comment_ID and then
-                       WisiToken.Column (Tok, Data.Line_Begin_Char_Pos.all) = 0
-                     then
-                        Indent := False;
-                        exit;
+               else
+                  declare
+                     Containing : constant Syntax_Trees.Node_Access := Tree.Find_New_Line (Line);
+                  begin
+                     if Containing /= Syntax_Trees.Invalid_Node_Access then
+                        for Tok of Tree.Non_Grammar_Const (Containing) loop
+                           if Tok.Line = Line and then
+                             Tok.ID in Data.First_Comment_ID .. Data.Last_Comment_ID and then
+                             WisiToken.Column (Tok, Tree.Line_Begin_Char_Pos (Line)) = 0
+                           then
+                              Indent := False;
+                              exit;
+                           end if;
+                        end loop;
                      end if;
-                  end loop;
+                  end;
                end if;
 
                if Indent then

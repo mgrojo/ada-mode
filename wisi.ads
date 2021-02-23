@@ -10,7 +10,7 @@
 --
 --  [3] wisi-process-parse.el - defines elisp/process API
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -27,6 +27,7 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
+with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
 with WisiToken.Lexer;
@@ -36,33 +37,109 @@ package Wisi is
    use all type WisiToken.Syntax_Trees.Augmented_Class_Access;
    use all type WisiToken.Base_Buffer_Pos;
 
+   Protocol_Error : exception;
+
+   procedure Skip
+     (Source : in     String;
+      Last   : in out Integer;
+      Char   : in     Character);
+   --  Check that Source (Last + 1) = Char. If so, increment Last.
+   --  If not, raise Protocol_Error.
+
+   function Get_String
+     (Source : in     String;
+      Last   : in out Integer)
+     return String;
+
+   function Get_Integer
+     (Source : in     String;
+      Last   : in out Integer)
+     return Integer;
+
+   type Change is record
+      Begin_Byte_Pos        : WisiToken.Buffer_Pos; -- inserted or deleted
+      Begin_Char_Pos        : WisiToken.Buffer_Pos;
+      Inserted_End_Byte_Pos : WisiToken.Buffer_Pos;
+      Inserted_End_Char_Pos : WisiToken.Buffer_Pos; --  emacs convention: end is after last inserted char
+      Inserted_Text         : Ada.Strings.Unbounded.Unbounded_String;
+      Deleted_Bytes         : Natural;
+      Deleted_Chars         : Natural;
+   end record;
+
+   function Image (Item : in Change) return String;
+
+   package Change_Lists is new Ada.Containers.Doubly_Linked_Lists (Change);
+
+   function Get_Emacs_Change_List
+     (Command_Line          : in     String;
+      Last                  : in out Integer;
+      Handle_String_Escapes : in     Boolean)
+     return Change_Lists.List;
+
+   procedure Edit_Source
+     (Trace            : in out WisiToken.Trace'Class;
+      Source           : in out Ada.Strings.Unbounded.String_Access;
+      Source_Byte_Last : in out Integer;
+      Source_Char_Last : in out Integer;
+      Changes          : in     Change_Lists.List;
+      KMN_List         :    out WisiToken.Parse.KMN_Lists.List);
+
    function Image_Action (Action : in WisiToken.Syntax_Trees.Post_Parse_Action) return String;
    --  For Image_Action in Syntax_Trees.Image
 
    type Post_Parse_Action_Type is (Navigate, Face, Indent);
 
-   type Parse_Data_Type
-     (Line_Begin_Token    : not null access WisiToken.Parse.Line_Token_Vectors.Vector;
-      Line_Begin_Char_Pos : not null access constant WisiToken.Line_Pos_Vectors.Vector)
-     is new WisiToken.Syntax_Trees.User_Data_Type with private;
+   type Parse_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with private;
+   type Parse_Data_Access is access all Parse_Data_Type'Class;
 
-   procedure Initialize
+   overriding
+   function New_User_Data (Template : in Parse_Data_Type) return WisiToken.Syntax_Trees.User_Data_Access
+   is (new Parse_Data_Type);
+
+   function New_Parse_Data (Template : in Parse_Data_Type'Class) return Parse_Data_Access
+   is (Parse_Data_Access (New_User_Data (Template)));
+
+   procedure Initialize_Partial_Parse
      (Data              : in out Parse_Data_Type;
-      Lexer             : in     WisiToken.Lexer.Handle;
-      Descriptor        : access constant WisiToken.Descriptor;
+      Trace             : in     WisiToken.Trace_Access;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type;
-      Begin_Indent      : in     Integer;
-      Params            : in     String);
-   --  Begin_Line, Begin_Indent only used for Indent. Params
-   --  contains language-specific indent parameter values.
+      End_Line          : in     WisiToken.Line_Number_Type);
+   --  Begin_Line, Begin_Indent only used for Indent.
+
+   procedure Initialize_Full_Parse
+     (Data     : in out Parse_Data_Type;
+      Trace    : in     WisiToken.Trace_Access;
+      End_Line : in     WisiToken.Line_Number_Type);
+   --  Initialize Data for a new full parse.
+
+   procedure Parse_Language_Params
+     (Data   : in out Parse_Data_Type;
+      Params : in     String)
+   is null;
+   --  If Params /= "", set all language-specific parameters from Params,
+   --  in declaration order; otherwise keep default values. Boolean is
+   --  represented by 0 | 1. Parameter values are space delimited.
+
+   procedure Reset_Post_Parse
+     (Data                : in out Parse_Data_Type;
+      Post_Parse_Action   : in     Post_Parse_Action_Type;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region;
+      Action_Region_Chars : in     WisiToken.Buffer_Region;
+      End_Line            : in     WisiToken.Line_Number_Type;
+      Begin_Indent        : in     Integer);
+   --  Reset for a new post-parse action, preserving data from previous parse.
 
    overriding procedure Reset (Data : in out Parse_Data_Type);
-   --  Reset for a new parse, with data from previous Initialize.
 
-   function Source_File_Name (Data : in Parse_Data_Type) return String;
    function Post_Parse_Action (Data : in Parse_Data_Type) return Post_Parse_Action_Type;
+   function Action_Region_Bytes (Data : in Parse_Data_Type) return WisiToken.Buffer_Region;
+
+   procedure Edit
+     (Data  : in out Parse_Data_Type;
+      Edits : in     WisiToken.Parse.KMN_Lists.List);
+   --  Apply edits to Data. Will be followed by Execute_Actions on a
+   --  region of text.
 
    overriding
    procedure Lexer_To_Augmented
@@ -81,6 +158,7 @@ package Wisi is
    procedure Initialize_Actions
      (Data : in out Parse_Data_Type;
       Tree : in     WisiToken.Syntax_Trees.Tree'Class);
+   --  FIXME: called when? delete?
 
    overriding
    procedure Insert_Token
@@ -91,16 +169,21 @@ package Wisi is
    overriding
    procedure Delete_Token
      (Data          : in out Parse_Data_Type;
-      Tree          : in out WisiToken.Syntax_Trees.Tree'Class;
+      Tree          : in     WisiToken.Syntax_Trees.Tree'Class;
       Deleted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Prev_Token    : in     WisiToken.Syntax_Trees.Node_Access);
 
    overriding
+   procedure Delete_Token
+     (Data      : in out Parse_Data_Type;
+      Tree      : in     WisiToken.Syntax_Trees.Tree'Class;
+      To_Delete : in     WisiToken.Syntax_Trees.Terminal_Ref);
+
+   overriding
    procedure Reduce
      (Data    : in out Parse_Data_Type;
-      Tree    : in out WisiToken.Syntax_Trees.Tree'Class;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     WisiToken.Syntax_Trees.Node_Access_Array);
+      Tree    : in     WisiToken.Syntax_Trees.Tree'Class;
+      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access);
 
    type Navigate_Class_Type is (Motion, Statement_End, Statement_Override, Statement_Start, Misc);
    --  Matches [1] wisi-class-list.
@@ -366,7 +449,10 @@ package Wisi is
    --  as encoded error responses as defined in [3]
    --  wisi-process-parse--execute.
 
-   procedure Put_Error (Data : in Parse_Data_Type; Line_Number : in WisiToken.Line_Number_Type; Message : in String);
+   procedure Put_Error
+     (Tree        : in WisiToken.Syntax_Trees.Tree;
+      Line_Number : in WisiToken.Line_Number_Type;
+      Message     : in String);
    --  Put an error elisp form to Ada.Text_IO.Standard_Output.
 
 private
@@ -409,6 +495,13 @@ private
 
    overriding
    function Image_Augmented (Aug : in Augmented) return String;
+
+   overriding
+   procedure Shift
+     (Augmented   : in out Wisi.Augmented;
+      Shift_Bytes : in     WisiToken.Base_Buffer_Pos;
+      Shift_Chars : in     WisiToken.Base_Buffer_Pos;
+      Shift_Line  : in     WisiToken.Base_Line_Number_Type);
 
    type Augmented_Const_Ref (Element : not null access constant Augmented) is null record with
      Implicit_Dereference => Element;
@@ -486,6 +579,7 @@ private
 
    package Name_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees
      (WisiToken.Buffer_Region, WisiToken.Buffer_Pos);
+   --  Character positions of names.
 
    type Nil_Integer (Set : Boolean := False) is record
       case Set is
@@ -546,11 +640,10 @@ private
    package Navigate_Cursor_Lists is new Ada.Containers.Doubly_Linked_Lists
      (Navigate_Cache_Trees.Cursor, Navigate_Cache_Trees."=");
 
-   type Parse_Data_Type
-     (Line_Begin_Token    : not null access WisiToken.Parse.Line_Token_Vectors.Vector;
-      Line_Begin_Char_Pos : not null access constant WisiToken.Line_Pos_Vectors.Vector)
-     is new WisiToken.Syntax_Trees.User_Data_Type with
+   type Parse_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
+      Trace : WisiToken.Trace_Access;
+
       --  Aux token info
       First_Comment_ID : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
       Last_Comment_ID  : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
@@ -571,9 +664,11 @@ private
 
       --  Data for post-parse actions
 
-      Lexer             : WisiToken.Lexer.Handle;
-      Descriptor        : access constant WisiToken.Descriptor;
-      Post_Parse_Action : Post_Parse_Action_Type;
+      Post_Parse_Action   : Post_Parse_Action_Type;
+      Action_Region_Bytes : WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region;
+      Action_Region_Chars : WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region;
+      --  Actions are applied to tokens that overlap this region.
+
       Navigate_Caches   : Navigate_Cache_Trees.Tree;  -- Set by Navigate.
       Name_Caches       : Name_Cache_Trees.Tree;      -- Set by Navigate.
       End_Positions     : Navigate_Cursor_Lists.List; -- Dynamic data for Navigate.
@@ -641,15 +736,13 @@ private
    --  Utilities for language-specific child packages
 
    function First
-     (Data  : in Parse_Data_Type'Class;
-      Tree  : in WisiToken.Syntax_Trees.Tree'Class;
+     (Tree  : in WisiToken.Syntax_Trees.Tree'Class;
       Token : in WisiToken.Syntax_Trees.Node_Access)
      return Boolean;
    --  True if Token is first token on Token.Line; False if Token is Invalid_Node_Access
 
    function Current_Indent_Offset
-     (Data         : in Parse_Data_Type'Class;
-      Tree         : in WisiToken.Syntax_Trees.Tree'Class;
+     (Tree         : in WisiToken.Syntax_Trees.Tree'Class;
       Anchor_Token : in WisiToken.Base_Token;
       Offset       : in Integer)
      return Integer;

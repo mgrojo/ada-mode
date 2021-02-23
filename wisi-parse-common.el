@@ -70,12 +70,45 @@ and parse the whole buffer."
 
   repair-image
   ;; alist of (TOKEN-ID . STRING); used by repair error
+
+  transaction-log-buffer
+  ;; Buffer holding history of communications with parser
+
+  (transaction-log-buffer-size 300000)
+  ;; Max character count to retain in transaction-log-buffer. Set to 0
+  ;; to disable log. Default is large enough for all transactions in
+  ;; test/ada_mode-incremental_parse.adb with lots of verbosity.
 )
+
+(cl-defgeneric wisi-parser-transaction-log-buffer-name ((parser wisi-parser))
+  "Return a buffer name for the transaction log buffer.")
+
+(defun wisi-parse-log-message (parser message)
+  "Write MESSAGE (a string) to PARSER transaction-log-buffer.
+Text properties on MESSAGE are preserved,"
+  (let ((max (wisi-parser-transaction-log-buffer-size parser)))
+    (when (> max 0)
+      (unless (buffer-live-p (wisi-parser-transaction-log-buffer parser))
+	(setf (wisi-parser-transaction-log-buffer parser)
+	      (get-buffer-create (wisi-parser-transaction-log-buffer-name parser) t))
+	(with-current-buffer (wisi-parser-transaction-log-buffer parser)
+	  (read-only-mode 1)
+	  (buffer-disable-undo)))
+      (with-current-buffer (wisi-parser-transaction-log-buffer parser)
+	(goto-char (point-max))
+	(let ((inhibit-read-only t))
+	  (insert (format "%s:\n%s\n" (current-time-string) message))
+	  (when (> (buffer-size) max)
+	    (save-excursion
+	      (goto-char (- (buffer-size) max))
+	      ;; search for tail of time stamp ":mm:ss yyyy:\n"
+	      (search-forward-regexp ":[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]:$" nil t)
+	      (forward-line -1)
+	      (delete-region (point-min) (point)))))))))
 
 (cl-defgeneric wisi-parse-format-language-options ((parser wisi-parser))
   "Return a string to be sent to the parser, containing settings
-for the language-specific parser options."
-  )
+for the language-specific parser options.")
 
 (cl-defgeneric wisi-parse-expand-region ((_parser wisi-parser) begin end)
   "Return a cons SEND-BEGIN . SEND-END that is an expansion of
@@ -86,9 +119,12 @@ handle gracefully."
 (defvar-local wisi--parser nil
   "The current wisi parser; a ‘wisi-parser’ object.")
 
+(defconst wisi-post-parse-actions '(face navigate indent)
+  "Actions that the parser can perform after parsing.")
+
 (defun wisi-read-parse-action ()
   "Read a parse action symbol from the minibuffer."
-  (intern-soft (completing-read "parse action (indent): " '(face navigate indent) nil t nil nil 'indent)))
+  (intern-soft (completing-read "parse action (indent): " wisi-post-parse-actions nil t nil nil 'indent)))
 
 (defun wisi-search-backward-skip (regexp skip-p)
   "Search backward for REGEXP. If SKIP-P returns non-nil, search again.
@@ -123,14 +159,27 @@ Return nil if no match found before eob."
   "Adjust INDENT for REPAIR (a wisi--parse-error-repair struct). Return new indent."
   indent)
 
-(cl-defgeneric wisi-parse-current ((parser wisi-parser) begin send-end parse-end)
+(cl-defgeneric wisi-parse-current ((parser wisi-parser) parse-action begin send-end parse-end)
   "Parse current buffer starting at BEGIN, continuing at least thru PARSE-END.
-If using an external parser, send it BEGIN thru SEND-END.")
+Send the parser BEGIN thru SEND-END, which does a full or partial
+parse, and performs post-parse action PARSE-ACTION (one of
+`wisi-post-parse-actions') on region BEGIN PARSE-END.  Returns
+parsed region.")
 
-(cl-defgeneric wisi-refactor ((parser wisi-parser) refactor-action parse-begin parse-end edit-begin)
-  "Perform REFACTOR-ACTION on region PARSE-BEGIN PARSE-END at point EDIT_BEGIN.
-The parse region is not expanded first; it must be the statement
-or declaration containing EDIT_BEGIN.")
+(cl-defgeneric wisi-parse-incremental ((parser wisi-parser) &optional full)
+  "Incrementally parse current buffer. If FULL, do initial full parse.
+Text changes are stored in `wisi--changes', created by `wisi-after-change'.")
+
+(cl-defgeneric wisi-post-parse ((parser wisi-parser) parse-action begin end)
+  "Perform PARSE-ACTION on region BEGIN END.
+PARSE-ACTION is one of `wisi-post-parse-actions'. Buffer must
+have been previously parsed by `wisi-parse-current' or
+`wisi-parse-incremental'");
+
+(cl-defgeneric wisi-refactor ((parser wisi-parser) refactor-action stmt-start stmt-end edit-begin)
+  "Perform REFACTOR-ACTION at point EDIT_BEGIN.
+STMT-START, STMT-END are the start and end positions of the
+statement containing EDIT_BEGIN.")
 
 (cl-defgeneric wisi-parse-reset ((parser wisi-parser))
   "Ensure parser is ready to process a new parse.")
@@ -240,14 +289,15 @@ Returns cache, or nil if at end of buffer."
   "If non-nil, disable all elisp actions during parsing.
 Allows timing parse separate from actions.")
 
-(defvar-local wisi-parse-verbosity ""
+(defcustom wisi-parser-verbosity ""
   "WisiToken trace config; empty string for none.
 See WisiToken Trace_Enable for complete set of options.
 Examples:
-debug=1 lexer=1 parse=2 action=3")
-
-(defvar-local wisi-mckenzie-disable nil
-  "If non-nil, disable McKenzie error recovery. Otherwise, use parser default.")
+debug=1 lexer=1 parse=2 action=3"
+  :type 'string
+  :group 'wisi
+  :safe 'stringp)
+(make-variable-buffer-local 'wisi-parser-verbosity)
 
 (defcustom wisi-mckenzie-task-count nil
   "If integer, sets McKenzie error recovery task count.
@@ -269,19 +319,7 @@ be active at once.  If nil, uses %mckenzie_zombie_limit value from grammar file.
   :type 'integer
   :group 'wisi
   :safe 'integerp)
-(make-variable-buffer-local 'wisi-mckenzie-check-limit)
-
-(defcustom wisi-mckenzie-check-limit nil
-  "If integer, overrides %mckenzie_check_limit.
-This sets the number of tokens past the error point that must be
-parsed successfully for a solution to be deemed successful.
-Higher value gives better solutions, but may fail if there are
-two errors close together.  If nil, uses %mckenzie_check_limit
-value from grammar file."
-  :type 'integer
-  :group 'wisi
-  :safe 'integerp)
-(make-variable-buffer-local 'wisi-mckenzie-check-limit)
+(make-variable-buffer-local 'wisi-mckenzie-zombie-limit)
 
 (defcustom wisi-mckenzie-enqueue-limit nil
   "If integer, overrides %mckenzie_enqueue_limit.
@@ -318,23 +356,10 @@ the grammar has excessive conflicts."
 Larger stack size allows more deeply nested constructs.")
 ;; end of easily changeable parameters
 
-(defvar wisi--parse-action nil
-  ;; not buffer-local; only let-bound in wisi-indent-region, wisi-validate-cache
-  "Reason current parse is begin run; one of
-{indent, face, navigate}.")
-
 (defvar-local wisi-indent-comment-col-0 nil
   "If non-nil, comments currently starting in column 0 are left in column 0.
 Otherwise, they are indented with previous comments or code.
 Normally set from a language-specific option.")
-
-(defvar-local wisi-end-caches nil
-  "Buffer positions of caches in current statement that need wisi-cache-end set.")
-
-(defconst wisi-eoi-term 'Wisi_EOI
-  ;; must match FastToken wisi-output_elisp.adb EOI_Name, which must
-  ;; be part of a valid Ada identifer.
-  "End Of Input token.")
 
 (defconst wisi-class-list
   [motion ;; motion-action
@@ -343,8 +368,7 @@ Normally set from a language-specific option.")
    statement-start
    misc ;; other stuff
    ]
-  "Array of valid token classes.
-Checked in wisi-statement-action, used in wisi-process-parse.")
+  "array of valid token classes.")
 
 (defun wisi-error-msg (message &rest args)
   (let ((line (line-number-at-pos))

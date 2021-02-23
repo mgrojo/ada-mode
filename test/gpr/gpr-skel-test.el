@@ -36,7 +36,6 @@ Preserves text after point."
 	(wisi-debug 1);; report parse errors
 	)
     (with-temp-buffer
-      filename
       (gpr-mode)
 
       ;; `skeleton-insert' may recenter, which fails if the buffer is

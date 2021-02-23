@@ -24,7 +24,7 @@ test-elisp :
 	$(EMACS_EXE) -Q -batch -L ../test -L . $(ADA_MODE_DIR) -l ada-mode-test.el
 
 gpr-skel.gpr.tmp :
-	$(EMACS_EXE) -Q -batch -L ../test/gpr -L . $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
+	$(EMACS_EXE) -Q -batch -L ../test/gpr -L . $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn $(ELISP)(setq vc-handled-backends nil)(gpr-skel-test))'
 
 %.diff : % %.tmp
 	-diff -u $< $(*F).tmp > $(*F).diff
@@ -33,6 +33,9 @@ gpr-skel.gpr.tmp :
 	-diff -u $< $(*F).tmp
 
 # for building only these
+../test_all_harness.exe : ../test_all_harness.adb force
+	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
+
 ../run_ada_lalr_parse.exe : ../run_ada_lalr_parse.ads ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
 
@@ -91,10 +94,10 @@ autoloads : force
 # dependencies, because the complete list is complex, and we sometimes
 # want to ignore it.
 %.tmp : %
-	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP)(run-test "$<")(kill-emacs))'
 
 %.debug : %
-	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (package-initialize)(setq debug-on-error t))' $<
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP)(package-initialize)(setq debug-on-error t))' $<
 
 benchmark :
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l benchmark.el

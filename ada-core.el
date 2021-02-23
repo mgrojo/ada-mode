@@ -206,6 +206,7 @@ is the package spec.")
 (defconst ada-refactor-format-paramlist 5)
 
 (defun ada-refactor (action)
+  "Perform refactor action ACTION on symbol at point."
   (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
   (save-excursion
     ;; We include punctuation and quote for operators.
@@ -322,10 +323,12 @@ PARSE-RESULT must be the result of `syntax-ppss'."
       (wisi-goto-open-paren)
     (error
      (user-error "Not in parameter list")))
-  (funcall indent-line-function); so new list is indented properly
   (when (not (looking-back "^[ \t]*" (line-beginning-position)))
+    ;;  Left paren after code; ensure nominal spacing. See
+    ;;  test/ada_mode-parens.adb If_Statement.
     (delete-horizontal-space)
     (insert " "))
+  (funcall indent-line-function); so reformatted list is indented properly
   (ada-refactor ada-refactor-format-paramlist))
 
 ;;;; fix compiler errors
@@ -736,12 +739,10 @@ Deselects the current project first."
 (make-obsolete 'ada-select-prj-file 'wisi-prj-select-cache "ada-mode 7.0")
 
 (cl-defgeneric ada-prj-select-compiler (compiler project)
-  "PROJECT has been selected; set any project options
-that are both Ada and compiler specific.")
+  "Set PROJECT options that are Ada and compiler specific.")
 
 (cl-defgeneric ada-prj-deselect-compiler (compiler project)
-  "PROJECT has been deselected; unset any project options
-that are both Ada and compiler specific.")
+  "Unset any PROJECT options that are both Ada and compiler specific.")
 
 (cl-defmethod wisi-prj-select :after ((project ada-prj))
   (ada-prj-select-compiler (ada-prj-compiler project) project))

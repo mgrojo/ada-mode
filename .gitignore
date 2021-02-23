@@ -5,7 +5,6 @@
 *.parse_table
 *.re2c
 .gdbinit
-ada-process.el
 ada_annex_p-bnf.wy
 ada_annex_p-process.el
 ada_annex_p.txt
@@ -37,6 +36,7 @@ build/wisitoken-tokens/
 dir-ada-mode
 dump_libadalang_corrected
 dump_wisitoken_corrected
+gpr-process.el
 gpr_mode_wisi_parse
 gpr_process_actions.adb
 gpr_process_actions.ads

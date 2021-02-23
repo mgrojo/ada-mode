@@ -10,8 +10,8 @@ is
    --  [2] 4.3.3 5.1 iterated_component_association with discrete_choice_list
    --  [2] 5.5 iterator_filter
    Worker_Tasks : Task_Array :=
-     (for Index in when Index <= 5 => Creator_1 (Index),
-      for Index in when Index >  5 => Creator_2 (Index));
+     (for Index in 1 .. 5 when Index <= 5 => Creator_1 (Index),
+      for Index in 6 .. 10 when Index > 5 => Creator_2 (Index));
 begin
    --  [1] ai12-0127-1.txt
    --  [2] 4.3.4 array_delta_aggregate

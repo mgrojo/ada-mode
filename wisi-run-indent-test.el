@@ -1,6 +1,6 @@
 ;;; wisi-run-indent-test.el --- utils for automating indentation and casing tests
 ;;
-;; Copyright (C) 2018 - 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2018 - 2021  Free Software Foundation, Inc.
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -25,6 +25,12 @@
 (defvar skip-reindent-test nil)
 (defvar skip-recase-test nil)
 (defvar skip-write nil)
+
+(defvar save-parser-log nil
+  "If non-nil, a file name telling where to save wisi parser transaction log")
+
+(defvar save-edited-text nil
+  "If non-nil, a file name telling where to save wisi parser edited text")
 
 (defun test-in-comment-p ()
   (nth 4 (syntax-ppss)))
@@ -165,171 +171,192 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 		     (marker-position (nth 3 item))))
     (setq test-refactor-markers nil)))
 
+(defun wisi-test-save-log ()
+  (when (and (stringp save-parser-log)
+	     (buffer-live-p (wisi-parser-transaction-log-buffer wisi--parser)))
+    (with-current-buffer (wisi-parser-transaction-log-buffer wisi--parser)
+      (message "saving parser transaction log '%s' to '%s'" (buffer-name) save-parser-log)
+      (write-region nil nil save-parser-log))))
+
+(defun wisi-test-save-edited ()
+  (when (and (stringp save-edited-text))
+    (message "saving parser edited text to '%s'" save-edited-text)
+    (wisi-process-parse-save-text wisi--parser save-edited-text)))
+
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."
   (interactive)
-  (setq indent-tabs-mode nil)
-  (setq jit-lock-context-time 0.0);; for test-face
+  (condition-case-unless-debug err
+      (progn
+	(setq indent-tabs-mode nil)
+	(setq jit-lock-context-time 0.0);; for test-face
 
-  ;; Test files use wisi-prj-select-cached to parse and select a project file.
-  (setq project-find-functions (list #'wisi-prj-current-cached))
-  (setq xref-backend-functions (list #'wisi-prj-xref-backend))
+	;; Test files use wisi-prj-select-cached to parse and select a project file.
+	(setq project-find-functions (list #'wisi-prj-current-cached))
+	(setq xref-backend-functions (list #'wisi-prj-xref-backend))
 
 
-  (let ((error-count 0)
-	(test-buffer (current-buffer))
-	cmd-line
-	last-result last-cmd expected-result)
-    ;; Look for EMACS* comments in the file:
-    ;;
-    ;; EMACSCMD: <form>
-    ;;    Executes the lisp form inside a save-excursion, saves the result as a lisp object.
-    ;;
-    ;; EMACSRESULT: <form>
-    ;;    point is moved to end of line, <form> is evaluated inside
-    ;;    save-excursion and compared (using `equal') with the result
-    ;;    of the previous EMACSCMD, and the test fails if they don't
-    ;;    match.
-    ;;
-    ;; EMACSRESULT_START:<first list element>
-    ;; EMACSRESULT_ADD:  <list element>
-    ;; EMACSRESULT_FINISH:
-    ;;    build a list, compare it to the result of the previous EMACSCMD.
-    ;;
-    ;; EMACS_SKIP_UNLESS: <form>
-    ;;   skip entire test if form evals nil
-    ;;
-    ;; EMACSDEBUG: <form>
-    ;;    Eval form, display result. Also used for setting breakpoint.
+	(let ((error-count 0)
+	      (test-buffer (current-buffer))
+	      cmd-line
+	      last-result last-cmd expected-result)
+	  ;; Look for EMACS* comments in the file:
+	  ;;
+	  ;; EMACSCMD: <form>
+	  ;;    Executes the lisp form inside a save-excursion, saves the result as a lisp object.
+	  ;;
+	  ;; EMACSRESULT: <form>
+	  ;;    point is moved to end of line, <form> is evaluated inside
+	  ;;    save-excursion and compared (using `equal') with the result
+	  ;;    of the previous EMACSCMD, and the test fails if they don't
+	  ;;    match.
+	  ;;
+	  ;; EMACSRESULT_START:<first list element>
+	  ;; EMACSRESULT_ADD:  <list element>
+	  ;; EMACSRESULT_FINISH:
+	  ;;    build a list, compare it to the result of the previous EMACSCMD.
+	  ;;
+	  ;; EMACS_SKIP_UNLESS: <form>
+	  ;;   skip entire test if form evals nil
+	  ;;
+	  ;; EMACSDEBUG: <form>
+	  ;;    Eval form, display result. Also used for setting breakpoint.
 
-    (goto-char (point-min))
-    (while (and (not skip-cmds)
-		(re-search-forward (concat comment-start "EMACS\\([^:]+\\):") nil t))
-      (cond
-       ((string= (match-string 1) "CMD")
-	(looking-at ".*$")
-	(save-excursion
-	  (setq cmd-line (line-number-at-pos)
-		last-cmd (match-string 0)
-		last-result
-		(condition-case-unless-debug err
-		    (eval (car (read-from-string last-cmd)))
-		  (error
-		     (setq error-count (1+ error-count))
-		     (message "%s:%d: command: %s"
-			      (buffer-file-name) cmd-line last-cmd)
-		     (message "%s:%d: %s: %s"
-			      (buffer-file-name)
-			      (line-number-at-pos)
-			      (car err)
-			      (cdr err))))
-		)
-	  ;; save-excursion does not preserve mapping of buffer to
-	  ;; window, but some tests depend on that. For example,
-	  ;; execute-kbd-macro doesn’t work properly if current buffer
-	  ;; is not visible..
-	  (pop-to-buffer test-buffer)))
+	  (goto-char (point-min))
+	  (while (and (not skip-cmds)
+		      (re-search-forward (concat comment-start "EMACS\\([^:]+\\):") nil t))
+	    (cond
+	     ((string= (match-string 1) "CMD")
+	      (looking-at ".*$")
+	      (save-excursion
+		(setq cmd-line (line-number-at-pos)
+		      last-cmd (match-string 0)
+		      last-result
+		      (condition-case-unless-debug err
+			  (eval (car (read-from-string last-cmd)))
+			(error
+			 (setq error-count (1+ error-count))
+			 (message "%s:%d: command: %s"
+				  (buffer-file-name) cmd-line last-cmd)
+			 (message "%s:%d: %s: %s"
+				  (buffer-file-name)
+				  (line-number-at-pos)
+				  (car err)
+				  (cdr err))))
+		      )
+		;; save-excursion does not preserve mapping of buffer to
+		;; window, but some tests depend on that. For example,
+		;; execute-kbd-macro doesn’t work properly if current buffer
+		;; is not visible..
+		(pop-to-buffer test-buffer)))
 
-       ((string= (match-string 1) "RESULT")
-	(looking-at ".*$")
-	(setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
-	(unless (equal expected-result last-result)
-	  (setq error-count (1+ error-count))
-	  (message
-	   (concat
-	    (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
-	    (format "Result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
-		    last-cmd
-		    last-result
-		    expected-result)
-	    ))))
+	     ((string= (match-string 1) "RESULT")
+	      (looking-at ".*$")
+	      (setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
+	      (unless (equal expected-result last-result)
+		(setq error-count (1+ error-count))
+		(message
+		 (concat
+		  (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
+		  (format "Result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
+			  last-cmd
+			  last-result
+			  expected-result)
+		  ))))
 
-       ((string= (match-string 1) "RESULT_START")
-	(looking-at ".*$")
-	(setq expected-result (list (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))))
+	     ((string= (match-string 1) "RESULT_START")
+	      (looking-at ".*$")
+	      (setq expected-result (list (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))))
 
-       ((string= (match-string 1) "RESULT_ADD")
-	(looking-at ".*$")
-	(let ((val (save-excursion (end-of-line 1)
-				   (eval (car (read-from-string (match-string 0)))))))
-	  (when val
-	    (setq expected-result (append expected-result (list val))))))
+	     ((string= (match-string 1) "RESULT_ADD")
+	      (looking-at ".*$")
+	      (let ((val (save-excursion (end-of-line 1)
+					 (eval (car (read-from-string (match-string 0)))))))
+		(when val
+		  (setq expected-result (append expected-result (list val))))))
 
-       ((string= (match-string 1) "RESULT_FINISH")
-	(unless (equal (length expected-result) (length last-result))
-	  (setq error-count (1+ error-count))
-	  (message
-	   (concat
-	    (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
-	    (format "Length of result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
-		    last-cmd
-		    (length last-result)
-		    (length expected-result)))))
+	     ((string= (match-string 1) "RESULT_FINISH")
+	      (unless (equal (length expected-result) (length last-result))
+		(setq error-count (1+ error-count))
+		(message
+		 (concat
+		  (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
+		  (format "Length of result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
+			  last-cmd
+			  (length last-result)
+			  (length expected-result)))))
 
-	(let ((i 0))
-	  (while (< i (length expected-result))
-	    (unless (equal (nth i expected-result) (nth i last-result))
+	      (let ((i 0))
+		(while (< i (length expected-result))
+		  (unless (equal (nth i expected-result) (nth i last-result))
+		    (setq error-count (1+ error-count))
+		    (message
+		     (concat
+		      (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
+		      (format "Nth (%d) result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
+			      i
+			      last-cmd
+			      (nth i last-result)
+			      (nth i expected-result))
+		      )))
+		  (setq i (1+ i)))))
+
+	     ((string= (match-string 1) "_SKIP_UNLESS")
+	      (looking-at ".*$")
+	      (unless (eval (car (read-from-string (match-string 0))))
+		(setq skip-cmds t)
+		(setq skip-reindent-test t)
+		(setq skip-recase-test t)
+		;; We don’t set ‘skip-write’ t here, so the *.diff Make target succeeds.
+		))
+
+	     ((string= (match-string 1) "DEBUG")
+	      (looking-at ".*$")
+	      (message "DEBUG: %s:%d %s"
+		       (current-buffer)
+		       (line-number-at-pos)
+		       (save-excursion
+			 (eval (car (read-from-string (match-string 0)))))))
+
+	     (t
 	      (setq error-count (1+ error-count))
-	      (message
-	       (concat
-		(format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
-		(format "Nth (%d) result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
-			i
-			last-cmd
-			(nth i last-result)
-			(nth i expected-result))
-		)))
-	    (setq i (1+ i)))))
+	      (error (concat "Unexpected EMACS test command " (match-string 1))))))
 
-       ((string= (match-string 1) "_SKIP_UNLESS")
-	(looking-at ".*$")
-	(unless (eval (car (read-from-string (match-string 0))))
-	  (setq skip-cmds t)
-	  (setq skip-reindent-test t)
-	  (setq skip-recase-test t)
-	  ;; We don’t set ‘skip-write’ t here, so the *.diff Make target succeeds.
-	  ))
+	  (when (> error-count 0)
+	    (error
+	     "%s:%d: aborting due to previous errors (%d)"
+	     (buffer-file-name) (line-number-at-pos (point)) error-count))
+	  )
 
-       ((string= (match-string 1) "DEBUG")
-	(looking-at ".*$")
-	(message "DEBUG: %s:%d %s"
-		 (current-buffer)
-		 (line-number-at-pos)
-		 (save-excursion
-		  (eval (car (read-from-string (match-string 0)))))))
+	(unless skip-reindent-test
+	  ;; Reindent the buffer
+	  (message "indenting")
 
-       (t
-	(setq error-count (1+ error-count))
-	(error (concat "Unexpected EMACS test command " (match-string 1))))))
+	  ;; first unindent; if the indentation rules do nothing, the test
+	  ;; would pass, otherwise!  Only unindent by 1 column, so comments
+	  ;; not currently in column 0 are still not in column 0, in case
+	  ;; the mode supports a special case for comments in column 0.
+	  (indent-rigidly (point-min) (point-max) -1)
 
-    (when (> error-count 0)
-      (error
-       "%s:%d: aborting due to previous errors (%d)"
-       (buffer-file-name) (line-number-at-pos (point)) error-count))
-    )
+	  ;; indent-region uses save-excursion, so we can't goto an error location
+	  (indent-region (point-min) (point-max))
 
-  (unless skip-reindent-test
-    ;; Reindent the buffer
-    (message "indenting")
+	  ;; Cleanup the buffer; indenting often leaves trailing whitespace;
+	  ;; files must be saved without any.
+	  (delete-trailing-whitespace)
+	  )
 
-    ;; first unindent; if the indentation rules do nothing, the test
-    ;; would pass, otherwise!  Only unindent by 1 column, so comments
-    ;; not currently in column 0 are still not in column 0, in case
-    ;; the mode supports a special case for comments in column 0.
-    (indent-rigidly (point-min) (point-max) -1)
+	(when (and wisi-auto-case (not skip-recase-test))
+	  (message "casing")
+	  (wisi-case-adjust-buffer))
 
-    ;; indent-region uses save-excursion, so we can't goto an error location
-    (indent-region (point-min) (point-max))
-
-    ;; Cleanup the buffer; indenting often leaves trailing whitespace;
-    ;; files must be saved without any.
-    (delete-trailing-whitespace)
-    )
-
-  (when (and wisi-auto-case (not skip-recase-test))
-    (message "casing")
-    (wisi-case-adjust-buffer))
-  )
+	(wisi-test-save-log)
+	(wisi-test-save-edited))
+    (error
+     (wisi-test-save-log)
+     (wisi-test-save-edited)
+     (signal (car err) (cdr err)))
+    ))
 
 (defvar cl-print-readably); cl-print.el, used by edebug
 

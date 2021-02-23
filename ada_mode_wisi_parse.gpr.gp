@@ -19,6 +19,9 @@
 #if ELPA="yes"
 with "wisi";
 #else
+with "aunit";
+with "aunit_ext";
+with "sal_devel";
 with "wisitoken";
 #end if;
 with "standard_common";
@@ -79,11 +82,6 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
 
          for Switches ("ada_process_main.adb") use
-           Standard_Common.Compiler.Common_Switches &
-           Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
-
-         for Switches ("gpr_process_actions.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");

@@ -10,15 +10,15 @@ package body Ada_Mode.Recover_End_1 is
    is begin
       case A is
          when =>
-         --  end case;
-      end;
+      --  end case;
+   end;
 
    procedure If_Example
    is begin
       if A > 0 then
          null;
-         --  end if;
-      end;
+      --  end if;
+   end;
 
    procedure Loop_Example
    is begin
@@ -34,5 +34,4 @@ package body Ada_Mode.Recover_End_1 is
          -- end return;
       end;
 
-      -- This line is indented as if it were continuing statements in "Return_Example".
-   end Ada_Mode.Recover_End_1;
+end Ada_Mode.Recover_End_1;

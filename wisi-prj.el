@@ -197,7 +197,7 @@ and line number.
 COLUMN).")
 
 (cl-defgeneric wisi-xref-completion-delim-regex (xref)
-  "Value for `completion-pcm--delim-wild-regex'
+  "Return the value for `completion-pcm--delim-wild-regex'
 to be used with `wisi-xref-completion-table'.")
 
 (cl-defgeneric wisi-xref-completion-regexp (xref)
@@ -206,7 +206,7 @@ Group 1 must be the simple symbol; the rest of the item may be
 annotations.")
 
 (cl-defgeneric wisi-xref-completion-at-point-table (xref project)
-  "Completion table of names defined in PROJECT, for `completion-at-point'.
+  "Return a completion table of names defined in PROJECT.
 The table is a simple list of symbols.")
 
 (cl-defgeneric wisi-xref-definitions (xref project item)
@@ -518,7 +518,7 @@ COLUMN - Emacs column of the start of the identifier ")
     ))
 
 (cl-defgeneric wisi-xref-overridden (xref project &key identifier filename line column)
-  "A list (FILE LINE COLUMN) giving the location of the overridden declaration.
+  "Returns the location of the overridden declaration as (FILE LINE COLUMN).
 XREF    - dispatching object.
 PROJECT - a `wisi-prj' object.
 IDENTIFIER - an identifier or operator_symbol
@@ -547,9 +547,14 @@ COLUMN - Emacs column of the start of the identifier")
 
 ;;;; wisi-prj specific methods
 
-(cl-defmethod project-roots ((_project wisi-prj))
-  ;; Not meaningful
-  nil)
+;; FIXME: obsolete, but default definition is recursive with project-root
+;; needed in emacs < 28?
+;; (cl-defmethod project-roots ((_project wisi-prj))
+;;   ;; Not meaningful
+;;   nil)
+(cl-defmethod project-root ((_project wisi-prj))
+   ;; Not meaningful
+   nil)
 
 (cl-defmethod project-files ((project wisi-prj) &optional dirs)
   (let (result)

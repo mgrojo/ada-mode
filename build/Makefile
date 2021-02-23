@@ -77,7 +77,7 @@ install : install_executables
 #
 # 'package-initialize' is required for 'uniquify-files'.
 byte-compile : byte-compile-clean
-	cd ../; $(EMACS_EXE) -Q -batch -L . --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
+	cd ../; $(EMACS_EXE) -Q -batch -L . -l build/exclude-ada-mode.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
 
 byte-compile-clean :
 	cd ..; rm -f *.elc
@@ -85,6 +85,7 @@ byte-compile-clean :
 ifeq ($(TEST_DIR),source)
 test : build_executables
 endif
+test : test-all-harness.run
 test : test-ada-lalr-process-gpr_query.stamp
 test : test-ada-lalr-process-gnatxref.stamp
 test : gpr-skel.gpr.diff
@@ -96,9 +97,10 @@ summarize :
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
-ONE_TEST_FILES ?= ada_mode-nominal.adb
-#one :: build_executables
-#one :: byte-compile autoloads
+ONE_TEST_FILES ?= ada_mode-incremental_delete_lines.adb
+one :: IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
+one :: build_executables
+one :: byte-compile autoloads
 #one :: compile-ada-test
 one :: one-clean
 one-clean :: force
@@ -110,12 +112,9 @@ one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
-# With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
-# to get begin, end pos.
-# partial indent args: begin-byte send-end parse-end begin-char begin-line end-line begin-indent
-two : RUN_ARGS ?= parse indent ../test/ada_mode-recover_41.adb --verbosity "mckenzie=1"
+two : RUN_ARGS ?= command_file ../debug.cmd ../test/ada_mode-incremental_delete_lines.adb
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
-two : ../ada_annex_p_re2c.c ../run_ada_lalr_parse.exe
+two : ../run_ada_lalr_parse.exe
 	../run_ada_lalr_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
@@ -127,6 +126,9 @@ two_pro : export Standard_Common_Profile := On
 two_pro : build_executables
 	../exec_pro/run_ada_lalr_parse.exe ../test/ada_mode-recover_partial_02_lr1.adb Indent --enqueue_limit 120_000 --task_count 1
 	gprof ../exec_pro/run_ada_lalr_parse.exe > recover_partial_02-lalr.profile
+
+three : $(WISITOKEN)/build/wisitoken-bnf-generate.exe
+	cd ..; $(WISITOKEN_GENERATE) --generate LALR Ada_Emacs Process re2c --time --output_bnf -v 0 0 2 ada.wy > generate.log
 
 # WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
@@ -152,13 +154,13 @@ endif
 
 # WISITOKEN_GENERATE must be after WISITOKEN
 ifeq ($(TEST_DIR),source)
-# test with mtn controlled source
-ADA_MODE_DIR := -L .. -l autoloads.el
+# test with development source
+ADA_MODE_DIR := -L .. -l autoloads.el -l build/exclude-ada-mode.el
 WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 
 else
 # test with installed elpa package; don't rebuild grammars
-ADA_MODE_DIR := -f package-initialize
+ADA_MODE_DIR :=
 WISITOKEN_GENERATE :=
 endif
 
@@ -167,6 +169,9 @@ include rules.make
 
 update-test-log : force
 	find . -name "*.diff" -not -size 0 >> test.log
+
+test-all-harness.run : ../test_all_harness.exe force
+	../test_all_harness.exe $(RUN_ARGS)
 
 test-ada-lalr-process-gnatxref : RUNTEST := run-indent-test-lalr-process-gnatxref.el
 test-ada-lalr-process-gnatxref : $(addsuffix .diff, $(subst subdir/,,$(GNATXREF_TEST_FILES)))

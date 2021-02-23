@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -88,7 +88,7 @@ package body Wisi.Ada is
             Anchor_Line => Anchor_Token.Line,
             Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
             Offset      => Current_Indent_Offset
-              (Data, Tree, Anchor_Token,
+              (Tree, Anchor_Token,
                Offset   =>
                  (if Anchor_Token.Line = Record_Token.Base.Line
                   then Offset
@@ -148,9 +148,9 @@ package body Wisi.Ada is
          raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin'Image;
       end if;
 
-      if WisiToken.Trace_Action > Detail then
-         Put_Line
-           (";; refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
+      if Trace_Action > Detail then
+         Data.Trace.Put_Line
+           ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
       Actual_Parameter_Part := Tree.Child (Call, 2);
@@ -236,7 +236,6 @@ package body Wisi.Ada is
       --  Object.Method (...) to Method (Object, ...).
       use Ada_Annex_P_Process_Actions;
       use Standard.Ada.Strings.Unbounded;
-      use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
       Call          : Node_Access := Find_ID_At (Tree, +name_ID, Edit_Begin);
@@ -252,9 +251,9 @@ package body Wisi.Ada is
          raise SAL.Parameter_Error with "no 'name' at byte_pos" & Edit_Begin'Image;
       end if;
 
-      if WisiToken.Trace_Action > Detail then
-         Put_Line
-           (";; refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
+      if Trace_Action > Detail then
+         Data.Trace.Put_Line
+           ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
       if Tree.ID (Tree.Child (Call, 1)) = +attribute_reference_ID then
@@ -294,8 +293,9 @@ package body Wisi.Ada is
          Result := Result & ", " & Get_Text (Data, Tree, Args);
       end if;
       Result := Result & ")";
-      Put_Line ("[" & Edit_Action_Code & Edit_Begin'Image & Edit_End'Image & " """ &
-                  Elisp_Escape_Quotes (To_String (Result)) & """]");
+      Standard.Ada.Text_IO.Put_Line
+        ("[" & Edit_Action_Code & Edit_Begin'Image & Edit_End'Image & " """ &
+           Elisp_Escape_Quotes (To_String (Result)) & """]");
    end Object_Method_To_Method_Object;
 
    procedure Element_Object_To_Object_Index
@@ -322,9 +322,9 @@ package body Wisi.Ada is
          raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin'Image;
       end if;
 
-      if WisiToken.Trace_Action > Detail then
-         Put_Line
-           (";; refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
+      if Trace_Action > Detail then
+         Data.Trace.Put_Line
+           ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
       Association_List := Tree.Child (Tree.Child (Call, 2), 2);
@@ -380,9 +380,9 @@ package body Wisi.Ada is
          raise SAL.Parameter_Error with "no subprogram_call found at byte_pos" & Edit_Begin'Image;
       end if;
 
-      if WisiToken.Trace_Action > Detail then
-         Put_Line
-           (";; refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
+      if Trace_Action > Detail then
+         Data.Trace.Put_Line
+           ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
       Object := Tree.Child (Call, 1);
@@ -413,44 +413,61 @@ package body Wisi.Ada is
 
    procedure Format_Parameter_List
      (Tree       : in out WisiToken.Syntax_Trees.Tree;
-      Data       : in out Parse_Data_Type;
       Edit_Begin : in     WisiToken.Buffer_Pos)
    is separate;
-   --  Data.Tree contains a subprogram declaration or body; Edit_Begin is
-   --  at the start of a parameter list. Format the parameter list.
+   --  Tree contains a subprogram declaration or body; Edit_Begin is
+   --  at the start of the parameter list. Format the parameter list.
    --
    --  Handle virtual tokens as much as possible; at least closing paren.
 
-   ----------
-   --  Public subprograms, declaration order
-
-   overriding
-   procedure Initialize
-     (Data              : in out Parse_Data_Type;
-      Lexer             : in     WisiToken.Lexer.Handle;
-      Descriptor        : access constant WisiToken.Descriptor;
-      Post_Parse_Action : in     Post_Parse_Action_Type;
-      Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type;
-      Begin_Indent      : in     Integer;
-      Params            : in     String)
+   procedure Initialize (Data : in out Parse_Data_Type)
    is
-      use Standard.Ada.Strings.Fixed;
       use all type Ada_Annex_P_Process_Actions.Token_Enum_ID;
-      First : Integer := Params'First;
-      Last  : Integer := Index (Params, " ");
    begin
-      Wisi.Initialize
-        (Wisi.Parse_Data_Type (Data), Lexer, Descriptor, Post_Parse_Action, Begin_Line, End_Line,
-         Begin_Indent, "");
-
       Data.First_Comment_ID := +COMMENT_ID;
       Data.Last_Comment_ID  := WisiToken.Invalid_Token_ID;
       Data.Left_Paren_ID    := +LEFT_PAREN_ID;
       Data.Right_Paren_ID   := +RIGHT_PAREN_ID;
 
       Data.Embedded_Quote_Escape_Doubled := True;
+   end Initialize;
 
+   ----------
+   --  Public subprograms, declaration order
+
+   overriding
+   procedure Initialize_Partial_Parse
+     (Data              : in out Parse_Data_Type;
+      Trace             : in     WisiToken.Trace_Access;
+      Post_Parse_Action : in     Post_Parse_Action_Type;
+      Begin_Line        : in     WisiToken.Line_Number_Type;
+      End_Line          : in     WisiToken.Line_Number_Type)
+   is begin
+      Wisi.Initialize_Partial_Parse (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Begin_Line, End_Line);
+
+      Initialize (Data);
+   end Initialize_Partial_Parse;
+
+   overriding
+   procedure Initialize_Full_Parse
+     (Data     : in out Parse_Data_Type;
+      Trace    : in     WisiToken.Trace_Access;
+      End_Line : in     WisiToken.Line_Number_Type)
+   is begin
+      Wisi.Initialize_Full_Parse (Wisi.Parse_Data_Type (Data), Trace, End_Line);
+
+      Initialize (Data);
+   end Initialize_Full_Parse;
+
+   overriding
+   procedure Parse_Language_Params
+     (Data   : in out Parse_Data_Type;
+      Params : in     String)
+   is
+      use Standard.Ada.Strings.Fixed;
+      First : Integer := Params'First;
+      Last  : Integer := Index (Params, " ");
+   begin
       if Params /= "" then
          Ada_Indent := Integer'Value (Params (First .. Last - 1));
 
@@ -501,16 +518,31 @@ package body Wisi.Ada is
          First := Last + 1;
          Last := First + 1;
          End_Names_Optional := Params (First) = '1';
+      else
+         Ada_Indent                 := Ada_Indent_Default;
+         Ada_Indent_Broken          := Ada_Indent_Broken_Default;
+         Ada_Indent_Comment_Col_0   := Ada_Indent_Comment_Col_0_Default;
+         Ada_Indent_Comment_GNAT    := Ada_Indent_Comment_GNAT_Default;
+         Ada_Indent_Label           := Ada_Indent_Label_Default;
+         Ada_Indent_Record_Rel_Type := Ada_Indent_Record_Rel_Type_Default;
+         Ada_Indent_Renames         := Ada_Indent_Renames_Default;
+         Ada_Indent_Return          := Ada_Indent_Return_Default;
+         Ada_Indent_Use             := Ada_Indent_Use_Default;
+         Ada_Indent_When            := Ada_Indent_When_Default;
+         Ada_Indent_With            := Ada_Indent_With_Default;
+         Ada_Indent_Subprogram_Is   := Ada_Indent_Subprogram_Is_Default;
+         End_Names_Optional         := End_Names_Optional_Default;
       end if;
 
       Data.Indent_Comment_Col_0 := Ada_Indent_Comment_Col_0;
-   end Initialize;
+   end Parse_Language_Params;
 
    overriding function Insert_After
      (User_Data            : in out Parse_Data_Type;
       Tree                 : in     WisiToken.Syntax_Trees.Tree'Class;
       Insert_Token         : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Insert_Before_Token  : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Comment_Present      : in     Boolean;
       Insert_On_Blank_Line : in     Boolean)
      return Boolean
    is
@@ -530,42 +562,115 @@ package body Wisi.Ada is
       --
       --  COLON is similar to RIGHT_PAREN.
 
-      Insert_ID        : constant Token_ID := Tree.ID (Insert_Token);
-      Insert_Before_ID : constant Token_ID := Tree.ID (Insert_Before_Token);
+      Insert_ID        : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Insert_Token));
+      Insert_Before_ID : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Insert_Before_Token));
 
-      Result : constant array (Ada_Annex_P_Process_Actions.Token_Enum_ID) of Boolean :=
+      Default_Result : constant array (Token_Enum_ID) of Boolean :=
         (BEGIN_ID |         -- test/ada_mode-recover_exception_1.adb, test/ada_mode-recover_extra_declare.adb
            COLON_ID |       -- test/ada_mode-recover_partial_22.adb
            DECLARE_ID |
            RIGHT_PAREN_ID | -- test/ada_mode-recover_20.adb
-           SEMICOLON_ID |   -- test/ada_mode-recover_13.adb
            THEN_ID          -- test/ada_mode-recover_19
                 => True,
          others => False);
+
+      After_End : constant array (Token_Enum_ID) of Boolean :=
+        --  Terminals that appear after 'end', other than ';'.
+        (
+           CASE_ID |
+           DO_ID |
+           IDENTIFIER_ID |
+           IF_ID |
+           LOOP_ID |
+           RECORD_ID |
+           RETURN_ID |
+           SELECT_ID => True,
+         others => False);
+
+      After_Comment : constant array (Token_Enum_ID) of Boolean :=
+        --  Terminals that go after comment, before Insert_Before, rather than
+        --  after prev terminal.
+        (
+         ABORT_ID |
+           ACCEPT_ID |
+           BEGIN_ID |
+           CASE_ID |
+           DECLARE_ID |
+           DELAY_ID |
+           ELSE_ID |
+           ELSIF_ID |
+           ENTRY_ID |
+           EXCEPTION_ID |
+           EXIT_ID |
+           FOR_ID |
+           FUNCTION_ID |
+           GENERIC_ID |
+           GOTO_ID |
+           IF_ID |
+           LOOP_ID |
+           OVERRIDING_ID |
+           PRAGMA_ID |
+           PROCEDURE_ID |
+           RAISE_ID |
+           REQUEUE_ID |
+           SELECT_ID |
+           TYPE_ID |
+           WHILE_ID => True,
+         others => False);
    begin
-      case To_Token_Enum (Insert_Before_ID) is
-      when BEGIN_ID | DECLARE_ID | PACKAGE_ID | PROCEDURE_ID | FUNCTION_ID |
-        END_ID =>
-         --  test/ada_mode-interactive_2.adb Record_1: BEGIN_ID
-         --  test/ada_mode-recover_03.adb: BEGIN_ID
-         --  test/ada_mode-recover_37.adb: END_ID
-         return not Insert_On_Blank_Line;
+      if After_End (Insert_ID) and then -Tree.ID (Tree.Prev_Terminal (Insert_Token)) = END_ID then
+         return True;
+      end if;
+
+      case Insert_Before_ID is
+      when END_ID | IS_ID | RETURN_ID =>
+         --  Before END_ID :
+         --     test/ada_mode-recover_10.adb,
+         --     test/ada_mode-recover_37.adb,
+         --     Always put trailing 'end' in correct column.
+         --
+         --     test/ada_mode-partial_parse_indent_begin.adb after "Foo;"
+         --     Full and incremental parse get this right (because there is no
+         --     syntax error); partial parse gets it wrong. We used to check for
+         --     blank line here, but incremental parse is better.
+         --
+         --  Before IS_ID : test/ada_mode-recover_incremental_01.adb insert "Float"
+         --  'is' should be first.
+         --
+         --  Before RETURN_ID : test/ada_mode-recover_16.adb
+         --  There is never code before 'return'.
+         return True;
 
       when others =>
-         case To_Token_Enum (Insert_ID) is
-         when CASE_ID | IF_ID | LOOP_ID | RECORD_ID | RETURN_ID | SELECT_ID =>
-            return -Tree.ID (Tree.Prev_Terminal (Insert_Token)) = END_ID;
+         if Comment_Present then
+            return not After_Comment (Insert_ID);
+         else
+            case Insert_ID is
+            when END_ID =>
+               --  test/ada_mode-recover_20.adb,
+               --  test/ada_mode-interactive_2.adb Record_1.
+               return False;
 
-         when END_ID =>
-            --  test/ada_mode-recover_20.adb, test/ada_mode-interactive_2.adb Record_1.
-            return not Insert_On_Blank_Line;
+            when IDENTIFIER_ID | NUMERIC_LITERAL_ID =>
+               --  test/ada_mode-recover_03.adb after 'renames'; completing an expression: true.
+               --  Starting a procedure call or assignment statement: false
+               return -Tree.ID (Tree.Prev_Terminal (Insert_Token)) /= SEMICOLON_ID;
 
-         when IDENTIFIER_ID =>
-            return -Tree.ID (Tree.Prev_Terminal (Insert_Token)) in END_ID | COLON_ID;
+            when SEMICOLON_ID =>
+               --  test/ada_mode-recover_03.adb after 'renames', _13.adb not on blank line: True
+               --  ada_mode-interactive_2.adb A := B \n+C; on blank line: False
+               --  ada_mode-recover_36.adb after 'function Update\n comments': True
+               --  FIXME: check for comments.
+               --
+               --  ada_mode-recover_07.adb after 'loop' on blank line: ideally True,
+               --  but we return False because we can't distinguish this from
+               --  interactive_2 case.
+               return not Insert_On_Blank_Line;
 
-         when others =>
-            return Result (-Insert_ID);
-         end case;
+            when others =>
+               return Default_Result (Insert_ID);
+            end case;
+         end if;
       end case;
    end Insert_After;
 
@@ -597,8 +702,8 @@ package body Wisi.Ada is
       Format_Parameter_List          : constant Positive := 5;
 
    begin
-      if WisiToken.Trace_Action > Extra then
-         Tree.Print_Tree;
+      if Trace_Action > Extra then
+         Data.Trace.Put_Line (Tree.Image (Children => True));
       end if;
       case Action is
       when Method_Object_To_Object_Method =>
@@ -610,7 +715,7 @@ package body Wisi.Ada is
       when Object_Index_To_Element_Object =>
          Wisi.Ada.Object_Index_To_Element_Object (Tree, Data, Edit_Begin);
       when Format_Parameter_List =>
-         Wisi.Ada.Format_Parameter_List (Tree, Data, Edit_Begin);
+         Wisi.Ada.Format_Parameter_List (Tree, Edit_Begin);
 
       when others =>
          Standard.Ada.Text_IO.Put_Line ("(error ""unrecognized refactor action " & Action'Image & """)");
@@ -639,12 +744,15 @@ package body Wisi.Ada is
       --  In our grammar, 'aggregate' can be an Ada aggregate, or a
       --  parenthesized expression.
       --
-      --  We always want an 'aggregate' to be indented by ada-indent-broken.
-      --  However, in some places in the grammar, 'aggregate' is indented by
-      --  ada-indent. The following checks for those places, and returns a
-      --  correction value. The aggregate may be nested inside a conditional
-      --  expression, so we search for 'name' as well; see
+      --  We always want an 'aggregate' that begins an expression to be
+      --  indented by ada-indent-broken. However, in some places in the
+      --  grammar, 'aggregate' is indented by ada-indent. The following
+      --  checks for those places, and returns a correction value. The
+      --  aggregate may be nested inside a conditional expression, so we
+      --  search for 'name' as well; see
       --  test/ada_mode-conditional_expressions-more_1.adb.
+
+      pragma Assert (Tree.ID (Tree_Indenting) = +aggregate_ID);
 
       Expression : constant Node_Access := Tree.Find_Ancestor (Tree_Indenting, (+expression_ID, +name_ID));
    begin
@@ -656,9 +764,22 @@ package body Wisi.Ada is
         +case_expression_alternative_ID
       then
          --  test/ada_mode-conditional_expressions.adb K; value expression in
-         --  if_expression is indented by ada-indent. Invalid
-         --  Controlling_Token_Line, so this correction is always added.
-         return (Simple, (Int, Invalid_Line_Number, Ada_Indent_Broken - Ada_Indent));
+         --  if_expression is indented by ada-indent.
+         --
+         --  test/ada_mode-conditional_expressions.adb M1 nested "(case C";
+         --  value expression in case_expression-alternative is indented by
+         --  ada-indent. But this aggregate does not start the value expression.
+         declare
+            List : constant Node_Access := Tree.Find_Ancestor (Tree_Indenting, +term_binary_adding_operator_list_ID);
+         begin
+            if Tree.RHS_Index (List) = 0 then
+               --  Aggregate starts expression
+               return (Simple, (Int, Invalid_Line_Number, Ada_Indent_Broken - Ada_Indent));
+            else
+               return Null_Delta;
+            end if;
+         end;
+
       else
          return Null_Delta;
       end if;
@@ -697,13 +818,17 @@ package body Wisi.Ada is
                Offset      => Ada_Indent_Broken).Simple_Delta);
       else
          --  aspect_definition starts on same line as '=>'; anchor the aspect_definition to '=>' with offset 3
-         return
-           (Simple,
-            Indent_Anchored_2
-              (Data,
-               Anchor_Line => Anchor_Token.Line,
-               Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
-               Offset      => Current_Indent_Offset (Data, Tree, Anchor_Token, 3)).Simple_Delta);
+         declare
+            Offset : constant Integer := Current_Indent_Offset (Tree, Anchor_Token, 3);
+         begin
+            return
+              (Simple,
+               Indent_Anchored_2
+                 (Data,
+                  Anchor_Line => Anchor_Token.Line,
+                  Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
+                  Offset      => Offset).Simple_Delta);
+         end;
       end if;
    end Ada_Indent_Aspect;
 
@@ -743,7 +868,7 @@ package body Wisi.Ada is
                  (Data,
                   Anchor_Line => Paren_Tok.Line,
                   Last_Line   => Last_Line (Renames_Tok, Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Data, Tree, Paren_Tok, abs Ada_Indent_Renames));
+                  Offset      => Current_Indent_Offset (Tree, Paren_Tok, abs Ada_Indent_Renames));
             end;
          end if;
       else
@@ -789,7 +914,7 @@ package body Wisi.Ada is
                  (Data,
                   Anchor_Line => Anchor_Token.Line,
                   Last_Line   => Last_Line (Indenting, Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Data, Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
+                  Offset      => Current_Indent_Offset (Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
             end;
          else
             declare
@@ -801,7 +926,7 @@ package body Wisi.Ada is
                  (Data,
                   Anchor_Line => Anchor_Token.Line,
                   Last_Line   => Last_Line (Indenting, Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Data, Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
+                  Offset      => Current_Indent_Offset (Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
             end;
          end if;
 

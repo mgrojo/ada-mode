@@ -2,7 +2,7 @@
 --
 --
 --
---  Copyright (C) 2019 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2019 - 2021 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,7 +22,6 @@ with WisiToken.Syntax_Trees.LR_Utils; use WisiToken.Syntax_Trees.LR_Utils;
 separate (Wisi.Ada)
 procedure Format_Parameter_List
   (Tree       : in out WisiToken.Syntax_Trees.Tree;
-   Data       : in out Parse_Data_Type;
    Edit_Begin : in     WisiToken.Buffer_Pos)
 is
    use Standard.Ada.Containers;
@@ -60,7 +59,7 @@ is
 
    function Get_Text (Region : in WisiToken.Buffer_Region) return String
    is begin
-      return Data.Lexer.Buffer_Text (Region);
+      return Tree.Lexer.Buffer_Text (Region);
    end Get_Text;
 
 begin
@@ -152,9 +151,7 @@ begin
                   Param.Default_Exp := Tree.Byte_Region (Tree.Child (Children (I), 2));
 
                when others =>
-                  Raise_Programmer_Error
-                    ("unknown format_parameter_list token id", Data.Lexer, Tree, Data.Line_Begin_Char_Pos.all,
-                     Children (I));
+                  Raise_Programmer_Error ("unknown format_parameter_list token id", Tree, Children (I));
                end case;
             end loop;
          end;
@@ -207,8 +204,7 @@ begin
             end loop;
             declare
                subtype Count is Standard.Ada.Text_IO.Count;
-               Open_Paren_Col : constant Count := WisiToken.Column
-                 (Tree.Base_Token (Formal_Part), Data.Line_Begin_Char_Pos.all);
+               Open_Paren_Col : constant Count := Tree.Column (Formal_Part);
                Ident_Col      : constant Count := Open_Paren_Col + 1;
                Colon_Col      : constant Count := Ident_Col + Count (Ident_Len) + 1;
                In_Col         : constant Count := Colon_Col + (if Aliased_P then 10 else 2);

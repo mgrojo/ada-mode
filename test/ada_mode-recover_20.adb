@@ -1,6 +1,11 @@
 -- This is from a real editing session; it found a bug in the parser,
 -- but now is much better.
 --
+-- The 'if' condition is missing parens due to mixed boolean
+-- operators. Inserting the missing left paren after 'if' requires
+-- three push_backs; recovery inserts 'then' before 'or B' instead,
+-- which is much cheaper.
+--
 --EMACS_SKIP_UNLESS: (eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 procedure Ada_Mode.Recover_20
@@ -10,14 +15,12 @@ begin
      (Prev_1 = -With_ID and
         (Prev_3 = Invalid_Token_ID or
            Prev_3 /= Left_Paren_ID))
-      -- missing paren around this; mixed boolean operators.
-      or
-        B
-      then
+   or
+     B
+   then
    --  missing 'end if;' - all inserted after 'then'.
 
 end Ada_Mode.Recover_20;
--- Error recovery has a race condition; force it to return repeatable results
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1
 -- End:

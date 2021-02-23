@@ -12,8 +12,7 @@
      (cl-ecase system-type
       (gnu/linux
        (list
-	(concat "WISITOKEN=" wisitoken-core)
-	"LIBADALANG=/Projects/libadalang/build/lib/gnat"))
+	(concat "WISITOKEN=" wisitoken-core)))
       (windows-nt
        (list
 	(concat "WISITOKEN=c:" wisitoken-core))))
