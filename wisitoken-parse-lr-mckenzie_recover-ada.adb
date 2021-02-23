@@ -331,7 +331,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          end if;
 
          if Config.Stack.Depth >= 4 and then
-           (Is_Terminal (ID (Config.Stack.Peek (4).Token), Tree.Descriptor.all) and
+           (Is_Terminal (ID (Config.Stack.Peek (4).Token), Tree.Lexer.Descriptor.all) and
               Invalid_Node_Access = Tree.Find_Child (Config.Stack.Peek (4).Token.Node, +EXCEPTION_ID))
          then
             --  'exception' not found; case 1a - assume extra 'end [keyword] ;'; delete it.
