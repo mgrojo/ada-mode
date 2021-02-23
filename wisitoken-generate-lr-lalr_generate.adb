@@ -483,6 +483,10 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Recursions            : in out WisiToken.Generate.Recursions)
      return Parse_Table_Ptr
    is
+      Time_Start           : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+      Table_Time           : Ada.Calendar.Time;
+      Minimal_Actions_Time : Ada.Calendar.Time;
+
       Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate_Table > Detail;
       Ignore_Unknown_Conflicts : constant Boolean := Ignore_Conflicts or WisiToken.Trace_Generate_Table > Detail;
       Unused_Tokens            : constant Boolean := WisiToken.Generate.Check_Unused_Tokens (Descriptor, Grammar);
@@ -512,8 +516,6 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Unknown_Conflicts    : Conflict_Lists.Tree;
       Known_Conflicts_Edit : Conflict_Lists.Tree := Known_Conflicts;
 
-      Table_Time           : Ada.Calendar.Time;
-      Minimal_Actions_Time : Ada.Calendar.Time;
    begin
       if not Use_Cached_Recursions or Recursions = Empty_Recursions then
          Recursions :=
@@ -523,6 +525,12 @@ package body WisiToken.Generate.LR.LALR_Generate is
       end if;
       Set_Grammar_Recursions (Recursions, Grammar);
       Recursions_Time := Ada.Calendar.Clock;
+
+      if Trace_Time then
+         Ada.Text_IO.Put_Line
+           (Ada.Text_IO.Standard_Error, "compute kernels, recursion time:" &
+              Duration'Image (Ada.Calendar."-" (Recursions_Time, Time_Start)));
+      end if;
 
       WisiToken.Generate.Error := False; -- necessary in unit tests; some previous test might have encountered an error.
 

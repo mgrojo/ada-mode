@@ -100,7 +100,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
    procedure Handle_Check_Fail
      (Trace             : in out WisiToken.Trace'Class;
-      Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Syntax_Trees.Stream_ID;
       Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
       Tree              : in     Syntax_Trees.Tree;
@@ -173,11 +172,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          --  This case doesn't use Tree, and it can handle some virtual tokens.
 
          declare
-            End_Name : constant String := Lexer.Buffer_Text (Name (End_Name_Token));
+            End_Name : constant String := Tree.Lexer.Buffer_Text (Name (End_Name_Token));
 
             Matching_Name_Index : SAL.Peek_Type := 3; -- start search before <end_name_token>
          begin
-            Find_Matching_Name (Config, Lexer, End_Name, Matching_Name_Index, Case_Insensitive => True);
+            Find_Matching_Name (Config, Tree.Lexer, End_Name, Matching_Name_Index, Case_Insensitive => True);
 
             if Matching_Name_Index = Config.Stack.Depth then
                --  case 0.
@@ -399,7 +398,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          declare
             use Ada.Characters.Handling;
 
-            End_Name : constant String := To_Lower (Lexer.Buffer_Text (Name (End_Name_Token)));
+            End_Name : constant String := To_Lower (Tree.Lexer.Buffer_Text (Name (End_Name_Token)));
 
             Token_Count : constant SAL.Peek_Type := SAL.Peek_Type (Config.User_Parse_Action_Token_Count);
 
@@ -410,7 +409,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
             Other_Counts : Natural_Array (1 .. 2);
          begin
             Find_Matching_Name
-              (Config, Lexer, End_Name, Matching_Name_Index, Other_Tokens, Other_Counts, Case_Insensitive => True);
+              (Config, Tree.Lexer, End_Name, Matching_Name_Index, Other_Tokens, Other_Counts, Case_Insensitive => True);
 
             if Matching_Name_Index > Config.Stack.Depth then
                --  case 0, not found.
@@ -491,7 +490,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
    procedure Handle_Parse_Error
      (Trace             : in out WisiToken.Trace'Class;
-      Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Syntax_Trees.Stream_ID;
       Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
       Tree              : in     Syntax_Trees.Tree;
@@ -618,11 +616,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          declare
             End_ID_Actions : constant Minimal_Action_Arrays.Vector := Parse_Table.States
               (Config.Stack.Peek.State).Minimal_Complete_Actions;
-            End_Name       : constant String := Lexer.Buffer_Text (Byte_Region (Config.Error_Token));
+            End_Name       : constant String := Tree.Lexer.Buffer_Text (Byte_Region (Config.Error_Token));
 
             Matching_Name_Index : SAL.Peek_Type := 2; -- start search before 'end'
          begin
-            Find_Matching_Name (Config, Lexer, End_Name, Matching_Name_Index, Case_Insensitive => True);
+            Find_Matching_Name (Config, Tree.Lexer, End_Name, Matching_Name_Index, Case_Insensitive => True);
 
             if Matching_Name_Index < Config.Stack.Depth and then
               End_ID_Actions.Length = 1 and then
@@ -661,7 +659,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
    procedure Fixes
      (Trace             : in out WisiToken.Trace'Class;
-      Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Syntax_Trees.Stream_ID;
       Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
       Tree              : in     Syntax_Trees.Tree;
@@ -674,10 +671,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
       case Config.User_Parse_Action_Status.Label is
       when Ok =>
-         Handle_Parse_Error (Trace, Lexer, Parser_Label, Parse_Table, Tree, Local_Config_Heap, Config);
+         Handle_Parse_Error (Trace, Parser_Label, Parse_Table, Tree, Local_Config_Heap, Config);
 
       when others =>
-         Handle_Check_Fail (Trace, Lexer, Parser_Label, Parse_Table, Tree, Local_Config_Heap, Config);
+         Handle_Check_Fail (Trace, Parser_Label, Parse_Table, Tree, Local_Config_Heap, Config);
       end case;
    end Fixes;
 

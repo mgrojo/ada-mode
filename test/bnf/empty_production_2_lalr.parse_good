@@ -111,4 +111,4 @@
  14: 6: 1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 (declarations) <= ((declarations), (declaration))
  ... goto state 3
-empty_production_2.input:2:1: : too many parallel parsers required in grammar state 3; simplify grammar, or increase max-parallel ( 15)
+empty_production_2.input:1:49: : too many parallel parsers required in grammar state 3; simplify grammar, or increase max-parallel ( 15)

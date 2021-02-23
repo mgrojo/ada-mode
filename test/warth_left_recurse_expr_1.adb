@@ -34,8 +34,8 @@ with WisiToken.Text_IO_Trace;
 package body Warth_Left_Recurse_Expr_1 is
 
    User_Data : aliased Warth_Left_Recurse_Expr_1_Runtime.User_Data_Type;
-
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File : Ada.Text_IO.File_Type;
 
    ----------
    --  Test procedures
@@ -47,7 +47,7 @@ package body Warth_Left_Recurse_Expr_1 is
       use WisiToken.Parse.Packrat.Generated;
 
       Parser : aliased WisiToken.Parse.Base_Parser'Class := Warth_Left_Recurse_Expr_1_Packrat_Gen_Main.Create_Parser
-        (Warth_Left_Recurse_Expr_1_Actions.Descriptor'Access, Trace'Access, User_Data'Access);
+        (Trace'Access, User_Data'Access);
 
       procedure Execute_Parse
         (Input           : in String;
@@ -56,16 +56,17 @@ package body Warth_Left_Recurse_Expr_1 is
       is
          use AUnit.Checks;
       begin
-         Parser.Lexer.Reset_With_String (Input);
+         Parser.Tree.Lexer.Reset_With_String (Input);
          if WisiToken.Trace_Parse > WisiToken.Outline then
             Ada.Text_IO.Put_Line ("input: '" & Input & "'");
          end if;
 
-         Parser.Parse;
+         Parser.Parse (Log_File);
 
          AUnit.Assertions.Assert (Expected_State = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
 
-         Parser.Execute_Actions;
+         Parser.Execute_Actions
+           (Action_Region_Bytes => (WisiToken.Buffer_Pos (Input'First), WisiToken.Buffer_Pos (Input'Last)));
          Check ("result", User_Data.Stack.Pop, Expected_Result);
 
       exception
@@ -84,8 +85,6 @@ package body Warth_Left_Recurse_Expr_1 is
       end Execute_Parse;
 
    begin
-      User_Data.Set_Lexer (Parser.Lexer, null);
-
       Execute_Parse ("1 - 3", Success, -2);
       Execute_Parse ("1", Success, 1);
       Execute_Parse ("3 - 2 - 1", Success, 0);
@@ -101,7 +100,7 @@ package body Warth_Left_Recurse_Expr_1 is
 
       Parser : aliased WisiToken.Parse.Base_Parser'Class :=
         Warth_Left_Recurse_Expr_1_Packrat_Proc_Main.Create_Parser
-          (Warth_Left_Recurse_Expr_1_Actions.Descriptor'Access, Trace'Access, User_Data'Access);
+          (Trace'Access, User_Data'Access);
 
       procedure Execute_Parse
         (Input           : in String;
@@ -110,12 +109,12 @@ package body Warth_Left_Recurse_Expr_1 is
       is
          use AUnit.Checks;
       begin
-         Parser.Lexer.Reset_With_String (Input);
+         Parser.Tree.Lexer.Reset_With_String (Input);
          if WisiToken.Trace_Parse > WisiToken.Outline then
             Ada.Text_IO.Put_Line ("input: '" & Input & "'");
          end if;
 
-         Parser.Parse;
+         Parser.Parse (Log_File);
 
          AUnit.Assertions.Assert
            (Expected_State = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
@@ -128,7 +127,8 @@ package body Warth_Left_Recurse_Expr_1 is
             Ada.Text_IO.Put_Line ("root node: " & Parser.Tree.Image (Parser.Tree.Root));
          end if;
 
-         Parser.Execute_Actions;
+         Parser.Execute_Actions
+           (Action_Region_Bytes => (WisiToken.Buffer_Pos (Input'First), WisiToken.Buffer_Pos (Input'Last)));
          Check ("result", User_Data.Stack.Pop, Expected_Result);
 
       exception
@@ -147,8 +147,6 @@ package body Warth_Left_Recurse_Expr_1 is
       end Execute_Parse;
 
    begin
-      User_Data.Set_Lexer (Parser.Lexer, null);
-
       declare
          Expected : WisiToken.Token_ID_Set (+wisitoken_accept_ID .. +expr_ID) := (others => False);
       begin

@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2009, 2014-2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2009, 2014-2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -323,7 +323,7 @@ package body WisiToken is
 
    function Image (Item : in Buffer_Region) return String
    is begin
-      return "(" & Trimmed_Image (Integer (Item.First)) & " ." & Buffer_Pos'Image (Item.Last) & ")";
+      return "(" & Trimmed_Image (Item.First) & " ." & Base_Buffer_Pos'Image (Item.Last) & ")";
    end Image;
 
    function "and" (Left, Right : in Buffer_Region) return Buffer_Region
@@ -375,18 +375,16 @@ package body WisiToken is
       end if;
    end Trimmed_Image;
 
-   function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Line_Pos_Vectors.Vector) return Ada.Text_IO.Count
+   function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count
    is begin
-      --  We should check for Token.ID = EOI, and return column 0, because
-      --  there is no actual EOI character in files created by Emacs. But
-      --  that would require a Descriptor arg, and might be wrong for other
-      --  files.
       if Token.Line = 1 then
          return Ada.Text_IO.Count (Token.Char_Region.First);
-      elsif Token.Line in Line_Begin_Char_Pos.First_Index .. Line_Begin_Char_Pos.Last_Index then
-         return Ada.Text_IO.Count (Token.Char_Region.First - Line_Begin_Char_Pos (Token.Line));
-      else
+
+      elsif Line_Begin_Char_Pos = Invalid_Buffer_Pos then
          return 0;
+
+      else
+         return Ada.Text_IO.Count (Token.Char_Region.First - Line_Begin_Char_Pos);
       end if;
    end Column;
 
@@ -433,7 +431,8 @@ package body WisiToken is
                return Integer'Value (Config (Value_First .. Value_Last));
             exception
             when Constraint_Error =>
-               raise User_Error with "expecting integer trace value, found '" & Config (Value_First .. Value_Last);
+               raise User_Error with "expecting integer trace value, found '" &
+                 Config (Value_First .. Value_Last) & "'";
             end Get_Value;
 
             Value : constant Integer := Get_Value;
@@ -457,7 +456,7 @@ package body WisiToken is
                Trace_McKenzie := Value;
             elsif Name = "parse" then
                Trace_Parse := Value;
-            elsif Name = "tests" then
+            elsif Name = "test" then
                Trace_Tests := Value;
             elsif Name = "time" then
                Trace_Time := Value > 0;

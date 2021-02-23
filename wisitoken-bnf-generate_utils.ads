@@ -56,8 +56,9 @@ package WisiToken.BNF.Generate_Utils is
    end record;
 
    function Initialize
-     (Input_Data       : in WisiToken_Grammar_Runtime.User_Data_Access;
-      Ignore_Conflicts : in Boolean := False)
+     (Input_Data        : in WisiToken_Grammar_Runtime.User_Data_Access;
+      Grammar_File_Name : in String;
+      Ignore_Conflicts  : in Boolean := False)
      return Generate_Data;
 
    procedure Parse_Grammar_File

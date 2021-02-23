@@ -2,7 +2,7 @@
 --
 --  Public AUnit checks for parent
 --
---  Copyright (C) 2018, 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2020 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,7 +21,13 @@ pragma License (GPL);
 with AUnit.Checks;
 package WisiToken.Syntax_Trees.AUnit_Public is
 
-   procedure Check is new AUnit.Checks.Gen_Check_Access (Node, Node_Access);
+   procedure Check_Address is new Standard.AUnit.Checks.Gen_Check_Access (Node, Node_Access);
+   --  Checks that access value is the same
+
+   procedure Check_Content (Label : in String; Computed, Expected : in Node_Access);
+   --  Checks that the tokens have the same Label, ID, Byte_Region,
+   --  Char_Region, non-grammar.
+
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Label);
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index);
 

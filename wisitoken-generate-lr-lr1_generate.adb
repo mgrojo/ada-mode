@@ -846,6 +846,12 @@ package body WisiToken.Generate.LR.LR1_Generate is
      return Parse_Table_Ptr
    is
       use all type System.Multiprocessors.CPU_Range;
+
+      Time_Start            : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+      Add_Actions_Time      : Ada.Calendar.Time;
+      Minimal_Actions_Time  : Ada.Calendar.Time;
+      Collect_Conflict_Time : Ada.Calendar.Time;
+
       Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate_Table > Detail;
       Ignore_Unknown_Conflicts : constant Boolean := Ignore_Conflicts or WisiToken.Trace_Generate_Table > Detail;
       Unused_Tokens            : constant Boolean := WisiToken.Generate.Check_Unused_Tokens (Descriptor, Grammar);
@@ -883,9 +889,6 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
       Initial_Item_Sets_Time : constant Ada.Calendar.Time := Ada.Calendar.Clock;
 
-      Add_Actions_Time       : Ada.Calendar.Time;
-      Minimal_Actions_Time   : Ada.Calendar.Time;
-      Collect_Conflict_Time  : Ada.Calendar.Time;
    begin
       if not Use_Cached_Recursions or Recursions = Empty_Recursions then
          Recursions :=
@@ -898,7 +901,10 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
       if Trace_Time then
          Ada.Text_IO.Put_Line
-           ("initial item_sets time:" & Duration'Image (Ada.Calendar."-" (Initial_Item_Sets_Time, Recursions_Time)));
+           (Ada.Text_IO.Standard_Error, "compute kernels, recursion time:" &
+              Duration'Image (Ada.Calendar."-" (Recursions_Time, Time_Start)));
+         Ada.Text_IO.Put_Line
+           ("initial item_sets time:" & Duration'Image (Ada.Calendar."-" (Recursions_Time, Initial_Item_Sets_Time)));
       end if;
       if Trace_Generate_Table + Trace_Generate_Minimal_Complete > Detail then
          Ada.Text_IO.New_Line;

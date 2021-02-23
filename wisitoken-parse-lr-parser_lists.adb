@@ -513,6 +513,11 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return State.Stream;
    end Stream;
 
+   procedure Clear_Stream (State : in out Parser_State)
+   is begin
+      State.Stream := WisiToken.Syntax_Trees.Invalid_Stream_ID;
+   end Clear_Stream;
+
    function Verb (State : in Parser_State) return All_Parse_Action_Verbs
    is begin
       return State.Verb;

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2019, 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -19,19 +19,15 @@ pragma License (Modified_GPL);
 package body WisiToken.Syntax_Trees.LR_Utils is
 
    procedure Raise_Programmer_Error
-     (Label               : in String;
-      Lexer               : in WisiToken.Lexer.Handle;
-      Tree                : in WisiToken.Syntax_Trees.Tree;
-      Line_Begin_Char_Pos : in WisiToken.Line_Pos_Vectors.Vector;
-      Node                : in Node_Access)
-   is
-      Base_Token : constant WisiToken.Base_Token := Tree.Base_Token (Node);
-   begin
+     (Label     : in String;
+      Tree      : in WisiToken.Syntax_Trees.Tree;
+      Node      : in Node_Access)
+   is begin
       raise SAL.Programmer_Error with Error_Message
-        (Lexer.File_Name,
+        (Tree.Lexer.File_Name,
          --  FIXME: Not clear why we need Line + 1 here, to match Emacs.
-         Line    => Base_Token.Line + 1,
-         Column  => Column (Base_Token, Line_Begin_Char_Pos),
+         Line    => Tree.Line (Node) + 1,
+         Column  => Tree.Column (Node),
          Message => Label & ": " &
            Tree.Image (Node, Children => True, RHS_Index => True, Node_Numbers => True));
    end Raise_Programmer_Error;

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2019, 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with Ada.Text_IO;
 with Ada_Lite_Actions;   use Ada_Lite_Actions;
-with Ada_Lite_LALR_Main; use Ada_Lite_LALR_Main;
+with Ada_Lite_LALR_Main;
 with GNATCOLL.Mmap;
 with WisiToken.AUnit;
 with WisiToken.Parse.LR.Parser;
@@ -28,12 +28,11 @@ with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 package body Test_Partial_Parse is
 
-
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
-
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File : Ada.Text_IO.File_Type;
 
-   Parser : WisiToken.Parse.LR.Parser.Parser (Ada_Lite_Actions.Descriptor'Access);
+   Parser : WisiToken.Parse.LR.Parser.Parser;
 
    procedure Run_Parse
      (Label              : in String;
@@ -52,7 +51,7 @@ package body Test_Partial_Parse is
          use all type WisiToken.Token_ID;
          Node  : Valid_Node_Access := Parser.Tree.Root;
       begin
-         Parser.Execute_Actions;
+         Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, Parse_End_Byte_Pos));
 
          if Action_ID = WisiToken.Invalid_Token_ID then
             --  Only parsed comments, no user compilation units. Recover provided
@@ -92,7 +91,7 @@ package body Test_Partial_Parse is
       Partial_Parse_Active    := True;
       Partial_Parse_Byte_Goal := Goal_Byte_Pos;
 
-      Parser.Parse;
+      Parser.Parse (Log_File);
 
       --  If the partial parse reaches the end of the input, a normal Accept
       --  occurs; no Partial_Parse exception.
@@ -129,7 +128,7 @@ package body Test_Partial_Parse is
               Integer'Image (Begin_Byte_Pos) & " .." & Integer'Image (End_Byte_Pos));
       end if;
 
-      Parser.Lexer.Reset_With_String (Partial_Text, Begin_Char_Pos, Begin_Line);
+      Parser.Tree.Lexer.Reset_With_String (Partial_Text, Begin_Char_Pos, Begin_Line);
       Run_Parse
         (Label, Buffer_Pos (Begin_Byte_Pos), Goal_Byte_Pos, Begin_Char_Pos, Begin_Line, Parse_End_Byte_Pos, Action_ID);
    end Parse_Text;
@@ -153,7 +152,7 @@ package body Test_Partial_Parse is
            ("input file: " & File_Name & Buffer_Pos'Image (Begin_Byte_Pos) & " .." & Buffer_Pos'Image (End_Byte_Pos));
       end if;
 
-      Parser.Lexer.Reset_With_File (File_Name, Begin_Byte_Pos, End_Byte_Pos, Begin_Char_Pos, Begin_Line);
+      Parser.Tree.Lexer.Reset_With_File (File_Name, Begin_Byte_Pos, End_Byte_Pos, Begin_Char_Pos, Begin_Line);
       Run_Parse (Label, Begin_Byte_Pos, Goal_Byte_Pos, Begin_Char_Pos, Begin_Line, Parse_End_Byte_Pos, Action_ID);
    end Parse_File;
 
@@ -181,7 +180,7 @@ package body Test_Partial_Parse is
            ("input file: " & File_Name & Buffer_Pos'Image (Begin_Byte_Pos) & " .." & Buffer_Pos'Image (End_Byte_Pos));
       end if;
 
-      Parser.Lexer.Reset_With_String_Access (Buffer'Unchecked_Access, +File_Name, Begin_Char_Pos, Begin_Line);
+      Parser.Tree.Lexer.Reset_With_String_Access (Buffer'Unchecked_Access, +File_Name, Begin_Char_Pos, Begin_Line);
       Run_Parse (Label, Begin_Byte_Pos, Goal_Byte_Pos, Begin_Char_Pos, Begin_Line, Parse_End_Byte_Pos, Action_ID);
    end Parse_String_Access;
 
@@ -277,12 +276,14 @@ package body Test_Partial_Parse is
       pragma Unreferenced (T);
    begin
       --  Run before all tests in register
-      Create_Parser
+      WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
+         Trace'Access,
+         Ada_Lite_LALR_Main.Create_Lexer,
+         Ada_Lite_LALR_Main.Create_Parse_Table,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,
          Language_String_ID_Set         => null,
-         Trace                          => Trace'Access,
          User_Data                      => User_Data'Access);
    end Set_Up_Case;
 

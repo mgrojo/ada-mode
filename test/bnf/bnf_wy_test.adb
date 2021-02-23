@@ -31,7 +31,6 @@ with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken_Grammar_Editing;
 with WisiToken_Grammar_Runtime;
-with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
 package body BNF_WY_Test is
 
@@ -119,8 +118,9 @@ package body BNF_WY_Test is
       use all type WisiToken.BNF.Generate_Algorithm;
 
       Trace          : aliased WisiToken.Text_IO_Trace.Trace;
+      Log_File       : Ada.Text_IO.File_Type;
       Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-      Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser (Wisitoken_Grammar_Actions.Descriptor'Access);
+      Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
 
       Save_Trace_Parse : constant Integer := WisiToken.Trace_Parse;
    begin
@@ -128,13 +128,15 @@ package body BNF_WY_Test is
 
       WisiToken.Generate.Error := False;
 
-      Wisitoken_Grammar_Main.Create_Parser
+      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
         (Parser    => Grammar_Parser,
          Trace     => Trace'Unchecked_Access,
+         Lexer     => Wisitoken_Grammar_Main.Create_Lexer,
+         Table     => Wisitoken_Grammar_Main.Create_Parse_Table,
          User_Data => Input_Data'Unchecked_Access);
 
-      Grammar_Parser.Lexer.Reset_With_File ("../test/bnf/" & Root_Name & ".wy");
-      Grammar_Parser.Parse;
+      Grammar_Parser.Tree.Lexer.Reset_With_File ("../test/bnf/" & Root_Name & ".wy");
+      Grammar_Parser.Parse (Log_File);
       Input_Data.Phase := WisiToken_Grammar_Runtime.Meta;
       Grammar_Parser.Execute_Actions;
 

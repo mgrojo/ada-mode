@@ -21,9 +21,10 @@ pragma License (GPL);
 with AUnit.Assertions;
 with Ada.Characters.Latin_1;
 with Ada.Exceptions;
+with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.Lexer.Regexp;
 with WisiToken.Generate.LR.LALR_Generate;
+with WisiToken.Lexer.Regexp;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
@@ -78,9 +79,10 @@ package body Test_Accept_State is
      Parse_Sequence_ID <= Statement_ID & EOF_ID + Null_Action and
      Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + Null_Action;
 
-   Parser : WisiToken.Parse.LR.Parser.Parser (LR1_Descriptor'Access);
+   Parser : WisiToken.Parse.LR.Parser.Parser;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File : Ada.Text_IO.File_Type;
 
    ----------
    --  Test procedures
@@ -96,7 +98,7 @@ package body Test_Accept_State is
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
-         Lexer.New_Lexer (Parser.Descriptor, Syntax),
+         Lexer.New_Lexer (LALR_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate
            (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,
@@ -104,9 +106,9 @@ package body Test_Accept_State is
          Language_Matching_Begin_Tokens => null,
          Language_String_ID_Set         => null);
 
-      Parser.Lexer.Reset_With_String ("set A = 2");
+      Parser.Tree.Lexer.Reset_With_String ("set A = 2");
 
-      Parser.Parse;
+      Parser.Parse (Log_File);
 
    exception
    when E : others =>

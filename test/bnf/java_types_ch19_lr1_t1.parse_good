@@ -16,25 +16,25 @@ new Worker_Task 1
  0:  3, ( 0 0 0 0 0 0 1 0 0), (12 : (Identifier))|(-1, 3:(Wisi_EOI, (66 . 65)))|((INSERT, Identifier, 3))
 
 recover: succeed, parser count 1
- 0: stack (0, (0, -4:(-)), (1, 1:(AT, (42 . 42))), ^(7, 2:(Identifier, (43 . 48))))
-    Current_Token: (0, -5:(Identifier))
+ 0: stack (0, (0, 0:(-)), (1, 1:(AT, (42 . 42))), ^(7, 2:(Identifier, (43 . 48))))
+    Current_Token: (0, -4:(Identifier))
     Shared_Token: (-1, 3:(Wisi_EOI, (66 . 65)))
-    stream input: (0, (-1, -5:(Identifier)))
+    stream input: (0, (-1, -4:(Identifier)))
     recover_insert_delete:
     resume_active: True, token goal 7, inc_shared_stream_token: FALSE
 
- 0: 7: (0, -5:(Identifier)) : reduce 1 tokens to ClassType
+ 0: 7: (0, -4:(Identifier)) : reduce 1 tokens to ClassType
 (ClassType_3, (43 . 48)) <= (2:(Identifier, (43 . 48)))
  ... goto state 9
- 0: 9: (0, -5:(Identifier)) : reduce 2 tokens to Annotation
+ 0: 9: (0, -4:(Identifier)) : reduce 2 tokens to Annotation
 (Annotation_0, (42 . 48)) <= (1:(AT, (42 . 42)), (ClassType, (43 . 48)))
  ... goto state 5
- 0: 5: (0, -5:(Identifier)) : reduce 1 tokens to AnnotationList
+ 0: 5: (0, -4:(Identifier)) : reduce 1 tokens to AnnotationList
 (AnnotationList_0, (42 . 48)) <= ((Annotation, (42 . 48)))
  ... goto state 4
- 0: 4: (0, -5:(Identifier)) : shift and goto state 12
+ 0: 4: (0, -4:(Identifier)) : shift and goto state 12
  0: 12: (-1, 3:(Wisi_EOI, (66 . 65))) : reduce 2 tokens to ClassType
-(ClassType_1, (42 . 48)) <= ((AnnotationList, (42 . 48)), -5:(Identifier))
+(ClassType_1, (42 . 48)) <= ((AnnotationList, (42 . 48)), -4:(Identifier))
  ... goto state 6
  0: 6: (-1, 3:(Wisi_EOI, (66 . 65))) : reduce 1 tokens to CompilationUnit
 (CompilationUnit_0, (42 . 48)) <= ((ClassType, (42 . 48)))
@@ -42,5 +42,5 @@ recover: succeed, parser count 1
  0: 3: (-1, 3:(Wisi_EOI, (66 . 65))) : accept it
 (wisitoken_accept_0, (42 . 48)) <= ((CompilationUnit, (42 . 48)))
  0: succeed
-java_types_ch19.input:5:2: syntax error: expecting AT, LESS, Identifier, found ''
+java_types_ch19.input:5:1: syntax error: expecting AT, LESS, Identifier, found ''
    recovered: ((INSERT, Identifier, 3))

@@ -25,7 +25,6 @@ with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada;
 with WisiToken_Grammar_Editing;
-with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
 package body WisiToken.BNF.Generate_Utils is
 
@@ -191,8 +190,9 @@ package body WisiToken.BNF.Generate_Utils is
    --  Public subprograms, declaration order
 
    function Initialize
-     (Input_Data       : in WisiToken_Grammar_Runtime.User_Data_Access;
-      Ignore_Conflicts : in Boolean := False)
+     (Input_Data        : in WisiToken_Grammar_Runtime.User_Data_Access;
+      Grammar_File_Name : in String;
+      Ignore_Conflicts  : in Boolean := False)
      return Generate_Data
    is
       EOI_ID : constant Token_ID := Token_ID
@@ -249,7 +249,7 @@ package body WisiToken.BNF.Generate_Utils is
             end if;
          end loop;
 
-         To_Grammar (Result, Input_Data.Grammar_Lexer.File_Name, -Input_Data.Language_Params.Start_Token);
+         To_Grammar (Result, Grammar_File_Name, -Input_Data.Language_Params.Start_Token);
          Result.Ignore_Conflicts := Ignore_Conflicts;
 
          if WisiToken.Generate.Error then
@@ -264,15 +264,15 @@ package body WisiToken.BNF.Generate_Utils is
    is
       Trace      : aliased WisiToken.Text_IO_Trace.Trace;
       Input_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
+      Log_File   : Ada.Text_IO.File_Type;
    begin
-      Wisitoken_Grammar_Main.Create_Parser
-        (Parser    => Grammar_Parser,
-         Trace     => Trace'Unchecked_Access,
-         User_Data => Input_Data'Unchecked_Access);
+      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
+        (Grammar_Parser, Trace'Unchecked_Access, Wisitoken_Grammar_Main.Create_Lexer,
+         Wisitoken_Grammar_Main.Create_Parse_Table, Input_Data'Unchecked_Access);
 
-      Grammar_Parser.Lexer.Reset_With_File (Grammar_File_Name);
+      Grammar_Parser.Tree.Lexer.Reset_With_File (Grammar_File_Name);
 
-      Grammar_Parser.Parse;
+      Grammar_Parser.Parse (Log_File);
       Grammar_Parser.Execute_Actions; -- Meta phase.
    exception
    when WisiToken.Syntax_Error =>
@@ -292,17 +292,17 @@ package body WisiToken.BNF.Generate_Utils is
      return Generate_Data
    is
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
-      Trace             : aliased WisiToken.Text_IO_Trace.Trace;
-      Grammar_Parser    : WisiToken.Parse.LR.Parser_No_Recover.Parser (Wisitoken_Grammar_Actions.Descriptor'Access);
+      Trace          : aliased WisiToken.Text_IO_Trace.Trace;
+      Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+      Log_File       : Ada.Text_IO.File_Type;
    begin
-      Wisitoken_Grammar_Main.Create_Parser
-        (Parser    => Grammar_Parser,
-         Trace     => Trace'Unchecked_Access,
-         User_Data => Syntax_Trees.User_Data_Access (Input_Data));
+      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
+        (Grammar_Parser, Trace'Unchecked_Access, Wisitoken_Grammar_Main.Create_Lexer,
+         Wisitoken_Grammar_Main.Create_Parse_Table, Syntax_Trees.User_Data_Access (Input_Data));
 
-      Grammar_Parser.Lexer.Reset_With_File (Grammar_File_Name);
+      Grammar_Parser.Tree.Lexer.Reset_With_File (Grammar_File_Name);
 
-      Grammar_Parser.Parse;
+      Grammar_Parser.Parse (Log_File);
       Grammar_Parser.Execute_Actions; -- Meta phase.
 
       if Input_Data.Meta_Syntax = WisiToken_Grammar_Runtime.EBNF_Syntax then
@@ -326,7 +326,7 @@ package body WisiToken.BNF.Generate_Utils is
          raise WisiToken.Grammar_Error with "errors during parsing grammar: aborting";
       end if;
 
-      return Initialize (Input_Data, Ignore_Conflicts);
+      return Initialize (Input_Data, Grammar_File_Name, Ignore_Conflicts);
    exception
    when WisiToken.Syntax_Error =>
       Grammar_Parser.Put_Errors;

@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -171,7 +171,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  here). Therefore Parser_State current token is in
       --  Shared_Parser.Shared_Token.
 
-      Config.Current_Shared_Token := Parser_State.Shared_Token;
+      Config.Current_Shared_Token := Shared_Parser.Tree.First_Terminal (Parser_State.Shared_Token);
       Config.Input_Stream.Initialize;
 
       case Error.Label is
@@ -206,7 +206,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                Config.User_Parse_Action_Token_Count := Element (Config.Ops, Last_Index (Config.Ops)).Token_Count;
 
                if Trace_McKenzie > Detail then
-                  Put ("undo_reduce " & Image (Syntax_Trees.ID (Config.Error_Token), Shared_Parser.Descriptor.all),
+                  Put
+                    ("undo_reduce " & Image
+                       (Syntax_Trees.ID (Config.Error_Token), Shared_Parser.Tree.Lexer.Descriptor.all),
                        Trace, Shared_Parser.Tree, Parser_State.Stream, Config, Task_ID => False);
                end if;
             else
@@ -245,13 +247,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Parser_Count      => Parsers.Count);
 
       Shared : aliased Base.Shared
-        (Shared_Parser.Lexer.all'Access,
-         Shared_Parser.Table,
+        (Shared_Parser.Table,
          Shared_Parser.Language_Fixes,
          Shared_Parser.Language_Matching_Begin_Tokens,
          Shared_Parser.Language_String_ID_Set,
-         Shared_Parser.Wrapped_Lexer_Errors'Access,
-         Shared_Parser.Line_Begin_Token'Access);
+         Shared_Parser.Wrapped_Lexer_Errors'Access);
 
       Task_Count : constant System.Multiprocessors.CPU_Range :=
         (if Shared_Parser.Table.McKenzie_Param.Task_Count = 0
@@ -304,9 +304,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          --  otherwise local variables disappear while the task is still trying
          --  to access them.
          for I in Worker_Tasks'First .. Task_Count loop
-            if not Worker_Tasks (I)'Terminated then
-               Worker_Tasks (I).Done;
-            end if;
+            begin
+               if not Worker_Tasks (I)'Terminated then
+                  Worker_Tasks (I).Done;
+               end if;
+            exception
+            when Tasking_Error =>
+               --  Worker terminated after we checked 'Terminated; it's a race condition.
+               null;
+            end;
          end loop;
 
          if ID /= Null_Id then
@@ -696,7 +702,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       if Debug_Mode then
          Trace.Put (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E), Prefix => True);
          Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
-         raise;
+         raise SAL.Programmer_Error;
       else
          return Fail_Programmer_Error;
       end if;
@@ -1256,7 +1262,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  Build a string, call trace.put_line once, so output from multiple
       --  tasks is not interleaved (mostly).
 
-      Descriptor : WisiToken.Descriptor renames Tree.Descriptor.all;
+      Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
         (if Task_ID then +"task" & Task_Attributes.Value'Image & " " else +" ") &
@@ -1354,7 +1360,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Children     : constant Syntax_Trees.Node_Access_Array := Tree.Children (Nonterm_Item.Token.Element_Node);
    begin
       for C of Children loop
-         if Is_Terminal (Tree.ID (C), Tree.Descriptor.all) then
+         if Is_Terminal (Tree.ID (C), Tree.Lexer.Descriptor.all) then
             Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (C)));
          else
             Prev_State := Goto_For (Table, Prev_State, Tree.ID (C));

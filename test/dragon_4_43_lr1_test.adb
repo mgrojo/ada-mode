@@ -103,6 +103,7 @@ package body Dragon_4_43_LR1_Test is
      WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Token_Enum.LALR_Descriptor);
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File : Ada.Text_IO.File_Type;
 
    ----------
    --  Test procedures
@@ -284,12 +285,12 @@ package body Dragon_4_43_LR1_Test is
    is
       pragma Unreferenced (T);
 
-      Parser : WisiToken.Parse.LR.Parser.Parser (LR1_Descriptor'Access);
+      Parser : WisiToken.Parse.LR.Parser.Parser;
 
       procedure Execute_Command (Command : in String)
       is begin
-         Parser.Lexer.Reset_With_String (Command);
-         Parser.Parse;
+         Parser.Tree.Lexer.Reset_With_String (Command);
+         Parser.Parse (Log_File);
       exception
       when E : others =>
          AUnit.Assertions.Assert (False, "'" & Command & "': " & Ada.Exceptions.Exception_Message (E));

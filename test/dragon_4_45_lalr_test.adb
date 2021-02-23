@@ -98,6 +98,7 @@ package body Dragon_4_45_LALR_Test is
      (Grammar, Has_Empty_Production, LALR_Descriptor.First_Terminal);
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File : Ada.Text_IO.File_Type;
 
    ----------
    --  Test procedures
@@ -232,14 +233,14 @@ package body Dragon_4_45_LALR_Test is
    is
       pragma Unreferenced (T);
 
-      Parser : WisiToken.Parse.LR.Parser.Parser (LALR_Descriptor'Access);
+      Parser : WisiToken.Parse.LR.Parser.Parser;
 
       procedure Execute_Command (Command : in String)
       is
          use Ada.Exceptions;
       begin
-         Parser.Lexer.Reset_With_String (Command);
-         Parser.Parse;
+         Parser.Tree.Lexer.Reset_With_String (Command);
+         Parser.Parse (Log_File);
       exception
       when E : others =>
          AUnit.Assertions.Assert (False, "'" & Command & "': " & Exception_Name (E) & ": " & Exception_Message (E));
@@ -250,7 +251,7 @@ package body Dragon_4_45_LALR_Test is
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
-         Lexer.New_Lexer (Parser.Descriptor, Syntax),
+         Lexer.New_Lexer (LALR_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate
            (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,

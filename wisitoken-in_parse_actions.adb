@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -21,14 +21,18 @@ with Ada.Characters.Handling;
 package body WisiToken.In_Parse_Actions is
 
    function Image (Item : in Status; Tree : in Syntax_Trees.Tree) return String
-   is begin
+   is
+      use WisiToken.Syntax_Trees;
+   begin
       case Item.Label is
       when Ok =>
          return Status_Label'Image (Item.Label);
       when Error =>
          return '(' & Status_Label'Image (Item.Label) & ", " &
-           Syntax_Trees.Image (Tree, Item.Begin_Name) & ',' &
-           Syntax_Trees.Image (Tree, Item.End_Name) & ')';
+           Syntax_Trees.Image (Tree, Item.Begin_Name) &
+           "'" & Tree.Lexer.Buffer_Text (Byte_Region (Item.Begin_Name)) & "'," &
+           Syntax_Trees.Image (Tree, Item.End_Name) &
+           "'" & Tree.Lexer.Buffer_Text (Byte_Region (Item.End_Name)) & "')";
       end case;
    end Image;
 
@@ -54,13 +58,16 @@ package body WisiToken.In_Parse_Actions is
          function Equal return Boolean
          is
             use Ada.Characters.Handling;
+            Start_Name : constant String :=
+              (if Descriptor.Case_Insensitive
+               then To_Lower (Lexer.Buffer_Text (Start_Name_Region))
+               else Lexer.Buffer_Text (Start_Name_Region));
+            End_Name  : constant String :=
+              (if Descriptor.Case_Insensitive
+               then To_Lower (Lexer.Buffer_Text (End_Name_Region))
+               else Lexer.Buffer_Text (End_Name_Region));
          begin
-            if Descriptor.Case_Insensitive then
-               return To_Lower (Lexer.Buffer_Text (Start_Name_Region)) =
-                 To_Lower (Lexer.Buffer_Text (End_Name_Region));
-            else
-               return Lexer.Buffer_Text (Start_Name_Region) = Lexer.Buffer_Text (End_Name_Region);
-            end if;
+            return Start_Name = End_Name;
          end Equal;
       begin
 

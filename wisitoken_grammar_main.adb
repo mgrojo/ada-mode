@@ -33,10 +33,8 @@ package body Wisitoken_Grammar_Main is
       wisitoken_grammar_re2c_c.Set_Position,
       wisitoken_grammar_re2c_c.Next_Token);
 
-   procedure Create_Parser
-     (Parser                         :    out WisiToken.Parse.LR.Parser_No_Recover.Parser;
-      Trace                        : not null access WisiToken.Trace'Class;
-      User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)
+   function Create_Parse_Table
+     return WisiToken.Parse.LR.Parse_Table_Ptr
    is
       use WisiToken.Parse.LR;
       Table : constant Parse_Table_Ptr := new Parse_Table
@@ -742,11 +740,11 @@ package body Wisitoken_Grammar_Main is
       end;
 
       Table.Max_Parallel := 15;
-      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Parser,
-         Trace,
-         Lexer.New_Lexer (Parser.Descriptor),
-         Table,
-         User_Data);
-   end Create_Parser;
+      return Table;
+   end Create_Parse_Table;
+
+   function Create_Lexer return WisiToken.Lexer.Handle
+   is begin
+      return Lexer.New_Lexer (Wisitoken_Grammar_Actions.Descriptor'Access);
+   end Create_Lexer;
 end Wisitoken_Grammar_Main;

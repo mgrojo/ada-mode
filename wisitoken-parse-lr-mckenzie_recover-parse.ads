@@ -24,7 +24,6 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    function Reduce_Stack
      (Super                    : not null access Base.Supervisor;
-      Shared                   : not null access Base.Shared;
       Stack                    : in out          Recover_Stacks.Stack;
       Action                   : in              Reduce_Action_Rec;
       Nonterm                  :    out          Syntax_Trees.Recover_Token;
@@ -52,7 +51,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
      (Tree   : in     Syntax_Trees.Tree;
       Config : in     Configuration;
       Tokens :    out Token_ID_Array_1_3)
-   with Post => (for all Tok of Tokens => Tok = Invalid_Token_ID or else Is_Terminal (Tok, Tree.Descriptor.all));
+   with Post => (for all Tok of Tokens => Tok = Invalid_Token_ID or else Is_Terminal (Tok, Tree.Lexer.Descriptor.all));
    --  Return the current terminal token from Config in Tokens (1).
    --  Return the two following terminal tokens in Tokens (2 .. 3). In
    --  incremental parse, they may be virtual.

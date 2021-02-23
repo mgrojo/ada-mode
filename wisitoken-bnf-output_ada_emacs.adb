@@ -40,6 +40,7 @@ with WisiToken.Generate.Packrat;
 with WisiToken_Grammar_Runtime;
 procedure WisiToken.BNF.Output_Ada_Emacs
   (Input_Data            :         in WisiToken_Grammar_Runtime.User_Data_Type;
+   Grammar_File_Name     :         in String;
    Output_File_Name_Root :         in String;
    Generate_Data         : aliased in WisiToken.BNF.Generate_Utils.Generate_Data;
    Packrat_Data          :         in WisiToken.Generate.Packrat.Data;
@@ -56,7 +57,7 @@ is
    Numeric   : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set ("0123456789");
 
    Common_Data : Output_Ada_Common.Common_Data := WisiToken.BNF.Output_Ada_Common.Initialize
-     (Input_Data, Tuple, Output_File_Name_Root, Check_Interface => True);
+     (Input_Data, Tuple, Grammar_File_Name, Output_File_Name_Root, Check_Interface => True);
 
    Gen_Alg_Name : constant String :=
      (if Test_Main or Multiple_Tuples
@@ -176,7 +177,7 @@ is
       use WisiToken.Generate;
 
       Sexps : constant String_Lists.List := Split_Sexp
-        (-Unsplit_Lines, Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line);
+        (-Unsplit_Lines, Grammar_File_Name, RHS.Source_Line);
 
       use all type Ada.Strings.Maps.Character_Set;
 
@@ -328,7 +329,7 @@ is
             if not (Last in Params'First .. Params'Last) then
                Put_Error
                  (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line,
+                    (Grammar_File_Name, RHS.Source_Line,
                      "Missing ']' or ')'"));
                exit;
             end if;
@@ -349,7 +350,7 @@ is
                when E : Not_Found =>
                   Put_Error
                     (Error_Message
-                       (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line,
+                       (Grammar_File_Name, RHS.Source_Line,
                         Ada.Exceptions.Exception_Message (E)));
                end;
 
@@ -366,7 +367,7 @@ is
                if Params (Last) /= ']' then
                   Put_Error
                     (Error_Message
-                       (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line,
+                       (Grammar_File_Name, RHS.Source_Line,
                         "too many token IDs in motion action"));
                   return -Result & "))";
                end if;
@@ -414,7 +415,7 @@ is
             if Params (Last) = ']' then
                Put_Error
                  (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid wisi-face-apply argument"));
+                    (Grammar_File_Name, RHS.Source_Line, "invalid wisi-face-apply argument"));
                return;
             end if;
 
@@ -463,7 +464,7 @@ is
       when E : others =>
          Put_Error
            (Error_Message
-              (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid syntax: " &
+              (Grammar_File_Name, RHS.Source_Line, "invalid syntax: " &
               Ada.Exceptions.Exception_Message (E)));
          return "";
       end Face_Apply_Params;
@@ -505,7 +506,7 @@ is
             if Params (Last) = ']' then
                Put_Error
                  (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid wisi-face-mark argument"));
+                    (Grammar_File_Name, RHS.Source_Line, "invalid wisi-face-mark argument"));
                exit;
             end if;
 
@@ -526,7 +527,7 @@ is
       when E : others =>
          Put_Error
            (Error_Message
-            (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid syntax: " &
+            (Grammar_File_Name, RHS.Source_Line, "invalid syntax: " &
               Ada.Exceptions.Exception_Message (E)));
          return "";
       end Face_Mark_Params;
@@ -572,7 +573,7 @@ is
       when E : others =>
          Put_Error
            (Error_Message
-            (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid syntax: " &
+            (Grammar_File_Name, RHS.Source_Line, "invalid syntax: " &
               Ada.Exceptions.Exception_Message (E)));
          return "";
       end Face_Remove_Params;
@@ -623,7 +624,7 @@ is
             else
                Put_Error
                  (Error_Message
-                  (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "unrecognized wisi indent function: '" &
+                  (Grammar_File_Name, RHS.Source_Line, "unrecognized wisi indent function: '" &
                     Elisp_Name & "'"));
                return "";
             end if;
@@ -766,7 +767,7 @@ is
                         --  grammar file not updated to current wisitoken version
                         Put_Error
                           (Error_Message
-                             (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line,
+                             (Grammar_File_Name, RHS.Source_Line,
                               "%elisp_indent function requires arg count, token index args."));
                      else
                         if Declared_Args_Last = 0 then
@@ -801,7 +802,7 @@ is
                      if Declared_Arg_Count /= Arg_Count then
                         Put_Error
                           (Error_Message
-                             (Input_Data.Grammar_Lexer.File_Name,
+                             (Grammar_File_Name,
                               RHS.Source_Line,
                               "declared " & (-Function_Name) & " parameter count" & Declared_Arg_Count'Image &
                                 " /= actual parameter count" & Arg_Count'Image));
@@ -847,7 +848,7 @@ is
                   else
                      Put_Error
                        (Error_Message
-                          (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line,
+                          (Grammar_File_Name, RHS.Source_Line,
                            "unimplimented wisi indent function: '" & (-Function_Name) & "'"));
                      return -Function_Name;
                   end if;
@@ -868,7 +869,7 @@ is
          when E : others =>
             Put_Error
               (Error_Message
-                 (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Ada.Exceptions.Exception_Message (E)));
+                 (Grammar_File_Name, RHS.Source_Line, Ada.Exceptions.Exception_Message (E)));
             return "";
          end Expression;
 
@@ -930,7 +931,7 @@ is
                      if Params (Last) /= ')' then
                         Put_Error
                           (Error_Message
-                             (Input_Data.Grammar_Lexer.File_Name,
+                             (Grammar_File_Name,
                               RHS.Source_Line, "invalid indent syntax; missing ')'"));
                      end if;
                      Last := Last + 1;
@@ -951,7 +952,7 @@ is
                if Params (Last) /= ']' then
                   Put_Error
                     (Error_Message
-                       (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "indent missing ']'"));
+                       (Grammar_File_Name, RHS.Source_Line, "indent missing ']'"));
                end if;
                Last := Last + 1;
 
@@ -967,7 +968,7 @@ is
             if Params (Last) /= ']' then
                Last := Index_Non_Blank (Params, Last + 1);
                if Last = 0 then
-                  Put_Error (Error_Message (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "indent missing ']'"));
+                  Put_Error (Error_Message (Grammar_File_Name, RHS.Source_Line, "indent missing ']'"));
                   return -Result;
                end if;
             end if;
@@ -1039,7 +1040,7 @@ is
                   --  tokens. RHS_Index = 0 always has all optional tokens.
                   Put_Error
                     (Error_Message
-                       (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Image (Prod_ID) &
+                       (Grammar_File_Name, RHS.Source_Line, Image (Prod_ID) &
                           ": indent parameter/token label mismatch"
                        & (if RHS.Auto_Token_Labels then "" else " all tokens must be labeled if any are")));
                end if;
@@ -1084,7 +1085,7 @@ is
          else
             Put_Error
               (Error_Message
-                 (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "merge_names token label error"));
+                 (Grammar_File_Name, RHS.Source_Line, "merge_names token label error"));
             return " (Nonterm, Tokens)";
          end if;
       end Merge_Names_Params;
@@ -1138,7 +1139,7 @@ is
                if Last = Params'Last then
                   Put_Error
                     (Error_Message
-                       (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Action_Name & " missing ']'"));
+                       (Grammar_File_Name, RHS.Source_Line, Action_Name & " missing ']'"));
                   exit;
                end if;
             end;
@@ -1162,7 +1163,7 @@ is
             if Length (Face_Line) > 0 then
                Put_Error
                  (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "multiple face actions"));
+                    (Grammar_File_Name, RHS.Source_Line, "multiple face actions"));
             end if;
          end Assert_Face_Empty;
 
@@ -1171,7 +1172,7 @@ is
             if Length (Indent_Action_Line) > 0 then
                Put_Error
                  (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "multiple indent actions"));
+                    (Grammar_File_Name, RHS.Source_Line, "multiple indent actions"));
             end if;
          end Assert_Indent_Empty;
 
@@ -1180,7 +1181,7 @@ is
             if Length (Check_Line) > 0 then
                Put_Error
                  (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "multiple check actions"));
+                    (Grammar_File_Name, RHS.Source_Line, "multiple check actions"));
             end if;
          end Assert_Check_Empty;
 
@@ -1333,7 +1334,7 @@ is
                   else
                      Put_Error
                        (Error_Message
-                          (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "unrecognized post-parse action: '" &
+                          (Grammar_File_Name, RHS.Source_Line, "unrecognized post-parse action: '" &
                              (-Item.Name) & "'"));
                   end if;
 
@@ -1343,7 +1344,7 @@ is
          else
             Put_Error
               (Error_Message
-                 (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "unrecognized elisp action: '" &
+                 (Grammar_File_Name, RHS.Source_Line, "unrecognized elisp action: '" &
                     Elisp_Name & "'"));
          end if;
       end Translate_Sexp;
@@ -1357,7 +1358,7 @@ is
          when E : Not_Found =>
             Put_Error
               (Error_Message
-                 (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Ada.Exceptions.Exception_Message (E)));
+                 (Grammar_File_Name, RHS.Source_Line, Ada.Exceptions.Exception_Message (E)));
          end;
       end loop;
 
@@ -1432,10 +1433,10 @@ is
          Empty              := False;
          Subprogram_Started := True;
          Indent_Line ("procedure " & Name);
-         Indent_Line (" (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
-         Indent_Line ("  Tree      : in out WisiToken.Syntax_Trees.Tree;");
-         Indent_Line ("  Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;");
-         Indent_Line ("  Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)");
+         Indent_Line ("  (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
+         Indent_Line ("   Tree      : in out WisiToken.Syntax_Trees.Tree;");
+         Indent_Line ("   Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;");
+         Indent_Line ("   Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)");
          Indent_Line ("is");
 
          Indent := Indent + 3;
@@ -1502,7 +1503,7 @@ is
    is begin
       for Rule of Input_Data.Tokens.Rules loop
          for RHS of Rule.Right_Hand_Sides loop
-            for Sexp of Split_Sexp (-RHS.Action, Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line) loop
+            for Sexp of Split_Sexp (-RHS.Action, Grammar_File_Name, RHS.Source_Line) loop
                declare
                   Last       : constant Integer := Ada.Strings.Fixed.Index (Sexp, Blank_Set);
                   Elisp_Name : constant String  := Sexp (Sexp'First + 1 .. Last - 1);
@@ -1689,14 +1690,14 @@ is
 
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
-         LR_Create_Create_Parser (Input_Data, Common_Data, Generate_Data);
+         LR_Create_Create_Parse_Table (Input_Data, Common_Data, Generate_Data, Actions_Package_Name);
 
       when Packrat_Gen =>
          WisiToken.BNF.Generate_Packrat (Packrat_Data, Generate_Data);
-         Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
+         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
 
       when Packrat_Proc =>
-         Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
+         Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
 
       when External =>
          External_Create_Create_Grammar (Generate_Data);
@@ -1843,7 +1844,7 @@ is
       Set_Output (File);
       Indent := 1;
 
-      Put_Line (";; generated by WisiToken Wisi from " & Input_Data.Grammar_Lexer.File_Name);
+      Put_Line (";; generated by WisiToken Wisi from " & Grammar_File_Name);
       Put_Command_Line (";; ", Use_Tuple => True, Tuple => Tuple);
       Put_Line (";;");
 
@@ -1923,7 +1924,7 @@ is
       Create (File, Out_File, Output_File_Name_Root & "_wisi_module_parse.gpr");
       Set_Output (File);
       Indent := 1;
-      Put_Line ("-- generated by WisiToken Wisi from " & Input_Data.Grammar_Lexer.File_Name);
+      Put_Line ("-- generated by WisiToken Wisi from " & Grammar_File_Name);
       Put_Command_Line ("-- ", Use_Tuple => True, Tuple => Tuple);
       Indent_Line ("with ""wisi_module_parse_common"";");
       Indent_Line ("library project " & Package_Name_Root & "_Wisi_Module_Parse is");
@@ -1989,7 +1990,7 @@ is
       Create (File, Out_File, Output_File_Name_Root & "_wisi_module_parse_agg.gpr");
       Set_Output (File);
       Indent := 1;
-      Put_Line ("-- generated by WisiToken Wisi from " & Input_Data.Grammar_Lexer.File_Name);
+      Put_Line ("-- generated by WisiToken Wisi from " & Grammar_File_Name);
       Put_Command_Line ("-- ", Use_Tuple => True, Tuple => Tuple);
       Indent_Line ("aggregate project " & Package_Name_Root & "_Wisi_Module_Parse_Agg is");
       Indent_Line ("   for Project_Path use (external (""WISI_FASTTOKEN""));");
@@ -2001,7 +2002,7 @@ is
       Create (File, Out_File, Output_File_Name_Root & "_wisi_module_parse_wrapper.c");
       Set_Output (File);
       Indent := 1;
-      Put_Line ("// generated by WisiToken Wisi from " & Input_Data.Grammar_Lexer.File_Name);
+      Put_Line ("// generated by WisiToken Wisi from " & Grammar_File_Name);
       Put_Command_Line ("// ", Use_Tuple => True, Tuple => Tuple);
       Indent_Line ("//  This file is just a wrapper around the Ada code in");
       Indent_Line ("//  *_wisi_module_parse.adb; it is needed to call adainit.");

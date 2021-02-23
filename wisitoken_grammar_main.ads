@@ -21,14 +21,12 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-with WisiToken.Syntax_Trees;
-with WisiToken.Parse.LR.Parser_No_Recover;
+with WisiToken.Lexer;
+with WisiToken.Parse.LR;
 package Wisitoken_Grammar_Main is
 
-   procedure Create_Parser
-     (Parser                       :    out WisiToken.Parse.LR.Parser_No_Recover.Parser;
-      --  no error recovery
-      Trace                        : not null access WisiToken.Trace'Class;
-      User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access);
+   function Create_Parse_Table
+     return WisiToken.Parse.LR.Parse_Table_Ptr;
 
+   function Create_Lexer return WisiToken.Lexer.Handle;
 end Wisitoken_Grammar_Main;

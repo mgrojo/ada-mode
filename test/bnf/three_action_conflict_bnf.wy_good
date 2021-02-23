@@ -6,6 +6,7 @@
 %start block
 %meta_syntax BNF
 
+%mckenzie_enqueue_limit 500
 %mckenzie_check_limit 3
 %mckenzie_zombie_limit 3
 %mckenzie_cost_default 4 4 4 4

@@ -69,8 +69,8 @@ is
       Indent_Line ("is");
       Indent := Indent + 3;
 
-      Indent_Line ("Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;");
       Indent_Line ("Tree       : Syntax_Trees.Tree renames Parser.Tree;");
+      Indent_Line ("Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;");
       Indent_Line
         ("Start_Pos  : constant Syntax_Trees.Stream_Index := Tree.Stream_Next (Tree.Shared_Stream, Last_Pos);");
       Indent_Line ("Start_Pos_Index : constant Syntax_Trees.Node_Index :=");

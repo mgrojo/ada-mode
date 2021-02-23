@@ -31,6 +31,19 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+add %no_error_recover, instead of detecting mckenzie /= default
+
+move Execute_Actions to wisitoken.parse?
+    lots of shared code
+    add version that ignores action_region_bytes, for no_recover, packrat
+
+syntax_table find_new_line
+    If line - 1 = .line_last, start at .line_last. Do binary search?
+
+mckenzie_recover-explore Try_Insert_Quote
+    often don't know where parse error is; do both b and c
+        actually, parse error is after current_token; that might help.
+
 factor out tree-sitter support
     so ada-mode elpa release does not require tree-sitter
 
@@ -81,13 +94,9 @@ incremental parse
         but have to move branch point in error recover for push_back, undo_reduce.
             or not; the other parser will do that?
 
-    tree-sitter does not store buffer_pos in tree; only length of token text
-        buffer_pos computed on demand by traversing tree
-            could do that during Execute_Actions
-        avoids Shift in Edit_Tree
-
-edit_tree delete unreachable nodes (from terminated parse streams)
-    use mark and sweep
+    tree-sitter doesn't store text regions in syntax_tree, just text length
+        no Shift in Edit_Tree
+        byte_region (node) requires compute begin_pos for each node in path from root.
 
 Mckenzie parallel gain
     eliminate super access that does not require lock

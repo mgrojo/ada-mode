@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2018, 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2020 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,6 +22,17 @@ with AUnit.Assertions;
 with WisiToken.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Private;
 package body WisiToken.Syntax_Trees.AUnit_Public is
+
+   procedure Check_Content (Label : in String; Computed, Expected : in Node_Access)
+   is begin
+      if Computed = Invalid_Node_Access then
+         Standard.AUnit.Assertions.Assert (Computed = Expected, Label & ": access expected non-null, found null");
+      elsif Expected = null then
+         Standard.AUnit.Assertions.Assert (False, Label & ": access expected null, found non-null");
+      else
+         WisiToken.Syntax_Trees.AUnit_Private.Check (Label, Computed.all, Expected.all, Parents => False);
+      end if;
+   end Check_Content;
 
    procedure Check (Label : in String; Computed, Expected : in Recover_Token)
    is

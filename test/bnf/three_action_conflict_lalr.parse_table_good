@@ -91,7 +91,7 @@ Ignore_Check_Fail => 4
 Task_Count        => 0
 Check_Limit       => 3
 Check_Delta_Limit => 2147483647
-Enqueue_Limit     => 2147483647
+Enqueue_Limit     => 500
 
 LALR Parse Table:
 State 0:

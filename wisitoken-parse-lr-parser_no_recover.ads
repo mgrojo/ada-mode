@@ -7,7 +7,7 @@
 --  to not depend on wisitoken-lr-mckenzie_recover, so editing that
 --  does not cause everything to be regenerated/compiled.
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -34,23 +34,24 @@ package WisiToken.Parse.LR.Parser_No_Recover is
       Table   : Parse_Table_Ptr;
       Parsers : aliased Parser_Lists.List;
 
-      First_Parser_Label   : Integer;
-      Terminate_Same_State : Boolean; -- IMPROVEME: delete, never set False
+      First_Parser_Label   : Integer; -- FIXME: delete, always 1
+      Terminate_Same_State : Boolean; -- FIXME: delete, never set False
    end record;
 
    overriding procedure Finalize (Object : in out LR.Parser_No_Recover.Parser);
    --  Deep free Object.Table.
 
    procedure New_Parser
-     (Parser               :    out          LR.Parser_No_Recover.Parser;
-      Trace                : not null access WisiToken.Trace'Class;
-      Lexer                : in              WisiToken.Lexer.Handle;
-      Table                : in              Parse_Table_Ptr;
-      User_Data            : in              Syntax_Trees.User_Data_Access;
-      First_Parser_Label   : in              Integer            := 1);
+     (Parser             :    out LR.Parser_No_Recover.Parser;
+      Trace              : in     WisiToken.Trace_Access;
+      Lexer              : in     WisiToken.Lexer.Handle;
+      Table              : in     Parse_Table_Ptr;
+      User_Data          : in     Syntax_Trees.User_Data_Access;
+      First_Parser_Label : in     Integer := 1);
 
    overriding procedure Parse
      (Shared_Parser : in out LR.Parser_No_Recover.Parser;
+      Log_File      : in     Ada.Text_IO.File_Type;
       Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
    --  input setting Shared_Parser.Terminals, then parses tokens.
@@ -62,15 +63,16 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
    --
-   --  Raises SAL.Programmer_Error if Edits is not empty.
+   --  Raises SAL.Programmer_Error if Edits is not empty. Log_File is
+   --  ignored.
 
    overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean;
 
    overriding procedure Put_Errors (Parser : in LR.Parser_No_Recover.Parser);
-   --  Put user-friendly error messages from the parse to
-   --  Ada.Text_IO.Current_Error.
 
-   overriding procedure Execute_Actions (Parser : in out LR.Parser_No_Recover.Parser);
-   --  Execute the grammar actions in Parser.
+   overriding procedure Execute_Actions
+     (Parser              : in out LR.Parser_No_Recover.Parser;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region);
+   --  Action_Region_Bytes is ignored (all nodes always processed).
 
 end WisiToken.Parse.LR.Parser_No_Recover;

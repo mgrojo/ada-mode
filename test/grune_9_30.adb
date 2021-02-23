@@ -89,7 +89,8 @@ package body Grune_9_30 is
    First_Terminal_Sequence : constant WisiToken.Token_Sequence_Arrays.Vector :=
      WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Token_Enum.LALR_Descriptor);
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace;
+   Trace    : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File : Ada.Text_IO.File_Type;
 
    ----------
    --  Test procedures
@@ -141,12 +142,12 @@ package body Grune_9_30 is
    is
       pragma Unreferenced (T);
 
-      Parser : WisiToken.Parse.LR.Parser.Parser (LR1_Descriptor'Access);
+      Parser : WisiToken.Parse.LR.Parser.Parser;
 
       procedure Execute_Command (Command : in String)
       is begin
-         Parser.Lexer.Reset_With_String (Command);
-         Parser.Parse;
+         Parser.Tree.Lexer.Reset_With_String (Command);
+         Parser.Parse (Log_File);
       exception
       when E : others =>
          AUnit.Assertions.Assert (False, "'" & Command & "': " & Ada.Exceptions.Exception_Message (E));
@@ -157,7 +158,7 @@ package body Grune_9_30 is
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
-         Lexer.New_Lexer (Parser.Descriptor, Syntax),
+         Lexer.New_Lexer (Token_Enum.LR1_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LR1_Generate.Generate
            (Grammar, LR1_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,

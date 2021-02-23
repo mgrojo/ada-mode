@@ -370,8 +370,8 @@ package WisiToken.Parse.LR is
    function McKenzie_Defaulted (Table : in Parse_Table) return Boolean is
      --  We can't use Table.McKenzie_Param = Default_McKenzie_Param here,
      --  because the discriminants are different.
-     (Table.McKenzie_Param.Check_Limit = Default_McKenzie_Param.Check_Limit and
-        Table.McKenzie_Param.Check_Delta_Limit = Default_McKenzie_Param.Check_Delta_Limit and
+     --  FIXME: provide boolean mckenzie_specified from .wy
+     (Table.McKenzie_Param.Check_Delta_Limit = Default_McKenzie_Param.Check_Delta_Limit and
         Table.McKenzie_Param.Enqueue_Limit = Default_McKenzie_Param.Enqueue_Limit);
 
    type Parse_Table_Ptr is access Parse_Table;
@@ -560,17 +560,17 @@ package WisiToken.Parse.LR is
          --  parse is complete.
 
       when Delete =>
-         Del_ID : Token_ID;
+         Del_ID : Token_ID := Invalid_Token_ID;
          --  The token ID deleted; a terminal token. IMPROVEME: allow delete nonterm?
 
-         Del_Index : Syntax_Trees.Node_Index;
+         Del_Index : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
          --  Token at Del_Index is deleted; used by parser to skip the token.
 
-         Del_Node : Syntax_Trees.Node_Access;
+         Del_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
          --  Del_Node is deleted; used by post-parse actions to adjust for the
          --  deleted token.
 
-         Del_After_Node : Syntax_Trees.Node_Access;
+         Del_After_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
          --  Previous terminal (shared or virtual) in parse stream; used by
          --  post-parse actions to adjust for the deleted token.
       end case;
@@ -646,9 +646,9 @@ package WisiToken.Parse.LR is
       Current_Shared_Token : Syntax_Trees.Terminal_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
       --  Current input token in Shared_Stream; to be input after all of
       --  Input_Stream and Insert_Delete is input. Initially the error
-      --  token. In batch parse, always a Shared_Terminal; in incremental
-      --  parse, may be a nonterm or virtual terminal (from error correction
-      --  in the previous parse).
+      --  token. In batch parse, always a single Shared_Terminal; in
+      --  incremental parse, may be a any Terminal_Label in a nonterm (ie
+      --  from error correction in a previous parse).
 
       Input_Stream : Bounded_Streams.List (20);
       --  Holds tokens copied from Shared_Stream when Push_Back operations

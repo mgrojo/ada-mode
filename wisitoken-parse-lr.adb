@@ -319,7 +319,7 @@ package body WisiToken.Parse.LR is
             Tree.Clear_Parent (Child);
          end if;
 
-         if Is_Terminal (Tree.ID (Child), Tree.Descriptor.all) then
+         if Is_Terminal (Tree.ID (Child), Tree.Lexer.Descriptor.all) then
             Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (Child)));
          else
             Prev_State := Goto_For (Table, Prev_State, Tree.ID (Child));
@@ -712,12 +712,12 @@ package body WisiToken.Parse.LR is
         (case Item.Op is
          when Insert =>
            (if Item.Ins_Node = Invalid_Node_Access
-            then Image (Item.Ins_ID, Tree.Descriptor.all)
+            then Image (Item.Ins_ID, Tree.Lexer.Descriptor.all)
             else Tree.Image (Item.Ins_Node, Terminal_Node_Numbers => True)) & "," &
               Item.Ins_Before'Image,
          when Delete =>
            (if Item.Del_Node = Invalid_Node_Access
-            then Trimmed_Image (Item.Del_Index) & ":" & Image (Item.Del_ID, Tree.Descriptor.all)
+            then Trimmed_Image (Item.Del_Index) & ":" & Image (Item.Del_ID, Tree.Lexer.Descriptor.all)
             else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)) &
              (if Item.Del_After_Node = Invalid_Node_Access
               then ""

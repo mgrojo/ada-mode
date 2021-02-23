@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -25,7 +25,6 @@ with Ada.Text_IO;
 with GNAT.Regexp;
 with SAL.Generic_Decimal_Image;
 with WisiToken.Generate;
-with WisiToken.Lexer;
 package body WisiToken_Grammar_Editing is
 
    use WisiToken;
@@ -232,9 +231,9 @@ package body WisiToken_Grammar_Editing is
    end Empty_RHS;
 
    function Find_Declaration
-     (Data : in     WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree : in out Syntax_Trees.Tree;
-      Name : in     String)
+     (Data  : in     WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree  : in out Syntax_Trees.Tree;
+      Name  : in     String)
      return Node_Access
    is
       use LR_Utils;
@@ -283,7 +282,6 @@ package body WisiToken_Grammar_Editing is
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
       User_Data           : in out Syntax_Trees.User_Data_Type'Class;
-      File_Name           : in     String;
       Node_Image_Output   : in out Boolean;
       Node_Error_Reported : in out Boolean)
    is
@@ -304,14 +302,13 @@ package body WisiToken_Grammar_Editing is
             Put_Line
               (Current_Error,
                Tree.Error_Message
-                 (Node, Data.Line_Begin_Char_Pos.all, File_Name, Tree.Image
+                 (Node, Tree.Image
                     (Node,
                      RHS_Index    => True,
                      Children     => True,
                      Node_Numbers => True)));
          end if;
-         Put_Line (Current_Error, Tree.Error_Message
-                     (Node, Data.Line_Begin_Char_Pos.all, File_Name, "... invalid tree: " & Msg));
+         Put_Line (Current_Error, Tree.Error_Message (Node, "... invalid tree: " & Msg));
          WisiToken.Generate.Error := True;
       end Put_Error;
 
@@ -1330,7 +1327,8 @@ package body WisiToken_Grammar_Editing is
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.New_Line;
                if Is_Duplicate then
-                  Ada.Text_IO.Put_Line ("Insert_Optional_RHS duplicate '" & Get_Text (Data, Tree, New_RHS_AC) & "'");
+                  Ada.Text_IO.Put_Line
+                    ("Insert_Optional_RHS duplicate '" & Get_Text (Data, Tree, New_RHS_AC) & "'");
                else
                   if Container_ID = +rhs_ID then
                      Ada.Text_IO.Put_Line
@@ -1838,7 +1836,7 @@ package body WisiToken_Grammar_Editing is
                when Virtual_Identifier =>
                   New_Ident := Tree.Identifier (Name_Node);
                when others =>
-                  Raise_Programmer_Error ("translate_rhs_group_item", Data, Tree, Name_Node);
+                  WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error ("translate_rhs_group_item", Tree, Name_Node);
                end case;
             end;
             Erase_Deleted_EBNF_Nodes (Tree.Child (Node, 2));
@@ -2368,7 +2366,8 @@ package body WisiToken_Grammar_Editing is
                       (if B_Alt_List_Item_List.Count = 1
                        then ""
                        else "_" & Get_Item_Text
-                         (Data, Tree, Element (B_Alt_List_Item_List.Iterate.Next (B_Alt_List_Item_List.First)))) &
+                         (Data, Tree, Element
+                            (B_Alt_List_Item_List.Iterate.Next (B_Alt_List_Item_List.First)))) &
                       "_list",
                   Element           => B_Alt_List_Item_List.Root,
                   Separator         => Invalid_Node_Access,
@@ -2394,7 +2393,8 @@ package body WisiToken_Grammar_Editing is
 
                      List_Nonterm_Name_String : constant String := List_Element_Name_String & "_list";
 
-                     Existing_Decl : constant Node_Access := Find_Declaration (Data, Tree, List_Nonterm_Name_String);
+                     Existing_Decl : constant Node_Access := Find_Declaration
+                       (Data, Tree, List_Nonterm_Name_String);
 
                      List_Element_Name : constant Identifier_Index :=
                        (if Existing_Decl = Invalid_Node_Access
@@ -2432,7 +2432,8 @@ package body WisiToken_Grammar_Editing is
             end if;
 
          when others =>
-            Raise_Programmer_Error ("Translate_RHS_Multiple_Item unimplemented", Data, Tree, B);
+            WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+              ("Translate_RHS_Multiple_Item unimplemented", Tree, B);
          end case;
 
          --  Edit rhs_item to use list name
@@ -2621,7 +2622,8 @@ package body WisiToken_Grammar_Editing is
             end;
 
          when others =>
-            Raise_Programmer_Error ("translate_ebnf_to_bnf rhs_optional_item unimplemented", Data, Tree, B);
+            WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+              ("translate_ebnf_to_bnf rhs_optional_item unimplemented", Tree, B);
          end case;
 
          if WisiToken.Trace_Generate_EBNF > Detail then
@@ -2682,7 +2684,7 @@ package body WisiToken_Grammar_Editing is
             else
                WisiToken.Generate.Put_Error
                  (WisiToken.Generate.Error_Message
-                    (Data.Grammar_Lexer.File_Name, Get_Line (Data, Tree, Node),
+                    (Tree.Lexer.File_Name, Get_Line (Data, Tree, Node),
                      "punctuation token '" & Value & "' not declared"));
 
                Clear_EBNF_Node (Node); -- So we don't try again
@@ -2709,7 +2711,8 @@ package body WisiToken_Grammar_Editing is
                    Tree.Child (Parent, 2)));
 
             when others =>
-               Raise_Programmer_Error ("translate_ebnf_to_bnf string_literal_2 unimplemented", Data, Tree, Node);
+               WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+                 ("translate_ebnf_to_bnf string_literal_2 unimplemented", Tree, Node);
             end case;
          end;
 
@@ -2799,7 +2802,7 @@ package body WisiToken_Grammar_Editing is
             Translate_Token_Literal (Node);
 
          when others =>
-            Raise_Programmer_Error ("unimplemented EBNF node", Data, Tree, Node);
+            WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error ("unimplemented EBNF node", Tree, Node);
          end case;
 
       exception
@@ -2813,10 +2816,10 @@ package body WisiToken_Grammar_Editing is
             if Debug_Mode then
                raise;
             else
-               Raise_Programmer_Error
+               WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
                  ("unhandled exception " & Ada.Exceptions.Exception_Name (E) & ": " &
                     Ada.Exceptions.Exception_Message (E),
-                  Data, Tree, Node);
+                  Tree, Node);
             end if;
          end if;
       end Process_Node;
@@ -2829,11 +2832,7 @@ package body WisiToken_Grammar_Editing is
          for N of Data.EBNF_Nodes loop
             Subtree_Root := Tree.Subtree_Root (N);
             if Subtree_Root /= Tree.Root then
-               Put_Line
-                 (Current_Error,
-                  Error_Message
-                    (Tree, N, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
-                     Tree.Image (N, Node_Numbers => True)));
+               Put_Line (Current_Error, Tree.Error_Message (N, Tree.Image (N, Node_Numbers => True)));
                Put_Line (Current_Error, "... not in tree; in root " & Trimmed_Image (Get_Node_Index (Subtree_Root)));
                WisiToken.Generate.Error := True;
             end if;
@@ -2848,11 +2847,7 @@ package body WisiToken_Grammar_Editing is
          for N of Copied_EBNF_Nodes loop
             Subtree_Root := Tree.Subtree_Root (N);
             if Subtree_Root /= Tree.Root then
-               Put_Line
-                 (Current_Error,
-                  Error_Message
-                    (Tree, N, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
-                     Tree.Image (N, Node_Numbers      => True)));
+               Put_Line (Current_Error, Tree.Error_Message (N, Tree.Image (N, Node_Numbers      => True)));
                Put_Line (Current_Error, "... not in tree; in root" & Trimmed_Image (Get_Node_Index (Subtree_Root)));
                WisiToken.Generate.Error := True;
             end if;
@@ -2897,9 +2892,7 @@ package body WisiToken_Grammar_Editing is
       end if;
 
       if Debug_Mode then
-         Tree.Validate_Tree
-           (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
-            Data.Error_Reported, Tree.Root, Validate_Node'Access);
+         Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
          Check_Original_EBNF;
          Check_Copied_EBNF;
       end if;
@@ -2937,9 +2930,7 @@ package body WisiToken_Grammar_Editing is
                Process_Node (Node);
 
                if Debug_Mode then
-                  Tree.Validate_Tree
-                    (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
-                     Data.Error_Reported, Tree.Root, Validate_Node'Access);
+                  Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
                   Check_Original_EBNF;
                   Check_Copied_EBNF;
                end if;
@@ -2953,8 +2944,8 @@ package body WisiToken_Grammar_Editing is
          for Node of Data.EBNF_Nodes loop
             Put_Line
               (Current_Error,
-               Error_Message
-                 (Tree, Node, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
+               Tree.Error_Message
+                 (Node,
                   Tree.Image
                     (Node,
                      RHS_Index    => True,
@@ -2992,9 +2983,7 @@ package body WisiToken_Grammar_Editing is
                   Process_Node (Node);
 
                   if Debug_Mode then
-                     Tree.Validate_Tree
-                       (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
-                        Data.Error_Reported, Tree.Root, Validate_Node'Access);
+                     Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
                      Check_Copied_EBNF;
                   end if;
                end if;
@@ -3008,8 +2997,8 @@ package body WisiToken_Grammar_Editing is
          for Node of Copied_EBNF_Nodes loop
             Put_Line
               (Current_Error,
-               Error_Message
-                 (Tree, Node, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
+               Tree.Error_Message
+                 (Node,
                   Tree.Image
                     (Node,
                      RHS_Index    => True,
@@ -3020,9 +3009,7 @@ package body WisiToken_Grammar_Editing is
       end;
 
       Data.EBNF_Allowed := False;
-      Tree.Validate_Tree
-        (Data, Data.Line_Begin_Char_Pos.all, Data.Grammar_Lexer.File_Name,
-         Data.Error_Reported, Tree.Root, Validate_Node'Access);
+      Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
 
       Data.Meta_Syntax := BNF_Syntax;
 
@@ -3079,7 +3066,7 @@ package body WisiToken_Grammar_Editing is
                   if Token.ID = +NEW_LINE_ID then
                      Comments_Include_Newline := True;
                   end if;
-                  Put (File, Data.Grammar_Lexer.Buffer_Text (Token.Byte_Region));
+                  Put (File, Tree.Lexer.Buffer_Text (Token.Byte_Region));
                end loop;
                if Force_New_Line and not Comments_Include_Newline then
                   New_Line (File);
@@ -3142,7 +3129,8 @@ package body WisiToken_Grammar_Editing is
             declare
                Children : constant Node_Access_Array := Tree.Children (Node);
             begin
-               Put (File, Get_Text (Data, Tree, Children (1)) & "=" & Get_Text (Data, Tree, Children (3)));
+               Put
+                 (File, Get_Text (Data, Tree, Children (1)) & "=" & Get_Text (Data, Tree, Children (3)));
             end;
 
          when others =>
@@ -3162,8 +3150,8 @@ package body WisiToken_Grammar_Editing is
          declare
             use Ada.Exceptions;
          begin
-            Raise_Programmer_Error
-              ("Put_RHS_Element: " & Exception_Name (E) & ": " & Exception_Message (E), Data, Tree, Node);
+            WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+              ("Put_RHS_Element: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Node);
          end;
       end Put_RHS_Element;
 
@@ -3187,8 +3175,8 @@ package body WisiToken_Grammar_Editing is
          declare
             use Ada.Exceptions;
          begin
-            Raise_Programmer_Error
-              ("Put_RHS_Item_List: " & Exception_Name (E) & ": " & Exception_Message (E), Data, Tree, Node);
+            WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+              ("Put_RHS_Item_List: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Node);
          end;
       end Put_RHS_Item_List;
 
@@ -3219,7 +3207,7 @@ package body WisiToken_Grammar_Editing is
             end if;
 
          when others =>
-            Raise_Programmer_Error ("Put_RHS", Data, Tree, Node);
+            WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error ("Put_RHS", Tree, Node);
          end case;
       exception
       when SAL.Programmer_Error =>
@@ -3229,7 +3217,8 @@ package body WisiToken_Grammar_Editing is
          declare
             use Ada.Exceptions;
          begin
-            Raise_Programmer_Error ("Put_RHS: " & Exception_Name (E) & ": " & Exception_Message (E), Data, Tree, Node);
+            WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+              ("Put_RHS: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Node);
          end;
       end Put_RHS;
 
@@ -3250,7 +3239,8 @@ package body WisiToken_Grammar_Editing is
             Put_RHS (Children (3), First => False);
          when 2 =>
             Put
-              (File, "%if " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text (Data, Tree, Children (4)));
+              (File, "%if " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text
+                 (Data, Tree, Children (4)));
             Put_Comments (Node);
 
          when 3 =>
@@ -3258,7 +3248,7 @@ package body WisiToken_Grammar_Editing is
             Put_Comments (Node);
 
          when others =>
-            Raise_Programmer_Error ("Put_RHS_List", Data, Tree, Node);
+            WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error ("Put_RHS_List", Tree, Node);
          end case;
       exception
       when SAL.Programmer_Error =>
@@ -3268,8 +3258,8 @@ package body WisiToken_Grammar_Editing is
          declare
             use Ada.Exceptions;
          begin
-            Raise_Programmer_Error
-              ("Put_RHS_List: " & Exception_Name (E) & ": " & Exception_Message (E), Data, Tree, Node);
+            WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+              ("Put_RHS_List: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Node);
          end;
       end Put_RHS_List;
 
@@ -3327,7 +3317,7 @@ package body WisiToken_Grammar_Editing is
                      Key : constant String := Get_Text (Data, Tree, Children (2));
                   begin
                      if Key = "conflict" then
-                        Put (File, Data.Grammar_Lexer.Buffer_Text (Tree.Byte_Region (Node)));
+                        Put (File, Tree.Lexer.Buffer_Text (Tree.Byte_Region (Node)));
                      else
                         Put (File, "%" & Key);
                         Put_Declaration_Item_List (Children (3));
@@ -3341,24 +3331,28 @@ package body WisiToken_Grammar_Editing is
 
                when 4 =>
                   Put
-                    (File, "%if " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text (Data, Tree, Children (5)));
+                    (File, "%if " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text
+                       (Data, Tree, Children (5)));
                   Put_Comments (Node);
 
                when 5 =>
                   Put
-                    (File, "%if " & Get_Text (Data, Tree, Children (3)) & " in " & Get_Text (Data, Tree, Children (5)));
+                    (File, "%if " & Get_Text (Data, Tree, Children (3)) & " in " & Get_Text
+                       (Data, Tree, Children (5)));
                   Put_Comments (Node);
 
                when 6 =>
                   Put
                     (File,
-                     "%elsif " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text (Data, Tree, Children (5)));
+                     "%elsif " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text
+                       (Data, Tree, Children (5)));
                   Put_Comments (Node);
 
                when 7 =>
                   Put
                     (File,
-                     "%elsif " & Get_Text (Data, Tree, Children (3)) & " in " & Get_Text (Data, Tree, Children (5)));
+                     "%elsif " & Get_Text (Data, Tree, Children (3)) & " in " & Get_Text
+                       (Data, Tree, Children (5)));
                   Put_Comments (Node);
 
                when 8 =>
@@ -3405,8 +3399,8 @@ package body WisiToken_Grammar_Editing is
          use all type Ada.Containers.Count_Type;
          use Ada.Strings.Fixed;
          First_Comment : constant String :=
-           (if Tree.Leading_Non_Grammar_Const.Length > 0
-            then Data.Grammar_Lexer.Buffer_Text (Tree.Leading_Non_Grammar_Const.Element.all (1).Byte_Region)
+           (if Tree.Leading_Non_Grammar.Length > 0
+            then Tree.Lexer.Buffer_Text (Tree.Leading_Non_Grammar (1).Byte_Region)
             else "");
          Local_Var_Start   : constant Integer := Index (First_Comment, "-*-");
          Local_Var_End     : constant Integer := Index
@@ -3414,7 +3408,7 @@ package body WisiToken_Grammar_Editing is
          Local_Var_Default : constant String  := "buffer-read-only:t";
       begin
          Put_Line
-           (File, ";;; generated from " & Data.Grammar_Lexer.File_Name & " -*- " &
+           (File, ";;; generated from " & Tree.Lexer.File_Name & " -*- " &
               Local_Var_Default &
               (if Local_Var_Start > First_Comment'First and Local_Var_End > First_Comment'First
                then First_Comment (Local_Var_Start + 3 .. Local_Var_End - 1)
@@ -3423,8 +3417,8 @@ package body WisiToken_Grammar_Editing is
       end;
       Put_Line (File, ";;;");
 
-      for Token of Tree.Leading_Non_Grammar_Const loop
-         Put (File, Data.Grammar_Lexer.Buffer_Text (Token.Byte_Region));
+      for Token of Tree.Leading_Non_Grammar loop
+         Put (File, Tree.Lexer.Buffer_Text (Token.Byte_Region));
       end loop;
 
       Process_Node (Tree.Root);

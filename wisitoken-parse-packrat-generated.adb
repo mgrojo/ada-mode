@@ -20,12 +20,14 @@ pragma License (Modified_GPL);
 package body WisiToken.Parse.Packrat.Generated is
 
    overriding procedure Parse
-     (Parser : in out Generated.Parser;
-      Edits  : in     KMN_Lists.List := KMN_Lists.Empty_List)
+     (Parser   : in out Generated.Parser;
+      Log_File : in     Ada.Text_IO.File_Type;
+      Edits    : in     KMN_Lists.List := KMN_Lists.Empty_List)
    is
+      pragma Unreferenced (Log_File);
       use all type WisiToken.Syntax_Trees.User_Data_Access;
       use all type Ada.Containers.Count_Type;
-      Descriptor : WisiToken.Descriptor renames Parser.Descriptor.all;
+      Descriptor : WisiToken.Descriptor renames Parser.Tree.Lexer.Descriptor.all;
 
       Result : Memo_Entry;
    begin
@@ -72,17 +74,17 @@ package body WisiToken.Parse.Packrat.Generated is
    is
       use all type Ada.Containers.Count_Type;
    begin
-      return Parser.Lexer.Errors.Length > 0;
+      return Parser.Tree.Lexer.Errors.Length > 0;
    end Any_Errors;
 
    overriding procedure Put_Errors (Parser : in Generated.Parser)
    is
       use Ada.Text_IO;
    begin
-      for Item of Parser.Lexer.Errors loop
+      for Item of Parser.Tree.Lexer.Errors loop
          Put_Line
            (Current_Error,
-            Parser.Lexer.File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image (Item.Char_Pos));
+            Parser.Tree.Lexer.File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image (Item.Char_Pos));
       end loop;
 
       --  FIXME: Packrat parser does not report errors yet.

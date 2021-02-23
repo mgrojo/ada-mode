@@ -26,7 +26,7 @@
 --  Efficient and flexible incremental parsing. ACM Transactions on
 --  Programming Languages and Systems,20(5):980-1013, 1998
 --
---  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -50,7 +50,7 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers;
+with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with SAL.Gen_Trimmed_Image;
@@ -148,8 +148,8 @@ package WisiToken is
       --  Last_Lookahead. After the LR table is generated, Last_Lookahead is
       --  no longer used.
    end record;
-   type Descriptor_Access is access Descriptor;
-   type Descriptor_Access_Constant is not null access constant Descriptor;
+   type Descriptor_Access is access all Descriptor;
+   type Descriptor_Access_Constant is access constant Descriptor;
 
    function Padded_Image (Item : in Token_ID; Desc : in Descriptor) return String;
    --  Return Desc.Image (Item), padded to Terminal_Image_Width (if Item
@@ -294,6 +294,10 @@ package WisiToken is
 
    subtype Buffer_Pos is Base_Buffer_Pos range 1 .. Base_Buffer_Pos'Last; -- match Emacs buffer origin.
 
+   type Buffer_Pos_Access is access all Buffer_Pos;
+
+   package Buffer_Pos_Lists is new Ada.Containers.Doubly_Linked_Lists (Buffer_Pos);
+
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Base_Buffer_Pos);
 
    type Buffer_Region is record
@@ -311,7 +315,7 @@ package WisiToken is
        else 0));
 
    function Inside (Pos : in Base_Buffer_Pos; Region : in Buffer_Region) return Boolean
-     is (Region.First <= Pos and Pos <= Region.Last);
+   is (Region.First <= Pos and Pos <= Region.Last);
 
    type Boundary is (Inclusive, Exclusive);
 
@@ -321,6 +325,8 @@ package WisiToken is
       Last_Boundary  : in Boundary := Inclusive)
      return Boolean;
    --  True if Outer entirely contains Inner, according to Boundaries.
+   --
+   --  Note that any region contains Null_Buffer_Region.
 
    function Overlaps (A, B : in Buffer_Region) return Boolean;
    --  True if A and B have some positions in common.
@@ -333,6 +339,10 @@ package WisiToken is
    function "+" (Left : in Buffer_Region; Right : in Base_Buffer_Pos) return Buffer_Region
      is (Left.First + Right, Left.Last + Right);
 
+   function Adjust (Left : in Buffer_Region; Delta_First : in Integer; Delta_Last : in Integer) return Buffer_Region
+   is (Buffer_Pos (Integer'Max (1, Integer (Left.First) + Delta_First)),
+       Base_Buffer_Pos (Integer (Left.Last) + Delta_Last));
+
    type Base_Line_Number_Type is new Integer; -- for delta line numbers.
    subtype Line_Number_Type is Base_Line_Number_Type range 1 .. Base_Line_Number_Type'Last;
    --  Match Emacs buffer line numbers.
@@ -341,11 +351,6 @@ package WisiToken is
 
    function Trimmed_Image (Item : in Line_Number_Type) return String;
    --  '-' if Invalid_Line_Number
-
-   package Line_Pos_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (Line_Number_Type, Buffer_Pos, Default_Element => Invalid_Buffer_Pos);
-
-   type Line_Pos_Vector_Access is access all Line_Pos_Vectors.Vector;
 
    type Base_Token is record
       --  The parser only needs ID; semantic checks need Byte_Region to
@@ -366,8 +371,7 @@ package WisiToken is
       --  buffers.
    end record;
 
-   function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Line_Pos_Vectors.Vector) return Ada.Text_IO.Count;
-   --  Result is origin 0 (WisiToken and Emacs standard)
+   function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count;
 
    function Image
      (Item       : in Base_Token;
@@ -455,6 +459,7 @@ package WisiToken is
    --  In addition, the name "debug" sets Debug_Mode.
 
    type Trace is abstract tagged limited null record;
+   type Trace_Access is access all Trace'Class;
    --  Output for tests/debugging.
 
    procedure Set_Prefix (Trace : in out WisiToken.Trace; Prefix : in String) is abstract;
@@ -475,6 +480,8 @@ package WisiToken is
 
    ----------
    --  Misc
+
+   type Boolean_Access is access all Boolean;
 
    function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String
      renames Ada.Strings.Unbounded.To_Unbounded_String;

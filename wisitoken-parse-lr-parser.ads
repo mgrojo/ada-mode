@@ -5,7 +5,7 @@
 --  In a child package of Parser.LR partly for historical reasons,
 --  partly to allow McKenzie_Recover to be in a sibling package.
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -31,7 +31,6 @@ package WisiToken.Parse.LR.Parser is
 
    type Language_Fixes_Access is access procedure
      (Trace             : in out WisiToken.Trace'Class;
-      Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Syntax_Trees.Stream_ID;
       Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
       Tree              : in     Syntax_Trees.Tree;
@@ -90,28 +89,28 @@ package WisiToken.Parse.LR.Parser is
 
       Parsers : aliased Parser_Lists.List;
 
-      Enable_McKenzie_Recover : Boolean;
-      Recover_Log_File        : Ada.Text_IO.File_Type;
-      Partial_Parse_Active    : Boolean := False;
-      --  Partial_Parse_Active is only used in recover log messages.
+      Partial_Parse_Active    : access Boolean;
+      Partial_Parse_Byte_Goal : access WisiToken.Buffer_Pos;
+      --  Used by In_Parse_Actions to terminate Partial_Parse.
    end record;
 
    overriding procedure Finalize (Object : in out LR.Parser.Parser);
    --  Deep free Object.Table.
 
    procedure New_Parser
-     (Parser                         :    out          LR.Parser.Parser;
-      Trace                          : not null access WisiToken.Trace'Class;
-      Lexer                          : in              WisiToken.Lexer.Handle;
-      Table                          : in              Parse_Table_Ptr;
-      Language_Fixes                 : in              Language_Fixes_Access;
-      Language_Matching_Begin_Tokens : in              Language_Matching_Begin_Tokens_Access;
-      Language_String_ID_Set         : in              Language_String_ID_Set_Access;
-      User_Data                      : in              WisiToken.Syntax_Trees.User_Data_Access);
+     (Parser                         :    out LR.Parser.Parser;
+      Trace                          : in     WisiToken.Trace_Access;
+      Lexer                          : in     WisiToken.Lexer.Handle;
+      Table                          : in     Parse_Table_Ptr;
+      Language_Fixes                 : in     Language_Fixes_Access;
+      Language_Matching_Begin_Tokens : in     Language_Matching_Begin_Tokens_Access;
+      Language_String_ID_Set         : in     Language_String_ID_Set_Access;
+      User_Data                      : in     WisiToken.Syntax_Trees.User_Data_Access);
 
    overriding procedure Parse
-     (Shared_Parser : in out LR.Parser.Parser;
-      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List);
+     (Shared_Parser    : in out LR.Parser.Parser;
+      Recover_Log_File : in     Ada.Text_IO.File_Type;
+      Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
    --  input setting Shared_Parser.Terminals, then parses tokens.
    --
@@ -123,13 +122,15 @@ package WisiToken.Parse.LR.Parser is
    --  For errors where no recovery is possible, raises Parse_Error with
    --  an appropriate error message.
 
-   overriding procedure Execute_Actions (Parser : in out LR.Parser.Parser);
+   overriding procedure Execute_Actions
+     (Parser              : in out LR.Parser.Parser;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region);
    --  Call Parser.User_Data.Insert_Token, Parser.User_Data.Delete_Token
    --  on any tokens inserted/deleted by error recovery. Update
    --  Parser.Line_Begin_Tokens to reflect error recovery. Then call
    --  User_Data.Reduce and the grammar post parse actions on all
-   --  nonterms in the syntax tree, by traversing the tree in depth-first
-   --  order.
+   --  nonterms in the syntax tree that overlap Action_Region_Bytes, by
+   --  traversing the tree in depth-first order.
 
    overriding function Any_Errors (Parser : in LR.Parser.Parser) return Boolean;
    --  Return True if any errors where encountered, recovered or not.
