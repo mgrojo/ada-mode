@@ -43,15 +43,39 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+'with unreferenced' in parameter list
+    in gnat pro 21.1
+> So I'd guess that you can put the aspect directly on the parameters in the
+> usual way (but that may require a compiler not available yet; the change was
+> approved in Sept [AI12-0395-1] and Oct [AI12-0398-1]). So, I'd expect the
+> following to work (eventually):
+>
+>  overriding function Expand_Tabs
+>      (This   : Dummy_Editor_Buffer with Unreferenced;
+>       Line   : Editable_Line_Type with Unreferenced;
+>       Column : Character_Offset_Type with Unreferenced) return
+> Visible_Column_Type is (0);
+While you're at it, you probably ought to add any other contexts where
+aspect_specifications are now allowed:
+
+    parameter_specification
+    discriminant_specification
+    extended_return_object_declaration
+    entry_index_specification
+
+
+do another diff between annex P and my grammar
+
+test completion with ada-mode default project
+    joakim@verona.se
+    > cl-no-applicable-method: No applicable method:
+    > wisi-xref-completion-at-point-table, #s(gnatxref-xref nil
+    > "*gnatxref-/home/joakim/pub/all-the-hellos/ada/hello-world/default_.adp*"
+    need better error message "no project defined, so can't complete on Ada identifiers"
+
+savannah support tickets work; mention in readme
+
 delete ada-language-version
-
-refactor fails if file has DOS line endings
-    test/refactor_dos.ads
-        not ./run_ada_lalr_parse.exe refactor 5 test/refactor_dos.ads 1105 --verbosity "action=3"
-        not "" lr1
-
-test/ada_mode-interactive_2.adb
-    has nil indent
 
 build/test.log
     ada_mode-interactive_2.adb Local_Proc_1
@@ -74,6 +98,17 @@ incremental parse
 
 
 split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
+
+provide binary for windows and Debian on Savannah as an aide to new users
+    AdaCore gnat distributions only have two flavors
+    build.sh can just download those
+    or some elisp code can
+
+build.sh provide helpful error for missing gnatcoll
+    refer to ada-mode.info
+
+gpr_query process symbols in background thread, yeild periodically
+    avoid pausing user interface
 
 in ada_annex_p.wy:
     wisi-parse-buffer indent doesn't use lisp-indent-buffer
@@ -972,6 +1007,7 @@ in ~/.gitconfig:
 
  release process
 split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
+    delete files that are not used; wisi packrat, libadalang, etc
 
 keep status in ~/projects.text
 do wisitoken release ../org.wisitoken/build/release_process.text
@@ -980,9 +1016,6 @@ update benchmarks above
 
 generate ada.wy LR1 with --task_count 1 in build.sh; not in git
 
-
-savannah support tickets work; mention in readme
-
 https://en.wikipedia.org/wiki/Comparison_of_parser_generators
 
 add wisitoken grammar doc to wisi package
@@ -990,6 +1023,8 @@ add wisitoken grammar doc to wisi package
 
 provide wisitoken_rules.make
     for %.re2c etc
+
+find info cross reference checker; ref to wisi from ada-mode was wrong.
 
 (dvc-status ".")
 
@@ -1200,6 +1235,7 @@ Debian testing has elpa checkout
     upgrade debian (to avoid eventually needing to reinstall from scratch)
 
     FIXME: test with the latest Debian gnat release
+        bugs to https://gcc.gnu.org/bugzilla/buglist.cgi?quicksearch=comp%3Aada
 
     if new machine, install gnat CE 2019, gnatcoll
         http://libre.adacore.com

@@ -1,6 +1,5 @@
 *.elc
 *.exe
-*.gpr
 *.html
 *.info
 *.parse_table
