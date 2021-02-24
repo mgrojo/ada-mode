@@ -301,20 +301,28 @@ current construct."
   "Return t if point is inside the parameter-list of a subprogram declaration.
 PARSE-RESULT must be the result of `syntax-ppss'."
   ;; (info "(elisp)Parser State" "*syntax-ppss*")
-  (let (cache)
-    (when (> (nth 0 parse-result) 0)
-      ;; In parens. Request parse of region containing parens; that
+  (when (> (nth 0 parse-result) 0)
+    ;; In parens.
+    (cond
+     (wisi-incremental-parse-enable
+      (eq 'formal_part (wisi-parse-tree-query wisi--parser 'nonterm (nth 1 parse-result)))
+      )
+
+     (t ;; not incremental parse
+
+      ;; Request parse of region containing parens; that
       ;; will be expanded to include the subprogram declaration, if
       ;; any,
       (let* ((forward-sexp-function nil) ;; forward-sexp just does parens
 	     (start (nth 1 parse-result))
 	     (end (save-excursion (goto-char (nth 1 parse-result)) (forward-sexp) (point))))
 	(wisi-validate-cache start end nil 'navigate)
-	(setq cache (wisi-get-cache start))
-	;; cache is nil if the parse failed
-	(when cache
-	  (eq 'formal_part (wisi-cache-nonterm cache)))
-	))))
+	(let ((cache (wisi-get-cache start)))
+	  ;; cache is nil if the parse failed
+	  (when cache
+	    (eq 'formal_part (wisi-cache-nonterm cache)))
+	  )))
+     )))
 
 (defun ada-format-paramlist ()
   "Reformat the parameter list point is in."

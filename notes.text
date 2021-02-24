@@ -43,22 +43,38 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+run all tests with incremental mode enabled
+    test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t)"
+    test/ada_mode-conditional_expressions.adb
+;; SYSTEM.ASSERTIONS.ASSERT_FAILURE: failed precondition from wisi.ads:772
+    null nonterm.augmented
+    'name' outside action_region
+        contains case_expression; 'name' is anchor
+    indenting assignment_statement
+        indent_compute_delta needs aug.last_indent_line for Indent_Anchored_2 Anchor_Line
+            but uses base.line if invalid!?
+            so could have safe_augmented that returns invalid
+
+        or always computed all augmented for full_parse, shift, update in Edit_Tree.
+        or eliminate, use node.line, _last, compute trailing_comment as needed.
+
+
+
+
+    skip all *_partial_*?
+    build/test.log
+
+test/ada_mode-conditional_expressions.adb
+    accidently insert 'g' at point-min
+        => syntax_trees assert fail
+        add test
+
 incremental parse
     wisi-show-errors show _all_ errors in buffer
         if parse succeeds, delete errors in regions parsed
         could do that in ada, send current list of errors (aka diagnostics) on request?
 
-    Edit previous error correction, try that first
-
     see wisitoken notes, FIXMEs
-
-    post_parse navigate
-        only need to edit changed caches?
-        use kmn_list?
-        change one 'begin' to 'end' => lots more invalid
-
-    preserve errors, recover_ops for complete error list after incr parse
-        only in elisp; delete errors in requested parse region, parse, add new.
 
     redesign navigation?
         on another branch
@@ -67,22 +83,12 @@ incremental parse
 
     never need begin_indent; compute it from line_begin_char_pos, line_begin_token
 
-    run all tests with incremental mode enabled
-        build/test.log
-
     error recover try prev solution
         edit it?
 
     store shared_stream_index in parse stream element, for faster "continue search in shared_stream"
         or just shard_stream_index for stack_top
             may be broken down?
-
-build/test.log
-    ada_mode-interactive_2.adb Local_Proc_1
-        right paren indented 1 too much when error correction present
-            Delete_Token update line_begin_char_pos?
-
-    gpr-skel-test.el parse navigate unhandled exception: CONSTRAINT_ERROR: sal-gen_unb
 
 still need wisi-lexer?
 
@@ -94,11 +100,6 @@ split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
 
 in ada_annex_p.wy:
     wisi-parse-buffer indent doesn't use lisp-indent-buffer
-
-indent bug:
-    indent_line had delta_indent.hanging_paren_state for delta_2, but not delta_1
-        caused bad comment indent in ada_mode-ada2020.adb Func_Declare_1
-        otherwise not used; delete it?
 
 indent recover bug:
                (case Shared_Parser.Tree.Label (Parser_State.Shared_Token.Node) is

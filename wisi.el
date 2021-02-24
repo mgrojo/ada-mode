@@ -500,7 +500,10 @@ Used to ignore whitespace changes in before/after change hooks.")
 
 (defvar-local wisi--changes nil
   "Cached list of args to wisi-after-change, for incremental parse.
-Each element is (BEGIN-CHARS END-CHARS DELETED-BYTES DELETED-CHARS)")
+Each element is
+(INSERT-BEGIN-BYTE-POS INSERT-BEGIN-CHAR-POS
+ INSERT-END-BYTE-POS INSERT-END-CHAR-POSS
+ DELETED-BYTE-COUNT DELETED-CHAR-COUNT INSERTED-TEXT)")
 
 (defvar-local wisi--deleted-bytes 0
   "Cached count of bytes deleted.

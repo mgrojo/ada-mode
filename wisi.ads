@@ -50,6 +50,7 @@ package Wisi is
      (Source : in     String;
       Last   : in out Integer)
      return String;
+   --  Returns content of quoted string in Source at Last + 1 ...
 
    function Get_Integer
      (Source : in     String;
@@ -426,6 +427,13 @@ package Wisi is
       Action     : in     Positive;
       Edit_Begin : in     WisiToken.Buffer_Pos) is null;
 
+   type Query_Label is (Nonterm);
+
+   procedure Query_Tree
+     (Tree       : in WisiToken.Syntax_Trees.Tree;
+      Label      : in Query_Label;
+      Char_Point : in WisiToken.Buffer_Pos);
+
    type Arg_Index_Array is array (Positive range <>) of WisiToken.Positive_Index_Type;
 
    procedure Put_Language_Action
@@ -716,8 +724,7 @@ private
          Simple_Delta : Simple_Delta_Type;
 
       when Hanging =>
-         Hanging_First_Line  : WisiToken.Line_Number_Type;
-         Hanging_Paren_State : Integer;
+         Hanging_First_Line : WisiToken.Line_Number_Type;
 
          Hanging_Delta_1 : Simple_Delta_Type;
          --  Indentation of first line in token; Null_Delta if first line does
@@ -786,6 +793,8 @@ private
       Last_Line   : in     WisiToken.Line_Number_Type;
       Offset      : in     Integer)
      return Delta_Type;
+   --  Create an anchor (Anchor_Line, Offset), return an anchored delta using it.
+   --  Anchor ID is unique in Anchor_Line .. Last_Line.
 
    function Indent_Compute_Delta
      (Data              : in out Parse_Data_Type'Class;
@@ -819,5 +828,5 @@ private
    Name_Property_Code   : constant String := "9";
    Edit_Action_Code     : constant String := "10";
    Language_Action_Code : constant String := "11 ";
-
+   Query_Tree_Code      : constant String := "12";
 end Wisi;

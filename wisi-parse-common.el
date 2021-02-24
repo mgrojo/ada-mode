@@ -181,6 +181,15 @@ have been previously parsed by `wisi-parse-current' or
 STMT-START, STMT-END are the start and end positions of the
 statement containing EDIT_BEGIN.")
 
+(defconst wisi-parse-tree-queries
+  ;; Must wisi.ads Query_Label
+  '((nonterm . 0))
+  "Query values for `wisi-parse-tree-query'.
+- nonterm - return nonterm token id at POINT")
+
+(cl-defgeneric wisi-parse-tree-query ((parser wisi-parser) query point)
+  "Return result of parse tree query QUERY at POINT.")
+
 (cl-defgeneric wisi-parse-reset ((parser wisi-parser))
   "Ensure parser is ready to process a new parse.")
 

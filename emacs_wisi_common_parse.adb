@@ -554,6 +554,39 @@ package body Emacs_Wisi_Common_Parse is
                   Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
                end;
 
+            elsif Match ("query-tree") then
+               --  Args: see wisi-process-parse.el wisi-process-parse--send-query
+               --  Input: <none>
+               --  Response:
+               --  [elisp vector]...
+               --  prompt
+               declare
+                  Label            : constant Wisi.Query_Label                       := Wisi.Query_Label'Val
+                    (Wisi.Get_Integer (Command_Line, Last));
+                  Source_File_Name : constant Ada.Strings.Unbounded.Unbounded_String :=
+                    +Wisi.Get_String (Command_Line, Last);
+                  Point            : constant WisiToken.Buffer_Pos                   := WisiToken.Buffer_Pos
+                    (Wisi.Get_Integer (Command_Line, Last));
+
+                  Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find
+                    (-Source_File_Name, Language);
+               begin
+                  Check_Command_Length (Command_Length, Last);
+
+                  if Parse_Context = null then
+                     raise Parse_Context_Not_Found;
+                  end if;
+
+                  Wisi.Query_Tree (Parse_Context.Parser.Tree, Label, Point);
+               exception
+               when Parse_Context_Not_Found =>
+                  --  Tell Emacs to send full text
+                  Put_Line ("(file_not_found)");
+
+               when E : others => -- includes Fatal_Error
+                  Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
+               end;
+
             elsif Match ("save_text") then
                --  Args: source_file_name save_file_name
                --  Input: <none>

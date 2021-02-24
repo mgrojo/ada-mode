@@ -43,7 +43,7 @@ package body Wisi is
    procedure Update_Indent_Lines
      (Tree          : in     Syntax_Trees.Tree'Class;
       Deleted_Tok   : in     WisiToken.Base_Token;
-      Deleted_Aug   : in out Augmented_Var_Ref;
+      Deleted_Aug   : in     Augmented_Var_Ref;
       Prev_Token    : in     Syntax_Trees.Node_Access;
       Next_Token    : in     Syntax_Trees.Node_Access;
       Prev_Modified : in out Boolean)
@@ -2678,7 +2678,6 @@ package body Wisi is
          return Result : Delta_Type :=
            (Hanging,
             Hanging_First_Line  => Indenting_Token.Base.Line,
-            Hanging_Paren_State => Indenting_Token.Aug.Paren_State,
             Hanging_Delta_1     => Indent_Compute_Delta
               (Data, Tree, Nonterm, Tokens,
                (Simple,
@@ -2720,6 +2719,30 @@ package body Wisi is
          end return;
       end if;
    end Indent_Hanging_1;
+
+   procedure Query_Tree
+     (Tree       : in WisiToken.Syntax_Trees.Tree;
+      Label      : in Query_Label;
+      Char_Point : in WisiToken.Buffer_Pos)
+   is
+      use Syntax_Trees;
+   begin
+      case Label is
+      when Nonterm =>
+         declare
+            Terminal : constant Node_Access := Tree.Find_Terminal (Char_Point);
+         begin
+            if Terminal = Invalid_Node_Access then
+               Ada.Text_IO.Put_Line ("[" & Query_Tree_Code & Query_Label'Pos (Label)'Image & " nil]");
+            else
+               Ada.Text_IO.Put_Line
+                 ("[" & Query_Tree_Code &
+                    Query_Label'Pos (Label)'Image &
+                    Tree.ID (Tree.Parent (Terminal))'Image & "]");
+            end if;
+         end;
+      end case;
+   end Query_Tree;
 
    procedure Put_Language_Action
      (Data    : in Parse_Data_Type;
@@ -2927,7 +2950,7 @@ package body Wisi is
       return "(" & Delta_Labels'Image (Item.Label) &
         (case Item.Label is
          when Simple => " " & Image (Item.Simple_Delta),
-         when Hanging => Line_Number_Type'Image (Item.Hanging_First_Line) & Integer'Image (Item.Hanging_Paren_State) &
+         when Hanging => Line_Number_Type'Image (Item.Hanging_First_Line) &
               " " & Image (Item.Hanging_Delta_1) & " " & Image (Item.Hanging_Delta_2)) & ")";
    end Image;
 
@@ -3040,7 +3063,6 @@ package body Wisi is
       Last_Line   : in     Line_Number_Type;
       Offset      : in     Integer)
      return Delta_Type
-   --  Create an anchor, return an anchored delta using it.
    is
       use Anchor_ID_Vectors;
       --  We can't use a Reference here, because the Element in reference
@@ -3123,6 +3145,7 @@ package body Wisi is
                  (Data,
                   Anchor_Line =>
                     (if Indenting_Comment then
+                        --  FIXME: why use aug.last_indent_line for comment?
                        (if Anchor_Token.Aug.Last_Indent_Line = Invalid_Line_Number
                         then Anchor_Token.Base.Line
                         else Anchor_Token.Aug.Last_Indent_Line)

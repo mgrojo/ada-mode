@@ -57,6 +57,7 @@ Must match emacs_wisi_common_parse.ads Protocol_Version.")
   (response-count 0)      ;; responses received from subprocess during last parse; for profiling.
   end-pos                 ;; last character position parsed
   language-action-table   ;; array of function pointers, each taking an sexp sent by the process
+  query-result            ;; holds result of wisi-process-parse--Query
   )
 
 (cl-defmethod wisi-parser-transaction-log-buffer-name ((parser wisi-process--parser))
@@ -303,9 +304,10 @@ Does not wait for command to complete."
 			(face 1)
 			(indent 2))
 		      (position-bytes begin)
-		      begin
+		      ;; indent-region passes markers
+		      (if (markerp begin) (marker-position begin) begin)
 		      (position-bytes end)
-		      end
+		      (if (markerp end) (marker-position end) end)
 		      (wisi-parse-format-language-options parser)
 		      ))
 	 (msg (format "%04d%s" (length cmd) cmd))
@@ -321,10 +323,9 @@ Does not wait for command to complete."
     ))
 
 (defun wisi-process-parse--send-refactor (parser refactor-action edit-begin)
-  "Send a refactor command to PARSER external process, followed
-by the content of the current buffer from PARSE-BEGIN thru
-PARSE-END, wait for command to complete. PARSER will respond with
-one or more Edit messages."
+  "Send a refactor command to PARSER external process, wait for
+command to complete. PARSER will respond with one or more Edit
+messages."
   ;; Must match "refactor" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Refactor_Params.
   (let* ((cmd (format "refactor %d \"%s\" %d \"%s\""
@@ -332,6 +333,27 @@ one or more Edit messages."
 		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		      (position-bytes edit-begin)
 		      wisi-parser-verbosity
+		      ))
+	 (msg (format "%04d%s" (length cmd) cmd))
+	 (process (wisi-process--parser-process parser)))
+
+    (with-current-buffer (wisi-process--parser-buffer parser)
+      (erase-buffer))
+
+    (wisi-parse-log-message parser msg)
+    (process-send-string process msg)
+    (wisi-process-parse--wait parser)
+    ))
+
+(defun wisi-process-parse--send-query (parser query point)
+  "Send a query command to PARSER external process, wait for command to complete. PARSER will respond with
+one or more Query messages."
+  ;; Must match "query-tree" command arguments read by
+  ;; emacs_wisi_common_parse.adb Process_Stream "query-tree"
+  (let* ((cmd (format "query-tree %d \"%s\" %d"
+		      (cdr (assoc query wisi-parse-tree-queries))
+		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		      point
 		      ))
 	 (msg (format "%04d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
@@ -523,6 +545,15 @@ one or more Edit messages."
   ;; sexp is [Language language-action ...]
   (funcall (aref (wisi-process--parser-language-action-table parser) (aref sexp 1)) sexp))
 
+(defun wisi-process-parse--Query (parser sexp)
+  ;; sexp is [Query query-label ...]
+  (cl-ecase (car (rassoc (aref sexp 1) wisi-parse-tree-queries))
+    (nonterm ;; sexp is [Query 'nonterm token-id]
+     (when (aref sexp 2)
+       (setf (wisi-process--parser-query-result parser)
+	     (aref (wisi-process--parser-token-table parser) (aref sexp 2)))))
+    ))
+
 (defun wisi-process-parse--execute (parser sexp)
   "Execute encoded SEXP sent from external process."
   ;; sexp is [action arg ...]; an encoded instruction that we need to execute
@@ -591,6 +622,7 @@ one or more Edit messages."
   ;;    Dispatch to a language-specific action, via
   ;;    `wisi-process--parser-language-action-table'.
   ;;
+  ;; [Query query-label ...]
   ;;
   ;; Numeric action codes are given in the case expression below
 
@@ -606,6 +638,7 @@ one or more Edit messages."
     (9  (wisi-process-parse--Name_Property parser sexp))
     (10 (wisi-process-parse--Edit parser sexp))
     (11 (wisi-process-parse--Language parser sexp))
+    (12 (wisi-process-parse--Query parser sexp))
     ))
 
 ;;;;; main
@@ -639,7 +672,7 @@ one or more Edit messages."
   	(setf (wisi-parser-parse-errors parser)
 	      (list
 	       (make-wisi--parse-error
-		:pos 0
+		:pos (point-min)
 		:message (format "%s:%d:%d: parser busy (try ’wisi-kill-parser’)"
 				 (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "") 1 1))
 	       ))
@@ -912,7 +945,8 @@ one or more Edit messages."
   (cond
    (wisi-incremental-parse-enable
     (when wisi--changes
-      (wisi-process-parse--send-incremental-parse parser nil)))
+      (wisi-process-parse--send-incremental-parse parser nil)
+      (wisi-process-parse--handle-messages parser)))
 
    (t
     ;; IMPROVEME: stmt-begin, stmt-end not used if only incremental supported.
@@ -928,10 +962,32 @@ one or more Edit messages."
      ;; We must have wisi-incremental-parse-enable t, with no changes.
      (message "parsing buffer ...")
      (wisi-process-parse--send-incremental-parse parser t)
-     (message "parsing buffer ... done"))
-    (wisi-process-parse--send-refactor parser refactor-action edit-begin)
-    (wisi-process-parse--handle-messages parser)
-    ))
+     (wisi-process-parse--handle-messages parser)
+     (message "parsing buffer ... done")
+     (wisi-process-parse--send-refactor parser refactor-action edit-begin)
+     (wisi-process-parse--handle-messages parser)
+     )))
+
+(cl-defmethod wisi-parse-tree-query ((parser wisi-process--parser) query point)
+  (wisi-process-parse--prepare parser)
+  (setf (wisi-process--parser-query-result parser) nil)
+  (cl-assert wisi-incremental-parse-enable)
+  (when wisi--changes
+    (wisi-process-parse--send-incremental-parse parser nil)
+    (wisi-process-parse--handle-messages parser))
+
+  (wisi-process-parse--send-query parser query point)
+  (condition-case-unless-debug _err
+      (wisi-process-parse--handle-messages parser)
+    ('wisi-file_not_found
+     (message "parsing buffer ...")
+     (wisi-process-parse--send-incremental-parse parser t)
+     (wisi-process-parse--handle-messages parser)
+     (message "parsing buffer ... done")
+     (wisi-process-parse--send-query parser query point)
+     (wisi-process-parse--handle-messages parser)
+     ))
+  (wisi-process--parser-query-result parser))
 
 ;;;;; debugging
 (defun wisi-process-parse-soft-kill (parser)
