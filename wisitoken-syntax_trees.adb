@@ -1218,6 +1218,44 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Find_Sibling;
 
+   function Find_Terminal
+     (Tree       : in Syntax_Trees.Tree;
+      Char_Point : in Buffer_Pos)
+     return Node_Access
+   is
+      function Find (Node : in Node_Access) return Node_Access
+      is begin
+         if Node = Invalid_Node_Access then
+            return Node;
+         end if;
+
+         case Node.Label is
+         when Terminal_Label =>
+            if Inside (Char_Point, Node.Char_Region) then
+               return Node;
+            else
+               return Invalid_Node_Access;
+            end if;
+
+         when Nonterm =>
+            for Child of Node.Children loop
+               if Inside (Char_Point, Child.Char_Region) then
+                  declare
+                     Temp : constant Node_Access := Find (Child);
+                  begin
+                     if Temp /= Invalid_Node_Access then
+                        return Temp;
+                     end if;
+                  end;
+               end if;
+            end loop;
+            return Invalid_Node_Access;
+         end case;
+      end Find;
+   begin
+      return Find (Root (Tree));
+   end Find_Terminal;
+
    procedure Finish_Parse
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;

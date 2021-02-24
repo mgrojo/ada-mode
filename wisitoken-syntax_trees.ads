@@ -1595,6 +1595,13 @@ package WisiToken.Syntax_Trees is
    --  Tree.Root. If not found there, continues searching input in
    --  Shared_Stream.
 
+   function Find_Terminal
+     (Tree       : in Syntax_Trees.Tree;
+      Char_Point : in Buffer_Pos)
+     return Node_Access;
+   --  Return the terminal whose char_region contains Char_Point,
+   --  Invalid_Node_Access if none.
+
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
       Production      : in     WisiToken.Production_ID;
