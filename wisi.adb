@@ -43,7 +43,7 @@ package body Wisi is
    procedure Update_Indent_Lines
      (Tree          : in     Syntax_Trees.Tree'Class;
       Deleted_Tok   : in     WisiToken.Base_Token;
-      Deleted_Aug   : in out Augmented_Var_Ref;
+      Deleted_Aug   : in     Augmented_Var_Ref;
       Prev_Token    : in     Syntax_Trees.Node_Access;
       Next_Token    : in     Syntax_Trees.Node_Access;
       Prev_Modified : in out Boolean)
@@ -1665,12 +1665,13 @@ package body Wisi is
             --  there is a blank line after the code line (and before any
             --  comments); assume that is the edit point; see
             --  test/ada_mode-interactive_2.adb "A := B \n+C;"
-            Blank_Line      : Line_Number_Type := Invalid_Line_Number;
-            Comment_Present : Boolean          := False;
+            Blank_Line       : Line_Number_Type   := Invalid_Line_Number;
+            Blank_Line_Index : SAL.Base_Peek_Type := 0;
+            Comment_Present  : Boolean            := False;
 
             procedure Check_Non_Grammar
-            --  Set Blank_Line if there is a blank line immediately after
-            --  Prev_Terminal.
+            --  Set Blank_Line, Blank_Line_Index if there is a blank line
+            --  immediately after Prev_Terminal.
             is
                I : SAL.Base_Peek_Type := Prev_Non_Grammar.First_Index;
             begin
@@ -1685,7 +1686,8 @@ package body Wisi is
                   if I < Prev_Non_Grammar.Last_Index and then
                     Prev_Non_Grammar (I + 1).ID = Descriptor.New_Line_ID
                   then
-                     Blank_Line := Prev_Non_Grammar (I + 1).Line;
+                     Blank_Line       := Prev_Non_Grammar (I + 1).Line;
+                     Blank_Line_Index := I + 1;
                      return;
                   end if;
 
@@ -1695,38 +1697,38 @@ package body Wisi is
          begin
             Check_Non_Grammar;
 
-            Insert_After := Parse_Data_Type'Class (Data).Insert_After
-              (Tree, Inserted_Token, Inserted_Before,
-               Comment_Present      => Comment_Present,
-               Insert_On_Blank_Line => Blank_Line /= Invalid_Line_Number);
+            if Blank_Line /= Invalid_Line_Number then
+               --  Insert on blank line; no need to call Insert_After.
+               --
+               --  test/ada_mode-interactive_2.adb Function_Access_2 and many similar
+               --  indent for new code line extending previous code line
+               declare
+                  New_Non_Grammar : Base_Token_Arrays.Vector;
+               begin
+                  pragma Assert (Blank_Line_Index = Prev_Non_Grammar.First_Index + 1);
 
-            if Insert_After then
-               New_Aug.Inserted_After := True;
+                  for I in Blank_Line_Index .. Prev_Non_Grammar.Last_Index loop
+                     New_Non_Grammar.Append (Prev_Non_Grammar (I));
+                  end loop;
+                  New_Non_Grammar.Append (Token_Non_Grammar);
+                  Token_Non_Grammar := New_Non_Grammar;
 
-               if Trace_Action > WisiToken.Detail then
-                  Data.Trace.Put_Line
-                    ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
-                       " after " & Tree.Image (Prev_Terminal, Node_Numbers => True) &
-                       (if Blank_Line = Invalid_Line_Number
-                        then ""
-                        else " on blank line" & Blank_Line'Image));
-               end if;
+                  pragma Assert (Tree.Byte_Region (Inserted_Token) = Null_Buffer_Region);
 
-               if Blank_Line /= Invalid_Line_Number then
+                  New_Aug.Inserted_After := True; --  FIXME: need tri-state?
+
                   Tree.Update
                     (Inserted_Token,
                      Byte_Region => Null_Buffer_Region,
-                     Char_Region => (First | Last => Tree.Line_Begin_Char_Pos (Blank_Line)),
+                     Char_Region => (First | Last => Prev_Non_Grammar (Blank_Line_Index).Char_Region.First + 1),
                      Line        => Blank_Line);
+                  Tree.Set_Line_Last (Inserted_Token, Blank_Line);
+
+                  Prev_Non_Grammar.Set_First_Last (Prev_Non_Grammar.First_Index, Prev_Non_Grammar.First_Index);
+                  Tree.Set_Line_Last (Prev_Terminal, Blank_Line - 1);
 
                   New_Aug.First_Indent_Line := Blank_Line;
                   New_Aug.Last_Indent_Line  := Blank_Line;
-
-                  for I in Prev_Non_Grammar.First_Index + 1 .. Prev_Non_Grammar.Last_Index loop
-                     Token_Non_Grammar.Append (Prev_Non_Grammar (I));
-                  end loop;
-
-                  Prev_Non_Grammar.Set_First_Last (Prev_Non_Grammar.First_Index, Prev_Non_Grammar.First_Index);
 
                   if Prev_Aug.First_Trailing_Comment_Line <= Prev_Aug.Last_Trailing_Comment_Line then
                      New_Aug.First_Trailing_Comment_Line := Prev_Aug.First_Trailing_Comment_Line + 1;
@@ -1735,28 +1737,53 @@ package body Wisi is
 
                   Prev_Aug.First_Trailing_Comment_Line := Invalid_Line_Number;
                   Prev_Aug.Last_Trailing_Comment_Line  := Invalid_Line_Number;
-               elsif Length (Prev_Token.Char_Region) = 0 then
-                  raise SAL.Programmer_Error with "Prev_Token char_region = 0: " & Tree.Image (Prev_Terminal);
 
-               else
-                  Tree.Update
-                    (Inserted_Token,
-                     Byte_Region => Null_Buffer_Region,
-                     Char_Region => (First | Last => Prev_Token.Char_Region.Last),
-                     Line        => Prev_Token.Line);
+                  if Trace_Action > WisiToken.Detail then
+                     Data.Trace.Put_Line
+                       ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
+                          " after " & Tree.Image (Prev_Terminal, Node_Numbers => True) &
+                          " on blank line" & Blank_Line'Image);
+                  end if;
+               end;
 
-                  Token_Non_Grammar := Prev_Non_Grammar;
+            else
+               Insert_After := Parse_Data_Type'Class (Data).Insert_After
+                 (Tree, Inserted_Token, Inserted_Before,
+                  Comment_Present      => Comment_Present,
+                  Insert_On_Blank_Line => False); --  FIXME: delete arg
 
-                  New_Aug.First_Indent_Line := Invalid_Line_Number;
-                  New_Aug.Last_Indent_Line  := Invalid_Line_Number;
+               if Insert_After then
+                  New_Aug.Inserted_After := True;
 
-                  Prev_Non_Grammar := WisiToken.Base_Token_Arrays.Empty_Vector;
+                  if Trace_Action > WisiToken.Detail then
+                     Data.Trace.Put_Line
+                       ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
+                          " after " & Tree.Image (Prev_Terminal, Node_Numbers => True));
+                  end if;
 
-                  New_Aug.First_Trailing_Comment_Line := Prev_Aug.First_Trailing_Comment_Line;
-                  New_Aug.Last_Trailing_Comment_Line  := Prev_Aug.Last_Trailing_Comment_Line;
+                  if Length (Prev_Token.Char_Region) = 0 then
+                     raise SAL.Programmer_Error with "Prev_Token char_region = 0: " & Tree.Image (Prev_Terminal);
 
-                  Prev_Aug.First_Trailing_Comment_Line := Invalid_Line_Number;
-                  Prev_Aug.Last_Trailing_Comment_Line  := Invalid_Line_Number;
+                  else
+                     Tree.Update
+                       (Inserted_Token,
+                        Byte_Region => Null_Buffer_Region,
+                        Char_Region => (First | Last => Prev_Token.Char_Region.Last),
+                        Line        => Prev_Token.Line);
+
+                     Token_Non_Grammar := Prev_Non_Grammar;
+
+                     New_Aug.First_Indent_Line := Invalid_Line_Number;
+                     New_Aug.Last_Indent_Line  := Invalid_Line_Number;
+
+                     Prev_Non_Grammar := WisiToken.Base_Token_Arrays.Empty_Vector;
+
+                     New_Aug.First_Trailing_Comment_Line := Prev_Aug.First_Trailing_Comment_Line;
+                     New_Aug.Last_Trailing_Comment_Line  := Prev_Aug.Last_Trailing_Comment_Line;
+
+                     Prev_Aug.First_Trailing_Comment_Line := Invalid_Line_Number;
+                     Prev_Aug.Last_Trailing_Comment_Line  := Invalid_Line_Number;
+                  end if;
                end if;
             end if;
          end;
@@ -1951,7 +1978,7 @@ package body Wisi is
                  " not in tokens range (" & SAL.Peek_Type'Image (Tokens'First) & " .." &
                  SAL.Peek_Type'Image (Tokens'Last) & "); bad grammar action.");
 
-         elsif Overlaps (Tree.Byte_Region (Tokens (Pair.Index)), Data.Action_Region_Bytes) then
+         elsif Overlaps (Tree.Char_Region (Tokens (Pair.Index)), Data.Action_Region_Chars) then
             declare
                use all type Syntax_Trees.Node_Label;
                Token  : constant Base_Token := Tree.Base_Token
@@ -2095,7 +2122,7 @@ package body Wisi is
          --  Virtual tokens don't appear in the actual buffer, so we can't set
          --  a text property on them.
          return;
-      elsif not Overlaps (Tree.Byte_Region (Tokens (Name)), Data.Action_Region_Bytes) then
+      elsif not Overlaps (Tree.Char_Region (Tokens (Name)), Data.Action_Region_Chars) then
          return;
       end if;
 
@@ -2153,7 +2180,7 @@ package body Wisi is
               Image (Tree.Byte_Region (Nonterm)));
       end if;
       for Param of Params loop
-         if Overlaps (Tree.Byte_Region (Tokens (Param.Index)), Data.Action_Region_Bytes) then
+         if Overlaps (Tree.Char_Region (Tokens (Param.Index)), Data.Action_Region_Chars) then
             declare
                use all type Syntax_Trees.Node_Label;
                Token     : constant Base_Token    := Tree.Base_Token (Tokens (Param.Index));
@@ -2282,10 +2309,10 @@ package body Wisi is
       Suffix_Cur : Cursor;
    begin
       for Param of Params loop
-         if Overlaps (Tree.Byte_Region (Tokens (Param.Index)), Data.Action_Region_Bytes) then
+         if Overlaps (Tree.Char_Region (Tokens (Param.Index)), Data.Action_Region_Chars) then
             if Trace_Action > Outline then
                Data.Trace.Put_Line
-                 ("face_apply_action: " & Image (Tree.Byte_Region (Tokens (Param.Index))) &
+                 ("face_apply_action: " & Image (Tree.Char_Region (Tokens (Param.Index))) &
                     " " & Param.Prefix_Face'Image & " " & Param.Suffix_Face'Image);
             end if;
 
@@ -2341,7 +2368,7 @@ package body Wisi is
       Cache_Cur : Cursor;
    begin
       for Param of Params loop
-         if Overlaps (Tree.Byte_Region (Tokens (Param.Index)), Data.Action_Region_Bytes) then
+         if Overlaps (Tree.Char_Region (Tokens (Param.Index)), Data.Action_Region_Chars) then
             declare
                Token : constant Base_Token := Tree.Base_Token (Tokens (Param.Index));
             begin
@@ -2382,7 +2409,7 @@ package body Wisi is
       Cache_Cur : Cursor;
    begin
       for Param of Params loop
-         if Overlaps (Tree.Byte_Region (Tokens (Param.Index)), Data.Action_Region_Bytes) then
+         if Overlaps (Tree.Char_Region (Tokens (Param.Index)), Data.Action_Region_Chars) then
             declare
                Token : constant Base_Token := Tree.Base_Token (Tokens (Param.Index));
             begin
@@ -2430,7 +2457,7 @@ package body Wisi is
       Cache_Cur : Cursor;
    begin
       for I of Params loop
-         if Overlaps (Tree.Byte_Region (Tokens (I)), Data.Action_Region_Bytes) then
+         if Overlaps (Tree.Char_Region (Tokens (I)), Data.Action_Region_Chars) then
             declare
                Token : constant Base_Token := Tree.Base_Token (Tokens (I));
                To_Delete : Buffer_Pos_Lists.List;
@@ -2581,8 +2608,7 @@ package body Wisi is
       end if;
 
       for I in Tokens'Range loop
-         if (Tree.Is_Virtual_Terminal (Tokens (I)) or else
-               Overlaps (Tree.Byte_Region (Tokens (I)), Data.Action_Region_Bytes)) and
+         if Overlaps (Tree.Char_Region (Tokens (I)), Data.Action_Region_Chars) and
            I in Params'Range -- in some translated EBNF, not every token has an indent param
          then
             declare

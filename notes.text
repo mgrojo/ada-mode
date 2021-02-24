@@ -43,58 +43,69 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+testimonial:
+    Jonty Needham Feb 2021 ada-mode 7.1.4 Ada-mode is even better than it used to be and a real pleasure to use.
+
 for wisi.texi:
 
-----------------------
-gpr-query relies on the cross reference information output by the
-compiler; it assumes the code is compiled.
+    ----------------------
+    gpr-query relies on the cross reference information output by the
+    compiler; it assumes the code is compiled.
 
-When gpr-query reads the compiler output, it caches the results in a
-database.
+    When gpr-query reads the compiler output, it caches the results in a
+    database.
 
-This error message indicates that the cached cross reference database does not
-contain the requested symbol. This is due to one of three things:
+    This error message indicates that the cached cross reference database does not
+    contain the requested symbol. This is due to one of three things:
 
-- the code has never been compiled, or changed but not compiled
+    - the code has never been compiled, or changed but not compiled
 
-    solution; compile it and try again
+        solution; compile it and try again
 
-- the code has been changed and compiled since the database was
-refreshed
+    - the code has been changed and compiled since the database was
+    refreshed
 
-    solution: refresh the database with C-c C-q (wisi-refresh-prj-cache)
+        solution: refresh the database with C-c C-q (wisi-refresh-prj-cache)
 
-- the compiler does not output information for this symbol.
+    - the compiler does not output information for this symbol.
 
-    give up
+        give up
 
-AdaCore is moving to a different cross reference system, so they are not
-likely to make changes in the compiler output info to support new
-features.
------------
+    AdaCore is moving to a different cross reference system, so they are not
+    likely to make changes in the compiler output info to support new
+    features.
+    -----------
+
+
+    if package install complains about wisi--lexer-error undefined,
+    check for old copies of wisi or ada-mode on your load-path.
 
 'with unreferenced' in parameter list
     in gnat pro 21.1
-> So I'd guess that you can put the aspect directly on the parameters in the
-> usual way (but that may require a compiler not available yet; the change was
-> approved in Sept [AI12-0395-1] and Oct [AI12-0398-1]). So, I'd expect the
-> following to work (eventually):
->
->  overriding function Expand_Tabs
->      (This   : Dummy_Editor_Buffer with Unreferenced;
->       Line   : Editable_Line_Type with Unreferenced;
->       Column : Character_Offset_Type with Unreferenced) return
-> Visible_Column_Type is (0);
-While you're at it, you probably ought to add any other contexts where
-aspect_specifications are now allowed:
+    > So I'd guess that you can put the aspect directly on the parameters in the
+    > usual way (but that may require a compiler not available yet; the change was
+    > approved in Sept [AI12-0395-1] and Oct [AI12-0398-1]). So, I'd expect the
+    > following to work (eventually):
+    >
+    >  overriding function Expand_Tabs
+    >      (This   : Dummy_Editor_Buffer with Unreferenced;
+    >       Line   : Editable_Line_Type with Unreferenced;
+    >       Column : Character_Offset_Type with Unreferenced) return
+    > Visible_Column_Type is (0);
+    While you're at it, you probably ought to add any other contexts where
+    aspect_specifications are now allowed:
 
-    parameter_specification
-    discriminant_specification
-    extended_return_object_declaration
-    entry_index_specification
+        parameter_specification
+        discriminant_specification
+        extended_return_object_declaration
+        entry_index_specification
 
 
-do another diff between annex P and my grammar
+    do another diff between annex P and my grammar
+
+better error message for devault vc project
+    "select an ada-mode project"
+    or use default ada-mode project?
 
 test completion with ada-mode default project
     joakim@verona.se

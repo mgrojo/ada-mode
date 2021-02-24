@@ -77,6 +77,15 @@ is
 
    -- calling ada-make-subprogram-body tested in ada_mode-interactive_common.adb
 
+   -- New_Line before 'end'
+   --EMACSCMD:(progn (forward-line 5)(delete-char 11)(indent-for-tab-command)(current-column))
+   function Function_Access_2
+     (A_Param : in Float)
+     return Standard.Float
+   is begin
+      null;
+   end Function_Access_2;
+
    -- add an enumeration value in parens
    --EMACSCMD:(progn (end-of-line 4)(backward-char 2) (execute-kbd-macro ",\nWrite_Success")(indent-for-tab-command)(current-indentation))
    --EMACSRESULT:6
