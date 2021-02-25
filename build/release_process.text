@@ -20,6 +20,9 @@ bump version
         current version
         wisitoken-*.tar.bz2
 
+    ../Docs/wisitoken-user_guide.texinfo
+        version in @title
+
     Makefile
         ZIP_VERSION
 

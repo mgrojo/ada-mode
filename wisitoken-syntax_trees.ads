@@ -387,13 +387,13 @@ package WisiToken.Syntax_Trees is
    --  Default implementation raises SAL.Programmer_Error.
 
    function Insert_After
-     (User_Data            : in out User_Data_Type;
-      Tree                 : in     Syntax_Trees.Tree'Class;
-      Insert_Token         : in     Valid_Node_Access;
-      Insert_Before_Token  : in     Valid_Node_Access;
-      Comment_Present      : in     Boolean;
-      Insert_On_Blank_Line : in     Boolean)
-     return Boolean;
+     (User_Data           : in out User_Data_Type;
+      Tree                : in     Syntax_Trees.Tree'Class;
+      Insert_Token        : in     Valid_Node_Access;
+      Insert_Before_Token : in     Valid_Node_Access;
+      Comment_Present     : in     Boolean;
+      Blank_Line_Present  : in     Boolean)
+     return WisiToken.Insert_Location;
    --  Return True if Insert_Token should be treated as if inserted after
    --  the previous shared terminal, rather than before
    --  Insert_Before_Token. This can affect which line it appears on,
@@ -402,11 +402,11 @@ package WisiToken.Syntax_Trees is
    --  If Comment_Present, there is a comment between Tree.Prev_Terminal
    --  (Insert_Before_Token) and Insert_Before_Token.
    --
-   --  If Insert_On_Blank_Line, there is at least one blank line
+   --  If Blank_Line_Present, there is at least one blank line
    --  immediately after Tree.Prev_Terminal (Insert_Before_Token) (before
    --  any comment).
    --
-   --  The default implementation always returns False.
+   --  The default implementation always returns Before_Next.
 
    procedure Insert_Token
      (User_Data      : in out User_Data_Type;

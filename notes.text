@@ -47,9 +47,13 @@ mckenzie_recover-explore Try_Insert_Quote
 factor out tree-sitter support
     so ada-mode elpa release does not require tree-sitter
 
+deallocating Graph takes as long as computing redundancy
+
 in wisitoken-bnf-generate_utils
     delete Token_Container
     move iterator aspects to Data
+
+add lexer option to terminate open string quote at line end
 
 wisitoken_grammar_1.wy
     nonterminal

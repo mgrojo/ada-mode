@@ -399,6 +399,8 @@ package WisiToken is
    type Base_Token_Array_Const_Ref (Element : not null access constant Base_Token_Arrays.Vector) is private
    with Implicit_Dereference => Element;
 
+   type Insert_Location is (After_Prev, Between, Before_Next);
+
    type Base_Identifier_Index is range 0 .. Integer'Last;
    subtype Identifier_Index is Base_Identifier_Index range 1 .. Base_Identifier_Index'Last;
    --  For virtual identifiers created during syntax tree rewrite.

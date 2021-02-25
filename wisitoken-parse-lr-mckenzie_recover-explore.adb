@@ -1739,8 +1739,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
            (Next_Line_Begin_Token /= Invalid_Node_Access and then
               Tree.Get_Node_Index (Next_Line_Begin_Token) /= Node_Index'First))
       then
-         --  The unbalanced quote is before the parse error token, or we don't
-         --  know where the parse error token is; case b. See
+         --  case b: the unbalanced quote is before the parse error token; see
          --  test_mckenzie_recover.adb String_Quote_2, String_Quote_5.
          --
          --  The missing quote belongs after the parse error token, before or

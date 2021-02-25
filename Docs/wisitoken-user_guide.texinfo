@@ -5,7 +5,7 @@
 @settitle WisiToken User Guide
 
 @copying
-Copyright @copyright{} 2014-2015, 2017, 2018, 2020 Stephen Leake.
+Copyright @copyright{} 2014-2015, 2017-2018, 2020-2021 Stephen Leake.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this
@@ -33,7 +33,7 @@ section entitled "GNU Free Documentation License".
 @contents
 
 @node Top
-@top WisiToken User Guide
+@top WisiToken User Guide version 2.1
 
 @ifnottex
 @insertcopying
