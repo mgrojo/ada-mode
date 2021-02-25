@@ -352,6 +352,8 @@ package WisiToken is
    function Trimmed_Image (Item : in Line_Number_Type) return String;
    --  '-' if Invalid_Line_Number
 
+   type Insert_Location is (After_Prev, Between, Before_Next);
+
    type Base_Token is record
       --  The parser only needs ID; semantic checks need Byte_Region to
       --  compare names. Line, Col, and Char_Region are included for error

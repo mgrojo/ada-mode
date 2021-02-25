@@ -2027,17 +2027,17 @@ package body WisiToken.Syntax_Trees is
    end Image;
 
    function Insert_After
-     (User_Data            : in out User_Data_Type;
-      Tree                 : in     Syntax_Trees.Tree'Class;
-      Insert_Token         : in     Valid_Node_Access;
-      Insert_Before_Token  : in     Valid_Node_Access;
-      Comment_Present      : in     Boolean;
-      Insert_On_Blank_Line : in     Boolean)
-     return Boolean
+     (User_Data           : in out User_Data_Type;
+      Tree                : in     Syntax_Trees.Tree'Class;
+      Insert_Token        : in     Valid_Node_Access;
+      Insert_Before_Token : in     Valid_Node_Access;
+      Comment_Present     : in     Boolean;
+      Blank_Line_Present  : in     Boolean)
+     return Insert_Location
    is
-      pragma Unreferenced (User_Data, Tree, Insert_Token, Insert_Before_Token, Comment_Present, Insert_On_Blank_Line);
+      pragma Unreferenced (User_Data, Tree, Insert_Token, Insert_Before_Token, Comment_Present, Blank_Line_Present);
    begin
-      return False;
+      return Before_Next;
    end Insert_After;
 
    function Insert_Source_Terminal
