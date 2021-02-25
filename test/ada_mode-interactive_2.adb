@@ -78,13 +78,27 @@ is
    -- calling ada-make-subprogram-body tested in ada_mode-interactive_common.adb
 
    -- New_Line before 'end'
-   --EMACSCMD:(progn (forward-line 5)(delete-char 11)(indent-for-tab-command)(current-column))
+   --EMACSCMD:(progn (forward-line 6)(delete-char 11)(indent-for-tab-command)(current-column))
+   --EMACSRESULT:6
    function Function_Access_2
      (A_Param : in Float)
      return Standard.Float
    is begin
       null;
    end Function_Access_2;
+
+   -- New_Line before 'end'
+   --EMACSCMD:(progn (forward-line 8)(delete-char 19)(indent-for-tab-command)(current-column))
+   --EMACSRESULT:15
+   procedure New_Line_2
+   is begin
+      case Command is
+         when Time =>
+            if Time_Start_Set then
+               Time_End := Ada.Calendar.Clock;
+            end if;
+      end case;
+   end New_Line_2;
 
    -- add an enumeration value in parens
    --EMACSCMD:(progn (end-of-line 4)(backward-char 2) (execute-kbd-macro ",\nWrite_Success")(indent-for-tab-command)(current-indentation))
@@ -132,7 +146,7 @@ begin
    then
       null;
    end if;
-   --EMACSRESULT:3
+   --EMACSRESULT:6
    --EMACSCMD:(progn (forward-line -8)(forward-word 1)(forward-char 1)(insert "(")(end-of-line 2)(insert "\n)")(indent-for-tab-command))
 
 end Ada_Mode.Interactive_2;

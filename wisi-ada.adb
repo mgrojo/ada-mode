@@ -538,13 +538,13 @@ package body Wisi.Ada is
    end Parse_Language_Params;
 
    overriding function Insert_After
-     (User_Data            : in out Parse_Data_Type;
-      Tree                 : in     WisiToken.Syntax_Trees.Tree'Class;
-      Insert_Token         : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Insert_Before_Token  : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Comment_Present      : in     Boolean;
-      Insert_On_Blank_Line : in     Boolean)
-     return Boolean
+     (User_Data           : in out Parse_Data_Type;
+      Tree                : in     WisiToken.Syntax_Trees.Tree'Class;
+      Insert_Token        : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Insert_Before_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Comment_Present     : in     Boolean;
+      Blank_Line_Present  : in     Boolean)
+     return WisiToken.Insert_Location
    is
       pragma Unreferenced (User_Data);
       use Ada_Annex_P_Process_Actions;
@@ -565,14 +565,14 @@ package body Wisi.Ada is
       Insert_ID        : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Insert_Token));
       Insert_Before_ID : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Insert_Before_Token));
 
-      Default_Result : constant array (Token_Enum_ID) of Boolean :=
+      Default_Result : constant array (Token_Enum_ID) of Insert_Location :=
         (BEGIN_ID |         -- test/ada_mode-recover_exception_1.adb, test/ada_mode-recover_extra_declare.adb
            COLON_ID |       -- test/ada_mode-recover_partial_22.adb
            DECLARE_ID |
            RIGHT_PAREN_ID | -- test/ada_mode-recover_20.adb
            THEN_ID          -- test/ada_mode-recover_19
-                => True,
-         others => False);
+                => After_Prev,
+         others => Before_Next);
 
       After_End : constant array (Token_Enum_ID) of Boolean :=
         --  Terminals that appear after 'end', other than ';'.
@@ -587,7 +587,7 @@ package body Wisi.Ada is
            SELECT_ID => True,
          others => False);
 
-      After_Comment : constant array (Token_Enum_ID) of Boolean :=
+      After_Comment : constant array (Token_Enum_ID) of Insert_Location :=
         --  Terminals that go after comment, before Insert_Before, rather than
         --  after prev terminal.
         (
@@ -615,11 +615,11 @@ package body Wisi.Ada is
            REQUEUE_ID |
            SELECT_ID |
            TYPE_ID |
-           WHILE_ID => True,
-         others => False);
+           WHILE_ID => After_Prev,
+         others => Before_Next);
    begin
       if After_End (Insert_ID) and then -Tree.ID (Tree.Prev_Terminal (Insert_Token)) = END_ID then
-         return True;
+         return After_Prev;
       end if;
 
       case Insert_Before_ID is
@@ -627,7 +627,11 @@ package body Wisi.Ada is
          --  Before END_ID :
          --     test/ada_mode-recover_10.adb,
          --     test/ada_mode-recover_37.adb,
-         --     Always put trailing 'end' in correct column.
+         --     Always put trailing 'end' in correct column, unless:
+         --
+         --     test/ada_mode-interactive_2 New_Line_2
+         --     inserting 'end if;', continuing code for 'if' body => insert
+         --     before 'end case;', that will be indented extra.
          --
          --     test/ada_mode-partial_parse_indent_begin.adb after "Foo;"
          --     Full and incremental parse get this right (because there is no
@@ -639,22 +643,30 @@ package body Wisi.Ada is
          --
          --  Before RETURN_ID : test/ada_mode-recover_16.adb
          --  There is never code before 'return'.
-         return True;
+         case Insert_ID is
+         when END_ID =>
+            return Before_Next;
+         when others =>
+            return After_Prev;
+         end case;
 
       when others =>
          if Comment_Present then
-            return not After_Comment (Insert_ID);
+            return After_Comment (Insert_ID);
          else
             case Insert_ID is
             when END_ID =>
                --  test/ada_mode-recover_20.adb,
                --  test/ada_mode-interactive_2.adb Record_1.
-               return False;
+               return Before_Next;
 
             when IDENTIFIER_ID | NUMERIC_LITERAL_ID =>
                --  test/ada_mode-recover_03.adb after 'renames'; completing an expression: true.
                --  Starting a procedure call or assignment statement: false
-               return -Tree.ID (Tree.Prev_Terminal (Insert_Token)) /= SEMICOLON_ID;
+               return
+                 (if -Tree.ID (Tree.Prev_Terminal (Insert_Token)) /= SEMICOLON_ID
+                  then After_Prev
+                  else Before_Next);
 
             when SEMICOLON_ID =>
                --  test/ada_mode-recover_03.adb after 'renames', _13.adb not on blank line: True
@@ -665,7 +677,10 @@ package body Wisi.Ada is
                --  ada_mode-recover_07.adb after 'loop' on blank line: ideally True,
                --  but we return False because we can't distinguish this from
                --  interactive_2 case.
-               return not Insert_On_Blank_Line;
+               return
+                 (if Blank_Line_Present
+                  then Before_Next
+                  else After_Prev);
 
             when others =>
                return Default_Result (Insert_ID);

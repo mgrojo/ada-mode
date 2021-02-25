@@ -104,13 +104,13 @@ package Wisi.Ada is
 
    overriding
    function Insert_After
-     (User_Data            : in out Parse_Data_Type;
-      Tree                 : in     WisiToken.Syntax_Trees.Tree'Class;
-      Insert_Token         : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Insert_Before_Token  : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Comment_Present      : in     Boolean;
-      Insert_On_Blank_Line : in     Boolean)
-     return Boolean;
+     (User_Data           : in out Parse_Data_Type;
+      Tree                : in     WisiToken.Syntax_Trees.Tree'Class;
+      Insert_Token        : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Insert_Before_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Comment_Present     : in     Boolean;
+      Blank_Line_Present  : in     Boolean)
+     return WisiToken.Insert_Location;
 
    overriding
    procedure Refactor_Help (Data : in Parse_Data_Type);
