@@ -185,7 +185,7 @@ package body WisiToken.Generate.Tree_Sitter is
                      if Trace_Generate_EBNF > Outline then
                         Ada.Text_IO.Put_Line
                           ("ignore lines " & Ignore_Lines'Image & " line" &
-                             Tree.Base_Token (Tree.Child (Node, 1)).Line'Image);
+                             Tree.Line_Region (Tree.Child (Node, 1)).First'Image);
                      end if;
                   end;
 
@@ -195,7 +195,7 @@ package body WisiToken.Generate.Tree_Sitter is
                   if Trace_Generate_EBNF > Outline then
                      Ada.Text_IO.Put_Line
                        ("ignore lines false line" &
-                          Tree.Base_Token (Tree.Child (Node, 1)).Line'Image);
+                          Tree.Line_Region (Tree.Child (Node, 1)).First'Image);
                   end if;
 
                when others =>
@@ -274,7 +274,7 @@ package body WisiToken.Generate.Tree_Sitter is
                   if Ignore_Lines and Trace_Generate_EBNF > Outline then
                      Ada.Text_IO.Put_Line
                        ("ignore lines true line" &
-                          Tree.Base_Token (Tree.Child (Node, 1)).Line'Image);
+                          Tree.Line_Region (Tree.Child (Node, 1)).First'Image);
                   end if;
 
                end;
@@ -884,11 +884,7 @@ package body WisiToken.Generate.Tree_Sitter is
                Decl  : constant Node_Access := WisiToken_Grammar_Editing.Find_Declaration (Data, Tree, Ident);
             begin
                if Decl = Invalid_Node_Access then
-                  Generate.Put_Error
-                    (Generate.Error_Message
-                       (Tree.Lexer.File_Name,
-                        WisiToken_Grammar_Runtime.Get_Line (Data, Tree, Node),
-                        "decl for '" & Ident & "' not found"));
+                  Generate.Put_Error (Tree.Error_Message (Node, "decl for '" & Ident & "' not found"));
 
                elsif Tree.ID (Decl) = +nonterminal_ID then
                   Put (File, "$." & Get_Text (Tree.Child (Decl, 1)));
@@ -997,17 +993,13 @@ package body WisiToken.Generate.Tree_Sitter is
          case Tree.RHS_Index (Node) is
          when 0 =>
             Generate.Put_Error
-              (Generate.Error_Message
-                 (Tree.Lexer.File_Name,
-                  WisiToken_Grammar_Runtime.Get_Line
-                    (Data, Tree,
-                     --  Locate the error message on the preceding ':' or '|'
-                     (declare
-                         RHS_List : constant Valid_Node_Access := Tree.Parent (Node);
-                      begin
-                         (case Tree.RHS_Index (RHS_List) is
-                          when 0 => RHS_List,
-                          when others => Tree.Child (RHS_List, 2)))),
+              (Tree.Error_Message
+                 ((declare
+                      RHS_List : constant Valid_Node_Access := Tree.Parent (Node);
+                   begin
+                      (case Tree.RHS_Index (RHS_List) is
+                       when 0 => RHS_List,
+                       when others => Tree.Child (RHS_List, 2))),
                   "empty RHS forbidden by tree-sitter"));
 
          when 1 .. 3 =>

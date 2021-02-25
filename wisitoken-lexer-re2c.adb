@@ -206,7 +206,8 @@ package body WisiToken.Lexer.re2c is
                   Base_Buffer_Pos (Lexer.Byte_Position + Lexer.Byte_Length - 1) +
                     Lexer.Source.Buffer_Nominal_First_Byte - Buffer_Pos'First)),
 
-            Line => Lexer.Line + Lexer.Source.Line_Nominal_First - Line_Number_Type'First,
+            --  FIXME: C lexer return line_region for multi-line tokens
+            Line_Region => (First | Last => Lexer.Line + Lexer.Source.Line_Nominal_First - Line_Number_Type'First),
 
             Char_Region =>
               (if Lexer.ID = Lexer.Descriptor.EOI_ID and then Lexer.Byte_Position = Integer (Base_Buffer_Pos'First)

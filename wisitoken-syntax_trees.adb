@@ -228,8 +228,7 @@ package body WisiToken.Syntax_Trees is
             else Node_Index),
 
          Byte_Region => Terminal.Byte_Region,
-         Line        => Terminal.Line,
-         Line_Last   => Terminal.Line,
+         Line_Region => Terminal.Line_Region,
          Char_Region => Terminal.Char_Region,
          others      => <>)
       do
@@ -474,7 +473,7 @@ package body WisiToken.Syntax_Trees is
          return 0;
       else
          declare
-            Begin_Char_Pos : constant Buffer_Pos := Line_Begin_Char_Pos (Tree, Node.Line);
+            Begin_Char_Pos : constant Buffer_Pos := Line_Begin_Char_Pos (Tree, Node.Line_Region.First);
          begin
             return
               (if Begin_Char_Pos = Invalid_Buffer_Pos
@@ -494,7 +493,7 @@ package body WisiToken.Syntax_Trees is
          return 0;
       else
          declare
-            Begin_Char_Pos : constant Buffer_Pos := Line_Begin_Char_Pos (Tree, Node.Line, Stream);
+            Begin_Char_Pos : constant Buffer_Pos := Line_Begin_Char_Pos (Tree, Node.Line_Region.First, Stream);
          begin
             return
               (if Begin_Char_Pos = Invalid_Buffer_Pos
@@ -553,8 +552,7 @@ package body WisiToken.Syntax_Trees is
                   then null
                   else Copy_Augmented (User_Data.all, Node.Augmented)),
                Non_Grammar => Node.Non_Grammar,
-               Line        => Node.Line,
-               Line_Last   => Node.Line_Last,
+               Line_Region => Node.Line_Region,
                Char_Region => Node.Char_Region);
 
             Tree.Nodes.Append (New_Node);
@@ -568,8 +566,7 @@ package body WisiToken.Syntax_Trees is
                Node_Index  => Tree.Next_Terminal_Node_Index + 1,
                Byte_Region => Node.Byte_Region,
                Char_Region => Node.Char_Region,
-               Line        => Node.Line,
-               Line_Last   => Node.Line_Last,
+               Line_Region => Node.Line_Region,
                Parent      => Parent,
                Augmented   =>
                  (if Node.Augmented = null or User_Data = null
@@ -588,8 +585,7 @@ package body WisiToken.Syntax_Trees is
                Node_Index  => Tree.Next_Terminal_Node_Index + 1,
                Byte_Region => Node.Byte_Region,
                Char_Region => Node.Char_Region,
-               Line        => Node.Line,
-               Line_Last   => Node.Line_Last,
+               Line_Region => Node.Line_Region,
                Parent      => Parent,
                Augmented   =>
                  (if Node.Augmented = null or User_Data = null
@@ -616,8 +612,7 @@ package body WisiToken.Syntax_Trees is
                   Node_Index  => -(Tree.Nodes.Last_Index + 1),
                   Byte_Region => Node.Byte_Region,
                   Char_Region => Node.Char_Region,
-                  Line        => Node.Line,
-                  Line_Last   => Node.Line_Last,
+                  Line_Region => Node.Line_Region,
                   Parent      => Parent,
                   Augmented   =>
                     (if Node.Augmented = null or User_Data = null
@@ -675,8 +670,7 @@ package body WisiToken.Syntax_Trees is
                   then null
                   else Copy_Augmented (User_Data.all, Source_Node.Augmented)),
                Non_Grammar => Source_Node.Non_Grammar,
-               Line        => Source_Node.Line,
-               Line_Last   => Source_Node.Line_Last,
+               Line_Region => Source_Node.Line_Region,
                Char_Region => Source_Node.Char_Region);
 
             Destination.Nodes.Append (New_Dest_Node);
@@ -693,8 +687,7 @@ package body WisiToken.Syntax_Trees is
                   else -(Destination.Nodes.Last_Index + 1)),
                Byte_Region => Source_Node.Byte_Region,
                Char_Region => Source_Node.Char_Region,
-               Line        => Source_Node.Line,
-               Line_Last   => Source_Node.Line_Last,
+               Line_Region => Source_Node.Line_Region,
                Parent      => Dest_Parent,
                Augmented   =>
                  (if Source_Node.Augmented = null or User_Data = null
@@ -716,8 +709,7 @@ package body WisiToken.Syntax_Trees is
                   else -(Destination.Nodes.Last_Index + 1)),
                Byte_Region => Source_Node.Byte_Region,
                Char_Region => Source_Node.Char_Region,
-               Line        => Source_Node.Line,
-               Line_Last   => Source_Node.Line_Last,
+               Line_Region => Source_Node.Line_Region,
                Parent      => Dest_Parent,
                Augmented   =>
                  (if Source_Node.Augmented = null or User_Data = null
@@ -743,8 +735,7 @@ package body WisiToken.Syntax_Trees is
                   Node_Index  => -(Destination.Nodes.Last_Index + 1),
                   Byte_Region => Source_Node.Byte_Region,
                   Char_Region => Source_Node.Char_Region,
-                  Line        => Source_Node.Line,
-                  Line_Last   => Source_Node.Line_Last,
+                  Line_Region => Source_Node.Line_Region,
                   Parent      => Dest_Parent,
                   Augmented   =>
                     (if Source_Node.Augmented = null or User_Data = null
@@ -897,7 +888,7 @@ package body WisiToken.Syntax_Trees is
       else
          case Tree.Label (First_Terminal) is
          when Source_Terminal =>
-            Line := First_Terminal.Line;
+            Line := First_Terminal.Line_Region.First;
 
             if First_Terminal.Char_Region.First /= Invalid_Buffer_Pos then
                declare
@@ -1088,7 +1079,7 @@ package body WisiToken.Syntax_Trees is
          Non_Grammar : Base_Token_Arrays.Vector renames Tree.Non_Grammar_Const (Node);
       begin
          for Tok of Non_Grammar loop
-            if Tok.ID = Tree.Lexer.Descriptor.New_Line_ID and Tok.Line = Line - 1 then
+            if Tok.ID = Tree.Lexer.Descriptor.New_Line_ID and Tok.Line_Region.First = Line - 1 then
                Char_Pos := Tok.Char_Region.Last + 1;
                return True;
             end if;
@@ -1105,7 +1096,7 @@ package body WisiToken.Syntax_Trees is
 
       case Node.Label is
       when Terminal_Label =>
-         if Node.ID = Tree.Lexer.Descriptor.EOI_ID and Node.Line = Line - 1 then
+         if Node.ID = Tree.Lexer.Descriptor.EOI_ID and Node.Line_Region.First = Line - 1 then
             Char_Pos := Node.Char_Region.First;
             return Node;
          elsif Check_Non_Grammar (Node) then
@@ -1119,8 +1110,8 @@ package body WisiToken.Syntax_Trees is
             --  This must be an empty stream element.
             return Invalid_Node_Access;
 
-         elsif Line - 1 in Node.Line .. Node.Line_Last then
-            if (Node.Line = Node.Line_Last or Line - 1 = Node.Line_Last) and then
+         elsif Line - 1 in Node.Line_Region.First .. Node.Line_Region.Last then
+            if (Node.Line_Region.First = Node.Line_Region.Last or Line - 1 = Node.Line_Region.Last) and then
               Node.Children (Node.Child_Count).Byte_Region /= Null_Buffer_Region
             then
                --  Only need to check last child
@@ -1141,7 +1132,7 @@ package body WisiToken.Syntax_Trees is
                   declare
                      Child : Valid_Node_Access renames Node.Children (I);
                   begin
-                     if Line - 1 in Child.Line ..  Child.Line_Last then
+                     if Line - 1 in Child.Line_Region.First ..  Child.Line_Region.Last then
                         if not Tree.Parents_Set then Parents.Push (Node); end if;
                         declare
                            Temp : constant Node_Access := Find_New_Line (Tree, Parents, Line, Child, Char_Pos);
@@ -1181,7 +1172,7 @@ package body WisiToken.Syntax_Trees is
          return Invalid_Node_Access;
 
       elsif Tree.Leading_Non_Grammar.Length > 0 and then
-        Line <= Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.Last_Index).Line
+        Line <= Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.Last_Index).Line_Region.First
       then
          return Invalid_Node_Access;
 
@@ -1955,8 +1946,8 @@ package body WisiToken.Syntax_Trees is
             Result := @ & "(" & Image (Node.ID, Tree.Lexer.Descriptor.all) &
               (if RHS_Index and Node.Label = Nonterm then "_" & Trimmed_Image (Node.RHS_Index) else "") &
               (if Node.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Node.Byte_Region)) &
-              (if Line_Numbers and Node.Line /= Invalid_Line_Number
-               then ", (" & Trimmed_Image (Node.Line) & " .." & Node.Line_Last'Image & ")"
+              (if Line_Numbers and Node.Line_Region /= Null_Line_Region
+               then ", " & Image (Node.Line_Region)
                else "") & ")";
 
             if Children and Node.Label = Nonterm then
@@ -2140,8 +2131,7 @@ package body WisiToken.Syntax_Trees is
          Child_Count     => 0,
          ID              => Terminal,
          Node_Index      => -(Tree.Nodes.Last_Index + 1),
-         Line            => Before_Shared_Terminal.Line,
-         Line_Last       => Before_Shared_Terminal.Line_Last,
+         Line_Region     => (First | Last => Before_Shared_Terminal.Line_Region.First),
          Byte_Region     => Null_Buffer_Region,                        -- for "is empty"
          Char_Region     =>
            (First | Last => Before_Shared_Terminal.Char_Region.First), --  for indent
@@ -2450,19 +2440,12 @@ package body WisiToken.Syntax_Trees is
       Ref.Element := (Cur => Cur);
    end Breakdown;
 
-   function Line_Last (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Line_Number_Type
+   function Line_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Line_Region
    is
       pragma Unreferenced (Tree);
    begin
-      return Node.Line_Last;
-   end Line_Last;
-
-   function Line (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Line_Number_Type
-   is
-      pragma Unreferenced (Tree);
-   begin
-      return Node.Line;
-   end Line;
+      return Node.Line_Region;
+   end Line_Region;
 
    function Line_Begin_Char_Pos
      (Tree : in Syntax_Trees.Tree;
@@ -2548,7 +2531,7 @@ package body WisiToken.Syntax_Trees is
          --  There is no New_Line token that starts this line, so we can't use
          --  Find_New_Line.
          Node := First_Terminal (Node);
-         if Node.Line = Line then
+         if Node.Line_Region.First = Line then
             return;
          else
             Node := Invalid_Node_Access;
@@ -2556,7 +2539,7 @@ package body WisiToken.Syntax_Trees is
          end if;
 
       elsif Tree.Leading_Non_Grammar.Length > 0 and then
-        Line < Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.Last_Index).Line
+        Line < Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.Last_Index).Line_Region.First
       then
          Node := Invalid_Node_Access;
          return;
@@ -2585,10 +2568,10 @@ package body WisiToken.Syntax_Trees is
          declare
             Token : WisiToken.Base_Token renames Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.Last_Index);
          begin
-            if Line - 1 < Token.Line then
+            if Line - 1 < Token.Line_Region.First then
                --  No grammar token on Line.
                return Invalid_Node_Access;
-            elsif Token.ID = Tree.Lexer.Descriptor.New_Line_ID and Line - 1 = Token.Line then
+            elsif Token.ID = Tree.Lexer.Descriptor.New_Line_ID and Line - 1 = Token.Line_Region.First then
                return Tree.First_Terminal (Tree.Root);
             end if;
          end;
@@ -2620,7 +2603,7 @@ package body WisiToken.Syntax_Trees is
       end if;
 
       if Line = Line_Number_Type'First then
-         if Line = Node.Line then
+         if Line = Node.Line_Region.First then
             return First_Terminal (Node);
          else
             return Invalid_Node_Access;
@@ -2652,7 +2635,7 @@ package body WisiToken.Syntax_Trees is
          Node := Constant_Ref (Element).Node;
 
          if Node.ID = Tree.Lexer.Descriptor.EOI_ID and
-           Node.Line in Line - 1 .. Line
+           Node.Line_Region.First in Line - 1 .. Line
          then
             --  This EOI also implies a new line.
             return Node;
@@ -2669,17 +2652,17 @@ package body WisiToken.Syntax_Trees is
    --  Return True if line begin is in Non_Grammar
    is begin
       if Non_Grammar.Length > 0 and then
-        Line < Non_Grammar (Non_Grammar.First_Index).Line + 1
+        Line < Non_Grammar (Non_Grammar.First_Index).Line_Region.First + 1
       then
          return False;
 
       elsif Non_Grammar.Length > 0 and then
-        Line <= Non_Grammar (Non_Grammar.Last_Index).Line + 1
+        Line <= Non_Grammar (Non_Grammar.Last_Index).Line_Region.First + 1
         --  IMPROVEME: support multi-line comments; need Line_Last in Base_Token
       then
          for Tok of Non_Grammar loop
             if Tok.ID = Tree.Lexer.Descriptor.New_Line_ID and
-              Line = Tok.Line + 1
+              Line = Tok.Line_Region.First + 1
             then
                Begin_Char_Pos := Tok.Char_Region.Last + 1;
                return True;
@@ -3862,7 +3845,7 @@ package body WisiToken.Syntax_Trees is
       if Parent.Children'Length = Children'Length then
          --  reuse current node
          Parent.Byte_Region := Null_Buffer_Region;
-         Parent.Line        := Invalid_Line_Number;
+         Parent.Line_Region := Null_Line_Region;
          Parent.Virtual     := False;
          Parent.Children    := Children;
 
@@ -3876,8 +3859,7 @@ package body WisiToken.Syntax_Trees is
                Node_Index     => -(Tree.Nodes.Last_Index + 1),
                Byte_Region    => Null_Buffer_Region,
                Char_Region    => Null_Buffer_Region,
-               Line           => Invalid_Line_Number,
-               Line_Last      => Invalid_Line_Number,
+               Line_Region    => Null_Line_Region,
                Parent         => Parent.Parent,
                Augmented      => Parent.Augmented,
                Virtual        => False,
@@ -3939,7 +3921,7 @@ package body WisiToken.Syntax_Trees is
    is
       pragma Unreferenced (Tree);
    begin
-      Node.Line_Last := Line;
+      Node.Line_Region.Last := Line;
    end Set_Line_Last;
 
    procedure Set_Name (Item : in out Recover_Token; Name : in Buffer_Region)
@@ -4070,9 +4052,8 @@ package body WisiToken.Syntax_Trees is
       if Node.Char_Region /= Null_Buffer_Region then
          Node.Char_Region := @ + Shift_Chars;
       end if;
-      if Node.Line /= Invalid_Line_Number then
-         Node.Line        := @ + Shift_Line;
-         Node.Line_Last   := @ + Shift_Line;
+      if Node.Line_Region /= Null_Line_Region then
+         Node.Line_Region := @ + Shift_Line;
       end if;
       declare
          Non_Grammar : Base_Token_Arrays.Vector renames Non_Grammar_Var (Node);
@@ -4080,7 +4061,7 @@ package body WisiToken.Syntax_Trees is
          for Token of Non_Grammar loop
             Token.Byte_Region := @ + Shift_Bytes;
             Token.Char_Region := @ + Shift_Chars;
-            Token.Line        := @ + Shift_Line;
+            Token.Line_Region := @ + Shift_Line;
          end loop;
       end;
       if Node.Augmented /= null then
@@ -4381,7 +4362,7 @@ package body WisiToken.Syntax_Trees is
                begin
                   --  See note in wisitoken-parse.adb Process_Non_Grammar_Token about
                   --  trailing New_Line.
-                  Node.Line_Last := Token.Line;
+                  Node.Line_Region.Last := Token.Line_Region.Last;
                end;
             end if;
          end;
@@ -4392,8 +4373,7 @@ package body WisiToken.Syntax_Trees is
          Node.Byte_Region.Last  := Buffer_Pos'First;
          Node.Char_Region.First := Buffer_Pos'Last;
          Node.Char_Region.Last  := Buffer_Pos'First;
-         Node.Line              := Line_Number_Type'Last;
-         Node.Line_Last         := Line_Number_Type'First;
+         Node.Line_Region       := Null_Line_Region;
 
          for Child of Node.Children loop
             if Recursive then
@@ -4420,11 +4400,11 @@ package body WisiToken.Syntax_Trees is
                Node.Char_Region.Last := Child.Char_Region.Last;
             end if;
 
-            if Child.Line /= Invalid_Line_Number and Node.Line > Child.Line then
-               Node.Line := Child.Line;
+            if Node.Line_Region.First > Child.Line_Region.First then
+               Node.Line_Region.First := Child.Line_Region.First;
             end if;
-            if Child.Line_Last /= Invalid_Line_Number and Node.Line_Last < Child.Line_Last then
-               Node.Line_Last := Child.Line_Last;
+            if Node.Line_Region.Last < Child.Line_Region.Last then
+               Node.Line_Region.Last := Child.Line_Region.Last;
             end if;
 
             if Node.First_Terminal = Invalid_Node_Access then
@@ -4456,11 +4436,11 @@ package body WisiToken.Syntax_Trees is
       Node        : in Valid_Node_Access;
       Byte_Region : in Buffer_Region;
       Char_Region : in Buffer_Region;
-      Line        : in Line_Number_Type)
+      Line_Region : in WisiToken.Line_Region)
    is begin
       Node.Byte_Region := Byte_Region;
       Node.Char_Region := Char_Region;
-      Node.Line        := Line;
+      Node.Line_Region := Line_Region;
    end Update;
 
    procedure Validate_Tree

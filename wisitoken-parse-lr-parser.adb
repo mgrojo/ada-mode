@@ -283,10 +283,10 @@ package body WisiToken.Parse.LR.Parser is
                            Byte_Region =>
                              (First    => Last_Token.Byte_Region.Last + 1,
                               Last     => Last_Token.Byte_Region.Last),
-                           Line        => Last_Token.Line,
                            Char_Region =>
                              (First    => Last_Token.Char_Region.Last + 1,
-                              Last     => Last_Token.Char_Region.Last));
+                              Last     => Last_Token.Char_Region.Last),
+                           Line_Region => Last_Token.Line_Region);
                      begin
                         if Shared_Parser.Tree.ID (Parser_State.Current_Token.Node) /=
                           Shared_Parser.Tree.Lexer.Descriptor.EOI_ID

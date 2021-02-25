@@ -29,13 +29,6 @@ package body WisiToken_Grammar_Runtime is
    ----------
    --  Body subprograms, misc order
 
-   function Get_Line
-     (Data : in User_Data_Type;
-      Tree : in Syntax_Trees.Tree;
-      Node : in WisiToken.Syntax_Trees.Valid_Node_Access)
-     return WisiToken.Line_Number_Type
-   is (Tree.Base_Token (Node).Line); --  FIXME: delete function
-
    function Get_Text
      (Virtual_Identifiers : in WisiToken.BNF.String_Arrays.Vector;
       Tree                : in WisiToken.Syntax_Trees.Tree;
@@ -182,7 +175,7 @@ package body WisiToken_Grammar_Runtime is
       Children : constant Syntax_Trees.Node_Access_Array := Tree.Children (Token);
    begin
       return RHS : WisiToken.BNF.RHS_Type do
-         RHS.Source_Line := Get_Line (Data, Tree, Token);
+         RHS.Source_Line := Tree.Line_Region (Token).First;
 
          if Tree.Augmented (Token) /= null then
             declare
@@ -682,7 +675,7 @@ package body WisiToken_Grammar_Runtime is
 
                      Conflict : BNF.Conflict;
                   begin
-                     Conflict.Source_Line := Tree.Base_Token (Tree_Indices (1)).Line;
+                     Conflict.Source_Line := Tree.Line_Region (Tree_Indices (1)).First;
 
                      if Tree_Indices'Length < 3 or else
                        (Tree.ID (Tree_Indices (3)) /= +BAR_ID and
@@ -815,7 +808,7 @@ package body WisiToken_Grammar_Runtime is
                   end if;
 
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Source_Line  := Tree.Base_Token (Tokens (1)).Line;
+                  Data.McKenzie_Recover.Source_Line  := Tree.Line_Region (Tokens (1)).First;
 
                   Data.McKenzie_Recover.Default_Insert          := Natural'Value
                     (Get_Child_Text (Data, Tree, Tokens (3), 1));
@@ -952,7 +945,7 @@ package body WisiToken_Grammar_Runtime is
            ((+LHS_String, Right_Hand_Sides, Labels,
              Source_Line =>
                (case Tree.Label (LHS_Node) is
-                when Source_Terminal    => Tree.Base_Token (LHS_Node).Line,
+                when Source_Terminal    => Tree.Line_Region (LHS_Node).First,
                 when Virtual_Identifier => Invalid_Line_Number, -- IMPROVEME: get line from Right_Hand_Sides
                 when others             => raise SAL.Programmer_Error)));
       end if;

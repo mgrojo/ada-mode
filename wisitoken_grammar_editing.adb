@@ -45,7 +45,7 @@ package body WisiToken_Grammar_Editing is
             declare
                Token : constant WisiToken.Base_Token := Tree.Base_Token (Item);
             begin
-               return (Source_Terminal, Token.ID, Token.Byte_Region, Get_Node_Index (Item), Token.Line);
+               return (Source_Terminal, Token.ID, Token.Byte_Region, Get_Node_Index (Item), Token.Line_Region.First);
             end;
 
          when Virtual_Terminal =>
@@ -115,7 +115,7 @@ package body WisiToken_Grammar_Editing is
            (WisiToken.Base_Token'
               (ID          => Item.ID,
                Byte_Region => Item.Byte_Region,
-               Line        => Item.Line,
+               Line_Region => (First | Last => Item.Line),
                others      => <>));
 
       when Virtual_Terminal =>
@@ -2683,9 +2683,7 @@ package body WisiToken_Grammar_Editing is
                Name_Ident := New_Identifier (Ada.Characters.Handling.To_Upper (Value));
             else
                WisiToken.Generate.Put_Error
-                 (WisiToken.Generate.Error_Message
-                    (Tree.Lexer.File_Name, Get_Line (Data, Tree, Node),
-                     "punctuation token '" & Value & "' not declared"));
+                 (Tree.Error_Message (Node, "punctuation token '" & Value & "' not declared"));
 
                Clear_EBNF_Node (Node); -- So we don't try again
                return;

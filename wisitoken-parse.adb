@@ -49,7 +49,7 @@ package body WisiToken.Parse is
 
             --  If the last non_grammar is New_Line, the token contains the line
             --  up to that point, not after.
-            Parser.Tree.Set_Line_Last (Grammar_Node, Token.Line);
+            Parser.Tree.Set_Line_Last (Grammar_Node, Token.Line_Region.Last);
          end;
       end if;
       if Parser.User_Data /= null then
@@ -403,14 +403,15 @@ package body WisiToken.Parse is
                         Lex_Start_Byte := Buffer_Pos'Min (Token.Byte_Region.First + Shift_Bytes, Inserted_Region.First);
                         Lex_Start_Char := Buffer_Pos'Min
                           (Token.Char_Region.First + Shift_Chars, Inserted_Region_Chars.First);
-                        Lex_Start_Line := Line_Number_Type'Max (Line_Number_Type'First, Token.Line + Shift_Line);
+                        Lex_Start_Line := Line_Number_Type'Max
+                          (Line_Number_Type'First, Token.Line_Region.First + Shift_Line);
 
                         --  Prev_Token has been shifted, Terminal has not.
                         declare
                            Prev_Terminal : constant Node_Access := Tree.Prev_Terminal (Terminal).Node;
                         begin
                            if Prev_Terminal /= Invalid_Node_Access and then
-                             Tree.Line_Last (Prev_Terminal) = Token.Line + Shift_Line
+                             Tree.Line_Region (Prev_Terminal).Last = Token.Line_Region.First + Shift_Line
                            then
                               Prev_Token_ID := Invalid_Token_ID;
                            else
@@ -440,7 +441,7 @@ package body WisiToken.Parse is
                                  --  Edit start is in whitespace before Terminal
                                  Lex_Start_Byte := Inserted_Region.First;
                                  Lex_Start_Char := Inserted_Region_Chars.First;
-                                 Lex_Start_Line := Tree.Line (Terminal.Node) + Shift_Line;
+                                 Lex_Start_Line := Tree.Line_Region (Terminal.Node).First + Shift_Line;
 
                                  if Last_Grammar.Node = Invalid_Node_Access then
                                     --  No previous grammar or non_grammar token; at start of file.
@@ -477,7 +478,8 @@ package body WisiToken.Parse is
                                     Lex_Start_Byte := Buffer_Pos'Min (Token.Byte_Region.First, Inserted_Region.First);
                                     Lex_Start_Char := Buffer_Pos'Min
                                       (Token.Char_Region.First, Inserted_Region_Chars.First);
-                                    Lex_Start_Line := Line_Number_Type'Max (Line_Number_Type'First, Token.Line);
+                                    Lex_Start_Line := Line_Number_Type'Max
+                                      (Line_Number_Type'First, Token.Line_Region.First);
                                  end;
 
                                  if Trace_Incremental_Parse > Detail then
@@ -505,7 +507,7 @@ package body WisiToken.Parse is
                                  --  Edit is in whitespace between last non_grammar and Terminal
                                  Lex_Start_Byte := Inserted_Region.First;
                                  Lex_Start_Char := Inserted_Region_Chars.First;
-                                 Lex_Start_Line := Tree.Line (Terminal.Node) + Shift_Line;
+                                 Lex_Start_Line := Tree.Line_Region (Terminal.Node).First + Shift_Line;
                                  Do_Scan        := True;
 
                                  if Last_Grammar.Node = Invalid_Node_Access then
@@ -541,7 +543,8 @@ package body WisiToken.Parse is
                                  Lex_Start_Byte := Buffer_Pos'Min (Token.Byte_Region.First, Inserted_Region.First);
                                  Lex_Start_Char := Buffer_Pos'Min
                                    (Token.Char_Region.First, Inserted_Region_Chars.First);
-                                 Lex_Start_Line := Line_Number_Type'Max (Line_Number_Type'First, Token.Line);
+                                 Lex_Start_Line := Line_Number_Type'Max
+                                   (Line_Number_Type'First, Token.Line_Region.First);
                               end;
 
                               Tree.Prev_Terminal (Last_Grammar);

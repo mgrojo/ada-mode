@@ -1252,8 +1252,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Descriptor  : WisiToken.Descriptor renames Super.Tree.Lexer.Descriptor.all;
       Check_Limit : Syntax_Trees.Node_Index renames Shared.Table.McKenzie_Param.Check_Limit;
 
-      Current_Line      : constant Line_Number_Type := Tree.Base_Token
-        (Parse.Peek_Current_First_Shared_Terminal (Tree, Config)).Line;
+      Current_Line      : constant Line_Number_Type := Tree.Line_Region
+        (Parse.Peek_Current_First_Shared_Terminal (Tree, Config)).First;
       Next_Line_Begin_Token : constant Node_Access := Tree.Line_Begin_Token
         (Current_Line + 1, Super.Stream (Parser_Index));
       Lexer_Error_Token : Base_Token;
@@ -1266,7 +1266,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             if Err.Recover_Token_Ref /= Syntax_Trees.Invalid_Stream_Node_Ref then
                Lexer_Error_Token := Tree.Base_Token (Err.Recover_Token_Ref.Node);
 
-               if Lexer_Error_Token.Line = Current_Line then
+               if Lexer_Error_Token.Line_Region.First = Current_Line then
                   return Err.Recover_Token_Ref;
                end if;
             end if;
@@ -2120,7 +2120,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       if Config.User_Parse_Action_Status.Label = Ok and
         (Descriptor.String_1_ID /= Invalid_Token_ID or Descriptor.String_2_ID /= Invalid_Token_ID) and
         (Config.String_Quote_Checked = Invalid_Line_Number or else Config.String_Quote_Checked <
-           Super.Tree.Base_Token (Parse.Peek_Current_First_Shared_Terminal (Super.Tree.all, Config)).Line)
+           Super.Tree.Line_Region (Parse.Peek_Current_First_Shared_Terminal (Super.Tree.all, Config)).First)
       then
          --  See if there is a mismatched quote. The solution is to delete
          --  tokens, nominally replacing them with an expanded string literal.

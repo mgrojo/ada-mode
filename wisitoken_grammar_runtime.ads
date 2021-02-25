@@ -153,12 +153,6 @@ package WisiToken_Grammar_Runtime is
    ----------
    --  Visible for WisiToken_Grammar_Editing
 
-   function Get_Line
-     (Data : in User_Data_Type;
-      Tree : in WisiToken.Syntax_Trees.Tree;
-      Node : in WisiToken.Syntax_Trees.Valid_Node_Access)
-     return WisiToken.Line_Number_Type;
-
    function Get_Text
      (Virtual_Identifiers : in WisiToken.BNF.String_Arrays.Vector;
       Tree                : in WisiToken.Syntax_Trees.Tree;

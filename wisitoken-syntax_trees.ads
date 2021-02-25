@@ -855,7 +855,7 @@ package WisiToken.Syntax_Trees is
       Node        : in Valid_Node_Access;
       Byte_Region : in Buffer_Region;
       Char_Region : in Buffer_Region;
-      Line        : in Line_Number_Type)
+      Line_Region : in WisiToken.Line_Region)
    with Pre => Tree.Label (Node) in Virtual_Terminal | Virtual_Identifier;
 
    procedure Shift
@@ -977,17 +977,14 @@ package WisiToken.Syntax_Trees is
 
    function Char_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Buffer_Region;
 
-   function Line (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Line_Number_Type;
-   --  Line of first character in Node; Invalid_Line_Number if Node is virtual or empty.
-
-   function Line_Last (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Line_Number_Type;
-   --  Line of last character in Node, including trailing non_grammar;
-   --  Invalid_Line_Number if Node is empty.
+   function Line_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Line_Region;
+   --  Lines in Node; Invalid_Line_Region if Node is virtual or empty.
 
    procedure Set_Line_Last
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access;
       Line : in Line_Number_Type);
+   --  Set Node.Line_Region.Last
 
    function Column (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Ada.Text_IO.Count
    with Pre => Tree.Editable and Tree.Subtree_Root (Node) = Tree.Root;
@@ -1896,14 +1893,8 @@ private
       --  have null Byte_Region but non-null Char_Region; Char_Region is
       --  taken from a nearby Source_Terminal or non_grammar.
 
-      Line : Line_Number_Type := Invalid_Line_Number;
-      --  For terminals, first line in token, from lexer. For nonterms,
-      --  first line in contained tokens, not including trailing
-      --  non_grammar.
-
-      Line_Last : Line_Number_Type := Invalid_Line_Number;
-      --  For terminals, last line in token, from lexer. For nonterms, last
-      --  line in contained tokens, _including_ trailing non_grammar.
+      Line_Region : WisiToken.Line_Region := Null_Line_Region;
+      --  Lines in token including trailing non_grammar.
 
       Parent : Node_Access := Invalid_Node_Access;
 
@@ -2055,7 +2046,7 @@ private
    is (Base_Token (Tree, Tree.Streams (Stream.Cur).Elements (Element.Cur).Node));
 
    function Base_Token (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Base_Token
-   is (Node.ID, Node.Byte_Region, Node.Line, Node.Char_Region);
+   is (Node.ID, Node.Byte_Region, Node.Char_Region, Node.Line_Region);
 
    function Byte_Region (Tree : in Syntax_Trees.Tree; Index : in Stream_Index) return WisiToken.Buffer_Region
    is (Stream_Element_Lists.Constant_Ref (Index.Cur).Node.Byte_Region);

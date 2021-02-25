@@ -309,10 +309,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
                else
                   --  More than one parser is active; ambiguous parse.
-                  raise WisiToken.Parse_Error with Error_Message
-                    (Shared_Parser.Tree.Lexer.File_Name,
-                     Shared_Parser.Tree.Line (State.Current_Token.Node),
-                     Shared_Parser.Tree.Column (State.Current_Token.Node, State.Stream),
+                  raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
+                    (State.Current_Token.Node,
                      "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
                end if;
             end;
@@ -383,10 +381,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                            declare
                               Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                            begin
-                              raise WisiToken.Parse_Error with Error_Message
-                                (Shared_Parser.Tree.Lexer.File_Name,
-                                 Shared_Parser.Tree.Line (Parser_State.Shared_Token.Node),
-                                 Shared_Parser.Tree.Column (Parser_State.Shared_Token.Node, Parser_State.Stream),
+                              raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
+                                (Parser_State.Shared_Token.Node,
                                  ": too many parallel parsers required in grammar state" &
                                    Shared_Parser.Tree.State (Parser_State.Stream)'Image &
                                    "; simplify grammar, or increase max-parallel (" &
@@ -519,9 +515,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          when LR_Parse_Action =>
             Put_Line
               (Current_Error,
-               Error_Message
-                 (Parser.Tree.Lexer.File_Name, Parser.Tree.Line (Item.Error_Token.Node),
-                  Parser.Tree.Column (Item.Error_Token.Node),
+               Parser.Tree.Error_Message
+                 (Item.Error_Token.Node,
                   "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                     ", found '" & Parser.Tree.Lexer.Buffer_Text (Parser.Tree.Byte_Region (Item.Error_Token.Node)) &
                     "'"));

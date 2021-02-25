@@ -352,23 +352,30 @@ package WisiToken is
    function Trimmed_Image (Item : in Line_Number_Type) return String;
    --  '-' if Invalid_Line_Number
 
+   type Line_Region is record
+      First, Last : Line_Number_Type;
+   end record;
+
+   Null_Line_Region : constant Line_Region := (Line_Number_Type'Last, Line_Number_Type'First);
+
+   function Image (Item : in Line_Region) return String;
+   --  Ada positional aggregate.
+
+   function "+" (Left : in Line_Region; Right : in Base_Line_Number_Type) return Line_Region;
+
    type Base_Token is record
-      --  The parser only needs ID; semantic checks need Byte_Region to
-      --  compare names. Line, Col, and Char_Region are included for error
-      --  messages and interfacing with other tools.
+      --  Information provided by the lexer.
 
       ID : Token_ID := Invalid_Token_ID;
 
       Byte_Region : Buffer_Region := Null_Buffer_Region;
       --  Index into the Lexer buffer for the token text.
 
-      Line : Line_Number_Type := Invalid_Line_Number;
-      --  At start of token. Column can be computed from Char_Region.First
-      --  and Parser.Line_Begin_Char_Pos.
-
       Char_Region : Buffer_Region := Null_Buffer_Region;
       --  Character position, useful for finding the token location in Emacs
       --  buffers.
+
+      Line_Region : WisiToken.Line_Region := Null_Line_Region;
    end record;
 
    function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count;
