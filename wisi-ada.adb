@@ -39,22 +39,19 @@ package body Wisi.Ada is
       if not Indenting_Comment and Indenting_Token.Base.ID = +RECORD_ID then
          --  Indenting 'record'
          return Indent_Anchored_2
-           (Data, Anchor_Token.Line, Last_Line (Record_Token, Indenting_Comment),
-            Ada_Indent_Record_Rel_Type);
+           (Data, Anchor_Token.Line_Region.First, Indenting_Token.Base.Line_Region.First, Ada_Indent_Record_Rel_Type);
 
       elsif Indenting_Comment and Indenting_Token.Base.ID = +WITH_ID then
          --  comment before 'record'. test/ada_mode-nominal-child.ads Child_Type_1
          return Indent_Anchored_2
-           (Data, Anchor_Token.Line, Last_Line (Indenting_Token, Indenting_Comment),
-            Ada_Indent_Record_Rel_Type);
+           (Data, Anchor_Token.Line_Region.First, Indenting_Token.Base.Line_Region.Last, Ada_Indent_Record_Rel_Type);
 
       elsif Indenting_Comment and Indenting_Token.Base.ID = +IS_ID then
          --  comment after 'is'
          if Record_Token.Base.ID = +RECORD_ID then
             --  before 'record'. test/ada_mode-nominal.ads Record_Type_1
             return Indent_Anchored_2
-              (Data, Anchor_Token.Line, Last_Line (Indenting_Token, Indenting_Comment),
-               Ada_Indent_Record_Rel_Type);
+              (Data, Anchor_Token.Line_Region.First, Indenting_Token.Base.Line_Region.Last, Ada_Indent_Record_Rel_Type);
          else
             --  not before 'record'. test/ada_mode-nominal-child.ads Child_Type_1
             return (Simple, (Int, Controlling_Token_Line, Offset));
@@ -64,33 +61,28 @@ package body Wisi.Ada is
          --  Indenting comment after 'record', other comment, component or 'end'
          --
          --  Ensure 'record' line is anchored to Anchor_Token.
-         if not (Data.Indents (Record_Token.Base.Line).Label = Anchored or
-                   Data.Indents (Record_Token.Base.Line).Label = Anchor_Anchored)
-         then
-            if Anchor_Token.Line /= Record_Token.Base.Line then
+         if not (Data.Indents (Record_Token.Base.Line_Region.First).Label in Anchored | Anchor_Anchored) then
+            if Anchor_Token.Line_Region.First /= Record_Token.Base.Line_Region.First then
                --  We don't pass Indenting_Comment here, because 'record' is code.
                Indent_Token_1
                  (Data,
                   Tree,
-                  Indenting_Token         => Record_Token,
-                  Delta_Indent            => Indent_Anchored_2
-                    (Data, Anchor_Token.Line,
-                     Last_Line
-                       (Record_Token,
-                        Indenting_Comment => False),
+                  Indenting_Token   => Record_Token,
+                  Delta_Indent      => Indent_Anchored_2
+                    (Data, Anchor_Token.Line_Region.First, Indenting_Token.Base.Line_Region.Last,
                      Ada_Indent_Record_Rel_Type),
-                  Indenting_Comment       => False);
+                  Indenting_Comment => False);
             end if;
          end if;
 
          return Indent_Anchored_2
            (Data,
-            Anchor_Line => Anchor_Token.Line,
-            Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
-            Offset      => Current_Indent_Offset
+            Anchor_Line    => Anchor_Token.Line_Region.First,
+            Indenting_Line => Indenting_Token.Base.Line_Region.First,
+            Offset         => Current_Indent_Offset
               (Tree, Anchor_Token,
-               Offset   =>
-                 (if Anchor_Token.Line = Record_Token.Base.Line
+               Offset      =>
+                 (if Anchor_Token.Line_Region.First = Record_Token.Base.Line_Region.First
                   then Offset
                   else Offset + Ada_Indent_Record_Rel_Type)));
       end if;
@@ -795,7 +787,7 @@ package body Wisi.Ada is
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Delta_Type
    is
-      pragma Unreferenced (Nonterm, Tokens, Args);
+      pragma Unreferenced (Nonterm, Tokens, Indenting_Comment, Args);
 
       use all type SAL.Base_Peek_Type;
       use Ada_Annex_P_Process_Actions;
@@ -806,16 +798,14 @@ package body Wisi.Ada is
       Anchor_Token    : constant WisiToken.Base_Token := Tree.Base_Token (Tree.Child (Tree.Parent (Tree_Indenting), 2));
       Indenting_Token : constant Augmented_Token      := Get_Augmented_Token (Tree, Tree_Indenting);
    begin
-      if Indenting_Token.Base.Line = Indenting_Token.Aug.First_Indent_Line then
+      if Indenting_Token.Base.Line_Region.First = Indenting_Token.Aug.First_Indent_Line then
          --  aspect_definition starts a line; anchor the aspect_definition to
          --  the line containing '=>' with offset ada_indent_broken.
          return
            (Simple,
             Indent_Anchored_2
-              (Data,
-               Anchor_Line => Anchor_Token.Line,
-               Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
-               Offset      => Ada_Indent_Broken).Simple_Delta);
+              (Data, Anchor_Token.Line_Region.First, Indenting_Token.Base.Line_Region.First, Ada_Indent_Broken)
+              .Simple_Delta);
       else
          --  aspect_definition starts on same line as '=>'; anchor the aspect_definition to '=>' with offset 3
          declare
@@ -824,10 +814,8 @@ package body Wisi.Ada is
             return
               (Simple,
                Indent_Anchored_2
-                 (Data,
-                  Anchor_Line => Anchor_Token.Line,
-                  Last_Line   => Last_Line (Indenting_Token, Indenting_Comment),
-                  Offset      => Offset).Simple_Delta);
+                 (Data, Anchor_Token.Line_Region.First, Indenting_Token.Base.Line_Region.First, Offset)
+                 .Simple_Delta);
          end;
       end if;
    end Ada_Indent_Aspect;
@@ -842,13 +830,12 @@ package body Wisi.Ada is
       Args              : in     Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type
    is
-      pragma Unreferenced (Nonterm);
+      pragma Unreferenced (Nonterm, Indenting_Comment);
       use all type WisiToken.Syntax_Trees.Node_Access;
 
-      Subp_Node   : constant Syntax_Trees.Valid_Node_Access := Tokens (Positive_Index_Type (Integer'(Args (1))));
-      Subp_Tok    : constant WisiToken.Base_Token           := Tree.Base_Token (Subp_Node);
-      Renames_Tok : constant Augmented_Token                := Get_Augmented_Token (Tree, Tree_Indenting);
-      Paren_I     : Syntax_Trees.Node_Access;
+      Subp_Node : constant Syntax_Trees.Valid_Node_Access := Tokens (Positive_Index_Type (Integer'(Args (1))));
+      Subp_Tok  : constant WisiToken.Base_Token           := Tree.Base_Token (Subp_Node);
+      Paren_I   : Syntax_Trees.Node_Access;
    begin
       Paren_I := Tree.Find_Descendant (Subp_Node, Data.Left_Paren_ID);
 
@@ -856,27 +843,19 @@ package body Wisi.Ada is
          --  paren is present
          if Ada_Indent_Renames > 0 then
             return Indent_Anchored_2
-              (Data,
-               Anchor_Line => Subp_Tok.Line,
-               Last_Line   => Last_Line (Renames_Tok, Indenting_Comment),
-               Offset      => Ada_Indent_Renames);
+              (Data, Subp_Tok.Line_Region.First, Tree.Line_Region (Tree_Indenting).Last, Ada_Indent_Renames);
          else
             declare
                Paren_Tok : constant WisiToken.Base_Token :=  Tree.Base_Token (Paren_I);
             begin
                return Indent_Anchored_2
-                 (Data,
-                  Anchor_Line => Paren_Tok.Line,
-                  Last_Line   => Last_Line (Renames_Tok, Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Tree, Paren_Tok, abs Ada_Indent_Renames));
+                 (Data, Paren_Tok.Line_Region.First, Tree.Line_Region (Tree_Indenting).Last,
+                  Current_Indent_Offset (Tree, Paren_Tok, abs Ada_Indent_Renames));
             end;
          end if;
       else
          return Indent_Anchored_2
-           (Data,
-            Anchor_Line => Subp_Tok.Line,
-            Last_Line   => Last_Line (Renames_Tok, Indenting_Comment),
-            Offset      => Ada_Indent_Broken);
+           (Data, Subp_Tok.Line_Region.First, Tree.Line_Region (Tree_Indenting).Last, Ada_Indent_Broken);
       end if;
    end Ada_Indent_Renames_0;
 
@@ -890,7 +869,7 @@ package body Wisi.Ada is
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type
    is
-      pragma Unreferenced (Nonterm);
+      pragma Unreferenced (Nonterm, Indenting_Comment);
       use all type Ada_Annex_P_Process_Actions.Token_Enum_ID;
       --  Tokens (Args (1)) = 'formal_part'
       --  Indenting = 'result_profile'
@@ -904,7 +883,7 @@ package body Wisi.Ada is
 
       Indenting : constant Augmented_Token := Get_Augmented_Token (Tree, Tree_Indenting);
    begin
-      if Indenting.Base.Line = Indenting.Aug.First_Indent_Line then
+      if Indenting.Base.Line_Region.First = Indenting.Aug.First_Indent_Line then
          if Ada_Indent_Return <= 0 then
             declare
                Anchor_Token : constant Base_Token := Tree.Base_Token
@@ -912,9 +891,9 @@ package body Wisi.Ada is
             begin
                return Indent_Anchored_2
                  (Data,
-                  Anchor_Line => Anchor_Token.Line,
-                  Last_Line   => Last_Line (Indenting, Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
+                  Anchor_Line    => Anchor_Token.Line_Region.First,
+                  Indenting_Line => Tree.Line_Region (Tree_Indenting).Last,
+                  Offset         => Current_Indent_Offset (Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
             end;
          else
             declare
@@ -924,9 +903,9 @@ package body Wisi.Ada is
             begin
                return Indent_Anchored_2
                  (Data,
-                  Anchor_Line => Anchor_Token.Line,
-                  Last_Line   => Last_Line (Indenting, Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
+                  Anchor_Line    => Anchor_Token.Line_Region.First,
+                  Indenting_Line => Tree.Line_Region (Tree_Indenting).Last,
+                  Offset         => Current_Indent_Offset (Tree, Anchor_Token, Args (2) + abs Ada_Indent_Return));
             end;
          end if;
 
@@ -948,7 +927,7 @@ package body Wisi.Ada is
       return Indent_Record
         (Parse_Data_Type (Data),
          Tree,
-         Tree.Base_Token (Nonterm).Line,
+         Tree.Line_Region (Nonterm).First,
          Anchor_Token      => Tree.Base_Token (Tokens (Positive_Index_Type (Integer'(Args (1))))),
          Record_Token      => Get_Augmented_Token (Tree, Tokens (Positive_Index_Type (Integer'(Args (2))))),
          Offset            => Args (3),
@@ -994,7 +973,7 @@ package body Wisi.Ada is
       return Indent_Record
         (Parse_Data_Type (Data),
          Tree,
-         Tree.Base_Token (Nonterm).Line,
+         Tree.Line_Region (Nonterm).First,
          Anchor_Token      => Tree.Base_Token (Tree_Anchor),
          Record_Token      => Get_Augmented_Token (Tree, Tree.First_Terminal (Record_Token_Tree_Index)),
          Indenting_Token   => Get_Augmented_Token (Tree, Tree_Indenting),

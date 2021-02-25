@@ -788,13 +788,13 @@ private
    --  Prefix any '"' in Item with '\' for elisp.
 
    function Indent_Anchored_2
-     (Data        : in out Parse_Data_Type;
-      Anchor_Line : in     WisiToken.Line_Number_Type;
-      Last_Line   : in     WisiToken.Line_Number_Type;
-      Offset      : in     Integer)
+     (Data           : in out Parse_Data_Type;
+      Anchor_Line    : in     WisiToken.Line_Number_Type;
+      Indenting_Line : in     WisiToken.Line_Number_Type;
+      Offset         : in     Integer)
      return Delta_Type;
    --  Create an anchor (Anchor_Line, Offset), return an anchored delta using it.
-   --  Anchor ID is unique in Anchor_Line .. Last_Line.
+   --  Anchor ID is unique in Anchor_Line .. Indenting_Line.
 
    function Indent_Compute_Delta
      (Data              : in out Parse_Data_Type'Class;

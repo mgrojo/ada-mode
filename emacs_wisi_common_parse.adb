@@ -504,7 +504,7 @@ package body Emacs_Wisi_Common_Parse is
                           (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
                         Action_Region_Chars =>
                           (Base_Buffer_Pos (Params.Begin_Char_Pos), Base_Buffer_Pos (Params.End_Char_Pos)),
-                        End_Line            => Parser.Tree.Line (Parser.Tree.EOI),
+                        End_Line            => Parser.Tree.Line_Region (Parser.Tree.EOI).First,
                         Begin_Indent        => 0);
 
                      Parse_Data.Parse_Language_Params (-Params.Language_Params);

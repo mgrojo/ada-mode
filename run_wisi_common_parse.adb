@@ -318,7 +318,7 @@ package body Run_Wisi_Common_Parse is
       use Ada.Strings.Fixed;
       use WisiToken; -- "+" unbounded
 
-      type File_Command_Type is (Parse_Incremental, Post_Parse, Refactor, Query_Tree, Save_Text, Verbosity);
+      type File_Command_Type is (Parse_Incremental, Post_Parse, Refactor, Query_Tree, Save_Text, Verbosity, Time);
 
       Parser : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
 
@@ -397,7 +397,7 @@ package body Run_Wisi_Common_Parse is
               (Action,
                Action_Region_Bytes => (Begin_Byte_Pos, End_Byte_Pos),
                Action_Region_Chars => (Begin_Char_Pos, End_Char_Pos),
-               End_Line            => Parser.Tree.Line (Parser.Tree.EOI),
+               End_Line            => Parser.Tree.Line_Region (Parser.Tree.EOI).First,
                Begin_Indent        => 0);
 
             Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, End_Byte_Pos));
@@ -422,7 +422,7 @@ package body Run_Wisi_Common_Parse is
          end;
 
       when Save_Text =>
-            Save_File_Name := +Line (Last + 1 .. Line'Last);
+         Save_File_Name := +Line (Last + 1 .. Line'Last);
 
       when Verbosity =>
          WisiToken.Enable_Trace (Line (Last + 1 .. Line'Last));
@@ -430,6 +430,11 @@ package body Run_Wisi_Common_Parse is
          if Trace_McKenzie > Detail then
             Parser.Table.McKenzie_Param.Task_Count := 1;
          end if;
+
+      when Time =>
+         if Time_Start_Set then
+            Time_End := Ada.Calendar.Clock;
+
       end case;
    end Process_Command;
 
@@ -500,7 +505,7 @@ package body Run_Wisi_Common_Parse is
                   exit when Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID;
                end loop;
 
-               Cl_Params.End_Line := Token.Line;
+               Cl_Params.End_Line := Token.Line_Region.First;
 
                case Cl_Params.Command is
                when Parse_Partial =>
@@ -663,7 +668,7 @@ package body Run_Wisi_Common_Parse is
                     (Cl_Params.Inc_Post_Parse_Action,
                      Action_Region_Bytes => (Cl_Params.Inc_Begin_Byte_Pos, Cl_Params.Inc_End_Byte_Pos),
                      Action_Region_Chars => (Cl_Params.Inc_Begin_Char_Pos, Cl_Params.Inc_End_Char_Pos),
-                     End_Line            => Parser.Tree.Line (Parser.Tree.EOI),
+                     End_Line            => Parser.Tree.Line_Region (Parser.Tree.EOI).First,
                      Begin_Indent        => 0);
 
                   Parser.Execute_Actions

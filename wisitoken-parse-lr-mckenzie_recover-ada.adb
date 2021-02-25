@@ -1220,15 +1220,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Peek_State : Peek_Shared_State := Peek_Shared_Start (Tree, New_Config);
                pragma Assert (ID (New_Config.Error_Token) = Tree.ID (Peek_Shared_Terminal (Peek_State)));
 
-               Start_Line : constant WisiToken.Line_Number_Type := Tree.Base_Token
-                 (Tree.First_Terminal (Config.Error_Token)).Line;
+               Start_Line : constant WisiToken.Line_Number_Type := Tree.Line_Region
+                 (Tree.First_Terminal (Config.Error_Token)).First;
             begin
                Delete_Check (Tree, New_Config, Peek_State, +TICK_1_ID); -- increments Peek_State
                loop
                   if Peek_Shared_Terminal (Peek_State) = Invalid_Node_Access then
                      raise Bad_Config;
                   end if;
-                  if Tree.Base_Token (Peek_Shared_Terminal (Peek_State)).Line /= Start_Line then
+                  if Tree.Line_Region (Peek_Shared_Terminal (Peek_State)).First /= Start_Line then
                      raise Bad_Config;
                   end if;
                   exit when Tree.ID (Peek_Shared_Terminal (Peek_State)) = +TICK_1_ID;

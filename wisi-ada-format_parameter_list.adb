@@ -163,7 +163,7 @@ begin
          Result     : Unbounded_String := +"(";
          Line_End   : Integer          := 0;     --  Index of last LF char in Result.
          Multi_Line : constant Boolean :=
-           Tree.Base_Token (First_Param_Node).Line < Tree.Base_Token (Last_Param_Node).Line;
+           Tree.Line_Region (First_Param_Node).First < Tree.Line_Region (Last_Param_Node).First;
          Ident_Len  : Integer          := 0;     -- Maximum over all params, includes commas
          Type_Len   : Integer          := 0;
          Aliased_P  : Boolean          := False; -- "_P" for "present"

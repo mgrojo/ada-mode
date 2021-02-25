@@ -43,6 +43,12 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+get benchmark of edit_tree time in large file
+
+eliminate function line_last, line_first?
+    add line_region to base_token
+    edited use in calls to indent_anchored_2
+
 run all tests with incremental mode enabled
     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t)"
     test/ada_mode-conditional_expressions.adb
@@ -57,7 +63,8 @@ run all tests with incremental mode enabled
 
         or always computed all augmented for full_parse, shift, update in Edit_Tree.
         or eliminate, use node.line, _last, compute trailing_comment as needed.
-
+            first_indent_comment_line => last_terminal (node).non_grammar (first_index).line_region.first
+            last_indent_comment_line => last_terminal (node).non_grammar (last_index).line_region.last
 
 
 
