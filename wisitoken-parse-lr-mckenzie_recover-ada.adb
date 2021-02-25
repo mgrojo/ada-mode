@@ -330,8 +330,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             return;
          end if;
 
-         if (Config.Stack.Depth >= 4 and then Tree.Label (Config.Stack.Peek (4).Token.Node) /= Nonterm) or else
-           Invalid_Node_Access = Tree.Find_Child (Config.Stack.Peek (4).Token.Node, +EXCEPTION_ID)
+         if Config.Stack.Depth >= 4 and then
+           (Is_Terminal (ID (Config.Stack.Peek (4).Token), Tree.Lexer.Descriptor.all) and
+              Invalid_Node_Access = Tree.Find_Child (Config.Stack.Peek (4).Token.Node, +EXCEPTION_ID))
          then
             --  'exception' not found; case 1a - assume extra 'end [keyword] ;'; delete it.
             declare
@@ -371,7 +372,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                      Undo_Reduce_Check
                        (New_Config, Tree, Parse_Table,
                         (+handled_sequence_of_statements_ID,
-                         +sequence_of_statements_opt_ID));
+                         +sequence_of_statements_ID));
                   else
                      if Trace_McKenzie > Outline then
                         Put ("Language_Fixes unimplemented nonterm for Missing_Name_Error.", New_Config);
@@ -400,7 +401,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                      Undo_Reduce_Check
                        (New_Config, Tree, Parse_Table,
                         (+handled_sequence_of_statements_ID,
-                         +sequence_of_statements_opt_ID));
+                         +sequence_of_statements_ID));
                   end if;
                when others =>
                   if Trace_McKenzie > Outline then

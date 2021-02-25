@@ -170,6 +170,9 @@ Ada mode requires Emacs 25.0 or greater. Compiling the Ada code for
 the external process parser requires GNAT GPL 2017 or later; tested
 with GNAT Community Edition 2019 and GNAT Pro 19.
 
+@c fails with gcc gnat 10.2.1 20210110; gcc bugzilla 99099
+@c FIXME: make a table?
+
 Ada mode is distributed in the Gnu ELPA package archive; it can be
 installed via @code{M-x list-packages} (@pxref{Packages,,,emacs,Emacs
 User Guide}). Note that it requires the @code{wisi} and
@@ -227,6 +230,9 @@ e.g. @file{/usr/local/gnat-2019}, and that @file{$prefix/bin} is first
 on the @code{PATH}. If you are running Windows, use mingw64
 @code{bash} to run these commands.
 
+On some operating systems, we must install gnatcoll-iconv; other
+operating systems don't need it.
+
 On linux, some versions of the @code{GNATCOLL.iconv} package (used by
 @code{gpr_query}, but not the parser) explicitly
 require the @file{libiconv.so} library. GNAT provides the
@@ -267,8 +273,12 @@ release branch (or the one that matches your compiler), click on the
 Similarly, download gnatcoll-bindings from
 @url{https://github.com/AdaCore/gnatcoll-bindings/tree/20.2} (for
 gnatcoll-iconv; not needed for GNAT Community 2020 on Windows).
+@c FIXME: table of os/gnat version that need/don't need iconv;
+@c debian/comm-2020 requires gnatcoll-iconv
 
-Then unpack, build, and install the required components:
+Then unpack, build, and install the required components. If you are
+unsure whether you need to install iconv, skip that step; a later step
+will complain if it is needed.
 
 @example
 unzip ~/Downloads/gnatcoll-bindings-20.2.zip

@@ -42,7 +42,7 @@ EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 endif
 
 # compile with debug to get assertions for testing new code
-export Standard_Common_Build := Debug
+#export Standard_Common_Build := Debug
 #export Gnatcoll_Build := Debug
 
 elisp : byte-compile-clean compile-ada-test-clean update compile-ada-test test-clean test

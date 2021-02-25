@@ -1615,7 +1615,7 @@ package body Wisi is
          then Before_Token.Line_Region.First
          else Invalid_Line_Number);
 
-      --  Initially assume Insert_After = False; see below for True.
+      --  Initially assume Insert_Location = Before_Next; see below for others
       New_Aug : constant Augmented_Access := new Augmented'
         (Deleted                     => False,
          Paren_State                 =>
@@ -1631,7 +1631,7 @@ package body Wisi is
       Prev_Terminal : constant Syntax_Trees.Node_Access := Tree.Prev_Terminal (Inserted_Token);
       --  Invalid_Node_Index if Inserted_Token is inserted before first grammar token
 
-      Insert_After : Boolean := False;
+      Insert_Location : WisiToken.Insert_Location := Before_Next;
    begin
       Tree.Set_Augmented (Inserted_Token, Syntax_Trees.Augmented_Class_Access (New_Aug));
 
@@ -1698,8 +1698,14 @@ package body Wisi is
          begin
             Check_Non_Grammar;
 
-            if Blank_Line /= Invalid_Line_Number then
-               --  Insert on blank line; no need to call Insert_After.
+            Insert_Location := Parse_Data_Type'Class (Data).Insert_After
+              (Tree, Inserted_Token, Inserted_Before,
+               Comment_Present    => Comment_Present,
+               Blank_Line_Present => Blank_Line /= Invalid_Line_Number);
+
+            case Insert_Location is
+            when Between =>
+               --  Insert on blank line
                --
                --  test/ada_mode-interactive_2.adb Function_Access_2 and many similar
                --  indent for new code line extending previous code line
@@ -1738,6 +1744,26 @@ package body Wisi is
 
                   Prev_Aug.First_Trailing_Comment_Line := Invalid_Line_Number;
                   Prev_Aug.Last_Trailing_Comment_Line  := Invalid_Line_Number;
+
+                  if Trace_Action > WisiToken.Detail then
+                     Data.Trace.Put_Line
+                       ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
+                          " after " & Tree.Image (Prev_Terminal, Node_Numbers => True) &
+                          " on blank line" & Blank_Line'Image);
+                  end if;
+               end;
+
+            when After_Prev =>
+               New_Aug.Inserted_After := True;
+
+               if Trace_Action > WisiToken.Detail then
+                  Data.Trace.Put_Line
+                    ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
+                       " after " & Tree.Image (Prev_Terminal, Node_Numbers => True));
+               end if;
+
+               if Length (Prev_Token.Char_Region) = 0 then
+                  raise SAL.Programmer_Error with "Prev_Token char_region = 0: " & Tree.Image (Prev_Terminal);
 
                   if Trace_Action > WisiToken.Detail then
                      Data.Trace.Put_Line
@@ -1786,11 +1812,14 @@ package body Wisi is
                      Prev_Aug.Last_Trailing_Comment_Line  := Invalid_Line_Number;
                   end if;
                end if;
-            end if;
+
+            when Before_Next =>
+               null;
+            end case;
          end;
       end if;
 
-      if not Insert_After and Trace_Action > WisiToken.Detail then
+      if Insert_Location = Before_Next and Trace_Action > WisiToken.Detail then
          Data.Trace.Put_Line
            ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
               " before " & Tree.Image (Inserted_Before, Node_Numbers => True));

@@ -66,8 +66,6 @@ run all tests with incremental mode enabled
             first_indent_comment_line => last_terminal (node).non_grammar (first_index).line_region.first
             last_indent_comment_line => last_terminal (node).non_grammar (last_index).line_region.last
 
-
-
     skip all *_partial_*?
     build/test.log
 
@@ -104,6 +102,91 @@ optimize initial full parse
     if encounter error, save partial trees, do incremental generalized LR1 error correcting to finish
 
 split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
+
+for wisi.texi:
+    ----------------------
+    gpr-query relies on the cross reference information output by the
+    compiler; it assumes the code is compiled.
+
+    When gpr-query reads the compiler output, it caches the results in a
+    database.
+
+    This error message indicates that the cached cross reference database does not
+    contain the requested symbol. This is due to one of three things:
+
+    - the code has never been compiled, or changed but not compiled
+
+        solution; compile it and try again
+
+    - the code has been changed and compiled since the database was
+    refreshed
+
+        solution: refresh the database with C-c C-q (wisi-refresh-prj-cache)
+
+    - the compiler does not output information for this symbol.
+
+        give up
+
+    AdaCore is moving to a different cross reference system, so they are not
+    likely to make changes in the compiler output info to support new
+    features.
+    -----------
+
+
+    if package install complains about wisi--lexer-error undefined,
+    check for old copies of wisi or ada-mode on your load-path.
+
+testimonial:
+    Jonty Needham Feb 2021 ada-mode 7.1.4 Ada-mode is even better than it used to be and a real pleasure to use.
+
+'with unreferenced' in parameter list
+    in gnat pro 21.1
+    > So I'd guess that you can put the aspect directly on the parameters in the
+    > usual way (but that may require a compiler not available yet; the change was
+    > approved in Sept [AI12-0395-1] and Oct [AI12-0398-1]). So, I'd expect the
+    > following to work (eventually):
+    >
+    >  overriding function Expand_Tabs
+    >      (This   : Dummy_Editor_Buffer with Unreferenced;
+    >       Line   : Editable_Line_Type with Unreferenced;
+    >       Column : Character_Offset_Type with Unreferenced) return
+    > Visible_Column_Type is (0);
+    While you're at it, you probably ought to add any other contexts where
+    aspect_specifications are now allowed:
+
+        parameter_specification
+        discriminant_specification
+        extended_return_object_declaration
+        entry_index_specification
+
+
+    do another diff between annex P and my grammar
+
+better error message for devault vc project
+    "select an ada-mode project"
+    or use default ada-mode project?
+
+test completion with ada-mode default project
+    joakim@verona.se
+    > cl-no-applicable-method: No applicable method:
+    > wisi-xref-completion-at-point-table, #s(gnatxref-xref nil
+    > "*gnatxref-/home/joakim/pub/all-the-hellos/ada/hello-world/default_.adp*"
+    need better error message "no project defined, so can't complete on Ada identifiers"
+
+savannah support tickets work; mention in readme
+
+delete ada-language-version
+
+provide binary for windows and Debian on Savannah as an aide to new users
+    AdaCore gnat distributions only have two flavors
+    build.sh can just download those
+    or some elisp code can
+
+build.sh provide helpful error for missing gnatcoll
+    refer to ada-mode.info
+
+gpr_query process symbols in background thread, yeild periodically
+    avoid pausing user interface
 
 in ada_annex_p.wy:
     wisi-parse-buffer indent doesn't use lisp-indent-buffer
@@ -1025,6 +1108,7 @@ in ~/.gitconfig:
 
  release process
 split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
+    delete files that are not used; wisi packrat, libadalang, etc
 
 keep status in ~/projects.text
 do wisitoken release ../org.wisitoken/build/release_process.text
@@ -1033,9 +1117,6 @@ update benchmarks above
 
 generate ada.wy LR1 with --task_count 1 in build.sh; not in git
 
-
-savannah support tickets work; mention in readme
-
 https://en.wikipedia.org/wiki/Comparison_of_parser_generators
 
 add wisitoken grammar doc to wisi package
@@ -1043,6 +1124,8 @@ add wisitoken grammar doc to wisi package
 
 provide wisitoken_rules.make
     for %.re2c etc
+
+find info cross reference checker; ref to wisi from ada-mode was wrong.
 
 (dvc-status ".")
 
@@ -1253,6 +1336,7 @@ Debian testing has elpa checkout
     upgrade debian (to avoid eventually needing to reinstall from scratch)
 
     FIXME: test with the latest Debian gnat release
+        bugs to https://gcc.gnu.org/bugzilla/buglist.cgi?quicksearch=comp%3Aada
 
     if new machine, install gnat CE 2019, gnatcoll
         http://libre.adacore.com
