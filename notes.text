@@ -43,18 +43,6 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-run all tests no incremental
-    review build/test.log
-
-
-commit
-
-run wisitoken tests
-    t_mk broken!?
-
-propagate
-
-
 eliminate lexer.first
     move descriptor to tree?
 
@@ -944,6 +932,14 @@ refactoring
 https://debbugs.gnu.org/Developer.html
 https://debbugs.gnu.org/server-control.html
 https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
+
+ELISP="(setq-default wisi-parser-verbosity \"debug=1\" save-parser-log \"../debug-2.log\")"
+
+ada-mode option defaults:
+--lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 1"
+
+end-name-optional nil:
+--lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 0"
 
 wisi.adb insert_token
     p data.descriptor.image (tree.shared_tree.nodes.elements (token).id).all

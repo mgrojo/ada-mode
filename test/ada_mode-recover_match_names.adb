@@ -17,7 +17,7 @@
 --
 --  Does not compile.
 --
---  Copyright (C) 2017, 2018, 2019, 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -121,13 +121,13 @@ package body Ada_Mode.Recover_Match_Names is
       A : Integer;
    private
       type A is record
-        record; -- meant 'end record'
+         record; -- meant 'end record'
    end Package_Specification_0;
 
    package Package_Specification_1 is
       A : Integer;
       type A is record
-        record; -- meant 'end record'
+         record; -- meant 'end record'
    end Package_Specification_1;
 
    protected body Protected_Body_0 is
@@ -168,3 +168,6 @@ package body Ada_Mode.Recover_Match_Names is
    --  missing an 'end'
 
 end Ada_Mode.Recover_Match_Names;
+-- Local Variables:
+-- ada-end-name-optional: nil
+-- End:

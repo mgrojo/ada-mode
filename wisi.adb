@@ -1346,8 +1346,6 @@ package body Wisi is
                declare
                   New_Non_Grammar : Base_Token_Arrays.Vector;
                begin
-                  pragma Assert (Blank_Line_Index = Prev_Non_Grammar.First_Index + 1);
-
                   for I in Blank_Line_Index .. Prev_Non_Grammar.Last_Index loop
                      New_Non_Grammar.Append (Prev_Non_Grammar (I));
                   end loop;
@@ -1363,7 +1361,7 @@ package body Wisi is
 
                   Token_Non_Grammar := New_Non_Grammar;
 
-                  Prev_Non_Grammar.Set_First_Last (Prev_Non_Grammar.First_Index, Prev_Non_Grammar.First_Index);
+                  Prev_Non_Grammar.Set_First_Last (Prev_Non_Grammar.First_Index, Blank_Line_Index - 1);
                   Tree.Set_Line_Last (Prev_Terminal, Blank_Line - 1);
 
                   Tree.Update_Ancestor_Cache (Inserted_Token);
@@ -1392,7 +1390,7 @@ package body Wisi is
 
                Tree.Set_Line_Last (Prev_Terminal, Prev_Non_Grammar (Prev_Non_Grammar.First_Index).Line_Region.First);
 
-               Token_Non_Grammar.Element.all := Prev_Non_Grammar.Element.all;
+               Token_Non_Grammar := Prev_Non_Grammar;
 
                Prev_Non_Grammar := WisiToken.Base_Token_Arrays.Empty_Vector;
 

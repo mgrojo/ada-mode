@@ -604,7 +604,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                --  Delete the second begin
                for I in 1 .. Second_Begin_I loop
-                  Push_Back (Tree, New_Config);
+                  Push_Back (Tree, New_Config, Push_Back_Undo_Reduce => True);
                end loop;
 
                if ID (New_Config.Stack.Peek.Token) = +COLON_ID then
@@ -634,7 +634,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                --  Delete the first begin. We assume it is in a subprogram body, so
                --  we don't need to adjust anything else.
                for I in 1 .. First_Begin_I loop
-                  Push_Back (Tree, New_Config);
+                  Push_Back (Tree, New_Config, Push_Back_Undo_Reduce => True);
                end loop;
 
                Delete_Check (Tree, New_Config, +BEGIN_ID);

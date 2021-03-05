@@ -34,4 +34,7 @@ package body Ada_Mode.Recover_End_1 is
          -- end return;
       end;
 
-end Ada_Mode.Recover_End_1;
+   end Ada_Mode.Recover_End_1;
+-- Local Variables:
+-- ada-end-name-optional: t
+-- End:

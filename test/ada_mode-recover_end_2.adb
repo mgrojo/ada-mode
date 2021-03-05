@@ -35,4 +35,6 @@ package body Ada_Mode.Recover_End_2 is
    end Return_Example;
 
 end Ada_Mode.Recover_End_2;
---  No race condition in recover
+-- Local Variables:
+-- ada-end-name-optional: nil
+-- End:

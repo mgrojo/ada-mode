@@ -1,8 +1,7 @@
 -- Indent used to fail with Programmer_Error.
 --
 -- Now error recover turns the mess in type Child_T into a type and a
--- record_representation_clause; 'Child_Field' is anchored to the
--- leading insert 'for' in the middle of line 11.
+-- record_representation_clause.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
@@ -27,11 +26,11 @@ procedure Field_parent is
    type Child_T (Child_Disc : Child_Disc_T := Child_Disc_T'First) is new
       Root_T (Rdisc2) with record --  Error here; extra 'is new Root_T (Rdisc2) with record'
          is new Root_T  with record
-                             Child_Field : Integer;
+   Child_Field : Integer;
    case Child_Disc is
       when Cdisc1 => Child_Field1 : Integer;
-         when Cdisc2 => Child_Field2 : Float;
-         when Cdisc3 => Child_Field4 : Character;
+      when Cdisc2 => Child_Field2 : Float;
+      when Cdisc3 => Child_Field4 : Character;
          end case;record; --  Error: missing 'end' for 'record'
 
 type D1_T is (D1, D2, D3);

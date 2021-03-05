@@ -21,7 +21,7 @@ for ID of Prod.RHSs (RHS).Tokens loop
                Ada.Text_IO.Put_Line
                  (Trimmed_Image (Production_ID'(Nonterm, RHS)) & " => " &
                     recursive");
-               -- trailing string quote due to splitting string across lines.
+-- trailing string quote due to splitting string across lines.
 
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1

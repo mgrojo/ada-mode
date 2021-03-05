@@ -10,4 +10,4 @@ Delete_Index : WisiToken.Token_Index := Config.Current_Shared_Token;
 
       Delete_Check (Terminals, New_Config, Delete_Index, +COLON_ID);
 
-end Ada_Mode.Recover_Constant_As_Statement_1;
+   end Ada_Mode.Recover_Constant_As_Statement_1;

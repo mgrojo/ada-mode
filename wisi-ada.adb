@@ -674,13 +674,17 @@ package body Wisi.Ada is
             end if;
 
          when SEMICOLON_ID =>
-            --  test/ada_mode-interactive_2.adb A := B \n+C; on blank line: extending code => after_prev
+            --  test/ada_mode-interactive_2.adb A := B \n+C; on blank line: extending code => between | before_next
             --  test/ada_mode-recover_03.adb after 'renames', _13.adb not on blank line: after_prev
-            --  test/ada_mode-recover_30.adb before 'if', blank line present: after_Prev
-            --  test/ada_mode-recover_36.adb after 'function Update\n comments': after_Prev?
+            --  test/ada_mode-recover_30.adb before 'if', blank line present: between
+            --  test/ada_mode-recover_36.adb after 'function Update\n comments': before_next
             --
-            --  test/ada_mode-recover_07.adb after 'loop' on blank line: after_prev,
-            return After_Prev;
+            --  test/ada_mode-recover_07.adb after 'loop' on blank line: after_prev | Between,
+            if Blank_Line_Present then
+               return Between;
+            else
+               return After_Prev;
+            end if;
 
          when others =>
             if Blank_Line_Present then
