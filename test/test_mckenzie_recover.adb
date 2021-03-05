@@ -1092,7 +1092,7 @@ package body Test_McKenzie_Recover is
       --
       --  In LALR, that fails at EOI with an Extra_Name_Error; the solution
       --  reverts the solution to the first error. In LR1, it fails with a
-      --  parser error - expecting another 'end'; similar solution to LALR
+      --  parser error - expecting another 'end'; same solution as the LALR
       --  case. The difference is because LALR merges lookaheads.
 
       Check_Recover
@@ -1553,7 +1553,7 @@ package body Test_McKenzie_Recover is
            (Delete, +LESS_ID, 19) & (Delete, +SLASH_ID, 20) & (Delete, +IDENTIFIER_ID, 21) &
            (Delete, +GREATER_ID, 22) & (Fast_Forward, 23),
          Strategy_Counts         => (String_Quote => 1, others => 0),
-         Enqueue_Low             => 43,
+         Enqueue_Low             => 42,
          Check_Low               => 6,
          Cost                    => 1);
 
@@ -1618,8 +1618,8 @@ package body Test_McKenzie_Recover is
            (Delete, +GREATER_ID, 26) & (Delete, +SEMICOLON_ID, 27) & (Fast_Forward, 28) &
            (Insert, +SEMICOLON_ID, 28),
          Strategy_Counts => (Minimal_Complete => 1, String_Quote => 1, others => 0),
-         Enqueue_Low     => (case Test.Alg is when LALR => 79, when LR1 => 86),
-         Check_Low       => 8,
+         Enqueue_Low     => (case Test.Alg is when LALR => 62, when LR1 => 69),
+         Check_Low       => 7,
          Cost            => 2);
    end String_Quote_2;
 
@@ -2144,8 +2144,8 @@ package body Test_McKenzie_Recover is
            +(Delete, +RIGHT_PAREN_ID, 12) & (Insert, +SEMICOLON_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +NUMERIC_LITERAL_ID, 13) & (Insert, +THEN_ID, 13),
          Strategy_Counts         => (Minimal_Complete => 3, Matching_Begin => 1, Delete => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 934, when LR1 => 972),
-         Check_Low               => (case Test.Alg is when LALR => 125, when LR1 => 125),
+         Enqueue_Low             => (case Test.Alg is when LALR => 908, when LR1 => 933),
+         Check_Low               => (case Test.Alg is when LALR => 123, when LR1 => 122),
          Cost                    => 7);
    end Do_Delete_First;
 

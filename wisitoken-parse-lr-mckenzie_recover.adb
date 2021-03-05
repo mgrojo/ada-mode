@@ -538,7 +538,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                          else Op.UR_Token_Index),
                                       Ops                   => Result.Ops,
                                       Last_Op_Index         => I - 1,
-                                      Push_Back_Undo_Reduce => False))
+                                      Push_Back_Undo_Reduce => True)) --  this solution may be from Language_Fixes
                               then
                                  Raise_Bad_Config ("invalid Undo_Reduce in apply config");
                               end if;
@@ -575,7 +575,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                          else Op.PB_Token_Index),
                                       Ops           => Result.Ops,
                                       Last_Op_Index => I - 1,
-                                      Push_Back_Undo_Reduce => False))
+                                      Push_Back_Undo_Reduce => True)) --  this solution may be from Language_Fixes
                               then
                                  Raise_Bad_Config ("invalid Push_Back in apply config");
                               end if;
@@ -1132,9 +1132,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      --
                      --  Push_Back after Undo_Reduce; must push back only part of the
                      --  unreduced nonterm, unless overridden by Language_Fixes.
+                     --  test/ada_mode-recover_block_name_mismatch.adb
                      return
                        (if Push_Back_Undo_Reduce
-                        then Target_Node_Index >= Op.UR_Token_Index
+                        then True
                         else Target_Node_Index > Op.UR_Token_Index);
 
                   when others =>
