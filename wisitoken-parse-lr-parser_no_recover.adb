@@ -457,12 +457,10 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
          declare
             use all type Syntax_Trees.Post_Parse_Action;
-            Tree_Children : constant Node_Access_Array := Tree.Children (Node);
          begin
             if Tree.Action (Node) /= null then
                begin
-                  Tree.Action (Node)
-                    (Parser.User_Data.all, Tree, Node, Syntax_Trees.To_Valid_Node_Access (Tree_Children));
+                  Tree.Action (Node) (Parser.User_Data.all, Tree, Node);
                exception
                when E : others =>
                   if WisiToken.Debug_Mode then

@@ -298,7 +298,7 @@ is
             end;
          end loop;
          Nonterm_Needed := True;
-         return " (Parse_Data, Tree, Nonterm, Tokens, " &
+         return " (Parse_Data, Tree, Nonterm, " &
            (case Count is
             when 0 => "(1 .. 0 => (1, Motion)))",
             when 1 => "(1 => " & (-Result) & "))",
@@ -391,7 +391,7 @@ is
             return "";
          else
             Nonterm_Needed := True;
-            return " (Parse_Data, Tree, Nonterm, Tokens, (" & (-Result) & "))";
+            return " (Parse_Data, Tree, Nonterm, (" & (-Result) & "))";
          end if;
       end Motion_Params;
 
@@ -455,10 +455,10 @@ is
             return "";
          elsif Count = 1 then
                Nonterm_Needed := True;
-            return " (Parse_Data, Tree, Nonterm, Tokens, (1 => " & (-Result) & "))";
+            return " (Parse_Data, Tree, Nonterm, (1 => " & (-Result) & "))";
          else
                Nonterm_Needed := True;
-            return " (Parse_Data, Tree, Nonterm, Tokens, (" & (-Result) & "))";
+            return " (Parse_Data, Tree, Nonterm, (" & (-Result) & "))";
          end if;
       exception
       when E : others =>
@@ -518,7 +518,7 @@ is
             end if;
          end loop;
          Nonterm_Needed := True;
-         return " (Parse_Data, Tree, Nonterm, Tokens, " &
+         return " (Parse_Data, Tree, Nonterm, " &
            (case Count is
             when 0 => "(1 .. 0 => (1, Prefix))",
             when 1 => "(1 => " & (-Result) & "))",
@@ -564,7 +564,7 @@ is
             end;
          end loop;
          Nonterm_Needed := True;
-         return " (Parse_Data, Tree, Nonterm, Tokens, " &
+         return " (Parse_Data, Tree, Nonterm, " &
            (case Count is
             when 0 => "(1 .. 0 => 1)",
             when 1 => "(1 => " & (-Result) & "))",
@@ -602,7 +602,7 @@ is
          subtype Digit is Character range '0' .. '9';
 
          Last       : Integer         := Index_Non_Blank (Params); -- skip [
-         Prefix     : constant String := " (Parse_Data, Tree, Nonterm, Tokens, " & N & "(";
+         Prefix     : constant String := " (Parse_Data, Tree, Nonterm, " & N & "(";
          Result     : Unbounded_String;
          Need_Comma : Boolean         := False;
 
@@ -1101,7 +1101,7 @@ is
          Label_Used_Second : constant Boolean := Label_Used (Label_Second);
       begin
          if Label_Used_First and Label_Used_Second then
-            return " (Lexer, Descriptor, Tokens, " &
+            return " (Lexer, Tokens, " &
               Label_First & ", " & Label_Second & ", " &
               (if Length (Input_Data.Language_Params.End_Names_Optional_Option) > 0
                then -Input_Data.Language_Params.End_Names_Optional_Option
@@ -1206,7 +1206,7 @@ is
                if Label_Used (Label) then
                   Nonterm_Needed := True;
                   Navigate_Lines.Append
-                    ("Name_Action (Parse_Data, Tree, Nonterm, Tokens, " & Label & ");");
+                    ("Name_Action (Parse_Data, Tree, Nonterm, " & Label & ");");
                end if;
             end;
 
@@ -1317,7 +1317,7 @@ is
                Item   : String_Pair_Type renames Input_Data.Tokens.Actions.Constant_Reference (+Elisp_Name);
                Params : constant String := Language_Action_Params (Line (Last + 1 .. Line'Last), Elisp_Name);
                Code   : constant String := -Item.Value &
-                 " (Wisi.Parse_Data_Type'Class (User_Data), Tree, Tokens, " & Params & ");";
+                 " (Wisi.Parse_Data_Type'Class (User_Data), Tree, Nonterm, " & Params & ");";
             begin
                if Params'Length > 0 then
                   if "navigate" = -Item.Name then
@@ -1363,7 +1363,7 @@ is
       end loop;
 
       if Check then
-         --  in a check
+         --  In an in-parse check action
          if Length (Check_Line) = 0 then
             Empty := True; -- don't output a spec for this.
 
@@ -1435,8 +1435,7 @@ is
          Indent_Line ("procedure " & Name);
          Indent_Line ("  (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
          Indent_Line ("   Tree      : in out WisiToken.Syntax_Trees.Tree;");
-         Indent_Line ("   Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;");
-         Indent_Line ("   Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)");
+         Indent_Line ("   Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)");
          Indent_Line ("is");
 
          Indent := Indent + 3;

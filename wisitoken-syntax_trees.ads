@@ -452,11 +452,10 @@ package WisiToken.Syntax_Trees is
    type Post_Parse_Action is access procedure
      (User_Data : in out User_Data_Type'Class;
       Tree      : in out Syntax_Trees.Tree;
-      Nonterm   : in     Valid_Node_Access;
-      Tokens    : in     Valid_Node_Access_Array);
+      Nonterm   : in     Valid_Node_Access);
    --  Routines of this type are called by
    --  WisiToken.LR.Parser.Execute_Actions when it processes a Nonterm
-   --  node in the syntax tree. Tokens are the children of Nonterm.
+   --  node in the syntax tree.
 
    Null_Action : constant Post_Parse_Action := null;
 
@@ -855,8 +854,8 @@ package WisiToken.Syntax_Trees is
       Node        : in Valid_Node_Access;
       Byte_Region : in Buffer_Region;
       Char_Region : in Buffer_Region;
-      Line_Region : in WisiToken.Line_Region)
-   with Pre => Tree.Label (Node) in Virtual_Terminal | Virtual_Identifier;
+      Line_Region : in WisiToken.Line_Region);
+   --  Caller is responsible for calling Update_Ancestor_Cache as needed.
 
    procedure Shift
      (Tree        : in Syntax_Trees.Tree;

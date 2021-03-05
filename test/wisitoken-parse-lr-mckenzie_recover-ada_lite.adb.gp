@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2018 - 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -432,11 +432,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
                   New_Config.Error_Token  := Invalid_Recover_Token;
-                  New_Config.User_Parse_Action_Status := (Label   => Ok);
+                  New_Config.User_Parse_Action_Status := (Label => Ok);
 
                   --  Push_Back the failed reduce tokens.
                   for I in 1 .. Token_Count loop
-                     Push_Back (Tree, New_Config);
+                     Push_Back (Tree, New_Config, Push_Back_Undo_Reduce => True);
                   end loop;
 
                   Insert (Tree, New_Config, +END_ID);
@@ -486,6 +486,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
             end if;
          end;
       end case;
+   exception
+   when Bad_Config =>
+      null;
    end Handle_Check_Fail;
 
    procedure Handle_Parse_Error
@@ -652,6 +655,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          end;
 
       end if;
+   exception
+   when Bad_Config =>
+      null;
    end Handle_Parse_Error;
 
    ----------

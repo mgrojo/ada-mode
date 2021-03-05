@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c PROCESS wisitoken_grammar.wy
 --
 
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -24,7 +24,7 @@
 with WisiToken.Syntax_Trees;
 package Wisitoken_Grammar_Actions is
 
-   Descriptor : aliased WisiToken.Descriptor :=
+   Descriptor : aliased constant WisiToken.Descriptor :=
      (First_Terminal    => 3,
       Last_Terminal     => 38,
       First_Nonterminal => 39,
@@ -173,86 +173,69 @@ package Wisitoken_Grammar_Actions is
    procedure declaration_0
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure declaration_1
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure declaration_2
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure declaration_3
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure declaration_4
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure declaration_5
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure declaration_6
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure declaration_7
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure declaration_8
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure nonterminal_0
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure nonterminal_1
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure rhs_item_1
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure rhs_item_2
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure rhs_item_3
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure rhs_item_4
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure rhs_item_5
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure rhs_optional_item_3
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
 end Wisitoken_Grammar_Actions;

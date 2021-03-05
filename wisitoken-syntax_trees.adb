@@ -2519,44 +2519,6 @@ package body WisiToken.Syntax_Trees is
       end loop;
    end Line_Begin_Char_Pos;
 
-   procedure Line_Begin_Token
-     (Tree : in     Syntax_Trees.Tree;
-      Line : in     Line_Number_Type;
-      Node : in out Node_Access)
-   is
-      Begin_Char_Pos : Buffer_Pos;
-      Parents        : Node_Stacks.Stack;
-   begin
-      if Line = Line_Number_Type'First then
-         --  There is no New_Line token that starts this line, so we can't use
-         --  Find_New_Line.
-         Node := First_Terminal (Node);
-         if Node.Line_Region.First = Line then
-            return;
-         else
-            Node := Invalid_Node_Access;
-            return;
-         end if;
-
-      elsif Tree.Leading_Non_Grammar.Length > 0 and then
-        Line < Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.Last_Index).Line_Region.First
-      then
-         Node := Invalid_Node_Access;
-         return;
-
-      else
-         Node := Find_New_Line (Tree, Parents, Line, Node, Begin_Char_Pos);
-         if Node /= Invalid_Node_Access then
-            if Tree.Parents_Set then
-               Node := Tree.Next_Terminal (Node);
-            else
-               Node := Tree.Next_Terminal (Parents, Node);
-            end if;
-         end if;
-         return;
-      end if;
-   end Line_Begin_Token;
-
    function Line_Begin_Token
      (Tree : in Syntax_Trees.Tree;
       Line : in Line_Number_Type)
@@ -2576,7 +2538,32 @@ package body WisiToken.Syntax_Trees is
             end if;
          end;
       end if;
-      Line_Begin_Token (Tree, Line, Node);
+
+      if Line = Node.Line_Region.First then
+         --  There is no New_Line token that starts this line, so we can't use
+         --  Find_New_Line.
+         Node := First_Terminal (Node);
+         if Node.Line_Region.First = Line then
+            return Node;
+         else
+            return Invalid_Node_Access;
+         end if;
+      end if;
+
+      declare
+         Begin_Char_Pos : Buffer_Pos;
+         Parents        : Node_Stacks.Stack;
+      begin
+         Node := Find_New_Line (Tree, Parents, Line, Node, Begin_Char_Pos);
+         if Node /= Invalid_Node_Access then
+            if Tree.Parents_Set then
+               Node := Tree.Next_Terminal (Node);
+            else
+               Node := Tree.Next_Terminal (Parents, Node);
+            end if;
+         end if;
+      end;
+
       return Node;
    end Line_Begin_Token;
 

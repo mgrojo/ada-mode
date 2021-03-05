@@ -38,7 +38,6 @@ package body WisiToken.In_Parse_Actions is
 
    function Match_Names
      (Lexer        : access constant WisiToken.Lexer.Instance'Class;
-      Descriptor   : in     WisiToken.Descriptor;
       Tokens       : in     Syntax_Trees.Recover_Token_Array;
       Start_Index  : in     Positive_Index_Type;
       End_Index    : in     Positive_Index_Type;
@@ -59,11 +58,11 @@ package body WisiToken.In_Parse_Actions is
          is
             use Ada.Characters.Handling;
             Start_Name : constant String :=
-              (if Descriptor.Case_Insensitive
+              (if Lexer.Descriptor.Case_Insensitive
                then To_Lower (Lexer.Buffer_Text (Start_Name_Region))
                else Lexer.Buffer_Text (Start_Name_Region));
             End_Name  : constant String :=
-              (if Descriptor.Case_Insensitive
+              (if Lexer.Descriptor.Case_Insensitive
                then To_Lower (Lexer.Buffer_Text (End_Name_Region))
                else Lexer.Buffer_Text (End_Name_Region));
          begin

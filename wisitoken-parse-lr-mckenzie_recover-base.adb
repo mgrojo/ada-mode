@@ -297,14 +297,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                Trace.all, Tree.all, Parser_Status (Parser_Index).Parser_State.Stream, Config);
          end if;
 
-         if Force_Full_Explore then
-            return;
-         end if;
-
          Success_Counter := Success_Counter + 1;
          Result          := Success;
 
          Data.Success := True;
+
+         if Force_Full_Explore then
+            Data.Results.Add (Config);
+            return;
+         end if;
 
          if Data.Check_Count < Min_Success_Check_Count then
             Min_Success_Check_Count := Data.Check_Count;

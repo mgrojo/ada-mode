@@ -73,7 +73,7 @@ package body Test_Partial_Parse is
             begin
                Check (Label & ".parse begin byte", Token.Byte_Region.First, Begin_Byte_Pos);
                Check (Label & ".parse begin char", Token.Char_Region.First, Begin_Char_Pos);
-               Check (Label & ".parse begin line", Token.Line, Begin_Line);
+               Check (Label & ".parse begin line", Token.Line_Region, (Begin_Line, Begin_Line));
             end;
 
             Check

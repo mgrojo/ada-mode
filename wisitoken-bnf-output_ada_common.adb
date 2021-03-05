@@ -211,8 +211,7 @@ package body WisiToken.BNF.Output_Ada_Common is
                   Indent_Line ("procedure " & Name.all);
                   Indent_Line ("  (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
                   Indent_Line ("   Tree      : in out WisiToken.Syntax_Trees.Tree;");
-                  Indent_Line ("   Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;");
-                  Indent_Line ("   Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);");
+                  Indent_Line ("   Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);");
                end if;
             end loop;
          end if;

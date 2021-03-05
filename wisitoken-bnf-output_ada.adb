@@ -4,7 +4,7 @@
 --  parameters, and a parser for that grammar. The grammar parser
 --  actions must be Ada.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -77,7 +77,6 @@ is
       User_Data_Regexp : constant Regexp := Compile (Symbol_Regexp ("User_Data"), Case_Sensitive => False);
       Tree_Regexp      : constant Regexp := Compile (Symbol_Regexp ("Tree"), Case_Sensitive      => False);
       Nonterm_Regexp   : constant Regexp := Compile (Symbol_Regexp ("Nonterm"), Case_Sensitive   => False);
-      Tokens_Regexp    : constant Regexp := Compile (Symbol_Regexp ("Tokens"), Case_Sensitive    => False);
 
       Body_File : File_Type;
    begin
@@ -164,7 +163,6 @@ is
                      Unref_User_Data : Boolean := True;
                      Unref_Tree      : Boolean := True;
                      Unref_Nonterm   : Boolean := True;
-                     Unref_Tokens    : Boolean := True;
                      Need_Comma      : Boolean := False;
 
                      procedure Check_Unref (Line : in String)
@@ -178,21 +176,17 @@ is
                         if Match (Line, Nonterm_Regexp) then
                            Unref_Nonterm := False;
                         end if;
-                        if Match (Line, Tokens_Regexp) then
-                           Unref_Tokens := False;
-                        end if;
                      end Check_Unref;
                   begin
                      Check_Unref (Line);
                      Indent_Line ("procedure " & Name);
                      Indent_Line (" (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
                      Indent_Line ("  Tree      : in out WisiToken.Syntax_Trees.Tree;");
-                     Indent_Line ("  Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;");
-                     Indent_Line ("  Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)");
+                     Indent_Line ("  Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)");
                      Indent_Line ("is");
 
                      Indent := Indent + 3;
-                     if Unref_User_Data or Unref_Tree or Unref_Nonterm or Unref_Tokens then
+                     if Unref_User_Data or Unref_Tree or Unref_Nonterm then
                         Indent_Start ("pragma Unreferenced (");
 
                         if Unref_User_Data then
@@ -205,10 +199,6 @@ is
                         end if;
                         if Unref_Nonterm then
                            Put ((if Need_Comma then ", " else "") & "Nonterm");
-                           Need_Comma := True;
-                        end if;
-                        if Unref_Tokens then
-                           Put ((if Need_Comma then ", " else "") & "Tokens");
                            Need_Comma := True;
                         end if;
                         Put_Line (");");

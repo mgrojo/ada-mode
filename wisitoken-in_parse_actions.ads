@@ -2,7 +2,7 @@
 --
 --  Grammar in parse action routines.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -58,7 +58,6 @@ package WisiToken.In_Parse_Actions is
 
    function Match_Names
      (Lexer        : access constant WisiToken.Lexer.Instance'Class;
-      Descriptor   : in     WisiToken.Descriptor;
       Tokens       : in     Syntax_Trees.Recover_Token_Array;
       Start_Index  : in     Positive_Index_Type;
       End_Index    : in     Positive_Index_Type;

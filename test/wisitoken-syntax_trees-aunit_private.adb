@@ -42,7 +42,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       end if;
       Check (Label & ".byte_region", Computed.Byte_Region, Expected.Byte_Region);
       Check (Label & ".char_region", Computed.Char_Region, Expected.Char_Region);
-      Check (Label & ".line", Computed.Line, Expected.Line);
+      Check (Label & ".line_region", Computed.Line_Region, Expected.Line_Region);
       if Parents then
          if Computed.Parent = null and Expected.Parent = null then
             null;

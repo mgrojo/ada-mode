@@ -658,7 +658,14 @@ package body WisiToken.Parse.LR.Parser is
                Error.Error_Token.Element := Syntax_Trees.Invalid_Stream_Index;
 
                Keep_Nodes.Append (Error.Error_Token.Node);
-            when others =>
+            when User_Parse_Action =>
+               if not Error.Status.Begin_Name.Virtual then
+                  Keep_Nodes.Append (Error.Status.Begin_Name.Node);
+               end if;
+               if not Error.Status.End_Name.Virtual then
+                  Keep_Nodes.Append (Error.Status.End_Name.Node);
+               end if;
+            when Message =>
                null;
             end case;
          end loop;
@@ -767,6 +774,12 @@ package body WisiToken.Parse.LR.Parser is
 
       if Trace_Action > Extra then
          Parser.Trace.Put_Line
+           (Parser.Tree.Image
+              (Children     => True,
+               Non_Grammar  => True,
+               Augmented    => True,
+               Line_Numbers => True));
+         Parser.Trace.Put_Line
            ("recover_insert_delete: " & Image (Parser_State.Recover_Insert_Delete, Parser.Tree));
          Parser.Trace.New_Line;
       end if;
@@ -784,7 +797,6 @@ package body WisiToken.Parse.LR.Parser is
                case Op.Op is
                when Insert =>
                   Parser.User_Data.Insert_Token (Parser.Tree, Op.Ins_Node);
-                  Parser.Tree.Update_Ancestor_Cache (Op.Ins_Node);
 
                when Delete =>
                   Parser.User_Data.Delete_Token
@@ -873,8 +885,7 @@ package body WisiToken.Parse.LR.Parser is
             Parser.User_Data.Reduce (Tree, Node);
             if Tree.Action (Node) /= null then
                begin
-                  Tree.Action (Node)
-                    (Parser.User_Data.all, Tree, Node, Syntax_Trees.To_Valid_Node_Access (Tree_Children));
+                  Tree.Action (Node) (Parser.User_Data.all, Tree, Node);
                exception
                when E : others =>
                   if WisiToken.Debug_Mode then

@@ -30,6 +30,7 @@ package WisiToken.AUnit is
    procedure Check_Valid is new Standard.AUnit.Checks.Gen_Check_Valid (Buffer_Pos);
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Base_Buffer_Pos);
 
+   procedure Check_Valid is new Standard.AUnit.Checks.Gen_Check_Valid (Line_Number_Type);
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Line_Number_Type);
 
    function To_Base_Token_Array (Item : in Token_ID_Array) return Base_Token_Arrays.Vector;
@@ -68,6 +69,11 @@ package WisiToken.AUnit is
      (Label    : in String;
       Computed : in Buffer_Region;
       Expected : in Buffer_Region);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Line_Region;
+      Expected : in Line_Region);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Identifier_Index);
 

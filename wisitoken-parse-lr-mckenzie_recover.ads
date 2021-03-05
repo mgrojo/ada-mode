@@ -11,7 +11,7 @@
 --  [Grune 2008] Parsing Techniques, A Practical Guide, Second
 --  Edition. Dick Grune, Ceriel J.H. Jacobs.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -204,24 +204,32 @@ private
    --  Same as Insert, but before Before.
 
    function Push_Back_Valid
-     (Tree             : in Syntax_Trees.Tree;
-      Config           : in Configuration;
-      Prev_Recover_End : in Syntax_Trees.Node_Index := 0)
+     (Tree                  : in Syntax_Trees.Tree;
+      Config                : in Configuration;
+      Prev_Recover_End      : in Syntax_Trees.Node_Index := 0;
+      Push_Back_Undo_Reduce : in Boolean                 := False)
      return Boolean;
    --  True if Push_Back is a valid op for Config.
    --
-   --  Language_Fixes may use the default Prev_Recover_End = 0.
+   --  Language_Fixes may use the default Prev_Recover_End = 0, however
+   --  other checks may prevent modifying a previous fix.
 
    procedure Push_Back
-     (Tree   : in     Syntax_Trees.Tree;
-      Config : in out Configuration);
+     (Tree                  : in     Syntax_Trees.Tree;
+      Config                : in out Configuration;
+      Push_Back_Undo_Reduce : in     Boolean := False);
    --  If not Push_Back_Valid, raise Bad_Config. Otherwise do Push_Back.
+   --
+   --  Normally Push_Back_Valid forbids push_back of an entire
+   --  Undo_Reduce; Language_Fixes may override that by setting
+   --  Push_Back_Undo_Reduce True.
 
    procedure Push_Back_Check
-     (Tree             : in     Syntax_Trees.Tree;
-      Config           : in out Configuration;
-      Expected_ID      : in     Token_ID);
-   --  In effect, call Check and Push_Back.
+     (Tree              : in     Syntax_Trees.Tree;
+      Config            : in out Configuration;
+      Expected_ID       : in     Token_ID);
+   --  Check that Config.Stack top has Expected_ID; raise Bad_Config if
+   --  not. Then call Push_Back.
 
    procedure Push_Back_Check
      (Tree     : in     Syntax_Trees.Tree;

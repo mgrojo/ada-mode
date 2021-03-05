@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c wisitoken_grammar.wy
 --
 
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -21,9 +21,9 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-with Wisitoken_Grammar_Actions; use Wisitoken_Grammar_Actions;
 with WisiToken.Lexer.re2c;
 with wisitoken_grammar_re2c_c;
+with Wisitoken_Grammar_Actions; use Wisitoken_Grammar_Actions;
 package body Wisitoken_Grammar_Main is
 
    package Lexer is new WisiToken.Lexer.re2c

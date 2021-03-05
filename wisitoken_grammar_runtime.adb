@@ -399,10 +399,10 @@ package body WisiToken_Grammar_Runtime is
    procedure Start_If
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is begin
       --  all phases
-      Start_If_1 (User_Data_Type (User_Data), Tree, Tokens (3), Tokens (5));
+      Start_If_1 (User_Data_Type (User_Data), Tree, Tree.Child (Nonterm, 3), Tree.Child (Nonterm, 5));
    end Start_If;
 
    procedure End_If (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class)
@@ -416,7 +416,7 @@ package body WisiToken_Grammar_Runtime is
    procedure Add_Declaration
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
       use all type WisiToken.Syntax_Trees.Node_Label;
       use all type Ada.Strings.Unbounded.Unbounded_String;
@@ -425,25 +425,23 @@ package body WisiToken_Grammar_Runtime is
 
       function Token (Index : in SAL.Peek_Type) return Base_Token
       is
-         use all type SAL.Base_Peek_Type;
+         Child : constant Syntax_Trees.Valid_Node_Access := Tree.Child (Nonterm, Index);
       begin
-         if Tokens'Last < Index then
-            raise SAL.Programmer_Error;
-         elsif Tree.Label (Tokens (Index)) /= WisiToken.Syntax_Trees.Source_Terminal then
-            raise SAL.Programmer_Error with "token at " & Image (Tree.Byte_Region (Tokens (Index))) &
-              " is a " & WisiToken.Syntax_Trees.Node_Label'Image (Tree.Label (Tokens (Index))) &
+         if Tree.Label (Child) /= WisiToken.Syntax_Trees.Source_Terminal then
+            raise SAL.Programmer_Error with "token at " & Image (Tree.Byte_Region (Child)) &
+              " is a " & WisiToken.Syntax_Trees.Node_Label'Image (Tree.Label (Child)) &
               ", expecting Source_Terminal";
          else
-            return Tree.Base_Token (Tokens (Index));
+            return Tree.Base_Token (Child);
          end if;
       end Token;
 
       function Enum_ID (Index : in SAL.Peek_Type) return Token_Enum_ID
-      is (To_Token_Enum (Token (Index).ID));
+      is (To_Token_Enum (Tree.ID (Tree.Child (Nonterm, Index))));
 
    begin
       if Data.Phase = Meta then
-         if Tree.Label (Tokens (2)) = WisiToken.Syntax_Trees.Source_Terminal then
+         if Tree.Label (Tree.Child (Nonterm, 2)) = WisiToken.Syntax_Trees.Source_Terminal then
             case Enum_ID (2) is
             when IDENTIFIER_ID =>
                declare
@@ -455,7 +453,8 @@ package body WisiToken_Grammar_Runtime is
                   elsif Kind = "generate" then
                      declare
                         use all type SAL.Base_Peek_Type;
-                        Children : constant Syntax_Trees.Valid_Node_Access_Array := Tree.Get_Terminals (Tokens (3));
+                        Children : constant Syntax_Trees.Valid_Node_Access_Array := Tree.Get_Terminals
+                          (Tree.Child (Nonterm, 3));
                         Tuple    : WisiToken.BNF.Generate_Tuple;
                      begin
                         Tuple.Gen_Alg  := WisiToken.BNF.To_Generate_Algorithm
@@ -490,13 +489,13 @@ package body WisiToken_Grammar_Runtime is
                         --  Don't overwrite; somebody set it for a reason.
                         declare
                            Value_Str : constant String := WisiToken.BNF.To_Lower
-                             (Get_Text (Data, Tree, Tokens (3)));
+                             (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
                         begin
                            if Value_Str = "bnf" then
                               Data.Meta_Syntax := BNF_Syntax;
                            elsif Value_Str = "ebnf" then
                               Data.Meta_Syntax := EBNF_Syntax;
-                              Data.EBNF_Nodes.Insert (Tree.Find_Ancestor (Tokens (2), +declaration_ID));
+                              Data.EBNF_Nodes.Insert (Tree.Find_Ancestor (Tree.Child (Nonterm, 2), +declaration_ID));
 
                            else
                               Put_Error ("invalid value for %meta_syntax; must be BNF | EBNF.");
@@ -519,22 +518,22 @@ package body WisiToken_Grammar_Runtime is
          return;
       end if;
 
-      case Tree.Label (Tokens (2)) is
+      case Tree.Label (Tree.Child (Nonterm, 2)) is
       when Syntax_Trees.Nonterm =>
          --  must be token_keyword_non_grammar
          declare
-            Children_2 : constant Syntax_Trees.Node_Access_Array := Tree.Children (Tokens (2));
+            Children_2 : constant Syntax_Trees.Node_Access_Array := Tree.Children (Tree.Child (Nonterm, 2));
             Child_1_ID : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Children_2 (1)));
          begin
             case Child_1_ID is
             when Wisitoken_Grammar_Actions.TOKEN_ID =>
                declare
-                  Children_4 : constant Syntax_Trees.Node_Access_Array := Tree.Children (Tokens (4));
+                  Children_4 : constant Syntax_Trees.Node_Access_Array := Tree.Children (Tree.Child (Nonterm, 4));
                begin
                   WisiToken.BNF.Add_Token
                     (Data.Tokens.Tokens,
                      Kind         => Get_Text (Data, Tree, Children_2 (3)),
-                     Name         => Get_Text (Data, Tree, Tokens (3)),
+                     Name         => Get_Text (Data, Tree, Tree.Child (Nonterm, 3)),
                      Value        => Get_Text (Data, Tree, Children_4 (1)),
                      Repair_Image =>
                        (if Children_4'Length = 1 then "" else Get_Text (Data, Tree, Children_4 (2))));
@@ -543,16 +542,16 @@ package body WisiToken_Grammar_Runtime is
             when KEYWORD_ID =>
 
                Data.Tokens.Keywords.Append
-                 ((Name  => +Get_Text (Data, Tree, Tokens (3)),
-                   Value => +Get_Text (Data, Tree, Tokens (4))));
+                 ((Name  => +Get_Text (Data, Tree, Tree.Child (Nonterm, 3)),
+                   Value => +Get_Text (Data, Tree, Tree.Child (Nonterm, 4))));
 
             when NON_GRAMMAR_ID =>
 
                WisiToken.BNF.Add_Token
                  (Data.Tokens.Non_Grammar,
                   Kind  => Get_Text (Data, Tree, Children_2 (3)),
-                  Name  => Get_Text (Data, Tree, Tokens (3)),
-                  Value => Get_Text (Data, Tree, Tokens (4)));
+                  Name  => Get_Text (Data, Tree, Tree.Child (Nonterm, 3)),
+                  Value => Get_Text (Data, Tree, Tree.Child (Nonterm, 4)));
 
             when others =>
                raise SAL.Programmer_Error;
@@ -573,11 +572,11 @@ package body WisiToken_Grammar_Runtime is
                --  children = identifier_list IDENTIFIER_ID
                --  children = IDENTIFIER_ID
                function Get_Loc_List return Syntax_Trees.Valid_Node_Access_Array
-               with Pre => Tree.ID (Tokens (3)) = +identifier_list_ID
+               with Pre => Tree.ID (Tree.Child (Nonterm, 3)) = +identifier_list_ID
                is
                   use all type SAL.Base_Peek_Type;
                   use WisiToken.Syntax_Trees;
-                  Node   : Valid_Node_Access := Tokens (3);
+                  Node   : Valid_Node_Access := Tree.Child (Nonterm, 3);
                   Result : Valid_Node_Access_Array (1 .. 3) := (others => Dummy_Node);
                   First  : SAL.Peek_Type    := Result'Last + 1;
                begin
@@ -639,12 +638,13 @@ package body WisiToken_Grammar_Runtime is
                     Tree.Error_Message (Loc_List (Loc_List'First), "expecting {actions | copyright_license}");
                end if;
 
-               Data.Raw_Code (Location) := WisiToken.BNF.Split_Lines (Get_Text (Data, Tree, Tokens (4)));
+               Data.Raw_Code (Location) := WisiToken.BNF.Split_Lines (Get_Text (Data, Tree, Tree.Child (Nonterm, 4)));
             exception
             when Grammar_Error =>
                Put_Error
                  (Tree.Error_Message
-                    (Tokens (2), "invalid raw code location; actions {spec | body} {context | pre | post}"));
+                    (Tree.Child (Nonterm, 2),
+                     "invalid raw code location; actions {spec | body} {context | pre | post}"));
             end;
 
          when IDENTIFIER_ID =>
@@ -660,7 +660,7 @@ package body WisiToken_Grammar_Runtime is
                elsif Kind = "conflict" then
                   declare
                      Tree_Indices : constant Syntax_Trees.Valid_Node_Access_Array := Tree.Get_Terminals
-                       (Tokens (3));
+                       (Tree.Child (Nonterm, 3));
 
                      --  Old LR1, LALR format:
                      --   %conflict <action_a>/<action_b> in state <LHS_A>, <LHS_B> on token <on>
@@ -725,14 +725,14 @@ package body WisiToken_Grammar_Runtime is
                   null;
 
                elsif Kind = "elisp_face" then
-                  Data.Tokens.Faces.Append (Get_Text (Data, Tree, Tokens (3), Strip_Quotes => True));
+                  Data.Tokens.Faces.Append (Get_Text (Data, Tree, Tree.Child (Nonterm, 3), Strip_Quotes => True));
 
                elsif Kind = "elisp_indent" then
                   declare
                      use WisiToken.Syntax_Trees.LR_Utils;
 
                      Items : constant Constant_List := Creators.Create_List
-                       (Tree, Tokens (3), +declaration_item_list_ID, +declaration_item_ID);
+                       (Tree, Tree.Child (Nonterm, 3), +declaration_item_list_ID, +declaration_item_ID);
                      Iter : constant Constant_Iterator := Iterate_Constant (Items);
                      Item : Cursor := Items.First;
                      Elisp_Name : constant String := Get_Text (Data, Tree, Items (Item), Strip_Quotes => True);
@@ -766,13 +766,13 @@ package body WisiToken_Grammar_Runtime is
 
                elsif Kind = "elisp_action" then
                   Data.Tokens.Actions.Insert
-                    (Key      => +Get_Child_Text (Data, Tree, Tokens (3), 2),
+                    (Key      => +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2),
                      New_Item =>
-                       (Name  => +Get_Child_Text (Data, Tree, Tokens (3), 1),   -- post-parse action
-                        Value => +Get_Child_Text (Data, Tree, Tokens (3), 3))); -- Ada name
+                       (Name  => +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),   -- post-parse action
+                        Value => +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 3))); -- Ada name
 
                elsif Kind = "end_names_optional_option" then
-                  Data.Language_Params.End_Names_Optional_Option := +Get_Text (Data, Tree, Tokens (3));
+                  Data.Language_Params.End_Names_Optional_Option := +Get_Text (Data, Tree, Tree.Child (Nonterm, 3));
 
                elsif Kind = "generate" then
                   --  Not in Other phase
@@ -780,92 +780,93 @@ package body WisiToken_Grammar_Runtime is
 
                elsif Kind = "language_runtime" then
                   Data.Language_Params.Language_Runtime_Name :=
-                    +Get_Text (Data, Tree, Tokens (3), Strip_Quotes => True);
+                    +Get_Text (Data, Tree, Tree.Child (Nonterm, 3), Strip_Quotes => True);
 
                elsif Kind = "lr1_hash_table_size" then
                   Data.Language_Params.LR1_Hash_Table_Size :=
-                    Positive'Value (Get_Text (Data, Tree, Tokens (3), Strip_Quotes => True));
+                    Positive'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3), Strip_Quotes => True));
 
                elsif Kind = "max_parallel" then
-                  Data.Max_Parallel := SAL.Base_Peek_Type'Value (Get_Text (Data, Tree, Tokens (3)));
+                  Data.Max_Parallel := SAL.Base_Peek_Type'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_check_limit" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Check_Limit := Syntax_Trees.Node_Index'Value
-                    (Get_Text (Data, Tree, Tokens (3)));
+                    (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_check_delta_limit" then
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Check_Delta_Limit := Integer'Value (Get_Text (Data, Tree, Tokens (3)));
+                  Data.McKenzie_Recover.Check_Delta_Limit := Integer'Value
+                    (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_cost_default" then
-                  if Tree.Get_Terminals (Tokens (3))'Length /= 4 then
+                  if Tree.Get_Terminals (Tree.Child (Nonterm, 3))'Length /= 4 then
                      raise Grammar_Error with
                        Tree.Error_Message
-                         (Tokens (3),
-                          "too " & (if Tree.Get_Terminals (Tokens (3))'Length > 4 then "many" else "few") &
+                         (Tree.Child (Nonterm, 3),
+                          "too " & (if Tree.Get_Terminals (Tree.Child (Nonterm, 3))'Length > 4 then "many" else "few") &
                             " default costs; should be 'insert, delete, push back, ignore check fail'.");
                   end if;
 
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Source_Line  := Tree.Line_Region (Tokens (1)).First;
+                  Data.McKenzie_Recover.Source_Line  := Tree.Line_Region (Tree.Child (Nonterm, 1)).First;
 
                   Data.McKenzie_Recover.Default_Insert          := Natural'Value
-                    (Get_Child_Text (Data, Tree, Tokens (3), 1));
+                    (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1));
                   Data.McKenzie_Recover.Default_Delete_Terminal := Natural'Value
-                    (Get_Child_Text (Data, Tree, Tokens (3), 2));
+                    (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2));
                   Data.McKenzie_Recover.Default_Push_Back       := Natural'Value
-                    (Get_Child_Text (Data, Tree, Tokens (3), 3));
+                    (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 3));
                   Data.McKenzie_Recover.Ignore_Check_Fail       := Natural'Value
-                    (Get_Child_Text (Data, Tree, Tokens (3), 4));
+                    (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 4));
 
                elsif Kind = "mckenzie_cost_delete" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Delete.Append
-                    ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
-                      +Get_Child_Text (Data, Tree, Tokens (3), 2)));
+                    ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
+                      +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
 
                elsif Kind = "mckenzie_cost_fast_forward" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Fast_Forward :=
-                    Integer'Value (Get_Text (Data, Tree, Tokens (3)));
+                    Integer'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_cost_insert" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Insert.Append
-                    ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
-                      +Get_Child_Text (Data, Tree, Tokens (3), 2)));
+                    ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
+                      +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
 
                elsif Kind = "mckenzie_cost_matching_begin" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Matching_Begin :=
-                    Integer'Value (Get_Text (Data, Tree, Tokens (3)));
+                    Integer'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_cost_push_back" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Push_Back.Append
-                    ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
-                      +Get_Child_Text (Data, Tree, Tokens (3), 2)));
+                    ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
+                      +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
 
                elsif Kind = "mckenzie_cost_undo_reduce" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Undo_Reduce.Append
-                    ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
-                      +Get_Child_Text (Data, Tree, Tokens (3), 2)));
+                    ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
+                      +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
 
                elsif Kind = "mckenzie_enqueue_limit" then
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Enqueue_Limit := Natural'Value (Get_Text (Data, Tree, Tokens (3)));
+                  Data.McKenzie_Recover.Enqueue_Limit := Natural'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_minimal_complete_cost_delta" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Minimal_Complete_Cost_Delta :=
-                    Integer'Value (Get_Text (Data, Tree, Tokens (3)));
+                    Integer'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_zombie_limit" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Zombie_Limit := Syntax_Trees.Node_Index'Value
-                    (Get_Text (Data, Tree, Tokens (3)));
+                    (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "meta_syntax" then
                   --  not in Other phase
@@ -881,20 +882,20 @@ package body WisiToken_Grammar_Runtime is
                   Data.Language_Params.Partial_Recursion := True;
 
                elsif Kind = "start" then
-                  Data.Language_Params.Start_Token := +Get_Text (Data, Tree, Tokens (3));
+                  Data.Language_Params.Start_Token := +Get_Text (Data, Tree, Tree.Child (Nonterm, 3));
 
                elsif Kind = "lexer_regexp" then
                   Data.Tokens.Lexer_Regexps.Append
-                    ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
-                      +Get_Child_Text (Data, Tree, Tokens (3), 2)));
+                    ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
+                      +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
 
                else
-                  raise Grammar_Error with Tree.Error_Message (Tokens (2), "unexpected syntax");
+                  raise Grammar_Error with Tree.Error_Message (Tree.Child (Nonterm, 2), "unexpected syntax");
                end if;
             end;
 
          when others =>
-            raise Grammar_Error with Tree.Error_Message (Tokens (2), "unexpected syntax");
+            raise Grammar_Error with Tree.Error_Message (Tree.Child (Nonterm, 2), "unexpected syntax");
          end case;
 
       when Syntax_Trees.Virtual_Terminal | Syntax_Trees.Virtual_Identifier =>
@@ -905,14 +906,14 @@ package body WisiToken_Grammar_Runtime is
    procedure Add_Nonterminal
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array)
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
       use all type Ada.Containers.Count_Type;
       use WisiToken.Syntax_Trees;
 
       Data : User_Data_Type renames User_Data_Type (User_Data);
 
-      LHS_Node   : constant Valid_Node_Access := Tokens (1);
+      LHS_Node   : constant Valid_Node_Access := Tree.Child (Nonterm, 1);
       LHS_String : constant String           := Get_Text (Data, Tree, LHS_Node);
 
       Right_Hand_Sides : WisiToken.BNF.RHS_Lists.List;
@@ -924,7 +925,7 @@ package body WisiToken_Grammar_Runtime is
 
       Data.Rule_Count := Data.Rule_Count + 1;
 
-      Get_Right_Hand_Sides (Data, Tree, Right_Hand_Sides, Labels, Tokens (3));
+      Get_Right_Hand_Sides (Data, Tree, Right_Hand_Sides, Labels, Tree.Child (Nonterm, 3));
 
       if WisiToken.BNF.Is_Present (Data.Tokens.Rules, LHS_String) then
          case Tree.Label (LHS_Node) is
@@ -961,7 +962,7 @@ package body WisiToken_Grammar_Runtime is
    procedure Check_EBNF
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Token     : in     WisiToken.Positive_Index_Type)
    is
       Data : User_Data_Type renames User_Data_Type (User_Data);
@@ -972,15 +973,15 @@ package body WisiToken_Grammar_Runtime is
 
       case Data.Phase is
       when Meta =>
-         Data.EBNF_Nodes.Insert (Tokens (Token));
+         Data.EBNF_Nodes.Insert (Tree.Child (Nonterm, Token));
 
          if Data.Meta_Syntax /= EBNF_Syntax then
             raise Grammar_Error with Tree.Error_Message
-              (Tokens (Token), "EBNF syntax used, but BNF specified; set '%meta_syntax EBNF'");
+              (Tree.Child (Nonterm, Token), "EBNF syntax used, but BNF specified; set '%meta_syntax EBNF'");
          end if;
       when Other =>
          WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
-           ("untranslated EBNF node", Tree, Tree.Parent (Tokens (Token)));
+           ("untranslated EBNF node", Tree, Tree.Parent (Tree.Child (Nonterm, Token)));
       end case;
    end Check_EBNF;
 

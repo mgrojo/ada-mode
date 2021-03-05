@@ -5,7 +5,7 @@
 ;; see wisitoken-parse-packrat.ads
 
 %code copyright_license %{
-;;  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2018, 2021 Stephen Leake.  All Rights Reserved.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -39,10 +39,10 @@
 
 expr
   : expr MINUS NUMERIC_LITERAL
-    %(Push (User_Data, Tree, Tokens, 3);
-      Subtract (User_Data, Tree, Tokens);)%
+    %(Push (User_Data, Tree, Nonterm, 3);
+      Subtract (User_Data, Tree);)%
   | NUMERIC_LITERAL
-    %(Push (User_Data, Tree, Tokens, 1);)%
+    %(Push (User_Data, Tree, Nonterm, 1);)%
   ;
 
 ;; end of file

@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 - 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -42,6 +42,17 @@ package body WisiToken.AUnit is
      (Label    : in String;
       Computed : in WisiToken.Buffer_Region;
       Expected : in WisiToken.Buffer_Region)
+   is begin
+      Check_Valid (Label & ".First valid", Computed.First'Unrestricted_Access);
+      Check_Valid (Label & ".Last valid", Computed.Last'Unrestricted_Access);
+      Check (Label & ".First", Computed.First, Expected.First);
+      Check (Label & ".Last", Computed.Last, Expected.Last);
+   end Check;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in WisiToken.Line_Region;
+      Expected : in WisiToken.Line_Region)
    is begin
       Check_Valid (Label & ".First valid", Computed.First'Unrestricted_Access);
       Check_Valid (Label & ".Last valid", Computed.Last'Unrestricted_Access);

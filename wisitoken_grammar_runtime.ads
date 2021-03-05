@@ -127,19 +127,19 @@ package WisiToken_Grammar_Runtime is
    procedure Start_If
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
 
    procedure End_If (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class);
 
    procedure Add_Declaration
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
 
    procedure Add_Nonterminal
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array);
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
 
    function Image_Grammar_Action (Action : in WisiToken.Syntax_Trees.Post_Parse_Action) return String;
    --  For Syntax_Trees.Print_Tree.
@@ -147,7 +147,7 @@ package WisiToken_Grammar_Runtime is
    procedure Check_EBNF
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Token     : in     WisiToken.Positive_Index_Type);
 
    ----------
