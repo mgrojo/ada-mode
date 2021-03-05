@@ -15,7 +15,7 @@ begin
      (Prev_1 = -With_ID and
         (Prev_3 = Invalid_Token_ID or
            Prev_3 /= Left_Paren_ID))
-   or
+      or
      B
    then
    --  missing 'end if;' - all inserted after 'then'.

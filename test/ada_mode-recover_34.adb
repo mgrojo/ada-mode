@@ -9,7 +9,7 @@ is begin
 
          when Always_Keep =>
             if
-            when Keep_If_Minimal =>
+         when Keep_If_Minimal =>
             if Min_Length < Length then
                if Trace_Generate_Minimal_Complete > Extra then
                   Ada.Text_Io.Put_Line ("delete " & Length'Image & " >" & Min_Length'Image);

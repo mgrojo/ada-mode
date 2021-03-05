@@ -28,11 +28,8 @@ begin
    --EMACSCMD:(progn (beginning-of-line 1)(delete-char -1)(wisi-indent-newline-indent)(current-column))
    --EMACSRESULT: 3
 
-
-   -- FIXME: full and incremental parse return the desired 3 here;
-   -- partial parse gets it wrong with 0.
    --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(current-column))
-   --EMACSRESULT: 0
+   --EMACSRESULT: 3
    Foo;
 
 

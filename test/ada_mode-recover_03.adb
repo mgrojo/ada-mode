@@ -21,7 +21,7 @@ procedure Ada_Mode.Recover_03 is
       return Node.Id = Id;
    end Process_1;
 
---  missing 'begin'
+   --  missing 'begin'
 end Ada_Mode.Recover_03;
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1

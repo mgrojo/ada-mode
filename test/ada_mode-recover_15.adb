@@ -44,6 +44,6 @@ package body Wisitoken.Lr.Parser is
       end loop;
       end loop Main_Loop;
 
-   end Parse;
+      end Parse;
 
 end Wisitoken.Lr.Parser;

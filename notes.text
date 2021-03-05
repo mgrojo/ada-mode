@@ -43,38 +43,36 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-get benchmark of edit_tree time in large file
+run all tests no incremental
+    review build/test.log
 
-eliminate function line_last, line_first?
-    add line_region to base_token
-    edited use in calls to indent_anchored_2
+
+commit
+
+run wisitoken tests
+    t_mk broken!?
+
+propagate
+
+
+eliminate lexer.first
+    move descriptor to tree?
 
 run all tests with incremental mode enabled
     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t)"
-    test/ada_mode-conditional_expressions.adb
-;; SYSTEM.ASSERTIONS.ASSERT_FAILURE: failed precondition from wisi.ads:772
-    null nonterm.augmented
-    'name' outside action_region
-        contains case_expression; 'name' is anchor
-    indenting assignment_statement
-        indent_compute_delta needs aug.last_indent_line for Indent_Anchored_2 Anchor_Line
-            but uses base.line if invalid!?
-            so could have safe_augmented that returns invalid
 
-        or always computed all augmented for full_parse, shift, update in Edit_Tree.
-        or eliminate, use node.line, _last, compute trailing_comment as needed.
-            first_indent_comment_line => last_terminal (node).non_grammar (first_index).line_region.first
-            last_indent_comment_line => last_terminal (node).non_grammar (last_index).line_region.last
 
-    skip all *_partial_*?
     build/test.log
 
 test/ada_mode-conditional_expressions.adb
     accidently insert 'g' at point-min
         => syntax_trees assert fail
-        add test
+        add to ada_mode-incremental_parse.adb
 
 incremental parse
+    eventually elminate all cached data, to avoid traversing entire tree in edit_tree
+        see benchmark below; traverse entire tree in largest eurocontrol file takes 0.09 seconds; too slow
+
     wisi-show-errors show _all_ errors in buffer
         if parse succeeds, delete errors in regions parsed
         could do that in ada, send current list of errors (aka diagnostics) on request?
@@ -811,7 +809,7 @@ mckenzie recover
         ;;  0: succeed 2, enqueue 2533, check  216, cost:  1
         total parse time per iteration 0.022099088
 
-    27 Nov 2020 incremental parse, syntax_trees never copies nodes, ada-mode tests pass
+    27 Nov 2020 incremental parse branch, syntax_trees never copies nodes, ada-mode tests pass
         ;; parser 2: State 20013 Current_Token (-1, 47:(LEFT_PAREN, (978 . 978))) Resume_Token_Goal 51
         ;;  2: succeed 2, enqueue 183, check  19, cost:  2
         time : 0.01 seconds
@@ -874,6 +872,15 @@ navigate, face, indent
         navigate 1.093543 seconds 5 gcs 6240 responses 0.186905 wait
         face     1.334711 seconds 8 gcs 2149 responses 0.182050 wait
         indent   1.229119 seconds 2 gcs 7252 responses 0.204471 wait
+
+incremental parse
+    25 Feb 2021 not fully working
+    build/benchmark-incremental.el
+    deindent/indent one line
+
+    in debug.adb (5 lines, 1 declaration):                      0.001135 seconds
+    in gnatcoll-xref.adb (7252 lines, 250 declarations):        0.057797 seconds
+    in regulation-iflight.adb (11251 lines, 189 declarations):  0.098231 seconds
 
  wisi work
 

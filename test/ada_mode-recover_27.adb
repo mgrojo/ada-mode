@@ -19,9 +19,9 @@ package body Wisi.Libadalang is
 
                procedure Find_Production
                is begin
-               --  extra 'begin'.
-               Prod : WisiToken.Productions.Instance renames Grammar
-                 (if K = 0 then Prod_ID.LHS else LHS_Descendants (K));
+                  --  extra 'begin'.
+                  Prod : WisiToken.Productions.Instance renames Grammar
+                    (if K = 0 then Prod_ID.LHS else LHS_Descendants (K));
             begin
                for I in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
                   declare

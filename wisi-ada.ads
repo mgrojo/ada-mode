@@ -70,7 +70,7 @@ package Wisi.Ada is
    Ada_Indent_Subprogram_Is         : Integer          := Ada_Indent_Subprogram_Is_Default;
 
    --  Other parameters
-   End_Names_Optional_Default : constant Boolean := False;
+   End_Names_Optional_Default : constant Boolean := True;
    End_Names_Optional         : Boolean          := End_Names_Optional_Default;
 
    type Parse_Data_Type is new Wisi.Parse_Data_Type with null record;
@@ -130,8 +130,7 @@ package Wisi.Ada is
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
       Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
@@ -142,8 +141,7 @@ package Wisi.Ada is
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
       Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Delta_Type;
@@ -154,8 +152,7 @@ package Wisi.Ada is
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
       Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
@@ -166,8 +163,7 @@ package Wisi.Ada is
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
       Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
@@ -178,8 +174,7 @@ package Wisi.Ada is
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
       Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;
@@ -190,8 +185,7 @@ package Wisi.Ada is
      (Data              : in out Wisi.Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
       Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi.Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type;

@@ -49,10 +49,7 @@ is
    -- a subprogram_body_stub, or delete 'is begin' and complete a
    -- subprogram_specification. Each of those solutions result in
    -- different indentations (6, 5, 3). They all eventuallly lead to
-   -- identical parser stacks, where one is arbitrarily dropped. The
-   -- results are not even repeatable in this test, since error recovery
-   -- uses multiple tasks, so there is a race condition in the order the
-   -- solutions are delivered.
+   -- identical parser stacks, where one is arbitrarily dropped.
    --
    -- After 'end;' is inserted, there is no error, so there is only one
    -- possible indentation for 'null;'.
@@ -86,6 +83,7 @@ is
    is begin
       null;
    end Function_Access_2;
+   --EMACSCMD:(progn (forward-line -2)(insert "null;")(indent-for-tab-command))
 
    -- New_Line before 'end'
    --EMACSCMD:(progn (forward-line 8)(delete-char 19)(indent-for-tab-command)(current-column))
@@ -99,6 +97,7 @@ is
             end if;
       end case;
    end New_Line_2;
+   --EMACSCMD:(progn (forward-line -3)(insert "end if;")(indent-for-tab-command))
 
    -- add an enumeration value in parens
    --EMACSCMD:(progn (end-of-line 4)(backward-char 2) (execute-kbd-macro ",\nWrite_Success")(indent-for-tab-command)(current-indentation))
@@ -115,7 +114,7 @@ is
    end record;
 
    --EMACSRESULT:6
-   --EMACSCMD:(progn (end-of-line -1)(insert "Component_1 : Integer; end record;"))
+   --EMACSCMD:(progn (end-of-line -1)(insert "Component_1 : Integer;\n end record;\n"))
 
 begin
    --  extending block; no errors
@@ -133,7 +132,8 @@ begin
 
    --EMACSRESULT:5
 
-   -- Typing code after missing parens.
+   -- Typing comment after missing parens. Bad indent due to blank line
+   -- and comment confusing our heuristic.
    --
    --EMACSCMD:(progn (forward-line 3)(forward-word 1)(forward-char 1)(delete-char 1))
    --EMACSCMD:(progn (forward-line 3)(kill-line 2))
@@ -146,7 +146,7 @@ begin
    then
       null;
    end if;
-   --EMACSRESULT:6
+   --EMACSRESULT:3
    --EMACSCMD:(progn (forward-line -8)(forward-word 1)(forward-char 1)(insert "(")(end-of-line 2)(insert "\n)")(indent-for-tab-command))
 
 end Ada_Mode.Interactive_2;

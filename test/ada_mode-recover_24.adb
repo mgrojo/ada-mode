@@ -23,11 +23,11 @@ package body Ada_Mode.Recover_24 is
 
       Parsed_Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
       Local_Config_Heap.Add (Parsed_Config);
-   end if;
+      end if;
 
-end;
-end loop;
-return Abandon;
+      end;
+   end loop;
+   return Abandon;
 end Fast_Forward;
 
 end Ada_Mode.Recover_24;

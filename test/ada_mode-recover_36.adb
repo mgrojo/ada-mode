@@ -4,11 +4,13 @@ package WisiToken.Syntax_Trees is
    procedure Buffer (Foo : in Bar);
 
    procedure Update
-   --  Missing ';' here. Error recovery finds two solutions; (insert ';'), (insert 'is')
-   --  Both continue parsing with no errors until end of file.
-   --  FIXME: Incremental parse error recover should keep only ';' solution
+     --  Missing ';' here. Error recovery finds two solutions; (insert ';'), (insert 'is')
+     --  Both continue parsing with no errors until end of file.
+     --  FIXME: Incremental parse error recover should keep only ';' solution
+     --
+     --  Bad indent caused by comment heuristic.
 
-   function ID
+     function ID
      (Tree    : in Syntax_Trees.Tree;
       Stream  : in Stream_ID;
       Element : in Stream_Index)

@@ -29,7 +29,7 @@ with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
-with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
+with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR;
 with WisiToken.Syntax_Trees;
@@ -143,13 +143,6 @@ package Wisi is
    --  region of text.
 
    overriding
-   procedure Lexer_To_Augmented
-     (Data          : in out Parse_Data_Type;
-      Tree          : in out WisiToken.Syntax_Trees.Tree'Class;
-      Token         : in     WisiToken.Base_Token;
-      Grammar_Token : in     WisiToken.Syntax_Trees.Node_Access);
-
-   overriding
    function Copy_Augmented
      (User_Data : in Parse_Data_Type;
       Augmented : in WisiToken.Syntax_Trees.Augmented_Class_Access)
@@ -174,18 +167,6 @@ package Wisi is
       Deleted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Prev_Token    : in     WisiToken.Syntax_Trees.Node_Access);
 
-   overriding
-   procedure Delete_Token
-     (Data      : in out Parse_Data_Type;
-      Tree      : in     WisiToken.Syntax_Trees.Tree'Class;
-      To_Delete : in     WisiToken.Syntax_Trees.Terminal_Ref);
-
-   overriding
-   procedure Reduce
-     (Data    : in out Parse_Data_Type;
-      Tree    : in     WisiToken.Syntax_Trees.Tree'Class;
-      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access);
-
    type Navigate_Class_Type is (Motion, Statement_End, Statement_Override, Statement_Start, Misc);
    --  Matches [1] wisi-class-list.
 
@@ -200,7 +181,6 @@ package Wisi is
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
       Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Params  : in     Statement_Param_Array);
    --  Implements [2] wisi-statement-action.
 
@@ -208,7 +188,6 @@ package Wisi is
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
       Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Name    : in     WisiToken.Positive_Index_Type);
    --  Implements [2] wisi-name-action.
 
@@ -236,7 +215,6 @@ package Wisi is
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
       Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Params  : in     Motion_Param_Array);
    --  Implements [2] wisi-motion-action.
 
@@ -252,7 +230,6 @@ package Wisi is
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
       Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Params  : in     Face_Apply_Param_Array);
    --  Implements [2] wisi-face-apply-action.
 
@@ -260,7 +237,6 @@ package Wisi is
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
       Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Params  : in     Face_Apply_Param_Array);
    --  Implements [2] wisi-face-apply-list-action.
 
@@ -277,7 +253,6 @@ package Wisi is
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
       Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Params  : in     Face_Mark_Param_Array);
    --  Implements [2] wisi-face-mark-action.
 
@@ -287,7 +262,6 @@ package Wisi is
      (Data    : in out Parse_Data_Type;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
       Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Params  : in     Face_Remove_Param_Array);
    --  Implements [2] wisi-face-remove-action.
 
@@ -323,7 +297,6 @@ package Wisi is
      (Data              : in out Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
       Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tree_Tokens       : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Args              : in     Indent_Arg_Arrays.Vector)
@@ -392,11 +365,23 @@ package Wisi is
 
    type Indent_Param_Array is array (WisiToken.Positive_Index_Type range <>) of Indent_Pair;
 
+   type Indenting is record
+      Code : WisiToken.Line_Region := WisiToken.Null_Line_Region;
+      --  Lines that need indenting; first token on these lines is contained
+      --  in this token. Includes blank and comment lines between
+      --  grammar tokens, but excludes trailing blanks and comments after the
+      --  last token, so they can be indented differently.
+
+      Comment : WisiToken.Line_Region := WisiToken.Null_Line_Region;
+      --  Trailing comment or blank lines (after the last contained grammar
+      --  token) that need indenting. Excludes comments following code on a
+      --  line.
+   end record;
+
    procedure Indent_Action_0
      (Data    : in out Parse_Data_Type'Class;
       Tree    : in     WisiToken.Syntax_Trees.Tree;
       Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Params  : in     Indent_Param_Array);
    --  Implements [2] wisi-indent-action.
 
@@ -404,8 +389,7 @@ package Wisi is
      (Data              : in out Parse_Data_Type;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
       Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
@@ -465,84 +449,24 @@ package Wisi is
 
 private
 
-   type Augmented is new WisiToken.Syntax_Trees.Base_Augmented with record
-      --  Most fields are set by Lexer_To_Augmented at parse time; others
-      --  are set by Reduce for nonterminals.
-
+   type Augmented is new WisiToken.Syntax_Trees.Base_Augmented with
+   record
       Deleted : Boolean := False;
       --  Set True by Parse_Data_Type.Delete_Token; Non_Grammar tokens are
       --  moved to the previous non-deleted token.
 
-      --  The following fields are only needed for indent.
-
-      Paren_State : Integer := 0;
-      --  Parenthesis nesting count, before token.
-
-      First_Indent_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
-      Last_Indent_Line  : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
-      --  Lines that need indenting; first token on these lines is contained
-      --  in this token. If token has no lines that need indenting, these
-      --  are Invalid_Line_Number.
-      --
-      --  First_, Last_Indent_Line include blank and comment lines between
-      --  grammar tokens, but exclude trailing blanks and comments after the
-      --  last token, so they can be indented differently.
-
-      First_Trailing_Comment_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
-      Last_Trailing_Comment_Line  : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
-      --  Trailing comment or blank lines (after the last contained grammar
-      --  token) that need indenting. Excludes comments following code on a
-      --  line. If there are no such lines, these are Invalid_Line_Number.
-
-      Inserted_After : Boolean := False;
-      --  True if Insert_Token moved the token from before the next to
-      --  after the previous.
+      Indenting_Set : Boolean := False;
+      Indenting     : Wisi.Indenting;
+      --  Computed on demand; see Compute_Indenting.
    end record;
    type Augmented_Access is access all Augmented;
-   type Augmented_Access_Constant is access constant Augmented;
 
-   overriding
-   function Image_Augmented (Aug : in Augmented) return String;
-
-   overriding
-   procedure Shift
-     (Augmented   : in out Wisi.Augmented;
-      Shift_Bytes : in     WisiToken.Base_Buffer_Pos;
-      Shift_Chars : in     WisiToken.Base_Buffer_Pos;
-      Shift_Line  : in     WisiToken.Base_Line_Number_Type);
-
-   type Augmented_Const_Ref (Element : not null access constant Augmented) is null record with
-     Implicit_Dereference => Element;
-
-   function To_Augmented_Const_Ref (Item : in WisiToken.Syntax_Trees.Augmented_Class_Access) return Augmented_Const_Ref
-   is (Element => Augmented_Access_Constant (Item));
-
-   type Augmented_Var_Ref (Element : not null access Augmented) is null record with
-     Implicit_Dereference => Element;
-
-   function To_Augmented_Var_Ref (Item : in WisiToken.Syntax_Trees.Augmented_Class_Access) return Augmented_Var_Ref
-   is (Element => Augmented_Access (Item))
-   with Pre => Item /= null;
-
-   type Augmented_Token is record
-      Base : WisiToken.Base_Token;
-      Aug  : Augmented;
-   end record;
-
-   function First_Line
-     (Token             : in Augmented_Token;
-      Indenting_Comment : in Boolean)
-     return WisiToken.Line_Number_Type;
-   function Last_Line
-     (Token             : in Augmented_Token;
-      Indenting_Comment : in Boolean)
-     return WisiToken.Line_Number_Type;
-   --  Return first and last line that need indenting in Token's region.
-
-   package Line_Paren_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (WisiToken.Line_Number_Type, Integer, Default_Element => Integer'Last);
-
-   function Image is new Line_Paren_Vectors.Gen_Image (WisiToken.Trimmed_Image);
+   function Get_Augmented
+     (Tree : in WisiToken.Syntax_Trees.Tree'Class;
+      Node : in WisiToken.Syntax_Trees.Valid_Node_Access)
+     return Augmented_Access;
+   --  Return Node.Augmented. If that is null, set it to the default
+   --  Augmented first.
 
    type Nil_Buffer_Pos (Set : Boolean := False) is record
       case Set is
@@ -608,10 +532,7 @@ private
 
    package Face_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Face_Cache_Type, WisiToken.Buffer_Pos);
 
-   type Indent_Label is (Not_Set, Int, Anchor_Nil, Anchor_Int, Anchored, Anchor_Anchored);
-   subtype Anchored_Indent_Label is Indent_Label range Anchored .. Anchor_Anchored;
-
-   package Anchor_ID_Vectors is new Ada.Containers.Vectors (Natural, Positive);
+   type Indent_Label is (Not_Set, Int, Anchored);
 
    type Indent_Type (Label : Indent_Label := Not_Set) is record
       --  Indent values may be negative while indents are being computed.
@@ -624,24 +545,11 @@ private
       when Int =>
          Int_Indent : Integer;
 
-      when Anchor_Nil =>
-         Anchor_Nil_IDs : Anchor_ID_Vectors.Vector; --  Largest ID first.
-
-      when Anchor_Int =>
-         Anchor_Int_IDs    : Anchor_ID_Vectors.Vector; --  Largest ID first.
-         Anchor_Int_Indent : Integer; --  Indent for this token.
-
       when Anchored =>
-         Anchored_ID    : Positive;
-         Anchored_Delta : Integer; -- added to Anchor_Indent of Anchor_ID
-
-      when Anchor_Anchored =>
-         Anchor_Anchored_IDs   : Anchor_ID_Vectors.Vector;
-         Anchor_Anchored_ID    : Natural;
-         Anchor_Anchored_Delta : Integer;
+         Anchor_Line  : WisiToken.Line_Number_Type;
+         Anchor_Delta : Integer;
       end case;
    end record;
-   First_Anchor_ID : constant Positive := Positive'First;
 
    package Indent_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
      (WisiToken.Line_Number_Type, Indent_Type, Default_Element => (others => <>));
@@ -660,16 +568,6 @@ private
 
       Embedded_Quote_Escape_Doubled : Boolean := False;
 
-      --  Data from parsing
-
-      Line_Paren_State : Line_Paren_Vectors.Vector;
-      --  Parenthesis nesting state at the start of each line; used by
-      --  Indent. Set by Initialize_Actions.
-
-      Current_Paren_State : Integer;
-      --  Current parenthesis nesting state; used by Indent. Set by
-      --  Initialize_Actions.
-
       --  Data for post-parse actions
 
       Post_Parse_Action   : Post_Parse_Action_Type;
@@ -686,9 +584,6 @@ private
 
       --  Copied from language-specific parameters
       Indent_Comment_Col_0 : Boolean := False;
-
-      --  Dynamic data for Indent
-      Max_Anchor_ID : Integer;
    end record;
 
    type Simple_Delta_Labels is (None, Int, Anchored);
@@ -706,7 +601,7 @@ private
          Int_Delta : Integer;
 
       when Anchored =>
-         Anchored_ID    : Natural;
+         Anchor_Line    : WisiToken.Line_Number_Type;
          Anchored_Delta : Integer;
 
       end case;
@@ -742,6 +637,12 @@ private
    ----------
    --  Utilities for language-specific child packages
 
+   function Compute_Indenting
+     (Tree : in WisiToken.Syntax_Trees.Tree;
+      Node : in WisiToken.Syntax_Trees.Valid_Node_Access)
+     return Wisi.Indenting;
+   --  Return Node.Augmented.Indenting, computing it first if needed.
+
    function First
      (Tree  : in WisiToken.Syntax_Trees.Tree'Class;
       Token : in WisiToken.Syntax_Trees.Node_Access)
@@ -750,31 +651,11 @@ private
 
    function Current_Indent_Offset
      (Tree         : in WisiToken.Syntax_Trees.Tree'Class;
-      Anchor_Token : in WisiToken.Base_Token;
+      Anchor_Token : in WisiToken.Syntax_Trees.Valid_Node_Access;
       Offset       : in Integer)
      return Integer;
    --  Return offset from beginning of first token on line containing
    --  Anchor_Token, to beginning of Anchor_Token, plus Offset.
-
-   function Get_Augmented_Token
-     (Tree  : in WisiToken.Syntax_Trees.Tree'Class;
-      Token : in WisiToken.Syntax_Trees.Valid_Node_Access)
-     return Augmented_Token
-   is ((Base => Tree.Base_Token (Token),
-        Aug  => Augmented_Access (Tree.Augmented (Token)).all))
-   with Pre => Tree.Augmented (Token) /= null;
-
-   function Get_Augmented_Const
-     (Tree  : in WisiToken.Syntax_Trees.Tree'Class;
-      Token : in WisiToken.Syntax_Trees.Valid_Node_Access)
-     return Augmented_Const_Ref
-   with Pre => Tree.Augmented (Token) /= null;
-
-   function Get_Augmented_Var
-     (Tree  : in WisiToken.Syntax_Trees.Tree'Class;
-      Token : in WisiToken.Syntax_Trees.Valid_Node_Access)
-     return Augmented_Var_Ref
-   with Pre => Tree.Augmented (Token) /= null;
 
    function Get_Text
      (Data       : in Parse_Data_Type;
@@ -788,30 +669,35 @@ private
    --  Prefix any '"' in Item with '\' for elisp.
 
    function Indent_Anchored_2
-     (Data           : in out Parse_Data_Type;
-      Anchor_Line    : in     WisiToken.Line_Number_Type;
-      Indenting_Line : in     WisiToken.Line_Number_Type;
-      Offset         : in     Integer)
+     (Tree              : in WisiToken.Syntax_Trees.Tree;
+      Anchor_Token      : in WisiToken.Syntax_Trees.Valid_Node_Access;
+      Indenting_Token   : in WisiToken.Syntax_Trees.Valid_Node_Access;
+      Indenting_Comment : in Boolean;
+      Offset            : in Integer)
      return Delta_Type;
-   --  Create an anchor (Anchor_Line, Offset), return an anchored delta using it.
-   --  Anchor ID is unique in Anchor_Line .. Indenting_Line.
+   --  If Anchor_Line = Indenting_Line, return Null_Delta. Otherwise
+   --  return an anchored delta using Anchor_Line, Offset.
 
    function Indent_Compute_Delta
      (Data              : in out Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
       Nonterm           : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Tokens            : in     WisiToken.Syntax_Trees.Valid_Node_Access_Array;
       Param             : in     Indent_Param;
-      Tree_Indenting    : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean)
      return Delta_Type;
+   --  Return indent defined by Param for Tree_Indenting in Nonterm.
 
    procedure Indent_Token_1
      (Data              : in out Parse_Data_Type;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Indenting_Token   : in     Augmented_Token;
+      Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Delta_Indent      : in     Delta_Type;
       Indenting_Comment : in     Boolean);
+   --  Apply Delta_Indent to Data.Indents for Indenting_Token.
+   --
+   --  Indenting must be Compute_Indenting (Indenting_Token).
+   --
    --  Sets Data.Indents, so caller may not be in a renames for a
    --  Data.Indents element.
 

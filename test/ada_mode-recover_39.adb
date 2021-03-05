@@ -30,7 +30,7 @@ Kmn_Loop :
                Node_Byte_Regin := @ + Shift_Bytes;
                , Char_Offset => Shift_Chars);
 
-                     Terminal_Node := Next (Terminal_Node);
+            Terminal_Node := Next (Terminal_Node);
          end loop Unchanged_Loop;
 
          Kmn_Node := Next (Kmn_Node);

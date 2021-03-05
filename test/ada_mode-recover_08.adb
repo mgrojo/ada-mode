@@ -7,7 +7,7 @@
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
-package body Ada_Mode.Recover_8 is
+package body Ada_Mode.Recover_08 is
    procedure Closure
    is
    begin
@@ -26,4 +26,4 @@ package body Ada_Mode.Recover_8 is
 
    end Closure;
 
-end Ada_Mode.Recover_8;
+end Ada_Mode.Recover_08;

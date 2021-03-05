@@ -1573,10 +1573,10 @@ parameter_specification
       (wisi-indent-action [nil
                            ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
                            ;; test/ada_mode-parens.ads Function_1
-                           (wisi-hanging (wisi-anchored% 4 ada-indent-broken)
-                                         (wisi-anchored% 4 ada-indent-broken))
-                           (wisi-hanging% (wisi-anchored% 6 ada-indent-broken)
-                                          (wisi-anchored% 6 (* 2 ada-indent-broken)))]))%
+                           (wisi-hanging (wisi-anchored% 2 ada-indent-broken)
+                                         (wisi-anchored% 2 ada-indent-broken))
+                           (wisi-hanging% (wisi-anchored% 2 ada-indent-broken)
+                                          (wisi-anchored% 2 (* 2 ada-indent-broken)))]))%
   | defining_identifier_list ':' access_definition [assign_value]
     %((wisi-indent-action [nil ada-indent-broken ada-indent-broken ada-indent-broken
                                (wisi-hanging% (wisi-anchored% 3 ada-indent-broken)

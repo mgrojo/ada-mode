@@ -237,25 +237,25 @@ package body Run_Wisi_Common_Parse is
               (Argument (Arg + 1));
             Arg := @ + 2;
 
-         elsif Argument (Arg) = "--check_limit" then
-            Parser.Table.McKenzie_Param.Check_Limit := WisiToken.Syntax_Trees.Node_Index'Value
-              (Argument (Arg + 1));
-            Arg := @ + 2;
-
-         elsif Argument (Arg) = "--check_delta" then
-            Parser.Table.McKenzie_Param.Check_Delta_Limit := Integer'Value (Argument (Arg + 1));
-            Arg := @ + 2;
-
-         elsif Argument (Arg) = "--enqueue_limit" then
-            Parser.Table.McKenzie_Param.Enqueue_Limit := Integer'Value (Argument (Arg + 1));
-            Arg := @ + 2;
-
          elsif Argument (Arg) = "--lang_params" then
             Params.Language_Params := +Argument (Arg + 1);
             Arg := @ + 2;
 
          elsif Argument (Arg) = "--max_parallel" then
             Parser.Table.Max_Parallel := SAL.Base_Peek_Type'Value (Argument (Arg + 1));
+            Arg := @ + 2;
+
+         elsif Argument (Arg) = "--mckenzie_check_limit" then
+            Parser.Table.McKenzie_Param.Check_Limit := WisiToken.Syntax_Trees.Node_Index'Value
+              (Argument (Arg + 1));
+            Arg := @ + 2;
+
+         elsif Argument (Arg) = "--mckenzie_check_delta" then
+            Parser.Table.McKenzie_Param.Check_Delta_Limit := Integer'Value (Argument (Arg + 1));
+            Arg := @ + 2;
+
+         elsif Argument (Arg) = "--mckenzie_enqueue_limit" then
+            Parser.Table.McKenzie_Param.Enqueue_Limit := Integer'Value (Argument (Arg + 1));
             Arg := @ + 2;
 
          elsif Argument (Arg) = "--mckenzie_full_explore" then
@@ -318,7 +318,7 @@ package body Run_Wisi_Common_Parse is
       use Ada.Strings.Fixed;
       use WisiToken; -- "+" unbounded
 
-      type File_Command_Type is (Parse_Incremental, Post_Parse, Refactor, Query_Tree, Save_Text, Verbosity, Time);
+      type File_Command_Type is (Parse_Incremental, Post_Parse, Refactor, Query_Tree, Save_Text, Verbosity);
 
       Parser : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
 
@@ -430,10 +430,6 @@ package body Run_Wisi_Common_Parse is
          if Trace_McKenzie > Detail then
             Parser.Table.McKenzie_Param.Task_Count := 1;
          end if;
-
-      when Time =>
-         if Time_Start_Set then
-            Time_End := Ada.Calendar.Clock;
 
       end case;
    end Process_Command;

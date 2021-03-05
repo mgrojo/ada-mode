@@ -298,7 +298,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --   "<begin_named_token> ... begin handled_sequence_of_statements end <end_name_token> ;"
          --
          --  where the <end_name_token> is empty. See test_mckenzie_recover.adb
-         --  Missing_Name_*, ada_mode-recover_15.adb.
+         --  Missing_Name_*, ada_mode-recover_15.adb, ada_mode-recover_42.adb.
          --
          --  There are two subcases:
          --
@@ -330,19 +330,21 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             return;
          end if;
 
-         if Config.Stack.Depth >= 4 and then
-           (Is_Terminal (ID (Config.Stack.Peek (4).Token), Tree.Lexer.Descriptor.all) and
-              Invalid_Node_Access = Tree.Find_Child (Config.Stack.Peek (4).Token.Node, +EXCEPTION_ID))
+         if Config.Stack.Depth < 4 or else
+           Config.Stack.Peek (4).Token.Virtual or else
+           not Is_Nonterminal (ID (Config.Stack.Peek (4).Token), Tree.Lexer.Descriptor.all)
          then
+            return;
+         end if;
+
+         if Invalid_Node_Access = Tree.Find_Child (Config.Stack.Peek (4).Token.Node, +EXCEPTION_ID) then
             --  'exception' not found; case 1a - assume extra 'end [keyword] ;'; delete it.
             declare
                use Config_Op_Arrays;
-               New_Config     : Configuration := Config;
-               Ops            : Config_Op_Arrays.Vector renames New_Config.Ops;
-               Stack          : Recover_Stacks.Stack renames New_Config.Stack;
-               End_Item       : Recover_Stack_Item; -- 'end' keyword; position in stack varies with case
-               Keyword_Item   : Recover_Stack_Item; -- keyword after 'end'; may not be present
-               Semicolon_Item : Recover_Stack_Item; -- semicolon after 'end'
+               New_Config   : Configuration := Config;
+               Ops          : Config_Op_Arrays.Vector renames New_Config.Ops;
+               Stack        : Recover_Stacks.Stack renames New_Config.Stack;
+               Keyword_Item : Recover_Stack_Item; -- keyword after 'end'; may not be present
             begin
                New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
                New_Config.User_Parse_Action_Status := (Label => Ok);
@@ -355,8 +357,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                case To_Token_Enum (ID (Config.Error_Token)) is
                when block_statement_ID | package_body_ID | subprogram_body_ID | task_body_ID =>
-                  Semicolon_Item := Stack.Peek (1);
-                  End_Item       := Stack.Peek (3);
 
                   Push_Back_Check
                     (Tree, New_Config,
@@ -381,16 +381,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   end if;
 
                when package_specification_ID =>
-                  Semicolon_Item := Stack.Peek (1);
-                  End_Item       := Stack.Peek (3);
-
                   Push_Back_Check (Tree, New_Config, (+SEMICOLON_ID, +name_opt_ID, +END_ID));
                   Undo_Reduce_Check (New_Config, Tree, Parse_Table, +basic_declarative_item_list_ID);
 
                when loop_statement_ID =>
-                  Semicolon_Item := Stack.Peek (1);
-                  Keyword_Item   := Stack.Peek (3);
-                  End_Item       := Stack.Peek (4);
+                  Keyword_Item := Stack.Peek (3);
 
                   Push_Back_Check
                     (Tree, New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID));
@@ -413,16 +408,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                if not Has_Space (Ops, 3) then
                   raise Bad_Config;
                end if;
-               Append (Ops, (Delete, +END_ID, Tree.Get_Node_Index (Tree.First_Terminal (End_Item.Token))));
-               if ID (Keyword_Item.Token) /= Invalid_Token_ID then
-                  Append
-                    (Ops,
-                     (Delete, ID (Keyword_Item.Token), Tree.Get_Node_Index (Tree.First_Terminal (Keyword_Item.Token))));
-               end if;
-               --  We don't need to delete the identifier|name ; it is missing and therefor empty.
-               Append (Ops, (Delete, +SEMICOLON_ID, Tree.Get_Node_Index (Tree.First_Terminal (Semicolon_Item.Token))));
 
-               New_Config.Current_Shared_Token := Config.Current_Shared_Token; --  After pushed_back SEMICOLON.
+               if ID (Keyword_Item.Token) /= Invalid_Token_ID then
+                  Delete_Check (Tree, New_Config, (+END_ID, ID (Keyword_Item.Token), +SEMICOLON_ID));
+               else
+                  --  We don't need to delete the identifier|name ; it is missing and therefor empty.
+                  Delete_Check (Tree, New_Config, (+END_ID, +SEMICOLON_ID));
+               end if;
 
                Local_Config_Heap.Add (New_Config);
 
@@ -468,6 +460,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             when Bad_Config =>
                null;
             end;
+
          end if;
 
       when Extra_Name_Error =>
@@ -515,11 +508,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
             --  Push_Back the failed reduce tokens.
             for I in 1 .. New_Config.User_Parse_Action_Token_Count loop
-               if Push_Back_Valid (Tree, New_Config) then
-                  Push_Back (Tree, New_Config);
-               else
-                  raise Bad_Config;
-               end if;
+               Push_Back (Tree, New_Config, Push_Back_Undo_Reduce => True);
             end loop;
 
             Insert (Tree, New_Config, +END_ID);
@@ -615,11 +604,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                --  Delete the second begin
                for I in 1 .. Second_Begin_I loop
-                  if Push_Back_Valid (Tree, New_Config) then
-                     Push_Back (Tree, New_Config);
-                  else
-                     raise Bad_Config;
-                  end if;
+                  Push_Back (Tree, New_Config);
                end loop;
 
                if ID (New_Config.Stack.Peek.Token) = +COLON_ID then
@@ -649,13 +634,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                --  Delete the first begin. We assume it is in a subprogram body, so
                --  we don't need to adjust anything else.
                for I in 1 .. First_Begin_I loop
-                  if Push_Back_Valid (Tree, New_Config) then
-                     Push_Back (Tree, New_Config);
-                  else
-                     --  Probably trying to push back thru an earlier error recovery; see
-                     --  test/ada_mode-recover_10.adb
-                     raise Bad_Config;
-                  end if;
+                  Push_Back (Tree, New_Config);
                end loop;
 
                Delete_Check (Tree, New_Config, +BEGIN_ID);
@@ -1191,11 +1170,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          begin
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
-            if Push_Back_Valid (Tree, New_Config) then
-               Push_Back_Check (Tree, New_Config, +expression_ID);
-            else
-               raise Bad_Config;
-            end if;
+            Push_Back_Check (Tree, New_Config, +expression_ID);
 
             Insert (Tree, New_Config, +LEFT_PAREN_ID);
             --  Minimal_Complete will add the matching right paren.
