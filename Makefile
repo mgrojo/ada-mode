@@ -56,7 +56,7 @@ two_pro : build_executables
 # is all we need after a CM update. Doing byte-compile-clean
 # first avoids errors caused by loading new source on old .elc.
 byte-compile : byte-compile-clean
-	$(EMACS_EXE) -Q -batch -L . -L $(EMACS_WISI) $(MMM_MODE) --eval "(progn (package-initialize)(batch-byte-compile))" *.el
+	$(EMACS_EXE) -Q -batch -L . -L $(EMACS_WISI) -l exclude-wisi.el $(MMM_MODE) --eval "(progn (package-initialize)(batch-byte-compile))" *.el
 
 byte-compile-clean :
 	rm -f *.elc
@@ -156,8 +156,7 @@ zip :
 
 ### ELPA stuff
 ELPA_ROOT ?= $(shell cd ../elpa; pwd)
-ELPA_EXTERNALS ?= $(shell cd ../elpa-externals; pwd)
-ELPA_WGM := $(ELPA_EXTERNALS)/wisitoken-grammar-mode
+ELPA_WGM := $(ELPA_ROOT)/packages/wisitoken-grammar-mode
 
 pub-wisitoken-grammar : wisitoken_grammar.gpr force
 	mkdir -p $(ELPA_WGM)

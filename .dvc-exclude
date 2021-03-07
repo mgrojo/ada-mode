@@ -1,3 +1,4 @@
 Makefile
 wisitoken_grammar.el
 wisitoken_grammar.prj
+.gdbinit
