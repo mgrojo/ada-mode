@@ -331,7 +331,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
       loop
          exit when Other.Is_Done;
          declare
-            use all type WisiToken.Syntax_Trees.Stream_ID;
             Other_Parser : Parser_State renames Other.State_Ref;
          begin
             if Other.Stream /= Current.Stream and then

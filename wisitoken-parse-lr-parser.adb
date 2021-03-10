@@ -785,27 +785,67 @@ package body WisiToken.Parse.LR.Parser is
       end if;
 
       if Parser.User_Data /= null then
+         declare
+            use all type Ada.Containers.Count_Type;
 
-         --  ada-mode-recover_33.adb requires calling Insert_Token,
-         --  Delete_Token in lexical order, which is Recover_Insert_Delete
-         --  order.
-         for I in Parser_State.Recover_Insert_Delete.First_Index .. Parser_State.Recover_Insert_Delete.Last_Index
-         loop
-            declare
-               Op : Recover_Op renames Parser_State.Recover_Insert_Delete.Constant_Ref (I);
+            function Count_Non_Grammar return Ada.Containers.Count_Type
+            is
+               use Syntax_Trees;
+               Token  : Node_Access               := Parser.Tree.First_Terminal (Parser.Tree.Root);
+               Result : Ada.Containers.Count_Type := 0;
             begin
-               case Op.Op is
-               when Insert =>
-                  Parser.User_Data.Insert_Token (Parser.Tree, Op.Ins_Node);
+               loop
+                  declare
+                     Non_Grammar : Base_Token_Arrays.Vector renames Parser.Tree.Non_Grammar_Const (Token);
+                  begin
+                     Result := @ + Non_Grammar.Length;
+                  end;
 
-               when Delete =>
-                  Parser.User_Data.Delete_Token
-                    (Parser.Tree,
-                     Deleted_Token => Op.Del_Node,
-                     Prev_Token    => Op.Del_After_Node);
-               end case;
-            end;
-         end loop;
+                  Token := Parser.Tree.Next_Terminal (Token);
+                  exit when Token = Invalid_Node_Access;
+               end loop;
+               return Result;
+            end Count_Non_Grammar;
+
+            Start_Non_Grammar_Count : constant Ada.Containers.Count_Type :=
+              (if Debug_Mode then Count_Non_Grammar else 0);
+            End_Non_Grammar_Count   : Ada.Containers.Count_Type;
+         begin
+            --  ada-mode-recover_33.adb requires calling Insert_Token,
+            --  Delete_Token in lexical order, which is Recover_Insert_Delete
+            --  order.
+            for I in Parser_State.Recover_Insert_Delete.First_Index .. Parser_State.Recover_Insert_Delete.Last_Index
+            loop
+               declare
+                  Op : Recover_Op renames Parser_State.Recover_Insert_Delete.Constant_Ref (I);
+               begin
+                  case Op.Op is
+                  when Insert =>
+                     Parser.User_Data.Insert_Token (Parser.Tree, Op.Ins_Node);
+
+                  when Delete =>
+                     Parser.User_Data.Delete_Token
+                       (Parser.Tree,
+                        Deleted_Token => Op.Del_Node,
+                        Prev_Token    => Op.Del_After_Node);
+                  end case;
+               end;
+            end loop;
+
+            if Debug_Mode then
+               End_Non_Grammar_Count := Count_Non_Grammar;
+               if Start_Non_Grammar_Count /= End_Non_Grammar_Count then
+                  Parser.Trace.Put_Line
+                    (Parser.Tree.Image
+                       (Children     => True,
+                        Non_Grammar  => True,
+                        Augmented    => True,
+                        Line_Numbers => True));
+                  raise SAL.Programmer_Error with "insert/delete tokens changed non_grammar count:" &
+                    Start_Non_Grammar_Count'Image & " =>" & End_Non_Grammar_Count'Image;
+               end if;
+            end if;
+         end;
       end if;
    end Finish_Parse;
 
@@ -914,8 +954,6 @@ package body WisiToken.Parse.LR.Parser is
       end if;
 
       declare
-         use all type WisiToken.Syntax_Trees.Stream_ID;
-
          Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
       begin
          if Trace_Action > Outline and Parser_State.Stream /= WisiToken.Syntax_Trees.Invalid_Stream_ID then

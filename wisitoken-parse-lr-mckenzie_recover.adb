@@ -144,7 +144,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    begin
       Parser_State.Recover.Enqueue_Count := @ + 1;
 
-      Config.Resume_Token_Goal := Shared_Parser.Tree.Get_Node_Index (Parser_State.Shared_Token.Node) +
+      Config.Resume_Token_Goal := Shared_Parser.Tree.Get_Node_Index
+        (Shared_Parser.Tree.First_Terminal (Parser_State.Shared_Token.Node)) +
         Shared_Parser.Table.McKenzie_Param.Check_Limit;
 
       if Trace_McKenzie > Outline then

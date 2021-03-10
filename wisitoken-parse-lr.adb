@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2013-2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -310,14 +310,14 @@ package body WisiToken.Parse.LR is
       Table  : in     Parse_Table;
       Stream : in     Syntax_Trees.Stream_ID)
    is
+      --  We can't move this into Syntax_Trees, because we need Table to set
+      --  the stream element states.
       use Syntax_Trees;
       Nonterm    : constant Node_Access := Tree.Pop (Stream);
       Prev_State : State_Index          := Tree.State (Stream);
    begin
       for Child of Tree.Children (Nonterm) loop
-         if Tree.Parents_Set then
-            Tree.Clear_Parent (Child);
-         end if;
+         Tree.Clear_Parent (Child);
 
          if Is_Terminal (Tree.ID (Child), Tree.Lexer.Descriptor.all) then
             Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (Child)));

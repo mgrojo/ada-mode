@@ -47,6 +47,7 @@ with System.Multiprocessors;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
+   use all type WisiToken.Syntax_Trees.Stream_ID;
    use all type WisiToken.Syntax_Trees.Node_Index;
    use all type SAL.Base_Peek_Type;
 
@@ -361,7 +362,8 @@ package WisiToken.Parse.LR is
    procedure Undo_Reduce
      (Tree   : in out Syntax_Trees.Tree;
       Table  : in     Parse_Table;
-      Stream : in     Syntax_Trees.Stream_ID);
+      Stream : in     Syntax_Trees.Stream_ID)
+   with Pre => Tree.Parents_Set or Stream /= Tree.Shared_Stream;
    --  Undo reduction of nonterm at Stream.Stack_Top; Stack_Top is then
    --  the last Child of the nonterm.
 
@@ -646,7 +648,7 @@ package WisiToken.Parse.LR is
       Current_Shared_Token : Syntax_Trees.Terminal_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
       --  Current input token in Shared_Stream; to be input after all of
       --  Input_Stream and Insert_Delete is input. Initially the error
-      --  token. In batch parse, always a single Shared_Terminal; in
+      --  token. In batch parse, always a single Source_Terminal; in
       --  incremental parse, may be a any Terminal_Label in a nonterm (ie
       --  from error correction in a previous parse).
 
@@ -671,7 +673,7 @@ package WisiToken.Parse.LR is
       --  Index of the next op in Insert_Delete. If No_Insert_Delete, use
       --  Current_Tree_Token.
 
-      Resume_Token_Goal : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+      Resume_Token_Goal : Syntax_Trees.Valid_Node_Index := Syntax_Trees.Valid_Node_Index'Last;
       --  A successful solution shifts this terminal token from Tree.Shared_Stream.
       --  Per-config because it increases with Delete; we increase
       --  Shared_Parser.Resume_Token_Goal only from successful configs.

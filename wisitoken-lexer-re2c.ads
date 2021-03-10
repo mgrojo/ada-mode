@@ -6,7 +6,7 @@
 --
 --  [1] http://re2c.org/
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -119,17 +119,12 @@ package WisiToken.Lexer.re2c is
 
    overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in WisiToken.Buffer_Region) return String;
 
-   overriding function First (Lexer : in Instance) return Boolean;
-
-   overriding function Line_Start_Char_Pos (Lexer : in Instance) return Buffer_Pos;
-
    overriding
    procedure Set_Position
      (Lexer         : in out Instance;
       Byte_Position : in     Buffer_Pos;
       Char_Position : in     Buffer_Pos;
-      Line          : in     Line_Number_Type;
-      Prev_Token_ID : in Token_ID);
+      Line          : in     Line_Number_Type);
 
    overriding
    function Find_Next
@@ -150,19 +145,8 @@ private
 
    type Instance is new WisiToken.Lexer.Instance with
    record
-      Lexer         : System.Address := System.Null_Address;
-      Source        : WisiToken.Lexer.Source;
-      ID            : Token_ID; --  Last token read by find_next
-      Byte_Position : Natural;  --  We don't use Buffer_Pos here, because Source.Buffer is indexed by Integer
-      Byte_Length   : Natural;
-      Char_Position : Natural;
-      Char_Length   : Natural;
-      --  Position and length in bytes and characters of last token from
-      --  start of Managed.Buffer, 1 indexed.
-
-      Line            : Line_Number_Type; -- after last (or current) New_Line token
-      Char_Line_Start : Natural;          -- Character position after last New_Line token, lexer origin.
-      Prev_ID         : Token_ID;         -- previous token_id
+      Lexer  : System.Address := System.Null_Address;
+      Source : WisiToken.Lexer.Source;
    end record;
 
 end WisiToken.Lexer.re2c;

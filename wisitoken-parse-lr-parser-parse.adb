@@ -85,8 +85,8 @@ begin
            (Shared_Parser.Tree.Image
               (Shared_Parser.Tree.Shared_Stream,
                Children     => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
-               Non_Grammar  => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
-               Augmented    => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
+               Non_Grammar  => False,
+               Augmented    => False,
                Line_Numbers => Trace_Parse > Extra or Trace_Incremental_Parse > Extra));
          Trace.New_Line;
       end if;
@@ -132,22 +132,19 @@ begin
                declare
                   use Recover_Op_Arrays;
                   use all type Syntax_Trees.Stream_Node_Ref;
-                  use all type WisiToken.Syntax_Trees.Node_Label;
-                  use all type WisiToken.Syntax_Trees.Stream_ID;
 
                   Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
 
                   Next_Shared_Terminal : constant Syntax_Trees.Terminal_Ref := Parser_Lists.Peek_Next_Shared_Terminal
                     (Parser_State, Tree);
-                  pragma Assert
-                    (Tree.Label (Next_Shared_Terminal.Node) = Syntax_Trees.Source_Terminal,
-                     "virtual terminal first in Next_Shared_Terminal " & Tree.Image (Next_Shared_Terminal));
-                  --  Next_Shared_Terminal should never be Virtual. There can be Virtual
-                  --  terminals in the Shared_Stream from previous error recovery, but
-                  --  if they are the first terminal in a Shared_Stream nonterminal,
-                  --  Edit_Tree should have deleted them. There can be no Virtual
-                  --  terminals in the parse stream input; error recover does not push
-                  --  back over them, since recomputing them is a waste of time.
+                  --  Next_Shared_Terminal can be Virtual. There can be Virtual
+                  --  terminals in the Shared_Stream from previous error recovery, and
+                  --  Edit_Tree can raise them or a containing nonterm in which they are
+                  --  first to the shared stream. ada_mode-interactive_1.adb Proc_1.
+                  --
+                  --  There can be no Virtual terminals in the parse stream input; error
+                  --  recover does not push back over them, since recomputing them is a
+                  --  waste of time.
 
                   function Insert_Virtual return Boolean
                   is
@@ -673,9 +670,8 @@ when E : others =>
              Msg            => +Msg));
       end if;
 
-      if Debug_Mode and Ada.Exceptions.Exception_Name (E) /= "SAL.PROGRAMMER_ERROR" then
-         --  If SAL.Programmer_Error, we assume this is from McKenzie_Recover,
-         --  and we've already output the traceback.
+      if Debug_Mode then
+         --  If this is from a McKenzie task, that also outputs a stack trace.
          Trace.Put_Line ("exception: " & Msg);
          Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
          Trace.New_Line;

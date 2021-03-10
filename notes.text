@@ -48,6 +48,8 @@ factor out tree-sitter support
     so ada-mode elpa release does not require tree-sitter
 
 deallocating Graph takes as long as computing redundancy
+    use storage_pool to deallocate all at once?
+        Unchecked_Deallocate_Subpool.
 
 in wisitoken-bnf-generate_utils
     delete Token_Container
