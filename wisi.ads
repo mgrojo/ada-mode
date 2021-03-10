@@ -52,6 +52,13 @@ package Wisi is
      return String;
    --  Returns content of quoted string in Source at Last + 1 ...
 
+   function Get_Enum
+     (Source : in     String;
+      Last   : in out Integer)
+     return String;
+   --  Returns next space-delimited word (nominally the value of some
+   --  enumeration type) in Source at Last + 1 ...
+
    function Get_Integer
      (Source : in     String;
       Last   : in out Integer)
@@ -130,8 +137,6 @@ package Wisi is
       End_Line            : in     WisiToken.Line_Number_Type;
       Begin_Indent        : in     Integer);
    --  Reset for a new post-parse action, preserving data from previous parse.
-
-   overriding procedure Reset (Data : in out Parse_Data_Type);
 
    function Post_Parse_Action (Data : in Parse_Data_Type) return Post_Parse_Action_Type;
    function Action_Region_Bytes (Data : in Parse_Data_Type) return WisiToken.Buffer_Region;
@@ -411,7 +416,8 @@ package Wisi is
       Action     : in     Positive;
       Edit_Begin : in     WisiToken.Buffer_Pos) is null;
 
-   type Query_Label is (Nonterm);
+   type Query_Label is (Bounds, Nonterm, Print);
+   --  Must match wisi-parse-common.el wisi-parse-tree-queries
 
    procedure Query_Tree
      (Tree       : in WisiToken.Syntax_Trees.Tree;

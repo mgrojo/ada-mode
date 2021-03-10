@@ -1128,11 +1128,13 @@ strings as code, and treat `wisi-case-strict' as t in code."
 		     (funcall wisi-case-adjust-p-function typed-char))
 		 ))
 
-      ;; The indentation engine may trigger a reparse on
-      ;; non-whitespace changes, but we know we don't need to reparse
-      ;; for this change (assuming the user has not abused case
-      ;; exceptions!).
-      (let ((inhibit-modification-hooks t))
+      ;; We used to set (inhibit-modification-hooks t) here, because
+      ;; know we don't need to reparse for this change (assuming the
+      ;; user has not abused case exceptions!). However, if
+      ;; incremental parse is active, that causes the server copy of
+      ;; the source text to diverge from the Emacs copy, if only in
+      ;; character case.
+      (let ((inhibit-modification-hooks (not wisi-incremental-parse-enable)))
 	(cond
 	 ;; Some attributes are also keywords, but captialized as
 	 ;; attributes. So check for attribute first.

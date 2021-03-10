@@ -737,6 +737,27 @@ package body Wisi is
       return Source (First + 1 .. Last - 1);
    end Get_String;
 
+   function Get_Enum
+     (Source : in     String;
+      Last   : in out Integer)
+     return String
+   is
+      use Ada.Strings.Fixed;
+      First : constant Integer := Last + 1;
+   begin
+      Last := Index
+        (Source  => Source,
+         Pattern => " ",
+         From    => First + 1); -- Skip a leading space if present.
+
+      if Last = 0 then
+         Last := Source'Last;
+      else
+         Last := Last - 1;
+      end if;
+      return Source (First .. Last);
+   end Get_Enum;
+
    function Get_Integer
      (Source : in     String;
       Last   : in out Integer)
@@ -1171,28 +1192,22 @@ package body Wisi is
       Data.Action_Region_Chars := Action_Region_Chars;
       Data.Begin_Indent := Begin_Indent;
 
-      Data.Indents.Set_First_Last
-        (First   => WisiToken.Line_Number_Type'First,
-         Last    => End_Line);
+      case Post_Parse_Action is
+      when Navigate =>
+         Data.Navigate_Caches.Clear;
+         Data.Name_Caches.Clear;
+      when Face =>
+         Data.Face_Caches.Clear;
+      when Indent =>
+         Data.Indents.Set_First_Last
+           (First   => WisiToken.Line_Number_Type'First,
+            Last    => End_Line);
+
+         for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
+            Data.Indents.Replace_Element (I, (Not_Set, Invalid_Line_Number));
+         end loop;
+      end case;
    end Reset_Post_Parse;
-
-   overriding procedure Reset (Data : in out Parse_Data_Type)
-   is begin
-      Data.Navigate_Caches.Finalize;
-      Data.Navigate_Caches.Initialize;
-
-      Data.Name_Caches.Finalize;
-      Data.Name_Caches.Initialize;
-
-      Data.End_Positions.Clear;
-
-      Data.Face_Caches.Finalize;
-      Data.Face_Caches.Initialize;
-
-      for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
-         Data.Indents.Replace_Element (I, (Not_Set, Invalid_Line_Number));
-      end loop;
-   end Reset;
 
    function Post_Parse_Action (Data : in Parse_Data_Type) return Post_Parse_Action_Type
    is begin
@@ -1295,7 +1310,7 @@ package body Wisi is
             --  comments); assume that is the edit point; see
             --  test/ada_mode-interactive_2.adb "A := B \n+C;"
             Blank_Line       : Line_Number_Type   := Invalid_Line_Number;
-            Blank_Line_Index : SAL.Base_Peek_Type := 0;
+            Blank_Line_Index : SAL.Base_Peek_Type := 0; -- new_line ending blank line
             Comment_Present  : Boolean            := False;
 
             procedure Check_Non_Grammar
@@ -1341,8 +1356,8 @@ package body Wisi is
             when Between =>
                --  Insert on blank line
                --
-               --  test/ada_mode-interactive_2.adb Function_Access_2 and many similar
-               --  indent for new code line extending previous code line
+               --  test/ada_mode-interactive_2.adb Function_Access_2 and many similar.
+               --  Indent for new code line extending previous code.
                declare
                   New_Non_Grammar : Base_Token_Arrays.Vector;
                begin
@@ -1370,16 +1385,11 @@ package body Wisi is
                   if Trace_Action > WisiToken.Detail then
                      Data.Trace.Put_Line
                        ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
-                          " after " & Tree.Image (Prev_Terminal, Node_Numbers => True) &
                           " on blank line" & Blank_Line'Image);
                   end if;
                end;
 
             when After_Prev =>
-               if Length (Prev_Token.Char_Region) = 0 then
-                  raise SAL.Programmer_Error with "Prev_Token char_region = 0: " & Tree.Image (Prev_Terminal);
-               end if;
-
                Tree.Update
                  (Inserted_Token,
                   Byte_Region => Null_Buffer_Region,
@@ -1387,8 +1397,6 @@ package body Wisi is
                   Line_Region =>
                     (First => Prev_Token.Line_Region.First,
                      Last => Prev_Non_Grammar (Prev_Non_Grammar.Last_Index).Line_Region.Last));
-
-               Tree.Set_Line_Last (Prev_Terminal, Prev_Non_Grammar (Prev_Non_Grammar.First_Index).Line_Region.First);
 
                Token_Non_Grammar := Prev_Non_Grammar;
 
@@ -2094,18 +2102,22 @@ package body Wisi is
       Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Access;
       Params  : in     Indent_Param_Array)
-   is begin
+   is
+      use all type SAL.Base_Peek_Type;
+      pragma Assert (Tree.Child_Count (Nonterm) = Params'Length); -- enforced by wisitoken-bnf-generate
+   begin
       if Trace_Action > Outline then
          Data.Trace.Put_Line
            ("indent_action_0: " & Tree.Image (Nonterm, RHS_Index => True, Augmented => True, Line_Numbers => True));
       end if;
 
       for I in 1 .. Tree.Child_Count (Nonterm) loop
-         if Overlaps (Tree.Char_Region (Tree.Child (Nonterm, I)), Data.Action_Region_Chars) and
+         if Overlaps
+           (Tree.Char_Region (Tree.Child (Nonterm, I), Include_Non_Grammar => True),
+            Data.Action_Region_Chars) and
            I in Params'Range -- in some translated EBNF, not every token has an indent param
          then
             declare
-               use all type SAL.Base_Peek_Type;
                Child : constant Syntax_Trees.Valid_Node_Access := Tree.Child (Nonterm, I);
 
                Indenting : constant Wisi.Indenting := Compute_Indenting (Tree, Child);
@@ -2255,6 +2267,32 @@ package body Wisi is
       use Syntax_Trees;
    begin
       case Label is
+      when Bounds =>
+         declare
+            use all type Ada.Containers.Count_Type;
+            Result_Chars : WisiToken.Buffer_Region;
+            Result_Lines : WisiToken.Line_Region;
+         begin
+            if Tree.Leading_Non_Grammar.Length > 0 then
+               Result_Chars.First := Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.First_Index).Char_Region.First;
+               Result_Lines.First := Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.First_Index).Line_Region.First;
+            else
+               Result_Chars.First := Tree.Char_Region (Tree.Root).First;
+               Result_Lines.First := Tree.Line_Region (Tree.Root).First;
+            end if;
+
+            Result_Chars.Last  := Tree.Char_Region (Tree.EOI).Last + 1; -- Emacs convention
+            Result_Lines.Last  := Tree.Line_Region (Tree.EOI).Last;
+
+            Ada.Text_IO.Put_Line
+              ("[" & Query_Tree_Code &
+                 Query_Label'Pos (Label)'Image &
+                 Result_Chars.First'Image &
+                 Result_Chars.Last'Image &
+                 Result_Lines.First'Image &
+                 Result_Lines.Last'Image & "]");
+         end;
+
       when Nonterm =>
          declare
             Terminal : constant Node_Access := Tree.Find_Terminal (Char_Point);
@@ -2268,6 +2306,9 @@ package body Wisi is
                     Tree.ID (Tree.Parent (Terminal))'Image & "]");
             end if;
          end;
+
+      when Print =>
+         Tree.Print_Tree (Line_Numbers => True, Non_Grammar => True);
       end case;
    end Query_Tree;
 

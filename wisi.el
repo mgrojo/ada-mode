@@ -505,15 +505,16 @@ Each element is
  INSERT-END-BYTE-POS INSERT-END-CHAR-POSS
  DELETED-BYTE-COUNT DELETED-CHAR-COUNT INSERTED-TEXT)")
 
-(defvar-local wisi--deleted-bytes 0
-  "Cached count of bytes deleted.
-Set by `wisi-before-change', used by 'wisi-after-change'")
+(defvar-local wisi--affected-text 0
+  "Cached text of range passed to `wisi-before-change',
+used by `wisi-after-change' to get byte, char count of actual
+deleted range.")
 
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
   ;; begin . (1- end) is range of text being deleted
   (when wisi-incremental-parse-enable
-    (setq wisi--deleted-bytes (string-bytes (buffer-substring-no-properties begin end))))
+    (setq wisi--affected-text (buffer-substring-no-properties begin end)))
 
   (unless wisi-indenting-p
     ;; We set wisi--change-beg, -end even if only inserting, so we
@@ -560,10 +561,20 @@ Set by `wisi-before-change', used by 'wisi-after-change'")
   ;; refontified consistently.
 
   (when wisi-incremental-parse-enable
-    (push
-     (list (position-bytes begin) begin (position-bytes end) end wisi--deleted-bytes length
-	   (buffer-substring-no-properties begin end))
-     wisi--changes))
+    ;; Sometimes length disagrees with (begin end) passed to
+    ;; wisi-before-change. For example, for 'downcase-word applied to
+    ;; "First", before-change (begin end) is entire word, but
+    ;; after-change length is 1, because only the F is actually
+    ;; replaced.
+    ;;
+    ;;  FIXME: let parser compute char length, to avoid caching lots
+    ;;  of text here.
+    (let ((deleted (substring wisi--affected-text 0 length)))
+      (push
+       (list (position-bytes begin) begin (position-bytes end) end
+	     (string-bytes deleted) length
+	     (buffer-substring-no-properties begin end))
+       wisi--changes)))
 
   (let (word-begin word-end)
     (save-excursion

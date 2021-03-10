@@ -182,10 +182,12 @@ STMT-START, STMT-END are the start and end positions of the
 statement containing EDIT_BEGIN.")
 
 (defconst wisi-parse-tree-queries
-  ;; Must wisi.ads Query_Label
-  '((nonterm . 0))
-  "Query values for `wisi-parse-tree-query'.
-- nonterm - return nonterm token id at POINT")
+  ;; Must match wisi.ads Query_Label
+  '((bounds . 0)  ;; return [point-min point-max line-min line-max]
+    (nonterm . 1) ;; return nonterm token id at POINT
+    (print . 2) ;; output parse tree to trace log
+    )
+  "Query values for `wisi-parse-tree-query'.")
 
 (cl-defgeneric wisi-parse-tree-query ((parser wisi-parser) query point)
   "Return result of parse tree query QUERY at POINT.")

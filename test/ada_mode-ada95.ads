@@ -33,4 +33,5 @@ Some
 
 -- Local Variables:
 -- ada-language-version : ada95
+-- wisi-mckenzie-enqueue-limit: 65000
 -- End:

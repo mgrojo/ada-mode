@@ -70,20 +70,22 @@ package body Run_Wisi_Common_Parse is
       Put_Line ("--zombie_limit n  : set error recover token zombie limit" &
                   (if Parser.Table = null then ""
                    else "; default" & Parser.Table.McKenzie_Param.Zombie_Limit'Image));
-      Put_Line ("--check_limit n  : set error recover token check limit" &
-                  (if Parser.Table = null then ""
-                   else "; default" & Parser.Table.McKenzie_Param.Check_Limit'Image));
-      Put_Line ("--check_delta n  : set error recover delta check limit" &
-                  (if Parser.Table = null then ""
-                   else "; default" & Parser.Table.McKenzie_Param.Check_Delta_Limit'Image));
-      Put_Line ("--enqueue_limit n  : set error recover token enqueue limit" &
-                  (if Parser.Table = null then ""
-                   else "; default" & Parser.Table.McKenzie_Param.Enqueue_Limit'Image));
+      Put_Line ("--lang_params <language-specific params>");
       Put_Line ("--max_parallel n  : set maximum count of parallel parsers" &
                   (if Parser.Table = null then ""
                    else "; default" & Parser.Table.Max_Parallel'Image));
+      Put_Line ("--mckenzie_check_limit n  : set error recover token check limit" &
+                  (if Parser.Table = null then ""
+                   else "; default" & Parser.Table.McKenzie_Param.Check_Limit'Image));
+      Put_Line ("--mckenzie_check_delta n  : set error recover delta check limit" &
+                  (if Parser.Table = null then ""
+                   else "; default" & Parser.Table.McKenzie_Param.Check_Delta_Limit'Image));
+      Put_Line ("--mckenzie_enqueue_limit n  : set error recover token enqueue limit" &
+                  (if Parser.Table = null then ""
+                   else "; default" & Parser.Table.McKenzie_Param.Enqueue_Limit'Image));
+      Put_Line ("--mckenzie_full_explore : force error recover explore all solutions");
+      Put_Line ("--mckenzie_high_cost : error recover report high cost solutions");
       Put_Line ("--mckenzie_task_count n : worker tasks in error recovery");
-      Put_Line ("--lang_params <language-specific params>");
       Put_Line ("--repeat_count n : repeat parse count times, for profiling; default 1");
       New_Line;
    end Usage;
@@ -318,7 +320,7 @@ package body Run_Wisi_Common_Parse is
       use Ada.Strings.Fixed;
       use WisiToken; -- "+" unbounded
 
-      type File_Command_Type is (Parse_Incremental, Post_Parse, Refactor, Query_Tree, Save_Text, Verbosity);
+      type File_Command_Type is (Parse_Incremental, Post_Parse, Print_Tree, Refactor, Query_Tree, Save_Text, Verbosity);
 
       Parser : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
 
@@ -327,7 +329,8 @@ package body Run_Wisi_Common_Parse is
       Last  : Integer := Index (Line, " ");
       First : Integer;
 
-      Command : constant File_Command_Type := File_Command_Type'Value (Line (Line'First .. Last));
+      Command : constant File_Command_Type := File_Command_Type'Value
+        (Line (Line'First .. (if Last = 0 then Line'Last else Last)));
    begin
       case Command is
       when Parse_Incremental =>
@@ -405,6 +408,9 @@ package body Run_Wisi_Common_Parse is
             Parse_Data.Put (Parser);
          end;
 
+      when Print_Tree =>
+         Parser.Tree.Print_Tree (Non_Grammar => True, Line_Numbers => True);
+
       when Refactor =>
          declare
             Refactor_Action : constant Positive             := Wisi.Get_Integer (Line, Last);
@@ -415,7 +421,7 @@ package body Run_Wisi_Common_Parse is
 
       when Query_Tree =>
          declare
-            Label : constant Wisi.Query_Label     := Wisi.Query_Label'Val (Wisi.Get_Integer (Line, Last));
+            Label : constant Wisi.Query_Label     := Wisi.Query_Label'Value (Wisi.Get_Enum (Line, Last));
             Point : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
          begin
             Wisi.Query_Tree (Parser.Tree, Label, Point);

@@ -76,7 +76,9 @@ package body Emacs_Wisi_Common_Parse is
 
    function Get_Command_Length return Integer
    is
-      Temp : aliased String (1 .. 4) := (others => ' '); -- initialize for error message
+      --  Length must match wisi-process-parse.el
+      --  wisi-process-parse--add-cmd-length. Initialize for error message.
+      Temp : aliased String (1 .. 4) := (others => ' ');
    begin
       Read_Input (Temp'Address, Temp'Length);
       return Integer'Value (Temp);

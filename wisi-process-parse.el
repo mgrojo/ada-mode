@@ -174,6 +174,15 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (pop-to-buffer (wisi-process--parser-buffer parser))
     (error "wisi-process-parse process not active")))
 
+(defun wisi-process-parse--add-cmd-length (cmd)
+  "Return CMD (a string) with length prefixed."
+  ;; Characters in cmd length must match emacs_wisi_common_parse.adb
+  ;; Get_Command_Length. If the actual length overflows the alloted
+  ;; space, we will get a protocol_error from the parser
+  ;; eventually. Caller should prevent that and send an alternate
+  ;; command.
+  (format "%04d%s" (length cmd) cmd))
+
 (defun wisi-process-parse--send-parse (parser parse-action begin send-end parse-end)
   "Send a full or partial PARSE-ACTION command to PARSER external process.
 The command is followed by the content of the current buffer from
@@ -223,14 +232,13 @@ complete. PARSE-END is end of desired parse region."
 		      (- (position-bytes send-end) (position-bytes begin)) ;; byte_count: send-end is after last byte
 		      (wisi-parse-format-language-options parser)
 		      ))
-	 (msg (format "%04d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
 
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
     (wisi-parse-log-message parser cmd)
-    (process-send-string process msg)
+    (process-send-string process (wisi-process-parse--add-cmd-length cmd))
 
     ;; we don't log the buffer text; may be huge
     (process-send-string process (buffer-substring-no-properties begin send-end))
@@ -242,55 +250,63 @@ complete. PARSE-END is end of desired parse region."
   "Send an incremental parse command to PARSER external process.
 If FULL, do initial full parse.  Does not wait for command to
 complete."
-  ;; Must match "incremental parse" command arguments read by
-  ;; emacs_wisi_common_parse.adb Get_Parse_Params.
-  (let* ((cmd
-	  (apply #'format
-		 (concat
-		  "parse %d \"%s\" \"%s\" %d %d %d %d %d "
-		  (if full "%d %d" "%s")
-		  " \"%s\""
-		  )
-		 (append
-		  (list
-		   (if full 2 1) ;; Parse_Kind
-		   (if (buffer-file-name) (buffer-file-name) (buffer-name))
-		   wisi-parser-verbosity
-		   (or wisi-mckenzie-task-count -1)
-		   (or wisi-mckenzie-zombie-limit -1)
-		   (or wisi-mckenzie-enqueue-limit -1)
-		   (or wisi-parse-max-parallel -1)
-		   (if full (- (position-bytes (point-max)) (position-bytes (point-min))) 0) ;; byte_count
-		   )
-		  (if full
-		      (list
-		       (point-max) ;; end_char_pos (after last char)
-		       (line-number-at-pos (1- (point-max))) ;; End_Line (at last char)
-		       )
-		    (if wisi--changes
-			  (list (prin1-to-string (nreverse wisi--changes)));; wisi--changes is in reverse time order.
-		      ;; Incremental parse requested, but
-		      ;; wisi--changes is empty. This is most likely
-		      ;; after a wisi-reset-parser; either in a unit
-		      ;; test or by the user.
-		      "()"
-		      ))
-		  (list (wisi-parse-format-language-options parser))
-		  )))
-	 (msg (format "%04d%s" (length cmd) cmd))
-	 (process (wisi-process--parser-process parser)))
+  ;; First check length of changes list. For example, in almost any
+  ;; buffer, changing the indent of every line (done in unit tests)
+  ;; builds a change list that is longer than the buffer text, and no
+  ;; faster to parse. So for long change lists, fall back to full
+  ;; parse.
+  ;;
+  ;; For now, we define "long" by the command length character count
+  ;; limit set by `wisi-process-parse--add-cmd-length'. For 4
+  ;; characters, this is hit by
+  ;; test/ada_mode-conditional_expressions.adb.
+  (let ((changes
+	 ;; wisi--changes is in reverse time order.
+	 (prin1-to-string (nreverse wisi--changes))))
+    (when (> (length changes) 9999)
+      (setq full t))
 
-    (with-current-buffer (wisi-process--parser-buffer parser)
-      (erase-buffer))
+    ;; Must match "incremental parse" command arguments read by
+    ;; emacs_wisi_common_parse.adb Get_Parse_Params.
+    (let* ((cmd
+	    (apply #'format
+		   (concat
+		    "parse %d \"%s\" \"%s\" %d %d %d %d %d "
+		    (if full "%d %d" "%s")
+		    " \"%s\""
+		    )
+		   (append
+		    (list
+		     (if full 2 1) ;; Parse_Kind
+		     (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		     wisi-parser-verbosity
+		     (or wisi-mckenzie-task-count -1)
+		     (or wisi-mckenzie-zombie-limit -1)
+		     (or wisi-mckenzie-enqueue-limit -1)
+		     (or wisi-parse-max-parallel -1)
+		     (if full (- (position-bytes (point-max)) (position-bytes (point-min))) 0) ;; byte_count
+		     )
+		    (if full
+			(list
+			 (point-max) ;; end_char_pos (after last char)
+			 (line-number-at-pos (1- (point-max))) ;; End_Line (at last char)
+			 )
+		      (list changes))
+		    (list (wisi-parse-format-language-options parser))
+		    )))
+	   (process (wisi-process--parser-process parser)))
 
-    (wisi-parse-log-message parser cmd)
-    (process-send-string process msg)
-    (setq wisi--changes nil)
-    (when full
-      (process-send-string process (buffer-substring-no-properties (point-min) (point-max))))
+      (with-current-buffer (wisi-process--parser-buffer parser)
+	(erase-buffer))
 
-    ;; We don’t wait for the send to complete here.
-    ))
+      (wisi-parse-log-message parser cmd)
+      (process-send-string process (wisi-process-parse--add-cmd-length cmd))
+      (setq wisi--changes nil)
+      (when full
+	(process-send-string process (buffer-substring-no-properties (point-min) (point-max))))
+
+      ;; We don’t wait for the send to complete here.
+      )))
 
 (defun wisi-process-parse--send-action (parser parse-action begin end)
   "Send a post-parse PARSE-ACTION command to PARSER external process.
@@ -310,14 +326,13 @@ Does not wait for command to complete."
 		      (if (markerp end) (marker-position end) end)
 		      (wisi-parse-format-language-options parser)
 		      ))
-	 (msg (format "%04d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
 
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
     (wisi-parse-log-message parser cmd)
-    (process-send-string process msg)
+    (process-send-string process (wisi-process-parse--add-cmd-length cmd))
 
     ;; We don’t wait for the send to complete here.
     ))
@@ -334,14 +349,13 @@ messages."
 		      (position-bytes edit-begin)
 		      wisi-parser-verbosity
 		      ))
-	 (msg (format "%04d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
 
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
-    (wisi-parse-log-message parser msg)
-    (process-send-string process msg)
+    (wisi-parse-log-message parser cmd)
+    (process-send-string process (wisi-process-parse--add-cmd-length cmd))
     (wisi-process-parse--wait parser)
     ))
 
@@ -355,14 +369,13 @@ one or more Query messages."
 		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		      point
 		      ))
-	 (msg (format "%04d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
 
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
-    (wisi-parse-log-message parser msg)
-    (process-send-string process msg)
+    (wisi-parse-log-message parser cmd)
+    (process-send-string process (wisi-process-parse--add-cmd-length cmd))
     (wisi-process-parse--wait parser)
     ))
 
@@ -546,12 +559,20 @@ one or more Query messages."
   (funcall (aref (wisi-process--parser-language-action-table parser) (aref sexp 1)) sexp))
 
 (defun wisi-process-parse--Query (parser sexp)
-  ;; sexp is [Query query-label ...]
+  ;; sexp is [Query query-label ...] see `wisi-parse-tree-queries for data
   (cl-ecase (car (rassoc (aref sexp 1) wisi-parse-tree-queries))
-    (nonterm ;; sexp is [Query 'nonterm token-id]
+    (bounds
+     (setf (wisi-process--parser-query-result parser)
+	   (list (aref sexp 2)(aref sexp 3)(aref sexp 4)(aref sexp 5))))
+
+    (nonterm
      (when (aref sexp 2)
        (setf (wisi-process--parser-query-result parser)
 	     (aref (wisi-process--parser-token-table parser) (aref sexp 2)))))
+
+    (print
+     (setf (wisi-process--parser-query-result parser)
+	   t))
     ))
 
 (defun wisi-process-parse--execute (parser sexp)
@@ -658,9 +679,6 @@ one or more Query messages."
     (wisi-parse-log-message parser "kill process")
     (kill-process (wisi-process--parser-process parser)))
   (setf (wisi-process--parser-busy parser) nil))
-
-(defvar wisi--lexer nil) ;; wisi-elisp-lexer.el
-(declare-function wisi-elisp-lexer-reset "wisi-elisp-lexer")
 
 (defun wisi-process-parse--prepare (parser)
   ;; font-lock can trigger a face parse via a timer delay while
@@ -899,12 +917,7 @@ one or more Query messages."
   (wisi-process-parse--prepare parser)
   (let ((total-line-count (1+ (count-lines (point-max) (point-min)))))
     (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin total-line-count))
-    (wisi-process-parse--send-parse parser parse-action begin send-end parse-end)
-
-    ;; We reset the elisp lexer, because post-parse actions may use it.
-    (when wisi--lexer
-      (wisi-elisp-lexer-reset total-line-count wisi--lexer))
-    )
+    (wisi-process-parse--send-parse parser parse-action begin send-end parse-end))
   (wisi-process-parse--handle-messages parser)
   (cons begin (wisi-process--parser-end-pos parser))
   )
@@ -914,9 +927,6 @@ one or more Query messages."
   (let ((total-line-count (1+ (count-lines (point-max) (point-min)))))
     (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin total-line-count))
     (wisi-process-parse--send-incremental-parse parser full)
-    ;; We reset the elisp lexer, because post-parse actions may use it.
-    (when wisi--lexer
-      (wisi-elisp-lexer-reset total-line-count wisi--lexer))
     (condition-case-unless-debug _err
 	(wisi-process-parse--handle-messages parser)
       ('wisi-file_not_found
@@ -973,6 +983,8 @@ one or more Query messages."
   (setf (wisi-process--parser-query-result parser) nil)
   (cl-assert wisi-incremental-parse-enable)
   (when wisi--changes
+    (let ((total-line-count (1+ (count-lines (point-max) (point-min)))))
+      (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin total-line-count)))
     (wisi-process-parse--send-incremental-parse parser nil)
     (wisi-process-parse--handle-messages parser))
 
@@ -994,7 +1006,7 @@ one or more Query messages."
   "Send 'quit' command to parser, for repeatable termination in unit tests."
   (let ((process (wisi-process--parser-process parser)))
     (wisi-parse-log-message parser "soft kill process")
-    (process-send-string process "004quit")
+    (process-send-string process (wisi-process-parse--add-cmd-length "quit"))
     (while (process-live-p process)
       (accept-process-output process))))
 
@@ -1003,13 +1015,12 @@ one or more Query messages."
 	  (format "save_text \"%s\" \"%s\""
 		  (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		  save-file-name))
-	 (msg (format "%04d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
     (wisi-parse-log-message parser cmd)
-    (process-send-string process msg)
+    (process-send-string process (wisi-process-parse--add-cmd-length cmd))
     (wisi-process-parse--handle-messages parser)))
 
 (provide 'wisi-process-parse)

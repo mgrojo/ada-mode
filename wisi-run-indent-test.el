@@ -180,7 +180,6 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 
 (defun wisi-test-save-edited ()
   (when (and (stringp save-edited-text))
-    (message "saving parser edited text to '%s'" save-edited-text)
     (wisi-process-parse-save-text wisi--parser save-edited-text)))
 
 (defun run-test-here ()

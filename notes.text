@@ -43,14 +43,21 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-eliminate lexer.first
-    move descriptor to tree?
+change protocol
+    source_file_name always first, then parse, then others
+
+need cache_version in indenting
 
 run all tests with incremental mode enabled
     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t)"
+    test/ada_mode-interactive_1.adb
+c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-interactive_1.adb:81: error: (error: nil indent for line 75)
 
+    put EMACSCMD in parser log
 
     build/test.log
+
+Debug_parser_count abort on too many parsers
 
 test/ada_mode-conditional_expressions.adb
     accidently insert 'g' at point-min
@@ -58,8 +65,15 @@ test/ada_mode-conditional_expressions.adb
         add to ada_mode-incremental_parse.adb
 
 incremental parse
+    Skip stable if shift = 0
+
     eventually elminate all cached data, to avoid traversing entire tree in edit_tree
         see benchmark below; traverse entire tree in largest eurocontrol file takes 0.09 seconds; too slow
+        time update_cache, shift stable separately from edit
+
+        Nonterm cache first, last separately, on demand.
+            Provide separate first, last queries.
+            Use cache_count not boolean- don't need to traverse tree to clear
 
     wisi-show-errors show _all_ errors in buffer
         if parse succeeds, delete errors in regions parsed
@@ -70,7 +84,8 @@ incremental parse
     redesign navigation?
         on another branch
         don't compute text properties
-        always get destination from parser
+        always get destination from parser; query-tree
+        same for names
 
     never need begin_indent; compute it from line_begin_char_pos, line_begin_token
 
@@ -81,7 +96,16 @@ incremental parse
         or just shard_stream_index for stack_top
             may be broken down?
 
-still need wisi-lexer?
+    nonterm node_ids are not unique
+        don't reset in start_parse
+            add_nonterm_1 uses tree.nodes.last_index
+                which is condensed in Clear_Parse_Streams
+                use tree.next_nonterm_node_id, with wrap at 4 chars
+
+insert_after
+    could use active_region to distinguish:
+        indent single line - continue code
+        indent multiple lines - correct 'end' position
 
 optimize initial full parse
     generated packrat should be faster than generalized LR1

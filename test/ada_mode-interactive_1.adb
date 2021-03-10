@@ -133,3 +133,6 @@ begin
    --EMACSRESULT:9
 
 end Ada_Mode.Interactive_1;
+-- Local Variables:
+-- wisi-mckenzie-task-count: 1
+-- End:
