@@ -35,6 +35,36 @@ with Ada.Strings.Unbounded;
 with GNATCOLL.Mmap;
 package WisiToken.Lexer is
 
+   type Token is record
+      --  Information provided by the lexer.
+
+      ID : Token_ID := Invalid_Token_ID;
+
+      Byte_Region : Buffer_Region := Null_Buffer_Region;
+      --  Index into the Lexer buffer for the token text.
+
+      Char_Region : Buffer_Region := Null_Buffer_Region;
+      --  Character position, useful for finding the token location in Emacs
+      --  buffers.
+
+      Line_Region : WisiToken.Line_Region := Null_Line_Region;
+   end record;
+
+   function Column (Token : in Lexer.Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count;
+
+   function Image
+     (Item       : in Token;
+      Descriptor : in WisiToken.Descriptor)
+     return String;
+   --  For debug/test messages.
+
+   Invalid_Token : constant Token := (others => <>);
+
+   package Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive_Index_Type, Token, Default_Element => (others => <>));
+
+   function Image is new Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Image);
+
    type Error is record
       Char_Pos : Buffer_Pos := Invalid_Buffer_Pos;
       --  Character at that position is not recognized as part of a token.
@@ -113,7 +143,7 @@ package WisiToken.Lexer is
 
    function Find_Next
      (Lexer : in out Instance;
-      Token :    out Base_Token)
+      Token :    out WisiToken.Lexer.Token)
      return Boolean is abstract;
    --  Set Token to the next token from the input stream.
    --

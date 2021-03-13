@@ -51,6 +51,10 @@ package body Test_Partial_Parse is
          use all type WisiToken.Token_ID;
          Node  : Valid_Node_Access := Parser.Tree.Root;
       begin
+         if WisiToken.Trace_Tests > WisiToken.Outline then
+            Parser.Tree.Print_Tree (Line_Numbers => True);
+         end if;
+
          Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, Parse_End_Byte_Pos));
 
          if Action_ID = WisiToken.Invalid_Token_ID then
@@ -68,13 +72,9 @@ package body Test_Partial_Parse is
             Node := Parser.Tree.Children (Node)(1);
             Check (Label & ".parsed ID", Parser.Tree.ID (Node), Action_ID);
 
-            declare
-               Token : constant WisiToken.Base_Token := Parser.Tree.Base_Token (Parser.Tree.First_Terminal (Node));
-            begin
-               Check (Label & ".parse begin byte", Token.Byte_Region.First, Begin_Byte_Pos);
-               Check (Label & ".parse begin char", Token.Char_Region.First, Begin_Char_Pos);
-               Check (Label & ".parse begin line", Token.Line_Region, (Begin_Line, Begin_Line));
-            end;
+            Check (Label & ".parse begin byte", Parser.Tree.Byte_Region (Node).First, Begin_Byte_Pos);
+            Check (Label & ".parse begin char", Parser.Tree.Char_Region (Node).First, Begin_Char_Pos);
+            Check (Label & ".parse begin line", Parser.Tree.Line_Region (Node).First, Begin_Line);
 
             Check
               (Label & ".parse end byte",

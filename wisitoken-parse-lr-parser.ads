@@ -50,7 +50,8 @@ package WisiToken.Parse.LR.Parser is
    --  caused the error.
 
    type Language_Matching_Begin_Tokens_Access is access procedure
-     (Tokens                  : in     Token_ID_Array_1_3;
+     (Tree                    : in     Syntax_Trees.Tree;
+      Tokens                  : in     Token_ID_Array_1_3;
       Config                  : in     Configuration;
       Matching_Tokens         :    out Token_ID_Arrays.Vector;
       Forbid_Minimal_Complete :    out Boolean);

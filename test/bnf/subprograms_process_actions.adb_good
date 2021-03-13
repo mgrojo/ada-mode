@@ -357,7 +357,6 @@ package body Subprograms_Process_Actions is
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
-      pragma Unreferenced (Nonterm);
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>

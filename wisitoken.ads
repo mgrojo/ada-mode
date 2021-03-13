@@ -363,42 +363,6 @@ package WisiToken is
 
    function "+" (Left : in Line_Region; Right : in Base_Line_Number_Type) return Line_Region;
 
-   type Base_Token is record
-      --  Information provided by the lexer.
-
-      ID : Token_ID := Invalid_Token_ID;
-
-      Byte_Region : Buffer_Region := Null_Buffer_Region;
-      --  Index into the Lexer buffer for the token text.
-
-      Char_Region : Buffer_Region := Null_Buffer_Region;
-      --  Character position, useful for finding the token location in Emacs
-      --  buffers.
-
-      Line_Region : WisiToken.Line_Region := Null_Line_Region;
-   end record;
-
-   function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count;
-
-   function Image
-     (Item       : in Base_Token;
-      Descriptor : in WisiToken.Descriptor)
-     return String;
-   --  For debug/test messages.
-
-   Invalid_Token : constant Base_Token := (others => <>);
-
-   package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Positive_Index_Type, Base_Token, Default_Element => (others => <>));
-
-   function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Image);
-
-   type Base_Token_Array_Var_Ref (Element : not null access Base_Token_Arrays.Vector) is private
-   with Implicit_Dereference => Element;
-
-   type Base_Token_Array_Const_Ref (Element : not null access constant Base_Token_Arrays.Vector) is private
-   with Implicit_Dereference => Element;
-
    type Insert_Location is (After_Prev, Between, Before_Next);
 
    type Base_Identifier_Index is range 0 .. Integer'Last;
@@ -490,6 +454,8 @@ package WisiToken is
    ----------
    --  Misc
 
+   type Cache_Version is mod 2**16;
+
    type Boolean_Access is access all Boolean;
 
    function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String
@@ -514,15 +480,5 @@ package WisiToken is
    type Names_Array_Access is access Names_Array;
    type Names_Array_Array is array (WisiToken.Token_ID range <>) of Names_Array_Access;
    type Names_Array_Array_Access is access Names_Array_Array;
-
-private
-
-   type Base_Token_Array_Var_Ref (Element : not null access Base_Token_Arrays.Vector) is record
-      Dummy : Integer := raise Program_Error with "uninitialized reference";
-   end record;
-
-   type Base_Token_Array_Const_Ref (Element : not null access constant Base_Token_Arrays.Vector) is record
-      Dummy : Integer := raise Program_Error with "uninitialized reference";
-   end record;
 
 end WisiToken;

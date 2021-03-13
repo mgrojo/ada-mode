@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -26,8 +26,8 @@ package body Test_Skip_To_Aux is
    is begin
       if Enable then
          declare
-            Chars : constant WisiToken.Buffer_Region := Parser.Tree.Base_Token
-              (Parser.Tree.Last_Terminal (Nonterm)).Char_Region;
+            Chars : constant WisiToken.Buffer_Region := Parser.Tree.Char_Region
+              (Parser.Tree.Last_Terminal (Nonterm));
             Bytes : constant WisiToken.Buffer_Region := Parser.Tree.Byte_Region (Nonterm);
          begin
             if WisiToken.Trace_Parse > WisiToken.Outline then
@@ -74,7 +74,7 @@ package body Test_Skip_To_Aux is
          --  See comment in Test_Declaration_0 for source of expected values.
 
          Check ("compilation_unit_0 PREAMBLE char region",
-                Parser.Tree.Base_Token (Parser.Tree.First_Shared_Terminal (Nonterm)).Char_Region,
+                Parser.Tree.Char_Region (Parser.Tree.First_Shared_Terminal (Nonterm)),
                 (1, 5));
          declare
             Bytes : constant WisiToken.Buffer_Region := Parser.Tree.Byte_Region (Nonterm);

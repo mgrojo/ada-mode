@@ -160,10 +160,11 @@ package body Test_McKenzie_Recover is
             declare
                Token : Recover_Token renames Parser.Tree.Get_Recover_Token (Error.Error_Token);
             begin
-               Check (Label_I & ".Error.TOKEN_ID", ID (Token), Error_Token_ID);
+               Check (Label_I & ".Error.TOKEN_ID", Parser.Tree.ID (Token), Error_Token_ID);
                if Error_Token_ID /= +Wisi_EOI_ID then
                   --  EOF byte_region is unreliable
-                  Check (Label_I & ".Error_Token.Byte_Region", Byte_Region (Token), Error_Token_Byte_Region);
+                  Check
+                    (Label_I & ".Error_Token.Byte_Region", Parser.Tree.Byte_Region (Token), Error_Token_Byte_Region);
                end if;
             end;
          else
@@ -171,15 +172,15 @@ package body Test_McKenzie_Recover is
             --  label, so wisitoken-dtrt can find the right place.
             Check (Label_I & ".Code", Error.Label, User_Parse_Action);
             Check (Label_I & ".Code", Error.Status.Label, Code);
-            if Byte_Region (Error.Status.End_Name) = WisiToken.Null_Buffer_Region then
+            if Parser.Tree.Byte_Region (Error.Status.End_Name) = WisiToken.Null_Buffer_Region then
                --  End_Name is empty; check begin_name
-               Check (Label_I & ".Error_Token_ID", ID (Error.Status.Begin_Name), Error_Token_ID);
+               Check (Label_I & ".Error_Token_ID", Parser.Tree.ID (Error.Status.Begin_Name), Error_Token_ID);
                Check (Label_I & ".Error_Token_Byte_Region",
-                      Byte_Region (Error.Status.Begin_Name),
+                      Parser.Tree.Byte_Region (Error.Status.Begin_Name),
                       Error_Token_Byte_Region);
             else
-               Check (Label_I & ".Error_Token_ID", ID (Error.Status.End_Name), Error_Token_ID);
-               Check (Label_I & ".Error_Token_Byte_Region", Byte_Region (Error.Status.End_Name),
+               Check (Label_I & ".Error_Token_ID", Parser.Tree.ID (Error.Status.End_Name), Error_Token_ID);
+               Check (Label_I & ".Error_Token_Byte_Region", Parser.Tree.Byte_Region (Error.Status.End_Name),
                       Error_Token_Byte_Region);
             end if;
          end if;
@@ -1982,7 +1983,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +NUMERIC_LITERAL_ID,
          Error_Token_Byte_Region => (34, 35),
          Ops_Race_Condition      => True,
-         Enqueue_Low             => 61,
+         Enqueue_Low             => 60,
          Check_Low               => 27,
          Cost                    => 4);
    end Error_During_Resume_3;

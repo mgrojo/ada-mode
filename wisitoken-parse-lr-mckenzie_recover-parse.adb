@@ -42,14 +42,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       end loop;
 
       for T of Tokens loop
-         Nonterm.Contains_Virtual_Terminal := @ or Contains_Virtual_Terminal (T);
+         Nonterm.Contains_Virtual_Terminal := @ or Tree.Contains_Virtual_Terminal (T);
 
-         if Nonterm.Byte_Region.First > Byte_Region (T).First then
-            Nonterm.Byte_Region.First := Byte_Region (T).First;
+         if Nonterm.Byte_Region.First > Tree.Byte_Region (T).First then
+            Nonterm.Byte_Region.First := Tree.Byte_Region (T).First;
          end if;
 
-         if Nonterm.Byte_Region.Last < Byte_Region (T).Last then
-            Nonterm.Byte_Region.Last := Byte_Region (T).Last;
+         if Nonterm.Byte_Region.Last < Tree.Byte_Region (T).Last then
+            Nonterm.Byte_Region.Last := Tree.Byte_Region (T).Last;
          end if;
 
          if not First_Terminal_Set then
@@ -87,7 +87,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          return (Label => Ok);
       else
          return Status : constant In_Parse_Actions.Status :=
-           Action.In_Parse_Action (Super.Tree.Lexer, Nonterm, Tokens, Recover_Active => True)
+           Action.In_Parse_Action (Super.Tree.all, Nonterm, Tokens, Recover_Active => True)
          do
             if Status.Label = Ok then
                Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
@@ -386,7 +386,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             exit Inner when Node = Invalid_Node_Access;
             exit Outer when Tree.Get_Node_Index (Node) > 0;
 
-            Node := Tree.Next_Terminal (Stream_Parents, Node);
+            Node := Tree.Next_Terminal (Node, Stream_Parents);
          end loop Inner;
 
          Stream.Next (Cur);
@@ -406,7 +406,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       if Tree.Has_Parent (Node) then
          Node := Tree.Next_Shared_Terminal (Node);
       else
-         Node := Tree.Next_Shared_Terminal (Parents, Node);
+         Node := Tree.Next_Shared_Terminal (Node, Parents);
       end if;
 
       loop
@@ -432,7 +432,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       if Tree.Has_Parent (Node) then
          Node := Tree.Prev_Shared_Terminal (Node);
       else
-         Node := Tree.Prev_Shared_Terminal (Parents, Node);
+         Node := Tree.Prev_Shared_Terminal (Node, Parents);
       end if;
 
       loop
@@ -653,15 +653,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          First_In_Current : Syntax_Trees.Node_Access;
       begin
          loop --  Skip empty nonterms
-            if Is_Terminal (Syntax_Trees.ID (Current_Token), Descriptor) then
-               Action_Cur := Action_For (Table, Current_State, Syntax_Trees.ID (Current_Token));
+            if Is_Terminal (Tree.ID (Current_Token), Descriptor) then
+               Action_Cur := Action_For (Table, Current_State, Tree.ID (Current_Token));
                Action     := Action_Cur.Item;
                return;
             else
                --  nonterminal.
                declare
                   New_State : constant Unknown_State_Index := Goto_For
-                    (Table, Current_State, Syntax_Trees.ID (Current_Token));
+                    (Table, Current_State, Tree.ID (Current_Token));
 
                   Dummy : Ada.Containers.Count_Type;
                   pragma Unreferenced (Dummy);
@@ -835,8 +835,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          when Error =>
 
             Config.Error_Token :=
-              (ID          => Syntax_Trees.ID (Current_Token),
-               Byte_Region => Syntax_Trees.Byte_Region (Current_Token),
+              (ID          => Tree.ID (Current_Token),
+               Byte_Region => Tree.Byte_Region (Current_Token),
                others      => <>);
             Success            := False;
 

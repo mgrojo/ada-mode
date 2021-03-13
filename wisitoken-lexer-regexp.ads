@@ -81,7 +81,7 @@ package WisiToken.Lexer.Regexp is
 
    overriding function Find_Next
      (Lexer : in out Instance;
-      Token :    out Base_Token)
+      Token :    out WisiToken.Lexer.Token)
      return Boolean;
 
    overriding function Buffer_Region_Byte (Lexer : in Instance) return Buffer_Region;

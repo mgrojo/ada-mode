@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
+with WisiToken.Lexer;
 package body WisiToken.In_Parse_Actions is
 
    function Image (Item : in Status; Tree : in Syntax_Trees.Tree) return String
@@ -29,42 +30,44 @@ package body WisiToken.In_Parse_Actions is
          return Status_Label'Image (Item.Label);
       when Error =>
          return '(' & Status_Label'Image (Item.Label) & ", " &
-           Syntax_Trees.Image (Tree, Item.Begin_Name) &
-           "'" & Tree.Lexer.Buffer_Text (Byte_Region (Item.Begin_Name)) & "'," &
+           Tree.Image (Item.Begin_Name) &
+           "'" & Tree.Lexer.Buffer_Text (Tree.Byte_Region (Item.Begin_Name)) & "'," &
            Syntax_Trees.Image (Tree, Item.End_Name) &
-           "'" & Tree.Lexer.Buffer_Text (Byte_Region (Item.End_Name)) & "')";
+           "'" & Tree.Lexer.Buffer_Text (Tree.Byte_Region (Item.End_Name)) & "')";
       end case;
    end Image;
 
    function Match_Names
-     (Lexer        : access constant WisiToken.Lexer.Instance'Class;
-      Tokens       : in     Syntax_Trees.Recover_Token_Array;
-      Start_Index  : in     Positive_Index_Type;
-      End_Index    : in     Positive_Index_Type;
-      End_Optional : in     Boolean)
+     (Tree         : in Syntax_Trees.Tree;
+      Tokens       : in Syntax_Trees.Recover_Token_Array;
+      Start_Index  : in Positive_Index_Type;
+      End_Index    : in Positive_Index_Type;
+      End_Optional : in Boolean)
      return Status
    is
       use Syntax_Trees;
    begin
-      if Contains_Virtual_Terminal (Tokens (Start_Index)) or Contains_Virtual_Terminal (Tokens (End_Index)) then
+      if Tree.Contains_Virtual_Terminal (Tokens (Start_Index)) or
+        Tree.Contains_Virtual_Terminal (Tokens (End_Index))
+      then
          return (Label => Ok);
       end if;
 
       declare
-         Start_Name_Region : constant Buffer_Region := Syntax_Trees.Name (Tokens (Start_Index));
-         End_Name_Region   : constant Buffer_Region := Syntax_Trees.Name (Tokens (End_Index));
+         Start_Name_Region : constant Buffer_Region := Tree.Name (Tokens (Start_Index));
+         End_Name_Region   : constant Buffer_Region := Tree.Name (Tokens (End_Index));
 
          function Equal return Boolean
          is
             use Ada.Characters.Handling;
             Start_Name : constant String :=
-              (if Lexer.Descriptor.Case_Insensitive
-               then To_Lower (Lexer.Buffer_Text (Start_Name_Region))
-               else Lexer.Buffer_Text (Start_Name_Region));
+              (if Tree.Lexer.Descriptor.Case_Insensitive
+               then To_Lower (Tree.Lexer.Buffer_Text (Start_Name_Region))
+               else Tree.Lexer.Buffer_Text (Start_Name_Region));
             End_Name  : constant String :=
-              (if Lexer.Descriptor.Case_Insensitive
-               then To_Lower (Lexer.Buffer_Text (End_Name_Region))
-               else Lexer.Buffer_Text (End_Name_Region));
+              (if Tree.Lexer.Descriptor.Case_Insensitive
+               then To_Lower (Tree.Lexer.Buffer_Text (End_Name_Region))
+               else Tree.Lexer.Buffer_Text (End_Name_Region));
          begin
             return Start_Name = End_Name;
          end Equal;
@@ -106,30 +109,31 @@ package body WisiToken.In_Parse_Actions is
    end Match_Names;
 
    function Propagate_Name
-     (Nonterm    : in out Syntax_Trees.Recover_Token;
+     (Tree       : in     Syntax_Trees.Tree;
+      Nonterm    : in out Syntax_Trees.Recover_Token;
       Tokens     : in     Syntax_Trees.Recover_Token_Array;
       Name_Index : in     Positive_Index_Type)
      return Status
    is begin
-      Syntax_Trees.Set_Name (Nonterm, Syntax_Trees.Name (Tokens (Name_Index)));
+      Tree.Set_Name (Nonterm, Tree.Name (Tokens (Name_Index)));
       return (Label => Ok);
    end Propagate_Name;
 
    function Merge_Names
-     (Nonterm     : in out Syntax_Trees.Recover_Token;
+     (Tree        : in     Syntax_Trees.Tree;
+      Nonterm     : in out Syntax_Trees.Recover_Token;
       Tokens      : in     Syntax_Trees.Recover_Token_Array;
       First_Index : in     Positive_Index_Type;
       Last_Index  : in     Positive_Index_Type)
      return Status
-   is
-      use Syntax_Trees;
-   begin
-      Set_Name (Nonterm, Name (Tokens (First_Index)) and Name (Tokens (Last_Index)));
+   is begin
+      Tree.Set_Name (Nonterm, Tree.Name (Tokens (First_Index)) and Tree.Name (Tokens (Last_Index)));
       return (Label => Ok);
    end Merge_Names;
 
    function Terminate_Partial_Parse
-     (Partial_Parse_Active    : in Boolean;
+     (Tree                    : in Syntax_Trees.Tree;
+      Partial_Parse_Active    : in Boolean;
       Partial_Parse_Byte_Goal : in Buffer_Pos;
       Recover_Active          : in Boolean;
       Nonterm                 : in Syntax_Trees.Recover_Token)
@@ -137,7 +141,7 @@ package body WisiToken.In_Parse_Actions is
    is begin
       if Partial_Parse_Active and then
         (not Recover_Active) and then
-        Syntax_Trees.Byte_Region (Nonterm).Last >= Partial_Parse_Byte_Goal
+        Tree.Byte_Region (Nonterm).Last >= Partial_Parse_Byte_Goal
       then
          raise WisiToken.Partial_Parse;
       else

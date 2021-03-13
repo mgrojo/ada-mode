@@ -1319,6 +1319,8 @@ is
                Code   : constant String := -Item.Value &
                  " (Wisi.Parse_Data_Type'Class (User_Data), Tree, Nonterm, " & Params & ");";
             begin
+               Nonterm_Needed := True;
+
                if Params'Length > 0 then
                   if "navigate" = -Item.Name then
                      Navigate_Lines.Append (Code);

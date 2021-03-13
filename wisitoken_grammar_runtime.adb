@@ -423,7 +423,7 @@ package body WisiToken_Grammar_Runtime is
 
       Data : User_Data_Type renames User_Data_Type (User_Data);
 
-      function Token (Index : in SAL.Peek_Type) return Base_Token
+      function Token_Byte_Region (Index : in SAL.Peek_Type) return Buffer_Region
       is
          Child : constant Syntax_Trees.Valid_Node_Access := Tree.Child (Nonterm, Index);
       begin
@@ -432,9 +432,9 @@ package body WisiToken_Grammar_Runtime is
               " is a " & WisiToken.Syntax_Trees.Node_Label'Image (Tree.Label (Child)) &
               ", expecting Source_Terminal";
          else
-            return Tree.Base_Token (Child);
+            return Tree.Byte_Region (Child);
          end if;
-      end Token;
+      end Token_Byte_Region;
 
       function Enum_ID (Index : in SAL.Peek_Type) return Token_Enum_ID
       is (To_Token_Enum (Tree.ID (Tree.Child (Nonterm, Index))));
@@ -445,7 +445,7 @@ package body WisiToken_Grammar_Runtime is
             case Enum_ID (2) is
             when IDENTIFIER_ID =>
                declare
-                  Kind : constant String := Tree.Lexer.Buffer_Text (Token (2).Byte_Region);
+                  Kind : constant String := Tree.Lexer.Buffer_Text (Token_Byte_Region (2));
                begin
                   if Kind = "case_insensitive" then
                      Data.Language_Params.Case_Insensitive := True;
@@ -649,7 +649,7 @@ package body WisiToken_Grammar_Runtime is
 
          when IDENTIFIER_ID =>
             declare
-               Kind : constant String := Tree.Lexer.Buffer_Text (Token (2).Byte_Region);
+               Kind : constant String := Tree.Lexer.Buffer_Text (Token_Byte_Region (2));
             begin
                --  Alphabetical by Kind
 

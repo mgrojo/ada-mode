@@ -79,7 +79,7 @@ package body WisiToken.Parse.LR.Parser is
             Status         : In_Parse_Actions.Status;
          begin
             Status := Action.In_Parse_Action
-              (Shared_Parser.Tree.Lexer, Nonterm_Token, Children_Token, Recover_Active => False);
+              (Shared_Parser.Tree, Nonterm_Token, Children_Token, Recover_Active => False);
 
             if Trace_Parse > Detail then
                Shared_Parser.Trace.Put_Line ("semantic check " & In_Parse_Actions.Image (Status, Shared_Parser.Tree));
@@ -276,17 +276,22 @@ package body WisiToken.Parse.LR.Parser is
                   else
                      --  Insert EOI on parse stream and Shared_Stream.
                      declare
-                        Last_Token : constant Base_Token := Shared_Parser.Tree.Base_Token
-                          (Parser_State.Current_Token.Node);
-                        EOI_Token  : constant Base_Token :=
+                        Last_Token_Byte_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Byte_Region
+                          (Parser_State.Current_Token.Node).Last;
+                        Last_Token_Char_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Char_Region
+                          (Parser_State.Current_Token.Node).Last;
+                        Last_Token_Line_Region_Last : constant Line_Number_Type := Shared_Parser.Tree.Line_Region
+                          (Parser_State.Current_Token.Node).Last;
+
+                        EOI_Token : constant Lexer.Token :=
                           (ID          => Shared_Parser.Tree.Lexer.Descriptor.EOI_ID,
                            Byte_Region =>
-                             (First    => Last_Token.Byte_Region.Last + 1,
-                              Last     => Last_Token.Byte_Region.Last),
+                             (First    => Last_Token_Byte_Region_Last + 1,
+                              Last     => Last_Token_Byte_Region_Last),
                            Char_Region =>
-                             (First    => Last_Token.Char_Region.Last + 1,
-                              Last     => Last_Token.Char_Region.Last),
-                           Line_Region => Last_Token.Line_Region);
+                             (First    => Last_Token_Char_Region_Last + 1,
+                              Last     => Last_Token_Char_Region_Last),
+                           Line_Region => (First | Last => Last_Token_Line_Region_Last));
                      begin
                         if Shared_Parser.Tree.ID (Parser_State.Current_Token.Node) /=
                           Shared_Parser.Tree.Lexer.Descriptor.EOI_ID
@@ -796,7 +801,7 @@ package body WisiToken.Parse.LR.Parser is
             begin
                loop
                   declare
-                     Non_Grammar : Base_Token_Arrays.Vector renames Parser.Tree.Non_Grammar_Const (Token);
+                     Non_Grammar : Lexer.Token_Arrays.Vector renames Parser.Tree.Non_Grammar_Const (Token);
                   begin
                      Result := @ + Non_Grammar.Length;
                   end;
@@ -901,10 +906,11 @@ package body WisiToken.Parse.LR.Parser is
          Node : in     Syntax_Trees.Valid_Node_Access)
       is
          use all type Syntax_Trees.Node_Label;
+         Node_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Node);
       begin
          if Tree.Label (Node) /= Nonterm or else
-           not (Tree.Buffer_Region_Is_Empty (Node) or
-                  Overlaps (Tree.Byte_Region (Node), Action_Region_Bytes))
+           not (Node_Byte_Region = Null_Buffer_Region or
+                  Overlaps (Node_Byte_Region, Action_Region_Bytes))
          then
             return;
          end if;
@@ -913,11 +919,8 @@ package body WisiToken.Parse.LR.Parser is
             Tree_Children : constant Syntax_Trees.Node_Access_Array := Tree.Children (Node);
          begin
             for Child of Tree_Children loop
-               --  Child can be null in an edited tree
-               if Child /= null and then
-                 (Tree.Buffer_Region_Is_Empty (Child) or
-                    Overlaps (Tree.Byte_Region (Child), Action_Region_Bytes))
-               then
+               if Child /= Syntax_Trees.Invalid_Node_Access then
+                  --  Child can be null in an edited tree
                   Process_Node (Tree, Child);
                end if;
             end loop;

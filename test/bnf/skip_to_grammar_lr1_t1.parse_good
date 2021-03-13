@@ -91,21 +91,21 @@
 (declaration_item_list, (159 . 164)) <= ((declaration_item, (159 . 164)))
  ... goto state 9
  0: 9: 17:(IDENTIFIER, (166 . 170)) : shift and goto state 8
- 0: 8: 18:(Wisi_EOI, (212 . 211)) : reduce 1 tokens to declaration_item
+ 0: 8: 18:(Wisi_EOI, (213 . 212)) : reduce 1 tokens to declaration_item
 (declaration_item, (166 . 170)) <= (17:(IDENTIFIER, (166 . 170)))
  ... goto state 11
- 0: 11: 18:(Wisi_EOI, (212 . 211)) : reduce 2 tokens to declaration_item_list
+ 0: 11: 18:(Wisi_EOI, (213 . 212)) : reduce 2 tokens to declaration_item_list
 (declaration_item_list, (159 . 170)) <= ((declaration_item_list, (159 . 164)), (declaration_item, (166 . 170)))
  ... goto state 9
- 0: 9: 18:(Wisi_EOI, (212 . 211)) : reduce 3 tokens to declaration
+ 0: 9: 18:(Wisi_EOI, (213 . 212)) : reduce 3 tokens to declaration
 (declaration, (152 . 170)) <= (14:(PERCENT, (152 . 152)), 15:(IDENTIFIER, (153 . 157)), (declaration_item_list, (159 . 170)))
  ... goto state 3
- 0: 3: 18:(Wisi_EOI, (212 . 211)) : reduce 1 tokens to compilation_unit
+ 0: 3: 18:(Wisi_EOI, (213 . 212)) : reduce 1 tokens to compilation_unit
 (compilation_unit, (152 . 170)) <= ((declaration, (152 . 170)))
  ... goto state 7
- 0: 7: 18:(Wisi_EOI, (212 . 211)) : reduce 2 tokens to compilation_unit_list
+ 0: 7: 18:(Wisi_EOI, (213 . 212)) : reduce 2 tokens to compilation_unit_list
 (compilation_unit_list, (1 . 170)) <= ((compilation_unit_list, (1 . 123)), (compilation_unit, (152 . 170)))
  ... goto state 5
- 0: 5: 18:(Wisi_EOI, (212 . 211)) : accept it
+ 0: 5: 18:(Wisi_EOI, (213 . 212)) : accept it
 (wisitoken_accept, (1 . 170)) <= ((compilation_unit_list, (1 . 170)))
  0: succeed

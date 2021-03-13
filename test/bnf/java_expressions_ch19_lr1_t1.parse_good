@@ -324,13 +324,13 @@ recover: succeed, parser count 1
 (Assignment_0, (413 . 415)) <= ((LeftHandSide, (413 . 413)), 21:(EQUAL, (415 . 415)), (Expression))
  ... goto state 5
  2: 5: (-1, 22:(RIGHT_CURLY_BRACKET, (417 . 417))) : shift and goto state 15
- 2: 15: (-1, 23:(Wisi_EOI, (434 . 433))) : reduce 3 tokens to Statement
+ 2: 15: (-1, 23:(Wisi_EOI, (435 . 434))) : reduce 3 tokens to Statement
 (Statement_0, (411 . 417)) <= (19:(LEFT_CURLY_BRACKET, (411 . 411)), (Assignment, (413 . 415)), 22:(RIGHT_CURLY_BRACKET, (417 . 417)))
  ... goto state 13
- 2: 13: (-1, 23:(Wisi_EOI, (434 . 433))) : reduce 2 tokens to CompilationUnit
+ 2: 13: (-1, 23:(Wisi_EOI, (435 . 434))) : reduce 2 tokens to CompilationUnit
 (CompilationUnit_1, (105 . 417)) <= ((CompilationUnit, (105 . 349)), (Statement, (411 . 417)))
  ... goto state 2
- 2: 2: (-1, 23:(Wisi_EOI, (434 . 433))) : accept it
+ 2: 2: (-1, 23:(Wisi_EOI, (435 . 434))) : accept it
 (wisitoken_accept_0, (105 . 417)) <= ((CompilationUnit, (105 . 417)))
  2: succeed
 java_expressions_ch19.input:2:21: syntax error: expecting COMMA, DOT, EQUAL, LEFT_PAREN, MINUS, MINUS_GREATER, MINUS_MINUS, PERCENT, PLUS, PLUS_PLUS, RIGHT_PAREN, SLASH, STAR, found '}'

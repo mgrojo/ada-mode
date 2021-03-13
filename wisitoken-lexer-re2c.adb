@@ -178,7 +178,7 @@ package body WisiToken.Lexer.re2c is
 
    overriding function Find_Next
      (Lexer : in out Instance;
-      Token :    out Base_Token)
+      Token :    out WisiToken.Lexer.Token)
      return Boolean
    is
       use Interfaces.C;

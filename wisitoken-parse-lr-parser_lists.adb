@@ -43,7 +43,8 @@ package body WisiToken.Parse.LR.Parser_Lists is
             State : constant Unknown_State_Index := Tree.State (Stack, Item);
          begin
             Result := Result &
-              (if State = Unknown_State then " - : " else Trimmed_Image (State) & " : ") &
+              (if State = Unknown_State or Trace_Parse_No_State_Numbers
+               then " - : " else Trimmed_Image (State) & " : ") &
               (if I = Stack_Depth
                then ""
                else Tree.Image (Tree.Get_Node (Stack, Item), Terminal_Node_Numbers => True) & ", ");

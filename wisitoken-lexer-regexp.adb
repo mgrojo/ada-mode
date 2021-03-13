@@ -225,7 +225,7 @@ package body WisiToken.Lexer.Regexp is
 
    overriding function Find_Next
      (Lexer : in out Instance;
-      Token :    out Base_Token)
+      Token :    out WisiToken.Lexer.Token)
      return Boolean
    is begin
       loop

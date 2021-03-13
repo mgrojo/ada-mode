@@ -72,4 +72,9 @@ package body WisiToken.Syntax_Trees.AUnit_Public is
       WisiToken.Syntax_Trees.AUnit_Private.Check (Label, Computed, Expected, Shared_Stream);
    end Check;
 
+   procedure Set_Parents_Set (Tree : in out Syntax_Trees.Tree; Parents_Set : in Boolean)
+   is begin
+      WisiToken.Syntax_Trees.AUnit_Private.Set_Parents_Set (Tree, Parents_Set);
+   end Set_Parents_Set;
+
 end WisiToken.Syntax_Trees.AUnit_Public;

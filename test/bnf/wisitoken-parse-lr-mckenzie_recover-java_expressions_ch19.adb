@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019, 2021 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -34,11 +34,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Ch19 is
           Descriptor.EOI_ID);
 
    procedure Matching_Begin_Tokens
-     (Tokens                   : in     Token_ID_Array_1_3;
+     (Tree                     : in     Syntax_Trees.Tree;
+      Tokens                   : in     Token_ID_Array_1_3;
       Config                   : in     Configuration;
       Matching_Begin_Tokens    :    out Token_ID_Arrays.Vector;
       Forbid_Matching_Complete :    out Boolean)
    is
+      pragma Unreferenced (Tree);
       use Java_Expressions_Ch19_Actions;
       use Token_ID_Arrays;
    begin

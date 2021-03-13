@@ -119,7 +119,6 @@ package body WisiToken.BNF.Output_Ada_Common is
       end if;
       if Input_Data.Check_Count > 0 then
          Put_Line ("with WisiToken.In_Parse_Actions;");
-         Put_Line ("with WisiToken.Lexer;");
       end if;
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Spec_Context));
       Put_Line ("package " & Package_Name & " is");
@@ -222,7 +221,7 @@ package body WisiToken.BNF.Output_Ada_Common is
             for Name of Name_List.all loop
                if Name /= null then
                   Indent_Line ("function " & Name.all);
-                  Indent_Line (" (Lexer          : access constant WisiToken.Lexer.Instance'Class;");
+                  Indent_Line (" (Tree           : in     WisiToken.Syntax_Trees.Tree;");
                   Indent_Line ("  Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
                   Indent_Line ("  Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
                   Indent_Line ("  Recover_Active : in     Boolean)");
@@ -1090,7 +1089,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("{");
       Indent := Indent + 3;
       Indent_Line ("*id            =" & WisiToken.Token_ID'Image (Generate_Data.Descriptor.EOI_ID) & ";");
-      Indent_Line ("*byte_position = lexer->buffer_last - lexer->buffer + 1;");
+      --  EOI position.last = last char of input, so byte_region (root) = all of input (in packrat parse)
+      --  EOI position.first = last + 1 => null region.
+      Indent_Line ("*byte_position = lexer->buffer_last - lexer->buffer + 2;");
       Indent_Line ("*byte_length   = 0;");
       Indent_Line ("*char_position = lexer->char_pos;");
       Indent_Line ("*char_length   = 0;");

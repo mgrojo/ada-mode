@@ -159,8 +159,7 @@ begin
                      begin
                         if Op.Op = Insert and then Op.Ins_Before = Tree.Get_Node_Index (Next_Shared_Terminal.Node)
                         then
-                           Parser_State.Current_Token := Tree.Insert_Virtual_Terminal
-                             (Parser_State.Stream, Op.Ins_ID, Before_Shared_Terminal => Next_Shared_Terminal.Node);
+                           Parser_State.Current_Token := Tree.Insert_Virtual_Terminal (Parser_State.Stream, Op.Ins_ID);
 
                            Op.Ins_Node := Parser_State.Current_Token.Node;
 

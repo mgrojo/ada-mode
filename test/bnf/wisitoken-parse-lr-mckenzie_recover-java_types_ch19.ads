@@ -12,7 +12,8 @@ package WisiToken.Parse.LR.McKenzie_Recover.Java_Types_Ch19 is
    is null;
 
    procedure Matching_Begin_Tokens
-     (Tokens                   : in     Token_ID_Array_1_3;
+     (Tree                     : in     Syntax_Trees.Tree;
+      Tokens                   : in     Token_ID_Array_1_3;
       Config                   : in     Configuration;
       Matching_Begin_Tokens    :    out Token_ID_Arrays.Vector;
       Forbid_Matching_Complete :    out Boolean);

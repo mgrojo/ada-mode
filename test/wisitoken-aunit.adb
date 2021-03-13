@@ -21,23 +21,6 @@ package body WisiToken.AUnit is
       Standard.AUnit.Checks.Check (Label & ".rhs", Computed.RHS, Expected.RHS);
    end Check;
 
-   function To_Base_Token_Array (Item : in Token_ID_Array) return Base_Token_Arrays.Vector
-   is begin
-      return
-        Result : Base_Token_Arrays.Vector
-      do
-         for I of Item loop
-            Result.Append ((I, others => <>));
-         end loop;
-      end return;
-   end To_Base_Token_Array;
-
-   procedure Check (Label : in String; Computed, Expected : in Base_Token)
-   is begin
-      Check (Label & ".ID", Computed.ID, Expected.ID);
-      Check (Label & ".Byte_Region", Computed.Byte_Region, Expected.Byte_Region);
-   end Check;
-
    procedure Check
      (Label    : in String;
       Computed : in WisiToken.Buffer_Region;

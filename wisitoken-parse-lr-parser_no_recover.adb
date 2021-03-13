@@ -431,6 +431,16 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
       Shared_Parser.Tree.Clear_Parse_Streams;
 
+      if Trace_Action > Extra then
+         Shared_Parser.Trace.Put_Line
+           (Shared_Parser.Tree.Image
+              (Children     => True,
+               Non_Grammar  => True,
+               Augmented    => True,
+               Line_Numbers => True));
+         Shared_Parser.Trace.New_Line;
+      end if;
+
       --  We don't raise Syntax_Error for lexer errors, since they are all
       --  recovered, either by inserting a quote, or by ignoring the
       --  character.

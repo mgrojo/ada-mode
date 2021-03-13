@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2015, 2017 - 2020 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017 - 2021 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -294,8 +294,8 @@ package body Test_LR1_Parallel is
       Output_t8 : constant String := Base_Name & "_t8-no_states.parse";
 
       Args : constant GNAT.OS_Lib.String_List (1 .. 4) :=
-        (1 => new String'("-v"),
-         2 => new String'("2"),
+        (1 => new String'("--verbosity"),
+         2 => new String'("parse=22"),
          3 => new String'("-no-state-numbers"),
          4 => new String'(Input_Name));
    begin

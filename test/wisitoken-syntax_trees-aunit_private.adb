@@ -21,6 +21,7 @@ pragma License (GPL);
 with AUnit.Assertions;
 with SAL.AUnit;
 with WisiToken.AUnit;
+with WisiToken.Lexer.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
 package body WisiToken.Syntax_Trees.AUnit_Private is
 
@@ -30,6 +31,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Expected : in Node;
       Parents  : in Boolean)
    is
+      use Standard.AUnit.Checks;
       use SAL.AUnit;
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
@@ -40,9 +42,6 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       if Computed.Node_Index > 0 then
          Check (Label & ".node_index", Computed.Node_Index, Expected.Node_Index);
       end if;
-      Check (Label & ".byte_region", Computed.Byte_Region, Expected.Byte_Region);
-      Check (Label & ".char_region", Computed.Char_Region, Expected.Char_Region);
-      Check (Label & ".line_region", Computed.Line_Region, Expected.Line_Region);
       if Parents then
          if Computed.Parent = null and Expected.Parent = null then
             null;
@@ -57,23 +56,32 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
 
       case Computed.Label is
       when Source_Terminal =>
-         Base_Token_Arrays_AUnit.Check (Label & ".non_grammar", Computed.Non_Grammar, Expected.Non_Grammar);
+         Check (Label & ".byte_region", Computed.Byte_Region, Expected.Byte_Region);
+         Check (Label & ".char_region", Computed.Char_Region, Expected.Char_Region);
+         Check (Label & ".line_region", Computed.Line_Region, Expected.Line_Region);
+         Lexer.AUnit.Token_Arrays_AUnit.Check (Label & ".non_grammar", Computed.Non_Grammar, Expected.Non_Grammar);
 
       when Virtual_Terminal =>
-         null;
+         Lexer.AUnit.Token_Arrays_AUnit.Check
+           (Label & ".non_grammar", Computed.VT_Non_Grammar, Expected.VT_Non_Grammar);
 
       when Virtual_Identifier =>
          Check (Label & ".identifier", Computed.Identifier, Expected.Identifier);
-         Base_Token_Arrays_AUnit.Check (Label & ".non_grammar", Computed.VI_Non_Grammar, Expected.VI_Non_Grammar);
+         Lexer.AUnit.Token_Arrays_AUnit.Check
+           (Label & ".non_grammar", Computed.VI_Non_Grammar, Expected.VI_Non_Grammar);
 
       when Nonterm =>
+         Check (Label & ".virtual", Computed.Virtual, Expected.Virtual);
+         Check (Label & ".rhs_index", Computed.RHS_Index, Expected.RHS_Index);
+         Check (Label & ".action", Computed.Action, Expected.Action);
+         Check (Label & ".name_offset", Computed.Name_Offset, Expected.Name_Offset);
+         Check (Label & ".name_length", Computed.Name_Length, Expected.Name_Length);
          for I in Computed.Children'Range loop
             Check (Label & ".child." & Computed.Children (I).Node_Index'Image,
                    Computed.Children (I).all,
                    Expected.Children (I).all,
                    Parents);
          end loop;
-         Check (Label & ".action", Computed.Action, Expected.Action);
       end case;
    end Check;
 
@@ -133,7 +141,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Shared_Stream : in Boolean)
    is
       use Standard.AUnit.Checks;
-      use WisiToken.AUnit.Base_Token_Arrays_AUnit;
+      use Lexer.AUnit.Token_Arrays_AUnit;
       use Parse_Stream_Lists;
 
       Computed_Stream : Parse_Stream_Lists.Cursor := Computed.Streams.First;
@@ -164,5 +172,10 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
          Check (Label & ".eoi", Computed.EOI.all, Expected.EOI.all, Parents => True);
       end if;
    end Check;
+
+   procedure Set_Parents_Set (Tree : in out Syntax_Trees.Tree; Parents_Set : in Boolean)
+   is begin
+      Tree.Parents_Set := Parents_Set;
+   end Set_Parents_Set;
 
 end WisiToken.Syntax_Trees.AUnit_Private;

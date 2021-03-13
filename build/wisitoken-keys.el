@@ -217,7 +217,7 @@
   (back-to-indentation)
 
   (cond
-   ((looking-at "[0-9a-z-_]+\\.[a-z_]+:[0-9]+")
+   ((looking-at "[0-9a-z-_]+\\.[.a-z_]+:[0-9]+")
     ;; FAIL wisi_wy_test.adb-empty_production_2 : Run_Test
     ;;     ^empty_production_2_lalr.parse_table:91
     (wisitoken-ediff-good nil (match-string 0)))

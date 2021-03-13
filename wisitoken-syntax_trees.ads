@@ -131,7 +131,7 @@ package WisiToken.Syntax_Trees is
       --  code that needs access to Tree mostly likely also needs access to
       --  the source text.
 
-      Leading_Non_Grammar : aliased Base_Token_Arrays.Vector;
+      Leading_Non_Grammar : aliased WisiToken.Lexer.Token_Arrays.Vector;
       --  Non-grammar tokens before first grammar token; leading blank lines
       --  and comments.
    end record;
@@ -147,6 +147,9 @@ package WisiToken.Syntax_Trees is
 
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree);
    --  Free any allocated storage.
+
+   procedure Free_Augmented (Tree : in Syntax_Trees.Tree);
+   --  Free Augmented in all nodes.
 
    procedure Clear
      (Tree             : in out Syntax_Trees.Tree;
@@ -298,18 +301,26 @@ package WisiToken.Syntax_Trees is
 
    Invalid_Recover_Token : constant Recover_Token := (Virtual => True, ID => Invalid_Token_ID, others => <>);
 
-   function ID (Item : in Recover_Token) return Token_ID;
+   function ID (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Token_ID;
 
-   function Byte_Region (Item : in Recover_Token) return Buffer_Region;
+   function Byte_Region (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Buffer_Region;
 
-   function Name (Item : in Recover_Token) return Buffer_Region;
+   function Name (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Buffer_Region;
    --  If Node.Name = Null_Buffer_Region, return Node.Byte_Region; else return Node.Name.
 
-   procedure Set_Name (Item : in out Recover_Token; Name : in Buffer_Region);
+   procedure Set_Name
+     (Tree : in     Syntax_Trees.Tree;
+      Item : in out Recover_Token;
+      Name : in     Buffer_Region);
 
-   function Contains_Virtual_Terminal (Item : in Recover_Token) return Boolean;
+   function Contains_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Boolean;
 
-   function Is_Empty_Nonterm (Item : in Recover_Token; Descriptor : in WisiToken.Descriptor) return Boolean;
+   function Is_Empty_Nonterm
+     (Tree       : in Syntax_Trees.Tree;
+      Item       : in Recover_Token;
+      Descriptor : in WisiToken.Descriptor)
+     return Boolean;
+   --  True if node contains no terminals.
 
    function First_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Node_Access;
 
@@ -367,7 +378,7 @@ package WisiToken.Syntax_Trees is
    procedure Lexer_To_Augmented
      (User_Data     : in out User_Data_Type;
       Tree          : in out Syntax_Trees.Tree'Class;
-      Token         : in     Base_Token;
+      Token         : in     Lexer.Token;
       Grammar_Token : in     Node_Access)
    is null;
    --  Token is a grammar or non-grammar token that was just returned by
@@ -413,9 +424,11 @@ package WisiToken.Syntax_Trees is
       Inserted_Token : in     Syntax_Trees.Valid_Node_Access)
    is null
    with Pre'Class => Tree.Is_Virtual_Terminal (Inserted_Token);
-   --  Inserted_Token was inserted in error recovery. Update
-   --  other tokens as needed. Called from Execute_Actions for each
-   --  inserted token, before Initialize_Actions.
+   --  Inserted_Token was inserted in error recovery. Move Non_Grammar as
+   --  needed to control which line the token is on.
+   --
+   --  Called from Execute_Actions for each inserted token, before
+   --  Initialize_Actions.
 
    procedure Delete_Token
      (User_Data     : in out User_Data_Type;
@@ -427,19 +440,11 @@ package WisiToken.Syntax_Trees is
      Tree.Label (Deleted_Token) in Terminal_Label and
      (Prev_Token = Invalid_Node_Access or else Tree.Label (Prev_Token) in Terminal_Label);
    --  Deleted_Token was deleted in error recovery. Prev_Token is the
-   --  previous terminal token in the parse stream. Update remaining
-   --  tokens as needed; Deleted_Token.Non_Grammar has _not_ been moved
-   --  anywhere. Called from Execute_Actions for each deleted token,
+   --  terminal token previous to Deleted_Token in the parse stream. Move
+   --  Non_Grammar as needed to control which line the token is on.
+   --
+   --  Called from Execute_Actions for each deleted token,
    --  before Initialize_Actions.
-
-   procedure Delete_Token
-     (User_Data : in out User_Data_Type;
-      Tree      : in     Syntax_Trees.Tree'Class;
-      To_Delete : in     Syntax_Trees.Terminal_Ref)
-   is null;
-   --  To_Deleted is about to be deleted in Edit_Tree.
-   --  To_Delete.Non_Grammar has been moved to previous terminal or
-   --  Tree.Leading_Non_Grammar. Update remaining tokens as needed.
 
    procedure Reduce
      (User_Data : in out User_Data_Type;
@@ -562,14 +567,8 @@ package WisiToken.Syntax_Trees is
    --
    --  On return, Tree is ready for Parse.Edit_Tree.
    --
-   --  Calls Set_Parents on relabeled Shared_Stream; Tree.Parents_Set is
-   --  True.
-
-   procedure Update_Cache (Tree : in out Syntax_Trees.Tree; Stream : in Stream_ID);
-   --  In all nodes in Stream, update cached token positions from terminals.
-
-   procedure Update_Ancestor_Cache (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access);
-   --  In all ancestors of Node, update cached token positions from terminals.
+   --  Invalidates cached node data. Calls Set_Parents on relabeled
+   --  Shared_Stream; Tree.Parents_Set is True.
 
    function Parseable (Tree : in Syntax_Trees.Tree) return Boolean;
    --  True if there are no parse streams and
@@ -805,29 +804,35 @@ package WisiToken.Syntax_Trees is
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
-      Terminal : in     Base_Token)
+      Terminal : in     Lexer.Token)
      return Single_Terminal_Ref
    with Pre => not Tree.Traversing and Stream = Tree.Shared_Stream,
      Post => Tree.Label (Add_Terminal'Result.Node) = Source_Terminal;
    --  Add a new Source_Terminal element in Stream. Result points to the added
    --  node.
 
+   type Token_Array_Var_Ref (Element : not null access WisiToken.Lexer.Token_Arrays.Vector) is private
+   with Implicit_Dereference => Element;
+
+   type Token_Array_Const_Ref (Element : not null access constant WisiToken.Lexer.Token_Arrays.Vector) is private
+   with Implicit_Dereference => Element;
+
    function Non_Grammar_Var
      (Tree     : in Syntax_Trees.Tree;
       Terminal : in Valid_Node_Access)
-     return Base_Token_Array_Var_Ref
+     return Token_Array_Var_Ref
    with Pre => Tree.Label (Terminal) in Terminal_Label;
 
    function Non_Grammar_Const
      (Tree     : in Syntax_Trees.Tree;
       Terminal : in Valid_Node_Access)
-     return Base_Token_Array_Const_Ref
+     return Token_Array_Const_Ref
    with Pre => Tree.Label (Terminal) in Terminal_Label;
 
    function Insert_Source_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
-      Terminal : in     Base_Token;
+      Terminal : in     Lexer.Token;
       Index    : in     Node_Index;
       Before   : in     Stream_Index)
      return Single_Terminal_Ref
@@ -838,30 +843,15 @@ package WisiToken.Syntax_Trees is
    --  added element.
 
    function Insert_Virtual_Terminal
-     (Tree                   : in out Syntax_Trees.Tree;
-      Stream                 : in     Stream_ID;
-      Terminal               : in     Token_ID;
-      Before_Shared_Terminal : in     Valid_Node_Access)
+     (Tree     : in out Syntax_Trees.Tree;
+      Stream   : in     Stream_ID;
+      Terminal : in     Token_ID)
      return Single_Terminal_Ref
    with
-     Pre  => not Tree.Traversing and Tree.Is_Valid (Stream) and Stream /= Tree.Shared_Stream and
-             Tree.Label (Before_Shared_Terminal) in Terminal_Label and Tree.Is_Shared (Before_Shared_Terminal),
+     Pre  => not Tree.Traversing and Tree.Is_Valid (Stream) and Stream /= Tree.Shared_Stream,
      Post => Tree.Label (Insert_Virtual_Terminal'Result.Node) = Virtual_Terminal;
    --  Insert a new Virtual_Terminal element into Stream, after
-   --  Stack_Top. Before_Shared_Terminal should be the token Terminal is
-   --  inserted before; Terminal Line, Char_Region are set to
-   --  Before_Shared_Terminal.Line (for indent),
-   --  Before_Shared_Terminal.Char_Region.First (for indent); Byte_Region
-   --  is Null_Buffer_Region (for "is empty). result points to the added
-   --  node.
-
-   procedure Update
-     (Tree        : in Syntax_Trees.Tree;
-      Node        : in Valid_Node_Access;
-      Byte_Region : in Buffer_Region;
-      Char_Region : in Buffer_Region;
-      Line_Region : in WisiToken.Line_Region);
-   --  Caller is responsible for calling Update_Ancestor_Cache as needed.
+   --  Stack_Top. Result refers to the added node.
 
    procedure Shift
      (Tree        : in Syntax_Trees.Tree;
@@ -923,16 +913,14 @@ package WisiToken.Syntax_Trees is
 
    function Has_Parent (Tree : in Syntax_Trees.Tree; Child : in Valid_Node_Access) return Boolean;
 
-   function Buffer_Region_Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
-   --  True if contained buffer region is empty; always the case for
-   --  virtual tokens. Use First_Terminal = Invalid_Node_Access to see if
-   --  Node is an empty nonterm.
-
    function Is_Shared (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Is_Source_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Is_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
+
+   function Is_Empty_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
+   --  True if Node contains no terminals.
 
    function Is_Virtual
      (Tree    : in Syntax_Trees.Tree;
@@ -946,10 +934,10 @@ package WisiToken.Syntax_Trees is
    function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
-   procedure Set_Name_Region
-     (Tree   : in out Syntax_Trees.Tree;
-      Node   : in     Valid_Node_Access;
-      Region : in     Buffer_Region)
+   procedure Set_Name
+     (Tree   : in Syntax_Trees.Tree;
+      Node   : in Valid_Node_Access;
+      Region : in Buffer_Region)
    with Pre => Tree.Is_Nonterm (Node);
 
    function ID
@@ -986,14 +974,13 @@ package WisiToken.Syntax_Trees is
       Include_Non_Grammar : in Boolean := False)
      return WisiToken.Buffer_Region;
 
-   function Line_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Line_Region;
-   --  Lines in Node; Invalid_Line_Region if Node is virtual or empty.
-
-   procedure Set_Line_Last
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Access;
-      Line : in Line_Number_Type);
-   --  Set Node.Line_Region.Last
+   function Line_Region
+     (Tree                : in Syntax_Trees.Tree;
+      Node                : in Valid_Node_Access;
+      Include_Non_Grammar : in Boolean := True)
+     return WisiToken.Line_Region;
+   --  Lines in Node. If Include_Non_Grammar, includes trailing
+   --  Non_Grammar. Null_Line_Region if Node is empty.
 
    function Column (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Ada.Text_IO.Count
    with Pre => Tree.Editable and Tree.Subtree_Root (Node) = Tree.Root;
@@ -1134,15 +1121,6 @@ package WisiToken.Syntax_Trees is
    function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Base_Identifier_Index
    with Pre => Tree.Is_Virtual_Identifier (Node);
 
-   function Base_Token
-     (Tree    : in Syntax_Trees.Tree;
-      Stream  : in Stream_ID;
-      Element : in Stream_Index)
-     return WisiToken.Base_Token
-   with Pre => Tree.Contains (Stream, Element) or Tree.Contains (Tree.Shared_Stream, Element);
-
-   function Base_Token (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Base_Token;
-
    function First_Shared_Terminal
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
@@ -1236,11 +1214,11 @@ package WisiToken.Syntax_Trees is
      (Tree    : in     Syntax_Trees.Tree;
       Node    : in     Valid_Node_Access;
       Parents : in out Node_Stacks.Stack)
-     return Node_Access
-   with Pre => not Tree.Parents_Set;
+     return Node_Access;
    --  Same as First_Terminal (Tree, Node), also initializes Parents to
    --  store path from Node to the first terminal, for Next_Terminal in
-   --  nodes that have unset parent links.
+   --  nodes that have unset parent links, or to limit Next_Terminal to
+   --  descendants of Node.
 
    function First_Terminal
      (Tree    : in Syntax_Trees.Tree;
@@ -1278,6 +1256,13 @@ package WisiToken.Syntax_Trees is
    function Last_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access;
    --  Last of Get_Terminals. Invalid_Node_Access if Node is an empty nonterminal.
 
+   function Last_Terminal
+     (Tree    : in     Syntax_Trees.Tree;
+      Node    : in     Valid_Node_Access;
+      Parents : in out Node_Stacks.Stack)
+     return Node_Access;
+   --  Same as Last_Terminal, also initializes Parents.
+
    function Prev_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    with Pre => Tree.Label (Node) in Terminal_Label,
      Post => Prev_Terminal'Result = Invalid_Node_Access or else
@@ -1291,13 +1276,13 @@ package WisiToken.Syntax_Trees is
 
    function Prev_Terminal
      (Tree    : in     Syntax_Trees.Tree;
-      Parents : in out Node_Stacks.Stack;
-      Node    : in     Valid_Node_Access)
+      Node    : in     Valid_Node_Access;
+      Parents : in out Node_Stacks.Stack)
      return Node_Access
    with Pre => Tree.Label (Node) in Terminal_Label,
      Post => Prev_Terminal'Result = Invalid_Node_Access or else
              Tree.Label (Prev_Terminal'Result) in Terminal_Label;
-   --  Same as Prev_Terminal (Tree, Node), for nodes with unset parent
+   --  Same as Prev_Terminal (Tree, Node), but uses Parens instead of parent
    --  links. Parents is initialized by Last_Terminal.
 
    function Prev_Terminal
@@ -1326,14 +1311,14 @@ package WisiToken.Syntax_Trees is
 
    function Next_Terminal
      (Tree    : in     Syntax_Trees.Tree;
-      Parents : in out Node_Stacks.Stack;
-      Node    : in     Valid_Node_Access)
+      Node    : in     Valid_Node_Access;
+      Parents : in out Node_Stacks.Stack)
      return Node_Access
-   with Pre => not Tree.Parents_Set and Tree.Label (Node) in Terminal_Label,
+   with Pre => Tree.Label (Node) in Terminal_Label,
      Post => Next_Terminal'Result = Invalid_Node_Access or else
              Tree.Label (Next_Terminal'Result) in Terminal_Label;
-   --  Same as Next_Terminal (Tree, Node), for nodes with unset parent
-   --  links. Parents is initialized by First_Terminal.
+   --  Same as Next_Terminal (Tree, Node), but uses Parents instead of
+   --  parent links. Parents is initialized by First_Terminal.
 
    procedure Next_Terminal
      (Tree : in     Syntax_Trees.Tree;
@@ -1345,8 +1330,8 @@ package WisiToken.Syntax_Trees is
 
    procedure Next_Terminal
      (Tree    : in     Syntax_Trees.Tree;
-      Parents : in out Node_Stacks.Stack;
-      Ref     : in out Terminal_Ref)
+      Ref     : in out Terminal_Ref;
+      Parents : in out Node_Stacks.Stack)
    with Pre => Valid_Terminal (Tree, Ref),
      Post => Correct_Stream_Node (Tree, Ref);
    --  Same as Next_Terminal (Tree, Ref), for Refs with unset parent
@@ -1376,8 +1361,8 @@ package WisiToken.Syntax_Trees is
 
    function Next_Shared_Terminal
      (Tree    : in     Syntax_Trees.Tree;
-      Parents : in out Node_Stacks.Stack;
-      Node    : in     Valid_Node_Access)
+      Node    : in     Valid_Node_Access;
+      Parents : in out Node_Stacks.Stack)
      return Node_Access
    with Pre => Tree.Label (Node) in Terminal_Label,
      Post => Next_Shared_Terminal'Result = Invalid_Node_Access or else
@@ -1404,8 +1389,8 @@ package WisiToken.Syntax_Trees is
 
    procedure Next_Shared_Terminal
      (Tree    : in     Syntax_Trees.Tree;
-      Parents : in out Node_Stacks.Stack;
-      Ref     : in out Stream_Node_Ref)
+      Ref     : in out Stream_Node_Ref;
+      Parents : in out Node_Stacks.Stack)
    with Pre => not (Tree.Parents_Set or Ref.Stream = Tree.Shared_Stream) and Valid_Stream_Node (Tree, Ref),
      Post => Correct_Stream_Node (Tree, Ref) and
              (Ref.Node = Invalid_Node_Access or else Tree.Label (Ref.Node) in Terminal_Label);
@@ -1413,8 +1398,8 @@ package WisiToken.Syntax_Trees is
 
    function Next_Shared_Terminal
      (Tree    : in     Syntax_Trees.Tree;
-      Parents : in out Node_Stacks.Stack;
-      Ref     : in     Stream_Node_Ref)
+      Ref     : in     Stream_Node_Ref;
+      Parents : in out Node_Stacks.Stack)
      return Terminal_Ref
    with Pre => not (Tree.Parents_Set or Ref.Stream = Tree.Shared_Stream) and Valid_Stream_Node (Tree, Ref),
      Post => Correct_Stream_Node (Tree, Next_Shared_Terminal'Result);
@@ -1437,8 +1422,8 @@ package WisiToken.Syntax_Trees is
 
    function Prev_Shared_Terminal
      (Tree    : in     Syntax_Trees.Tree;
-      Parents : in out Node_Stacks.Stack;
-      Node    : in     Valid_Node_Access)
+      Node    : in     Valid_Node_Access;
+      Parents : in out Node_Stacks.Stack)
      return Node_Access
    with Pre => Tree.Label (Node) in Terminal_Label,
      Post => Prev_Shared_Terminal'Result = Invalid_Node_Access or else
@@ -1464,9 +1449,6 @@ package WisiToken.Syntax_Trees is
 
    function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID_Array;
    --  Same as Get_Terminals, but return the IDs.
-
-   function First_Terminal_ID (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID;
-   --  First of Get_Terminal_IDs; Invalid_Token_ID if Node is empty.
 
    function Get_IDs
      (Tree : in Syntax_Trees.Tree;
@@ -1629,15 +1611,15 @@ package WisiToken.Syntax_Trees is
 
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
-      Terminal : in     WisiToken.Base_Token)
+      Terminal : in     Lexer.Token)
      return Valid_Node_Access
    with Pre => not Tree.Traversing and Tree.Editable;
    --  Add a new Terminal node with no parent, on no stream. Result
    --  points to the added node.
 
    function Add_Terminal
-     (Tree     : in out Syntax_Trees.Tree;
-      Terminal : in     Token_ID)
+     (Tree       : in out Syntax_Trees.Tree;
+      Terminal   : in     Token_ID)
      return Valid_Node_Access
    with Pre => not Tree.Traversing and Tree.Editable;
    --  Add a new Virtual_Terminal node with no parent, on no stream.
@@ -1653,14 +1635,11 @@ package WisiToken.Syntax_Trees is
    function Add_Identifier
      (Tree        : in out Syntax_Trees.Tree;
       ID          : in     Token_ID;
-      Identifier  : in     Identifier_Index;
-      Byte_Region : in     WisiToken.Buffer_Region)
+      Identifier  : in     Identifier_Index)
      return Valid_Node_Access
    with Pre => not Tree.Traversing and Tree.Editable;
    --  Add a new Virtual_Identifier node with no parent, on no stream.
-   --  Byte_Region should point to an area in the source buffer related
-   --  to the new identifier, to aid debugging. Result points to the
-   --  added node.
+   --  Result points to the added node.
 
    function Child_Index
      (Tree   : in out Syntax_Trees.Tree;
@@ -1895,40 +1874,33 @@ private
       --  incremental editing, they are reused because some nodes are
       --  deleted.
 
-      Byte_Region : aliased Buffer_Region := Null_Buffer_Region;
-      Char_Region : aliased Buffer_Region := Null_Buffer_Region;
-      --  For terminals, from lexer. For nonterms, computed by Update_Cache,
-      --  used by Line_Begin_Char_Pos, In_Parse_Actions and debug messages.
-      --  Virtual_Terminals, and nonterms containing only Virtual_Terminals
-      --  have null Byte_Region but non-null Char_Region; Char_Region is
-      --  taken from a nearby Source_Terminal or non_grammar.
-
-      Line_Region : WisiToken.Line_Region := Null_Line_Region;
-      --  Lines in token including trailing non_grammar.
-
       Parent : Node_Access := Invalid_Node_Access;
 
       Augmented : Augmented_Class_Access := null;
-      --  IMPROVEME: Augmented should not derive from Base_Token; that
-      --  duplicates information. Not changing yet for compatibility with
-      --  main devel branch.
 
       case Label is
       when Source_Terminal =>
-         Non_Grammar : aliased Base_Token_Arrays.Vector;
+         Byte_Region : Buffer_Region         := Null_Buffer_Region;
+         Char_Region : Buffer_Region         := Null_Buffer_Region;
+         Line_Region : WisiToken.Line_Region := Null_Line_Region;
+         --  Data from lexer. We store the absolute buffer region here to avoid
+         --  storing all whitespace in the tree. Edit_Tree updates these for
+         --  incremental parse.
+
+         Non_Grammar : aliased Lexer.Token_Arrays.Vector;
          --  Immediately following Node. In initial lex, this can only be in a
          --  Source_Terminal node. User Insert_Terminal can move it to a
          --  Virtual_Terminal node, editing the tree can copy it to a
          --  Virtual_Identifier node.
 
       when Virtual_Terminal =>
-         VT_Non_Grammar : aliased Base_Token_Arrays.Vector;
+         VT_Non_Grammar : aliased Lexer.Token_Arrays.Vector;
          --  Immediately following Node.
 
       when Virtual_Identifier =>
          Identifier : Identifier_Index; -- into user data
 
-         VI_Non_Grammar : aliased Base_Token_Arrays.Vector;
+         VI_Non_Grammar : aliased Lexer.Token_Arrays.Vector;
          --  Immediately following Node.
 
       when Nonterm =>
@@ -1944,21 +1916,14 @@ private
          Name_Offset : Base_Buffer_Pos := 0;
          Name_Length : Base_Buffer_Pos := 0;
          --  Name_* are set and checked by In_Parse_Actions. We use an offset
-         --  from Byte_Region.First and length, rather than a Buffer_Region, to
-         --  avoid needing to shift it during Edit_Tree for incremental parse.
-         --  In_Parse_Actions are not called on a nonterm when it is shifted,
-         --  so Name is not recomputed. Name_Offset will only change when the
-         --  text in the region Byte_Region.First .. Byte_Region.First +
-         --  Name_Offset is edited, in which case the nonterm will be broken
-         --  down, and the In_Parse_Actions rerun.
+         --  from First_Terminal (Node).Byte_Region.First, rather than a
+         --  Buffer_Region, to avoid needing to shift it during Edit_Tree for
+         --  incremental parse. FIXME: generalize for other actions;
+         --  post_parse_augmented, in_parse_augmented.
 
          Children : Node_Access_Array (1 .. Child_Count);
          --  We use an explicit array, rather than a pointer to the first
          --  child, to preserve child indices while editing the tree.
-
-         First_Terminal : Node_Access := Invalid_Node_Access;
-         --  Cached for push_back of nonterminals during error recovery, and
-         --  fast access in incremental parse.
       end case;
    end record;
 
@@ -2048,21 +2013,8 @@ private
 
    procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Access);
 
-   function Base_Token
-     (Tree    : in Syntax_Trees.Tree;
-      Stream  : in Stream_ID;
-      Element : in Stream_Index)
-     return WisiToken.Base_Token
-   is (Base_Token (Tree, Tree.Streams (Stream.Cur).Elements (Element.Cur).Node));
-
-   function Base_Token (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Base_Token
-   is (Node.ID, Node.Byte_Region, Node.Char_Region, Node.Line_Region);
-
    function Byte_Region (Tree : in Syntax_Trees.Tree; Index : in Stream_Index) return WisiToken.Buffer_Region
-   is (Stream_Element_Lists.Constant_Ref (Index.Cur).Node.Byte_Region);
-
-   function Byte_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Buffer_Region
-   is (Node.Byte_Region);
+   is (Byte_Region (Tree, Stream_Element_Lists.Constant_Ref (Index.Cur).Node));
 
    function Child_Count (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return SAL.Base_Peek_Type
    is (Node.Child_Count);
@@ -2134,14 +2086,6 @@ private
    is (declare Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
        begin Parse_Stream.Stack_Top /= Parse_Stream.Elements.Last);
 
-   function ID (Item : in Recover_Token) return Token_ID
-   is
-     (if Item.Virtual
-      then Item.ID
-      elsif Item.Element_Node /= Invalid_Node_Access
-      then Item.Element_Node.ID
-      else Item.Node.ID);
-
    function ID
      (Tree    : in Syntax_Trees.Tree;
       Stream  : in Stream_ID;
@@ -2151,12 +2095,6 @@ private
 
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Streams.Length = 0 and Tree.Root = Invalid_Node_Access);
-
-   function Is_Empty_Nonterm (Item : in Recover_Token; Descriptor : in WisiToken.Descriptor) return Boolean
-   is (case Item.Virtual is
-       when True => Is_Nonterminal (Item.ID, Descriptor) and Item.First_Terminal = Invalid_Node_Access,
-       when False => Item.Node /= Invalid_Node_Access and then
-        (Item.Node.Label = Nonterm and Item.Node.Child_Count = 0));
 
    function Is_Shared (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is (Node.Node_Index > 0);
@@ -2275,5 +2213,13 @@ private
                Tree.Subtree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element))));
 
    Dummy_Node : constant Node_Access := new Node'(Label => Virtual_Identifier, Child_Count => 0, others => <>);
+
+   type Token_Array_Var_Ref (Element : not null access WisiToken.Lexer.Token_Arrays.Vector) is record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Token_Array_Const_Ref (Element : not null access constant WisiToken.Lexer.Token_Arrays.Vector) is record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
 
 end WisiToken.Syntax_Trees;

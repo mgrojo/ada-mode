@@ -125,14 +125,16 @@ private
    --  checked Push_Back_Valid.
 
    function Find_ID
-     (Config         : in     Configuration;
-      ID             : in     Token_ID)
+     (Tree   : in Syntax_Trees.Tree;
+      Config : in Configuration;
+      ID     : in Token_ID)
      return Boolean;
    --  Search Config.Stack for a token with ID, starting at
    --  stack top. Return True if found, False if not.
 
    procedure Find_ID
-     (Config         : in     Configuration;
+     (Tree           : in     Syntax_Trees.Tree;
+      Config         : in     Configuration;
       ID             : in     Token_ID;
       Matching_Index : in out SAL.Peek_Type);
    --  Search Config.Stack for a token with ID, starting at
@@ -140,7 +142,8 @@ private
    --  If not found, Matching_Index = Config.Stack.Depth.
 
    procedure Find_ID
-     (Config         : in     Configuration;
+     (Tree           : in     Syntax_Trees.Tree;
+      Config         : in     Configuration;
       IDs            : in     Token_ID_Set;
       Matching_Index : in out SAL.Peek_Type);
    --  Search Config.Stack for a token with ID in IDs, starting at
@@ -160,7 +163,7 @@ private
 
    procedure Find_Matching_Name
      (Config              : in     Configuration;
-      Lexer               : access constant WisiToken.Lexer.Instance'Class;
+      Tree                : in     Syntax_Trees.Tree;
       Name                : in     String;
       Matching_Name_Index : in out SAL.Peek_Type;
       Case_Insensitive    : in     Boolean);
@@ -170,7 +173,7 @@ private
 
    procedure Find_Matching_Name
      (Config              : in     Configuration;
-      Lexer               : access constant WisiToken.Lexer.Instance'Class;
+      Tree                : in     Syntax_Trees.Tree;
       Name                : in     String;
       Matching_Name_Index : in out SAL.Peek_Type;
       Other_ID            : in     Token_ID;

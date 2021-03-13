@@ -2,7 +2,7 @@
 --
 --  Private AUnit checks for parent
 --
---  Copyright (C) 2018, 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2020, 2021 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -44,5 +44,7 @@ private package WisiToken.Syntax_Trees.AUnit_Private is
       Computed      : in Tree;
       Expected      : in Tree;
       Shared_Stream : in Boolean);
+
+   procedure Set_Parents_Set (Tree : in out Syntax_Trees.Tree; Parents_Set : in Boolean);
 
 end WisiToken.Syntax_Trees.AUnit_Private;

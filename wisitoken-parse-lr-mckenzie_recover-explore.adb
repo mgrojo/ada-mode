@@ -423,7 +423,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                return Abandon;
 
             else
-               pragma Assert (Syntax_Trees.ID (Item.Config.Error_Token) /= Invalid_Token_ID);
+               pragma Assert (Super.Tree.ID (Item.Config.Error_Token) /= Invalid_Token_ID);
 
                if Item.Shift_Count = 0 then
                   --  Parse did not process any Deletes from Insert_Delete; Fast_Forward
@@ -460,7 +460,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          declare
             Item : Parse.Parse_Item renames Parse.Parse_Item_Array_Refs.Variable_Ref (Parse_Items, I);
          begin
-            pragma Assert (Item.Parsed and Syntax_Trees.ID (Item.Config.Error_Token) /= Invalid_Token_ID);
+            pragma Assert (Item.Parsed and Super.Tree.ID (Item.Config.Error_Token) /= Invalid_Token_ID);
 
             Enqueue (Item);
          end;
@@ -558,13 +558,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end if;
 
       Do_Push_Back (Super.Tree.all, New_Config);
-      New_Config.Cost := @ + Shared.Table.McKenzie_Param.Push_Back (Syntax_Trees.ID (Token));
+      New_Config.Cost := @ + Shared.Table.McKenzie_Param.Push_Back (Super.Tree.ID (Token));
       New_Config.Strategy_Counts (Push_Back) := New_Config.Strategy_Counts (Push_Back) + 1;
 
       Local_Config_Heap.Add (New_Config);
 
       if Trace_McKenzie > Detail then
-         Base.Put ("push_back " & Image (Syntax_Trees.ID (Token), Super.Tree.Lexer.Descriptor.all), Super,
+         Base.Put ("push_back " & Image (Super.Tree.ID (Token), Super.Tree.Lexer.Descriptor.all), Super,
                    Parser_Index, New_Config);
       end if;
    end Try_Push_Back;
@@ -650,9 +650,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       New_Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
       New_Config.User_Parse_Action_Status   := (Label => WisiToken.In_Parse_Actions.Ok);
 
-      if not Super.Tree.Buffer_Region_Is_Empty (Token.Element_Node) then
+      if not Super.Tree.Is_Empty_Nonterm (Token.Element_Node) then
          --  Token is not empty.
-         New_Config.Cost := New_Config.Cost + McKenzie_Param.Undo_Reduce (Syntax_Trees.ID (Token));
+         New_Config.Cost := New_Config.Cost + McKenzie_Param.Undo_Reduce (Super.Tree.ID (Token));
       end if;
 
       if Is_Full (New_Config.Ops) then
@@ -667,7 +667,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Local_Config_Heap.Add (New_Config);
 
       if Trace_McKenzie > Detail then
-         Base.Put ("undo_reduce " & Image (Syntax_Trees.ID (Token), Super.Tree.Lexer.Descriptor.all), Super,
+         Base.Put ("undo_reduce " & Image (Super.Tree.ID (Token), Super.Tree.Lexer.Descriptor.all), Super,
                    Parser_Index, New_Config);
       end if;
    end Try_Undo_Reduce;
@@ -1202,7 +1202,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       if Shared.Language_Matching_Begin_Tokens /= null then
          Parse.Current_Token_ID_Peek_3 (Super.Tree.all, Config, Tokens);
 
-         Shared.Language_Matching_Begin_Tokens (Tokens, Config, Matching_Begin_Tokens, Forbid_Minimal_Insert);
+         Shared.Language_Matching_Begin_Tokens
+           (Super.Tree.all, Tokens, Config, Matching_Begin_Tokens, Forbid_Minimal_Insert);
       end if;
 
       if not Forbid_Minimal_Insert then
@@ -1256,7 +1257,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
         (Parse.Peek_Current_First_Shared_Terminal (Tree, Config)).First;
       Next_Line_Begin_Token : constant Node_Access := Tree.Line_Begin_Token
         (Current_Line + 1, Super.Stream (Parser_Index));
-      Lexer_Error_Token : Base_Token;
 
       function Recovered_Lexer_Error return Syntax_Trees.Terminal_Ref
       is begin
@@ -1264,9 +1264,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  search would not be significantly faster.
          for Err of Shared.Wrapped_Lexer_Errors.all loop
             if Err.Recover_Token_Ref /= Syntax_Trees.Invalid_Stream_Node_Ref then
-               Lexer_Error_Token := Tree.Base_Token (Err.Recover_Token_Ref.Node);
 
-               if Lexer_Error_Token.Line_Region.First = Current_Line then
+               if Tree.Line_Region (Err.Recover_Token_Ref.Node).First = Current_Line then
                   return Err.Recover_Token_Ref;
                end if;
             end if;
@@ -1314,7 +1313,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                         raise Bad_Config;
                      end if;
 
-                     Append (Config.Ops, (Delete, Tree.ID (Node), Tree.Get_Node_Index (Node)));
+                     Append (Config.Ops, (Delete, Super.Tree.ID (Node), Tree.Get_Node_Index (Node)));
 
                      Max_Node_Index := Tree.Get_Node_Index (Tree.Last_Shared_Terminal (Node));
                   end if;
@@ -1349,11 +1348,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                raise Bad_Config;
             end if;
 
-            pragma Assert (Is_Terminal (Tree.ID (Stream (To_Delete)), Super.Tree.Lexer.Descriptor.all));
+            pragma Assert (Is_Terminal (Super.Tree.ID (Stream (To_Delete)), Super.Tree.Lexer.Descriptor.all));
             Append
               (Config.Ops,
                (Delete,
-                Tree.ID (Stream (To_Delete)),
+                Super.Tree.ID (Stream (To_Delete)),
                 Tree.Get_Node_Index (Stream (To_Delete))));
 
             Max_Node_Index := Tree.Get_Node_Index
@@ -1476,7 +1475,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
               (Tree, Config.Input_Stream, String_Lit_Element, String_Lit_Node, String_Lit_Parents);
          end if;
          loop
-            exit when Tree.ID (String_Lit_Node) = String_Literal_ID;
+            exit when Super.Tree.ID (String_Lit_Node) = String_Literal_ID;
 
             Parse.Prev_Shared_Terminal
               (Tree, Config.Input_Stream, String_Lit_Element, String_Lit_Node, String_Lit_Parents);
@@ -1597,7 +1596,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
             Append
               (Config.Ops,
-               (Delete, Tree.ID (Index.Node),
+               (Delete, Super.Tree.ID (Index.Node),
                 Tree.Get_Node_Index (Index.Node)));
 
             Tree.Next_Shared_Terminal (Index);
@@ -1701,7 +1700,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Config.String_Quote_Checked := Current_Line;
 
       if Lexer_Error_Token_Ref = Syntax_Trees.Invalid_Stream_Node_Ref or else
-        Lexer_Error_Token.ID not in Descriptor.String_1_ID | Descriptor.String_2_ID
+        Super.Tree.ID (Lexer_Error_Token_Ref.Node) not in Descriptor.String_1_ID | Descriptor.String_2_ID
       then
          return;
       end if;
@@ -1709,7 +1708,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  It is not possible to tell where the best place to put the
       --  balancing quote is, so we always try all reasonable places.
 
-      if Lexer_Error_Token.Byte_Region.First = Config.Error_Token.Byte_Region.First then
+      if Tree.Byte_Region (Lexer_Error_Token_Ref.Node).First = Config.Error_Token.Byte_Region.First then
          --  The parse error token is the string literal at the lexer error.
          --
          --  case a: Insert the balancing quote somewhere before the error
@@ -1735,7 +1734,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  string literal would be legal here.
 
       elsif Config.Error_Token.ID = Invalid_Token_ID or else
-        (Lexer_Error_Token.Byte_Region.First < Config.Error_Token.Byte_Region.First and
+        (Tree.Byte_Region (Lexer_Error_Token_Ref.Node).First < Config.Error_Token.Byte_Region.First and
            (Next_Line_Begin_Token /= Invalid_Node_Access and then
               Tree.Get_Node_Index (Next_Line_Begin_Token) /= Node_Index'First))
       then
@@ -1753,8 +1752,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             Matching : SAL.Peek_Type := 1;
          begin
             Find_Descendant_ID
-              (Tree, Config, Lexer_Error_Token.ID,
-               String_ID_Set (Lexer_Error_Token.ID), Matching);
+              (Tree, Config, Super.Tree.ID (Lexer_Error_Token_Ref.Node),
+               String_ID_Set (Super.Tree.ID (Lexer_Error_Token_Ref)), Matching);
 
             if Matching = Config.Stack.Depth then
                --  String literal is in a virtual nonterm; it is not from the lexer
@@ -1770,7 +1769,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             declare
                New_Config : Configuration := Config;
             begin
-               String_Literal_In_Stack ("b", New_Config, Matching, Lexer_Error_Token.ID);
+               String_Literal_In_Stack ("b", New_Config, Matching, Super.Tree.ID (Lexer_Error_Token_Ref));
 
                Finish
                  ("b", New_Config,
@@ -1827,8 +1826,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          begin
             --  Lexer_Error_Token is a string literal; find a matching one.
             Find_Descendant_ID
-              (Tree, Config, Lexer_Error_Token.ID,
-               String_ID_Set (Lexer_Error_Token.ID), Matching);
+              (Tree, Config, Super.Tree.ID (Lexer_Error_Token_Ref.Node),
+               String_ID_Set (Super.Tree.ID (Lexer_Error_Token_Ref.Node)), Matching);
 
             if Matching = Config.Stack.Depth then
                --  No matching string literal, so this case does not apply.
@@ -1837,7 +1836,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                declare
                   New_Config : Configuration := Config;
                begin
-                  String_Literal_In_Stack ("e", New_Config, Matching, Lexer_Error_Token.ID);
+                  String_Literal_In_Stack ("e", New_Config, Matching, Super.Tree.ID (Lexer_Error_Token_Ref.Node));
 
                   Finish
                     ("e", New_Config,
@@ -1986,7 +1985,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       pragma Assert (Config.Current_Insert_Delete = 0);
       --  Config.Current_Insert_Delete > 0 is a programming error.
 
-      if Syntax_Trees.ID (Config.Error_Token) /= Invalid_Token_ID then
+      if Super.Tree.ID (Config.Error_Token) /= Invalid_Token_ID then
          if Shared.Language_Fixes = null then
             null;
          else
@@ -2022,7 +2021,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                begin
                   if Last /= SAL.Invalid_Peek_Index and then
                     Constant_Ref (Config.Ops, Last).Op = Undo_Reduce and then
-                    Constant_Ref (Config.Ops, Last).Nonterm = Syntax_Trees.ID (Config.Error_Token)
+                    Constant_Ref (Config.Ops, Last).Nonterm = Super.Tree.ID (Config.Error_Token)
                   then
                      --  We are ignoring this undo_reduce.
                      Delete_Last (Config.Ops);
@@ -2032,7 +2031,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                --  finish reduce.
                Config.Stack.Pop (SAL.Base_Peek_Type (Config.User_Parse_Action_Token_Count));
 
-               New_State := Goto_For (Table, Config.Stack.Peek.State, Syntax_Trees.ID (Config.Error_Token));
+               New_State := Goto_For (Table, Config.Stack.Peek.State, Super.Tree.ID (Config.Error_Token));
 
                if New_State = Unknown_State then
                   if Config.Stack.Depth = 1 then
@@ -2044,7 +2043,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      raise SAL.Programmer_Error with
                        "process_one found test case for new_state = Unknown; old state " &
                        Trimmed_Image (Config.Stack.Peek.State) & " nonterm " & Image
-                         (Syntax_Trees.ID (Config.Error_Token), Descriptor);
+                         (Super.Tree.ID (Config.Error_Token), Descriptor);
                   end if;
                end if;
 
@@ -2097,7 +2096,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Try_Insert_Terminal (Super, Shared, Parser_Index, Config, Local_Config_Heap);
 
       if Push_Back_Valid (Super.Tree.all, Config, Super.Parser_State (Parser_Index).Resume_Token_Goal) and then
-        (not Syntax_Trees.Is_Empty_Nonterm (Config.Stack.Peek.Token, Descriptor) and
+        (not Super.Tree.Is_Empty_Nonterm (Config.Stack.Peek.Token, Descriptor) and
            --  We only allow Push_Back of empty nonterm from Language_Fixes;
            --  otherwise it is usually redundant with Undo_Reduce.
            not Check_Reduce_To_Start (Super, Shared, Parser_Index, Config))

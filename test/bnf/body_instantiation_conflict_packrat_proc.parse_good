@@ -8,4 +8,4 @@
 (generic_instantiation, (43 . 73)) <= (11:(PROCEDURE, (43 . 51)), 12:(IDENTIFIER, (53 . 55)), 13:(IS, (57 . 58)), 14:(NEW, (60 . 62)), 15:(IDENTIFIER, (64 . 66)), 16:(LEFT_PAREN, (68 . 68)), 17:(IDENTIFIER, (69 . 71)), 18:(RIGHT_PAREN, (72 . 72)), 19:(SEMICOLON, (73 . 73)))
 (library_item, (43 . 73)) <= ((generic_instantiation, (43 . 73)))
 (compilation_unit, (1 . 73)) <= ((library_item, (1 . 38)), (library_item, (43 . 73)))
-(wisitoken_accept, (1 . 74)) <= ((compilation_unit, (1 . 73)), 20:(Wisi_EOI, (75 . 74)))
+(wisitoken_accept, (1 . 75)) <= ((compilation_unit, (1 . 73)), 20:(Wisi_EOI, (76 . 75)))

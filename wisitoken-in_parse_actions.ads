@@ -17,7 +17,6 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.In_Parse_Actions is
 
@@ -46,7 +45,7 @@ package WisiToken.In_Parse_Actions is
    function Image (Item : in Status; Tree : in Syntax_Trees.Tree) return String;
 
    type In_Parse_Action is access function
-     (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+     (Tree           : in     Syntax_Trees.Tree;
       Nonterm        : in out Syntax_Trees.Recover_Token;
       Tokens         : in     Syntax_Trees.Recover_Token_Array;
       Recover_Active : in     Boolean)
@@ -57,23 +56,25 @@ package WisiToken.In_Parse_Actions is
    Null_Check : constant In_Parse_Action := null;
 
    function Match_Names
-     (Lexer        : access constant WisiToken.Lexer.Instance'Class;
-      Tokens       : in     Syntax_Trees.Recover_Token_Array;
-      Start_Index  : in     Positive_Index_Type;
-      End_Index    : in     Positive_Index_Type;
-      End_Optional : in     Boolean)
+     (Tree         : in Syntax_Trees.Tree;
+      Tokens       : in Syntax_Trees.Recover_Token_Array;
+      Start_Index  : in Positive_Index_Type;
+      End_Index    : in Positive_Index_Type;
+      End_Optional : in Boolean)
      return Status;
    --  Check that buffer text at Tokens (Start_Index).Name matches buffer
    --  text at Tokens (End_Index).Name. Comparison is controlled by
    --  Descriptor.Case_Insensitive.
 
    function Propagate_Name
-     (Nonterm    : in out Syntax_Trees.Recover_Token;
+     (Tree       : in     Syntax_Trees.Tree;
+      Nonterm    : in out Syntax_Trees.Recover_Token;
       Tokens     : in     Syntax_Trees.Recover_Token_Array;
       Name_Index : in     Positive_Index_Type)
      return Status;
    function Merge_Names
-     (Nonterm    : in out Syntax_Trees.Recover_Token;
+     (Tree       : in     Syntax_Trees.Tree;
+      Nonterm    : in out Syntax_Trees.Recover_Token;
       Tokens     : in     Syntax_Trees.Recover_Token_Array;
       Name_Index : in     Positive_Index_Type)
      return Status
@@ -82,7 +83,8 @@ package WisiToken.In_Parse_Actions is
    --  .Name is Null_Buffer_Region. Return Ok.
 
    function Merge_Names
-     (Nonterm     : in out Syntax_Trees.Recover_Token;
+     (Tree        : in     Syntax_Trees.Tree;
+      Nonterm     : in out Syntax_Trees.Recover_Token;
       Tokens      : in     Syntax_Trees.Recover_Token_Array;
       First_Index : in     Positive_Index_Type;
       Last_Index  : in     Positive_Index_Type)
@@ -94,7 +96,8 @@ package WisiToken.In_Parse_Actions is
    --  (Last_Index).Byte_Region instead.
 
    function Terminate_Partial_Parse
-     (Partial_Parse_Active    : in Boolean;
+     (Tree                    : in Syntax_Trees.Tree;
+      Partial_Parse_Active    : in Boolean;
       Partial_Parse_Byte_Goal : in Buffer_Pos;
       Recover_Active          : in Boolean;
       Nonterm                 : in Syntax_Trees.Recover_Token)

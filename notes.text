@@ -31,6 +31,8 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+review fixme
+
 add %no_error_recover, instead of detecting mckenzie /= default
 
 move Execute_Actions to wisitoken.parse?
@@ -70,13 +72,6 @@ incremental parse
         left_breakdown with first_terminal = virtual
         Mckenzie current_Terminal skip virtual terminals in input and shared
 
-    error recover delete left_breakdown (shared_stream)
-        wisitoken-parse-lr-mckenzie_recover-parse.adb Get_Action
-        add to config.input_stream first
-
-    edit after error recovery:
-        no virtuals adjacent to edits; keep other virtuals
-
     review fixmes
 
     could merge edit_tree, parse_incremental
@@ -99,6 +94,12 @@ incremental parse
     tree-sitter doesn't store text regions in syntax_tree, just text length
         no Shift in Edit_Tree
         byte_region (node) requires compute begin_pos for each node in path from root.
+        non_grammar must store whitespace
+            maybe add trailing_whitespace_bytes to each node
+
+    set_parents is not incremental
+        store parents stack in stream_node_ref?
+        does ebnf_to_bnf actually need parents?
 
 Mckenzie parallel gain
     eliminate super access that does not require lock

@@ -16,33 +16,33 @@
 (EnumConstantList_1, (18 . 21)) <= ((EnumConstantList, (18 . 18)), 3:(COMMA, (19 . 19)), (EnumConstant, (21 . 21)))
  ... goto state 5
  0: 5: (-1, 5:(COMMA, (22 . 22))) : shift and goto state 8
- 0: 8: (-1, 6:(Wisi_EOI, (23 . 22))) : ERROR
+ 0: 8: (-1, 6:(Wisi_EOI, (24 . 23))) : ERROR
  0: 8: expecting: RIGHT_CURLY_BRACKET, IDENTIFIER
  0: zombie
 
  McKenzie error recovery
 
-parser 0: State 8 Current_Token (-1, 6:(Wisi_EOI, (23 . 22))) Resume_Token_Goal 10
+parser 0: State 8 Current_Token (-1, 6:(Wisi_EOI, (24 . 23))) Resume_Token_Goal 10
 LR_Parse_Action
 
  1 parallel tasks
 new Worker_Task 1
  0: succeed 1, enqueue 4, check  2, cost:  1
- 0:  1, ( 0 0 1 0 0 0 0 0 0), (9 : (RIGHT_CURLY_BRACKET))|(-1, 6:(Wisi_EOI, (23 . 22)))|((INSERT, RIGHT_CURLY_BRACKET, 6))
+ 0:  1, ( 0 0 1 0 0 0 0 0 0), (9 : (RIGHT_CURLY_BRACKET))|(-1, 6:(Wisi_EOI, (24 . 23)))|((INSERT, RIGHT_CURLY_BRACKET, 6))
 
 recover: succeed, parser count 1
  0: stack (0, (0, 0:(-)), (1, 1:(LEFT_CURLY_BRACKET, (16 . 16))), (5, -10:(EnumConstantList, (18 . 21))), ^(8, 5:(COMMA, (22 . 22))))
     Current_Token: (0, -11:(RIGHT_CURLY_BRACKET))
-    Shared_Token: (-1, 6:(Wisi_EOI, (23 . 22)))
+    Shared_Token: (-1, 6:(Wisi_EOI, (24 . 23)))
     stream input: (0, (-1, -11:(RIGHT_CURLY_BRACKET)))
     recover_insert_delete:
     resume_active: True, token goal 10, inc_shared_stream_token: FALSE
 
  0: 8: (0, -11:(RIGHT_CURLY_BRACKET)) : shift and goto state 9
- 0: 9: (-1, 6:(Wisi_EOI, (23 . 22))) : reduce 4 tokens to EnumBody
+ 0: 9: (-1, 6:(Wisi_EOI, (24 . 23))) : reduce 4 tokens to EnumBody
 (EnumBody_0, (16 . 22)) <= (1:(LEFT_CURLY_BRACKET, (16 . 16)), (EnumConstantList, (18 . 21)), 5:(COMMA, (22 . 22)), -11:(RIGHT_CURLY_BRACKET))
  ... goto state 2
- 0: 2: (-1, 6:(Wisi_EOI, (23 . 22))) : accept it
+ 0: 2: (-1, 6:(Wisi_EOI, (24 . 23))) : accept it
 (wisitoken_accept_0, (16 . 22)) <= ((EnumBody, (16 . 22)))
  0: succeed
 java_enum_ch19.input:3:1: syntax error: expecting RIGHT_CURLY_BRACKET, IDENTIFIER, found ''

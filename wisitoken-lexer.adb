@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -19,6 +19,34 @@ pragma License (Modified_GPL);
 
 with GNAT.Strings;
 package body WisiToken.Lexer is
+
+   function Image
+     (Item       : in Token;
+      Descriptor : in WisiToken.Descriptor)
+     return String
+   is
+      ID_Image : constant String := WisiToken.Image (Item.ID, Descriptor);
+   begin
+      if Item.Char_Region = Null_Buffer_Region then
+         return "(" & ID_Image & ")";
+
+      else
+         return "(" & ID_Image & ", " & Image (Item.Char_Region) & ")";
+      end if;
+   end Image;
+
+   function Column (Token : in Lexer.Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count
+   is begin
+      if Token.Line_Region.First = 1 then
+         return Ada.Text_IO.Count (Token.Char_Region.First);
+
+      elsif Line_Begin_Char_Pos = Invalid_Buffer_Pos then
+         return 0;
+
+      else
+         return Ada.Text_IO.Count (Token.Char_Region.First - Line_Begin_Char_Pos);
+      end if;
+   end Column;
 
    procedure Begin_Pos
      (Object     : in     Source;

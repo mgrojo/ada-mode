@@ -54,4 +54,6 @@ package WisiToken.Syntax_Trees.AUnit_Public is
       Expected      : in Tree;
       Shared_Stream : in Boolean);
 
+   procedure Set_Parents_Set (Tree : in out Syntax_Trees.Tree; Parents_Set : in Boolean);
+
 end WisiToken.Syntax_Trees.AUnit_Public;

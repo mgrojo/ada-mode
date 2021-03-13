@@ -19,7 +19,6 @@
 
 with WisiToken.Syntax_Trees;
 with WisiToken.In_Parse_Actions;
-with WisiToken.Lexer;
 package Subprograms_Process_Actions is
 
    Descriptor : aliased constant WisiToken.Descriptor :=
@@ -231,31 +230,31 @@ package Subprograms_Process_Actions is
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    function block_0_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.In_Parse_Actions.Status;
    function block_2_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.In_Parse_Actions.Status;
    function compilation_unit_0_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.In_Parse_Actions.Status;
    function name_0_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.In_Parse_Actions.Status;
    function name_1_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
