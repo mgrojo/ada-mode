@@ -184,7 +184,7 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
   (format "%04d%s" (length cmd) cmd))
 
 (defun wisi-process-parse--send-parse (parser parse-action begin send-end parse-end)
-  "Send a full or partial PARSE-ACTION command to PARSER external process.
+  "Send a partial PARSE-ACTION command to PARSER external process.
 The command is followed by the content of the current buffer from
 BEGIN thru SEND-END.  Does not wait for command to
 complete. PARSE-END is end of desired parse region."
@@ -1010,9 +1010,10 @@ one or more Query messages."
     (while (process-live-p process)
       (accept-process-output process))))
 
-(defun wisi-process-parse-save-text (parser save-file-name)
+(defun wisi-process-parse-save-text (parser save-file-name auto)
   (let* ((cmd
-	  (format "save_text \"%s\" \"%s\""
+	  (format (concat (if auto "save_text_auto" "save_text")
+			    " \"%s\" \"%s\"")
 		  (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		  save-file-name))
 	 (process (wisi-process--parser-process parser)))
@@ -1022,5 +1023,39 @@ one or more Query messages."
     (wisi-parse-log-message parser cmd)
     (process-send-string process (wisi-process-parse--add-cmd-length cmd))
     (wisi-process-parse--handle-messages parser)))
+
+(defun wisi-process-log-to-cmd (cmd-buffer-name)
+  "Convert parser log in current buffer to command file in CMD-BUFFER-NAME."
+  (interactive "bcmd buffer")
+  (let ((log-buffer (current-buffer))
+	(cmd-buffer (get-buffer cmd-buffer-name))
+	edit begin end)
+    (set-buffer cmd-buffer)
+    (erase-buffer)
+
+    (set-buffer log-buffer)
+    (goto-char (point-min))
+
+    (while (search-forward "parse 1" nil t)
+      ;; "((.*))" doesn't work here because it doesn't match newlines
+      (search-forward-regexp "((")
+      (setq begin (match-beginning 0))
+      (search-forward-regexp "))")
+      (setq edit (buffer-substring begin (match-end 0)))
+
+      (set-buffer cmd-buffer)
+      (goto-char (point-max))
+      (insert "parse_incremental ")
+      (setq begin (point))
+      (insert edit)
+      (setq end (copy-marker (point) t))
+      (goto-char begin)
+      (while (search-forward "\n" end t)
+	(delete-char -1)
+	(insert "\\n"))
+      (goto-char (point-max))
+      (insert "\n\n")
+
+      (set-buffer log-buffer))))
 
 (provide 'wisi-process-parse)

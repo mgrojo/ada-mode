@@ -30,7 +30,8 @@
   "If non-nil, a file name telling where to save wisi parser transaction log")
 
 (defvar save-edited-text nil
-  "If non-nil, a file name telling where to save wisi parser edited text")
+  "If non-nil, a file name telling where to save wisi parser edited
+text, after each edit in an incremental parse.")
 
 (defun test-in-comment-p ()
   (nth 4 (syntax-ppss)))
@@ -178,9 +179,9 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
       (message "saving parser transaction log '%s' to '%s'" (buffer-name) save-parser-log)
       (write-region nil nil save-parser-log))))
 
-(defun wisi-test-save-edited ()
+(defun wisi-test-enable-save-edited ()
   (when (and (stringp save-edited-text))
-    (wisi-process-parse-save-text wisi--parser save-edited-text)))
+    (wisi-process-parse-save-text wisi--parser save-edited-text t)))
 
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."
@@ -194,6 +195,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	(setq project-find-functions (list #'wisi-prj-current-cached))
 	(setq xref-backend-functions (list #'wisi-prj-xref-backend))
 
+	(wisi-test-enable-save-edited)
 
 	(let ((error-count 0)
 	      (test-buffer (current-buffer))
@@ -227,22 +229,27 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	    (cond
 	     ((string= (match-string 1) "CMD")
 	      (looking-at ".*$")
+	      (setq cmd-line (line-number-at-pos)
+		    last-cmd (match-string 0))
+	      (wisi-parse-log-message
+	       wisi--parser
+	       (format "%s:%d: test %s" (buffer-file-name) cmd-line last-cmd))
 	      (save-excursion
-		(setq cmd-line (line-number-at-pos)
-		      last-cmd (match-string 0)
-		      last-result
+		(setq last-result
 		      (condition-case-unless-debug err
 			  (eval (car (read-from-string last-cmd)))
 			(error
 			 (setq error-count (1+ error-count))
 			 (message "%s:%d: command: %s"
 				  (buffer-file-name) cmd-line last-cmd)
-			 (message "%s:%d: %s: %s"
-				  (buffer-file-name)
-				  (line-number-at-pos)
-				  (car err)
-				  (cdr err))))
-		      )
+			 (let ((msg (format "%s:%d: %s: %s"
+					    (buffer-file-name)
+					    (line-number-at-pos)
+					    (car err)
+					    (cdr err))))
+			   (wisi-parse-log-message wisi--parser msg)
+			   (message msg)))
+		      ))
 		;; save-excursion does not preserve mapping of buffer to
 		;; window, but some tests depend on that. For example,
 		;; execute-kbd-macro doesn’t work properly if current buffer
@@ -349,11 +356,9 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	  (message "casing")
 	  (wisi-case-adjust-buffer))
 
-	(wisi-test-save-log)
-	(wisi-test-save-edited))
+	(wisi-test-save-log))
     (error
      (wisi-test-save-log)
-     (wisi-test-save-edited)
      (signal (car err) (cdr err)))
     ))
 

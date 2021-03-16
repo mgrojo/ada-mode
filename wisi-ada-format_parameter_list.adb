@@ -76,7 +76,7 @@ begin
 
    --  The last parameter might be empty, due to syntax errors.
    for N of Param_List loop
-      if not Tree.Buffer_Region_Is_Empty (N) then
+      if not Tree.Is_Empty_Nonterm (N) then
          Param_Count := Param_Count + 1;
       end if;
    end loop;
@@ -104,7 +104,7 @@ begin
                   Param.Aliased_P := True;
 
                when mode_ID =>
-                  if Tree.Buffer_Region_Is_Empty (Children (I)) then
+                  if Tree.Is_Empty_Nonterm (Children (I)) then
                      Param.In_P  := False;
                      Param.Out_P := False;
                   else

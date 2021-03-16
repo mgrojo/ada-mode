@@ -43,19 +43,29 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-change protocol
-    source_file_name always first, then parse, then others
-
-need cache_version in indenting
-
 run all tests with incremental mode enabled
     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t)"
-    test/ada_mode-interactive_1.adb
-c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-interactive_1.adb:81: error: (error: nil indent for line 75)
+    one ONE_TEST_FILES=ada_mode-interactive_1.adb  ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
+mckenzie_options task_count=1
+save_text debug_edited.adb
+verbosity debug=1 action=3
+post_parse indent
 
-    put EMACSCMD in parser log
+c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-interactive_1.adb:57: command: (progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body))
+c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-interactive_1.adb:63: error: (error: nil indent for line 62)
+    lexer.set_position off the other way
 
-    build/test.log
+
+log to file, not stdout; don't overload emacs process_io
+
+new_byte_pos redundant with old_byte_pos + shift
+insert_region.first redundant with delete_region.first + shift
+
+
+
+    parser_label doesn't start at 1 for inc parse
+
+build/test.log
 
 Debug_parser_count abort on too many parsers
 
@@ -65,16 +75,6 @@ test/ada_mode-conditional_expressions.adb
         add to ada_mode-incremental_parse.adb
 
 incremental parse
-    Skip stable if shift = 0
-
-    eventually elminate all cached data, to avoid traversing entire tree in edit_tree
-        see benchmark below; traverse entire tree in largest eurocontrol file takes 0.09 seconds; too slow
-        time update_cache, shift stable separately from edit
-
-        Nonterm cache first, last separately, on demand.
-            Provide separate first, last queries.
-            Use cache_count not boolean- don't need to traverse tree to clear
-
     wisi-show-errors show _all_ errors in buffer
         if parse succeeds, delete errors in regions parsed
         could do that in ada, send current list of errors (aka diagnostics) on request?
@@ -101,6 +101,9 @@ incremental parse
             add_nonterm_1 uses tree.nodes.last_index
                 which is condensed in Clear_Parse_Streams
                 use tree.next_nonterm_node_id, with wrap at 4 chars
+
+    narrow-to-defun
+        make everything work, if possible
 
 insert_after
     could use active_region to distinguish:

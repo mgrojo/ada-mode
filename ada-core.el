@@ -305,6 +305,7 @@ PARSE-RESULT must be the result of `syntax-ppss'."
     ;; In parens.
     (cond
      (wisi-incremental-parse-enable
+      ;; FIXME: need wisi-prj-tree-query or similar
       (eq 'formal_part (wisi-parse-tree-query wisi--parser 'nonterm (nth 1 parse-result)))
       )
 

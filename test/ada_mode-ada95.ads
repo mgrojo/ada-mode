@@ -3,10 +3,7 @@
 -- We only test the face of one keyword from each of the
 -- ada-*-casing-versions; enough to tell that the choice via file
 -- local variable works. The face is set by font-lock-keywords, not
--- the parser. The parser fails, since this is really bad syntax;
--- don't abort for that.
-
---EMACSCMD:(setq wisi-debug 0)
+-- the parser.
 
 --EMACSCMD:(setq skip-reindent-test t)
 --EMACSCMD:(setq case-fold-search nil)
@@ -31,7 +28,9 @@ Interface
 --EMACSCMD:(progn (forward-line 1)(upcase-word 1)(wisi-case-adjust)(looking-back "'Some"))
 Some
 
+-- The parser fails, since this is really bad syntax; don't abort for
+-- that.
 -- Local Variables:
+-- wisi-debug: 0
 -- ada-language-version : ada95
--- wisi-mckenzie-enqueue-limit: 65000
 -- End:

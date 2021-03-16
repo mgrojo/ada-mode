@@ -184,7 +184,7 @@ statement containing EDIT_BEGIN.")
 (defconst wisi-parse-tree-queries
   ;; Must match wisi.ads Query_Label
   '((bounds . 0)  ;; return [point-min point-max line-min line-max]
-    (nonterm . 1) ;; return nonterm token id at POINT
+    (nonterm . 1) ;; return first parent token id of terminal at point
     (print . 2) ;; output parse tree to trace log
     )
   "Query values for `wisi-parse-tree-query'.")
@@ -290,10 +290,13 @@ Returns cache, or nil if at end of buffer."
   (unless start (setq start (point)))
   (cons start (+ start (wisi-cache-last cache))))
 
-(defvar wisi-debug 0
+(defcustom wisi-debug 0
   "wisi debug mode:
 0 : normal - ignore parse errors, for indenting new code
-1 : report parse errors (for running tests)")
+1 : report parse errors (for running tests)"
+  :type 'integer
+  :group 'wisi
+  :safe 'integerp)
 
 ;; The following parameters are easily changeable for debugging.
 (defvar wisi-action-disable nil

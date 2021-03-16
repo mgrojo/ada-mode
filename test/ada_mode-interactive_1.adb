@@ -72,12 +72,12 @@ is
    -- function, parameters on separate line
    --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "return 0;"))
    -- result verified by diff
-   function Func_1
+   function Func_2
      (A : in Integer)
      return Integer
    is begin
       return 0;
-   end Func_1;
+   end Func_2;
 
    -- Properly highlight keyword next to type identifier when insert/delete separating space
    --EMACSCMD:(progn (end-of-line 6)(backward-word 1)(backward-delete-char 1))

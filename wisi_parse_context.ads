@@ -2,7 +2,7 @@
 --
 --  Parse context for one source file.
 --
---  Copyright (C) 2020 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020, 2021 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -45,6 +45,14 @@ package Wisi_Parse_Context is
       --  the end of Text_Buffer.
 
       Parser : WisiToken.Parse.LR.Parser.Parser;
+
+      Root_Save_Edited_Name : Ada.Strings.Unbounded.Unbounded_String;
+      --  If not "", save source text after the edit in a parse_incremental command,
+      --  to <root_save_edited_name_nnn>, where 'nnn' is a three-digit number that
+      --  increments.
+
+      Save_Edited_Count : Integer := 0;
+
    end record;
    type Parse_Context_Access is access all Parse_Context;
 

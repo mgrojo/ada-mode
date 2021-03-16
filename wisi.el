@@ -1828,7 +1828,13 @@ where the car is a list (FILE LINE COL)."
   ;; until actually need full parse.
   (when wisi-incremental-parse-enable
     (message "parsing buffer ...")
-    (wisi-parse-incremental wisi--parser t)
+    (condition-case-unless-debug err
+	(wisi-parse-incremental wisi--parser t)
+      (wisi-parse-error
+       (setq wisi-parse-failed t)
+       (when (> wisi-debug 0)
+	 (signal (car err) (cdr err)))
+       ))
     (message "parsing buffer ... done")
     ))
 

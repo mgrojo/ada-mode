@@ -34,6 +34,8 @@ with WisiToken.Lexer;
 with WisiToken.Parse.LR;
 with WisiToken.Syntax_Trees;
 package Wisi is
+   use all type WisiToken.Line_Region;
+   use all type WisiToken.Cache_Version;
    use all type WisiToken.Syntax_Trees.Augmented_Class_Access;
    use all type WisiToken.Base_Buffer_Pos;
 
@@ -107,19 +109,13 @@ package Wisi is
    function New_Parse_Data (Template : in Parse_Data_Type'Class) return Parse_Data_Access
    is (Parse_Data_Access (New_User_Data (Template)));
 
-   procedure Initialize_Partial_Parse
-     (Data              : in out Parse_Data_Type;
-      Trace             : in     WisiToken.Trace_Access;
-      Post_Parse_Action : in     Post_Parse_Action_Type;
-      Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type);
-   --  Begin_Line, Begin_Indent only used for Indent.
-
-   procedure Initialize_Full_Parse
-     (Data     : in out Parse_Data_Type;
-      Trace    : in     WisiToken.Trace_Access;
-      End_Line : in     WisiToken.Line_Number_Type);
-   --  Initialize Data for a new full parse.
+   procedure Initialize
+     (Data  : in out Parse_Data_Type;
+      Trace : in     WisiToken.Trace_Access);
+   --  Initialize Data before parse.
+   --
+   --  User should later call Reset_Post_Parse before any post_parse
+   --  action.
 
    procedure Parse_Language_Params
      (Data   : in out Parse_Data_Type;
@@ -131,21 +127,17 @@ package Wisi is
 
    procedure Reset_Post_Parse
      (Data                : in out Parse_Data_Type;
+      Tree                : in     WisiToken.Syntax_Trees.Tree'Class;
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
       Action_Region_Chars : in     WisiToken.Buffer_Region;
+      Begin_Line          : in     WisiToken.Line_Number_Type;
       End_Line            : in     WisiToken.Line_Number_Type;
       Begin_Indent        : in     Integer);
-   --  Reset for a new post-parse action, preserving data from previous parse.
+   --  Reset for a new post-parse action.
 
    function Post_Parse_Action (Data : in Parse_Data_Type) return Post_Parse_Action_Type;
    function Action_Region_Bytes (Data : in Parse_Data_Type) return WisiToken.Buffer_Region;
-
-   procedure Edit
-     (Data  : in out Parse_Data_Type;
-      Edits : in     WisiToken.Parse.KMN_Lists.List);
-   --  Apply edits to Data. Will be followed by Execute_Actions on a
-   --  region of text.
 
    overriding
    function Copy_Augmented
@@ -420,7 +412,8 @@ package Wisi is
    --  Must match wisi-parse-common.el wisi-parse-tree-queries
 
    procedure Query_Tree
-     (Tree       : in WisiToken.Syntax_Trees.Tree;
+     (Data       : in Parse_Data_Type;
+      Tree       : in WisiToken.Syntax_Trees.Tree;
       Label      : in Query_Label;
       Char_Point : in WisiToken.Buffer_Pos);
 
@@ -457,12 +450,9 @@ private
 
    type Augmented is new WisiToken.Syntax_Trees.Base_Augmented with
    record
-      Deleted : Boolean := False;
-      --  Set True by Parse_Data_Type.Delete_Token; Non_Grammar tokens are
-      --  moved to the previous non-deleted token.
+      Cache_Version : WisiToken.Cache_Version := WisiToken.Cache_Version'First;
 
-      Indenting_Set : Boolean := False;
-      Indenting     : Wisi.Indenting;
+      Indenting : Wisi.Indenting;
       --  Computed on demand; see Compute_Indenting.
    end record;
    type Augmented_Access is access all Augmented;
@@ -590,6 +580,8 @@ private
 
       --  Copied from language-specific parameters
       Indent_Comment_Col_0 : Boolean := False;
+
+      Augmented_Cache_Version : WisiToken.Cache_Version := WisiToken.Cache_Version'First + 1;
    end record;
 
    type Simple_Delta_Labels is (None, Int, Anchored);
@@ -644,16 +636,12 @@ private
    --  Utilities for language-specific child packages
 
    function Compute_Indenting
-     (Tree : in WisiToken.Syntax_Trees.Tree;
+     (Data : in Parse_Data_Type'Class;
+      Tree : in WisiToken.Syntax_Trees.Tree;
       Node : in WisiToken.Syntax_Trees.Valid_Node_Access)
-     return Wisi.Indenting;
+     return Wisi.Indenting
+   with Pre => Tree.Line_Region (Node) /= WisiToken.Null_Line_Region;
    --  Return Node.Augmented.Indenting, computing it first if needed.
-
-   function First
-     (Tree  : in WisiToken.Syntax_Trees.Tree'Class;
-      Token : in WisiToken.Syntax_Trees.Node_Access)
-     return Boolean;
-   --  True if Token is first token on Token.Line; False if Token is Invalid_Node_Access
 
    function Current_Indent_Offset
      (Tree         : in WisiToken.Syntax_Trees.Tree'Class;
@@ -675,7 +663,8 @@ private
    --  Prefix any '"' in Item with '\' for elisp.
 
    function Indent_Anchored_2
-     (Tree              : in WisiToken.Syntax_Trees.Tree;
+     (Data              : in Parse_Data_Type'Class;
+      Tree              : in WisiToken.Syntax_Trees.Tree;
       Anchor_Token      : in WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Token   : in WisiToken.Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in Boolean;

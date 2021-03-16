@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2020 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020, 2021 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -67,7 +67,9 @@ package body Wisi_Parse_Context is
                Language_String_ID_Set         => Language.String_ID_Set,
                Partial_Parse_Active           => Language.Partial_Parse_Active,
                Partial_Parse_Byte_Goal        => Language.Partial_Parse_Byte_Goal,
-               others                         => <>)))
+               others                         => <>),
+            Root_Save_Edited_Name             => <>,
+            Save_Edited_Count                 => <>))
       do
          Result.Parser.Tree.Lexer := Language.Lexer;
          Map.Insert (Result);
