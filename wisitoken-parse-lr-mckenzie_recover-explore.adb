@@ -1590,7 +1590,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                --  It is exceedingly unlikely that the words in a real user string
                --  will match a grammar production (unless we are writing a code
                --  generate like WisiToken.Output_Ada, sigh). So we just abandon
-               --  this. FIXME: handle nonterms
+               --  this.
                raise Bad_Config;
             end if;
 
@@ -1917,7 +1917,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
             Parse.Do_Delete (Super.Tree.all, New_Config);
 
-            declare --  FIXME: merge into Do_Delete?
+            declare
                New_Next_Node_Index : constant Syntax_Trees.Node_Index := Super.Tree.Get_Node_Index
                  (Parse.Peek_Current_First_Shared_Terminal (Super.Tree.all, New_Config));
             begin

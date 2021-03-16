@@ -348,9 +348,9 @@ package body WisiToken is
 
       case Last_Boundary is
       when Inclusive =>
-         Result := @ and  Outer.Last >= Inner.Last;
+         Result := @ and Outer.Last >= Inner.Last;
       when Exclusive =>
-         Result := @ and  Outer.Last > Inner.Last;
+         Result := @ and Outer.Last > Inner.Last;
       end case;
       return Result;
    end Contains;

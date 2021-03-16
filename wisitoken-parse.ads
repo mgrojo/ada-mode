@@ -132,7 +132,10 @@ package WisiToken.Parse is
    is abstract;
    --  If Edits is empty, call Lex_All. If Edits is not empty, call
    --  Edit_Tree. Then execute parse algorithm to parse the new tokens,
-   --  storing the result in Parser for Execute_Actions.
+   --  storing the result in Parser.Tree for Execute_Actions.
+   --
+   --  If Log_File is open, write information about each error recover
+   --  session to it. See implementation for format.
    --
    --  If a parse error is encountered, raises Syntax_Error.
    --  Parser.Lexer_Errors and Parser contain information about the

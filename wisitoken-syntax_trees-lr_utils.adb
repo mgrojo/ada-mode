@@ -732,7 +732,7 @@ package body WisiToken.Syntax_Trees.LR_Utils is
             New_Root    : constant Valid_Node_Access := Tree.Child (Container.Root, 1);
          begin
             if List_Parent = Invalid_Node_Access then
-               Tree.Clear_Parent (New_Root);
+               Tree.Clear_Parent (New_Root, Clear_Children => True); -- Tree is Editable
                Container.Root := New_Root;
 
             else

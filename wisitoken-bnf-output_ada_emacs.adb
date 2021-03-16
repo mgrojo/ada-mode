@@ -1077,16 +1077,16 @@ is
          Nonterm_Needed := True;
 
          if Label_Used_First and Label_Used_Second then
-            return " (Nonterm, Tokens, " & Label_First & ", " & Label_Second & ")";
+            return " (Tree, Nonterm, Tokens, " & Label_First & ", " & Label_Second & ")";
 
          elsif (not Label_Used_First) and Label_Used_Second then
             --  A copied EBNF RHS; see subprograms.wy Name
-            return " (Nonterm, Tokens, " & Label_Second & ")";
+            return " (Tree, Nonterm, Tokens, " & Label_Second & ")";
          else
             Put_Error
               (Error_Message
                  (Grammar_File_Name, RHS.Source_Line, "merge_names token label error"));
-            return " (Nonterm, Tokens)";
+            return " (Tree, Nonterm, Tokens)";
          end if;
       end Merge_Names_Params;
 
@@ -1101,7 +1101,7 @@ is
          Label_Used_Second : constant Boolean := Label_Used (Label_Second);
       begin
          if Label_Used_First and Label_Used_Second then
-            return " (Lexer, Tokens, " &
+            return " (Tree, Tokens, " &
               Label_First & ", " & Label_Second & ", " &
               (if Length (Input_Data.Language_Params.End_Names_Optional_Option) > 0
                then -Input_Data.Language_Params.End_Names_Optional_Option
@@ -1280,7 +1280,7 @@ is
                   Assert_Check_Empty;
                   Nonterm_Needed := True;
                   Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-                    " (Nonterm, Tokens, " & Label & ");";
+                    " (Tree, Nonterm, Tokens, " & Label & ");";
                end if;
             end;
 
@@ -1303,7 +1303,7 @@ is
          elsif Elisp_Name = "wisi-terminate-partial-parse" then
             Assert_Check_Empty;
             Nonterm_Needed := True;
-            Check_Line := +"return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, " &
+            Check_Line := +"return Terminate_Partial_Parse (Tree, Partial_Parse_Active, Partial_Parse_Byte_Goal, " &
               "Recover_Active, Nonterm);";
 
          elsif Input_Data.Tokens.Actions.Contains (+Elisp_Name) then
@@ -1373,29 +1373,29 @@ is
             Empty              := False;
             Subprogram_Started := True;
             Indent_Line ("function " & Name);
-            Indent_Line (" (Lexer          : access constant WisiToken.Lexer.Instance'Class;");
+            Indent_Line (" (Tree           : in     WisiToken.Syntax_Trees.Tree;");
             Indent_Line ("  Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
             Indent_Line ("  Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
             Indent_Line ("  Recover_Active : in     Boolean)");
             Indent_Line (" return WisiToken.In_Parse_Actions.Status");
             declare
-               Unref_Lexer   : constant Boolean := 0 = Index (Check_Line, "Lexer");
+               Unref_Tree    : constant Boolean := 0 = Index (Check_Line, "Tree");
                Unref_Nonterm : constant Boolean := 0 = Index (Check_Line, "Nonterm");
                Unref_Tokens  : constant Boolean := 0 = Index (Check_Line, "Tokens");
                Unref_Recover : constant Boolean := 0 = Index (Check_Line, "Recover_Active");
                Need_Comma    : Boolean          := False;
             begin
-               if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover or
+               if Unref_Tree or Unref_Nonterm or Unref_Tokens or Unref_Recover or
                  (for some I of Label_Needed => I)
                then
                   Indent_Line ("is");
 
                   Indent := Indent + 3;
-                  if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover then
+                  if Unref_Tree or Unref_Nonterm or Unref_Tokens or Unref_Recover then
                      Indent_Start ("pragma Unreferenced (");
 
-                     if Unref_Lexer then
-                        Put ((if Need_Comma then ", " else "") & "Lexer");
+                     if Unref_Tree then
+                        Put ((if Need_Comma then ", " else "") & "Tree");
                         Need_Comma := True;
                      end if;
                      if Unref_Nonterm then

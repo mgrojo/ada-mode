@@ -132,9 +132,7 @@ package body WisiToken.Parse.LR.Parser is
             return;
          else
             --  nonterminal; we don't Insert nonterms, so
-            --  Parser_State.Current_Token cannot be from an Insert. FIXME: we
-            --  don't have a good Assert for that. Could add
-            --  Parser_State.Current_From_Insert.
+            --  Parser_State.Current_Token cannot be from an Insert.
 
             declare
                New_State : constant Unknown_State_Index := Goto_For

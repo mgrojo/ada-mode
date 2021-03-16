@@ -510,14 +510,6 @@ package WisiToken.Syntax_Trees is
      return Boolean;
    --  True if Stream and Token are valid, and Token is an element of Stream.
 
-   procedure Set_Terminal_Index
-     (Tree     : in out Syntax_Trees.Tree;
-      Terminal : in     Valid_Node_Access;
-      Index    : in     Valid_Node_Index)
-   with Pre => Tree.Label (Terminal) in Terminal_Label;
-   --  Set Node_Index of Terminal to Index; must reflect token order
-   --  in source buffer.
-
    function Trimmed_Image (Item : in Stream_Index) return String;
    --  Trimmed_Image of item.node_index.
 
@@ -854,13 +846,14 @@ package WisiToken.Syntax_Trees is
    --  Stack_Top. Result refers to the added node.
 
    procedure Shift
-     (Tree        : in Syntax_Trees.Tree;
-      Node        : in Valid_Node_Access;
-      Shift_Bytes : in Base_Buffer_Pos;
-      Shift_Chars : in Base_Buffer_Pos;
-      Shift_Line  : in Base_Line_Number_Type)
+     (Tree             : in Syntax_Trees.Tree;
+      Node             : in Valid_Node_Access;
+      Shift_Bytes      : in Base_Buffer_Pos;
+      Shift_Chars      : in Base_Buffer_Pos;
+      Shift_Line       : in Base_Line_Number_Type;
+      Shift_Node_Index : in Node_Index)
    with Pre => Tree.Label (Node) in Terminal_Label;
-   --  Add Shift_* to token positions.
+   --  Add Shift_* to token values.
 
    procedure Stream_Delete
      (Tree    : in out Syntax_Trees.Tree;
@@ -960,7 +953,11 @@ package WisiToken.Syntax_Trees is
    function Byte_Region (Tree : in Syntax_Trees.Tree; Index : in Stream_Index) return WisiToken.Buffer_Region
    with Pre => Index /= Invalid_Stream_Index;
 
-   function Byte_Region (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Buffer_Region;
+   function Byte_Region
+     (Tree                : in Syntax_Trees.Tree;
+      Node                : in Valid_Node_Access;
+      Include_Non_Grammar : in Boolean := False)
+     return WisiToken.Buffer_Region;
 
    function Name (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Buffer_Region;
    function Name (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return Buffer_Region
@@ -1538,6 +1535,32 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Parents_Set;
    --  Return Count parent of Node.
 
+   function Find_Byte_Pos
+     (Tree     : in Syntax_Trees.Tree;
+      Byte_Pos : in Buffer_Pos)
+     return Node_Access;
+   --  Return the terminal that contains or is first after Byte_Pos.
+   --  Invalid_Node_Access outside text spanned by Tree.
+
+   function Find_Byte_Pos
+     (Tree     : in Syntax_Trees.Tree;
+      Stream   : in Stream_ID;
+      Byte_Pos : in Buffer_Pos)
+     return Stream_Node_Ref;
+   --  Return the terminal that contains or is first after Byte_Pos.
+   --  Invalid_Node_Access or outside text spanned by Tree.Stream.
+
+   function Find_Char_Pos
+     (Tree                : in Syntax_Trees.Tree;
+      Char_Pos            : in Buffer_Pos;
+      After               : in Boolean;
+      Include_Non_Grammar : in Boolean)
+     return Node_Access;
+   --  If After, return the first terminal after or containing
+   --  Char_Point. Otherwise return the terminal containing Char_Point.
+   --  If Include_Non_Grammar, non_grammar is included in token
+   --  char_region. Invalid_Node_Access if none.
+
    function Find_New_Line
      (Tree : in Syntax_Trees.Tree;
       Line : in Line_Number_Type)
@@ -1562,7 +1585,7 @@ package WisiToken.Syntax_Trees is
       Line : in Line_Number_Type;
       Stream : in Stream_ID)
      return Base_Buffer_Pos;
-   --  Same as other Line_Begin_Token, but searches in Stream instead of
+   --  Same as other Line_Begin_Char_Pos, but searches in Stream instead of
    --  Tree.Root. If not found there, continues searching input in
    --  Shared_Stream.
 
@@ -1582,13 +1605,6 @@ package WisiToken.Syntax_Trees is
    --  Same as other Line_Begin_Token, but searches in Stream instead of
    --  Tree.Root. If not found there, continues searching input in
    --  Shared_Stream.
-
-   function Find_Terminal
-     (Tree       : in Syntax_Trees.Tree;
-      Char_Point : in Buffer_Pos)
-     return Node_Access;
-   --  Return the terminal whose char_region contains Char_Point,
-   --  Invalid_Node_Access if none.
 
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
@@ -1697,12 +1713,17 @@ package WisiToken.Syntax_Trees is
    --  copies of Node.
 
    procedure Clear_Parent
-     (Tree : in out Syntax_Trees.Tree;
-      Node : in     Valid_Node_Access)
+     (Tree           : in out Syntax_Trees.Tree;
+      Node           : in     Valid_Node_Access;
+      Clear_Children : in     Boolean)
    with Pre => not Tree.Traversing;
-   --  If Node.Parent /= Invalid_Node_Access, set child in Node.Parent to
-   --  Invalid_Node_Access. If Node.Parent = Tree.Root, set Tree.Root to
-   --  Node. Finally, set Node.Parent to Invalid_Node_Access.
+   --  If Clear_Children and Node.Parent /= Invalid_Node_Access, set
+   --  child in Node.Parent to Invalid_Node_Access, and if Node.Parent =
+   --  Tree.Root, set Tree.Root to Node. Finally, set Node.Parent to
+   --  Invalid_Node_Access.
+   --
+   --  Clear_Children should be False unless Tree is Editable or Node is
+   --  in Shared_Stream.
 
    ----------
    --  Debug and error message utils.
@@ -1751,6 +1772,7 @@ package WisiToken.Syntax_Trees is
       Node_Numbers          : in Boolean                   := False;
       Terminal_Node_Numbers : in Boolean                   := False;
       Line_Numbers          : in Boolean                   := False;
+      Non_Grammar           : in Boolean                   := False;
       Augmented             : in Boolean                   := False;
       Image_Action          : in Syntax_Trees.Image_Action := null)
      return String;
@@ -1784,6 +1806,8 @@ package WisiToken.Syntax_Trees is
      (Tree           : in Syntax_Trees.Tree;
       Ref            : in Stream_Node_Ref;
       First_Terminal : in Boolean                   := False;
+      Line_Numbers   : in Boolean                   := False;
+      Non_Grammar    : in Boolean                   := False;
       Augmented      : in Boolean                   := False;
       Image_Action   : in Syntax_Trees.Image_Action := null)
      return String;

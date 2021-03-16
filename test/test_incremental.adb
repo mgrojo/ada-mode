@@ -54,8 +54,6 @@ package body Test_Incremental is
       use all type WisiToken.Base_Buffer_Pos;
       use all type Ada.Containers.Count_Type;
 
-      Saved_Trace_Parse : constant Integer := WisiToken.Trace_Parse;
-
       Edited : String (Initial'First .. Initial'Last + Insert'Length + Insert_2'Length) := (others => ' ');
 
       Edited_Last : Integer := Initial'Last;
@@ -126,9 +124,8 @@ package body Test_Incremental is
          --  Edit_Tree.
       end Last_KMN;
 
-      procedure Put_Tree (Label : in String; Tree : in WisiToken.Syntax_Trees.Tree)
+      procedure Put_Tree (Tree : in WisiToken.Syntax_Trees.Tree)
       is begin
-         Put_Line (Label & ":");
          Parser.Put_Errors;
 
          Put_Line (" ... tree:");
@@ -152,10 +149,8 @@ package body Test_Incremental is
          Ada.Text_IO.Put_Line ("edited source : '" & Edited (Edited'First .. Edited_Last) & "'");
       end if;
 
-      --  Batch parse of Edited
-      if WisiToken.Trace_Tests < 2 then
-         --  Don't trace parse in batch parser.
-         WisiToken.Trace_Parse := 0;
+      if WisiToken.Trace_Tests > WisiToken.Outline then
+         Put_Line ("edited source batch parse:");
       end if;
 
       Parser.Tree.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
@@ -166,21 +161,21 @@ package body Test_Incremental is
       Parser.Tree.Copy_Tree (Edited_Tree_Batch, User_Data'Access);
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
-         Put_Tree ("edited source batch parse", Edited_Tree_Batch);
+         Put_Tree (Edited_Tree_Batch);
       end if;
 
-      --  Batch parse of Initial
+      if WisiToken.Trace_Tests > WisiToken.Outline then
+         New_Line;
+         Put_Line ("initial source batch parse:");
+      end if;
       Parser.Tree.Lexer.Reset_With_String (Initial);
 
       Parser.Parse (Log_File);
 
       Parser.Tree.Clear_Parse_Streams;
 
-      WisiToken.Trace_Parse := Saved_Trace_Parse;
-
       if WisiToken.Trace_Tests > WisiToken.Outline then
-         New_Line;
-         Put_Tree ("initial source batch parse result", Parser.Tree);
+         Put_Tree (Parser.Tree);
       end if;
 
       --  Prepare for incremental parse
@@ -223,16 +218,16 @@ package body Test_Incremental is
       Parser.Tree.Clear_Parse_Streams;
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
-         New_Line;
-         Put_Tree ("incremental parse result", Parser.Tree);
+         Put_Line ("incremental parse result:");
+         Put_Tree (Parser.Tree);
       end if;
 
       Check ("1", Parser.Tree, Edited_Tree_Batch, Shared_Stream => False);
    exception
    when WisiToken.Syntax_Error =>
       if WisiToken.Trace_Tests > WisiToken.Outline then
-         New_Line;
-         Put_Tree ("(syntax_error) incremental parse result", Parser.Tree);
+         Put_Line ("(syntax_error) incremental parse result:");
+         Put_Tree (Parser.Tree);
       end if;
 
       Check ("syntax_error", True, False);
@@ -269,6 +264,38 @@ package body Test_Incremental is
       --             |19        |30
 
    end Edit_Comment;
+
+   procedure Edit_Comment_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Two edits in one token not at EOI
+      Parse_Text
+        (Initial   => "A := B + C; --  A very long comment" & ASCII.LF & "D;",
+         --          1        |10       |20
+         Edit_At   => 18,
+         Delete    => "",
+         Insert    => "nother",
+         Edit_2_At => 24,
+         Delete_2  => "long",
+         Insert_2  => "big");
+   end Edit_Comment_2;
+
+   procedure Edit_Comment_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Two edits in one token not EOI
+      Parse_Text
+        (Initial   => "A := B + C; --  A very long comment",
+         --          1        |10       |20
+         Edit_At   => 18,
+         Delete    => "",
+         Insert    => "nother",
+         Edit_2_At => 24,
+         Delete_2  => "long",
+         Insert_2  => "big");
+   end Edit_Comment_3;
 
    procedure Edit_Whitespace (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -343,7 +370,7 @@ package body Test_Incremental is
    is
       pragma Unreferenced (T);
    begin
-      --  Insert, delete at last grammar token
+      --  Edit point affects two adjacent tokens
       Parse_Text
         (Initial => "A := --  comment 1" & ASCII.LF & "B + C;",
          --          1        |10     |18              |20
@@ -446,6 +473,42 @@ package body Test_Incremental is
          Insert  => "Cad");
    end Edit_Code_8;
 
+   procedure Edit_Code_9 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Final stable covers several tokens. modeled on ada_mode-ada2012.ads
+      Parse_Text
+        (Initial => "-- comment" & ASCII.LF & "exit;" & ASCII.LF & "exit;",
+         --          |1       |10              |12
+         Edit_At => 12,
+         Delete  => "exit",
+         Insert  => "EXIT");
+   end Edit_Code_9;
+
+   procedure Edit_Code_10 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Mimic ada_mode-incremental_parse.adb first edit;
+      --  Edit_Tree erroneously deleted 'is' at 17.
+      Parse_Text
+        (Initial =>
+           "procedure Debug is" & ASCII.LF &
+             --      |10          |19
+             "-- comment to edit twice" & ASCII.LF &
+             -- |22     |30       |40
+             "function Func_1 (A : Integer) return Float is (Float (A));" & ASCII.LF &
+             --
+             "end Debug;",
+         Edit_At => 34,
+         Delete  => "edit",
+         Insert  => "exit",
+         Edit_2_At => 39,
+         Delete_2  => "twice",
+         Insert_2  => "twoce");
+   end Edit_Code_10;
+
    procedure Delete_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -524,6 +587,8 @@ package body Test_Incremental is
    begin
       Register_Routine (T, No_Change'Access, "No_Change");
       Register_Routine (T, Edit_Comment'Access, "Edit_Comment");
+      Register_Routine (T, Edit_Comment_2'Access, "Edit_Comment_2");
+      Register_Routine (T, Edit_Comment_3'Access, "Edit_Comment_3");
       Register_Routine (T, Edit_Whitespace'Access, "Edit_Whitespace");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");
       Register_Routine (T, Edit_Code_1'Access, "Edit_Code_1");
@@ -534,6 +599,8 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_6'Access, "Edit_Code_6");
       Register_Routine (T, Edit_Code_7'Access, "Edit_Code_7");
       Register_Routine (T, Edit_Code_8'Access, "Edit_Code_8");
+      Register_Routine (T, Edit_Code_9'Access, "Edit_Code_9");
+      Register_Routine (T, Edit_Code_10'Access, "Edit_Code_10");
       Register_Routine (T, Delete_New_Line'Access, "Delete_New_Line");
       Register_Routine (T, Insert_New_Line'Access, "Insert_New_Line");
       Register_Routine (T, Names'Access, "Names");

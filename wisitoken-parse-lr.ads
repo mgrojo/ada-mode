@@ -323,6 +323,10 @@ package WisiToken.Parse.LR is
       Check_Delta_Limit           => Natural'Last,
       Enqueue_Limit               => Natural'Last);
 
+   procedure Set_McKenzie_Options (Param : in out McKenzie_Param_Type; Config : in String);
+   --  Set options from Config. Config contains space-separated name=value
+   --  pairs. See body for exact names.
+
    type Parse_Table
      (State_First       : State_Index;
       State_Last        : State_Index;

@@ -72,6 +72,8 @@ incremental parse
         left_breakdown with first_terminal = virtual
         Mckenzie current_Terminal skip virtual terminals in input and shared
 
+        delete newline that ends comment; next line of code is now a comment, tokens must be deleted
+
     review fixmes
 
     could merge edit_tree, parse_incremental
