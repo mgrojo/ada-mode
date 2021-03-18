@@ -111,24 +111,42 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    procedure To_Recover
      (Parser_Stack : in     Syntax_Trees.Stream_ID;
       Tree         : in     Syntax_Trees.Tree;
-      Stack        : in out Recover_Stacks.Stack)
+      Stack        : in out Recover_Stacks.Stack;
+      Input_Stream : in out Bounded_Streams.List)
    is
-      Depth : constant SAL.Peek_Type := Tree.Stream_Length (Parser_Stack);
+      Parser_Stack_Depth : constant SAL.Peek_Type := Tree.Stack_Depth (Parser_Stack);
    begin
       pragma Assert (Stack.Depth = 0);
-      if Stack.Size < Depth then
-         raise SAL.Programmer_Error with "recover stack needs more space;" & Depth'Image;
+      if Stack.Size < Parser_Stack_Depth then
+         raise SAL.Programmer_Error with "recover stack needs more space;" & Parser_Stack_Depth'Image;
       end if;
-      for I in reverse 1 .. Depth loop
+      for I in reverse 1 .. Parser_Stack_Depth loop
          declare
             Element : constant Syntax_Trees.Stream_Index  := Tree.Peek (Parser_Stack, I);
             Node    : constant Syntax_Trees.Node_Access   := Tree.Get_Node (Parser_Stack, Element);
             Token   : constant Syntax_Trees.Recover_Token :=
-              (if I = Depth then (others => <>) else Tree.Get_Recover_Token ((Parser_Stack, Element, Node)));
+              (if I = Parser_Stack_Depth
+               then (others => <>)
+               else Tree.Get_Recover_Token ((Parser_Stack, Element, Node)));
          begin
             Stack.Push ((Tree.State (Parser_Stack, Element), Token));
          end;
       end loop;
+
+      if Tree.Stream_Input_Length (Parser_Stack) > 0 then
+         --  Parse stream input has tokens from breakdown of a nonterm in
+         --  Shared_Stream.
+         declare
+            use Syntax_Trees;
+            Index : Stream_Index := Tree.Stream_Next (Parser_Stack, Tree.Stack_Top (Parser_Stack));
+         begin
+            loop
+               exit when Index = Invalid_Stream_Index;
+               Input_Stream.Append (Tree.Get_Node (Parser_Stack, Index));
+               Index := Tree.Stream_Next (Parser_Stack, Index);
+            end loop;
+         end;
+      end if;
    end To_Recover;
 
    procedure Recover_Init
@@ -144,9 +162,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    begin
       Parser_State.Recover.Enqueue_Count := @ + 1;
 
-      Config.Resume_Token_Goal := Shared_Parser.Tree.Get_Node_Index
-        (Shared_Parser.Tree.First_Terminal (Parser_State.Shared_Token.Node)) +
-        Shared_Parser.Table.McKenzie_Param.Check_Limit;
+      declare
+         use Syntax_Trees;
+         First_Shared_Current : constant Node_Access := Shared_Parser.Tree.First_Shared_Terminal
+           (Parser_State.Current_Token.Node);
+         First_Shared_Shared : constant Node_Access := Shared_Parser.Tree.First_Terminal
+           (Parser_State.Shared_Token.Node);
+      begin
+         Config.Resume_Token_Goal := Shared_Parser.Tree.Get_Node_Index
+           (if First_Shared_Current /= Invalid_Node_Access
+            then First_Shared_Current --  Current_Token is from breakdown of a shared stream nonterm.
+            else First_Shared_Shared) +
+           Shared_Parser.Table.McKenzie_Param.Check_Limit;
+      end;
 
       if Trace_McKenzie > Outline then
          Trace.New_Line;
@@ -174,14 +202,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  Additional initialization of Parser_State.Recover is done in
       --  Supervisor.Initialize.
 
-      To_Recover (Parser_State.Stream, Shared_Parser.Tree, Config.Stack);
+      Config.Input_Stream.Initialize;
+      To_Recover (Parser_State.Stream, Shared_Parser.Tree, Config.Stack, Config.Input_Stream);
 
       --  Parser_State.Recover_Insert_Delete must be empty (else we would not get
       --  here). Therefore Parser_State current token is in
       --  Shared_Parser.Shared_Token.
 
       Config.Current_Shared_Token := Shared_Parser.Tree.First_Terminal (Parser_State.Shared_Token);
-      Config.Input_Stream.Initialize;
 
       case Error.Label is
       when LR_Parse_Action =>

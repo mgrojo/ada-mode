@@ -314,7 +314,7 @@ package WisiToken is
        then Natural (Region.Last - Region.First + 1)
        else 0));
 
-   function Inside (Pos : in Base_Buffer_Pos; Region : in Buffer_Region) return Boolean
+   function Contains (Region : in Buffer_Region; Pos : in Base_Buffer_Pos) return Boolean
    is (Region.First <= Pos and Pos <= Region.Last);
 
    type Boundary is (Inclusive, Exclusive);
@@ -362,6 +362,9 @@ package WisiToken is
    --  Ada positional aggregate.
 
    function "+" (Left : in Line_Region; Right : in Base_Line_Number_Type) return Line_Region;
+
+   function Contains (Region : in Line_Region; Pos : in Base_Line_Number_Type) return Boolean
+   is (Region.First <= Pos and Pos <= Region.Last);
 
    type Insert_Location is (After_Prev, Between, Before_Next);
 

@@ -615,6 +615,7 @@ package body WisiToken.Syntax_Trees is
       end if;
 
       Tree.Streams.Clear;
+      Tree.Next_Stream_Label := Shared_Stream_Label + 1;
 
       Tree.Shared_Stream.Cur := Parse_Stream_Lists.No_Element;
 
@@ -2389,11 +2390,21 @@ package body WisiToken.Syntax_Trees is
                  Non_Grammar  => Non_Grammar,
                  Augmented    => Augmented,
                  Image_Action => Image_Action) &
-              (if Ref.Node = Invalid_Node_Access or else Element_Node = Ref.Node
+              (if Ref.Node = Invalid_Node_Access
                then ""
+               elsif Element_Node = Ref.Node and First_Terminal
+               then ", " & Image
+                 (Tree,
+                  Tree.First_Terminal (Ref.Node),
+                  Terminal_Node_Numbers => True,
+                  Line_Numbers          => Line_Numbers,
+                  Non_Grammar           => Non_Grammar,
+                  Augmented             => Augmented,
+                  Image_Action          => Image_Action)
+
                else ", " & Image
                  (Tree,
-                  (if First_Terminal then Tree.First_Terminal (Ref.Node) else Ref.Node),
+                  Ref.Node,
                   Terminal_Node_Numbers => True,
                   Line_Numbers          => Line_Numbers,
                   Non_Grammar           => Non_Grammar,
@@ -4216,6 +4227,75 @@ package body WisiToken.Syntax_Trees is
       return Node.RHS_Index;
    end RHS_Index;
 
+   procedure Right_Breakdown
+     (Tree : in out Syntax_Trees.Tree;
+      Ref  : in out Stream_Node_Ref)
+   is
+      use Stream_Element_Lists;
+
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Ref.Stream.Cur);
+
+      Cur           : Cursor            := Ref.Element.Cur;
+      Insert_Before : constant Cursor   := Next (Cur);
+      To_Delete     : Cursor            := Cur;
+      Node          : Valid_Node_Access := Parse_Stream.Elements (Ref.Element.Cur).Node;
+      Next_Node     : Node_Access;
+   begin
+      loop
+         Next_Node := Invalid_Node_Access;
+
+         for I in 1 .. Node.Child_Count - 1 loop
+            if Node.Children (I).Child_Count > 0 then
+               Next_Node := Node.Children (I);
+            end if;
+
+            Cur := Parse_Stream.Elements.Insert
+              (Element  =>
+                 (Node  => Node.Children (I),
+                  State => Unknown_State,
+                  Label => Parse_Stream.Label),
+               Before   => Insert_Before);
+
+            Node.Children (I).Parent := Invalid_Node_Access;
+            if Tree.Parents_Set then
+               Node.Children (I) := Invalid_Node_Access;
+            end if;
+         end loop;
+
+         if Node.Children (Node.Child_Count).Child_Count > 0 or
+           Node.Children (Node.Child_Count).Label in Terminal_Label
+         then
+            declare
+               Temp : constant Node_Access := Node.Children (Node.Child_Count);
+            begin
+               if Tree.Parents_Set then
+                  Node.Children (Node.Child_Count) := Invalid_Node_Access;
+               end if;
+               Node        := Temp;
+               Node.Parent := Invalid_Node_Access;
+            end;
+
+            if Node.Label in Terminal_Label then
+               Ref.Element.Cur := Parse_Stream.Elements.Insert
+                 (Element  =>
+                    (Node  => Node,
+                     State => Unknown_State,
+                     Label => Parse_Stream.Label),
+                  Before   => Insert_Before);
+
+               Ref.Node := Node;
+
+               Parse_Stream.Elements.Delete (To_Delete);
+               exit;
+            end if;
+         else
+            --  Node is an empty nonterm. Note that Next_Node cannot be null; the
+            --  precondition asserts that Ref was not empty.
+            Node := Next_Node;
+         end if;
+      end loop;
+   end Right_Breakdown;
+
    function Root (Tree : in Syntax_Trees.Tree) return Node_Access
    is begin
       if Tree.Root = Invalid_Node_Access then
@@ -4432,14 +4512,14 @@ package body WisiToken.Syntax_Trees is
    end Shift;
 
    procedure Shift
-     (Tree             : in Syntax_Trees.Tree;
-      Node             : in Valid_Node_Access;
-      Shift_Bytes      : in Base_Buffer_Pos;
-      Shift_Chars      : in Base_Buffer_Pos;
-      Shift_Line       : in Base_Line_Number_Type;
-      Shift_Node_Index : in Node_Index)
+     (Tree        : in Syntax_Trees.Tree;
+      Node        : in Valid_Node_Access;
+      Shift_Bytes : in Base_Buffer_Pos;
+      Shift_Chars : in Base_Buffer_Pos;
+      Shift_Line  : in Base_Line_Number_Type;
+      Node_Index  : in Syntax_Trees.Node_Index)
    is begin
-      Node.Node_Index := @ + Shift_Node_Index;
+      Node.Node_Index := Node_Index;
 
       case Terminal_Label'(Node.Label) is
       when Source_Terminal =>

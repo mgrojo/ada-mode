@@ -174,11 +174,15 @@ package body WisiToken.Parse.LR.Parser is
                            Tree.Insert_Token (Parser_State.Stream, Parser_State.Current_Token);
                         end if;
 
+                        if Trace_Parse > Detail then
+                           Shared_Parser.Trace.Put_Line
+                             (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": left_breakdown " &
+                                Tree.Image (Parser_State.Current_Token));
+                        end if;
                         Tree.Left_Breakdown (Parser_State.Current_Token);
                         if Trace_Parse > Detail then
                            Shared_Parser.Trace.Put_Line
-                             (" ... left_breakdown; current_token: " & Tree.Image
-                                (Parser_State.Current_Token, First_Terminal => True));
+                             (" ... current_token: " & Tree.Image (Parser_State.Current_Token, First_Terminal => True));
                         end if;
 
                         return;
@@ -465,32 +469,46 @@ package body WisiToken.Parse.LR.Parser is
             Parser_State.Set_Verb (Shift);
 
             if Parser_State.Resume_Active then
-               --  There may still be ops left in Recover_Insert_Delete, or
-               --  pushed_back tokens in the parse stream input, after we get to
-               --  Resume_Token_Goal, probably from a Language_Fix or string quote
-               --  fix that deletes a lot of tokens. FIXME: that's a bug!
-               if Parser_State.Resume_Token_Goal <= Shared_Parser.Tree.Get_Node_Index
-                 (Parser_State.Shared_Token.Node)
-               then
-                  if Parser_State.Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index or
-                    Shared_Parser.Tree.Has_Input (Parser_State.Stream)
+               --  We check Parser_State.Current_Token, not
+               --  Parser_State.Shared_Token, because Shared_Token might be a
+               --  large nonterm when Current_Token is the token goal inside
+               --  Shared_Token, in the parse stream input from breakdown.
+               --  ada_mode-interactive_1.adb "for File_Name in File_Names loop"
+               declare
+                  use WisiToken.Syntax_Trees;
+                  Terminal : constant Node_Access := Shared_Parser.Tree.First_Terminal
+                    (Parser_State.Current_Token.Node);
+               begin
+                  if Terminal /= Invalid_Node_Access and then
+                    Shared_Parser.Tree.Is_Source_Terminal (Terminal) and then
+                    Parser_State.Resume_Token_Goal <= Shared_Parser.Tree.Get_Node_Index (Terminal)
                   then
-                     if Debug_Mode then
-                        raise SAL.Programmer_Error with
-                          Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
-                          ": resume_token_goal reached with remaining insert/delete/push_back";
+                     if Parser_State.Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
+                        --  There may still be ops left in Recover_Insert_Delete after we get to
+                        --  Resume_Token_Goal, probably from a Language_Fix or string quote
+                        --  fix that deletes a lot of tokens. That's a bug in the Language_Fix
+                        --  or other code, so we report it if Debug_Mode.
+                        --
+                        --  We don't check the parse stream input, because it can contain the
+                        --  breakdown of a nonterm in the parse stream, as well as push_back
+                        --  tokens from error recover. ada_mode-incremental_recover_01.adb
+                        if Debug_Mode then
+                           raise SAL.Programmer_Error with
+                             Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
+                             ": resume_token_goal reached with remaining insert/delete/push_back";
+                        end if;
+                        Resume_Active := True;
+                     else
+                        Parser_State.Resume_Active := False;
+                        if Trace_Parse > Detail then
+                           Shared_Parser.Trace.Put_Line
+                             (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": resume_active: False");
+                        end if;
                      end if;
-                     Resume_Active := True;
                   else
-                     Parser_State.Resume_Active := False;
-                     if Trace_Parse > Detail then
-                        Shared_Parser.Trace.Put_Line
-                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": resume_active: False");
-                     end if;
+                     Resume_Active := True;
                   end if;
-               else
-                  Resume_Active := True;
-               end if;
+               end;
             else
                if Parser_State.Shared_Token /= Syntax_Trees.Invalid_Stream_Node_Ref then
                   Min_Shared_Node_Index := Syntax_Trees.Node_Index'Min

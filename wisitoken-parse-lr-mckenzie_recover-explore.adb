@@ -1253,10 +1253,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Descriptor  : WisiToken.Descriptor renames Super.Tree.Lexer.Descriptor.all;
       Check_Limit : Syntax_Trees.Node_Index renames Shared.Table.McKenzie_Param.Check_Limit;
 
-      Current_Line      : constant Line_Number_Type := Tree.Line_Region
-        (Parse.Peek_Current_First_Shared_Terminal (Tree, Config)).First;
-      Next_Line_Begin_Token : constant Node_Access := Tree.Line_Begin_Token
-        (Current_Line + 1, Super.Stream (Parser_Index));
+      Current_Line_Region   : constant Line_Region := Tree.Line_Region
+        (Parse.Peek_Current_First_Shared_Terminal (Tree, Config));
+
+      Next_Line_Begin_Token : constant Node_Access :=
+        (if Current_Line_Region = Null_Line_Region
+         then Invalid_Node_Access
+         else Tree.Line_Begin_Token
+           (Current_Line_Region.First + 1, Super.Stream (Parser_Index)));
 
       function Recovered_Lexer_Error return Syntax_Trees.Terminal_Ref
       is begin
@@ -1265,7 +1269,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          for Err of Shared.Wrapped_Lexer_Errors.all loop
             if Err.Recover_Token_Ref /= Syntax_Trees.Invalid_Stream_Node_Ref then
 
-               if Tree.Line_Region (Err.Recover_Token_Ref.Node).First = Current_Line then
+               if Tree.Line_Region (Err.Recover_Token_Ref.Node).First = Current_Line_Region.First then
                   return Err.Recover_Token_Ref;
                end if;
             end if;
@@ -1697,7 +1701,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  An alternate strategy is to treat the lexer error as a parse error
       --  immediately, but that complicates the parse logic.
 
-      Config.String_Quote_Checked := Current_Line;
+      if Current_Line_Region = Null_Line_Region then
+         return;
+      end if;
+
+      Config.String_Quote_Checked := Current_Line_Region.First;
 
       if Lexer_Error_Token_Ref = Syntax_Trees.Invalid_Stream_Node_Ref or else
         Super.Tree.ID (Lexer_Error_Token_Ref.Node) not in Descriptor.String_1_ID | Descriptor.String_2_ID

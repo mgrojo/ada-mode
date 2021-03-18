@@ -12,7 +12,7 @@
 --  There is one syntax tree; parallel parsers all add nodes to the
 --  same tree, maintaining different roots via Stream_IDs.
 --
---  The Shared_Stream contains all of the input source text, either as
+--  During parsing, the Shared_Stream contains all of the input source text, either as
 --  terminal tokens from the lexer, or a mix of terminal and
 --  nonterminal tokens from Parse.Edit_Tree. The sequence of tokens is
 --  given by Next_Terminal/Prev_Terminal, and Node_Index on terminals
@@ -20,8 +20,12 @@
 --  Virtual_Terminals from previous error recovery; they are included
 --  in the positive Node_Index order.
 --
+--  After parsing, the sequence of terminals in the syntax tree stream
+--  is given by Next_Terminal/Prev_Terminal; Node_Index on inserted
+--  virtuals is negative, and has gaps for deleted tokens.
+--
 --  Each parallel parser uses one stream as the parse stack and
---  auxiliarty input stream. The auxiliary input stream contains
+--  auxiliary input stream. The auxiliary input stream contains
 --  tokens that are pushed back in error recover, or referenced from
 --  Shared_Stream for breakdown in incremental parse.
 --
@@ -40,7 +44,7 @@
 --  them to Invalid_Node_Access as appropriate.
 --
 --  During parsing, nodes are never copied or edited in any way once
---  they are created.
+--  they are created, except for clearing parent links.
 --
 --  Incremental parse and error recover need to use terminal
 --  navigation operations on nodes that are not from the shared
@@ -51,10 +55,6 @@
 --  having to copy nodes during parsing. State is stored in the parse
 --  stream elements. This means Parse.LR.Undo_Reduce has to call
 --  Action_For to compute the state for the child nodes.
---
---  After error correction, the sequence of terminals in a parse
---  stream is given by Next_Terminal/Prev_Terminal; Node_Index on
---  inserted virtuals is negative, and has gaps for deleted tokens.
 --
 --  A terminal is a "shared terminal" if it has a positive Node_Index;
 --  it is in the Shared_Stream.
@@ -642,6 +642,23 @@ package WisiToken.Syntax_Trees is
    --  Child links are set to Invalid_Node_Access as appropriate;
    --  otherwise the parent nodes are assumed to be shared.
 
+   procedure Right_Breakdown
+     (Tree : in out Syntax_Trees.Tree;
+      Ref  : in out Stream_Node_Ref)
+   with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
+               Ref.Node /= Invalid_Node_Access and
+               Tree.Stack_Top (Ref.Stream) /= Ref.Element and
+               (Tree.Parents_Set or Ref.Stream /= Tree.Shared_Stream),
+     Post => Valid_Single_Terminal (Tree, Ref);
+   --  Bring last terminal of Ref.Element to the parse stream.
+   --  Ref.Element is updated to the element containing the last terminal.
+   --
+   --  The stack top is unchanged. Note that Ref.Node is ignored on input.
+   --
+   --  Parent links are set to Invalid_Node_Access. If Tree.Parents_Set,
+   --  Child links are set to Invalid_Node_Access as appropriate;
+   --  otherwise the parent nodes are assumed to be shared.
+
    procedure Breakdown
      (Tree : in out Syntax_Trees.Tree;
       Ref  : in out Terminal_Ref)
@@ -690,8 +707,8 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Is_Valid (Stream);
 
    function Stack_Top
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID)
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID)
      return Stream_Index
    with Pre => Tree.Is_Valid (Stream);
 
@@ -788,7 +805,7 @@ package WisiToken.Syntax_Trees is
      return Stream_Index
    with Pre => Tree.Is_Valid (Stream);
    --  Return Count element before last element in Stream; Count = 1
-   --  returns last element (= stack top).
+   --  returns stack top.
 
    procedure Pop (Tree : in out Syntax_Trees.Tree; Stream : in Stream_ID)
    with Pre => Tree.Is_Valid (Stream);
@@ -846,14 +863,14 @@ package WisiToken.Syntax_Trees is
    --  Stack_Top. Result refers to the added node.
 
    procedure Shift
-     (Tree             : in Syntax_Trees.Tree;
-      Node             : in Valid_Node_Access;
-      Shift_Bytes      : in Base_Buffer_Pos;
-      Shift_Chars      : in Base_Buffer_Pos;
-      Shift_Line       : in Base_Line_Number_Type;
-      Shift_Node_Index : in Node_Index)
+     (Tree        : in Syntax_Trees.Tree;
+      Node        : in Valid_Node_Access;
+      Shift_Bytes : in Base_Buffer_Pos;
+      Shift_Chars : in Base_Buffer_Pos;
+      Shift_Line  : in Base_Line_Number_Type;
+      Node_Index  : in Syntax_Trees.Node_Index)
    with Pre => Tree.Label (Node) in Terminal_Label;
-   --  Add Shift_* to token values.
+   --  Add Shift_* to token values, set node_index.
 
    procedure Stream_Delete
      (Tree    : in out Syntax_Trees.Tree;
@@ -2151,8 +2168,8 @@ private
    is (Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node = Ref.Node);
 
    function Stack_Top
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID)
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID)
      return Stream_Index
    is ((Cur => Tree.Streams (Stream.Cur).Stack_Top));
 
