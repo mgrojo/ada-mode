@@ -1068,7 +1068,7 @@ package body Wisi is
       --  the parse tree. Insert_Token, Delete_Token have been called;
 
       if Trace_Action > Outline then
-         Data.Trace.Put_Line ("Tree.Root.line first, last:" & Image (Tree.Line_Region (Tree.Root)));
+         Data.Trace.Put_Line ("Tree.Root.line_region:" & Image (Tree.Line_Region (Tree.Root)));
          Data.Trace.Put_Line ("Tree.EOI.line:" & Tree.Line_Region (Tree.EOI).First'Image);
          Data.Trace.Put_Line ("Action_Region_Bytes: " & Image (Data.Action_Region_Bytes));
 
@@ -1642,7 +1642,7 @@ package body Wisi is
                               Suf_Cache : Face_Cache_Type renames Data.Face_Caches (Suffix_Cur);
                            begin
                               if Suffix = Suf_Cache.Class and
-                                Inside (Suf_Cache.Char_Region.First, Token_Char_Region)
+                                Contains (Token_Char_Region, Suf_Cache.Char_Region.First)
                               then
                                  Suf_Cache.Face := (True, Param.Suffix_Face);
                               end if;
@@ -2150,7 +2150,7 @@ package body Wisi is
       case Data.Post_Parse_Action is
       when Navigate =>
          for Cache of Data.Navigate_Caches loop
-            if Inside (Cache.Pos, Data.Action_Region_Chars) then
+            if Contains (Data.Action_Region_Chars, Cache.Pos) then
                Put (Cache);
             end if;
          end loop;
@@ -2178,16 +2178,28 @@ package body Wisi is
                  (First => Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.First_Index).Char_Region.First,
                   Last => Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.Last_Index).Char_Region.Last));
 
+            Leading_Non_Grammar_Line_Region : constant WisiToken.Line_Region :=
+              (if Tree.Leading_Non_Grammar.Length = 0
+               then Null_Line_Region
+               else
+                 (First => Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.First_Index).Line_Region.First,
+                  Last => Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.Last_Index).Line_Region.Last));
+
             function Find_Line (Char_Pos : in Buffer_Pos) return Line_Number_Type
             is begin
-               if Inside (Char_Pos, Leading_Non_Grammar_Char_Region) then
+               if Leading_Non_Grammar_Char_Region /= Null_Buffer_Region and then
+                 Char_Pos < Leading_Non_Grammar_Char_Region.First
+               then
+                  --  Char_Pos is in whitespace before first non_grammar token
+                  return Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.First_Index).Line_Region.First;
+
+               elsif Contains (Leading_Non_Grammar_Char_Region, Char_Pos) then
                   for Token of Tree.Leading_Non_Grammar loop
-                     if Char_Pos > Token.Char_Region.First then
+                     if Char_Pos >= Token.Char_Region.First then
                         return Token.Line_Region.First;
                      end if;
                   end loop;
                   raise SAL.Programmer_Error;
-
                else
                   declare
                      Node : constant Syntax_Trees.Node_Access := Tree.Find_Char_Pos
@@ -2221,7 +2233,12 @@ package body Wisi is
             end if;
 
             for Line in Action_Region_Lines.First .. Action_Region_Lines.Last loop
-               Put (Line, Data.Indents (Line));
+               if Contains (Leading_Non_Grammar_Line_Region, Line) then
+                  --  No indent computed for these lines
+                  Put (Line, (Int, Invalid_Line_Number, Data.Begin_Indent));
+               else
+                  Put (Line, Data.Indents (Line));
+               end if;
             end loop;
          end;
       end case;
@@ -2265,26 +2282,30 @@ package body Wisi is
       use all type Syntax_Trees.Node_Access;
       Descriptor  : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
-      function Safe_Pos (Token : in Syntax_Trees.Recover_Token) return Base_Buffer_Pos
+      function Safe_Pos_Image (Token : in Syntax_Trees.Recover_Token) return String
       is
-         Result : Base_Buffer_Pos := Tree.Name (Token).First;
+         Result : constant Base_Buffer_Pos := Tree.Name (Token).First;
       begin
          if Result = Invalid_Buffer_Pos then
-            Result := 0;
+            return "nil";
          end if;
-         return Result;
-      end Safe_Pos;
+         return Result'Image;
+      end Safe_Pos_Image;
 
-      function Safe_Pos (Token : in Syntax_Trees.Node_Access) return Base_Buffer_Pos
+      function Safe_Pos (Token : in Syntax_Trees.Node_Access) return Buffer_Pos
       is begin
          if Token = Syntax_Trees.Invalid_Node_Access then
-            return 0; --  elisp interprets this as invalid buffer pos, and it takes fewer bytes to transmit.
+            return Buffer_Pos'First;
          else
-            return Result : Base_Buffer_Pos := Tree.Char_Region (Token).First do
-               if Result = Invalid_Buffer_Pos then
-                  Result := 0;
+            declare
+               Result : constant Buffer_Region := Tree.Char_Region (Token);
+            begin
+               if Result = Null_Buffer_Region then
+                  return Buffer_Pos'First;
+               else
+                  return Result.First;
                end if;
-            end return;
+            end;
          end if;
       end Safe_Pos;
    begin
@@ -2305,8 +2326,8 @@ package body Wisi is
                  (case Item.Status.Label is
                   when Ok => "",
                   when Error =>
-                     Base_Buffer_Pos'Image (Safe_Pos (Item.Status.Begin_Name)) &
-                       Base_Buffer_Pos'Image (Safe_Pos (Item.Status.End_Name)) & " """ &
+                     Safe_Pos_Image (Item.Status.Begin_Name) &
+                       Safe_Pos_Image (Item.Status.End_Name) & " """ &
                        (case Error'(Item.Status.Label) is
                         when Missing_Name_Error => "missing",
                         when Extra_Name_Error => "extra",

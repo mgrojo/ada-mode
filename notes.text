@@ -51,19 +51,12 @@ save_text debug_edited.adb
 verbosity debug=1 action=3
 post_parse indent
 
-c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-interactive_1.adb:57: command: (progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body))
-c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-interactive_1.adb:63: error: (error: nil indent for line 62)
-    lexer.set_position off the other way
-
-
 log to file, not stdout; don't overload emacs process_io
 
 new_byte_pos redundant with old_byte_pos + shift
 insert_region.first redundant with delete_region.first + shift
 
 
-
-    parser_label doesn't start at 1 for inc parse
 
 build/test.log
 

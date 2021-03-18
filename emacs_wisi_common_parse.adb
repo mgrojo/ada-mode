@@ -313,7 +313,7 @@ package body Emacs_Wisi_Common_Parse is
                   Params : constant Parse_Params := Get_Parse_Params (Command_Line, Last);
                begin
                   if Ada.Strings.Unbounded.Length (Params.Source_File_Name) = 0 then
-                     raise Parse_Error with "no file name given";
+                     raise Wisi.Protocol_Error with "no file name given";
                   end if;
 
                   declare
@@ -486,26 +486,10 @@ package body Emacs_Wisi_Common_Parse is
 
                      Clean_Up;
                   exception
-                  when Parse_Context_Not_Found =>
-                     --  Tell Emacs to send full text
-                     Put_Line ("(file_not_found)");
-
-                  when Syntax_Error =>
+                  when others =>
                      Clean_Up;
-                     Put_Line ("(parse_error)");
-
-                  when E : Parse_Error =>
-                     Clean_Up;
-                     Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Message (E) & """)");
-
-                  when E : Fatal_Error =>
-                     Clean_Up;
-                     Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
+                     raise;
                   end;
-
-               exception
-               when E : Parse_Error =>
-                  Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Message (E) & """)");
                end;
 
             elsif Match ("post-parse") then
@@ -550,9 +534,6 @@ package body Emacs_Wisi_Common_Parse is
                when Parse_Context_Not_Found =>
                   --  Tell Emacs to send full text
                   Put_Line ("(file_not_found)");
-
-               when E : others =>
-                  Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
                end;
 
             elsif Match ("refactor") then
@@ -583,9 +564,6 @@ package body Emacs_Wisi_Common_Parse is
                when Parse_Context_Not_Found =>
                   --  Tell Emacs to send full text
                   Put_Line ("(file_not_found)");
-
-               when E : others => -- includes Fatal_Error
-                  Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
                end;
 
             elsif Match ("query-tree") then
@@ -619,9 +597,6 @@ package body Emacs_Wisi_Common_Parse is
                when Parse_Context_Not_Found =>
                   --  Tell Emacs to send full text
                   Put_Line ("(file_not_found)");
-
-               when E : others => -- includes Fatal_Error
-                  Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
                end;
 
             elsif Match ("save_text") then
@@ -654,9 +629,6 @@ package body Emacs_Wisi_Common_Parse is
                   Close (Save_File);
 
                   Put_Line ("(message ""text saved to '" & Save_File_Name & "'"")");
-               exception
-               when E : others => -- includes Fatal_Error
-                  Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
                end;
 
             elsif Match ("save_text_auto") then
@@ -685,9 +657,6 @@ package body Emacs_Wisi_Common_Parse is
                   Parse_Context.Save_Edited_Count     := 0;
 
                   Put_Line ("(message ""auto text save enabled, to '" & Save_File_Name & "_nnn'"")");
-               exception
-               when E : others => -- includes Fatal_Error
-                  Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
                end;
 
             elsif Match ("quit") then
@@ -697,9 +666,24 @@ package body Emacs_Wisi_Common_Parse is
                raise Wisi.Protocol_Error with  "invalid command: '" & Command_Line & "'";
             end if;
          exception
+         when Parse_Context_Not_Found =>
+            --  Tell Emacs to send full text
+            Put_Line ("(file_not_found)");
+
+         when Syntax_Error =>
+            Put_Line ("(parse_error)");
+
+         when E : Parse_Error =>
+            Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Message (E) & """)");
+
          when E : Wisi.Protocol_Error =>
             --  don't exit the loop; allow debugging bad elisp
             Put_Line ("(error ""protocol error " & Ada.Exceptions.Exception_Message (E) & """)");
+
+         when E : others => -- includes Fatal_Error
+            Put_Line
+              ("(error ""error: " & Ada.Exceptions.Exception_Name (E) & " : " &
+                 Ada.Exceptions.Exception_Message (E) & """)");
          end;
       end loop;
       Cleanup;

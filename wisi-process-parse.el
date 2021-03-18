@@ -489,10 +489,9 @@ one or more Query messages."
 	 (file-name (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")))
     ;; file-name can be nil during vc-resolve-conflict
 
-    (when (= 0 name-1-pos)
+    (when (= nil name-1-pos)
       (setq name-1-pos name-2-pos)
       (setq name-2-pos 0))
-
 
     (push (make-wisi--parse-error
 	   :pos (copy-marker name-1-pos)
@@ -834,15 +833,8 @@ one or more Query messages."
 		    (condition-case-unless-debug err
 			(wisi-process-parse--execute parser response)
 
-		      (wisi-parse-error
-		       (push (make-wisi--parse-error
-			      :pos (point)
-			      :message (cadr err))
-			     (wisi-parser-parse-errors parser))
-		       (signal (car err) (cdr err)))
-
 		      (error ;; ie from un-commented [C:\Windows\system32\KERNEL32.DLL], or bug in action code above.
-		       (error "parser failed"))
+		       (error "elisp processing of post-parse message failed"))
 		      ))
 		   )
 
@@ -1036,6 +1028,42 @@ one or more Query messages."
     (set-buffer log-buffer)
     (goto-char (point-min))
 
+    ;; get options from full parse line; we assume they don't change
+    (search-forward "parse 2" nil t)
+    (looking-at " \"\\([^\"]*\\)\" \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) [-0-9]+ [-0-9]+ [-0-9]+ \"\\([^\"]*\\)\"")
+    (let ((source-file (match-string 1))
+	  (verbosity (match-string 2))
+	  (mckenzie_task_count (match-string 3))
+	  (mckenzie_zombie_limit (match-string 4))
+	  (mckenzie_enqueue_limit (match-string 5))
+	  (parse_max_parallel (match-string 6))
+	  (language_param (match-string 7)))
+      (set-buffer cmd-buffer)
+
+      (insert "-- source file: " source-file "\n")
+      (insert "verbosity " verbosity "\n")
+
+      (when (or (not (string-equal mckenzie_task_count "-1"))
+		(not (string-equal mckenzie_zombie_limit "-1"))
+		(not (string-equal mckenzie_enqueue_limit "-1")))
+	(insert "mckenzie_options ")
+
+	(when (not (string-equal mckenzie_task_count "-1"))
+	  (insert "task_count=" mckenzie_task_count))
+
+	(when (not (string-equal mckenzie_zombie_limit "-1"))
+	  (insert "zombie_limit=" mckenzie_zombie_limit))
+
+	(when (not (string-equal mckenzie_enqueue_limit "-1"))
+	  (insert "enqueue_limit=" mckenzie_enqueue_limit))
+
+	;; parse-max-parallel is not available
+	(insert "\n"))
+
+      (insert "language_params " language_param "\n\n"))
+
+    (set-buffer log-buffer)
+    (goto-char (point-min))
     (while (search-forward "parse 1" nil t)
       ;; "((.*))" doesn't work here because it doesn't match newlines
       (search-forward-regexp "((")

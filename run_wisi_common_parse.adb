@@ -322,7 +322,8 @@ package body Run_Wisi_Common_Parse is
       use WisiToken; -- "+" unbounded
 
       type File_Command_Type is
-        (McKenzie_Options, Parse_Incremental, Post_Parse, Print_Tree, Refactor, Query_Tree, Save_Text, Verbosity);
+        (Language_Params, McKenzie_Options, Parse_Incremental, Post_Parse, Print_Tree, Refactor, Query_Tree, Save_Text,
+         Verbosity);
 
       Parser : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
 
@@ -335,6 +336,9 @@ package body Run_Wisi_Common_Parse is
         (Line (Line'First .. (if Last = 0 then Line'Last else Last)));
    begin
       case Command is
+      when Language_Params =>
+         Parse_Data.Parse_Language_Params (Line (Last + 1 .. Line'Last));
+
       when McKenzie_Options =>
          WisiToken.Parse.LR.Set_McKenzie_Options
            (Parser.Table.McKenzie_Param, Line (Last + 1 .. Line'Last));
