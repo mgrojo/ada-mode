@@ -2,7 +2,7 @@
 --
 --  A generic bounded doubly linked list with definite elements; no dynamic memory.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -139,7 +139,7 @@ private
 
       Nodes     : Node_Array_Type (1 .. Size);
       Free_List : Index_Array (1 .. Size);
-      Free_Last : Base_Peek_Type := 0;
+      Free_Last : Base_Peek_Type := 0; --  Append raises Container_Full if user does not call Initialize.
 
       Count : Ada.Containers.Count_Type := 0;
    end record;
