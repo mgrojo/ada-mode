@@ -374,12 +374,11 @@ package body WisiToken.Parse is
                end loop Unchanged_Loop;
             end if;
 
-            --  Scanning is needed if we are not at EOI, Inserted_Region ,
-            --  Inserted_Region is not empty and has not already been scanned, or
-            --  if the deleted region overlaps or is adjacent to a preceding or
-            --  following grammar or non-grammar token. Set Lex_Start_* to the
-            --  scan start position; the start of Terminal or in the preceding
-            --  non_grammar or whitespace.
+            --  Scanning is needed if Inserted_Region is not empty and has not
+            --  already been scanned, or if the deleted region overlaps or is
+            --  adjacent to a preceding or following grammar or non-grammar token.
+            --  Set Lex_Start_* to the scan start position; the start of Terminal
+            --  or in the preceding non_grammar or whitespace.
             --
             --  If two edit regions affect the same token, scanning the first will
             --  also scan the second.
@@ -400,9 +399,7 @@ package body WisiToken.Parse is
                --  EOI. Therefore the edit start is in Terminal, or in a non-grammar
                --  token or whitespace before Terminal. Terminal is not shifted.
 
-               if Tree.ID (Terminal.Node) /= Tree.Lexer.Descriptor.EOI_ID and
-                  Terminal_Byte_Region.Last + Shift_Bytes > Scanned_Byte_Pos
-               then
+               if Terminal_Byte_Region.Last + Shift_Bytes > Scanned_Byte_Pos then
 
                   if Terminal_Byte_Region.First + Shift_Bytes <= Inserted_Region.First or
                     Terminal_Byte_Region.First <= Deleted_Region.First -- FIXME: redundant

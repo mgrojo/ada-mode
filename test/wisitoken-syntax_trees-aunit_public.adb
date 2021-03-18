@@ -30,7 +30,8 @@ package body WisiToken.Syntax_Trees.AUnit_Public is
       elsif Expected = null then
          Standard.AUnit.Assertions.Assert (False, Label & ": access expected null, found non-null");
       else
-         WisiToken.Syntax_Trees.AUnit_Private.Check (Label, Computed.all, Expected.all, Parents => False);
+         WisiToken.Syntax_Trees.AUnit_Private.Check
+           (Label, Computed.all, Expected.all, Parents => False, Terminal_Node_Numbers => True);
       end if;
    end Check_Content;
 
@@ -60,16 +61,18 @@ package body WisiToken.Syntax_Trees.AUnit_Public is
       Parents         : in Boolean)
    is begin
       WisiToken.Syntax_Trees.AUnit_Private.Check
-        (Label, Computed_Tree, Computed_Stream, Expected_Tree, Expected_Stream, Check_Label, Parents);
+        (Label, Computed_Tree, Computed_Stream, Expected_Tree, Expected_Stream, Check_Label, Parents,
+         Terminal_Node_Numbers => True);
    end Check;
 
    procedure Check
-     (Label         : in String;
-      Computed      : in Tree;
-      Expected      : in Tree;
-      Shared_Stream : in Boolean)
+     (Label                 : in String;
+      Computed              : in Tree;
+      Expected              : in Tree;
+      Shared_Stream         : in Boolean;
+      Terminal_Node_Numbers : in Boolean)
    is begin
-      WisiToken.Syntax_Trees.AUnit_Private.Check (Label, Computed, Expected, Shared_Stream);
+      WisiToken.Syntax_Trees.AUnit_Private.Check (Label, Computed, Expected, Shared_Stream, Terminal_Node_Numbers);
    end Check;
 
    procedure Set_Parents_Set (Tree : in out Syntax_Trees.Tree; Parents_Set : in Boolean)

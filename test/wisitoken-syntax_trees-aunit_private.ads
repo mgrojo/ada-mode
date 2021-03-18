@@ -24,26 +24,29 @@ private package WisiToken.Syntax_Trees.AUnit_Private is
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Stream_Label);
 
    procedure Check
-     (Label    : in String;
-      Computed : in Node;
-      Expected : in Node;
-      Parents  : in Boolean);
-   --  Does not compare Augmented, Node_Index
+     (Label                 : in String;
+      Computed              : in Node;
+      Expected              : in Node;
+      Parents               : in Boolean;
+      Terminal_Node_Numbers : in Boolean);
+   --  Does not compare Augmented
 
    procedure Check
-     (Label           : in String;
-      Computed_Tree   : in Syntax_Trees.Tree;
-      Computed_Stream : in Stream_ID;
-      Expected_Tree   : in Syntax_Trees.Tree;
-      Expected_Stream : in Stream_ID;
-      Check_Label     : in Boolean;
-      Parents         : in Boolean);
+     (Label                 : in String;
+      Computed_Tree         : in Syntax_Trees.Tree;
+      Computed_Stream       : in Stream_ID;
+      Expected_Tree         : in Syntax_Trees.Tree;
+      Expected_Stream       : in Stream_ID;
+      Check_Label           : in Boolean;
+      Parents               : in Boolean;
+      Terminal_Node_Numbers : in Boolean);
 
    procedure Check
-     (Label         : in String;
-      Computed      : in Tree;
-      Expected      : in Tree;
-      Shared_Stream : in Boolean);
+     (Label                 : in String;
+      Computed              : in Tree;
+      Expected              : in Tree;
+      Shared_Stream         : in Boolean;
+      Terminal_Node_Numbers : in Boolean);
 
    procedure Set_Parents_Set (Tree : in out Syntax_Trees.Tree; Parents_Set : in Boolean);
 

@@ -38,13 +38,14 @@ package body Test_Incremental is
    Parser : WisiToken.Parse.LR.Parser.Parser;
 
    procedure Parse_Text
-     (Initial   : in String;
-      Edit_At   : in Integer;
-      Delete    : in String;
-      Insert    : in String;
-      Edit_2_At : in Integer := 0;
-      Delete_2  : in String  := "";
-      Insert_2  : in String  := "")
+     (Initial               : in String;
+      Edit_At               : in Integer;
+      Delete                : in String;
+      Insert                : in String;
+      Edit_2_At             : in Integer := 0;
+      Delete_2              : in String  := "";
+      Insert_2              : in String  := "";
+      Terminal_Node_Numbers : in Boolean := True)
    with Pre => Edit_2_At = 0 or Edit_2_At > Edit_At
    is
       use Ada.Text_IO;
@@ -222,7 +223,9 @@ package body Test_Incremental is
          Put_Tree (Parser.Tree);
       end if;
 
-      Check ("1", Parser.Tree, Edited_Tree_Batch, Shared_Stream => False);
+      Check ("1", Parser.Tree, Edited_Tree_Batch,
+             Shared_Stream => False,
+             Terminal_Node_Numbers => Terminal_Node_Numbers);
    exception
    when WisiToken.Syntax_Error =>
       if WisiToken.Trace_Tests > WisiToken.Outline then
@@ -486,29 +489,6 @@ package body Test_Incremental is
          Insert  => "EXIT");
    end Edit_Code_9;
 
-   procedure Edit_Code_10 (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      pragma Unreferenced (T);
-   begin
-      --  Mimic ada_mode-incremental_parse.adb first edit;
-      --  Edit_Tree erroneously deleted 'is' at 17.
-      Parse_Text
-        (Initial =>
-           "procedure Debug is" & ASCII.LF &
-             --      |10          |19
-             "-- comment to edit twice" & ASCII.LF &
-             -- |22     |30       |40
-             "function Func_1 (A : Integer) return Float is (Float (A));" & ASCII.LF &
-             --
-             "end Debug;",
-         Edit_At => 34,
-         Delete  => "edit",
-         Insert  => "exit",
-         Edit_2_At => 39,
-         Delete_2  => "twice",
-         Insert_2  => "twoce");
-   end Edit_Code_10;
-
    procedure Delete_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -569,13 +549,14 @@ package body Test_Incremental is
       --  Full parse uses error recovery to place missing return type.
       --  Incremental parse fixes the error.
       Parse_Text
-        (Initial =>
-           "function Func_1 (A : Integer) return " & ASCII.LF & -- missing "Integer"
-           --        |10       |20       |30
-           "is begin return 1; end;",
-         Edit_At => 38,
-         Delete  => "",
-         Insert  => "Integer");
+        (Initial               =>
+           "function Func_1 (A : Integer) return " & ASCII.LF &
+             --        |10       |20       |30
+             "is begin return 1; end;",
+         Edit_At               => 38,
+         Delete                => "",
+         Insert                => "Integer",
+         Terminal_Node_Numbers => False);
    end Recover_1;
 
    ----------
@@ -600,7 +581,6 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_7'Access, "Edit_Code_7");
       Register_Routine (T, Edit_Code_8'Access, "Edit_Code_8");
       Register_Routine (T, Edit_Code_9'Access, "Edit_Code_9");
-      Register_Routine (T, Edit_Code_10'Access, "Edit_Code_10");
       Register_Routine (T, Delete_New_Line'Access, "Delete_New_Line");
       Register_Routine (T, Insert_New_Line'Access, "Insert_New_Line");
       Register_Routine (T, Names'Access, "Names");

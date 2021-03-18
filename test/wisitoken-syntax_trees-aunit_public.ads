@@ -49,10 +49,11 @@ package WisiToken.Syntax_Trees.AUnit_Public is
       Parents         : in Boolean);
 
    procedure Check
-     (Label         : in String;
-      Computed      : in Tree;
-      Expected      : in Tree;
-      Shared_Stream : in Boolean);
+     (Label                 : in String;
+      Computed              : in Tree;
+      Expected              : in Tree;
+      Shared_Stream         : in Boolean;
+      Terminal_Node_Numbers : in Boolean);
 
    procedure Set_Parents_Set (Tree : in out Syntax_Trees.Tree; Parents_Set : in Boolean);
 

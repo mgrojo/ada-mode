@@ -26,10 +26,11 @@ with WisiToken.Syntax_Trees.AUnit_Public;
 package body WisiToken.Syntax_Trees.AUnit_Private is
 
    procedure Check
-     (Label    : in String;
-      Computed : in Node;
-      Expected : in Node;
-      Parents  : in Boolean)
+     (Label                 : in String;
+      Computed              : in Node;
+      Expected              : in Node;
+      Parents               : in Boolean;
+      Terminal_Node_Numbers : in Boolean)
    is
       use Standard.AUnit.Checks;
       use SAL.AUnit;
@@ -39,7 +40,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Check (Label & ".label", Computed.Label, Expected.Label);
       Check (Label & ".child_count", Computed.Child_Count, Expected.Child_Count);
       Check (Label & ".id", Computed.ID, Expected.ID);
-      if Computed.Node_Index > 0 then
+      if Terminal_Node_Numbers and Computed.Node_Index > 0 then
          Check (Label & ".node_index", Computed.Node_Index, Expected.Node_Index);
       end if;
       if Parents then
@@ -80,19 +81,20 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
             Check (Label & ".child." & Computed.Children (I).Node_Index'Image,
                    Computed.Children (I).all,
                    Expected.Children (I).all,
-                   Parents);
+                   Parents, Terminal_Node_Numbers);
          end loop;
       end case;
    end Check;
 
    procedure Check
-     (Label           : in String;
-      Computed_Tree   : in Syntax_Trees.Tree;
-      Computed_Stream : in Stream_ID;
-      Expected_Tree   : in Syntax_Trees.Tree;
-      Expected_Stream : in Stream_ID;
-      Check_Label     : in Boolean;
-      Parents         : in Boolean)
+     (Label                 : in String;
+      Computed_Tree         : in Syntax_Trees.Tree;
+      Computed_Stream       : in Stream_ID;
+      Expected_Tree         : in Syntax_Trees.Tree;
+      Expected_Stream       : in Stream_ID;
+      Check_Label           : in Boolean;
+      Parents               : in Boolean;
+      Terminal_Node_Numbers : in Boolean)
    is
       use SAL.AUnit;
       use Stream_Element_Lists;
@@ -124,7 +126,8 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
             Check (Label & " (" & Computed.Node.Node_Index'Image & ").node",
                    Computed.Node.all,
                    Expected.Node.all,
-                   Parents);
+                   Parents,
+                   Terminal_Node_Numbers);
             Check (Label & " (" & Computed.Node.Node_Index'Image & ").state", Computed.State, Expected.State);
          end;
 
@@ -135,10 +138,11 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
    end Check;
 
    procedure Check
-     (Label         : in String;
-      Computed      : in Tree;
-      Expected      : in Tree;
-      Shared_Stream : in Boolean)
+     (Label                 : in String;
+      Computed              : in Tree;
+      Expected              : in Tree;
+      Shared_Stream         : in Boolean;
+      Terminal_Node_Numbers : in Boolean)
    is
       use Standard.AUnit.Checks;
       use Lexer.AUnit.Token_Arrays_AUnit;
@@ -156,10 +160,11 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
          if Shared_Stream or Computed_Stream /= Computed.Shared_Stream.Cur then
             Check
               (Label & ".streams" & Computed.Streams (Computed_Stream).Label'Image,
-               Computed, (Cur => Computed_Stream),
-               Expected, (Cur => Expected_Stream),
-               Check_Label    => Shared_Stream,
-               Parents        => Computed_Stream = Computed.Shared_Stream.Cur);
+               Computed, (Cur        => Computed_Stream),
+               Expected, (Cur        => Expected_Stream),
+               Check_Label           => Shared_Stream,
+               Parents               => Computed_Stream = Computed.Shared_Stream.Cur,
+               Terminal_Node_Numbers => Terminal_Node_Numbers);
             --  Parents are only set in Shared_Stream
          end if;
          Next (Expected_Stream);
@@ -168,8 +173,12 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
 
       if Computed.Stream_Count = 0 and Computed.Root /= null then
          --  If stream_count > 0, root and EOI are in one of the streams.
-         Check (Label & ".root", Computed.Root.all, Expected.Root.all, Parents => True);
-         Check (Label & ".eoi", Computed.EOI.all, Expected.EOI.all, Parents => True);
+         Check (Label & ".root", Computed.Root.all, Expected.Root.all,
+                Parents => True,
+                Terminal_Node_Numbers => Terminal_Node_Numbers);
+         Check (Label & ".eoi", Computed.EOI.all, Expected.EOI.all,
+                Parents => True,
+                Terminal_Node_Numbers => Terminal_Node_Numbers);
       end if;
    end Check;
 

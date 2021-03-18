@@ -2390,9 +2390,9 @@ package body WisiToken.Syntax_Trees is
                  Non_Grammar  => Non_Grammar,
                  Augmented    => Augmented,
                  Image_Action => Image_Action) &
-              (if Ref.Node = Invalid_Node_Access
+              (if Ref.Node = Invalid_Node_Access or Element_Node.Label in Terminal_Label
                then ""
-               elsif Element_Node = Ref.Node and First_Terminal
+               elsif Element_Node.Label = Nonterm and Element_Node = Ref.Node and First_Terminal
                then ", " & Image
                  (Tree,
                   Tree.First_Terminal (Ref.Node),
