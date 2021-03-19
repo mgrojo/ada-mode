@@ -99,6 +99,10 @@ incremental parse
         non_grammar must store whitespace
             maybe add trailing_whitespace_bytes to each node
 
+    set sequential terminal node_index is not incremental
+        set them as needed in recover_init, thru resume_goal
+            add more when increase resume_goal on delete
+
     set_parents is not incremental
         store parents stack in stream_node_ref?
         does ebnf_to_bnf actually need parents?

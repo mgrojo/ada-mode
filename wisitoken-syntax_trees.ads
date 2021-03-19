@@ -989,12 +989,14 @@ package WisiToken.Syntax_Trees is
      return WisiToken.Buffer_Region;
 
    function Line_Region
-     (Tree                : in Syntax_Trees.Tree;
-      Node                : in Valid_Node_Access;
-      Include_Non_Grammar : in Boolean := True)
+     (Tree                 : in Syntax_Trees.Tree;
+      Node                 : in Valid_Node_Access;
+      Internal_Non_Grammar : in Boolean := True;
+      Trailing_Non_Grammar : in Boolean := True)
      return WisiToken.Line_Region;
-   --  Lines in Node. If Include_Non_Grammar, includes trailing
-   --  Non_Grammar. Null_Line_Region if Node is empty.
+   --  Lines in Node. If Internal_Non_Grammar, includes non_grammar on
+   --  all but final token. If Trailing_Non_Grammar, includes non_grammar
+   --  on final token. Null_Line_Region if Node is empty.
 
    function Column (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Ada.Text_IO.Count
    with Pre => Tree.Editable and Tree.Subtree_Root (Node) = Tree.Root;
@@ -1134,6 +1136,43 @@ package WisiToken.Syntax_Trees is
 
    function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Base_Identifier_Index
    with Pre => Tree.Is_Virtual_Identifier (Node);
+
+   function First_Source_Terminal
+     (Tree                : in Syntax_Trees.Tree;
+      Node                : in Valid_Node_Access;
+      Include_Non_Grammar : in Boolean)
+     return Node_Access;
+   --  If Include_Non_Grammar, return first node in subtree under Node
+   --  that is a Source_Terminal or a terminal with non-empty
+   --  Non_Grammar.
+   --
+   --  Otherwise, return first node in subtree under Node that is a
+   --  Source_Terminal.
+
+   function Last_Source_Terminal
+     (Tree                : in Syntax_Trees.Tree;
+      Node                : in Valid_Node_Access;
+      Include_Non_Grammar : in Boolean)
+     return Node_Access;
+   --  If Include_Non_Grammar, return last node in subtree under Node
+   --  that is a Source_Terminal or a terminal with non-empty
+   --  Non_Grammar.
+   --
+   --  Otherwise, return last node in subtree under Node that is a
+   --  Source_Terminal.
+
+   function Next_Source_Terminal
+     (Tree                : in Syntax_Trees.Tree;
+      Node                : in Valid_Node_Access;
+      Include_Non_Grammar : in Boolean)
+     return Node_Access
+   with Pre => Tree.Parents_Set;
+   --  If Include_Non_Grammar, return next node in Tree after Node
+   --  that is a Source_Terminal or a terminal with non-empty
+   --  Non_Grammar.
+   --
+   --  Otherwise, return next node in Tree after Node that is a
+   --  Source_Terminal.
 
    function First_Shared_Terminal
      (Tree : in Syntax_Trees.Tree;

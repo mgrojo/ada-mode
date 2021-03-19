@@ -401,9 +401,7 @@ package body WisiToken.Parse is
 
                if Terminal_Byte_Region.Last + Shift_Bytes > Scanned_Byte_Pos then
 
-                  if Terminal_Byte_Region.First + Shift_Bytes <= Inserted_Region.First or
-                    Terminal_Byte_Region.First <= Deleted_Region.First -- FIXME: redundant
-                  then
+                  if Terminal_Byte_Region.First + Shift_Bytes <= Inserted_Region.First then
                      --  Edit start is in Terminal.
 
                      if Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.EOI_ID then

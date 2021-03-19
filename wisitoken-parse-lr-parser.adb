@@ -476,7 +476,7 @@ package body WisiToken.Parse.LR.Parser is
                --  ada_mode-interactive_1.adb "for File_Name in File_Names loop"
                declare
                   use WisiToken.Syntax_Trees;
-                  Terminal : constant Node_Access := Shared_Parser.Tree.First_Terminal
+                  Terminal : constant Node_Access := Shared_Parser.Tree.Last_Terminal
                     (Parser_State.Current_Token.Node);
                begin
                   if Terminal /= Invalid_Node_Access and then
@@ -922,7 +922,7 @@ package body WisiToken.Parse.LR.Parser is
          Node : in     Syntax_Trees.Valid_Node_Access)
       is
          use all type Syntax_Trees.Node_Label;
-         Node_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Node);
+         Node_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Node, Include_Non_Grammar => True);
       begin
          if Tree.Label (Node) /= Nonterm or else
            not (Node_Byte_Region = Null_Buffer_Region or
@@ -931,36 +931,32 @@ package body WisiToken.Parse.LR.Parser is
             return;
          end if;
 
-         declare
-            Tree_Children : constant Syntax_Trees.Node_Access_Array := Tree.Children (Node);
-         begin
-            for Child of Tree_Children loop
-               if Child /= Syntax_Trees.Invalid_Node_Access then
-                  --  Child can be null in an edited tree
-                  Process_Node (Tree, Child);
-               end if;
-            end loop;
-
-            Parser.User_Data.Reduce (Tree, Node);
-            if Tree.Action (Node) /= null then
-               begin
-                  Tree.Action (Node) (Parser.User_Data.all, Tree, Node);
-               exception
-               when E : others =>
-                  if WisiToken.Debug_Mode then
-                     Parser.Trace.Put_Line
-                       (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-                     Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-                     Parser.Trace.New_Line;
-                  end if;
-
-                  raise WisiToken.Parse_Error with Tree.Error_Message
-                    (Node,
-                     "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
-                       Ada.Exceptions.Exception_Message (E));
-               end;
+         for Child of Tree.Children (Node) loop
+            if Child /= Syntax_Trees.Invalid_Node_Access then
+               --  Child can be null in an edited tree
+               Process_Node (Tree, Child);
             end if;
-         end;
+         end loop;
+
+         Parser.User_Data.Reduce (Tree, Node);
+         if Tree.Action (Node) /= null then
+            begin
+               Tree.Action (Node) (Parser.User_Data.all, Tree, Node);
+            exception
+            when E : others =>
+               if WisiToken.Debug_Mode then
+                  Parser.Trace.Put_Line
+                    (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+                  Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+                  Parser.Trace.New_Line;
+               end if;
+
+               raise WisiToken.Parse_Error with Tree.Error_Message
+                 (Node,
+                  "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
+                    Ada.Exceptions.Exception_Message (E));
+            end;
+         end if;
       end Process_Node;
 
    begin
