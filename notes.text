@@ -51,21 +51,32 @@ save_text debug_edited.adb
 verbosity debug=1 action=3
 post_parse indent
 
-log to file, not stdout; don't overload emacs process_io
+test/ada_mode-interactive_2.adb
+error: c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-interactive_2.adb:37:
+... result of '(progn (end-of-line 2)(forward-char -2)(insert ";")(wisi-indent-newline-indent) (current-column))' does not match.
+... Got    '5',
+... expect '27'
+    -462 (parameter_specification_7) is all virtual, inserted before 19:(RIGHT_PAREN, (1266 . 1266), (36, 36))
+        so parent (parameter_specification_list_1, (1246 . 1264), (35, 35)) doesn't include line 36
+        use following 19:(RIGHT_PAREN, (1266 . 1266), (36, 36)) to get line region?
+            done in compute_indenting
+            not enough
 
-new_byte_pos redundant with old_byte_pos + shift
-insert_region.first redundant with delete_region.first + shift
-
-
+    change ident_action_0 to check child.line_region against data.active_line_region
+        move following source_terminal code into tree.line_region.
+        don't store line_region in nodes; only in new_line non_grammar
 
 build/test.log
 
-Debug_parser_count abort on too many parsers
 
-test/ada_mode-conditional_expressions.adb
-    accidently insert 'g' at point-min
-        => syntax_trees assert fail
-        add to ada_mode-incremental_parse.adb
+delete new_line at end of comment so lots of code gets added to comment
+    delete_loop has to delete thru last_grammar_node.byte_region.last?
+
+delete code between leading_non_grammar and first comment
+
+log to file, not stdout; don't overload emacs process_io
+
+Debug_parser_count abort on too many parsers
 
 incremental parse
     wisi-show-errors show _all_ errors in buffer
@@ -86,7 +97,7 @@ incremental parse
         edit it?
 
     store shared_stream_index in parse stream element, for faster "continue search in shared_stream"
-        or just shard_stream_index for stack_top
+        or just shared_stream_index for stack_top
             may be broken down?
 
     nonterm node_ids are not unique

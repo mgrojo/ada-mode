@@ -231,48 +231,45 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	      (looking-at ".*$")
 	      (setq cmd-line (line-number-at-pos)
 		    last-cmd (match-string 0))
-	      (wisi-parse-log-message
-	       wisi--parser
-	       (format "%s:%d: test %s" (buffer-file-name) cmd-line last-cmd))
-	      (save-excursion
-		(setq last-result
-		      (condition-case-unless-debug err
-			  (eval (car (read-from-string last-cmd)))
-			(error
-			 (setq error-count (1+ error-count))
-			 (message "%s:%d: command: %s"
-				  (buffer-file-name) cmd-line last-cmd)
-			 (let ((msg (format "%s:%d: %s: %s"
-					    (buffer-file-name)
-					    (line-number-at-pos)
-					    (car err)
-					    (cdr err))))
+	      (let ((msg (format "%s:%d: test %s" (buffer-file-name) cmd-line last-cmd)))
+		(wisi-parse-log-message wisi--parser msg)
+		(message msg)
+		(save-excursion
+		  (setq last-result
+			(condition-case-unless-debug err
+			    (eval (car (read-from-string last-cmd)))
+			  (error
+			   (setq error-count (1+ error-count))
+			   (message msg)
+			   (setq msg (format "... %s: %s" (car err) (cdr err)))
 			   (wisi-parse-log-message wisi--parser msg)
-			   (message msg)))
-		      ))
+			   (message msg)
+			   nil)))
+		  ))
 		;; save-excursion does not preserve mapping of buffer to
 		;; window, but some tests depend on that. For example,
 		;; execute-kbd-macro doesn’t work properly if current buffer
 		;; is not visible..
-		(pop-to-buffer test-buffer)))
+		(pop-to-buffer test-buffer))
 
 	     ((string= (match-string 1) "RESULT")
 	      (looking-at ".*$")
 	      (setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
 	      (unless (equal expected-result last-result)
 		(setq error-count (1+ error-count))
-		(message
-		 (concat
-		  (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
-		  (format "Result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
-			  last-cmd
-			  last-result
-			  expected-result)
-		  ))))
+		(let ((msg (concat
+			    (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
+			    (format "... result of '%s' does not match.\n... Got    '%s',\n... expect '%s'"
+				    last-cmd
+				    last-result
+				    expected-result))))
+		  (wisi-parse-log-message wisi--parser msg)
+		  (message msg))))
 
 	     ((string= (match-string 1) "RESULT_START")
 	      (looking-at ".*$")
-	      (setq expected-result (list (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))))
+	      (setq expected-result
+		    (list (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))))
 
 	     ((string= (match-string 1) "RESULT_ADD")
 	      (looking-at ".*$")
@@ -284,6 +281,8 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	     ((string= (match-string 1) "RESULT_FINISH")
 	      (unless (equal (length expected-result) (length last-result))
 		(setq error-count (1+ error-count))
+		;; this is used for gpr-query tests, not parser tests,
+		;; so we don't write to the parser log.
 		(message
 		 (concat
 		  (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))

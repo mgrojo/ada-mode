@@ -1,4 +1,8 @@
---  Initial test for incremental parser
+-- Initial test for incremental parser
+
+-- Accidently type before comment on first line; used to crash
+--EMACSCMD:(progn (goto-char (point-min))(insert "g")(indent-for-tab-command))
+--EMACSCMD:(progn (goto-char (point-min))(delete-char 1))
 
 procedure Ada_Mode.Incremental_Parse
 is

@@ -290,7 +290,7 @@ package body Emacs_Wisi_Common_Parse is
                use Ada.Strings.Fixed;
             begin
                Last := Index (Source => Command_Line, Pattern => " ");
-               if Last = -1 then
+               if Last = 0 then
                   Last := Command_Line'Last;
                else
                   Last := Last - 1;
