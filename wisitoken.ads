@@ -358,6 +358,11 @@ package WisiToken is
 
    Null_Line_Region : constant Line_Region := (Line_Number_Type'Last, Line_Number_Type'First);
 
+   function Length (Region : in Line_Region) return Natural is
+     ((if Region.Last >= Region.First
+       then Natural (Region.Last - Region.First + 1)
+       else 0));
+
    function Image (Item : in Line_Region) return String;
    --  Ada positional aggregate.
 
@@ -365,6 +370,8 @@ package WisiToken is
 
    function Contains (Region : in Line_Region; Pos : in Base_Line_Number_Type) return Boolean
    is (Region.First <= Pos and Pos <= Region.Last);
+
+   function Overlaps (A, B : in Line_Region) return Boolean;
 
    type Insert_Location is (After_Prev, Between, Before_Next);
 

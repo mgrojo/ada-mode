@@ -2786,14 +2786,10 @@ package body WisiToken_Grammar_Editing is
             --  The traceback from a failed precondition is most useful
             raise;
          else
-            if Debug_Mode then
-               raise;
-            else
-               WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
-                 ("unhandled exception " & Ada.Exceptions.Exception_Name (E) & ": " &
-                    Ada.Exceptions.Exception_Message (E),
-                  Tree, Node);
-            end if;
+            WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+              ("unhandled exception " & Ada.Exceptions.Exception_Name (E) & ": " &
+                 Ada.Exceptions.Exception_Message (E),
+               Tree, Node);
          end if;
       end Process_Node;
 

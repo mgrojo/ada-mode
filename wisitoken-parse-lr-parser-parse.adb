@@ -164,6 +164,10 @@ begin
                      begin
                         if Op.Op = Insert and then Op.Ins_Before = Tree.Get_Node_Index (Next_Shared_Terminal.Node)
                         then
+                           --  We know Next_Shared_Terminal is the first terminal of
+                           --  Current_Token, and therefore we can insert before it. If it was
+                           --  embedded in a nonterm, that nonterm would have been broken down in
+                           --  order to shift the previous terminals.
                            Parser_State.Current_Token := Tree.Insert_Virtual_Terminal (Parser_State.Stream, Op.Ins_ID);
 
                            Op.Ins_Node := Parser_State.Current_Token.Node;
@@ -325,13 +329,9 @@ begin
                      --  assumption that an otherwise correct input should not yield an
                      --  ambiguous parse.
                      Current_Parser := Shared_Parser.Parsers.First;
-                     declare
-                        Node : constant Syntax_Trees.Node_Access := Shared_Parser.Tree.Get_Node
-                             (Current_Parser.Stream, Shared_Parser.Tree.Stream_Last (Current_Parser.Stream));
-                     begin
-                        raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
-                          (Node, "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
-                     end;
+                     raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
+                       (Current_Parser.State_Ref.Current_Token,
+                        "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
                   end if;
                end;
             end if;
@@ -581,7 +581,7 @@ begin
                            Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                         begin
                            raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
-                             (Parser_State.Shared_Token.Node,
+                             (Parser_State.Shared_Token,
                               "too many parallel parsers required in grammar state" &
                                 Shared_Parser.Tree.State (Current_Parser.Stream)'Image &
                                 "; simplify grammar, or increase max-parallel (" &

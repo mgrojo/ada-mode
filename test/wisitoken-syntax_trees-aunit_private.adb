@@ -59,17 +59,16 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       when Source_Terminal =>
          Check (Label & ".byte_region", Computed.Byte_Region, Expected.Byte_Region);
          Check (Label & ".char_region", Computed.Char_Region, Expected.Char_Region);
-         Check (Label & ".line_region", Computed.Line_Region, Expected.Line_Region);
          Lexer.AUnit.Token_Arrays_AUnit.Check (Label & ".non_grammar", Computed.Non_Grammar, Expected.Non_Grammar);
 
       when Virtual_Terminal =>
          Lexer.AUnit.Token_Arrays_AUnit.Check
-           (Label & ".non_grammar", Computed.VT_Non_Grammar, Expected.VT_Non_Grammar);
+           (Label & ".non_grammar", Computed.Non_Grammar, Expected.Non_Grammar);
 
       when Virtual_Identifier =>
          Check (Label & ".identifier", Computed.Identifier, Expected.Identifier);
          Lexer.AUnit.Token_Arrays_AUnit.Check
-           (Label & ".non_grammar", Computed.VI_Non_Grammar, Expected.VI_Non_Grammar);
+           (Label & ".non_grammar", Computed.Non_Grammar, Expected.Non_Grammar);
 
       when Nonterm =>
          Check (Label & ".virtual", Computed.Virtual, Expected.Virtual);

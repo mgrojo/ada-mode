@@ -33,6 +33,10 @@ update-wisitoken_grammar
  current work
 review fixme
 
+in parse stream, SOI = stream.elements.head = initial state, rest invalid
+    create an SOI node for that, store partial parse begin_line, begin_byte_pos.
+    need SOI_ID in parser generator, descriptor
+
 add %no_error_recover, instead of detecting mckenzie /= default
 
 move Execute_Actions to wisitoken.parse?

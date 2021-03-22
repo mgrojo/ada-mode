@@ -287,9 +287,11 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
             for Parser_State of Shared_Parser.Parsers loop
                if Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref then
-                  Parser_State.Shared_Token  := Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream);
+                  Parser_State.Shared_Token := Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream);
                else
-                  Shared_Parser.Tree.Next_Shared_Terminal (Parser_State.Shared_Token);
+                  --  We don't support incremental parse, so Shared_Token is a terminal;
+                  --  Stream_Next is the same as Next_Shared_Terminal.
+                  Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token);
                end if;
                Parser_State.Current_Token := Parser_State.Shared_Token;
             end loop;
@@ -310,7 +312,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                else
                   --  More than one parser is active; ambiguous parse.
                   raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
-                    (State.Current_Token.Node,
+                    (State.Current_Token,
                      "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
                end if;
             end;
@@ -382,7 +384,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                               Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                            begin
                               raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
-                                (Parser_State.Shared_Token.Node,
+                                (Parser_State.Shared_Token,
                                  ": too many parallel parsers required in grammar state" &
                                    Shared_Parser.Tree.State (Parser_State.Stream)'Image &
                                    "; simplify grammar, or increase max-parallel (" &

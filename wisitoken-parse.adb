@@ -416,7 +416,7 @@ package body WisiToken.Parse is
                         Lex_Start_Char := Buffer_Pos'Min
                           (Tree.Char_Region (Terminal.Node).First + Shift_Chars, Inserted_Region_Chars.First);
                         Lex_Start_Line := Line_Number_Type'Max
-                          (Line_Number_Type'First, Tree.Line_Region (Terminal.Node).First + Shift_Line);
+                          (Line_Number_Type'First, Tree.Line_Region (Terminal).First + Shift_Line);
                      end if;
 
                   else
@@ -435,7 +435,7 @@ package body WisiToken.Parse is
                               --  Edit start is in whitespace before Terminal
                               Lex_Start_Byte := Inserted_Region.First;
                               Lex_Start_Char := Inserted_Region_Chars.First;
-                              Lex_Start_Line := Tree.Line_Region (Terminal.Node).First + Shift_Line;
+                              Lex_Start_Line := Tree.Line_Region (Terminal).First + Shift_Line;
                            else
                               for I in Non_Grammar.First_Index .. Non_Grammar.Last_Index loop
                                  if Non_Grammar (I).Byte_Region.Last >= Inserted_Region.First then
@@ -481,7 +481,7 @@ package body WisiToken.Parse is
                                  --  Edit is in whitespace between last non_grammar and Terminal
                                  Lex_Start_Byte := Inserted_Region.First;
                                  Lex_Start_Char := Inserted_Region_Chars.First;
-                                 Lex_Start_Line := Tree.Line_Region (Terminal.Node).First + Shift_Line;
+                                 Lex_Start_Line := Tree.Line_Region (Terminal).First + Shift_Line;
                                  Do_Scan        := True;
                               end if;
                            end if;

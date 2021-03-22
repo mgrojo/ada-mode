@@ -43,6 +43,7 @@ package body Test_Partial_Parse is
       Parse_End_Byte_Pos : in WisiToken.Buffer_Pos;
       Action_ID          : in WisiToken.Token_ID)
    is
+      pragma Unreferenced (Begin_Line); --  See FIXME: below about SOI
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees;
 
@@ -74,7 +75,9 @@ package body Test_Partial_Parse is
 
             Check (Label & ".parse begin byte", Parser.Tree.Byte_Region (Node).First, Begin_Byte_Pos);
             Check (Label & ".parse begin char", Parser.Tree.Char_Region (Node).First, Begin_Char_Pos);
-            Check (Label & ".parse begin line", Parser.Tree.Line_Region (Node).First, Begin_Line);
+
+            --  FIXME: need to add SOI to parser generator, syntax_tree
+            --  Check (Label & ".parse begin line", Parser.Tree.Line_Region (Node).First, Begin_Line);
 
             Check
               (Label & ".parse end byte",
@@ -121,7 +124,7 @@ package body Test_Partial_Parse is
       use WisiToken;
       Partial_Text : String renames Text (Begin_Byte_Pos .. End_Byte_Pos);
    begin
-      if WisiToken.Trace_Parse > WisiToken.Outline then
+      if WisiToken.Trace_Tests > WisiToken.Outline then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line
            ("input: '" & Partial_Text & "'," &

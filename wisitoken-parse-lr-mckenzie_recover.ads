@@ -61,24 +61,30 @@ private
    --  The various Check subprograms raise Bad_Config for check fail, and
    --  there are no preconditions, so the checks are always performed.
 
-   type Peek_Shared_State is record
-      Current_Input_Stream_Element : Bounded_Streams.Cursor;
-      Current_Input_Stream_Node    : Syntax_Trees.Node_Access;
-      Input_Stream_Parents         : Syntax_Trees.Node_Stacks.Stack;
-      Current_Shared_Token         : Syntax_Trees.Terminal_Ref;
+   type Config_Stream_Parents (Stream : access constant Bounded_Streams.List) is
+   record
+      --  Like Syntax_Trees.Stream_Node_Parents, but using a Configuration
+      --  input stream.
+      Element : Bounded_Streams.Cursor;
+      Node    : Syntax_Trees.Node_Access;
+      Parents : Syntax_Trees.Node_Stacks.Stack;
+   end record;
+
+   type Peek_Shared_State (Stream : access constant Bounded_Streams.List) is record
+      Input_Terminal  : Config_Stream_Parents (Stream);
+      Shared_Terminal : Syntax_Trees.Stream_Node_Parents;
    end record;
 
    function Peek_Shared_Start
-     (Tree   : in     Syntax_Trees.Tree;
-      Config : in     Configuration)
+     (Tree   :         in Syntax_Trees.Tree;
+      Config : aliased in Configuration)
      return Peek_Shared_State;
 
    function Peek_Shared_Terminal (State : in Peek_Shared_State) return Syntax_Trees.Node_Access;
 
    procedure Peek_Next_Shared_Terminal
-     (Tree   : in     Syntax_Trees.Tree;
-      Config : in     Configuration;
-      State  : in out Peek_Shared_State);
+     (Tree  : in     Syntax_Trees.Tree;
+      State : in out Peek_Shared_State);
 
    procedure Check (ID : Token_ID; Expected_ID : in Token_ID)
    with Inline => True;
@@ -98,9 +104,9 @@ private
    --  Config.Input_Stream, so it can only be used to delete one token.
 
    procedure Delete_Check
-     (Tree   : in     Syntax_Trees.Tree;
-      Config : in out Configuration;
-      IDs    : in     Token_ID_Array);
+     (Tree   :         in     Syntax_Trees.Tree;
+      Config : aliased in out Configuration;
+      IDs    :         in     Token_ID_Array);
    --  Call Delete_Check for each ID in IDs, incrementing to the next
    --  token for each.
 

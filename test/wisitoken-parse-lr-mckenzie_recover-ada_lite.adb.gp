@@ -282,7 +282,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          then
             --  'exception' not found; case 1a - assume extra 'end ;'; delete it.
             declare
-               New_Config : Configuration := Config;
+               New_Config : aliased Configuration := Config;
             begin
                New_Config.Error_Token  := Invalid_Recover_Token;
                New_Config.User_Parse_Action_Status := (Label => Ok);

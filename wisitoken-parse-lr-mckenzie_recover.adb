@@ -195,7 +195,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             Trace.Put_Line (Shared_Parser.Tree.Image (Parser_State.Stream, Children => Trace_McKenzie > Extra));
             Trace.Put_Line ("shared stream:");
             Trace.Put_Line
-              (Shared_Parser.Tree.Image (Shared_Parser.Tree.Shared_Stream, Children => Trace_McKenzie > Extra));
+              (Shared_Parser.Tree.Image
+                 (Shared_Parser.Tree.Shared_Stream,
+                  Children => Trace_McKenzie > Extra,
+                  Non_Grammar => Trace_McKenzie > Extra));
          end if;
       end if;
 
@@ -762,42 +765,39 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    --  Spec private subprograms; for child packages. Declaration order
 
    function Peek_Shared_Start
-     (Tree   : in     Syntax_Trees.Tree;
-      Config : in     Configuration)
+     (Tree   :         in Syntax_Trees.Tree;
+      Config : aliased in Configuration)
      return Peek_Shared_State
    is begin
-      return State : Peek_Shared_State do
-         State.Current_Input_Stream_Element := Config.Input_Stream.First;
-         State.Current_Input_Stream_Node    := Parse.First_Shared_Terminal
-           (Tree, Config.Input_Stream, State.Input_Stream_Parents);
-         State.Current_Shared_Token         := Config.Current_Shared_Token;
+      return State : Peek_Shared_State (Config.Input_Stream'Access) do
+         Parse.First_Shared_Terminal (Tree, State.Input_Terminal);
+
+         State.Shared_Terminal := (Config.Current_Shared_Token, Parents => <>);
+         Tree.First_Shared_Terminal (State.Shared_Terminal);
       end return;
    end Peek_Shared_Start;
 
    function Peek_Shared_Terminal (State : in Peek_Shared_State) return Syntax_Trees.Node_Access
    is begin
-      if State.Current_Input_Stream_Node = Syntax_Trees.Invalid_Node_Access then
-         return State.Current_Shared_Token.Node;
+      if State.Input_Terminal.Node = Syntax_Trees.Invalid_Node_Access then
+         return State.Shared_Terminal.Ref.Node;
 
       else
-         return State.Current_Input_Stream_Node;
+         return State.Input_Terminal.Node;
       end if;
    end Peek_Shared_Terminal;
 
    procedure Peek_Next_Shared_Terminal
      (Tree   : in     Syntax_Trees.Tree;
-      Config : in     Configuration;
       State  : in out Peek_Shared_State)
    is
       use Syntax_Trees;
    begin
-      if State.Current_Input_Stream_Node = Invalid_Node_Access then
-         Tree.Next_Shared_Terminal (State.Current_Shared_Token);
+      if State.Input_Terminal.Node = Invalid_Node_Access then
+         Tree.Next_Shared_Terminal (State.Shared_Terminal);
 
       else
-         Parse.Next_Shared_Terminal
-           (Tree, Config.Input_Stream, State.Current_Input_Stream_Element, State.Current_Input_Stream_Node,
-            State.Input_Stream_Parents);
+         Parse.Next_Shared_Terminal (Tree, State.Input_Terminal);
       end if;
    end Peek_Next_Shared_Terminal;
 
@@ -844,15 +844,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Delete_Check;
 
    procedure Delete_Check
-     (Tree   : in     Syntax_Trees.Tree;
-      Config : in out Configuration;
-      IDs    : in     Token_ID_Array)
+     (Tree   :         in     Syntax_Trees.Tree;
+      Config : aliased in out Configuration;
+      IDs    :         in     Token_ID_Array)
    is
       State : Peek_Shared_State := Peek_Shared_Start (Tree, Config);
    begin
       for ID of IDs loop
          Delete_Check (Tree, Config, Peek_Shared_Terminal (State), ID);
-         Peek_Next_Shared_Terminal (Tree, Config, State);
+         Peek_Next_Shared_Terminal (Tree, State);
       end loop;
    end Delete_Check;
 
@@ -863,7 +863,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       ID         : in     Token_ID)
    is begin
       Delete_Check (Tree, Config, Peek_Shared_Terminal (Peek_State), ID);
-      Peek_Next_Shared_Terminal (Tree, Config, Peek_State);
+      Peek_Next_Shared_Terminal (Tree, Peek_State);
    end Delete_Check;
 
    procedure Do_Push_Back

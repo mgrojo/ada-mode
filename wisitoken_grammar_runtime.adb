@@ -237,13 +237,17 @@ package body WisiToken_Grammar_Runtime is
    when SAL.Programmer_Error =>
       raise;
    when E : others =>
-      declare
-         use Ada.Exceptions;
-      begin
-         WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
-           ("Get_RHS: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Token);
-         raise; -- WORKAROUND; GNAT pro_22.0w-20201222 ignores 'pragma no_return' on Raise_Programmer_Error
-      end;
+      if Debug_Mode then
+         raise;
+      else
+         declare
+            use Ada.Exceptions;
+         begin
+            WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+              ("Get_RHS: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Token);
+            raise; -- WORKAROUND; GNAT pro_22.0w-20201222 ignores 'pragma no_return' on Raise_Programmer_Error
+         end;
+      end if;
    end Get_RHS;
 
    procedure Get_Right_Hand_Sides

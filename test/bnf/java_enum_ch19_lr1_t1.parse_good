@@ -31,7 +31,7 @@ new Worker_Task 1
  0:  1, ( 0 0 1 0 0 0 0 0 0), (9 : (RIGHT_CURLY_BRACKET))|(-1, 6:(Wisi_EOI, (24 . 23)))|((INSERT, RIGHT_CURLY_BRACKET, 6))
 
 recover: succeed, parser count 1
- 0: stack (0, (0, 0:(-)), (1, 1:(LEFT_CURLY_BRACKET, (16 . 16))), (5, -10:(EnumConstantList, (18 . 21))), ^(8, 5:(COMMA, (22 . 22))))
+ 0: stack (0, (0, -), (1, 1:(LEFT_CURLY_BRACKET, (16 . 16))), (5, -10:(EnumConstantList, (18 . 21))), ^(8, 5:(COMMA, (22 . 22))))
     Current_Token: (0, -11:(RIGHT_CURLY_BRACKET))
     Shared_Token: (-1, 6:(Wisi_EOI, (24 . 23)))
     stream input: (0, (-1, -11:(RIGHT_CURLY_BRACKET)))
@@ -45,5 +45,5 @@ recover: succeed, parser count 1
  0: 2: (-1, 6:(Wisi_EOI, (24 . 23))) : accept it
 (wisitoken_accept_0, (16 . 22)) <= ((EnumBody, (16 . 22)))
  0: succeed
-java_enum_ch19.input:3:1: syntax error: expecting RIGHT_CURLY_BRACKET, IDENTIFIER, found ''
+java_enum_ch19.input:2:9: syntax error: expecting RIGHT_CURLY_BRACKET, IDENTIFIER, found ''
    recovered: ((INSERT, RIGHT_CURLY_BRACKET, 6))

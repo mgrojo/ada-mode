@@ -23,11 +23,8 @@ package body WisiToken.Syntax_Trees.LR_Utils is
       Tree      : in WisiToken.Syntax_Trees.Tree;
       Node      : in Node_Access)
    is begin
-      raise SAL.Programmer_Error with Error_Message
-        (Tree.Lexer.File_Name,
-         --  FIXME: Not clear why we need Line + 1 here, to match Emacs.
-         Line    => Tree.Line_Region (Node).First + 1,
-         Column  => Tree.Column (Node),
+      raise SAL.Programmer_Error with Tree.Error_Message
+        (Node,
          Message => Label & ": " &
            Tree.Image (Node, Children => True, RHS_Index => True, Node_Numbers => True));
    end Raise_Programmer_Error;

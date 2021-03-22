@@ -176,18 +176,18 @@ new Worker_Task 1
  1:  3, ( 0 0 1 0 0 0 0 0 0), (1 : (LBRACE))|(-1, 22:(IDENTIFIER, (150 . 152)))|((INSERT, LBRACE, 22))
 
 recover: succeed, parser count 3
- 6: stack (6, (0, 0:(-)), (1, 1:(LBRACE, (1 . 1))), (10, -47:(statement_list, (3 . 97))), (3, 18:(LPAREN, (142 . 142))), (13, -49:(expression, (143 . 145))), ^(20, 20:(RPAREN, (146 . 146))))
+ 6: stack (6, (0, -), (1, 1:(LBRACE, (1 . 1))), (10, -47:(statement_list, (3 . 97))), (3, 18:(LPAREN, (142 . 142))), (13, -49:(expression, (143 . 145))), ^(20, 20:(RPAREN, (146 . 146))))
     Current_Token: (6, -51:(SEMI))
     Shared_Token: (-1, 22:(IDENTIFIER, (150 . 152)))
     stream input: (6, (-1, -51:(SEMI)))
     recover_insert_delete:((DELETE, 25:SEMI), (DELETE, 26:RBRACE))
     resume_active: True, token goal 30, inc_shared_stream_token: FALSE
- 5: stack (5, (0, 0:(-)), (1, 1:(LBRACE, (1 . 1))), (10, -47:(statement_list, (3 . 97))), (3, 18:(LPAREN, (142 . 142))), (12, -48:(classOrInterfaceType, (143 . 145))), ^(19, 20:(RPAREN, (146 . 146))))
+ 5: stack (5, (0, -), (1, 1:(LBRACE, (1 . 1))), (10, -47:(statement_list, (3 . 97))), (3, 18:(LPAREN, (142 . 142))), (12, -48:(classOrInterfaceType, (143 . 145))), ^(19, 20:(RPAREN, (146 . 146))))
     Current_Token: (-1, 22:(IDENTIFIER, (150 . 152)))
     Shared_Token: (-1, 22:(IDENTIFIER, (150 . 152)))
     recover_insert_delete:((DELETE, 25:SEMI), (DELETE, 26:RBRACE))
     resume_active: True, token goal 30, inc_shared_stream_token: TRUE
- 1: stack (1, (0, 0:(-)), (1, 1:(LBRACE, (1 . 1))), (10, -47:(statement_list, (3 . 97))), (9, -50:(lambdaParameters, (142 . 146))), ^(15, 21:(ARROW, (147 . 148))))
+ 1: stack (1, (0, -), (1, 1:(LBRACE, (1 . 1))), (10, -47:(statement_list, (3 . 97))), (9, -50:(lambdaParameters, (142 . 146))), ^(15, 21:(ARROW, (147 . 148))))
     Current_Token: (1, -52:(LBRACE))
     Shared_Token: (-1, 22:(IDENTIFIER, (150 . 152)))
     stream input: (1, (-1, -52:(LBRACE)))

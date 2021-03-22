@@ -208,9 +208,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    end Peek_Current_Token_ID;
 
    procedure Current_Token_ID_Peek_3
-     (Tree         : in     Syntax_Trees.Tree;
-      Config       : in     Configuration;
-      Tokens       :    out Token_ID_Array_1_3)
+     (Tree   :         in     Syntax_Trees.Tree;
+      Config : aliased in     Configuration;
+      Tokens :            out Token_ID_Array_1_3)
    --  Return the current token from Config in Tokens (1). Return the two
    --  following tokens in Tokens (2 .. 3).
    is
@@ -252,7 +252,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                      Tokens (Tokens_Last) := ID (Op);
 
                   when Delete =>
-                     Peek_Next_Shared_Terminal (Tree, Config, Peek_State);
+                     Peek_Next_Shared_Terminal (Tree, Peek_State);
                   end case;
 
                   Current_Insert_Delete := @ + 1;
@@ -271,7 +271,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          exit when Tokens (Tokens_Last) = Tree.Lexer.Descriptor.EOI_ID or Tokens_Last = 3;
 
          if Inc_Shared_Token then
-            Peek_Next_Shared_Terminal (Tree, Config, Peek_State);
+            Peek_Next_Shared_Terminal (Tree, Peek_State);
          end if;
       end loop;
 
@@ -324,24 +324,52 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    is
       use Bounded_Streams;
       use Syntax_Trees;
-      Parents : Node_Stacks.Stack;
    begin
       if Config.Input_Stream.First = No_Element then
-         return Tree.First_Shared_Terminal (Tree.Shared_Stream, Config.Current_Shared_Token.Element, Parents).Node;
+         return Tree.First_Shared_Terminal (Tree.Shared_Stream, Config.Current_Shared_Token.Element).Node;
 
       else
          declare
-            Result : constant Node_Access := First_Shared_Terminal (Tree, Config.Input_Stream, Parents);
+            Ref : Config_Stream_Parents (Config.Input_Stream'Access);
          begin
-            if Result /= Invalid_Node_Access then
-               return Result;
+            First_Shared_Terminal (Tree, Ref);
+            if Ref.Node /= Invalid_Node_Access then
+               return Ref.Node;
             else
                return Tree.First_Shared_Terminal
-                 (Tree.Shared_Stream, Config.Current_Shared_Token.Element, Parents).Node;
+                 (Tree.Shared_Stream, Config.Current_Shared_Token.Element).Node;
             end if;
          end;
       end if;
    end Peek_Current_First_Shared_Terminal;
+
+   procedure First_Shared_Terminal
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Config_Stream_Parents)
+   is
+      use Bounded_Streams;
+      use Syntax_Trees;
+   begin
+      Ref.Element := Ref.Stream.First;
+      Ref.Node    := Invalid_Node_Access;
+
+      Outer :
+      loop
+         exit Outer when not Has_Element (Ref.Element);
+
+         Ref.Node := Tree.First_Terminal (Ref.Stream.Element (Ref.Element), Ref.Parents);
+
+         Inner :
+         loop
+            exit Inner when Ref.Node = Invalid_Node_Access;
+            exit Outer when Tree.Get_Node_Index (Ref.Node) > 0;
+
+            Tree.Next_Terminal (Ref.Node, Ref.Parents);
+         end loop Inner;
+
+         Ref.Stream.Next (Ref.Element);
+      end loop Outer;
+   end First_Shared_Terminal;
 
    function First_Terminal
      (Tree   : in Syntax_Trees.Tree;
@@ -364,85 +392,90 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       return Node;
    end First_Terminal;
 
-   function First_Shared_Terminal
-     (Tree           : in     Syntax_Trees.Tree;
-      Stream         : in     Bounded_Streams.List;
-      Stream_Parents : in out Syntax_Trees.Node_Stacks.Stack)
-     return Syntax_Trees.Node_Access
+   procedure First_Terminal
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Config_Stream_Parents)
    is
       use Bounded_Streams;
       use Syntax_Trees;
-      Cur  : Cursor      := Stream.First;
-      Node : Node_Access := Invalid_Node_Access;
    begin
+      Ref.Element := Ref.Stream.First;
+      loop
+         exit when not Has_Element (Ref.Element);
+
+         Ref.Node := Tree.First_Terminal (Ref.Stream.all (Ref.Element));
+         exit when Ref.Node /= Invalid_Node_Access;
+
+         Ref.Stream.Next (Ref.Element);
+      end loop;
+   end First_Terminal;
+
+   procedure Last_Shared_Terminal
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Config_Stream_Parents)
+   is
+      use Bounded_Streams;
+      use Syntax_Trees;
+   begin
+      Ref.Element := Ref.Stream.Last;
+      Ref.Node    := Invalid_Node_Access;
+
       Outer :
       loop
-         exit Outer when not Has_Element (Cur);
+         exit Outer when not Has_Element (Ref.Element);
 
-         Node := Tree.First_Terminal (Stream (Cur), Stream_Parents);
+         Ref.Node := Tree.Last_Shared_Terminal (Ref.Stream.all (Ref.Element), Ref.Parents);
 
-         Inner :
-         loop
-            exit Inner when Node = Invalid_Node_Access;
-            exit Outer when Tree.Get_Node_Index (Node) > 0;
-
-            Node := Tree.Next_Terminal (Node, Stream_Parents);
-         end loop Inner;
-
-         Stream.Next (Cur);
+         Ref.Stream.Previous (Ref.Element);
       end loop Outer;
-      return Node;
-   end First_Shared_Terminal;
+   end Last_Shared_Terminal;
+
+   function First_Input_Shared_Terminal
+     (Tree   :         in Syntax_Trees.Tree;
+      Config : aliased in Configuration)
+     return Syntax_Trees.Node_Access
+   is
+      Ref : Config_Stream_Parents (Config.Input_Stream'Access);
+   begin
+      First_Shared_Terminal (Tree, Ref);
+      return Ref.Node;
+   end First_Input_Shared_Terminal;
 
    procedure Next_Shared_Terminal
-     (Tree         : in     Syntax_Trees.Tree;
-      Stream       : in     Bounded_Streams.List;
-      Element_Node : in out Bounded_Streams.Cursor;
-      Node         : in out Syntax_Trees.Node_Access;
-      Parents      : in out Syntax_Trees.Node_Stacks.Stack)
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Config_Stream_Parents)
    is
       use Bounded_Streams;
    begin
-      if Tree.Has_Parent (Node) then
-         Node := Tree.Next_Shared_Terminal (Node);
-      else
-         Node := Tree.Next_Shared_Terminal (Node, Parents);
-      end if;
+      Tree.Next_Shared_Terminal (Ref.Node, Ref.Parents);
 
       loop
-         exit when Node /= Syntax_Trees.Invalid_Node_Access;
-         Element_Node := Next (Stream, Element_Node);
-         if Element_Node = No_Element then
-            Node := Syntax_Trees.Invalid_Node_Access;
+         exit when Ref.Node /= Syntax_Trees.Invalid_Node_Access;
+         Ref.Element := Ref.Stream.Next (Ref.Element);
+         if Ref.Element = No_Element then
+            Ref.Node := Syntax_Trees.Invalid_Node_Access;
             exit;
          end if;
-         Node := Tree.First_Shared_Terminal (Element (Stream, Element_Node), Parents);
+         Ref.Node := Tree.First_Shared_Terminal (Ref.Stream.all (Ref.Element), Ref.Parents);
       end loop;
    end Next_Shared_Terminal;
 
    procedure Prev_Shared_Terminal
-     (Tree         : in     Syntax_Trees.Tree;
-      Stream       : in     Bounded_Streams.List;
-      Element_Node : in out Bounded_Streams.Cursor;
-      Node         : in out Syntax_Trees.Node_Access;
-      Parents      : in out Syntax_Trees.Node_Stacks.Stack)
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Config_Stream_Parents)
    is
       use Bounded_Streams;
    begin
-      if Tree.Has_Parent (Node) then
-         Node := Tree.Prev_Shared_Terminal (Node);
-      else
-         Node := Tree.Prev_Shared_Terminal (Node, Parents);
-      end if;
+      Tree.Prev_Shared_Terminal (Ref.Node, Ref.Parents);
 
       loop
-         exit when Node /= Syntax_Trees.Invalid_Node_Access;
-         Element_Node := Previous (Stream, Element_Node);
-         if Element_Node = No_Element then
-            Node := Syntax_Trees.Invalid_Node_Access;
+         exit when Ref.Node /= Syntax_Trees.Invalid_Node_Access;
+         Ref.Element := Ref.Stream.Previous (Ref.Element);
+         if Ref.Element = No_Element then
+            Ref.Node := Syntax_Trees.Invalid_Node_Access;
             exit;
          end if;
-         Node := Tree.Last_Shared_Terminal (Element (Stream, Element_Node), Parents);
+         Ref.Node := Tree.Last_Shared_Terminal (Ref.Stream.all (Ref.Element), Ref.Parents);
       end loop;
    end Prev_Shared_Terminal;
 
@@ -450,31 +483,36 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
      (Tree   : in     Syntax_Trees.Tree;
       Config : in out Configuration)
    is
+      use Syntax_Trees;
       use all type Bounded_Streams.Cursor;
    begin
       if Config.Input_Stream.First = Bounded_Streams.No_Element then
-         Tree.Next_Shared_Terminal (Config.Current_Shared_Token);
-
-      else
-         loop
-            declare
-               use Syntax_Trees;
-
-               Next_Node : constant Valid_Node_Access := Config.Input_Stream (Config.Input_Stream.First);
-            begin
-               exit when Tree.Label (Next_Node) in Terminal_Label;
-
-               if Tree.First_Terminal (Next_Node) = Invalid_Node_Access then
-                  --  Next_Node = Input_Stream.First is an empty nonterm.
-                  Config.Input_Stream.Delete_First;
-               else
-                  Breakdown (Tree, Config.Input_Stream);
-               end if;
-            end;
-         end loop;
-
-         Config.Input_Stream.Delete_First;
+         if Tree.Label (Config.Current_Shared_Token.Element) in Terminal_Label then
+            Tree.Stream_Next (Config.Current_Shared_Token);
+            return;
+         else
+            --  Current_Shared_Token needs Breakdown; move it to Config.Input_Stream.
+            Config.Input_Stream.Append
+              (Tree.Get_Node (Config.Current_Shared_Token.Stream, Config.Current_Shared_Token.Element));
+         end if;
       end if;
+
+      loop
+         declare
+            Next_Node : constant Valid_Node_Access := Config.Input_Stream (Config.Input_Stream.First);
+         begin
+            exit when Tree.Label (Next_Node) in Terminal_Label;
+
+            if Tree.First_Terminal (Next_Node) = Invalid_Node_Access then
+               --  Next_Node = Input_Stream.First is an empty nonterm.
+               Config.Input_Stream.Delete_First;
+            else
+               Breakdown (Tree, Config.Input_Stream);
+            end if;
+         end;
+      end loop;
+
+      Config.Input_Stream.Delete_First;
    end Do_Delete;
 
    function Get_Current_Token
@@ -552,10 +590,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    end Get_Current_Token;
 
    procedure Next_Token
-     (Tree                    : in     Syntax_Trees.Tree;
-      Config                  : in out Configuration;
-      Inc_Shared_Stream_Token : in     Boolean;
-      Inc_Input_Stream_Token  : in     Boolean)
+     (Tree                    :         in     Syntax_Trees.Tree;
+      Config                  : aliased in out Configuration;
+      Inc_Shared_Stream_Token :         in     Boolean;
+      Inc_Input_Stream_Token  :         in     Boolean)
    --  Increment the appropriate "current token" index in Config.
    --  Inc_*_Token are from Get_Current_Token.
    is
@@ -569,10 +607,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          Clear (Config.Insert_Delete);
       else
          declare
-            Parents : Syntax_Trees.Node_Stacks.Stack;
             Next_Node : constant Syntax_Trees.Valid_Node_Access :=
               (if Config.Input_Stream.First /= Bounded_Streams.No_Element
-               then First_Shared_Terminal (Tree, Config.Input_Stream, Parents)
+               then First_Input_Shared_Terminal (Tree, Config)
                else Config.Current_Shared_Token.Node);
          begin
             if Config.Current_Insert_Delete /= No_Insert_Delete and then
@@ -732,7 +769,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                            Image (Config.Insert_Delete, Descriptor));
             end if;
             if Config.Input_Stream.Length > 0 then
-               Put_Line (Trace, Trace_Prefix & ": input_stream: " & LR.Image (Config.Input_Stream, Tree));
+               Put_Line (Trace, Tree, Super.Stream (Parser_Index), Trace_Prefix & ": input_stream: " &
+                           LR.Image (Config.Input_Stream, Tree));
             end if;
          end if;
 
@@ -816,7 +854,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                      if Trace_McKenzie > Outline then
                         Base.Put (Trace_Prefix & ": Unknown_State: ", Super, Parser_Index, Config);
                         Put_Line
-                          (Trace, Trace_Prefix & ": stack: " & LR.Image (Config.Stack, Tree));
+                          (Trace, Tree, Super.Stream (Parser_Index), Trace_Prefix & ": stack: " &
+                             LR.Image (Config.Stack, Tree));
                      end if;
 
                      --  We can't just return False here; user must abandon this config.

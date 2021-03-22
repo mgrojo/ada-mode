@@ -274,37 +274,46 @@ package body WisiToken.Parse.LR.Parser is
                when Partial_Parse =>
                   if Parser_State.Resume_Active or Shared_Parser.Parsers.Count > 1 then
                      --  Wait until there is one parser not in resume.
-                     null;
+                     if Trace_Parse > Outline then
+                        Trace.Put_Line (" ... partial parse done, waiting for other parsers");
+                     end if;
                   else
-                     --  Insert EOI on parse stream and Shared_Stream.
-                     declare
-                        Last_Token_Byte_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Byte_Region
-                          (Parser_State.Current_Token.Node).Last;
-                        Last_Token_Char_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Char_Region
-                          (Parser_State.Current_Token.Node).Last;
-                        Last_Token_Line_Region_Last : constant Line_Number_Type := Shared_Parser.Tree.Line_Region
-                          (Parser_State.Current_Token.Node).Last;
+                     if Trace_Parse > Outline then
+                        Trace.Put_Line (" ... partial parse done");
+                     end if;
 
-                        EOI_Token : constant Lexer.Token :=
-                          (ID          => Shared_Parser.Tree.Lexer.Descriptor.EOI_ID,
-                           Byte_Region =>
-                             (First    => Last_Token_Byte_Region_Last + 1,
-                              Last     => Last_Token_Byte_Region_Last),
-                           Char_Region =>
-                             (First    => Last_Token_Char_Region_Last + 1,
-                              Last     => Last_Token_Char_Region_Last),
-                           Line_Region => (First | Last => Last_Token_Line_Region_Last));
-                     begin
-                        if Shared_Parser.Tree.ID (Parser_State.Current_Token.Node) /=
-                          Shared_Parser.Tree.Lexer.Descriptor.EOI_ID
-                        then
+                     --  Insert EOI on Shared_Stream, and on Parse_Stream as Accept_It does
+                     if Shared_Parser.Tree.ID (Parser_State.Current_Token.Node) /=
+                       Shared_Parser.Tree.Lexer.Descriptor.EOI_ID
+                     then
+                        declare
+                           Last_Token_Byte_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Byte_Region
+                             (Parser_State.Current_Token.Node).Last;
+                           Last_Token_Char_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Char_Region
+                             (Parser_State.Current_Token.Node).Last;
+                           Last_Token_Line_Region_Last : constant Line_Number_Type := Shared_Parser.Tree.Line_Region
+                             (Parser_State.Current_Token).Last;
+
+                           EOI_Token : constant Lexer.Token :=
+                             (ID          => Shared_Parser.Tree.Lexer.Descriptor.EOI_ID,
+                              Byte_Region =>
+                                (First    => Last_Token_Byte_Region_Last + 1,
+                                 Last     => Last_Token_Byte_Region_Last),
+                              Char_Region =>
+                                (First    => Last_Token_Char_Region_Last + 1,
+                                 Last     => Last_Token_Char_Region_Last),
+                              Line_Region => (First | Last => Last_Token_Line_Region_Last));
+                        begin
                            Parser_State.Current_Token := Shared_Parser.Tree.Insert_Source_Terminal
                              (Shared_Parser.Tree.Shared_Stream,
                               Terminal => EOI_Token,
                               Index    => Shared_Parser.Tree.Get_Node_Index (Parser_State.Current_Token.Node) + 1,
                               Before   => Shared_Parser.Tree.Stream_Next (Parser_State.Current_Token).Element);
-                        end if;
-                     end;
+                        end;
+                     end if;
+
+                     Shared_Parser.Tree.Finish_Parse
+                       (Parser_State.Stream, Parser_State.Current_Token.Element, Shared_Parser.User_Data);
                      raise;
                   end if;
                end;
@@ -701,6 +710,18 @@ package body WisiToken.Parse.LR.Parser is
          Parser_State.Clear_Stream;
       end;
 
+      if Trace_Action > Extra then
+         Parser.Trace.Put_Line
+           (Parser.Tree.Image
+              (Children     => True,
+               Non_Grammar  => True,
+               Augmented    => True,
+               Line_Numbers => False));
+         Parser.Trace.Put_Line
+           ("recover_insert_delete: " & Image (Parser_State.Recover_Insert_Delete, Parser.Tree));
+         Parser.Trace.New_Line;
+      end if;
+
       declare
          --  Clear Recover_Op Stream_ID, Stream_Index, compute
          --  recover_op.Del_After_Node.
@@ -922,7 +943,7 @@ package body WisiToken.Parse.LR.Parser is
          Node : in     Syntax_Trees.Valid_Node_Access)
       is
          use all type Syntax_Trees.Node_Label;
-         Node_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Node, Include_Non_Grammar => True);
+         Node_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Node, Trailing_Non_Grammar => True);
       begin
          if Tree.Label (Node) /= Nonterm or else
            not (Node_Byte_Region = Null_Buffer_Region or

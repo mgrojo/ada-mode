@@ -189,7 +189,7 @@ package body WisiToken.Lexer.re2c is
       Char_Position : Natural;
       Char_Length   : Natural;
       Line          : Line_Number_Type;
-      --  Position and length in bytes and characters of last token from
+      --  Position and length in bytes and characters of token from
       --  start of Managed.Buffer, 1 indexed.
 
       procedure Build_Token
@@ -219,6 +219,10 @@ package body WisiToken.Lexer.re2c is
                else
                  (To_Char_Pos (Lexer.Source, Char_Position),
                   To_Char_Pos (Lexer.Source, Char_Position + Char_Length - 1))));
+
+         if ID = Lexer.Descriptor.New_Line_ID then
+            Token.Line_Region.Last := @ + 1;
+         end if;
       end Build_Token;
 
    begin

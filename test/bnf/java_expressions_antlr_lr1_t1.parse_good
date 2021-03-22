@@ -18,13 +18,13 @@ spawn parser 1 from 0 (2 active)
  0:  1, ( 0 0 3 0 0 0 0 0 0), (57 : (RPAREN))|(-1, 3:(Wisi_EOI, (59 . 58)))|((INSERT, LPAREN, 3), (INSERT, RPAREN, 3), (INSERT, RPAREN, 3))
 
 recover: succeed, parser count 2
- 1: stack (1, (0, 0:(-)), (7, 1:(LPAREN, (55 . 55))), ^(28, 2:(IDENTIFIER, (56 . 56))))
+ 1: stack (1, (0, -), (7, 1:(LPAREN, (55 . 55))), ^(28, 2:(IDENTIFIER, (56 . 56))))
     Current_Token: (1, -4:(RPAREN))
     Shared_Token: (-1, 3:(Wisi_EOI, (59 . 58)))
     stream input: (1, (-1, -4:(RPAREN)))
     recover_insert_delete:
     resume_active: True, token goal 7, inc_shared_stream_token: FALSE
- 0: stack (0, (0, 0:(-)), (7, 1:(LPAREN, (55 . 55))), ^(28, 2:(IDENTIFIER, (56 . 56))))
+ 0: stack (0, (0, -), (7, 1:(LPAREN, (55 . 55))), ^(28, 2:(IDENTIFIER, (56 . 56))))
     Current_Token: (0, -5:(LPAREN))
     Shared_Token: (-1, 3:(Wisi_EOI, (59 . 58)))
     stream input: (0, (-1, -5:(LPAREN)))
@@ -65,5 +65,5 @@ recover: succeed, parser count 2
 (wisitoken_accept_0, (55 . 56)) <= ((expression, (55 . 56)))
  0: terminate (1 active): recover cost/length (-1, 3:(Wisi_EOI, (59 . 58)))
  1: succeed
-java_expressions_antlr.input:3:1: syntax error: expecting LPAREN, RPAREN, LBRACK, DOT, INC, DEC, ADD, SUB, MUL, DIV, MOD, found ''
+java_expressions_antlr.input:2:5: syntax error: expecting LPAREN, RPAREN, LBRACK, DOT, INC, DEC, ADD, SUB, MUL, DIV, MOD, found ''
    recovered: ((INSERT, RPAREN, 3))

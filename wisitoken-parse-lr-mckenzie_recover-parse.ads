@@ -48,9 +48,9 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  In Parse because it has similar code to Current_Token.
 
    procedure Current_Token_ID_Peek_3
-     (Tree   : in     Syntax_Trees.Tree;
-      Config : in     Configuration;
-      Tokens :    out Token_ID_Array_1_3)
+     (Tree   :         in     Syntax_Trees.Tree;
+      Config : aliased in     Configuration;
+      Tokens :            out Token_ID_Array_1_3)
    with Post => (for all Tok of Tokens => Tok = Invalid_Token_ID or else Is_Terminal (Tok, Tree.Lexer.Descriptor.all));
    --  Return the current terminal token from Config in Tokens (1).
    --  Return the two following terminal tokens in Tokens (2 .. 3). In
@@ -81,25 +81,32 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Stream : in Bounded_Streams.List)
      return Syntax_Trees.Node_Access;
 
-   function First_Shared_Terminal
-     (Tree           : in     Syntax_Trees.Tree;
-      Stream         : in     Bounded_Streams.List;
-      Stream_Parents : in out Syntax_Trees.Node_Stacks.Stack)
+   procedure First_Terminal
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Config_Stream_Parents);
+
+   procedure First_Shared_Terminal
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Config_Stream_Parents);
+
+   procedure Last_Shared_Terminal
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Config_Stream_Parents);
+
+   function First_Input_Shared_Terminal
+     (Tree   :         in Syntax_Trees.Tree;
+      Config : aliased in Configuration)
      return Syntax_Trees.Node_Access;
 
    procedure Next_Shared_Terminal
-     (Tree         : in     Syntax_Trees.Tree;
-      Stream       : in     Bounded_Streams.List;
-      Element_Node : in out Bounded_Streams.Cursor;
-      Node         : in out Syntax_Trees.Node_Access;
-      Parents      : in out Syntax_Trees.Node_Stacks.Stack);
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Config_Stream_Parents)
+   with Pre => Bounded_Streams.Has_Element (Ref.Element) and Ref.Node /= Syntax_Trees.Invalid_Node_Access;
 
    procedure Prev_Shared_Terminal
-     (Tree         : in     Syntax_Trees.Tree;
-      Stream       : in     Bounded_Streams.List;
-      Element_Node : in out Bounded_Streams.Cursor;
-      Node         : in out Syntax_Trees.Node_Access;
-      Parents      : in out Syntax_Trees.Node_Stacks.Stack);
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Config_Stream_Parents)
+   with Pre => Bounded_Streams.Has_Element (Ref.Element) and Ref.Node /= Syntax_Trees.Invalid_Node_Access;
 
    procedure Breakdown
      (Tree   : in     Syntax_Trees.Tree;
@@ -122,7 +129,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  Delete Config Current_Token. Does not append to Config.Ops.
 
    type Parse_Item is record
-      Config      : Configuration;
+      Config      : aliased Configuration;
       Action      : Parse_Action_Node_Ptr;
       Parsed      : Boolean := False;
       Shift_Count : Natural := 0;

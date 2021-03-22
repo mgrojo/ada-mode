@@ -656,7 +656,7 @@ package WisiToken.Parse.LR is
       --  incremental parse, may be a any Terminal_Label in a nonterm (ie
       --  from error correction in a previous parse).
 
-      Input_Stream : Bounded_Streams.List (20);
+      Input_Stream : aliased Bounded_Streams.List (20);
       --  Holds tokens copied from Shared_Stream when Push_Back operations
       --  are performed, or added by Insert. Delete may be applied to these,
       --  which requires that nonterms be broken down (similar to
