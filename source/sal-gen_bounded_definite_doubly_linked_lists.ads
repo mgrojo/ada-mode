@@ -78,6 +78,10 @@ package SAL.Gen_Bounded_Definite_Doubly_Linked_Lists is
 
    function Next (Container : in List; Position : in Cursor) return Cursor
    with Pre => Has_Element (Position);
+
+   procedure Previous (Container : in List; Position : in out Cursor)
+   with Pre => Has_Element (Position);
+
    function Previous (Container : in List; Position : in Cursor) return Cursor
    with Pre => Has_Element (Position);
 
@@ -145,7 +149,7 @@ private
    end record;
 
    type Cursor is record
-      Ptr : Base_Peek_Type; -- index of Node in List.Nodes
+      Ptr : Base_Peek_Type := Invalid_Peek_Index; -- index of Node in List.Nodes
    end record;
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is
