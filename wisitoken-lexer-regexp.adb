@@ -153,6 +153,11 @@ package body WisiToken.Lexer.Regexp is
       return Handle (New_Lexer);
    end New_Lexer;
 
+   overriding function Has_Source (Lexer : access constant Instance) return Boolean
+   is begin
+      return Has_Source (Lexer.Source);
+   end Has_Source;
+
    overriding procedure Finalize (Object : in out Instance)
    is begin
       Finalize (Object.Source);

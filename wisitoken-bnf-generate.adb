@@ -308,8 +308,6 @@ begin
       raise;
    end;
 
-   Grammar_Parser.Tree.Clear_Parse_Streams;
-
    declare
       use all type Ada.Strings.Unbounded.Unbounded_String;
       use Ada.Text_IO;

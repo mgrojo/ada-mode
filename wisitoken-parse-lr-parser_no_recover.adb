@@ -114,10 +114,6 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
               (Shared_Parser.Tree.Shared_Stream, Parser_State.Current_Token.Element) =
               Shared_Parser.Tree.Lexer.Descriptor.EOI_ID);
 
-         --  Insert EOI so parse stream matches Shared_Stream; Stack_Top is wisitoken_accept.
-         Shared_Parser.Tree.Finish_Parse
-           (Parser_State.Stream, Parser_State.Current_Token.Element, Shared_Parser.User_Data);
-
       when Error =>
          Current_Parser.Set_Verb (Action.Verb);
 
@@ -291,7 +287,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                else
                   --  We don't support incremental parse, so Shared_Token is a terminal;
                   --  Stream_Next is the same as Next_Shared_Terminal.
-                  Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token);
+                  Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
                end if;
                Parser_State.Current_Token := Parser_State.Shared_Token;
             end loop;

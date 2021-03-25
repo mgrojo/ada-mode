@@ -56,6 +56,7 @@ package WisiToken.Lexer.Regexp is
       Syntax     : in WisiToken.Lexer.Regexp.Syntax)
      return WisiToken.Lexer.Handle;
 
+   overriding function Has_Source (Lexer : access constant Instance) return Boolean;
    overriding procedure Finalize (Object : in out Instance);
    overriding procedure Reset_With_String
      (Lexer      : in out Instance;

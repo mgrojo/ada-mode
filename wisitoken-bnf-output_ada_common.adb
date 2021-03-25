@@ -133,6 +133,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("Last_Terminal     =>" & WisiToken.Token_ID'Image (Descriptor.Last_Terminal) & ",");
       Indent_Line ("First_Nonterminal =>" & WisiToken.Token_ID'Image (Descriptor.First_Nonterminal) & ",");
       Indent_Line ("Last_Nonterminal  =>" & WisiToken.Token_ID'Image (Descriptor.Last_Nonterminal) & ",");
+      Indent_Line ("SOI_ID            =>" & WisiToken.Token_ID'Image (Descriptor.SOI_ID) & ",");
       Indent_Line ("EOI_ID            =>" & WisiToken.Token_ID'Image (Descriptor.EOI_ID) & ",");
       Indent_Line ("Accept_ID         =>" & WisiToken.Token_ID'Image (Descriptor.Accept_ID) & ",");
       Indent_Line ("Case_Insensitive  => " & Image (Input_Data.Language_Params.Case_Insensitive) & ",");
@@ -150,7 +151,7 @@ package body WisiToken.BNF.Output_Ada_Common is
             Put ("new String'(""" & (Name (Generate_Data, Cursor)));
             Paren_Done := True;
          end if;
-         Next (Generate_Data, Cursor, Nonterminals => True);
+         Next (Generate_Data, Cursor, Nonterminals => True, Include_SOI => True);
          if Is_Done (Cursor) then
             Put_Line (""")),");
          else
@@ -180,7 +181,7 @@ package body WisiToken.BNF.Output_Ada_Common is
                Put (To_Token_Ada_Name (Name (Generate_Data, Cursor)));
                Paren_Done := True;
             end if;
-            Next (Generate_Data, Cursor, Nonterminals => True);
+            Next (Generate_Data, Cursor, Nonterminals => True, Include_SOI => True);
             if Is_Done (Cursor) then
                Put_Line (");");
             else

@@ -68,7 +68,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
      (Tree   : in Syntax_Trees.Tree;
       Config : in Configuration)
      return Syntax_Trees.Valid_Node_Access;
-   --  First_Terminal from Config.Shared_Token or Config.Input_Stream.
+   --  First_Terminal from Shared_Stream starting at Config.Shared_Token, or Config.Input_Stream.
 
    function Peek_Current_First_Shared_Terminal
      (Tree   : in Syntax_Trees.Tree;
@@ -80,6 +80,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Bounded_Streams.List)
      return Syntax_Trees.Node_Access;
+   --  Return first terminal in Stream; Invalid_Node_Access if none.
 
    procedure First_Terminal
      (Tree : in     Syntax_Trees.Tree;

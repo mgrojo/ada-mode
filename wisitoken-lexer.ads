@@ -87,12 +87,17 @@ package WisiToken.Lexer is
 
    type Handle is access all Class;
 
+   function Has_Source (Lexer : access constant Instance) return Boolean
+   is (False);
+   --  True if one of Reset_* has been called; lexer has source to process.
+
    procedure Reset_With_String
      (Lexer      : in out Instance;
       Input      : in     String;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
-     is abstract;
+   is abstract
+   with Post'Class => Lexer.Has_Source;
    --  Reset Lexer to start a new parse, reading from Input.
 
    procedure Reset_With_String_Access
@@ -101,7 +106,8 @@ package WisiToken.Lexer is
       File_Name  : in     Ada.Strings.Unbounded.Unbounded_String;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
-     is abstract;
+   is abstract
+   with Post'Class => Lexer.Has_Source;
    --  Reset Lexer to start a new parse, reading from Input. Input'First
    --  is Begin_Byte. File_Name is used for error messages.
 
@@ -112,14 +118,17 @@ package WisiToken.Lexer is
       End_Byte   : in     Buffer_Pos       := Invalid_Buffer_Pos;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
-     is abstract;
+   is abstract
+   with Post'Class => Lexer.Has_Source;
    --  Reset Lexer to start a new parse, reading from File_Name. If
    --  Begin_Pos, End_Pos /= Invalid_Buffer_Pos, only parse that portion
    --  of the file.
    --
    --  Raises Ada.IO_Exceptions.Name_Error if File_Name cannot be opened.
 
-   procedure Reset (Lexer : in out Instance) is abstract;
+   procedure Reset (Lexer : in out Instance) is abstract
+   with Pre'Class => Lexer.Has_Source,
+     Post'Class => Lexer.Has_Source;
    --  Reset Lexer, read from previous source.
 
    procedure Discard_Rest_Of_Input (Lexer : in out Instance) is abstract;
@@ -177,7 +186,8 @@ package WisiToken.Lexer is
       Begin_Byte :    out Buffer_Pos;
       Begin_Char :    out Buffer_Pos;
       Begin_Line :    out Line_Number_Type)
-   is abstract;
+   is abstract
+   with Pre'Class => Lexer.Has_Source;
    --  Return values from Reset*.
 
 private
@@ -188,9 +198,9 @@ private
       File_Name : Ada.Strings.Unbounded.Unbounded_String;
       --  Not saved in Mapped_File, may be empty for String_Label
 
-      Buffer_Nominal_First_Byte : Buffer_Pos;
-      Buffer_Nominal_First_Char : Buffer_Pos;
-      Line_Nominal_First        : Line_Number_Type;
+      Buffer_Nominal_First_Byte : Buffer_Pos       := Invalid_Buffer_Pos;
+      Buffer_Nominal_First_Char : Buffer_Pos       := Invalid_Buffer_Pos;
+      Line_Nominal_First        : Line_Number_Type := Invalid_Line_Number;
 
       case Label is
       when String_Label =>
@@ -215,6 +225,9 @@ private
 
    procedure Finalize (Object : in out Source);
 
+   function Has_Source (Object : in Source) return Boolean;
+
+   --  True if one of Reset_* has been called; lexer has source to process.
    function Buffer_Region_Byte (Object : in Source) return Buffer_Region;
 
    function Buffer (Source : in Lexer.Source) return GNATCOLL.Mmap.Str_Access;

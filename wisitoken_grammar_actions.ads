@@ -29,6 +29,7 @@ package Wisitoken_Grammar_Actions is
       Last_Terminal     => 38,
       First_Nonterminal => 39,
       Last_Nonterminal  => 59,
+      SOI_ID            => 60,
       EOI_ID            => 38,
       Accept_ID         => 39,
       Case_Insensitive  => False,
@@ -95,7 +96,8 @@ package Wisitoken_Grammar_Actions is
          new String'("rhs_multiple_item"),
          new String'("rhs_alternative_list"),
          new String'("compilation_unit"),
-         new String'("compilation_unit_list")),
+         new String'("compilation_unit_list"),
+         new String'("Wisi_SOI")),
       Terminal_Image_Width => 17,
       Image_Width          => 25,
       Last_Lookahead       => 39);
@@ -160,7 +162,8 @@ package Wisitoken_Grammar_Actions is
       rhs_multiple_item_ID,
       rhs_alternative_list_ID,
       compilation_unit_ID,
-      compilation_unit_list_ID);
+      compilation_unit_list_ID,
+      Wisi_SOI_ID);
 
    type Token_Enum_ID_Array is array (Positive range <>) of Token_Enum_ID;
    use all type WisiToken.Token_ID;

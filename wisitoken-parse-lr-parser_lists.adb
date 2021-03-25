@@ -62,8 +62,8 @@ package body WisiToken.Parse.LR.Parser_Lists is
    begin
       if Tree.Has_Input (Parser_State.Stream) then
          declare
-            Result : Stream_Node_Parents := (Tree.First_Input (Parser_State.Stream), Parents => <>);
-            pragma Assert (Tree.Rooted (Result.Ref);
+            Result : Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents
+              (Tree.First_Input (Parser_State.Stream));
          begin
             Tree.First_Shared_Terminal (Result);
             if Result.Ref /= Invalid_Stream_Node_Ref then
@@ -74,7 +74,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       --  No next shared token in Parser_State.Stream input
 
       declare
-         Ref : Stream_Node_Parents := (Parser_State.Shared_Token, Parents => <>);
+         Ref : Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents (Parser_State.Shared_Token);
       begin
          Tree.First_Shared_Terminal (Ref);
          return Ref.Ref;
@@ -88,16 +88,11 @@ package body WisiToken.Parse.LR.Parser_Lists is
    is
       use Syntax_Trees;
    begin
-      if Parser_State.Shared_Token = Invalid_Stream_Node_Ref then
-         return Tree.First_Shared_Terminal (Tree.Stream_First (Tree.Shared_Stream));
-      end if;
-
       if Tree.Has_Input (Parser_State.Stream) then
          declare
-            Result : Stream_Node_Parents;
+            Result : Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents
+              (Tree.First_Input (Parser_State.Stream));
          begin
-            Result.Ref := Tree.First_Input (Parser_State.Stream);
-
             if Result.Ref /= Invalid_Stream_Node_Ref then
                Tree.First_Shared_Terminal (Result);
 
@@ -110,10 +105,13 @@ package body WisiToken.Parse.LR.Parser_Lists is
 
       --  No next shared token in Parser_State.Stream input
       declare
-         Result : Stream_Node_Parents := (Parser_State.Shared_Token, Parents => <>);
-         --  Shared_Token is a Rooted_Ref, Parents is correct here
+         Result : Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents (Parser_State.Shared_Token);
       begin
-         if Parser_State.Inc_Shared_Stream_Token then
+         if Parser_State.Shared_Token = Invalid_Stream_Node_Ref then
+            Result.Ref := Tree.Stream_First (Tree.Shared_Stream);
+            Tree.First_Shared_Terminal (Result);
+
+         elsif Parser_State.Inc_Shared_Stream_Token then
             Tree.Next_Shared_Terminal (Result);
          else
             Tree.First_Shared_Terminal (Result);
@@ -162,7 +160,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
 
       else
          if Parser_State.Inc_Shared_Stream_Token or Delete then
-            Tree.Stream_Next (Parser_State.Shared_Token);
+            Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
          end if;
       end if;
 

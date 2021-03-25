@@ -212,7 +212,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  here). Therefore Parser_State current token is in
       --  Shared_Parser.Shared_Token.
 
-      Config.Current_Shared_Token := Shared_Parser.Tree.First_Terminal (Parser_State.Shared_Token);
+      Config.Current_Shared_Token := Shared_Parser.Tree.First_Terminal_In_Node (Parser_State.Shared_Token);
 
       case Error.Label is
       when LR_Parse_Action =>
@@ -772,7 +772,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       return State : Peek_Shared_State (Config.Input_Stream'Access) do
          Parse.First_Shared_Terminal (Tree, State.Input_Terminal);
 
-         State.Shared_Terminal := (Config.Current_Shared_Token, Parents => <>);
+         State.Shared_Terminal := Syntax_Trees.To_Stream_Node_Parents (Config.Current_Shared_Token);
          Tree.First_Shared_Terminal (State.Shared_Terminal);
       end return;
    end Peek_Shared_Start;

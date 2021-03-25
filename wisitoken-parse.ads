@@ -66,9 +66,10 @@ package WisiToken.Parse is
    --
    --  Propagates Fatal_Error from Lexer.
 
-   procedure Lex_All (Parser : in out Base_Parser'Class);
-   --  Clear Line_Begin_Token, Last_Grammar_Node; reset User_Data. Then
-   --  call Next_Grammar_Token repeatedly until EOF_ID is returned,
+   procedure Lex_All (Parser : in out Base_Parser'Class)
+   with Pre => Parser.Tree.Cleared;
+   --  Call Tree.Start_Lex, clear Last_Grammar_Node; reset User_Data.
+   --  Then call Next_Grammar_Token repeatedly until EOF_ID is returned,
    --  storing all tokens in Parser.Tree.Shared_Stream.
    --
    --  The user must first call Lexer.Reset_* to set the input text.
@@ -118,7 +119,7 @@ package WisiToken.Parse is
    procedure Edit_Tree
      (Parser : in out Base_Parser'Class;
       Edits  : in     KMN_Lists.List)
-   with Pre => Parser.Tree.Fully_Parsed or Parser.Tree.Editable,
+   with Pre => Parser.Tree.Editable,
      Post => Parser.Tree.Stream_Count = 1;
    --  Assumes Parser.Lexer.Source has changed in a way reflected in
    --  Edits. Uses Edits to direct editing Parser.Tree to reflect lexing

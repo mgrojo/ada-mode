@@ -158,7 +158,6 @@ package body Test_Incremental is
 
       Parser.Parse (Log_File);
 
-      Parser.Tree.Clear_Parse_Streams;
       Parser.Tree.Copy_Tree (Edited_Tree_Batch, User_Data'Access);
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
@@ -172,8 +171,6 @@ package body Test_Incremental is
       Parser.Tree.Lexer.Reset_With_String (Initial);
 
       Parser.Parse (Log_File);
-
-      Parser.Tree.Clear_Parse_Streams;
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
          Put_Tree (Parser.Tree);
@@ -216,7 +213,6 @@ package body Test_Incremental is
       end if;
 
       Parser.Parse (Log_File, Edits);
-      Parser.Tree.Clear_Parse_Streams;
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
          Put_Line ("incremental parse result:");

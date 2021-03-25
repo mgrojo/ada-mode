@@ -88,6 +88,8 @@ package WisiToken.Lexer.re2c is
    --  If the tokens do not include a reporting New_Line token, set
    --  New_Line_ID to Invalid_Token_ID.
 
+   overriding function Has_Source (Lexer : access constant Instance) return Boolean;
+
    overriding procedure Reset_With_String
      (Lexer      : in out Instance;
       Input      : in     String;

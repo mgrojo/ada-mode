@@ -157,7 +157,7 @@ package body WisiToken.Parse.LR.Parser is
                         Tree.Stream_Delete (Parser_State.Current_Token.Stream, Parser_State.Current_Token.Element);
                         Parser_State.Current_Token := Tree.First_Input (Parser_State.Stream);
                      else
-                        Tree.Stream_Next (Parser_State.Shared_Token);
+                        Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
                         Parser_State.Current_Token := Parser_State.Shared_Token;
                      end if;
 
@@ -282,7 +282,7 @@ package body WisiToken.Parse.LR.Parser is
                         Trace.Put_Line (" ... partial parse done");
                      end if;
 
-                     --  Insert EOI on Shared_Stream, and on Parse_Stream as Accept_It does
+                     --  Insert EOI on Shared_Stream
                      if Shared_Parser.Tree.ID (Parser_State.Current_Token.Node) /=
                        Shared_Parser.Tree.Lexer.Descriptor.EOI_ID
                      then
@@ -312,8 +312,6 @@ package body WisiToken.Parse.LR.Parser is
                         end;
                      end if;
 
-                     Shared_Parser.Tree.Finish_Parse
-                       (Parser_State.Stream, Parser_State.Current_Token.Element, Shared_Parser.User_Data);
                      raise;
                   end if;
                end;
@@ -351,10 +349,6 @@ package body WisiToken.Parse.LR.Parser is
             Parser_State.Zombie_Token_Count := 1;
          end case;
 
-         --  Insert EOI so parse stream matches Shared_Stream; Stack_Top is wisitoken_accept.
-         Shared_Parser.Tree.Finish_Parse
-           (Parser_State.Stream, Parser_State.Current_Token.Element, Shared_Parser.User_Data);
-
       when Error =>
          Parser_State.Set_Verb (Action.Verb);
 
@@ -369,8 +363,9 @@ package body WisiToken.Parse.LR.Parser is
                 First_Terminal => Expecting'First,
                 Last_Terminal  => Expecting'Last,
 
-                Error_Token => Shared_Parser.Tree.First_Terminal (Parser_State.Current_Token),
-                --  Current_Token is never an empty nonterm
+                Error_Token => Shared_Parser.Tree.First_Terminal_In_Node (Parser_State.Current_Token),
+                --  Current_Token is never an empty nonterm; it would be broken down
+                --  to nothing if it was not shiftable.
 
                 Expecting => Expecting,
                 Recover   => (others => <>)));
@@ -520,9 +515,19 @@ package body WisiToken.Parse.LR.Parser is
                end;
             else
                if Parser_State.Shared_Token /= Syntax_Trees.Invalid_Stream_Node_Ref then
-                  Min_Shared_Node_Index := Syntax_Trees.Node_Index'Min
-                    (@, Shared_Parser.Tree.Get_Node_Index
-                       (Shared_Parser.Tree.First_Shared_Terminal (Parser_State.Shared_Token).Node));
+                  declare
+                     use Syntax_Trees;
+                     First_Terminal : constant Node_Access := Shared_Parser.Tree.First_Shared_Terminal
+                       (Parser_State.Shared_Token.Node);
+                  begin
+                     if First_Terminal /= Invalid_Node_Access then
+                        Min_Shared_Node_Index := Syntax_Trees.Node_Index'Min
+                          (@, Shared_Parser.Tree.Get_Node_Index (First_Terminal));
+                     else
+                        --  No terminal in Shared_Token, so node_index does not advance
+                        null;
+                     end if;
+                  end;
                end if;
             end if;
 
@@ -561,12 +566,18 @@ package body WisiToken.Parse.LR.Parser is
          end loop;
       else
          for Parser_State of Shared_Parser.Parsers loop
-            if Parser_State.Shared_Token /= Syntax_Trees.Invalid_Stream_Node_Ref and then
-              (Parser_State.Verb = Shift and Min_Shared_Node_Index /=
-                 Shared_Parser.Tree.Get_Node_Index
-                   (Shared_Parser.Tree.First_Shared_Terminal (Parser_State.Shared_Token).Node))
-            then
-               Parser_State.Set_Verb (Pause);
+            if Parser_State.Verb = Shift and Parser_State.Shared_Token /= Syntax_Trees.Invalid_Stream_Node_Ref then
+               declare
+                  use Syntax_Trees;
+                  First_Terminal : constant Node_Access := Shared_Parser.Tree.First_Shared_Terminal
+                    (Parser_State.Shared_Token.Node);
+               begin
+                  if First_Terminal /= Invalid_Node_Access and then
+                    Min_Shared_Node_Index /= Shared_Parser.Tree.Get_Node_Index (First_Terminal)
+                  then
+                     Parser_State.Set_Verb (Pause);
+                  end if;
+               end;
             end if;
          end loop;
       end if;
@@ -709,18 +720,6 @@ package body WisiToken.Parse.LR.Parser is
          Parser.Tree.Clear_Parse_Streams (Keep_Nodes);
          Parser_State.Clear_Stream;
       end;
-
-      if Trace_Action > Extra then
-         Parser.Trace.Put_Line
-           (Parser.Tree.Image
-              (Children     => True,
-               Non_Grammar  => True,
-               Augmented    => True,
-               Line_Numbers => False));
-         Parser.Trace.Put_Line
-           ("recover_insert_delete: " & Image (Parser_State.Recover_Insert_Delete, Parser.Tree));
-         Parser.Trace.New_Line;
-      end if;
 
       declare
          --  Clear Recover_Op Stream_ID, Stream_Index, compute
@@ -1051,22 +1050,13 @@ package body WisiToken.Parse.LR.Parser is
       for Item of Parser_State.Errors loop
          case Item.Label is
          when LR_Parse_Action =>
-            if Parser.Tree.Is_Virtual (Item.Error_Token.Node) then
-               Put_Line
-                 (Current_Error,
-                  Error_Message
-                    (Parser.Tree.Lexer.File_Name, 1, 0,
-                     "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                       ", found " & Image (Parser.Tree.ID (Item.Error_Token.Node), Descriptor)));
-            else
-               Put_Line
-                 (Current_Error,
-                  Parser.Tree.Error_Message
-                    (Item.Error_Token.Node,
-                     "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                       ", found '" & Parser.Tree.Lexer.Buffer_Text (Parser.Tree.Byte_Region (Item.Error_Token.Node)) &
-                       "'"));
-            end if;
+            Put_Line
+              (Current_Error,
+               Parser.Tree.Error_Message
+                 (Item.Error_Token.Node,
+                  "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                    ", found '" & Parser.Tree.Lexer.Buffer_Text (Parser.Tree.Byte_Region (Item.Error_Token.Node)) &
+                    "'"));
 
          when User_Parse_Action =>
             Put_Line

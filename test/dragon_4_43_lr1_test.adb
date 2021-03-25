@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -43,20 +43,23 @@ package body Dragon_4_43_LR1_Test is
       --  terminals
       Lower_C_ID,
       Lower_D_ID,
-      EOF_ID,
+      EOI_ID,
 
       --  non-terminals
       Accept_ID,
       Upper_S_ID,
-      Upper_C_ID);
+      Upper_C_ID,
+
+      SOI_ID);
 
    package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_Enum_ID,
       First_Terminal    => Lower_C_ID,
-      Last_Terminal     => EOF_ID,
+      Last_Terminal     => EOI_ID,
       First_Nonterminal => Accept_ID,
       Last_Nonterminal  => Upper_C_ID,
-      EOF_ID            => EOF_ID,
+      SOI_ID            => SOI_ID,
+      EOI_ID            => EOI_ID,
       Accept_ID         => Accept_ID,
       Case_Insensitive  => False);
    use Token_Enum;
@@ -64,7 +67,7 @@ package body Dragon_4_43_LR1_Test is
    Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
-     Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1.0
+     Accept_ID <= Upper_S_ID & EOI_ID + Null_Action -- 1.0
      and
      Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action -- 2.0
      and
@@ -92,7 +95,7 @@ package body Dragon_4_43_LR1_Test is
      ((
        Lower_C_ID => Lexer.Get ("c"),
        Lower_D_ID => Lexer.Get ("d"),
-       EOF_ID     => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
+       EOI_ID     => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
      ));
 
    Has_Empty_Production    : constant WisiToken.Token_ID_Set                 :=
@@ -123,8 +126,8 @@ package body Dragon_4_43_LR1_Test is
       --  FOLLOW defined in [dragon] pg 189
       Expected_Follow : constant WisiToken.Token_Array_Token_Set := To_Nonterminal_Array_Terminal_Set
         ((Accept_ID  => (others => False),
-          Upper_S_ID => (EOF_ID => True, others => False),
-          Upper_C_ID => (Lower_C_ID | Lower_D_ID | EOF_ID => True)));
+          Upper_S_ID => (EOI_ID => True, others => False),
+          Upper_C_ID => (Lower_C_ID | Lower_D_ID | EOI_ID => True)));
 
       Computed_Follow : constant WisiToken.Token_Array_Token_Set := WisiToken.Generate.Follow
         (Grammar, LR1_Descriptor, First_Nonterm_Set, Has_Empty_Production);
@@ -154,8 +157,8 @@ package body Dragon_4_43_LR1_Test is
         --  search in a different order, which causes state numbers to
         --  not match, so we use Map, and list them in our search order.
         (Map (0) +
-           (Get_Item (Grammar, (+Accept_ID, 0), 1, +EOF_ID) &
-              Get_Item (Grammar, (+Upper_S_ID, 0), 1, +EOF_ID) &
+           (Get_Item (Grammar, (+Accept_ID, 0), 1, +EOI_ID) &
+              Get_Item (Grammar, (+Upper_S_ID, 0), 1, +EOI_ID) &
               Get_Item (Grammar, (+Upper_C_ID, 0), 1, +(Lower_D_ID, Lower_C_ID)) &
               Get_Item (Grammar, (+Upper_C_ID, 1), 1, +(Lower_D_ID, Lower_C_ID)))) &
         (Map (3) +
@@ -165,23 +168,23 @@ package body Dragon_4_43_LR1_Test is
         (Map (4) +
            Get_Item (Grammar, (+Upper_C_ID, 1), 2, +(Lower_C_ID, Lower_D_ID))) &
         (Map (1) +
-           Get_Item (Grammar, (+Accept_ID, 0), 2, +EOF_ID)) &
+           Get_Item (Grammar, (+Accept_ID, 0), 2, +EOI_ID)) &
         (Map (2) +
-           (Get_Item (Grammar, (+Upper_S_ID, 0), 2, +EOF_ID) &
-              Get_Item (Grammar, (+Upper_C_ID, 0), 1, +EOF_ID) &
-              Get_Item (Grammar, (+Upper_C_ID, 1), 1, +EOF_ID))) &
+           (Get_Item (Grammar, (+Upper_S_ID, 0), 2, +EOI_ID) &
+              Get_Item (Grammar, (+Upper_C_ID, 0), 1, +EOI_ID) &
+              Get_Item (Grammar, (+Upper_C_ID, 1), 1, +EOI_ID))) &
         (Map (8) +
            Get_Item (Grammar, (+Upper_C_ID, 0), 3, +(Lower_C_ID, Lower_D_ID))) &
         (Map (6) +
-           (Get_Item (Grammar, (+Upper_C_ID, 0), 2, +EOF_ID) &
-              Get_Item (Grammar, (+Upper_C_ID, 0), 1, +EOF_ID) &
-              Get_Item (Grammar, (+Upper_C_ID, 1), 1, +EOF_ID))) &
+           (Get_Item (Grammar, (+Upper_C_ID, 0), 2, +EOI_ID) &
+              Get_Item (Grammar, (+Upper_C_ID, 0), 1, +EOI_ID) &
+              Get_Item (Grammar, (+Upper_C_ID, 1), 1, +EOI_ID))) &
         (Map (7) +
-           Get_Item (Grammar, (+Upper_C_ID, 1), 2, +EOF_ID)) &
+           Get_Item (Grammar, (+Upper_C_ID, 1), 2, +EOI_ID)) &
         (Map (5) +
-           Get_Item (Grammar, (+Upper_S_ID, 0), 3, +EOF_ID)) &
+           Get_Item (Grammar, (+Upper_S_ID, 0), 3, +EOI_ID)) &
         (Map (9) +
-           Get_Item (Grammar, (+Upper_C_ID, 0), 3, +EOF_ID))
+           Get_Item (Grammar, (+Upper_C_ID, 0), 3, +EOI_ID))
       ;
 
    begin
@@ -237,7 +240,7 @@ package body Dragon_4_43_LR1_Test is
         (State_First       => 0,
          State_Last        => 9,
          First_Terminal    => +Lower_C_ID,
-         Last_Terminal     => +EOF_ID,
+         Last_Terminal     => +EOI_ID,
          First_Nonterminal => +Accept_ID,
          Last_Nonterminal  => +Upper_C_ID);
 
@@ -252,7 +255,7 @@ package body Dragon_4_43_LR1_Test is
       Add_Goto (Expected.States (Map (0)), +Upper_C_ID, Map (2));
       Add_Goto (Expected.States (Map (0)), +Upper_S_ID, Map (1));
 
-      Add_Action (Expected.States (Map (1)), +EOF_ID, Accept_It, (+Accept_ID, 0), 1, Null_Action, null);
+      Add_Action (Expected.States (Map (1)), +EOI_ID, Accept_It, (+Accept_ID, 0), 1, Null_Action, null);
 
       Add_Action (Expected.States (Map (2)), +Lower_C_ID, (3, 0), Map (6));
       Add_Action (Expected.States (Map (2)), +Lower_D_ID, (3, 1), Map (7));
@@ -265,18 +268,18 @@ package body Dragon_4_43_LR1_Test is
       Add_Action (Expected.States (Map (4)), +Lower_C_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
       Add_Action (Expected.States (Map (4)), +Lower_D_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
 
-      Add_Action (Expected.States (Map (5)), +EOF_ID, Reduce, (+Upper_S_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (Map (5)), +EOI_ID, Reduce, (+Upper_S_ID, 0), 2, Null_Action, null);
 
       Add_Action (Expected.States (Map (6)), +Lower_C_ID, (3, 0), Map (6));
       Add_Action (Expected.States (Map (6)), +Lower_D_ID, (3, 1), Map (7));
       Add_Goto (Expected.States (Map (6)), +Upper_C_ID, Map (9));
 
-      Add_Action (Expected.States (Map (7)), +EOF_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
+      Add_Action (Expected.States (Map (7)), +EOI_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
 
       Add_Action (Expected.States (Map (8)), +Lower_C_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
       Add_Action (Expected.States (Map (8)), +Lower_D_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
 
-      Add_Action (Expected.States (Map (9)), +EOF_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (Map (9)), +EOI_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
 
       Check ("", Computed.all, Expected);
    end Parser_Table;

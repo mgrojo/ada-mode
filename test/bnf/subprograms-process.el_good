@@ -54,6 +54,7 @@
    use_clause
    declaration_list
    nonterminal_014
+   Wisi_SOI
    ])
 
 (defconst subprograms-process-face-table

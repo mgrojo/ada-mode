@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009-2010, 2012-2015, 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009-2010, 2012-2015, 2017 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -58,19 +58,22 @@ package body Test_LR_Expecting_Terminal_Sequence is
          --  Identifier must be after keywords, so they are recognized instead
          Identifier_ID,
 
-         EOF_ID,
+         EOI_ID,
 
          --  non-terminals
          Parse_Sequence_ID,
-         Statement_ID);
+         Statement_ID,
+
+         SOI_ID);
 
       package Token_Enum is new WisiToken.Gen_Token_Enum
         (Token_Enum_ID     => Token_ID,
          First_Terminal    => Equals_ID,
-         Last_Terminal     => EOF_ID,
+         Last_Terminal     => EOI_ID,
          First_Nonterminal => Parse_Sequence_ID,
          Last_Nonterminal  => Statement_ID,
-         EOF_ID            => EOF_ID,
+         SOI_ID            => SOI_ID,
+         EOI_ID            => EOI_ID,
          Accept_ID         => Parse_Sequence_ID,
          Case_Insensitive  => False);
       use Token_Enum;
@@ -105,14 +108,14 @@ package body Test_LR_Expecting_Terminal_Sequence is
           Set_ID        => Lexer.Get ("set"),
           Verify_ID     => Lexer.Get ("verify"),
           Identifier_ID => Lexer.Get ("[0-9a-zA-Z_]+"),
-          EOF_ID        => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
+          EOI_ID        => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
          ));
 
       package Top_Level is
          use WisiToken.Wisi_Ada;
 
          Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
-           +(Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + WisiToken.Syntax_Trees.Null_Action) and
+           +(Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOI_ID + WisiToken.Syntax_Trees.Null_Action) and
            Set_Statement.Grammar and
            Verify_Statement.Grammar;
       end Top_Level;

@@ -170,7 +170,7 @@ int wisitoken_grammar_next_token
    if (lexer->cursor > lexer->buffer_last)
    {
       *id            = 38;
-      *byte_position = lexer->buffer_last - lexer->buffer + 1;
+      *byte_position = lexer->buffer_last - lexer->buffer + 2;
       *byte_length   = 0;
       *char_position = lexer->char_pos;
       *char_length   = 0;

@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017, 2018, 2020 Stephen Leake
+--  Copyright (C) 2017, 2018, 2020, 2021 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -41,22 +41,25 @@ package body Test_Follow is
          Symbol_ID,
          Left_Paren_ID,
          Right_Paren_ID,
-         EOF_ID,
+         EOI_ID,
 
          --  Nonterminal
          WisiToken_Accept_ID,
          Declarations_ID,
          Declaration_ID,
          Subprogram_ID,
-         Parameter_List_ID);
+         Parameter_List_ID,
+
+         SOI_ID);
 
       package Token_Enum is new WisiToken.Gen_Token_Enum
         (Token_Enum_ID     => Token_ID,
          First_Terminal    => Procedure_ID,
-         Last_Terminal     => EOF_ID,
+         Last_Terminal     => EOI_ID,
          First_Nonterminal => WisiToken_Accept_ID,
          Last_Nonterminal  => Parameter_List_ID,
-         EOF_ID            => EOF_ID,
+         SOI_ID            => SOI_ID,
+         EOI_ID            => EOI_ID,
          Accept_ID         => WisiToken_Accept_ID,
          Case_Insensitive  => False);
       use Token_Enum;
@@ -66,7 +69,7 @@ package body Test_Follow is
       --  This grammar has right recursion on Declarations_ID, and an
       --  empty production for Parameter_List_ID
       Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
-        WisiToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and                -- 1
+        WisiToken_Accept_ID <= Declarations_ID & EOI_ID + Null_Action and                -- 1
         (Declarations_ID    <= Declaration_ID + Null_Action or                           -- 2
                                Declarations_ID & Declaration_ID + Null_Action) and       -- 3
         Declaration_ID      <= Subprogram_ID + Null_Action and                           -- 4
@@ -89,10 +92,10 @@ package body Test_Follow is
 
          Expected : constant WisiToken.Token_Array_Token_Set := To_Nonterminal_Array_Terminal_Set
            ((WisiToken_Accept_ID => (others => False),
-             Declarations_ID     => (EOF_ID | Procedure_ID => True, others => False),
-             Declaration_ID      => (EOF_ID | Procedure_ID => True, others => False),
-             Subprogram_ID       => (EOF_ID | Procedure_ID => True, others => False),
-             Parameter_List_ID   => (EOF_ID | Procedure_ID => True, others => False)));
+             Declarations_ID     => (EOI_ID | Procedure_ID => True, others => False),
+             Declaration_ID      => (EOI_ID | Procedure_ID => True, others => False),
+             Subprogram_ID       => (EOI_ID | Procedure_ID => True, others => False),
+             Parameter_List_ID   => (EOI_ID | Procedure_ID => True, others => False)));
 
       begin
          if Test.Debug then

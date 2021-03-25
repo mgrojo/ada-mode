@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002-2003, 2009-2010, 2013-2015, 2017-2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002-2003, 2009-2010, 2013-2015, 2017-2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -46,13 +46,15 @@ package body Association_Grammar_Test is
       Paren_Right_ID,
 
       --  last terminal
-      EOF_ID,
+      EOI_ID,
 
       --  non-terminals
       Statement_ID, -- must be first nonterm
       Aggregate_ID,
       Association_ID,
-      Association_List_ID);
+      Association_List_ID,
+
+      SOI_ID);
 
    Real_Image : constant WisiToken.Token_ID_Array_String :=
      --  WORKAROUND for 'Image bug in GNAT Community 2020 -gnat2020
@@ -63,19 +65,21 @@ package body Association_Grammar_Test is
       new String'("INT_ID"),
       new String'("PAREN_LEFT_ID"),
       new String'("PAREN_RIGHT_ID"),
-      new String'("EOF_ID"),
+      new String'("EOI_ID"),
       new String'("statement_id"),
       new String'("aggregate_id"),
       new String'("association_id"),
-      new String'("association_list_id"));
+      new String'("association_list_id"),
+      new String'("SOI_ID"));
 
    package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_Enum_ID,
       First_Terminal    => Comma_ID,
-      Last_Terminal     => EOF_ID,
+      Last_Terminal     => EOI_ID,
       First_Nonterminal => Statement_ID,
       Last_Nonterminal  => Association_List_ID,
-      EOF_ID            => EOF_ID,
+      SOI_ID            => SOI_ID,
+      EOI_ID            => EOI_ID,
       Accept_ID         => Statement_ID,
       Case_Insensitive  => False);
    use Token_Enum;
@@ -89,7 +93,7 @@ package body Association_Grammar_Test is
        Identifier_ID    => Lexer.Get ("[0-9a-zA-Z_]+"),
        Paren_Left_ID    => Lexer.Get ("\("),
        Paren_Right_ID   => Lexer.Get ("\)"),
-       EOF_ID           => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
+       EOI_ID           => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
    use WisiToken.Wisi_Ada;   --  "and", "+"
@@ -103,7 +107,7 @@ package body Association_Grammar_Test is
    --  (integer => identifier)
    --  (identifier => identifier, integer => identifier)
    Full_Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
-     Statement_ID        <= Aggregate_ID & EOF_ID + Null_Action and
+     Statement_ID        <= Aggregate_ID & EOI_ID + Null_Action and
      Aggregate_ID        <= Paren_Left_ID & Association_List_ID & Paren_Right_ID + Null_Action and
      (Association_List_ID <= Association_ID & Comma_ID & Association_List_ID + Null_Action or
                             Association_ID + Null_Action) and

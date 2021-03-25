@@ -111,7 +111,8 @@ package WisiToken is
       Last_Terminal     : Token_ID;
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID;
-      EOI_ID            : Token_ID;
+      SOI_ID            : Token_ID; -- start of input
+      EOI_ID            : Token_ID; -- end of input
       Accept_ID         : Token_ID)
    is record
       --  Tokens in the range Token_ID'First .. First_Terminal - 1 are
@@ -120,6 +121,10 @@ package WisiToken is
       --
       --  Tokens in the range Last_Terminal + 1 .. Last_Nonterminal are
       --  the nonterminals of a grammar.
+      --
+      --  SOI_ID is not reported by the lexer, and is not present in
+      --  grammar productions; it is hard-coded by the syntax tree
+      --  utilities.
       --
       --  Components are discriminants if they can be specified statically.
 
@@ -134,8 +139,11 @@ package WisiToken is
       --  have two kinds of string literals, set one or both of these to
       --  Invalid_Token_ID.
 
-      Image : Token_ID_Array_String (Token_ID'First .. Last_Nonterminal);
+      Image : Token_ID_Array_String (Token_ID'First .. SOI_ID);
       --  User names for tokens.
+      --
+      --  See wisitoken-bnf-generate_utils.adb Initialize for actual order
+      --  of tokens.
 
       Terminal_Image_Width : Integer;
       Image_Width          : Integer; --  max width of Image

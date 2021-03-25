@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -43,20 +43,23 @@ package body Dragon_4_45_LALR_Test is
       --  terminals
       Lower_C_ID,
       Lower_D_ID,
-      EOF_ID,
+      EOI_ID,
 
       --  non-terminals
       Accept_ID,
       Upper_S_ID,
-      Upper_C_ID);
+      Upper_C_ID,
+
+      SOI_ID);
 
    package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_Enum_ID,
       First_Terminal    => Lower_C_ID,
-      Last_Terminal     => EOF_ID,
+      Last_Terminal     => EOI_ID,
       First_Nonterminal => Accept_ID,
       Last_Nonterminal  => Upper_C_ID,
-      EOF_ID            => EOF_ID,
+      SOI_ID            => SOI_ID,
+      EOI_ID            => EOI_ID,
       Accept_ID         => Accept_ID,
       Case_Insensitive  => False);
    use Token_Enum;
@@ -64,7 +67,7 @@ package body Dragon_4_45_LALR_Test is
    Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
-     Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
+     Accept_ID <= Upper_S_ID & EOI_ID + Null_Action -- 1
      and
      Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action -- 2
      and
@@ -88,7 +91,7 @@ package body Dragon_4_45_LALR_Test is
      ((
        Lower_C_ID => Lexer.Get ("c"),
        Lower_D_ID => Lexer.Get ("d"),
-       EOF_ID     => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
+       EOI_ID     => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
      ));
 
 
@@ -193,7 +196,7 @@ package body Dragon_4_45_LALR_Test is
         (State_First       => 0,
          State_Last        => 6,
          First_Terminal    => +Lower_C_ID,
-         Last_Terminal     => +EOF_ID,
+         Last_Terminal     => +EOI_ID,
          First_Nonterminal => +Accept_ID,
          Last_Nonterminal  => +Upper_C_ID);
 
@@ -206,7 +209,7 @@ package body Dragon_4_45_LALR_Test is
       Add_Goto (Expected.States (S0), +Upper_C_ID, S2);
       Add_Goto (Expected.States (S0), +Upper_S_ID, S1);
 
-      Add_Action (Expected.States (S1), +EOF_ID, Accept_It, (+Accept_ID, 0), 1, Null_Action, null);
+      Add_Action (Expected.States (S1), +EOI_ID, Accept_It, (+Accept_ID, 0), 1, Null_Action, null);
 
       Add_Action (Expected.States (S2), +Lower_C_ID, (3, 0), S36);
       Add_Action (Expected.States (S2), +Lower_D_ID, (3, 1), S47);
@@ -218,13 +221,13 @@ package body Dragon_4_45_LALR_Test is
 
       Add_Action (Expected.States (S47), +Lower_C_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
       Add_Action (Expected.States (S47), +Lower_D_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
-      Add_Action (Expected.States (S47), +EOF_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
+      Add_Action (Expected.States (S47), +EOI_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
 
-      Add_Action (Expected.States (S5), +EOF_ID, Reduce, (+Upper_S_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (S5), +EOI_ID, Reduce, (+Upper_S_ID, 0), 2, Null_Action, null);
 
       Add_Action (Expected.States (S89), +Lower_C_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
       Add_Action (Expected.States (S89), +Lower_D_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
-      Add_Action (Expected.States (S89), +EOF_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (S89), +EOI_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
 
       Check ("", Computed.all, Expected);
    end Parser_Table;

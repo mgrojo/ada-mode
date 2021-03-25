@@ -245,9 +245,9 @@ package body WisiToken_Grammar_Editing is
          end case;
       end Decl_Name;
 
-      --  Tree.Root is wisitoken_accept
+      --  Tree.Root is wisitoken_accept, first child is SOI
       List : constant Constant_List := Create_List
-        (Tree, Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID);
+        (Tree, Tree.Child (Tree.Root, 2), +compilation_unit_list_ID, +compilation_unit_ID);
    begin
       for N of List loop
          declare
@@ -885,7 +885,7 @@ package body WisiToken_Grammar_Editing is
       begin
          return Element
            (Creators.Create_List
-              (Tree, Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID).Find
+              (Tree, Tree.Child (Tree.Root, 2), +compilation_unit_list_ID, +compilation_unit_ID).Find
               (Target, Equal));
       end Find_Nonterminal;
 
@@ -1338,7 +1338,7 @@ package body WisiToken_Grammar_Editing is
          use LR_Utils;
 
          List : LR_Utils.List := Creators.Create_List
-           (Tree, Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID, Invalid_Token_ID);
+           (Tree, Tree.Child (Tree.Root, 2), +compilation_unit_list_ID, +compilation_unit_ID, Invalid_Token_ID);
 
          Comp_Unit : constant Valid_Node_Access := Tree.Add_Nonterm
            ((+compilation_unit_ID, (if Tree.ID (Unit) = +declaration_ID then 0 else 1)),
@@ -1675,7 +1675,7 @@ package body WisiToken_Grammar_Editing is
          use LR_Utils;
 
          List : constant Constant_List := Creators.Create_List
-           (Tree, Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID);
+           (Tree, Tree.Child (Tree.Root, 2), +compilation_unit_list_ID, +compilation_unit_ID);
       begin
          return List_Nonterm_Name : Identifier_Token := Invalid_Identifier_Token do
             for N of List loop
@@ -2295,7 +2295,7 @@ package body WisiToken_Grammar_Editing is
             --
             --  If found, set List_Nonterm_*_Name
             List : constant Constant_List := Creators.Create_List
-              (Tree, Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID);
+              (Tree, Tree.Child (Tree.Root, 2), +compilation_unit_list_ID, +compilation_unit_ID);
          begin
             for Comp_Unit of List loop
                declare
@@ -2829,9 +2829,9 @@ package body WisiToken_Grammar_Editing is
          use LR_Utils;
          use LR_Utils.Creators;
 
-         --  Tree.Root is wisitoken_accept
+         --  Tree.Root is wisitoken_accept, first child is SOI
          List : constant Constant_List := Create_List
-           (Tree, Tree.Child (Tree.Root, 1), +compilation_unit_list_ID, +compilation_unit_ID);
+           (Tree, Tree.Child (Tree.Root, 2), +compilation_unit_list_ID, +compilation_unit_ID);
       begin
          for Unit of List loop
             declare
@@ -3018,8 +3018,8 @@ package body WisiToken_Grammar_Editing is
               (if Last_Term = Invalid_Node_Access
                then Lexer.Token_Arrays.Empty_Vector
                else (case Tree.Label (Last_Term) is
-                     when Source_Terminal | Virtual_Identifier => Tree.Non_Grammar_Const (Last_Term),
-                     when Virtual_Terminal | Nonterm => Lexer.Token_Arrays.Empty_Vector));
+                     when Terminal_Label => Tree.Non_Grammar_Const (Last_Term),
+                     when Nonterm => Lexer.Token_Arrays.Empty_Vector));
 
             Comments_Include_Newline : Boolean := False;
          begin
@@ -3356,7 +3356,7 @@ package body WisiToken_Grammar_Editing is
             end;
 
          when wisitoken_accept_ID =>
-            Process_Node (Tree.Child (Node, 1));
+            Process_Node (Tree.Child (Node, 2));
 
          when others =>
             raise SAL.Not_Implemented with Image (Tree.ID (Node), Wisitoken_Grammar_Actions.Descriptor);
@@ -3367,9 +3367,10 @@ package body WisiToken_Grammar_Editing is
       declare
          use all type Ada.Containers.Count_Type;
          use Ada.Strings.Fixed;
+         Leading_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Const (Tree.SOI);
          First_Comment : constant String :=
-           (if Tree.Leading_Non_Grammar.Length > 0
-            then Tree.Lexer.Buffer_Text (Tree.Leading_Non_Grammar (1).Byte_Region)
+           (if Leading_Non_Grammar.Length > 0
+            then Tree.Lexer.Buffer_Text (Leading_Non_Grammar (1).Byte_Region)
             else "");
          Local_Var_Start   : constant Integer := Index (First_Comment, "-*-");
          Local_Var_End     : constant Integer := Index
@@ -3383,12 +3384,11 @@ package body WisiToken_Grammar_Editing is
                then First_Comment (Local_Var_Start + 3 .. Local_Var_End - 1)
                else "") &
               " -*-");
+         Put_Line (File, ";;;");
+         for Token of Leading_Non_Grammar loop
+            Put (File, Tree.Lexer.Buffer_Text (Token.Byte_Region));
+         end loop;
       end;
-      Put_Line (File, ";;;");
-
-      for Token of Tree.Leading_Non_Grammar loop
-         Put (File, Tree.Lexer.Buffer_Text (Token.Byte_Region));
-      end loop;
 
       Process_Node (Tree.Root);
 

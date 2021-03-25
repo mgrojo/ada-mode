@@ -33,17 +33,13 @@ package body WisiToken.Parse is
 
    procedure Process_Non_Grammar_Token
      (Parser       : in out Base_Parser'Class;
-      Grammar_Node : in     Syntax_Trees.Node_Access;
+      Grammar_Node : in     Syntax_Trees.Valid_Node_Access;
       Token        : in     Lexer.Token)
    is
       use all type Syntax_Trees.Node_Access;
       use all type Syntax_Trees.User_Data_Access;
    begin
-      if Grammar_Node = Syntax_Trees.Invalid_Node_Access then
-         Parser.Tree.Leading_Non_Grammar.Append (Token);
-      else
-         Parser.Tree.Non_Grammar_Var (Grammar_Node).Append (Token);
-      end if;
+      Parser.Tree.Non_Grammar_Var (Grammar_Node).Append (Token);
       if Parser.User_Data /= null then
          Parser.User_Data.Lexer_To_Augmented (Parser.Tree, Token, Grammar_Node);
       end if;
@@ -101,9 +97,12 @@ package body WisiToken.Parse is
    is
       EOI_ID : constant Token_ID := Parser.Tree.Lexer.Descriptor.EOI_ID;
 
-      Last_Grammar_Node : WisiToken.Syntax_Trees.Node_Access := WisiToken.Syntax_Trees.Invalid_Node_Access;
+      Last_Grammar_Node : WisiToken.Syntax_Trees.Node_Access;
    begin
       Parser.Tree.Lexer.Errors.Clear;
+      Parser.Tree.Start_Lex;
+
+      Last_Grammar_Node := Parser.Tree.SOI;
 
       loop
          exit when EOI_ID = Next_Grammar_Token (Parser, Last_Grammar_Node);
@@ -253,13 +252,12 @@ package body WisiToken.Parse is
       Stream : Syntax_Trees.Stream_ID; -- Tree.Shared_Stream that we are editing.
 
       Terminal : Terminal_Ref;
-
    begin
       Tree.Start_Edit;
 
       Stream := Tree.Shared_Stream;
 
-      Terminal := Tree.First_Shared_Terminal (Stream, Tree.Stream_First (Stream));
+      Terminal := Tree.First_Shared_Terminal (Tree.Stream_First (Stream));
 
       if Edits.Length = 0 then
          return;
@@ -416,14 +414,15 @@ package body WisiToken.Parse is
                         Lex_Start_Char := Buffer_Pos'Min
                           (Tree.Char_Region (Terminal.Node).First + Shift_Chars, Inserted_Region_Chars.First);
                         Lex_Start_Line := Line_Number_Type'Max
-                          (Line_Number_Type'First, Tree.Line_Region (Terminal).First + Shift_Line);
+                          (Line_Number_Type'First, Tree.Line_Region (Terminal).Last + Shift_Line);
                      end if;
 
                   else
-                     --  Edit start is in some non_grammar token or whitespace preceding
-                     --  Terminal; delete non_grammar tokens containing or after the edit
-                     --  start. Deleted New_Lines decrement Shift_Line, but only after we
-                     --  use Shift_Line to set Lex_Start_Line.
+                     --  Edit start is in or adjacent to some non_grammar token or
+                     --  whitespace preceding Terminal; delete non_grammar tokens
+                     --  containing or after the edit start. Deleted New_Lines decrement
+                     --  Shift_Line, but only after we use Shift_Line to set
+                     --  Lex_Start_Line.
                      declare
                         Last_Grammar : Terminal_Ref := Tree.Prev_Terminal (Terminal);
 
@@ -459,8 +458,7 @@ package body WisiToken.Parse is
                                     Lex_Start_Byte := Buffer_Pos'Min (Token.Byte_Region.First, Inserted_Region.First);
                                     Lex_Start_Char := Buffer_Pos'Min
                                       (Token.Char_Region.First, Inserted_Region_Chars.First);
-                                    Lex_Start_Line := Line_Number_Type'Max
-                                      (Line_Number_Type'First, Token.Line_Region.First);
+                                    Lex_Start_Line := Token.Line_Region.First;
                                  end;
 
                                  if Trace_Incremental_Parse > Detail then
@@ -481,21 +479,19 @@ package body WisiToken.Parse is
                                  --  Edit is in whitespace between last non_grammar and Terminal
                                  Lex_Start_Byte := Inserted_Region.First;
                                  Lex_Start_Char := Inserted_Region_Chars.First;
-                                 Lex_Start_Line := Tree.Line_Region (Terminal).First + Shift_Line;
+                                 Lex_Start_Line := Tree.Line_Region (Terminal).First;
                                  Do_Scan        := True;
                               end if;
                            end if;
                         end Handle_Non_Grammar;
                      begin
                         loop
-                           --  Set Last_Grammar to the token containing the non_grammar that may contain the
-                           --  edit start.
-                           exit when Last_Grammar.Node = Invalid_Node_Access;
+                           --  Set Last_Grammar to the token containing the non_grammar that may
+                           --  contain the edit start; check for trailing virtual terminals to
+                           --  delete.
                            exit when Tree.Label (Last_Grammar.Node) = Source_Terminal;
 
-                           if Tree.Label (Last_Grammar.Node) = Virtual_Terminal and
-                             Tree.Non_Grammar_Const (Last_Grammar.Node).Length > 0
-                           then
+                           if Tree.Non_Grammar_Const (Last_Grammar.Node).Length > 0 then
                               --  This token, and any preceding virtuals, will be deleted below.
                               --  Ensure we scan all of this non_grammar; this may be overridden by
                               --  a preceding virtual token.
@@ -517,12 +513,7 @@ package body WisiToken.Parse is
                         end loop;
 
                         if not Do_Scan then
-                           if Last_Grammar.Node = Invalid_Node_Access then
-                              Handle_Non_Grammar (Tree.Leading_Non_Grammar);
-
-                           else
-                              Handle_Non_Grammar (Tree.Non_Grammar_Var (Last_Grammar.Node));
-                           end if;
+                           Handle_Non_Grammar (Tree.Non_Grammar_Var (Last_Grammar.Node));
                         end if;
                      end;
                   end if;
@@ -592,11 +583,7 @@ package body WisiToken.Parse is
                                     Shift_Line := @ - 1;
                                  end if;
                               else
-                                 if Prev_Terminal = Invalid_Node_Access then
-                                    Tree.Leading_Non_Grammar.Append (Token);
-                                 else
-                                    Tree.Non_Grammar_Var (Prev_Terminal).Append (Token);
-                                 end if;
+                                 Tree.Non_Grammar_Var (Prev_Terminal).Append (Token);
                               end if;
                            end loop;
                         end if;

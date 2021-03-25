@@ -144,14 +144,12 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Terminal_Node_Numbers : in Boolean)
    is
       use Standard.AUnit.Checks;
-      use Lexer.AUnit.Token_Arrays_AUnit;
       use Parse_Stream_Lists;
 
       Computed_Stream : Parse_Stream_Lists.Cursor := Computed.Streams.First;
       Expected_Stream : Parse_Stream_Lists.Cursor := Expected.Streams.First;
 
    begin
-      Check (Label & ".leading_non_grammar", Computed.Leading_Non_Grammar, Expected.Leading_Non_Grammar);
       Check (Label & ".root set", Computed.Root /= null, Expected.Root /= null);
       Check (Label & ".stream_count", Computed.Stream_Count, Expected.Stream_Count);
       loop
@@ -162,20 +160,15 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
                Computed, (Cur        => Computed_Stream),
                Expected, (Cur        => Expected_Stream),
                Check_Label           => Shared_Stream,
-               Parents               => Computed_Stream = Computed.Shared_Stream.Cur,
+               Parents               => False,
                Terminal_Node_Numbers => Terminal_Node_Numbers);
-            --  Parents are only set in Shared_Stream
          end if;
          Next (Expected_Stream);
          Next (Computed_Stream);
       end loop;
 
       if Computed.Stream_Count = 0 and Computed.Root /= null then
-         --  If stream_count > 0, root and EOI are in one of the streams.
          Check (Label & ".root", Computed.Root.all, Expected.Root.all,
-                Parents => True,
-                Terminal_Node_Numbers => Terminal_Node_Numbers);
-         Check (Label & ".eoi", Computed.EOI.all, Expected.EOI.all,
                 Parents => True,
                 Terminal_Node_Numbers => Terminal_Node_Numbers);
       end if;

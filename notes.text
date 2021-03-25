@@ -31,11 +31,9 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-review fixme
+packrat add SOI to root; doesn't call clear_parse_streams
 
-in parse stream, SOI = stream.elements.head = initial state, rest invalid
-    create an SOI node for that, store partial parse begin_line, begin_byte_pos.
-    need SOI_ID in parser generator, descriptor
+review fixme
 
 add %no_error_recover, instead of detecting mckenzie /= default
 

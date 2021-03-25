@@ -1560,7 +1560,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  Config.Current_Shared_Token must be in First .. Last + 1. Leave
       --  Current_Shared_Token at Last + 1.
       is
-         Ref : Stream_Node_Parents := (Config.Current_Shared_Token, Parents => <>);
+         Ref : Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents (Config.Current_Shared_Token);
 
          procedure Find_First
          is begin
@@ -1728,7 +1728,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             New_Config            : Configuration := Config;
             Min_Pushed_Back_Index : Syntax_Trees.Node_Index;
 
-            Prev_Shared : Syntax_Trees.Stream_Node_Parents := (Config.Current_Shared_Token, Parents => <>);
+            Prev_Shared : Syntax_Trees.Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents
+              (Config.Current_Shared_Token);
          begin
             Push_Back_Tokens ("insert quote 4 a", New_Config, Min_Pushed_Back_Index);
 
@@ -1815,7 +1816,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             New_Config            : Configuration := Config;
             Min_Pushed_Back_Index : Syntax_Trees.Node_Index;
 
-            Prev_Shared : Syntax_Trees.Stream_Node_Parents := (Lexer_Error_Token_Ref, Parents => <>);
+            Prev_Shared : Syntax_Trees.Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents
+              (Lexer_Error_Token_Ref);
          begin
             Push_Back_Tokens ("insert quote 5 d", New_Config, Min_Pushed_Back_Index);
 

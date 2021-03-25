@@ -71,7 +71,25 @@ package body WisiToken.Lexer is
          GNATCOLL.Mmap.Free (Object.Region);
          GNATCOLL.Mmap.Close (Object.File);
       end case;
+
+      Object.Buffer_Nominal_First_Byte := Invalid_Buffer_Pos;
+      Object.Buffer_Nominal_First_Char := Invalid_Buffer_Pos;
+      Object.Line_Nominal_First        := Invalid_Line_Number;
    end Finalize;
+
+   function Has_Source (Object : in Source) return Boolean
+   is
+      use all type Ada.Strings.Unbounded.String_Access;
+   begin
+      case Object.Label is
+      when String_Label =>
+         return Object.Buffer /= null;
+
+      when File_Label =>
+         --  Mmap doesn't provice "Is_Open".
+         return Object.Buffer_Nominal_First_Byte /= Invalid_Buffer_Pos;
+      end case;
+   end Has_Source;
 
    function Buffer_Region_Byte (Object : in Source) return Buffer_Region
    is begin

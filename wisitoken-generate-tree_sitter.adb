@@ -231,7 +231,10 @@ package body WisiToken.Generate.Tree_Sitter is
          end if;
 
          case To_Token_Enum (Tree.ID (Node)) is
-         --  Enum_Token_ID alphabetical order
+         --  SOI, EOI first, then Enum_Token_ID alphabetical order
+
+         when Wisi_SOI_ID | Wisi_EOI_ID =>
+            null;
 
          when compilation_unit_ID =>
             Find_Empty_Nodes (Tree.Child (Node, 1));
@@ -305,7 +308,7 @@ package body WisiToken.Generate.Tree_Sitter is
             end;
 
          when wisitoken_accept_ID =>
-            Find_Empty_Nodes (Tree.Child (Node, 1));
+            Find_Empty_Nodes (Tree.Child (Node, 2));
 
          when others =>
             raise SAL.Not_Implemented with Image (Tree.ID (Node), Wisitoken_Grammar_Actions.Descriptor);
@@ -491,7 +494,10 @@ package body WisiToken.Generate.Tree_Sitter is
             case To_Token_Enum (Tree.ID (Node)) is
             --  common code first, then Enum_Token_ID alphabetical order
 
-            when compilation_unit_ID | wisitoken_accept_ID =>
+            when wisitoken_accept_ID =>
+               Find_Nodes (Tree.Child (Node, 2));
+
+            when compilation_unit_ID =>
                Find_Nodes (Tree.Child (Node, 1));
 
             when compilation_unit_list_ID | rhs_alternative_list_ID | rhs_item_list_ID | rhs_list_ID =>
@@ -1050,7 +1056,10 @@ package body WisiToken.Generate.Tree_Sitter is
          end if;
 
          case To_Token_Enum (Tree.ID (Node)) is
-         --  Enum_Token_ID alphabetical order
+         --  SOI, EOI first, then Enum_Token_ID alphabetical order
+
+         when Wisi_SOI_ID | Wisi_EOI_ID =>
+            null;
 
          when compilation_unit_ID =>
             Process_Node (Tree.Child (Node, 1));
@@ -1192,7 +1201,8 @@ package body WisiToken.Generate.Tree_Sitter is
             end;
 
          when wisitoken_accept_ID =>
-            Process_Node (Tree.Child (Node, 1));
+            --  Child 1 is SOI, 2 compilation_unit_list
+            Process_Node (Tree.Child (Node, 2));
 
          when others =>
             raise SAL.Not_Implemented with Image (Tree.ID (Node), Wisitoken_Grammar_Actions.Descriptor);

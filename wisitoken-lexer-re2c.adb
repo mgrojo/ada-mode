@@ -55,6 +55,11 @@ package body WisiToken.Lexer.re2c is
       return Handle (Result);
    end New_Lexer;
 
+   overriding function Has_Source (Lexer : access constant Instance) return Boolean
+   is begin
+      return Has_Source (Lexer.Source);
+   end Has_Source;
+
    overriding procedure Reset_With_String
      (Lexer      : in out Instance;
       Input      : in     String;
@@ -221,6 +226,7 @@ package body WisiToken.Lexer.re2c is
                   To_Char_Pos (Lexer.Source, Char_Position + Char_Length - 1))));
 
          if ID = Lexer.Descriptor.New_Line_ID then
+            --  See FIXME: above about multi-line tokens
             Token.Line_Region.Last := @ + 1;
          end if;
       end Build_Token;

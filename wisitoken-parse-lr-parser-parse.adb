@@ -51,38 +51,6 @@ begin
 
       Edit_Tree (Shared_Parser, Edits);
 
-   else
-      Shared_Parser.Tree.Clear;
-
-      Shared_Parser.Lex_All;
-   end if;
-
-   Shared_Parser.Parsers := Parser_Lists.New_List (Shared_Parser.Tree);
-
-   Shared_Parser.Tree.Start_Parse (Shared_Parser.Parsers.First.State_Ref.Stream, Shared_Parser.Table.State_First);
-
-   if Edits /= KMN_Lists.Empty_List then
-      if Shared_Parser.Tree.ID (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream).Node) =
-        Shared_Parser.Tree.Lexer.Descriptor.Accept_ID
-      then
-         --  Parsed tree was not changed in Edit_Tree.
-         declare
-            Parser_State : Parser_Lists.Parser_State renames Shared_Parser.Parsers.First_State_Ref;
-         begin
-            Parser_State.Shared_Token := Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream);
-            Shared_Parser.Tree.Shift (Parser_State.Stream, Accept_State, Parser_State.Shared_Token.Element);
-            Shared_Parser.Tree.Finish_Parse
-              (Parser_State.Stream,
-               Shared_Parser.Tree.Stream_Last (Shared_Parser.Tree.Shared_Stream),
-               Shared_Parser.User_Data);
-
-            if Trace_Parse > Detail then
-               Trace.Put_Line ("existing tree not changed by edits");
-            end if;
-            return;
-         end;
-      end if;
-
       if Trace_Parse > Detail or Trace_Incremental_Parse > Detail then
          Trace.New_Line;
          Trace.Put_Line ("edited stream:");
@@ -95,7 +63,25 @@ begin
                Line_Numbers => Trace_Parse > Extra or Trace_Incremental_Parse > Extra));
          Trace.New_Line;
       end if;
+
+      if Shared_Parser.Tree.ID (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream).Node) =
+        Shared_Parser.Tree.Lexer.Descriptor.Accept_ID
+      then
+         if Trace_Parse > Detail then
+            Trace.Put_Line ("existing tree not changed by edits");
+         end if;
+         Shared_Parser.Tree.Clear_Parse_Streams;
+         return;
+      end if;
+
+   else
+      Shared_Parser.Tree.Clear;
+      Shared_Parser.Lex_All;
    end if;
+
+   Shared_Parser.Parsers := Parser_Lists.New_List (Shared_Parser.Tree);
+
+   Shared_Parser.Tree.Start_Parse (Shared_Parser.Parsers.First.State_Ref.Stream, Shared_Parser.Table.State_First);
 
    Main_Loop :
    loop
