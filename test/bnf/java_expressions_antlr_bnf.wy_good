@@ -7,7 +7,7 @@
 
 %code copyright_license %{
 ;;  [The "BSD licence"]
-;;  Copyright (c) 2018 - 2020 Stephen Leake (translate to WisiToken)
+;;  Copyright (c) 2018 - 2021 Stephen Leake (translate to WisiToken)
 ;;  Copyright (c) 2017 Ivan Kochurkin (upgrade to Java 8)
 ;;  Copyright (c) 2013 Terence Parr, Sam Harwell
 ;;  All rights reserved.
@@ -95,7 +95,7 @@ BOOL_LITERAL
 
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 %non_grammar <non-reporting> WS %[ [ \t\u000C]+ ]%
-%non_grammar <comment> EndOfLine_COMMENT %[ '//' [^\r\n\x04]* ]%
+%non_grammar <comment-new-line> EndOfLine_COMMENT %[ '//' ]%
 
 %token <symbol> IDENTIFIER %[ Letter LetterOrDigit* ]%
 

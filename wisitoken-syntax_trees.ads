@@ -1641,7 +1641,13 @@ package WisiToken.Syntax_Trees is
    --  set. Can be Invalid_Node_Access if input syntax does not allow
    --  parsing to succeed.
 
-   procedure Set_Root (Tree : in out Syntax_Trees.Tree; New_Root : in Valid_Node_Access);
+   procedure Set_Root (Tree : in out Syntax_Trees.Tree; New_Root : in Valid_Node_Access)
+   with Pre => (Tree.Parseable and Tree.Label (New_Root) = Nonterm) and then Tree.Child_Count (New_Root) > 0;
+   --  Set Tree.Root to Root. If New_Root.Children does not start with
+   --  Tree.SOI, prepend it. If New_Root.Children does not end with
+   --  Tree.EOI, append it.
+   --
+   --  Precondition matches Packrat parser conditions at end of parse.
 
    function SOI (Tree : in Syntax_Trees.Tree) return Node_Access;
    --  Return node representing start of input. It has non_grammar giving

@@ -1050,13 +1050,19 @@ package body WisiToken.Parse.LR.Parser is
       for Item of Parser_State.Errors loop
          case Item.Label is
          when LR_Parse_Action =>
-            Put_Line
-              (Current_Error,
-               Parser.Tree.Error_Message
-                 (Item.Error_Token.Node,
-                  "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                    ", found '" & Parser.Tree.Lexer.Buffer_Text (Parser.Tree.Byte_Region (Item.Error_Token.Node)) &
-                    "'"));
+            declare
+               Msg : constant String := "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                 ", found '" & Parser.Tree.Lexer.Buffer_Text (Parser.Tree.Byte_Region (Item.Error_Token.Node)) &
+                 "'";
+            begin
+               --  If we get here because Parse raised Syntax_Error or other
+               --  exception, Finish_Parse has not been called.
+               Put_Line
+                 (Current_Error,
+                  (if Parser.Tree.Parents_Set
+                   then Parser.Tree.Error_Message (Item.Error_Token.Node, Msg)
+                   else Parser.Tree.Error_Message (Item.Error_Token, Msg)));
+            end;
 
          when User_Parse_Action =>
             Put_Line

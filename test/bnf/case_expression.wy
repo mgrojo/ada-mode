@@ -29,7 +29,7 @@
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
-%non_grammar <non-reporting> COMMENT %[ "--"[^\n\x04]* ]%
+%non_grammar <comment-new-line> COMMENT %[ "--" ]%
 
 ;; terminals
 %token <punctuation> DOT_DOT ".."

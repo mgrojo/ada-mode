@@ -224,7 +224,7 @@ package body WisiToken.Generate.Tree_Sitter is
                end;
 
             when others =>
-               --  FIXME: handle rhs_list end if
+               --  FIXME: handle rhs_list %if, %end if
                null;
             end case;
             return;
@@ -917,7 +917,8 @@ package body WisiToken.Generate.Tree_Sitter is
                               Put (File, "$." & Ident);
 
                            when STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
-                              --  FIXME: case insensitive?
+                              --  FIXME: STRING_LITERAL_1_ID in regexp is case insensitive; not
+                              --  clear how to do that in tree-sitter.
                               Put (File, Get_Text (Item));
 
                            when others =>

@@ -66,7 +66,6 @@ package body WisiToken.Parse.Packrat.Generated is
 
          raise Syntax_Error with "parse failed"; --  FIXME: need better error message!
       else
-         --  FIXME: Set_Root move SOI under root
          Parser.Tree.Set_Root (Result.Result);
       end if;
 

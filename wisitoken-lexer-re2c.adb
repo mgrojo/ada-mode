@@ -193,9 +193,8 @@ package body WisiToken.Lexer.re2c is
       Byte_Length   : Natural;
       Char_Position : Natural;
       Char_Length   : Natural;
-      Line          : Line_Number_Type;
-      --  Position and length in bytes and characters of token from
-      --  start of Managed.Buffer, 1 indexed.
+      Line_Start    : Line_Number_Type;
+      Line_Length   : Base_Line_Number_Type;
 
       procedure Build_Token
       is begin
@@ -212,8 +211,9 @@ package body WisiToken.Lexer.re2c is
                   Base_Buffer_Pos (Byte_Position + Byte_Length - 1) +
                     Lexer.Source.Buffer_Nominal_First_Byte - Buffer_Pos'First)),
 
-            --  FIXME: C lexer return line_region for multi-line tokens
-            Line_Region => (First | Last => Line + Lexer.Source.Line_Nominal_First - Line_Number_Type'First),
+            Line_Region =>
+              (First    => Line_Start + Lexer.Source.Line_Nominal_First - Line_Number_Type'First,
+               Last     => Line_Start + Line_Length + Lexer.Source.Line_Nominal_First - Line_Number_Type'First),
 
             Char_Region =>
               (if ID = Lexer.Descriptor.EOI_ID and then Byte_Position = Integer (Base_Buffer_Pos'First)
@@ -224,11 +224,6 @@ package body WisiToken.Lexer.re2c is
                else
                  (To_Char_Pos (Lexer.Source, Char_Position),
                   To_Char_Pos (Lexer.Source, Char_Position + Char_Length - 1))));
-
-         if ID = Lexer.Descriptor.New_Line_ID then
-            --  See FIXME: above about multi-line tokens
-            Token.Line_Region.Last := @ + 1;
-         end if;
       end Build_Token;
 
    begin
@@ -240,7 +235,8 @@ package body WisiToken.Lexer.re2c is
                Byte_Length   => Interfaces.C.size_t (Byte_Length),
                Char_Position => Interfaces.C.size_t (Char_Position),
                Char_Length   => Interfaces.C.size_t (Char_Length),
-               Line_Start    => Interfaces.C.int (Line));
+               Line_Start    => Interfaces.C.int (Line_Start),
+               Line_Length   => Interfaces.C.int (Line_Length));
          begin
             case Status is
             when 0 =>

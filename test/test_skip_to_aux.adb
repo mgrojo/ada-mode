@@ -29,6 +29,7 @@ package body Test_Skip_To_Aux is
             Chars : constant WisiToken.Buffer_Region := Parser.Tree.Char_Region
               (Parser.Tree.Last_Terminal (Nonterm));
             Bytes : constant WisiToken.Buffer_Region := Parser.Tree.Byte_Region (Nonterm);
+            Lines : constant WisiToken.Line_Region := Parser.Tree.Line_Region (Nonterm, Trailing_Non_Grammar => False);
          begin
             if WisiToken.Trace_Parse > WisiToken.Outline then
                Ada.Text_IO.Put_Line ("Test_Declaration_0");
@@ -45,6 +46,7 @@ package body Test_Skip_To_Aux is
             when 1 =>
                Check ("declaration_0 RANGE char region", Chars, (39, 43));
                Check ("declaration_0 RANGE byte region", Bytes, (16#1E# + 1, 16#2F# + 1));
+               Check ("declaration_0 RANGE line region", Lines, (6, 6));
 
             when 2 =>
                Check ("declaration_0 X1_Non char region", Chars, (59, 62));
@@ -84,6 +86,10 @@ package body Test_Skip_To_Aux is
                    Parser.Tree.Lexer.Buffer_Text (Bytes),
                    "%{" & ASCII.CR & ASCII.LF & "%}");
          end;
+
+         Check ("compilation_unit_0 PREAMBLE line region",
+                Parser.Tree.Line_Region (Nonterm, Trailing_Non_Grammar => False),
+                (1, 2));
       end if;
    end Test_Compilation_Unit_0;
 

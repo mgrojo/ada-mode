@@ -1,7 +1,7 @@
 ;;  wisitoken grammar for Red Dragon Book example 4.43.
 
 %code copyright_license %{
-;;  Copyright (C) 2018, 2020 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2018, 2020, 2021 Stephen Leake.  All Rights Reserved.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -30,7 +30,7 @@
 
 ;; comment.
 %if lexer = re2c
-%non_grammar <comment> COMMENT %[ "--"[^\n\x04]* ]%
+%non_grammar <comment-new-line> COMMENT %[ "--" ]%
 %elsif lexer = tree_sitter
 %non_grammar <line-comment> COMMENT '--'
 %end if

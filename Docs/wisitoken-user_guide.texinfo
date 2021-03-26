@@ -303,10 +303,22 @@ A string of characters that have string syntax, with single quote delimiters.
 
 @item <new-line>
 @verbatim
-%token <new-line> [\n] %[ ... ]%
+%token <new-line> NEW_LINE
 @end verbatim
-Not used by the wisi lexer; required by the Ada lexer. The third
-argument is the regular expression to recognize the entire comment.
+Declares the non-grammar new-line token, used to count lines. It has
+no regexp argument; DOS and Unix line endings are recognized. This
+must be declared if line information is desired.
+
+For backward compatibility with previous WisiToken versions, any
+regexp present is ignored.
+
+@item <comment-new-line>
+@verbatim
+%token <comment-new-line> COMMENT "--"
+@end verbatim
+Declares a non-grammar comment token. The regexp argument must match
+only the comment start (the example shows the Ada comment start); DOS
+and Unix line endings, and end of file, are added internally.
 
 @item <non-reporting>
 @verbatim

@@ -1307,10 +1307,10 @@ is
               "Recover_Active, Nonterm);";
 
          elsif Input_Data.Tokens.Actions.Contains (+Elisp_Name) then
-            --  Language-specific action (used in wisitoken grammar mode for
-            --  wisi-check-parens).
+            --  Language-specific post-parse action (used in wisitoken grammar
+            --  mode for wisi-check-parens).
             --
-            --  FIXME: handle labels for token args. wisitoken-grammar declares
+            --  IMPROVEME: handle labels for token args. wisitoken-grammar declares
             --  wisi-check-parens, but uses BNF syntax, so no token labels are
             --  needed.
             declare

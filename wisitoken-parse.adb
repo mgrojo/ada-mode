@@ -63,7 +63,11 @@ package body WisiToken.Parse is
          Error := Lexer.Find_Next (Token);
 
          if Trace_Lexer > Outline then
-            Parser.Trace.Put_Line (WisiToken.Lexer.Image (Token, Lexer.Descriptor.all));
+            Parser.Trace.Put_Line
+              ("(" & Image (Token.ID, Tree.Lexer.Descriptor.all) & ", " &
+                 Image (Token.Byte_Region) & ", " &
+                 Image (Token.Char_Region) & ", " &
+                 Image (Token.Line_Region) & ")");
          end if;
 
          if Token.ID >= Lexer.Descriptor.First_Terminal then

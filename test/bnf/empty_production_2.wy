@@ -30,7 +30,7 @@
 ;; Since we don't define a <new-line> token, lines are not counted;
 ;; all tokens are on line 1.
 %non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
-%non_grammar <non-reporting> COMMENT %[ "--"[^\n\x04]* ]%
+%non_grammar <comment-new-line> COMMENT %[ "--" ]%
 
 %start declarations
 

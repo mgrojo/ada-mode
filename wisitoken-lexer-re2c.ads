@@ -62,14 +62,16 @@ generic
       Byte_Length   :    out Interfaces.C.size_t;
       Char_Position :    out Interfaces.C.size_t;
       Char_Length   :    out Interfaces.C.size_t;
-      Line_Start    :    out Interfaces.C.int)
+      Line_Start    :    out Interfaces.C.int;
+      Line_Length   :    out Interfaces.C.int)
      return Interfaces.C.int;
    --  *_Position and *_Length give the position and length in bytes and
    --  characters of the token from the start of the buffer, 0 indexed.
    --
    --  Line_Start gives the line number in the source file that the first
-   --  character of the token is in, 1 indexed. If ID is new_line, Line_Start
-   --  is the line started by this token.
+   --  character of the token is in, 1 indexed. Line_Length gives the
+   --  number of line ends contained in the token; 0 for a token that is all on
+   --  one line, 1 for a new_line, more for a multi-line token.
    --
    --  Result values:
    --

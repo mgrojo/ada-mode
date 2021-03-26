@@ -31,8 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-packrat add SOI to root; doesn't call clear_parse_streams
-
 review fixme
 
 add %no_error_recover, instead of detecting mckenzie /= default

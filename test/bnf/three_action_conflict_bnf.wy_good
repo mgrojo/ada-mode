@@ -26,7 +26,7 @@
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
-%non_grammar <comment> COMMENT %[ "--"[^\n\x04]* ]%
+%non_grammar <comment-new-line> COMMENT %[ "--" ]%
 
 classOrInterfaceType
   : IDENTIFIER

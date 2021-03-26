@@ -3028,7 +3028,15 @@ package body WisiToken.Syntax_Trees is
          else Next_Non_Grammar);
    begin
       return Result : constant WisiToken.Line_Region :=
-        (First => Prev_Non_Grammar.Non_Grammar (Prev_Non_Grammar.Non_Grammar.First_Index).Line_Region.First,
+        (First =>
+           --  If we are finding the line_region of wisi_accept in an Editable
+           --  tree, we want to include the leading non_grammar in SOI. On the
+           --  other hand, if we are finding the line_region of a leading
+           --  non_terminal, we don't want to include the leading non_grammar in
+           --  SOI.
+           (if Node = Tree.Root and Prev_Non_Grammar = Tree.SOI
+            then Prev_Non_Grammar.Non_Grammar (Prev_Non_Grammar.Non_Grammar.First_Index).Line_Region.First
+            else Prev_Non_Grammar.Non_Grammar (Prev_Non_Grammar.Non_Grammar.Last_Index).Line_Region.Last),
          Last => Actual_Last_Non_Grammar.Non_Grammar
            (if Trailing_Non_Grammar
             then Actual_Last_Non_Grammar.Non_Grammar.Last_Index
@@ -4399,7 +4407,54 @@ package body WisiToken.Syntax_Trees is
 
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; New_Root : in Valid_Node_Access)
    is begin
-      Tree.Root := New_Root;
+      if New_Root.Children (1) = Tree.SOI and
+        New_Root.Children (New_Root.Children'Last) = Tree.EOI
+      then
+         Tree.Root := New_Root;
+      else
+         declare
+
+            function Create_New_Children return Node_Access_Array
+            is
+               Last : Positive_Index_Type := New_Root.Children'Last;
+               New_Children : Node_Access_Array (1 .. New_Root.Children'Last + 2);
+            begin
+               if New_Root.Children (1) /= Tree.SOI then
+                  New_Children (1) := Tree.SOI;
+                  Last := 1 + New_Root.Children'Length;
+                  New_Children (2 .. Last) := New_Root.Children;
+               end if;
+
+               if New_Root.Children (New_Root.Children'Last) /= Tree.EOI then
+                  Last := @ + 1;
+                  New_Children (Last) := Tree.EOI;
+               end if;
+               return New_Children (1 .. Last);
+            end Create_New_Children;
+
+            New_Children : constant Node_Access_Array := Create_New_Children;
+         begin
+            Tree.Root := new Node'
+              (Label       => Nonterm,
+               Child_Count => New_Children'Last,
+               ID          => New_Root.ID,
+               Node_Index  => New_Root.Node_Index,
+               Parent      => null,
+               Augmented   => New_Root.Augmented,
+               Virtual     => New_Root.Virtual,
+               RHS_Index   => New_Root.RHS_Index,
+               Action      => New_Root.Action,
+               Name_Offset => New_Root.Name_Offset,
+               Name_Length => New_Root.Name_Length,
+               Children    => New_Children);
+
+            for Child of New_Children loop
+               Child.Parent := Tree.Root;
+            end loop;
+
+            Tree.Nodes.Append (Tree.Root);
+         end;
+      end if;
    end Set_Root;
 
    procedure Shift
@@ -4711,11 +4766,13 @@ package body WisiToken.Syntax_Trees is
      (Tree   : in     Syntax_Trees.Tree;
       Ref    : in out Stream_Node_Parents;
       Rooted : in     Boolean)
-   is begin
+   is
+      use Stream_Element_Lists;
+   begin
       Ref.Parents.Clear;
       Stream_Next (Tree, Ref.Ref, Rooted => True);
 
-      if not Rooted then
+      if Ref.Ref.Element.Cur /= No_Element and not Rooted then
          Ref.Ref.Node := First_Terminal
            (Tree, Stream_Element_Lists.Constant_Ref (Ref.Ref.Element.Cur).Node, Ref.Parents);
       end if;
@@ -4757,11 +4814,13 @@ package body WisiToken.Syntax_Trees is
      (Tree   : in     Syntax_Trees.Tree;
       Ref    : in out Stream_Node_Parents;
       Rooted : in     Boolean)
-   is begin
+   is
+      use Stream_Element_Lists;
+   begin
       Ref.Parents.Clear;
       Stream_Prev (Tree, Ref.Ref, Rooted => True);
 
-      if not Rooted then
+      if Ref.Ref.Element.Cur /= No_Element and not Rooted then
          Ref.Ref.Node := Last_Terminal
            (Tree, Stream_Element_Lists.Constant_Ref (Ref.Ref.Element.Cur).Node, Ref.Parents);
       end if;

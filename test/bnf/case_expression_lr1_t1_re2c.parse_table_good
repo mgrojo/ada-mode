@@ -1,7 +1,7 @@
 Tokens:
  0 => WHITESPACE
- 1 => COMMENT
- 2 => NEW_LINE
+ 1 => NEW_LINE
+ 2 => COMMENT
  3 => RANGE
  4 => WHEN
  5 => DOT_DOT

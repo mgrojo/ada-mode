@@ -1008,13 +1008,17 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("#define YYPEEK() (lexer->cursor <= lexer->buffer_last) ? *lexer->cursor : 4");
       New_Line;
 
-      Indent_Line ("static void skip(wisi_lexer* lexer)");
+      Indent_Line ("static void skip(wisi_lexer* lexer, int count_lines)");
       Indent_Line ("{");
       Indent := Indent + 3;
       Indent_Line ("if (lexer->cursor <= lexer->buffer_last)");
       Indent_Line ("   ++lexer->cursor;");
       Indent_Line ("if (lexer->cursor <= lexer->buffer_last)");
       Indent_Line ("{");
+      Indent_Line ("   if (count_lines && *lexer->cursor == 0x0A)");
+      Indent_Line ("   {");
+      Indent_Line ("     lexer->line++;");
+      Indent_Line ("   }");
       Indent_Line ("   /* UFT-8 encoding: https://en.wikipedia.org/wiki/UTF-8#Description */");
       Indent_Line ("   if (*lexer->cursor == 0x0A && lexer->cursor > lexer->buffer && *(lexer->cursor - 1) == 0x0D)");
       Indent_Line ("     {/* second byte of DOS line ending */");
@@ -1023,12 +1027,12 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("     {/* byte 2, 3 or 4 of multi-byte UTF-8 char */");
       Indent_Line ("     }");
       Indent_Line ("   else");
-      Indent_Line ("     ++lexer->char_pos;");
+      Indent_Line ("     lexer->char_pos++;");
       Indent_Line ("} else ");
-      Indent_Line ("   ++lexer->char_pos;");
+      Indent_Line ("   lexer->char_pos++;");
       Indent := Indent - 3;
       Indent_Line ("}");
-      Indent_Start ("#define YYSKIP() skip(lexer)");
+      Indent_Start ("#define YYSKIP() skip(lexer, 0)");
       New_Line;
 
       Indent_Line ("#define YYBACKUP() lexer->marker = lexer->cursor; lexer->marker_pos = lexer->char_pos;" &
@@ -1060,11 +1064,11 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("        if (0 == target[i])");
          Indent_Line ("          {");
          Indent_Line ("            for (i = 0; 0 != target[i]; i++)");
-         Indent_Line ("               skip(lexer);");
+         Indent_Line ("               skip(lexer, 1);");
          Indent_Line ("            break;");
          Indent_Line ("          }");
          Indent_Line ("      }");
-         Indent_Line ("      skip(lexer);");
+         Indent_Line ("      skip(lexer, 1);");
          Indent_Line ("    };");
          Indent_Line ("}");
          New_Line;
@@ -1079,7 +1083,8 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("   size_t* byte_length,");
       Indent_Line ("   size_t* char_position,");
       Indent_Line ("   size_t* char_length,");
-      Indent_Line ("   int*    line_start)");
+      Indent_Line ("   int*    line_start,");
+      Indent_Line ("   int*    line_length)");
       Indent_Line ("{");
       Indent := Indent + 3;
 
@@ -1097,6 +1102,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("*char_position = lexer->char_pos;");
       Indent_Line ("*char_length   = 0;");
       Indent_Line ("*line_start    = lexer->line;");
+      Indent_Line ("*line_length   = 0;");
       Indent_Line ("return status;");
       Indent := Indent - 3;
       Indent_Line ("}");
@@ -1125,7 +1131,14 @@ package body WisiToken.BNF.Output_Ada_Common is
       --  definitions
       for I in All_Tokens (Generate_Data).Iterate (Non_Grammar => True, Nonterminals => False) loop
 
-         if 0 /= Index (Source => Value (Generate_Data, I), Pattern => "/") then
+         if Kind (Generate_Data, I) = "comment-new-line" then
+            --  Regexp only includes start, to simplify implementation of skip-to().
+            --
+            --  This must be before the check for "trailing context syntax", to
+            --  handle Java comments.
+            Indent_Line (Name (Generate_Data, I) & " = " & Value (Generate_Data, I) & "[^\x0a\x04]* ;");
+
+         elsif 0 /= Index (Source => Value (Generate_Data, I), Pattern => "/") then
             --  trailing context syntax; forbidden in definitions
             null;
 
@@ -1140,6 +1153,10 @@ package body WisiToken.BNF.Output_Ada_Common is
             --  This assumes re2c regular expression syntax, where single quote
             --  means case insensitive.
             Indent_Line (Name (Generate_Data, I) & " = '" & Strip_Quotes (Value (Generate_Data, I)) & "';");
+
+         elsif Kind (Generate_Data, I) = "new-line" then
+            --  Regexp ignored, to simplify implementation of skip-to().
+            Indent_Line (Name (Generate_Data, I) & " = [\x0a]|[\x0d][\x0a];");
 
          else
             --  Other kinds have values that are regular expressions, in lexer syntax
@@ -1166,7 +1183,15 @@ package body WisiToken.BNF.Output_Ada_Common is
                     "; skip_to(lexer, " & Repair_Image (Generate_Data, I) & "); continue;}");
 
             elsif Kind (Generate_Data, I) = "new-line" then
-               Indent_Line (Val & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; lexer->line++; continue;}");
+               --  regexp ignored; DOS and Unix line-endings hard-coded above
+               Indent_Line (Val & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; lexer->line++; ; continue;}");
+
+            elsif Kind (Generate_Data, I) = "comment-new-line" then
+               --  Regexp only includes start, to simplify implementation of skip-to().
+               --
+               --  This must be before the check for "trailing context syntax", to
+               --  handle Java comments.
+               Indent_Line (Name (Generate_Data, I) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
 
             elsif 0 /= Index (Source => Val, Pattern => "/") then
                Indent_Line (Val & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
@@ -1191,6 +1216,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("*char_position = lexer->char_token_start;");
       Indent_Line ("*char_length   = lexer->char_pos - lexer->char_token_start;");
       Indent_Line ("*line_start    = lexer->line_token_start;");
+      Indent_Line ("*line_length   = lexer->line - lexer->line_token_start;");
       Indent_Line ("return status;");
       Indent_Line ("}");
       Indent := Indent - 3;
@@ -1256,7 +1282,8 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("   Byte_Length   :    out Interfaces.C.size_t;");
          Indent_Line ("   Char_Position :    out Interfaces.C.size_t;");
          Indent_Line ("   Char_Length   :    out Interfaces.C.size_t;");
-         Indent_Line ("   Line_Start    :    out Interfaces.C.int)");
+         Indent_Line ("   Line_Start    :    out Interfaces.C.int;");
+         Indent_Line ("   Line_Length   :    out Interfaces.C.int)");
          Indent_Line ("  return Interfaces.C.int");
          Indent_Line ("with Import        => True,");
          Indent_Line ("     Convention    => C,");

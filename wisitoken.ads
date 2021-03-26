@@ -490,9 +490,9 @@ package WisiToken is
       Column    : in Ada.Text_IO.Count;
       Message   : in String)
      return String;
-   --  Return Gnu-formatted error message. Column is origin 0 (WisiToken
-   --  and Emacs standard); in message it is origin 1 (Gnu coding
-   --  standards [gnu_coding])
+   --  Return Gnu-formatted error message. Column parameter is origin 0
+   --  (WisiToken and Emacs standard); in formatted message it is origin
+   --  1 (Gnu coding standards [gnu_coding])
 
    type Names_Array is array (Integer range <>) of String_Access_Constant;
    type Names_Array_Access is access Names_Array;
