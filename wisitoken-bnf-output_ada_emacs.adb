@@ -1040,7 +1040,7 @@ is
                   --  tokens. RHS_Index = 0 always has all optional tokens.
                   Put_Error
                     (Error_Message
-                       (Grammar_File_Name, RHS.Source_Line, Image (Prod_ID) &
+                       (Grammar_File_Name, RHS.Source_Line, Image (Prod_ID, Generate_Data.Descriptor.all) &
                           ": indent parameter/token label mismatch"
                        & (if RHS.Auto_Token_Labels then "" else " all tokens must be labeled if any are")));
                end if;
@@ -1319,6 +1319,8 @@ is
                Code   : constant String := -Item.Value &
                  " (Wisi.Parse_Data_Type'Class (User_Data), Tree, Nonterm, " & Params & ");";
             begin
+               Nonterm_Needed := True;
+
                if Params'Length > 0 then
                   if "navigate" = -Item.Name then
                      Navigate_Lines.Append (Code);
