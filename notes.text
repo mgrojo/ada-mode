@@ -44,6 +44,13 @@ for ada_mode_wisi_parse.gpr:
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
 run all tests with incremental mode enabled
+
+    parse raise Syntax_Error skips Finish_Parse which does clear_parse_streams
+        all post-parse first check for tree.editable.
+        add a test
+            ada_mode-ada95.ads?
+
+
     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t)"
     one ONE_TEST_FILES=ada_mode-interactive_1.adb  ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
 mckenzie_options task_count=1
@@ -66,13 +73,16 @@ error: c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-interactive_2.adb:3
         move following source_terminal code into tree.line_region.
         don't store line_region in nodes; only in new_line non_grammar
 
+    change set_parents to be incremental?
+        descend tree; if find a parent link, no need to descend that branch
+        insert_token also needs to set parents?
+
 build/test.log
 
 
-delete new_line at end of comment so lots of code gets added to comment
-    delete_loop has to delete thru last_grammar_node.byte_region.last?
-
-delete code between leading_non_grammar and first comment
+move global indent/user vars to parse_context?
+    or parse_data?
+    don't send in every parse command, just when they change
 
 log to file, not stdout; don't overload emacs process_io
 
@@ -155,6 +165,24 @@ for wisi.texi:
 
 testimonial:
     Jonty Needham Feb 2021 ada-mode 7.1.4 Ada-mode is even better than it used to be and a real pleasure to use.
+
+indent bug:
+   procedure Find_New_Line
+     (Tree     : in     Syntax_Trees.Tree;
+      Ref      : in out Stream_Node_Parents;
+      Line     : in     Line_Number_Type;
+      Char_Pos :    out Buffer_Pos)
+   with Pre => Line > Line_Number_Type'First and Ref.Parents.Is_Empty and
+               Ref.Ref.Element = Tree.Streams (Ref.Stream.Cur).Elements.First and
+               Ref.Ref.Node = Stream_Element_Lists.Constant_Ref (Ref.Ref.Element.Cur).Node
+   --  On entry, Ref.Ref should be Stream_First (Ref.Stream)
+   --  Update Ref to node in Ref.Stream that ends Line - 1. Set Char_Pos
+   --  to the position of the first character on Line. If not found,
+   --  Ref.Ref is Invalid_Stream_Node_Ref, Char_Pos is
+   --  Invalid_Buffer_Pos.
+   is begin
+
+    comment wrong; ok if precondition is only one line
 
 'with unreferenced' in parameter list
     in gnat pro 21.1

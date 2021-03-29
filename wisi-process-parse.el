@@ -389,7 +389,7 @@ one or more Query messages."
     (with-silent-modifications
       (put-text-property
        pos
-       (1+ pos)
+       (min (1+ pos) (point-max))
        'wisi-cache
        (wisi-cache-create
 	:nonterm    (aref (wisi-process--parser-token-table parser) (aref sexp 2))

@@ -1015,9 +1015,14 @@ package body Wisi is
       when Navigate =>
          Data.Navigate_Caches.Clear;
          Data.Name_Caches.Clear;
+
       when Face =>
          Data.Face_Caches.Clear;
+
       when Indent =>
+         Data.Action_Region_Lines := (Begin_Line, End_Line);
+         --  FIXME: don't need Begin_Line, End_Line; get from action_region_bytes
+
          Data.Indents.Set_First_Last
            (First   => Begin_Line,
             Last    => End_Line);
@@ -1909,10 +1914,10 @@ package body Wisi is
       end if;
 
       for I in 1 .. Tree.Child_Count (Nonterm) loop
-         if Overlaps
-           (Tree.Char_Region (Tree.Child (Nonterm, I), Include_Non_Grammar => True),
-            Data.Action_Region_Chars) and
-           I in Params'Range -- in some translated EBNF, not every token has an indent param
+         if I in Params'Range and then -- in some translated EBNF, not every token has an indent param
+           Overlaps
+           (Tree.Line_Region (Tree.Child (Nonterm, I), Trailing_Non_Grammar => True),
+            Data.Action_Region_Lines)
          then
             declare
                Child : constant Syntax_Trees.Valid_Node_Access := Tree.Child (Nonterm, I);
@@ -2372,74 +2377,72 @@ package body Wisi is
       declare
          use all type Ada.Containers.Count_Type;
          use all type SAL.Base_Peek_Type;
-         use all type WisiToken.Syntax_Trees.Node_Access;
+         use Syntax_Trees;
 
-         First_Terminal : constant Syntax_Trees.Node_Access := Tree.First_Source_Terminal
-           (Node, Include_Non_Grammar => True);
+         --  Find the first grammar token that is first on a line.
+         Prev_Non_Grammar  : constant Node_Access := Tree.Prev_Non_Grammar (Node);
+         Prev_Terminal     : constant Node_Access := Tree.Prev_Terminal (Node);
+         First_Non_Grammar : constant Node_Access := Tree.First_Non_Grammar (Node);
+         Last_Terminal     : constant Node_Access := Tree.Last_Terminal (Node);
+
+         First_Code_Line : constant Line_Number_Type :=
+           (if Prev_Non_Grammar = Prev_Terminal
+            then -- First terminal in Node is first on a line; we assume code cannot
+                 -- follow a comment on the same line (no old C style comments).
+               Prev_Terminal.Non_Grammar (Prev_Terminal.Non_Grammar.Last_Index).Line_Region.Last
+            elsif First_Non_Grammar = Invalid_Node_Access
+            then Invalid_Line_Number
+            elsif Last_Terminal = Invalid_Node_Access
+            then Invalid_Line_Number -- No grammar terminals after first_non_grammar
+            else First_Non_Grammar.Non_Grammar (First_Non_Grammar.Non_Grammar.First_Index).Line_Region.First);
+
+         Next_Non_Grammar : constant Node_Access := Tree.Next_Non_Grammar (Node);
+
+         Last_Code_Line : constant Line_Number_Type :=
+           (if Last_Terminal = Invalid_Node_Access
+            then Invalid_Line_Number
+            elsif Last_Terminal.Non_Grammar.Length > 0
+            then Last_Terminal.Non_Grammar (Last_Terminal.Non_Grammar.First_Index).Line_Region.First
+            elsif Next_Non_Grammar = Invalid_Node_Access
+            then First_Code_Line -- FIXME: include EOI in tree
+            else Next_Non_Grammar.Non_Grammar (Next_Non_Grammar.Non_Grammar.First_Index).Line_Region.First);
+
       begin
-         if First_Terminal = Syntax_Trees.Invalid_Node_Access then
-            return (others => <>);
-         end if;
-
          return Result : Wisi.Indenting do
-            declare
-               Last_Source_Terminal  : constant Syntax_Trees.Valid_Node_Access := Tree.Last_Source_Terminal
-                 (Node, Include_Non_Grammar => True);
+            if First_Code_line = Invalid_Line_Number or Last_Code_line = Invalid_Line_Number then
+               Result.Code := Null_Line_Region;
+            else
+               Result.Code :=
+                 (First => First_Code_Line,
+                  Last  => Last_Code_Line);
+            end if;
 
-               Last_Virtual_Terminal : constant Syntax_Trees.Valid_Node_Access := Tree.Last_Terminal (Node);
+            if Last_Terminal.Non_Grammar.Length = 0 or Last_Terminal = Invalid_Node_Access then
+               Result.Comment := Null_Line_Region;
 
-               Actual_Last_Terminal : constant Syntax_Trees.Node_Access :=
-                 (if Last_Source_Terminal = Last_Virtual_Terminal
-                  then Last_Source_Terminal
-                  else Tree.Next_Source_Terminal (Last_Virtual_Terminal, Include_Non_Grammar => True)
-                  --  Last_Terminal is all virtual, with no non_grammar; it was inserted
-                  --  before other tokens, not on a blank line. Use next source terminal
-                  --  for last line. test/ada_mode-interactive_2.adb Local_Proc_1
-                 );
-
-               Trailing_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Const (Actual_Last_Terminal);
-
-               First_Code_Line : constant Line_Number_Type := Tree.Line_Region
-                 (First_Terminal, Internal_Non_Grammar => True, Trailing_Non_Grammar => True).First;
-
-               Last_Code_Line : constant Line_Number_Type :=
-                 (if Trailing_Non_Grammar.Length > 1
-                  then Trailing_Non_Grammar (Trailing_Non_Grammar.First_Index).Line_Region.First
-                  else Tree.Line_Region (Actual_Last_Terminal).Last);
-            begin
-               if First_Terminal = Tree.Line_Begin_Token (First_Code_Line) then
-                  Result.Code :=
-                    (First => First_Code_Line,
-                     Last  => Last_Code_Line);
-
-               elsif First_Code_Line = Last_Code_Line then
-                  Result.Code := Null_Line_Region;
-
+            else
+               if Last_Terminal.Non_Grammar (Last_Terminal.Non_Grammar.First_Index).ID =
+                 Tree.Lexer.Descriptor.New_Line_ID
+               then
+                  --  First non_grammar is new_line terminating code line.
+                  Result.Comment :=
+                    (First => Last_Terminal.Non_Grammar (Last_Terminal.Non_Grammar.First_Index).Line_Region.Last,
+                     Last  => Last_Terminal.Non_Grammar (Last_Terminal.Non_Grammar.Last_Index).Line_Region.Last);
                else
-                  Result.Code :=
-                    (First => First_Code_Line + 1,
-                     Last  => Last_Code_Line);
-               end if;
-
-               if Trailing_Non_Grammar.Length > 1 then
-                  if Trailing_Non_Grammar (Trailing_Non_Grammar.First_Index).ID = Tree.Lexer.Descriptor.New_Line_ID then
-                     --  First non_grammar is new_line terminating code line.
+                  --  First non_grammar is a comment on the code line; second must be a new_line.
+                  if Last_Terminal.Non_Grammar.Length > 2 then
                      Result.Comment :=
-                       (First => Trailing_Non_Grammar (Trailing_Non_Grammar.First_Index + 1).Line_Region.First,
-                        Last  => Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region.Last);
+                       (First => Last_Terminal.Non_Grammar
+                          (Last_Terminal.Non_Grammar.First_Index + 2).Line_Region.First,
+                        Last  => Last_Terminal.Non_Grammar (Last_Terminal.Non_Grammar.Last_Index).Line_Region.Last);
                   else
-                     --  First non_grammar is a comment on the code line.
-                     if Trailing_Non_Grammar.Length > 2 then
-                        Result.Comment :=
-                          (First => Trailing_Non_Grammar (Trailing_Non_Grammar.First_Index + 2).Line_Region.First,
-                           Last  => Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region.Last);
-                     end if;
+                     raise SAL.Programmer_Error with "non_grammar comment token not followed by new_line";
                   end if;
                end if;
+            end if;
 
-               Aug.Cache_Version := Data.Augmented_Cache_Version;
-               Aug.Indenting     := Result;
-            end;
+            Aug.Cache_Version := Data.Augmented_Cache_Version;
+            Aug.Indenting     := Result;
          end return;
       end;
    end Compute_Indenting;

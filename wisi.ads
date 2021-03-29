@@ -569,6 +569,7 @@ private
       Post_Parse_Action   : Post_Parse_Action_Type;
       Action_Region_Bytes : WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region;
       Action_Region_Chars : WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region;
+      Action_Region_Lines : WisiToken.Line_Region   := WisiToken.Null_Line_Region;
       --  Actions are applied to tokens that overlap this region.
 
       Navigate_Caches   : Navigate_Cache_Trees.Tree;  -- Set by Navigate.
