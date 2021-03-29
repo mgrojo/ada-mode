@@ -3,7 +3,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2020  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2021  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -95,9 +95,12 @@ Throw an error if current project does not have a gnat-compiler."
     (setf (wisi-prj-file-env project) (copy-sequence process-environment))
     ))
 
+;; We need a dynamic variable for 'add-to-list
+(defvar gnat--src-dirs)
+
 (defun gnat-get-paths (project compiler)
   "Add project and/or compiler source, project paths to PROJECT source-path"
-  (let* ((src-dirs (wisi-prj-source-path project))
+  (let* ((gnat--src-dirs (wisi-prj-source-path project))
 	 (prj-dirs (cl-copy-list (gnat-compiler-project-path compiler))))
 
     ;; Don't need project plist obj_dirs if using a project file, so
@@ -116,16 +119,22 @@ Throw an error if current project does not have a gnat-compiler."
 	  ;; Source path
 	  (search-forward "Source Search Path:")
 	  (forward-line 1)
-	  (while (not (looking-at "^$")) ; terminate on blank line
-	    (back-to-indentation) ; skip whitespace forward
-            (cl-pushnew
+	  (while (not (looking-at "^$")) ;; terminate on blank line
+	    (back-to-indentation) ;; skip whitespace forward
+
+	    ;; we use 'add-to-list here, not 'cl-pushnew, because we
+	    ;; want to use append to preserve the directory
+	    ;; order. Directory order matters for extension projects,
+	    ;; which can have duplicate file names.
+            (add-to-list
+	     'gnat--src-dirs
 	     (if (looking-at "<Current_Directory>")
 		 (directory-file-name default-directory)
 	       (expand-file-name ; Canonicalize path part.
 		(directory-file-name
 		 (buffer-substring-no-properties (point) (point-at-eol)))))
-	     src-dirs
-	     :test #'string-equal)
+	     t ;; append
+	     #'string-equal)
 	    (forward-line 1))
 
           ;; Project path
@@ -141,7 +150,7 @@ Throw an error if current project does not have a gnat-compiler."
 	      (let ((f (expand-file-name
                         (buffer-substring-no-properties (point) (point-at-eol)))))
                 (cl-pushnew f prj-dirs :test #'string-equal)
-                (cl-pushnew f src-dirs :test #'string-equal)))
+                (cl-pushnew f gnat--src-dirs :test #'string-equal)))
 	    (forward-line 1))
 
 	  )
@@ -160,8 +169,7 @@ Throw an error if current project does not have a gnat-compiler."
        (message "parse gpr failed")
        ))
 
-    ;; reverse prj-dirs so project file dirs precede gnat library dirs
-    (setf (wisi-prj-source-path project) (nreverse (delete-dups src-dirs)))
+    (setf (wisi-prj-source-path project) (delete-dups gnat--src-dirs))
     (setf (gnat-compiler-project-path compiler) nil)
     (mapc (lambda (dir) (gnat-prj-add-prj-dir project compiler dir))
 	  prj-dirs)

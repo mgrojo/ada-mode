@@ -340,7 +340,7 @@ messages."
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
-    (wisi-parse-log-message parser msg)
+    (wisi-parse-log-message parser cmd)
     (process-send-string process msg)
     (wisi-process-parse--wait parser)
     ))
@@ -361,7 +361,7 @@ one or more Query messages."
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
-    (wisi-parse-log-message parser msg)
+    (wisi-parse-log-message parser cmd)
     (process-send-string process msg)
     (wisi-process-parse--wait parser)
     ))
@@ -376,7 +376,7 @@ one or more Query messages."
     (with-silent-modifications
       (put-text-property
        pos
-       (1+ pos)
+       (min (1+ pos) (point-max))
        'wisi-cache
        (wisi-cache-create
 	:nonterm    (aref (wisi-process--parser-token-table parser) (aref sexp 2))

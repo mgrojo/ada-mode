@@ -43,9 +43,6 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-eliminate lexer.first
-    move descriptor to tree?
-
 run all tests with incremental mode enabled
     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t)"
 
@@ -83,9 +80,12 @@ incremental parse
 
 still need wisi-lexer?
 
-optimize initial full parse
-    generated packrat should be faster than generalized LR1
-    if encounter error, save partial trees, do incremental generalized LR1 error correcting to finish
+gnat-get-paths called more than once for ada-mode project
+
+Ada-mode add newbie test
+    no project
+    VC project
+    no gpr_query.exe
 
 split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
 
@@ -170,6 +170,8 @@ provide binary for windows and Debian on Savannah as an aide to new users
 
 build.sh provide helpful error for missing gnatcoll
     refer to ada-mode.info
+
+merge sal-ada-goto-declaration-start, java-wisi-goto-declaration-start into wisi
 
 gpr_query process symbols in background thread, yeild periodically
     avoid pausing user interface
@@ -1175,6 +1177,7 @@ run all tests without elpa:
     - Windows Emacs master, current gnat
     - Windows Emacs 25.3, current gnat
     - Windows Emacs 26.1, current gnat
+    - mingw64 gnat
 
     #dvc-state-multiple above
     (dvc-push)

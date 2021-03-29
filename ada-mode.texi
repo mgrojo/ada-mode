@@ -310,6 +310,11 @@ make -C xref install
 @node Building the executables
 @subsection Building the executables
 
+@c FIXME: table of known good/bad OS/compiler versions
+@c FSF gnat 10 fails due to -ada2020
+@c FSF gnat 9 ok
+@c Community 2019, 2020 ok
+
 @file{gpr_query} requires the @code{pthread} library. On Windows, this
 is available in Mingw64 as package
 @code{mingw64/mingw-w64-x86_64-winpthreads-git}.
