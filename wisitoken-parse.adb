@@ -337,7 +337,6 @@ package body WisiToken.Parse is
                --  node_index (from a previous error recovery), and give it a
                --  positive node_index, as required for the shared stream.
 
-               --  FIXME: shift tree.leading_non_grammar
                Unchanged_Loop :
                loop
                   exit Unchanged_Loop when Terminal = Invalid_Stream_Node_Ref;
@@ -423,9 +422,9 @@ package body WisiToken.Parse is
 
                   else
                      --  Edit start is in or adjacent to some non_grammar token or
-                     --  whitespace preceding Terminal; delete non_grammar tokens
-                     --  containing or after the edit start. Deleted New_Lines decrement
-                     --  Shift_Line, but only after we use Shift_Line to set
+                     --  whitespace preceding Terminal; delete non_grammar tokens adjacent
+                     --  to, containing or after the edit start. Deleted New_Lines
+                     --  decrement Shift_Line, but only after we use Shift_Line to set
                      --  Lex_Start_Line.
                      declare
                         Last_Grammar : Terminal_Ref := Tree.Prev_Terminal (Terminal);
@@ -441,7 +440,7 @@ package body WisiToken.Parse is
                               Lex_Start_Line := Tree.Line_Region (Terminal).First + Shift_Line;
                            else
                               for I in Non_Grammar.First_Index .. Non_Grammar.Last_Index loop
-                                 if Non_Grammar (I).Byte_Region.Last >= Inserted_Region.First then
+                                 if Non_Grammar (I).Byte_Region.Last + 1 >= Inserted_Region.First then
                                     Delete  := I;
                                     Do_Scan := True;
                                     exit;
@@ -476,8 +475,6 @@ package body WisiToken.Parse is
                                     end if;
                                  end loop;
 
-                                 --  FIXME: if delete new_line before code, that code is now in a
-                                 --  comment, and does not need to be indented.
                                  Non_Grammar.Set_First_Last (Non_Grammar.First_Index, Delete - 1);
                               else
                                  --  Edit is in whitespace between last non_grammar and Terminal
@@ -721,6 +718,16 @@ package body WisiToken.Parse is
                end if;
             end;
 
+            --  Do this here so Shift_Bytes is correct in Delete_Loop
+            Shift_Bytes := @ - KMN.Deleted_Bytes + KMN.Inserted_Bytes;
+            Shift_Chars := @ - KMN.Deleted_Chars + KMN.Inserted_Chars;
+
+            Old_Byte_Pos := Stable_Region.Last + KMN.Deleted_Bytes;
+            Old_Char_Pos := Stable_Region_Chars.Last + KMN.Deleted_Chars;
+            New_Byte_Pos := Inserted_Region.Last;
+            New_Char_Pos := Inserted_Region_Chars.Last;
+            pragma Assert (New_Byte_Pos - Old_Byte_Pos = Shift_Bytes);
+
             Delete_Loop :
             --  Delete tokens that were deleted or modified, and leading
             --  Virtual_Terminals. Deleted non_grammar New_Lines decrement
@@ -735,7 +742,9 @@ package body WisiToken.Parse is
                      Tree.Byte_Region (Terminal.Node).First <= Deleted_Region.Last + 1)  -- deleted or modified
                     or
                     (KMN.Inserted_Bytes > 0 and
-                       Tree.Byte_Region (Terminal.Node).First <= Stable_Region.Last + 1)); --  modified
+                       Tree.Byte_Region (Terminal.Node).First <= Stable_Region.Last + 1) --  modified
+                    or
+                    Tree.Byte_Region (Terminal.Node).First + Shift_Bytes <= Scanned_Byte_Pos);
 
                --  Ensure Terminal.Node is Single, so we can delete it.
                if Tree.Label (Terminal.Element) = Nonterm then
@@ -772,15 +781,6 @@ package body WisiToken.Parse is
                   Tree.Stream_Delete (Stream, Temp.Element);
                end;
             end loop Delete_Loop;
-
-            Shift_Bytes := @ - KMN.Deleted_Bytes + KMN.Inserted_Bytes;
-            Shift_Chars := @ - KMN.Deleted_Chars + KMN.Inserted_Chars;
-
-            Old_Byte_Pos := Stable_Region.Last + KMN.Deleted_Bytes;
-            Old_Char_Pos := Stable_Region_Chars.Last + KMN.Deleted_Chars;
-            New_Byte_Pos := Inserted_Region.Last;
-            New_Char_Pos := Inserted_Region_Chars.Last;
-            pragma Assert (New_Byte_Pos - Old_Byte_Pos = Shift_Bytes);
 
             KMN_Node := Next (KMN_Node);
 

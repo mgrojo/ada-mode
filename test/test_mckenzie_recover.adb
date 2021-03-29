@@ -2418,9 +2418,14 @@ package body Test_McKenzie_Recover is
       return new String'("test_mckenzie_recover.adb " & WisiToken.BNF.Generate_Algorithm_Image (T.Alg).all);
    end Name;
 
+   Save_Debug_Mode : Boolean;
+
    overriding procedure Set_Up_Case (T : in out Test_Case)
    is begin
       --  Run before all tests in register
+      Save_Debug_Mode := WisiToken.Debug_Mode;
+      WisiToken.Debug_Mode := True;
+
       case T.Alg is
       when WisiToken.BNF.LALR =>
          WisiToken.Parse.LR.Parser.New_Parser
@@ -2458,6 +2463,7 @@ package body Test_McKenzie_Recover is
       End_Name_Optional := Orig_End_Name_Optional;
 
       WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions := False;
+      WisiToken.Debug_Mode := Save_Debug_Mode;
    end Tear_Down_Case;
 
    overriding procedure Set_Up (T : in out Test_Case)

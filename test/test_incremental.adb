@@ -489,7 +489,7 @@ package body Test_Incremental is
    is
       pragma Unreferenced (T);
    begin
-      --  Delete a newline
+      --  Delete a new_line
       Parse_Text
         (Initial => "A := B + C;" & ASCII.LF & "D;",
          --          |1       |10
@@ -497,6 +497,21 @@ package body Test_Incremental is
          Delete  => "" & ASCII.LF,
          Insert  => "");
    end Delete_New_Line;
+
+   procedure Delete_Comment_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Delete a new_line that ends a comment, converting code into comment.
+      Parse_Text
+        (Initial => "A := B + C; -- comment" & ASCII.LF &
+           --        |1       |10       |20
+           "D;" & ASCII.LF &
+           "C;",
+         Edit_At => 23,
+         Delete  => "" & ASCII.LF,
+         Insert  => "");
+   end Delete_Comment_New_Line;
 
    procedure Insert_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -578,6 +593,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_8'Access, "Edit_Code_8");
       Register_Routine (T, Edit_Code_9'Access, "Edit_Code_9");
       Register_Routine (T, Delete_New_Line'Access, "Delete_New_Line");
+      Register_Routine (T, Delete_Comment_New_Line'Access, "Delete_Comment_New_Line");
       Register_Routine (T, Insert_New_Line'Access, "Insert_New_Line");
       Register_Routine (T, Names'Access, "Names");
       Register_Routine (T, Recover_1'Access, "Recover_1");

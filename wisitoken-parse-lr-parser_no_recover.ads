@@ -33,21 +33,17 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    type Parser is new WisiToken.Parse.Base_Parser with record
       Table   : Parse_Table_Ptr;
       Parsers : aliased Parser_Lists.List;
-
-      First_Parser_Label   : Integer; -- FIXME: delete, always 1
-      Terminate_Same_State : Boolean; -- FIXME: delete, never set False
    end record;
 
    overriding procedure Finalize (Object : in out LR.Parser_No_Recover.Parser);
    --  Deep free Object.Table.
 
    procedure New_Parser
-     (Parser             :    out LR.Parser_No_Recover.Parser;
-      Trace              : in     WisiToken.Trace_Access;
-      Lexer              : in     WisiToken.Lexer.Handle;
-      Table              : in     Parse_Table_Ptr;
-      User_Data          : in     Syntax_Trees.User_Data_Access;
-      First_Parser_Label : in     Integer := 1);
+     (Parser    :    out LR.Parser_No_Recover.Parser;
+      Trace     : in     WisiToken.Trace_Access;
+      Lexer     : in     WisiToken.Lexer.Handle;
+      Table     : in     Parse_Table_Ptr;
+      User_Data : in     Syntax_Trees.User_Data_Access);
 
    overriding procedure Parse
      (Shared_Parser : in out LR.Parser_No_Recover.Parser;

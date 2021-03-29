@@ -208,14 +208,12 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       Trace              : in     WisiToken.Trace_Access;
       Lexer              : in     WisiToken.Lexer.Handle;
       Table              : in     Parse_Table_Ptr;
-      User_Data          : in     WisiToken.Syntax_Trees.User_Data_Access;
-      First_Parser_Label : in     Integer := 1)
+      User_Data          : in     WisiToken.Syntax_Trees.User_Data_Access)
    is begin
-      Parser.Tree.Lexer         := Lexer;
-      Parser.Trace              := Trace;
-      Parser.Table              := Table;
-      Parser.User_Data          := User_Data;
-      Parser.First_Parser_Label := First_Parser_Label;
+      Parser.Tree.Lexer := Lexer;
+      Parser.Trace      := Trace;
+      Parser.Table      := Table;
+      Parser.User_Data  := User_Data;
    end New_Parser;
 
    overriding procedure Parse

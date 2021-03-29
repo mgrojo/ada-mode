@@ -91,15 +91,6 @@ package body WisiToken.Syntax_Trees is
    --  Process_Node returns False (Process_Tree returns False), or when
    --  all nodes have been processed (Process_Tree returns True).
 
-   function Push
-     (Parse_Stream : in out Syntax_Trees.Parse_Stream;
-      Stream_ID    : in     Syntax_Trees.Stream_ID;
-      Node         : in     Valid_Node_Access;
-      State        : in     State_Index)
-     return Rooted_Ref
-   with Pre => Node.Parent = Invalid_Node_Access;
-   --  Add Node to Parse_Stream at Stack_Top, return reference to it.
-
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
       Parent   : in out Valid_Node_Access;
@@ -1083,7 +1074,8 @@ package body WisiToken.Syntax_Trees is
                      else Tree.Line_Begin_Char_Pos (Line, Tree.Shared_Stream));
                begin
                   Column :=
-                    (if Begin_Char_Pos = Invalid_Buffer_Pos
+                    (if Begin_Char_Pos = Invalid_Buffer_Pos or
+                       First_Terminal.Char_Region.First < Begin_Char_Pos
                      then 0
                      else Ada.Text_IO.Count (First_Terminal.Char_Region.First - Begin_Char_Pos));
                end;
@@ -4059,7 +4051,7 @@ package body WisiToken.Syntax_Trees is
          Before   => Next (Parse_Stream.Stack_Top));
    begin
       Parse_Stream.Stack_Top := New_Element;
-      --  FIXME: change Parse_Stream.Shared_Link?
+      --  caller must change Parse_Stream.Shared_Link if needed.
       return (Stream_ID, (Cur => New_Element), Node);
    end Push;
 
@@ -4109,7 +4101,7 @@ package body WisiToken.Syntax_Trees is
       function Pop_Children return Valid_Node_Access_Array
       is begin
          return Result : Valid_Node_Access_Array (1 .. SAL.Base_Peek_Type (Child_Count)) := (others => Dummy_Node) do
-            --  FIXME: use iterated_component_association to avoid bogus init
+            --  FIXME: use iterated_component_association to avoid bogus init. Waiting on compiler support.
             for I in reverse Result'Range loop
                Result (I) := Pop (Parse_Stream);
             end loop;

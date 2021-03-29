@@ -7,7 +7,7 @@
 --
 --  see parent.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -24,7 +24,7 @@ pragma License (Modified_GPL);
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.Packrat.Generated is
 
-   Recursive : exception; -- FIXME: delete
+   Recursive : exception;
 
    type Memo_State is (No_Result, Failure, Success);
    subtype Result_States is Memo_State range Failure .. Success;
@@ -33,7 +33,7 @@ package WisiToken.Parse.Packrat.Generated is
 
       case State is
       when No_Result =>
-         Recursive : Boolean := False; --  FIXME: delete
+         Recursive : Boolean := False;
 
       when Failure =>
          null;
