@@ -110,8 +110,7 @@ package Emacs_Wisi_Common_Parse is
          --  Emacs convention; End is after last char
 
          Begin_Line : WisiToken.Line_Number_Type;
-         End_Line   : WisiToken.Line_Number_Type;
-         --  Line number of line containing Begin_Byte_Pos, End_Byte_Pos
+         --  Line containing Begin_Byte_Pos
 
          Begin_Indent : Integer;
          --  Indentation of Line_Begin
@@ -123,7 +122,6 @@ package Emacs_Wisi_Common_Parse is
 
       when Full =>
          Full_End_Char_Pos : WisiToken.Buffer_Pos; -- Emacs convention; after last char
-         Full_End_Line     : WisiToken.Line_Number_Type;
 
       end case;
    end record;

@@ -9,3 +9,6 @@ begin
    --EMACSRESULT:0
    return True;
 end Ada_Mode.Function_2;
+-- Local Variables:
+-- wisi-mckenzie-task-count: 1
+-- End:

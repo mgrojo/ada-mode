@@ -454,9 +454,13 @@ package body Wisi is
       Ada.Text_IO.Put_Line (To_String (Line));
    end Put;
 
-   procedure Resolve_Anchors (Data : in out Parse_Data_Type)
+   procedure Resolve_Anchors
+     (Data : in out Parse_Data_Type;
+      Tree : in     Syntax_Trees.Tree)
    is
       Begin_Indent : Integer renames Data.Begin_Indent;
+
+      SOI_Lines : constant Line_Region := Tree.Line_Region (Tree.SOI, Trailing_Non_Grammar => True);
 
       function Anchor_Indent (Line : in Line_Number_Type) return Integer
       is
@@ -487,8 +491,9 @@ package body Wisi is
          begin
             case Indent.Label is
             when Not_Set =>
-               --  Indent not computed, therefore not output.
-               null;
+               if Contains (SOI_Lines, Line) then
+                  Data.Indents.Replace_Element (Line, (Int, Invalid_Line_Number, Data.Begin_Indent));
+               end if;
 
             when Int =>
                Data.Indents.Replace_Element (Line, (Int, Invalid_Line_Number, Indent.Int_Indent + Begin_Indent));
@@ -1002,10 +1007,12 @@ package body Wisi is
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
       Action_Region_Chars : in     WisiToken.Buffer_Region;
-      Begin_Line          : in     Line_Number_Type;
-      End_Line            : in     WisiToken.Line_Number_Type;
       Begin_Indent        : in     Integer)
    is begin
+      if not Tree.Editable then
+         raise Parse_Error with "previous parse failed; can't execute post_parse action.";
+      end if;
+
       Data.Post_Parse_Action   := Post_Parse_Action;
       Data.Action_Region_Bytes := Action_Region_Bytes;
       Data.Action_Region_Chars := Action_Region_Chars;
@@ -1020,12 +1027,19 @@ package body Wisi is
          Data.Face_Caches.Clear;
 
       when Indent =>
-         Data.Action_Region_Lines := (Begin_Line, End_Line);
-         --  FIXME: don't need Begin_Line, End_Line; get from action_region_bytes
+         Data.Action_Region_Lines :=
+           (First => Tree.Line_At_Byte_Pos (Action_Region_Bytes.First),
+            Last  => Tree.Line_At_Byte_Pos (Action_Region_Bytes.Last));
 
-         Data.Indents.Set_First_Last
-           (First   => Begin_Line,
-            Last    => End_Line);
+         --  We need more lines in Indents than in Action_Region, for nonterms
+         --  that extend outside the action region.
+         declare
+            Tree_Line_Region : constant Line_Region := Tree.Line_Region (Tree.Root);
+         begin
+            Data.Indents.Set_First_Last
+              (First => Tree_Line_Region.First,
+               Last  => Tree_Line_Region.Last);
+         end;
 
          for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
             Data.Indents.Replace_Element (I, (Not_Set, Invalid_Line_Number));
@@ -1237,35 +1251,6 @@ package body Wisi is
               " before " & Tree.Image (Inserted_Before, Node_Numbers => True));
       end if;
    end Insert_Token;
-
-   overriding
-   procedure Delete_Token
-     (Data          : in out Parse_Data_Type;
-      Tree          : in     Syntax_Trees.Tree'Class;
-      Deleted_Token : in     Syntax_Trees.Valid_Node_Access;
-      Prev_Token    : in     Syntax_Trees.Node_Access)
-   is
-      use all type Syntax_Trees.Node_Access;
-      use all type Ada.Containers.Count_Type;
-
-      Deleted_Non_Grammar : Syntax_Trees.Token_Array_Var_Ref renames Tree.Non_Grammar_Var (Deleted_Token);
-   begin
-      if Trace_Action > WisiToken.Detail then
-         Data.Trace.Put_Line
-           ("delete token " & Tree.Image (Deleted_Token, Node_Numbers => True) &
-              " after " & Tree.Image (Prev_Token, Node_Numbers => True));
-      end if;
-
-      if Deleted_Non_Grammar.Length > 0 then
-         --  Move Non_Grammar to previous non-deleted token
-
-         if Prev_Token /= Syntax_Trees.Invalid_Node_Access then
-            Tree.Non_Grammar_Var (Prev_Token).Append (Deleted_Non_Grammar);
-
-            --  FIXME: else move to Tree.Leading_Non_Grammar
-         end if;
-      end if;
-   end Delete_Token;
 
    procedure Statement_Action
      (Data    : in out Parse_Data_Type;
@@ -1910,14 +1895,15 @@ package body Wisi is
    begin
       if Trace_Action > Outline then
          Data.Trace.Put_Line
-           ("indent_action_0: " & Tree.Image (Nonterm, RHS_Index => True, Augmented => True, Line_Numbers => True));
+           ("indent_action_0: " & Tree.Image
+              (Nonterm, RHS_Index => True, Node_Numbers => True, Augmented => True, Line_Numbers => True));
       end if;
 
       for I in 1 .. Tree.Child_Count (Nonterm) loop
          if I in Params'Range and then -- in some translated EBNF, not every token has an indent param
            Overlaps
-           (Tree.Line_Region (Tree.Child (Nonterm, I), Trailing_Non_Grammar => True),
-            Data.Action_Region_Lines)
+             (Tree.Line_Region (Tree.Child (Nonterm, I), Trailing_Non_Grammar => True),
+              Data.Action_Region_Lines)
          then
             declare
                Child : constant Syntax_Trees.Valid_Node_Access := Tree.Child (Nonterm, I);
@@ -2072,21 +2058,9 @@ package body Wisi is
       case Label is
       when Bounds =>
          declare
-            use all type Ada.Containers.Count_Type;
-            Result_Chars : WisiToken.Buffer_Region;
-            Result_Lines : WisiToken.Line_Region;
+            Result_Chars : constant WisiToken.Buffer_Region := Tree.Char_Region (Tree.Root);
+            Result_Lines : constant WisiToken.Line_Region   := Tree.Line_Region (Tree.Root);
          begin
-            if Tree.Leading_Non_Grammar.Length > 0 then
-               Result_Chars.First := Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.First_Index).Char_Region.First;
-               Result_Lines.First := Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.First_Index).Line_Region.First;
-            else
-               Result_Chars.First := Tree.Char_Region (Tree.Root).First;
-               Result_Lines.First := Tree.Line_Region (Tree.Root).First;
-            end if;
-
-            Result_Chars.Last  := Tree.Char_Region (Tree.EOI).Last + 1; -- Emacs convention
-            Result_Lines.Last  := Tree.Line_Region (Tree.EOI).Last;
-
             Ada.Text_IO.Put_Line
               ("[" & Query_Tree_Code &
                  Query_Label'Pos (Label)'Image &
@@ -2099,7 +2073,7 @@ package body Wisi is
       when Nonterm =>
          declare
             Terminal : constant Node_Access := Tree.Find_Char_Pos
-              (Char_Point, After => False, Include_Non_Grammar => False);
+              (Char_Point, After => False, Trailing_Non_Grammar => False);
          begin
             if Terminal = Invalid_Node_Access then
                Ada.Text_IO.Put_Line ("[" & Query_Tree_Code & Query_Label'Pos (Label)'Image & " nil]");
@@ -2135,7 +2109,6 @@ package body Wisi is
 
    procedure Put (Data : in out Parse_Data_Type; Parser : in Parse.Base_Parser'Class)
    is
-      use all type Ada.Containers.Count_Type;
       use all type WisiToken.Syntax_Trees.Node_Access;
 
       Tree : WisiToken.Syntax_Trees.Tree renames Parser.Tree;
@@ -2173,59 +2146,28 @@ package body Wisi is
          end loop;
 
       when Indent =>
-         Resolve_Anchors (Data);
+         Resolve_Anchors (Data, Tree);
 
          declare
-            Leading_Non_Grammar_Char_Region : constant WisiToken.Buffer_Region :=
-              (if Tree.Leading_Non_Grammar.Length = 0
-               then Null_Buffer_Region
-               else
-                 (First => Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.First_Index).Char_Region.First,
-                  Last => Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.Last_Index).Char_Region.Last));
-
-            Leading_Non_Grammar_Line_Region : constant WisiToken.Line_Region :=
-              (if Tree.Leading_Non_Grammar.Length = 0
-               then Null_Line_Region
-               else
-                 (First => Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.First_Index).Line_Region.First,
-                  Last => Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.Last_Index).Line_Region.Last));
-
             function Find_Line (Char_Pos : in Buffer_Pos) return Line_Number_Type
-            is begin
-               if Leading_Non_Grammar_Char_Region /= Null_Buffer_Region and then
-                 Char_Pos < Leading_Non_Grammar_Char_Region.First
-               then
-                  --  Char_Pos is in whitespace before first non_grammar token
-                  return Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.First_Index).Line_Region.First;
+            is
+               Node : constant Syntax_Trees.Node_Access := Tree.Find_Char_Pos
+                 (Char_Pos, After => True, Trailing_Non_Grammar => True);
+            begin
+               if Node = Syntax_Trees.Invalid_Node_Access then
+                  --  Char_Pos is after text spanned by Tree
+                  return Data.Indents.Last_Index;
 
-               elsif Contains (Leading_Non_Grammar_Char_Region, Char_Pos) then
-                  for Token of Tree.Leading_Non_Grammar loop
-                     if Char_Pos >= Token.Char_Region.First then
+               elsif Char_Pos <= Tree.Char_Region (Node, Trailing_Non_Grammar => False).Last then
+                  return Tree.Line_Region (Node).First;
+
+               else
+                  for Token of Tree.Non_Grammar_Const (Node) loop
+                     if Char_Pos <= Token.Char_Region.Last then
                         return Token.Line_Region.First;
                      end if;
                   end loop;
-                  raise SAL.Programmer_Error;
-               else
-                  declare
-                     Node : constant Syntax_Trees.Node_Access := Tree.Find_Char_Pos
-                       (Char_Pos, After => True, Include_Non_Grammar => True);
-                  begin
-                     if Node = Syntax_Trees.Invalid_Node_Access then
-                        --  Char_Pos is after text spanned by Tree
-                        return Data.Indents.Last_Index;
-
-                     elsif Char_Pos <= Tree.Char_Region (Node, Include_Non_Grammar => False).Last then
-                        return Tree.Line_Region (Node).First;
-
-                     else
-                        for Token of Tree.Non_Grammar_Const (Node) loop
-                           if Char_Pos <= Token.Char_Region.Last then
-                              return Token.Line_Region.First;
-                           end if;
-                        end loop;
-                        raise SAL.Programmer_Error; -- token regions mismatch.
-                     end if;
-                  end;
+                  raise SAL.Programmer_Error; -- token regions mismatch.
                end if;
             end Find_Line;
 
@@ -2238,12 +2180,7 @@ package body Wisi is
             end if;
 
             for Line in Action_Region_Lines.First .. Action_Region_Lines.Last loop
-               if Contains (Leading_Non_Grammar_Line_Region, Line) then
-                  --  No indent computed for these lines
-                  Put (Line, (Int, Invalid_Line_Number, Data.Begin_Indent));
-               else
-                  Put (Line, Data.Indents (Line));
-               end if;
+               Put (Line, Data.Indents (Line));
             end loop;
          end;
       end case;
@@ -2378,66 +2315,116 @@ package body Wisi is
          use all type Ada.Containers.Count_Type;
          use all type SAL.Base_Peek_Type;
          use Syntax_Trees;
+         use Lexer;
 
-         --  Find the first grammar token that is first on a line.
-         Prev_Non_Grammar  : constant Node_Access := Tree.Prev_Non_Grammar (Node);
+         pragma Assert (Tree.SOI /= Node and Tree.EOI /= Node);
+         --  Therefore Prev_Non_Grammar and Next_Non_Grammar exist.
+
+         Prev_Non_Grammar : constant Valid_Node_Access := Tree.Prev_Non_Grammar (Node);
+         Next_Non_Grammar : constant Node_Access       := Tree.Next_Non_Grammar (Node);
          Prev_Terminal     : constant Node_Access := Tree.Prev_Terminal (Node);
          First_Non_Grammar : constant Node_Access := Tree.First_Non_Grammar (Node);
          Last_Terminal     : constant Node_Access := Tree.Last_Terminal (Node);
 
+         function Get_Last (Node : in Valid_Node_Access) return Line_Number_Type
+         is
+            Non_Grammar  : Token_Arrays.Vector renames Tree.Non_Grammar_Const (Node);
+         begin
+            if Non_Grammar.Length = 0 then
+               return Invalid_Line_Number;
+            else
+               return Non_Grammar (Non_Grammar.Last_Index).Line_Region.Last;
+            end if;
+         end Get_Last;
+
+         function Get_First (Node : in Valid_Node_Access) return Line_Number_Type
+         is
+            Non_Grammar : Token_Arrays.Vector renames Tree.Non_Grammar_Const (Node);
+         begin
+            if Non_Grammar.Length = 0 then
+               return Invalid_Line_Number;
+            else
+               return Non_Grammar (Non_Grammar.First_Index).Line_Region.First;
+            end if;
+         end Get_First;
+
          First_Code_Line : constant Line_Number_Type :=
+           --  This is valid even if not first in line.
            (if Prev_Non_Grammar = Prev_Terminal
-            then -- First terminal in Node is first on a line; we assume code cannot
-                 -- follow a comment on the same line (no old C style comments).
-               Prev_Terminal.Non_Grammar (Prev_Terminal.Non_Grammar.Last_Index).Line_Region.Last
+            then  --  First terminal in Node is first on a line; we assume code cannot
+                  --  follow a comment on the same line (no old C style comments).
+               Get_Last (Prev_Non_Grammar)
             elsif First_Non_Grammar = Invalid_Node_Access
             then Invalid_Line_Number
             elsif Last_Terminal = Invalid_Node_Access
             then Invalid_Line_Number -- No grammar terminals after first_non_grammar
-            else First_Non_Grammar.Non_Grammar (First_Non_Grammar.Non_Grammar.First_Index).Line_Region.First);
-
-         Next_Non_Grammar : constant Node_Access := Tree.Next_Non_Grammar (Node);
+            else Get_First (First_Non_Grammar));
 
          Last_Code_Line : constant Line_Number_Type :=
            (if Last_Terminal = Invalid_Node_Access
-            then Invalid_Line_Number
-            elsif Last_Terminal.Non_Grammar.Length > 0
-            then Last_Terminal.Non_Grammar (Last_Terminal.Non_Grammar.First_Index).Line_Region.First
-            elsif Next_Non_Grammar = Invalid_Node_Access
-            then First_Code_Line -- FIXME: include EOI in tree
-            else Next_Non_Grammar.Non_Grammar (Next_Non_Grammar.Non_Grammar.First_Index).Line_Region.First);
+            then Get_First (Next_Non_Grammar)
+            elsif Get_First (Last_Terminal) = Invalid_Line_Number
+            then Get_First (Next_Non_Grammar)
+            else Get_First (Last_Terminal));
 
       begin
          return Result : Wisi.Indenting do
-            if First_Code_line = Invalid_Line_Number or Last_Code_line = Invalid_Line_Number then
+            if Last_Terminal = Invalid_Node_Access then
+               --  Node is an empty nonterm
                Result.Code := Null_Line_Region;
-            else
-               Result.Code :=
-                 (First => First_Code_Line,
-                  Last  => Last_Code_Line);
-            end if;
-
-            if Last_Terminal.Non_Grammar.Length = 0 or Last_Terminal = Invalid_Node_Access then
                Result.Comment := Null_Line_Region;
-
             else
-               if Last_Terminal.Non_Grammar (Last_Terminal.Non_Grammar.First_Index).ID =
-                 Tree.Lexer.Descriptor.New_Line_ID
-               then
-                  --  First non_grammar is new_line terminating code line.
-                  Result.Comment :=
-                    (First => Last_Terminal.Non_Grammar (Last_Terminal.Non_Grammar.First_Index).Line_Region.Last,
-                     Last  => Last_Terminal.Non_Grammar (Last_Terminal.Non_Grammar.Last_Index).Line_Region.Last);
+               if First_Code_Line = Invalid_Line_Number or Last_Code_Line = Invalid_Line_Number then
+                  Result.Code := Null_Line_Region;
                else
-                  --  First non_grammar is a comment on the code line; second must be a new_line.
-                  if Last_Terminal.Non_Grammar.Length > 2 then
-                     Result.Comment :=
-                       (First => Last_Terminal.Non_Grammar
-                          (Last_Terminal.Non_Grammar.First_Index + 2).Line_Region.First,
-                        Last  => Last_Terminal.Non_Grammar (Last_Terminal.Non_Grammar.Last_Index).Line_Region.Last);
+                  if Prev_Non_Grammar = Prev_Terminal then
+                     --  First terminal in Node is first on line.
+                     Result.Code := (First_Code_Line, Last_Code_Line);
+
+                  elsif First_Code_Line = Last_Code_Line then
+                     --  Not first on line, none on next line
+                     Result.Code := Null_Line_Region;
                   else
-                     raise SAL.Programmer_Error with "non_grammar comment token not followed by new_line";
+                     --  Not first on line, some on next line
+                     Result.Code :=
+                       (First => First_Code_Line + 1,
+                        Last  => Last_Code_Line);
                   end if;
+               end if;
+
+               if Last_Terminal = Invalid_Node_Access then
+                  Result.Comment := Null_Line_Region;
+
+               else
+                  declare
+                     Last_Non_Grammar : Token_Arrays.Vector renames Tree.Non_Grammar_Const (Last_Terminal);
+                  begin
+                     if Last_Non_Grammar.Length = 0 then
+                        Result.Comment := Null_Line_Region;
+
+                     elsif Last_Non_Grammar (Last_Non_Grammar.First_Index).ID =
+                       Tree.Lexer.Descriptor.New_Line_ID
+                     then
+                        --  First non_grammar is new_line terminating code line.
+                        if Last_Non_Grammar.Length > 1 then
+                           --  Last non_grammar is new_line terminating comment
+                           Result.Comment :=
+                             (First => Last_Non_Grammar (Last_Non_Grammar.First_Index).Line_Region.Last,
+                              Last  => Last_Non_Grammar (Last_Non_Grammar.Last_Index).Line_Region.First);
+                        else
+                           Result.Comment := Null_Line_Region;
+                        end if;
+                     else
+                        --  First non_grammar is a comment on the code line; second must be a new_line.
+                        if Last_Non_Grammar.Length = 2 then
+                           Result.Comment := Null_Line_Region;
+                        else
+                           Result.Comment :=
+                             (First => Last_Non_Grammar (Last_Non_Grammar.First_Index + 1).Line_Region.First,
+                              Last  => Last_Non_Grammar (Last_Non_Grammar.Last_Index).Line_Region.First);
+                        end if;
+                     end if;
+                  end;
                end if;
             end if;
 
@@ -2635,7 +2622,7 @@ package body Wisi is
       if Trace_Action > Detail then
          Data.Trace.Put_Line
            ("indent_token_1:      " &
-              Tree.Image (Indenting_Token) & " " & Image (Delta_Indent) &
+              Tree.Image (Indenting_Token, Node_Numbers => True) & " " & Image (Delta_Indent) &
               (if Indenting_Comment then " comment" else " code") &
               Image (Line_Region));
       end if;
@@ -2643,43 +2630,22 @@ package body Wisi is
       for Line in Line_Region.First .. Line_Region.Last loop
          if Data.Indent_Comment_Col_0 then
             declare
-               use all type Ada.Containers.Count_Type;
                use all type Ada.Text_IO.Count;
-               Indent : Boolean := True;
-            begin
-               if Tree.Leading_Non_Grammar.Length > 0 and then
-                 Line < Tree.Leading_Non_Grammar (Tree.Leading_Non_Grammar.Last_Index).Line_Region.First
-               then
-                  --  Line is before the first grammar token. We may be doing a partial
-                  --  parse where the initial indent is non-zero, so we still have to
-                  --  check for column 0.
-                  for Tok of Tree.Leading_Non_Grammar loop
-                     if Tok.Line_Region.First = Line and then
-                       Tok.ID in Data.First_Comment_ID .. Data.Last_Comment_ID and then
-                       Lexer.Column (Tok, Tree.Line_Begin_Char_Pos (Line)) = 0
-                     then
-                        Indent := False;
-                        exit;
-                     end if;
-                  end loop;
+               Indent              : Boolean := True;
+               Line_Begin_Char_Pos : Buffer_Pos;
 
-               else
-                  declare
-                     Containing : constant Syntax_Trees.Node_Access := Tree.Find_New_Line (Line);
-                  begin
-                     if Containing /= Syntax_Trees.Invalid_Node_Access then
-                        for Tok of Tree.Non_Grammar_Const (Containing) loop
-                           if Tok.Line_Region.First = Line and then
-                             Tok.ID in Data.First_Comment_ID .. Data.Last_Comment_ID and then
-                             Lexer.Column (Tok, Tree.Line_Begin_Char_Pos (Line)) = 0
-                           then
-                              Indent := False;
-                              exit;
-                           end if;
-                        end loop;
-                     end if;
-                  end;
-               end if;
+               Containing : constant Syntax_Trees.Valid_Node_Access := Tree.Find_New_Line
+                 (Line, Line_Begin_Char_Pos);
+            begin
+               for Tok of Tree.Non_Grammar_Const (Containing) loop
+                  if Tok.Line_Region.First = Line and then
+                    Tok.ID in Data.First_Comment_ID .. Data.Last_Comment_ID and then
+                    Lexer.Column (Tok, Line_Begin_Char_Pos) = 0
+                  then
+                     Indent := False;
+                     exit;
+                  end if;
+               end loop;
 
                if Indent then
                   Indent_Line (Data, Line, Delta_Indent);

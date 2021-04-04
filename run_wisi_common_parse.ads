@@ -31,7 +31,6 @@ package Run_Wisi_Common_Parse is
       Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
       Language_Params  : Ada.Strings.Unbounded.Unbounded_String;
       Repeat_Count     : Integer                    := 1;
-      End_Line         : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
 
       case Command is
       when Parse_Partial =>

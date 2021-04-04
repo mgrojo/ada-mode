@@ -341,7 +341,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             --  'exception' not found; case 1a - assume extra 'end [keyword] ;'; delete it.
             declare
                use Config_Op_Arrays;
-               New_Config   : Configuration := Config;
+               New_Config   : aliased Configuration := Config;
                Ops          : Config_Op_Arrays.Vector renames New_Config.Ops;
                Stack        : Recover_Stacks.Stack renames New_Config.Stack;
                Keyword_Item : Recover_Stack_Item; -- keyword after 'end'; may not be present
@@ -571,7 +571,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  If the first begin was inserted by recovery; we actually want to
          --  delete the second begin. see test/ada_mode-recover_indent_4.adb
          declare
-            New_Config     : Configuration := Config;
+            New_Config     : aliased Configuration := Config;
             I              : SAL.Peek_Type := 1;
             First_Begin_I  : SAL.Peek_Type;
             Second_Begin_I : SAL.Peek_Type;
@@ -714,8 +714,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  compare to "decl as statement"/"missing end"/"extra begin" case below.
 
          declare
-            New_Config : Configuration := Config;
-            Peek_State : Peek_Shared_State;
+            New_Config : aliased Configuration := Config;
+            Peek_State : Peek_Shared_State (New_Config.Input_Stream'Access);
          begin
             Push_Back (Tree, New_Config); -- variable_name
 
@@ -808,8 +808,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
          --  case 1
          declare
-            New_Config : Configuration := Config;
-            Peek_State : Peek_Shared_State;
+            New_Config : aliased Configuration := Config;
+            Peek_State : Peek_Shared_State (New_Config.Input_Stream'Access);
          begin
             Push_Back_Check (Tree, New_Config, +COLON_ID);
 
@@ -1070,7 +1070,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                declare
                   Label      : constant String := "wrong end keyword b";
-                  New_Config : Configuration   := Config;
+                  New_Config : aliased Configuration   := Config;
 
                   function Get_End_Name return String
                   is
@@ -1080,7 +1080,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   begin
                      pragma Assert (Tree.ID (New_Config.Error_Token) = Tree.ID (Peek_Shared_Terminal (Peek_State)));
                      loop
-                        Peek_Next_Shared_Terminal (Tree, New_Config, Peek_State);
+                        Peek_Next_Shared_Terminal (Tree, Peek_State);
                         exit when Peek_Shared_Terminal (Peek_State) = Invalid_Node_Access;
                         exit when -Tree.ID (Peek_Shared_Terminal (Peek_State)) not in IDENTIFIER_ID | DOT_ID;
                         Result := Result & Tree.Lexer.Buffer_Text
@@ -1185,12 +1185,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
       elsif Tree.ID (Config.Error_Token) = +TICK_1_ID and Config.Error_Token.Virtual = False then
          --  Editing "Put ('|');" => "Put ('|-');"; need to change ' to ".
-         --
-         --  We can get here with Virtual = True if this Error_Token comes
-         --  from McKenzie_Recover.Parse.Parse rather than the main parser.
 
          declare
-            New_Config : Configuration := Config;
+            New_Config : aliased Configuration := Config;
          begin
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
@@ -1198,15 +1195,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Peek_State : Peek_Shared_State := Peek_Shared_Start (Tree, New_Config);
                pragma Assert (Tree.ID (New_Config.Error_Token) = Tree.ID (Peek_Shared_Terminal (Peek_State)));
 
-               Start_Line : constant WisiToken.Line_Number_Type := Tree.Line_Region
-                 (Tree.First_Terminal (Config.Error_Token)).First;
+               --  FIXME: we used to use Tree.Line_Region to check if this pattern
+               --  actually applies. But we can't compute Line_Region from a
+               --  Recover_Token, so we need a different way to check. Could
+               --  implement Line_Region (Config_Stream_Parents)?
             begin
                Delete_Check (Tree, New_Config, Peek_State, +TICK_1_ID); -- increments Peek_State
                loop
                   if Peek_Shared_Terminal (Peek_State) = Invalid_Node_Access then
-                     raise Bad_Config;
-                  end if;
-                  if Tree.Line_Region (Peek_Shared_Terminal (Peek_State)).First /= Start_Line then
                      raise Bad_Config;
                   end if;
                   exit when Tree.ID (Peek_Shared_Terminal (Peek_State)) = +TICK_1_ID;

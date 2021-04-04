@@ -191,7 +191,7 @@ complete. PARSE-END is end of desired parse region."
   ;; Must match "full/partial parse" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Parse_Params.
   ;; Parse_Kind is always Partial here; that really means "legacy".
-  (let* ((cmd (format "parse 0 %d \"%s\" %d %d %d %d %d %d %d %d %d \"%s\" %d %d %d %d %d \"%s\""
+  (let* ((cmd (format "parse 0 %d \"%s\" %d %d %d %d %d %d %d %d \"%s\" %d %d %d %d %d \"%s\""
 		      (cl-ecase parse-action
 			(navigate 0)
 			(face 1)
@@ -203,7 +203,6 @@ complete. PARSE-END is end of desired parse region."
 		      begin ;; begin_char_pos
 		      send-end ;; end_char_pos
 		      (line-number-at-pos begin)
-		      (line-number-at-pos send-end) ;; line-end (at EOI)
 
 		      ;; begin_indent. Example:
 		      ;;
@@ -272,7 +271,7 @@ complete."
 	    (apply #'format
 		   (concat
 		    "parse %d \"%s\" \"%s\" %d %d %d %d %d "
-		    (if full "%d %d" "%s")
+		    (if full "%d" "%s")
 		    " \"%s\""
 		    )
 		   (append
@@ -289,7 +288,6 @@ complete."
 		    (if full
 			(list
 			 (point-max) ;; end_char_pos (after last char)
-			 (line-number-at-pos (1- (point-max))) ;; End_Line (at last char)
 			 )
 		      (list changes))
 		    (list (wisi-parse-format-language-options parser))
@@ -489,7 +487,7 @@ one or more Query messages."
 	 (file-name (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")))
     ;; file-name can be nil during vc-resolve-conflict
 
-    (when (= nil name-1-pos)
+    (when (not name-1-pos)
       (setq name-1-pos name-2-pos)
       (setq name-2-pos 0))
 
@@ -1016,12 +1014,14 @@ one or more Query messages."
     (process-send-string process (wisi-process-parse--add-cmd-length cmd))
     (wisi-process-parse--handle-messages parser)))
 
-(defun wisi-process-log-to-cmd (cmd-buffer-name)
+(defun wisi-process-log-to-cmd (&optional cmd-buffer-name)
   "Convert parser log in current buffer to command file in CMD-BUFFER-NAME."
-  (interactive "bcmd buffer")
+  (interactive)
+  (unless cmd-buffer-name
+    (setq cmd-buffer-name "debug.cmd"))
   (let ((log-buffer (current-buffer))
 	(cmd-buffer (get-buffer cmd-buffer-name))
-	edit begin end)
+	edit begin end source-file)
     (set-buffer cmd-buffer)
     (erase-buffer)
 
@@ -1030,15 +1030,17 @@ one or more Query messages."
 
     ;; get options from full parse line; we assume they don't change
     (search-forward "parse 2" nil t)
-    (looking-at " \"\\([^\"]*\\)\" \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) [-0-9]+ [-0-9]+ [-0-9]+ \"\\([^\"]*\\)\"")
-    (let ((source-file (match-string 1))
-	  (verbosity (match-string 2))
+    (looking-at " \"\\([^\"]*\\)\" \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) [-0-9]+ [-0-9]+ \"\\([^\"]*\\)\"")
+    (let ((verbosity (match-string 2))
 	  (mckenzie_task_count (match-string 3))
 	  (mckenzie_zombie_limit (match-string 4))
 	  (mckenzie_enqueue_limit (match-string 5))
 	  (parse_max_parallel (match-string 6))
 	  (language_param (match-string 7)))
+      (setq source-file (match-string 1))
+
       (set-buffer cmd-buffer)
+      (setq-local comment-start "-- ")
 
       (insert "-- source file: " source-file "\n")
       (insert "verbosity " verbosity "\n")
@@ -1064,26 +1066,48 @@ one or more Query messages."
 
     (set-buffer log-buffer)
     (goto-char (point-min))
-    (while (search-forward "parse 1" nil t)
-      ;; "((.*))" doesn't work here because it doesn't match newlines
-      (search-forward-regexp "((")
-      (setq begin (match-beginning 0))
-      (search-forward-regexp "))")
-      (setq edit (buffer-substring begin (match-end 0)))
+    (while (search-forward-regexp "\\(parse 1\\|post-parse\\) \"\\([^\"]+\\)\"" nil t)
+      (cond
+       ((string-equal (match-string 1) "parse 1")
+	(search-forward-regexp "((")
+	(setq begin (match-beginning 0))
+	(search-forward-regexp "\")) ") ;; avoid matching 'is (Float (A));'
+	(setq edit (buffer-substring begin (match-end 0)))
 
-      (set-buffer cmd-buffer)
-      (goto-char (point-max))
-      (insert "parse_incremental ")
-      (setq begin (point))
-      (insert edit)
-      (setq end (copy-marker (point) t))
-      (goto-char begin)
-      (while (search-forward "\n" end t)
-	(delete-char -1)
-	(insert "\\n"))
-      (goto-char (point-max))
-      (insert "\n\n")
+	(set-buffer cmd-buffer)
+	(goto-char (point-max))
+	(insert "parse_incremental ")
+	(setq begin (point))
+	(insert edit)
+	(setq end (copy-marker (point) t))
+	(goto-char begin)
+	(while (search-forward "\n" end t)
+	  (delete-char -1)
+	  (insert "\\n"))
+	(goto-char (point-max))
+	(insert "\n\n")
 
-      (set-buffer log-buffer))))
+	(set-buffer log-buffer))
+
+       ((and (string-equal (match-string 1) "post-parse")
+	     (string-equal (match-string 2) source-file))
+	(goto-char (match-end 0))
+	(looking-at " \"[^\"]*\" \\([0-9]+\\) \\([0-9]+ [0-9]+ [0-9]+ [0-9]+\\)")
+	(let ((action (string-to-number (match-string 1)))
+	      (args (match-string 2)))
+	  (set-buffer cmd-buffer)
+	  (goto-char (point-max))
+	  (insert "post_parse "
+		  (cl-ecase action
+		    (0 "navigate ")
+		    (1 "face ")
+		    (2 "indent "))
+		  args "\n\n")
+	  (set-buffer log-buffer)))
+       (t
+	;; other file - ignore
+	))
+
+       )))
 
 (provide 'wisi-process-parse)

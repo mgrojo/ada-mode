@@ -121,8 +121,8 @@ begin
    --EMACSCMD:(progn (forward-line 3)(kill-line 1)(forward-line 1)(yank))
    begin
       Stuff_2;
-   Stuff_3;
    end;
+   Stuff_3;
 
    -- Typing code after missing semicolon.
    --

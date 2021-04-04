@@ -32,5 +32,6 @@ Some
 -- that.
 -- Local Variables:
 -- wisi-debug: 0
--- ada-language-version : ada95
+-- ada-language-version: ada95
+-- wisi-mckenzie-task-count: 1
 -- End:

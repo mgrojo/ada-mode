@@ -27,6 +27,7 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with GNATCOLL.Mmap;
+with SAL.Generic_Decimal_Image;
 with SAL;
 with System.Multiprocessors;
 with WisiToken.Lexer;
@@ -174,9 +175,8 @@ package body Run_Wisi_Common_Parse is
             Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'Value (Argument (7));
             Params.Partial_End_Char_Pos   := WisiToken.Buffer_Pos'Value (Argument (8));
             Params.Partial_Begin_Line     := WisiToken.Line_Number_Type'Value (Argument (9));
-            Params.End_Line               := WisiToken.Line_Number_Type'Value (Argument (10));
-            Params.Partial_Begin_Indent   := Integer'Value (Argument (11));
-            Arg                           := 12;
+            Params.Partial_Begin_Indent   := Integer'Value (Argument (10));
+            Arg                           := 11;
          else
             Params.Partial_Begin_Byte_Pos := WisiToken.Invalid_Buffer_Pos;
             Params.Partial_End_Byte_Pos   := WisiToken.Invalid_Buffer_Pos;
@@ -323,7 +323,7 @@ package body Run_Wisi_Common_Parse is
 
       type File_Command_Type is
         (Language_Params, McKenzie_Options, Parse_Incremental, Post_Parse, Print_Tree, Refactor, Query_Tree, Save_Text,
-         Verbosity);
+         Save_Text_Auto, Verbosity);
 
       Parser : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
 
@@ -357,9 +357,40 @@ package body Run_Wisi_Common_Parse is
                Changes,
                KMN_List);
 
+            if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
+               Parse_Context.Save_Edited_Count := @ + 1;
+               declare
+                  use Ada.Text_IO;
+                  use Ada.Directories;
+                  use Ada.Strings.Unbounded;
+
+                  function Filled_Image is new SAL.Generic_Decimal_Image (Integer);
+                  Save_File_Name   : constant String :=
+                    To_String (Parse_Context.Root_Save_Edited_Name) & "_" &
+                    Filled_Image (Item => Parse_Context.Save_Edited_Count, Width => 3);
+
+                  Save_File : File_Type;
+               begin
+                  if Exists (Save_File_Name) then
+                     Delete_File (Save_File_Name);
+                  end if;
+                  Create (Save_File, Out_File, Save_File_Name);
+
+                  --  This writes DOS line endings on Windows. Sigh.
+                  Put (Save_File, Parse_Context.Text_Buffer (1 .. Parse_Context.Text_Buffer_Byte_Last));
+                  Close (Save_File);
+
+                  Put_Line ("text saved to '" & Save_File_Name & "'");
+               end;
+            end if;
+
             Parser.Tree.Lexer.Reset_With_String_Access (Parse_Context.Text_Buffer, +Parser.Tree.Lexer.File_Name);
 
             Parser.Parse (Log_File, KMN_List);
+
+            if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
+               Wisi.Query_Tree (Parse_Data, Parser.Tree, Wisi.Bounds, Buffer_Pos'First);
+            end if;
 
             Put_Errors (Parser, Parse_Data);
          exception
@@ -392,8 +423,6 @@ package body Run_Wisi_Common_Parse is
               (Parser.Tree, Action,
                Action_Region_Bytes => (Begin_Byte_Pos, End_Byte_Pos),
                Action_Region_Chars => (Begin_Char_Pos, End_Char_Pos),
-               Begin_Line          => WisiToken.Line_Number_Type'First,
-               End_Line            => Parser.Tree.Line_Region (Parser.Tree.EOI).First,
                Begin_Indent        => 0);
 
             Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, End_Byte_Pos));
@@ -434,6 +463,15 @@ package body Run_Wisi_Common_Parse is
             --  This writes DOS line endings on Windows. Sigh.
             Put (Save_File, Parse_Context.Text_Buffer (1 .. Parse_Context.Text_Buffer_Byte_Last));
             Close (Save_File);
+         end;
+
+      when Save_Text_Auto =>
+         declare
+            Save_File_Name : constant String := Line (Last + 1 .. Line'Last);
+         begin
+            Parse_Context.Root_Save_Edited_Name := +Save_File_Name;
+            Parse_Context.Save_Edited_Count     := 0;
+            Ada.Text_IO.Put_Line ("auto text save enabled, to '" & Save_File_Name & "_nnn'");
          end;
 
       when Verbosity =>
@@ -497,38 +535,34 @@ package body Run_Wisi_Common_Parse is
             return;
          end;
 
-         if Cl_Params.End_Line = Invalid_Line_Number then
-            --  User did not provide; run lexer to get end line.
-            declare
-               Token       : WisiToken.Lexer.Token;
-               Lexer_Error : Boolean;
-               pragma Unreferenced (Lexer_Error);
-            begin
-               loop
-                  Lexer_Error := Parser.Tree.Lexer.Find_Next (Token);
-                  exit when Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID;
-               end loop;
+         --  Run lexer to get text bounds
+         declare
+            Token       : WisiToken.Lexer.Token;
+            Lexer_Error : Boolean;
+            pragma Unreferenced (Lexer_Error);
+         begin
+            loop
+               Lexer_Error := Parser.Tree.Lexer.Find_Next (Token);
+               exit when Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID;
+            end loop;
 
-               Cl_Params.End_Line := Token.Line_Region.First;
+            case Cl_Params.Command is
+            when Parse_Partial =>
+               Cl_Params.Partial_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
+               Cl_Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
+               Cl_Params.Partial_End_Byte_Pos   := Token.Byte_Region.Last;
+               Cl_Params.Partial_End_Char_Pos   := Token.Char_Region.Last;
 
-               case Cl_Params.Command is
-               when Parse_Partial =>
-                  Cl_Params.Partial_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
-                  Cl_Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
-                  Cl_Params.Partial_End_Byte_Pos   := Token.Byte_Region.Last;
-                  Cl_Params.Partial_End_Char_Pos   := Token.Char_Region.Last;
+            when Parse_Incremental =>
+               Cl_Params.Inc_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
+               Cl_Params.Inc_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
+               Cl_Params.Inc_End_Byte_Pos   := Token.Byte_Region.Last;
+               Cl_Params.Inc_End_Char_Pos   := Token.Char_Region.Last;
 
-               when Parse_Incremental =>
-                  Cl_Params.Inc_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
-                  Cl_Params.Inc_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
-                  Cl_Params.Inc_End_Byte_Pos   := Token.Byte_Region.Last;
-                  Cl_Params.Inc_End_Char_Pos   := Token.Char_Region.Last;
-
-               when Refactor | Command_File =>
-                  null;
-               end case;
-            end;
-         end if;
+            when Refactor | Command_File =>
+               null;
+            end case;
+         end;
 
          case Cl_Params.Command is
          when Parse_Partial =>
@@ -574,8 +608,6 @@ package body Run_Wisi_Common_Parse is
                      Post_Parse_Action   => Cl_Params.Partial_Post_Parse_Action,
                      Action_Region_Bytes => (Cl_Params.Partial_Begin_Byte_Pos, Cl_Params.Partial_End_Byte_Pos),
                      Action_Region_Chars => (Cl_Params.Partial_Begin_Char_Pos, Cl_Params.Partial_End_Char_Pos),
-                     Begin_Line          => Cl_Params.Partial_Begin_Line,
-                     End_Line            => Cl_Params.End_Line,
                      Begin_Indent        => Cl_Params.Partial_Begin_Indent);
 
                   Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
@@ -679,8 +711,6 @@ package body Run_Wisi_Common_Parse is
                     (Parser.Tree, Cl_Params.Inc_Post_Parse_Action,
                      Action_Region_Bytes => (Cl_Params.Inc_Begin_Byte_Pos, Cl_Params.Inc_End_Byte_Pos),
                      Action_Region_Chars => (Cl_Params.Inc_Begin_Char_Pos, Cl_Params.Inc_End_Char_Pos),
-                     Begin_Line          => WisiToken.Line_Number_Type'First,
-                     End_Line            => Parser.Tree.Line_Region (Parser.Tree.EOI).First,
                      Begin_Indent        => 0);
 
                   Parser.Execute_Actions

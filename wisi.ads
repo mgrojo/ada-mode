@@ -131,8 +131,6 @@ package Wisi is
       Post_Parse_Action   : in     Post_Parse_Action_Type;
       Action_Region_Bytes : in     WisiToken.Buffer_Region;
       Action_Region_Chars : in     WisiToken.Buffer_Region;
-      Begin_Line          : in     WisiToken.Line_Number_Type;
-      End_Line            : in     WisiToken.Line_Number_Type;
       Begin_Indent        : in     Integer);
    --  Reset for a new post-parse action.
 
@@ -156,13 +154,6 @@ package Wisi is
      (Data           : in out Parse_Data_Type;
       Tree           : in out WisiToken.Syntax_Trees.Tree'Class;
       Inserted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access);
-
-   overriding
-   procedure Delete_Token
-     (Data          : in out Parse_Data_Type;
-      Tree          : in     WisiToken.Syntax_Trees.Tree'Class;
-      Deleted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Prev_Token    : in     WisiToken.Syntax_Trees.Node_Access);
 
    type Navigate_Class_Type is (Motion, Statement_End, Statement_Override, Statement_Start, Misc);
    --  Matches [1] wisi-class-list.
@@ -671,8 +662,8 @@ private
       Indenting_Comment : in Boolean;
       Offset            : in Integer)
      return Delta_Type;
-   --  If Anchor_Line = Indenting_Line, return Null_Delta. Otherwise
-   --  return an anchored delta using Anchor_Line, Offset.
+   --  If Anchor_Token.Line = Indenting_Token.Line, return Null_Delta. Otherwise
+   --  return an anchored delta using Anchor_Token.Line, Offset.
 
    function Indent_Compute_Delta
      (Data              : in out Parse_Data_Type'Class;

@@ -44,41 +44,32 @@ for ada_mode_wisi_parse.gpr:
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
 run all tests with incremental mode enabled
-
-    parse raise Syntax_Error skips Finish_Parse which does clear_parse_streams
-        all post-parse first check for tree.editable.
-        add a test
-            ada_mode-ada95.ads?
-
-
     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t)"
-    one ONE_TEST_FILES=ada_mode-interactive_1.adb  ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
+
+    one ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
+
+in debug.cmd:
 mckenzie_options task_count=1
 save_text debug_edited.adb
 verbosity debug=1 action=3
 post_parse indent
 
 test/ada_mode-interactive_2.adb
-error: c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-interactive_2.adb:37:
-... result of '(progn (end-of-line 2)(forward-char -2)(insert ";")(wisi-indent-newline-indent) (current-column))' does not match.
-... Got    '5',
-... expect '27'
-    -462 (parameter_specification_7) is all virtual, inserted before 19:(RIGHT_PAREN, (1266 . 1266), (36, 36))
-        so parent (parameter_specification_list_1, (1246 . 1264), (35, 35)) doesn't include line 36
-        use following 19:(RIGHT_PAREN, (1266 . 1266), (36, 36)) to get line region?
-            done in compute_indenting
-            not enough
+    Edit_Tree should have deleted empty -348:identifier_opt_1; do that with virtual?
+        parser just deletes it anyway
 
-    change ident_action_0 to check child.line_region against data.active_line_region
-        move following source_terminal code into tree.line_region.
-        don't store line_region in nodes; only in new_line non_grammar
+    only indent errors left
 
-    change set_parents to be incremental?
-        descend tree; if find a parent link, no need to descend that branch
-        insert_token also needs to set parents?
+change set_parents to be incremental?
+    descend tree; if find a parent link, no need to descend that branch
+    insert_token also needs to set parents?
 
 build/test.log
 
+benchmark
+
+Try_insert_quote computes line_region for every dequeue. Check time diff if disable - ada95.ads.
+    test lexer_error.length > 0 and in parse_region?
 
 move global indent/user vars to parse_context?
     or parse_data?

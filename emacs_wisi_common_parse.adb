@@ -143,7 +143,6 @@ package body Emacs_Wisi_Common_Parse is
             Result.Begin_Char_Pos       := Buffer_Pos (Get_Integer (Command_Line, Last));
             Result.End_Char_Pos         := Buffer_Pos (Get_Integer (Command_Line, Last));
             Result.Begin_Line           := Line_Number_Type (Get_Integer (Command_Line, Last));
-            Result.End_Line             := Line_Number_Type (Get_Integer (Command_Line, Last));
             Result.Begin_Indent         := Get_Integer (Command_Line, Last);
             Result.Partial_Parse_Active := 1 = Get_Integer (Command_Line, Last);
             Result.Verbosity            := +Get_String (Command_Line, Last);
@@ -169,7 +168,6 @@ package body Emacs_Wisi_Common_Parse is
 
             when Full =>
                Result.Full_End_Char_Pos := Buffer_Pos (Get_Integer (Command_Line, Last));
-               Result.Full_End_Line     := Line_Number_Type (Get_Integer (Command_Line, Last));
             end case;
          end case;
 
@@ -390,8 +388,6 @@ package body Emacs_Wisi_Common_Parse is
                            Action_Region_Bytes =>
                              (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
                            Action_Region_Chars => (Params.Begin_Char_Pos, Params.End_Char_Pos),
-                           Begin_Line          => WisiToken.Line_Number_Type'First,
-                           End_Line            => Params.End_Line,
                            Begin_Indent        => Params.Begin_Indent);
 
                         Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
@@ -449,7 +445,16 @@ package body Emacs_Wisi_Common_Parse is
                            Parser.Tree.Lexer.Reset_With_String_Access
                              (Parse_Context.Text_Buffer, Params.Source_File_Name);
 
-                           Parser.Parse (Recover_Log_File, KMN_List);
+                           if Parser.Tree.Editable then
+                              Parser.Parse (Recover_Log_File, KMN_List);
+
+                           else
+                              --  Last parse failed; can't edit tree, so do full parse.
+                              --
+                              --  FIXME: Edit_Tree should handle a partially parsed tree
+                              Parser.Parse (Recover_Log_File, Parse.KMN_Lists.Empty_List);
+                           end if;
+
                            --  No Execute_Actions here; that's done in "post-parse" command
 
                            if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
@@ -521,8 +526,6 @@ package body Emacs_Wisi_Common_Parse is
                           (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
                         Action_Region_Chars =>
                           (Base_Buffer_Pos (Params.Begin_Char_Pos), Base_Buffer_Pos (Params.End_Char_Pos)),
-                        Begin_Line          => WisiToken.Line_Number_Type'First,
-                        End_Line            => Parser.Tree.Line_Region (Parser.Tree.EOI).First,
                         Begin_Indent        => 0);
 
                      Parse_Data.Parse_Language_Params (-Params.Language_Params);
@@ -681,6 +684,9 @@ package body Emacs_Wisi_Common_Parse is
             Put_Line ("(error ""protocol error " & Ada.Exceptions.Exception_Message (E) & """)");
 
          when E : others => -- includes Fatal_Error
+            if WisiToken.Debug_Mode then
+               Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+            end if;
             Put_Line
               ("(error ""error: " & Ada.Exceptions.Exception_Name (E) & " : " &
                  Ada.Exceptions.Exception_Message (E) & """)");
