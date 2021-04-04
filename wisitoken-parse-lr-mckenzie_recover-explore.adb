@@ -1254,7 +1254,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Check_Limit : Syntax_Trees.Node_Index renames Shared.Table.McKenzie_Param.Check_Limit;
 
       Current_Line : constant Base_Line_Number_Type :=
-        (if Config.Input_Stream.First = No_Element
+        (if Config.Input_Stream.First = No_Element and Config.Current_Shared_Token.Node /= Invalid_Node_Access
          then Tree.Line_Region (Config.Current_Shared_Token).First
          else Invalid_Line_Number);
 
@@ -1305,7 +1305,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             exit when Length (Stream) = 0;
 
             if Tree.Child_Count (Stream (First (Stream))) > 0 then
-               Parse.Breakdown (Tree, Config.Input_Stream);
+               Parse.Left_Breakdown (Tree, Config.Input_Stream);
 
             else
                To_Delete := First (Stream);
@@ -1370,7 +1370,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             exit when Target_Ref.Element = Stream.First and Target_Ref.Node = Stream (Stream.First);
 
             if Tree.Label (Stream (Stream.First)) = Nonterm then
-               Parse.Breakdown (Tree, Stream);
+               Parse.Left_Breakdown (Tree, Stream);
 
                exit when Target_Ref.Node = Stream (Stream.First);
 
@@ -1560,7 +1560,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  Config.Current_Shared_Token must be in First .. Last + 1. Leave
       --  Current_Shared_Token at Last + 1.
       is
-         Ref : Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents (Config.Current_Shared_Token);
+         Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
 
          procedure Find_First
          is begin
@@ -1728,7 +1728,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             New_Config            : Configuration := Config;
             Min_Pushed_Back_Index : Syntax_Trees.Node_Index;
 
-            Prev_Shared : Syntax_Trees.Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents
+            Prev_Shared : Syntax_Trees.Stream_Node_Parents := Tree.To_Stream_Node_Parents
               (Config.Current_Shared_Token);
          begin
             Push_Back_Tokens ("insert quote 4 a", New_Config, Min_Pushed_Back_Index);
@@ -1816,7 +1816,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             New_Config            : Configuration := Config;
             Min_Pushed_Back_Index : Syntax_Trees.Node_Index;
 
-            Prev_Shared : Syntax_Trees.Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents
+            Prev_Shared : Syntax_Trees.Stream_Node_Parents := Tree.To_Stream_Node_Parents
               (Lexer_Error_Token_Ref);
          begin
             Push_Back_Tokens ("insert quote 5 d", New_Config, Min_Pushed_Back_Index);
@@ -1885,73 +1885,89 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
 
-      Next_Node       : constant Syntax_Trees.Valid_Node_Access := Parse.Peek_Current_First_Shared_Terminal
-        (Super.Tree.all, Config);
-      Next_Node_Index : constant Syntax_Trees.Node_Index        := Super.Tree.Get_Node_Index (Next_Node);
-      Next_ID         : constant Token_ID                       := Super.Tree.ID (Next_Node);
+      Next_Node       : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Shared_Terminal
+        (Super.Tree.all, Config, Following_Element => False);
+      Next_Node_Index : constant Syntax_Trees.Node_Index  :=
+        (if Next_Node = Syntax_Trees.Invalid_Node_Access
+         then Syntax_Trees.Invalid_Node_Index
+         else Super.Tree.Get_Node_Index (Next_Node));
+      Next_ID : constant Token_ID :=
+        (if Next_Node = Syntax_Trees.Invalid_Node_Access
+         then Invalid_Token_ID
+         else Super.Tree.ID (Next_Node));
    begin
-      if Next_ID /= EOF_ID and then
+      if Next_Node = Syntax_Trees.Invalid_Node_Access then
+         --  Current token is an empty nonterm; we don't delete that here. It
+         --  can be deleted by Parse, if it can't be shifted.
+         return;
+
+      elsif Next_ID = EOF_ID then
          --  can't delete EOF
-         (Length (Config.Ops) = 0 or else
-           --  Don't delete an ID we just inserted; waste of time, leads to infinite loop
-           (not Equal (Constant_Ref (Config.Ops, Last_Index (Config.Ops)), (Insert, Next_ID, Next_Node_Index))))
+         return;
+
+      elsif Length (Config.Ops) > 0 and then
+        Equal (Constant_Ref (Config.Ops, Last_Index (Config.Ops)), (Insert, Next_ID, Next_Node_Index))
       then
+         --  Don't delete an ID we just inserted; waste of time, leads to
+         --  infinite loop.
+         return;
+      end if;
+
+      declare
+         New_Config : Configuration := Config;
+
+         function Matching_Push_Back return Boolean
+         is begin
+            for I in reverse First_Index (New_Config.Ops) .. Last_Index (New_Config.Ops) loop
+               declare
+                  Op : Config_Op renames Config_Op_Array_Refs.Variable_Ref (New_Config.Ops, I).Element.all;
+               begin
+                  exit when not (Op.Op in Undo_Reduce | Push_Back | Delete);
+                  if Op = (Push_Back, Next_ID, Next_Node_Index) then
+                     return True;
+                  end if;
+               end;
+            end loop;
+            return False;
+         end Matching_Push_Back;
+      begin
+         New_Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
+         New_Config.User_Parse_Action_Status   := (Label => WisiToken.In_Parse_Actions.Ok);
+
+         New_Config.Cost := New_Config.Cost + McKenzie_Param.Delete (Next_ID);
+         New_Config.Strategy_Counts (Delete) := Config.Strategy_Counts (Delete) + 1;
+
+         if Matching_Push_Back then
+            --  We are deleting a push_back; cancel the push_back cost, to make
+            --  this the same as plain deleting.
+            New_Config.Cost := Natural'Max (Natural'First, New_Config.Cost - McKenzie_Param.Push_Back (Next_ID));
+         end if;
+
+         if Is_Full (New_Config.Ops) then
+            Super.Config_Full ("delete", Parser_Index);
+            raise Bad_Config;
+         else
+            Append (New_Config.Ops, (Delete, Next_ID, Next_Node_Index));
+         end if;
+
+         Parse.Do_Delete (Super.Tree.all, New_Config);
+
          declare
-            New_Config : Configuration := Config;
-
-            function Matching_Push_Back return Boolean
-            is begin
-               for I in reverse First_Index (New_Config.Ops) .. Last_Index (New_Config.Ops) loop
-                  declare
-                     Op : Config_Op renames Config_Op_Array_Refs.Variable_Ref (New_Config.Ops, I).Element.all;
-                  begin
-                     exit when not (Op.Op in Undo_Reduce | Push_Back | Delete);
-                     if Op = (Push_Back, Next_ID, Next_Node_Index) then
-                        return True;
-                     end if;
-                  end;
-               end loop;
-               return False;
-            end Matching_Push_Back;
+            New_Next_Node_Index : constant Syntax_Trees.Node_Index := Super.Tree.Get_Node_Index
+              (Parse.Peek_Current_First_Shared_Terminal (Super.Tree.all, New_Config));
          begin
-            New_Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
-            New_Config.User_Parse_Action_Status   := (Label => WisiToken.In_Parse_Actions.Ok);
-
-            New_Config.Cost := New_Config.Cost + McKenzie_Param.Delete (Next_ID);
-            New_Config.Strategy_Counts (Delete) := Config.Strategy_Counts (Delete) + 1;
-
-            if Matching_Push_Back then
-               --  We are deleting a push_back; cancel the push_back cost, to make
-               --  this the same as plain deleting.
-               New_Config.Cost := Natural'Max (Natural'First, New_Config.Cost - McKenzie_Param.Push_Back (Next_ID));
-            end if;
-
-            if Is_Full (New_Config.Ops) then
-               Super.Config_Full ("delete", Parser_Index);
-               raise Bad_Config;
-            else
-               Append (New_Config.Ops, (Delete, Next_ID, Next_Node_Index));
-            end if;
-
-            Parse.Do_Delete (Super.Tree.all, New_Config);
-
-            declare
-               New_Next_Node_Index : constant Syntax_Trees.Node_Index := Super.Tree.Get_Node_Index
-                 (Parse.Peek_Current_First_Shared_Terminal (Super.Tree.all, New_Config));
-            begin
-               if New_Config.Resume_Token_Goal - Check_Limit < New_Next_Node_Index then
-                  New_Config.Resume_Token_Goal := New_Next_Node_Index + Check_Limit;
-               end if;
-            end;
-
-            Local_Config_Heap.Add (New_Config);
-
-            if Trace_McKenzie > Detail then
-               Base.Put
-                 ("delete " & Image (Next_ID, Super.Tree.Lexer.Descriptor.all), Super, Parser_Index, New_Config);
+            if New_Config.Resume_Token_Goal - Check_Limit < New_Next_Node_Index then
+               New_Config.Resume_Token_Goal := New_Next_Node_Index + Check_Limit;
             end if;
          end;
-      end if;
+
+         Local_Config_Heap.Add (New_Config);
+
+         if Trace_McKenzie > Detail then
+            Base.Put
+              ("delete " & Image (Next_ID, Super.Tree.Lexer.Descriptor.all), Super, Parser_Index, New_Config);
+         end if;
+      end;
    end Try_Delete_Input;
 
    procedure Process_One

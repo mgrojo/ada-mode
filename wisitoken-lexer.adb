@@ -35,6 +35,17 @@ package body WisiToken.Lexer is
       end if;
    end Image;
 
+   function Full_Image
+     (Item       : in Token;
+      Descriptor : in WisiToken.Descriptor)
+     return String
+   is begin
+      return "(" & Image (Item.ID, Descriptor) & ", " &
+        Image (Item.Byte_Region) & ", " &
+        Image (Item.Char_Region) & ", " &
+        Image (Item.Line_Region) & ")";
+   end Full_Image;
+
    function Column (Token : in Lexer.Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count
    is begin
       if Token.Line_Region.First = 1 then

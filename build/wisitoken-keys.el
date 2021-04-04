@@ -191,6 +191,17 @@
 	     )))
 	))))
 
+(defun wisitoken-goto-stack-trace (file line column)
+  ;; FILE LINE COLUMN is from an exception stack trace (from `wisitoken-dtrt'):
+  ;;
+  ;; wisitoken-syntax_trees.adb:1060
+  ;;
+  ;; goto it
+  (find-file (locate-file file compilation-search-path))
+  (goto-line (string-to-number line))
+  (when column
+    (move-to-column (string-to-number column))))
+
 (defconst wisitoken-fail-re "FAIL\\|ERROR")
 
 (defun wisitoken-compilation-prev ()
@@ -210,28 +221,46 @@
   )
 
 (defun wisitoken-dtrt ()
-  "Either ediff or goto-aunit-fail"
+  "Do The Right Thing"
   (interactive)
-  ;; point is after FAIL. Distinguish between aunit and ediff:
-  (forward-line)
-  (back-to-indentation)
+  ;; point is after FAIL or ERROR.
 
+  ;; check for exception stack trace:
+  ;;
+  ;; task  1: SYSTEM.ASSERTIONS.ASSERT_FAIL^URE: failed precondition from wisitoken-syntax_trees.adb:1060
+  ;; [C:\Projects\org.wisitoken.stephe-2\build\test_mckenzie_harness.exe]
+  ;; Aunit.Test_Filters.Verbose.Is_Active at s-assert.adb:46
+  ;; Aunit.Test_Filters.Verbose.Is_Active at wisitoken-syntax_trees.adb:1060
+  ;;
+  ;; task  1: CONSTRAINT_ERROR^: wisitoken-syntax_trees.adb:1572:27 access check failed
+  ;; [C:\Projects\org.wisitoken.stephe-2\build\test_mckenzie_harness.exe]
+  ;; Aunit.Test_Filters.Verbose.Is_Active at wisitoken-syntax_trees.adb:1572
   (cond
-   ((looking-at "[0-9a-z-_]+\\.[.a-z_]+:[0-9]+")
-    ;; FAIL wisi_wy_test.adb-empty_production_2 : Run_Test
-    ;;     ^empty_production_2_lalr.parse_table:91
-    (wisitoken-ediff-good nil (match-string 0)))
-
-   ((looking-at "\\([./a-z-_]+\\) longer than \\([./a-z-_]+\\)")
-    ;; ^../test/bnf/body.parse_good longer than body.parse
-    (wisitoken-ediff-good (match-string 1) (match-string 2)))
+   ((search-forward-regexp ":.* \\([0-9a-z-_]+\\.[.a-z_]+\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?" (line-end-position) t)
+    (wisitoken-goto-stack-trace (match-string 1) (match-string 2) (match-string 3)))
 
    (t
-    (forward-line -1)
-    (forward-word 1)
-    (forward-char 1)
-    (wisitoken-goto-aunit-fail))
-   ))
+
+    ;; check for ediff fail:
+    (forward-line)
+    (back-to-indentation)
+
+    (cond
+     ((looking-at "[0-9a-z-_]+\\.[.a-z_]+:[0-9]+")
+      ;; FAIL wisi_wy_test.adb-empty_production_2 : Run_Test
+      ;;     ^empty_production_2_lalr.parse_table:91
+      (wisitoken-ediff-good nil (match-string 0)))
+
+     ((looking-at "\\([./a-z-_]+\\) longer than \\([./a-z-_]+\\)")
+      ;; ^../test/bnf/body.parse_good longer than body.parse
+      (wisitoken-ediff-good (match-string 1) (match-string 2)))
+
+     (t
+      (forward-line -1)
+      (forward-word 1)
+      (forward-char 1)
+      (wisitoken-goto-aunit-fail))
+     ))))
 
 (define-key compilation-mode-map "d" #'wisitoken-dtrt)
 (define-key compilation-mode-map "u" #'wisitoken-update-good)

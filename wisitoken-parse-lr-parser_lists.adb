@@ -62,7 +62,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
    begin
       if Tree.Has_Input (Parser_State.Stream) then
          declare
-            Result : Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents
+            Result : Stream_Node_Parents := Tree.To_Stream_Node_Parents
               (Tree.First_Input (Parser_State.Stream));
          begin
             Tree.First_Shared_Terminal (Result);
@@ -74,7 +74,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       --  No next shared token in Parser_State.Stream input
 
       declare
-         Ref : Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents (Parser_State.Shared_Token);
+         Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Parser_State.Shared_Token);
       begin
          Tree.First_Shared_Terminal (Ref);
          return Ref.Ref;
@@ -90,7 +90,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
    begin
       if Tree.Has_Input (Parser_State.Stream) then
          declare
-            Result : Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents
+            Result : Stream_Node_Parents := Tree.To_Stream_Node_Parents
               (Tree.First_Input (Parser_State.Stream));
          begin
             if Result.Ref /= Invalid_Stream_Node_Ref then
@@ -105,7 +105,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
 
       --  No next shared token in Parser_State.Stream input
       declare
-         Result : Stream_Node_Parents := Syntax_Trees.To_Stream_Node_Parents (Parser_State.Shared_Token);
+         Result : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Parser_State.Shared_Token);
       begin
          if Parser_State.Shared_Token = Invalid_Stream_Node_Ref then
             Result.Ref := Tree.Stream_First (Tree.Shared_Stream);
@@ -305,10 +305,10 @@ package body WisiToken.Parse.LR.Parser_Lists is
       --  True if equal
       is
       begin
-         if Tree.Stream_Length (Stack_1) /= Tree.Stream_Length (Stack_2) then
+         if Tree.Stack_Depth (Stack_1) /= Tree.Stack_Depth (Stack_2) then
             return False;
          else
-            for I in reverse 1 .. Tree.Stream_Length (Stack_1) - 1 loop
+            for I in reverse 1 .. Tree.Stack_Depth (Stack_1) - 1 loop
                --  Assume they differ near the top; no point in comparing bottom
                --  item. The syntax tree nodes will differ even if the tokens are the
                --  same, so only compare the tokens.

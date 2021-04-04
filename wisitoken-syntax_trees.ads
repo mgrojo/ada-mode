@@ -249,9 +249,10 @@ package WisiToken.Syntax_Trees is
    function Parents_Valid (Ref : in Stream_Node_Parents) return Boolean;
    --  True if Parents gives the path from Element.Node to Node, or Element or Node is invalid.
 
-   function To_Stream_Node_Parents (Ref : in Rooted_Ref) return Stream_Node_Parents
-   is ((Ref, Parents => <>))
-   with Post => Parents_Valid (To_Stream_Node_Parents'Result);
+   function To_Stream_Node_Parents (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return Stream_Node_Parents
+   with Pre => Ref = Invalid_Stream_Node_Ref or else
+               (Rooted (Ref) or Ref.Node = Tree.First_Terminal (Get_Node (Ref.Element))),
+     Post => Parents_Valid (To_Stream_Node_Parents'Result);
 
    type Recover_Token (Virtual : Boolean := True) is record
       --  Virtual is True if there is no node in the syntax tree that is
@@ -441,14 +442,15 @@ package WisiToken.Syntax_Trees is
      (User_Data     : in out User_Data_Type;
       Tree          : in     Syntax_Trees.Tree'Class;
       Deleted_Token : in     Valid_Node_Access;
-      Prev_Token    : in     Node_Access)
-   is null
+      Prev_Token    : in     Valid_Node_Access)
    with Pre'Class =>
      Tree.Label (Deleted_Token) in Terminal_Label and
      (Prev_Token = Invalid_Node_Access or else Tree.Label (Prev_Token) in Terminal_Label);
    --  Deleted_Token was deleted in error recovery. Prev_Token is the
-   --  terminal token previous to Deleted_Token in the parse stream. Move
-   --  Non_Grammar as needed to control which line the token is on.
+   --  terminal token previous to Deleted_Token in the parse stream.
+   --
+   --  The default body appends Deleted_Token.Non_Grammar to
+   --  Prev_Token.Non_Grammar.
    --
    --  Called from Execute_Actions for each deleted token,
    --  before Initialize_Actions.
@@ -987,6 +989,17 @@ package WisiToken.Syntax_Trees is
       Trailing_Non_Grammar : in Boolean := False)
      return WisiToken.Buffer_Region;
 
+   function Line_At_Byte_Pos
+     (Tree     : in Syntax_Trees.Tree;
+      Byte_Pos : in Buffer_Pos)
+     return Line_Number_Type
+   with Pre => Tree.Editable;
+   --  Return line that contains Byte_Pos; Invalid_Line_Number is outside
+   --  range of text spanned by Tree.
+   --
+   --  If Byte_Pos is in a multi-line terminal token, return the first
+   --  line of that token.
+
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
@@ -1006,7 +1019,8 @@ package WisiToken.Syntax_Trees is
       Ref                  : in Stream_Node_Ref;
       Trailing_Non_Grammar : in Boolean := True)
      return WisiToken.Line_Region
-   with Pre => (Tree.Parents_Set and Tree.Valid_Stream_Node (Ref)) or Rooted (Ref);
+   with Pre => Tree.Valid_Stream_Node (Ref) and
+               (Tree.Parents_Set or Rooted (Ref) or Ref.Node = Tree.First_Terminal (Get_Node (Ref.Element)));
    --  Same as Line_Region (Ref.Node), using Ref.Stream to find
    --  prev/next non_grammar.
    --
@@ -1235,7 +1249,9 @@ package WisiToken.Syntax_Trees is
    procedure First_Shared_Terminal
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Stream_Node_Parents)
-   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Ref.Parents.Is_Empty,
+   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and
+               (Ref.Parents.Is_Empty or
+                  (Ref.Ref.Node = Tree.First_Terminal (Get_Node (Ref.Ref.Element)) and Parents_Valid (Ref))),
      Post => Ref.Ref = Invalid_Stream_Node_Ref or else (Valid_Terminal (Tree, Ref.Ref) and Parents_Valid (Ref));
    --  Update Ref to first shared terminal in Ref.Element or a following stream
    --  element.
@@ -1683,10 +1699,10 @@ package WisiToken.Syntax_Trees is
    --  Invalid_Node_Access or outside text spanned by Tree.Stream.
 
    function Find_Char_Pos
-     (Tree                : in Syntax_Trees.Tree;
-      Char_Pos            : in Buffer_Pos;
-      After               : in Boolean;
-      Include_Non_Grammar : in Boolean)
+     (Tree                 : in Syntax_Trees.Tree;
+      Char_Pos             : in Buffer_Pos;
+      After                : in Boolean;
+      Trailing_Non_Grammar : in Boolean)
      return Node_Access;
    --  If After, return the first terminal after or containing
    --  Char_Point. Otherwise return the terminal containing Char_Point.
@@ -1697,10 +1713,29 @@ package WisiToken.Syntax_Trees is
      (Tree : in Syntax_Trees.Tree;
       Line : in Line_Number_Type)
      return Node_Access
-   with Pre => Tree.Editable;
+   with Pre => Tree.Editable,
+     Post => Find_New_Line'Result = Invalid_Node_Access or else
+             (Tree.Is_Terminal (Find_New_Line'Result) and then
+                (for some Token of Tree.Non_Grammar_Const (Find_New_Line'Result) =>
+                   Token.ID in Tree.Lexer.Descriptor.New_Line_ID | Tree.Lexer.Descriptor.EOI_ID and
+                     Token.Line_Region.First = Line - 1));
    --  Return node that that ends Line - 1; either EOI or contains the
-   --  non-grammar New_Line (SOI if Line is before first grammar node).
-   --  Invalid_Node_Access if Line.
+   --  non-grammar New_Line. Result is Invalid_Node_Access if Line is
+   --  outside range spanned by Tree.
+
+   function Find_New_Line
+     (Tree                : in     Syntax_Trees.Tree;
+      Line                : in     Line_Number_Type;
+      Line_Begin_Char_Pos :    out Buffer_Pos)
+     return Node_Access
+   with Pre => Tree.Editable,
+     Post => Find_New_Line'Result = Invalid_Node_Access or else
+             (Tree.Is_Terminal (Find_New_Line'Result) and then
+                (for some Token of Tree.Non_Grammar_Const (Find_New_Line'Result) =>
+                   Token.ID in Tree.Lexer.Descriptor.New_Line_ID | Tree.Lexer.Descriptor.EOI_ID and
+                     Token.Line_Region.First = Line - 1));
+   --  Same as Find_New_Line, also updates Line_Begin_Char_Pos to first
+   --  char pos on Line.
 
    function Line_Begin_Char_Pos
      (Tree : in Syntax_Trees.Tree;
@@ -2057,7 +2092,9 @@ private
             Char_Region : Buffer_Region := Null_Buffer_Region;
             --  Data from lexer. We store the absolute buffer region here to avoid
             --  storing all whitespace in the tree. Edit_Tree shifts these for
-            --  incremental parse.
+            --  incremental parse. We don't store Line_Region here, to save space,
+            --  to simplify Edit_Tree, and because it changes when Insert_Terminal
+            --  moves Non_Grammar.
 
          when Virtual_Terminal =>
             null;
@@ -2312,7 +2349,8 @@ private
    is (Tree.Streams.Length = 1);
 
    function Rooted (Ref : in Stream_Node_Ref) return Boolean
-   is (Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node = Ref.Node);
+   is (Stream_Element_Lists.Has_Element (Ref.Element.Cur) and then
+         Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node = Ref.Node);
 
    function Stack_Top
      (Tree   : in Syntax_Trees.Tree;

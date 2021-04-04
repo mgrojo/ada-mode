@@ -56,7 +56,13 @@ package WisiToken.Lexer is
      (Item       : in Token;
       Descriptor : in WisiToken.Descriptor)
      return String;
-   --  For debug/test messages.
+   --  ID and Char_Region
+
+   function Full_Image
+     (Item       : in Token;
+      Descriptor : in WisiToken.Descriptor)
+     return String;
+   --  All fields.
 
    Invalid_Token : constant Token := (others => <>);
 

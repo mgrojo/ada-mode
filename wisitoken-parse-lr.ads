@@ -653,8 +653,9 @@ package WisiToken.Parse.LR is
       --  Current input token in Shared_Stream; to be input after all of
       --  Input_Stream and Insert_Delete is input. Initially the error
       --  token. In batch parse, always a single Source_Terminal; in
-      --  incremental parse, may be a any Terminal_Label in a nonterm (ie
-      --  from error correction in a previous parse).
+      --  incremental parse, always the first terminal in the stream
+      --  element, which may be Invalid_Node_Access if the stream element is
+      --  empty..
 
       Input_Stream : aliased Bounded_Streams.List (20);
       --  Holds tokens copied from Shared_Stream when Push_Back operations

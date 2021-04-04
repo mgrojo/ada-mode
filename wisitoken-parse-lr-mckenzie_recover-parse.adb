@@ -96,7 +96,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       end if;
    end Reduce_Stack;
 
-   procedure Breakdown
+   procedure Left_Breakdown
      (Tree   : in     Syntax_Trees.Tree;
       Stream : in out Bounded_Streams.List)
    is
@@ -109,17 +109,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Cur       : Cursor            := Stream.First;
       To_Delete : Cursor            := Cur;
       Node      : Valid_Node_Access := Stream (Cur);
-      Next_Node : Node_Access;
+      Next_I    : Positive_Index_Type;
    begin
       loop
-         Next_Node := Invalid_Node_Access;
+         Next_I := Positive_Index_Type'Last;
 
          for I in reverse 2 .. Tree.Child_Count (Node) loop
             declare
                Child : constant Valid_Node_Access := Tree.Child (Node, I);
             begin
-               if Tree.Child_Count (Child) > 0 then
-                  Next_Node := Tree.Child (Child, I);
+               if Tree.Child_Count (Child) > 0 or Tree.Label (Child) in Terminal_Label then
+                  Next_I := I;
                end if;
 
                Cur := Stream.Insert (Element => Child, Before => Cur);
@@ -131,26 +131,42 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          end loop;
 
          declare
-            Child : constant Valid_Node_Access := Tree.Child (Node, 1);
+            Child_1 : constant Valid_Node_Access := Tree.Child (Node, 1);
          begin
-            if Tree.Child_Count (Child) > 0 then
-               Node := Child;
-
-            elsif Tree.Label (Child) in Terminal_Label then
-               Node := Child;
-
-               Stream.Insert (Element => Node, Before => Cur);
-
-               Stream.Delete (To_Delete);
-               exit;
+            if Tree.Child_Count (Child_1) > 0 or Tree.Label (Child_1) in Terminal_Label then
+               Next_I := 1;
             else
-               --  Node is an empty nonterm. Note that Next_Node cannot be null; the
-               --  precondition asserts that Input_Stream.First was not empty.
-               Node := Next_Node;
+               --  Node is an empty nonterm. First non_empty is in Node.Children (Next_I);
+               if Next_I > 2 then
+                  --  Delete other empty nonterms that were added to the stream.
+                  for I in 2 .. Next_I - 1 loop
+                     declare
+                        To_Delete : Cursor := Cur;
+                     begin
+                        Stream.Next (Cur);
+                        Stream.Delete (To_Delete);
+                     end;
+                  end loop;
+               end if;
+               pragma Assert (Stream.Element (Cur) = Tree.Child (Node, Next_I));
             end if;
          end;
+
+         Node := Tree.Child (Node, Next_I);
+
+         if Tree.Label (Node) in Terminal_Label then
+            if Next_I = 1 then
+               Stream.Insert (Element => Node, Before => Cur);
+            else
+               --  already inserted above
+               null;
+            end if;
+
+            Stream.Delete (To_Delete);
+            exit;
+         end if;
       end loop;
-   end Breakdown;
+   end Left_Breakdown;
 
    function Delete_Current_Applies
      (Tree   : in Syntax_Trees.Tree;
@@ -167,9 +183,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       end if;
 
       declare
-         Next_Node : constant Valid_Node_Access := Peek_Current_First_Shared_Terminal (Tree, Config);
+         Next_Node : constant Node_Access := Peek_Current_First_Shared_Terminal
+           (Tree, Config, Following_Element => False);
       begin
-         return Config.Current_Insert_Delete /= No_Insert_Delete and then
+         return Next_Node /= Invalid_Node_Access and then
+           Config.Current_Insert_Delete /= No_Insert_Delete and then
            Token_Index (Constant_Ref (Config.Insert_Delete, Config.Current_Insert_Delete)) =
            Get_Node_Index (Next_Node);
       end;
@@ -316,9 +334,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    end Peek_Current_First_Terminal;
 
    function Peek_Current_First_Shared_Terminal
-     (Tree   : in Syntax_Trees.Tree;
-      Config : in Configuration)
-     return Syntax_Trees.Valid_Node_Access
+     (Tree              : in Syntax_Trees.Tree;
+      Config            : in Configuration;
+      Following_Element : in Boolean := True)
+     return Syntax_Trees.Node_Access
    is
       use Bounded_Streams;
       use Syntax_Trees;
@@ -334,8 +353,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          end;
       end if;
 
-      --  Always finds EOI.
-      return Tree.First_Shared_Terminal (Config.Current_Shared_Token).Node;
+      if Config.Current_Shared_Token.Node = Invalid_Node_Access and Following_Element then
+         declare
+            Temp : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
+         begin
+            Tree.Next_Shared_Terminal (Temp);
+            return Temp.Ref.Node;
+         end;
+      else
+         return Config.Current_Shared_Token.Node;
+      end if;
    end Peek_Current_First_Shared_Terminal;
 
    procedure First_Shared_Terminal
@@ -476,7 +503,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    begin
       if Config.Input_Stream.First = Bounded_Streams.No_Element then
          if Tree.Label (Config.Current_Shared_Token.Element) in Terminal_Label then
-            Tree.Stream_Next (Config.Current_Shared_Token, Rooted => True);
+            Tree.Stream_Next (Config.Current_Shared_Token, Rooted => False);
             return;
          else
             --  Current_Shared_Token needs Breakdown; move it to Config.Input_Stream.
@@ -491,12 +518,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          begin
             exit when Tree.Label (Next_Node) in Terminal_Label;
 
-            if Tree.First_Terminal (Next_Node) = Invalid_Node_Access then
-               --  Next_Node = Input_Stream.First is an empty nonterm.
-               Config.Input_Stream.Delete_First;
-            else
-               Breakdown (Tree, Config.Input_Stream);
-            end if;
+            Left_Breakdown (Tree, Config.Input_Stream);
          end;
       end loop;
 
@@ -670,7 +692,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          --  batch, because Push_Back places whole nonterms on
          --  Config.Input_Stream.
          --
-         --  Same logic as in Parser.Parse.Get_Action, but this
+         --  Same logic as in Parser.Get_Action, but this
          --  operates on Config.
 
          Current_State : constant State_Index := Config.Stack.Peek.State;
@@ -721,7 +743,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                               Tree.Stream_Next (Config.Current_Shared_Token, Rooted => False);
                            end if;
 
-                           Breakdown (Tree, Config.Input_Stream);
+                           Left_Breakdown (Tree, Config.Input_Stream);
 
                            Current_Token := Get_Current_Token
                              (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
@@ -875,8 +897,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
            Action.Verb = Accept_It or
            (if Shared_Token_Goal = Syntax_Trees.Invalid_Node_Index
             then Length (Config.Insert_Delete) = 0
-            else Super.Tree.Get_Node_Index (Peek_Current_First_Shared_Terminal (Tree, Config)) >
-              Shared_Token_Goal);
+            else Super.Tree.Get_Node_Index (Peek_Current_First_Shared_Terminal (Tree, Config)) > Shared_Token_Goal);
 
          Get_Action;
       end loop;

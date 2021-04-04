@@ -71,10 +71,13 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  First_Terminal from Shared_Stream starting at Config.Shared_Token, or Config.Input_Stream.
 
    function Peek_Current_First_Shared_Terminal
-     (Tree   : in Syntax_Trees.Tree;
-      Config : in Configuration)
-     return Syntax_Trees.Valid_Node_Access;
-   --  First_Shared_Terminal from Config.Shared_Token or Config.Input_Stream.
+     (Tree              : in Syntax_Trees.Tree;
+      Config            : in Configuration;
+      Following_Element : in Boolean := True)
+     return Syntax_Trees.Node_Access;
+   --  First_Shared_Terminal from Config.Input_Stream,
+   --  Config.Shared_Token or, if Following_Element, a following stream
+   --  element.
 
    function First_Terminal
      (Tree   : in Syntax_Trees.Tree;
@@ -109,7 +112,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Ref  : in out Config_Stream_Parents)
    with Pre => Bounded_Streams.Has_Element (Ref.Element) and Ref.Node /= Syntax_Trees.Invalid_Node_Access;
 
-   procedure Breakdown
+   procedure Left_Breakdown
      (Tree   : in     Syntax_Trees.Tree;
       Stream : in out Bounded_Streams.List)
    with Pre => Stream.Length > 0 and then
@@ -122,7 +125,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
         begin Node /= Syntax_Trees.Invalid_Node_Access and then
            (Tree.Label (Node) in Syntax_Trees.Terminal_Label));
    --  Bring the first terminal in Stream (which cannot be empty) to
-   --  Stream.
+   --  Stream; delete any preceding empty nonterms.
 
    procedure Do_Delete
      (Tree   : in     Syntax_Trees.Tree;

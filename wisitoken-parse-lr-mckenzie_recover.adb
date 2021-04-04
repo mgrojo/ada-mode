@@ -772,8 +772,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       return State : Peek_Shared_State (Config.Input_Stream'Access) do
          Parse.First_Shared_Terminal (Tree, State.Input_Terminal);
 
-         State.Shared_Terminal := Syntax_Trees.To_Stream_Node_Parents (Config.Current_Shared_Token);
-         Tree.First_Shared_Terminal (State.Shared_Terminal);
+         State.Shared_Terminal := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
+         if Syntax_Trees.Rooted (State.Shared_Terminal.Ref) then
+            Tree.First_Shared_Terminal (State.Shared_Terminal);
+         end if;
       end return;
    end Peek_Shared_Start;
 
@@ -838,8 +840,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Config : in out Configuration;
       ID     : in     Token_ID)
    is
-      Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Shared_Terminal (Tree, Config);
+      Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Shared_Terminal
+        (Tree, Config, Following_Element => False);
    begin
+      if Node = Syntax_Trees.Invalid_Node_Access then
+         raise Bad_Config;
+      end if;
       Delete_Check (Tree, Config, Node, ID);
    end Delete_Check;
 
