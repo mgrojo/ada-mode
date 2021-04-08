@@ -54,15 +54,39 @@ save_text debug_edited.adb
 verbosity debug=1 action=3
 post_parse indent
 
-test/ada_mode-interactive_2.adb
-    Edit_Tree should have deleted empty -348:identifier_opt_1; do that with virtual?
-        parser just deletes it anyway
+test/ada_mode-interactive_03.adb
+    lexer error
 
-    only indent errors left
+;; KMN: (519 . 510)(510 . 510)(511 . 511) stable wrong!?
+    error in change_to_kmn
+        improve test_edit_source
+            one test for each possible relation of change to cur_kmn, next_kmn
+
+    nil indent for line 15
+        never asked for indent!
+            error in change hooks
+
+    when re-executing test by hand:
+;; exception: SYSTEM.ASSERTIONS.ASSERT_FAILURE: wisitoken-parse.adb:797
+    Edit_Text at end of KMN but not at EOI
+    try to add test commands to reproduce
+
+
+    add insert text at end of buffer
+
+test/ada_mode-interactive_2.adb
+    in Function_Access_1, 'is begin' indent wrong
+        testing in interactive_03.adb
 
 change set_parents to be incremental?
     descend tree; if find a parent link, no need to descend that branch
     insert_token also needs to set parents?
+
+in wisi-indent-statement
+    if interactive, don't parse navigate
+    query_tree nonterms point
+        return all nonterms containing char_pos, with char_range, smallest first
+        list to find 'statement'
 
 build/test.log
 

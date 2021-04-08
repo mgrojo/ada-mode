@@ -25,13 +25,13 @@ is
    --EMACSRESULT:3
 
    -- New parameter in a subpgrogram. See comment in ada_mode-parens.adb
-   -- Local_10 on hanging paren indent; this is new code, and there are
-   -- virtual tokens before ')', so it is indented according to those
-   -- tokens.
-
-   --EMACSCMD:(progn (end-of-line 2)(forward-char -2)(insert ";")(wisi-indent-newline-indent) (current-column))
+   -- Local_10 on hanging paren indent; we'd like this to be treated as
+   -- new code, but error recover just deletes ';', so it is indented as
+   -- if hanging.
+   --
+   -- EMACSCMD:(progn (end-of-line 2)(forward-char -2)(insert ";")(wisi-indent-newline-indent) (current-column))
    procedure Local_Proc_1 (Param_1 : in Float);
-   --EMACSRESULT:27
+   --EMACSRESULT:26
 
    -- Clean up syntax errors so later tests work.
    --EMACSCMD:(progn (end-of-line -4)(delete-char -1))

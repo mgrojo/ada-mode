@@ -823,7 +823,74 @@ package body Wisi is
          end if;
       end Edit_Text;
 
-      procedure Insert_KMN (Change : in Wisi.Change)
+      procedure Delete_KMNs
+        (KMN_Last_Byte     : in     Zero_Buffer_Pos;
+         KMN_Last_Char     : in     Zero_Buffer_Pos;
+         After             : in     Parse.KMN_Lists.Cursor;
+         Last_Deleted_Byte : in     Buffer_Pos;
+         Last_Deleted_Char : in     Buffer_Pos;
+         KMN               : in out Parse.KMN)
+      --  Last_Deleted_Byte is deleted from current text by current
+      --  Change. Delete KMNs after After whose Stable are entirely within
+      --  Last_Deleted_Byte; merge into KMN (initially the current Change).
+      --  Adjust following KMN if stable contains Last_Deleted_Byte.
+      is
+         use Parse.KMN_Lists;
+         Last_Byte : Zero_Buffer_Pos := KMN_Last_Byte + KMN_List (After).Stable_Bytes +
+           KMN_List (After).Inserted_Bytes; -- end of After KMN and subsequent deleted KMN
+         Last_Char : Zero_Buffer_Pos := KMN_Last_Char + KMN_List (After).Stable_Chars +
+           KMN_List (After).Inserted_Chars;
+
+         Cur : Cursor := Next (After);
+      begin
+         loop
+            exit when not Has_Element (Cur);
+            if Last_Byte + KMN_List (Cur).Stable_Bytes + KMN_List (Cur).Inserted_Bytes <=
+              Last_Deleted_Byte
+            then
+               --  All of cur inserted are deleted, and some of next.
+               --  test_edit_source.adb Edit_06.
+               KMN.Deleted_Bytes := @ + KMN_List (Cur).Deleted_Bytes - KMN_List (Cur).Inserted_Bytes;
+               KMN.Deleted_Chars := @ + KMN_List (Cur).Deleted_Chars - KMN_List (Cur).Inserted_Chars;
+
+               Last_Byte := @ + KMN_List (Cur).Stable_Bytes + KMN_List (Cur).Inserted_Bytes;
+               Last_Char := @ + KMN_List (Cur).Stable_Chars + KMN_List (Cur).Inserted_Chars;
+
+               declare
+                  To_Delete : Cursor := Cur;
+               begin
+                  Cur := Next (Cur);
+                  KMN_List.Delete (To_Delete);
+               end;
+
+            elsif Last_Byte + KMN_List (Cur).Stable_Bytes <= Last_Deleted_Byte then
+               --  Some of Cur.inserted are deleted. test_edit_source.adb Edit_05.
+               declare
+                  Deleted_Bytes : constant Zero_Buffer_Pos := Last_Deleted_Byte -
+                    (Last_Byte + KMN_List (Cur).Stable_Bytes); -- bytes of cur.inserted that are deleted
+                  Deleted_Chars : constant Zero_Buffer_Pos := Last_Deleted_Char -
+                    (Last_Char + KMN_List (Cur).Stable_Chars);
+               begin
+                  KMN.Inserted_Bytes := @ - Deleted_Bytes + KMN_List (Cur).Inserted_Bytes;
+                  KMN.Inserted_Chars := @ - Deleted_Chars + KMN_List (Cur).Inserted_Chars;
+
+                  KMN.Deleted_Bytes := @ + KMN_List (Cur).Deleted_Bytes - Deleted_Bytes;
+                  KMN.Deleted_Chars := @ + KMN_List (Cur).Deleted_Chars - Deleted_Chars;
+
+                  KMN_List.Delete (Cur);
+                  exit;
+               end;
+            else
+               --  Last_Byte is in Cur.stable
+               KMN_List (Cur).Stable_Bytes := @ - (Last_Deleted_Byte - Last_Byte);
+               KMN_List (Cur).Stable_Chars := @ - (Last_Deleted_Char - Last_Char);
+               exit;
+            end if;
+         end loop;
+      end Delete_KMNs;
+
+      procedure Edit_KMN (Change : in Wisi.Change)
+      --  Apply Change to KMN list
       is
          use Parse.KMN_Lists;
          Cur : Cursor := KMN_List.First;
@@ -831,14 +898,9 @@ package body Wisi is
          KMN_Last_Byte : Base_Buffer_Pos := 0; --  Last byte of prev KMN.
          KMN_Last_Char : Base_Buffer_Pos := 0; --  Last char of prev KMN.
 
-         function Max_Byte_Pos (Item : in Wisi.Change) return Buffer_Pos
-         is begin
-            return Buffer_Pos'Max
-              (Item.Begin_Byte_Pos + Base_Buffer_Pos (Item.Deleted_Bytes),
-               Item.Inserted_End_Byte_Pos);
-         end Max_Byte_Pos;
-
          function To_KMN (Item : in Wisi.Change) return Parse.KMN
+         --  Assuming Change does not overlap any current KMN non-stable,
+         --  return a new KMN for it.
          is (Stable_Bytes   => Item.Begin_Byte_Pos - KMN_Last_Byte - 1, -- Begin_Byte_Pos is deleted or inserted
              Stable_Chars   => Item.Begin_Char_Pos - KMN_Last_Char - 1,
              Inserted_Bytes => Item.Inserted_End_Byte_Pos - Item.Begin_Byte_Pos, -- End_Byte_Pos is after last inserted
@@ -850,81 +912,140 @@ package body Wisi is
          loop
             declare
                Cur_KMN : Parse.KMN renames KMN_List (Cur);
+               To_Delete : Cursor;
+               Do_Delete : Boolean := False;
             begin
                pragma Assert (KMN_Last_Byte < Change.Begin_Byte_Pos);
 
-               if Max_Byte_Pos (Change) < KMN_Last_Byte + Cur_KMN.Stable_Bytes + 1 then
-                  --  Change is entirely within Cur_KMN.Stable_Bytes
-                  declare
-                     KMN : constant Parse.KMN := To_KMN (Change);
-                  begin
-                     Cur_KMN.Stable_Bytes := @ - (KMN.Stable_Bytes + KMN.Deleted_Bytes);
-                     Cur_KMN.Stable_Chars := @ - (KMN.Stable_Chars + KMN.Deleted_Chars);
-
-                     KMN_List.Insert (Before => Cur, Element => KMN);
-                  end;
-
-                  Edit_Text (Change);
-                  return;
-
-               elsif Change.Begin_Byte_Pos < KMN_Last_Byte + Cur_KMN.Stable_Bytes + 1 then
-                  --  Change starts in Cur_KMN.Stable_Bytes, ends in or after Cur_KMN.Insert.
-                  declare
-                     KMN : constant Parse.KMN := To_KMN (Change);
-                  begin
-                     Cur_KMN.Stable_Bytes := @ - (KMN.Stable_Bytes + KMN.Deleted_Bytes);
-                     Cur_KMN.Stable_Chars := @ - (KMN.Stable_Chars + KMN.Deleted_Chars);
-
-                     KMN_List.Insert (Before => Cur, Element => KMN);
-                  end;
-
-                  Edit_Text (Change);
-                  return;
-
-               elsif Change.Begin_Byte_Pos <= KMN_Last_Byte + Cur_KMN.Stable_Bytes + Cur_KMN.Inserted_Bytes + 1 or
-                 Change.Begin_Byte_Pos <= KMN_Last_Byte + Cur_KMN.Stable_Bytes + Cur_KMN.Deleted_Bytes + 1
+               if Change.Begin_Byte_Pos + Base_Buffer_Pos (Change.Deleted_Bytes) - 1 <=
+                 KMN_Last_Byte + Cur_KMN.Stable_Bytes
                then
-                  --  Change starts in or immediately after Cur_KMN inserted or deleted text; merge
-                  --  them.
+                  --  Change is entirely within Cur_KMN.Stable_Bytes;
+                  --  test_edit_source.adb Edit_01, _02.
+                  declare
+                     KMN : constant Parse.KMN := To_KMN (Change);
+                  begin
+                     Cur_KMN.Stable_Bytes := @ - (KMN.Stable_Bytes + KMN.Deleted_Bytes);
+                     Cur_KMN.Stable_Chars := @ - (KMN.Stable_Chars + KMN.Deleted_Chars);
+
+                     KMN_List.Insert (Before => Cur, Element => KMN);
+                  end;
+
+                  return;
+
+               elsif Change.Begin_Byte_Pos <= KMN_Last_Byte + Cur_KMN.Stable_Bytes then
+                  --  Change starts in Cur_KMN.Stable_Bytes, ends in or after
+                  --  Cur_KMN.Insert; merge Change into Cur_KMN.
+                  declare
+                     KMN : Parse.KMN := To_KMN (Change);
+                     Cur_Last_Inserted_Byte : constant Buffer_Pos :=
+                       KMN_Last_Byte + Cur_KMN.Stable_Bytes + Cur_KMN.Inserted_Bytes;
+                  begin
+                     --  Some of Change.Deleted_Bytes delete bytes in Cur_KMN.Stable, some
+                     --  in Cur_KMN.Inserted.
+                     if Cur_Last_Inserted_Byte > Change.Begin_Byte_Pos + Base_Buffer_Pos (Change.Deleted_Bytes) then
+                        --  Some of Cur_KMN.Inserted are preserved; test_edit_source.adb
+                        --  Edit_03.
+                        Cur_KMN.Inserted_Bytes := KMN.Inserted_Bytes +
+                          Change.Inserted_End_Byte_Pos - (KMN_Last_Byte + Cur_KMN.Stable_Bytes);
+                        Cur_KMN.Inserted_Chars := KMN.Inserted_Chars +
+                          Change.Inserted_End_Char_Pos - (KMN_Last_Char + Cur_KMN.Stable_Chars);
+
+                        Cur_KMN.Deleted_Bytes := @ + KMN_Last_Byte + Cur_KMN.Stable_Bytes + 1 - Change.Begin_Byte_Pos;
+                        Cur_KMN.Deleted_Chars := @ + KMN_Last_Char + Cur_KMN.Stable_Chars + 1 - Change.Begin_Char_Pos;
+                     else
+                        --  All of Cur_KMN.Inserted and some of following KMN are deleted;
+                        --  test_edit_source.adb Edit_04, _05, _06.
+
+                        Delete_KMNs
+                          (KMN_Last_Byte, KMN_Last_Char, Cur,
+                           Last_Deleted_Byte => Change.Begin_Byte_Pos + KMN.Deleted_Bytes - 1,
+                           Last_Deleted_Char => Change.Begin_Char_Pos + KMN.Deleted_Chars - 1,
+                           KMN               => KMN);
+
+                        Cur_KMN.Deleted_Bytes := @ + KMN.Deleted_Bytes - Cur_KMN.Inserted_Bytes;
+                        Cur_KMN.Deleted_Chars := @ + KMN.Deleted_Chars - Cur_KMN.Inserted_Chars;
+
+                        Cur_KMN.Inserted_Bytes := KMN.Inserted_Bytes;
+                        Cur_KMN.Inserted_Chars := KMN.Inserted_Chars;
+                     end if;
+
+                     Cur_KMN.Stable_Bytes := KMN.Stable_Bytes;
+                     Cur_KMN.Stable_Chars := KMN.Stable_Chars;
+                  end;
+                  return;
+
+               elsif Change.Begin_Byte_Pos <= KMN_Last_Byte + Cur_KMN.Stable_Bytes + Cur_KMN.Inserted_Bytes + 1
+               then
+                  --  Change starts in or immediately after Cur_KMN inserted
+                  --  text; merge Change into Cur_KMN.
 
                   if Change.Deleted_Bytes > 0 then
+                     To_Delete := Next (Cur);
+                     Do_Delete := False;
+
                      declare
-                        Next_KMN : Parse.KMN renames KMN_List (Next (Cur));
+                        Next_KMN : Parse.KMN renames KMN_List (To_Delete);
                         --  FIXME: fails if Change inserts text at end of Source
 
+                     begin
                         --  Change.Deleted first reduces Cur_KMN.Inserted, then reduces
                         --  Next_KMN.Stable and increases Cur_KMN.Deleted
-                     begin
+
                         if Base_Buffer_Pos (Change.Deleted_Bytes) <= Cur_KMN.Inserted_Bytes then
+                           --  Some of Cur_KMN
                            Cur_KMN.Inserted_Bytes := @ - Base_Buffer_Pos (Change.Deleted_Bytes) +
                              (Change.Inserted_End_Byte_Pos - Change.Begin_Byte_Pos);
                            Cur_KMN.Inserted_Chars := @ - Base_Buffer_Pos (Change.Deleted_Chars) +
                              (Change.Inserted_End_Char_Pos - Change.Begin_Char_Pos);
 
                         else
+                           Cur_KMN.Inserted_Bytes := 0 + Change.Inserted_End_Byte_Pos - Change.Begin_Byte_Pos;
+                           Cur_KMN.Inserted_Chars := 0 + Change.Inserted_End_Char_Pos - Change.Begin_Char_Pos;
+
                            declare
                               Remaining_Deleted_Bytes : constant Base_Buffer_Pos :=
                                 Base_Buffer_Pos (Change.Deleted_Bytes) - Cur_KMN.Inserted_Bytes;
                               Remaining_Deleted_Chars : constant Base_Buffer_Pos :=
                                 Base_Buffer_Pos (Change.Deleted_Chars) - Cur_KMN.Inserted_Chars;
                            begin
-                              Next_KMN.Stable_Bytes := @ - Remaining_Deleted_Bytes;
-                              Next_KMN.Stable_Chars := @ - Remaining_Deleted_Chars;
+                              if Next_KMN.Stable_Bytes <= Remaining_Deleted_Bytes then
 
-                              Cur_KMN.Inserted_Bytes := 0 + Change.Inserted_End_Char_Pos - Change.Begin_Char_Pos;
-                              Cur_KMN.Inserted_Chars := 0 + Change.Inserted_End_Char_Pos - Change.Begin_Char_Pos;
+                                 if Next_KMN.Stable_Bytes + Next_KMN.Inserted_Bytes <= Remaining_Deleted_Bytes then
+                                    --  Next_KMN disappears
 
+                                    --  cur_kmn      next_kmn
+                                    --  stable   ins stable ins
+                                    --   ... | ... |      |   |
+                                    --
+                                    --   change
+                                    --         | ins    |
+                                    --         | del             |
+                                    --
+                                    Do_Delete := True;
+                                 else
+                                    --  Some of Next_KMN.Inserted remains
+                                    raise SAL.Not_Implemented with "FIXME:";
+                                 end if;
+
+                              else
+                                 Next_KMN.Stable_Bytes := @ - Remaining_Deleted_Bytes;
+                                 Next_KMN.Stable_Chars := @ - Remaining_Deleted_Chars;
+                              end if;
                               Cur_KMN.Deleted_Bytes := @ + Remaining_Deleted_Bytes;
                               Cur_KMN.Deleted_Chars := @ + Remaining_Deleted_Chars;
                            end;
                         end if;
                      end;
+                     if Do_Delete then
+                        KMN_List.Delete (To_Delete);
+                     end if;
+
                   else
                      Cur_KMN.Inserted_Bytes := @ + Change.Inserted_End_Byte_Pos - Change.Begin_Byte_Pos;
                      Cur_KMN.Inserted_Chars := @ + Change.Inserted_End_Char_Pos - Change.Begin_Char_Pos;
                   end if;
 
-                  Edit_Text (Change);
                   return;
 
                else
@@ -942,7 +1063,7 @@ package body Wisi is
                end if;
             end;
          end loop;
-      end Insert_KMN;
+      end Edit_KMN;
 
    begin
       if Reallocate then
@@ -958,9 +1079,7 @@ package body Wisi is
          Gap_Last := Source'Last;
       end if;
 
-      --  Start with one KMN with stable region = entire source. Insert_KMN
-      --  edits this, leaving it to cover the final stable region or insert
-      --  after Source end.
+      --  Start with one KMN with stable region = entire source.
       KMN_List.Append
         ((Stable_Bytes   => Base_Buffer_Pos (Source_Byte_Last),
           Stable_Chars   => Base_Buffer_Pos (Source_Char_Last),
@@ -970,7 +1089,8 @@ package body Wisi is
           Inserted_Chars => 0));
 
       for Change of Changes loop
-         Insert_KMN (Change);
+         Edit_KMN (Change);
+         Edit_Text (Change);
 
          if Trace_Incremental_Parse > Detail then
             Trace.Put_Line ("change:" & Image (Change));
