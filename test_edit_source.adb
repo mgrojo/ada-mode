@@ -97,7 +97,7 @@ package body Test_Edit_Source is
 
    when E : others =>
       Ada.Strings.Unbounded.Free (Computed_Source);
-      raise AUnit.Assertions.Assertion_Error with Ada.Exceptions.Exception_Message (E);
+      AUnit.Assertions.Assert (False, Ada.Exceptions.Exception_Message (E));
    end Test;
 
    ----------
@@ -907,7 +907,149 @@ package body Test_Edit_Source is
         ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
    end Edit_06;
 
-   --  FIXME: systematic coverage of remaining relations between change, cur_kmn, next_kmn
+   procedure Edit_07 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Wisi;
+      use WisiToken;
+
+      --  New change starts, ends in 1st KMN inserted.
+
+      Initial_Source : constant String :=
+        "Ask not what you can do for your country.";
+      --          |10       |20       |30
+
+      Expected_Source : constant String :=
+        "Ask not what you must o do for my country.";
+
+      Changes : Change_Lists.List;
+
+      Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
+   begin
+      --  "can" -> "must try to"
+      Changes.Append ((18, 18, 29, 29, +"must try to", 3, 3));
+
+      --  "your" -> "my"
+      Changes.Append ((37, 37, 39, 39, +"my", 4, 4));
+
+      --  new change "try t" -> ""
+      Changes.Append ((23, 23, 23, 23, +"", 5, 5));
+
+      Expected_KMN_List.Append ((17, 17, 6, 6, 3, 3));
+      Expected_KMN_List.Append ((8, 8, 2, 2, 4, 4));
+      Expected_KMN_List.Append ((9, 9, 0, 0, 0, 0));
+
+      Test
+        ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
+   end Edit_07;
+
+   procedure Edit_08 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Wisi;
+      use WisiToken;
+
+      --  New change starts in 1st KMN inserted, ends in 2nd KMN stable.
+
+      Initial_Source : constant String :=
+        "Ask not what you can do for your country.";
+      --          |10       |20       |30
+
+      Expected_Source : constant String :=
+        "Ask not what you must complete for my country.";
+
+      Changes : Change_Lists.List;
+
+      Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
+   begin
+      --  "can" -> "must try to"
+      Changes.Append ((18, 18, 29, 29, +"must try to", 3, 3));
+
+      --  "your" -> "my"
+      Changes.Append ((37, 37, 39, 39, +"my", 4, 4));
+
+      --  new change "try to do " -> "complete "
+      Changes.Append ((23, 23, 32, 32, +"complete ", 10, 10));
+
+      Expected_KMN_List.Append ((17, 17, 14, 14, 7, 7));
+      Expected_KMN_List.Append ((4, 4, 2, 2, 4, 4));
+      Expected_KMN_List.Append ((9, 9, 0, 0, 0, 0));
+
+      Test
+        ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
+   end Edit_08;
+
+   procedure Edit_09 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Wisi;
+      use WisiToken;
+
+      --  New change starts in 1st KMN inserted, ends in 3rd KMN stable;
+      --  delete 2nd and 3rd, merge into 1st.
+
+      Initial_Source : constant String :=
+        "Ask not what you can do for your country, but what?";
+      --          |10       |20       |30
+
+      Expected_Source : constant String :=
+        "Ask not what you must complete, but why.";
+
+      Changes : Change_Lists.List;
+
+      Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
+   begin
+      --  "can" -> "must try to"
+      Changes.Append ((18, 18, 29, 29, +"must try to", 3, 3));
+      --  "Ask not what you must try to do for your country, but what?";
+      --            |10       |20       |30       |40       |50
+
+      --  "your" -> "my"
+      Changes.Append ((37, 37, 39, 39, +"my", 4, 4));
+      --  "Ask not what you must try to do for my country, but what?";
+      --            |10       |20       |30       |40       |50
+
+      --  "what? => "why."
+      Changes.Append ((53, 53, 57, 57, +"why.", 5, 5));
+      --  "Ask not what you must try to do for my country, but why.";
+      --            |10       |20       |30       |40       |50
+
+      --  new change "try to do for my country" -> "complete"
+      Changes.Append ((23, 23, 31, 31, +"complete", 24, 24));
+
+      Expected_KMN_List.Append ((17, 17, 13, 13, 23, 23));
+      Expected_KMN_List.Append ((6, 6, 4, 4, 5, 5));
+
+      Test
+        ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
+   end Edit_09;
+
+   procedure Edit_10 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Wisi;
+      use WisiToken;
+
+      --  Change inserts at end of text.
+
+      Initial_Source : constant String :=
+        "Ask not what you can do for your country.";
+      --          |10       |20       |30       |40
+
+      Expected_Source : constant String :=
+        "Ask not what you can do for your country. (:)";
+
+      Changes : Change_Lists.List;
+
+      Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
+   begin
+      --  Append " (:)"
+      Changes.Append ((42, 42, 46, 46, +" (:)", 0, 0));
+      Expected_KMN_List.Append ((41, 41, 4, 4, 0, 0));
+
+      Test
+        ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
+   end Edit_10;
 
    ----------
    --  Public subprograms
@@ -929,8 +1071,13 @@ package body Test_Edit_Source is
       Register_Routine (T, Edit_04'Access, "Edit_04");
       Register_Routine (T, Edit_05'Access, "Edit_05");
       Register_Routine (T, Edit_06'Access, "Edit_06");
-      --  Register_Routine (T, Edit_07'Access, "Edit_07");
-      --  Register_Routine (T, Edit_08'Access, "Edit_08");
+      Register_Routine (T, Edit_07'Access, "Edit_07");
+      Register_Routine (T, Edit_08'Access, "Edit_08");
+      Register_Routine (T, Edit_09'Access, "Edit_09");
+      Register_Routine (T, Edit_10'Access, "Edit_10");
+      --  Register_Routine (T, Edit_11'Access, "Edit_11");
+      --  Register_Routine (T, Edit_12'Access, "Edit_12");
+      --  Register_Routine (T, Edit_13'Access, "Edit_13");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

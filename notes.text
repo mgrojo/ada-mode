@@ -60,7 +60,8 @@ test/ada_mode-interactive_03.adb
 ;; KMN: (519 . 510)(510 . 510)(511 . 511) stable wrong!?
     error in change_to_kmn
         improve test_edit_source
-            one test for each possible relation of change to cur_kmn, next_kmn
+            systematic tests done
+            but not really; other tests failing; add systematic to catch them
 
     nil indent for line 15
         never asked for indent!
