@@ -171,7 +171,10 @@ package body WisiToken.Parse.LR.Parser is
                            --  To breakdown a shared_stream token, we first have to create a
                            --  parse stream input element for it, and do the breakdown in the
                            --  parse stream input.
+                           pragma Assert (Parser_State.Current_Token = Parser_State.Shared_Token);
                            Tree.Insert_Token (Parser_State.Stream, Parser_State.Current_Token);
+                           Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                           Tree.Set_Shared_Link (Parser_State.Stream, Parser_State.Shared_Token);
                         end if;
 
                         if Trace_Parse > Detail then
@@ -183,6 +186,11 @@ package body WisiToken.Parse.LR.Parser is
                         if Trace_Parse > Detail then
                            Shared_Parser.Trace.Put_Line
                              (" ... current_token: " & Tree.Image (Parser_State.Current_Token, First_Terminal => True));
+                           if Trace_Parse > Detail then
+                              Shared_Parser.Trace.Put_Line
+                                (" ... input stream: " & Tree.Image
+                                   (Parser_State.Stream, Stack => False, Input => True, Shared => True));
+                           end if;
                         end if;
 
                         return;
@@ -901,7 +909,8 @@ package body WisiToken.Parse.LR.Parser is
          Node : in     Syntax_Trees.Valid_Node_Access)
       is
          use all type Syntax_Trees.Node_Label;
-         Node_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Node, Trailing_Non_Grammar => True);
+         Node_Byte_Region : constant Buffer_Region := Tree.Byte_Region
+           (Node, Trailing_Non_Grammar => True, Include_EOI => True);
       begin
          if Tree.Label (Node) /= Nonterm or else
            not (Node_Byte_Region = Null_Buffer_Region or

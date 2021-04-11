@@ -406,9 +406,18 @@ package body WisiToken.Parse is
                      --  Edit start is in Terminal.
 
                      if Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.EOI_ID then
-                        --  We never re-scan eoi; we just shift it.
-                        null;
+                        if Length (Inserted_Region) > 0 then
+                           Do_Scan := True;
 
+                           Lex_Start_Byte := Terminal_Byte_Region.First + Shift_Bytes;
+                           Lex_Start_Char := Tree.Char_Region (Terminal.Node).First + Shift_Chars;
+
+                           --  Line_Region.First is from prev_terminal.non_grammar, which is shifted
+                           Lex_Start_Line := Tree.Line_Region (Terminal).First;
+                        else
+                           --  We never re-scan eoi; we just shift it.
+                           null;
+                        end if;
                      else
                         Do_Scan := True;
 
@@ -556,7 +565,7 @@ package body WisiToken.Parse is
                      end if;
                   end if;
 
-                  --  Delete virtual_terminals that are immediately before the edit
+                  --  Delete trailing Virtual_Terminals that are immediately before the edit
                   --  region. Virtual_Terminals immediately after are deleted in
                   --  Delete_Loop below.
                   declare
@@ -799,8 +808,7 @@ package body WisiToken.Parse is
 
                if Trace_Incremental_Parse > Detail then
                   Parser.Trace.Put_Line
-                    ("final shift " & Tree.Image
-                       (Terminal.Node, Terminal_Node_Numbers => True));
+                    ("final shift " & Tree.Image (Terminal.Node, Terminal_Node_Numbers => True));
                end if;
 
                exit KMN_Loop;
@@ -812,6 +820,106 @@ package body WisiToken.Parse is
          raise User_Error with "edit list does not cover entire tree";
       end if;
 
+      --  Delete remnants of prevous error recovery that might be wrong.
+      declare
+         Ref : Rooted_Ref := Tree.Stream_First (Stream);
+
+         procedure Delete_Empty
+         is
+            To_Delete : Stream_Index := Ref.Element;
+         begin
+            if Trace_Incremental_Parse > Detail then
+               Parser.Trace.Put_Line
+                 ("delete " & Tree.Image (To_Delete, Node_Numbers => True, Non_Grammar => True));
+            end if;
+
+            Tree.Stream_Next (Ref, Rooted => True);
+            Tree.Stream_Delete (Ref.Stream, To_Delete);
+         end Delete_Empty;
+
+         procedure Delete
+         is
+            Ref_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Const (Ref.Node);
+            Prev_Non_Grammar : Stream_Node_Ref := Ref;
+
+            To_Delete : Stream_Index := Ref.Element;
+         begin
+            if Ref_Non_Grammar.Length > 0 then
+               loop
+                  exit when Tree.Label (Prev_Non_Grammar.Node) = Source_Terminal;
+                  Tree.Prev_Terminal (Prev_Non_Grammar);
+               end loop;
+               Tree.Non_Grammar_Var (Prev_Non_Grammar.Node).Append (Ref_Non_Grammar);
+            end if;
+
+            if Trace_Incremental_Parse > Detail then
+               Parser.Trace.Put_Line
+                 ("delete " & Tree.Image (To_Delete, Node_Numbers => True, Non_Grammar => True));
+            end if;
+
+            Tree.Stream_Next (Ref, Rooted => True);
+            Tree.Stream_Delete (Ref.Stream, To_Delete);
+         end Delete;
+
+      begin
+         loop
+            exit when Ref.Node = Tree.EOI;
+
+            case Tree.Label (Ref.Node) is
+            when Source_Terminal =>
+               Tree.Stream_Next (Ref, Rooted => True);
+
+            when Virtual_Terminal | Virtual_Identifier =>
+               Delete;
+
+            when Nonterm =>
+               declare
+                  First : constant Node_Access := Tree.First_Terminal (Ref.Node);
+                  Last  : constant Node_Access := Tree.Last_Terminal (Ref.Node);
+               begin
+                  if First = Invalid_Node_Access then
+                     Delete_Empty;
+                  else
+                     if Tree.Label (First) in Virtual_Terminal | Virtual_Identifier then
+                        if Trace_Incremental_Parse > Detail then
+                           Parser.Trace.Put_Line
+                             ("left breakdown " & Tree.Image
+                                (Tree.Get_Node (Ref.Stream, Ref.Element), Node_Numbers => True) &
+                                " target " & Tree.Image (First, Node_Numbers => True));
+                        end if;
+                        Tree.Left_Breakdown (Ref);
+                        --  Modifies Ref, so we can't also check Last here.
+
+                     elsif Tree.Label (Last) in Virtual_Terminal | Virtual_Identifier then
+                        declare
+                           Temp : Rooted_Ref := Ref;
+                        begin
+                           --  Leave Ref before affected nodes, since we may uncover more that
+                           --  need deleting.
+                           Ref := Tree.Stream_Prev (Ref);
+                           if Trace_Incremental_Parse > Detail then
+                              Parser.Trace.Put_Line
+                                ("right breakdown " & Tree.Image
+                                   (Tree.Get_Node (Ref.Stream, Ref.Element), Node_Numbers => True) &
+                                   " target " & Tree.Image (Last, Node_Numbers => True));
+                           end if;
+                           Tree.Right_Breakdown (Temp);
+                           Tree.Stream_Next (Ref, Rooted => True);
+                        end;
+
+                     else
+                        Tree.Stream_Next (Ref, Rooted => True);
+                     end if;
+                  end if;
+               end;
+            end case;
+         end loop;
+
+         if Trace_Incremental_Parse > Detail then
+            Parser.Trace.New_Line;
+         end if;
+
+      end;
    end Edit_Tree;
 
 end WisiToken.Parse;

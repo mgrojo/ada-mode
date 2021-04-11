@@ -192,13 +192,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
              when Message => raise SAL.Programmer_Error));
          if Trace_McKenzie > Detail then
             Trace.Put_Line ("parse stream:");
-            Trace.Put_Line (Shared_Parser.Tree.Image (Parser_State.Stream, Children => Trace_McKenzie > Extra));
-            Trace.Put_Line ("shared stream:");
             Trace.Put_Line
-              (Shared_Parser.Tree.Image
-                 (Shared_Parser.Tree.Shared_Stream,
-                  Children => Trace_McKenzie > Extra,
-                  Non_Grammar => Trace_McKenzie > Extra));
+              (Shared_Parser.Tree.Image (Parser_State.Stream, Children => Trace_McKenzie > Extra, Shared => True));
          end if;
       end if;
 

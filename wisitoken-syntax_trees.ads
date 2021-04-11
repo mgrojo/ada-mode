@@ -590,7 +590,18 @@ package WisiToken.Syntax_Trees is
                   Token = Tree.Stream_Next (Stream, Tree.Stack_Top (Stream)));
    --  If Token is in Shared_Stream, push Token on Stream stack;
    --  otherwise move from Stream input to Stream stack. Then set State
-   --  in the Stream element.
+   --  in the Stream element, and set Stream.Shared_Link to Stream_Next (Token);.
+
+   procedure Set_Shared_Link
+     (Tree        : in out Syntax_Trees.Tree;
+      Stream      : in     Stream_ID;
+      Shared_Link : in     Stream_Node_Ref);
+   --  Set Stream.Shared_Link to Shared_Link.
+   --
+   --  Normally Stream.Shared_Link is set by Shift; Set_Shared_Link is
+   --  required when the user changes the link point in other ways, for
+   --  example when inserting a stream element into Stream input before
+   --  calling Left_Breakdown.
 
    function Pop
      (Tree      : in out Syntax_Trees.Tree;
@@ -974,7 +985,8 @@ package WisiToken.Syntax_Trees is
    function Byte_Region
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
-      Trailing_Non_Grammar : in Boolean := False)
+      Trailing_Non_Grammar : in Boolean := False;
+      Include_EOI          : in Boolean := False)
      return WisiToken.Buffer_Region;
 
    function Name (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Buffer_Region;
@@ -1922,6 +1934,7 @@ package WisiToken.Syntax_Trees is
       Stream       : in Stream_ID;
       Stack        : in Boolean                   := True;
       Input        : in Boolean                   := True;
+      Shared       : in Boolean                   := False;
       Children     : in Boolean                   := False;
       Non_Grammar  : in Boolean                   := False;
       Augmented    : in Boolean                   := False;
@@ -1929,8 +1942,9 @@ package WisiToken.Syntax_Trees is
       Image_Action : in Syntax_Trees.Image_Action := null)
      return String;
    --  Image of each node. If Stack, includes stack; if Input, includes
-   --  input. If Children, each entire subtree is included, with
-   --  newlines, as in Print_Tree.
+   --  input; if Shared, includes continuation in Shared_Stream. If
+   --  Children, each entire subtree is included, with newlines, as in
+   --  Print_Tree.
 
    function Image
      (Tree                  : in Syntax_Trees.Tree;

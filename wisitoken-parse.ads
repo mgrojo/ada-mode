@@ -79,14 +79,14 @@ package WisiToken.Parse is
       --  regions in a text buffer. We assume the range boundaries do not
       --  break a multi-byte character.
 
-      Stable_Bytes : Base_Buffer_Pos; -- Count of unmodified bytes before change
-      Stable_Chars : Base_Buffer_Pos; -- "" characters
+      Stable_Bytes : Zero_Buffer_Pos; -- Count of unmodified bytes before change
+      Stable_Chars : Zero_Buffer_Pos; -- "" characters
 
-      Inserted_Bytes : Base_Buffer_Pos; -- Count of inserted bytes, after Stable.
-      Inserted_Chars : Base_Buffer_Pos;
+      Inserted_Bytes : Zero_Buffer_Pos; -- Count of inserted bytes, after Stable.
+      Inserted_Chars : Zero_Buffer_Pos;
 
-      Deleted_Bytes : Base_Buffer_Pos; -- Count of deleted bytes, after Stable
-      Deleted_Chars : Base_Buffer_Pos;
+      Deleted_Bytes : Zero_Buffer_Pos; -- Count of deleted bytes, after Stable
+      Deleted_Chars : Zero_Buffer_Pos;
    end record;
 
    function Image (KMN : in WisiToken.Parse.KMN) return String;

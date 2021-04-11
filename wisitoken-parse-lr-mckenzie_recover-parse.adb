@@ -509,6 +509,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             --  Current_Shared_Token needs Breakdown; move it to Config.Input_Stream.
             Config.Input_Stream.Append
               (Tree.Get_Node (Config.Current_Shared_Token.Stream, Config.Current_Shared_Token.Element));
+            Tree.Stream_Next (Config.Current_Shared_Token, Rooted => False);
          end if;
       end if;
 

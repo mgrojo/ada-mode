@@ -51,7 +51,7 @@ begin
 
       Edit_Tree (Shared_Parser, Edits);
 
-      if Trace_Parse > Detail or Trace_Incremental_Parse > Detail then
+      if Trace_Parse > Outline or Trace_Incremental_Parse > Outline then
          Trace.New_Line;
          Trace.Put_Line ("edited stream:");
          Trace.Put_Line
@@ -67,7 +67,7 @@ begin
       if Shared_Parser.Tree.ID (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream).Node) =
         Shared_Parser.Tree.Lexer.Descriptor.Accept_ID
       then
-         if Trace_Parse > Detail then
+         if Trace_Parse > Outline then
             Trace.Put_Line ("existing tree not changed by edits");
          end if;
          Shared_Parser.Tree.Clear_Parse_Streams;

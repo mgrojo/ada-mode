@@ -76,6 +76,7 @@ package body WisiToken.Lexer.re2c is
          Buffer_Nominal_First_Char => Begin_Char,
          Line_Nominal_First        => Begin_Line,
          Buffer                    => new String'(Input),
+         Buffer_Last               => Input'Last,
          User_Buffer               => False);
 
       Lexer.Lexer := New_Lexer
@@ -89,6 +90,7 @@ package body WisiToken.Lexer.re2c is
    overriding procedure Reset_With_String_Access
      (Lexer      : in out Instance;
       Input      : in     Ada.Strings.Unbounded.String_Access;
+      Input_Last : in     Integer;
       File_Name  : in     Ada.Strings.Unbounded.Unbounded_String;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
@@ -112,17 +114,18 @@ package body WisiToken.Lexer.re2c is
 
       --  We assume Input is in UTF-8 encoding
       Lexer.Source :=
-        (Label       => String_Label,
-         File_Name   => Short_File_Name,
+        (Label                     => String_Label,
+         File_Name                 => Short_File_Name,
          Buffer_Nominal_First_Byte => Base_Buffer_Pos (Input'First),
          Buffer_Nominal_First_Char => Begin_Char,
          Line_Nominal_First        => Begin_Line,
          Buffer                    => Input,
+         Buffer_Last               => Input_Last,
          User_Buffer               => True);
 
       Lexer.Lexer := New_Lexer
         (Buffer    => Lexer.Source.Buffer.all'Address,
-         Length    => Interfaces.C.size_t (Input'Length),
+         Length    => Interfaces.C.size_t (Input_Last - Input'First + 1),
          Verbosity => Interfaces.C.int (Trace_Lexer - 1));
 
       Reset (Lexer);

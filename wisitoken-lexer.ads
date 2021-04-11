@@ -109,13 +109,15 @@ package WisiToken.Lexer is
    procedure Reset_With_String_Access
      (Lexer      : in out Instance;
       Input      : in     Ada.Strings.Unbounded.String_Access;
+      Input_Last : in     Integer;
       File_Name  : in     Ada.Strings.Unbounded.Unbounded_String;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
    is abstract
    with Post'Class => Lexer.Has_Source;
-   --  Reset Lexer to start a new parse, reading from Input. Input'First
-   --  is Begin_Byte. File_Name is used for error messages.
+   --  Reset Lexer to start a new parse, reading from Input (Input'First
+   --  .. Input_Last). Input'First is Begin_Byte. File_Name is used for
+   --  error messages.
 
    procedure Reset_With_File
      (Lexer      : in out Instance;
@@ -207,6 +209,7 @@ private
       Buffer_Nominal_First_Byte : Buffer_Pos       := Invalid_Buffer_Pos;
       Buffer_Nominal_First_Char : Buffer_Pos       := Invalid_Buffer_Pos;
       Line_Nominal_First        : Line_Number_Type := Invalid_Line_Number;
+      Buffer_Last : Positive;
 
       case Label is
       when String_Label =>
@@ -216,12 +219,12 @@ private
          --  it. Otherwise we must deallocate it.
 
          --  Buffer_Nominal_First, Line_Nominal_First are 1.
+
       when File_Label =>
 
          --  The input is memory mapped from the following, which must be closed:
          File        : GNATCOLL.Mmap.Mapped_File;
          Region      : GNATCOLL.Mmap.Mapped_Region;
-         Buffer_Last : Positive;
          --  Region always has first character at offset 0.
 
          --  Buffer_Nominal_First is Begin_Pos. Line_Nominal_First is

@@ -300,6 +300,7 @@ package WisiToken is
    --  Token shift amounts in edited source can be arbitrarily large
    --  positive or negative.
 
+   subtype Zero_Buffer_Pos is Base_Buffer_Pos range 0 .. Base_Buffer_Pos'Last; -- allow 0
    subtype Buffer_Pos is Base_Buffer_Pos range 1 .. Base_Buffer_Pos'Last; -- match Emacs buffer origin.
 
    type Buffer_Pos_Access is access all Buffer_Pos;

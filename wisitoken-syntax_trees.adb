@@ -386,13 +386,22 @@ package body WisiToken.Syntax_Trees is
    function Byte_Region
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
-      Trailing_Non_Grammar : in Boolean := False)
+      Trailing_Non_Grammar : in Boolean := False;
+      Include_EOI          : in Boolean := False)
      return WisiToken.Buffer_Region
    is begin
       case Node.Label is
       when Source_Terminal =>
          if Trailing_Non_Grammar and Node.Non_Grammar.Length > 0 then
-            if Node.Byte_Region = Null_Buffer_Region then
+            if Include_EOI and Node = Tree.EOI then
+               --  EOI.Byte_Region.last = last char in source (see comment in lexer C
+               --  code in wisitoken-bnf-output_ada_common.adb).
+               --  EOI.Byte_Region.first = 1+ last. Emacs (point-max) =
+               --  EOI.Byte_Region.first. When requesting indent at last line in
+               --  buffer, action_region.last = (point-max).
+               return (First | Last => Node.Byte_Region.First);
+
+            elsif Node.Byte_Region = Null_Buffer_Region then
                return
                  (First => Node.Non_Grammar (Node.Non_Grammar.First_Index).Byte_Region.First,
                   Last  => Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last);
@@ -423,8 +432,8 @@ package body WisiToken.Syntax_Trees is
                return Null_Buffer_Region;
             else
                return
-                 (First => Byte_Region (Tree, First, Trailing_Non_Grammar).First,
-                  Last  => Byte_Region (Tree, Last, Trailing_Non_Grammar).Last);
+                 (First => Byte_Region (Tree, First, Trailing_Non_Grammar, Include_EOI).First,
+                  Last  => Byte_Region (Tree, Last, Trailing_Non_Grammar, Include_EOI).Last);
             end if;
          end;
       end case;
@@ -2227,6 +2236,7 @@ package body WisiToken.Syntax_Trees is
       Stream       : in Parse_Stream;
       Stack        : in Boolean                   := True;
       Input        : in Boolean                   := True;
+      Shared       : in Boolean                   := False;
       Children     : in Boolean                   := False;
       Non_Grammar  : in Boolean                   := False;
       Augmented    : in Boolean                   := False;
@@ -2242,14 +2252,28 @@ package body WisiToken.Syntax_Trees is
          then Stream.Elements.First
          else Next (Stream.Stack_Top));
       Need_Comma : Boolean          := False;
+      Current_Stream_Label : Stream_Label := Stream.Label;
    begin
       loop
-         exit when not Has_Element (Element);
+         if not Has_Element (Element) then
+            if Shared and Current_Stream_Label /= Shared_Stream_Label then
+               if not Has_Element (Stream.Shared_Link) then
+                  exit;
+               else
+                  Current_Stream_Label := Shared_Stream_Label;
+                  Element              := Stream.Shared_Link;
+               end if;
+            else
+               exit;
+            end if;
+         end if;
+
          if Need_Comma then
             Result := @ & (if Children then "," & ASCII.LF else ", ");
          else
             Need_Comma := True;
          end if;
+
          Result := @ &
            (if Stream.Stack_Top = Element then "^(" else "(") &
            Trimmed_Image (Constant_Ref (Element).State) & ", " &
@@ -2339,6 +2363,7 @@ package body WisiToken.Syntax_Trees is
       Stream       : in Stream_ID;
       Stack        : in Boolean                   := True;
       Input        : in Boolean                   := True;
+      Shared       : in Boolean                   := False;
       Children     : in Boolean                   := False;
       Non_Grammar  : in Boolean                   := False;
       Augmented    : in Boolean                   := False;
@@ -2347,7 +2372,8 @@ package body WisiToken.Syntax_Trees is
      return String
    is begin
       return Image
-        (Tree, Tree.Streams (Stream.Cur), Stack, Input, Children, Non_Grammar, Augmented, Line_Numbers, Image_Action);
+        (Tree, Tree.Streams (Stream.Cur), Stack, Input, Shared,
+         Children, Non_Grammar, Augmented, Line_Numbers, Image_Action);
    end Image;
 
    function Image
@@ -4353,9 +4379,8 @@ package body WisiToken.Syntax_Trees is
 
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Ref.Stream.Cur);
 
-      Cur           : Cursor            := Ref.Element.Cur;
-      Insert_Before : constant Cursor   := Next (Cur);
-      To_Delete     : Cursor            := Cur;
+      Insert_Before : constant Cursor   := Next (Ref.Element.Cur);
+      To_Delete     : Cursor            := Ref.Element.Cur;
       Node          : Valid_Node_Access := Parse_Stream.Elements (Ref.Element.Cur).Node;
       Next_Node     : Node_Access;
    begin
@@ -4367,7 +4392,7 @@ package body WisiToken.Syntax_Trees is
                Next_Node := Node.Children (I);
             end if;
 
-            Cur := Parse_Stream.Elements.Insert
+            Parse_Stream.Elements.Insert
               (Element  =>
                  (Node  => Node.Children (I),
                   State => Unknown_State,
@@ -4655,6 +4680,14 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Set_Root;
 
+   procedure Set_Shared_Link
+     (Tree        : in out Syntax_Trees.Tree;
+      Stream      : in     Stream_ID;
+      Shared_Link : in     Stream_Node_Ref)
+   is begin
+      Tree.Streams (Stream.Cur).Shared_Link := Shared_Link.Element.Cur;
+   end Set_Shared_Link;
+
    procedure Shift
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID;
@@ -4666,7 +4699,7 @@ package body WisiToken.Syntax_Trees is
    begin
       if Element.Label = Shared_Stream_Label then
          Push (Parse_Stream, Stream, Element.Node, State);
-         Parse_Stream.Shared_Link := Token.Cur;
+         Parse_Stream.Shared_Link := Stream_Element_Lists.Next (Token.Cur);
       else
          Parse_Stream.Stack_Top := Token.Cur;
          Parse_Stream.Elements (Parse_Stream.Stack_Top).State := State;
