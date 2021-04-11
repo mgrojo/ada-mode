@@ -384,7 +384,8 @@ package body Run_Wisi_Common_Parse is
                end;
             end if;
 
-            Parser.Tree.Lexer.Reset_With_String_Access (Parse_Context.Text_Buffer, +Parser.Tree.Lexer.File_Name);
+            Parser.Tree.Lexer.Reset_With_String_Access
+              (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, +Parser.Tree.Lexer.File_Name);
 
             Parser.Parse (Log_File, KMN_List);
 
@@ -524,7 +525,8 @@ package body Run_Wisi_Common_Parse is
                   Parse_Context.Text_Buffer_Char_Last := Parse_Context.Text_Buffer'Last;
                   --  wrong if non-ascii, used in Edit_Source to check KMN. FIXME: get from lexer when it counts lines.
 
-                  Parser.Tree.Lexer.Reset_With_String_Access (Parse_Context.Text_Buffer, Cl_Params.Source_File_Name);
+                  Parser.Tree.Lexer.Reset_With_String_Access
+                    (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, Cl_Params.Source_File_Name);
                   Free (Region);
                   Close (File);
                end;
@@ -701,7 +703,8 @@ package body Run_Wisi_Common_Parse is
 
                   Parse_Data.Parse_Language_Params (-Cl_Params.Language_Params);
 
-                  Parser.Tree.Lexer.Reset_With_String_Access (Parse_Context.Text_Buffer, Cl_Params.Source_File_Name);
+                  Parser.Tree.Lexer.Reset_With_String_Access
+                    (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, Cl_Params.Source_File_Name);
 
                   Parser.Parse (Log_File, KMN_List);
 

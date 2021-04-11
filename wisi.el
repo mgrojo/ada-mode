@@ -1369,7 +1369,8 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 
     (let ((parse-required nil)
 	  (end-mark (copy-marker end))
-	  (prev-indent-failed wisi-indent-failed))
+	  (prev-indent-failed wisi-indent-failed)
+	  (done nil))
 
       (when (< 0 wisi-debug)
 	(message "wisi-indent-region %d %d"
@@ -1384,13 +1385,13 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	(setq begin (line-beginning-position))
 
 	(when (bobp) (forward-line))
-	(while (and (not parse-required)
-		    (or (and (= begin end) (= (point) end))
-			(< (point) end))
-		    (not (eobp)))
+	(while (not done)
 	  (unless (get-text-property (1- (point)) 'wisi-indent)
 	    (setq parse-required t))
-	  (forward-line))
+	  (setq done (or parse-required (eobp)))
+	  (unless done (forward-line))
+	  (setq done (or done (>= (point) end)))
+	  )
 	)
 
       ;; A parse either succeeds and sets the indent cache on all
@@ -1459,7 +1460,7 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	    ;; ambiguous, this one is not.
 	    (goto-char end-mark)
 	    (when (< 0 wisi-debug)
-	      (message "wisi-indent-region post-parse-fail-hook"))
+	      (message "wisi-indent-region wisi-post-indent-fail-hook"))
 	    (run-hooks 'wisi-post-indent-fail-hook))
 	  ))
       )))
@@ -1472,6 +1473,11 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
     (when (>= (point) savep)
       (setq to-indent t))
 
+    ;; (1+ line-end-pos) is needed to compute indent for a line. It
+    ;; can exceed (point-max); the parser must be able to handle that.
+    ;;
+    ;; IMPROVEME: change parser 'indent' action to take lines, not
+    ;; buffer positions.
     (wisi-indent-region (line-beginning-position (1+ (- wisi-indent-context-lines))) (1+ (line-end-position)) t)
 
     (goto-char savep)

@@ -60,8 +60,8 @@ package body Test_Edit_Source is
       Expected_KMN              : in WisiToken.Parse.KMN_Lists.List)
    is
       use AUnit.Checks;
+      use WisiToken;
       use WisiToken.Parse.AUnit.KMN_Lists_AUnit;
-
 
       Computed_Source  : Ada.Strings.Unbounded.String_Access := new String'(Initial_Source);
 
@@ -69,6 +69,13 @@ package body Test_Edit_Source is
       Computed_Source_Char_Last : Integer := Initial_Source_Char_Last;
       Computed_KMN              : WisiToken.Parse.KMN_Lists.List;
    begin
+      if Trace_Tests > Detail then
+         Ada.Text_IO.Put_Line ("Expected_KMN:");
+         for KMN of Expected_KMN loop
+            Ada.Text_IO.Put_Line (Parse.Image (KMN));
+         end loop;
+      end if;
+
       Wisi.Edit_Source
         (Trace, Computed_Source, Computed_Source_Byte_Last, Computed_Source_Char_Last, Changes, Computed_KMN);
 
@@ -177,13 +184,6 @@ package body Test_Edit_Source is
              Deleted_Bytes | Deleted_Chars   => 0,
              Inserted_Bytes | Inserted_Chars => 0));
 
-         if Trace_Tests > Detail then
-            Ada.Text_IO.Put_Line ("Expected_KMN_List:");
-            for KMN of Expected_KMN_List loop
-               Ada.Text_IO.Put_Line (Parse.Image (KMN));
-            end loop;
-         end if;
-
          --  (indent-rigidly begin end -1) inserts one less space, then deletes
          --  all leading space. We do that in the opposite order here, to test
          --  another case in Edit_Source.
@@ -261,13 +261,6 @@ package body Test_Edit_Source is
            ((Stable_Bytes | Stable_Chars     => Buffer_Pos (Initial_Source'Last) + 1 - Line_4_Start,
              Deleted_Bytes | Deleted_Chars   => 0,
              Inserted_Bytes | Inserted_Chars => 0));
-
-         if Trace_Tests > Detail then
-            Ada.Text_IO.Put_Line ("Expected_KMN_List:");
-            for KMN of Expected_KMN_List loop
-               Ada.Text_IO.Put_Line (Parse.Image (KMN));
-            end loop;
-         end if;
 
          --  Delete line 3
          Changes.Append
@@ -353,13 +346,6 @@ package body Test_Edit_Source is
            ((Stable_Bytes | Stable_Chars     => Buffer_Pos (Initial_Source'Last) + 1 - Line_4_Start,
              Deleted_Bytes | Deleted_Chars   => 0,
              Inserted_Bytes | Inserted_Chars => 0));
-
-         if Trace_Tests > Detail then
-            Ada.Text_IO.Put_Line ("Expected_KMN_List:");
-            for KMN of Expected_KMN_List loop
-               Ada.Text_IO.Put_Line (Parse.Image (KMN));
-            end loop;
-         end if;
 
          --  Delete line 3
          Changes.Append
@@ -466,12 +452,12 @@ package body Test_Edit_Source is
          --  stable_bytes = last_stable_byte - first_stable_byte + 1
          Expected_KMN_List.Append
            ((Stable_Bytes | Stable_Chars     => (Line_2_Start - 1) - 1 + 1,
-             Inserted_Bytes | Inserted_Chars => 0,
-             Deleted_Bytes | Deleted_Chars   => 1));
+             Inserted_Bytes | Inserted_Chars => 2,
+             Deleted_Bytes | Deleted_Chars   => 3));
 
          --  Delete ';', insert Insert, deindent new line 3
          Expected_KMN_List.Append
-           ((Stable_Bytes | Stable_Chars     => (Line_3_Start - 3) - (Line_2_Start + 1) + 1,
+           ((Stable_Bytes | Stable_Chars     => (Line_3_Start - 3) - (Line_2_Start + 3) + 1,
              Inserted_Bytes | Inserted_Chars => Insert'Length - 1,
              Deleted_Bytes | Deleted_Chars   => 1));
 
@@ -480,13 +466,6 @@ package body Test_Edit_Source is
            ((Stable_Bytes | Stable_Chars     => Buffer_Pos (Initial_Source'Last) - (Line_3_Start - 1) + 1,
              Inserted_Bytes | Inserted_Chars => 0,
              Deleted_Bytes | Deleted_Chars   => 0));
-
-         if Trace_Tests > Detail then
-            Ada.Text_IO.Put_Line ("Expected_KMN_List:");
-            for KMN of Expected_KMN_List loop
-               Ada.Text_IO.Put_Line (Parse.Image (KMN));
-            end loop;
-         end if;
 
          --  Delete ';'
          Changes.Append
@@ -566,6 +545,10 @@ package body Test_Edit_Source is
 
       Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
    begin
+      Expected_KMN_List.Append ((43, 43, 2, 2, 3, 3));
+      Expected_KMN_List.Append ((24, 24, 2, 2, 3, 3));
+      Expected_KMN_List.Append ((79, 79, 0, 0, 0, 0));
+
       declare
          use Ada.Strings.Fixed;
          Line_2_Start : constant Base_Buffer_Pos := Base_Buffer_Pos
@@ -605,85 +588,6 @@ package body Test_Edit_Source is
       Test
         ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
    end Preceding_Comments;
-
-   procedure Undo_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      pragma Unreferenced (T);
-      use Wisi;
-      use WisiToken;
-
-      --  From test/ada_mode-interactive_03.adb
-
-      Initial_Source : constant String :=
-        "-- Used to get ""error during resume"" with incremental parse." & ASCII.LF &
-        "--" & ASCII.LF &
-        "-- This is extracted from ada_mode-interactive_2.adb, then expanded." & ASCII.LF &
-        "procedure Ada_Mode.Interactive_03" & ASCII.LF &
-        "is" & ASCII.LF &
-        ASCII.LF &
-        "   --EMACSCMD:(progn (end-of-line 7)(delete-char -2)(newline-and-indent))" & ASCII.LF &
-        "   --EMACSCMD:(progn (forward-line 5)(execute-kbd-macro ""is begin\nnull;\Nend" &
-        " Function_Access_1;\n"")(current-indentation))" & ASCII.LF &
-        "   --EMACSRESULT:3" & ASCII.LF &
-        "   function Function_Access_1" & ASCII.LF &
-        "     (A_Param : in Float)" & ASCII.LF &
-        "     return Standard.Float" & ASCII.LF &
-        "is begin" & ASCII.LF &
-        "      null;" & ASCII.LF &
-        "      end Function_Access_1;" & ASCII.LF &
-        "   " & ASCII.LF &
-        "   --EMACSCMD:(let ((i 1)) (while (< i 9) (setq i (1+ i)) (undo)(wisi-indent-statement)))" & ASCII.LF &
-        ASCII.LF &
-        "begin" & ASCII.LF &
-        "   null;" & ASCII.LF &
-        "end Ada_Mode.Interactive_03;" & ASCII.LF;
-
-
-      Expected_Source : constant String :=
-        "-- Used to get ""error during resume"" with incremental parse." & ASCII.LF &
-        "--" & ASCII.LF &
-        "-- This is extracted from ada_mode-interactive_2.adb, then expanded." & ASCII.LF &
-        "procedure Ada_Mode.Interactive_03" & ASCII.LF &
-        "is" & ASCII.LF &
-        ASCII.LF &
-        "   --EMACSCMD:(progn (end-of-line 7)(delete-char -2)(newline-and-indent))" & ASCII.LF &
-        "   --EMACSCMD:(progn (forward-line 5)(execute-kbd-macro ""is begin\nnull;\Nend" &
-        " Function_Access_1;\n"")(current-indentation))" & ASCII.LF &
-        "   --EMACSRESULT:3" & ASCII.LF &
-        "   function Function_Access_1" & ASCII.LF &
-        "     (A_Param : in Float)" & ASCII.LF &
-        "     return Standard.Float" & ASCII.LF &
-        "is begin" & ASCII.LF &
-        "      null;" & ASCII.LF &
-        "      end Function_Access_" & ASCII.LF &
-        "   --EMACSCMD:(let ((i 1)) (while (< i 9) (setq i (1+ i)) (undo)(wisi-indent-statement)))" & ASCII.LF &
-        ASCII.LF &
-        "begin" & ASCII.LF &
-        "   null;" & ASCII.LF &
-        "end Ada_Mode.Interactive_03;" & ASCII.LF;
-
-      Changes : Change_Lists.List;
-
-      Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
-   begin
-      Changes.Append ((518, 518, 518, 518, +"", 6, 6));
-      Changes.Append ((518, 518, 519, 519, +"1", 0, 0));
-      Changes.Append ((511, 511, 511, 511, +"", 1, 1));
-      Changes.Append ((511, 511, 512, 512, +"a", 0, 0));
-      Changes.Append ((502, 502, 502, 502, +"", 1, 1));
-      Changes.Append ((502, 502, 503, 503, +"f", 0, 0));
-      Changes.Append ((502, 502, 502, 502, +"", 17, 17));
-      Changes.Append ((502, 502, 519, 519, +"Function_Access_1", 0, 0));
-      Changes.Append ((518, 518, 518, 518, +"", 1, 1));
-
-      Expected_KMN_List.Append ((493, 493, 1, 1, 1, 1));
-      Expected_KMN_List.Append ((7, 7, 16, 16, 17, 17));
-      Expected_KMN_List.Append ((6, 6, 1, 1, 6, 6));
-      Expected_KMN_List.Append ((136, 136, 0, 0, 0, 0));
-
-      Test
-        ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
-   end Undo_01;
 
    procedure Edit_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -731,7 +635,8 @@ package body Test_Edit_Source is
 
       --  New change inserted length does not affect Edit_Source logic.
       --
-      --  New change delete ends at 1st KMN inserted; no need to merge them.
+      --  New change delete ends at 1st KMN inserted; merge them so Edit_Tree
+      --  only calls lexer for one change.
 
       Initial_Source : constant String :=
         "Ask not what you can do for your country.";
@@ -753,8 +658,7 @@ package body Test_Edit_Source is
       --  new change "you " -> "y'all_"
       Changes.Append ((14, 14, 20, 20, +"y'all_", 4, 4));
 
-      Expected_KMN_List.Append ((13, 13, 6, 6, 4, 4));
-      Expected_KMN_List.Append ((0, 0, 4, 4, 3, 3));
+      Expected_KMN_List.Append ((13, 13, 10, 10, 7, 7));
       Expected_KMN_List.Append ((8, 8, 2, 2, 4, 4));
       Expected_KMN_List.Append ((9, 9, 0, 0, 0, 0));
 
@@ -1051,6 +955,38 @@ package body Test_Edit_Source is
         ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
    end Edit_10;
 
+   procedure Merge_Single_Letters (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Wisi;
+      use WisiToken;
+
+      --  Typing one character at a time produces one KMN.
+
+      Initial_Source : constant String :=
+        "Ask not";
+      --     |5
+
+      Expected_Source : constant String :=
+        "Ask not what";
+
+      Changes : Change_Lists.List;
+
+      Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
+   begin
+      --  Append " what" one character at a time
+      Changes.Append ((8, 8, 9, 9, +" ", 0, 0));
+      Changes.Append ((9, 9, 10, 10, +"w", 0, 0));
+      Changes.Append ((10, 10, 11, 11, +"h", 0, 0));
+      Changes.Append ((11, 11, 12, 12, +"a", 0, 0));
+      Changes.Append ((12, 12, 13, 13, +"t", 0, 0));
+
+      Expected_KMN_List.Append ((7, 7, 5, 5, 0, 0));
+
+      Test
+        ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
+   end Merge_Single_Letters;
+
    ----------
    --  Public subprograms
 
@@ -1064,7 +1000,6 @@ package body Test_Edit_Source is
       Register_Routine (T, Complex_Noop_Deindent'Access, "Complex_Noop_Deindent");
       Register_Routine (T, Insert_Deindent'Access, "Insert_Deindent");
       Register_Routine (T, Preceding_Comments'Access, "Preceding_Comments");
-      Register_Routine (T, Undo_01'Access, "Undo_01");
       Register_Routine (T, Edit_01'Access, "Edit_01");
       Register_Routine (T, Edit_02'Access, "Edit_02");
       Register_Routine (T, Edit_03'Access, "Edit_03");
@@ -1075,9 +1010,7 @@ package body Test_Edit_Source is
       Register_Routine (T, Edit_08'Access, "Edit_08");
       Register_Routine (T, Edit_09'Access, "Edit_09");
       Register_Routine (T, Edit_10'Access, "Edit_10");
-      --  Register_Routine (T, Edit_11'Access, "Edit_11");
-      --  Register_Routine (T, Edit_12'Access, "Edit_12");
-      --  Register_Routine (T, Edit_13'Access, "Edit_13");
+      Register_Routine (T, Merge_Single_Letters'Access, "Merge_Single_Letters");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

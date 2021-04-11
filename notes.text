@@ -55,29 +55,41 @@ verbosity debug=1 action=3
 post_parse indent
 
 test/ada_mode-interactive_03.adb
-    lexer error
+    error in resume
+    found solution is just wrong; should not have passed check!
 
-;; KMN: (519 . 510)(510 . 510)(511 . 511) stable wrong!?
-    error in change_to_kmn
-        improve test_edit_source
-            systematic tests done
-            but not really; other tests failing; add systematic to catch them
+    delete virtual screws up node_index
+        only set that in mckenzie_init, and on increase resume goal
 
-    nil indent for line 15
-        never asked for indent!
-            error in change hooks
-
-    when re-executing test by hand:
-;; exception: SYSTEM.ASSERTIONS.ASSERT_FAILURE: wisitoken-parse.adb:797
-    Edit_Text at end of KMN but not at EOI
-    try to add test commands to reproduce
+    after insert "is begin null;", language_fixes should insert "end;" before "begin" for ada_mode.interactive_03
 
 
-    add insert text at end of buffer
+save_text_auto debug_edited
+verbosity mckenzie=1 parse=2 incremental=3 lexer=1
+
+    indent 'is begin' wrong
+    indent 'end Function_Access_1;' wrong
+        need wisi-indent-statement?
+
+
+
+
+    syntax error after insert 'end Function_Access_1;' - should not be.
+        it's on a virtual semicolon that is no longer valid?
+            not deleted by edit because it's far away at end of file
+        don't report that as an error; just ignore it.
+            or delete in Edit_Tree Breakdown; add Delete_virtual
+
+indent (point)(point) should work for indent-line
+
+Wisi-reset-parser request full parse
 
 test/ada_mode-interactive_2.adb
     in Function_Access_1, 'is begin' indent wrong
         testing in interactive_03.adb
+
+lexer_error that is not unbalanced quote is probably an indication of loss of file edit sync
+    due to bug in code; don't work around!
 
 change set_parents to be incremental?
     descend tree; if find a parent link, no need to descend that branch

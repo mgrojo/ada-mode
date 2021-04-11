@@ -320,7 +320,7 @@ Does not wait for command to complete."
 		      (position-bytes begin)
 		      ;; indent-region passes markers
 		      (if (markerp begin) (marker-position begin) begin)
-		      (position-bytes end)
+		      (position-bytes (min (point-max) end))
 		      (if (markerp end) (marker-position end) end)
 		      (wisi-parse-format-language-options parser)
 		      ))
@@ -436,7 +436,7 @@ one or more Query messages."
 (defun wisi-process-parse--Lexer_Error (parser sexp)
   ;; sexp is [Lexer_Error char-position <message> <repair-char>]
   ;; see ‘wisi-process-parse--execute’
-  (let ((pos (aref sexp 1))
+  (let ((pos (min (point-max) (aref sexp 1)))
 	err)
 
     (goto-char pos);; for current-column
@@ -1097,7 +1097,7 @@ one or more Query messages."
 	      (args (match-string 2)))
 	  (set-buffer cmd-buffer)
 	  (goto-char (point-max))
-	  (insert "post_parse "
+	  (insert "--  post_parse "
 		  (cl-ecase action
 		    (0 "navigate ")
 		    (1 "face ")

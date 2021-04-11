@@ -443,7 +443,8 @@ package body Emacs_Wisi_Common_Parse is
                            Parse_Data.Parse_Language_Params (-Params.Language_Params);
 
                            Parser.Tree.Lexer.Reset_With_String_Access
-                             (Parse_Context.Text_Buffer, Params.Source_File_Name);
+                             (Parse_Context.Text_Buffer (1 .. Parse_Context.Text_Buffer_Byte_Last),
+                              Params.Source_File_Name);
 
                            if Parser.Tree.Editable then
                               Parser.Parse (Recover_Log_File, KMN_List);
