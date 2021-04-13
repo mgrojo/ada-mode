@@ -399,7 +399,7 @@ package Wisi is
       Action     : in     Positive;
       Edit_Begin : in     WisiToken.Buffer_Pos) is null;
 
-   type Query_Label is (Bounds, Nonterm, Print);
+   type Query_Label is (Bounds, Containing_Statement, Nonterm, Virtuals, Print);
    --  Must match wisi-parse-common.el wisi-parse-tree-queries
 
    procedure Query_Tree
@@ -472,7 +472,7 @@ private
    type Navigate_Cache_Type is record
       Pos : WisiToken.Buffer_Pos;
       --  Implicit in [1] wisi-cache. This is a character position in the
-      --  source text; it must be on a Shared_Terminal (not a virtual terminal).
+      --  source text; it must be on a Source_Terminal (not a virtual terminal).
 
       Statement_ID   : WisiToken.Token_ID;   -- [1] wisi-cache-nonterm
       ID             : WisiToken.Token_ID;   -- [1] wisi-cache-token
@@ -552,6 +552,9 @@ private
       Last_Comment_ID  : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
       Left_Paren_ID    : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
       Right_Paren_ID   : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
+
+      Statement_IDs : WisiToken.Token_ID_Arrays.Vector;
+      --  Nonterms returned by containing_statement query.
 
       Embedded_Quote_Escape_Doubled : Boolean := False;
 

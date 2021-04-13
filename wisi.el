@@ -1248,21 +1248,27 @@ the comment on the previous line."
 (defun wisi-indent-statement ()
   "Indent region given by `wisi-goto-start', `wisi-cache-end'."
   (interactive)
-  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (if wisi-incremental-parse-enable
+      (let ((containing (wisi-parse-tree-query wisi--parser 'containing-statement (point))))
+	(when containing
+	  (indent-region (car (nth 1 containing)) (cdr (nth 1 containing)))))
 
-  (save-excursion
-    (let ((cache (or (wisi-get-cache (point))
-		     (wisi-backward-cache))))
-      (when cache
-	;; can be nil if in header comment
-	(let ((start (progn (wisi-goto-start cache) (point)))
-	      (end (if (wisi-cache-end cache)
+    ;; else partial parse.
+    (wisi-validate-cache (point-min) (point-max) t 'navigate)
+
+    (save-excursion
+      (let ((cache (or (wisi-get-cache (point))
+		       (wisi-backward-cache))))
+	(when cache
+	  ;; can be nil if in header comment
+	  (let ((start (progn (wisi-goto-start cache) (point)))
+		(end (if (wisi-cache-end cache)
 			 ;; nil when cache is statement-end
 			 (marker-position (wisi-cache-end cache))
 		       (point))))
-	  (indent-region start end)
-	  ))
-      )))
+	    (indent-region start end)
+	    ))
+	))))
 
 (defun wisi-indent-containing-statement ()
   "Indent region given by `wisi-goto-containing-statement-start', `wisi-cache-end'."

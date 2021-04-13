@@ -461,6 +461,7 @@ package body Wisi is
       Begin_Indent : Integer renames Data.Begin_Indent;
 
       SOI_Lines : constant Line_Region := Tree.Line_Region (Tree.SOI, Trailing_Non_Grammar => True);
+      EOI_Lines : constant Line_Region := Tree.Line_Region (Tree.EOI, Trailing_Non_Grammar => True);
 
       function Anchor_Indent (Line : in Line_Number_Type) return Integer
       is
@@ -491,7 +492,7 @@ package body Wisi is
          begin
             case Indent.Label is
             when Not_Set =>
-               if Contains (SOI_Lines, Line) then
+               if Contains (SOI_Lines, Line) or Contains (EOI_Lines, Line) then
                   Data.Indents.Replace_Element (Line, (Int, Invalid_Line_Number, Data.Begin_Indent));
                end if;
 
@@ -1150,6 +1151,7 @@ package body Wisi is
       case Post_Parse_Action is
       when Navigate =>
          Data.Navigate_Caches.Clear;
+         Data.End_Positions.Clear;
          Data.Name_Caches.Clear;
 
       when Face =>
@@ -1216,9 +1218,8 @@ package body Wisi is
       --  the parse tree. Insert_Token, Delete_Token have been called;
 
       if Trace_Action > Outline then
-         Data.Trace.Put_Line ("Tree.Root.line_region:" & Image (Tree.Line_Region (Tree.Root)));
-         Data.Trace.Put_Line ("Tree.EOI.line:" & Tree.Line_Region (Tree.EOI).First'Image);
-         Data.Trace.Put_Line ("Action_Region_Bytes: " & Image (Data.Action_Region_Bytes));
+         Data.Trace.Put_Line ("action_region_bytes: " & Image (Data.Action_Region_Bytes));
+         Data.Trace.Put_Line ("action_region_lines: " & Image (Data.Action_Region_Lines));
 
          if Trace_Action > Extra then
             Data.Trace.Put_Line
@@ -1350,7 +1351,7 @@ package body Wisi is
 
                   Prev_Non_Grammar.Set_First_Last (Prev_Non_Grammar.First_Index, Blank_Line_Index - 1);
 
-                  if Trace_Action > WisiToken.Detail then
+                  if Trace_Action > WisiToken.Outline then
                      Data.Trace.Put_Line
                        ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
                           " on blank line" & Blank_Line'Image);
@@ -1362,7 +1363,7 @@ package body Wisi is
 
                Prev_Non_Grammar := WisiToken.Lexer.Token_Arrays.Empty_Vector;
 
-               if Trace_Action > WisiToken.Detail then
+               if Trace_Action > WisiToken.Outline then
                   Data.Trace.Put_Line
                     ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
                        " after " & Tree.Image (Prev_Terminal, Node_Numbers => True));
@@ -1374,7 +1375,7 @@ package body Wisi is
          end;
       end if;
 
-      if Insert_Location = Before_Next and Trace_Action > WisiToken.Detail then
+      if Insert_Location = Before_Next and Trace_Action > WisiToken.Outline then
          Data.Trace.Put_Line
            ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
               " before " & Tree.Image (Inserted_Before, Node_Numbers => True));
@@ -1523,7 +1524,7 @@ package body Wisi is
             end;
 
          else
-            --  Token.Byte_Region is null
+            --  Token.Char_Region is empty or outside action_region
             if First_Item and Pair.Class = Statement_Start then
                Override_Start_Set := True;
             end if;
@@ -2199,6 +2200,34 @@ package body Wisi is
                  Result_Lines.Last'Image & "]");
          end;
 
+      when Containing_Statement =>
+         declare
+            Node : constant Node_Access := Tree.Find_Char_Pos
+              (Char_Point, After => True, Trailing_Non_Grammar => True);
+         begin
+            if Node = Invalid_Node_Access then
+               Ada.Text_IO.Put_Line ("[" & Query_Tree_Code & Query_Label'Pos (Label)'Image & " nil]");
+            else
+               declare
+                  Statement : constant Node_Access := Tree.Find_Ancestor (Node, To_Array (Data.Statement_IDs));
+                  Char_Region : constant Buffer_Region :=
+                    (if Statement = Invalid_Node_Access
+                     then Null_Buffer_Region
+                     else Tree.Char_Region (Statement, Trailing_Non_Grammar => False));
+               begin
+                  if Statement = Invalid_Node_Access then
+                     Ada.Text_IO.Put_Line ("[" & Query_Tree_Code & Query_Label'Pos (Label)'Image & " nil]");
+                  else
+                     Ada.Text_IO.Put_Line
+                       ("[" & Query_Tree_Code &
+                          Query_Label'Pos (Label)'Image &
+                          Tree.ID (Statement)'Image & " " &
+                          Char_Region.First'Image & " " &
+                          Char_Region.Last'Image & "]");
+                  end if;
+               end;
+            end if;
+         end;
       when Nonterm =>
          declare
             Terminal : constant Node_Access := Tree.Find_Char_Pos
@@ -2212,6 +2241,20 @@ package body Wisi is
                     Query_Label'Pos (Label)'Image &
                     Tree.ID (Tree.Parent (Terminal))'Image & "]");
             end if;
+         end;
+
+      when Virtuals =>
+         declare
+            Result_Nodes : constant WisiToken.Syntax_Trees.Valid_Node_Access_Array := Tree.Get_Virtuals (Tree.Root);
+            Result_String : Ada.Strings.Unbounded.Unbounded_String;
+         begin
+            for N of Result_Nodes loop
+               Ada.Strings.Unbounded.Append
+                 (Result_String, "[" & Tree.ID (N)'Image & Tree.Char_Region (N).First'Image & "]");
+            end loop;
+
+            Ada.Text_IO.Put_Line
+              ("[" & Query_Tree_Code & Query_Label'Pos (Label)'Image & "[" & (-Result_String) & "]]");
          end;
 
       when Print =>
@@ -2241,18 +2284,9 @@ package body Wisi is
       use all type WisiToken.Syntax_Trees.Node_Access;
 
       Tree : WisiToken.Syntax_Trees.Tree renames Parser.Tree;
-
-      Last_Char_Pos : constant Buffer_Pos       := Tree.Char_Region (Tree.EOI).Last;
-      Last_Line     : constant Line_Number_Type := Tree.Line_Region (Tree.EOI).First;
    begin
-      if Trace_Action > Outline then
-         Parser.Trace.Put_Line
-           ("last_char_pos:" & Buffer_Pos'Image (Last_Char_Pos + 1) &
-              " last_line:" & Line_Number_Type'Image (Last_Line));
-      end if;
-
       --  +1 to match Emacs region
-      Ada.Text_IO.Put_Line ('[' & End_Code & Buffer_Pos'Image (Last_Char_Pos + 1) & ']');
+      Ada.Text_IO.Put_Line ('[' & End_Code & Buffer_Pos'Image (Tree.Char_Region (Tree.EOI).Last + 1) & ']');
 
       case Data.Post_Parse_Action is
       when Navigate =>
@@ -2276,42 +2310,9 @@ package body Wisi is
 
       when Indent =>
          Resolve_Anchors (Data, Tree);
-
-         declare
-            function Find_Line (Char_Pos : in Buffer_Pos) return Line_Number_Type
-            is
-               Node : constant Syntax_Trees.Node_Access := Tree.Find_Char_Pos
-                 (Char_Pos, After => True, Trailing_Non_Grammar => True);
-            begin
-               if Node = Syntax_Trees.Invalid_Node_Access then
-                  --  Char_Pos is after text spanned by Tree
-                  return Data.Indents.Last_Index;
-
-               elsif Char_Pos <= Tree.Char_Region (Node, Trailing_Non_Grammar => False).Last then
-                  return Tree.Line_Region (Node).First;
-
-               else
-                  for Token of Tree.Non_Grammar_Const (Node) loop
-                     if Char_Pos <= Token.Char_Region.Last then
-                        return Token.Line_Region.First;
-                     end if;
-                  end loop;
-                  raise SAL.Programmer_Error; -- token regions mismatch.
-               end if;
-            end Find_Line;
-
-            Action_Region_Lines : constant WisiToken.Line_Region :=
-              (First => Find_Line (Data.Action_Region_Chars.First),
-               Last  => Find_Line (Data.Action_Region_Chars.Last));
-         begin
-            if Trace_Action > Outline then
-               Data.Trace.Put_Line ("action_region_lines: " & Image (Action_Region_Lines));
-            end if;
-
-            for Line in Action_Region_Lines.First .. Action_Region_Lines.Last loop
-               Put (Line, Data.Indents (Line));
-            end loop;
-         end;
+         for Line in Data.Action_Region_Lines.First .. Data.Action_Region_Lines.Last loop
+            Put (Line, Data.Indents (Line));
+         end loop;
       end case;
    exception
    when E : others =>

@@ -173,6 +173,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
     (setq test-refactor-markers nil)))
 
 (defun wisi-test-save-log ()
+  (interactive)
   (when (and (stringp save-parser-log)
 	     (buffer-live-p (wisi-parser-transaction-log-buffer wisi--parser)))
     (with-current-buffer (wisi-parser-transaction-log-buffer wisi--parser)

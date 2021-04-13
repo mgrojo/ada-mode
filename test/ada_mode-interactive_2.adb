@@ -29,7 +29,7 @@ is
    -- new code, but error recover just deletes ';', so it is indented as
    -- if hanging.
    --
-   -- EMACSCMD:(progn (end-of-line 2)(forward-char -2)(insert ";")(wisi-indent-newline-indent) (current-column))
+   --EMACSCMD:(progn (end-of-line 2)(forward-char -2)(insert ";")(wisi-indent-newline-indent) (current-column))
    procedure Local_Proc_1 (Param_1 : in Float);
    --EMACSRESULT:26
 
@@ -40,7 +40,7 @@ is
    -- updated. Start with invalid syntax (missing final ';'), automatic
    -- indent after syntax fixed should indent entire statement correctly.
    -- Note that this requires the function name after 'end', since
-   -- ada-end-name-optional is nil by default.
+   -- ada-end-name-optional is set nil below.
    --
    -- Indentation of 'null;' before 'end;' is inserted is somewhat
    -- random, due to error correction. Error correction finds multiple
@@ -55,7 +55,7 @@ is
    -- possible indentation for 'null;'.
 
    --EMACSCMD:(progn (end-of-line 7)(delete-char -2)(newline-and-indent))
-   --EMACSCMD:(progn (forward-line 5)(execute-kbd-macro "is begin\nnull;\nend Function_Access_1;\n")(current-indentation))
+   --EMACSCMD:(progn (end-of-line 6)(execute-kbd-macro "is begin\nnull;\nend Function_Access_1;\n")(current-indentation))
    --EMACSRESULT:3
    function Function_Access_1
      (A_Param : in Float)
@@ -150,3 +150,6 @@ begin
    --EMACSCMD:(progn (forward-line -8)(forward-word 1)(forward-char 1)(insert "(")(end-of-line 2)(insert "\n)")(indent-for-tab-command))
 
 end Ada_Mode.Interactive_2;
+-- Local Variables:
+-- ada-end-name-optional: nil
+-- End:

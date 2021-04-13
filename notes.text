@@ -48,39 +48,30 @@ run all tests with incremental mode enabled
 
     one ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
 
+    ada_mode-interactive_2.adb.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" debug-on-error t)"
+
 in debug.cmd:
 mckenzie_options task_count=1
-save_text debug_edited.adb
-verbosity debug=1 action=3
-post_parse indent
-
-test/ada_mode-interactive_03.adb
-    error in resume
-    found solution is just wrong; should not have passed check!
-
-    delete virtual screws up node_index
-        only set that in mckenzie_init, and on increase resume goal
-
-    after insert "is begin null;", language_fixes should insert "end;" before "begin" for ada_mode.interactive_03
-
-
 save_text_auto debug_edited
+verbosity debug=1 action=3
 verbosity mckenzie=1 parse=2 incremental=3 lexer=1
 
-    indent 'is begin' wrong
-    indent 'end Function_Access_1;' wrong
-        need wisi-indent-statement?
+still need wisi-process--parser-line-begin?
 
+edit_tree still has to scan entire tree for virtuals, to set positive
+    do we really need shared_stream virtual_terminal > 0? who uses Next_Shared_Terminal?
 
+test/ada_mode-interactive_2.adb
+    virtual 'null;' inserted on blank line,
+        but fix-error puts it on the next line
+        position in error message is wrong
+            because set before Insert_Token changed it?
 
-
-    syntax error after insert 'end Function_Access_1;' - should not be.
-        it's on a virtual semicolon that is no longer valid?
-            not deleted by edit because it's far away at end of file
-        don't report that as an error; just ignore it.
-            or delete in Edit_Tree Breakdown; add Delete_virtual
-
-indent (point)(point) should work for indent-line
+Parse_Verb checks last_terminal (current_token)
+    but Ensure_Sequential_Node_Index only sets Node_Index thru
+    Resume_Token_Goal; Last_Terminal may be after that.
+        change Ensure_Sequential_Node_Index to do all of last stream element?
+        or just last_terminal?
 
 Wisi-reset-parser request full parse
 
@@ -88,22 +79,18 @@ test/ada_mode-interactive_2.adb
     in Function_Access_1, 'is begin' indent wrong
         testing in interactive_03.adb
 
-lexer_error that is not unbalanced quote is probably an indication of loss of file edit sync
-    due to bug in code; don't work around!
-
 change set_parents to be incremental?
     descend tree; if find a parent link, no need to descend that branch
     insert_token also needs to set parents?
 
-in wisi-indent-statement
-    if interactive, don't parse navigate
-    query_tree nonterms point
-        return all nonterms containing char_pos, with char_range, smallest first
-        list to find 'statement'
-
 build/test.log
 
 benchmark
+
+indent (point)(point) should work for indent-line
+
+lexer_error that is not unbalanced quote is probably an indication of loss of file edit sync
+    due to bug in code; don't work around!
 
 Try_insert_quote computes line_region for every dequeue. Check time diff if disable - ada95.ads.
     test lexer_error.length > 0 and in parse_region?
@@ -1020,7 +1007,15 @@ https://debbugs.gnu.org/Developer.html
 https://debbugs.gnu.org/server-control.html
 https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
 
-ELISP="(setq-default wisi-parser-verbosity \"debug=1\" save-parser-log \"../debug-2.log\")"
+one ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
+
+ada_mode-interactive_2.adb.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" debug-on-error t)"
+
+in debug.cmd:
+mckenzie_options task_count=1
+save_text_auto debug_edited
+verbosity debug=1 action=3
+verbosity mckenzie=1 parse=2 incremental=3 lexer=1
 
 ada-mode option defaults:
 --lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 1"

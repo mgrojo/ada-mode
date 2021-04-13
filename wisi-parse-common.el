@@ -184,9 +184,10 @@ statement containing EDIT_BEGIN.")
 (defconst wisi-parse-tree-queries
   ;; Must match wisi.ads Query_Label
   '((bounds . 0)  ;; return [point-min point-max line-min line-max]
-    (nonterm . 1) ;; return first parent token id of terminal at point
-    (virtuals . 2) ;; return list of virtual terminals in tree
-    (print . 3) ;; output parse tree to trace log
+    (containing-statement . 1) ;; (statement-token_id (start_pos . end_pos))
+    (nonterm . 2) ;; return first parent token id of terminal at point
+    (virtuals . 3) ;; return list of virtual terminals in tree
+    (print . 4) ;; output parse tree to trace log
     )
   "Query values for `wisi-parse-tree-query'.")
 

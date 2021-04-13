@@ -321,7 +321,7 @@ Does not wait for command to complete."
 		      ;; indent-region passes markers
 		      (if (markerp begin) (marker-position begin) begin)
 		      (position-bytes (min (point-max) end))
-		      (if (markerp end) (marker-position end) end)
+		      (min (point-max) (if (markerp end) (marker-position end) end))
 		      (wisi-parse-format-language-options parser)
 		      ))
 	 (process (wisi-process--parser-process parser)))
@@ -556,16 +556,27 @@ one or more Query messages."
   (funcall (aref (wisi-process--parser-language-action-table parser) (aref sexp 1)) sexp))
 
 (defun wisi-process-parse--Query (parser sexp)
-  ;; sexp is [Query query-label ...] see `wisi-parse-tree-queries for data
+  ;; sexp is [Query query-label ...] see `wisi-parse-tree-queries
   (cl-ecase (car (rassoc (aref sexp 1) wisi-parse-tree-queries))
     (bounds
      (setf (wisi-process--parser-query-result parser)
 	   (list (aref sexp 2)(aref sexp 3)(aref sexp 4)(aref sexp 5))))
 
+    (containing-statement
+     (setf (wisi-process--parser-query-result parser)
+	   (when (aref sexp 2)
+	     (list (aref sexp 2) (cons (aref sexp 3) (aref sexp 4))))))
+
     (nonterm
-     (when (aref sexp 2)
-       (setf (wisi-process--parser-query-result parser)
+     (setf (wisi-process--parser-query-result parser)
+	   (when (aref sexp 2)
 	     (aref (wisi-process--parser-token-table parser) (aref sexp 2)))))
+
+    (virtuals
+     ;; sexp is [Query query-label [...]]
+     ;; IMPROVEME: convert to elisp token_ids. for now we only need the count in unit tests.
+     (setf (wisi-process--parser-query-result parser)
+	     (aref sexp 2)))
 
     (print
      (setf (wisi-process--parser-query-result parser)
@@ -708,8 +719,8 @@ one or more Query messages."
     (wisi-process-parse--require-process parser)
 
     (setf (wisi-process--parser-total-wait-time parser) 0.0)
-    (setf (wisi-parser-lexer-errors parser) nil)
-    (setf (wisi-parser-parse-errors parser) nil)
+
+    ;; We con't clear errors here; only clear before parse, not post-parse.
 
     ;; We don't erase the parser-buffer here, because we call --send*
     ;; without --prepare in response to wisi-file_not_found.
@@ -905,6 +916,8 @@ one or more Query messages."
 
 (cl-defmethod wisi-parse-current ((parser wisi-process--parser) parse-action begin send-end parse-end)
   (wisi-process-parse--prepare parser)
+  (setf (wisi-parser-lexer-errors parser) nil)
+  (setf (wisi-parser-parse-errors parser) nil)
   (let ((total-line-count (1+ (count-lines (point-max) (point-min)))))
     (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin total-line-count))
     (wisi-process-parse--send-parse parser parse-action begin send-end parse-end))
@@ -914,6 +927,8 @@ one or more Query messages."
 
 (cl-defmethod wisi-parse-incremental ((parser wisi-process--parser) &optional full)
   (wisi-process-parse--prepare parser)
+  (setf (wisi-parser-lexer-errors parser) nil)
+  (setf (wisi-parser-parse-errors parser) nil)
   (let ((total-line-count (1+ (count-lines (point-max) (point-min)))))
     (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin total-line-count))
     (wisi-process-parse--send-incremental-parse parser full)
@@ -1020,6 +1035,7 @@ one or more Query messages."
   (unless cmd-buffer-name
     (setq cmd-buffer-name "debug.cmd"))
   (let ((log-buffer (current-buffer))
+	(log-buffer-point (point))
 	(cmd-buffer (get-buffer cmd-buffer-name))
 	edit begin end source-file)
     (set-buffer cmd-buffer)
@@ -1042,7 +1058,7 @@ one or more Query messages."
       (set-buffer cmd-buffer)
       (setq-local comment-start "-- ")
 
-      (insert "-- source file: " source-file "\n")
+      (insert "-- source file: " source-file " -*- comment-start: \"" comment-start "\" -*-" "\n")
       (insert "verbosity " verbosity "\n")
 
       (when (or (not (string-equal mckenzie_task_count "-1"))
@@ -1108,6 +1124,7 @@ one or more Query messages."
 	;; other file - ignore
 	))
 
-       )))
+       )
+    (goto-char log-buffer-point)))
 
 (provide 'wisi-process-parse)

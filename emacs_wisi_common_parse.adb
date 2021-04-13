@@ -372,8 +372,8 @@ package body Emacs_Wisi_Common_Parse is
                         Read_Input (Parse_Context.Text_Buffer (Params.Begin_Byte_Pos)'Address, Params.Byte_Count);
 
                         Parser.Tree.Lexer.Reset_With_String_Access
-                          (Parse_Context.Text_Buffer, Params.Source_File_Name, Params.Begin_Char_Pos,
-                           Params.Begin_Line);
+                          (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, Params.Source_File_Name,
+                           Params.Begin_Char_Pos, Params.Begin_Line);
 
                         --  Parser.Line_Begin_Token First, Last set by Lex_All
                         begin
@@ -443,7 +443,8 @@ package body Emacs_Wisi_Common_Parse is
                            Parse_Data.Parse_Language_Params (-Params.Language_Params);
 
                            Parser.Tree.Lexer.Reset_With_String_Access
-                             (Parse_Context.Text_Buffer (1 .. Parse_Context.Text_Buffer_Byte_Last),
+                             (Parse_Context.Text_Buffer,
+                              Parse_Context.Text_Buffer_Byte_Last,
                               Params.Source_File_Name);
 
                            if Parser.Tree.Editable then
@@ -479,7 +480,7 @@ package body Emacs_Wisi_Common_Parse is
                            Params.Byte_Count);
 
                         Parser.Tree.Lexer.Reset_With_String_Access
-                          (Parse_Context.Text_Buffer, Params.Source_File_Name);
+                          (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, Params.Source_File_Name);
 
                         declare
                            KMN_List : Parse.KMN_Lists.List;

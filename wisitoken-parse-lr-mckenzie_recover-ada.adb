@@ -916,11 +916,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
       elsif Tree.ID (Config.Error_Token) = +DOT_ID then
          --  We've encountered a selected_component when we were expecting a
-         --  simple IDENTIFIER. If the selected_component is preceded by 'end', then
-         --  this similar to a semantic check Extra_Name_Error, and the
+         --  simple IDENTIFIER. If the selected_component is preceded by 'end',
+         --  then this is similar to a semantic check Extra_Name_Error, and the
          --  solutions are similar.
 
-         if Tree.ID (Config.Stack.Peek.Token) = +IDENTIFIER_ID and
+         if To_Token_Enum (Tree.ID (Config.Stack.Peek.Token)) in IDENTIFIER_ID | identifier_opt_ID and
            Tree.ID (Config.Stack.Peek (2).Token) = +END_ID
          then
             --  The input looks like one of:
@@ -932,9 +932,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             --  Case 1) is missing 'end <end_name_token_2> ;' between the
             --  'begin's, so parsing expects <end_name_token_1> to match the
             --  second 'begin', which looks like an unnamed block. See
-            --  test_mckenzie_recover Match_Selected_Component_1. 'declare ...'
-            --  is _not_ present on the second begin. The solution is to
-            --  insert 'end ;' before the second 'begin'.
+            --  test_mckenzie_recover Match_Selected_Component_1. 'declare ...' is
+            --  _not_ present on the second begin (because it is part of the
+            --  syntax for <begin_name_token_1>). The solution is to insert 'end
+            --  ;' before the second 'begin'.
             --
             --  Case 2) is missing 'end;' after the second 'begin'. See
             --  test_mckenzie_recover Match_Selected_Component_2. 'declare ...'
@@ -956,7 +957,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                New_Config_1.Strategy_Counts (Language_Fix) := New_Config_1.Strategy_Counts (Language_Fix) + 1;
 
-               Push_Back_Check (Tree, New_Config_1, (+IDENTIFIER_ID, +END_ID));
+               Push_Back_Check (Tree, New_Config_1, (Tree.ID (Config.Stack.Peek.Token), +END_ID));
 
                if New_Config_1.Stack.Depth <= 3 then
                   raise Bad_Config;
@@ -977,7 +978,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                        sequence_of_statements_ID => --  see test/ada_mode-recover_partial_24.adb
                         Push_Back_Check
                           (Tree, New_Config_2,
-                           (+handled_sequence_of_statements_ID, +BEGIN_ID, +COLON_ID, +statement_identifier_ID));
+                           (+handled_sequence_of_statements_ID, +BEGIN_ID, +label_opt_ID));
 
                      when others =>
                         if Trace_McKenzie > Outline then

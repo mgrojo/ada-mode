@@ -17,7 +17,7 @@ is
    -- There should be no syntax errors and no virtual terminals at this point
    --EMACSCMD:(length (wisi-parser-parse-errors wisi--parser))
    --EMACSRESULT: 0
-   --EMACSCMD:(length (wisi-parse-tree-query wisi--parser 'virtuals))
+   --EMACSCMD:(length (wisi-parse-tree-query wisi--parser 'virtuals 1))
    --EMACSRESULT: 0
 begin
    null;
