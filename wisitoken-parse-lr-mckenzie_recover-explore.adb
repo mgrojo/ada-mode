@@ -1654,8 +1654,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          if Config.Resume_Token_Goal - Check_Limit <
            Tree.Get_Node_Index (Config.Current_Shared_Token.Node)
          then
-            Config.Resume_Token_Goal := Tree.Get_Node_Index (Config.Current_Shared_Token.Node) +
-              Check_Limit;
+            Config.Resume_Token_Goal := Tree.Get_Node_Index (Config.Current_Shared_Token.Node) + Check_Limit;
+            Ensure_Sequential_Node_Index (Tree, Config);
+
             if Trace_McKenzie > Extra then
                Put_Line
                  (Super.Trace.all, Tree, Super.Stream (Parser_Index), "resume_token_goal:" &
@@ -1958,6 +1959,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          begin
             if New_Config.Resume_Token_Goal - Check_Limit < New_Next_Node_Index then
                New_Config.Resume_Token_Goal := New_Next_Node_Index + Check_Limit;
+               Ensure_Sequential_Node_Index (Super.Tree.all, Config);
             end if;
          end;
 

@@ -166,14 +166,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          use Syntax_Trees;
          First_Shared_Current : constant Node_Access := Shared_Parser.Tree.First_Shared_Terminal
            (Parser_State.Current_Token.Node);
-         First_Shared_Shared : constant Node_Access := Shared_Parser.Tree.First_Terminal
-           (Parser_State.Shared_Token.Node);
       begin
+         Config.Current_Shared_Token := Shared_Parser.Tree.First_Terminal_In_Node (Parser_State.Shared_Token);
+
          Config.Resume_Token_Goal := Shared_Parser.Tree.Get_Node_Index
            (if First_Shared_Current /= Invalid_Node_Access
             then First_Shared_Current --  Current_Token is from breakdown of a shared stream nonterm.
-            else First_Shared_Shared) +
+            else Config.Current_Shared_Token.Node) +
            Shared_Parser.Table.McKenzie_Param.Check_Limit;
+
+         Ensure_Sequential_Node_Index (Shared_Parser.Tree, Config);
       end;
 
       if Trace_McKenzie > Outline then
@@ -206,8 +208,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  Parser_State.Recover_Insert_Delete must be empty (else we would not get
       --  here). Therefore Parser_State current token is in
       --  Shared_Parser.Shared_Token.
-
-      Config.Current_Shared_Token := Shared_Parser.Tree.First_Terminal_In_Node (Parser_State.Shared_Token);
 
       case Error.Label is
       when LR_Parse_Action =>
@@ -491,7 +491,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                      if Trace_McKenzie > Extra then
                         Put_Line (Trace, Tree, Parser_State.Stream, "before Ops applied:", Task_ID => False);
-                        Trace.Put_Line ("   stack " & Parser_Lists.Image (Stack, Tree));
+                        Trace.Put_Line
+                          ("   stack/stream  " & Tree.Image
+                             (Parser_State.Stream, Stack => True, Input => True, Shared => True, Children => True));
                         Trace.Put_Line ("   Shared_Token  " & Tree.Image (Parser_State.Shared_Token));
                         Trace.Put_Line ("   Current_Token " & Tree.Image (Parser_State.Current_Token));
                      end if;
@@ -619,9 +621,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               end if;
 
                            when Insert       =>
-                              Recover_Op_Arrays.Append
-                                (Parser_State.Recover_Insert_Delete,
-                                 (Op         => Insert,
+                              Parser_State.Recover_Insert_Delete.Append
+                                ((Op         => Insert,
                                   Error_Pos  => Error_Pos,
                                   Ins_ID     => Op.Ins_ID,
                                   Ins_Before => Op.Ins_Before,
@@ -895,6 +896,26 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Config.Input_Stream.Prepend (Token.Element_Node);
       end if;
    end Do_Push_Back;
+
+   procedure Ensure_Sequential_Node_Index
+     (Tree   : in Syntax_Trees.Tree;
+      Config : in Configuration)
+   is
+      use Syntax_Trees;
+
+      Terminal : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
+      Index    : Valid_Node_Index    := Tree.Get_Node_Index (Terminal.Ref.Node);
+   begin
+      loop
+         Tree.Next_Terminal (Terminal);
+         exit when Terminal.Ref.Node = Invalid_Node_Access;
+
+         Index := @ + 1;
+         exit when Index > Config.Resume_Token_Goal;
+
+         Tree.Set_Node_Index (Terminal.Ref.Node, Index);
+      end loop;
+   end Ensure_Sequential_Node_Index;
 
    function Find_ID
      (Tree   : in Syntax_Trees.Tree;

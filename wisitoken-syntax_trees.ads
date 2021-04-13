@@ -14,52 +14,53 @@
 --  same tree, maintaining different roots via Stream_IDs.
 --
 --  During parsing, the Shared_Stream contains all of the input source
---  text, either as terminal tokens from the lexer, or a mix of
---  terminal and nonterminal tokens from Parse.Edit_Tree. The sequence
---  of tokens is given by Next_Terminal/Prev_Terminal, and Node_Index
---  on terminals is positive and sequential. The shared stream may
---  contain Virtual_Terminals from previous error recovery; they are
---  included in the positive Node_Index order.
+--  text, either as terminal tokens from the lexer in batch parse, or
+--  a mix of terminal (possibly virtual) and nonterminal tokens from
+--  Parse.Edit_Tree in incremental parse.
 --
---  After parsing, the sequence of terminals in the syntax tree stream
---  is given by Next_Terminal/Prev_Terminal; Node_Index on inserted
---  virtuals is negative, and has gaps for deleted tokens.
+--  Node_Index is used to mark terminal nodes as "shared", to assist
+--  error recover in determining success, and for debugging.
+--  Node_Index on nonterms is negative. Node_Index on terminal nodes
+--  created by the lexer in the shared stream is positive; the
+--  terminals are "shared terminals". During a batch parse, Node_Index
+--  on shared terminals is sequential. In incremental parse, and
+--  Node_Index on terminals is _not_ sequential, and may not be unique
+--  within the tree. Error recover requires sequential Node_Index to
+--  determine success, so Node_Index is set to be sequential in a
+--  small portion of the shared stream at error recover start.
+--  Node_Index on virtual terminals inserted by error recover is
+--  negative
+--
+--  During and after parsing, the sequence of terminals in the parse
+--  stream or syntax tree is given by Next_Terminal/Prev_Terminal.
 --
 --  Each parallel parser uses one stream as the parse stack and
---  auxiliary input stream. The auxiliary input stream contains
---  tokens that are pushed back in error recovery, or referenced from
---  Shared_Stream for breakdown in incremental parse.
+--  auxiliary input stream. The auxiliary input stream contains tokens
+--  that are pushed back in error recovery, or broken down from
+--  Shared_Stream in incremental parse.
 --
 --  Each node contains a Parent link, to make it easy to traverse the
---  tree in any direction. However, we do not set the Parent links
---  while parsing, to avoid having to copy nodes; that would mean
---  copying the entire tree for each new parallel parser, which is far
---  too slow. While parsing, Breakdown clears parent links, so the
---  shared stream may not have complete parent links. All Parent links
---  are set after a full parse (by Set_Parents), and kept in the
---  shared stream in Edit_Tree, so that setting Parent links after an
---  incremental parse only needs to be done for new or edited nodes.
---  While editing the syntax tree after parse, any functions that
---  modify children or parents update the corresponding links, setting
---  them to Invalid_Node_Access as appropriate. Precondition
---  Tree.Editable ensures that there is a single fully parsed tree
---  with all parent links set.
+--  tree in any direction after parsing is done. We do not set the
+--  Parent links while parsing, to avoid having to copy nodes. At the
+--  start of incremental parse (during and after Edit_Tree), the
+--  shared stream has complete parent links. However, Breakdown while
+--  parsing clears parent links, so the shared stream may not have
+--  complete parent links; error recover must use explicit Parent
+--  stack versions of tree routines. All Parent links are set when
+--  parse completes; condition Tree.Editable ensures that there is
+--  a single fully parsed tree with all parent links set. While
+--  editing the syntax tree after parse, any functions that modify
+--  children or parent relationships update the corresponding links,
+--  setting them to Invalid_Node_Access as appropriate.
 --
 --  During parsing, nodes are never deleted, copied or edited in any
---  way once they are created, except for clearing parent links.
---
---  Incremental parse and error recover need to use terminal
---  navigation operations on nodes that are not from the shared
---  stream; the subprograms use a temporary internal stack to store
---  the parent links needed.
+--  way once they are created, except for clearing parent links and
+--  setting sequential Node_Index.
 --
 --  We don't store the parse State in syntax tree nodes, to avoid
 --  having to copy nodes during parsing. State is stored in the parse
 --  stream elements. This means Parse.LR.Undo_Reduce has to call
 --  Action_For to compute the state for the child nodes.
---
---  A terminal is a "shared terminal" if it has a positive Node_Index;
---  it is in the Shared_Stream.
 --
 --  Type Tree is limited because a bit-copy is not a good start on copy
 --  for assign; use Copy_Tree.
@@ -632,6 +633,16 @@ package WisiToken.Syntax_Trees is
    --  Insert a stream element containing Ref nodes to beginning of
    --  Stream input. Ref is updated to point to the new element.
 
+   procedure Move_Shared_To_Input
+     (Tree   : in out Syntax_Trees.Tree;
+      Ref    : in out Stream_Node_Ref;
+      Stream : in     Stream_ID)
+   with Pre => Valid_Stream_Node (Tree, Ref) and Ref.Stream = Tree.Shared_Stream;
+   --  Insert a stream element into Stream input for Ref. Then step Ref
+   --  to next stream element, and update Stream.Shared_Link.
+   --
+   --  This is often needed before Left_Breakdown while parsing.
+
    procedure Left_Breakdown
      (Tree : in out Syntax_Trees.Tree;
       Ref  : in out Stream_Node_Ref)
@@ -854,14 +865,12 @@ package WisiToken.Syntax_Trees is
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
       Terminal : in     Lexer.Token;
-      Index    : in     Node_Index;
       Before   : in     Stream_Index)
      return Single_Terminal_Ref
    with Pre => not Tree.Traversing and (Before = Invalid_Stream_Index or else Tree.Contains (Stream, Before)),
      Post => Tree.Label (Insert_Source_Terminal'Result.Node) = Source_Terminal;
    --  Insert a new Source_Terminal element on Stream, before Before.
-   --  Index should give the source token order. Result points to the
-   --  added element.
+   --  Result points to the added element.
 
    function Insert_Virtual_Terminal
      (Tree     : in out Syntax_Trees.Tree;
@@ -879,10 +888,14 @@ package WisiToken.Syntax_Trees is
       Node        : in Valid_Node_Access;
       Shift_Bytes : in Base_Buffer_Pos;
       Shift_Chars : in Base_Buffer_Pos;
-      Shift_Line  : in Base_Line_Number_Type;
-      Node_Index  : in Syntax_Trees.Node_Index)
+      Shift_Line  : in Base_Line_Number_Type)
    with Pre => Tree.Label (Node) in Terminal_Label;
-   --  Add Shift_* to token values, set node_index.
+   --  Add Shift_* to token values.
+
+   procedure Set_Node_Index
+     (Tree       : in Syntax_Trees.Tree;
+      Node       : in Valid_Node_Access;
+      Node_Index : in Syntax_Trees.Node_Index);
 
    procedure Stream_Delete
      (Tree    : in out Syntax_Trees.Tree;
@@ -985,8 +998,7 @@ package WisiToken.Syntax_Trees is
    function Byte_Region
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
-      Trailing_Non_Grammar : in Boolean := False;
-      Include_EOI          : in Boolean := False)
+      Trailing_Non_Grammar : in Boolean := False)
      return WisiToken.Buffer_Region;
 
    function Name (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Buffer_Region;
@@ -1009,8 +1021,8 @@ package WisiToken.Syntax_Trees is
    --  Return line that contains Byte_Pos; Invalid_Line_Number is outside
    --  range of text spanned by Tree.
    --
-   --  If Byte_Pos is in a multi-line terminal token, return the first
-   --  line of that token.
+   --  FIXME: If Byte_Pos is in a multi-line terminal or non_grammar
+   --  token, should return a line_region.
 
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;
@@ -1122,8 +1134,8 @@ package WisiToken.Syntax_Trees is
       Max_Parent : in Boolean := False)
      return Node_Access
    with Pre => Tree.Parents_Set;
-   --  Return the ancestor of Node that contains ID (starting search with
-   --  Node.Parent), or Invalid_Node_Access if none match.
+   --  Return the ancestor of Node that contains one of IDs (starting
+   --  search with Node.Parent), or Invalid_Node_Access if none match.
    --
    --  If Max_Parent, return max parent found if none match; this will be
    --  Invalid_Node_Access if Node has no parent.
@@ -1301,6 +1313,11 @@ package WisiToken.Syntax_Trees is
    --  Same as Last_Shared_Terminal, also initializes Parents.
    --
    --  Visible for use with error recovery Configuration input streams.
+
+   function Get_Virtuals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access_Array
+   with Pre => Tree.Parents_Set,
+     Post => (for all Node of Get_Virtuals'Result => Tree.Label (Node) in Virtual_Terminal_Label);
+   --  Return list of virtual terminals in Node.
 
    function Get_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access_Array
    with Post => (for all Node of Get_Terminals'Result => Tree.Label (Node) in Terminal_Label);

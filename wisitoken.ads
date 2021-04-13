@@ -196,6 +196,8 @@ package WisiToken is
    procedure To_Vector (Item : in Token_ID_Array; Vector : in out Token_ID_Arrays.Vector);
    function To_Vector (Item : in Token_ID_Array) return Token_ID_Arrays.Vector;
 
+   function To_Array (Item : in Token_ID_Arrays.Vector) return Token_ID_Array;
+
    function Shared_Prefix (A, B : in Token_ID_Arrays.Vector) return Natural;
    --  Return last index in A of a prefix shared between A, B; 0 if none.
 

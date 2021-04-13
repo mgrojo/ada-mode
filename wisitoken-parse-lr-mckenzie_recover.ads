@@ -75,17 +75,6 @@ private
       Shared_Terminal : Syntax_Trees.Stream_Node_Parents;
    end record;
 
-   function Peek_Shared_Start
-     (Tree   :         in Syntax_Trees.Tree;
-      Config : aliased in Configuration)
-     return Peek_Shared_State;
-
-   function Peek_Shared_Terminal (State : in Peek_Shared_State) return Syntax_Trees.Node_Access;
-
-   procedure Peek_Next_Shared_Terminal
-     (Tree  : in     Syntax_Trees.Tree;
-      State : in out Peek_Shared_State);
-
    procedure Check (ID : Token_ID; Expected_ID : in Token_ID)
    with Inline => True;
    --  Check that ID = Expected_ID; raise Bad_Config if not.
@@ -129,6 +118,13 @@ private
    --  Push back Config.Stack top to Config.Input_Stream. Appends to
    --  Config.Ops. Nonterms are not broken down. We assume caller has
    --  checked Push_Back_Valid.
+
+   procedure Ensure_Sequential_Node_Index
+     (Tree   : in Syntax_Trees.Tree;
+      Config : in Configuration);
+   --  Ensure that Node_Index in Tree.Shared_Stream terminals is
+   --  sequential for Config.Current_Shared_Token ..
+   --  Config.Resume_Token_Goal.
 
    function Find_ID
      (Tree   : in Syntax_Trees.Tree;
@@ -211,6 +207,17 @@ private
       Before : in     Syntax_Trees.Valid_Node_Access;
       ID     : in     Token_ID);
    --  Same as Insert, but before Before.
+
+   function Peek_Shared_Start
+     (Tree   :         in Syntax_Trees.Tree;
+      Config : aliased in Configuration)
+     return Peek_Shared_State;
+
+   function Peek_Shared_Terminal (State : in Peek_Shared_State) return Syntax_Trees.Node_Access;
+
+   procedure Peek_Next_Shared_Terminal
+     (Tree  : in     Syntax_Trees.Tree;
+      State : in out Peek_Shared_State);
 
    function Push_Back_Valid
      (Tree                  : in Syntax_Trees.Tree;

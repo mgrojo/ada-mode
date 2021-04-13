@@ -83,6 +83,15 @@ package body WisiToken is
       end return;
    end To_Vector;
 
+   function To_Array (Item : in Token_ID_Arrays.Vector) return Token_ID_Array
+   is begin
+      return Result : Token_ID_Array (Item.First_Index .. Item.Last_Index) do
+         for I in Result'Range loop
+            Result (I) := Item (I);
+         end loop;
+      end return;
+   end To_Array;
+
    function Shared_Prefix (A, B : in Token_ID_Arrays.Vector) return Natural
    is
       use all type Ada.Containers.Count_Type;

@@ -127,23 +127,36 @@ package body WisiToken.Parse.LR.Parser_Lists is
       Delete       : in     Boolean)
    is begin
       if Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref then
+         --  First token in parse.
+         pragma Assert (Set_Current and not Tree.Has_Input (Parser_State.Stream));
          Parser_State.Shared_Token := Tree.Stream_First (Tree.Shared_Stream);
+         Parser_State.Current_Token           := Parser_State.Shared_Token;
+         Parser_State.Inc_Shared_Stream_Token := True;
+         return;
+      end if;
 
-      elsif Tree.Has_Input (Parser_State.Stream) then
+      if Delete and
+        not Tree.Has_Input (Parser_State.Stream) and
+        not Tree.Is_Terminal (Parser_State.Shared_Token.Node)
+      then
+         Tree.Move_Shared_To_Input (Parser_State.Shared_Token, Parser_State.Stream);
+      end if;
+
+      if Tree.Has_Input (Parser_State.Stream) then
          if Delete then
             loop
                declare
                   use all type WisiToken.Syntax_Trees.Node_Label;
 
-                  Temp : Syntax_Trees.Stream_Index := Tree.First_Input (Parser_State.Stream).Element;
+                  To_Delete : Syntax_Trees.Stream_Index := Tree.First_Input (Parser_State.Stream).Element;
 
                   Ref : Syntax_Trees.Stream_Node_Ref :=
-                    (Parser_State.Stream, Temp, Tree.Get_Node (Parser_State.Stream, Temp));
+                    (Parser_State.Stream, To_Delete, Tree.Get_Node (Parser_State.Stream, To_Delete));
                begin
                   if Tree.Label (Ref.Node) = Syntax_Trees.Nonterm then
                      if Tree.Child_Count (Ref.Node) = 0 then
                         --  Delete an empty nonterm preceding the target terminal.
-                        Tree.Stream_Delete (Parser_State.Stream, Temp);
+                        Tree.Stream_Delete (Parser_State.Stream, To_Delete);
                         pragma Assert (Tree.Has_Input (Parser_State.Stream));
                      else
                         --  We only support Delete for terminals. See
@@ -151,7 +164,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
                         Tree.Left_Breakdown (Ref);
                      end if;
                   else
-                     Tree.Stream_Delete (Parser_State.Stream, Temp);
+                     Tree.Stream_Delete (Parser_State.Stream, To_Delete);
                      exit;
                   end if;
                end;
@@ -159,6 +172,8 @@ package body WisiToken.Parse.LR.Parser_Lists is
          end if;
 
       else
+         pragma Assert (if Delete then Tree.Is_Terminal (Parser_State.Shared_Token.Node));
+
          if Parser_State.Inc_Shared_Stream_Token or Delete then
             Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
          end if;

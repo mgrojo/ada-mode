@@ -388,18 +388,15 @@ begin
 
                   if Trace_Parse > Outline and Trace_McKenzie <= Extra then
                      Trace.Put_Line
-                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": stack " &
-                          Shared_Parser.Tree.Image (Parser_State.Stream, Stack => True, Input => False));
+                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": stack/stream " &
+                          Shared_Parser.Tree.Image
+                            (Parser_State.Stream, Stack => True, Input => True, Shared => True,
+                             Children => Trace_Parse > Detail));
                      Trace.Put_Line
                        ("    Current_Token: " &
                           Shared_Parser.Tree.Image (Parser_State.Current_Token));
                      Trace.Put_Line
                        ("    Shared_Token: " & Shared_Parser.Tree.Image (Parser_State.Shared_Token));
-                     if Shared_Parser.Tree.Has_Input (Parser_State.Stream) then
-                        Trace.Put_Line
-                          ("    stream input: " & Shared_Parser.Tree.Image
-                             (Parser_State.Stream, Stack => False, Input => True, Children => Trace_Parse > Extra));
-                     end if;
                      Trace.Put_Line
                        ("    recover_insert_delete:" &
                           (if Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index

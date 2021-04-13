@@ -238,16 +238,15 @@ package body WisiToken.Parse is
 
       Tree : Syntax_Trees.Tree renames Parser.Tree;
 
-      KMN_Node            : Cursor                := Edits.First;
-      Old_Byte_Pos        : Base_Buffer_Pos       := 0;
-      Old_Char_Pos        : Base_Buffer_Pos       := 0;
-      New_Byte_Pos        : Base_Buffer_Pos       := 0;
-      New_Char_Pos        : Base_Buffer_Pos       := 0;
-      Scanned_Byte_Pos    : Base_Buffer_Pos       := 0; -- Last pos scanned by lexer
-      Shift_Bytes         : Base_Buffer_Pos       := 0;
-      Shift_Chars         : Base_Buffer_Pos       := 0;
-      Shift_Line          : Base_Line_Number_Type := 0;
-      Next_Terminal_Index : Node_Index            := 1;
+      KMN_Node         : Cursor                := Edits.First;
+      Old_Byte_Pos     : Base_Buffer_Pos       := 0;
+      Old_Char_Pos     : Base_Buffer_Pos       := 0;
+      New_Byte_Pos     : Base_Buffer_Pos       := 0;
+      New_Char_Pos     : Base_Buffer_Pos       := 0;
+      Scanned_Byte_Pos : Base_Buffer_Pos       := 0; -- Last pos scanned by lexer
+      Shift_Bytes      : Base_Buffer_Pos       := 0;
+      Shift_Chars      : Base_Buffer_Pos       := 0;
+      Shift_Line       : Base_Line_Number_Type := 0;
 
       Stream : Syntax_Trees.Stream_ID; -- Tree.Shared_Stream that we are editing.
 
@@ -362,7 +361,7 @@ package body WisiToken.Parse is
                           (Terminal.Node,
                            Non_Grammar => True, Terminal_Node_Numbers => True, Augmented => True));
                   end if;
-                  Tree.Shift (Terminal.Node, Shift_Bytes, Shift_Chars, Shift_Line, Next_Terminal_Index);
+                  Tree.Shift (Terminal.Node, Shift_Bytes, Shift_Chars, Shift_Line);
 
                   if Trace_Incremental_Parse > Detail then
                      Parser.Trace.Put_Line
@@ -370,7 +369,6 @@ package body WisiToken.Parse is
                           (Terminal.Node, Non_Grammar => True, Terminal_Node_Numbers => True, Augmented => True));
                   end if;
 
-                  Next_Terminal_Index := @ + 1;
                   Tree.Next_Terminal (Terminal);
                end loop Unchanged_Loop;
             end if;
@@ -698,10 +696,7 @@ package body WisiToken.Parse is
 
                            if Token.ID >= Parser.Tree.Lexer.Descriptor.First_Terminal then
                               --  grammar token
-                              Ref := Tree.Insert_Source_Terminal
-                                (Stream, Token, Next_Terminal_Index, Before => Terminal.Element);
-
-                              Next_Terminal_Index  := @ + 1;
+                              Ref := Tree.Insert_Source_Terminal (Stream, Token, Before => Terminal.Element);
 
                               Process_Grammar_Token (Parser, Token, Ref.Node);
                               Last_Grammar_Node := Ref.Node;
@@ -804,7 +799,7 @@ package body WisiToken.Parse is
             if not Has_Element (KMN_Node) then
                --  Finally shift EOI.
                pragma Assert (Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.EOI_ID);
-               Tree.Shift (Terminal.Node, Shift_Bytes, Shift_Chars, Shift_Line, Next_Terminal_Index);
+               Tree.Shift (Terminal.Node, Shift_Bytes, Shift_Chars, Shift_Line);
 
                if Trace_Incremental_Parse > Detail then
                   Parser.Trace.Put_Line
