@@ -52,7 +52,6 @@ Must match emacs_wisi_common_parse.ads Protocol_Version.")
   (busy nil)              ;; t while parser is active
   (process nil) 	  ;; running *_wisi_parse executable
   (buffer nil) 		  ;; receives output of executable
-  line-begin              ;; vector of beginning-of-line positions in buffer
   (total-wait-time 0.0)   ;; total time during last parse spent waiting for subprocess output.
   (response-count 0)      ;; responses received from subprocess during last parse; for profiling.
   end-pos                 ;; last character position parsed
@@ -421,16 +420,16 @@ one or more Query messages."
      )))
 
 (defun wisi-process-parse--Indent (parser sexp)
-  ;; sexp is [Indent line-number indent]
+  ;; sexp is [Indent line-number line-begin-char-pos indent]
   ;; see ‘wisi-process-parse--execute’
-  (let ((pos (aref (wisi-process--parser-line-begin parser) (1- (aref sexp 1)))))
+  (let ((pos (aref sexp 2)))
     (with-silent-modifications
       (when (< (point-min) pos)
 	(put-text-property
 	 (1- pos)
 	 pos
 	 'wisi-indent
-	 (aref sexp 2)))
+	 (aref sexp 3)))
       )))
 
 (defun wisi-process-parse--Lexer_Error (parser sexp)
@@ -918,9 +917,7 @@ one or more Query messages."
   (wisi-process-parse--prepare parser)
   (setf (wisi-parser-lexer-errors parser) nil)
   (setf (wisi-parser-parse-errors parser) nil)
-  (let ((total-line-count (1+ (count-lines (point-max) (point-min)))))
-    (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin total-line-count))
-    (wisi-process-parse--send-parse parser parse-action begin send-end parse-end))
+  (wisi-process-parse--send-parse parser parse-action begin send-end parse-end)
   (wisi-process-parse--handle-messages parser)
   (cons begin (wisi-process--parser-end-pos parser))
   )
@@ -929,18 +926,15 @@ one or more Query messages."
   (wisi-process-parse--prepare parser)
   (setf (wisi-parser-lexer-errors parser) nil)
   (setf (wisi-parser-parse-errors parser) nil)
-  (let ((total-line-count (1+ (count-lines (point-max) (point-min)))))
-    (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin total-line-count))
-    (wisi-process-parse--send-incremental-parse parser full)
-    (condition-case-unless-debug _err
-	(wisi-process-parse--handle-messages parser)
-      ('wisi-file_not_found
-       (message "parsing buffer ...")
-       (wisi-process-parse--send-incremental-parse parser t)
-       (message "parsing buffer ... done")
-       (wisi-process-parse--handle-messages parser)
-       ))
-    ))
+  (wisi-process-parse--send-incremental-parse parser full)
+  (condition-case-unless-debug _err
+      (wisi-process-parse--handle-messages parser)
+    ('wisi-file_not_found
+     (message "parsing buffer ...")
+     (wisi-process-parse--send-incremental-parse parser t)
+     (message "parsing buffer ... done")
+     (wisi-process-parse--handle-messages parser)
+     )))
 
 (cl-defmethod wisi-post-parse ((parser wisi-process--parser) parse-action begin end)
   (wisi-process-parse--prepare parser)
@@ -988,8 +982,6 @@ one or more Query messages."
   (setf (wisi-process--parser-query-result parser) nil)
   (cl-assert wisi-incremental-parse-enable)
   (when wisi--changes
-    (let ((total-line-count (1+ (count-lines (point-max) (point-min)))))
-      (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin total-line-count)))
     (wisi-process-parse--send-incremental-parse parser nil)
     (wisi-process-parse--handle-messages parser))
 

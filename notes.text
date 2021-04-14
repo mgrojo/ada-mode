@@ -43,23 +43,42 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-run all tests with incremental mode enabled
-    test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t)"
-
-    one ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
-
-    ada_mode-interactive_2.adb.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" debug-on-error t)"
-
-in debug.cmd:
-mckenzie_options task_count=1
-save_text_auto debug_edited
-verbosity debug=1 action=3
-verbosity mckenzie=1 parse=2 incremental=3 lexer=1
-
-still need wisi-process--parser-line-begin?
-
 edit_tree still has to scan entire tree for virtuals, to set positive
     do we really need shared_stream virtual_terminal > 0? who uses Next_Shared_Terminal?
+    mck_rec-explore Delete_pushed_back uses Parse.first|Next_Shared_Terminal; could be First|Next_terminal
+
+    add separate sequential_index field for error recover
+        only in terminals
+        delete all "shared_terminal"
+
+    m.parse.First_Shared_Terminal
+        in m.e.Delete_Pushed_Back: loop on get_node_index; use Parse.First|Next_Terminal
+
+    mck_rec.parse.Peek_Current_First_Shared_Terminal:
+        body: loop on tree.first|next_terminal
+
+        in mck_rec.explore.Do_Shift
+            to find insert_before for insert_op
+            also must be in range set by Ensure_Sequential
+                so rename to first_sequential?
+                reset node_index negative when finish recover?
+
+        in mck_rec.explore.Edit_Point_Matches_Ops
+            same as Do_Shift
+
+        in m.e.Fast_Forward; set op.ff_index; same as Do_Shift
+        in m.e.Check: update ff_index; same as do_shift
+        in m.e.Just_Pushed_Back_Or_Deleted; same as do_shift
+
+        in m.e.Try_Insert_Quote: Finish First same as do_shift
+            Finish Last assumes lexer_error_token_ref is in sequential range; almost certainly false
+            add ensure_sequential (node_access)
+
+        in m.e.Try_Delete_Input, same as do_shift, but exclude following element
+
+        in m.p.Delete_Current_Applies, Peek_Current_Token_ID, same as do_shift
+
+
 
 test/ada_mode-interactive_2.adb
     virtual 'null;' inserted on blank line,
@@ -75,9 +94,18 @@ Parse_Verb checks last_terminal (current_token)
 
 Wisi-reset-parser request full parse
 
-test/ada_mode-interactive_2.adb
-    in Function_Access_1, 'is begin' indent wrong
-        testing in interactive_03.adb
+run all tests with incremental mode enabled
+    test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t)"
+
+    one ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
+
+    ada_mode-interactive_2.adb.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" debug-on-error t)"
+
+in debug.cmd:
+mckenzie_options task_count=1
+save_text_auto debug_edited
+verbosity debug=1 action=3
+verbosity mckenzie=1 parse=2 incremental=3 lexer=1
 
 change set_parents to be incremental?
     descend tree; if find a parent link, no need to descend that branch

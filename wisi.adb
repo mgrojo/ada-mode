@@ -261,7 +261,10 @@ package body Wisi is
       end if;
    end Put;
 
-   procedure Put (Line_Number : in Line_Number_Type; Item : in Indent_Type)
+   procedure Put
+     (Tree        : in Syntax_Trees.Tree;
+      Line_Number : in Line_Number_Type;
+      Item        : in Indent_Type)
    is begin
       --  All Anchors must be resolved at this point, but not all lines have
       --  an indent computed. A negative indent is an error in either the
@@ -275,13 +278,17 @@ package body Wisi is
          declare
             --  We can easily get negative indents when there are syntax errors.
             Ind : constant Integer := Integer'Max (0, Item.Int_Indent);
+            Line_Begin_Char_Pos : Base_Buffer_Pos;
+            Node : constant Syntax_Trees.Node_Access := Tree.Find_New_Line (Line_Number, Line_Begin_Char_Pos);
+            pragma Unreferenced (Node);
          begin
             if Debug_Mode and Ind > 100 then
                --  This is better than hanging Emacs by returning a huge bogus indent.
                raise SAL.Programmer_Error with "indent > 100";
             end if;
             Ada.Text_IO.Put_Line
-              ('[' & Indent_Code & Line_Number_Type'Image (Line_Number) & Integer'Image (Ind) & ']');
+              --  elisp doesn't need line number, but it is very helpful for debugging
+              ('[' & Indent_Code & Line_Number_Type'Image (Line_Number) & Line_Begin_Char_Pos'Image & Ind'Image & ']');
          end;
 
       when Anchored =>
@@ -359,19 +366,20 @@ package body Wisi is
 
             Op : constant Recover_Op := Element (Item, I);
 
-            Edit_Node : constant Node_Access :=
+            Edit_Pos_Node : constant Node_Access :=
               --  Can be Invalid_Node_Access when recover fails.
               (case Op.Op is
                when Insert =>
                  (if Op.Ins_Node = Invalid_Node_Access
                   then Invalid_Node_Access
-                  else Tree.Next_Shared_Terminal (Op.Ins_Node)),
+                  else Tree.First_Source_Terminal (Op.Ins_Node, Trailing_Non_Grammar => True, Following => True)),
 
                when Delete => Op.Del_Node);
+
             Edit_Pos : constant Buffer_Pos :=
-              (if Edit_Node = Invalid_Node_Access
+              (if Edit_Pos_Node = Invalid_Node_Access
                then Invalid_Buffer_Pos
-               else Tree.Char_Region (Edit_Node).First);
+               else Tree.Char_Region (Edit_Pos_Node, Trailing_Non_Grammar => True).First);
          begin
             if Last_Edit_Pos = Invalid_Buffer_Pos then
                Last_Edit_Pos := Edit_Pos;
@@ -2311,7 +2319,7 @@ package body Wisi is
       when Indent =>
          Resolve_Anchors (Data, Tree);
          for Line in Data.Action_Region_Lines.First .. Data.Action_Region_Lines.Last loop
-            Put (Line, Data.Indents (Line));
+            Put (Tree, Line, Data.Indents (Line));
          end loop;
       end case;
    exception
