@@ -38,12 +38,6 @@ package body WisiToken.Syntax_Trees is
 
    function Child_Index (N : in Node; Child : in Valid_Node_Access) return SAL.Peek_Type;
 
-   function First_Source_Terminal
-     (Tree                 : in Syntax_Trees.Tree;
-      Node                 : in Valid_Node_Access;
-      Trailing_Non_Grammar : in Boolean)
-     return Node_Access;
-
    function Insert_Stream_Element
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID;
@@ -1880,13 +1874,17 @@ package body WisiToken.Syntax_Trees is
    function First_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
-      Trailing_Non_Grammar : in Boolean)
+      Trailing_Non_Grammar : in Boolean;
+      Following            : in Boolean := False)
      return Node_Access
    is
-      --  We always use a Parents stack, to limit Next_Terminal to
+      --  If not Following, we use a Parents stack to limit Next_Terminal to
       --  descendants of Node.
       Parents : Node_Stacks.Stack;
-      Result  : Node_Access := First_Terminal (Tree, Node, Parents);
+      Result  : Node_Access :=
+        (if Following
+         then First_Terminal (Tree, Node)
+         else First_Terminal (Tree, Node, Parents));
    begin
       loop
          exit when Result = Invalid_Node_Access;
@@ -1898,7 +1896,11 @@ package body WisiToken.Syntax_Trees is
                      Result.Non_Grammar.Length > 0)
             else Result.Label = Source_Terminal);
 
-         Next_Terminal (Tree, Result, Parents);
+         if Following then
+            Next_Terminal (Tree, Result);
+         else
+            Next_Terminal (Tree, Result, Parents);
+         end if;
       end loop;
       return Result;
    end First_Source_Terminal;

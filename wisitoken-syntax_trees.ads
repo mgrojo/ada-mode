@@ -1243,6 +1243,22 @@ package WisiToken.Syntax_Trees is
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Tree.Correct_Stream_Node (Ref.Ref) and Parents_Valid (Ref);
 
+   function First_Source_Terminal
+     (Tree                 : in Syntax_Trees.Tree;
+      Node                 : in Valid_Node_Access;
+      Trailing_Non_Grammar : in Boolean;
+      Following            : in Boolean := False)
+     return Node_Access
+   with Pre => (if Following then Tree.Parents_Set else True);
+   --  Return a node that can give byte or char pos.
+   --
+   --  If Trailing_Non_Grammar, return first terminal in Node that is a
+   --  Source_Terminal, or a virtual terminal with non-empty non_grammar.
+   --  If not Trailing_Non_Grammar, only return a Source_Terminal.
+   --
+   --  If Following, return a matching terminal following Node if none
+   --  found in Node.
+
    function First_Shared_Terminal
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
