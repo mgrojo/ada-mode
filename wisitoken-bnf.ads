@@ -10,7 +10,7 @@
 --  [1] https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
 --  [2] http://www.nongnu.org/ada-mode/wisi/wisi-user_guide.html, (info "(wisi-user_guide)Top")
 --
---  Copyright (C) 2012 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -246,7 +246,7 @@ package WisiToken.BNF is
         WisiToken.Parse.LR.Default_McKenzie_Param.Matching_Begin;
       Ignore_Check_Fail           : Natural                    :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Ignore_Check_Fail;
-      Check_Limit                 : Syntax_Trees.Node_Index :=
+      Check_Limit                 : Syntax_Trees.Sequential_Index :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Check_Limit;
       Zombie_Limit                : Syntax_Trees.Node_Index :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Zombie_Limit;

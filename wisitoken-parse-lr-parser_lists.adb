@@ -53,7 +53,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return To_String (Result & ")");
    end Parser_Stack_Image;
 
-   function Peek_Current_Shared_Terminal
+   function Peek_Current_Sequential_Terminal
      (Parser_State : in Parser_Lists.Parser_State;
       Tree         : in Syntax_Trees.Tree)
      return Syntax_Trees.Terminal_Ref
@@ -65,60 +65,48 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Result : Stream_Node_Parents := Tree.To_Stream_Node_Parents
               (Tree.First_Input (Parser_State.Stream));
          begin
-            Tree.First_Shared_Terminal (Result);
+            Tree.First_Sequential_Terminal (Result);
             if Result.Ref /= Invalid_Stream_Node_Ref then
                return Result.Ref;
             end if;
          end;
       end if;
-      --  No next shared token in Parser_State.Stream input
+      --  No next sequential terminal in Parser_State.Stream input
 
-      declare
-         Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Parser_State.Shared_Token);
-      begin
-         Tree.First_Shared_Terminal (Ref);
-         return Ref.Ref;
-      end;
-   end Peek_Current_Shared_Terminal;
-
-   function Peek_Next_Shared_Terminal
-     (Parser_State : in Parser_Lists.Parser_State;
-      Tree         : in Syntax_Trees.Tree)
-     return Syntax_Trees.Terminal_Ref
-   is
-      use Syntax_Trees;
-   begin
-      if Tree.Has_Input (Parser_State.Stream) then
-         declare
-            Result : Stream_Node_Parents := Tree.To_Stream_Node_Parents
-              (Tree.First_Input (Parser_State.Stream));
-         begin
-            if Result.Ref /= Invalid_Stream_Node_Ref then
-               Tree.First_Shared_Terminal (Result);
-
-               if Result.Ref /= Invalid_Stream_Node_Ref then
-                  return Result.Ref;
-               end if;
-            end if;
-         end;
-      end if;
-
-      --  No next shared token in Parser_State.Stream input
       declare
          Result : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Parser_State.Shared_Token);
       begin
-         if Parser_State.Shared_Token = Invalid_Stream_Node_Ref then
-            Result.Ref := Tree.Stream_First (Tree.Shared_Stream);
-            Tree.First_Shared_Terminal (Result);
-
-         elsif Parser_State.Inc_Shared_Stream_Token then
-            Tree.Next_Shared_Terminal (Result);
-         else
-            Tree.First_Shared_Terminal (Result);
-         end if;
+         Tree.First_Sequential_Terminal (Result);
          return Result.Ref;
       end;
-   end Peek_Next_Shared_Terminal;
+   end Peek_Current_Sequential_Terminal;
+
+   function Peek_Next_Sequential_Terminal
+     (Parser_State : in Parser_Lists.Parser_State;
+      Tree         : in Syntax_Trees.Tree)
+     return Syntax_Trees.Stream_Node_Parents
+   is
+      use Syntax_Trees;
+   begin
+      return Result : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+        (if Tree.Has_Input (Parser_State.Stream)
+         then Tree.First_Input (Parser_State.Stream)
+         elsif Parser_State.Shared_Token = Invalid_Stream_Node_Ref --  First token in parse.
+         then Tree.Stream_First (Tree.Shared_Stream)
+         else Parser_State.Shared_Token)
+      do
+         Tree.First_Sequential_Terminal (Result);
+
+         if Parser_State.Inc_Shared_Stream_Token then
+            loop
+               exit when Result.Ref.Node = Tree.EOI;
+               Tree.Next_Terminal (Result);
+               exit when Result.Ref.Node /= Invalid_Node_Access and then
+                 Tree.Get_Sequential_Index (Result.Ref.Node) /= Invalid_Sequential_Index;
+            end loop;
+         end if;
+      end return;
+   end Peek_Next_Sequential_Terminal;
 
    procedure Next_Token
      (Parser_State : in out Parser_Lists.Parser_State;

@@ -70,12 +70,12 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
      return Syntax_Trees.Valid_Node_Access;
    --  First_Terminal from Shared_Stream starting at Config.Shared_Token, or Config.Input_Stream.
 
-   function Peek_Current_First_Shared_Terminal
+   function Peek_Current_First_Sequential_Terminal
      (Tree              : in Syntax_Trees.Tree;
       Config            : in Configuration;
       Following_Element : in Boolean := True)
      return Syntax_Trees.Node_Access;
-   --  First_Shared_Terminal from Config.Input_Stream,
+   --  First_Sequential_Terminal from Config.Input_Stream,
    --  Config.Shared_Token or, if Following_Element, a following stream
    --  element.
 
@@ -89,25 +89,20 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Config_Stream_Parents);
 
-   procedure First_Shared_Terminal
+   procedure First_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Config_Stream_Parents);
 
-   procedure Last_Shared_Terminal
+   procedure Last_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Config_Stream_Parents);
 
-   function First_Input_Shared_Terminal
-     (Tree   :         in Syntax_Trees.Tree;
-      Config : aliased in Configuration)
-     return Syntax_Trees.Node_Access;
-
-   procedure Next_Shared_Terminal
+   procedure Next_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Config_Stream_Parents)
    with Pre => Bounded_Streams.Has_Element (Ref.Element) and Ref.Node /= Syntax_Trees.Invalid_Node_Access;
 
-   procedure Prev_Shared_Terminal
+   procedure Prev_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Config_Stream_Parents)
    with Pre => Bounded_Streams.Has_Element (Ref.Element) and Ref.Node /= Syntax_Trees.Invalid_Node_Access;
@@ -164,13 +159,13 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Parser_Index      :         in              SAL.Peek_Type;
       Parse_Items       : aliased    out          Parse_Item_Arrays.Vector;
       Config            :         in              Configuration;
-      Shared_Token_Goal :         in              Syntax_Trees.Node_Index;
+      Shared_Token_Goal :         in              Syntax_Trees.Base_Sequential_Index;
       All_Conflicts     :         in              Boolean;
       Trace_Prefix      :         in              String)
      return Boolean;
    --  Attempt to parse Config and any conflict configs. A config is
    --  parsed when Config.Insert_Delete is all processed, and either
-   --  Shared_Token_Goal = Invalid_Token_Index, or Shared_Token_Goal is
+   --  Shared_Token_Goal = Invalid_Sequential_Index, or Shared_Token_Goal is
    --  shifted or an error is encountered. If All_Conflicts, return when
    --  all conflict configs have been parsed; if not All_Conflicts,
    --  return when one config is parsed without error.

@@ -310,7 +310,7 @@ package body WisiToken.Parse.LR is
                Param.Check_Delta_Limit := Value;
 
             elsif Name = "check_limit" then
-               Param.Check_Limit := Syntax_Trees.Node_Index (Value);
+               Param.Check_Limit := Syntax_Trees.Sequential_Index (Value);
 
             elsif Name = "enqueue_limit" then
                Param.Enqueue_Limit := Value;
@@ -731,7 +731,9 @@ package body WisiToken.Parse.LR is
    end Get_Text_Rep;
 
    function Equal (Left : in Config_Op; Right : in Insert_Op) return Boolean
-   is begin
+   is
+      use all type WisiToken.Syntax_Trees.Sequential_Index;
+   begin
       return Left.Op = Insert and then
         Left.Ins_ID = Right.Ins_ID and then
         Left.Ins_Before = Right.Ins_Before;
@@ -789,13 +791,9 @@ package body WisiToken.Parse.LR is
    end Image;
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean
-   is
-      use all type WisiToken.Syntax_Trees.Node_Access;
-   begin
+   is begin
       for I in 1 .. Depth loop
-         if Stack.Peek (I).Token.Virtual and then
-           Stack.Peek (I).Token.First_Terminal = Syntax_Trees.Invalid_Node_Access
-         then
+         if Stack.Peek (I).Token.Virtual then
             return False;
          end if;
       end loop;

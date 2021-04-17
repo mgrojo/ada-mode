@@ -21,6 +21,7 @@ overriding procedure Parse
 is
    use all type KMN_Lists.List;
    use all type Ada.Strings.Unbounded.Unbounded_String;
+   use all type WisiToken.Syntax_Trees.Sequential_Index;
    use all type Syntax_Trees.User_Data_Access;
    use all type Ada.Containers.Count_Type;
 
@@ -126,17 +127,6 @@ begin
 
                   Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
 
-                  Next_Shared_Terminal : constant Syntax_Trees.Terminal_Ref := Parser_Lists.Peek_Next_Shared_Terminal
-                    (Parser_State, Tree);
-                  --  Next_Shared_Terminal can be Virtual. There can be Virtual
-                  --  terminals in the Shared_Stream from previous error recovery, and
-                  --  Edit_Tree can raise them or a containing nonterm in which they are
-                  --  first to the shared stream. ada_mode-interactive_1.adb Proc_1.
-                  --
-                  --  There can be no Virtual terminals in the parse stream input; error
-                  --  recover does not push back over them, since recomputing them is a
-                  --  waste of time.
-
                   function Insert_Virtual return Boolean
                   is
                      Ins_Del     : Vector renames Parser_State.Recover_Insert_Delete;
@@ -146,11 +136,23 @@ begin
                         return False;
                      end if;
                      declare
+                        Next_Sequential_Terminal : constant Syntax_Trees.Terminal_Ref :=
+                          Parser_State.Peek_Next_Sequential_Terminal (Tree).Ref;
+                        --  Next_Sequential_Terminal can be Virtual; there can be Virtual
+                        --  terminals in the Shared_Stream from previous error recovery, and
+                        --  Edit_Tree can raise them or a containing nonterm in which they are
+                        --  first to the shared stream. ada_mode-interactive_1.adb Proc_1.
+                        --
+                        --  There can also be Virtual terminals in the parse stream input,
+                        --  after Left_Breakdown of a Shared_Stream nonterm containing virtual
+                        --  terminals.
+
                         Op : Recover_Op renames Variable_Ref (Ins_Del, Ins_Del_Cur);
                      begin
-                        if Op.Op = Insert and then Op.Ins_Before = Tree.Get_Node_Index (Next_Shared_Terminal.Node)
+                        if Op.Op = Insert and then Op.Ins_Before = Tree.Get_Sequential_Index
+                          (Next_Sequential_Terminal.Node)
                         then
-                           --  We know Next_Shared_Terminal is the first terminal of
+                           --  We know Next_Sequential_Terminal is the first terminal of
                            --  Current_Token, and therefore we can insert before it. If it was
                            --  embedded in a nonterm, that nonterm would have been broken down in
                            --  order to shift the previous terminals.
@@ -435,6 +437,8 @@ begin
                --  Terminate with error. Parser_State has all the required info on
                --  the original error (recorded by Error in Do_Action); report reason
                --  recover failed.
+               McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
+
                for Parser_State of Shared_Parser.Parsers loop
                   Parser_State.Errors.Append
                     ((Label          => LR.Message,

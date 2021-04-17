@@ -44,18 +44,22 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       for T of Tokens loop
          Nonterm.Contains_Virtual_Terminal := @ or Tree.Contains_Virtual_Terminal (T);
 
-         if Nonterm.Byte_Region.First > Tree.Byte_Region (T).First then
-            Nonterm.Byte_Region.First := Tree.Byte_Region (T).First;
-         end if;
+         declare
+            Byte_Region : constant Buffer_Region := Tree.Byte_Region (T);
+         begin
+            if Nonterm.Byte_Region.First > Byte_Region.First then
+               Nonterm.Byte_Region.First := Byte_Region.First;
+            end if;
 
-         if Nonterm.Byte_Region.Last < Tree.Byte_Region (T).Last then
-            Nonterm.Byte_Region.Last := Tree.Byte_Region (T).Last;
-         end if;
+            if Nonterm.Byte_Region.Last < Byte_Region.Last then
+               Nonterm.Byte_Region.Last := Byte_Region.Last;
+            end if;
+         end;
 
          if not First_Terminal_Set then
-            if Tree.First_Terminal (T) /= Syntax_Trees.Invalid_Node_Access then
-               First_Terminal_Set     := True;
-               Nonterm.First_Terminal := Tree.First_Terminal (T);
+            Nonterm.First_Terminal := Tree.First_Terminal (T);
+            if Nonterm.First_Terminal /= Syntax_Trees.Invalid_Node_Access then
+               First_Terminal_Set := True;
             end if;
          end if;
       end loop;
@@ -183,13 +187,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       end if;
 
       declare
-         Next_Node : constant Node_Access := Peek_Current_First_Shared_Terminal
+         Next_Node : constant Node_Access := Peek_Current_First_Sequential_Terminal
            (Tree, Config, Following_Element => False);
       begin
          return Next_Node /= Invalid_Node_Access and then
            Config.Current_Insert_Delete /= No_Insert_Delete and then
            Token_Index (Constant_Ref (Config.Insert_Delete, Config.Current_Insert_Delete)) =
-           Get_Node_Index (Next_Node);
+           Tree.Get_Sequential_Index (Next_Node);
       end;
    end Delete_Current_Applies;
 
@@ -200,14 +204,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    is
       use Config_Op_Arrays;
       use Config_Op_Array_Refs;
+      use all type WisiToken.Syntax_Trees.Sequential_Index;
    begin
       if Config.Current_Insert_Delete /= No_Insert_Delete and then
         (declare
             Next_Shared_Node : constant Syntax_Trees.Valid_Node_Access :=
-              Peek_Current_First_Shared_Terminal (Tree, Config);
+              Peek_Current_First_Sequential_Terminal (Tree, Config);
          begin
             Token_Index (Constant_Ref (Config.Insert_Delete, Config.Current_Insert_Delete)) =
-              Tree.Get_Node_Index (Next_Shared_Node))
+              Tree.Get_Sequential_Index (Next_Shared_Node))
       then
          declare
             Op : Insert_Delete_Op renames Constant_Ref (Config.Insert_Delete, Config.Current_Insert_Delete);
@@ -247,18 +252,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       --  not have to here, but rather than rely on that and special case it
       --  here, we handle all three in the same way.
 
-      Tokens_Last           : Integer            := 0;
-      Current_Insert_Delete : SAL.Base_Peek_Type := Config.Current_Insert_Delete;
-      Peek_State            : Peek_Shared_State  := Peek_Shared_Start (Tree, Config);
-      Inc_Shared_Token      : Boolean            := True;
+      Tokens_Last           : Integer               := 0;
+      Current_Insert_Delete : SAL.Base_Peek_Type    := Config.Current_Insert_Delete;
+      Peek_State            : Peek_Sequential_State := Peek_Sequential_Start (Tree, Config);
+      Inc_Shared_Token      : Boolean               := True;
    begin
       loop -- three tokens, Op = Delete
          declare
-            Next_Node : constant Valid_Node_Access := Peek_Shared_Terminal (Peek_State);
+            Next_Node : constant Valid_Node_Access := Peek_Sequential_Terminal (Peek_State);
          begin
             if Current_Insert_Delete /= No_Insert_Delete and then
               Token_Index (Constant_Ref (Config.Insert_Delete, Current_Insert_Delete)) =
-              Tree.Get_Node_Index (Next_Node)
+              Tree.Get_Sequential_Index (Next_Node)
             then
                Inc_Shared_Token     := False;
                declare
@@ -270,7 +275,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                      Tokens (Tokens_Last) := ID (Op);
 
                   when Delete =>
-                     Peek_Next_Shared_Terminal (Tree, Peek_State);
+                     Peek_Next_Sequential_Terminal (Tree, Peek_State);
                   end case;
 
                   Current_Insert_Delete := @ + 1;
@@ -289,7 +294,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          exit when Tokens (Tokens_Last) = Tree.Lexer.Descriptor.EOI_ID or Tokens_Last = 3;
 
          if Inc_Shared_Token then
-            Peek_Next_Shared_Terminal (Tree, Peek_State);
+            Peek_Next_Sequential_Terminal (Tree, Peek_State);
          end if;
       end loop;
 
@@ -333,7 +338,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       return Tree.First_Terminal (Config.Current_Shared_Token).Node;
    end Peek_Current_First_Terminal;
 
-   function Peek_Current_First_Shared_Terminal
+   function Peek_Current_First_Sequential_Terminal
      (Tree              : in Syntax_Trees.Tree;
       Config            : in Configuration;
       Following_Element : in Boolean := True)
@@ -346,7 +351,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          declare
             Ref : Config_Stream_Parents (Config.Input_Stream'Access);
          begin
-            First_Shared_Terminal (Tree, Ref);
+            First_Sequential_Terminal (Tree, Ref);
             if Ref.Node /= Invalid_Node_Access then
                return Ref.Node;
             end if;
@@ -357,15 +362,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          declare
             Temp : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
          begin
-            Tree.Next_Shared_Terminal (Temp);
+            Tree.Next_Sequential_Terminal (Temp);
             return Temp.Ref.Node;
          end;
       else
          return Config.Current_Shared_Token.Node;
       end if;
-   end Peek_Current_First_Shared_Terminal;
+   end Peek_Current_First_Sequential_Terminal;
 
-   procedure First_Shared_Terminal
+   procedure First_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Config_Stream_Parents)
    is
@@ -378,13 +383,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       loop
          exit when not Has_Element (Ref.Element);
 
-         Ref.Node := Tree.First_Shared_Terminal (Ref.Stream.Element (Ref.Element), Ref.Parents);
+         Ref.Node := Tree.First_Sequential_Terminal (Ref.Stream.Element (Ref.Element), Ref.Parents);
 
          exit when Ref.Node /= Invalid_Node_Access;
 
          Ref.Stream.Next (Ref.Element);
       end loop;
-   end First_Shared_Terminal;
+   end First_Sequential_Terminal;
 
    function First_Terminal
      (Tree   : in Syntax_Trees.Tree;
@@ -425,7 +430,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       end loop;
    end First_Terminal;
 
-   procedure Last_Shared_Terminal
+   procedure Last_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Config_Stream_Parents)
    is
@@ -438,31 +443,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       loop
          exit when not Has_Element (Ref.Element);
 
-         Ref.Node := Tree.Last_Shared_Terminal (Ref.Stream.all (Ref.Element), Ref.Parents);
+         Ref.Node := Tree.Last_Sequential_Terminal (Ref.Stream.all (Ref.Element), Ref.Parents);
          exit when Ref.Node /= Invalid_Node_Access;
 
          Ref.Stream.Previous (Ref.Element);
       end loop;
-   end Last_Shared_Terminal;
+   end Last_Sequential_Terminal;
 
-   function First_Input_Shared_Terminal
-     (Tree   :         in Syntax_Trees.Tree;
-      Config : aliased in Configuration)
-     return Syntax_Trees.Node_Access
-   is
-      Ref : Config_Stream_Parents (Config.Input_Stream'Access);
-   begin
-      First_Shared_Terminal (Tree, Ref);
-      return Ref.Node;
-   end First_Input_Shared_Terminal;
-
-   procedure Next_Shared_Terminal
+   procedure Next_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Config_Stream_Parents)
    is
       use Bounded_Streams;
    begin
-      Tree.Next_Shared_Terminal (Ref.Node, Ref.Parents);
+      Tree.Next_Sequential_Terminal (Ref.Node, Ref.Parents);
 
       loop
          exit when Ref.Node /= Syntax_Trees.Invalid_Node_Access;
@@ -471,17 +465,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             Ref.Node := Syntax_Trees.Invalid_Node_Access;
             exit;
          end if;
-         Ref.Node := Tree.First_Shared_Terminal (Ref.Stream.all (Ref.Element), Ref.Parents);
+         Ref.Node := Tree.First_Sequential_Terminal (Ref.Stream.all (Ref.Element), Ref.Parents);
       end loop;
-   end Next_Shared_Terminal;
+   end Next_Sequential_Terminal;
 
-   procedure Prev_Shared_Terminal
+   procedure Prev_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Config_Stream_Parents)
    is
       use Bounded_Streams;
    begin
-      Tree.Prev_Shared_Terminal (Ref.Node, Ref.Parents);
+      Tree.Prev_Sequential_Terminal (Ref.Node, Ref.Parents);
 
       loop
          exit when Ref.Node /= Syntax_Trees.Invalid_Node_Access;
@@ -490,9 +484,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             Ref.Node := Syntax_Trees.Invalid_Node_Access;
             exit;
          end if;
-         Ref.Node := Tree.Last_Shared_Terminal (Ref.Stream.all (Ref.Element), Ref.Parents);
+         Ref.Node := Tree.Last_Sequential_Terminal (Ref.Stream.all (Ref.Element), Ref.Parents);
       end loop;
-   end Prev_Shared_Terminal;
+   end Prev_Sequential_Terminal;
 
    procedure Do_Delete
      (Tree   : in     Syntax_Trees.Tree;
@@ -519,7 +513,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          begin
             exit when Tree.Label (Next_Node) in Terminal_Label;
 
-            Left_Breakdown (Tree, Config.Input_Stream);
+            if Tree.Is_Empty_Nonterm (Next_Node) then
+               Config.Input_Stream.Delete_First;
+            else
+               Left_Breakdown (Tree, Config.Input_Stream);
+            end if;
          end;
       end loop;
 
@@ -556,11 +554,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       loop -- Op = Delete requires loop
          if Config.Current_Insert_Delete /= No_Insert_Delete and then
            (declare
-               Current_Shared_Node : constant Syntax_Trees.Valid_Node_Access := Peek_Current_First_Shared_Terminal
+               Current_Shared_Node : constant Syntax_Trees.Valid_Node_Access := Peek_Current_First_Sequential_Terminal
                  (Tree, Config);
             begin
                Token_Index (Constant_Ref (Config.Insert_Delete, Config.Current_Insert_Delete)) =
-                 Tree.Get_Node_Index (Current_Shared_Node))
+                 Tree.Get_Sequential_Index (Current_Shared_Node))
          then
             declare
                Op : Insert_Delete_Op renames Constant_Ref (Config.Insert_Delete, Config.Current_Insert_Delete);
@@ -610,6 +608,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    is
       use Config_Op_Arrays, Config_Op_Array_Refs;
       use all type Bounded_Streams.Cursor;
+      use all type WisiToken.Syntax_Trees.Sequential_Index;
    begin
       if Last_Index (Config.Insert_Delete) > 0 and then
         Config.Current_Insert_Delete = Last_Index (Config.Insert_Delete)
@@ -618,14 +617,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          Clear (Config.Insert_Delete);
       else
          declare
-            Next_Node : constant Syntax_Trees.Valid_Node_Access :=
-              (if Config.Input_Stream.First /= Bounded_Streams.No_Element
-               then First_Input_Shared_Terminal (Tree, Config)
-               else Config.Current_Shared_Token.Node);
+            Current_Shared_Node : constant Syntax_Trees.Valid_Node_Access := Peek_Current_First_Sequential_Terminal
+              (Tree, Config);
          begin
             if Config.Current_Insert_Delete /= No_Insert_Delete and then
               Token_Index (Constant_Ref (Config.Insert_Delete, Config.Current_Insert_Delete + 1)) =
-              Tree.Get_Node_Index (Next_Node)
+              Tree.Get_Sequential_Index (Current_Shared_Node)
             then
                Config.Current_Insert_Delete := @ + 1;
 
@@ -650,12 +647,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Parser_Index      :         in              SAL.Peek_Type;
       Parse_Items       : aliased in out          Parse_Item_Arrays.Vector;
       Parse_Item_Index  :         in              Positive;
-      Shared_Token_Goal :         in              Syntax_Trees.Node_Index;
+      Shared_Token_Goal :         in              Syntax_Trees.Base_Sequential_Index;
       Trace_Prefix      :         in              String)
      return Boolean
    --  Perform parse actions on Parse_Items (Parse_Item_Index), until it
    --  encounters an error (return False) or Shared_Token_Goal is shifted
-   --  (return True).
+   --  (return True), or if Shared_Token_Goal is
+   --  Invalid_Sequential_Index, until Item.Config.Insert_Delete is
+   --  empty.
    --
    --  We return Boolean, not Status, because Abandon and Continue
    --  are up to the caller.
@@ -667,6 +666,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       use Parse_Item_Arrays;
       use Config_Op_Arrays;
       use all type In_Parse_Actions.Status_Label;
+      use all type WisiToken.Syntax_Trees.Sequential_Index;
 
       Trace      : WisiToken.Trace'Class renames Super.Trace.all;
       Tree       : WisiToken.Syntax_Trees.Tree renames Super.Tree.all;
@@ -785,7 +785,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             end if;
          end if;
 
-         if Shared_Token_Goal /= Syntax_Trees.Invalid_Node_Index then
+         if Shared_Token_Goal /= Syntax_Trees.Invalid_Sequential_Index then
             Put_Line (Trace, Tree, Super.Stream (Parser_Index), Trace_Prefix & ": Shared_Token_Goal :" &
                         Shared_Token_Goal'Image);
          end if;
@@ -896,9 +896,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          exit when not Success or
            Action.Verb = Accept_It or
-           (if Shared_Token_Goal = Syntax_Trees.Invalid_Node_Index
+           (if Shared_Token_Goal = Syntax_Trees.Invalid_Sequential_Index
             then Length (Config.Insert_Delete) = 0
-            else Super.Tree.Get_Node_Index (Peek_Current_First_Shared_Terminal (Tree, Config)) > Shared_Token_Goal);
+            else Super.Tree.Get_Sequential_Index (Peek_Current_First_Sequential_Terminal (Tree, Config)) >
+              Shared_Token_Goal);
 
          Get_Action;
       end loop;
@@ -912,7 +913,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Parser_Index      :         in              SAL.Peek_Type;
       Parse_Items       : aliased    out          Parse_Item_Arrays.Vector;
       Config            :         in              Configuration;
-      Shared_Token_Goal :         in              Syntax_Trees.Node_Index;
+      Shared_Token_Goal :         in              Syntax_Trees.Base_Sequential_Index;
       All_Conflicts     :         in              Boolean;
       Trace_Prefix      :         in              String)
      return Boolean

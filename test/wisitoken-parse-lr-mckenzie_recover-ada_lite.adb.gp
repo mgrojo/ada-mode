@@ -95,19 +95,21 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    end Find_Matching_Name;
 
    procedure Handle_Check_Fail
-     (Trace             : in out WisiToken.Trace'Class;
-      Parser_Label      : in     Syntax_Trees.Stream_ID;
-      Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
-      Tree              : in     Syntax_Trees.Tree;
-      Local_Config_Heap : in out Config_Heaps.Heap_Type;
-      Config            : in     Configuration)
+     (Super             : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
+      Parser_Index      : in              SAL.Peek_Type;
+      Parse_Table       : in              WisiToken.Parse.LR.Parse_Table;
+      Local_Config_Heap : in out          Config_Heaps.Heap_Type;
+      Config            : in              Configuration)
    with Pre => Config.User_Parse_Action_Status.Label /= Ok
    is
       use Syntax_Trees;
 
+      Tree         : Syntax_Trees.Tree renames Super.Tree.all;
+      Parser_Label : constant Syntax_Trees.Stream_ID := Super.Stream (Parser_Index);
+
       procedure Put (Message : in String; Config : in Configuration)
       is begin
-         Put (Message, Trace, Tree, Parser_Label, Config);
+         Put (Message, Super.Trace.all, Tree, Parser_Label, Config);
       end Put;
 
       Begin_Name_Token : Recover_Token renames Config.User_Parse_Action_Status.Begin_Name;
@@ -188,7 +190,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   New_Config.User_Parse_Action_Status := (Label   => Ok);
 
                   Push_Back_Check
-                    (Tree, New_Config,
+                    (Super, New_Config,
                      (+SEMICOLON_ID,
                       (if Tree.ID (Config.Error_Token) = +block_statement_ID
                        then +identifier_opt_ID
@@ -205,7 +207,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                      return;
                   end if;
 
-                  Push_Back_Check (Tree, New_Config, +END_ID);
+                  Push_Back_Check (Super, New_Config, +END_ID);
                   Insert (Tree, New_Config, (+END_ID, +SEMICOLON_ID));
 
                   Local_Config_Heap.Add (New_Config);
@@ -214,7 +216,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                      Put ("Language_Fixes Match_Names_Error 1 " & Image (Tree.ID (Config.Error_Token), Descriptor),
                           New_Config);
                      if Trace_McKenzie > Extra then
-                        Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Tree));
+                        Super.Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Tree));
                      end if;
                   end if;
                end;
@@ -292,7 +294,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
                Push_Back_Check
-                 (Tree, New_Config,
+                 (Super, New_Config,
                   (+SEMICOLON_ID,
                    (if Tree.ID (Config.Error_Token) = +block_statement_ID
                     then +identifier_opt_ID
@@ -300,7 +302,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                    +END_ID));
 
                Undo_Reduce_Check
-                 (New_Config, Tree, Parse_Table,
+                 (Super, Parse_Table, New_Config,
                   (+handled_sequence_of_statements_ID,
                    +sequence_of_statements_ID));
 
@@ -318,7 +320,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                     ("Language_Fixes Missing_Name_Error 1a " & Image (Tree.ID (Config.Error_Token), Descriptor),
                      New_Config);
                   if Trace_McKenzie > Extra then
-                     Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Tree));
+                     Super.Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Tree));
                   end if;
                end if;
                Local_Config_Heap.Add (New_Config);
@@ -338,7 +340,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
                Push_Back_Check
-                 (Tree, New_Config,
+                 (Super, New_Config,
                   (+SEMICOLON_ID,
                    (if Tree.ID (Config.Error_Token) = +block_statement_ID
                     then +identifier_opt_ID
@@ -351,7 +353,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   Put ("Language_Fixes Missing_Name_Error 1b " &
                          Image (Tree.ID (Config.Error_Token), Descriptor), New_Config);
                   if Trace_McKenzie > Extra then
-                     Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Tree));
+                     Super.Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Tree));
                   end if;
                end if;
                Local_Config_Heap.Add (New_Config);
@@ -428,7 +430,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
                   --  Push_Back the failed reduce tokens.
                   for I in 1 .. Token_Count loop
-                     Push_Back (Tree, New_Config, Push_Back_Undo_Reduce => True);
+                     Push_Back (Super, New_Config, Push_Back_Undo_Reduce => True);
                   end loop;
 
                   Insert (Tree, New_Config, +END_ID);
@@ -440,7 +442,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                      Put ("Language_Fixes Extra_Name_Error 1 " & Image
                             (Tree.ID (Config.Error_Token), Descriptor), New_Config);
                      if Trace_McKenzie > Extra then
-                        Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Tree));
+                        Super.Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Tree));
                      end if;
                   end if;
                   Local_Config_Heap.Add (New_Config);
@@ -459,7 +461,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   New_Config.User_Parse_Action_Status := (Label   => Ok);
 
                   Push_Back_Check
-                    (Tree, New_Config,
+                    (Super, New_Config,
                      (+SEMICOLON_ID,
                      (if Tree.ID (Config.Error_Token) = +block_statement_ID
                       then +identifier_opt_ID
@@ -484,19 +486,21 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    end Handle_Check_Fail;
 
    procedure Handle_Parse_Error
-     (Trace             : in out WisiToken.Trace'Class;
-      Parser_Label      : in     Syntax_Trees.Stream_ID;
+     (Super             : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
+      Parser_Index      : in              SAL.Peek_Type;
       Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
-      Tree              : in     Syntax_Trees.Tree;
-      Local_Config_Heap : in out Config_Heaps.Heap_Type;
-      Config            : in     Configuration)
+      Local_Config_Heap : in out          Config_Heaps.Heap_Type;
+      Config            : in              Configuration)
    with Pre => Config.User_Parse_Action_Status.Label = Ok
    is
       use Syntax_Trees;
 
+      Tree         : Syntax_Trees.Tree renames Super.Tree.all;
+      Parser_Label : constant Syntax_Trees.Stream_ID := Super.Stream (Parser_Index);
+
       procedure Put (Message : in String; Config : in Configuration)
       is begin
-         Put (Message, Trace, Tree, Parser_Label, Config);
+         Put (Message, Super.Trace.all, Tree, Parser_Label, Config);
       end Put;
    begin
       if Tree.ID (Config.Error_Token) = +DOT_ID then
@@ -543,7 +547,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
             begin
                New_Config_1.Error_Token := Invalid_Recover_Token;
 
-               Push_Back_Check (Tree, New_Config_1, (+IDENTIFIER_ID, +END_ID));
+               Push_Back_Check (Super, New_Config_1, (+IDENTIFIER_ID, +END_ID));
 
                case To_Token_Enum (Tree.ID (New_Config_1.Stack.Peek (3).Token)) is
                when block_label_opt_ID =>
@@ -564,7 +568,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   end;
 
                   Push_Back_Check
-                    (Tree, New_Config_1,
+                    (Super, New_Config_1,
                      (+handled_sequence_of_statements_ID, +BEGIN_ID, +block_label_opt_ID));
                   Insert (Tree, New_Config_1, (+END_ID, +SEMICOLON_ID));
 
@@ -629,7 +633,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
                   New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
-                  Push_Back_Check (Tree, New_Config, +END_ID);
+                  Push_Back_Check (Super, New_Config, +END_ID);
 
                   --  Inserting the end keyword and semicolon here avoids the costs added by
                   --  Insert_Minimal_Complete_Actions.
@@ -656,23 +660,24 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    --  Public subprograms
 
    procedure Fixes
-     (Trace             : in out WisiToken.Trace'Class;
-      Parser_Label      : in     Syntax_Trees.Stream_ID;
-      Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
-      Tree              : in     Syntax_Trees.Tree;
+     (Super             : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
+      Parser_Index      : in              SAL.Peek_Type;
+      Parse_Table       : in              WisiToken.Parse.LR.Parse_Table;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
    is begin
       if Trace_McKenzie > Extra then
-         Put_Line (Trace, Tree, Parser_Label, "Language_Fixes stack: " & LR.Image (Config.Stack, Tree));
+         Put_Line
+           (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index), "Language_Fixes stack: " & LR.Image
+              (Config.Stack, Super.Tree.all));
       end if;
 
       case Config.User_Parse_Action_Status.Label is
       when Ok =>
-         Handle_Parse_Error (Trace, Parser_Label, Parse_Table, Tree, Local_Config_Heap, Config);
+         Handle_Parse_Error (Super, Parser_Index, Parse_Table, Local_Config_Heap, Config);
 
       when others =>
-         Handle_Check_Fail (Trace, Parser_Label, Parse_Table, Tree, Local_Config_Heap, Config);
+         Handle_Check_Fail (Super, Parser_Index, Parse_Table, Local_Config_Heap, Config);
       end case;
    end Fixes;
 

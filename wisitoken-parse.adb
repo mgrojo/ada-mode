@@ -263,7 +263,7 @@ package body WisiToken.Parse is
 
       Stream := Tree.Shared_Stream;
 
-      Terminal := Tree.First_Shared_Terminal (Tree.Stream_First (Stream));
+      Terminal := Tree.First_Terminal (Tree.Stream_First (Stream));
 
       if Edits.Length = 0 then
          return;

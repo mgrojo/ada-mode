@@ -84,7 +84,7 @@ package WisiToken.Parse.LR.Parser_Lists is
 
       Resume_Active : Boolean := False;
 
-      Resume_Token_Goal : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+      Resume_Token_Goal : Syntax_Trees.Base_Sequential_Index := Syntax_Trees.Invalid_Sequential_Index;
       --  Set at the end of recovery, so during recovery it is the end of
       --  the previous recover session.
 
@@ -96,27 +96,21 @@ package WisiToken.Parse.LR.Parser_Lists is
    type Parser_State is new Base_Parser_State with private;
    type State_Access is access all Parser_State;
 
-   function Peek_Current_Shared_Terminal
+   function Peek_Current_Sequential_Terminal
      (Parser_State : in Parser_Lists.Parser_State;
       Tree         : in Syntax_Trees.Tree)
      return Syntax_Trees.Terminal_Ref;
-   --  Return first shared terminal from current token, ignoring
-   --  insert/delete, or a following token if that is an empty nonterm.
-   --  For comparison with insert/delete token index in
-   --  error recover.
-   --
-   --  In error recover we compare insert/delete to the current token,
-   --  because the main parse should have done the insert/delete before
-   --  making that token current.
+   --  Return first terminal with a valid Sequential_Index from current
+   --  token or a following token if current is an empty nonterm. For
+   --  comparison with insert/delete token index in error recover.
 
-   function Peek_Next_Shared_Terminal
+   function Peek_Next_Sequential_Terminal
      (Parser_State : in Parser_Lists.Parser_State;
       Tree         : in Syntax_Trees.Tree)
-     return Syntax_Trees.Terminal_Ref;
-   --  Return first shared terminal from token that will be current after
-   --  Next_Token, ignoring insert/delete, or a following token if that
-   --  is an empty nonterm. For comparison with insert/delete token index
-   --  in main parse.
+     return Syntax_Trees.Stream_Node_Parents;
+   --  Return the terminal with a valid Sequential_Index that will be
+   --  next after Next_Token. For comparison with insert/delete token
+   --  index in main parse.
    --
    --  We compare insert/delete to the next token, because the
    --  insert/delete should be done instead of making that token current.
@@ -128,10 +122,11 @@ package WisiToken.Parse.LR.Parser_Lists is
       Delete       : in     Boolean);
    --  Increment Parser_State.Shared_Token or Tree.Parse_Stream to next
    --  token. If Set_Current, also update Current_Token,
-   --  Inc_Shared_Stream_Token, Inc_Parse_Stream_Token.
+   --  Inc_Shared_Stream_Token.
    --
-   --  If Delete, implements the Delete recover operation. Otherwise
-   --  implement the main parser next token operation.
+   --  If Delete, implements the Delete recover operation.
+   --
+   --  Otherwise implement the main parser next token operation.
 
    type List is tagged private
    with

@@ -27,15 +27,16 @@ with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Lexer;
 with WisiToken.Parse;
 with WisiToken.Syntax_Trees;
+limited with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package WisiToken.Parse.LR.Parser is
+   type Parser;
 
    type Language_Fixes_Access is access procedure
-     (Trace             : in out WisiToken.Trace'Class;
-      Parser_Label      : in     Syntax_Trees.Stream_ID;
-      Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
-      Tree              : in     Syntax_Trees.Tree;
-      Local_Config_Heap : in out Config_Heaps.Heap_Type;
-      Config            : in     Configuration);
+     (Super             : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
+      Parser_Index      : in              SAL.Peek_Type;
+      Parse_Table       : in              WisiToken.Parse.LR.Parse_Table;
+      Local_Config_Heap : in out          Config_Heaps.Heap_Type;
+      Config            : in              Configuration);
    --  Config encountered a parse table Error action, or failed a
    --  semantic check; attempt to provide a language-specific fix,
    --  enqueuing new configs on Local_Config_Heap.
@@ -93,6 +94,11 @@ package WisiToken.Parse.LR.Parser is
       Partial_Parse_Active    : access Boolean;
       Partial_Parse_Byte_Goal : access WisiToken.Buffer_Pos;
       --  Used by In_Parse_Actions to terminate Partial_Parse.
+
+      Min_Sequential_Index : Syntax_Trees.Base_Sequential_Index := Syntax_Trees.Invalid_Sequential_Index;
+      Max_Sequential_Index : Syntax_Trees.Base_Sequential_Index := Syntax_Trees.Invalid_Sequential_Index;
+      --  Copied from Supervisor for McKenzie_Recover.Clear_Sequential_Index
+
    end record;
 
    overriding procedure Finalize (Object : in out LR.Parser.Parser);

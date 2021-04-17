@@ -17,13 +17,13 @@
 
 pragma License (Modified_GPL);
 
+with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
    procedure Fixes
-     (Trace             : in out WisiToken.Trace'Class;
-      Parser_Label      : in     Syntax_Trees.Stream_ID;
-      Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
-      Tree              : in     Syntax_Trees.Tree;
+     (Super             : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
+      Parser_Index      : in              SAL.Peek_Type;
+      Parse_Table       : in              WisiToken.Parse.LR.Parse_Table;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration);
 

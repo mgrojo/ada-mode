@@ -30,6 +30,7 @@ package WisiToken.Syntax_Trees.AUnit_Public is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Label);
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index);
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Base_Sequential_Index);
 
    procedure Check (Label : in String; Computed, Expected : in Recover_Token);
    --  Not all components checked.

@@ -209,7 +209,7 @@ private
       Buffer_Nominal_First_Byte : Buffer_Pos       := Invalid_Buffer_Pos;
       Buffer_Nominal_First_Char : Buffer_Pos       := Invalid_Buffer_Pos;
       Line_Nominal_First        : Line_Number_Type := Invalid_Line_Number;
-      Buffer_Last : Positive;
+      Buffer_Last               : Natural          := 0; -- allow empty input string
 
       case Label is
       when String_Label =>
