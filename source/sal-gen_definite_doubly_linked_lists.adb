@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -159,39 +159,22 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
 
    procedure Next (Position : in out Cursor)
    is begin
-      if Position.Ptr /= null then
-         if Position.Ptr.Next = null then
-            Position.Ptr := null;
-         else
-            Position.Ptr := Position.Ptr.Next;
-         end if;
-      end if;
+      Position.Ptr := Position.Ptr.Next;
    end Next;
 
    function Next (Position : in Cursor) return Cursor
    is begin
-      if Position.Ptr = null then
-         return Position;
-      else
-         if Position.Ptr.Next = null then
-            return (Ptr => null);
-         else
-            return (Ptr => Position.Ptr.Next);
-         end if;
-      end if;
+      return (Ptr => Position.Ptr.Next);
    end Next;
+
+   procedure Previous (Position : in out Cursor)
+   is begin
+      Position.Ptr := Position.Ptr.Prev;
+   end Previous;
 
    function Previous (Position : in Cursor) return Cursor
    is begin
-      if Position.Ptr = null then
-         return Position;
-      else
-         if Position.Ptr.Prev = null then
-            return (Ptr => null);
-         else
-            return (Ptr => Position.Ptr.Prev);
-         end if;
-      end if;
+      return (Ptr => Position.Ptr.Prev);
    end Previous;
 
    function Element (Position : in Cursor) return Element_Type
