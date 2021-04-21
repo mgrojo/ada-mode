@@ -74,7 +74,7 @@ package body Wisi is
    procedure Indent_Apply_Int
      (Indent                 : in out Indent_Type;
       Offset                 : in     Integer;
-      Controlling_Token_Line : in     Line_Number_Type)
+      Controlling_Token_Line : in     Base_Line_Number_Type)
    is begin
       --  Add an Int indent to Indent
       case Indent.Label is
@@ -262,9 +262,9 @@ package body Wisi is
    end Put;
 
    procedure Put
-     (Tree        : in Syntax_Trees.Tree;
-      Line_Number : in Line_Number_Type;
-      Item        : in Indent_Type)
+     (Tree : in Syntax_Trees.Tree;
+      Line : in Line_Number_Type;
+      Item : in Indent_Type)
    is begin
       --  All Anchors must be resolved at this point, but not all lines have
       --  an indent computed. A negative indent is an error in either the
@@ -278,8 +278,14 @@ package body Wisi is
          declare
             --  We can easily get negative indents when there are syntax errors.
             Ind : constant Integer := Integer'Max (0, Item.Int_Indent);
-            Line_Begin_Char_Pos : Base_Buffer_Pos;
-            Node : constant Syntax_Trees.Node_Access := Tree.Find_New_Line (Line_Number, Line_Begin_Char_Pos);
+            Line_Begin_Char_Pos : Base_Buffer_Pos :=
+              (if Line = Line_Number_Type'First
+               then Buffer_Pos'First
+               else Base_Buffer_Pos'Last);
+            Node : constant Syntax_Trees.Node_Access :=
+              (if Line = Line_Number_Type'First
+               then Syntax_Trees.Invalid_Node_Access
+               else Tree.Find_New_Line (Line, Line_Begin_Char_Pos));
             pragma Unreferenced (Node);
          begin
             if Debug_Mode and Ind > 100 then
@@ -288,7 +294,7 @@ package body Wisi is
             end if;
             Ada.Text_IO.Put_Line
               --  elisp doesn't need line number, but it is very helpful for debugging
-              ('[' & Indent_Code & Line_Number_Type'Image (Line_Number) & Line_Begin_Char_Pos'Image & Ind'Image & ']');
+              ('[' & Indent_Code & Line'Image & Line_Begin_Char_Pos'Image & Ind'Image & ']');
          end;
 
       when Anchored =>
@@ -323,7 +329,7 @@ package body Wisi is
       Line           : Unbounded_String    := To_Unbounded_String ("[");
       Deleted_Region : Buffer_Region       := Null_Buffer_Region;
       Last_Deleted   : Recover_Op (Delete) :=
-        (Delete, Invalid_Buffer_Pos, Invalid_Token_ID, Syntax_Trees.Invalid_Node_Index,
+        (Delete, Invalid_Buffer_Pos, Invalid_Token_ID, Syntax_Trees.Sequential_Index'Last,
          Syntax_Trees.Invalid_Node_Access, Syntax_Trees.Invalid_Node_Access);
 
       procedure Start_Edit_Region (Error_Pos, Edit_Pos : in Buffer_Pos)
@@ -489,7 +495,7 @@ package body Wisi is
          Data.Trace.New_Line;
          Data.Trace.Put_Line ("Begin_Indent: " & Integer'Image (Data.Begin_Indent));
          for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
-            Data.Trace.Put_Line ("" & Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
+            Data.Trace.Put_Line (Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
          end loop;
          Data.Trace.Put_Line ("resolve anchors");
       end if;
@@ -514,6 +520,15 @@ package body Wisi is
             end case;
          end;
       end loop;
+
+      if Trace_Action > Outline then
+         for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
+            if I in Data.Action_Region_Lines.First .. Data.Action_Region_Lines.Last then
+               Data.Trace.Put_Line (Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
+            end if;
+         end loop;
+         Data.Trace.Put_Line ("resolve anchors");
+      end if;
    end Resolve_Anchors;
 
    procedure Set_End
@@ -931,15 +946,15 @@ package body Wisi is
                Cur_KMN : Parse.KMN renames KMN_List (Cur);
                KMN     : Parse.KMN := To_KMN (Change);
 
-               Cur_Last_Inserted_Byte : constant Buffer_Pos :=
+               Cur_Last_Inserted_Byte : constant Base_Buffer_Pos :=
                  KMN_Last_Byte + Cur_KMN.Stable_Bytes + Cur_KMN.Inserted_Bytes;
-               Cur_Last_Inserted_Char : constant Buffer_Pos :=
+               Cur_Last_Inserted_Char : constant Base_Buffer_Pos :=
                  KMN_Last_Char + Cur_KMN.Stable_Chars + Cur_KMN.Inserted_Chars;
 
-               Change_Last_Deleted_Byte : constant Buffer_Pos :=
+               Change_Last_Deleted_Byte : constant Base_Buffer_Pos :=
                  Change.Begin_Byte_Pos + Base_Buffer_Pos (Change.Deleted_Bytes) - 1;
 
-               Change_Last_Deleted_Char : constant Buffer_Pos :=
+               Change_Last_Deleted_Char : constant Base_Buffer_Pos :=
                  Change.Begin_Char_Pos + Base_Buffer_Pos (Change.Deleted_Chars) - 1;
             begin
                pragma Assert (KMN_Last_Byte < Change.Begin_Byte_Pos);
@@ -1075,7 +1090,7 @@ package body Wisi is
 
                   if not Has_Element (Cur) then
                      --  Since KMN_List starts with one KMN covering all of Source, we
-                     --  should never get here. FIXME: not true if insert text at end of Source!
+                     --  should never get here.
                      raise SAL.Programmer_Error;
                   end if;
                end if;
@@ -1252,24 +1267,20 @@ package body Wisi is
 
       Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
-      Inserted_Before : constant Node_Access := Tree.Next_Shared_Terminal (Inserted_Token);
-      --  Invalid_Node_Access when Inserted_Token is inserted before
-      --  Wisi_EOI, which is not in the parse stream.
+      Inserted_Before : constant Valid_Node_Access := Tree.Next_Terminal (Inserted_Token);
 
       First_Token : constant Node_Access :=
-        (if Inserted_Before = Invalid_Node_Access
-         then Invalid_Node_Access
-         elsif Tree.Root = Invalid_Node_Access
-         then Tree.Line_Begin_Token (Tree.Line_Region (Inserted_Before).First, Tree.Shared_Stream)
+        (if Tree.Root = Invalid_Node_Access
+         then Tree.Line_Begin_Token
+           (Tree.Line_Region (Inserted_Before).First, Tree.Shared_Stream, Following_Source_Terminal => False)
          else Tree.Line_Begin_Token (Tree.Line_Region (Inserted_Before).First));
 
       Prev_Terminal : constant Node_Access := Tree.Prev_Terminal (Inserted_Token);
-      --  Invalid_Node_Index if Inserted_Token is inserted before first grammar token
+      --  Invalid_Node_Access if Inserted_Token is inserted before first grammar token
 
       Insert_Location : WisiToken.Insert_Location := Before_Next;
    begin
       if Prev_Terminal /= Invalid_Node_Access and
-        Inserted_Before /= Invalid_Node_Access and
         First_Token = Inserted_Token
       then
          declare
@@ -1298,9 +1309,9 @@ package body Wisi is
             --  there is a blank line after the code line (and before any
             --  comments); assume that is the edit point; see
             --  test/ada_mode-interactive_2.adb "A := B \n+C;"
-            Blank_Line       : Line_Number_Type   := Invalid_Line_Number;
-            Blank_Line_Index : SAL.Base_Peek_Type := 0; -- new_line ending blank line
-            Comment_Present  : Boolean            := False;
+            Blank_Line       : Base_Line_Number_Type := Invalid_Line_Number;
+            Blank_Line_Index : SAL.Base_Peek_Type    := 0; -- new_line ending blank line
+            Comment_Present  : Boolean               := False;
 
             procedure Check_Non_Grammar
             --  Set Blank_Line, Blank_Line_Index if there is a blank line
@@ -2268,14 +2279,6 @@ package body Wisi is
       when Print =>
          Tree.Print_Tree (Line_Numbers => True, Non_Grammar => True);
       end case;
-   exception
-   when E : others =>
-      if Debug_Mode then
-         Data.Trace.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-         Data.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-         Data.Trace.New_Line;
-      end if;
-      raise;
    end Query_Tree;
 
    procedure Put_Language_Action
@@ -2464,7 +2467,7 @@ package body Wisi is
          First_Non_Grammar : constant Node_Access := Tree.First_Non_Grammar (Node);
          Last_Terminal     : constant Node_Access := Tree.Last_Terminal (Node);
 
-         function Get_Last (Node : in Valid_Node_Access) return Line_Number_Type
+         function Get_Last (Node : in Valid_Node_Access) return Base_Line_Number_Type
          is
             Non_Grammar  : Token_Arrays.Vector renames Tree.Non_Grammar_Const (Node);
          begin
@@ -2475,7 +2478,7 @@ package body Wisi is
             end if;
          end Get_Last;
 
-         function Get_First (Node : in Valid_Node_Access) return Line_Number_Type
+         function Get_First (Node : in Valid_Node_Access) return Base_Line_Number_Type
          is
             Non_Grammar : Token_Arrays.Vector renames Tree.Non_Grammar_Const (Node);
          begin
@@ -2486,7 +2489,7 @@ package body Wisi is
             end if;
          end Get_First;
 
-         First_Code_Line : constant Line_Number_Type :=
+         First_Code_Line : constant Base_Line_Number_Type :=
            --  This is valid even if not first in line.
            (if Prev_Non_Grammar = Prev_Terminal
             then  --  First terminal in Node is first on a line; we assume code cannot
@@ -2498,7 +2501,7 @@ package body Wisi is
             then Invalid_Line_Number -- No grammar terminals after first_non_grammar
             else Get_First (First_Non_Grammar));
 
-         Last_Code_Line : constant Line_Number_Type :=
+         Last_Code_Line : constant Base_Line_Number_Type :=
            (if Last_Terminal = Invalid_Node_Access
             then Get_First (Next_Non_Grammar)
             elsif Get_First (Last_Terminal) = Invalid_Line_Number

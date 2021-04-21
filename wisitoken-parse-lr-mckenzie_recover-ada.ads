@@ -20,10 +20,9 @@ pragma License (Modified_GPL);
 package WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
    procedure Language_Fixes
-     (Trace             : in out WisiToken.Trace'Class;
-      Parse_Stream      : in     Syntax_Trees.Stream_ID;
+     (Super             : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
+      Parser_Index      : in              SAL.Peek_Type;
       Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
-      Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration);
    --  See wisitoken-parse-lr-parser.ads Language_Fixes_Access for description.

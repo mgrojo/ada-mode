@@ -20,6 +20,8 @@ with WisiToken.Parse.LR.Parser;
 with WisiToken.Syntax_Trees;
 package Wisi_Parse_Context is
 
+   Not_Found : exception;
+
    type Language is record
       Descriptor              : WisiToken.Descriptor_Access_Constant;
       Lexer                   : WisiToken.Lexer.Handle;
@@ -62,16 +64,24 @@ package Wisi_Parse_Context is
       Trace     : in WisiToken.Trace_Access)
      return Parse_Context_Access;
    --  If a context for File_Name exists, return it if Language matches.
-   --  Raise WisiToken.User_Error if language does not match. Otherwise,
-   --  create a context, return it.
+   --
+   --  If no context found for File_Name, create one, return it.
+   --
+   --  Raise Protocol_Error if Source_File_Name is an empty string.
+   --
+   --  Raise WisiToken.User_Error if context found for File_Name, but Language does not match.
 
    function Find
      (File_Name : in String;
       Language  : in Wisi_Parse_Context.Language)
      return Parse_Context_Access;
    --  If a context for File_Name exists, return it if Language matches.
-   --  Raise WisiToken.User_Error if language does not match. Otherwise
-   --  return null.
+   --
+   --  Raise Protocol_Error if Source_File_Name is an empty string.
+   --
+   --  Raise WisiToken.User_Error if context found for File_Name, but Language does not match.
+   --
+   --  Raise Not_Found if no context found for File_Name.
 
    procedure Clear;
    --  Delete all contexts.

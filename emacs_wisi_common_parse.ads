@@ -127,6 +127,8 @@ package Emacs_Wisi_Common_Parse is
    end record;
 
    function Get_Parse_Params (Command_Line : in String; Last : in out Integer) return Parse_Params;
+   --  Raise Protocol_Error if, after processing Command_Line, Last /=
+   --  Command_Line'Last.
 
    ----------
    --  Post-Parse command
@@ -147,6 +149,8 @@ package Emacs_Wisi_Common_Parse is
    end record;
 
    function Get_Post_Parse_Params (Command_Line : in String; Last : in out Integer) return Post_Parse_Params;
+   --  Raise Protocol_Error if, after processing Command_Line, Last /=
+   --  Command_Line'Last.
 
    ----------
    --  Refactor command

@@ -46,8 +46,6 @@ package body Emacs_Wisi_Common_Parse is
       Put_Line ("See wisi-process-parse.el *--send-parse, *--send-noop for arguments.");
    end Usage;
 
-   Parse_Context_Not_Found : exception;
-
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
    procedure Read_Input (A : System.Address; N : Integer)
@@ -89,6 +87,13 @@ package body Emacs_Wisi_Common_Parse is
       --  From Integer'Value
       raise Wisi.Protocol_Error with "invalid command byte count; '" & Temp & "'";
    end Get_Command_Length;
+
+   procedure Check_Command_Length (Command_Length, Last : in Integer)
+   is begin
+      if Last /= Command_Length then
+         raise Wisi.Protocol_Error with "command length expected" & Command_Length'Image & " got" & Last'Image;
+      end if;
+   end Check_Command_Length;
 
    function Get_Process_Start_Params return Process_Start_Params
    is
@@ -137,11 +142,12 @@ package body Emacs_Wisi_Common_Parse is
             Result.Post_Parse_Action := Wisi.Post_Parse_Action_Type'Val (Get_Integer (Command_Line, Last));
             Result.Source_File_Name  := +Get_String (Command_Line, Last);
             Result.Begin_Byte_Pos    := Get_Integer (Command_Line, Last);
-            Result.End_Byte_Pos      := Get_Integer (Command_Line, Last) - 1; --  Emacs end is after last char.
-
+            Result.End_Byte_Pos      := Get_Integer (Command_Line, Last) - 1;
+            --  Emacs end is after last char. FIXME: if last char is multibyte,
+            --  this is wrong; subtract 1 char in elisp.
             Result.Goal_Byte_Pos        := Get_Integer (Command_Line, Last);
             Result.Begin_Char_Pos       := Buffer_Pos (Get_Integer (Command_Line, Last));
-            Result.End_Char_Pos         := Buffer_Pos (Get_Integer (Command_Line, Last));
+            Result.End_Char_Pos         := Buffer_Pos (Get_Integer (Command_Line, Last)) - 1;
             Result.Begin_Line           := Line_Number_Type (Get_Integer (Command_Line, Last));
             Result.Begin_Indent         := Get_Integer (Command_Line, Last);
             Result.Partial_Parse_Active := 1 = Get_Integer (Command_Line, Last);
@@ -167,15 +173,19 @@ package body Emacs_Wisi_Common_Parse is
                Result.Changes := Wisi.Get_Emacs_Change_List (Command_Line, Last, Handle_String_Escapes => False);
 
             when Full =>
-               Result.Full_End_Char_Pos := Buffer_Pos (Get_Integer (Command_Line, Last));
+               Result.Full_End_Char_Pos := Buffer_Pos (Get_Integer (Command_Line, Last)) - 1;
             end case;
          end case;
 
          Result.Language_Params := +Get_String (Command_Line, Last);
 
          Enable_Trace (-Result.Verbosity);
+
+         Check_Command_Length (Command_Line'Last, Last);
       end return;
    exception
+   when Protocol_Error =>
+      raise;
    when E : others =>
       raise Protocol_Error with "at" & Last'Image & ": " & Ada.Exceptions.Exception_Message (E);
    end Get_Parse_Params;
@@ -192,13 +202,20 @@ package body Emacs_Wisi_Common_Parse is
          Result.Post_Parse_Action := Wisi.Post_Parse_Action_Type'Val (Get_Integer (Command_Line, Last));
          Result.Begin_Byte_Pos    := Get_Integer (Command_Line, Last);
          Result.Begin_Char_Pos    := Get_Integer (Command_Line, Last);
-         Result.End_Byte_Pos      := Get_Integer (Command_Line, Last) - 1; --  Emacs end is after last char.
+
+         --  Emacs end is after last char. FIXME: if last char is
+         --  multibyte, this is wrong; subtract 1 char in elisp.
+         Result.End_Byte_Pos      := Get_Integer (Command_Line, Last) - 1;
          Result.End_Char_Pos      := Get_Integer (Command_Line, Last) - 1;
+
          Result.Language_Params   := +Get_String (Command_Line, Last);
 
          Enable_Trace (-Result.Verbosity);
+         Check_Command_Length (Command_Line'Last, Last);
       end return;
    exception
+   when Protocol_Error =>
+      raise;
    when E : others =>
       raise Protocol_Error with "at" & Last'Image & ": " & Ada.Exceptions.Exception_Message (E);
    end Get_Post_Parse_Params;
@@ -219,8 +236,11 @@ package body Emacs_Wisi_Common_Parse is
          Result.Verbosity  := +Get_String (Command_Line, Last);
 
          Enable_Trace (-Result.Verbosity);
+         Check_Command_Length (Command_Line'Last, Last);
       end return;
    exception
+   when Protocol_Error =>
+      raise;
    when E : others =>
       raise Protocol_Error with "at" & Last'Image & ": " & Ada.Exceptions.Exception_Message (E);
    end Get_Refactor_Params;
@@ -237,13 +257,6 @@ package body Emacs_Wisi_Common_Parse is
       use all type Wisi_Parse_Context.Parse_Context_Access;
 
       Recover_Log_File : Ada.Text_IO.File_Type;
-
-      procedure Check_Command_Length (Command_Length, Last : in Integer)
-      is begin
-         if Last /= Command_Length then
-            raise Wisi.Protocol_Error with "command length expected" & Command_Length'Image & " got" & Last'Image;
-         end if;
-      end Check_Command_Length;
 
       procedure Cleanup
       is begin
@@ -309,194 +322,182 @@ package body Emacs_Wisi_Common_Parse is
                --  prompt
                declare
                   Params : constant Parse_Params := Get_Parse_Params (Command_Line, Last);
+
+                  Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find_Create
+                    (-Params.Source_File_Name, Language, Trace'Access);
+
+                  Parser     : Parse.LR.Parser.Parser renames Parse_Context.Parser;
+                  Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
+
+                  procedure Clean_Up
+                  is
+                     use all type SAL.Base_Peek_Type;
+                  begin
+                     Parser.Tree.Lexer.Discard_Rest_Of_Input;
+                     if Parser.Parsers.Count > 0 then
+                        Parse_Data.Put
+                          (Parser.Tree.Lexer.Errors,
+                           Parser.Parsers.First.State_Ref.Errors,
+                           Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+                           Parser.Tree);
+                     end if;
+                  end Clean_Up;
+
                begin
-                  if Ada.Strings.Unbounded.Length (Params.Source_File_Name) = 0 then
-                     raise Wisi.Protocol_Error with "no file name given";
+                  if Params.Task_Count > 0 then
+                     Parser.Table.McKenzie_Param.Task_Count := System.Multiprocessors.CPU_Range (Params.Task_Count);
+                  end if;
+                  if Params.Zombie_Limit > 0 then
+                     Parser.Table.McKenzie_Param.Zombie_Limit := Params.Zombie_Limit;
+                  end if;
+                  if Params.Enqueue_Limit > 0 then
+                     Parser.Table.McKenzie_Param.Enqueue_Limit := Params.Enqueue_Limit;
+                  end if;
+                  if Params.Max_Parallel > 0 then
+                     Parser.Table.Max_Parallel := SAL.Base_Peek_Type (Params.Max_Parallel);
                   end if;
 
-                  declare
-                     Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find_Create
-                       (-Params.Source_File_Name, Language, Trace'Access);
+                  case Params.Kind is
+                  when Partial =>
+                     Parser.Partial_Parse_Active.all    := Params.Partial_Parse_Active;
+                     Parser.Partial_Parse_Byte_Goal.all := Buffer_Pos (Params.Goal_Byte_Pos);
 
-                     Parser     : Parse.LR.Parser.Parser renames Parse_Context.Parser;
-                     Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
+                     Parse_Data.Initialize (Trace'Access);
 
-                     procedure Clean_Up
-                     is
-                        use all type SAL.Base_Peek_Type;
+                     Parse_Data.Parse_Language_Params (-Params.Language_Params);
+
+                     Ada.Strings.Unbounded.Free (Parse_Context.Text_Buffer);
+                     Parse_Context.Text_Buffer := new String (Params.Begin_Byte_Pos .. Params.End_Byte_Pos);
+                     Parse_Context.Text_Buffer_Byte_Last := Params.Byte_Count;
+                     Parse_Context.Text_Buffer_Char_Last := Integer (Params.End_Char_Pos);
+
+                     Read_Input (Parse_Context.Text_Buffer (Params.Begin_Byte_Pos)'Address, Params.Byte_Count);
+
+                     Parser.Tree.Lexer.Reset_With_String_Access
+                       (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, Params.Source_File_Name,
+                        Params.Begin_Char_Pos, Params.Begin_Line);
+
+                     --  Parser.Line_Begin_Token First, Last set by Lex_All
                      begin
-                        Parser.Tree.Lexer.Discard_Rest_Of_Input;
-                        if Parser.Parsers.Count > 0 then
-                           Parse_Data.Put
-                             (Parser.Tree.Lexer.Errors,
-                              Parser.Parsers.First.State_Ref.Errors,
-                              Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-                              Parser.Tree);
+                        Parser.Parse (Recover_Log_File);
+                     exception
+                     when Partial_Parse =>
+                        null;
+                     end;
+
+                     Parse_Data.Reset_Post_Parse
+                       (Parser.Tree, Params.Post_Parse_Action,
+                        Action_Region_Bytes =>
+                          (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
+                        Action_Region_Chars => (Params.Begin_Char_Pos, Params.End_Char_Pos),
+                        Begin_Indent        => Params.Begin_Indent);
+
+                     Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
+                     Parse_Data.Put (Parser);
+
+                  when Incremental =>
+
+                     if Parse_Context.Text_Buffer = null then
+                        raise Wisi_Parse_Context.Not_Found;
+                     end if;
+
+                     --  IMPROVEME: could do incremental parse after partial parse, to
+                     --  expand the parsed region.
+                     Parser.Partial_Parse_Active.all := False;
+
+                     declare
+                        KMN_List : Parse.KMN_Lists.List;
+                     begin
+                        Wisi.Edit_Source
+                          (Trace,
+                           Parse_Context.Text_Buffer,
+                           Parse_Context.Text_Buffer_Byte_Last,
+                           Parse_Context.Text_Buffer_Char_Last,
+                           Params.Changes,
+                           KMN_List);
+
+                        if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
+                           Parse_Context.Save_Edited_Count := @ + 1;
+                           declare
+                              use Ada.Directories;
+                              use Ada.Strings.Unbounded;
+
+                              function Filled_Image is new SAL.Generic_Decimal_Image (Integer);
+                              Save_File_Name   : constant String :=
+                                To_String (Parse_Context.Root_Save_Edited_Name) & "_" &
+                                Filled_Image (Item => Parse_Context.Save_Edited_Count, Width => 3);
+
+                              Save_File : File_Type;
+                           begin
+                              if Exists (Save_File_Name) then
+                                 Delete_File (Save_File_Name);
+                              end if;
+                              Create (Save_File, Out_File, Save_File_Name);
+
+                              --  This writes DOS line endings on Windows. Sigh.
+                              Put (Save_File, Parse_Context.Text_Buffer (1 .. Parse_Context.Text_Buffer_Byte_Last));
+                              Close (Save_File);
+
+                              Put_Line ("(message ""text saved to '" & Save_File_Name & "'"")");
+                           end;
                         end if;
-                     end Clean_Up;
-
-                  begin
-                     if Last /= Command_Line'Last then
-                        raise Wisi.Protocol_Error with "command length expected" & Command_Length'Image & " got" &
-                          Integer'Image (Command_Line'Last);
-                     end if;
-
-                     if Params.Task_Count > 0 then
-                        Parser.Table.McKenzie_Param.Task_Count := System.Multiprocessors.CPU_Range (Params.Task_Count);
-                     end if;
-                     if Params.Zombie_Limit > 0 then
-                        Parser.Table.McKenzie_Param.Zombie_Limit :=
-                          Syntax_Trees.Node_Index (Params.Zombie_Limit);
-                     end if;
-                     if Params.Enqueue_Limit > 0 then
-                        Parser.Table.McKenzie_Param.Enqueue_Limit := Params.Enqueue_Limit;
-                     end if;
-                     if Params.Max_Parallel > 0 then
-                        Parser.Table.Max_Parallel := SAL.Base_Peek_Type (Params.Max_Parallel);
-                     end if;
-
-                     case Params.Kind is
-                     when Partial =>
-                        Parser.Partial_Parse_Active.all    := Params.Partial_Parse_Active;
-                        Parser.Partial_Parse_Byte_Goal.all := Buffer_Pos (Params.Goal_Byte_Pos);
-
-                        Parse_Data.Initialize (Trace'Access);
 
                         Parse_Data.Parse_Language_Params (-Params.Language_Params);
 
-                        Ada.Strings.Unbounded.Free (Parse_Context.Text_Buffer);
-                        Parse_Context.Text_Buffer := new String (Params.Begin_Byte_Pos .. Params.End_Byte_Pos);
-                        Parse_Context.Text_Buffer_Byte_Last := Params.Byte_Count;
-                        Parse_Context.Text_Buffer_Char_Last := Integer (Params.End_Char_Pos);
-
-                        Read_Input (Parse_Context.Text_Buffer (Params.Begin_Byte_Pos)'Address, Params.Byte_Count);
-
                         Parser.Tree.Lexer.Reset_With_String_Access
-                          (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, Params.Source_File_Name,
-                           Params.Begin_Char_Pos, Params.Begin_Line);
+                          (Parse_Context.Text_Buffer,
+                           Parse_Context.Text_Buffer_Byte_Last,
+                           Params.Source_File_Name);
 
-                        --  Parser.Line_Begin_Token First, Last set by Lex_All
-                        begin
-                           Parser.Parse (Recover_Log_File);
-                        exception
-                        when Partial_Parse =>
-                           null;
-                        end;
-
-                        Parse_Data.Reset_Post_Parse
-                          (Parser.Tree, Params.Post_Parse_Action,
-                           Action_Region_Bytes =>
-                             (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
-                           Action_Region_Chars => (Params.Begin_Char_Pos, Params.End_Char_Pos),
-                           Begin_Indent        => Params.Begin_Indent);
-
-                        Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
-                        Parse_Data.Put (Parser);
-
-                     when Incremental =>
-
-                        --  IMPROVEME: could do incremental parse after partial parse, to
-                        --  expand the parsed region.
-                        Parser.Partial_Parse_Active.all := False;
-
-                        if Parse_Context.Text_Buffer = null then
-                           raise Parse_Context_Not_Found;
-                        end if;
-
-                        declare
-                           KMN_List : Parse.KMN_Lists.List;
-                        begin
-                           Wisi.Edit_Source
-                             (Trace,
-                              Parse_Context.Text_Buffer,
-                              Parse_Context.Text_Buffer_Byte_Last,
-                              Parse_Context.Text_Buffer_Char_Last,
-                              Params.Changes,
-                              KMN_List);
-
-                           if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
-                              Parse_Context.Save_Edited_Count := @ + 1;
-                              declare
-                                 use Ada.Directories;
-                                 use Ada.Strings.Unbounded;
-
-                                 function Filled_Image is new SAL.Generic_Decimal_Image (Integer);
-                                 Save_File_Name   : constant String :=
-                                   To_String (Parse_Context.Root_Save_Edited_Name) & "_" &
-                                   Filled_Image (Item => Parse_Context.Save_Edited_Count, Width => 3);
-
-                                 Save_File : File_Type;
-                              begin
-                                 if Exists (Save_File_Name) then
-                                    Delete_File (Save_File_Name);
-                                 end if;
-                                 Create (Save_File, Out_File, Save_File_Name);
-
-                                 --  This writes DOS line endings on Windows. Sigh.
-                                 Put (Save_File, Parse_Context.Text_Buffer (1 .. Parse_Context.Text_Buffer_Byte_Last));
-                                 Close (Save_File);
-
-                                 Put_Line ("(message ""text saved to '" & Save_File_Name & "'"")");
-                              end;
-                           end if;
-
-                           Parse_Data.Parse_Language_Params (-Params.Language_Params);
-
-                           Parser.Tree.Lexer.Reset_With_String_Access
-                             (Parse_Context.Text_Buffer,
-                              Parse_Context.Text_Buffer_Byte_Last,
-                              Params.Source_File_Name);
-
-                           if Parser.Tree.Editable then
-                              Parser.Parse (Recover_Log_File, KMN_List);
-
-                           else
-                              --  Last parse failed; can't edit tree, so do full parse.
-                              --
-                              --  FIXME: Edit_Tree should handle a partially parsed tree
-                              Parser.Parse (Recover_Log_File, Parse.KMN_Lists.Empty_List);
-                           end if;
-
-                           --  No Execute_Actions here; that's done in "post-parse" command
-
-                           if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
-                              Wisi.Query_Tree (Parse_Data, Parser.Tree, Wisi.Bounds, Buffer_Pos'First);
-                           end if;
-                        end;
-
-                     when Full =>
-                        Parser.Partial_Parse_Active.all := False;
-
-                        Parse_Data.Initialize (Trace'Access);
-
-                        Parse_Data.Parse_Language_Params (-Params.Language_Params);
-
-                        Ada.Strings.Unbounded.Free (Parse_Context.Text_Buffer);
-                        Parse_Context.Text_Buffer := new String (Integer (Buffer_Pos'First) .. Params.Byte_Count);
-                        Parse_Context.Text_Buffer_Byte_Last := Params.Byte_Count;
-                        Parse_Context.Text_Buffer_Char_Last := Integer (Params.Full_End_Char_Pos);
-                        Read_Input
-                          (Parse_Context.Text_Buffer (Parse_Context.Text_Buffer'First)'Address,
-                           Params.Byte_Count);
-
-                        Parser.Tree.Lexer.Reset_With_String_Access
-                          (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, Params.Source_File_Name);
-
-                        declare
-                           KMN_List : Parse.KMN_Lists.List;
-                           --  Leave KMN_List empty to do full parse.
-                        begin
+                        if Parser.Tree.Editable then
                            Parser.Parse (Recover_Log_File, KMN_List);
-                           --  No Execute_Actions here; that's done in "post-parse" command
-                        end;
-                     end case;
 
-                     Clean_Up;
-                  exception
-                  when others =>
-                     Clean_Up;
-                     raise;
-                  end;
+                        else
+                           --  Last parse failed; can't edit tree, so do full parse.
+                           --
+                           --  FIXME: Edit_Tree should handle a partially parsed tree
+                           Parser.Parse (Recover_Log_File, Parse.KMN_Lists.Empty_List);
+                        end if;
+
+                        --  No Execute_Actions here; that's done in "post-parse" command
+
+                        if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
+                           Wisi.Query_Tree (Parse_Data, Parser.Tree, Wisi.Bounds, Buffer_Pos'First);
+                        end if;
+                     end;
+
+                  when Full =>
+                     Parser.Partial_Parse_Active.all := False;
+
+                     Parse_Data.Initialize (Trace'Access);
+
+                     Parse_Data.Parse_Language_Params (-Params.Language_Params);
+
+                     Ada.Strings.Unbounded.Free (Parse_Context.Text_Buffer);
+                     Parse_Context.Text_Buffer := new String (Integer (Buffer_Pos'First) .. Params.Byte_Count);
+                     Parse_Context.Text_Buffer_Byte_Last := Params.Byte_Count;
+                     Parse_Context.Text_Buffer_Char_Last := Integer (Params.Full_End_Char_Pos);
+                     Read_Input
+                       (Parse_Context.Text_Buffer (Parse_Context.Text_Buffer'First)'Address,
+                        Params.Byte_Count);
+
+                     Parser.Tree.Lexer.Reset_With_String_Access
+                       (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, Params.Source_File_Name);
+
+                     declare
+                        KMN_List : Parse.KMN_Lists.List;
+                        --  Leave KMN_List empty to do full parse.
+                     begin
+                        Parser.Parse (Recover_Log_File, KMN_List);
+                        --  No Execute_Actions here; that's done in "post-parse" command
+                     end;
+                  end case;
+
+                  Clean_Up;
+               exception
+               when others =>
+                  Clean_Up;
+                  raise;
                end;
 
             elsif Match ("post-parse") then
@@ -511,34 +512,22 @@ package body Emacs_Wisi_Common_Parse is
 
                   Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find
                     (-Params.Source_File_Name, Language);
+
+                  Parser     : Parse.LR.Parser.Parser renames Parse_Context.Parser;
+                  Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
                begin
-                  Check_Command_Length (Command_Length, Last);
+                  Parse_Data.Reset_Post_Parse
+                    (Parser.Tree, Params.Post_Parse_Action,
+                     Action_Region_Bytes =>
+                       (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
+                     Action_Region_Chars =>
+                       (Base_Buffer_Pos (Params.Begin_Char_Pos), Base_Buffer_Pos (Params.End_Char_Pos)),
+                     Begin_Indent        => 0);
 
-                  if Parse_Context = null then
-                     raise Parse_Context_Not_Found;
-                  end if;
+                  Parse_Data.Parse_Language_Params (-Params.Language_Params);
 
-                  declare
-                     Parser     : Parse.LR.Parser.Parser renames Parse_Context.Parser;
-                     Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
-                  begin
-                     Parse_Data.Reset_Post_Parse
-                       (Parser.Tree, Params.Post_Parse_Action,
-                        Action_Region_Bytes =>
-                          (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
-                        Action_Region_Chars =>
-                          (Base_Buffer_Pos (Params.Begin_Char_Pos), Base_Buffer_Pos (Params.End_Char_Pos)),
-                        Begin_Indent        => 0);
-
-                     Parse_Data.Parse_Language_Params (-Params.Language_Params);
-
-                     Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
-                     Parse_Data.Put (Parser);
-                  end;
-               exception
-               when Parse_Context_Not_Found =>
-                  --  Tell Emacs to send full text
-                  Put_Line ("(file_not_found)");
+                  Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
+                  Parse_Data.Put (Parser);
                end;
 
             elsif Match ("refactor") then
@@ -552,23 +541,11 @@ package body Emacs_Wisi_Common_Parse is
 
                   Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find
                     (-Params.Source_File_Name, Language);
+
+                  Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class
+                    (Parse_Context.Parser.User_Data.all);
                begin
-                  Check_Command_Length (Command_Length, Last);
-
-                  if Parse_Context = null then
-                     raise Parse_Context_Not_Found;
-                  end if;
-
-                  declare
-                     Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class
-                       (Parse_Context.Parser.User_Data.all);
-                  begin
-                     Parse_Data.Refactor (Parse_Context.Parser.Tree, Params.Refactor_Action, Params.Edit_Begin);
-                  end;
-               exception
-               when Parse_Context_Not_Found =>
-                  --  Tell Emacs to send full text
-                  Put_Line ("(file_not_found)");
+                  Parse_Data.Refactor (Parse_Context.Parser.Tree, Params.Refactor_Action, Params.Edit_Begin);
                end;
 
             elsif Match ("query-tree") then
@@ -593,15 +570,7 @@ package body Emacs_Wisi_Common_Parse is
                begin
                   Check_Command_Length (Command_Length, Last);
 
-                  if Parse_Context = null then
-                     raise Parse_Context_Not_Found;
-                  end if;
-
                   Wisi.Query_Tree (Parse_Data, Parse_Context.Parser.Tree, Label, Point);
-               exception
-               when Parse_Context_Not_Found =>
-                  --  Tell Emacs to send full text
-                  Put_Line ("(file_not_found)");
                end;
 
             elsif Match ("save_text") then
@@ -621,10 +590,6 @@ package body Emacs_Wisi_Common_Parse is
                     (Source_File_Name, Language);
                begin
                   Check_Command_Length (Command_Length, Last);
-
-                  if Parse_Context = null then
-                     raise Parse_Context_Not_Found;
-                  end if;
 
                   if Exists (Save_File_Name) then
                      Delete_File (Save_File_Name);
@@ -654,10 +619,6 @@ package body Emacs_Wisi_Common_Parse is
                begin
                   Check_Command_Length (Command_Length, Last);
 
-                  if Parse_Context = null then
-                     raise Parse_Context_Not_Found;
-                  end if;
-
                   Parse_Context.Root_Save_Edited_Name := +Save_File_Name;
                   Parse_Context.Save_Edited_Count     := 0;
 
@@ -671,7 +632,7 @@ package body Emacs_Wisi_Common_Parse is
                raise Wisi.Protocol_Error with  "invalid command: '" & Command_Line & "'";
             end if;
          exception
-         when Parse_Context_Not_Found =>
+         when Wisi_Parse_Context.Not_Found =>
             --  Tell Emacs to send full text
             Put_Line ("(file_not_found)");
 

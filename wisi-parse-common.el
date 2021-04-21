@@ -90,7 +90,7 @@ Text properties on MESSAGE are preserved,"
     (when (> max 0)
       (unless (buffer-live-p (wisi-parser-transaction-log-buffer parser))
 	(setf (wisi-parser-transaction-log-buffer parser)
-	      (get-buffer-create (wisi-parser-transaction-log-buffer-name parser) t))
+	      (get-buffer-create (wisi-parser-transaction-log-buffer-name parser)))
 	(with-current-buffer (wisi-parser-transaction-log-buffer parser)
 	  (read-only-mode 1)
 	  (buffer-disable-undo)))

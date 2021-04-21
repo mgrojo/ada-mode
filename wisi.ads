@@ -523,7 +523,7 @@ private
 
    type Indent_Type (Label : Indent_Label := Not_Set) is record
       --  Indent values may be negative while indents are being computed.
-      Controlling_Token_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
+      Controlling_Token_Line : WisiToken.Base_Line_Number_Type := WisiToken.Invalid_Line_Number;
 
       case Label is
       when Not_Set =>
@@ -583,7 +583,7 @@ private
 
    type Simple_Delta_Type (Label : Simple_Delta_Labels := None) is
    record
-      Controlling_Token_Line : WisiToken.Line_Number_Type;
+      Controlling_Token_Line : WisiToken.Base_Line_Number_Type;
       --  If Invalid_Line_Number, delta should not be ignored.
 
       case Label is

@@ -760,7 +760,6 @@ previously set by a file navigation command."
 	  (setq done t)))
       (when found
 	(goto-char found)
-	;; different parsers find different points on the line; normalize here
 	(back-to-indentation))
       (setq ff-function-name nil))))
 

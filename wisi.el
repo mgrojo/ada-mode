@@ -567,8 +567,8 @@ deleted range.")
     ;; after-change length is 1, because only the F is actually
     ;; replaced.
     ;;
-    ;;  FIXME: let parser compute char length, to avoid caching lots
-    ;;  of text here.
+    ;;  FIXME: let parser compute char or byte length, to avoid
+    ;;  caching lots of text here.
     (let ((deleted (substring wisi--affected-text 0 length)))
       (push
        (list (position-bytes begin) begin (position-bytes end) end
@@ -1355,11 +1355,20 @@ for parse errors. BEGIN, END is the parsed region."
 		(when (>= (point) (wisi--parse-error-repair-pos repair))
 		  (setq indent (max 0 (wisi-parse-adjust-indent wisi--parser indent repair))))
 		))))
-      ;; parse did not compute indent for point. Assume the error will
-      ;; go away soon as the user edits the code, so just return 0.
-      (if (= wisi-debug 0)
-	  (setq indent 0)
-	(error "error: nil indent for line %d" (line-number-at-pos (point)))))
+
+      ;; parse did not compute indent for point.
+      (cond
+       ((= (point) (point-max))
+	;; point-max is after the last char, so the parser does not compute indent
+	(setq indent 0))
+
+       ((= wisi-debug 0)
+	;; Assume the error will go away soon as the user edits the
+	;; code, so just return 0.
+	(setq indent 0))
+
+       (t ;; wisi-debug > 0
+	(error "error: nil indent for line %d" (line-number-at-pos (point))))))
 
     indent))
 

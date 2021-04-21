@@ -113,12 +113,9 @@
   "'"
 tick : TICK_1 | TICK_2 ;
 
-;; This regexp allows a lot of things that are not Ada numeric
-;; literals, but it's faster than a strictly conforming regexp. For
-;; non-based literals, force a trailing integer so (1..Length) is
-;; parsed correctly.
+;; Handle (1..Length) and 0..16#10FFFF#
 %token <regexp> NUMERIC_LITERAL
-    %[ ([0-9])|([0-9][0-9eE._-]*[0-9])|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
+    %[ ([0-9])|([0-9_]+([.][0-9]+)?([eE[0-9_-]+))|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
   "1234567890"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%

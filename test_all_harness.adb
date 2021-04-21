@@ -2,7 +2,7 @@
 --
 --  Run tests.
 --
---  Copyright (C) 2020 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020, 2021 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -24,6 +24,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with Test_Edit_Source;
+with Test_Syntax_Trees;
 with WisiToken;
 procedure Test_All_Harness
 is
@@ -87,6 +88,7 @@ begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
    Add_Test (Suite, Test_Case_Access'(new Test_Edit_Source.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Syntax_Trees.Test_Case));
    --  end test cases
 
    Run (Suite, Options, Result, Status);

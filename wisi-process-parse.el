@@ -726,6 +726,7 @@ one or more Query messages."
     ))
 
 (defun wisi-process-parse--handle-messages (parser)
+  ;; signals 'wisi-file_not_found if parser reports (file-not-found)
   (let ((response-buffer (wisi-process--parser-buffer parser))
         (source-buffer (current-buffer))
 	log-start)
@@ -913,6 +914,18 @@ one or more Query messages."
        (signal (car err) (cdr err)))
       )))
 
+(defun wisi-process-parse--handle-messages-file-not-found (parser action)
+  (funcall action)
+  (condition-case-unless-debug _err
+      (wisi-process-parse--handle-messages parser)
+    ('wisi-file_not_found
+     (message "parsing buffer ...")
+     (wisi-process-parse--send-incremental-parse parser t)
+     (message "parsing buffer ... done")
+     (funcall action)
+     (wisi-process-parse--handle-messages parser)
+     )))
+
 (cl-defmethod wisi-parse-current ((parser wisi-process--parser) parse-action begin send-end parse-end)
   (wisi-process-parse--prepare parser)
   (setf (wisi-parser-lexer-errors parser) nil)
@@ -938,64 +951,39 @@ one or more Query messages."
 
 (cl-defmethod wisi-post-parse ((parser wisi-process--parser) parse-action begin end)
   (wisi-process-parse--prepare parser)
-  (wisi-process-parse--send-action parser parse-action begin end)
-  (condition-case-unless-debug _err
-      (wisi-process-parse--handle-messages parser)
-    ('wisi-file_not_found
-     (message "parsing buffer ...")
-     (wisi-process-parse--send-incremental-parse parser t)
-     (message "parsing buffer ... done")
-     (wisi-process-parse--send-action parser parse-action begin end)
-     (wisi-process-parse--handle-messages parser)
-     )))
+  (wisi-process-parse--handle-messages-file-not-found
+   parser
+   (lambda () (wisi-process-parse--send-action parser parse-action begin end)))
+)
 
 (cl-defmethod wisi-refactor ((parser wisi-process--parser) refactor-action stmt-begin stmt-end edit-begin)
-  (wisi-process-parse--prepare parser)
   (cond
    (wisi-incremental-parse-enable
     (when wisi--changes
-      (wisi-process-parse--send-incremental-parse parser nil)
-      (wisi-process-parse--handle-messages parser)))
+      (wisi-parse-incremental parser nil)))
 
    (t
     ;; IMPROVEME: stmt-begin, stmt-end not used if only incremental supported.
+    (wisi-process-parse--prepare parser)
     (wisi-process-parse--send-parse parser 'navigate stmt-begin stmt-end stmt-end)
     (wisi-process-parse--handle-messages parser)
-    (wisi-process-parse--prepare parser)
     ))
 
-  (wisi-process-parse--send-refactor parser refactor-action edit-begin)
-  (condition-case-unless-debug _err
-      (wisi-process-parse--handle-messages parser)
-    ('wisi-file_not_found
-     ;; We must have wisi-incremental-parse-enable t, with no changes.
-     (message "parsing buffer ...")
-     (wisi-process-parse--send-incremental-parse parser t)
-     (wisi-process-parse--handle-messages parser)
-     (message "parsing buffer ... done")
-     (wisi-process-parse--send-refactor parser refactor-action edit-begin)
-     (wisi-process-parse--handle-messages parser)
-     )))
+  (wisi-process-parse--prepare parser)
+  (wisi-process-parse--handle-messages-file-not-found
+   parser
+   (lambda () (wisi-process-parse--send-refactor parser refactor-action edit-begin))))
 
 (cl-defmethod wisi-parse-tree-query ((parser wisi-process--parser) query point)
-  (wisi-process-parse--prepare parser)
-  (setf (wisi-process--parser-query-result parser) nil)
   (cl-assert wisi-incremental-parse-enable)
   (when wisi--changes
-    (wisi-process-parse--send-incremental-parse parser nil)
-    (wisi-process-parse--handle-messages parser))
+    (wisi-parse-incremental parser nil))
 
-  (wisi-process-parse--send-query parser query point)
-  (condition-case-unless-debug _err
-      (wisi-process-parse--handle-messages parser)
-    ('wisi-file_not_found
-     (message "parsing buffer ...")
-     (wisi-process-parse--send-incremental-parse parser t)
-     (wisi-process-parse--handle-messages parser)
-     (message "parsing buffer ... done")
-     (wisi-process-parse--send-query parser query point)
-     (wisi-process-parse--handle-messages parser)
-     ))
+  (wisi-process-parse--prepare parser)
+  (setf (wisi-process--parser-query-result parser) nil)
+  (wisi-process-parse--handle-messages-file-not-found
+   parser
+   (lambda () (wisi-process-parse--send-query parser query point)))
   (wisi-process--parser-query-result parser))
 
 ;;;;; debugging
@@ -1028,7 +1016,7 @@ one or more Query messages."
     (setq cmd-buffer-name "debug.cmd"))
   (let ((log-buffer (current-buffer))
 	(log-buffer-point (point))
-	(cmd-buffer (get-buffer cmd-buffer-name))
+	(cmd-buffer (get-buffer-create cmd-buffer-name))
 	edit begin end source-file)
     (set-buffer cmd-buffer)
     (erase-buffer)
@@ -1037,40 +1025,47 @@ one or more Query messages."
     (goto-char (point-min))
 
     ;; get options from full parse line; we assume they don't change
-    (search-forward "parse 2" nil t)
-    (looking-at " \"\\([^\"]*\\)\" \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) [-0-9]+ [-0-9]+ \"\\([^\"]*\\)\"")
-    (let ((verbosity (match-string 2))
-	  (mckenzie_task_count (match-string 3))
-	  (mckenzie_zombie_limit (match-string 4))
-	  (mckenzie_enqueue_limit (match-string 5))
-	  (parse_max_parallel (match-string 6))
-	  (language_param (match-string 7)))
-      (setq source-file (match-string 1))
+    (unless (search-forward-regexp "parse \\([02]\\)" nil t)
+      (user-error "log buffer overflowed; increase wisi-parser-transaction-log-buffer-size"))
 
-      (set-buffer cmd-buffer)
-      (setq-local comment-start "-- ")
+    (cl-ecase (string-to-number (match-string 1))
+      (0 ;; partial parse
+       (user-error "can't create command file for partial parse"))
 
-      (insert "-- source file: " source-file " -*- comment-start: \"" comment-start "\" -*-" "\n")
-      (insert "verbosity " verbosity "\n")
+      (2 ;; full parse
+       (looking-at " \"\\([^\"]*\\)\" \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) [-0-9]+ [-0-9]+ \"\\([^\"]*\\)\"")
+       (let ((verbosity (match-string 2))
+	     (mckenzie_task_count (match-string 3))
+	     (mckenzie_zombie_limit (match-string 4))
+	     (mckenzie_enqueue_limit (match-string 5))
+	     (parse_max_parallel (match-string 6))
+	     (language_param (match-string 7)))
+	 (setq source-file (match-string 1))
 
-      (when (or (not (string-equal mckenzie_task_count "-1"))
-		(not (string-equal mckenzie_zombie_limit "-1"))
-		(not (string-equal mckenzie_enqueue_limit "-1")))
-	(insert "mckenzie_options ")
+	 (set-buffer cmd-buffer)
+	 (setq-local comment-start "-- ")
 
-	(when (not (string-equal mckenzie_task_count "-1"))
-	  (insert "task_count=" mckenzie_task_count))
+	 (insert "-- source file: " source-file " -*- comment-start: \"" comment-start "\" -*-" "\n")
+	 (insert "verbosity " verbosity "\n")
 
-	(when (not (string-equal mckenzie_zombie_limit "-1"))
-	  (insert "zombie_limit=" mckenzie_zombie_limit))
+	 (when (or (not (string-equal mckenzie_task_count "-1"))
+		   (not (string-equal mckenzie_zombie_limit "-1"))
+		   (not (string-equal mckenzie_enqueue_limit "-1")))
+	   (insert "mckenzie_options ")
 
-	(when (not (string-equal mckenzie_enqueue_limit "-1"))
-	  (insert "enqueue_limit=" mckenzie_enqueue_limit))
+	   (when (not (string-equal mckenzie_task_count "-1"))
+	     (insert "task_count=" mckenzie_task_count))
 
-	;; parse-max-parallel is not available
-	(insert "\n"))
+	   (when (not (string-equal mckenzie_zombie_limit "-1"))
+	     (insert "zombie_limit=" mckenzie_zombie_limit))
 
-      (insert "language_params " language_param "\n\n"))
+	   (when (not (string-equal mckenzie_enqueue_limit "-1"))
+	     (insert "enqueue_limit=" mckenzie_enqueue_limit))
+
+	   ;; parse-max-parallel is not available
+	   (insert "\n"))
+
+	 (insert "language_params " language_param "\n\n"))))
 
     (set-buffer log-buffer)
     (goto-char (point-min))
@@ -1116,7 +1111,10 @@ one or more Query messages."
 	;; other file - ignore
 	))
 
-       )
+      )
+    (with-current-buffer cmd-buffer
+      (when (buffer-file-name)
+	(save-buffer)))
     (goto-char log-buffer-point)))
 
 (provide 'wisi-process-parse)

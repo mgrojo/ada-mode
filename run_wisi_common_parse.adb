@@ -231,6 +231,8 @@ package body Run_Wisi_Common_Parse is
             WisiToken.Enable_Trace (Argument (Arg + 1));
             Arg := @ + 2;
 
+            Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
+
          elsif Argument (Arg) = "--save_text" then
             Save_File_Name := +Argument (Arg + 1);
             Arg := @ + 2;
@@ -248,7 +250,7 @@ package body Run_Wisi_Common_Parse is
             Arg := @ + 2;
 
          elsif Argument (Arg) = "--mckenzie_check_limit" then
-            Parser.Table.McKenzie_Param.Check_Limit := WisiToken.Syntax_Trees.Node_Index'Value
+            Parser.Table.McKenzie_Param.Check_Limit := WisiToken.Syntax_Trees.Sequential_Index'Value
               (Argument (Arg + 1));
             Arg := @ + 2;
 
@@ -269,8 +271,7 @@ package body Run_Wisi_Common_Parse is
             Arg := @ + 2;
 
          elsif Argument (Arg) = "--mckenzie_zombie_limit" then
-            Parser.Table.McKenzie_Param.Zombie_Limit := WisiToken.Syntax_Trees.Node_Index'Value
-              (Argument (Arg + 1));
+            Parser.Table.McKenzie_Param.Zombie_Limit := Integer'Value (Argument (Arg + 1));
             Arg := @ + 2;
 
          elsif Argument (Arg) = "--repeat_count" then
@@ -417,8 +418,10 @@ package body Run_Wisi_Common_Parse is
 
             Begin_Byte_Pos : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
             Begin_Char_Pos : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
-            End_Byte_Pos   : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
-            End_Char_Pos   : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
+
+            --  Emacs end is after last char. FIXME: if last char is multibyte, this is wrong; subtract 1 char in elisp.
+            End_Byte_Pos   : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last)) - 1;
+            End_Char_Pos   : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last)) - 1;
          begin
             Parse_Data.Reset_Post_Parse
               (Parser.Tree, Action,
@@ -477,6 +480,7 @@ package body Run_Wisi_Common_Parse is
 
       when Verbosity =>
          WisiToken.Enable_Trace (Line (Last + 1 .. Line'Last));
+         Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
 
       end case;
    end Process_Command;
