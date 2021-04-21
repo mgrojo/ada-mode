@@ -2307,10 +2307,10 @@ package body Test_McKenzie_Recover is
             Checking_Error          => 2,
             Error_Token_ID          => +Wisi_EOI_ID,
             Error_Token_Byte_Region => (61, 60),
-            Ops                     => +(Push_Back, +SEMICOLON_ID, 15) & (Push_Back, +identifier_opt_ID, 14) &
-              (Push_Back, +END_ID, 13) & (Push_Back, +handled_sequence_of_statements_ID, 0) &
-              (Push_Back, +BEGIN_ID, 12) & (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 12) &
-              (Insert, +SEMICOLON_ID, 12),
+            Ops                     => +(Push_Back, +SEMICOLON_ID, 0) & (Push_Back, +identifier_opt_ID, -1) &
+              (Push_Back, +END_ID, -2) & (Push_Back, +handled_sequence_of_statements_ID, Invalid) &
+              (Push_Back, +BEGIN_ID, -3) & (Push_Back, +block_label_opt_ID, Invalid) & (Insert, +END_ID, -3) &
+              (Insert, +SEMICOLON_ID, -3),
             Strategy_Counts         => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
             Enqueue_Low             => 18,
             Check_Low               => 5,

@@ -1684,6 +1684,7 @@ is
          Indent_Line ("  (" & Output_File_Name_Root & "_re2c_c.New_Lexer,");
          Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Free_Lexer,");
          Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Reset_Lexer,");
+         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Set_Verbosity,");
          Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Set_Position,");
          Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token);");
          New_Line;

@@ -65,7 +65,8 @@ begin
          Trace.New_Line;
       end if;
 
-      if Shared_Parser.Tree.ID (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream).Node) =
+      if Shared_Parser.Tree.Stream_Length (Shared_Parser.Tree.Shared_Stream) = 3 and then
+        Shared_Parser.Tree.ID (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream).Node) =
         Shared_Parser.Tree.Lexer.Descriptor.Accept_ID
       then
          if Trace_Parse > Outline then
@@ -109,7 +110,7 @@ begin
                if Trace_Parse > Extra then
                   Trace.Put_Line
                     (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": zombie (" &
-                       Syntax_Trees.Node_Index'Image
+                       Integer'Image
                          (Shared_Parser.Table.McKenzie_Param.Zombie_Limit - Parser_State.Zombie_Token_Count) &
                        " tokens remaining)");
                end if;
@@ -388,41 +389,45 @@ begin
                   Parser_State.Resume_Active          := True;
                   Parser_State.Conflict_During_Resume := False;
 
-                  if Trace_Parse > Outline and Trace_McKenzie <= Extra then
-                     Trace.Put_Line
-                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": stack/stream " &
-                          Shared_Parser.Tree.Image
-                            (Parser_State.Stream, Stack => True, Input => True, Shared => True,
-                             Children => Trace_Parse > Detail));
-                     Trace.Put_Line
-                       ("    Current_Token: " &
-                          Shared_Parser.Tree.Image (Parser_State.Current_Token));
-                     Trace.Put_Line
-                       ("    Shared_Token: " & Shared_Parser.Tree.Image (Parser_State.Shared_Token));
-                     Trace.Put_Line
-                       ("    recover_insert_delete:" &
-                          (if Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
-                           then ""
-                           else Image
-                             (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree,
-                              First => Parser_State.Recover_Insert_Delete_Current)));
-
-                     if Trace_Parse > Detail then
-                        Shared_Parser.Trace.Put_Line
-                          ("    resume_active: True, token goal" & Parser_State.Resume_Token_Goal'Image &
-                             ", inc_shared_stream_token: " & Parser_State.Inc_Shared_Stream_Token'Image);
-                     end if;
-                  end if;
-
-                  Parser_State.Zombie_Token_Count := 0;
-
                   case Parser_State.Verb is
                   when Error =>
                      --  Force this parser to be terminated.
                      Parser_State.Zombie_Token_Count := Shared_Parser.Table.McKenzie_Param.Zombie_Limit + 1;
 
+                     if Trace_Parse > Outline and Trace_McKenzie <= Extra then
+                        Trace.Put_Line
+                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": fail:");
+                     end if;
+
                   when Shift =>
-                     null;
+
+                     Parser_State.Zombie_Token_Count := 0;
+                     if Trace_Parse > Outline and Trace_McKenzie <= Extra then
+                        Trace.Put_Line
+                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": stack/stream:");
+                        Trace.Put_Line
+                          (Shared_Parser.Tree.Image
+                             (Parser_State.Stream, Stack => True, Input => True, Shared => True,
+                              Children => Trace_Parse > Detail));
+                        Trace.Put_Line
+                          ("    Current_Token: " &
+                             Shared_Parser.Tree.Image (Parser_State.Current_Token));
+                        Trace.Put_Line
+                          ("    Shared_Token: " & Shared_Parser.Tree.Image (Parser_State.Shared_Token));
+                        Trace.Put_Line
+                          ("    recover_insert_delete:" &
+                             (if Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
+                              then ""
+                              else Image
+                                (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree,
+                                 First => Parser_State.Recover_Insert_Delete_Current)));
+
+                        if Trace_Parse > Detail then
+                           Shared_Parser.Trace.Put_Line
+                             ("    resume_active: True, token goal" & Parser_State.Resume_Token_Goal'Image &
+                                ", inc_shared_stream_token: " & Parser_State.Inc_Shared_Stream_Token'Image);
+                        end if;
+                     end if;
 
                   when Reduce | Pause | Accept_It =>
                      raise SAL.Programmer_Error;

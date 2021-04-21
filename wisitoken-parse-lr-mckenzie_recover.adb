@@ -881,36 +881,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    is
       use Syntax_Trees;
 
-      Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
-      Terminal : Stream_Node_Parents := Tree.To_Stream_Node_Parents
-        (Shared_Parser.Parsers.First_State_Ref.Shared_Token);
-      Index : Sequential_Index;
+      Tree     : Syntax_Trees.Tree renames Shared_Parser.Tree;
+      Terminal : Stream_Node_Parents := Shared_Parser.Max_Sequential_Index;
    begin
-      Tree.First_Terminal (Terminal);
-      Index := Tree.Get_Sequential_Index (Terminal.Ref.Node);
-
       loop
          Tree.Set_Sequential_Index (Terminal.Ref.Node, Invalid_Sequential_Index);
-         exit when Index = Shared_Parser.Max_Sequential_Index;
+         exit when Terminal.Ref.Node = Shared_Parser.Min_Sequential_Index.Ref.Node;
 
-         Index := @ + 1;
-
-         Tree.Next_Terminal (Terminal);
-      end loop;
-
-      Terminal := Tree.To_Stream_Node_Parents (Shared_Parser.Parsers.First_State_Ref.Shared_Token);
-      Tree.Prev_Terminal (Terminal);
-      Index := Tree.Get_Sequential_Index (Terminal.Ref.Node);
-      loop
-         Tree.Set_Sequential_Index (Terminal.Ref.Node, Invalid_Sequential_Index);
-         exit when Index = Shared_Parser.Min_Sequential_Index;
-
-         Index := @ - 1;
          Tree.Prev_Terminal (Terminal);
       end loop;
 
-      Shared_Parser.Min_Sequential_Index := Invalid_Sequential_Index;
-      Shared_Parser.Max_Sequential_Index := Invalid_Sequential_Index;
+      Shared_Parser.Min_Sequential_Index := Invalid_Stream_Node_Parents;
+      Shared_Parser.Max_Sequential_Index := Invalid_Stream_Node_Parents;
    end Clear_Sequential_Index;
 
    function Find_ID

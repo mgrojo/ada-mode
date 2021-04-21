@@ -48,7 +48,6 @@ with WisiToken.In_Parse_Actions;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
    use all type WisiToken.Syntax_Trees.Stream_ID;
-   use all type WisiToken.Syntax_Trees.Node_Index;
    use all type SAL.Base_Peek_Type;
 
    type All_Parse_Action_Verbs is (Pause, Shift, Reduce, Accept_It, Error);
@@ -290,8 +289,8 @@ package WisiToken.Parse.LR is
       --  Number of parallel tasks during recovery. If 0, use
       --  System.Multiprocessors.Number_Of_CPUs - 1.
 
-      Zombie_Limit : Syntax_Trees.Node_Index;
-      --  Shared tokens to wait before terminating parser that encountered
+      Zombie_Limit : Positive;
+      --  Terminal tokens to wait before terminating parser that encountered
       --  an error. See test_mckenzie_recover.adb Revive_Zombie for example
       --  of why this is not hard-coded at 0. Setting it the same as
       --  Check_Limit is often a good choice.
@@ -684,7 +683,7 @@ package WisiToken.Parse.LR is
       --  we set Shared_Parser.Resume_Token_Goal only from successful
       --  configs.
 
-      String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
+      String_Quote_Checked : Base_Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
       Error_Token                   : Syntax_Trees.Recover_Token;

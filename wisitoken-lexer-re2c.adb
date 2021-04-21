@@ -60,6 +60,13 @@ package body WisiToken.Lexer.re2c is
       return Has_Source (Lexer.Source);
    end Has_Source;
 
+   overriding procedure Set_Verbosity
+     (Lexer     : in Instance;
+      Verbosity : in Integer)
+   is begin
+      Set_Verbosity (Lexer.Lexer, Interfaces.C.int (Verbosity));
+   end Set_Verbosity;
+
    overriding procedure Reset_With_String
      (Lexer      : in out Instance;
       Input      : in     String;
@@ -80,9 +87,8 @@ package body WisiToken.Lexer.re2c is
          User_Buffer               => False);
 
       Lexer.Lexer := New_Lexer
-        (Buffer    => Lexer.Source.Buffer.all'Address,
-         Length    => Interfaces.C.size_t (Input'Length),
-         Verbosity => Interfaces.C.int (Trace_Lexer - 1));
+        (Buffer => Lexer.Source.Buffer.all'Address,
+         Length => Interfaces.C.size_t (Input'Length));
 
       Reset (Lexer);
    end Reset_With_String;
@@ -124,9 +130,8 @@ package body WisiToken.Lexer.re2c is
          User_Buffer               => True);
 
       Lexer.Lexer := New_Lexer
-        (Buffer    => Lexer.Source.Buffer.all'Address,
-         Length    => Interfaces.C.size_t (Input_Last - Input'First + 1),
-         Verbosity => Interfaces.C.int (Trace_Lexer - 1));
+        (Buffer => Lexer.Source.Buffer.all'Address,
+         Length => Interfaces.C.size_t (Input_Last - Input'First + 1));
 
       Reset (Lexer);
    end Reset_With_String_Access;
@@ -172,9 +177,8 @@ package body WisiToken.Lexer.re2c is
       Lexer.Source.Buffer_Last := Last (Lexer.Source.Region);
 
       Lexer.Lexer := New_Lexer
-        (Buffer    => Data (Lexer.Source.Region).all'Address,
-         Length    => Interfaces.C.size_t (Length),
-         Verbosity => Interfaces.C.int (Trace_Lexer - 1));
+        (Buffer => Data (Lexer.Source.Region).all'Address,
+         Length => Interfaces.C.size_t (Length));
 
       Reset (Lexer);
    end Reset_With_File;

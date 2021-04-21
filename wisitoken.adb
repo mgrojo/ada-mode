@@ -317,7 +317,7 @@ package body WisiToken is
 
    function Error_Message
      (File_Name : in String;
-      Line      : in Line_Number_Type;
+      Line      : in Base_Line_Number_Type;
       Column    : in Ada.Text_IO.Count;
       Message   : in String)
      return String
@@ -373,7 +373,7 @@ package body WisiToken is
       end if;
    end Overlaps;
 
-   function Trimmed_Image (Item : in Line_Number_Type) return String
+   function Trimmed_Image (Item : in Base_Line_Number_Type) return String
    is
       function Base_Trimmed_Image is new SAL.Gen_Trimmed_Image (Line_Number_Type);
    begin

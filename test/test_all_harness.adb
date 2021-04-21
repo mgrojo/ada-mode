@@ -42,6 +42,7 @@ with Test_LR_Expecting_Terminal_Sequence;
 with Test_McKenzie_Recover;
 with Test_Partial_Parse;
 with Test_Skip_To;
+with Test_Syntax_Trees;
 with Trivial_Productions_Test;
 with Warth_Left_Recurse_Expr_1;
 with WisiToken.BNF;
@@ -120,6 +121,7 @@ begin
    Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LR1, 0, False, False)));
    Add_Test (Suite, Test_Case_Access'(new Test_Partial_Parse.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Skip_To.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Syntax_Trees.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Trivial_Productions_Test.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Warth_Left_Recurse_Expr_1.Test_Case));
 

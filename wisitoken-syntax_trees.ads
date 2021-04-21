@@ -257,6 +257,8 @@ package WisiToken.Syntax_Trees is
       --  Ref.Element.Node to Ref.Node.
    end record;
 
+   Invalid_Stream_Node_Parents : constant Stream_Node_Parents;
+
    function Parents_Valid (Ref : in Stream_Node_Parents) return Boolean;
    --  True if Parents gives the path from Element.Node to Node, or Element or Node is invalid.
 
@@ -644,12 +646,17 @@ package WisiToken.Syntax_Trees is
    --  Stream input. Ref is updated to point to the new element.
 
    procedure Move_Shared_To_Input
-     (Tree   : in out Syntax_Trees.Tree;
-      Ref    : in out Stream_Node_Ref;
-      Stream : in     Stream_ID)
-   with Pre => Valid_Stream_Node (Tree, Ref) and Ref.Stream = Tree.Shared_Stream;
-   --  Insert a stream element into Stream input for Ref. Then step Ref
-   --  to next stream element, and update Stream.Shared_Link.
+     (Tree         : in out Syntax_Trees.Tree;
+      Shared_Ref   : in out Stream_Node_Ref;
+      Parse_Stream : in     Stream_ID;
+      Parse_Ref    :    out Stream_Node_Ref)
+   with Pre => Valid_Stream_Node (Tree, Shared_Ref) and Shared_Ref.Stream = Tree.Shared_Stream and
+               Parse_Stream /= Tree.Shared_Stream,
+     Post => Valid_Stream_Node (Tree, Parse_Ref) and Parse_Ref.Stream = Parse_Stream and
+             Get_Node (Parse_Ref.Element) = Get_Node (Shared_Ref.Element)'Old;
+   --  Insert a stream element into Parse_Stream input for Shared_Ref,
+   --  update Parse_Ref to the new element. Increment Shared_Ref to next
+   --  stream element, update Parse_Stream.Shared_Link.
    --
    --  This is often needed before Left_Breakdown while parsing.
 
@@ -665,9 +672,8 @@ package WisiToken.Syntax_Trees is
    --
    --  The stack top is unchanged. Note that Ref.Node is ignored on input.
    --
-   --  Parent links are set to Invalid_Node_Access. If Tree.Parents_Set,
-   --  Child links are set to Invalid_Node_Access as appropriate;
-   --  otherwise the parent nodes are assumed to be shared.
+   --  Parent links are set to Invalid_Node_Access. However, even if
+   --  Tree.Parents_Set, Child links are not changed.
 
    procedure Right_Breakdown
      (Tree : in out Syntax_Trees.Tree;
@@ -681,9 +687,8 @@ package WisiToken.Syntax_Trees is
    --
    --  The stack top is unchanged. Note that Ref.Node is ignored on input.
    --
-   --  Parent links are set to Invalid_Node_Access. If Tree.Parents_Set,
-   --  Child links are set to Invalid_Node_Access as appropriate;
-   --  otherwise the parent nodes are assumed to be shared.
+   --  Parent links are set to Invalid_Node_Access. However, even if
+   --  Tree.Parents_Set, Child links are not changed.
 
    procedure Breakdown
      (Tree : in out Syntax_Trees.Tree;
@@ -700,6 +705,14 @@ package WisiToken.Syntax_Trees is
    --  The stack top is unchanged.
    --
    --  Parent/child links are set to Invalid_Node_Access as appropriate.
+   --
+   --  WORKAROUND: we'd like to add:
+   --
+   --  and (not Tree.Contains (Ref.Stream, Ref.Element'Old) or
+   --     Tree.First_Terminal (Get_Node (Ref.Element)'Old) = Ref.Node'Old);
+   --
+   --  to the post condition, but GNAT Community 2020 treats
+   --  'tree.contains' as a constant false.
 
    function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return State_Index
    with Pre => Tree.Is_Valid (Stream);
@@ -1025,7 +1038,7 @@ package WisiToken.Syntax_Trees is
    function Line_At_Byte_Pos
      (Tree     : in Syntax_Trees.Tree;
       Byte_Pos : in Buffer_Pos)
-     return Line_Number_Type
+     return Base_Line_Number_Type
    with Pre => Tree.Editable;
    --  Return line that contains Byte_Pos; Invalid_Line_Number is outside
    --  range of text spanned by Tree.
@@ -1619,19 +1632,27 @@ package WisiToken.Syntax_Trees is
    --  Return Count parent of Node.
 
    function Find_Byte_Pos
-     (Tree     : in Syntax_Trees.Tree;
-      Byte_Pos : in Buffer_Pos)
+     (Tree                 : in Syntax_Trees.Tree;
+      Byte_Pos             : in Buffer_Pos;
+      Trailing_Non_Grammar : in Boolean)
      return Node_Access;
-   --  Return the terminal that contains or is first after Byte_Pos.
+   --  Return the terminal that contains (including non_grammar if
+   --  Trailing_Non_Grammar) or is first after Byte_Pos.
    --  Invalid_Node_Access outside text spanned by Tree.
 
    function Find_Byte_Pos
-     (Tree     : in Syntax_Trees.Tree;
-      Stream   : in Stream_ID;
-      Byte_Pos : in Buffer_Pos)
-     return Stream_Node_Ref;
-   --  Return the terminal that contains or is first after Byte_Pos.
-   --  Invalid_Node_Access or outside text spanned by Tree.Stream.
+     (Tree                 : in Syntax_Trees.Tree;
+      Stream               : in Stream_ID;
+      Byte_Pos             : in Buffer_Pos;
+      Trailing_Non_Grammar : in Boolean;
+      Start_At             : in Terminal_Ref)
+     return Terminal_Ref
+   with Pre => Start_At = Invalid_Stream_Node_Ref or else Tree.Byte_Region (Start_At.Node).First <= Byte_Pos;
+   --  Return the terminal that contains (including non_grammar if
+   --  Trailing_Non_Grammar) or is first after Byte_Pos.
+   --  Invalid_Stream_Node_Ref if outside text spanned by Tree.Stream.
+   --
+   --  If Start_At is not Invalid_Stream_Node_Ref, start search there.
 
    function Find_Char_Pos
      (Tree                 : in Syntax_Trees.Tree;
@@ -1648,13 +1669,13 @@ package WisiToken.Syntax_Trees is
      (Tree : in Syntax_Trees.Tree;
       Line : in Line_Number_Type)
      return Node_Access
-   with Pre => Tree.Editable,
+   with Pre => Line > Line_Number_Type'First and Tree.Editable,
      Post => Find_New_Line'Result = Invalid_Node_Access or else
              (Tree.Is_Terminal (Find_New_Line'Result) and then
                 (for some Token of Tree.Non_Grammar_Const (Find_New_Line'Result) =>
-                   Token.ID in Tree.Lexer.Descriptor.New_Line_ID | Tree.Lexer.Descriptor.EOI_ID and
-                     Token.Line_Region.First = Line - 1));
-   --  Return node that that ends Line - 1; either EOI or contains the
+                   (Token.ID = Tree.Lexer.Descriptor.New_Line_ID and Token.Line_Region.First = Line - 1) or
+                      (Token.ID = Tree.Lexer.Descriptor.EOI_ID and Token.Line_Region.First in Line - 1 | Line)));
+   --  Return the node that ends Line - 1; either EOI or contains the
    --  non-grammar New_Line. Result is Invalid_Node_Access if Line is
    --  outside range spanned by Tree.
 
@@ -1663,12 +1684,12 @@ package WisiToken.Syntax_Trees is
       Line                : in     Line_Number_Type;
       Line_Begin_Char_Pos :    out Buffer_Pos)
      return Node_Access
-   with Pre => Tree.Editable,
+   with Pre => Line > Line_Number_Type'First and Tree.Editable,
      Post => Find_New_Line'Result = Invalid_Node_Access or else
              (Tree.Is_Terminal (Find_New_Line'Result) and then
                 (for some Token of Tree.Non_Grammar_Const (Find_New_Line'Result) =>
-                   Token.ID in Tree.Lexer.Descriptor.New_Line_ID | Tree.Lexer.Descriptor.EOI_ID and
-                     Token.Line_Region.First = Line - 1));
+                   (Token.ID = Tree.Lexer.Descriptor.New_Line_ID and Token.Line_Region.First = Line - 1) or
+                      (Token.ID = Tree.Lexer.Descriptor.EOI_ID and Token.Line_Region.First in Line - 1 | Line)));
    --  Same as Find_New_Line, also updates Line_Begin_Char_Pos to first
    --  char pos on Line.
 
@@ -2149,6 +2170,8 @@ private
    Invalid_Stream_Node_Ref : constant Stream_Node_Ref :=
      (Invalid_Stream_ID, Invalid_Stream_Index, Invalid_Node_Access);
 
+   Invalid_Stream_Node_Parents : constant Stream_Node_Parents := (Invalid_Stream_Node_Ref, Parents => <>);
+
    package Node_Access_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node_Access, null);
 
    type Tree is new Base_Tree with record
@@ -2193,7 +2216,8 @@ private
       Token  : in Stream_Index)
      return Boolean
    is ((Tree.Is_Valid (Stream) and Token /= Invalid_Stream_Index) and then
-         Stream_Element_Lists.Constant_Ref (Token.Cur).Label = Tree.Streams (Stream.Cur).Label);
+         Stream_Element_Lists.Constant_Ref (Token.Cur).Label = Tree.Streams (Stream.Cur).Label and then
+         (for some Cur in Tree.Streams (Stream.Cur).Elements.Iterate => Cur = Token.Cur));
 
    function Correct_Stream_Node
      (Tree : in Syntax_Trees.Tree;

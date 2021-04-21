@@ -76,7 +76,7 @@ package body Test_Skip_To_Aux is
          --  See comment in Test_Declaration_0 for source of expected values.
 
          Check ("compilation_unit_0 PREAMBLE char region",
-                Parser.Tree.Char_Region (Parser.Tree.First_Shared_Terminal (Nonterm)),
+                Parser.Tree.Char_Region (Parser.Tree.First_Terminal (Nonterm)),
                 (1, 5));
          declare
             Bytes : constant WisiToken.Buffer_Region := Parser.Tree.Byte_Region (Nonterm);

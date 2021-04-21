@@ -20,6 +20,13 @@ package WisiToken.AUnit is
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Unknown_State_Index);
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Token_ID);
 
+   procedure Check
+     (Label      : in String;
+      Computed   : in Token_ID;
+      Expected   : in Token_ID;
+      Descriptor : in WisiToken.Descriptor);
+   --  Uses Descriptor.Image in error message
+
    procedure Check (Label : in String; Computed, Expected : in Production_ID);
 
    package Production_ID_Arrays_AUnit is new Production_ID_Arrays.Gen_AUnit

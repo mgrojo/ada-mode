@@ -944,7 +944,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("result->char_token_start  = 1;");
       Indent_Line ("result->line              = (*result->cursor == 0x0A) ? 2 : 1;");
       Indent_Line ("result->line_token_start  = result->line;");
-      Indent_Line ("result->verbosity         = verbosity;");
+      Indent_Line ("result->verbosity         = 0;");
       Indent_Line ("return result;");
       Indent := Indent - 3;
       Indent_Line ("}");
@@ -967,6 +967,16 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("lexer->cursor   = lexer->buffer;");
       Indent_Line ("lexer->char_pos = 1;");
       Indent_Line ("lexer->line     = 1;");
+      Indent := Indent - 3;
+      Indent_Line ("}");
+      New_Line;
+
+      Indent_Line ("void");
+      Indent_Line (Output_File_Name_Root & "_set_verbosity");
+      Indent_Line ("   (wisi_lexer* lexer, int verbosity)");
+      Indent_Line ("{");
+      Indent := Indent + 3;
+      Indent_Line ("lexer->verbosity = verbosity;");
       Indent := Indent - 3;
       Indent_Line ("}");
       New_Line;
@@ -1244,13 +1254,12 @@ package body WisiToken.BNF.Output_Ada_Common is
 
          Indent_Line ("function New_Lexer");
          Indent_Line ("  (Buffer    : in System.Address;");
-         Indent_Line ("   Length    : in Interfaces.C.size_t;");
-         Indent_Line ("   Verbosity : in Interfaces.C.int)");
+         Indent_Line ("   Length    : in Interfaces.C.size_t)");
          Indent_Line ("  return System.Address");
          Indent_Line ("with Import        => True,");
          Indent_Line ("     Convention    => C,");
          Indent_Line ("     External_Name => """ & Output_File_Name_Root & "_new_lexer"";");
-         Indent_Line ("--  Create the lexer object, passing it the full text to process.");
+         Indent_Line ("--  Create the lexer object, passing it the text buffer.");
          New_Line;
          Indent_Line ("procedure Free_Lexer (Lexer : in out System.Address)");
          Indent_Line ("with Import        => True,");
@@ -1264,6 +1273,13 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("     Convention    => C,");
          Indent_Line ("     External_Name => """ & Output_File_Name_Root & "_reset_lexer"";");
          New_Line;
+
+         Indent_Line ("procedure Set_Verbosity");
+         Indent_Line ("  (Lexer     : in System.Address;");
+         Indent_Line ("   Verbosity : in Interfaces.C.int)");
+         Indent_Line ("with Import        => True,");
+         Indent_Line ("     Convention    => C,");
+         Indent_Line ("     External_Name => """ & Output_File_Name_Root & "_set_verbosity"";");
 
          Indent_Line ("procedure Set_Position");
          Indent_Line ("  (Lexer         : in System.Address;");

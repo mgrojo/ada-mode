@@ -318,7 +318,6 @@ package WisiToken is
 
    Invalid_Buffer_Pos : constant Buffer_Pos    := Buffer_Pos'Last;
    Null_Buffer_Region : constant Buffer_Region := (Buffer_Pos'Last, Buffer_Pos'First);
-   --  Default value useful for Syntax_Trees.Update_Cache.
 
    function Length (Region : in Buffer_Region) return Natural is
      ((if Region.Last >= Region.First
@@ -355,12 +354,12 @@ package WisiToken is
        Base_Buffer_Pos (Integer (Left.Last) + Delta_Last));
 
    type Base_Line_Number_Type is new Integer; -- for delta line numbers.
-   subtype Line_Number_Type is Base_Line_Number_Type range 1 .. Base_Line_Number_Type'Last;
+   subtype Line_Number_Type is Base_Line_Number_Type range 1 .. Base_Line_Number_Type'Last - 1;
    --  Match Emacs buffer line numbers.
 
-   Invalid_Line_Number : constant Line_Number_Type := Line_Number_Type'Last;
+   Invalid_Line_Number : constant Base_Line_Number_Type := Base_Line_Number_Type'Last;
 
-   function Trimmed_Image (Item : in Line_Number_Type) return String;
+   function Trimmed_Image (Item : in Base_Line_Number_Type) return String;
    --  '-' if Invalid_Line_Number
 
    type Line_Region is record
@@ -489,7 +488,7 @@ package WisiToken is
 
    function Error_Message
      (File_Name : in String;
-      Line      : in Line_Number_Type;
+      Line      : in Base_Line_Number_Type;
       Column    : in Ada.Text_IO.Count;
       Message   : in String)
      return String;

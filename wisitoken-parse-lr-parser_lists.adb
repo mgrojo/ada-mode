@@ -117,7 +117,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       if Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref then
          --  First token in parse.
          pragma Assert (Set_Current and not Tree.Has_Input (Parser_State.Stream));
-         Parser_State.Shared_Token := Tree.Stream_First (Tree.Shared_Stream);
+         Parser_State.Shared_Token            := Tree.Stream_First (Tree.Shared_Stream);
          Parser_State.Current_Token           := Parser_State.Shared_Token;
          Parser_State.Inc_Shared_Stream_Token := True;
          return;
@@ -127,7 +127,11 @@ package body WisiToken.Parse.LR.Parser_Lists is
         not Tree.Has_Input (Parser_State.Stream) and
         not Tree.Is_Terminal (Parser_State.Shared_Token.Node)
       then
-         Tree.Move_Shared_To_Input (Parser_State.Shared_Token, Parser_State.Stream);
+         --  It may seem redundant to increment shared_Token _and_ set
+         --  Inc_Shared_Stream false, but this way we are consistent with error
+         --  recovery.
+         Tree.Move_Shared_To_Input (Parser_State.Shared_Token, Parser_State.Stream, Parser_State.Current_Token);
+         Parser_State.Inc_Shared_Stream_Token := False;
       end if;
 
       if Tree.Has_Input (Parser_State.Stream) then
@@ -356,28 +360,41 @@ package body WisiToken.Parse.LR.Parser_Lists is
       if not Other.Is_Done then
          --  Both have the same number of errors, otherwise one would have been
          --  terminated earlier.
-         if Other.Total_Recover_Cost = Current.Total_Recover_Cost then
-            if Other.Max_Recover_Ops_Length = Current.Max_Recover_Ops_Length then
-               Parsers.Terminate_Parser (Other, Tree, "duplicate state: random", Trace);
+         declare
+            use Ada.Strings.Unbounded;
+            One_Stream : constant Syntax_Trees.Stream_ID := Current.Stream;
+            Another_Stream : constant Syntax_Trees.Stream_ID := Other.Stream;
+            Msg : Unbounded_String;
+         begin
+            if Other.Total_Recover_Cost = Current.Total_Recover_Cost then
+               if Other.Max_Recover_Ops_Length = Current.Max_Recover_Ops_Length then
+                  Append (Msg, ": random");
+               else
+                  Append (Msg, ": ops length");
+                  --  Keep the minimum ops length
+                  if Other.Max_Recover_Ops_Length > Current.Max_Recover_Ops_Length then
+                     null;
+                  else
+                     Other := Cursor (Current);
+                     Current.Next;
+                  end if;
+               end if;
             else
-               --  Keep the minimum ops length
-               if Other.Max_Recover_Ops_Length > Current.Max_Recover_Ops_Length then
+               Append (Msg, ": cost");
+               if Other.Total_Recover_Cost > Current.Total_Recover_Cost then
                   null;
                else
                   Other := Cursor (Current);
                   Current.Next;
                end if;
-               Parsers.Terminate_Parser (Other, Tree, "duplicate state: ops length", Trace);
             end if;
-         else
-            if Other.Total_Recover_Cost > Current.Total_Recover_Cost then
-               null;
-            else
-               Other := Cursor (Current);
-               Current.Next;
-            end if;
-            Parsers.Terminate_Parser (Other, Tree, "duplicate state: cost", Trace);
-         end if;
+            Parsers.Terminate_Parser
+              (Other, Tree, "duplicate state with " & Tree.Trimmed_Image
+                 (if Another_Stream = Other.Stream
+                  then One_Stream
+                  else Another_Stream) & (-Msg),
+               Trace);
+         end;
       end if;
    end Duplicate_State;
 

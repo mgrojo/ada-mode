@@ -38,14 +38,13 @@ package body Test_Incremental is
    Parser : WisiToken.Parse.LR.Parser.Parser;
 
    procedure Parse_Text
-     (Initial               : in String;
-      Edit_At               : in Integer;
-      Delete                : in String;
-      Insert                : in String;
-      Edit_2_At             : in Integer := 0;
-      Delete_2              : in String  := "";
-      Insert_2              : in String  := "";
-      Terminal_Node_Numbers : in Boolean := True)
+     (Initial   : in String;
+      Edit_At   : in Integer;
+      Delete    : in String;
+      Insert    : in String;
+      Edit_2_At : in Integer := 0;
+      Delete_2  : in String  := "";
+      Insert_2  : in String  := "")
    with Pre => Edit_2_At = 0 or Edit_2_At > Edit_At
    is
       use Ada.Text_IO;
@@ -221,7 +220,7 @@ package body Test_Incremental is
 
       Check ("1", Parser.Tree, Edited_Tree_Batch,
              Shared_Stream => False,
-             Terminal_Node_Numbers => Terminal_Node_Numbers);
+             Terminal_Node_Numbers => False);
    exception
    when WisiToken.Syntax_Error =>
       if WisiToken.Trace_Tests > WisiToken.Outline then
@@ -560,14 +559,13 @@ package body Test_Incremental is
       --  Full parse uses error recovery to place missing return type.
       --  Incremental parse fixes the error.
       Parse_Text
-        (Initial               =>
+        (Initial =>
            "function Func_1 (A : Integer) return " & ASCII.LF &
              --        |10       |20       |30
              "is begin return 1; end;",
-         Edit_At               => 38,
-         Delete                => "",
-         Insert                => "Integer",
-         Terminal_Node_Numbers => False);
+         Edit_At => 38,
+         Delete  => "",
+         Insert  => "Integer");
    end Recover_1;
 
    ----------

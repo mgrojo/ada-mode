@@ -227,10 +227,6 @@ package WisiToken.BNF is
      (Ada.Strings.Unbounded.Unbounded_String, String_Pair_Type, Ada.Strings.Unbounded."<");
 
    type McKenzie_Recover_Param_Type is record
-      Source_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
-      --  Of the %mckenzie_cost_default declaration; we assume the others
-      --  are near.
-
       Default_Insert              : Natural                    := 0;
       Default_Delete_Terminal     : Natural                    := 0;
       Default_Push_Back           : Natural                    := 0; -- also default for undo_reduce
@@ -248,7 +244,7 @@ package WisiToken.BNF is
         WisiToken.Parse.LR.Default_McKenzie_Param.Ignore_Check_Fail;
       Check_Limit                 : Syntax_Trees.Sequential_Index :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Check_Limit;
-      Zombie_Limit                : Syntax_Trees.Node_Index :=
+      Zombie_Limit                : Positive :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Zombie_Limit;
       Check_Delta_Limit           : Natural                    :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Check_Delta_Limit;
@@ -308,9 +304,9 @@ package WisiToken.BNF is
       --  RHS modified by Translate_EBNF_To_BNF; RHS_Index 0 has all tokens
       --  unless Substituted_Token_List.
 
-      Action            : Ada.Strings.Unbounded.Unbounded_String;
-      Check             : Ada.Strings.Unbounded.Unbounded_String;
-      Source_Line       : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
+      Action      : Ada.Strings.Unbounded.Unbounded_String;
+      Check       : Ada.Strings.Unbounded.Unbounded_String;
+      Source_Line : WisiToken.Line_Number_Type := WisiToken.Line_Number_Type'First;
    end record;
    package RHS_Lists is new Ada.Containers.Doubly_Linked_Lists (RHS_Type, "=");
 

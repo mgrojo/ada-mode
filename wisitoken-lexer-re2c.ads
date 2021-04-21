@@ -33,9 +33,8 @@ generic
    --  These subprograms are provided by generated source code.
 
    with function New_Lexer
-     (Buffer    : in System.Address;
-      Length    : in Interfaces.C.size_t;
-      Verbosity : in Interfaces.C.int)
+     (Buffer : in System.Address;
+      Length : in Interfaces.C.size_t)
      return System.Address;
    --  Create the re2c lexer object, passing it the full text to process.
    --  Length is buffer length in 8 bit bytes.
@@ -48,6 +47,10 @@ generic
 
    with procedure Reset_Lexer (Lexer : in System.Address);
    --  Restart lexing, with previous input buffer.
+
+   with procedure Set_Verbosity
+     (Lexer     : in System.Address;
+      Verbosity : in Interfaces.C.int);
 
    with procedure Set_Position
      (Lexer         : in System.Address;
@@ -89,6 +92,10 @@ package WisiToken.Lexer.re2c is
    function New_Lexer (Descriptor : in WisiToken.Descriptor_Access_Constant) return WisiToken.Lexer.Handle;
    --  If the tokens do not include a reporting New_Line token, set
    --  New_Line_ID to Invalid_Token_ID.
+
+   overriding procedure Set_Verbosity
+     (Lexer     : in Instance;
+      Verbosity : in Integer);
 
    overriding function Has_Source (Lexer : access constant Instance) return Boolean;
 

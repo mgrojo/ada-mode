@@ -178,6 +178,7 @@ package body WisiToken.Lexer.Regexp is
          Buffer_Nominal_First_Char => Begin_Char,
          Line_Nominal_First        => Begin_Line,
          Buffer                    => new String'(Input),
+         Buffer_Last               => Input'Last,
          User_Buffer               => False);
 
       Reset (Lexer);
@@ -186,6 +187,7 @@ package body WisiToken.Lexer.Regexp is
    overriding procedure Reset_With_String_Access
      (Lexer      : in out Instance;
       Input      : in     Ada.Strings.Unbounded.String_Access;
+      Input_Last : in     Integer;
       File_Name  : in     Ada.Strings.Unbounded.Unbounded_String;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
@@ -199,6 +201,7 @@ package body WisiToken.Lexer.Regexp is
          Buffer_Nominal_First_Char => Begin_Char,
          Line_Nominal_First        => Begin_Line,
          Buffer      => Input,
+         Buffer_Last => Input_Last,
          User_Buffer => True);
 
       Reset (Lexer);

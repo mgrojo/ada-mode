@@ -142,8 +142,10 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
       function Stream (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_ID;
 
       function Min_Sequential_Index return Syntax_Trees.Sequential_Index;
+      function Min_Sequential_Index return Syntax_Trees.Stream_Node_Parents;
       procedure Extend_Min_Sequential_Index;
       function Max_Sequential_Index return Syntax_Trees.Sequential_Index;
+      function Max_Sequential_Index return Syntax_Trees.Stream_Node_Parents;
       function Max_Sequential_Index_Is_EOI return Boolean;
       procedure Extend_Max_Sequential_Index;
 

@@ -813,8 +813,6 @@ package body WisiToken_Grammar_Runtime is
                   end if;
 
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Source_Line  := Tree.Line_Region (Tree.Child (Nonterm, 1)).First;
-
                   Data.McKenzie_Recover.Default_Insert          := Natural'Value
                     (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1));
                   Data.McKenzie_Recover.Default_Delete_Terminal := Natural'Value
@@ -869,7 +867,7 @@ package body WisiToken_Grammar_Runtime is
 
                elsif Kind = "mckenzie_zombie_limit" then
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Zombie_Limit := Syntax_Trees.Node_Index'Value
+                  Data.McKenzie_Recover.Zombie_Limit := Integer'Value
                     (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "meta_syntax" then
@@ -951,7 +949,7 @@ package body WisiToken_Grammar_Runtime is
              Source_Line =>
                (case Tree.Label (LHS_Node) is
                 when Source_Terminal    => Tree.Line_Region (LHS_Node).First,
-                when Virtual_Identifier => Invalid_Line_Number, -- IMPROVEME: get line from Right_Hand_Sides
+                when Virtual_Identifier => Line_Number_Type'First, -- IMPROVEME: get line from Right_Hand_Sides
                 when others             => raise SAL.Programmer_Error)));
       end if;
    end Add_Nonterminal;

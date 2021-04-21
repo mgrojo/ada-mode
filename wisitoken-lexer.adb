@@ -83,9 +83,9 @@ package body WisiToken.Lexer is
          GNATCOLL.Mmap.Close (Object.File);
       end case;
 
-      Object.Buffer_Nominal_First_Byte := Invalid_Buffer_Pos;
-      Object.Buffer_Nominal_First_Char := Invalid_Buffer_Pos;
-      Object.Line_Nominal_First        := Invalid_Line_Number;
+      Object.Buffer_Nominal_First_Byte := Buffer_Pos'First;
+      Object.Buffer_Nominal_First_Char := Buffer_Pos'First;
+      Object.Line_Nominal_First        := Line_Number_Type'First;
    end Finalize;
 
    function Has_Source (Object : in Source) return Boolean

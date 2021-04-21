@@ -30,6 +30,7 @@ package body Wisitoken_Grammar_Main is
      (wisitoken_grammar_re2c_c.New_Lexer,
       wisitoken_grammar_re2c_c.Free_Lexer,
       wisitoken_grammar_re2c_c.Reset_Lexer,
+      wisitoken_grammar_re2c_c.Set_Verbosity,
       wisitoken_grammar_re2c_c.Set_Position,
       wisitoken_grammar_re2c_c.Next_Token);
 

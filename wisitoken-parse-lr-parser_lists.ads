@@ -74,11 +74,13 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  Current_Token, True in main parser when Current_Token is set to
       --  Shared_Token. This reflects the fact that the main parser should
       --  not have set Current_Token as it did, and thus should not have
-      --  incremented Shared_Token.
+      --  incremented Shared_Token. The main parser also sets this False
+      --  when it moves a nonterm from Shared_Stream to the parse stream for
+      --  breakdown, to be consistent with error recovery.
 
       Recover : aliased LR.McKenzie_Data := (others => <>);
 
-      Zombie_Token_Count : Syntax_Trees.Node_Index := 0;
+      Zombie_Token_Count : Integer := 0;
       --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
       --  to see if other parsers do also.
 

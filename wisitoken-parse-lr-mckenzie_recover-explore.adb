@@ -473,10 +473,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Check;
 
    function Check_Reduce_To_Start
-     (Super         : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
-      Parser_Index  : in              SAL.Base_Peek_Type;
-      Orig_Config   : in              Configuration)
+     (Super        : not null access Base.Supervisor;
+      Shared       : not null access Base.Shared;
+      Parser_Index : in              SAL.Base_Peek_Type;
+      Orig_Config  : in              Configuration)
      return Boolean
       --  Returns True if Config reduces to the start nonterm.
    is
@@ -1099,7 +1099,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
    procedure Insert_Matching_Begin
      (Super                 : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
+      Shared                : not null access Base.Shared;
       Parser_Index          : in              SAL.Base_Peek_Type;
       Config                : in              Configuration;
       Local_Config_Heap     : in out          Config_Heaps.Heap_Type;
@@ -1109,7 +1109,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Descriptor : WisiToken.Descriptor renames Super.Tree.Lexer.Descriptor.all;
    begin
       --  We don't check for insert = current token; that's either ok or a
-      --  severe bug in Shared_Parser.Language_Matching_Begin_Tokens.
+      --  severe bug in Shared.Language_Matching_Begin_Tokens.
 
       if Config.Matching_Begin_Done then
          if Trace_McKenzie > Extra then

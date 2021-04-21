@@ -319,7 +319,7 @@ package body WisiToken.Parse.LR is
                Param.Task_Count := System.Multiprocessors.CPU_Range (Value);
 
             elsif Name = "zombie_limit" then
-               Param.Zombie_Limit := Syntax_Trees.Node_Index (Value);
+               Param.Zombie_Limit := Value;
 
             else
                raise User_Error with "expecting McKenzie option name, found '" & Config (Name_First .. Name_Last) & "'";

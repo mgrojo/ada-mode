@@ -26,6 +26,7 @@ package body Subprograms_Process_LALR_Main is
      (subprograms_re2c_c.New_Lexer,
       subprograms_re2c_c.Free_Lexer,
       subprograms_re2c_c.Reset_Lexer,
+      subprograms_re2c_c.Set_Verbosity,
       subprograms_re2c_c.Set_Position,
       subprograms_re2c_c.Next_Token);
 

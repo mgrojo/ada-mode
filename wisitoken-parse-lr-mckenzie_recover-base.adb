@@ -140,8 +140,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
             Index : Syntax_Trees.Sequential_Index := 1;
          begin
             Max_Sequential_Index_Node := Tree.To_Stream_Node_Parents (Parsers.First_State_Ref.Shared_Token);
-            if Max_Sequential_Index_Node.Ref.Node = Syntax_Trees.Invalid_Node_Access then
-               Tree.Next_Terminal (Max_Sequential_Index_Node);
+            if Max_Sequential_Index_Node.Ref.Node = Syntax_Trees.Invalid_Node_Access or else
+              Tree.Label (Max_Sequential_Index_Node.Ref.Node) not in Syntax_Trees.Terminal_Label
+            then
+               Tree.First_Terminal (Max_Sequential_Index_Node);
             end if;
 
             Min_Sequential_Index_Node := Max_Sequential_Index_Node;
@@ -478,6 +480,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          return Tree.Get_Sequential_Index (Min_Sequential_Index_Node.Ref.Node);
       end Min_Sequential_Index;
 
+      function Min_Sequential_Index return Syntax_Trees.Stream_Node_Parents
+      is begin
+         return Min_Sequential_Index_Node;
+      end Min_Sequential_Index;
+
       procedure Extend_Min_Sequential_Index
       is
          use Syntax_Trees;
@@ -498,6 +505,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       function Max_Sequential_Index return Syntax_Trees.Sequential_Index
       is begin
          return Tree.Get_Sequential_Index (Max_Sequential_Index_Node.Ref.Node);
+      end Max_Sequential_Index;
+
+      function Max_Sequential_Index return Syntax_Trees.Stream_Node_Parents
+      is begin
+         return Max_Sequential_Index_Node;
       end Max_Sequential_Index;
 
       function Max_Sequential_Index_Is_EOI return Boolean

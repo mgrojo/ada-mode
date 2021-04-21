@@ -488,7 +488,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    procedure Handle_Parse_Error
      (Super             : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
       Parser_Index      : in              SAL.Peek_Type;
-      Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
+      Parse_Table       : in              WisiToken.Parse.LR.Parse_Table;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
       Config            : in              Configuration)
    with Pre => Config.User_Parse_Action_Status.Label = Ok

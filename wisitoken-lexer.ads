@@ -97,6 +97,11 @@ package WisiToken.Lexer is
    is (False);
    --  True if one of Reset_* has been called; lexer has source to process.
 
+   procedure Set_Verbosity
+     (Lexer     : in Instance;
+      Verbosity : in Integer)
+   is null;
+
    procedure Reset_With_String
      (Lexer      : in out Instance;
       Input      : in     String;
@@ -206,9 +211,9 @@ private
       File_Name : Ada.Strings.Unbounded.Unbounded_String;
       --  Not saved in Mapped_File, may be empty for String_Label
 
-      Buffer_Nominal_First_Byte : Buffer_Pos       := Invalid_Buffer_Pos;
-      Buffer_Nominal_First_Char : Buffer_Pos       := Invalid_Buffer_Pos;
-      Line_Nominal_First        : Line_Number_Type := Invalid_Line_Number;
+      Buffer_Nominal_First_Byte : Buffer_Pos       := Buffer_Pos'First;
+      Buffer_Nominal_First_Char : Buffer_Pos       := Buffer_Pos'First;
+      Line_Nominal_First        : Line_Number_Type := Line_Number_Type'First;
       Buffer_Last               : Natural          := 0; -- allow empty input string
 
       case Label is

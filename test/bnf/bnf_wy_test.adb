@@ -113,7 +113,6 @@ package body BNF_WY_Test is
       Meta_Syntax      :    out WisiToken_Grammar_Runtime.Meta_Syntax)
    is
       use AUnit.Checks;
-      use all type WisiToken.Line_Number_Type;
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
       use all type WisiToken.BNF.Generate_Algorithm;
 
@@ -173,7 +172,8 @@ package body BNF_WY_Test is
 
       Check ("grammar parse other error", WisiToken.Generate.Error, False);
 
-      McKenzie_Recover := Input_Data.McKenzie_Recover.Source_Line /= WisiToken.Invalid_Line_Number;
+      --  FIXME: need clear Boolean McKenzie_Specified
+      McKenzie_Recover := Input_Data.McKenzie_Recover.Default_Insert /= 0;
 
       WisiToken.Trace_Parse := Save_Trace_Parse;
    exception

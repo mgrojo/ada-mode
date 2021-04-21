@@ -13,7 +13,19 @@
 
 pragma License (GPL);
 
+with AUnit.Assertions;
 package body WisiToken.AUnit is
+
+   procedure Check
+     (Label      : in String;
+      Computed   : in Token_ID;
+      Expected   : in Token_ID;
+      Descriptor : in WisiToken.Descriptor)
+   is begin
+      Standard.AUnit.Assertions.Assert
+        (Computed = Expected,
+         Label & " got " & Descriptor.Image (Computed).all & " expecting " & Descriptor.Image (Expected).all);
+   end Check;
 
    procedure Check (Label : in String; Computed, Expected : in Production_ID)
    is begin

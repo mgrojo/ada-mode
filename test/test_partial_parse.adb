@@ -180,7 +180,8 @@ package body Test_Partial_Parse is
            ("input file: " & File_Name & Buffer_Pos'Image (Begin_Byte_Pos) & " .." & Buffer_Pos'Image (End_Byte_Pos));
       end if;
 
-      Parser.Tree.Lexer.Reset_With_String_Access (Buffer'Unchecked_Access, +File_Name, Begin_Char_Pos, Begin_Line);
+      Parser.Tree.Lexer.Reset_With_String_Access
+        (Buffer'Unchecked_Access, Buffer'Last, +File_Name, Begin_Char_Pos, Begin_Line);
       Run_Parse (Label, Begin_Byte_Pos, Goal_Byte_Pos, Begin_Char_Pos, Begin_Line, Parse_End_Byte_Pos, Action_ID);
    end Parse_String_Access;
 

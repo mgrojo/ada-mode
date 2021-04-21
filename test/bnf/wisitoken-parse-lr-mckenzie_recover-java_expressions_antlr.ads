@@ -3,10 +3,9 @@ pragma License (Modified_GPL);
 package WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Antlr is
 
    procedure Fixes
-     (Trace             : in out WisiToken.Trace'Class;
-      Parser_Label      : in     Syntax_Trees.Stream_ID;
+     (Super             : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
+      Parser_Index      : in              SAL.Peek_Type;
       Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
-      Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
    is null;

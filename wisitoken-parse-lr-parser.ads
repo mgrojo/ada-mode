@@ -83,7 +83,7 @@ package WisiToken.Parse.LR.Parser is
       Language_Matching_Begin_Tokens : Language_Matching_Begin_Tokens_Access;
       Language_String_ID_Set         : Language_String_ID_Set_Access;
 
-      String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
+      String_Quote_Checked : Base_Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
       Post_Recover : Post_Recover_Access;
@@ -95,8 +95,8 @@ package WisiToken.Parse.LR.Parser is
       Partial_Parse_Byte_Goal : access WisiToken.Buffer_Pos;
       --  Used by In_Parse_Actions to terminate Partial_Parse.
 
-      Min_Sequential_Index : Syntax_Trees.Base_Sequential_Index := Syntax_Trees.Invalid_Sequential_Index;
-      Max_Sequential_Index : Syntax_Trees.Base_Sequential_Index := Syntax_Trees.Invalid_Sequential_Index;
+      Min_Sequential_Index : Syntax_Trees.Stream_Node_Parents := Syntax_Trees.Invalid_Stream_Node_Parents;
+      Max_Sequential_Index : Syntax_Trees.Stream_Node_Parents := Syntax_Trees.Invalid_Stream_Node_Parents;
       --  Copied from Supervisor for McKenzie_Recover.Clear_Sequential_Index
 
    end record;

@@ -171,14 +171,15 @@ package body WisiToken.Parse.LR.Parser is
                            --  To breakdown a shared_stream token, we first have to create a
                            --  parse stream input element for it, and do the breakdown in the
                            --  parse stream input.
-                           pragma Assert (Parser_State.Current_Token = Parser_State.Shared_Token);
-                           Tree.Move_Shared_To_Input (Parser_State.Shared_Token, Parser_State.Stream);
+                           Tree.Move_Shared_To_Input
+                             (Parser_State.Shared_Token, Parser_State.Stream, Parser_State.Current_Token);
+                           Parser_State.Inc_Shared_Stream_Token := False;
                         end if;
 
                         if Trace_Parse > Detail then
                            Shared_Parser.Trace.Put_Line
                              (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": left_breakdown " &
-                                Tree.Image (Parser_State.Current_Token));
+                                Tree.Image (Parser_State.Current_Token, First_Terminal => True));
                         end if;
                         Tree.Left_Breakdown (Parser_State.Current_Token);
 
@@ -270,8 +271,17 @@ package body WisiToken.Parse.LR.Parser is
                --  This is due to a bug in the LALR parser generator (see
                --  lalr_generator_bug_01.wy); we treat it as a syntax error.
                Parser_State.Set_Verb (Error);
+
+               Parser_State.Errors.Append
+                 ((Label          => LR_Parse_Action,
+                   First_Terminal => 1,
+                   Last_Terminal  => 0,
+                   Error_Token    => Parser_State.Current_Token,
+                   Expecting      => (1 .. 0 => False),
+                   Recover        => (others => <>)));
+
                if Trace_Parse > Detail then
-                  Trace.Put_Line (" ... error");
+                  Trace.Put_Line (" ... error unknown state");
                end if;
 
             else
@@ -419,9 +429,10 @@ package body WisiToken.Parse.LR.Parser is
                     (Parser_State, Shared_Parser.Tree);
                   After_Node : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Parser_State.Current_Token);
                begin
+                  pragma Assert (Tree.Label (Next_Sequential_Terminal.Ref.Node) in Terminal_Label);
+                  --  Any needed Left_Breakdown is done by error recover.
+
                   if Op.Del_Index = Tree.Get_Sequential_Index (Next_Sequential_Terminal.Ref.Node) then
-                     pragma Assert (Tree.Label (Next_Sequential_Terminal.Ref.Node) in Terminal_Label);
-                     --  Any needed Left_Breakdown is done by error recover.
 
                      Op.Del_Node := Next_Sequential_Terminal.Ref.Node;
                      Tree.Last_Terminal (After_Node);
@@ -470,6 +481,7 @@ package body WisiToken.Parse.LR.Parser is
    --
    --  Zombie_Count: count of parsers in Error state
    is
+      use all type WisiToken.Syntax_Trees.Stream_Node_Parents;
       use all type WisiToken.Syntax_Trees.Sequential_Index;
       use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
 
@@ -600,7 +612,7 @@ package body WisiToken.Parse.LR.Parser is
                end;
             end if;
          end loop;
-         if not Some_Paused and Shared_Parser.Max_Sequential_Index /= Syntax_Trees.Invalid_Sequential_Index then
+         if not Some_Paused and Shared_Parser.Max_Sequential_Index /= Syntax_Trees.Invalid_Stream_Node_Parents then
             McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
          end if;
       end if;
@@ -772,6 +784,16 @@ package body WisiToken.Parse.LR.Parser is
                   Prev_Token    => Op.Del_After_Node);
             end case;
          end loop;
+
+         if Trace_Action > Extra then
+            Parser.Trace.Put_Line
+              (Parser.Tree.Image
+                 (Children     => True,
+                  Non_Grammar  => True,
+                  Augmented    => True,
+                  Line_Numbers => True));
+            Parser.Trace.New_Line;
+         end if;
       end if;
    end Finish_Parse;
 

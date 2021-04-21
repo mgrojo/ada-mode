@@ -330,15 +330,36 @@ package body WisiToken.Parse is
                --  Edit_Comment_3.
                if Trace_Incremental_Parse > Detail then
                   Parser.Trace.Put_Line
-                    ("nothing left to shift; terminal:" & Tree.Image (Terminal, Augmented => True));
+                    ("nothing left to shift; terminal:" & Tree.Image
+                       (Terminal, Non_Grammar => True, Augmented => True));
+               end if;
+
+            elsif Shift_Bytes = 0 and Shift_Chars = 0 and Shift_Line = 0 then
+               Terminal := Tree.Find_Byte_Pos
+                 (Terminal.Stream, Inserted_Region.First,
+                  Trailing_Non_Grammar => False,
+                  Start_At             =>
+                    (if Tree.Byte_Region (Terminal.Node).First <= Inserted_Region.First
+                     --  False on first KMN if edit leading non_grammar
+                     then Terminal
+                     else Invalid_Stream_Node_Ref));
+
+               declare
+                  Prev_Terminal          : constant Terminal_Ref  := Tree.Prev_Terminal (Terminal);
+                  Prev_Terminal_Byte_Pos : constant Buffer_Region := Tree.Byte_Region
+                    (Prev_Terminal.Node, Trailing_Non_Grammar => False);
+               begin
+                  if Prev_Terminal.Node /= Tree.SOI and Prev_Terminal_Byte_Pos.Last + 1 = Inserted_Region.First then
+                     Terminal := Prev_Terminal;
+                  end if;
+               end;
+
+               if Trace_Incremental_Parse > Detail then
+                  Parser.Trace.Put_Line
+                    ("skip 0 shift; terminal:" & Tree.Image (Terminal, Non_Grammar => True, Augmented => True));
                end if;
 
             else
-               --  It is tempting to try to skip this loop if all shifts are 0, but
-               --  we need to examine every terminal to see if it has a negative
-               --  node_index (from a previous error recovery), and give it a
-               --  positive node_index, as required for the shared stream.
-
                Unchanged_Loop :
                loop
                   exit Unchanged_Loop when Terminal = Invalid_Stream_Node_Ref;
@@ -582,6 +603,7 @@ package body WisiToken.Parse is
 
                      procedure Delete
                      with Pre => Tree.Label (Tree.Get_Node (To_Delete.Stream, To_Delete.Element)) in Terminal_Label
+                       and To_Delete.Node /= Tree.SOI and To_Delete.Node /= Tree.EOI
                      is
                         Non_Grammar   : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var (To_Delete.Node);
                         Prev_Terminal : constant Node_Access :=
@@ -790,6 +812,7 @@ package body WisiToken.Parse is
                      end if;
                   end loop;
 
+                  pragma Assert (Temp.Node /= Tree.SOI and Temp.Node /= Tree.EOI);
                   Tree.Stream_Delete (Stream, Temp.Element);
                end;
             end loop Delete_Loop;
