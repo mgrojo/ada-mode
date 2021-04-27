@@ -129,7 +129,7 @@ package body Test_Incremental is
          Parser.Put_Errors;
 
          Put_Line (" ... tree:");
-         Tree.Print_Tree (Non_Grammar => True);
+         Tree.Print_Tree (Trace, Non_Grammar => True);
       end Put_Tree;
 
    begin
@@ -512,6 +512,23 @@ package body Test_Incremental is
          Insert  => "");
    end Delete_Comment_New_Line;
 
+   procedure Delete_Comment_Start (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Delete a comment start, converting into code.
+      Parse_Text
+        (Initial => "A := B + C; " & ASCII.LF &
+           --        |1       |10    |13
+           "-- D;" & ASCII.LF &
+           --  |17
+           "C;",
+         --  |21
+         Edit_At => 14,
+         Delete  => "--",
+         Insert  => "");
+   end Delete_Comment_Start;
+
    procedure Insert_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -592,6 +609,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_9'Access, "Edit_Code_9");
       Register_Routine (T, Delete_New_Line'Access, "Delete_New_Line");
       Register_Routine (T, Delete_Comment_New_Line'Access, "Delete_Comment_New_Line");
+      Register_Routine (T, Delete_Comment_Start'Access, "Delete_Comment_Start");
       Register_Routine (T, Insert_New_Line'Access, "Insert_New_Line");
       Register_Routine (T, Names'Access, "Names");
       Register_Routine (T, Recover_1'Access, "Recover_1");

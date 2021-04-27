@@ -411,7 +411,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                         if Trace_McKenzie > Outline or Trace_Parse > Outline then
                            Trace.Put_Line
-                             ("spawn parser " & Shared_Parser.Tree.Trimmed_Image (Parsers.First.Stream) & " from " &
+                             ("spawn " & Shared_Parser.Tree.Trimmed_Image (Parsers.First.Stream) & " from " &
                                 Shared_Parser.Tree.Trimmed_Image (Cur.Stream) & " (" &
                                 Trimmed_Image (Integer (Parsers.Count)) &
                                 " active)");
@@ -540,9 +540,40 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                         begin
                            case Op.Op is
                            when Fast_Forward =>
-                              --  The parser would do shifts and reduces for the tokens we are
-                              --  skipping here
-                              Stack_Matches_Ops := False;
+                              if Stack_Matches_Ops then
+                                 declare
+                                    Target : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+                                      (Parser_State.Current_Token);
+                                 begin
+                                    if Tree.Label (Target.Ref.Node) = Nonterm then
+                                       --  test case: ada_mode-recover_bad_char.adb
+                                       Tree.First_Sequential_Terminal (Target);
+                                       loop
+                                          exit when Tree.Get_Sequential_Index (Target.Ref.Node) = Op.FF_Token_Index;
+                                          Tree.Next_Sequential_Terminal (Target);
+                                       end loop;
+
+                                       if Tree.First_Terminal (Tree.Get_Node (Target.Ref.Stream, Target.Ref.Element)) /=
+                                         Target.Ref.Node
+                                       then
+                                          --  Target is a nonterm that should not be shifted as a whole, so
+                                          --  break it down.
+                                          if Target.Ref.Stream = Tree.Shared_Stream then
+                                             --  First we need to move all shared_stream elements
+                                             --  Parser_State.Shared_Token .. Target to the input stream.
+                                             raise SAL.Not_Implemented with
+                                               "FIXME: found test case for recover Fast_Forward move nonterms to input";
+                                          end if;
+                                          Tree.Breakdown (Target);
+                                          Parser_State.Next_Token (Tree, Set_Current => True, Delete => False);
+                                       end if;
+                                    end if;
+                                 end;
+                              else
+                                 --  The parser would do shifts and reduces for the tokens we are
+                                 --  skipping here
+                                 Stack_Matches_Ops := False;
+                              end if;
 
                            when Undo_Reduce =>
                               --  If Stack_Matches_Ops, we must do the Stack.Pop and Pushes, and we
@@ -686,11 +717,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                              (Parser_State.Stream, Stack => True, Input => True, Shared => True, Children => True));
                         Trace.Put_Line ("   Current_Token " & Tree.Image (Parser_State.Current_Token));
                         Trace.Put_Line ("   Shared_Token  " & Tree.Image (Parser_State.Shared_Token));
-                        if Shared_Parser.Tree.Has_Input (Parser_State.Stream) then
-                           Trace.Put_Line
-                             ("   stream input:" & Shared_Parser.Tree.Image
-                                (Parser_State.Stream, Stack => False, Input => True));
-                        end if;
                         Trace.Put_Line ("   recover_insert_delete " & Image
                                           (Parser_State.Recover_Insert_Delete, Tree,
                                            First => Parser_State.Recover_Insert_Delete_Current));

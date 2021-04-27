@@ -230,7 +230,10 @@ package body WisiToken_Grammar_Editing is
             when 0 =>
                return Get_Text (Data, Tree, Tree.Child (Decl, 3));
 
-            when 2 | 3 =>
+            when 1 =>
+               return Get_Text (Data, Tree, Tree.Child (Decl, 6));
+
+            when 3 | 4 =>
                return Get_Text (Data, Tree, Tree.Child (Decl, 2));
 
             when others =>
@@ -619,8 +622,9 @@ package body WisiToken_Grammar_Editing is
    end Validate_Node;
 
    procedure Translate_EBNF_To_BNF
-     (Tree : in out Syntax_Trees.Tree;
-      Data : in out WisiToken_Grammar_Runtime.User_Data_Type)
+     (Tree  : in out Syntax_Trees.Tree;
+      Data  : in out WisiToken_Grammar_Runtime.User_Data_Type;
+      Trace : in out WisiToken.Trace'Class)
    is
       use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
@@ -1218,7 +1222,7 @@ package body WisiToken_Grammar_Editing is
          if Trace_Generate_EBNF > Extra then
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("Insert_Optional_RHS start: " & Get_Text (Data, Tree, Container));
-            Tree.Print_Tree (Container);
+            Tree.Print_Tree (Trace, Container);
          end if;
 
          declare
@@ -1315,12 +1319,12 @@ package body WisiToken_Grammar_Editing is
                   if Container_ID = +rhs_ID then
                      Ada.Text_IO.Put_Line
                        ("Insert_Optional_RHS old rhs, new rhs: " & Get_Text (Data, Tree, Container_List.Root));
-                     Tree.Print_Tree (Container_List.Root);
+                     Tree.Print_Tree (Trace, Container_List.Root);
                   else
                      Ada.Text_IO.Put_Line
                        ("Insert_Optional_RHS edited rhs_alternative_list: " & Get_Text
                           (Data, Tree, Tree.Parent (Container_List.Root)));
-                     Tree.Print_Tree (Tree.Parent (Container_List.Root));
+                     Tree.Print_Tree (Trace, Tree.Parent (Container_List.Root));
                   end if;
                end if;
             end if;
@@ -1357,7 +1361,8 @@ package body WisiToken_Grammar_Editing is
             return Tree.ID (Decl) = +declaration_ID and then Target =
               (case Tree.RHS_Index (Decl) is
                when 0      => Get_Text (Data, Tree, Tree.Child (Decl, 3)),
-               when 2 | 3  => Get_Text (Data, Tree, Tree.Child (Decl, 2)),
+               when 1      => Get_Text (Data, Tree, Tree.Child (Decl, 6)),
+               when 3 | 4  => Get_Text (Data, Tree, Tree.Child (Decl, 2)),
                when others => "");
          end Equal;
 
@@ -1381,7 +1386,7 @@ package body WisiToken_Grammar_Editing is
               ("new " & Label & ":" & Trimmed_Image (Get_Node_Index (Comp_Unit)) & ": '" &
                  Get_Text (Data, Tree, Unit) & "'");
             if Trace_Generate_EBNF > Extra then
-               Tree.Print_Tree (Comp_Unit);
+               Tree.Print_Tree (Trace, Comp_Unit);
             end if;
          end if;
       end Add_Compilation_Unit;
@@ -2140,7 +2145,7 @@ package body WisiToken_Grammar_Editing is
                if Trace_Generate_EBNF > Extra then
                   Ada.Text_IO.New_Line;
                   Ada.Text_IO.Put_Line ("Simple_Named Canonical_List edited nonterm:");
-                  Tree.Print_Tree (List_Nonterm_Decl);
+                  Tree.Print_Tree (Trace, List_Nonterm_Decl);
                end if;
             end Do_Simple_Named;
 
@@ -2434,7 +2439,7 @@ package body WisiToken_Grammar_Editing is
                Ada.Text_IO.New_Line;
                Ada.Text_IO.Put_Line ("Translate_RHS_Multiple_Item edited: " & Get_Text (Data, Tree, Item));
                if Trace_Generate_EBNF > Extra then
-                  Tree.Print_Tree (Item);
+                  Tree.Print_Tree (Trace, Item);
                end if;
             end;
          end if;
@@ -2608,7 +2613,7 @@ package body WisiToken_Grammar_Editing is
          if WisiToken.Trace_Generate_EBNF > Detail then
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("Translate_RHS_Optional_Item edited:");
-            Tree.Print_Tree (Container_List_Root);
+            Tree.Print_Tree (Trace, Container_List_Root);
          end if;
       end Translate_RHS_Optional_Item;
 
@@ -2654,7 +2659,7 @@ package body WisiToken_Grammar_Editing is
             end if;
          end Equal;
 
-         Value : constant String     := Get_Text (Data, Tree, Node, Strip_Quotes => True);
+         Value : constant String      := Get_Text (Data, Tree, Node, Strip_Quotes => True);
          Found : constant Node_Access := Find_Nonterminal (Value, Equal'Unrestricted_Access);
       begin
          if Found = Invalid_Node_Access then
@@ -3276,12 +3281,17 @@ package body WisiToken_Grammar_Editing is
                   Put_Comments (Children (4), Force_New_Line => True);
 
                when 1 =>
+                  Put (File, "%non_grammar <" & Get_Text (Data, Tree, Children (4)) & ">");
+                  Put (File, " " & Get_Text (Data, Tree, Children (6)));
+                  Put_Comments (Children (6), Force_New_Line => True);
+
+               when 2 =>
                   Put (File, "%code ");
                   Put_Identifier_List (Children (3));
                   Put (File, " %{" & Get_Text (Data, Tree, Children (4)) & "}%"); -- RAW_CODE
                   Put_Comments (Node);
 
-               when 2 =>
+               when 3 =>
                   declare
                      Key : constant String := Get_Text (Data, Tree, Children (2));
                   begin
@@ -3294,37 +3304,37 @@ package body WisiToken_Grammar_Editing is
                   end;
                   Put_Comments (Children (3));
 
-               when 3 =>
+               when 4 =>
                   Put (File, "%" & Get_Text (Data, Tree, Children (2)));
                   Put_Comments (Children (2));
 
-               when 4 =>
+               when 5 =>
                   Put
                     (File, "%if " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text
                        (Data, Tree, Children (5)));
                   Put_Comments (Node);
 
-               when 5 =>
-                  Put
-                    (File, "%if " & Get_Text (Data, Tree, Children (3)) & " in " & Get_Text
-                       (Data, Tree, Children (5)));
-                  Put_Comments (Node);
-
                when 6 =>
                   Put
-                    (File,
-                     "%elsif " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text
+                    (File, "%if " & Get_Text (Data, Tree, Children (3)) & " in " & Get_Text
                        (Data, Tree, Children (5)));
                   Put_Comments (Node);
 
                when 7 =>
                   Put
                     (File,
-                     "%elsif " & Get_Text (Data, Tree, Children (3)) & " in " & Get_Text
+                     "%elsif " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text
                        (Data, Tree, Children (5)));
                   Put_Comments (Node);
 
                when 8 =>
+                  Put
+                    (File,
+                     "%elsif " & Get_Text (Data, Tree, Children (3)) & " in " & Get_Text
+                       (Data, Tree, Children (5)));
+                  Put_Comments (Node);
+
+               when 9 =>
                   Put (File, "%end if");
                   Put_Comments (Node);
 

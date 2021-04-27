@@ -120,8 +120,6 @@ begin
                --  Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref,
                --  we are at the start of the input text.
 
-               Do_Deletes (Shared_Parser, Parser_State);
-
                declare
                   use Recover_Op_Arrays;
                   use all type Syntax_Trees.Stream_Node_Ref;
@@ -489,9 +487,24 @@ begin
             exit Action_Loop when Current_Parser.Is_Done;
 
             if Trace_Parse > Extra then
-               Trace.Put_Line
-                 (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) &
-                    ".verb: " & Image (Current_Parser.Verb));
+               declare
+                  Parser_State : Parser_Lists.Parser_State renames Shared_Parser.Parsers
+                    (Parser_Lists.To_Parser_Node_Access (Current_Parser));
+               begin
+                  Trace.Put_Line
+                    (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
+                       ".verb: " & Image (Parser_State.Verb));
+                  Trace.Put_Line
+                    (" ... stack/stream: " &
+                       Shared_Parser.Tree.Image
+                         (Parser_State.Stream, Stack => True, Input => True, Shared => True, Children => False));
+                  if Parser_State.Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
+                     Trace.Put_Line
+                       (" ... recover_insert_delete:" & Image
+                          (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree,
+                           First => Parser_State.Recover_Insert_Delete_Current));
+                  end if;
+               end;
             end if;
 
             --  Each branch of the following 'if' calls either Current_Parser.Free
@@ -514,11 +527,6 @@ begin
                end if;
 
             elsif Current_Parser.Verb = Current_Verb then
-
-               if Trace_Parse > Extra then
-                  Trace.Put (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": stack: ");
-                  Trace.Put_Line (Parser_Lists.Image (Current_Parser.Stream, Shared_Parser.Tree));
-               end if;
 
                LR.Parser.Get_Action (Shared_Parser, Current_Parser.State_Ref, Action_Cur, Action);
 

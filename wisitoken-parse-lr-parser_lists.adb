@@ -95,15 +95,19 @@ package body WisiToken.Parse.LR.Parser_Lists is
          then Tree.Stream_First (Tree.Shared_Stream)
          else Parser_State.Shared_Token)
       do
-         Tree.First_Sequential_Terminal (Result);
+         if Result.Ref = Parser_State.Shared_Token and Parser_State.Inc_Shared_Stream_Token then
+            --  We are looking for the terminal that is current after Result has been shifted.
+            Tree.Last_Sequential_Terminal (Result, Parser_State.Stream);
 
-         if Parser_State.Inc_Shared_Stream_Token then
             loop
                exit when Result.Ref.Node = Tree.EOI;
                Tree.Next_Terminal (Result);
                exit when Result.Ref.Node /= Invalid_Node_Access and then
                  Tree.Get_Sequential_Index (Result.Ref.Node) /= Invalid_Sequential_Index;
             end loop;
+         else
+            --  Result will be current.
+            Tree.First_Sequential_Terminal (Result);
          end if;
       end return;
    end Peek_Next_Sequential_Terminal;
@@ -127,11 +131,18 @@ package body WisiToken.Parse.LR.Parser_Lists is
         not Tree.Has_Input (Parser_State.Stream) and
         not Tree.Is_Terminal (Parser_State.Shared_Token.Node)
       then
-         --  It may seem redundant to increment shared_Token _and_ set
-         --  Inc_Shared_Stream false, but this way we are consistent with error
-         --  recovery.
-         Tree.Move_Shared_To_Input (Parser_State.Shared_Token, Parser_State.Stream, Parser_State.Current_Token);
-         Parser_State.Inc_Shared_Stream_Token := False;
+         if Tree.Count_Terminals (Parser_State.Shared_Token.Node) = 1 then
+            --  Just skip it below
+            null;
+         else
+            --  Need to breakdown Node before deleting the first terminal
+            --
+            --  It may seem redundant to increment shared_Token _and_ set
+            --  Inc_Shared_Stream false, but this way we are consistent with error
+            --  recovery.
+            Tree.Move_Shared_To_Input (Parser_State.Shared_Token, Parser_State.Stream, Parser_State.Current_Token);
+            Parser_State.Inc_Shared_Stream_Token := False;
+         end if;
       end if;
 
       if Tree.Has_Input (Parser_State.Stream) then
@@ -164,8 +175,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
          end if;
 
       else
-         pragma Assert (if Delete then Tree.Is_Terminal (Parser_State.Shared_Token.Node));
-
          if Parser_State.Inc_Shared_Stream_Token or Delete then
             Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
          end if;
@@ -459,11 +468,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
          end if;
       end;
 
-      if Trace_Parse > Extra then
-         Trace.Put (Tree.Trimmed_Image (New_Item.Stream) & ": stack: ");
-         Trace.Put_Line (Parser_Lists.Image (New_Item.Stream, Tree));
-      end if;
-
       List.Elements.Prepend (New_Item);
    end Prepend_Copy;
 
@@ -474,6 +478,11 @@ package body WisiToken.Parse.LR.Parser_Lists is
    is begin
       return (Ptr => Ptr.Ptr);
    end To_Cursor;
+
+   function To_Parser_Node_Access (Cur : in Cursor) return Parser_Node_Access
+   is begin
+      return (Ptr => Cur.Ptr);
+   end To_Parser_Node_Access;
 
    function Constant_Reference
      (Container : aliased in List'Class;

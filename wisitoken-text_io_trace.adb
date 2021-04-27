@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017, 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017, 2019, 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -75,7 +75,10 @@ package body WisiToken.Text_IO_Trace is
          Ada.Text_IO.Put_Line (Trace.File.all, -Trace.Prefix & Temp);
          Ada.Text_IO.Flush (Trace.File.all);
       else
-         Ada.Text_IO.Put_Line (-Trace.Prefix & Temp);
+         --  Not Trace.Prefix & Temp; that stores a temporary on the stack,
+         --  which can be huge.
+         Ada.Text_IO.Put (-Trace.Prefix);
+         Ada.Text_IO.Put_Line (Temp);
          Ada.Text_IO.Flush;
       end if;
    end Put_Line;

@@ -66,7 +66,7 @@ package body WisiToken.Parse.Packrat is
 
       if Trace_Action > Outline then
          if Trace_Action > Extra then
-            Parser.Tree.Print_Tree (Parser.Tree.Root);
+            Parser.Tree.Print_Tree (Parser.Trace.all, Parser.Tree.Root);
             Parser.Trace.New_Line;
          end if;
          Parser.Trace.Put_Line ("root node: " & Parser.Tree.Image (Parser.Tree.Root));

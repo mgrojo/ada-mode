@@ -253,8 +253,9 @@ package WisiToken.Syntax_Trees is
    type Stream_Node_Parents is record
       Ref     : Stream_Node_Ref;
       Parents : Node_Stacks.Stack;
-      --  Parents stores the path from
-      --  Ref.Element.Node to Ref.Node.
+      --  Parents stores the path from Ref.Element.Node to Ref.Node;
+      --  Parents.Peek is Ref.Node parent. Parents.Peek (Parents.Depth) is
+      --  Ref.Element.Node.
    end record;
 
    Invalid_Stream_Node_Parents : constant Stream_Node_Parents;
@@ -329,7 +330,8 @@ package WisiToken.Syntax_Trees is
    function Byte_Region (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Buffer_Region;
 
    function Name (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Buffer_Region;
-   --  If Node.Name = Null_Buffer_Region, return Node.Byte_Region; else return Node.Name.
+   --  If Node.Name = Null_Buffer_Region and Is_Terminal (Node.ID),
+   --  return Node.Byte_Region; else return Node.Name.
 
    procedure Set_Name
      (Tree : in     Syntax_Trees.Tree;
@@ -444,7 +446,7 @@ package WisiToken.Syntax_Trees is
       Tree           : in out Syntax_Trees.Tree'Class;
       Inserted_Token : in     Syntax_Trees.Valid_Node_Access)
    is null
-   with Pre'Class => Tree.Is_Virtual_Terminal (Inserted_Token);
+   with Pre'Class => Tree.Parents_Set and Tree.Is_Virtual_Terminal (Inserted_Token);
    --  Inserted_Token was inserted in error recovery. Move Non_Grammar as
    --  needed to control which line the token is on.
    --
@@ -693,7 +695,7 @@ package WisiToken.Syntax_Trees is
    procedure Breakdown
      (Tree : in out Syntax_Trees.Tree;
       Ref  : in out Terminal_Ref)
-   with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
+   with Pre => Tree.Parents_Set and Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
                Ref.Node /= Invalid_Node_Access and
                Tree.Stack_Top (Ref.Stream) /= Ref.Element,
      Post => Ref.Node = Ref'Old.Node and Tree.First_Terminal (Get_Node (Ref.Element)) = Ref.Node;
@@ -713,6 +715,16 @@ package WisiToken.Syntax_Trees is
    --
    --  to the post condition, but GNAT Community 2020 treats
    --  'tree.contains' as a constant false.
+
+   procedure Breakdown
+     (Tree : in out Syntax_Trees.Tree;
+      Ref  : in out Stream_Node_Parents)
+   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Tree.Label (Ref.Ref.Element) = Nonterm and
+               Ref.Ref.Node /= Invalid_Node_Access and Tree.Stack_Top (Ref.Ref.Stream) /= Ref.Ref.Element and
+               Parents_Valid (Ref),
+     Post => Ref.Ref.Node = Ref.Ref.Node'Old and Parents_Valid (Ref) and
+             Tree.First_Terminal (Get_Node (Ref.Ref.Element)) = Ref.Ref.Node;
+   --  Same as Breakdown (Ref.Ref), but supports not Tree.Parents_Set.
 
    function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return State_Index
    with Pre => Tree.Is_Valid (Stream);
@@ -1024,10 +1036,12 @@ package WisiToken.Syntax_Trees is
      return WisiToken.Buffer_Region;
 
    function Name (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Buffer_Region;
+   --  If Node.Label in Terminal_Label, return Node.Byte_Region; else
+   --  return Node.Name.
+
    function Name (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return Buffer_Region
    with Pre => Valid_Stream_Node (Tree, Ref);
-   --  If Ref.Element.Name = Null_Buffer_Region, return
-   --  Ref.Element.Byte_Region; else return Ref.Element.Name.
+   --  Call Name with Ref.Element.Node.
 
    function Char_Region
      (Tree                 : in Syntax_Trees.Tree;
@@ -1286,6 +1300,8 @@ package WisiToken.Syntax_Trees is
      Post => (for all Node of Get_Virtuals'Result => Tree.Label (Node) in Virtual_Terminal_Label);
    --  Return list of virtual terminals in Node.
 
+   function Count_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Natural;
+
    function Get_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access_Array
    with Post => (for all Node of Get_Terminals'Result => Tree.Label (Node) in Terminal_Label);
    --  Return sequence of terminals in Node.
@@ -1483,6 +1499,17 @@ package WisiToken.Syntax_Trees is
    --  Return last terminal in Node that has a valid Sequential_Index,
    --  also initialize Parents.
 
+   procedure Last_Sequential_Terminal
+     (Tree         : in     Syntax_Trees.Tree;
+      Ref          : in out Syntax_Trees.Stream_Node_Parents;
+      Parse_Stream : in     Stream_ID)
+   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
+     Post => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
+   --  Return last terminal with valid Sequential_Index in Ref.Node or a
+   --  preceding stream element; if Ref.Stream is Tree.Shared_Stream,
+   --  switches to Parse_Stream at Parse_Stream.Shared_Link.
+   --  Invalid_Node_Access if none found.
+
    procedure Next_Sequential_Terminal
      (Tree    : in     Syntax_Trees.Tree;
       Node    : in out Node_Access;
@@ -1669,13 +1696,13 @@ package WisiToken.Syntax_Trees is
      (Tree : in Syntax_Trees.Tree;
       Line : in Line_Number_Type)
      return Node_Access
-   with Pre => Line > Line_Number_Type'First and Tree.Editable,
+   with Pre => Tree.Editable,
      Post => Find_New_Line'Result = Invalid_Node_Access or else
              (Tree.Is_Terminal (Find_New_Line'Result) and then
                 (for some Token of Tree.Non_Grammar_Const (Find_New_Line'Result) =>
                    (Token.ID = Tree.Lexer.Descriptor.New_Line_ID and Token.Line_Region.First = Line - 1) or
                       (Token.ID = Tree.Lexer.Descriptor.EOI_ID and Token.Line_Region.First in Line - 1 | Line)));
-   --  Return the node that ends Line - 1; either EOI or contains the
+   --  Return the node that ends Line - 1; SOI, EOI or contains the
    --  non-grammar New_Line. Result is Invalid_Node_Access if Line is
    --  outside range spanned by Tree.
 
@@ -1684,12 +1711,13 @@ package WisiToken.Syntax_Trees is
       Line                : in     Line_Number_Type;
       Line_Begin_Char_Pos :    out Buffer_Pos)
      return Node_Access
-   with Pre => Line > Line_Number_Type'First and Tree.Editable,
+   with Pre => Tree.Editable,
      Post => Find_New_Line'Result = Invalid_Node_Access or else
              (Tree.Is_Terminal (Find_New_Line'Result) and then
                 (for some Token of Tree.Non_Grammar_Const (Find_New_Line'Result) =>
                    (Token.ID = Tree.Lexer.Descriptor.New_Line_ID and Token.Line_Region.First = Line - 1) or
-                      (Token.ID = Tree.Lexer.Descriptor.EOI_ID and Token.Line_Region.First in Line - 1 | Line)));
+                      (Token.ID in Tree.Lexer.Descriptor.SOI_ID | Tree.Lexer.Descriptor.EOI_ID and
+                         Token.Line_Region.First in Line - 1 | Line)));
    --  Same as Find_New_Line, also updates Line_Begin_Char_Pos to first
    --  char pos on Line.
 
@@ -2019,15 +2047,23 @@ package WisiToken.Syntax_Trees is
    --  than once.
 
    procedure Print_Tree
-     (Tree         : in Syntax_Trees.Tree;
-      Root         : in Node_Access               := Invalid_Node_Access;
-      Image_Action : in Syntax_Trees.Image_Action := null;
-      Line_Numbers : in Boolean                   := False;
-      Non_Grammar  : in Boolean                   := False);
+     (Tree         : in     Syntax_Trees.Tree;
+      Trace        : in out WisiToken.Trace'Class;
+      Root         : in     Node_Access               := Invalid_Node_Access;
+      Image_Action : in     Syntax_Trees.Image_Action := null;
+      Line_Numbers : in     Boolean                   := False;
+      Non_Grammar  : in     Boolean                   := False);
    --  Print tree rooted at Root (default Tree.Root) to
-   --  Text_IO.Current_Output, for debugging.
+   --  Trace, for debugging.
+   --
+   --  This is the same as Trace.Put_Line (Tree.Image (...)), but avoids
+   --  storing the entire trace image on the stack; required for large
+   --  trees.
 
-   procedure Print_Streams (Tree : in Syntax_Trees.Tree; Non_Grammar : in Boolean := False);
+   procedure Print_Streams
+     (Tree        : in     Syntax_Trees.Tree;
+      Trace       : in out WisiToken.Trace'Class;
+      Non_Grammar : in     Boolean := False);
 
    function Tree_Size_Image (Tree : in Syntax_Trees.Tree) return String;
    --  For debugging; node counts.

@@ -111,7 +111,7 @@ package WisiToken.Parse.LR.Parser_Lists is
       Tree         : in Syntax_Trees.Tree)
      return Syntax_Trees.Stream_Node_Parents;
    --  Return the terminal with a valid Sequential_Index that will be
-   --  next after Next_Token. For comparison with insert/delete token
+   --  current after Next_Token. For comparison with insert/delete token
    --  index in main parse.
    --
    --  We compare insert/delete to the next token, because the
@@ -238,6 +238,7 @@ package WisiToken.Parse.LR.Parser_Lists is
    type Parser_Node_Access (<>) is private;
 
    function To_Cursor (Ptr : in Parser_Node_Access) return Cursor;
+   function To_Parser_Node_Access (Cur : in Cursor) return Parser_Node_Access;
 
    type Constant_Reference_Type (Element : not null access constant Parser_State) is null record
    with Implicit_Dereference => Element;

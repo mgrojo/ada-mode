@@ -115,7 +115,7 @@
 
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
-%non_grammar <new-line> NEW_LINE %[ [\n] ]%
+%non_grammar <new-line> NEW_LINE
 
 %start compilation_unit_list
 

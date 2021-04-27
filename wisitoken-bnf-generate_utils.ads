@@ -68,11 +68,12 @@ package WisiToken.BNF.Generate_Utils is
       Grammar_File_Name : in     String);
 
    function Parse_Grammar_File
-     (Grammar_File_Name  : in String;
-      Input_Data         : in WisiToken_Grammar_Runtime.User_Data_Access;
-      Generate_Algorithm : in WisiToken.BNF.Generate_Algorithm;
-      Lexer              : in WisiToken.BNF.Lexer_Type;
-      Ignore_Conflicts   : in Boolean)
+     (Grammar_File_Name  : in     String;
+      Input_Data         : in     WisiToken_Grammar_Runtime.User_Data_Access;
+      Generate_Algorithm : in     WisiToken.BNF.Generate_Algorithm;
+      Lexer              : in     WisiToken.BNF.Lexer_Type;
+      Trace              : in out WisiToken.Trace'Class;
+      Ignore_Conflicts   : in     Boolean)
      return Generate_Data;
 
    function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID;

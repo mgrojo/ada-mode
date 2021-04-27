@@ -1,6 +1,7 @@
 --  Abstract :
 --
---  Test some operations on syntax_trees.
+--  Test some operations on syntax_trees. See also ada-mode
+--  test_syntax_trees for tests with full Ada language.
 --
 --  Copyright (C) 2021 Stephen Leake.  All Rights Reserved.
 --

@@ -429,9 +429,6 @@ package body WisiToken.Parse.LR.Parser is
                     (Parser_State, Shared_Parser.Tree);
                   After_Node : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Parser_State.Current_Token);
                begin
-                  pragma Assert (Tree.Label (Next_Sequential_Terminal.Ref.Node) in Terminal_Label);
-                  --  Any needed Left_Breakdown is done by error recover.
-
                   if Op.Del_Index = Tree.Get_Sequential_Index (Next_Sequential_Terminal.Ref.Node) then
 
                      Op.Del_Node := Next_Sequential_Terminal.Ref.Node;
@@ -447,7 +444,7 @@ package body WisiToken.Parse.LR.Parser is
 
                      if Trace_Parse > Extra  then
                         Shared_Parser.Trace.Put_Line
-                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": delete" &
+                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": delete " &
                              Op.Del_Index'Image);
                      end if;
                   else
@@ -500,6 +497,11 @@ package body WisiToken.Parse.LR.Parser is
             Shift_Count := Shift_Count + 1;
             Parser_State.Set_Verb (Shift);
 
+            --  We call Do_Deletes here so it can break down a nonterm if needed;
+            --  then the check for resume done is correct. See
+            --  ada_mode-recover_bad_char.adb.
+            Do_Deletes (Shared_Parser, Parser_State);
+
             if Parser_State.Resume_Active then
                --  We check Parser_State.Current_Token, not
                --  Parser_State.Shared_Token, because Shared_Token might be a
@@ -508,14 +510,20 @@ package body WisiToken.Parse.LR.Parser is
                --  ada_mode-interactive_1.adb "for File_Name in File_Names loop"
                declare
                   use WisiToken.Syntax_Trees;
-                  --  FIXME: Ensure_Sequential_Node_Index only sets Node_Index thru
-                  --  Resume_Token_Goal; Last_Terminal may be after that.
+                  --  Ensure_Sequential_Node_Index only sets Node_Index thru
+                  --  Resume_Token_Goal; Last_Terminal may be after that, in which case
+                  --  it will have Invalid_Sequential_Index.
                   Terminal : constant Node_Access := Shared_Parser.Tree.Last_Terminal
                     (Parser_State.Current_Token.Node);
+                  Terminal_Index : constant Base_Sequential_Index :=
+                    (if Terminal = Invalid_Node_Access
+                     then Invalid_Sequential_Index
+                     else Shared_Parser.Tree.Get_Sequential_Index (Terminal));
                begin
                   if Terminal /= Invalid_Node_Access and then
                     Shared_Parser.Tree.Is_Source_Terminal (Terminal) and then
-                    Parser_State.Resume_Token_Goal <= Shared_Parser.Tree.Get_Sequential_Index (Terminal)
+                    (Terminal_Index = Invalid_Sequential_Index or
+                       Parser_State.Resume_Token_Goal <= Terminal_Index)
                   then
                      if Parser_State.Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
                         --  There may still be ops left in Recover_Insert_Delete after we get to

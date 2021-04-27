@@ -19,8 +19,9 @@ with WisiToken_Grammar_Runtime;
 package WisiToken.Generate.Tree_Sitter is
 
    procedure Eliminate_Empty_Productions
-     (Data : in out WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree : in out WisiToken.Syntax_Trees.Tree);
+     (Data  : in out WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree  : in out WisiToken.Syntax_Trees.Tree;
+      Trace : in out WisiToken.Trace'Class);
    --  Edit Tree to eliminate productions that can be empty, which are
    --  forbidden by the tree-sitter generator.
    --

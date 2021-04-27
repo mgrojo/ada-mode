@@ -52,7 +52,7 @@ package body Test_Partial_Parse is
          Node  : Valid_Node_Access := Parser.Tree.Root;
       begin
          if WisiToken.Trace_Tests > WisiToken.Outline then
-            Parser.Tree.Print_Tree (Line_Numbers => True);
+            Parser.Tree.Print_Tree (Trace, Line_Numbers => True);
          end if;
 
          Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, Parse_End_Byte_Pos));

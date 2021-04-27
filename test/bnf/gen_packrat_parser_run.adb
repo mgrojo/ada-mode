@@ -81,7 +81,7 @@ begin
    --  No user data, so no point in Execute_Actions
 
    if WisiToken.Trace_Parse > WisiToken.Extra then
-      Parser.Tree.Print_Tree (Parser.Tree.Root, null);
+      Parser.Tree.Print_Tree (Parser.Trace.all, Parser.Tree.Root, null);
       Parser.Trace.New_Line;
    end if;
 

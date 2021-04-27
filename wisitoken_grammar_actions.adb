@@ -67,7 +67,7 @@ package body Wisitoken_Grammar_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
    begin
-      Start_If (User_Data, Tree, Nonterm);
+      Add_Declaration (User_Data, Tree, Nonterm);
    end declaration_4;
 
    procedure declaration_5
@@ -102,10 +102,19 @@ package body Wisitoken_Grammar_Actions is
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
+   begin
+      Start_If (User_Data, Tree, Nonterm);
+   end declaration_8;
+
+   procedure declaration_9
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
       pragma Unreferenced (Tree, Nonterm);
    begin
       End_If (User_Data);
-   end declaration_8;
+   end declaration_9;
 
    procedure nonterminal_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;

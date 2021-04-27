@@ -290,15 +290,15 @@ package body WisiToken.BNF.Generate_Utils is
    end Parse_Grammar_File;
 
    function Parse_Grammar_File
-     (Grammar_File_Name  : in String;
-      Input_Data         : in WisiToken_Grammar_Runtime.User_Data_Access;
-      Generate_Algorithm : in WisiToken.BNF.Generate_Algorithm;
-      Lexer              : in WisiToken.BNF.Lexer_Type;
-      Ignore_Conflicts   : in Boolean)
+     (Grammar_File_Name  : in     String;
+      Input_Data         : in     WisiToken_Grammar_Runtime.User_Data_Access;
+      Generate_Algorithm : in     WisiToken.BNF.Generate_Algorithm;
+      Lexer              : in     WisiToken.BNF.Lexer_Type;
+      Trace              : in out WisiToken.Trace'Class;
+      Ignore_Conflicts   : in     Boolean)
      return Generate_Data
    is
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
-      Trace          : aliased WisiToken.Text_IO_Trace.Trace;
       Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
       Log_File       : Ada.Text_IO.File_Type;
    begin
@@ -314,7 +314,8 @@ package body WisiToken.BNF.Generate_Utils is
       if Input_Data.Meta_Syntax = WisiToken_Grammar_Runtime.EBNF_Syntax then
          WisiToken_Grammar_Editing.Translate_EBNF_To_BNF
            (Grammar_Parser.Tree,
-            WisiToken_Grammar_Runtime.User_Data_Type (Input_Data.all));
+            WisiToken_Grammar_Runtime.User_Data_Type (Input_Data.all),
+            Trace);
          if WisiToken.Generate.Error then
             raise WisiToken.Grammar_Error with "errors during translating EBNF to BNF: aborting";
          end if;

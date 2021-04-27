@@ -164,7 +164,7 @@ package body BNF_WY_Test is
          --  The BNF file is output by rules.make, and debugged separately. We
          --  need to translate this here in order to set McKenzie_Recover.
          WisiToken_Grammar_Editing.Translate_EBNF_To_BNF
-           (Grammar_Parser.Tree, Input_Data);
+           (Grammar_Parser.Tree, Input_Data, Trace);
       end case;
 
       Input_Data.Phase := WisiToken_Grammar_Runtime.Other;

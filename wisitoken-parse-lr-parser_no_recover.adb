@@ -520,7 +520,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             Put_Line
               (Current_Error,
                Parser.Tree.Error_Message
-                 (Item.Error_Token.Node,
+                 (Item.Error_Token,
                   "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                     ", found '" & Parser.Tree.Lexer.Buffer_Text (Parser.Tree.Byte_Region (Item.Error_Token.Node)) &
                     "'"));

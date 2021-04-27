@@ -29,8 +29,9 @@ package body WisiToken.Generate.Tree_Sitter is
    use WisiToken.Syntax_Trees;
 
    procedure Eliminate_Empty_Productions
-     (Data : in out WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree : in out WisiToken.Syntax_Trees.Tree)
+     (Data  : in out WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree  : in out WisiToken.Syntax_Trees.Tree;
+      Trace : in out WisiToken.Trace'Class)
    is
       Ignore_Lines    : Boolean := False;
 
@@ -256,7 +257,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
          when declaration_ID =>
             case Tree.RHS_Index (Node) is
-            when 4 .. 7 =>
+            when 5 .. 8 =>
                --  | PERCENT (IF | ELSIF) IDENTIFIER (EQUAL IDENTIFIER | IN IDENTIFIER_BAR_list)
                Nodes_To_Delete.Append (Node);
                declare
@@ -264,11 +265,11 @@ package body WisiToken.Generate.Tree_Sitter is
                begin
                   if "lexer" = Get_Text (Tree.Child (Node, 3)) then
                      Ignore_Lines := not WisiToken_Grammar_Runtime.Get_Lexer_Set
-                          (Data, Tree, Tree.Child (Node, 5)) (Tree_Sitter_Lexer);
+                       (Data, Tree, Tree.Child (Node, 5)) (Tree_Sitter_Lexer);
 
                   elsif "parser" = Get_Text (Tree.Child (Node, 3)) then
                      Ignore_Lines := not WisiToken_Grammar_Runtime.Get_Generate_Algorithm_Set
-                          (Data, Tree, Tree.Child (Node, 5)) (WisiToken.BNF.Tree_Sitter);
+                       (Data, Tree, Tree.Child (Node, 5)) (WisiToken.BNF.Tree_Sitter);
 
                   else
                      raise SAL.Programmer_Error;
@@ -282,7 +283,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
                end;
 
-            when 8 =>
+            when 9 =>
                --  %end if
                Nodes_To_Delete.Append (Node);
 
@@ -616,7 +617,7 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("tree_sitter eliminate empty productions start");
          if Trace_Generate_EBNF > Detail then
-            Tree.Print_Tree (Tree.Root);
+            Tree.Print_Tree (Trace, Tree.Root);
          end if;
       end if;
 
@@ -708,7 +709,7 @@ package body WisiToken.Generate.Tree_Sitter is
       if Trace_Generate_EBNF > Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("tree_sitter eliminate empty productions end");
-         Tree.Print_Tree (Tree.Root);
+         Tree.Print_Tree (Trace, Tree.Root);
       end if;
    end Eliminate_Empty_Productions;
 
@@ -1125,11 +1126,15 @@ package body WisiToken.Generate.Tree_Sitter is
                end;
 
             when 1 =>
+               --  new-line with no regexp; tree-sitter defaults to DOS, Unix newline.
+               null;
+
+            when 2 =>
                --  FIXME: CODE copyright_license
 
                null;
 
-            when 2 =>
+            when 3 =>
                declare
                   Kind : constant String := Get_Text (Tree.Child (Node, 2));
                begin
@@ -1177,11 +1182,11 @@ package body WisiToken.Generate.Tree_Sitter is
                   end if;
                end;
 
-            when 3 =>
+            when 4 =>
                --  %case_insensitive
                null;
 
-            when 4 .. 8 =>
+            when 5 .. 9 =>
                --  Should have been eliminated by Eliminate_Empty_Productions
                raise SAL.Programmer_Error with "Print_Tree_Sitter declaration %if " &
                  Tree.Image (Node, Node_Numbers => True);

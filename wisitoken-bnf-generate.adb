@@ -408,16 +408,16 @@ begin
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.Put_Line ("EBNF tree:");
                Tree.Print_Tree
-                 (Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
+                 (Trace, Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
             end if;
 
-            WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data);
+            WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data, Trace);
 
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.New_Line;
                Ada.Text_IO.Put_Line ("BNF tree:");
                Tree.Print_Tree
-                 (Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
+                 (Trace, Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
             end if;
 
             if Output_BNF then
@@ -462,7 +462,7 @@ begin
                      Ada.Text_IO.Put_Line ("output tree_sitter grammar");
                   end if;
 
-                  Eliminate_Empty_Productions (Input_Data, Tree);
+                  Eliminate_Empty_Productions (Input_Data, Tree, Trace);
 
                   Print_Tree_Sitter
                     (Input_Data,

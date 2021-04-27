@@ -526,6 +526,7 @@ package body WisiToken_Grammar_Runtime is
       when Syntax_Trees.Nonterm =>
          --  must be token_keyword_non_grammar
          declare
+            use all type SAL.Base_Peek_Type;
             Children_2 : constant Syntax_Trees.Node_Access_Array := Tree.Children (Tree.Child (Nonterm, 2));
             Child_1_ID : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Children_2 (1)));
          begin
@@ -555,7 +556,10 @@ package body WisiToken_Grammar_Runtime is
                  (Data.Tokens.Non_Grammar,
                   Kind  => Get_Text (Data, Tree, Children_2 (3)),
                   Name  => Get_Text (Data, Tree, Tree.Child (Nonterm, 3)),
-                  Value => Get_Text (Data, Tree, Tree.Child (Nonterm, 4)));
+                  Value =>
+                    (if Tree.Child_Count (Nonterm) >= 4
+                     then Get_Text (Data, Tree, Tree.Child (Nonterm, 4))
+                     else ""));
 
             when others =>
                raise SAL.Programmer_Error;
@@ -895,6 +899,13 @@ package body WisiToken_Grammar_Runtime is
                   raise Grammar_Error with Tree.Error_Message (Tree.Child (Nonterm, 2), "unexpected syntax");
                end if;
             end;
+
+         when NON_GRAMMAR_ID =>
+            WisiToken.BNF.Add_Token
+              (Data.Tokens.Non_Grammar,
+               Kind  => Get_Text (Data, Tree, Tree.Child (Nonterm, 4)),
+               Name  => Get_Text (Data, Tree, Tree.Child (Nonterm, 6)),
+               Value => "");
 
          when others =>
             raise Grammar_Error with Tree.Error_Message (Tree.Child (Nonterm, 2), "unexpected syntax");
