@@ -113,20 +113,24 @@
   "'"
 tick : TICK_1 | TICK_2 ;
 
-;; Handle (1..Length) and 0..16#10FFFF#
+;; Handle 0.0, (1..Length) and 0..16#10FFFF#
 %token <regexp> NUMERIC_LITERAL
-    %[ ([0-9])|([0-9_]+([.][0-9]+)?([eE[0-9_-]+))|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
+    %[ ([0-9])|([0-9_]+([.][0-9]+)?([eE[0-9_-]+)?)|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
   "1234567890"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
 
-;; handle DOS or Unix newline
-%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+%non_grammar <new-line> NEW_LINE
 
-;; Treat Ada comments, gnatprep preprocessor lines, and skeleton
-;; placeholders as comments. Also terminate placeholder on newline,
-;; EOF, to handle missing }. x04 is EOF.
-%non_grammar <comment> COMMENT %[ (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n\x04]*)|("{"[^}\n\x04]*"}"?) ]%
+;; Ada comments
+%non_grammar <comment-new-line> COMMENT "--"
+
+;; gnatprep preprocessor lines
+%non_grammar <comment-new-line> GNAT_PREP %[ "#if"|"#elsif"|"#else"|"#end" ]%
+
+;; skeleton placeholders. Also terminated by newline, EOI to avoid
+;; accidently commenting out multiple lines.
+%non_grammar <comment> PLACEHOLDER %[ ("{"[^}\x0a\x04]*"}"?) ]%
 
 ;; '$' for gnatprep symbols.
 %token <symbol> IDENTIFIER

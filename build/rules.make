@@ -135,7 +135,7 @@ compile-ada-test : force
 recursive-clean : force
 	gprclean -r -P ../ada_mode_wisi_parse.gpr
 
-clean :: build-ada-exec-clean compile-ada-test-clean doc-clean elisp-clean exe-clean source-clean test-clean profile-clean
+clean :: generate-clean compile-ada-test-clean doc-clean elisp-clean exe-clean source-clean test-clean profile-clean
 	rm -f check.gpr Makefile.conf
 
 doc-clean ::
@@ -165,7 +165,7 @@ profile-clean ::
 	rm -rf ../exec_pro ../obj_pro
 
 # delete all files created by wisitoken-bnf-generate for main programs
-build-ada-exec-clean :
+generate-clean :
 	cd ..; rm -f *.parse_table *.re2c *_process*.ad? *_re2c_c.ads *_re2c.c *-process.el *_parse_table.txt
 
 test-clean ::

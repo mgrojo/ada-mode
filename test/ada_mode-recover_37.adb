@@ -1,12 +1,9 @@
 -- LALR and LR1 parsers failed error recovery with default enqueue_limit. With
 -- higher limit, raised Constraint_Error.
 --
--- Constraint_Error now fixed. Requires a high enqueue_limit, because
--- there are four processes in error recovery.
+-- Constraint_Error now fixed, recover improved.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
---EMACSCMD:(set-default 'wisi-process-time-out 10) -- local to *parse* buffer
 
 procedure Update_Containing_Nonterms (Modified_Token_Index : in WisiToken.Token_Index)
 is

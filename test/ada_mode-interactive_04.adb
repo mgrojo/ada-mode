@@ -12,20 +12,19 @@ begin
    --
    --EMACSCMD:(progn (back-to-indentation)(delete-char 2)(wisi-indent-statement))
    begin
-      -- FIXME: restore for .diff
-      -- EMACSCMD:(progn (forward-line -1)(back-to-indentation)(delete-char 2))
+      --EMACSCMD:(progn (forward-line -2)(back-to-indentation)(insert "--"))
 
       E := 'z';
    end;
 
-   -- This edit encountered a bug in Left_Breakdown, due to an empty nonterm.
-   --EMACSCMD:(progn (end-of-line 2)(kill-line 2)(newline-and-indent)(insert "end loop;")(newline-and-indent)(wisi-goto-statement-start)(looking-at "for File_Name"))
+   -- This edit encountered a bug in Left_Breakdown, due to an empty
+   -- nonterm. 'null;' inserted before 'end loop;'
+   --
+   --EMACSCMD:(progn (end-of-line 2)(kill-line 2)(newline-and-indent)(insert "end loop;")(newline-and-indent))
    for File_Name in File_Names loop
-   end loop;
-   --EMACSCMD:(progn (beginning-of-line -2)(wisi-goto-statement-end)(looking-back "end loop"))
+      end loop;
 
    E := (1 => 'A');
-
 
 end Ada_Mode.Interactive_04;
 -- Local Variables:

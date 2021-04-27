@@ -981,4 +981,5 @@ end Ada_Mode.Nominal; -- Ada_Mode.Nominal
 -- Local Variables:
 -- fill-column: 70
 -- wisi-process-time-out: 6.0
+-- ada-which-func-parse-size:100000
 -- End:

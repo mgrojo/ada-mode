@@ -41,12 +41,12 @@ project Ada_Mode_Wisi_Parse is
       "ada_mode_wisi_lr1_parse.ads",
       "run_ada_lalr_parse.ads",
       "run_ada_lr1_parse.ads",
-#if ELPA="no"
-       #if HAVE_LIBADALANG="yes"
-         "dump_libadalang_corrected.adb",
-       #end if;
-      "dump_wisitoken_corrected.adb",
-#end if;
+-- #if ELPA="no"
+--        #if HAVE_LIBADALANG="yes"
+--          "dump_libadalang_corrected.adb",
+--        #end if;
+--       "dump_wisitoken_corrected.adb", FIXME: broken by wisitoken changes
+-- #end if;
       "gpr_mode_wisi_parse.ads",
       "run_gpr_parse.ads",
       "gpr_query.adb"

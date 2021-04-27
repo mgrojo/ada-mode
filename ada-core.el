@@ -306,7 +306,8 @@ PARSE-RESULT must be the result of `syntax-ppss'."
     (cond
      (wisi-incremental-parse-enable
       ;; FIXME: need wisi-prj-tree-query or similar to hide wisi--parser?
-      (eq 'formal_part (wisi-parse-tree-query wisi--parser 'nonterm (nth 1 parse-result)))
+      (save-excursion
+	(eq 'formal_part (wisi-parse-tree-query wisi--parser 'nonterm (nth 1 parse-result))))
       )
 
      (t ;; not incremental parse
@@ -328,7 +329,7 @@ PARSE-RESULT must be the result of `syntax-ppss'."
 (defun ada-format-paramlist ()
   "Reformat the parameter list point is in."
   (interactive)
-  (condition-case nil
+  (condition-case-unless-debug nil
       (wisi-goto-open-paren)
     (error
      (user-error "Not in parameter list")))

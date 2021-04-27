@@ -85,7 +85,7 @@ byte-compile-clean :
 ifeq ($(TEST_DIR),source)
 test : build_executables
 endif
-test : test-all-harness.run
+test : test_all_harness.run
 test : test-ada-lalr-process-gpr_query.stamp
 test : test-ada-lalr-process-gnatxref.stamp
 test : gpr-skel.gpr.diff
@@ -112,10 +112,10 @@ one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
-two : RUN_ARGS ?= command_file ../debug.cmd ../test/ada_mode-incremental_delete_lines.adb
+two : RUN_ARGS ?= command_file debug.cmd test/debug.adb
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 two : ../run_ada_lalr_parse.exe
-	../run_ada_lalr_parse.exe $(RUN_ARGS)
+	cd ../; ./run_ada_lalr_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_executables
@@ -170,7 +170,7 @@ include rules.make
 update-test-log : force
 	find . -name "*.diff" -not -size 0 >> test.log
 
-test-all-harness.run : ../test_all_harness.exe force
+test_all_harness.run : ../test_all_harness.exe force
 	../test_all_harness.exe $(RUN_ARGS)
 
 test-ada-lalr-process-gnatxref : RUNTEST := run-indent-test-lalr-process-gnatxref.el

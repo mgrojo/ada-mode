@@ -170,7 +170,7 @@ package body Emacs_Wisi_Common_Parse is
             case Kind is
             when Partial => null;
             when Incremental =>
-               Result.Changes := Wisi.Get_Emacs_Change_List (Command_Line, Last, Handle_String_Escapes => False);
+               Result.Changes := Wisi.Get_Emacs_Change_List (Command_Line, Last);
 
             when Full =>
                Result.Full_End_Char_Pos := Buffer_Pos (Get_Integer (Command_Line, Last)) - 1;
@@ -555,12 +555,11 @@ package body Emacs_Wisi_Common_Parse is
                --  [elisp vector]...
                --  prompt
                declare
-                  Label            : constant Wisi.Query_Label                       := Wisi.Query_Label'Val
-                    (Wisi.Get_Integer (Command_Line, Last));
                   Source_File_Name : constant Ada.Strings.Unbounded.Unbounded_String :=
                     +Wisi.Get_String (Command_Line, Last);
-                  Point            : constant WisiToken.Buffer_Pos                   := WisiToken.Buffer_Pos
-                    (Wisi.Get_Integer (Command_Line, Last));
+
+                  Label : constant Wisi.Query_Label     := Wisi.Query_Label'Val (Wisi.Get_Integer (Command_Line, Last));
+                  Point : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Command_Line, Last));
 
                   Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find
                     (-Source_File_Name, Language);

@@ -361,9 +361,9 @@ messages."
 one or more Query messages."
   ;; Must match "query-tree" command arguments read by
   ;; emacs_wisi_common_parse.adb Process_Stream "query-tree"
-  (let* ((cmd (format "query-tree %d \"%s\" %d"
-		      (cdr (assoc query wisi-parse-tree-queries))
+  (let* ((cmd (format "query-tree \"%s\" %d %d"
 		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		      (cdr (assoc query wisi-parse-tree-queries))
 		      point
 		      ))
 	 (process (wisi-process--parser-process parser)))
@@ -481,13 +481,16 @@ one or more Query messages."
   ;; sexp is [Check_Error code name-1-pos name-2-pos <string>]
   ;; see ‘wisi-process-parse--execute’
   (let* ((name-1-pos (aref sexp 2))
-	 (column-at-pos (lambda (pos) (goto-char pos)(current-column)))
 	 (name-2-pos (aref sexp 3))
+	 (column-at-pos (lambda (pos) (goto-char pos)(current-column)))
 	 (file-name (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")))
     ;; file-name can be nil during vc-resolve-conflict
 
     (when (not name-1-pos)
       (setq name-1-pos name-2-pos)
+      (setq name-2-pos 0))
+
+    (when (not name-2-pos)
       (setq name-2-pos 0))
 
     (push (make-wisi--parse-error
@@ -1054,10 +1057,10 @@ one or more Query messages."
 	   (insert "mckenzie_options ")
 
 	   (when (not (string-equal mckenzie_task_count "-1"))
-	     (insert "task_count=" mckenzie_task_count))
+	     (insert "task_count=" mckenzie_task_count " "))
 
 	   (when (not (string-equal mckenzie_zombie_limit "-1"))
-	     (insert "zombie_limit=" mckenzie_zombie_limit))
+	     (insert "zombie_limit=" mckenzie_zombie_limit " "))
 
 	   (when (not (string-equal mckenzie_enqueue_limit "-1"))
 	     (insert "enqueue_limit=" mckenzie_enqueue_limit))
@@ -1069,7 +1072,7 @@ one or more Query messages."
 
     (set-buffer log-buffer)
     (goto-char (point-min))
-    (while (search-forward-regexp "\\(parse 1\\|post-parse\\) \"\\([^\"]+\\)\"" nil t)
+    (while (search-forward-regexp "\\(parse 1\\|post-parse\\|query-tree\\) \"\\([^\"]+\\)\"" nil t)
       (cond
        ((string-equal (match-string 1) "parse 1")
 	(search-forward-regexp "((")
@@ -1107,8 +1110,27 @@ one or more Query messages."
 		    (2 "indent "))
 		  args "\n\n")
 	  (set-buffer log-buffer)))
+
+       ((and (string-equal (match-string 1) "query-tree")
+	     (string-equal (match-string 2) source-file))
+	(goto-char (match-end 0))
+	(looking-at " \\([0-9]+\\) \\([0-9]+\\)")
+	(let ((label (string-to-number (match-string 1)))
+	      (pos (match-string 2)))
+	  (set-buffer cmd-buffer)
+	  (goto-char (point-max))
+	  (insert "--  query_tree "
+		  (cl-ecase label
+		    (0 "bounds ")
+		    (1 "containing_statement ")
+		    (2 "nonterm ")
+		    (3 "virtuals ")
+		    (4 "print "))
+		  pos "\n\n")
+	  (set-buffer log-buffer)))
+
        (t
-	;; other file - ignore
+	;; other command or other file - ignore
 	))
 
       )

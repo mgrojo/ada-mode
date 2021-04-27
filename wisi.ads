@@ -53,6 +53,7 @@ package Wisi is
       Last   : in out Integer)
      return String;
    --  Returns content of quoted string in Source at Last + 1 ...
+   --  Handles \" by copying them literally into result.
 
    function Get_Enum
      (Source : in     String;
@@ -81,9 +82,8 @@ package Wisi is
    package Change_Lists is new Ada.Containers.Doubly_Linked_Lists (Change);
 
    function Get_Emacs_Change_List
-     (Command_Line          : in     String;
-      Last                  : in out Integer;
-      Handle_String_Escapes : in     Boolean)
+     (Command_Line : in     String;
+      Last         : in out Integer)
      return Change_Lists.List;
 
    procedure Edit_Source
@@ -362,8 +362,7 @@ package Wisi is
 
       Comment : WisiToken.Line_Region := WisiToken.Null_Line_Region;
       --  Trailing comment or blank lines (after the last contained grammar
-      --  token) that need indenting. Excludes comments following code on a
-      --  line.
+      --  token). Excludes comment following code on a line.
    end record;
 
    procedure Indent_Action_0

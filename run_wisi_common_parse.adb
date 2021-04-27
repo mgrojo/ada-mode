@@ -189,7 +189,7 @@ package body Run_Wisi_Common_Parse is
             Text : constant String := Argument (4);
             Last : Integer := Text'First - 1;
          begin
-            Params.Changes := Wisi.Get_Emacs_Change_List (Text, Last, Handle_String_Escapes => True);
+            Params.Changes := Wisi.Get_Emacs_Change_List (Text, Last);
          end;
 
          Params.Inc_Begin_Byte_Pos := WisiToken.Buffer_Pos'Value (Argument (5));
@@ -323,7 +323,7 @@ package body Run_Wisi_Common_Parse is
       use WisiToken; -- "+" unbounded
 
       type File_Command_Type is
-        (Language_Params, McKenzie_Options, Parse_Incremental, Post_Parse, Print_Tree, Refactor, Query_Tree, Save_Text,
+        (Language_Params, McKenzie_Options, Parse_Incremental, Post_Parse, Refactor, Query_Tree, Save_Text,
          Save_Text_Auto, Verbosity);
 
       Parser : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
@@ -346,8 +346,7 @@ package body Run_Wisi_Common_Parse is
 
       when Parse_Incremental =>
          declare
-            Changes  : constant Wisi.Change_Lists.List := Wisi.Get_Emacs_Change_List
-              (Line, Last, Handle_String_Escapes => True);
+            Changes  : constant Wisi.Change_Lists.List := Wisi.Get_Emacs_Change_List (Line, Last);
             KMN_List : WisiToken.Parse.KMN_Lists.List;
          begin
             Wisi.Edit_Source
@@ -433,9 +432,6 @@ package body Run_Wisi_Common_Parse is
 
             Parse_Data.Put (Parser);
          end;
-
-      when Print_Tree =>
-         Parser.Tree.Print_Tree (Non_Grammar => True, Line_Numbers => True);
 
       when Refactor =>
          declare
@@ -656,7 +652,9 @@ package body Run_Wisi_Common_Parse is
             end if;
 
          when Parse_Incremental | Refactor | Command_File =>
-            --  First do a full parse with default params to get the syntax tree
+            --  First do a full parse to get the syntax tree
+            Command_Options (Parser, Cl_Params, Arg);
+
             begin
                Parse_Data.Initialize (Trace'Access);
                Parser.Tree.Lexer.Reset;
@@ -671,8 +669,6 @@ package body Run_Wisi_Common_Parse is
             end;
 
             Put_Errors (Parser, Parse_Data);
-
-            Command_Options (Parser, Cl_Params, Arg);
 
             case Cl_Params.Command is
             when Parse_Partial =>
