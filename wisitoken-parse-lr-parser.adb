@@ -527,17 +527,16 @@ package body WisiToken.Parse.LR.Parser is
                   then
                      if Parser_State.Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
                         --  There may still be ops left in Recover_Insert_Delete after we get to
-                        --  Resume_Token_Goal, probably from a Language_Fix or string quote
-                        --  fix that deletes a lot of tokens. That's a bug in the Language_Fix
-                        --  or other code, so we report it if Debug_Mode.
+                        --  Resume_Token_Goal. If they are from a Language_Fix that's a bug in the Language_Fix.
                         --
                         --  We don't check the parse stream input, because it can contain the
-                        --  breakdown of a nonterm in the parse stream, as well as push_back
-                        --  tokens from error recover. ada_mode-incremental_recover_01.adb
+                        --  breakdown of a nonterm in the parse stream
+                        --  (ada_mode-recover_10.adb), as well as push_back tokens from error
+                        --  recover (ada_mode-incremental_recover_01.adb).
                         if Debug_Mode then
                            raise SAL.Programmer_Error with
                              Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
-                             ": resume_token_goal reached with remaining insert/delete/push_back";
+                             ": resume_token_goal reached with remaining insert/delete";
                         end if;
                         Resume_Active := True;
                      else
@@ -729,6 +728,8 @@ package body WisiToken.Parse.LR.Parser is
       use all type WisiToken.Syntax_Trees.User_Data_Access;
       Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
    begin
+      Parser.Deleted_Nodes.Clear;
+
       --  We need parents set in the following code, and we also need
       --  Recover_Op.Del_Node not yet free'd; later we need error_Token
       --  nodes not free'd.
@@ -756,6 +757,8 @@ package body WisiToken.Parse.LR.Parser is
 
          for Op of Parser_State.Recover_Insert_Delete loop
             if Op.Op = Delete then
+               Parser.Deleted_Nodes.Append (Op.Del_Node);
+
                Keep_Nodes.Append (Op.Del_Node);
             end if;
          end loop;
@@ -765,6 +768,8 @@ package body WisiToken.Parse.LR.Parser is
       end;
 
       if Trace_Action > Extra then
+         Parser.Trace.New_Line;
+         Parser.Trace.Put_Line ("post-parse tree:");
          Parser.Trace.Put_Line
            (Parser.Tree.Image
               (Children     => True,
@@ -783,17 +788,18 @@ package body WisiToken.Parse.LR.Parser is
          for Op of Parser_State.Recover_Insert_Delete loop
             case Op.Op is
             when Insert =>
-               Parser.User_Data.Insert_Token (Parser.Tree, Op.Ins_Node);
+               Parser.User_Data.Insert_Token (Parser.Tree, Parser.Trace.all, Op.Ins_Node);
 
             when Delete =>
                Parser.User_Data.Delete_Token
-                 (Parser.Tree,
+                 (Parser.Tree, Parser.Trace.all,
                   Deleted_Token => Op.Del_Node,
                   Prev_Token    => Op.Del_After_Node);
             end case;
          end loop;
 
          if Trace_Action > Extra then
+            Parser.Trace.Put_Line ("after insert/delete tree:");
             Parser.Trace.Put_Line
               (Parser.Tree.Image
                  (Children     => True,

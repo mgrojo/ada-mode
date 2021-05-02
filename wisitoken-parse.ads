@@ -32,7 +32,7 @@ package WisiToken.Parse is
       --  Shared_Stream; it is needed by error recovery, for
       --  Stream_Prev/_Next in Try_Insert_Quote.
       --
-      --  If the error token is a non-grammar token, Recover_Token_Index is
+      --  If the error token is a non-grammar token, Recover_Token_Ref is
       --  Invalid_Terminal_Ref.
 
       Error : WisiToken.Lexer.Error;
@@ -48,6 +48,11 @@ package WisiToken.Parse is
 
       Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List;
       --  For access by error recover.
+
+      Deleted_Nodes : WisiToken.Syntax_Trees.Valid_Node_Access_Lists.List;
+      --  Source_Terminal nodes deleted by error recovery in previous parse,
+      --  in original text order. Restored to the shared stream by
+      --  Edit_Tree.
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 
@@ -109,8 +114,6 @@ package WisiToken.Parse is
 
    procedure Validate_KMN
      (List                     : in KMN_Lists.List;
-      Stable_Byte_First        : in Buffer_Pos;
-      Stable_Char_First        : in Buffer_Pos;
       Initial_Text_Byte_Region : in Buffer_Region;
       Initial_Text_Char_Region : in Buffer_Region;
       Edited_Text_Byte_Region  : in Buffer_Region;

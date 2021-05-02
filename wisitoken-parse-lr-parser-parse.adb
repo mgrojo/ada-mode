@@ -59,9 +59,9 @@ begin
            (Shared_Parser.Tree.Image
               (Shared_Parser.Tree.Shared_Stream,
                Children     => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
-               Non_Grammar  => False,
+               Non_Grammar  => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
                Augmented    => False,
-               Line_Numbers => Trace_Parse > Extra or Trace_Incremental_Parse > Extra));
+               Line_Numbers => False)); --  Parents not set, can't get Line_Numbers
          Trace.New_Line;
       end if;
 

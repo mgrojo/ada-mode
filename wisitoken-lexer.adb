@@ -31,7 +31,10 @@ package body WisiToken.Lexer is
          return "(" & ID_Image & ")";
 
       else
-         return "(" & ID_Image & ", " & Image (Item.Char_Region) & ")";
+         return "(" & ID_Image & ", " & Image (Item.Char_Region) &
+           (if Item.ID = Descriptor.New_Line_ID
+            then Image (Item.Line_Region)
+            else "") & ")";
       end if;
    end Image;
 

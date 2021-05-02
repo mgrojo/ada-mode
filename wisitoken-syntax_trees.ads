@@ -444,6 +444,7 @@ package WisiToken.Syntax_Trees is
    procedure Insert_Token
      (User_Data      : in out User_Data_Type;
       Tree           : in out Syntax_Trees.Tree'Class;
+      Trace          : in out WisiToken.Trace'Class;
       Inserted_Token : in     Syntax_Trees.Valid_Node_Access)
    is null
    with Pre'Class => Tree.Parents_Set and Tree.Is_Virtual_Terminal (Inserted_Token);
@@ -456,6 +457,7 @@ package WisiToken.Syntax_Trees is
    procedure Delete_Token
      (User_Data     : in out User_Data_Type;
       Tree          : in     Syntax_Trees.Tree'Class;
+      Trace         : in out WisiToken.Trace'Class;
       Deleted_Token : in     Valid_Node_Access;
       Prev_Token    : in     Valid_Node_Access)
    with Pre'Class =>
@@ -662,6 +664,20 @@ package WisiToken.Syntax_Trees is
    --
    --  This is often needed before Left_Breakdown while parsing.
 
+   procedure Move_Shared_To_Input
+     (Tree   : in out Syntax_Trees.Tree;
+      First  : in out Stream_Node_Ref;
+      Last   : in     Stream_Node_Ref;
+      Stream : in     Stream_ID)
+   with Pre => Valid_Stream_Node (Tree, First) and Valid_Stream_Node (Tree, Last) and
+               First.Stream = Tree.Shared_Stream and Last.Stream = Tree.Shared_Stream and
+               Stream /= Tree.Shared_Stream;
+   --  Insert several stream elements into Stream input for First ..
+   --  Last. Increment First to next stream element after Last, update
+   --  Parse_Stream.Shared_Link to same.
+   --
+   --  This is often needed before Left_Breakdown while parsing.
+
    procedure Left_Breakdown
      (Tree : in out Syntax_Trees.Tree;
       Ref  : in out Stream_Node_Ref)
@@ -859,6 +875,14 @@ package WisiToken.Syntax_Trees is
                  then Tree.Get_Node (Ref.Ref.Stream, Ref.Ref.Element) = Ref.Ref.Node
                  else Tree.Last_Terminal (Tree.Get_Node (Ref.Ref.Stream, Ref.Ref.Element)) = Ref.Ref.Node));
 
+   procedure Stream_Insert
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Node   : in     Valid_Node_Access;
+      Before : in     Stream_Index)
+   with Pre => Tree.Contains (Stream, Before);
+   --  Insert a new stream element on Stream containing Node, before Before.
+
    function Peek
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID;
@@ -919,13 +943,17 @@ package WisiToken.Syntax_Trees is
    --  Stack_Top. Result refers to the added node.
 
    procedure Shift
-     (Tree        : in Syntax_Trees.Tree;
-      Node        : in Valid_Node_Access;
-      Shift_Bytes : in Base_Buffer_Pos;
-      Shift_Chars : in Base_Buffer_Pos;
-      Shift_Line  : in Base_Line_Number_Type)
+     (Tree                 : in     Syntax_Trees.Tree;
+      Node                 : in     Valid_Node_Access;
+      Shift_Bytes          : in     Base_Buffer_Pos;
+      Shift_Chars          : in     Base_Buffer_Pos;
+      Shift_Line           : in     Base_Line_Number_Type;
+      Last_Stable_Byte     : in     Buffer_Pos;
+      Floating_Non_Grammar : in out Lexer.Token_Arrays.Vector)
    with Pre => Tree.Label (Node) in Terminal_Label;
-   --  Add Shift_* to token values.
+   --  Add Shift_* to token and non_grammar values. If a non_grammar is
+   --  after Last_Stable_Byte, move it to Floating_Non_Grammar without
+   --  shifting.
 
    procedure Set_Node_Index
      (Tree       : in Syntax_Trees.Tree;
@@ -1665,7 +1693,7 @@ package WisiToken.Syntax_Trees is
      return Node_Access;
    --  Return the terminal that contains (including non_grammar if
    --  Trailing_Non_Grammar) or is first after Byte_Pos.
-   --  Invalid_Node_Access outside text spanned by Tree.
+   --  Invalid_Node_Access if Byte_Pos is after text spanned by Tree.
 
    function Find_Byte_Pos
      (Tree                 : in Syntax_Trees.Tree;
@@ -1677,7 +1705,8 @@ package WisiToken.Syntax_Trees is
    with Pre => Start_At = Invalid_Stream_Node_Ref or else Tree.Byte_Region (Start_At.Node).First <= Byte_Pos;
    --  Return the terminal that contains (including non_grammar if
    --  Trailing_Non_Grammar) or is first after Byte_Pos.
-   --  Invalid_Stream_Node_Ref if outside text spanned by Tree.Stream.
+   --  Invalid_Stream_Node_Ref if Byte_Pos is after text spanned by
+   --  Tree.Stream.
    --
    --  If Start_At is not Invalid_Stream_Node_Ref, start search there.
 

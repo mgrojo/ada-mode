@@ -541,39 +541,50 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                            case Op.Op is
                            when Fast_Forward =>
                               if Stack_Matches_Ops then
-                                 declare
-                                    Target : Stream_Node_Parents := Tree.To_Stream_Node_Parents
-                                      (Parser_State.Current_Token);
-                                 begin
-                                    if Tree.Label (Target.Ref.Node) = Nonterm then
-                                       --  test case: ada_mode-recover_bad_char.adb
-                                       Tree.First_Sequential_Terminal (Target);
-                                       loop
-                                          exit when Tree.Get_Sequential_Index (Target.Ref.Node) = Op.FF_Token_Index;
-                                          Tree.Next_Sequential_Terminal (Target);
-                                       end loop;
+                                 if Tree.Label (Parser_State.Current_Token.Node) = Nonterm then
+                                    declare
+                                       Target : Stream_Node_Parents;
+
+                                       procedure Find_FF_Token_Index (Ref : in Stream_Node_Ref)
+                                       is begin
+                                          Target := Tree.To_Stream_Node_Parents (Ref);
+                                          Tree.First_Sequential_Terminal (Target);
+                                          loop
+                                             exit when Tree.Get_Sequential_Index (Target.Ref.Node) = Op.FF_Token_Index;
+                                             Tree.Next_Sequential_Terminal (Target);
+                                          end loop;
+                                       end Find_FF_Token_Index;
+
+                                    begin
+                                       Find_FF_Token_Index (Parser_State.Current_Token);
 
                                        if Tree.First_Terminal (Tree.Get_Node (Target.Ref.Stream, Target.Ref.Element)) /=
                                          Target.Ref.Node
                                        then
                                           --  Target is a nonterm that should not be shifted as a whole, so
-                                          --  break it down.
+                                          --  break it down. test case: ada_mode-recover_bad_char.adb
                                           if Target.Ref.Stream = Tree.Shared_Stream then
-                                             --  First we need to move all shared_stream elements
-                                             --  Parser_State.Shared_Token .. Target to the input stream.
-                                             raise SAL.Not_Implemented with
-                                               "FIXME: found test case for recover Fast_Forward move nonterms to input";
+                                             --  First we need to move all tokens Parser_State.Shared_Token .. Target
+                                             --  to the input stream. test case: ada_mode-recover_10.adb
+                                             pragma Assert (Parser_State.Shared_Token = Parser_State.Current_Token);
+
+                                             Tree.Move_Shared_To_Input
+                                               (First  => Parser_State.Shared_Token,
+                                                Last   => Target.Ref,
+                                                Stream => Parser_State.Stream);
+
+                                             Find_FF_Token_Index (Tree.First_Input (Parser_State.Stream));
                                           end if;
                                           Tree.Breakdown (Target);
                                           Parser_State.Next_Token (Tree, Set_Current => True, Delete => False);
                                        end if;
-                                    end if;
-                                 end;
-                              else
-                                 --  The parser would do shifts and reduces for the tokens we are
-                                 --  skipping here
-                                 Stack_Matches_Ops := False;
+                                    end;
+                                 end if;
                               end if;
+
+                              --  The parser would do shifts and reduces for the tokens we are
+                              --  skipping here
+                              Stack_Matches_Ops := False;
 
                            when Undo_Reduce =>
                               --  If Stack_Matches_Ops, we must do the Stack.Pop and Pushes, and we
@@ -756,7 +767,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    exception
    when E : others =>
       if Debug_Mode then
-         Trace.Put (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E), Prefix => True);
+         Trace.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
          Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
          raise SAL.Programmer_Error;
       else

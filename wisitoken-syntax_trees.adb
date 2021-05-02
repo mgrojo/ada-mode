@@ -1094,12 +1094,22 @@ package body WisiToken.Syntax_Trees is
    end Delete_Subtree;
 
    procedure Delete_Token
-     (Data          : in out User_Data_Type;
+     (User_Data     : in out User_Data_Type;
       Tree          : in     Syntax_Trees.Tree'Class;
+      Trace         : in out WisiToken.Trace'Class;
       Deleted_Token : in     Valid_Node_Access;
       Prev_Token    : in     Node_Access)
    is begin
+      if Trace_Action > WisiToken.Outline then
+         Trace.Put_Line
+           ("delete token " & Tree.Image (Deleted_Token, Node_Numbers => True, Non_Grammar => True));
+         if Deleted_Token.Non_Grammar.Length > 0 then
+            Trace.Put_Line
+              (" ... move non_grammar to " & Tree.Image (Prev_Token, Node_Numbers => True));
+         end if;
+      end if;
       Prev_Token.Non_Grammar.Append (Deleted_Token.Non_Grammar);
+      Deleted_Token.Non_Grammar.Clear;
    end Delete_Token;
 
    function EOI (Tree : in Syntax_Trees.Tree) return Node_Access
@@ -2538,14 +2548,9 @@ package body WisiToken.Syntax_Trees is
                Result := @ & "(";
                for Token of Node.Non_Grammar loop
                   Result := @ & "(";
-                  Result := @ & Image (Token.ID, Tree.Lexer.Descriptor.all) &
-                    (if Token.ID = Tree.Lexer.Descriptor.New_Line_ID or
-                       Token.ID = Tree.Lexer.Descriptor.SOI_ID or
-                       Token.ID = Tree.Lexer.Descriptor.EOI_ID
-                     then ", " & Image (Token.Line_Region)
-                     elsif Token.Char_Region = Null_Buffer_Region
-                     then ""
-                     else ", " & Image (Token.Char_Region));
+                  Result := @ & Image (Token.ID, Tree.Lexer.Descriptor.all) & ", ";
+                  Result := @ & Image (Token.Byte_Region) & ", ";
+                  Result := @ & Image (Token.Line_Region);
                   Result := @ & ")";
                end loop;
                Result := @ & ")";
@@ -3377,6 +3382,32 @@ package body WisiToken.Syntax_Trees is
         (Tree, Parse_Stream, Stream_Element_Lists.Constant_Ref (Shared_Ref.Element.Cur).Node);
       Tree.Stream_Next (Shared_Ref, Rooted => True);
       Tree.Streams (Parse_Stream.Cur).Shared_Link := Shared_Ref.Element.Cur;
+   end Move_Shared_To_Input;
+
+   procedure Move_Shared_To_Input
+     (Tree   : in out Syntax_Trees.Tree;
+      First  : in out Stream_Node_Ref;
+      Last   : in     Stream_Node_Ref;
+      Stream : in     Stream_ID)
+   is
+      use Stream_Element_Lists;
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+      Before       : constant Cursor := Next (Parse_Stream.Stack_Top);
+   begin
+      loop
+         Parse_Stream.Elements.Insert
+           (Element  =>
+              (Node  => Constant_Ref (First.Element.Cur).Node,
+               State => Unknown_State,
+               Label => Parse_Stream.Label),
+            Before => Before);
+
+         exit when First.Element = Last.Element;
+         Tree.Stream_Next (First, Rooted => True);
+      end loop;
+
+      Tree.Stream_Next (First, Rooted => True);
+      Parse_Stream.Shared_Link := First.Element.Cur;
    end Move_Shared_To_Input;
 
    function Name (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Buffer_Region
@@ -4788,13 +4819,16 @@ package body WisiToken.Syntax_Trees is
    end Shift;
 
    procedure Shift
-     (Tree        : in Syntax_Trees.Tree;
-      Node        : in Valid_Node_Access;
-      Shift_Bytes : in Base_Buffer_Pos;
-      Shift_Chars : in Base_Buffer_Pos;
-      Shift_Line  : in Base_Line_Number_Type)
+     (Tree                 : in     Syntax_Trees.Tree;
+      Node                 : in     Valid_Node_Access;
+      Shift_Bytes          : in     Base_Buffer_Pos;
+      Shift_Chars          : in     Base_Buffer_Pos;
+      Shift_Line           : in     Base_Line_Number_Type;
+      Last_Stable_Byte     : in     Buffer_Pos;
+      Floating_Non_Grammar : in out Lexer.Token_Arrays.Vector)
    is
       pragma Unreferenced (Tree);
+      First_Floating_I : SAL.Base_Peek_Type := 0;
    begin
       case Terminal_Label'(Node.Label) is
       when Source_Terminal =>
@@ -4807,11 +4841,28 @@ package body WisiToken.Syntax_Trees is
       when Virtual_Terminal | Virtual_Identifier =>
          null;
       end case;
-      for Token of Node.Non_Grammar loop
-         Token.Byte_Region := @ + Shift_Bytes;
-         Token.Char_Region := @ + Shift_Chars;
-         Token.Line_Region := @ + Shift_Line;
+      for I in Node.Non_Grammar.First_Index .. Node.Non_Grammar.Last_Index loop
+         declare
+            Token : Lexer.Token renames Node.Non_Grammar (I);
+         begin
+            if Token.Byte_Region.Last <= Last_Stable_Byte then
+               Token.Byte_Region := @ + Shift_Bytes;
+               Token.Char_Region := @ + Shift_Chars;
+               Token.Line_Region := @ + Shift_Line;
+            else
+               First_Floating_I := I;
+               exit;
+            end if;
+         end;
       end loop;
+
+      if First_Floating_I > 0 then
+         for I in First_Floating_I .. Node.Non_Grammar.Last_Index loop
+            Floating_Non_Grammar.Append (Node.Non_Grammar (I));
+         end loop;
+         Node.Non_Grammar.Set_First_Last (Node.Non_Grammar.First_Index, First_Floating_I - 1);
+      end if;
+
       if Node.Augmented /= null then
          Shift (Node.Augmented.all, Shift_Bytes, Shift_Chars, Shift_Line);
       end if;
@@ -5020,6 +5071,22 @@ package body WisiToken.Syntax_Trees is
       end loop;
       return Result;
    end Stream_Input_Length;
+
+   procedure Stream_Insert
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Node   : in     Valid_Node_Access;
+      Before : in     Stream_Index)
+   is
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+   begin
+      Parse_Stream.Elements.Insert
+        (Element  =>
+           (Node  => Node,
+            State => Unknown_State,
+            Label => Parse_Stream.Label),
+         Before   => Before.Cur);
+   end Stream_Insert;
 
    function Stream_Length (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type
    is (SAL.Base_Peek_Type (Tree.Streams (Stream.Cur).Elements.Length));
