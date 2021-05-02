@@ -56,9 +56,9 @@ save_text_auto debug_edited
 verbosity debug=1 action=3
 verbosity debug=1 mckenzie=1 parse=2
 
-do commit
-%partial_recursion ;; FIXME: faster compile time while debugging
-export Standard_Common_Build := Debug
+add test case for extra 'end;' that is later matched by user inserted 'begin;'
+    'end;' deleted by error recovery in initial parse; correctly restored in final parse?
+    mckenzie_recover use parser.deleted_nodes?
 
 test/ada_mode.ads
     fail_enqueue_limit on parse after de-indent
@@ -66,11 +66,28 @@ test/ada_mode.ads
         in ;; KMN: (584 . 613)(602 . 603)(614 . 616)
             should delete 32:(SEMICOLON, (848 . 848))((NEW_LINE, (22, 23)))),; it was scanned
                 but shift_bytes doesn't show that
+                it should not have been scanned!
+                    deleted "or Token.Byte_Region.Last <= Deleted_Non_Grammar_Byte_Pos);"
+                        running tests again, looking for test case for that
                 scan covered several KMN; one for each newline
                     should not scan for those, last should delete semicolon
                     or stop scan at KMN boundary?
 
 
+test/ada_mode-incremental_recover_01.adb
+    error: nil indent for line 8
+    lost (new_line (8, 9))
+        was scanned onto 37:(RIGHT_PAREN, (295 . 295))
+            but that's _after_ (new_line 9,10), (new_line 10, 11)! on 12:(IDENTIFIER, (288 . 294))
+            but those are also after; 39:(BEGIN, (300 . 304))((NEW_LINE, (9, 10))(NEW_LINE, (10, 11)))
+            the ones on 12: should not have been copied.
+        commented out Token.Byte_Region.First < Lex_Start_Byte case
+
+test/ada_mode-generic_package.ads
+    CONSTRAINT_ERROR: wisitoken-parse-lr-mckenzie_recover.adb:914:14 access check failed"
+        not when run with make one
+        add mckenzie-task-count 1
+        can't reproduce!
 
 test/ada_mode-recover_bad_char.adb passes
     fast_forward 2 actually a noop
@@ -85,53 +102,49 @@ rewrite ada-which-function to use incremental
 
 use gnat.os_lib to save text?
 
+test/ada_mode-recover_41.adb
+    interactive indent in parameter_list
 
 
-test/ada_mode-find_file.adb
-        after (ada-find-other-file), current-buffer is still original file!?
-        test ff-find-other-file in emacs -Q
+emacs 28 bug:
+    test/ada_mode-find_file.adb
+            after (ada-find-other-file), current-buffer is still original file!?
+            test ff-find-other-file in emacs -Q
 
-(find-file "c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-find_file.adb")
+    (find-file "c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-find_file.adb")
 
-(defvar ada-other-file-alist
-  '(("\\.ads$" (".adb"))
-    ("\\.adb$" (".ads")))
-  "Alist used by `find-file' to find the name of the other package.
-See `ff-other-file-alist'.")
+    (defvar ada-other-file-alist
+      '(("\\.ads$" (".adb"))
+        ("\\.adb$" (".ads")))
+      "Alist used by `find-file' to find the name of the other package.
+    See `ff-other-file-alist'.")
 
-(with-current-buffer "ada_mode-find_file.adb"
-  (setq-local ff-other-file-alist 'ada-other-file-alist)
-  (ff-find-other-file)
-  (message "%s:%d" (current-buffer) (point)))
+    (with-current-buffer "ada_mode-find_file.adb"
+      (setq-local ff-other-file-alist 'ada-other-file-alist)
+      (ff-find-other-file)
+      (message "%s:%d" (current-buffer) (point)))
 
-    emacs-master-Q.sh .adb
-    emacs-27-Q.sh .ads
+        emacs-master-Q.sh .adb
+        emacs-27-Q.sh .ads
 
-    look in NEWS; nothing
+        look in NEWS; nothing
 
-    trace ff-find-the-other-file
-        ff-switch-to-buffer vs ff-find-file?
+        trace ff-find-the-other-file
+            ff-switch-to-buffer vs ff-find-file?
 
-    (progn (switch-to-buffer "ada_mode-find_file.ads")(message "%s" (current-buffer))); no problem
-    (progn (ff-find-other-file)(message "%s" (current-buffer))); problem
-    (progn (ff-get-file '(".") "ada_mode-find_file" '(".adb"))(message "%s" (current-buffer))) ; no problem
+        (progn (switch-to-buffer "ada_mode-find_file.ads")(message "%s" (current-buffer))); no problem
+        (progn (ff-find-other-file)(message "%s" (current-buffer))); problem
+        (progn (ff-get-file '(".") "ada_mode-find_file" '(".adb"))(message "%s" (current-buffer))) ; no problem
 
-    write up emacs bug
-        use extensions .foo, .bar to avoid any major-mode issues
-    use emacs 27 for now
-
+        write up emacs bug
+            use extensions .foo, .bar to avoid any major-mode issues
+        use emacs 27 for now
 
 test/ada_mode-interactive_2.adb
     virtual 'null;' inserted on blank line,
         but fix-error puts it on the next line
         position in error message is wrong
             because set before Insert_Token changed it?
-
-Parse_Verb checks last_terminal (current_token)
-    but Ensure_Sequential_Node_Index only sets Node_Index thru
-    Resume_Token_Goal; Last_Terminal may be after that.
-        change Ensure_Sequential_Node_Index to do all of last stream element?
-        or just last_terminal?
 
 Wisi-reset-parser request full parse
 

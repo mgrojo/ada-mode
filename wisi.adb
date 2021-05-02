@@ -759,6 +759,9 @@ package body Wisi is
       --  Changes is in time order (ie _not_ in buffer pos order); KMN_List
       --  is in buffer pos order.
 
+      Initial_Text_Byte_Region : constant Buffer_Region := (1, Base_Buffer_Pos (Source_Byte_Last));
+      Initial_Text_Char_Region : constant Buffer_Region := (1, Base_Buffer_Pos (Source_Char_Last));
+
       Gap_First : Integer := Source_Byte_Last + 1;
       Gap_Last  : Integer := Source'Last;
 
@@ -983,7 +986,7 @@ package body Wisi is
                   else
                      KMN_List.Insert (Before => Cur, Element => KMN);
                   end if;
-                  return;
+                  exit;
 
                elsif Change.Begin_Byte_Pos <= KMN_Last_Byte + Cur_KMN.Stable_Bytes + 1 then
                   --  Change starts in or immediately after Cur_KMN.Stable_Bytes, ends
@@ -1031,7 +1034,7 @@ package body Wisi is
 
                   Cur_KMN.Stable_Bytes := KMN.Stable_Bytes;
                   Cur_KMN.Stable_Chars := KMN.Stable_Chars;
-                  return;
+                  exit;
 
                elsif Change.Begin_Byte_Pos <= KMN_Last_Byte + Cur_KMN.Stable_Bytes + Cur_KMN.Inserted_Bytes + 1 then
                   --  Change starts in or immediately after Cur_KMN inserted; merge
@@ -1088,7 +1091,7 @@ package body Wisi is
                      end;
                   end if;
 
-                  return;
+                  exit;
 
                else
                   --  Change is entirely after Cur_KMN
@@ -1105,6 +1108,15 @@ package body Wisi is
                end if;
             end;
          end loop;
+
+         if Debug_Mode then
+            WisiToken.Parse.Validate_KMN
+              (List                     => KMN_List,
+               Initial_Text_Byte_Region => Initial_Text_Byte_Region,
+               Initial_Text_Char_Region => Initial_Text_Char_Region,
+               Edited_Text_Byte_Region  => Buffer_Region'(1, Base_Buffer_Pos (Source_Byte_Last)),
+               Edited_Text_Char_Region  => Buffer_Region'(1, Base_Buffer_Pos (Source_Char_Last)));
+         end if;
       end Edit_KMN;
 
    begin
@@ -1131,8 +1143,8 @@ package body Wisi is
           Inserted_Chars => 0));
 
       for Change of Changes loop
-         Edit_KMN (Change);
          Edit_Text (Change);
+         Edit_KMN (Change);
 
          if Trace_Incremental_Parse > Detail then
             Trace.Put_Line ("change:" & Image (Change));
@@ -1267,6 +1279,7 @@ package body Wisi is
    procedure Insert_Token
      (Data           : in out Parse_Data_Type;
       Tree           : in out Syntax_Trees.Tree'Class;
+      Trace          : in out WisiToken.Trace'Class;
       Inserted_Token : in     Syntax_Trees.Valid_Node_Access)
    --  Set data that allows using Inserted_Token when computing indent.
    is

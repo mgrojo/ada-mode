@@ -323,7 +323,7 @@ package body Run_Wisi_Common_Parse is
       use WisiToken; -- "+" unbounded
 
       type File_Command_Type is
-        (Language_Params, McKenzie_Options, Parse_Incremental, Post_Parse, Refactor, Query_Tree, Save_Text,
+        (Language_Params, McKenzie_Options, Parse_Full, Parse_Incremental, Post_Parse, Refactor, Query_Tree, Save_Text,
          Save_Text_Auto, Verbosity);
 
       Parser : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
@@ -343,6 +343,36 @@ package body Run_Wisi_Common_Parse is
       when McKenzie_Options =>
          WisiToken.Parse.LR.Set_McKenzie_Options
            (Parser.Table.McKenzie_Param, Line (Last + 1 .. Line'Last));
+
+      when Parse_Full =>
+         Parse_Data.Initialize (Trace'Access);
+
+         Parse_Data.Reset;
+         Parser.Tree.Lexer.Reset;
+         declare
+            procedure Clean_Up
+            is begin
+               Parser.Tree.Lexer.Discard_Rest_Of_Input;
+               Parse_Data.Put
+                 (Parser.Tree.Lexer.Errors,
+                  Parser.Parsers.First.State_Ref.Errors,
+                  Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+                  Parser.Tree);
+            end Clean_Up;
+         begin
+            Parser.Parse (Log_File);
+            Clean_Up;
+         exception
+         when WisiToken.Syntax_Error =>
+            Clean_Up;
+            Ada.Text_IO.Put_Line ("(parse_error)");
+
+         when E : WisiToken.Parse_Error =>
+            Clean_Up;
+            Ada.Text_IO.Put_Line
+              ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
+                 Ada.Exceptions.Exception_Message (E) & """)");
+         end;
 
       when Parse_Incremental =>
          declare
@@ -651,10 +681,14 @@ package body Run_Wisi_Common_Parse is
                end;
             end if;
 
-         when Parse_Incremental | Refactor | Command_File =>
-            --  First do a full parse to get the syntax tree
+         when Parse_Incremental | Refactor =>
             Command_Options (Parser, Cl_Params, Arg);
 
+            if Cl_Params.Command /= Refactor then
+               Parse_Data.Parse_Language_Params (-Cl_Params.Language_Params);
+            end if;
+
+            --  First do a full parse to get the syntax tree
             begin
                Parse_Data.Initialize (Trace'Access);
                Parser.Tree.Lexer.Reset;
@@ -671,11 +705,7 @@ package body Run_Wisi_Common_Parse is
             Put_Errors (Parser, Parse_Data);
 
             case Cl_Params.Command is
-            when Parse_Partial =>
-               null;
-
             when Parse_Incremental =>
-               Parse_Data.Parse_Language_Params (-Cl_Params.Language_Params);
                declare
                   KMN_List : WisiToken.Parse.KMN_Lists.List;
                begin
@@ -736,33 +766,37 @@ package body Run_Wisi_Common_Parse is
                  (Parser.Tree,
                   Cl_Params.Refactor_Action, Cl_Params.Edit_Begin);
 
-            when Command_File =>
-               Ada.Text_IO.Put_Line ('"' & (-Cl_Params.Source_File_Name) & '"' & (-Cl_Params.Language_Params));
-               Ada.Text_IO.New_Line;
-               Parse_Data.Parse_Language_Params (-Cl_Params.Language_Params);
-               declare
-                  Cmd_File : Ada.Text_IO.File_Type;
-               begin
-                  Open (Cmd_File, In_File, -Cl_Params.Command_File_Name);
-                  Ada.Directories.Set_Directory (Ada.Directories.Containing_Directory (-Cl_Params.Command_File_Name));
-                  loop
-                     exit when End_Of_File (Cmd_File);
-                     declare
-                        Line : constant String := Get_Line (Cmd_File);
-                     begin
-                        if Line'Length > 0 then
-                           Ada.Text_IO.Put_Line (Line);
-                           if Line (1 .. 2) = "--" then
-                              null;
-                           else
-                              Process_Command (Parse_Context, Line);
-                              Ada.Text_IO.New_Line;
-                           end if;
-                        end if;
-                     end;
-                  end loop;
-               end;
+            when others =>
+               null;
             end case;
+
+         when Command_File =>
+            --  We don't do a full parse here, to let .cmd file set debug params for full parse.
+
+            Ada.Text_IO.Put_Line ('"' & (-Cl_Params.Source_File_Name) & '"' & (-Cl_Params.Language_Params));
+            Ada.Text_IO.New_Line;
+            declare
+               Cmd_File : Ada.Text_IO.File_Type;
+            begin
+               Open (Cmd_File, In_File, -Cl_Params.Command_File_Name);
+               Ada.Directories.Set_Directory (Ada.Directories.Containing_Directory (-Cl_Params.Command_File_Name));
+               loop
+                  exit when End_Of_File (Cmd_File);
+                  declare
+                     Line : constant String := Get_Line (Cmd_File);
+                  begin
+                     if Line'Length > 0 then
+                        Ada.Text_IO.Put_Line (Line);
+                        if Line (1 .. 2) = "--" then
+                           null;
+                        else
+                           Process_Command (Parse_Context, Line);
+                           Ada.Text_IO.New_Line;
+                        end if;
+                     end if;
+                  end;
+               end loop;
+            end;
          end case;
       end;
    exception

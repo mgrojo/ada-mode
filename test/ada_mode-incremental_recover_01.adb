@@ -1,4 +1,4 @@
---  Used to get "error in resume", due to current_shared_token being a
+-- Used to get "error in resume", due to current_shared_token being a
 -- nonterm. Now fixed.
 
 procedure Ada_Mode.Incremental_Recover_01

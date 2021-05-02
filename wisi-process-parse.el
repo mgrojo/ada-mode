@@ -1049,6 +1049,7 @@ one or more Query messages."
 	 (setq-local comment-start "-- ")
 
 	 (insert "-- source file: " source-file " -*- comment-start: \"" comment-start "\" -*-" "\n")
+
 	 (insert "verbosity " verbosity "\n")
 
 	 (when (or (not (string-equal mckenzie_task_count "-1"))
@@ -1068,7 +1069,9 @@ one or more Query messages."
 	   ;; parse-max-parallel is not available
 	   (insert "\n"))
 
-	 (insert "language_params " language_param "\n\n"))))
+	 (insert "language_params " language_param "\n\n")
+
+	 (insert "parse_full " source-file "\n\n"))))
 
     (set-buffer log-buffer)
     (goto-char (point-min))

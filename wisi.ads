@@ -153,6 +153,7 @@ package Wisi is
    procedure Insert_Token
      (Data           : in out Parse_Data_Type;
       Tree           : in out WisiToken.Syntax_Trees.Tree'Class;
+      Trace          : in out WisiToken.Trace'Class;
       Inserted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access);
 
    type Navigate_Class_Type is (Motion, Statement_End, Statement_Override, Statement_Start, Misc);
