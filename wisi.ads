@@ -30,6 +30,7 @@ with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Vectors;
+with SAL.Generic_Decimal_Image;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR;
 with WisiToken.Syntax_Trees;
@@ -86,6 +87,12 @@ package Wisi is
       Last         : in out Integer)
      return Change_Lists.List;
 
+   procedure To_Unix_Line_Endings
+     (Source           : in     Ada.Strings.Unbounded.String_Access;
+      Source_Byte_Last : in out Integer;
+      Source_Char_Last : in out Integer);
+   --  Source is assumed to have DOS line endings; convert them to Unix.
+
    procedure Edit_Source
      (Trace            : in out WisiToken.Trace'Class;
       Source           : in out Ada.Strings.Unbounded.String_Access;
@@ -93,6 +100,7 @@ package Wisi is
       Source_Char_Last : in out Integer;
       Changes          : in     Change_Lists.List;
       KMN_List         :    out WisiToken.Parse.KMN_Lists.List);
+   --  Source must be UTF-8 with Unix line endings.
 
    function Image_Action (Action : in WisiToken.Syntax_Trees.Post_Parse_Action) return String;
    --  For Image_Action in Syntax_Trees.Image
@@ -436,6 +444,8 @@ package Wisi is
       Line_Number : in WisiToken.Line_Number_Type;
       Message     : in String);
    --  Put an error elisp form to Ada.Text_IO.Standard_Output.
+
+   function Integer_Filled_Image is new SAL.Generic_Decimal_Image (Integer);
 
 private
 

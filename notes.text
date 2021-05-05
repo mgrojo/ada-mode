@@ -53,12 +53,19 @@ run all tests with incremental mode enabled
 in debug.cmd:
 mckenzie_options task_count=1
 save_text_auto debug_edited
+verbosity debug=1 incremental=3
 verbosity debug=1 action=3
 verbosity debug=1 mckenzie=1 parse=2
+
+
+
+
 
 add test case for extra 'end;' that is later matched by user inserted 'begin;'
     'end;' deleted by error recovery in initial parse; correctly restored in final parse?
     mckenzie_recover use parser.deleted_nodes?
+
+move wisi.change .. edit_source to wisi_parse_context
 
 test/ada_mode.ads
     fail_enqueue_limit on parse after de-indent
@@ -99,8 +106,6 @@ add Ada code to decrement byte_pos by one char, use in emacs_common, run_common 
 rewrite ada-which-function to use incremental
     test/ada_mode-nominal.ads
         don't set ada-which-func-parse-size if incremental
-
-use gnat.os_lib to save text?
 
 test/ada_mode-recover_41.adb
     interactive indent in parameter_list

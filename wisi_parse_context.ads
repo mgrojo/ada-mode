@@ -34,7 +34,9 @@ package Wisi_Parse_Context is
       Parse_Data_Template     : Wisi.Parse_Data_Access;
    end record;
 
-   type Parse_Context is limited record
+   type Parse_Context is tagged limited record
+      --  'tagged' for Object.Method notation
+
       File_Name   : Ada.Strings.Unbounded.Unbounded_String;
       Text_Buffer : Ada.Strings.Unbounded.String_Access;
       --  Text_Buffer may hold all or part of the actual Emacs buffer
@@ -85,5 +87,15 @@ package Wisi_Parse_Context is
 
    procedure Clear;
    --  Delete all contexts.
+
+   procedure Save_Text
+     (Context       : in Parse_Context;
+      File_Name     : in String;
+      Emacs_Message : in Boolean);
+   --  Write Context.Text_Buffer to File_Name.
+
+   procedure Save_Text_Auto
+     (Context       : in out Parse_Context;
+      Emacs_Message : in     Boolean);
 
 end Wisi_Parse_Context;

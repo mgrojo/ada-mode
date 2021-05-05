@@ -27,7 +27,6 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with GNATCOLL.Mmap;
-with SAL.Generic_Decimal_Image;
 with SAL;
 with System.Multiprocessors;
 with WisiToken.Lexer;
@@ -388,30 +387,7 @@ package body Run_Wisi_Common_Parse is
                KMN_List);
 
             if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
-               Parse_Context.Save_Edited_Count := @ + 1;
-               declare
-                  use Ada.Text_IO;
-                  use Ada.Directories;
-                  use Ada.Strings.Unbounded;
-
-                  function Filled_Image is new SAL.Generic_Decimal_Image (Integer);
-                  Save_File_Name   : constant String :=
-                    To_String (Parse_Context.Root_Save_Edited_Name) & "_" &
-                    Filled_Image (Item => Parse_Context.Save_Edited_Count, Width => 3);
-
-                  Save_File : File_Type;
-               begin
-                  if Exists (Save_File_Name) then
-                     Delete_File (Save_File_Name);
-                  end if;
-                  Create (Save_File, Out_File, Save_File_Name);
-
-                  --  This writes DOS line endings on Windows. Sigh.
-                  Put (Save_File, Parse_Context.Text_Buffer (1 .. Parse_Context.Text_Buffer_Byte_Last));
-                  Close (Save_File);
-
-                  Put_Line ("text saved to '" & Save_File_Name & "'");
-               end;
+               Parse_Context.Save_Text_Auto (Emacs_Message => False);
             end if;
 
             Parser.Tree.Lexer.Reset_With_String_Access
@@ -481,18 +457,9 @@ package body Run_Wisi_Common_Parse is
 
       when Save_Text =>
          declare
-            use Ada.Text_IO;
-            use Ada.Directories;
-            Save_File : File_Type;
             Save_File_Name : constant String := Line (Last + 1 .. Line'Last);
          begin
-            if Exists (Save_File_Name) then
-               Delete_File (Save_File_Name);
-            end if;
-            Create (Save_File, Out_File, Save_File_Name);
-            --  This writes DOS line endings on Windows. Sigh.
-            Put (Save_File, Parse_Context.Text_Buffer (1 .. Parse_Context.Text_Buffer_Byte_Last));
-            Close (Save_File);
+            Parse_Context.Save_Text (Save_File_Name, Emacs_Message => False);
          end;
 
       when Save_Text_Auto =>
@@ -552,8 +519,17 @@ package body Run_Wisi_Common_Parse is
                begin
                   Parse_Context.Text_Buffer := new String'(Data (Region) (1 .. Last (Region)));
                   Parse_Context.Text_Buffer_Byte_Last := Parse_Context.Text_Buffer'Last;
-                  Parse_Context.Text_Buffer_Char_Last := Parse_Context.Text_Buffer'Last;
-                  --  wrong if non-ascii, used in Edit_Source to check KMN. FIXME: get from lexer when it counts lines.
+
+                  if Cl_Params.Command in Parse_Incremental | Command_File then
+                     if 0 /= Ada.Strings.Fixed.Index (Parse_Context.Text_Buffer.all, ASCII.CR & "") then
+                        --  Test case: ada_mode-recover_partial_14.adb
+                        Parse_Context.Text_Buffer_Char_Last := Parse_Context.Text_Buffer'Last;
+
+                        Wisi.To_Unix_Line_Endings
+                          (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last,
+                           Parse_Context.Text_Buffer_Char_Last);
+                     end if;
+                  end if;
 
                   Parser.Tree.Lexer.Reset_With_String_Access
                     (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, Cl_Params.Source_File_Name);
@@ -594,6 +570,8 @@ package body Run_Wisi_Common_Parse is
             when Refactor | Command_File =>
                null;
             end case;
+
+            Parse_Context.Text_Buffer_Char_Last := Integer (Token.Char_Region.Last);
          end;
 
          case Cl_Params.Command is

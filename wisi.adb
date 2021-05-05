@@ -527,7 +527,6 @@ package body Wisi is
                Data.Trace.Put_Line (Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
             end if;
          end loop;
-         Data.Trace.Put_Line ("resolve anchors");
       end if;
    end Resolve_Anchors;
 
@@ -745,6 +744,40 @@ package body Wisi is
          Skip (Command_Line, Last, ')'); --  end of edits list
       end return;
    end Get_Emacs_Change_List;
+
+   function To_Unix_Line_Endings (Source : in out String) return Integer
+   --  Return count of line endings converted.
+   is
+      Read              : Integer := Source'First;
+      Write             : Integer := Source'First - 1;
+      Line_Ending_Count : Integer := 0;
+   begin
+      loop
+         exit when Read > Source'Last;
+         if Source (Read) = ASCII.CR and (Read < Source'Last and then Source (Read + 1) = ASCII.LF) then
+            Write             := @ + 1;
+            Source (Write)    := ASCII.LF;
+            Read              := @ + 2;
+            Line_Ending_Count := @ + 1;
+         else
+            Write          := @ + 1;
+            Source (Write) := Source (Read);
+            Read           := @ + 1;
+         end if;
+      end loop;
+      return Line_Ending_Count;
+   end To_Unix_Line_Endings;
+
+   procedure To_Unix_Line_Endings
+     (Source           : in     Ada.Strings.Unbounded.String_Access;
+      Source_Byte_Last : in out Integer;
+      Source_Char_Last : in out Integer)
+   is
+      Line_End_Count : constant Integer := To_Unix_Line_Endings (Source (Source'First .. Source_Byte_Last));
+   begin
+      Source_Byte_Last := @ - Line_End_Count;
+      Source_Char_Last := @ - Line_End_Count;
+   end To_Unix_Line_Endings;
 
    procedure Edit_Source
      (Trace            : in out WisiToken.Trace'Class;

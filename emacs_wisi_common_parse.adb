@@ -25,7 +25,6 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
 with GNAT.Traceback.Symbolic;
-with SAL.Generic_Decimal_Image;
 with SAL;
 with System.Multiprocessors;
 with System.Storage_Elements;
@@ -417,29 +416,7 @@ package body Emacs_Wisi_Common_Parse is
                            KMN_List);
 
                         if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
-                           Parse_Context.Save_Edited_Count := @ + 1;
-                           declare
-                              use Ada.Directories;
-                              use Ada.Strings.Unbounded;
-
-                              function Filled_Image is new SAL.Generic_Decimal_Image (Integer);
-                              Save_File_Name   : constant String :=
-                                To_String (Parse_Context.Root_Save_Edited_Name) & "_" &
-                                Filled_Image (Item => Parse_Context.Save_Edited_Count, Width => 3);
-
-                              Save_File : File_Type;
-                           begin
-                              if Exists (Save_File_Name) then
-                                 Delete_File (Save_File_Name);
-                              end if;
-                              Create (Save_File, Out_File, Save_File_Name);
-
-                              --  This writes DOS line endings on Windows. Sigh.
-                              Put (Save_File, Parse_Context.Text_Buffer (1 .. Parse_Context.Text_Buffer_Byte_Last));
-                              Close (Save_File);
-
-                              Put_Line ("(message ""text saved to '" & Save_File_Name & "'"")");
-                           end;
+                           Parse_Context.Save_Text_Auto (Emacs_Message => True);
                         end if;
 
                         Parse_Data.Parse_Language_Params (-Params.Language_Params);
@@ -579,25 +556,15 @@ package body Emacs_Wisi_Common_Parse is
                --  (message "text saved ...)
                --  prompt
                declare
-                  use Ada.Directories;
-
                   Source_File_Name : constant String := Wisi.Get_String (Command_Line, Last);
                   Save_File_Name   : constant String := Wisi.Get_String (Command_Line, Last);
-                  Save_File        : File_Type;
 
                   Parse_Context : constant Wisi_Parse_Context.Parse_Context_Access := Wisi_Parse_Context.Find
                     (Source_File_Name, Language);
                begin
                   Check_Command_Length (Command_Length, Last);
 
-                  if Exists (Save_File_Name) then
-                     Delete_File (Save_File_Name);
-                  end if;
-                  Create (Save_File, Out_File, Save_File_Name);
-                  Put (Save_File, Parse_Context.Text_Buffer (1 .. Parse_Context.Text_Buffer_Byte_Last));
-                  Close (Save_File);
-
-                  Put_Line ("(message ""text saved to '" & Save_File_Name & "'"")");
+                  Parse_Context.Save_Text (Save_File_Name, Emacs_Message => True);
                end;
 
             elsif Match ("save_text_auto") then

@@ -136,6 +136,7 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	    (make-process
 	     :name process-name
 	     :buffer (wisi-process--parser-buffer parser)
+	     :coding 'utf-8-unix
 	     :command (append (list (wisi-process--parser-exec-file parser))
 			      (wisi-process--parser-exec-opts parser))))
 

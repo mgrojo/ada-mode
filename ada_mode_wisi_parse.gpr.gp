@@ -22,7 +22,7 @@ with "wisi";
 with "aunit";
 with "aunit_ext";
 with "sal_devel";
-with "wisitoken";
+with "wisitoken_devel";
 #end if;
 with "standard_common";
 with "gnatcoll";

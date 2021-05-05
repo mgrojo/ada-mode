@@ -13,8 +13,10 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Directories;
 with Ada.Finalization;
 with Ada.Text_IO;
+with GNAT.OS_Lib;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 package body Wisi_Parse_Context is
 
@@ -123,5 +125,47 @@ package body Wisi_Parse_Context is
    is begin
       Map.Clear;
    end Clear;
+
+   procedure Save_Text
+     (Context       : in Parse_Context;
+      File_Name     : in String;
+      Emacs_Message : in Boolean)
+   is
+      use GNAT.OS_Lib;
+      File : File_Descriptor;
+      Written : Integer;
+      pragma Unreferenced (Written);
+   begin
+      if Ada.Directories.Exists (File_Name) then
+         Ada.Directories.Delete_File (File_Name);
+      end if;
+      File := Create_New_File (File_Name, Fmode => Binary);
+      Written := Write (File, Context.Text_Buffer (Context.Text_Buffer'First)'Address,
+             N => Context.Text_Buffer_Byte_Last - Context.Text_Buffer'First + 1);
+      --  Written /= N on disk full; we don't check for that, because there's
+      --  nothing to do.
+      Close (File);
+
+      if Emacs_Message then
+         Ada.Text_IO.Put_Line ("(message ""text saved to '" & File_Name & "'"")");
+      else
+         Ada.Text_IO.Put_Line ("text saved to '" & File_Name & "'");
+      end if;
+   end Save_Text;
+
+   procedure Save_Text_Auto
+     (Context       : in out Parse_Context;
+      Emacs_Message : in     Boolean)
+   is begin
+      Context.Save_Edited_Count := @ + 1;
+
+      declare
+         Save_File_Name : constant String :=
+           Ada.Strings.Unbounded.To_String (Context.Root_Save_Edited_Name) & "_" &
+           Wisi.Integer_Filled_Image (Item => Context.Save_Edited_Count, Width => 3);
+      begin
+         Save_Text (Context, Save_File_Name, Emacs_Message);
+      end;
+   end Save_Text_Auto;
 
 end Wisi_Parse_Context;

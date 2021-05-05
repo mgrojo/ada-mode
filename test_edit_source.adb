@@ -39,8 +39,6 @@ package body Test_Edit_Source is
    begin
       WisiToken.Parse.Validate_KMN
         (KMN_List,
-         Stable_Byte_First        => Source_First,
-         Stable_Char_First        => Source_First,
          Initial_Text_Byte_Region => (Source_First, Source_Last),
          Initial_Text_Char_Region => (Source_First, Source_Last),
          Edited_Text_Byte_Region  => (Expected_Source_First, Expected_Source_Last),
@@ -57,13 +55,15 @@ package body Test_Edit_Source is
       Changes                   : in Wisi.Change_Lists.List;
       Expected_Source           : in String;
       Expected_Source_Char_Last : in Integer;
-      Expected_KMN              : in WisiToken.Parse.KMN_Lists.List)
+      Expected_KMN              : in WisiToken.Parse.KMN_Lists.List;
+      DOS_Line_Endings          : in Boolean := False)
    is
       use AUnit.Checks;
       use WisiToken;
       use WisiToken.Parse.AUnit.KMN_Lists_AUnit;
 
       Computed_Source  : Ada.Strings.Unbounded.String_Access := new String'(Initial_Source);
+      Unix_Initial_Source : Ada.Strings.Unbounded.Unbounded_String;
 
       Computed_Source_Byte_Last : Integer := Initial_Source'Last;
       Computed_Source_Char_Last : Integer := Initial_Source_Char_Last;
@@ -76,8 +76,15 @@ package body Test_Edit_Source is
          end loop;
       end if;
 
+      if DOS_Line_Endings then
+         Wisi.To_Unix_Line_Endings (Computed_Source, Computed_Source_Byte_Last, Computed_Source_Char_Last);
+      end if;
+
+      Unix_Initial_Source := +Computed_Source (Computed_Source'First .. Computed_Source_Byte_Last);
+
       Wisi.Edit_Source
-        (Trace, Computed_Source, Computed_Source_Byte_Last, Computed_Source_Char_Last, Changes, Computed_KMN);
+        (Trace, Computed_Source, Computed_Source_Byte_Last, Computed_Source_Char_Last, Changes, Computed_KMN,
+         DOS_Line_Endings);
 
       if WisiToken.Trace_Tests > WisiToken.Detail then
          Ada.Text_IO.Put_Line (Label & ".edited source:");
@@ -93,7 +100,7 @@ package body Test_Edit_Source is
 
       Check (Label & ".char_last", Computed_Source_Char_Last, Expected_Source_Char_Last);
 
-      Check_Valid_KMN (Computed_KMN, Initial_Source, Expected_Source);
+      Check_Valid_KMN (Computed_KMN, -Unix_Initial_Source, Expected_Source);
       Check (Label & ".kmn", Computed_KMN, Expected_KMN);
 
       Ada.Strings.Unbounded.Free (Computed_Source);
@@ -987,6 +994,54 @@ package body Test_Edit_Source is
         ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
    end Merge_Single_Letters;
 
+   procedure DOS_Line_Endings (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Wisi;
+      use WisiToken;
+
+      --  DOS line endings; emacs byte pos /= Ada string index
+      --
+      --  Emacs buffer has single character for line end;
+      --  process-send-string converts that to two characters during
+      --  'encoding'.
+
+      --  Numbers in comments in Initial, Expected are Emacs char position =
+      --  Emacs byte position; that's what appears in Changes.
+
+      Initial_Source : constant String :=
+        "Ask not what you can" & ASCII.CR & ASCII.LF &
+        --        |10       |20
+        "do for your country.";
+      --  |23    |30
+
+      Expected_Source : constant String :=
+        "Ask never what you can" & ASCII.LF &
+        --        |10       |20
+        "do for my country.";
+      --  |25  |30
+
+      Changes : Change_Lists.List;
+
+      Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
+   begin
+      --  "your" -> "my"
+      Changes.Append ((29, 29, 31, 31, +"my", 4, 4));
+
+      --  "not" -> "never"
+      Changes.Append ((5, 5, 10, 10, +"never", 3, 3));
+
+      Expected_KMN_List.Append ((4, 4, 5, 5, 3, 3));
+      Expected_KMN_List.Append ((21, 21, 2, 2, 4, 4));
+      Expected_KMN_List.Append ((9, 9, 0, 0, 0, 0));
+
+      Test
+        ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List,
+         DOS_Line_Endings => True);
+   end DOS_Line_Endings;
+
+   --  FIXME: UTF-8 non-ASCII
+
    ----------
    --  Public subprograms
 
@@ -1011,6 +1066,7 @@ package body Test_Edit_Source is
       Register_Routine (T, Edit_09'Access, "Edit_09");
       Register_Routine (T, Edit_10'Access, "Edit_10");
       Register_Routine (T, Merge_Single_Letters'Access, "Merge_Single_Letters");
+      Register_Routine (T, DOS_Line_Endings'Access, "DOS_Line_Endings");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

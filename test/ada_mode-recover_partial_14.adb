@@ -1,4 +1,6 @@
---  Raised Container_Empty in error recovery; fixed now.
+-- Raised Container_Empty in error recovery; fixed now.
+--
+-- This file has DOS line endings, to test that case.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 
