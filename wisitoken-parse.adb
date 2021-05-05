@@ -356,56 +356,9 @@ package body WisiToken.Parse is
                        (Terminal, Non_Grammar => True, Augmented => True));
                end if;
 
-            elsif Shift_Bytes = 0 and Shift_Chars = 0 and Shift_Lines = 0 then
-               --  Find the Terminal that Unchanged_Loop would exit with.
-               declare
-                  New_Terminal : constant Stream_Node_Ref := Tree.Find_Byte_Pos
-                    (Terminal.Stream, Inserted_Region.First,
-                     Trailing_Non_Grammar => False,
-                     Start_At             =>
-                       (if Tree.Byte_Region (Terminal.Node).First <= Inserted_Region.First
-                        --  False on first KMN if edit leading non_grammar
-                        then Terminal
-                        else Invalid_Stream_Node_Ref));
-
-                  Prev_Terminal          : constant Terminal_Ref  := Tree.Prev_Terminal (New_Terminal);
-                  Prev_Terminal_Byte_Pos : constant Buffer_Region := Tree.Byte_Region
-                    (Prev_Terminal.Node, Trailing_Non_Grammar => False);
-               begin
-                  if Tree.Byte_Region (New_Terminal.Node).Last <= Tree.Byte_Region (Terminal.Node).Last then
-                     --  KMN.Stable was scanned by previous KMN; don't change Terminal
-                     null;
-
-                  elsif Prev_Terminal.Node /= Tree.SOI and Prev_Terminal_Byte_Pos.Last + 1 = Inserted_Region.First then
-                     --  Prev_Terminal may have been extended by edit.
-                     Terminal := Prev_Terminal;
-                  else
-                     Terminal := New_Terminal;
-                  end if;
-               end;
-
-               declare
-                  Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var (Terminal.Node);
-                  First_Floating_I : SAL.Base_Peek_Type := Lexer.Token_Arrays.No_Index;
-               begin
-                  for I in Non_Grammar.First_Index .. Non_Grammar.Last_Index loop
-                     if Non_Grammar (I).Byte_Region.First > Stable_Region.Last then
-                        First_Floating_I := I;
-                        exit;
-                     end if;
-                  end loop;
-                  if First_Floating_I /= Lexer.Token_Arrays.No_Index then
-                     for I in First_Floating_I .. Non_Grammar.Last_Index loop
-                        Floating_Non_Grammar.Append (Non_Grammar (I));
-                     end loop;
-                     Non_Grammar.Set_First_Last (Non_Grammar.First_Index, First_Floating_I - 1);
-                  end if;
-               end;
-
-               if Trace_Incremental_Parse > Detail then
-                  Parser.Trace.Put_Line
-                    ("skip 0 shift; terminal:" & Tree.Image (Terminal, Non_Grammar => True, Augmented => True));
-               end if;
+            --  It is tempting to skip Unchanged_Loop if Shift_Bytes = 0 and
+            --  Shift_Chars = 0 and Shift_Lines = 0. But we need to scan all
+            --  Non_Grammar for Floating_Non_Grammar, which changes Shift_Lines.
 
             else
                Unchanged_Loop :
@@ -464,6 +417,7 @@ package body WisiToken.Parse is
                         end;
 
                      elsif Contains (Stable_Region, Tree.Byte_Region (Deleted_Node)) then
+                        pragma Assert (Tree.Non_Grammar_Const (Deleted_Node).Length = 0);
                         Tree.Shift
                           (Deleted_Node, Shift_Bytes, Shift_Chars, Shift_Lines, Buffer_Pos'Last, Floating_Non_Grammar);
                         Valid_Node_Access_Lists.Next (Cur);
@@ -493,11 +447,13 @@ package body WisiToken.Parse is
                Lex_Start_Char : Buffer_Pos;
                Lex_Start_Line : Line_Number_Type;
 
-               Last_Grammar_Node : Node_Access;
-               Last_Stable_Terminal : constant Terminal_Ref := Tree.Prev_Terminal (Terminal); -- Shifted
+               Last_Grammar : Terminal_Ref := Tree.Prev_Terminal (Terminal); -- Shifted
             begin
-               if Terminal_Byte_Region.Last + Shift_Bytes > Scanned_Byte_Pos then
-                  --  else Terminal was scanned by previous KMN
+               if Terminal_Byte_Region.Last + Shift_Bytes > Scanned_Byte_Pos and
+                 Inserted_Region.Last > Scanned_Byte_Pos
+               then
+                  --  else Terminal and Inserted_Region was scanned by previous KMN
+                  --  test case: ada_mode-recover_align_1.adb
 
                   --  Unchanged_Loop exited because Terminal is at least partly out of
                   --  Stable_Region or adjacent to the edit start, or because it reached
@@ -537,8 +493,6 @@ package body WisiToken.Parse is
                      --  decrement Shift_Lines, but only after we use Shift_Lines to set
                      --  Lex_Start_Line.
                      declare
-                        Last_Grammar : Terminal_Ref := Last_Stable_Terminal; -- Shifted
-
                         procedure Handle_Non_Grammar (Non_Grammar : in out WisiToken.Lexer.Token_Arrays.Vector)
                         is
                            Delete : SAL.Base_Peek_Type := 0;
@@ -547,11 +501,16 @@ package body WisiToken.Parse is
                               --  Edit start is in whitespace before Terminal
                               Lex_Start_Byte := Inserted_Region.First;
                               Lex_Start_Char := Inserted_Region_Chars.First;
-                              Lex_Start_Line := Tree.Line_Region (Terminal).First + Shift_Lines;
+                              Lex_Start_Line := Tree.Line_Region (Last_Grammar).First;
+                              --  start_line test case ada_mode-recover_incremental_01.adb
+                              Do_Scan        := True;
                            else
                               --  Non_Grammar is shifted.
                               for I in Non_Grammar.First_Index .. Non_Grammar.Last_Index loop
-                                 if Non_Grammar (I).Byte_Region.Last + 1 >= Inserted_Region.First then
+                                 if Non_Grammar (I).Byte_Region.Last + 1 >= Inserted_Region.First and
+                                   Non_Grammar (I).Byte_Region.Last > Scanned_Byte_Pos
+                                   --  test case: ada_mode-recover_align_1.adb
+                                 then
                                     Delete  := I;
                                     Do_Scan := True;
                                     exit;
@@ -607,8 +566,7 @@ package body WisiToken.Parse is
                      begin
                         loop
                            --  Set Last_Grammar to the token containing the non_grammar that may
-                           --  contain the edit start; check for trailing virtual terminals to
-                           --  delete.
+                           --  contain the edit start.
                            exit when Tree.Label (Last_Grammar.Node) = Source_Terminal;
 
                            if Tree.Non_Grammar_Const (Last_Grammar.Node).Length > 0 then
@@ -773,7 +731,7 @@ package body WisiToken.Parse is
                      end loop Delete_Virtuals_Loop;
                   end;
 
-                  Last_Grammar_Node := Tree.Prev_Terminal (Terminal).Node;
+                  Last_Grammar := Tree.Prev_Terminal (Terminal);
                   Scan_Changed_Loop :
                   loop
                      declare
@@ -811,7 +769,7 @@ package body WisiToken.Parse is
                            Ref := Tree.Insert_Source_Terminal (Stream, Token, Before => Terminal.Element);
 
                            Process_Grammar_Token (Parser, Token, Ref.Node);
-                           Last_Grammar_Node := Ref.Node;
+                           Last_Grammar := Ref;
 
                            if Trace_Incremental_Parse > Detail then
                               Parser.Trace.Put_Line ("scan new " & Tree.Image (Ref));
@@ -824,7 +782,7 @@ package body WisiToken.Parse is
                                 ("scan new " & Lexer.Full_Image (Token, Parser.Tree.Lexer.Descriptor.all));
                            end if;
 
-                           Process_Non_Grammar_Token (Parser, Last_Grammar_Node, Token);
+                           Process_Non_Grammar_Token (Parser, Last_Grammar.Node, Token);
                            if Token.ID = Parser.Tree.Lexer.Descriptor.New_Line_ID then
                               Shift_Lines := @ + 1;
                            end if;
@@ -897,15 +855,16 @@ package body WisiToken.Parse is
                         end if;
 
                         for Token of Tree.Non_Grammar_Const (To_Delete.Node) loop
+                           if Token.ID = Tree.Lexer.Descriptor.New_Line_ID then
+                              Shift_Lines := @ - 1;
+                           end if;
+
                            if Token.Byte_Region.Last + Shift_Bytes <= Scanned_Byte_Pos then
                               --  Token was scanned. FIXME: if Scanned_Byte_Pos covers future KMN,
                               --  Shift_Bytes is inaccurate here. need test case; ada_mode.ads?
                               if Trace_Incremental_Parse > Detail then
                                  Parser.Trace.Put_Line
                                    ("delete non_grammar " & Lexer.Image (Token, Tree.Lexer.Descriptor.all));
-                              end if;
-                              if Token.ID = Tree.Lexer.Descriptor.New_Line_ID then
-                                 Shift_Lines := @ - 1;
                               end if;
                            else
                               --  Token was on a node deleted by error recover, then moved to
@@ -923,127 +882,171 @@ package body WisiToken.Parse is
                      end;
                   end loop Delete_Loop;
                end if;
+            end;
 
-               --  See if any of Deleted_Nodes or Floating_Non_Grammar can be handled here.
-               declare
-                  Check_Region : constant Buffer_Region :=
-                    (First => Tree.Byte_Region (Last_Stable_Terminal.Node).Last + 1,
-                     Last  => Tree.Byte_Region (Terminal.Node).First - 1);
+            --  See if any of Deleted_Nodes or Floating_Non_Grammar can be handled here.
+            declare
+               function Get_Last_Stable_Terminal return Terminal_Ref
+               is begin
+                  return Result : Terminal_Ref := Terminal do
+                     loop
+                        exit when Tree.Byte_Region (Result.Node).Last < Inserted_Region.First;
+                        Tree.Prev_Terminal (Result);
+                     end loop;
+                  end return;
+               end Get_Last_Stable_Terminal;
 
-                  Deleted_Node       : Valid_Node_Access_Lists.Cursor := Parser.Deleted_Nodes.First;
-                  Deleted_Byte_First : Buffer_Pos;
-                  Element            : Stream_Index;
-                  Element_Byte_First : Buffer_Pos;
-                  Next               : Stream_Index;
+               Last_Stable_Terminal : constant Terminal_Ref := Get_Last_Stable_Terminal;
+               --  It is tempting to cache Last_Stable_Terminal somewhere above, but
+               --  that can be clobbered by Breakdown or Stream_Delete.
 
-                  Last_Copied_Non_Grammar : SAL.Base_Peek_Type := Lexer.Token_Arrays.No_Index;
+               Check_Region : constant Buffer_Region :=
+                 (First => Tree.Byte_Region (Last_Stable_Terminal.Node).Last + 1,
+                  Last  => Tree.Byte_Region (Terminal.Node).First - 1);
 
-                  procedure Delete
-                  is
-                     To_Delete : Valid_Node_Access_Lists.Cursor := Deleted_Node;
-                  begin
-                     Deleted_Node := Valid_Node_Access_Lists.Next (Deleted_Node);
-                     Parser.Deleted_Nodes.Delete (To_Delete);
-                  end Delete;
+               Deleted_Node       : Valid_Node_Access_Lists.Cursor := Parser.Deleted_Nodes.First;
+               Deleted_Byte_First : Buffer_Pos;
+               Element            : Stream_Index;
+               Element_Byte_First : Buffer_Pos;
+               Next               : Stream_Index;
 
+               Last_Deleted_Non_Grammar : SAL.Base_Peek_Type := Lexer.Token_Arrays.No_Index;
+               Last_Copied_Non_Grammar  : SAL.Base_Peek_Type := Lexer.Token_Arrays.No_Index;
+
+               procedure Delete
+               is
+                  To_Delete : Valid_Node_Access_Lists.Cursor := Deleted_Node;
                begin
-                  loop
-                     exit when not Valid_Node_Access_Lists.Has_Element (Deleted_Node);
+                  Deleted_Node := Valid_Node_Access_Lists.Next (Deleted_Node);
+                  Parser.Deleted_Nodes.Delete (To_Delete);
+               end Delete;
 
-                     Deleted_Byte_First := Tree.Byte_Region (Parser.Deleted_Nodes (Deleted_Node)).First;
+            begin
+               loop
+                  exit when not Valid_Node_Access_Lists.Has_Element (Deleted_Node);
 
-                     if Contains (Check_Region, Deleted_Byte_First + Shift_Bytes) then
-                        if Deleted_Byte_First + Shift_Bytes <= Scanned_Byte_Pos then
-                           if Trace_Incremental_Parse > Detail then
-                              Parser.Trace.Put_Line
-                                ("delete deleted_node " & Tree.Image
-                                   (Parser.Deleted_Nodes (Deleted_Node), Node_Numbers => True));
-                           end if;
-                           Delete;
+                  Deleted_Byte_First := Tree.Byte_Region (Parser.Deleted_Nodes (Deleted_Node)).First;
 
-                        else
-                           Element := Tree.Stream_Next (Stream, Last_Stable_Terminal.Element);
-                           loop
-                              Element_Byte_First := Tree.Byte_Region (Element).First;
-                              if Element_Byte_First > Deleted_Byte_First then
-                                 Tree.Shift
-                                   (Parser.Deleted_Nodes (Deleted_Node),
-                                    Shift_Bytes, Shift_Chars, Shift_Lines, Buffer_Pos'Last, Floating_Non_Grammar);
-
-                                 if Trace_Incremental_Parse > Detail then
-                                    Parser.Trace.Put_Line
-                                      ("shift and restore deleted_node " & Tree.Image
-                                         (Parser.Deleted_Nodes (Deleted_Node), Node_Numbers => True));
-                                 end if;
-                                 Tree.Stream_Insert (Stream, Parser.Deleted_Nodes (Deleted_Node), Before => Element);
-                                 Delete;
-                                 exit;
-                              elsif Element_Byte_First > Check_Region.Last then
-                                 Deleted_Node := Valid_Node_Access_Lists.Next (Deleted_Node);
-                                 exit;
-                              end if;
-                              Element := Tree.Stream_Next (Stream, Element);
-                           end loop;
+                  if Contains (Check_Region, Deleted_Byte_First + Shift_Bytes) then
+                     if Deleted_Byte_First + Shift_Bytes <= Scanned_Byte_Pos then
+                        if Trace_Incremental_Parse > Detail then
+                           Parser.Trace.Put_Line
+                             ("delete deleted_node " & Tree.Image
+                                (Parser.Deleted_Nodes (Deleted_Node), Node_Numbers => True));
                         end if;
+                        Delete;
+
                      else
-                        Deleted_Node := Valid_Node_Access_Lists.Next (Deleted_Node);
-                     end if;
-                  end loop;
-
-                  for I in Floating_Non_Grammar.First_Index .. Floating_Non_Grammar.Last_Index loop
-                     if Contains (Check_Region, Floating_Non_Grammar (I).Byte_Region.First + Shift_Bytes) then
                         Element := Tree.Stream_Next (Stream, Last_Stable_Terminal.Element);
-                        Next    := Tree.Stream_Next (Stream, Element);
                         loop
-                           exit when Tree.Get_Node (Stream, Element) = Tree.EOI;
+                           Element_Byte_First := Tree.Byte_Region (Element).First;
+                           if Element_Byte_First > Deleted_Byte_First then
+                              pragma Assert
+                                (Tree.Non_Grammar_Const (Parser.Deleted_Nodes (Deleted_Node)).Length = 0);
 
-                           if Floating_Non_Grammar (I).Byte_Region.First + Shift_Bytes in
-                             Tree.Byte_Region (Element).Last + 1 .. Tree.Byte_Region (Next).First - 1
-                           then
-                              declare
-                                 Tok : Lexer.Token := Floating_Non_Grammar (I);
-                              begin
-                                 Tok.Byte_Region := @ + Shift_Bytes;
-                                 Tok.Char_Region := @ + Shift_Chars;
-                                 Tok.Line_Region := @ + Shift_Lines;
-                                 Tree.Non_Grammar_Var (Tree.Get_Node (Stream, Element)).Append (Tok);
-                              end;
+                              Tree.Shift
+                                (Parser.Deleted_Nodes (Deleted_Node),
+                                 Shift_Bytes, Shift_Chars, Shift_Lines, Buffer_Pos'Last, Floating_Non_Grammar);
+
                               if Trace_Incremental_Parse > Detail then
                                  Parser.Trace.Put_Line
-                                   ("floating non_grammar " & Lexer.Image
-                                      (Floating_Non_Grammar (I), Tree.Lexer.Descriptor.all) & " to " & Tree.Image
-                                        (Tree.Get_Node (Stream, Element), Node_Numbers => True, Non_Grammar => True));
+                                   ("shift and restore deleted_node " & Tree.Image
+                                      (Parser.Deleted_Nodes (Deleted_Node), Node_Numbers => True));
                               end if;
-                              Last_Copied_Non_Grammar := I;
+                              Tree.Stream_Insert (Stream, Parser.Deleted_Nodes (Deleted_Node), Before => Element);
+                              Delete;
+                              exit;
+                           elsif Element_Byte_First > Check_Region.Last then
+                              Deleted_Node := Valid_Node_Access_Lists.Next (Deleted_Node);
+                              exit;
                            end if;
-                           exit when Next = Terminal.Element;
-                           Element := Next;
-                           Next    := Tree.Stream_Next (Stream, Next);
+                           Element := Tree.Stream_Next (Stream, Element);
                         end loop;
-                     else
-                        exit;
                      end if;
-                  end loop;
-                  if Last_Copied_Non_Grammar /= Lexer.Token_Arrays.No_Index then
-                     if Last_Copied_Non_Grammar = Floating_Non_Grammar.Last_Index then
-                        Floating_Non_Grammar.Clear;
-                     else
-                        Floating_Non_Grammar.Set_First_Last
-                          (Last_Copied_Non_Grammar + 1, Floating_Non_Grammar.Last_Index);
-                     end if;
+                  else
+                     Deleted_Node := Valid_Node_Access_Lists.Next (Deleted_Node);
                   end if;
-               end;
+               end loop;
+
+               for I in Floating_Non_Grammar.First_Index .. Floating_Non_Grammar.Last_Index loop
+                  if Floating_Non_Grammar (I).Byte_Region.First + Shift_Bytes <= Scanned_Byte_Pos then
+                     --  test case: ada_mode-recover_align_1.adb
+                     if Trace_Incremental_Parse > Detail then
+                        Parser.Trace.Put_Line
+                          ("delete floating_non_grammar " & Lexer.Image
+                             (Floating_Non_Grammar (I), Tree.Lexer.Descriptor.all));
+                     end if;
+                     Last_Deleted_Non_Grammar := I;
+
+                  elsif Contains (Check_Region, Floating_Non_Grammar (I).Byte_Region.First + Shift_Bytes) then
+                     Element := Tree.Stream_Next (Stream, Last_Stable_Terminal.Element);
+                     Next    := Tree.Stream_Next (Stream, Element);
+                     loop
+                        exit when Tree.Get_Node (Stream, Element) = Tree.EOI;
+
+                        if Floating_Non_Grammar (I).Byte_Region.First + Shift_Bytes in
+                          Tree.Byte_Region (Element).Last + 1 .. Tree.Byte_Region (Next).First - 1
+                        then
+                           --  test case: ada_mode-recover_partial_14.adb
+                           declare
+                              Tok : Lexer.Token := Floating_Non_Grammar (I);
+                           begin
+                              if Tok.ID = Tree.Lexer.Descriptor.New_Line_ID then
+                                 Shift_Lines := @ + 1;
+                              end if;
+                              Tok.Byte_Region := @ + Shift_Bytes;
+                              Tok.Char_Region := @ + Shift_Chars;
+                              Tok.Line_Region := @ + Shift_Lines;
+
+                              Tree.Non_Grammar_Var (Tree.Get_Node (Stream, Element)).Append (Tok);
+                           end;
+
+                           if Trace_Incremental_Parse > Detail then
+                              Parser.Trace.Put_Line
+                                ("floating non_grammar " & Lexer.Image
+                                   (Floating_Non_Grammar (I), Tree.Lexer.Descriptor.all) & " to " & Tree.Image
+                                     (Tree.Get_Node (Stream, Element), Node_Numbers => True, Non_Grammar => True));
+                           end if;
+                           Last_Copied_Non_Grammar := I;
+                        end if;
+                        exit when Next = Terminal.Element;
+                        Element := Next;
+                        Next    := Tree.Stream_Next (Stream, Next);
+                     end loop;
+                  else
+                     exit;
+                  end if;
+               end loop;
+
+               if Last_Deleted_Non_Grammar /= Lexer.Token_Arrays.No_Index then
+                  if Last_Deleted_Non_Grammar = Floating_Non_Grammar.Last_Index then
+                     Floating_Non_Grammar.Clear;
+                  else
+                     Floating_Non_Grammar.Set_First_Last
+                       (Last_Deleted_Non_Grammar + 1, Floating_Non_Grammar.Last_Index);
+                  end if;
+               end if;
+
+               if Last_Copied_Non_Grammar /= Lexer.Token_Arrays.No_Index then
+                  if Last_Copied_Non_Grammar = Floating_Non_Grammar.Last_Index then
+                     Floating_Non_Grammar.Clear;
+                  else
+                     Floating_Non_Grammar.Set_First_Last
+                       (Last_Copied_Non_Grammar + 1, Floating_Non_Grammar.Last_Index);
+                  end if;
+               end if;
             end;
 
             KMN_Node := Next (KMN_Node);
 
             if not Has_Element (KMN_Node) then
                --  Finally shift EOI.
-               pragma Assert (Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.EOI_ID);
+               pragma Assert
+                 (Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.EOI_ID and
+                    Tree.Non_Grammar_Const (Terminal.Node).Length = 1); -- EOI_ID
+
                Tree.Shift
-                 (Terminal.Node, Shift_Bytes, Shift_Chars, Shift_Lines,
-                  Last_Stable_Byte     => Buffer_Pos'Last,
-                  Floating_Non_Grammar => Floating_Non_Grammar);
+                 (Terminal.Node, Shift_Bytes, Shift_Chars, Shift_Lines, Buffer_Pos'Last, Floating_Non_Grammar);
 
                if Trace_Incremental_Parse > Detail then
                   Parser.Trace.Put_Line

@@ -4823,11 +4823,10 @@ package body WisiToken.Syntax_Trees is
       Node                 : in     Valid_Node_Access;
       Shift_Bytes          : in     Base_Buffer_Pos;
       Shift_Chars          : in     Base_Buffer_Pos;
-      Shift_Line           : in     Base_Line_Number_Type;
+      Shift_Lines          : in out Base_Line_Number_Type;
       Last_Stable_Byte     : in     Buffer_Pos;
       Floating_Non_Grammar : in out Lexer.Token_Arrays.Vector)
    is
-      pragma Unreferenced (Tree);
       First_Floating_I : SAL.Base_Peek_Type := 0;
    begin
       case Terminal_Label'(Node.Label) is
@@ -4848,7 +4847,7 @@ package body WisiToken.Syntax_Trees is
             if Token.Byte_Region.Last <= Last_Stable_Byte then
                Token.Byte_Region := @ + Shift_Bytes;
                Token.Char_Region := @ + Shift_Chars;
-               Token.Line_Region := @ + Shift_Line;
+               Token.Line_Region := @ + Shift_Lines;
             else
                First_Floating_I := I;
                exit;
@@ -4858,13 +4857,16 @@ package body WisiToken.Syntax_Trees is
 
       if First_Floating_I > 0 then
          for I in First_Floating_I .. Node.Non_Grammar.Last_Index loop
+            if Node.Non_Grammar (I).ID = Tree.Lexer.Descriptor.New_Line_ID then
+               Shift_Lines := @ - 1;
+            end if;
             Floating_Non_Grammar.Append (Node.Non_Grammar (I));
          end loop;
          Node.Non_Grammar.Set_First_Last (Node.Non_Grammar.First_Index, First_Floating_I - 1);
       end if;
 
       if Node.Augmented /= null then
-         Shift (Node.Augmented.all, Shift_Bytes, Shift_Chars, Shift_Line);
+         Shift (Node.Augmented.all, Shift_Bytes, Shift_Chars, Shift_Lines);
       end if;
    end Shift;
 

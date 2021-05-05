@@ -947,13 +947,13 @@ package WisiToken.Syntax_Trees is
       Node                 : in     Valid_Node_Access;
       Shift_Bytes          : in     Base_Buffer_Pos;
       Shift_Chars          : in     Base_Buffer_Pos;
-      Shift_Line           : in     Base_Line_Number_Type;
+      Shift_Lines          : in out Base_Line_Number_Type;
       Last_Stable_Byte     : in     Buffer_Pos;
       Floating_Non_Grammar : in out Lexer.Token_Arrays.Vector)
    with Pre => Tree.Label (Node) in Terminal_Label;
    --  Add Shift_* to token and non_grammar values. If a non_grammar is
    --  after Last_Stable_Byte, move it to Floating_Non_Grammar without
-   --  shifting.
+   --  shifting, adjust Shift_Lines.
 
    procedure Set_Node_Index
      (Tree       : in Syntax_Trees.Tree;
