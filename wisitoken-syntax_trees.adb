@@ -2775,6 +2775,17 @@ package body WisiToken.Syntax_Trees is
       return Node.Label = Nonterm and then Tree.First_Terminal (Node) = Invalid_Node_Access;
    end Is_Empty_Nonterm;
 
+   function Is_Empty_Or_Virtual_Nonterm
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access)
+     return Boolean
+   is begin
+      return Node.Label = Nonterm and then
+        (Tree.First_Terminal (Node) = Invalid_Node_Access or else -- no terminals
+           Tree.Byte_Region (Node) = Null_Buffer_Region -- all terminals are virtual
+        );
+   end Is_Empty_Or_Virtual_Nonterm;
+
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is begin
       return Node.Label = Nonterm;
@@ -5088,6 +5099,27 @@ package body WisiToken.Syntax_Trees is
             State => Unknown_State,
             Label => Parse_Stream.Label),
          Before   => Before.Cur);
+   end Stream_Insert;
+
+   function Stream_Insert
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Node   : in     Valid_Node_Access;
+      Before : in     Stream_Index)
+     return Stream_Node_Ref
+   is
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+   begin
+      return Result : constant Stream_Node_Ref :=
+        (Stream         => Stream,
+         Node           => Node,
+         Element        =>
+           (Cur         => Parse_Stream.Elements.Insert
+              (Element  =>
+                 (Node  => Node,
+                  State => Unknown_State,
+                  Label => Parse_Stream.Label),
+               Before   => Before.Cur)));
    end Stream_Insert;
 
    function Stream_Length (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type

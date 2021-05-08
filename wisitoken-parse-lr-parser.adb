@@ -725,22 +725,32 @@ package body WisiToken.Parse.LR.Parser is
    --  Final actions after LR accept state reached; call
    --  User_Data.Insert_Token, Delete_Token.
    is
-      use all type WisiToken.Syntax_Trees.User_Data_Access;
+      use WisiToken.Syntax_Trees;
       Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
    begin
       Parser.Deleted_Nodes.Clear;
+
+      --  We don't add Parser.Wrapped_Lexer_Errors nodes to Keep_Nodes; they
+      --  are not always deleted, and if they were, they are in
+      --  Deleted_Nodes.
+      for Error of Parser.Wrapped_Lexer_Errors loop
+         if Error.Recover_Token_Ref /= Invalid_Stream_Node_Ref then
+            Error.Recover_Token_Ref.Stream := Invalid_Stream_ID;
+            Error.Recover_Token_Ref.Element := Invalid_Stream_Index;
+         end if;
+      end loop;
 
       --  We need parents set in the following code, and we also need
       --  Recover_Op.Del_Node not yet free'd; later we need error_Token
       --  nodes not free'd.
       declare
-         Keep_Nodes : Syntax_Trees.Valid_Node_Access_Lists.List;
+         Keep_Nodes : Valid_Node_Access_Lists.List;
       begin
          for Error of Parser_State.Errors loop
             case Error.Label is
             when LR_Parse_Action =>
-               Error.Error_Token.Stream  := Syntax_Trees.Invalid_Stream_ID;
-               Error.Error_Token.Element := Syntax_Trees.Invalid_Stream_Index;
+               Error.Error_Token.Stream  := Invalid_Stream_ID;
+               Error.Error_Token.Element := Invalid_Stream_Index;
 
                Keep_Nodes.Append (Error.Error_Token.Node);
             when User_Parse_Action =>

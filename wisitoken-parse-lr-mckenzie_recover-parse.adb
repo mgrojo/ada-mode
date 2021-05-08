@@ -170,6 +170,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             exit;
          end if;
       end loop;
+
+   exception
+   when SAL.Container_Full =>
+      --  From Stream.Insert
+      raise Bad_Config;
    end Left_Breakdown;
 
    function Delete_Current_Applies

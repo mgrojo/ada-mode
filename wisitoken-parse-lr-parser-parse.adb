@@ -19,9 +19,9 @@ overriding procedure Parse
    Recover_Log_File : in     Ada.Text_IO.File_Type;
    Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List)
 is
+   use Syntax_Trees;
    use all type KMN_Lists.List;
    use all type Ada.Strings.Unbounded.Unbounded_String;
-   use all type WisiToken.Syntax_Trees.Sequential_Index;
    use all type Syntax_Trees.User_Data_Access;
    use all type Ada.Containers.Count_Type;
 
@@ -38,17 +38,26 @@ begin
    if Shared_Parser.User_Data /= null then
       Shared_Parser.User_Data.Reset;
    end if;
-   Shared_Parser.Wrapped_Lexer_Errors.Clear;
 
-   --  Line_Begin_Token, Line_Begin_Char_Pos, Last_Grammar_Node done by
-   --  Lex_All or Edit_Tree.
+   Shared_Parser.Tree.Lexer.Errors.Clear;
+
    Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
+   Shared_Parser.Min_Sequential_Index := Invalid_Stream_Node_Parents;
+   Shared_Parser.Max_Sequential_Index := Invalid_Stream_Node_Parents;
 
    if Edits /= KMN_Lists.Empty_List then
       if not (Shared_Parser.Tree.Fully_Parsed or Shared_Parser.Tree.Editable) then
          --  previous parse failed, left tree in uncertain state
          raise WisiToken.Parse_Error with "previous parse failed, can't edit tree";
       end if;
+
+      --  We don't clear Shared_Parser.Wrapped_Lexer_Errors here; error
+      --  recover uses them. Edit_Tree clears any that are in a lexed
+      --  region.
+      --
+      --  We don't clear Deleted_Nodes here; Edit_Tree restores them to the
+      --  parse stream if in an edit region. Cleared and refilled in
+      --  Finish_Parse.
 
       Edit_Tree (Shared_Parser, Edits);
 
@@ -77,6 +86,8 @@ begin
       end if;
 
    else
+      Shared_Parser.Wrapped_Lexer_Errors.Clear;
+
       Shared_Parser.Tree.Clear;
       Shared_Parser.Lex_All;
    end if;

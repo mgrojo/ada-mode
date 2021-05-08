@@ -883,6 +883,16 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Contains (Stream, Before);
    --  Insert a new stream element on Stream containing Node, before Before.
 
+   function Stream_Insert
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Node   : in     Valid_Node_Access;
+      Before : in     Stream_Index)
+     return Stream_Node_Ref
+   with Pre => Tree.Contains (Stream, Before);
+   --  Insert a new stream element on Stream containing Node, before Before.
+   --  Result references new element.
+
    function Peek
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID;
@@ -1018,6 +1028,13 @@ package WisiToken.Syntax_Trees is
 
    function Is_Empty_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    --  True if Node contains no terminals.
+
+   function Is_Empty_Or_Virtual_Nonterm
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access)
+     return Boolean;
+   --  True if Node contains no terminals, or all terminals are virtual,
+   --  and thus have Null_Buffer_Region for Byte_ and Char_Region.
 
    function Is_Virtual
      (Tree    : in Syntax_Trees.Tree;

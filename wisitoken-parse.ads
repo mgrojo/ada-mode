@@ -33,7 +33,7 @@ package WisiToken.Parse is
       --  Stream_Prev/_Next in Try_Insert_Quote.
       --
       --  If the error token is a non-grammar token, Recover_Token_Ref is
-      --  Invalid_Terminal_Ref.
+      --  Invalid_Stream_Node_Ref.
 
       Error : WisiToken.Lexer.Error;
    end record;
