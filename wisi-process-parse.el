@@ -137,6 +137,9 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	     :name process-name
 	     :buffer (wisi-process--parser-buffer parser)
 	     :coding 'utf-8-unix
+	     ;; We should use utf-8-dos when the parser is compiled
+	     ;; for Windows, but that's not trivial to detect, so we
+	     ;; just ignore the CR chars.
 	     :command (append (list (wisi-process--parser-exec-file parser))
 			      (wisi-process--parser-exec-opts parser))))
 
