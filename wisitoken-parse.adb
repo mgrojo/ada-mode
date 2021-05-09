@@ -820,81 +820,80 @@ package body WisiToken.Parse is
                New_Char_Pos := Inserted_Region_Chars.Last;
                pragma Assert (New_Byte_Pos - Old_Byte_Pos = Shift_Bytes);
 
-               if Do_Scan then
-                  Delete_Loop :
-                  --  Delete tokens that were deleted or modified, and leading
-                  --  Virtual_Terminals. Deleted non_grammar New_Lines decrement
-                  --  Shift_Lines.
-                  loop
-                     exit Delete_Loop when Tree.ID (Terminal.Node) = Parser.Tree.Lexer.Descriptor.EOI_ID;
+               --  Need delete even if not Do_Scan; ada_skel.adb ada-skel-return
+               Delete_Loop :
+               --  Delete tokens that were deleted or modified, and leading
+               --  Virtual_Terminals. Deleted non_grammar New_Lines decrement
+               --  Shift_Lines.
+               loop
+                  exit Delete_Loop when Tree.ID (Terminal.Node) = Parser.Tree.Lexer.Descriptor.EOI_ID;
 
-                     exit Delete_Loop when
-                       Tree.Label (Terminal.Node) in Syntax_Trees.Source_Terminal | Syntax_Trees.Nonterm and then
-                       not
-                       ((KMN.Deleted_Bytes > 0 and
-                           Tree.Byte_Region (Terminal.Node).First <= Deleted_Region.Last + 1)  -- deleted or modified
-                          or
-                          (KMN.Inserted_Bytes > 0 and
-                             Tree.Byte_Region (Terminal.Node).First <= Stable_Region.Last + 1) --  modified
-                          or
-                          Tree.Byte_Region (Terminal.Node).First + Shift_Bytes <= Scanned_Byte_Pos);
+                  exit Delete_Loop when
+                    Tree.Label (Terminal.Node) in Syntax_Trees.Source_Terminal | Syntax_Trees.Nonterm and then
+                    not
+                    ((KMN.Deleted_Bytes > 0 and
+                        Tree.Byte_Region (Terminal.Node).First <= Deleted_Region.Last + 1)  -- deleted or modified
+                       or
+                       (KMN.Inserted_Bytes > 0 and
+                          Tree.Byte_Region (Terminal.Node).First <= Stable_Region.Last + 1) --  modified
+                       or
+                       Tree.Byte_Region (Terminal.Node).First + Shift_Bytes <= Scanned_Byte_Pos);
 
-                     --  Ensure Terminal is Single, so we can delete it.
+                  --  Ensure Terminal is Single, so we can delete it.
+                  if Tree.Label (Terminal.Element) = Nonterm then
+                     if Trace_Incremental_Parse > Detail then
+                        Parser.Trace.Put_Line
+                          ("breakdown single " & Tree.Image
+                             (Tree.Get_Node (Terminal.Stream, Terminal.Element), Node_Numbers => True) &
+                             " target " & Tree.Image (Terminal.Node, Node_Numbers => True));
+                     end if;
+                     Tree.Breakdown (Terminal);
                      if Tree.Label (Terminal.Element) = Nonterm then
-                        if Trace_Incremental_Parse > Detail then
-                           Parser.Trace.Put_Line
-                             ("breakdown single " & Tree.Image
-                                (Tree.Get_Node (Terminal.Stream, Terminal.Element), Node_Numbers => True) &
-                                " target " & Tree.Image (Terminal.Node, Node_Numbers => True));
-                        end if;
-                        Tree.Breakdown (Terminal);
-                        if Tree.Label (Terminal.Element) = Nonterm then
-                           Tree.Left_Breakdown (Terminal);
-                        end if;
-                        if Trace_Incremental_Parse > Extra then
-                           Parser.Trace.Put_Line
-                             ("... result " & Tree.Image (Stream));
-                        end if;
+                        Tree.Left_Breakdown (Terminal);
+                     end if;
+                     if Trace_Incremental_Parse > Extra then
+                        Parser.Trace.Put_Line
+                          ("... result " & Tree.Image (Stream));
+                     end if;
+                  end if;
+
+                  declare
+                     To_Delete : Stream_Node_Ref := Terminal;
+                  begin
+                     Tree.Next_Terminal (Terminal);
+                     if Trace_Incremental_Parse > Detail then
+                        Parser.Trace.Put_Line
+                          ("delete " &
+                             Tree.Image (To_Delete.Element, Terminal_Node_Numbers => True, Non_Grammar => True));
                      end if;
 
-                     declare
-                        To_Delete : Stream_Node_Ref := Terminal;
-                     begin
-                        Tree.Next_Terminal (Terminal);
-                        if Trace_Incremental_Parse > Detail then
-                           Parser.Trace.Put_Line
-                             ("delete " &
-                                Tree.Image (To_Delete.Element, Terminal_Node_Numbers => True, Non_Grammar => True));
+                     for Token of Tree.Non_Grammar_Const (To_Delete.Node) loop
+                        if Token.ID = Tree.Lexer.Descriptor.New_Line_ID then
+                           Shift_Lines := @ - 1;
                         end if;
 
-                        for Token of Tree.Non_Grammar_Const (To_Delete.Node) loop
-                           if Token.ID = Tree.Lexer.Descriptor.New_Line_ID then
-                              Shift_Lines := @ - 1;
+                        if Token.Byte_Region.Last + Shift_Bytes <= Scanned_Byte_Pos then
+                           --  Token was scanned. FIXME: if Scanned_Byte_Pos covers future KMN,
+                           --  Shift_Bytes is inaccurate here. need test case; ada_mode.ads?
+                           if Trace_Incremental_Parse > Detail then
+                              Parser.Trace.Put_Line
+                                ("delete non_grammar " & Lexer.Image (Token, Tree.Lexer.Descriptor.all));
                            end if;
-
-                           if Token.Byte_Region.Last + Shift_Bytes <= Scanned_Byte_Pos then
-                              --  Token was scanned. FIXME: if Scanned_Byte_Pos covers future KMN,
-                              --  Shift_Bytes is inaccurate here. need test case; ada_mode.ads?
-                              if Trace_Incremental_Parse > Detail then
-                                 Parser.Trace.Put_Line
-                                   ("delete non_grammar " & Lexer.Image (Token, Tree.Lexer.Descriptor.all));
-                              end if;
-                           else
-                              --  Token was on a node deleted by error recover, then moved to
-                              --  Node.
-                              if Trace_Incremental_Parse > Detail then
-                                 Parser.Trace.Put_Line
-                                   ("float non_grammar " & Lexer.Image (Token, Tree.Lexer.Descriptor.all));
-                              end if;
-                              Floating_Non_Grammar.Append (Token);
+                        else
+                           --  Token was on a node deleted by error recover, then moved to
+                           --  Node.
+                           if Trace_Incremental_Parse > Detail then
+                              Parser.Trace.Put_Line
+                                ("float non_grammar " & Lexer.Image (Token, Tree.Lexer.Descriptor.all));
                            end if;
-                        end loop;
+                           Floating_Non_Grammar.Append (Token);
+                        end if;
+                     end loop;
 
-                        pragma Assert (To_Delete.Node /= Tree.SOI and To_Delete.Node /= Tree.EOI);
-                        Tree.Stream_Delete (Stream, To_Delete.Element);
-                     end;
-                  end loop Delete_Loop;
-               end if;
+                     pragma Assert (To_Delete.Node /= Tree.SOI and To_Delete.Node /= Tree.EOI);
+                     Tree.Stream_Delete (Stream, To_Delete.Element);
+                  end;
+               end loop Delete_Loop;
 
                --  See if any of Wrapped_Lexer_Errors, Deleted_Nodes or Floating_Non_Grammar can be handled
                --  here.
