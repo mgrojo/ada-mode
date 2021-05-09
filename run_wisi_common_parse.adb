@@ -441,7 +441,7 @@ package body Run_Wisi_Common_Parse is
 
       when Refactor =>
          declare
-            Refactor_Action : constant Positive             := Wisi.Get_Integer (Line, Last);
+            Refactor_Action : constant Positive             := Parse_Data.Refactor_Parse (Wisi.Get_Enum (Line, Last));
             Edit_Begin      : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
          begin
             Parse_Data.Refactor (Parser.Tree, Refactor_Action, Edit_Begin);

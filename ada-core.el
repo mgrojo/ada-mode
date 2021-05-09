@@ -196,14 +196,14 @@ is the package spec.")
 
 ;;;; refactor
 
-;; Refactor actions; must match wisi-ada.adb Refactor
-(defconst ada-refactor-method-object-to-object-method 1)
-(defconst ada-refactor-object-method-to-method-object 2)
+;; Refactor actions; must match wisi-ada.adb Refactor_Label
+(defconst ada-refactor-method-object-to-object-method 0)
+(defconst ada-refactor-object-method-to-method-object 1)
 
-(defconst ada-refactor-element-object-to-object-index 3)
-(defconst ada-refactor-object-index-to-element-object 4)
+(defconst ada-refactor-element-object-to-object-index 2)
+(defconst ada-refactor-object-index-to-element-object 3)
 
-(defconst ada-refactor-format-paramlist 5)
+(defconst ada-refactor-format-paramlist 4)
 
 (defun ada-refactor (action)
   "Perform refactor action ACTION on symbol at point."

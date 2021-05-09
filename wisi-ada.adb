@@ -725,12 +725,12 @@ package body Wisi.Ada is
    is
       use Standard.Ada.Text_IO;
    begin
-      --  Must match "ada-refactor-*" in ada-wisi.el
-      Put ("1 Method_Object_To_Object_Method");
-      Put ("2 Object_Method_To_Method_Object");
-      Put ("3 Element_Object_To_Object_Index");
-      Put ("4 Object_Index_To_Element_Object");
-      Put ("5 Format_Parameter_List         ");
+      --  Must match "ada-refactor-*" in ada-core.el, Refactor_Label position number
+      Put ("0 Method_Object_To_Object_Method");
+      Put ("1 Object_Method_To_Method_Object");
+      Put ("2 Element_Object_To_Object_Index");
+      Put ("3 Object_Index_To_Element_Object");
+      Put ("4 Format_Parameter_List         ");
    end Refactor_Help;
 
    overriding
@@ -740,18 +740,20 @@ package body Wisi.Ada is
       Action     : in     Positive;
       Edit_Begin : in     WisiToken.Buffer_Pos)
    is
-      --  Must match "ada-refactor-*" in ada-wisi.el
-      Method_Object_To_Object_Method : constant Positive := 1;
-      Object_Method_To_Method_Object : constant Positive := 2;
-      Element_Object_To_Object_Index : constant Positive := 3;
-      Object_Index_To_Element_Object : constant Positive := 4;
-      Format_Parameter_List          : constant Positive := 5;
-
+      Enum_Action : Refactor_Label;
    begin
+      begin
+         Enum_Action := Refactor_Label'Val (Action);
+      exception
+      when Constraint_Error =>
+         Standard.Ada.Text_IO.Put_Line ("(error ""unrecognized refactor action '" & Action'Image & "'"")");
+         return;
+      end;
+
       if Trace_Action > Extra then
          Data.Trace.Put_Line (Tree.Image (Children => True));
       end if;
-      case Action is
+      case Enum_Action is
       when Method_Object_To_Object_Method =>
          Wisi.Ada.Method_Object_To_Object_Method (Tree, Data, Edit_Begin);
       when Object_Method_To_Method_Object =>
@@ -762,9 +764,6 @@ package body Wisi.Ada is
          Wisi.Ada.Object_Index_To_Element_Object (Tree, Data, Edit_Begin);
       when Format_Parameter_List =>
          Wisi.Ada.Format_Parameter_List (Tree, Edit_Begin);
-
-      when others =>
-         Standard.Ada.Text_IO.Put_Line ("(error ""unrecognized refactor action " & Action'Image & """)");
       end case;
    exception
    when E : others =>

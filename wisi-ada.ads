@@ -99,6 +99,19 @@ package Wisi.Ada is
       Blank_Line_Present  : in     Boolean)
      return WisiToken.Insert_Location;
 
+   --  Must match "ada-refactor-*" in ada-core.el
+   type Refactor_Label is
+     (Method_Object_To_Object_Method, -- 0
+      Object_Method_To_Method_Object, -- 1
+      Element_Object_To_Object_Index, -- 2
+      Object_Index_To_Element_Object, -- 3
+      Format_Parameter_List);         -- 4
+
+
+   overriding
+   function Refactor_Parse  (Data : in Parse_Data_Type; Item : in String) return Positive
+   is (Refactor_Label'Pos (Refactor_Label'Value (Item)));
+
    overriding
    procedure Refactor_Help (Data : in Parse_Data_Type);
 

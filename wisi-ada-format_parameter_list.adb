@@ -234,7 +234,7 @@ begin
 
                for Param of Params loop
                   if Need_New_Line then
-                     Result   := Result & ";" & ASCII.LF;
+                     Result   := Result & ";" & Emacs_Lisp_New_Line;
                      Line_End := Length (Result);
                   end if;
 

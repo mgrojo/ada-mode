@@ -2886,4 +2886,11 @@ package body Wisi is
       end loop;
    end Indent_Token_1;
 
+   function Refactor_Parse  (Data : in Parse_Data_Type; Item : in String) return Positive
+   is
+      pragma Unreferenced (Data);
+   begin
+      return Positive'Last;
+   end Refactor_Parse;
+
 end Wisi;

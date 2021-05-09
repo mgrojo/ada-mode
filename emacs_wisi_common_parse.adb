@@ -47,6 +47,8 @@ package body Emacs_Wisi_Common_Parse is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
+   Trace_Protocol : Natural := 0;
+
    procedure Read_Input (A : System.Address; N : Integer)
    is
       use System.Storage_Elements;
@@ -104,6 +106,7 @@ package body Emacs_Wisi_Common_Parse is
          Put_Line (Standard_Error, "process start args:");
          Put_Line (Standard_Error, "--help : put this help");
          Put_Line (Standard_Error, "--recover-log <file_name> : log recover actions to file");
+         Put_Line (Standard_Error, "--trace_protocol <n> : 0 = none, 1 = echo commands");
       end Put_Usage;
 
       Next_Arg : Integer := 1;
@@ -118,6 +121,10 @@ package body Emacs_Wisi_Common_Parse is
 
             elsif Next_Arg + 1 <= Argument_Count and then Argument (Next_Arg) = "--recover-log" then
                Result.Recover_Log_File_Name := Ada.Strings.Unbounded.To_Unbounded_String (Argument (Next_Arg + 1));
+               Next_Arg := Next_Arg + 2;
+
+            elsif Next_Arg + 1 <= Argument_Count and then Argument (Next_Arg) = "--trace_protocol" then
+               Trace_Protocol := Integer'Value (Argument (Next_Arg + 1));
                Next_Arg := Next_Arg + 2;
 
             else
@@ -228,8 +235,8 @@ package body Emacs_Wisi_Common_Parse is
          --  We don't use an aggregate, to enforce execution order.
          --  Match wisi-process-parse.el wisi-process--send-refactor
 
-         Result.Refactor_Action    := Get_Integer (Command_Line, Last);
          Result.Source_File_Name   := +Get_String (Command_Line, Last);
+         Result.Refactor_Action    := Get_Integer (Command_Line, Last);
 
          Result.Edit_Begin := Buffer_Pos (Get_Integer (Command_Line, Last));
          Result.Verbosity  := +Get_String (Command_Line, Last);
@@ -310,6 +317,10 @@ package body Emacs_Wisi_Common_Parse is
             end Match;
          begin
             Read_Input (Command_Line'Address, Command_Length);
+
+            if Trace_Protocol > WisiToken.Outline then
+               Trace.Put_Line ("'" & Command_Line & "'");
+            end if;
 
             if Match ("parse") then
                --  Args: see wisi-process-parse.el wisi-process-parse--send-parse,

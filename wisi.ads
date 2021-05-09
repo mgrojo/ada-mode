@@ -399,6 +399,8 @@ package Wisi is
    ----------
    --  Other
 
+   function Refactor_Parse  (Data : in Parse_Data_Type; Item : in String) return Positive;
+
    procedure Refactor_Help (Data : in Parse_Data_Type) is null;
 
    procedure Refactor
@@ -639,6 +641,9 @@ private
 
    ----------
    --  Utilities for language-specific child packages
+
+   Emacs_Lisp_New_Line : constant String := "\n";
+   --  For includinge New_Line in a text string sent to Emacs.
 
    function Compute_Indenting
      (Data : in Parse_Data_Type'Class;

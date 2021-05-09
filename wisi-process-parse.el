@@ -136,10 +136,12 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	    (make-process
 	     :name process-name
 	     :buffer (wisi-process--parser-buffer parser)
+
 	     :coding 'utf-8-unix
-	     ;; We should use utf-8-dos when the parser is compiled
-	     ;; for Windows, but that's not trivial to detect, so we
-	     ;; just ignore the CR chars.
+	     ;; We don't need utf-8-dos for reading when the parser is
+	     ;; compiled for Windows; ASCII.CR is only sent in debug
+	     ;; messages, where they are easy to ignore.
+
 	     :command (append (list (wisi-process--parser-exec-file parser))
 			      (wisi-process--parser-exec-opts parser))))
 
@@ -344,9 +346,9 @@ command to complete. PARSER will respond with one or more Edit
 messages."
   ;; Must match "refactor" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Refactor_Params.
-  (let* ((cmd (format "refactor %d \"%s\" %d \"%s\""
-		      refactor-action
+  (let* ((cmd (format "refactor \"%s\" %d %d \"%s\""
 		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		      refactor-action
 		      (position-bytes edit-begin)
 		      wisi-parser-verbosity
 		      ))
@@ -1079,7 +1081,7 @@ one or more Query messages."
 
     (set-buffer log-buffer)
     (goto-char (point-min))
-    (while (search-forward-regexp "\\(parse 1\\|post-parse\\|query-tree\\) \"\\([^\"]+\\)\"" nil t)
+    (while (search-forward-regexp "\\(parse 1\\|post-parse\\|query-tree\\|refactor\\) \"\\([^\"]+\\)\"" nil t)
       (cond
        ((string-equal (match-string 1) "parse 1")
 	(search-forward-regexp "((")
@@ -1133,6 +1135,24 @@ one or more Query messages."
 		    (2 "nonterm ")
 		    (3 "virtuals ")
 		    (4 "print "))
+		  pos "\n\n")
+	  (set-buffer log-buffer)))
+
+       ((and (string-equal (match-string 1) "refactor")
+	     (string-equal (match-string 2) source-file))
+	(goto-char (match-end 0))
+	(looking-at " \\([0-9]+\\) \\([0-9]+\\)")
+	(let ((label (string-to-number (match-string 1)))
+	      (pos (match-string 2)))
+	  (set-buffer cmd-buffer)
+	  (goto-char (point-max))
+	  (insert "--  refactor " ;; must match wisi-ada.ads Refactor_Label
+		  (cl-ecase label
+		    (0 "Method_Object_To_Object_Method ")
+		    (1 "Object_Method_To_Method_Object ")
+		    (2 "Element_Object_To_Object_Index ")
+		    (3 "Object_Index_To_Element_Object ")
+		    (4 "Format_Parameter_List "))
 		  pos "\n\n")
 	  (set-buffer log-buffer)))
 
