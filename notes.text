@@ -31,6 +31,13 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+Mckenzie parallel gain
+    eliminate super access that does not require lock
+        ie super.tree!
+            pass to initialize; all others use shared.tree
+
+        super.trace is good; serialize output, only used for debugging, when speed is not important
+
 add %no_error_recover, instead of detecting mckenzie /= default
 
 move Execute_Actions to wisitoken.parse?
@@ -98,11 +105,10 @@ incremental parse
         no Shift in Edit_Tree
         byte_region (node) requires compute begin_pos for each node in path from root.
 
-Mckenzie parallel gain
-    eliminate super access that does not require lock
-
-recover supervisor should provide Put_Trace_line
-    to control access to Trace
+There are many grammars that can't be lexed correctly without a context provided by the parser
+    heredoc delimiters in the bash grammar is a good example.
+    support calling lexer from parser?
+    messes with error recovery; still need sequential token_index during recovery and resume.
 
 Nullable can be a boolean array
 
