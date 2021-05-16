@@ -1665,10 +1665,6 @@ Prompts with completion, defaults to filename at point."
 
   (setq align-mode-rules-list ada-align-rules)
 
-  (with-suppressed-warnings
-      ;; need easy-menu-add for emacs < 28; no-op for emacs >= 28.
-      (easy-menu-add ada-mode-menu ada-mode-map))
-
   (wisi-setup
    :indent-calculate '(ada-wisi-comment)
    :post-indent-fail 'ada-wisi-post-parse-fail

@@ -3,7 +3,7 @@
 --  Support Emacs Ada mode and gpr-query minor mode queries about
 --  GNAT projects and cross reference data
 --
---  Copyright (C) 2014 - 2020 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2014 - 2021 Free Software Foundation All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -1126,6 +1126,10 @@ begin
            "Specify a traces configuration file, set projects lib verbose. File should contain ""gpr_query=yes""");
 
       Getopt (Cmdline, Callback => null);
+   exception
+   when Exit_From_Command_Line =>
+      --  from "--help"
+      return;
    end;
 
    if Project_File_Name.all = "" then

@@ -223,11 +223,16 @@ but supports additional queries.
 Both the parser and @file{gpr_query} require the @code{GNATCOLL}
 library provided by AdaCore, distributed with GNAT GPL 2017 or later,
 and also available at Github
-(@url{https://github.com/AdaCore/gnatcoll}). The notes below assume
-that the compiler is installed at @file{$prefix},
-e.g. @file{/usr/local/gnat-2019}, and that @file{$prefix/bin} is first
-on the @code{PATH}. If you are running Windows, use mingw64
-@code{bash} to run these commands.
+(@url{https://github.com/AdaCore/gnatcoll}). The parser builds with
+the gnatcoll distributed with the gnat compiler. However, that
+gnatcoll does not include the xref package, which is required by
+@file{gpr_query}. So we must build gnatcoll xref from sources
+downloaded from github.
+
+The notes below assume that the compiler is installed at
+@file{$prefix}, e.g. @file{/usr/local/gnat-2019}, and that
+@file{$prefix/bin} is first on the @code{PATH}. If you are running
+Windows, use mingw64 @code{bash} to run these commands.
 
 On some operating systems, we must install gnatcoll-iconv; other
 operating systems don't need it.
@@ -244,6 +249,8 @@ running @code{gpr-query}:
 @example
 (setq gpr-query-env '("LD_LIBRARY_PATH=/Projects/gnat/pro_19.2/lib64")
 @end example
+@c FIXME: is this done by gpr-query-mode or wisi-prj? give example for
+@c wisi-prj setting.
 
 In general, @file{gpr_query} should be compiled with the compiler
 version that is used to generate the user project @file{.ali} files;
@@ -251,10 +258,6 @@ the @file{ali} file format can change with each compiler
 version. @file{gpr_query} creates a database of cross reference
 information; that database must be deleted if the compiler version
 changes, to force a complete rebuild.
-
-The default binary gnatcoll distributed with GNAT GPL 2019
-does not include the xref package, which is required by
-@file{gpr_query}. So we must build gnatcoll xref from sources.
 
 @menu
 * Building GNATCOLL::
@@ -274,6 +277,7 @@ Similarly, download gnatcoll-bindings from
 gnatcoll-iconv; not needed for GNAT Community 2020 on Windows).
 @c FIXME: table of os/gnat version that need/don't need iconv;
 @c debian/comm-2020 requires gnatcoll-iconv
+@c debian/pro-21.1 requires gnatcoll-iconv
 
 Then unpack, build, and install the required components. If you are
 unsure whether you need to install iconv, skip that step; a later step

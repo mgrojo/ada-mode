@@ -78,9 +78,13 @@ incremental parse
         or just shard_stream_index for stack_top
             may be broken down?
 
-still need wisi-lexer?
-
 gnat-get-paths called more than once for ada-mode project
+
+gpr-query:
+    start on read-only project for browsing
+        fails on create db - need better error message
+
+    need -opts option for gpr-query-exec to pass --db=<writeable dir>
 
 Ada-mode add newbie test
     no project
@@ -88,6 +92,8 @@ Ada-mode add newbie test
     no gpr_query.exe
 
 split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
+
+Make wisitoken compatible with debian stable?
 
 for wisi.texi:
     ----------------------
@@ -148,7 +154,11 @@ testimonial:
 
     do another diff between annex P and my grammar
 
+
 find better hippie function for completion-at-point, add to recommended settings
+
+wisi-skel expand
+    'if trace': 'if' does not take a block name, so don't expand.
 
 better error message for devault vc project
     "select an ada-mode project"
@@ -173,12 +183,24 @@ provide binary for windows and Debian on Savannah as an aide to new users
 build.sh provide helpful error for missing gnatcoll
     refer to ada-mode.info
 
+use case-fold instead of downcase; turkish locale
+
 merge sal-ada-goto-declaration-start, java-wisi-goto-declaration-start into wisi
 
 gpr_query process symbols in background thread, yeild periodically
     avoid pausing user interface
 
-in ada_annex_p.wy:
+test/ada_mode-recover_44.adb
+    fails with ENQUEUE_LIMIT
+        never dequeues the obvious solution (delete =) (insert :=); cost 7
+            don't just decrease the cost!
+        minimal_complete runs away into the weeds
+            limit via solution_count?
+
+    smaller file with just the failing if statement finds a solution
+        presence of larger shared_stream gives more to push_back?
+
+in ada_annex_p.wy, wisitoken-grammar-mode:
     wisi-parse-buffer indent doesn't use lisp-indent-buffer
 
 indent recover bug:

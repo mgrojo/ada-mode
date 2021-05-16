@@ -1,6 +1,6 @@
 ;;; ada-skel.el --- Extension to Ada mode for inserting statement skeletons  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987, 1993, 1994, 1996-2020  Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1993, 1994, 1996-2021  Free Software Foundation, Inc.
 
 ;; Authors: Stephen Leake <stephen_leake@stephe-leake.org>
 
@@ -366,8 +366,7 @@ See `ada-find-other-file' to create library level package body from spec."
 (defun ada-skel-setup ()
   "Setup a buffer for ada-skel."
   (setq wisi-skel-token-alist ada-skel-token-alist)
-  (add-hook 'skeleton-end-hook #'wisi-skel-enable-parse t)
-  (add-hook 'skeleton-end-hook #'wisi-indent-statement t)
+  (add-hook 'skeleton-end-hook #'wisi-indent-statement -90 t)
   (when (and ada-skel-initial-string
 	     (= (buffer-size) 0))
     (insert ada-skel-initial-string))
