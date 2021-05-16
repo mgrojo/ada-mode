@@ -2,7 +2,7 @@
 --
 --  Parse context for one source file.
 --
---  Copyright (C) 2020 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020, 2021 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,7 +17,6 @@ with Ada.Strings.Unbounded;
 with Wisi;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
-with WisiToken.Syntax_Trees;
 package Wisi_Parse_Context is
 
    type Language is record

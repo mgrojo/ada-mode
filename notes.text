@@ -15,7 +15,7 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1): incremental parse
   (xgit . "/Projects/org.stephe_leake.sal")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.wisitoken")
-  (xgit . "/Projects/elpa") ;; for uniquify-files
+;;  (xgit . "/Projects/elpa") ;; for uniquify-files
   (xgit . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
@@ -147,6 +147,8 @@ testimonial:
 
 
     do another diff between annex P and my grammar
+
+find better hippie function for completion-at-point, add to recommended settings
 
 better error message for devault vc project
     "select an ada-mode project"
