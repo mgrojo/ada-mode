@@ -20,7 +20,6 @@ pragma License (Modified_GPL);
 with Ada.Containers;
 with SAL;
 with WisiToken.BNF;
-with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 with Wisitoken_Grammar_Actions;
 package WisiToken_Grammar_Runtime is

@@ -18,7 +18,6 @@
 pragma License (Modified_GPL);
 
 with SAL.Gen_Definite_Doubly_Linked_Lists;
-with WisiToken.Lexer;
 with WisiToken.Syntax_Trees.LR_Utils;
 with WisiToken.Syntax_Trees;
 with WisiToken_Grammar_Runtime;

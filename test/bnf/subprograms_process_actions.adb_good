@@ -357,7 +357,6 @@ package body Subprograms_Process_Actions is
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
       Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
-      pragma Unreferenced (Nonterm);
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
@@ -444,7 +443,8 @@ package body Subprograms_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, ((fun, Statement_Start), (nam, Name), (par, Misc), (blo, Motion),
          (sem, Statement_End)));
-         Motion_Action (Parse_Data, Tree, Nonterm, ((fun, Invalid_Token_ID) & (blo, 6) & (sem, Invalid_Token_ID)));
+         Motion_Action (Parse_Data, Tree, Nonterm, (Index_ID'(fun, Invalid_Token_ID) & Index_ID'(blo, 6) &
+         Index_ID'(sem, Invalid_Token_ID)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, ((fun, 3, 0), (nam, 1, 2)));
       when Indent =>
@@ -470,7 +470,8 @@ package body Subprograms_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, ((fun, Statement_Start), (nam, Name), (par, Misc), (sem,
          Statement_End)));
-         Motion_Action (Parse_Data, Tree, Nonterm, ((fun, Invalid_Token_ID) & (sem, Invalid_Token_ID)));
+         Motion_Action (Parse_Data, Tree, Nonterm, (Index_ID'(fun, Invalid_Token_ID) & Index_ID'(sem,
+         Invalid_Token_ID)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, ((fun, 3, 0), (nam, 1, 2)));
       when Indent =>
@@ -495,7 +496,8 @@ package body Subprograms_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, ((fun, Statement_Start), (nam, Name), (blo, Motion), (sem,
          Statement_End)));
-         Motion_Action (Parse_Data, Tree, Nonterm, ((fun, Invalid_Token_ID) & (blo, 6) & (sem, Invalid_Token_ID)));
+         Motion_Action (Parse_Data, Tree, Nonterm, (Index_ID'(fun, Invalid_Token_ID) & Index_ID'(blo, 6) &
+         Index_ID'(sem, Invalid_Token_ID)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, ((fun, 3, 0), (nam, 1, 2)));
       when Indent =>
@@ -518,7 +520,8 @@ package body Subprograms_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, ((fun, Statement_Start), (nam, Name), (sem, Statement_End)));
-         Motion_Action (Parse_Data, Tree, Nonterm, ((fun, Invalid_Token_ID) & (sem, Invalid_Token_ID)));
+         Motion_Action (Parse_Data, Tree, Nonterm, (Index_ID'(fun, Invalid_Token_ID) & Index_ID'(sem,
+         Invalid_Token_ID)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, ((fun, 3, 0), (nam, 1, 2)));
       when Indent =>
@@ -542,7 +545,8 @@ package body Subprograms_Process_Actions is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, ((fun, Statement_Start), (par, Misc), (blo, Motion), (sem,
          Statement_End)));
-         Motion_Action (Parse_Data, Tree, Nonterm, ((fun, Invalid_Token_ID) & (blo, 6) & (sem, Invalid_Token_ID)));
+         Motion_Action (Parse_Data, Tree, Nonterm, (Index_ID'(fun, Invalid_Token_ID) & Index_ID'(blo, 6) &
+         Index_ID'(sem, Invalid_Token_ID)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, (1 => (fun, 3, 0)));
       when Indent =>
@@ -565,7 +569,8 @@ package body Subprograms_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, ((fun, Statement_Start), (par, Misc), (sem, Statement_End)));
-         Motion_Action (Parse_Data, Tree, Nonterm, ((fun, Invalid_Token_ID) & (sem, Invalid_Token_ID)));
+         Motion_Action (Parse_Data, Tree, Nonterm, (Index_ID'(fun, Invalid_Token_ID) & Index_ID'(sem,
+         Invalid_Token_ID)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, (1 => (fun, 3, 0)));
       when Indent =>
@@ -587,7 +592,8 @@ package body Subprograms_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, ((fun, Statement_Start), (blo, Motion), (sem, Statement_End)));
-         Motion_Action (Parse_Data, Tree, Nonterm, ((fun, Invalid_Token_ID) & (blo, 6) & (sem, Invalid_Token_ID)));
+         Motion_Action (Parse_Data, Tree, Nonterm, (Index_ID'(fun, Invalid_Token_ID) & Index_ID'(blo, 6) &
+         Index_ID'(sem, Invalid_Token_ID)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, (1 => (fun, 3, 0)));
       when Indent =>
@@ -608,7 +614,8 @@ package body Subprograms_Process_Actions is
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Tree, Nonterm, ((fun, Statement_Start), (sem, Statement_End)));
-         Motion_Action (Parse_Data, Tree, Nonterm, ((fun, Invalid_Token_ID) & (sem, Invalid_Token_ID)));
+         Motion_Action (Parse_Data, Tree, Nonterm, (Index_ID'(fun, Invalid_Token_ID) & Index_ID'(sem,
+         Invalid_Token_ID)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, (1 => (fun, 3, 0)));
       when Indent =>

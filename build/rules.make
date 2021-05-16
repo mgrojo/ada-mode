@@ -38,14 +38,12 @@ gen_BNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
 gen_BNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 gen_BNF :: ada_lite_re2c.c
 gen_BNF :: ada_lite_lr1_t8_run.ads
-gen_BNF :: ada_lite_tree_sitter.c
 gen_BNF :: body_instantiation_conflict_re2c.c
 gen_BNF :: body_instantiation_conflict_lr1_t8_run.ads
 gen_BNF :: case_expression_re2c.c
 gen_BNF :: character_literal_re2c.c
 gen_BNF :: conflict_name_re2c.c
 gen_BNF :: dragon_4_43_re2c.c
-gen_BNF :: dragon_4_43_tree_sitter.c
 gen_BNF :: empty_production_1_re2c.c
 gen_BNF :: empty_production_2_re2c.c
 gen_BNF :: empty_production_3_re2c.c
@@ -60,7 +58,6 @@ gen_BNF :: warth_left_recurse_expr_1_re2c.c
 
 gen_EBNF :: ada_ebnf_bnf.wy # not a valid grammar
 gen_EBNF :: ada_lite_ebnf_re2c.c
-gen_EBNF :: ada_lite_ebnf_tree_sitter.c
 gen_EBNF :: identifier_list_name_conflict_re2c.c
 gen_EBNF :: java_ebnf_bnf.wy # not a valid grammar
 gen_EBNF :: java_enum_ch19_re2c.c
@@ -76,20 +73,25 @@ gen_EBNF :: three_action_conflict_re2c.c
 gen_EBNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.adb
 gen_EBNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.ads
 
-# this duplicates some of the above; useful when working on tree-sitter.
+# Not included in above so we can skip if tree-sitter is not
+# installed.
 gen_Tree_Sitter :: ada_lite_ebnf_tree_sitter.c
 gen_Tree_Sitter :: ada_lite_tree_sitter.c
 gen_Tree_Sitter :: dragon_4_43_tree_sitter.c
 
-GENERATE ?= all
-ifeq ($(GENERATE),all)
+# GENERATE is used by wisitoken_test.gpr; see there for valid values.
+# We assume tree-sitter is not installed; can be overridden by user.
+GENERATE ?= BNF_EBNF
+ifeq ($(GENERATE),BNF_EBNF_Tree_Sitter)
+gen :: gen_BNF gen_EBNF gen_Tree_Sitter
+else ifeq ($(GENERATE),BNF_EBNF)
 gen :: gen_BNF gen_EBNF
 else ifeq ($(GENERATE),BNF)
 gen :: gen_BNF
 else ifeq ($(GENERATE),EBNF)
 gen :: gen_EBNF
 else ifeq ($(GENERATE),Tree_Sitter)
-gen :: gen_Tree_Sitter
+gen :: Tree_Sitter
 endif
 
 test_all_harness.out : test_all_harness.exe wisitoken-bnf-generate.exe gen test-executables

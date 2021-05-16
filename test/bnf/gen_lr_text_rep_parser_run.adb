@@ -26,7 +26,6 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with System.Multiprocessors;
-with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 procedure Gen_LR_Text_Rep_Parser_Run
 is

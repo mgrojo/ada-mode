@@ -17,11 +17,11 @@ with "aunit_ext";
 with "sal_devel";
 with "wisitoken";
 with "standard_common";
-with "tree_sitter";
+-- with "tree_sitter"; FIXME: use gnatprep to include tree-sitter
 project WisiToken_Test is
 
-   type Generate_Type is ("all", "BNF", "EBNF", "Tree_Sitter");
-   Generate : Generate_Type := external ("GENERATE", "all");
+   type Generate_Type is ("BNF_EBNF_Tree_Sitter", "BNF_EBNF", "BNF", "EBNF", "Tree_Sitter");
+   Generate : Generate_Type := external ("GENERATE", "BNF_EBNF"); --  FIXME: use gnatprep to include tree-sitter
 
    for Source_Dirs use
      (
@@ -31,7 +31,10 @@ project WisiToken_Test is
      );
 
    for Languages use ("Ada", "C");
-
+   
+   --  These must be consistent with the same named lists in
+   --  rules.make and the %generate statement in the corresponding
+   --  *.wy file.
    Gen_BNF :=
      (
       "ada_lite_lalr_run.ads",
@@ -109,10 +112,15 @@ project WisiToken_Test is
       "ada_lite_tree_sitter_run.adb",
       "dragon_4_43_tree_sitter_run.adb"
      );
-
+     
+   --  FIXME: use gnatprep to include tree-sitter 
+   for Excluded_Source_Files use ("wisitoken_tree_sitter.c"); 
+     
    case Generate is
-   when "all" =>
+   when "BNF_EBNF_Tree_Sitter" =>
       for Main use Gen_BNF & Gen_EBNF & Gen_Tree_Sitter;
+   when "BNF_EBNF" =>
+      for Main use Gen_BNF & Gen_EBNF;
    when "BNF" =>
       for Main use Gen_BNF;
    when "EBNF" =>

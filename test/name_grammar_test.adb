@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002-2003, 2009, 2013-2015, 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002-2003, 2009, 2013-2015, 2017 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -185,6 +185,8 @@ package body Name_Grammar_Test is
       Close (Trace_File);
       Set_Output (Standard_Output);
       WisiToken.Trace_Parse := Orig_Trace_Parse;
+
+      -- FIXME: run dos2unix
 
       Check_Files ("1", Trace_File_Name, Expected_Trace_File_Name);
    exception

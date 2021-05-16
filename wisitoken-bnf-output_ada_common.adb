@@ -286,10 +286,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
-      Put_Line ("with WisiToken.Lexer;");
-
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
+         Put_Line ("with WisiToken.Lexer;");
          Put_Line ("with WisiToken.Parse.LR;");
 
       when Packrat_Generate_Algorithm =>

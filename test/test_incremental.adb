@@ -27,7 +27,6 @@ with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
-with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Syntax_Trees.AUnit_Public;
 with WisiToken.Text_IO_Trace;
 package body Test_Incremental is

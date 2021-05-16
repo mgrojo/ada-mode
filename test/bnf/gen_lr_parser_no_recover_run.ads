@@ -22,7 +22,6 @@ pragma License (GPL);
 
 with WisiToken.Lexer;
 with WisiToken.Parse.LR;
-with WisiToken.Syntax_Trees;
 generic
    with function Create_Parse_Table return WisiToken.Parse.LR.Parse_Table_Ptr;
    with function Create_Lexer return WisiToken.Lexer.Handle;
