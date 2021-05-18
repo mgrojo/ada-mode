@@ -530,10 +530,8 @@ package body WisiToken.Parse is
                Lex_Start_Char : Buffer_Pos;
                Lex_Start_Line : Line_Number_Type;
 
-               Last_Grammar : Stream_Node_Ref := Terminal; -- Shifted
+               Last_Grammar : Stream_Node_Ref := Tree.Prev_Terminal (Terminal); -- Shifted
             begin
-               Tree.Prev_Terminal (Last_Grammar);
-
                if Terminal_Byte_Region.Last + Shift_Bytes > Scanned_Byte_Pos and
                     Inserted_Region.Last > Scanned_Byte_Pos
                then
@@ -855,8 +853,7 @@ package body WisiToken.Parse is
                      end loop Delete_Virtuals_Loop;
                   end;
 
-                  Last_Grammar := Terminal;
-                  Tree.Prev_Terminal (Last_Grammar);
+                  Last_Grammar := Tree.Prev_Terminal (Terminal);
 
                   Scan_Changed_Loop :
                   loop
