@@ -204,7 +204,7 @@ recovery, and matches the gnat style option -gnatye.
 Default is t for new Ada users."
   :type 'boolean
   :safe #'booleanp)
-(make-variable-buffer-local 'ada-indent-hanging-rel-exp)
+(make-variable-buffer-local 'ada-end-name-optional)
 
 (provide 'ada-indent-user-options)
 

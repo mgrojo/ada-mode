@@ -17,7 +17,6 @@ with Ada.Strings.Unbounded;
 with Wisi;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
-with WisiToken.Syntax_Trees;
 package Wisi_Parse_Context is
 
    Not_Found : exception;

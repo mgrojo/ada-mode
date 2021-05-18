@@ -15,7 +15,7 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1): incremental parse
   (xgit . "/Projects/org.stephe_leake.sal")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.wisitoken")
-  (xgit . "/Projects/elpa") ;; for uniquify-files
+;;  (xgit . "/Projects/elpa") ;; for uniquify-files
   (xgit . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
@@ -228,11 +228,16 @@ insert_after
         indent single line - continue code
         indent multiple lines - correct 'end' position
 
-optimize initial full parse
-    generated packrat should be faster than generalized LR1
-    if encounter error, save partial trees, do incremental generalized LR1 error correcting to finish
+gnat-get-paths called more than once for ada-mode project
+
+Ada-mode add newbie test
+    no project
+    VC project
+    no gpr_query.exe
 
 split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
+
+Make wisitoken compatible with debian stable?
 
 for wisi.texi:
     ----------------------
@@ -311,6 +316,11 @@ indent bug:
 
     do another diff between annex P and my grammar
 
+find better hippie function for completion-at-point, add to recommended settings
+
+wisi-skel expand
+    'if trace': 'if' does not take a block name, so don't expand.
+
 better error message for devault vc project
     "select an ada-mode project"
     or use default ada-mode project?
@@ -334,10 +344,24 @@ provide binary for windows and Debian on Savannah as an aide to new users
 build.sh provide helpful error for missing gnatcoll
     refer to ada-mode.info
 
+use case-fold instead of downcase; turkish locale
+
+merge sal-ada-goto-declaration-start, java-wisi-goto-declaration-start into wisi
+
 gpr_query process symbols in background thread, yeild periodically
     avoid pausing user interface
 
-in ada_annex_p.wy:
+test/ada_mode-recover_44.adb
+    fails with ENQUEUE_LIMIT
+        never dequeues the obvious solution (delete =) (insert :=); cost 7
+            don't just decrease the cost!
+        minimal_complete runs away into the weeds
+            limit via solution_count?
+
+    smaller file with just the failing if statement finds a solution
+        presence of larger shared_stream gives more to push_back?
+
+in ada_annex_p.wy, wisitoken-grammar-mode:
     wisi-parse-buffer indent doesn't use lisp-indent-buffer
 
 indent recover bug:
@@ -1346,6 +1370,7 @@ run all tests without elpa:
     - Windows Emacs master, current gnat
     - Windows Emacs 25.3, current gnat
     - Windows Emacs 26.1, current gnat
+    - mingw64 gnat
 
     #dvc-state-multiple above
     (dvc-push)
@@ -1659,6 +1684,8 @@ mark fixed bugs
         subject: closed by ada-mode version 7.1.3
         don't include Version: header; that's an Emacs version
     debbugs updates ada-mode summary page within half an hour; no emails
+
+post news on https://savannah.nongnu.org/news/submit.php?group_id=11631
 
 check https://www.emacswiki.org/emacs/AdaMode
     https://www.emacswiki.org/emacs/StephenLeake

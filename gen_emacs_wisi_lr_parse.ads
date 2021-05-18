@@ -33,7 +33,6 @@ pragma License (GPL);
 with Wisi;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
-with WisiToken.Syntax_Trees;
 generic
    type Parse_Data_Type  is new Wisi.Parse_Data_Type with private;
 

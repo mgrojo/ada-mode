@@ -57,6 +57,8 @@ and parse the whole buffer."
   repair   ;; list of wisi--parse-error-repair.
   )
 
+(defconst wisi-parser-transaction-log-buffer-size-default 300000)
+
 (cl-defstruct wisi-parser
   ;; Separate lists for lexer and parse errors, because lexer errors
   ;; must be repaired first, before parse errors can be repaired. And
@@ -74,7 +76,7 @@ and parse the whole buffer."
   transaction-log-buffer
   ;; Buffer holding history of communications with parser
 
-  (transaction-log-buffer-size 300000)
+  (transaction-log-buffer-size wisi-parser-transaction-log-buffer-size-default)
   ;; Max character count to retain in transaction-log-buffer. Set to 0
   ;; to disable log. Default is large enough for all transactions in
   ;; test/ada_mode-incremental_parse.adb with lots of verbosity.
@@ -90,7 +92,7 @@ Text properties on MESSAGE are preserved,"
     (when (> max 0)
       (unless (buffer-live-p (wisi-parser-transaction-log-buffer parser))
 	(setf (wisi-parser-transaction-log-buffer parser)
-	      (get-buffer-create (wisi-parser-transaction-log-buffer-name parser)))
+	      (get-buffer-create (wisi-parser-transaction-log-buffer-name parser))) ;; FIXME: emacs 28 allows second arg 't'
 	(with-current-buffer (wisi-parser-transaction-log-buffer parser)
 	  (read-only-mode 1)
 	  (buffer-disable-undo)))

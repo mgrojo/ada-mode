@@ -539,6 +539,7 @@ See `ff-other-file-alist'.")
     null_procedure_declaration
     number_declaration
     object_declaration
+    object_renaming_declaration
     package_body
     package_declaration
     pragma_g

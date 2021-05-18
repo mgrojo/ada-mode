@@ -2,7 +2,7 @@
 ;;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2020  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2021  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -373,6 +373,12 @@ Prompt user if more than one."
 	   t)
 
 ;;;; strings
+	  ((looking-at (concat "aspect \"" ada-name-regexp "\" requires 'Class"))
+	   (pop-to-buffer source-buffer)
+	   (forward-word 1)
+	   (insert "'Class")
+	   t)
+
 	  ((looking-at (concat "\"end " ada-name-regexp ";\" expected"))
 	   (let ((expected-name (match-string 1)))
 	     (pop-to-buffer source-buffer)
