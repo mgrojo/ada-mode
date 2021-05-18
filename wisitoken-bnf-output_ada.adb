@@ -406,7 +406,6 @@ is
       Indent := 1;
 
       Put_File_Header (Ada_Comment, Use_Tuple => True, Tuple => Tuple);
-      --  no Copyright_License; just a test file
       New_Line;
 
       Put_Line ("with " & Generic_Package_Name & ";");

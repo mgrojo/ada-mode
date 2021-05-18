@@ -22,7 +22,6 @@ pragma License (GPL);
 
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
-with WisiToken.Syntax_Trees;
 generic
    Language_Fixes : in WisiToken.Parse.LR.Parser.Language_Fixes_Access;
 

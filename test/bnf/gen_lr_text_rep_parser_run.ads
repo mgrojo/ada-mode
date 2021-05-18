@@ -22,7 +22,6 @@ pragma License (GPL);
 
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
-with WisiToken.Syntax_Trees;
 generic
    Text_Rep_File_Name : in String;
 

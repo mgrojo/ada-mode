@@ -8,8 +8,7 @@ ZIP_VERSION := 2.1
 all : test-clean tests recover_stats.exe wisitoken-followed_by.exe doc
 
 #export Standard_Common_Build := Debug
-#export GENERATE := EBNF
-#export GENERATE := Tree_Sitter
+#export GENERATE := BNF_EBNF_Tree_Sitter
 
 # test_one_harness.adb
 # test_all_harness.adb

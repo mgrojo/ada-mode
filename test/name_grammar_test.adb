@@ -190,6 +190,8 @@ package body Name_Grammar_Test is
       Set_Output (Standard_Output);
       WisiToken.Trace_Parse := Orig_Trace_Parse;
 
+      -- FIXME: run dos2unix
+
       Check_Files ("1", Trace_File_Name, Expected_Trace_File_Name);
    exception
    when others =>

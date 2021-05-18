@@ -358,7 +358,9 @@ is
                   Label : constant String := Get_Label (Params (Index_First .. Index_Last));
                begin
                   if Label_Used (Label) then
-                     Result := Result & (if Need_Comma then " & " else "") & "(" &
+                     --  Ada 2020 added vector aggregates, making this ambiguous without
+                     --  Index_ID qualification
+                     Result := Result & (if Need_Comma then " & " else "") & "Index_ID'(" &
                        Label & ", " & ID & ")";
                      Need_Comma := True;
                      Count  := Count + 1;
@@ -379,7 +381,8 @@ is
                   Label : constant String := Get_Label (Params (First .. Last - 1));
                begin
                   if Label_Used (Label) then
-                     Result := Result & (if Need_Comma then " & " else "") & "(" & Label & ", Invalid_Token_ID)";
+                     Result := Result & (if Need_Comma then " & " else "") &
+                       "Index_ID'(" & Label & ", Invalid_Token_ID)";
                      Need_Comma := True;
                      Count  := Count + 1;
                   end if;
@@ -1040,7 +1043,7 @@ is
                   --  tokens. RHS_Index = 0 always has all optional tokens.
                   Put_Error
                     (Error_Message
-                       (Grammar_File_Name, RHS.Source_Line, Image (Prod_ID) &
+                       (Grammar_File_Name, RHS.Source_Line, Image (Prod_ID, Generate_Data.Descriptor.all) &
                           ": indent parameter/token label mismatch"
                        & (if RHS.Auto_Token_Labels then "" else " all tokens must be labeled if any are")));
                end if;

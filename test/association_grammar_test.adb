@@ -187,6 +187,8 @@ package body Association_Grammar_Test is
       Close (Trace_File);
       WisiToken.Trace_Parse := Orig_Trace_Parse;
 
+      -- FIXME: run dos2unix
+
       Check_Files ("1", Trace_File_Name, Expected_Trace_File_Name);
    exception
    when others =>
