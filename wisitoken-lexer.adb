@@ -49,6 +49,17 @@ package body WisiToken.Lexer is
         Image (Item.Line_Region) & ")";
    end Full_Image;
 
+   procedure Shift
+     (Token       : in out Lexer.Token;
+      Shift_Bytes : in     Base_Buffer_Pos;
+      Shift_Chars : in     Base_Buffer_Pos;
+      Shift_Lines : in     Base_Line_Number_Type)
+   is begin
+      Token.Byte_Region := @ + Shift_Bytes;
+      Token.Char_Region := @ + Shift_Chars;
+      Token.Line_Region := @ + Shift_Lines;
+   end Shift;
+
    function Column (Token : in Lexer.Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count
    is begin
       if Token.Line_Region.First = 1 then

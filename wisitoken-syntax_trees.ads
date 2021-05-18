@@ -45,15 +45,15 @@
 --  tree in any direction after parsing is done. We do not set the
 --  Parent links while parsing, to avoid having to copy nodes. At the
 --  start of incremental parse (during and after Edit_Tree), the
---  shared stream has complete parent links. However, Breakdown while
---  parsing clears parent links, so the shared stream may not have
---  complete parent links; error recover must use explicit Parent
---  stack versions of tree routines. All Parent links are set when
---  parse completes; condition Tree.Editable ensures that there is
---  a single fully parsed tree with all parent links set. While
---  editing the syntax tree after parse, any functions that modify
---  children or parent relationships update the corresponding links,
---  setting them to Invalid_Node_Access as appropriate.
+--  shared stream has complete parent links. However, Breakdown clears
+--  parent links, so shared nodes may not have complete parent links;
+--  error recover must use explicit Parent stack versions of tree
+--  routines. All Parent links are set when parse completes; condition
+--  Tree.Editable ensures that there is a single fully parsed tree
+--  with all parent links set. While editing the syntax tree after
+--  parse, any functions that modify children or parent relationships
+--  update the corresponding links, setting them to
+--  Invalid_Node_Access as appropriate.
 --
 --  We don't store the parse State in syntax tree nodes, to avoid
 --  having to copy nodes during parsing. State is stored in the parse
@@ -371,10 +371,11 @@ package WisiToken.Syntax_Trees is
    type Augmented_Class_Access_Constant is access constant Base_Augmented'Class;
 
    procedure Shift
-     (Augmented   : in out Base_Augmented;
-      Shift_Bytes : in     Base_Buffer_Pos;
-      Shift_Chars : in     Base_Buffer_Pos;
-      Shift_Line  : in     Base_Line_Number_Type)
+     (Augmented        : in out Base_Augmented;
+      Shift_Bytes      : in     Base_Buffer_Pos;
+      Shift_Chars      : in     Base_Buffer_Pos;
+      Shift_Line       : in     Base_Line_Number_Type;
+      Last_Stable_Byte : in     Buffer_Pos)
    is null;
    --  Add Shift_* to Augmented positions.
 
@@ -578,6 +579,12 @@ package WisiToken.Syntax_Trees is
    --  Construct Tree.Shared_Stream from Tree.SOI, Tree.Root, Tree.EOI.
    --
    --  On return, Tree is ready for Parse.Edit_Tree.
+   --
+   --  Parents_Set remains True. Parse.Edit_Tree calls Breakdown on
+   --  Shared_Stream Elements, which removes some parent links. However,
+   --  the remaining stream elements all have complete parent links; the
+   --  links removed point to nodes that are not accessible from the
+   --  shared stream.
 
    function Reduce
      (Tree            : in out Syntax_Trees.Tree;
@@ -690,8 +697,8 @@ package WisiToken.Syntax_Trees is
    --
    --  The stack top is unchanged. Note that Ref.Node is ignored on input.
    --
-   --  Parent links are set to Invalid_Node_Access. However, even if
-   --  Tree.Parents_Set, Child links are not changed.
+   --  Parent links are set to Invalid_Node_Access; if
+   --  Tree.Parents_Set, Child links are also cleared.
 
    procedure Right_Breakdown
      (Tree : in out Syntax_Trees.Tree;
@@ -711,7 +718,7 @@ package WisiToken.Syntax_Trees is
    procedure Breakdown
      (Tree : in out Syntax_Trees.Tree;
       Ref  : in out Terminal_Ref)
-   with Pre => Tree.Parents_Set and Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
+   with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
                Ref.Node /= Invalid_Node_Access and
                Tree.Stack_Top (Ref.Stream) /= Ref.Element,
      Post => Ref.Node = Ref'Old.Node and Tree.First_Terminal (Get_Node (Ref.Element)) = Ref.Node;
@@ -723,24 +730,6 @@ package WisiToken.Syntax_Trees is
    --  The stack top is unchanged.
    --
    --  Parent/child links are set to Invalid_Node_Access as appropriate.
-   --
-   --  WORKAROUND: we'd like to add:
-   --
-   --  and (not Tree.Contains (Ref.Stream, Ref.Element'Old) or
-   --     Tree.First_Terminal (Get_Node (Ref.Element)'Old) = Ref.Node'Old);
-   --
-   --  to the post condition, but GNAT Community 2020 treats
-   --  'tree.contains' as a constant false.
-
-   procedure Breakdown
-     (Tree : in out Syntax_Trees.Tree;
-      Ref  : in out Stream_Node_Parents)
-   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Tree.Label (Ref.Ref.Element) = Nonterm and
-               Ref.Ref.Node /= Invalid_Node_Access and Tree.Stack_Top (Ref.Ref.Stream) /= Ref.Ref.Element and
-               Parents_Valid (Ref),
-     Post => Ref.Ref.Node = Ref.Ref.Node'Old and Parents_Valid (Ref) and
-             Tree.First_Terminal (Get_Node (Ref.Ref.Element)) = Ref.Ref.Node;
-   --  Same as Breakdown (Ref.Ref), but supports not Tree.Parents_Set.
 
    function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return State_Index
    with Pre => Tree.Is_Valid (Stream);
@@ -953,17 +942,18 @@ package WisiToken.Syntax_Trees is
    --  Stack_Top. Result refers to the added node.
 
    procedure Shift
-     (Tree                 : in     Syntax_Trees.Tree;
-      Node                 : in     Valid_Node_Access;
-      Shift_Bytes          : in     Base_Buffer_Pos;
-      Shift_Chars          : in     Base_Buffer_Pos;
-      Shift_Lines          : in out Base_Line_Number_Type;
-      Last_Stable_Byte     : in     Buffer_Pos;
-      Floating_Non_Grammar : in out Lexer.Token_Arrays.Vector)
+     (Tree             : in     Syntax_Trees.Tree;
+      Node             : in     Valid_Node_Access;
+      Shift_Bytes      : in     Base_Buffer_Pos;
+      Shift_Chars      : in     Base_Buffer_Pos;
+      Shift_Lines      : in     Base_Line_Number_Type;
+      Last_Stable_Byte : in     Buffer_Pos;
+      Non_Grammar_Next : in out Lexer.Token_Arrays.Extended_Index)
    with Pre => Tree.Label (Node) in Terminal_Label;
-   --  Add Shift_* to token and non_grammar values. If a non_grammar is
-   --  after Last_Stable_Byte, move it to Floating_Non_Grammar without
-   --  shifting, adjust Shift_Lines.
+   --  Add Shift_* to token, non_grammar, and augmented corresponding
+   --  regions. If a non_grammar is after Last_Stable_Byte, set
+   --  Non_Grammar_Next to it, without shifting, and skip the rest of
+   --  non_grammar.
 
    procedure Set_Node_Index
      (Tree       : in Syntax_Trees.Tree;
@@ -1331,7 +1321,7 @@ package WisiToken.Syntax_Trees is
       Following            : in Boolean := False)
      return Node_Access
    with Pre => (if Following then Tree.Parents_Set else True);
-   --  Return a node that can give byte or char pos.
+   --  Return a terminal node that can give byte or char pos.
    --
    --  If Trailing_Non_Grammar, return first terminal in Node that is a
    --  Source_Terminal, or a virtual terminal with non-empty non_grammar.
@@ -1339,6 +1329,19 @@ package WisiToken.Syntax_Trees is
    --
    --  If Following, return a matching terminal following Node if none
    --  found in Node.
+
+   procedure Next_Source_Terminal
+     (Tree                 : in     Syntax_Trees.Tree;
+      Ref                  : in out Stream_Node_Ref;
+      Trailing_Non_Grammar : in     Boolean)
+   with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Parents_Set,
+     Post => Tree.Correct_Stream_Node (Ref);
+   --  Return next terminal node that can give byte or char pos.
+   --
+   --  If Trailing_Non_Grammar, return next terminal after Ref.Ref.Node
+   --  that is a Source_Terminal, or a virtual terminal with non-empty
+   --  non_grammar. If not Trailing_Non_Grammar, only return a
+   --  Source_Terminal.
 
    function Get_Virtuals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access_Array
    with Pre => Tree.Parents_Set,
@@ -1400,7 +1403,18 @@ package WisiToken.Syntax_Trees is
       Ref  : in out Stream_Node_Parents)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref),
      Post => Parents_Valid (Ref);
-   --  Update Ref to first terminal of Ref.Ref.Element.Node or a
+   --  Update Ref to first terminal in Ref.Ref.Element.Node or a
+   --  following element.
+
+   function First_Terminal
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Rooted_Ref)
+     return Stream_Node_Parents
+   with Pre => Valid_Stream_Node (Tree, Ref),
+     Post => Valid_Stream_Node (Tree, First_Terminal'Result.Ref) and
+             Label (First_Terminal'Result.Ref.Node) in Terminal_Label and
+             Parents_Valid (First_Terminal'Result);
+   --  Return first terminal in Ref.Ref.Element.Node or a
    --  following element.
 
    function Last_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access;
@@ -1536,6 +1550,15 @@ package WisiToken.Syntax_Trees is
    --  following stream element; continues search in Tree.Shared_Stream.
    --  Invalid_Node_Access if none found.
 
+   procedure First_Sequential_Terminal
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Stream_Node_Ref)
+   with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Parents_Set,
+     Post => Correct_Stream_Node (Tree, Ref);
+   --  Return first terminal with valid Sequential_Index in Ref.Node or a
+   --  following stream element; continues search in Tree.Shared_Stream.
+   --  Invalid_Node_Access if none found.
+
    function Last_Sequential_Terminal
      (Tree    : in     Syntax_Trees.Tree;
       Node    : in     Node_Access;
@@ -1562,6 +1585,12 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Label (Node) in Terminal_Label;
    --  Update Node to the first terminal with valid Sequential_Index
    --  following Node. .
+
+   procedure Next_Sequential_Terminal
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Syntax_Trees.Stream_Node_Ref)
+   with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Parents_Set,
+     Post => Correct_Stream_Node (Tree, Ref);
 
    procedure Next_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;

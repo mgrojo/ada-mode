@@ -66,6 +66,13 @@ package WisiToken.Lexer is
 
    Invalid_Token : constant Token := (others => <>);
 
+   procedure Shift
+     (Token       : in out Lexer.Token;
+      Shift_Bytes : in     Base_Buffer_Pos;
+      Shift_Chars : in     Base_Buffer_Pos;
+      Shift_Lines : in     Base_Line_Number_Type);
+   --  Add Shift_* to corresponding regions.
+
    package Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Positive_Index_Type, Token, Default_Element => (others => <>));
 

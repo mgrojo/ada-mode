@@ -66,8 +66,9 @@ package body WisiToken.Syntax_Trees is
      return Node_Access;
 
    procedure Next_Source_Terminal
-     (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Stream_Node_Parents);
+     (Tree                 : in     Syntax_Trees.Tree;
+      Ref                  : in out Stream_Node_Parents;
+      Trailing_Non_Grammar : in     Boolean);
 
    function New_Stream (Tree : in out Syntax_Trees.Tree) return Stream_ID;
 
@@ -344,15 +345,19 @@ package body WisiToken.Syntax_Trees is
 
             exit Undo_Reduce_Loop when First_Terminal (Tree, Node) = Target;
 
-            for Child of reverse Node.Children loop
+            for I in reverse 1 .. Node.Child_Count loop
                Cur := Stream.Elements.Insert
                  (Element  =>
-                    (Node  => Child,
+                    (Node  => Node.Children (I),
                      State => Unknown_State,
                      Label => Stream.Label),
                   Before   => Cur);
 
-               Child.Parent := Invalid_Node_Access;
+               Node.Children (I).Parent := Invalid_Node_Access;
+               if Tree.Parents_Set then
+                  --  FIXME: we were not doing this for some reason; need test case.
+                  Node.Children (I) := Invalid_Node_Access;
+               end if;
             end loop;
          end;
 
@@ -394,25 +399,6 @@ package body WisiToken.Syntax_Trees is
       end;
 
       Breakdown (Tree, Ref, Inverted_Parents);
-   end Breakdown;
-
-   procedure Breakdown
-     (Tree : in out Syntax_Trees.Tree;
-      Ref  : in out Stream_Node_Parents)
-   is
-      Inverted_Parents : Node_Stacks.Stack;
-   begin
-      Inverted_Parents.Push (Ref.Ref.Node);
-      for I in 1 .. Ref.Parents.Depth - 1 loop
-         Inverted_Parents.Push (Ref.Parents.Pop);
-      end loop;
-
-      Breakdown (Tree, Ref.Ref, Inverted_Parents);
-
-      Ref.Parents.Clear;
-      Ref.Ref.Node := First_Terminal
-        (Tree, Tree.Streams (Ref.Ref.Stream.Cur).Elements (Ref.Ref.Element.Cur).Node,
-         Ref.Parents);
    end Breakdown;
 
    function Byte_Region
@@ -2014,6 +2000,26 @@ package body WisiToken.Syntax_Trees is
       end loop;
    end First_Terminal;
 
+   function First_Terminal
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Rooted_Ref)
+     return Stream_Node_Parents
+   is
+      use Stream_Element_Lists;
+   begin
+      --  We'd like the result type to be Terminal_Stream_Node_Parents, but
+      --  the dynamic predicate is checked on assigning the initial value of
+      --  Result, and it fails if Ref is not a terminal.
+      return Result : Stream_Node_Parents := (Ref, Parents => <>) do
+         Result.Ref.Node := First_Terminal (Tree, Constant_Ref (Result.Ref.Element.Cur).Node, Result.Parents);
+         loop
+            exit when Result.Ref.Node /= Invalid_Node_Access;
+            Next_Terminal (Tree, Result);
+            exit when not Has_Element (Result.Ref.Element.Cur);
+         end loop;
+      end return;
+   end First_Terminal;
+
    procedure First_Sequential_Terminal
      (Tree    : in     Syntax_Trees.Tree;
       Node    : in out Node_Access;
@@ -2052,6 +2058,21 @@ package body WisiToken.Syntax_Trees is
       Parents : Node_Stacks.Stack;
    begin
       return Tree.First_Sequential_Terminal (Node, Parents);
+   end First_Sequential_Terminal;
+
+   procedure First_Sequential_Terminal
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Syntax_Trees.Stream_Node_Ref)
+   is begin
+      Tree.First_Terminal (Ref);
+      loop
+         exit when Ref = Invalid_Stream_Node_Ref;
+
+         exit when Ref.Node /= Invalid_Node_Access and then
+           Tree.Get_Sequential_Index (Ref.Node) /= Invalid_Sequential_Index;
+
+         Tree.Next_Terminal (Ref);
+      end loop;
    end First_Sequential_Terminal;
 
    procedure First_Sequential_Terminal
@@ -3000,6 +3021,11 @@ package body WisiToken.Syntax_Trees is
                Before   => Cur);
 
             Node.Children (I).Parent := Invalid_Node_Access;
+
+            if Tree.Parents_Set then
+               --  FIXME: we were not doing this for some reason; need test case.
+               Node.Children (I) := Invalid_Node_Access;
+            end if;
          end loop;
 
          Node.Children (First_Child).Parent := Invalid_Node_Access;
@@ -3024,6 +3050,11 @@ package body WisiToken.Syntax_Trees is
             --  we are now breaking down for deletion.
             Parse_Stream.Elements.Delete (To_Delete);
             To_Delete := Cur;
+         end if;
+
+         if Next_I /= First_Child and Tree.Parents_Set then
+            --  FIXME: we were not doing this for some reason; need test case.
+            Node.Children (First_Child) := Invalid_Node_Access;
          end if;
 
          Node := Node.Children (Next_I);
@@ -3244,7 +3275,7 @@ package body WisiToken.Syntax_Trees is
             return Tree.First_Terminal (Ref.Ref.Node);
          else
             if Following_Source_Terminal then
-               Next_Source_Terminal (Tree, Ref);
+               Next_Source_Terminal (Tree, Ref, Trailing_Non_Grammar => False);
                return Ref.Ref.Node;
             else
                return Invalid_Node_Access;
@@ -3267,7 +3298,7 @@ package body WisiToken.Syntax_Trees is
 
          if Empty_Line (Tree, Ref.Ref.Node.Non_Grammar, Line) then
             if Following_Source_Terminal then
-               Next_Source_Terminal (Tree, Ref);
+               Next_Source_Terminal (Tree, Ref, Trailing_Non_Grammar => False);
                return Ref.Ref.Node;
             else
                return Invalid_Node_Access;
@@ -3522,6 +3553,17 @@ package body WisiToken.Syntax_Trees is
 
    procedure Next_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Syntax_Trees.Stream_Node_Ref)
+   is begin
+      loop
+         Next_Terminal (Tree, Ref);
+         exit when Ref.Node = Invalid_Node_Access;
+         exit when Ref.Node.Sequential_Index /= Invalid_Sequential_Index;
+      end loop;
+   end Next_Sequential_Terminal;
+
+   procedure Next_Sequential_Terminal
+     (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Syntax_Trees.Stream_Node_Parents)
    is begin
       loop
@@ -3555,13 +3597,38 @@ package body WisiToken.Syntax_Trees is
    end Next_Source_Terminal;
 
    procedure Next_Source_Terminal
-     (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Stream_Node_Parents)
+     (Tree                 : in     Syntax_Trees.Tree;
+      Ref                  : in out Stream_Node_Ref;
+      Trailing_Non_Grammar : in     Boolean)
+   is begin
+      loop
+         Next_Terminal (Tree, Ref);
+         exit when Ref = Invalid_Stream_Node_Ref;
+         exit when
+           (if Trailing_Non_Grammar
+            then (case Terminal_Label'(Ref.Node.Label) is
+                  when Source_Terminal => True,
+                  when Virtual_Terminal | Virtual_Identifier =>
+                     Ref.Node.Non_Grammar.Length > 0)
+            else Ref.Node.Label = Source_Terminal);
+      end loop;
+   end Next_Source_Terminal;
+
+   procedure Next_Source_Terminal
+     (Tree                 : in     Syntax_Trees.Tree;
+      Ref                  : in out Stream_Node_Parents;
+      Trailing_Non_Grammar : in     Boolean)
    is begin
       loop
          Next_Terminal (Tree, Ref);
          exit when Ref.Ref = Invalid_Stream_Node_Ref;
-         exit when Ref.Ref.Node.Label = Source_Terminal;
+         exit when
+           (if Trailing_Non_Grammar
+            then (case Terminal_Label'(Ref.Ref.Node.Label) is
+                  when Source_Terminal => True,
+                  when Virtual_Terminal | Virtual_Identifier =>
+                     Ref.Ref.Node.Non_Grammar.Length > 0)
+            else Ref.Ref.Node.Label = Source_Terminal);
       end loop;
    end Next_Source_Terminal;
 
@@ -4830,16 +4897,14 @@ package body WisiToken.Syntax_Trees is
    end Shift;
 
    procedure Shift
-     (Tree                 : in     Syntax_Trees.Tree;
-      Node                 : in     Valid_Node_Access;
-      Shift_Bytes          : in     Base_Buffer_Pos;
-      Shift_Chars          : in     Base_Buffer_Pos;
-      Shift_Lines          : in out Base_Line_Number_Type;
-      Last_Stable_Byte     : in     Buffer_Pos;
-      Floating_Non_Grammar : in out Lexer.Token_Arrays.Vector)
-   is
-      First_Floating_I : SAL.Base_Peek_Type := 0;
-   begin
+     (Tree             : in     Syntax_Trees.Tree;
+      Node             : in     Valid_Node_Access;
+      Shift_Bytes      : in     Base_Buffer_Pos;
+      Shift_Chars      : in     Base_Buffer_Pos;
+      Shift_Lines      : in     Base_Line_Number_Type;
+      Last_Stable_Byte : in     Buffer_Pos;
+      Non_Grammar_Next : in out Lexer.Token_Arrays.Extended_Index)
+   is begin
       case Terminal_Label'(Node.Label) is
       when Source_Terminal =>
          if Node.Byte_Region /= Null_Buffer_Region then
@@ -4851,6 +4916,7 @@ package body WisiToken.Syntax_Trees is
       when Virtual_Terminal | Virtual_Identifier =>
          null;
       end case;
+
       for I in Node.Non_Grammar.First_Index .. Node.Non_Grammar.Last_Index loop
          declare
             Token : Lexer.Token renames Node.Non_Grammar (I);
@@ -4860,24 +4926,14 @@ package body WisiToken.Syntax_Trees is
                Token.Char_Region := @ + Shift_Chars;
                Token.Line_Region := @ + Shift_Lines;
             else
-               First_Floating_I := I;
+               Non_Grammar_Next := I;
                exit;
             end if;
          end;
       end loop;
 
-      if First_Floating_I > 0 then
-         for I in First_Floating_I .. Node.Non_Grammar.Last_Index loop
-            if Node.Non_Grammar (I).ID = Tree.Lexer.Descriptor.New_Line_ID then
-               Shift_Lines := @ - 1;
-            end if;
-            Floating_Non_Grammar.Append (Node.Non_Grammar (I));
-         end loop;
-         Node.Non_Grammar.Set_First_Last (Node.Non_Grammar.First_Index, First_Floating_I - 1);
-      end if;
-
       if Node.Augmented /= null then
-         Shift (Node.Augmented.all, Shift_Bytes, Shift_Chars, Shift_Lines);
+         Shift (Node.Augmented.all, Shift_Bytes, Shift_Chars, Shift_Lines, Last_Stable_Byte);
       end if;
    end Shift;
 
