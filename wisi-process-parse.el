@@ -186,7 +186,7 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
   ;; space, we will get a protocol_error from the parser
   ;; eventually. Caller should prevent that and send an alternate
   ;; command.
-  (format "%04d%s" (length cmd) cmd))
+  (format "%04d%s" (string-bytes cmd) cmd))
 
 (defun wisi-process-parse--send-parse (parser parse-action begin send-end parse-end)
   "Send a partial PARSE-ACTION command to PARSER external process.
@@ -1081,7 +1081,7 @@ one or more Query messages."
 
     (set-buffer log-buffer)
     (goto-char (point-min))
-    (while (search-forward-regexp "\\(parse 1\\|post-parse\\|query-tree\\|refactor\\) \"\\([^\"]+\\)\"" nil t)
+    (while (search-forward-regexp "^\\(parse 1\\|post-parse\\|query-tree\\|refactor\\) \"\\([^\"]+\\)\"" nil t)
       (cond
        ((string-equal (match-string 1) "parse 1")
 	(search-forward-regexp "((")

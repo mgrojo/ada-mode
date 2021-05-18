@@ -48,6 +48,8 @@ run all tests with incremental mode enabled
 
     one ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" wisi-process-time-out 10.0)" ONE_TEST_FILES=ada_mode-*.adb
 
+    two RUN_ARGS="command_file debug.cmd test/debug.adb > debug.log"
+
     ada_mode-recover_align_1.adb.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" debug-on-error t)"
 
 in debug.cmd:
@@ -57,9 +59,22 @@ verbosity debug=1 incremental=3
 verbosity debug=1 action=3
 verbosity debug=1 mckenzie=1 parse=2
 
+test/ada_mode-interactive_03.adb
+SAL.PROGRAMMER_ERROR: floating_non_grammar not emptied: ((NEW_LINE, (1087 . 1087)(29, 30)), (NEW_LINE, (1096 . 1096)(30, 31)), (NEW_LINE, (1105 . 1105)(31, 32)))
+    duplicated, simplified in debug.adb; caused by insert text at end
+        SAL.NOT_IMPLEMENTED: Terminal_Non_Grammar_Next in scan
+        stable_region.last 42
+        terminal_non_grammar_Next is 6:(IS, (38 . 39))4:(COMMENT, (46 . 88), (5, 5))
+        lexer.set_position 38 38 2
+            too early; should be 43
+            float non_grammar t_n_g_next .. last so can append scanned tokens
 
 
+    new test case; insert comment line between two comment lines
 
+consider comments in recover?
+    in edit_tree, don't delete virtuals with comments before edit point
+    in recover, don't consider delete for tokens with comments
 
 add test case for extra 'end;' that is later matched by user inserted 'begin;'
     'end;' deleted by error recovery in initial parse; correctly restored in final parse?

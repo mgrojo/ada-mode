@@ -319,7 +319,7 @@ package body Emacs_Wisi_Common_Parse is
             Read_Input (Command_Line'Address, Command_Length);
 
             if Trace_Protocol > WisiToken.Outline then
-               Trace.Put_Line ("'" & Command_Line & "'");
+               Trace.Put_Line ("'" & Command_Line & "' length:" & Command_Length'Image);
             end if;
 
             if Match ("parse") then
