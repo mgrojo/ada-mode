@@ -3,7 +3,7 @@
 ;; gpr-query supports Ada and any gcc language that supports the
 ;; AdaCore -fdump-xref switch (which includes C, C++).
 ;;
-;; Copyright (C) 2013 - 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2021  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -40,6 +40,14 @@
 (defcustom gpr-query-exec "gpr_query"
   "Executable for gpr_query."
   :type 'string)
+
+(defcustom gpr-query-exec-opts '()
+  "Options for `gpr-query-exec'; a list of strings.
+\"--project\" is specified automatically. This can be used to
+override the database location by specifying
+\"--db=<writeable_file>\". See \"gpr_query --help\" for more
+options."
+  :type 'list)
 
 (defcustom gpr-query-env nil
   "Environment variables needed by the gpr_query executable.
@@ -246,19 +254,24 @@ Must match gpr_query.adb Version.")
       (erase-buffer); delete any previous messages, prompt
       (setf (gpr-query--session-symbol-locs session) nil)
       (setf (gpr-query--session-symbols session) nil)
-      (setq process
-	    (apply #'start-process
-		   (buffer-name)
-		   buffer
-		   gpr-query-exec
-		   (cl-delete-if
-		    'null
+      (let ((args (cl-delete-if
+		   'null
+		   (append
 		    (list
 		     (concat "--project=" (file-name-nondirectory gpr-file))
 		     (when gpr-query--debug
 		       "--tracefile=gpr_query.trace"
 		       ;; The file gpr_query.trace should contain: gpr_query=yes
-		       )))))
+		       ))
+		    gpr-query-exec-opts))))
+	(when gpr-query--debug
+	  (message "gpr-query process args: %s" args))
+	(setq process
+	      (apply #'start-process
+		     (buffer-name)
+		     buffer
+		     gpr-query-exec
+		     args)))
       (cl-ecase command-type
 	(xref
 	 (setf (gpr-query--session-xref-process session) process)

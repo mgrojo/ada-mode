@@ -82,7 +82,9 @@ gnat-get-paths called more than once for ada-mode project
 
 gpr-query:
     start on read-only project for browsing
-        fails on create db - need better error message
+        happily reports that a read-only directory is writeable, and then creates the db!
+            in Windows File Explorer properties dialog, "read-only applies to files in folder" ie, _not_ to the folder!
+        test on debian
 
     need -opts option for gpr-query-exec to pass --db=<writeable dir>
 
@@ -153,7 +155,6 @@ testimonial:
 
 
     do another diff between annex P and my grammar
-
 
 find better hippie function for completion-at-point, add to recommended settings
 
