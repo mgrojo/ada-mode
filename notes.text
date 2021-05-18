@@ -80,14 +80,6 @@ incremental parse
 
 gnat-get-paths called more than once for ada-mode project
 
-gpr-query:
-    start on read-only project for browsing
-        happily reports that a read-only directory is writeable, and then creates the db!
-            in Windows File Explorer properties dialog, "read-only applies to files in folder" ie, _not_ to the folder!
-        test on debian
-
-    need -opts option for gpr-query-exec to pass --db=<writeable dir>
-
 Ada-mode add newbie test
     no project
     VC project
@@ -1516,6 +1508,8 @@ mark fixed bugs
         subject: closed by ada-mode version 7.1.3
         don't include Version: header; that's an Emacs version
     debbugs updates ada-mode summary page within half an hour; no emails
+
+post news on https://savannah.nongnu.org/news/submit.php?group_id=11631
 
 check https://www.emacswiki.org/emacs/AdaMode
     https://www.emacswiki.org/emacs/StephenLeake

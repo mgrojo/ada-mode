@@ -283,6 +283,8 @@ Then unpack, build, and install the required components. If you are
 unsure whether you need to install iconv, skip that step; a later step
 will complain if it is needed.
 
+@c FIXME: ada-mode uses -gnat2020, which makes one expression in
+@c gnatcoll-sql ambiguous. Change that, and specify -gnat2020 in .gpr
 @example
 unzip ~/Downloads/gnatcoll-bindings-20.2.zip
 cd gnatcoll-bindings-20.2
