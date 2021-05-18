@@ -358,7 +358,8 @@ is
                   Label : constant String := Get_Label (Params (Index_First .. Index_Last));
                begin
                   if Label_Used (Label) then
-                     --  WORKAROUND: gnat pro 21.1 requires the Index_ID qualification; ticket U516-001
+                     --  Ada 2020 added vector aggregates, making this ambiguous without
+                     --  Index_ID qualification
                      Result := Result & (if Need_Comma then " & " else "") & "Index_ID'(" &
                        Label & ", " & ID & ")";
                      Need_Comma := True;
@@ -380,7 +381,6 @@ is
                   Label : constant String := Get_Label (Params (First .. Last - 1));
                begin
                   if Label_Used (Label) then
-                     --  WORKAROUND: gnat pro 21.1 requires the Index_ID qualification; ticket U516-001
                      Result := Result & (if Need_Comma then " & " else "") &
                        "Index_ID'(" & Label & ", Invalid_Token_ID)";
                      Need_Comma := True;
