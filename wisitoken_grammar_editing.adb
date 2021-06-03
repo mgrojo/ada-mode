@@ -25,6 +25,7 @@ with Ada.Text_IO;
 with GNAT.Regexp;
 with SAL.Generic_Decimal_Image;
 with WisiToken.Generate;
+with WisiToken.Lexer;
 package body WisiToken_Grammar_Editing is
 
    use WisiToken;
@@ -3396,7 +3397,9 @@ package body WisiToken_Grammar_Editing is
               " -*-");
          Put_Line (File, ";;;");
          for Token of Leading_Non_Grammar loop
-            Put (File, Tree.Lexer.Buffer_Text (Token.Byte_Region));
+            if Token.ID /= Tree.Lexer.Descriptor.SOI_ID then
+               Put (File, Tree.Lexer.Buffer_Text (Token.Byte_Region));
+            end if;
          end loop;
       end;
 

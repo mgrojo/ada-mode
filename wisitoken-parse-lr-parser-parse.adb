@@ -417,6 +417,7 @@ begin
                         Trace.Put_Line
                           (Shared_Parser.Tree.Image
                              (Parser_State.Stream, Stack => True, Input => True, Shared => True,
+                              Node_Numbers => not Trace_Parse_No_State_Numbers,
                               Children => Trace_Parse > Detail));
                         Trace.Put_Line
                           ("    Current_Token: " &
@@ -508,7 +509,8 @@ begin
                   Trace.Put_Line
                     (" ... stack/stream: " &
                        Shared_Parser.Tree.Image
-                         (Parser_State.Stream, Stack => True, Input => True, Shared => True, Children => False));
+                         (Parser_State.Stream, Stack => True, Input => True, Shared => True, Children => False,
+                          State_Numbers => not Trace_Parse_No_State_Numbers));
                   if Parser_State.Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
                      Trace.Put_Line
                        (" ... recover_insert_delete:" & Image

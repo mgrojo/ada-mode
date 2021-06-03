@@ -23,6 +23,7 @@ with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Strings.Unbounded;
 with Test_McKenzie_Recover;
 with WisiToken.BNF;
 with WisiToken;
@@ -64,7 +65,8 @@ is
 
 begin
    if Argument_Count >= 2 then
-      Filter.Set_Name ("test_mckenzie_recover.adb " & Alg'Image & " : " & Argument (2));
+      Filter.Test_Name    := Ada.Strings.Unbounded.To_Unbounded_String ("test_mckenzie_recover.adb " & Alg'Image);
+      Filter.Routine_Name := Ada.Strings.Unbounded.To_Unbounded_String (Argument (2));
    end if;
 
    if Argument_Count >= 3 then

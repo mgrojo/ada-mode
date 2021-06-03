@@ -17,7 +17,7 @@ new Worker_Task 1
 
 recover: succeed, parser count 1
  0: stack/stream:
-(0, (0, -2;(Wisi_SOI, (1 . 0))),
+(0, (0, -2;(Wisi_SOI, (1 . 1))),
 (1, -1;(AT, (42 . 42))),
 ^(7, 0;(Identifier, (43 . 48)))/,
 (-1, -5:(Identifier))/,
@@ -28,10 +28,10 @@ recover: succeed, parser count 1
     resume_active: True, token goal 5, inc_shared_stream_token: FALSE
 
  0: 7: (0, -5:(Identifier)) : reduce 1 tokens to ClassType
-(ClassType_3, (43 . 48)) <= (2:(Identifier, (43 . 48)))
+(ClassType_3, (43 . 48)) <= (0;(Identifier, (43 . 48)))
  ... goto state 9
  0: 9: (0, -5:(Identifier)) : reduce 2 tokens to Annotation
-(Annotation_0, (42 . 48)) <= (1:(AT, (42 . 42)), (ClassType, (43 . 48)))
+(Annotation_0, (42 . 48)) <= (-1;(AT, (42 . 42)), (ClassType, (43 . 48)))
  ... goto state 5
  0: 5: (0, -5:(Identifier)) : reduce 1 tokens to AnnotationList
 (AnnotationList_0, (42 . 48)) <= ((Annotation, (42 . 48)))

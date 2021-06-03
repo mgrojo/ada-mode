@@ -25,9 +25,11 @@ with AUnit.Checks.Text_IO;
 with Ada.Directories;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
+with WisiToken.BNF;
 with WisiToken.Generate;
 with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
+with WisiToken.Test_Util;
 with WisiToken.Text_IO_Trace;
 with WisiToken_Grammar_Editing;
 with WisiToken_Grammar_Runtime;
@@ -36,77 +38,8 @@ package body BNF_WY_Test is
 
    function BNF_File_Name (Root_Name : in String) return String is (Root_Name & "_bnf.wy");
 
-   procedure Spawn
-     (Program     : in String;
-      Args        : in GNAT.OS_Lib.String_List;
-      Output_File : in String := "")
-   is
-      use Ada.Text_IO;
-      use AUnit.Checks;
-      use GNAT.OS_Lib;
-      Exe         : constant String_Access := Locate_Exec_On_Path (Program);
-      Success     : Boolean;
-      Return_Code : Integer;
-      pragma Unreferenced (Return_Code);
-   begin
-      if Exe = null then
-         AUnit.Assertions.Assert (False, "'" & Program & "' not found on path");
-      end if;
-
-      if WisiToken.Trace_Tests > WisiToken.Outline then
-         Put (Standard_Error, Program);
-         for Str_Acc of Args loop
-            Put (Standard_Error, " ");
-            Put (Standard_Error, Str_Acc.all);
-         end loop;
-         if Output_File /= "" then
-            Put (Standard_Error, " > " & Output_File);
-         end if;
-
-         New_Line (Standard_Error);
-      end if;
-
-      if Output_File = "" then
-         Spawn
-           (Program_Name => Exe.all,
-            Args         => Args,
-            Success      => Success);
-      else
-         Spawn
-           (Program_Name => Exe.all,
-            Args         => Args,
-            Output_File  => Output_File,
-            Err_To_Out   => True,
-            Return_Code  => Return_Code,
-            Success      => Success);
-      end if;
-
-      Check (Program, Success, True);
-   end Spawn;
-
-   procedure Dos2unix (File_Name : in String)
-   is
-      use GNAT.OS_Lib;
-   begin
-      if GNAT.OS_Lib.Directory_Separator = '\' then
-         declare
-            Exe : constant String_Access := Locate_Exec_On_Path ("dos2unix.exe");
-            Success : Boolean;
-            pragma Unreferenced (Success);
-         begin
-            Spawn
-              (Program_Name => Exe.all,
-               Args         =>
-                 (1         => new String'("-q"),
-                  2         => new String'(File_Name)),
-               Success      => Success);
-         end;
-      end if;
-   end Dos2unix;
-
    procedure Get_Gen_Set
      (Root_Name        : in     String;
-      Limit_Gen_Alg    : in     WisiToken.BNF.Generate_Algorithm;
       Generate_Set     :    out WisiToken.BNF.Generate_Set_Access;
       If_Lexer_Present :    out Boolean;
       McKenzie_Recover :    out Boolean;
@@ -114,7 +47,8 @@ package body BNF_WY_Test is
    is
       use AUnit.Checks;
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
-      use all type WisiToken.BNF.Generate_Algorithm;
+
+      Gen_Alg_Set : constant WisiToken.BNF.Generate_Algorithm_Set := WisiToken.BNF.From_Generate_Env_Var;
 
       Trace          : aliased WisiToken.Text_IO_Trace.Trace;
       Log_File       : Ada.Text_IO.File_Type;
@@ -141,17 +75,29 @@ package body BNF_WY_Test is
 
       Check ("grammar parse meta error", WisiToken.Generate.Error, False);
 
-      if Limit_Gen_Alg = None then
-         Generate_Set     := Input_Data.Generate_Set;
-      else
-         Generate_Set := null;
+      declare
+         Keep : array (Input_Data.Generate_Set'First .. Input_Data.Generate_Set'Last) of Boolean := (others => False);
+         Count : Integer := 0;
+         Last : Integer := Input_Data.Generate_Set'First - 1;
+      begin
+         for I in Input_Data.Generate_Set'Range loop
+            Keep (I) := Gen_Alg_Set (Input_Data.Generate_Set (I).Gen_Alg);
+         end loop;
 
-         for Tuple of Input_Data.Generate_Set.all loop
-            if Tuple.Gen_Alg = Limit_Gen_Alg then
-               Generate_Set := new WisiToken.BNF.Generate_Set'(1 => Tuple);
+         for B of Keep loop
+            if B then
+               Count := @ + 1;
             end if;
          end loop;
-      end if;
+
+         Generate_Set := new WisiToken.BNF.Generate_Set (1 .. Count);
+         for I in Input_Data.Generate_Set'Range loop
+            if Keep (I) then
+               Last := @ + 1;
+               Generate_Set (Last) := Input_Data.Generate_Set (I);
+            end if;
+         end loop;
+      end;
 
       If_Lexer_Present := Input_Data.If_Lexer_Present;
       Meta_Syntax      := Input_Data.Meta_Syntax;
@@ -191,7 +137,7 @@ package body BNF_WY_Test is
      (Computed : in String;
       Skip     : in AUnit.Checks.Text_IO.Line_Number_Array_Type := (1 .. 0 => 1))
    is begin
-      Dos2unix (Computed);
+      WisiToken.Test_Util.Dos2unix (Computed);
       AUnit.Checks.Text_IO.Check_Files ("", Computed, "../test/bnf/" & Computed & "_good", Skip);
    end Diff_One;
 
@@ -294,8 +240,8 @@ package body BNF_WY_Test is
          if Ada.Directories.Exists (Default_Input_Name) then
             Args (Last) := new String'(Default_Input_Name);
 
-            Spawn (Exe, Args (1 .. Last), Output);
-            Dos2unix (Output);
+            WisiToken.Test_Util.Spawn (Exe, Args (1 .. Last), Output);
+            WisiToken.Test_Util.Dos2unix (Output);
 
             AUnit.Checks.Text_IO.Check_Files ("", Output, "../test/bnf/" & Output & "_good");
          end if;
@@ -308,8 +254,8 @@ package body BNF_WY_Test is
               "-" & Input_Name & ".parse";
          begin
             Args (Last) := new String'("../test/bnf/" & Input_Name & ".input");
-            Spawn (Exe, Args (1 .. Last), Output);
-            Dos2unix (Output);
+            WisiToken.Test_Util.Spawn (Exe, Args (1 .. Last), Output);
+            WisiToken.Test_Util.Dos2unix (Output);
 
             AUnit.Checks.Text_IO.Check_Files ("", Output, "../test/bnf/" & Output & "_good");
          end;
@@ -336,7 +282,7 @@ package body BNF_WY_Test is
       --  wisi-generate, re2c, gprbuild are run from the Makefile, since
       --  some of the generated files are shared with other tests.
 
-      Get_Gen_Set (Simple_Name, Test.Gen_Alg, Gen_Set, If_Lexer_Present, McKenzie_Recover, Meta_Syntax);
+      Get_Gen_Set (Simple_Name, Gen_Set, If_Lexer_Present, McKenzie_Recover, Meta_Syntax);
 
       if Meta_Syntax = EBNF_Syntax and
         (Gen_Set /= null and then (for some Gen of Gen_Set.all => Gen.Gen_Alg /= Tree_Sitter))

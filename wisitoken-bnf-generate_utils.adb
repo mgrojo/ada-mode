@@ -224,10 +224,12 @@ package body WisiToken.BNF.Generate_Utils is
          declare
             Container : constant Token_Container :=  (Data => Result'Access);
          begin
-            Result.Descriptor.Case_Insensitive := Input_Data.Language_Params.Case_Insensitive;
-            Result.Descriptor.New_Line_ID      := Find_Kind (Container, "new-line");
-            Result.Descriptor.String_1_ID      := Find_Kind (Container, "string-single");
-            Result.Descriptor.String_2_ID      := Find_Kind (Container, "string-double");
+            Result.Descriptor.Case_Insensitive    := Input_Data.Language_Params.Case_Insensitive;
+            Result.Descriptor.New_Line_ID         := Find_Kind (Container, "new-line");
+            Result.Descriptor.String_1_ID         := Find_Kind (Container, "string-single");
+            Result.Descriptor.String_2_ID         := Find_Kind (Container, "string-double");
+            Result.Descriptor.Comment_New_Line_ID := Find_Kind (Container, "comment-new-line");
+            Result.Descriptor.Comment_Block_ID    := Find_Kind (Container, "comment-block");
          end;
 
          --  Image set in loop below, which also updates these widths.

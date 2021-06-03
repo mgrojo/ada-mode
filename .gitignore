@@ -36,3 +36,4 @@ build/*.xcp
 build/*.ps
 build/*.errors
 build/devel_obj/
+build/Makefile.conf

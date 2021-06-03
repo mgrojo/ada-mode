@@ -32,7 +32,7 @@ new Worker_Task 1
 
 recover: succeed, parser count 1
  0: stack/stream:
-(0, (0, -5;(Wisi_SOI, (1 . 0))),
+(0, (0, -5;(Wisi_SOI, (1 . 1))),
 (1, -4;(LEFT_CURLY_BRACKET, (16 . 16))),
 (5, -11:(EnumConstantList, (18 . 21))),
 ^(8, 0;(COMMA, (22 . 22)))/,
@@ -45,7 +45,7 @@ recover: succeed, parser count 1
 
  0: 8: (0, -12:(RIGHT_CURLY_BRACKET)) : shift and goto state 9
  0: 9: (-1, 1;(Wisi_EOI, (24 . 23))) : reduce 4 tokens to EnumBody
-(EnumBody_0, (16 . 22)) <= (1:(LEFT_CURLY_BRACKET, (16 . 16)), (EnumConstantList, (18 . 21)), 5:(COMMA, (22 . 22)), -12:(RIGHT_CURLY_BRACKET))
+(EnumBody_0, (16 . 22)) <= (-4;(LEFT_CURLY_BRACKET, (16 . 16)), (EnumConstantList, (18 . 21)), 0;(COMMA, (22 . 22)), -12:(RIGHT_CURLY_BRACKET))
  ... goto state 2
  0: 2: (-1, 1;(Wisi_EOI, (24 . 23))) : accept it
 (wisitoken_accept_0, (16 . 22)) <= ((EnumBody, (16 . 22)))

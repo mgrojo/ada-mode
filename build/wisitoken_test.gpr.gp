@@ -18,11 +18,20 @@ with "sal_devel";
 with "wisitoken";
 with "wisitoken_devel";
 with "standard_common";
--- with "tree_sitter"; FIXME: use gnatprep to include tree-sitter
+#if HAVE_TREE_SITTER="yes"
+with "tree_sitter"; -- tree-sitter utils installed
+#end if;
 project WisiToken_Test is
 
    type Generate_Type is ("BNF_EBNF_Tree_Sitter", "BNF_EBNF", "BNF", "EBNF", "Tree_Sitter");
-   Generate : Generate_Type := external ("GENERATE", "BNF_EBNF"); --  FIXME: use gnatprep to include tree-sitter
+   Generate : Generate_Type := external
+   ("GENERATE",
+#if HAVE_TREE_SITTER="yes"
+    "BNF_EBNF_Tree_Sitter"
+#else
+    "BNF_EBNF"
+#end if;
+   ); 
 
    for Source_Dirs use
      (
@@ -114,8 +123,9 @@ project WisiToken_Test is
       "dragon_4_43_tree_sitter_run.adb"
      );
      
-   --  FIXME: use gnatprep to include tree-sitter 
+#if HAVE_TREE_SITTER="no"
    for Excluded_Source_Files use ("wisitoken_tree_sitter.c"); 
+#end if;
      
    case Generate is
    when "BNF_EBNF_Tree_Sitter" =>

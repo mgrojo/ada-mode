@@ -160,16 +160,13 @@ package body Test_McKenzie_Recover is
             --  Expecting a Post_Parse_Action error. Label is "code" so prj.el
             --  wisitoken-goto-aunit-fail can find it.
             Check (Label_I & ".Code", Error.Label, LR_Parse_Action);
-            declare
-               Token : Recover_Token renames Parser.Tree.Get_Recover_Token (Error.Error_Token);
-            begin
-               Check (Label_I & ".Error.TOKEN_ID", Parser.Tree.ID (Token), Error_Token_ID);
-               if Error_Token_ID /= +Wisi_EOI_ID then
-                  --  EOF byte_region is unreliable
-                  Check
-                    (Label_I & ".Error_Token.Byte_Region", Parser.Tree.Byte_Region (Token), Error_Token_Byte_Region);
-               end if;
-            end;
+            Check (Label_I & ".Error.TOKEN_ID", Parser.Tree.ID (Error.Error_Token.Node), Error_Token_ID);
+            if Error_Token_ID /= +Wisi_EOI_ID then
+               --  EOF byte_region is unreliable
+               Check
+                 (Label_I & ".Error_Token.Byte_Region", Parser.Tree.Byte_Region (Error.Error_Token.Node),
+                  Error_Token_Byte_Region);
+            end if;
          else
             --  Expecting a Check error. We put "Error_Token_ID" in the check
             --  label, so wisitoken-dtrt can find the right place.
@@ -340,8 +337,8 @@ package body Test_McKenzie_Recover is
       Parse_Text
         ("procedure Water is begin loop begin D; if A then if B then end if; exit when C; end; end loop; end Water; "
          --        |10       |20       |30       |40       |50       |60       |70       |80       |90       |100
-         --  error 1 sequential_index:                                                    -1 1 2   3   4
-         --  error 2 sequential_index:                                                                   -1  1    2
+         --  error 1 sequential_index:                                                 -1 0  1 2   3   4
+         --  error 2 sequential_index:                                                                -1 0   1    2
         );
       --  Missing "end if" at byte 67, before token 18.
       --
@@ -1142,7 +1139,7 @@ package body Test_McKenzie_Recover is
               (Push_Back, +BEGIN_ID, -5) & (Push_Back, +block_label_opt_ID, Invalid) &
               (Insert, +END_ID, -5) & (Insert, +SEMICOLON_ID, -5),
             Strategy_Counts         => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
-            Enqueue_Low             => 20,
+            Enqueue_Low             => 19,
             Check_Low               => 5,
             Cost                    => 1,
             Expecting               => WisiToken.To_Token_ID_Set
@@ -2312,7 +2309,7 @@ package body Test_McKenzie_Recover is
               (Push_Back, +BEGIN_ID, -3) & (Push_Back, +block_label_opt_ID, Invalid) & (Insert, +END_ID, -3) &
               (Insert, +SEMICOLON_ID, -3),
             Strategy_Counts         => (Language_Fix => 1, Minimal_Complete => 1, others => 0),
-            Enqueue_Low             => 18,
+            Enqueue_Low             => 19,
             Check_Low               => 5,
             Cost                    => 1);
       end case;

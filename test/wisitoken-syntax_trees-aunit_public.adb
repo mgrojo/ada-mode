@@ -40,7 +40,7 @@ package body WisiToken.Syntax_Trees.AUnit_Public is
       use WisiToken.AUnit;
    begin
       Check (Label & ".ID", Computed.ID, Expected.ID);
-      Check (Label & ".Byte_Region", Computed.Byte_Region, Expected.Byte_Region);
+      Check (Label & ".Name", Computed.Name, Expected.Name);
    end Check;
 
    procedure Check

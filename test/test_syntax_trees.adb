@@ -19,10 +19,12 @@
 pragma License (GPL);
 
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
+with WisiToken.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
-with WisiToken.Syntax_Trees;
+with WisiToken.Syntax_Trees.AUnit_Public;
 with WisiToken.Text_IO_Trace;
 package body Test_Syntax_Trees is
    use WisiToken;
@@ -58,41 +60,23 @@ package body Test_Syntax_Trees is
    procedure Test_Left_Breakdown_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
+      use WisiToken.AUnit;
+      use WisiToken.Syntax_Trees.AUnit_Public;
+      use Ada_Lite_Actions;
 
+      --  The block_statement has a leading empty nonterm that must be
+      --  deleted.
       Ref : Stream_Node_Ref := Parse_Text ("begin A := B; end;");
    begin
-      --  build a loop_statement to breakdown
-      --  0210: (statement_3, (988 . 1035))
-      --  0209: | (compound_statement_2, (988 . 1035))
-      --  0208: | | (loop_statement_0, (988 . 1035))
-      --  0199: | | | (label_opt_1)
-      --  0091: | | | (iteration_scheme_2, (988 . 1014))
-      --  0019: | | | | 1:(FOR, (1 . 3))
-      --  0089: | | | | (iterator_specification_7, (992 . 1014))
-      --  0020: | | | | | 2:(IDENTIFIER, (5 . 5))
-      --  0021: | | | | | 3:(IN, (7 . 8))
-      --  0088: | | | | | (name_0, (1005 . 1014))
-      --  0087: | | | | | | (direct_name_0, (1005 . 1014))
-      --  0022: | | | | | | | 4:(IDENTIFIER, (10 . 10))
-      --  0023: | | | 4:(LOOP, (12 . 15))
-      --  0206: | | | (sequence_of_statements_1)
-      --  0205: | | | | (statement_statement_list_0)
-      --  0204: | | | | | (statement_1)
-      --  0203: | | | | | | (simple_statement_0)
-      --  0202: | | | | | | | (null_statement_0)
-      --  0200: | | | | | | | | -200:(NULL)
-      --  0201: | | | | | | | | -201:(SEMICOLON)
-      --  0052: | | | 5:(END, (17 . 19))
-      --  0053: | | | 6:(LOOP, (20 . 23))
-      --  0207: | | | (identifier_opt_1)
-      --  0054: | | | 7:(SEMICOLON, (24 . 25))
-
       Tree.Left_Breakdown (Ref);
 
       if Trace_Tests > Outline then
          Put_Line ("left_breakdown:");
          Put_Line (Tree.Image (Ref.Stream, Stack => True, Input => True, Shared => True, Children => True));
       end if;
+      Check ("1 el", Tree.ID (Ref.Stream, Ref.Element), +BEGIN_ID);
+      Check ("1 node", Tree.ID (Ref.Node), +BEGIN_ID);
+      Check_Address ("1 el = node", Tree.Get_Node (Ref.Stream, Ref.Element), Ref.Node);
    end Test_Left_Breakdown_1;
 
    ----------

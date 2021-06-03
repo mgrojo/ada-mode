@@ -478,7 +478,6 @@ package body WisiToken.Parse.LR.Parser is
    --
    --  Zombie_Count: count of parsers in Error state
    is
-      use all type WisiToken.Syntax_Trees.Stream_Node_Parents;
       use all type WisiToken.Syntax_Trees.Sequential_Index;
       use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
 
@@ -619,7 +618,7 @@ package body WisiToken.Parse.LR.Parser is
                end;
             end if;
          end loop;
-         if not Some_Paused and Shared_Parser.Max_Sequential_Index /= Syntax_Trees.Invalid_Stream_Node_Parents then
+         if not Some_Paused then
             McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
          end if;
       end if;

@@ -192,8 +192,6 @@ package body Test_Incremental is
 
          Validate_KMN
            (List => Edits,
-            Stable_Byte_First        => WisiToken.Base_Buffer_Pos (Initial'First),
-            Stable_Char_First        => WisiToken.Base_Buffer_Pos (Initial'First),
             Initial_Text_Byte_Region =>
               (WisiToken.Base_Buffer_Pos (Initial'First), WisiToken.Base_Buffer_Pos (Initial'Last)),
             Initial_Text_Char_Region =>
@@ -269,13 +267,17 @@ package body Test_Incremental is
       --  Two edits in one token not at EOI
       Parse_Text
         (Initial   => "A := B + C; --  A very long comment" & ASCII.LF & "D;",
-         --          1        |10       |20
+         --            1        |10       |20       |30       |36
          Edit_At   => 18,
          Delete    => "",
          Insert    => "nother",
          Edit_2_At => 24,
          Delete_2  => "long",
          Insert_2  => "big");
+
+      --  edited: "A := B + C; --  Another very big comment" & ASCII.LF & "D;",
+      --           1        |10       |20       |30       |40
+
    end Edit_Comment_2;
 
    procedure Edit_Comment_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -504,11 +506,14 @@ package body Test_Incremental is
       Parse_Text
         (Initial => "A := B + C; -- comment" & ASCII.LF &
            --        |1       |10       |20
-           "D;" & ASCII.LF &
+           "D (2);" & ASCII.LF &
            "C;",
          Edit_At => 23,
          Delete  => "" & ASCII.LF,
          Insert  => "");
+
+      --  Edited: "A := B + C; -- commentD (2);" & ASCII.LF & "C;"
+      --           |1       |10       |20
    end Delete_Comment_New_Line;
 
    procedure Delete_Comment_Start (T : in out AUnit.Test_Cases.Test_Case'Class)

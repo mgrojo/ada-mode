@@ -34,6 +34,7 @@ with WisiToken.Generate.LR.LR1_Generate;
 with WisiToken.Generate.LR1_Items;
 with WisiToken.Productions;
 with WisiToken_Grammar_Runtime;
+with WisiToken.Test_Util;
 with WisiToken.Text_IO_Trace;
 package body Test_LR1_Parallel is
 
@@ -128,74 +129,6 @@ package body Test_LR1_Parallel is
       Set_Output (Standard_Output);
       Close (Parse_Table_File);
    end Put_Sets;
-
-   procedure Spawn
-     (Program     : in String;
-      Args        : in GNAT.OS_Lib.String_List;
-      Output_File : in String := "")
-   is
-      use Ada.Text_IO;
-      use AUnit.Checks;
-      use GNAT.OS_Lib;
-      Exe         : constant String_Access := Locate_Exec_On_Path (Program);
-      Success     : Boolean;
-      Return_Code : Integer;
-      pragma Unreferenced (Return_Code);
-   begin
-      if Exe = null then
-         AUnit.Assertions.Assert (False, "'" & Program & "' not found on path");
-      end if;
-
-      if WisiToken.Trace_Action > WisiToken.Outline then
-         Put (Standard_Error, Program);
-         for Str_Acc of Args loop
-            Put (Standard_Error, " ");
-            Put (Standard_Error, Str_Acc.all);
-         end loop;
-         if Output_File /= "" then
-            Put (Standard_Error, " > " & Output_File);
-         end if;
-
-         New_Line (Standard_Error);
-      end if;
-
-      if Output_File = "" then
-         Spawn
-           (Program_Name => Exe.all,
-            Args         => Args,
-            Success      => Success);
-      else
-         Spawn
-           (Program_Name => Exe.all,
-            Args         => Args,
-            Output_File  => Output_File,
-            Err_To_Out   => True,
-            Return_Code  => Return_Code,
-            Success      => Success);
-      end if;
-
-      Check (Program, Success, True);
-   end Spawn;
-
-   procedure Dos2unix (File_Name : in String)
-   is
-      use GNAT.OS_Lib;
-   begin
-      if GNAT.OS_Lib.Directory_Separator = '\' then
-         declare
-            Exe : constant String_Access := Locate_Exec_On_Path ("dos2unix.exe");
-            Success : Boolean;
-            pragma Unreferenced (Success);
-         begin
-            Spawn
-              (Program_Name => Exe.all,
-               Args         =>
-                 (1         => new String'("-q"),
-                  2         => new String'(File_Name)),
-               Success      => Success);
-         end;
-      end if;
-   end Dos2unix;
 
    ----------
    --  Test procedures
@@ -303,11 +236,11 @@ package body Test_LR1_Parallel is
    begin
       Check ("input file exists", Ada.Directories.Exists (Input_Name), True);
 
-      Spawn (Exe_t1, Args, Output_t1);
-      Dos2unix (Output_t1);
+      WisiToken.Test_Util.Spawn (Exe_t1, Args, Output_t1);
+      WisiToken.Test_Util.Dos2unix (Output_t1);
 
-      Spawn (Exe_t8, Args, Output_t8);
-      Dos2unix (Output_t8);
+      WisiToken.Test_Util.Spawn (Exe_t8, Args, Output_t8);
+      WisiToken.Test_Util.Dos2unix (Output_t8);
 
       AUnit.Checks.Text_IO.Check_Files ("", Output_t1, Output_t8);
    end Compare_Parse;

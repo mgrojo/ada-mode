@@ -26,10 +26,11 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Generate.LR.LALR_Generate;
-with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer.Regexp;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
+with WisiToken.Test_Util;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada;
 package body Association_Grammar_Test is
@@ -187,7 +188,7 @@ package body Association_Grammar_Test is
       Close (Trace_File);
       WisiToken.Trace_Parse := Orig_Trace_Parse;
 
-      -- FIXME: run dos2unix
+      WisiToken.Test_Util.Dos2unix (Trace_File_Name);
 
       Check_Files ("1", Trace_File_Name, Expected_Trace_File_Name);
    exception

@@ -66,6 +66,8 @@ package WisiToken.BNF is
    type Generate_Algorithm_Set is array (Generate_Algorithm) of Boolean;
    type Generate_Algorithm_Set_Access is access Generate_Algorithm_Set;
 
+   function From_Generate_Env_Var return Generate_Algorithm_Set;
+
    type Output_Language is (Ada_Lang, Ada_Emacs_Lang);
    subtype Ada_Output_Language is Output_Language range Ada_Lang .. Ada_Emacs_Lang;
    --  _Lang to avoid colliding with the standard package Ada and

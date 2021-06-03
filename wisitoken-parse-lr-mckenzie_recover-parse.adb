@@ -43,18 +43,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
       for T of Tokens loop
          Nonterm.Contains_Virtual_Terminal := @ or Tree.Contains_Virtual_Terminal (T);
-
-         declare
-            Byte_Region : constant Buffer_Region := Tree.Byte_Region (T);
-         begin
-            if Nonterm.Byte_Region.First > Byte_Region.First then
-               Nonterm.Byte_Region.First := Byte_Region.First;
-            end if;
-
-            if Nonterm.Byte_Region.Last < Byte_Region.Last then
-               Nonterm.Byte_Region.Last := Byte_Region.Last;
-            end if;
-         end;
+         --  FIXME: tree.contains_virtual_terminal is expensive, non-incremental - don't cache
 
          if not First_Terminal_Set then
             Nonterm.First_Terminal := Tree.First_Terminal (T);
@@ -889,10 +878,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          when Error =>
 
-            Config.Error_Token :=
-              (ID          => Tree.ID (Current_Token),
-               Byte_Region => Tree.Byte_Region (Current_Token),
-               others      => <>);
+            Config.Error_Token := Current_Token;
             Success            := False;
 
          when Accept_It =>

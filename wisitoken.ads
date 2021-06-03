@@ -131,6 +131,10 @@ package WisiToken is
       Case_Insensitive : Boolean;  -- keywords and names
       New_Line_ID      : Token_ID;
 
+      Comment_New_Line_ID : Token_ID;
+      Comment_Block_ID    : Token_ID;
+      --  Used by Edit_Tree to detect deleted comment start/end.
+
       String_1_ID : Token_ID;
       String_2_ID : Token_ID;
       --  String_1 delimited by '; String_2 by ".

@@ -319,15 +319,13 @@ package body WisiToken.Parse.LR.Parser_Lists is
          Stack_2 : in Syntax_Trees.Stream_ID)
         return Boolean
       --  True if equal
-      is
-      begin
+      is begin
          if Tree.Stack_Depth (Stack_1) /= Tree.Stack_Depth (Stack_2) then
             return False;
          else
             for I in reverse 1 .. Tree.Stack_Depth (Stack_1) - 1 loop
                --  Assume they differ near the top; no point in comparing bottom
-               --  item. The syntax tree nodes will differ even if the tokens are the
-               --  same, so only compare the tokens.
+               --  item.
                if Tree.State (Stack_1) /= Tree.State (Stack_2) then
                   return False;
                else
@@ -336,10 +334,10 @@ package body WisiToken.Parse.LR.Parser_Lists is
                      Node_1 : constant Valid_Node_Access := Tree.Get_Node (Stack_1, Tree.Peek (Stack_1, I));
                      Node_2 : constant Valid_Node_Access := Tree.Get_Node (Stack_2, Tree.Peek (Stack_2, I));
                   begin
-                     if not (Tree.Label (Node_1) = Tree.Label (Node_2) and then
-                               Tree.ID (Node_1) = Tree.ID (Node_2) and then
-                               Tree.Byte_Region (Node_1) = Tree.Byte_Region (Node_2))
-                     then
+                     --  We can't use Node_1 = Node_2, because the nodes were created
+                     --  independently by separate parsers. For LR parsing, the only node
+                     --  attribute that matters is ID.
+                     if Tree.ID (Node_1) /= Tree.ID (Node_2) then
                         return False;
                      end if;
                   end;

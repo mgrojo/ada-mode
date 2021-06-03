@@ -130,6 +130,10 @@ package WisiToken.Syntax_Trees is
    type Base_Sequential_Index is new Integer;
    Invalid_Sequential_Index : constant Base_Sequential_Index := Base_Sequential_Index'Last;
    subtype Sequential_Index is Base_Sequential_Index range Base_Sequential_Index'First .. Invalid_Sequential_Index - 1;
+   --  Identifies a sequence of tokens in Shared_Stream during error
+   --  recovery. Index 1 is the error token (set in
+   --  wisitoken-parse-lr-mckenzie_recover-base.adb Initialize).
+   --
    --  We need arbitrarily large negative index for Push_Back and
    --  Undo_Reduce error recover operations, and arbitrarily large
    --  positive index for handling unterminated strings.
@@ -285,14 +289,10 @@ package WisiToken.Syntax_Trees is
       when True =>
          ID : Token_ID := Invalid_Token_ID;
 
-         Byte_Region : Buffer_Region := Null_Buffer_Region;
-         --  Byte_Region is used to detect empty tokens, for cost and other
-         --  issues. Set from real children of virtual nonterms.
-
          First_Terminal : Node_Access := Invalid_Node_Access;
          --  For ID in Nonterminals, first terminal of this token in the Tree
          --  shared or parse stream, cached from children. For terminals,
-         --  Invalid_Node_Access.
+         --  Invalid_Node_Access. Used to detect empty nonterm.
 
          Name : Buffer_Region := Null_Buffer_Region;
          --  Set and used by In_Parse_Actions.
@@ -316,7 +316,7 @@ package WisiToken.Syntax_Trees is
          --  tree.
          --
          --  In a non-default Recover_Token, Element_Node cannot be
-         --  Invalid_Node_Access.
+         --  Invalid_Node_Access. FIXME: when is it invalid?
       end case;
    end record;
 
@@ -731,6 +731,16 @@ package WisiToken.Syntax_Trees is
    --
    --  Parent/child links are set to Invalid_Node_Access as appropriate.
 
+   procedure Breakdown
+     (Tree : in out Syntax_Trees.Tree;
+      Ref  : in out Stream_Node_Parents)
+   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Tree.Label (Ref.Ref.Element) = Nonterm and
+               Ref.Ref.Node /= Invalid_Node_Access and Tree.Stack_Top (Ref.Ref.Stream) /= Ref.Ref.Element and
+               Parents_Valid (Ref),
+     Post => Ref.Ref.Node = Ref.Ref.Node'Old and Parents_Valid (Ref) and
+             Tree.First_Terminal (Get_Node (Ref.Ref.Element)) = Ref.Ref.Node;
+   --  Same as Breakdown (Ref.Ref), but supports not Tree.Parents_Set.
+
    function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return State_Index
    with Pre => Tree.Is_Valid (Stream);
    --  Return State from Stream.Stack_Top.
@@ -1070,6 +1080,15 @@ package WisiToken.Syntax_Trees is
       Trailing_Non_Grammar : in Boolean := False)
      return WisiToken.Buffer_Region;
 
+   function Byte_Region
+     (Tree                 : in Syntax_Trees.Tree;
+      Ref                  : in Stream_Node_Ref;
+      Trailing_Non_Grammar : in Boolean := False)
+     return WisiToken.Buffer_Region
+   with Pre => Valid_Stream_Node (Tree, Ref);
+   --  Return Byte_Region or Ref.Node, using stream to find prev, next
+   --  non_grammar if needed.
+
    function Name (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Buffer_Region;
    --  If Node.Label in Terminal_Label, return Node.Byte_Region; else
    --  return Node.Name.
@@ -1336,9 +1355,24 @@ package WisiToken.Syntax_Trees is
       Trailing_Non_Grammar : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Parents_Set,
      Post => Tree.Correct_Stream_Node (Ref);
-   --  Return next terminal node that can give byte or char pos.
+   --  Update Ref to the next terminal node that can give byte or char
+   --  pos.
    --
    --  If Trailing_Non_Grammar, return next terminal after Ref.Ref.Node
+   --  that is a Source_Terminal, or a virtual terminal with non-empty
+   --  non_grammar. If not Trailing_Non_Grammar, only return a
+   --  Source_Terminal.
+
+   function Prev_Source_Terminal
+     (Tree                 : in Syntax_Trees.Tree;
+      Ref                  : in Stream_Node_Ref;
+      Trailing_Non_Grammar : in Boolean)
+   return Stream_Node_Ref
+   with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Parents_Set,
+     Post => Tree.Correct_Stream_Node (Prev_Source_Terminal'Result);
+   --  Return the previous terminal node that can give byte or char pos.
+   --
+   --  If Trailing_Non_Grammar, return prev terminal before Ref.Ref.Node
    --  that is a Source_Terminal, or a virtual terminal with non-empty
    --  non_grammar. If not Trailing_Non_Grammar, only return a
    --  Source_Terminal.
@@ -1981,16 +2015,18 @@ package WisiToken.Syntax_Trees is
    --  If Children, subtree of each stream element is included.
 
    function Image
-     (Tree         : in Syntax_Trees.Tree;
-      Stream       : in Stream_ID;
-      Stack        : in Boolean                   := True;
-      Input        : in Boolean                   := True;
-      Shared       : in Boolean                   := False;
-      Children     : in Boolean                   := False;
-      Non_Grammar  : in Boolean                   := False;
-      Augmented    : in Boolean                   := False;
-      Line_Numbers : in Boolean                   := False;
-      Image_Action : in Syntax_Trees.Image_Action := null)
+     (Tree          : in Syntax_Trees.Tree;
+      Stream        : in Stream_ID;
+      Stack         : in Boolean                   := True;
+      Input         : in Boolean                   := True;
+      Shared        : in Boolean                   := False;
+      Children      : in Boolean                   := False;
+      Node_Numbers  : in Boolean                   := True;
+      Non_Grammar   : in Boolean                   := False;
+      Augmented     : in Boolean                   := False;
+      Line_Numbers  : in Boolean                   := False;
+      Image_Action  : in Syntax_Trees.Image_Action := null;
+      State_Numbers : in Boolean                   := True)
      return String;
    --  Image of each node. If Stack, includes stack; if Input, includes
    --  input; if Shared, includes continuation in Shared_Stream. If
@@ -2510,7 +2546,7 @@ private
      (Tree : in Syntax_Trees.Tree;
       Ref  : in Stream_Node_Ref)
      return Boolean
-   is (Tree.Contains (Ref.Stream, Ref.Element) and
+   is (Tree.Contains (Ref.Stream, Ref.Element) and then
          (Ref.Node = Invalid_Node_Access or else
             (not Tree.Parents_Set or else
                Tree.Subtree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element))));

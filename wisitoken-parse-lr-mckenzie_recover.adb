@@ -921,15 +921,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Tree     : Syntax_Trees.Tree renames Shared_Parser.Tree;
       Terminal : Stream_Node_Parents := Shared_Parser.Max_Sequential_Index;
    begin
-      loop
-         Tree.Set_Sequential_Index (Terminal.Ref.Node, Invalid_Sequential_Index);
-         exit when Terminal.Ref.Node = Shared_Parser.Min_Sequential_Index.Ref.Node;
+      if Terminal /= Syntax_Trees.Invalid_Stream_Node_Parents then
+         loop
+            Tree.Set_Sequential_Index (Terminal.Ref.Node, Invalid_Sequential_Index);
+            exit when Terminal.Ref.Node = Shared_Parser.Min_Sequential_Index.Ref.Node;
 
-         Tree.Prev_Terminal (Terminal);
-      end loop;
+            Tree.Prev_Terminal (Terminal);
+         end loop;
 
-      Shared_Parser.Min_Sequential_Index := Invalid_Stream_Node_Parents;
-      Shared_Parser.Max_Sequential_Index := Invalid_Stream_Node_Parents;
+         Shared_Parser.Min_Sequential_Index := Invalid_Stream_Node_Parents;
+         Shared_Parser.Max_Sequential_Index := Invalid_Stream_Node_Parents;
+      end if;
    end Clear_Sequential_Index;
 
    function Find_ID

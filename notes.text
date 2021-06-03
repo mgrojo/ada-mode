@@ -31,16 +31,17 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-run all tests
-    java_expressions_ch19_lr1_t1.parse
-        second error recovery enqueue more
+FAIL test_incremental.adb : Delete_Comment_New_Line ; not deleting newly commented code
+    change lexer to include new_line in Comment_New_Line?
+        more complex check to see if start or end deleted
+        then comment_Block is handled the same as comment_new_line
 
-    test_mckenzie_recover.adb LR1 :
-        Missing_Name_5 . 2.Enqueue_Low got  19 expecting  20
-        Check_Multiple_Delete_For_Insert 2. 2.Enqueue_Low got  19 expecting  18
+    need delete_comment_end similar to delete_comment_start
+        factor out Delete_Terminal that does breakdown if needed.
 
-    test_lr_expecting_terminal_sequence.adb : Test_Expecting
-        null access in clear_sequential_index
+
+lexer respect only DOS or Unix line ending, not both; run-time choice.
+    add tests
 
 
 w-m_r-explore.adb Just_Pushed_Back_Or_Deleted:

@@ -30,6 +30,7 @@ with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
+with WisiToken.Test_Util;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 package body Name_Grammar_Test is
@@ -190,7 +191,7 @@ package body Name_Grammar_Test is
       Set_Output (Standard_Output);
       WisiToken.Trace_Parse := Orig_Trace_Parse;
 
-      -- FIXME: run dos2unix
+      WisiToken.Test_Util.Dos2unix (Trace_File_Name);
 
       Check_Files ("1", Trace_File_Name, Expected_Trace_File_Name);
    exception
