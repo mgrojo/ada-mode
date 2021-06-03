@@ -4,7 +4,7 @@
 --  test name before it is run, to help find which is hanging, or
 --  otherwise crashing without helpful output.
 --
---  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2019, 2021 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -16,13 +16,18 @@
 pragma License (GPL);
 
 with AUnit.Tests;
+with Ada.Strings.Unbounded;
 package AUnit.Test_Filters.Verbose is
 
-   type Filter is new Name_Filter with record
+   type Filter is new Test_Filter with record
+      Test_Name    : Ada.Strings.Unbounded.Unbounded_String;
+      Routine_Name : Ada.Strings.Unbounded.Unbounded_String;
+      --  If *_Name is empty, it matches all.
+
       Verbose : Boolean := False;
+      --  If Verbose, outputs to Text_IO.Standard_Error the name of each
+      --  test before it is run.
    end record;
-   --  Same filter as parent, and if Verbose, outputs to
-   --  Text_IO.Standard_Error the name of each test before it is run.
 
    overriding function Is_Active (Filter : Verbose.Filter; T : AUnit.Tests.Test'Class) return Boolean;
 

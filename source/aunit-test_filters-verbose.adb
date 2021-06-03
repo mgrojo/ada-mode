@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2019, 2021 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -20,28 +20,45 @@ package body AUnit.Test_Filters.Verbose is
 
    overriding function Is_Active (Filter : Verbose.Filter; T : AUnit.Tests.Test'Class) return Boolean
    is
+      use Ada.Strings.Unbounded;
       use Ada.Text_IO;
-
-      Result : constant Boolean := Name_Filter (Filter).Is_Active (T);
    begin
-      if Filter.Verbose and Result then
-         if T in AUnit.Simple_Test_Cases.Test_Case'Class then
-            declare
-               Name         : constant Message_String := AUnit.Simple_Test_Cases.Test_Case'Class (T).Name;
-               Routine_Name : constant Message_String := AUnit.Simple_Test_Cases.Test_Case'Class (T).Routine_Name;
-            begin
-               if Name = null then
-                  Put_Line (Standard_Error, "unnamed test, type: " & Ada.Tags.Expanded_Name (T'Tag));
-               else
-                  Put_Line (Standard_Error, Name.all & (if Routine_Name = null then "" else " " & Routine_Name.all));
-               end if;
-            end;
-         else
-            --  We don't know how to get a name.
-            Put_Line (Standard_Error, "unnamed test, type: " & Ada.Tags.Expanded_Name (T'Tag));
-         end if;
+      if not (T in AUnit.Simple_Test_Cases.Test_Case'Class) then
+         return False;
       end if;
-      return Result;
+
+      declare
+         Simple_T : AUnit.Simple_Test_Cases.Test_Case'Class renames AUnit.Simple_Test_Cases.Test_Case'Class (T);
+      begin
+         if Length (Filter.Test_Name) = 0 then
+            null; -- matches
+         elsif Simple_T.Name = null then
+            return False;
+         elsif Simple_T.Name.all = To_String (Filter.Test_Name) then
+            null; -- matches
+         else
+            return False;
+         end if;
+
+         if Length (Filter.Routine_Name) = 0 then
+            null; -- matches
+         elsif Simple_T.Routine_Name.all = To_String (Filter.Routine_Name) then
+            null; -- matches
+         else
+            return False;
+         end if;
+
+         if Filter.Verbose then
+            if Simple_T.Name = null then
+               Put_Line (Standard_Error, "unnamed test, type: " & Ada.Tags.Expanded_Name (T'Tag));
+            else
+               Put_Line
+                 (Standard_Error, Simple_T.Name.all &
+                    (if Simple_T.Routine_Name = null then "" else " " & Simple_T.Routine_Name.all));
+            end if;
+         end if;
+      end;
+      return True;
    end Is_Active;
 
 end AUnit.Test_Filters.Verbose;
