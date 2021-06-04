@@ -62,6 +62,7 @@ is
         (Parser, Trace'Unchecked_Access, Create_Lexer, Create_Parse_Table, User_Data => null);
 
       Parser.Tree.Lexer.Reset_With_File (-File_Name);
+      Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
       Parser.Parse (Log_File);
 
       --  No user data, so no point in calling Execute_Actions

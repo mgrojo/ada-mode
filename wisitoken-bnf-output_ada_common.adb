@@ -1143,21 +1143,21 @@ package body WisiToken.BNF.Output_Ada_Common is
       for I in All_Tokens (Generate_Data).Iterate (Non_Grammar => True, Nonterminals => False) loop
 
          if Kind (Generate_Data, I) = "comment-new-line" then
-            --  Regexp only includes start, to simplify implementation of skip-to().
-            --
             --  This must be before the check for "trailing context syntax", to
             --  handle Java comments.
-            Indent_Line (Name (Generate_Data, I) & " = " & Value (Generate_Data, I) & "[^\x0a\x04]* ;");
+            Indent_Line
+              (Name (Generate_Data, I) & " = " & Value (Generate_Data, I) &
+                 "[^\x0a\x04]*([\x0a]|[\x0d][\x0a]|[\x04]) ;");
 
          elsif 0 /= Index (Source => Value (Generate_Data, I), Pattern => "/") then
-            --  trailing context syntax; forbidden in definitions
+            --  Trailing context syntax; forbidden in definitions
             null;
 
          elsif Kind (Generate_Data, I) = "EOI" then
             Indent_Line (Name (Generate_Data, I) & " = [\x04];");
 
          elsif Kind (Generate_Data, I) = "delimited-text" then
-            --  not declared in definitions
+            --  Not declared in definitions
             null;
 
          elsif Kind (Generate_Data, I) = "keyword" and Input_Data.Language_Params.Case_Insensitive then
@@ -1166,7 +1166,6 @@ package body WisiToken.BNF.Output_Ada_Common is
             Indent_Line (Name (Generate_Data, I) & " = '" & Strip_Quotes (Value (Generate_Data, I)) & "';");
 
          elsif Kind (Generate_Data, I) = "new-line" then
-            --  Regexp ignored, to simplify implementation of skip-to().
             Indent_Line (Name (Generate_Data, I) & " = [\x0a]|[\x0d][\x0a];");
 
          else
@@ -1193,18 +1192,12 @@ package body WisiToken.BNF.Output_Ada_Common is
                  (Val & " {*id =" & WisiToken.Token_ID'Image (ID (I)) &
                     "; skip_to(lexer, " & Repair_Image (Generate_Data, I) & "); continue;}");
 
-            elsif Kind (Generate_Data, I) = "new-line" then
-               --  regexp ignored; DOS and Unix line-endings hard-coded above
+            elsif Kind (Generate_Data, I) = "new-line" or
+              Kind (Generate_Data, I) = "comment-new-line"
+            then
                Indent_Line
                  (Name (Generate_Data, I) &
                     " {*id =" & WisiToken.Token_ID'Image (ID (I)) & "; lexer->line++; continue;}");
-
-            elsif Kind (Generate_Data, I) = "comment-new-line" then
-               --  Regexp only includes start, to simplify implementation of skip-to().
-               --
-               --  This must be before the check for "trailing context syntax", to
-               --  handle Java comments.
-               Indent_Line (Name (Generate_Data, I) & " {*id =" & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
 
             elsif 0 /= Index (Source => Val, Pattern => "/") then
                Indent_Line (Val & " {*id =" & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");

@@ -32,7 +32,6 @@ update-wisitoken_grammar
 
  current work
 FAIL test_incremental.adb : Delete_Comment_New_Line ; not deleting newly commented code
-    change lexer to include new_line in Comment_New_Line?
         more complex check to see if start or end deleted
         then comment_Block is handled the same as comment_new_line
 

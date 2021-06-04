@@ -316,9 +316,12 @@ regexp present is ignored.
 @verbatim
 %token <comment-new-line> COMMENT "--"
 @end verbatim
-Declares a non-grammar comment token. The regexp argument must match
-only the comment start (the example shows the Ada comment start); DOS
-and Unix line endings, and end of file, are added internally.
+Declares a non-grammar comment token that is terminated by a line end
+or end of input. The regexp argument must match only the comment
+start (the example shows the Ada comment start); DOS and Unix line
+endings, and end of input, are added internally. The token includes the
+line end; no separate new-line token is produced after the comment
+token.
 
 @item <non-reporting>
 @verbatim

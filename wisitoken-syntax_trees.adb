@@ -630,7 +630,9 @@ package body WisiToken.Syntax_Trees is
    --  Char_Pos to the character position following the New_Line.
    is begin
       for Tok of Node.Non_Grammar loop
-         if Tok.ID in Tree.Lexer.Descriptor.New_Line_ID | Tree.Lexer.Descriptor.EOI_ID and
+         if Tok.ID in Tree.Lexer.Descriptor.New_Line_ID |
+           Tree.Lexer.Descriptor.Comment_New_Line_ID |
+           Tree.Lexer.Descriptor.EOI_ID and
            Tok.Line_Region.First = Line - 1
          then
             Char_Pos := Tok.Char_Region.Last + 1;
@@ -1645,7 +1647,8 @@ package body WisiToken.Syntax_Trees is
      Post => Find_New_Line'Result = Invalid_Node_Access or else
              (Find_New_Line'Result.Label in Terminal_Label and then
                 (for some Token of Find_New_Line'Result.Non_Grammar =>
-                   (Token.ID = Tree.Lexer.Descriptor.New_Line_ID and Token.Line_Region.First = Line - 1) or
+                   (Token.ID in Tree.Lexer.Descriptor.New_Line_ID | Tree.Lexer.Descriptor.Comment_New_Line_ID and
+                      Token.Line_Region.First = Line - 1) or
                       (Token.ID = Tree.Lexer.Descriptor.EOI_ID and Token.Line_Region.First in Line - 1 | Line)))
    --  Return node under Node that contains the non-grammar New_Line or
    --  EOI that ends Line - 1. Update Char_Pos to the position of the
@@ -1871,7 +1874,9 @@ package body WisiToken.Syntax_Trees is
      --  (or EOI). If not found (ie Line < SOI.Line or Line > EOI.Line),
      --  Ref.Ref is Invalid_Stream_Node_Ref, Char_Pos is
      --  Invalid_Buffer_Pos.
-   is begin
+   is
+      Start_Stream : constant Stream_ID := Ref.Ref.Stream;
+   begin
       loop
          Find_New_Line_1 (Tree, Ref, Line, Char_Pos);
          if Ref.Ref = Invalid_Stream_Node_Ref then
@@ -1881,9 +1886,9 @@ package body WisiToken.Syntax_Trees is
             Stream_Next (Tree, Ref, Rooted => True);
 
             if Ref.Ref = Invalid_Stream_Node_Ref then
-               if Ref.Ref.Stream /= Tree.Shared_Stream then
+               if Start_Stream /= Tree.Shared_Stream then
                   declare
-                     Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Ref.Ref.Stream.Cur);
+                     Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Start_Stream.Cur);
                   begin
                      Ref :=
                        (Ref => (Tree.Shared_Stream, (Cur => Parse_Stream.Shared_Link), Invalid_Node_Access),

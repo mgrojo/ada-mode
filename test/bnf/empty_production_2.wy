@@ -27,10 +27,12 @@
 
 %token <punctuation> SEMICOLON ";"
 
-;; Since we don't define a <new-line> token, lines are not counted;
-;; all tokens are on line 1.
-%non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
+;; Since we define a <comment-new-line> token, those lines are
+;; counted; so we must also define a new-line token to get consistent
+;; line numbers.
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <comment-new-line> COMMENT %[ "--" ]%
+%non_grammar <new-line> NEW_LINE
 
 %start declarations
 

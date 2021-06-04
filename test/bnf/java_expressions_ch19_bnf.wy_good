@@ -51,7 +51,7 @@
 
 %token <symbol> Identifier %[ [a-zA-Z]+ ]%
 %non_grammar <comment-new-line> EndOfLine_COMMENT %[ "//" ]%
-%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+%non_grammar <new-line> NEW_LINE
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
 
 CompilationUnit
