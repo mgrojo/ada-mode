@@ -513,7 +513,7 @@ package body Test_Incremental is
          Insert  => "");
 
       --  Edited: "A := B + C; -- commentD (2);" & ASCII.LF & "C;"
-      --           |1       |10       |20
+      --           |1       |10       |20          |29
    end Delete_Comment_New_Line;
 
    procedure Delete_Comment_Start (T : in out AUnit.Test_Cases.Test_Case'Class)

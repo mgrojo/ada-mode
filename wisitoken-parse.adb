@@ -252,6 +252,11 @@ package body WisiToken.Parse is
       --  shifted, because the correct shift is unknown at the time they are
       --  detached. test case ada_mode-recover_42.adb
 
+      Comment_End_Deleted : Boolean         := False;
+      New_Comment_End     : Base_Buffer_Pos := Invalid_Buffer_Pos;
+      --  If Comment_End_Deleted, a comment end was deleted; delete all tree
+      --  tokens thru New_Comment_End (which is not shifted).
+
       Stream : Syntax_Trees.Stream_ID; -- Tree.Shared_Stream that we are editing.
 
       Terminal : Terminal_Ref;
@@ -542,10 +547,19 @@ package body WisiToken.Parse is
                            Lex_Start_Char := Non_Grammar (Terminal_Non_Grammar_Next).Char_Region.First + Shift_Chars;
                            Lex_Start_Line := Non_Grammar (Terminal_Non_Grammar_Next).Line_Region.First + Shift_Lines;
                            Do_Scan := True;
+
+                           if KMN.Deleted_Bytes > 0 and
+                             Non_Grammar (Terminal_Non_Grammar_Next).Byte_Region.First < Deleted_Region.First and
+                             Non_Grammar (Terminal_Non_Grammar_Next).Byte_Region.Last >= Deleted_Region.Last
+                           then
+                              --  test_incremental.adb Delete_Comment_New_Line
+                              Comment_End_Deleted := True;
+                              New_Comment_End     := Non_Grammar (Terminal_Non_Grammar_Next).Byte_Region.Last;
+                           end if;
                         end if;
 
-                        --  Remaining Non_Grammar will either be scanned, or needs to move to
-                        --  a new grammar, so delete or move to floating now.
+                        --  Remaining Non_Grammar will either be scanned, or move to
+                        --  a new grammar token, so delete or move to floating now.
                         for I in Terminal_Non_Grammar_Next .. Non_Grammar.Last_Index loop
                            declare
                               Byte_Region : Buffer_Region renames Non_Grammar (I).Byte_Region;
@@ -676,7 +690,9 @@ package body WisiToken.Parse is
                                          Delete'Image & " .." & Non_Grammar.Last_Index'Image);
                                  end if;
                                  for I in Delete .. Non_Grammar.Last_Index loop
-                                    if Non_Grammar (I).ID = Tree.Lexer.Descriptor.New_Line_ID then
+                                    if Non_Grammar (I).ID in Tree.Lexer.Descriptor.New_Line_ID |
+                                      Tree.Lexer.Descriptor.Comment_New_Line_ID
+                                    then
                                        Delta_Lines := @ - 1;
                                     end if;
                                  end loop;
@@ -790,7 +806,9 @@ package body WisiToken.Parse is
                                     Parser.Trace.Put_Line
                                       ("... delete " & Lexer.Image (Token, Tree.Lexer.Descriptor.all));
                                  end if;
-                                 if Token.ID = Tree.Lexer.Descriptor.New_Line_ID then
+                                 if Token.ID in Tree.Lexer.Descriptor.New_Line_ID |
+                                   Tree.Lexer.Descriptor.Comment_New_Line_ID
+                                 then
                                     Shift_Lines := @ - 1;
                                  end if;
                               else
@@ -945,7 +963,9 @@ package body WisiToken.Parse is
                            end if;
 
                            Process_Non_Grammar_Token (Parser, Last_Grammar.Node, Token);
-                           if Token.ID = Parser.Tree.Lexer.Descriptor.New_Line_ID then
+                           if Token.ID in Parser.Tree.Lexer.Descriptor.New_Line_ID |
+                              Tree.Lexer.Descriptor.Comment_New_Line_ID
+                           then
                               Shift_Lines := @ + 1;
                            end if;
                         end if;
@@ -973,7 +993,6 @@ package body WisiToken.Parse is
                pragma Assert (New_Byte_Pos - Old_Byte_Pos = Shift_Bytes);
 
                if Terminal_Non_Grammar_Next /= Lexer.Token_Arrays.No_Index then
-                  --  FIXME: can only get here if Do_Scan false (otherwise t_n_g_next = 0); move before do_scan?
                   loop
                      declare
                         Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var (Terminal.Node);
@@ -995,29 +1014,31 @@ package body WisiToken.Parse is
                   end loop;
                end if;
 
+               --  Delete tokens that were deleted or modified, and leading
+               --  Virtual_Terminals. Deleted non_grammar New_Lines decrement
+               --  Shift_Lines. Check for deleted comment end (deleted comment start
+               --  handled in Scan_Changed_Loop).
+               --
                --  Need delete even if not Do_Scan, to handle KMN.Deleted_Bytes > 0;
                --  test_incremental.adb Edit_Code_4, ada_skel.adb ada-skel-return
                Delete_Loop :
-               --  Delete tokens that were deleted or modified, and leading
-               --  Virtual_Terminals. Deleted non_grammar New_Lines decrement
-               --  Shift_Lines.
                loop
                   exit Delete_Loop when Terminal_Non_Grammar_Next /= Lexer.Token_Arrays.No_Index;
 
                   exit Delete_Loop when Tree.ID (Terminal.Node) = Parser.Tree.Lexer.Descriptor.EOI_ID;
 
-                  exit Delete_Loop when
-                    Tree.Label (Terminal.Node) = Syntax_Trees.Source_Terminal and then
-                    not
-                    ((KMN.Deleted_Bytes > 0 and
-                        Tree.Byte_Region (Terminal.Node).First <= Deleted_Region.Last + 1)  -- deleted or modified
-                       or
-                       (KMN.Inserted_Bytes > 0 and
-                          Tree.Byte_Region (Terminal.Node).First <= Stable_Region.Last + 1) --  modified
-                       or
-                       Tree.Byte_Region (Terminal.Node).First + Shift_Bytes <= Scanned_Byte_Pos
-                       --  Token in scanned region.
-                    );
+                  exit Delete_Loop when not Comment_End_Deleted and then
+                    (Tree.Label (Terminal.Node) = Syntax_Trees.Source_Terminal and then
+                       not
+                       ((KMN.Deleted_Bytes > 0 and
+                           Tree.Byte_Region (Terminal.Node).First <= Deleted_Region.Last + 1)  -- deleted or modified
+                          or
+                          (KMN.Inserted_Bytes > 0 and
+                             Tree.Byte_Region (Terminal.Node).First <= Stable_Region.Last + 1) --  modified
+                          or
+                          Tree.Byte_Region (Terminal.Node).First + Shift_Bytes <= Scanned_Byte_Pos
+                          --  Token in scanned region.
+                       ));
 
                   --  Ensure Terminal is Single, so we can delete it.
                   if Tree.Label (Terminal.Element) = Nonterm then
@@ -1047,8 +1068,18 @@ package body WisiToken.Parse is
                              Tree.Image (To_Delete.Element, Terminal_Node_Numbers => True, Non_Grammar => True));
                      end if;
 
+                     if Comment_End_Deleted and then
+                       Tree.Byte_Region (To_Delete, Trailing_Non_Grammar => True).Last >= New_Comment_End
+                     then
+                        Comment_End_Deleted := False;
+                        New_Comment_End     := Invalid_Buffer_Pos;
+                     end if;
+
+
                      for Token of Tree.Non_Grammar_Const (To_Delete.Node) loop
-                        if Token.ID = Tree.Lexer.Descriptor.New_Line_ID then
+                        if Token.ID in Tree.Lexer.Descriptor.New_Line_ID  |
+                          Tree.Lexer.Descriptor.Comment_New_Line_ID
+                        then
                            Shift_Lines := @ - 1;
                         end if;
 
@@ -1234,13 +1265,12 @@ package body WisiToken.Parse is
                      if Floating_Non_Grammar (I).Byte_Region.First + Shift_Bytes <= Scanned_Byte_Pos then
                         --  Non_grammar token was rescanned; delete the old one.
                         --  test case: ada_mode-recover_align_1.adb
-                        if Floating_Non_Grammar (I).ID = Tree.Lexer.Descriptor.New_Line_ID then
+                        if Floating_Non_Grammar (I).ID in Tree.Lexer.Descriptor.New_Line_ID |
+                          Tree.Lexer.Descriptor.Comment_New_Line_ID
+                          --  FIXME: or comment_block containing new_line
+                        then
                            --  test_incremental.adb Delete_Comment_Start
                            Shift_Lines := @ - 1;
-
-                           --  FIXME: Comment tokens include terminator. Check if deleted a
-                           --  comment end; following tokens thru next comment end are now in a
-                           --  comment; delete them.
                         end if;
 
                         if Trace_Incremental_Parse > Detail then
@@ -1251,7 +1281,8 @@ package body WisiToken.Parse is
                         Last_Deleted_Non_Grammar := I;
 
                      elsif Contains (Check_Region, Floating_Non_Grammar (I).Byte_Region.First) then
-                        --  Find element to append non_grammar to
+                        --  Non_Grammar is in KMN region; find terminal to append non_grammar
+                        --  to.
                         declare
                            Containing_Terminal : constant Terminal_Ref := Find_Element
                              (Floating_Non_Grammar (I).Byte_Region.First + Shift_Bytes,
@@ -1259,7 +1290,9 @@ package body WisiToken.Parse is
 
                            Tok : Lexer.Token := Floating_Non_Grammar (I);
                         begin
-                           if Tok.ID = Tree.Lexer.Descriptor.New_Line_ID then
+                           if Tok.ID in Tree.Lexer.Descriptor.New_Line_ID |
+                             Tree.Lexer.Descriptor.Comment_New_Line_ID
+                           then
                               Shift_Lines := @ + 1;
                            end if;
                            Tok.Byte_Region := @ + Shift_Bytes;

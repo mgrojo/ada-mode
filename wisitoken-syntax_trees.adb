@@ -630,6 +630,7 @@ package body WisiToken.Syntax_Trees is
    --  Char_Pos to the character position following the New_Line.
    is begin
       for Tok of Node.Non_Grammar loop
+         --  FIXME: new_line may be in a Comment_Block
          if Tok.ID in Tree.Lexer.Descriptor.New_Line_ID |
            Tree.Lexer.Descriptor.Comment_New_Line_ID |
            Tree.Lexer.Descriptor.EOI_ID and
