@@ -470,4 +470,21 @@ package body WisiToken is
       end loop;
    end Enable_Trace;
 
+   procedure Enable_Trace_Help
+   is
+      use Ada.Text_IO;
+   begin
+      Put_Line ("debug=0|1 - show stack trace on exception, other debug settings");
+      Put_Line ("action=n - verbosity during parse actions");
+      Put_Line ("ebnf=n generate_ebnf=n - verbosity during translate EBNF to BNF");
+      Put_Line ("minimal_complete=n generate_minimal_complete=n - verbosity during minimal_complete");
+      Put_Line ("table=n generate_table=n - verbosity during generate parse table");
+      Put_Line ("incremental=n incremental_parse=n - verbosity during edit_tree");
+      Put_Line ("lexer=n - verbosity during lexing");
+      Put_Line ("mckenzie=n - verbosity during error recover");
+      Put_Line ("parse=n - verbosity during parsing");
+      Put_Line ("test=n - verbosity during unit tests");
+      Put_Line ("time=n - output times of various operations");
+   end Enable_Trace_Help;
+
 end WisiToken;

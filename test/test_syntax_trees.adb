@@ -57,7 +57,7 @@ package body Test_Syntax_Trees is
    ----------
    --  Test procedures
 
-   procedure Test_Left_Breakdown_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Left_Breakdown_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       use WisiToken.AUnit;
@@ -77,7 +77,56 @@ package body Test_Syntax_Trees is
       Check ("1 el", Tree.ID (Ref.Stream, Ref.Element), +BEGIN_ID);
       Check ("1 node", Tree.ID (Ref.Node), +BEGIN_ID);
       Check_Address ("1 el = node", Tree.Get_Node (Ref.Stream, Ref.Element), Ref.Node);
-   end Test_Left_Breakdown_1;
+   end Left_Breakdown_1;
+
+   procedure Find_New_Line_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use WisiToken.AUnit;
+      use Ada_Lite_Actions;
+
+      --  The requested line is started by a comment_new_line
+      Text : constant String :=
+        "A; -- comment" & ASCII.LF & "B;";
+      --  2       |10                 |15
+      Begin_Char_Pos : WisiToken.Buffer_Pos;
+
+   begin
+      Parser.Tree.Lexer.Reset_With_String (Text);
+
+      Parser.Parse (Log_File);
+
+      declare
+         Node : constant WisiToken.Syntax_Trees.Node_Access := Tree.Find_New_Line (2, Begin_Char_Pos);
+      begin
+         Check ("1 node", Tree.ID (Node), +SEMICOLON_ID);
+         Check ("1 begin_char_pos", Begin_Char_Pos, 15);
+      end;
+   end Find_New_Line_1;
+
+   procedure Byte_Region_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use WisiToken.AUnit;
+      use Ada_Lite_Actions;
+
+      --  Byte_Region of an empty nonterm.
+      Text : constant String :=
+        "procedure A is begin null; end A;";
+      --  2       |10                 |15
+
+   begin
+      Parser.Tree.Lexer.Reset_With_String (Text);
+
+      Parser.Parse (Log_File);
+
+      declare
+         Node : constant WisiToken.Syntax_Trees.Node_Access := Tree.Find_Descendant
+           (Tree.Root, +parameter_profile_opt_ID);
+      begin
+         Check ("1 byte_region", Tree.Byte_Region (Node), (11, 10));
+      end;
+   end Byte_Region_1;
 
    ----------
    --  Public subprograms
@@ -86,7 +135,9 @@ package body Test_Syntax_Trees is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      Register_Routine (T, Test_Left_Breakdown_1'Access, "Test_Left_Breakdown_1");
+      Register_Routine (T, Left_Breakdown_1'Access, "Left_Breakdown_1");
+      Register_Routine (T, Find_New_Line_1'Access, "Find_New_Line_1");
+      Register_Routine (T, Byte_Region_1'Access, "Byte_Region_1");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

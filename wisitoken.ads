@@ -455,6 +455,10 @@ package WisiToken is
    --
    --  In addition, the name "debug" sets Debug_Mode.
 
+   procedure Enable_Trace_Help;
+   --  Output to Text_IO.Current_Output a message describing available
+   --  options for Enable_Trace.
+
    type Trace is abstract tagged limited null record;
    type Trace_Access is access all Trace'Class;
    --  Output for tests/debugging.

@@ -468,14 +468,37 @@ package body WisiToken.Syntax_Trees is
          end if;
 
       when Nonterm =>
-         Prev_Source_Terminal := First_Source_Terminal (Tree, Node, Trailing_Non_Grammar);
-         Next_Source_Terminal := Last_Source_Terminal (Tree, Node, Trailing_Non_Grammar);
+         if Node.Child_Count = 0 then
+            if Tree.Parents_Set then
+               if Node = Tree.SOI then
+                  Prev_Source_Terminal := Tree.SOI;
+               else
+                  Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar => True);
+               end if;
+               return (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
+                       Last  => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First - 1);
+            else
+               return Null_Buffer_Region;
+            end if;
+         else
+            Prev_Source_Terminal := First_Source_Terminal (Tree, Node, Trailing_Non_Grammar => False);
+            Next_Source_Terminal := Last_Source_Terminal (Tree, Node, Trailing_Non_Grammar);
+         end if;
       end case;
 
       if Prev_Source_Terminal = Invalid_Node_Access then
          if Tree.Parents_Set then
-            Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar);
-            Next_Source_Terminal := Tree.Next_Source_Terminal (Node, Trailing_Non_Grammar);
+            if Node = Tree.SOI then
+               Prev_Source_Terminal := Tree.SOI;
+            else
+               Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar);
+            end if;
+
+            if Node = Tree.EOI then
+               Next_Source_Terminal := Tree.EOI;
+            else
+               Next_Source_Terminal := Tree.Next_Source_Terminal (Node, Trailing_Non_Grammar);
+            end if;
          else
             return Null_Buffer_Region;
          end if;
@@ -486,7 +509,7 @@ package body WisiToken.Syntax_Trees is
       else
          return
            (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
-            Last => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar).Last);
+            Last  => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar).Last);
       end if;
    end Byte_Region;
 
@@ -1227,14 +1250,16 @@ package body WisiToken.Syntax_Trees is
    with Pre => (for some Token of Non_Grammar => Token.Line_Region.First = Line - 1)
    --  Return True if Line is empty
    is
-      EOI_ID      : Token_ID renames Tree.Lexer.Descriptor.EOI_ID;
-      New_Line_ID : Token_ID renames Tree.Lexer.Descriptor.New_Line_ID;
+      EOI_ID              : Token_ID renames Tree.Lexer.Descriptor.EOI_ID;
+      New_Line_ID         : Token_ID renames Tree.Lexer.Descriptor.New_Line_ID;
+      Comment_New_Line_ID : Token_ID renames Tree.Lexer.Descriptor.Comment_New_Line_ID;
    begin
       for I in Non_Grammar.First_Index .. Non_Grammar.Last_Index loop
-         if Non_Grammar (I).ID = New_Line_ID then
+         if Non_Grammar (I).ID in New_Line_ID | Comment_New_Line_ID then
             if Non_Grammar (I).Line_Region.Last = Line then
+               --  FIXME: line could be in a block comment.
                if I < Non_Grammar.Last_Index then
-                  return Non_Grammar (I + 1).ID = New_Line_ID;
+                  return Non_Grammar (I + 1).ID in New_Line_ID | Comment_New_Line_ID;
                else
                   return False;
                end if;

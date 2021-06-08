@@ -49,6 +49,15 @@ package body WisiToken.Lexer is
         Image (Item.Line_Region) & ")";
    end Full_Image;
 
+   function Contains_New_Line
+     (Token      : in Lexer.Token;
+      Descriptor : in WisiToken.Descriptor_Access_Constant)
+     return Boolean
+   is begin
+      --  FIXME: handle new_line in block comment
+      return Token.ID in Descriptor.New_Line_ID | Descriptor.Comment_New_Line_ID;
+   end Contains_New_Line;
+
    procedure Shift
      (Token       : in out Lexer.Token;
       Shift_Bytes : in     Base_Buffer_Pos;

@@ -66,6 +66,11 @@ package WisiToken.Lexer is
 
    Invalid_Token : constant Token := (others => <>);
 
+   function Contains_New_Line
+     (Token      : in Lexer.Token;
+      Descriptor : in WisiToken.Descriptor_Access_Constant)
+     return Boolean;
+
    procedure Shift
      (Token       : in out Lexer.Token;
       Shift_Bytes : in     Base_Buffer_Pos;
