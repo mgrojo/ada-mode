@@ -56,7 +56,7 @@ package Run_Wisi_Common_Parse is
          --  We assume the file contains only the one statement/declaration
          --  that needs refactoring.
 
-         Refactor_Action : Positive;
+         Refactor_Action : Wisi.Refactor_Action;
          --  Language-specific
 
          Edit_Begin : WisiToken.Buffer_Pos;

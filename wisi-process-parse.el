@@ -139,8 +139,7 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 
 	     :coding 'utf-8-unix
 	     ;; We don't need utf-8-dos for reading when the parser is
-	     ;; compiled for Windows; ASCII.CR is only sent in debug
-	     ;; messages, where they are easy to ignore.
+	     ;; compiled for Windows; ASCII.CR is easy to ignore.
 
 	     :command (append (list (wisi-process--parser-exec-file parser))
 			      (wisi-process--parser-exec-opts parser))))
@@ -1165,6 +1164,58 @@ one or more Query messages."
       (when (buffer-file-name)
 	(save-buffer)))
     (goto-char log-buffer-point)))
+
+(defun wisi-process-log-to-cmd-1 ()
+  "Convert parse_partial process command at point to run_* command line."
+  (interactive)
+  (forward-line 0)
+  (unless (looking-at "parse 0 \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\"")
+    (user-error "not on partial_parse command"))
+
+  (let ((parse-action (string-to-number (match-string 1)))
+	(source-file (match-string 2))
+	(begin-byte-pos (match-string 3))
+	(end-byte-pos (match-string 4))
+	(goal-byte-pos (match-string 5))
+	(begin-char-pos (match-string 6))
+	(end-char-pos (match-string 7))
+	(begin-line (match-string 8))
+	(begin-indent (match-string 9))
+	(_partial-parse-active (match-string 10))
+	(verbosity (match-string 11))
+	(mckenzie_task_count (string-to-number (match-string 12)))
+	(mckenzie_zombie_limit (string-to-number (match-string 13)))
+	(mckenzie_enqueue_limit (string-to-number (match-string 14)))
+	(parse_max_parallel (string-to-number (match-string 15)))
+	(_byte-count (match-string 16))
+	(language_param (match-string 17))
+	cmd)
+
+    (setq cmd
+	  (concat "parse_partial "
+		  (cl-ecase parse-action
+		    (0 "navigate ")
+		    (1 "face ")
+		    (2 "indent "))
+		  source-file " "
+		  begin-byte-pos " "
+		  end-byte-pos " "
+		  goal-byte-pos " "
+		  begin-char-pos " "
+		  end-char-pos " "
+		  begin-line " "
+		  begin-indent " "
+		  (when (not (string-equal "" verbosity)) (format "--verbosity \"%s\" " verbosity))
+		  (when (not (= -1 mckenzie_task_count)) (format "--mckenzie_task_count %d " mckenzie_task_count))
+		  (when (not (= -1 mckenzie_zombie_limit)) (format "--mckenzie_zombie_limit " mckenzie_zombie_limit))
+		  " "
+		  (when (not (= -1 mckenzie_enqueue_limit))
+		    (format "--mckenzie_enqueue_limit " mckenzie_enqueue_limit))
+		  " "
+		  (when (not (= -1 parse_max_parallel)) (format "--parse_max_parallel " parse_max_parallel)) " "
+		  (when (not (string-equal "" language_param)) (format "--lang_params \"%s\" " language_param))
+		  ))
+    (message cmd)))
 
 (defun wisi-time (func count &optional report-wait-time)
   "call FUNC COUNT times, show total time"

@@ -50,6 +50,7 @@ package Emacs_Wisi_Common_Parse is
    procedure Usage (Name : in String);
 
    procedure Read_Input (A : System.Address; N : Integer);
+   --  Read N bytes from standard_input to A.
 
    function Get_Command_Length return Integer;
 
@@ -156,7 +157,7 @@ package Emacs_Wisi_Common_Parse is
    --  Refactor command
 
    type Refactor_Params is record
-      Refactor_Action  : Positive; -- Language-specific
+      Refactor_Action  : Wisi.Refactor_Action; -- Language-specific
       Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
 
       Edit_Begin : WisiToken.Buffer_Pos;

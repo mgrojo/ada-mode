@@ -163,8 +163,6 @@ package body Wisi is
    --  containing Anchor_Token, return offset of that paren from first
    --  char in line + Offset. Else return Offset.
    is
-      use all type WisiToken.Syntax_Trees.Node_Access;
-
       Left_Paren_ID  : Token_ID renames Data.Left_Paren_ID;
       Right_Paren_ID : Token_ID renames Data.Right_Paren_ID;
 
@@ -2108,10 +2106,14 @@ package body Wisi is
       end if;
 
       for I in 1 .. Tree.Child_Count (Nonterm) loop
-         if I in Params'Range and then -- in some translated EBNF, not every token has an indent param
-           Overlaps
-             (Tree.Line_Region (Tree.Child (Nonterm, I), Trailing_Non_Grammar => True),
-              Data.Action_Region_Lines)
+         if not (Tree.SOI = Tree.Child (Nonterm, I) or Tree.EOI = Tree.Child (Nonterm, I)) and
+           --  We see these in a partial parse.
+
+           (I in Params'Range and then
+              --  In some translated EBNF, not every token has an indent param.
+              Overlaps
+                (Tree.Line_Region (Tree.Child (Nonterm, I), Trailing_Non_Grammar => True),
+                 Data.Action_Region_Lines))
          then
             declare
                Child : constant Syntax_Trees.Valid_Node_Access := Tree.Child (Nonterm, I);
@@ -2183,8 +2185,6 @@ package body Wisi is
       Label             : in     Hanging_Label)
      return Delta_Type
    is
-      use all type WisiToken.Syntax_Trees.Node_Access;
-
       Indenting_Line_Region : constant WisiToken.Line_Region := Tree.Line_Region (Indenting_Token);
 
       Indenting : constant Wisi.Indenting := Compute_Indenting (Data, Tree, Indenting_Token);
@@ -2351,8 +2351,6 @@ package body Wisi is
 
    procedure Put (Data : in out Parse_Data_Type; Parser : in Parse.Base_Parser'Class)
    is
-      use all type WisiToken.Syntax_Trees.Node_Access;
-
       Tree : WisiToken.Syntax_Trees.Tree renames Parser.Tree;
    begin
       --  +1 to match Emacs region
@@ -2421,7 +2419,6 @@ package body Wisi is
    is
       use Ada.Text_IO;
       use In_Parse_Actions;
-      use all type Syntax_Trees.Node_Access;
       Descriptor  : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
       function Safe_Pos_Image (Token : in Syntax_Trees.Recover_Token) return String
@@ -2517,8 +2514,7 @@ package body Wisi is
          use Syntax_Trees;
          use Lexer;
 
-         pragma Assert (Tree.SOI /= Node and Tree.EOI /= Node);
-         --  Therefore Prev_Non_Grammar and Next_Non_Grammar exist.
+         --  The precondition guarrantees Prev_Non_Grammar and Next_Non_Grammar exist.
 
          Prev_Non_Grammar  : constant Valid_Node_Access := Tree.Prev_Non_Grammar (Node);
          Next_Non_Grammar  : constant Valid_Node_Access := Tree.Next_Non_Grammar (Node);
@@ -2527,10 +2523,9 @@ package body Wisi is
          Last_Terminal     : constant Node_Access       := Tree.Last_Terminal (Node);
 
          function Has_New_Line (Node : in Valid_Node_Access) return Boolean
-         is
-            Non_Grammar  : Token_Arrays.Vector renames Tree.Non_Grammar_Const (Node);
-         begin
-            return (for some Token of Non_Grammar => Token.ID = Tree.Lexer.Descriptor.New_Line_ID);
+         is begin
+            return (for some Token of Tree.Non_Grammar_Const (Node) =>
+                      Contains_New_Line (Token, Tree.Lexer.Descriptor));
          end Has_New_Line;
 
          function Get_Last (Node : in Valid_Node_Access) return Base_Line_Number_Type
@@ -2606,50 +2601,42 @@ package body Wisi is
                      Trailing_Non_Grammar : Token_Arrays.Vector renames Tree.Non_Grammar_Const (Last_Terminal);
                   begin
                      if Trailing_Non_Grammar.Length in 0 | 1 then
-                        --  Single non_grammar is either a new_line or a non-new_line comment;
-                        --  neither needs indenting.
+                        --  Single non_grammar either contains a single new_line or is a
+                        --  non-new_line comment (ie placeholder); neither needs indenting.
+                        --  FIXME: handle multi-line comments
                         Result.Comment := Null_Line_Region;
 
-                     elsif Trailing_Non_Grammar (Trailing_Non_Grammar.First_Index).ID =
-                       Tree.Lexer.Descriptor.New_Line_ID
-                     then
-                        --  First non_grammar is new_line terminating code line.
-                           Result.Comment :=
-                             (First => Trailing_Non_Grammar (Trailing_Non_Grammar.First_Index).Line_Region.Last,
-                              Last  =>
-                                (if Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).ID =
-                                   Tree.Lexer.Descriptor.New_Line_ID
-                                 then -- Last non_grammar is new_line terminating comment
-                                    Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region.First
-                                 else -- Last non_grammar is something else (ie a placeholder)
-                                    Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region.Last));
                      else
-                        --  First non_grammar is a comment or placeholder on the code line;
-                        --  find first blank or comment line, if any.
-                        declare
-                           First_Line : constant Line_Number_Type := Trailing_Non_Grammar
+                        if Contains_New_Line
+                          (Trailing_Non_Grammar (Trailing_Non_Grammar.First_Index), Tree.Lexer.Descriptor)
+                          --  FIXME: handle multi-line comments
+                        then
+                           --  First non_grammar terminates code line.
+                           Result.Comment.First := Trailing_Non_Grammar
                              (Trailing_Non_Grammar.First_Index).Line_Region.Last;
-                        begin
-                           for I in Trailing_Non_Grammar.First_Index + 1 .. Trailing_Non_Grammar.Last_Index loop
-                              if Trailing_Non_Grammar (I).Line_Region.First /= First_Line then
-                                 if Trailing_Non_Grammar (I).ID = Tree.Lexer.Descriptor.New_Line_ID then
-                                    if I < Trailing_Non_Grammar.Last_Index then
-                                       Result.Comment :=
-                                         (First => Trailing_Non_Grammar (I).Line_Region.Last,
-                                          Last  => Trailing_Non_Grammar
-                                            (Trailing_Non_Grammar.Last_Index).Line_Region.First);
-                                       exit;
-                                    end if;
-                                 else
-                                    Result.Comment :=
-                                      (First => Trailing_Non_Grammar (I).Line_Region.First,
-                                       Last  => Trailing_Non_Grammar
-                                         (Trailing_Non_Grammar.Last_Index).Line_Region.First);
+                        else
+                           --  First non_grammar is a block comment (ie placeholder) on the code
+                           --  line; find first blank or comment line, if any.
+                           declare
+                              First_Line : constant Line_Number_Type := Trailing_Non_Grammar
+                                (Trailing_Non_Grammar.First_Index).Line_Region.Last;
+                           begin
+                              for I in Trailing_Non_Grammar.First_Index + 1 .. Trailing_Non_Grammar.Last_Index loop
+                                 if Trailing_Non_Grammar (I).Line_Region.First /= First_Line then
+                                    Result.Comment.First := Trailing_Non_Grammar (I).Line_Region.First;
                                     exit;
                                  end if;
-                              end if;
-                           end loop;
-                        end;
+                              end loop;
+                           end;
+                        end if;
+
+                        Result.Comment.Last  :=
+                          (if Contains_New_Line
+                             (Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index), Tree.Lexer.Descriptor)
+                           then
+                              Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region.First
+                           else
+                              Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region.Last);
                      end if;
                   end;
                end if;
@@ -2700,7 +2687,6 @@ package body Wisi is
       Offset       : in Integer)
      return Integer
    is
-      use all type Syntax_Trees.Node_Access;
       Line_Begin_Token : constant Syntax_Trees.Node_Access := Tree.Line_Begin_Token
         (Tree.Line_Region (Anchor_Token).First);
    begin
@@ -2836,8 +2822,6 @@ package body Wisi is
       Delta_Indent      : in     Delta_Type;
       Indenting_Comment : in     Boolean)
    is
-      use all type WisiToken.Syntax_Trees.Node_Access;
-
       Indenting : constant Wisi.Indenting := Compute_Indenting (Data, Tree, Indenting_Token);
 
       Line_Region : constant WisiToken.Line_Region :=
@@ -2886,11 +2870,12 @@ package body Wisi is
       end loop;
    end Indent_Token_1;
 
-   function Refactor_Parse  (Data : in Parse_Data_Type; Item : in String) return Positive
+   function Refactor_Parse  (Data : in Parse_Data_Type; Item : in String) return Refactor_Action
    is
+      pragma Unreferenced (Item);
       pragma Unreferenced (Data);
    begin
-      return Positive'Last;
+      return Refactor_Action'Last;
    end Refactor_Parse;
 
 end Wisi;

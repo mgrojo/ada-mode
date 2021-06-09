@@ -737,7 +737,7 @@ package body Wisi.Ada is
    procedure Refactor
      (Data       : in out Parse_Data_Type;
       Tree       : in out WisiToken.Syntax_Trees.Tree;
-      Action     : in     Positive;
+      Action     : in     Refactor_Action;
       Edit_Begin : in     WisiToken.Buffer_Pos)
    is
       Enum_Action : Refactor_Label;
@@ -848,9 +848,7 @@ package body Wisi.Ada is
    is
       pragma Unreferenced (Nonterm, Args);
 
-      use all type SAL.Base_Peek_Type;
       use Ada_Annex_P_Process_Actions;
-      use all type WisiToken.Syntax_Trees.Node_Access;
 
       pragma Assert (Tree.ID (Indenting_Token) = +aspect_definition_ID);
 
@@ -878,8 +876,6 @@ package body Wisi.Ada is
       Args              : in     Indent_Arg_Arrays.Vector)
      return Wisi.Delta_Type
    is
-      use all type WisiToken.Syntax_Trees.Node_Access;
-
       Subp_Node : constant Syntax_Trees.Valid_Node_Access := Tree.Child
         (Nonterm, Positive_Index_Type (Integer'(Args (1))));
 

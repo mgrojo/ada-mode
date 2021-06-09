@@ -24,7 +24,9 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1): incremental parse
    ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-6")))
 
 (dvc-state-multiple
-'((xgit . "/Projects/org.stephe_leake.sal.stephe-1")
+'((xgit . "/Projects/org.stephe_leake.makerules")
+  (xgit . "/Projects/org.stephe_leake.aunit_ext")
+  (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
   (xgit . "/Projects/org.wisitoken.stephe-2")
   (xgit . "/Projects/org.emacs.ada-mode.stephe-6")))
 
@@ -43,6 +45,31 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+;; %partial_recursion ;; FIXME: faster compile time while debugging
+
+add lexer dispatch functions:
+    lexer.contains_new_line (token)
+    lexer.line_begin_char_pos (token, line)
+            handle all tokens that can contain new_line
+                new_line, comment_new_line, block_comment, delimited_text
+                ada has two comment_new_line
+
+            generate bodies in *_main.adb?
+
+run all tests non-incremental
+test/gnatprep.adb
+    elisp error: put-text-property(2147483646 2147483647 wisi-indent 9)
+    from [3 22 2147483647 9]
+    from tree.line_begin_pos
+        GNAT_PREP needs to be in descriptor
+        list of line_end non_grammars
+
+
+test/mixed_unix_dos_line_ends.adb
+    cmd length computed wrong somewhere
+
+Reset-parser only reset current file
+
 run all tests with incremental mode enabled
     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t wisi-process-time-out 10.0)"
 
@@ -125,40 +152,6 @@ rewrite ada-which-function to use incremental
 test/ada_mode-recover_41.adb
     interactive indent in parameter_list
 
-
-emacs 28 bug:
-    test/ada_mode-find_file.adb
-            after (ada-find-other-file), current-buffer is still original file!?
-            test ff-find-other-file in emacs -Q
-
-    (find-file "c:/Projects/org.emacs.ada-mode.stephe-6/test/ada_mode-find_file.adb")
-
-    (defvar ada-other-file-alist
-      '(("\\.ads$" (".adb"))
-        ("\\.adb$" (".ads")))
-      "Alist used by `find-file' to find the name of the other package.
-    See `ff-other-file-alist'.")
-
-    (with-current-buffer "ada_mode-find_file.adb"
-      (setq-local ff-other-file-alist 'ada-other-file-alist)
-      (ff-find-other-file)
-      (message "%s:%d" (current-buffer) (point)))
-
-        emacs-master-Q.sh .adb
-        emacs-27-Q.sh .ads
-
-        look in NEWS; nothing
-
-        trace ff-find-the-other-file
-            ff-switch-to-buffer vs ff-find-file?
-
-        (progn (switch-to-buffer "ada_mode-find_file.ads")(message "%s" (current-buffer))); no problem
-        (progn (ff-find-other-file)(message "%s" (current-buffer))); problem
-        (progn (ff-get-file '(".") "ada_mode-find_file" '(".adb"))(message "%s" (current-buffer))) ; no problem
-
-        write up emacs bug
-            use extensions .foo, .bar to avoid any major-mode issues
-        use emacs 27 for now
 
 test/ada_mode-interactive_2.adb
     virtual 'null;' inserted on blank line,

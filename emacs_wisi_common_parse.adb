@@ -236,7 +236,7 @@ package body Emacs_Wisi_Common_Parse is
          --  Match wisi-process-parse.el wisi-process--send-refactor
 
          Result.Source_File_Name   := +Get_String (Command_Line, Last);
-         Result.Refactor_Action    := Get_Integer (Command_Line, Last);
+         Result.Refactor_Action    := Refactor_Action (Get_Integer (Command_Line, Last));
 
          Result.Edit_Begin := Buffer_Pos (Get_Integer (Command_Line, Last));
          Result.Verbosity  := +Get_String (Command_Line, Last);
@@ -378,7 +378,7 @@ package body Emacs_Wisi_Common_Parse is
 
                      Ada.Strings.Unbounded.Free (Parse_Context.Text_Buffer);
                      Parse_Context.Text_Buffer := new String (Params.Begin_Byte_Pos .. Params.End_Byte_Pos);
-                     Parse_Context.Text_Buffer_Byte_Last := Params.Byte_Count;
+                     Parse_Context.Text_Buffer_Byte_Last := Params.End_Byte_Pos;
                      Parse_Context.Text_Buffer_Char_Last := Integer (Params.End_Char_Pos);
 
                      Read_Input (Parse_Context.Text_Buffer (Params.Begin_Byte_Pos)'Address, Params.Byte_Count);

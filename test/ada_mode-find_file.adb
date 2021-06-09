@@ -3,9 +3,10 @@
 --EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "ada_mode.gpr") (gnat "ada_mode-gnatxref.prj")) (ada-prj-default))
 
 -- Select package name, goto its parent spec
---EMACSCMD:(progn (forward-line 1)(forward-word 2)(forward-char 1)(push-mark-command t t)(forward-word 2)(ada-find-other-file)(pop-mark)(looking-at "package Ada_Mode is"))
+--EMACSCMD:(progn (forward-line 1)(forward-word 2)(forward-char 1)(push-mark-command t t)(forward-word 2)(ada-find-other-file)(looking-at "package Ada_Mode is"))
 package body Ada_Mode.Find_File is
    --EMACSRESULT:t
+   --EMACSCMD:(progn (pop-mark)(deactivate-mark))
 
    -- point between package start and first decl; find package spec
    --EMACSCMD:(progn (ada-find-other-file)(looking-at "package Ada_Mode.Find_File is"))

@@ -109,8 +109,8 @@ package Wisi.Ada is
 
 
    overriding
-   function Refactor_Parse  (Data : in Parse_Data_Type; Item : in String) return Positive
-   is (Refactor_Label'Pos (Refactor_Label'Value (Item)));
+   function Refactor_Parse  (Data : in Parse_Data_Type; Item : in String) return Refactor_Action
+   is (Refactor_Action (Refactor_Label'Pos (Refactor_Label'Value (Item))));
 
    overriding
    procedure Refactor_Help (Data : in Parse_Data_Type);
@@ -119,7 +119,7 @@ package Wisi.Ada is
    procedure Refactor
      (Data       : in out Parse_Data_Type;
       Tree       : in out WisiToken.Syntax_Trees.Tree;
-      Action     : in     Positive;
+      Action     : in     Refactor_Action;
       Edit_Begin : in     WisiToken.Buffer_Pos);
 
    ----------

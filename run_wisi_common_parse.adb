@@ -59,14 +59,10 @@ package body Run_Wisi_Common_Parse is
    begin
       Usage_1 (Wisi.Parse_Data_Type'Class (Parser.User_Data.all));
       Put_Line ("partial parse params: begin_byte_pos end_byte_pos goal_byte_pos begin_char_pos end_char_pos" &
-                  " begin_line end_line begin_indent");
+                  " begin_line begin_indent");
       Put_Line ("options:");
       Put_Line ("--verbosity <trace config>");
-      Put_Line ("   0 - only report parse errors");
-      Put_Line ("   1 - shows spawn/terminate parallel parsers, error recovery enter/exit");
-      Put_Line ("   2 - add each parser cycle, error recovery enqueue/check");
-      Put_Line ("   3 - parse stack in each cycle, error recovery parse actions");
-      Put_Line ("   4 - add lexer debug, dump syntax tree");
+      WisiToken.Enable_Trace_Help;
       Put_Line ("--save_text <file_name> : write edited file text to file_name");
       Put_Line ("--lang_params <language-specific params>");
       Put_Line ("--max_parallel n  : set maximum count of parallel parsers" &
@@ -130,7 +126,7 @@ package body Run_Wisi_Common_Parse is
             Next_Arg                     := 4;
 
          when Refactor =>
-            Result.Refactor_Action  := Integer'Value (Argument (2));
+            Result.Refactor_Action  := Wisi.Refactor_Action'Value (Argument (2));
             Result.Source_File_Name := +Ada.Command_Line.Argument (3);
             Next_Arg := 4;
 
@@ -441,10 +437,10 @@ package body Run_Wisi_Common_Parse is
 
       when Refactor =>
          declare
-            Refactor_Action : constant Positive             := Parse_Data.Refactor_Parse (Wisi.Get_Enum (Line, Last));
-            Edit_Begin      : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
+            Action     : constant Wisi.Refactor_Action := Parse_Data.Refactor_Parse (Wisi.Get_Enum (Line, Last));
+            Edit_Begin : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
          begin
-            Parse_Data.Refactor (Parser.Tree, Refactor_Action, Edit_Begin);
+            Parse_Data.Refactor (Parser.Tree, Action, Edit_Begin);
          end;
 
       when Query_Tree =>
@@ -543,36 +539,41 @@ package body Run_Wisi_Common_Parse is
             return;
          end;
 
-         --  Run lexer to get text bounds
-         declare
-            Token       : WisiToken.Lexer.Token;
-            Lexer_Error : Boolean;
-            pragma Unreferenced (Lexer_Error);
-         begin
-            loop
-               Lexer_Error := Parser.Tree.Lexer.Find_Next (Token);
-               exit when Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID;
-            end loop;
+         if Cl_Params.Partial_Begin_Byte_Pos = WisiToken.Invalid_Buffer_Pos then
+            --  Full parse; run lexer to get text bounds
+            declare
+               Token       : WisiToken.Lexer.Token;
+               Lexer_Error : Boolean;
+               pragma Unreferenced (Lexer_Error);
+            begin
+               loop
+                  Lexer_Error := Parser.Tree.Lexer.Find_Next (Token);
+                  exit when Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID;
+               end loop;
 
-            case Cl_Params.Command is
-            when Parse_Partial =>
-               Cl_Params.Partial_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
-               Cl_Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
-               Cl_Params.Partial_End_Byte_Pos   := Token.Byte_Region.Last;
-               Cl_Params.Partial_End_Char_Pos   := Token.Char_Region.Last;
+               case Cl_Params.Command is
+               when Parse_Partial =>
+                  Cl_Params.Partial_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
+                  Cl_Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
+                  Cl_Params.Partial_End_Byte_Pos   := Token.Byte_Region.Last;
+                  Cl_Params.Partial_End_Char_Pos   := Token.Char_Region.Last;
 
-            when Parse_Incremental =>
-               Cl_Params.Inc_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
-               Cl_Params.Inc_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
-               Cl_Params.Inc_End_Byte_Pos   := Token.Byte_Region.Last;
-               Cl_Params.Inc_End_Char_Pos   := Token.Char_Region.Last;
+               when Parse_Incremental =>
+                  Cl_Params.Inc_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
+                  Cl_Params.Inc_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
+                  Cl_Params.Inc_End_Byte_Pos   := Token.Byte_Region.Last;
+                  Cl_Params.Inc_End_Char_Pos   := Token.Char_Region.Last;
 
-            when Refactor | Command_File =>
-               null;
-            end case;
+               when Refactor | Command_File =>
+                  null;
+               end case;
 
-            Parse_Context.Text_Buffer_Char_Last := Integer (Token.Char_Region.Last);
-         end;
+               Parse_Context.Text_Buffer_Char_Last := Integer (Token.Char_Region.Last);
+            end;
+         else
+            Parser.Partial_Parse_Active.all    := True;
+            Parser.Partial_Parse_Byte_Goal.all := Cl_Params.Partial_Goal_Byte_Pos;
+         end if;
 
          case Cl_Params.Command is
          when Parse_Partial =>

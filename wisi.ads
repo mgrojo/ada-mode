@@ -35,6 +35,7 @@ with WisiToken.Lexer;
 with WisiToken.Parse.LR;
 with WisiToken.Syntax_Trees;
 package Wisi is
+   use all type WisiToken.Syntax_Trees.Node_Access;
    use all type WisiToken.Line_Region;
    use all type WisiToken.Cache_Version;
    use all type WisiToken.Syntax_Trees.Augmented_Class_Access;
@@ -399,14 +400,16 @@ package Wisi is
    ----------
    --  Other
 
-   function Refactor_Parse  (Data : in Parse_Data_Type; Item : in String) return Positive;
+   type Refactor_Action is range 0 .. Integer'Last;
+
+   function Refactor_Parse  (Data : in Parse_Data_Type; Item : in String) return Refactor_Action;
 
    procedure Refactor_Help (Data : in Parse_Data_Type) is null;
 
    procedure Refactor
      (Data       : in out Parse_Data_Type;
       Tree       : in out WisiToken.Syntax_Trees.Tree;
-      Action     : in     Positive;
+      Action     : in     Refactor_Action;
       Edit_Begin : in     WisiToken.Buffer_Pos) is null;
 
    type Query_Label is (Bounds, Containing_Statement, Nonterm, Virtuals, Print);
@@ -650,7 +653,8 @@ private
       Tree : in WisiToken.Syntax_Trees.Tree;
       Node : in WisiToken.Syntax_Trees.Valid_Node_Access)
      return Wisi.Indenting
-   with Pre => Tree.Line_Region (Node) /= WisiToken.Null_Line_Region;
+   with Pre => Tree.Line_Region (Node) /= WisiToken.Null_Line_Region and
+               Tree.SOI /= Node and Tree.EOI /= Node;
    --  Return Node.Augmented.Indenting, computing it first if needed.
 
    function Current_Indent_Offset

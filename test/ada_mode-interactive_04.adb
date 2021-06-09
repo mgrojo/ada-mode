@@ -4,7 +4,7 @@
 
 procedure Ada_Mode.Interactive_04
 is
-   Obj_1 : access String;
+   E : Character;
 begin
 
    -- This edit caused the lost new_line; it removes the '--' from a
@@ -20,11 +20,13 @@ begin
    -- This edit encountered a bug in Left_Breakdown, due to an empty
    -- nonterm. 'null;' inserted before 'end loop;'
    --
-   --EMACSCMD:(progn (end-of-line 2)(kill-line 2)(newline-and-indent)(insert "end loop;")(newline-and-indent))
-   for File_Name in File_Names loop
-      end loop;
+   --EMACSCMD:(progn (end-of-line 2)(kill-line 3)(newline-and-indent)(insert "end loop;")(newline-and-indent))
+   for Char of String'("ABcd") loop
+      null;
+   end loop;
+   --EMACSCMD:(progn (end-of-line -1)(newline-and-indent)(insert "null;"))
 
-   E := (1 => 'A');
+   E := 'A';
 
 end Ada_Mode.Interactive_04;
 -- Local Variables:

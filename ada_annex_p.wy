@@ -126,7 +126,7 @@ tick : TICK_1 | TICK_2 ;
 %non_grammar <comment-new-line> COMMENT "--"
 
 ;; gnatprep preprocessor lines
-%non_grammar <comment-new-line> GNAT_PREP %[ "#if"|"#elsif"|"#else"|"#end" ]%
+%non_grammar <comment-new-line> GNAT_PREP %[ ("#if"|"#elsif"|"#else"|"#end") ]%
 
 ;; skeleton placeholders. Also terminated by newline, EOI to avoid
 ;; accidently commenting out multiple lines.

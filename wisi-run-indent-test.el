@@ -250,7 +250,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 		;; save-excursion does not preserve mapping of buffer to
 		;; window, but some tests depend on that. For example,
 		;; execute-kbd-macro doesn’t work properly if current buffer
-		;; is not visible..
+		;; is not visible.
 		(pop-to-buffer test-buffer))
 
 	     ((string= (match-string 1) "RESULT")
