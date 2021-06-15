@@ -131,10 +131,6 @@ package WisiToken is
       Case_Insensitive : Boolean;  -- keywords and names
       New_Line_ID      : Token_ID;
 
-      Comment_New_Line_ID : Token_ID;
-      Comment_Block_ID    : Token_ID;
-      --  Used by Edit_Tree to detect deleted comment start/end.
-
       String_1_ID : Token_ID;
       String_2_ID : Token_ID;
       --  String_1 delimited by '; String_2 by ".
@@ -372,10 +368,13 @@ package WisiToken is
 
    Null_Line_Region : constant Line_Region := (Line_Number_Type'Last, Line_Number_Type'First);
 
-   function Length (Region : in Line_Region) return Natural is
-     ((if Region.Last >= Region.First
-       then Natural (Region.Last - Region.First + 1)
-       else 0));
+   function New_Line_Count (Region : in Line_Region) return Base_Line_Number_Type
+   is ((if Region.Last >= Region.First
+        then Region.Last - Region.First
+        else 0));
+
+   function Contains_New_Line (Region : in Line_Region) return Boolean
+   is (Region.Last > Region.First);
 
    function Image (Item : in Line_Region) return String;
    --  Ada positional aggregate.
@@ -384,8 +383,6 @@ package WisiToken is
 
    function Contains (Region : in Line_Region; Pos : in Base_Line_Number_Type) return Boolean
    is (Region.First <= Pos and Pos <= Region.Last);
-
-   function Overlaps (A, B : in Line_Region) return Boolean;
 
    type Insert_Location is (After_Prev, Between, Before_Next);
 

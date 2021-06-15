@@ -56,8 +56,6 @@ package WisiToken.Gen_Token_Enum is
       New_Line_ID          => Invalid_Token_ID,
       String_1_ID          => Invalid_Token_ID,
       String_2_ID          => Invalid_Token_ID,
-      Comment_New_Line_ID  => Invalid_Token_ID,
-      Comment_Block_ID     => Invalid_Token_ID,
       Image                => (others => null), --  set in body elaboration time code
       Terminal_Image_Width => Terminal_Enum_ID'Width,
       Image_Width          => Token_Enum_ID'Width,
@@ -75,8 +73,6 @@ package WisiToken.Gen_Token_Enum is
       New_Line_ID          => Invalid_Token_ID,
       String_1_ID          => Invalid_Token_ID,
       String_2_ID          => Invalid_Token_ID,
-      Comment_New_Line_ID  => Invalid_Token_ID,
-      Comment_Block_ID     => Invalid_Token_ID,
       Image                => (others => null),
       Terminal_Image_Width => Terminal_Enum_ID'Width,
       Image_Width          => Token_Enum_ID'Width,

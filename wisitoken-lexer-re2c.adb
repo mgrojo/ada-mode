@@ -343,4 +343,23 @@ package body WisiToken.Lexer.re2c is
       Begin_Pos (Lexer.Source, Begin_Byte, Begin_Char, Begin_Line);
    end Begin_Pos;
 
+   overriding
+   function Is_Comment
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token)
+     return Boolean
+   is begin
+      return Is_Comment (Token.ID);
+   end Is_Comment;
+
+   overriding
+   function Line_Begin_Char_Pos
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token;
+      Line  : in Line_Number_Type)
+     return Base_Buffer_Pos
+   is begin
+      return Line_Begin_Char_Pos (Lexer.Source, Token, Line);
+   end Line_Begin_Char_Pos;
+
 end WisiToken.Lexer.re2c;

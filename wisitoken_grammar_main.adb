@@ -21,18 +21,43 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+with SAL;
 with WisiToken.Lexer.re2c;
 with wisitoken_grammar_re2c_c;
 with Wisitoken_Grammar_Actions; use Wisitoken_Grammar_Actions;
 package body Wisitoken_Grammar_Main is
 
+   function Is_Comment (ID : in WisiToken.Token_ID) return Boolean
+   is begin
+      case To_Token_Enum (ID) is
+      when COMMENT_ID => return True;
+      when others => return False;
+      end case;
+   end Is_Comment;
+
+   function Line_Begin_Char_Pos
+    (Source : in WisiToken.Lexer.Source;
+     Token  : in WisiToken.Lexer.Token;
+     Line   : in WisiToken.Line_Number_Type)
+   return WisiToken.Buffer_Pos
+   is
+      use all type WisiToken.Base_Buffer_Pos;
+   begin
+      case To_Token_Enum (Token.ID) is
+      when NEW_LINE_ID | COMMENT_ID => return Token.Char_Region.Last + 1;
+      when RAW_CODE_ID | REGEXP_ID | ACTION_ID => return WisiToken.Lexer.Line_Begin_Char_Pos (Source, Token, Line);
+      when others => raise SAL.Programmer_Error;
+      end case;
+   end Line_Begin_Char_Pos;
    package Lexer is new WisiToken.Lexer.re2c
      (wisitoken_grammar_re2c_c.New_Lexer,
       wisitoken_grammar_re2c_c.Free_Lexer,
       wisitoken_grammar_re2c_c.Reset_Lexer,
       wisitoken_grammar_re2c_c.Set_Verbosity,
       wisitoken_grammar_re2c_c.Set_Position,
-      wisitoken_grammar_re2c_c.Next_Token);
+      wisitoken_grammar_re2c_c.Next_Token,
+      Is_Comment,
+      Line_Begin_Char_Pos);
 
    function Create_Parse_Table
      return WisiToken.Parse.LR.Parse_Table_Ptr

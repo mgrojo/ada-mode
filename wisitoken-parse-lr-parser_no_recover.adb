@@ -469,7 +469,11 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                   Tree.Action (Node) (Parser.User_Data.all, Tree, Node);
                exception
                when E : others =>
-                  if WisiToken.Debug_Mode then
+                  if Trace_Tests > Outline then
+                     --  running a unit test; exception may be AUnit assert fail
+                     raise;
+
+                  elsif WisiToken.Debug_Mode then
                      Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
                      Parser.Trace.New_Line;
                   end if;

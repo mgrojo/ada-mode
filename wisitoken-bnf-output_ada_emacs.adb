@@ -1638,6 +1638,7 @@ is
       Main_Package_Name    : in String)
    is
       use WisiToken.Generate;
+      use Generate_Utils;
 
       File_Name : constant String := To_Lower (Main_Package_Name) & ".adb";
       Body_File : File_Type;
@@ -1658,6 +1659,9 @@ is
          null;
 
       when re2c_Lexer =>
+         if Create_re2c_Lexer_With_Sal (Generate_Data) then
+            Put_Line ("with SAL;");
+         end if;
          Put_Line ("with WisiToken.Lexer.re2c;");
          Put_Line ("with " & Output_File_Name_Root & "_re2c_c;");
 
@@ -1683,14 +1687,7 @@ is
          null;
 
       when re2c_Lexer =>
-         Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
-         Indent_Line ("  (" & Output_File_Name_Root & "_re2c_c.New_Lexer,");
-         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Free_Lexer,");
-         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Reset_Lexer,");
-         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Set_Verbosity,");
-         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Set_Position,");
-         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token);");
-         New_Line;
+         Create_re2c_Lexer (Generate_Data, Output_File_Name_Root);
       end case;
 
       case Common_Data.Generate_Algorithm is

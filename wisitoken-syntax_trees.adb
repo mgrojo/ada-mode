@@ -475,8 +475,13 @@ package body WisiToken.Syntax_Trees is
                else
                   Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar => True);
                end if;
-               return (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
-                       Last  => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First - 1);
+               if Prev_Source_Terminal = Invalid_Node_Access then
+                  --  Node is the root of an empty parse stream element.
+                  return Null_Buffer_Region;
+               else
+                  return (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
+                          Last  => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First - 1);
+               end if;
             else
                return Null_Buffer_Region;
             end if;
@@ -504,7 +509,8 @@ package body WisiToken.Syntax_Trees is
          end if;
       end if;
 
-      if Prev_Source_Terminal = Invalid_Node_Access then
+      if Prev_Source_Terminal = Invalid_Node_Access or Next_Source_Terminal = Invalid_Node_Access then
+         --  Prev or Next is in prev/next stream element
          return Null_Buffer_Region;
       else
          return
@@ -596,8 +602,8 @@ package body WisiToken.Syntax_Trees is
    end Byte_Region;
 
    function Char_Region
-     (Tree                : in Syntax_Trees.Tree;
-      Node                : in Valid_Node_Access;
+     (Tree                 : in Syntax_Trees.Tree;
+      Node                 : in Valid_Node_Access;
       Trailing_Non_Grammar : in Boolean := False)
      return Buffer_Region
    is begin
@@ -653,14 +659,15 @@ package body WisiToken.Syntax_Trees is
    --  Char_Pos to the character position following the New_Line.
    is begin
       for Tok of Node.Non_Grammar loop
-         --  FIXME: new_line may be in a Comment_Block
-         if Tok.ID in Tree.Lexer.Descriptor.New_Line_ID |
-           Tree.Lexer.Descriptor.Comment_New_Line_ID |
-           Tree.Lexer.Descriptor.EOI_ID and
-           Tok.Line_Region.First = Line - 1
-         then
-            Char_Pos := Tok.Char_Region.Last + 1;
-            return True;
+         if Contains (Tok.Line_Region, Line) then
+            declare
+               Temp : constant Base_Buffer_Pos := Tree.Lexer.Line_Begin_Char_Pos (Tok, Line);
+            begin
+               if Temp /= Invalid_Buffer_Pos then
+                  Char_Pos := Temp;
+                  return True;
+               end if;
+            end;
          end if;
       end loop;
       return False;
@@ -1247,26 +1254,26 @@ package body WisiToken.Syntax_Trees is
       Non_Grammar : in Lexer.Token_Arrays.Vector;
       Line        : in Line_Number_Type)
      return Boolean
-   with Pre => (for some Token of Non_Grammar => Token.Line_Region.First = Line - 1)
-   --  Return True if Line is empty
-   is
-      EOI_ID              : Token_ID renames Tree.Lexer.Descriptor.EOI_ID;
-      New_Line_ID         : Token_ID renames Tree.Lexer.Descriptor.New_Line_ID;
-      Comment_New_Line_ID : Token_ID renames Tree.Lexer.Descriptor.Comment_New_Line_ID;
-   begin
+   with Pre => (for some Token of Non_Grammar => Contains (Token.Line_Region, Line))
+   --  Return True if Line in Non_Grammar contains no non_grammar tokens
+   --  other than New_Line or EOI.
+   is begin
       for I in Non_Grammar.First_Index .. Non_Grammar.Last_Index loop
-         if Non_Grammar (I).ID in New_Line_ID | Comment_New_Line_ID then
-            if Non_Grammar (I).Line_Region.Last = Line then
-               --  FIXME: line could be in a block comment.
-               if I < Non_Grammar.Last_Index then
-                  return Non_Grammar (I + 1).ID in New_Line_ID | Comment_New_Line_ID;
-               else
-                  return False;
-               end if;
-            end if;
+         if Contains (Non_Grammar (I).Line_Region, Line) then
+            declare
+               Line_Begin_Char_Pos : constant Base_Buffer_Pos := Tree.Lexer.Line_Begin_Char_Pos (Non_Grammar (I), Line);
+            begin
+               if Line_Begin_Char_Pos /= Invalid_Buffer_Pos then
+                  if Non_Grammar (I).Char_Region.Last + 1 > Line_Begin_Char_Pos then
+                     return True;
 
-         elsif Non_Grammar (I).ID = EOI_ID then
-            return True;
+                  else
+                     pragma Assert (Non_Grammar (I).Char_Region.Last + 1 = Line_Begin_Char_Pos);
+                     return I < Non_Grammar.Last_Index and then
+                       not (Non_Grammar (I + 1).ID in Tree.Lexer.Descriptor.New_Line_ID | Tree.Lexer.Descriptor.EOI_ID);
+                  end if;
+               end if;
+            end;
          end if;
       end loop;
       --  Getting here violates the precondition
@@ -1669,17 +1676,11 @@ package body WisiToken.Syntax_Trees is
       Node     : in     Node_Access;
       Char_Pos :    out Buffer_Pos)
      return Node_Access
-   with Pre => Line > Line_Number_Type'First and Tree.Parents_Set,
-     Post => Find_New_Line'Result = Invalid_Node_Access or else
-             (Find_New_Line'Result.Label in Terminal_Label and then
-                (for some Token of Find_New_Line'Result.Non_Grammar =>
-                   (Token.ID in Tree.Lexer.Descriptor.New_Line_ID | Tree.Lexer.Descriptor.Comment_New_Line_ID and
-                      Token.Line_Region.First = Line - 1) or
-                      (Token.ID = Tree.Lexer.Descriptor.EOI_ID and Token.Line_Region.First in Line - 1 | Line)))
-   --  Return node under Node that contains the non-grammar New_Line or
-   --  EOI that ends Line - 1. Update Char_Pos to the position of the
-   --  first character on Line (or EOI). If not found, result is
-   --  Invalid_Node_Access, Char_Pos is Invalid_Buffer_Pos.
+   with Pre => Line > Line_Number_Type'First and Tree.Parents_Set
+   --  Return node under Node that contains the non-grammar containing a
+   --  new_line or EOI that ends Line - 1. Update Char_Pos to the
+   --  position of the first character on Line (or EOI). If not found,
+   --  result is Invalid_Node_Access, Char_Pos is Invalid_Buffer_Pos.
    is begin
       Char_Pos := Invalid_Buffer_Pos;
 
@@ -1791,10 +1792,7 @@ package body WisiToken.Syntax_Trees is
    with Pre => Line > Line_Number_Type'First and Ref.Ref.Element /= Invalid_Stream_Index,
      Post => Ref.Ref.Element = Ref.Ref.Element'Old and
              (Ref.Ref.Node = Invalid_Node_Access or else
-                (Ref.Ref.Node.Label in Terminal_Label and then
-                   (for some Token of Ref.Ref.Node.Non_Grammar =>
-                      Token.ID in Tree.Lexer.Descriptor.New_Line_ID | Tree.Lexer.Descriptor.EOI_ID and
-                        Token.Line_Region.First = Line - 1)))
+                (Ref.Ref.Node.Label in Terminal_Label))
    --  Update Ref to node under Ref.Node in Ref.Stream that ends Line -
    --  1. Set Char_Pos to the position of the first character on Line. If
    --  not found, Ref.Ref.Node is Invalid_Node_Access, Char_Pos is
@@ -1891,8 +1889,7 @@ package body WisiToken.Syntax_Trees is
    with Pre => Line > Line_Number_Type'First and Ref.Parents.Is_Empty and
                Ref.Ref.Node = Stream_Element_Lists.Constant_Ref (Ref.Ref.Element.Cur).Node,
      Post => Ref.Ref = Invalid_Stream_Node_Ref or else
-             (Ref.Ref.Node.Label in Terminal_Label and then
-                (for some Token of Ref.Ref.Node.Non_Grammar => Token.Line_Region.First = Line - 1))
+             (Ref.Ref.Node.Label in Terminal_Label)
 
      --  On entry, Ref.Ref should be Stream_First (Ref.Stream). Update Ref
      --  to node in Ref.Stream or Tree.Shared_Stream that ends Line - 1 (or

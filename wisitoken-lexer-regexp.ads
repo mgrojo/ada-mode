@@ -107,6 +107,19 @@ package WisiToken.Lexer.Regexp is
       Begin_Char :    out Buffer_Pos;
       Begin_Line :    out Line_Number_Type);
 
+   overriding
+   function Is_Comment
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token)
+     return Boolean;
+
+   overriding
+   function Line_Begin_Char_Pos
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token;
+      Line  : in Line_Number_Type)
+     return Base_Buffer_Pos;
+
 private
 
    type String_Access is access String;

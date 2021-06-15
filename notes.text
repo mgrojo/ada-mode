@@ -31,8 +31,8 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-add tests for comment_block
-    add token.new_line_count discriminant, token.new_lines array of buffer_pos offset from start of token
+add test for comment-one-line non-ascii line_begin_char_pos
+    use skip_to_grammar, test_skip_to
 
 w-m_r-explore.adb Just_Pushed_Back_Or_Deleted:
     task 1 1: Minimal_Complete_Actions: insert END: 3, (222 : (END))\-1;(END, (59 . 61))\((PUSH_BACK, END, -1), (UNDO_REDUCE, sequence_of_statements, 0, 0), (INSERT, END, -1))
@@ -97,6 +97,11 @@ Mckenzie parallel gain
 
 recover supervisor should provide Put_Trace_line
     to control access to Trace
+
+target AdaWebPack
+    https://github.com/godunko/adawebpack/
+    or java byte code?
+    really compete with tree-sitter
 
 Nullable can be a boolean array
 

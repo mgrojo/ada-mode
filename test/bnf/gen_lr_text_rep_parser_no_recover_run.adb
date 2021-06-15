@@ -57,6 +57,7 @@ is
          User_Data'Unchecked_Access);
 
       Parser.Tree.Lexer.Reset_With_File (-File_Name);
+      Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
       Parser.Parse (Log_File);
       Parser.Execute_Actions;
       Parser.Put_Errors;

@@ -551,15 +551,17 @@ package body WisiToken_Grammar_Runtime is
                    Value => +Get_Text (Data, Tree, Tree.Child (Nonterm, 4))));
 
             when NON_GRAMMAR_ID =>
-
-               WisiToken.BNF.Add_Token
-                 (Data.Tokens.Non_Grammar,
-                  Kind  => Get_Text (Data, Tree, Children_2 (3)),
-                  Name  => Get_Text (Data, Tree, Tree.Child (Nonterm, 3)),
-                  Value =>
-                    (if Tree.Child_Count (Nonterm) >= 4
-                     then Get_Text (Data, Tree, Tree.Child (Nonterm, 4))
-                     else ""));
+               declare
+                  Children_4 : constant Syntax_Trees.Node_Access_Array := Tree.Children (Tree.Child (Nonterm, 4));
+               begin
+                  WisiToken.BNF.Add_Token
+                    (Data.Tokens.Non_Grammar,
+                     Kind         => Get_Text (Data, Tree, Children_2 (3)),
+                     Name         => Get_Text (Data, Tree, Tree.Child (Nonterm, 3)),
+                     Value        => Get_Text (Data, Tree, Children_4 (1)),
+                     Repair_Image =>
+                       (if Children_4'Length = 1 then "" else Get_Text (Data, Tree, Children_4 (2))));
+               end;
 
             when others =>
                raise SAL.Programmer_Error;

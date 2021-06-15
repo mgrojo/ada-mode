@@ -543,7 +543,7 @@ begin
                   Lexer_Done (Input_Data.User_Lexer) := True;
                   case Input_Data.User_Lexer is
                   when re2c_Lexer =>
-                     WisiToken.BNF.Output_Ada_Common.Create_re2c
+                     WisiToken.BNF.Output_Ada_Common.Create_re2c_File
                        (Input_Data, Tuple, Generate_Data, -Output_File_Name_Root);
                   when others =>
                      null;

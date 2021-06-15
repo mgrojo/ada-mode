@@ -34,8 +34,6 @@ package Wisitoken_Grammar_Actions is
       Accept_ID           => 39,
       Case_Insensitive    => False,
       New_Line_ID         => 1,
-      Comment_New_Line_ID => 2,
-      Comment_Block_ID    => 32767,
       String_1_ID         => 37,
       String_2_ID         => 36,
       Image               =>

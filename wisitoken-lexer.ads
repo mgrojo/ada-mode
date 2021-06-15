@@ -66,11 +66,6 @@ package WisiToken.Lexer is
 
    Invalid_Token : constant Token := (others => <>);
 
-   function Contains_New_Line
-     (Token      : in Lexer.Token;
-      Descriptor : in WisiToken.Descriptor_Access_Constant)
-     return Boolean;
-
    procedure Shift
      (Token       : in out Lexer.Token;
       Shift_Bytes : in     Base_Buffer_Pos;
@@ -215,6 +210,30 @@ package WisiToken.Lexer is
    with Pre'Class => Lexer.Has_Source;
    --  Return values from Reset*.
 
+   function Is_Comment
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token)
+     return Boolean
+   is abstract;
+
+   function Line_Begin_Char_Pos
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token;
+      Line  : in Line_Number_Type)
+     return Base_Buffer_Pos
+   is abstract
+   with Pre'Class => Contains (Token.Line_Region, Line) and New_Line_Count (Token.Line_Region) > 0;
+   --  First char position on Line; Invalid_Buffer_Pos if Token does not
+   --  contain new_line that starts Line.
+
+   type Source (<>) is private;
+
+   function Line_Begin_Char_Pos
+     (Source : in WisiToken.Lexer.Source;
+      Token  : in WisiToken.Lexer.Token;
+      Line   : in Line_Number_Type)
+     return Base_Buffer_Pos;
+
 private
 
    type Source_Labels is (String_Label, File_Label);
@@ -252,8 +271,8 @@ private
    procedure Finalize (Object : in out Source);
 
    function Has_Source (Object : in Source) return Boolean;
-
    --  True if one of Reset_* has been called; lexer has source to process.
+
    function Buffer_Region_Byte (Object : in Source) return Buffer_Region;
 
    function Buffer (Source : in Lexer.Source) return GNATCOLL.Mmap.Str_Access;
@@ -262,8 +281,13 @@ private
    --  Source.Buffer'First, 'Last. Otherwise, actual bounds are 1 ..
    --  Source.Buffer_Last. Indexing is reliable.
 
+   function To_Buffer_Index (Source : in WisiToken.Lexer.Source; Byte_Pos : in Base_Buffer_Pos) return Integer
+   is (Integer (Byte_Pos - Source.Buffer_Nominal_First_Byte + Buffer_Pos'First));
+
    function File_Name (Source : in Lexer.Source) return String;
+
    function To_Char_Pos (Source : in Lexer.Source; Lexer_Char_Pos : in Integer) return Base_Buffer_Pos;
+
    procedure Begin_Pos
      (Object     : in     Source;
       Begin_Byte :    out Buffer_Pos;

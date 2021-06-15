@@ -308,6 +308,9 @@ is
          null;
 
       when re2c_Lexer =>
+         if Create_re2c_Lexer_With_Sal (Generate_Data) then
+            Put_Line ("with SAL;");
+         end if;
          Put_Line ("with WisiToken.Lexer.re2c;");
          Put_Line ("with " & re2c_Package_Name & ";");
       end case;
@@ -338,14 +341,7 @@ is
          null;
 
       when re2c_Lexer =>
-         Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
-         Indent_Line ("  (" & re2c_Package_Name & ".New_Lexer,");
-         Indent_Line ("   " & re2c_Package_Name & ".Free_Lexer,");
-         Indent_Line ("   " & re2c_Package_Name & ".Reset_Lexer,");
-         Indent_Line ("   " & re2c_Package_Name & ".Set_Verbosity,");
-         Indent_Line ("   " & re2c_Package_Name & ".Set_Position,");
-         Indent_Line ("   " & re2c_Package_Name & ".Next_Token);");
-         New_Line;
+         Create_re2c_Lexer (Generate_Data, Output_File_Name_Root);
       end case;
 
       case Common_Data.Generate_Algorithm is

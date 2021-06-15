@@ -278,4 +278,31 @@ package body WisiToken.Lexer.Regexp is
       Begin_Pos (Lexer.Source, Begin_Byte, Begin_Char, Begin_Line);
    end Begin_Pos;
 
+   overriding
+   function Is_Comment
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token)
+     return Boolean
+   is
+      pragma Unreferenced (Lexer, Token);
+   begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return False;
+   end Is_Comment;
+
+   overriding
+   function Line_Begin_Char_Pos
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token;
+      Line  : in Line_Number_Type)
+     return Base_Buffer_Pos
+   is
+      pragma Unreferenced (Lexer, Token, Line);
+   begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return Invalid_Buffer_Pos;
+   end Line_Begin_Char_Pos;
+
 end WisiToken.Lexer.Regexp;

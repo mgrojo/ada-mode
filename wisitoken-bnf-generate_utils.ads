@@ -124,15 +124,15 @@ package WisiToken.BNF.Generate_Utils is
 
    function First
      (Data         : in Generate_Data;
-      Non_Grammar  : in Boolean;
-      Nonterminals : in Boolean)
+      Non_Grammar  : in Boolean := True;
+      Nonterminals : in Boolean := True)
      return Token_Cursor;
 
    procedure Next
      (Data         : in     Generate_Data;
       Cursor       : in out Token_Cursor;
-      Nonterminals : in     Boolean;
-      Include_SOI  : in     Boolean);
+      Nonterminals : in     Boolean := True;
+      Include_SOI  : in     Boolean := True);
 
    function ID (Cursor : in Token_Cursor) return Token_ID;
 

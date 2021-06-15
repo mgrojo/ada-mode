@@ -24,12 +24,12 @@ with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Strings.Unbounded;
 with Test_BNF_Suite;
-with WisiToken.BNF;
+with WisiToken;
 procedure Test_BNF_Harness
 is
    --  command line arguments (all optional, order matters):
-   --  root_name limit_gen_alg trace_config
-   --  1         2             3
+   --  root_name trace_config
+   --  1         2
    --  trace_config is passed to Wisitoken.Enable_Trace
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
@@ -40,23 +40,18 @@ is
       Report_Successes => True,
       Filter           => Filter'Unchecked_Access);
 
-   Limit_Gen_Alg : constant WisiToken.BNF.Generate_Algorithm :=
-     (if Argument_Count >= 2
-      then WisiToken.BNF.Generate_Algorithm'Value (Argument (2))
-      else WisiToken.BNF.None);
-
-   Suite    : constant Access_Test_Suite := Test_BNF_Suite (Limit_Gen_Alg);
+   Suite    : constant Access_Test_Suite := Test_BNF_Suite;
    Reporter : AUnit.Reporter.Text.Text_Reporter;
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
 
 begin
-   if Argument_Count > 1 then
+   if Argument_Count >= 1 then
       Filter.Test_Name    := Ada.Strings.Unbounded.To_Unbounded_String ("bnf_wy_test.adb " & Argument (1));
    end if;
 
-   if Argument_Count = 3 then
-      WisiToken.Enable_Trace (Argument (3));
+   if Argument_Count = 2 then
+      WisiToken.Enable_Trace (Argument (2));
    end if;
 
    Filter.Verbose := WisiToken.Trace_Tests > 0;

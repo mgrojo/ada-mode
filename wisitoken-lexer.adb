@@ -49,15 +49,6 @@ package body WisiToken.Lexer is
         Image (Item.Line_Region) & ")";
    end Full_Image;
 
-   function Contains_New_Line
-     (Token      : in Lexer.Token;
-      Descriptor : in WisiToken.Descriptor_Access_Constant)
-     return Boolean
-   is begin
-      --  FIXME: handle new_line in block comment
-      return Token.ID in Descriptor.New_Line_ID | Descriptor.Comment_New_Line_ID;
-   end Contains_New_Line;
-
    procedure Shift
      (Token       : in out Lexer.Token;
       Shift_Bytes : in     Base_Buffer_Pos;
@@ -92,6 +83,29 @@ package body WisiToken.Lexer is
       Begin_Char := Object.Buffer_Nominal_First_Char;
       Begin_Line := Object.Line_Nominal_First;
    end Begin_Pos;
+
+   function Line_Begin_Char_Pos
+     (Source : in WisiToken.Lexer.Source;
+      Token  : in WisiToken.Lexer.Token;
+      Line   : in Line_Number_Type)
+     return Base_Buffer_Pos
+   is
+      Found_Line : Base_Line_Number_Type := Token.Line_Region.First;
+   begin
+      for I in To_Buffer_Index (Source, Token.Byte_Region.First) ..
+        To_Buffer_Index (Source, Token.Byte_Region.Last)
+      loop
+         if Source.Buffer (I) = ASCII.LF then
+            Found_Line := @ + 1;
+            if Found_Line = Line then
+               return Base_Buffer_Pos (I);
+               --  FIXME: handle multi-byte UTF-8; need test case.
+               --  If high bit of Char is set, don't increment char counter.
+            end if;
+         end if;
+      end loop;
+      return Invalid_Buffer_Pos;
+   end Line_Begin_Char_Pos;
 
    procedure Finalize (Object : in out Source)
    is begin

@@ -14,82 +14,144 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-with AUnit.Checks; use AUnit.Checks;
 with WisiToken.AUnit; use WisiToken.AUnit;
+with AUnit.Checks.Containers;
+with WisiToken.Lexer;
 package body Test_Skip_To_Aux is
 
-   use all type WisiToken.Base_Buffer_Pos;
+   use WisiToken;
 
    Decl_Count : Integer := 0;
+   Comp_Count : Integer := 0;
 
-   procedure Test_Declaration_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Access)
+   procedure Check
+     (Label           : in String;
+      Lines           : in Line_Region;
+      Chars           : in Buffer_Region;
+      Bytes           : in Buffer_Region;
+      Expected_Lines  : in Line_Region;
+      Expected_Chars  : in Buffer_Region;
+      Non_Ascii_First : in Base_Buffer_Pos;
+      Non_Ascii_Last  : in Base_Buffer_Pos)
    is begin
+      Check (Label & ".line_region", Lines, Expected_Lines);
+      Check (Label & ".char region", Chars, Expected_Chars);
+
+      --  Bytes differs from chars because of non-ascii and DOS line
+      --  endings.
+      Check (Label & ".byte region", Bytes,
+             (Chars.First + Buffer_Pos (Lines.First) - 1 + Non_Ascii_First,
+              Chars.Last + Buffer_Pos (Lines.Last) - 1 + Non_Ascii_Last));
+   end Check;
+
+   procedure Test_1
+     (Label           : in String;
+      Nonterm         : in Syntax_Trees.Node_Access;
+      Expected_Lines  : in Line_Region;
+      Expected_Chars  : in Buffer_Region;
+      Non_Ascii_First : in Base_Buffer_Pos;
+      Non_Ascii_Last  : in Base_Buffer_Pos)
+   is begin
+      Check
+        (Label,
+         Lines           => Parser.Tree.Line_Region (Nonterm, Trailing_Non_Grammar => False),
+         Chars           => Parser.Tree.Char_Region (Nonterm),
+         Bytes           => Parser.Tree.Byte_Region (Nonterm),
+         Expected_Lines  => Expected_Lines,
+         Expected_Chars  => Expected_Chars,
+         Non_Ascii_First => Non_Ascii_First,
+         Non_Ascii_Last  => Non_Ascii_Last);
+   end Test_1;
+
+   procedure Test_Comment
+     (Label           : in String;
+      Token           : in WisiToken.Lexer.Token;
+      Expected_Lines  : in Line_Region;
+      Expected_Chars  : in Buffer_Region;
+      Non_Ascii_First : in Base_Buffer_Pos;
+      Non_Ascii_Last  : in Base_Buffer_Pos)
+   is begin
+      Check
+        (Label,
+         Lines           => Token.Line_Region,
+         Chars           => Token.Char_Region,
+         Bytes           => Token.Byte_Region,
+         Expected_Lines  => Expected_Lines,
+         Expected_Chars  => Expected_Chars,
+         Non_Ascii_First => Non_Ascii_First,
+         Non_Ascii_Last  => Non_Ascii_Last);
+   end Test_Comment;
+
+   procedure Test_Declaration_0 (Nonterm : in Syntax_Trees.Valid_Node_Access)
+   is
+      Label : constant String := "declaration_0";
+   begin
       if Enable then
-         declare
-            Chars : constant WisiToken.Buffer_Region := Parser.Tree.Char_Region
-              (Parser.Tree.Last_Terminal (Nonterm));
-            Bytes : constant WisiToken.Buffer_Region := Parser.Tree.Byte_Region (Nonterm);
-            Lines : constant WisiToken.Line_Region := Parser.Tree.Line_Region (Nonterm, Trailing_Non_Grammar => False);
-         begin
-            if WisiToken.Trace_Parse > WisiToken.Outline then
-               Ada.Text_IO.Put_Line ("Test_Declaration_0");
+            Decl_Count := Decl_Count + 1;
+            if Trace_Parse > Outline then
+               Ada.Text_IO.Put_Line ("Test_Declaration_0" & Decl_Count'Image);
             end if;
 
             --  File has DOS line endings and non-ASCII chars.
             --
             --  Char_Region from wisi-show-region in .input file (with point _before_ last char)
             --
-            --  Byte_Region from hexl-mode in .input file, +1 to match Emacs origin.
+            --  non_ascii offset from counting non-ascii excess bytes
 
-            Decl_Count := Decl_Count + 1;
-            case Decl_Count is
-            when 1 =>
-               Check ("declaration_0 RANGE char region", Chars, (39, 43));
-               Check ("declaration_0 RANGE byte region", Bytes, (16#1E# + 1, 16#2F# + 1));
-               Check ("declaration_0 RANGE line region", Lines, (6, 6));
+         case Decl_Count is
+         when 1 =>
+            Test_1 (Label & ".RANGE", Nonterm, (7, 7), (40, 57), 0, 0);
 
-            when 2 =>
-               Check ("declaration_0 X1_Non char region", Chars, (59, 62));
-               Check ("declaration_0 X1_Non byte region", Bytes, (16#32# + 1, 70));
+         when 2 =>
+            Test_1 (Label & ".X1_Non", Nonterm, (8, 8), (59, 76), 0, 2);
 
-            when 3 =>
-               Check ("declaration_0 X2_Non char region", Chars, (109, 112));
-               Check ("declaration_0 X2_Non byte region", Bytes, (16#67# + 1, 16#7A# + 1));
-            when 4 =>
-               Check ("declaration_0 X3_Non char region", Chars, (154, 157));
-               Check ("declaration_0 X3_Non byte region", Bytes, (16#97# + 1, 16#A9# + 1));
+         when 3 =>
+            Test_1 (Label & ".X2_Non", Nonterm, (9, 9), (109, 126), 2, 4);
 
-            when others =>
-               raise WisiToken.Fatal_Error;
-            end case;
-         end;
+         when 4 =>
+            Test_1 (Label & ".X3_Non", Nonterm, (10, 10), (154, 171), 4, 5);
+
+         when others =>
+            raise Fatal_Error;
+         end case;
       end if;
    end Test_Declaration_0;
 
-   procedure Test_Compilation_Unit_0 (Nonterm : in WisiToken.Syntax_Trees.Valid_Node_Access)
-   is begin
+   procedure Test_Compilation_Unit_0 (Nonterm : in Syntax_Trees.Valid_Node_Access)
+   is
+   begin
       if Enable then
-         if WisiToken.Trace_Parse > WisiToken.Outline then
-            Ada.Text_IO.Put_Line ("Test_Compilation_Unit_0");
+         Comp_Count := Comp_Count + 1;
+         if Trace_Parse > Outline then
+            Ada.Text_IO.Put_Line ("Test_Compilation_Unit_0" & Comp_Count'Image);
          end if;
-
-         --  See comment in Test_Declaration_0 for source of expected values.
-
-         Check ("compilation_unit_0 PREAMBLE char region",
-                Parser.Tree.Char_Region (Parser.Tree.First_Terminal (Nonterm)),
-                (1, 5));
          declare
-            Bytes : constant WisiToken.Buffer_Region := Parser.Tree.Byte_Region (Nonterm);
+            use AUnit.Checks.Containers;
+            Label : constant String := "compilation_unit_0 PREAMBLE" & "." & Comp_Count'Image;
+            Non_Grammar : WisiToken.Lexer.Token_Arrays.Vector renames Parser.Tree.Non_Grammar_Const
+              (Parser.Tree.Last_Terminal (Nonterm));
          begin
-            Check ("compilation_unit_0 PREAMBLE byte region", Bytes, (0 + 1, 5 + 1));
-            Check ("compilation_unit_0 PREAMBLE text",
-                   Parser.Tree.Lexer.Buffer_Text (Bytes),
-                   "%{" & ASCII.CR & ASCII.LF & "%}");
-         end;
+            --  See comment in Test_Declaration_0 for source of expected values.
 
-         Check ("compilation_unit_0 PREAMBLE line region",
-                Parser.Tree.Line_Region (Nonterm, Trailing_Non_Grammar => False),
-                (1, 2));
+            case Comp_Count is
+            when 1 =>
+               --  First delimited text
+               Test_1 (Label, Nonterm, (1, 3), (1, 20), 0, 0);
+
+               Check (Label & ".non_grammar.length", Non_Grammar.Length, 5);
+               Test_Comment (Label & ".comment 1", Non_Grammar (3), (5, 5), (23, 37), 0, 0);
+
+            when 2 =>
+               --  Second delimited text, with non-ascii.
+               Test_1 (Label, Nonterm, (12, 16), (196, 264), 5, 6);
+
+               Check (Label & ".non_grammar.length", Non_Grammar.Length, 5);
+               Test_Comment (Label & ".comment 1", Non_Grammar (3), (18, 19), (267, 311), 6, 7);
+               Test_Comment (Label & ".comment 2", Non_Grammar (5), (20, 21), (313, 335), 7, 7);
+            when others =>
+               raise Fatal_Error;
+            end case;
+         end;
       end if;
    end Test_Compilation_Unit_0;
 

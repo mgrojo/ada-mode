@@ -1816,10 +1816,7 @@ package WisiToken.Syntax_Trees is
      return Node_Access
    with Pre => Tree.Editable,
      Post => Find_New_Line'Result = Invalid_Node_Access or else
-             (Tree.Is_Terminal (Find_New_Line'Result) and then
-                (for some Token of Tree.Non_Grammar_Const (Find_New_Line'Result) =>
-                   (Token.ID = Tree.Lexer.Descriptor.New_Line_ID and Token.Line_Region.First = Line - 1) or
-                      (Token.ID = Tree.Lexer.Descriptor.EOI_ID and Token.Line_Region.First in Line - 1 | Line)));
+             (Tree.Is_Terminal (Find_New_Line'Result));
    --  Return the terminal node that ends Line - 1; SOI, EOI or contains
    --  the non-grammar New_Line. Result is Invalid_Node_Access if Line is
    --  outside range spanned by Tree.
@@ -1831,12 +1828,7 @@ package WisiToken.Syntax_Trees is
      return Node_Access
    with Pre => Tree.Editable,
      Post => Find_New_Line'Result = Invalid_Node_Access or else
-             (Tree.Is_Terminal (Find_New_Line'Result) and then
-                (for some Token of Tree.Non_Grammar_Const (Find_New_Line'Result) =>
-                   (Token.ID in Tree.Lexer.Descriptor.New_Line_ID | Tree.Lexer.Descriptor.Comment_New_Line_ID and
-                      Token.Line_Region.First = Line - 1) or
-                      (Token.ID in Tree.Lexer.Descriptor.SOI_ID | Tree.Lexer.Descriptor.EOI_ID and
-                         Token.Line_Region.First in Line - 1 | Line)));
+             (Tree.Is_Terminal (Find_New_Line'Result));
    --  Same as Find_New_Line, also updates Line_Begin_Char_Pos to first
    --  char pos on Line.
 

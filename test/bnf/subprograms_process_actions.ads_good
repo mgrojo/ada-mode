@@ -31,8 +31,6 @@ package Subprograms_Process_Actions is
       Accept_ID           => 22,
       Case_Insensitive    => False,
       New_Line_ID         => 1,
-      Comment_New_Line_ID => 2,
-      Comment_Block_ID    => 32767,
       String_1_ID         => 32767,
       String_2_ID         => 32767,
       Image               =>

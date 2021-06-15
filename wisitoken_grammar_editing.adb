@@ -3038,7 +3038,7 @@ package body WisiToken_Grammar_Editing is
                end if;
             else
                for Token of Non_Grammar loop
-                  if Token.ID = +NEW_LINE_ID then
+                  if Contains_New_Line (Token.Line_Region) then
                      Comments_Include_Newline := True;
                   end if;
                   Put (File, Tree.Lexer.Buffer_Text (Token.Byte_Region));

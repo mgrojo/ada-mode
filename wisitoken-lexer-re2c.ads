@@ -81,6 +81,17 @@ generic
    --  0 - no error
    --  1 - there is an unrecognized character at Position.
 
+   with function Is_Comment (ID : in Token_ID) return Boolean;
+   --  Implements WisiToken.Lexer.Is_Comment.
+
+   with function Line_Begin_Char_Pos
+     (Source : in WisiToken.Lexer.Source;
+      Token  : in Lexer.Token;
+      Line   : in WisiToken.Line_Number_Type)
+     return Buffer_Pos;
+   --  Implements WisiToken.Lexer.Line_Begin_Char_Pos, so that
+   --  precondition applies.
+
 package WisiToken.Lexer.re2c is
 
    Invalid_Input : exception;
@@ -152,6 +163,19 @@ package WisiToken.Lexer.re2c is
       Begin_Byte :    out Buffer_Pos;
       Begin_Char :    out Buffer_Pos;
       Begin_Line :    out Line_Number_Type);
+
+   overriding
+   function Is_Comment
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token)
+     return Boolean;
+
+   overriding
+   function Line_Begin_Char_Pos
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token;
+      Line  : in Line_Number_Type)
+     return Base_Buffer_Pos;
 
 private
 

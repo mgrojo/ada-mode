@@ -394,15 +394,6 @@ package body WisiToken is
       return (Left.First + Right, Left.Last + Right);
    end "+";
 
-   function Overlaps (A, B : in Line_Region) return Boolean
-   is begin
-      if Length (A) > 0 and Length (B) > 0 then
-         return Contains (B, A.First) or Contains (B, A.Last) or Contains (A, B.First) or Contains (A, B.Last);
-      else
-         return False;
-      end if;
-   end Overlaps;
-
    procedure Enable_Trace (Config : in String)
    is
       use Ada.Characters.Handling;
