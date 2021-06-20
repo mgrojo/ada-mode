@@ -28,7 +28,6 @@ pragma License (Modified_GPL);
 
 with Ada.Task_Attributes;
 with WisiToken.Parse.LR.Parser;
-with WisiToken.Lexer;
 limited with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package WisiToken.Parse.LR.McKenzie_Recover is
    use all type WisiToken.Syntax_Trees.Node_Access;

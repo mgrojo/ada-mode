@@ -22,6 +22,7 @@ with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with GNAT.Traceback.Symbolic;
 with System.Multiprocessors;
+with WisiToken.Lexer;
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
 with WisiToken.Parse.LR.McKenzie_Recover.Explore;
 with WisiToken.Parse.LR.McKenzie_Recover.Parse;

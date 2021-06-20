@@ -94,6 +94,8 @@ package WisiToken.Parse is
       Deleted_Chars : Zero_Buffer_Pos;
    end record;
 
+   Invalid_KMN : constant KMN := (others => 0);
+
    function Image (KMN : in WisiToken.Parse.KMN) return String;
 
    procedure Validate_KMN

@@ -243,7 +243,14 @@ package body WisiToken.Parse is
       Scanned_Byte_Pos : Base_Buffer_Pos       := 0; -- Last pos scanned by lexer
       Shift_Bytes      : Base_Buffer_Pos       := 0;
       Shift_Chars      : Base_Buffer_Pos       := 0;
-      Shift_Lines      : Base_Line_Number_Type := 0;
+
+      Shift_Lines : Base_Line_Number_Type := 0;
+      --  Whenever a non_grammar is deleted from Tree (either permanently,
+      --  or moved to Floating_Non_Grammar), Shift_Lines is decremented by
+      --  New_Line_Count (non_grammar_token). Then if a token is restored
+      --  from Floating_Non_Grammar to the Tree, Shift_Lines is incremented;
+      --  if a token is deleted from Floating_Non_Grammar, Shift_Lines is
+      --  not changed.
 
       Floating_Non_Grammar : Lexer.Token_Arrays.Vector;
       --  Non_grammar that are detached from a shifted node because they are
@@ -338,6 +345,15 @@ package body WisiToken.Parse is
 
             Inserted_Region_Chars : constant Buffer_Region :=
               (New_Char_Pos + KMN.Stable_Chars + 1, New_Char_Pos + KMN.Stable_Chars + KMN.Inserted_Chars);
+
+            Next_KMN : constant WisiToken.Parse.KMN :=
+              (if KMN_Node = Edits.Last
+               then Invalid_KMN
+               else Element (Next (KMN_Node)));
+
+            Next_KMN_Stable_Last : constant Buffer_Pos :=
+              Stable_Region.Last + KMN.Deleted_Bytes + Next_KMN.Stable_Bytes;
+
          begin
             --  Parser.Lexer contains the edited text, so we can't check that
             --  stable, deleted are inside the initial text. Caller should use
@@ -484,9 +500,6 @@ package body WisiToken.Parse is
                Terminal_Byte_Region : constant Buffer_Region := Tree.Byte_Region
                  (Terminal.Node, Trailing_Non_Grammar => Terminal_Non_Grammar_Next /= Lexer.Token_Arrays.No_Index);
 
-               --  We don't modify Shift_Lines until after we use it to set Lex_Start_Line
-               Delta_Lines : Base_Line_Number_Type := 0;
-
                Do_Scan        : Boolean := False;
                Lex_Start_Byte : Buffer_Pos;
                Lex_Start_Char : Buffer_Pos;
@@ -557,6 +570,7 @@ package body WisiToken.Parse is
                                    Byte_Region.First + Shift_Bytes > Inserted_Region.Last)
                               then
                                  --  Token is not in the edit region; handle it later.
+                                 Shift_Lines := @ - New_Line_Count (Non_Grammar (I).Line_Region);
                                  Floating_Non_Grammar.Append (Non_Grammar (I));
                                  Last_Floated := I;
 
@@ -618,8 +632,7 @@ package body WisiToken.Parse is
                      --  Edit start is in or adjacent to some non_grammar token or
                      --  whitespace preceding Terminal; delete non_grammar tokens adjacent
                      --  to, containing or after the edit start. Deleted New_Lines
-                     --  decrement Shift_Lines, but only after we use Shift_Lines to set
-                     --  Lex_Start_Line.
+                     --  decrement Shift_Lines.
                      declare
                         procedure Handle_Non_Grammar (Non_Grammar : in out WisiToken.Lexer.Token_Arrays.Vector)
                         is
@@ -676,7 +689,7 @@ package body WisiToken.Parse is
                                          Delete'Image & " .." & Non_Grammar.Last_Index'Image);
                                  end if;
                                  for I in Delete .. Non_Grammar.Last_Index loop
-                                    Delta_Lines := @ - New_Line_Count (Non_Grammar (I).Line_Region);
+                                    Shift_Lines := @ - New_Line_Count (Non_Grammar (I).Line_Region);
                                  end loop;
 
                                  Non_Grammar.Set_First_Last (Non_Grammar.First_Index, Delete - 1);
@@ -724,7 +737,6 @@ package body WisiToken.Parse is
                end if;
 
                if Do_Scan then
-                  Shift_Lines := @ + Delta_Lines;
 
                   if Trace_Incremental_Parse > Outline then
                      Parser.Trace.Put_Line
@@ -775,7 +787,7 @@ package body WisiToken.Parse is
                                  --  to deleting it). ada_mode-interactive_1.adb Proc_2, Func_2
                                  if Trace_Incremental_Parse > Detail then
                                     Parser.Trace.Put_Line
-                                      ("... delete " & Lexer.Image (Token, Tree.Lexer.Descriptor.all));
+                                      ("... delete non_grammar " & Lexer.Image (Token, Tree.Lexer.Descriptor.all));
                                  end if;
                                  Shift_Lines := @ - New_Line_Count (Token.Line_Region);
                               else
@@ -1022,7 +1034,6 @@ package body WisiToken.Parse is
                         New_Comment_End     := Invalid_Buffer_Pos;
                      end if;
 
-
                      for Token of Tree.Non_Grammar_Const (To_Delete.Node) loop
                         Shift_Lines := @ - New_Line_Count (Token.Line_Region);
 
@@ -1197,6 +1208,13 @@ package body WisiToken.Parse is
 
                               Tree.Stream_Insert
                                 (Stream, Parser.Deleted_Nodes (Deleted_Node), Before => Insert_Before.Element);
+
+                              --  Non_Grammar on nodes deleted by error recover should be moved to
+                              --  other nodes.
+                              pragma Assert
+                                (Tree.Non_Grammar_Const (Parser.Deleted_Nodes (Deleted_Node)).Length = 0,
+                                 "Edit_Tree: non_grammar on restored deleted_node");
+
                               Inc_Deleted_Node := False;
                               Delete;
                            end;
@@ -1208,12 +1226,12 @@ package body WisiToken.Parse is
                   end loop Deleted_Nodes;
 
                   for I in Floating_Non_Grammar.First_Index .. Floating_Non_Grammar.Last_Index loop
+                     exit when Floating_Non_Grammar (I).Byte_Region.First + Shift_Bytes > Next_KMN_Stable_Last;
+                     --  If token is in next KMN edit region, shift_bytes is wrong here.
+
                      if Floating_Non_Grammar (I).Byte_Region.First + Shift_Bytes <= Scanned_Byte_Pos then
                         --  Non_grammar token was rescanned; delete the old one.
                         --  test case: ada_mode-recover_align_1.adb
-
-                        --  test_incremental.adb Delete_Comment_Start
-                        Shift_Lines := @ - New_Line_Count (Floating_Non_Grammar (I).Line_Region);
 
                         if Trace_Incremental_Parse > Detail then
                            Parser.Trace.Put_Line
@@ -1232,10 +1250,11 @@ package body WisiToken.Parse is
 
                            Tok : Lexer.Token := Floating_Non_Grammar (I);
                         begin
-                           Shift_Lines := @ + New_Line_Count (Floating_Non_Grammar (I).Line_Region);
                            Tok.Byte_Region := @ + Shift_Bytes;
                            Tok.Char_Region := @ + Shift_Chars;
                            Tok.Line_Region := @ + Shift_Lines;
+
+                           Shift_Lines := @ + New_Line_Count (Floating_Non_Grammar (I).Line_Region);
 
                            Tree.Non_Grammar_Var (Containing_Terminal.Node).Append (Tok);
 
