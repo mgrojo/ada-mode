@@ -125,10 +125,12 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (unless (buffer-live-p (wisi-process--parser-buffer parser))
 	;; User may have killed buffer to kill parser.
 	(setf (wisi-process--parser-buffer parser)
-	      (get-buffer-create process-name)))
+	      (get-buffer-create process-name))
+	(with-current-buffer (wisi-process--parser-buffer parser)
+	  (emacs-lisp-mode))) ;; for comment syntax
 
       (with-current-buffer (wisi-process--parser-buffer parser)
-	(erase-buffer)); delete any previous messages, prompt
+	(erase-buffer));; delete any previous messages, prompt
 
       (wisi-parse-log-message parser "create process")
 
@@ -140,6 +142,11 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	     :coding 'utf-8-unix
 	     ;; We don't need utf-8-dos for reading when the parser is
 	     ;; compiled for Windows; ASCII.CR is easy to ignore.
+	     ;;
+	     ;; See test/mixed_unix_dos_line_ends.adb; we'd like to
+	     ;; have truly "no conversion" here, so the count of sent
+	     ;; bytes to be the same as computed in *--send. But even
+	     ;; utf-8-emacs strips the stray ^M from that buffer.
 
 	     :command (append (list (wisi-process--parser-exec-file parser))
 			      (wisi-process--parser-exec-opts parser))))
@@ -745,7 +752,7 @@ one or more Query messages."
 	       response-end
 	       (response-count 0)
 	       sexp-start
-	       (need-more nil) ;; point-max if need more, to check for new input
+	       (need-more nil) ;; t need more input to complete current sexp
 	       (done nil)
 	       start-wait-time)
 
@@ -769,10 +776,18 @@ one or more Query messages."
 
 	      (cond
 	       ((eobp)
-		(setq need-more (point-max)))
+		(setq need-more t))
 
 	       ((looking-at wisi-process-parse-prompt)
 		(setq done t))
+
+	       ((wisi-in-comment-p)
+		;; In debug output. Just move to beginning of comment;
+		;; sexp loop will handle moving forward.
+		;;
+		;; (must be after prompt check; the prompt is a comment)
+		(goto-char (line-beginning-position))
+		(setq sexp-start (point)))
 
 	       ((or (looking-at "\\[") ;; encoded action
 		    (looking-at "(")) ;; error or other elisp expression to eval
@@ -780,7 +795,7 @@ one or more Query messages."
 		    (setq response-end (scan-sexps (point) 1))
 		  (error
 		   ;; incomplete response
-		   (setq need-more (point-max))
+		   (setq need-more t)
 		   nil))
 
 		(unless need-more
@@ -819,7 +834,7 @@ one or more Query messages."
 		     ((equal 'parse_error (car response))
 		      ;; Parser detected some other error non-fatal error, so signal it.
 		      (push
-		       (make-wisi--parse-error :pos 0 :message (cadr response))
+		       (make-wisi--parse-error :pos (point-min) :message (cadr response))
 		       (wisi-parser-parse-errors parser))
 		      (signal 'wisi-parse-error (cdr response)))
 
@@ -889,7 +904,7 @@ one or more Query messages."
 		    (+ (wisi-process--parser-total-wait-time parser)
 		       (- (float-time) start-wait-time)))
 
-	      (when (and (= (point-max) need-more)
+	      (when (and need-more
 			 (> (wisi-process--parser-total-wait-time parser) wisi-process-time-out))
 		(error (concat "wisi-process-parse timing out; increase `wisi-process-time-out'?"
 			       " (or bad syntax in process output)")))
@@ -1207,12 +1222,12 @@ one or more Query messages."
 		  begin-indent " "
 		  (when (not (string-equal "" verbosity)) (format "--verbosity \"%s\" " verbosity))
 		  (when (not (= -1 mckenzie_task_count)) (format "--mckenzie_task_count %d " mckenzie_task_count))
-		  (when (not (= -1 mckenzie_zombie_limit)) (format "--mckenzie_zombie_limit " mckenzie_zombie_limit))
+		  (when (not (= -1 mckenzie_zombie_limit)) (format "--mckenzie_zombie_limit %d" mckenzie_zombie_limit))
 		  " "
 		  (when (not (= -1 mckenzie_enqueue_limit))
-		    (format "--mckenzie_enqueue_limit " mckenzie_enqueue_limit))
+		    (format "--mckenzie_enqueue_limit %d" mckenzie_enqueue_limit))
 		  " "
-		  (when (not (= -1 parse_max_parallel)) (format "--parse_max_parallel " parse_max_parallel)) " "
+		  (when (not (= -1 parse_max_parallel)) (format "--parse_max_parallel %d" parse_max_parallel)) " "
 		  (when (not (string-equal "" language_param)) (format "--lang_params \"%s\" " language_param))
 		  ))
     (message cmd)))

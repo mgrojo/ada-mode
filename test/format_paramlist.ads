@@ -2,7 +2,7 @@
 package Format_Paramlist is
 
    type Z is tagged record
-      Z_Int : Integer;
+      Z_Int : Integer := 0;
    end record;
 
 

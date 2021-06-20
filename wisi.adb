@@ -2098,6 +2098,19 @@ package body Wisi is
       Params  : in     Indent_Param_Array)
    is
       use all type SAL.Base_Peek_Type;
+
+      function In_Line_Region (Node : in Syntax_Trees.Valid_Node_Access) return Boolean
+      is
+         Node_Region : constant Line_Region := Tree.Line_Region (Node, Trailing_Non_Grammar => True);
+      begin
+         return Node_Region.First > Node_Region.Last -- null region is always in active region
+           or else
+           (Contains (Data.Action_Region_Lines, Node_Region.First) or
+              Contains (Data.Action_Region_Lines, Node_Region.Last) or
+              (Node_Region.First < Data.Action_Region_Lines.First and
+              Node_Region.Last > Data.Action_Region_Lines.Last));
+      end In_Line_Region;
+
    begin
       if Trace_Action > Outline then
          Data.Trace.Put_Line
@@ -2106,14 +2119,12 @@ package body Wisi is
       end if;
 
       for I in 1 .. Tree.Child_Count (Nonterm) loop
-         if not (Tree.SOI = Tree.Child (Nonterm, I) or Tree.EOI = Tree.Child (Nonterm, I)) and
+         if not (Tree.SOI = Tree.Child (Nonterm, I) or Tree.EOI = Tree.Child (Nonterm, I)) and then
            --  We see these in a partial parse.
 
            (I in Params'Range and then
               --  In some translated EBNF, not every token has an indent param.
-              Overlaps
-                (Tree.Line_Region (Tree.Child (Nonterm, I), Trailing_Non_Grammar => True),
-                 Data.Action_Region_Lines))
+              In_Line_Region (Tree.Child (Nonterm, I)))
          then
             declare
                Child : constant Syntax_Trees.Valid_Node_Access := Tree.Child (Nonterm, I);
@@ -2525,7 +2536,7 @@ package body Wisi is
          function Has_New_Line (Node : in Valid_Node_Access) return Boolean
          is begin
             return (for some Token of Tree.Non_Grammar_Const (Node) =>
-                      Contains_New_Line (Token, Tree.Lexer.Descriptor));
+                      Contains_New_Line (Token.Line_Region));
          end Has_New_Line;
 
          function Get_Last (Node : in Valid_Node_Access) return Base_Line_Number_Type
@@ -2607,9 +2618,7 @@ package body Wisi is
                         Result.Comment := Null_Line_Region;
 
                      else
-                        if Contains_New_Line
-                          (Trailing_Non_Grammar (Trailing_Non_Grammar.First_Index), Tree.Lexer.Descriptor)
-                          --  FIXME: handle multi-line comments
+                        if Contains_New_Line (Trailing_Non_Grammar (Trailing_Non_Grammar.First_Index).Line_Region)
                         then
                            --  First non_grammar terminates code line.
                            Result.Comment.First := Trailing_Non_Grammar
@@ -2631,8 +2640,7 @@ package body Wisi is
                         end if;
 
                         Result.Comment.Last  :=
-                          (if Contains_New_Line
-                             (Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index), Tree.Lexer.Descriptor)
+                          (if Contains_New_Line (Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region)
                            then
                               Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region.First
                            else

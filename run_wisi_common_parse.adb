@@ -328,8 +328,23 @@ package body Run_Wisi_Common_Parse is
       Last  : Integer := Index (Line, " ");
       First : Integer;
 
-      Command : constant File_Command_Type := File_Command_Type'Value
-        (Line (Line'First .. (if Last = 0 then Line'Last else Last)));
+      function Get_Command return File_Command_Type
+      is
+         use Ada.Text_IO;
+         Cmd_String : constant String := Line (Line'First .. (if Last = 0 then Line'Last else Last - 1));
+      begin
+         return File_Command_Type'Value (Cmd_String);
+      exception
+      when Constraint_Error =>
+         Put_Line ("invalid file command '" & Cmd_String & "'");
+         Put ("expecting ");
+         for Cmd in File_Command_Type'Range loop
+            Put (Cmd'Image & ", ");
+         end loop;
+         raise SAL.Parameter_Error;
+      end Get_Command;
+
+      Command : constant File_Command_Type := Get_Command;
    begin
       case Command is
       when Language_Params =>
@@ -515,6 +530,7 @@ package body Run_Wisi_Common_Parse is
                begin
                   Parse_Context.Text_Buffer := new String'(Data (Region) (1 .. Last (Region)));
                   Parse_Context.Text_Buffer_Byte_Last := Parse_Context.Text_Buffer'Last;
+                  --  Text_Buffer_Char_Last is set by lexer, below.
 
                   if Cl_Params.Command in Parse_Incremental | Command_File then
                      if 0 /= Ada.Strings.Fixed.Index (Parse_Context.Text_Buffer.all, ASCII.CR & "") then
@@ -539,41 +555,41 @@ package body Run_Wisi_Common_Parse is
             return;
          end;
 
-         if Cl_Params.Partial_Begin_Byte_Pos = WisiToken.Invalid_Buffer_Pos then
-            --  Full parse; run lexer to get text bounds
-            declare
-               Token       : WisiToken.Lexer.Token;
-               Lexer_Error : Boolean;
-               pragma Unreferenced (Lexer_Error);
-            begin
-               loop
-                  Lexer_Error := Parser.Tree.Lexer.Find_Next (Token);
-                  exit when Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID;
-               end loop;
+         --  Run lexer to get Parse_Context.Text_Buffer_Char_Last
+         declare
+            Token       : WisiToken.Lexer.Token;
+            Lexer_Error : Boolean;
+            pragma Unreferenced (Lexer_Error);
+         begin
+            loop
+               Lexer_Error := Parser.Tree.Lexer.Find_Next (Token);
+               exit when Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID;
+            end loop;
 
-               case Cl_Params.Command is
-               when Parse_Partial =>
+            Parse_Context.Text_Buffer_Char_Last := Integer (Token.Char_Region.Last);
+
+            case Cl_Params.Command is
+            when Parse_Partial =>
+               if Cl_Params.Partial_Begin_Byte_Pos = WisiToken.Invalid_Buffer_Pos then
                   Cl_Params.Partial_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
                   Cl_Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
                   Cl_Params.Partial_End_Byte_Pos   := Token.Byte_Region.Last;
                   Cl_Params.Partial_End_Char_Pos   := Token.Char_Region.Last;
-
-               when Parse_Incremental =>
+               else
+                  Parser.Partial_Parse_Active.all    := True;
+                  Parser.Partial_Parse_Byte_Goal.all := Cl_Params.Partial_Goal_Byte_Pos;
+               end if;
+            when Parse_Incremental =>
+               if Cl_Params.Inc_Begin_Byte_Pos = WisiToken.Invalid_Buffer_Pos then
                   Cl_Params.Inc_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
                   Cl_Params.Inc_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
                   Cl_Params.Inc_End_Byte_Pos   := Token.Byte_Region.Last;
                   Cl_Params.Inc_End_Char_Pos   := Token.Char_Region.Last;
-
-               when Refactor | Command_File =>
-                  null;
-               end case;
-
-               Parse_Context.Text_Buffer_Char_Last := Integer (Token.Char_Region.Last);
-            end;
-         else
-            Parser.Partial_Parse_Active.all    := True;
-            Parser.Partial_Parse_Byte_Goal.all := Cl_Params.Partial_Goal_Byte_Pos;
-         end if;
+               end if;
+            when Refactor | Command_File =>
+               null;
+            end case;
+         end;
 
          case Cl_Params.Command is
          when Parse_Partial =>

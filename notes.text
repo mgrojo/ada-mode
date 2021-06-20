@@ -45,30 +45,19 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-;; %partial_recursion ;; FIXME: faster compile time while debugging
-
-add lexer dispatch functions:
-    lexer.contains_new_line (token)
-    lexer.line_begin_char_pos (token, line)
-            handle all tokens that can contain new_line
-                new_line, comment_new_line, block_comment, delimited_text
-                ada has two comment_new_line
-
-            generate bodies in *_main.adb?
-
-run all tests non-incremental
-test/gnatprep.adb
-    elisp error: put-text-property(2147483646 2147483647 wisi-indent 9)
-    from [3 22 2147483647 9]
-    from tree.line_begin_pos
-        GNAT_PREP needs to be in descriptor
-        list of line_end non_grammars
-
-
 test/mixed_unix_dos_line_ends.adb
     cmd length computed wrong somewhere
+    coding conversion in send-string strips stray ^M
+        only in emacs 28?
+        change to utf-8-emacs; still strips.
+        write bug report
+        change to use null-terminated string?
+            then byte, char pos wrong.
+            if emacs buffer contains null, it's not valid text (even less valid than stray ^M)
 
-Reset-parser only reset current file
+
+Reset-parser only reset current file = delete parse_context
+
 
 run all tests with incremental mode enabled
     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t wisi-process-time-out 10.0)"
@@ -77,27 +66,19 @@ run all tests with incremental mode enabled
 
     two RUN_ARGS="command_file debug.cmd test/debug.adb > debug.log"
 
-    ada_mode-recover_align_1.adb.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" debug-on-error t)"
+    *.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" debug-on-error t)"
 
-in debug.cmd:
-mckenzie_options task_count=1
-save_text_auto debug_edited
-verbosity debug=1 incremental=3
-verbosity debug=1 action=3
-verbosity debug=1 mckenzie=1 parse=2
+    in debug.cmd:
+    mckenzie_options task_count=1
+    save_text_auto debug_edited
+    verbosity debug=1 incremental=3
+    verbosity debug=1 action=3
+    verbosity debug=1 mckenzie=1 parse=2
 
-test/ada_mode-interactive_03.adb
-SAL.PROGRAMMER_ERROR: floating_non_grammar not emptied: ((NEW_LINE, (1087 . 1087)(29, 30)), (NEW_LINE, (1096 . 1096)(30, 31)), (NEW_LINE, (1105 . 1105)(31, 32)))
-    duplicated, simplified in debug.adb; caused by insert text at end
-        SAL.NOT_IMPLEMENTED: Terminal_Non_Grammar_Next in scan
-        stable_region.last 42
-        terminal_non_grammar_Next is 6:(IS, (38 . 39))4:(COMMENT, (46 . 88), (5, 5))
-        lexer.set_position 38 38 2
-            too early; should be 43
-            float non_grammar t_n_g_next .. last so can append scanned tokens
+%partial_recursion ;; FIXME: faster compile time while debugging
 
 
-    new test case; insert comment line between two comment lines
+new test case; insert comment line between two comment lines
 
 consider comments in recover?
     in edit_tree, don't delete virtuals with comments before edit point
@@ -109,38 +90,6 @@ add test case for extra 'end;' that is later matched by user inserted 'begin;'
 
 move wisi.change .. edit_source to wisi_parse_context
 
-test/ada_mode.ads
-    fail_enqueue_limit on parse after de-indent
-    final 'end;' duplicated in incremental_parse.
-        in ;; KMN: (584 . 613)(602 . 603)(614 . 616)
-            should delete 32:(SEMICOLON, (848 . 848))((NEW_LINE, (22, 23)))),; it was scanned
-                but shift_bytes doesn't show that
-                it should not have been scanned!
-                    deleted "or Token.Byte_Region.Last <= Deleted_Non_Grammar_Byte_Pos);"
-                        running tests again, looking for test case for that
-                scan covered several KMN; one for each newline
-                    should not scan for those, last should delete semicolon
-                    or stop scan at KMN boundary?
-
-
-test/ada_mode-incremental_recover_01.adb
-    error: nil indent for line 8
-    lost (new_line (8, 9))
-        was scanned onto 37:(RIGHT_PAREN, (295 . 295))
-            but that's _after_ (new_line 9,10), (new_line 10, 11)! on 12:(IDENTIFIER, (288 . 294))
-            but those are also after; 39:(BEGIN, (300 . 304))((NEW_LINE, (9, 10))(NEW_LINE, (10, 11)))
-            the ones on 12: should not have been copied.
-        commented out Token.Byte_Region.First < Lex_Start_Byte case
-
-test/ada_mode-generic_package.ads
-    CONSTRAINT_ERROR: wisitoken-parse-lr-mckenzie_recover.adb:914:14 access check failed"
-        not when run with make one
-        add mckenzie-task-count 1
-        can't reproduce!
-
-test/ada_mode-recover_bad_char.adb passes
-    fast_forward 2 actually a noop
-        either don't add it, or leave stack_matches_op true in apply
 
 add Ada code to decrement byte_pos by one char, use in emacs_common, run_common FIXMEs
     just reference wikipedia
@@ -149,17 +98,12 @@ rewrite ada-which-function to use incremental
     test/ada_mode-nominal.ads
         don't set ada-which-func-parse-size if incremental
 
-test/ada_mode-recover_41.adb
-    interactive indent in parameter_list
-
 
 test/ada_mode-interactive_2.adb
     virtual 'null;' inserted on blank line,
         but fix-error puts it on the next line
         position in error message is wrong
             because set before Insert_Token changed it?
-
-Wisi-reset-parser request full parse
 
 change set_parents to be incremental?
     descend tree; if find a parent link, no need to descend that branch
@@ -168,6 +112,14 @@ change set_parents to be incremental?
 build/test.log
 
 benchmark
+
+test/ada_mode-recover_43.adb enqueue_limit
+    try lr1 - same error
+    simplified; get mckenzie log
+        desired solution: (delete '=')(insert ':=') cost 6
+        minimal complete is too cheap
+            nesting means there is more to complete
+            separate minimal_complete heap; always do one from there, one from other.
 
 indent (point)(point) should work for indent-line
 
@@ -215,6 +167,11 @@ incremental parse
 
     narrow-to-defun
         make everything work, if possible
+
+
+GNAT CE 2021
+    sal, wisitoken tests pass
+    ada-mode waiting on gnatcoll-sql/xref accessiblity error fix; AdaCore ticket U618-052
 
 insert_after
     could use active_region to distinguish:
@@ -267,6 +224,8 @@ for wisi.texi:
 
 testimonial:
     Jonty Needham Feb 2021 ada-mode 7.1.4 Ada-mode is even better than it used to be and a real pleasure to use.
+
+Add child menu on prj select - close buffers, select, close project
 
 indent bug:
    procedure Find_New_Line

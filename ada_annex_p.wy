@@ -130,7 +130,7 @@ tick : TICK_1 | TICK_2 ;
 
 ;; skeleton placeholders. Also terminated by newline, EOI to avoid
 ;; accidently commenting out multiple lines.
-%non_grammar <comment> PLACEHOLDER %[ ("{"[^}\x0a\x04]*"}"?) ]%
+%non_grammar <comment-one-line> PLACEHOLDER "{" "}"
 
 ;; '$' for gnatprep symbols.
 %token <symbol> IDENTIFIER

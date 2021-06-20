@@ -10,22 +10,26 @@
 
 -- from ada83
 --EMACSCMD:(test-face "abort" 'font-lock-keyword-face)
---EMACSCMD:(progn (forward-line 1)(upcase-word 1)(wisi-case-adjust)(looking-back "'abort"))
+--EMACSCMD:(progn (forward-line 2)(upcase-word 1)(wisi-case-adjust)(looking-back "abort"))
+--EMACSRESULT:t
 abort
 
 -- from ada95
 --EMACSCMD:(test-face "abstract" 'font-lock-keyword-face)
---EMACSCMD:(progn (forward-line 1)(upcase-word 1)(wisi-case-adjust)(looking-back "'abstract"))
+--EMACSCMD:(progn (forward-line 2)(upcase-word 1)(wisi-case-adjust)(looking-back "abstract"))
+--EMACSRESULT:t
 abstract
 
 -- from ada2005
 --EMACSCMD:(test-face "Interface" '(nil default))
---EMACSCMD:(progn (forward-line 1)(upcase-word 1)(wisi-case-adjust)(looking-back "'Interface"))
+--EMACSCMD:(progn (forward-line 2)(upcase-word 1)(wisi-case-adjust)(looking-back "Interface"))
+--EMACSRESULT:t
 Interface
 
 -- from ada2012
 --EMACSCMD:(test-face "Some" '(nil default))
---EMACSCMD:(progn (forward-line 1)(upcase-word 1)(wisi-case-adjust)(looking-back "'Some"))
+--EMACSCMD:(progn (forward-line 2)(upcase-word 1)(wisi-case-adjust)(looking-back "Some"))
+--EMACSRESULT:t
 Some
 
 -- The parser fails, since this is really bad syntax; don't abort for
