@@ -2,7 +2,7 @@
 --
 --  Standard settings for all of Stephe's Ada projects.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -57,9 +57,8 @@ project Standard_Common is
          "-g",
          "-gnatfqQ", -- f = all error messages, qQ = process semantics, generate .ali if syntax errors
          "-gnatw.d", -- warnings about tags
-         "-gnatwaBCeJL", -- wa = most warnings, wB = no warn on bad fixed values, wC = no warn on conditionals
-                         -- we = error on warning, wJ = no warn on obsolescent, wL = no warn on elaboration
-         "-gnatyO" -- warn on overriding
+         "-gnatwaBCeJL" -- wa = most warnings, wB = no warn on bad fixed values, wC = no warn on conditionals
+                        -- we = error on warning, wJ = no warn on obsolescent, wL = no warn on elaboration
         );
 
       --  -gnatVa causes some inline procedures to be non-inlineable;
@@ -74,8 +73,8 @@ project Standard_Common is
         );
 
       Debug_Switches := Base_Debug_Switches &
-        ("-gnat2020", -- @, declare_expression
-         "-gnatX"); -- reduction expressions
+        ("-gnat2020"); -- @, declare_expression
+      -- Don't use -gnatX; it allows stuff that may not become standard
 
       --  -O3 is measurably faster than -O2 for wisitoken generate
       --  LR1. We include -fstack-check because it catches
@@ -85,15 +84,13 @@ project Standard_Common is
       Base_Release_Switches := Common_Switches &
         (
          "-O3",
-         "-fno-var-tracking-assignments",
-         "-gnatyO"
+         "-fno-var-tracking-assignments"
         );
 
       Inlining := ("-gnatn");
 
       Release_Switches := Base_Release_Switches & Inlining &
-        "-gnat2020" & -- @
-        "-gnatX" -- reduction expressions
+        "-gnat2020" -- @
       ;
 
       -- No -ansi; GNAT 7.1 compiler C header files are mingw 64, which don't support -ansi
