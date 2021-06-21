@@ -12,7 +12,7 @@
 --EMACSCMD:(progn (wisi-parse-buffer 'face) (length (wisi-parser-parse-errors wisi--parser)))
 --EMACSRESULT:0
 
-procedure Ada_Mode.Interactive_2
+procedure Ada_Mode.Interactive_02
 is
    -- Newline before a blank line
    --EMACSCMD:(progn (end-of-line 2)(newline-and-indent)(current-column))
@@ -149,7 +149,7 @@ begin
    --EMACSRESULT:3
    --EMACSCMD:(progn (forward-line -8)(forward-word 1)(forward-char 1)(insert "(")(end-of-line 2)(insert "\n)")(indent-for-tab-command))
 
-end Ada_Mode.Interactive_2;
+end Ada_Mode.Interactive_02;
 -- Local Variables:
 -- ada-end-name-optional: nil
 -- End:

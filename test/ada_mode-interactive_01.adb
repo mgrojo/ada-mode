@@ -5,7 +5,7 @@
 
 -- It does pass the reindent and diff test; all insertions are deleted.
 
-procedure Ada_Mode.Interactive_1
+procedure Ada_Mode.Interactive_01
 is
    -- For 'indent-line', do insert spaces on an empty line
    --EMACSCMD:(progn (forward-line 2)(indent-for-tab-command)(current-column))
@@ -126,13 +126,13 @@ begin
    -- `comment-dwim' should not change the indentation of the next comment.
    --EMACSCMD:(progn (forward-line 2)(comment-dwim nil)(back-to-indentation)(current-column))
    E := (1,
-         --  a comment
+           --  a comment
          2,
-         -- another comment
+           -- another comment
          3);
    --EMACSRESULT:9
 
-end Ada_Mode.Interactive_1;
+end Ada_Mode.Interactive_01;
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1
 -- End:

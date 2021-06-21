@@ -55,9 +55,7 @@ test/mixed_unix_dos_line_ends.adb
             then byte, char pos wrong.
             if emacs buffer contains null, it's not valid text (even less valid than stray ^M)
 
-
 Reset-parser only reset current file = delete parse_context
-
 
 run all tests with incremental mode enabled
     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t wisi-process-time-out 10.0)"
@@ -75,7 +73,12 @@ run all tests with incremental mode enabled
     verbosity debug=1 action=3
     verbosity debug=1 mckenzie=1 parse=2
 
-%partial_recursion ;; FIXME: faster compile time while debugging
+test/ada_mode-interactive_01.adb
+    error during resume
+    floating_non_grammar not emptied
+    set mckenzie_task_count 1 in debug.cmd
+    trailing virtual has non_grammar
+
 
 
 new test case; insert comment line between two comment lines
