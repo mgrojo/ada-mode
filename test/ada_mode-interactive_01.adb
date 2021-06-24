@@ -126,9 +126,9 @@ begin
    -- `comment-dwim' should not change the indentation of the next comment.
    --EMACSCMD:(progn (forward-line 2)(comment-dwim nil)(back-to-indentation)(current-column))
    E := (1,
-           --  a comment
+         --  a comment
          2,
-           -- another comment
+         -- another comment
          3);
    --EMACSRESULT:9
 

@@ -1322,9 +1322,6 @@ package body Wisi is
 
       First_Token : constant Node_Access := Tree.Line_Begin_Token (Tree.Line_Region (Inserted_Before).First);
 
-      Prev_Terminal : constant Valid_Node_Access := Tree.Prev_Terminal (Inserted_Token);
-      --  Tree.SOI if Inserted_Token is inserted before first grammar token
-
       Insert_Location : WisiToken.Insert_Location := Before_Next;
    begin
       if First_Token = Inserted_Token then
@@ -1342,6 +1339,19 @@ package body Wisi is
             --  Compare to test/ada_mode-recover_20.adb. There we are not typing
             --  new code, but there is a blank line; the right paren is placed at
             --  the end of the blank line, causing the comment to be indented.
+            --
+            --  Also test/ada_mode-interactive_05.adb Proc_2; error recover
+            --  inserts "null;" before "end"; we want it on the blank line. So
+            --  Insert_After has to see the next source_terminal, which may not be
+            --  Inserted_Before.
+
+            Next_Source_Terminal : constant Valid_Node_Access :=
+              (if Tree.Label (Inserted_Before) = Syntax_Trees.Source_Terminal
+               then Inserted_Before
+               else Tree.Next_Source_Terminal (Inserted_Before, Trailing_Non_Grammar => False));
+
+            Prev_Terminal : constant Valid_Node_Access := Tree.Prev_Terminal (Inserted_Token);
+            --  Tree.SOI if Inserted_Token is inserted before first grammar token
 
             Prev_Non_Grammar  : Token_Array_Var_Ref renames Tree.Non_Grammar_Var (Prev_Terminal);
             Token_Non_Grammar : Token_Array_Var_Ref renames Tree.Non_Grammar_Var (Inserted_Token);
@@ -1389,9 +1399,11 @@ package body Wisi is
             Check_Non_Grammar;
 
             Insert_Location := Parse_Data_Type'Class (Data).Insert_After
-              (Tree, Inserted_Token, Inserted_Before,
-               Comment_Present    => Comment_Present,
-               Blank_Line_Present => Blank_Line /= Invalid_Line_Number);
+              (Tree,
+               Insert_Token        => Inserted_Token,
+               Insert_Before_Token => Next_Source_Terminal,
+               Comment_Present     => Comment_Present,
+               Blank_Line_Present  => Blank_Line /= Invalid_Line_Number);
 
             pragma Assert (Prev_Non_Grammar.Length > 0); --  else First would be false in condition above.
 

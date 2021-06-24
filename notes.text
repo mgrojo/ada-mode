@@ -64,7 +64,7 @@ run all tests with incremental mode enabled
 
     two RUN_ARGS="command_file debug.cmd test/debug.adb > debug.log"
 
-    *.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" debug-on-error t)"
+    *.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
 
     in debug.cmd:
     mckenzie_options task_count=1
@@ -72,14 +72,6 @@ run all tests with incremental mode enabled
     verbosity debug=1 incremental=3
     verbosity debug=1 action=3
     verbosity debug=1 mckenzie=1 parse=2
-
-test/ada_mode-interactive_01.adb
-    error during resume
-    floating_non_grammar not emptied
-    set mckenzie_task_count 1 in debug.cmd
-    trailing virtual has non_grammar
-
-
 
 new test case; insert comment line between two comment lines
 
