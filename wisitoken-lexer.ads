@@ -77,6 +77,7 @@ package WisiToken.Lexer is
      (Positive_Index_Type, Token, Default_Element => (others => <>));
 
    function Image is new Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Image);
+   function Full_Image is new Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Full_Image);
 
    type Error is record
       Char_Pos : Buffer_Pos := Invalid_Buffer_Pos;

@@ -428,10 +428,9 @@ package WisiToken.Syntax_Trees is
       Comment_Present     : in     Boolean;
       Blank_Line_Present  : in     Boolean)
      return WisiToken.Insert_Location;
-   --  Return True if Insert_Token should be treated as if inserted after
-   --  the previous terminal, rather than before
-   --  Insert_Before_Token. This can affect which line it appears on,
-   --  which affects indentation. Called from Insert_Token.
+   --  Return an insert location for Insert_Token. This can affect which
+   --  line it appears on, which affects indentation. Called from
+   --  Insert_Token.
    --
    --  If Comment_Present, there is a comment between Tree.Prev_Terminal
    --  (Insert_Before_Token) and Insert_Before_Token.
@@ -1357,6 +1356,20 @@ package WisiToken.Syntax_Trees is
    --
    --  If Following, return a matching terminal following Node if none
    --  found in Node.
+
+   function Next_Source_Terminal
+     (Tree                 : in Syntax_Trees.Tree;
+      Node                 : in Valid_Node_Access;
+      Trailing_Non_Grammar : in Boolean)
+     return Node_Access
+   with Pre => Tree.Parents_Set;
+   --  Return the next terminal node after Node that can give byte or
+   --  char pos; Invalid_Node_Access if there is no such node.
+   --
+   --  If Trailing_Non_Grammar, return next terminal after Ref.Ref.Node
+   --  that is a Source_Terminal, or a virtual terminal with non-empty
+   --  non_grammar. If not Trailing_Non_Grammar, only return a
+   --  Source_Terminal.
 
    procedure Next_Source_Terminal
      (Tree                 : in     Syntax_Trees.Tree;

@@ -253,11 +253,12 @@ package body WisiToken.Parse is
       --  not changed.
 
       Floating_Non_Grammar : Lexer.Token_Arrays.Vector;
-      --  Non_grammar that are detached from a shifted node because they are
-      --  outside the stable region (they were moved to that node by error
-      --  recover, not necessarily from a deleted node). These are _not_
-      --  shifted, because the correct shift is unknown at the time they are
-      --  detached. test case ada_mode-recover_42.adb
+      --  Non_grammar that are detached from a node (for various reasons).
+      --  These are _not_ shifted, because the correct shift is unknown at
+      --  the time they are detached. test case ada_mode-recover_42.adb
+      --
+      --  If a non_grammar is floated from a scanned node, it is unshifted
+      --  to be consistent.
 
       Comment_End_Deleted : Boolean         := False;
       New_Comment_End     : Base_Buffer_Pos := Invalid_Buffer_Pos;
@@ -295,6 +296,8 @@ package body WisiToken.Parse is
 
    begin
       if Trace_Incremental_Parse > Detail then
+         Parser.Trace.New_Line;
+         Parser.Trace.Put_Line ("pre-edit tree:");
          Parser.Trace.Put_Line (Tree.Image (Line_Numbers => True, Non_Grammar => True));
          Parser.Trace.Put ("deleted_nodes: ");
          for Node of Parser.Deleted_Nodes loop
@@ -385,8 +388,7 @@ package body WisiToken.Parse is
 
                if Floating_Non_Grammar.Length > 0 then
                   Parser.Trace.Put_Line
-                    ("floating_non_grammar: " & Lexer.Image
-                       (Floating_Non_Grammar, Tree.Lexer.Descriptor.all));
+                    ("floating_non_grammar: " & Lexer.Full_Image (Floating_Non_Grammar, Tree.Lexer.Descriptor.all));
                end if;
 
                if WisiToken.Trace_Incremental_Parse > Detail then
@@ -549,15 +551,16 @@ package body WisiToken.Parse is
 
                            if KMN.Deleted_Bytes > 0 and
                              Non_Grammar (Terminal_Non_Grammar_Next).Byte_Region.First < Deleted_Region.First and
-                             Non_Grammar (Terminal_Non_Grammar_Next).Byte_Region.Last >= Deleted_Region.Last
+                             Non_Grammar (Terminal_Non_Grammar_Next).Byte_Region.Last <= Deleted_Region.Last
                            then
-                              --  test_incremental.adb Delete_Comment_New_Line
+                              --  test_incremental.adb Delete_Comment_New_Line,
+                              --  ada_mode-interactive_05.adb Ada_Identifier in comment.
                               Comment_End_Deleted := True;
                               New_Comment_End     := Non_Grammar (Terminal_Non_Grammar_Next).Byte_Region.Last;
                            end if;
                         end if;
 
-                        --  Remaining Non_Grammar will either be scanned, or move to
+                        --  Remaining Non_Grammar will either be scanned, or moved to
                         --  a new grammar token, so delete or move to floating now.
                         for I in Terminal_Non_Grammar_Next .. Non_Grammar.Last_Index loop
                            declare
@@ -634,7 +637,9 @@ package body WisiToken.Parse is
                      --  to, containing or after the edit start. Deleted New_Lines
                      --  decrement Shift_Lines.
                      declare
-                        procedure Handle_Non_Grammar (Non_Grammar : in out WisiToken.Lexer.Token_Arrays.Vector)
+                        procedure Handle_Non_Grammar
+                          (Non_Grammar : in out WisiToken.Lexer.Token_Arrays.Vector;
+                           Floating    : in     Boolean)
                         is
                            Delete : SAL.Base_Peek_Type := 0;
                         begin
@@ -646,16 +651,20 @@ package body WisiToken.Parse is
                               --  start_line test case ada_mode-recover_incremental_01.adb
                               Do_Scan        := True;
                            else
-                              --  Non_Grammar is shifted.
                               for I in Non_Grammar.First_Index .. Non_Grammar.Last_Index loop
-                                 if Non_Grammar (I).Byte_Region.Last + 1 >= Inserted_Region.First and
-                                   Non_Grammar (I).Byte_Region.Last > Scanned_Byte_Pos
-                                   --  test case: ada_mode-recover_align_1.adb
-                                 then
-                                    Delete  := I;
-                                    Do_Scan := True;
-                                    exit;
-                                 end if;
+                                 declare
+                                    Byte_Last : constant Buffer_Pos := Non_Grammar (I).Byte_Region.Last +
+                                      (if Floating then Shift_Bytes else 0);
+                                 begin
+                                    if Byte_Last + 1 >= Inserted_Region.First and
+                                      Non_Grammar (I).Byte_Region.Last > Scanned_Byte_Pos
+                                      --  test case: ada_mode-recover_align_1.adb
+                                    then
+                                       Delete  := I;
+                                       Do_Scan := True;
+                                       exit;
+                                    end if;
+                                 end;
                               end loop;
 
                               if Delete > 0 and then Non_Grammar (Delete).ID = Tree.Lexer.Descriptor.SOI_ID then
@@ -671,26 +680,44 @@ package body WisiToken.Parse is
                                  --  Lex_Start_* to scan from edit start or start of Token, whichever
                                  --  is earlier.
                                  --
-                                 --  Since Non_Grammar (Delete) is before Terminal, it has already been
-                                 --  shifted, so we don't add Shift_* here.
+                                 --  If not Floating, Non_Grammar (Delete) is before Terminal and has
+                                 --  already been shifted. If Floating, Non_Grammar has not been
+                                 --  shifted.
 
                                  declare
                                     Token : WisiToken.Lexer.Token renames Non_Grammar (Delete);
                                  begin
-                                    Lex_Start_Byte := Buffer_Pos'Min (Token.Byte_Region.First, Inserted_Region.First);
+                                    Lex_Start_Byte := Buffer_Pos'Min
+                                      (Token.Byte_Region.First + (if Floating then Shift_Bytes else 0),
+                                       Inserted_Region.First);
+
                                     Lex_Start_Char := Buffer_Pos'Min
-                                      (Token.Char_Region.First, Inserted_Region_Chars.First);
-                                    Lex_Start_Line := Token.Line_Region.First;
+                                      (Token.Char_Region.First + (if Floating then Shift_Chars else 0),
+                                       Inserted_Region_Chars.First);
+
+
+                                    Lex_Start_Line := Token.Line_Region.First +
+                                      (if Floating
+                                       then
+                                          --  If this token contributed to Shift_Lines, ignore that part.
+                                          --  ada_mode-recover_14 comment after extra 'begin'.
+                                          Shift_Lines + New_Line_Count (Token.Line_Region)
+                                       else 0);
                                  end;
 
                                  if Trace_Incremental_Parse > Detail then
                                     Parser.Trace.Put_Line
-                                      ("delete non_grammar" & Tree.Get_Node_Index (Last_Grammar.Node)'Image &
+                                      ((if Floating
+                                        then "delete floating non_grammar"
+                                        else "delete non_grammar" & Tree.Get_Node_Index (Last_Grammar.Node)'Image) &
                                          Delete'Image & " .." & Non_Grammar.Last_Index'Image);
                                  end if;
-                                 for I in Delete .. Non_Grammar.Last_Index loop
-                                    Shift_Lines := @ - New_Line_Count (Non_Grammar (I).Line_Region);
-                                 end loop;
+
+                                 if not Floating then
+                                    for I in Delete .. Non_Grammar.Last_Index loop
+                                       Shift_Lines := @ - New_Line_Count (Non_Grammar (I).Line_Region);
+                                    end loop;
+                                 end if;
 
                                  Non_Grammar.Set_First_Last (Non_Grammar.First_Index, Delete - 1);
                               else
@@ -730,7 +757,16 @@ package body WisiToken.Parse is
                         end loop;
 
                         if not Do_Scan then
-                           Handle_Non_Grammar (Tree.Non_Grammar_Var (Last_Grammar.Node));
+                           if Floating_Non_Grammar.Length > 0 and then
+                             Floating_Non_Grammar (Floating_Non_Grammar.First_Index).Byte_Region.First <
+                             Inserted_Region.First
+                           then
+                              --  The edit start is in a floated non_grammar;
+                              --  ada_mode-recover_14.adb comment after deleted "begin".
+                              Handle_Non_Grammar (Floating_Non_Grammar, Floating => True);
+                           else
+                              Handle_Non_Grammar (Tree.Non_Grammar_Var (Last_Grammar.Node), Floating => False);
+                           end if;
                         end if;
                      end;
                   end if;
@@ -834,9 +870,18 @@ package body WisiToken.Parse is
                                  exit Delete_Virtuals_Loop;
 
                               else
-                                 --  Delete trailing virtual terminal
+                                 --  Delete trailing virtual terminal. It may have non_grammar from
+                                 --  Insert_Token; see ada_mode-interactive_05.adb Proc_2.
                                  if Tree.Non_Grammar_Const (Last_Term).Length > 0 then
-                                    raise SAL.Not_Implemented with "trailing virtual has non_grammar";
+                                    for Token of Tree.Non_Grammar_Const (Last_Term) loop
+                                       if Trace_Incremental_Parse > Detail then
+                                          Parser.Trace.Put_Line
+                                            ("float non_grammar " & Lexer.Full_Image
+                                               (Token, Tree.Lexer.Descriptor.all));
+                                       end if;
+                                       Floating_Non_Grammar.Append (Token);
+                                       Shift_Lines := @ - New_Line_Count (Token.Line_Region);
+                                    end loop;
                                  end if;
 
                                  declare
@@ -1009,9 +1054,6 @@ package body WisiToken.Parse is
                           or
                           (KMN.Inserted_Bytes > 0 and
                              Tree.Byte_Region (Terminal.Node).First <= Stable_Region.Last + 1) --  modified
-                          or
-                          Tree.Byte_Region (Terminal.Node).First + Shift_Bytes <= Scanned_Byte_Pos
-                          --  Token in scanned region.
                        ));
 
                   --  Ensure Terminal is Single, so we can delete it.
@@ -1037,9 +1079,13 @@ package body WisiToken.Parse is
                      for Token of Tree.Non_Grammar_Const (To_Delete.Node) loop
                         Shift_Lines := @ - New_Line_Count (Token.Line_Region);
 
-                        if Token.Byte_Region.Last + Shift_Bytes <= Scanned_Byte_Pos then
-                           --  Token was scanned. FIXME: if Scanned_Byte_Pos covers future KMN,
-                           --  Shift_Bytes is inaccurate here; ada_mode-interactive_03.adb.
+                        if (Token.Byte_Region.Last + Shift_Bytes <= Scanned_Byte_Pos and
+                              Token.Byte_Region.First + Shift_Bytes < Next_KMN_Stable_Last + Shift_Bytes)
+                          --  Token was scanned, and is in current KMN
+                          or
+                          Token.Byte_Region.Last <= Deleted_Region.Last
+                          --  token was deleted. test/ada_mode-interactive_03.adb delete text end of buffer.
+                        then
                            if Trace_Incremental_Parse > Detail then
                               Parser.Trace.Put_Line
                                 ("delete non_grammar " & Lexer.Image (Token, Tree.Lexer.Descriptor.all));
@@ -1047,7 +1093,7 @@ package body WisiToken.Parse is
                         else
                            if Trace_Incremental_Parse > Detail then
                               Parser.Trace.Put_Line
-                                ("float non_grammar " & Lexer.Image (Token, Tree.Lexer.Descriptor.all));
+                                ("float non_grammar " & Lexer.Full_Image (Token, Tree.Lexer.Descriptor.all));
                            end if;
                            Floating_Non_Grammar.Append (Token);
                         end if;
@@ -1210,10 +1256,11 @@ package body WisiToken.Parse is
                                 (Stream, Parser.Deleted_Nodes (Deleted_Node), Before => Insert_Before.Element);
 
                               --  Non_Grammar on nodes deleted by error recover should be moved to
-                              --  other nodes.
-                              pragma Assert
-                                (Tree.Non_Grammar_Const (Parser.Deleted_Nodes (Deleted_Node)).Length = 0,
-                                 "Edit_Tree: non_grammar on restored deleted_node");
+                              --  other nodes; if not, it's a bug in language-specific
+                              --  Syntax_Trees.Delete_Token.
+                              if Tree.Non_Grammar_Const (Parser.Deleted_Nodes (Deleted_Node)).Length /= 0 then
+                                 raise SAL.Programmer_Error with "Edit_Tree: non_grammar on restored deleted_node";
+                              end if;
 
                               Inc_Deleted_Node := False;
                               Delete;

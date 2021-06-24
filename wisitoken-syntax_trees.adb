@@ -61,12 +61,6 @@ package body WisiToken.Syntax_Trees is
 
    function Next_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
-      Node                 : in Valid_Node_Access;
-      Trailing_Non_Grammar : in Boolean)
-     return Node_Access;
-
-   function Next_Source_Terminal
-     (Tree                 : in Syntax_Trees.Tree;
       Ref                  : in Stream_Node_Ref;
       Trailing_Non_Grammar : in Boolean)
      return Stream_Node_Ref;
