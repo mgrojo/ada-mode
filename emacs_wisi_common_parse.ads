@@ -22,7 +22,7 @@ with Ada.Strings.Unbounded;
 with System;
 with Wisi;
 with WisiToken.Parse;
-with Wisi_Parse_Context;
+with Wisi.Parse_Context;
 package Emacs_Wisi_Common_Parse is
 
    Protocol_Version : constant String := "6";
@@ -67,7 +67,7 @@ package Emacs_Wisi_Common_Parse is
      (Name                      : in     String;
       Language_Protocol_Version : in     String;
       Params                    : in     Process_Start_Params;
-      Language                  : in     Wisi_Parse_Context.Language);
+      Language                  : in     Wisi.Parse_Context.Language);
 
    ----------
    --  Parse command

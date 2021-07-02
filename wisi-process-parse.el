@@ -1068,7 +1068,9 @@ one or more Query messages."
 	 (set-buffer cmd-buffer)
 	 (setq-local comment-start "-- ")
 
-	 (insert "-- source file: " source-file " -*- comment-start: \"" comment-start "\" -*-" "\n")
+	 (insert "-- -*- comment-start: \"" comment-start "\" -*-" "\n")
+
+	 (insert "file " source-file "\n")
 
 	 (insert "verbosity " verbosity "\n")
 

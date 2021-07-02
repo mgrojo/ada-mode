@@ -18,7 +18,7 @@ with Ada.Finalization;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
-package body Wisi_Parse_Context is
+package body Wisi.Parse_Context is
 
    function Source_File_Name (Item : in Parse_Context_Access) return String
    is (Ada.Strings.Unbounded.To_String (Item.File_Name));
@@ -31,9 +31,54 @@ package body Wisi_Parse_Context is
 
    Map : File_Parse_Context_Maps.Tree;
 
+   function Create_No_File
+     (Language : in Wisi.Parse_Context.Language;
+      Trace    : in WisiToken.Trace_Access)
+     return Parse_Context_Access
+   is
+      use WisiToken;
+   begin
+      return Result : constant Parse_Context_Access :=
+        (new Parse_Context'
+           (File_Name                         => +"",
+            Text_Buffer                       => null,
+            Text_Buffer_Byte_Last             => 0,
+            Text_Buffer_Char_Last             => 0,
+            Parser                            => WisiToken.Parse.LR.Parser.Parser'
+              (Ada.Finalization.Limited_Controlled with
+               Trace                          => Trace,
+               User_Data                      => Wisi.New_User_Data (Language.Parse_Data_Template.all),
+               Table                          => Language.Table,
+               Language_Fixes                 => Language.Fixes,
+               Language_Matching_Begin_Tokens => Language.Matching_Begin_Tokens,
+               Language_String_ID_Set         => Language.String_ID_Set,
+               Partial_Parse_Active           => Language.Partial_Parse_Active,
+               Partial_Parse_Byte_Goal        => Language.Partial_Parse_Byte_Goal,
+               others                         => <>),
+            Root_Save_Edited_Name             => <>,
+            Save_Edited_Count                 => <>))
+      do
+         Result.Parser.Tree.Lexer := Language.Lexer;
+      end return;
+   end Create_No_File;
+
+   procedure Set_File (File_Name : in String; Parse_Context : in Parse_Context_Access)
+   is
+      use File_Parse_Context_Maps;
+      use WisiToken;
+      use Ada.Strings.Unbounded;
+   begin
+      if Length (Parse_Context.File_Name) > 0 then
+         raise Protocol_Error;
+      end if;
+
+      Parse_Context.File_Name := +File_Name;
+      Map.Insert (Parse_Context);
+   end Set_File;
+
    function Find_Create
      (File_Name : in String;
-      Language  : in Wisi_Parse_Context.Language;
+      Language  : in Wisi.Parse_Context.Language;
       Trace     : in WisiToken.Trace_Access)
      return Parse_Context_Access
    is begin
@@ -89,7 +134,7 @@ package body Wisi_Parse_Context is
 
    function Find
      (File_Name : in String;
-      Language  : in Wisi_Parse_Context.Language)
+      Language  : in Wisi.Parse_Context.Language)
      return Parse_Context_Access
    is begin
       if File_Name'Length = 0 then
@@ -168,4 +213,4 @@ package body Wisi_Parse_Context is
       end;
    end Save_Text_Auto;
 
-end Wisi_Parse_Context;
+end Wisi.Parse_Context;

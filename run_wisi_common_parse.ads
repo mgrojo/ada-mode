@@ -21,7 +21,7 @@ pragma License (GPL);
 with Ada.Strings.Unbounded;
 with Wisi;
 with WisiToken;
-with Wisi_Parse_Context;
+with Wisi.Parse_Context;
 package Run_Wisi_Common_Parse is
 
    type Command_Type is (Parse_Partial, Parse_Incremental, Refactor, Command_File);
@@ -67,7 +67,7 @@ package Run_Wisi_Common_Parse is
       end case;
    end record;
 
-   procedure Parse_File (Language : in Wisi_Parse_Context.Language);
+   procedure Parse_File (Language : in Wisi.Parse_Context.Language);
    --  Reads command line, processes command(s).
 
 end Run_Wisi_Common_Parse;

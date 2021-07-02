@@ -17,11 +17,9 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Exceptions;
 with Ada.Strings.Bounded;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
-with GNAT.Traceback.Symbolic;
 with SAL;
 with WisiToken.In_Parse_Actions;
 package body Wisi is
@@ -2405,14 +2403,6 @@ package body Wisi is
             Put (Tree, Line, Data.Indents (Line));
          end loop;
       end case;
-   exception
-   when E : others =>
-      if Debug_Mode then
-         Parser.Trace.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-         Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-         Parser.Trace.New_Line;
-      end if;
-      raise;
    end Put;
 
    procedure Put (Lexer_Errors : in Lexer.Error_Lists.List)

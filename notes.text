@@ -67,11 +67,31 @@ run all tests with incremental mode enabled
     *.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
 
     in debug.cmd:
-    mckenzie_options task_count=1
-    save_text_auto debug_edited
-    verbosity debug=1 incremental=3
-    verbosity debug=1 action=3
-    verbosity debug=1 mckenzie=1 parse=2
+mckenzie_options task_count=1
+save_text_auto debug_edited
+verbosity debug=1 incremental=3
+verbosity debug=1 action=3
+verbosity debug=1 mckenzie=1 parse=2
+
+move Trace from Parser to Lexer
+    use in Find_Next
+    no separate param in tree operations
+
+test/ada_mode-recover_debbugs_36548.adb
+    hangs in emacs, not in parser
+    but C-g does not interrupt
+    run test manually
+    hangs somewhere in re-indent
+        not in make -r one
+        ;; SAL.PROGRAMMER_ERROR: indent > 100
+        from record_definition_1 ada-indent-record* = Ada_Indent_Record_1; bogus anchored_delta
+        TYPE is virtual, null char_region in current_indent_offset
+            use prev_source_terminal/next_source_terminal/non_grammar
+                add insert_location component
+                also for byte_region
+
+
+
 
 new test case; insert comment line between two comment lines
 
