@@ -40,6 +40,7 @@ begin
    end if;
 
    Shared_Parser.Tree.Lexer.Errors.Clear;
+   Shared_Parser.Wrapped_Lexer_Errors.Clear;
 
    Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
    Shared_Parser.Min_Sequential_Index := Invalid_Stream_Node_Parents;
@@ -86,8 +87,6 @@ begin
       end if;
 
    else
-      Shared_Parser.Wrapped_Lexer_Errors.Clear;
-
       Shared_Parser.Tree.Clear;
       Shared_Parser.Lex_All;
    end if;

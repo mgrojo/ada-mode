@@ -3369,7 +3369,7 @@ package body WisiToken.Syntax_Trees is
          Node : constant Node_Access := Tree.First_Non_Grammar (Root (Tree));
       begin
          if Node = Invalid_Node_Access then
-            --  Tree has no tokens with a Line_Region. Note that for LR parse, EOI
+            --  Tree has no tokens with a Line_Region. Note that during LR parse, EOI
             --  is not in the tree, only in the parse stream.
             return Invalid_Node_Access;
          end if;
@@ -3385,7 +3385,15 @@ package body WisiToken.Syntax_Trees is
          Begin_Char_Pos : Buffer_Pos;
          Node           : Node_Access := Find_New_Line (Tree, Line, Root (Tree), Begin_Char_Pos);
       begin
-         if Node = Invalid_Node_Access then
+         if Node = Tree.EOI then
+            --  Find_New_Line allows both Line, Line - 1.
+            if Node.Non_Grammar (Node.Non_Grammar.First_Index).Line_Region.First = Line then
+               return Node;
+            else
+               return Invalid_Node_Access;
+            end if;
+
+         elsif Node = Invalid_Node_Access then
             return Invalid_Node_Access;
 
          else

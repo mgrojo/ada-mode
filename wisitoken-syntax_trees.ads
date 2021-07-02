@@ -1871,7 +1871,8 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Parents_Set;
    --  Return the node under Tree.Root of the first terminal token on
    --  line Line; Invalid_Node_Access if there are no grammar tokens on
-   --  the line (ie only comment or whitespace).
+   --  the line (ie only comment or whitespace), or the line is outside
+   --  the text spanned by Tree.
 
    function Line_Begin_Token
      (Tree                      : in Syntax_Trees.Tree;
