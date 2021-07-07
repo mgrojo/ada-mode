@@ -435,6 +435,16 @@ package body WisiToken.Syntax_Trees is
    is
       Prev_Source_Terminal : Node_Access := Invalid_Node_Access;
       Next_Source_Terminal : Node_Access := Invalid_Node_Access;
+
+      procedure Set_Prev
+      is begin
+         if Node = Tree.SOI then
+            Prev_Source_Terminal := Tree.SOI;
+         else
+            Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar => True);
+         end if;
+      end Set_Prev;
+
    begin
       case Node.Label is
       when Source_Terminal =>
@@ -448,27 +458,57 @@ package body WisiToken.Syntax_Trees is
          end if;
 
       when Virtual_Terminal | Virtual_Identifier =>
-         if Trailing_Non_Grammar then
+         case Node.Insert_Location is
+         when After_Prev | Between =>
+            --  It is tempting to assert Node.Non_Grammar.Length > 0 for between
+            --  (because there should be a new_line), but that is not true for
+            --  "null" when we insert "null;" - it is only true for the last
+            --  virtual token on the line.
             if Node.Non_Grammar.Length > 0 then
                return
                  (First => Node.Non_Grammar (Node.Non_Grammar.First_Index).Byte_Region.First,
                   Last  => Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last);
+
+            elsif Tree.Parents_Set then
+               Set_Prev;
+               if Prev_Source_Terminal = Invalid_Node_Access then
+                  --  Node is in an all virtual parse stream element.
+                  return Null_Buffer_Region;
+               else
+                  return
+                    (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar => True).Last,
+                     Last  => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar => True).Last - 1);
+               end if;
             else
-               --  continue below.
-               null;
+               return Null_Buffer_Region;
             end if;
-         else
-            return Null_Buffer_Region;
-         end if;
+
+         when Before_Next =>
+            pragma Assert (Node.Non_Grammar.Length = 0);
+            if Tree.Parents_Set then
+               if Node = Tree.EOI then
+                  Next_Source_Terminal := Tree.EOI;
+               else
+                  Next_Source_Terminal := Tree.Next_Source_Terminal (Node, Trailing_Non_Grammar => True);
+               end if;
+
+               if Next_Source_Terminal = Invalid_Node_Access then
+                  --  Node is in an all virtual parse stream element.
+                  return Null_Buffer_Region;
+               else
+                  return
+                    (First => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar => True).First,
+                     Last  => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar => True).First - 1);
+               end if;
+            else
+               return Null_Buffer_Region;
+            end if;
+         end case;
 
       when Nonterm =>
          if Node.Child_Count = 0 then
             if Tree.Parents_Set then
-               if Node = Tree.SOI then
-                  Prev_Source_Terminal := Tree.SOI;
-               else
-                  Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar => True);
-               end if;
+               Set_Prev;
                if Prev_Source_Terminal = Invalid_Node_Access then
                   --  Node is the root of an empty parse stream element.
                   return Null_Buffer_Region;
@@ -483,34 +523,34 @@ package body WisiToken.Syntax_Trees is
             Prev_Source_Terminal := First_Source_Terminal (Tree, Node, Trailing_Non_Grammar => False);
             Next_Source_Terminal := Last_Source_Terminal (Tree, Node, Trailing_Non_Grammar);
          end if;
-      end case;
 
-      if Prev_Source_Terminal = Invalid_Node_Access then
-         if Tree.Parents_Set then
-            if Node = Tree.SOI then
-               Prev_Source_Terminal := Tree.SOI;
-            else
-               Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar);
-            end if;
+         if Prev_Source_Terminal = Invalid_Node_Access then
+            if Tree.Parents_Set then
+               if Node = Tree.SOI then
+                  Prev_Source_Terminal := Tree.SOI;
+               else
+                  Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar);
+               end if;
 
-            if Node = Tree.EOI then
-               Next_Source_Terminal := Tree.EOI;
+               if Node = Tree.EOI then
+                  Next_Source_Terminal := Tree.EOI;
+               else
+                  Next_Source_Terminal := Tree.Next_Source_Terminal (Node, Trailing_Non_Grammar);
+               end if;
             else
-               Next_Source_Terminal := Tree.Next_Source_Terminal (Node, Trailing_Non_Grammar);
+               return Null_Buffer_Region;
             end if;
-         else
-            return Null_Buffer_Region;
          end if;
-      end if;
 
-      if Prev_Source_Terminal = Invalid_Node_Access or Next_Source_Terminal = Invalid_Node_Access then
-         --  Prev or Next is in prev/next stream element
-         return Null_Buffer_Region;
-      else
-         return
-           (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
-            Last  => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar).Last);
-      end if;
+         if Prev_Source_Terminal = Invalid_Node_Access or Next_Source_Terminal = Invalid_Node_Access then
+            --  Prev or Next is in prev/next stream element
+            return Null_Buffer_Region;
+         else
+            return
+              (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
+               Last  => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar).Last);
+         end if;
+      end case;
    end Byte_Region;
 
    function Byte_Region
@@ -534,34 +574,42 @@ package body WisiToken.Syntax_Trees is
          end if;
 
       when Virtual_Terminal | Virtual_Identifier =>
-         if Trailing_Non_Grammar then
+         case Ref.Node.Insert_Location is
+         when After_Prev | Between =>
             if Ref.Node.Non_Grammar.Length > 0 then
                return
                  (First => Ref.Node.Non_Grammar (Ref.Node.Non_Grammar.First_Index).Byte_Region.First,
                   Last  => Ref.Node.Non_Grammar (Ref.Node.Non_Grammar.Last_Index).Byte_Region.Last);
             else
-               --  continue below.
-               null;
+               Prev_Source_Terminal := Tree.Prev_Source_Terminal (Ref, Trailing_Non_Grammar);
+               return
+                 (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar => True).Last,
+                  Last  => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar => True).Last - 1);
             end if;
-         else
-            return Null_Buffer_Region;
-         end if;
+
+         when Before_Next =>
+            pragma Assert (Ref.Node.Non_Grammar.Length = 0);
+            Next_Source_Terminal := Tree.Next_Source_Terminal (Ref, Trailing_Non_Grammar);
+            return
+              (First => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar => True).First,
+               Last  => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar => True).First - 1);
+         end case;
 
       when Nonterm =>
          Prev_Source_Terminal :=
            (Ref.Stream, Ref.Element, First_Source_Terminal (Tree, Ref.Node, Trailing_Non_Grammar));
          Next_Source_Terminal :=
            (Ref.Stream, Ref.Element, Last_Source_Terminal (Tree, Ref.Node, Trailing_Non_Grammar));
+
+         if Prev_Source_Terminal.Node = Invalid_Node_Access then
+            Prev_Source_Terminal := Tree.Prev_Source_Terminal (Ref, Trailing_Non_Grammar);
+            Next_Source_Terminal := Tree.Next_Source_Terminal (Ref, Trailing_Non_Grammar);
+         end if;
+
+         return
+           (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).Last,
+            Last => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar).First);
       end case;
-
-      if Prev_Source_Terminal.Node = Invalid_Node_Access then
-         Prev_Source_Terminal := Tree.Prev_Source_Terminal (Ref, Trailing_Non_Grammar);
-         Next_Source_Terminal := Tree.Next_Source_Terminal (Ref, Trailing_Non_Grammar);
-      end if;
-
-      return
-        (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).Last,
-         Last => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar).First);
    end Byte_Region;
 
    function Byte_Region (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Buffer_Region
@@ -600,45 +648,120 @@ package body WisiToken.Syntax_Trees is
       Node                 : in Valid_Node_Access;
       Trailing_Non_Grammar : in Boolean := False)
      return Buffer_Region
-   is begin
+   is
+      Prev_Source_Terminal : Node_Access := Invalid_Node_Access;
+      Next_Source_Terminal : Node_Access := Invalid_Node_Access;
+
+      procedure Set_Prev
+      is begin
+         if Node = Tree.SOI then
+            Prev_Source_Terminal := Tree.SOI;
+         else
+            Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar => True);
+         end if;
+      end Set_Prev;
+
+   begin
       case Node.Label is
       when Source_Terminal =>
          if Trailing_Non_Grammar and Node.Non_Grammar.Length > 0 then
-            if Node.Char_Region = Null_Buffer_Region then
-               return
-                 (First => Node.Non_Grammar (Node.Non_Grammar.First_Index).Char_Region.First,
-                  Last  => Node.Non_Grammar (Node.Non_Grammar.Last_Index).Char_Region.Last);
-            else
-               return
-                 (First => Node.Char_Region.First,
-                  Last  => Node.Non_Grammar (Node.Non_Grammar.Last_Index).Char_Region.Last);
-            end if;
+            pragma Assert (Node.Char_Region /= Null_Buffer_Region);
+            return
+              (First => Node.Char_Region.First,
+               Last  => Node.Non_Grammar (Node.Non_Grammar.Last_Index).Char_Region.Last);
          else
             return Node.Char_Region;
          end if;
 
       when Virtual_Terminal | Virtual_Identifier =>
-         if Trailing_Non_Grammar and Node.Non_Grammar.Length > 0 then
-            return
-              (First => Node.Non_Grammar (Node.Non_Grammar.First_Index).Char_Region.First,
-               Last  => Node.Non_Grammar (Node.Non_Grammar.Last_Index).Char_Region.Last);
-         else
-            return Null_Buffer_Region;
-         end if;
+         case Node.Insert_Location is
+         when After_Prev | Between =>
+            if Node.Non_Grammar.Length > 0 then
+               return
+                 (First => Node.Non_Grammar (Node.Non_Grammar.First_Index).Char_Region.First,
+                  Last  => Node.Non_Grammar (Node.Non_Grammar.Last_Index).Char_Region.Last);
+
+            elsif Tree.Parents_Set then
+               Set_Prev;
+               if Prev_Source_Terminal = Invalid_Node_Access then
+                  --  Node is in an all virtual parse stream element.
+                  return Null_Buffer_Region;
+               else
+                  return
+                    (First => Tree.Char_Region (Prev_Source_Terminal, Trailing_Non_Grammar => True).Last,
+                     Last  => Tree.Char_Region (Prev_Source_Terminal, Trailing_Non_Grammar => True).Last - 1);
+               end if;
+            else
+               return Null_Buffer_Region;
+            end if;
+
+         when Before_Next =>
+            pragma Assert (Node.Non_Grammar.Length = 0);
+            if Tree.Parents_Set then
+               if Node = Tree.EOI then
+                  Next_Source_Terminal := Tree.EOI;
+               else
+                  Next_Source_Terminal := Tree.Next_Source_Terminal (Node, Trailing_Non_Grammar => True);
+               end if;
+
+               if Next_Source_Terminal = Invalid_Node_Access then
+                  --  Node is in an all virtual parse stream element.
+                  return Null_Buffer_Region;
+               else
+                  return
+                    (First => Tree.Char_Region (Next_Source_Terminal, Trailing_Non_Grammar => True).First,
+                     Last  => Tree.Char_Region (Next_Source_Terminal, Trailing_Non_Grammar => True).First - 1);
+               end if;
+            else
+               return Null_Buffer_Region;
+            end if;
+         end case;
 
       when Nonterm =>
-         declare
-            First : constant Node_Access := First_Source_Terminal (Tree, Node, Trailing_Non_Grammar);
-            Last  : constant Node_Access := Last_Source_Terminal (Tree, Node, Trailing_Non_Grammar);
-         begin
-            if First = Invalid_Node_Access then
-               return Null_Buffer_Region;
+         if Node.Child_Count = 0 then
+            if Tree.Parents_Set then
+               Set_Prev;
+               if Prev_Source_Terminal = Invalid_Node_Access then
+                  --  Node is the root of an empty parse stream element.
+                  return Null_Buffer_Region;
+               else
+                  return (First => Tree.Char_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
+                          Last  => Tree.Char_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First - 1);
+               end if;
             else
-               return
-                 (First => Char_Region (Tree, First, Trailing_Non_Grammar).First,
-                  Last  => Char_Region (Tree, Last, Trailing_Non_Grammar).Last);
+               return Null_Buffer_Region;
             end if;
-         end;
+         else
+            Prev_Source_Terminal := First_Source_Terminal (Tree, Node, Trailing_Non_Grammar => False);
+            Next_Source_Terminal := Last_Source_Terminal (Tree, Node, Trailing_Non_Grammar);
+         end if;
+
+         if Prev_Source_Terminal = Invalid_Node_Access then
+            if Tree.Parents_Set then
+               if Node = Tree.SOI then
+                  Prev_Source_Terminal := Tree.SOI;
+               else
+                  Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar);
+               end if;
+
+               if Node = Tree.EOI then
+                  Next_Source_Terminal := Tree.EOI;
+               else
+                  Next_Source_Terminal := Tree.Next_Source_Terminal (Node, Trailing_Non_Grammar);
+               end if;
+            else
+               return Null_Buffer_Region;
+            end if;
+         end if;
+
+         if Prev_Source_Terminal = Invalid_Node_Access or Next_Source_Terminal = Invalid_Node_Access then
+            --  Prev or Next is in prev/next stream element
+            return Null_Buffer_Region;
+         else
+            return
+              (First => Tree.Char_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
+               Last  => Tree.Char_Region (Next_Source_Terminal, Trailing_Non_Grammar).Last);
+         end if;
       end case;
    end Char_Region;
 
@@ -882,6 +1005,20 @@ package body WisiToken.Syntax_Trees is
             when Nonterm => Item.Element_Node.Virtual));
    end Contains_Virtual_Terminal;
 
+   function Contains_Virtual_Terminal
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access)
+     return Boolean
+   is
+      pragma Unreferenced (Tree);
+   begin
+      return
+        (case Node.Label is
+         when Source_Terminal => False,
+         when Virtual_Terminal | Virtual_Identifier => True,
+         when Nonterm => Node.Virtual);
+   end Contains_Virtual_Terminal;
+
    function Copy_Augmented
      (User_Data : in User_Data_Type;
       Augmented : in Augmented_Class_Access)
@@ -937,7 +1074,8 @@ package body WisiToken.Syntax_Trees is
                   then null
                   else Copy_Augmented (User_Data.all, Node.Augmented)),
                Non_Grammar      => Node.Non_Grammar,
-               Sequential_Index => Node.Sequential_Index);
+               Sequential_Index => Node.Sequential_Index,
+               Insert_Location  => Node.Insert_Location);
 
             Tree.Nodes.Append (New_Node);
             Tree.Next_Terminal_Node_Index := @ + 1;
@@ -956,7 +1094,8 @@ package body WisiToken.Syntax_Trees is
                   else Copy_Augmented (User_Data.all, Node.Augmented)),
                Non_Grammar      => Node.Non_Grammar,
                Sequential_Index => Node.Sequential_Index,
-               Identifier       => Node.Identifier);
+               Identifier       => Node.Identifier,
+               Insert_Location  => Node.Insert_Location);
 
             Tree.Nodes.Append (New_Node);
             Tree.Next_Terminal_Node_Index := @ + 1;
@@ -1051,7 +1190,8 @@ package body WisiToken.Syntax_Trees is
                   then null
                   else Copy_Augmented (User_Data.all, Source_Node.Augmented)),
                Non_Grammar      => Source_Node.Non_Grammar,
-               Sequential_Index => Source_Node.Sequential_Index);
+               Sequential_Index => Source_Node.Sequential_Index,
+               Insert_Location  => Source_Node.Insert_Location);
 
             Destination.Nodes.Append (New_Dest_Node);
 
@@ -1072,7 +1212,8 @@ package body WisiToken.Syntax_Trees is
                   else Copy_Augmented (User_Data.all, Source_Node.Augmented)),
                Non_Grammar      => Source_Node.Non_Grammar,
                Sequential_Index => Source_Node.Sequential_Index,
-               Identifier       => Source_Node.Identifier);
+               Identifier       => Source_Node.Identifier,
+               Insert_Location  => Source_Node.Insert_Location);
 
             Destination.Nodes.Append (New_Dest_Node);
 
@@ -2963,20 +3104,6 @@ package body WisiToken.Syntax_Trees is
       return Node.Label = Virtual_Terminal;
    end Is_Virtual_Terminal;
 
-   function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
-   is begin
-      return Node.Label in Virtual_Terminal | Virtual_Identifier or (Node.Label = Nonterm and then Node.Virtual);
-   end Is_Virtual;
-
-   function Is_Virtual
-     (Tree    : in Syntax_Trees.Tree;
-      Stream  : in Stream_ID;
-      Element : in Stream_Index)
-     return Boolean
-   is begin
-      return Is_Virtual (Tree, Tree.Streams (Stream.Cur).Elements (Element.Cur).Node);
-   end Is_Virtual;
-
    function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is begin
       return Node.Label = Virtual_Identifier;
@@ -3640,6 +3767,41 @@ package body WisiToken.Syntax_Trees is
       --  We use the Element node because the nonterminal has the most valid Name.
       return Tree.Name (Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node);
    end Name;
+
+   procedure Next_New_Line
+     (Tree               : in     Syntax_Trees.Tree;
+      Start_Ref          : in     Terminal_Ref;
+      After_Non_Grammar  : in     Positive_Index_Type;
+      Result_Ref         :    out Terminal_Ref;
+      Result_Non_Grammar :    out Positive_Index_Type)
+   is
+      Index : Lexer.Token_Arrays.Extended_Index := After_Non_Grammar;
+   begin
+      Result_Ref := Start_Ref;
+
+      loop
+         Next_Non_Grammar :
+         loop
+            if Index /= Lexer.Token_Arrays.No_Index and
+              Index < Result_Ref.Node.Non_Grammar.Last_Index
+            then
+               Index := @ + 1;
+            else
+               Next_Terminal (Tree, Result_Ref);
+               if Result_Ref.Node.Non_Grammar.Length > 0 then
+                  Index := Result_Ref.Node.Non_Grammar.First_Index;
+                  exit Next_Non_Grammar;
+               else
+                  Index := Lexer.Token_Arrays.No_Index;
+               end if;
+            end if;
+         end loop Next_Non_Grammar;
+
+         exit when Result_Ref.Node = Tree.EOI or
+           Contains_New_Line (Result_Ref.Node.Non_Grammar (Index).Line_Region);
+      end loop;
+      Result_Non_Grammar := Index;
+   end Next_New_Line;
 
    function Next_Non_Grammar
      (Tree : in Syntax_Trees.Tree;
@@ -4934,6 +5096,14 @@ package body WisiToken.Syntax_Trees is
 
       Set_Children (Tree, Node, Children);
    end Set_Children;
+
+   procedure Set_Insert_Location
+     (Tree            : in Syntax_Trees.Tree;
+      Node            : in Valid_Node_Access;
+      Insert_Location : in WisiToken.Insert_Location)
+   is begin
+      Node.Insert_Location := Insert_Location;
+   end Set_Insert_Location;
 
    procedure Set_Name
      (Tree : in     Syntax_Trees.Tree;

@@ -68,7 +68,7 @@ OK test_incremental.adb : Edit_Code_7
 OK test_incremental.adb : Edit_Code_8
 OK test_incremental.adb : Edit_Code_9
 OK test_incremental.adb : Delete_New_Line
-OK test_incremental.adb : Delete_Comment_New_Line
+OK test_incremental.adb : Delete_Comment_End
 OK test_incremental.adb : Delete_Comment_Start
 OK test_incremental.adb : Insert_New_Line
 OK test_incremental.adb : Names

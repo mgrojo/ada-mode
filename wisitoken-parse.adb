@@ -419,8 +419,6 @@ package body WisiToken.Parse is
 
                   if Terminal_Non_Grammar_Next = Lexer.Token_Arrays.No_Index then
                      exit Unchanged_Loop when not Contains
-                       --  Virtual_Terminals have null byte_region so they are contained in
-                       --  any region.
                        (Inner          => Tree.Byte_Region (Terminal.Node),
                         Outer          => Stable_Region,
                         First_Boundary => Inclusive,
@@ -553,10 +551,27 @@ package body WisiToken.Parse is
                              Non_Grammar (Terminal_Non_Grammar_Next).Byte_Region.First < Deleted_Region.First and
                              Non_Grammar (Terminal_Non_Grammar_Next).Byte_Region.Last <= Deleted_Region.Last
                            then
-                              --  test_incremental.adb Delete_Comment_New_Line,
+                              --  test_incremental.adb Delete_Comment_End,
                               --  ada_mode-interactive_05.adb Ada_Identifier in comment.
                               Comment_End_Deleted := True;
-                              New_Comment_End     := Non_Grammar (Terminal_Non_Grammar_Next).Byte_Region.Last;
+                              declare
+                                 Ref   : Terminal_Ref;
+                                 Index : Positive_Index_Type;
+                              begin
+                                 Tree.Next_New_Line
+                                   (Start_Ref          => Terminal,
+                                    After_Non_Grammar  => Terminal_Non_Grammar_Next,
+                                    Result_Ref         => Ref,
+                                    Result_Non_Grammar => Index);
+
+                                 New_Comment_End := Tree.Non_Grammar_Const (Ref.Node)(Index).Byte_Region.Last;
+                              end;
+                              if Trace_Incremental_Parse > Detail then
+                                 Parser.Trace.Put_Line
+                                   ("comment_end_deleted:" &
+                                      Non_Grammar (Terminal_Non_Grammar_Next).Byte_Region.First'Image & " .." &
+                                      New_Comment_End'Image);
+                              end if;
                            end if;
                         end if;
 
@@ -844,7 +859,7 @@ package body WisiToken.Parse is
 
                         if Trace_Incremental_Parse > Detail then
                            Parser.Trace.Put_Line
-                             ("delete " & Tree.Image (To_Delete.Node, Terminal_Node_Numbers => True));
+                             ("delete trailing virtual" & Tree.Image (To_Delete.Node, Terminal_Node_Numbers => True));
                         end if;
 
                         Tree.Stream_Delete (Term.Stream, To_Delete.Element);
@@ -1057,7 +1072,7 @@ package body WisiToken.Parse is
                      Tree.Next_Terminal (Terminal);
                      if Trace_Incremental_Parse > Detail then
                         Parser.Trace.Put_Line
-                          ("delete " &
+                          ("delete deleted or modified " &
                              Tree.Image (To_Delete.Element, Terminal_Node_Numbers => True, Non_Grammar => True));
                      end if;
 
@@ -1131,34 +1146,58 @@ package body WisiToken.Parse is
                     (Target_Bytes : in Buffer_Pos;
                      After        : in Boolean)
                     return Terminal_Ref
-                  --  If After.byte_region.first < Terminal.byte_region.first: If After
+                  --  If Target_Bytes < Terminal.byte_region.first: If After
                   --  is True, return terminal node that is after or contains
                   --  Target_Bytes, where prev terminal is before Target_Bytes. Else
                   --  return terminal that is before Target_Bytes, where next is after.
                   --
                   --  Otherwise similar, but searching forward.
+                  --
+                  --  Target_Bytes is unshifted.
                   is
                      Terminal_First : constant Buffer_Pos := Tree.Byte_Region (Terminal.Node).First;
+                     Searching_Back : constant Boolean := Terminal_First > Target_Bytes;
+
                      Before_1 : Terminal_Ref := -- before Before
-                       (if Terminal_First > Target_Bytes
+                       (if Searching_Back
                         then Tree.Prev_Terminal (Terminal)
                         else Terminal);
                      Before      : Terminal_Ref :=
-                       (if Terminal_First > Target_Bytes
+                       (if Searching_Back
                         then Terminal
                         else Tree.Next_Terminal (Terminal));
                   begin
                      loop
-                        exit when Target_Bytes in Tree.Byte_Region (Before_1.Node).Last + 1 ..
-                            (if After
-                             then Tree.Byte_Region (Before).Last
-                             else Tree.Byte_Region (Before).First - 1) +
-                            (if Before = Terminal
-                             then Shift_Bytes
-                             else 0);
-                        --  region bounds test case: ada_mode-recover_partial_14.adb
-                        --  contains; ada_mode-recover_42.adb lexer_error string_literal
+                        if Searching_Back then
+                           declare
+                              --  Target_Bytes is unshifted. If searching forward, all nodes are
+                              --  also unshifted. If searching back, all nodes except Terminal are
+                              --  shifted. Compare Target_Bytes to unshifted region.
+                              --
+                              --  region bounds test case: ada_mode-recover_partial_14.adb
+                              --  contains; ada_mode-recover_42.adb lexer_error string_literal
+                              Shift_First : constant Base_Buffer_Pos := -Shift_Bytes;
+                              Shift_Last : constant Base_Buffer_Pos := (if Before = Terminal then 0 else -Shift_Bytes);
 
+                              First : constant Buffer_Pos := Tree.Byte_Region (Before_1.Node).Last + 1 + Shift_First;
+                              Last  : constant Buffer_Pos :=
+                                (if After
+                                 then Tree.Byte_Region (Before).Last
+                                 else Tree.Byte_Region (Before).First - 1) + Shift_Last;
+                           begin
+                              exit when Target_Bytes in First .. Last;
+                           end;
+                        else
+                           declare
+                              First : constant Buffer_Pos := Tree.Byte_Region (Before_1.Node).Last + 1;
+                              Last  : constant Buffer_Pos :=
+                                (if After
+                                 then Tree.Byte_Region (Before).Last
+                                 else Tree.Byte_Region (Before).First - 1);
+                           begin
+                              exit when Target_Bytes in First .. Last;
+                           end;
+                        end if;
                         if Terminal_First > Target_Bytes then
                            Before := Before_1;
                            Tree.Prev_Terminal (Before_1);
@@ -1173,13 +1212,17 @@ package body WisiToken.Parse is
                   procedure Restore (Token : in out Lexer.Token)
                   is
                      Containing_Terminal : constant Terminal_Ref := Find_Element
-                       (Token.Byte_Region.First + Shift_Bytes,
-                        After => False);
+                       (Token.Byte_Region.First, After => False);
 
                      Old_Token : constant Lexer.Token := Token; -- for trace message
                   begin
-                     --  Ignore this non_grammar's contribution to Shift_Lines. ada_mode-recover_33.adb
-                     Lexer.Shift (Token, Shift_Bytes, Shift_Chars, Shift_Lines + New_Line_Count (Token.Line_Region));
+                     if Token.Byte_Region.First < Tree.Byte_Region (Terminal.Node).First then
+                        --  Only shift if inserted before Terminal. ada_mode-recover_14
+                        --
+                        --  Ignore this non_grammar's contribution to Shift_Lines.
+                        --  ada_mode-recover_33.adb
+                        Lexer.Shift (Token, Shift_Bytes, Shift_Chars, Shift_Lines + New_Line_Count (Token.Line_Region));
+                     end if;
 
                      Shift_Lines := @ + New_Line_Count (Token.Line_Region);
 
@@ -1267,24 +1310,40 @@ package body WisiToken.Parse is
                            Delete;
 
                         else
+                           --  Deleted node is in next KMN stable; restore it. We don't shift it
+                           --  here; it will be shifted by the next Unchanged_Loop. If inserted
+                           --  before Terminal, set Terminal to the inserted node, so it is the
+                           --  boundary between shifted and unshifted.
                            declare
                               Insert_Before : Terminal_Ref := Find_Element (Deleted_Byte_First, After => True);
                            begin
-                              Tree.Shift
-                                (Parser.Deleted_Nodes (Deleted_Node), Shift_Bytes, Shift_Chars, Shift_Lines,
-                                 Buffer_Pos'Last, Terminal_Non_Grammar_Next);
-
                               if Trace_Incremental_Parse > Detail then
                                  Parser.Trace.Put_Line
-                                   ("shift and restore deleted_node " & Tree.Image
+                                   ("restore deleted_node " & Tree.Image
                                       (Parser.Deleted_Nodes (Deleted_Node), Node_Numbers => True));
                               end if;
 
                               --  Ensure we can insert before Insert_Before.
+                              if Insert_Before.Element = Terminal.Element and Insert_Before.Node /= Terminal.Node then
+                                 --  Breakdown (Insert_Before) would modify Terminal.Element, so first
+                                 --  breakdown Terminal completely. ada_mode-recover_04.adb
+                                 --
+                                 --  FIXME: actually just until Insert_Before.Node is in a different
+                                 --  element.
+                                 Breakdown (Terminal, To_Single => True);
+                                 Insert_Before := Find_Element (Deleted_Byte_First, After => True);
+                              end if;
+
                               Breakdown (Insert_Before);
 
-                              Tree.Stream_Insert
-                                (Stream, Parser.Deleted_Nodes (Deleted_Node), Before => Insert_Before.Element);
+                              declare
+                                 Inserted : constant Stream_Node_Ref := Tree.Stream_Insert
+                                   (Stream, Parser.Deleted_Nodes (Deleted_Node), Before => Insert_Before.Element);
+                              begin
+                                 if Insert_Before = Terminal then
+                                    Terminal := Inserted;
+                                 end if;
+                              end;
 
                               --  Non_Grammar on nodes deleted by error recover should be moved to
                               --  other nodes; if not, it's a bug in language-specific
@@ -1304,18 +1363,12 @@ package body WisiToken.Parse is
                   end loop Deleted_Nodes;
 
                   for I in Floating_Non_Grammar.First_Index .. Floating_Non_Grammar.Last_Index loop
-                     exit when Floating_Non_Grammar (I).Byte_Region.First + Shift_Bytes > Next_KMN_Stable_Last;
+                     exit when Floating_Non_Grammar (I).Byte_Region.First > Next_KMN_Stable_Last;
                      --  If token is in next KMN edit region, shift_bytes is wrong here.
 
-                     if Floating_Non_Grammar (I).Byte_Region.First + Shift_Bytes <= Inserted_Region.First then
-                        --  Non_grammar token was floated from a deleted virtual; restore it
-                        --  to previous terminal. ada_mode-recover_18.adb
-                        Restore (Floating_Non_Grammar (I));
-                        Last_Handled_Non_Grammar := I;
-
-                     elsif Floating_Non_Grammar (I).Byte_Region.First + Shift_Bytes <= Scanned_Byte_Pos then
+                     if Floating_Non_Grammar (I).Byte_Region.First + Shift_Bytes <= Scanned_Byte_Pos then
                         --  Non_grammar token was rescanned; delete the old one.
-                        --  test case: ada_mode-recover_align_1.adb
+                        --  test case: ada_mode-recover_align_1.adb, test_incremental.adb Edit_Whitespace
 
                         if Trace_Incremental_Parse > Detail then
                            Parser.Trace.Put_Line
@@ -1326,7 +1379,7 @@ package body WisiToken.Parse is
 
                      elsif Contains (Check_Region, Floating_Non_Grammar (I).Byte_Region.First) then
                         --  Non_Grammar is in KMN region; find terminal to append non_grammar
-                        --  to.
+                        --  to. ada_mode-recover_18.adb
                         Restore (Floating_Non_Grammar (I));
                         Last_Handled_Non_Grammar := I;
                      else
@@ -1379,7 +1432,6 @@ package body WisiToken.Parse is
       --  down.
 
       --  Delete remnants of prevous error recovery that might be wrong.
-      --  FIXME: insert remaining Deleted_Nodes here? need test case.
       declare
          Ref : Stream_Node_Ref := Tree.Stream_First (Stream);
 
@@ -1389,7 +1441,7 @@ package body WisiToken.Parse is
          begin
             if Trace_Incremental_Parse > Detail then
                Parser.Trace.Put_Line
-                 ("delete " & Tree.Image (To_Delete, Node_Numbers => True, Non_Grammar => True));
+                 ("delete empty nonterm" & Tree.Image (To_Delete, Node_Numbers => True, Non_Grammar => True));
             end if;
 
             Tree.Stream_Next (Ref, Rooted => True);
@@ -1413,7 +1465,7 @@ package body WisiToken.Parse is
 
             if Trace_Incremental_Parse > Detail then
                Parser.Trace.Put_Line
-                 ("delete " & Tree.Image (To_Delete, Node_Numbers => True, Non_Grammar => True));
+                 ("delete virtual" & Tree.Image (To_Delete, Node_Numbers => True, Non_Grammar => True));
             end if;
 
             Tree.Stream_Next (Ref, Rooted => True);

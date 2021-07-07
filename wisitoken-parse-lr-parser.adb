@@ -51,7 +51,7 @@ package body WisiToken.Parse.LR.Parser is
 
       Nonterm : constant Syntax_Trees.Stream_Node_Ref := Shared_Parser.Tree.Reduce
         (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Post_Parse_Action, New_State,
-         Default_Virtual => Shared_Parser.Tree.Is_Virtual (Parser_State.Current_Token.Node));
+         Default_Virtual => Shared_Parser.Tree.Contains_Virtual_Terminal (Parser_State.Current_Token.Node));
       --  Default_Virtual is used if Nonterm is empty; we set it True
       --  because if Current_Token (that triggered the reduce) is virtual,
       --  then Nonterm would be Virtual if it was not empty.

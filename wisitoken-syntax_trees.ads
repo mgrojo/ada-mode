@@ -339,6 +339,10 @@ package WisiToken.Syntax_Trees is
       Name : in     Buffer_Region);
 
    function Contains_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Boolean;
+   function Contains_Virtual_Terminal
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access)
+     return Boolean;
 
    function Is_Empty_Nonterm
      (Tree       : in Syntax_Trees.Tree;
@@ -1035,17 +1039,14 @@ package WisiToken.Syntax_Trees is
    --  True if Node contains no terminals, or all terminals are virtual,
    --  and thus have Null_Buffer_Region for Byte_ and Char_Region.
 
-   function Is_Virtual
-     (Tree    : in Syntax_Trees.Tree;
-      Stream  : in Stream_ID;
-      Element : in Stream_Index)
-     return Boolean
-   with Pre => Tree.Contains (Stream, Element) or Tree.Contains (Tree.Shared_Stream, Element);
-   function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
-   --  Virtual_Terminal, Virtual_Identifier, or Nonterm that contains some Virtual terminals.
-
    function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
+
+   procedure Set_Insert_Location
+     (Tree            : in Syntax_Trees.Tree;
+      Node            : in Valid_Node_Access;
+      Insert_Location : in WisiToken.Insert_Location)
+   with Pre => Tree.Is_Virtual_Terminal (Node);
 
    procedure Set_Name
      (Tree   : in Syntax_Trees.Tree;
@@ -1081,8 +1082,9 @@ package WisiToken.Syntax_Trees is
    --  If Trailing_Non_Grammar, any non_grammar attached to last terminal
    --  in Node is included in region.
    --
-   --  Byte_Region of Virtual_Terminal with Trailing_Non_Grammar False
-   --  is Null_Buffer_Region.
+   --  Byte_Region of Virtual_Terminal is an empty region with .First
+   --  determined by Insert_Location, using previous or next
+   --  source_terminal or non_grammar.
    --
    --  Byte_Region of an empty nonterm with Trailing_Non_Grammar False is
    --  an empty region; .First gives nominal location in source text,
@@ -1110,6 +1112,7 @@ package WisiToken.Syntax_Trees is
       Node                 : in Valid_Node_Access;
       Trailing_Non_Grammar : in Boolean := False)
      return WisiToken.Buffer_Region;
+   --  Similar to Byte_Region.
 
    function Line_At_Byte_Pos
      (Tree     : in Syntax_Trees.Tree;
@@ -1845,6 +1848,16 @@ package WisiToken.Syntax_Trees is
    --  Same as Find_New_Line, also updates Line_Begin_Char_Pos to first
    --  char pos on Line.
 
+   procedure Next_New_Line
+     (Tree               : in     Syntax_Trees.Tree;
+      Start_Ref          : in     Terminal_Ref;
+      After_Non_Grammar  : in     Positive_Index_Type;
+      Result_Ref         :    out Terminal_Ref;
+      Result_Non_Grammar :    out Positive_Index_Type)
+   with Pre => Tree.Non_Grammar_Const (Start_Ref.Node).Last_Index >= After_Non_Grammar,
+     Post => Tree.Non_Grammar_Const (Result_Ref.Node).Last_Index >= Result_Non_Grammar;
+   --  Return next New_Line or EOI.
+
    function Line_Begin_Char_Pos
      (Tree : in Syntax_Trees.Tree;
       Line : in Line_Number_Type)
@@ -2237,10 +2250,21 @@ private
             --  to simplify Edit_Tree, and because it changes when Insert_Terminal
             --  moves Non_Grammar.
 
-         when Virtual_Terminal =>
-            null;
-         when Virtual_Identifier =>
-            Identifier : Identifier_Index; -- index into user data
+         when Virtual_Terminal_Label =>
+            Insert_Location : WisiToken.Insert_Location := Before_Next;
+            --  Overridden Insert_Token can change the default.
+            --  If the node has non_grammar tokens, Insert_Location must be
+            --  Between.
+
+            case Label is
+            when Virtual_Terminal =>
+               null;
+            when Virtual_Identifier =>
+               Identifier : Identifier_Index; -- index into user data
+            when Source_Terminal | Nonterm =>
+               null;
+            end case;
+
          when Nonterm =>
             null;
          end case;
@@ -2248,7 +2272,8 @@ private
       when Nonterm =>
          Virtual : Boolean := False;
          --  True if any child node is Virtual_Terminal or Nonterm with Virtual
-         --  set. Used by In_Parse_Actions and error recover.
+         --  set. Used by In_Parse_Actions and error recover, via
+         --  Contains_Virtual_Terminal.
 
          RHS_Index : Natural;
          --  With ID, index into Productions.

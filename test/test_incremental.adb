@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
-with AUnit.Checks;
+with AUnit.Checks.Containers;
 with Ada.Containers;
 with Ada.Exceptions;
 with Ada.Text_IO;
@@ -48,6 +48,7 @@ package body Test_Incremental is
    is
       use Ada.Text_IO;
       use AUnit.Checks;
+      use AUnit.Checks.Containers;
       use WisiToken.Syntax_Trees.AUnit_Public;
       use WisiToken.Parse;
       use all type WisiToken.Base_Buffer_Pos;
@@ -215,7 +216,9 @@ package body Test_Incremental is
          Put_Tree (Parser.Tree);
       end if;
 
-      Check ("1", Parser.Tree, Edited_Tree_Batch,
+      Check ("lexer errors", Parser.Wrapped_Lexer_Errors.Length, 0);
+      Check ("parse errors", Parser.Any_Errors, False);
+      Check ("tree", Parser.Tree, Edited_Tree_Batch,
              Shared_Stream => False,
              Terminal_Node_Numbers => False);
    exception
@@ -498,7 +501,7 @@ package body Test_Incremental is
          Insert  => "");
    end Delete_New_Line;
 
-   procedure Delete_Comment_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Delete_Comment_End (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -514,7 +517,7 @@ package body Test_Incremental is
 
       --  Edited: "A := B + C; -- commentD (2);" & ASCII.LF & "C;"
       --           |1       |10       |20          |29
-   end Delete_Comment_New_Line;
+   end Delete_Comment_End;
 
    procedure Delete_Comment_Start (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -612,7 +615,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_8'Access, "Edit_Code_8");
       Register_Routine (T, Edit_Code_9'Access, "Edit_Code_9");
       Register_Routine (T, Delete_New_Line'Access, "Delete_New_Line");
-      Register_Routine (T, Delete_Comment_New_Line'Access, "Delete_Comment_New_Line");
+      Register_Routine (T, Delete_Comment_End'Access, "Delete_Comment_End");
       Register_Routine (T, Delete_Comment_Start'Access, "Delete_Comment_Start");
       Register_Routine (T, Insert_New_Line'Access, "Insert_New_Line");
       Register_Routine (T, Names'Access, "Names");
