@@ -45,18 +45,6 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-test/mixed_unix_dos_line_ends.adb
-    cmd length computed wrong somewhere
-    coding conversion in send-string strips stray ^M
-        only in emacs 28?
-        change to utf-8-emacs; still strips.
-        write bug report
-        change to use null-terminated string?
-            then byte, char pos wrong.
-            if emacs buffer contains null, it's not valid text (even less valid than stray ^M)
-
-Reset-parser only reset current file = delete parse_context
-
 run all tests with incremental mode enabled
     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t wisi-process-time-out 10.0)"
 
@@ -73,23 +61,20 @@ verbosity debug=1 incremental=3
 verbosity debug=1 action=3
 verbosity debug=1 mckenzie=1 parse=2
 
+test/ada_mode-recover_string_quote_2.adb
+    incremental parse fails on enqueue_limit
+    raising to 100_000 doesn't help
+    full parse succeeds after < 500 enqueue
+    try_insert_quote must be broken.
+        wrapped_lexer_errors is empty
+        because parse clears it before edit_tree, and edit_tree does not relex the missing quote
+        update or delete errors; don't clear
+
+Reset-parser only reset current file = delete parse_context
+
 move Trace from Parser to Lexer
     use in Find_Next
     no separate param in tree operations
-
-test/ada_mode-recover_debbugs_36548.adb
-    hangs in emacs, not in parser
-    but C-g does not interrupt
-    run test manually
-    hangs somewhere in re-indent
-        not in make -r one
-        ;; SAL.PROGRAMMER_ERROR: indent > 100
-        from record_definition_1 ada-indent-record* = Ada_Indent_Record_1; bogus anchored_delta
-        TYPE is virtual, null char_region in current_indent_offset
-            use prev_source_terminal/next_source_terminal/non_grammar
-                add insert_location component
-                also for byte_region
-
 
 
 
@@ -128,13 +113,41 @@ build/test.log
 
 benchmark
 
-test/ada_mode-recover_43.adb enqueue_limit
+ after incremental
+test/mixed_unix_dos_line_ends.adb
+    cmd length computed wrong somewhere
+    coding conversion in send-string strips stray ^M
+        only in emacs 28?
+        change to utf-8-emacs; still strips.
+        write bug report
+        change to use null-terminated string?
+            then byte, char pos wrong.
+            if emacs buffer contains null, it's not valid text (even less valid than stray ^M)
+
+error recover fail:
+   case Label is
+   when virtual_label =>
+     case Virtual_Label'(Label) is -- must be a discriminant direct_name, not an expression
+         when Virtual_Terminal =>
+            null;
+         when Virtual_Identifier =>
+            Identifier : Identifier_Index; -- index into user data
+     end case;
+   when nonterm =>
+   end case;
+
+incremental error recover requires higher enqueue limit
+    test/ada_mode-recover_43.adb
     try lr1 - same error
     simplified; get mckenzie log
         desired solution: (delete '=')(insert ':=') cost 6
         minimal complete is too cheap
             nesting means there is more to complete
             separate minimal_complete heap; always do one from there, one from other.
+
+    test/ada_mode-recover_partial_13.adb
+        solution requires one delete, then expensive minimal_complete
+        would also benefit from separate min_complete heap (or queue? not many on it)
 
 indent (point)(point) should work for indent-line
 

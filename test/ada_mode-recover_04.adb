@@ -2,7 +2,7 @@
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
-package body Ada_Mode.Recover_4 is
+package body Ada_Mode.Recover_04 is
    procedure Handle_Search
    is begin
       for Parser_State of Shared_Parser.Parsers loop
@@ -19,4 +19,4 @@ package body Ada_Mode.Recover_4 is
          end if;
       end loop;
    end Handle_Search;
-end Ada_Mode.Recover_4;
+end Ada_Mode.Recover_04;

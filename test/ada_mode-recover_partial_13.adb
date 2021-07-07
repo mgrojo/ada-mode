@@ -1,4 +1,7 @@
--- LR1 recover used to fail on enqueue limit.
+-- LR1 recover used to fail on enqueue limit. Incremental parse
+-- requires a higher enqueue_limit than full parse.
+--
+-- FIXME: add separate minimal_complete queue.
 --EMACSCMD: (switch-to-lr1)
 begin
    if Use_Minimal_Complete_Actions then
@@ -7,4 +10,5 @@ begin
          end if;
          --  Local Variables:
          --  wisi-mckenzie-task-count: 1
+         --  wisi-mckenzie-enqueue-limit: 70000
          --  End:

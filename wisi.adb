@@ -1405,7 +1405,7 @@ package body Wisi is
 
             pragma Assert (Prev_Non_Grammar.Length > 0); --  else First would be false in condition above.
 
-            pragma Assert (Tree.Byte_Region (Inserted_Token) = Null_Buffer_Region); -- because it's virtual.
+            pragma Assert (Length (Tree.Byte_Region (Inserted_Token)) = 0); -- because it's virtual.
 
             case Insert_Location is
             when Between =>
@@ -1424,6 +1424,8 @@ package body Wisi is
                   Token_Non_Grammar := New_Non_Grammar;
 
                   Prev_Non_Grammar.Set_First_Last (Prev_Non_Grammar.First_Index, Blank_Line_Index - 1);
+
+                  Tree.Set_Insert_Location (Inserted_Token, Between);
 
                   if Trace_Action > WisiToken.Outline then
                      Data.Trace.Put_Line
@@ -1448,6 +1450,8 @@ package body Wisi is
 
                   Prev_Non_Grammar := WisiToken.Lexer.Token_Arrays.Empty_Vector;
                end if;
+
+               Tree.Set_Insert_Location (Inserted_Token, After_Prev);
 
                if Trace_Action > WisiToken.Outline then
                   Data.Trace.Put_Line
@@ -1635,9 +1639,9 @@ package body Wisi is
               Tree.Child_Count (Nonterm)'Image & "); bad grammar action.");
       end if;
 
-      if Tree.Is_Virtual (Tree.Child (Nonterm, Name)) then
-         --  Virtual tokens don't appear in the actual buffer, so we can't set
-         --  a text property on them.
+      if Length (Tree.Char_Region (Tree.Child (Nonterm, Name))) = 0 then
+         --  Token is virtual; it does not appear in the actual buffer, so we
+         --  can't set a text property on it.
          return;
       elsif not Overlaps (Tree.Char_Region (Tree.Child (Nonterm, Name)), Data.Action_Region_Chars) then
          return;
