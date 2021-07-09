@@ -4345,7 +4345,7 @@ package body WisiToken.Syntax_Trees is
 
       loop
          Result := Prev_Terminal (Tree, Result);
-         exit when Result.Non_Grammar.Length > 0; -- SOI always has a non_grammar for first line.
+         exit when Result.Non_Grammar.Length > 0;
       end loop;
       return Result;
    end Prev_Non_Grammar;

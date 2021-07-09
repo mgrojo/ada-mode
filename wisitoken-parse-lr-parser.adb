@@ -982,17 +982,41 @@ package body WisiToken.Parse.LR.Parser is
          case Item.Label is
          when LR_Parse_Action =>
             declare
+               use all type Syntax_Trees.Valid_Node_Access;
+
+               Item_Byte_Region : constant Buffer_Region := Parser.Tree.Byte_Region (Item.Error_Token.Node);
                Msg : constant String := "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                 ", found '" & Parser.Tree.Lexer.Buffer_Text (Parser.Tree.Byte_Region (Item.Error_Token.Node)) &
+                 ", found '" & Parser.Tree.Lexer.Buffer_Text (Item_Byte_Region) &
                  "'";
             begin
                --  If we get here because Parse raised Syntax_Error or other
                --  exception, Finish_Parse has not been called.
-               Put_Line
-                 (Current_Error,
-                  (if Parser.Tree.Parents_Set
-                   then Parser.Tree.Error_Message (Item.Error_Token.Node, Msg)
-                   else Parser.Tree.Error_Message (Item.Error_Token, Msg)));
+
+               if Parser.Tree.Editable then
+                  declare
+                     Line_Node : constant Syntax_Trees.Valid_Node_Access :=
+                       (if (for some N of Parser.Deleted_Nodes => N = Item.Error_Token.Node)
+                        then -- error node is not in tree, can't find line number; use another node
+                           Parser.Tree.Find_Byte_Pos (Item_Byte_Region.First, Trailing_Non_Grammar => False)
+                        else Item.Error_Token.Node);
+                  begin
+                     Put_Line (Current_Error, Parser.Tree.Error_Message (Line_Node, Msg));
+                  end;
+               else
+                  declare
+                     Ref : constant Syntax_Trees.Terminal_Ref :=
+                       (if (for some N of Parser.Deleted_Nodes => N = Item.Error_Token.Node)
+                        then -- error node is not in tree; can't find line number.
+
+                           Parser.Tree.Find_Byte_Pos
+                             (Parser_State.Stream, Item_Byte_Region.First,
+                              Trailing_Non_Grammar => False,
+                              Start_At             => Syntax_Trees.Invalid_Stream_Node_Ref)
+                        else Item.Error_Token);
+                  begin
+                     Put_Line (Current_Error, Parser.Tree.Error_Message (Ref, Msg));
+                  end;
+               end if;
             end;
 
          when User_Parse_Action =>

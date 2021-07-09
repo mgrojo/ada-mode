@@ -27,6 +27,7 @@ with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Syntax_Trees.AUnit_Public;
 with WisiToken.Text_IO_Trace;
 package body Test_Incremental is
@@ -37,13 +38,15 @@ package body Test_Incremental is
    Parser : WisiToken.Parse.LR.Parser.Parser;
 
    procedure Parse_Text
-     (Initial   : in String;
-      Edit_At   : in Integer;
-      Delete    : in String;
-      Insert    : in String;
-      Edit_2_At : in Integer := 0;
-      Delete_2  : in String  := "";
-      Insert_2  : in String  := "")
+     (Initial      : in String;
+      Edit_At      : in Integer;
+      Delete       : in String;
+      Insert       : in String;
+      Edit_2_At    : in Integer                   := 0;
+      Delete_2     : in String                    := "";
+      Insert_2     : in String                    := "";
+      Lexer_Errors : in Ada.Containers.Count_Type := 0;
+      Parse_Errors : in Boolean                   := False)
    with Pre => Edit_2_At = 0 or Edit_2_At > Edit_At
    is
       use Ada.Text_IO;
@@ -212,12 +215,13 @@ package body Test_Incremental is
       Parser.Parse (Log_File, Edits);
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
+         New_Line;
          Put_Line ("incremental parse result:");
          Put_Tree (Parser.Tree);
       end if;
 
-      Check ("lexer errors", Parser.Wrapped_Lexer_Errors.Length, 0);
-      Check ("parse errors", Parser.Any_Errors, False);
+      Check ("lexer errors", Parser.Wrapped_Lexer_Errors.Length, Lexer_Errors);
+      Check ("parse errors", Parser.Any_Errors, Parse_Errors);
       Check ("tree", Parser.Tree, Edited_Tree_Batch,
              Shared_Stream => False,
              Terminal_Node_Numbers => False);
@@ -592,6 +596,29 @@ package body Test_Incremental is
          Insert  => "Integer");
    end Recover_1;
 
+   procedure Lexer_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Missing string quote. Initial full parse recovers from it,
+      --  incremental edit does not fix it, and incremental parse does not
+      --  report it. This demonstrates that lexer errors do not need to be
+      --  preserved for incremental parse.
+      Parse_Text
+        (Initial      =>
+           "A := 2;" & ASCII.LF &
+             --  |6
+             "B := ""A string" & ASCII.LF & -- missing closing quote; lexer error at 14
+             --  |12      |20
+             "C := 1;",
+         --   |23
+         Edit_At      => 6,
+         Delete       => "",
+         Insert       => ASCII.LF & "33",
+         Lexer_Errors => 0,
+         Parse_Errors => False);
+   end Lexer_Errors_1;
+
    ----------
    --  Public subprograms
 
@@ -620,6 +647,7 @@ package body Test_Incremental is
       Register_Routine (T, Insert_New_Line'Access, "Insert_New_Line");
       Register_Routine (T, Names'Access, "Names");
       Register_Routine (T, Recover_1'Access, "Recover_1");
+      Register_Routine (T, Lexer_Errors_1'Access, "Lexer_Errors_1");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

@@ -1258,7 +1258,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       function Recovered_Lexer_Error return Syntax_Trees.Terminal_Ref
       is begin
-         --  We are assuming the list of lexer errors is short, so binary
+         --  We assume the list of lexer errors is short, so binary
          --  search would not be significantly faster.
          for Err of Shared.Wrapped_Lexer_Errors.all loop
             if Err.Recover_Token_Ref /= Syntax_Trees.Invalid_Stream_Node_Ref then
@@ -1576,7 +1576,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             if not (Tree.Label (Ref.Ref.Node) in Terminal_Label) then
                --  It is exceedingly unlikely that the words in a real user string
                --  will match a grammar production (unless we are writing a code
-               --  generate like WisiToken.Output_Ada, sigh). So we just abandon
+               --  generator like WisiToken.Output_Ada, sigh). So we just abandon
                --  this.
                raise Bad_Config;
             end if;

@@ -51,15 +51,6 @@ begin
          --  previous parse failed, left tree in uncertain state
          raise WisiToken.Parse_Error with "previous parse failed, can't edit tree";
       end if;
-
-      --  We don't clear Shared_Parser.Wrapped_Lexer_Errors here; error
-      --  recover uses them. Edit_Tree clears any that are in a lexed
-      --  region.
-      --
-      --  We don't clear Deleted_Nodes here; Edit_Tree restores them to the
-      --  parse stream if in an edit region. Cleared and refilled in
-      --  Finish_Parse.
-
       Edit_Tree (Shared_Parser, Edits);
 
       if Trace_Parse > Outline or Trace_Incremental_Parse > Outline then
@@ -72,6 +63,7 @@ begin
                Non_Grammar  => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
                Augmented    => False,
                Line_Numbers => False)); --  Parents not set, can't get Line_Numbers
+         Trace.Put_Line ("lexer_errors: " & Image (Shared_Parser.Wrapped_Lexer_Errors, Shared_Parser.Tree));
          Trace.New_Line;
       end if;
 
@@ -87,6 +79,7 @@ begin
       end if;
 
    else
+      Shared_Parser.Wrapped_Lexer_Errors.Clear;
       Shared_Parser.Tree.Clear;
       Shared_Parser.Lex_All;
    end if;

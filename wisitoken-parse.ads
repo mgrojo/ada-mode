@@ -17,9 +17,9 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Finalization;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image;
+with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
@@ -28,9 +28,13 @@ package WisiToken.Parse is
       Recover_Token_Ref : Syntax_Trees.Terminal_Ref;
       --  Token that lexer returned at the error.
       --
-      --  If the error token is a grammar token, Recover_Token_Ref is in
-      --  Shared_Stream; it is needed by error recovery, for
-      --  Stream_Prev/_Next in Try_Insert_Quote.
+      --  Lexer errors are not preserved for incremental parse; a tree has
+      --  all the errors fixed. So Parser.Wrapped_Lexer_Errors only contains
+      --  errors from newly lexed text.
+      --
+      --  If the error token is a grammar token, Recover_Token_Ref is in Shared_Stream;
+      --  it is needed by error recovery, for Stream_Prev/_Next in
+      --  Try_Insert_Quote; the stream element is found then.
       --
       --  If the error token is a non-grammar token, Recover_Token_Ref is
       --  Invalid_Stream_Node_Ref.
@@ -38,7 +42,10 @@ package WisiToken.Parse is
       Error : WisiToken.Lexer.Error;
    end record;
 
-   package Wrapped_Lexer_Error_Lists is new Ada.Containers.Doubly_Linked_Lists (Wrapped_Lexer_Error);
+   package Wrapped_Lexer_Error_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Wrapped_Lexer_Error);
+
+   function Image (Item : in Wrapped_Lexer_Error; Tree : in WisiToken.Syntax_Trees.Tree) return String;
+   function Image is new Wrapped_Lexer_Error_Lists.Gen_Image_Aux (WisiToken.Syntax_Trees.Tree, Image);
 
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled
    with record
