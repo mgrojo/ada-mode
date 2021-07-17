@@ -63,7 +63,6 @@ begin
                Non_Grammar  => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
                Augmented    => False,
                Line_Numbers => False)); --  Parents not set, can't get Line_Numbers
-         Trace.Put_Line ("lexer_errors: " & Image (Shared_Parser.Wrapped_Lexer_Errors, Shared_Parser.Tree));
          Trace.New_Line;
       end if;
 
@@ -79,7 +78,6 @@ begin
       end if;
 
    else
-      Shared_Parser.Wrapped_Lexer_Errors.Clear;
       Shared_Parser.Tree.Clear;
       Shared_Parser.Lex_All;
    end if;

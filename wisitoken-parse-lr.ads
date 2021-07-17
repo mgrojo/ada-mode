@@ -596,7 +596,8 @@ package WisiToken.Parse.LR is
 
       Token : Syntax_Trees.Recover_Token;
       --  Virtual is False if token is from input text; True if inserted
-      --  during recover.
+      --  during recover. If not Virtual, Element_Node = Node (ie rooted
+      --  stream ref).
    end record;
 
    package Recover_Stacks is new SAL.Gen_Bounded_Definite_Stacks (Recover_Stack_Item);
@@ -614,6 +615,13 @@ package WisiToken.Parse.LR is
       Depth : in SAL.Base_Peek_Type := 0)
      return String
      renames Recover_Stack_Image;
+
+   function Stack_Has
+     (Tree  : in Syntax_Trees.Tree;
+      Stack : in Recover_Stacks.Stack;
+      ID    : in Token_ID)
+     return Boolean;
+   --  True if some item in Stack has ID.
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean with
      Pre => Stack.Depth >= Depth;

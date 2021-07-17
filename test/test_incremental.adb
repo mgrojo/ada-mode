@@ -303,7 +303,7 @@ package body Test_Incremental is
          Insert_2  => "big");
    end Edit_Comment_3;
 
-   procedure Edit_Whitespace (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Whitespace_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -324,7 +324,31 @@ package body Test_Incremental is
          Delete_2  => " ",
          Insert_2  => "");
 
-   end Edit_Whitespace;
+   end Edit_Whitespace_1;
+
+   procedure Edit_Whitespace_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Two edits in one whitespace
+      Parse_Text
+        (Initial   =>
+           "package Test is" & ASCII.LF &
+           --        |10       |16
+           "   --  A comment" & ASCII.LF &
+           --  |20       |30
+           "     function Bar return Integer;" & ASCII.LF &
+           --     |40       |50       |60
+           "end Test;",
+           --   |70
+         Edit_At   => 34,
+         Delete    => " ",
+         Insert    => "",
+         Edit_2_At => 36,
+         Delete_2  => " ",
+         Insert_2  => "");
+
+   end Edit_Whitespace_2;
 
    procedure Edit_Leading_Non_Grammar (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -630,7 +654,8 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment'Access, "Edit_Comment");
       Register_Routine (T, Edit_Comment_2'Access, "Edit_Comment_2");
       Register_Routine (T, Edit_Comment_3'Access, "Edit_Comment_3");
-      Register_Routine (T, Edit_Whitespace'Access, "Edit_Whitespace");
+      Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
+      Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");
       Register_Routine (T, Edit_Code_1'Access, "Edit_Code_1");
       Register_Routine (T, Edit_Code_2'Access, "Edit_Code_2");

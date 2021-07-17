@@ -290,9 +290,12 @@ package WisiToken.Syntax_Trees is
          ID : Token_ID := Invalid_Token_ID;
 
          First_Terminal : Node_Access := Invalid_Node_Access;
-         --  For ID in Nonterminals, first terminal of this token in the Tree
-         --  shared or parse stream, cached from children. For terminals,
-         --  Invalid_Node_Access. Used to detect empty nonterm.
+         Last_Terminal  : Node_Access := Invalid_Node_Access;
+         --  For ID in Nonterminals, first and last terminal of this token in
+         --  the Tree shared or parse stream, cached from children;
+         --  Invalid_Node_Access if the children are virtual. For terminals,
+         --  Invalid_Node_Access. Used to detect empty nonterm and compute
+         --  Name.
 
          Name : Buffer_Region := Null_Buffer_Region;
          --  Set and used by In_Parse_Actions.
@@ -316,7 +319,8 @@ package WisiToken.Syntax_Trees is
          --  tree.
          --
          --  In a non-default Recover_Token, Element_Node cannot be
-         --  Invalid_Node_Access. FIXME: when is it invalid?
+         --  Invalid_Node_Access. Node can be Invalid_Node_Access when it is
+         --  nominally a terminal and Element_Node is an empty nonterm.
       end case;
    end record;
 
@@ -352,9 +356,12 @@ package WisiToken.Syntax_Trees is
    --  True if node contains no terminals.
 
    function First_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Node_Access;
+   function Last_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Node_Access;
 
    function To_Real_Recover_Token (Item : in Stream_Node_Ref) return Real_Recover_Token
    with Pre => Item.Element /= Invalid_Stream_Index;
+
+   function Make_Rooted (Item : in Recover_Token) return Recover_Token;
 
    function Image
      (Tree : in Syntax_Trees.Tree;
@@ -1100,8 +1107,9 @@ package WisiToken.Syntax_Trees is
    --  non_grammar if needed.
 
    function Name (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Buffer_Region;
-   --  If Node.Label in Terminal_Label, return Node.Byte_Region; else
-   --  return Node.Name.
+   --  If Node.Label in Terminal_Label, return Node.Byte_Region; else if
+   --  Node.Name is not Null_Buffer_Region, return Node.Name; else return
+   --  Node.Byte_Region.
 
    function Name (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return Buffer_Region
    with Pre => Valid_Stream_Node (Tree, Ref);

@@ -1429,7 +1429,9 @@ package body WisiToken.Syntax_Trees is
          Line := Prev_Non_Grammar (Prev_Non_Grammar.Last_Index).Line_Region.Last;
 
          if First_Terminal /= Invalid_Node_Access then
-            if First_Terminal.Char_Region.First /= Invalid_Buffer_Pos then
+            if First_Terminal.Label = Source_Terminal and then
+              First_Terminal.Char_Region.First /= Invalid_Buffer_Pos
+            then
                declare
                   Begin_Char_Pos : constant Buffer_Pos :=
                     (if Tree.Editable
@@ -3185,6 +3187,14 @@ package body WisiToken.Syntax_Trees is
       return Result;
    end Last_Source_Terminal;
 
+   function Last_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Node_Access
+   is begin
+      return
+        (if Item.Virtual
+         then Item.Last_Terminal
+         else Last_Terminal (Tree, Item.Element_Node));
+   end Last_Terminal;
+
    function Last_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    is begin
       case Node.Label is
@@ -3693,6 +3703,20 @@ package body WisiToken.Syntax_Trees is
         (Tree, Ref.Ref.Node, Prev_Non_Grammar.Ref.Node, Next_Non_Grammar.Ref.Node, Trailing_Non_Grammar);
    end Line_Region;
 
+   function Make_Rooted (Item : in Recover_Token) return Recover_Token
+   is begin
+      if Item.Virtual then
+         return Item;
+      elsif Item.Element_Node = Item.Node then
+         return Item;
+      else
+         return
+           (Virtual => False,
+            Element_Node => Item.Element_Node,
+            Node => Item.Element_Node);
+      end if;
+   end Make_Rooted;
+
    procedure Move_Shared_To_Input
      (Tree         : in out Syntax_Trees.Tree;
       Shared_Ref   : in out Stream_Node_Ref;
@@ -3734,7 +3758,25 @@ package body WisiToken.Syntax_Trees is
    function Name (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Buffer_Region
    is begin
       if Item.Virtual then
-         return Item.Name;
+         if Item.Name = Null_Buffer_Region then
+            if Item.First_Terminal = Invalid_Node_Access  or else
+              Tree.Byte_Region (Item.First_Terminal) = Null_Buffer_Region
+            then
+               return Null_Buffer_Region;
+            else
+               if Item.First_Terminal = Invalid_Node_Access  or else
+                 Tree.Byte_Region (Item.Last_Terminal) = Null_Buffer_Region
+               then
+                  return Null_Buffer_Region;
+               else
+                  return
+                    (Tree.Byte_Region (Item.First_Terminal).First,
+                     Tree.Byte_Region (Item.Last_Terminal).Last);
+               end if;
+            end if;
+         else
+            return Item.Name;
+         end if;
       else
          return Tree.Name (Item.Element_Node);
       end if;
@@ -3745,7 +3787,7 @@ package body WisiToken.Syntax_Trees is
       case Node.Label is
       when Nonterm =>
          if Node.Name_Length = 0 then
-            return Null_Buffer_Region;
+            return Tree.Byte_Region (Node);
          else
             declare
                First_Terminal : constant Node_Access := Tree.First_Terminal (Node);
@@ -5856,8 +5898,7 @@ package body WisiToken.Syntax_Trees is
          Real_Root := Root;
          Process_Tree (Tree, Root, Process_Node'Access);
       else
-         if Tree.Streams.Length <= 1 then
-            --  Only Shared_Stream exists; probably packrat
+         if Tree.Streams.Length = 0 then
             if Tree.Root = Invalid_Node_Access then
                Ada.Text_IO.Put_Line
                  (Ada.Text_IO.Current_Error, Error_Message

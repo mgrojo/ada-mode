@@ -52,6 +52,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             end if;
          end if;
       end loop;
+
+      for T of reverse Tokens loop
+         Nonterm.Last_Terminal := Tree.Last_Terminal (T);
+         if Nonterm.Last_Terminal /= Syntax_Trees.Invalid_Node_Access then
+            exit;
+         end if;
+      end loop;
    end Compute_Nonterm;
 
    function Reduce_Stack
@@ -835,7 +842,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          when Shift =>
             Item.Shift_Count := Item.Shift_Count + 1;
 
-            Config.Stack.Push ((Action.State, Current_Token));
+            Config.Stack.Push ((Action.State, Syntax_Trees.Make_Rooted (Current_Token)));
 
             Next_Token (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
             Current_Token := Get_Current_Token

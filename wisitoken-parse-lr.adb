@@ -790,6 +790,22 @@ package body WisiToken.Parse.LR is
         & ")";
    end Image;
 
+   function Stack_Has
+     (Tree  : in Syntax_Trees.Tree;
+      Stack : in Recover_Stacks.Stack;
+      ID    : in Token_ID)
+     return Boolean
+   is
+      use Recover_Stacks;
+   begin
+      for I in 1 .. Depth (Stack) loop
+         if Tree.ID (Peek (Stack, I).Token) = ID then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Stack_Has;
+
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean
    is begin
       for I in 1 .. Depth loop
