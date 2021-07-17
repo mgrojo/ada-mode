@@ -383,6 +383,10 @@ package body Emacs_Wisi_Common_Parse is
 
                      Read_Input (Parse_Context.Text_Buffer (Params.Begin_Byte_Pos)'Address, Params.Byte_Count);
 
+                     if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
+                        Parse_Context.Save_Text_Auto (Emacs_Message => True);
+                     end if;
+
                      Parser.Tree.Lexer.Reset_With_String_Access
                        (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, Params.Source_File_Name,
                         Params.Begin_Char_Pos, Params.Begin_Line);
@@ -591,8 +595,9 @@ package body Emacs_Wisi_Common_Parse is
                   Source_File_Name : constant String := Wisi.Get_String (Command_Line, Last);
                   Save_File_Name   : constant String := Wisi.Get_String (Command_Line, Last);
 
-                  Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
-                    (Source_File_Name, Language);
+                  --  We need "create" here for partial parse.
+                  Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find_Create
+                    (Source_File_Name, Language, Trace'Access);
                begin
                   Check_Command_Length (Command_Length, Last);
 

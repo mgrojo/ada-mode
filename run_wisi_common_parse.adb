@@ -111,6 +111,7 @@ package body Run_Wisi_Common_Parse is
          exit when Token.ID = Parse_Context.Parser.Tree.Lexer.Descriptor.EOI_ID;
       end loop;
 
+      Parse_Context.Text_Buffer_Byte_Last := Integer (Token.Byte_Region.Last);
       Parse_Context.Text_Buffer_Char_Last := Integer (Token.Char_Region.Last);
    end Lex;
 
@@ -601,8 +602,8 @@ package body Run_Wisi_Common_Parse is
             if Cl_Params.Partial_Begin_Byte_Pos = WisiToken.Invalid_Buffer_Pos then
                Cl_Params.Partial_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
                Cl_Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
-               Cl_Params.Partial_End_Byte_Pos   := Parser.Tree.Byte_Region (Parser.Tree.EOI).Last;
-               Cl_Params.Partial_End_Char_Pos   := Parser.Tree.Char_Region (Parser.Tree.EOI).Last;
+               Cl_Params.Partial_End_Byte_Pos   := Base_Buffer_Pos (Parse_Context.Text_Buffer_Byte_Last);
+               Cl_Params.Partial_End_Char_Pos   := Base_Buffer_Pos (Parse_Context.Text_Buffer_Char_Last);
             else
                Parser.Partial_Parse_Active.all    := True;
                Parser.Partial_Parse_Byte_Goal.all := Cl_Params.Partial_Goal_Byte_Pos;

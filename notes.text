@@ -45,12 +45,19 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+;; run all tests non-incremental
+;;     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
+
+;;     make -r one ELISP="(setq-default save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" wisi-process-time-out 10.0 save-edited-text \"debug_edited\")" ONE_TEST_FILES=ada_mode-recover_13.adb
+
+;;     review test.log
+
 run all tests with incremental mode enabled
     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t wisi-process-time-out 10.0)"
 
     one ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" wisi-process-time-out 10.0)" ONE_TEST_FILES=ada_mode-*.adb
 
-    two RUN_ARGS="command_file debug.cmd test/debug.adb > debug.log"
+    two RUN_ARGS="command_file debug.cmd > debug.log"
 
     *.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
 
@@ -61,14 +68,7 @@ verbosity debug=1 incremental=3
 verbosity debug=1 action=3
 verbosity debug=1 mckenzie=1 parse=2
 
-test/ada_mode-recover_string_quote_2.adb
-    incremental parse fails on enqueue_limit
-    raising to 100_000 doesn't help
-    full parse succeeds after < 500 enqueue
-    try_insert_quote must be broken.
-        wrapped_lexer_errors is empty
-        because parse clears it before edit_tree, and edit_tree does not relex the missing quote
-        update or delete errors; don't clear
+
 
 Reset-parser only reset current file = delete parse_context
 
@@ -148,6 +148,11 @@ incremental error recover requires higher enqueue limit
     test/ada_mode-recover_partial_13.adb
         solution requires one delete, then expensive minimal_complete
         would also benefit from separate min_complete heap (or queue? not many on it)
+
+    ./ada_mode-recover_43.adb.diff
+        need separate minimal_complete queue?
+
+    test/ada_mode-recover_partial_07.adb
 
 indent (point)(point) should work for indent-line
 

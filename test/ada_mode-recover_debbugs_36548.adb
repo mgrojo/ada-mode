@@ -26,18 +26,18 @@ procedure Field_parent is
    type Child_T (Child_Disc : Child_Disc_T := Child_Disc_T'First) is new
       Root_T (Rdisc2) with record --  Error here; extra 'is new Root_T (Rdisc2) with record'
          is new Root_T  with record
-   Child_Field : Integer;
+                             Child_Field : Integer;
    case Child_Disc is
       when Cdisc1 => Child_Field1 : Integer;
       when Cdisc2 => Child_Field2 : Float;
       when Cdisc3 => Child_Field4 : Character;
-         end case;record; --  Error: missing 'end' for 'record'
+   end case;record; --  Error: missing 'end' for 'record'
 
 type D1_T is (D1, D2, D3);
 type D2_T is (D4, D5, D6);
 
 type Var_T (Disc1 : D1_T, Disc2 : D2_T) is record T --  Error: ',' should be ';' ; extra 'T'
-   Field1 : Integer;
+     Field1 : Integer;
 end record;
 
 

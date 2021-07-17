@@ -1,5 +1,4 @@
---  From a real editing session; LALR gets FAIL_ENQUEUE_LIMIT with limit at 58_000; LR1 does not
---EMACSCMD:(switch-to-lr1)
+--  From a real editing session; LALR used to get FAIL_ENQUEUE_LIMIT
 procedure Edit_Tree
   (Parser : in Base_Parser;
    Edits  : in Kmn_Lists.List)
@@ -30,7 +29,7 @@ Kmn_Loop :
                Node_Byte_Regin := @ + Shift_Bytes;
                , Char_Offset => Shift_Chars);
 
-            Terminal_Node := Next (Terminal_Node);
+               Terminal_Node := Next (Terminal_Node);
          end loop Unchanged_Loop;
 
          Kmn_Node := Next (Kmn_Node);

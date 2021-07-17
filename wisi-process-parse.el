@@ -207,7 +207,7 @@ complete. PARSE-END is end of desired parse region."
 			(navigate 0)
 			(face 1)
 			(indent 2))
-		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		      (or (buffer-file-name) (buffer-name))
 		      (position-bytes begin)
 		      (position-bytes send-end)
 		      (position-bytes (min (point-max) parse-end))
@@ -1019,6 +1019,7 @@ one or more Query messages."
       (accept-process-output process))))
 
 (defun wisi-process-parse-save-text (parser save-file-name auto)
+  (wisi-process-parse--prepare parser)
   (let* ((cmd
 	  (format (concat (if auto "save_text_auto" "save_text")
 			    " \"%s\" \"%s\"")
@@ -1232,7 +1233,7 @@ one or more Query messages."
 		  (when (not (= -1 parse_max_parallel)) (format "--parse_max_parallel %d" parse_max_parallel)) " "
 		  (when (not (string-equal "" language_param)) (format "--lang_params \"%s\" " language_param))
 		  ))
-    (message cmd)))
+    (kill-new cmd)))
 
 (defun wisi-time (func count &optional report-wait-time)
   "call FUNC COUNT times, show total time"

@@ -31,7 +31,7 @@
 
 (defvar save-edited-text nil
   "If non-nil, a file name telling where to save wisi parser edited
-text, after each edit in an incremental parse.")
+text, after each edit in an incremental parse, and before each partial parse.")
 
 (defun test-in-comment-p ()
   (nth 4 (syntax-ppss)))
@@ -181,7 +181,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
       (write-region nil nil save-parser-log))))
 
 (defun wisi-test-enable-save-edited ()
-  (when (and (stringp save-edited-text))
+  (when (stringp save-edited-text)
     (wisi-process-parse-save-text wisi--parser save-edited-text t)))
 
 (defun run-test-here ()
