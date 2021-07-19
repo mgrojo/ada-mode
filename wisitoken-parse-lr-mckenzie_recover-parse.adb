@@ -258,7 +258,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Peek_State            : Peek_Sequential_State := Peek_Sequential_Start (Tree, Config);
       Inc_Shared_Token      : Boolean               := True;
    begin
-      loop -- three tokens, Op = Delete
+      loop -- three tokens, skip Op = Delete
          declare
             Next_Node : constant Valid_Node_Access := Peek_Sequential_Terminal (Peek_State);
          begin
@@ -266,7 +266,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
               Token_Index (Constant_Ref (Config.Insert_Delete, Current_Insert_Delete)) =
               Tree.Get_Sequential_Index (Next_Node)
             then
-               Inc_Shared_Token     := False;
+               Inc_Shared_Token := False;
                declare
                   Op : Insert_Delete_Op renames Constant_Ref (Config.Insert_Delete, Current_Insert_Delete);
                begin
@@ -373,7 +373,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    procedure First_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Config_Stream_Parents)
+      Ref  :    out Config_Stream_Parents)
    is
       use Bounded_Streams;
       use Syntax_Trees;
@@ -674,11 +674,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Descriptor : WisiToken.Descriptor renames Super.Tree.Lexer.Descriptor.all;
       Table      : Parse_Table renames Shared.Table.all;
 
-      Item       : Parse_Item renames Parse_Item_Array_Refs.Variable_Ref
+      Item        : Parse_Item renames Parse_Item_Array_Refs.Variable_Ref
         (Parse_Items, Parse_Item_Index).Element.all;
-      Config     : Configuration renames Item.Config;
-      Action_Cur : Parse_Action_Node_Ptr renames Item.Action;
-      Action     : Parse_Action_Rec;
+      Config      : Configuration renames Item.Config;
+      Action_Cur  : Parse_Action_Node_Ptr renames Item.Action;
+      Action      : Parse_Action_Rec;
 
       Inc_Shared_Stream_Token : Boolean;
       Inc_Input_Stream_Token  : Boolean;
@@ -696,79 +696,82 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          --
          --  Same logic as in Parser.Get_Action, but this
          --  operates on Config.
-
-         Current_State : constant State_Index := Config.Stack.Peek.State;
-
-         First_In_Current : Syntax_Trees.Node_Access;
       begin
-         loop --  Skip empty nonterms
-            if Is_Terminal (Tree.ID (Current_Token), Descriptor) then
-               Action_Cur := Action_For (Table, Current_State, Tree.ID (Current_Token));
-               Action     := Action_Cur.Item;
-               return;
-            else
-               --  nonterminal.
-               declare
-                  New_State : constant Unknown_State_Index := Goto_For
-                    (Table, Current_State, Tree.ID (Current_Token));
+         loop
+            declare
+               Current_State : constant State_Index := Config.Stack.Peek.State;
+            begin
+               if Is_Terminal (Tree.ID (Current_Token), Descriptor) then
+                  Action_Cur := Action_For (Table, Current_State, Tree.ID (Current_Token));
+                  Action     := Action_Cur.Item;
+                  return;
+               else
+                  --  nonterminal.
+                  declare
+                     New_State : constant Unknown_State_Index := Goto_For
+                       (Table, Current_State, Tree.ID (Current_Token));
 
-                  Dummy : Ada.Containers.Count_Type;
-                  pragma Unreferenced (Dummy);
-               begin
-                  if New_State /= Unknown_State then
-                     Action_Cur := null;
-                     Action     :=
-                       (Verb       => Shift,
-                        Production => Invalid_Production_ID,
-                        State      => New_State);
-                     return;
-                  else
-                     First_In_Current := Super.Tree.First_Terminal (Current_Token);
-
-                     if First_In_Current = Syntax_Trees.Invalid_Node_Access then
-                        --  Current_Token is an empty nonterm; skip it.
-                        Next_Token (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
-
-                        Current_Token := Get_Current_Token
-                          (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
+                     Dummy : Ada.Containers.Count_Type;
+                     pragma Unreferenced (Dummy);
+                  begin
+                     if New_State /= Unknown_State then
+                        Action_Cur := null;
+                        Action     :=
+                          (Verb       => Shift,
+                           Production => Invalid_Production_ID,
+                           State      => New_State);
+                        return;
                      else
-                        Action_Cur := Action_For (Table, Current_State, Tree.ID (First_In_Current));
-                        Action     := Action_Cur.Item;
+                        declare
+                           First_In_Current : constant Syntax_Trees.Node_Access := Super.Tree.First_Terminal
+                             (Current_Token);
+                        begin
+                           if First_In_Current = Syntax_Trees.Invalid_Node_Access then
+                              --  Current_Token is an empty nonterm; skip it.
+                              Next_Token (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
 
-                        case Action.Verb is
-                        when Shift =>
-                           if Config.Input_Stream.Length = 0 then
-                              --  Current_Token is from Shared_Stream. We can't do Breakdown in
-                              --  Shared_Stream; that might invalidate other Config.Current_Token.
-                              --  So add token to Config.Input_Stream, then breakdown.
-                              Config.Input_Stream.Append (Current_Token.Element_Node);
-                              Tree.Stream_Next (Config.Current_Shared_Token, Rooted => False);
+                              Current_Token := Get_Current_Token
+                                (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
+                           else
+                              Action_Cur := Action_For (Table, Current_State, Tree.ID (First_In_Current));
+                              Action     := Action_Cur.Item;
+
+                              case Action.Verb is
+                              when Shift =>
+                                 if Config.Input_Stream.Length = 0 then
+                                    --  Current_Token is from Shared_Stream. We can't do Breakdown in
+                                    --  Shared_Stream; that might invalidate other Config.Current_Token.
+                                    --  So add token to Config.Input_Stream, then breakdown.
+                                    Config.Input_Stream.Append (Current_Token.Element_Node);
+                                    Tree.Stream_Next (Config.Current_Shared_Token, Rooted => False);
+                                 end if;
+
+                                 Left_Breakdown (Tree, Config.Input_Stream);
+
+                                 Current_Token := Get_Current_Token
+                                   (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
+
+                                 if Trace_McKenzie > Extra then
+                                    Trace.Put_Line
+                                      (Trace_Prefix & ": breakdown; input_stream: " & LR.Image
+                                         (Config.Input_Stream, Tree));
+                                    Trace.Put_Line (" ... current_token: " & Super.Tree.Image (Current_Token));
+                                 end if;
+                                 return;
+
+                              when Accept_It | Reduce =>
+                                 return;
+
+                              when Error =>
+                                 --  We don't do Undo_Reduce here; Explore will do that with an appropriate cost.
+                                 return;
+                              end case;
                            end if;
-
-                           Left_Breakdown (Tree, Config.Input_Stream);
-
-                           Current_Token := Get_Current_Token
-                             (Tree, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
-
-                           if Trace_McKenzie > Extra then
-                              Trace.Put_Line
-                                (Trace_Prefix & ": breakdown; input_stream: " & LR.Image
-                                   (Config.Input_Stream, Tree));
-                              Trace.Put_Line (" ... current_token: " & Super.Tree.Image (Current_Token));
-                           end if;
-                           return;
-
-                        when Accept_It | Reduce =>
-                           return;
-
-                        when Error =>
-                           --  We don't do Undo_Reduce here; Explore will do that with an appropriate cost.
-                           return;
-                        end case;
+                        end;
                      end if;
-                  end if;
-               end;
-            end if;
+                  end;
+               end if;
+            end;
          end loop;
       end Get_Action;
 

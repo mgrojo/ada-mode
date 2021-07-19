@@ -788,7 +788,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Parse.First_Sequential_Terminal (Tree, State.Input_Terminal);
 
          State.Sequential_Terminal := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
-         if Syntax_Trees.Rooted (State.Sequential_Terminal.Ref) then
+         if Syntax_Trees.Rooted (State.Sequential_Terminal.Ref) or
+           State.Sequential_Terminal.Ref.Node = Syntax_Trees.Invalid_Node_Access
+           --  Ref is an empty nonterm. ada_mode-interactive_03.adb
+         then
             Tree.First_Sequential_Terminal (State.Sequential_Terminal);
          end if;
       end return;

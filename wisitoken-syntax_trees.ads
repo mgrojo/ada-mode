@@ -908,7 +908,7 @@ package WisiToken.Syntax_Trees is
       Count  : in SAL.Peek_Type := 1)
      return Stream_Index
    with Pre => Tree.Is_Valid (Stream);
-   --  Return Count element before last element in Stream; Count = 1
+   --  Return Count element on stack in Stream; Count = 1
    --  returns stack top.
 
    function Add_Terminal
@@ -2073,6 +2073,7 @@ package WisiToken.Syntax_Trees is
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Element               : in Stream_Index;
+      State                 : in Boolean                   := False;
       Children              : in Boolean                   := False;
       RHS_Index             : in Boolean                   := False;
       Node_Numbers          : in Boolean                   := False;

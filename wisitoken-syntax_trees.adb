@@ -513,8 +513,14 @@ package body WisiToken.Syntax_Trees is
                   --  Node is the root of an empty parse stream element.
                   return Null_Buffer_Region;
                else
-                  return (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
-                          Last  => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First - 1);
+                  declare
+                     First : constant Buffer_Pos := Tree.Byte_Region
+                       (Prev_Source_Terminal, Trailing_Non_Grammar).Last + 1;
+                  begin
+                     return
+                       (First => First,
+                        Last  => First - 1);
+                  end;
                end if;
             else
                return Null_Buffer_Region;
@@ -617,9 +623,7 @@ package body WisiToken.Syntax_Trees is
       if Item.Virtual then
          return Null_Buffer_Region;
       elsif Item.Element_Node = Invalid_Node_Access then
-         --  FIXME: when do we get here?
-         raise SAL.Not_Implemented;
-         --  return Item.Node.Byte_Region;
+         return Null_Buffer_Region;
       else
          case Item.Element_Node.Label is
          when Source_Terminal =>
@@ -2774,6 +2778,7 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Element               : in Stream_Index;
+      State                 : in Boolean                   := False;
       Children              : in Boolean                   := False;
       RHS_Index             : in Boolean                   := False;
       Node_Numbers          : in Boolean                   := False;
@@ -2787,13 +2792,22 @@ package body WisiToken.Syntax_Trees is
       if Element.Cur = Stream_Element_Lists.No_Element then
          return "<deleted>";
       else
-         return Image
-           (Tree, Stream_Element_Lists.Constant_Ref (Element.Cur).Node, Children,
-            RHS_Index, Node_Numbers, Terminal_Node_Numbers,
-            Line_Numbers => Line_Numbers,
-            Non_Grammar  => Non_Grammar,
-            Augmented    => Augmented,
-            Image_Action => Image_Action);
+         declare
+            El : Stream_Element renames Stream_Element_Lists.Constant_Ref (Element.Cur);
+         begin
+            return
+              (if State
+               then "(" & Trimmed_Image (El.State) & ", "
+               else "") &
+              Image
+                (Tree, El.Node, Children,
+                 RHS_Index, Node_Numbers, Terminal_Node_Numbers,
+                 Line_Numbers => Line_Numbers,
+                 Non_Grammar  => Non_Grammar,
+                 Augmented    => Augmented,
+                 Image_Action => Image_Action) &
+         (if State then ")" else "");
+         end;
       end if;
    end Image;
 

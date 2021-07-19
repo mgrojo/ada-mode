@@ -673,8 +673,8 @@ package body WisiToken.Parse is
                               --  test_incremental.adb Edit_Whitespace_1, _2
                               Lex_Start_Byte := Inserted_Region.First;
                               Lex_Start_Char := Inserted_Region_Chars.First;
-                              Lex_Start_Line := Tree.Line_Region (Last_Grammar).First;
-                              --  start_line test case ada_mode-recover_incremental_01.adb
+                              Lex_Start_Line := Non_Grammar (Non_Grammar.Last_Index).Line_Region.Last;
+                              --  start_line test case ada_mode-recover_incremental_01.adb, ada_mode-incremental_04.adb
                               Do_Scan        := True;
                            else
                               for I in Non_Grammar.First_Index .. Non_Grammar.Last_Index loop
@@ -1059,100 +1059,107 @@ package body WisiToken.Parse is
                --  Need delete even if not Do_Scan, to handle KMN.Deleted_Bytes > 0;
                --  test_incremental.adb Edit_Code_4, ada_skel.adb ada-skel-return
 
-               --  First delete trailing virtual_terminals in preceding stream elements
-               Delete_Trailing :
-               declare
-                  Ref : Stream_Node_Ref := Tree.Stream_Prev (Terminal);
+               --  First delete trailing virtual_terminals in preceding stream
+               --  elements, if there is an actual edit in this KMN.
+               if KMN.Inserted_Bytes + KMN.Deleted_Bytes > 0 then
+                  Delete_Trailing :
+                  declare
+                     Ref : Stream_Node_Ref := Tree.Stream_Prev (Terminal);
 
-                  procedure Delete_Empty
-                  is
-                     To_Delete : Stream_Index := Ref.Element;
+                     procedure Delete_Empty
+                     is
+                        To_Delete : Stream_Index := Ref.Element;
+                     begin
+                        if Trace_Incremental_Parse > Detail then
+                           Parser.Trace.Put_Line
+                             ("delete empty nonterm " &
+                                Tree.Image (To_Delete, Node_Numbers => True, Non_Grammar => True));
+                        end if;
+
+                        Tree.Stream_Prev (Ref, Rooted => True);
+                        Tree.Stream_Delete (Ref.Stream, To_Delete);
+                     end Delete_Empty;
+
+                     procedure Delete
+                     is
+                        Ref_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Const (Ref.Node);
+                        Prev_Non_Grammar : Stream_Node_Ref := Ref;
+
+                        To_Delete : Stream_Index := Ref.Element;
+                     begin
+                        if Ref_Non_Grammar.Length > 0 then
+                           loop
+                              exit when Tree.Label (Prev_Non_Grammar.Node) = Source_Terminal;
+                              Tree.Prev_Terminal (Prev_Non_Grammar);
+                           end loop;
+                           Tree.Non_Grammar_Var (Prev_Non_Grammar.Node).Append (Ref_Non_Grammar);
+                        end if;
+
+                        if Trace_Incremental_Parse > Detail then
+                           Parser.Trace.Put_Line
+                             ("delete virtual " & Tree.Image (To_Delete, Node_Numbers => True, Non_Grammar => True));
+                        end if;
+
+                        Tree.Stream_Prev (Ref, Rooted => True);
+                        Tree.Stream_Delete (Ref.Stream, To_Delete);
+                     end Delete;
+
                   begin
-                     if Trace_Incremental_Parse > Detail then
-                        Parser.Trace.Put_Line
-                          ("delete empty nonterm " & Tree.Image (To_Delete, Node_Numbers => True, Non_Grammar => True));
-                     end if;
+                     loop
+                        exit when Ref.Node = Tree.SOI;
 
-                     Tree.Stream_Prev (Ref, Rooted => True);
-                     Tree.Stream_Delete (Ref.Stream, To_Delete);
-                  end Delete_Empty;
+                        case Tree.Label (Ref.Node) is
+                        when Source_Terminal =>
+                           exit;
 
-                  procedure Delete
-                  is
-                     Ref_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Const (Ref.Node);
-                     Prev_Non_Grammar : Stream_Node_Ref := Ref;
+                        when Virtual_Terminal | Virtual_Identifier =>
+                           Delete;
 
-                     To_Delete : Stream_Index := Ref.Element;
-                  begin
-                     if Ref_Non_Grammar.Length > 0 then
-                        loop
-                           exit when Tree.Label (Prev_Non_Grammar.Node) = Source_Terminal;
-                           Tree.Prev_Terminal (Prev_Non_Grammar);
-                        end loop;
-                        Tree.Non_Grammar_Var (Prev_Non_Grammar.Node).Append (Ref_Non_Grammar);
-                     end if;
-
-                     if Trace_Incremental_Parse > Detail then
-                        Parser.Trace.Put_Line
-                          ("delete virtual " & Tree.Image (To_Delete, Node_Numbers => True, Non_Grammar => True));
-                     end if;
-
-                     Tree.Stream_Prev (Ref, Rooted => True);
-                     Tree.Stream_Delete (Ref.Stream, To_Delete);
-                  end Delete;
-
-               begin
-                  loop
-                     exit when Ref.Node = Tree.SOI;
-
-                     case Tree.Label (Ref.Node) is
-                     when Source_Terminal =>
-                        exit;
-
-                     when Virtual_Terminal | Virtual_Identifier =>
-                        Delete;
-
-                     when Nonterm =>
-                        declare
-                           First : constant Node_Access := Tree.First_Terminal (Ref.Node);
-                           Last  : constant Node_Access := Tree.Last_Terminal (Ref.Node);
-                        begin
-                           if First = Invalid_Node_Access then
-                              Delete_Empty;
-                           else
-                              if Tree.Label (First) in Virtual_Terminal | Virtual_Identifier then
-                                 Ref.Node := First;
-                                 Breakdown (Ref, To_Single => True);
-                                 --  Modifies Ref, so we can't also check Last here.
-
-                              elsif Tree.Label (Last) in Virtual_Terminal | Virtual_Identifier then
-                                 declare
-                                    Temp : Rooted_Ref := Ref;
-                                 begin
-                                    --  Leave Ref at end of affected nodes, since we may uncover more that
-                                    --  need deleting.
-                                    Ref := Tree.Stream_Next (Ref);
-                                    if Trace_Incremental_Parse > Detail then
-                                       Parser.Trace.Put_Line
-                                         ("right breakdown " & Tree.Image
-                                            (Tree.Get_Node (Ref.Stream, Ref.Element), Node_Numbers => True) &
-                                            " target " & Tree.Image (Last, Node_Numbers => True));
-                                    end if;
-                                    Tree.Right_Breakdown (Temp);
-                                    Tree.Stream_Prev (Ref, Rooted => True);
-                                 end;
-
+                        when Nonterm =>
+                           declare
+                              First : constant Node_Access := Tree.First_Terminal (Ref.Node);
+                              Last  : constant Node_Access := Tree.Last_Terminal (Ref.Node);
+                           begin
+                              if First = Invalid_Node_Access then
+                                 Delete_Empty;
                               else
-                                 exit;
+                                 if Tree.Label (First) in Virtual_Terminal | Virtual_Identifier then
+                                    Ref.Node := First;
+                                    Breakdown (Ref, To_Single => True);
+                                    --  Modifies Ref, so we can't also check Last here.
+
+                                 elsif Tree.Label (Last) in Virtual_Terminal | Virtual_Identifier then
+                                    declare
+                                       Temp : Rooted_Ref := Ref;
+                                    begin
+                                       --  Leave Ref at end of affected nodes, since we may uncover more that
+                                       --  need deleting.
+                                       Ref := Tree.Stream_Next (Ref);
+                                       if Trace_Incremental_Parse > Detail then
+                                          Parser.Trace.Put_Line
+                                            ("right breakdown " & Tree.Image
+                                               (Tree.Get_Node (Ref.Stream, Ref.Element), Node_Numbers => True) &
+                                               " target " & Tree.Image (Last, Node_Numbers => True));
+                                       end if;
+                                       Tree.Right_Breakdown (Temp);
+                                       Tree.Stream_Prev (Ref, Rooted => True);
+                                    end;
+
+                                 else
+                                    exit;
+                                 end if;
                               end if;
-                           end if;
-                        end;
-                     end case;
-                  end loop;
-               end Delete_Trailing;
+                           end;
+                        end case;
+                     end loop;
+                  end Delete_Trailing;
+               end if;
 
                Delete_Loop :
                loop
+                  --  This loop is done even when KMN.Deleted_Bytes = KMN.Inserted_Bytes
+                  --  = 0, because one scan may span several KMN.
+
                   exit Delete_Loop when Terminal_Non_Grammar_Next /= Lexer.Token_Arrays.No_Index;
 
                   exit Delete_Loop when Tree.ID (Terminal.Node) = Parser.Tree.Lexer.Descriptor.EOI_ID;
@@ -1165,6 +1172,12 @@ package body WisiToken.Parse is
                           or
                           (KMN.Inserted_Bytes > 0 and
                              Tree.Byte_Region (Terminal.Node).First <= Stable_Region.Last + 1) --  modified
+                          or
+                          (Tree.Byte_Region (Terminal.Node).First <= Next_KMN_Stable_Last and then
+                             --  Shift_Bytes is valid
+                             Tree.Byte_Region (Terminal.Node).First + Shift_Bytes <= Scanned_Byte_Pos)
+                             --  Token region was scanned, possibly due to inserted comment start
+                             --  or similar small edit that affects a large region. ada_mode-interactive_04.adb
                        ));
 
                   --  Ensure Terminal is Single, so we can delete it.

@@ -120,112 +120,140 @@ package body WisiToken.Parse.LR.Parser is
 
       Table : Parse_Table renames Shared_Parser.Table.all;
       Tree  : Syntax_Trees.Tree renames Shared_Parser.Tree;
-
-      Current_State : constant State_Index := Tree.State (Parser_State.Stream);
-
-      First_In_Current : Node_Access;
    begin
-      loop --  Skip empty nonterms
-         if Tree.Label (Parser_State.Current_Token.Node) in Terminal_Label then
-            Action_Cur := Action_For (Table, Current_State, Tree.ID (Parser_State.Current_Token.Node));
-            Action     := Action_Cur.Item;
-            return;
-         else
-            --  nonterminal; we don't Insert nonterms, so
-            --  Parser_State.Current_Token cannot be from an Insert.
+      loop
+         declare
+            Current_State : constant State_Index := Tree.State (Parser_State.Stream);
+         begin
+            if Tree.Label (Parser_State.Current_Token.Node) in Terminal_Label then
+               Action_Cur := Action_For (Table, Current_State, Tree.ID (Parser_State.Current_Token.Node));
+               Action     := Action_Cur.Item;
+               Parser_State.Last_Action := Action;
+               return;
+            else
+               --  nonterminal; we don't Insert nonterms, so
+               --  Parser_State.Current_Token cannot be from an Insert.
 
-            declare
-               New_State : constant Unknown_State_Index := Goto_For
-                 (Table, Current_State, Tree.ID (Parser_State.Current_Token.Node));
-            begin
-               if New_State /= Unknown_State then
-                  Action_Cur := null;
-                  Action     :=
-                    (Verb       => Shift,
-                     Production => Invalid_Production_ID,
-                     State      => New_State);
-                  return;
-               else
-                  First_In_Current := Tree.First_Terminal (Parser_State.Current_Token.Node);
-
-                  if First_In_Current = Invalid_Node_Access then
-                     --  Current_Token is an empty nonterm; skip it. This will not affect
-                     --  Insert_Delete; that already skipped it via First_Shared_Terminal
-                     --  (Stream), and we don't Delete nonterms.
-
-                     if Parser_State.Current_Token.Stream = Parser_State.Stream then
-                        Tree.Stream_Delete (Parser_State.Current_Token.Stream, Parser_State.Current_Token.Element);
-                        Parser_State.Current_Token := Tree.First_Input (Parser_State.Stream);
-                     else
-                        Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
-                        Parser_State.Current_Token := Parser_State.Shared_Token;
-                     end if;
-
+               declare
+                  New_State : constant Unknown_State_Index := Goto_For
+                    (Table, Current_State, Tree.ID (Parser_State.Current_Token.Node));
+               begin
+                  if New_State /= Unknown_State then
+                     Action_Cur := null;
+                     Action     :=
+                       (Verb       => Shift,
+                        Production => Invalid_Production_ID,
+                        State      => New_State);
+                     Parser_State.Last_Action := Action;
+                     return;
                   else
-                     Action_Cur := Action_For (Table, Current_State, Tree.ID (First_In_Current));
-                     Action     := Action_Cur.Item;
+                     declare
+                        First_In_Current : constant Node_Access := Tree.First_Terminal
+                          (Parser_State.Current_Token.Node);
+                     begin
+                        if First_In_Current = Invalid_Node_Access then
+                           --  Current_Token is an empty nonterm; skip it. This will not affect
+                           --  Insert_Delete; that already skipped it via First_Shared_Terminal
+                           --  (Stream), and we don't Delete nonterms. ada_mode-interactive_03.adb.
 
-                     case Action.Verb is
-                     when Shift =>
-                        if Parser_State.Current_Token.Stream /= Parser_State.Stream then
-                           --  To breakdown a shared_stream token, we first have to create a
-                           --  parse stream input element for it, and do the breakdown in the
-                           --  parse stream input.
-                           Tree.Move_Shared_To_Input
-                             (Parser_State.Shared_Token, Parser_State.Stream, Parser_State.Current_Token);
-                           Parser_State.Inc_Shared_Stream_Token := False;
-                        end if;
-
-                        if Trace_Parse > Detail then
-                           Shared_Parser.Trace.Put_Line
-                             (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": left_breakdown " &
-                                Tree.Image (Parser_State.Current_Token, First_Terminal => True));
-                        end if;
-                        Tree.Left_Breakdown (Parser_State.Current_Token);
-
-                        if Trace_Parse > Detail then
-                           Shared_Parser.Trace.Put_Line
-                             (" ... current_token: " & Tree.Image
-                                (Parser_State.Current_Token, First_Terminal => True));
                            if Trace_Parse > Detail then
                               Shared_Parser.Trace.Put_Line
-                                (" ... input stream: " & Tree.Image
-                                   (Parser_State.Stream, Stack => False, Input => True, Shared => True));
+                                (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
+                                   ": delete empty nonterm " &
+                                   Tree.Image (Parser_State.Current_Token, First_Terminal => True));
                            end if;
-                        end if;
-                        return;
 
-                     when Accept_It | Reduce =>
-                        return;
-
-                     when Error =>
-                        if Tree.Label (Tree.Peek (Parser_State.Stream)) in Terminal_Label then
-                           return;
+                           if Parser_State.Current_Token.Stream = Parser_State.Stream then
+                              Tree.Stream_Delete
+                                (Parser_State.Current_Token.Stream, Parser_State.Current_Token.Element);
+                              Parser_State.Current_Token := Tree.First_Input (Parser_State.Stream);
+                           else
+                              Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                              Parser_State.Current_Token := Parser_State.Shared_Token;
+                           end if;
 
                         else
-                           --  [Wagner Graham 1998] has Right_Breakdown here, but that is often
-                           --  overkill; we only need Undo_Reduce until Current_Token is
-                           --  shiftable.
-                           --
-                           --  IMPROVEME: if error recovery is correct here, we do more
-                           --  Undo_Reduce than necessary (and it will never happen in
-                           --  Error_Recovery).
-                           --
-                           --  Note that we don't need to check if we've just done a reduce here;
-                           --  we would have gotten Error for that action instead.
+                           Action_Cur := Action_For (Table, Current_State, Tree.ID (First_In_Current));
+                           Action     := Action_Cur.Item;
 
-                           Undo_Reduce (Tree, Table, Parser_State.Stream);
+                           case Action.Verb is
+                           when Shift =>
+                              if Parser_State.Current_Token.Stream /= Parser_State.Stream then
+                                 --  To breakdown a shared_stream token, we first have to create a
+                                 --  parse stream input element for it, and do the breakdown in the
+                                 --  parse stream input.
+                                 Tree.Move_Shared_To_Input
+                                   (Parser_State.Shared_Token, Parser_State.Stream, Parser_State.Current_Token);
+                                 Parser_State.Inc_Shared_Stream_Token := False;
+                              end if;
 
-                           if Trace_Parse > Detail then
-                              Shared_Parser.Trace.Put_Line (" ... undo_reduce");
-                           end if;
+                              if Trace_Parse > Detail then
+                                 Shared_Parser.Trace.Put_Line
+                                   (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": left_breakdown " &
+                                      Tree.Image (Parser_State.Current_Token, First_Terminal => True));
+                              end if;
+                              Tree.Left_Breakdown (Parser_State.Current_Token);
+
+                              if Trace_Parse > Detail then
+                                 Shared_Parser.Trace.Put_Line
+                                   (" ... current_token: " & Tree.Image
+                                      (Parser_State.Current_Token, First_Terminal => True));
+                                 if Trace_Parse > Detail then
+                                    Shared_Parser.Trace.Put_Line
+                                      (" ... input stream: " & Tree.Image
+                                         (Parser_State.Stream, Stack => False, Input => True, Shared => True));
+                                 end if;
+                              end if;
+                              Parser_State.Last_Action := Action;
+                              return;
+
+                           when Accept_It | Reduce =>
+                              Parser_State.Last_Action := Action;
+                              return;
+
+                           when Error =>
+                              if Tree.Label (Tree.Peek (Parser_State.Stream)) in Terminal_Label then
+                                 Parser_State.Last_Action := Action;
+                                 return;
+
+                              else
+                                 --  [Wagner Graham 1998] has Right_Breakdown here, but that is often
+                                 --  overkill; we only need Undo_Reduce until Current_Token is
+                                 --  shiftable. ada_mode-interactive_03.adb
+                                 --
+                                 --  IMPROVEME: if error recovery is correct here, we do more
+                                 --  Undo_Reduce than necessary (and it will never happen in
+                                 --  Error_Recovery).
+
+                                 if Parser_State.Last_Action.Verb = Reduce then
+                                    --  We are in an erroneous branch of a conflict, or there is a real error.
+                                    --  ada_mode-incremental_01.adb
+                                    Parser_State.Last_Action := Action;
+                                    return;
+                                 end if;
+
+                                 if Trace_Parse > Detail then
+                                    Shared_Parser.Trace.Put
+                                      (" ... undo_reduce " &
+                                         Tree.Image (Tree.Peek (Parser_State.Stream), State => True));
+                                 end if;
+                                 Undo_Reduce (Tree, Table, Parser_State.Stream);
+
+                                 if Trace_Parse > Detail then
+                                    Shared_Parser.Trace.Put
+                                      (" => " & Tree.Image (Tree.Peek (Parser_State.Stream), State => True),
+                                       Prefix => False);
+                                    Shared_Parser.Trace.New_Line;
+                                 end if;
+                              end if;
+
+                           end case;
                         end if;
-
-                     end case;
+                     end;
                   end if;
-               end if;
-            end;
-         end if;
+               end;
+            end if;
+         end;
       end loop;
    end Get_Action;
 

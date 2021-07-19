@@ -124,7 +124,7 @@ package body Test_Syntax_Trees is
          Node : constant WisiToken.Syntax_Trees.Node_Access := Tree.Find_Descendant
            (Tree.Root, +parameter_profile_opt_ID);
       begin
-         Check ("1 byte_region", Tree.Byte_Region (Node), (11, 10));
+         Check ("1 byte_region", Tree.Byte_Region (Node), (12, 11));
       end;
    end Byte_Region_1;
 

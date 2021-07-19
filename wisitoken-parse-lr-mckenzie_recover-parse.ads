@@ -91,7 +91,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    procedure First_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Config_Stream_Parents);
+      Ref  :    out Config_Stream_Parents);
 
    procedure Last_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;

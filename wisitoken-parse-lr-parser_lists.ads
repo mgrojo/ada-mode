@@ -92,6 +92,8 @@ package WisiToken.Parse.LR.Parser_Lists is
 
       Conflict_During_Resume : Boolean := False;
 
+      Last_Action : Parse_Action_Rec := (others => <>);
+
       Errors : Parse_Error_Lists.List;
    end record;
 
