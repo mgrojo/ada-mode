@@ -114,6 +114,12 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Base_Release_Switches & ("-O1", "-gnat2020");
 
+         for Switches ("gpr_query.adb") use
+           -- WORKAROUND: GNAT Community 2021 with gnatcoll 21.2 reports a missing "overrides"; AdaCore ticket U618-051
+           Standard_Common.Compiler.Common_Switches &
+           "-gnaty3abcefhiklnprtx" & "-gnatyM120" & -- not overriding -- Standard_Common.Compiler.Base_Style_Checks &
+           Standard_Common.Compiler.Release_Switches;
+           
          for Default_Switches ("C") use Standard_Common.Compiler.Release_Switches_C;
       end case;
 

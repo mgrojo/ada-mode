@@ -7,7 +7,7 @@
 --
 --  References : see gen_emacs_wisi_lr_parse.ads
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -26,7 +26,6 @@ pragma License (GPL);
 with Wisi;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
-with WisiToken.Syntax_Trees;
 generic
    type Parse_Data_Type  is new Wisi.Parse_Data_Type with private;
 

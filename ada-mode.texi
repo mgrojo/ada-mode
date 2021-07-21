@@ -272,9 +272,13 @@ Download gnatcoll-db from
 release branch (or the one that matches your compiler), click on the
 ``clone or download'' button, select ``Download ZIP''.
 
+@c branch nn-sustained?
+
 Similarly, download gnatcoll-bindings from
 @url{https://github.com/AdaCore/gnatcoll-bindings/tree/20.2} (for
 gnatcoll-iconv; not needed for GNAT Community 2020 on Windows).
+
+@c FIXME: gnatcoll-bindings is in community download Sources
 @c FIXME: table of os/gnat version that need/don't need iconv;
 @c debian/comm-2020 requires gnatcoll-iconv
 @c debian/pro-21.1 requires gnatcoll-iconv
@@ -2095,7 +2099,6 @@ sources, here's an overview.
 * Directory structure::
 * ELPA::
 * Savannah::
-* ada-france::
 @end menu
 
 @node Directory structure
@@ -2217,7 +2220,7 @@ To checkout all source required to build and test ada-mode, assuming you have
 ssh read/write git access to savannah ada-mode:
 
 @example
-git clone stephen_leake@git.sv.gnu.org:/srv/git/ada-mode.git \
+git clone stephen_leake@@git.sv.gnu.org:/srv/git/ada-mode.git \
     -b org.emacs.ada-mode org.emacs.ada-mode
 cd ada-mode
 git worktree add -b org.wisitoken ../org.wisitoken origin/org.wisitoken
@@ -2225,10 +2228,13 @@ git worktree add -b org.stephe_leake.sal ../org.stephe_leake.sal origin/org.step
 git worktree add -b org.stephe_leake.aunit_ext ../org.stephe_leake.aunit_ext origin/org.stephe_leake.aunit_ext
 git worktree add -b org.stephe_leake.makerules ../org.stephe_leake.makerules origin/org.stephe_leake.makerules
 @end example
-@node ada-france
 
 In each worktree, there is a @file{build} directory containing the
 Makefile and all build outputs. The target 'all' runs all tests and
 build documentation for that worktree.
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @bye

@@ -2193,58 +2193,49 @@ package body Wisi is
       end Compute_Hanging_2;
 
    begin
-      if Indenting_Comment then
-         --  We assume a comment indent is never explicitly set to hanging, so
-         --  we get here when the indent of the token following the comment is
-         --  hanging; Indenting_Token must be first on a following line, so
-         --  Delta_1 applies.
-         return Indent_Compute_Delta
-           (Data, Tree, Nonterm, (Simple, Delta_1), Indenting_Token, Indenting_Comment);
-      else
-         return Result : Delta_Type :=
-           (Hanging,
-            Hanging_First_Line  => Indenting_Line_Region.First,
-            Hanging_Delta_1     => Indent_Compute_Delta
-              (Data, Tree, Nonterm,
-               (Simple,
-                (if Indenting_Line_Region.First = Indenting.Code.First
-                 then Delta_1
-                 else (Label => None))),
-               Indenting_Token, Indenting_Comment).Simple_Delta,
-            Hanging_Delta_2     =>
-              Indent_Compute_Delta
-                (Data, Tree, Nonterm,
-                 (Simple,
-                  (case Label is
-                   when Hanging_0 => Delta_2,
-                   when Hanging_1 =>
-                     (if Indenting_Line_Region.First = Indenting.Code.First
-                      then Delta_2 else Delta_1),
-                   when Hanging_2 =>
-                      Compute_Hanging_2)),
-                 Indenting_Token, Indenting_Comment)
-                .Simple_Delta)
-         do
-            --  Controlling_Token_Line for Delta_2 is the first non-comment
-            --  line indented by Delta_2.
-            if Label = Hanging_1 and
-              Indenting_Line_Region.First /= Indenting.Code.First
-            then
-               --  Only using Delta_1
-               null;
-            else
-               for Line in Indenting.Code.First +
-                 (if Indenting_Line_Region.First = Indenting.Code.First then 1 else 0)
-                 .. Indenting.Code.Last
-               loop
-                  if Tree.Line_Begin_Token (Line) /= Syntax_Trees.Invalid_Node_Access then
-                     Result.Hanging_Delta_2.Controlling_Token_Line := Line;
-                     exit;
-                  end if;
-               end loop;
-            end if;
-         end return;
-      end if;
+      return Result : Delta_Type :=
+        (Hanging,
+         Hanging_First_Line  => Indenting_Line_Region.First,
+         Hanging_Delta_1     => Indent_Compute_Delta
+           (Data, Tree, Nonterm,
+            (Simple,
+             (if Indenting_Line_Region.First = Indenting.Code.First
+              then Delta_1
+              else (Label => None))),
+            Indenting_Token, Indenting_Comment).Simple_Delta,
+         Hanging_Delta_2     =>
+           Indent_Compute_Delta
+             (Data, Tree, Nonterm,
+              (Simple,
+               (case Label is
+                when Hanging_0 => Delta_2,
+                when Hanging_1 =>
+                  (if Indenting_Line_Region.First = Indenting.Code.First
+                   then Delta_2 else Delta_1),
+                when Hanging_2 =>
+                   Compute_Hanging_2)),
+              Indenting_Token, Indenting_Comment)
+             .Simple_Delta)
+      do
+         --  Controlling_Token_Line for Delta_2 is the first non-comment
+         --  line indented by Delta_2.
+         if Label = Hanging_1 and
+           Indenting_Line_Region.First /= Indenting.Code.First
+         then
+            --  Only using Delta_1
+            null;
+         else
+            for Line in Indenting.Code.First +
+              (if Indenting_Line_Region.First = Indenting.Code.First then 1 else 0)
+              .. Indenting.Code.Last
+            loop
+               if Tree.Line_Begin_Token (Line) /= Syntax_Trees.Invalid_Node_Access then
+                  Result.Hanging_Delta_2.Controlling_Token_Line := Line;
+                  exit;
+               end if;
+            end loop;
+         end if;
+      end return;
    end Indent_Hanging_1;
 
    procedure Query_Tree

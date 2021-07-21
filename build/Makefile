@@ -112,10 +112,10 @@ one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
-two : RUN_ARGS ?= command_file ../debug.cmd ../test/ada_mode-incremental_delete_lines.adb
+two : RUN_ARGS ?= parse_partial indent test/debug.adb
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 two : ../run_ada_lalr_parse.exe
-	../run_ada_lalr_parse.exe $(RUN_ARGS)
+	cd ../; ./run_ada_lalr_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_executables
@@ -127,8 +127,9 @@ two_pro : build_executables
 	../exec_pro/run_ada_lalr_parse.exe ../test/ada_mode-recover_partial_02_lr1.adb Indent --enqueue_limit 120_000 --task_count 1
 	gprof ../exec_pro/run_ada_lalr_parse.exe > recover_partial_02-lalr.profile
 
-three : $(WISITOKEN)/build/wisitoken-bnf-generate.exe
-	cd ..; $(WISITOKEN_GENERATE) --generate LALR Ada_Emacs Process re2c --time --output_bnf -v 0 0 2 ada.wy > generate.log
+three : RUN_ARGS := -P subdir/ada_mode_parent.gpr --db=c:/tmp/gpr_query.db --tracefile=../gpr_query.trace
+three : gpr_query.exe
+	cd ../test; ../gpr_query.exe $(RUN_ARGS)
 
 # WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
@@ -489,7 +490,7 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
 
 %$(EXE_EXT) : %.adb force
-	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $*.adb
+	cd ..; gprbuild -p -j8 -vh -P ada_mode_wisi_parse.gpr $*.adb
 
 build_executables :  ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr

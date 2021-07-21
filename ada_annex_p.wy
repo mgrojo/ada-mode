@@ -912,9 +912,9 @@ array_aggregate ::= positional_array_aggregate | null_array_aggregate | named_ar
 
 expression_list ;; new to support actions
   : expression
-    %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
+    %((wisi-indent-action [[(wisi-hanging nil ada-indent-broken) (wisi-hanging nil ada-indent-broken)]]))%
   | expression_list ',' expression
-    %((wisi-indent-action [nil nil (wisi-hanging nil ada-indent-broken)]))%
+    %((wisi-indent-action [nil nil [(wisi-hanging nil ada-indent-broken) (wisi-hanging nil ada-indent-broken)]]))%
   ;
 
 positional_array_aggregate

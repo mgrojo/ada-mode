@@ -547,14 +547,9 @@ COLUMN - Emacs column of the start of the identifier")
 
 ;;;; wisi-prj specific methods
 
-;; FIXME: obsolete, but default definition is recursive with project-root
-;; needed in emacs < 28?
-;; (cl-defmethod project-roots ((_project wisi-prj))
-;;   ;; Not meaningful
-;;   nil)
-(cl-defmethod project-root ((_project wisi-prj))
-   ;; Not meaningful
-   nil)
+(cl-defmethod project-root ((project wisi-prj))
+   ;; Not meaningful, but some project functions insist on a valid directory
+   (car (wisi-prj-source-path project)))
 
 (cl-defmethod project-files ((project wisi-prj) &optional dirs)
   (let (result)
@@ -570,6 +565,23 @@ COLUMN - Emacs column of the start of the identifier")
 	   (push absfile result)))
        (when (file-readable-p dir) ;; GNAT puts non-existing dirs on path.
 	 (directory-files dir t))))
+    result))
+
+(defun wisi-prj-kill-buffer-condition (buffer)
+  "Return non-nil if BUFFER should be killed.
+For `project-kill-buffer-conditions'."
+  (let* ((source-path (wisi-prj-source-path (project-current)))
+	 (buf-file-name (buffer-file-name buffer))
+	 (done (not (buffer-file-name buffer)))
+	 (result nil)
+	 dir)
+    (while (and source-path
+		(not done))
+      (setq dir (pop source-path))
+      (when (and dir
+		 (file-in-directory-p buf-file-name dir))
+	(setq done t)
+	(setq result t)))
     result))
 
 (defun wisi-refresh-prj-cache (not-full)

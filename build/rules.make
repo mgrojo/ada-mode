@@ -113,10 +113,6 @@ compile-ada-test : force
 	rm -f ../test/subdir/ada_mode-spec.adb
 	gprbuild -p -j8 ../test/ada_mode_compile.gpr
 
-# we compile with -gnatyN3 to be sure our indentation meets gnat's
-# check. We don't check any other style requirements; not needed for
-# comparing indentation, and they get in the way.
-
 %.ali : %.adb
 	gprbuild -P ada_mode_compile.gpr -c $(<F)
 
