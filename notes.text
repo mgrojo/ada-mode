@@ -31,10 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-w-m_r-explore.adb Just_Pushed_Back_Or_Deleted:
-    task 1 1: Minimal_Complete_Actions: insert END: 3, (222 : (END))\-1;(END, (59 . 61))\((PUSH_BACK, END, -1), (UNDO_REDUCE, sequence_of_statements, 0, 0), (INSERT, END, -1))
-    should also be rejected
-
 set_parents is not incremental
     see fixme
 

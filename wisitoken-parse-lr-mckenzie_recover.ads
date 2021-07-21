@@ -113,7 +113,7 @@ private
    --  to Config.Ops, and append it to Config.Insert_Delete. Then
    --  increment Peek_State to the next shared terminal.
    --
-   --  Peek_State is initialized by Parse.Peek_Sequential_Start
+   --  Peek_State is initialized by Peek_Sequential_Start.
 
    procedure Do_Push_Back
      (Tree   : in     Syntax_Trees.Tree;

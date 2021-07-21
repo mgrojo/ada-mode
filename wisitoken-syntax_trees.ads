@@ -472,16 +472,17 @@ package WisiToken.Syntax_Trees is
       Deleted_Token : in     Valid_Node_Access;
       Prev_Token    : in     Valid_Node_Access)
    with Pre'Class =>
+     Tree.Parents_Set and
      Tree.Label (Deleted_Token) in Terminal_Label and
-     (Prev_Token = Invalid_Node_Access or else Tree.Label (Prev_Token) in Terminal_Label);
+     Tree.Label (Prev_Token) in Terminal_Label;
    --  Deleted_Token was deleted in error recovery. Prev_Token is the
-   --  terminal token previous to Deleted_Token in the parse stream.
+   --  terminal token before Deleted_Token in the parse stream.
    --
    --  The default body appends Deleted_Token.Non_Grammar to
    --  Prev_Token.Non_Grammar.
    --
-   --  Called from Execute_Actions for each deleted token,
-   --  before Initialize_Actions.
+   --  Called from Execute_Actions for each deleted token, before
+   --  Initialize_Actions.
 
    procedure Reduce
      (User_Data : in out User_Data_Type;
@@ -1634,16 +1635,23 @@ package WisiToken.Syntax_Trees is
    --  Return last terminal in Node that has a valid Sequential_Index,
    --  also initialize Parents.
 
+   function Last_Sequential_Terminal
+     (Tree    : in     Syntax_Trees.Tree;
+      Node    : in     Node_Access)
+     return Node_Access;
+   --  Return last terminal in Node that has a valid Sequential_Index.
+   --  Uses an internal parents stack.
+
    procedure Last_Sequential_Terminal
      (Tree         : in     Syntax_Trees.Tree;
       Ref          : in out Syntax_Trees.Stream_Node_Parents;
       Parse_Stream : in     Stream_ID)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
-   --  Return last terminal with valid Sequential_Index in Ref.Node or a
-   --  preceding stream element; if Ref.Stream is Tree.Shared_Stream,
-   --  switches to Parse_Stream at Parse_Stream.Shared_Link.
-   --  Invalid_Node_Access if none found.
+   --  Update Ref to last terminal with valid Sequential_Index in
+   --  Ref.Node or a preceding stream element; if Ref.Stream is
+   --  Tree.Shared_Stream, switches to Parse_Stream at
+   --  Parse_Stream.Shared_Link. Invalid_Node_Access if none found.
 
    procedure Next_Sequential_Terminal
      (Tree    : in     Syntax_Trees.Tree;
@@ -2205,9 +2213,9 @@ package WisiToken.Syntax_Trees is
    --  Print tree rooted at Root (default Tree.Root) to
    --  Trace, for debugging.
    --
-   --  This is the same as Trace.Put_Line (Tree.Image (...)), but avoids
-   --  storing the entire trace image on the stack; required for large
-   --  trees.
+   --  This is the same as Trace.Put_Line (Tree.Image (..., Children =>
+   --  True)), but avoids storing the entire trace image on the stack;
+   --  required for large trees.
 
    procedure Print_Streams
      (Tree        : in     Syntax_Trees.Tree;

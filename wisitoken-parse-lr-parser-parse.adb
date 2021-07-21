@@ -51,18 +51,26 @@ begin
          --  previous parse failed, left tree in uncertain state
          raise WisiToken.Parse_Error with "previous parse failed, can't edit tree";
       end if;
+
+      if Trace_Parse > Outline or Trace_Incremental_Parse > Outline then
+         Trace.New_Line;
+         Trace.Put_Line ("pre-edit tree:");
+         Shared_Parser.Tree.Print_Tree (Trace, Line_Numbers => True, Non_Grammar => True);
+         Trace.New_Line;
+      end if;
+
       Edit_Tree (Shared_Parser, Edits);
 
       if Trace_Parse > Outline or Trace_Incremental_Parse > Outline then
          Trace.New_Line;
-         Trace.Put_Line ("edited stream:");
-         Trace.Put_Line
-           (Shared_Parser.Tree.Image
-              (Shared_Parser.Tree.Shared_Stream,
-               Children     => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
-               Non_Grammar  => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
-               Augmented    => False,
-               Line_Numbers => False)); --  Parents not set, can't get Line_Numbers
+         --  Parents not set, can't get Line_Numbers
+         if Trace_Parse > Extra or Trace_Incremental_Parse > Extra then
+            Trace.Put_Line ("edited tree:");
+            Shared_Parser.Tree.Print_Tree (Trace, Non_Grammar => True);
+         else
+            Trace.Put_Line ("edited stream:");
+            Trace.Put_Line (Shared_Parser.Tree.Image (Shared_Parser.Tree.Shared_Stream));
+         end if;
          Trace.New_Line;
       end if;
 

@@ -1369,7 +1369,7 @@ package body WisiToken.Syntax_Trees is
       Tree          : in     Syntax_Trees.Tree'Class;
       Trace         : in out WisiToken.Trace'Class;
       Deleted_Token : in     Valid_Node_Access;
-      Prev_Token    : in     Node_Access)
+      Prev_Token    : in     Valid_Node_Access)
    is begin
       if Trace_Action > WisiToken.Outline then
          Trace.Put_Line
@@ -2790,7 +2790,7 @@ package body WisiToken.Syntax_Trees is
      return String
    is begin
       if Element.Cur = Stream_Element_Lists.No_Element then
-         return "<deleted>";
+         return "<null>";
       else
          declare
             El : Stream_Element renames Stream_Element_Lists.Constant_Ref (Element.Cur);
@@ -2827,7 +2827,7 @@ package body WisiToken.Syntax_Trees is
       use Ada.Strings.Unbounded;
    begin
       if Node = null then
-         return "<deleted>";
+         return "<null>";
       else
          declare
             Result : Unbounded_String :=
@@ -3159,6 +3159,16 @@ package body WisiToken.Syntax_Trees is
       return Result;
    end Last_Sequential_Terminal;
 
+   function Last_Sequential_Terminal
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Node_Access)
+     return Node_Access
+   is
+      Parents : Node_Stacks.Stack;
+   begin
+      return Tree.Last_Sequential_Terminal (Node, Parents);
+   end Last_Sequential_Terminal;
+
    procedure Last_Sequential_Terminal
      (Tree         : in     Syntax_Trees.Tree;
       Ref          : in out Syntax_Trees.Stream_Node_Parents;
@@ -3382,11 +3392,13 @@ package body WisiToken.Syntax_Trees is
    is
       function Line_At_Byte_Pos (Node : in Valid_Node_Access) return Base_Line_Number_Type
       is begin
+         --  Byte_Pos can be in whitespace or non_grammar, so we construct the
+         --  region to check from two successive terminals. We need line number
+         --  information, so we find the terminals with prev/next non_grammar.
+         --
+         --  FIXME: handle multi-line tokens
          case Node.Label is
          when Terminal_Label =>
-            --  Byte_Pos can be in whitespace or non_grammar, so we construct the
-            --  region to check from two successive terminals. We need line number
-            --  information, so we find the terminals with prev/next non_grammar.
             declare
                Prev_Non_Grammar : constant Node_Access := Tree.Prev_Non_Grammar (Node);
                Next_Non_Grammar : constant Node_Access := Tree.Next_Non_Grammar (Node);
@@ -3422,38 +3434,32 @@ package body WisiToken.Syntax_Trees is
             end;
 
          when Nonterm =>
-            --  FIXME: check if start with last child is better? do binary search?
             for Child of Node.Children loop
                declare
-                  First : constant Node_Access := First_Source_Terminal (Tree, Child, Trailing_Non_Grammar => True);
-                  Next  : constant Valid_Node_Access :=
-                    (if Child = Tree.EOI
-                     then Tree.EOI
-                     else Next_Source_Terminal (Tree, Child, Trailing_Non_Grammar  => True));
+                  First_Term : constant Node_Access := Tree.First_Source_Terminal (Child, Trailing_Non_Grammar => True);
+                  Last_Term  : constant Node_Access := Tree.Last_Source_Terminal (Child, Trailing_Non_Grammar => True);
+                  Next_Term  : constant Node_Access :=
+                    (if Last_Term = Invalid_Node_Access
+                     then Invalid_Node_Access
+                     else Tree.Next_Source_Terminal (Last_Term, Trailing_Non_Grammar => True));
                begin
-                  if First = Invalid_Node_Access then
-                     --  Empty nonterm; check next child
+                  if First_Term = Invalid_Node_Access then
+                     --  Empty or all virtual
                      null;
-                  else
+
+                  elsif Contains
+                    ((First => Byte_Region (Tree, First_Term).First,
+                      Last  => Byte_Region (Tree, Next_Term).First),
+                     Byte_Pos)
+                  then
                      declare
-                        Check_Region : constant Buffer_Region :=
-                          (First => Byte_Region (Tree, First, Trailing_Non_Grammar => True).First,
-                           Last  => Byte_Region (Tree, Next, Trailing_Non_Grammar => True).First);
+                        Temp : constant Base_Line_Number_Type := Line_At_Byte_Pos (Child);
                      begin
-                        if Contains (Check_Region, Byte_Pos) then
-                           declare
-                              Temp : constant Base_Line_Number_Type := Line_At_Byte_Pos (Child);
-                           begin
-                              if Temp = Invalid_Line_Number then
-                                 --  Check next child
-                                 null;
-                              else
-                                 return Temp;
-                              end if;
-                           end;
-                        else
+                        if Temp = Invalid_Line_Number then
                            --  Check next child
                            null;
+                        else
+                           return Temp;
                         end if;
                      end;
                   end if;
@@ -4748,7 +4754,7 @@ package body WisiToken.Syntax_Trees is
                   for I in 1 .. Level + 1 loop
                      Trace.Put ("| ", Prefix => False);
                   end loop;
-                  Trace.Put ("<deleted>", Prefix => False);
+                  Trace.Put ("<null>", Prefix => False);
                   Trace.New_Line;
                else
                   Print_Node (Child, Level + 1);
@@ -5758,7 +5764,7 @@ package body WisiToken.Syntax_Trees is
       end loop;
       Result := @ &
         (if Node = Invalid_Node_Access
-         then "<deleted>"
+         then "<null>"
          else Image
            (Tree, Node,
             Children              => False,

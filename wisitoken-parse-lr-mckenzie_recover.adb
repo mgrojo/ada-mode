@@ -689,29 +689,36 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                   Del_Node       => Syntax_Trees.Invalid_Node_Access,
                                   Del_After_Node => Syntax_Trees.Invalid_Node_Access));
 
-                              --  We don't check Stack_Matches_Ops here; Delete has no effect on
-                              --  Stack, so we can apply multiple deletes. See
-                              --  ada_mode-recover_02.adb with LR1 parser for example. On the other
-                              --  hand, if we've already done Insert, that depends on
-                              --  Parser_State.Shared_Token, so we can't change that;
-                              --  ada_mode-recover_38.adb
-                              if Parser_State.Recover_Insert_Delete_Current = No_Index and
+                              --  We have to apply more than one delete here if they are
+                              --  consecutive, because the main parser expects
+                              --  Parser_State.Current_Token to be correct before checking for
+                              --  Delete on return from Recover. Op.Del_After_Node must be a
+                              --  non-deleted node (for example, ada_mode-recover_extra_end_loop.adb
+                              --  deletes "end loop;"), so we must get Op.Del_After_Node from the
+                              --  parser stack, not Prev_Terminal.
+                              if Stack_Matches_Ops and Parser_State.Recover_Insert_Delete_Current = No_Index and
                                 Op.Del_Token_Index = Tree.Get_Sequential_Index
                                   (Peek_Current_Sequential_Terminal (Parser_State, Tree).Node)
                               then
                                  declare
                                     Op : Recover_Op renames Parser_State.Recover_Insert_Delete
                                       (Parser_State.Recover_Insert_Delete.Last_Index);
-                                    Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents
-                                      (Peek_Current_Sequential_Terminal (Parser_State, Tree));
+
+                                    Deleted_Ref : constant Stream_Node_Ref := Peek_Current_Sequential_Terminal
+                                      (Parser_State, Tree);
+
+                                    El  : constant Stream_Index := Tree.Peek (Parser_State.Stream);
+                                    Prev_Ref : Stream_Node_Parents   := Tree.To_Stream_Node_Parents
+                                      ((Stream  => Parser_State.Stream,
+                                        Element => El,
+                                        Node    => Get_Node (El)));
                                  begin
-                                    Op.Del_Node := Ref.Ref.Node;
-                                    Tree.Prev_Terminal (Ref, Parser_State.Stream);
-                                    Op.Del_After_Node := Ref.Ref.Node;
+                                    Op.Del_Node := Deleted_Ref.Node;
+                                    Tree.Last_Terminal (Prev_Ref);
+                                    Op.Del_After_Node := Prev_Ref.Ref.Node;
                                  end;
 
                                  Next_Token (Parser_State, Tree, Set_Current => True, Delete => True);
-
                               else
                                  if Parser_State.Recover_Insert_Delete_Current = No_Index then
                                     Parser_State.Recover_Insert_Delete_Current :=
@@ -1124,17 +1131,21 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       begin
          case Op.Op is
          when Fast_Forward =>
-            --  Normally any Push_Back must be done before any Insert or Delete,
-            --  to eliminate duplicate results from push_back/reduce before and
-            --  after delete (see test_mckenzie_recover.adb Extra_Begin).
-            --  Fast_Forward resets that.
+            --  Normally any Undo_Reduce must be done before Insert and after
+            --  Delete, to eliminate duplicate results from push_back/reduce
+            --  before and after delete (see test_mckenzie_recover.adb
+            --  Extra_Begin, ada_mode-recover_extra_end_loop.adb with incremental
+            --  parse). Fast_Forward resets that.
             return True;
 
          when Undo_Reduce | Push_Back =>
             return True;
 
-         when Insert | Delete =>
+         when Insert =>
             return False;
+
+         when Delete =>
+            return True;
          end case;
       end;
    end Undo_Reduce_Op_Order_Valid;

@@ -322,11 +322,11 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +IDENTIFIER_ID,
          Error_Token_Byte_Region => (63, 69),
-         Ops                     => +(Push_Back, +END_ID, 0) & (Undo_Reduce, +sequence_of_statements_ID, 0, Invalid) &
-           (Delete, +END_ID, 0),
+         Ops                     => +(Push_Back, +END_ID, 0) & (Delete, +END_ID, 0) &
+           (Undo_Reduce, +sequence_of_statements_ID, 0, Invalid),
          Strategy_Counts         => (Push_Back => 1, Undo_Reduce => 1, Delete => 1, others => 0),
-         Enqueue_Low             => 27,
-         Check_Low               => 7,
+         Enqueue_Low             => 13,
+         Check_Low               => 6,
          Cost                    => 2);
    end Error_2;
 
@@ -440,10 +440,10 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +PROCEDURE_ID,
          Error_Token_Byte_Region => (26, 34),
-         Ops                     => +(Push_Back, +BEGIN_ID, 0) & (Undo_Reduce, +declarative_part_ID, 0, Invalid) &
-           (Delete, +BEGIN_ID, 0),
+         Ops                     => +(Push_Back, +BEGIN_ID, 0) & (Delete, +BEGIN_ID, 0) &
+           (Undo_Reduce, +declarative_part_ID, 0, Invalid),
          Strategy_Counts         => (Push_Back => 1, Undo_Reduce => 1, Delete => 1, others => 0),
-         Enqueue_Low             => 27,
+         Enqueue_Low             => 20,
          Check_Low               => 6,
          Cost                    => 1);
    end Extra_Begin;
@@ -1989,8 +1989,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +NUMERIC_LITERAL_ID,
          Error_Token_Byte_Region => (34, 35),
          Ops_Race_Condition      => True,
-         Enqueue_Low             => 60,
-         Check_Low               => 27,
+         Enqueue_Low             => 43,
+         Check_Low               => 24,
          Cost                    => 4);
    end Error_During_Resume_3;
 
@@ -2112,8 +2112,8 @@ package body Test_McKenzie_Recover is
            (Insert, +END_ID, 2) & (Insert, +LOOP_ID, 2) & (Fast_Forward, 3) &
            (Insert, +IDENTIFIER_ID, 3) & (Insert, +COLON_ID, 3) & (Insert, +BEGIN_ID, 3),
          Strategy_Counts         => (Minimal_Complete => 3, Matching_Begin => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 168, when LR1 => 171),
-         Check_Low               => 30,
+         Enqueue_Low             => (case Test.Alg is when LALR => 152, when LR1 => 155),
+         Check_Low               => 29,
          Cost                    => 3);
    end Always_Matching_Begin;
 
@@ -2149,8 +2149,8 @@ package body Test_McKenzie_Recover is
            +(Delete, +RIGHT_PAREN_ID, 1) & (Insert, +SEMICOLON_ID, 2) & (Insert, +IF_ID, 2) &
              (Insert, +NUMERIC_LITERAL_ID, 2) & (Insert, +THEN_ID, 2),
          Strategy_Counts         => (Minimal_Complete => 3, Matching_Begin => 1, Delete => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 908, when LR1 => 933),
-         Check_Low               => (case Test.Alg is when LALR => 123, when LR1 => 122),
+         Enqueue_Low             => (case Test.Alg is when LALR => 816, when LR1 => 933),
+         Check_Low               => (case Test.Alg is when LALR => 112, when LR1 => 122),
          Cost                    => 7);
    end Do_Delete_First;
 
@@ -2344,8 +2344,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +END_ID, 0) & (Insert, +END_ID, 0) & (Insert, +LOOP_ID, 0) &
            (Insert, +SEMICOLON_ID, 0),
          Strategy_Counts         => (Language_Fix => 1, others => 0),
-         Enqueue_Low             => (case Test.Alg is when LALR => 276, when LR1 => 178),
-         Check_Low               => (case Test.Alg is when LALR => 49, when LR1 => 35),
+         Enqueue_Low             => (case Test.Alg is when LALR => 371, when LR1 => 178),
+         Check_Low               => (case Test.Alg is when LALR => 66, when LR1 => 35),
          Cost                    => 0);
    end Pushback_Nonterm_1;
 

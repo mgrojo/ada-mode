@@ -453,15 +453,27 @@ package body WisiToken.Parse.LR.Parser is
          begin
             if Op.Op = Delete then
                declare
-                  Next_Sequential_Terminal : constant Stream_Node_Parents := Parser_Lists.Peek_Next_Sequential_Terminal
-                    (Parser_State, Shared_Parser.Tree);
-                  After_Node : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Parser_State.Current_Token);
+                  Terminal : constant Stream_Node_Ref := Parser_Lists.Peek_Next_Sequential_Terminal
+                    (Parser_State, Shared_Parser.Tree).Ref;
                begin
-                  if Op.Del_Index = Tree.Get_Sequential_Index (Next_Sequential_Terminal.Ref.Node) then
+                  if Op.Del_Index = Tree.Get_Sequential_Index (Terminal.Node) then
 
-                     Op.Del_Node := Next_Sequential_Terminal.Ref.Node;
-                     Tree.Last_Terminal (After_Node);
-                     Op.Del_After_Node := After_Node.Ref.Node;
+                     Op.Del_Node := Terminal.Node;
+
+                     --  We don't want a deleted node as Op.Del_After_Node;
+                     --  ada_mode-recover_extra_end_loop.adb deletes "end loop;". So we
+                     --  don't use 'Tree.Prev_Terminal (Terminal, Parser_State.Stream);'.
+                     --  The previous terminal is on the parse stack.
+                     declare
+                        El  : constant Stream_Index := Tree.Peek (Parser_State.Stream);
+                        Ref : Stream_Node_Parents   := Tree.To_Stream_Node_Parents
+                          ((Stream  => Parser_State.Stream,
+                            Element => El,
+                            Node    => Get_Node (El)));
+                     begin
+                        Tree.Last_Terminal (Ref);
+                        Op.Del_After_Node := Ref.Ref.Node;
+                     end;
 
                      Ins_Del_Cur := Ins_Del_Cur + 1;
                      if Ins_Del_Cur > Last_Index (Ins_Del)  then
@@ -537,42 +549,22 @@ package body WisiToken.Parse.LR.Parser is
                --  ada_mode-interactive_1.adb "for File_Name in File_Names loop"
                declare
                   use WisiToken.Syntax_Trees;
-                  --  Ensure_Sequential_Node_Index only sets Node_Index thru
-                  --  Resume_Token_Goal; Last_Terminal may be after that, in which case
-                  --  it will have Invalid_Sequential_Index.
-                  Terminal : constant Node_Access := Shared_Parser.Tree.Last_Terminal
+                  Terminal : constant Node_Access := Shared_Parser.Tree.Last_Sequential_Terminal
                     (Parser_State.Current_Token.Node);
+
                   Terminal_Index : constant Base_Sequential_Index :=
                     (if Terminal = Invalid_Node_Access
-                     then Invalid_Sequential_Index
+                     then Invalid_Sequential_Index --  Current_Token is an empty nonterm, or an Inserted virtual.
                      else Shared_Parser.Tree.Get_Sequential_Index (Terminal));
                begin
-                  if Terminal /= Invalid_Node_Access and then
-                    Shared_Parser.Tree.Is_Source_Terminal (Terminal) and then
-                    (Terminal_Index = Invalid_Sequential_Index or
-                       Parser_State.Resume_Token_Goal <= Terminal_Index)
+                  if Terminal_Index /= Invalid_Sequential_Index and
+                    Parser_State.Resume_Token_Goal <= Terminal_Index
                   then
-                     if Parser_State.Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
-                        --  There may still be ops left in Recover_Insert_Delete after we get to
-                        --  Resume_Token_Goal. If they are from a Language_Fix that's a bug in the Language_Fix.
-                        --
-                        --  We don't check the parse stream input, because it can contain the
-                        --  breakdown of a nonterm in the parse stream
-                        --  (ada_mode-recover_10.adb), as well as push_back tokens from error
-                        --  recover (ada_mode-incremental_recover_01.adb).
-                        if Debug_Mode then
-                           raise SAL.Programmer_Error with
-                             Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
-                             ": resume_token_goal reached with remaining insert/delete";
-                        end if;
-                        Resume_Active := True;
-                     else
-                        Parser_State.Resume_Active := False;
-                        Parser_State.Resume_Token_Goal := Syntax_Trees.Invalid_Sequential_Index;
-                        if Trace_Parse > Detail then
-                           Shared_Parser.Trace.Put_Line
-                             (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": resume_active: False");
-                        end if;
+                     Parser_State.Resume_Active := False;
+                     Parser_State.Resume_Token_Goal := Syntax_Trees.Invalid_Sequential_Index;
+                     if Trace_Parse > Detail then
+                        Shared_Parser.Trace.Put_Line
+                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": resume_active: False");
                      end if;
                   else
                      Resume_Active := True;

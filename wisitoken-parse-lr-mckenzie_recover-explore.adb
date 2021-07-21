@@ -359,6 +359,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          end if;
       end Enqueue;
 
+      Abandon_If_Fail : Boolean := False;
    begin
       if Length (Config.Ops) > 0 then
          declare
@@ -374,14 +375,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             when Undo_Reduce =>
                if Config.User_Parse_Action_Status.Label /= Ok then
                   --  This is the "ignore error" solution for a check fail; check it.
-                  Config.User_Parse_Action_Status   := (Label => Ok);
-                  Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
+                  Config.User_Parse_Action_Status := (Label => Ok);
+                  Config.Error_Token              := Syntax_Trees.Invalid_Recover_Token;
 
                else
-                  --  Check would undo the Undo_Reduce, leading to
-                  --  duplicate results.
-                  return Continue;
+                  --  Check might just undo the Undo_Reduce, but sometimes it's the last
+                  --  op required to succeed after Delete; test_mckenzie_recover.adb
+                  --  Error_2, Extra_Begin_1.
+                  Abandon_If_Fail := True;
                end if;
+
             when others =>
                --  Check it
                null;
@@ -399,6 +402,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             Put_Line (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index), "check result: SUCCESS");
          end if;
          return Success;
+      end if;
+
+      if Abandon_If_Fail then
+         return Abandon;
       end if;
 
       if Parse.Parse_Item_Arrays.Length (Parse_Items) = 1 then
@@ -1905,10 +1912,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          return;
 
       elsif Length (Config.Ops) > 0 and then
-        Equal (Constant_Ref (Config.Ops, Last_Index (Config.Ops)), (Insert, Next_ID, Next_Index))
+        (Equal (Constant_Ref (Config.Ops, Last_Index (Config.Ops)), (Insert, Next_ID, Next_Index)) or
+           --  Don't delete an ID we just inserted; waste of time, leads to
+           --  infinite loop.
+
+           Constant_Ref (Config.Ops, Last_Index (Config.Ops)).Op = Undo_Reduce
+           --  Only need Undo_Reduce to Push_Back part of it or allow Insert;
+           --  allowing delete gives redundant configs.
+           --  ada_mode-recover_extra_end_loop.adb with incremental parse.
+        )
       then
-         --  Don't delete an ID we just inserted; waste of time, leads to
-         --  infinite loop.
          return;
       end if;
 

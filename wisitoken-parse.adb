@@ -276,7 +276,7 @@ package body WisiToken.Parse is
       Floating_Non_Grammar : Lexer.Token_Arrays.Vector;
       --  Non_grammar that are detached from a node (for various reasons).
       --  These are _not_ shifted, because the correct shift is unknown at
-      --  the time they are detached. test case ada_mode-recover_42.adb
+      --  the time they are detached. ada_mode-recover_42.adb
       --
       --  If a non_grammar is floated from a scanned node, it is unshifted
       --  to be consistent.
@@ -316,13 +316,6 @@ package body WisiToken.Parse is
       end Breakdown;
 
    begin
-      if Trace_Incremental_Parse > Detail then
-         Parser.Trace.New_Line;
-         Parser.Trace.Put_Line ("pre-edit tree:");
-         Parser.Trace.Put_Line (Tree.Image (Line_Numbers => True, Non_Grammar => True));
-         Parser.Trace.New_Line;
-      end if;
-
       Tree.Start_Edit;
 
       Stream := Tree.Shared_Stream;
@@ -668,14 +661,23 @@ package body WisiToken.Parse is
 
                            Delete : SAL.Base_Peek_Type := 0;
                         begin
-                           if Non_Grammar.Length = 0 or else Last_Byte <= Scanned_Byte_Pos then
+                           if Non_Grammar.Length = 0 then
                               --  Edit start is in whitespace before Terminal.
                               --  test_incremental.adb Edit_Whitespace_1, _2
                               Lex_Start_Byte := Inserted_Region.First;
                               Lex_Start_Char := Inserted_Region_Chars.First;
-                              Lex_Start_Line := Non_Grammar (Non_Grammar.Last_Index).Line_Region.Last;
-                              --  start_line test case ada_mode-recover_incremental_01.adb, ada_mode-incremental_04.adb
+                              Lex_Start_Line := Tree.Line_Region (Last_Grammar).Last;
+                              --  start_line test case ada_mode-incremental_02.adb
                               Do_Scan        := True;
+
+                           elsif Last_Byte <= Scanned_Byte_Pos then
+                              --  Edit start is in whitespace before Terminal.
+                              --  ada_mode-incremental_04.adb
+                              Lex_Start_Byte := Inserted_Region.First;
+                              Lex_Start_Char := Inserted_Region_Chars.First;
+                              Lex_Start_Line := Non_Grammar (Non_Grammar.Last_Index).Line_Region.Last;
+                              Do_Scan        := True;
+
                            else
                               for I in Non_Grammar.First_Index .. Non_Grammar.Last_Index loop
                                  declare
@@ -1303,19 +1305,27 @@ package body WisiToken.Parse is
                      return (if After then Before else Before_1);
                   end Find_Element;
 
-                  procedure Restore (Token : in out Lexer.Token)
+                  procedure Restore (I : in Positive_Index_Type)
                   is
+                     Token : Lexer.Token renames Floating_Non_Grammar (I);
+
                      Containing_Terminal : constant Terminal_Ref := Find_Element
                        (Token.Byte_Region.First, After => False);
 
                      Old_Token : constant Lexer.Token := Token; -- for trace message
+
+                     Temp_Shift_Lines : Base_Line_Number_Type := Shift_Lines;
                   begin
                      if Token.Byte_Region.First < Tree.Byte_Region (Terminal.Node).First then
                         --  Only shift if inserted before Terminal. ada_mode-recover_14
                         --
-                        --  Ignore this non_grammar's contribution to Shift_Lines.
-                        --  ada_mode-recover_33.adb
-                        Lexer.Shift (Token, Shift_Bytes, Shift_Chars, Shift_Lines + New_Line_Count (Token.Line_Region));
+                        --  Ignore this and remaining Floating_Non_Grammar's contribution to
+                        --  Shift_Lines; we are inserting it before those.
+                        --  ada_mode-recover_33.adb, ada_mode-recover_extra_end_loop.adb
+                        for J in I .. Floating_Non_Grammar.Last_Index loop
+                           Temp_Shift_Lines := @ + New_Line_Count (Floating_Non_Grammar (J).Line_Region);
+                        end loop;
+                        Lexer.Shift (Token, Shift_Bytes, Shift_Chars, Temp_Shift_Lines);
                      end if;
 
                      Shift_Lines := @ + New_Line_Count (Token.Line_Region);
@@ -1326,7 +1336,7 @@ package body WisiToken.Parse is
                         Parser.Trace.Put_Line
                           ("restore floating_non_grammar " & Lexer.Image (Old_Token, Tree.Lexer.Descriptor.all));
                         Parser.Trace.Put_Line
-                          ("to " & Tree.Image (Containing_Terminal, Non_Grammar => True));
+                          (" ... to " & Tree.Image (Containing_Terminal, Non_Grammar => True));
                      end if;
                   end Restore;
 
@@ -1349,7 +1359,7 @@ package body WisiToken.Parse is
                      elsif Floating_Non_Grammar (I).Byte_Region.Last <= Next_KMN_Stable_Last then
                         --  Non_Grammar is in next KMN stable region; find terminal to append
                         --  non_grammar to. ada_mode-recover_18.adb
-                        Restore (Floating_Non_Grammar (I));
+                        Restore (I);
                         Last_Handled_Non_Grammar := I;
                      else
                         exit;
