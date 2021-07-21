@@ -113,23 +113,24 @@
   "'"
 tick : TICK_1 | TICK_2 ;
 
-;; This regexp allows a lot of things that are not Ada numeric
-;; literals, but it's faster than a strictly conforming regexp. For
-;; non-based literals, force a trailing integer so (1..Length) is
-;; parsed correctly.
+;; Handle 0.0, (1..Length) and 0..16#10FFFF#
 %token <regexp> NUMERIC_LITERAL
-    %[ ([0-9])|([0-9][0-9eE._-]*[0-9])|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
+    %[ ([0-9])|([0-9_]+([.][0-9]+)?([eE[0-9_-]+)?)|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
   "1234567890"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
 
-;; handle DOS or Unix newline
-%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+%non_grammar <new-line> NEW_LINE
 
-;; Treat Ada comments, gnatprep preprocessor lines, and skeleton
-;; placeholders as comments. Also terminate placeholder on newline,
-;; EOF, to handle missing }. x04 is EOF.
-%non_grammar <comment> COMMENT %[ (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n\x04]*)|("{"[^}\n\x04]*"}"?) ]%
+;; Ada comments
+%non_grammar <comment-new-line> COMMENT "--"
+
+;; gnatprep preprocessor lines
+%non_grammar <comment-new-line> GNAT_PREP %[ ("#if"|"#elsif"|"#else"|"#end") ]%
+
+;; skeleton placeholders. Also terminated by newline, EOI to avoid
+;; accidently commenting out multiple lines.
+%non_grammar <comment-one-line> PLACEHOLDER "{" "}"
 
 ;; '$' for gnatprep symbols.
 %token <symbol> IDENTIFIER
@@ -178,12 +179,11 @@ tick : TICK_1 | TICK_2 ;
 %mckenzie_cost_default 4 3 2 2
 %mckenzie_minimal_complete_cost_delta -3
 
-;; END is cheaper, because it always requires at least one other
-;; keyword to follow.
+;; END is cheaper, because needing to insert it is a common case.
 %mckenzie_cost_insert END 3
 
-;; make inserting an expression to finish a production cheap; see
-;; test/ada_mode-recover_41.adb.
+;; make inserting an expression or statement to finish a production
+;; cheap; see test/ada_mode-recover_41.adb
 %mckenzie_cost_insert IDENTIFIER 2
 
 ;; Ada 2020 syntax caused a drastic increase in recursion, which
@@ -192,6 +192,10 @@ tick : TICK_1 | TICK_2 ;
 ;; test/ada_mode-recover_partial_26.
 %mckenzie_cost_insert SEMICOLON 3
 %mckenzie_cost_insert EQUAL_GREATER 3
+
+;; Make RENAMES more expensive, since object declarations are more
+;; common than renames; ada_mode-recover_13.adb
+%mckenzie_cost_insert RENAMES 7
 
 ;; This cost is applied once, independent of token count.
 ;; test/ada_mode-recover_40.adb requires cost < 3, so insert 'if

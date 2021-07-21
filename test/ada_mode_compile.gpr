@@ -11,7 +11,6 @@ project Ada_Mode_Compile is
       --  "debug.adb", including this gives an error when it is not present
 
       "access_in_record.ads", -- incomplete code
-      "ada_mode-ada83.ads", -- font-lock only
       "ada_mode-ada95.ads", -- font-lock only
       "ada_mode-ada2005.ads", -- font-lock only
       "ada_mode-ada2012.ads", -- font-lock only
@@ -22,9 +21,11 @@ project Ada_Mode_Compile is
       "ada_mode-generic_parent_instantiation.ads",
 
       -- These have incomplete code deliberately; used for interactive editing test (via EMACSCMD)
+      "ada_mode-incremental_recover_01.adb",
       "ada_mode-interactive_case_statement.adb",
-      "ada_mode-interactive_1.adb",
-      "ada_mode-interactive_2.adb",
+      "ada_mode-interactive_01.adb",
+      "ada_mode-interactive_02.adb",
+      "ada_mode-interactive_05.adb",
 
       -- This has incomplete code; tests a former bug in syntax-ppss
       "ada_mode-long_paren.adb",
@@ -73,6 +74,8 @@ project Ada_Mode_Compile is
       "ada_mode-recover_39.adb",
       "ada_mode-recover_40.adb",
       "ada_mode-recover_41.adb",
+      "ada_mode-recover_42.adb",
+      "ada_mode-recover_43.adb",
       "ada_mode-recover_align_1.adb",
       "ada_mode-recover_ambiguous_parse.adb",
       "ada_mode-recover_bad_char.adb",

@@ -2,7 +2,7 @@
 --
 --  Run tests.
 --
---  Copyright (C) 2020 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020, 2021 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -21,9 +21,11 @@ with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line;
 with Ada.Exceptions;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with Test_Edit_Source;
+with Test_Syntax_Trees;
 with WisiToken;
 procedure Test_All_Harness
 is
@@ -58,21 +60,12 @@ begin
          null;
 
       when 1 =>
-         Filter.Set_Name (Argument (1));
+         Filter.Test_Name := To_Unbounded_String (Argument (1));
 
       when 2 | 3 =>
-         declare
-            Test_Name    : String renames Argument (1);
-            Routine_Name : String renames Argument (2);
-         begin
-            if Test_Name = "" then
-               null;
-            elsif Routine_Name = "" then
-               Filter.Set_Name (Test_Name);
-            else
-               Filter.Set_Name (Test_Name & " : " & Routine_Name);
-            end if;
-         end;
+         Filter.Test_Name    := To_Unbounded_String (Argument (1));
+         Filter.Routine_Name := To_Unbounded_String (Argument (2));
+
          if Argument_Count = 3 then
             WisiToken.Enable_Trace (Argument (3));
          end if;
@@ -87,6 +80,7 @@ begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
    Add_Test (Suite, Test_Case_Access'(new Test_Edit_Source.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Syntax_Trees.Test_Case));
    --  end test cases
 
    Run (Suite, Options, Result, Status);

@@ -113,8 +113,8 @@ procedure Ada_Mode.Conditional_Expressions is
    L : Integer := L0;
 
    M1 : String :=
-     A &
-     B &
+     "A" &
+     "B" &
      (case C is
          when A => "a",
          when B => "b",

@@ -1,4 +1,4 @@
--- Recover failed with enqueue_limit. Now finds a solution quickly.
+-- Recover fails with enqueue_limit; handle that cleanly.
 --
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
@@ -12,6 +12,10 @@ begin
       Cost_Delta,
       Strategy   => Minimal_Complete);
 end;
--- recover inserts 'case when => if then', indents 'case'.
+
 end if;
 end case;
+-- Local Variables:
+-- wisi-mckenzie-task-count: 1
+-- wisi-debug: 0
+-- End:

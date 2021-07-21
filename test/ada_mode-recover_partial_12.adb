@@ -1,4 +1,4 @@
---  LR1 error recovery used to fails with enqueue_limit. Now finds a solution quickly.
+--  LR1 error recovery used to fail with enqueue_limit. Now finds a solution quickly.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(switch-to-lr1)

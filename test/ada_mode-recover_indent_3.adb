@@ -15,3 +15,7 @@ is
 begin
    A := 1;
 end Journal_To_TSV;
+-- Local Variables:
+-- wisi-mckenzie-task-count: 1
+-- ada-end-name-optional: nil
+-- End:

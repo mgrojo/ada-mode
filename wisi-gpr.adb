@@ -21,39 +21,20 @@ with Ada.Strings.Fixed;
 with Gpr_Process_Actions;
 package body Wisi.Gpr is
 
-   procedure Initialize (Data : in out Parse_Data_Type)
+   overriding
+   procedure Initialize
+     (Data  : in out Parse_Data_Type;
+      Trace : in     WisiToken.Trace_Access)
    is
       use all type Gpr_Process_Actions.Token_Enum_ID;
    begin
+      Wisi.Initialize (Wisi.Parse_Data_Type (Data), Trace);
+
       Data.First_Comment_ID := +COMMENT_ID;
       Data.Last_Comment_ID  := WisiToken.Invalid_Token_ID;
       Data.Left_Paren_ID    := WisiToken.Invalid_Token_ID;
       Data.Right_Paren_ID   := WisiToken.Invalid_Token_ID;
    end Initialize;
-
-   overriding
-   procedure Initialize_Partial_Parse
-     (Data              : in out Parse_Data_Type;
-      Trace             : in     WisiToken.Trace_Access;
-      Post_Parse_Action : in     Post_Parse_Action_Type;
-      Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type)
-   is begin
-      Wisi.Initialize_Partial_Parse (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Begin_Line, End_Line);
-
-      Initialize (Data);
-   end Initialize_Partial_Parse;
-
-   overriding
-   procedure Initialize_Full_Parse
-     (Data     : in out Parse_Data_Type;
-      Trace    : in     WisiToken.Trace_Access;
-      End_Line : in     WisiToken.Line_Number_Type)
-   is begin
-      Wisi.Initialize_Full_Parse (Wisi.Parse_Data_Type (Data), Trace, End_Line);
-
-      Initialize (Data);
-   end Initialize_Full_Parse;
 
    overriding
    procedure Parse_Language_Params

@@ -6,7 +6,7 @@
 ;; Keywords: syntax
 
 %code copyright_license %{
-;;  Copyright (C) 2013 - 2020 Free Software Foundation, Inc.
+;;  Copyright (C) 2013 - 2021 Free Software Foundation, Inc.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -82,10 +82,13 @@
 ;; handle DOS or Unix newline
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 
-;; Treat gpr comments, gnatprep preprocessor lines, and skeleton
-;; placeholders as comments. Also terminate placeholder on newline,
-;; EOF, to handle missing }. x04 is EOF.
-%non_grammar <comment> COMMENT %[ (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n\x04]*)|("{"[^}\n\x04]*"}"?) ]%
+%non_grammar <comment-new-line> COMMENT "--"
+
+;; gnatprep preprocessor lines
+%non_grammar <comment-new-line> GNAT_PREP %[ ("#if"|"#elsif"|"#else"|"#end") ]%
+
+;; skeleton placeholders.
+%non_grammar <comment-one-line> PLACEHOLDER "{" "}"
 
 %token <number> NUMERIC_LITERAL
     %[ [0-9]+ ]%

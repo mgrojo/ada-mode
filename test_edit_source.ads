@@ -2,7 +2,7 @@
 --
 --  Test Emacs_Wisi_Common_Parse.Edit_Source
 --
---  Copyright (C) 2020 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020, 2021 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -24,7 +24,5 @@ package Test_Edit_Source is
    overriding procedure Register_Tests (T : in out Test_Case);
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
-
-   overriding procedure Tear_Down (T : in out Test_Case);
 
 end Test_Edit_Source;

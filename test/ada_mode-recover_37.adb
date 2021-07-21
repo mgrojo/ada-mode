@@ -1,23 +1,22 @@
 -- LALR and LR1 parsers failed error recovery with default enqueue_limit. With
 -- higher limit, raised Constraint_Error.
 --
--- Constraint_Error now fixed. Requires a high enqueue_limit, because
--- there are four processes in error recovery.
+-- Constraint_Error now fixed, recover improved.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
---EMACSCMD:(set-default 'wisi-process-time-out 10) -- local to *parse* buffer
 
+-- We get different indent results from partial and incremental parse;
+--EMACSCMD:(setq skip-reindent-test (not wisi-incremental-parse-enable))
 procedure Update_Containing_Nonterms (Modified_Token_Index : in WisiToken.Token_Index)
 is
-     --  recover inserts 'procedure <identifier> (' here.
-     Node : in     Valid_Node_Index)
+   -- Missing 'procedure Process_Node ('.
+   Node : in     Valid_Node_Index)
    is begin
-      if Tree.Max_Terminal_Index (Node) = Modified_Token_Index then
-      --  recover inserts 'end if;' after 'then'
+            if Tree.Max_Terminal_Index (Node) = Modified_Token_Index then
+      -- Missing 'end if;'
    end Process_Node;
 
-begin
+   begin
 
 end Update_Containing_Nonterms;
 -- Local Variables:

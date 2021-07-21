@@ -3,10 +3,10 @@
 --
 -- Used to raise Constraint_Error in McKenzie_Recover; too many ops in
 -- a config. Now finds a reasonable solution quickly.
-
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
---EMACSCMD:(setq wisi-indent-region-fallback nil)
-procedure Ada_Mode.Recover_9 is
+--
+-- We get different indent results from partial and incremental parse;
+--EMACSCMD:(setq skip-reindent-test (not wisi-incremental-parse-enable))
+procedure Ada_Mode.Recover_09 is
    procedure Generate_Parser_Body (Prod : in Productions.Instance)
    is
    begin
@@ -33,12 +33,16 @@ procedure Ada_Mode.Recover_9 is
            (Parser.Derivs (Accept_Id)(Start_Pos).Result, Parser.Trace.Descriptor.all,
             Include_Children => True)); -- missing right paren
 
-      --  These lines should be in Indent_Line("...");
-   end if;
-   Indent_Line ("   return Parser.Derivs (" & Result_Id & ")(Pos);");
+      --  Next line should be in Indent_Line("...");
+      end if;
+
+      Indent_Line ("   return Parser.Derivs (" & Result_Id & ")(Pos);");
 
    end Generate_Parser_Body;
 
 begin
    New_Line;
-end Ada_Mode.Recover_9;
+end Ada_Mode.Recover_09;
+-- Local Variables:
+-- ada-end-name-optional: nil
+-- End:

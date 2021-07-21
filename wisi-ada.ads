@@ -80,22 +80,9 @@ package Wisi.Ada is
    is (new Parse_Data_Type);
 
    overriding
-   procedure Initialize_Partial_Parse
-     (Data              : in out Parse_Data_Type;
-      Trace             : in     WisiToken.Trace_Access;
-      Post_Parse_Action : in     Post_Parse_Action_Type;
-      Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type);
-   --  Call Wisi.Initialize_Partial_Parse, then do any other
-   --  initialization that Data needs.
-
-   overriding
-   procedure Initialize_Full_Parse
-     (Data     : in out Parse_Data_Type;
-      Trace    : in     WisiToken.Trace_Access;
-      End_Line : in     WisiToken.Line_Number_Type);
-   --  Call Wisi.Initialize_Full_Parse, then do any other
-   --  initialization that Data needs.
+   procedure Initialize
+     (Data  : in out Parse_Data_Type;
+      Trace : in     WisiToken.Trace_Access);
 
    overriding
    procedure Parse_Language_Params
@@ -112,6 +99,19 @@ package Wisi.Ada is
       Blank_Line_Present  : in     Boolean)
      return WisiToken.Insert_Location;
 
+   --  Must match "ada-refactor-*" in ada-core.el
+   type Refactor_Label is
+     (Method_Object_To_Object_Method, -- 0
+      Object_Method_To_Method_Object, -- 1
+      Element_Object_To_Object_Index, -- 2
+      Object_Index_To_Element_Object, -- 3
+      Format_Parameter_List);         -- 4
+
+
+   overriding
+   function Refactor_Parse  (Data : in Parse_Data_Type; Item : in String) return Refactor_Action
+   is (Refactor_Action (Refactor_Label'Pos (Refactor_Label'Value (Item))));
+
    overriding
    procedure Refactor_Help (Data : in Parse_Data_Type);
 
@@ -119,7 +119,7 @@ package Wisi.Ada is
    procedure Refactor
      (Data       : in out Parse_Data_Type;
       Tree       : in out WisiToken.Syntax_Trees.Tree;
-      Action     : in     Positive;
+      Action     : in     Refactor_Action;
       Edit_Begin : in     WisiToken.Buffer_Pos);
 
    ----------

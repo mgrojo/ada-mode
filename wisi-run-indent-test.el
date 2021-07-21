@@ -30,7 +30,8 @@
   "If non-nil, a file name telling where to save wisi parser transaction log")
 
 (defvar save-edited-text nil
-  "If non-nil, a file name telling where to save wisi parser edited text")
+  "If non-nil, a file name telling where to save wisi parser edited
+text, after each edit in an incremental parse, and before each partial parse.")
 
 (defun test-in-comment-p ()
   (nth 4 (syntax-ppss)))
@@ -172,16 +173,16 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
     (setq test-refactor-markers nil)))
 
 (defun wisi-test-save-log ()
+  (interactive)
   (when (and (stringp save-parser-log)
 	     (buffer-live-p (wisi-parser-transaction-log-buffer wisi--parser)))
     (with-current-buffer (wisi-parser-transaction-log-buffer wisi--parser)
       (message "saving parser transaction log '%s' to '%s'" (buffer-name) save-parser-log)
       (write-region nil nil save-parser-log))))
 
-(defun wisi-test-save-edited ()
-  (when (and (stringp save-edited-text))
-    (message "saving parser edited text to '%s'" save-edited-text)
-    (wisi-process-parse-save-text wisi--parser save-edited-text)))
+(defun wisi-test-enable-save-edited ()
+  (when (stringp save-edited-text)
+    (wisi-process-parse-save-text wisi--parser save-edited-text t)))
 
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."
@@ -195,6 +196,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	(setq project-find-functions (list #'wisi-prj-current-cached))
 	(setq xref-backend-functions (list #'wisi-prj-xref-backend))
 
+	(wisi-test-enable-save-edited)
 
 	(let ((error-count 0)
 	      (test-buffer (current-buffer))
@@ -228,45 +230,47 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	    (cond
 	     ((string= (match-string 1) "CMD")
 	      (looking-at ".*$")
-	      (save-excursion
-		(setq cmd-line (line-number-at-pos)
-		      last-cmd (match-string 0)
-		      last-result
-		      (condition-case-unless-debug err
-			  (eval (car (read-from-string last-cmd)))
-			(error
-			 (setq error-count (1+ error-count))
-			 (message "%s:%d: command: %s"
-				  (buffer-file-name) cmd-line last-cmd)
-			 (message "%s:%d: %s: %s"
-				  (buffer-file-name)
-				  (line-number-at-pos)
-				  (car err)
-				  (cdr err))))
-		      )
+	      (setq cmd-line (line-number-at-pos)
+		    last-cmd (match-string 0))
+	      (let ((msg (format "%s:%d: test %s" (buffer-file-name) cmd-line last-cmd)))
+		(wisi-parse-log-message wisi--parser msg)
+		(message msg)
+		(save-excursion
+		  (setq last-result
+			(condition-case-unless-debug err
+			    (eval (car (read-from-string last-cmd)))
+			  (error
+			   (setq error-count (1+ error-count))
+			   (message msg)
+			   (setq msg (format "... %s: %s" (car err) (cdr err)))
+			   (wisi-parse-log-message wisi--parser msg)
+			   (message msg)
+			   nil)))
+		  ))
 		;; save-excursion does not preserve mapping of buffer to
 		;; window, but some tests depend on that. For example,
 		;; execute-kbd-macro doesn’t work properly if current buffer
-		;; is not visible..
-		(pop-to-buffer test-buffer)))
+		;; is not visible.
+		(pop-to-buffer test-buffer))
 
 	     ((string= (match-string 1) "RESULT")
 	      (looking-at ".*$")
 	      (setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
 	      (unless (equal expected-result last-result)
 		(setq error-count (1+ error-count))
-		(message
-		 (concat
-		  (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
-		  (format "Result of '%s' does not match.\nGot    '%s',\nexpect '%s'"
-			  last-cmd
-			  last-result
-			  expected-result)
-		  ))))
+		(let ((msg (concat
+			    (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
+			    (format "... result of '%s' does not match.\n... Got    '%s',\n... expect '%s'"
+				    last-cmd
+				    last-result
+				    expected-result))))
+		  (wisi-parse-log-message wisi--parser msg)
+		  (message msg))))
 
 	     ((string= (match-string 1) "RESULT_START")
 	      (looking-at ".*$")
-	      (setq expected-result (list (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))))
+	      (setq expected-result
+		    (list (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))))
 
 	     ((string= (match-string 1) "RESULT_ADD")
 	      (looking-at ".*$")
@@ -278,6 +282,8 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	     ((string= (match-string 1) "RESULT_FINISH")
 	      (unless (equal (length expected-result) (length last-result))
 		(setq error-count (1+ error-count))
+		;; this is used for gpr-query tests, not parser tests,
+		;; so we don't write to the parser log.
 		(message
 		 (concat
 		  (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
@@ -350,11 +356,9 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	  (message "casing")
 	  (wisi-case-adjust-buffer))
 
-	(wisi-test-save-log)
-	(wisi-test-save-edited))
+	(wisi-test-save-log))
     (error
      (wisi-test-save-log)
-     (wisi-test-save-edited)
      (signal (car err) (cdr err)))
     ))
 

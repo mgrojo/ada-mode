@@ -32,7 +32,9 @@ package Non_ASCII is
    --EMACSCMD:(progn (forward-line -1)(forward-word) (nth 2 (wisi-prj-identifier-at-point (project-current))))
    --EMACSRESULT: "π_non"
 
-   --  Uppercase pi; auto-casing works for non-ASCII
+   -- Uppercase pi; test auto-casing for non-ASCII
+   --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(downcase-word 3)(wisi-case-adjust)(let ((case-fold-search nil))(looking-back "Π_Upper_Non")))
+   --EMACSRESULT: t
    Π_Upper_Non : constant := 3.14159;
    --EMACSCMD:(progn (forward-line -1)(forward-word) (nth 2 (wisi-prj-identifier-at-point (project-current))))
    --EMACSRESULT: "Π_Upper_Non"

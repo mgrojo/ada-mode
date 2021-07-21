@@ -761,7 +761,6 @@ previously set by a file navigation command."
 	  (setq done t)))
       (when found
 	(goto-char found)
-	;; different parsers find different points on the line; normalize here
 	(back-to-indentation))
       (setq ff-function-name nil))))
 
@@ -1509,16 +1508,9 @@ For `wisi-indent-calculate-functions'.
 	 ))
       )))
 
-(defun ada-wisi-post-parse-fail ()
-  "For `wisi-post-parse-fail-hook'."
-  ;; Parse indent succeeded, so we assume parse navigate will as well
-  (wisi-validate-cache (point-min) (line-end-position) nil 'navigate)
-  (save-excursion
-    (let ((start-cache (wisi-goto-start (or (wisi-get-cache (point)) (wisi-backward-cache)))))
-      (when start-cache
-	;; nil when in a comment at point-min
-	(indent-region (point) (wisi-cache-end start-cache)))
-      ))
+(defun ada-wisi-post-indent-fail ()
+  "For `wisi-post-indent-fail-hook'."
+  (wisi-indent-statement)
   (back-to-indentation))
 
 (defun ada-find-file ()
@@ -1667,7 +1659,7 @@ Prompts with completion, defaults to filename at point."
 
   (wisi-setup
    :indent-calculate '(ada-wisi-comment)
-   :post-indent-fail 'ada-wisi-post-parse-fail
+   :post-indent-fail 'ada-wisi-post-indent-fail
    :parser
    (wisi-process-parse-get
     (make-ada-wisi-parser

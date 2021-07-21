@@ -3,7 +3,7 @@ with Ada.Finalization;
 with Ada.Streams;
 package Access_In_Record is
 
-   --  Indenting (A'Access) gives "wisi-indent-line: Wrong type argument: number-or-marker-p, nil"
+   --  Indenting (A'Access) used to give an error
    type A
       is new Ada.Streams.Root_Stream_Type with record
          Finalizer : A_Finalizer

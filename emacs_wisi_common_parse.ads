@@ -22,7 +22,7 @@ with Ada.Strings.Unbounded;
 with System;
 with Wisi;
 with WisiToken.Parse;
-with Wisi_Parse_Context;
+with Wisi.Parse_Context;
 package Emacs_Wisi_Common_Parse is
 
    Protocol_Version : constant String := "6";
@@ -50,6 +50,7 @@ package Emacs_Wisi_Common_Parse is
    procedure Usage (Name : in String);
 
    procedure Read_Input (A : System.Address; N : Integer);
+   --  Read N bytes from standard_input to A.
 
    function Get_Command_Length return Integer;
 
@@ -66,7 +67,7 @@ package Emacs_Wisi_Common_Parse is
      (Name                      : in     String;
       Language_Protocol_Version : in     String;
       Params                    : in     Process_Start_Params;
-      Language                  : in     Wisi_Parse_Context.Language);
+      Language                  : in     Wisi.Parse_Context.Language);
 
    ----------
    --  Parse command
@@ -110,8 +111,7 @@ package Emacs_Wisi_Common_Parse is
          --  Emacs convention; End is after last char
 
          Begin_Line : WisiToken.Line_Number_Type;
-         End_Line   : WisiToken.Line_Number_Type;
-         --  Line number of line containing Begin_Byte_Pos, End_Byte_Pos
+         --  Line containing Begin_Byte_Pos
 
          Begin_Indent : Integer;
          --  Indentation of Line_Begin
@@ -123,12 +123,13 @@ package Emacs_Wisi_Common_Parse is
 
       when Full =>
          Full_End_Char_Pos : WisiToken.Buffer_Pos; -- Emacs convention; after last char
-         Full_End_Line     : WisiToken.Line_Number_Type;
 
       end case;
    end record;
 
    function Get_Parse_Params (Command_Line : in String; Last : in out Integer) return Parse_Params;
+   --  Raise Protocol_Error if, after processing Command_Line, Last /=
+   --  Command_Line'Last.
 
    ----------
    --  Post-Parse command
@@ -149,12 +150,14 @@ package Emacs_Wisi_Common_Parse is
    end record;
 
    function Get_Post_Parse_Params (Command_Line : in String; Last : in out Integer) return Post_Parse_Params;
+   --  Raise Protocol_Error if, after processing Command_Line, Last /=
+   --  Command_Line'Last.
 
    ----------
    --  Refactor command
 
    type Refactor_Params is record
-      Refactor_Action  : Positive; -- Language-specific
+      Refactor_Action  : Wisi.Refactor_Action; -- Language-specific
       Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
 
       Edit_Begin : WisiToken.Buffer_Pos;

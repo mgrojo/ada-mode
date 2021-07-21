@@ -196,14 +196,14 @@ is the package spec.")
 
 ;;;; refactor
 
-;; Refactor actions; must match wisi-ada.adb Refactor
-(defconst ada-refactor-method-object-to-object-method 1)
-(defconst ada-refactor-object-method-to-method-object 2)
+;; Refactor actions; must match wisi-ada.adb Refactor_Label
+(defconst ada-refactor-method-object-to-object-method 0)
+(defconst ada-refactor-object-method-to-method-object 1)
 
-(defconst ada-refactor-element-object-to-object-index 3)
-(defconst ada-refactor-object-index-to-element-object 4)
+(defconst ada-refactor-element-object-to-object-index 2)
+(defconst ada-refactor-object-index-to-element-object 3)
 
-(defconst ada-refactor-format-paramlist 5)
+(defconst ada-refactor-format-paramlist 4)
 
 (defun ada-refactor (action)
   "Perform refactor action ACTION on symbol at point."
@@ -305,7 +305,9 @@ PARSE-RESULT must be the result of `syntax-ppss'."
     ;; In parens.
     (cond
      (wisi-incremental-parse-enable
-      (eq 'formal_part (wisi-parse-tree-query wisi--parser 'nonterm (nth 1 parse-result)))
+      ;; FIXME: need wisi-prj-tree-query or similar to hide wisi--parser?
+      (save-excursion
+	(eq 'formal_part (wisi-parse-tree-query wisi--parser 'nonterm (nth 1 parse-result))))
       )
 
      (t ;; not incremental parse
@@ -327,7 +329,7 @@ PARSE-RESULT must be the result of `syntax-ppss'."
 (defun ada-format-paramlist ()
   "Reformat the parameter list point is in."
   (interactive)
-  (condition-case nil
+  (condition-case-unless-debug nil
       (wisi-goto-open-paren)
     (error
      (user-error "Not in parameter list")))
@@ -517,20 +519,18 @@ extend a with_clause to include CHILD-NAME."
   (interactive)
   (wisi-goto-statement-start)
   ;; point is at start of subprogram specification;
-  ;; wisi-parse-expand-region will find the terminal semicolon.
   (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
   (let* ((begin (point))
-	 (end (wisi-cache-end (wisi-get-cache (point))))
+	 (end (wisi-cache-end (wisi-get-cache (point))));; point is before terminal ';'
 	 (name (wisi-next-name)))
     (goto-char end)
-    (newline)
-    (insert " is begin\n\nend ");; legal syntax; parse does not fail
+    (insert "\nis begin\n\nend ")
     (insert name)
     (forward-char 1)
 
     ;; newline after body to separate from next body
-    (newline-and-indent)
+    (newline)
     (indent-region begin (point))
     (forward-line -2)
     (back-to-indentation)

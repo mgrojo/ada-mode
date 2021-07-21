@@ -2,7 +2,7 @@
 --
 --  Test partial parser
 --
---  Copyright (C) 2019 - 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -136,7 +136,7 @@ begin
 
    -- blank line before "end"
    --EMACSCMD:(progn (forward-line 3)(wisi-indent-line)(back-to-indentation)(current-column))
-   --EMACSRESULT: 3
+   --EMACSRESULT: (if wisi-incremental-parse-enable 3 6)
 
 
 end Ada_Mode.Partial_Parse;

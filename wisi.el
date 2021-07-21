@@ -505,15 +505,16 @@ Each element is
  INSERT-END-BYTE-POS INSERT-END-CHAR-POSS
  DELETED-BYTE-COUNT DELETED-CHAR-COUNT INSERTED-TEXT)")
 
-(defvar-local wisi--deleted-bytes 0
-  "Cached count of bytes deleted.
-Set by `wisi-before-change', used by 'wisi-after-change'")
+(defvar-local wisi--affected-text 0
+  "Cached text of range passed to `wisi-before-change',
+used by `wisi-after-change' to get byte, char count of actual
+deleted range.")
 
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
   ;; begin . (1- end) is range of text being deleted
   (when wisi-incremental-parse-enable
-    (setq wisi--deleted-bytes (string-bytes (buffer-substring-no-properties begin end))))
+    (setq wisi--affected-text (buffer-substring-no-properties begin end)))
 
   (unless wisi-indenting-p
     ;; We set wisi--change-beg, -end even if only inserting, so we
@@ -560,10 +561,20 @@ Set by `wisi-before-change', used by 'wisi-after-change'")
   ;; refontified consistently.
 
   (when wisi-incremental-parse-enable
-    (push
-     (list (position-bytes begin) begin (position-bytes end) end wisi--deleted-bytes length
-	   (buffer-substring-no-properties begin end))
-     wisi--changes))
+    ;; Sometimes length disagrees with (begin end) passed to
+    ;; wisi-before-change. For example, for 'downcase-word applied to
+    ;; "First", before-change (begin end) is entire word, but
+    ;; after-change length is 1, because only the F is actually
+    ;; replaced.
+    ;;
+    ;;  FIXME: let parser compute char or byte length, to avoid
+    ;;  caching lots of text here.
+    (let ((deleted (substring wisi--affected-text 0 length)))
+      (push
+       (list (position-bytes begin) begin (position-bytes end) end
+	     (string-bytes deleted) length
+	     (buffer-substring-no-properties begin end))
+       wisi--changes)))
 
   (let (word-begin word-end)
     (save-excursion
@@ -1236,21 +1247,27 @@ the comment on the previous line."
 (defun wisi-indent-statement ()
   "Indent region given by `wisi-goto-start', `wisi-cache-end'."
   (interactive)
-  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (if wisi-incremental-parse-enable
+      (let ((containing (wisi-parse-tree-query wisi--parser 'containing-statement (point))))
+	(when containing
+	  (indent-region (car (nth 1 containing)) (cdr (nth 1 containing)))))
 
-  (save-excursion
-    (let ((cache (or (wisi-get-cache (point))
-		     (wisi-backward-cache))))
-      (when cache
-	;; can be nil if in header comment
-	(let ((start (progn (wisi-goto-start cache) (point)))
-	      (end (if (wisi-cache-end cache)
+    ;; else partial parse.
+    (wisi-validate-cache (point-min) (point-max) t 'navigate)
+
+    (save-excursion
+      (let ((cache (or (wisi-get-cache (point))
+		       (wisi-backward-cache))))
+	(when cache
+	  ;; can be nil if in header comment
+	  (let ((start (progn (wisi-goto-start cache) (point)))
+		(end (if (wisi-cache-end cache)
 			 ;; nil when cache is statement-end
 			 (marker-position (wisi-cache-end cache))
 		       (point))))
-	  (indent-region start end)
-	  ))
-      )))
+	    (indent-region start end)
+	    ))
+	))))
 
 (defun wisi-indent-containing-statement ()
   "Indent region given by `wisi-goto-containing-statement-start', `wisi-cache-end'."
@@ -1281,11 +1298,12 @@ indentation column, or nil if function does not know how to
 indent that line. Run after parser indentation, so other lines
 are indented correctly.")
 
-(defvar-local wisi-post-indent-fail-hook
+(defvar-local wisi-post-indent-fail-hook nil
   "Function to reindent portion of buffer.
-Called from `wisi-indent-region' when a parse succeeds after
-failing; assumes user was editing code that is now syntactically
-correct. Must leave point at indentation of current line.")
+Called from `wisi-indent-region' with no args when a parse
+succeeds after failing; assumes user was editing code that is now
+syntactically correct. Must leave point at indentation of current
+line.")
 
 (defvar-local wisi-indent-failed nil
   "Non-nil when indent fails due to parse fail.
@@ -1337,11 +1355,20 @@ for parse errors. BEGIN, END is the parsed region."
 		(when (>= (point) (wisi--parse-error-repair-pos repair))
 		  (setq indent (max 0 (wisi-parse-adjust-indent wisi--parser indent repair))))
 		))))
-      ;; parse did not compute indent for point. Assume the error will
-      ;; go away soon as the user edits the code, so just return 0.
-      (if (= wisi-debug 0)
-	  (setq indent 0)
-	(error "error: nil indent for line %d" (line-number-at-pos (point)))))
+
+      ;; parse did not compute indent for point.
+      (cond
+       ((= (point) (point-max))
+	;; point-max is after the last char, so the parser does not compute indent
+	(setq indent 0))
+
+       ((= wisi-debug 0)
+	;; Assume the error will go away soon as the user edits the
+	;; code, so just return 0.
+	(setq indent 0))
+
+       (t ;; wisi-debug > 0
+	(error "error: nil indent for line %d" (line-number-at-pos (point))))))
 
     indent))
 
@@ -1357,7 +1384,8 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 
     (let ((parse-required nil)
 	  (end-mark (copy-marker end))
-	  (prev-indent-failed wisi-indent-failed))
+	  (prev-indent-failed wisi-indent-failed)
+	  (done nil))
 
       (when (< 0 wisi-debug)
 	(message "wisi-indent-region %d %d"
@@ -1372,13 +1400,13 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	(setq begin (line-beginning-position))
 
 	(when (bobp) (forward-line))
-	(while (and (not parse-required)
-		    (or (and (= begin end) (= (point) end))
-			(< (point) end))
-		    (not (eobp)))
+	(while (not done)
 	  (unless (get-text-property (1- (point)) 'wisi-indent)
 	    (setq parse-required t))
-	  (forward-line))
+	  (setq done (or parse-required (eobp)))
+	  (unless done (forward-line))
+	  (setq done (or done (>= (point) end)))
+	  )
 	)
 
       ;; A parse either succeeds and sets the indent cache on all
@@ -1447,7 +1475,7 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	    ;; ambiguous, this one is not.
 	    (goto-char end-mark)
 	    (when (< 0 wisi-debug)
-	      (message "wisi-indent-region post-parse-fail-hook"))
+	      (message "wisi-indent-region wisi-post-indent-fail-hook"))
 	    (run-hooks 'wisi-post-indent-fail-hook))
 	  ))
       )))
@@ -1460,6 +1488,11 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
     (when (>= (point) savep)
       (setq to-indent t))
 
+    ;; (1+ line-end-pos) is needed to compute indent for a line. It
+    ;; can exceed (point-max); the parser must be able to handle that.
+    ;;
+    ;; IMPROVEME: change parser 'indent' action to take lines, not
+    ;; buffer positions.
     (wisi-indent-region (line-beginning-position (1+ (- wisi-indent-context-lines))) (1+ (line-end-position)) t)
 
     (goto-char savep)
@@ -1758,7 +1791,13 @@ where the car is a list (FILE LINE COL)."
   ;; until actually need full parse.
   (when wisi-incremental-parse-enable
     (message "parsing buffer ...")
-    (wisi-parse-incremental wisi--parser t)
+    (condition-case-unless-debug err
+	(wisi-parse-incremental wisi--parser t)
+      (wisi-parse-error
+       (setq wisi-parse-failed t)
+       (when (> wisi-debug 0)
+	 (signal (car err) (cdr err)))
+       ))
     (message "parsing buffer ... done")
     ))
 

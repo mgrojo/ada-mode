@@ -1,6 +1,6 @@
 ;;; wisi-skel.el --- Extensions skeleton  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987, 1993, 1994, 1996-2020  Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1993, 1994, 1996-2021  Free Software Foundation, Inc.
 
 ;; Authors: Stephen Leake <stephen_leake@stephe-leake.org>
 
@@ -192,7 +192,7 @@ before that as the token."
   (skip-syntax-backward "^!"))
 
 ;;;###autoload
-(add-hook 'skeleton-end-hook #'wisi-skel-enable-parse -90)
+(add-hook 'skeleton-end-hook #'wisi-skel-enable-parse 90)
 
 (provide 'wisi-skel)
 ;;; wisi-skel.el ends here

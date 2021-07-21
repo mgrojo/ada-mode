@@ -27,6 +27,6 @@ begin
                null;
 
          end case;
-      end loop;
+   end loop;
 
 end Ada_Mode.Recover_Extra_Declare;
