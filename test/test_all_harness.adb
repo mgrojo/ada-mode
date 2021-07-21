@@ -2,7 +2,7 @@
 --
 --  Run all AUnit tests for SAL.
 --
---  Copyright (C) 2003 - 2009, 2012, 2015 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2003 - 2009, 2012, 2015 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -24,6 +24,7 @@ with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with SAL.CSV.Test;
@@ -58,7 +59,7 @@ is
    --  1         2         3            4
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
-   --  routine_name can be '' to set trace or cost for all routines.
+   --  test_name, routine_name can be ''
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
    Trace  : Integer;
@@ -85,21 +86,11 @@ begin
          null;
 
       when 2 =>
-         Filter.Set_Name (Argument (2));
+         Filter.Test_Name := To_Unbounded_String (Argument (2));
 
       when others =>
-         declare
-            Test_Name    : String renames Argument (2);
-            Routine_Name : String renames Argument (3);
-         begin
-            if Test_Name = "" then
-               Filter.Set_Name (Routine_Name);
-            elsif Routine_Name = "" then
-               Filter.Set_Name (Test_Name);
-            else
-               Filter.Set_Name (Test_Name & " : " & Routine_Name);
-            end if;
-         end;
+         Filter.Test_Name    := To_Unbounded_String (Argument (2));
+         Filter.Routine_Name := To_Unbounded_String (Argument (3));
       end case;
       Trace := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
    end;
