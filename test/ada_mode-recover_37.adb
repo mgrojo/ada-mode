@@ -5,16 +5,18 @@
 
 --EMACSCMD:(setq skip-recase-test t)
 
+-- We get different indent results from partial and incremental parse;
+--EMACSCMD:(setq skip-reindent-test (not wisi-incremental-parse-enable))
 procedure Update_Containing_Nonterms (Modified_Token_Index : in WisiToken.Token_Index)
 is
-     --  recover inserts 'procedure <identifier> (' here.
-     Node : in     Valid_Node_Index)
+   -- Missing 'procedure Process_Node ('.
+   Node : in     Valid_Node_Index)
    is begin
-      if Tree.Max_Terminal_Index (Node) = Modified_Token_Index then
-      --  recover inserts 'end if;' after 'then'
+            if Tree.Max_Terminal_Index (Node) = Modified_Token_Index then
+      -- Missing 'end if;'
    end Process_Node;
 
-begin
+   begin
 
 end Update_Containing_Nonterms;
 -- Local Variables:

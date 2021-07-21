@@ -1,7 +1,5 @@
 -- Example from real code.
---
---EMACS_SKIP_UNLESS: (eq ada-parser 'process)
---EMACSCMD:(setq skip-recase-test t)
+
 package body Ada_Mode.Recover_24 is
 
    function Fast_Forward return Non_Success_Status
@@ -26,11 +24,12 @@ package body Ada_Mode.Recover_24 is
       end if;
 
       end;
-      end loop;
-         return Abandon;
-   end Fast_Forward;
+end loop;
+return Abandon;
+end Fast_Forward;
 
 end Ada_Mode.Recover_24;
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1
+-- ada-end-name-optional: nil
 -- End:

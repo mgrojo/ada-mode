@@ -1,6 +1,11 @@
---  Recover fails with ENQUEUE_LIMIT if mckenzie_task_count = 8.
+-- Recover fails with ENQUEUE_LIMIT even if mckenzie_task_count = 8.
+-- Handle that cleanly (don't signal errors if wisi-debug = 0).
+
+--EMACSCMD:(setq wisi-debug 0)
+
 pragma License (Modified_Gpl);
 
+--EMACSCMD:(setq skip-reindent-test t)
 package body Wisitoken.Parse is
 
    procedure Edit_Tree

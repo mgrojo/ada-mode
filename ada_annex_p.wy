@@ -179,12 +179,11 @@ tick : TICK_1 | TICK_2 ;
 %mckenzie_cost_default 4 3 2 2
 %mckenzie_minimal_complete_cost_delta -3
 
-;; END is cheaper, because it always requires at least one other
-;; keyword to follow.
+;; END is cheaper, because needing to insert it is a common case.
 %mckenzie_cost_insert END 3
 
-;; make inserting an expression to finish a production cheap; see
-;; test/ada_mode-recover_41.adb.
+;; make inserting an expression or statement to finish a production
+;; cheap; see test/ada_mode-recover_41.adb
 %mckenzie_cost_insert IDENTIFIER 2
 
 ;; Ada 2020 syntax caused a drastic increase in recursion, which
@@ -193,6 +192,10 @@ tick : TICK_1 | TICK_2 ;
 ;; test/ada_mode-recover_partial_26.
 %mckenzie_cost_insert SEMICOLON 3
 %mckenzie_cost_insert EQUAL_GREATER 3
+
+;; Make RENAMES more expensive, since object declarations are more
+;; common than renames; ada_mode-recover_13.adb
+%mckenzie_cost_insert RENAMES 7
 
 ;; This cost is applied once, independent of token count.
 ;; test/ada_mode-recover_40.adb requires cost < 3, so insert 'if

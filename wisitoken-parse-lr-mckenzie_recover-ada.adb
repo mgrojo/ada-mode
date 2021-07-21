@@ -1005,7 +1005,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          end if;
 
       elsif To_Token_Enum (Tree.ID (Config.Error_Token)) in
-        IDENTIFIER_ID | CASE_ID | IF_ID | LOOP_ID | RECORD_ID | RETURN_ID | SELECT_ID  and
+        IDENTIFIER_ID | CASE_ID | IF_ID | LOOP_ID | RECORD_ID | RETURN_ID | SELECT_ID and
         Tree.ID (Config.Stack.Peek.Token) = +END_ID
       then
          --  We've encountered a token after 'end' when expecting a
@@ -1027,107 +1027,149 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --
          --  c: There is a missing 'end <name>;' before the 'end'
          --
+         --  d: There is a missing matching component_statement start
+         --
          --  We can't reliably distinguish between a: and b:, so we do both. c:
-         --  is distinquished by the minimal action being 'reduce to name'.
-         declare
-            End_ID_Actions : constant Minimal_Action_Arrays.Vector := Parse_Table.States
-              (Config.Stack.Peek.State).Minimal_Complete_Actions;
-         begin
-            if End_ID_Actions.Length /= 1 then
-               null;
+         --  is distinquished by the minimal action being 'reduce to name'. d:
+         --  is distinguished by searching for an open matching
+         --  component_statement start.
 
-            else
-               declare
-                  New_Config : Configuration := Config;
-               begin
-                  New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
-
-                  New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
-
-                  Push_Back_Check (Super, New_Config, +END_ID);
-
-                  case End_ID_Actions (End_ID_Actions.First_Index).Verb is
-                  when Shift =>
-                     --  case a or b
-
-                     --  Inserting the end keyword and semicolon here avoids the costs added by
-                     --  Insert_Minimal_Complete_Actions.
-                     Insert
-                       (Tree, New_Config, (+END_ID, End_ID_Actions (End_ID_Actions.First_Index).ID, +SEMICOLON_ID));
-
-                     Local_Config_Heap.Add (New_Config);
-                     if Trace_McKenzie > Detail then
-                        Put ("Language_Fixes " & "wrong end keyword a", New_Config);
-                     end if;
-
-                  when Reduce =>
-                     --  case c: ada_mode-recover_39.adb. We don't try to insert a matching
-                     --  name, because the name check is skipped for virtual tokens.
-                     Insert (Tree, New_Config, (+END_ID, +SEMICOLON_ID));
-
-                     Local_Config_Heap.Add (New_Config);
-                     if Trace_McKenzie > Detail then
-                        Put ("Language_Fixes " & "wrong end keyword c", New_Config);
-                     end if;
-
-                  end case;
-               exception
-               when Bad_Config =>
-                  null;
-               end;
-
-               if To_Token_Enum (Tree.ID (Config.Error_Token)) = IDENTIFIER_ID then
+         if Tree.ID (Config.Error_Token) /= +IDENTIFIER_ID then
+            declare
+               Error_Token_ID : constant Token_ID := Tree.ID (Config.Error_Token);
+               Found : constant Boolean := Find_ID (Tree, Config, Error_Token_ID);
+            begin
+               if not Found then
+                  --  case d. ada_mode-recover_extra_end_loop.adb
                   declare
-                     Label      : constant String := "wrong end keyword b";
-                     New_Config : aliased Configuration   := Config;
+                     New_Config : aliased Configuration := Config;
+                  begin
+                     New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
 
-                     function Get_End_Name return String
-                     is
-                        use Standard.Ada.Strings.Unbounded;
-                        Result : Unbounded_String := +Tree.Lexer.Buffer_Text
-                          (Tree.Byte_Region (New_Config.Error_Token));
+                     New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
+                     --  We could push_back 'end' and insert a matching start, but it's
+                     --  simpler to delete 'end <keyword> ;'
+                     Push_Back (Super, New_Config); -- END_ID
+                     declare
                         Peek_State : Peek_Sequential_State := Peek_Sequential_Start (Tree, New_Config);
                      begin
-                        pragma Assert
-                          (Tree.ID (New_Config.Error_Token) = Tree.ID (Peek_Sequential_Terminal (Peek_State)));
-                        loop
-                           Peek_Next_Sequential_Terminal (Tree, Peek_State);
-                           exit when Peek_Sequential_Terminal (Peek_State) = Invalid_Node_Access;
-                           exit when -Tree.ID (Peek_Sequential_Terminal (Peek_State)) not in IDENTIFIER_ID | DOT_ID;
-                           Result := Result & Tree.Lexer.Buffer_Text
-                             (Tree.Byte_Region (Peek_Sequential_Terminal (Peek_State)));
-                        end loop;
-                        return -Result;
-                     end Get_End_Name;
+                        Delete_Check (Tree, New_Config, Peek_State, +END_ID);
+                        Delete_Check (Tree, New_Config, Peek_State, Error_Token_ID);
+                        Delete_Check (Tree, New_Config, Peek_State, +SEMICOLON_ID);
+                     end;
+                     Local_Config_Heap.Add (New_Config);
+                     if Trace_McKenzie > Detail then
+                        Put ("Language_Fixes " & "insert matching start keyword", New_Config);
+                     end if;
+                  end;
 
-                     End_Name            : constant String := Get_End_Name;
-                     Matching_Name_Index : SAL.Peek_Type   := 2; -- start search before 'end'
-
+               else
+                  declare
+                     End_ID_Actions : constant Minimal_Action_Arrays.Vector := Parse_Table.States
+                       (Config.Stack.Peek.State).Minimal_Complete_Actions;
                   begin
-                     Find_Matching_Name (Config, Tree, End_Name, Matching_Name_Index, Case_Insensitive => True);
-
-                     if Matching_Name_Index < Config.Stack.Depth then
-                        --  Matching name found, don't delete Error_Token
+                     if End_ID_Actions.Length /= 1 then
                         null;
+
                      else
-                        New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+                        declare
+                           New_Config : Configuration := Config;
+                        begin
+                           New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
 
-                        Delete_Check (Tree, New_Config, Tree.ID (Config.Error_Token));
+                           New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
-                        New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
+                           Push_Back_Check (Super, New_Config, +END_ID);
 
-                        Local_Config_Heap.Add (New_Config);
-                        if Trace_McKenzie > Detail then
-                           Put ("Language_Fixes " & Label, New_Config);
+                           case End_ID_Actions (End_ID_Actions.First_Index).Verb is
+                           when Shift =>
+                              --  case a or b
+
+                              --  Inserting the end keyword and semicolon here avoids the costs added by
+                              --  Insert_Minimal_Complete_Actions.
+                              Insert
+                                (Tree, New_Config,
+                                 (+END_ID, End_ID_Actions (End_ID_Actions.First_Index).ID, +SEMICOLON_ID));
+
+                              Local_Config_Heap.Add (New_Config);
+                              if Trace_McKenzie > Detail then
+                                 Put ("Language_Fixes " & "wrong end keyword a", New_Config);
+                              end if;
+
+                           when Reduce =>
+                              --  case c: ada_mode-recover_39.adb. We don't try to insert a matching
+                              --  name, because the name check is skipped for virtual tokens.
+                              Insert (Tree, New_Config, (+END_ID, +SEMICOLON_ID));
+
+                              Local_Config_Heap.Add (New_Config);
+                              if Trace_McKenzie > Detail then
+                                 Put ("Language_Fixes " & "wrong end keyword c", New_Config);
+                              end if;
+
+                           end case;
+                        exception
+                        when Bad_Config =>
+                           null;
+                        end;
+
+                        if To_Token_Enum (Error_Token_ID) = IDENTIFIER_ID then
+                           declare
+                              Label      : constant String := "wrong end keyword b";
+                              New_Config : aliased Configuration   := Config;
+
+                              function Get_End_Name return String
+                              is
+                                 use Standard.Ada.Strings.Unbounded;
+                                 Result : Unbounded_String := +Tree.Lexer.Buffer_Text
+                                   (Tree.Byte_Region (New_Config.Error_Token));
+                                 Peek_State : Peek_Sequential_State := Peek_Sequential_Start (Tree, New_Config);
+                              begin
+                                 pragma Assert
+                                   (Tree.ID (New_Config.Error_Token) = Tree.ID (Peek_Sequential_Terminal (Peek_State)));
+                                 loop
+                                    Peek_Next_Sequential_Terminal (Tree, Peek_State);
+                                    exit when Peek_Sequential_Terminal (Peek_State) = Invalid_Node_Access;
+                                    exit when -Tree.ID (Peek_Sequential_Terminal (Peek_State)) not in
+                                      IDENTIFIER_ID | DOT_ID;
+                                    Result := Result & Tree.Lexer.Buffer_Text
+                                      (Tree.Byte_Region (Peek_Sequential_Terminal (Peek_State)));
+                                 end loop;
+                                 return -Result;
+                              end Get_End_Name;
+
+                              End_Name            : constant String := Get_End_Name;
+                              Matching_Name_Index : SAL.Peek_Type   := 2; -- start search before 'end'
+
+                           begin
+                              Find_Matching_Name
+                                (Config, Tree, End_Name, Matching_Name_Index, Case_Insensitive => True);
+
+                              if Matching_Name_Index < Config.Stack.Depth then
+                                 --  Matching name found, don't delete Error_Token
+                                 null;
+                              else
+                                 New_Config.Strategy_Counts (Language_Fix) := @ + 1;
+
+                                 Delete_Check (Tree, New_Config, Error_Token_ID);
+
+                                 New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
+
+                                 Local_Config_Heap.Add (New_Config);
+                                 if Trace_McKenzie > Detail then
+                                    Put ("Language_Fixes " & Label, New_Config);
+                                 end if;
+                              end if;
+                           exception
+                           when Bad_Config =>
+                              null;
+                           end;
                         end if;
                      end if;
-                  exception
-                  when Bad_Config =>
-                     null;
                   end;
                end if;
-            end if;
-         end;
+            end;
+         end if;
 
       elsif To_Token_Enum (Tree.ID (Config.Error_Token)) in PRAGMA_ID | USE_ID and
         Tree.ID (Config.Stack.Peek.Token) = +BEGIN_ID

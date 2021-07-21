@@ -1298,11 +1298,12 @@ indentation column, or nil if function does not know how to
 indent that line. Run after parser indentation, so other lines
 are indented correctly.")
 
-(defvar-local wisi-post-indent-fail-hook
+(defvar-local wisi-post-indent-fail-hook nil
   "Function to reindent portion of buffer.
-Called from `wisi-indent-region' when a parse succeeds after
-failing; assumes user was editing code that is now syntactically
-correct. Must leave point at indentation of current line.")
+Called from `wisi-indent-region' with no args when a parse
+succeeds after failing; assumes user was editing code that is now
+syntactically correct. Must leave point at indentation of current
+line.")
 
 (defvar-local wisi-indent-failed nil
   "Non-nil when indent fails due to parse fail.

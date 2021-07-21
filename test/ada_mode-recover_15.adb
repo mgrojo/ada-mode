@@ -1,7 +1,5 @@
---  From a real editing session; recover used to fail, now finds good solution quickly.
-
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
---EMACSCMD:(setq wisi-indent-region-fallback nil)
+-- From a real editing session; recover used to fail, now finds good
+-- solution quickly.
 package body Wisitoken.Lr.Parser is
 
    overriding procedure Parse (Shared_Parser : aliased in out Lr.Parser.Parser)
@@ -47,3 +45,6 @@ package body Wisitoken.Lr.Parser is
       end Parse;
 
 end Wisitoken.Lr.Parser;
+-- Local Variables:
+-- ada-end-name-optional: nil
+-- End:

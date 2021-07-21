@@ -277,16 +277,20 @@ package body Wisi is
             Line_Begin_Char_Pos : Base_Buffer_Pos :=
               (if Line = Line_Number_Type'First
                then Buffer_Pos'First
-               else Base_Buffer_Pos'Last);
+               else Invalid_Buffer_Pos);
             Node : constant Syntax_Trees.Node_Access :=
               (if Line = Line_Number_Type'First
                then Syntax_Trees.Invalid_Node_Access
                else Tree.Find_New_Line (Line, Line_Begin_Char_Pos));
             pragma Unreferenced (Node);
          begin
-            if Debug_Mode and Ind > 100 then
-               --  This is better than hanging Emacs by returning a huge bogus indent.
-               raise SAL.Programmer_Error with "indent > 100";
+            if Debug_Mode then
+               if Ind > 100 then
+                  --  This is better than hanging Emacs by returning a huge bogus indent.
+                  raise SAL.Programmer_Error with "indent > 100";
+               elsif Line_Begin_Char_Pos = Invalid_Buffer_Pos then
+                  raise SAL.Programmer_Error with "Line_Begin_Char_Pos = Invalid_Buffer_Pos, line" & Line'Image;
+               end if;
             end if;
             Ada.Text_IO.Put_Line
               --  elisp doesn't need line number, but it is very helpful for debugging

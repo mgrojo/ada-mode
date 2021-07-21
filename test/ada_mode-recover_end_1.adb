@@ -3,7 +3,9 @@
 -- Compare to ada_mode-recover_end_2.adb; that has matching end names
 -- present.
 --
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+-- We get different indent results from partial and incremental parse;
+--EMACSCMD:(setq skip-reindent-test (not wisi-incremental-parse-enable))
+
 --EMACSCMD:(setq skip-recase-test t)
 package body Ada_Mode.Recover_End_1 is
    procedure Case_Example
@@ -17,8 +19,8 @@ package body Ada_Mode.Recover_End_1 is
    is begin
       if A > 0 then
          null;
-      --  end if;
-   end;
+         --  end if;
+      end;
 
    procedure Loop_Example
    is begin

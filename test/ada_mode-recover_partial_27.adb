@@ -1,5 +1,7 @@
 --  Used to get Fatal_Error: wisi-name-action: name set twice. Now fixed.
 
+-- We get different indent results from partial and incremental parse;
+--EMACSCMD:(setq skip-reindent-test (not wisi-incremental-parse-enable))
 function Child_Index
   (Tree      : in out Syntax_Trees.Tree;
    Parent    : in     Valid_Node_Index;
@@ -7,14 +9,14 @@ function Child_Index
   return Sal.Peek_Type
 is
    N : Node_Var_Ref renames Get_Node_Var_Ref (Tree, Parent);
-   begin
-      for I in N.Children.First_Index .. N.Children.Last_Index loop
-         if N.Children (I) = Child then
-            return I;
-         end if;
-      end loop;
-      raise Sal.Programmer_Error; -- Should be prevented by precondition on caller.
-   end Find_Child_Index;
+begin
+   for I in N.Children.First_Index .. N.Children.Last_Index loop
+      if N.Children (I) = Child then
+         return I;
+      end if;
+   end loop;
+   raise Sal.Programmer_Error; -- Should be prevented by precondition on caller.
+end Find_Child_Index;
 
 
 end Child_Index;

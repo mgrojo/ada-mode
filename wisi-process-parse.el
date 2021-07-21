@@ -865,8 +865,10 @@ one or more Query messages."
 		    (condition-case-unless-debug err
 			(wisi-process-parse--execute parser response)
 
-		      (error ;; ie from un-commented [C:\Windows\system32\KERNEL32.DLL], or bug in action code above.
-		       (error "elisp processing of post-parse message failed"))
+		      (error ;; from bug in action code above, or bad data from parser.
+		       (let ((msg (format "elisp processing of post-parse message '%s' failed" response)))
+			 (wisi-parse-log-message parser msg)
+			 (error msg)))
 		      ))
 		   )
 
@@ -1074,6 +1076,7 @@ one or more Query messages."
 	 (insert "file " source-file "\n")
 
 	 (insert "verbosity " verbosity "\n")
+	 (insert "save_text_auto debug_edited\n")
 
 	 (when (or (not (string-equal mckenzie_task_count "-1"))
 		   (not (string-equal mckenzie_zombie_limit "-1"))

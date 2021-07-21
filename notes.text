@@ -45,29 +45,28 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-;; run all tests non-incremental
-;;     test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
+%partial_recursion ;; FIXME: faster compile time while debugging
 
-;;     make -r one ELISP="(setq-default save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" wisi-process-time-out 10.0 save-edited-text \"debug_edited\")" ONE_TEST_FILES=ada_mode-recover_13.adb
+benchmark
 
-;;     review test.log
+do release of elpa head
 
-run all tests with incremental mode enabled
-    test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t wisi-process-time-out 10.0)"
+publish to elpa
+    doc how to use elpa HEAD
+    advertize on comp.lang.ada, ada-mode mailing list
 
-    one ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" wisi-process-time-out 10.0)" ONE_TEST_FILES=ada_mode-*.adb
 
-    two RUN_ARGS="command_file debug.cmd > debug.log"
+incremental parse rationale
+    have to compute absolute buffer_pos, line_number for tokens involved in post-parse action at some point
+        either shift all during edit_tree, or sum previous during action
 
-    *.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
+    store length in each token
+        plus trailing whitespace
+        to compute byte_region in post-parse, sum all previous nodes, and cache it
+            also cache in nonterms?
 
-    in debug.cmd:
-mckenzie_options task_count=1
-save_text_auto debug_edited
-verbosity debug=1 incremental=3
-verbosity debug=1 action=3
-verbosity debug=1 mckenzie=1 parse=2
-
+    shift approach avoids caching, but we already cache parent links
+    cache approach avoids computing nodes after region required for post-parse action => some gain in compute time
 
 
 Reset-parser only reset current file = delete parse_context
@@ -87,6 +86,7 @@ consider comments in recover?
 add test case for extra 'end;' that is later matched by user inserted 'begin;'
     'end;' deleted by error recovery in initial parse; correctly restored in final parse?
     mckenzie_recover use parser.deleted_nodes?
+    start with ada_mode-extra_end_loop.adb
 
 move wisi.change .. edit_source to wisi_parse_context
 
@@ -105,24 +105,31 @@ test/ada_mode-interactive_2.adb
         position in error message is wrong
             because set before Insert_Token changed it?
 
-change set_parents to be incremental?
+change set_parents to be incremental
     descend tree; if find a parent link, no need to descend that branch
     insert_token also needs to set parents?
 
 build/test.log
 
-benchmark
 
  after incremental
 test/mixed_unix_dos_line_ends.adb
-    cmd length computed wrong somewhere
-    coding conversion in send-string strips stray ^M
+      coding conversion in send-string strips stray ^M
         only in emacs 28?
         change to utf-8-emacs; still strips.
         write bug report
         change to use null-terminated string?
             then byte, char pos wrong.
             if emacs buffer contains null, it's not valid text (even less valid than stray ^M)
+
+initial parse first do partial parse on visible region, for faster fontification
+    also spawn a parser thread to run the full parse.
+    if more fontification is required before full parse done, do partial parse on the new visible region.
+
+    on file open:
+        start asynchronous full parse, and mark buffer read-only
+        if font-lock is requested while full parse is busy, call synchronous partial parse on the requested region
+        when full parse is done, clear read-only
 
 error recover fail:
    case Label is
@@ -755,6 +762,7 @@ support variable pitch fonts
 add wisi-forward-anchor, use for comments after 'is', 'when' in record type
 
  benchmarks:
+    FIXME: measure speed of small file
     update only in o.e.a
 
     build/Makefile
@@ -1042,6 +1050,7 @@ incremental parse
     in gnatcoll-xref.adb (7252 lines, 250 declarations):        0.057797 seconds
     in regulation-iflight.adb (11251 lines, 189 declarations):  0.098231 seconds
 
+
  wisi work
 
 disable or use electric-indent-post-self-insert-function
@@ -1108,6 +1117,12 @@ https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
 one ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
 
 RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" debug-on-error t)" ada_mode-interactive_2.adb.debug
+
+test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t wisi-process-time-out 10.0)"
+
+two RUN_ARGS="command_file debug.cmd > debug.log"
+
+    *.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
 
 in debug.cmd:
 mckenzie_options task_count=1

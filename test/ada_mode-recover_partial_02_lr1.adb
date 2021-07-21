@@ -10,6 +10,8 @@
 -- this must be after switch-to-lr1
 --EMACSCMD:(setq wisi-mckenzie-enqueue-limit (* 2 58000))
 
+-- We get different indent results from partial and incremental parse;
+--EMACSCMD:(setq skip-reindent-test (not wisi-incremental-parse-enable))
 begin
    for Error of Errors loop
       for Op of Error.Recover.Ops loop
@@ -25,4 +27,4 @@ begin
                      -- does not find that.
 
                      (not Data.Terminals (Op.Token_Index + 1).First))
-                     then
+                       then

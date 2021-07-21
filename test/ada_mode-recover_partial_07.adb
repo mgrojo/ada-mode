@@ -17,4 +17,5 @@ end if;
 end case;
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1
+-- wisi-debug: 0
 -- End:
