@@ -110,6 +110,8 @@ There are many grammars that can't be lexed correctly without a context provided
     support calling lexer from parser?
     messes with error recovery; still need sequential token_index during recovery and resume.
 
+See emacs hash_table for hash of bytes
+
 Nullable can be a boolean array
 
 auto_token_labels

@@ -283,10 +283,9 @@ generator.
 @code{repair_image} is used in error repair information; it should be
 inserted by an editor at the place of the expected but missing token.
 
-The meaning of @code{kind} is determined by the lexer
-(@code{re2c} ignores this), with the following defined by the
-WisiToken generator. Other token kinds have no effect; they may be
-used for documentation.
+The meaning of the following values of @code{kind} are defined by the
+WisiToken generator. Other token kinds may be used for documentation;
+they just declare a token name and regular expression.
 
 @table @code
 @item <string-double>
@@ -303,10 +302,39 @@ A string of characters that have string syntax, with single quote delimiters.
 
 @item <new-line>
 @verbatim
-%token <new-line> [\n] %[ ... ]%
+%token <new-line> NEW_LINE
 @end verbatim
-Not used by the wisi lexer; required by the Ada lexer. The third
-argument is the regular expression to recognize the entire comment.
+Counts as a new line for syntax tree @code{Line_Region}. The regular
+expression is provided by the generator; it matches either ASCII LF or
+ASCII CR LF (Unix or DOS line endings).
+
+@item <comment-new-line>
+@verbatim
+%token <comment-new-line> COMMENT "--"
+@end verbatim
+A comment terminated by a line end; counts as a new line for syntax
+tree @code{Line_Region}. The argument provides only the comment start
+- the rest of the regular expression is provided by the generator as
+for new-line.
+
+@item <comment-one-line>
+@verbatim
+%token <comment-one-line> PLACEHOLDER "{" "}"
+@end verbatim
+A comment terminated by a matching terminator or a line end. If it
+contains a line end, it counts as a new line for syntax tree
+@code{Line_Region}. The arguments provide the comment start and end -
+the rest of the regular expression is provided by the generator as for
+new-line. This is useful for syntax template placeholders.
+
+@item <delimited-text>
+@verbatim
+%token <delimited-text> RAW_CODE "%{" "}%"
+@end verbatim
+A token that contains arbitrary text, delimited by the two
+strings. The arguments provide the comment start and end - the rest of
+the regular expression is provided by the generator. This is treated
+as a comment; it can be used to declare block comments.
 
 @item <non-reporting>
 @verbatim
@@ -314,12 +342,6 @@ argument is the regular expression to recognize the entire comment.
 @end verbatim
 A token that is recognized by the lexer, but not returned to the
 parser.
-
-@item <delimited-text>
-@verbatim
-%token <delimited-text> RAW_CODE "%{" "}%"
-@end verbatim
-A token that contains arbitrary text, delimited by the two strings.
 
 @end table
 

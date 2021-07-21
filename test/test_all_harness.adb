@@ -26,6 +26,7 @@ with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line;
 with Ada.Exceptions;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Association_Grammar_Test;
 with Dragon_4_43_LR1_Test;
@@ -78,21 +79,12 @@ begin
          null;
 
       when 1 =>
-         Filter.Set_Name (Argument (1));
+         Filter.Test_Name := To_Unbounded_String (Argument (1)); -- test name only
 
       when 2 | 3 =>
-         declare
-            Test_Name    : String renames Argument (1);
-            Routine_Name : String renames Argument (2);
-         begin
-            if Test_Name = "" then
-               null;
-            elsif Routine_Name = "" then
-               Filter.Set_Name (Test_Name);
-            else
-               Filter.Set_Name (Test_Name & " : " & Routine_Name);
-            end if;
-         end;
+         Filter.Test_Name := To_Unbounded_String (Argument (1));
+         Filter.Routine_Name := To_Unbounded_String (Argument (2));
+
          if Argument_Count = 3 then
             WisiToken.Enable_Trace (Argument (3));
          end if;
