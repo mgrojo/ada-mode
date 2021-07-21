@@ -2,7 +2,7 @@
 --
 --  A generic bounded doubly linked list with definite elements; no dynamic memory.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -78,6 +78,10 @@ package SAL.Gen_Bounded_Definite_Doubly_Linked_Lists is
 
    function Next (Container : in List; Position : in Cursor) return Cursor
    with Pre => Has_Element (Position);
+
+   procedure Previous (Container : in List; Position : in out Cursor)
+   with Pre => Has_Element (Position);
+
    function Previous (Container : in List; Position : in Cursor) return Cursor
    with Pre => Has_Element (Position);
 
@@ -139,13 +143,13 @@ private
 
       Nodes     : Node_Array_Type (1 .. Size);
       Free_List : Index_Array (1 .. Size);
-      Free_Last : Base_Peek_Type := 0;
+      Free_Last : Base_Peek_Type := 0; --  Append raises Container_Full if user does not call Initialize.
 
       Count : Ada.Containers.Count_Type := 0;
    end record;
 
    type Cursor is record
-      Ptr : Base_Peek_Type; -- index of Node in List.Nodes
+      Ptr : Base_Peek_Type := Invalid_Peek_Index; -- index of Node in List.Nodes
    end record;
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is

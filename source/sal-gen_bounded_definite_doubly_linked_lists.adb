@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2020, 2021 Free Software Foundation, Inc.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -193,6 +193,19 @@ package body SAL.Gen_Bounded_Definite_Doubly_Linked_Lists is
          end if;
       end if;
    end Next;
+
+   procedure Previous (Container : in List; Position : in out Cursor)
+   is begin
+      if Position.Ptr = Invalid_Peek_Index then
+         return;
+      else
+         if Container.Nodes (Position.Ptr).Prev = Invalid_Peek_Index then
+            Position.Ptr := Invalid_Peek_Index;
+         else
+            Position.Ptr := Container.Nodes (Position.Ptr).Prev;
+         end if;
+      end if;
+   end Previous;
 
    function Previous (Container : in List; Position : in Cursor) return Cursor
    is begin

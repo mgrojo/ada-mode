@@ -99,6 +99,8 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
          return 0;
       elsif Container.Last = No_Index and Container.First = No_Index then
          return 0;
+      elsif Container.Last < Container.First then
+         return 0;
       else
          return Ada.Containers.Count_Type (To_Peek_Type (Container.Last) - To_Peek_Type (Container.First) + 1);
       end if;
