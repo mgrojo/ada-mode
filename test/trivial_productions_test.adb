@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2009-2010, 2012-2015, 2017 - 2020 Stephen Leake
+--  Copyright (C) 2009-2010, 2012-2015, 2017 - 2021 Stephen Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the WisiToken package.
@@ -45,18 +45,21 @@ package body Trivial_Productions_Test is
       type Token_Enum_ID is
         (
          --  Terminals
-         Symbol_ID, EOF_ID,
+         Symbol_ID, EOI_ID,
 
          --  Nonterminals
-         E_ID, F_ID, T_ID);
+         E_ID, F_ID, T_ID,
+
+         SOI_ID);
 
       package Token_Enum is new WisiToken.Gen_Token_Enum
         (Token_Enum_ID     => Token_Enum_ID,
          First_Terminal    => Symbol_ID,
-         Last_Terminal     => EOF_ID,
+         Last_Terminal     => EOI_ID,
          First_Nonterminal => E_ID,
          Last_Nonterminal  => T_ID,
-         EOF_ID            => EOF_ID,
+         SOI_ID            => SOI_ID,
+         EOI_ID            => EOI_ID,
          Accept_ID         => E_ID,
          Case_Insensitive  => False);
       use Token_Enum;
@@ -71,13 +74,13 @@ package body Trivial_Productions_Test is
          package Lexer renames WisiToken.Lexer.Regexp;
 
          Syntax : constant Lexer.Syntax := To_Syntax
-           ((EOF_ID    => Lexer.Get ("" & Ada.Characters.Latin_1.EOT),
+           ((EOI_ID    => Lexer.Get ("" & Ada.Characters.Latin_1.EOT),
              Symbol_ID => Lexer.Get ("symbol")));
 
          Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
          Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
-           E_ID <= T_ID & EOF_ID + Null_Action and
+           E_ID <= T_ID & EOI_ID + Null_Action and
            T_ID <= F_ID + Null_Action and
            F_ID <= Symbol_ID + Null_Action;
 
@@ -124,22 +127,25 @@ package body Trivial_Productions_Test is
          Symbol_ID,
          Left_Paren_ID,
          Right_Paren_ID,
-         EOF_ID,
+         EOI_ID,
 
          --  Nonterminal
          WisiToken_Accept_ID,
          Declarations_ID,
          Declaration_ID,
          Subprogram_ID,
-         Parameter_List_ID);
+         Parameter_List_ID,
+
+         SOI_ID);
 
       package Token_Enum is new WisiToken.Gen_Token_Enum
         (Token_Enum_ID     => Token_ID,
          First_Terminal    => Function_ID,
-         Last_Terminal     => EOF_ID,
+         Last_Terminal     => EOI_ID,
          First_Nonterminal => WisiToken_Accept_ID,
          Last_Nonterminal  => Parameter_List_ID,
-         EOF_ID            => EOF_ID,
+         SOI_ID            => SOI_ID,
+         EOI_ID            => EOI_ID,
          Accept_ID         => WisiToken_Accept_ID,
          Case_Insensitive  => False);
       use Token_Enum;
@@ -161,13 +167,13 @@ package body Trivial_Productions_Test is
              Procedure_ID   => Lexer.Get ("procedure"),
              Right_Paren_ID => Lexer.Get ("\)"),
              Symbol_ID      => Lexer.Get ("symbol"),
-             EOF_ID         => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
+             EOI_ID         => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
             ));
 
          Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
          Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
-           WisiToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and
+           WisiToken_Accept_ID <= Declarations_ID & EOI_ID + Null_Action and
            (Declarations_ID    <= Declaration_ID + Null_Action or
                                   Declarations_ID & Declaration_ID + Null_Action) and
            Declaration_ID      <= Subprogram_ID + Null_Action and

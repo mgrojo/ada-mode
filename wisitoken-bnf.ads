@@ -10,7 +10,7 @@
 --  [1] https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
 --  [2] http://www.nongnu.org/ada-mode/wisi/wisi-user_guide.html, (info "(wisi-user_guide)Top")
 --
---  Copyright (C) 2012 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -65,6 +65,8 @@ package WisiToken.BNF is
 
    type Generate_Algorithm_Set is array (Generate_Algorithm) of Boolean;
    type Generate_Algorithm_Set_Access is access Generate_Algorithm_Set;
+
+   function From_Generate_Env_Var return Generate_Algorithm_Set;
 
    type Output_Language is (Ada_Lang, Ada_Emacs_Lang);
    subtype Ada_Output_Language is Output_Language range Ada_Lang .. Ada_Emacs_Lang;
@@ -227,10 +229,6 @@ package WisiToken.BNF is
      (Ada.Strings.Unbounded.Unbounded_String, String_Pair_Type, Ada.Strings.Unbounded."<");
 
    type McKenzie_Recover_Param_Type is record
-      Source_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
-      --  Of the %mckenzie_cost_default declaration; we assume the others
-      --  are near.
-
       Default_Insert              : Natural                    := 0;
       Default_Delete_Terminal     : Natural                    := 0;
       Default_Push_Back           : Natural                    := 0; -- also default for undo_reduce
@@ -246,9 +244,9 @@ package WisiToken.BNF is
         WisiToken.Parse.LR.Default_McKenzie_Param.Matching_Begin;
       Ignore_Check_Fail           : Natural                    :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Ignore_Check_Fail;
-      Check_Limit                 : Syntax_Trees.Node_Index :=
+      Check_Limit                 : Syntax_Trees.Sequential_Index :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Check_Limit;
-      Zombie_Limit                : Syntax_Trees.Node_Index :=
+      Zombie_Limit                : Positive :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Zombie_Limit;
       Check_Delta_Limit           : Natural                    :=
         WisiToken.Parse.LR.Default_McKenzie_Param.Check_Delta_Limit;
@@ -308,9 +306,9 @@ package WisiToken.BNF is
       --  RHS modified by Translate_EBNF_To_BNF; RHS_Index 0 has all tokens
       --  unless Substituted_Token_List.
 
-      Action            : Ada.Strings.Unbounded.Unbounded_String;
-      Check             : Ada.Strings.Unbounded.Unbounded_String;
-      Source_Line       : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
+      Action      : Ada.Strings.Unbounded.Unbounded_String;
+      Check       : Ada.Strings.Unbounded.Unbounded_String;
+      Source_Line : WisiToken.Line_Number_Type := WisiToken.Line_Number_Type'First;
    end record;
    package RHS_Lists is new Ada.Containers.Doubly_Linked_Lists (RHS_Type, "=");
 

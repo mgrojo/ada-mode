@@ -2,7 +2,7 @@
 --
 --  AUnit checks for parent
 --
---  Copyright (C) 2017 - 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -73,24 +73,24 @@ package WisiToken.Parse.LR.AUnit is
 
       case Op is
       when Fast_Forward =>
-         FF_Token_Index : Syntax_Trees.Node_Index;
+         FF_Token_Index : Syntax_Trees.Sequential_Index;
 
       when Undo_Reduce =>
          Nonterm        : Token_ID;
          Token_Count    : Ada.Containers.Count_Type;
-         UR_Token_Index : Syntax_Trees.Node_Index;
+         UR_Token_Index : Syntax_Trees.Base_Sequential_Index;
 
       when Push_Back =>
          PB_ID          : Token_ID;
-         PB_Token_Index : Syntax_Trees.Node_Index;
+         PB_Token_Index : Syntax_Trees.Base_Sequential_Index;
 
       when Insert =>
          Ins_ID     : Token_ID;
-         Ins_Before : Syntax_Trees.Node_Index;
+         Ins_Before : Syntax_Trees.Sequential_Index;
 
       when Delete =>
          Del_ID          : Token_ID;
-         Del_Token_Index : Syntax_Trees.Node_Index;
+         Del_Token_Index : Syntax_Trees.Sequential_Index;
       end case;
    end record;
 
@@ -99,13 +99,11 @@ package WisiToken.Parse.LR.AUnit is
 
    procedure Check
      (Label    : in String;
-      Tree     : in Syntax_Trees.Tree;
       Computed : in Config_Op;
       Expected : in Test_Config_Op);
 
    procedure Check
      (Label    : in String;
-      Tree     : in Syntax_Trees.Tree;
       Computed : in Config_Op_Arrays.Vector;
       Expected : in Test_Config_Op_Arrays.Vector);
 

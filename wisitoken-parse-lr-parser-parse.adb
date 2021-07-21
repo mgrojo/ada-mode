@@ -19,6 +19,7 @@ overriding procedure Parse
    Recover_Log_File : in     Ada.Text_IO.File_Type;
    Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List)
 is
+   use Syntax_Trees;
    use all type KMN_Lists.List;
    use all type Ada.Strings.Unbounded.Unbounded_String;
    use all type Syntax_Trees.User_Data_Access;
@@ -37,60 +38,61 @@ begin
    if Shared_Parser.User_Data /= null then
       Shared_Parser.User_Data.Reset;
    end if;
+
+   Shared_Parser.Tree.Lexer.Errors.Clear;
    Shared_Parser.Wrapped_Lexer_Errors.Clear;
 
-   --  Line_Begin_Token, Line_Begin_Char_Pos, Last_Grammar_Node done by
-   --  Lex_All or Edit_Tree.
    Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
+   Shared_Parser.Min_Sequential_Index := Invalid_Stream_Node_Parents;
+   Shared_Parser.Max_Sequential_Index := Invalid_Stream_Node_Parents;
 
    if Edits /= KMN_Lists.Empty_List then
+      if not (Shared_Parser.Tree.Fully_Parsed or Shared_Parser.Tree.Editable) then
+         --  previous parse failed, left tree in uncertain state
+         raise WisiToken.Parse_Error with "previous parse failed, can't edit tree";
+      end if;
+
+      if Trace_Parse > Outline or Trace_Incremental_Parse > Outline then
+         Trace.New_Line;
+         Trace.Put_Line ("pre-edit tree:");
+         Shared_Parser.Tree.Print_Tree (Trace, Line_Numbers => True, Non_Grammar => True);
+         Trace.New_Line;
+      end if;
+
       Edit_Tree (Shared_Parser, Edits);
+
+      if Trace_Parse > Outline or Trace_Incremental_Parse > Outline then
+         Trace.New_Line;
+         --  Parents not set, can't get Line_Numbers
+         if Trace_Parse > Extra or Trace_Incremental_Parse > Extra then
+            Trace.Put_Line ("edited tree:");
+            Shared_Parser.Tree.Print_Tree (Trace, Non_Grammar => True);
+         else
+            Trace.Put_Line ("edited stream:");
+            Trace.Put_Line (Shared_Parser.Tree.Image (Shared_Parser.Tree.Shared_Stream));
+         end if;
+         Trace.New_Line;
+      end if;
+
+      if Shared_Parser.Tree.Stream_Length (Shared_Parser.Tree.Shared_Stream) = 3 and then
+        Shared_Parser.Tree.ID (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream).Node) =
+        Shared_Parser.Tree.Lexer.Descriptor.Accept_ID
+      then
+         if Trace_Parse > Outline then
+            Trace.Put_Line ("existing tree not changed by edits");
+         end if;
+         Shared_Parser.Tree.Clear_Parse_Streams;
+         return;
+      end if;
 
    else
       Shared_Parser.Tree.Clear;
-
       Shared_Parser.Lex_All;
    end if;
 
    Shared_Parser.Parsers := Parser_Lists.New_List (Shared_Parser.Tree);
 
    Shared_Parser.Tree.Start_Parse (Shared_Parser.Parsers.First.State_Ref.Stream, Shared_Parser.Table.State_First);
-
-   if Edits /= KMN_Lists.Empty_List then
-      if Shared_Parser.Tree.ID (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream).Node) =
-        Shared_Parser.Tree.Lexer.Descriptor.Accept_ID
-      then
-         --  Parsed tree was not changed in Edit_Tree.
-         declare
-            Parser_State : Parser_Lists.Parser_State renames Shared_Parser.Parsers.First_State_Ref;
-         begin
-            Parser_State.Shared_Token := Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream);
-            Shared_Parser.Tree.Shift (Parser_State.Stream, Accept_State, Parser_State.Shared_Token.Element);
-            Shared_Parser.Tree.Finish_Parse
-              (Parser_State.Stream,
-               Shared_Parser.Tree.Stream_Last (Shared_Parser.Tree.Shared_Stream),
-               Shared_Parser.User_Data);
-
-            if Trace_Parse > Detail then
-               Trace.Put_Line ("existing tree not changed by edits");
-            end if;
-            return;
-         end;
-      end if;
-
-      if Trace_Parse > Detail or Trace_Incremental_Parse > Detail then
-         Trace.New_Line;
-         Trace.Put_Line ("edited stream:");
-         Trace.Put_Line
-           (Shared_Parser.Tree.Image
-              (Shared_Parser.Tree.Shared_Stream,
-               Children     => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
-               Non_Grammar  => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
-               Augmented    => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
-               Line_Numbers => Trace_Parse > Extra or Trace_Incremental_Parse > Extra));
-         Trace.New_Line;
-      end if;
-   end if;
 
    Main_Loop :
    loop
@@ -117,7 +119,7 @@ begin
                if Trace_Parse > Extra then
                   Trace.Put_Line
                     (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": zombie (" &
-                       Syntax_Trees.Node_Index'Image
+                       Integer'Image
                          (Shared_Parser.Table.McKenzie_Param.Zombie_Limit - Parser_State.Zombie_Token_Count) &
                        " tokens remaining)");
                end if;
@@ -127,27 +129,11 @@ begin
                --  Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref,
                --  we are at the start of the input text.
 
-               Do_Deletes (Shared_Parser, Parser_State);
-
                declare
                   use Recover_Op_Arrays;
                   use all type Syntax_Trees.Stream_Node_Ref;
-                  use all type WisiToken.Syntax_Trees.Node_Label;
-                  use all type WisiToken.Syntax_Trees.Stream_ID;
 
                   Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
-
-                  Next_Shared_Terminal : constant Syntax_Trees.Terminal_Ref := Parser_Lists.Peek_Next_Shared_Terminal
-                    (Parser_State, Tree);
-                  pragma Assert
-                    (Tree.Label (Next_Shared_Terminal.Node) = Syntax_Trees.Source_Terminal,
-                     "virtual terminal first in Next_Shared_Terminal " & Tree.Image (Next_Shared_Terminal));
-                  --  Next_Shared_Terminal should never be Virtual. There can be Virtual
-                  --  terminals in the Shared_Stream from previous error recovery, but
-                  --  if they are the first terminal in a Shared_Stream nonterminal,
-                  --  Edit_Tree should have deleted them. There can be no Virtual
-                  --  terminals in the parse stream input; error recover does not push
-                  --  back over them, since recomputing them is a waste of time.
 
                   function Insert_Virtual return Boolean
                   is
@@ -158,12 +144,27 @@ begin
                         return False;
                      end if;
                      declare
+                        Next_Sequential_Terminal : constant Syntax_Trees.Terminal_Ref :=
+                          Parser_State.Peek_Next_Sequential_Terminal (Tree).Ref;
+                        --  Next_Sequential_Terminal can be Virtual; there can be Virtual
+                        --  terminals in the Shared_Stream from previous error recovery, and
+                        --  Edit_Tree can raise them or a containing nonterm in which they are
+                        --  first to the shared stream. ada_mode-interactive_1.adb Proc_1.
+                        --
+                        --  There can also be Virtual terminals in the parse stream input,
+                        --  after Left_Breakdown of a Shared_Stream nonterm containing virtual
+                        --  terminals.
+
                         Op : Recover_Op renames Variable_Ref (Ins_Del, Ins_Del_Cur);
                      begin
-                        if Op.Op = Insert and then Op.Ins_Before = Tree.Get_Node_Index (Next_Shared_Terminal.Node)
+                        if Op.Op = Insert and then Op.Ins_Before = Tree.Get_Sequential_Index
+                          (Next_Sequential_Terminal.Node)
                         then
-                           Parser_State.Current_Token := Tree.Insert_Virtual_Terminal
-                             (Parser_State.Stream, Op.Ins_ID, Before_Shared_Terminal => Next_Shared_Terminal.Node);
+                           --  We know Next_Sequential_Terminal is the first terminal of
+                           --  Current_Token, and therefore we can insert before it. If it was
+                           --  embedded in a nonterm, that nonterm would have been broken down in
+                           --  order to shift the previous terminals.
+                           Parser_State.Current_Token := Tree.Insert_Virtual_Terminal (Parser_State.Stream, Op.Ins_ID);
 
                            Op.Ins_Node := Parser_State.Current_Token.Node;
 
@@ -324,13 +325,9 @@ begin
                      --  assumption that an otherwise correct input should not yield an
                      --  ambiguous parse.
                      Current_Parser := Shared_Parser.Parsers.First;
-                     declare
-                        Node : constant Syntax_Trees.Node_Access := Shared_Parser.Tree.Get_Node
-                             (Current_Parser.Stream, Shared_Parser.Tree.Stream_Last (Current_Parser.Stream));
-                     begin
-                        raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
-                          (Node, "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
-                     end;
+                     raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
+                       (Current_Parser.State_Ref.Current_Token,
+                        "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
                   end if;
                end;
             end if;
@@ -399,44 +396,46 @@ begin
                   Parser_State.Resume_Active          := True;
                   Parser_State.Conflict_During_Resume := False;
 
-                  if Trace_Parse > Outline and Trace_McKenzie <= Extra then
-                     Trace.Put_Line
-                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": stack " &
-                          Shared_Parser.Tree.Image (Parser_State.Stream, Stack => True, Input => False));
-                     Trace.Put_Line
-                       ("    Current_Token: " &
-                          Shared_Parser.Tree.Image (Parser_State.Current_Token));
-                     Trace.Put_Line
-                       ("    Shared_Token: " & Shared_Parser.Tree.Image (Parser_State.Shared_Token));
-                     if Shared_Parser.Tree.Has_Input (Parser_State.Stream) then
-                        Trace.Put_Line
-                          ("    stream input: " & Shared_Parser.Tree.Image
-                             (Parser_State.Stream, Stack => False, Input => True, Children => Trace_Parse > Extra));
-                     end if;
-                     Trace.Put_Line
-                       ("    recover_insert_delete:" &
-                          (if Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
-                           then ""
-                           else Image
-                             (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree,
-                              First => Parser_State.Recover_Insert_Delete_Current)));
-
-                     if Trace_Parse > Detail then
-                        Shared_Parser.Trace.Put_Line
-                          ("    resume_active: True, token goal" & Parser_State.Resume_Token_Goal'Image &
-                             ", inc_shared_stream_token: " & Parser_State.Inc_Shared_Stream_Token'Image);
-                     end if;
-                  end if;
-
-                  Parser_State.Zombie_Token_Count := 0;
-
                   case Parser_State.Verb is
                   when Error =>
                      --  Force this parser to be terminated.
                      Parser_State.Zombie_Token_Count := Shared_Parser.Table.McKenzie_Param.Zombie_Limit + 1;
 
+                     if Trace_Parse > Outline and Trace_McKenzie <= Extra then
+                        Trace.Put_Line
+                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": fail:");
+                     end if;
+
                   when Shift =>
-                     null;
+
+                     Parser_State.Zombie_Token_Count := 0;
+                     if Trace_Parse > Outline and Trace_McKenzie <= Extra then
+                        Trace.Put_Line
+                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": stack/stream:");
+                        Trace.Put_Line
+                          (Shared_Parser.Tree.Image
+                             (Parser_State.Stream, Stack => True, Input => True, Shared => True,
+                              Node_Numbers => not Trace_Parse_No_State_Numbers,
+                              Children => Trace_Parse > Detail));
+                        Trace.Put_Line
+                          ("    Current_Token: " &
+                             Shared_Parser.Tree.Image (Parser_State.Current_Token));
+                        Trace.Put_Line
+                          ("    Shared_Token: " & Shared_Parser.Tree.Image (Parser_State.Shared_Token));
+                        Trace.Put_Line
+                          ("    recover_insert_delete:" &
+                             (if Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
+                              then ""
+                              else Image
+                                (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree,
+                                 First => Parser_State.Recover_Insert_Delete_Current)));
+
+                        if Trace_Parse > Detail then
+                           Shared_Parser.Trace.Put_Line
+                             ("    resume_active: True, token goal" & Parser_State.Resume_Token_Goal'Image &
+                                ", inc_shared_stream_token: " & Parser_State.Inc_Shared_Stream_Token'Image);
+                        end if;
+                     end if;
 
                   when Reduce | Pause | Accept_It =>
                      raise SAL.Programmer_Error;
@@ -451,6 +450,8 @@ begin
                --  Terminate with error. Parser_State has all the required info on
                --  the original error (recorded by Error in Do_Action); report reason
                --  recover failed.
+               McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
+
                for Parser_State of Shared_Parser.Parsers loop
                   Parser_State.Errors.Append
                     ((Label          => LR.Message,
@@ -496,9 +497,25 @@ begin
             exit Action_Loop when Current_Parser.Is_Done;
 
             if Trace_Parse > Extra then
-               Trace.Put_Line
-                 (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) &
-                    ".verb: " & Image (Current_Parser.Verb));
+               declare
+                  Parser_State : Parser_Lists.Parser_State renames Shared_Parser.Parsers
+                    (Parser_Lists.To_Parser_Node_Access (Current_Parser));
+               begin
+                  Trace.Put_Line
+                    (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
+                       ".verb: " & Image (Parser_State.Verb));
+                  Trace.Put_Line
+                    (" ... stack/stream: " &
+                       Shared_Parser.Tree.Image
+                         (Parser_State.Stream, Stack => True, Input => True, Shared => True, Children => False,
+                          State_Numbers => not Trace_Parse_No_State_Numbers));
+                  if Parser_State.Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
+                     Trace.Put_Line
+                       (" ... recover_insert_delete:" & Image
+                          (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree,
+                           First => Parser_State.Recover_Insert_Delete_Current));
+                  end if;
+               end;
             end if;
 
             --  Each branch of the following 'if' calls either Current_Parser.Free
@@ -521,11 +538,6 @@ begin
                end if;
 
             elsif Current_Parser.Verb = Current_Verb then
-
-               if Trace_Parse > Extra then
-                  Trace.Put (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": stack: ");
-                  Trace.Put_Line (Parser_Lists.Image (Current_Parser.Stream, Shared_Parser.Tree));
-               end if;
 
                LR.Parser.Get_Action (Shared_Parser, Current_Parser.State_Ref, Action_Cur, Action);
 
@@ -580,7 +592,7 @@ begin
                            Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                         begin
                            raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
-                             (Parser_State.Shared_Token.Node,
+                             (Parser_State.Shared_Token,
                               "too many parallel parsers required in grammar state" &
                                 Shared_Parser.Tree.State (Current_Parser.Stream)'Image &
                                 "; simplify grammar, or increase max-parallel (" &
@@ -673,9 +685,8 @@ when E : others =>
              Msg            => +Msg));
       end if;
 
-      if Debug_Mode and Ada.Exceptions.Exception_Name (E) /= "SAL.PROGRAMMER_ERROR" then
-         --  If SAL.Programmer_Error, we assume this is from McKenzie_Recover,
-         --  and we've already output the traceback.
+      if Debug_Mode then
+         --  If this is from a McKenzie task, that also outputs a stack trace.
          Trace.Put_Line ("exception: " & Msg);
          Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
          Trace.New_Line;

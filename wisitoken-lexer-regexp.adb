@@ -153,6 +153,11 @@ package body WisiToken.Lexer.Regexp is
       return Handle (New_Lexer);
    end New_Lexer;
 
+   overriding function Has_Source (Lexer : access constant Instance) return Boolean
+   is begin
+      return Has_Source (Lexer.Source);
+   end Has_Source;
+
    overriding procedure Finalize (Object : in out Instance)
    is begin
       Finalize (Object.Source);
@@ -173,6 +178,7 @@ package body WisiToken.Lexer.Regexp is
          Buffer_Nominal_First_Char => Begin_Char,
          Line_Nominal_First        => Begin_Line,
          Buffer                    => new String'(Input),
+         Buffer_Last               => Input'Last,
          User_Buffer               => False);
 
       Reset (Lexer);
@@ -181,6 +187,7 @@ package body WisiToken.Lexer.Regexp is
    overriding procedure Reset_With_String_Access
      (Lexer      : in out Instance;
       Input      : in     Ada.Strings.Unbounded.String_Access;
+      Input_Last : in     Integer;
       File_Name  : in     Ada.Strings.Unbounded.Unbounded_String;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
@@ -194,6 +201,7 @@ package body WisiToken.Lexer.Regexp is
          Buffer_Nominal_First_Char => Begin_Char,
          Line_Nominal_First        => Begin_Line,
          Buffer      => Input,
+         Buffer_Last => Input_Last,
          User_Buffer => True);
 
       Reset (Lexer);
@@ -225,7 +233,7 @@ package body WisiToken.Lexer.Regexp is
 
    overriding function Find_Next
      (Lexer : in out Instance;
-      Token :    out Base_Token)
+      Token :    out WisiToken.Lexer.Token)
      return Boolean
    is begin
       loop
@@ -269,5 +277,32 @@ package body WisiToken.Lexer.Regexp is
    is begin
       Begin_Pos (Lexer.Source, Begin_Byte, Begin_Char, Begin_Line);
    end Begin_Pos;
+
+   overriding
+   function Is_Comment
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token)
+     return Boolean
+   is
+      pragma Unreferenced (Lexer, Token);
+   begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return False;
+   end Is_Comment;
+
+   overriding
+   function Line_Begin_Char_Pos
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token;
+      Line  : in Line_Number_Type)
+     return Base_Buffer_Pos
+   is
+      pragma Unreferenced (Lexer, Token, Line);
+   begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return Invalid_Buffer_Pos;
+   end Line_Begin_Char_Pos;
 
 end WisiToken.Lexer.Regexp;

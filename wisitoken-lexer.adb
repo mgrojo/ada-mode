@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -20,6 +20,59 @@ pragma License (Modified_GPL);
 with GNAT.Strings;
 package body WisiToken.Lexer is
 
+   function Image
+     (Item       : in Token;
+      Descriptor : in WisiToken.Descriptor)
+     return String
+   is
+      ID_Image : constant String := WisiToken.Image (Item.ID, Descriptor);
+   begin
+      if Item.Char_Region = Null_Buffer_Region then
+         return "(" & ID_Image & ")";
+
+      else
+         return "(" & ID_Image & ", " & Image (Item.Char_Region) &
+           (if Item.ID = Descriptor.New_Line_ID
+            then Image (Item.Line_Region)
+            else "") & ")";
+      end if;
+   end Image;
+
+   function Full_Image
+     (Item       : in Token;
+      Descriptor : in WisiToken.Descriptor)
+     return String
+   is begin
+      return "(" & Image (Item.ID, Descriptor) & ", " &
+        Image (Item.Byte_Region) & ", " &
+        Image (Item.Char_Region) & ", " &
+        Image (Item.Line_Region) & ")";
+   end Full_Image;
+
+   procedure Shift
+     (Token       : in out Lexer.Token;
+      Shift_Bytes : in     Base_Buffer_Pos;
+      Shift_Chars : in     Base_Buffer_Pos;
+      Shift_Lines : in     Base_Line_Number_Type)
+   is begin
+      Token.Byte_Region := @ + Shift_Bytes;
+      Token.Char_Region := @ + Shift_Chars;
+      Token.Line_Region := @ + Shift_Lines;
+   end Shift;
+
+   function Column (Token : in Lexer.Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count
+   is begin
+      if Token.Line_Region.First = 1 then
+         return Ada.Text_IO.Count (Token.Char_Region.First);
+
+      elsif Line_Begin_Char_Pos = Invalid_Buffer_Pos then
+         return 0;
+
+      else
+         return Ada.Text_IO.Count (Token.Char_Region.First - Line_Begin_Char_Pos);
+      end if;
+   end Column;
+
    procedure Begin_Pos
      (Object     : in     Source;
       Begin_Byte :    out Buffer_Pos;
@@ -30,6 +83,29 @@ package body WisiToken.Lexer is
       Begin_Char := Object.Buffer_Nominal_First_Char;
       Begin_Line := Object.Line_Nominal_First;
    end Begin_Pos;
+
+   function Line_Begin_Char_Pos
+     (Source : in WisiToken.Lexer.Source;
+      Token  : in WisiToken.Lexer.Token;
+      Line   : in Line_Number_Type)
+     return Base_Buffer_Pos
+   is
+      Found_Line : Base_Line_Number_Type := Token.Line_Region.First;
+   begin
+      for I in To_Buffer_Index (Source, Token.Byte_Region.First) ..
+        To_Buffer_Index (Source, Token.Byte_Region.Last)
+      loop
+         if Source.Buffer (I) = ASCII.LF then
+            Found_Line := @ + 1;
+            if Found_Line = Line then
+               return Base_Buffer_Pos (I);
+               --  FIXME: handle multi-byte UTF-8; need test case.
+               --  If high bit of Char is set, don't increment char counter.
+            end if;
+         end if;
+      end loop;
+      return Invalid_Buffer_Pos;
+   end Line_Begin_Char_Pos;
 
    procedure Finalize (Object : in out Source)
    is begin
@@ -43,7 +119,25 @@ package body WisiToken.Lexer is
          GNATCOLL.Mmap.Free (Object.Region);
          GNATCOLL.Mmap.Close (Object.File);
       end case;
+
+      Object.Buffer_Nominal_First_Byte := Buffer_Pos'First;
+      Object.Buffer_Nominal_First_Char := Buffer_Pos'First;
+      Object.Line_Nominal_First        := Line_Number_Type'First;
    end Finalize;
+
+   function Has_Source (Object : in Source) return Boolean
+   is
+      use all type Ada.Strings.Unbounded.String_Access;
+   begin
+      case Object.Label is
+      when String_Label =>
+         return Object.Buffer /= null;
+
+      when File_Label =>
+         --  Mmap doesn't provice "Is_Open".
+         return Object.Buffer_Nominal_First_Byte /= Invalid_Buffer_Pos;
+      end case;
+   end Has_Source;
 
    function Buffer_Region_Byte (Object : in Source) return Buffer_Region
    is begin

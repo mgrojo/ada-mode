@@ -30,6 +30,7 @@ with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
+with WisiToken.Test_Util;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 package body Name_Grammar_Test is
@@ -42,14 +43,16 @@ package body Name_Grammar_Test is
       Paren_Left_ID,
       Paren_Right_ID,
       Identifier_ID,
-      EOF_ID,
+      EOI_ID,
 
       --  non-terminals
       Statement_ID,
       Component_ID,
       Component_List_ID,
       Name_ID,
-      Symbol_Name_ID);
+      Symbol_Name_ID,
+
+      SOI_ID);
 
    Real_Image : constant WisiToken.Token_ID_Array_String :=
      --  WORKAROUND for 'Image bug in GNAT Community 2020 -gnat2020
@@ -58,20 +61,22 @@ package body Name_Grammar_Test is
       new String'("PAREN_LEFT_ID"),
       new String'("PAREN_RIGHT_ID"),
       new String'("IDENTIFIER_ID"),
-      new String'("EOF_ID"),
+      new String'("EOI_ID"),
       new String'("statement_id"),
       new String'("component_id"),
       new String'("component_list_id"),
       new String'("name_id"),
-      new String'("symbol_name_id"));
+      new String'("symbol_name_id"),
+      new String'("SOI_ID"));
 
    package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_ID,
       First_Terminal    => Dot_ID,
-      Last_Terminal     => EOF_ID,
+      Last_Terminal     => EOI_ID,
       First_Nonterminal => Statement_ID,
       Last_Nonterminal  => Symbol_Name_ID,
-      EOF_ID            => EOF_ID,
+      SOI_ID            => SOI_ID,
+      EOI_ID            => EOI_ID,
       Accept_ID         => Statement_ID,
       Case_Insensitive  => False);
    use Token_Enum;
@@ -85,7 +90,7 @@ package body Name_Grammar_Test is
        Paren_Left_ID  => Lexer.Get ("\("),
        Paren_Right_ID => Lexer.Get ("\)"),
        Identifier_ID  => Lexer.Get ("[0-9a-zA-Z_]+"),
-       EOF_ID         => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
+       EOI_ID         => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
    Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
@@ -97,7 +102,7 @@ package body Name_Grammar_Test is
    --  Module.Symbol (Index).Component
    --  Module.Symbol.Component (Index) ...
    Full_Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
-     Statement_ID      <= Name_ID & EOF_ID + Null_Action and
+     Statement_ID      <= Name_ID & EOI_ID + Null_Action and
      (Name_ID           <= Symbol_Name_ID & Component_List_ID + Null_Action or
                            Symbol_Name_ID + Null_Action) and
      Symbol_Name_ID    <= Identifier_ID & Dot_ID & Identifier_ID + Null_Action and
@@ -186,7 +191,7 @@ package body Name_Grammar_Test is
       Set_Output (Standard_Output);
       WisiToken.Trace_Parse := Orig_Trace_Parse;
 
-      --  FIXME: run dos2unix
+      WisiToken.Test_Util.Dos2unix (Trace_File_Name);
 
       Check_Files ("1", Trace_File_Name, Expected_Trace_File_Name);
    exception

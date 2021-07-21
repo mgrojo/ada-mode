@@ -13,29 +13,24 @@
 
 pragma License (GPL);
 
+with AUnit.Assertions;
 package body WisiToken.AUnit is
+
+   procedure Check
+     (Label      : in String;
+      Computed   : in Token_ID;
+      Expected   : in Token_ID;
+      Descriptor : in WisiToken.Descriptor)
+   is begin
+      Standard.AUnit.Assertions.Assert
+        (Computed = Expected,
+         Label & " got " & Descriptor.Image (Computed).all & " expecting " & Descriptor.Image (Expected).all);
+   end Check;
 
    procedure Check (Label : in String; Computed, Expected : in Production_ID)
    is begin
       Check (Label & ".nonterm", Computed.LHS, Expected.LHS);
       Standard.AUnit.Checks.Check (Label & ".rhs", Computed.RHS, Expected.RHS);
-   end Check;
-
-   function To_Base_Token_Array (Item : in Token_ID_Array) return Base_Token_Arrays.Vector
-   is begin
-      return
-        Result : Base_Token_Arrays.Vector
-      do
-         for I of Item loop
-            Result.Append ((I, others => <>));
-         end loop;
-      end return;
-   end To_Base_Token_Array;
-
-   procedure Check (Label : in String; Computed, Expected : in Base_Token)
-   is begin
-      Check (Label & ".ID", Computed.ID, Expected.ID);
-      Check (Label & ".Byte_Region", Computed.Byte_Region, Expected.Byte_Region);
    end Check;
 
    procedure Check
@@ -44,7 +39,6 @@ package body WisiToken.AUnit is
       Expected : in WisiToken.Buffer_Region)
    is begin
       Check_Valid (Label & ".First valid", Computed.First'Unrestricted_Access);
-      Check_Valid (Label & ".Last valid", Computed.Last'Unrestricted_Access);
       Check (Label & ".First", Computed.First, Expected.First);
       Check (Label & ".Last", Computed.Last, Expected.Last);
    end Check;
@@ -55,7 +49,6 @@ package body WisiToken.AUnit is
       Expected : in WisiToken.Line_Region)
    is begin
       Check_Valid (Label & ".First valid", Computed.First'Unrestricted_Access);
-      Check_Valid (Label & ".Last valid", Computed.Last'Unrestricted_Access);
       Check (Label & ".First", Computed.First, Expected.First);
       Check (Label & ".Last", Computed.Last, Expected.Last);
    end Check;

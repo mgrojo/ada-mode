@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2013-2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -27,9 +27,10 @@
 
 pragma License (GPL);
 
+with Ada.Characters.Handling;
 with Ada.Exceptions;
-with Ada.Strings.Maps;
 with Ada.Strings.Fixed;
+with Ada.Strings.Maps;
 with Ada.Text_IO;
 with GNATCOLL.Mmap;
 package body WisiToken.Parse.LR is
@@ -268,6 +269,68 @@ package body WisiToken.Parse.LR is
       State.Goto_List.Insert ((Symbol, To_State));
    end Add_Goto;
 
+   procedure Set_McKenzie_Options (Param : in out McKenzie_Param_Type; Config : in String)
+   is
+      use Ada.Characters.Handling;
+      use Ada.Strings.Fixed;
+      Name_First : Integer := Config'First;
+      Name_Last  : Integer;
+
+      Value_First : Integer;
+      Value_Last  : Integer;
+   begin
+      loop
+         Name_Last := Index (Config, "=", Name_First);
+         exit when Name_Last = 0;
+
+         Value_First := Name_Last + 1;
+         Name_Last   := Name_Last - 1;
+         Value_Last  := Index (Config, " ", Value_First);
+         if Value_Last = 0 then
+            Value_Last := Config'Last;
+         end if;
+         declare
+            Name : constant String := To_Lower (Config (Name_First .. Name_Last));
+
+            function Get_Value return Integer
+            is begin
+               return Integer'Value (Config (Value_First .. Value_Last));
+            exception
+            when Constraint_Error =>
+               raise User_Error with "expecting integer value, found '" &
+                 Config (Value_First .. Value_Last) & "'";
+            end Get_Value;
+
+            Value : constant Integer := Get_Value;
+         begin
+            --  Trace var alphabetical order
+            if Name = "check_delta_limit" or
+              Name = "check_delta"
+            then
+               Param.Check_Delta_Limit := Value;
+
+            elsif Name = "check_limit" then
+               Param.Check_Limit := Syntax_Trees.Sequential_Index (Value);
+
+            elsif Name = "enqueue_limit" then
+               Param.Enqueue_Limit := Value;
+
+            elsif Name = "task_count" then
+               Param.Task_Count := System.Multiprocessors.CPU_Range (Value);
+
+            elsif Name = "zombie_limit" then
+               Param.Zombie_Limit := Value;
+
+            else
+               raise User_Error with "expecting McKenzie option name, found '" & Config (Name_First .. Name_Last) & "'";
+            end if;
+         end;
+
+         Name_First := Value_Last + 1;
+         exit when Name_First > Config'Last;
+      end loop;
+   end Set_McKenzie_Options;
+
    function Goto_For
      (Table : in Parse_Table;
       State : in State_Index;
@@ -310,14 +373,14 @@ package body WisiToken.Parse.LR is
       Table  : in     Parse_Table;
       Stream : in     Syntax_Trees.Stream_ID)
    is
+      --  We can't move this into Syntax_Trees, because we need Table to set
+      --  the stream element states.
       use Syntax_Trees;
       Nonterm    : constant Node_Access := Tree.Pop (Stream);
       Prev_State : State_Index          := Tree.State (Stream);
    begin
       for Child of Tree.Children (Nonterm) loop
-         if Tree.Parents_Set then
-            Tree.Clear_Parent (Child);
-         end if;
+         Tree.Clear_Parent (Child, Clear_Children => Stream = Tree.Shared_Stream);
 
          if Is_Terminal (Tree.ID (Child), Tree.Lexer.Descriptor.all) then
             Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (Child)));
@@ -668,7 +731,9 @@ package body WisiToken.Parse.LR is
    end Get_Text_Rep;
 
    function Equal (Left : in Config_Op; Right : in Insert_Op) return Boolean
-   is begin
+   is
+      use all type WisiToken.Syntax_Trees.Sequential_Index;
+   begin
       return Left.Op = Insert and then
         Left.Ins_ID = Right.Ins_ID and then
         Left.Ins_Before = Right.Ins_Before;
@@ -725,14 +790,26 @@ package body WisiToken.Parse.LR is
         & ")";
    end Image;
 
-   function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean
+   function Stack_Has
+     (Tree  : in Syntax_Trees.Tree;
+      Stack : in Recover_Stacks.Stack;
+      ID    : in Token_ID)
+     return Boolean
    is
-      use all type WisiToken.Syntax_Trees.Node_Access;
+      use Recover_Stacks;
    begin
+      for I in 1 .. Depth (Stack) loop
+         if Tree.ID (Peek (Stack, I).Token) = ID then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Stack_Has;
+
+   function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean
+   is begin
       for I in 1 .. Depth loop
-         if Stack.Peek (I).Token.Virtual and then
-           Stack.Peek (I).Token.First_Terminal = Syntax_Trees.Invalid_Node_Access
-         then
+         if Stack.Peek (I).Token.Virtual then
             return False;
          end if;
       end loop;

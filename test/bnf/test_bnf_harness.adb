@@ -2,7 +2,7 @@
 --
 --  Run Test_BNF_Suite
 --
---  Copyright (C) 2019 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,15 +22,15 @@ with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
-with Ada.Environment_Variables;
+with Ada.Strings.Unbounded;
 with Test_BNF_Suite;
-with WisiToken.BNF;
+with WisiToken;
 procedure Test_BNF_Harness
 is
    --  command line arguments (all optional, order matters):
-   --  <verbose> root_name trace_generate trace_parse limit_gen_alg
-   --  1         2         3              4           5
-   --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
+   --  root_name trace_config
+   --  1         2
+   --  trace_config is passed to Wisitoken.Enable_Trace
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
@@ -40,34 +40,21 @@ is
       Report_Successes => True,
       Filter           => Filter'Unchecked_Access);
 
-   EBNF_Only : constant Boolean :=
-     Ada.Environment_Variables.Exists ("GENERATE") and then
-     Ada.Environment_Variables.Value ("GENERATE") = "EBNF";
-
-   Limit_Gen_Alg : constant WisiToken.BNF.Generate_Algorithm :=
-     (if Argument_Count >= 5
-      then WisiToken.BNF.Generate_Algorithm'Value (Argument (5))
-      else WisiToken.BNF.None);
-
-   Suite    : constant Access_Test_Suite := Test_BNF_Suite (EBNF_Only, Limit_Gen_Alg);
+   Suite    : constant Access_Test_Suite := Test_BNF_Suite;
    Reporter : AUnit.Reporter.Text.Text_Reporter;
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
 
 begin
-   Filter.Verbose := Argument_Count > 0 and then Argument (1) = "1";
-
-   if Argument_Count > 1 then
-      declare
-         Test_Name : constant String := "bnf_wy_test.adb ";
-         Root_Name : String renames Argument (2);
-      begin
-         Filter.Set_Name (Test_Name & Root_Name);
-      end;
+   if Argument_Count >= 1 then
+      Filter.Test_Name    := Ada.Strings.Unbounded.To_Unbounded_String ("bnf_wy_test.adb " & Argument (1));
    end if;
 
-   WisiToken.Trace_Generate_Table := (if Argument_Count >= 3 then Integer'Value (Argument (3)) else 0);
-   WisiToken.Trace_Parse          := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
+   if Argument_Count = 2 then
+      WisiToken.Enable_Trace (Argument (2));
+   end if;
+
+   Filter.Verbose := WisiToken.Trace_Tests > 0;
 
    Run (Suite, Options, Result, Status);
 

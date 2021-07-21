@@ -111,7 +111,8 @@ package WisiToken is
       Last_Terminal     : Token_ID;
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID;
-      EOI_ID            : Token_ID;
+      SOI_ID            : Token_ID; -- start of input
+      EOI_ID            : Token_ID; -- end of input
       Accept_ID         : Token_ID)
    is record
       --  Tokens in the range Token_ID'First .. First_Terminal - 1 are
@@ -120,6 +121,10 @@ package WisiToken is
       --
       --  Tokens in the range Last_Terminal + 1 .. Last_Nonterminal are
       --  the nonterminals of a grammar.
+      --
+      --  SOI_ID is not reported by the lexer, and is not present in
+      --  grammar productions; it is hard-coded by the syntax tree
+      --  utilities.
       --
       --  Components are discriminants if they can be specified statically.
 
@@ -134,8 +139,11 @@ package WisiToken is
       --  have two kinds of string literals, set one or both of these to
       --  Invalid_Token_ID.
 
-      Image : Token_ID_Array_String (Token_ID'First .. Last_Nonterminal);
+      Image : Token_ID_Array_String (Token_ID'First .. SOI_ID);
       --  User names for tokens.
+      --
+      --  See wisitoken-bnf-generate_utils.adb Initialize for actual order
+      --  of tokens.
 
       Terminal_Image_Width : Integer;
       Image_Width          : Integer; --  max width of Image
@@ -187,6 +195,8 @@ package WisiToken is
 
    procedure To_Vector (Item : in Token_ID_Array; Vector : in out Token_ID_Arrays.Vector);
    function To_Vector (Item : in Token_ID_Array) return Token_ID_Arrays.Vector;
+
+   function To_Array (Item : in Token_ID_Arrays.Vector) return Token_ID_Array;
 
    function Shared_Prefix (A, B : in Token_ID_Arrays.Vector) return Natural;
    --  Return last index in A of a prefix shared between A, B; 0 if none.
@@ -292,6 +302,7 @@ package WisiToken is
    --  Token shift amounts in edited source can be arbitrarily large
    --  positive or negative.
 
+   subtype Zero_Buffer_Pos is Base_Buffer_Pos range 0 .. Base_Buffer_Pos'Last; -- allow 0
    subtype Buffer_Pos is Base_Buffer_Pos range 1 .. Base_Buffer_Pos'Last; -- match Emacs buffer origin.
 
    type Buffer_Pos_Access is access all Buffer_Pos;
@@ -307,14 +318,13 @@ package WisiToken is
 
    Invalid_Buffer_Pos : constant Buffer_Pos    := Buffer_Pos'Last;
    Null_Buffer_Region : constant Buffer_Region := (Buffer_Pos'Last, Buffer_Pos'First);
-   --  Default value useful for Syntax_Trees.Update_Cache.
 
    function Length (Region : in Buffer_Region) return Natural is
      ((if Region.Last >= Region.First
        then Natural (Region.Last - Region.First + 1)
        else 0));
 
-   function Inside (Pos : in Base_Buffer_Pos; Region : in Buffer_Region) return Boolean
+   function Contains (Region : in Buffer_Region; Pos : in Base_Buffer_Pos) return Boolean
    is (Region.First <= Pos and Pos <= Region.Last);
 
    type Boundary is (Inclusive, Exclusive);
@@ -326,7 +336,7 @@ package WisiToken is
      return Boolean;
    --  True if Outer entirely contains Inner, according to Boundaries.
    --
-   --  Note that any region contains Null_Buffer_Region.
+   --  Note that any non-null region contains Null_Buffer_Region.
 
    function Overlaps (A, B : in Buffer_Region) return Boolean;
    --  True if A and B have some positions in common.
@@ -344,12 +354,12 @@ package WisiToken is
        Base_Buffer_Pos (Integer (Left.Last) + Delta_Last));
 
    type Base_Line_Number_Type is new Integer; -- for delta line numbers.
-   subtype Line_Number_Type is Base_Line_Number_Type range 1 .. Base_Line_Number_Type'Last;
+   subtype Line_Number_Type is Base_Line_Number_Type range 1 .. Base_Line_Number_Type'Last - 1;
    --  Match Emacs buffer line numbers.
 
-   Invalid_Line_Number : constant Line_Number_Type := Line_Number_Type'Last;
+   Invalid_Line_Number : constant Base_Line_Number_Type := Base_Line_Number_Type'Last;
 
-   function Trimmed_Image (Item : in Line_Number_Type) return String;
+   function Trimmed_Image (Item : in Base_Line_Number_Type) return String;
    --  '-' if Invalid_Line_Number
 
    type Line_Region is record
@@ -358,46 +368,21 @@ package WisiToken is
 
    Null_Line_Region : constant Line_Region := (Line_Number_Type'Last, Line_Number_Type'First);
 
+   function New_Line_Count (Region : in Line_Region) return Base_Line_Number_Type
+   is ((if Region.Last >= Region.First
+        then Region.Last - Region.First
+        else 0));
+
+   function Contains_New_Line (Region : in Line_Region) return Boolean
+   is (Region.Last > Region.First);
+
    function Image (Item : in Line_Region) return String;
    --  Ada positional aggregate.
 
    function "+" (Left : in Line_Region; Right : in Base_Line_Number_Type) return Line_Region;
 
-   type Base_Token is record
-      --  Information provided by the lexer.
-
-      ID : Token_ID := Invalid_Token_ID;
-
-      Byte_Region : Buffer_Region := Null_Buffer_Region;
-      --  Index into the Lexer buffer for the token text.
-
-      Char_Region : Buffer_Region := Null_Buffer_Region;
-      --  Character position, useful for finding the token location in Emacs
-      --  buffers.
-
-      Line_Region : WisiToken.Line_Region := Null_Line_Region;
-   end record;
-
-   function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count;
-
-   function Image
-     (Item       : in Base_Token;
-      Descriptor : in WisiToken.Descriptor)
-     return String;
-   --  For debug/test messages.
-
-   Invalid_Token : constant Base_Token := (others => <>);
-
-   package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Positive_Index_Type, Base_Token, Default_Element => (others => <>));
-
-   function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Image);
-
-   type Base_Token_Array_Var_Ref (Element : not null access Base_Token_Arrays.Vector) is private
-   with Implicit_Dereference => Element;
-
-   type Base_Token_Array_Const_Ref (Element : not null access constant Base_Token_Arrays.Vector) is private
-   with Implicit_Dereference => Element;
+   function Contains (Region : in Line_Region; Pos : in Base_Line_Number_Type) return Boolean
+   is (Region.First <= Pos and Pos <= Region.Last);
 
    type Insert_Location is (After_Prev, Between, Before_Next);
 
@@ -467,6 +452,10 @@ package WisiToken is
    --
    --  In addition, the name "debug" sets Debug_Mode.
 
+   procedure Enable_Trace_Help;
+   --  Output to Text_IO.Current_Output a message describing available
+   --  options for Enable_Trace.
+
    type Trace is abstract tagged limited null record;
    type Trace_Access is access all Trace'Class;
    --  Output for tests/debugging.
@@ -490,6 +479,8 @@ package WisiToken is
    ----------
    --  Misc
 
+   type Cache_Version is mod 2**16;
+
    type Boolean_Access is access all Boolean;
 
    function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String
@@ -502,27 +493,17 @@ package WisiToken is
 
    function Error_Message
      (File_Name : in String;
-      Line      : in Line_Number_Type;
+      Line      : in Base_Line_Number_Type;
       Column    : in Ada.Text_IO.Count;
       Message   : in String)
      return String;
-   --  Return Gnu-formatted error message. Column is origin 0 (WisiToken
-   --  and Emacs standard); in message it is origin 1 (Gnu coding
-   --  standards [gnu_coding])
+   --  Return Gnu-formatted error message. Column parameter is origin 0
+   --  (WisiToken and Emacs standard); in formatted message it is origin
+   --  1 (Gnu coding standards [gnu_coding])
 
    type Names_Array is array (Integer range <>) of String_Access_Constant;
    type Names_Array_Access is access Names_Array;
    type Names_Array_Array is array (WisiToken.Token_ID range <>) of Names_Array_Access;
    type Names_Array_Array_Access is access Names_Array_Array;
-
-private
-
-   type Base_Token_Array_Var_Ref (Element : not null access Base_Token_Arrays.Vector) is record
-      Dummy : Integer := raise Program_Error with "uninitialized reference";
-   end record;
-
-   type Base_Token_Array_Const_Ref (Element : not null access constant Base_Token_Arrays.Vector) is record
-      Dummy : Integer := raise Program_Error with "uninitialized reference";
-   end record;
 
 end WisiToken;

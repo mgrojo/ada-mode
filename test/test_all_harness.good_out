@@ -54,7 +54,10 @@ OK test_accept_state.adb : Nominal
 OK test_follow.adb : Subprograms.One
 OK test_incremental.adb : No_Change
 OK test_incremental.adb : Edit_Comment
-OK test_incremental.adb : Edit_Whitespace
+OK test_incremental.adb : Edit_Comment_2
+OK test_incremental.adb : Edit_Comment_3
+OK test_incremental.adb : Edit_Whitespace_1
+OK test_incremental.adb : Edit_Whitespace_2
 OK test_incremental.adb : Edit_Leading_Non_Grammar
 OK test_incremental.adb : Edit_Code_1
 OK test_incremental.adb : Edit_Code_2
@@ -64,10 +67,14 @@ OK test_incremental.adb : Edit_Code_5
 OK test_incremental.adb : Edit_Code_6
 OK test_incremental.adb : Edit_Code_7
 OK test_incremental.adb : Edit_Code_8
+OK test_incremental.adb : Edit_Code_9
 OK test_incremental.adb : Delete_New_Line
+OK test_incremental.adb : Delete_Comment_End
+OK test_incremental.adb : Delete_Comment_Start
 OK test_incremental.adb : Insert_New_Line
 OK test_incremental.adb : Names
 OK test_incremental.adb : Recover_1
+OK test_incremental.adb : Lexer_Errors_1
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
 OK test_mckenzie_recover.adb LALR : No_Error
 OK test_mckenzie_recover.adb LALR : Empty_Comments
@@ -188,12 +195,15 @@ OK test_mckenzie_recover.adb LR1 : Pushback_Nonterm_1
 OK test_partial_parse.adb : Plain_String
 OK test_partial_parse.adb : File_String_Access
 OK test_skip_to.adb : Nominal
+OK test_syntax_trees.adb : Left_Breakdown_1
+OK test_syntax_trees.adb : Find_New_Line_1
+OK test_syntax_trees.adb : Byte_Region_1
 OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   193
-Successful Tests:  193
+Total Tests Run:   203
+Successful Tests:  203
 Failed Assertions: 0
 Unexpected Errors: 0

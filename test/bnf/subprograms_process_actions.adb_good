@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../test/bnf/subprograms.wy
 --
 
---  Copyright (C) 2013, 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2017 - 2021 Stephen Leake.  All Rights Reserved.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -56,7 +56,7 @@ package body Subprograms_Process_Actions is
    end block_0;
 
    function block_0_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
@@ -66,7 +66,7 @@ package body Subprograms_Process_Actions is
       T1 : constant SAL.Peek_Type := 1;
       T9 : constant SAL.Peek_Type := 9;
    begin
-      return Match_Names (Lexer, Tokens, T1, T9, False);
+      return Match_Names (Tree, Tokens, T1, T9, False);
    end block_0_check;
 
    procedure block_1
@@ -123,7 +123,7 @@ package body Subprograms_Process_Actions is
    end block_2;
 
    function block_2_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
@@ -133,7 +133,7 @@ package body Subprograms_Process_Actions is
       T1 : constant SAL.Peek_Type := 1;
       T9 : constant SAL.Peek_Type := 6;
    begin
-      return Match_Names (Lexer, Tokens, T1, T9, False);
+      return Match_Names (Tree, Tokens, T1, T9, False);
    end block_2_check;
 
    procedure block_3
@@ -256,15 +256,15 @@ package body Subprograms_Process_Actions is
    end block_7;
 
    function compilation_unit_0_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.In_Parse_Actions.Status
    is
-      pragma Unreferenced (Lexer, Tokens);
+      pragma Unreferenced (Tokens);
    begin
-      return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, Recover_Active, Nonterm);
+      return Terminate_Partial_Parse (Tree, Partial_Parse_Active, Partial_Parse_Byte_Goal, Recover_Active, Nonterm);
    end compilation_unit_0_check;
 
    procedure loop_statement_0
@@ -307,17 +307,17 @@ package body Subprograms_Process_Actions is
    end name_0;
 
    function name_0_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.In_Parse_Actions.Status
    is
-      pragma Unreferenced (Lexer, Recover_Active);
+      pragma Unreferenced (Recover_Active);
       pre : constant SAL.Peek_Type := 1;
       suf : constant SAL.Peek_Type := 3;
    begin
-      return Merge_Names (Nonterm, Tokens, pre, suf);
+      return Merge_Names (Tree, Nonterm, Tokens, pre, suf);
    end name_0_check;
 
    procedure name_1
@@ -339,16 +339,16 @@ package body Subprograms_Process_Actions is
    end name_1;
 
    function name_1_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.In_Parse_Actions.Status
    is
-      pragma Unreferenced (Lexer, Recover_Active);
+      pragma Unreferenced (Recover_Active);
       suf : constant SAL.Peek_Type := 1;
    begin
-      return Merge_Names (Nonterm, Tokens, suf);
+      return Merge_Names (Tree, Nonterm, Tokens, suf);
    end name_1_check;
 
    procedure name_list_0

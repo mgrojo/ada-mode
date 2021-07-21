@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2015, 2017 - 2020 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017 - 2021 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -34,6 +34,8 @@ with WisiToken.Generate.LR.LR1_Generate;
 with WisiToken.Generate.LR1_Items;
 with WisiToken.Productions;
 with WisiToken_Grammar_Runtime;
+with WisiToken.Test_Util;
+with WisiToken.Text_IO_Trace;
 package body Test_LR1_Parallel is
 
    type State_Map is array (WisiToken.State_Index range <>) of WisiToken.State_Index;
@@ -128,74 +130,6 @@ package body Test_LR1_Parallel is
       Close (Parse_Table_File);
    end Put_Sets;
 
-   procedure Spawn
-     (Program     : in String;
-      Args        : in GNAT.OS_Lib.String_List;
-      Output_File : in String := "")
-   is
-      use Ada.Text_IO;
-      use AUnit.Checks;
-      use GNAT.OS_Lib;
-      Exe         : constant String_Access := Locate_Exec_On_Path (Program);
-      Success     : Boolean;
-      Return_Code : Integer;
-      pragma Unreferenced (Return_Code);
-   begin
-      if Exe = null then
-         AUnit.Assertions.Assert (False, "'" & Program & "' not found on path");
-      end if;
-
-      if WisiToken.Trace_Action > WisiToken.Outline then
-         Put (Standard_Error, Program);
-         for Str_Acc of Args loop
-            Put (Standard_Error, " ");
-            Put (Standard_Error, Str_Acc.all);
-         end loop;
-         if Output_File /= "" then
-            Put (Standard_Error, " > " & Output_File);
-         end if;
-
-         New_Line (Standard_Error);
-      end if;
-
-      if Output_File = "" then
-         Spawn
-           (Program_Name => Exe.all,
-            Args         => Args,
-            Success      => Success);
-      else
-         Spawn
-           (Program_Name => Exe.all,
-            Args         => Args,
-            Output_File  => Output_File,
-            Err_To_Out   => True,
-            Return_Code  => Return_Code,
-            Success      => Success);
-      end if;
-
-      Check (Program, Success, True);
-   end Spawn;
-
-   procedure Dos2unix (File_Name : in String)
-   is
-      use GNAT.OS_Lib;
-   begin
-      if GNAT.OS_Lib.Directory_Separator = '\' then
-         declare
-            Exe : constant String_Access := Locate_Exec_On_Path ("dos2unix.exe");
-            Success : Boolean;
-            pragma Unreferenced (Success);
-         begin
-            Spawn
-              (Program_Name => Exe.all,
-               Args         =>
-                 (1         => new String'("-q"),
-                  2         => new String'(File_Name)),
-               Success      => Success);
-         end;
-      end if;
-   end Dos2unix;
-
    ----------
    --  Test procedures
 
@@ -211,10 +145,11 @@ package body Test_LR1_Parallel is
 
       Grammar_File_Name : constant String := "../test/bnf/" & Test.Root_Name.all & ".wy";
 
+      Trace : WisiToken.Text_IO_Trace.Trace;
       Input_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
       Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
         WisiToken.BNF.Generate_Utils.Parse_Grammar_File
-          (Grammar_File_Name, Input_Data'Unchecked_Access, WisiToken.BNF.LR1, WisiToken.BNF.re2c_Lexer,
+          (Grammar_File_Name, Input_Data'Unchecked_Access, WisiToken.BNF.LR1, WisiToken.BNF.re2c_Lexer, Trace,
            Ignore_Conflicts => True);
       --  Builds Generate_Data.Descriptor, Generate_Data.Grammar
 
@@ -294,18 +229,18 @@ package body Test_LR1_Parallel is
       Output_t8 : constant String := Base_Name & "_t8-no_states.parse";
 
       Args : constant GNAT.OS_Lib.String_List (1 .. 4) :=
-        (1 => new String'("-v"),
-         2 => new String'("2"),
+        (1 => new String'("--verbosity"),
+         2 => new String'("parse=22"),
          3 => new String'("-no-state-numbers"),
          4 => new String'(Input_Name));
    begin
       Check ("input file exists", Ada.Directories.Exists (Input_Name), True);
 
-      Spawn (Exe_t1, Args, Output_t1);
-      Dos2unix (Output_t1);
+      WisiToken.Test_Util.Spawn (Exe_t1, Args, Output_t1);
+      WisiToken.Test_Util.Dos2unix (Output_t1);
 
-      Spawn (Exe_t8, Args, Output_t8);
-      Dos2unix (Output_t8);
+      WisiToken.Test_Util.Spawn (Exe_t8, Args, Output_t8);
+      WisiToken.Test_Util.Dos2unix (Output_t8);
 
       AUnit.Checks.Text_IO.Check_Files ("", Output_t1, Output_t8);
    end Compare_Parse;

@@ -18,6 +18,7 @@ Wisitoken_Grammar_Actions
 *IDs
 *IO
 *KMN
+*KMNs
 *LALR
 *LALRs
 *LF
@@ -29,6 +30,7 @@ Wisitoken_Grammar_Actions
 *PB
 *RHS
 *RHSs
+*SOI
 *TS
 *UD
 *UR

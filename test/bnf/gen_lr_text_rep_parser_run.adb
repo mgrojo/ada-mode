@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2015, 2017 - 2020 Stephe Leake
+--  Copyright (C) 2015, 2017 - 2021 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -34,10 +34,8 @@ is
       Put_Line ("usage: *_run [options] filename");
       Put_Line ("  parse input file");
       Put_Line ("options:");
-      Put_Line ("  -v <integer> : trace_parse");
-      Put_Line ("  -m <integer> : trace_mckenzie");
+      Put_Line ("  --verbosity <string> : trace options");
       Put_Line ("  -t <integer> : mckenzie task count");
-      Put_Line ("  -debug : set Wisitoken.Debug_Mode");
       Put_Line ("  -no-state-numbers : no state numbers in parse trace; for test_lr1_parallel");
    end Put_Usage;
 
@@ -98,24 +96,15 @@ begin
       loop
          exit when Argument (Arg_Next)(1) /= '-';
 
-         if Argument (Arg_Next) = "-v" then
+         if Argument (Arg_Next) = "--verbosity" then
             Arg_Next  := Arg_Next + 1;
-            WisiToken.Trace_Parse := Integer'Value (Argument (Arg_Next));
-            Arg_Next  := Arg_Next + 1;
-
-         elsif Argument (Arg_Next) = "-m" then
-            Arg_Next  := Arg_Next + 1;
-            WisiToken.Trace_McKenzie := Integer'Value (Argument (Arg_Next));
+            WisiToken.Enable_Trace (Argument (Arg_Next));
             Arg_Next  := Arg_Next + 1;
 
          elsif Argument (Arg_Next) = "-t" then
             Arg_Next   := Arg_Next + 1;
             Task_Count := System.Multiprocessors.CPU_Range'Value (Argument (Arg_Next));
             Arg_Next   := Arg_Next + 1;
-
-         elsif Argument (Arg_Next) = "-debug" then
-            Arg_Next             := Arg_Next + 1;
-            WisiToken.Debug_Mode := True;
 
          elsif Argument (Arg_Next) = "-no-state-numbers" then
             Arg_Next := Arg_Next + 1;
@@ -131,7 +120,8 @@ begin
 
       File_Name := +Argument (Arg_Next);
    exception
-   when others =>
+   when E : others =>
+      Put_Line ("exception: " & Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
       Set_Exit_Status (Failure);
       Put_Usage;
       return;

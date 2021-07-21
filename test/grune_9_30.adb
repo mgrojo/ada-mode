@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015, 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -41,21 +41,23 @@ package body Grune_9_30 is
       Lower_A_ID,
       Lower_B_ID,
       Lower_C_ID,
-      EOF_ID,
+      EOI_ID,
 
       --  non-terminals
       Upper_S_ID,
       Upper_A_ID,
-      Upper_B_ID
-     );
+      Upper_B_ID,
+
+      SOI_ID);
 
    package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_ID,
       First_Terminal    => Lower_A_ID,
-      Last_Terminal     => EOF_ID,
+      Last_Terminal     => EOI_ID,
       First_Nonterminal => Upper_S_ID,
       Last_Nonterminal  => Upper_B_ID,
-      EOF_ID            => EOF_ID,
+      SOI_ID            => SOI_ID,
+      EOI_ID            => EOI_ID,
       Accept_ID         => Upper_S_ID,
       Case_Insensitive  => False);
    use Token_Enum;
@@ -63,7 +65,7 @@ package body Grune_9_30 is
    Null_Action : WisiToken.Syntax_Trees.Post_Parse_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    Grammar : WisiToken.Productions.Prod_Arrays.Vector :=
-     Upper_S_ID <= Upper_A_ID & Upper_B_ID & Lower_C_ID & EOF_ID + Null_Action -- 1
+     Upper_S_ID <= Upper_A_ID & Upper_B_ID & Lower_C_ID & EOI_ID + Null_Action -- 1
      and
      Upper_A_ID <= Lower_A_ID + Null_Action                           -- 2
      and
@@ -79,7 +81,7 @@ package body Grune_9_30 is
        Lower_A_ID => Lexer.Get ("a"),
        Lower_B_ID => Lexer.Get ("b"),
        Lower_C_ID => Lexer.Get ("c"),
-       EOF_ID     => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
+       EOI_ID     => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
    Has_Empty_Production    : constant WisiToken.Token_ID_Set                 :=
@@ -110,15 +112,15 @@ package body Grune_9_30 is
         --  [Grune], and added to the list in the order we compute.
         --
         --  Our Item_Sets also include the gotos.
-        (0 + (Get_Item (Grammar, (+Upper_S_ID, 0), 1, +EOF_ID) &
+        (0 + (Get_Item (Grammar, (+Upper_S_ID, 0), 1, +EOI_ID) &
                 Get_Item (Grammar, (+Upper_A_ID, 0), 1, +(Lower_B_ID, Lower_C_ID)))) &
         (1 + Get_Item (Grammar, (+Upper_A_ID, 0), 2, +(Lower_B_ID, Lower_C_ID))) &
-        (2 + (Get_Item (Grammar, (+Upper_S_ID, 0), 2, +EOF_ID) &
+        (2 + (Get_Item (Grammar, (+Upper_S_ID, 0), 2, +EOI_ID) &
                 Get_Item (Grammar, (+Upper_B_ID, 0), 1, +Lower_C_ID) &
                 Get_Item (Grammar, (+Upper_B_ID, 1), 1, +Lower_C_ID))) &
         (3 + Get_Item (Grammar, (+Upper_B_ID, 0), 2, +Lower_C_ID)) &
-        (4 + Get_Item (Grammar, (+Upper_S_ID, 0), 3, +EOF_ID)) &
-        (5 + Get_Item (Grammar, (+Upper_S_ID, 0), 4, +EOF_ID));
+        (4 + Get_Item (Grammar, (+Upper_S_ID, 0), 3, +EOI_ID)) &
+        (5 + Get_Item (Grammar, (+Upper_S_ID, 0), 4, +EOI_ID));
 
    begin
       Add_Gotos (Expected, 0, +(+Lower_A_ID, 1) & (+Upper_A_ID, 2));

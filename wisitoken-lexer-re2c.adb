@@ -55,6 +55,18 @@ package body WisiToken.Lexer.re2c is
       return Handle (Result);
    end New_Lexer;
 
+   overriding function Has_Source (Lexer : access constant Instance) return Boolean
+   is begin
+      return Has_Source (Lexer.Source);
+   end Has_Source;
+
+   overriding procedure Set_Verbosity
+     (Lexer     : in Instance;
+      Verbosity : in Integer)
+   is begin
+      Set_Verbosity (Lexer.Lexer, Interfaces.C.int (Verbosity));
+   end Set_Verbosity;
+
    overriding procedure Reset_With_String
      (Lexer      : in out Instance;
       Input      : in     String;
@@ -71,12 +83,12 @@ package body WisiToken.Lexer.re2c is
          Buffer_Nominal_First_Char => Begin_Char,
          Line_Nominal_First        => Begin_Line,
          Buffer                    => new String'(Input),
+         Buffer_Last               => Input'Last,
          User_Buffer               => False);
 
       Lexer.Lexer := New_Lexer
-        (Buffer    => Lexer.Source.Buffer.all'Address,
-         Length    => Interfaces.C.size_t (Input'Length),
-         Verbosity => Interfaces.C.int (Trace_Lexer - 1));
+        (Buffer => Lexer.Source.Buffer.all'Address,
+         Length => Interfaces.C.size_t (Input'Length));
 
       Reset (Lexer);
    end Reset_With_String;
@@ -84,6 +96,7 @@ package body WisiToken.Lexer.re2c is
    overriding procedure Reset_With_String_Access
      (Lexer      : in out Instance;
       Input      : in     Ada.Strings.Unbounded.String_Access;
+      Input_Last : in     Integer;
       File_Name  : in     Ada.Strings.Unbounded.Unbounded_String;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
@@ -107,18 +120,18 @@ package body WisiToken.Lexer.re2c is
 
       --  We assume Input is in UTF-8 encoding
       Lexer.Source :=
-        (Label       => String_Label,
-         File_Name   => Short_File_Name,
+        (Label                     => String_Label,
+         File_Name                 => Short_File_Name,
          Buffer_Nominal_First_Byte => Base_Buffer_Pos (Input'First),
          Buffer_Nominal_First_Char => Begin_Char,
          Line_Nominal_First        => Begin_Line,
          Buffer                    => Input,
+         Buffer_Last               => Input_Last,
          User_Buffer               => True);
 
       Lexer.Lexer := New_Lexer
-        (Buffer    => Lexer.Source.Buffer.all'Address,
-         Length    => Interfaces.C.size_t (Input'Length),
-         Verbosity => Interfaces.C.int (Trace_Lexer - 1));
+        (Buffer => Lexer.Source.Buffer.all'Address,
+         Length => Interfaces.C.size_t (Input_Last - Input'First + 1));
 
       Reset (Lexer);
    end Reset_With_String_Access;
@@ -164,9 +177,8 @@ package body WisiToken.Lexer.re2c is
       Lexer.Source.Buffer_Last := Last (Lexer.Source.Region);
 
       Lexer.Lexer := New_Lexer
-        (Buffer    => Data (Lexer.Source.Region).all'Address,
-         Length    => Interfaces.C.size_t (Length),
-         Verbosity => Interfaces.C.int (Trace_Lexer - 1));
+        (Buffer => Data (Lexer.Source.Region).all'Address,
+         Length => Interfaces.C.size_t (Length));
 
       Reset (Lexer);
    end Reset_With_File;
@@ -174,70 +186,67 @@ package body WisiToken.Lexer.re2c is
    overriding procedure Reset (Lexer : in out Instance)
    is begin
       Reset_Lexer (Lexer.Lexer);
-      Lexer.Line            := 1;
-      Lexer.Char_Line_Start := 1;
-      Lexer.ID :=
-        --  First token is assumed to be first on a line.
-        (if Lexer.Descriptor.New_Line_ID = Invalid_Token_ID
-         then Invalid_Token_ID
-         else Lexer.Descriptor.New_Line_ID);
-      Lexer.Prev_ID := Invalid_Token_ID;
    end Reset;
 
    overriding function Find_Next
      (Lexer : in out Instance;
-      Token :    out Base_Token)
+      Token :    out WisiToken.Lexer.Token)
      return Boolean
    is
       use Interfaces.C;
 
+      ID            : Token_ID;
+      Byte_Position : Natural;
+      Byte_Length   : Natural;
+      Char_Position : Natural;
+      Char_Length   : Natural;
+      Line_Start    : Line_Number_Type;
+      Line_Length   : Base_Line_Number_Type;
+
       procedure Build_Token
       is begin
          Token :=
-           (ID => Lexer.ID,
+           (ID => ID,
 
             Byte_Region =>
-              (if Lexer.ID = Lexer.Descriptor.EOI_ID and then Lexer.Byte_Position = 0 then
+              (if ID = Lexer.Descriptor.EOI_ID and then Byte_Position = 0 then
                   --  EOF in empty buffer
                  (Lexer.Source.Buffer_Nominal_First_Byte,
                   Lexer.Source.Buffer_Nominal_First_Byte - 1)
                else
-                 (Base_Buffer_Pos (Lexer.Byte_Position) + Lexer.Source.Buffer_Nominal_First_Byte - Buffer_Pos'First,
-                  Base_Buffer_Pos (Lexer.Byte_Position + Lexer.Byte_Length - 1) +
+                 (Base_Buffer_Pos (Byte_Position) + Lexer.Source.Buffer_Nominal_First_Byte - Buffer_Pos'First,
+                  Base_Buffer_Pos (Byte_Position + Byte_Length - 1) +
                     Lexer.Source.Buffer_Nominal_First_Byte - Buffer_Pos'First)),
 
-            --  FIXME: C lexer return line_region for multi-line tokens
-            Line_Region => (First | Last => Lexer.Line + Lexer.Source.Line_Nominal_First - Line_Number_Type'First),
+            Line_Region =>
+              (First    => Line_Start + Lexer.Source.Line_Nominal_First - Line_Number_Type'First,
+               Last     => Line_Start + Line_Length + Lexer.Source.Line_Nominal_First - Line_Number_Type'First),
 
             Char_Region =>
-              (if Lexer.ID = Lexer.Descriptor.EOI_ID and then Lexer.Byte_Position = Integer (Base_Buffer_Pos'First)
+              (if ID = Lexer.Descriptor.EOI_ID and then Byte_Position = Integer (Base_Buffer_Pos'First)
                then
                   --  EOF in empty buffer
                  (Lexer.Source.Buffer_Nominal_First_Byte,
                   Lexer.Source.Buffer_Nominal_First_Byte - 1)
                else
-                 (To_Char_Pos (Lexer.Source, Lexer.Char_Position),
-                  To_Char_Pos (Lexer.Source, Lexer.Char_Position + Lexer.Char_Length - 1))));
+                 (To_Char_Pos (Lexer.Source, Char_Position),
+                  To_Char_Pos (Lexer.Source, Char_Position + Char_Length - 1))));
       end Build_Token;
 
    begin
-      Lexer.Prev_ID := Lexer.ID;
       loop
          declare
             Status : constant int := Next_Token
-              (Lexer.Lexer, Lexer.ID,
-               Byte_Position => Interfaces.C.size_t (Lexer.Byte_Position),
-               Byte_Length   => Interfaces.C.size_t (Lexer.Byte_Length),
-               Char_Position => Interfaces.C.size_t (Lexer.Char_Position),
-               Char_Length   => Interfaces.C.size_t (Lexer.Char_Length),
-               Line_Start    => Interfaces.C.int (Lexer.Line));
+              (Lexer.Lexer, ID,
+               Byte_Position => Interfaces.C.size_t (Byte_Position),
+               Byte_Length   => Interfaces.C.size_t (Byte_Length),
+               Char_Position => Interfaces.C.size_t (Char_Position),
+               Char_Length   => Interfaces.C.size_t (Char_Length),
+               Line_Start    => Interfaces.C.int (Line_Start),
+               Line_Length   => Interfaces.C.int (Line_Length));
          begin
             case Status is
             when 0 =>
-               if Lexer.ID = Lexer.Descriptor.New_Line_ID then
-                  Lexer.Char_Line_Start := Lexer.Char_Position + 1;
-               end if;
-
                Build_Token;
                return False;
 
@@ -250,35 +259,35 @@ package body WisiToken.Lexer.re2c is
                begin
                   if Trace_Lexer > Outline then
                      --  We don't have a visible Trace object here.
-                     Ada.Text_IO.Put_Line ("lexer error char " & Buffer (Lexer.Byte_Position));
+                     Ada.Text_IO.Put_Line ("lexer error char " & Buffer (Byte_Position));
                   end if;
 
-                  if Buffer (Lexer.Byte_Position) = ''' then
+                  if Buffer (Byte_Position) = ''' then
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after '.
                      Lexer.Errors.Append
-                       ((To_Char_Pos (Lexer.Source, Lexer.Char_Position),
+                       ((To_Char_Pos (Lexer.Source, Char_Position),
                          (1 => ''', others => ASCII.NUL)));
 
-                     Lexer.ID := Lexer.Descriptor.String_1_ID;
+                     ID := Lexer.Descriptor.String_1_ID;
                      Build_Token;
                      return True;
 
-                  elsif Buffer (Lexer.Byte_Position) = '"' then
+                  elsif Buffer (Byte_Position) = '"' then
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after ".
                      Lexer.Errors.Append
-                       ((Char_Pos     => To_Char_Pos (Lexer.Source, Lexer.Char_Position),
+                       ((Char_Pos     => To_Char_Pos (Lexer.Source, Char_Position),
                          Recover_Char =>  (1 => '"', others => ASCII.NUL)));
 
-                     Lexer.ID := Lexer.Descriptor.String_2_ID;
+                     ID := Lexer.Descriptor.String_2_ID;
                      Build_Token;
                      return True;
 
                   else
                      --  Just skip the character; call Next_Token again.
                      Lexer.Errors.Append
-                       ((To_Char_Pos (Lexer.Source, Lexer.Char_Position), (others => ASCII.NUL)));
+                       ((To_Char_Pos (Lexer.Source, Char_Position), (others => ASCII.NUL)));
                   end if;
                end;
 
@@ -289,27 +298,12 @@ package body WisiToken.Lexer.re2c is
       end loop;
    end Find_Next;
 
-   overriding function First (Lexer : in Instance) return Boolean
-   is begin
-      return Lexer.Descriptor.New_Line_ID /= Invalid_Token_ID and then
-        Lexer.Prev_ID = Lexer.Descriptor.New_Line_ID;
-   end First;
-
-   overriding function Line_Start_Char_Pos (Lexer : in Instance) return Buffer_Pos
-   is begin
-      return To_Char_Pos (Lexer.Source, Lexer.Char_Line_Start);
-   end Line_Start_Char_Pos;
-
    overriding procedure Set_Position
      (Lexer         : in out Instance;
       Byte_Position : in     Buffer_Pos;
       Char_Position : in     Buffer_Pos;
-      Line          : in     Line_Number_Type;
-      Prev_Token_ID : in Token_ID)
+      Line          : in     Line_Number_Type)
    is begin
-      Lexer.Prev_ID := Prev_Token_ID;
-      Lexer.ID      := Prev_Token_ID;
-
       --  FIXME: respect partial parse lexer.source.*_Nominal_first_*
       Set_Position
         (Lexer.Lexer,
@@ -348,5 +342,24 @@ package body WisiToken.Lexer.re2c is
    is begin
       Begin_Pos (Lexer.Source, Begin_Byte, Begin_Char, Begin_Line);
    end Begin_Pos;
+
+   overriding
+   function Is_Comment
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token)
+     return Boolean
+   is begin
+      return Is_Comment (Token.ID);
+   end Is_Comment;
+
+   overriding
+   function Line_Begin_Char_Pos
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token;
+      Line  : in Line_Number_Type)
+     return Base_Buffer_Pos
+   is begin
+      return Line_Begin_Char_Pos (Lexer.Source, Token, Line);
+   end Line_Begin_Char_Pos;
 
 end WisiToken.Lexer.re2c;

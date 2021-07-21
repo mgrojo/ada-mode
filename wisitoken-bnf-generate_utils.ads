@@ -28,9 +28,11 @@ with WisiToken_Grammar_Runtime;
 package WisiToken.BNF.Generate_Utils is
 
    EOI_Name : constant String := "Wisi_EOI";
-   --  EOI_Name is used for Descriptor.EOI_ID token; it must match Emacs ada-mode
-   --  wisi.el wisi-eoi-term. It must be a valid Ada identifier when
-   --  "_ID" is appended.
+   --  EOI_Name is used for Descriptor.EOI_ID token. It must be a valid
+   --  Ada identifier when "_ID" is appended.
+
+   SOI_Name : constant String := "Wisi_SOI";
+   --  Similar to EOI_Name
 
    WisiToken_Accept_Name : constant String := "wisitoken_accept";
 
@@ -66,11 +68,12 @@ package WisiToken.BNF.Generate_Utils is
       Grammar_File_Name : in     String);
 
    function Parse_Grammar_File
-     (Grammar_File_Name  : in String;
-      Input_Data         : in WisiToken_Grammar_Runtime.User_Data_Access;
-      Generate_Algorithm : in WisiToken.BNF.Generate_Algorithm;
-      Lexer              : in WisiToken.BNF.Lexer_Type;
-      Ignore_Conflicts   : in Boolean)
+     (Grammar_File_Name  : in     String;
+      Input_Data         : in     WisiToken_Grammar_Runtime.User_Data_Access;
+      Generate_Algorithm : in     WisiToken.BNF.Generate_Algorithm;
+      Lexer              : in     WisiToken.BNF.Lexer_Type;
+      Trace              : in out WisiToken.Trace'Class;
+      Ignore_Conflicts   : in     Boolean)
      return Generate_Data;
 
    function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID;
@@ -99,6 +102,7 @@ package WisiToken.BNF.Generate_Utils is
    --  4. EOI
    --  5. Accept
    --  6. Nonterminals
+   --  7. SOI
    --
    --  Within each group, tokens occur in the order they were declared in
    --  the grammar file.
@@ -114,16 +118,21 @@ package WisiToken.BNF.Generate_Utils is
    function Iterate
      (Container    : in Token_Container;
       Non_Grammar  : in Boolean := True;
-      Nonterminals : in Boolean := True)
+      Nonterminals : in Boolean := True;
+      Include_SOI  : in Boolean := True)
      return Iterator_Interfaces.Forward_Iterator'Class;
 
    function First
      (Data         : in Generate_Data;
-      Non_Grammar  : in Boolean;
-      Nonterminals : in Boolean)
+      Non_Grammar  : in Boolean := True;
+      Nonterminals : in Boolean := True)
      return Token_Cursor;
 
-   procedure Next (Data : in Generate_Data; Cursor : in out Token_Cursor; Nonterminals : in Boolean);
+   procedure Next
+     (Data         : in     Generate_Data;
+      Cursor       : in out Token_Cursor;
+      Nonterminals : in     Boolean := True;
+      Include_SOI  : in     Boolean := True);
 
    function ID (Cursor : in Token_Cursor) return Token_ID;
 
@@ -175,7 +184,7 @@ package WisiToken.BNF.Generate_Utils is
 private
 
    type Token_Cursor_Kind is
-     (Non_Grammar_Kind, Terminals_Keywords, Terminals_Others, EOI, WisiToken_Accept, Nonterminal, Done);
+     (Non_Grammar_Kind, Terminals_Keywords, Terminals_Others, EOI, WisiToken_Accept, Nonterminal, SOI, Done);
 
    type Token_Cursor is record
       Kind        : Token_Cursor_Kind;

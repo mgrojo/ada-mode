@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../test/bnf/subprograms.wy
 --
 
---  Copyright (C) 2013, 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2017 - 2021 Stephen Leake.  All Rights Reserved.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -19,21 +19,21 @@
 
 with WisiToken.Syntax_Trees;
 with WisiToken.In_Parse_Actions;
-with WisiToken.Lexer;
 package Subprograms_Process_Actions is
 
    Descriptor : aliased constant WisiToken.Descriptor :=
      (First_Terminal    => 4,
-      Last_Terminal     => 21,
-      First_Nonterminal => 22,
-      Last_Nonterminal  => 34,
-      EOI_ID            => 21,
-      Accept_ID         => 22,
-      Case_Insensitive  => False,
-      New_Line_ID       => 1,
-      String_1_ID       => 32767,
-      String_2_ID       => 32767,
-      Image             =>
+      Last_Terminal       => 21,
+      First_Nonterminal   => 22,
+      Last_Nonterminal    => 34,
+      SOI_ID              => 35,
+      EOI_ID              => 21,
+      Accept_ID           => 22,
+      Case_Insensitive    => False,
+      New_Line_ID         => 1,
+      String_1_ID         => 32767,
+      String_2_ID         => 32767,
+      Image               =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
          new String'("COMMENT_1"),
@@ -68,7 +68,8 @@ package Subprograms_Process_Actions is
          new String'("subtype"),
          new String'("use_clause"),
          new String'("declaration_list"),
-         new String'("nonterminal_014")),
+         new String'("nonterminal_014"),
+         new String'("Wisi_SOI")),
       Terminal_Image_Width => 11,
       Image_Width          => 16,
       Last_Lookahead       => 22);
@@ -108,7 +109,8 @@ package Subprograms_Process_Actions is
       subtype_ID,
       use_clause_ID,
       declaration_list_ID,
-      nonterminal_014_ID);
+      nonterminal_014_ID,
+      Wisi_SOI_ID);
 
    type Token_Enum_ID_Array is array (Positive range <>) of Token_Enum_ID;
    use all type WisiToken.Token_ID;
@@ -231,31 +233,31 @@ package Subprograms_Process_Actions is
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    function block_0_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.In_Parse_Actions.Status;
    function block_2_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.In_Parse_Actions.Status;
    function compilation_unit_0_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.In_Parse_Actions.Status;
    function name_0_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
     return WisiToken.In_Parse_Actions.Status;
    function name_1_check
-    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+    (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)

@@ -41,15 +41,15 @@
  0: 20: 17:(IDENTIFIER, (69 . 71)) : shift and goto state 22
  0: 22: 18:(RIGHT_PAREN, (72 . 72)) : shift and goto state 23
  0: 23: 19:(SEMICOLON, (73 . 73)) : shift and goto state 24
- 0: 24: 20:(Wisi_EOI, (75 . 74)) : reduce 9 tokens to generic_instantiation
+ 0: 24: 20:(Wisi_EOI, (76 . 75)) : reduce 9 tokens to generic_instantiation
 (generic_instantiation, (43 . 73)) <= (11:(PROCEDURE, (43 . 51)), 12:(IDENTIFIER, (53 . 55)), 13:(IS, (57 . 58)), 14:(NEW, (60 . 62)), 15:(IDENTIFIER, (64 . 66)), 16:(LEFT_PAREN, (68 . 68)), 17:(IDENTIFIER, (69 . 71)), 18:(RIGHT_PAREN, (72 . 72)), 19:(SEMICOLON, (73 . 73)))
  ... goto state 6
- 0: 6: 20:(Wisi_EOI, (75 . 74)) : reduce 1 tokens to library_item
+ 0: 6: 20:(Wisi_EOI, (76 . 75)) : reduce 1 tokens to library_item
 (library_item, (43 . 73)) <= ((generic_instantiation, (43 . 73)))
  ... goto state 8
- 0: 8: 20:(Wisi_EOI, (75 . 74)) : reduce 2 tokens to compilation_unit
+ 0: 8: 20:(Wisi_EOI, (76 . 75)) : reduce 2 tokens to compilation_unit
 (compilation_unit, (1 . 73)) <= ((library_item, (1 . 38)), (library_item, (43 . 73)))
  ... goto state 2
- 0: 2: 20:(Wisi_EOI, (75 . 74)) : accept it
+ 0: 2: 20:(Wisi_EOI, (76 . 75)) : accept it
 (wisitoken_accept, (1 . 73)) <= ((compilation_unit, (1 . 73)))
  0: succeed

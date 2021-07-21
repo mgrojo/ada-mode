@@ -31,30 +31,27 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-Mckenzie parallel gain
-    eliminate super access that does not require lock
-        ie super.tree!
-            pass to initialize; all others use shared.tree
+set_parents is not incremental
+    see fixme
 
-        super.trace is good; serialize output, only used for debugging, when speed is not important
+review fixme
 
 add %no_error_recover, instead of detecting mckenzie /= default
 
 move Execute_Actions to wisitoken.parse?
-    lots of shared code
+    lots of shared code between packrat, lr
     add version that ignores action_region_bytes, for no_recover, packrat
 
-syntax_table find_new_line
+syntax_trees find_new_line
     If line - 1 = .line_last, start at .line_last. Do binary search?
 
 mckenzie_recover-explore Try_Insert_Quote
     often don't know where parse error is; do both b and c
         actually, parse error is after current_token; that might help.
 
-factor out tree-sitter support
-    so ada-mode elpa release does not require tree-sitter
-
 deallocating Graph takes as long as computing redundancy
+    use storage_pool to deallocate all at once?
+        Unchecked_Deallocate_Subpool.
 
 in wisitoken-bnf-generate_utils
     delete Token_Container
@@ -70,24 +67,15 @@ wisitoken_grammar_1.wy
     need error
 
 incremental parse
-    more tests;
-        parse_incremental with current_token = empty nonterm
-        left_breakdown with first_terminal = virtual
-        Mckenzie current_Terminal skip virtual terminals in input and shared
+    branched parse stack would simplify duplicate_state check?
+        but have to move branch point in error recover for push_back, undo_reduce.
+            or not; the other parser will do that?
 
-    error recover delete left_breakdown (shared_stream)
-        wisitoken-parse-lr-mckenzie_recover-parse.adb Get_Action
-        add to config.input_stream first
-
-    edit after error recovery:
-        no virtuals adjacent to edits; keep other virtuals
-
-    review fixmes
-
-    could merge edit_tree, parse_incremental
-        wagner graham 1998
-        is edit_tree useful for packrat incremental?
-        tree-sitter has edit_tree
+    tree-sitter doesn't store text regions in syntax_tree, just text length
+        no Shift in Edit_Tree
+        byte_region (node) requires compute begin_pos for each node in path from root.
+        non_grammar must store whitespace
+            maybe add trailing_whitespace_bytes to each node
 
     [Wagner Graham 1998] doesn't modify the tree structure for
         Left_Breakdown; it just moves the Current_Token pointer around.
@@ -97,18 +85,16 @@ incremental parse
         requires merge edit_tree into incremental parse
         faster? less allocate/deallocate
 
-    branched parse stack would simplify duplicate_state check?
-        but have to move branch point in error recover for push_back, undo_reduce.
-            or not; the other parser will do that?
+Mckenzie parallel gain
+    eliminate super access that does not require lock
 
-    tree-sitter doesn't store text regions in syntax_tree, just text length
-        no Shift in Edit_Tree
-        byte_region (node) requires compute begin_pos for each node in path from root.
+recover supervisor should provide Put_Trace_line
+    to control access to Trace
 
-There are many grammars that can't be lexed correctly without a context provided by the parser
-    heredoc delimiters in the bash grammar is a good example.
-    support calling lexer from parser?
-    messes with error recovery; still need sequential token_index during recovery and resume.
+target AdaWebPack
+    https://github.com/godunko/adawebpack/
+    or java byte code?
+    really compete with tree-sitter
 
 See emacs hash_table for hash of bytes
 
@@ -163,7 +149,7 @@ hit that limit is fairly consistent, and the user can set that limit.
    - ask for review
      - Stefan Monnier - email sent 24 jul
      - Emmanual Briot - LinkedIn message sent 24 jul
-     - adacore adalang Raphaël Amiard raph-amiard - email sent 24 jul
+     - adacore adalang Raphael Amiard raph-amiard - email sent 24 jul
      - Max Brunsfeld tree-sitter - added to issue 693 24 jul
      - ada-mode mailing list - posted 24 jul
      - emacs-devel mailing list - posted 24 jul

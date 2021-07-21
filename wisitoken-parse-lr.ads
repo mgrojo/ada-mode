@@ -47,7 +47,7 @@ with System.Multiprocessors;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
-   use all type WisiToken.Syntax_Trees.Node_Index;
+   use all type WisiToken.Syntax_Trees.Stream_ID;
    use all type SAL.Base_Peek_Type;
 
    type All_Parse_Action_Verbs is (Pause, Shift, Reduce, Accept_It, Error);
@@ -289,13 +289,13 @@ package WisiToken.Parse.LR is
       --  Number of parallel tasks during recovery. If 0, use
       --  System.Multiprocessors.Number_Of_CPUs - 1.
 
-      Zombie_Limit : Syntax_Trees.Node_Index;
-      --  Shared tokens to wait before terminating parser that encountered
+      Zombie_Limit : Positive;
+      --  Terminal tokens to wait before terminating parser that encountered
       --  an error. See test_mckenzie_recover.adb Revive_Zombie for example
       --  of why this is not hard-coded at 0. Setting it the same as
       --  Check_Limit is often a good choice.
 
-      Check_Limit       : Syntax_Trees.Node_Index;
+      Check_Limit : Syntax_Trees.Sequential_Index;
       --  Max count of shared tokens to parse ahead when checking a
       --  configuration.
 
@@ -321,6 +321,10 @@ package WisiToken.Parse.LR is
       Check_Limit                 => 4,
       Check_Delta_Limit           => Natural'Last,
       Enqueue_Limit               => Natural'Last);
+
+   procedure Set_McKenzie_Options (Param : in out McKenzie_Param_Type; Config : in String);
+   --  Set options from Config. Config contains space-separated name=value
+   --  pairs. See body for exact names.
 
    type Parse_Table
      (State_First       : State_Index;
@@ -361,7 +365,8 @@ package WisiToken.Parse.LR is
    procedure Undo_Reduce
      (Tree   : in out Syntax_Trees.Tree;
       Table  : in     Parse_Table;
-      Stream : in     Syntax_Trees.Stream_ID);
+      Stream : in     Syntax_Trees.Stream_ID)
+   with Pre => Tree.Parents_Set or Stream /= Tree.Shared_Stream;
    --  Undo reduction of nonterm at Stream.Stack_Top; Stack_Top is then
    --  the last Child of the nonterm.
 
@@ -449,7 +454,7 @@ package WisiToken.Parse.LR is
 
       case Op is
       when Fast_Forward =>
-         FF_Token_Index : Syntax_Trees.Node_Index;
+         FF_Token_Index : Syntax_Trees.Sequential_Index;
          --  Config current_token after the operation is done.
 
       when Undo_Reduce =>
@@ -459,30 +464,30 @@ package WisiToken.Parse.LR is
          Token_Count : Ada.Containers.Count_Type;
          --  The number of tokens pushed on the stack.
 
-         UR_Token_Index : Syntax_Trees.Node_Index;
-         --  First terminal in the undo_reduce token; Invalid_Node_Index if
+         UR_Token_Index : Syntax_Trees.Base_Sequential_Index;
+         --  First terminal in the undo_reduce token; Invalid_Sequential_Index if
          --  empty. Used to check that successive Undo_Reduce are valid.
 
       when Push_Back =>
          PB_ID : Token_ID;
          --  The nonterm ID popped off the stack.
 
-         PB_Token_Index : Syntax_Trees.Node_Index;
-         --  First terminal in the pushed_back token; Invalid_Node_Index if
+         PB_Token_Index : Syntax_Trees.Base_Sequential_Index;
+         --  First terminal in the pushed_back token; Invalid_Sequential_Index if
          --  empty. Used to check that successive Push_Backs are valid.
 
       when Insert =>
          Ins_ID : Token_ID;
          --  The token ID inserted.
 
-         Ins_Before : Syntax_Trees.Node_Index;
+         Ins_Before : Syntax_Trees.Sequential_Index;
          --  Ins_ID is inserted before Ins_Before.
 
       when Delete =>
          Del_ID : Token_ID;
-         --  The token ID deleted; a terminal token. IMPROVEME: allow delete nonterm?
+         --  The token ID deleted; a terminal token.
 
-         Del_Token_Index : Syntax_Trees.Node_Index;
+         Del_Token_Index : Syntax_Trees.Sequential_Index;
          --  Token at Del_Token_Index is deleted.
 
       end case;
@@ -490,7 +495,7 @@ package WisiToken.Parse.LR is
    subtype Insert_Delete_Op is Config_Op with Dynamic_Predicate => (Insert_Delete_Op.Op in Insert_Delete_Op_Label);
    subtype Insert_Op is Config_Op with Dynamic_Predicate => (Insert_Op.Op = Insert);
 
-   function Token_Index (Op : in Insert_Delete_Op) return Syntax_Trees.Node_Index
+   function Token_Index (Op : in Insert_Delete_Op) return Syntax_Trees.Sequential_Index
      is (case Insert_Delete_Op_Label'(Op.Op) is
          when Insert => Op.Ins_Before,
          when Delete => Op.Del_Token_Index);
@@ -504,7 +509,7 @@ package WisiToken.Parse.LR is
 
    package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
      (Positive_Index_Type, Config_Op, Default_Element =>
-        (Fast_Forward, Syntax_Trees.Invalid_Node_Index), Capacity => 80);
+        (Fast_Forward, Syntax_Trees.Sequential_Index'First), Capacity => 80);
    --  Using a fixed size vector significantly speeds up
    --  McKenzie_Recover. The capacity is determined by the maximum number
    --  of repair operations, which is limited by the cost_limit McKenzie
@@ -552,7 +557,7 @@ package WisiToken.Parse.LR is
          Ins_ID : Token_ID := Invalid_Token_ID;
          --  The token ID inserted.
 
-         Ins_Before : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+         Ins_Before : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'First;
          --  Ins_ID is inserted before Ins_Before in the Shared_Stream.
 
          Ins_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
@@ -563,7 +568,7 @@ package WisiToken.Parse.LR is
          Del_ID : Token_ID := Invalid_Token_ID;
          --  The token ID deleted; a terminal token. IMPROVEME: allow delete nonterm?
 
-         Del_Index : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+         Del_Index : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'First;
          --  Token at Del_Index is deleted; used by parser to skip the token.
 
          Del_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
@@ -591,7 +596,8 @@ package WisiToken.Parse.LR is
 
       Token : Syntax_Trees.Recover_Token;
       --  Virtual is False if token is from input text; True if inserted
-      --  during recover.
+      --  during recover. If not Virtual, Element_Node = Node (ie rooted
+      --  stream ref).
    end record;
 
    package Recover_Stacks is new SAL.Gen_Bounded_Definite_Stacks (Recover_Stack_Item);
@@ -609,6 +615,13 @@ package WisiToken.Parse.LR is
       Depth : in SAL.Base_Peek_Type := 0)
      return String
      renames Recover_Stack_Image;
+
+   function Stack_Has
+     (Tree  : in Syntax_Trees.Tree;
+      Stack : in Recover_Stacks.Stack;
+      ID    : in Token_ID)
+     return Boolean;
+   --  True if some item in Stack has ID.
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean with
      Pre => Stack.Depth >= Depth;
@@ -646,11 +659,12 @@ package WisiToken.Parse.LR is
       Current_Shared_Token : Syntax_Trees.Terminal_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
       --  Current input token in Shared_Stream; to be input after all of
       --  Input_Stream and Insert_Delete is input. Initially the error
-      --  token. In batch parse, always a single Shared_Terminal; in
-      --  incremental parse, may be a any Terminal_Label in a nonterm (ie
-      --  from error correction in a previous parse).
+      --  token. In batch parse, always a single Source_Terminal; in
+      --  incremental parse, always the first terminal in the stream
+      --  element, which may be Invalid_Node_Access if the stream element is
+      --  empty.
 
-      Input_Stream : Bounded_Streams.List (20);
+      Input_Stream : aliased Bounded_Streams.List (20);
       --  Holds tokens copied from Shared_Stream when Push_Back operations
       --  are performed, or added by Insert. Delete may be applied to these,
       --  which requires that nonterms be broken down (similar to
@@ -671,12 +685,13 @@ package WisiToken.Parse.LR is
       --  Index of the next op in Insert_Delete. If No_Insert_Delete, use
       --  Current_Tree_Token.
 
-      Resume_Token_Goal : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
-      --  A successful solution shifts this terminal token from Tree.Shared_Stream.
-      --  Per-config because it increases with Delete; we increase
-      --  Shared_Parser.Resume_Token_Goal only from successful configs.
+      Resume_Token_Goal : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'Last;
+      --  A successful solution shifts this terminal token from
+      --  Tree.Shared_Stream. Per-config because it increases with Delete;
+      --  we set Shared_Parser.Resume_Token_Goal only from successful
+      --  configs.
 
-      String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
+      String_Quote_Checked : Base_Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
       Error_Token                   : Syntax_Trees.Recover_Token;

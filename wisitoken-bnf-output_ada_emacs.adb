@@ -1080,16 +1080,16 @@ is
          Nonterm_Needed := True;
 
          if Label_Used_First and Label_Used_Second then
-            return " (Nonterm, Tokens, " & Label_First & ", " & Label_Second & ")";
+            return " (Tree, Nonterm, Tokens, " & Label_First & ", " & Label_Second & ")";
 
          elsif (not Label_Used_First) and Label_Used_Second then
             --  A copied EBNF RHS; see subprograms.wy Name
-            return " (Nonterm, Tokens, " & Label_Second & ")";
+            return " (Tree, Nonterm, Tokens, " & Label_Second & ")";
          else
             Put_Error
               (Error_Message
                  (Grammar_File_Name, RHS.Source_Line, "merge_names token label error"));
-            return " (Nonterm, Tokens)";
+            return " (Tree, Nonterm, Tokens)";
          end if;
       end Merge_Names_Params;
 
@@ -1104,7 +1104,7 @@ is
          Label_Used_Second : constant Boolean := Label_Used (Label_Second);
       begin
          if Label_Used_First and Label_Used_Second then
-            return " (Lexer, Tokens, " &
+            return " (Tree, Tokens, " &
               Label_First & ", " & Label_Second & ", " &
               (if Length (Input_Data.Language_Params.End_Names_Optional_Option) > 0
                then -Input_Data.Language_Params.End_Names_Optional_Option
@@ -1283,7 +1283,7 @@ is
                   Assert_Check_Empty;
                   Nonterm_Needed := True;
                   Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-                    " (Nonterm, Tokens, " & Label & ");";
+                    " (Tree, Nonterm, Tokens, " & Label & ");";
                end if;
             end;
 
@@ -1306,14 +1306,14 @@ is
          elsif Elisp_Name = "wisi-terminate-partial-parse" then
             Assert_Check_Empty;
             Nonterm_Needed := True;
-            Check_Line := +"return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, " &
+            Check_Line := +"return Terminate_Partial_Parse (Tree, Partial_Parse_Active, Partial_Parse_Byte_Goal, " &
               "Recover_Active, Nonterm);";
 
          elsif Input_Data.Tokens.Actions.Contains (+Elisp_Name) then
-            --  Language-specific action (used in wisitoken grammar mode for
-            --  wisi-check-parens).
+            --  Language-specific post-parse action (used in wisitoken grammar
+            --  mode for wisi-check-parens).
             --
-            --  FIXME: handle labels for token args. wisitoken-grammar declares
+            --  IMPROVEME: handle labels for token args. wisitoken-grammar declares
             --  wisi-check-parens, but uses BNF syntax, so no token labels are
             --  needed.
             declare
@@ -1376,29 +1376,29 @@ is
             Empty              := False;
             Subprogram_Started := True;
             Indent_Line ("function " & Name);
-            Indent_Line (" (Lexer          : access constant WisiToken.Lexer.Instance'Class;");
+            Indent_Line (" (Tree           : in     WisiToken.Syntax_Trees.Tree;");
             Indent_Line ("  Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
             Indent_Line ("  Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
             Indent_Line ("  Recover_Active : in     Boolean)");
             Indent_Line (" return WisiToken.In_Parse_Actions.Status");
             declare
-               Unref_Lexer   : constant Boolean := 0 = Index (Check_Line, "Lexer");
+               Unref_Tree    : constant Boolean := 0 = Index (Check_Line, "Tree");
                Unref_Nonterm : constant Boolean := 0 = Index (Check_Line, "Nonterm");
                Unref_Tokens  : constant Boolean := 0 = Index (Check_Line, "Tokens");
                Unref_Recover : constant Boolean := 0 = Index (Check_Line, "Recover_Active");
                Need_Comma    : Boolean          := False;
             begin
-               if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover or
+               if Unref_Tree or Unref_Nonterm or Unref_Tokens or Unref_Recover or
                  (for some I of Label_Needed => I)
                then
                   Indent_Line ("is");
 
                   Indent := Indent + 3;
-                  if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover then
+                  if Unref_Tree or Unref_Nonterm or Unref_Tokens or Unref_Recover then
                      Indent_Start ("pragma Unreferenced (");
 
-                     if Unref_Lexer then
-                        Put ((if Need_Comma then ", " else "") & "Lexer");
+                     if Unref_Tree then
+                        Put ((if Need_Comma then ", " else "") & "Tree");
                         Need_Comma := True;
                      end if;
                      if Unref_Nonterm then
@@ -1638,6 +1638,7 @@ is
       Main_Package_Name    : in String)
    is
       use WisiToken.Generate;
+      use Generate_Utils;
 
       File_Name : constant String := To_Lower (Main_Package_Name) & ".adb";
       Body_File : File_Type;
@@ -1658,6 +1659,9 @@ is
          null;
 
       when re2c_Lexer =>
+         if Create_re2c_Lexer_With_Sal (Generate_Data) then
+            Put_Line ("with SAL;");
+         end if;
          Put_Line ("with WisiToken.Lexer.re2c;");
          Put_Line ("with " & Output_File_Name_Root & "_re2c_c;");
 
@@ -1683,13 +1687,7 @@ is
          null;
 
       when re2c_Lexer =>
-         Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
-         Indent_Line ("  (" & Output_File_Name_Root & "_re2c_c.New_Lexer,");
-         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Free_Lexer,");
-         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Reset_Lexer,");
-         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Set_Position,");
-         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token);");
-         New_Line;
+         Create_re2c_Lexer (Generate_Data, Output_File_Name_Root);
       end case;
 
       case Common_Data.Generate_Algorithm is

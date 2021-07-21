@@ -2,7 +2,7 @@
 --
 --  Build AUnit test suite containing tests that run wisitoken-bnf-generate
 --
---  Copyright (C) 2013-2015, 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -26,10 +26,7 @@ with BNF_WY_Test;
 with Test_Generate_Errors;
 with Test_LR1_Parallel;
 with WisiToken.BNF;
-function Test_BNF_Suite
-  (EBNF_Only     : in Boolean;
-   Limit_Gen_Alg : in WisiToken.BNF.Generate_Algorithm)
-  return Access_Test_Suite
+function Test_BNF_Suite return Access_Test_Suite
 is
    use all type WisiToken.BNF.Generate_Algorithm;
 
@@ -52,45 +49,43 @@ begin
 
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Errors_Test.Test_Case (+"indent_param_count.wy")));
 
-   if not EBNF_Only then
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"ada_lite")));
-      Add_Test
-        (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"body_instantiation_conflict", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"body_instantiation_conflict")));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"case_expression", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"character_literal", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"conflict_name", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"dragon_4_43", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_1", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_2", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_3", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_4", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_5", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_6", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_7", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_8", null, Limit_Gen_Alg)));
-      Add_Test
-        (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"identifier_list_name_conflict", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"range_conflict", null, Limit_Gen_Alg)));
-      Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"skip_to_grammar", null, Limit_Gen_Alg)));
-      Add_Test
-        (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"warth_left_recurse_expr_1", null, Limit_Gen_Alg)));
-   end if;
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite", null)));
+   Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"ada_lite")));
+   Add_Test
+     (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"body_instantiation_conflict", null)));
+   Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"body_instantiation_conflict")));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"case_expression", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"character_literal", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"conflict_name", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"dragon_4_43", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_1", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_2", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_3", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_4", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_5", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_6", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_7", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_8", null)));
+   Add_Test
+     (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"identifier_list_name_conflict", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"range_conflict", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"skip_to_grammar", null)));
+   Add_Test
+     (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"warth_left_recurse_expr_1", null)));
 
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_ebnf", null, Limit_Gen_Alg)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite_ebnf", +"ada_lite", Limit_Gen_Alg)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_ebnf", null, Limit_Gen_Alg)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_enum_ch19", null, Limit_Gen_Alg)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_expressions_antlr", null, Limit_Gen_Alg)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_expressions_ch19", null, Limit_Gen_Alg)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_types_ch19", null, Limit_Gen_Alg)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_ebnf", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite_ebnf", +"ada_lite")));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_ebnf", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_enum_ch19", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_expressions_antlr", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_expressions_ch19", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_types_ch19", null)));
    Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"java_types_ch19")));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"lalr_generator_bug_01", null, Limit_Gen_Alg)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"nested_ebnf_optional", null, Limit_Gen_Alg)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"python_ebnf", null, Limit_Gen_Alg)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"subprograms", null, Limit_Gen_Alg)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"three_action_conflict", null, Limit_Gen_Alg)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"lalr_generator_bug_01", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"nested_ebnf_optional", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"python_ebnf", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"subprograms", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"three_action_conflict", null)));
 
    --  other *.wy files in ../wisi/test are used in Ada parser
    --  generator/parse tests, not run from here.

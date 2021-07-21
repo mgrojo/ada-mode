@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2015, 2017 - 2020 Stephe Leake
+--  Copyright (C) 2015, 2017 - 2021 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -34,8 +34,7 @@ is
    is begin
       Put_Line ("usage: *_run [-v <integer>] filename");
       Put_Line ("  parse input file, executing grammar actions");
-      Put_Line ("  -v : output trace of states while parsing");
-      Put_Line ("  -debug : set Wisitoken.Debug_Mode");
+      Put_Line ("  --verbosity <string> : trace options");
    end Put_Usage;
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
@@ -58,6 +57,7 @@ is
          User_Data'Unchecked_Access);
 
       Parser.Tree.Lexer.Reset_With_File (-File_Name);
+      Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
       Parser.Parse (Log_File);
       Parser.Execute_Actions;
       Parser.Put_Errors;
@@ -84,14 +84,10 @@ begin
       loop
          exit when Argument (Arg_Next)(1) /= '-';
 
-         if Argument (Arg_Next) = "-v" then
+         if Argument (Arg_Next) = "--verbosity" then
             Arg_Next  := Arg_Next + 1;
-            WisiToken.Trace_Parse := Integer'Value (Argument (Arg_Next));
+            WisiToken.Enable_Trace (Argument (Arg_Next));
             Arg_Next  := Arg_Next + 1;
-
-         elsif Argument (Arg_Next) = "-debug" then
-            Arg_Next             := Arg_Next + 1;
-            WisiToken.Debug_Mode := True;
 
          else
             Set_Exit_Status (Failure);

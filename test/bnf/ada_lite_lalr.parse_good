@@ -34,7 +34,7 @@ semantic check OK
 semantic check OK
  ... goto state 67
  0: 67: (-1, 6:(IS, (199 . 200))) : spawn 1, (2 active)
-tree size:  164
+tree size:  165
  1: 67: (-1, 6:(IS, (199 . 200))) : reduce 0 tokens to parameter_profile_opt
 (parameter_profile_opt_1) <= ()
  ... goto state 123
@@ -440,7 +440,7 @@ semantic check OK
 semantic check OK
  ... goto state 67
  1: 67: (-1, 67:(IS, (455 . 456))) : spawn 2, (2 active)
-tree size:  270
+tree size:  271
  2: 67: (-1, 67:(IS, (455 . 456))) : reduce 0 tokens to parameter_profile_opt
 (parameter_profile_opt_1) <= ()
  ... goto state 123
@@ -789,7 +789,7 @@ semantic check OK
 semantic check OK
  ... goto state 67
  2: 67: (-1, 109:(IS, (645 . 646))) : spawn 3, (2 active)
-tree size:  366
+tree size:  367
  3: 67: (-1, 109:(IS, (645 . 646))) : reduce 0 tokens to parameter_profile_opt
 (parameter_profile_opt_1) <= ()
  ... goto state 123
@@ -1128,16 +1128,16 @@ semantic check OK
 (name_opt_1) <= ()
  ... goto state 311
  3: 311: (-1, 155:(SEMICOLON, (862 . 862))) : shift and goto state 317
- 3: 317: (-1, 156:(Wisi_EOI, (863 . 862))) : reduce 9 tokens to subprogram_body
+ 3: 317: (-1, 156:(Wisi_EOI, (864 . 863))) : reduce 9 tokens to subprogram_body
 (subprogram_body_0, (628 . 862)) <= ((subprogram_specification, (628 . 643)), (aspect_specification_opt), 109:(IS, (645 . 646)), (declarative_part, (651 . 678)), 118:(BEGIN, (680 . 684)), (handled_sequence_of_statements, (689 . 857)), 154:(END, (859 . 861)), (name_opt), 155:(SEMICOLON, (862 . 862)))
 semantic check OK
  ... goto state 34
- 3: 34: (-1, 156:(Wisi_EOI, (863 . 862))) : reduce 1 tokens to compilation_unit
+ 3: 34: (-1, 156:(Wisi_EOI, (864 . 863))) : reduce 1 tokens to compilation_unit
 (compilation_unit_3, (628 . 862)) <= ((subprogram_body, (628 . 862)))
  ... goto state 74
- 3: 74: (-1, 156:(Wisi_EOI, (863 . 862))) : reduce 2 tokens to compilation_unit_list
+ 3: 74: (-1, 156:(Wisi_EOI, (864 . 863))) : reduce 2 tokens to compilation_unit_list
 (compilation_unit_list_0, (161 . 862)) <= ((compilation_unit_list, (161 . 625)), (compilation_unit, (628 . 862)))
  ... goto state 16
- 3: 16: (-1, 156:(Wisi_EOI, (863 . 862))) : accept it
+ 3: 16: (-1, 156:(Wisi_EOI, (864 . 863))) : accept it
 (wisitoken_accept_0, (161 . 862)) <= ((compilation_unit_list, (161 . 862)))
  3: succeed

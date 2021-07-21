@@ -1,7 +1,7 @@
 ;; Test translate elisp wisi actions to Ada, auto token labels
 
 %code copyright_license %{
-;;  Copyright (C) 2013, 2017 - 2020 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2013, 2017 - 2021 Stephen Leake.  All Rights Reserved.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -51,8 +51,8 @@
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
-%non_grammar <comment> COMMENT_1 %[ "--"[^\n\x04]* ]%
-%non_grammar <comment> COMMENT_2 %[ "//"[^\n\x04]* ]%
+%non_grammar <comment-new-line> COMMENT_1 %[ "--" ]%
+%non_grammar <comment-new-line> COMMENT_2 %[ "//" ]%
 
 %mckenzie_check_limit 3
 %mckenzie_zombie_limit 3

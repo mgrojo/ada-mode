@@ -2,7 +2,7 @@
 --
 --  Type and operations for building grammar productions.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -74,10 +74,10 @@ package WisiToken.Productions is
    --  Put Image of each production to Ada.Text_IO.Current_Output, for parse_table.
 
    package Line_Number_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Natural, Line_Number_Type, Default_Element => Invalid_Line_Number);
+     (Natural, Line_Number_Type, Default_Element => Line_Number_Type'First);
 
    type Prod_Source_Line_Map is record
-      Line    : Line_Number_Type := Invalid_Line_Number;
+      Line    : Line_Number_Type := Line_Number_Type'First;
       RHS_Map : Line_Number_Arrays.Vector;
    end record;
 

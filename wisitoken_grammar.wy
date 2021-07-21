@@ -87,7 +87,8 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %token <number> NUMERIC_LITERAL %[ [0-9-][0-9_]* ]% "1234567890"
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][-0-9a-zA-Z_\x80-\U0010FFFF]* ]% "bogus"
 
-;; In re2c regexps, '...' indicates a case-insensitive match.
+;; In re2c regexps, '...' indicates a case-insensitive match, "..." a
+;; case-sensitive match.
 ;;
 ;; In nonterminals, '...' indicates a literal, which we translate to a
 ;; token; case-sensitive is then determined by the 'case_insensitive'
@@ -100,7 +101,7 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
-%non_grammar <comment> COMMENT %[ ";;"[^\x0a\x04]* ]%
+%non_grammar <comment-new-line> COMMENT %[ ";;" ]%
 
 %elisp_face font-lock-constant-face
 %elisp_face font-lock-function-name-face
@@ -114,6 +115,7 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 ;; mckenzie_recover, to simplify working on mckenzie_recover.
 
 %conflict SHIFT IDENTIFIER_BAR_list | REDUCE rhs_list on token BAR
+%conflict SHIFT declaration | REDUCE token_keyword_non_grammar on token IDENTIFIER (90)
 %conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER
 %conflict SHIFT rhs_element | REDUCE rhs on token IDENTIFIER
 %conflict SHIFT rhs_list | REDUCE semicolon_opt on token PERCENT
@@ -122,6 +124,8 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 
 declaration
   : PERCENT token_keyword_non_grammar IDENTIFIER declaration_item_list
+    %(Add_Declaration (User_Data, Tree, Nonterm);)%
+  | PERCENT NON_GRAMMAR LESS IDENTIFIER GREATER IDENTIFIER
     %(Add_Declaration (User_Data, Tree, Nonterm);)%
   | PERCENT CODE identifier_list RAW_CODE
     %(Add_Declaration (User_Data, Tree, Nonterm);)%

@@ -29,8 +29,9 @@ package body WisiToken.Generate.Tree_Sitter is
    use WisiToken.Syntax_Trees;
 
    procedure Eliminate_Empty_Productions
-     (Data : in out WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree : in out WisiToken.Syntax_Trees.Tree)
+     (Data  : in out WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree  : in out WisiToken.Syntax_Trees.Tree;
+      Trace : in out WisiToken.Trace'Class)
    is
       Ignore_Lines    : Boolean := False;
 
@@ -224,14 +225,17 @@ package body WisiToken.Generate.Tree_Sitter is
                end;
 
             when others =>
-               --  FIXME: handle rhs_list end if
+               --  FIXME: handle rhs_list %if, %end if
                null;
             end case;
             return;
          end if;
 
          case To_Token_Enum (Tree.ID (Node)) is
-         --  Enum_Token_ID alphabetical order
+         --  SOI, EOI first, then Enum_Token_ID alphabetical order
+
+         when Wisi_SOI_ID | Wisi_EOI_ID =>
+            null;
 
          when compilation_unit_ID =>
             Find_Empty_Nodes (Tree.Child (Node, 1));
@@ -253,7 +257,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
          when declaration_ID =>
             case Tree.RHS_Index (Node) is
-            when 4 .. 7 =>
+            when 5 .. 8 =>
                --  | PERCENT (IF | ELSIF) IDENTIFIER (EQUAL IDENTIFIER | IN IDENTIFIER_BAR_list)
                Nodes_To_Delete.Append (Node);
                declare
@@ -261,11 +265,11 @@ package body WisiToken.Generate.Tree_Sitter is
                begin
                   if "lexer" = Get_Text (Tree.Child (Node, 3)) then
                      Ignore_Lines := not WisiToken_Grammar_Runtime.Get_Lexer_Set
-                          (Data, Tree, Tree.Child (Node, 5)) (Tree_Sitter_Lexer);
+                       (Data, Tree, Tree.Child (Node, 5)) (Tree_Sitter_Lexer);
 
                   elsif "parser" = Get_Text (Tree.Child (Node, 3)) then
                      Ignore_Lines := not WisiToken_Grammar_Runtime.Get_Generate_Algorithm_Set
-                          (Data, Tree, Tree.Child (Node, 5)) (WisiToken.BNF.Tree_Sitter);
+                       (Data, Tree, Tree.Child (Node, 5)) (WisiToken.BNF.Tree_Sitter);
 
                   else
                      raise SAL.Programmer_Error;
@@ -279,7 +283,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
                end;
 
-            when 8 =>
+            when 9 =>
                --  %end if
                Nodes_To_Delete.Append (Node);
 
@@ -305,7 +309,7 @@ package body WisiToken.Generate.Tree_Sitter is
             end;
 
          when wisitoken_accept_ID =>
-            Find_Empty_Nodes (Tree.Child (Node, 1));
+            Find_Empty_Nodes (Tree.Child (Node, 2));
 
          when others =>
             raise SAL.Not_Implemented with Image (Tree.ID (Node), Wisitoken_Grammar_Actions.Descriptor);
@@ -491,7 +495,10 @@ package body WisiToken.Generate.Tree_Sitter is
             case To_Token_Enum (Tree.ID (Node)) is
             --  common code first, then Enum_Token_ID alphabetical order
 
-            when compilation_unit_ID | wisitoken_accept_ID =>
+            when wisitoken_accept_ID =>
+               Find_Nodes (Tree.Child (Node, 2));
+
+            when compilation_unit_ID =>
                Find_Nodes (Tree.Child (Node, 1));
 
             when compilation_unit_list_ID | rhs_alternative_list_ID | rhs_item_list_ID | rhs_list_ID =>
@@ -610,7 +617,7 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("tree_sitter eliminate empty productions start");
          if Trace_Generate_EBNF > Detail then
-            Tree.Print_Tree (Tree.Root);
+            Tree.Print_Tree (Trace, Tree.Root);
          end if;
       end if;
 
@@ -702,7 +709,7 @@ package body WisiToken.Generate.Tree_Sitter is
       if Trace_Generate_EBNF > Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("tree_sitter eliminate empty productions end");
-         Tree.Print_Tree (Tree.Root);
+         Tree.Print_Tree (Trace, Tree.Root);
       end if;
    end Eliminate_Empty_Productions;
 
@@ -911,7 +918,8 @@ package body WisiToken.Generate.Tree_Sitter is
                               Put (File, "$." & Ident);
 
                            when STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
-                              --  FIXME: case insensitive?
+                              --  FIXME: STRING_LITERAL_1_ID in regexp is case insensitive; not
+                              --  clear how to do that in tree-sitter.
                               Put (File, Get_Text (Item));
 
                            when others =>
@@ -1050,7 +1058,10 @@ package body WisiToken.Generate.Tree_Sitter is
          end if;
 
          case To_Token_Enum (Tree.ID (Node)) is
-         --  Enum_Token_ID alphabetical order
+         --  SOI, EOI first, then Enum_Token_ID alphabetical order
+
+         when Wisi_SOI_ID | Wisi_EOI_ID =>
+            null;
 
          when compilation_unit_ID =>
             Process_Node (Tree.Child (Node, 1));
@@ -1115,11 +1126,15 @@ package body WisiToken.Generate.Tree_Sitter is
                end;
 
             when 1 =>
+               --  new-line with no regexp; tree-sitter defaults to DOS, Unix newline.
+               null;
+
+            when 2 =>
                --  FIXME: CODE copyright_license
 
                null;
 
-            when 2 =>
+            when 3 =>
                declare
                   Kind : constant String := Get_Text (Tree.Child (Node, 2));
                begin
@@ -1167,11 +1182,11 @@ package body WisiToken.Generate.Tree_Sitter is
                   end if;
                end;
 
-            when 3 =>
+            when 4 =>
                --  %case_insensitive
                null;
 
-            when 4 .. 8 =>
+            when 5 .. 9 =>
                --  Should have been eliminated by Eliminate_Empty_Productions
                raise SAL.Programmer_Error with "Print_Tree_Sitter declaration %if " &
                  Tree.Image (Node, Node_Numbers => True);
@@ -1192,7 +1207,8 @@ package body WisiToken.Generate.Tree_Sitter is
             end;
 
          when wisitoken_accept_ID =>
-            Process_Node (Tree.Child (Node, 1));
+            --  Child 1 is SOI, 2 compilation_unit_list
+            Process_Node (Tree.Child (Node, 2));
 
          when others =>
             raise SAL.Not_Implemented with Image (Tree.ID (Node), Wisitoken_Grammar_Actions.Descriptor);

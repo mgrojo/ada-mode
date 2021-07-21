@@ -304,28 +304,36 @@ A string of characters that have string syntax, with single quote delimiters.
 @verbatim
 %token <new-line> NEW_LINE
 @end verbatim
-Counts as a new line for syntax tree @code{Line_Region}. The regular
-expression is provided by the generator; it matches either ASCII LF or
-ASCII CR LF (Unix or DOS line endings).
+Declares the non-grammar new-line token, used to count lines. It has
+no regexp argument; DOS and Unix line endings are added
+internally. This must be declared if line information is desired.
+
+For backward compatibility with previous WisiToken versions, any
+regexp present is ignored.
 
 @item <comment-new-line>
 @verbatim
 %token <comment-new-line> COMMENT "--"
 @end verbatim
-A comment terminated by a line end; counts as a new line for syntax
-tree @code{Line_Region}. The argument provides only the comment start
-- the rest of the regular expression is provided by the generator as
-for new-line.
+Declares a non-grammar comment token that is terminated by a line end
+or end of input. The regexp argument must match only the comment
+start (the example shows the Ada comment start); DOS and Unix line
+endings, and end of input, are added internally. The token includes the
+line end; no separate new-line token is produced after the comment
+token.
 
-@item <comment-one-line>
+@item <comment-new-line>
 @verbatim
 %token <comment-one-line> PLACEHOLDER "{" "}"
 @end verbatim
-A comment terminated by a matching terminator or a line end. If it
-contains a line end, it counts as a new line for syntax tree
-@code{Line_Region}. The arguments provide the comment start and end -
-the rest of the regular expression is provided by the generator as for
-new-line. This is useful for syntax template placeholders.
+Declares a non-grammar comment token that is terminated by the end
+delimiter, or by a line end or end of input (to avoid accidently
+commenting out multiple lines). The two regexp arguments must match
+only the comment start and end (the example shows a template
+placeholder); DOS and Unix line endings, and end of input, are added
+internally. If the token is terminated by a line end, the token
+includes the line end; no separate new-line token is produced after
+the comment token.
 
 @item <delimited-text>
 @verbatim

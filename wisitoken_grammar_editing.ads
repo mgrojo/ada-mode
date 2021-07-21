@@ -33,46 +33,47 @@ package WisiToken_Grammar_Editing is
    package Valid_Node_Access_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists
      (WisiToken.Syntax_Trees.Valid_Node_Access);
 
-   type Identifier_Token_Index
+   type Identifier_Token
      (Label : WisiToken.Syntax_Trees.Terminal_Label := WisiToken.Syntax_Trees.Terminal_Label'First)
    is record
-      ID          : WisiToken.Token_ID;
-      Byte_Region : WisiToken.Buffer_Region;
-
+      --  Either a syntax tree terminal node, or data to create a syntax
+      --  tree Virtual_Identifier node. Used to represent an identifier in a
+      --  grammar production.
       case Label is
-      when Source_Terminal =>
-         Node_Index : WisiToken.Syntax_Trees.Node_Index;
-         Line       : WisiToken.Line_Number_Type;
-
-      when Virtual_Terminal =>
-         null;
+      when Source_Terminal | Virtual_Terminal =>
+         Node : WisiToken.Syntax_Trees.Node_Access;
 
       when Virtual_Identifier =>
+         ID         : WisiToken.Token_ID;
          Identifier : WisiToken.Identifier_Index;
       end case;
    end record;
 
-   function Image (Item : in Identifier_Token_Index) return String
+   function Image (Item : in Identifier_Token; Tree : in WisiToken.Syntax_Trees.Tree) return String
    is ((case Item.Label is
-        when Source_Terminal | Virtual_Terminal => WisiToken.Syntax_Trees.Trimmed_Image (Item.Node_Index) & ":",
+        when Source_Terminal | Virtual_Terminal => WisiToken.Syntax_Trees.Trimmed_Image
+          (Tree.Get_Node_Index (Item.Node)) & ":",
         when Virtual_Identifier => Trimmed_Image (Item.Identifier) & ";") &
          Image (Item.ID, Wisitoken_Grammar_Actions.Descriptor));
 
-   Invalid_Identifier_Token : constant Identifier_Token_Index :=
-     (Label       => WisiToken.Syntax_Trees.Virtual_Terminal,
-      Byte_Region => WisiToken.Null_Buffer_Region,
-      ID          => WisiToken.Invalid_Token_ID);
+   Invalid_Identifier_Token : constant Identifier_Token :=
+     (Label => WisiToken.Syntax_Trees.Virtual_Terminal,
+      Node  => WisiToken.Syntax_Trees.Invalid_Node_Access);
+
+   function ID (Tree : in WisiToken.Syntax_Trees.Tree; Item : in Identifier_Token) return WisiToken.Token_ID
+   is (case Item.Label is
+       when Source_Terminal | Virtual_Terminal => Tree.ID (Item.Node),
+       when Virtual_Identifier => Item.ID);
 
    function To_Identifier_Token
-     (Item        : in WisiToken.Identifier_Index;
-      Byte_Region : in WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region)
-     return Identifier_Token_Index
-   is ((Virtual_Identifier, +IDENTIFIER_ID, Byte_Region, Item));
+     (Item : in WisiToken.Identifier_Index)
+     return Identifier_Token
+   is ((Virtual_Identifier, +IDENTIFIER_ID, Item));
 
    function To_Identifier_Token
      (Item : in WisiToken.Syntax_Trees.Valid_Node_Access;
       Tree : in WisiToken.Syntax_Trees.Tree)
-     return Identifier_Token_Index
+     return Identifier_Token
    with Pre => To_Token_Enum (Tree.ID (Item)) in rhs_element_ID | rhs_item_ID | IDENTIFIER_ID;
 
    function Add_RHS_Group_Item
@@ -94,7 +95,7 @@ package WisiToken_Grammar_Editing is
 
    function Add_Identifier_Token
      (Tree : in out WisiToken.Syntax_Trees.Tree;
-      Item : in     Identifier_Token_Index)
+      Item : in     Identifier_Token)
      return WisiToken.Syntax_Trees.Valid_Node_Access;
 
    function Add_RHS_Item
@@ -107,7 +108,7 @@ package WisiToken_Grammar_Editing is
    function Add_RHS_Element
      (Tree  : in out WisiToken.Syntax_Trees.Tree;
       Item  : in     WisiToken.Syntax_Trees.Valid_Node_Access;
-      Label : in     Identifier_Token_Index := Invalid_Identifier_Token)
+      Label : in     Identifier_Token := Invalid_Identifier_Token)
      return WisiToken.Syntax_Trees.Valid_Node_Access
    with Pre => Tree.ID (Item) = +rhs_item_ID,
      Post => Tree.Production_ID (Add_RHS_Element'Result) =
@@ -159,8 +160,9 @@ package WisiToken_Grammar_Editing is
    --  Wisitoken_Grammar_Runtime.User_Data_Type.
 
    procedure Translate_EBNF_To_BNF
-     (Tree : in out WisiToken.Syntax_Trees.Tree;
-      Data : in out WisiToken_Grammar_Runtime.User_Data_Type)
+     (Tree  : in out WisiToken.Syntax_Trees.Tree;
+      Data  : in out WisiToken_Grammar_Runtime.User_Data_Type;
+      Trace : in out WisiToken.Trace'Class)
    with Pre => Tree.Editable;
    --  Edit EBNF nonterms, adding new nonterms as needed, resulting in
    --  a BNF tree.

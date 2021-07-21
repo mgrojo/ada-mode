@@ -129,6 +129,42 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
             Index := Index + 1;
          end loop;
+
+         declare
+            use all type WisiToken.Syntax_Trees.Sequential_Index;
+
+            Default_Positive_Sequential_Index : constant Syntax_Trees.Sequential_Index := 10;
+            Default_Negative_Sequential_Index : constant Syntax_Trees.Sequential_Index := -10;
+
+            Tree  : Syntax_Trees.Tree renames Supervisor.Tree.all;
+            Index : Syntax_Trees.Sequential_Index := 1;
+         begin
+            Max_Sequential_Index_Node := Tree.To_Stream_Node_Parents (Parsers.First_State_Ref.Shared_Token);
+            if Max_Sequential_Index_Node.Ref.Node = Syntax_Trees.Invalid_Node_Access or else
+              Tree.Label (Max_Sequential_Index_Node.Ref.Node) not in Syntax_Trees.Terminal_Label
+            then
+               Tree.First_Terminal (Max_Sequential_Index_Node);
+            end if;
+
+            Min_Sequential_Index_Node := Max_Sequential_Index_Node;
+
+            loop
+               Tree.Set_Sequential_Index (Max_Sequential_Index_Node.Ref.Node, Index);
+               exit when Max_Sequential_Index_Node.Ref.Node = Tree.EOI;
+               exit when Index = Default_Positive_Sequential_Index;
+               Tree.Next_Terminal (Max_Sequential_Index_Node);
+               Index := @ + 1;
+            end loop;
+
+            Index := 0;
+            loop
+               Tree.Prev_Terminal (Min_Sequential_Index_Node);
+               Tree.Set_Sequential_Index (Min_Sequential_Index_Node.Ref.Node, Index);
+               exit when Min_Sequential_Index_Node.Ref.Node = Tree.SOI;
+               exit when Index = Default_Negative_Sequential_Index;
+               Index := @ - 1;
+            end loop;
+         end;
       end Initialize;
 
       entry Get
@@ -439,7 +475,100 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          return Parser_Status (Parser_Index).Parser_State.Stream;
       end Stream;
 
+      function Min_Sequential_Index return Syntax_Trees.Sequential_Index
+      is begin
+         return Tree.Get_Sequential_Index (Min_Sequential_Index_Node.Ref.Node);
+      end Min_Sequential_Index;
+
+      function Min_Sequential_Index return Syntax_Trees.Stream_Node_Parents
+      is begin
+         return Min_Sequential_Index_Node;
+      end Min_Sequential_Index;
+
+      procedure Extend_Min_Sequential_Index
+      is
+         use Syntax_Trees;
+         Index  : Sequential_Index := Tree.Get_Sequential_Index (Min_Sequential_Index_Node.Ref.Node);
+         Target : constant Sequential_Index := 2 * Index;
+      begin
+         loop
+            exit when Min_Sequential_Index_Node.Ref.Node = Tree.SOI;
+            Tree.Prev_Terminal (Min_Sequential_Index_Node);
+
+            Index := @ - 1;
+            Tree.Set_Sequential_Index (Min_Sequential_Index_Node.Ref.Node, Index);
+
+            exit when Index = Target;
+         end loop;
+      end Extend_Min_Sequential_Index;
+
+      function Max_Sequential_Index return Syntax_Trees.Sequential_Index
+      is begin
+         return Tree.Get_Sequential_Index (Max_Sequential_Index_Node.Ref.Node);
+      end Max_Sequential_Index;
+
+      function Max_Sequential_Index return Syntax_Trees.Stream_Node_Parents
+      is begin
+         return Max_Sequential_Index_Node;
+      end Max_Sequential_Index;
+
+      function Max_Sequential_Index_Is_EOI return Boolean
+      is begin
+         return Tree.EOI = Max_Sequential_Index_Node.Ref.Node;
+      end Max_Sequential_Index_Is_EOI;
+
+      procedure Extend_Max_Sequential_Index
+      is
+         use Syntax_Trees;
+         Index  : Sequential_Index := Tree.Get_Sequential_Index (Max_Sequential_Index_Node.Ref.Node);
+         Target : constant Sequential_Index := 2 * Index;
+      begin
+         loop
+            exit when Max_Sequential_Index_Node.Ref.Node = Tree.EOI;
+
+            Tree.Next_Terminal (Max_Sequential_Index_Node);
+            Index := @ + 1;
+            Tree.Set_Sequential_Index (Max_Sequential_Index_Node.Ref.Node, Index);
+
+            exit when Index = Target;
+         end loop;
+      end Extend_Max_Sequential_Index;
+
    end Supervisor;
+
+   procedure Extend_Sequential_Index
+     (Super    : not null access Base.Supervisor;
+      Thru     : in              Syntax_Trees.Valid_Node_Access;
+      Positive : in              Boolean)
+   is
+      use all type WisiToken.Syntax_Trees.Sequential_Index;
+   begin
+      if Positive then
+         loop
+            exit when Super.Tree.Get_Sequential_Index (Thru) /= Syntax_Trees.Invalid_Sequential_Index;
+            Super.Extend_Max_Sequential_Index;
+         end loop;
+
+      else
+         loop
+            exit when Super.Tree.Get_Sequential_Index (Thru) /= Syntax_Trees.Invalid_Sequential_Index;
+            Super.Extend_Min_Sequential_Index;
+         end loop;
+      end if;
+   end Extend_Sequential_Index;
+
+   procedure Extend_Sequential_Index
+     (Super : not null access Base.Supervisor;
+      Thru  : in              Syntax_Trees.Sequential_Index)
+   is
+      use all type WisiToken.Syntax_Trees.Sequential_Index;
+   begin
+      loop
+         exit when Super.Max_Sequential_Index_Is_EOI;
+         exit when Super.Max_Sequential_Index >= Thru;
+         Super.Extend_Max_Sequential_Index;
+      end loop;
+   end Extend_Sequential_Index;
 
    procedure Put
      (Message      : in              String;

@@ -173,15 +173,15 @@
  0: 13: 64:(CHARACTER_LITERAL, (610 . 619)) : shift and goto state 15
  0: 15: 65:(RIGHT_PAREN, (620 . 620)) : shift and goto state 18
  0: 18: 66:(SEMICOLON, (621 . 621)) : shift and goto state 20
- 0: 20: 67:(Wisi_EOI, (646 . 645)) : reduce 6 tokens to statement
+ 0: 20: 67:(Wisi_EOI, (647 . 646)) : reduce 6 tokens to statement
 (statement, (585 . 621)) <= (61:(IDENTIFIER, (585 . 607)), (tick, (608 . 608)), 63:(LEFT_PAREN, (609 . 609)), 64:(CHARACTER_LITERAL, (610 . 619)), 65:(RIGHT_PAREN, (620 . 620)), 66:(SEMICOLON, (621 . 621)))
  ... goto state 12
- 0: 12: 67:(Wisi_EOI, (646 . 645)) : reduce 2 tokens to statement_list
+ 0: 12: 67:(Wisi_EOI, (647 . 646)) : reduce 2 tokens to statement_list
 (statement_list, (29 . 621)) <= ((statement_list, (29 . 523)), (statement, (585 . 621)))
  ... goto state 5
- 0: 5: 67:(Wisi_EOI, (646 . 645)) : reduce 1 tokens to compilation_unit
+ 0: 5: 67:(Wisi_EOI, (647 . 646)) : reduce 1 tokens to compilation_unit
 (compilation_unit, (29 . 621)) <= ((statement_list, (29 . 621)))
  ... goto state 4
- 0: 4: 67:(Wisi_EOI, (646 . 645)) : accept it
+ 0: 4: 67:(Wisi_EOI, (647 . 646)) : accept it
 (wisitoken_accept, (29 . 621)) <= ((compilation_unit, (29 . 621)))
  0: succeed

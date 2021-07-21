@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2021 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -159,7 +159,6 @@ package body WisiToken.Parse.LR.AUnit is
 
    procedure Check
      (Label    : in String;
-      Tree     : in Syntax_Trees.Tree;
       Computed : in Config_Op;
       Expected : in Test_Config_Op)
    is
@@ -183,13 +182,7 @@ package body WisiToken.Parse.LR.AUnit is
 
       when Insert =>
          Check (Label & ".id", Computed.Ins_ID, Expected.Ins_ID);
-
-         if Tree.Editable then
-            --  Execute_Actions has been run; .ins_before is invalid
-            null;
-         else
-            Check (Label & ".ins_before", Computed.Ins_Before, Expected.Ins_Before);
-         end if;
+         Check (Label & ".ins_before", Computed.Ins_Before, Expected.Ins_Before);
 
       when Delete =>
          Check (Label & ".id", Computed.Del_ID, Expected.Del_ID);
@@ -199,7 +192,6 @@ package body WisiToken.Parse.LR.AUnit is
 
    procedure Check
      (Label    : in String;
-      Tree     : in Syntax_Trees.Tree;
       Computed : in Config_Op_Arrays.Vector;
       Expected : in Test_Config_Op_Arrays.Vector)
    is
@@ -210,7 +202,7 @@ package body WisiToken.Parse.LR.AUnit is
       Check (Label & ".First_Index", First_Index (Computed), First_Index (Expected));
       Check (Label & ".Last_Index", Last_Index (Computed), Last_Index (Expected));
       for I in First_Index (Computed) .. Last_Index (Computed) loop
-         Check (Label & "." & I'Image, Tree, Element (Computed, I), Element (Expected, I));
+         Check (Label & "." & I'Image, Element (Computed, I), Element (Expected, I));
       end loop;
    end Check;
 

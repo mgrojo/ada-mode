@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,6 +19,7 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with AUnit.Checks;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Skip_To_Grammar_LALR_Main;
@@ -38,13 +39,18 @@ package body Test_Skip_To is
    procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
+      use AUnit.Checks;
 
       File_Name : constant String := "../test/bnf/skip_to_grammar.input";
    begin
       Test_Skip_To_Aux.Enable := True;
 
       Test_Skip_To_Aux.Parser.Tree.Lexer.Reset_With_File (File_Name);
+      Test_Skip_To_Aux.Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
       Test_Skip_To_Aux.Parser.Parse (Log_File);
+
+      Check ("lexer, parser errors", Test_Skip_To_Aux.Parser.Any_Errors, False);
+
       Test_Skip_To_Aux.Parser.Execute_Actions;
    exception
    when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>

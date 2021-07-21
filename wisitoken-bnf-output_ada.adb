@@ -221,14 +221,14 @@ is
                      use Ada.Strings.Fixed;
                      Line          : constant String  := -RHS.Check;
                      Name          : constant String  := Check_Names (LHS_ID)(RHS_Index).all;
-                     Unref_Lexer   : constant Boolean := 0 = Index (Line, "Lexer");
+                     Unref_Tree    : constant Boolean := 0 = Index (Line, "Tree");
                      Unref_Nonterm : constant Boolean := 0 = Index (Line, "Nonterm");
                      Unref_Tokens  : constant Boolean := 0 = Index (Line, "Tokens");
                      Unref_Recover : constant Boolean := 0 = Index (Line, "Recover_Active");
                      Need_Comma    : Boolean          := False;
                   begin
                      Indent_Line ("function " & Name);
-                     Indent_Line ("  (Lexer          : access constant WisiToken.Lexer.Instance'Class;");
+                     Indent_Line ("  (Tree           : in     WisiToken.Syntax_Trees.Tree;");
                      Indent_Line ("   Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
                      Indent_Line ("   Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
                      Indent_Line ("   Recover_Active : in     Boolean)");
@@ -236,11 +236,11 @@ is
                      Indent_Line ("is");
 
                      Indent := Indent + 3;
-                     if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover then
+                     if Unref_Tree or Unref_Nonterm or Unref_Tokens or Unref_Recover then
                         Indent_Start ("pragma Unreferenced (");
 
-                        if Unref_Lexer then
-                           Put ("Lexer");
+                        if Unref_Tree then
+                           Put ("Tree");
                            Need_Comma := True;
                         end if;
                         if Unref_Nonterm then
@@ -308,6 +308,9 @@ is
          null;
 
       when re2c_Lexer =>
+         if Create_re2c_Lexer_With_Sal (Generate_Data) then
+            Put_Line ("with SAL;");
+         end if;
          Put_Line ("with WisiToken.Lexer.re2c;");
          Put_Line ("with " & re2c_Package_Name & ";");
       end case;
@@ -338,13 +341,7 @@ is
          null;
 
       when re2c_Lexer =>
-         Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
-         Indent_Line ("  (" & re2c_Package_Name & ".New_Lexer,");
-         Indent_Line ("   " & re2c_Package_Name & ".Free_Lexer,");
-         Indent_Line ("   " & re2c_Package_Name & ".Reset_Lexer,");
-         Indent_Line ("   " & re2c_Package_Name & ".Set_Position,");
-         Indent_Line ("   " & re2c_Package_Name & ".Next_Token);");
-         New_Line;
+         Create_re2c_Lexer (Generate_Data, Output_File_Name_Root);
       end case;
 
       case Common_Data.Generate_Algorithm is

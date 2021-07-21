@@ -66,9 +66,9 @@
 (name_opt) <= ()
  ... goto state 45
  1: 45: 11:(SEMICOLON, (45 . 45)) : shift and goto state 46
- 1: 46: 12:(Wisi_EOI, (46 . 45)) : reduce 8 tokens to compilation_unit
+ 1: 46: 12:(Wisi_EOI, (47 . 46)) : reduce 8 tokens to compilation_unit
 (compilation_unit, (1 . 45)) <= (1:(PROCEDURE, (1 . 9)), (name, (11 . 16)), 3:(IS, (18 . 19)), 4:(BEGIN, (21 . 25)), (sequence_of_statements, (30 . 40)), 10:(END, (42 . 44)), (name_opt), 11:(SEMICOLON, (45 . 45)))
  ... goto state 4
- 1: 4: 12:(Wisi_EOI, (46 . 45)) : accept it
+ 1: 4: 12:(Wisi_EOI, (47 . 46)) : accept it
 (wisitoken_accept, (1 . 45)) <= ((compilation_unit, (1 . 45)))
  1: succeed

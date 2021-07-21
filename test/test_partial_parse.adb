@@ -51,6 +51,10 @@ package body Test_Partial_Parse is
          use all type WisiToken.Token_ID;
          Node  : Valid_Node_Access := Parser.Tree.Root;
       begin
+         if WisiToken.Trace_Tests > WisiToken.Outline then
+            Parser.Tree.Print_Tree (Trace, Line_Numbers => True);
+         end if;
+
          Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, Parse_End_Byte_Pos));
 
          if Action_ID = WisiToken.Invalid_Token_ID then
@@ -62,19 +66,15 @@ package body Test_Partial_Parse is
          else
             Check (Label & ".root", Parser.Tree.ID (Node), +compilation_unit_list_ID);
 
-            Node := Parser.Tree.Children (Node)(1); -- First child is compilation_unit
+            Node := Parser.Tree.Children (Node)(2); -- First child is SOI, second is compilation_unit
             Check (Label & ".compilation_unit", Parser.Tree.ID (Node), +compilation_unit_ID);
 
             Node := Parser.Tree.Children (Node)(1);
-            Check (Label & ".parsed ID", Parser.Tree.ID (Node), Action_ID);
+            Check (Label & ".action ID", Parser.Tree.ID (Node), Action_ID);
 
-            declare
-               Token : constant WisiToken.Base_Token := Parser.Tree.Base_Token (Parser.Tree.First_Terminal (Node));
-            begin
-               Check (Label & ".parse begin byte", Token.Byte_Region.First, Begin_Byte_Pos);
-               Check (Label & ".parse begin char", Token.Char_Region.First, Begin_Char_Pos);
-               Check (Label & ".parse begin line", Token.Line_Region, (Begin_Line, Begin_Line));
-            end;
+            Check (Label & ".parse begin byte", Parser.Tree.Byte_Region (Node).First, Begin_Byte_Pos);
+            Check (Label & ".parse begin char", Parser.Tree.Char_Region (Node).First, Begin_Char_Pos);
+            Check (Label & ".parse begin line", Parser.Tree.Line_Region (Node).First, Begin_Line);
 
             Check
               (Label & ".parse end byte",
@@ -121,7 +121,7 @@ package body Test_Partial_Parse is
       use WisiToken;
       Partial_Text : String renames Text (Begin_Byte_Pos .. End_Byte_Pos);
    begin
-      if WisiToken.Trace_Parse > WisiToken.Outline then
+      if WisiToken.Trace_Tests > WisiToken.Outline then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line
            ("input: '" & Partial_Text & "'," &
@@ -180,7 +180,8 @@ package body Test_Partial_Parse is
            ("input file: " & File_Name & Buffer_Pos'Image (Begin_Byte_Pos) & " .." & Buffer_Pos'Image (End_Byte_Pos));
       end if;
 
-      Parser.Tree.Lexer.Reset_With_String_Access (Buffer'Unchecked_Access, +File_Name, Begin_Char_Pos, Begin_Line);
+      Parser.Tree.Lexer.Reset_With_String_Access
+        (Buffer'Unchecked_Access, Buffer'Last, +File_Name, Begin_Char_Pos, Begin_Line);
       Run_Parse (Label, Begin_Byte_Pos, Goal_Byte_Pos, Begin_Char_Pos, Begin_Line, Parse_End_Byte_Pos, Action_ID);
    end Parse_String_Access;
 

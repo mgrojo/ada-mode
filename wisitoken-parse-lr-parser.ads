@@ -27,15 +27,16 @@ with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Lexer;
 with WisiToken.Parse;
 with WisiToken.Syntax_Trees;
+limited with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package WisiToken.Parse.LR.Parser is
+   type Parser;
 
    type Language_Fixes_Access is access procedure
-     (Trace             : in out WisiToken.Trace'Class;
-      Parser_Label      : in     Syntax_Trees.Stream_ID;
-      Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
-      Tree              : in     Syntax_Trees.Tree;
-      Local_Config_Heap : in out Config_Heaps.Heap_Type;
-      Config            : in     Configuration);
+     (Super             : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
+      Parser_Index      : in              SAL.Peek_Type;
+      Parse_Table       : in              WisiToken.Parse.LR.Parse_Table;
+      Local_Config_Heap : in out          Config_Heaps.Heap_Type;
+      Config            : in              Configuration);
    --  Config encountered a parse table Error action, or failed a
    --  semantic check; attempt to provide a language-specific fix,
    --  enqueuing new configs on Local_Config_Heap.
@@ -50,7 +51,8 @@ package WisiToken.Parse.LR.Parser is
    --  caused the error.
 
    type Language_Matching_Begin_Tokens_Access is access procedure
-     (Tokens                  : in     Token_ID_Array_1_3;
+     (Tree                    : in     Syntax_Trees.Tree;
+      Tokens                  : in     Token_ID_Array_1_3;
       Config                  : in     Configuration;
       Matching_Tokens         :    out Token_ID_Arrays.Vector;
       Forbid_Minimal_Complete :    out Boolean);
@@ -81,7 +83,7 @@ package WisiToken.Parse.LR.Parser is
       Language_Matching_Begin_Tokens : Language_Matching_Begin_Tokens_Access;
       Language_String_ID_Set         : Language_String_ID_Set_Access;
 
-      String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
+      String_Quote_Checked : Base_Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
       Post_Recover : Post_Recover_Access;
@@ -92,6 +94,11 @@ package WisiToken.Parse.LR.Parser is
       Partial_Parse_Active    : access Boolean;
       Partial_Parse_Byte_Goal : access WisiToken.Buffer_Pos;
       --  Used by In_Parse_Actions to terminate Partial_Parse.
+
+      Min_Sequential_Index : Syntax_Trees.Stream_Node_Parents := Syntax_Trees.Invalid_Stream_Node_Parents;
+      Max_Sequential_Index : Syntax_Trees.Stream_Node_Parents := Syntax_Trees.Invalid_Stream_Node_Parents;
+      --  Copied from Supervisor for McKenzie_Recover.Clear_Sequential_Index
+
    end record;
 
    overriding procedure Finalize (Object : in out LR.Parser.Parser);

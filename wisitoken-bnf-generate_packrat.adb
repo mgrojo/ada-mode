@@ -6,7 +6,7 @@
 --
 --  See wisitoken-parse-packrat.ads.
 --
---  Copyright (C) 2018, 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2020, 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -303,7 +303,7 @@ is
          Indent := Indent - 3;
          Indent_Line
            ("elsif Pos = Pos_Recurse_Last and then " &
-              "Parser.Tree.Buffer_Region_Is_Empty (Result_Recurse.Result) then");
+              "Parser.Tree.Is_Empty_Nonterm (Result_Recurse.Result) then");
          --  Parse succeeded producing an empty nonterm; don't try again. This
          --  special case is not in [warth 2008].
          Indent_Line ("   Parser.Derivs (" & Result_ID & ").Replace_Element (Start_Pos_Index, Result_Recurse);");

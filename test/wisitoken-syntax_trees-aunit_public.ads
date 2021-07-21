@@ -30,6 +30,7 @@ package WisiToken.Syntax_Trees.AUnit_Public is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Label);
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index);
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Base_Sequential_Index);
 
    procedure Check (Label : in String; Computed, Expected : in Recover_Token);
    --  Not all components checked.
@@ -49,9 +50,12 @@ package WisiToken.Syntax_Trees.AUnit_Public is
       Parents         : in Boolean);
 
    procedure Check
-     (Label         : in String;
-      Computed      : in Tree;
-      Expected      : in Tree;
-      Shared_Stream : in Boolean);
+     (Label                 : in String;
+      Computed              : in Tree;
+      Expected              : in Tree;
+      Shared_Stream         : in Boolean;
+      Terminal_Node_Numbers : in Boolean);
+
+   procedure Set_Parents_Set (Tree : in out Syntax_Trees.Tree; Parents_Set : in Boolean);
 
 end WisiToken.Syntax_Trees.AUnit_Public;

@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2012 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,6 +20,7 @@ pragma License (GPL);
 
 with Ada.Command_Line;
 with Ada.Directories;
+with Ada.Environment_Variables;
 with Ada.Text_IO;
 package body WisiToken.BNF is
 
@@ -56,6 +57,27 @@ package body WisiToken.BNF is
       end loop;
       raise User_Error with "invalid generate algorithm name: '" & Item & "'";
    end To_Generate_Algorithm;
+
+   function From_Generate_Env_Var return Generate_Algorithm_Set
+   is
+      Gen_String : constant String := Ada.Environment_Variables.Value ("GENERATE", "BNF_EBNF");
+   begin
+      --  GENERATE env var defined in wisitoken_test.gpr
+      if Gen_String = "" then
+         return (Tree_Sitter => False, others => True);
+      elsif Gen_String = "BNF_EBNF_Tree_Sitter" then
+         return (others => True);
+      elsif Gen_String = "BNF_EBNF" or
+        Gen_String = "BNF" or
+        Gen_String = "EBNF"
+      then
+         return (Tree_Sitter => False, others => True);
+      elsif Gen_String = "Tree_Sitter" then
+         return (Tree_Sitter => True, others => False);
+      else
+         raise SAL.Programmer_Error with "unsupported GENERATE env var value '" & Gen_String & "'";
+      end if;
+   end From_Generate_Env_Var;
 
    function To_Output_Language (Item : in String) return Output_Language
    is begin

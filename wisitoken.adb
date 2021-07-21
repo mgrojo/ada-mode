@@ -83,6 +83,15 @@ package body WisiToken is
       end return;
    end To_Vector;
 
+   function To_Array (Item : in Token_ID_Arrays.Vector) return Token_ID_Array
+   is begin
+      return Result : Token_ID_Array (Item.First_Index .. Item.Last_Index) do
+         for I in Result'Range loop
+            Result (I) := Item (I);
+         end loop;
+      end return;
+   end To_Array;
+
    function Shared_Prefix (A, B : in Token_ID_Arrays.Vector) return Natural
    is
       use all type Ada.Containers.Count_Type;
@@ -308,7 +317,7 @@ package body WisiToken is
 
    function Error_Message
      (File_Name : in String;
-      Line      : in Line_Number_Type;
+      Line      : in Base_Line_Number_Type;
       Column    : in Ada.Text_IO.Count;
       Message   : in String)
      return String
@@ -348,9 +357,9 @@ package body WisiToken is
 
       case Last_Boundary is
       when Inclusive =>
-         Result := @ and  Outer.Last >= Inner.Last;
+         Result := @ and Outer.Last >= Inner.Last;
       when Exclusive =>
-         Result := @ and  Outer.Last > Inner.Last;
+         Result := @ and Outer.Last > Inner.Last;
       end case;
       return Result;
    end Contains;
@@ -358,13 +367,13 @@ package body WisiToken is
    function Overlaps (A, B : in Buffer_Region) return Boolean
    is begin
       if Length (A) > 0 and Length (B) > 0 then
-         return Inside (A.First, B) or Inside (A.Last, B) or Inside (B.First, A) or Inside (B.Last, A);
+         return Contains (B, A.First) or Contains (B, A.Last) or Contains (A, B.First) or Contains (A, B.Last);
       else
          return False;
       end if;
    end Overlaps;
 
-   function Trimmed_Image (Item : in Line_Number_Type) return String
+   function Trimmed_Image (Item : in Base_Line_Number_Type) return String
    is
       function Base_Trimmed_Image is new SAL.Gen_Trimmed_Image (Line_Number_Type);
    begin
@@ -384,34 +393,6 @@ package body WisiToken is
    is begin
       return (Left.First + Right, Left.Last + Right);
    end "+";
-
-   function Column (Token : in Base_Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count
-   is begin
-      if Token.Line_Region.First = 1 then
-         return Ada.Text_IO.Count (Token.Char_Region.First);
-
-      elsif Line_Begin_Char_Pos = Invalid_Buffer_Pos then
-         return 0;
-
-      else
-         return Ada.Text_IO.Count (Token.Char_Region.First - Line_Begin_Char_Pos);
-      end if;
-   end Column;
-
-   function Image
-     (Item       : in Base_Token;
-      Descriptor : in WisiToken.Descriptor)
-     return String
-   is
-      ID_Image : constant String := WisiToken.Image (Item.ID, Descriptor);
-   begin
-      if Item.Char_Region = Null_Buffer_Region then
-         return "(" & ID_Image & ")";
-
-      else
-         return "(" & ID_Image & ", " & Image (Item.Char_Region) & ")";
-      end if;
-   end Image;
 
    procedure Enable_Trace (Config : in String)
    is
@@ -479,5 +460,22 @@ package body WisiToken is
          exit when Name_First > Config'Last;
       end loop;
    end Enable_Trace;
+
+   procedure Enable_Trace_Help
+   is
+      use Ada.Text_IO;
+   begin
+      Put_Line ("debug=0|1 - show stack trace on exception, other debug settings");
+      Put_Line ("action=n - verbosity during parse actions");
+      Put_Line ("ebnf=n generate_ebnf=n - verbosity during translate EBNF to BNF");
+      Put_Line ("minimal_complete=n generate_minimal_complete=n - verbosity during minimal_complete");
+      Put_Line ("table=n generate_table=n - verbosity during generate parse table");
+      Put_Line ("incremental=n incremental_parse=n - verbosity during edit_tree");
+      Put_Line ("lexer=n - verbosity during lexing");
+      Put_Line ("mckenzie=n - verbosity during error recover");
+      Put_Line ("parse=n - verbosity during parsing");
+      Put_Line ("test=n - verbosity during unit tests");
+      Put_Line ("time=n - output times of various operations");
+   end Enable_Trace_Help;
 
 end WisiToken;

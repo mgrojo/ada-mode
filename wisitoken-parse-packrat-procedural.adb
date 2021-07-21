@@ -219,7 +219,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                --  continue looping
 
             elsif Result_Recurse.Last_Pos = Pos_Recurse_Last then
-               if Parser.Tree.Buffer_Region_Is_Empty (Result_Recurse.Result) then
+               if Parser.Tree.Is_Empty_Nonterm (Result_Recurse.Result) then
                   Parser.Derivs (R).Replace_Element
                     (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos), Result_Recurse);
                end if;
@@ -293,7 +293,8 @@ package body WisiToken.Parse.Packrat.Procedural is
               (Parser.Tree.Shared_Stream, Parser.Tree.Stream_Last (Parser.Tree.Shared_Stream)));
       end loop;
 
-      Result := Apply_Rule (Parser, Parser.Start_ID, Syntax_Trees.Invalid_Stream_Index);
+      Result := Apply_Rule
+        (Parser, Parser.Start_ID,  Parser.Tree.Stream_First (Parser.Tree.Shared_Stream, Skip_SOI => False));
 
       if Result.State /= Success then
          if Trace_Parse > Outline then

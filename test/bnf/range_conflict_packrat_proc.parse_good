@@ -9,4 +9,4 @@
 (primary, (24 . 26)) <= (8:(IDENTIFIER, (24 . 26)))
 (range_g, (17 . 26)) <= ((primary, (17 . 19)), 7:(DOT_DOT, (21 . 22)), (primary, (24 . 26)))
 (compilation_unit, (1 . 26)) <= ((membership_choice, (1 . 14)), (range_g, (17 . 26)))
-(wisitoken_accept, (1 . 27)) <= ((compilation_unit, (1 . 26)), 9:(Wisi_EOI, (28 . 27)))
+(wisitoken_accept, (1 . 28)) <= ((compilation_unit, (1 . 26)), 9:(Wisi_EOI, (29 . 28)))

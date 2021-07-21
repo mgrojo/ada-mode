@@ -1,16 +1,16 @@
-;; Small grammar for testing lexer 'skip_to' function, two comment tokens, non-ASCII.
+;; Small grammar for testing lexer 'skip_to' function, two comment tokens, non-ASCII, comment-one-line.
 ;;
 ;; Tests run by test_skip_to.ads
 
 %code actions body context %{with Test_Skip_To_Aux; use Test_Skip_To_Aux;}%
 
 %keyword PERCENT "%"
-%token <delimited-text> PREAMBLE "%{" "%}"
+%token <delimited-text> PREAMBLE "%{" "}%"
 %token <symbol> IDENTIFIER %[ [a-zA-Z][$0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
-%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
-%non_grammar <comment> COMMENT_1 %[ ";;"[^\x0a\x04]* ]%
-%non_grammar <comment> COMMENT_2 %[ "--"[^\x0a\x04]* ]%
+%non_grammar <new-line> NEW_LINE
+%non_grammar <comment-new-line> COMMENT %[ ";;" ]%
+%non_grammar <comment-one-line> PLACEHOLDER "{" "}"
 
 %start compilation_unit_list
 

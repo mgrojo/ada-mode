@@ -14,12 +14,18 @@
 pragma License (GPL);
 
 with AUnit.Checks;
-with SAL.AUnit;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
 package WisiToken.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Unknown_State_Index);
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Token_ID);
+
+   procedure Check
+     (Label      : in String;
+      Computed   : in Token_ID;
+      Expected   : in Token_ID;
+      Descriptor : in WisiToken.Descriptor);
+   --  Uses Descriptor.Image in error message
 
    procedure Check (Label : in String; Computed, Expected : in Production_ID);
 
@@ -32,14 +38,6 @@ package WisiToken.AUnit is
 
    procedure Check_Valid is new Standard.AUnit.Checks.Gen_Check_Valid (Line_Number_Type);
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Line_Number_Type);
-
-   function To_Base_Token_Array (Item : in Token_ID_Array) return Base_Token_Arrays.Vector;
-
-   procedure Check (Label : in String; Computed, Expected : in Base_Token);
-
-   package Base_Token_Arrays_AUnit is new Base_Token_Arrays.Gen_AUnit
-     (Check_Index   => SAL.AUnit.Check,
-      Check_Element => Check);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Unconstrained_Array
      (Item_Type   => Boolean,

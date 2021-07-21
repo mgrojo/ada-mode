@@ -237,13 +237,17 @@ package body WisiToken_Grammar_Runtime is
    when SAL.Programmer_Error =>
       raise;
    when E : others =>
-      declare
-         use Ada.Exceptions;
-      begin
-         WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
-           ("Get_RHS: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Token);
-         raise; -- WORKAROUND; GNAT pro_22.0w-20201222 ignores 'pragma no_return' on Raise_Programmer_Error
-      end;
+      if Debug_Mode then
+         raise;
+      else
+         declare
+            use Ada.Exceptions;
+         begin
+            WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
+              ("Get_RHS: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Token);
+            raise; -- WORKAROUND; GNAT pro_22.0w-20201222 ignores 'pragma no_return' on Raise_Programmer_Error
+         end;
+      end if;
    end Get_RHS;
 
    procedure Get_Right_Hand_Sides
@@ -423,7 +427,7 @@ package body WisiToken_Grammar_Runtime is
 
       Data : User_Data_Type renames User_Data_Type (User_Data);
 
-      function Token (Index : in SAL.Peek_Type) return Base_Token
+      function Token_Byte_Region (Index : in SAL.Peek_Type) return Buffer_Region
       is
          Child : constant Syntax_Trees.Valid_Node_Access := Tree.Child (Nonterm, Index);
       begin
@@ -432,9 +436,9 @@ package body WisiToken_Grammar_Runtime is
               " is a " & WisiToken.Syntax_Trees.Node_Label'Image (Tree.Label (Child)) &
               ", expecting Source_Terminal";
          else
-            return Tree.Base_Token (Child);
+            return Tree.Byte_Region (Child);
          end if;
-      end Token;
+      end Token_Byte_Region;
 
       function Enum_ID (Index : in SAL.Peek_Type) return Token_Enum_ID
       is (To_Token_Enum (Tree.ID (Tree.Child (Nonterm, Index))));
@@ -445,7 +449,7 @@ package body WisiToken_Grammar_Runtime is
             case Enum_ID (2) is
             when IDENTIFIER_ID =>
                declare
-                  Kind : constant String := Tree.Lexer.Buffer_Text (Token (2).Byte_Region);
+                  Kind : constant String := Tree.Lexer.Buffer_Text (Token_Byte_Region (2));
                begin
                   if Kind = "case_insensitive" then
                      Data.Language_Params.Case_Insensitive := True;
@@ -522,6 +526,7 @@ package body WisiToken_Grammar_Runtime is
       when Syntax_Trees.Nonterm =>
          --  must be token_keyword_non_grammar
          declare
+            use all type SAL.Base_Peek_Type;
             Children_2 : constant Syntax_Trees.Node_Access_Array := Tree.Children (Tree.Child (Nonterm, 2));
             Child_1_ID : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Children_2 (1)));
          begin
@@ -546,12 +551,17 @@ package body WisiToken_Grammar_Runtime is
                    Value => +Get_Text (Data, Tree, Tree.Child (Nonterm, 4))));
 
             when NON_GRAMMAR_ID =>
-
-               WisiToken.BNF.Add_Token
-                 (Data.Tokens.Non_Grammar,
-                  Kind  => Get_Text (Data, Tree, Children_2 (3)),
-                  Name  => Get_Text (Data, Tree, Tree.Child (Nonterm, 3)),
-                  Value => Get_Text (Data, Tree, Tree.Child (Nonterm, 4)));
+               declare
+                  Children_4 : constant Syntax_Trees.Node_Access_Array := Tree.Children (Tree.Child (Nonterm, 4));
+               begin
+                  WisiToken.BNF.Add_Token
+                    (Data.Tokens.Non_Grammar,
+                     Kind         => Get_Text (Data, Tree, Children_2 (3)),
+                     Name         => Get_Text (Data, Tree, Tree.Child (Nonterm, 3)),
+                     Value        => Get_Text (Data, Tree, Children_4 (1)),
+                     Repair_Image =>
+                       (if Children_4'Length = 1 then "" else Get_Text (Data, Tree, Children_4 (2))));
+               end;
 
             when others =>
                raise SAL.Programmer_Error;
@@ -649,7 +659,7 @@ package body WisiToken_Grammar_Runtime is
 
          when IDENTIFIER_ID =>
             declare
-               Kind : constant String := Tree.Lexer.Buffer_Text (Token (2).Byte_Region);
+               Kind : constant String := Tree.Lexer.Buffer_Text (Token_Byte_Region (2));
             begin
                --  Alphabetical by Kind
 
@@ -791,7 +801,7 @@ package body WisiToken_Grammar_Runtime is
 
                elsif Kind = "mckenzie_check_limit" then
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Check_Limit := Syntax_Trees.Node_Index'Value
+                  Data.McKenzie_Recover.Check_Limit := Syntax_Trees.Sequential_Index'Value
                     (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_check_delta_limit" then
@@ -809,8 +819,6 @@ package body WisiToken_Grammar_Runtime is
                   end if;
 
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Source_Line  := Tree.Line_Region (Tree.Child (Nonterm, 1)).First;
-
                   Data.McKenzie_Recover.Default_Insert          := Natural'Value
                     (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1));
                   Data.McKenzie_Recover.Default_Delete_Terminal := Natural'Value
@@ -865,7 +873,7 @@ package body WisiToken_Grammar_Runtime is
 
                elsif Kind = "mckenzie_zombie_limit" then
                   Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Zombie_Limit := Syntax_Trees.Node_Index'Value
+                  Data.McKenzie_Recover.Zombie_Limit := Integer'Value
                     (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "meta_syntax" then
@@ -893,6 +901,13 @@ package body WisiToken_Grammar_Runtime is
                   raise Grammar_Error with Tree.Error_Message (Tree.Child (Nonterm, 2), "unexpected syntax");
                end if;
             end;
+
+         when NON_GRAMMAR_ID =>
+            WisiToken.BNF.Add_Token
+              (Data.Tokens.Non_Grammar,
+               Kind  => Get_Text (Data, Tree, Tree.Child (Nonterm, 4)),
+               Name  => Get_Text (Data, Tree, Tree.Child (Nonterm, 6)),
+               Value => "");
 
          when others =>
             raise Grammar_Error with Tree.Error_Message (Tree.Child (Nonterm, 2), "unexpected syntax");
@@ -947,7 +962,7 @@ package body WisiToken_Grammar_Runtime is
              Source_Line =>
                (case Tree.Label (LHS_Node) is
                 when Source_Terminal    => Tree.Line_Region (LHS_Node).First,
-                when Virtual_Identifier => Invalid_Line_Number, -- IMPROVEME: get line from Right_Hand_Sides
+                when Virtual_Identifier => Line_Number_Type'First, -- IMPROVEME: get line from Right_Hand_Sides
                 when others             => raise SAL.Programmer_Error)));
       end if;
    end Add_Nonterminal;

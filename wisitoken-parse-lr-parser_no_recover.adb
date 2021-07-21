@@ -114,10 +114,6 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
               (Shared_Parser.Tree.Shared_Stream, Parser_State.Current_Token.Element) =
               Shared_Parser.Tree.Lexer.Descriptor.EOI_ID);
 
-         --  Insert EOI so parse stream matches Shared_Stream; Stack_Top is wisitoken_accept.
-         Shared_Parser.Tree.Finish_Parse
-           (Parser_State.Stream, Parser_State.Current_Token.Element, Shared_Parser.User_Data);
-
       when Error =>
          Current_Parser.Set_Verb (Action.Verb);
 
@@ -212,14 +208,12 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       Trace              : in     WisiToken.Trace_Access;
       Lexer              : in     WisiToken.Lexer.Handle;
       Table              : in     Parse_Table_Ptr;
-      User_Data          : in     WisiToken.Syntax_Trees.User_Data_Access;
-      First_Parser_Label : in     Integer := 1)
+      User_Data          : in     WisiToken.Syntax_Trees.User_Data_Access)
    is begin
-      Parser.Tree.Lexer         := Lexer;
-      Parser.Trace              := Trace;
-      Parser.Table              := Table;
-      Parser.User_Data          := User_Data;
-      Parser.First_Parser_Label := First_Parser_Label;
+      Parser.Tree.Lexer := Lexer;
+      Parser.Trace      := Trace;
+      Parser.Table      := Table;
+      Parser.User_Data  := User_Data;
    end New_Parser;
 
    overriding procedure Parse
@@ -287,9 +281,11 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
             for Parser_State of Shared_Parser.Parsers loop
                if Parser_State.Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref then
-                  Parser_State.Shared_Token  := Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream);
+                  Parser_State.Shared_Token := Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream);
                else
-                  Shared_Parser.Tree.Next_Shared_Terminal (Parser_State.Shared_Token);
+                  --  We don't support incremental parse, so Shared_Token is a terminal;
+                  --  Stream_Next is the same as Next_Shared_Terminal.
+                  Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
                end if;
                Parser_State.Current_Token := Parser_State.Shared_Token;
             end loop;
@@ -310,7 +306,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                else
                   --  More than one parser is active; ambiguous parse.
                   raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
-                    (State.Current_Token.Node,
+                    (State.Current_Token,
                      "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
                end if;
             end;
@@ -382,7 +378,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                               Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                            begin
                               raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
-                                (Parser_State.Shared_Token.Node,
+                                (Parser_State.Shared_Token,
                                  ": too many parallel parsers required in grammar state" &
                                    Shared_Parser.Tree.State (Parser_State.Stream)'Image &
                                    "; simplify grammar, or increase max-parallel (" &
@@ -431,6 +427,16 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
       Shared_Parser.Tree.Clear_Parse_Streams;
 
+      if Trace_Action > Extra then
+         Shared_Parser.Trace.Put_Line
+           (Shared_Parser.Tree.Image
+              (Children     => True,
+               Non_Grammar  => True,
+               Augmented    => True,
+               Line_Numbers => True));
+         Shared_Parser.Trace.New_Line;
+      end if;
+
       --  We don't raise Syntax_Error for lexer errors, since they are all
       --  recovered, either by inserting a quote, or by ignoring the
       --  character.
@@ -463,7 +469,11 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                   Tree.Action (Node) (Parser.User_Data.all, Tree, Node);
                exception
                when E : others =>
-                  if WisiToken.Debug_Mode then
+                  if Trace_Tests > Outline then
+                     --  running a unit test; exception may be AUnit assert fail
+                     raise;
+
+                  elsif WisiToken.Debug_Mode then
                      Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
                      Parser.Trace.New_Line;
                   end if;
@@ -514,7 +524,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             Put_Line
               (Current_Error,
                Parser.Tree.Error_Message
-                 (Item.Error_Token.Node,
+                 (Item.Error_Token,
                   "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                     ", found '" & Parser.Tree.Lexer.Buffer_Text (Parser.Tree.Byte_Region (Item.Error_Token.Node)) &
                     "'"));

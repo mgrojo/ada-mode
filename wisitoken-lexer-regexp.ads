@@ -6,7 +6,7 @@
 --  used in most of the WisiToken unit tests. Since it uses regexp, it
 --  is easy to convert to an Aflex lexer.
 --
---  Copyright (C) 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -56,6 +56,7 @@ package WisiToken.Lexer.Regexp is
       Syntax     : in WisiToken.Lexer.Regexp.Syntax)
      return WisiToken.Lexer.Handle;
 
+   overriding function Has_Source (Lexer : access constant Instance) return Boolean;
    overriding procedure Finalize (Object : in out Instance);
    overriding procedure Reset_With_String
      (Lexer      : in out Instance;
@@ -65,6 +66,7 @@ package WisiToken.Lexer.Regexp is
    overriding procedure Reset_With_String_Access
      (Lexer      : in out Instance;
       Input      : in     Ada.Strings.Unbounded.String_Access;
+      Input_Last : in     Integer;
       File_Name  : in     Ada.Strings.Unbounded.Unbounded_String;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First);
@@ -81,7 +83,7 @@ package WisiToken.Lexer.Regexp is
 
    overriding function Find_Next
      (Lexer : in out Instance;
-      Token :    out Base_Token)
+      Token :    out WisiToken.Lexer.Token)
      return Boolean;
 
    overriding function Buffer_Region_Byte (Lexer : in Instance) return Buffer_Region;
@@ -93,13 +95,9 @@ package WisiToken.Lexer.Regexp is
      (Lexer         : in out Instance;
       Byte_Position : in     Buffer_Pos;
       Char_Position : in     Buffer_Pos;
-      Line          : in     Line_Number_Type;
-      Prev_Token_ID : in     Token_ID)
+      Line          : in     Line_Number_Type)
      is null;
 
-   overriding function First (Lexer : in Instance) return Boolean is (False);
-
-   overriding function Line_Start_Char_Pos (Lexer : in Instance) return Buffer_Pos is (1);
    overriding function File_Name (Lexer : in Instance) return String is ("");
 
    overriding
@@ -108,6 +106,19 @@ package WisiToken.Lexer.Regexp is
       Begin_Byte :    out Buffer_Pos;
       Begin_Char :    out Buffer_Pos;
       Begin_Line :    out Line_Number_Type);
+
+   overriding
+   function Is_Comment
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token)
+     return Boolean;
+
+   overriding
+   function Line_Begin_Char_Pos
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token;
+      Line  : in Line_Number_Type)
+     return Base_Buffer_Pos;
 
 private
 

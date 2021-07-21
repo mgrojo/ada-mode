@@ -38,4 +38,4 @@
 (statement, (585 . 621)) <= (61:(IDENTIFIER, (585 . 607)), (tick, (608 . 608)), 63:(LEFT_PAREN, (609 . 609)), 64:(CHARACTER_LITERAL, (610 . 619)), 65:(RIGHT_PAREN, (620 . 620)), 66:(SEMICOLON, (621 . 621)))
 (statement_list, (29 . 621)) <= ((statement_list, (29 . 523)), (statement, (585 . 621)))
 (compilation_unit, (29 . 621)) <= ((statement_list, (29 . 621)))
-(wisitoken_accept, (29 . 645)) <= ((compilation_unit, (29 . 621)), 67:(Wisi_EOI, (646 . 645)))
+(wisitoken_accept, (29 . 646)) <= ((compilation_unit, (29 . 621)), 67:(Wisi_EOI, (647 . 646)))

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -222,7 +222,7 @@ package body WisiToken.Generate.Packrat is
    is
       subtype Nonterminal is Token_ID range Grammar.First_Index .. Grammar.Last_Index;
    begin
-      --  FIXME: this duplicates the computation of First; if keep First,
+      --  FIXME: this duplicates the computation of Data.First; if keep Data.First,
       --  change this to use it.
       return Result : Token_ID_Set (Nonterminal) := (others => False) do
          for Prod of Grammar loop

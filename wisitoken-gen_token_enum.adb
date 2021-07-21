@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017, 2018, 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017, 2018, 2020, 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -24,7 +24,7 @@ package body WisiToken.Gen_Token_Enum is
    function Token_Enum_Image return Token_ID_Array_String
    is
       use Ada.Characters.Handling;
-      Result : Token_ID_Array_String (Token_ID'First .. +Last_Nonterminal);
+      Result : Token_ID_Array_String (Token_ID'First .. +SOI_ID);
    begin
       for I in Token_Enum_ID loop
          if I <= Last_Terminal then
@@ -39,6 +39,7 @@ package body WisiToken.Gen_Token_Enum is
    function To_Syntax (Item : in Enum_Syntax) return WisiToken.Lexer.Regexp.Syntax
    is
       Result : WisiToken.Lexer.Regexp.Syntax (Token_ID'First .. +Last_Terminal);
+      --  SOI_ID is _not_ returned by lexer;
    begin
       for I in Result'Range loop
          Result (I) := Item (-I);

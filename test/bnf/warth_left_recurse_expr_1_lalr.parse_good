@@ -10,9 +10,9 @@
  ... goto state 2
  0: 2: 4:(MINUS, (7 . 7)) : shift and goto state 3
  0: 3: 5:(NUMERIC_LITERAL, (9 . 9)) : shift and goto state 4
- 0: 4: 6:(Wisi_EOI, (11 . 10)) : reduce 3 tokens to expr
+ 0: 4: 6:(Wisi_EOI, (12 . 11)) : reduce 3 tokens to expr
 (expr, (1 . 9)) <= ((expr, (1 . 5)), 4:(MINUS, (7 . 7)), 5:(NUMERIC_LITERAL, (9 . 9)))
  ... goto state 2
- 0: 2: 6:(Wisi_EOI, (11 . 10)) : accept it
+ 0: 2: 6:(Wisi_EOI, (12 . 11)) : accept it
 (wisitoken_accept, (1 . 9)) <= ((expr, (1 . 9)))
  0: succeed

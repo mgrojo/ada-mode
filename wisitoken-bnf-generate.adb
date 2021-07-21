@@ -308,8 +308,6 @@ begin
       raise;
    end;
 
-   Grammar_Parser.Tree.Clear_Parse_Streams;
-
    declare
       use all type Ada.Strings.Unbounded.Unbounded_String;
       use Ada.Text_IO;
@@ -410,16 +408,16 @@ begin
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.Put_Line ("EBNF tree:");
                Tree.Print_Tree
-                 (Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
+                 (Trace, Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
             end if;
 
-            WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data);
+            WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data, Trace);
 
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.New_Line;
                Ada.Text_IO.Put_Line ("BNF tree:");
                Tree.Print_Tree
-                 (Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
+                 (Trace, Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
             end if;
 
             if Output_BNF then
@@ -464,7 +462,7 @@ begin
                      Ada.Text_IO.Put_Line ("output tree_sitter grammar");
                   end if;
 
-                  Eliminate_Empty_Productions (Input_Data, Tree);
+                  Eliminate_Empty_Productions (Input_Data, Tree, Trace);
 
                   Print_Tree_Sitter
                     (Input_Data,
@@ -545,7 +543,7 @@ begin
                   Lexer_Done (Input_Data.User_Lexer) := True;
                   case Input_Data.User_Lexer is
                   when re2c_Lexer =>
-                     WisiToken.BNF.Output_Ada_Common.Create_re2c
+                     WisiToken.BNF.Output_Ada_Common.Create_re2c_File
                        (Input_Data, Tuple, Generate_Data, -Output_File_Name_Root);
                   when others =>
                      null;

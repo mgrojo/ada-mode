@@ -2,7 +2,7 @@
 --
 --  Base utilities for McKenzie_Recover
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -20,7 +20,7 @@ pragma License (Modified_GPL);
 with Ada.Exceptions;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Parse.LR.Parser_Lists;
-private package WisiToken.Parse.LR.McKenzie_Recover.Base is
+package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    ----------
    --  Protected object specs.
@@ -141,6 +141,14 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Base is
       function Parser_State (Parser_Index : in SAL.Peek_Type) return Parser_Lists.Constant_Reference_Type;
       function Stream (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_ID;
 
+      function Min_Sequential_Index return Syntax_Trees.Sequential_Index;
+      function Min_Sequential_Index return Syntax_Trees.Stream_Node_Parents;
+      procedure Extend_Min_Sequential_Index;
+      function Max_Sequential_Index return Syntax_Trees.Sequential_Index;
+      function Max_Sequential_Index return Syntax_Trees.Stream_Node_Parents;
+      function Max_Sequential_Index_Is_EOI return Boolean;
+      procedure Extend_Max_Sequential_Index;
+
    private
       Parsers : access Parser_Lists.List;
 
@@ -153,7 +161,23 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Base is
       Error_ID                : Ada.Exceptions.Exception_Id;
       Error_Message           : Ada.Strings.Unbounded.Unbounded_String;
       Parser_Status           : Parser_Status_Array (1 .. Parser_Count);
+
+      Min_Sequential_Index_Node : Syntax_Trees.Stream_Node_Parents;
+      Max_Sequential_Index_Node : Syntax_Trees.Stream_Node_Parents;
    end Supervisor;
+
+   procedure Extend_Sequential_Index
+     (Super    : not null access Base.Supervisor;
+      Thru     : in              Syntax_Trees.Valid_Node_Access;
+      Positive : in              Boolean);
+   --  If Thru has invalid Sequential_Index, extend Sequential_Index
+   --  range thru node Thru. If Positive extend towards EOI, else towards
+   --  SOI.
+
+   procedure Extend_Sequential_Index
+     (Super : not null access Base.Supervisor;
+      Thru  : in              Syntax_Trees.Sequential_Index);
+   --  If necessary, extend Sequential_Index range towards EOI thru Thru.
 
    type Shared
      --  Don't duplicate values that are in Supervisor discriminants.

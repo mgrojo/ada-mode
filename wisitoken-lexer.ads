@@ -2,7 +2,7 @@
 --
 --  An abstract lexer interface.
 --
---  Copyright (C) 2014 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2014 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -35,6 +35,50 @@ with Ada.Strings.Unbounded;
 with GNATCOLL.Mmap;
 package WisiToken.Lexer is
 
+   type Token is record
+      --  Information provided by the lexer.
+
+      ID : Token_ID := Invalid_Token_ID;
+
+      Byte_Region : Buffer_Region := Null_Buffer_Region;
+      --  Index into the Lexer buffer for the token text.
+
+      Char_Region : Buffer_Region := Null_Buffer_Region;
+      --  Character position, useful for finding the token location in Emacs
+      --  buffers.
+
+      Line_Region : WisiToken.Line_Region := Null_Line_Region;
+   end record;
+
+   function Column (Token : in Lexer.Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count;
+
+   function Image
+     (Item       : in Token;
+      Descriptor : in WisiToken.Descriptor)
+     return String;
+   --  ID and Char_Region
+
+   function Full_Image
+     (Item       : in Token;
+      Descriptor : in WisiToken.Descriptor)
+     return String;
+   --  All fields.
+
+   Invalid_Token : constant Token := (others => <>);
+
+   procedure Shift
+     (Token       : in out Lexer.Token;
+      Shift_Bytes : in     Base_Buffer_Pos;
+      Shift_Chars : in     Base_Buffer_Pos;
+      Shift_Lines : in     Base_Line_Number_Type);
+   --  Add Shift_* to corresponding regions.
+
+   package Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive_Index_Type, Token, Default_Element => (others => <>));
+
+   function Image is new Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Image);
+   function Full_Image is new Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Full_Image);
+
    type Error is record
       Char_Pos : Buffer_Pos := Invalid_Buffer_Pos;
       --  Character at that position is not recognized as part of a token.
@@ -57,23 +101,36 @@ package WisiToken.Lexer is
 
    type Handle is access all Class;
 
+   function Has_Source (Lexer : access constant Instance) return Boolean
+   is (False);
+   --  True if one of Reset_* has been called; lexer has source to process.
+
+   procedure Set_Verbosity
+     (Lexer     : in Instance;
+      Verbosity : in Integer)
+   is null;
+
    procedure Reset_With_String
      (Lexer      : in out Instance;
       Input      : in     String;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
-     is abstract;
+   is abstract
+   with Post'Class => Lexer.Has_Source;
    --  Reset Lexer to start a new parse, reading from Input.
 
    procedure Reset_With_String_Access
      (Lexer      : in out Instance;
       Input      : in     Ada.Strings.Unbounded.String_Access;
+      Input_Last : in     Integer;
       File_Name  : in     Ada.Strings.Unbounded.Unbounded_String;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
-     is abstract;
-   --  Reset Lexer to start a new parse, reading from Input. Input'First
-   --  is Begin_Byte. File_Name is used for error messages.
+   is abstract
+   with Post'Class => Lexer.Has_Source;
+   --  Reset Lexer to start a new parse, reading from Input (Input'First
+   --  .. Input_Last). Input'First is Begin_Byte. File_Name is used for
+   --  error messages.
 
    procedure Reset_With_File
      (Lexer      : in out Instance;
@@ -82,14 +139,17 @@ package WisiToken.Lexer is
       End_Byte   : in     Buffer_Pos       := Invalid_Buffer_Pos;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
-     is abstract;
+   is abstract
+   with Post'Class => Lexer.Has_Source;
    --  Reset Lexer to start a new parse, reading from File_Name. If
    --  Begin_Pos, End_Pos /= Invalid_Buffer_Pos, only parse that portion
    --  of the file.
    --
    --  Raises Ada.IO_Exceptions.Name_Error if File_Name cannot be opened.
 
-   procedure Reset (Lexer : in out Instance) is abstract;
+   procedure Reset (Lexer : in out Instance) is abstract
+   with Pre'Class => Lexer.Has_Source,
+     Post'Class => Lexer.Has_Source;
    --  Reset Lexer, read from previous source.
 
    procedure Discard_Rest_Of_Input (Lexer : in out Instance) is abstract;
@@ -105,8 +165,7 @@ package WisiToken.Lexer is
      (Lexer         : in out Instance;
       Byte_Position : in     Buffer_Pos;
       Char_Position : in     Buffer_Pos;
-      Line          : in     Line_Number_Type;
-      Prev_Token_ID : in Token_ID)
+      Line          : in     Line_Number_Type)
      is abstract;
    --  Set the current position in the source buffer; Find_Next will
    --  start there. Prev_Token_ID should be Descriptor.New_Line_ID or
@@ -114,7 +173,7 @@ package WisiToken.Lexer is
 
    function Find_Next
      (Lexer : in out Instance;
-      Token :    out Base_Token)
+      Token :    out WisiToken.Lexer.Token)
      return Boolean is abstract;
    --  Set Token to the next token from the input stream.
    --
@@ -140,17 +199,6 @@ package WisiToken.Lexer is
    --  If the underlying text feeder does not support the notion of
    --  'line', returns Invalid_Line_Number.
 
-   function First (Lexer : in Instance) return Boolean is abstract;
-   --  True if most recent token is first on a line; it is the token
-   --  after a New_Line.
-
-   function Line_Start_Char_Pos (Lexer : in Instance) return Buffer_Pos is abstract;
-   --  Character position of the first character (whitespace included) on
-   --  the line the most recent token ended in (the current line). If the
-   --  last token was new_line, this is the character position of the
-   --  first character on the line the new_line starts (which has not
-   --  been read yet, and may not exist).
-
    function File_Name (Lexer : in Instance) return String is abstract;
    --  Return input file name; empty string if there is no file.
 
@@ -159,8 +207,33 @@ package WisiToken.Lexer is
       Begin_Byte :    out Buffer_Pos;
       Begin_Char :    out Buffer_Pos;
       Begin_Line :    out Line_Number_Type)
-   is abstract;
+   is abstract
+   with Pre'Class => Lexer.Has_Source;
    --  Return values from Reset*.
+
+   function Is_Comment
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token)
+     return Boolean
+   is abstract;
+
+   function Line_Begin_Char_Pos
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token;
+      Line  : in Line_Number_Type)
+     return Base_Buffer_Pos
+   is abstract
+   with Pre'Class => Contains (Token.Line_Region, Line) and New_Line_Count (Token.Line_Region) > 0;
+   --  First char position on Line; Invalid_Buffer_Pos if Token does not
+   --  contain new_line that starts Line.
+
+   type Source (<>) is private;
+
+   function Line_Begin_Char_Pos
+     (Source : in WisiToken.Lexer.Source;
+      Token  : in WisiToken.Lexer.Token;
+      Line   : in Line_Number_Type)
+     return Base_Buffer_Pos;
 
 private
 
@@ -170,9 +243,10 @@ private
       File_Name : Ada.Strings.Unbounded.Unbounded_String;
       --  Not saved in Mapped_File, may be empty for String_Label
 
-      Buffer_Nominal_First_Byte : Buffer_Pos;
-      Buffer_Nominal_First_Char : Buffer_Pos;
-      Line_Nominal_First        : Line_Number_Type;
+      Buffer_Nominal_First_Byte : Buffer_Pos       := Buffer_Pos'First;
+      Buffer_Nominal_First_Char : Buffer_Pos       := Buffer_Pos'First;
+      Line_Nominal_First        : Line_Number_Type := Line_Number_Type'First;
+      Buffer_Last               : Natural          := 0; -- allow empty input string
 
       case Label is
       when String_Label =>
@@ -182,12 +256,12 @@ private
          --  it. Otherwise we must deallocate it.
 
          --  Buffer_Nominal_First, Line_Nominal_First are 1.
+
       when File_Label =>
 
          --  The input is memory mapped from the following, which must be closed:
          File        : GNATCOLL.Mmap.Mapped_File;
          Region      : GNATCOLL.Mmap.Mapped_Region;
-         Buffer_Last : Positive;
          --  Region always has first character at offset 0.
 
          --  Buffer_Nominal_First is Begin_Pos. Line_Nominal_First is
@@ -197,6 +271,9 @@ private
 
    procedure Finalize (Object : in out Source);
 
+   function Has_Source (Object : in Source) return Boolean;
+   --  True if one of Reset_* has been called; lexer has source to process.
+
    function Buffer_Region_Byte (Object : in Source) return Buffer_Region;
 
    function Buffer (Source : in Lexer.Source) return GNATCOLL.Mmap.Str_Access;
@@ -205,8 +282,13 @@ private
    --  Source.Buffer'First, 'Last. Otherwise, actual bounds are 1 ..
    --  Source.Buffer_Last. Indexing is reliable.
 
+   function To_Buffer_Index (Source : in WisiToken.Lexer.Source; Byte_Pos : in Base_Buffer_Pos) return Integer
+   is (Integer (Byte_Pos - Source.Buffer_Nominal_First_Byte + Buffer_Pos'First));
+
    function File_Name (Source : in Lexer.Source) return String;
+
    function To_Char_Pos (Source : in Lexer.Source; Lexer_Char_Pos : in Integer) return Base_Buffer_Pos;
+
    procedure Begin_Pos
      (Object     : in     Source;
       Begin_Byte :    out Buffer_Pos;

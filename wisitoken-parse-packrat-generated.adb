@@ -56,7 +56,8 @@ package body WisiToken.Parse.Packrat.Generated is
               (Parser.Tree.Shared_Stream, Parser.Tree.Stream_Last (Parser.Tree.Shared_Stream)));
       end loop;
 
-      Result := Parser.Parse_WisiToken_Accept (Parser, Syntax_Trees.Invalid_Stream_Index);
+      Result := Parser.Parse_WisiToken_Accept
+        (Parser, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream, Skip_SOI => False));
 
       if Result.State /= Success then
          if Trace_Parse > Outline then

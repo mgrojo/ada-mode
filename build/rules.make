@@ -32,6 +32,11 @@ tests :: wisitoken-bnf-generate.exe
 tests :: gen
 tests :: test_all_harness.diff
 
+Makefile.conf : create_makefile_conf.sh
+	$(SHELL) -c ./create_makefile_conf.sh
+
+include Makefile.conf
+
 # generated code used by test_bnf_suite.adb and others.
 # If add to this, add to wisitoken_test.gpr
 gen_BNF :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
@@ -106,6 +111,7 @@ library:
 	gprbuild -p -j8 --RTS=$(ADA_RUN_TIME) -Pwisitoken_lib
 
 clean :: test-clean
+	rm -f Makefile.conf
 	rm -rf obj *.exe
 	rm -rf obj_pro exec_pro
 	rm -rf libzcx libsjlj libobjzcx libobjsjlj
@@ -142,7 +148,10 @@ wisitoken-to_tree_sitter.exe : force
 wisitoken-followed_by.exe : force
 	gprbuild -p -j8 -P wisitoken.gpr wisitoken-followed_by
 
-test-executables : force
+wisitoken_test.gpr : wisitoken_test.gpr.gp
+	gnatprep -DHAVE_TREE_SITTER=$(HAVE_TREE_SITTER) $< $@
+
+test-executables : force wisitoken_test.gpr
 	gprbuild -p -j8 -P wisitoken_test.gpr
 
 # gprbuild can run gnatprep as part of the compiler, but that requires

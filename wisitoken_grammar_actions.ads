@@ -26,16 +26,17 @@ package Wisitoken_Grammar_Actions is
 
    Descriptor : aliased constant WisiToken.Descriptor :=
      (First_Terminal    => 3,
-      Last_Terminal     => 38,
-      First_Nonterminal => 39,
-      Last_Nonterminal  => 59,
-      EOI_ID            => 38,
-      Accept_ID         => 39,
-      Case_Insensitive  => False,
-      New_Line_ID       => 1,
-      String_1_ID       => 37,
-      String_2_ID       => 36,
-      Image             =>
+      Last_Terminal       => 38,
+      First_Nonterminal   => 39,
+      Last_Nonterminal    => 59,
+      SOI_ID              => 60,
+      EOI_ID              => 38,
+      Accept_ID           => 39,
+      Case_Insensitive    => False,
+      New_Line_ID         => 1,
+      String_1_ID         => 37,
+      String_2_ID         => 36,
+      Image               =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
          new String'("COMMENT"),
@@ -95,7 +96,8 @@ package Wisitoken_Grammar_Actions is
          new String'("rhs_multiple_item"),
          new String'("rhs_alternative_list"),
          new String'("compilation_unit"),
-         new String'("compilation_unit_list")),
+         new String'("compilation_unit_list"),
+         new String'("Wisi_SOI")),
       Terminal_Image_Width => 17,
       Image_Width          => 25,
       Last_Lookahead       => 39);
@@ -160,7 +162,8 @@ package Wisitoken_Grammar_Actions is
       rhs_multiple_item_ID,
       rhs_alternative_list_ID,
       compilation_unit_ID,
-      compilation_unit_list_ID);
+      compilation_unit_list_ID,
+      Wisi_SOI_ID);
 
    type Token_Enum_ID_Array is array (Positive range <>) of Token_Enum_ID;
    use all type WisiToken.Token_ID;
@@ -203,6 +206,10 @@ package Wisitoken_Grammar_Actions is
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure declaration_8
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure declaration_9
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);

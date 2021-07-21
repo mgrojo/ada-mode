@@ -28,15 +28,15 @@
  ... goto state 12
  0: 12: 7:(DOT_DOT, (21 . 22)) : shift and goto state 14
  0: 14: 8:(IDENTIFIER, (24 . 26)) : shift and goto state 8
- 0: 8: 9:(Wisi_EOI, (28 . 27)) : reduce 1 tokens to primary
+ 0: 8: 9:(Wisi_EOI, (29 . 28)) : reduce 1 tokens to primary
 (primary, (24 . 26)) <= (8:(IDENTIFIER, (24 . 26)))
  ... goto state 18
- 0: 18: 9:(Wisi_EOI, (28 . 27)) : reduce 3 tokens to range_g
+ 0: 18: 9:(Wisi_EOI, (29 . 28)) : reduce 3 tokens to range_g
 (range_g, (17 . 26)) <= ((primary, (17 . 19)), 7:(DOT_DOT, (21 . 22)), (primary, (24 . 26)))
  ... goto state 13
- 0: 13: 9:(Wisi_EOI, (28 . 27)) : reduce 2 tokens to compilation_unit
+ 0: 13: 9:(Wisi_EOI, (29 . 28)) : reduce 2 tokens to compilation_unit
 (compilation_unit, (1 . 26)) <= ((membership_choice, (1 . 14)), (range_g, (17 . 26)))
  ... goto state 4
- 0: 4: 9:(Wisi_EOI, (28 . 27)) : accept it
+ 0: 4: 9:(Wisi_EOI, (29 . 28)) : accept it
 (wisitoken_accept, (1 . 26)) <= ((compilation_unit, (1 . 26)))
  0: succeed

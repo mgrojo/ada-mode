@@ -38,9 +38,11 @@ one-clean :
 	rm -rf ada_lite*
 
 #one :: one-clean
-one :: GRAMMAR := java_expressions_antlr
-one ::
-	./$(GRAMMAR)_lr1_t1_run.exe -v 1 -m 3 -t 1 ../test/bnf/$(GRAMMAR).input > debug.log
+one :: VERBOSITY := debug=1 lexer=1 action=3
+one :: GRAMMAR := ada_ebnf
+one :: wisitoken-bnf-generate.exe
+	./wisitoken-bnf-generate.exe --test_main --output_bnf --generate None --verbosity "$(VERBOSITY)" ../test/bnf/$(GRAMMAR).wy > debug.log
+
 
 two-clean :
 	rm -rf debug*

@@ -30,6 +30,7 @@ package body WisiToken.BNF.Generate_Utils is
 
    --  For Constant_Reference
    Aliased_EOI_Name              : aliased constant Ada.Strings.Unbounded.Unbounded_String := +EOI_Name;
+   Aliased_SOI_Name              : aliased constant Ada.Strings.Unbounded.Unbounded_String := +SOI_Name;
    Aliased_WisiToken_Accept_Name : aliased constant Ada.Strings.Unbounded.Unbounded_String :=
      +WisiToken_Accept_Name;
 
@@ -69,6 +70,9 @@ package body WisiToken.BNF.Generate_Utils is
 
       when Nonterminal =>
          return -Data.Tokens.Rules (Cursor.Nonterminal).Left_Hand_Side;
+
+      when SOI =>
+         return SOI_Name;
 
       when Done =>
          raise SAL.Programmer_Error with "token cursor is done";
@@ -208,6 +212,8 @@ package body WisiToken.BNF.Generate_Utils is
                then Token_ID (Count (Input_Data.Tokens.Non_Grammar)) + Token_ID'First
                else Token_ID'First),
             Last_Terminal     => EOI_ID,
+            SOI_ID            => EOI_ID + 1 + Token_ID (Input_Data.Tokens.Rules.Length) + 1,
+            --  SOI after last_nonterm to preserve test results
             EOI_ID            => EOI_ID,
             Accept_ID         => EOI_ID + 1,
             First_Nonterminal => EOI_ID + 1,
@@ -284,15 +290,15 @@ package body WisiToken.BNF.Generate_Utils is
    end Parse_Grammar_File;
 
    function Parse_Grammar_File
-     (Grammar_File_Name  : in String;
-      Input_Data         : in WisiToken_Grammar_Runtime.User_Data_Access;
-      Generate_Algorithm : in WisiToken.BNF.Generate_Algorithm;
-      Lexer              : in WisiToken.BNF.Lexer_Type;
-      Ignore_Conflicts   : in Boolean)
+     (Grammar_File_Name  : in     String;
+      Input_Data         : in     WisiToken_Grammar_Runtime.User_Data_Access;
+      Generate_Algorithm : in     WisiToken.BNF.Generate_Algorithm;
+      Lexer              : in     WisiToken.BNF.Lexer_Type;
+      Trace              : in out WisiToken.Trace'Class;
+      Ignore_Conflicts   : in     Boolean)
      return Generate_Data
    is
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
-      Trace          : aliased WisiToken.Text_IO_Trace.Trace;
       Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
       Log_File       : Ada.Text_IO.File_Type;
    begin
@@ -306,10 +312,10 @@ package body WisiToken.BNF.Generate_Utils is
       Grammar_Parser.Execute_Actions; -- Meta phase.
 
       if Input_Data.Meta_Syntax = WisiToken_Grammar_Runtime.EBNF_Syntax then
-         Grammar_Parser.Tree.Clear_Parse_Streams;
          WisiToken_Grammar_Editing.Translate_EBNF_To_BNF
            (Grammar_Parser.Tree,
-            WisiToken_Grammar_Runtime.User_Data_Type (Input_Data.all));
+            WisiToken_Grammar_Runtime.User_Data_Type (Input_Data.all),
+            Trace);
          if WisiToken.Generate.Error then
             raise WisiToken.Grammar_Error with "errors during translating EBNF to BNF: aborting";
          end if;
@@ -376,6 +382,9 @@ package body WisiToken.BNF.Generate_Utils is
       when Nonterminal =>
          return (Element => Container.Data.Tokens.Rules (Cursor.Nonterminal).Left_Hand_Side'Access);
 
+      when SOI =>
+         return (Element => Aliased_SOI_Name'Access);
+
       when Done =>
          raise SAL.Programmer_Error with "token cursor is done";
       end case;
@@ -385,6 +394,7 @@ package body WisiToken.BNF.Generate_Utils is
    is new Iterator_Interfaces.Forward_Iterator with record
       Non_Grammar  : Boolean;
       Nonterminals : Boolean;
+      Include_SOI  : Boolean;
    end record;
 
    overriding function First (Object : Iterator) return Token_Cursor;
@@ -399,27 +409,29 @@ package body WisiToken.BNF.Generate_Utils is
    is
       Next_Position : Token_Cursor := Position;
    begin
-      Next (Object.Data.all, Next_Position, Object.Nonterminals);
+      Next (Object.Data.all, Next_Position, Object.Nonterminals, Object.Include_SOI);
       return Next_Position;
    end Next;
 
    function Iterate
      (Container    : in Token_Container;
       Non_Grammar  : in Boolean := True;
-      Nonterminals : in Boolean := True)
+      Nonterminals : in Boolean := True;
+      Include_SOI  : in Boolean := True)
      return Iterator_Interfaces.Forward_Iterator'Class
    is begin
-      return Iterator'(Container.Data, Non_Grammar, Nonterminals);
+      return Iterator'(Container.Data, Non_Grammar, Nonterminals, Include_SOI);
    end Iterate;
 
    function Next_Kind_Internal
      (Data         : in     Generate_Data;
       Cursor       : in out Token_Cursor;
-      Nonterminals : in     Boolean)
+      Nonterminals : in     Boolean;
+      Include_SOI  : in     Boolean)
      return Boolean
+   --  Advance Cursor to the next kind; return True if any of that
+   --  kind exist, or kind is Done; False otherwise.
    is begin
-      --  Advance Cursor to the next kind; return True if any of that
-      --  kind exist, or kind is Done; False otherwise.
       case Cursor.Kind is
       when Non_Grammar_Kind =>
 
@@ -495,6 +507,14 @@ package body WisiToken.BNF.Generate_Utils is
          return True;
 
       when Nonterminal =>
+         if Include_SOI then
+            Cursor.Kind := SOI;
+         else
+            Cursor.Kind := Done;
+         end if;
+         return True;
+
+      when SOI =>
          Cursor.Kind := Done;
          return True;
 
@@ -505,8 +525,8 @@ package body WisiToken.BNF.Generate_Utils is
 
    function First
      (Data         : in Generate_Data;
-      Non_Grammar  : in Boolean;
-      Nonterminals : in Boolean)
+      Non_Grammar  : in Boolean := True;
+      Nonterminals : in Boolean := True)
      return Token_Cursor
    is
       Cursor : Token_Cursor :=
@@ -528,12 +548,16 @@ package body WisiToken.BNF.Generate_Utils is
 
       --  There are no non_grammar tokens, or Non_Grammar false
       loop
-         exit when Next_Kind_Internal (Data, Cursor, Nonterminals);
+         exit when Next_Kind_Internal (Data, Cursor, Nonterminals, Include_SOI => False);
       end loop;
       return Cursor;
    end First;
 
-   procedure Next (Data : in Generate_Data; Cursor : in out Token_Cursor; Nonterminals : in Boolean)
+   procedure Next
+     (Data         : in     Generate_Data;
+      Cursor       : in out Token_Cursor;
+      Nonterminals : in     Boolean := True;
+      Include_SOI  : in     Boolean := True)
    is begin
       Cursor.ID := Cursor.ID + 1;
 
@@ -554,7 +578,7 @@ package body WisiToken.BNF.Generate_Utils is
          end if;
 
          loop
-            exit when Next_Kind_Internal (Data, Cursor, Nonterminals);
+            exit when Next_Kind_Internal (Data, Cursor, Nonterminals, Include_SOI);
          end loop;
          return;
 
@@ -567,7 +591,7 @@ package body WisiToken.BNF.Generate_Utils is
          end if;
 
          loop
-            exit when Next_Kind_Internal (Data, Cursor, Nonterminals);
+            exit when Next_Kind_Internal (Data, Cursor, Nonterminals, Include_SOI);
          end loop;
          return;
 
@@ -586,19 +610,19 @@ package body WisiToken.BNF.Generate_Utils is
          end if;
 
          loop
-            exit when Next_Kind_Internal (Data, Cursor, Nonterminals);
+            exit when Next_Kind_Internal (Data, Cursor, Nonterminals, Include_SOI);
          end loop;
          return;
 
       when EOI =>
-         if Next_Kind_Internal (Data, Cursor, Nonterminals) then
+         if Next_Kind_Internal (Data, Cursor, Nonterminals, Include_SOI) then
             return;
          else
             raise SAL.Programmer_Error;
          end if;
 
       when WisiToken_Accept =>
-         if Next_Kind_Internal (Data, Cursor, Nonterminals) then
+         if Next_Kind_Internal (Data, Cursor, Nonterminals, Include_SOI) then
             return;
          else
             raise SAL.Programmer_Error;
@@ -611,9 +635,16 @@ package body WisiToken.BNF.Generate_Utils is
          end if;
 
          loop
-            exit when Next_Kind_Internal (Data, Cursor, Nonterminals);
+            exit when Next_Kind_Internal (Data, Cursor, Nonterminals, Include_SOI);
          end loop;
          return;
+
+      when SOI =>
+         if Next_Kind_Internal (Data, Cursor, Nonterminals, Include_SOI) then
+            return;
+         else
+            raise SAL.Programmer_Error;
+         end if;
 
       when Done =>
          null;
@@ -656,6 +687,9 @@ package body WisiToken.BNF.Generate_Utils is
       when Nonterminal =>
          return "nonterminal";
 
+      when SOI =>
+         return "SOI";
+
       when Done =>
          raise SAL.Programmer_Error with "token cursor is done";
       end case;
@@ -673,7 +707,7 @@ package body WisiToken.BNF.Generate_Utils is
       when Terminals_Others =>
          return -Data.Tokens.Tokens (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Value;
 
-      when EOI | WisiToken_Accept | Nonterminal =>
+      when EOI | SOI | WisiToken_Accept | Nonterminal =>
             return "";
 
       when Done =>
@@ -693,7 +727,7 @@ package body WisiToken.BNF.Generate_Utils is
       when Terminals_Others =>
          return -Data.Tokens.Tokens (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Repair_Image;
 
-      when EOI | WisiToken_Accept | Nonterminal =>
+      when EOI | SOI | WisiToken_Accept | Nonterminal =>
             return "";
 
       when Done =>

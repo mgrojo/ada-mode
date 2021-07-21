@@ -106,7 +106,7 @@
 %if lexer = re2c
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
-%non_grammar <comment> COMMENT %[ "--"[^\n\x04]* ]%
+%non_grammar <comment-new-line> COMMENT %[ "--" ]%
 
 %elsif lexer = tree_sitter
 ;; The tree-sitter grammar file requires JavaScript regular expressions; see
@@ -119,13 +119,13 @@
 
 %token <string-double> STRING_LITERAL %[ ("[π\x20-\x21\x23-\x7F]*")+ ]%
 %token <symbol> IDENTIFIER %[ [πa-zA-Z][π0-9a-zA-Z_]* ]%
-%non_grammar <line-comment> COMMENT '--'
+%non_grammar <comment-new-line> COMMENT '--'
 %end if
 
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
-%non_grammar <new-line> NEW_LINE %[ [\n] ]%
+%non_grammar <new-line> NEW_LINE
 
 %start compilation_unit_list
 
@@ -239,14 +239,14 @@ binary_adding_operator
 block_label_opt
   : IDENTIFIER COLON
     %()%
-    %(return Propagate_Name (Nonterm, Tokens, 1);)%
+    %(return Propagate_Name (Tree, Nonterm, Tokens, 1);)%
   | ;; empty
   ;
 
 block_statement
   : T1=block_label_opt [DECLARE declarative_part] BEGIN handled_sequence_of_statements END T7=identifier_opt SEMICOLON
     %()%
-    %(return Match_Names (Lexer, Tokens, T1, T7, End_Name_Optional);)%
+    %(return Match_Names (Tree, Tokens, T1, T7, End_Name_Optional);)%
   ;
 
 body_g
@@ -281,7 +281,7 @@ compilation_unit
 compilation_unit_list
   : compilation_unit
     %( )%
-    %(return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, Recover_Active, Nonterm);)%
+    %(return Terminate_Partial_Parse (Tree, Partial_Parse_Active, Partial_Parse_Byte_Goal, Recover_Active, Nonterm);)%
   | compilation_unit_list compilation_unit
   ;
 
@@ -361,7 +361,7 @@ full_type_declaration
 function_specification
   : FUNCTION name parameter_and_result_profile
     %()%
-    %(return Propagate_Name (Nonterm, Tokens, 2);)%
+    %(return Propagate_Name (Tree, Nonterm, Tokens, 2);)%
   ;
 
 generic_instantiation
@@ -377,7 +377,7 @@ handled_sequence_of_statements
 identifier_opt
   : IDENTIFIER
     %()%
-    %(return Propagate_Name (Nonterm, Tokens, 1);)%
+    %(return Propagate_Name (Tree, Nonterm, Tokens, 1);)%
   | ;; empty
   ;
 
@@ -407,17 +407,17 @@ name
   | name actual_parameter_part ;; function_call, procedure call.
   | IDENTIFIER
     %()%
-    %(return Propagate_Name (Nonterm, Tokens, 1);)%
+    %(return Propagate_Name (Tree, Nonterm, Tokens, 1);)%
   | selected_component
     %()%
-    %(return Propagate_Name (Nonterm, Tokens, 1);)%
+    %(return Propagate_Name (Tree, Nonterm, Tokens, 1);)%
   ;
 
 ;; Explicit _opt for action, error recover language fixes
 name_opt
   : name
     %()%
-    %(return Propagate_Name (Nonterm, Tokens, 1);)%
+    %(return Propagate_Name (Tree, Nonterm, Tokens, 1);)%
   | ;; empty
   ;
 
@@ -429,7 +429,7 @@ object_declaration
 package_body
   : PACKAGE BODY name_1=name aspect_1=aspect_specification? IS declarative_part [BEGIN handled_sequence_of_statements] END name_2=name_opt SEMICOLON
     %(Handle_Aspect (aspect_1);)%
-    %(return Match_Names (Lexer, Tokens, name_1, name_2, End_Name_Optional);)%
+    %(return Match_Names (Tree, Tokens, name_1, name_2, End_Name_Optional);)%
   ;
 
 parameter_and_result_profile
@@ -463,7 +463,7 @@ procedure_call_statement
 procedure_specification
   : PROCEDURE name parameter_profile
     %()%
-    %(return Propagate_Name (Nonterm, Tokens, 2);)%
+    %(return Propagate_Name (Tree, Nonterm, Tokens, 2);)%
   ;
 
 proper_body
@@ -492,7 +492,7 @@ relational_operator
 selected_component
   : name DOT IDENTIFIER
     %()%
-    %(return Merge_Names (Nonterm, Tokens, 1, 3);)%
+    %(return Merge_Names (Tree, Nonterm, Tokens, 1, 3);)%
   ;
 
 sequence_of_statements
@@ -523,7 +523,7 @@ subprogram_body
   : Name_1=subprogram_specification aspect_specification? IS declarative_part BEGIN
     handled_sequence_of_statements END Name_2=name_opt SEMICOLON
     %()%
-    %(return Match_Names (Lexer, Tokens, Name_1, Name_2, End_Name_Optional);)%
+    %(return Match_Names (Tree, Tokens, Name_1, Name_2, End_Name_Optional);)%
   ;
 
 subprogram_body_stub
@@ -537,10 +537,10 @@ subprogram_declaration
 subprogram_specification
   : procedure_specification
     %()%
-    %(return Propagate_Name (Nonterm, Tokens, 1);)%
+    %(return Propagate_Name (Tree, Nonterm, Tokens, 1);)%
   | function_specification
     %()%
-    %(return Propagate_Name (Nonterm, Tokens, 1);)%
+    %(return Propagate_Name (Tree, Nonterm, Tokens, 1);)%
   ;
 
 subtype_indication

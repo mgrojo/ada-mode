@@ -6,7 +6,7 @@
 --
 --  [1] http://re2c.org/
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -33,9 +33,8 @@ generic
    --  These subprograms are provided by generated source code.
 
    with function New_Lexer
-     (Buffer    : in System.Address;
-      Length    : in Interfaces.C.size_t;
-      Verbosity : in Interfaces.C.int)
+     (Buffer : in System.Address;
+      Length : in Interfaces.C.size_t)
      return System.Address;
    --  Create the re2c lexer object, passing it the full text to process.
    --  Length is buffer length in 8 bit bytes.
@@ -48,6 +47,10 @@ generic
 
    with procedure Reset_Lexer (Lexer : in System.Address);
    --  Restart lexing, with previous input buffer.
+
+   with procedure Set_Verbosity
+     (Lexer     : in System.Address;
+      Verbosity : in Interfaces.C.int);
 
    with procedure Set_Position
      (Lexer         : in System.Address;
@@ -62,19 +65,32 @@ generic
       Byte_Length   :    out Interfaces.C.size_t;
       Char_Position :    out Interfaces.C.size_t;
       Char_Length   :    out Interfaces.C.size_t;
-      Line_Start    :    out Interfaces.C.int)
+      Line_Start    :    out Interfaces.C.int;
+      Line_Length   :    out Interfaces.C.int)
      return Interfaces.C.int;
    --  *_Position and *_Length give the position and length in bytes and
    --  characters of the token from the start of the buffer, 0 indexed.
    --
    --  Line_Start gives the line number in the source file that the first
-   --  character of the token is in, 1 indexed. If ID is new_line, Line_Start
-   --  is the line started by this token.
+   --  character of the token is in, 1 indexed. Line_Length gives the
+   --  number of line ends contained in the token; 0 for a token that is all on
+   --  one line, 1 for a new_line, more for a multi-line token.
    --
    --  Result values:
    --
    --  0 - no error
    --  1 - there is an unrecognized character at Position.
+
+   with function Is_Comment (ID : in Token_ID) return Boolean;
+   --  Implements WisiToken.Lexer.Is_Comment.
+
+   with function Line_Begin_Char_Pos
+     (Source : in WisiToken.Lexer.Source;
+      Token  : in Lexer.Token;
+      Line   : in WisiToken.Line_Number_Type)
+     return Buffer_Pos;
+   --  Implements WisiToken.Lexer.Line_Begin_Char_Pos, so that
+   --  precondition applies.
 
 package WisiToken.Lexer.re2c is
 
@@ -88,6 +104,12 @@ package WisiToken.Lexer.re2c is
    --  If the tokens do not include a reporting New_Line token, set
    --  New_Line_ID to Invalid_Token_ID.
 
+   overriding procedure Set_Verbosity
+     (Lexer     : in Instance;
+      Verbosity : in Integer);
+
+   overriding function Has_Source (Lexer : access constant Instance) return Boolean;
+
    overriding procedure Reset_With_String
      (Lexer      : in out Instance;
       Input      : in     String;
@@ -98,6 +120,7 @@ package WisiToken.Lexer.re2c is
    overriding procedure Reset_With_String_Access
      (Lexer      : in out Instance;
       Input      : in     Ada.Strings.Unbounded.String_Access;
+      Input_Last : in     Integer;
       File_Name  : in     Ada.Strings.Unbounded.Unbounded_String;
       Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First);
@@ -119,22 +142,17 @@ package WisiToken.Lexer.re2c is
 
    overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in WisiToken.Buffer_Region) return String;
 
-   overriding function First (Lexer : in Instance) return Boolean;
-
-   overriding function Line_Start_Char_Pos (Lexer : in Instance) return Buffer_Pos;
-
    overriding
    procedure Set_Position
      (Lexer         : in out Instance;
       Byte_Position : in     Buffer_Pos;
       Char_Position : in     Buffer_Pos;
-      Line          : in     Line_Number_Type;
-      Prev_Token_ID : in Token_ID);
+      Line          : in     Line_Number_Type);
 
    overriding
    function Find_Next
      (Lexer : in out Instance;
-      Token :    out Base_Token)
+      Token :    out WisiToken.Lexer.Token)
      return Boolean;
 
    overriding function File_Name (Lexer : in Instance) return String;
@@ -146,23 +164,25 @@ package WisiToken.Lexer.re2c is
       Begin_Char :    out Buffer_Pos;
       Begin_Line :    out Line_Number_Type);
 
+   overriding
+   function Is_Comment
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token)
+     return Boolean;
+
+   overriding
+   function Line_Begin_Char_Pos
+     (Lexer : in Instance;
+      Token : in WisiToken.Lexer.Token;
+      Line  : in Line_Number_Type)
+     return Base_Buffer_Pos;
+
 private
 
    type Instance is new WisiToken.Lexer.Instance with
    record
-      Lexer         : System.Address := System.Null_Address;
-      Source        : WisiToken.Lexer.Source;
-      ID            : Token_ID; --  Last token read by find_next
-      Byte_Position : Natural;  --  We don't use Buffer_Pos here, because Source.Buffer is indexed by Integer
-      Byte_Length   : Natural;
-      Char_Position : Natural;
-      Char_Length   : Natural;
-      --  Position and length in bytes and characters of last token from
-      --  start of Managed.Buffer, 1 indexed.
-
-      Line            : Line_Number_Type; -- after last (or current) New_Line token
-      Char_Line_Start : Natural;          -- Character position after last New_Line token, lexer origin.
-      Prev_ID         : Token_ID;         -- previous token_id
+      Lexer  : System.Address := System.Null_Address;
+      Source : WisiToken.Lexer.Source;
    end record;
 
 end WisiToken.Lexer.re2c;
