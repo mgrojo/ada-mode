@@ -4,9 +4,6 @@
 # variable, that is set in the project files loaded in the file local
 # variables below.
 #
-# test ELPA packages from process-archive:
-#    (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
-#
 # Ideally we'd have 5 elpa packages with dependencies:
 #
 # ada-mode  => gnat-core, wisi, gpr-query
@@ -18,9 +15,9 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION       := 7.1.3
+export ADA_MODE_VERSION       := 7.1.5
 export ADA_REF_MAN_VERSION    := 2012.5
-export WISI_VERSION           := 3.1.2
+export WISI_VERSION           := 3.1.3
 export UNIQUIFY_FILES_VERSION := 1.0.2
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
@@ -353,7 +350,6 @@ VPATH := ..
 # First delete all files in Gnu ELPA, so we catch files deleted here.
 #
 # Copy files to Gnu ELPA ada-mode package
-# ada-project.el depends on not-yet-published elpa packages.
 pub-ada : force
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode
 	rm -rf $(ELPA_ROOT)/packages/ada-mode/*
@@ -454,12 +450,9 @@ clean-elpa :
 	rm -rf $(ELPA_ROOT)/archive-tmp
 	mkdir -p $(ELPA_ROOT)/archive-tmp/packages
 
+# builds $(ELPA_ROOT)/archive-devel/*
 build-elpa : force
-	cp -a $(ELPA_ROOT)/packages/ada-mode $(ELPA_ROOT)/archive-tmp/packages
-	cp -a $(ELPA_ROOT)/packages/ada-ref-man $(ELPA_ROOT)/archive-tmp/packages
-	cp -a $(ELPA_ROOT)/packages/uniquify-files $(ELPA_ROOT)/archive-tmp/packages
-	cp -a $(ELPA_ROOT)/packages/wisi     $(ELPA_ROOT)/archive-tmp/packages
-	make -C $(ELPA_ROOT)/ process-archive
+	make -C $(ELPA_ROOT)/ build-devel/ada-mode build-devel/wisi
 
 # (dvc-state-one "/Projects/elpa/")
 # shell git push

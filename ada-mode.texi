@@ -165,12 +165,10 @@ supports LSP.
 @node Installation, Customization, Overview, Top
 @chapter Installation
 
-Ada mode requires Emacs 25.0 or greater. Compiling the Ada code for
+Ada mode requires Emacs 25.3 or greater. Compiling the Ada code for
 the external process parser requires GNAT GPL 2017 or later; tested
-with GNAT Community Edition 2019 and GNAT Pro 19.
-
-@c fails with gcc gnat 10.2.1 20210110; gcc bugzilla 99099
-@c FIXME: make a table?
+with GNAT Community Edition 2020 and GNAT Pro 21.2 (@pxref{Known
+versions}).
 
 Ada mode is distributed in the Gnu ELPA package archive; it can be
 installed via @code{M-x list-packages} (@pxref{Packages,,,emacs,Emacs
@@ -189,17 +187,13 @@ To see what version of Ada mode you have installed, invoke @kbd{M-x
 ada-mode-version}.
 
 You must also install the associated Ada executables (for the language
-parser). You may want to install the Ada Reference Manual.
+parser). You may want to install the Ada Reference Manual in info
+format, via the ELPA package ada-ref-man.
 
 @menu
-* Ada Reference Manual::
 * Ada executables::
+* Known versions
 @end menu
-
-@node Ada Reference Manual
-@section Ada Reference Manual
-The ELPA package ada-ref-man includes the Ada Reference Manual and
-Annotated Ada Reference Manual in info format.
 
 @node Ada executables
 @section Ada executables
@@ -344,6 +338,64 @@ else, use @code{install.sh --prefix=<dir>}.
 
 @code{ada-mode} will use @file{gpr_query} and the parser if they are
 found in @code{PATH}.
+
+@node Known versions
+@section Known versions
+Here we list GNAT compiler versions that are known to work or not work
+with ada-mode.
+
+There are various ways to get the compiler:
+@table @samp
+@item Community
+Downloaded from @url{https://www.adacore.com/download}. The version
+number is the release year.
+
+This version is provided by AdaCore, but they do not support users
+using it.
+
+@item Pro
+Downloaded from AdaCore via a support subscription. The version number
+is the last two digits of the release year, followed by a patch
+release digit.
+
+This version is provided by AdaCore, and they support users using it.
+
+@item FSF
+Installed via a free software package manager, typically as part of
+the ``gcc'' package. The version number is the same as the gcc
+version, something like ``10.3.0'', possibly followed by a date.
+
+This version is derived from some AdaCore version, but is typically
+not identical to a released version. It may be supported by the
+packager.
+@end table
+
+Sometimes compiler versions change what code they accept, particularly
+in the area of access types. So some compiler versions may require
+minor edits of the code; there is a ``WORKAROUND'' comment in the code
+describing the edit required.
+
+Compiler versions that work:
+@table @samp
+@item Community 2019
+Reports an error about a dangling reference; see WORKAROUND comment in
+@file{~/.emacs.d/elpa/wisi-i.j.k/sal-gen_unbounded_definite_red_black_trees.adb}
+
+@item Community 2020
+no edits required
+
+@item Pro 20.2
+no edits required
+
+@item FSF 11.1.0
+@end table
+
+Compiler versions that fail:
+@table @samp
+@item FSF gnat 10.2.1 20210110
+ada-mode uses compiler option -gnat2020; that causes bogus failures
+with this version of gnat. Reported at @url{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99099}
+@end table
 
 @node Customization, Compiling Executing, Installation, Top
 @chapter Customizing Ada mode

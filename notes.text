@@ -45,11 +45,15 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
+    delete files that are not used?
+        wisi packrat, libadalang, etc
+
+    move elpa-pub to wisitoken
+
 %partial_recursion ;; FIXME: faster compile time while debugging
 
 benchmark
-
-do release of elpa head
 
 publish to elpa
     doc how to use elpa HEAD
@@ -1305,9 +1309,6 @@ in ~/.gitconfig:
 	merge = refs/heads/master
 
  release process
-split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
-    delete files that are not used; wisi packrat, libadalang, etc
-
 keep status in ~/projects.text
 do wisitoken release ../org.wisitoken/build/release_process.text
 
@@ -1332,9 +1333,6 @@ build/Makefile uninstall-elpa
 
 elpa builds info; don't check them into .git
     specify .texi files in elpa-packages
-
-to test local elpa tarball, elpa make build/ada-mode should work
-
 
 check for ELPA patches by others
     (dvc-status "/Projects/elpa")
@@ -1407,32 +1405,39 @@ compare:
         /Projects/org.adaic.arm_form/NEWS
             add release date, new features
 
+commit elpa, ask for alpha testers
+    devel version: (add-to-list 'package-archives (cons "gnu-devel" "https://elpa.gnu.org/devel"))
+        shows in list-packages as version 7.1.4.0.20201130.221942
+
 bump versions
     Gnu ELPA requires single digits between dots in versions
 
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features, no user-incompatible changes
-        bump second digit for major features
+        bump second digit for major features, mostly backward-compatible
             - GPS indentation engine add/delete
             - partial parse
             - delete elisp lexer
             - wisi use virtual tokens in indent
+            - incremental parse
+            - ? module?
 
-        bump first digit for really major changes
+        bump first digit for really major user-visible changes
             ada-mode:
             - 5 use parser
             - 6 compute indentation in grammar actions, external parser with error correction
             - 7 move lots of stuff to wisi; many ada-* variables, functions deleted.
+            - 8 restructure git to match elpa?
 
             wisi:
             - 3 project.el integration
+            - 4 incremental parse
 
     emacs_wisi_common_parse.ads
         (should have been changed already, but verify)
         Protocol_Version if this file changed, or
         wisi-process-parse.el -send-parse, -send-refactor, -execute
-        changed; ie, if installed parser must be replaced on upgrade
-        or downgrade
+        changed; ie, if installed parser must be replaced on upgrade or downgrade
 
     wisi-ada.ads
         (should have been changed already, but verify)
@@ -1440,9 +1445,11 @@ bump versions
         ie, if installed parser must be replaced on upgrade or downgrade
 
     wisi.el
+        copyright date
         Version:
 
     wisi.texi
+        copyright date
         @title
         @node top
 
@@ -1497,7 +1504,7 @@ prep for elpa tests:
     # pushes to elpa workspace, builds archive
 
 Check copyright on files in elpa
-    c:/Projects/elpa/GNUMakefile check_copyrights
+    c:/Projects/elpa/GNUMakefile check-all
     if any ada/wisi files added to output, fix them (add or change to FSF)
 
 Emacs 25.3, current gnat
@@ -1512,7 +1519,7 @@ Emacs 25.3, current gnat
 
     restart Emacs to set load-path
 
-    build/Makefile compile-ada-test autoloads test-clean
+    build/Makefile compile-ada-test test-clean
     build/Makefile test TEST_DIR=elpa
 
     build/Makefile uninstall-elpa
@@ -1558,7 +1565,7 @@ Debian testing has elpa checkout
         # keep execute on *.sh
 
     commit elpa:
-    (dvc-state-one "/Projects/elpa")
+    (dvc-state-multiple "/Projects/elpa/packages")
         add/delete, stage, commit ada-mode, wisi
 
     (dvc-push "/Projects/elpa")
@@ -1632,6 +1639,23 @@ update gnu ada-mode manual?
 publish on Alire?
     https://alire.ada.dev/
     https://blog.adacore.com/announcing-the-first-ada-spark-crate-of-the-year-award
+
+checkout reference copy in c:/Projects/ada-mode-releases
+    cd c:/Projects/ada-mode-releases
+    mkdir ada-mode-i.j.k
+    mkdir -p ada-mode-i.j.k/org.emacs.ada-mode
+    mkdir -p ada-mode-i.j.k/org.wisitoken
+    mkdir -p ada-mode-i.j.k/org.stephe_leake.sal
+    mkdir -p ada-mode-i.j.k/org.stephe_leake.makerules
+    cd c:/Projects/org.emacs.ada-mode
+    git archive ada-mode-i.j.k | tar -x -C /c/Projects/ada-mode-releases/ada-mode-i.j.k/org.emacs.ada-mode
+    cd c:/Projects/org.wisitoken
+    git archive wisitoken-i.j.k | tar -x -C c:/Projects/ada-mode-releases/ada-mode-i.j.k/org.wisitoken
+    cd c:/Projects/org.stephe_leake.sal
+    git archive sal-i.j.k | tar -x -C c:/Projects/ada-mode-releases/ada-mode-i.j.k/org.stephe_leake.sal
+    cd c:/Projects/org.stephe_leake.makerules
+    git archive HEAD | tar -x -C c:/Projects/ada-mode-releases/ada-mode-i.j.k/org.stephe_leake.makerules
+    aunit_ext?
 
 post on emacs-ada-mode mailing list, c.l.a newsgroup:
 
