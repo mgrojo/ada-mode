@@ -28,7 +28,7 @@ package Wisi.Ada is
    --  ada-wisi-language-protocol-version.
    --
    --  Only changes once per ada-mode release. Increment as soon as
-   --  required, record new version in NEWS-ada-mode.text.
+   --  required, record new version in NEWS.
 
    --  Indent parameters from [2]
    Ada_Indent_Default : constant Integer := 3;

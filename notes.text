@@ -45,20 +45,43 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-split org.emacs.ada-mode into .wisi, .ada-mode to match elpa
-    delete files that are not used?
-        wisi packrat, libadalang, etc
+add elpa commit check to ada-mode, wisi
 
-    move elpa-pub to wisitoken
+delete elpa branches, push o.e.*
+    change versions to 0 to prevent release?
+        how does elpa-admin check for that?
+            must store last-release-version somewhere; in name of tarball?
+        ask Stefan if there's another way?
 
-%partial_recursion ;; FIXME: faster compile time while debugging
+
+README-ada-ref-man moved to org.adaic.arm_form
+    change elpa to push from there.
+
+wisitoken-grammar-mode
+    change to push to elpa
 
 benchmark
 
-publish to elpa
+doc gnat community 2021 in ada-mode.texi
+    document gnatcoll patch
     doc how to use elpa HEAD
-    advertize on comp.lang.ada, ada-mode mailing list
 
+gpr-query process symbols in background elisp thread?
+    or just process as it arrives?
+    o.e.a.s-2
+
+start parser process when project created, not when first buffer using it is visited
+    avoid noticeable delay
+
+push to elpa
+    advertize alpha testing on comp.lang.ada, ada-mode mailing list
+    doc how to use elpa HEAD
+        except it's at version 0!?
+
+review this file!
+
+respond to https://rust-analyzer.github.io/blog/2020/09/16/challeging-LR-parsing.html
+   https://github.com/tree-sitter/tree-sitter-rust
 
 incremental parse rationale
     have to compute absolute buffer_pos, line_number for tokens involved in post-parse action at some point
@@ -121,6 +144,9 @@ test/mixed_unix_dos_line_ends.adb
       coding conversion in send-string strips stray ^M
         only in emacs 28?
         change to utf-8-emacs; still strips.
+        change to binary!
+            not in elisp manual list of coding conventions?
+
         write bug report
         change to use null-terminated string?
             then byte, char pos wrong.
@@ -1117,6 +1143,9 @@ refactoring
 https://debbugs.gnu.org/Developer.html
 https://debbugs.gnu.org/server-control.html
 https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
+
+in ada_annex_p.wy:
+%partial_recursion ;; FIXME: faster compile time while debugging
 
 one ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
 

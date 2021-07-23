@@ -29,6 +29,8 @@
 ;; Annex P have comments explaining how. Some comments are recognized
 ;; by 'compare_annex_p.adb' to help with the comparison; see the code
 ;; for more detail.
+;;
+;; See ada_license.text for ARM Annex P copyright/license.
 
 %meta_syntax EBNF
 

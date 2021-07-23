@@ -33,7 +33,6 @@ build/tree_sitter-ada_lite-tokens/
 build/wisitoken-ada_annex_p-tokens/
 build/wisitoken-ada_lite-tokens/
 build/wisitoken-tokens/
-dir-ada-mode
 dump_libadalang_corrected
 dump_wisitoken_corrected
 gpr-process.el
@@ -47,7 +46,6 @@ gpr_re2c.c
 gpr_re2c_c.ads
 obj/
 obj_pro/
-recover.log
 run_ada_lalr_parse
 run_ada_lr1_parse
 run_gpr_parse
