@@ -73,7 +73,7 @@ project Standard_Common is
         );
 
       Debug_Switches := Base_Debug_Switches &
-        ("-gnat2020"); -- @, declare_expression
+        ("-gnat2020"); -- @, declare_expression. Community 2021 says it's -gnat2022, but accepts -gnat2020
       -- Don't use -gnatX; it allows stuff that may not become standard
 
       --  -O3 is measurably faster than -O2 for wisitoken generate
