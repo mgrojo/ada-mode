@@ -74,7 +74,8 @@ install : install_executables
 #
 # 'package-initialize' is required for 'uniquify-files'.
 byte-compile : byte-compile-clean
-	cd ../; $(EMACS_EXE) -Q -batch -L . -l build/exclude-ada-mode.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
+	$(MAKE) -C $(WISI)/build byte-compile
+	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -l build/exclude-ada-mode.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
 
 byte-compile-clean :
 	cd ..; rm -f *.elc
@@ -83,7 +84,8 @@ ifeq ($(TEST_DIR),source)
 test : build_executables
 endif
 test : test_all_harness.run
-test : test-ada-lalr-process-gpr_query.stamp
+test : test-ada-lalr-partial-process-gpr_query.stamp
+test : test-ada-lalr-incremental-process-gpr_query.stamp
 test : test-ada-lalr-process-gnatxref.stamp
 test : gpr-skel.gpr.diff
 test : test-gpr-lalr-process.stamp
@@ -91,6 +93,10 @@ test : summarize
 
 summarize :
 	cat test.log
+
+benchmark : RUN_ARGS ?= c:/eurocontrol/gnatcoll-xref.adb
+benchmark :
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l source_ada_wisi.el -l benchmark.el $(RUN_ARGS)
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
@@ -103,13 +109,15 @@ one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
 #	rm -f ../test/gpr_query.db*
-one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
+one :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
+#one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #one :: $(addsuffix .debug, $(ONE_TEST_FILES))
 
-two : RUN_ARGS ?= command_file debug.cmd test/debug.adb
+#two : RUN_ARGS ?= command_file debug.cmd test/debug.adb
+two : RUN_ARGS ?= parse_partial indent c:/eurocontrol/gnatcoll-xref.adb > debug.log
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 two : ../run_ada_lalr_parse.exe
 	cd ../; ./run_ada_lalr_parse.exe $(RUN_ARGS)
@@ -153,7 +161,7 @@ endif
 # WISITOKEN_GENERATE must be after WISITOKEN
 ifeq ($(TEST_DIR),source)
 # test with development source
-ADA_MODE_DIR := -L .. -l autoloads.el -l build/exclude-ada-mode.el
+ADA_MODE_DIR := -L .. -L $(WISI) -l autoloads.el -l build/exclude-ada-mode.el
 WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 
 else
@@ -181,17 +189,27 @@ test-ada-lalr-process-gnatxref.stamp : force
 	echo "test-ada-lalr-process-gnatxref" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
-test-ada-lalr-process-gpr_query : RUNTEST := run-indent-test-lalr-process-gpr_query.el
-test-ada-lalr-process-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+test-ada-lalr-partial-process-gpr_query : RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
+test-ada-lalr-partial-process-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 
-test-ada-lalr-process-gpr_query.stamp : force
+test-ada-lalr-partial-process-gpr_query.stamp : force
 	rm -f *.diff *.tmp
-	$(MAKE) test-ada-lalr-process-gpr_query
+	$(MAKE) test-ada-lalr-partial-process-gpr_query
 	touch $@
-	echo "test-ada-lalr-process-gpr_query" >> test.log
+	echo "test-ada-lalr-partial-process-gpr_query" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
-test-gpr-lalr-process : RUNTEST := run-indent-test-lalr-process-gpr_query.el
+test-ada-lalr-incremental-process-gpr_query : RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
+test-ada-lalr-incremental-process-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+
+test-ada-lalr-incremental-process-gpr_query.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-ada-lalr-incremental-process-gpr_query
+	touch $@
+	echo "test-ada-lalr-incremental-process-gpr_query" >> test.log
+	find . -name "*.diff" -not -size 0 >> test.log
+
+test-gpr-lalr-process : RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
 test-gpr-lalr-process : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
 test-gpr-lalr-process.stamp : force
@@ -391,71 +409,10 @@ pub-ada-ref-man : force
 	cp $(ARM_INFO)/build/download.py $(ELPA_ROOT)/packages/ada-ref-man/build
 	cp $(ARM_INFO)/build/emacs_case_exceptions $(ELPA_ROOT)/packages/ada-ref-man/build
 
-# copy files to ELPA wisi package
-pub-wisi : force
-	make -C $(WISITOKEN)/build doc
-	rm -f $(ELPA_ROOT)/packages/wisi/*
-	cp ../README-wisi $(ELPA_ROOT)/packages/wisi/README
-	cp ../NEWS-wisi.text $(ELPA_ROOT)/packages/wisi/NEWS
-	cp ../gen_*parse.ad? ../*_wisi_common_parse.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../wisi*.el ../wisi.texi ../wisi.info $(ELPA_ROOT)/packages/wisi
-	cp ../wisi.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../wisi.gpr.gp  $(ELPA_ROOT)/packages/wisi
-	cp ../wisitoken-parse_table-mode.el $(ELPA_ROOT)/packages/wisi
-	cp $(WISITOKEN)/Docs/dir $(ELPA_ROOT)/packages/wisi/
-	cp $(WISITOKEN)/Docs/*.info $(ELPA_ROOT)/packages/wisi/
-	cp $(WISITOKEN)/*.ad? $(ELPA_ROOT)/packages/wisi
-	rm $(ELPA_ROOT)/packages/wisi/wisitoken-regexp.ad?
-	cp $(WISITOKEN)/wisitoken_grammar_re2c.c  $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.makerules/standard_common.gpr $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/long_float_elementary_functions.ads $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-ada_containers* $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_array_image.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_queues.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_stacks*.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_refs.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_image*.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors_sorted*.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists_sorted.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists_sorted-gen_image.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_graphs.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_indefinite_doubly_linked_lists.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_trimmed_image.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_min_heaps_fibonacci.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_queues-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_queues.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_red_black_trees.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_stacks.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_stacks-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors-gen_image*.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors_sorted.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unconstrained_array_image.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unconstrained_array_image_aux.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-generic_decimal_image.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal.ad? $(ELPA_ROOT)/packages/wisi
-# for wisitoken-bnf-generate:
-	cp ../build-wisitoken-bnf-generate.sh $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors-gen_comparable.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists.ad?  $(ELPA_ROOT)/packages/wisi
-
-# 'make -C elpa all-in-place' does not build archive-contents, just *.elc
-#
-# Other packages are often broken, so just build ours, by only copying
-# ours into archive-tmp. Packages at version 0 are deleted by
-# process-archive.
-clean-elpa :
-	rm -rf $(ELPA_ROOT)/archive
-	rm -rf $(ELPA_ROOT)/archive-tmp
-	mkdir -p $(ELPA_ROOT)/archive-tmp/packages
 
 # builds $(ELPA_ROOT)/archive-devel/*
 build-elpa : force
 	make -C $(ELPA_ROOT)/ build-devel/ada-mode build-devel/wisi
-
-# (dvc-state-one "/Projects/elpa/")
-# shell git push
 
 uninstall-elpa :
 	emacs -Q --eval '(progn (load-file "uninstall-elpa.el")(kill-emacs))'
@@ -473,8 +430,8 @@ include Makefile.conf
 ../ada_mode_wisi_parse.gpr : ../ada_mode_wisi_parse.gpr.gp
 	gnatprep -DHAVE_GNAT_UTIL=$(HAVE_GNAT_UTIL) -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) -DELPA="no" $< $@
 
-../wisi.gpr : ../wisi.gpr.gp
-	gnatprep -DELPA="no" $< $@
+$(WISI)/wisi.gpr : force
+	$(MAKE) -C $(WISI)/build ../wisi.gpr
 
 trace :
 	addr2line -e ../exec_pro/run_ada_parser.exe 0x79c027 0x7715ff3f 0x7715ff11 0x7716068d 0x758a42 0x402903 0x7afce0 0x4013db 0x74927c02 0x7717ad2d 0x7717acf8
@@ -485,7 +442,7 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 %$(EXE_EXT) : %.adb force
 	cd ..; gprbuild -p -j8 -vh -P ada_mode_wisi_parse.gpr $*.adb
 
-build_executables :  ../ada_mode_wisi_parse.gpr ../wisi.gpr ../gpr_re2c.c ../ada_annex_p_re2c.c force
+build_executables : $(WISI)/wisi.gpr ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr
 
 install_executables : build_executables

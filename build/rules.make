@@ -83,8 +83,8 @@ autoloads : force
 
 # load path rationale:
 #    . for run-*.el
-#    ADA_MODE_DIR = "-L .. -l "autoloads.el"" for developing ada-mode
-#    ADA_MODE_DIR = "-f package-initialize" for testing installed ELPA package
+#    ADA_MODE_DIR = "-L .. -L $(WISI) -l "autoloads.el"" for developing ada-mode
+#    ADA_MODE_DIR = "" for testing installed ELPA package
 #
 # All gpr-query functions run "gpr_query" in a background process.
 # That fails in batch mode; batch mode does not support background
@@ -94,13 +94,10 @@ autoloads : force
 # dependencies, because the complete list is complex, and we sometimes
 # want to ignore it.
 %.tmp : %
-	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP)(run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP)(run-test "$<")(kill-emacs))' $(RUN_ARGS)
 
 %.debug : %
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP)(package-initialize)(setq debug-on-error t))' $<
-
-benchmark :
-	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l benchmark.el
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
 COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)

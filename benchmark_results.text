@@ -1,0 +1,353 @@
+ benchmarks:
+    update only in o.e.a
+
+    build/Makefile
+        comment out 'export Standard_Common_Build := Debug'
+        make recursive-clean build_ada_executables
+
+d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
+    copied to c:/eurocontrol/gnatcoll-xref.adb
+    7252 lines, 29461 tokens, 254989 characters
+
+ wisitoken-bnf-generate
+    $WISITOKEN/build/wisitoken-bnf-generate.exe --time ada_annex_p.wy
+
+    04 mar 2018
+        o.e.a.s-2 12.919s
+        o.e.a.s-4 24.398s, 24.625s
+
+    12 Apr 2018
+        o.e.a.s-4 16.136s
+
+    23 May 2018
+        11.967s, 12.035s
+
+    25 Jul 2018
+        trees in lr1_items search, -O3
+        LALR elisp generate time: 3.290167687
+        LALR re2c generate time: 3.309398246
+        LR1 re2c generate time: 602.235431713
+        lr1 text_rep size:
+
+    26  Jul 2018
+        don't loop on all token_ids; loop on set
+        LALR elisp generate time: 0.445727505
+        LALR re2c generate time: 0.450525800
+        LR1 re2c generate time: 31.202567095
+        lr1 text_rep size:
+
+    1 Aug 2018 replace Constrain_Terminals with Minimal_Complete_Actions
+        LALR elisp generate time: 0.472614643
+        LALR re2c generate time: 0.480273867
+        LR1 re2c generate time: 31.820868201
+        lr1 text_rep size:
+
+    30 Jan 2020 ada-mode 7.0.1
+        LALR re2c generate time: 0.689046474
+        LR1 re2c generate time: 37.564196185
+        lr1 text_rep size: 50_322_028
+
+    14 May 2020 ada-mode 7.1.1
+        GNAT Community 2019
+        LALR re2c generate time: 0.520925872
+        LR1 re2c generate time: 62.148224014
+        lr1 text_rep size:
+        LALR   0 accept/reduce conflicts, 34 shift/reduce conflicts, 17 reduce/reduce conflicts
+             224 rules, 230 user actions, 37 checks, 1293 states
+        LR1    0 accept/reduce conflicts, 4750 shift/reduce conflicts, 24 reduce/reduce conflicts
+             224 rules, 230 user actions, 37 checks, 119354 states
+
+    25 Jun 2020 Ada 2020 grammar, hash-table/red-black tree for collisions
+        GNAT Community 2019
+        before hash table, tree depth was log_2 (states) ~ 18, not bad.
+        LR1 hash table states: 469463 rows: 124087 max_row_depth: 9 average_row_depth: 2
+        LR1 initial item_sets time: 163.506717162
+
+    29 Jun 2020 parallelize LR1_Item_Sets
+        initial item_sets time: 103.791729848, 108.724074927
+
+    ada_annex_p.wy LR1:
+    4 Jul 2020 all Ada 2020, no actions:
+        states: 444034, 22107 states with conflicts
+        0 accept/reduce conflicts, 41267 shift/reduce conflicts, 1616 reduce/reduce conflicts
+        initial item_sets time: 126.852255667
+
+    27 Nov 2020 removed some conflicts, restore full recursion, cache recursion between LALR, LR1
+        translate to bnf time: 0.076125248
+        compute full recursion time: 27.081835029
+        compute parse table time: 0.491019990
+        compute minimal actions time: 0.005436412
+        LALR re2c generate time: 48.579241802
+        initial item_sets time:-5.803985594
+        add_actions time: 8.118982585
+        compute minimal actions time: 1.863305087
+        compute conflicts time: 0.311614998
+        LR1 re2c generate time: 121.018392728
+
+    23 Jul 2021 GNAT community 2021, minor grammar changes
+        translate to bnf time: 0.071577042
+        compute kernels, recursion time: 39.122728044
+        compute parse table time: 0.429988601
+        compute minimal actions time: 0.003880785
+        LALR re2c generate time: 39.615005930
+        compute kernels, recursion time: 74.869594209
+        initial item_sets time: 4.611572956
+        add_actions time: 6.583736874
+        compute minimal actions time: 1.567588457
+        compute conflicts time: 0.254446308
+        LR1 re2c generate time: 86.369092214
+
+ mckenzie recover
+    ./run_ada_lr1_parse.exe parse_partial indent test/ada_mode-recover_partial_02_lr1.adb --mckenzie_enqueue_limit 120_000 --mckenzie_check_delta 20_000 --verbosity "debug=1 time=1 mckenzie=1" --mckenzie_task_count 8
+        record all recover sessions
+        post-recover time line reports net recover time
+
+        also do --task_count 1
+
+    12 Jul 2019 ada-mode 6.1.1
+        0: succeed 2, enqueue 110, check  14, cost:  2
+        time 0.003358967
+
+        1: fail; enqueue limit ( 120000 cost 11)
+        1: fail, enqueue 120063, check  11824, max shared_token  64
+        0: succeed 2, enqueue 73734, check  7599, cost:  8
+        time 0.680450032
+
+    o.e.a-m just_pushed_back_or_inlined expanded
+        0.671804168, 0.673667911, 0.671176628
+
+    "", drop token_index compare
+        0.678247599, 0.670705783, 0.678376354
+
+    o.e.a-m.s-4 config_heap.pre_add
+        0: succeed 2, enqueue 110, check  14, cost:  2
+        time 0.003585515
+
+        0: fail; enqueue limit ( 120000 cost 10)
+        1: succeed 2, enqueue 73734, check  7599, cost:  8
+        time 0.665732656, 0.661565665, 0.660932083, 0.668397249 - not worth it
+
+    o.e.a-m.s-4, o.w.s-2 binary search action_for
+        0: succeed 2, enqueue 110, check  14, cost:  2
+        time: 0.003279674
+
+        0: fail; enqueue limit ( 120000 cost 11)
+        1: succeed 2, enqueue 73734, check  7599, cost:  8
+        time: 0.665491758
+
+        after propagate:
+        0.695314665, 0.691568300, 0.714005333
+
+    binary search goto_for
+        0.696081911, 0.727982272, 0.692549635 -- no slower, no faster; keep for clean
+
+    sal.list in sal.unbounded_queue
+        0.679426409, 0.703120410, 0.711440799
+
+    use spark bounded_queue; no controlled
+        0.703130227, 0.677916459, 0.674938851
+
+    in bounded_queue, add suppress (all_checks), explicit check for full
+        0.768971400, 0.677694819, 0.699692724, 0.680185725
+
+    spark bounded_stack, suppress (all_checks)
+        0.475089053, 0.471345331, 0.470334167 yes!
+
+    14 Jun 2020 ada-mode 7.1.3
+    ;;  1: fail; total enqueue limit ( 120000 cost 9)
+    ;;  1: fail, enqueue 57219, check  5433, max shared_token  64
+    ;;  0: succeed 2, enqueue 62819, check  6409, cost:  7
+        0.315512031
+
+    13 Jul 2020 devel branch:
+        increase to enqueue_limit 500_000, check_delta 100_000
+        LR1:
+            task_count 1
+            ;; 2020-07-13 21:11:34.04 pre-recover 2 active
+            ;;  1: fail; total enqueue limit ( 500000 cost 11)
+            ;;  1: succeed 7, enqueue 441907, check  41699, cost:  11
+            ;;  0: succeed 2, enqueue 58102, check  5805, cost:  7
+            ;; 2020-07-13 21:11:36.43 post-recover 9 active, 2.387545121
+            2.39 seconds
+
+            ;; 2020-07-13 22:15:10.49 pre-recover 2 active
+            ;;  8 parallel tasks
+            task_count 8
+            ;;  0: fail; total enqueue limit ( 500000 cost 10)
+            ;;  0: succeed 8, enqueue 441988, check  41725, cost:  11
+            ;;  1: succeed 2, enqueue 58102, check  5805, cost:  7
+            ;; 2020-07-13 22:15:11.97 post-recover 13 active, 1.480531181
+            1.48 seconds, 1.07 seconds
+
+            (/ (- 2.39 1.48) 2.39) = 0.389 not very good.
+
+        LALR:
+            task_count 1:
+                ;; 2020-07-13 22:43:09.05 pre-recover 1 active
+                ;;  0: succeed 2, enqueue 118, check  14, cost:  2
+                ;; 2020-07-13 22:43:09.05 post-recover 2 active, 0.001850146
+                ;; 2020-07-13 22:43:09.05 pre-recover 4 active
+                ;;  4: fail; total enqueue limit ( 500000 cost 11)
+                ;;  1: fail; total enqueue limit ( 500000 cost 11)
+                ;;  4: fail, enqueue 283434, check  26607, max shared_token  64
+                ;;  1: fail, enqueue 122328, check  11820, max shared_token  64
+                ;;  0: succeed 1, enqueue 43714, check  4420, cost:  7
+                ;;  5: succeed 2, enqueue 50538, check  5087, cost:  7
+                ;; 2020-07-13 22:43:11.54 post-recover 5 active, 2.491979429
+                0 seconds + 2.49 seconds
+
+            task_count 8
+                ;; 2020-07-13 22:46:15.31 pre-recover 4 active
+                ;;  4: fail; total enqueue limit ( 500000 cost 11)
+                ;;  1: fail; total enqueue limit ( 500000 cost 11)
+                ;;  5: succeed 2, enqueue 50538, check  5087, cost:  7
+                ;;  4: fail, enqueue 283458, check  26708, max shared_token  64
+                ;;  1: fail, enqueue 122328, check  11820, max shared_token  64
+                ;;  0: succeed 1, enqueue 43714, check  4420, cost:  7
+                ;; 2020-07-13 22:46:16.47 post-recover 5 active, 1.159587153
+                1.16 seconds, 1.12 seconds
+
+    13 Jul 2020 incremental parse devel branch (main branch similar):
+        --debug_mode does not show time; use --repeat_count 2
+        ;; parser 0: State 14545 Current_Token (LEFT_PAREN, (859 . 859)) Resume_Token_Goal 51
+        ;;  0: succeed 2, enqueue 217, check  21, cost:  2
+
+        ;; parser 1: State 2649 Current_Token (RIGHT_PAREN, (906 . 906)) Resume_Token_Goal 66
+        ;; parser 0: State 1439 Current_Token (RIGHT_PAREN, (906 . 906)) Resume_Token_Goal 66
+        ;;  1: succeed 2, enqueue 1616, check  148, cost:  1
+        ;;  0: succeed 2, enqueue 2528, check  204, cost:  1
+
+        ;; parser 0: State 14545 Current_Token (LEFT_PAREN, (859 . 859)) Resume_Token_Goal 51
+        ;;  0: succeed 2, enqueue 217, check  21, cost:  2
+
+        ;; parser 1: State 2649 Current_Token (RIGHT_PAREN, (906 . 906)) Resume_Token_Goal 66
+        ;; parser 0: State 1439 Current_Token (RIGHT_PAREN, (906 . 906)) Resume_Token_Goal 66
+        ;;  1: succeed 1, enqueue 1394, check  123, cost:  1
+        ;;  0: succeed 2, enqueue 2533, check  216, cost:  1
+        total parse time per iteration 0.022099088
+
+    27 Nov 2020 incremental parse branch, syntax_trees never copies nodes, ada-mode tests pass
+        ;; parser 2: State 20013 Current_Token (-1, 47:(LEFT_PAREN, (978 . 978))) Resume_Token_Goal 51
+        ;;  2: succeed 2, enqueue 183, check  19, cost:  2
+        time : 0.01 seconds
+
+        ;; parser 5: State 3141 Current_Token (-1, 62:(RIGHT_PAREN, (1025 . 1025))) Resume_Token_Goal 66
+        ;;  5: succeed 6, enqueue 7649, check  628, cost:  5
+        ;; parser 4: State 3108 Current_Token (-1, 62:(RIGHT_PAREN, (1025 . 1025))) Resume_Token_Goal 66
+        ;;  4: succeed 2, enqueue 1772, check  141, cost:  3
+        ;; parser 3: State 3107 Current_Token (-1, 62:(RIGHT_PAREN, (1025 . 1025))) Resume_Token_Goal 66
+        ;;  3: succeed 2, enqueue 1769, check  141, cost:  3
+        ;; parser 2: State 3140 Current_Token (-1, 62:(RIGHT_PAREN, (1025 . 1025))) Resume_Token_Goal 66
+        ;;  2: succeed 6, enqueue 7554, check  622, cost:  5
+            time: 0.22 seconds
+
+    23 Jul 2021 o.e.a main (incremental passes tests)
+    ;; parser 2: State 19014 Current_Token (-1, 1;(LEFT_PAREN, (1122 . 1122))) Resume_Token_Goal 5
+    ;;  2: succeed 3, enqueue 183, check  20, cost:  2
+        0.004547594 seconds
+
+    ;; parser 6: State 4514 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
+    ;;  6: succeed 6, enqueue 23961, check  1878, cost:  5
+    ;; parser 5: State 3590 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
+    ;;  5: succeed 10, enqueue 6545, check  563, cost:  3
+    ;; parser 4: State 3589 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
+    ;;  4: succeed 10, enqueue 6542, check  563, cost:  3
+    ;; parser 3: State 2065 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
+    ;;  3: succeed 2, enqueue 6439, check  494, cost:  3
+    ;; parser 2: State 4513 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
+    ;;  2: succeed 6, enqueue 23939, check  1877, cost:  5
+
+    ;; too many parallel parsers required in recover; dropping some solutions
+        0.460547048 seconds
+
+    mckenzie_task_count 1: 0.002248122, 0.541077686 seconds
+
+ navigate, face, indent
+    make -r benchmark RUN_ARGS="c:/eurocontrol/gnatcoll-xref.adb"
+    make -r benchmark RUN_ARGS="c:/Projects/org.emacs.ada-mode/test/ada_mode.ads"
+        copy per iteration values here
+        uses gnatcoll-xref.adb
+
+    27 Nov 2017 - compute actions in Ada
+        1.377199 seconds 3 gcs 6560 responses 0.509915 wait
+        1.523548 seconds 2 gcs 6560 responses 0.518090 wait
+
+    12 Apr 2018 - syntax table
+        navigate 1.411872 seconds 4 gcs 6560 responses 0.352224 wait
+        face     1.507372 seconds 5 gcs 2145 responses 0.319860 wait
+        indent   1.447788 seconds 1 gcs 7251 responses 0.350474 wait
+
+    23 May 2018
+        navigate 1.542892 seconds 4 gcs 6560 responses 0.473158 wait
+        face     1.645698 seconds 4 gcs 2145 responses 0.452539 wait
+        indent   1.603725 seconds 1 gcs 7251 responses 0.491922 wait
+
+    2 Sep 2018
+    using lalr
+        navigate 0.985181 seconds 4 gcs 6568 responses 0.248143 wait
+        face     1.119776 seconds 4 gcs 2145 responses 0.246759 wait
+        indent   1.033525 seconds 1 gcs 7251 responses 0.251972 wait
+    lr1:
+        navigate 0.968994 seconds 4 gcs 6568 responses 0.231818 wait
+        face     1.085459 seconds 4 gcs 2145 responses 0.219220 wait
+        indent   1.020811 seconds 1 gcs 7251 responses 0.237752 wait
+
+    12 Jul 2019 ada-mode 6.1.1
+        navigate 1.383730 seconds 6 gcs 7431 responses 0.241632 wait
+        face     1.490733 seconds 8 gcs 2151 responses 0.215659 wait
+        indent   1.382439 seconds 3 gcs 7252 responses 0.241366 wait
+
+    4 Jun 2020 ada-mode 7.1.3
+        navigate 1.292225 seconds 5 gcs 6249 responses 0.254697 wait
+        face     1.401879 seconds 7 gcs 2151 responses 0.215092 wait
+        indent   1.286356 seconds 2 gcs 7252 responses 0.223322 wait
+
+    28 Sep 2020 ada_annex_p, allocated syntax tree
+        navigate 1.411824 seconds 5 gcs 6240 responses 0.362340 wait
+        face     1.567617 seconds 7 gcs 2149 responses 0.345864 wait
+        indent   1.435476 seconds 2 gcs 7252 responses 0.366811 wait
+
+    27 Nov 2020 syntax tree never copies nodes
+        navigate 1.093543 seconds 5 gcs 6240 responses 0.186905 wait
+        face     1.334711 seconds 8 gcs 2149 responses 0.182050 wait
+        indent   1.229119 seconds 2 gcs 7252 responses 0.204471 wait
+
+    23 Jul 2020 GNAT Community 2021, incremental parse still needs algorithm improvement
+        test/ada_mode.ads:
+            partial parse:
+            navigate  0.004876 seconds 0 gcs 25 responses 0.001275 wait
+            face      0.001202 seconds 0 gcs 10 responses 0.000488 wait
+            indent    0.001293 seconds 0 gcs 24 responses 0.000677 wait
+            re-indent 0.001626 seconds 0 gcs 24 responses 0.000741 wait
+
+            incremental parse:
+            initial   0.000632 seconds 0 gcs 1 responses 0.000506 wait
+            re-indent 0.000942 seconds 0 gcs 3 responses 0.000149 wait
+
+        gnatcoll-xref.adb:
+            partial parse:
+            navigate : 1.223297 seconds 8 gcs 6240 responses 0.217318 wait
+            face     : 1.180837 seconds 7 gcs 2149 responses 0.209746 wait
+            indent   : 1.967505 seconds 6 gcs 7252 responses 0.853860 wait
+
+            incremental parse:
+            initial   0.822607 seconds 0 gcs 0 responses 0.152898 wait
+            re-indent 0.025769 seconds 0 gcs 3 responses 0.003846 wait
+
+            run_lr1 full parse: 0.14999999999999858 seconds
+
+        flight-behaviour-perform_action_single.adb; 10_327 lines, 519352 chars
+            partial parse:
+            navigate     2.319892 seconds 11 gcs 10495 responses 0.331520 wait
+            face         2.072301 seconds 6 gcs 2122 responses 0.307013 wait
+            indent       3.260837 seconds 6 gcs 10327 responses 1.204892 wait
+            re-indent    0.018961 seconds 0 gcs 21 responses 0.007222
+
+            incremental parse:
+            initial      1.539319 seconds 0 gcs 0 responses 0.245232 wait
+            re-indent    0.038999 seconds 0 gcs 3 responses 0.005204 wait
+
+            run_lr1 full parse: 0.19 seconds
+
+;; FIXME: find a fontified word, time re-fontify
+;; FIXME: measure memory use in parser process; Debian 'time -l run_ada_lalr ...'?

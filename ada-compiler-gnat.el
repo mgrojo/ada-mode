@@ -170,6 +170,11 @@ Prompt user if more than one."
   ;; wisi-output.adb:115:42: possible misspelling of "Production"
   ;; wisi-output.adb:115:42: possible misspelling of "Production"
   ;;
+  ;; GNAT Community 2021 adds "error: " to the above (a misspelling is never a warning):
+  ;; wisi-output.adb:115:41: error: invalid expression in loop iterator
+  ;; wisi-output.adb:115:42: error: possible misspelling of "Production"
+  ;; wisi-output.adb:115:42: error: possible misspelling of "Production"
+  ;;
   ;; column number can vary, so only check the line number
   (save-excursion
     (let* ((start-msg (get-text-property (line-beginning-position) 'compilation-message))
@@ -184,6 +189,8 @@ Prompt user if more than one."
 		   (progn
 		     (skip-syntax-forward "^-")
 		     (forward-char 1)
+		     (when (looking-at "error: ")
+		       (goto-char (match-end 0)))
 		     (looking-at (concat "possible misspelling of " ada-gnat-quoted-name-regexp))))
 	  (push (match-string 1) choices)))
 
@@ -212,9 +219,15 @@ Prompt user if more than one."
   (let ((start-pos (point))
 	message-column
 	result)
-    ;; Move to start of error message text
-    (skip-syntax-forward "^-")
+    ;; Move to start of error message text. GNAT Community 2021 puts
+    ;; warning: | error: after the file:line:column; earlier compilers
+    ;; only put "warning: ".
+    ;;
+    ;; test_incremental.adb:657:20: error: "Checks" not declared in "WisiToken"
+    (skip-syntax-forward "^-") ;; file:line:column
     (forward-char 1)
+    (when (looking-at "warning: \\|error: ")
+      (goto-char (match-end 0)))
     (setq message-column (current-column))
 
     ;; recognize it, handle it
@@ -535,14 +548,14 @@ Prompt user if more than one."
 	   t)
 
 ;;;; warnings
-	  ((looking-at (concat "warning: " ada-gnat-quoted-name-regexp " is already use-visible"))
+	  ((looking-at (concat ada-gnat-quoted-name-regexp " is already use-visible"))
 	   ;; just delete the 'use'; assume it's on a line by itself.
 	   (pop-to-buffer source-buffer)
 	   (beginning-of-line)
 	   (delete-region (point) (progn (forward-line 1) (point)))
 	   t)
 
-	  ((looking-at (concat "warning: " ada-gnat-quoted-name-regexp " is not modified, could be declared constant"))
+	  ((looking-at (concat ada-gnat-quoted-name-regexp " is not modified, could be declared constant"))
 	   (pop-to-buffer source-buffer)
 	   (search-forward ":")
 	   (forward-comment (- (point-max) (point)))
@@ -553,7 +566,7 @@ Prompt user if more than one."
 	   (insert "constant ")
 	   t)
 
-	  ((looking-at (concat "warning: constant " ada-gnat-quoted-name-regexp " is not referenced"))
+	  ((looking-at (concat "constant " ada-gnat-quoted-name-regexp " is not referenced"))
 	   (let ((constant (match-string 1)))
 	     (pop-to-buffer source-buffer)
 	     (end-of-line)
@@ -561,7 +574,7 @@ Prompt user if more than one."
 	     (insert "pragma Unreferenced (" constant ");"))
 	   t)
 
-	  ((looking-at (concat "warning: formal parameter " ada-gnat-quoted-name-regexp " is not referenced"))
+	  ((looking-at (concat "formal parameter " ada-gnat-quoted-name-regexp " is not referenced"))
 	   (let ((param (match-string 1))
 		 cache)
 	     (pop-to-buffer source-buffer)
@@ -578,7 +591,7 @@ Prompt user if more than one."
 	     (insert "pragma Unreferenced (" param ");"))
 	   t)
 
-	  ((looking-at (concat "warning: formal parameter " ada-gnat-quoted-name-regexp " is not modified"))
+	  ((looking-at (concat "formal parameter " ada-gnat-quoted-name-regexp " is not modified"))
 	   (let ((mode-regexp "\"\\([in out]+\\)\"")
 		 new-mode
 		 old-mode)
@@ -594,7 +607,7 @@ Prompt user if more than one."
 	     )
 	   t)
 
-	  ((looking-at (concat "warning: variable " ada-gnat-quoted-name-regexp " is not referenced"))
+	  ((looking-at (concat "variable " ada-gnat-quoted-name-regexp " is not referenced"))
 	   (let ((param (match-string 1)))
 	     (pop-to-buffer source-buffer)
 	     (forward-sexp);; end of declaration
@@ -604,17 +617,17 @@ Prompt user if more than one."
 	   t)
 
 	  ((or
-	    (looking-at (concat "warning: no entities of " ada-gnat-quoted-name-regexp " are referenced"))
-	    (looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is never instantiated"))
-	    (looking-at (concat "warning: renamed constant " ada-gnat-quoted-name-regexp " is not referenced"))
-	    (looking-at "warning: redundant with clause"))
+	    (looking-at (concat "no entities of " ada-gnat-quoted-name-regexp " are referenced"))
+	    (looking-at (concat "unit " ada-gnat-quoted-name-regexp " is never instantiated"))
+	    (looking-at (concat "renamed constant " ada-gnat-quoted-name-regexp " is not referenced"))
+	    (looking-at "redundant with clause"))
 	   ;; just delete the declaration; assume it's on a line by itself.
 	   (pop-to-buffer source-buffer)
 	   (beginning-of-line)
 	   (delete-region (point) (progn (forward-line 1) (point)))
 	   t)
 
-	  ((looking-at (concat "warning: variable " ada-gnat-quoted-name-regexp " is assigned but never read"))
+	  ((looking-at (concat "variable " ada-gnat-quoted-name-regexp " is assigned but never read"))
 	   (let ((param (match-string 1)))
 	     (pop-to-buffer source-buffer)
 	     (wisi-goto-statement-end) ;; leaves point before semicolon
@@ -623,14 +636,14 @@ Prompt user if more than one."
 	     (insert "pragma Unreferenced (" param ");"))
 	   t)
 
-	  ((looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is not referenced"))
+	  ((looking-at (concat "unit " ada-gnat-quoted-name-regexp " is not referenced"))
 	   ;; just delete the 'with'; assume it's on a line by itself.
 	   (pop-to-buffer source-buffer)
 	   (beginning-of-line)
 	   (delete-region (point) (progn (forward-line 1) (point)))
 	   t)
 
-	  ((looking-at (concat "warning: use clause for \\(package\\|type\\|private type\\) " ada-gnat-quoted-name-regexp " \\(defined at\\|from instance at\\|has no effect\\)"))
+	  ((looking-at (concat "use clause for \\(package\\|type\\|private type\\) " ada-gnat-quoted-name-regexp " \\(defined at\\|from instance at\\|has no effect\\)"))
 	   ;; delete the 'use'; assume it's on a line by itself.
 	   (pop-to-buffer source-buffer)
 	   (beginning-of-line)

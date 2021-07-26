@@ -1,4 +1,6 @@
-;; run tests using wisi-process-parse, gpr_query, otherwise ada-mode, gpr-mode defaults
+;; run tests using lalr process parse, gpr_query, otherwise ada-mode,
+;; gpr-mode defaults. partial vs incremental parse not specified; see
+;; run-indent-test-lalr-[partial|incremental]-gpr_query.el
 
 (setq ada-xref-tool 'gpr_query)
 (setq ada-parser 'process)
@@ -26,4 +28,5 @@
 (setq wisi-debug 1) ;; abort on non-syntax errors
 (when (string-equal "" wisi-parser-verbosity)(setq wisi-parser-verbosity "debug=1"));; enable wisitoken.debug_mode
 
+(provide 'run-indent-test-lalr-process-gpr_query)
 ;;; end of file

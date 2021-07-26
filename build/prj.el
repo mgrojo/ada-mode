@@ -1,6 +1,7 @@
 ;; Project definitions for compiling ada-mode
 
-(let ((wisitoken-core "/Projects/org.wisitoken"))
+(let ((wisitoken-core "/Projects/org.wisitoken")
+      (wisi-core "/Projects/org.emacs.wisi"))
 
   (wisi-prj-select-cache
    "ada_mode_wisi_parse.prj"
@@ -12,10 +13,12 @@
      (cl-ecase system-type
       (gnu/linux
        (list
-	(concat "WISITOKEN=" wisitoken-core)))
+	(concat "WISITOKEN=" wisitoken-core)
+	(concat "WISI=" wisi-core)))
       (windows-nt
        (list
-	(concat "WISITOKEN=c:" wisitoken-core))))
+	(concat "WISITOKEN=c:" wisitoken-core)
+	(concat "WISI=c:" wisi-core))))
       ))
    "Makefile"
    ))

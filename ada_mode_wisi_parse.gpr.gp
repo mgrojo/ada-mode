@@ -16,14 +16,6 @@
 --  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
 --  MA 02110-1335, USA.
 
-#if ELPA="yes"
-with "wisi";
-#else
-with "aunit";
-with "aunit_ext";
-with "sal_devel";
-with "wisitoken_devel";
-#end if;
 with "standard_common";
 with "gnatcoll";
 with "gnatcoll_sqlite";
@@ -34,6 +26,7 @@ with "gnat_util";
 #if HAVE_LIBADALANG="yes"
 with "libadalang";
 #end if;
+with "wisi";
 project Ada_Mode_Wisi_Parse is
 
    for Main use

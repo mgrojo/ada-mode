@@ -1,4 +1,5 @@
 gpr_project_path=..
+gpr_project_path=$WISI
 gpr_project_path=$WISITOKEN/build
 gpr_project_path=$SAL/build
 gpr_project_path=../../org.stephe_leake.makerules

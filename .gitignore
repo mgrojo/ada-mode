@@ -4,7 +4,6 @@
 *.info
 *.parse_table
 *.re2c
-.gdbinit
 ada_annex_p-bnf.wy
 ada_annex_p-process.el
 ada_annex_p.txt

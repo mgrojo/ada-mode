@@ -24,6 +24,20 @@ is
    function Local_Function_1 return Float;
    --EMACSRESULT:3
 
+   -- New comment; parse after first "-" reports syntax error.
+   -- Error should be cleared after second "-". First "-" is deleted by
+   -- error recovery, second "-" should be part of that token; must be
+   -- handled by Edit_Tree.
+   --
+   --EMACSCMD:(progn (end-of-line 2)(newline-and-indent))
+   --EMACSCMD:(progn (end-of-line 2)(insert "-")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
+
+   --EMACSRESULT: 1
+   --EMACSCMD:(progn (end-of-line -1)(insert "-")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
+   --EMACSRESULT: 0
+   --EMACSCMD:(progn (beginning-of-line -3)(kill-line 2))
+
+
    -- New parameter in a subpgrogram. See comment in ada_mode-parens.adb
    -- Local_10 on hanging paren indent; we'd like this to be treated as
    -- new code, but error recover just deletes ';', so it is indented as
