@@ -31,6 +31,10 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+move Trace from Parser to Lexer
+    use in Lexer.Find_Next
+    no separate param in tree operations
+
 set_parents is not incremental
     see fixme
 

@@ -249,21 +249,21 @@ package body WisiToken.Parse is
       --
       --  Parser.Lexer contains the edited text; the initial text is not
       --  available.
-      use KMN_Lists;
       use WisiToken.Syntax_Trees;
       use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
+      use all type KMN_Lists.Cursor;
 
       Tree : Syntax_Trees.Tree renames Parser.Tree;
 
-      KMN_Node         : Cursor                := Edits.First;
-      Old_Byte_Pos     : Base_Buffer_Pos       := 0;
-      Old_Char_Pos     : Base_Buffer_Pos       := 0;
-      New_Byte_Pos     : Base_Buffer_Pos       := 0;
-      New_Char_Pos     : Base_Buffer_Pos       := 0;
-      Scanned_Byte_Pos : Base_Buffer_Pos       := 0; -- Last pos scanned by lexer
-      Shift_Bytes      : Base_Buffer_Pos       := 0;
-      Shift_Chars      : Base_Buffer_Pos       := 0;
+      KMN_Node         : KMN_Lists.Cursor := Edits.First;
+      Old_Byte_Pos     : Base_Buffer_Pos  := 0;
+      Old_Char_Pos     : Base_Buffer_Pos  := 0;
+      New_Byte_Pos     : Base_Buffer_Pos  := 0;
+      New_Char_Pos     : Base_Buffer_Pos  := 0;
+      Scanned_Byte_Pos : Base_Buffer_Pos  := 0; -- Last pos scanned by lexer
+      Shift_Bytes      : Base_Buffer_Pos  := 0;
+      Shift_Chars      : Base_Buffer_Pos  := 0;
 
       Shift_Lines : Base_Line_Number_Type := 0;
       --  Whenever a non_grammar is deleted from Tree (either permanently,
@@ -329,7 +329,7 @@ package body WisiToken.Parse is
       KMN_Loop :
       loop
          declare
-            KMN : constant WisiToken.Parse.KMN := Element (KMN_Node);
+            KMN : constant WisiToken.Parse.KMN := Edits (KMN_Node);
 
             Stable_Region : constant Buffer_Region :=
               (Old_Byte_Pos + 1, Old_Byte_Pos + KMN.Stable_Bytes);
@@ -354,7 +354,7 @@ package body WisiToken.Parse is
             Next_KMN : constant WisiToken.Parse.KMN :=
               (if KMN_Node = Edits.Last
                then Invalid_KMN
-               else Element (Next (KMN_Node)));
+               else Edits (KMN_Lists.Next (KMN_Node)));
 
             Next_KMN_Stable_First : constant Buffer_Pos := Stable_Region.Last + KMN.Deleted_Bytes + 1;
             Next_KMN_Stable_Last  : constant Buffer_Pos := Next_KMN_Stable_First - 1 + Next_KMN.Stable_Bytes;
@@ -364,17 +364,13 @@ package body WisiToken.Parse is
             --  stable, deleted are inside the initial text. Caller should use
             --  Validate_KMN.
 
-            if not Contains (Outer => Parser.Tree.Lexer.Buffer_Region_Byte, Inner => Inserted_Region) then
-               raise User_Error with "KMN insert region outside edited source text";
-            end if;
-
             if Trace_Incremental_Parse > Outline then
                Parser.Trace.New_Line;
                Parser.Trace.Put_Line
                  ("KMN: " & Image (Stable_Region) & Image (Inserted_Region) & Image (Deleted_Region));
                Parser.Trace.Put_Line ("old  :" & Old_Byte_Pos'Image & Old_Char_Pos'Image);
                Parser.Trace.Put_Line
-                 ("shift: " & Shift_Bytes'Image & " " & Shift_Chars'Image & " " & Shift_Lines'Image);
+                 ("shift:" & Shift_Bytes'Image & " " & Shift_Chars'Image & " " & Shift_Lines'Image);
                Parser.Trace.Put_Line ("scanned_byte_pos:" & Scanned_Byte_Pos'Image);
                Parser.Trace.Put_Line
                  ("stream:" & Tree.Image
@@ -398,6 +394,11 @@ package body WisiToken.Parse is
                end if;
             end if;
 
+            if not Contains (Outer => Parser.Tree.Lexer.Buffer_Region_Byte, Inner => Inserted_Region) then
+               raise User_Error with "KMN insert region " & Image (Inserted_Region) & " outside edited source text " &
+                 Image (Parser.Tree.Lexer.Buffer_Region_Byte);
+            end if;
+
             if Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.EOI_ID then
                --  We only shift EOI after all KMN are processed; it may need to be
                --  shifted for more than one edit point. test_incremental.adb
@@ -409,6 +410,133 @@ package body WisiToken.Parse is
                end if;
 
             else
+               --  Restore Parser.Deleted_Nodes that overlap or are adjacent to the
+               --  edit region; they may be modified or deleted. We do this before
+               --  Unchanged_Loop, because a restored node may be the Terminal that
+               --  exits that loop. ada_mode-interactive_2.adb slowy insert comment.
+               declare
+                  use Syntax_Trees.Valid_Node_Access_Lists;
+                  Cur : Syntax_Trees.Valid_Node_Access_Lists.Cursor := Parser.Deleted_Nodes.First;
+
+                  procedure Delete (Label : in String)
+                  is
+                     To_Delete : Cursor := Cur;
+                  begin
+                     Cur := Next (Cur);
+
+                     if Label'Length > 0 and Trace_Incremental_Parse > Detail then
+                        Parser.Trace.Put_Line
+                          ("delete " & Label & " Deleted_Node " & Tree.Image
+                             (Parser.Deleted_Nodes (To_Delete), Node_Numbers => True));
+                     end if;
+                     Parser.Deleted_Nodes.Delete (To_Delete);
+                  end Delete;
+
+               begin
+                  loop
+                     exit when not Has_Element (Cur);
+
+                     if Tree.Label (Parser.Deleted_Nodes (Cur)) in Virtual_Terminal_Label then
+                        --  It has no byte_region, and can just be ignored. We delete it here
+                        --  so we don't consider it again.
+                        Delete ("virtual");
+
+                     else
+                        declare
+                           Byte_Region : constant Buffer_Region := Tree.Byte_Region (Parser.Deleted_Nodes (Cur));
+                        begin
+                           if Byte_Region.Last < Stable_Region.Last then
+                              Delete ("stable");
+
+                           elsif (KMN.Deleted_Bytes > 0 and Byte_Region.First <= Deleted_Region.Last + 1) or
+                             (KMN.Inserted_Bytes > 0 and Byte_Region.First + Shift_Bytes <= Inserted_Region.Last + 1)
+                           then
+                              declare
+                                 function Find_Insert return Terminal_Ref
+                                 is begin
+                                    return Tree.Find_Byte_Pos
+                                      (Stream, Byte_Region.First,
+                                       Trailing_Non_Grammar => False,
+                                       Start_At             => Terminal);
+                                 end Find_Insert;
+
+                                 Insert_Before : Terminal_Ref := Find_Insert;
+                              begin
+                                 if Insert_Before = Invalid_Stream_Node_Ref then
+                                    --  Deleted node is after Tree.EOI
+                                    Insert_Before := (Stream, Tree.Stream_Last (Stream), Tree.EOI);
+
+                                 elsif Terminal.Element = Insert_Before.Element then
+                                    if Terminal.Node = Tree.First_Terminal (Get_Node (Terminal.Element)) then
+                                       --  test_incremental.adb Modify_Deleted_Element
+                                       Breakdown (Insert_Before);
+                                       Terminal := Tree.First_Terminal
+                                         (Tree.To_Rooted_Ref
+                                            (Stream, Tree.Stream_Prev (Stream, Insert_Before.Element)));
+                                    else
+                                       Breakdown (Terminal);
+                                       Insert_Before := Find_Insert;
+                                    end if;
+
+                                 else
+                                    Breakdown (Insert_Before);
+                                 end if;
+
+                                 declare
+                                    Prev_Insert_Before : constant Terminal_Ref := Tree.Prev_Terminal (Insert_Before);
+                                    Prev_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var
+                                      (Prev_Insert_Before.Node);
+                                    First_To_Move : Positive_Index_Type := Positive_Index_Type'Last;
+                                    Deleted_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var
+                                      (Parser.Deleted_Nodes (Cur));
+                                 begin
+                                    if Prev_Non_Grammar.Length > 0 and then
+                                      Byte_Region.First < Prev_Non_Grammar (Prev_Non_Grammar.Last_Index)
+                                      .Byte_Region.Last
+                                    then
+                                       --  Move some Prev_Non_Grammar to deleted_node
+                                       --  test_incremental.adb Modify_Deleted_Element
+                                       for I in Prev_Non_Grammar.First_Index .. Prev_Non_Grammar.Last_Index loop
+                                          if Byte_Region.First < Prev_Non_Grammar (I).Byte_Region.Last then
+                                             First_To_Move := I;
+                                             exit;
+                                          end if;
+                                       end loop;
+                                       for I in First_To_Move .. Prev_Non_Grammar.Last_Index loop
+                                          Deleted_Non_Grammar.Append (Prev_Non_Grammar (I));
+                                       end loop;
+                                       if First_To_Move = Prev_Non_Grammar.First_Index then
+                                          Prev_Non_Grammar.Clear;
+                                       else
+                                          Prev_Non_Grammar.Set_First_Last
+                                            (Prev_Non_Grammar.First_Index, First_To_Move - 1);
+                                       end if;
+                                    end if;
+                                 end;
+
+                                 Tree.Stream_Insert (Stream, Parser.Deleted_Nodes (Cur), Insert_Before.Element);
+
+                                 if Trace_Incremental_Parse > Detail then
+                                    Parser.Trace.Put_Line
+                                      ("restore Deleted_Node " & Tree.Image
+                                         (Parser.Deleted_Nodes (Cur), Node_Numbers => True) &
+                                         " before " & Tree.Image (Insert_Before.Node, Node_Numbers => True));
+                                    Parser.Trace.Put_Line
+                                      ("stream:" & Tree.Image
+                                         (Stream,
+                                          Children    => Trace_Incremental_Parse > Detail,
+                                          Non_Grammar => True,
+                                          Augmented   => True));
+                                 end if;
+                                 Delete ("");
+
+                              end;
+                           end if;
+                        end;
+                     end if;
+                  end loop;
+               end;
+
                --  It is tempting to skip Unchanged_Loop if Shift_Bytes = 0 and
                --  Shift_Chars = 0 and Shift_Lines = 0. But we need to scan all
                --  Non_Grammar for Floating_Non_Grammar, which changes Shift_Lines.
@@ -1377,9 +1505,9 @@ package body WisiToken.Parse is
                end;
             end;
 
-            KMN_Node := Next (KMN_Node);
+            KMN_Node := KMN_Lists.Next (KMN_Node);
 
-            if not Has_Element (KMN_Node) then
+            if not KMN_Lists.Has_Element (KMN_Node) then
                --  Finally shift EOI.
                pragma Assert
                  (Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.EOI_ID and

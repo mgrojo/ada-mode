@@ -143,6 +143,9 @@ package WisiToken.Parse.LR.Parser_Lists is
    with Pre => Tree.Parseable;
    --  Create the first parse stream in Tree.
 
+   procedure Clear (List : in out Parser_Lists.List);
+   --  Empty list.
+
    function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type;
 
    type Cursor (<>) is tagged private;

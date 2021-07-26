@@ -22,12 +22,13 @@ with AUnit.Assertions;
 with AUnit.Checks.Containers;
 with Ada.Containers;
 with Ada.Exceptions;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
+with WisiToken.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
-with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Syntax_Trees.AUnit_Public;
 with WisiToken.Text_IO_Trace;
 package body Test_Incremental is
@@ -35,7 +36,11 @@ package body Test_Incremental is
    Log_File  : Ada.Text_IO.File_Type;
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
-   Parser : WisiToken.Parse.LR.Parser.Parser;
+   Incremental_Parser : WisiToken.Parse.LR.Parser.Parser;
+   Batch_Parser       : WisiToken.Parse.LR.Parser.Parser;
+
+   Initial_Buffer : Ada.Strings.Unbounded.Unbounded_String;
+   Edited_Buffer  : Ada.Strings.Unbounded.Unbounded_String;
 
    procedure Parse_Text
      (Initial      : in String;
@@ -46,8 +51,10 @@ package body Test_Incremental is
       Delete_2     : in String                    := "";
       Insert_2     : in String                    := "";
       Lexer_Errors : in Ada.Containers.Count_Type := 0;
-      Parse_Errors : in Boolean                   := False)
+      Parse_Errors : in Boolean                   := False;
+      Label        : in String                    := "")
    with Pre => Edit_2_At = 0 or Edit_2_At > Edit_At
+   --  If Initial is "", start from existing tree.
    is
       use Ada.Text_IO;
       use AUnit.Checks;
@@ -57,22 +64,29 @@ package body Test_Incremental is
       use all type WisiToken.Base_Buffer_Pos;
       use all type Ada.Containers.Count_Type;
 
-      Edited : String (Initial'First .. Initial'Last + Insert'Length + Insert_2'Length) := (others => ' ');
-
-      Edited_Last : Integer := Initial'Last;
+      Label_Dot : constant String :=
+        (if Label = ""
+         then ""
+         else Label & ".");
 
       Edited_Tree_Batch : WisiToken.Syntax_Trees.Tree;
 
       Edits : KMN_Lists.List;
 
-      KMN_Next_Bytes : Integer := Initial'First;
-      KMN_Next_Chars : Integer := Initial'First;
+      KMN_Next_Bytes : Integer := 1;
+      KMN_Next_Chars : Integer := 1;
 
       procedure Edit_Text
         (Edit_At : in Integer;
          Delete  : in String;
          Insert  : in String)
-      is begin
+      is
+         Edited : String (1 .. Length (Edited_Buffer) + Length (Initial_Buffer) + Insert'Length + Insert_2'Length) :=
+           (others => ' ');
+         Edited_Last : Integer := Length (Edited_Buffer);
+      begin
+         Edited (1 .. Length (Edited_Buffer)) := To_String (Edited_Buffer);
+
          if Delete'Length > 0 then
             if Initial (Edit_At .. Edit_At + Delete'Length - 1) /= Delete then
                AUnit.Assertions.Assert (False, "invalid delete");
@@ -87,6 +101,8 @@ package body Test_Incremental is
          end if;
 
          Edited_Last := Edited_Last - Delete'Length + Insert'Length;
+
+         Edited_Buffer := To_Unbounded_String (Edited (1 .. Edited_Last));
       end Edit_Text;
 
       procedure To_KMN
@@ -114,10 +130,10 @@ package body Test_Incremental is
       is
          use WisiToken;
       begin
-         if KMN_Next_Bytes <= Initial'Last then
+         if KMN_Next_Bytes <= Length (Initial_Buffer) then
             Edits.Append
-              ((Stable_Bytes   => Base_Buffer_Pos (Initial'Last - KMN_Next_Bytes + 1),
-                Stable_Chars   => Base_Buffer_Pos (Initial'Last - KMN_Next_Chars + 1),
+              ((Stable_Bytes   => Base_Buffer_Pos (Length (Initial_Buffer) - KMN_Next_Bytes + 1),
+                Stable_Chars   => Base_Buffer_Pos (Length (Initial_Buffer) - KMN_Next_Chars + 1),
                 Deleted_Bytes  => 0,
                 Deleted_Chars  => 0,
                 Inserted_Bytes => 0,
@@ -127,20 +143,24 @@ package body Test_Incremental is
          --  Edit_Tree.
       end Last_KMN;
 
-      procedure Put_Tree (Tree : in WisiToken.Syntax_Trees.Tree)
+      procedure Put_Tree (Parser : in WisiToken.Parse.LR.Parser.Parser)
       is begin
          Parser.Put_Errors;
-
-         Put_Line (" ... tree:");
-         Tree.Print_Tree (Trace, Non_Grammar => True);
+         Put_Line (Label_Dot & " ... tree:");
+         Parser.Tree.Print_Tree (Trace, Non_Grammar => True);
       end Put_Tree;
 
    begin
       --  Create Edited string
-      Edited (Initial'First .. Initial'Last) := Initial;
+      if Initial /= "" then
+         Initial_Buffer := To_Unbounded_String (Initial);
+         Edited_Buffer  := To_Unbounded_String (Initial);
+      else
+         Initial_Buffer := Edited_Buffer; --  For To_KMN, Validate_KMN
+      end if;
 
-      if Edit_At in Initial'Range then
-         if Edit_2_At in Initial'Range then
+      if Edit_At in 1 .. Length (Edited_Buffer) then
+         if Edit_2_At in 1 .. Length (Edited_Buffer) then
             Edit_Text (Edit_2_At, Delete_2, Insert_2);
          end if;
          Edit_Text (Edit_At, Delete, Insert);
@@ -148,42 +168,43 @@ package body Test_Incremental is
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
          Ada.Text_IO.New_Line;
-         Ada.Text_IO.Put_Line ("initial source: '" & Initial & "'");
-         Ada.Text_IO.Put_Line ("edited source : '" & Edited (Edited'First .. Edited_Last) & "'");
+         Ada.Text_IO.Put_Line (Label_Dot & "initial source: '" & Initial & "'");
+         Ada.Text_IO.Put_Line (Label_Dot & "edited source : '" & To_String (Edited_Buffer) & "'");
       end if;
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
-         Put_Line ("edited source batch parse:");
+         Put_Line (Label_Dot & "edited source batch parse:");
       end if;
 
-      Parser.Tree.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
+      Batch_Parser.Tree.Lexer.Reset_With_String (To_String (Edited_Buffer));
 
-      Parser.Parse (Log_File);
+      Batch_Parser.Parse (Log_File);
 
-      Parser.Tree.Copy_Tree (Edited_Tree_Batch, User_Data'Access);
+      Batch_Parser.Tree.Copy_Tree (Edited_Tree_Batch, User_Data'Access);
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
-         Put_Tree (Edited_Tree_Batch);
+         Put_Tree (Batch_Parser);
       end if;
 
-      if WisiToken.Trace_Tests > WisiToken.Outline then
-         New_Line;
-         Put_Line ("initial source batch parse:");
+      if Initial /= "" then
+         if WisiToken.Trace_Tests > WisiToken.Outline then
+            New_Line;
+            Put_Line (Label_Dot & "initial source batch parse:");
+         end if;
+
+         Incremental_Parser.Tree.Lexer.Reset_With_String (Initial);
+         Incremental_Parser.Parse (Log_File);
+
+         if WisiToken.Trace_Tests > WisiToken.Outline then
+            Put_Tree (Incremental_Parser);
+         end if;
       end if;
-      Parser.Tree.Lexer.Reset_With_String (Initial);
 
-      Parser.Parse (Log_File);
+      Incremental_Parser.Tree.Lexer.Reset_With_String (To_String (Edited_Buffer));
 
-      if WisiToken.Trace_Tests > WisiToken.Outline then
-         Put_Tree (Parser.Tree);
-      end if;
-
-      --  Prepare for incremental parse
-      Parser.Tree.Lexer.Reset_With_String (Edited (Edited'First .. Edited_Last));
-
-      if Edit_At in Initial'Range then
+      if Edit_At in 1 .. Length (Edited_Buffer) then
          To_KMN (Edit_At, Delete, Insert);
-         if Edit_2_At in Initial'Range then
+         if Edit_2_At in 1 .. Length (Edited_Buffer) then
             To_KMN (Edit_2_At, Delete_2, Insert_2);
          end if;
          Last_KMN;
@@ -191,51 +212,51 @@ package body Test_Incremental is
 
       if Edits.Length > 0 then
          if WisiToken.Trace_Tests > WisiToken.Outline then
-            Put_Line ("KMN_List:" & Image (Edits));
+            Put_Line (Label_Dot & "KMN_List:" & Image (Edits));
          end if;
 
          Validate_KMN
            (List => Edits,
-            Initial_Text_Byte_Region =>
-              (WisiToken.Base_Buffer_Pos (Initial'First), WisiToken.Base_Buffer_Pos (Initial'Last)),
+            Initial_Text_Byte_Region => (1, WisiToken.Base_Buffer_Pos (Length (Initial_Buffer))),
             Initial_Text_Char_Region =>
-              (WisiToken.Base_Buffer_Pos (Initial'First), WisiToken.Base_Buffer_Pos (Initial'Last)),
+              (1, WisiToken.Base_Buffer_Pos (Length (Initial_Buffer))),
             --  FIXME: test utf-8
-            Edited_Text_Byte_Region  =>
-              (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited_Last)),
-            Edited_Text_Char_Region  =>
-              (WisiToken.Base_Buffer_Pos (Edited'First), WisiToken.Base_Buffer_Pos (Edited_Last)));
+            Edited_Text_Byte_Region  => (1, WisiToken.Base_Buffer_Pos (Length (Edited_Buffer))),
+            Edited_Text_Char_Region  => (1, WisiToken.Base_Buffer_Pos (Length (Edited_Buffer))));
       end if;
 
       if WisiToken.Trace_Parse + WisiToken.Trace_Incremental_Parse > WisiToken.Outline then
          New_Line;
-         Put_Line ("incremental parse:");
+         Put_Line (Label_Dot & "incremental parse:");
       end if;
 
-      Parser.Parse (Log_File, Edits);
+      Incremental_Parser.Parse (Log_File, Edits);
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
          New_Line;
-         Put_Line ("incremental parse result:");
-         Put_Tree (Parser.Tree);
+         Put_Line (Label_Dot & "incremental parse result:");
+         Put_Tree (Incremental_Parser);
+         if Incremental_Parser.Any_Errors then
+            Incremental_Parser.Put_Errors;
+         end if;
       end if;
 
-      Check ("lexer errors", Parser.Wrapped_Lexer_Errors.Length, Lexer_Errors);
-      Check ("parse errors", Parser.Any_Errors, Parse_Errors);
-      Check ("tree", Parser.Tree, Edited_Tree_Batch,
+      Check (Label_Dot & "lexer errors", Incremental_Parser.Wrapped_Lexer_Errors.Length, Lexer_Errors);
+      Check (Label_Dot & "parse errors", Incremental_Parser.Any_Errors, Parse_Errors);
+      Check (Label_Dot & "tree", Incremental_Parser.Tree, Edited_Tree_Batch,
              Shared_Stream => False,
              Terminal_Node_Numbers => False);
    exception
    when WisiToken.Syntax_Error =>
       if WisiToken.Trace_Tests > WisiToken.Outline then
-         Put_Line ("(syntax_error) incremental parse result:");
-         Put_Tree (Parser.Tree);
+         Put_Line (Label_Dot & "(syntax_error) incremental parse result:");
+         Put_Tree (Incremental_Parser);
       end if;
 
       Check ("syntax_error", True, False);
 
    when E : WisiToken.Parse_Error =>
-      Check ("parse_error: " & Ada.Exceptions.Exception_Message (E), True, False);
+      AUnit.Assertions.Assert (False, "parse_error: " & Ada.Exceptions.Exception_Message (E));
    end Parse_Text;
 
    ----------
@@ -593,7 +614,7 @@ package body Test_Incremental is
          use WisiToken.Syntax_Trees;
          use Ada_Lite_Actions;
          use AUnit.Checks;
-         Tree : WisiToken.Syntax_Trees.Tree renames Parser.Tree;
+         Tree : WisiToken.Syntax_Trees.Tree renames Incremental_Parser.Tree;
          Begin_Name_Node : constant Valid_Node_Access := Tree.Find_Descendant (Tree.Root, +subprogram_specification_ID);
          End_Name_Node   : constant Valid_Node_Access := Tree.Find_Descendant (Tree.Root, +name_opt_ID);
       begin
@@ -643,6 +664,45 @@ package body Test_Incremental is
          Parse_Errors => False);
    end Lexer_Errors_1;
 
+   procedure Modify_Deleted_Node (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Ada_Lite_Actions;
+      use AUnit.Checks.Containers;
+      use WisiToken.AUnit;
+   begin
+      --  Derived from ada_mode-interactive_02.adb insert new comment
+      --  slowly. In the first parse, the node for the inserted "-" is
+      --  deleted by error recovery. In the second parse, the node is
+      --  restored and then scanned and replaced by the comment.
+      Parse_Text
+        (Label        => "1",
+         Initial      =>
+           "A := 2;" & ASCII.LF &
+             --  |6
+             ASCII.LF,
+         --  | 9
+         Edit_At      => 9,
+         Delete       => "",
+         Insert       => "-", -- start a comment
+         Parse_Errors => True);
+
+      Check ("deleted count", Incremental_Parser.Deleted_Nodes.Length, 1);
+      Check ("deleted '-'",
+             Incremental_Parser.Tree.ID
+               (Incremental_Parser.Deleted_Nodes (Incremental_Parser.Deleted_Nodes.First)),
+             +MINUS_ID);
+
+      Parse_Text
+        (Label        => "2",
+         Initial      => "",            -- continue from previous
+         Edit_At      => 10,
+         Delete       => "",
+         Insert       => "- a comment", -- finish comment
+         Parse_Errors => False);
+
+   end Modify_Deleted_Node;
+
    ----------
    --  Public subprograms
 
@@ -673,6 +733,7 @@ package body Test_Incremental is
       Register_Routine (T, Names'Access, "Names");
       Register_Routine (T, Recover_1'Access, "Recover_1");
       Register_Routine (T, Lexer_Errors_1'Access, "Lexer_Errors_1");
+      Register_Routine (T, Modify_Deleted_Node'Access, "Modify_Deleted_Node");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
@@ -684,7 +745,19 @@ package body Test_Incremental is
    is begin
       --  Run before all tests in register
       WisiToken.Parse.LR.Parser.New_Parser
-        (Parser,
+        (Batch_Parser,
+         Trace'Access,
+         Ada_Lite_LR1_T1_Main.Create_Lexer,
+         Ada_Lite_LR1_T1_Main.Create_Parse_Table
+           (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
+         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+         Language_Matching_Begin_Tokens =>
+           WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
+         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
+         User_Data                      => User_Data'Access);
+
+      WisiToken.Parse.LR.Parser.New_Parser
+        (Incremental_Parser,
          Trace'Access,
          Ada_Lite_LR1_T1_Main.Create_Lexer,
          Ada_Lite_LR1_T1_Main.Create_Parse_Table

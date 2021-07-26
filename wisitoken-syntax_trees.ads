@@ -90,7 +90,7 @@ pragma License (Modified_GPL);
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
-with SAL.Gen_Definite_Doubly_Linked_Lists;
+with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
 with SAL.Gen_Trimmed_Image;
 with SAL.Gen_Unbounded_Definite_Stacks;
 with SAL.Gen_Unbounded_Definite_Vectors;
@@ -253,6 +253,12 @@ package WisiToken.Syntax_Trees is
    with Dynamic_Predicate =>
      (Rooted_Ref = Invalid_Stream_Node_Ref --  allows initialization
         or else Rooted (Rooted_Ref));
+
+   function To_Rooted_Ref
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Rooted_Ref;
 
    type Stream_Node_Parents is record
       Ref     : Stream_Node_Ref;
@@ -503,7 +509,6 @@ package WisiToken.Syntax_Trees is
    Null_Action : constant Post_Parse_Action := null;
 
    ----------
-   --
    --  Parsing operations (including error recovery and incremental
    --  parse), Tree and Node attributes.
 
@@ -657,15 +662,6 @@ package WisiToken.Syntax_Trees is
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID);
    --  Move Stream.Stack_Top to Stream input.
-
-   procedure Insert_Token
-     (Tree      : in out Syntax_Trees.Tree;
-      Stream    : in     Stream_ID;
-      Ref       : in out Rooted_Ref)
-   with Pre => Valid_Stream_Node (Tree, Ref) and Stream /= Ref.Stream and Ref.Stream = Tree.Shared_Stream,
-     Post => Valid_Stream_Node (Tree, Ref) and Ref.Stream = Stream;
-   --  Insert a stream element containing Ref nodes to beginning of
-   --  Stream input. Ref is updated to point to the new element.
 
    procedure Move_Shared_To_Input
      (Tree         : in out Syntax_Trees.Tree;
@@ -1401,7 +1397,7 @@ package WisiToken.Syntax_Trees is
      (Tree                 : in Syntax_Trees.Tree;
       Ref                  : in Stream_Node_Ref;
       Trailing_Non_Grammar : in Boolean)
-   return Stream_Node_Ref
+     return Stream_Node_Ref
    with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Parents_Set,
      Post => Tree.Correct_Stream_Node (Prev_Source_Terminal'Result);
    --  Return the previous terminal node that can give byte or char pos.
@@ -1698,7 +1694,6 @@ package WisiToken.Syntax_Trees is
    --  Return all descendants of Node matching ID.
 
    ----------
-   --
    --  Post-parsing operations; editing the tree. The tree has only one
    --  stream, so these subprograms have no stream argument.
    --
@@ -1878,7 +1873,7 @@ package WisiToken.Syntax_Trees is
      (Tree : in Syntax_Trees.Tree;
       Line : in Line_Number_Type)
      return Buffer_Pos
-     with Pre => Tree.Editable;
+   with Pre => Tree.Editable;
    --  First character on Line in text spanned by tree under Tree.Root;
    --  it may be in no token, or in a grammar or non-grammar token.
    --  Result is Invalid_Buffer_Pos if Line is not in the text spanned by
@@ -2128,6 +2123,11 @@ package WisiToken.Syntax_Trees is
      return String;
    --  If First_Terminal, show First_Terminal of Ref.Node if Ref is rooted.
 
+   function Image
+     (Tree : in Syntax_Trees.Tree;
+      List : in Valid_Node_Access_Lists.List)
+     return String;
+
    function Decimal_Image is new SAL.Generic_Decimal_Image (Node_Index);
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Node_Index);
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Base_Sequential_Index);
@@ -2231,8 +2231,8 @@ private
    type Node
      (Label       : Node_Label;
       Child_Count : SAL.Base_Peek_Type)
-   --  Descriminants have no default because allocated nodes are
-   --  constrained anyway (ARM 4.8 6/3).
+      --  Descriminants have no default because allocated nodes are
+      --  constrained anyway (ARM 4.8 6/3).
    is record
       ID : WisiToken.Token_ID := Invalid_Token_ID;
 
@@ -2522,11 +2522,11 @@ private
    function Parents_Valid (Ref : in Stream_Node_Parents) return Boolean
    is ((Ref.Ref.Element = Invalid_Stream_Index and Ref.Ref.Node = Invalid_Node_Access) or else
          ((Stream_Element_Lists.Constant_Ref (Ref.Ref.Element.Cur).Node = Ref.Ref.Node or
-            Ref.Ref.Node = Invalid_Node_Access) and Ref.Parents.Is_Empty) or else
+             Ref.Ref.Node = Invalid_Node_Access) and Ref.Parents.Is_Empty) or else
          (Ref.Parents.Depth > 0 and then
             (Ref.Parents.Peek (Ref.Parents.Depth) = Stream_Element_Lists.Constant_Ref (Ref.Ref.Element.Cur).Node and
-            --  we don't check the intervening parent items.
-            (for some Child of Ref.Parents.Peek.Children => Child = Ref.Ref.Node))));
+               --  we don't check the intervening parent items.
+               (for some Child of Ref.Parents.Peek.Children => Child = Ref.Ref.Node))));
 
    function Parseable (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Streams.Length = 1);
@@ -2618,5 +2618,19 @@ private
    type Token_Array_Const_Ref (Element : not null access constant WisiToken.Lexer.Token_Arrays.Vector) is record
       Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;
+
+   function Node_Image
+     (Node : in Node_Access;
+      Tree : in Syntax_Trees.Tree'Class)
+     return String
+   is (Tree.Image (Node, Node_Numbers => True));
+
+   function Node_List_Image is new Valid_Node_Access_Lists.Gen_Image_Aux (Tree'Class, Node_Image);
+
+   function Image
+     (Tree : in Syntax_Trees.Tree;
+      List : in Valid_Node_Access_Lists.List)
+     return String
+   is (Node_List_Image (List, Tree));
 
 end WisiToken.Syntax_Trees;

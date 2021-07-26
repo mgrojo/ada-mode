@@ -201,6 +201,11 @@ package body WisiToken.Parse.LR.Parser_Lists is
       end return;
    end New_List;
 
+   procedure Clear (List : in out Parser_Lists.List)
+   is begin
+      List.Elements.Finalize;
+   end Clear;
+
    function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type
    is begin
       return List.Elements.Length;

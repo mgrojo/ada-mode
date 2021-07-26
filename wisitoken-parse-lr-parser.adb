@@ -978,81 +978,94 @@ package body WisiToken.Parse.LR.Parser is
    end Execute_Actions;
 
    overriding function Any_Errors (Parser : in LR.Parser.Parser) return Boolean
-   is
-      use all type Ada.Containers.Count_Type;
-      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
-   begin
-      return Parser.Parsers.Count > 1 or Parser_State.Errors.Length > 0 or Parser.Tree.Lexer.Errors.Length > 0;
+   is begin
+      if Parser.Parsers.Count = 0 then
+         return False;
+      end if;
+
+      declare
+         use all type Ada.Containers.Count_Type;
+         Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
+      begin
+         return Parser.Parsers.Count > 1 or Parser_State.Errors.Length > 0 or Parser.Tree.Lexer.Errors.Length > 0;
+      end;
    end Any_Errors;
 
    overriding procedure Put_Errors (Parser : in LR.Parser.Parser)
-   is
-      use Ada.Text_IO;
+   is begin
+      if Parser.Parsers.Count = 0 then
+         return;
+      end if;
 
-      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
-      Descriptor   : WisiToken.Descriptor renames Parser.Tree.Lexer.Descriptor.all;
-   begin
-      for Item of Parser.Tree.Lexer.Errors loop
-         Put_Line
-           (Current_Error,
-            Parser.Tree.Lexer.File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image (Item.Char_Pos));
-      end loop;
+      declare
+         use Ada.Text_IO;
 
-      for Item of Parser_State.Errors loop
-         case Item.Label is
-         when LR_Parse_Action =>
-            declare
-               use all type Syntax_Trees.Valid_Node_Access;
-
-               Item_Byte_Region : constant Buffer_Region := Parser.Tree.Byte_Region (Item.Error_Token.Node);
-               Msg : constant String := "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                 ", found '" & Parser.Tree.Lexer.Buffer_Text (Item_Byte_Region) &
-                 "'";
-            begin
-               --  If we get here because Parse raised Syntax_Error or other
-               --  exception, Finish_Parse has not been called.
-
-               if Parser.Tree.Editable then
-                  declare
-                     Line_Node : constant Syntax_Trees.Valid_Node_Access :=
-                       (if (for some N of Parser.Deleted_Nodes => N = Item.Error_Token.Node)
-                        then -- error node is not in tree, can't find line number; use another node
-                           Parser.Tree.Find_Byte_Pos (Item_Byte_Region.First, Trailing_Non_Grammar => False)
-                        else Item.Error_Token.Node);
-                  begin
-                     Put_Line (Current_Error, Parser.Tree.Error_Message (Line_Node, Msg));
-                  end;
-               else
-                  declare
-                     Ref : constant Syntax_Trees.Terminal_Ref :=
-                       (if (for some N of Parser.Deleted_Nodes => N = Item.Error_Token.Node)
-                        then -- error node is not in tree; can't find line number.
-
-                           Parser.Tree.Find_Byte_Pos
-                             (Parser_State.Stream, Item_Byte_Region.First,
-                              Trailing_Non_Grammar => False,
-                              Start_At             => Syntax_Trees.Invalid_Stream_Node_Ref)
-                        else Item.Error_Token);
-                  begin
-                     Put_Line (Current_Error, Parser.Tree.Error_Message (Ref, Msg));
-                  end;
-               end if;
-            end;
-
-         when User_Parse_Action =>
+         Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
+         Descriptor   : WisiToken.Descriptor renames Parser.Tree.Lexer.Descriptor.all;
+      begin
+         for Item of Parser.Tree.Lexer.Errors loop
             Put_Line
               (Current_Error,
-               Parser.Tree.Lexer.File_Name & ":1:0: semantic check error: " &
-                 In_Parse_Actions.Image (Item.Status, Parser.Tree));
+               Parser.Tree.Lexer.File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image
+                 (Item.Char_Pos));
+         end loop;
 
-         when Message =>
-            Put_Line (Current_Error, -Item.Msg);
-         end case;
+         for Item of Parser_State.Errors loop
+            case Item.Label is
+            when LR_Parse_Action =>
+               declare
+                  use all type Syntax_Trees.Valid_Node_Access;
 
-         if Item.Recover.Stack.Depth /= 0 then
-            Put_Line (Current_Error, "   recovered: " & Image (Item.Recover.Ops, Descriptor));
-         end if;
-      end loop;
+                  Item_Byte_Region : constant Buffer_Region := Parser.Tree.Byte_Region (Item.Error_Token.Node);
+                  Msg : constant String := "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                    ", found '" & Parser.Tree.Lexer.Buffer_Text (Item_Byte_Region) &
+                    "'";
+               begin
+                  --  If we get here because Parse raised Syntax_Error or other
+                  --  exception, Finish_Parse has not been called.
+
+                  if Parser.Tree.Editable then
+                     declare
+                        Line_Node : constant Syntax_Trees.Valid_Node_Access :=
+                          (if (for some N of Parser.Deleted_Nodes => N = Item.Error_Token.Node)
+                           then -- error node is not in tree, can't find line number; use another node
+                              Parser.Tree.Find_Byte_Pos (Item_Byte_Region.First, Trailing_Non_Grammar => False)
+                           else Item.Error_Token.Node);
+                     begin
+                        Put_Line (Current_Error, Parser.Tree.Error_Message (Line_Node, Msg));
+                     end;
+                  else
+                     declare
+                        Ref : constant Syntax_Trees.Terminal_Ref :=
+                          (if (for some N of Parser.Deleted_Nodes => N = Item.Error_Token.Node)
+                           then -- error node is not in tree; can't find line number.
+
+                              Parser.Tree.Find_Byte_Pos
+                                (Parser_State.Stream, Item_Byte_Region.First,
+                                 Trailing_Non_Grammar => False,
+                                 Start_At             => Syntax_Trees.Invalid_Stream_Node_Ref)
+                           else Item.Error_Token);
+                     begin
+                        Put_Line (Current_Error, Parser.Tree.Error_Message (Ref, Msg));
+                     end;
+                  end if;
+               end;
+
+            when User_Parse_Action =>
+               Put_Line
+                 (Current_Error,
+                  Parser.Tree.Lexer.File_Name & ":1:0: semantic check error: " &
+                    In_Parse_Actions.Image (Item.Status, Parser.Tree));
+
+            when Message =>
+               Put_Line (Current_Error, -Item.Msg);
+            end case;
+
+            if Item.Recover.Stack.Depth /= 0 then
+               Put_Line (Current_Error, "   recovered: " & Image (Item.Recover.Ops, Descriptor));
+            end if;
+         end loop;
+      end;
    end Put_Errors;
 
 end WisiToken.Parse.LR.Parser;

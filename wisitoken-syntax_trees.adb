@@ -3030,14 +3030,6 @@ package body WisiToken.Syntax_Trees is
       return (Stream, (Cur => New_Element), Node);
    end Insert_Stream_Element;
 
-   procedure Insert_Token
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID;
-      Ref    : in out Rooted_Ref)
-   is begin
-      Ref := Insert_Stream_Element (Tree, Stream, Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node);
-   end Insert_Token;
-
    function Insert_Virtual_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
@@ -5799,6 +5791,15 @@ package body WisiToken.Syntax_Trees is
 
    function To_Node_Access (Item : in Valid_Node_Access_Array) return Node_Access_Array
    is (for I in Item'Range => Item (I));
+
+   function To_Rooted_Ref
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Rooted_Ref
+   is begin
+      return (Stream, Element, Tree.Streams (Stream.Cur).Elements (Element.Cur).Node);
+   end To_Rooted_Ref;
 
    function To_Stream_Node_Parents (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return Stream_Node_Parents
    is begin

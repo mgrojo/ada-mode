@@ -56,6 +56,7 @@ begin
          Trace.New_Line;
          Trace.Put_Line ("pre-edit tree:");
          Shared_Parser.Tree.Print_Tree (Trace, Line_Numbers => True, Non_Grammar => True);
+         Trace.Put_Line ("deleted_nodes: " & Shared_Parser.Tree.Image (Shared_Parser.Deleted_Nodes));
          Trace.New_Line;
       end if;
 
@@ -79,9 +80,10 @@ begin
         Shared_Parser.Tree.Lexer.Descriptor.Accept_ID
       then
          if Trace_Parse > Outline then
-            Trace.Put_Line ("existing tree not changed by edits");
+            Trace.Put_Line ("edited tree does not need parse; no or only non_grammar changes");
          end if;
          Shared_Parser.Tree.Clear_Parse_Streams;
+         Shared_Parser.Parsers.Clear;
          return;
       end if;
 
