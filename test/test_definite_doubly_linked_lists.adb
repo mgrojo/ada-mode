@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2017, 2018, 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018, 2020, 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,14 +18,44 @@
 
 pragma License (GPL);
 
+with Ada.Finalization;
 with AUnit.Checks.Containers;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Validate;
 package body Test_Definite_Doubly_Linked_Lists is
 
-   package Integer_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Integer);
-   use Integer_Lists;
+   package Integer_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists
+     (Element_Type => Integer);
 
-   package Val is new Integer_Lists.Gen_Validate;
+   package Integer_Val is new Integer_Lists.Gen_Validate;
+
+   type Element is new Ada.Finalization.Controlled with record
+      A : Integer := Integer'First;
+      B : Integer := Integer'Last;
+   end record;
+
+   overriding procedure Finalize (Object : in out Element)
+   is begin
+      Object.A := Integer'Last;
+      Object.B := Integer'First;
+   end Finalize;
+
+   procedure Check
+     (Label : in String;
+      Computed : in Element;
+      Expected : in Element)
+   is
+      use AUnit.Checks;
+   begin
+      Check (Label & ".a", Computed.A, Expected.A);
+      Check (Label & ".b", Computed.B, Expected.B);
+   end Check;
+
+   type Element_Access is access Element;
+
+   package Element_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists
+     (Element_Type => Element_Access);
+
+   package Element_Val is new Element_Lists.Gen_Validate;
 
    ----------
    --  Test procedures
@@ -36,6 +66,7 @@ package body Test_Definite_Doubly_Linked_Lists is
 
       use AUnit.Checks;
       use AUnit.Checks.Containers;
+      use Integer_Lists;
 
       List : Integer_Lists.List;
       Cur : Cursor := List.First;
@@ -46,7 +77,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Append (List, 3);
       Append (List, 5);
 
-      Val.Validate ("0", List);
+      Integer_Val.Validate ("0", List);
       Cur := List.First;
       Check ("1a", Constant_Ref (Cur), 1);
       Next (Cur);
@@ -58,7 +89,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Check ("1e", Cur = No_Element, True);
 
       List.Prepend (0);
-      Val.Validate ("2", List);
+      Integer_Val.Validate ("2", List);
       Cur := List.First;
       Check ("2a", Constant_Ref (Cur), 0);
       Next (Cur);
@@ -70,7 +101,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Check ("2e", List.Length, 4);
 
       Delete (List, Cur);
-      Val.Validate ("3", List);
+      Integer_Val.Validate ("3", List);
       Check ("3a", Cur = No_Element, True);
       Check ("3b", List.Length, 3);
       Cur := List.First;
@@ -85,7 +116,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Cur := List.First;
       Cur := Next (Cur);
       Delete (List, Cur);
-      Val.Validate ("4", List);
+      Integer_Val.Validate ("4", List);
       Check ("4a", List.Length, 2);
       Cur := List.First;
       Check ("4b", Constant_Ref (Cur), 0);
@@ -123,6 +154,7 @@ package body Test_Definite_Doubly_Linked_Lists is
 
       use AUnit.Checks;
       use AUnit.Checks.Containers;
+      use Integer_Lists;
 
       List : Integer_Lists.List;
       Cur : Cursor := No_Element;
@@ -130,7 +162,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       --  Insert into empty
       List.Insert (List.First, 2);
 
-      Val.Validate ("1", List);
+      Integer_Val.Validate ("1", List);
       Check ("1a", List.Length, 1);
       Cur := List.First;
       Check ("1b", Constant_Ref (Cur), 2);
@@ -139,7 +171,7 @@ package body Test_Definite_Doubly_Linked_Lists is
 
       --  Insert before head
       List.Insert (List.First, 0);
-      Val.Validate ("2", List);
+      Integer_Val.Validate ("2", List);
       Check ("2a", List.Length, 2);
       Cur := List.First;
       Check ("2b", Constant_Ref (Cur), 0);
@@ -150,7 +182,7 @@ package body Test_Definite_Doubly_Linked_Lists is
 
       --  Insert before tail
       List.Insert (List.Last, 1);
-      Val.Validate ("3", List);
+      Integer_Val.Validate ("3", List);
       Check ("3a", List.Length, 3);
       Cur := List.First;
       Check ("3b", Constant_Ref (Cur), 0);
@@ -163,7 +195,7 @@ package body Test_Definite_Doubly_Linked_Lists is
 
       --  Insert after tail
       List.Insert (No_Element, 3);
-      Val.Validate ("4", List);
+      Integer_Val.Validate ("4", List);
       Check ("4a", List.Length, 4);
       Cur := List.First;
       Check ("4b", Constant_Ref (Cur), 0);
@@ -183,7 +215,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Check ("5a", Constant_Ref (Cur), 2);
 
       List.Insert (Cur, -2);
-      Val.Validate ("5", List);
+      Integer_Val.Validate ("5", List);
       Check ("5a", List.Length, 5);
       Cur := List.First;
       Check ("5b", Constant_Ref (Cur), 0);
@@ -200,6 +232,88 @@ package body Test_Definite_Doubly_Linked_Lists is
 
    end Test_Insert;
 
+   procedure Test_Delete (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+
+      use AUnit.Checks;
+      use AUnit.Checks.Containers;
+      use Integer_Lists;
+      use Integer_Val;
+
+      List      : Integer_Lists.List;
+      Cur       : Cursor := No_Element;
+      To_Delete : Cursor := No_Element;
+   begin
+      for I in 1 .. 4 loop
+         List.Append (I);
+      end loop;
+
+      Validate ("1a", List);
+      Check ("1b", List.Length, 4);
+
+      Cur := List.First;
+
+      for I in 1 .. 4 loop
+         To_Delete := Cur;
+         Next (Cur);
+         List.Delete (To_Delete);
+         Validate ("delete" & I'Image, List);
+      end loop;
+
+      Check ("2a", List.Length, 0);
+      Check ("2b", List.First, No_Element);
+      Check ("2c", List.Last, No_Element);
+   end Test_Delete;
+
+   procedure Test_Delete_Access (T : in out AUnit.Test_Cases.Test_Case'Class)
+   --  Demonstrate that Element_Type of access value does _not_ deallocate Element.
+   is
+      pragma Unreferenced (T);
+
+      use AUnit.Checks;
+      use AUnit.Checks.Containers;
+      use Element_Lists;
+      use Element_Val;
+
+      Perm_List : Element_Lists.List; --  accidently deleted!
+      Temp_List : Element_Lists.List;
+      Cur       : Cursor := No_Element;
+      To_Delete : Cursor := No_Element;
+   begin
+      for I in 1 .. 4 loop
+         Perm_List.Append (new Element'(Ada.Finalization.Controlled with I, -I));
+         Temp_List.Append (Perm_List (Perm_List.Last));
+      end loop;
+
+      Validate ("1a", Perm_List);
+      Check ("1b", Perm_List.Length, 4);
+      Validate ("1c", Temp_List);
+      Check ("1d", Temp_List.Length, 4);
+
+      Cur := Temp_List.First;
+
+      for I in 1 .. 4 loop
+         To_Delete := Cur;
+         Next (Cur);
+         Temp_List.Delete (To_Delete);
+         Validate ("delete" & I'Image, Temp_List);
+
+         declare
+            Check_Cur : Cursor := Perm_List.First;
+         begin
+            for I in 1 .. 4 loop
+               Check ("2" & I'Image, Perm_List (Check_Cur).all, (Ada.Finalization.Controlled with I, -I));
+               Next (Check_Cur);
+            end loop;
+         end;
+      end loop;
+
+      Check ("3a", Temp_List.Length, 0);
+      Check ("3b", Temp_List.First, No_Element);
+      Check ("3c", Temp_List.Last, No_Element);
+   end Test_Delete_Access;
+
    ----------
    --  Public routines
 
@@ -209,6 +323,8 @@ package body Test_Definite_Doubly_Linked_Lists is
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
       Register_Routine (T, Test_Insert'Access, "Test_Insert");
+      Register_Routine (T, Test_Delete'Access, "Test_Delete");
+      Register_Routine (T, Test_Delete_Access'Access, "Test_Delete_Access");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

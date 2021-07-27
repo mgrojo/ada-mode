@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018, 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,18 +19,22 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with AUnit.Checks;
 package body SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Validate is
 
    procedure Validate (Label : in String; Container : in List)
    is
+      use all type Ada.Containers.Count_Type;
       use AUnit.Assertions;
       I : Node_Access;
       J : Integer := 1;
    begin
-      if Container.Head = null then
-         Assert (Container.Tail = null, Label & ": head, tail not both null");
-      else
+      if Container.Head = null or Container.Tail = null or Container.Count = 0 then
+         Assert (Container.Head = null, Label & ": head /= null");
+         Assert (Container.Tail = null, Label & ": tail /= null");
+         Assert (Container.Count = 0, Label & ": count /= null");
 
+      else
          Assert (Container.Head.Prev = null, Label & ": head.prev /= null");
          Assert (Container.Tail.Next = null, Label & ": tail.next /= null");
 
@@ -48,5 +52,15 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Validate is
          end loop Test_Elements;
       end if;
    end Validate;
+
+   procedure Check is new AUnit.Checks.Gen_Check_Access (Node_Type, Node_Access);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Cursor;
+      Expected : in Cursor)
+   is begin
+      Check (Label, Computed.Ptr, Expected.Ptr);
+   end Check;
 
 end SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Validate;

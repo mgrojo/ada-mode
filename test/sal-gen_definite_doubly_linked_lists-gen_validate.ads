@@ -2,7 +2,7 @@
 --
 --  Check all link constraints in a list.
 --
---  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018, 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,5 +22,10 @@ generic
 package SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Validate is
 
    procedure Validate (Label : in String; Container : in List);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Cursor;
+      Expected : in Cursor);
 
 end SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Validate;
