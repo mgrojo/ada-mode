@@ -935,35 +935,15 @@ package body WisiToken.Parse.LR.Parser is
          return;
       end if;
 
-      if Parser.Parsers.Count > 1 then
-         raise WisiToken.Parse_Error with "ambiguous parse; can't execute actions";
+      if Parser.Tree.Root = Syntax_Trees.Invalid_Node_Access then
+         --  No code in file, and error recovery failed to insert valid code.
+         --  Or ambiguous parse; Finish_Parse not called.
+         return;
       end if;
 
-      declare
-         Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
-      begin
-         if Trace_Action > Outline and Parser_State.Stream /= WisiToken.Syntax_Trees.Invalid_Stream_ID then
-            if Trace_Action > Extra then
-               Parser.Trace.Put_Line
-                 (Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": parse stream: " & Parser.Tree.Image
-                    (Parser_State.Stream, Children => True, Non_Grammar => True, Augmented => True,
-                     Line_Numbers => True));
-            else
-               Parser.Trace.Put_Line
-                 (Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": root node: " & Parser.Tree.Image
-                    (Parser.Tree.Root));
-            end if;
-         end if;
+      Parser.User_Data.Initialize_Actions (Parser.Tree);
 
-         if Parser.Tree.Root = Syntax_Trees.Invalid_Node_Access then
-            --  No code in file, and error recovery failed to insert valid code.
-            return;
-         end if;
-
-         Parser.User_Data.Initialize_Actions (Parser.Tree);
-
-         Process_Node (Parser.Tree, Parser.Tree.Root);
-      end;
+      Process_Node (Parser.Tree, Parser.Tree.Root);
    exception
    when WisiToken.Parse_Error =>
       raise;

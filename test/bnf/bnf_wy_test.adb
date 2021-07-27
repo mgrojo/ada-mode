@@ -28,7 +28,6 @@ with GNAT.OS_Lib;
 with WisiToken.BNF;
 with WisiToken.Generate;
 with WisiToken.Parse.LR.Parser_No_Recover;
-with WisiToken.Syntax_Trees;
 with WisiToken.Test_Util;
 with WisiToken.Text_IO_Trace;
 with WisiToken_Grammar_Editing;

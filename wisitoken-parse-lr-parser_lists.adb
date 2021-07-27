@@ -258,19 +258,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return Result;
    end Max_Recover_Ops_Length;
 
-   function Min_Recover_Cost (Cursor : in Parser_Lists.Cursor) return Integer
-   is
-      Result : Integer := Integer'Last;
-      Errors : Parse_Error_Lists.List renames Parser_State_Lists.Constant_Ref (Cursor.Ptr).Errors;
-   begin
-      for Error of Errors loop
-         if Error.Recover.Cost < Result then
-            Result := Error.Recover.Cost;
-         end if;
-      end loop;
-      return Result;
-   end Min_Recover_Cost;
-
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs)
    is begin
       Parser_State_Lists.Variable_Ref (Cursor.Ptr).Verb := Verb;

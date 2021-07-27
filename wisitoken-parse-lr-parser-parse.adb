@@ -282,7 +282,7 @@ begin
                      --  Note all surviving parsers must have the same error count.
                      Current_Parser := Shared_Parser.Parsers.First;
                      loop
-                        Recover_Cost := Current_Parser.Min_Recover_Cost;
+                        Recover_Cost := Current_Parser.Total_Recover_Cost;
                         if Recover_Cost < Min_Recover_Cost then
                            Min_Recover_Cost       := Recover_Cost;
                            Min_Recover_Ops_Length := Current_Parser.Max_Recover_Ops_Length;

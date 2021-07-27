@@ -484,8 +484,7 @@ package body WisiToken.Parse is
                                  end if;
 
                                  declare
-                                    Prev_Insert_Before : constant Terminal_Ref := Tree.Prev_Terminal
-                                      (Insert_Before);
+                                    Prev_Insert_Before : constant Terminal_Ref := Tree.Prev_Terminal (Insert_Before);
                                     Prev_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var
                                       (Prev_Insert_Before.Node);
                                     First_To_Move : Positive_Index_Type := Positive_Index_Type'Last;
