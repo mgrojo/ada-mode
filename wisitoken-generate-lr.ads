@@ -71,7 +71,7 @@ package WisiToken.Generate.LR is
       --  We identify the conflict by the token, and the action and LHS of
       --  all the productions involved. We also store all the states it
       --  occurs in, for debugging.
-      On     : Token_ID;
+      On     : Token_ID := Invalid_Token_ID;
       Items  : Conflict_Item_Lists.Vector;
       States : State_Index_Arrays.Vector;
    end record;

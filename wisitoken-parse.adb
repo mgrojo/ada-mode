@@ -454,6 +454,7 @@ package body WisiToken.Parse is
                               declare
                                  function Find_Insert return Terminal_Ref
                                  is begin
+                                    --  FIXME: can this return SOI? - need test case.
                                     return Tree.Find_Byte_Pos
                                       (Stream, Byte_Region.First,
                                        Trailing_Non_Grammar => False,
@@ -467,12 +468,12 @@ package body WisiToken.Parse is
                                     Insert_Before := (Stream, Tree.Stream_Last (Stream), Tree.EOI);
 
                                  elsif Terminal.Element = Insert_Before.Element then
+                                    pragma Assert (Terminal.Node /= Insert_Before.Node);
                                     if Terminal.Node = Tree.First_Terminal (Get_Node (Terminal.Element)) then
                                        --  test_incremental.adb Modify_Deleted_Element
+                                       Tree.Prev_Terminal (Terminal);
                                        Breakdown (Insert_Before);
-                                       Terminal := Tree.First_Terminal
-                                         (Tree.To_Rooted_Ref
-                                            (Stream, Tree.Stream_Prev (Stream, Insert_Before.Element)));
+                                       Tree.Next_Terminal (Terminal);
                                     else
                                        Breakdown (Terminal);
                                        Insert_Before := Find_Insert;
@@ -483,7 +484,8 @@ package body WisiToken.Parse is
                                  end if;
 
                                  declare
-                                    Prev_Insert_Before : constant Terminal_Ref := Tree.Prev_Terminal (Insert_Before);
+                                    Prev_Insert_Before : constant Terminal_Ref := Tree.Prev_Terminal
+                                      (Insert_Before);
                                     Prev_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var
                                       (Prev_Insert_Before.Node);
                                     First_To_Move : Positive_Index_Type := Positive_Index_Type'Last;
@@ -531,6 +533,9 @@ package body WisiToken.Parse is
                                  Delete ("");
 
                               end;
+                           else
+                              --  Remaining nodes are in following KMN.
+                              exit;
                            end if;
                         end;
                      end if;

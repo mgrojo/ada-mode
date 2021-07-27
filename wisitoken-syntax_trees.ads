@@ -2231,8 +2231,8 @@ private
    type Node
      (Label       : Node_Label;
       Child_Count : SAL.Base_Peek_Type)
-      --  Descriminants have no default because allocated nodes are
-      --  constrained anyway (ARM 4.8 6/3).
+   --  Descriminants have no default because allocated nodes are
+   --  constrained anyway (ARM 4.8 6/3).
    is record
       ID : WisiToken.Token_ID := Invalid_Token_ID;
 
@@ -2332,7 +2332,9 @@ private
       --  Parse state that is on the parse stack with this token.
       --  Unknown_State in Shared_Stream or a parse stream input.
 
-      Label : Stream_Label; -- allows checking if Element is from Shared_Stream or a parse stream.
+      Label : Stream_Label := Invalid_Stream_Label;
+      --  Allows checking if Element is from Shared_Stream or a parse
+      --  stream.
    end record;
 
    package Stream_Element_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Stream_Element);

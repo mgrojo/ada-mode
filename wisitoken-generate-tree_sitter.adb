@@ -44,8 +44,8 @@ package body WisiToken.Generate.Tree_Sitter is
         (Positive_Index_Type, Empty_Nonterm, Default_Element => (others => <>));
 
       Empty_Nonterms  : Empty_Nonterm_Lists.Vector;
-      Nodes_To_Delete : WisiToken_Grammar_Editing.Valid_Node_Access_Lists.List;
-      Nodes_To_Check  : WisiToken_Grammar_Editing.Valid_Node_Access_Lists.List;
+      Nodes_To_Delete : Valid_Node_Access_Lists.List;
+      Nodes_To_Check  : Valid_Node_Access_Lists.List;
       --  If we edit a node to now contain an optional item, it might become
       --  possibly empty.
 
@@ -668,7 +668,7 @@ package body WisiToken.Generate.Tree_Sitter is
       Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
 
       declare
-         use WisiToken_Grammar_Editing.Valid_Node_Access_Lists;
+         use Valid_Node_Access_Lists;
          Cur  : Cursor := Nodes_To_Check.First;
          Temp : Cursor;
       begin

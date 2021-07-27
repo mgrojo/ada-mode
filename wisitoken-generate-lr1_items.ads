@@ -153,10 +153,10 @@ package WisiToken.Generate.LR1_Items is
    --  Add Value to Item.Lookahead, excluding Propagate_ID.
 
    type Goto_Item is record
-      Symbol : Token_ID;
+      Symbol : Token_ID := Invalid_Token_ID;
       --  If Symbol is a terminal, this is a shift and goto state action.
       --  If Symbol is a non-terminal, this is a post-reduce goto state action.
-      State  : State_Index;
+      State  : State_Index := State_Index'Last;
    end record;
 
    function Symbol (Item : in Goto_Item) return Token_ID is (Item.Symbol);
@@ -257,9 +257,6 @@ package WisiToken.Generate.LR1_Items is
    subtype Item_Set_List is Item_Set_Arrays.Vector;
    --  Item_Set_Arrays.Vector holds state item sets indexed by state, for
    --  iterating in state order. See also Item_Set_Trees.
-
-   package Item_Set_Tree_Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Positive_Index_Type, Item_Set_Tree_Node, (others => <>));
 
    function Hash_Sum_32 (Key : in Item_Set_Tree_Key; Rows : in Positive) return Positive
    with Post => Hash_Sum_32'Result <= Rows;

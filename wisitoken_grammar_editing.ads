@@ -17,7 +17,6 @@
 
 pragma License (Modified_GPL);
 
-with SAL.Gen_Definite_Doubly_Linked_Lists;
 with WisiToken.Syntax_Trees.LR_Utils;
 with WisiToken.Syntax_Trees;
 with WisiToken_Grammar_Runtime;
@@ -29,9 +28,6 @@ package WisiToken_Grammar_Editing is
    use all type Wisitoken_Grammar_Actions.Token_Enum_ID;
    use all type WisiToken.Syntax_Trees.Node_Label;
    use all type WisiToken.Syntax_Trees.Node_Access;
-
-   package Valid_Node_Access_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists
-     (WisiToken.Syntax_Trees.Valid_Node_Access);
 
    type Identifier_Token
      (Label : WisiToken.Syntax_Trees.Terminal_Label := WisiToken.Syntax_Trees.Terminal_Label'First)
