@@ -25,9 +25,13 @@ project Ada_Mode_Compile is
       "ada_mode-interactive_case_statement.adb",
       "ada_mode-interactive_01.adb",
       "ada_mode-interactive_02.adb",
+      "ada_mode-interactive_03.adb",
       "ada_mode-interactive_05.adb",
 
-      -- This has incomplete code; tests a former bug in syntax-ppss
+      -- These have incomplete code for various reasons
+      "ada_mode-incremental_01.adb",
+      "ada_mode-incremental_02.adb",
+      "ada_mode-indent_01.adb",
       "ada_mode-long_paren.adb",
 
       -- These have syntax errors on purpose

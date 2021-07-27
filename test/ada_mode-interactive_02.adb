@@ -33,9 +33,9 @@ is
    --EMACSCMD:(progn (end-of-line 2)(insert "-")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
 
    --EMACSRESULT: 1
-   --EMACSCMD:(progn (end-of-line -1)(insert "-")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
+   --EMACSCMD:(progn (end-of-line -2)(insert "-")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
    --EMACSRESULT: 0
-   --EMACSCMD:(progn (beginning-of-line -3)(kill-line 2))
+   --EMACSCMD:(progn (beginning-of-line -4)(kill-line 1))
 
 
    -- New parameter in a subpgrogram. See comment in ada_mode-parens.adb
