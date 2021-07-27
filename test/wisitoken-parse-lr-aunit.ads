@@ -66,9 +66,9 @@ package WisiToken.Parse.LR.AUnit is
       Computed : in Parse_Table;
       Expected : in Parse_Table);
 
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Config_Op_Label);
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Recover_Op_Label);
 
-   type Test_Config_Op (Op : Config_Op_Label := Fast_Forward) is record
+   type Test_Recover_Op (Op : Recover_Op_Label := Fast_Forward) is record
       --  Only declare items compared in Check
 
       case Op is
@@ -94,18 +94,18 @@ package WisiToken.Parse.LR.AUnit is
       end case;
    end record;
 
-   package Test_Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Test_Config_Op, Default_Element => (Fast_Forward, 0), Capacity => 80);
+   package Test_Recover_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
+     (Positive_Index_Type, Test_Recover_Op, Default_Element => (Fast_Forward, 0), Capacity => 80);
 
    procedure Check
      (Label    : in String;
-      Computed : in Config_Op;
-      Expected : in Test_Config_Op);
+      Computed : in Recover_Op;
+      Expected : in Test_Recover_Op);
 
    procedure Check
      (Label    : in String;
-      Computed : in Config_Op_Arrays.Vector;
-      Expected : in Test_Config_Op_Arrays.Vector);
+      Computed : in Recover_Op_Arrays.Vector;
+      Expected : in Test_Recover_Op_Arrays.Vector);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Strategies);
 

@@ -438,7 +438,7 @@ package body WisiToken.Parse.LR.Parser is
      (Shared_Parser : in out LR.Parser.Parser;
       Parser_State  : in out Parser_Lists.Parser_State)
    is
-      use Recover_Op_Arrays;
+      use Recover_Op_Nodes_Arrays;
       use Syntax_Trees;
 
       Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
@@ -447,9 +447,9 @@ package body WisiToken.Parse.LR.Parser is
       Ins_Del_Cur : Extended_Index renames Parser_State.Recover_Insert_Delete_Current;
    begin
       loop
-         exit when Ins_Del_Cur = Recover_Op_Arrays.No_Index;
+         exit when Ins_Del_Cur = Recover_Op_Nodes_Arrays.No_Index;
          declare
-            Op : Recover_Op renames Variable_Ref (Ins_Del, Ins_Del_Cur);
+            Op : Recover_Op_Nodes renames Variable_Ref (Ins_Del, Ins_Del_Cur);
          begin
             if Op.Op = Delete then
                declare

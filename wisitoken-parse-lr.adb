@@ -730,45 +730,7 @@ package body WisiToken.Parse.LR is
          Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    end Get_Text_Rep;
 
-   function Equal (Left : in Config_Op; Right : in Insert_Op) return Boolean
-   is
-      use all type WisiToken.Syntax_Trees.Sequential_Index;
-   begin
-      return Left.Op = Insert and then
-        Left.Ins_ID = Right.Ins_ID and then
-        Left.Ins_Before = Right.Ins_Before;
-   end Equal;
-
-   function None (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
-   is
-      use Config_Op_Arrays, Config_Op_Array_Refs;
-   begin
-      for I in First_Index (Ops) .. Last_Index (Ops) loop
-         if Constant_Ref (Ops, I).Op = Op then
-            return False;
-         end if;
-      end loop;
-      return True;
-   end None;
-
-   function None_Since_FF (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
-   is
-      use Config_Op_Arrays, Config_Op_Array_Refs;
-   begin
-      for I in reverse First_Index (Ops) .. Last_Index (Ops) loop
-         declare
-            O : Config_Op renames Constant_Ref (Ops, I);
-         begin
-            exit when O.Op = Fast_Forward;
-            if O.Op = Op then
-               return False;
-            end if;
-         end;
-      end loop;
-      return True;
-   end None_Since_FF;
-
-   function Image (Item : in Recover_Op; Tree : in Syntax_Trees.Tree) return String
+   function Image (Item : in Recover_Op_Nodes; Tree : in Syntax_Trees.Tree) return String
    is
       use Syntax_Trees;
    begin

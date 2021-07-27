@@ -118,7 +118,7 @@ private
    procedure Do_Push_Back
      (Tree   : in     Syntax_Trees.Tree;
       Config : in out Configuration)
-   with Pre => not Config_Op_Arrays.Is_Full (Config.Ops);
+   with Pre => not Recover_Op_Arrays.Is_Full (Config.Ops);
    --  Push back Config.Stack top to Config.Input_Stream. Appends to
    --  Config.Ops. Nonterms are not broken down. We assume caller has
    --  checked Push_Back_Valid.

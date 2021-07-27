@@ -159,8 +159,8 @@ package body WisiToken.Parse.LR.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Config_Op;
-      Expected : in Test_Config_Op)
+      Computed : in Recover_Op;
+      Expected : in Test_Recover_Op)
    is
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
@@ -192,12 +192,12 @@ package body WisiToken.Parse.LR.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Config_Op_Arrays.Vector;
-      Expected : in Test_Config_Op_Arrays.Vector)
+      Computed : in Recover_Op_Arrays.Vector;
+      Expected : in Test_Recover_Op_Arrays.Vector)
    is
       use SAL.AUnit;
-      use Config_Op_Arrays;
-      use Test_Config_Op_Arrays;
+      use Recover_Op_Arrays;
+      use Test_Recover_Op_Arrays;
    begin
       Check (Label & ".First_Index", First_Index (Computed), First_Index (Expected));
       Check (Label & ".Last_Index", Last_Index (Computed), Last_Index (Expected));

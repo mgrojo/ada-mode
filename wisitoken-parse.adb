@@ -133,6 +133,44 @@ package body WisiToken.Parse is
 
    end Lex_All;
 
+   function Equal (Left : in Recover_Op; Right : in Insert_Op) return Boolean
+   is
+      use all type WisiToken.Syntax_Trees.Sequential_Index;
+   begin
+      return Left.Op = Insert and then
+        Left.Ins_ID = Right.Ins_ID and then
+        Left.Ins_Before = Right.Ins_Before;
+   end Equal;
+
+   function None (Ops : aliased in Recover_Op_Arrays.Vector; Op : in Recover_Op_Label) return Boolean
+   is
+      use Recover_Op_Arrays, Recover_Op_Array_Refs;
+   begin
+      for I in First_Index (Ops) .. Last_Index (Ops) loop
+         if Constant_Ref (Ops, I).Op = Op then
+            return False;
+         end if;
+      end loop;
+      return True;
+   end None;
+
+   function None_Since_FF (Ops : aliased in Recover_Op_Arrays.Vector; Op : in Recover_Op_Label) return Boolean
+   is
+      use Recover_Op_Arrays, Recover_Op_Array_Refs;
+   begin
+      for I in reverse First_Index (Ops) .. Last_Index (Ops) loop
+         declare
+            O : Recover_Op renames Constant_Ref (Ops, I);
+         begin
+            exit when O.Op = Fast_Forward;
+            if O.Op = Op then
+               return False;
+            end if;
+         end;
+      end loop;
+      return True;
+   end None_Since_FF;
+
    function Image (KMN : in WisiToken.Parse.KMN) return String
    is begin
       return "(" & KMN.Stable_Bytes'Image & "," &

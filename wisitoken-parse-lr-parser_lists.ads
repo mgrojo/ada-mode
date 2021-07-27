@@ -52,7 +52,7 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  Next token to shift in Tree.Shared_Stream. For batch parse, this
       --  is a Shared_Terminal; for incremental parse, any Node_Label.
 
-      Recover_Insert_Delete : aliased Recover_Op_Arrays.Vector;
+      Recover_Insert_Delete : aliased Recover_Op_Nodes_Arrays.Vector;
       --  Tokens that were inserted or deleted during error recovery.
       --  Contains only Insert and Delete ops. Filled by error recover, used
       --  by main parse and Execute_Actions.
@@ -60,7 +60,7 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  Not emptied between error recovery sessions, so Execute_Actions
       --  knows about all insert/delete.
 
-      Recover_Insert_Delete_Current : Recover_Op_Arrays.Extended_Index := Recover_Op_Arrays.No_Index;
+      Recover_Insert_Delete_Current : Recover_Op_Nodes_Arrays.Extended_Index := Recover_Op_Arrays.No_Index;
       --  Next item in Recover_Insert_Delete to be processed by main parse;
       --  No_Index if all done.
 

@@ -39,8 +39,7 @@ with Ada.Unchecked_Deallocation;
 with SAL.Gen_Array_Image;
 with SAL.Gen_Bounded_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Stacks.Gen_Image_Aux;
-with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
-with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
+with SAL.Gen_Bounded_Definite_Vectors;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
 with System.Multiprocessors;
@@ -421,132 +420,7 @@ package WisiToken.Parse.LR is
      is (SAL.Peek_Type'Image (Index) & ":" & SAL.Peek_Type'Image (Fast_Token_ID_Arrays.Last_Index (Tokens)) & ":" &
            Image (Fast_Token_ID_Arrays.Element (Tokens, Index), Descriptor));
 
-   type Config_Op_Label is (Fast_Forward, Undo_Reduce, Push_Back, Insert, Delete);
-   subtype Insert_Delete_Op_Label is Config_Op_Label range Insert .. Delete;
-   --  Fast_Forward is a placeholder to mark a fast_forward parse; that
-   --  resets what operations are allowed to be done on a config.
-   --
-   --  Undo_Reduce is the inverse of Reduce.
-   --
-   --  Push_Back pops the top stack item, and moves the input stream
-   --  pointer back to the first shared_terminal contained by that item.
-   --
-   --  Insert inserts a new token in the token input stream, before the
-   --  given point in Terminals.
-   --
-   --  Delete deletes one item from the token input stream, at the given
-   --  point.
-
-   --  WORKAROUND: GNAT Community 2020 with -gnat2020 S'Image outputs
-   --  integer when S is a subtype.
-   function Image (Item : in Config_Op_Label) return String
-   is (case Item is
-       when Fast_Forward => "FAST_FORWARD",
-       when Undo_Reduce  => "UNDO_REDUCE",
-       when Push_Back    => "PUSH_BACK",
-       when Insert       => "INSERT",
-       when Delete       => "DELETE");
-
-   type Config_Op (Op : Config_Op_Label := Fast_Forward) is record
-      --  We store enough information to perform the operation on the main
-      --  parser stack and input stream when the config is the result
-      --  of a successful recover.
-
-      case Op is
-      when Fast_Forward =>
-         FF_Token_Index : Syntax_Trees.Sequential_Index;
-         --  Config current_token after the operation is done.
-
-      when Undo_Reduce =>
-         Nonterm : Token_ID;
-         --  The nonterminal popped off the stack.
-
-         Token_Count : Ada.Containers.Count_Type;
-         --  The number of tokens pushed on the stack.
-
-         UR_Token_Index : Syntax_Trees.Base_Sequential_Index;
-         --  First terminal in the undo_reduce token; Invalid_Sequential_Index if
-         --  empty. Used to check that successive Undo_Reduce are valid.
-
-      when Push_Back =>
-         PB_ID : Token_ID;
-         --  The nonterm ID popped off the stack.
-
-         PB_Token_Index : Syntax_Trees.Base_Sequential_Index;
-         --  First terminal in the pushed_back token; Invalid_Sequential_Index if
-         --  empty. Used to check that successive Push_Backs are valid.
-
-      when Insert =>
-         Ins_ID : Token_ID;
-         --  The token ID inserted.
-
-         Ins_Before : Syntax_Trees.Sequential_Index;
-         --  Ins_ID is inserted before Ins_Before.
-
-      when Delete =>
-         Del_ID : Token_ID;
-         --  The token ID deleted; a terminal token.
-
-         Del_Token_Index : Syntax_Trees.Sequential_Index;
-         --  Token at Del_Token_Index is deleted.
-
-      end case;
-   end record;
-   subtype Insert_Delete_Op is Config_Op with Dynamic_Predicate => (Insert_Delete_Op.Op in Insert_Delete_Op_Label);
-   subtype Insert_Op is Config_Op with Dynamic_Predicate => (Insert_Op.Op = Insert);
-
-   function Token_Index (Op : in Insert_Delete_Op) return Syntax_Trees.Sequential_Index
-     is (case Insert_Delete_Op_Label'(Op.Op) is
-         when Insert => Op.Ins_Before,
-         when Delete => Op.Del_Token_Index);
-
-   function ID (Op : in Insert_Delete_Op) return WisiToken.Token_ID
-     is (case Insert_Delete_Op_Label'(Op.Op) is
-         when Insert => Op.Ins_ID,
-         when Delete => Op.Del_ID);
-
-   function Equal (Left : in Config_Op; Right : in Insert_Op) return Boolean;
-
-   package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Config_Op, Default_Element =>
-        (Fast_Forward, Syntax_Trees.Sequential_Index'First), Capacity => 80);
-   --  Using a fixed size vector significantly speeds up
-   --  McKenzie_Recover. The capacity is determined by the maximum number
-   --  of repair operations, which is limited by the cost_limit McKenzie
-   --  parameter plus an arbitrary number from the language-specific
-   --  repairs; in practice, a capacity of 80 is enough so far. If a
-   --  config does hit that limit, it is abandoned; some other config is
-   --  likely to be cheaper.
-
-   package Config_Op_Array_Refs is new Config_Op_Arrays.Gen_Refs;
-
-   function Config_Op_Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
-   is ("(" & Image (Item.Op) & ", " &
-         (case Item.Op is
-          when Fast_Forward => Syntax_Trees.Trimmed_Image (Item.FF_Token_Index),
-          when Undo_Reduce  => Image (Item.Nonterm, Descriptor) & "," &
-            Item.Token_Count'Image & ", " & Syntax_Trees.Trimmed_Image (Item.UR_Token_Index),
-          when Push_Back    => Image (Item.PB_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.PB_Token_Index),
-          when Insert       => Image (Item.Ins_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.Ins_Before),
-          when Delete       => Image (Item.Del_ID, Descriptor) & ", " &
-               Syntax_Trees.Trimmed_Image (Item.Del_Token_Index))
-         & ")");
-
-   function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
-     renames Config_Op_Image;
-
-   function Config_Op_Array_Image is new Config_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
-   function Image (Item : in Config_Op_Arrays.Vector; Descriptor : in WisiToken.Descriptor) return String
-     renames Config_Op_Array_Image;
-
-   function None (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
-   --  True if Ops contains no Op.
-
-   function None_Since_FF (Ops : aliased in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
-   --  True if Ops contains no Op after the last Fast_Forward (or ops.first, if
-   --  no Fast_Forward).
-
-   type Recover_Op (Op : Insert_Delete_Op_Label := Insert) is record
+   type Recover_Op_Nodes (Op : Insert_Delete_Op_Label := Insert) is record
       --  Add Ins_Tree_Node to Config_Op info, set when item is
       --  parsed; used to create user augmented token.
 
@@ -581,12 +455,12 @@ package WisiToken.Parse.LR is
       end case;
    end record;
 
-   package Recover_Op_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Positive_Index_Type, Recover_Op, Default_Element => (others => <>));
+   package Recover_Op_Nodes_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive_Index_Type, Recover_Op_Nodes, Default_Element => (others => <>));
 
-   function Image (Item : in Recover_Op; Tree : in Syntax_Trees.Tree) return String;
+   function Image (Item : in Recover_Op_Nodes; Tree : in Syntax_Trees.Tree) return String;
 
-   function Image is new Recover_Op_Arrays.Gen_Image_Aux
+   function Image is new Recover_Op_Nodes_Arrays.Gen_Image_Aux
      (Syntax_Trees.Tree,
       Index_Trimmed_Image => Trimmed_Image,
       Element_Image       => Image);
@@ -677,7 +551,7 @@ package WisiToken.Parse.LR is
       --  (max of 15 tokens for most languages). For
       --  test_mckenzie_recover.adb, 10 is too small, 20 is enough.
 
-      Insert_Delete : aliased Config_Op_Arrays.Vector;
+      Insert_Delete : aliased Recover_Op_Arrays.Vector;
       --  Edits to the input stream that are not yet parsed; contains only
       --  Insert and Delete ops, in node_index order.
 
@@ -710,7 +584,7 @@ package WisiToken.Parse.LR is
       --  in explore when adding an op, or in language_fixes when adding a
       --  fix).
 
-      Ops : aliased Config_Op_Arrays.Vector;
+      Ops : aliased Recover_Op_Arrays.Vector;
       --  Record of operations applied to this Config, in application order.
       --  Insert and Delete ops that are not yet parsed are reflected in
       --  Insert_Delete, in token_index order.

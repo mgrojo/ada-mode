@@ -17,9 +17,13 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Finalization;
+with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
+with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
+with WisiToken.In_Parse_Actions;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
@@ -46,6 +50,157 @@ package WisiToken.Parse is
 
    function Image (Item : in Wrapped_Lexer_Error; Tree : in WisiToken.Syntax_Trees.Tree) return String;
    function Image is new Wrapped_Lexer_Error_Lists.Gen_Image_Aux (WisiToken.Syntax_Trees.Tree, Image);
+
+   type Recover_Op_Label is (Fast_Forward, Undo_Reduce, Push_Back, Insert, Delete);
+   subtype Insert_Delete_Op_Label is Recover_Op_Label range Insert .. Delete;
+   --  Fast_Forward is a placeholder to mark a fast_forward parse; that
+   --  resets what operations are allowed to be done on a config.
+   --
+   --  Undo_Reduce is the inverse of Reduce.
+   --
+   --  Push_Back pops the top stack item, and moves the input stream
+   --  pointer back to the first shared_terminal contained by that item.
+   --
+   --  Insert inserts a new token in the token input stream, before the
+   --  given point in Terminals.
+   --
+   --  Delete deletes one item from the token input stream, at the given
+   --  point.
+
+   --  WORKAROUND: GNAT Community 2020 with -gnat2020 S'Image outputs
+   --  integer when S is a subtype. Fixed in Community 2021.
+   function Image (Item : in Recover_Op_Label) return String
+   is (case Item is
+       when Fast_Forward => "FAST_FORWARD",
+       when Undo_Reduce  => "UNDO_REDUCE",
+       when Push_Back    => "PUSH_BACK",
+       when Insert       => "INSERT",
+       when Delete       => "DELETE");
+
+   type Recover_Op (Op : Recover_Op_Label := Fast_Forward) is record
+      --  We store enough information to perform the operation on the main
+      --  parser stack and input stream when the config is the result
+      --  of a successful recover.
+
+      case Op is
+      when Fast_Forward =>
+         FF_Token_Index : Syntax_Trees.Sequential_Index;
+         --  Config current_token after the operation is done.
+
+      when Undo_Reduce =>
+         Nonterm : Token_ID;
+         --  The nonterminal popped off the stack.
+
+         Token_Count : Ada.Containers.Count_Type;
+         --  The number of tokens pushed on the stack.
+
+         UR_Token_Index : Syntax_Trees.Base_Sequential_Index;
+         --  First terminal in the undo_reduce token; Invalid_Sequential_Index if
+         --  empty. Used to check that successive Undo_Reduce are valid.
+
+      when Push_Back =>
+         PB_ID : Token_ID;
+         --  The nonterm ID popped off the stack.
+
+         PB_Token_Index : Syntax_Trees.Base_Sequential_Index;
+         --  First terminal in the pushed_back token; Invalid_Sequential_Index if
+         --  empty. Used to check that successive Push_Backs are valid.
+
+      when Insert =>
+         Ins_ID : Token_ID;
+         --  The token ID inserted.
+
+         Ins_Before : Syntax_Trees.Sequential_Index;
+         --  Ins_ID is inserted before Ins_Before.
+
+      when Delete =>
+         Del_ID : Token_ID;
+         --  The token ID deleted; a terminal token.
+
+         Del_Token_Index : Syntax_Trees.Sequential_Index;
+         --  Token at Del_Token_Index is deleted.
+
+      end case;
+   end record;
+   subtype Insert_Delete_Op is Recover_Op with Dynamic_Predicate => (Insert_Delete_Op.Op in Insert_Delete_Op_Label);
+   subtype Insert_Op is Recover_Op with Dynamic_Predicate => (Insert_Op.Op = Insert);
+
+   function Token_Index (Op : in Insert_Delete_Op) return Syntax_Trees.Sequential_Index
+     is (case Insert_Delete_Op_Label'(Op.Op) is
+         when Insert => Op.Ins_Before,
+         when Delete => Op.Del_Token_Index);
+
+   function ID (Op : in Insert_Delete_Op) return WisiToken.Token_ID
+     is (case Insert_Delete_Op_Label'(Op.Op) is
+         when Insert => Op.Ins_ID,
+         when Delete => Op.Del_ID);
+
+   function Equal (Left : in Recover_Op; Right : in Insert_Op) return Boolean;
+
+   package Recover_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
+     (Positive_Index_Type, Recover_Op, Default_Element =>
+        (Fast_Forward, Syntax_Trees.Sequential_Index'First), Capacity => 80);
+   --  Using a fixed size vector significantly speeds up
+   --  McKenzie_Recover. The capacity is determined by the maximum number
+   --  of repair operations, which is limited by the cost_limit McKenzie
+   --  parameter plus an arbitrary number from the language-specific
+   --  repairs; in practice, a capacity of 80 is enough so far. If a
+   --  config does hit that limit, it is abandoned; some other config is
+   --  likely to be cheaper.
+
+   package Recover_Op_Array_Refs is new Recover_Op_Arrays.Gen_Refs;
+
+   function Recover_Op_Image (Item : in Recover_Op; Descriptor : in WisiToken.Descriptor) return String
+   is ("(" & Image (Item.Op) & ", " &
+         (case Item.Op is
+          when Fast_Forward => Syntax_Trees.Trimmed_Image (Item.FF_Token_Index),
+          when Undo_Reduce  => Image (Item.Nonterm, Descriptor) & "," &
+            Item.Token_Count'Image & ", " & Syntax_Trees.Trimmed_Image (Item.UR_Token_Index),
+          when Push_Back    => Image (Item.PB_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.PB_Token_Index),
+          when Insert       => Image (Item.Ins_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.Ins_Before),
+          when Delete       => Image (Item.Del_ID, Descriptor) & ", " &
+               Syntax_Trees.Trimmed_Image (Item.Del_Token_Index))
+         & ")");
+
+   function Image (Item : in Recover_Op; Descriptor : in WisiToken.Descriptor) return String
+     renames Recover_Op_Image;
+
+   function Recover_Op_Array_Image is new Recover_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
+   function Image (Item : in Recover_Op_Arrays.Vector; Descriptor : in WisiToken.Descriptor) return String
+     renames Recover_Op_Array_Image;
+
+   function None (Ops : aliased in Recover_Op_Arrays.Vector; Op : in Recover_Op_Label) return Boolean;
+   --  True if Ops contains no Op.
+
+   function None_Since_FF (Ops : aliased in Recover_Op_Arrays.Vector; Op : in Recover_Op_Label) return Boolean;
+   --  True if Ops contains no Op after the last Fast_Forward (or ops.first, if
+   --  no Fast_Forward).
+
+   type Parse_Error_Label is (Parser_Action, User_Action, Message);
+
+   type Parse_Error
+     (Label          : Parse_Error_Label;
+      First_Terminal : Token_ID;
+      Last_Terminal  : Token_ID)
+   is record
+      Recover_Ops  : Recover_Op_Arrays.Vector;
+      Recover_Cost : Natural := 0;
+
+      case Label is
+      when Parser_Action =>
+         Error_Token : Syntax_Trees.Terminal_Ref;
+
+         Expecting : Token_ID_Set (First_Terminal .. Last_Terminal);
+
+      when User_Action =>
+         Status : WisiToken.In_Parse_Actions.Status;
+
+      when Message =>
+         Msg : Ada.Strings.Unbounded.Unbounded_String;
+      end case;
+   end record;
+
+   package Parse_Error_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Parse_Error);
 
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled
    with record

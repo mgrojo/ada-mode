@@ -246,7 +246,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
    function Max_Recover_Ops_Length (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type
    is
       use Ada.Containers;
-      use Config_Op_Arrays;
+      use Recover_Op_Arrays;
       Result : Count_Type := 0;
       Errors : Parse_Error_Lists.List renames Parser_State_Lists.Constant_Ref (Cursor.Ptr).Errors;
    begin

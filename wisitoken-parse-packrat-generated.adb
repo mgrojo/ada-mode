@@ -32,7 +32,7 @@ package body WisiToken.Parse.Packrat.Generated is
       Result : Memo_Entry;
    begin
       if Edits.Length > 0 then
-         raise Parse_Error;
+         raise WisiToken.Parse_Error;
       end if;
 
       Parser.Tree.Clear;

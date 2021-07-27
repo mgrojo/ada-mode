@@ -178,8 +178,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Config : in Configuration)
      return Boolean
    is
-      use Config_Op_Arrays;
-      use Config_Op_Array_Refs;
+      use Recover_Op_Arrays;
+      use Recover_Op_Array_Refs;
       use Syntax_Trees;
    begin
       if Config.Current_Shared_Token = Invalid_Stream_Node_Ref then
@@ -203,8 +203,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Config : in Configuration)
      return Token_ID
    is
-      use Config_Op_Arrays;
-      use Config_Op_Array_Refs;
+      use Recover_Op_Arrays;
+      use Recover_Op_Array_Refs;
       use all type WisiToken.Syntax_Trees.Sequential_Index;
    begin
       if Config.Current_Insert_Delete /= No_Insert_Delete and then
@@ -238,8 +238,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  Return the current token from Config in Tokens (1). Return the two
    --  following tokens in Tokens (2 .. 3).
    is
-      use Config_Op_Arrays;
-      use Config_Op_Array_Refs;
+      use Recover_Op_Arrays;
+      use Recover_Op_Array_Refs;
       use Syntax_Trees;
 
       --  We can't use Parse.Get_Current_Token, Parse.Next_Token, because we
@@ -542,8 +542,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --
    --  No precondition; raises Bad_Config for invalid situations.
    is
-      use Config_Op_Arrays;
-      use Config_Op_Array_Refs;
+      use Recover_Op_Arrays;
+      use Recover_Op_Array_Refs;
       use Syntax_Trees;
       use all type Bounded_Streams.Cursor;
    begin
@@ -607,7 +607,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  Increment the appropriate "current token" index in Config.
    --  Inc_*_Token are from Get_Current_Token.
    is
-      use Config_Op_Arrays, Config_Op_Array_Refs;
+      use Recover_Op_Arrays, Recover_Op_Array_Refs;
       use all type Bounded_Streams.Cursor;
       use all type WisiToken.Syntax_Trees.Sequential_Index;
    begin
@@ -665,7 +665,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    is
       use Parse_Item_Arrays;
-      use Config_Op_Arrays;
+      use Recover_Op_Arrays;
       use all type In_Parse_Actions.Status_Label;
       use all type WisiToken.Syntax_Trees.Sequential_Index;
 

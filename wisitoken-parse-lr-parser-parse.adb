@@ -132,7 +132,7 @@ begin
                --  we are at the start of the input text.
 
                declare
-                  use Recover_Op_Arrays;
+                  use Recover_Op_Nodes_Arrays;
                   use all type Syntax_Trees.Stream_Node_Ref;
 
                   Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
@@ -157,7 +157,7 @@ begin
                         --  after Left_Breakdown of a Shared_Stream nonterm containing virtual
                         --  terminals.
 
-                        Op : Recover_Op renames Variable_Ref (Ins_Del, Ins_Del_Cur);
+                        Op : Recover_Op_Nodes renames Variable_Ref (Ins_Del, Ins_Del_Cur);
                      begin
                         if Op.Op = Insert and then Op.Ins_Before = Tree.Get_Sequential_Index
                           (Next_Sequential_Terminal.Node)
@@ -426,7 +426,7 @@ begin
                           ("    Shared_Token: " & Shared_Parser.Tree.Image (Parser_State.Shared_Token));
                         Trace.Put_Line
                           ("    recover_insert_delete:" &
-                             (if Parser_State.Recover_Insert_Delete_Current = Recover_Op_Arrays.No_Index
+                             (if Parser_State.Recover_Insert_Delete_Current = Recover_Op_Nodes_Arrays.No_Index
                               then ""
                               else Image
                                 (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree,
@@ -511,7 +511,7 @@ begin
                        Shared_Parser.Tree.Image
                          (Parser_State.Stream, Stack => True, Input => True, Shared => True, Children => False,
                           State_Numbers => not Trace_Parse_No_State_Numbers));
-                  if Parser_State.Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
+                  if Parser_State.Recover_Insert_Delete_Current /= Recover_Op_Nodes_Arrays.No_Index then
                      Trace.Put_Line
                        (" ... recover_insert_delete:" & Image
                           (Parser_State.Recover_Insert_Delete, Shared_Parser.Tree,

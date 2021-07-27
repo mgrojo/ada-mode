@@ -35,11 +35,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Cost_Delta        : in              Integer;
       Strategy          : in              Strategies)
    is
-      use Config_Op_Arrays;
+      use Recover_Op_Arrays;
 
       McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
 
-      Op : constant Config_Op :=
+      Op : constant Recover_Op :=
         (Insert, ID, Super.Tree.Get_Sequential_Index
            (Parse.Peek_Current_First_Sequential_Terminal (Super.Tree.all, Config)));
    begin
@@ -234,10 +234,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Config : in              Configuration)
      return Boolean
    is
-      use Config_Op_Arrays, Config_Op_Array_Refs;
+      use Recover_Op_Arrays, Recover_Op_Array_Refs;
       use all type WisiToken.Syntax_Trees.Sequential_Index;
       pragma Assert (Length (Config.Ops) > 0);
-      Op : Config_Op renames Constant_Ref (Config.Ops, Last_Index (Config.Ops));
+      Op : Recover_Op renames Constant_Ref (Config.Ops, Last_Index (Config.Ops));
    begin
       return Super.Tree.Get_Sequential_Index (Parse.Peek_Current_First_Sequential_Terminal (Super.Tree.all, Config)) =
         (case Op.Op is
@@ -260,7 +260,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    --  in Local_Config_Heap.
    is
       use Parse.Parse_Item_Arrays;
-      use Config_Op_Arrays;
+      use Recover_Op_Arrays;
 
       Parse_Items : aliased Parse.Parse_Item_Arrays.Vector;
 
@@ -322,7 +322,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
      return Check_Status
    is
-      use Config_Op_Arrays, Config_Op_Array_Refs;
+      use Recover_Op_Arrays, Recover_Op_Array_Refs;
       use Parse.Parse_Item_Arrays;
       use all type In_Parse_Actions.Status_Label;
 
@@ -335,7 +335,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Item.Config.Minimal_Complete_State := None;
          Item.Config.Matching_Begin_Done    := False;
 
-         if Last_Index (Item.Config.Ops) /= Config_Op_Arrays.No_Index and then
+         if Last_Index (Item.Config.Ops) /= Recover_Op_Arrays.No_Index and then
            Constant_Ref (Item.Config.Ops, Last_Index (Item.Config.Ops)).Op = Fast_Forward
          then
             --  Update the trailing Fast_Forward.
@@ -363,7 +363,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    begin
       if Length (Config.Ops) > 0 then
          declare
-            Op : Config_Op renames Constant_Ref (Config.Ops, Last_Index (Config.Ops));
+            Op : Recover_Op renames Constant_Ref (Config.Ops, Last_Index (Config.Ops));
          begin
             case Op.Op is
             when Push_Back =>
@@ -545,7 +545,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    --  Try pushing back the stack top, to allow operations at that point.
    --  We assume the caller used Push_Back_Valid.
    is
-      use Config_Op_Arrays;
+      use Recover_Op_Arrays;
       use Syntax_Trees;
 
       Token : constant Recover_Token := Config.Stack.Peek.Token;
@@ -582,7 +582,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       ID     : in              Token_ID)
      return Boolean
    is
-      use Config_Op_Arrays, Config_Op_Array_Refs;
+      use Recover_Op_Arrays, Recover_Op_Array_Refs;
       use Syntax_Trees;
 
       Target_Token_Index : Sequential_Index :=
@@ -599,7 +599,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --
       for I in reverse First_Index (Config.Ops) .. Last_Index (Config.Ops) loop
          declare
-            Op : Config_Op renames Constant_Ref (Config.Ops, I);
+            Op : Recover_Op renames Constant_Ref (Config.Ops, I);
          begin
             case Op.Op is
             when Push_Back =>
@@ -644,7 +644,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Config            : in              Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
-      use Config_Op_Arrays;
+      use Recover_Op_Arrays;
 
       McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
       Token          : constant Syntax_Trees.Recover_Token := Config.Stack.Peek.Token;
@@ -1249,7 +1249,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Config            : in out          Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
-      use Config_Op_Arrays;
+      use Recover_Op_Arrays;
       use all type Parser.Language_String_ID_Set_Access;
       use WisiToken.Syntax_Trees;
       use Bounded_Streams;
@@ -1883,7 +1883,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    is
       --  Try deleting (= skipping) the current shared input token.
 
-      use Config_Op_Arrays, Config_Op_Array_Refs;
+      use Recover_Op_Arrays, Recover_Op_Array_Refs;
       use all type WisiToken.Syntax_Trees.Sequential_Index;
 
       EOF_ID      : constant Token_ID                := Super.Tree.Lexer.Descriptor.EOI_ID;
@@ -1932,7 +1932,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          is begin
             for I in reverse First_Index (New_Config.Ops) .. Last_Index (New_Config.Ops) loop
                declare
-                  Op : Config_Op renames Config_Op_Array_Refs.Variable_Ref (New_Config.Ops, I).Element.all;
+                  Op : Recover_Op renames Recover_Op_Array_Refs.Variable_Ref (New_Config.Ops, I).Element.all;
                begin
                   exit when not (Op.Op in Undo_Reduce | Push_Back | Delete);
                   if Op = (Push_Back, Next_ID, Next_Index) then
@@ -2065,7 +2065,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                Config.Strategy_Counts (Ignore_Error) := Config.Strategy_Counts (Ignore_Error) + 1;
 
                declare
-                  use Config_Op_Arrays, Config_Op_Array_Refs;
+                  use Recover_Op_Arrays, Recover_Op_Array_Refs;
                   Last : constant SAL.Base_Peek_Type := Last_Index (Config.Ops);
                begin
                   if Last /= SAL.Invalid_Peek_Index and then
