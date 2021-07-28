@@ -17,7 +17,7 @@
 
 pragma License (Modified_GPL);
 
-package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
+package body SAL.Gen_Indefinite_Doubly_Linked_Lists_Sorted_Aux is
 
    ----------
    --  Body subprograms, alphabetical
@@ -25,6 +25,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
    procedure Find
      (Container     : in     List;
       Element       : in     Element_Type;
+      Aux           : in     Compare_Aux;
       Found         :    out Node_Access;
       Found_Compare :    out Compare_Result)
    is
@@ -60,7 +61,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
                end loop;
             end if;
 
-            case Element_Compare (Next_Node.Element, Element) is
+            case Element_Compare (Next_Node.Element.all, Element, Aux) is
             when Less =>
                if Next_Index = High_Index then
                   --  no more nodes to check
@@ -88,7 +89,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
                elsif High_Index = Next_Index then
                   --  Desired result is either high_index or low_index
                   pragma Assert (Low_Index + 1 = High_Index);
-                  case Element_Compare (Next_Node.Prev.Element, Element) is
+                  case Element_Compare (Next_Node.Prev.Element.all, Element, Aux) is
                   when Less =>
                      Found         := Next_Node;
                      Found_Compare := Greater;
@@ -116,7 +117,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
       Element   : in     Element_Type)
    is
       New_Node : constant Node_Access := new Node_Type'
-        (Element => Element,
+        (Element => new Element_Type'(Element),
          Prev    => Before.Prev,
          Next    => Before);
    begin
@@ -134,7 +135,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
       Element   : in     Element_Type)
    is
       New_Node : constant Node_Access := new Node_Type'
-        (Element => Element,
+        (Element => new Element_Type'(Element),
          Prev    => Container.Tail,
          Next    => null);
    begin
@@ -217,7 +218,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
    function To_List (Element : in Element_Type) return List
    is
       New_Node : constant Node_Access := new Node_Type'
-        (Element => Element,
+        (Element => new Element_Type'(Element),
          Prev    => null,
          Next    => null);
    begin
@@ -228,7 +229,10 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
          Count => 1);
    end To_List;
 
-   procedure Insert (Container : in out List; Element : in Element_Type)
+   procedure Insert
+     (Container : in out List;
+      Element   : in     Element_Type;
+      Aux       : in     Compare_Aux)
    is
       Node    : Node_Access := Container.Head;
       Compare : Compare_Result;
@@ -236,7 +240,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
       if Node = null then
          Container := To_List (Element);
       else
-         Find (Container, Element, Node, Compare);
+         Find (Container, Element, Aux, Node, Compare);
 
          Container.Count := Container.Count + 1;
 
@@ -248,18 +252,23 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
       end if;
    end Insert;
 
-   function Contains (Container : in List; Element : in Element_Type) return Boolean
+   function Contains
+     (Container : in List;
+      Element   : in Element_Type;
+      Aux       : in Compare_Aux)
+     return Boolean
    is
       Node    : Node_Access := Container.Head;
       Compare : Compare_Result;
    begin
-      Find (Container, Element, Node, Compare);
+      Find (Container, Element, Aux, Node, Compare);
       return Compare = Equal;
    end Contains;
 
    procedure Merge
      (Target : in out List;
       Source : in     List;
+      Aux    : in     Compare_Aux;
       Added  :    out Boolean)
    is
       Target_I : Node_Access := Target.Head;
@@ -288,15 +297,15 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
             if Target_I = null then
                Added := True;
                Target.Count := Target.Count + 1;
-               Insert_After_Tail (Target, Source_I.Element);
+               Insert_After_Tail (Target, Source_I.Element.all);
                Source_I := Source_I.Next;
 
             else
-               case Element_Compare (Target_I.Element, Source_I.Element) is
+               case Element_Compare (Target_I.Element.all, Source_I.Element.all, Aux) is
                when Greater =>
                   Added := True;
                   Target.Count := Target.Count + 1;
-                  Insert_Before (Target, Target_I, Source_I.Element);
+                  Insert_Before (Target, Target_I, Source_I.Element.all);
                   Source_I := Source_I.Next;
 
                when Equal =>
@@ -314,6 +323,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
    procedure Merge
      (Target  : in out List;
       Source  : in     List;
+      Aux     : in     Compare_Aux;
       Added   :    out Boolean;
       Exclude : in     Element_Type)
    is
@@ -330,12 +340,12 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
                if Source_I = null then
                   return;
                end if;
-               exit when Source_I.Element /= Exclude;
+               exit when Source_I.Element.all /= Exclude;
                Source_I := Source_I.Next;
             end loop;
 
             Added    := True;
-            Target   := To_List (Source_I.Element);
+            Target   := To_List (Source_I.Element.all);
             Source_I := Source_I.Next;
          end if;
       end if;
@@ -343,21 +353,21 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
       loop
          exit when Source_I = null;
 
-         if Source_I.Element = Exclude then
+         if Source_I.Element.all = Exclude then
             Source_I := Source_I.Next;
 
          elsif Target_I = null then
             Added := True;
             Target.Count := Target.Count + 1;
-            Insert_After_Tail (Target, Source_I.Element);
+            Insert_After_Tail (Target, Source_I.Element.all);
             Source_I := Source_I.Next;
 
          else
-            case Element_Compare (Target_I.Element, Source_I.Element) is
+            case Element_Compare (Target_I.Element.all, Source_I.Element.all, Aux) is
             when Greater =>
                Added := True;
                Target.Count := Target.Count + 1;
-               Insert_Before (Target, Target_I, Source_I.Element);
+               Insert_Before (Target, Target_I, Source_I.Element.all);
                Source_I := Source_I.Next;
 
             when Equal =>
@@ -394,12 +404,16 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
       end if;
    end Last;
 
-   function Find (Container : aliased in List; Element : in Element_Type) return Cursor
+   function Find
+     (Container : aliased in List;
+      Element   :         in Element_Type;
+      Aux       :         in Compare_Aux)
+     return Cursor
    is
       Node    : Node_Access;
       Compare : Compare_Result;
    begin
-      Find (Container, Element, Node, Compare);
+      Find (Container, Element, Aux, Node, Compare);
 
       if Node = null then
          return (Ptr => null);
@@ -449,7 +463,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
 
    function Element (Position : in Cursor) return Element_Type
    is begin
-      return Position.Ptr.Element;
+      return Position.Ptr.Element.all;
    end Element;
 
    procedure Delete (Container : in out List; Position : in out Cursor)
@@ -475,7 +489,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
    is
       Node : Node_Access := Container.Head;
    begin
-      return Result : constant Element_Type := Container.Head.Element do
+      return Result : constant Element_Type := Container.Head.Element.all do
          Container.Head := Node.Next;
          if Node.Next = null then
             Container.Tail := null;
@@ -491,24 +505,24 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
    is
       pragma Unreferenced (Container);
    begin
-      return (Element => Position.Ptr.all.Element'Access, Dummy => 1);
+      return (Element => Position.Ptr.Element, Dummy => 1);
    end Constant_Reference;
 
    function Constant_Ref (Position : in Cursor) return Constant_Reference_Type
    is begin
-      return (Element => Position.Ptr.all.Element'Access, Dummy => 1);
+      return (Element => Position.Ptr.Element, Dummy => 1);
    end Constant_Ref;
 
    function Variable_Reference (Container : in List; Position : in Cursor) return Variable_Reference_Type
    is
       pragma Unreferenced (Container);
    begin
-      return (Element => Position.Ptr.all.Element'Access, Dummy => 1);
+      return (Element => Position.Ptr.Element, Dummy => 1);
    end Variable_Reference;
 
    function Variable_Ref (Position : in Cursor) return Variable_Reference_Type
    is begin
-      return (Element => Position.Ptr.all.Element'Access, Dummy => 1);
+      return (Element => Position.Ptr.Element, Dummy => 1);
    end Variable_Ref;
 
    function Iterate (Container : aliased in List) return Iterator_Interfaces.Reversible_Iterator'Class
@@ -540,4 +554,4 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
       return Previous (Position);
    end Previous;
 
-end SAL.Gen_Definite_Doubly_Linked_Lists_Sorted;
+end SAL.Gen_Indefinite_Doubly_Linked_Lists_Sorted_Aux;
