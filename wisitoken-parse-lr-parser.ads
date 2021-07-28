@@ -139,11 +139,4 @@ package WisiToken.Parse.LR.Parser is
    --  nonterms in the syntax tree that overlap Action_Region_Bytes, by
    --  traversing the tree in depth-first order.
 
-   overriding function Any_Errors (Parser : in LR.Parser.Parser) return Boolean;
-   --  Return True if any errors where encountered, recovered or not.
-
-   overriding procedure Put_Errors (Parser : in LR.Parser.Parser);
-   --  Put user-friendly error messages from the parse to
-   --  Ada.Text_IO.Current_Error.
-
 end WisiToken.Parse.LR.Parser;

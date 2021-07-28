@@ -498,46 +498,4 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       end if;
    end Execute_Actions;
 
-   overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean
-   is
-      use all type Ada.Containers.Count_Type;
-      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
-   begin
-      return Parser.Parsers.Count > 1 or Parser_State.Errors.Length > 0 or Parser.Tree.Lexer.Errors.Length > 0;
-   end Any_Errors;
-
-   overriding procedure Put_Errors (Parser : in LR.Parser_No_Recover.Parser)
-   is
-      use Ada.Text_IO;
-
-      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
-      Descriptor   : WisiToken.Descriptor renames Parser.Tree.Lexer.Descriptor.all;
-   begin
-      for Item of Parser.Tree.Lexer.Errors loop
-         Put_Line
-           (Current_Error,
-            Parser.Tree.Lexer.File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image (Item.Char_Pos));
-      end loop;
-
-      for Item of Parser_State.Errors loop
-         case Item.Label is
-         when Parser_Action =>
-            Put_Line
-              (Current_Error,
-               Parser.Tree.Error_Message
-                 (Item.Error_Token,
-                  "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                    ", found '" & Parser.Tree.Lexer.Buffer_Text (Parser.Tree.Byte_Region (Item.Error_Token.Node)) &
-                    "'"));
-
-         when User_Action =>
-            null;
-
-         when Message =>
-            Put_Line (Current_Error, -Item.Msg);
-         end case;
-
-      end loop;
-   end Put_Errors;
-
 end WisiToken.Parse.LR.Parser_No_Recover;

@@ -62,10 +62,6 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    --  Raises SAL.Programmer_Error if Edits is not empty. Log_File is
    --  ignored.
 
-   overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean;
-
-   overriding procedure Put_Errors (Parser : in LR.Parser_No_Recover.Parser);
-
    overriding procedure Execute_Actions
      (Parser              : in out LR.Parser_No_Recover.Parser;
       Action_Region_Bytes : in     WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region);

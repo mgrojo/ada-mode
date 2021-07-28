@@ -963,43 +963,4 @@ package body WisiToken.Parse.LR.Parser is
       raise;
    end Execute_Actions;
 
-   overriding function Any_Errors (Parser : in LR.Parser.Parser) return Boolean
-   is begin
-      if Parser.Parsers.Count = 0 then
-         return False;
-      end if;
-
-      declare
-         use all type Ada.Containers.Count_Type;
-         Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
-      begin
-         return Parser.Parsers.Count > 1 or Parser_State.Errors.Length > 0 or Parser.Tree.Lexer.Errors.Length > 0;
-      end;
-   end Any_Errors;
-
-   overriding procedure Put_Errors (Parser : in LR.Parser.Parser)
-   is begin
-      if Parser.Parsers.Count = 0 then
-         return;
-      end if;
-
-      declare
-         use Ada.Text_IO;
-
-         Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
-      begin
-         for Item of Parser.Tree.Lexer.Errors loop
-            Put_Line
-              (Current_Error,
-               Parser.Tree.Lexer.File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image
-                 (Item.Char_Pos));
-         end loop;
-
-         --  FIXME: move to w.parse.adb, put Parser.Errors.
-         for Item of Parser_State.Errors loop
-            Put_Error (Item, Parser.Tree, Parser.Deleted_Nodes, Parser_State.Stream);
-         end loop;
-      end;
-   end Put_Errors;
-
 end WisiToken.Parse.LR.Parser;

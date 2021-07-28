@@ -23,6 +23,7 @@ with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
+with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted;
 with SAL.Gen_Indefinite_Doubly_Linked_Lists_Sorted_Aux;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Lexer;
@@ -32,10 +33,6 @@ package WisiToken.Parse is
    type Wrapped_Lexer_Error is record
       Recover_Token_Ref : Syntax_Trees.Terminal_Ref;
       --  Token that lexer returned at the error.
-      --
-      --  Lexer errors are not preserved for incremental parse; a tree has
-      --  all the errors fixed. So Parser.Wrapped_Lexer_Errors only contains
-      --  errors from newly lexed text.
       --
       --  If the error token is a grammar token, Recover_Token_Ref is in Shared_Stream;
       --  it is needed by error recovery, for Stream_Prev/_Next in
@@ -334,11 +331,19 @@ package WisiToken.Parse is
       Deleted_Nodes : in Syntax_Trees.Valid_Node_Access_Lists.List;
       Stream        : in Syntax_Trees.Stream_ID := Syntax_Trees.Invalid_Stream_ID);
    --  Output to Ada.Text_IO.Current_Error.
+   --
+   --  Stream may be Invalid_Stream_ID if Tree is Editable (as it
+   --  normally is after Parse returns); it must be the parse stream if
+   --  parse is still in progress.
 
-   function Any_Errors (Parser : in Base_Parser) return Boolean is abstract;
+   procedure Put (Errors : in Wrapped_Lexer_Error_Lists.List; Tree : in Syntax_Trees.Tree);
+   --  Output to Ada.Text_IO.Current_Error.
 
-   procedure Put_Errors (Parser : in Base_Parser) is abstract;
-   --  Output error messages to Ada.Text_IO.Current_Error.
+   procedure Put (Errors : in Wrapped_Lexer_Error_Sorted_Lists.List; Tree : in Syntax_Trees.Tree);
+   --  Output to Ada.Text_IO.Current_Error.
+
+   procedure Put_Errors (Parser : in Base_Parser'Class);
+   --  Output Parser.Wrapped_Lexer_Errors, Parser.Parse_Errors to Ada.Text_IO.Current_Error.
 
    procedure Execute_Actions
      (Parser              : in out Base_Parser;
