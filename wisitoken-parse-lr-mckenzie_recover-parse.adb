@@ -855,11 +855,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             declare
                Nonterm : Syntax_Trees.Recover_Token;
             begin
-               Config.User_Parse_Action_Status := Reduce_Stack
+               Config.User_Action_Status := Reduce_Stack
                  (Super, Config.Stack, Action, Nonterm,
                   Default_Contains_Virtual => Config.Current_Insert_Delete /= No_Insert_Delete);
 
-               case Config.User_Parse_Action_Status.Label is
+               case Config.User_Action_Status.Label is
                when Ok =>
                   New_State := Config.Stack.Peek.State;
                   New_State := Goto_For (Table, New_State, Action.Production.LHS);
@@ -881,7 +881,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
                when In_Parse_Actions.Error =>
                   Config.Error_Token                   := Nonterm;
-                  Config.User_Parse_Action_Token_Count := Action.Token_Count;
+                  Config.User_Action_Token_Count := Action.Token_Count;
                   Success                              := False;
                end case;
             end;
@@ -933,8 +933,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          Config : Configuration renames Parse_Item_Array_Refs.Variable_Ref
            (Parse_Items, First_Index (Parse_Items)).Config;
       begin
-         Config.Error_Token              := Syntax_Trees.Invalid_Recover_Token;
-         Config.User_Parse_Action_Status := (Label => In_Parse_Actions.Ok);
+         Config.Error_Token        := Syntax_Trees.Invalid_Recover_Token;
+         Config.User_Action_Status := (Label => In_Parse_Actions.Ok);
       end;
 
       Last_Parsed := First_Index (Parse_Items);

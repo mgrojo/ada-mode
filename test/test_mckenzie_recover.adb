@@ -134,21 +134,21 @@ package body Test_McKenzie_Recover is
       use all type WisiToken.Buffer_Region;
       use all type WisiToken.Token_ID;
       use all type WisiToken.Token_ID_Set;
-      use all type WisiToken.Parse.LR.Parse_Error_Label;
+      use all type WisiToken.Parse.Parse_Error_Label;
 
       Label_I : constant String := Label & "." & Ada.Containers.Count_Type'Image (Checking_Error);
 
       Parser_State : WisiToken.Parse.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-      Cursor       : WisiToken.Parse.LR.Parse_Error_Lists.Cursor := Parser_State.Errors.First;
+      Cursor       : WisiToken.Parse.Parse_Error_Lists.Cursor := Parser_State.Errors.First;
    begin
       Check (Label_I & ".Errors.Length", Parser_State.Errors.Length, Errors_Length);
 
       for I in 2 .. Checking_Error loop
-         WisiToken.Parse.LR.Parse_Error_Lists.Next (Cursor);
+         WisiToken.Parse.Parse_Error_Lists.Next (Cursor);
       end loop;
 
       declare
-         Error : WisiToken.Parse.LR.Parse_Error renames WisiToken.Parse.LR.Parse_Error_Lists.Element (Cursor);
+         Error : WisiToken.Parse.Parse_Error renames WisiToken.Parse.Parse_Error_Lists.Element (Cursor);
       begin
          if Expecting /= Empty_Token_ID_Set then
             Check (Label_I & ".Expecting", Error.Expecting, Expecting);
@@ -157,7 +157,7 @@ package body Test_McKenzie_Recover is
          if Code = Ok then
             --  Expecting a Post_Parse_Action error. Label is "code" so prj.el
             --  wisitoken-goto-aunit-fail can find it.
-            Check (Label_I & ".Code", Error.Label, LR_Parse_Action);
+            Check (Label_I & ".Code", Error.Label, Parser_Action);
             Check (Label_I & ".Error.TOKEN_ID", Parser.Tree.ID (Error.Error_Token.Node), Error_Token_ID);
             if Error_Token_ID /= +Wisi_EOI_ID then
                --  EOF byte_region is unreliable
@@ -168,7 +168,7 @@ package body Test_McKenzie_Recover is
          else
             --  Expecting a Check error. We put "Error_Token_ID" in the check
             --  label, so wisitoken-dtrt can find the right place.
-            Check (Label_I & ".Code", Error.Label, User_Parse_Action);
+            Check (Label_I & ".Code", Error.Label, User_Action);
             Check (Label_I & ".Code", Error.Status.Label, Code);
             if Parser.Tree.Byte_Region (Error.Status.End_Name) = WisiToken.Null_Buffer_Region then
                --  End_Name is empty; check begin_name
@@ -184,7 +184,7 @@ package body Test_McKenzie_Recover is
          end if;
 
          if not Ops_Race_Condition then
-            Check (Label_I & ".Ops", Error.Recover.Ops, Ops);
+            Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
          end if;
 
          --  The enqueue count depends on a race condition when there is more
@@ -211,7 +211,7 @@ package body Test_McKenzie_Recover is
             Check_Range (Label_I & ".Enqueue_High", Parser_State.Recover.Enqueue_Count, Enqueue_Low, Enqueue_High);
             Check_Range (Label_I & ".Check_High", Parser_State.Recover.Check_Count, Check_Low, Check_High);
          end if;
-         Check (Label_I & ".Cost", Error.Recover.Cost, Cost);
+         Check (Label_I & ".Cost", Error.Recover_Cost, Cost);
       end;
    end Check_Recover;
 

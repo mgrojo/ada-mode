@@ -23,6 +23,7 @@ with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
+with SAL.Gen_Indefinite_Doubly_Linked_Lists_Sorted_Aux;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
@@ -126,14 +127,14 @@ package WisiToken.Parse is
    subtype Insert_Op is Recover_Op with Dynamic_Predicate => (Insert_Op.Op = Insert);
 
    function Token_Index (Op : in Insert_Delete_Op) return Syntax_Trees.Sequential_Index
-     is (case Insert_Delete_Op_Label'(Op.Op) is
-         when Insert => Op.Ins_Before,
-         when Delete => Op.Del_Token_Index);
+   is (case Insert_Delete_Op_Label'(Op.Op) is
+       when Insert => Op.Ins_Before,
+       when Delete => Op.Del_Token_Index);
 
    function ID (Op : in Insert_Delete_Op) return WisiToken.Token_ID
-     is (case Insert_Delete_Op_Label'(Op.Op) is
-         when Insert => Op.Ins_ID,
-         when Delete => Op.Del_ID);
+   is (case Insert_Delete_Op_Label'(Op.Op) is
+       when Insert => Op.Ins_ID,
+       when Delete => Op.Del_ID);
 
    function Equal (Left : in Recover_Op; Right : in Insert_Op) return Boolean;
 
@@ -159,7 +160,7 @@ package WisiToken.Parse is
           when Push_Back    => Image (Item.PB_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.PB_Token_Index),
           when Insert       => Image (Item.Ins_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.Ins_Before),
           when Delete       => Image (Item.Del_ID, Descriptor) & ", " &
-               Syntax_Trees.Trimmed_Image (Item.Del_Token_Index))
+            Syntax_Trees.Trimmed_Image (Item.Del_Token_Index))
          & ")");
 
    function Image (Item : in Recover_Op; Descriptor : in WisiToken.Descriptor) return String
@@ -202,14 +203,29 @@ package WisiToken.Parse is
 
    package Parse_Error_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Parse_Error);
 
+   function Compare
+     (Left, Right : in Parse_Error;
+      Tree        : in Syntax_Trees.Tree)
+     return SAL.Compare_Result;
+   --  Error_Token byte_position or Status.Begin_Name byte_position
+   --  order. All Messages are last, in no order.
+
+   package Parse_Error_Sorted_Lists is new SAL.Gen_Indefinite_Doubly_Linked_Lists_Sorted_Aux
+     (Element_Type    => Parse_Error,
+      Compare_Aux     => Syntax_Trees.Tree,
+      Element_Compare => Compare);
+
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled
    with record
       Trace     : WisiToken.Trace_Access;
       Tree      : aliased Syntax_Trees.Tree;
       User_Data : WisiToken.Syntax_Trees.User_Data_Access;
 
-      Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List;
-      --  For access by error recover.
+      Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List; -- 'aliased' for error recover
+      Parse_Errors         : Parse_Error_Sorted_Lists.List;
+      --  Persistent lists; after each incremental parse, these reflects all
+      --  errors in the source text, not just those from the most recent
+      --  incremental parse.
 
       Deleted_Nodes : WisiToken.Syntax_Trees.Valid_Node_Access_Lists.List;
       --  Source_Terminal nodes deleted by error recovery in previous parse,
@@ -311,6 +327,13 @@ package WisiToken.Parse is
    --
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
+
+   procedure Put_Error
+     (Item          : in Parse_Error;
+      Tree          : in Syntax_Trees.Tree;
+      Deleted_Nodes : in Syntax_Trees.Valid_Node_Access_Lists.List;
+      Stream        : in Syntax_Trees.Stream_ID := Syntax_Trees.Invalid_Stream_ID);
+   --  Output to Ada.Text_IO.Current_Error.
 
    function Any_Errors (Parser : in Base_Parser) return Boolean is abstract;
 

@@ -96,11 +96,12 @@ package body WisiToken.Parse.LR.Parser is
 
                else
                   Parser_State.Errors.Append
-                    ((Label          => User_Parse_Action,
+                    ((Label          => User_Action,
                       First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
                       Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
                       Status         => Status,
-                      Recover        => (others => <>)));
+                      Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
+                      Recover_Cost   => 0));
                   return Status.Label;
                end if;
             end case;
@@ -301,12 +302,13 @@ package body WisiToken.Parse.LR.Parser is
                Parser_State.Set_Verb (Error);
 
                Parser_State.Errors.Append
-                 ((Label          => LR_Parse_Action,
+                 ((Label          => Parser_Action,
                    First_Terminal => 1,
                    Last_Terminal  => 0,
                    Error_Token    => Parser_State.Current_Token,
                    Expecting      => (1 .. 0 => False),
-                   Recover        => (others => <>)));
+                   Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
+                   Recover_Cost   => 0));
 
                if Trace_Parse > Detail then
                   Trace.Put_Line (" ... error unknown state");
@@ -403,7 +405,7 @@ package body WisiToken.Parse.LR.Parser is
               (Shared_Parser.Table.all, Shared_Parser.Tree.State (Parser_State.Stream));
          begin
             Parser_State.Errors.Append
-              ((Label          => LR_Parse_Action,
+              ((Label          => Parser_Action,
                 First_Terminal => Expecting'First,
                 Last_Terminal  => Expecting'Last,
 
@@ -411,8 +413,9 @@ package body WisiToken.Parse.LR.Parser is
                 --  Current_Token is never an empty nonterm; it would be broken down
                 --  to nothing if it was not shiftable.
 
-                Expecting => Expecting,
-                Recover   => (others => <>)));
+                Expecting    => Expecting,
+                Recover_Ops  => Recover_Op_Arrays.Empty_Vector,
+                Recover_Cost => 0));
 
             if Trace_Parse > Outline then
                if Trace_Parse <= Detail then
@@ -689,10 +692,11 @@ package body WisiToken.Parse.LR.Parser is
       procedure Report_Error
       is begin
          Shared_Parser.Parsers.First_State_Ref.Errors.Append
-           ((Label          => LR.Message,
+           ((Label          => Message,
              First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
              Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
-             Recover        => <>,
+             Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
+             Recover_Cost   => 0,
              Msg            => +"error during resume"));
          if Debug_Mode then
             raise SAL.Programmer_Error with Shared_Parser.Tree.Trimmed_Image (Check_Parser.Stream) &
@@ -760,19 +764,19 @@ package body WisiToken.Parse.LR.Parser is
       end loop;
 
       --  We need parents set in the following code, and we also need
-      --  Recover_Op.Del_Node not yet free'd; later we need error_Token
-      --  nodes not free'd.
+      --  Recover_Op.Del_Node not yet freed; later we need error token
+      --  nodes not freed.
       declare
          Keep_Nodes : Valid_Node_Access_Lists.List;
       begin
          for Error of Parser_State.Errors loop
             case Error.Label is
-            when LR_Parse_Action =>
+            when Parser_Action =>
                Error.Error_Token.Stream  := Invalid_Stream_ID;
                Error.Error_Token.Element := Invalid_Stream_Index;
 
                Keep_Nodes.Append (Error.Error_Token.Node);
-            when User_Parse_Action =>
+            when User_Action =>
                if not Error.Status.Begin_Name.Virtual then
                   Keep_Nodes.Append (Error.Status.Begin_Name.Node);
                end if;
@@ -782,6 +786,8 @@ package body WisiToken.Parse.LR.Parser is
             when Message =>
                null;
             end case;
+
+            Parser.Parse_Errors.Insert (Error, Parser.Tree);
          end loop;
 
          for Op of Parser_State.Recover_Insert_Delete loop
@@ -981,7 +987,6 @@ package body WisiToken.Parse.LR.Parser is
          use Ada.Text_IO;
 
          Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
-         Descriptor   : WisiToken.Descriptor renames Parser.Tree.Lexer.Descriptor.all;
       begin
          for Item of Parser.Tree.Lexer.Errors loop
             Put_Line
@@ -990,60 +995,9 @@ package body WisiToken.Parse.LR.Parser is
                  (Item.Char_Pos));
          end loop;
 
+         --  FIXME: move to w.parse.adb, put Parser.Errors.
          for Item of Parser_State.Errors loop
-            case Item.Label is
-            when LR_Parse_Action =>
-               declare
-                  use all type Syntax_Trees.Valid_Node_Access;
-
-                  Item_Byte_Region : constant Buffer_Region := Parser.Tree.Byte_Region (Item.Error_Token.Node);
-                  Msg : constant String := "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                    ", found '" & Parser.Tree.Lexer.Buffer_Text (Item_Byte_Region) &
-                    "'";
-               begin
-                  --  If we get here because Parse raised Syntax_Error or other
-                  --  exception, Finish_Parse has not been called.
-
-                  if Parser.Tree.Editable then
-                     declare
-                        Line_Node : constant Syntax_Trees.Valid_Node_Access :=
-                          (if (for some N of Parser.Deleted_Nodes => N = Item.Error_Token.Node)
-                           then -- error node is not in tree, can't find line number; use another node
-                              Parser.Tree.Find_Byte_Pos (Item_Byte_Region.First, Trailing_Non_Grammar => False)
-                           else Item.Error_Token.Node);
-                     begin
-                        Put_Line (Current_Error, Parser.Tree.Error_Message (Line_Node, Msg));
-                     end;
-                  else
-                     declare
-                        Ref : constant Syntax_Trees.Terminal_Ref :=
-                          (if (for some N of Parser.Deleted_Nodes => N = Item.Error_Token.Node)
-                           then -- error node is not in tree; can't find line number.
-
-                              Parser.Tree.Find_Byte_Pos
-                                (Parser_State.Stream, Item_Byte_Region.First,
-                                 Trailing_Non_Grammar => False,
-                                 Start_At             => Syntax_Trees.Invalid_Stream_Node_Ref)
-                           else Item.Error_Token);
-                     begin
-                        Put_Line (Current_Error, Parser.Tree.Error_Message (Ref, Msg));
-                     end;
-                  end if;
-               end;
-
-            when User_Parse_Action =>
-               Put_Line
-                 (Current_Error,
-                  Parser.Tree.Lexer.File_Name & ":1:0: semantic check error: " &
-                    In_Parse_Actions.Image (Item.Status, Parser.Tree));
-
-            when Message =>
-               Put_Line (Current_Error, -Item.Msg);
-            end case;
-
-            if Item.Recover.Stack.Depth /= 0 then
-               Put_Line (Current_Error, "   recovered: " & Image (Item.Recover.Ops, Descriptor));
-            end if;
+            Put_Error (Item, Parser.Tree, Parser.Deleted_Nodes, Parser_State.Stream);
          end loop;
       end;
    end Put_Errors;

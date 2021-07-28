@@ -158,13 +158,13 @@ tree size:  49
  McKenzie error recovery
 
 parser 6: State 20 Current_Token (-1, 1;(ARROW, (147 . 148))) Resume_Token_Goal 4
-LR_Parse_Action
+Parser_Action
 
 parser 5: State 19 Current_Token (-1, 1;(ARROW, (147 . 148))) Resume_Token_Goal 4
-LR_Parse_Action
+Parser_Action
 
 parser 1: State 15 Current_Token (-1, 2;(IDENTIFIER, (150 . 152))) Resume_Token_Goal 5
-LR_Parse_Action
+Parser_Action
 
  1 parallel tasks
 new Worker_Task 1

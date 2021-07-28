@@ -125,12 +125,13 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
               (Shared_Parser.Table.all, Shared_Parser.Tree.State (Current_Parser.Stream));
          begin
             Parser_State.Errors.Append
-              ((Label          => LR_Parse_Action,
+              ((Label          => Parser_Action,
                 First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
                 Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
                 Error_Token    => Parser_State.Current_Token,
                 Expecting      => Expecting,
-                Recover        => (others => <>)));
+                Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
+                Recover_Cost   => 0));
 
             if Trace_Parse > Outline then
                Put
@@ -520,7 +521,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
       for Item of Parser_State.Errors loop
          case Item.Label is
-         when LR_Parse_Action =>
+         when Parser_Action =>
             Put_Line
               (Current_Error,
                Parser.Tree.Error_Message
@@ -529,7 +530,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                     ", found '" & Parser.Tree.Lexer.Buffer_Text (Parser.Tree.Byte_Region (Item.Error_Token.Node)) &
                     "'"));
 
-         when User_Parse_Action =>
+         when User_Action =>
             null;
 
          when Message =>

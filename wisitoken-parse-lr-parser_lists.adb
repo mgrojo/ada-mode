@@ -238,7 +238,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       Result : Integer := 0;
    begin
       for Error of Parser_State_Lists.Constant_Ref (Cursor.Ptr).Errors loop
-         Result := Error.Recover.Cost;
+         Result := Error.Recover_Cost;
       end loop;
       return Result;
    end Total_Recover_Cost;
@@ -251,8 +251,8 @@ package body WisiToken.Parse.LR.Parser_Lists is
       Errors : Parse_Error_Lists.List renames Parser_State_Lists.Constant_Ref (Cursor.Ptr).Errors;
    begin
       for Error of Errors loop
-         if Length (Error.Recover.Ops) > Result then
-            Result := Length (Error.Recover.Ops);
+         if Length (Error.Recover_Ops) > Result then
+            Result := Length (Error.Recover_Ops);
          end if;
       end loop;
       return Result;

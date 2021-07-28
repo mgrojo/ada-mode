@@ -8,7 +8,7 @@
  McKenzie error recovery
 
 parser 0: State 7 Current_Token (-1, 1;(Wisi_EOI, (67 . 66))) Resume_Token_Goal 5
-LR_Parse_Action
+Parser_Action
 
  1 parallel tasks
 new Worker_Task 1

@@ -141,9 +141,8 @@ package body Test_LR_Expecting_Terminal_Sequence is
       exception
       when WisiToken.Syntax_Error =>
          declare
-            use WisiToken.Parse.LR;
-            List  : Parse_Error_Lists.List renames Parser.Parsers.First.State_Ref.Errors;
-            Error : Parse_Error renames List.Constant_Reference (List.First);
+            List  : WisiToken.Parse.Parse_Error_Lists.List renames Parser.Parsers.First.State_Ref.Errors;
+            Error : WisiToken.Parse.Parse_Error renames List.Constant_Reference (List.First);
          begin
             WisiToken.AUnit.Check (Command, Error.Expecting, Expected);
          end;

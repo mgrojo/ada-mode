@@ -100,7 +100,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Parse_Table       : in              WisiToken.Parse.LR.Parse_Table;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
       Config            : in              Configuration)
-   with Pre => Config.User_Parse_Action_Status.Label /= Ok
+   with Pre => Config.User_Action_Status.Label /= Ok
    is
       use Syntax_Trees;
 
@@ -112,8 +112,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          Put (Message, Super.Trace.all, Tree, Parser_Label, Config);
       end Put;
 
-      Begin_Name_Token : Recover_Token renames Config.User_Parse_Action_Status.Begin_Name;
-      End_Name_Token   : Recover_Token renames Config.User_Parse_Action_Status.End_Name;
+      Begin_Name_Token : Recover_Token renames Config.User_Action_Status.Begin_Name;
+      End_Name_Token   : Recover_Token renames Config.User_Action_Status.End_Name;
    begin
       if not Begin_Name_IDs (Tree.ID (Begin_Name_Token)) then
          raise SAL.Programmer_Error with "unrecognized begin_name_token id " &
@@ -125,7 +125,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
            Image (Tree.ID (End_Name_Token), Descriptor);
       end if;
 
-      case Config.User_Parse_Action_Status.Label is
+      case Config.User_Action_Status.Label is
       when Ok =>
          raise SAL.Programmer_Error;
 
@@ -187,7 +187,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
                   New_Config.Error_Token  := Invalid_Recover_Token;
-                  New_Config.User_Parse_Action_Status := (Label   => Ok);
+                  New_Config.User_Action_Status := (Label   => Ok);
 
                   Push_Back_Check
                     (Super, New_Config,
@@ -261,7 +261,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          --  ahead, except in case 0b. So we enqueue two solutions; 'ignore
          --  error' and either 'insert begin' or 'delete end;'.
 
-         if not Valid_Tree_Indices (Config.Stack, SAL.Base_Peek_Type (Config.User_Parse_Action_Token_Count)) then
+         if not Valid_Tree_Indices (Config.Stack, SAL.Base_Peek_Type (Config.User_Action_Token_Count)) then
             --  Invalid tree indices happens when recover enqueues a config that
             --  contains tokens pushed during recover.
 
@@ -287,7 +287,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                New_Config : aliased Configuration := Config;
             begin
                New_Config.Error_Token  := Invalid_Recover_Token;
-               New_Config.User_Parse_Action_Status := (Label => Ok);
+               New_Config.User_Action_Status := (Label => Ok);
 
                New_Config.Cost := New_Config.Cost + 1;
 
@@ -333,7 +333,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                New_Config : Configuration := Config;
             begin
                New_Config.Error_Token  := Invalid_Recover_Token;
-               New_Config.User_Parse_Action_Status := (Label => Ok);
+               New_Config.User_Action_Status := (Label => Ok);
 
                New_Config.Cost := New_Config.Cost + 1;
 
@@ -394,7 +394,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
             End_Name : constant String := To_Lower (Tree.Lexer.Buffer_Text (Tree.Name (End_Name_Token)));
 
-            Token_Count : constant SAL.Peek_Type := SAL.Peek_Type (Config.User_Parse_Action_Token_Count);
+            Token_Count : constant SAL.Peek_Type := SAL.Peek_Type (Config.User_Action_Token_Count);
 
             Matching_Name_Index : SAL.Peek_Type := Token_Count;
             --  'block_label_opt' is empty; start on token before 'begin'.
@@ -426,7 +426,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
                   New_Config.Error_Token  := Invalid_Recover_Token;
-                  New_Config.User_Parse_Action_Status := (Label => Ok);
+                  New_Config.User_Action_Status := (Label => Ok);
 
                   --  Push_Back the failed reduce tokens.
                   for I in 1 .. Token_Count loop
@@ -458,7 +458,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
                   New_Config.Error_Token  := Invalid_Recover_Token;
-                  New_Config.User_Parse_Action_Status := (Label   => Ok);
+                  New_Config.User_Action_Status := (Label   => Ok);
 
                   Push_Back_Check
                     (Super, New_Config,
@@ -491,7 +491,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Parse_Table       : in              WisiToken.Parse.LR.Parse_Table;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
       Config            : in              Configuration)
-   with Pre => Config.User_Parse_Action_Status.Label = Ok
+   with Pre => Config.User_Action_Status.Label = Ok
    is
       use Syntax_Trees;
 
@@ -672,7 +672,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
               (Config.Stack, Super.Tree.all));
       end if;
 
-      case Config.User_Parse_Action_Status.Label is
+      case Config.User_Action_Status.Label is
       when Ok =>
          Handle_Parse_Error (Super, Parser_Index, Parse_Table, Local_Config_Heap, Config);
 

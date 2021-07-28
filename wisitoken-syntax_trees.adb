@@ -3434,6 +3434,7 @@ package body WisiToken.Syntax_Trees is
                     (if Last_Term = Invalid_Node_Access
                      then Invalid_Node_Access
                      else Tree.Next_Source_Terminal (Last_Term, Trailing_Non_Grammar => True));
+                  --  FIXME: got Next_Term = Invalid when First_Term valid
                begin
                   if First_Term = Invalid_Node_Access then
                      --  Empty or all virtual

@@ -40,7 +40,10 @@ begin
    end if;
 
    Shared_Parser.Tree.Lexer.Errors.Clear;
+
+   --  FIXME: preserve lexer, parse errors in incremental parse.
    Shared_Parser.Wrapped_Lexer_Errors.Clear;
+   Shared_Parser.Parse_Errors.Clear;
 
    Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
    Shared_Parser.Min_Sequential_Index := Invalid_Stream_Node_Parents;
@@ -456,10 +459,11 @@ begin
 
                for Parser_State of Shared_Parser.Parsers loop
                   Parser_State.Errors.Append
-                    ((Label          => LR.Message,
+                    ((Label          => Message,
                       First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
                       Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
-                      Recover        => <>,
+                      Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
+                      Recover_Cost   => 0,
                       Msg            =>
                         (if McKenzie_Defaulted (Shared_Parser.Table.all)
                          then +"recover disabled"
@@ -680,10 +684,11 @@ when E : others =>
       if Shared_Parser.Parsers.Count > 0 then
          --  Emacs displays errors in the *syntax-errors* buffer
          Shared_Parser.Parsers.First_State_Ref.Errors.Append
-           ((Label          => LR.Message,
+           ((Label          => Message,
              First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
              Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
-             Recover        => <>,
+             Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
+             Recover_Cost   => 0,
              Msg            => +Msg));
       end if;
 

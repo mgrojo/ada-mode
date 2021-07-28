@@ -34,7 +34,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Array_Image;
 with SAL.Gen_Bounded_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
@@ -568,9 +567,9 @@ package WisiToken.Parse.LR is
       String_Quote_Checked : Base_Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
-      Error_Token                   : Syntax_Trees.Recover_Token;
-      User_Parse_Action_Token_Count : Ada.Containers.Count_Type := 0;
-      User_Parse_Action_Status      : In_Parse_Actions.Status;
+      Error_Token             : Syntax_Trees.Recover_Token;
+      User_Action_Token_Count : Ada.Containers.Count_Type := 0;
+      User_Action_Status      : In_Parse_Actions.Status;
       --  If parsing this config ended with a parse error, Error_Token is
       --  the token that failed to shift, Check_Status.Label is Ok.
       --
@@ -623,30 +622,5 @@ package WisiToken.Parse.LR is
 
    procedure Accumulate (Data : in McKenzie_Data; Counts : in out Strategy_Counts);
    --  Sum Results.Strategy_Counts.
-
-   type Parse_Error_Label is (LR_Parse_Action, User_Parse_Action, Message);
-
-   type Parse_Error
-     (Label          : Parse_Error_Label;
-      First_Terminal : Token_ID;
-      Last_Terminal  : Token_ID)
-   is record
-      Recover : Configuration; --  FIXME: replace by recover_op_array; add hook for test_mckenzie_recover
-
-      case Label is
-      when LR_Parse_Action =>
-         Error_Token : Syntax_Trees.Terminal_Ref;
-
-         Expecting : Token_ID_Set (First_Terminal .. Last_Terminal);
-
-      when User_Parse_Action =>
-         Status : In_Parse_Actions.Status;
-
-      when Message =>
-         Msg : Ada.Strings.Unbounded.Unbounded_String;
-      end case;
-   end record;
-
-   package Parse_Error_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Parse_Error);
 
 end WisiToken.Parse.LR;

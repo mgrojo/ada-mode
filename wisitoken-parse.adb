@@ -171,6 +171,35 @@ package body WisiToken.Parse is
       return True;
    end None_Since_FF;
 
+   function Compare
+     (Left, Right : in Parse_Error;
+      Tree        : in Syntax_Trees.Tree)
+     return SAL.Compare_Result
+   is
+      function Get_Pos (Item : in Parse_Error) return Buffer_Pos
+      is begin
+         case Item.Label is
+         when Parser_Action =>
+            return Tree.Byte_Region (Item.Error_Token.Node).First;
+         when User_Action =>
+            return Tree.Byte_Region (Item.Status.Begin_Name).First;
+         when Message =>
+            return Buffer_Pos'Last;
+         end case;
+      end Get_Pos;
+
+      Left_Pos  : constant Buffer_Pos := Get_Pos (Left);
+      Right_Pos : constant Buffer_Pos := Get_Pos (Right);
+   begin
+      if Left_Pos < Right_Pos then
+         return SAL.Less;
+      elsif Left_Pos > Right_Pos then
+         return SAL.Greater;
+      else
+         return SAL.Equal;
+      end if;
+   end Compare;
+
    function Image (KMN : in WisiToken.Parse.KMN) return String
    is begin
       return "(" & KMN.Stable_Bytes'Image & "," &
@@ -1576,5 +1605,69 @@ package body WisiToken.Parse is
            (Floating_Non_Grammar, Tree.Lexer.Descriptor.all);
       end if;
    end Edit_Tree;
+
+   procedure Put_Error
+     (Item          : in Parse_Error;
+      Tree          : in Syntax_Trees.Tree;
+      Deleted_Nodes : in Syntax_Trees.Valid_Node_Access_Lists.List;
+      Stream        : in Syntax_Trees.Stream_ID := Syntax_Trees.Invalid_Stream_ID)
+   is
+      use all type Ada.Containers.Count_Type;
+      use Ada.Text_IO; --  FIXME: use Trace?
+   begin
+      case Item.Label is
+      when Parser_Action =>
+         declare
+            use all type Syntax_Trees.Valid_Node_Access;
+
+            Item_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Item.Error_Token.Node);
+            Msg : constant String := "syntax error: expecting " & Image (Item.Expecting, Tree.Lexer.Descriptor.all) &
+              ", found '" & Tree.Lexer.Buffer_Text (Item_Byte_Region) &
+              "'";
+         begin
+            --  If we get here because Parse raised Syntax_Error or other
+            --  exception, Finish_Parse has not been called.
+
+            if Tree.Editable then
+               declare
+                  Line_Node : constant Syntax_Trees.Valid_Node_Access :=
+                    (if (for some N of Deleted_Nodes => N = Item.Error_Token.Node)
+                     then -- error node is not in tree, can't find line number; use another node
+                        Tree.Find_Byte_Pos (Item_Byte_Region.First, Trailing_Non_Grammar => False)
+                     else Item.Error_Token.Node);
+               begin
+                  Put_Line (Current_Error, Tree.Error_Message (Line_Node, Msg));
+               end;
+            else
+               declare
+                  Ref : constant Syntax_Trees.Terminal_Ref :=
+                    (if (for some N of Deleted_Nodes => N = Item.Error_Token.Node)
+                     then -- error node is not in tree; can't find line number.
+
+                        Tree.Find_Byte_Pos
+                          (Stream, Item_Byte_Region.First,
+                           Trailing_Non_Grammar => False,
+                           Start_At             => Syntax_Trees.Invalid_Stream_Node_Ref)
+                     else Item.Error_Token);
+               begin
+                  Put_Line (Current_Error, Tree.Error_Message (Ref, Msg));
+               end;
+            end if;
+         end;
+
+      when User_Action =>
+         Put_Line
+           (Current_Error,
+            Tree.Lexer.File_Name & ":1:0: semantic check error: " &
+              In_Parse_Actions.Image (Item.Status, Tree));
+
+      when Message =>
+         Put_Line (Current_Error, -Item.Msg);
+      end case;
+
+      if Recover_Op_Arrays.Length (Item.Recover_Ops) /= 0 then
+         Put_Line (Current_Error, "   recovered: " & Image (Item.Recover_Ops, Tree.Lexer.Descriptor.all));
+      end if;
+   end Put_Error;
 
 end WisiToken.Parse;
