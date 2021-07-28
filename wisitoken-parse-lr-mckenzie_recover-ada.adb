@@ -67,7 +67,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       Parse_Table       : in              WisiToken.Parse.LR.Parse_Table;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
       Config            : in              Configuration)
-   with Pre => Config.User_Parse_Action_Status.Label /= Ok
+   with Pre => Config.User_Action_Status.Label /= Ok
    is
       use Syntax_Trees;
 
@@ -79,13 +79,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          Put (Message, Super.Trace.all, Tree, Parser_Label, Config);
       end Put;
 
-      End_Name_Token : Recover_Token renames Config.User_Parse_Action_Status.End_Name;
+      End_Name_Token : Recover_Token renames Config.User_Action_Status.End_Name;
    begin
       --  There is a top level exception handler in McKenzie_Recover; the
       --  user has no way to work around an exception. If we are trying to
       --  fix a particular use case, the trace messages will be enough.
 
-      case Config.User_Parse_Action_Status.Label is
+      case Config.User_Action_Status.Label is
       when Ok =>
          raise SAL.Programmer_Error;
 
@@ -166,7 +166,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                   New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
 
-                  New_Config.User_Parse_Action_Status := (Label => Ok);
+                  New_Config.User_Action_Status := (Label => Ok);
 
                   case Ada_Annex_P_Process_Actions.To_Token_Enum (Tree.ID (Config.Error_Token)) is
                   when block_statement_ID =>
@@ -236,7 +236,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   New_Config : Configuration := Config;
                begin
                   New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
-                  New_Config.User_Parse_Action_Status := (Label => Ok);
+                  New_Config.User_Action_Status := (Label => Ok);
 
                   New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
@@ -314,7 +314,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  ahead, except in case 0b. So we enqueue two solutions; 'ignore
          --  error' and either 'insert begin' or 'delete end;'.
 
-         if not Valid_Tree_Indices (Config.Stack, SAL.Base_Peek_Type (Config.User_Parse_Action_Token_Count)) then
+         if not Valid_Tree_Indices (Config.Stack, SAL.Base_Peek_Type (Config.User_Action_Token_Count)) then
             --  The logic below depends on valid tree refs, not virtual tokens.
 
             return;
@@ -336,14 +336,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          if Invalid_Node_Access = Tree.Find_Child (Config.Stack.Peek (4).Token.Node, +EXCEPTION_ID) then
             --  'exception' not found; case 1a - assume extra 'end [keyword] ;'; delete it.
             declare
-               use Config_Op_Arrays;
+               use Recover_Op_Arrays;
                New_Config   : aliased Configuration := Config;
-               Ops          : Config_Op_Arrays.Vector renames New_Config.Ops;
+               Ops          : Recover_Op_Arrays.Vector renames New_Config.Ops;
                Stack        : Recover_Stacks.Stack renames New_Config.Stack;
                Keyword_Item : Recover_Stack_Item; -- keyword after 'end'; may not be present
             begin
                New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
-               New_Config.User_Parse_Action_Status := (Label => Ok);
+               New_Config.User_Action_Status := (Label => Ok);
 
                --  This is a guess, and sometimes deleting the error keyword is better, so
                --  give it a cost.
@@ -430,7 +430,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                New_Config : Configuration := Config;
             begin
                New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
-               New_Config.User_Parse_Action_Status   := (Label => Ok);
+               New_Config.User_Action_Status   := (Label => Ok);
 
                New_Config.Cost := New_Config.Cost + 1;
 
@@ -498,12 +498,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             New_Config : Configuration := Config;
          begin
             New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
-            New_Config.User_Parse_Action_Status   := (Label => Ok);
+            New_Config.User_Action_Status   := (Label => Ok);
 
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
             --  Push_Back the failed reduce tokens.
-            for I in 1 .. New_Config.User_Parse_Action_Token_Count loop
+            for I in 1 .. New_Config.User_Action_Token_Count loop
                Push_Back (Super, New_Config, Push_Back_Undo_Reduce => True);
             end loop;
 
@@ -527,7 +527,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             New_Config : Configuration := Config;
          begin
             New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
-            New_Config.User_Parse_Action_Status   := (Label => Ok);
+            New_Config.User_Action_Status   := (Label => Ok);
 
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
@@ -660,7 +660,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       Parse_Table       : in              WisiToken.Parse.LR.Parse_Table;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
       Config            : in              Configuration)
-   with Pre => Config.User_Parse_Action_Status.Label = Ok
+   with Pre => Config.User_Action_Status.Label = Ok
    is
       use Syntax_Trees;
 
@@ -1329,7 +1329,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                    "config stack: " & Image (Config.Stack, Super.Tree.all));
       end if;
 
-      case Config.User_Parse_Action_Status.Label is
+      case Config.User_Action_Status.Label is
       when Ok =>
          Handle_Parse_Error (Super, Parser_Index, Parse_Table, Local_Config_Heap, Config);
 

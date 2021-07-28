@@ -12,6 +12,10 @@
 --EMACSCMD:(progn (wisi-parse-buffer 'face) (length (wisi-parser-parse-errors wisi--parser)))
 --EMACSRESULT:0
 
+-- FIXME: At EOB, insert token that is deleted by error recovery, then
+-- extended by next edit; special case at EOB.
+
+
 procedure Ada_Mode.Interactive_02
 is
    -- Newline before a blank line
@@ -163,6 +167,16 @@ begin
    --EMACSRESULT:3
    --EMACSCMD:(progn (forward-line -8)(forward-word 1)(forward-char 1)(insert "(")(end-of-line 2)(insert "\n)")(indent-for-tab-command))
 
+   -- Start comment on code line; transient error on next line should
+   -- disappear when comment is finished.
+   --EMACSCMD:(progn (forward-line 4)(insert "-- ")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
+   --EMACSRESULT:1
+   --EMACSCMD:(progn (forward-line 2)(search-forward "-- ")(insert "comment\n")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
+   --EMACSRESULT:0
+      for I in 1 .. 10 loop
+      null;
+   end loop;
+   --EMACSCMD:(progn (forward-line -4)(kill-line 1)(indent-for-tab-command))
 end Ada_Mode.Interactive_02;
 -- Local Variables:
 -- ada-end-name-optional: nil

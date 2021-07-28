@@ -262,11 +262,15 @@ d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
 
     mckenzie_task_count 1: 0.002248122, 0.541077686 seconds
 
+    IMPROVEME: max memory use?
+
  navigate, face, indent
     make -r benchmark RUN_ARGS="c:/eurocontrol/gnatcoll-xref.adb"
     make -r benchmark RUN_ARGS="c:/Projects/org.emacs.ada-mode/test/ada_mode.ads"
         copy per iteration values here
         uses gnatcoll-xref.adb
+
+        also get emacs, parser memory size from windows task manager
 
     27 Nov 2017 - compute actions in Ada
         1.377199 seconds 3 gcs 6560 responses 0.509915 wait
@@ -350,4 +354,5 @@ d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
             run_lr1 full parse: 0.19 seconds
 
 ;; FIXME: find a fontified word, time re-fontify
-;; FIXME: measure memory use in parser process; Debian 'time -l run_ada_lalr ...'?
+;; FIXME: measure memory use in emacs, parser process; Debian 'time -l run_ada_lalr ...', or just Windows Task Manager
+   before/after visit, parse file.

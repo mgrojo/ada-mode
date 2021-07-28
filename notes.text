@@ -4,11 +4,11 @@ build/Makefile
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
-o.e.a.stephe-2 (with o.w.s-2/o.s_l.sal): work;
+o.e.a.stephe-2 (with o.w.s_1/o.s_l.sal.s_1): work; incremental parse
 o.e.a.stephe-3 (?): emacs module parser (very old)
 o.e.a.stephe-4 (?): eglot/ada_language_server
 o.e.a.stephe-5 (?): libadalang backend
-o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1): incremental parse
+o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1):
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -20,8 +20,8 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1): incremental parse
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"         . "../org.wisitoken.stephe-2")
-   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-6")))
+   ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
+   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -46,6 +46,27 @@ for ada_mode_wisi_parse.gpr:
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
 send bug report on wisitoken keeps binding wisitoken-bnf-generate
+
+still get persistent error marks for new comment
+    some errors are fixed by an edit far away
+        error on unmatched 'end;' fixed by insert 'begin'.
+        => error on 'begin', because matching 'end;' is not restored
+        in tree-sitter, errors are nodes in tree; inc parse must delete ones that are no longer present
+
+    new node label Error_Deleted; pseudo-child of nonterm containing preceding terminal
+        on o.e.a.s-2, o.e.w.s-1
+        separate field; not in child_count
+        persistent and transient list is in tree, don't need to restore/delete in edit_tree, don't need current_list.
+        Edit_Tree will delete error nodes in edit regions via breakdown.
+        same for deleted nodes!
+        lexer_errors: discovered by next_error_token or Edit_Tree scan
+            have either a terminal or leading_non_grammar to add it to
+            => lexer_Error field in source_token
+
+add test of restore deleted node that is before SOI?
+    insert "-" at EOB, parse, insert second "-"
+
+Extra_end_loop_2 - insert missing loop earlier in file, ask for indent. Case for restore deleted nodes
 
 wisi-reset-parser only reset current file = delete parse_context
 
@@ -143,6 +164,8 @@ implement wisi parser for java using tree-sitter grammar
     find a large java file, compare command-line parse times
     compare eglot font-lock times?
     post to emacs-devel
+
+    also try https://codeberg.org/FelipeLema/tree-sitter-indent.el
 
 respond to https://rust-analyzer.github.io/blog/2020/09/16/challeging-LR-parsing.html
    https://github.com/tree-sitter/tree-sitter-rust
