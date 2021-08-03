@@ -420,10 +420,11 @@ package WisiToken.Parse.LR is
            Image (Fast_Token_ID_Arrays.Element (Tokens, Index), Descriptor));
 
    type Recover_Op_Nodes (Op : Insert_Delete_Op_Label := Insert) is record
-      --  Add Ins_Tree_Node to Config_Op info, set when item is
-      --  parsed; used to create user augmented token.
 
-      Error_Pos : Buffer_Pos := Invalid_Buffer_Pos; --  Position of the error that is repaired by this op.
+      Error_Pos : Buffer_Pos := Invalid_Buffer_Pos;
+      --  Position of the error that is repaired by this op. Used by the
+      --  editor to identify sets of recover ops, and compute presentation
+      --  order.
 
       case Op is
       when Insert =>
@@ -567,16 +568,16 @@ package WisiToken.Parse.LR is
       String_Quote_Checked : Base_Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
-      Error_Token             : Syntax_Trees.Recover_Token;
-      User_Action_Token_Count : Ada.Containers.Count_Type := 0;
-      User_Action_Status      : In_Parse_Actions.Status;
+      Error_Token                 : Syntax_Trees.Recover_Token;
+      In_Parse_Action_Token_Count : Ada.Containers.Count_Type := 0;
+      In_Parse_Action_Status      : In_Parse_Actions.Status;
       --  If parsing this config ended with a parse error, Error_Token is
       --  the token that failed to shift, Check_Status.Label is Ok.
       --
-      --  If parsing this config ended with a semantic check fail,
+      --  If parsing this config ended with an In_Parse_Action fail,
       --  Error_Token is the nonterm created by the reduction,
-      --  Check_Token_Count the number of tokens in the right hand side, and
-      --  Check_Status is the error.
+      --  In_Parse_Action_Token_Count the number of tokens in the right hand
+      --  side, and In_Parse_Action_Status is the error.
       --
       --  Error_Token is set to Invalid_Token_ID when Config is parsed
       --  successfully, or modified so the error is no longer meaningful (ie

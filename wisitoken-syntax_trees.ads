@@ -20,12 +20,15 @@
 --
 --  Node_Index is used only for debugging. Node_Index on nonterms is
 --  negative. Node_Index on terminal nodes created by the lexer in the
---  shared stream is positive. During a batch parse, Node_Index on
---  terminals is sequential, as a consequence of lexing the source
---  code first; Node_Index on nonterms is unique within the tree.
---  Error recover inserts and deletes terminals, with non-sequential
---  Node_Index. In incremental parse, Node_Index is not be unique
---  within the tree.
+--  shared stream is positive.
+--
+--  During a batch parse, Node_Index on terminals is sequential, as a
+--  consequence of lexing the source code first; Node_Index on
+--  nonterms is unique within the tree. Error recover inserts and
+--  deletes terminals, with non-sequential Node_Index.
+--
+--  In incremental parse, Node_Index on terminals is not sequential,
+--  and Node_Index is not unique within the tree.
 --
 --  Error recover uses Sequential_Index to determine success, and to
 --  control where terminals are inserted and deleted. To be
@@ -40,6 +43,11 @@
 --  auxiliary input stream. The auxiliary input stream contains tokens
 --  that are pushed back in error recovery, or broken down from
 --  Shared_Stream in incremental parse.
+--
+--  Nodes that are deleted from the parse stream during error recover
+--  are referenced from the preceding terminal node or SOI, so they
+--  may be restored on the next incremental parse if appropriate.
+--  Similarly, parse errors are referenced from the error node.
 --
 --  Each node contains a Parent link, to make it easy to traverse the
 --  tree in any direction after parsing is done. We do not set the
@@ -89,6 +97,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Finalization;
+with Ada.Iterator_Interfaces;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
 with SAL.Gen_Trimmed_Image;
@@ -176,8 +185,7 @@ package WisiToken.Syntax_Trees is
      (Source_Terminal,    -- text is user input, accessed via Lexer
       Virtual_Terminal,   -- no text; inserted during error recovery
       Virtual_Identifier, -- text in user data, created during tree rewrite
-      Nonterm             -- contains terminals/nonterminals/identifiers
-     );
+      Nonterm);           -- points to a node that was deleted by error recovery.
    subtype Terminal_Label is Node_Label range Source_Terminal .. Virtual_Identifier;
    subtype Virtual_Terminal_Label is Node_Label range Virtual_Terminal .. Virtual_Identifier;
 
@@ -1418,6 +1426,9 @@ package WisiToken.Syntax_Trees is
    with Post => (for all Node of Get_Terminals'Result => Tree.Label (Node) in Terminal_Label);
    --  Return sequence of terminals in Node.
 
+   function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID_Array;
+   --  Same as Get_Terminals, but return the IDs.
+
    function First_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access;
    --  First of Get_Terminals. Invalid_Node_Access if Node is an empty nonterminal.
 
@@ -1683,9 +1694,6 @@ package WisiToken.Syntax_Trees is
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
 
-   function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID_Array;
-   --  Same as Get_Terminals, but return the IDs.
-
    function Get_IDs
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access;
@@ -1694,8 +1702,8 @@ package WisiToken.Syntax_Trees is
    --  Return all descendants of Node matching ID.
 
    ----------
-   --  Post-parsing operations; editing the tree. The tree has only one
-   --  stream, so these subprograms have no stream argument.
+   --  Post-parsing operations; editing the tree. The tree has one or
+   --  zero streams, so these subprograms have no stream argument.
    --
    --  Some of these are also used for Packrat parsing, and don't have a
    --  precondition of Fully_Parsed.
@@ -1946,6 +1954,13 @@ package WisiToken.Syntax_Trees is
    --  Add a new Virtual_Terminal node with no parent, on no stream.
    --  Result points to the added node.
 
+   procedure Add_Deleted
+     (Tree          : in out Syntax_Trees.Tree;
+      Deleted_Node  : in     Valid_Node_Access;
+      Prev_Terminal : in     Valid_Node_Access)
+   with Pre => Tree.Label (Prev_Terminal) = Source_Terminal;
+   --  Add Deleted_Node to Prev_Terminal.Following_Deleted.
+
    procedure Delete_Subtree
      (Tree : in out Syntax_Trees.Tree;
       Root : in out Node_Access);
@@ -2029,6 +2044,95 @@ package WisiToken.Syntax_Trees is
    --
    --  Clear_Children should be False unless Tree is Editable or Node is
    --  in Shared_Stream.
+
+   ----------
+   --  Accessing parse errors
+
+   type Error_Data is abstract tagged null record;
+   type Error_Data_Access is access all Error_Data'Class;
+   --  Error_Data must not have Valid_Node_Access components; they would
+   --  not be updated properly when the tree is copied. The error node is
+   --  the node that contains this data.
+
+   function Copy (Data : in Error_Data) return Error_Data_Access
+   is abstract;
+
+   function Image
+     (Data       : in Error_Data;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Valid_Node_Access)
+     return String
+   is abstract;
+
+   procedure Set_Error
+     (Tree : in out Syntax_Trees.Tree;
+      Node : in     Valid_Node_Access;
+      Data : in     Error_Data_Access)
+   with Pre => Data /= null;
+
+   procedure Free is new Ada.Unchecked_Deallocation (Error_Data'Class, Error_Data_Access);
+
+   function Error (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Error_Data_Access;
+
+   type Error_Ref is record
+      --  Used when tree is fully parsed.
+      Node    : Node_Access;
+      Deleted : Valid_Node_Access_Lists.Cursor;
+      --  If Node = Invalid_Node_Access, no error. If Deleted = No_Element,
+      --  Node has an error. If Deleted /=
+      --  No_Element, Node is a Source_Terminal that has following deleted
+      --  nodes, and Element (Deleted) is one of those nodes, and is a
+      --  Terminal_Label that has an error, and Element (Deleted).Parent =
+      --  Node.
+   end record;
+
+   --  FIXME: delete?
+   --  type Stream_Error_Ref is record
+   --     --  Used while parsing
+   --     Ref     : Stream_Node_Parents;
+   --     Deleted : Valid_Node_Access_Lists.Cursor;
+   --  end record;
+
+   function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Error_Ref) return Node_Access
+   with Pre => (Tree.Fully_Parsed or Tree.Editable) and Valid_Error_Ref (Error);
+
+   function First_Error (Tree : in Syntax_Trees.Tree) return Error_Ref
+   with Pre => Tree.Fully_Parsed or Tree.Editable;
+   --  Return first error node in Tree.
+
+   --  FIXME: delete?
+   --  function First_Error (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Stream_Error_Ref
+   --  with Pre => Tree.Parseable;
+   --  Return first error node in Tree.
+
+   function Valid_Error_Ref (Error : in Error_Ref) return Boolean;
+   --  True if Error.Node is invalid_Node_Access or
+   --  Error.Node.Parse_Error is non-null or Error.Node.Following_Deleted
+   --  contains Error.Deleted and that node has an error.
+
+   function Image (Tree : in Syntax_Trees.Tree; Error : in Error_Ref) return String;
+
+   procedure Next_Error (Tree : in Syntax_Trees.Tree; Error : in out Error_Ref)
+   with Pre =>
+     (Tree.Fully_Parsed or Tree.Editable) and
+     (Error.Node /= Invalid_Node_Access and then Valid_Error_Ref (Error));
+   --  Update Error to next error node.
+
+   function Error_Count (Tree : in Syntax_Trees.Tree) return Ada.Containers.Count_Type
+   with Pre => Tree.Fully_Parsed or Tree.Editable;
+
+   type Error_Cursor is private;
+
+   function Has_Element (Position : in Error_Cursor) return Boolean;
+
+   function Element (Position : in Error_Cursor) return Error_Ref;
+
+   package Error_Iterator_Interfaces is new Ada.Iterator_Interfaces (Error_Cursor, Has_Element);
+
+   function Error_Iterate
+     (Tree     : aliased in Syntax_Trees.Tree)
+     return Error_Iterator_Interfaces.Forward_Iterator'Class;
+   --  Iterates over errors.
 
    ----------
    --  Debug and error message utils.
@@ -2227,12 +2331,13 @@ package WisiToken.Syntax_Trees is
 
 private
    use all type Ada.Containers.Count_Type;
+   use all type Valid_Node_Access_Lists.Cursor;
 
    type Node
      (Label       : Node_Label;
       Child_Count : SAL.Base_Peek_Type)
-   --  Descriminants have no default because allocated nodes are
-   --  constrained anyway (ARM 4.8 6/3).
+      --  Descriminants have no default because allocated nodes are
+      --  constrained anyway (ARM 4.8 6/3).
    is record
       ID : WisiToken.Token_ID := Invalid_Token_ID;
 
@@ -2246,6 +2351,8 @@ private
       Parent : Node_Access := Invalid_Node_Access;
 
       Augmented : Augmented_Class_Access := null;
+
+      Error_Data : Error_Data_Access;
 
       case Label is
       when Terminal_Label =>
@@ -2266,6 +2373,10 @@ private
             --  incremental parse. We don't store Line_Region here, to save space,
             --  to simplify Edit_Tree, and because it changes when Insert_Terminal
             --  moves Non_Grammar.
+
+            Following_Deleted : Valid_Node_Access_Lists.List;
+            --  Nodes that follow this terminal that were deleted by error
+            --  recovery.
 
          when Virtual_Terminal_Label =>
             Insert_Location : WisiToken.Insert_Location := Before_Next;
@@ -2440,6 +2551,9 @@ private
    function Editable (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Parents_Set and Tree.Streams.Length = 0 and Tree.Shared_Stream.Cur = Parse_Stream_Lists.No_Element);
 
+   function Error (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Error_Data_Access
+   is (Node.Error_Data);
+
    function First_Parse_Stream (Tree : in Syntax_Trees.Tree) return Stream_ID
    is (Cur => Parse_Stream_Lists.Next (Tree.Shared_Stream.Cur));
 
@@ -2599,6 +2713,12 @@ private
        then "-"
        else Trimmed_Image (Node.Node_Index));
 
+   function Valid_Error_Ref (Error : in Error_Ref) return Boolean
+   is (Error.Node = Invalid_Node_Access or else
+         (Error.Node.Error_Data /= null or
+            (Error.Node.Label = Source_Terminal and then
+               (for some Cur in Error.Node.Following_Deleted.Iterate => Cur = Error.Deleted))));
+
    function Valid_Root (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Root /= Invalid_Node_Access or Tree.Stream_Count > 0);
 
@@ -2634,5 +2754,23 @@ private
       List : in Valid_Node_Access_Lists.List)
      return String
    is (Node_List_Image (List, Tree));
+
+   ----------
+   --  Iterators
+
+   type Error_Cursor is record
+      Error : Error_Ref;
+   end record;
+
+   type Error_Iterator (Tree : not null access constant Syntax_Trees.Tree)
+     is new Error_Iterator_Interfaces.Forward_Iterator with
+   null record;
+
+   overriding function First (Object : Error_Iterator) return Error_Cursor;
+
+   overriding function Next
+     (Object   : Error_Iterator;
+      Position : Error_Cursor)
+     return Error_Cursor;
 
 end WisiToken.Syntax_Trees;

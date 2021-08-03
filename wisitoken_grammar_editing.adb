@@ -3025,7 +3025,7 @@ package body WisiToken_Grammar_Editing is
                then Lexer.Token_Arrays.Empty_Vector
                else (case Tree.Label (Last_Term) is
                      when Terminal_Label => Tree.Non_Grammar_Const (Last_Term),
-                     when Nonterm => Lexer.Token_Arrays.Empty_Vector));
+                     when others => Lexer.Token_Arrays.Empty_Vector));
 
             Comments_Include_Newline : Boolean := False;
          begin

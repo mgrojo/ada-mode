@@ -41,9 +41,7 @@ begin
 
    Shared_Parser.Tree.Lexer.Errors.Clear;
 
-   --  FIXME: preserve lexer, parse errors in incremental parse.
    Shared_Parser.Wrapped_Lexer_Errors.Clear;
-   Shared_Parser.Parse_Errors.Clear;
 
    Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
    Shared_Parser.Min_Sequential_Index := Invalid_Stream_Node_Parents;
@@ -257,7 +255,7 @@ begin
                   Current_Parser := Shared_Parser.Parsers.First;
                   loop
                      if Current_Parser.Verb = Accept_It then
-                        if Current_Parser.State_Ref.Errors.Length > 0 then
+                        if Current_Parser.State_Ref.Error_Count > 0 then
                            Error_Parser_Count := Error_Parser_Count + 1;
                         end if;
                         Current_Parser.Next;
@@ -285,14 +283,14 @@ begin
                      --  Note all surviving parsers must have the same error count.
                      Current_Parser := Shared_Parser.Parsers.First;
                      loop
-                        Recover_Cost := Current_Parser.Total_Recover_Cost;
+                        Recover_Cost := Current_Parser.State_Ref.Total_Recover_Cost;
                         if Recover_Cost < Min_Recover_Cost then
                            Min_Recover_Cost       := Recover_Cost;
-                           Min_Recover_Ops_Length := Current_Parser.Max_Recover_Ops_Length;
+                           Min_Recover_Ops_Length := Current_Parser.State_Ref.Max_Recover_Ops_Length;
                            Recover_Cur            := Current_Parser;
 
                         elsif Recover_Cost = Min_Recover_Cost then
-                           Recover_Ops_Length := Current_Parser.Max_Recover_Ops_Length;
+                           Recover_Ops_Length := Current_Parser.State_Ref.Max_Recover_Ops_Length;
                            if Recover_Ops_Length < Min_Recover_Ops_Length then
                               Min_Recover_Ops_Length := Recover_Ops_Length;
                               Recover_Cur    := Current_Parser;
@@ -401,6 +399,7 @@ begin
                   Parser_State.Resume_Active          := True;
                   Parser_State.Conflict_During_Resume := False;
 
+                  Parser_State.Total_Recover_Cost := @ + Parser_State.Recover.Config_Heap.Min_Key;
                   case Parser_State.Verb is
                   when Error =>
                      --  Force this parser to be terminated.
@@ -453,21 +452,26 @@ begin
 
             else
                --  Terminate with error. Parser_State has all the required info on
-               --  the original error (recorded by Error in Do_Action); report reason
-               --  recover failed.
+               --  the original error (recorded by Error in Do_Action).
                McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
 
                for Parser_State of Shared_Parser.Parsers loop
-                  Parser_State.Errors.Append
-                    ((Label          => Message,
-                      First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
-                      Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
-                      Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
-                      Recover_Cost   => 0,
-                      Msg            =>
-                        (if McKenzie_Defaulted (Shared_Parser.Table.all)
-                         then +"recover disabled"
-                         else +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result))));
+                  declare
+                     Error : constant Syntax_Trees.Error_Data_Access := Shared_Parser.Tree.Error
+                       (Parser_State.Current_Error_Node);
+                     Msg : constant String :=
+                       (if McKenzie_Defaulted (Shared_Parser.Table.all)
+                        then "recover disabled"
+                        else "recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result));
+                  begin
+                     if Error.all in Parse_Error then
+                        Parse_Error_Access (Error).Recover_Status := +Msg;
+                     elsif Error.all in In_Parse_Action_Error then
+                        In_Parse_Action_Error_Access (Error).Recover_Status := +Msg;
+                     else
+                        raise SAL.Programmer_Error;
+                     end if;
+                  end;
                end loop;
                raise WisiToken.Syntax_Error;
             end if;
@@ -567,9 +571,9 @@ begin
                         begin
                            loop
                               exit when Cur.Is_Done;
-                              if Cur.Total_Recover_Cost > Max_Recover_Cost then
+                              if Cur.State_Ref.Total_Recover_Cost > Max_Recover_Cost then
                                  Max_Parser       := Cur;
-                                 Max_Recover_Cost := Cur.Total_Recover_Cost;
+                                 Max_Recover_Cost := Cur.State_Ref.Total_Recover_Cost;
                               end if;
                               Cur.Next;
                            end loop;
@@ -683,13 +687,7 @@ when E : others =>
    begin
       if Shared_Parser.Parsers.Count > 0 then
          --  Emacs displays errors in the *syntax-errors* buffer
-         Shared_Parser.Parsers.First_State_Ref.Errors.Append
-           ((Label          => Message,
-             First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
-             Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
-             Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
-             Recover_Cost   => 0,
-             Msg            => +Msg));
+         Shared_Parser.Tree.Set_Error (Shared_Parser.Tree.SOI, new Error_Message'(Msg => +Msg));
       end if;
 
       if Debug_Mode then

@@ -124,14 +124,15 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             Expecting : constant Token_ID_Set := LR.Expecting
               (Shared_Parser.Table.all, Shared_Parser.Tree.State (Current_Parser.Stream));
          begin
-            Parser_State.Errors.Append
-              ((Label          => Parser_Action,
-                First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
-                Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
-                Error_Token    => Parser_State.Current_Token,
-                Expecting      => Expecting,
-                Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
-                Recover_Cost   => 0));
+            Shared_Parser.Tree.Set_Error
+              (Parser_State.Current_Token.Node,
+               Data => new WisiToken.Parse.Parse_Error'
+                 (First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
+                  Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
+                  Expecting      => Expecting,
+                  Recover_Status => Ada.Strings.Unbounded.Null_Unbounded_String,
+                  Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
+                  Recover_Cost   => 0));
 
             if Trace_Parse > Outline then
                Put

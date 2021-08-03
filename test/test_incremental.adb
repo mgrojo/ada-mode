@@ -43,16 +43,18 @@ package body Test_Incremental is
    Edited_Buffer  : Ada.Strings.Unbounded.Unbounded_String;
 
    procedure Parse_Text
-     (Initial      : in String;
-      Edit_At      : in Integer;
-      Delete       : in String;
-      Insert       : in String;
-      Edit_2_At    : in Integer                   := 0;
-      Delete_2     : in String                    := "";
-      Insert_2     : in String                    := "";
-      Lexer_Errors : in Ada.Containers.Count_Type := 0;
-      Parse_Errors : in Boolean                   := False;
-      Label        : in String                    := "")
+     (Initial           : in String;
+      Edit_At           : in Integer;
+      Delete            : in String;
+      Insert            : in String;
+      Edit_2_At         : in Integer                   := 0;
+      Delete_2          : in String                    := "";
+      Insert_2          : in String                    := "";
+      Full_Lexer_Errors : in Ada.Containers.Count_Type := 0;
+      Incr_Lexer_Errors : in Ada.Containers.Count_Type := 0;
+      Full_Parse_Errors : in Ada.Containers.Count_Type := 0;
+      Incr_Parse_Errors : in Ada.Containers.Count_Type := 0;
+      Label             : in String                    := "")
    with Pre => Edit_2_At = 0 or Edit_2_At > Edit_At
    --  If Initial is "", start from existing tree.
    is
@@ -75,6 +77,9 @@ package body Test_Incremental is
 
       KMN_Next_Bytes : Integer := 1;
       KMN_Next_Chars : Integer := 1;
+
+      Full_Error_Count        : Ada.Containers.Count_Type;
+      Incremental_Error_Count : Ada.Containers.Count_Type;
 
       procedure Edit_Text
         (Edit_At : in Integer;
@@ -194,12 +199,13 @@ package body Test_Incremental is
 
          Incremental_Parser.Tree.Lexer.Reset_With_String (Initial);
          Incremental_Parser.Parse (Log_File);
+         Full_Error_Count := Full_Parser.Tree.Error_Count;
 
          if WisiToken.Trace_Tests > WisiToken.Outline then
             Put_Tree (Incremental_Parser);
          end if;
-         Check (Label_Dot & "lexer errors", Incremental_Parser.Wrapped_Lexer_Errors.Length, Full_Lexer_Errors);
-         Check (Label_Dot & "parse errors", Incremental_Parser.Parse_Errors.Length, Full_Parse_Errors);
+         Check (Label_Dot & "full lexer errors", Incremental_Parser.Wrapped_Lexer_Errors.Length, Full_Lexer_Errors);
+         Check (Label_Dot & "full parse errors", Full_Error_Count, Full_Parse_Errors);
       end if;
 
       Incremental_Parser.Tree.Lexer.Reset_With_String (To_String (Edited_Buffer));
@@ -233,28 +239,18 @@ package body Test_Incremental is
       end if;
 
       Incremental_Parser.Parse (Log_File, Edits);
+      Incremental_Error_Count := Incremental_Parser.Tree.Error_Count;
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
          New_Line;
          Put_Line (Label_Dot & "incremental parse result:");
          Put_Tree (Incremental_Parser);
-         if Incremental_Parser.Current_Wrapped_Lexer_Errors.Length > 0 then
-            WisiToken.Parse.Put (Incremental_Parser.Current_Wrapped_Lexer_Errors, Incremental_Parser.Tree);
-         end if;
-         if Incremental_Parser.Wrapped_Lexer_Errors.Length + Incremental_Parser.Current_Parse_Errors.Length > 0 then
-            for Error of Incremental_Parser.Current_Parse_Errors loop
-               Put_Error (Error, Incremental_Parser.Tree, Incremental_Parser.Current_Deleted_Nodes);
-            end loop;
-         end if;
-         if Incremental_Parser.Wrapped_Lexer_Errors.Length + Incremental_Parser.Parse_Errors.Length > 0 then
-            Incremental_Parser.Put_Errors;
-         end if;
       end if;
 
-      Check (Label_Dot & "lexer errors", Incremental_Parser.Wrapped_Lexer_Errors.Length, Lexer_Errors);
-      Check (Label_Dot & "parse errors", Incremental_Parser.Parse_Errors.Length, Parse_Errors);
+      Check (Label_Dot & "incr lexer errors", Incremental_Parser.Wrapped_Lexer_Errors.Length, Incr_Lexer_Errors);
+      Check (Label_Dot & "incr parse errors", Incremental_Error_Count, Incr_Parse_Errors);
       Check (Label_Dot & "tree", Incremental_Parser.Tree, Edited_Source_Full_Parse_Tree,
-             Shared_Stream => False,
+             Shared_Stream         => False,
              Terminal_Node_Numbers => False);
    exception
    when WisiToken.Syntax_Error =>
@@ -663,40 +659,41 @@ package body Test_Incremental is
         (Initial          =>
            "A := 2;" & ASCII.LF &
              --  |6
-             "B := ""A string" & ASCII.LF & -- missing closing quote; lexer error at 14
+             "B := ""A string" & ASCII.LF & -- missing '";'; lexer error at 14
              --  |12      |20
              "C := 1;",
          --   |23
          Edit_At      => 6,
          Delete       => "",
-         Insert       => ASCII.LF & "33",
-         Lexer_Errors => 0,
-         Parse_Errors => False);
+         Insert       => "33",
+         Full_Lexer_Errors => 1,
+         Incr_Lexer_Errors => 0,
+         Full_Parse_Errors => 1,
+         Incr_Parse_Errors => 0);
    end Lexer_Errors_1;
 
    procedure Preserve_Parse_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
-      --  Batch parse reports a parse error (missing ';'). Incremental parse
-      --  does not, but the error is still in Parser.Parse_Errors for the
-      --  user.
+      --  Full parse reports a parse error (missing ';'). Incremental parse
+      --  does not.
       Parse_Text
         (Initial => "A := 2" & ASCII.LF,
          --          |1   |6
 
-         Edit_At            => 2,
-         Delete             => "",
-         Insert             => "3",
-         Batch_Parse_Errors => 1,
-         Inc_Parse_Errors   => 1);
+         Edit_At      => 2,
+         Delete       => "",
+         Insert       => "3",
+         Full_Parse_Errors => 1,
+         Incr_Parse_Errors => 0);
    end Preserve_Parse_Errors_1;
 
    procedure Preserve_Parse_Errors_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
-      --  Batch parse reports a parse error (extra 'end;'). Incremental
+      --  Full parse reports a parse error (extra 'end;'). Incremental
       --  parse fixes the error by editing in a different location. This
       --  demonstrates the need for storing parse errors as nodes in the
       --  syntax tree.
@@ -704,12 +701,12 @@ package body Test_Incremental is
         (Initial => "A := 2; end;" & ASCII.LF,
          --          |1      |9
 
-         Edit_At            => 1,
-         Delete             => "",
-         Insert             => "begin ",
-         Batch_Parse_Errors => 1,
-         Inc_Parse_Errors   => 0);
-   end Preserve_Parse_Errors_1;
+         Edit_At           => 1,
+         Delete            => "",
+         Insert            => "begin ",
+         Full_Parse_Errors => 1,
+         Incr_Parse_Errors => 1);
+   end Preserve_Parse_Errors_2;
 
    procedure Modify_Deleted_Node (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -730,26 +727,25 @@ package body Test_Incremental is
            ASCII.LF,
          --  | 9
 
-         Edit_At          => 9,
-         Delete           => "",
-         Insert           => "-", -- start a comment
-         Inc_Parse_Errors => 1);
+         Edit_At      => 9,
+         Delete       => "",
+         Insert       => "-", -- start a comment
+         Full_Parse_Errors => 1,
+         Incr_Parse_Errors => 8);
 
-      Check ("current deleted count", Incremental_Parser.Current_Deleted_Nodes.Length, 1);
+      Check ("deleted count", Incremental_Parser.Deleted_Nodes.Length, 1);
       Check ("deleted '-'",
              Incremental_Parser.Tree.ID
-               (Incremental_Parser.Current_Deleted_Nodes (Incremental_Parser.Current_Deleted_Nodes.First)),
+               (Incremental_Parser.Deleted_Nodes (Incremental_Parser.Deleted_Nodes.First)),
              +MINUS_ID);
 
-      Check ("persistent deleted count", Incremental_Parser.Deleted_Nodes.Length, 1);
-
       Parse_Text
-        (Label            => "2",
-         Initial          => "",            -- continue from previous
-         Edit_At          => 10,
-         Delete           => "",
-         Insert           => "- a comment", -- finish comment
-         Inc_Parse_Errors => 1);
+        (Label             => "2",
+         Initial           => "",            -- continue from previous
+         Edit_At           => 10,
+         Delete            => "",
+         Insert            => "- a comment", -- finish comment
+         Incr_Parse_Errors => 0);
 
    end Modify_Deleted_Node;
 
@@ -784,6 +780,7 @@ package body Test_Incremental is
       Register_Routine (T, Recover_1'Access, "Recover_1");
       Register_Routine (T, Lexer_Errors_1'Access, "Lexer_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
+      Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
       Register_Routine (T, Modify_Deleted_Node'Access, "Modify_Deleted_Node");
    end Register_Tests;
 
@@ -796,7 +793,7 @@ package body Test_Incremental is
    is begin
       --  Run before all tests in register
       WisiToken.Parse.LR.Parser.New_Parser
-        (Batch_Parser,
+        (Full_Parser,
          Trace'Access,
          Ada_Lite_LR1_T1_Main.Create_Lexer,
          Ada_Lite_LR1_T1_Main.Create_Parse_Table

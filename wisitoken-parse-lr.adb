@@ -460,7 +460,7 @@ package body WisiToken.Parse.LR is
             --  Buffer_Last on newline for Check_New_Line.
             Buffer_Last := Buffer_Last + 1;
          else
-            raise SAL.Programmer_Error with Error_Message
+            raise SAL.Programmer_Error with WisiToken.Error_Message
               (File_Name, 1, Ada.Text_IO.Count (Buffer_Last),
                "expecting semicolon, found '" & Buffer (Buffer_Last) & "'");
          end if;
@@ -481,7 +481,7 @@ package body WisiToken.Parse.LR is
                Buffer_Last := Buffer_Last + 1;
             end if;
          else
-            raise SAL.Programmer_Error with Error_Message
+            raise SAL.Programmer_Error with WisiToken.Error_Message
               (File_Name, 1, Ada.Text_IO.Count (Buffer_Last),
                "expecting new_line, found '" & Buffer (Buffer_Last) & "'");
          end if;
@@ -510,7 +510,7 @@ package body WisiToken.Parse.LR is
       procedure Raise_Gen_Next_Value_Constraint_Error (Name : String; Region : Buffer_Region)
       is begin
          --  Factored out from Gen_Next_Value to make Inline efficient.
-         raise SAL.Programmer_Error with Error_Message
+         raise SAL.Programmer_Error with WisiToken.Error_Message
            (File_Name, 1, Ada.Text_IO.Count (Region.First),
             "expecting " & Name & ", found '" & Buffer (Region.First .. Region.Last) & "'");
       end Raise_Gen_Next_Value_Constraint_Error;
@@ -725,7 +725,7 @@ package body WisiToken.Parse.LR is
       raise;
 
    when E : others =>
-      raise SAL.Programmer_Error with Error_Message
+      raise SAL.Programmer_Error with WisiToken.Error_Message
         (File_Name, 1, Ada.Text_IO.Count (Buffer_Last),
          Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    end Get_Text_Rep;

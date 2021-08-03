@@ -23,6 +23,7 @@ with WisiToken.BNF;
 with WisiToken.Syntax_Trees;
 with Wisitoken_Grammar_Actions;
 package WisiToken_Grammar_Runtime is
+   use all type WisiToken.Syntax_Trees.Node_Access;
    use all type Wisitoken_Grammar_Actions.Token_Enum_ID;
 
    type Meta_Syntax is (Unknown, BNF_Syntax, EBNF_Syntax);
@@ -158,14 +159,16 @@ package WisiToken_Grammar_Runtime is
       Tree_Index          : in WisiToken.Syntax_Trees.Node_Access;
       Strip_Quotes        : in Boolean := False)
      return String;
+   --  If Tree_Index = Invalid_Node_Access, returns "<deleted child>".
    function Get_Text
      (Data         : in User_Data_Type;
       Tree         : in WisiToken.Syntax_Trees.Tree;
       Tree_Index   : in WisiToken.Syntax_Trees.Valid_Node_Access;
       Strip_Quotes : in Boolean := False)
      return String;
-   --  Return source text for Tree_Index. This fetches each token
-   --  separately, without the non-grammar text.
+   --  Return source text for Tree_Index.
+   --
+   --  This fetches each token separately, without the non-grammar text.
 
    function Get_Item_Text
      (Data         : in User_Data_Type;

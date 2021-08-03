@@ -164,7 +164,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       Trace  : WisiToken.Trace'Class renames Super.Trace.all;
       Config : Configuration;
-      Error  : Parse_Error renames Parser_State.Errors (Parser_State.Errors.Last);
+      Error  : constant Syntax_Trees.Error_Data_Access := Super.Tree.Error (Parser_State.Current_Error_Node);
    begin
       Parser_State.Recover.Enqueue_Count := @ + 1;
 
@@ -189,12 +189,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
               " Current_Token " & Super.Tree.Image (Parser_State.Current_Token) &
               " Resume_Token_Goal" & Config.Resume_Token_Goal'Image);
          Trace.Put_Line
-           ((case Error.Label is
-             when Parser_Action => "Parser_Action",
-             when User_Action => "User_Action, " &
-               Super.Tree.Image (Super.Tree.Stack_Top (Parser_State.Stream)) & " " &
-               In_Parse_Actions.Image (Error.Status, Super.Tree.all),
-             when Message => raise SAL.Programmer_Error));
+           (if Error.all in Parse_Error
+            then "Parser_Action"
+            elsif Error.all in In_Parse_Action_Error
+            then "In_Parse_Action, " &
+              Super.Tree.Image (Super.Tree.Stack_Top (Parser_State.Stream)) & " " &
+              Error.Image (Super.Tree.all, Parser_State.Current_Token.Node)
+            else raise SAL.Programmer_Error);
          if Trace_McKenzie > Detail then
             Trace.Put_Line ("parse stream:");
             Trace.Put_Line
@@ -212,15 +213,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  here). Therefore Parser_State current token is in
       --  Parser_State.Shared_Token.
 
-      case Error.Label is
-      when Parser_Action =>
-         Config.Error_Token := Super.Tree.Get_Recover_Token (Error.Error_Token);
+      if Error.all in Parse_Error then
+         Config.Error_Token := Super.Tree.Get_Recover_Token (Parser_State.Current_Error_Node);
 
          if Trace_McKenzie > Detail then
             Put ("enqueue", Trace, Super.Tree.all, Parser_State.Stream, Config, Task_ID => False);
          end if;
 
-      when User_Action =>
+      elsif Error.all in In_Parse_Action_Error then
          if Shared.Language_Fixes = null then
             --  The only fix is to ignore the error.
             if Trace_McKenzie > Detail then
@@ -236,12 +236,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
             --  Undo_Reduce can be invalid here; see ada-mode/test/ada_mode-recover_27.adb
             if Undo_Reduce_Valid (Super, Config) then
-               Config.User_Action_Status := Error.Status;
-               Config.Error_Token              := Config.Stack.Peek.Token;
+               Config.In_Parse_Action_Status := In_Parse_Action_Error_Access (Error).Status;
+               Config.Error_Token            := Config.Stack.Peek.Token;
 
                Unchecked_Undo_Reduce (Super, Shared.Table.all, Config);
 
-               Config.User_Action_Token_Count := Element (Config.Ops, Last_Index (Config.Ops)).Token_Count;
+               Config.In_Parse_Action_Token_Count := Element (Config.Ops, Last_Index (Config.Ops)).Token_Count;
 
                if Trace_McKenzie > Detail then
                   Put
@@ -259,11 +259,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             end if;
          end if;
 
-      when Message =>
-         --  Last error entry should be the failure that caused us to enter
-         --  recovery.
+      else
          raise SAL.Programmer_Error;
-      end case;
+      end if;
 
       Parser_State.Recover.Config_Heap.Add (Config);
    end Recover_Init;
@@ -470,17 +468,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Data   : McKenzie_Data renames Parser_State.Recover;
                      Result : Configuration renames Data.Results.Peek;
 
-                     Error     : Parse_Error renames Parser_State.Errors (Parser_State.Errors.Last);
-                     Error_Pos : constant Buffer_Pos :=
-                       (case Error.Label is
-                        when Parser_Action   => Tree.Char_Region (Error.Error_Token.Node).First,
-                        when User_Action =>
-                          (if Tree.Name (Error.Status.Begin_Name).First /= Invalid_Buffer_Pos
-                           then Tree.Name (Error.Status.Begin_Name).First
-                           elsif Tree.Name (Error.Status.End_Name).First /= Invalid_Buffer_Pos
-                           then Tree.Name (Error.Status.End_Name).First
-                           else Buffer_Pos'First),
-                        when Message           => raise SAL.Programmer_Error);
+                     Error : constant Error_Data_Access := Tree.Error (Parser_State.Current_Error_Node);
+
+                     Error_Pos : constant Buffer_Pos := Tree.Char_Region (Parser_State.Current_Error_Node).First;
 
                      Stack_Matches_Ops : Boolean := True;
                      First_Insert      : Boolean := True;
@@ -491,8 +481,21 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      --  parser recovered from the error.
                      Parser_State.Set_Verb (Shift);
 
-                     Parser_State.Errors (Parser_State.Errors.Last).Recover_Ops  := Result.Ops;
-                     Parser_State.Errors (Parser_State.Errors.Last).Recover_Cost := Result.Cost;
+                     if Error.all in Parse_Error then
+                        Parse_Error_Access (Error).Recover_Ops  := Result.Ops;
+                        Parse_Error_Access (Error).Recover_Cost := Result.Cost;
+
+                     elsif Error.all in In_Parse_Action_Error then
+                        In_Parse_Action_Error_Access (Error).Recover_Ops  := Result.Ops;
+                        In_Parse_Action_Error_Access (Error).Recover_Cost := Result.Cost;
+
+                     else
+                        raise SAL.Programmer_Error;
+                     end if;
+
+                     Parser_State.Total_Recover_Cost := @ + Result.Cost;
+                     Parser_State.Max_Recover_Ops_Length := Ada.Containers.Count_Type'Max
+                       (@, Length (Result.Ops));
 
                      Parser_State.Resume_Token_Goal := Result.Resume_Token_Goal;
 
@@ -717,6 +720,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                     Op.Del_Node := Deleted_Ref.Node;
                                     Tree.Last_Terminal (Prev_Ref);
                                     Op.Del_After_Node := Prev_Ref.Ref.Node;
+                                    Tree.Add_Deleted
+                                      (Deleted_Node  => Deleted_Ref.Node,
+                                       Prev_Terminal => Prev_Ref.Ref.Node);
                                  end;
 
                                  Next_Token (Parser_State, Tree, Set_Current => True, Delete => True);
@@ -1412,8 +1418,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       else
          Result := Result & ", ";
       end if;
-      if Config.User_Action_Status.Label /= Ok then
-         Result := Result & In_Parse_Actions.Status_Label'Image (Config.User_Action_Status.Label) & " ";
+      if Config.In_Parse_Action_Status.Label /= Ok then
+         Result := Result & In_Parse_Actions.Status_Label'Image (Config.In_Parse_Action_Status.Label) & " ";
       elsif Tree.ID (Config.Error_Token) /= Invalid_Token_ID then
          Result := Result & "Error " & Syntax_Trees.Image (Tree, Config.Error_Token) & " ";
       end if;

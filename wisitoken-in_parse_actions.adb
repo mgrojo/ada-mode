@@ -21,7 +21,11 @@ with Ada.Characters.Handling;
 with WisiToken.Lexer;
 package body WisiToken.In_Parse_Actions is
 
-   function Image (Item : in Status; Tree : in Syntax_Trees.Tree) return String
+   function Image
+     (Item       : in Status;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String
    is
       use WisiToken.Syntax_Trees;
    begin
@@ -29,11 +33,14 @@ package body WisiToken.In_Parse_Actions is
       when Ok =>
          return Status_Label'Image (Item.Label);
       when Error =>
-         return '(' & Status_Label'Image (Item.Label) & ", " &
-           Tree.Image (Item.Begin_Name) &
-           "'" & Tree.Lexer.Buffer_Text (Tree.Byte_Region (Item.Begin_Name)) & "'," &
-           Syntax_Trees.Image (Tree, Item.End_Name) &
-           "'" & Tree.Lexer.Buffer_Text (Tree.Byte_Region (Item.End_Name)) & "')";
+         declare
+            Begin_Node : constant Valid_Node_Access := Tree.Child (Error_Node, Item.Begin_Name);
+            End_Node   : constant Valid_Node_Access := Tree.Child (Error_Node, Item.End_Name);
+         begin
+            return '(' & Status_Label'Image (Item.Label) & ", " &
+              Tree.Image (Begin_Node) & "'" & Tree.Lexer.Buffer_Text (Tree.Byte_Region (Begin_Node)) & "'," &
+              Tree.Image (End_Node) & "'" & Tree.Lexer.Buffer_Text (Tree.Byte_Region (End_Node)) & "')";
+         end;
       end case;
    end Image;
 
@@ -76,13 +83,14 @@ package body WisiToken.In_Parse_Actions is
          if End_Optional then
             if End_Name_Region = Null_Buffer_Region then
                return (Label => Ok);
+
             elsif Start_Name_Region = Null_Buffer_Region then
-               return (Extra_Name_Error, Tokens (Start_Index), Tokens (End_Index));
+               return (Extra_Name_Error, Start_Index, End_Index);
             else
                if Equal then
                   return (Label => Ok);
                else
-                  return (Match_Names_Error, Tokens (Start_Index), Tokens (End_Index));
+                  return (Match_Names_Error, Start_Index, End_Index);
                end if;
             end if;
 
@@ -91,17 +99,17 @@ package body WisiToken.In_Parse_Actions is
                if End_Name_Region = Null_Buffer_Region then
                   return (Label => Ok);
                else
-                  return (Extra_Name_Error, Tokens (Start_Index), Tokens (End_Index));
+                  return (Extra_Name_Error, Start_Index, End_Index);
                end if;
 
             elsif End_Name_Region = Null_Buffer_Region then
-               return (Missing_Name_Error, Tokens (Start_Index), Tokens (End_Index));
+               return (Missing_Name_Error, Start_Index, End_Index);
 
             else
                if Equal then
                   return (Label => Ok);
                else
-                  return (Match_Names_Error, Tokens (Start_Index), Tokens (End_Index));
+                  return (Match_Names_Error, Start_Index, End_Index);
                end if;
             end if;
          end if;

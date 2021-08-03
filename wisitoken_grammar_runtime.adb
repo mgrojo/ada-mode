@@ -30,73 +30,6 @@ package body WisiToken_Grammar_Runtime is
    --  Body subprograms, misc order
 
    function Get_Text
-     (Virtual_Identifiers : in WisiToken.BNF.String_Arrays.Vector;
-      Tree                : in WisiToken.Syntax_Trees.Tree;
-      Tree_Index          : in WisiToken.Syntax_Trees.Node_Access;
-      Strip_Quotes        : in Boolean := False)
-     return String
-   is
-      use all type WisiToken.Syntax_Trees.Node_Access;
-      use all type Syntax_Trees.Node_Label;
-
-      function Strip_Delimiters (Tree_Index : in Syntax_Trees.Valid_Node_Access) return String
-      is
-         Region : Buffer_Region renames Tree.Byte_Region (Tree_Index);
-      begin
-         if -Tree.ID (Tree_Index) in RAW_CODE_ID | REGEXP_ID | ACTION_ID then
-            --  Strip delimiters. We don't strip leading/trailing spaces to preserve indent.
-            return Tree.Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
-
-         elsif -Tree.ID (Tree_Index) in STRING_LITERAL_1_ID | STRING_LITERAL_2_ID and Strip_Quotes then
-            return Tree.Lexer.Buffer_Text ((Region.First + 1, Region.Last - 1));
-         else
-            return Tree.Lexer.Buffer_Text (Region);
-         end if;
-      end Strip_Delimiters;
-
-   begin
-      if Tree_Index = Syntax_Trees.Invalid_Node_Access then
-         return "<deleted child>";
-      end if;
-
-      case Tree.Label (Tree_Index) is
-      when Source_Terminal =>
-         return Strip_Delimiters (Tree_Index);
-
-      when Virtual_Terminal =>
-         --  Terminal keyword inserted during tree edit. We could check for
-         --  Identifier, but that will be caught later.
-         return Image (Tree.ID (Tree_Index), Wisitoken_Grammar_Actions.Descriptor);
-
-      when Virtual_Identifier =>
-         if Strip_Quotes then
-            declare
-               Quoted : constant String := -Virtual_Identifiers (Tree.Identifier (Tree_Index));
-            begin
-               return Quoted (Quoted'First + 1 .. Quoted'Last - 1);
-            end;
-         else
-            return -Virtual_Identifiers (Tree.Identifier (Tree_Index));
-         end if;
-
-      when Nonterm =>
-         declare
-            use all type Ada.Strings.Unbounded.Unbounded_String;
-            Result       : Ada.Strings.Unbounded.Unbounded_String;
-            Tree_Indices : constant Syntax_Trees.Valid_Node_Access_Array := Tree.Get_Terminals (Tree_Index);
-            Need_Space   : Boolean                                      := False;
-         begin
-            for Tree_Index of Tree_Indices loop
-               Result := Result & (if Need_Space then " " else "") &
-                 Get_Text (Virtual_Identifiers, Tree, Tree_Index, Strip_Quotes);
-               Need_Space := True;
-            end loop;
-            return -Result;
-         end;
-      end case;
-   end Get_Text;
-
-   function Get_Text
      (Data         : in User_Data_Type;
       Tree         : in Syntax_Trees.Tree;
       Tree_Index   : in WisiToken.Syntax_Trees.Valid_Node_Access;
@@ -999,5 +932,71 @@ package body WisiToken_Grammar_Runtime is
            ("untranslated EBNF node", Tree, Tree.Parent (Tree.Child (Nonterm, Token)));
       end case;
    end Check_EBNF;
+
+   function Get_Text
+     (Virtual_Identifiers : in WisiToken.BNF.String_Arrays.Vector;
+      Tree                : in WisiToken.Syntax_Trees.Tree;
+      Tree_Index          : in WisiToken.Syntax_Trees.Node_Access;
+      Strip_Quotes        : in Boolean := False)
+     return String
+   is
+      use all type Syntax_Trees.Node_Label;
+
+      function Strip_Delimiters (Tree_Index : in Syntax_Trees.Valid_Node_Access) return String
+      is
+         Region : Buffer_Region renames Tree.Byte_Region (Tree_Index);
+      begin
+         if -Tree.ID (Tree_Index) in RAW_CODE_ID | REGEXP_ID | ACTION_ID then
+            --  Strip delimiters. We don't strip leading/trailing spaces to preserve indent.
+            return Tree.Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
+
+         elsif -Tree.ID (Tree_Index) in STRING_LITERAL_1_ID | STRING_LITERAL_2_ID and Strip_Quotes then
+            return Tree.Lexer.Buffer_Text ((Region.First + 1, Region.Last - 1));
+         else
+            return Tree.Lexer.Buffer_Text (Region);
+         end if;
+      end Strip_Delimiters;
+
+   begin
+      if Tree_Index = Syntax_Trees.Invalid_Node_Access then
+         return "<deleted child>";
+      end if;
+
+      case Tree.Label (Tree_Index) is
+      when Source_Terminal =>
+         return Strip_Delimiters (Tree_Index);
+
+      when Virtual_Terminal =>
+         --  Terminal keyword inserted during tree edit. We could check for
+         --  Identifier, but that will be caught later.
+         return Image (Tree.ID (Tree_Index), Wisitoken_Grammar_Actions.Descriptor);
+
+      when Virtual_Identifier =>
+         if Strip_Quotes then
+            declare
+               Quoted : constant String := -Virtual_Identifiers (Tree.Identifier (Tree_Index));
+            begin
+               return Quoted (Quoted'First + 1 .. Quoted'Last - 1);
+            end;
+         else
+            return -Virtual_Identifiers (Tree.Identifier (Tree_Index));
+         end if;
+
+      when Nonterm =>
+         declare
+            use all type Ada.Strings.Unbounded.Unbounded_String;
+            Result       : Ada.Strings.Unbounded.Unbounded_String;
+            Tree_Indices : constant Syntax_Trees.Valid_Node_Access_Array := Tree.Get_Terminals (Tree_Index);
+            Need_Space   : Boolean                                      := False;
+         begin
+            for Tree_Index of Tree_Indices loop
+               Result := Result & (if Need_Space then " " else "") &
+                 Get_Text (Virtual_Identifiers, Tree, Tree_Index, Strip_Quotes);
+               Need_Space := True;
+            end loop;
+            return -Result;
+         end;
+      end case;
+   end Get_Text;
 
 end WisiToken_Grammar_Runtime;

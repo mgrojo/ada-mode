@@ -233,31 +233,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return Parser_State_Lists.Constant_Ref (Cursor.Ptr).Stream;
    end Stream;
 
-   function Total_Recover_Cost (Cursor : in Parser_Lists.Cursor) return Integer
-   is
-      Result : Integer := 0;
-   begin
-      for Error of Parser_State_Lists.Constant_Ref (Cursor.Ptr).Errors loop
-         Result := Error.Recover_Cost;
-      end loop;
-      return Result;
-   end Total_Recover_Cost;
-
-   function Max_Recover_Ops_Length (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type
-   is
-      use Ada.Containers;
-      use Recover_Op_Arrays;
-      Result : Count_Type := 0;
-      Errors : Parse_Error_Lists.List renames Parser_State_Lists.Constant_Ref (Cursor.Ptr).Errors;
-   begin
-      for Error of Errors loop
-         if Length (Error.Recover_Ops) > Result then
-            Result := Length (Error.Recover_Ops);
-         end if;
-      end loop;
-      return Result;
-   end Max_Recover_Ops_Length;
-
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs)
    is begin
       Parser_State_Lists.Variable_Ref (Cursor.Ptr).Verb := Verb;
@@ -365,13 +340,13 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Another_Stream : constant Syntax_Trees.Stream_ID := Other.Stream;
             Msg : Unbounded_String;
          begin
-            if Other.Total_Recover_Cost = Current.Total_Recover_Cost then
-               if Other.Max_Recover_Ops_Length = Current.Max_Recover_Ops_Length then
+            if Other.State_Ref.Total_Recover_Cost = Current.State_Ref.Total_Recover_Cost then
+               if Other.State_Ref.Max_Recover_Ops_Length = Current.State_Ref.Max_Recover_Ops_Length then
                   Append (Msg, ": random");
                else
                   Append (Msg, ": ops length");
                   --  Keep the minimum ops length
-                  if Other.Max_Recover_Ops_Length > Current.Max_Recover_Ops_Length then
+                  if Other.State_Ref.Max_Recover_Ops_Length > Current.State_Ref.Max_Recover_Ops_Length then
                      null;
                   else
                      Other := Cursor (Current);
@@ -380,7 +355,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
                end if;
             else
                Append (Msg, ": cost");
-               if Other.Total_Recover_Cost > Current.Total_Recover_Cost then
+               if Other.State_Ref.Total_Recover_Cost > Current.State_Ref.Total_Recover_Cost then
                   null;
                else
                   Other := Cursor (Current);
@@ -438,17 +413,20 @@ package body WisiToken.Parse.LR.Parser_Lists is
                then Item.Current_Token
                else Syntax_Trees.Invalid_Stream_Node_Ref), --  corrected below.
             Inc_Shared_Stream_Token => Item.Inc_Shared_Stream_Token,
+            Current_Error_Node      => Item.Current_Error_Node,
             Recover                 =>
               (Enqueue_Count        => Item.Recover.Enqueue_Count,
                Config_Full_Count    => Item.Recover.Config_Full_Count,
                Check_Count          => Item.Recover.Check_Count,
                others               => <>),
+            Total_Recover_Cost      => Item.Total_Recover_Cost,
+            Max_Recover_Ops_Length  => Item.Max_Recover_Ops_Length,
+            Error_Count             => Item.Error_Count,
             Resume_Active           => Item.Resume_Active,
             Resume_Token_Goal       => Item.Resume_Token_Goal,
             Conflict_During_Resume  => Item.Conflict_During_Resume,
             Zombie_Token_Count      => 0,
             Last_Action             => Item.Last_Action,
-            Errors                  => Item.Errors,
             Stream                  => Tree.New_Stream (Item.Stream, User_Data),
             Verb                    => Item.Verb);
 

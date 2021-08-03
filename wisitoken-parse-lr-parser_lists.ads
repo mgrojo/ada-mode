@@ -78,7 +78,13 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  when it moves a nonterm from Shared_Stream to the parse stream for
       --  breakdown, to be consistent with error recovery.
 
+      Current_Error_Node : Syntax_Trees.Node_Access;
+
       Recover : aliased LR.McKenzie_Data := (others => <>);
+
+      Total_Recover_Cost     : Integer                   := 0;
+      Max_Recover_Ops_Length : Ada.Containers.Count_Type := 0;
+      Error_Count            : Integer                   := 0;
 
       Zombie_Token_Count : Integer := 0;
       --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
@@ -93,8 +99,6 @@ package WisiToken.Parse.LR.Parser_Lists is
       Conflict_During_Resume : Boolean := False;
 
       Last_Action : Parse_Action_Rec := (others => <>);
-
-      Errors : Parse_Error_Lists.List;
    end record;
 
    type Parser_State is new Base_Parser_State with private;
@@ -155,8 +159,6 @@ package WisiToken.Parse.LR.Parser_Lists is
    function Is_Done (Cursor : in Parser_Lists.Cursor) return Boolean;
    function Has_Element (Cursor : in Parser_Lists.Cursor) return Boolean is (not Is_Done (Cursor));
    function Stream (Cursor : in Parser_Lists.Cursor) return Syntax_Trees.Stream_ID;
-   function Total_Recover_Cost (Cursor : in Parser_Lists.Cursor) return Integer;
-   function Max_Recover_Ops_Length (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type;
 
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs);
    function Verb (Cursor : in Parser_Lists.Cursor) return All_Parse_Action_Verbs;

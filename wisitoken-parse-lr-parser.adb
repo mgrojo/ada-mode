@@ -82,7 +82,8 @@ package body WisiToken.Parse.LR.Parser is
               (Shared_Parser.Tree, Nonterm_Token, Children_Token, Recover_Active => False);
 
             if Trace_Parse > Detail then
-               Shared_Parser.Trace.Put_Line ("semantic check " & In_Parse_Actions.Image (Status, Shared_Parser.Tree));
+               Shared_Parser.Trace.Put_Line
+                 ("in_parse_action " & In_Parse_Actions.Image (Status, Shared_Parser.Tree, Nonterm.Node));
             end if;
 
             case Status.Label is
@@ -95,13 +96,15 @@ package body WisiToken.Parse.LR.Parser is
                   return Ok;
 
                else
-                  Parser_State.Errors.Append
-                    ((Label          => User_Action,
-                      First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
-                      Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
-                      Status         => Status,
-                      Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
-                      Recover_Cost   => 0));
+                  Parser_State.Current_Error_Node := Nonterm.Node;
+
+                  Shared_Parser.Tree.Set_Error
+                    (Nonterm.Node,
+                     new In_Parse_Action_Error'
+                       (Status         => Status,
+                        Recover_Status => Ada.Strings.Unbounded.Null_Unbounded_String,
+                        Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
+                        Recover_Cost   => 0));
                   return Status.Label;
                end if;
             end case;
@@ -115,7 +118,7 @@ package body WisiToken.Parse.LR.Parser is
       Action_Cur    :    out Parse_Action_Node_Ptr;
       Action        :    out Parse_Action_Rec)
    is
-      --  Same logic as in McKensie_Recover.Parse.Get_Action, but this
+      --  Same logic as in McKenzie_Recover.Parse.Get_Action, but this
       --  operates on Parser_State.
       use Syntax_Trees;
 
@@ -301,14 +304,15 @@ package body WisiToken.Parse.LR.Parser is
                --  lalr_generator_bug_01.wy); we treat it as a syntax error.
                Parser_State.Set_Verb (Error);
 
-               Parser_State.Errors.Append
-                 ((Label          => Parser_Action,
-                   First_Terminal => 1,
-                   Last_Terminal  => 0,
-                   Error_Token    => Parser_State.Current_Token,
-                   Expecting      => (1 .. 0 => False),
-                   Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
-                   Recover_Cost   => 0));
+               Shared_Parser.Tree.Set_Error
+                 (Parser_State.Current_Token.Node,
+                  new Parse_Error'
+                    (First_Terminal => 1,
+                     Last_Terminal  => 0,
+                     Expecting      => (1 .. 0 => False),
+                     Recover_Status => Ada.Strings.Unbounded.Null_Unbounded_String,
+                     Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
+                     Recover_Cost   => 0));
 
                if Trace_Parse > Detail then
                   Trace.Put_Line (" ... error unknown state");
@@ -397,6 +401,7 @@ package body WisiToken.Parse.LR.Parser is
 
       when Error =>
          Parser_State.Set_Verb (Action.Verb);
+         Parser_State.Error_Count := @ + 1;
 
          Parser_State.Zombie_Token_Count := 1;
 
@@ -404,18 +409,18 @@ package body WisiToken.Parse.LR.Parser is
             Expecting : constant Token_ID_Set := LR.Expecting
               (Shared_Parser.Table.all, Shared_Parser.Tree.State (Parser_State.Stream));
          begin
-            Parser_State.Errors.Append
-              ((Label          => Parser_Action,
-                First_Terminal => Expecting'First,
-                Last_Terminal  => Expecting'Last,
+            Parser_State.Current_Error_Node := Shared_Parser.Tree.First_Terminal_In_Node
+              (Parser_State.Current_Token).Node;
 
-                Error_Token => Shared_Parser.Tree.First_Terminal_In_Node (Parser_State.Current_Token),
-                --  Current_Token is never an empty nonterm; it would be broken down
-                --  to nothing if it was not shiftable.
-
-                Expecting    => Expecting,
-                Recover_Ops  => Recover_Op_Arrays.Empty_Vector,
-                Recover_Cost => 0));
+            Shared_Parser.Tree.Set_Error
+              (Parser_State.Current_Error_Node,
+               new Parse_Error'
+                 (First_Terminal => Expecting'First,
+                  Last_Terminal  => Expecting'Last,
+                  Expecting      => Expecting,
+                  Recover_Status => Ada.Strings.Unbounded.Null_Unbounded_String,
+                  Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
+                  Recover_Cost   => 0));
 
             if Trace_Parse > Outline then
                if Trace_Parse <= Detail then
@@ -476,6 +481,9 @@ package body WisiToken.Parse.LR.Parser is
                      begin
                         Tree.Last_Terminal (Ref);
                         Op.Del_After_Node := Ref.Ref.Node;
+                        Tree.Add_Deleted
+                          (Deleted_Node  => Terminal.Node,
+                           Prev_Terminal => Ref.Ref.Node);
                      end;
 
                      Ins_Del_Cur := Ins_Del_Cur + 1;
@@ -691,13 +699,9 @@ package body WisiToken.Parse.LR.Parser is
    is
       procedure Report_Error
       is begin
-         Shared_Parser.Parsers.First_State_Ref.Errors.Append
-           ((Label          => Message,
-             First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
-             Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
-             Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
-             Recover_Cost   => 0,
-             Msg            => +"error during resume"));
+         Shared_Parser.Tree.Set_Error
+           (Check_Parser.State_Ref.Current_Error_Node,
+            new Error_Message'(Msg => +"error during resume"));
          if Debug_Mode then
             raise SAL.Programmer_Error with Shared_Parser.Tree.Trimmed_Image (Check_Parser.Stream) &
               ": error during resume";
@@ -769,27 +773,6 @@ package body WisiToken.Parse.LR.Parser is
       declare
          Keep_Nodes : Valid_Node_Access_Lists.List;
       begin
-         for Error of Parser_State.Errors loop
-            case Error.Label is
-            when Parser_Action =>
-               Error.Error_Token.Stream  := Invalid_Stream_ID;
-               Error.Error_Token.Element := Invalid_Stream_Index;
-
-               Keep_Nodes.Append (Error.Error_Token.Node);
-            when User_Action =>
-               if not Error.Status.Begin_Name.Virtual then
-                  Keep_Nodes.Append (Error.Status.Begin_Name.Node);
-               end if;
-               if not Error.Status.End_Name.Virtual then
-                  Keep_Nodes.Append (Error.Status.End_Name.Node);
-               end if;
-            when Message =>
-               null;
-            end case;
-
-            Parser.Parse_Errors.Insert (Error, Parser.Tree);
-         end loop;
-
          for Op of Parser_State.Recover_Insert_Delete loop
             if Op.Op = Delete then
                Parser.Deleted_Nodes.Append (Op.Del_Node);

@@ -17,14 +17,11 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Finalization;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
-with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted;
-with SAL.Gen_Indefinite_Doubly_Linked_Lists_Sorted_Aux;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
@@ -174,43 +171,53 @@ package WisiToken.Parse is
    --  True if Ops contains no Op after the last Fast_Forward (or ops.first, if
    --  no Fast_Forward).
 
-   type Parse_Error_Label is (Parser_Action, User_Action, Message);
-
    type Parse_Error
-     (Label          : Parse_Error_Label;
-      First_Terminal : Token_ID;
+     (First_Terminal : Token_ID;
       Last_Terminal  : Token_ID)
-   is record
+   is new Syntax_Trees.Error_Data with record
+      Expecting    : Token_ID_Set (First_Terminal .. Last_Terminal);
+      Recover_Status : Ada.Strings.Unbounded.Unbounded_String;
       Recover_Ops  : Recover_Op_Arrays.Vector;
       Recover_Cost : Natural := 0;
-
-      case Label is
-      when Parser_Action =>
-         Error_Token : Syntax_Trees.Terminal_Ref;
-
-         Expecting : Token_ID_Set (First_Terminal .. Last_Terminal);
-
-      when User_Action =>
-         Status : WisiToken.In_Parse_Actions.Status;
-
-      when Message =>
-         Msg : Ada.Strings.Unbounded.Unbounded_String;
-      end case;
    end record;
+   type Parse_Error_Access is access all Parse_Error;
 
-   package Parse_Error_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Parse_Error);
+   overriding function Copy (Data : in Parse_Error) return Syntax_Trees.Error_Data_Access;
 
-   function Compare
-     (Left, Right : in Parse_Error;
-      Tree        : in Syntax_Trees.Tree)
-     return SAL.Compare_Result;
-   --  Error_Token byte_position or Status.Begin_Name byte_position
-   --  order. All Messages are last, in no order.
+   overriding function Image
+     (Data       : in Parse_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String;
 
-   package Parse_Error_Sorted_Lists is new SAL.Gen_Indefinite_Doubly_Linked_Lists_Sorted_Aux
-     (Element_Type    => Parse_Error,
-      Compare_Aux     => Syntax_Trees.Tree,
-      Element_Compare => Compare);
+   type In_Parse_Action_Error is new Syntax_Trees.Error_Data with record
+      Status         : WisiToken.In_Parse_Actions.Status;
+      Recover_Status : Ada.Strings.Unbounded.Unbounded_String;
+      Recover_Ops    : Recover_Op_Arrays.Vector;
+      Recover_Cost   : Natural := 0;
+   end record;
+   type In_Parse_Action_Error_Access is access all In_Parse_Action_Error;
+
+   overriding function Copy (Data : in In_Parse_Action_Error) return Syntax_Trees.Error_Data_Access;
+
+   overriding function Image
+     (Data       : in In_Parse_Action_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String;
+
+   type Error_Message is new Syntax_Trees.Error_Data with record
+      Msg : Ada.Strings.Unbounded.Unbounded_String;
+   end record;
+   type Error_Message_Access is access all Error_Message;
+
+   overriding function Copy (Data : in Error_Message) return Syntax_Trees.Error_Data_Access;
+
+   overriding function Image
+     (Data       : in Error_Message;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String;
 
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled
    with record
@@ -219,15 +226,13 @@ package WisiToken.Parse is
       User_Data : WisiToken.Syntax_Trees.User_Data_Access;
 
       Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List; -- 'aliased' for error recover
-      Parse_Errors         : Parse_Error_Sorted_Lists.List;
-      --  Persistent lists; after each incremental parse, these reflects all
-      --  errors in the source text, not just those from the most recent
-      --  incremental parse.
+                                                                     --  FIXME: move into Tree.
 
       Deleted_Nodes : WisiToken.Syntax_Trees.Valid_Node_Access_Lists.List;
       --  Source_Terminal nodes deleted by error recovery in previous parse,
       --  in original text order. Restored to the shared stream by
       --  Edit_Tree.
+      --  FIXME: move into Tree (after finish moving errors)
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 
@@ -326,20 +331,15 @@ package WisiToken.Parse is
    --  message.
 
    procedure Put_Error
-     (Item          : in Parse_Error;
-      Tree          : in Syntax_Trees.Tree;
-      Deleted_Nodes : in Syntax_Trees.Valid_Node_Access_Lists.List;
-      Stream        : in Syntax_Trees.Stream_ID := Syntax_Trees.Invalid_Stream_ID);
+     (Error : in Syntax_Trees.Error_Ref;
+      Tree  : in Syntax_Trees.Tree);
    --  Output to Ada.Text_IO.Current_Error.
    --
    --  Stream may be Invalid_Stream_ID if Tree is Editable (as it
-   --  normally is after Parse returns); it must be the parse stream if
+   --  normally is after Parse returns); FIXME: it must be the parse stream if
    --  parse is still in progress.
 
    procedure Put (Errors : in Wrapped_Lexer_Error_Lists.List; Tree : in Syntax_Trees.Tree);
-   --  Output to Ada.Text_IO.Current_Error.
-
-   procedure Put (Errors : in Wrapped_Lexer_Error_Sorted_Lists.List; Tree : in Syntax_Trees.Tree);
    --  Output to Ada.Text_IO.Current_Error.
 
    procedure Put_Errors (Parser : in Base_Parser'Class);
