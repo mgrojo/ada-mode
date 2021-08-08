@@ -94,11 +94,6 @@ package WisiToken.Parse.LR.Parser is
       Partial_Parse_Active    : access Boolean;
       Partial_Parse_Byte_Goal : access WisiToken.Buffer_Pos;
       --  Used by In_Parse_Actions to terminate Partial_Parse.
-
-      Min_Sequential_Index : Syntax_Trees.Stream_Node_Parents := Syntax_Trees.Invalid_Stream_Node_Parents;
-      Max_Sequential_Index : Syntax_Trees.Stream_Node_Parents := Syntax_Trees.Invalid_Stream_Node_Parents;
-      --  Copied from Supervisor for McKenzie_Recover.Clear_Sequential_Index
-
    end record;
 
    overriding procedure Finalize (Object : in out LR.Parser.Parser);

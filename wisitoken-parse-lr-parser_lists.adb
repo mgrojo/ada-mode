@@ -426,6 +426,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Resume_Token_Goal       => Item.Resume_Token_Goal,
             Conflict_During_Resume  => Item.Conflict_During_Resume,
             Zombie_Token_Count      => 0,
+            Max_Sequential_Index    => Item.Max_Sequential_Index,
             Last_Action             => Item.Last_Action,
             Stream                  => Tree.New_Stream (Item.Stream, User_Data),
             Verb                    => Item.Verb);

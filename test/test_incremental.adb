@@ -151,6 +151,7 @@ package body Test_Incremental is
       procedure Put_Tree (Parser : in WisiToken.Parse.LR.Parser.Parser)
       is begin
          Parser.Put_Errors;
+         New_Line;
          Put_Line (Label_Dot & " ... tree:");
          Parser.Tree.Print_Tree (Trace, Non_Grammar => True);
       end Put_Tree;
@@ -653,7 +654,7 @@ package body Test_Incremental is
    begin
       --  Missing string quote. Initial full parse recovers from it,
       --  incremental edit does not fix it, and incremental parse does not
-      --  report it. This demonstrates that lexer errors do not need to be
+      --  encounter it. This demonstrates that lexer errors do not need to be
       --  preserved for incremental parse.
       Parse_Text
         (Initial          =>
@@ -669,7 +670,7 @@ package body Test_Incremental is
          Full_Lexer_Errors => 1,
          Incr_Lexer_Errors => 0,
          Full_Parse_Errors => 1,
-         Incr_Parse_Errors => 0);
+         Incr_Parse_Errors => 1); --  Error is still in tree
    end Lexer_Errors_1;
 
    procedure Preserve_Parse_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -677,7 +678,7 @@ package body Test_Incremental is
       pragma Unreferenced (T);
    begin
       --  Full parse reports a parse error (missing ';'). Incremental parse
-      --  does not.
+      --  does not fix it, so the error is still in the tree.
       Parse_Text
         (Initial => "A := 2" & ASCII.LF,
          --          |1   |6
@@ -686,7 +687,7 @@ package body Test_Incremental is
          Delete       => "",
          Insert       => "3",
          Full_Parse_Errors => 1,
-         Incr_Parse_Errors => 0);
+         Incr_Parse_Errors => 1);
    end Preserve_Parse_Errors_1;
 
    procedure Preserve_Parse_Errors_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -815,6 +816,11 @@ package body Test_Incremental is
            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
          Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
          User_Data                      => User_Data'Access);
+
+      if T.McKenzie_Config /= null then
+         WisiToken.Parse.LR.Set_McKenzie_Options (Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+         WisiToken.Parse.LR.Set_McKenzie_Options (Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+      end if;
    end Set_Up_Case;
 
    overriding procedure Tear_Down_Case (T : in out Test_Case)

@@ -47,7 +47,9 @@
 --  Nodes that are deleted from the parse stream during error recover
 --  are referenced from the preceding terminal node or SOI, so they
 --  may be restored on the next incremental parse if appropriate.
---  Similarly, parse errors are referenced from the error node.
+--  Similarly, parse errors are referenced from the error node. In
+--  order to avoid editing shared nodes, the nodes that are edited are
+--  copied to the parse stream first.
 --
 --  Each node contains a Parent link, to make it easy to traverse the
 --  tree in any direction after parsing is done. We do not set the
@@ -185,7 +187,7 @@ package WisiToken.Syntax_Trees is
      (Source_Terminal,    -- text is user input, accessed via Lexer
       Virtual_Terminal,   -- no text; inserted during error recovery
       Virtual_Identifier, -- text in user data, created during tree rewrite
-      Nonterm);           -- points to a node that was deleted by error recovery.
+      Nonterm);           -- nonterminal node.
    subtype Terminal_Label is Node_Label range Source_Terminal .. Virtual_Identifier;
    subtype Virtual_Terminal_Label is Node_Label range Virtual_Terminal .. Virtual_Identifier;
 
@@ -637,8 +639,9 @@ package WisiToken.Syntax_Trees is
                (Tree.Contains (Tree.Shared_Stream, Token) or else
                   Token = Tree.Stream_Next (Stream, Tree.Stack_Top (Stream)));
    --  If Token is in Shared_Stream, push Token on Stream stack;
-   --  otherwise move from Stream input to Stream stack. Then set State
-   --  in the Stream element, and set Stream.Shared_Link to Stream_Next (Token);.
+   --  otherwise move from Stream input to Stream stack. Then clear
+   --  Token.Node.Error_Data, set State in the Stream element, and set
+   --  Stream.Shared_Link to Stream_Next (Token);.
 
    procedure Set_Shared_Link
      (Tree        : in out Syntax_Trees.Tree;
@@ -1054,6 +1057,12 @@ package WisiToken.Syntax_Trees is
    function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
+   function Is_First_Stream_Input
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Boolean;
+
    procedure Set_Insert_Location
      (Tree            : in Syntax_Trees.Tree;
       Node            : in Valid_Node_Access;
@@ -1415,6 +1424,13 @@ package WisiToken.Syntax_Trees is
    --  non_grammar. If not Trailing_Non_Grammar, only return a
    --  Source_Terminal.
 
+   procedure Prev_Source_Terminal
+     (Tree                 : in Syntax_Trees.Tree;
+      Ref                  : in out Stream_Node_Parents;
+      Trailing_Non_Grammar : in Boolean)
+   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and not Tree.Parents_Set,
+     Post   => Tree.Correct_Stream_Node (Ref.Ref);
+
    function Get_Virtuals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access_Array
    with Pre => Tree.Parents_Set,
      Post => (for all Node of Get_Virtuals'Result => Tree.Label (Node) in Virtual_Terminal_Label);
@@ -1690,7 +1706,7 @@ package WisiToken.Syntax_Trees is
 
    procedure Prev_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Syntax_Trees.Stream_Node_Parents)
+      Ref  : in out Stream_Node_Parents)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
 
@@ -1957,9 +1973,14 @@ package WisiToken.Syntax_Trees is
    procedure Add_Deleted
      (Tree          : in out Syntax_Trees.Tree;
       Deleted_Node  : in     Valid_Node_Access;
-      Prev_Terminal : in     Valid_Node_Access)
-   with Pre => Tree.Label (Prev_Terminal) = Source_Terminal;
-   --  Add Deleted_Node to Prev_Terminal.Following_Deleted.
+      Prev_Terminal : in out Stream_Node_Parents;
+      User_Data     : in     User_Data_Access)
+   with Pre => Tree.Valid_Stream_Node (Prev_Terminal.Ref) and
+               Prev_Terminal.Ref.Stream /= Tree.Shared_Stream and
+               Tree.Label (Prev_Terminal.Ref.Node) = Source_Terminal;
+   --  Copy Prev_Terminal.Ref.Node, add Deleted_Node to
+   --  Prev_Terminal.Ref.Node.Following_Deleted. Updates Prev_Terminal to
+   --  point to copied node.
 
    procedure Delete_Subtree
      (Tree : in out Syntax_Trees.Tree;
@@ -2063,16 +2084,26 @@ package WisiToken.Syntax_Trees is
       Error_Node : in Valid_Node_Access)
      return String
    is abstract;
+   --  Should not include file name, line number; a higher level will add
+   --  that if desired.
 
    procedure Set_Error
-     (Tree : in out Syntax_Trees.Tree;
-      Node : in     Valid_Node_Access;
-      Data : in     Error_Data_Access)
-   with Pre => Data /= null;
+     (Tree      : in out Syntax_Trees.Tree;
+      Stream    : in     Stream_ID;
+      Error_Ref : in out Rooted_Ref;
+      Data      : in     not null Error_Data_Access;
+      User_Data : in     User_Data_Access)
+   with Pre => Tree.Is_First_Stream_Input (Stream, Error_Ref.Element) and
+               Tree.Error (Error_Ref.Node) = null;
+   --  Move Error_Ref to Stream, store Data in it. Update Error_Ref to
+   --  point to new stream element with copied node.
 
    procedure Free is new Ada.Unchecked_Deallocation (Error_Data'Class, Error_Data_Access);
 
    function Error (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Error_Data_Access;
+
+   function Copied_From (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
+   with Pre => Tree.Label (Node) in Terminal_Label;
 
    type Error_Ref is record
       --  Used when tree is fully parsed.
@@ -2110,24 +2141,20 @@ package WisiToken.Syntax_Trees is
    --  Error.Node.Parse_Error is non-null or Error.Node.Following_Deleted
    --  contains Error.Deleted and that node has an error.
 
-   function Image (Tree : in Syntax_Trees.Tree; Error : in Error_Ref) return String;
-
    procedure Next_Error (Tree : in Syntax_Trees.Tree; Error : in out Error_Ref)
    with Pre =>
-     (Tree.Fully_Parsed or Tree.Editable) and
+     Tree.Parents_Set and
      (Error.Node /= Invalid_Node_Access and then Valid_Error_Ref (Error));
    --  Update Error to next error node.
 
    function Error_Count (Tree : in Syntax_Trees.Tree) return Ada.Containers.Count_Type
    with Pre => Tree.Fully_Parsed or Tree.Editable;
 
-   type Error_Cursor is private;
+   function Has_Error (Error : in Error_Ref) return Boolean;
 
-   function Has_Element (Position : in Error_Cursor) return Boolean;
-
-   function Element (Position : in Error_Cursor) return Error_Ref;
-
-   package Error_Iterator_Interfaces is new Ada.Iterator_Interfaces (Error_Cursor, Has_Element);
+   package Error_Iterator_Interfaces is new Ada.Iterator_Interfaces
+     (Cursor      => Error_Ref,
+      Has_Element => Has_Error);
 
    function Error_Iterate
      (Tree     : aliased in Syntax_Trees.Tree)
@@ -2188,6 +2215,7 @@ package WisiToken.Syntax_Trees is
       Line_Numbers          : in Boolean                   := False;
       Non_Grammar           : in Boolean                   := False;
       Augmented             : in Boolean                   := False;
+      Expecting             : in Boolean                   := False;
       Image_Action          : in Syntax_Trees.Image_Action := null)
      return String;
    --  Element can be from any stream, or Invalid_Stream_Index
@@ -2202,6 +2230,7 @@ package WisiToken.Syntax_Trees is
       Line_Numbers          : in Boolean                   := False;
       Non_Grammar           : in Boolean                   := False;
       Augmented             : in Boolean                   := False;
+      Expecting             : in Boolean                   := False;
       Image_Action          : in Syntax_Trees.Image_Action := null)
      return String;
    function Image
@@ -2223,6 +2252,7 @@ package WisiToken.Syntax_Trees is
       Line_Numbers   : in Boolean                   := False;
       Non_Grammar    : in Boolean                   := False;
       Augmented      : in Boolean                   := False;
+      Expecting      : in Boolean                   := False;
       Image_Action   : in Syntax_Trees.Image_Action := null)
      return String;
    --  If First_Terminal, show First_Terminal of Ref.Node if Ref is rooted.
@@ -2258,6 +2288,7 @@ package WisiToken.Syntax_Trees is
       Node  : in Valid_Node_Access;
       Index : in Base_Sequential_Index)
    with Pre => Tree.Label (Node) in Terminal_Label;
+   --  Also sets Sequential_Index in Node.Copied_From
 
    function Node_Access_Compare (Left, Right : in Node_Access) return SAL.Compare_Result;
    --  Only valid on a batch parsed tree, where Node_Index is ordered and
@@ -2363,6 +2394,11 @@ private
          --  Virtual_Identifier node.
 
          Sequential_Index : Syntax_Trees.Base_Sequential_Index := Invalid_Sequential_Index;
+
+         Copied_From : Node_Access;
+         --  If this node was copied from Shared_Stream for Set_Error or
+         --  Add_Deleted, Copied_From points to the shared node. Used in error
+         --  recovery to set Sequential_Index.
 
          case Label is
          when Source_Terminal =>
@@ -2536,6 +2572,9 @@ private
    is ((Tree.Is_Valid (Stream) and Token /= Invalid_Stream_Index) and then
          Stream_Element_Lists.Constant_Ref (Token.Cur).Label = Tree.Streams (Stream.Cur).Label and then
          (for some Cur in Tree.Streams (Stream.Cur).Elements.Iterate => Cur = Token.Cur));
+
+   function Copied_From (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
+   is (Node.Copied_From);
 
    function Correct_Stream_Node
      (Tree : in Syntax_Trees.Tree;
@@ -2758,19 +2797,15 @@ private
    ----------
    --  Iterators
 
-   type Error_Cursor is record
-      Error : Error_Ref;
-   end record;
-
    type Error_Iterator (Tree : not null access constant Syntax_Trees.Tree)
      is new Error_Iterator_Interfaces.Forward_Iterator with
-   null record;
+     null record;
 
-   overriding function First (Object : Error_Iterator) return Error_Cursor;
+   overriding function First (Object : Error_Iterator) return Error_Ref;
 
    overriding function Next
      (Object   : Error_Iterator;
-      Position : Error_Cursor)
-     return Error_Cursor;
+      Position : Error_Ref)
+     return Error_Ref;
 
 end WisiToken.Syntax_Trees;

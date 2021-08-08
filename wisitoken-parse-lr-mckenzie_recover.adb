@@ -356,9 +356,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          end if;
       end;
 
-      Shared_Parser.Max_Sequential_Index := Super.Max_Sequential_Index;
-      Shared_Parser.Min_Sequential_Index := Super.Min_Sequential_Index;
-
       --  Spawn new parsers for multiple solutions.
       --
       --  One option here would be to keep only the parser with the least
@@ -711,18 +708,22 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                     Deleted_Ref : constant Stream_Node_Ref := Peek_Current_Sequential_Terminal
                                       (Parser_State, Tree);
 
-                                    El  : constant Stream_Index := Tree.Peek (Parser_State.Stream);
-                                    Prev_Ref : Stream_Node_Parents   := Tree.To_Stream_Node_Parents
+                                    El            : constant Stream_Index := Tree.Peek (Parser_State.Stream);
+                                    Prev_Terminal : Stream_Node_Parents   := Tree.To_Stream_Node_Parents
                                       ((Stream  => Parser_State.Stream,
                                         Element => El,
                                         Node    => Get_Node (El)));
                                  begin
                                     Op.Del_Node := Deleted_Ref.Node;
-                                    Tree.Last_Terminal (Prev_Ref);
-                                    Op.Del_After_Node := Prev_Ref.Ref.Node;
+                                    Tree.Last_Terminal (Prev_Terminal);
+                                    Op.Del_After_Node := Prev_Terminal.Ref.Node;
+                                    if Tree.Label (Prev_Terminal.Ref.Node) /= Source_Terminal then
+                                       Tree.Prev_Source_Terminal (Prev_Terminal, Trailing_Non_Grammar => False);
+                                    end if;
                                     Tree.Add_Deleted
                                       (Deleted_Node  => Deleted_Ref.Node,
-                                       Prev_Terminal => Prev_Ref.Ref.Node);
+                                       Prev_Terminal => Prev_Terminal,
+                                       User_Data     => Shared_Parser.User_Data);
                                  end;
 
                                  Next_Token (Parser_State, Tree, Set_Current => True, Delete => True);
@@ -935,20 +936,34 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    procedure Clear_Sequential_Index (Shared_Parser : in out WisiToken.Parse.LR.Parser.Parser)
    is
       use Syntax_Trees;
-
-      Tree     : Syntax_Trees.Tree renames Shared_Parser.Tree;
-      Terminal : Stream_Node_Parents := Shared_Parser.Max_Sequential_Index;
    begin
-      if Terminal /= Syntax_Trees.Invalid_Stream_Node_Parents then
-         loop
-            Tree.Set_Sequential_Index (Terminal.Ref.Node, Invalid_Sequential_Index);
-            exit when Terminal.Ref.Node = Shared_Parser.Min_Sequential_Index.Ref.Node;
+      if Shared_Parser.Parsers.First_State_Ref.Max_Sequential_Index /= Syntax_Trees.Invalid_Stream_Node_Parents then
+         declare
+            Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
+         begin
+            loop
+               for Parser of Shared_Parser.Parsers loop
+                  Tree.Set_Sequential_Index (Parser.Max_Sequential_Index.Ref.Node, Invalid_Sequential_Index);
+                  Tree.Prev_Terminal (Parser.Max_Sequential_Index, Parse_Stream => Parser.Stream);
+               end loop;
 
-            Tree.Prev_Terminal (Terminal);
-         end loop;
+               --  Virtual terminals inserted during error recover have invalid
+               --  sequential index; keep going. test_incremental.adb Recover_1.
+               declare
+                  Node : constant Node_Access :=
+                    Shared_Parser.Parsers.First_State_Ref.Max_Sequential_Index.Ref.Node;
+               begin
+                  exit when Node = Invalid_Node_Access; -- no prev_terminal
 
-         Shared_Parser.Min_Sequential_Index := Invalid_Stream_Node_Parents;
-         Shared_Parser.Max_Sequential_Index := Invalid_Stream_Node_Parents;
+                  exit when not (Tree.Label (Node) in Virtual_Terminal) and then
+                    Tree.Get_Sequential_Index (Node) = Invalid_Sequential_Index;
+               end;
+            end loop;
+
+            for Parser of Shared_Parser.Parsers loop
+               Parser.Max_Sequential_Index := Invalid_Stream_Node_Parents;
+            end loop;
+         end;
       end if;
    end Clear_Sequential_Index;
 

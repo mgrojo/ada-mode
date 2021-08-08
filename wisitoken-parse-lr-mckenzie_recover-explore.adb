@@ -1652,7 +1652,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          if Config.Resume_Token_Goal - Check_Limit < Tree.Get_Sequential_Index (Config.Current_Shared_Token.Node)
          then
             Config.Resume_Token_Goal := Tree.Get_Sequential_Index (Config.Current_Shared_Token.Node) + Check_Limit;
-            Base.Extend_Sequential_Index (Super, Config.Resume_Token_Goal);
+            Super.Extend_Max_Sequential_Index (Target => Config.Resume_Token_Goal);
 
             if Trace_McKenzie > Extra then
                Put_Line
@@ -1973,7 +1973,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             New_Next_Index := Super.Tree.Get_Sequential_Index (Node);
             if New_Config.Resume_Token_Goal - Check_Limit < New_Next_Index then
                New_Config.Resume_Token_Goal := New_Next_Index + Check_Limit;
-               Base.Extend_Sequential_Index (Super, New_Config.Resume_Token_Goal);
+               Super.Extend_Max_Sequential_Index (New_Config.Resume_Token_Goal);
             end if;
          end;
 

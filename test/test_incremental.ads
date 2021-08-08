@@ -2,7 +2,7 @@
 --
 --  Test incremental parse.
 --
---  Copyright (C) 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2020, 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,9 +19,11 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
+with Ada.Strings.Unbounded;
 package Test_Incremental is
 
-   type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case (McKenzie_Config : Ada.Strings.Unbounded.String_Access)
+     is new AUnit.Test_Cases.Test_Case with null record;
    --  Caller sets Trace_Parse, Trace_Incremental.
 
    type Test_Case_Access is access all Test_Case;

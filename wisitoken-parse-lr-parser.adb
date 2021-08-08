@@ -49,7 +49,7 @@ package body WisiToken.Parse.LR.Parser is
 
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
 
-      Nonterm : constant Syntax_Trees.Stream_Node_Ref := Shared_Parser.Tree.Reduce
+      Nonterm : Syntax_Trees.Rooted_Ref := Shared_Parser.Tree.Reduce
         (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Post_Parse_Action, New_State,
          Default_Virtual => Shared_Parser.Tree.Contains_Virtual_Terminal (Parser_State.Current_Token.Node));
       --  Default_Virtual is used if Nonterm is empty; we set it True
@@ -96,15 +96,16 @@ package body WisiToken.Parse.LR.Parser is
                   return Ok;
 
                else
-                  Parser_State.Current_Error_Node := Nonterm.Node;
-
                   Shared_Parser.Tree.Set_Error
-                    (Nonterm.Node,
+                    (Parser_State.Stream, Nonterm,
                      new In_Parse_Action_Error'
                        (Status         => Status,
                         Recover_Status => Ada.Strings.Unbounded.Null_Unbounded_String,
                         Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
-                        Recover_Cost   => 0));
+                        Recover_Cost   => 0),
+                    Shared_Parser.User_Data);
+
+                  Parser_State.Current_Error_Node := Nonterm.Node;
                   return Status.Label;
                end if;
             end case;
@@ -305,14 +306,15 @@ package body WisiToken.Parse.LR.Parser is
                Parser_State.Set_Verb (Error);
 
                Shared_Parser.Tree.Set_Error
-                 (Parser_State.Current_Token.Node,
+                 (Parser_State.Stream, Parser_State.Current_Token,
                   new Parse_Error'
                     (First_Terminal => 1,
                      Last_Terminal  => 0,
                      Expecting      => (1 .. 0 => False),
                      Recover_Status => Ada.Strings.Unbounded.Null_Unbounded_String,
                      Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
-                     Recover_Cost   => 0));
+                     Recover_Cost   => 0),
+                 Shared_Parser.User_Data);
 
                if Trace_Parse > Detail then
                   Trace.Put_Line (" ... error unknown state");
@@ -406,37 +408,37 @@ package body WisiToken.Parse.LR.Parser is
          Parser_State.Zombie_Token_Count := 1;
 
          declare
+            use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
+
             Expecting : constant Token_ID_Set := LR.Expecting
               (Shared_Parser.Table.all, Shared_Parser.Tree.State (Parser_State.Stream));
-         begin
-            Parser_State.Current_Error_Node := Shared_Parser.Tree.First_Terminal_In_Node
-              (Parser_State.Current_Token).Node;
 
+            Inc_Shared_Token : constant Boolean := Parser_State.Current_Token = Parser_State.Shared_Token;
+         begin
             Shared_Parser.Tree.Set_Error
-              (Parser_State.Current_Error_Node,
-               new Parse_Error'
-                 (First_Terminal => Expecting'First,
-                  Last_Terminal  => Expecting'Last,
+              (Stream            => Parser_State.Stream,
+               Error_Ref         => Parser_State.Current_Token,
+               Data              => new WisiToken.Parse.Parse_Error'
+                 (First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
+                  Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
                   Expecting      => Expecting,
                   Recover_Status => Ada.Strings.Unbounded.Null_Unbounded_String,
                   Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
-                  Recover_Cost   => 0));
+                  Recover_Cost   => 0),
+               User_Data         => Shared_Parser.User_Data);
 
-            if Trace_Parse > Outline then
-               if Trace_Parse <= Detail then
-                  Trace.Put_Line
-                    (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
-                       (if Trace_Parse_No_State_Numbers
-                        then "--"
-                        else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream))) &
-                       ": error: " & Shared_Parser.Tree.Image (Parser_State.Current_Token));
-               end if;
+            Parser_State.Current_Error_Node := Parser_State.Current_Token.Node;
+            if Inc_Shared_Token then
+               Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+            end if;
+
+            if Trace_Parse > Detail then
                Trace.Put_Line
                  (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
                     (if Trace_Parse_No_State_Numbers
                      then "--"
-                     else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream))) & ": expecting: " &
-                    Image (Expecting, Shared_Parser.Tree.Lexer.Descriptor.all));
+                     else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream))) &
+                    ": expecting: " & Image (Expecting, Shared_Parser.Tree.Lexer.Descriptor.all));
             end if;
          end;
       end case;
@@ -473,17 +475,21 @@ package body WisiToken.Parse.LR.Parser is
                      --  don't use 'Tree.Prev_Terminal (Terminal, Parser_State.Stream);'.
                      --  The previous terminal is on the parse stack.
                      declare
-                        El  : constant Stream_Index := Tree.Peek (Parser_State.Stream);
-                        Ref : Stream_Node_Parents   := Tree.To_Stream_Node_Parents
+                        El            : constant Stream_Index := Tree.Peek (Parser_State.Stream);
+                        Prev_Terminal : Stream_Node_Parents   := Tree.To_Stream_Node_Parents
                           ((Stream  => Parser_State.Stream,
                             Element => El,
                             Node    => Get_Node (El)));
                      begin
-                        Tree.Last_Terminal (Ref);
-                        Op.Del_After_Node := Ref.Ref.Node;
+                        Tree.Last_Terminal (Prev_Terminal);
+                        Op.Del_After_Node := Prev_Terminal.Ref.Node;
+                        if Tree.Label (Prev_Terminal.Ref.Node) /= Source_Terminal then
+                           Tree.Prev_Source_Terminal (Prev_Terminal, Trailing_Non_Grammar => False);
+                        end if;
                         Tree.Add_Deleted
                           (Deleted_Node  => Terminal.Node,
-                           Prev_Terminal => Ref.Ref.Node);
+                           Prev_Terminal => Prev_Terminal,
+                           User_Data     => Shared_Parser.User_Data);
                      end;
 
                      Ins_Del_Cur := Ins_Del_Cur + 1;
@@ -698,15 +704,15 @@ package body WisiToken.Parse.LR.Parser is
       Check_Parser  : in out Parser_Lists.Cursor)
    is
       procedure Report_Error
-      is begin
-         Shared_Parser.Tree.Set_Error
-           (Check_Parser.State_Ref.Current_Error_Node,
-            new Error_Message'(Msg => +"error during resume"));
-         if Debug_Mode then
-            raise SAL.Programmer_Error with Shared_Parser.Tree.Trimmed_Image (Check_Parser.Stream) &
+      is
+         --  This is actually a bug in error recovery, not a source syntax error.
+         Msg : constant String := Shared_Parser.Tree.Trimmed_Image (Check_Parser.Stream) &
               ": error during resume";
+      begin
+         if Debug_Mode then
+            raise SAL.Programmer_Error with Msg;
          else
-            raise Syntax_Error;
+            raise WisiToken.Parse_Error with Msg;
          end if;
       end Report_Error;
 

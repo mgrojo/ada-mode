@@ -184,34 +184,20 @@ package body WisiToken.Parse is
       Error_Node : in Syntax_Trees.Valid_Node_Access)
      return String
    is
-      use Ada.Strings.Unbounded;
       use all type Ada.Containers.Count_Type;
       use all type Syntax_Trees.Valid_Node_Access;
 
-      Result : Unbounded_String;
-
       Item_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Error_Node);
-      Msg : constant String := "syntax error: expecting " & Image (Data.Expecting, Tree.Lexer.Descriptor.all) &
+      Msg : constant String :=
+        "expecting " & Image (Data.Expecting, Tree.Lexer.Descriptor.all) &
         ", found '" & Tree.Lexer.Buffer_Text (Item_Byte_Region) &
         "'";
    begin
-      --  If we get here because Parse raised Syntax_Error or other
-      --  exception, Finish_Parse has not been called, so tree is not
-      --  editable.
-
-      if Tree.Editable then
-         Result := +Tree.Error_Message (Error_Node, Msg);
-      else
-         raise SAL.Not_Implemented;
-         --  FIXME: Need test case. set parents in Stream, so can find line from
-         --  Error_Node. Or pass stream_node_Parents?
-      end if;
-
       if Recover_Op_Arrays.Length (Data.Recover_Ops) /= 0 then
-         Append (Result, "   recovered: " & Image (Data.Recover_Ops, Tree.Lexer.Descriptor.all));
+         return Msg & ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree.Lexer.Descriptor.all);
+      else
+         return Msg;
       end if;
-
-      return -Result;
    end Image;
 
    overriding function Copy (Data : in In_Parse_Action_Error) return Syntax_Trees.Error_Data_Access
@@ -1665,12 +1651,12 @@ package body WisiToken.Parse is
    end Edit_Tree;
 
    procedure Put_Error
-     (Error : in Syntax_Trees.Error_Ref;
-      Tree  : in Syntax_Trees.Tree)
+     (Error_Node : in Syntax_Trees.Valid_Node_Access;
+      Tree       : in Syntax_Trees.Tree)
    is
       use Ada.Text_IO; --  FIXME: use Trace?
    begin
-      Put_Line (Tree.Error (Tree.Error_Node (Error)).Image (Tree, Tree.Error_Node (Error)));
+      Put_Line (Tree.Error (Error_Node).Image (Tree, Error_Node));
    end Put_Error;
 
    procedure Put (Errors : in Wrapped_Lexer_Error_Lists.List; Tree : in Syntax_Trees.Tree)
@@ -1686,11 +1672,17 @@ package body WisiToken.Parse is
    procedure Put_Errors (Parser : in Base_Parser'Class)
    is
       use WisiToken.Syntax_Trees;
+      Tree : Syntax_Trees.Tree renames Parser.Tree;
    begin
-      Put (Parser.Wrapped_Lexer_Errors, Parser.Tree);
+      Put (Parser.Wrapped_Lexer_Errors, Tree);
 
-      for Error_Cur in Parser.Tree.Error_Iterate loop
-         Ada.Text_IO.Put_Line (Parser.Tree.Image (Element (Error_Cur)));
+      for Error in Tree.Error_Iterate loop
+         declare
+            Error_Node : constant Valid_Node_Access := Tree.Error_Node (Error);
+         begin
+            Ada.Text_IO.Put_Line
+              ("syntax_error: " & Tree.Error_Message (Error_Node, Tree.Error (Error_Node).Image (Tree, Error_Node)));
+         end;
       end loop;
    end Put_Errors;
 

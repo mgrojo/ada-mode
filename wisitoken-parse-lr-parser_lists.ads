@@ -98,6 +98,9 @@ package WisiToken.Parse.LR.Parser_Lists is
 
       Conflict_During_Resume : Boolean := False;
 
+      Max_Sequential_Index : Syntax_Trees.Stream_Node_Parents := Syntax_Trees.Invalid_Stream_Node_Parents;
+      --  Copied from Supervisor for McKenzie_Recover.Clear_Sequential_Index
+
       Last_Action : Parse_Action_Rec := (others => <>);
    end record;
 

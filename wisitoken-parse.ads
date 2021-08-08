@@ -331,8 +331,8 @@ package WisiToken.Parse is
    --  message.
 
    procedure Put_Error
-     (Error : in Syntax_Trees.Error_Ref;
-      Tree  : in Syntax_Trees.Tree);
+     (Error_Node : in Syntax_Trees.Valid_Node_Access;
+      Tree       : in Syntax_Trees.Tree);
    --  Output to Ada.Text_IO.Current_Error.
    --
    --  Stream may be Invalid_Stream_ID if Tree is Editable (as it

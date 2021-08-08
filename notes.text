@@ -33,12 +33,17 @@ update-wisitoken_grammar
  current work
 store errors in tree
     run test_incremental.adb
-        lexer_Errors_1 failing
+        Recover_1 passing
+
+    test case that requires parse removing deleted; lexer_errors_2 edit fixes error.
+
+    test case that requires parse restoring deleted; missing 'begin' => extra 'end', fix inserts 'begin'
 
     test match_names_error
+        set_error on reduce in_parse_action is at stack_top, not stream input.
 
-    test message
-        stored in Tree? on EOI?
+    test case for wisitoken-syntax_trees.adb Add_Deleted Not_Implemented.
+
 
 move Trace from Parser to Lexer
     use in Lexer.Find_Next

@@ -44,8 +44,6 @@ begin
    Shared_Parser.Wrapped_Lexer_Errors.Clear;
 
    Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
-   Shared_Parser.Min_Sequential_Index := Invalid_Stream_Node_Parents;
-   Shared_Parser.Max_Sequential_Index := Invalid_Stream_Node_Parents;
 
    if Edits /= KMN_Lists.Empty_List then
       if not (Shared_Parser.Tree.Fully_Parsed or Shared_Parser.Tree.Editable) then
@@ -685,11 +683,6 @@ when E : others =>
    declare
       Msg : constant String := Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E);
    begin
-      if Shared_Parser.Parsers.Count > 0 then
-         --  Emacs displays errors in the *syntax-errors* buffer
-         Shared_Parser.Tree.Set_Error (Shared_Parser.Tree.SOI, new Error_Message'(Msg => +Msg));
-      end if;
-
       if Debug_Mode then
          --  If this is from a McKenzie task, that also outputs a stack trace.
          Trace.Put_Line ("exception: " & Msg);
