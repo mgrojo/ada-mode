@@ -660,7 +660,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          Skip_Set_Reference : Boolean          := False;
       begin
          loop
-            exit when Max_Sequential_Indices (1).Ref.Node = Tree.EOI;
+            exit when Tree.ID (Max_Sequential_Indices (1).Ref.Node) = Tree.ID (Tree.EOI);
+            --  EOI can be copied for error. test_incremental.adb Preserve_Parse_Errors_1
+
             exit when Index = Target;
             if Skip_Set_Reference then
                Skip_Set_Reference := False;

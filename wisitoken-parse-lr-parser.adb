@@ -103,7 +103,7 @@ package body WisiToken.Parse.LR.Parser is
                         Recover_Status => Ada.Strings.Unbounded.Null_Unbounded_String,
                         Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
                         Recover_Cost   => 0),
-                    Shared_Parser.User_Data);
+                     Shared_Parser.User_Data);
 
                   Parser_State.Current_Error_Node := Nonterm.Node;
                   return Status.Label;
@@ -159,7 +159,10 @@ package body WisiToken.Parse.LR.Parser is
                         if First_In_Current = Invalid_Node_Access then
                            --  Current_Token is an empty nonterm; skip it. This will not affect
                            --  Insert_Delete; that already skipped it via First_Shared_Terminal
-                           --  (Stream), and we don't Delete nonterms. ada_mode-interactive_03.adb.
+                           --  (Stream), and we don't Delete nonterms.
+                           --  ada_mode-interactive_03.adb. FIXME: better: peek at next terminal,
+                           --  do reduce until this nonterm is shiftable. test_incremental.adb
+                           --  Recover_1 aspect_specification_opt.
 
                            if Trace_Parse > Detail then
                               Shared_Parser.Trace.Put_Line
@@ -175,6 +178,7 @@ package body WisiToken.Parse.LR.Parser is
                            else
                               Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
                               Parser_State.Current_Token := Parser_State.Shared_Token;
+                              Tree.Set_Shared_Link (Parser_State.Stream, Parser_State.Shared_Token);
                            end if;
 
                         else
@@ -276,7 +280,7 @@ package body WisiToken.Parse.LR.Parser is
    begin
       if Trace_Parse > Detail then
          Trace.Put
-           --  Leading space for compatibility with existing tests.
+           --  No prefix, leading space for compatibility with existing tests.
            (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
               (if Trace_Parse_No_State_Numbers
                then "-- : "
@@ -289,6 +293,29 @@ package body WisiToken.Parse.LR.Parser is
       case Action.Verb is
       when Shift =>
          Parser_State.Set_Verb (Shift);
+
+         if not Parser_State.Resume_Active and Shared_Parser.Tree.Has_Error (Parser_State.Current_Token.Node) then
+            case Shared_Parser.Tree.Label (Parser_State.Current_Token.Node) is
+            when Syntax_Trees.Terminal_Label =>
+               declare
+                  use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
+                  Inc_Shared_Token : constant Boolean := Parser_State.Current_Token = Parser_State.Shared_Token;
+               begin
+                  Shared_Parser.Tree.Set_Error
+                    (Parser_State.Stream, Parser_State.Current_Token, null, Shared_Parser.User_Data);
+
+                  if Inc_Shared_Token then
+                     Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                  end if;
+               end;
+
+            when Syntax_Trees.Nonterm =>
+               --  Only In_Parse_Action sets errors on nonterms; clearing them is
+               --  done in Reduce.
+               null;
+            end case;
+         end if;
+
          Shared_Parser.Tree.Shift (Parser_State.Stream, Action.State, Parser_State.Current_Token.Element);
 
       when Reduce =>
@@ -314,7 +341,7 @@ package body WisiToken.Parse.LR.Parser is
                      Recover_Status => Ada.Strings.Unbounded.Null_Unbounded_String,
                      Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
                      Recover_Cost   => 0),
-                 Shared_Parser.User_Data);
+                  Shared_Parser.User_Data);
 
                if Trace_Parse > Detail then
                   Trace.Put_Line (" ... error unknown state");
@@ -413,7 +440,8 @@ package body WisiToken.Parse.LR.Parser is
             Expecting : constant Token_ID_Set := LR.Expecting
               (Shared_Parser.Table.all, Shared_Parser.Tree.State (Parser_State.Stream));
 
-            Inc_Shared_Token : constant Boolean := Parser_State.Current_Token = Parser_State.Shared_Token;
+            Inc_Shared_Token : constant Boolean := Parser_State.Current_Token = Parser_State.Shared_Token and
+              Shared_Parser.Tree.ID (Parser_State.Shared_Token.Node) /= Shared_Parser.Tree.Lexer.Descriptor.EOI_ID;
          begin
             Shared_Parser.Tree.Set_Error
               (Stream            => Parser_State.Stream,

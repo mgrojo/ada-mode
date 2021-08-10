@@ -127,9 +127,9 @@ package body WisiToken.Parse.LR.Parser_Lists is
          return;
       end if;
 
-      if Delete and
-        not Tree.Has_Input (Parser_State.Stream) and
-        not Tree.Is_Terminal (Parser_State.Shared_Token.Node)
+      if Delete and then
+        (not Tree.Has_Input (Parser_State.Stream) and
+           not Tree.Is_Terminal (Parser_State.Shared_Token.Node))
       then
          if Tree.Count_Terminals (Parser_State.Shared_Token.Node) = 1 then
             --  Just skip it below

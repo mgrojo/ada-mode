@@ -639,9 +639,12 @@ package WisiToken.Syntax_Trees is
                (Tree.Contains (Tree.Shared_Stream, Token) or else
                   Token = Tree.Stream_Next (Stream, Tree.Stack_Top (Stream)));
    --  If Token is in Shared_Stream, push Token on Stream stack;
-   --  otherwise move from Stream input to Stream stack. Then clear
-   --  Token.Node.Error_Data, set State in the Stream element, and set
-   --  Stream.Shared_Link to Stream_Next (Token);.
+   --  otherwise move from Stream input to Stream stack. Then set State
+   --  in the Stream element, and set Stream.Shared_Link to Stream_Next
+   --  (Token).
+   --
+   --  Does _not_ clear Node.Error_Data; this shift may be part of error
+   --  recover.
 
    procedure Set_Shared_Link
      (Tree        : in out Syntax_Trees.Tree;
@@ -1058,9 +1061,9 @@ package WisiToken.Syntax_Trees is
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
    function Is_First_Stream_Input
-     (Tree    : in Syntax_Trees.Tree;
-      Stream  : in Stream_ID;
-      Element : in Stream_Index)
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID;
+      Ref    : in Stream_Node_Ref)
      return Boolean;
 
    procedure Set_Insert_Location
@@ -1809,14 +1812,19 @@ package WisiToken.Syntax_Trees is
    --  Precondition matches Packrat parser conditions at end of parse.
 
    function SOI (Tree : in Syntax_Trees.Tree) return Node_Access;
-   --  Return node representing start of input. It has non_grammar giving
-   --  the first line number, and all non_grammar before the first
-   --  grammar node.
+   --  Return node representing start of input in the shared stream. It
+   --  has non_grammar giving the first line number, and all non_grammar
+   --  before the first grammar node.
+   --
+   --  Note that SOI may be copied in a parse stream, when it has
+   --  Following_Deleted.
 
    function EOI (Tree : in Syntax_Trees.Tree) return Node_Access;
-   --  Return node representing end of input. It has non_grammar giving
-   --  the last line number. Invalid_Node_Access if it has not yet been
-   --  seen by the lexer.
+   --  Return node representing end of input in the shared stream. It has
+   --  non_grammar giving the last line number. Invalid_Node_Access if it
+   --  has not yet been seen by the lexer.
+   --
+   --  Note that EOI may be copied in a parse stream, when it has an error.
 
    function Parent
      (Tree  : in Syntax_Trees.Tree;
@@ -2091,10 +2099,12 @@ package WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
       Error_Ref : in out Rooted_Ref;
-      Data      : in     not null Error_Data_Access;
+      Data      : in     Error_Data_Access;
       User_Data : in     User_Data_Access)
-   with Pre => Tree.Is_First_Stream_Input (Stream, Error_Ref.Element) and
-               Tree.Error (Error_Ref.Node) = null;
+   with Pre => Tree.Is_First_Stream_Input (Stream, Error_Ref) and
+               (if Data = null
+                then Tree.Error (Error_Ref.Node) /= null
+                else Tree.Error (Error_Ref.Node) = null);
    --  Move Error_Ref to Stream, store Data in it. Update Error_Ref to
    --  point to new stream element with copied node.
 
@@ -2151,6 +2161,7 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Fully_Parsed or Tree.Editable;
 
    function Has_Error (Error : in Error_Ref) return Boolean;
+   function Has_Error (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
 
    package Error_Iterator_Interfaces is new Ada.Iterator_Interfaces
      (Cursor      => Error_Ref,
@@ -2534,8 +2545,8 @@ private
       Next_Terminal_Node_Index : Node_Index := 1;
 
       Root : Node_Access := Invalid_Node_Access;
-      SOI  : Node_Access := Invalid_Node_Access; --  Not in Nodes
-      EOI  : Node_Access := Invalid_Node_Access; --  Not in Nodes
+      SOI  : Node_Access := Invalid_Node_Access;
+      EOI  : Node_Access := Invalid_Node_Access;
 
       Streams : Parse_Stream_Lists.List;
 
@@ -2597,9 +2608,9 @@ private
    is (Cur => Parse_Stream_Lists.Next (Tree.Shared_Stream.Cur));
 
    function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean
-   is (Tree.Streams.Length = 2 and then Tree.Stream_Length ((Cur => Tree.Streams.Last)) = 2);
+   is (Tree.Streams.Length = 2 and then Tree.Stream_Length ((Cur => Tree.Streams.Last)) in 2 .. 3);
    --  1 stream for Shared, one for the successful parser. Parse stream
-   --  has SOI with start state, parsed tree root.
+   --  has SOI with start state, parsed tree root, possibly copied EOI
 
    function Get_Node
      (Tree    : in Syntax_Trees.Tree;
