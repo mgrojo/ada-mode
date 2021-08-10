@@ -581,7 +581,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
       function Max_Sequential_Index_Is_EOI (Parser_Index : in SAL.Peek_Type) return Boolean
       is begin
-         return Tree.EOI = Max_Sequential_Indices (Parser_Index).Ref.Node;
+         return Tree.Lexer.Descriptor.EOI_ID = Tree.ID (Max_Sequential_Indices (Parser_Index).Ref.Node);
       end Max_Sequential_Index_Is_EOI;
 
       procedure Extend_Min_Sequential_Index (Target : in Syntax_Trees.Sequential_Index)
@@ -593,13 +593,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          --  reference node, or a node in the reference stream was deleted, the
          --  reference node gets an earlier or later sequential_index.
       begin
-         if Min_Sequential_Index (1).Ref.Node = Tree.SOI then
+         if Tree.ID (Min_Sequential_Index (1).Ref.Node) = Tree.Lexer.Descriptor.SOI_ID then
             --  Can't extend it any further.
             raise SAL.Programmer_Error;
          end if;
 
          loop
-            exit when Min_Sequential_Indices (1).Ref.Node = Tree.SOI;
+            exit when Tree.ID (Min_Sequential_Indices (1).Ref.Node) = Tree.Lexer.Descriptor.SOI_ID;
             exit when Index = Target;
             if Skip_Set_Reference then
                Skip_Set_Reference := False;
@@ -609,13 +609,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
             Index := @ - 1;
             declare
                Ref_Byte_Pos : constant Buffer_Pos := Tree.Byte_Region
-                 (Min_Sequential_Indices (1).Ref, Trailing_Non_Grammar => True).First;
+                 (Min_Sequential_Indices (1), Trailing_Non_Grammar => True).First;
 
             begin
                for Parser_Index in 2 .. Parser_Count loop
                   declare
                      Byte_Pos : Buffer_Pos := Tree.Byte_Region
-                       (Min_Sequential_Indices (Parser_Index).Ref, Trailing_Non_Grammar => True).First;
+                       (Min_Sequential_Indices (Parser_Index), Trailing_Non_Grammar => True).First;
                   begin
                      if Ref_Byte_Pos > Byte_Pos then
                         --  Reference node is deleted in parser; wait for reference to catch
@@ -625,7 +625,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                      elsif Ref_Byte_Pos < Byte_Pos then
                         Tree.Next_Terminal (Min_Sequential_Indices (Parser_Index));
                         Byte_Pos := Tree.Byte_Region
-                          (Min_Sequential_Indices (Parser_Index).Ref, Trailing_Non_Grammar => True).First;
+                          (Min_Sequential_Indices (Parser_Index), Trailing_Non_Grammar => True).First;
                      end if;
 
                      if Ref_Byte_Pos = Byte_Pos then
@@ -660,7 +660,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          Skip_Set_Reference : Boolean          := False;
       begin
          loop
-            exit when Tree.ID (Max_Sequential_Indices (1).Ref.Node) = Tree.ID (Tree.EOI);
+            exit when Tree.ID (Max_Sequential_Indices (1).Ref.Node) = Tree.Lexer.Descriptor.EOI_ID;
             --  EOI can be copied for error. test_incremental.adb Preserve_Parse_Errors_1
 
             exit when Index = Target;
@@ -672,12 +672,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
             Index := @ + 1;
             declare
                Ref_Byte_Pos : constant Buffer_Pos := Tree.Byte_Region
-                 (Max_Sequential_Indices (1).Ref, Trailing_Non_Grammar => True).First;
+                 (Max_Sequential_Indices (1), Trailing_Non_Grammar => True).First;
             begin
                for Parser_Index in 2 .. Parser_Count loop
                   declare
                      Byte_Pos : Buffer_Pos := Tree.Byte_Region
-                       (Max_Sequential_Indices (Parser_Index).Ref, Trailing_Non_Grammar => True).First;
+                       (Max_Sequential_Indices (Parser_Index), Trailing_Non_Grammar => True).First;
                   begin
                      if Ref_Byte_Pos < Byte_Pos then
                         --  Reference node is deleted in parser; wait for reference to catch
@@ -687,7 +687,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                      elsif Ref_Byte_Pos > Byte_Pos then
                         Tree.Next_Terminal (Max_Sequential_Indices (Parser_Index));
                         Byte_Pos := Tree.Byte_Region
-                          (Max_Sequential_Indices (Parser_Index).Ref, Trailing_Non_Grammar => True).First;
+                          (Max_Sequential_Indices (Parser_Index), Trailing_Non_Grammar => True).First;
                      end if;
 
                      if Ref_Byte_Pos = Byte_Pos then

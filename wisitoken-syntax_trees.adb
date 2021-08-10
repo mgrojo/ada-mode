@@ -46,6 +46,13 @@ package body WisiToken.Syntax_Trees is
       Copy_Children : in     Boolean)
      return Valid_Node_Access;
 
+   procedure First_Source_Terminal
+     (Tree                 : in     Syntax_Trees.Tree;
+      Ref                  : in out Stream_Node_Parents;
+      Trailing_Non_Grammar : in     Boolean)
+   with Pre => Rooted (Ref.Ref) and Ref.Parents.Depth = 0;
+   --  Update Ref to first source terminal in Ref.Node, initialize Ref.Parents.
+
    function Insert_Stream_Element
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID;
@@ -62,6 +69,13 @@ package body WisiToken.Syntax_Trees is
       Node                 : in Valid_Node_Access;
       Trailing_Non_Grammar : in Boolean)
      return Node_Access;
+
+   procedure Last_Source_Terminal
+     (Tree                 : in     Syntax_Trees.Tree;
+      Ref                  : in out Stream_Node_Parents;
+      Trailing_Non_Grammar : in     Boolean)
+   with Pre => Rooted (Ref.Ref) and Ref.Parents.Depth = 0;
+   --  Update Ref to last source terminal in Ref.Node, initialize Ref.Parents.
 
    procedure Next_Non_Grammar
      (Tree    : in     Syntax_Trees.Tree;
@@ -661,6 +675,67 @@ package body WisiToken.Syntax_Trees is
          if Prev_Source_Terminal.Node = Invalid_Node_Access then
             Prev_Source_Terminal := Tree.Prev_Source_Terminal (Ref, Trailing_Non_Grammar);
             Next_Source_Terminal := Tree.Next_Source_Terminal (Ref, Trailing_Non_Grammar);
+         end if;
+
+         return
+           (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).Last,
+            Last => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar).First);
+      end case;
+   end Byte_Region;
+
+   function Byte_Region
+     (Tree                 : in Syntax_Trees.Tree;
+      Ref                  : in Stream_Node_Parents;
+      Trailing_Non_Grammar : in Boolean := False)
+     return WisiToken.Buffer_Region
+   is
+      Prev_Source_Terminal : Stream_Node_Parents := Invalid_Stream_Node_Parents;
+      Next_Source_Terminal : Stream_Node_Parents := Invalid_Stream_Node_Parents;
+   begin
+      case Ref.Ref.Node.Label is
+      when Source_Terminal =>
+         if Trailing_Non_Grammar and Ref.Ref.Node.Non_Grammar.Length > 0 then
+            pragma Assert (Ref.Ref.Node.Byte_Region /= Null_Buffer_Region);
+            return
+              (First => Ref.Ref.Node.Byte_Region.First,
+               Last  => Ref.Ref.Node.Non_Grammar (Ref.Ref.Node.Non_Grammar.Last_Index).Byte_Region.Last);
+         else
+            return Ref.Ref.Node.Byte_Region;
+         end if;
+
+      when Virtual_Terminal | Virtual_Identifier =>
+         case Ref.Ref.Node.Insert_Location is
+         when After_Prev | Between =>
+            if Ref.Ref.Node.Non_Grammar.Length > 0 then
+               return
+                 (First => Ref.Ref.Node.Non_Grammar (Ref.Ref.Node.Non_Grammar.First_Index).Byte_Region.First,
+                  Last  => Ref.Ref.Node.Non_Grammar (Ref.Ref.Node.Non_Grammar.Last_Index).Byte_Region.Last);
+            else
+               Prev_Source_Terminal := Ref;
+               Tree.Prev_Source_Terminal (Prev_Source_Terminal, Trailing_Non_Grammar);
+               return
+                 (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar => True).Last,
+                  Last  => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar => True).Last - 1);
+            end if;
+
+         when Before_Next =>
+            pragma Assert (Ref.Ref.Node.Non_Grammar.Length = 0);
+            Next_Source_Terminal := Ref;
+            Tree.Next_Source_Terminal (Next_Source_Terminal, Trailing_Non_Grammar);
+            return
+              (First => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar => True).First,
+               Last  => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar => True).First - 1);
+         end case;
+
+      when Nonterm =>
+         Prev_Source_Terminal := Ref;
+         Tree.First_Source_Terminal (Prev_Source_Terminal, Trailing_Non_Grammar);
+         Next_Source_Terminal := Ref;
+         Tree.Last_Source_Terminal (Next_Source_Terminal, Trailing_Non_Grammar);
+
+         if Prev_Source_Terminal.Ref.Node = Invalid_Node_Access then
+            Tree.Prev_Source_Terminal (Prev_Source_Terminal, Trailing_Non_Grammar);
+            Tree.Next_Source_Terminal (Next_Source_Terminal, Trailing_Non_Grammar);
          end if;
 
          return
@@ -1546,7 +1621,7 @@ package body WisiToken.Syntax_Trees is
    end Error_Count;
 
    function Error_Iterate
-     (Tree     : aliased in Syntax_Trees.Tree)
+     (Tree : aliased in Syntax_Trees.Tree)
      return Error_Iterator_Interfaces.Forward_Iterator'Class
    is begin
       return Error_Iterator'(Tree => Tree'Access);
@@ -2378,6 +2453,26 @@ package body WisiToken.Syntax_Trees is
          end if;
       end loop;
       return Result;
+   end First_Source_Terminal;
+
+   procedure First_Source_Terminal
+     (Tree                 : in     Syntax_Trees.Tree;
+      Ref                  : in out Stream_Node_Parents;
+      Trailing_Non_Grammar : in     Boolean)
+   is begin
+      Ref.Ref.Node := First_Terminal (Tree, Ref.Ref.Node, Ref.Parents);
+      loop
+         exit when Ref.Ref.Node = Invalid_Node_Access;
+         exit when
+           (if Trailing_Non_Grammar
+            then (case Terminal_Label'(Ref.Ref.Node.Label) is
+                  when Source_Terminal => True,
+                  when Virtual_Terminal => Ref.Ref.Node.Non_Grammar.Length > 0,
+                  when Virtual_Identifier => Ref.Ref.Node.Non_Grammar.Length > 0)
+            else Ref.Ref.Node.Label = Source_Terminal);
+
+         Next_Terminal (Tree, Ref.Ref.Node, Ref.Parents);
+      end loop;
    end First_Source_Terminal;
 
    function First_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Node_Access
@@ -3467,6 +3562,26 @@ package body WisiToken.Syntax_Trees is
       return Result;
    end Last_Source_Terminal;
 
+   procedure Last_Source_Terminal
+     (Tree                 : in     Syntax_Trees.Tree;
+      Ref                  : in out Stream_Node_Parents;
+      Trailing_Non_Grammar : in     Boolean)
+   is begin
+      Ref.Ref.Node := Last_Terminal (Tree, Ref.Ref.Node, Ref.Parents);
+      loop
+         exit when Ref.Ref.Node = Invalid_Node_Access;
+         exit when
+           (if Trailing_Non_Grammar
+            then (case Terminal_Label'(Ref.Ref.Node.Label) is
+                  when Source_Terminal => True,
+                  when Virtual_Terminal => Ref.Ref.Node.Non_Grammar.Length > 0,
+                  when Virtual_Identifier => Ref.Ref.Node.Non_Grammar.Length > 0)
+            else Ref.Ref.Node.Label = Source_Terminal);
+
+         Prev_Terminal (Tree, Ref.Ref.Node, Ref.Parents);
+      end loop;
+   end Last_Source_Terminal;
+
    function Last_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Node_Access
    is begin
       return
@@ -4076,8 +4191,11 @@ package body WisiToken.Syntax_Trees is
             end;
          end if;
 
-      when Terminal_Label =>
-         return Tree.Byte_Region (Node);
+      when Source_Terminal =>
+         return Node.Byte_Region;
+
+      when Virtual_Terminal_Label =>
+         return Null_Buffer_Region;
       end case;
    end Name;
 

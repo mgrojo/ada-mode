@@ -78,9 +78,6 @@ package body Test_Incremental is
       KMN_Next_Bytes : Integer := 1;
       KMN_Next_Chars : Integer := 1;
 
-      Full_Error_Count        : Ada.Containers.Count_Type;
-      Incremental_Error_Count : Ada.Containers.Count_Type;
-
       procedure Edit_Text
         (Edit_At : in Integer;
          Delete  : in String;
@@ -200,13 +197,17 @@ package body Test_Incremental is
 
          Incremental_Parser.Tree.Lexer.Reset_With_String (Initial);
          Incremental_Parser.Parse (Log_File);
-         Full_Error_Count := Full_Parser.Tree.Error_Count;
 
          if WisiToken.Trace_Tests > WisiToken.Outline then
             Put_Tree (Incremental_Parser);
          end if;
          Check (Label_Dot & "full lexer errors", Incremental_Parser.Wrapped_Lexer_Errors.Length, Full_Lexer_Errors);
-         Check (Label_Dot & "full parse errors", Full_Error_Count, Full_Parse_Errors);
+         Check (Label_Dot & "full parse errors", Incremental_Parser.Tree.Error_Count, Full_Parse_Errors);
+      end if;
+
+      if WisiToken.Trace_Tests > WisiToken.Outline then
+         New_Line;
+         Put_Line (Label_Dot & "incremental parse:");
       end if;
 
       Incremental_Parser.Tree.Lexer.Reset_With_String (To_String (Edited_Buffer));
@@ -234,13 +235,7 @@ package body Test_Incremental is
             Edited_Text_Char_Region  => (1, WisiToken.Base_Buffer_Pos (Length (Edited_Buffer))));
       end if;
 
-      if WisiToken.Trace_Parse + WisiToken.Trace_Incremental_Parse > WisiToken.Outline then
-         New_Line;
-         Put_Line (Label_Dot & "incremental parse:");
-      end if;
-
       Incremental_Parser.Parse (Log_File, Edits);
-      Incremental_Error_Count := Incremental_Parser.Tree.Error_Count;
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
          New_Line;
@@ -249,7 +244,7 @@ package body Test_Incremental is
       end if;
 
       Check (Label_Dot & "incr lexer errors", Incremental_Parser.Wrapped_Lexer_Errors.Length, Incr_Lexer_Errors);
-      Check (Label_Dot & "incr parse errors", Incremental_Error_Count, Incr_Parse_Errors);
+      Check (Label_Dot & "incr parse errors", Incremental_Parser.Tree.Error_Count, Incr_Parse_Errors);
       Check (Label_Dot & "tree", Incremental_Parser.Tree, Edited_Source_Full_Parse_Tree,
              Shared_Stream         => False,
              Terminal_Node_Numbers => False);

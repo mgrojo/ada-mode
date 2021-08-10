@@ -34,11 +34,16 @@ update-wisitoken_grammar
 store errors in tree
     run test_incremental.adb
  Preserve_Parse_Errors_2 failing
+    need to delete the inserted BEGIN, but it's not at the edit region.
+    edit_tree undo all error recover, next error recover try prev solution first - new strategy.
+
+        also change costs so recover deletes END instead of inserting BEGIN; then need to restore that
+            again, not at an edit region
+            tree sitter does not insert tokens
 
 
     test case that requires parse removing deleted; lexer_errors_2 edit fixes error.
 
-    test case that requires parse restoring deleted; missing 'begin' => extra 'end', fix inserts 'begin'
 
     test match_names_error
         set_error on reduce in_parse_action is at stack_top, not stream input.

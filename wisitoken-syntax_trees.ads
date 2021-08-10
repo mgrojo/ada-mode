@@ -1106,6 +1106,8 @@ package WisiToken.Syntax_Trees is
    --  If Trailing_Non_Grammar, any non_grammar attached to last terminal
    --  in Node is included in region.
    --
+   --  If Tree.Parents_Set:
+   --
    --  Byte_Region of Virtual_Terminal is an empty region with .First
    --  determined by Insert_Location, using previous or next
    --  source_terminal or non_grammar.
@@ -1113,6 +1115,9 @@ package WisiToken.Syntax_Trees is
    --  Byte_Region of an empty nonterm with Trailing_Non_Grammar False is
    --  an empty region; .First gives nominal location in source text,
    --  using previous or next source_terminal or non_grammar.
+   --
+   --  If not Tree.Parents_Set, does as much of the above as possible,
+   --  returning Null_Buffer_Region if would need Parents_Set.
 
    function Byte_Region
      (Tree                 : in Syntax_Trees.Tree;
@@ -1122,6 +1127,14 @@ package WisiToken.Syntax_Trees is
    with Pre => Valid_Stream_Node (Tree, Ref);
    --  Return Byte_Region of Ref.Node, using stream to find prev, next
    --  non_grammar if needed.
+
+   function Byte_Region
+     (Tree                 : in Syntax_Trees.Tree;
+      Ref                  : in Stream_Node_Parents;
+      Trailing_Non_Grammar : in Boolean := False)
+     return WisiToken.Buffer_Region
+   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
+   --  Same as Byte_Region (Stream_Node_Ref), when parents are not set.
 
    function Name (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Buffer_Region;
    --  If Node.Label in Terminal_Label, return Node.Byte_Region; else if
