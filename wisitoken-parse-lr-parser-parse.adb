@@ -21,7 +21,6 @@ overriding procedure Parse
 is
    use Syntax_Trees;
    use all type KMN_Lists.List;
-   use all type Ada.Strings.Unbounded.Unbounded_String;
    use all type Syntax_Trees.User_Data_Access;
    use all type Ada.Containers.Count_Type;
 
@@ -55,7 +54,6 @@ begin
          Trace.New_Line;
          Trace.Put_Line ("pre-edit tree:");
          Shared_Parser.Tree.Print_Tree (Trace, Line_Numbers => True, Non_Grammar => True);
-         Trace.Put_Line ("deleted_nodes: " & Shared_Parser.Tree.Image (Shared_Parser.Deleted_Nodes));
          Trace.New_Line;
       end if;
 
@@ -397,7 +395,7 @@ begin
                   Parser_State.Resume_Active          := True;
                   Parser_State.Conflict_During_Resume := False;
 
-                  Parser_State.Total_Recover_Cost := @ + Parser_State.Recover.Config_Heap.Min_Key;
+                  Parser_State.Total_Recover_Cost := @ + Parser_State.Recover.Results.Min_Key;
                   case Parser_State.Verb is
                   when Error =>
                      --  Force this parser to be terminated.
@@ -452,25 +450,6 @@ begin
                --  Terminate with error. Parser_State has all the required info on
                --  the original error (recorded by Error in Do_Action).
                McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
-
-               for Parser_State of Shared_Parser.Parsers loop
-                  declare
-                     Error : constant Syntax_Trees.Error_Data_Access := Shared_Parser.Tree.Error
-                       (Parser_State.Current_Error_Node);
-                     Msg : constant String :=
-                       (if McKenzie_Defaulted (Shared_Parser.Table.all)
-                        then "recover disabled"
-                        else "recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result));
-                  begin
-                     if Error.all in Parse_Error then
-                        Parse_Error_Access (Error).Recover_Status := +Msg;
-                     elsif Error.all in In_Parse_Action_Error then
-                        In_Parse_Action_Error_Access (Error).Recover_Status := +Msg;
-                     else
-                        raise SAL.Programmer_Error;
-                     end if;
-                  end;
-               end loop;
                raise WisiToken.Syntax_Error;
             end if;
 

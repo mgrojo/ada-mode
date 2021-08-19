@@ -116,6 +116,4 @@ package WisiToken.Parse.LR.AUnit is
       Check_Index => Check,
       Check_Item  => Standard.AUnit.Checks.Check);
 
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Parse_Error_Label);
-
 end WisiToken.Parse.LR.AUnit;

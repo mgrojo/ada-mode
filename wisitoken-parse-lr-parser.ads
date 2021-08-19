@@ -89,6 +89,8 @@ package WisiToken.Parse.LR.Parser is
       Post_Recover : Post_Recover_Access;
       --  Gather data for tests.
 
+      Resume_Active : Boolean := False;
+
       Parsers : aliased Parser_Lists.List;
 
       Partial_Parse_Active    : access Boolean;

@@ -2867,7 +2867,13 @@ package body WisiToken_Grammar_Editing is
       end if;
 
       if Debug_Mode then
-         Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
+         --  We've edited the tree, creating new nodes, so Node_Index_Order is
+         --  no longer valid.
+         Tree.Validate_Tree
+           (Data, Data.Error_Reported,
+            Root             => Tree.Root,
+            Validate_Node    => Validate_Node'Access,
+            Node_Index_Order => False);
          Check_Original_EBNF;
          Check_Copied_EBNF;
       end if;
@@ -2905,7 +2911,11 @@ package body WisiToken_Grammar_Editing is
                Process_Node (Node);
 
                if Debug_Mode then
-                  Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
+                  Tree.Validate_Tree
+                    (Data, Data.Error_Reported,
+                     Root             => Tree.Root,
+                     Validate_Node    => Validate_Node'Access,
+                     Node_Index_Order => False);
                   Check_Original_EBNF;
                   Check_Copied_EBNF;
                end if;
@@ -2958,7 +2968,11 @@ package body WisiToken_Grammar_Editing is
                   Process_Node (Node);
 
                   if Debug_Mode then
-                     Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
+                     Tree.Validate_Tree
+                       (Data, Data.Error_Reported,
+                        Root             => Tree.Root,
+                        Validate_Node    => Validate_Node'Access,
+                        Node_Index_Order => False);
                      Check_Copied_EBNF;
                   end if;
                end if;
@@ -2984,7 +2998,11 @@ package body WisiToken_Grammar_Editing is
       end;
 
       Data.EBNF_Allowed := False;
-      Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
+      Tree.Validate_Tree
+        (Data, Data.Error_Reported,
+         Root             => Tree.Root,
+         Validate_Node    => Validate_Node'Access,
+         Node_Index_Order => False);
 
       Data.Meta_Syntax := BNF_Syntax;
 

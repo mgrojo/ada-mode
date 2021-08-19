@@ -26,9 +26,7 @@ with WisiToken.Lexer;
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
 with WisiToken.Parse.LR.McKenzie_Recover.Explore;
 with WisiToken.Parse.LR.McKenzie_Recover.Parse;
-with WisiToken.Parse.LR.Parser_Lists;
 package body WisiToken.Parse.LR.McKenzie_Recover is
-   use all type WisiToken.Syntax_Trees.Sequential_Index;
    use all type System.Multiprocessors.CPU_Range;
 
    function Push_Back_Undo_Reduce_Valid
@@ -164,7 +162,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       Trace  : WisiToken.Trace'Class renames Super.Trace.all;
       Config : Configuration;
-      Error  : constant Syntax_Trees.Error_Data_Access := Super.Tree.Error (Parser_State.Current_Error_Node);
+      Error  : constant Syntax_Trees.Error_Data_Access_Constant := Super.Tree.Error
+        (Parser_State.Current_Error_Node (Super.Tree.all).Node);
    begin
       Parser_State.Recover.Enqueue_Count := @ + 1;
 
@@ -214,7 +213,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  Parser_State.Shared_Token.
 
       if Error.all in Parse_Error then
-         Config.Error_Token := Super.Tree.Get_Recover_Token (Parser_State.Current_Error_Node);
+         Config.Error_Token := Super.Tree.Get_Recover_Token (Parser_State.Current_Error_Node (Super.Tree.all));
 
          if Trace_McKenzie > Detail then
             Put ("enqueue", Trace, Super.Tree.all, Parser_State.Stream, Config, Task_ID => False);
@@ -236,7 +235,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
             --  Undo_Reduce can be invalid here; see ada-mode/test/ada_mode-recover_27.adb
             if Undo_Reduce_Valid (Super, Config) then
-               Config.In_Parse_Action_Status := In_Parse_Action_Error_Access (Error).Status;
+               Config.In_Parse_Action_Status := In_Parse_Action_Error_Access_Constant (Error).Status;
                Config.Error_Token            := Config.Stack.Peek.Token;
 
                Unchecked_Undo_Reduce (Super, Shared.Table.all, Config);
@@ -270,6 +269,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    is
       use all type Parser.Post_Recover_Access;
       Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
+      Tree  : Syntax_Trees.Tree renames Shared_Parser.Tree;
 
       Parsers : Parser_Lists.List renames Shared_Parser.Parsers;
 
@@ -277,7 +277,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       Super : aliased Base.Supervisor
         (Trace'Access,
-         Shared_Parser.Tree'Access,
+         Tree'Access,
          Check_Delta_Limit => Shared_Parser.Table.McKenzie_Param.Check_Delta_Limit,
          Enqueue_Limit     => Shared_Parser.Table.McKenzie_Param.Enqueue_Limit,
          Parser_Count      => Parsers.Count);
@@ -393,7 +393,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                if Data.Success then
                   if Trace_McKenzie > Outline then
                      Trace.Put_Line
-                       (" " & Shared_Parser.Tree.Trimmed_Image (Cur.Stream) &
+                       (" " & Tree.Trimmed_Image (Cur.Stream) &
                           ": succeed" & SAL.Base_Peek_Type'Image (Data.Results.Count) &
                           ", enqueue" & Integer'Image (Data.Enqueue_Count) &
                           ", check " & Integer'Image (Data.Check_Count) &
@@ -402,16 +402,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                   if Data.Results.Count > 1 then
                      for I in 1 .. SAL.Base_Peek_Type'Min (Spawn_Limit, Data.Results.Count - 1) loop
-                        Parsers.Prepend_Copy (Cur, Shared_Parser.Tree, Shared_Parser.User_Data, Trace);
+                        Parsers.Prepend_Copy (Cur, Tree, Shared_Parser.User_Data, Trace);
                         --  Does not copy recover.
 
                         if Trace_McKenzie > Outline or Trace_Parse > Outline then
                            Trace.Put_Line
-                             ("spawn " & Shared_Parser.Tree.Trimmed_Image (Parsers.First.Stream) & " from " &
-                                Shared_Parser.Tree.Trimmed_Image (Cur.Stream) & " (" &
+                             ("spawn " & Tree.Trimmed_Image (Parsers.First.Stream) & " from " &
+                                Tree.Trimmed_Image (Cur.Stream) & " (" &
                                 Trimmed_Image (Integer (Parsers.Count)) &
                                 " active)");
-                           Put ("", Trace, Shared_Parser.Tree, Parsers.First.Stream,
+                           Put ("", Trace, Tree, Parsers.First.Stream,
                                 Data.Results.Peek, Task_ID => False, Strategy => True);
                         end if;
 
@@ -421,13 +421,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   end if;
 
                   if Trace_McKenzie > Outline or Trace_Parse > Outline then
-                     Put ("", Trace, Shared_Parser.Tree, Cur.Stream, Data.Results.Peek,
+                     Put ("", Trace, Tree, Cur.Stream, Data.Results.Peek,
                           Task_ID => False, Strategy => True);
                   end if;
                else
                   if Trace_McKenzie > Outline then
                      Trace.Put_Line
-                       (" " & Shared_Parser.Tree.Trimmed_Image (Cur.Stream) &
+                       (" " & Tree.Trimmed_Image (Cur.Stream) &
                           ": fail, enqueue" & Integer'Image (Data.Enqueue_Count) &
                           (if Data.Config_Full_Count > 0 then ", config_full" & Data.Config_Full_Count'Image else "") &
                           ", check " & Integer'Image (Data.Check_Count));
@@ -461,13 +461,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
 
                      Stack  : Syntax_Trees.Stream_ID renames Parser_State.Stream;
-                     Tree   : Syntax_Trees.Tree renames Shared_Parser.Tree;
-                     Data   : McKenzie_Data renames Parser_State.Recover;
-                     Result : Configuration renames Data.Results.Peek;
+                     Result : Configuration renames Parser_State.Recover.Results.Peek;
 
-                     Error : constant Error_Data_Access := Tree.Error (Parser_State.Current_Error_Node);
+                     Error_Node : Syntax_Trees.Rooted_Ref := Parser_State.Current_Error_Node (Tree);
+                     Error : constant Error_Data_Access_Constant := Tree.Error (Error_Node.Node);
 
-                     Error_Pos : constant Buffer_Pos := Tree.Char_Region (Parser_State.Current_Error_Node).First;
+                     Error_Pos : constant Buffer_Pos := Tree.Char_Region (Error_Node.Node).First;
 
                      Stack_Matches_Ops : Boolean := True;
                      First_Insert      : Boolean := True;
@@ -479,12 +478,28 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Parser_State.Set_Verb (Shift);
 
                      if Error.all in Parse_Error then
-                        Parse_Error_Access (Error).Recover_Ops  := Result.Ops;
-                        Parse_Error_Access (Error).Recover_Cost := Result.Cost;
+                        declare
+                           Data : constant Parse_Error_Access := new Parse_Error'
+                             (Parse_Error_Access_Constant (Error).all);
+                        begin
+                           Data.Recover_Ops  := Result.Ops;
+                           Data.Recover_Cost := Result.Cost;
+                           Tree.Set_Error
+                             (Parser_State.Stream, Error_Node,
+                              Error_Data_Access (Data), Shared_Parser.User_Data);
+                        end;
 
                      elsif Error.all in In_Parse_Action_Error then
-                        In_Parse_Action_Error_Access (Error).Recover_Ops  := Result.Ops;
-                        In_Parse_Action_Error_Access (Error).Recover_Cost := Result.Cost;
+                        declare
+                           Data : constant In_Parse_Action_Error_Access := new In_Parse_Action_Error'
+                             (In_Parse_Action_Error_Access_Constant (Error).all);
+                        begin
+                           Data.Recover_Ops  := Result.Ops;
+                           Data.Recover_Cost := Result.Cost;
+                           Tree.Set_Error
+                             (Parser_State.Stream, Error_Node,
+                              Error_Data_Access (Data), Shared_Parser.User_Data);
+                        end;
 
                      else
                         raise SAL.Programmer_Error;
@@ -715,15 +730,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                         Node    => Get_Node (El)));
                                  begin
                                     Op.Del_Node := Deleted_Ref.Node;
-                                    Tree.Last_Terminal (Prev_Terminal);
-                                    Op.Del_After_Node := Prev_Terminal.Ref.Node;
+                                    Tree.Last_Terminal (Prev_Terminal, Parser_State.Stream);
                                     if Tree.Label (Prev_Terminal.Ref.Node) /= Source_Terminal then
-                                       Tree.Prev_Source_Terminal (Prev_Terminal, Trailing_Non_Grammar => False);
+                                       Tree.Prev_Source_Terminal
+                                         (Prev_Terminal, Parser_State.Stream, Trailing_Non_Grammar => False);
                                     end if;
                                     Tree.Add_Deleted
                                       (Deleted_Node  => Deleted_Ref.Node,
                                        Prev_Terminal => Prev_Terminal,
                                        User_Data     => Shared_Parser.User_Data);
+
+                                    Op.Del_After_Node := Prev_Terminal.Ref.Node;
                                  end;
 
                                  Next_Token (Parser_State, Tree, Set_Current => True, Delete => True);
@@ -933,35 +950,356 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end if;
    end Do_Push_Back;
 
-   procedure Clear_Sequential_Index (Shared_Parser : in out WisiToken.Parse.LR.Parser.Parser)
+   procedure Set_Initial_Sequential_Index
+     (Parsers    : in out Parser_Lists.List;
+      Tree       : in     Syntax_Trees.Tree;
+      Streams    : in out Syntax_Trees.Stream_ID_Array;
+      Terminals  : in out Syntax_Trees.Stream_Node_Parents_Array;
+      Initialize : in     Boolean)
    is
       use Syntax_Trees;
+
+      --  The parsers may have different error points, and different parse
+      --  stream input after the error point; we arbitrarily pick the first
+      --  parser as the origin for Sequential_Index. Because most terminal
+      --  nodes are shared, we must set Sequential_Index consistently for
+      --  all parsers, including in terminal tokens copied from
+      --  Shared_Stream (for Set_Error or Add_Deleted). So we walk prev/next
+      --  terminal for each parser.
+
+      --  If not Initialize, we are clearing sequential_index. A node may
+      --  have been copied from shared_stream into a parse stream after
+      --  sequential_index was initialized, to set Deleted_After due to a
+      --  Delete op (test_mckenzie_recover.adb Error_2). So we need to
+      --  traverse the shared stream as well as the parse streams.
+
+      Seq_Index : constant Base_Sequential_Index := (if Initialize then 1 else Invalid_Sequential_Index);
    begin
-      if Shared_Parser.Parsers.First_State_Ref.Max_Sequential_Index /= Syntax_Trees.Invalid_Stream_Node_Parents then
-         declare
-            Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
-         begin
-            loop
-               for Parser of Shared_Parser.Parsers loop
-                  Tree.Set_Sequential_Index (Parser.Max_Sequential_Index.Ref.Node, Invalid_Sequential_Index);
-                  Tree.Prev_Terminal (Parser.Max_Sequential_Index, Parse_Stream => Parser.Stream);
+      --  First set starting point.
+      declare
+         I : Positive_Index_Type := 1; --  first parse stream
+      begin
+         if not Initialize then
+            Streams (Streams'Last) := Tree.Shared_Stream;
+         end if;
+
+         for Parser_State of Parsers loop
+            Streams (I) := Parser_State.Stream;
+
+            --  Start with the stack top; it is the error token for
+            --  In_Parse_Actions, is one before the error token for Parse_Actions,
+            --  is in the parse stream, and is SOI for an empty buffer.
+            Terminals (I) := Tree.To_Stream_Node_Parents
+              (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Peek (Parser_State.Stream)));
+
+            if not Initialize and I = 1 then
+               --  Set Terminals (Terminals'Last), which must be in the shared stream.
+               --  Current_Token is not invalid here; error recover succeeded.
+               if Tree.ID (Parser_State.Current_Token.Node) = Tree.Lexer.Descriptor.EOI_ID then
+                  --  test_mckenzie_recover.adb Empty_Comments
+                  Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
+                    (Tree.To_Rooted_Ref (Tree.Shared_Stream, Tree.Stream_Last (Tree.Shared_Stream)));
+               else
+                  if Parser_State.Current_Token.Stream /= Tree.Shared_Stream then
+                     --  Current_Token is the error token, so it was copied to the parse
+                     --  stream input. test_mckenzie_recover.adb Error_4.
+                     Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
+                       (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Stream_Last (Parser_State.Stream)));
+                     Tree.Next_Terminal (Terminals (Terminals'Last));
+                     if Terminals (Terminals'Last).Ref = Invalid_Stream_Node_Ref then
+                        --  EOI was in stream input
+                        Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
+                          (Tree.To_Rooted_Ref (Tree.Shared_Stream, Tree.Stream_Last (Tree.Shared_Stream)));
+                     end if;
+                     pragma Assert (Terminals (Terminals'Last).Ref.Stream = Tree.Shared_Stream);
+
+                  else
+                     Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents (Parser_State.Current_Token);
+                  end if;
+               end if;
+            end if;
+
+            Tree.Last_Terminal (Terminals (I), Streams (I));
+            I := @ + 1;
+         end loop;
+      end;
+
+      --  Get all Terminals to the same node. Terminals (1) is the
+      --  "reference" terminal.
+      for I in Terminals'First + 1 .. Terminals'Last loop
+         if Terminals (I).Ref.Node /= Terminals (1).Ref.Node then
+            --  There are several cases:
+            --
+            --  1. I node is copied
+            --  2. Reference node is before or after parser node.
+            --  3. Reference node is deleted in parser.
+            --
+            --  In case 3, the parser node does not need Sequential_Index.
+            --
+            --  Note that the reference node cannot be inserted or deleted in the
+            --  reference parser, because we start with Parse_State.Current_Token,
+            --  which is after any deleted tokens.
+
+            declare
+               Ref_Byte_Pos : constant Buffer_Pos := Tree.Byte_Region
+                 (Terminals (1), Parse_Stream => Streams (1), Trailing_Non_Grammar => True).First;
+            begin
+               loop
+                  declare
+                     Byte_Pos : Buffer_Pos := Tree.Byte_Region
+                       (Terminals (I), Streams (I), Trailing_Non_Grammar => True).First;
+                  begin
+                     if Ref_Byte_Pos = Byte_Pos then
+                        --  case 1.
+                        Tree.Set_Sequential_Index (Terminals (I).Ref.Node, Seq_Index);
+                        exit;
+
+                     elsif Ref_Byte_Pos < Byte_Pos then
+                        if Tree.ID (Terminals (I).Ref.Node) = Tree.Lexer.Descriptor.SOI_ID then
+                           Tree.Set_Sequential_Index (Terminals (I).Ref.Node, Seq_Index);
+                           exit;
+                        else
+                           Tree.Prev_Terminal (Terminals (I), Streams (I));
+
+                           Byte_Pos := Tree.Byte_Region
+                             (Terminals (I), Parse_Stream => Streams (I), Trailing_Non_Grammar => True).First;
+
+                           exit when Ref_Byte_Pos > Byte_Pos; -- case 3.
+                        end if;
+                     else
+                        if Tree.ID (Terminals (I).Ref.Node) = Tree.Lexer.Descriptor.EOI_ID then
+                           Tree.Set_Sequential_Index (Terminals (I).Ref.Node, Seq_Index);
+                           exit;
+                        else
+                           Tree.Next_Terminal (Terminals (I));
+                           Byte_Pos := Tree.Byte_Region
+                             (Terminals (I), Parse_Stream => Streams (I), Trailing_Non_Grammar => True).First;
+                           exit when Ref_Byte_Pos < Byte_Pos; -- case 3.
+                        end if;
+                     end if;
+                  end;
                end loop;
+            end;
+         end if;
+      end loop;
 
-               --  Virtual terminals inserted during error recover have invalid
-               --  sequential index; keep going. test_incremental.adb Recover_1.
+      for I in Terminals'Range loop
+         Tree.Set_Sequential_Index (Terminals (I).Ref.Node, Seq_Index);
+      end loop;
+   end Set_Initial_Sequential_Index;
+
+   procedure Extend_Sequential_Index
+     (Tree      : in     Syntax_Trees.Tree;
+      Streams   : in     Syntax_Trees.Stream_ID_Array;
+      Terminals : in out Syntax_Trees.Stream_Node_Parents_Array;
+      Target    : in     Syntax_Trees.Base_Sequential_Index;
+      Positive  : in     Boolean)
+   is
+      use Syntax_Trees;
+      Index : Base_Sequential_Index :=
+        (if Target = Invalid_Sequential_Index
+         then Invalid_Sequential_Index
+         else 1);
+
+      Skip_Step_Reference : Boolean := False;
+      Skip_Step_Terminals : array (2 .. Terminals'Last) of Boolean := (others => False);
+   begin
+      --  FIXME: debugging
+      --  Ada.Text_IO.Put_Line ("Extend_Sequential_Index: enter target" & Target'Image & " streams, terminals");
+      --  for I in Terminals'Range loop
+      --     Ada.Text_IO.Put_Line (Tree.Image (Streams (I), Shared => True));
+      --     Ada.Text_IO.Put_Line (Tree.Image (Terminals (I).Ref));
+      --  end loop;
+
+      loop
+         if Skip_Step_Reference then
+            Skip_Step_Reference := False;
+         else
+            if Positive then
+               if Tree.ID (Terminals (1).Ref.Node) /= Tree.Lexer.Descriptor.EOI_ID then
+                  Tree.Next_Terminal (Terminals (1));
+               end if;
+            else
+               if Tree.ID (Terminals (1).Ref.Node) /= Tree.Lexer.Descriptor.SOI_ID then
+                  Tree.Prev_Terminal (Terminals (1), Streams (1));
+               end if;
+            end if;
+         end if;
+
+         if Target /= Invalid_Sequential_Index then
+            if Positive then
+               Index := @ + 1;
+            else
+               Index := @ - 1;
+            end if;
+         end if;
+
+         declare
+            Ref_Byte_Pos : constant Buffer_Pos := Tree.Byte_Region
+              (Terminals (1), Streams (1), Trailing_Non_Grammar => True).First;
+         begin
+            for I in 2 .. Terminals'Last loop
+               if Skip_Step_Terminals (I) then
+                  Skip_Step_Terminals (I) := False;
+               else
+                  if Positive then
+                     if Tree.ID (Terminals (I).Ref.Node) = Tree.Lexer.Descriptor.EOI_ID then
+                        null;
+                     else
+                        Tree.Next_Terminal (Terminals (I));
+                     end if;
+                  else
+                     if Tree.ID (Terminals (I).Ref.Node) = Tree.Lexer.Descriptor.SOI_ID then
+                        null;
+                     else
+                        Tree.Prev_Terminal (Terminals (I), Streams (I));
+                     end if;
+                  end if;
+               end if;
+
                declare
-                  Node : constant Node_Access :=
-                    Shared_Parser.Parsers.First_State_Ref.Max_Sequential_Index.Ref.Node;
+                  Byte_Pos : constant Buffer_Pos := Tree.Byte_Region
+                    (Terminals (I), Streams (1), Trailing_Non_Grammar => True).First;
                begin
-                  exit when Node = Invalid_Node_Access; -- no prev_terminal
+                  if Terminals (I).Ref.Node = Terminals (1).Ref.Node then
+                     --  Don't set this here; that will confuse the exit criteria for not
+                     --  Initialize. It will be set via Terminals (1) below.
+                     null;
 
-                  exit when not (Tree.Label (Node) in Virtual_Terminal) and then
-                    Tree.Get_Sequential_Index (Node) = Invalid_Sequential_Index;
+                  elsif Ref_Byte_Pos = Byte_Pos then
+                     Tree.Set_Sequential_Index (Terminals (I).Ref.Node, Index);
+
+                  else
+                     if Positive then
+                        if Ref_Byte_Pos > Byte_Pos then
+                           --  Parser node is deleted in reference; wait for Parser to catch
+                           --  up.
+                           Skip_Step_Reference := True;
+                           Tree.Set_Sequential_Index (Terminals (I).Ref.Node, Index);
+
+                        else
+                           --  Ref_Byte_Pos < Byte_Pos
+                           --  Reference node is deleted in Parser; wait for reference to catch up.
+                           Skip_Step_Terminals (I) := True;
+                        end if;
+
+                     else -- Positive = False
+                        if Ref_Byte_Pos < Byte_Pos then
+                           --  Parser node is deleted in reference; wait for reference to catch
+                           --  up.
+                           Skip_Step_Reference := True;
+                           Tree.Set_Sequential_Index (Terminals (I).Ref.Node, Index);
+
+                        else
+                           --  Ref_Byte_Pos > Byte_Pos
+                           --  Reference node is deleted in Parser; wait for reference to catch up.
+                           Skip_Step_Terminals (I) := True;
+                        end if;
+                     end if;
+                  end if;
                end;
             end loop;
+         end;
 
-            for Parser of Shared_Parser.Parsers loop
-               Parser.Max_Sequential_Index := Invalid_Stream_Node_Parents;
+         if Target = Invalid_Sequential_Index then
+            if Tree.ID (Terminals (1).Ref.Node) =
+              (if Positive
+               then Tree.Lexer.Descriptor.EOI_ID
+               else Tree.Lexer.Descriptor.SOI_ID)
+            then
+               Tree.Set_Sequential_Index (Terminals (1).Ref.Node, Index);
+            end if;
+
+            if (for all Term of Terminals => Tree.Label (Term.Ref.Node) = Source_Terminal and then
+                  Tree.Get_Sequential_Index (Term.Ref.Node) = Invalid_Sequential_Index)
+            then
+               exit;
+            end if;
+
+            if not Skip_Step_Reference then
+               Tree.Set_Sequential_Index (Terminals (1).Ref.Node, Index);
+            end if;
+
+         else
+            if not Skip_Step_Reference then
+               Tree.Set_Sequential_Index (Terminals (1).Ref.Node, Index);
+            end if;
+
+            exit when Index >= Target;
+
+            exit when
+              (for all Term of Terminals =>
+                 Tree.ID (Term.Ref.Node) =
+                 (if Positive
+                  then Tree.Lexer.Descriptor.EOI_ID
+                  else Tree.Lexer.Descriptor.SOI_ID));
+         end if;
+
+      end loop;
+
+      --  FIXME: debugging
+      --  Ada.Text_IO.Put_Line ("Extend_Sequential_Index: exit streams, terminals");
+      --  for I in Terminals'Range loop
+      --     Ada.Text_IO.Put_Line (Tree.Image (Streams (I), Shared => True));
+      --     Ada.Text_IO.Put_Line (Tree.Image (Terminals (I).Ref));
+      --  end loop;
+   end Extend_Sequential_Index;
+
+   procedure Clear_Sequential_Index (Shared_Parser : in out WisiToken.Parse.LR.Parser.Parser)
+   is
+      Streams       : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Parsers.Count + 1);
+      Min_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Parsers.Count + 1);
+      Max_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Parsers.Count + 1);
+   begin
+      --  if Trace_McKenzie > Outline then
+         --  FIXME: debugging
+         --  Shared_Parser.Trace.Put_Line ("in Clear_Sequential_Index; streams:");
+         --  declare
+         --     use Syntax_Trees;
+         --     Stream : Stream_ID := Shared_Parser.Tree.Shared_Stream;
+         --  begin
+         --     loop
+         --        Shared_Parser.Trace.Put_Line
+         --          (Shared_Parser.Tree.Image
+         --             (Stream, Shared => True, Children => True, State_Numbers => False));
+         --        Shared_Parser.Tree.Next_Parse_Stream (Stream);
+         --        Shared_Parser.Trace.New_Line;
+         --        exit when Stream = Invalid_Stream_ID;
+         --     end loop;
+         --  end;
+      --  end if;
+
+      Set_Initial_Sequential_Index
+        (Shared_Parser.Parsers, Shared_Parser.Tree, Streams, Max_Terminals, Initialize => False);
+      Min_Terminals := Max_Terminals;
+      Extend_Sequential_Index
+        (Shared_Parser.Tree, Streams, Max_Terminals, Positive => True,
+         Target => Syntax_Trees.Invalid_Sequential_Index);
+      Extend_Sequential_Index
+        (Shared_Parser.Tree, Streams, Min_Terminals, Positive => False,
+         Target => Syntax_Trees.Invalid_Sequential_Index);
+
+      if Debug_Mode then
+         declare
+            use Syntax_Trees;
+            Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
+            Stream : Stream_ID := Tree.Shared_Stream;
+         begin
+            loop
+               declare
+                  Terminal : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+                    (Tree.To_Rooted_Ref (Stream, Tree.Stream_First (Stream, Skip_SOI => False)));
+               begin
+                  loop
+                     if Tree.Get_Sequential_Index (Terminal.Ref.Node) /= Invalid_Sequential_Index then
+                        raise SAL.Programmer_Error with "sequential_index not cleared: " & Tree.Image (Terminal.Ref);
+                     end if;
+                     Tree.Next_Terminal (Terminal);
+                     exit when Terminal.Ref = Invalid_Stream_Node_Ref;
+                  end loop;
+               end;
+               Tree.Next_Parse_Stream (Stream);
+               exit when Stream = Invalid_Stream_ID;
             end loop;
          end;
       end if;

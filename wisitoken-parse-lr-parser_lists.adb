@@ -53,6 +53,17 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return To_String (Result & ")");
    end Parser_Stack_Image;
 
+   function Current_Error_Node
+     (Parser_State : in Parser_Lists.Parser_State;
+      Tree         : in Syntax_Trees.Tree)
+     return Syntax_Trees.Rooted_Ref
+   is begin
+      return
+        (if Tree.Has_Input (Parser_State.Stream)
+         then Tree.First_Input (Parser_State.Stream)
+         else Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Peek (Parser_State.Stream)));
+   end Current_Error_Node;
+
    function Peek_Current_Sequential_Terminal
      (Parser_State : in Parser_Lists.Parser_State;
       Tree         : in Syntax_Trees.Tree)
@@ -397,6 +408,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       New_Item : Parser_State;
    begin
       declare
+         use all type WisiToken.Syntax_Trees.Node_Access;
          Item : Parser_State renames Parser_State_Lists.Variable_Ref (Cursor.Ptr);
          --  We can't do 'Prepend' in the scope of this 'renames';
          --  that would be tampering with cursors.
@@ -413,7 +425,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
                then Item.Current_Token
                else Syntax_Trees.Invalid_Stream_Node_Ref), --  corrected below.
             Inc_Shared_Stream_Token => Item.Inc_Shared_Stream_Token,
-            Current_Error_Node      => Item.Current_Error_Node,
             Recover                 =>
               (Enqueue_Count        => Item.Recover.Enqueue_Count,
                Config_Full_Count    => Item.Recover.Config_Full_Count,
@@ -426,7 +437,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Resume_Token_Goal       => Item.Resume_Token_Goal,
             Conflict_During_Resume  => Item.Conflict_During_Resume,
             Zombie_Token_Count      => 0,
-            Max_Sequential_Index    => Item.Max_Sequential_Index,
             Last_Action             => Item.Last_Action,
             Stream                  => Tree.New_Stream (Item.Stream, User_Data),
             Verb                    => Item.Verb);

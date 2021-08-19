@@ -81,7 +81,6 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
    end record;
 
    type Parser_Status_Array is array (SAL.Peek_Type range <>) of Parser_Status;
-   type Stream_Node_Parents_Array is array (SAL.Peek_Type range <>) of Syntax_Trees.Stream_Node_Parents;
 
    protected type Supervisor
      (Trace             : not null access WisiToken.Trace'Class;
@@ -143,16 +142,18 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
       function Stream (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_ID;
 
       function Min_Sequential_Index return Syntax_Trees.Sequential_Index;
+      function Min_Sequential_Index_All_SOI return Boolean;
       function Max_Sequential_Index return Syntax_Trees.Sequential_Index;
+      function Max_Sequential_Index_All_EOI return Boolean;
       function Min_Sequential_Index (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_Node_Parents;
       function Max_Sequential_Index (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_Node_Parents;
-      function Max_Sequential_Index_Is_EOI (Parser_Index : in SAL.Peek_Type) return Boolean;
 
       procedure Extend_Min_Sequential_Index (Target : in Syntax_Trees.Sequential_Index);
       procedure Extend_Max_Sequential_Index (Target : in Syntax_Trees.Sequential_Index);
-      --  In all parse streams.
+      --  In all parse streams. Clients should use
+      --  Base.Extend_Sequential_Index, below.
    private
-      Parsers : access Parser_Lists.List;
+      Parsers : access Parser_Lists.List; --  FIXME: why do we have both Parsers and Parser_Status.Parser_State?
 
       All_Parsers_Done        : Boolean;
       Success_Counter         : Natural;
@@ -164,8 +165,8 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
       Error_Message           : Ada.Strings.Unbounded.Unbounded_String;
       Parser_Status           : Parser_Status_Array (1 .. Parser_Count);
 
-      Min_Sequential_Indices : Stream_Node_Parents_Array (1 .. Parser_Count);
-      Max_Sequential_Indices : Stream_Node_Parents_Array (1 .. Parser_Count);
+      Min_Sequential_Indices : Syntax_Trees.Stream_Node_Parents_Array (1 .. Parser_Count);
+      Max_Sequential_Indices : Syntax_Trees.Stream_Node_Parents_Array (1 .. Parser_Count);
    end Supervisor;
 
    procedure Extend_Sequential_Index
@@ -176,6 +177,11 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
    --
    --  Else extend Sequential_Index range thru node Thru, in Positive
    --  direction.
+
+   procedure Extend_Sequential_Index
+     (Super : not null access Base.Supervisor;
+      Thru  : in              Syntax_Trees.Sequential_Index);
+   --  Ensure Sequential_Index range includes Thru.
 
    type Shared
      --  Don't duplicate values that are in Supervisor discriminants.

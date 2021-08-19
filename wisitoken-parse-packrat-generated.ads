@@ -73,7 +73,4 @@ package WisiToken.Parse.Packrat.Generated is
       Edits    : in     KMN_Lists.List := KMN_Lists.Empty_List);
    --  Raises Parse_Error if Edits is not empty.
 
-   overriding function Any_Errors (Parser : in Generated.Parser) return Boolean;
-   overriding procedure Put_Errors (Parser : in Generated.Parser);
-
 end WisiToken.Parse.Packrat.Generated;

@@ -205,7 +205,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    is
       use Recover_Op_Arrays;
       use Recover_Op_Array_Refs;
-      use all type WisiToken.Syntax_Trees.Sequential_Index;
    begin
       if Config.Current_Insert_Delete /= No_Insert_Delete and then
         (declare
@@ -232,9 +231,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    end Peek_Current_Token_ID;
 
    procedure Current_Token_ID_Peek_3
-     (Tree   :         in     Syntax_Trees.Tree;
-      Config : aliased in     Configuration;
-      Tokens :            out Token_ID_Array_1_3)
+     (Super  :         not null access Base.Supervisor;
+      Config : aliased in              Configuration;
+      Tokens :            out          Token_ID_Array_1_3)
    --  Return the current token from Config in Tokens (1). Return the two
    --  following tokens in Tokens (2 .. 3).
    is
@@ -255,16 +254,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
       Tokens_Last           : Integer               := 0;
       Current_Insert_Delete : SAL.Base_Peek_Type    := Config.Current_Insert_Delete;
-      Peek_State            : Peek_Sequential_State := Peek_Sequential_Start (Tree, Config);
+      Peek_State            : Peek_Sequential_State := Peek_Sequential_Start (Super.Tree.all, Config);
       Inc_Shared_Token      : Boolean               := True;
    begin
       loop -- three tokens, skip Op = Delete
          declare
             Next_Node : constant Valid_Node_Access := Peek_Sequential_Terminal (Peek_State);
+            Index : constant Sequential_Index := Super.Tree.Get_Sequential_Index (Next_Node);
          begin
+            --  Sequential_Index may have gaps, so we must extend on each token.
+            Base.Extend_Sequential_Index (Super, Index + 1);
+
             if Current_Insert_Delete /= No_Insert_Delete and then
               Token_Index (Constant_Ref (Config.Insert_Delete, Current_Insert_Delete)) =
-              Tree.Get_Sequential_Index (Next_Node)
+              Super.Tree.Get_Sequential_Index (Next_Node)
             then
                Inc_Shared_Token := False;
                declare
@@ -276,7 +279,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                      Tokens (Tokens_Last) := ID (Op);
 
                   when Delete =>
-                     Peek_Next_Sequential_Terminal (Tree, Peek_State);
+                     Peek_Next_Sequential_Terminal (Super.Tree.all, Peek_State);
                   end case;
 
                   Current_Insert_Delete := @ + 1;
@@ -288,14 +291,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             else
                Inc_Shared_Token     := True;
                Tokens_Last          := @ + 1;
-               Tokens (Tokens_Last) := Tree.ID (Next_Node);
+               Tokens (Tokens_Last) := Super.Tree.ID (Next_Node);
             end if;
          end;
 
-         exit when Tokens (Tokens_Last) = Tree.Lexer.Descriptor.EOI_ID or Tokens_Last = 3;
+         exit when Tokens (Tokens_Last) = Super.Tree.Lexer.Descriptor.EOI_ID or Tokens_Last = 3;
 
          if Inc_Shared_Token then
-            Peek_Next_Sequential_Terminal (Tree, Peek_State);
+            Peek_Next_Sequential_Terminal (Super.Tree.all, Peek_State);
          end if;
       end loop;
 
@@ -609,7 +612,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    is
       use Recover_Op_Arrays, Recover_Op_Array_Refs;
       use all type Bounded_Streams.Cursor;
-      use all type WisiToken.Syntax_Trees.Sequential_Index;
    begin
       if Last_Index (Config.Insert_Delete) > 0 and then
         Config.Current_Insert_Delete = Last_Index (Config.Insert_Delete)
@@ -667,7 +669,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       use Parse_Item_Arrays;
       use Recover_Op_Arrays;
       use all type In_Parse_Actions.Status_Label;
-      use all type WisiToken.Syntax_Trees.Sequential_Index;
 
       Trace      : WisiToken.Trace'Class renames Super.Trace.all;
       Tree       : WisiToken.Syntax_Trees.Tree renames Super.Tree.all;

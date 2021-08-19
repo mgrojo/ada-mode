@@ -176,11 +176,11 @@ package WisiToken.Parse is
       Last_Terminal  : Token_ID)
    is new Syntax_Trees.Error_Data with record
       Expecting    : Token_ID_Set (First_Terminal .. Last_Terminal);
-      Recover_Status : Ada.Strings.Unbounded.Unbounded_String;
       Recover_Ops  : Recover_Op_Arrays.Vector;
       Recover_Cost : Natural := 0;
    end record;
    type Parse_Error_Access is access all Parse_Error;
+   type Parse_Error_Access_Constant is access constant Parse_Error;
 
    overriding function Copy (Data : in Parse_Error) return Syntax_Trees.Error_Data_Access;
 
@@ -191,12 +191,12 @@ package WisiToken.Parse is
      return String;
 
    type In_Parse_Action_Error is new Syntax_Trees.Error_Data with record
-      Status         : WisiToken.In_Parse_Actions.Status;
-      Recover_Status : Ada.Strings.Unbounded.Unbounded_String;
-      Recover_Ops    : Recover_Op_Arrays.Vector;
-      Recover_Cost   : Natural := 0;
+      Status       : WisiToken.In_Parse_Actions.Status;
+      Recover_Ops  : Recover_Op_Arrays.Vector;
+      Recover_Cost : Natural := 0;
    end record;
    type In_Parse_Action_Error_Access is access all In_Parse_Action_Error;
+   type In_Parse_Action_Error_Access_Constant is access constant In_Parse_Action_Error;
 
    overriding function Copy (Data : in In_Parse_Action_Error) return Syntax_Trees.Error_Data_Access;
 
@@ -226,13 +226,6 @@ package WisiToken.Parse is
       User_Data : WisiToken.Syntax_Trees.User_Data_Access;
 
       Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List; -- 'aliased' for error recover
-                                                                     --  FIXME: move into Tree.
-
-      Deleted_Nodes : WisiToken.Syntax_Trees.Valid_Node_Access_Lists.List;
-      --  Source_Terminal nodes deleted by error recovery in previous parse,
-      --  in original text order. Restored to the shared stream by
-      --  Edit_Tree.
-      --  FIXME: move into Tree (after finish moving errors)
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 
@@ -342,8 +335,12 @@ package WisiToken.Parse is
    procedure Put (Errors : in Wrapped_Lexer_Error_Lists.List; Tree : in Syntax_Trees.Tree);
    --  Output to Ada.Text_IO.Current_Error.
 
-   procedure Put_Errors (Parser : in Base_Parser'Class);
-   --  Output Parser.Wrapped_Lexer_Errors, Parser.Parse_Errors to Ada.Text_IO.Current_Error.
+   procedure Put_Errors (Parser : in Base_Parser'Class)
+   with Pre => Parser.Tree.Parents_Set;
+   --  Output Parser.Wrapped_Lexer_Errors, Parser.Tree errors to Ada.Text_IO.Current_Error.
+
+   procedure Put_Errors (Parser : in Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID);
+   --  Output Parser.Wrapped_Lexer_Errors, Parser.Tree.Stream errors to Ada.Text_IO.Current_Error.
 
    procedure Execute_Actions
      (Parser              : in out Base_Parser;

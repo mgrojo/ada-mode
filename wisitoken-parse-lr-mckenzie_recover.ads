@@ -28,8 +28,10 @@ pragma License (Modified_GPL);
 
 with Ada.Task_Attributes;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Parse.LR.Parser_Lists;
 limited with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package WisiToken.Parse.LR.McKenzie_Recover is
+   use all type WisiToken.Syntax_Trees.Base_Sequential_Index;
    use all type WisiToken.Syntax_Trees.Node_Access;
    use all type WisiToken.Syntax_Trees.Stream_Index;
    use all type Ada.Containers.Count_Type;
@@ -215,6 +217,61 @@ private
    procedure Peek_Next_Sequential_Terminal
      (Tree  : in     Syntax_Trees.Tree;
       State : in out Peek_Sequential_State);
+
+   procedure Set_Initial_Sequential_Index
+     (Parsers    : in out WisiToken.Parse.LR.Parser_Lists.List;
+      Tree       : in     Syntax_Trees.Tree;
+      Streams    : in out Syntax_Trees.Stream_ID_Array;
+      Terminals  : in out Syntax_Trees.Stream_Node_Parents_Array;
+      Initialize : in     Boolean)
+   with Pre => Terminals'First = 1 and Terminals'Last = (if Initialize then Parsers.Count else Parsers.Count + 1) and
+               Streams'First = Terminals'First and Streams'Last = Terminals'Last,
+     Post => (for all Term of Terminals =>
+                (if Initialize
+                 then Tree.Get_Sequential_Index (Term.Ref.Node) /= Syntax_Trees.Invalid_Sequential_Index
+                 else Tree.Get_Sequential_Index (Term.Ref.Node) = Syntax_Trees.Invalid_Sequential_Index));
+   --  If Initialize, prepare for setting sequential_index in the parse
+   --  streams for error recover. If not Initialize, prepare for clearing
+   --  sequential_index after recover is done; Terminals'Last is the
+   --  shared stream (see body for rationale).
+   --
+   --  Set Terminals to a common starting point for
+   --  Extend_Sequential_Index, nominally parser Current_Token for
+   --  Initialize, stack top for not Initialize. If Initialize, set
+   --  Sequential_Index in all Terminals nodes to 1; if not Initialize,
+   --  set to Invalid_Sequential_Index.
+
+   procedure Extend_Sequential_Index
+     (Tree      : in     Syntax_Trees.Tree;
+      Streams   : in     Syntax_Trees.Stream_ID_Array;
+      Terminals : in out Syntax_Trees.Stream_Node_Parents_Array;
+      Target    : in     Syntax_Trees.Base_Sequential_Index;
+      Positive  : in     Boolean)
+   with Pre =>
+     (if Target = Syntax_Trees.Invalid_Sequential_Index
+      then (for all Term of Terminals =>
+              Tree.Get_Sequential_Index (Term.Ref.Node) = Syntax_Trees.Invalid_Sequential_Index)
+      else
+        (for all Term of Terminals =>
+           Tree.Get_Sequential_Index (Term.Ref.Node) /= Syntax_Trees.Invalid_Sequential_Index)
+           and then
+          (for some Term of Terminals =>
+             Tree.ID (Term.Ref.Node) /=
+             (if Positive
+              then Tree.Lexer.Descriptor.EOI_ID
+              else Tree.Lexer.Descriptor.SOI_ID) and
+             (if Positive
+              then Tree.Get_Sequential_Index (Term.Ref.Node) < Target
+              else Tree.Get_Sequential_Index (Term.Ref.Node) > Target))),
+     Post =>
+       (for all Term of Terminals =>
+          (if Target = Syntax_Trees.Invalid_Sequential_Index
+           then Tree.Get_Sequential_Index (Term.Ref.Node) = Syntax_Trees.Invalid_Sequential_Index
+           else Tree.Get_Sequential_Index (Term.Ref.Node) /= Syntax_Trees.Invalid_Sequential_Index));
+   --  If Target = Invalid_Sequential_Index, clear all Sequential_Index,
+   --  starting at Terminals, and moving in Positive direction.
+   --  Otherwise, Set Sequential_Index in Tree nodes before/after
+   --  Terminals, thru Target.
 
    function Push_Back_Valid
      (Super                 : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;

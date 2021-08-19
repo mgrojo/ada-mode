@@ -235,7 +235,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
      return Boolean
    is
       use Recover_Op_Arrays, Recover_Op_Array_Refs;
-      use all type WisiToken.Syntax_Trees.Sequential_Index;
       pragma Assert (Length (Config.Ops) > 0);
       Op : Recover_Op renames Constant_Ref (Config.Ops, Last_Index (Config.Ops));
    begin
@@ -1205,7 +1204,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Minimal_Inserted : Token_ID_Arrays.Vector;
    begin
       if Shared.Language_Matching_Begin_Tokens /= null then
-         Parse.Current_Token_ID_Peek_3 (Super.Tree.all, Config, Tokens);
+         Parse.Current_Token_ID_Peek_3 (Super, Config, Tokens);
 
          Shared.Language_Matching_Begin_Tokens
            (Super.Tree.all, Tokens, Config, Matching_Begin_Tokens, Forbid_Minimal_Insert);
@@ -1549,7 +1548,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
         (Label       : in     String;
          Config      : in out Configuration;
          First, Last : in     Syntax_Trees.Sequential_Index)
-      --  Delete tokens First .. Last from Tree Shared_Stream.
+      --  Delete tokens First .. Last from Tree Shared_Stream. FIXME: why not from Parse_Stream?
       --  Config.Current_Shared_Token must be in First .. Last + 1. Leave
       --  Current_Shared_Token at Last + 1.
       is
@@ -1563,7 +1562,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             elsif First < Tree.Get_Sequential_Index (Ref.Ref.Node) then
                loop
                   exit when Tree.Get_Sequential_Index (Ref.Ref.Node) = First;
-                  Tree.Prev_Sequential_Terminal (Ref);
+                  Tree.Prev_Sequential_Terminal (Ref, Parse_Stream => Invalid_Stream_ID);
                end loop;
 
             else
@@ -1736,7 +1735,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             begin
                Push_Back_Tokens ("insert quote 4 a", New_Config, Min_Pushed_Back_Index);
 
-               Tree.Prev_Sequential_Terminal (Prev_Shared);
+               Tree.Prev_Sequential_Terminal (Prev_Shared, Super.Stream (Parser_Index));
                Finish
                  ("a", New_Config,
                   First => Min_Pushed_Back_Index,
@@ -1824,7 +1823,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             begin
                Push_Back_Tokens ("insert quote 5 d", New_Config, Min_Pushed_Back_Index);
 
-               Tree.Prev_Sequential_Terminal (Prev_Shared);
+               Tree.Prev_Sequential_Terminal (Prev_Shared, Super.Stream (Parser_Index));
                Finish
                  ("d", New_Config,
                   First => Min_Pushed_Back_Index,
@@ -1884,7 +1883,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  Try deleting (= skipping) the current shared input token.
 
       use Recover_Op_Arrays, Recover_Op_Array_Refs;
-      use all type WisiToken.Syntax_Trees.Sequential_Index;
 
       EOF_ID      : constant Token_ID                := Super.Tree.Lexer.Descriptor.EOI_ID;
       Check_Limit : constant Syntax_Trees.Sequential_Index := Shared.Table.McKenzie_Param.Check_Limit;
@@ -1973,7 +1971,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             New_Next_Index := Super.Tree.Get_Sequential_Index (Node);
             if New_Config.Resume_Token_Goal - Check_Limit < New_Next_Index then
                New_Config.Resume_Token_Goal := New_Next_Index + Check_Limit;
-               Super.Extend_Max_Sequential_Index (New_Config.Resume_Token_Goal);
+               Base.Extend_Sequential_Index (Super, New_Config.Resume_Token_Goal);
             end if;
          end;
 

@@ -78,8 +78,6 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  when it moves a nonterm from Shared_Stream to the parse stream for
       --  breakdown, to be consistent with error recovery.
 
-      Current_Error_Node : Syntax_Trees.Node_Access;
-
       Recover : aliased LR.McKenzie_Data := (others => <>);
 
       Total_Recover_Cost     : Integer                   := 0;
@@ -98,14 +96,19 @@ package WisiToken.Parse.LR.Parser_Lists is
 
       Conflict_During_Resume : Boolean := False;
 
-      Max_Sequential_Index : Syntax_Trees.Stream_Node_Parents := Syntax_Trees.Invalid_Stream_Node_Parents;
-      --  Copied from Supervisor for McKenzie_Recover.Clear_Sequential_Index
-
       Last_Action : Parse_Action_Rec := (others => <>);
    end record;
 
    type Parser_State is new Base_Parser_State with private;
    type State_Access is access all Parser_State;
+
+   function Current_Error_Node
+     (Parser_State : in Parser_Lists.Parser_State;
+      Tree         : in Syntax_Trees.Tree)
+     return Syntax_Trees.Rooted_Ref
+   with Post => Tree.Has_Error (Current_Error_Node'Result.Node);
+   --  Either Parser_State.Stream.First_Input (if a Parse_Error) or .Peek
+   --  (if an In_Parse_Action_Error).
 
    function Peek_Current_Sequential_Terminal
      (Parser_State : in Parser_Lists.Parser_State;

@@ -160,7 +160,7 @@
   (when column
     (move-to-column (string-to-number column))))
 
-(defconst wisitoken-fail-re "FAIL\\|ERROR")
+(defconst wisitoken-fail-re "FAIL\\|ERROR:")
 
 (defun wisitoken-compilation-prev ()
   (interactive)

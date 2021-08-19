@@ -124,8 +124,6 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             Expecting : constant Token_ID_Set := LR.Expecting
               (Shared_Parser.Table.all, Shared_Parser.Tree.State (Current_Parser.Stream));
          begin
-            Parser_State.Current_Error_Node := Parser_State.Current_Token.Node;
-
             Shared_Parser.Tree.Set_Error
               (Stream            => Parser_State.Stream,
                Error_Ref         => Parser_State.Current_Token,
@@ -133,7 +131,6 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                  (First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
                   Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
                   Expecting      => Expecting,
-                  Recover_Status => Ada.Strings.Unbounded.Null_Unbounded_String,
                   Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
                   Recover_Cost   => 0),
                User_Data         => Shared_Parser.User_Data);

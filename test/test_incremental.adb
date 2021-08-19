@@ -147,7 +147,10 @@ package body Test_Incremental is
 
       procedure Put_Tree (Parser : in WisiToken.Parse.LR.Parser.Parser)
       is begin
-         Parser.Put_Errors;
+         if Parser.Tree.Error_Count > 0 then
+            New_Line;
+            Parser.Put_Errors;
+         end if;
          New_Line;
          Put_Line (Label_Dot & " ... tree:");
          Parser.Tree.Print_Tree (Trace, Non_Grammar => True);
@@ -634,13 +637,15 @@ package body Test_Incremental is
       --  Full parse uses error recovery to place missing return type.
       --  Incremental parse fixes the error.
       Parse_Text
-        (Initial            =>
+        (Initial           =>
            "function Func_1 (A : Integer) return " & ASCII.LF &
-             --        |10       |20       |30
-             "is begin return 1; end;",
-         Edit_At => 38,
-         Delete  => "",
-         Insert  => "Integer");
+           --        |10       |20       |30
+           "is begin return 1; end;",
+         Edit_At           => 38,
+         Delete            => "",
+         Insert            => "Integer",
+         Full_Parse_Errors => 1,
+         Incr_Parse_Errors => 0);
    end Recover_1;
 
    procedure Lexer_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -689,10 +694,11 @@ package body Test_Incremental is
    is
       pragma Unreferenced (T);
    begin
-      --  Full parse reports a parse error (extra 'end;'). Incremental
-      --  parse fixes the error by editing in a different location. This
+      --  Full parse reports a parse error (extra 'end;'). Incremental parse
+      --  fixes the error by editing in a different location. This
       --  demonstrates the need for storing parse errors as nodes in the
-      --  syntax tree.
+      --  syntax tree, and for always deleting error corrections even in
+      --  non-edit regions.
       Parse_Text
         (Initial => "A := 2; end;" & ASCII.LF,
          --          |1      |9
@@ -701,7 +707,7 @@ package body Test_Incremental is
          Delete            => "",
          Insert            => "begin ",
          Full_Parse_Errors => 1,
-         Incr_Parse_Errors => 1);
+         Incr_Parse_Errors => 0);
    end Preserve_Parse_Errors_2;
 
    procedure Modify_Deleted_Node (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -726,14 +732,39 @@ package body Test_Incremental is
          Edit_At      => 9,
          Delete       => "",
          Insert       => "-", -- start a comment
-         Full_Parse_Errors => 1,
-         Incr_Parse_Errors => 8);
+         Full_Parse_Errors => 0,
+         Incr_Parse_Errors => 1);
 
-      Check ("deleted count", Incremental_Parser.Deleted_Nodes.Length, 1);
-      Check ("deleted '-'",
-             Incremental_Parser.Tree.ID
-               (Incremental_Parser.Deleted_Nodes (Incremental_Parser.Deleted_Nodes.First)),
-             +MINUS_ID);
+      declare
+         use WisiToken;
+         use WisiToken.Syntax_Trees;
+         use AUnit.Checks;
+         Tree : Syntax_Trees.Tree renames Incremental_Parser.Tree;
+         Deleted : Node_Access := Tree.First_Terminal (Tree.Root);
+      begin
+         loop
+            exit when Deleted = Invalid_Node_Access;
+            exit when Tree.Label (Deleted) = Source_Terminal and then Tree.Has_Following_Deleted (Deleted);
+            Deleted := Tree.Next_Terminal (@);
+         end loop;
+
+         Check ("no deleted found", Deleted = Invalid_Node_Access, False);
+
+         declare
+            Deleted_Nodes : Valid_Node_Access_Lists.List renames Tree.Following_Deleted (Deleted);
+         begin
+            Check ("deleted count", Deleted_Nodes.Length, 1);
+            Check ("deleted '-'", Tree.ID (Deleted_Nodes (Deleted_Nodes.First)), +MINUS_ID);
+         end;
+
+         loop
+            Deleted := Tree.Next_Terminal (@);
+            exit when Deleted = Invalid_Node_Access;
+            exit when Tree.Label (Deleted) = Source_Terminal and then Tree.Has_Following_Deleted (Deleted);
+         end loop;
+
+         Check ("more deleted found", Deleted = Invalid_Node_Access, True);
+      end;
 
       Parse_Text
         (Label             => "2",
@@ -741,6 +772,7 @@ package body Test_Incremental is
          Edit_At           => 10,
          Delete            => "",
          Insert            => "- a comment", -- finish comment
+         Full_Parse_Errors => 1,
          Incr_Parse_Errors => 0);
 
    end Modify_Deleted_Node;

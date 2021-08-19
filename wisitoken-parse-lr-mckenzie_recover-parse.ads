@@ -48,10 +48,11 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  In Parse because it has similar code to Current_Token.
 
    procedure Current_Token_ID_Peek_3
-     (Tree   :         in     Syntax_Trees.Tree;
+     (Super  :         not null access Base.Supervisor;
       Config : aliased in     Configuration;
       Tokens :            out Token_ID_Array_1_3)
-   with Post => (for all Tok of Tokens => Tok = Invalid_Token_ID or else Is_Terminal (Tok, Tree.Lexer.Descriptor.all));
+   with Post =>
+     (for all Tok of Tokens => Tok = Invalid_Token_ID or else Is_Terminal (Tok, Super.Tree.Lexer.Descriptor.all));
    --  Return the current terminal token from Config in Tokens (1).
    --  Return the two following terminal tokens in Tokens (2 .. 3). In
    --  incremental parse, they may be virtual.
