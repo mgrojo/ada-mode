@@ -193,7 +193,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             elsif Error.all in In_Parse_Action_Error
             then "In_Parse_Action, " &
               Super.Tree.Image (Super.Tree.Stack_Top (Parser_State.Stream)) & " " &
-              Error.Image (Super.Tree.all, Parser_State.Current_Token.Node)
+              Error.Image (Super.Tree.all, Parser_State.Current_Error_Node (Super.Tree.all).Node)
             else raise SAL.Programmer_Error);
          if Trace_McKenzie > Detail then
             Trace.Put_Line ("parse stream:");
@@ -1225,7 +1225,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                Tree.Set_Sequential_Index (Terminals (1).Ref.Node, Index);
             end if;
 
-            exit when Index >= Target;
+            exit when
+              (if Positive
+               then Index >= Target
+               else Index <= Target);
 
             exit when
               (for all Term of Terminals =>

@@ -70,7 +70,8 @@ package body WisiToken.Parse.LR.Parser is
 
       else
          --  We have to call the semantic action even when Resume_Active,
-         --  because it might do other things than return a status.
+         --  because it might do other things than return a status (ie
+         --  Propagate_Name).
          declare
             Nonterm_Token : Syntax_Trees.Recover_Token := Shared_Parser.Tree.Get_Recover_Token (Nonterm);
 

@@ -86,7 +86,7 @@ package WisiToken.Parse is
          Nonterm : Token_ID;
          --  The nonterminal popped off the stack.
 
-         Token_Count : Ada.Containers.Count_Type;
+         Token_Count : SAL.Base_Peek_Type;
          --  The number of tokens pushed on the stack.
 
          UR_Token_Index : Syntax_Trees.Base_Sequential_Index;

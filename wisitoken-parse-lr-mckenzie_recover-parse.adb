@@ -91,6 +91,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          do
             if Status.Label = Ok then
                Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
+
+               --  We don't pop the stack for error, so Language_Fixes and other
+               --  recover ops can access the child tokens.
             end if;
          end return;
       end if;
@@ -881,9 +884,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                   Config.Stack.Push ((New_State, Nonterm));
 
                when In_Parse_Actions.Error =>
-                  Config.Error_Token                   := Nonterm;
-                  Config.In_Parse_Action_Token_Count := Action.Token_Count;
-                  Success                              := False;
+                  Config.Error_Token                 := Nonterm;
+                  Config.In_Parse_Action_Token_Count := SAL.Base_Peek_Type (Action.Token_Count);
+                  Success                            := False;
                end case;
             end;
 

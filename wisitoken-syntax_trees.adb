@@ -172,29 +172,57 @@ package body WisiToken.Syntax_Trees is
       --  edited, don't need to copy again. Need ref count on Node, but that
       --  would be non-incremental in spawn and terminate parser.
 
-      New_Node : constant Valid_Node_Access := Copy_Node
+      Old_Child : Valid_Node_Access := Prev_Terminal.Ref.Node;
+
+      New_Node : Valid_Node_Access := Copy_Node
         (Tree, Prev_Terminal.Ref.Node,
          Parent        => Invalid_Node_Access,
          User_Data     => User_Data,
          Copy_Children => False);
    begin
+      Prev_Terminal.Ref.Node := New_Node;
+
+      Prev_Terminal.Ref.Node.Following_Deleted.Append (Deleted_Node);
+
       if Prev_Terminal.Parents.Depth = 0 then
          pragma Assert (Rooted (Prev_Terminal.Ref));
          --  There are no child links yet
          Element.Node := New_Node;
-      else
-         --  Need to edit child link, which requires copying parent node, up to the element root.
-         raise SAL.Not_Implemented;
-         --  declare
-         --     Parent      : constant Valid_Node_Access := Prev_Terminal.Parents.Peek;
-         --     Child_Index : constant SAL.Peek_Type     := Tree.Child_Index (Parent, Prev_Terminal.Ref.Node);
-         --  begin
-         --     Parent.Children (Child_Index) := New_Node;
-         --  end;
-      end if;
-      Prev_Terminal.Ref.Node := New_Node;
 
-      Prev_Terminal.Ref.Node.Following_Deleted.Append (Deleted_Node);
+      else
+         --  Need to edit child link, which requires copying parent node, up to
+         --  the element root.
+         declare
+            New_Stack : Node_Stacks.Stack;
+         begin
+            loop
+               declare
+                  Old_Parent  : constant Valid_Node_Access := Prev_Terminal.Parents.Pop;
+                  New_Child   : constant Valid_Node_Access := New_Node;
+                  Child_Index : constant SAL.Peek_Type     := Tree.Child_Index
+                    (Parent => Old_Parent, Child => Old_Child);
+               begin
+                  New_Node := Copy_Node
+                    (Tree, Old_Parent,
+                     Parent        => Invalid_Node_Access,
+                     User_Data     => User_Data,
+                     Copy_Children => False);
+                  New_Node.Children (Child_Index) := New_Child;
+                  New_Stack.Push (New_Node);
+
+                  exit when Prev_Terminal.Parents.Depth = 0;
+                  Old_Child := Old_Parent;
+               end;
+            end loop;
+
+            Variable_Ref (Prev_Terminal.Ref.Element.Cur).Node := New_Stack.Peek;
+
+            loop
+               Prev_Terminal.Parents.Push (New_Stack.Pop);
+               exit when New_Stack.Depth = 0;
+            end loop;
+         end;
+      end if;
    end Add_Deleted;
 
    function Add_Identifier

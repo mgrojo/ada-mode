@@ -218,8 +218,7 @@ package body WisiToken.Parse is
 
       Result : Unbounded_String;
    begin
-      Result := +Tree.Error_Message
-        (Error_Node, "in parse action error: (" & In_Parse_Actions.Image (Data.Status, Tree, Error_Node));
+      Result := +"in parse action error: (" & In_Parse_Actions.Image (Data.Status, Tree, Error_Node);
 
       if Recover_Op_Arrays.Length (Data.Recover_Ops) /= 0 then
          Append (Result, ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree.Lexer.Descriptor.all));

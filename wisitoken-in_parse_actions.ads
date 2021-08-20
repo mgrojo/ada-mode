@@ -57,8 +57,6 @@ package WisiToken.In_Parse_Actions is
    --  Called during parsing and error recovery to implement higher level
    --  checks, such as block name matching in Ada.
 
-   Null_Check : constant In_Parse_Action := null;
-
    function Match_Names
      (Tree         : in Syntax_Trees.Tree;
       Tokens       : in Syntax_Trees.Recover_Token_Array;

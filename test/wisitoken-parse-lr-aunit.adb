@@ -162,9 +162,9 @@ package body WisiToken.Parse.LR.AUnit is
       Computed : in Recover_Op;
       Expected : in Test_Recover_Op)
    is
+      use SAL.AUnit;
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
-      use Standard.AUnit.Checks.Containers;
    begin
       Check (Label & ".op", Computed.Op, Expected.Op);
       case Computed.Op is

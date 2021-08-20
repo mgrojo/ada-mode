@@ -33,8 +33,14 @@ update-wisitoken_grammar
  current work
 store errors in tree
     t_mck Missing_Name_1
-task  1: ADA.ASSERTIONS.ASSERTION_ERROR: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb.gp:115
-      pragma Assert (Config.Error_Token.Virtual = False); -- Else the In_Parse_Action would not have failed.
+        error is lost
+            subprogram_body where error is stored is undo_reduced
+            error recover fixes error, so it is not encountered again
+            undo_reduce store error on first child?
+                but that could be undone as well; must store on terminal
+                assume empty nonterm never generates an in_parse_error.
+                error_node = nth parent of node containing error, store n in error_data.
+
 
     In Preserve_Parse_Errors_2, also change costs so recover deletes
     END instead of inserting BEGIN; then need to restore that

@@ -110,8 +110,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          null;
 
       when In_Parse_Actions.Error =>
-         Config.Error_Token                   := Nonterm;
-         Config.In_Parse_Action_Token_Count := Action.Token_Count;
+         Config.Error_Token                 := Nonterm;
+         Config.In_Parse_Action_Token_Count := SAL.Base_Peek_Type (Action.Token_Count);
 
          if Do_Language_Fixes then
             if Shared.Language_Fixes /= null then
@@ -122,10 +122,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  Finish the reduce; ignore the check fail.
          Config.Cost := @ + Table.McKenzie_Param.Ignore_Check_Fail;
 
-         if Config.Stack.Depth < SAL.Base_Peek_Type (Config.In_Parse_Action_Token_Count) then
+         if Config.Stack.Depth < Config.In_Parse_Action_Token_Count then
             raise SAL.Programmer_Error;
          else
-            Config.Stack.Pop (SAL.Base_Peek_Type (Config.In_Parse_Action_Token_Count));
+            Config.Stack.Pop (Config.In_Parse_Action_Token_Count);
          end if;
          Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
          Config.In_Parse_Action_Status   := (Label => Ok);
@@ -2076,7 +2076,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                end;
 
                --  finish reduce.
-               Config.Stack.Pop (SAL.Base_Peek_Type (Config.In_Parse_Action_Token_Count));
+               Config.Stack.Pop (Config.In_Parse_Action_Token_Count);
 
                New_State := Goto_For (Table, Config.Stack.Peek.State, Super.Tree.ID (Config.Error_Token));
 

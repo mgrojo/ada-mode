@@ -569,7 +569,7 @@ package WisiToken.Parse.LR is
       --  Max line checked for missing string quote.
 
       Error_Token                 : Syntax_Trees.Recover_Token;
-      In_Parse_Action_Token_Count : Ada.Containers.Count_Type := 0;
+      In_Parse_Action_Token_Count : SAL.Base_Peek_Type := 0;
       In_Parse_Action_Status      : In_Parse_Actions.Status;
       --  If parsing this config ended with a parse error, Error_Token is
       --  the token that failed to shift, Check_Status.Label is Ok.

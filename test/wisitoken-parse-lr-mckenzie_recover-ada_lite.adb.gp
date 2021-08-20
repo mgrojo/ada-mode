@@ -112,11 +112,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          Put (Message, Super.Trace.all, Tree, Parser_Label, Config);
       end Put;
 
-      pragma Assert (Config.Error_Token.Virtual = False); -- Else the In_Parse_Action would not have failed.
-      Begin_Name_Token : constant Valid_Node_Access := Tree.Child
-        (Config.Error_Token.Node, Config.In_Parse_Action_Status.Begin_Name);
-      End_Name_Token   : constant Valid_Node_Access := Tree.Child
-        (Config.Error_Token.Node, Config.In_Parse_Action_Status.End_Name);
+      --  Config.Error_Token is a virtual nonterm; the In_Parse_Action for
+      --  that nonterm failed. During recover, the children of the nonterm
+      --  are still on the stack at this point (see
+      --  wisitoken-parse-lr-mckenzie_recover-parse.adb Reduce_Stack). The
+      --  name children may be virtual.
+      Begin_Name_Token : constant Recover_Token := Recover_Stacks.Peek
+        (Config.Stack, Config.In_Parse_Action_Token_Count - Config.In_Parse_Action_Status.Begin_Name + 1).Token;
+      End_Name_Token   : constant Recover_Token := Recover_Stacks.Peek
+        (Config.Stack, Config.In_Parse_Action_Token_Count - Config.In_Parse_Action_Status.End_Name + 1).Token;
    begin
       if not Begin_Name_IDs (Tree.ID (Begin_Name_Token)) then
          raise SAL.Programmer_Error with "unrecognized begin_name_token id " &
@@ -264,7 +268,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          --  ahead, except in case 0b. So we enqueue two solutions; 'ignore
          --  error' and either 'insert begin' or 'delete end;'.
 
-         if not Valid_Tree_Indices (Config.Stack, SAL.Base_Peek_Type (Config.In_Parse_Action_Token_Count)) then
+         if not Valid_Tree_Indices (Config.Stack, Config.In_Parse_Action_Token_Count) then
             --  Invalid tree indices happens when recover enqueues a config that
             --  contains tokens pushed during recover.
 
