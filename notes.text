@@ -32,15 +32,15 @@ update-wisitoken_grammar
 
  current work
 store errors in tree
-    t_mck Missing_Name_1
-        error is lost
-            subprogram_body where error is stored is undo_reduced
-            error recover fixes error, so it is not encountered again
-            undo_reduce store error on first child?
-                but that could be undone as well; must store on terminal
-                assume empty nonterm never generates an in_parse_error.
-                error_node = nth parent of node containing error, store n in error_data.
+    test_incremental.adb
+        Missing_Name_1
+            error lost in edit_tree breakdown
+                move to first terminal, as in undo_reduce
+                also in left_breakdown
 
+                adapt code from w.p.lr.undo_reduce
+
+            see fixme in  -lr-parser.adb Do_Action.
 
     In Preserve_Parse_Errors_2, also change costs so recover deletes
     END instead of inserting BEGIN; then need to restore that

@@ -149,35 +149,58 @@ package body Test_McKenzie_Recover is
       end loop;
 
       if Code = Ok then
-         --  Expecting a Parse_Action error. Label is "code" so prj.el
+         --  Expecting a Parse_Action error, or an In_Parse_Action error
+         --  converted to an Error_Message. Label is "code" so prj.el
          --  wisitoken-goto-aunit-fail can find it.
-         Assert (Parser.Tree.Error (Parser.Tree.Error_Node (Error_Ref)).all in WisiToken.Parse.Parse_Error,
-                 Label_I & ".Code");
-
          declare
             Error_Node : constant Valid_Node_Access := Parser.Tree.Error_Node (Error_Ref);
-            Error : WisiToken.Parse.Parse_Error renames WisiToken.Parse.Parse_Error
-              (Parser.Tree.Error (Error_Node).all);
          begin
-            if Expecting /= Empty_Token_ID_Set then
-               Check (Label_I & ".Expecting", Error.Expecting, Expecting);
-            end if;
+            if Parser.Tree.Error (Parser.Tree.Error_Node (Error_Ref)).all in WisiToken.Parse.Parse_Error then
+               declare
+                  Error : WisiToken.Parse.Parse_Error renames WisiToken.Parse.Parse_Error
+                    (Parser.Tree.Error (Error_Node).all);
+               begin
+                  if Expecting /= Empty_Token_ID_Set then
+                     Check (Label_I & ".Expecting", Error.Expecting, Expecting);
+                  end if;
 
-            Check (Label_I & ".Error.TOKEN_ID", Parser.Tree.ID (Error_Node), Error_Token_ID);
-            Check
-              (Label_I & ".Error_Token.Byte_Region", Parser.Tree.Byte_Region (Error_Node),
-               Error_Token_Byte_Region);
+                  Check (Label_I & ".Error.TOKEN_ID", Parser.Tree.ID (Error_Node), Error_Token_ID);
+                  Check
+                    (Label_I & ".Error_Token.Byte_Region", Parser.Tree.Byte_Region (Error_Node),
+                     Error_Token_Byte_Region);
 
-            if not Ops_Race_Condition then
-               Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
+                  if not Ops_Race_Condition then
+                     Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
+                  end if;
+                  Check (Label_I & ".Cost", Error.Recover_Cost, Cost);
+               end;
+
+            elsif Parser.Tree.Error (Parser.Tree.Error_Node (Error_Ref)).all in WisiToken.Parse.Error_Message then
+               declare
+                  Error : WisiToken.Parse.Error_Message renames WisiToken.Parse.Error_Message
+                    (Parser.Tree.Error (Error_Node).all);
+               begin
+                  Check (Label_I & ".Error.Token_ID", Parser.Tree.ID (Error_Node), Error_Token_ID);
+                  Check
+                    (Label_I & ".Error_Token.Byte_Region", Parser.Tree.Byte_Region (Error_Node),
+                     Error_Token_Byte_Region);
+
+                  if not Ops_Race_Condition then
+                     Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
+                  end if;
+                  Check (Label_I & ".Cost", Error.Recover_Cost, Cost);
+               end;
+
+            else
+               Assert (False, Label_I & ".Code: expecting Parse_Error or Error_Message, got something else");
             end if;
-            Check (Label_I & ".Cost", Error.Recover_Cost, Cost);
          end;
+
       else
          --  Expecting an In_Parse_Action error. We put "Error_Token_ID" in the check
          --  label, so wisitoken-dtrt can find the right place.
          Assert (Parser.Tree.Error (Parser.Tree.Error_Node (Error_Ref)).all in WisiToken.Parse.In_Parse_Action_Error,
-                 Label_I & ".Code");
+                 Label_I & ".Code: expecting In_Parse_Action_Error, got something else");
 
          declare
             Error_Node      : constant Valid_Node_Access := Parser.Tree.Error_Node (Error_Ref);
@@ -943,17 +966,20 @@ package body Test_McKenzie_Recover is
       --  'push_back, insert' is the result of recovery, and parsing
       --  succeeds to EOI.
 
+      --  The Missing_Name_Error on subprogram_body is converted to a plain
+      --  message on 'procedure'.
+
       Check_Recover
-        (Errors_Length           => 1,
-         Error_Token_ID          => +subprogram_specification_ID,
-         Error_Token_Byte_Region => (19, 34),
-         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, -10) & (Push_Back, +SEMICOLON_ID, 0) &
-           (Push_Back, +name_opt_ID, Invalid) & (Push_Back, +END_ID, -1) &
-           (Push_Back, +handled_sequence_of_statements_ID, -6) & (Insert, +BEGIN_ID, -6),
+        (Code                    => Ok,
+         Errors_Length           => 1,
+         Error_Token_ID          => +PROCEDURE_ID,
+         Error_Token_Byte_Region => (19, 27),
+         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, -9) & (Push_Back, +SEMICOLON_ID, 1) &
+           (Push_Back, +name_opt_ID, Invalid) & (Push_Back, +END_ID, 0) &
+           (Push_Back, +handled_sequence_of_statements_ID, -5) & (Insert, +BEGIN_ID, -5),
          Enqueue_Low             => 13,
          Check_Low               => 3,
-         Cost                    => 1,
-         Code                    => Missing_Name_Error);
+         Cost                    => 1);
    end Missing_Name_1;
 
    procedure Missing_Name_2 (T : in out AUnit.Test_Cases.Test_Case'Class)

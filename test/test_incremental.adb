@@ -630,6 +630,26 @@ package body Test_Incremental is
       end;
    end Names;
 
+   procedure Missing_Name_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Test that error due to Missing_Name is dropped when incremental
+      --  edit fixes it.
+      Ada_Lite_Actions.End_Name_Optional := False;
+
+      Parse_Text
+        (Initial => "procedure Name is begin null; end;",
+         --          |1       |10       |20       |30
+
+         Edit_At           => 34,
+         Delete            => "",
+         Insert            => " Name",
+         Full_Parse_Errors => 1,
+         Incr_Parse_Errors => 0);
+
+   end Missing_Name_1;
+
    procedure Recover_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -805,6 +825,7 @@ package body Test_Incremental is
       Register_Routine (T, Delete_Comment_Start'Access, "Delete_Comment_Start");
       Register_Routine (T, Insert_New_Line'Access, "Insert_New_Line");
       Register_Routine (T, Names'Access, "Names");
+      Register_Routine (T, Missing_Name_1'Access, "Missing_Name_1");
       Register_Routine (T, Recover_1'Access, "Recover_1");
       Register_Routine (T, Lexer_Errors_1'Access, "Lexer_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");

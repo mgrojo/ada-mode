@@ -209,6 +209,11 @@ begin
 
       when Accept_It =>
          --  All parsers accepted or are zombies.
+         if Shared_Parser.Resume_Active then
+            Shared_Parser.Resume_Active := False;
+            McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
+         end if;
+
          declare
             Count : constant SAL.Base_Peek_Type := Shared_Parser.Parsers.Count;
             Current_Parser : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
@@ -391,6 +396,8 @@ begin
             end if;
 
             if Recover_Result = Success then
+               Shared_Parser.Resume_Active := True;
+
                for Parser_State of Shared_Parser.Parsers loop
                   Parser_State.Resume_Active          := True;
                   Parser_State.Conflict_During_Resume := False;

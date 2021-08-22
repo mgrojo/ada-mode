@@ -361,12 +361,15 @@ package WisiToken.Parse.LR is
    --  Return State from the shift action in Action_List.
 
    procedure Undo_Reduce
-     (Tree   : in out Syntax_Trees.Tree;
-      Table  : in     Parse_Table;
-      Stream : in     Syntax_Trees.Stream_ID)
+     (Tree      : in out Syntax_Trees.Tree;
+      Table     : in     Parse_Table;
+      Stream    : in     Syntax_Trees.Stream_ID;
+      User_Data : in     Syntax_Trees.User_Data_Access)
    with Pre => Tree.Parents_Set or Stream /= Tree.Shared_Stream;
    --  Undo reduction of nonterm at Stream.Stack_Top; Stack_Top is then
    --  the last Child of the nonterm.
+   --
+   --  If Stream.Stack_Top has an error, it is moved to the first terminal.
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
 

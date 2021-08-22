@@ -369,26 +369,44 @@ package body WisiToken.Parse.LR is
    end Shift_State;
 
    procedure Undo_Reduce
-     (Tree   : in out Syntax_Trees.Tree;
-      Table  : in     Parse_Table;
-      Stream : in     Syntax_Trees.Stream_ID)
+     (Tree      : in out Syntax_Trees.Tree;
+      Table     : in     Parse_Table;
+      Stream    : in     Syntax_Trees.Stream_ID;
+      User_Data : in     Syntax_Trees.User_Data_Access)
    is
       --  We can't move this into Syntax_Trees, because we need Table to set
       --  the stream element states.
       use Syntax_Trees;
-      Nonterm    : constant Node_Access := Tree.Pop (Stream);
-      Prev_State : State_Index          := Tree.State (Stream);
    begin
-      for Child of Tree.Children (Nonterm) loop
-         Tree.Clear_Parent (Child, Clear_Children => Stream = Tree.Shared_Stream);
+      if Tree.Error (Tree.Get_Node (Stream, Tree.Peek (Stream))) /= null then
+         --  Move the error to the first terminal, so it is not lost.
+         declare
+            Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+              (Tree.To_Rooted_Ref (Stream, Tree.Stack_Top (Stream)));
 
-         if Is_Terminal (Tree.ID (Child), Tree.Lexer.Descriptor.all) then
-            Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (Child)));
-         else
-            Prev_State := Goto_For (Table, Prev_State, Tree.ID (Child));
-         end if;
-         Tree.Push (Stream, Child, Prev_State);
-      end loop;
+            Orig_Error_Node : constant Valid_Node_Access := Ref.Ref.Node;
+            Error : constant Error_Data_Access_Constant := Tree.Error (Ref.Ref.Node);
+         begin
+            Tree.First_Terminal (Ref);
+            Tree.Set_Error (Ref, To_Message (Error.all, Tree, Orig_Error_Node), User_Data);
+         end;
+      end if;
+
+      declare
+         Nonterm    : constant Node_Access := Tree.Pop (Stream);
+         Prev_State : State_Index          := Tree.State (Stream);
+      begin
+         for Child of Tree.Children (Nonterm) loop
+            Tree.Clear_Parent (Child, Clear_Children => Stream = Tree.Shared_Stream);
+
+            if Is_Terminal (Tree.ID (Child), Tree.Lexer.Descriptor.all) then
+               Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (Child)));
+            else
+               Prev_State := Goto_For (Table, Prev_State, Tree.ID (Child));
+            end if;
+            Tree.Push (Stream, Child, Prev_State);
+         end loop;
+      end;
    end Undo_Reduce;
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set

@@ -178,6 +178,18 @@ package body WisiToken.Parse is
       return Syntax_Trees.Error_Data_Access (New_Data);
    end Copy;
 
+   overriding function To_Message
+     (Data       : in Parse_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data_Access
+   is
+      New_Data : constant Error_Message_Access := new Error_Message'
+        (+Image (Data, Tree, Error_Node), Data.Recover_Ops, Data.Recover_Cost);
+   begin
+      return Syntax_Trees.Error_Data_Access (New_Data);
+   end To_Message;
+
    overriding function Image
      (Data       : in Parse_Error;
       Tree       : in Syntax_Trees.Tree'Class;
@@ -207,6 +219,18 @@ package body WisiToken.Parse is
       return Syntax_Trees.Error_Data_Access (New_Data);
    end Copy;
 
+   overriding function To_Message
+     (Data       : in In_Parse_Action_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data_Access
+   is
+      New_Data : constant Error_Message_Access := new Error_Message'
+        (+Image (Data, Tree, Error_Node), Data.Recover_Ops, Data.Recover_Cost);
+   begin
+      return Syntax_Trees.Error_Data_Access (New_Data);
+   end To_Message;
+
    overriding function Image
      (Data       : in In_Parse_Action_Error;
       Tree       : in Syntax_Trees.Tree'Class;
@@ -233,6 +257,19 @@ package body WisiToken.Parse is
    begin
       return Syntax_Trees.Error_Data_Access (New_Data);
    end Copy;
+
+   overriding function To_Message
+     (Data       : in Error_Message;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data_Access
+   is
+      pragma Unreferenced (Tree, Error_Node);
+      New_Data : constant Error_Message_Access := new Error_Message'
+        (Data.Msg, Data.Recover_Ops, Data.Recover_Cost);
+   begin
+      return Syntax_Trees.Error_Data_Access (New_Data);
+   end To_Message;
 
    overriding function Image
      (Data       : in Error_Message;

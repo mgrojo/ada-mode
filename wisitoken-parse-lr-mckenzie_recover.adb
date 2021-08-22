@@ -162,8 +162,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       Trace  : WisiToken.Trace'Class renames Super.Trace.all;
       Config : Configuration;
-      Error  : constant Syntax_Trees.Error_Data_Access_Constant := Super.Tree.Error
-        (Parser_State.Current_Error_Node (Super.Tree.all).Node);
+      Error_Node : constant Syntax_Trees.Valid_Node_Access := Parser_State.Current_Error_Node (Super.Tree.all).Node;
+      Error  : constant Syntax_Trees.Error_Data_Access_Constant := Super.Tree.Error (Error_Node);
    begin
       Parser_State.Recover.Enqueue_Count := @ + 1;
 
@@ -193,7 +193,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             elsif Error.all in In_Parse_Action_Error
             then "In_Parse_Action, " &
               Super.Tree.Image (Super.Tree.Stack_Top (Parser_State.Stream)) & " " &
-              Error.Image (Super.Tree.all, Parser_State.Current_Error_Node (Super.Tree.all).Node)
+              Error.Image (Super.Tree.all, Error_Node)
             else raise SAL.Programmer_Error);
          if Trace_McKenzie > Detail then
             Trace.Put_Line ("parse stream:");
@@ -213,7 +213,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  Parser_State.Shared_Token.
 
       if Error.all in Parse_Error then
-         Config.Error_Token := Super.Tree.Get_Recover_Token (Parser_State.Current_Error_Node (Super.Tree.all));
+         Config.Error_Token := Super.Tree.Get_Recover_Token (Error_Node);
 
          if Trace_McKenzie > Detail then
             Put ("enqueue", Trace, Super.Tree.all, Parser_State.Stream, Config, Task_ID => False);
@@ -623,7 +623,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               end if;
 
                               if Stack_Matches_Ops then
-                                 Undo_Reduce (Tree, Shared_Parser.Table.all, Stack);
+                                 Undo_Reduce (Tree, Shared_Parser.Table.all, Stack, Shared_Parser.User_Data);
                               end if;
 
                            when Push_Back =>

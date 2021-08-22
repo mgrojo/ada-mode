@@ -245,7 +245,7 @@ package body WisiToken.Parse.LR.Parser is
                                       (" ... undo_reduce " &
                                          Tree.Image (Tree.Peek (Parser_State.Stream), State => True));
                                  end if;
-                                 Undo_Reduce (Tree, Table, Parser_State.Stream);
+                                 Undo_Reduce (Tree, Table, Parser_State.Stream, Shared_Parser.User_Data);
 
                                  if Trace_Parse > Detail then
                                     Shared_Parser.Trace.Put
@@ -310,7 +310,7 @@ package body WisiToken.Parse.LR.Parser is
 
             when Syntax_Trees.Nonterm =>
                --  Only In_Parse_Action sets errors on nonterms; clearing them is
-               --  done in Reduce.
+               --  done in Reduce. FIXME: check for name error moved to first_terminal.
                null;
             end case;
          end if;

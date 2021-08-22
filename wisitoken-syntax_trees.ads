@@ -2053,9 +2053,9 @@ package WisiToken.Syntax_Trees is
    --  Result points to the added node.
 
    function Child_Index
-     (Tree   : in out Syntax_Trees.Tree;
-      Parent : in     Valid_Node_Access;
-      Child  : in     Valid_Node_Access)
+     (Tree   : in Syntax_Trees.Tree;
+      Parent : in Valid_Node_Access;
+      Child  : in Valid_Node_Access)
      return SAL.Peek_Type
    with Pre => Tree.Has_Child (Parent, Child);
 
@@ -2133,6 +2133,15 @@ package WisiToken.Syntax_Trees is
    function Copy (Data : in Error_Data) return Error_Data_Access
    is abstract;
 
+   function To_Message
+     (Data       : in Error_Data;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Valid_Node_Access)
+     return Error_Data_Access
+   is abstract;
+   --  Convert Data to a simple message; it is being moved to another
+   --  node (see wisitoken-parse-lr.adb Undo_Reduce).
+
    function Image
      (Data       : in Error_Data;
       Tree       : in Syntax_Trees.Tree'Class;
@@ -2148,10 +2157,20 @@ package WisiToken.Syntax_Trees is
       Error_Ref : in out Rooted_Ref;
       Data      : in     Error_Data_Access;
       User_Data : in     User_Data_Access)
-   with Pre => (if Stream /= Error_Ref.Stream then Tree.Is_First_Stream_Input (Stream, Error_Ref)) and
+   with Pre => (if Stream /= Error_Ref.Stream
+                then Tree.Is_First_Stream_Input (Stream, Error_Ref)) and
                (if Data = null then Tree.Error (Error_Ref.Node) /= null);
    --  Move Error_Ref to Stream, store Data in it. Update Error_Ref to
    --  point to new stream element with copied node.
+
+   procedure Set_Error
+     (Tree      : in out Syntax_Trees.Tree;
+      Error_Ref : in out Stream_Node_Parents;
+      Data      : in     Error_Data_Access;
+      User_Data : in     User_Data_Access);
+   --  Store Data in Error_Ref.Node, copying Error_Ref.Node and all
+   --  ancestors. Update Error_Ref to point to new stream element with
+   --  copied nodes.
 
    procedure Free is new Ada.Unchecked_Deallocation (Error_Data'Class, Error_Data_Access);
 
@@ -2163,11 +2182,9 @@ package WisiToken.Syntax_Trees is
       Node    : Node_Access;
       Deleted : Valid_Node_Access_Lists.Cursor;
       --  If Node = Invalid_Node_Access, no error. If Deleted = No_Element,
-      --  Node has an error. If Deleted /=
-      --  No_Element, Node is a Source_Terminal that has following deleted
-      --  nodes, and Element (Deleted) is one of those nodes, and is a
-      --  Terminal_Label that has an error, and Element (Deleted).Parent =
-      --  Node.
+      --  Node has an error. If Deleted /= No_Element, any error on Node has
+      --  already been visited, Element (Deleted) is a Terminal_Label that
+      --  has an error, and Element (Deleted).Parent = Node.
    end record;
 
    type Stream_Error_Ref is record

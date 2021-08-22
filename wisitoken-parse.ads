@@ -183,6 +183,11 @@ package WisiToken.Parse is
    type Parse_Error_Access_Constant is access constant Parse_Error;
 
    overriding function Copy (Data : in Parse_Error) return Syntax_Trees.Error_Data_Access;
+   overriding function To_Message
+     (Data       : in Parse_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data_Access;
 
    overriding function Image
      (Data       : in Parse_Error;
@@ -199,6 +204,11 @@ package WisiToken.Parse is
    type In_Parse_Action_Error_Access_Constant is access constant In_Parse_Action_Error;
 
    overriding function Copy (Data : in In_Parse_Action_Error) return Syntax_Trees.Error_Data_Access;
+   overriding function To_Message
+     (Data       : in In_Parse_Action_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data_Access;
 
    overriding function Image
      (Data       : in In_Parse_Action_Error;
@@ -207,11 +217,18 @@ package WisiToken.Parse is
      return String;
 
    type Error_Message is new Syntax_Trees.Error_Data with record
-      Msg : Ada.Strings.Unbounded.Unbounded_String;
+      Msg          : Ada.Strings.Unbounded.Unbounded_String;
+      Recover_Ops  : Recover_Op_Arrays.Vector;
+      Recover_Cost : Natural := 0;
    end record;
    type Error_Message_Access is access all Error_Message;
 
    overriding function Copy (Data : in Error_Message) return Syntax_Trees.Error_Data_Access;
+   overriding function To_Message
+     (Data       : in Error_Message;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data_Access;
 
    overriding function Image
      (Data       : in Error_Message;
