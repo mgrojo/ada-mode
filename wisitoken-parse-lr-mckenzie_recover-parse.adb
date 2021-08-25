@@ -341,7 +341,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          end;
       end if;
 
-      --  Always finds EOI.
+      --  Always finds EOI. FIXME: Config.Current_Shared_Token is already the first terminal.
       return Tree.First_Terminal (Config.Current_Shared_Token).Node;
    end Peek_Current_First_Terminal;
 

@@ -160,7 +160,18 @@
   (when column
     (move-to-column (string-to-number column))))
 
-(defconst wisitoken-fail-re "FAIL\\|ERROR:\\|_ERROR")
+(defconst wisitoken-fail-re
+  ;; no:
+  ;; 0028: | | | (subprogram_body_0, (1 . 34), (1, 1) ERROR)
+  ;; syntax_error: :1:1: in parse action error: ((MISSING_NAME_ERROR, ...
+  ;;
+  ;; yes (but only on first line?):
+  ;; FAIL test_incremental.adb : Missing_Name_1
+  ;;     parse_error: CONSTRAINT_ERROR: wisitoken-syntax_trees.ads:2780 discriminant check failed
+  ;;
+  ;; exception: PROGRAM_ERROR: EXCEPTION_ACCESS_VIOLATION
+  ;;
+  "FAIL\\|ERROR:")
 
 (defun wisitoken-compilation-prev ()
   (interactive)

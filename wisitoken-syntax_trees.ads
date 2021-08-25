@@ -290,7 +290,7 @@ package WisiToken.Syntax_Trees is
    --  True if Parents gives the path from Element.Node to Node, or Element or Node is invalid.
 
    function To_Stream_Node_Parents (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return Stream_Node_Parents
-   with Pre => Ref = Invalid_Stream_Node_Ref or else
+   with Pre => Ref = Invalid_Stream_Node_Ref or else Tree.Parents_Set or else
                (Rooted (Ref) or Ref.Node = Tree.First_Terminal (Get_Node (Ref.Element))),
      Post => Parents_Valid (To_Stream_Node_Parents'Result);
 
@@ -744,30 +744,39 @@ package WisiToken.Syntax_Trees is
    --
    --  Parent links are set to Invalid_Node_Access. However, even if
    --  Tree.Parents_Set, Child links are not changed.
+   --
+   --  FIXME: move errors.
 
    procedure Breakdown
-     (Tree : in out Syntax_Trees.Tree;
-      Ref  : in out Terminal_Ref)
+     (Tree      : in out Syntax_Trees.Tree;
+      Ref       : in out Terminal_Ref;
+      User_Data : in     Syntax_Trees.User_Data_Access)
    with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
                Ref.Node /= Invalid_Node_Access and
                Tree.Stack_Top (Ref.Stream) /= Ref.Element,
-     Post => Ref.Node = Ref'Old.Node and Tree.First_Terminal (Get_Node (Ref.Element)) = Ref.Node;
+     Post => Tree.First_Terminal (Get_Node (Ref.Element)) = Ref.Node;
    --  Bring descendants of Ref.Element to the parse stream, until
    --  First_Terminal of one of the parse stream elements = Ref.Node.
    --  Ref.Element is updated to the element whose first terminal is
-   --  Ref.Node.
+   --  (a copy of) Ref.Node.
+   --
+   --  If Ref.Parents nonterms contain any errors, the errors are move to
+   --  the first terminal of that nonterm, copying ancestor nodes, and
+   --  Ref.Parents is updated to match. If Ref.Node is one of those first
+   --  terminals, it will be copied.
    --
    --  The stack top is unchanged.
    --
    --  Parent/child links are set to Invalid_Node_Access as appropriate.
 
    procedure Breakdown
-     (Tree : in out Syntax_Trees.Tree;
-      Ref  : in out Stream_Node_Parents)
+     (Tree      : in out Syntax_Trees.Tree;
+      Ref       : in out Stream_Node_Parents;
+      User_Data : in     Syntax_Trees.User_Data_Access)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Tree.Label (Ref.Ref.Element) = Nonterm and
                Ref.Ref.Node /= Invalid_Node_Access and Tree.Stack_Top (Ref.Ref.Stream) /= Ref.Ref.Element and
                Parents_Valid (Ref),
-     Post => Ref.Ref.Node = Ref.Ref.Node'Old and Parents_Valid (Ref) and
+     Post => Parents_Valid (Ref) and
              Tree.First_Terminal (Get_Node (Ref.Ref.Element)) = Ref.Ref.Node;
    --  Same as Breakdown (Ref.Ref), but supports not Tree.Parents_Set.
 
@@ -1499,10 +1508,11 @@ package WisiToken.Syntax_Trees is
    procedure First_Terminal
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Stream_Node_Ref)
-   with Pre => Valid_Stream_Node (Tree, Ref);
+   with Pre => Valid_Stream_Node (Tree, Ref),
+     Post => Valid_Stream_Node (Tree, Ref);
    --  Update Ref to first terminal of Ref.Element.Node or a following
    --  element. Continues search in Shared_Stream at Stream.Shared_Link;
-   --  will always find EOI, so never Invalid_Stream_Element.
+   --  will always find EOI.
 
    function First_Terminal
      (Tree : in Syntax_Trees.Tree;
@@ -1510,7 +1520,7 @@ package WisiToken.Syntax_Trees is
      return Terminal_Ref
    with Pre => Valid_Stream_Node (Tree, Ref),
      Post => Valid_Stream_Node (Tree, First_Terminal'Result);
-   --  Return first terminal in Ref or a following stream element.
+   --  Return first terminal in Ref.Element.Node or a following stream element.
    --  Continues search in Shared_Stream; will always find EOI, so never
    --  Invalid_Stream_Element.
 
@@ -1524,10 +1534,10 @@ package WisiToken.Syntax_Trees is
    procedure First_Terminal
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Stream_Node_Parents)
-   with Pre => Valid_Stream_Node (Tree, Ref.Ref),
+   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Parents_Valid (Ref);
-   --  Update Ref to first terminal in Ref.Ref.Element.Node or a
-   --  following element.
+   --  Update Ref to first terminal in Ref.Ref.Node or a following
+   --  element.
 
    function First_Terminal
      (Tree : in Syntax_Trees.Tree;
@@ -1537,8 +1547,7 @@ package WisiToken.Syntax_Trees is
      Post => Valid_Stream_Node (Tree, First_Terminal'Result.Ref) and
              Label (First_Terminal'Result.Ref.Node) in Terminal_Label and
              Parents_Valid (First_Terminal'Result);
-   --  Return first terminal in Ref.Ref.Element.Node or a
-   --  following element.
+   --  Return first terminal in Ref.Node or a following element.
 
    function Last_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access;
    --  Last terminal in subtree under Node. Invalid_Node_Access if none.
@@ -2157,20 +2166,26 @@ package WisiToken.Syntax_Trees is
       Error_Ref : in out Rooted_Ref;
       Data      : in     Error_Data_Access;
       User_Data : in     User_Data_Access)
-   with Pre => (if Stream /= Error_Ref.Stream
-                then Tree.Is_First_Stream_Input (Stream, Error_Ref)) and
-               (if Data = null then Tree.Error (Error_Ref.Node) /= null);
+   with Pre =>
+     (if Stream /= Error_Ref.Stream
+      then Tree.Is_First_Stream_Input (Stream, Error_Ref)) and
+     (if Data = null then Tree.Error (Error_Ref.Node) /= null);
    --  Move Error_Ref to Stream, store Data in it. Update Error_Ref to
    --  point to new stream element with copied node.
 
    procedure Set_Error
      (Tree      : in out Syntax_Trees.Tree;
+      Stream    : in     Stream_ID;
       Error_Ref : in out Stream_Node_Parents;
       Data      : in     Error_Data_Access;
-      User_Data : in     User_Data_Access);
-   --  Store Data in Error_Ref.Node, copying Error_Ref.Node and all
-   --  ancestors. Update Error_Ref to point to new stream element with
-   --  copied nodes.
+      User_Data : in     User_Data_Access)
+   with Pre =>
+     (if Stream /= Error_Ref.Ref.Stream
+      then Tree.Is_First_Stream_Input (Stream, Error_Ref.Ref)) and
+     (if Data = null then Tree.Error (Error_Ref.Ref.Node) /= null);
+   --  Move Error_Ref to Stream, store Data in Error_Ref.Node, copying
+   --  Error_Ref.Node and all ancestors. Update Error_Ref to point to new
+   --  stream element with copied nodes.
 
    procedure Free is new Ada.Unchecked_Deallocation (Error_Data'Class, Error_Data_Access);
 
@@ -2766,6 +2781,7 @@ private
          ((Stream_Element_Lists.Constant_Ref (Ref.Ref.Element.Cur).Node = Ref.Ref.Node or
              Ref.Ref.Node = Invalid_Node_Access) and Ref.Parents.Is_Empty) or else
          (Ref.Parents.Depth > 0 and then
+            (for all Item of Ref.Parents => Item /= Invalid_Node_Access and then Item.Label = Nonterm) and then
             (Ref.Parents.Peek (Ref.Parents.Depth) = Stream_Element_Lists.Constant_Ref (Ref.Ref.Element.Cur).Node and
                --  we don't check the intervening parent items.
                (for some Child of Ref.Parents.Peek.Children => Child = Ref.Ref.Node))));

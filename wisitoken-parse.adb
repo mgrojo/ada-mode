@@ -450,7 +450,7 @@ package body WisiToken.Parse is
                     (Tree.Get_Node (Terminal.Stream, Terminal.Element), Node_Numbers => True) &
                     " target " & Tree.Image (Terminal.Node, Node_Numbers => True));
             end if;
-            Tree.Breakdown (Terminal);
+            Tree.Breakdown (Terminal, Parser.User_Data);
 
             if To_Single and then Tree.Label (Terminal.Element) = Nonterm then
                Tree.Left_Breakdown (Terminal);

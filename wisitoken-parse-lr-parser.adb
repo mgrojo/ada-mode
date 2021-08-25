@@ -293,26 +293,46 @@ package body WisiToken.Parse.LR.Parser is
       when Shift =>
          Parser_State.Set_Verb (Shift);
 
-         if not Parser_State.Resume_Active and Shared_Parser.Tree.Has_Error (Parser_State.Current_Token.Node) then
-            case Shared_Parser.Tree.Label (Parser_State.Current_Token.Node) is
-            when Syntax_Trees.Terminal_Label =>
-               declare
-                  use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
-                  Inc_Shared_Token : constant Boolean := Parser_State.Current_Token = Parser_State.Shared_Token;
-               begin
-                  Shared_Parser.Tree.Set_Error
-                    (Parser_State.Stream, Parser_State.Current_Token, null, Shared_Parser.User_Data);
+         if not Parser_State.Resume_Active then
+            declare
+               use WisiToken.Syntax_Trees;
+               Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
+               Inc_Shared_Token : constant Boolean := Parser_State.Current_Token = Parser_State.Shared_Token;
+            begin
+               case Tree.Label (Parser_State.Current_Token.Node) is
+               when Syntax_Trees.Terminal_Label =>
+                  if Tree.Has_Error (Parser_State.Current_Token.Node) then
+                     Tree.Set_Error
+                       (Parser_State.Stream, Parser_State.Current_Token, null, Shared_Parser.User_Data);
 
-                  if Inc_Shared_Token then
-                     Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                     if Inc_Shared_Token then
+                        Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                     end if;
                   end if;
-               end;
 
-            when Syntax_Trees.Nonterm =>
-               --  Only In_Parse_Action sets errors on nonterms; clearing them is
-               --  done in Reduce. FIXME: check for name error moved to first_terminal.
-               null;
-            end case;
+               when Syntax_Trees.Nonterm =>
+                  declare
+                     First_Term : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+                       (Parser_State.Current_Token);
+                     Update_Current_Token : constant Boolean := Parser_State.Current_Token = First_Term.Ref;
+                  begin
+                     Tree.First_Terminal (First_Term);
+
+                     if Tree.Has_Error (First_Term.Ref.Node) then
+                        Tree.Set_Error
+                          (Parser_State.Stream, First_Term, null, Shared_Parser.User_Data);
+
+                        if Update_Current_Token then
+                           Parser_State.Current_Token := Tree.To_Rooted_Ref
+                             (First_Term.Ref.Stream, First_Term.Ref.Element);
+                        end if;
+                        if Inc_Shared_Token then
+                           Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                        end if;
+                     end if;
+                  end;
+               end case;
+            end;
          end if;
 
          Shared_Parser.Tree.Shift (Parser_State.Stream, Action.State, Parser_State.Current_Token.Element);

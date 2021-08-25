@@ -107,7 +107,8 @@ package WisiToken.Parse.LR.Parser_Lists is
       Tree         : in Syntax_Trees.Tree)
      return Syntax_Trees.Rooted_Ref
    with Post => Tree.Has_Error (Current_Error_Node'Result.Node);
-   --  Either Parser_State.Stream.First_Input (if a Parse_Error) or .Peek
+   --  Must only be called when Parser_State has an error; result is
+   --  either Parser_State.Stream.First_Input (if a Parse_Error) or .Peek
    --  (if an In_Parse_Action_Error).
 
    function Peek_Current_Sequential_Terminal

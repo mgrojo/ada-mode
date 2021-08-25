@@ -32,26 +32,20 @@ update-wisitoken_grammar
 
  current work
 store errors in tree
-    test_incremental.adb
-        Missing_Name_1
-            error lost in edit_tree breakdown
-                move to first terminal, as in undo_reduce
-                also in left_breakdown
-
-                adapt code from w.p.lr.undo_reduce
-
-            see fixme in  -lr-parser.adb Do_Action.
-
     In Preserve_Parse_Errors_2, also change costs so recover deletes
     END instead of inserting BEGIN; then need to restore that
 
     test case that requires parse removing deleted; lexer_errors_2 edit fixes error.
 
+    test case for Right_Breakdown move_errors.
 
     test match_names_error
         set_error on reduce in_parse_action is at stack_top, not stream input.
 
     test case for wisitoken-syntax_trees.adb Add_Deleted Not_Implemented.
+
+Tree.validate check that all tree.nodes are in tree
+    call it in test_incremental.adb?
 
 next error recover try prev solution first - new strategy.
 
@@ -115,6 +109,10 @@ incremental parse
         rest of parser must understand that.
         requires merge edit_tree into incremental parse
         faster? less allocate/deallocate
+
+expand description of labels in wisitoken-user_guide
+
+add precedence to reduce conflicts?
 
 Mckenzie parallel gain
     eliminate super access that does not require lock
@@ -348,6 +346,11 @@ make "canonical list" compatible with packrat?
     ie swap rhs_index 0, 1
     better to implement list in packrat
 
+Do LR incremental on tree from packrat parse?
+    batch = packrat, incremental = LR
+    no error recover in packrate
+    need left_recursion.
+
 c:/Projects/org.emacs.java-wisi/test/recover_001.java
     don't delete next if minimal_c_a inserted
 
@@ -489,6 +492,8 @@ adacore langkit_support.packrat implements one row of the derivs table
             clearly adequate given fast performance
             compare performance to a sparse vector
         libadalang.analysis.parsers Parser_Private_Part_Type stores all the rows
+
+Write libadalang python code to generate wisitoken grammar from AdaCore grammar.
 
 use wisi-gen_output_ada_common.adb Append in wisi-output_ada, _emacs.
 

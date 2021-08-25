@@ -388,7 +388,7 @@ package body WisiToken.Parse.LR is
             Error : constant Error_Data_Access_Constant := Tree.Error (Ref.Ref.Node);
          begin
             Tree.First_Terminal (Ref);
-            Tree.Set_Error (Ref, To_Message (Error.all, Tree, Orig_Error_Node), User_Data);
+            Tree.Set_Error (Stream, Ref, To_Message (Error.all, Tree, Orig_Error_Node), User_Data);
          end;
       end if;
 

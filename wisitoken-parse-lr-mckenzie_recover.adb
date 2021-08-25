@@ -592,7 +592,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                                              Find_FF_Token_Index (Tree.First_Input (Parser_State.Stream));
                                           end if;
-                                          Tree.Breakdown (Target);
+                                          Tree.Breakdown (Target, Shared_Parser.User_Data);
                                           Parser_State.Next_Token (Tree, Set_Current => True, Delete => False);
                                        end if;
                                     end;
