@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2015, 2017, 2018, 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2015, 2017, 2018, 2020, 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -175,6 +175,58 @@ package body Test_Stacks is
       end loop;
    end Test_Iterate;
 
+   procedure Test_Invert (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+
+      use AUnit.Checks;
+
+      Stack_1 : Unbounded_Definite_Stacks.Stack;
+   begin
+      for I in reverse 1 .. 10 loop
+         Stack_1.Push (I);
+      end loop;
+
+      declare
+         Stack_2 : constant Unbounded_Definite_Stacks.Stack := Stack_1.Invert;
+      begin
+         Check ("1", Stack_2.Peek (1), 10);
+         Check ("2", Stack_2.Peek (2), 9);
+         Check ("9", Stack_2.Peek (9), 2);
+         Check ("10", Stack_2.Peek (10), 1);
+      end;
+   end Test_Invert;
+
+   procedure Test_Copy_Slice (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+
+      use AUnit.Checks;
+
+      Stack_1 : Unbounded_Definite_Stacks.Stack;
+      Stack_2 : Unbounded_Definite_Stacks.Stack;
+   begin
+      for I in 1 .. 10 loop
+         Stack_1.Push (I);
+      end loop;
+
+      for I in 20 .. 25 loop
+         Stack_2.Push (I);
+      end loop;
+
+      Unbounded_Definite_Stacks.Copy_Slice
+        (Source             => Stack_1,
+         Target             => Stack_2,
+         Source_Start_Depth => 5,
+         Target_Start_Depth => 1,
+         Count              => Stack_2.Depth);
+
+      Check ("1", Stack_2.Peek (1), 6);
+      Check ("2", Stack_2.Peek (2), 5);
+      Check ("3", Stack_2.Peek (3), 4);
+      Check ("6", Stack_2.Peek (6), 1);
+   end Test_Copy_Slice;
+
    ----------
    --  Public routines
 
@@ -185,13 +237,15 @@ package body Test_Stacks is
       Register_Routine (T, Nominal'Access, "Nominal");
       Register_Routine (T, Compare'Access, "Compare");
       Register_Routine (T, Test_Iterate'Access, "Test_Iterate");
+      Register_Routine (T, Test_Invert'Access, "Test_Invert");
+      Register_Routine (T, Test_Copy_Slice'Access, "Test_Copy_Slice");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../test/test_stacks.adb");
+      return new String'("test_stacks.adb");
    end Name;
 
 end Test_Stacks;

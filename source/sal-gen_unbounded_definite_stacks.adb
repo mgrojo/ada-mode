@@ -165,6 +165,33 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
       Stack.Data (Depth - Index + 1) := Element;
    end Set;
 
+   function Invert (Stack : in Sguds.Stack) return Sguds.Stack
+   is
+   begin
+      return Result : constant Sguds.Stack := Stack do
+         for I in 1 .. Result.Top loop
+            Result.Data (Result.Top - I + 1) := Stack.Data (I);
+         end loop;
+      end return;
+   end Invert;
+
+   procedure Copy_Slice
+     (Source             : in     Stack;
+      Target             : in out Stack;
+      Source_Start_Depth : in     Peek_Type;
+      Target_Start_Depth : in     Peek_Type;
+      Count              : in     Peek_Type)
+   is
+      S : Base_Peek_Type := Source.Top - Source_Start_Depth + 1;
+      T : Base_Peek_Type := Target.Top - Target_Start_Depth + 1;
+   begin
+      for I in 0 .. Count - 1  loop
+         Target.Data (T) := Source.Data (S);
+         S := S - 1;
+         T := T - 1;
+      end loop;
+   end Copy_Slice;
+
    function Constant_Reference
      (Container : aliased in Stack'Class;
       Position  :         in Peek_Type)
