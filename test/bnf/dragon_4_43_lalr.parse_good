@@ -2,22 +2,22 @@
  0: 0: 1:(LOWER_C, (14 . 14)) : shift and goto state 1
  0: 1: 2:(LOWER_D, (15 . 15)) : shift and goto state 2
  0: 2: 3:(LOWER_C, (16 . 16)) : reduce 1 tokens to upper_c
-(upper_c, (15 . 15)) <= (2:(LOWER_D, (15 . 15)))
+(upper_c, (15 . 15) <= (2:(LOWER_D, (15 . 15))))
  ... goto state 5
  0: 5: 3:(LOWER_C, (16 . 16)) : reduce 2 tokens to upper_c
-(upper_c, (14 . 15)) <= (1:(LOWER_C, (14 . 14)), (upper_c, (15 . 15)))
+(upper_c, (14 . 15) <= (1:(LOWER_C, (14 . 14)), (upper_c, (15 . 15))))
  ... goto state 4
  0: 4: 3:(LOWER_C, (16 . 16)) : shift and goto state 1
  0: 1: 4:(LOWER_D, (17 . 17)) : shift and goto state 2
  0: 2: 5:(Wisi_EOI, (19 . 18)) : reduce 1 tokens to upper_c
-(upper_c, (17 . 17)) <= (4:(LOWER_D, (17 . 17)))
+(upper_c, (17 . 17) <= (4:(LOWER_D, (17 . 17))))
  ... goto state 5
  0: 5: 5:(Wisi_EOI, (19 . 18)) : reduce 2 tokens to upper_c
-(upper_c, (16 . 17)) <= (3:(LOWER_C, (16 . 16)), (upper_c, (17 . 17)))
+(upper_c, (16 . 17) <= (3:(LOWER_C, (16 . 16)), (upper_c, (17 . 17))))
  ... goto state 6
  0: 6: 5:(Wisi_EOI, (19 . 18)) : reduce 2 tokens to upper_s
-(upper_s, (14 . 17)) <= ((upper_c, (14 . 15)), (upper_c, (16 . 17)))
+(upper_s, (14 . 17) <= ((upper_c, (14 . 15)), (upper_c, (16 . 17))))
  ... goto state 3
  0: 3: 5:(Wisi_EOI, (19 . 18)) : accept it
-(wisitoken_accept, (14 . 17)) <= ((upper_s, (14 . 17)))
+(wisitoken_accept, (14 . 17) <= ((upper_s, (14 . 17))))
  0: succeed

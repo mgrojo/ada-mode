@@ -138,7 +138,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       if Tree.Stream_Input_Length (Parser_Stack) > 0 then
          --  Parse stream input has tokens from breakdown of a nonterm in
-         --  Shared_Stream.
+         --  Shared_Stream, or an error token.
          declare
             use Syntax_Trees;
             Index : Stream_Index := Tree.Stream_Next (Parser_Stack, Tree.Stack_Top (Parser_Stack));
@@ -162,7 +162,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       Trace  : WisiToken.Trace'Class renames Super.Trace.all;
       Config : Configuration;
-      Error_Node : constant Syntax_Trees.Valid_Node_Access := Parser_State.Current_Error_Node (Super.Tree.all).Node;
+      Error_Node : constant Syntax_Trees.Valid_Node_Access := Parser_State.Current_Error_Node (Super.Tree.all).Ref.Node;
       Error  : constant Syntax_Trees.Error_Data_Access_Constant := Super.Tree.Error (Error_Node);
    begin
       Parser_State.Recover.Enqueue_Count := @ + 1;
@@ -463,10 +463,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Stack  : Syntax_Trees.Stream_ID renames Parser_State.Stream;
                      Result : Configuration renames Parser_State.Recover.Results.Peek;
 
-                     Error_Node : Syntax_Trees.Rooted_Ref := Parser_State.Current_Error_Node (Tree);
-                     Error : constant Error_Data_Access_Constant := Tree.Error (Error_Node.Node);
+                     Error_Node : Syntax_Trees.Stream_Node_Parents := Parser_State.Current_Error_Node (Tree);
+                     Error : constant Error_Data_Access_Constant := Tree.Error (Error_Node.Ref.Node);
 
-                     Error_Pos : constant Buffer_Pos := Tree.Char_Region (Error_Node.Node).First;
+                     Error_Pos : constant Buffer_Pos := Tree.Char_Region (Error_Node.Ref.Node).First;
+
+                     Inc_Shared_Token : constant Boolean := Parser_State.Current_Token = Parser_State.Shared_Token and
+                       Error_Node.Ref.Element = Parser_State.Current_Token.Element and
+                       Tree.ID (Parser_State.Shared_Token.Node) /= Tree.Lexer.Descriptor.EOI_ID;
 
                      Stack_Matches_Ops : Boolean := True;
                      First_Insert      : Boolean := True;
@@ -503,6 +507,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                      else
                         raise SAL.Programmer_Error;
+                     end if;
+
+                     if Inc_Shared_Token then
+                        Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
                      end if;
 
                      Parser_State.Total_Recover_Cost := @ + Result.Cost;
@@ -698,12 +706,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                               Recover_Op_Nodes_Arrays.Append
                                 (Parser_State.Recover_Insert_Delete,
-                                 (Op             => Delete,
-                                  Error_Pos      => Error_Pos,
-                                  Del_ID         => Op.Del_ID,
-                                  Del_Index      => Op.Del_Token_Index,
-                                  Del_Node       => Syntax_Trees.Invalid_Node_Access,
-                                  Del_After_Node => Syntax_Trees.Invalid_Node_Access));
+                                 (Op        => Delete,
+                                  Error_Pos => Error_Pos,
+                                  Del_ID    => Op.Del_ID,
+                                  Del_Index => Op.Del_Token_Index,
+                                  Del_Node  => Syntax_Trees.Invalid_Node_Access));
 
                               --  We have to apply more than one delete here if they are
                               --  consecutive, because the main parser expects
@@ -736,11 +743,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                          (Prev_Terminal, Parser_State.Stream, Trailing_Non_Grammar => False);
                                     end if;
                                     Tree.Add_Deleted
-                                      (Deleted_Node  => Deleted_Ref.Node,
+                                      (Deleted_Ref   => Deleted_Ref,
                                        Prev_Terminal => Prev_Terminal,
                                        User_Data     => Shared_Parser.User_Data);
-
-                                    Op.Del_After_Node := Prev_Terminal.Ref.Node;
                                  end;
 
                                  Next_Token (Parser_State, Tree, Set_Current => True, Delete => True);
@@ -850,6 +855,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       else
          Parse.Next_Sequential_Terminal (Tree, State.Input_Terminal);
+
+         --  if State.Input_Terminal.Node = Invalid_Node_Access then
+         --  State.Sequential_Terminal is correct.
       end if;
    end Peek_Next_Sequential_Terminal;
 
@@ -1099,18 +1107,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Index : Base_Sequential_Index :=
         (if Target = Invalid_Sequential_Index
          then Invalid_Sequential_Index
+         elsif Tree.Get_Sequential_Index (Terminals (1).Ref.Node) /= Invalid_Sequential_Index
+         then Tree.Get_Sequential_Index (Terminals (1).Ref.Node)
          else 1);
 
       Skip_Step_Reference : Boolean := False;
       Skip_Step_Terminals : array (2 .. Terminals'Last) of Boolean := (others => False);
    begin
-      --  FIXME: debugging
-      --  Ada.Text_IO.Put_Line ("Extend_Sequential_Index: enter target" & Target'Image & " streams, terminals");
-      --  for I in Terminals'Range loop
-      --     Ada.Text_IO.Put_Line (Tree.Image (Streams (I), Shared => True));
-      --     Ada.Text_IO.Put_Line (Tree.Image (Terminals (I).Ref));
-      --  end loop;
-
       loop
          if Skip_Step_Reference then
             Skip_Step_Reference := False;
@@ -1202,13 +1205,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          end;
 
          if Target = Invalid_Sequential_Index then
-            if Tree.ID (Terminals (1).Ref.Node) =
-              (if Positive
-               then Tree.Lexer.Descriptor.EOI_ID
-               else Tree.Lexer.Descriptor.SOI_ID)
-            then
-               Tree.Set_Sequential_Index (Terminals (1).Ref.Node, Index);
-            end if;
+            --  FIXME: Debugging
+            --  if Tree.ID (Terminals (1).Ref.Node) =
+            --    (if Positive
+            --     then Tree.Lexer.Descriptor.EOI_ID
+            --     else Tree.Lexer.Descriptor.SOI_ID)
+            --  then
+            --     Tree.Set_Sequential_Index (Terminals (1).Ref.Node, Index);
+            --  end if;
 
             if (for all Term of Terminals => Tree.Label (Term.Ref.Node) = Source_Terminal and then
                   Tree.Get_Sequential_Index (Term.Ref.Node) = Invalid_Sequential_Index)
@@ -1239,13 +1243,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          end if;
 
       end loop;
-
-      --  FIXME: debugging
-      --  Ada.Text_IO.Put_Line ("Extend_Sequential_Index: exit streams, terminals");
-      --  for I in Terminals'Range loop
-      --     Ada.Text_IO.Put_Line (Tree.Image (Streams (I), Shared => True));
-      --     Ada.Text_IO.Put_Line (Tree.Image (Terminals (I).Ref));
-      --  end loop;
    end Extend_Sequential_Index;
 
    procedure Clear_Sequential_Index (Shared_Parser : in out WisiToken.Parse.LR.Parser.Parser)
@@ -1255,21 +1252,21 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Max_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Parsers.Count + 1);
    begin
       --  if Trace_McKenzie > Outline then
-         --  FIXME: debugging
-         --  Shared_Parser.Trace.Put_Line ("in Clear_Sequential_Index; streams:");
-         --  declare
-         --     use Syntax_Trees;
-         --     Stream : Stream_ID := Shared_Parser.Tree.Shared_Stream;
-         --  begin
-         --     loop
-         --        Shared_Parser.Trace.Put_Line
-         --          (Shared_Parser.Tree.Image
-         --             (Stream, Shared => True, Children => True, State_Numbers => False));
-         --        Shared_Parser.Tree.Next_Parse_Stream (Stream);
-         --        Shared_Parser.Trace.New_Line;
-         --        exit when Stream = Invalid_Stream_ID;
-         --     end loop;
-         --  end;
+      --     --  FIXME: debugging
+      --     Shared_Parser.Trace.Put_Line ("in Clear_Sequential_Index; streams:");
+      --     declare
+      --        use Syntax_Trees;
+      --        Stream : Stream_ID := Shared_Parser.Tree.Shared_Stream;
+      --     begin
+      --        loop
+      --           Shared_Parser.Trace.Put_Line
+      --             (Shared_Parser.Tree.Image
+      --                (Stream, Shared => True, Children => True, State_Numbers => False));
+      --           Shared_Parser.Tree.Next_Parse_Stream (Stream);
+      --           Shared_Parser.Trace.New_Line;
+      --           exit when Stream = Invalid_Stream_ID;
+      --        end loop;
+      --     end;
       --  end if;
 
       Set_Initial_Sequential_Index

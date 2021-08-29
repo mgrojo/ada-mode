@@ -181,7 +181,7 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
    procedure Extend_Sequential_Index
      (Super : not null access Base.Supervisor;
       Thru  : in              Syntax_Trees.Sequential_Index);
-   --  Ensure Sequential_Index range includes Thru.
+   --  Ensure Sequential_Index range includes Thru, or SOI/EOI.
 
    type Shared
      --  Don't duplicate values that are in Supervisor discriminants.

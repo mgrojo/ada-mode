@@ -438,23 +438,18 @@ package WisiToken.Parse.LR is
          --  Ins_ID is inserted before Ins_Before in the Shared_Stream.
 
          Ins_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
-         --  The parse stream node holding the inserted token; valid after
-         --  parse is complete.
+         --  The parse stream node holding the inserted token.
 
       when Delete =>
          Del_ID : Token_ID := Invalid_Token_ID;
-         --  The token ID deleted; a terminal token. IMPROVEME: allow delete nonterm?
+         --  The token ID deleted; a terminal token.
 
          Del_Index : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'First;
          --  Token at Del_Index is deleted; used by parser to skip the token.
 
          Del_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
          --  Del_Node is deleted; used by post-parse actions to adjust for the
-         --  deleted token.
-
-         Del_After_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
-         --  Previous terminal (shared or virtual) in parse stream; used by
-         --  post-parse actions to adjust for the deleted token.
+         --  deleted token. Del_Node.Parent is the previous non-deleted terminal.
       end case;
    end record;
 
@@ -568,8 +563,9 @@ package WisiToken.Parse.LR is
       --  we set Shared_Parser.Resume_Token_Goal only from successful
       --  configs.
 
-      String_Quote_Checked : Base_Line_Number_Type := Invalid_Line_Number;
-      --  Max line checked for missing string quote.
+      String_Quote_Checked_Line     : Base_Line_Number_Type := Invalid_Line_Number;
+      String_Quote_Checked_Byte_Pos : Base_Buffer_Pos       := Invalid_Buffer_Pos;
+      --  Max line, line_end_pos checked for missing string quote.
 
       Error_Token                 : Syntax_Trees.Recover_Token;
       In_Parse_Action_Token_Count : SAL.Base_Peek_Type := 0;

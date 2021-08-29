@@ -32,7 +32,13 @@ update-wisitoken_grammar
 
  current work
 store errors in tree
-    In Preserve_Parse_Errors_2, also change costs so recover deletes
+    t_all
+test_incremental.adb : Lexer_Errors_1
+    incr parse different result than full edited parse; lexer error needs to be in tree.
+
+
+
+    In test_incremental.adb Preserve_Parse_Errors_2, also change costs so recover deletes
     END instead of inserting BEGIN; then need to restore that
 
     test case that requires parse removing deleted; lexer_errors_2 edit fixes error.

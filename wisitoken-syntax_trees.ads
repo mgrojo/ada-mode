@@ -491,14 +491,13 @@ package WisiToken.Syntax_Trees is
      (User_Data     : in out User_Data_Type;
       Tree          : in     Syntax_Trees.Tree'Class;
       Trace         : in out WisiToken.Trace'Class;
-      Deleted_Token : in     Valid_Node_Access;
-      Prev_Token    : in     Valid_Node_Access)
+      Deleted_Token : in     Valid_Node_Access)
    with Pre'Class =>
      Tree.Parents_Set and
-     Tree.Label (Deleted_Token) in Terminal_Label and
-     Tree.Label (Prev_Token) in Terminal_Label;
-   --  Deleted_Token was deleted in error recovery. Prev_Token is the
-   --  terminal token before Deleted_Token in the parse stream.
+     Tree.Label (Deleted_Token) in Terminal_Label;
+   --  Deleted_Token was deleted in error recovery; Deleted_Token.Parent
+   --  is the non-deleted terminal token before Deleted_Token in the
+   --  parse stream.
    --
    --  The default body appends Deleted_Token.Non_Grammar to
    --  Prev_Token.Non_Grammar.
@@ -1221,6 +1220,15 @@ package WisiToken.Syntax_Trees is
    --  Same as Line_Region (Stream_Node_Ref), for use when parents are
    --  not set. See Prev_Terminal (tree, stream_node_parents) for meaning
    --  of Parse_Stream.
+
+   function Line_Region
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID;
+      Ref    : in Real_Recover_Token)
+     return WisiToken.Line_Region
+   with Pre => Ref.Element_Node = Ref.Node or Ref.Node = Tree.First_Terminal (Ref.Element_Node);
+   --  Constructs a Stream_Node_Parents from Stream, Ref. Assumes
+   --  Trailing_Non_Grammar => True. For use in error recovery.
 
    function Column (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Ada.Text_IO.Count
    with Pre => Tree.Editable and Tree.Subtree_Root (Node) = Tree.Root;
@@ -2020,7 +2028,7 @@ package WisiToken.Syntax_Trees is
 
    procedure Add_Deleted
      (Tree          : in out Syntax_Trees.Tree;
-      Deleted_Node  : in     Valid_Node_Access;
+      Deleted_Ref   : in     Stream_Node_Ref;
       Prev_Terminal : in out Stream_Node_Parents;
       User_Data     : in     User_Data_Access)
    with Pre => Tree.Valid_Stream_Node (Prev_Terminal.Ref) and
@@ -2028,7 +2036,7 @@ package WisiToken.Syntax_Trees is
                Tree.Label (Prev_Terminal.Ref.Node) = Source_Terminal;
    --  Copy Prev_Terminal.Ref.Node, add Deleted_Node to
    --  Prev_Terminal.Ref.Node.Following_Deleted. Updates Prev_Terminal to
-   --  point to copied node.
+   --  point to copied node. Updates Deleted.Stream.Shared_Link if required.
 
    function Has_Following_Deleted
      (Tree : in out Syntax_Trees.Tree;
@@ -2215,7 +2223,7 @@ package WisiToken.Syntax_Trees is
    function Error (Item : in Stream_Error_Cursor) return Stream_Error_Ref;
 
    function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Error_Ref) return Node_Access
-   with Pre => Tree.Parents_Set and Valid_Error_Ref (Error);
+   with Pre => Valid_Error_Ref (Error);
 
    function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Stream_Error_Ref) return Node_Access
    with Pre => Valid_Error_Ref (Error);
@@ -2238,7 +2246,7 @@ package WisiToken.Syntax_Trees is
    --  Update Error to next error node.
 
    procedure Next_Error (Tree : in Syntax_Trees.Tree; Error : in out Stream_Error_Ref)
-   with Pre => Tree.Parseable and (Error.Ref.Ref.Node /= Invalid_Node_Access and then Valid_Error_Ref (Error));
+   with Pre => Error.Ref.Ref.Node /= Invalid_Node_Access and then Valid_Error_Ref (Error);
    --  Update Error to next error node.
 
    function Error_Count (Tree : in Syntax_Trees.Tree) return Ada.Containers.Count_Type

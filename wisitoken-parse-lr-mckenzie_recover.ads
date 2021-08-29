@@ -69,7 +69,7 @@ private
    type Config_Stream_Parents (Stream : access constant Bounded_Streams.List) is
    record
       --  Like Syntax_Trees.Stream_Node_Parents, but using a Configuration
-      --  input stream.
+      --  input stream; does not continue into Tree streams.
       Element : Bounded_Streams.Cursor;
       Node    : Syntax_Trees.Node_Access;
       Parents : Syntax_Trees.Node_Stacks.Stack;
@@ -77,6 +77,9 @@ private
 
    type Peek_Sequential_State (Stream : access constant Bounded_Streams.List) is
    record
+      --  Like Syntax_Trees.Stream_Node_Parents, but using a Configuration
+      --  input stream; continues forward into Tree shared stream. There is
+      --  no Prev operation; cannot continue backward into config stack.
       Input_Terminal      : Config_Stream_Parents (Stream);
       Sequential_Terminal : Syntax_Trees.Stream_Node_Parents;
    end record;

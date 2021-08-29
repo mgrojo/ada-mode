@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
-with AUnit.Checks;
+with AUnit.Checks.Containers;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Skip_To_Grammar_LALR_Main;
@@ -40,6 +40,7 @@ package body Test_Skip_To is
    is
       pragma Unreferenced (T);
       use AUnit.Checks;
+      use AUnit.Checks.Containers;
 
       File_Name : constant String := "../test/bnf/skip_to_grammar.input";
    begin

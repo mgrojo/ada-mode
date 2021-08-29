@@ -62,13 +62,8 @@ begin
       if Trace_Parse > Outline or Trace_Incremental_Parse > Outline then
          Trace.New_Line;
          --  Parents not set, can't get Line_Numbers
-         if Trace_Parse > Extra or Trace_Incremental_Parse > Extra then
-            Trace.Put_Line ("edited tree:");
-            Shared_Parser.Tree.Print_Tree (Trace, Non_Grammar => True);
-         else
-            Trace.Put_Line ("edited stream:");
-            Trace.Put_Line (Shared_Parser.Tree.Image (Shared_Parser.Tree.Shared_Stream));
-         end if;
+         Trace.Put_Line ("edited stream:");
+         Trace.Put_Line (Shared_Parser.Tree.Image (Shared_Parser.Tree.Shared_Stream));
          Trace.New_Line;
       end if;
 

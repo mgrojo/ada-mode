@@ -164,14 +164,22 @@
   ;; no:
   ;; 0028: | | | (subprogram_body_0, (1 . 34), (1, 1) ERROR)
   ;; syntax_error: :1:1: in parse action error: ((MISSING_NAME_ERROR, ...
+  ;; recover: fail FAIL_ENQUEUE_LIMIT, parser count 1
+  ;;  2:  2, ( 1 0 0 0 0 0 0 0 0), MATCH_NAMES_ERROR (34 : ...
+
   ;;
   ;; yes (but only on first line?):
   ;; FAIL test_incremental.adb : Missing_Name_1
   ;;     parse_error: CONSTRAINT_ERROR: wisitoken-syntax_trees.ads:2780 discriminant check failed
-  ;;
+
   ;; exception: PROGRAM_ERROR: EXCEPTION_ACCESS_VIOLATION
+
+  ;; ERROR test_mckenzie_recover.adb LALR : Error_4
+  ;;   ADA.ASSERTIONS.ASSERTION_ERROR
+  ;;   Exception Message: failed precondition from wisitoken-syntax_trees.ads:2227
   ;;
-  "FAIL\\|ERROR:")
+  ;;
+  "^FAIL \\|^ERROR[: ]")
 
 (defun wisitoken-compilation-prev ()
   (interactive)

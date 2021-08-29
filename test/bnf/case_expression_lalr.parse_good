@@ -2,28 +2,28 @@
  0: 0: 1:(WHEN, (28 . 31)) : shift and goto state 1
  0: 1: 2:(IDENTIFIER, (33 . 33)) : shift and goto state 4
  0: 4: 3:(EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to factor
-(factor, (33 . 33)) <= (2:(IDENTIFIER, (33 . 33)))
+(factor, (33 . 33) <= (2:(IDENTIFIER, (33 . 33))))
  ... goto state 8
  0: 8: 3:(EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to factor_list
-(factor_list, (33 . 33)) <= ((factor, (33 . 33)))
+(factor_list, (33 . 33) <= ((factor, (33 . 33))))
  ... goto state 9
  0: 9: 3:(EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to choice_relation
-(choice_relation, (33 . 33)) <= ((factor_list, (33 . 33)))
+(choice_relation, (33 . 33) <= ((factor_list, (33 . 33))))
  ... goto state 6
  0: 6: 3:(EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to choice_expression
-(choice_expression, (33 . 33)) <= ((choice_relation, (33 . 33)))
+(choice_expression, (33 . 33) <= ((choice_relation, (33 . 33))))
  ... goto state 5
  0: 5: 3:(EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to discrete_choice
-(discrete_choice, (33 . 33)) <= ((choice_expression, (33 . 33)))
+(discrete_choice, (33 . 33) <= ((choice_expression, (33 . 33))))
  ... goto state 7
  0: 7: 3:(EQUAL_GREATER, (35 . 36)) : shift and goto state 12
  0: 12: 4:(NUMBER_LITERAL, (38 . 42)) : shift and goto state 3
  0: 3: 5:(Wisi_EOI, (45 . 44)) : reduce 1 tokens to factor
-(factor, (38 . 42)) <= (4:(NUMBER_LITERAL, (38 . 42)))
+(factor, (38 . 42) <= (4:(NUMBER_LITERAL, (38 . 42))))
  ... goto state 16
  0: 16: 5:(Wisi_EOI, (45 . 44)) : reduce 4 tokens to case_expression
-(case_expression, (28 . 42)) <= (1:(WHEN, (28 . 31)), (discrete_choice, (33 . 33)), 3:(EQUAL_GREATER, (35 . 36)), (factor, (38 . 42)))
+(case_expression, (28 . 42) <= (1:(WHEN, (28 . 31)), (discrete_choice, (33 . 33)), 3:(EQUAL_GREATER, (35 . 36)), (factor, (38 . 42))))
  ... goto state 2
  0: 2: 5:(Wisi_EOI, (45 . 44)) : accept it
-(wisitoken_accept, (28 . 42)) <= ((case_expression, (28 . 42)))
+(wisitoken_accept, (28 . 42) <= ((case_expression, (28 . 42))))
  0: succeed

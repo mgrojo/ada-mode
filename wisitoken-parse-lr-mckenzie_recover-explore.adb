@@ -1241,7 +1241,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       null;
    end Try_Insert_Terminal;
 
-   procedure Try_Insert_Quote
+   procedure Try_Insert_Quote_1
      (Super             : not null access Base.Supervisor;
       Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Base_Peek_Type;
@@ -1258,8 +1258,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Check_Limit : Syntax_Trees.Sequential_Index renames Shared.Table.McKenzie_Param.Check_Limit;
 
       Current_Line : constant Base_Line_Number_Type :=
-        (if Config.Input_Stream.First = No_Element and Config.Current_Shared_Token.Node /= Invalid_Node_Access
-         then Tree.Line_Region (Config.Current_Shared_Token).First
+        (if Config.Input_Stream.First = No_Element
+         then
+           (if Config.Current_Shared_Token.Node /= Invalid_Node_Access
+            then Tree.Line_Region (Config.Current_Shared_Token).First
+            else Invalid_Line_Number)
+         elsif not Config.Error_Token.Virtual and then
+           Config.Error_Token.Node = Config.Input_Stream (Config.Input_Stream.First)
+         then Tree.Line_Region (Super.Stream (Parser_Index), Config.Error_Token).First -- Null_Line_Region if unknown.
          else Invalid_Line_Number);
 
       function Recovered_Lexer_Error return Syntax_Trees.Terminal_Ref
@@ -1651,7 +1657,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          if Config.Resume_Token_Goal - Check_Limit < Tree.Get_Sequential_Index (Config.Current_Shared_Token.Node)
          then
             Config.Resume_Token_Goal := Tree.Get_Sequential_Index (Config.Current_Shared_Token.Node) + Check_Limit;
-            Super.Extend_Max_Sequential_Index (Target => Config.Resume_Token_Goal);
+            Base.Extend_Sequential_Index (Super, Thru => Config.Resume_Token_Goal);
 
             if Trace_McKenzie > Extra then
                Put_Line
@@ -1695,14 +1701,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  An alternate strategy is to treat the lexer error as a parse error
       --  immediately, but that complicates the parse logic.
 
-      if Current_Line = Invalid_Line_Number or not
-        (Config.String_Quote_Checked = Invalid_Line_Number or else
-           Config.String_Quote_Checked < Current_Line)
+      if Current_Line = Invalid_Line_Number or Current_Line = Null_Line_Region.First or not
+        (Config.String_Quote_Checked_Line = Invalid_Line_Number or else
+           Config.String_Quote_Checked_Line < Current_Line)
       then
          return;
       end if;
 
-      Config.String_Quote_Checked := Current_Line;
+      Config.String_Quote_Checked_Line := Current_Line;
 
       if Lexer_Error_Token_Ref = Syntax_Trees.Invalid_Stream_Node_Ref or else
         Super.Tree.ID (Lexer_Error_Token_Ref.Node) not in Descriptor.String_1_ID | Descriptor.String_2_ID
@@ -1729,17 +1735,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             declare
                New_Config            : Configuration := Config;
                Min_Pushed_Back_Index : Syntax_Trees.Sequential_Index;
-
-               Prev_Shared : Syntax_Trees.Stream_Node_Parents := Tree.To_Stream_Node_Parents
-                 (Config.Current_Shared_Token);
             begin
                Push_Back_Tokens ("insert quote 4 a", New_Config, Min_Pushed_Back_Index);
 
-               Tree.Prev_Sequential_Terminal (Prev_Shared, Super.Stream (Parser_Index));
+               pragma Assert (not Config.Error_Token.Virtual);
                Finish
                  ("a", New_Config,
                   First => Min_Pushed_Back_Index,
-                  Last  => Tree.Get_Sequential_Index (Prev_Shared.Ref.Node));
+                  Last  => Tree.Get_Sequential_Index (Config.Error_Token.Node) - 1);
                Local_Config_Heap.Add (New_Config);
             end;
 
@@ -1871,6 +1874,27 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    exception
    when Bad_Config =>
       null;
+   end Try_Insert_Quote_1;
+
+   procedure Try_Insert_Quote
+     (Super             : not null access Base.Supervisor;
+      Shared            : not null access Base.Shared;
+      Parser_Index      : in              SAL.Base_Peek_Type;
+      Config            : in out          Configuration;
+      Local_Config_Heap : in out          Config_Heaps.Heap_Type)
+   is
+      Tree : Syntax_Trees.Tree renames Super.Tree.all;
+
+      Current_Byte_Pos : constant Base_Buffer_Pos := Tree.Byte_Region (Config.Error_Token).Last;
+   begin
+      if Config.String_Quote_Checked_Byte_Pos /= Invalid_Buffer_Pos and then
+        Current_Byte_Pos <= Config.String_Quote_Checked_Byte_Pos
+      then
+         return;
+      else
+         Try_Insert_Quote_1 (Super, Shared, Parser_Index, Config, Local_Config_Heap);
+         Config.String_Quote_Checked_Byte_Pos := Current_Byte_Pos;
+      end if;
    end Try_Insert_Quote;
 
    procedure Try_Delete_Input

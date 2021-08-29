@@ -300,7 +300,7 @@ package body WisiToken.Parse.LR.Parser is
                Inc_Shared_Token : constant Boolean := Parser_State.Current_Token = Parser_State.Shared_Token;
             begin
                case Tree.Label (Parser_State.Current_Token.Node) is
-               when Syntax_Trees.Terminal_Label =>
+               when Terminal_Label =>
                   if Tree.Has_Error (Parser_State.Current_Token.Node) then
                      Tree.Set_Error
                        (Parser_State.Stream, Parser_State.Current_Token, null, Shared_Parser.User_Data);
@@ -310,7 +310,7 @@ package body WisiToken.Parse.LR.Parser is
                      end if;
                   end if;
 
-               when Syntax_Trees.Nonterm =>
+               when Nonterm =>
                   declare
                      First_Term : Stream_Node_Parents := Tree.To_Stream_Node_Parents
                        (Parser_State.Current_Token);
@@ -453,36 +453,93 @@ package body WisiToken.Parse.LR.Parser is
          Parser_State.Zombie_Token_Count := 1;
 
          declare
-            use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
+            use WisiToken.Syntax_Trees;
+            Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
 
             Expecting : constant Token_ID_Set := LR.Expecting
-              (Shared_Parser.Table.all, Shared_Parser.Tree.State (Parser_State.Stream));
+              (Shared_Parser.Table.all, Tree.State (Parser_State.Stream));
 
             Inc_Shared_Token : constant Boolean := Parser_State.Current_Token = Parser_State.Shared_Token and
-              Shared_Parser.Tree.ID (Parser_State.Shared_Token.Node) /= Shared_Parser.Tree.Lexer.Descriptor.EOI_ID;
-         begin
-            Shared_Parser.Tree.Set_Error
-              (Stream            => Parser_State.Stream,
-               Error_Ref         => Parser_State.Current_Token,
-               Data              => new WisiToken.Parse.Parse_Error'
-                 (First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
-                  Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
-                  Expecting      => Expecting,
-                  Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
-                  Recover_Cost   => 0),
-               User_Data         => Shared_Parser.User_Data);
+              Tree.ID (Parser_State.Shared_Token.Node) /= Tree.Lexer.Descriptor.EOI_ID;
 
-            if Inc_Shared_Token then
-               Shared_Parser.Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
-            end if;
+            function Has_Same_Error (Node : in Valid_Node_Access) return Boolean
+            is
+               Old_Error : constant Error_Data_Access_Constant := Tree.Error (Node);
+            begin
+               if Old_Error = null then
+                  return False;
+               end if;
+
+               if Old_Error.all in WisiToken.Parse.Parse_Error then
+                  return WisiToken.Parse.Parse_Error (Old_Error.all).Expecting = Expecting;
+               end if;
+
+               return False;
+            end Has_Same_Error;
+
+         begin
+            case Tree.Label (Parser_State.Current_Token.Node) is
+            when Terminal_Label =>
+               if Has_Same_Error (Parser_State.Current_Token.Node) then
+                  --  Keep the recover information so it can be used again.
+                  null;
+               else
+                  Tree.Set_Error
+                    (Stream            => Parser_State.Stream,
+                     Error_Ref         => Parser_State.Current_Token,
+                     Data              => new WisiToken.Parse.Parse_Error'
+                       (First_Terminal => Tree.Lexer.Descriptor.First_Terminal,
+                        Last_Terminal  => Tree.Lexer.Descriptor.Last_Terminal,
+                        Expecting      => Expecting,
+                        Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
+                        Recover_Cost   => 0),
+                     User_Data         => Shared_Parser.User_Data);
+
+                  if Inc_Shared_Token then
+                     Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                  end if;
+               end if;
+
+            when Nonterm =>
+               --  test_incremental.adb Lexer_Errors_1
+               declare
+                  First_Term : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Parser_State.Current_Token);
+                  Update_Current_Token : constant Boolean := Parser_State.Current_Token = First_Term.Ref;
+               begin
+                  Tree.First_Terminal (First_Term);
+                  if Has_Same_Error (First_Term.Ref.Node) then
+                     --  Keep the recover information so it can be used again.
+                     null;
+                  else
+                     Tree.Set_Error
+                       (Stream            => Parser_State.Stream,
+                        Error_Ref         => First_Term,
+                        Data              => new WisiToken.Parse.Parse_Error'
+                          (First_Terminal => Tree.Lexer.Descriptor.First_Terminal,
+                           Last_Terminal  => Tree.Lexer.Descriptor.Last_Terminal,
+                           Expecting      => Expecting,
+                           Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
+                           Recover_Cost   => 0),
+                        User_Data         => Shared_Parser.User_Data);
+
+                     if Update_Current_Token then
+                        Parser_State.Current_Token := Tree.To_Rooted_Ref
+                          (First_Term.Ref.Stream, First_Term.Ref.Element);
+                     end if;
+                     if Inc_Shared_Token then
+                        Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                     end if;
+                  end if;
+               end;
+            end case;
 
             if Trace_Parse > Detail then
                Trace.Put_Line
-                 (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
+                 (" " & Tree.Trimmed_Image (Parser_State.Stream) & ": " &
                     (if Trace_Parse_No_State_Numbers
                      then "--"
-                     else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream))) &
-                    ": expecting: " & Image (Expecting, Shared_Parser.Tree.Lexer.Descriptor.all));
+                     else Trimmed_Image (Tree.State (Parser_State.Stream))) &
+                    ": expecting: " & Image (Expecting, Tree.Lexer.Descriptor.all));
             end if;
          end;
       end case;
@@ -531,11 +588,9 @@ package body WisiToken.Parse.LR.Parser is
                              (Prev_Terminal, Parser_State.Stream, Trailing_Non_Grammar => False);
                         end if;
                         Tree.Add_Deleted
-                          (Deleted_Node  => Terminal.Node,
+                          (Deleted_Ref   => Terminal,
                            Prev_Terminal => Prev_Terminal,
                            User_Data     => Shared_Parser.User_Data);
-
-                        Op.Del_After_Node := Prev_Terminal.Ref.Node;
                      end;
 
                      Ins_Del_Cur := Ins_Del_Cur + 1;
@@ -817,7 +872,7 @@ package body WisiToken.Parse.LR.Parser is
    begin
       --  We don't add Parser.Wrapped_Lexer_Errors nodes to Keep_Nodes; they
       --  are not always deleted, and if they were, they are in
-      --  Deleted_Nodes.
+      --  the tree as Following_Deleted.
       for Error of Parser.Wrapped_Lexer_Errors loop
          if Error.Recover_Token_Ref /= Invalid_Stream_Node_Ref then
             Error.Recover_Token_Ref.Stream := Invalid_Stream_ID;
@@ -855,8 +910,7 @@ package body WisiToken.Parse.LR.Parser is
             when Delete =>
                Parser.User_Data.Delete_Token
                  (Parser.Tree, Parser.Trace.all,
-                  Deleted_Token => Op.Del_Node,
-                  Prev_Token    => Op.Del_After_Node);
+                  Deleted_Token => Op.Del_Node);
             end case;
          end loop;
 

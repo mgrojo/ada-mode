@@ -549,12 +549,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
       if Positive then
          loop
+            exit when Super.Max_Sequential_Index_All_EOI;
             exit when Super.Tree.Get_Sequential_Index (Thru) /= Syntax_Trees.Invalid_Sequential_Index;
             Super.Extend_Max_Sequential_Index (Target => 2 * Super.Max_Sequential_Index);
          end loop;
 
       else
          loop
+            exit when Super.Min_Sequential_Index_All_SOI;
             exit when Super.Tree.Get_Sequential_Index (Thru) /= Syntax_Trees.Invalid_Sequential_Index;
             declare
                Min : constant Syntax_Trees.Sequential_Index := Super.Min_Sequential_Index;

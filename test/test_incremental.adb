@@ -26,6 +26,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
+with GNAT.Traceback.Symbolic;
 with WisiToken.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
@@ -252,6 +253,9 @@ package body Test_Incremental is
              Shared_Stream         => False,
              Terminal_Node_Numbers => False);
    exception
+   when AUnit.Assertions.Assertion_Error =>
+      raise;
+
    when WisiToken.Syntax_Error =>
       if WisiToken.Trace_Tests > WisiToken.Outline then
          Put_Line (Label_Dot & "(syntax_error) incremental parse result:");
@@ -262,6 +266,13 @@ package body Test_Incremental is
 
    when E : WisiToken.Parse_Error =>
       AUnit.Assertions.Assert (False, "parse_error: " & Ada.Exceptions.Exception_Message (E));
+
+   when E : others =>
+      Ada.Text_IO.Put_Line
+        ("unhandled exception: " & Ada.Exceptions.Exception_Name (E) & ": " &
+           Ada.Exceptions.Exception_Message (E));
+      Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+      AUnit.Assertions.Assert (False, "unhandled exception");
    end Parse_Text;
 
    ----------
@@ -880,7 +891,7 @@ package body Test_Incremental is
 
    overriding procedure Set_Up (T : in out Test_Case)
    is begin
-      null;
+      Ada_Lite_Actions.End_Name_Optional := True;
    end Set_Up;
 
 end Test_Incremental;

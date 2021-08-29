@@ -1,43 +1,43 @@
  10 tokens lexed
  0: 0: 1:(IS, (43 . 44)) : shift and goto state 1
  0: 1: 2:(BEGIN, (46 . 50)) : reduce 0 tokens to declarative_part
-(declarative_part) <= ()
+(declarative_part <= ())
  ... goto state 5
  0: 5: 2:(BEGIN, (46 . 50)) : shift and goto state 7
  0: 7: 3:(SEMICOLON, (51 . 51)) : shift and goto state 8
  0: 8: 4:(IS, (105 . 106)) : reduce 4 tokens to body
-(body, (43 . 51)) <= (1:(IS, (43 . 44)), (declarative_part), 2:(BEGIN, (46 . 50)), 3:(SEMICOLON, (51 . 51)))
+(body, (43 . 51) <= (1:(IS, (43 . 44)), (declarative_part), 2:(BEGIN, (46 . 50)), 3:(SEMICOLON, (51 . 51))))
  ... goto state 4
  0: 4: 4:(IS, (105 . 106)) : reduce 1 tokens to declarations
-(declarations, (43 . 51)) <= ((body, (43 . 51)))
+(declarations, (43 . 51) <= ((body, (43 . 51))))
  ... goto state 2
  0: 2: 4:(IS, (105 . 106)) : shift and goto state 1
  0: 1: 5:(IS, (112 . 113)) : shift and goto state 1
  0: 1: 6:(BEGIN, (115 . 119)) : reduce 0 tokens to declarative_part
-(declarative_part) <= ()
+(declarative_part <= ())
  ... goto state 5
  0: 5: 6:(BEGIN, (115 . 119)) : shift and goto state 7
  0: 7: 7:(SEMICOLON, (120 . 120)) : shift and goto state 8
  0: 8: 8:(BEGIN, (122 . 126)) : reduce 4 tokens to body
-(body, (112 . 120)) <= (5:(IS, (112 . 113)), (declarative_part), 6:(BEGIN, (115 . 119)), 7:(SEMICOLON, (120 . 120)))
+(body, (112 . 120) <= (5:(IS, (112 . 113)), (declarative_part), 6:(BEGIN, (115 . 119)), 7:(SEMICOLON, (120 . 120))))
  ... goto state 4
  0: 4: 8:(BEGIN, (122 . 126)) : reduce 1 tokens to declarations
-(declarations, (112 . 120)) <= ((body, (112 . 120)))
+(declarations, (112 . 120) <= ((body, (112 . 120))))
  ... goto state 2
  0: 2: 8:(BEGIN, (122 . 126)) : reduce 1 tokens to declarative_part
-(declarative_part, (112 . 120)) <= ((declarations, (112 . 120)))
+(declarative_part, (112 . 120) <= ((declarations, (112 . 120))))
  ... goto state 5
  0: 5: 8:(BEGIN, (122 . 126)) : shift and goto state 7
  0: 7: 9:(SEMICOLON, (127 . 127)) : shift and goto state 8
  0: 8: 10:(Wisi_EOI, (129 . 128)) : reduce 4 tokens to body
-(body, (105 . 127)) <= (4:(IS, (105 . 106)), (declarative_part, (112 . 120)), 8:(BEGIN, (122 . 126)), 9:(SEMICOLON, (127 . 127)))
+(body, (105 . 127) <= (4:(IS, (105 . 106)), (declarative_part, (112 . 120)), 8:(BEGIN, (122 . 126)), 9:(SEMICOLON, (127 . 127))))
  ... goto state 6
  0: 6: 10:(Wisi_EOI, (129 . 128)) : reduce 2 tokens to declarations
-(declarations, (43 . 127)) <= ((declarations, (43 . 51)), (body, (105 . 127)))
+(declarations, (43 . 127) <= ((declarations, (43 . 51)), (body, (105 . 127))))
  ... goto state 2
  0: 2: 10:(Wisi_EOI, (129 . 128)) : reduce 1 tokens to declarative_part
-(declarative_part, (43 . 127)) <= ((declarations, (43 . 127)))
+(declarative_part, (43 . 127) <= ((declarations, (43 . 127))))
  ... goto state 3
  0: 3: 10:(Wisi_EOI, (129 . 128)) : accept it
-(wisitoken_accept, (43 . 127)) <= ((declarative_part, (43 . 127)))
+(wisitoken_accept, (43 . 127) <= ((declarative_part, (43 . 127))))
  0: succeed

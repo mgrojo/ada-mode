@@ -548,8 +548,6 @@ package body WisiToken.Parse is
                         end if;
                      end;
 
-                     Tree.Stream_Insert (Stream, Deleted_Node, Insert_Before.Element);
-
                      if Trace_Incremental_Parse > Detail then
                         Parser.Trace.Put_Line
                           ("restore deleted node " & Tree.Image
@@ -562,6 +560,8 @@ package body WisiToken.Parse is
                               Non_Grammar => True,
                               Augmented   => True));
                      end if;
+
+                     Insert_Before := Tree.Stream_Insert (Stream, Deleted_Node, Insert_Before.Element);
                   end if;
                end loop;
                Tree.Following_Deleted (Terminal.Node).Clear;
@@ -1515,10 +1515,13 @@ package body WisiToken.Parse is
 
       for Cur in Tree.Stream_Error_Iterate (Stream) loop
          declare
-            Error_Node : constant Valid_Node_Access := Tree.Error_Node (Error (Cur));
+            Error_Ref : constant Stream_Error_Ref := Error (Cur);
+            Error_Node : constant Valid_Node_Access := Tree.Error_Node (Error_Ref);
          begin
             Ada.Text_IO.Put_Line
-              ("syntax_error: " & Tree.Error_Message (Error_Node, Tree.Error (Error_Node).Image (Tree, Error_Node)));
+              ("syntax_error: " & Tree.Error_Message
+                 (Ref     => Error_Ref.Ref.Ref, -- For line, column
+                  Message => Tree.Error (Error_Node).Image (Tree, Error_Node)));
          end;
       end loop;
    end Put_Errors;

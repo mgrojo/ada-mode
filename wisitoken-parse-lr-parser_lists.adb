@@ -56,12 +56,25 @@ package body WisiToken.Parse.LR.Parser_Lists is
    function Current_Error_Node
      (Parser_State : in Parser_Lists.Parser_State;
       Tree         : in Syntax_Trees.Tree)
-     return Syntax_Trees.Rooted_Ref
-   is begin
-      return
-        (if Tree.Has_Input (Parser_State.Stream)
-         then Tree.First_Input (Parser_State.Stream)
-         else Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Peek (Parser_State.Stream)));
+     return Syntax_Trees.Stream_Node_Parents
+   is
+   begin
+      return Ref : Syntax_Trees.Stream_Node_Parents := Tree.To_Stream_Node_Parents (Parser_State.Current_Token)
+      do
+         if Tree.Has_Error (Ref.Ref.Node) then
+            null;
+         else
+            --  Error on shifting a nonterm. test_incremental.adb Lexer_Errors_1.
+            Tree.First_Terminal (Ref);
+            if Tree.Has_Error (Ref.Ref.Node) then
+               null;
+            else
+               Ref := Tree.To_Stream_Node_Parents
+                 (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Peek (Parser_State.Stream)));
+               pragma Assert (Tree.Has_Error (Ref.Ref.Node));
+            end if;
+         end if;
+      end return;
    end Current_Error_Node;
 
    function Peek_Current_Sequential_Terminal
