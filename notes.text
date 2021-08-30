@@ -33,9 +33,15 @@ update-wisitoken_grammar
  current work
 store errors in tree
     t_all
-test_incremental.adb : Lexer_Errors_1
-    incr parse different result than full edited parse; lexer error needs to be in tree.
+    t_mck: String_Quote_0 failing
+        lexer and parse error on same token
 
+    test_incremental.adb : passing
+
+
+    can have lexer and parser error on same token. sigh.
+        parse_lexer_error is new parse_error?
+        list of errors? first term of nonterm with error might have error.
 
 
     In test_incremental.adb Preserve_Parse_Errors_2, also change costs so recover deletes

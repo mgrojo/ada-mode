@@ -21,30 +21,10 @@ with Ada.Finalization;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image;
-with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
-
-   type Wrapped_Lexer_Error is record
-      Recover_Token_Ref : Syntax_Trees.Terminal_Ref;
-      --  Token that lexer returned at the error.
-      --
-      --  If the error token is a grammar token, Recover_Token_Ref is in Shared_Stream;
-      --  it is needed by error recovery, for Stream_Prev/_Next in
-      --  Try_Insert_Quote; the stream element is found then.
-      --
-      --  If the error token is a non-grammar token, Recover_Token_Ref is
-      --  Invalid_Stream_Node_Ref.
-
-      Error : WisiToken.Lexer.Error;
-   end record;
-
-   package Wrapped_Lexer_Error_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Wrapped_Lexer_Error);
-
-   function Image (Item : in Wrapped_Lexer_Error; Tree : in WisiToken.Syntax_Trees.Tree) return String;
-   function Image is new Wrapped_Lexer_Error_Lists.Gen_Image_Aux (WisiToken.Syntax_Trees.Tree, Image);
 
    type Recover_Op_Label is (Fast_Forward, Undo_Reduce, Push_Back, Insert, Delete);
    subtype Insert_Delete_Op_Label is Recover_Op_Label range Insert .. Delete;
@@ -171,6 +151,25 @@ package WisiToken.Parse is
    --  True if Ops contains no Op after the last Fast_Forward (or ops.first, if
    --  no Fast_Forward).
 
+   type Lexer_Error is new Syntax_Trees.Error_Data with record
+      Error : WisiToken.Lexer.Error;
+   end record;
+   type Lexer_Error_Access is access all Lexer_Error;
+   type Lexer_Error_Access_Constant is access constant Lexer_Error;
+
+   overriding function Copy (Data : in Lexer_Error) return Syntax_Trees.Error_Data_Access;
+   overriding function To_Message
+     (Data       : in Lexer_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data_Access;
+
+   overriding function Image
+     (Data       : in Lexer_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String;
+
    type Parse_Error
      (First_Terminal : Token_ID;
       Last_Terminal  : Token_ID)
@@ -241,8 +240,6 @@ package WisiToken.Parse is
       Trace     : WisiToken.Trace_Access;
       Tree      : aliased Syntax_Trees.Tree;
       User_Data : WisiToken.Syntax_Trees.User_Data_Access;
-
-      Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List; -- 'aliased' for error recover
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 
@@ -349,15 +346,12 @@ package WisiToken.Parse is
    --  normally is after Parse returns); FIXME: it must be the parse stream if
    --  parse is still in progress.
 
-   procedure Put (Errors : in Wrapped_Lexer_Error_Lists.List; Tree : in Syntax_Trees.Tree);
-   --  Output to Ada.Text_IO.Current_Error.
-
    procedure Put_Errors (Parser : in Base_Parser'Class)
    with Pre => Parser.Tree.Parents_Set;
-   --  Output Parser.Wrapped_Lexer_Errors, Parser.Tree errors to Ada.Text_IO.Current_Error.
+   --  Output Parser.Tree errors to Ada.Text_IO.Current_Error.
 
    procedure Put_Errors (Parser : in Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID);
-   --  Output Parser.Wrapped_Lexer_Errors, Parser.Tree.Stream errors to Ada.Text_IO.Current_Error.
+   --  Output Parser.Tree.Stream errors to Ada.Text_IO.Current_Error.
 
    procedure Execute_Actions
      (Parser              : in out Base_Parser;

@@ -44,18 +44,16 @@ package body Test_Incremental is
    Edited_Buffer  : Ada.Strings.Unbounded.Unbounded_String;
 
    procedure Parse_Text
-     (Initial           : in String;
-      Edit_At           : in Integer;
-      Delete            : in String;
-      Insert            : in String;
-      Edit_2_At         : in Integer                   := 0;
-      Delete_2          : in String                    := "";
-      Insert_2          : in String                    := "";
-      Full_Lexer_Errors : in Ada.Containers.Count_Type := 0;
-      Incr_Lexer_Errors : in Ada.Containers.Count_Type := 0;
-      Full_Parse_Errors : in Ada.Containers.Count_Type := 0;
-      Incr_Parse_Errors : in Ada.Containers.Count_Type := 0;
-      Label             : in String                    := "")
+     (Initial     : in String;
+      Edit_At     : in Integer;
+      Delete      : in String;
+      Insert      : in String;
+      Edit_2_At   : in Integer                   := 0;
+      Delete_2    : in String                    := "";
+      Insert_2    : in String                    := "";
+      Full_Errors : in Ada.Containers.Count_Type := 0;
+      Incr_Errors : in Ada.Containers.Count_Type := 0;
+      Label       : in String                    := "")
    with Pre => Edit_2_At = 0 or Edit_2_At > Edit_At
    --  If Initial is "", start from existing tree.
    is
@@ -205,8 +203,7 @@ package body Test_Incremental is
          if WisiToken.Trace_Tests > WisiToken.Outline then
             Put_Tree (Incremental_Parser);
          end if;
-         Check (Label_Dot & "full lexer errors", Incremental_Parser.Wrapped_Lexer_Errors.Length, Full_Lexer_Errors);
-         Check (Label_Dot & "full parse errors", Incremental_Parser.Tree.Error_Count, Full_Parse_Errors);
+         Check (Label_Dot & "full errors", Incremental_Parser.Tree.Error_Count, Full_Errors);
       end if;
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
@@ -247,8 +244,7 @@ package body Test_Incremental is
          Put_Tree (Incremental_Parser);
       end if;
 
-      Check (Label_Dot & "incr lexer errors", Incremental_Parser.Wrapped_Lexer_Errors.Length, Incr_Lexer_Errors);
-      Check (Label_Dot & "incr parse errors", Incremental_Parser.Tree.Error_Count, Incr_Parse_Errors);
+      Check (Label_Dot & "incr errors", Incremental_Parser.Tree.Error_Count, Incr_Errors);
       Check (Label_Dot & "tree", Incremental_Parser.Tree, Edited_Source_Full_Parse_Tree,
              Shared_Stream         => False,
              Terminal_Node_Numbers => False);
@@ -656,8 +652,8 @@ package body Test_Incremental is
          Edit_At           => 34,
          Delete            => "",
          Insert            => " Name",
-         Full_Parse_Errors => 1,
-         Incr_Parse_Errors => 0);
+         Full_Errors => 1,
+         Incr_Errors => 0);
 
    end Missing_Name_1;
 
@@ -675,8 +671,8 @@ package body Test_Incremental is
          Edit_At           => 38,
          Delete            => "",
          Insert            => "Integer",
-         Full_Parse_Errors => 1,
-         Incr_Parse_Errors => 0);
+         Full_Errors => 1,
+         Incr_Errors => 0);
    end Recover_1;
 
    procedure Lexer_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -698,10 +694,8 @@ package body Test_Incremental is
          Edit_At      => 6,
          Delete       => "",
          Insert       => "33",
-         Full_Lexer_Errors => 1,
-         Incr_Lexer_Errors => 0,
-         Full_Parse_Errors => 1,
-         Incr_Parse_Errors => 1); --  Error is still in tree
+         Full_Errors => 2,  --  Lexer + parser.
+         Incr_Errors => 2); --  Errors are still in tree
    end Lexer_Errors_1;
 
    procedure Preserve_Parse_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -717,8 +711,8 @@ package body Test_Incremental is
          Edit_At      => 2,
          Delete       => "",
          Insert       => "3",
-         Full_Parse_Errors => 1,
-         Incr_Parse_Errors => 1);
+         Full_Errors => 1,
+         Incr_Errors => 1);
    end Preserve_Parse_Errors_1;
 
    procedure Preserve_Parse_Errors_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -737,8 +731,8 @@ package body Test_Incremental is
          Edit_At           => 1,
          Delete            => "",
          Insert            => "begin ",
-         Full_Parse_Errors => 1,
-         Incr_Parse_Errors => 0);
+         Full_Errors => 1,
+         Incr_Errors => 0);
    end Preserve_Parse_Errors_2;
 
    procedure Modify_Deleted_Node (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -763,8 +757,8 @@ package body Test_Incremental is
          Edit_At      => 9,
          Delete       => "",
          Insert       => "-", -- start a comment
-         Full_Parse_Errors => 0,
-         Incr_Parse_Errors => 1);
+         Full_Errors => 0,
+         Incr_Errors => 1);
 
       declare
          use WisiToken;
@@ -803,8 +797,8 @@ package body Test_Incremental is
          Edit_At           => 10,
          Delete            => "",
          Insert            => "- a comment", -- finish comment
-         Full_Parse_Errors => 1,
-         Incr_Parse_Errors => 0);
+         Full_Errors => 1,
+         Incr_Errors => 0);
 
    end Modify_Deleted_Node;
 

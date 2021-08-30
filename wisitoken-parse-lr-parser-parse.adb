@@ -40,8 +40,6 @@ begin
 
    Shared_Parser.Tree.Lexer.Errors.Clear;
 
-   Shared_Parser.Wrapped_Lexer_Errors.Clear;
-
    Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
 
    if Edits /= KMN_Lists.Empty_List then

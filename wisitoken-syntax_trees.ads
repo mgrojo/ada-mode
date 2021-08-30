@@ -153,6 +153,13 @@ package WisiToken.Syntax_Trees is
    --  Undo_Reduce error recover operations, and arbitrarily large
    --  positive index for handling unterminated strings.
 
+   type Error_Data is abstract tagged null record;
+   type Error_Data_Access is access all Error_Data'Class;
+   type Error_Data_Access_Constant is access constant Error_Data'Class;
+   --  Error_Data must not have Valid_Node_Access components; they would
+   --  not be updated properly when the tree is copied. The error node is
+   --  the node that contains this data.
+
    type Base_Tree is new Ada.Finalization.Limited_Controlled with record
       --  Visible components of Tree.
 
@@ -942,7 +949,8 @@ package WisiToken.Syntax_Trees is
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
-      Terminal : in     Lexer.Token)
+      Terminal : in     Lexer.Token;
+      Error    : in     Error_Data_Access)
      return Single_Terminal_Ref
    with Pre => not Tree.Traversing and Stream = Tree.Shared_Stream,
      Post => Tree.Label (Add_Terminal'Result.Node) = Source_Terminal;
@@ -971,7 +979,8 @@ package WisiToken.Syntax_Trees is
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
       Terminal : in     Lexer.Token;
-      Before   : in     Stream_Index)
+      Before   : in     Stream_Index;
+      Error    : in     Error_Data_Access)
      return Single_Terminal_Ref
    with Pre => not Tree.Traversing and (Before = Invalid_Stream_Index or else Tree.Contains (Stream, Before)),
      Post => Tree.Label (Insert_Source_Terminal'Result.Node) = Source_Terminal;
@@ -2012,7 +2021,8 @@ package WisiToken.Syntax_Trees is
 
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
-      Terminal : in     Lexer.Token)
+      Terminal : in     Lexer.Token;
+      Error    : in     Error_Data_Access)
      return Valid_Node_Access
    with Pre => not Tree.Traversing and Tree.Editable;
    --  Add a new Terminal node with no parent, on no stream. Result
@@ -2139,13 +2149,6 @@ package WisiToken.Syntax_Trees is
 
    ----------
    --  Accessing parse errors
-
-   type Error_Data is abstract tagged null record;
-   type Error_Data_Access is access all Error_Data'Class;
-   type Error_Data_Access_Constant is access constant Error_Data'Class;
-   --  Error_Data must not have Valid_Node_Access components; they would
-   --  not be updated properly when the tree is copied. The error node is
-   --  the node that contains this data.
 
    function Copy (Data : in Error_Data) return Error_Data_Access
    is abstract;

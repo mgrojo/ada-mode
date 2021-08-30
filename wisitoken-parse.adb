@@ -19,27 +19,6 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Parse is
 
-   function Image (Item : in Wrapped_Lexer_Error; Tree : in WisiToken.Syntax_Trees.Tree) return String
-   is
-      use Ada.Strings.Unbounded;
-      use WisiToken.Syntax_Trees;
-      Result : Unbounded_String;
-   begin
-      Append (Result, "(");
-      if Item.Recover_Token_Ref /= Invalid_Stream_Node_Ref then
-         Append (Result, Tree.Image (Item.Recover_Token_Ref.Node, Node_Numbers => True));
-         Append (Result, ", ");
-      end if;
-      Append (Result, "(" & Item.Error.Char_Pos'Image & ", '");
-      for C of Item.Error.Recover_Char loop
-         if C /= ASCII.NUL then
-            Append (Result, C);
-         end if;
-      end loop;
-      Append (Result, "'");
-      return To_String (Result);
-   end Image;
-
    procedure Process_Grammar_Token
      (Parser : in out Base_Parser'Class;
       Token  : in     Lexer.Token;
@@ -88,24 +67,27 @@ package body WisiToken.Parse is
          end if;
 
          if Token.ID >= Lexer.Descriptor.First_Terminal then
-            Ref := Tree.Add_Terminal (Parser.Tree.Shared_Stream, Token);
-            Process_Grammar_Token (Parser, Token, Ref.Node);
-            Last_Grammar_Node := Ref.Node;
+            declare
+               Tree_Error : Error_Data_Access;
+            begin
+               if Error then
+                  Tree_Error := new Lexer_Error'((Error => Lexer.Errors (Lexer.Errors.Last)));
+               end if;
+
+               Ref := Tree.Add_Terminal (Parser.Tree.Shared_Stream, Token, Tree_Error);
+               Process_Grammar_Token (Parser, Token, Ref.Node);
+               Last_Grammar_Node := Ref.Node;
+            end;
          else
             if Trace_Lexer > Detail then
-               Parser.Trace.Put_Line
-                 (if Last_Grammar_Node = Invalid_Node_Access
-                  then "leading non-grammar"
-                  else "non-grammar in " & Parser.Tree.Image (Last_Grammar_Node));
+               Parser.Trace.Put_Line ("non-grammar in " & Parser.Tree.Image (Last_Grammar_Node));
             end if;
+            if Error then
+               raise SAL.Programmer_Error with "lexer error in non_grammar";
+            end if;
+
             Process_Non_Grammar_Token (Parser, Last_Grammar_Node, Token);
             Ref := Invalid_Stream_Node_Ref;
-         end if;
-
-         if Error then
-            Parser.Wrapped_Lexer_Errors.Append
-              ((Recover_Token_Ref => Ref,
-                Error             => Lexer.Errors (Lexer.Errors.Last)));
          end if;
 
          exit when Token.ID >= Lexer.Descriptor.First_Terminal;
@@ -170,6 +152,46 @@ package body WisiToken.Parse is
       end loop;
       return True;
    end None_Since_FF;
+
+   overriding function Copy (Data : in Lexer_Error) return Syntax_Trees.Error_Data_Access
+   is
+      New_Data : constant Lexer_Error_Access := new Lexer_Error'(Data);
+   begin
+      return Syntax_Trees.Error_Data_Access (New_Data);
+   end Copy;
+
+   overriding function To_Message
+     (Data       : in Lexer_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data_Access
+   is
+      New_Data : constant Error_Message_Access := new Error_Message'
+        (+Image (Data, Tree, Error_Node),
+         Recover_Ops  => <>,
+         Recover_Cost => 0);
+   begin
+      return Syntax_Trees.Error_Data_Access (New_Data);
+   end To_Message;
+
+   overriding function Image
+     (Data       : in Lexer_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String;
+   begin
+      Append (Result, "(" & Data.Error.Char_Pos'Image & ", '");
+      for C of Data.Error.Recover_Char loop
+         if C /= ASCII.NUL then
+            Append (Result, C);
+         end if;
+      end loop;
+      Append (Result, "'");
+      return To_String (Result);
+   end Image;
 
    overriding function Copy (Data : in Parse_Error) return Syntax_Trees.Error_Data_Access
    is
@@ -1152,7 +1174,13 @@ package body WisiToken.Parse is
 
                         if Token.ID >= Parser.Tree.Lexer.Descriptor.First_Terminal then
                            --  grammar token
-                           Ref := Tree.Insert_Source_Terminal (Stream, Token, Before => Terminal.Element);
+                           Ref := Tree.Insert_Source_Terminal
+                             (Stream, Token,
+                              Before => Terminal.Element,
+                              Error =>
+                                (if Error
+                                 then new Lexer_Error'((Error => Tree.Lexer.Errors (Tree.Lexer.Errors.Last)))
+                                 else null));
 
                            Process_Grammar_Token (Parser, Token, Ref.Node);
                            Last_Grammar := Ref;
@@ -1170,15 +1198,6 @@ package body WisiToken.Parse is
 
                            Process_Non_Grammar_Token (Parser, Last_Grammar.Node, Token);
                            Shift_Lines := @ + New_Line_Count (Token.Line_Region);
-                        end if;
-
-                        if Error then
-                           Parser.Wrapped_Lexer_Errors.Append
-                             ((Recover_Token_Ref =>
-                                 (if Token.ID >= Parser.Tree.Lexer.Descriptor.First_Terminal
-                                  then Ref
-                                  else Invalid_Stream_Node_Ref),
-                               Error             => Parser.Tree.Lexer.Errors (Parser.Tree.Lexer.Errors.Last)));
                         end if;
                      end;
                   end loop Scan_Changed_Loop;
@@ -1479,23 +1498,11 @@ package body WisiToken.Parse is
       Put_Line (Tree.Error (Error_Node).Image (Tree, Error_Node));
    end Put_Error;
 
-   procedure Put (Errors : in Wrapped_Lexer_Error_Lists.List; Tree : in Syntax_Trees.Tree)
-   is begin
-      for Item of Errors loop
-         Ada.Text_IO.Put_Line
-           (Ada.Text_IO.Current_Error,
-            Tree.Lexer.File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image
-              (Item.Error.Char_Pos));
-      end loop;
-   end Put;
-
    procedure Put_Errors (Parser : in Base_Parser'Class)
    is
       use WisiToken.Syntax_Trees;
       Tree : Syntax_Trees.Tree renames Parser.Tree;
    begin
-      Put (Parser.Wrapped_Lexer_Errors, Tree);
-
       for Error in Tree.Error_Iterate loop
          declare
             Error_Node : constant Valid_Node_Access := Tree.Error_Node (Error);
@@ -1511,8 +1518,6 @@ package body WisiToken.Parse is
       use WisiToken.Syntax_Trees;
       Tree : Syntax_Trees.Tree renames Parser.Tree;
    begin
-      Put (Parser.Wrapped_Lexer_Errors, Tree);
-
       for Cur in Tree.Stream_Error_Iterate (Stream) loop
          declare
             Error_Ref : constant Stream_Error_Ref := Error (Cur);

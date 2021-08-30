@@ -1245,6 +1245,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
      (Super             : not null access Base.Supervisor;
       Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Base_Peek_Type;
+      Current_Line      : in              Line_Number_Type;
+      Lexer_Error_Node  : in              Syntax_Trees.Valid_Node_Access;
       Config            : in out          Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
@@ -1256,34 +1258,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Tree        : Syntax_Trees.Tree renames Super.Tree.all;
       Descriptor  : WisiToken.Descriptor renames Super.Tree.Lexer.Descriptor.all;
       Check_Limit : Syntax_Trees.Sequential_Index renames Shared.Table.McKenzie_Param.Check_Limit;
-
-      Current_Line : constant Base_Line_Number_Type :=
-        (if Config.Input_Stream.First = No_Element
-         then
-           (if Config.Current_Shared_Token.Node /= Invalid_Node_Access
-            then Tree.Line_Region (Config.Current_Shared_Token).First
-            else Invalid_Line_Number)
-         elsif not Config.Error_Token.Virtual and then
-           Config.Error_Token.Node = Config.Input_Stream (Config.Input_Stream.First)
-         then Tree.Line_Region (Super.Stream (Parser_Index), Config.Error_Token).First -- Null_Line_Region if unknown.
-         else Invalid_Line_Number);
-
-      function Recovered_Lexer_Error return Syntax_Trees.Terminal_Ref
-      is begin
-         --  We assume the list of lexer errors is short, so binary
-         --  search would not be significantly faster.
-         for Err of Shared.Wrapped_Lexer_Errors.all loop
-            if Err.Recover_Token_Ref /= Syntax_Trees.Invalid_Stream_Node_Ref then
-
-               if Tree.Line_Region (Err.Recover_Token_Ref).First = Current_Line then
-                  return Err.Recover_Token_Ref;
-               end if;
-            end if;
-         end loop;
-         return Syntax_Trees.Invalid_Stream_Node_Ref;
-      end Recovered_Lexer_Error;
-
-      Lexer_Error_Token_Ref : constant Syntax_Trees.Terminal_Ref := Recovered_Lexer_Error;
 
       function String_ID_Set (String_ID : in Token_ID) return Token_ID_Set
       is begin
@@ -1701,21 +1675,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  An alternate strategy is to treat the lexer error as a parse error
       --  immediately, but that complicates the parse logic.
 
-      if Current_Line = Invalid_Line_Number or Current_Line = Null_Line_Region.First or not
-        (Config.String_Quote_Checked_Line = Invalid_Line_Number or else
-           Config.String_Quote_Checked_Line < Current_Line)
-      then
-         return;
-      end if;
-
-      Config.String_Quote_Checked_Line := Current_Line;
-
-      if Lexer_Error_Token_Ref = Syntax_Trees.Invalid_Stream_Node_Ref or else
-        Super.Tree.ID (Lexer_Error_Token_Ref.Node) not in Descriptor.String_1_ID | Descriptor.String_2_ID
-      then
-         return;
-      end if;
-
       --  It is not possible to tell where the best place to put the
       --  balancing quote is, so we always try all reasonable places.
       declare
@@ -1724,7 +1683,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       begin
          Base.Extend_Sequential_Index (Super, Next_Line_Begin_Token, Positive => True);
 
-         if Tree.Byte_Region (Lexer_Error_Token_Ref.Node).First = Tree.Byte_Region (Config.Error_Token).First then
+         if Tree.Byte_Region (Lexer_Error_Node).First = Tree.Byte_Region (Config.Error_Token).First then
             --  The parse error token is the string literal at the lexer error.
             --
             --  case a: Insert the balancing quote somewhere before the error
@@ -1752,7 +1711,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             --  string literal would be legal here.
 
          elsif Tree.ID (Config.Error_Token) = Invalid_Token_ID or else
-           (Tree.Byte_Region (Lexer_Error_Token_Ref.Node).First < Tree.Byte_Region (Config.Error_Token).First and
+           (Tree.Byte_Region (Lexer_Error_Node).First < Tree.Byte_Region (Config.Error_Token).First and
               Tree.Get_Sequential_Index (Next_Line_Begin_Token) /= Invalid_Sequential_Index)
          then
             --  case b: the unbalanced quote is before the parse error token; see
@@ -1769,8 +1728,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                Matching : SAL.Peek_Type := 1;
             begin
                Find_Descendant_ID
-                 (Tree, Config, Super.Tree.ID (Lexer_Error_Token_Ref.Node),
-                  String_ID_Set (Super.Tree.ID (Lexer_Error_Token_Ref)), Matching);
+                 (Tree, Config, Super.Tree.ID (Lexer_Error_Node),
+                  String_ID_Set (Super.Tree.ID (Lexer_Error_Node)), Matching);
 
                if Matching = Config.Stack.Depth then
                   --  String literal is in a virtual nonterm; it is not from the lexer
@@ -1786,7 +1745,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                declare
                   New_Config : Configuration := Config;
                begin
-                  String_Literal_In_Stack ("b", New_Config, Matching, Super.Tree.ID (Lexer_Error_Token_Ref));
+                  String_Literal_In_Stack ("b", New_Config, Matching, Super.Tree.ID (Lexer_Error_Node));
 
                   Finish
                     ("b", New_Config,
@@ -1809,7 +1768,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                  ("c", New_Config,
                   First => Super.Tree.Get_Sequential_Index
                     (Parse.Peek_Current_First_Sequential_Terminal (Tree, New_Config)),
-                  Last  => Super.Tree.Get_Sequential_Index (Lexer_Error_Token_Ref.Node) - 1);
+                  Last  => Super.Tree.Get_Sequential_Index (Lexer_Error_Node) - 1);
                Local_Config_Heap.Add (New_Config);
             end;
 
@@ -1820,17 +1779,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             declare
                New_Config            : Configuration := Config;
                Min_Pushed_Back_Index : Syntax_Trees.Sequential_Index;
-
-               Prev_Shared : Syntax_Trees.Stream_Node_Parents := Tree.To_Stream_Node_Parents
-                 (Lexer_Error_Token_Ref);
             begin
                Push_Back_Tokens ("insert quote 5 d", New_Config, Min_Pushed_Back_Index);
 
-               Tree.Prev_Sequential_Terminal (Prev_Shared, Super.Stream (Parser_Index));
                Finish
                  ("d", New_Config,
                   First => Min_Pushed_Back_Index,
-                  Last  => Super.Tree.Get_Sequential_Index (Prev_Shared.Ref.Node));
+                  Last  => Tree.Get_Sequential_Index (Config.Error_Token.Node) - 1);
                Local_Config_Heap.Add (New_Config);
             exception
             when SAL.Container_Empty =>
@@ -1847,10 +1802,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             declare
                Matching : SAL.Peek_Type := 1;
             begin
-               --  Lexer_Error_Token is a string literal; find a matching one.
+               --  Lexer_Error_Node is a string literal; find a matching one.
                Find_Descendant_ID
-                 (Tree, Config, Super.Tree.ID (Lexer_Error_Token_Ref.Node),
-                  String_ID_Set (Super.Tree.ID (Lexer_Error_Token_Ref.Node)), Matching);
+                 (Tree, Config, Super.Tree.ID (Lexer_Error_Node),
+                  String_ID_Set (Super.Tree.ID (Lexer_Error_Node)), Matching);
 
                if Matching = Config.Stack.Depth then
                   --  No matching string literal, so this case does not apply.
@@ -1859,12 +1814,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   declare
                      New_Config : Configuration := Config;
                   begin
-                     String_Literal_In_Stack ("e", New_Config, Matching, Super.Tree.ID (Lexer_Error_Token_Ref.Node));
+                     String_Literal_In_Stack ("e", New_Config, Matching, Super.Tree.ID (Lexer_Error_Node));
 
                      Finish
                        ("e", New_Config,
                         First => Super.Tree.Get_Sequential_Index (Config.Current_Shared_Token.Node),
-                        Last  => Super.Tree.Get_Sequential_Index (Lexer_Error_Token_Ref.Node));
+                        Last  => Super.Tree.Get_Sequential_Index (Lexer_Error_Node));
                      Local_Config_Heap.Add (New_Config);
                   end;
                end if;
@@ -1884,7 +1839,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
       Tree : Syntax_Trees.Tree renames Super.Tree.all;
-
       Current_Byte_Pos : constant Base_Buffer_Pos := Tree.Byte_Region (Config.Error_Token).Last;
    begin
       if Config.String_Quote_Checked_Byte_Pos /= Invalid_Buffer_Pos and then
@@ -1892,8 +1846,85 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       then
          return;
       else
-         Try_Insert_Quote_1 (Super, Shared, Parser_Index, Config, Local_Config_Heap);
-         Config.String_Quote_Checked_Byte_Pos := Current_Byte_Pos;
+         declare
+            use Bounded_Streams;
+            use Syntax_Trees;
+
+            Current_Line : constant Base_Line_Number_Type :=
+              (if Config.Input_Stream.First = No_Element
+               then
+                 (if Config.Current_Shared_Token.Node /= Invalid_Node_Access
+                  then Tree.Line_Region (Config.Current_Shared_Token).First
+                  else Invalid_Line_Number)
+               elsif not Config.Error_Token.Virtual and then
+                 Config.Error_Token.Node = Config.Input_Stream (Config.Input_Stream.First)
+               then Tree.Line_Region (Super.Stream (Parser_Index), Config.Error_Token).First
+               --  Null_Line_Region if unknown.
+               else Invalid_Line_Number);
+
+         begin
+            if Current_Line = Invalid_Line_Number or Current_Line = Null_Line_Region.First or not
+              (Config.String_Quote_Checked_Line = Invalid_Line_Number or else
+                 Config.String_Quote_Checked_Line < Current_Line)
+            then
+               return;
+            end if;
+
+            Config.String_Quote_Checked_Line := Current_Line;
+            Config.String_Quote_Checked_Byte_Pos := Current_Byte_Pos;
+
+            --  Find a lexer_error on the same line.
+            declare
+               Term  : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
+               Found : Boolean             := False;
+            begin
+               loop
+                  if Tree.Error (Term.Ref.Node) /= null and then
+                    (Tree.Error (Term.Ref.Node).all in Lexer_Error)
+                    --  FIXME: can have lexer and parse error on same node; need test case.
+                  then
+                     Found := True;
+                     exit;
+                  end if;
+
+                  exit when Tree.ID (Term.Ref.Node) = Tree.Lexer.Descriptor.EOI_ID;
+
+                  exit when Tree.Line_Region (Term, Super.Stream (Parser_Index)).First /= Current_Line;
+
+                  Tree.Next_Terminal (Term);
+               end loop;
+
+               if not Found then
+                  Term := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
+                  loop
+                     Tree.Prev_Terminal (Term, Super.Stream (Parser_Index));
+
+                     if Tree.Error (Term.Ref.Node) /= null and then
+                       (Tree.Error (Term.Ref.Node).all in Lexer_Error)
+                     then
+                        Found := True;
+                        exit;
+                     end if;
+
+                     exit when Tree.ID (Term.Ref.Node) = Tree.Lexer.Descriptor.SOI_ID;
+
+                     exit when Tree.Line_Region (Term, Super.Stream (Parser_Index)).First /= Current_Line;
+                  end loop;
+               end if;
+
+               if not Found then
+                  return;
+               end if;
+
+               if Tree.ID (Term.Ref.Node) not in Tree.Lexer.Descriptor.String_1_ID |
+                 Tree.Lexer.Descriptor.String_2_ID
+               then
+                  return;
+               end if;
+
+               Try_Insert_Quote_1 (Super, Shared, Parser_Index, Current_Line, Term.Ref.Node, Config, Local_Config_Heap);
+            end;
+         end;
       end if;
    end Try_Insert_Quote;
 

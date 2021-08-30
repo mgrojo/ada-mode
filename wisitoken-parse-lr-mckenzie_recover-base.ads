@@ -188,8 +188,7 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
      (Table                          : not null access constant Parse_Table;
       Language_Fixes                 : WisiToken.Parse.LR.Parser.Language_Fixes_Access;
       Language_Matching_Begin_Tokens : WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;
-      Language_String_ID_Set         : WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
-      Wrapped_Lexer_Errors           : not null access constant Wrapped_Lexer_Error_Lists.List)
+      Language_String_ID_Set         : WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access)
      is null record;
    --  There is only one object of this type, declared in Recover. Along
    --  with Supervisor, it provides appropriate access to Shared_Parser

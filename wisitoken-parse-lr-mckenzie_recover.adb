@@ -286,8 +286,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
         (Shared_Parser.Table,
          Shared_Parser.Language_Fixes,
          Shared_Parser.Language_Matching_Begin_Tokens,
-         Shared_Parser.Language_String_ID_Set,
-         Shared_Parser.Wrapped_Lexer_Errors'Access);
+         Shared_Parser.Language_String_ID_Set);
 
       Task_Count : constant System.Multiprocessors.CPU_Range :=
         (if Shared_Parser.Table.McKenzie_Param.Task_Count = 0
@@ -1205,15 +1204,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          end;
 
          if Target = Invalid_Sequential_Index then
-            --  FIXME: Debugging
-            --  if Tree.ID (Terminals (1).Ref.Node) =
-            --    (if Positive
-            --     then Tree.Lexer.Descriptor.EOI_ID
-            --     else Tree.Lexer.Descriptor.SOI_ID)
-            --  then
-            --     Tree.Set_Sequential_Index (Terminals (1).Ref.Node, Index);
-            --  end if;
-
             if (for all Term of Terminals => Tree.Label (Term.Ref.Node) = Source_Terminal and then
                   Tree.Get_Sequential_Index (Term.Ref.Node) = Invalid_Sequential_Index)
             then
@@ -1251,24 +1241,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Min_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Parsers.Count + 1);
       Max_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Parsers.Count + 1);
    begin
-      --  if Trace_McKenzie > Outline then
-      --     --  FIXME: debugging
-      --     Shared_Parser.Trace.Put_Line ("in Clear_Sequential_Index; streams:");
-      --     declare
-      --        use Syntax_Trees;
-      --        Stream : Stream_ID := Shared_Parser.Tree.Shared_Stream;
-      --     begin
-      --        loop
-      --           Shared_Parser.Trace.Put_Line
-      --             (Shared_Parser.Tree.Image
-      --                (Stream, Shared => True, Children => True, State_Numbers => False));
-      --           Shared_Parser.Tree.Next_Parse_Stream (Stream);
-      --           Shared_Parser.Trace.New_Line;
-      --           exit when Stream = Invalid_Stream_ID;
-      --        end loop;
-      --     end;
-      --  end if;
-
       Set_Initial_Sequential_Index
         (Shared_Parser.Parsers, Shared_Parser.Tree, Streams, Max_Terminals, Initialize => False);
       Min_Terminals := Max_Terminals;

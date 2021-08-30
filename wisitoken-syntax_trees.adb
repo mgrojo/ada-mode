@@ -318,7 +318,8 @@ package body WisiToken.Syntax_Trees is
    function Add_Source_Terminal_1
      (Tree             : in out Syntax_Trees.Tree;
       Terminal         : in     WisiToken.Lexer.Token;
-      In_Shared_Stream : in     Boolean)
+      In_Shared_Stream : in     Boolean;
+      Error            : in     Error_Data_Access)
      return Valid_Node_Access
    is begin
       return Result : constant Valid_Node_Access := new Node'
@@ -333,6 +334,7 @@ package body WisiToken.Syntax_Trees is
 
          Byte_Region => Terminal.Byte_Region,
          Char_Region => Terminal.Char_Region,
+         Error_Data  => Error,
          others      => <>)
       do
          if Terminal.ID = Tree.Lexer.Descriptor.EOI_ID then
@@ -350,18 +352,25 @@ package body WisiToken.Syntax_Trees is
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
-      Terminal : in     WisiToken.Lexer.Token)
+      Terminal : in     WisiToken.Lexer.Token;
+      Error    : in     Error_Data_Access)
      return Single_Terminal_Ref
    is begin
       return Append_Stream_Element
-        (Tree, Stream, Add_Source_Terminal_1 (Tree, Terminal, Stream = Tree.Shared_Stream), State => Unknown_State);
+        (Tree, Stream,
+         Add_Source_Terminal_1
+           (Tree, Terminal,
+            In_Shared_Stream => Stream = Tree.Shared_Stream,
+            Error            => Error),
+         State               => Unknown_State);
    end Add_Terminal;
 
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
-      Terminal : in     WisiToken.Lexer.Token)
+      Terminal : in     WisiToken.Lexer.Token;
+      Error    : in     Error_Data_Access)
      return Valid_Node_Access
-   is (Add_Source_Terminal_1 (Tree, Terminal, In_Shared_Stream => False));
+   is (Add_Source_Terminal_1 (Tree, Terminal, In_Shared_Stream => False, Error => Error));
 
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
@@ -1715,7 +1724,8 @@ package body WisiToken.Syntax_Trees is
    end Empty_Line;
 
    function Error_Count (Tree : in Syntax_Trees.Tree) return Ada.Containers.Count_Type
-   is Error : Error_Ref := Tree.First_Error;
+   is
+      Error : Error_Ref := Tree.First_Error;
    begin
       return Result : Ada.Containers.Count_Type := 0 do
          loop
@@ -3551,12 +3561,14 @@ package body WisiToken.Syntax_Trees is
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
       Terminal : in     WisiToken.Lexer.Token;
-      Before   : in     Stream_Index)
+      Before   : in     Stream_Index;
+      Error    : in     Error_Data_Access)
      return Single_Terminal_Ref
    is
       New_Node : constant Valid_Node_Access := Add_Source_Terminal_1
         (Tree, Terminal,
-         In_Shared_Stream => Stream = Tree.Shared_Stream);
+         In_Shared_Stream => Stream = Tree.Shared_Stream,
+         Error => Error);
    begin
       return Insert_Stream_Element (Tree, Stream, New_Node, Before => Before.Cur);
    end Insert_Source_Terminal;
@@ -4548,17 +4560,31 @@ package body WisiToken.Syntax_Trees is
       use Valid_Node_Access_Lists;
    begin
       if not Has_Element (Error.Deleted) then
-         Next_Node (Error.Node);
-         if Error.Node = Invalid_Node_Access then
-            --  No more errors.
-            return;
-         end if;
+         if Error.Node.Error_Data /= null and then
+           Error.Node.Label = Source_Terminal
+         then
+            Error.Deleted := Error.Node.Following_Deleted.First;
+            if not Has_Element (Error.Deleted) then
+               Next_Node (Error.Node);
+               if Error.Node = Invalid_Node_Access then
+                  --  No more errors.
+                  return;
+               end if;
+            end if;
+            First_Error (Error);
+         else
+            Next_Node (Error.Node);
+            if Error.Node = Invalid_Node_Access then
+               --  No more errors.
+               return;
+            end if;
 
-         Error.Deleted :=
-           (if Error.Node.Label = Source_Terminal
-            then Error.Node.Following_Deleted.First
-            else No_Element);
-         First_Error (Error);
+            Error.Deleted :=
+              (if Error.Node.Label = Source_Terminal
+               then Error.Node.Following_Deleted.First
+               else No_Element);
+            First_Error (Error);
+         end if;
 
       else
          Next (Error.Deleted);

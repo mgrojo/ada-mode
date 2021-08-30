@@ -302,11 +302,17 @@ package body WisiToken.Parse.LR.Parser is
                case Tree.Label (Parser_State.Current_Token.Node) is
                when Terminal_Label =>
                   if Tree.Has_Error (Parser_State.Current_Token.Node) then
-                     Tree.Set_Error
-                       (Parser_State.Stream, Parser_State.Current_Token, null, Shared_Parser.User_Data);
+                     if Tree.Error (Parser_State.Current_Token.Node).all in Lexer_Error then
+                        --  Lexer errors are only cleared by re-lexing in Edit_Tree.
+                        null;
+                     else
+                        --  Clear parse error.
+                        Tree.Set_Error
+                          (Parser_State.Stream, Parser_State.Current_Token, null, Shared_Parser.User_Data);
 
-                     if Inc_Shared_Token then
-                        Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                        if Inc_Shared_Token then
+                           Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                        end if;
                      end if;
                   end if;
 
@@ -319,15 +325,21 @@ package body WisiToken.Parse.LR.Parser is
                      Tree.First_Terminal (First_Term);
 
                      if Tree.Has_Error (First_Term.Ref.Node) then
-                        Tree.Set_Error
-                          (Parser_State.Stream, First_Term, null, Shared_Parser.User_Data);
+                        if Tree.Error (First_Term.Ref.Node).all in Lexer_Error then
+                           --  Lexer errors are only cleared by re-lexing in Edit_Tree.
+                           null;
+                        else
+                           --  Clear parse error.
+                           Tree.Set_Error
+                             (Parser_State.Stream, First_Term, null, Shared_Parser.User_Data);
 
-                        if Update_Current_Token then
-                           Parser_State.Current_Token := Tree.To_Rooted_Ref
-                             (First_Term.Ref.Stream, First_Term.Ref.Element);
-                        end if;
-                        if Inc_Shared_Token then
-                           Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                           if Update_Current_Token then
+                              Parser_State.Current_Token := Tree.To_Rooted_Ref
+                                (First_Term.Ref.Stream, First_Term.Ref.Element);
+                           end if;
+                           if Inc_Shared_Token then
+                              Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                           end if;
                         end if;
                      end if;
                   end;
@@ -405,7 +417,8 @@ package body WisiToken.Parse.LR.Parser is
                            Parser_State.Current_Token := Shared_Parser.Tree.Insert_Source_Terminal
                              (Shared_Parser.Tree.Shared_Stream,
                               Terminal => EOI_Token,
-                              Before   => Shared_Parser.Tree.Stream_Next (Parser_State.Current_Token).Element);
+                              Before   => Shared_Parser.Tree.Stream_Next (Parser_State.Current_Token).Element,
+                              Error    => null);
                         end;
                      end if;
 
@@ -870,16 +883,6 @@ package body WisiToken.Parse.LR.Parser is
       use WisiToken.Syntax_Trees;
       Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
    begin
-      --  We don't add Parser.Wrapped_Lexer_Errors nodes to Keep_Nodes; they
-      --  are not always deleted, and if they were, they are in
-      --  the tree as Following_Deleted.
-      for Error of Parser.Wrapped_Lexer_Errors loop
-         if Error.Recover_Token_Ref /= Invalid_Stream_Node_Ref then
-            Error.Recover_Token_Ref.Stream := Invalid_Stream_ID;
-            Error.Recover_Token_Ref.Element := Invalid_Stream_Index;
-         end if;
-      end loop;
-
       --  We need parents set in the following code.
       Parser.Tree.Clear_Parse_Streams;
       Parser_State.Clear_Stream;
