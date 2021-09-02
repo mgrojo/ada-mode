@@ -19,6 +19,8 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Parse is
 
+   --  Body subprograms
+
    procedure Process_Grammar_Token
      (Parser : in out Base_Parser'Class;
       Token  : in     Lexer.Token;
@@ -45,6 +47,236 @@ package body WisiToken.Parse is
       end if;
    end Process_Non_Grammar_Token;
 
+   ----------
+   --  Package public subprograms, declaration order
+
+   overriding function Dispatch_Equal (Left : in Lexer_Error; Right : in Syntax_Trees.Error_Data'Class) return Boolean
+   is
+      use all type WisiToken.Lexer.Error;
+   begin
+      return Right in Lexer_Error and then Left.Error = Lexer_Error (Right).Error;
+   end Dispatch_Equal;
+
+   overriding function To_Message
+     (Data       : in Lexer_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class
+   is begin
+      return Error_Message'
+        (+Image (Data, Tree, Error_Node),
+         Recover_Ops  => <>,
+         Recover_Cost => 0);
+   end To_Message;
+
+   overriding function Image
+     (Data       : in Lexer_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String;
+   begin
+      Append (Result, "(" & Data.Error.Char_Pos'Image & ", '");
+      for C of Data.Error.Recover_Char loop
+         if C /= ASCII.NUL then
+            Append (Result, C);
+         end if;
+      end loop;
+      Append (Result, "'");
+      return To_String (Result);
+   end Image;
+
+   overriding function Dispatch_Equal (Left : in Parse_Error; Right : in Syntax_Trees.Error_Data'Class) return Boolean
+   is begin
+      if not (Right in Parse_Error) then
+         return False;
+      else
+         declare
+            Right_Parse : Parse_Error renames Parse_Error (Right);
+         begin
+            --  Allow updating recover info after error recovery; current value
+            --  may have no or different recovery information, so don't check
+            --  that.
+            return Left.Expecting = Right_Parse.Expecting;
+         end;
+      end if;
+   end Dispatch_Equal;
+
+   overriding function To_Message
+     (Data       : in Parse_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class
+   is begin
+      return Error_Message'
+        (+Image (Data, Tree, Error_Node), Data.Recover_Ops, Data.Recover_Cost);
+   end To_Message;
+
+   overriding function Image
+     (Data       : in Parse_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String
+   is
+      use all type Ada.Containers.Count_Type;
+      use all type Syntax_Trees.Valid_Node_Access;
+
+      Item_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Error_Node);
+      Msg : constant String :=
+        "expecting " & Image (Data.Expecting, Tree.Lexer.Descriptor.all) &
+        ", found '" & Tree.Lexer.Buffer_Text (Item_Byte_Region) &
+        "'";
+   begin
+      if Recover_Op_Arrays.Length (Data.Recover_Ops) /= 0 then
+         return Msg & ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree.Lexer.Descriptor.all);
+      else
+         return Msg;
+      end if;
+   end Image;
+
+   overriding function Dispatch_Equal
+     (Left  : in In_Parse_Action_Error;
+      Right : in Syntax_Trees.Error_Data'Class)
+     return Boolean
+   is begin
+      if not (Right in In_Parse_Action_Error) then
+         return False;
+      else
+         declare
+            use all type WisiToken.In_Parse_Actions.Status;
+            Right_In_Parse : In_Parse_Action_Error renames In_Parse_Action_Error (Right);
+         begin
+            --  Allow updating recover info after error recovery.
+            return Left.Status = Right_In_Parse.Status;
+         end;
+      end if;
+   end Dispatch_Equal;
+
+   overriding function To_Message
+     (Data       : in In_Parse_Action_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class
+   is begin
+      return Error_Message'
+        (+Image (Data, Tree, Error_Node), Data.Recover_Ops, Data.Recover_Cost);
+   end To_Message;
+
+   overriding function Image
+     (Data       : in In_Parse_Action_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String
+   is
+      use Ada.Strings.Unbounded;
+      use all type Ada.Containers.Count_Type;
+
+      Result : Unbounded_String;
+   begin
+      Result := +"in parse action error: (" & In_Parse_Actions.Image (Data.Status, Tree, Error_Node);
+
+      if Recover_Op_Arrays.Length (Data.Recover_Ops) /= 0 then
+         Append (Result, ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree.Lexer.Descriptor.all));
+      end if;
+
+      return -Result;
+   end Image;
+
+   overriding function Dispatch_Equal (Left : in Error_Message; Right : in Syntax_Trees.Error_Data'Class) return Boolean
+   is begin
+      if not (Right in Error_Message) then
+         return False;
+      else
+         declare
+            use all type Ada.Strings.Unbounded.Unbounded_String;
+            Right_Message : Error_Message renames Error_Message (Right);
+         begin
+            --  Allow updating recover info after error recovery.
+            return Left.Msg = Right_Message.Msg;
+         end;
+      end if;
+   end Dispatch_Equal;
+
+   overriding function To_Message
+     (Data       : in Error_Message;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class
+   is
+      pragma Unreferenced (Tree, Error_Node);
+   begin
+      return Data;
+   end To_Message;
+
+   overriding function Image
+     (Data       : in Error_Message;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String
+   is begin
+      return -Data.Msg;
+   end Image;
+
+   function Find_Parse_In_Parse_Action_Error
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class
+   is
+      use Syntax_Trees;
+      Found : Boolean := False;
+   begin
+      --  test_mckenzie_recover.adb String_Quote_0 has lexer and parse error
+      --  on same node. There should only be one Parse or In_Parse_Action
+      --  error on a node.
+      for Err of Tree.Error_List (Node) loop
+         if Err in Parse_Error or Err in In_Parse_Action_Error then
+            Found := True;
+         end if;
+      end loop;
+
+      if not Found then
+         raise SAL.Programmer_Error;
+      end if;
+
+      for Err of Tree.Error_List (Node) loop
+         if Err in Parse_Error or Err in In_Parse_Action_Error then
+            return Err;
+         end if;
+      end loop;
+
+      raise SAL.Programmer_Error; -- keep the compiler happy
+   end Find_Parse_In_Parse_Action_Error;
+
+   function Find_Non_Lexer_Error
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class
+   is
+      use Syntax_Trees;
+      Found : Boolean := False;
+   begin
+      --  FIXME: use a Cursor
+      for Err of Tree.Error_List (Node) loop
+         if not (Err in Lexer_Error) then
+            Found := True;
+         end if;
+      end loop;
+
+      if not Found then
+         raise SAL.Programmer_Error;
+      end if;
+
+      for Err of Tree.Error_List (Node) loop
+         if not (Err in Lexer_Error) then
+            return Err;
+         end if;
+      end loop;
+
+      raise SAL.Programmer_Error; -- keep the compiler happy
+   end Find_Non_Lexer_Error;
+
    function Next_Grammar_Token
      (Parser            : in out Base_Parser'Class;
       Last_Grammar_Node : in out WisiToken.Syntax_Trees.Node_Access)
@@ -67,17 +299,15 @@ package body WisiToken.Parse is
          end if;
 
          if Token.ID >= Lexer.Descriptor.First_Terminal then
-            declare
-               Tree_Error : Error_Data_Access;
-            begin
-               if Error then
-                  Tree_Error := new Lexer_Error'((Error => Lexer.Errors (Lexer.Errors.Last)));
-               end if;
+            Ref := Tree.Add_Terminal
+              (Parser.Tree.Shared_Stream, Token,
+               Error =>
+                 (if Error
+                  then Lexer_Error'(Error => Lexer.Errors (Lexer.Errors.Last))
+                  else No_Error));
 
-               Ref := Tree.Add_Terminal (Parser.Tree.Shared_Stream, Token, Tree_Error);
-               Process_Grammar_Token (Parser, Token, Ref.Node);
-               Last_Grammar_Node := Ref.Node;
-            end;
+            Process_Grammar_Token (Parser, Token, Ref.Node);
+            Last_Grammar_Node := Ref.Node;
          else
             if Trace_Lexer > Detail then
                Parser.Trace.Put_Line ("non-grammar in " & Parser.Tree.Image (Last_Grammar_Node));
@@ -152,155 +382,6 @@ package body WisiToken.Parse is
       end loop;
       return True;
    end None_Since_FF;
-
-   overriding function Copy (Data : in Lexer_Error) return Syntax_Trees.Error_Data_Access
-   is
-      New_Data : constant Lexer_Error_Access := new Lexer_Error'(Data);
-   begin
-      return Syntax_Trees.Error_Data_Access (New_Data);
-   end Copy;
-
-   overriding function To_Message
-     (Data       : in Lexer_Error;
-      Tree       : in Syntax_Trees.Tree'Class;
-      Error_Node : in Syntax_Trees.Valid_Node_Access)
-     return Syntax_Trees.Error_Data_Access
-   is
-      New_Data : constant Error_Message_Access := new Error_Message'
-        (+Image (Data, Tree, Error_Node),
-         Recover_Ops  => <>,
-         Recover_Cost => 0);
-   begin
-      return Syntax_Trees.Error_Data_Access (New_Data);
-   end To_Message;
-
-   overriding function Image
-     (Data       : in Lexer_Error;
-      Tree       : in Syntax_Trees.Tree'Class;
-      Error_Node : in Syntax_Trees.Valid_Node_Access)
-     return String
-   is
-      use Ada.Strings.Unbounded;
-      Result : Unbounded_String;
-   begin
-      Append (Result, "(" & Data.Error.Char_Pos'Image & ", '");
-      for C of Data.Error.Recover_Char loop
-         if C /= ASCII.NUL then
-            Append (Result, C);
-         end if;
-      end loop;
-      Append (Result, "'");
-      return To_String (Result);
-   end Image;
-
-   overriding function Copy (Data : in Parse_Error) return Syntax_Trees.Error_Data_Access
-   is
-      New_Data : constant Parse_Error_Access := new Parse_Error'(Data);
-   begin
-      return Syntax_Trees.Error_Data_Access (New_Data);
-   end Copy;
-
-   overriding function To_Message
-     (Data       : in Parse_Error;
-      Tree       : in Syntax_Trees.Tree'Class;
-      Error_Node : in Syntax_Trees.Valid_Node_Access)
-     return Syntax_Trees.Error_Data_Access
-   is
-      New_Data : constant Error_Message_Access := new Error_Message'
-        (+Image (Data, Tree, Error_Node), Data.Recover_Ops, Data.Recover_Cost);
-   begin
-      return Syntax_Trees.Error_Data_Access (New_Data);
-   end To_Message;
-
-   overriding function Image
-     (Data       : in Parse_Error;
-      Tree       : in Syntax_Trees.Tree'Class;
-      Error_Node : in Syntax_Trees.Valid_Node_Access)
-     return String
-   is
-      use all type Ada.Containers.Count_Type;
-      use all type Syntax_Trees.Valid_Node_Access;
-
-      Item_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Error_Node);
-      Msg : constant String :=
-        "expecting " & Image (Data.Expecting, Tree.Lexer.Descriptor.all) &
-        ", found '" & Tree.Lexer.Buffer_Text (Item_Byte_Region) &
-        "'";
-   begin
-      if Recover_Op_Arrays.Length (Data.Recover_Ops) /= 0 then
-         return Msg & ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree.Lexer.Descriptor.all);
-      else
-         return Msg;
-      end if;
-   end Image;
-
-   overriding function Copy (Data : in In_Parse_Action_Error) return Syntax_Trees.Error_Data_Access
-   is
-      New_Data : constant In_Parse_Action_Error_Access := new In_Parse_Action_Error'(Data);
-   begin
-      return Syntax_Trees.Error_Data_Access (New_Data);
-   end Copy;
-
-   overriding function To_Message
-     (Data       : in In_Parse_Action_Error;
-      Tree       : in Syntax_Trees.Tree'Class;
-      Error_Node : in Syntax_Trees.Valid_Node_Access)
-     return Syntax_Trees.Error_Data_Access
-   is
-      New_Data : constant Error_Message_Access := new Error_Message'
-        (+Image (Data, Tree, Error_Node), Data.Recover_Ops, Data.Recover_Cost);
-   begin
-      return Syntax_Trees.Error_Data_Access (New_Data);
-   end To_Message;
-
-   overriding function Image
-     (Data       : in In_Parse_Action_Error;
-      Tree       : in Syntax_Trees.Tree'Class;
-      Error_Node : in Syntax_Trees.Valid_Node_Access)
-     return String
-   is
-      use Ada.Strings.Unbounded;
-      use all type Ada.Containers.Count_Type;
-
-      Result : Unbounded_String;
-   begin
-      Result := +"in parse action error: (" & In_Parse_Actions.Image (Data.Status, Tree, Error_Node);
-
-      if Recover_Op_Arrays.Length (Data.Recover_Ops) /= 0 then
-         Append (Result, ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree.Lexer.Descriptor.all));
-      end if;
-
-      return -Result;
-   end Image;
-
-   overriding function Copy (Data : in Error_Message) return Syntax_Trees.Error_Data_Access
-   is
-      New_Data : constant Error_Message_Access := new Error_Message'(Data);
-   begin
-      return Syntax_Trees.Error_Data_Access (New_Data);
-   end Copy;
-
-   overriding function To_Message
-     (Data       : in Error_Message;
-      Tree       : in Syntax_Trees.Tree'Class;
-      Error_Node : in Syntax_Trees.Valid_Node_Access)
-     return Syntax_Trees.Error_Data_Access
-   is
-      pragma Unreferenced (Tree, Error_Node);
-      New_Data : constant Error_Message_Access := new Error_Message'
-        (Data.Msg, Data.Recover_Ops, Data.Recover_Cost);
-   begin
-      return Syntax_Trees.Error_Data_Access (New_Data);
-   end To_Message;
-
-   overriding function Image
-     (Data       : in Error_Message;
-      Tree       : in Syntax_Trees.Tree'Class;
-      Error_Node : in Syntax_Trees.Valid_Node_Access)
-     return String
-   is begin
-      return -Data.Msg;
-   end Image;
 
    function Image (KMN : in WisiToken.Parse.KMN) return String
    is begin
@@ -1179,8 +1260,8 @@ package body WisiToken.Parse is
                               Before => Terminal.Element,
                               Error =>
                                 (if Error
-                                 then new Lexer_Error'((Error => Tree.Lexer.Errors (Tree.Lexer.Errors.Last)))
-                                 else null));
+                                 then Lexer_Error'(Error => Tree.Lexer.Errors (Tree.Lexer.Errors.Last))
+                                 else No_Error));
 
                            Process_Grammar_Token (Parser, Token, Ref.Node);
                            Last_Grammar := Ref;
@@ -1493,9 +1574,12 @@ package body WisiToken.Parse is
      (Error_Node : in Syntax_Trees.Valid_Node_Access;
       Tree       : in Syntax_Trees.Tree)
    is
+      --  FIXME: Delete?
       use Ada.Text_IO; --  FIXME: use Trace?
    begin
-      Put_Line (Tree.Error (Error_Node).Image (Tree, Error_Node));
+      for Err of Tree.Error_List (Error_Node).List.all loop
+         Put_Line (Err.Image (Tree, Error_Node));
+      end loop;
    end Put_Error;
 
    procedure Put_Errors (Parser : in Base_Parser'Class)
@@ -1503,12 +1587,13 @@ package body WisiToken.Parse is
       use WisiToken.Syntax_Trees;
       Tree : Syntax_Trees.Tree renames Parser.Tree;
    begin
-      for Error in Tree.Error_Iterate loop
+      for Err in Tree.Error_Iterate loop
          declare
-            Error_Node : constant Valid_Node_Access := Tree.Error_Node (Error);
+            Error_Node : constant Valid_Node_Access := Tree.Error_Node (Err);
          begin
             Ada.Text_IO.Put_Line
-              ("syntax_error: " & Tree.Error_Message (Error_Node, Tree.Error (Error_Node).Image (Tree, Error_Node)));
+              (Tree.Error_Message
+               (Error_Node, "syntax_error: " & Error (Err).Image (Tree, Error_Node)));
          end;
       end loop;
    end Put_Errors;
@@ -1523,10 +1608,12 @@ package body WisiToken.Parse is
             Error_Ref : constant Stream_Error_Ref := Error (Cur);
             Error_Node : constant Valid_Node_Access := Tree.Error_Node (Error_Ref);
          begin
-            Ada.Text_IO.Put_Line
-              ("syntax_error: " & Tree.Error_Message
-                 (Ref     => Error_Ref.Ref.Ref, -- For line, column
-                  Message => Tree.Error (Error_Node).Image (Tree, Error_Node)));
+            for Err of Tree.Error_List (Error_Node) loop
+               Ada.Text_IO.Put_Line
+                 (Tree.Error_Message
+                    (Ref     => Error_Ref.Ref.Ref, -- For line, column
+                     Message => "syntax_error: " & Err.Image (Tree, Error_Node)));
+            end loop;
          end;
       end loop;
    end Put_Errors;

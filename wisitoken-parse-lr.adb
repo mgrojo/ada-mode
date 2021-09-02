@@ -378,17 +378,18 @@ package body WisiToken.Parse.LR is
       --  the stream element states.
       use Syntax_Trees;
    begin
-      if Tree.Error (Tree.Get_Node (Stream, Tree.Peek (Stream))) /= null then
-         --  Move the error to the first terminal, so it is not lost.
+      if Tree.Error_List (Tree.Get_Node (Stream, Tree.Peek (Stream))).Length > 0 then
+         --  Move the errors to the first terminal, so they are not lost.
          declare
             Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents
               (Tree.To_Rooted_Ref (Stream, Tree.Stack_Top (Stream)));
 
             Orig_Error_Node : constant Valid_Node_Access := Ref.Ref.Node;
-            Error : constant Error_Data_Access_Constant := Tree.Error (Ref.Ref.Node);
          begin
             Tree.First_Terminal (Ref);
-            Tree.Set_Error (Stream, Ref, To_Message (Error.all, Tree, Orig_Error_Node), User_Data);
+            for Err of Tree.Error_List (Orig_Error_Node) loop
+               Tree.Add_Error (Stream, Ref, To_Message (Err, Tree, Orig_Error_Node), User_Data);
+            end loop;
          end;
       end if;
 

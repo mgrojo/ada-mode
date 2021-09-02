@@ -124,10 +124,10 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             Expecting : constant Token_ID_Set := LR.Expecting
               (Shared_Parser.Table.all, Shared_Parser.Tree.State (Current_Parser.Stream));
          begin
-            Shared_Parser.Tree.Set_Error
+            Shared_Parser.Tree.Add_Error
               (Stream            => Parser_State.Stream,
                Error_Ref         => Parser_State.Current_Token,
-               Data              => new WisiToken.Parse.Parse_Error'
+               Data              => Parse_Error'
                  (First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
                   Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
                   Expecting      => Expecting,

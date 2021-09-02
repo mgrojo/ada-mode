@@ -51,5 +51,5 @@ recover: succeed, parser count 1
  0: 3: (0, 2;5:(Wisi_EOI, (67 . 66) ERROR)) : accept it
 (wisitoken_accept_0, (42 . 48) <= ((CompilationUnit, (42 . 48))))
  0: succeed
-syntax_error: java_types_ch19.input:5:1: expecting AT, LESS, Identifier, found ''
+java_types_ch19.input:5:1: syntax_error: expecting AT, LESS, Identifier, found ''
    recovered: ((INSERT, Identifier, 2))

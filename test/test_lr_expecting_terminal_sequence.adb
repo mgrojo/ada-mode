@@ -147,12 +147,11 @@ package body Test_LR_Expecting_Terminal_Sequence is
          declare
             Error_Ref : constant WisiToken.Syntax_Trees.Stream_Error_Ref :=  Parser.Tree.First_Error
               (Parser.Tree.First_Parse_Stream);
-            Error : constant WisiToken.Syntax_Trees.Error_Data_Access_Constant := Parser.Tree.Error
-              (Parser.Tree.Error_Node (Error_Ref));
+            Error : constant WisiToken.Syntax_Trees.Error_Data'Class := WisiToken.Syntax_Trees.Error (Error_Ref);
          begin
-            AUnit.Assertions.Assert (Error.all in WisiToken.Parse.Parse_Error, "not a Parse_Error");
+            AUnit.Assertions.Assert (Error in WisiToken.Parse.Parse_Error, "not a Parse_Error");
 
-            WisiToken.AUnit.Check (Command, WisiToken.Parse.Parse_Error (Error.all).Expecting, Expected);
+            WisiToken.AUnit.Check (Command, WisiToken.Parse.Parse_Error (Error).Expecting, Expected);
          end;
       end Execute;
    end Simple;

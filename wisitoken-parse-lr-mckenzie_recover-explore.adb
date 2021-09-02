@@ -1785,7 +1785,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                Finish
                  ("d", New_Config,
                   First => Min_Pushed_Back_Index,
-                  Last  => Tree.Get_Sequential_Index (Config.Error_Token.Node) - 1);
+                  Last  => Tree.Get_Sequential_Index (Lexer_Error_Node) - 1);
                Local_Config_Heap.Add (New_Config);
             exception
             when SAL.Container_Empty =>
@@ -1878,38 +1878,40 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                Term  : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
                Found : Boolean             := False;
             begin
+               Search_Forward :
                loop
-                  if Tree.Error (Term.Ref.Node) /= null and then
-                    (Tree.Error (Term.Ref.Node).all in Lexer_Error)
-                    --  FIXME: can have lexer and parse error on same node; need test case.
-                  then
-                     Found := True;
-                     exit;
-                  end if;
+                  for Err of Tree.Error_List (Term.Ref.Node) loop
+                     if Err in Lexer_Error then
+                        Found := True;
+                        exit Search_Forward;
+                     end if;
+                  end loop;
 
-                  exit when Tree.ID (Term.Ref.Node) = Tree.Lexer.Descriptor.EOI_ID;
+                  exit Search_Forward when Tree.ID (Term.Ref.Node) = Tree.Lexer.Descriptor.EOI_ID;
 
-                  exit when Tree.Line_Region (Term, Super.Stream (Parser_Index)).First /= Current_Line;
+                  exit Search_Forward when Tree.Line_Region (Term, Super.Stream (Parser_Index)).First /= Current_Line;
 
                   Tree.Next_Terminal (Term);
-               end loop;
+               end loop Search_Forward;
 
                if not Found then
                   Term := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
+                  Search_Backward :
                   loop
                      Tree.Prev_Terminal (Term, Super.Stream (Parser_Index));
 
-                     if Tree.Error (Term.Ref.Node) /= null and then
-                       (Tree.Error (Term.Ref.Node).all in Lexer_Error)
-                     then
-                        Found := True;
-                        exit;
-                     end if;
+                     for Err of Tree.Error_List (Term.Ref.Node) loop
+                        if Err in Lexer_Error then
+                           Found := True;
+                           exit Search_Backward;
+                        end if;
+                     end loop;
 
-                     exit when Tree.ID (Term.Ref.Node) = Tree.Lexer.Descriptor.SOI_ID;
+                     exit Search_Backward when Tree.ID (Term.Ref.Node) = Tree.Lexer.Descriptor.SOI_ID;
 
-                     exit when Tree.Line_Region (Term, Super.Stream (Parser_Index)).First /= Current_Line;
-                  end loop;
+                     exit Search_Backward when Tree.Line_Region
+                       (Term, Super.Stream (Parser_Index)).First /= Current_Line;
+                  end loop Search_Backward;
                end if;
 
                if not Found then

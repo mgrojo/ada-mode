@@ -97,9 +97,9 @@ package body WisiToken.Parse.LR.Parser is
                   return Ok;
 
                else
-                  Shared_Parser.Tree.Set_Error
+                  Shared_Parser.Tree.Add_Error
                     (Parser_State.Stream, Nonterm,
-                     new In_Parse_Action_Error'
+                     In_Parse_Action_Error'
                        (Status       => Status,
                         Recover_Ops  => Recover_Op_Arrays.Empty_Vector,
                         Recover_Cost => 0),
@@ -302,18 +302,39 @@ package body WisiToken.Parse.LR.Parser is
                case Tree.Label (Parser_State.Current_Token.Node) is
                when Terminal_Label =>
                   if Tree.Has_Error (Parser_State.Current_Token.Node) then
-                     if Tree.Error (Parser_State.Current_Token.Node).all in Lexer_Error then
-                        --  Lexer errors are only cleared by re-lexing in Edit_Tree.
-                        null;
-                     else
-                        --  Clear parse error.
-                        Tree.Set_Error
-                          (Parser_State.Stream, Parser_State.Current_Token, null, Shared_Parser.User_Data);
+                     declare
+                        use Error_Data_Lists;
+                        To_Delete  : Cursor := No_Element;
+                        Error_List : List renames Tree.Error_List (Parser_State.Current_Token.Node);
+                     begin
+                        for Err_Cur in Error_List.Iterate loop
+                           if Error_List (Err_Cur) in Lexer_Error then
+                              --  Lexer errors are only cleared by re-lexing in Edit_Tree.
+                              null;
+                           else
+                              pragma Assert (Error_List (Err_Cur) in Parse_Error);
+                              --  test_incremental.adb Recover_1
+                              --  Clear parse error.
+                              if To_Delete /= No_Element then
+                                 raise SAL.Programmer_Error;
+                                 --  Should be only one of these.
+                                 --  FIXME: could be moved In_Parse_Action error? if nonterm broken
+                                 --  down. Delete that also. Need test case.
+                              end if;
+                              To_Delete := Err_Cur;
+                           end if;
+                        end loop;
 
-                        if Inc_Shared_Token then
-                           Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                        if To_Delete /= No_Element then
+                           Tree.Delete_Error
+                             (Parser_State.Stream, Parser_State.Current_Token, Error_List (To_Delete),
+                              Shared_Parser.User_Data);
+
+                           if Inc_Shared_Token then
+                              Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                           end if;
                         end if;
-                     end if;
+                     end;
                   end if;
 
                when Nonterm =>
@@ -325,22 +346,41 @@ package body WisiToken.Parse.LR.Parser is
                      Tree.First_Terminal (First_Term);
 
                      if Tree.Has_Error (First_Term.Ref.Node) then
-                        if Tree.Error (First_Term.Ref.Node).all in Lexer_Error then
-                           --  Lexer errors are only cleared by re-lexing in Edit_Tree.
-                           null;
-                        else
-                           --  Clear parse error.
-                           Tree.Set_Error
-                             (Parser_State.Stream, First_Term, null, Shared_Parser.User_Data);
+                        declare
+                           use Error_Data_Lists;
+                           To_Delete  : Cursor := No_Element;
+                           Error_List : List renames Tree.Error_List (First_Term.Ref.Node);
+                        begin
+                           for Err_Cur in Error_List.Iterate loop
+                              if Error_List (Err_Cur) in Lexer_Error then
+                                 --  Lexer errors are only cleared by re-lexing in Edit_Tree.
+                                 --  test_incremental.adb Lexer_Errors_1
+                                 null;
+                              else
+                                 pragma Assert (Error_List (Err_Cur) in Error_Message);
+                                 --  test_incremental.adb Missing_Name_1
+                                 --  Error is a moved In_Parse_Action error.
+                                 if To_Delete /= No_Element then
+                                    raise SAL.Programmer_Error;
+                                    --  Should be only one of these.
+                                 end if;
+                                 To_Delete := Err_Cur;
+                              end if;
+                           end loop;
 
-                           if Update_Current_Token then
-                              Parser_State.Current_Token := Tree.To_Rooted_Ref
-                                (First_Term.Ref.Stream, First_Term.Ref.Element);
+                           if To_Delete /= No_Element then
+                              Tree.Delete_Error
+                                (Parser_State.Stream, First_Term, Error_List (To_Delete), Shared_Parser.User_Data);
+
+                              if Update_Current_Token then
+                                 Parser_State.Current_Token := Tree.To_Rooted_Ref
+                                   (First_Term.Ref.Stream, First_Term.Ref.Element);
+                              end if;
+                              if Inc_Shared_Token then
+                                 Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                              end if;
                            end if;
-                           if Inc_Shared_Token then
-                              Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
-                           end if;
-                        end if;
+                        end;
                      end if;
                   end;
                end case;
@@ -363,9 +403,9 @@ package body WisiToken.Parse.LR.Parser is
                --  lalr_generator_bug_01.wy); we treat it as a syntax error.
                Parser_State.Set_Verb (Error);
 
-               Shared_Parser.Tree.Set_Error
+               Shared_Parser.Tree.Add_Error
                  (Parser_State.Stream, Parser_State.Current_Token,
-                  new Parse_Error'
+                  Parse_Error'
                     (First_Terminal => 1,
                      Last_Terminal  => 0,
                      Expecting      => (1 .. 0 => False),
@@ -418,7 +458,7 @@ package body WisiToken.Parse.LR.Parser is
                              (Shared_Parser.Tree.Shared_Stream,
                               Terminal => EOI_Token,
                               Before   => Shared_Parser.Tree.Stream_Next (Parser_State.Current_Token).Element,
-                              Error    => null);
+                              Error    => Syntax_Trees.No_Error);
                         end;
                      end if;
 
@@ -475,76 +515,76 @@ package body WisiToken.Parse.LR.Parser is
             Inc_Shared_Token : constant Boolean := Parser_State.Current_Token = Parser_State.Shared_Token and
               Tree.ID (Parser_State.Shared_Token.Node) /= Tree.Lexer.Descriptor.EOI_ID;
 
-            function Has_Same_Error (Node : in Valid_Node_Access) return Boolean
-            is
-               Old_Error : constant Error_Data_Access_Constant := Tree.Error (Node);
-            begin
-               if Old_Error = null then
-                  return False;
-               end if;
+            New_Error : constant Parse_Error :=
+              (First_Terminal => Tree.Lexer.Descriptor.First_Terminal,
+               Last_Terminal  => Tree.Lexer.Descriptor.Last_Terminal,
+               Expecting      => Expecting,
+               Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
+               Recover_Cost   => 0);
 
-               if Old_Error.all in WisiToken.Parse.Parse_Error then
-                  return WisiToken.Parse.Parse_Error (Old_Error.all).Expecting = Expecting;
-               end if;
+            Error_Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Parser_State.Current_Token);
 
-               return False;
-            end Has_Same_Error;
+            Update_Current_Token : constant Boolean := Parser_State.Current_Token = Error_Ref.Ref;
+
+            procedure Add_Error
+            is begin
+               Tree.Add_Error
+                 (Stream    => Parser_State.Stream,
+                  Error_Ref => Error_Ref,
+                  Data      => New_Error,
+                  User_Data => Shared_Parser.User_Data);
+
+               if Update_Current_Token then
+                  Parser_State.Current_Token := Tree.To_Rooted_Ref
+                    (Error_Ref.Ref.Stream, Error_Ref.Ref.Element);
+               end if;
+               if Inc_Shared_Token then
+                  Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+               end if;
+            end Add_Error;
 
          begin
             case Tree.Label (Parser_State.Current_Token.Node) is
             when Terminal_Label =>
-               if Has_Same_Error (Parser_State.Current_Token.Node) then
-                  --  Keep the recover information so it can be used again.
-                  null;
-               else
-                  Tree.Set_Error
-                    (Stream            => Parser_State.Stream,
-                     Error_Ref         => Parser_State.Current_Token,
-                     Data              => new WisiToken.Parse.Parse_Error'
-                       (First_Terminal => Tree.Lexer.Descriptor.First_Terminal,
-                        Last_Terminal  => Tree.Lexer.Descriptor.Last_Terminal,
-                        Expecting      => Expecting,
-                        Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
-                        Recover_Cost   => 0),
-                     User_Data         => Shared_Parser.User_Data);
-
-                  if Inc_Shared_Token then
-                     Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
-                  end if;
-               end if;
+               null;
 
             when Nonterm =>
                --  test_incremental.adb Lexer_Errors_1
-               declare
-                  First_Term : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Parser_State.Current_Token);
-                  Update_Current_Token : constant Boolean := Parser_State.Current_Token = First_Term.Ref;
-               begin
-                  Tree.First_Terminal (First_Term);
-                  if Has_Same_Error (First_Term.Ref.Node) then
-                     --  Keep the recover information so it can be used again.
-                     null;
-                  else
-                     Tree.Set_Error
-                       (Stream            => Parser_State.Stream,
-                        Error_Ref         => First_Term,
-                        Data              => new WisiToken.Parse.Parse_Error'
-                          (First_Terminal => Tree.Lexer.Descriptor.First_Terminal,
-                           Last_Terminal  => Tree.Lexer.Descriptor.Last_Terminal,
-                           Expecting      => Expecting,
-                           Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
-                           Recover_Cost   => 0),
-                        User_Data         => Shared_Parser.User_Data);
+               Tree.First_Terminal (Error_Ref);
+            end case;
 
-                     if Update_Current_Token then
-                        Parser_State.Current_Token := Tree.To_Rooted_Ref
-                          (First_Term.Ref.Stream, First_Term.Ref.Element);
-                     end if;
-                     if Inc_Shared_Token then
-                        Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+            declare
+               use Error_Data_Lists;
+               To_Delete  : Cursor := No_Element;
+               Error_List : List renames Tree.Error_List (Error_Ref.Ref.Node);
+            begin
+               for Err_Cur in Error_List.Iterate loop
+                  if Error_List (Err_Cur) in Parse_Error then
+                     if To_Delete /= No_Element then
+                        raise SAL.Programmer_Error; --  Should only be one Parse_Error on any node.
+                     else
+                        To_Delete := Err_Cur;
                      end if;
                   end if;
-               end;
-            end case;
+               end loop;
+
+               if To_Delete = No_Element then
+                  Add_Error;
+
+               elsif Parse_Error (Error_List (To_Delete).Element.all).Expecting = Expecting then
+                  --  Keep the recover information so it can be used again.
+                  null;
+
+               else
+                  Tree.Delete_Error
+                    (Stream    => Parser_State.Stream,
+                     Error_Ref => Error_Ref,
+                     Data      => Error_List (To_Delete),
+                     User_Data => Shared_Parser.User_Data);
+
+                  Add_Error;
+               end if;
+            end;
 
             if Trace_Parse > Detail then
                Trace.Put_Line

@@ -147,15 +147,24 @@ package body Test_McKenzie_Recover is
       function Get_Error_Node return Node_Access
       is
          use all type Ada.Containers.Count_Type;
+
+         --  Don't count lexer errors here.
+         Found_Errors : Ada.Containers.Count_Type := 0;
       begin
          if Parser.Tree.Parents_Set then
-            Check (Label_I & ".Errors_Length", Parser.Tree.Error_Count, Errors_Length);
+            Check (Label_I & ".Errors_Length", Parser.Tree.Error_Count, Errors_Length); --  Includes lexer
 
             if Errors_Length > 0 then
                declare
                   Error_Ref : WisiToken.Syntax_Trees.Error_Ref := Parser.Tree.First_Error;
                begin
-                  for I in 2 .. Checking_Error loop
+                  loop
+                     if Error (Error_Ref) in WisiToken.Parse.Lexer_Error then
+                        null;
+                     else
+                        Found_Errors := @ + 1;
+                        exit when Found_Errors = Checking_Error;
+                     end if;
                      Parser.Tree.Next_Error (Error_Ref);
                   end loop;
                   return Parser.Tree.Error_Node (Error_Ref);
@@ -171,7 +180,13 @@ package body Test_McKenzie_Recover is
                   Error_Ref : WisiToken.Syntax_Trees.Stream_Error_Ref := Parser.Tree.First_Error
                     (Parser.Tree.First_Parse_Stream);
                begin
-                  for I in 2 .. Checking_Error loop
+                  loop
+                     if Error (Error_Ref) in WisiToken.Parse.Lexer_Error then
+                        null;
+                     else
+                        Found_Errors := @ + 1;
+                        exit when Found_Errors = Checking_Error;
+                     end if;
                      Parser.Tree.Next_Error (Error_Ref);
                   end loop;
                   return Parser.Tree.Error_Node (Error_Ref);
@@ -190,59 +205,63 @@ package body Test_McKenzie_Recover is
            (Label_I & ".Error_Token.Byte_Region", Parser.Tree.Byte_Region (Error_Node),
             Error_Token_Byte_Region);
 
-         if Code = Ok then
-            --  Expecting a Parse_Action error. Label is "code" so prj.el
-            --  wisitoken-goto-aunit-fail can find it.
-            if Parser.Tree.Error (Error_Node).all in WisiToken.Parse.Parse_Error then
-               declare
-                  Error : WisiToken.Parse.Parse_Error renames WisiToken.Parse.Parse_Error
-                    (Parser.Tree.Error (Error_Node).all);
-               begin
-                  if Expecting /= Empty_Token_ID_Set then
-                     Check (Label_I & ".Expecting", Error.Expecting, Expecting);
-                  end if;
+         declare
+            Error_Classwide : constant Error_Data'Class := WisiToken.Parse.Find_Non_Lexer_Error
+              (Parser.Tree, Error_Node);
+         begin
+            if Code = Ok then
+               --  Expecting a Parse_Action error. Label is "code" so prj.el
+               --  wisitoken-goto-aunit-fail can find it.
+               if Error_Classwide in WisiToken.Parse.Parse_Error then
+                  declare
+                     Error : WisiToken.Parse.Parse_Error renames WisiToken.Parse.Parse_Error (Error_Classwide);
+                  begin
+                     if Expecting /= Empty_Token_ID_Set then
+                        Check (Label_I & ".Expecting", Error.Expecting, Expecting);
+                     end if;
 
-                  if not Ops_Race_Condition then
-                     Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
-                  end if;
-                  Check (Label_I & ".Cost", Error.Recover_Cost, Cost);
-               end;
+                     if not Ops_Race_Condition then
+                        Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
+                     end if;
+                     Check (Label_I & ".Cost", Error.Recover_Cost, Cost);
+                  end;
+
+               else
+                  Assert (False, Label_I & ".Code expecting Parse_Error, got something else");
+               end if;
 
             else
-               Assert (False, Label_I & ".Code expecting Parse_Error, got something else");
+               --  Expecting an In_Parse_Action error, or an In_Parse_Action error
+               --  converted to an Error_Message. We put "Error_Token_ID" in the check
+               --  label, so wisitoken-dtrt can find the right place.
+               if Error_Classwide in WisiToken.Parse.In_Parse_Action_Error then
+                  declare
+                     Error : WisiToken.Parse.In_Parse_Action_Error renames WisiToken.Parse.In_Parse_Action_Error
+                       (Error_Classwide);
+                  begin
+                     Check (Label_I & ".Code", Error.Status.Label, Code);
+                     if not Ops_Race_Condition then
+                        Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
+                     end if;
+
+                     Check (Label_I & ".Cost", Error.Recover_Cost, Cost);
+                  end;
+
+               elsif Error_Classwide in WisiToken.Parse.Error_Message then
+                  declare
+                     Error : WisiToken.Parse.Error_Message renames WisiToken.Parse.Error_Message (Error_Classwide);
+                  begin
+                     if not Ops_Race_Condition then
+                        Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
+                     end if;
+                     Check (Label_I & ".Cost", Error.Recover_Cost, Cost);
+                  end;
+               else
+                  Assert
+                    (False, Label_I & ".Code expecting In_Parse_Action_Error or Message_Error, got something else");
+               end if;
             end if;
-
-         else
-            --  Expecting an In_Parse_Action error, or an In_Parse_Action error
-            --  converted to an Error_Message. We put "Error_Token_ID" in the check
-            --  label, so wisitoken-dtrt can find the right place.
-            if Parser.Tree.Error (Error_Node).all in WisiToken.Parse.In_Parse_Action_Error then
-               declare
-                  Error           : WisiToken.Parse.In_Parse_Action_Error renames WisiToken.Parse.In_Parse_Action_Error
-                    (Parser.Tree.Error (Error_Node).all);
-               begin
-                  Check (Label_I & ".Code", Error.Status.Label, Code);
-                  if not Ops_Race_Condition then
-                     Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
-                  end if;
-
-                  Check (Label_I & ".Cost", Error.Recover_Cost, Cost);
-               end;
-
-            elsif Parser.Tree.Error (Error_Node).all in WisiToken.Parse.Error_Message then
-               declare
-                  Error : WisiToken.Parse.Error_Message renames WisiToken.Parse.Error_Message
-                    (Parser.Tree.Error (Error_Node).all);
-               begin
-                  if not Ops_Race_Condition then
-                     Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
-                  end if;
-                  Check (Label_I & ".Cost", Error.Recover_Cost, Cost);
-               end;
-            else
-               Assert (False, Label_I & ".Code expecting In_Parse_Action_Error or Message_Error, got something else");
-            end if;
-         end if;
+         end;
       end if;
       --  The enqueue count depends on a race condition when there is more
       --  than one worker task; configs with costs higher than the final
@@ -900,7 +919,7 @@ package body Test_McKenzie_Recover is
       --  at '"' 50, finds the desired solution, succeeds.
 
       Check_Recover
-        (Errors_Length           => 1,
+        (Errors_Length           => 2, --  1 lexer, 1 parse
          Error_Token_ID          => +STRING_LITERAL_ID,
          Error_Token_Byte_Region => (50, 50),
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 1) & (Delete, +IDENTIFIER_ID, 1) & (Fast_Forward, 3),
@@ -1554,7 +1573,7 @@ package body Test_McKenzie_Recover is
 
       Check_Recover
         (Label                   => "1",
-         Errors_Length           => 1,
+         Errors_Length           => 2,
          Error_Token_ID          => +SLASH_ID,
          Error_Token_Byte_Region => (99, 99),
          Ops                     => +(Delete, +SLASH_ID, 2) & (Delete, +BODY_ID, 3) & (Delete, +GREATER_ID, 4) &
@@ -1573,7 +1592,7 @@ package body Test_McKenzie_Recover is
 
       Check_Recover
         (Label                   => "2",
-         Errors_Length           => 1,
+         Errors_Length           => 2,
          Error_Token_ID          => +IDENTIFIER_ID,
          Error_Token_Byte_Region => (51, 51),
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 1) & (Delete, +IDENTIFIER_ID, 1) &
@@ -1590,7 +1609,7 @@ package body Test_McKenzie_Recover is
 
       Check_Recover
         (Label                   => "3",
-         Errors_Length           => 1,
+         Errors_Length           => 2,
          Error_Token_ID          => +SLASH_ID,
          Error_Token_Byte_Region => (110, 110),
          Ops                     => +(Delete, +SLASH_ID, 2) & (Delete, +BODY_ID, 3) & (Delete, +GREATER_ID, 4) &
@@ -1624,7 +1643,7 @@ package body Test_McKenzie_Recover is
       --  parses to EOI.
 
       Check_Recover
-        (Errors_Length           => 1,
+        (Errors_Length           => 2,
          Error_Token_ID          => +SLASH_ID,
          Error_Token_Byte_Region => (90, 90),
          Ops                     => +(Push_Back, +LESS_ID, 1) & (Push_Back, +simple_expression_ID, 0) &
@@ -1658,7 +1677,7 @@ package body Test_McKenzie_Recover is
       --  Recover entered at '<' 101, before lexer error.
 
       Check_Recover
-        (Errors_Length           => 1,
+        (Errors_Length           => 2,
          Error_Token_ID          => +LESS_ID,
          Error_Token_Byte_Region => (101, 101),
          Ops                     => +(Delete, +LESS_ID, 2) & (Delete, +SLASH_ID, 3) & (Delete, +BODY_ID, 4) &
@@ -1693,7 +1712,7 @@ package body Test_McKenzie_Recover is
       --  at 108.
 
       Check_Recover
-        (Errors_Length           => 1,
+        (Errors_Length           => 2,
          Error_Token_ID          => +STRING_LITERAL_ID,
          Error_Token_Byte_Region => (90, 100),
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 1) & (Delete, +IDENTIFIER_ID, 1) &
@@ -1726,7 +1745,7 @@ package body Test_McKenzie_Recover is
       --  different one.
 
       Check_Recover
-        (Errors_Length           => 1,
+        (Errors_Length           => 2,
          Error_Token_ID          => +STRING_LITERAL_ID,
          Error_Token_Byte_Region => (33, 33),
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 1) & (Delete, +IDENTIFIER_ID, 1) &
@@ -1753,7 +1772,7 @@ package body Test_McKenzie_Recover is
       --  Try_Insert_Quote are not the least expensive.
 
       Check_Recover
-        (Errors_Length           => 2,
+        (Errors_Length           => 3,
          Checking_Error          => 1,
          Error_Token_ID          => +LOOP_ID,
          Error_Token_Byte_Region => (8, 11),
@@ -1762,7 +1781,7 @@ package body Test_McKenzie_Recover is
          Cost                    => 6);
 
       Check_Recover
-        (Errors_Length           => 2,
+        (Errors_Length           => 3,
          Checking_Error          => 2,
          Error_Token_ID          => +Wisi_EOI_ID,
          Error_Token_Byte_Region => (27, 26),
@@ -1788,16 +1807,18 @@ package body Test_McKenzie_Recover is
          Multiple_Tasks   => False,
          Expect_Exception => True);
 
-      --  One error message from the syntax error, one from recover fail
+      --  One error message from the syntax error; Enqueue_Limit is not
+      --  recorded as an error in the tree.
       Check_Recover
-        (Errors_Length      => 0, --  Enqueue_Limit is not recorded as an error in the tree.
-         Error_Token_ID     => WisiToken.Invalid_Token_ID,
-         Ops_Race_Condition => True,
-         Enqueue_Low        => 20,
-         Enqueue_High       => 70,
-         Check_Low          => 3,
-         Check_High         => 20,
-         Cost               => 0);
+        (Errors_Length           => 1,
+         Error_Token_ID          => +IDENTIFIER_ID,
+         Error_Token_Byte_Region => (35, 36),
+         Ops_Race_Condition      => True,
+         Enqueue_Low             => 20,
+         Enqueue_High            => 70,
+         Check_Low               => 3,
+         Check_High              => 20,
+         Cost                    => 0);
    end Enqueue_Limit;
 
    procedure Minimal_Complete_Full_Reduce_1 (T : in out AUnit.Test_Cases.Test_Case'Class)

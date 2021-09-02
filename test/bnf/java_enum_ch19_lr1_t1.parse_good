@@ -62,5 +62,5 @@ recover: succeed, parser count 1
  0: 2: (0, 2;8:(Wisi_EOI, (24 . 23) ERROR)) : accept it
 (wisitoken_accept_0, (16 . 22) <= ((EnumBody, (16 . 22))))
  0: succeed
-syntax_error: java_enum_ch19.input:3:1: expecting RIGHT_CURLY_BRACKET, IDENTIFIER, found ''
+java_enum_ch19.input:3:1: syntax_error: expecting RIGHT_CURLY_BRACKET, IDENTIFIER, found ''
    recovered: ((INSERT, RIGHT_CURLY_BRACKET, 2))

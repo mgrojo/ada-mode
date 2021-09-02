@@ -163,7 +163,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Trace  : WisiToken.Trace'Class renames Super.Trace.all;
       Config : Configuration;
       Error_Node : constant Syntax_Trees.Valid_Node_Access := Parser_State.Current_Error_Node (Super.Tree.all).Ref.Node;
-      Error  : constant Syntax_Trees.Error_Data_Access_Constant := Super.Tree.Error (Error_Node);
+      Error : constant Syntax_Trees.Error_Data'Class := Find_Parse_In_Parse_Action_Error (Super.Tree.all, Error_Node);
+
    begin
       Parser_State.Recover.Enqueue_Count := @ + 1;
 
@@ -188,9 +189,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
               " Current_Token " & Super.Tree.Image (Parser_State.Current_Token) &
               " Resume_Token_Goal" & Config.Resume_Token_Goal'Image);
          Trace.Put_Line
-           (if Error.all in Parse_Error
+           (if Error in Parse_Error
             then "Parser_Action"
-            elsif Error.all in In_Parse_Action_Error
+            elsif Error in In_Parse_Action_Error
             then "In_Parse_Action, " &
               Super.Tree.Image (Super.Tree.Stack_Top (Parser_State.Stream)) & " " &
               Error.Image (Super.Tree.all, Error_Node)
@@ -212,14 +213,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  here). Therefore Parser_State current token is in
       --  Parser_State.Shared_Token.
 
-      if Error.all in Parse_Error then
+      if Error in Parse_Error then
          Config.Error_Token := Super.Tree.Get_Recover_Token (Error_Node);
 
          if Trace_McKenzie > Detail then
             Put ("enqueue", Trace, Super.Tree.all, Parser_State.Stream, Config, Task_ID => False);
          end if;
 
-      elsif Error.all in In_Parse_Action_Error then
+      elsif Error in In_Parse_Action_Error then
          if Shared.Language_Fixes = null then
             --  The only fix is to ignore the error.
             if Trace_McKenzie > Detail then
@@ -235,7 +236,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
             --  Undo_Reduce can be invalid here; see ada-mode/test/ada_mode-recover_27.adb
             if Undo_Reduce_Valid (Super, Config) then
-               Config.In_Parse_Action_Status := In_Parse_Action_Error_Access_Constant (Error).Status;
+               Config.In_Parse_Action_Status := In_Parse_Action_Error (Error).Status;
                Config.Error_Token            := Config.Stack.Peek.Token;
 
                Unchecked_Undo_Reduce (Super, Shared.Table.all, Config);
@@ -463,7 +464,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Result : Configuration renames Parser_State.Recover.Results.Peek;
 
                      Error_Node : Syntax_Trees.Stream_Node_Parents := Parser_State.Current_Error_Node (Tree);
-                     Error : constant Error_Data_Access_Constant := Tree.Error (Error_Node.Ref.Node);
+                     Error : constant Error_Data'Class := Find_Parse_In_Parse_Action_Error (Tree, Error_Node.Ref.Node);
 
                      Error_Pos : constant Buffer_Pos := Tree.Char_Region (Error_Node.Ref.Node).First;
 
@@ -480,28 +481,22 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      --  parser recovered from the error.
                      Parser_State.Set_Verb (Shift);
 
-                     if Error.all in Parse_Error then
+                     if Error in Parse_Error then
                         declare
-                           Data : constant Parse_Error_Access := new Parse_Error'
-                             (Parse_Error_Access_Constant (Error).all);
+                           Data : Parse_Error := Parse_Error (Error);
                         begin
                            Data.Recover_Ops  := Result.Ops;
                            Data.Recover_Cost := Result.Cost;
-                           Tree.Set_Error
-                             (Parser_State.Stream, Error_Node,
-                              Error_Data_Access (Data), Shared_Parser.User_Data);
+                           Tree.Update_Error (Parser_State.Stream, Error_Node, Data, Shared_Parser.User_Data);
                         end;
 
-                     elsif Error.all in In_Parse_Action_Error then
+                     elsif Error in In_Parse_Action_Error then
                         declare
-                           Data : constant In_Parse_Action_Error_Access := new In_Parse_Action_Error'
-                             (In_Parse_Action_Error_Access_Constant (Error).all);
+                           Data : In_Parse_Action_Error := In_Parse_Action_Error (Error);
                         begin
                            Data.Recover_Ops  := Result.Ops;
                            Data.Recover_Cost := Result.Cost;
-                           Tree.Set_Error
-                             (Parser_State.Stream, Error_Node,
-                              Error_Data_Access (Data), Shared_Parser.User_Data);
+                           Tree.Update_Error (Parser_State.Stream, Error_Node, Data, Shared_Parser.User_Data);
                         end;
 
                      else
@@ -1820,20 +1815,22 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Table  : in              Parse_Table;
       Config : in out          Configuration)
    is
-      Tree           : Syntax_Trees.Tree renames Super.Tree.all;
-      Stack          : Recover_Stacks.Stack renames Config.Stack;
-      Nonterm_Item   : constant Recover_Stack_Item             := Recover_Stacks.Pop (Stack);
+      Tree         : Syntax_Trees.Tree renames Super.Tree.all;
+      Stack        : Recover_Stacks.Stack renames Config.Stack;
+      Nonterm_Item : constant Recover_Stack_Item := Recover_Stacks.Pop (Stack);
 
       First_Terminal : constant Syntax_Trees.Node_Access := Tree.First_Source_Terminal
         (Nonterm_Item.Token.Element_Node, Trailing_Non_Grammar => False);
       --  If First_Terminal (element) is virtual, it might be from current
       --  error recovery, not the shared_stream, so extend_sequential_index
-      --  would not give it an index. Note that having Edit_Tree label all
-      --  virtuals in the shared stream would not be incremental.
+      --  would not give it an index.
 
-      Prev_State     : State_Index                             := Stack.Peek.State;
-      Children       : constant Syntax_Trees.Node_Access_Array := Tree.Children (Nonterm_Item.Token.Element_Node);
+      Prev_State : State_Index                             := Stack.Peek.State;
+      Children   : constant Syntax_Trees.Node_Access_Array := Tree.Children (Nonterm_Item.Token.Element_Node);
    begin
+      --  We don't move an In_Parse_Action from Nonterm to First_Terminal
+      --  here, since we are not updating the tree; that's done in Recover
+      --  when the recover actions are applied to the parser state.
       for C of Children loop
          if Is_Terminal (Tree.ID (C), Tree.Lexer.Descriptor.all) then
             Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (C)));

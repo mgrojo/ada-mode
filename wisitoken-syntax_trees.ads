@@ -104,6 +104,7 @@ with Ada.Finalization;
 with Ada.Iterator_Interfaces;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
+with SAL.Gen_Indefinite_Doubly_Linked_Lists;
 with SAL.Gen_Trimmed_Image;
 with SAL.Gen_Unbounded_Definite_Stacks;
 with SAL.Gen_Unbounded_Definite_Vectors;
@@ -153,13 +154,6 @@ package WisiToken.Syntax_Trees is
    --  Undo_Reduce error recover operations, and arbitrarily large
    --  positive index for handling unterminated strings.
 
-   type Error_Data is abstract tagged null record;
-   type Error_Data_Access is access all Error_Data'Class;
-   type Error_Data_Access_Constant is access constant Error_Data'Class;
-   --  Error_Data must not have Valid_Node_Access components; they would
-   --  not be updated properly when the tree is copied. The error node is
-   --  the node that contains this data.
-
    type Base_Tree is new Ada.Finalization.Limited_Controlled with record
       --  Visible components of Tree.
 
@@ -193,6 +187,68 @@ package WisiToken.Syntax_Trees is
    --  slightly speed parsing a similar sized file as the previous one.
 
    function Is_Empty (Tree : in Syntax_Trees.Tree) return Boolean;
+
+   type Error_Data is abstract tagged null record;
+   --  Error_Data must not have Valid_Node_Access components; they would
+   --  not be updated properly when the tree is copied. The error node is
+   --  the node that contains this data.
+
+   function Dispatch_Equal (Left : in Error_Data; Right : in Error_Data'Class) return Boolean
+   is abstract;
+   --  True if Left matches Right for purposes of Update_Error and
+   --  Delete_Error, below.
+   --
+   --  Not named "=" because that's always ambiguous with the predefined "=".
+
+   function To_Message
+     (Data       : in Error_Data;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Valid_Node_Access)
+     return Error_Data'Class
+   is abstract;
+   --  Convert Data to a simple message; it is being moved to another
+   --  node (see wisitoken-parse-lr.adb Undo_Reduce).
+
+   function Image
+     (Data       : in Error_Data;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Valid_Node_Access)
+     return String
+   is abstract;
+   --  Should not include file name, line number; a higher level will add
+   --  that if desired.
+
+   type Null_Error_Data is new Error_Data with null record;
+   --  For Error_Data parameters when there is no error.
+
+   overriding function Dispatch_Equal
+     (Left  : in Null_Error_Data;
+      Right : in Error_Data'Class)
+     return Boolean
+   is (Right in Null_Error_Data);
+   overriding function To_Message
+     (Data       : in Null_Error_Data;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Valid_Node_Access)
+     return Error_Data'Class
+   is (raise SAL.Programmer_Error);
+
+   overriding function Image
+     (Data       : in Null_Error_Data;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Valid_Node_Access)
+     return String
+   is ("");
+
+   pragma Warnings (Off, """others"" choice is redundant");
+   No_Error : constant Null_Error_Data := (others => <>);
+   pragma Warnings (On);
+
+   No_Error_Classwide : constant Error_Data'Class := Error_Data'Class (No_Error);
+
+   package Error_Data_Lists is new SAL.Gen_Indefinite_Doubly_Linked_Lists (Error_Data'Class);
+   type Error_Data_List_Ref (List : not null access constant Error_Data_Lists.List) is private
+   with Implicit_Dereference => List;
 
    type Node_Label is
      (Source_Terminal,    -- text is user input, accessed via Lexer
@@ -658,7 +714,7 @@ package WisiToken.Syntax_Trees is
    --  in the Stream element, and set Stream.Shared_Link to Stream_Next
    --  (Token).
    --
-   --  Does _not_ clear Node.Error_Data; this shift may be part of error
+   --  Does _not_ clear Node.Error_List; this shift may be part of error
    --  recover.
 
    procedure Set_Shared_Link
@@ -751,7 +807,7 @@ package WisiToken.Syntax_Trees is
    --  Parent links are set to Invalid_Node_Access. However, even if
    --  Tree.Parents_Set, Child links are not changed.
    --
-   --  FIXME: move errors.
+   --  FIXME: move errors as in Breakdown.
 
    procedure Breakdown
      (Tree      : in out Syntax_Trees.Tree;
@@ -950,7 +1006,7 @@ package WisiToken.Syntax_Trees is
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
       Terminal : in     Lexer.Token;
-      Error    : in     Error_Data_Access)
+      Error    : in     Error_Data'Class)
      return Single_Terminal_Ref
    with Pre => not Tree.Traversing and Stream = Tree.Shared_Stream,
      Post => Tree.Label (Add_Terminal'Result.Node) = Source_Terminal;
@@ -980,7 +1036,7 @@ package WisiToken.Syntax_Trees is
       Stream   : in     Stream_ID;
       Terminal : in     Lexer.Token;
       Before   : in     Stream_Index;
-      Error    : in     Error_Data_Access)
+      Error    : in     Error_Data'Class)
      return Single_Terminal_Ref
    with Pre => not Tree.Traversing and (Before = Invalid_Stream_Index or else Tree.Contains (Stream, Before)),
      Post => Tree.Label (Insert_Source_Terminal'Result.Node) = Source_Terminal;
@@ -2022,7 +2078,7 @@ package WisiToken.Syntax_Trees is
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Lexer.Token;
-      Error    : in     Error_Data_Access)
+      Error    : in     Error_Data'Class)
      return Valid_Node_Access
    with Pre => not Tree.Traversing and Tree.Editable;
    --  Add a new Terminal node with no parent, on no stream. Result
@@ -2150,58 +2206,80 @@ package WisiToken.Syntax_Trees is
    ----------
    --  Accessing parse errors
 
-   function Copy (Data : in Error_Data) return Error_Data_Access
-   is abstract;
+   function Contains_Error
+     (Tree       : in Syntax_Trees.Tree;
+      Error_Node : in Valid_Node_Access;
+      Data       : in Error_Data'Class)
+     return Boolean;
+   --  True if Error_Node's error list contains an element matching Data.
 
-   function To_Message
-     (Data       : in Error_Data;
-      Tree       : in Syntax_Trees.Tree'Class;
-      Error_Node : in Valid_Node_Access)
-     return Error_Data_Access
-   is abstract;
-   --  Convert Data to a simple message; it is being moved to another
-   --  node (see wisitoken-parse-lr.adb Undo_Reduce).
-
-   function Image
-     (Data       : in Error_Data;
-      Tree       : in Syntax_Trees.Tree'Class;
-      Error_Node : in Valid_Node_Access)
-     return String
-   is abstract;
-   --  Should not include file name, line number; a higher level will add
-   --  that if desired.
-
-   procedure Set_Error
+   procedure Add_Error
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
       Error_Ref : in out Rooted_Ref;
-      Data      : in     Error_Data_Access;
+      Data      : in     Error_Data'Class;
       User_Data : in     User_Data_Access)
    with Pre =>
+     not Tree.Contains_Error (Error_Ref.Node, Data) and
      (if Stream /= Error_Ref.Stream
-      then Tree.Is_First_Stream_Input (Stream, Error_Ref)) and
-     (if Data = null then Tree.Error (Error_Ref.Node) /= null);
-   --  Move Error_Ref to Stream, store Data in it. Update Error_Ref to
-   --  point to new stream element with copied node.
+      then Tree.Is_First_Stream_Input (Stream, Error_Ref));
+   --  Move Error_Ref to Stream, add Data to Error_Ref.Node error list.
+   --  Update Error_Ref to point to new stream element with copied node.
 
-   procedure Set_Error
+   procedure Add_Error
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
       Error_Ref : in out Stream_Node_Parents;
-      Data      : in     Error_Data_Access;
+      Data      : in     Error_Data'Class;
       User_Data : in     User_Data_Access)
    with Pre =>
+     not Tree.Contains_Error (Error_Ref.Ref.Node, Data) and
      (if Stream /= Error_Ref.Ref.Stream
-      then Tree.Is_First_Stream_Input (Stream, Error_Ref.Ref)) and
-     (if Data = null then Tree.Error (Error_Ref.Ref.Node) /= null);
+      then Tree.Is_First_Stream_Input (Stream, Error_Ref.Ref));
    --  Move Error_Ref to Stream, store Data in Error_Ref.Node, copying
    --  Error_Ref.Node and all ancestors. Update Error_Ref to point to new
    --  stream element with copied nodes.
 
-   procedure Free is new Ada.Unchecked_Deallocation (Error_Data'Class, Error_Data_Access);
+   procedure Delete_Error
+     (Tree      : in out Syntax_Trees.Tree;
+      Stream    : in     Stream_ID;
+      Error_Ref : in out Rooted_Ref;
+      Data      : in     Error_Data'Class;
+      User_Data : in     User_Data_Access)
+   with Pre => Tree.Contains_Error (Error_Ref.Node, Data),
+     Post => not Tree.Contains_Error (Error_Ref.Node, Data);
+   --  Move Error_Ref to Stream, delete error list element matching Data.
+   --  Update Error_Ref to point to new stream element with copied node.
 
-   function Error (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Error_Data_Access_Constant;
-   --  To change the error data, use Set_Error, which will copy Node.
+   procedure Delete_Error
+     (Tree      : in out Syntax_Trees.Tree;
+      Stream    : in     Stream_ID;
+      Error_Ref : in out Stream_Node_Parents;
+      Data      : in     Error_Data'Class;
+      User_Data : in     User_Data_Access)
+   with Pre => Tree.Contains_Error (Error_Ref.Ref.Node, Data),
+     Post => not Tree.Contains_Error (Error_Ref.Ref.Node, Data);
+   --  Move Error_Ref to Stream, delete error list element matching Data,
+   --  copying Error_Ref.Node and all ancestors. Update Error_Ref to
+   --  point to new stream element with copied nodes.
+
+   procedure Update_Error
+     (Tree      : in out Syntax_Trees.Tree;
+      Stream    : in     Stream_ID;
+      Error_Ref : in out Stream_Node_Parents;
+      Data      : in     Error_Data'Class;
+      User_Data : in     User_Data_Access)
+   with Pre => Tree.Contains_Error (Error_Ref.Ref.Node, Data),
+     Post => Tree.Contains_Error (Error_Ref.Ref.Node, Data);
+   --  Move Error_Ref to Stream, update error list element matching Data,
+   --  copying Error_Ref.Node and all ancestors. Update Error_Ref to
+   --  point to new stream element with copied nodes.
+
+   function Error_List (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Error_Data_List_Ref;
+   --  To change the error data, use Add_Error, which will copy Node.
+   --
+   --  Returns an empty list if Has_Error (Node) is false, so users can
+   --  just use 'for Err of Tree.Error_List (Node) loop'
 
    type Error_Ref is record
       --  Used when tree is fully parsed.
@@ -2209,14 +2287,18 @@ package WisiToken.Syntax_Trees is
       Deleted : Valid_Node_Access_Lists.Cursor;
       --  If Node = Invalid_Node_Access, no error. If Deleted = No_Element,
       --  Node has an error. If Deleted /= No_Element, any error on Node has
-      --  already been visited, Element (Deleted) is a Terminal_Label that
+      --  already been visited, Element (Deleted) is a Source_Terminal that
       --  has an error, and Element (Deleted).Parent = Node.
+
+      Error : Error_Data_Lists.Cursor;
+      --  Element in error node Error_Data_List.
    end record;
 
    type Stream_Error_Ref is record
       --  Used while parsing
       Ref     : Stream_Node_Parents;
       Deleted : Valid_Node_Access_Lists.Cursor;
+      Error   : Error_Data_Lists.Cursor;
    end record;
 
    type Stream_Error_Cursor is private;
@@ -2224,6 +2306,9 @@ package WisiToken.Syntax_Trees is
    --  Stream_ID used in Stream_Node_Parents is private.
 
    function Error (Item : in Stream_Error_Cursor) return Stream_Error_Ref;
+
+   function Error (Item : in Error_Ref) return Error_Data'Class;
+   function Error (Item : in Stream_Error_Ref) return Error_Data'Class;
 
    function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Error_Ref) return Node_Access
    with Pre => Valid_Error_Ref (Error);
@@ -2260,6 +2345,7 @@ package WisiToken.Syntax_Trees is
    function Has_Error (Error : in Stream_Error_Ref) return Boolean;
    function Has_Error (Position : in Stream_Error_Cursor) return Boolean;
    function Has_Error (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
+   function Has_Error (Node : in Valid_Node_Access) return Boolean;
 
    package Error_Iterator_Interfaces is new Ada.Iterator_Interfaces
      (Cursor      => Error_Ref,
@@ -2485,6 +2571,9 @@ private
    use all type Ada.Containers.Count_Type;
    use all type Valid_Node_Access_Lists.Cursor;
 
+   type Error_List_Access is access all Error_Data_Lists.List;
+   procedure Free is new Ada.Unchecked_Deallocation (Error_Data_Lists.List, Error_List_Access);
+
    type Node
      (Label       : Node_Label;
       Child_Count : SAL.Base_Peek_Type)
@@ -2504,7 +2593,10 @@ private
 
       Augmented : Augmented_Class_Access := null;
 
-      Error_Data : Error_Data_Access;
+      Error_List : Error_List_Access;
+      --  We store an access to an error list object in each node, rather
+      --  than a list object, to reduce the size of a node; almost all nodes
+      --  have no errors.
 
       case Label is
       when Terminal_Label =>
@@ -2703,9 +2795,6 @@ private
    function Editable (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Parents_Set and Tree.Streams.Length = 0 and Tree.Shared_Stream.Cur = Parse_Stream_Lists.No_Element);
 
-   function Error (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Error_Data_Access_Constant
-   is (Error_Data_Access_Constant (Node.Error_Data));
-
    function First_Parse_Stream (Tree : in Syntax_Trees.Tree) return Stream_ID
    is (Cur => Parse_Stream_Lists.Next (Tree.Shared_Stream.Cur));
 
@@ -2868,13 +2957,13 @@ private
 
    function Valid_Error_Ref (Error : in Error_Ref) return Boolean
    is (Error.Node = Invalid_Node_Access or else
-         (Error.Node.Error_Data /= null or
+         (Error.Node.Error_List /= null or
             (Error.Node.Label = Source_Terminal and then
                (for some Cur in Error.Node.Following_Deleted.Iterate => Cur = Error.Deleted))));
 
    function Valid_Error_Ref (Error : in Stream_Error_Ref) return Boolean
    is (Error.Ref.Ref.Node = Invalid_Node_Access or else
-         (Error.Ref.Ref.Node.Error_Data /= null or
+         (Error.Ref.Ref.Node.Error_List /= null or
             (Error.Ref.Ref.Node.Label = Source_Terminal and then
                (for some Cur in Error.Ref.Ref.Node.Following_Deleted.Iterate => Cur = Error.Deleted))));
 
@@ -2919,7 +3008,31 @@ private
    is (Node_List_Image (List, Tree));
 
    ----------
-   --  Iterators
+   --  Errors
+
+   type Error_Data_List_Ref (List : not null access constant Error_Data_Lists.List) is record
+      Dummy : Integer := raise Program_Error;
+   end record;
+
+   function Has_Error (Node : in Valid_Node_Access) return Boolean
+   is (Node.Error_List /= null);
+
+   Empty_Error_List : aliased constant Error_Data_Lists.List := Error_Data_Lists.Empty_List;
+   --  WORKAROUND: with GNAT Community 2021, adding 'aliased' in
+   --  sal-gen_indefinite_doubly_linked_lists.ads doesn't work.
+
+   function Error_List (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Error_Data_List_Ref
+   is (Error_Data_List_Ref'
+         (List  => (if Node.Error_List = null then Empty_Error_List'Access else Node.Error_List),
+          Dummy => 1));
+
+   type Error_Data_List_Cursor is record
+      Cur : Error_Data_Lists.Cursor;
+   end record;
+
+   type Error_Constant_Reference_Type (Element : not null access constant Error_Data'Class) is record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
 
    type Error_Iterator (Tree : not null access constant Syntax_Trees.Tree)
      is new Error_Iterator_Interfaces.Forward_Iterator with

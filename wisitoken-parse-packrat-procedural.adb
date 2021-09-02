@@ -281,7 +281,6 @@ package body WisiToken.Parse.Packrat.Procedural is
       if Parser.User_Data /= null then
          Parser.User_Data.Reset;
       end if;
-      Parser.Wrapped_Lexer_Errors.Clear;
       Parser.Lex_All;
 
       for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop

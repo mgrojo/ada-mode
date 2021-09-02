@@ -32,22 +32,10 @@ update-wisitoken_grammar
 
  current work
 store errors in tree
-    t_all
-    t_mck: String_Quote_0 failing
-        lexer and parse error on same token
-
-    test_incremental.adb : passing
-
-
-    can have lexer and parser error on same token. sigh.
-        parse_lexer_error is new parse_error?
-        list of errors? first term of nonterm with error might have error.
-
+    t_all passing; moving to o.e.a
 
     In test_incremental.adb Preserve_Parse_Errors_2, also change costs so recover deletes
     END instead of inserting BEGIN; then need to restore that
-
-    test case that requires parse removing deleted; lexer_errors_2 edit fixes error.
 
     test case for Right_Breakdown move_errors.
 
@@ -55,6 +43,9 @@ store errors in tree
         set_error on reduce in_parse_action is at stack_top, not stream input.
 
     test case for wisitoken-syntax_trees.adb Add_Deleted Not_Implemented.
+
+parser_state.current_token should be a function?
+    avoid errors in correcting it after Add/Delete_Error.
 
 Tree.validate check that all tree.nodes are in tree
     call it in test_incremental.adb?

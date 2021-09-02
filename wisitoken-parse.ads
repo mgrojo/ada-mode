@@ -154,15 +154,13 @@ package WisiToken.Parse is
    type Lexer_Error is new Syntax_Trees.Error_Data with record
       Error : WisiToken.Lexer.Error;
    end record;
-   type Lexer_Error_Access is access all Lexer_Error;
-   type Lexer_Error_Access_Constant is access constant Lexer_Error;
 
-   overriding function Copy (Data : in Lexer_Error) return Syntax_Trees.Error_Data_Access;
+   overriding function Dispatch_Equal (Left : in Lexer_Error; Right : in Syntax_Trees.Error_Data'Class) return Boolean;
    overriding function To_Message
      (Data       : in Lexer_Error;
       Tree       : in Syntax_Trees.Tree'Class;
       Error_Node : in Syntax_Trees.Valid_Node_Access)
-     return Syntax_Trees.Error_Data_Access;
+     return Syntax_Trees.Error_Data'Class;
 
    overriding function Image
      (Data       : in Lexer_Error;
@@ -178,15 +176,13 @@ package WisiToken.Parse is
       Recover_Ops  : Recover_Op_Arrays.Vector;
       Recover_Cost : Natural := 0;
    end record;
-   type Parse_Error_Access is access all Parse_Error;
-   type Parse_Error_Access_Constant is access constant Parse_Error;
 
-   overriding function Copy (Data : in Parse_Error) return Syntax_Trees.Error_Data_Access;
+   overriding function Dispatch_Equal (Left : in Parse_Error; Right : in Syntax_Trees.Error_Data'Class) return Boolean;
    overriding function To_Message
      (Data       : in Parse_Error;
       Tree       : in Syntax_Trees.Tree'Class;
       Error_Node : in Syntax_Trees.Valid_Node_Access)
-     return Syntax_Trees.Error_Data_Access;
+     return Syntax_Trees.Error_Data'Class;
 
    overriding function Image
      (Data       : in Parse_Error;
@@ -199,15 +195,16 @@ package WisiToken.Parse is
       Recover_Ops  : Recover_Op_Arrays.Vector;
       Recover_Cost : Natural := 0;
    end record;
-   type In_Parse_Action_Error_Access is access all In_Parse_Action_Error;
-   type In_Parse_Action_Error_Access_Constant is access constant In_Parse_Action_Error;
 
-   overriding function Copy (Data : in In_Parse_Action_Error) return Syntax_Trees.Error_Data_Access;
+   overriding function Dispatch_Equal
+     (Left  : in In_Parse_Action_Error;
+      Right : in Syntax_Trees.Error_Data'Class)
+     return Boolean;
    overriding function To_Message
      (Data       : in In_Parse_Action_Error;
       Tree       : in Syntax_Trees.Tree'Class;
       Error_Node : in Syntax_Trees.Valid_Node_Access)
-     return Syntax_Trees.Error_Data_Access;
+     return Syntax_Trees.Error_Data'Class;
 
    overriding function Image
      (Data       : in In_Parse_Action_Error;
@@ -220,20 +217,33 @@ package WisiToken.Parse is
       Recover_Ops  : Recover_Op_Arrays.Vector;
       Recover_Cost : Natural := 0;
    end record;
-   type Error_Message_Access is access all Error_Message;
 
-   overriding function Copy (Data : in Error_Message) return Syntax_Trees.Error_Data_Access;
+   overriding function Dispatch_Equal
+     (Left  : in Error_Message;
+      Right : in Syntax_Trees.Error_Data'Class)
+     return Boolean;
    overriding function To_Message
      (Data       : in Error_Message;
       Tree       : in Syntax_Trees.Tree'Class;
       Error_Node : in Syntax_Trees.Valid_Node_Access)
-     return Syntax_Trees.Error_Data_Access;
+     return Syntax_Trees.Error_Data'Class;
 
    overriding function Image
      (Data       : in Error_Message;
       Tree       : in Syntax_Trees.Tree'Class;
       Error_Node : in Syntax_Trees.Valid_Node_Access)
      return String;
+
+   function Find_Parse_In_Parse_Action_Error
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class;
+   --  Return a Parse_Error or In_Parse_Action_Error from Node.
+
+   function Find_Non_Lexer_Error
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class;
 
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled
    with record
@@ -336,15 +346,6 @@ package WisiToken.Parse is
    --
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
-
-   procedure Put_Error
-     (Error_Node : in Syntax_Trees.Valid_Node_Access;
-      Tree       : in Syntax_Trees.Tree);
-   --  Output to Ada.Text_IO.Current_Error.
-   --
-   --  Stream may be Invalid_Stream_ID if Tree is Editable (as it
-   --  normally is after Parse returns); FIXME: it must be the parse stream if
-   --  parse is still in progress.
 
    procedure Put_Errors (Parser : in Base_Parser'Class)
    with Pre => Parser.Tree.Parents_Set;

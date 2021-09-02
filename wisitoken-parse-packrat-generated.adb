@@ -42,7 +42,6 @@ package body WisiToken.Parse.Packrat.Generated is
       if Parser.User_Data /= null then
          Parser.User_Data.Reset;
       end if;
-      Parser.Wrapped_Lexer_Errors.Clear;
       Parser.Lex_All;
 
       Parser.Derivs.Set_First_Last (Descriptor.First_Nonterminal, Descriptor.Last_Nonterminal);

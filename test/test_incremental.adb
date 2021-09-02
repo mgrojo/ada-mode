@@ -680,9 +680,7 @@ package body Test_Incremental is
       pragma Unreferenced (T);
    begin
       --  Missing string quote. Initial full parse recovers from it,
-      --  incremental edit does not fix it, and incremental parse does not
-      --  encounter it. This demonstrates that lexer errors do not need to be
-      --  preserved for incremental parse.
+      --  incremental edit does not fix it.
       Parse_Text
         (Initial          =>
            "A := 2;" & ASCII.LF &

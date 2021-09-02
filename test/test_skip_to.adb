@@ -50,8 +50,7 @@ package body Test_Skip_To is
       Test_Skip_To_Aux.Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
       Test_Skip_To_Aux.Parser.Parse (Log_File);
 
-      Check ("lexer errors", Test_Skip_To_Aux.Parser.Wrapped_Lexer_Errors.Length, 0);
-      Check ("parser errors", Test_Skip_To_Aux.Parser.Tree.Error_Count, 0);
+      Check ("errors", Test_Skip_To_Aux.Parser.Tree.Error_Count, 0);
 
       Test_Skip_To_Aux.Parser.Execute_Actions;
    exception
