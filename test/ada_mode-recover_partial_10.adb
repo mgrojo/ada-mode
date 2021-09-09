@@ -1,6 +1,9 @@
 -- Indent with partial parse after 'end name;'.
 --
--- The parse region starts after 'end if;'.
+-- The parse region starts after 'end if;'. With partial parse, 'end
+--  Is_Reduce;' and the following blank line are aligned with 'end
+--  if;' (which is not what we want). With incremental parse, the
+--  indent is correct.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
@@ -12,7 +15,7 @@ package body Ada_Mode.Recover_Partial_10 is
       end if;
 
       --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(current-column))
-      --EMACSRESULT:3
+      --EMACSRESULT:(if wisi-incremental-parse-enable 3 6)
    end Is_Reduce;
 
 

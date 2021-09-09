@@ -1,4 +1,5 @@
 --  Encountered a bug in Edit_Tree; now fixed.
+--EMACS_SKIP_UNLESS: wisi-incremental-parse-enable
 procedure Ada_Mode.Incremental_02 is
    function Function_2c (Param : in Child_Type_1) return Float
    is

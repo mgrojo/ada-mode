@@ -1670,9 +1670,9 @@ actual_parameter_part
 assoc_expression ;;:new; split out from *_association for indent
   : '=>' expression
     ;; Using anchor is the only way to ignore subsequent indents
-    %((wisi-indent-action [nil (wisi-hanging
+    %((wisi-indent-action [nil (wisi-hanging%
                                 (wisi-anchored% 1 ada-indent-broken)
-                                (wisi-anchored% 1 ada-indent-broken))]))%
+                                (wisi-anchored% 1 (* 2 ada-indent-broken)))]))%
   | '=>' '<>' ;;:new from iterator_parameter_association to reduce conflicts
   ;
 

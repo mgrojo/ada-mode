@@ -1,4 +1,4 @@
--- From a real editing session; noticeably slow
+-- From a real editing session; used to be noticeably slow
 --EMACS_SKIP_UNLESS: (eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 function Slow_Recover_4

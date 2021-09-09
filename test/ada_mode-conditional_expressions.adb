@@ -145,8 +145,8 @@ begin
          when -1 => 42, -- '=>' aligned with next line
          when 0  => 41,
          when 1  =>
-            -- comment indent matching GNAT style check
-            -- second line of comment
+           -- comment indent matching GNAT style check
+           -- second line of comment
            (if J > 42
 
             then 44     -- comment matching GNAT

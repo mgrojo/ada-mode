@@ -33,9 +33,6 @@ gpr-skel.gpr.tmp :
 	-diff -u $< $(*F).tmp
 
 # for building only these
-../test_all_harness.exe : ../test_all_harness.adb force
-	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
-
 ../run_ada_lalr_parse.exe : ../run_ada_lalr_parse.ads ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
 

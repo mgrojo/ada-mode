@@ -34,33 +34,33 @@ is
    -- handled by Edit_Tree.
    --
    --EMACSCMD:(progn (end-of-line 2)(newline-and-indent))
-   --EMACSCMD:(progn (end-of-line 2)(insert "-")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
+   --EMACSCMD:(progn (end-of-line 2)(execute-kbd-macro "-")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
 
    --EMACSRESULT: 1
-   --EMACSCMD:(progn (end-of-line -2)(insert "-")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
+   --EMACSCMD:(progn (end-of-line -2)(execute-kbd-macro "-")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
    --EMACSRESULT: 0
    --EMACSCMD:(progn (beginning-of-line -4)(kill-line 1))
 
 
    -- New parameter in a subpgrogram. See comment in ada_mode-parens.adb
-   -- Local_10 on hanging paren indent; we'd like this to be treated as
-   -- new code, but error recover just deletes ';', so it is indented as
-   -- if hanging.
+   -- Local_10 on hanging paren indent; this is indented as code,
+   -- because error recover inserts the missing parameter spec.
    --
-   --EMACSCMD:(progn (end-of-line 2)(forward-char -2)(insert ";")(wisi-indent-newline-indent) (current-column))
+   --EMACSCMD:(progn (end-of-line 2)(forward-char -2)(execute-kbd-macro ";\r")(current-column))
    procedure Local_Proc_1 (Param_1 : in Float);
-   --EMACSRESULT:26
+   --EMACSRESULT:27
 
-   -- Clean up syntax errors so later tests work.
-   --EMACSCMD:(progn (end-of-line -4)(delete-char -1))
+   -- We do _not_ clean up the syntax error; parser must tolerate errors
+   -- like this and still give good results.
 
-   -- Adding a body interactively leaves it properly indented, and caches
-   -- updated. Start with invalid syntax (missing final ';'), automatic
-   -- indent after syntax fixed should indent entire statement correctly.
-   -- Note that this requires the function name after 'end', since
-   -- ada-end-name-optional is set nil below.
+   -- Test that adding a body interactively leaves it properly indented,
+   -- and navigation text properties correct. We start with invalid
+   -- syntax (missing final ';'), automatic indent after syntax fixed
+   -- should indent entire statement correctly. Note that this requires
+   -- the function name after 'end', since ada-end-name-optional is set
+   -- nil below.
    --
-   -- Indentation of 'null;' before 'end;' is inserted is somewhat
+   -- Indentation of 'null;' before 'end' is inserted is somewhat
    -- random, due to error correction. Error correction finds multiple
    -- solutions to the error; one inserts 'end;' to complete the
    -- subprogram_body as desired, but others delete 'begin' and complete
@@ -69,11 +69,11 @@ is
    -- different indentations (6, 5, 3). They all eventuallly lead to
    -- identical parser stacks, where one is arbitrarily dropped.
    --
-   -- After 'end;' is inserted, there is no error, so there is only one
-   -- possible indentation for 'null;'.
+   -- After 'end Function_Access_1;' is inserted, there is no error, so
+   -- there is only one possible indentation for 'null;'.
 
    --EMACSCMD:(progn (end-of-line 7)(delete-char -2)(newline-and-indent))
-   --EMACSCMD:(progn (end-of-line 6)(execute-kbd-macro "is begin\nnull;\nend Function_Access_1;\n")(current-indentation))
+   --EMACSCMD:(progn (end-of-line 6)(execute-kbd-macro "is begin\rnull;\rend Function_Access_1;\r")(current-indentation))
    --EMACSRESULT:3
    function Function_Access_1
      (A_Param : in Float)
@@ -101,7 +101,7 @@ is
    is begin
       null;
    end Function_Access_2;
-   --EMACSCMD:(progn (forward-line -2)(insert "null;")(indent-for-tab-command))
+   --EMACSCMD:(progn (forward-line -2)(execute-kbd-macro "null;")(indent-for-tab-command))
 
    -- New_Line before 'end'
    --EMACSCMD:(progn (forward-line 8)(delete-char 19)(indent-for-tab-command)(current-column))
@@ -115,10 +115,10 @@ is
             end if;
       end case;
    end New_Line_2;
-   --EMACSCMD:(progn (forward-line -3)(insert "end if;")(indent-for-tab-command))
+   --EMACSCMD:(progn (forward-line -3)(execute-kbd-macro "end if;")(indent-for-tab-command))
 
    -- add an enumeration value in parens
-   --EMACSCMD:(progn (end-of-line 4)(backward-char 2) (execute-kbd-macro ",\nWrite_Success")(indent-for-tab-command)(current-indentation))
+   --EMACSCMD:(progn (end-of-line 4)(backward-char 2) (execute-kbd-macro ",\rWrite_Success")(indent-for-tab-command)(current-indentation))
    --EMACSRESULT:6
    type Wait_Return is
      (Read_Success);
@@ -126,13 +126,13 @@ is
    -- Typing a new type declaration; indent on new blank line should be
    -- correct for component.
    --
-   --EMACSCMD:(progn (end-of-line 2)(kill-line 3)(execute-kbd-macro "\n")(current-indentation))
+   --EMACSCMD:(progn (end-of-line 2)(kill-line 3)(execute-kbd-macro "\r")(current-indentation))
    type Record_1 is record
       Component_1 : Integer;
    end record;
 
    --EMACSRESULT:6
-   --EMACSCMD:(progn (end-of-line -1)(insert "Component_1 : Integer;\n end record;\n"))
+   --EMACSCMD:(progn (end-of-line -1)(execute-kbd-macro "Component_1 : Integer;\r end record;\r"))
 
 begin
    --  extending block; no errors
@@ -144,7 +144,7 @@ begin
 
    -- Typing code after missing semicolon.
    --
-   --EMACSCMD:(progn (end-of-line 2)(kill-word 1)(delete-char 1)(execute-kbd-macro "\n+ C;")(current-indentation))
+   --EMACSCMD:(progn (end-of-line 2)(kill-word 1)(delete-char 1)(execute-kbd-macro "\r+ C;")(current-indentation))
    A := B
      + C;
 
@@ -155,7 +155,7 @@ begin
    --
    --EMACSCMD:(progn (forward-line 3)(forward-word 1)(forward-char 1)(delete-char 1))
    --EMACSCMD:(progn (forward-line 3)(kill-line 2))
-   --EMACSCMD:(progn (end-of-line 2)(execute-kbd-macro "\n-- Comment 1")(current-indentation))
+   --EMACSCMD:(progn (end-of-line 2)(execute-kbd-macro "\r-- Comment 1")(current-indentation))
    if (A and B
        -- Comment 1
       )
@@ -165,14 +165,16 @@ begin
       null;
    end if;
    --EMACSRESULT:3
-   --EMACSCMD:(progn (forward-line -8)(forward-word 1)(forward-char 1)(insert "(")(end-of-line 2)(insert "\n)")(indent-for-tab-command))
+   --EMACSCMD:(progn (forward-line -8)(forward-word 1)(forward-char 1)(execute-kbd-macro "(")(end-of-line 2)(execute-kbd-macro "\r)")(indent-for-tab-command))
 
    -- Start comment on code line; transient error on next line should
-   -- disappear when comment is finished.
-   --EMACSCMD:(progn (forward-line 4)(insert "-- ")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
+   -- disappear when comment is finished. Note there is still one error
+   -- from earlier in the file.
+   --
+   --EMACSCMD:(progn (forward-line 4)(execute-kbd-macro "-- ")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
+   --EMACSRESULT:2
+   --EMACSCMD:(progn (forward-line 2)(search-forward "-- ")(execute-kbd-macro "comment\r")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
    --EMACSRESULT:1
-   --EMACSCMD:(progn (forward-line 2)(search-forward "-- ")(insert "comment\n")(indent-for-tab-command)(length (wisi-parser-parse-errors wisi--parser)))
-   --EMACSRESULT:0
       for I in 1 .. 10 loop
       null;
    end loop;

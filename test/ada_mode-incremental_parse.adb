@@ -1,5 +1,7 @@
 -- Initial test for incremental parser
 
+--EMACS_SKIP_UNLESS: wisi-incremental-parse-enable
+
 -- Accidently type before comment on first line; used to crash
 --EMACSCMD:(progn (goto-char (point-min))(insert "g")(indent-for-tab-command))
 --EMACSCMD:(progn (goto-char (point-min))(delete-char 1))

@@ -74,7 +74,7 @@ package body Wisi.Ada is
                     (Data, Tree, Anchor_Token, Record_Token,
                      Indenting_Comment => False,
                      Offset            => Ada_Indent_Record_Rel_Type),
-                  Indenting_Comment    => False);
+                  Indenting_Comment    => None);
             end if;
          end if;
 

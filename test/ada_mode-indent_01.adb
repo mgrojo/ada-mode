@@ -3,7 +3,7 @@ procedure Ada_Mode.Indent_01
 is
    Query_Overriding_Parameters : constant Prepared_Statement :=
      Prepare
-       (SQL_Select
+       (Sql_Select
           (Entities2_Fields,
            Where =>
              --  Output parameter must have the same name as original
