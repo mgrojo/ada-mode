@@ -311,7 +311,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       begin
          Put (Parser_Index, Configs); --  Decrements Active_Worker_Count.
 
-         if Trace_McKenzie > Detail then
+         if Trace_McKenzie > Outline then
             Put
               ("succeed: enqueue" & Integer'Image (Data.Enqueue_Count) & ", check " & Integer'Image (Data.Check_Count),
                Trace.all, Tree.all, Parser_Status (Parser_Index).Parser_State.Stream, Config);

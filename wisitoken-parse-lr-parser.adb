@@ -480,6 +480,7 @@ package body WisiToken.Parse.LR.Parser is
 
                when In_Parse_Actions.Error =>
                   Parser_State.Set_Verb (Error);
+                  Parser_State.Error_Count        := @ + 1;
                   Parser_State.Zombie_Token_Count := 1;
                end case;
             end if;

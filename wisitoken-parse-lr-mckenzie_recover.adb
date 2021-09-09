@@ -1217,7 +1217,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             exit when
               (if Positive
                then Index >= Target
-               else Index <= Target);
+               else Index <= Target) and
+              (for all Term of Terminals => Tree.Label (Term.Ref.Node) = Source_Terminal and then
+                  Tree.Get_Sequential_Index (Term.Ref.Node) /= Invalid_Sequential_Index);
 
             exit when
               (for all Term of Terminals =>
@@ -1228,6 +1230,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          end if;
 
       end loop;
+
+      --  FIXME: debugging
+      if Debug_Mode and then not
+        (for all Term of Terminals =>
+           (if Target = Syntax_Trees.Invalid_Sequential_Index
+            then Tree.Get_Sequential_Index (Term.Ref.Node) = Syntax_Trees.Invalid_Sequential_Index
+            else Tree.Get_Sequential_Index (Term.Ref.Node) /= Syntax_Trees.Invalid_Sequential_Index))
+      then
+         Ada.Text_IO.Put_Line (";; mckenzie_recover.extend_sequential_index fail postcondition:");
+         for Term of Terminals loop
+            Ada.Text_IO.Put_Line (";; " & Tree.Image (Term.Ref));
+         end loop;
+      end if;
    end Extend_Sequential_Index;
 
    procedure Clear_Sequential_Index (Shared_Parser : in out WisiToken.Parse.LR.Parser.Parser)

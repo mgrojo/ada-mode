@@ -2975,7 +2975,9 @@ private
       Ref  : in Stream_Node_Ref)
      return Boolean
    is (Tree.Contains (Ref.Stream, Ref.Element) and then
-         (Ref.Node = Invalid_Node_Access or else
+         (if Ref.Node = Invalid_Node_Access
+          then Ref /= Invalid_Stream_Node_Ref
+          else
             (not Tree.Parents_Set or else
                Tree.Subtree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element))));
 

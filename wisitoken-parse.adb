@@ -1570,18 +1570,6 @@ package body WisiToken.Parse is
       end if;
    end Edit_Tree;
 
-   procedure Put_Error
-     (Error_Node : in Syntax_Trees.Valid_Node_Access;
-      Tree       : in Syntax_Trees.Tree)
-   is
-      --  FIXME: Delete?
-      use Ada.Text_IO; --  FIXME: use Trace?
-   begin
-      for Err of Tree.Error_List (Error_Node).List.all loop
-         Put_Line (Err.Image (Tree, Error_Node));
-      end loop;
-   end Put_Error;
-
    procedure Put_Errors (Parser : in Base_Parser'Class)
    is
       use WisiToken.Syntax_Trees;

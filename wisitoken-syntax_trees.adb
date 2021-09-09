@@ -3057,7 +3057,12 @@ package body WisiToken.Syntax_Trees is
    is
       use Stream_Element_Lists;
    begin
-      Ref.Ref.Node := First_Terminal (Tree, Ref.Ref.Node, Ref.Parents);
+      if Ref.Ref.Node = Invalid_Node_Access then
+         --  ref is the first terminal of an empty nonterm
+         null;
+      else
+         Ref.Ref.Node := First_Terminal (Tree, Ref.Ref.Node, Ref.Parents);
+      end if;
       loop
          exit when Ref.Ref.Node /= Invalid_Node_Access;
          Next_Terminal (Tree, Ref);

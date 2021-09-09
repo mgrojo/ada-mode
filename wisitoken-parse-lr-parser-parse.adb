@@ -395,7 +395,6 @@ begin
                   Parser_State.Resume_Active          := True;
                   Parser_State.Conflict_During_Resume := False;
 
-                  Parser_State.Total_Recover_Cost := @ + Parser_State.Recover.Results.Min_Key;
                   case Parser_State.Verb is
                   when Error =>
                      --  Force this parser to be terminated.
@@ -407,6 +406,7 @@ begin
                      end if;
 
                   when Shift =>
+                     Parser_State.Total_Recover_Cost := @ + Parser_State.Recover.Results.Min_Key;
 
                      Parser_State.Zombie_Token_Count := 0;
                      if Trace_Parse > Outline and Trace_McKenzie <= Extra then
@@ -650,7 +650,6 @@ when Partial_Parse =>
    if Trace_Time then
       Trace.Put_Clock ("finish partial parse");
    end if;
-   raise;
 
 when Syntax_Error | WisiToken.Parse_Error =>
    if Trace_Time then
