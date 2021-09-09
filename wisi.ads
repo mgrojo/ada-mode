@@ -31,7 +31,6 @@ with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with SAL.Generic_Decimal_Image;
-with WisiToken.Lexer;
 with WisiToken.Parse.LR;
 with WisiToken.Syntax_Trees;
 package Wisi is
@@ -291,6 +290,11 @@ package Wisi is
 
    type Delta_Type (<>) is private;
 
+   type Indenting_Comment_Label is (None, Leading, Trailing);
+   --  None    : indenting code
+   --  Leading : comment indent from following token
+   --  Trailing: comment indent from preceding token
+
    type Language_Indent_Function is access function
      (Data              : in out Parse_Data_Type'Class;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
@@ -433,14 +437,11 @@ package Wisi is
    --  Ada.Text_IO.Current_Output, as encoded responses as defined in [3]
    --  wisi-process-parse--execute.
 
-   procedure Put (Lexer_Errors : in WisiToken.Lexer.Error_Lists.List);
    procedure Put
      (Data         : in Parse_Data_Type;
-      Lexer_Errors : in WisiToken.Lexer.Error_Lists.List;
-      Parse_Errors : in WisiToken.Parse.LR.Parse_Error_Lists.List;
-      Recover      : in WisiToken.Parse.LR.Recover_Op_Arrays.Vector;
+      Recover      : in WisiToken.Parse.LR.Recover_Op_Nodes_Arrays.Vector;
       Tree         : in WisiToken.Syntax_Trees.Tree);
-   --  Put Lexer_Errors, Parse_Errors, Recover to Ada.Text_IO.Current_Output,
+   --  Put errors in Tree, and Recover to Ada.Text_IO.Current_Output,
    --  as encoded error responses as defined in [3]
    --  wisi-process-parse--execute.
 
@@ -702,7 +703,7 @@ private
       Tree              : in     WisiToken.Syntax_Trees.Tree;
       Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Delta_Indent      : in     Delta_Type;
-      Indenting_Comment : in     Boolean);
+      Indenting_Comment : in     Indenting_Comment_Label);
    --  Apply Delta_Indent to Data.Indents for Indenting_Token.
    --
    --  Indenting must be Compute_Indenting (Indenting_Token).
@@ -712,16 +713,16 @@ private
 
    --  Visible for language-specific children. Must match list in
    --  [3] wisi-process-parse--execute.
-   Navigate_Cache_Code  : constant String := "1";
-   Face_Property_Code   : constant String := "2";
-   Indent_Code          : constant String := "3";
-   Lexer_Error_Code     : constant String := "4";
-   Parser_Error_Code    : constant String := "5";
-   Check_Error_Code     : constant String := "6";
-   Recover_Code         : constant String := "7 ";
-   End_Code             : constant String := "8";
-   Name_Property_Code   : constant String := "9";
-   Edit_Action_Code     : constant String := "10";
-   Language_Action_Code : constant String := "11 ";
-   Query_Tree_Code      : constant String := "12";
+   Navigate_Cache_Code        : constant String := "1";
+   Face_Property_Code         : constant String := "2";
+   Indent_Code                : constant String := "3";
+   Lexer_Error_Code           : constant String := "4";
+   Parser_Error_Code          : constant String := "5";
+   In_Parse_Action_Error_Code : constant String := "6";
+   Recover_Code               : constant String := "7 ";
+   End_Code                   : constant String := "8";
+   Name_Property_Code         : constant String := "9";
+   Edit_Action_Code           : constant String := "10";
+   Language_Action_Code       : constant String := "11 ";
+   Query_Tree_Code            : constant String := "12";
 end Wisi;

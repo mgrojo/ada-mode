@@ -22,6 +22,7 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with SAL;
 with WisiToken.In_Parse_Actions;
+with WisiToken.Lexer;
 package body Wisi is
    use WisiToken;
 
@@ -94,9 +95,10 @@ package body Wisi is
    end Indent_Apply_Int;
 
    procedure Indent_Line
-     (Data         : in out Parse_Data_Type;
-      Line         : in     Line_Number_Type;
-      Delta_Indent : in     Delta_Type)
+     (Data              : in out Parse_Data_Type;
+      Line              : in     Line_Number_Type;
+      Delta_Indent      : in     Delta_Type;
+      Indenting_Comment : in     Indenting_Comment_Label)
    is
       --  We can't use a Reference here, because the Element in reference
       --  types is constrained (as are all allocated objects of access
@@ -118,32 +120,52 @@ package body Wisi is
          end case;
 
       when Hanging =>
-         if Line = Delta_Indent.Hanging_First_Line then
-            --  Apply delta_1
-            case Delta_Indent.Hanging_Delta_1.Label is
-            when None =>
-               null;
-            when Int =>
-               Indent_Apply_Int
-                 (Indent, Delta_Indent.Hanging_Delta_1.Int_Delta, Delta_Indent.Hanging_Delta_1.Controlling_Token_Line);
-            when Anchored =>
-               Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_1, Indent);
-            end case;
-         else
-            --  Apply delta_2
-            case Delta_Indent.Hanging_Delta_2.Label is
-            when None =>
-               null;
-            when Int =>
-               Indent_Apply_Int
-                 (Indent, Delta_Indent.Hanging_Delta_2.Int_Delta,
-                  Delta_Indent.Hanging_Delta_2.Controlling_Token_Line);
-            when Anchored =>
-               Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_2, Indent);
-            end case;
-         end if;
-      end case;
+         declare
+            procedure Apply_Delta_1
+            is begin
+               case Delta_Indent.Hanging_Delta_1.Label is
+               when None =>
+                  null;
+               when Int =>
+                  Indent_Apply_Int
+                    (Indent, Delta_Indent.Hanging_Delta_1.Int_Delta,
+                     Delta_Indent.Hanging_Delta_1.Controlling_Token_Line);
+               when Anchored =>
+                  Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_1, Indent);
+               end case;
+            end Apply_Delta_1;
 
+            procedure Apply_Delta_2
+            is begin
+               case Delta_Indent.Hanging_Delta_2.Label is
+               when None =>
+                  null;
+               when Int =>
+                  Indent_Apply_Int
+                    (Indent, Delta_Indent.Hanging_Delta_2.Int_Delta,
+                     Delta_Indent.Hanging_Delta_2.Controlling_Token_Line);
+               when Anchored =>
+                  Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_2, Indent);
+               end case;
+            end Apply_Delta_2;
+
+         begin
+            case Indenting_Comment is
+            when None =>
+               if Line = Delta_Indent.Hanging_First_Line then
+                  Apply_Delta_1;
+               else
+                  Apply_Delta_2;
+               end if;
+
+            when Leading =>
+               Apply_Delta_1;
+
+            when Trailing =>
+               Apply_Delta_2;
+            end case;
+         end;
+      end case;
       if Trace_Action > Extra then
          Data.Trace.Put_Line ("indent_line: " & Line_Number_Type'Image (Line) & " => " & Image (Indent));
       end if;
@@ -303,13 +325,14 @@ package body Wisi is
    end Put;
 
    procedure Put
-     (Item : in Parse.LR.Recover_Op_Arrays.Vector;
+     (Item : in Parse.LR.Recover_Op_Nodes_Arrays.Vector;
       Data : in Parse_Data_Type;
       Tree : in Syntax_Trees.Tree)
    is
       use Ada.Strings.Unbounded;
-      use Parse.LR;
-      use Parse.LR.Recover_Op_Arrays;
+      use WisiToken.Parse;
+      use WisiToken.Parse.LR;
+      use WisiToken.Parse.LR.Recover_Op_Nodes_Arrays;
       use all type Ada.Containers.Count_Type;
 
       Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
@@ -325,12 +348,15 @@ package body Wisi is
       State : State_Label := None;
       --  State of the current edit region.
 
-      Last_Edit_Pos  : Buffer_Pos          := Invalid_Buffer_Pos;
-      Line           : Unbounded_String    := To_Unbounded_String ("[");
-      Deleted_Region : Buffer_Region       := Null_Buffer_Region;
-      Last_Deleted   : Recover_Op (Delete) :=
-        (Delete, Invalid_Buffer_Pos, Invalid_Token_ID, Syntax_Trees.Sequential_Index'Last,
-         Syntax_Trees.Invalid_Node_Access, Syntax_Trees.Invalid_Node_Access);
+      Last_Edit_Pos  : Buffer_Pos       := Invalid_Buffer_Pos;
+      Line           : Unbounded_String := To_Unbounded_String ("[");
+      Deleted_Region : Buffer_Region    := Null_Buffer_Region;
+      Last_Deleted   : Recover_Op_Nodes :=
+        (Op        => Delete,
+         Error_Pos => Invalid_Buffer_Pos,
+         Del_ID    => Invalid_Token_ID,
+         Del_Index => Syntax_Trees.Sequential_Index'Last,
+         Del_Node  => Syntax_Trees.Invalid_Node_Access);
 
       procedure Start_Edit_Region (Error_Pos, Edit_Pos : in Buffer_Pos)
       is begin
@@ -357,7 +383,7 @@ package body Wisi is
       end Terminate_Edit_Region;
    begin
       if Trace_Action > Outline then
-         Data.Trace.Put_Line ("recover: " & Parse.LR.Image (Item, Tree));
+         Data.Trace.Put_Line ("recover: " & WisiToken.Parse.LR.Image (Item, Tree));
       end if;
 
       if Length (Item) = 0 or not Tree.Parents_Set then
@@ -370,7 +396,7 @@ package body Wisi is
          declare
             use WisiToken.Syntax_Trees;
 
-            Op : constant Recover_Op := Element (Item, I);
+            Op : constant Recover_Op_Nodes := Element (Item, I);
 
             Edit_Pos_Node : constant Node_Access :=
               --  Can be Invalid_Node_Access when recover fails.
@@ -2162,12 +2188,15 @@ package body Wisi is
             begin
                if Trace_Action > Detail then
                   Data.Trace.Put_Line
-                    ("indent_action_0 code: " & Tree.Image (Child, Line_Numbers => True) & ": " &
+                    ("indent_action_0 code: " & Tree.Image
+                       (Child,
+                        Node_Numbers => Trace_Action > Extra,
+                        Line_Numbers => True) & ": " &
                        Image (Params (I).Code_Delta));
                end if;
 
                if Code_Delta /= Null_Delta then
-                  Indent_Token_1 (Data, Tree, Child, Code_Delta, Indenting_Comment => False);
+                  Indent_Token_1 (Data, Tree, Child, Code_Delta, Indenting_Comment => None);
                end if;
 
                if Indenting.Comment /= Null_Line_Region then
@@ -2186,7 +2215,10 @@ package body Wisi is
                   if Comment_Param_Set then
                      if Trace_Action > Detail then
                         Data.Trace.Put_Line
-                          ("indent_action_0 comment: " & Tree.Image (Controlling_Token, Line_Numbers => True) & ": " &
+                          ("indent_action_0 comment: " & Tree.Image
+                             (Controlling_Token,
+                              Node_Numbers => Trace_Action > Extra,
+                              Line_Numbers => True) & ": " &
                              Image (Comment_Param));
                      end if;
 
@@ -2194,7 +2226,9 @@ package body Wisi is
                        (Data, Tree, Nonterm, Comment_Param, Controlling_Token, Indenting_Comment => True);
 
                      if Comment_Delta /= Null_Delta then
-                        Indent_Token_1 (Data, Tree, Child, Comment_Delta, Indenting_Comment => True);
+                        Indent_Token_1
+                          (Data, Tree, Child, Comment_Delta,
+                           Indenting_Comment => (if Params (I).Comment_Present then Trailing else Leading));
                      end if;
                   end if;
                end if;
@@ -2207,7 +2241,7 @@ package body Wisi is
      (Data              : in out Parse_Data_Type;
       Tree              : in     Syntax_Trees.Tree;
       Nonterm           : in     Syntax_Trees.Valid_Node_Access;
-      Indenting_Token    : in     Syntax_Trees.Valid_Node_Access;
+      Indenting_Token   : in     Syntax_Trees.Valid_Node_Access;
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
@@ -2404,44 +2438,29 @@ package body Wisi is
       end case;
    end Put;
 
-   procedure Put (Lexer_Errors : in Lexer.Error_Lists.List)
+   procedure Put (Item : in WisiToken.Parse.Lexer_Error)
    is begin
-      for Item of Lexer_Errors loop
-         Ada.Text_IO.Put_Line
-           ('[' & Lexer_Error_Code & Buffer_Pos'Image (Item.Char_Pos) &
-              " ""lexer error" &
-              (if Item.Recover_Char (1) = ASCII.NUL
-               then """"
-               elsif Item.Recover_Char (1) = '"'
-               then """ ?\"""
-               else """ ?" & Item.Recover_Char (1)) &
-              "]");
-         if Item.Recover_Char (2) /= ASCII.NUL then
-            raise SAL.Programmer_Error with "lexer error with non-ascii or multiple repair char";
-         end if;
-      end loop;
+      Ada.Text_IO.Put_Line
+        ('[' & Lexer_Error_Code & Buffer_Pos'Image (Item.Error.Char_Pos) &
+           " ""lexer error" &
+           (if Item.Error.Recover_Char (1) = ASCII.NUL
+            then """"
+            elsif Item.Error.Recover_Char (1) = '"'
+            then """ ?\"""
+            else """ ?" & Item.Error.Recover_Char (1)) &
+           "]");
+      if Item.Error.Recover_Char (2) /= ASCII.NUL then
+         raise SAL.Programmer_Error with "lexer error with non-ascii or multiple repair char";
+      end if;
    end Put;
 
    procedure Put
-     (Data         : in Parse_Data_Type;
-      Lexer_Errors : in Lexer.Error_Lists.List;
-      Parse_Errors : in Parse.LR.Parse_Error_Lists.List;
-      Recover      : in Parse.LR.Recover_Op_Arrays.Vector;
-      Tree         : in Syntax_Trees.Tree)
+     (Data    : in Parse_Data_Type;
+      Recover : in Parse.LR.Recover_Op_Nodes_Arrays.Vector;
+      Tree    : in Syntax_Trees.Tree)
    is
       use Ada.Text_IO;
-      use In_Parse_Actions;
       Descriptor  : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
-
-      function Safe_Pos_Image (Token : in Syntax_Trees.Recover_Token) return String
-      is
-         Result : constant Base_Buffer_Pos := Tree.Name (Token).First;
-      begin
-         if Result = Invalid_Buffer_Pos then
-            return " nil";
-         end if;
-         return Result'Image;
-      end Safe_Pos_Image;
 
       function Safe_Pos (Token : in Syntax_Trees.Node_Access) return Buffer_Pos
       is begin
@@ -2460,36 +2479,48 @@ package body Wisi is
          end if;
       end Safe_Pos;
    begin
-      Put (Lexer_Errors);
+      for Err_Ref in Tree.Error_Iterate loop
+         if Syntax_Trees.Error (Err_Ref) in WisiToken.Parse.Lexer_Error then
+            Put (WisiToken.Parse.Lexer_Error (Syntax_Trees.Error (Err_Ref)));
 
-      for Item of Parse_Errors loop
-         case Item.Label is
-         when Parse.LR.LR_Parse_Action =>
-            Put_Line
-              ('[' & Parser_Error_Code & Base_Buffer_Pos'Image (Safe_Pos (Item.Error_Token.Node)) &
-                 " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                 ", found '" & Image (Tree.ID (Item.Error_Token.Node), Descriptor) & "'""]");
+         elsif Syntax_Trees.Error (Err_Ref) in WisiToken.Parse.Parse_Error then
+            declare
+               Item : WisiToken.Parse.Parse_Error renames WisiToken.Parse.Parse_Error (Syntax_Trees.Error (Err_Ref));
+               Error_Node : constant WisiToken.Syntax_Trees.Valid_Node_Access := Tree.Error_Node (Err_Ref);
+            begin
+               Put_Line
+                 ('[' & Parser_Error_Code & Base_Buffer_Pos'Image (Safe_Pos (Error_Node)) &
+                    " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                    ", found '" & Image (Tree.ID (Error_Node), Descriptor) & "'""]");
+            end;
 
-         when Parse.LR.User_Parse_Action =>
-            Put_Line
-              ('[' & Check_Error_Code & Integer'Image
-                 (In_Parse_Actions.Status_Label'Pos (Item.Status.Label)) &
-                 (case Item.Status.Label is
-                  when Ok => "",
-                  when Error =>
-                     Safe_Pos_Image (Item.Status.Begin_Name) &
-                       Safe_Pos_Image (Item.Status.End_Name) & " """ &
-                       (case Error'(Item.Status.Label) is
-                        when Missing_Name_Error => "missing",
-                        when Extra_Name_Error => "extra",
-                        when Match_Names_Error => "match") &
-                       " name error""]"));
+         elsif Syntax_Trees.Error (Err_Ref) in WisiToken.Parse.In_Parse_Action_Error then
+            declare
+               Item : WisiToken.Parse.In_Parse_Action_Error renames WisiToken.Parse.In_Parse_Action_Error
+                 (Syntax_Trees.Error (Err_Ref));
+               Error_Node : constant WisiToken.Syntax_Trees.Valid_Node_Access := Tree.Error_Node (Err_Ref);
+            begin
+               Put_Line
+                 ('[' & In_Parse_Action_Error_Code & Integer'Image
+                    (In_Parse_Actions.Status_Label'Pos (Item.Status.Label)) &
+                    (case Item.Status.Label is
+                     when WisiToken.In_Parse_Actions.Ok => "",
+                     when WisiToken.In_Parse_Actions.Error =>
+                        Safe_Pos (Tree.Child (Error_Node, Item.Status.Begin_Name))'Image &
+                          Safe_Pos (Tree.Child (Error_Node, Item.Status.End_Name))'Image & " """ &
+                          (case WisiToken.In_Parse_Actions.Error'(Item.Status.Label) is
+                           when WisiToken.In_Parse_Actions.Missing_Name_Error => "missing",
+                           when WisiToken.In_Parse_Actions.Extra_Name_Error => "extra",
+                           when WisiToken.In_Parse_Actions.Match_Names_Error => "match") &
+                          " name error""]"));
+            end;
 
-         when Parse.LR.Message =>
+         elsif Syntax_Trees.Error (Err_Ref) in WisiToken.Parse.Error_Message then
+            --  FIXME: convert moved In_Parse_Action_Error to In_Parse_Action_Error_Code?
             Put_Line
               ('[' & Parser_Error_Code & Buffer_Pos'Image (Buffer_Pos'First) &
-                 " """ & (-Item.Msg) & """]");
-         end case;
+                 " """ & (-WisiToken.Parse.Error_Message (Syntax_Trees.Error (Err_Ref)).Msg) & """]");
+         end if;
       end loop;
 
       Put (Recover, Data, Tree);
@@ -2762,6 +2793,8 @@ package body Wisi is
          --
          --  The expression is anchored to itself, which is needed for
          --  multi-line expressions (ada_annex_p.wy assoc_expression).
+         --  FIXME: need clearer example; what is "the expression"?
+         --  FIXME: need comment example.
          return Null_Delta;
       else
          return
@@ -2829,12 +2862,12 @@ package body Wisi is
       Tree              : in     Syntax_Trees.Tree;
       Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       Delta_Indent      : in     Delta_Type;
-      Indenting_Comment : in     Boolean)
+      Indenting_Comment : in     Indenting_Comment_Label)
    is
       Indenting : constant Wisi.Indenting := Compute_Indenting (Data, Tree, Indenting_Token);
 
       Line_Region : constant WisiToken.Line_Region :=
-        (if Indenting_Comment
+        (if Indenting_Comment /= None
          then Indenting.Comment
          else Indenting.Code);
 
@@ -2843,7 +2876,7 @@ package body Wisi is
          Data.Trace.Put_Line
            ("indent_token_1:      " &
               Tree.Image (Indenting_Token, Node_Numbers => True) & " " & Image (Delta_Indent) &
-              (if Indenting_Comment then " comment" else " code") &
+              (if Indenting_Comment /= None then " comment" else " code") &
               Image (Line_Region));
       end if;
 
@@ -2868,13 +2901,13 @@ package body Wisi is
                end loop;
 
                if Indent then
-                  Indent_Line (Data, Line, Delta_Indent);
+                  Indent_Line (Data, Line, Delta_Indent, Indenting_Comment);
                else
-                  Indent_Line (Data, Line, (Simple, (Int, Invalid_Line_Number, 0)));
+                  Indent_Line (Data, Line, (Simple, (Int, Invalid_Line_Number, 0)), Indenting_Comment);
                end if;
             end;
          else
-            Indent_Line (Data, Line, Delta_Indent);
+            Indent_Line (Data, Line, Delta_Indent, Indenting_Comment);
          end if;
       end loop;
    end Indent_Token_1;

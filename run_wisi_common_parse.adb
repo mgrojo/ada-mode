@@ -352,10 +352,9 @@ package body Run_Wisi_Common_Parse is
       use all type SAL.Base_Peek_Type;
    begin
       if Parser.Parsers.Count > 0 then
+         --  Count is zero when all parsers fail. FIXME: some other error message output then?
          Parse_Data.Put
-           (Parser.Tree.Lexer.Errors,
-            Parser.Parsers.First.State_Ref.Errors,
-            Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+           (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
             Parser.Tree);
       end if;
    end Put_Errors;
@@ -423,9 +422,7 @@ package body Run_Wisi_Common_Parse is
             is begin
                Parser.Tree.Lexer.Discard_Rest_Of_Input;
                Parse_Data.Put
-                 (Parser.Tree.Lexer.Errors,
-                  Parser.Parsers.First.State_Ref.Errors,
-                  Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+                 (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                   Parser.Tree);
             end Clean_Up;
          begin
@@ -639,11 +636,9 @@ package body Run_Wisi_Common_Parse is
                   begin
                      Parser.Tree.Lexer.Discard_Rest_Of_Input;
                      if Cl_Params.Repeat_Count = 1 and Parser.Parsers.Count > 0 then
-                        Parse_Data.Put
-                          (Parser.Tree.Lexer.Errors,
-                           Parser.Parsers.First.State_Ref.Errors,
-                           Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-                           Parser.Tree);
+                        --  We only get here when parse fails, so can't do actions. Can output
+                        --  error messages.
+                        WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
                      end if;
                   end Clean_Up;
 
@@ -651,12 +646,8 @@ package body Run_Wisi_Common_Parse is
                   Parse_Data.Reset;
                   Parser.Tree.Lexer.Reset;
 
-                  begin
-                     Parser.Parse (Log_File);
-                  exception
-                  when WisiToken.Partial_Parse =>
-                     null;
-                  end;
+                  Parser.Parse (Log_File);
+                  --  Raises Parse_Error for ambiguous parse and similar errors.
 
                   Parse_Data.Reset_Post_Parse
                     (Parser.Tree,
@@ -670,9 +661,7 @@ package body Run_Wisi_Common_Parse is
                   if Cl_Params.Repeat_Count = 1 then
                      Parse_Data.Put (Parser);
                      Parse_Data.Put
-                       (Parser.Tree.Lexer.Errors,
-                        Parser.Parsers.First.State_Ref.Errors,
-                        Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+                       (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                         Parser.Tree);
                   end if;
 

@@ -19,6 +19,7 @@
 
 (require 'wisi-tests)
 (require 'wisi-prj)
+(require 'wisi-process-parse)
 
 ;; user can set these to t in an EMACSCMD
 (defvar skip-cmds nil)

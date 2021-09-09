@@ -338,21 +338,6 @@ package body Emacs_Wisi_Common_Parse is
 
                   Parser     : Parse.LR.Parser.Parser renames Parse_Context.Parser;
                   Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
-
-                  procedure Clean_Up
-                  is
-                     use all type SAL.Base_Peek_Type;
-                  begin
-                     Parser.Tree.Lexer.Discard_Rest_Of_Input;
-                     if Parser.Parsers.Count > 0 then
-                        Parse_Data.Put
-                          (Parser.Tree.Lexer.Errors,
-                           Parser.Parsers.First.State_Ref.Errors,
-                           Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-                           Parser.Tree);
-                     end if;
-                  end Clean_Up;
-
                begin
                   if Params.Task_Count > 0 then
                      Parser.Table.McKenzie_Param.Task_Count := System.Multiprocessors.CPU_Range (Params.Task_Count);
@@ -391,13 +376,10 @@ package body Emacs_Wisi_Common_Parse is
                        (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, Params.Source_File_Name,
                         Params.Begin_Char_Pos, Params.Begin_Line);
 
-                     --  Parser.Line_Begin_Token First, Last set by Lex_All
-                     begin
-                        Parser.Parse (Recover_Log_File);
-                     exception
-                     when Partial_Parse =>
-                        null;
-                     end;
+                     --  Parser.Line_Begin_Token First, Last set by Lex_All in Parse.
+
+                     Parser.Parse (Recover_Log_File);
+                     --  Raises Parse_Error for ambiguous parse and similar errors.
 
                      Parse_Data.Reset_Post_Parse
                        (Parser.Tree, Params.Post_Parse_Action,
@@ -485,10 +467,13 @@ package body Emacs_Wisi_Common_Parse is
                      end;
                   end case;
 
-                  Clean_Up;
+                  Parse_Data.Put
+                    (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+                     Parser.Tree);
                exception
                when others =>
-                  Clean_Up;
+                  Parser.Tree.Lexer.Discard_Rest_Of_Input;
+                  WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
                   raise;
                end;
 

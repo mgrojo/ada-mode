@@ -489,14 +489,13 @@ one or more Query messages."
     (push err (wisi-parser-parse-errors parser))
     ))
 
-(defun wisi-process-parse--Check_Error (parser sexp)
-  ;; sexp is [Check_Error code name-1-pos name-2-pos <string>]
+(defun wisi-process-parse--In_Parse_Action_Error (parser sexp)
+  ;; sexp is [In_Parse_Action_Error code name-1-pos name-2-pos <string>]
   ;; see ‘wisi-process-parse--execute’
-  (let* ((name-1-pos (aref sexp 2))
-	 (name-2-pos (aref sexp 3))
-	 (column-at-pos (lambda (pos) (goto-char pos)(current-column)))
-	 (file-name (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")))
-    ;; file-name can be nil during vc-resolve-conflict
+  (let ((name-1-pos (aref sexp 2))
+	(name-2-pos (aref sexp 3))
+	(column-at-pos (lambda (pos) (goto-char pos)(current-column)))
+	(file-name (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")))
 
     (when (not name-1-pos)
       (setq name-1-pos name-2-pos)
@@ -632,7 +631,7 @@ one or more Query messages."
   ;;    If error recovery is successful, there can be more than one
   ;;    error reported during a parse.
   ;;
-  ;; [Check_Error code name-1-pos name-2-pos <string>]
+  ;; [In_Parse_Action_Error code name-1-pos name-2-pos <string>]
   ;;    The parser detected an in-parse action error; save information
   ;;    for later reporting. Either of the name-*-pos may be 0,
   ;;    indicating a missing name.
@@ -675,7 +674,7 @@ one or more Query messages."
     (3  (wisi-process-parse--Indent parser sexp))
     (4  (wisi-process-parse--Lexer_Error parser sexp))
     (5  (wisi-process-parse--Parser_Error parser sexp))
-    (6  (wisi-process-parse--Check_Error parser sexp))
+    (6  (wisi-process-parse--In_Parse_Action_Error parser sexp))
     (7  (wisi-process-parse--Recover parser sexp))
     (8  (wisi-process-parse--End parser sexp))
     (9  (wisi-process-parse--Name_Property parser sexp))
