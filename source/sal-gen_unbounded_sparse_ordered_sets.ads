@@ -17,6 +17,9 @@ with Ada.Iterator_Interfaces;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 generic
    type Index_Type is private;
+   --  Index_Type must have a valid default initialization; it is used as
+   --  Gen_Unbounded_Definite_Red_Black_Trees.Element_Type.
+
    with function Index_Compare (Left, Right : in Index_Type) return Compare_Result;
 package SAL.Gen_Unbounded_Sparse_Ordered_Sets is
 
