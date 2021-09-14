@@ -502,33 +502,38 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       use Syntax_Trees;
       use all type Bounded_Streams.Cursor;
    begin
-      if Config.Input_Stream.First = Bounded_Streams.No_Element then
-         if Tree.Label (Config.Current_Shared_Token.Element) in Terminal_Label then
-            Tree.Stream_Next (Config.Current_Shared_Token, Rooted => False);
-            return;
-         else
-            --  Current_Shared_Token needs Breakdown; move it to Config.Input_Stream.
-            Config.Input_Stream.Append
-              (Tree.Get_Node (Config.Current_Shared_Token.Stream, Config.Current_Shared_Token.Element));
-            Tree.Stream_Next (Config.Current_Shared_Token, Rooted => False);
-         end if;
-      end if;
-
+      --  Handle skip empty nonterms, breakdown of non-empty nonterms.
+      --  Config.Input_Stream can end in an empty nonterm;
+      --  ada_mode-interactive_02.adb.
       loop
-         declare
-            Next_Node : constant Valid_Node_Access := Config.Input_Stream (Config.Input_Stream.First);
-         begin
-            exit when Tree.Label (Next_Node) in Terminal_Label;
-
-            if Tree.Is_Empty_Nonterm (Next_Node) then
-               Config.Input_Stream.Delete_First;
+         if Config.Input_Stream.First = Bounded_Streams.No_Element then
+            if Tree.Label (Config.Current_Shared_Token.Element) in Terminal_Label then
+               Tree.Stream_Next (Config.Current_Shared_Token, Rooted => False);
+               return;
             else
-               Left_Breakdown (Tree, Config.Input_Stream);
+               --  Current_Shared_Token needs Breakdown; move it to Config.Input_Stream.
+               Config.Input_Stream.Append
+                 (Tree.Get_Node (Config.Current_Shared_Token.Stream, Config.Current_Shared_Token.Element));
+               Tree.Stream_Next (Config.Current_Shared_Token, Rooted => False);
             end if;
-         end;
-      end loop;
 
-      Config.Input_Stream.Delete_First;
+         else
+            declare
+               Next_Node : constant Valid_Node_Access := Config.Input_Stream (Config.Input_Stream.First);
+            begin
+               if Tree.Label (Next_Node) in Terminal_Label then
+                  Config.Input_Stream.Delete_First;
+                  return;
+
+               elsif Tree.Is_Empty_Nonterm (Next_Node) then
+                  Config.Input_Stream.Delete_First;
+
+               else
+                  Left_Breakdown (Tree, Config.Input_Stream);
+               end if;
+            end;
+         end if;
+      end loop;
    end Do_Delete;
 
    function Get_Current_Token

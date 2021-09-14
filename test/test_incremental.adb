@@ -800,6 +800,70 @@ package body Test_Incremental is
 
    end Modify_Deleted_Node;
 
+   procedure Multiple_Errors_On_One_Token_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Same initial text as test_mckenzie_recover.adb
+      --  Multiple_Errors_On_One_Token_1; here we edit to fix the error.
+
+      Parse_Text
+        ("procedure A is B : Integer" & ASCII.LF &
+           --  |6  |10       |20
+           "procedure C is begin null; end A; procedure D is begin null; end D;",
+         --  |29        |40       |50       |60       |70       |80       |90
+         Edit_At     => 27,
+         Delete      => "",
+         Insert      => ";",
+         Edit_2_At   => 54,
+         Delete_2    => "",
+         Insert_2    => " end C; begin null;",
+         Full_Errors => 2,
+         Incr_Errors => 0);
+
+      --  Edited text:
+      --  "procedure A is B : Integer;" & ASCII.LF &
+      --   |1       |10       |20
+      --  "procedure C is begin null; end C; begin null; end A; procedure D is begin null; end D;",
+      --   |29        |40       |50       |60       |70       |80       |90       |100      |110
+
+      --  There are two errors; missing ';' after 'Integer',
+      --  missing_name_error on 'procedure C'. The solution to the
+      --  match_names_error requires unreducing subprogram_body C, so both
+      --  errors store an error on 'procedure', which are cleared during
+      --  incremental parse after the edits.
+   end Multiple_Errors_On_One_Token_1;
+
+   procedure Multiple_Errors_On_One_Token_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Same initial text as test_mckenzie_recover.adb
+      --  Multiple_Errors_On_One_Token_1; here we have a different edit
+      --  that breaks down procedure C, so 'procedure' is in the input
+      --  stream as a terminal.
+
+      Parse_Text
+        ("procedure A is B : Integer" & ASCII.LF &
+           --  |6  |10       |20
+           "procedure C is begin E; end A; procedure D is begin E; end D;",
+         --  |29        |40       |50       |60       |70       |80    |90
+         Edit_At     => 27,
+         Delete      => "",
+         Insert      => ";",
+         Edit_2_At   => 38,
+         Delete_2    => "C",
+         Insert_2    => "C1",
+         Full_Errors => 2,
+         Incr_Errors => 1);
+
+      --  Edited text:
+      --  "procedure A is B : Integer;" & ASCII.LF &
+      --   |1       |10       |20
+      --  "procedure C1 is begin E; end A; procedure D is begin E; end D;",
+      --   |29        |40       |50       |60       |70       |80       |90
+   end Multiple_Errors_On_One_Token_2;
+
    ----------
    --  Public subprograms
 
@@ -834,6 +898,8 @@ package body Test_Incremental is
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
       Register_Routine (T, Modify_Deleted_Node'Access, "Modify_Deleted_Node");
+      Register_Routine (T, Multiple_Errors_On_One_Token_1'Access, "Multiple_Errors_On_One_Token_1");
+      Register_Routine (T, Multiple_Errors_On_One_Token_2'Access, "Multiple_Errors_On_One_Token_2");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

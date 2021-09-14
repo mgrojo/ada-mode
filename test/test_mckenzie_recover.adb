@@ -144,7 +144,11 @@ package body Test_McKenzie_Recover is
 
       Parser_State : WisiToken.Parse.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
 
-      function Get_Error_Node return Node_Access
+      Error_Node  : Node_Access :=  Invalid_Node_Access;
+      Error_Cursor : Error_Data_Lists.Cursor := Error_Data_Lists.No_Element;
+
+      procedure Get_Error
+      --  Set Error_Node, Error_Cursor.
       is
          use all type Ada.Containers.Count_Type;
 
@@ -167,17 +171,15 @@ package body Test_McKenzie_Recover is
                      end if;
                      Parser.Tree.Next_Error (Error_Ref);
                   end loop;
-                  return Parser.Tree.Error_Node (Error_Ref);
+                  Error_Node   := Parser.Tree.Error_Node (Error_Ref);
+                  Error_Cursor := Error_Ref.Error;
                end;
-            else
-               return Invalid_Node_Access;
             end if;
-
          else
             Check (Label_I & ".Errors_Length", Parser.Tree.Error_Count (Parser.Tree.First_Parse_Stream), Errors_Length);
             if Errors_Length > 0 then
                declare
-                  Error_Ref : WisiToken.Syntax_Trees.Stream_Error_Ref := Parser.Tree.First_Error
+                  Error_Ref : Stream_Error_Ref := Parser.Tree.First_Error
                     (Parser.Tree.First_Parse_Stream);
                begin
                   loop
@@ -189,16 +191,16 @@ package body Test_McKenzie_Recover is
                      end if;
                      Parser.Tree.Next_Error (Error_Ref);
                   end loop;
-                  return Parser.Tree.Error_Node (Error_Ref);
+                  Error_Node   := Parser.Tree.Error_Node (Error_Ref);
+                  Error_Cursor := Error_Ref.Error;
                end;
-            else
-               return Invalid_Node_Access;
             end if;
          end if;
-      end Get_Error_Node;
+      end Get_Error;
 
-      Error_Node  : constant Node_Access := Get_Error_Node;
    begin
+      Get_Error;
+
       if Error_Node /= Invalid_Node_Access then
          Check (Label_I & ".Error.TOKEN_ID", Parser.Tree.ID (Error_Node), Error_Token_ID);
          Check
@@ -206,8 +208,7 @@ package body Test_McKenzie_Recover is
             Error_Token_Byte_Region);
 
          declare
-            Error_Classwide : constant Error_Data'Class := WisiToken.Parse.Find_Non_Lexer_Error
-              (Parser.Tree, Error_Node);
+            Error_Classwide : constant Error_Data'Class := Parser.Tree.Error_List (Error_Node)(Error_Cursor);
          begin
             if Code = Ok then
                --  Expecting a Parse_Action error. Label is "code" so prj.el
@@ -2349,6 +2350,47 @@ package body Test_McKenzie_Recover is
          Cost                    => 0);
    end Pushback_Nonterm_1;
 
+   procedure Multiple_Errors_On_One_Token (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions := True;
+
+      Parse_Text
+        ("procedure A is B : Integer" & ASCII.LF &
+           --  |6  |10       |20
+           "procedure C is begin null; end A; procedure D is begin null; end D;"
+         --  |29        |40       |50       |60       |70       |80       |90
+        );
+
+      --  There are two errors; missing ';' after 'Integer',
+      --  match_names_error on 'procedure C'. The fix for the second error
+      --  requires unreducing 'procedure C', so both store an error on
+      --  'procedure'.
+      Check_Recover
+        (Label                   => "1",
+         Errors_Length           => 2,
+         Checking_Error          => 1,
+         Error_Token_ID          => +PROCEDURE_ID,
+         Error_Token_Byte_Region => (28, 36),
+         Ops                     => +(Insert, +SEMICOLON_ID, 2),
+         Cost                    => 1);
+
+      Check_Recover
+        (Label                   => "1",
+         Errors_Length           => 2,
+         Checking_Error          => 2,
+         Code                    => Match_Names_Error,
+         Error_Token_ID          => +PROCEDURE_ID,
+         Error_Token_Byte_Region => (28, 36),
+         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, -7) & (Push_Back, +SEMICOLON_ID, 1) &
+           (Push_Back, +name_opt_ID, 0) & (Push_Back, +END_ID, -1) & (Insert, +END_ID, -1) &
+           (Insert, +SEMICOLON_ID, -1) & (Insert, +BEGIN_ID, -1),
+         Enqueue_Low             => 55,
+         Check_Low               => 25,
+         Cost                    => 1);
+   end Multiple_Errors_On_One_Token;
+
    ----------
    --  Public subprograms
 
@@ -2414,6 +2456,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Matching_Begin_Parse_All_Conflicts'Access, "Matching_Begin_Parse_All_Conflicts");
       Register_Routine (T, Check_Multiple_Delete_For_Insert'Access, "Check_Multiple_Delete_For_Insert");
       Register_Routine (T, Pushback_Nonterm_1'Access, "Pushback_Nonterm_1");
+      Register_Routine (T, Multiple_Errors_On_One_Token'Access, "Multiple_Errors_On_One_Token");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

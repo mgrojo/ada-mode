@@ -151,27 +151,9 @@ package body WisiToken.Parse.LR.Parser_Lists is
          return;
       end if;
 
-      if Delete and then
-        (not Tree.Has_Input (Parser_State.Stream) and
-           not Tree.Is_Terminal (Parser_State.Shared_Token.Node))
-      then
-         if Tree.Count_Terminals (Parser_State.Shared_Token.Node) = 1 then
-            --  Just skip it below
-            null;
-         else
-            --  Need to breakdown Node before deleting the first terminal
-            --
-            --  It may seem redundant to increment shared_Token _and_ set
-            --  Inc_Shared_Stream false, but this way we are consistent with error
-            --  recovery.
-            Tree.Move_Shared_To_Input (Parser_State.Shared_Token, Parser_State.Stream, Parser_State.Current_Token);
-            Parser_State.Inc_Shared_Stream_Token := False;
-         end if;
-      end if;
-
-      if Tree.Has_Input (Parser_State.Stream) then
-         if Delete then
-            loop
+      loop
+         if Tree.Has_Input (Parser_State.Stream) then
+            if Delete then
                declare
                   use all type WisiToken.Syntax_Trees.Node_Label;
 
@@ -184,9 +166,9 @@ package body WisiToken.Parse.LR.Parser_Lists is
                      if Tree.Child_Count (Ref.Node) = 0 then
                         --  Delete an empty nonterm preceding the target terminal.
                         Tree.Stream_Delete (Parser_State.Stream, To_Delete);
-                        pragma Assert (Tree.Has_Input (Parser_State.Stream));
+
                      else
-                        --  We only support Delete for terminals. See
+                        --  Error recover only supports Delete for terminals. See
                         --  test_mckenzie_recover.adb String_Quote_1 second case.
                         Tree.Left_Breakdown (Ref);
                      end if;
@@ -195,14 +177,41 @@ package body WisiToken.Parse.LR.Parser_Lists is
                      exit;
                   end if;
                end;
-            end loop;
-         end if;
 
-      else
-         if Parser_State.Inc_Shared_Stream_Token or Delete then
-            Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+            else
+               --  Delete is false; no need to do anything to the parse stream
+               --  input; Tree.First (Parser_State.Stream) is the next token.
+               exit;
+            end if;
+
+         else
+            --  No stream input
+            if Delete and not Tree.Is_Terminal (Parser_State.Shared_Token.Node) then
+               if Tree.Count_Terminals (Parser_State.Shared_Token.Node) = 1 then
+                  Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+                  exit;
+               else
+                  --  Need to breakdown Node before deleting the first terminal
+                  --
+                  --  It may seem redundant to increment shared_Token _and_ set
+                  --  Inc_Shared_Stream false, but this way we are consistent with error
+                  --  recovery.
+                  Tree.Move_Shared_To_Input
+                    (Parser_State.Shared_Token, Parser_State.Stream, Parser_State.Current_Token);
+                  Parser_State.Inc_Shared_Stream_Token := False;
+               end if;
+
+            elsif Parser_State.Inc_Shared_Stream_Token or Delete then
+               Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
+               --  We don't tree.set_shared_link here, because Shared_Token has
+               --  not yet been pushed on the stack.
+
+               exit;
+            else
+               exit;
+            end if;
          end if;
-      end if;
+      end loop;
 
       if Set_Current then
          if Tree.Has_Input (Parser_State.Stream) then

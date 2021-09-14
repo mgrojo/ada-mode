@@ -61,7 +61,11 @@ begin
          Trace.New_Line;
          --  Parents not set, can't get Line_Numbers
          Trace.Put_Line ("edited stream:");
-         Trace.Put_Line (Shared_Parser.Tree.Image (Shared_Parser.Tree.Shared_Stream));
+         Trace.Put_Line
+           (Shared_Parser.Tree.Image
+              (Shared_Parser.Tree.Shared_Stream,
+               Children    => Trace_Parse > Extra or Trace_Incremental_Parse > Extra,
+               Non_Grammar => Trace_Parse > Extra or Trace_Incremental_Parse > Extra));
          Trace.New_Line;
       end if;
 

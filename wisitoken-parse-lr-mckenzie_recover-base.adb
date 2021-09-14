@@ -311,7 +311,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       begin
          Put (Parser_Index, Configs); --  Decrements Active_Worker_Count.
 
-         if Trace_McKenzie > Outline then
+         if Trace_McKenzie > Detail then
             Put
               ("succeed: enqueue" & Integer'Image (Data.Enqueue_Count) & ", check " & Integer'Image (Data.Check_Count),
                Trace.all, Tree.all, Parser_Status (Parser_Index).Parser_State.Stream, Config);
@@ -523,7 +523,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          for I in Parser_Status'Range loop
             Streams (I) := Parser_Status (I).Parser_State.Stream;
          end loop;
-         Extend_Sequential_Index (Tree.all, Streams, Min_Sequential_Indices, Target, Positive => False);
+         Extend_Sequential_Index (Tree.all, Streams, Min_Sequential_Indices, Target, Positive => False, Clear => False);
       end Extend_Min_Sequential_Index;
 
       procedure Extend_Max_Sequential_Index (Target : in Syntax_Trees.Sequential_Index)
@@ -533,7 +533,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          for I in Parser_Status'Range loop
             Streams (I) := Parser_Status (I).Parser_State.Stream;
          end loop;
-         Extend_Sequential_Index (Tree.all, Streams, Max_Sequential_Indices, Target, Positive => True);
+         Extend_Sequential_Index (Tree.all, Streams, Max_Sequential_Indices, Target, Positive => True, Clear => False);
       end Extend_Max_Sequential_Index;
 
    end Supervisor;

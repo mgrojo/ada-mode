@@ -249,9 +249,10 @@ private
       Streams   : in     Syntax_Trees.Stream_ID_Array;
       Terminals : in out Syntax_Trees.Stream_Node_Parents_Array;
       Target    : in     Syntax_Trees.Base_Sequential_Index;
-      Positive  : in     Boolean)
+      Positive  : in     Boolean;
+      Clear     : in     Boolean)
    with Pre =>
-     (if Target = Syntax_Trees.Invalid_Sequential_Index
+     (if Clear
       then (for all Term of Terminals =>
               Tree.Get_Sequential_Index (Term.Ref.Node) = Syntax_Trees.Invalid_Sequential_Index)
       else
@@ -268,7 +269,7 @@ private
               else Tree.Get_Sequential_Index (Term.Ref.Node) > Target))),
      Post =>
        (for all Term of Terminals =>
-          (if Target = Syntax_Trees.Invalid_Sequential_Index
+          (if Clear
            then Tree.Get_Sequential_Index (Term.Ref.Node) = Syntax_Trees.Invalid_Sequential_Index
            else Tree.Get_Sequential_Index (Term.Ref.Node) /= Syntax_Trees.Invalid_Sequential_Index));
    --  If Target = Invalid_Sequential_Index, clear all Sequential_Index,

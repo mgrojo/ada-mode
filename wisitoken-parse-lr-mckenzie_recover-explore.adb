@@ -1318,11 +1318,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Target_Ref : in out Config_Stream_Parents;
          Max_Index  :    out Base_Sequential_Index)
       with Pre => Length (Config.Input_Stream) > 0 and Tree.Is_Terminal (Target_Ref.Node)
-      --  Delete terminals thru Target_Ref.Node - 1 in Config.Input_Stream.
-      --  Max_Index is the last node_index deleted; Invalid_Sequential_Index
-      --  if none (ie Target_Ref is first element in Input_Stream).
-      --  Target_Ref is updated if Input_Stream is broken down to expose
-      --  tokens.
+      --  Delete terminals in Config.Input_Stream, first terminal to
+      --  Prev_Terminal (First_Terminal (Target_Ref)). Max_Index is the last
+      --  Sequential_Index deleted; Invalid_Sequential_Index if none (ie
+      --  Target_Ref.Node is first terminal in Input_Stream). Target_Ref is
+      --  updated if Input_Stream is broken down to expose tokens.
       is
          Stream : Bounded_Streams.List renames Config.Input_Stream;
 
@@ -1453,12 +1453,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             Parse.Prev_Sequential_Terminal (Tree, String_Literal);
          end loop;
 
-         --  Delete pushed_back tokens to the string literal; keep the tokens
-         --  before it.
+         --  Delete pushed_back tokens before the string literal.
          Delete_Pushed_Back (Label, Config, String_Literal, Max_Deleted);
 
-         --  Parse the pushed back tokens before the string literal so
-         --  Config matches Ops.
+         --  Process the deletes so Config matches Ops. Also parse the string
+         --  literal.
          declare
             Parse_Items : aliased Parse.Parse_Item_Arrays.Vector;
          begin
@@ -1880,14 +1879,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             begin
                Search_Forward :
                loop
-                  for Err of Tree.Error_List (Term.Ref.Node) loop
-                     if Err in Lexer_Error then
-                        Found := True;
-                        exit Search_Forward;
-                     end if;
-                  end loop;
+                  if Term.Ref.Node /= Invalid_Node_Access then
+                     --  Invalid when Current_Shared_Token is an empty nonterm.
+                     for Err of Tree.Error_List (Term.Ref.Node) loop
+                        if Err in Lexer_Error then
+                           Found := True;
+                           exit Search_Forward;
+                        end if;
+                     end loop;
 
-                  exit Search_Forward when Tree.ID (Term.Ref.Node) = Tree.Lexer.Descriptor.EOI_ID;
+                     exit Search_Forward when Tree.ID (Term.Ref.Node) = Tree.Lexer.Descriptor.EOI_ID;
+                  end if;
 
                   exit Search_Forward when Tree.Line_Region (Term, Super.Stream (Parser_Index)).First /= Current_Line;
 

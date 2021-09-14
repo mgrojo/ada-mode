@@ -90,6 +90,8 @@ package WisiToken.Parse.LR.Parser is
       --  Gather data for tests.
 
       Resume_Active : Boolean := False;
+      Min_Sequential_Index : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'Last;
+      Max_Sequential_Index : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'First;
 
       Parsers : aliased Parser_Lists.List;
 

@@ -31,6 +31,12 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+Stream.Shared_Link === Parser_State.Shared_Token
+    except after parser_lists.next_token
+    delete parser_state.current_token, shared_token
+    add function tree.current_Token => stream.input or stream.shared_link
+
+
 store errors in tree
     t_all passing; moving to o.e.a
 
@@ -39,16 +45,11 @@ store errors in tree
 
     test case for Right_Breakdown move_errors.
 
-    test match_names_error
-        set_error on reduce in_parse_action is at stack_top, not stream input.
-
     test case for wisitoken-syntax_trees.adb Add_Deleted Not_Implemented.
 
-parser_state.current_token should be a function?
-    avoid errors in correcting it after Add/Delete_Error.
-
 Tree.validate check that all tree.nodes are in tree
-    call it in test_incremental.adb?
+    possibly in following_deleted
+    call it in syntax_Trees.clear_parse_streams
 
 next error recover try prev solution first - new strategy.
 

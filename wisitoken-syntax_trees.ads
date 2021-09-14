@@ -20,7 +20,8 @@
 --
 --  Node_Index is used only for debugging. Node_Index on nonterms is
 --  negative. Node_Index on terminal nodes created by the lexer in the
---  shared stream is positive.
+--  shared stream is positive; Nod_Index on virtual nodes inserted by
+--  error recover is negative.
 --
 --  During a batch parse, Node_Index on terminals is sequential, as a
 --  consequence of lexing the source code first; Node_Index on
@@ -705,10 +706,11 @@ package WisiToken.Syntax_Trees is
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID;
       State  : in     State_Index;
-      Token  : in     Stream_Index)
-   with Pre => not Tree.Traversing and
-               (Tree.Contains (Tree.Shared_Stream, Token) or else
-                  Token = Tree.Stream_Next (Stream, Tree.Stack_Top (Stream)));
+      Token  : in     Stream_Node_Ref)
+   with Pre =>
+     not Tree.Traversing and
+     (Tree.Shared_Stream = Token.Stream or else
+        Token.Element = Tree.Stream_Next (Stream, Tree.Stack_Top (Stream)));
    --  If Token is in Shared_Stream, push Token on Stream stack;
    --  otherwise move from Stream input to Stream stack. Then set State
    --  in the Stream element, and set Stream.Shared_Link to Stream_Next
@@ -720,7 +722,7 @@ package WisiToken.Syntax_Trees is
    procedure Set_Shared_Link
      (Tree        : in out Syntax_Trees.Tree;
       Stream      : in     Stream_ID;
-      Shared_Link : in     Stream_Node_Ref);
+      Shared_Link : in     Stream_Index);
    --  Set Stream.Shared_Link to Shared_Link.
    --
    --  Normally Stream.Shared_Link is set by Shift; Set_Shared_Link is
@@ -1142,11 +1144,13 @@ package WisiToken.Syntax_Trees is
    function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
-   function Is_First_Stream_Input
+   function Is_Next_Stream_Input
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID;
       Ref    : in Stream_Node_Ref)
      return Boolean;
+   --  True if Ref is Stream.First_Input or Stream.Shared_Link if
+   --  Stream_First_Input is invalid.
 
    procedure Set_Insert_Location
      (Tree            : in Syntax_Trees.Tree;
@@ -1518,7 +1522,7 @@ package WisiToken.Syntax_Trees is
    --  Update Ref to the next terminal node that can give byte or char
    --  pos.
    --
-   --  If Trailing_Non_Grammar, return next terminal after Ref.Ref.Node
+   --  If Trailing_Non_Grammar, return next terminal after Ref.Node
    --  that is a Source_Terminal, or a virtual terminal with non-empty
    --  non_grammar. If not Trailing_Non_Grammar, only return a
    --  Source_Terminal.
@@ -2101,8 +2105,9 @@ package WisiToken.Syntax_Trees is
                Prev_Terminal.Ref.Stream /= Tree.Shared_Stream and
                Tree.Label (Prev_Terminal.Ref.Node) = Source_Terminal;
    --  Copy Prev_Terminal.Ref.Node, add Deleted_Node to
-   --  Prev_Terminal.Ref.Node.Following_Deleted. Updates Prev_Terminal to
-   --  point to copied node. Updates Deleted.Stream.Shared_Link if required.
+   --  Prev_Terminal.Ref.Node.Following_Deleted. Update Prev_Terminal to
+   --  point to copied node. Update Deleted.Stream.Shared_Link if
+   --  required.
 
    function Has_Following_Deleted
      (Tree : in out Syntax_Trees.Tree;
@@ -2221,8 +2226,9 @@ package WisiToken.Syntax_Trees is
       User_Data : in     User_Data_Access)
    with Pre =>
      not Tree.Contains_Error (Error_Ref.Node, Data) and
-     (if Stream /= Error_Ref.Stream
-      then Tree.Is_First_Stream_Input (Stream, Error_Ref));
+     (if Stream = Error_Ref.Stream
+      then Error_Ref.Element = Tree.Stack_Top (Error_Ref.Stream) or Tree.Is_Next_Stream_Input (Stream, Error_Ref)
+      else Error_Ref.Stream = Tree.Shared_Stream and Tree.Is_Next_Stream_Input (Stream, Error_Ref));
    --  Move Error_Ref to Stream, add Data to Error_Ref.Node error list.
    --  Update Error_Ref to point to new stream element with copied node.
 
@@ -2232,10 +2238,7 @@ package WisiToken.Syntax_Trees is
       Error_Ref : in out Stream_Node_Parents;
       Data      : in     Error_Data'Class;
       User_Data : in     User_Data_Access)
-   with Pre =>
-     not Tree.Contains_Error (Error_Ref.Ref.Node, Data) and
-     (if Stream /= Error_Ref.Ref.Stream
-      then Tree.Is_First_Stream_Input (Stream, Error_Ref.Ref));
+   with Pre => not Tree.Contains_Error (Error_Ref.Ref.Node, Data);
    --  Move Error_Ref to Stream, store Data in Error_Ref.Node, copying
    --  Error_Ref.Node and all ancestors. Update Error_Ref to point to new
    --  stream element with copied nodes.
@@ -2294,12 +2297,17 @@ package WisiToken.Syntax_Trees is
       --  Element in error node Error_Data_List.
    end record;
 
+   Invalid_Error_Ref : constant Error_Ref :=
+     (Invalid_Node_Access, Valid_Node_Access_Lists.No_Element, Error_Data_Lists.No_Element);
+
    type Stream_Error_Ref is record
       --  Used while parsing
       Ref     : Stream_Node_Parents;
       Deleted : Valid_Node_Access_Lists.Cursor;
       Error   : Error_Data_Lists.Cursor;
    end record;
+
+   Invalid_Stream_Error_Ref : constant Stream_Error_Ref;
 
    type Stream_Error_Cursor is private;
    --  We need an extra layer of indirection for this type because
@@ -2494,9 +2502,14 @@ package WisiToken.Syntax_Trees is
       Index : in Base_Sequential_Index)
    with Pre => Tree.Label (Node) in Terminal_Label;
 
-   function Node_Access_Compare (Left, Right : in Node_Access) return SAL.Compare_Result;
+   function Node_Access_Compare (Left, Right : in Node_Access) return SAL.Compare_Result
+   with Pre => Left /= Invalid_Node_Access and Right /= Invalid_Node_Access;
    --  Only valid on a batch parsed tree, where Node_Index is ordered and
    --  unique.
+   --
+   --  Left, Right can't be Valid_Node access because
+   --  SAL.Gen_Unbounded_Sparse_Ordered_Sets requires a valid default
+   --  initialization.
 
    package Node_Sets is new SAL.Gen_Unbounded_Sparse_Ordered_Sets (Node_Access, Node_Access_Compare);
 
@@ -2544,6 +2557,10 @@ package WisiToken.Syntax_Trees is
    --  Violations output a message to Text_IO.Current_Error.
    --  Error_Reported is used to avoid outputing an error for a node more
    --  than once.
+
+   procedure Sequential_Index_Cleared (Tree : in Syntax_Trees.Tree);
+   --  Raises SAL.Programmer_Error if any node in Tree or Tree.Streams
+   --  has Sequential_Index /= Invalid_Sequential_Index.
 
    procedure Print_Tree
      (Tree         : in     Syntax_Trees.Tree;
@@ -2686,10 +2703,6 @@ private
       State : Unknown_State_Index := Unknown_State;
       --  Parse state that is on the parse stack with this token.
       --  Unknown_State in Shared_Stream or a parse stream input.
-
-      Label : Stream_Label := Invalid_Stream_Label;
-      --  Allows checking if Element is from Shared_Stream or a parse
-      --  stream.
    end record;
 
    package Stream_Element_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Stream_Element);
@@ -2778,7 +2791,6 @@ private
       Token  : in Stream_Index)
      return Boolean
    is ((Tree.Is_Valid (Stream) and Token /= Invalid_Stream_Index) and then
-         Stream_Element_Lists.Constant_Ref (Token.Cur).Label = Tree.Streams (Stream.Cur).Label and then
          (for some Cur in Tree.Streams (Stream.Cur).Elements.Iterate => Cur = Token.Cur));
 
    function Correct_Stream_Node
@@ -2787,10 +2799,9 @@ private
      return Boolean
    is (Ref = Invalid_Stream_Node_Ref or else
          (Ref.Element /= Invalid_Stream_Index and then
-            (Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Label = Tree.Streams (Ref.Stream.Cur).Label and
-               (Ref.Node = Invalid_Node_Access or else
-                  (not Tree.Parents_Set or else
-                     Tree.Subtree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element))))));
+            (Ref.Node = Invalid_Node_Access or else
+               (not Tree.Parents_Set or else
+                  Tree.Subtree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element)))));
 
    function Editable (Tree : in Syntax_Trees.Tree) return Boolean
    is (Tree.Parents_Set and Tree.Streams.Length = 0 and Tree.Shared_Stream.Cur = Parse_Stream_Lists.No_Element);
@@ -3050,6 +3061,9 @@ private
    type Stream_Error_Cursor is record
       SER : Stream_Error_Ref;
    end record;
+
+   Invalid_Stream_Error_Ref : constant Stream_Error_Ref :=
+     (Invalid_Stream_Node_Parents, Valid_Node_Access_Lists.No_Element, Error_Data_Lists.No_Element);
 
    function Error (Item : in Stream_Error_Cursor) return Stream_Error_Ref
    is (Item.SER);
