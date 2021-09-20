@@ -471,6 +471,9 @@ package body Emacs_Wisi_Common_Parse is
                     (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                      Parser.Tree);
                exception
+               when Wisi.Parse_Context.Not_Found =>
+                  raise;
+
                when others =>
                   Parser.Tree.Lexer.Discard_Rest_Of_Input;
                   WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);

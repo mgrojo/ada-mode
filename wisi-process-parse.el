@@ -496,6 +496,7 @@ one or more Query messages."
 	(name-2-pos (aref sexp 3))
 	(column-at-pos (lambda (pos) (goto-char pos)(current-column)))
 	(file-name (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")))
+    ;; file-name can be nil during vc-resolve-conflict
 
     (when (not name-1-pos)
       (setq name-1-pos name-2-pos)

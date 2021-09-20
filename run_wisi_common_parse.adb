@@ -345,20 +345,6 @@ package body Run_Wisi_Common_Parse is
       raise SAL.Parameter_Error;
    end Command_Options;
 
-   procedure Put_Errors
-     (Parser     : in out WisiToken.Parse.LR.Parser.Parser;
-      Parse_Data : in     Wisi.Parse_Data_Type'Class)
-   is
-      use all type SAL.Base_Peek_Type;
-   begin
-      if Parser.Parsers.Count > 0 then
-         --  Count is zero when all parsers fail. FIXME: some other error message output then?
-         Parse_Data.Put
-           (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-            Parser.Tree);
-      end if;
-   end Put_Errors;
-
    procedure Process_Command
      (Parse_Context : in Wisi.Parse_Context.Parse_Context_Access;
       Line : in String)
@@ -417,24 +403,18 @@ package body Run_Wisi_Common_Parse is
 
          Parse_Data.Reset;
          Parser.Tree.Lexer.Reset;
-         declare
-            procedure Clean_Up
-            is begin
-               Parser.Tree.Lexer.Discard_Rest_Of_Input;
-               Parse_Data.Put
-                 (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-                  Parser.Tree);
-            end Clean_Up;
          begin
             Parser.Parse (Log_File);
-            Clean_Up;
+            Parse_Data.Put
+              (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+               Parser.Tree);
          exception
          when WisiToken.Syntax_Error =>
-            Clean_Up;
+            WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
             Ada.Text_IO.Put_Line ("(parse_error)");
 
          when E : WisiToken.Parse_Error =>
-            Clean_Up;
+            WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
             Ada.Text_IO.Put_Line
               ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
                  Ada.Exceptions.Exception_Message (E) & """)");
@@ -466,14 +446,16 @@ package body Run_Wisi_Common_Parse is
                Wisi.Query_Tree (Parse_Data, Parser.Tree, Wisi.Bounds, Buffer_Pos'First);
             end if;
 
-            Put_Errors (Parser, Parse_Data);
+            Parse_Data.Put
+              (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+               Parser.Tree);
          exception
          when WisiToken.Syntax_Error =>
-            Put_Errors (Parser, Parse_Data);
+            WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
             Ada.Text_IO.Put_Line ("(parse_error)");
 
          when E : WisiToken.Parse_Error =>
-            Put_Errors (Parser, Parse_Data);
+            WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
             Ada.Text_IO.Put_Line
               ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
                  Ada.Exceptions.Exception_Message (E) & """)");
@@ -629,19 +611,6 @@ package body Run_Wisi_Common_Parse is
             end if;
 
             for I in 1 .. Cl_Params.Repeat_Count loop
-               declare
-                  procedure Clean_Up
-                  is
-                     use all type SAL.Base_Peek_Type;
-                  begin
-                     Parser.Tree.Lexer.Discard_Rest_Of_Input;
-                     if Cl_Params.Repeat_Count = 1 and Parser.Parsers.Count > 0 then
-                        --  We only get here when parse fails, so can't do actions. Can output
-                        --  error messages.
-                        WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
-                     end if;
-                  end Clean_Up;
-
                begin
                   Parse_Data.Reset;
                   Parser.Tree.Lexer.Reset;
@@ -667,16 +636,16 @@ package body Run_Wisi_Common_Parse is
 
                exception
                when WisiToken.Syntax_Error =>
-                  Clean_Up;
+                  WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
                   Put_Line ("(parse_error)");
 
                when E : WisiToken.Parse_Error =>
-                  Clean_Up;
+                  WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
                   Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
                               Ada.Exceptions.Exception_Message (E) & """)");
 
                when E : others => -- includes Fatal_Error
-                  Clean_Up;
+                  WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
                   Put_Line ("(error """ & Ada.Exceptions.Exception_Name (E) & " " &
                               Ada.Exceptions.Exception_Message (E) & """)");
                end;
@@ -705,16 +674,20 @@ package body Run_Wisi_Common_Parse is
                Parse_Data.Initialize (Trace'Access);
                Parser.Tree.Lexer.Reset;
                Parser.Parse (Log_File);
+               Parse_Data.Put
+                 (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+                  Parser.Tree);
+
             exception
             when WisiToken.Syntax_Error =>
+               WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
                Put_Line ("(parse_error)");
 
             when E : WisiToken.Parse_Error =>
+               WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
                Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
                            Ada.Exceptions.Exception_Message (E) & """)");
             end;
-
-            Put_Errors (Parser, Parse_Data);
 
             case Cl_Params.Command is
             when Parse_Incremental =>
@@ -750,7 +723,9 @@ package body Run_Wisi_Common_Parse is
 
                   Parser.Parse (Log_File, KMN_List);
 
-                  Put_Errors (Parser, Parse_Data);
+                  Parse_Data.Put
+                    (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+                     Parser.Tree);
 
                   Parse_Data.Reset_Post_Parse
                     (Parser.Tree, Cl_Params.Inc_Post_Parse_Action,
@@ -764,11 +739,11 @@ package body Run_Wisi_Common_Parse is
                   Parse_Data.Put (Parser);
                exception
                when WisiToken.Syntax_Error =>
-                  Put_Errors (Parser, Parse_Data);
+                  WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
                   Put_Line ("(parse_error)");
 
                when E : WisiToken.Parse_Error =>
-                  Put_Errors (Parser, Parse_Data);
+                  WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
                   Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
                               Ada.Exceptions.Exception_Message (E) & """)");
                end;

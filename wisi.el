@@ -1250,7 +1250,8 @@ the comment on the previous line."
   (if wisi-incremental-parse-enable
       (let ((containing (wisi-parse-tree-query wisi--parser 'containing-statement (point))))
 	(when containing
-	  (indent-region (car (nth 1 containing)) (cdr (nth 1 containing)))))
+	  (save-excursion
+	    (indent-region (car (nth 1 containing)) (cdr (nth 1 containing))))))
 
     ;; else partial parse.
     (wisi-validate-cache (point-min) (point-max) t 'navigate)
