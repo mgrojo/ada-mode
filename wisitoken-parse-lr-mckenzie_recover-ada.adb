@@ -1379,6 +1379,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       end Matching_Begin_For_End;
 
    begin
+      Forbid_Minimal_Complete := False;
+
       case To_Token_Enum (Tokens (1)) is
       --  Token_Enum_ID alphabetical order
       when COMMA_ID =>

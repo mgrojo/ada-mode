@@ -16,11 +16,13 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1):
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.wisitoken")
 ;;  (xgit . "/Projects/elpa/packages/uniquify-files")
+  (xgit . "/Projects/org.emacs.wisi.stephe-1")
   (xgit . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
    ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
+   ("../org.emacs.wisi"        . "../org.emacs.wisi.stephe-1")
    ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
@@ -28,12 +30,14 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1):
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
   (xgit . "/Projects/org.wisitoken.stephe-1")
+  (xgit . "/Projects/org.emacs.wisi.stephe-1")
   (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
-   ("../org.emacs.ada-mode.stephe-6"   . "../org.emacs.ada-mode")))
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
+   ("../org.emacs.wisi.stephe-1"       . "../org.emacs.wisi")
+   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
@@ -50,14 +54,98 @@ send bug report on wisitoken keeps binding wisitoken-bnf-generate
 all tests pass partial
 
 running all tests incremental
-    test-ada-lalr-partial-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t wisi-process-time-out 10.0)"
+    test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
+
+c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_01.adb:73: test (progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "return 0;"))
+... wisi-parse-error: parser failed with no message
+    in mckenzie recover_init; get_sequential_index (parser 0 current_token) returns invalid
+    parser 0 current_token: (0, -667:(access_definition_3, (3485 . 3497)) 59:(IDENTIFIER, (3492 . 3497)))
+    parser 6 current_token: (-1, 2;386:(END, (4524 . 4526) ERROR))
+    sequential_index_init only does 10 terminals; needs to be 13 for this
+    but parsers are supposed to be on the same shared terminal before enter recover?
+        except for zombie cycles?
+        nope; pause only holds until all are done with resume, not on same shared terminal
+
+resume start:
+8 :
+;;    Current_Token (8, -537:(LEFT_SQUARE_BRACKET))
+;;    Shared_Token  (-1, 2;392:(END, (3034 . 3036)))
+;;    recover_insert_delete ((INSERT, RIGHT_SQUARE_BRACKET, 1), (INSERT, SEMICOLON, 1), (INSERT, NULL, 2), (INSERT, SEMICOLON, 2))
+;;    resume_token_goal 5
+7:
+;;    Current_Token (7, -539:(NULL))
+;;    Shared_Token  (-1, 3;393:(IDENTIFIER, (3038 . 3043)))
+;;    recover_insert_delete ((INSERT, SEMICOLON, 2))
+;;    resume_token_goal 6
+6:
+;;    Current_Token (6, -541:(NULL))
+;;    Shared_Token  (-1, 3;393:(IDENTIFIER, (3038 . 3043)))
+;;    recover_insert_delete ((INSERT, SEMICOLON, 2))
+;;    resume_token_goal 6
+5:
+;;    Current_Token (5, -543:(LEFT_SQUARE_BRACKET))
+;;    Shared_Token  (-1, 2;392:(END, (3034 . 3036)))
+;;    recover_insert_delete ((INSERT, RIGHT_SQUARE_BRACKET, 1), (INSERT, SEMICOLON, 1), (INSERT, NULL, 2), (INSERT, SEMICOLON, 2))
+;;    resume_token_goal 5
+0:
+;;    Current_Token (0, -545:(LEFT_SQUARE_BRACKET))
+;;    Shared_Token  (-1, 2;392:(END, (3034 . 3036)))
+;;    recover_insert_delete ((INSERT, RIGHT_SQUARE_BRACKET, 1), (INSERT, SEMICOLON, 1), (INSERT, IDENTIFIER, 2), (INSERT, COLON, 2), (INSERT, BEGIN, 2), (INSERT, NULL, 2), (INSERT, SEMICOLON, 2))
+;;    inc_shared_stream_token FALSE
+;;    resume_token_goal 5
+
+resume done:
+;;  6: 563: (-1, -579:(declarative_item, (3477 . 3498)), 5;56:(IDENTIFIER, (3477 . 3481))) : shift and goto state 909
+;;  7: 121: (-1, -579:(declarative_item, (3477 . 3498)), 5;56:(IDENTIFIER, (3477 . 3481))) : shift and goto state 49
+;;  8: 121: (-1, -579:(declarative_item, (3477 . 3498)), 5;56:(IDENTIFIER, (3477 . 3481))) : shift and goto state 49
+;;  5: 121: (-1, -579:(declarative_item, (3477 . 3498)), 5;56:(IDENTIFIER, (3477 . 3481))) : shift and goto state 49
+;;  0: 331: (0, 5;56:(IDENTIFIER, (3477 . 3481))) : shift and goto state 146
+
+all on same terminal, but 5 .. 8 shifted entire declarative_item; 0 broke it down.
+
+subsequent parsing:
+(0 verb is shift; 8, 5 terminate; 7, 6 reducing on (-1, 10;61:(BEGIN, (3681 . 3685))))
+;;  7: 49: (compilation_unit_2, (3477 . 3498) <= ((declarative_item, (3477 . 3498))))
+;;  6: 909: (declarative_item_list_2, (2252 . 3498) <= ((declarative_item_list, (2252 . 3044)), (declarative_item, (3477 . 3498))))
+;;  7: 312: (compilation_1, (239 . 3498) <= ((compilation, (239 . 3044)), (compilation_unit, (3477 . 3498))))
+;;  6: 563: (declarative_part_0, (2252 . 3498) <= ((declarative_item_list, (2252 . 3498))))
+;;  7: 121: (label_opt_1 <= ())
+;;  6: 574: (-1, 10;61:(BEGIN, (3681 . 3685))) : shift and goto state 921
+    should not have sequential_index here? clear not called yet?
+;;  7: 72: (-1, 10;61:(BEGIN, (3681 . 3685))) : shift and goto state 294
+    why no 0 shift here?
+need a metric that allows parser to pause 6, 7 here (not shift) to let 0 "catch up".
+
+7 stack top: ((declarative_item_list, (2252 . 3498))), (label_opt_1 <= ())
+  current_token: (BEGIN, (3681 . 3685))
+
+6 stack top: ((declarative_item_list, (2252 . 3498))))
+  current_token:
+
+0 stack top: (IDENTIFIER, (3477 . 3481))
+  current_token: (COLON, (3483 . 3483)) => within 6, 7 stack_top.byte_region
+
+    in batch parse, current_token is never within other parser stack_top.byte_region?
+    if parser.current_token.first_terminal.byte_region.first < stack_top.nonterm.byte_region.last, pause nonterm parser
+
+;;  7: 294: (-1, -789:(statement_statement_list, (3972 . 4316)), 62:(BEGIN, (3972 . 3976))) : shift and goto state 331
+;;  6: 921: (-1, -789:(statement_statement_list, (3972 . 4316)), 62:(BEGIN, (3972 . 3976))) : shift and goto state 331
+;;  0: 146: (0, 57:(COLON, (3483 . 3483))) : reduce 1 tokens to direct_name
 
 
-    review build/test.log
+
+sequential_init keep going until stack_top is set
+    not clear which way to extend, so do both
+    if all first_terminal.sequential_index within zombie_limit, accept it
+    otherwise raise programmer_error
 
 
-test/ada_mode-recover_17.adb
-    incremental parse can place Parse_Error on a nonterm?
+review build/test.log
+
+
+delete parser_state.current_token, shared_token;
+    add function tree.current_Token => stream.input or stream.shared_link
+    see c:/Projects/org.wisitoken.stephe-1/notes.text
 
 ada_mode_wisi_lr1_parse --version
     would be helpful
@@ -979,7 +1067,7 @@ wisitoken keeps binding wisitoken-bnf-generate, thus regenerating ada_annex_p* f
 in ada_annex_p.wy:
 %partial_recursion ;; FIXME: faster compile time while debugging
 
-one ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" save-edited-text \"../edited\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
+one ELISP="(setq-default save-parser-log \"../debug-2.log\" save-edited-text \"../edited\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
 
 RUNTEST=run-indent-test-lalr-partial-process-gpr_query.el ELISP="(setq-default wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" debug-on-error t)" ada_mode-interactive_2.adb.debug
 

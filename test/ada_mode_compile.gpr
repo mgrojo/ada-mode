@@ -22,12 +22,12 @@ project Ada_Mode_Compile is
 
       -- These have incomplete code deliberately; used for interactive editing test (via EMACSCMD)
       "ada_mode-incremental_recover_01.adb",
-      "ada_mode-incremental_recover_02.adb",
       "ada_mode-interactive_case_statement.adb",
       "ada_mode-interactive_01.adb",
       "ada_mode-interactive_02.adb",
       "ada_mode-interactive_03.adb",
       "ada_mode-interactive_05.adb",
+      "ada_mode-interactive_06.adb",
 
       -- These have incomplete code for various reasons
       "ada_mode-incremental_01.adb",

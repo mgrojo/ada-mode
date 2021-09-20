@@ -53,6 +53,10 @@ is
    -- We do _not_ clean up the syntax error; parser must tolerate errors
    -- like this and still give good results.
 
+   -- No test here; just let resume finish from previous error recover
+   -- before next edit.
+   procedure Local_Proc_2 (Param_2 : in Integer);
+
    -- Test that adding a body interactively leaves it properly indented,
    -- and navigation text properties correct. We start with invalid
    -- syntax (missing final ';'), automatic indent after syntax fixed

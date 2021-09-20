@@ -236,8 +236,10 @@ tick : TICK_1 | TICK_2 ;
 %mckenzie_cost_undo_reduce sequence_of_statements 0
 %mckenzie_cost_undo_reduce declarative_part 0
 
-;; Missing or extra closing paren are common; missing handled by
-;; Minimal_Complete.
+;; Missing or extra closing paren and comma are common; missing
+;; handled by Minimal_Complete.
+%mckenzie_cost_delete COMMA 1
+%mckenzie_cost_insert COMMA 3
 %mckenzie_cost_delete RIGHT_PAREN 1
 %mckenzie_cost_insert RIGHT_PAREN 3
 
