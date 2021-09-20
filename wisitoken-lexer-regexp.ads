@@ -120,6 +120,12 @@ package WisiToken.Lexer.Regexp is
       Line  : in Line_Number_Type)
      return Base_Buffer_Pos;
 
+   overriding
+   function Contains_New_Line
+     (Lexer       : in Instance;
+      Byte_Region : in Buffer_Region)
+     return Boolean;
+
 private
 
    type String_Access is access String;

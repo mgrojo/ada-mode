@@ -1017,6 +1017,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("#define YYPEEK() (lexer->cursor <= lexer->buffer_last) ? *lexer->cursor : 4");
       New_Line;
 
+      --  skip() only counts new_lines when used for delimited_text tokens.
+      --  Making it always count new_lines would mean that new_line tokens
+      --  require special handling anyway.
       Indent_Line ("static void skip(wisi_lexer* lexer, int count_lines)");
       Indent_Line ("{");
       Indent := Indent + 3;
@@ -1207,18 +1210,21 @@ package body WisiToken.BNF.Output_Ada_Common is
                  (Val & " {*id =" & WisiToken.Token_ID'Image (ID (I)) &
                     "; skip_to(lexer, " & Repair_Image (Generate_Data, I) & "); continue;}");
 
-            elsif Kind (Generate_Data, I) = "new-line" or
-              Kind (Generate_Data, I) = "comment-new-line"
+            elsif Kind (Generate_Data, I) = "new-line"
             then
                Indent_Line
                  (Name (Generate_Data, I) &
                     " {*id =" & WisiToken.Token_ID'Image (ID (I)) & "; lexer->line++; continue;}");
 
-            elsif Kind (Generate_Data, I) = "comment-one-line" then
+            elsif Kind (Generate_Data, I) = "comment-one-line" or
+              Kind (Generate_Data, I) = "comment-new-line"
+            then
+               --  Comments can be terminated by new_line or EOI
                Indent_Line
                  (Name (Generate_Data, I) &
                     " {*id =" & WisiToken.Token_ID'Image (ID (I)) &
-                    "; if (lexer->cursor[-1] == 0x0a) lexer->line++; continue;}");
+                    "; if (lexer->cursor[-1] == 0x0a || (lexer->cursor[-1] == 0x0d && lexer->cursor[-2] == 0x0a))" &
+                    " lexer->line++; continue;}");
 
             elsif 0 /= Index (Source => Val, Pattern => "/") then
                Indent_Line (Val & " {*id =" & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");

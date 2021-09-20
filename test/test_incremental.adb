@@ -327,7 +327,7 @@ package body Test_Incremental is
       --  Two edits in one token not EOI
       Parse_Text
         (Initial   => "A := B + C; --  A very long comment",
-         --          1        |10       |20
+         --            1        |10       |20
          Edit_At   => 18,
          Delete    => "",
          Insert    => "nother",
@@ -335,6 +335,56 @@ package body Test_Incremental is
          Delete_2  => "long",
          Insert_2  => "big");
    end Edit_Comment_3;
+
+   procedure Edit_Comment_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert end comment exposes code.
+      --
+      --  Preceding comment to ensure we don't mistake that for a new
+      --  comment end.
+      Parse_Text
+        (Initial =>
+           "-- preceding" & ASCII.LF &
+           --  |4    |10    |13
+           "-- A := B;" & ASCII.LF & "C;",
+         --  |15  |20
+         Edit_At => 17,
+         Delete  => "",
+         Insert  => "comment" & ASCII.LF);
+
+      --  Edited text:
+      --  -- preceding
+      --  |1
+      --  -- comment
+      --  |14
+      --  A := B;
+      --  |25
+      --  C;
+      --  |33
+   end Edit_Comment_4;
+
+   procedure Edit_Comment_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Similar to Edit_Comment_4, tests a different case in Edit_Tree.
+      Parse_Text
+        (Initial =>
+           "D;" & ASCII.LF &
+           "-- preceding" & ASCII.LF &
+           --  |7 |10       |16
+           "-- A := B;" & ASCII.LF & "C;",
+         --  |18     |25
+         Edit_At => 20,
+         Delete  => "",
+         Insert  => "comment" & ASCII.LF);
+   end Edit_Comment_5;
+
+   --  FIXME: insert end comment in floated non_grammar
+   --  FIXME: insert LF & "-- "
+   --  FIXME: delete and insert comment end.
 
    procedure Edit_Whitespace_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -875,6 +925,8 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment'Access, "Edit_Comment");
       Register_Routine (T, Edit_Comment_2'Access, "Edit_Comment_2");
       Register_Routine (T, Edit_Comment_3'Access, "Edit_Comment_3");
+      Register_Routine (T, Edit_Comment_4'Access, "Edit_Comment_4");
+      Register_Routine (T, Edit_Comment_5'Access, "Edit_Comment_5");
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");

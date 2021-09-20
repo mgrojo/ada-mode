@@ -210,7 +210,7 @@ package body WisiToken.Lexer.re2c is
 
             Byte_Region =>
               (if ID = Lexer.Descriptor.EOI_ID and then Byte_Position = 0 then
-                  --  EOF in empty buffer
+                  --  EOI in empty buffer
                  (Lexer.Source.Buffer_Nominal_First_Byte,
                   Lexer.Source.Buffer_Nominal_First_Byte - 1)
                else
@@ -225,7 +225,7 @@ package body WisiToken.Lexer.re2c is
             Char_Region =>
               (if ID = Lexer.Descriptor.EOI_ID and then Byte_Position = Integer (Base_Buffer_Pos'First)
                then
-                  --  EOF in empty buffer
+                  --  EOI in empty buffer
                  (Lexer.Source.Buffer_Nominal_First_Byte,
                   Lexer.Source.Buffer_Nominal_First_Byte - 1)
                else
@@ -361,5 +361,14 @@ package body WisiToken.Lexer.re2c is
    is begin
       return Line_Begin_Char_Pos (Lexer.Source, Token, Line);
    end Line_Begin_Char_Pos;
+
+   overriding
+   function Contains_New_Line
+     (Lexer       : in Instance;
+      Byte_Region : in Buffer_Region)
+     return Boolean
+   is begin
+      return Contains_New_Line (Lexer.Source, Byte_Region);
+   end Contains_New_Line;
 
 end WisiToken.Lexer.re2c;

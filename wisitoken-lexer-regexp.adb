@@ -305,4 +305,13 @@ package body WisiToken.Lexer.Regexp is
       return Invalid_Buffer_Pos;
    end Line_Begin_Char_Pos;
 
+   overriding
+   function Contains_New_Line
+     (Lexer       : in Instance;
+      Byte_Region : in Buffer_Region)
+     return Boolean
+   is begin
+      return Contains_New_Line (Lexer.Source, Byte_Region);
+   end Contains_New_Line;
+
 end WisiToken.Lexer.Regexp;

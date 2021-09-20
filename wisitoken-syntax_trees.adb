@@ -1111,7 +1111,7 @@ package body WisiToken.Syntax_Trees is
    --  Char_Pos to the character position following the New_Line.
    is begin
       for Tok of Node.Non_Grammar loop
-         if Contains (Tok.Line_Region, Line) then
+         if Contains (Tok.Line_Region, Line) and New_Line_Count (Tok.Line_Region) > 0 then
             declare
                Temp : constant Base_Buffer_Pos := Tree.Lexer.Line_Begin_Char_Pos (Tok, Line);
             begin
@@ -2480,7 +2480,8 @@ package body WisiToken.Syntax_Trees is
       case Node.Label is
       when Terminal_Label =>
          if Node.ID = Tree.Lexer.Descriptor.EOI_ID and then
-           --  Handle 'Line' as well as 'Line - 1' to allow returning char_pos for the last line.
+           --  Handle 'Line' as well as 'Line - 1' to allow returning char_pos
+           --  for the last line.
            Node.Non_Grammar (Node.Non_Grammar.First_Index).Line_Region.First in Line - 1 | Line
          then
             Char_Pos := Node.Char_Region.First;
@@ -2583,10 +2584,10 @@ package body WisiToken.Syntax_Trees is
      Post => Ref.Ref.Element = Ref.Ref.Element'Old and
              (Ref.Ref.Node = Invalid_Node_Access or else
                 (Ref.Ref.Node.Label in Terminal_Label))
-   --  Update Ref to node under Ref.Node in Ref.Stream that ends Line -
-   --  1. Set Char_Pos to the position of the first character on Line. If
-   --  not found, Ref.Ref.Node is Invalid_Node_Access, Char_Pos is
-   --  Invalid_Buffer_Pos.
+   --  Update Ref to node under Ref.Node in Ref.Stream that contains the
+   --  Non_Grammar that ends Line - 1. Set Char_Pos to the position of
+   --  the first character on Line. If not found, Ref.Ref.Node is
+   --  Invalid_Node_Access, Char_Pos is Invalid_Buffer_Pos.
    is
    begin
       Char_Pos := Invalid_Buffer_Pos;
@@ -2598,7 +2599,9 @@ package body WisiToken.Syntax_Trees is
       case Ref.Ref.Node.Label is
       when Terminal_Label =>
          if Ref.Ref.Node.ID = Tree.Lexer.Descriptor.EOI_ID and then
-           Ref.Ref.Node.Non_Grammar (Ref.Ref.Node.Non_Grammar.First_Index).Line_Region.First = Line - 1
+           --  Handle 'Line' as well as 'Line - 1' to allow returning char_pos
+           --  for the last line.
+           Ref.Ref.Node.Non_Grammar (Ref.Ref.Node.Non_Grammar.First_Index).Line_Region.First in Line - 1 | Line
          then
             Char_Pos := Ref.Ref.Node.Char_Region.First;
             return;
@@ -2620,7 +2623,7 @@ package body WisiToken.Syntax_Trees is
                Node_Line_Region : constant WisiToken.Line_Region := Tree.Line_Region
                  (Ref, Parse_Stream, Trailing_Non_Grammar => True);
 
-               function Check_Child (I : in SAL.Peek_Type) return Boolean
+               function Check_Child (I : in SAL.Peek_Type; Forward : in Boolean) return Boolean
                --  True => return from Find_New_Line; False => check next child.
                is
                   Temp : Stream_Node_Parents :=
@@ -2631,7 +2634,7 @@ package body WisiToken.Syntax_Trees is
                   Find_New_Line_1 (Tree, Temp, Parse_Stream, Line, Char_Pos);
 
                   if Temp.Ref.Node = Invalid_Node_Access then
-                     if I = Ref.Ref.Node.Children'First then
+                     if I = (if Forward then Ref.Ref.Node.Children'Last else Ref.Ref.Node.Children'First) then
                         Ref.Ref.Node := Invalid_Node_Access;
                         return True;
                      else
@@ -2651,14 +2654,14 @@ package body WisiToken.Syntax_Trees is
                   then
                      --  Faster to check last child first.
                      for I in reverse Ref.Ref.Node.Children'Range loop
-                        if Check_Child (I) then
+                        if Check_Child (I, Forward => False) then
                            return;
                         end if;
                      end loop;
 
                   else
                      for I in Ref.Ref.Node.Children'Range loop
-                        if Check_Child (I) then
+                        if Check_Child (I, Forward => True) then
                            return;
                         end if;
                      end loop;
@@ -4406,14 +4409,10 @@ package body WisiToken.Syntax_Trees is
       declare
          Ref : Stream_Node_Parents;
       begin
-         Ref.Ref := Tree.Stream_First (Stream);
+         Ref.Ref := Tree.Stream_First (Stream, Skip_SOI => False);
          Find_New_Line (Tree, Ref, Stream, Line, Begin_Char_Pos);
          if Ref.Ref.Node = Invalid_Node_Access then
-            if Stream /= Tree.Shared_Stream then
-               return Line_Begin_Char_Pos (Tree, Line, Tree.Shared_Stream);
-            else
-               return Invalid_Buffer_Pos;
-            end if;
+            return Invalid_Buffer_Pos;
          else
             return Begin_Char_Pos;
          end if;

@@ -31,6 +31,14 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+pause after shift nonterm to let others catch up
+    ada_mode-incremental_01.adb; see ada_mode notes
+    try to reproduce failure in test_incremental.adb
+
+test_incremental.adb
+    more cases:
+        break comment; insert LF & "-- " ; need to scan to end of old comment; same result.
+
 Stream.Shared_Link === Parser_State.Shared_Token
     except after parser_lists.next_token
     delete parser_state.current_token, shared_token

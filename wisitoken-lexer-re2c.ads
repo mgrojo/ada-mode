@@ -177,6 +177,12 @@ package WisiToken.Lexer.re2c is
       Line  : in Line_Number_Type)
      return Base_Buffer_Pos;
 
+   overriding
+   function Contains_New_Line
+     (Lexer       : in Instance;
+      Byte_Region : in Buffer_Region)
+     return Boolean;
+
 private
 
    type Instance is new WisiToken.Lexer.Instance with

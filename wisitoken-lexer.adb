@@ -107,6 +107,21 @@ package body WisiToken.Lexer is
       return Invalid_Buffer_Pos;
    end Line_Begin_Char_Pos;
 
+   function Contains_New_Line
+     (Source      : in WisiToken.Lexer.Source;
+      Byte_Region : in Buffer_Region)
+     return Boolean
+   is begin
+      for I in To_Buffer_Index (Source, Byte_Region.First) ..
+        To_Buffer_Index (Source, Byte_Region.Last)
+      loop
+         if Source.Buffer (I) = ASCII.LF then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Contains_New_Line;
+
    procedure Finalize (Object : in out Source)
    is begin
       case Object.Label is

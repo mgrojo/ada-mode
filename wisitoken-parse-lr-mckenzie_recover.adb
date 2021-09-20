@@ -168,26 +168,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    begin
       Parser_State.Recover.Enqueue_Count := @ + 1;
 
-      declare
-         use Syntax_Trees;
-         First_Current : constant Node_Access := Super.Tree.First_Terminal (Parser_State.Current_Token.Node);
-      begin
-         Config.Current_Shared_Token := Super.Tree.First_Terminal_In_Node (Parser_State.Shared_Token);
-
-         Config.Resume_Token_Goal := Super.Tree.Get_Sequential_Index
-           (if First_Current /= Invalid_Node_Access
-            then First_Current --  Current_Token is from breakdown of a shared stream nonterm.
-            else Config.Current_Shared_Token.Node) +
-           Shared.Table.McKenzie_Param.Check_Limit;
-      end;
-
       if Trace_McKenzie > Outline then
          Trace.New_Line;
          Trace.Put_Line
            ("parser " & Super.Tree.Trimmed_Image (Parser_State.Stream) &
               ": State" & Super.Tree.State (Parser_State.Stream)'Image &
-              " Current_Token " & Super.Tree.Image (Parser_State.Current_Token) &
-              " Resume_Token_Goal" & Config.Resume_Token_Goal'Image);
+              " Current_Token " & Super.Tree.Image (Parser_State.Current_Token));
          Trace.Put_Line
            (if Error in Parse_Error
             then "Parser_Action"
@@ -206,6 +192,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   Non_Grammar => True));
          end if;
       end if;
+
+      declare
+         use Syntax_Trees;
+         First_Current : constant Node_Access := Super.Tree.First_Terminal (Parser_State.Current_Token.Node);
+      begin
+         Config.Current_Shared_Token := Super.Tree.First_Terminal_In_Node (Parser_State.Shared_Token);
+
+         Config.Resume_Token_Goal := Super.Tree.Get_Sequential_Index
+           (if First_Current /= Invalid_Node_Access
+            then First_Current
+            else Config.Current_Shared_Token.Node) +
+           Shared.Table.McKenzie_Param.Check_Limit;
+      end;
 
       --  Additional initialization of Parser_State.Recover is done in
       --  Supervisor.Initialize.

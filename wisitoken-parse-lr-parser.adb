@@ -125,15 +125,65 @@ package body WisiToken.Parse.LR.Parser is
       Table : Parse_Table renames Shared_Parser.Table.all;
       Tree  : Syntax_Trees.Tree renames Shared_Parser.Tree;
    begin
-      loop -- handle delete empty nonterm
+      loop -- handle delete empty nonterm, undo_reduce
          declare
             Current_State : constant State_Index := Tree.State (Parser_State.Stream);
+
+            function Handle_Error return Boolean
+            --  Return True if should return immediately; False if Undo_Reduce was done.
+            is begin
+               if Tree.Label (Tree.Peek (Parser_State.Stream)) in Terminal_Label then
+                  return True;
+
+               else
+                  --  [Wagner Graham 1998] has Right_Breakdown here, but that is often
+                  --  overkill; we only need Undo_Reduce until Current_Token is
+                  --  shiftable. ada_mode-interactive_03.adb
+                  --
+                  --  IMPROVEME: if error recovery is correct here, we do more
+                  --  Undo_Reduce than necessary (and it will never happen in
+                  --  Error_Recovery).
+
+                  if Parser_State.Last_Action.Verb = Reduce then
+                     --  We are in an erroneous branch of a conflict, or there is a real error.
+                     --  ada_mode-incremental_01.adb
+                     return True;
+                  end if;
+
+                  if Trace_Parse > Detail then
+                     Shared_Parser.Trace.Put_Line
+                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
+                          Trimmed_Image (Current_State) & ": " &
+                          Tree.Image (Parser_State.Current_Token, First_Terminal => True) &
+                          " error; undo_reduce");
+                     Shared_Parser.Trace.Put
+                       (" ... " & Tree.Image (Tree.Peek (Parser_State.Stream), State => True));
+                  end if;
+                  Undo_Reduce (Tree, Table, Parser_State.Stream, Shared_Parser.User_Data);
+
+                  if Trace_Parse > Detail then
+                     Shared_Parser.Trace.Put
+                       (" => " & Tree.Image (Tree.Peek (Parser_State.Stream), State => True),
+                        Prefix => False);
+                     Shared_Parser.Trace.New_Line;
+                  end if;
+                  return False;
+               end if;
+            end Handle_Error;
+
          begin
             if Tree.Label (Parser_State.Current_Token.Node) in Terminal_Label then
                Action_Cur := Action_For (Table, Current_State, Tree.ID (Parser_State.Current_Token.Node));
                Action     := Action_Cur.Item;
-               Parser_State.Last_Action := Action;
-               return;
+
+               case Action.Verb is
+               when Shift | Accept_It | Reduce =>
+                  return;
+               when Error =>
+                  if Handle_Error then
+                     return;
+                  end if;
+               end case;
             else
                declare
                   New_State : constant Unknown_State_Index := Goto_For
@@ -145,7 +195,6 @@ package body WisiToken.Parse.LR.Parser is
                        (Verb       => Shift,
                         Production => Invalid_Production_ID,
                         State      => New_State);
-                     Parser_State.Last_Action := Action;
                      return;
                   else
                      declare
@@ -215,47 +264,14 @@ package body WisiToken.Parse.LR.Parser is
                                          (Parser_State.Stream, Stack => False, Input => True, Shared => True));
                                  end if;
                               end if;
-                              Parser_State.Last_Action := Action;
                               return;
 
                            when Accept_It | Reduce =>
-                              Parser_State.Last_Action := Action;
                               return;
 
                            when Error =>
-                              if Tree.Label (Tree.Peek (Parser_State.Stream)) in Terminal_Label then
-                                 Parser_State.Last_Action := Action;
+                              if Handle_Error then
                                  return;
-
-                              else
-                                 --  [Wagner Graham 1998] has Right_Breakdown here, but that is often
-                                 --  overkill; we only need Undo_Reduce until Current_Token is
-                                 --  shiftable. ada_mode-interactive_03.adb
-                                 --
-                                 --  IMPROVEME: if error recovery is correct here, we do more
-                                 --  Undo_Reduce than necessary (and it will never happen in
-                                 --  Error_Recovery).
-
-                                 if Parser_State.Last_Action.Verb = Reduce then
-                                    --  We are in an erroneous branch of a conflict, or there is a real error.
-                                    --  ada_mode-incremental_01.adb
-                                    Parser_State.Last_Action := Action;
-                                    return;
-                                 end if;
-
-                                 if Trace_Parse > Detail then
-                                    Shared_Parser.Trace.Put
-                                      (" ... undo_reduce " &
-                                         Tree.Image (Tree.Peek (Parser_State.Stream), State => True));
-                                 end if;
-                                 Undo_Reduce (Tree, Table, Parser_State.Stream, Shared_Parser.User_Data);
-
-                                 if Trace_Parse > Detail then
-                                    Shared_Parser.Trace.Put
-                                      (" => " & Tree.Image (Tree.Peek (Parser_State.Stream), State => True),
-                                       Prefix => False);
-                                    Shared_Parser.Trace.New_Line;
-                                 end if;
                               end if;
 
                            end case;
@@ -388,6 +404,7 @@ package body WisiToken.Parse.LR.Parser is
       case Action.Verb is
       when Shift =>
          Parser_State.Set_Verb (Shift);
+         Parser_State.Last_Action := Action;
 
          if not Parser_State.Resume_Active then
             Delete_Errors;
@@ -408,6 +425,7 @@ package body WisiToken.Parse.LR.Parser is
                --  This is due to a bug in the LALR parser generator (see
                --  lalr_generator_bug_01.wy); we treat it as a syntax error.
                Parser_State.Set_Verb (Error);
+               Parser_State.Last_Action := (Error, Invalid_Production_ID);
 
                Shared_Parser.Tree.Add_Error
                  (Parser_State.Stream, Parser_State.Current_Token,
@@ -475,6 +493,7 @@ package body WisiToken.Parse.LR.Parser is
                case Status is
                when Ok =>
                   Parser_State.Set_Verb (Reduce);
+                  Parser_State.Last_Action := Action;
 
                   if Trace_Parse > Detail then
                      Trace.Put_Line
@@ -486,6 +505,7 @@ package body WisiToken.Parse.LR.Parser is
 
                when In_Parse_Actions.Error =>
                   Parser_State.Set_Verb (Error);
+                  Parser_State.Last_Action := Action; -- not Error, since we did a reduce.
                   Parser_State.Error_Count        := @ + 1;
                   Parser_State.Zombie_Token_Count := 1;
                end case;
