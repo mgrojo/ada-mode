@@ -31,9 +31,22 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-pause after shift nonterm to let others catch up
-    ada_mode-incremental_01.adb; see ada_mode notes
-    try to reproduce failure in test_incremental.adb
+fix ada_mode-interactive_01.adb failure
+    too fragile/language dependent to reproduce in test_incremental.adb
+
+    change parser_state.current_, shared_token to functions.
+
+    pause after shift nonterm to let others catch up
+        testing:
+            test_incremental.adb pass
+            t_mck pass
+            t_all pass
+            ada_mode: parser 7 stack_top = current_token = shared_token; oops
+
+    sequential_init keep going until stack_top is set
+        not clear which way to extend, so do both
+        if all first_terminal.sequential_index within zombie_limit, accept it
+        otherwise raise programmer_error
 
 test_incremental.adb
     more cases:

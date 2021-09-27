@@ -157,13 +157,13 @@ tree size:  53
 
  McKenzie error recovery
 
-parser 6: State 20 Current_Token (6, 2;32:(ARROW, (147 . 148) ERROR)) Resume_Token_Goal 5
+parser 6: State 20 Current_Token (6, 2;32:(ARROW, (147 . 148) ERROR))
 Parser_Action
 
-parser 5: State 19 Current_Token (5, 2;33:(ARROW, (147 . 148) ERROR)) Resume_Token_Goal 5
+parser 5: State 19 Current_Token (5, 2;33:(ARROW, (147 . 148) ERROR))
 Parser_Action
 
-parser 1: State 15 Current_Token (1, 3;34:(IDENTIFIER, (150 . 152) ERROR)) Resume_Token_Goal 6
+parser 1: State 15 Current_Token (1, 3;34:(IDENTIFIER, (150 . 152) ERROR))
 Parser_Action
 
  1 parallel tasks

@@ -207,6 +207,7 @@ begin
       when Accept_It =>
          --  All parsers accepted or are zombies.
          if Shared_Parser.Resume_Active then
+            --  FIXME: move to Parse_Verb
             Shared_Parser.Resume_Active := False;
             McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
          end if;

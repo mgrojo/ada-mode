@@ -708,11 +708,14 @@ package body WisiToken.Parse.LR.Parser is
    --
    --  Accept : all Parsers.Verb return Accept - done parsing.
    --
-   --  Shift : some Parsers.Verb return Shift, all with the same current
-   --  token in Shared_Parser.Terminals.
+   --  Shift : some Parsers.Verb return Shift.
    --
    --  Pause : Resume is active, and this parser has reached Resume_Goal,
-   --  so it is waiting for the others to catch up.
+   --  so it is waiting for the others to catch up. Or this parser has
+   --  shifted a nonterminal, while some other parser has broken down
+   --  that nonterminal; wait for it to catch up. This ensures parsers
+   --  are within Mckenzie_Param.Zombie_Limit of the same terminal when
+   --  they enter error recovery.
    --
    --  Reduce : some Parsers.Verb return Reduce.
    --
@@ -729,6 +732,7 @@ package body WisiToken.Parse.LR.Parser is
       Some_Paused   : Boolean            := False;
 
       Min_Sequential_Index : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'Last;
+      Max_Byte_Last : Buffer_Pos := Buffer_Pos'First;
    begin
       Zombie_Count := 0;
 
@@ -776,7 +780,8 @@ package body WisiToken.Parse.LR.Parser is
                      Resume_Active := True;
                   end if;
                end;
-            else
+
+            elsif Shared_Parser.Resume_Active then
                if Parser_State.Shared_Token /= Syntax_Trees.Invalid_Stream_Node_Ref then
                   declare
                      use Syntax_Trees;
@@ -792,6 +797,26 @@ package body WisiToken.Parse.LR.Parser is
                      end if;
                   end;
                end if;
+
+            else
+               --  Ensure parsers stay close to the same terminal. In general,
+               --  Parser_State.Current_Token.Byte_Region should not be within
+               --  another parser stack_top, unless it just included that token in a
+               --  reduce. But in incremental parse, one parser can shift a nonterm,
+               --  while another parser has broken down that nonterm and is working
+               --  thru it one terminal at a time.
+               declare
+                  use Syntax_Trees;
+
+                  --  We don't just use Byte_Region (stack_top), because that can be
+                  --  slow, and we do this every parse cycle.
+                  Last_Term : constant Node_Access := Shared_Parser.Tree.Last_Terminal
+                    (Shared_Parser.Tree.Get_Node (Parser_State.Stream, Shared_Parser.Tree.Peek (Parser_State.Stream)));
+               begin
+                  if Last_Term /= Invalid_Node_Access then
+                     Max_Byte_Last := Buffer_Pos'Max (@, Shared_Parser.Tree.Byte_Region (Last_Term).Last);
+                  end if;
+               end;
             end if;
 
          when Reduce =>
@@ -827,9 +852,17 @@ package body WisiToken.Parse.LR.Parser is
          for Parser_State of Shared_Parser.Parsers loop
             if Parser_State.Verb = Shift and not Parser_State.Resume_Active then
                Parser_State.Set_Verb (Pause);
+               if Trace_Parse > Detail then
+                  Shared_Parser.Trace.Put_Line
+                    (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": pause: resume exit");
+               end if;
             end if;
          end loop;
-      else
+
+      elsif Shared_Parser.Resume_Active then
+         --  Ensure all parsers are on the same terminal before exiting resume.
+         --  All error recover insert and delete are done, so all parsers must
+         --  see the same terminals.
          for Parser_State of Shared_Parser.Parsers loop
             if Parser_State.Verb = Shift and Parser_State.Shared_Token /= Syntax_Trees.Invalid_Stream_Node_Ref then
                declare
@@ -838,10 +871,16 @@ package body WisiToken.Parse.LR.Parser is
                     (Parser_State.Shared_Token.Node);
                begin
                   if First_Terminal /= Invalid_Node_Access and then
+                    Min_Sequential_Index /= Syntax_Trees.Sequential_Index'Last and then
                     Min_Sequential_Index /= Shared_Parser.Tree.Get_Sequential_Index (First_Terminal)
                   then
                      Some_Paused := True;
                      Parser_State.Set_Verb (Pause);
+                     if Trace_Parse > Detail then
+                        Shared_Parser.Trace.Put_Line
+                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
+                             ": pause: resume sync (min index" & Min_Sequential_Index'Image & ")");
+                     end if;
                   end if;
                end;
             end if;
@@ -851,6 +890,55 @@ package body WisiToken.Parse.LR.Parser is
             Shared_Parser.Resume_Active := False;
             McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
          end if;
+
+      else
+         --  Ensure parsers stay close to the same terminal; see note above at
+         --  setting of Max_Byte_Last.
+         declare
+            Not_Paused : array (1 .. Shared_Parser.Parsers.Count) of Boolean := (others => False);
+            Parser_Index : SAL.Base_Peek_Type := Not_Paused'First;
+         begin
+            for Parser_State of Shared_Parser.Parsers loop
+               if Parser_State.Verb = Shift then
+                  declare
+                     use Syntax_Trees;
+                     First_Terminal : constant Node_Access :=
+                       (if Parser_State.Current_Token.Node /= Invalid_Node_Access
+                        then Shared_Parser.Tree.First_Terminal (Parser_State.Current_Token.Node)
+                        else Invalid_Node_Access);
+                  begin
+                     if First_Terminal /= Invalid_Node_Access and then
+                       Shared_Parser.Tree.Label (First_Terminal) = Source_Terminal
+                     then
+                        declare
+                           Region : constant Buffer_Region := Shared_Parser.Tree.Byte_Region (First_Terminal);
+                        begin
+                           if Region.Last = Max_Byte_Last  --  This parser set Max_Byte_Last
+                             or
+                             Region.First < Max_Byte_Last
+                           then
+                              Not_Paused (Parser_Index) := True;
+                           end if;
+                        end;
+                     else
+                        Not_Paused (Parser_Index) := True;
+                     end if;
+                  end;
+                  Parser_Index := @ + 1;
+               end if;
+            end loop;
+
+            Parser_Index := Not_Paused'First;
+            for Parser_State of Shared_Parser.Parsers loop
+               if Parser_State.Verb = Shift and not Not_Paused (Parser_Index) then
+                  Parser_State.Set_Verb (Pause);
+                  if Trace_Parse > Detail then
+                     Shared_Parser.Trace.Put_Line
+                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": pause: main sync");
+                  end if;
+               end if;
+            end loop;
+         end;
       end if;
    end Parse_Verb;
 

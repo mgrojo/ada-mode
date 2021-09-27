@@ -14,7 +14,7 @@
 
  McKenzie error recovery
 
-parser 0: State 21 Current_Token (0, 2;24:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)) Resume_Token_Goal 6
+parser 0: State 21 Current_Token (0, 2;24:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR))
 Parser_Action
 
  1 parallel tasks
@@ -235,7 +235,9 @@ recover: succeed, parser count 2
  1: 14: (-1, 6;11:(Identifier, (278 . 278))) : shift and goto state 21
  0: 1: (-1, 4;9:(Identifier, (266 . 275))) : shift and goto state 4
  1: resume_active: False
+ 1: pause: resume exit
  0: 4: (-1, 5;10:(LEFT_PAREN, (277 . 277))) : shift and goto state 14
+ 1: pause: resume exit
  0: 14: (-1, 6;11:(Identifier, (278 . 278))) : shift and goto state 21
  0: resume_active: False
  0: terminate (1 active): duplicate state with 1: ops length (-1, 12:(RIGHT_PAREN, (279 . 279)))
@@ -267,7 +269,7 @@ recover: succeed, parser count 2
 
  McKenzie error recovery
 
-parser 1: State 61 Current_Token (1, 2;27:(RIGHT_CURLY_BRACKET, (281 . 281) ERROR)) Resume_Token_Goal 6
+parser 1: State 61 Current_Token (1, 2;27:(RIGHT_CURLY_BRACKET, (281 . 281) ERROR))
 Parser_Action
 
  1 parallel tasks
@@ -502,7 +504,7 @@ recover: succeed, parser count 2
  1: 12: (-1, 6;17:(SEMICOLON, (348 . 348))) : shift and goto state 20
  2: resume_active: False
  1: resume_active: False
- 1: terminate (1 active): duplicate state with 2: random (-1, 6;17:(SEMICOLON, (348 . 348)))
+ 1: terminate (1 active): duplicate state with 2: random (-1, 18:(RIGHT_CURLY_BRACKET, (349 . 349)))
  2: 20: (-1, 18:(RIGHT_CURLY_BRACKET, (349 . 349))) : shift and goto state 48
  2: 48: (-1, 19:(LEFT_CURLY_BRACKET, (411 . 411))) : reduce 4 tokens to Statement
 (Statement_1, (343 . 349) <= (14:(LEFT_CURLY_BRACKET, (343 . 343)), (StatementExpression, (345 . 347)), 17:(SEMICOLON, (348 . 348)), 18:(RIGHT_CURLY_BRACKET, (349 . 349))))
@@ -522,7 +524,7 @@ recover: succeed, parser count 2
 
  McKenzie error recovery
 
-parser 2: State 16 Current_Token (2, 2;30:(RIGHT_CURLY_BRACKET, (417 . 417) ERROR)) Resume_Token_Goal 6
+parser 2: State 16 Current_Token (2, 2;30:(RIGHT_CURLY_BRACKET, (417 . 417) ERROR))
 Parser_Action
 
  1 parallel tasks

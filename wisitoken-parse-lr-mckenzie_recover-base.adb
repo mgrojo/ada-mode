@@ -148,6 +148,41 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
             if Tree.ID (Min_Sequential_Indices (1).Ref.Node) /= Tree.Lexer.Descriptor.SOI_ID then
                Extend_Min_Sequential_Index (Default_Negative_Sequential_Index);
             end if;
+
+            if Debug_Mode then
+               declare
+                  use Syntax_Trees;
+                  Min : Sequential_Index := Sequential_Index'Last;
+               begin
+                  for I in 1 .. Parser_Count loop
+                     declare
+                        Parser_State : Parser_Lists.Parser_State renames Parser_Status (I).Parser_State.all;
+                        Cur : constant Base_Sequential_Index := Tree.Get_Sequential_Index
+                          (Tree.First_Terminal (Parser_State.Current_Token).Node);
+                     begin
+                        if Cur = Invalid_Sequential_Index then
+                           --  ada_mode-interactive_01.adb failed here before added parser sync
+                           --  in incremental parse.
+                           raise SAL.Programmer_Error with "initialize sequential index failed";
+                        elsif Cur < Min then
+                           Min := Cur;
+                        end if;
+                     end;
+                  end loop;
+
+                  for I in 1 .. Parser_Count loop
+                     declare
+                        Parser_State : Parser_Lists.Parser_State renames Parser_Status (I).Parser_State.all;
+                        Cur : constant Sequential_Index := Tree.Get_Sequential_Index
+                          (Tree.First_Terminal (Parser_State.Current_Token).Node);
+                     begin
+                        if abs (Cur - Min) > 4 then --  FIXME: '4' should be mckenzie param zombie_limit
+                           raise SAL.Programmer_Error with "parsers not synced";
+                        end if;
+                     end;
+                  end loop;
+               end;
+            end if;
          end;
       end Initialize;
 
