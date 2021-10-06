@@ -49,95 +49,36 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-send bug report on wisitoken keeps binding wisitoken-bnf-generate
+try adding wisi-refresh-prj-cache to compilation-finish-functions.
 
-all tests pass partial
+send bug report on wisitoken keeps binding wisitoken-bnf-generate
 
 running all tests incremental
     test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
 
+    ada_mode-interactive_01.adb
+
+language_fixes Handle_In_Parse_Action_Fail Match_Names_Error subprogram_body_ID raises Bad_Config
+    push_back all of a fast_forward
+        separate exception for that; Invalid_Case
+        Push_Back_Undo_Reduce_Valid return reason, not just boolean
+
+
+error: c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_01.adb:16:
+... result of ’(progn (forward-line 2)(wisi-indent-statement)(current-column))’ does not match.
+... expect ’0’
+    don't indent empty line!?
+    doing it again gives SAL.PROGRAMMER_ERROR : Line_Begin_Char_Pos = Invalid_Buffer_Pos, line 75. sigh.
+
 c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_01.adb:73: test (progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "return 0;"))
-... wisi-parse-error: parser failed with no message
-    in mckenzie recover_init; get_sequential_index (parser 0 current_token) returns invalid
-    parser 0 current_token: (0, -667:(access_definition_3, (3485 . 3497)) 59:(IDENTIFIER, (3492 . 3497)))
-    parser 6 current_token: (-1, 2;386:(END, (4524 . 4526) ERROR))
-    sequential_index_init only does 10 terminals; needs to be 13 for this
-    but parsers are supposed to be on the same shared terminal before enter recover?
-        except for zombie cycles?
-        nope; pause only holds until all are done with resume, not on same shared terminal
-
-resume start:
-8 :
-;;    Current_Token (8, -537:(LEFT_SQUARE_BRACKET))
-;;    Shared_Token  (-1, 2;392:(END, (3034 . 3036)))
-;;    recover_insert_delete ((INSERT, RIGHT_SQUARE_BRACKET, 1), (INSERT, SEMICOLON, 1), (INSERT, NULL, 2), (INSERT, SEMICOLON, 2))
-;;    resume_token_goal 5
-7:
-;;    Current_Token (7, -539:(NULL))
-;;    Shared_Token  (-1, 3;393:(IDENTIFIER, (3038 . 3043)))
-;;    recover_insert_delete ((INSERT, SEMICOLON, 2))
-;;    resume_token_goal 6
-6:
-;;    Current_Token (6, -541:(NULL))
-;;    Shared_Token  (-1, 3;393:(IDENTIFIER, (3038 . 3043)))
-;;    recover_insert_delete ((INSERT, SEMICOLON, 2))
-;;    resume_token_goal 6
-5:
-;;    Current_Token (5, -543:(LEFT_SQUARE_BRACKET))
-;;    Shared_Token  (-1, 2;392:(END, (3034 . 3036)))
-;;    recover_insert_delete ((INSERT, RIGHT_SQUARE_BRACKET, 1), (INSERT, SEMICOLON, 1), (INSERT, NULL, 2), (INSERT, SEMICOLON, 2))
-;;    resume_token_goal 5
-0:
-;;    Current_Token (0, -545:(LEFT_SQUARE_BRACKET))
-;;    Shared_Token  (-1, 2;392:(END, (3034 . 3036)))
-;;    recover_insert_delete ((INSERT, RIGHT_SQUARE_BRACKET, 1), (INSERT, SEMICOLON, 1), (INSERT, IDENTIFIER, 2), (INSERT, COLON, 2), (INSERT, BEGIN, 2), (INSERT, NULL, 2), (INSERT, SEMICOLON, 2))
-;;    inc_shared_stream_token FALSE
-;;    resume_token_goal 5
-
-resume done:
-;;  6: 563: (-1, -579:(declarative_item, (3477 . 3498)), 5;56:(IDENTIFIER, (3477 . 3481))) : shift and goto state 909
-;;  7: 121: (-1, -579:(declarative_item, (3477 . 3498)), 5;56:(IDENTIFIER, (3477 . 3481))) : shift and goto state 49
-;;  8: 121: (-1, -579:(declarative_item, (3477 . 3498)), 5;56:(IDENTIFIER, (3477 . 3481))) : shift and goto state 49
-;;  5: 121: (-1, -579:(declarative_item, (3477 . 3498)), 5;56:(IDENTIFIER, (3477 . 3481))) : shift and goto state 49
-;;  0: 331: (0, 5;56:(IDENTIFIER, (3477 . 3481))) : shift and goto state 146
-
-all on same terminal, but 5 .. 8 shifted entire declarative_item; 0 broke it down.
-
-subsequent parsing:
-(0 verb is shift; 8, 5 terminate; 7, 6 reducing on (-1, 10;61:(BEGIN, (3681 . 3685))))
-;;  7: 49: (compilation_unit_2, (3477 . 3498) <= ((declarative_item, (3477 . 3498))))
-;;  6: 909: (declarative_item_list_2, (2252 . 3498) <= ((declarative_item_list, (2252 . 3044)), (declarative_item, (3477 . 3498))))
-;;  7: 312: (compilation_1, (239 . 3498) <= ((compilation, (239 . 3044)), (compilation_unit, (3477 . 3498))))
-;;  6: 563: (declarative_part_0, (2252 . 3498) <= ((declarative_item_list, (2252 . 3498))))
-;;  7: 121: (label_opt_1 <= ())
-;;  6: 574: (-1, 10;61:(BEGIN, (3681 . 3685))) : shift and goto state 921
-    should not have sequential_index here? clear not called yet?
-;;  7: 72: (-1, 10;61:(BEGIN, (3681 . 3685))) : shift and goto state 294
-    why no 0 shift here?
-need a metric that allows parser to pause 6, 7 here (not shift) to let 0 "catch up".
-
-7 stack top: ((declarative_item_list, (2252 . 3498))), (label_opt_1 <= ())
-  current_token: (BEGIN, (3681 . 3685))
-
-6 stack top: ((declarative_item_list, (2252 . 3498))))
-  current_token:
-
-0 stack top: (IDENTIFIER, (3477 . 3481))
-  current_token: (COLON, (3483 . 3483)) => within 6, 7 stack_top.byte_region
-
-    in batch parse, current_token is never within other parser stack_top.byte_region?
-    if parser.current_token.first_terminal.byte_region.first < stack_top.nonterm.byte_region.last, pause nonterm parser
-
-;;  7: 294: (-1, -789:(statement_statement_list, (3972 . 4316)), 62:(BEGIN, (3972 . 3976))) : shift and goto state 331
-;;  6: 921: (-1, -789:(statement_statement_list, (3972 . 4316)), 62:(BEGIN, (3972 . 3976))) : shift and goto state 331
-;;  0: 146: (0, 57:(COLON, (3483 . 3483))) : reduce 1 tokens to direct_name
+... error: (error: nil indent for line 75)
+    it didn't ask for indent line 75?
+        lost a new_line
 
 
 
-sequential_init keep going until stack_top is set
-    not clear which way to extend, so do both
-    if all first_terminal.sequential_index within zombie_limit, accept it
-    otherwise raise programmer_error
+
+
 
 
 review build/test.log

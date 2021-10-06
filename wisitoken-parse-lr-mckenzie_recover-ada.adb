@@ -19,6 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Exceptions;
 with Ada_Annex_P_Process_Actions;
+with GNAT.Traceback.Symbolic;
 with System.Assertions;
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
@@ -226,9 +227,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                             Image (Tree.ID (Config.Error_Token), Descriptor), New_Config);
                   end if;
                   Local_Config_Heap.Add (New_Config);
-               exception
-               when Bad_Config =>
-                  null;
                end;
 
             else
@@ -267,9 +265,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                      Put ("Language_Fixes Match_Names_Error 1 " & Image (Tree.ID (Config.Error_Token), Descriptor),
                           New_Config);
                   end if;
-               exception
-               when Bad_Config =>
-                  null;
                end;
             end if;
          end;
@@ -371,10 +366,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                         (+handled_sequence_of_statements_ID,
                          +sequence_of_statements_ID));
                   else
-                     if Trace_McKenzie > Outline then
-                        Put ("Language_Fixes unimplemented nonterm for Missing_Name_Error.", New_Config);
-                     end if;
-                     raise Bad_Config;
+                     raise Bad_Config with "Language_Fixes unimplemented nonterm for Missing_Name_Error.";
                   end if;
 
                when package_specification_ID =>
@@ -396,14 +388,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                          +sequence_of_statements_ID));
                   end if;
                when others =>
-                  if Trace_McKenzie > Outline then
-                     Put ("Language_Fixes unimplemented nonterm for Missing_Name_Error.", Config);
-                  end if;
-                  raise Bad_Config;
+                  raise Bad_Config with "Language_Fixes unimplemented nonterm for Missing_Name_Error.";
                end case;
 
                if not Has_Space (Ops, 3) then
-                  raise Bad_Config;
+                  raise Invalid_Case;
                end if;
 
                if Tree.ID (Keyword_Item.Token) /= Invalid_Token_ID then
@@ -420,7 +409,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                          (Tree.ID (Config.Error_Token), Descriptor), New_Config);
                end if;
             exception
-            when Bad_Config =>
+            when Invalid_Case =>
                null;
             end;
 
@@ -453,9 +442,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   Put ("Language_Fixes Missing_Name_Error 1b " & Image
                          (Tree.ID (Config.Error_Token), Descriptor), New_Config);
                end if;
-            exception
-            when Bad_Config =>
-               null;
             end;
 
          end if;
@@ -517,10 +503,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Put
                  ("Language_Fixes Extra_Name_Error 1 " & Image (Tree.ID (Config.Error_Token), Descriptor), New_Config);
             end if;
-
-         exception
-         when Bad_Config =>
-            null;
          end;
 
          --  Case 2
@@ -543,10 +525,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                  (Super, New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID));
 
             when others =>
-               if Trace_McKenzie > Outline then
-                  Put ("Language_Fixes Extra_Name_Error 2: unrecognized Error_Token", Config);
-               end if;
-               raise Bad_Config;
+               raise Bad_Config with "Language_Fixes Extra_Name_Error 2: unrecognized Error_Token";
             end case;
 
             --  Let Minimal_Complete_Actions finish insert
@@ -558,14 +537,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Put
                  ("Language_Fixes Extra_Name_Error 2 " & Image (Tree.ID (Config.Error_Token), Descriptor), New_Config);
             end if;
-         exception
-         when Bad_Config =>
-            null;
          end;
 
          --  Case 3. Delete the extra begin
          --
-         --  If the first begin was inserted by recovery; we actually want to
+         --  If the first begin was inserted by recovery, we actually want to
          --  delete the second begin. see test/ada_mode-recover_indent_4.adb
          declare
             New_Config     : aliased Configuration := Config;
@@ -580,14 +556,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                end if;
                I := I + 1;
                if I >= New_Config.Stack.Depth then
-                  raise Bad_Config;
+                  raise Invalid_Case;
                end if;
             end loop;
 
             loop
                I := I + 1;
                if I >= New_Config.Stack.Depth then
-                  raise Bad_Config;
+                  raise Invalid_Case;
                end if;
                if Tree.ID (New_Config.Stack.Peek (I).Token) = +BEGIN_ID then
                   First_Begin_I := I;
@@ -644,15 +620,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                          Image (Tree.ID (Config.Error_Token), Descriptor), New_Config);
                end if;
             end if;
-         exception
-         when Bad_Config =>
-            null;
-
          end;
       end case;
    exception
-   when Bad_Config =>
-      null;
+   when E : Bad_Config =>
+      if Debug_Mode then
+         Super.Trace.Put_Line
+           ("Language_Fixes Handle_In_Parse_Action_Fail Bad_Config: " &
+              Standard.Ada.Exceptions.Exception_Message (E));
+         Super.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+         raise;
+      elsif Trace_McKenzie > Outline then
+         Super.Trace.Put_Line ("Language_Fixes Handle_In_Parse_Action_Fail Bad_Config");
+      end if;
    end Handle_In_Parse_Action_Fail;
 
    procedure Handle_Parse_Error
@@ -744,7 +724,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   exit;
 
                when others =>
-                  raise Bad_Config;
+                  raise Invalid_Case;
 
                end case;
             end loop;
@@ -756,7 +736,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Put ("Language_Fixes variable decl as expression", New_Config);
             end if;
          exception
-         when Bad_Config =>
+         when Invalid_Case =>
             null;
          end;
 
@@ -830,7 +810,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   exit;
 
                when others =>
-                  raise Bad_Config;
+                  raise Invalid_Case;
 
                end case;
             end loop;
@@ -842,7 +822,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Put ("Language_Fixes constant decl as statement 1", New_Config);
             end if;
          exception
-         when Bad_Config =>
+         when Invalid_Case =>
             null;
          end;
 
@@ -878,9 +858,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                         Put ("Language_Fixes constant decl as statement 3", New_Config_2);
                      end if;
                   end if;
-               exception
-               when Bad_Config =>
-                  null;
                end;
 
                Insert (Tree, New_Config_1, (+NULL_ID, +SEMICOLON_ID));
@@ -946,7 +923,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Push_Back_Check (Super, New_Config_1, (Tree.ID (Config.Stack.Peek.Token), +END_ID));
 
                if New_Config_1.Stack.Depth <= 3 then
-                  raise Bad_Config;
+                  raise Invalid_Case;
                end if;
 
                if Tree.ID (New_Config_1.Stack.Peek (3).Token) = +declarative_part_ID then
@@ -981,12 +958,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                      if Trace_McKenzie > Detail then
                         Put ("Language_Fixes " & Label, New_Config_2);
                      end if;
-                  exception
-                  when Bad_Config =>
-                     --  We don't check Debug_Mode here, because the failure is probably
-                     --  due to pushing back a virtual token, which is not a programming
-                     --  error.
-                     null;
                   end;
 
                   Insert (Tree, New_Config_1, +END_ID);
@@ -1000,7 +971,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                end if;
             exception
-            when Bad_Config =>
+            when Invalid_Case =>
                null;
             end;
          end if;
@@ -1108,9 +1079,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                            end if;
 
                         end case;
-                     exception
-                     when Bad_Config =>
-                        null;
                      end;
                   end if;
                end;
@@ -1165,9 +1133,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                      Put ("Language_Fixes " & Label, New_Config);
                   end if;
                end if;
-            exception
-            when Bad_Config =>
-               null;
             end;
          end if;
 
@@ -1194,7 +1159,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   if Undo_Reduce_Valid (Super, New_Config) then
                      Undo_Reduce_Check (Super, Parse_Table, New_Config, +declarative_part_ID);
                   else
-                     raise Bad_Config;
+                     raise Invalid_Case;
                   end if;
                end if;
                Delete_Check (Tree, New_Config, +BEGIN_ID);
@@ -1204,6 +1169,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                if Trace_McKenzie > Detail then
                   Put ("Language_Fixes extra begin 2", New_Config);
                end if;
+            exception
+            when Invalid_Case =>
+               null;
             end;
          end if;
 
@@ -1257,7 +1225,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Delete_Check (Tree, New_Config, Peek_State, +TICK_1_ID); -- increments Peek_State
                loop
                   if Peek_Sequential_Terminal (Peek_State) = Invalid_Node_Access then
-                     raise Bad_Config;
+                     --  ada_mode-interactive_01.adb
+                     raise Invalid_Case;
                   end if;
                   exit when Tree.ID (Peek_Sequential_Terminal (Peek_State)) = +TICK_1_ID;
                   Delete_Check (Tree, New_Config, Peek_State, Invalid_Token_ID);
@@ -1297,8 +1266,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
       end if;
    exception
-   when Bad_Config =>
+   when Invalid_Case =>
       null;
+
+   when E : Bad_Config =>
+      if Debug_Mode then
+         Super.Trace.Put_Line
+           ("Language_Fixes Handle_Parse_Error Bad_Config: " &
+              Standard.Ada.Exceptions.Exception_Message (E));
+         Super.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+         raise;
+      elsif Trace_McKenzie > Outline then
+         Super.Trace.Put_Line ("Language_Fixes Handle_Parse_Error Bad_Config");
+      end if;
 
    when E : System.Assertions.Assert_Failure =>
       if Debug_Mode then
