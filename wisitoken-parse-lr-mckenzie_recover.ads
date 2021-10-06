@@ -31,14 +31,19 @@ with WisiToken.Parse.LR.Parser;
 with WisiToken.Parse.LR.Parser_Lists;
 limited with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package WisiToken.Parse.LR.McKenzie_Recover is
-   use all type WisiToken.Syntax_Trees.Base_Sequential_Index;
    use all type WisiToken.Syntax_Trees.Node_Access;
    use all type WisiToken.Syntax_Trees.Stream_Index;
    use all type Ada.Containers.Count_Type;
 
    Bad_Config : exception;
    --  Raised when a config is determined to violate some programming
-   --  convention; abandon it.
+   --  convention; abandon it. In Debug_Mode, report it, so it can be
+   --  fixed.
+
+   Invalid_Case : exception;
+   --  Raised to abandon error recover cases that don't apply, when they
+   --  are not easily abandoned by 'if' or 'case'. We don't use
+   --  Bad_Config for that, because it is not a programmer error.
 
    type Recover_Status is (Fail_Check_Delta, Fail_Enqueue_Limit, Fail_No_Configs_Left, Fail_Programmer_Error, Success);
 
@@ -80,8 +85,8 @@ private
       --  Like Syntax_Trees.Stream_Node_Parents, but using a Configuration
       --  input stream; continues forward into Tree shared stream. There is
       --  no Prev operation; cannot continue backward into config stack.
-      Input_Terminal      : Config_Stream_Parents (Stream);
-      Sequential_Terminal : Syntax_Trees.Stream_Node_Parents;
+      Input_Terminal      : Config_Stream_Parents (Stream);   -- in Config.Input_Stream
+      Sequential_Terminal : Syntax_Trees.Stream_Node_Parents; -- in Tree.Shared_Stream
    end record;
 
    procedure Check (ID : Token_ID; Expected_ID : in Token_ID)

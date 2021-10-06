@@ -48,10 +48,6 @@ package WisiToken.Parse.LR.Parser_Lists is
       --
       --  The parse stack is in Shared_Parser.Tree (Parser_State.Stream).
 
-      Shared_Token : Syntax_Trees.Rooted_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
-      --  Next token to shift in Tree.Shared_Stream. For batch parse, this
-      --  is a Shared_Terminal; for incremental parse, any Node_Label.
-
       Recover_Insert_Delete : aliased Recover_Op_Nodes_Arrays.Vector;
       --  Tokens that were inserted or deleted during error recovery.
       --  Contains only Insert and Delete ops. Filled by error recover, used
@@ -63,20 +59,6 @@ package WisiToken.Parse.LR.Parser_Lists is
       Recover_Insert_Delete_Current : Recover_Op_Nodes_Arrays.Extended_Index := Recover_Op_Arrays.No_Index;
       --  Next item in Recover_Insert_Delete to be processed by main parse;
       --  No_Index if all done.
-
-      Current_Token : Syntax_Trees.Rooted_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
-      --  Next token to shift, in either Tree.Shared_Stream or
-      --  Parser_State.Stream. May be a nonterm in incremental parse.
-
-      Inc_Shared_Stream_Token : Boolean := True;
-      --  Whether Parse should increment Shared_Token before using it as the
-      --  next input. This is set False in error recover when it sets
-      --  Current_Token, True in main parser when Current_Token is set to
-      --  Shared_Token. This reflects the fact that the main parser should
-      --  not have set Current_Token as it did, and thus should not have
-      --  incremented Shared_Token. The main parser also sets this False
-      --  when it moves a nonterm from Shared_Stream to the parse stream for
-      --  breakdown, to be consistent with error recovery.
 
       Recover : aliased LR.McKenzie_Data := (others => <>);
 
@@ -118,31 +100,7 @@ package WisiToken.Parse.LR.Parser_Lists is
      return Syntax_Trees.Terminal_Ref;
    --  Return first terminal with a valid Sequential_Index from current
    --  token or a following token if current is an empty nonterm. For
-   --  comparison with insert/delete token index in error recover.
-
-   function Peek_Next_Sequential_Terminal
-     (Parser_State : in Parser_Lists.Parser_State;
-      Tree         : in Syntax_Trees.Tree)
-     return Syntax_Trees.Stream_Node_Parents;
-   --  Return the terminal with a valid Sequential_Index that will be
-   --  current after Next_Token. For comparison with insert/delete token
-   --  index in main parse.
-   --
-   --  We compare insert/delete to the next token, because the
-   --  insert/delete should be done instead of making that token current.
-
-   procedure Next_Token
-     (Parser_State : in out Parser_Lists.Parser_State;
-      Tree         : in out Syntax_Trees.Tree;
-      Set_Current  : in     Boolean;
-      Delete       : in     Boolean);
-   --  Increment Parser_State.Shared_Token or Tree.Parse_Stream to next
-   --  token. If Set_Current, also update Current_Token,
-   --  Inc_Shared_Stream_Token.
-   --
-   --  If Delete, implements the Delete recover operation.
-   --
-   --  Otherwise implement the main parser next token operation.
+   --  comparison with insert/delete token index.
 
    type List is tagged private
    with

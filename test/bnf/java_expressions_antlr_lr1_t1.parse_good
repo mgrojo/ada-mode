@@ -30,9 +30,9 @@ recover: succeed, parser count 2
 (-1, 
 0005: 2;5:(Wisi_EOI, (59 . 58) ERROR)))
     Current_Token: (1, -7:(RPAREN))
-    Shared_Token: (-1, 3:(Wisi_EOI, (59 . 58)))
+    Shared_Token: ()
     recover_insert_delete:
-    resume_active: True, token goal 6, inc_shared_stream_token: FALSE
+    resume_active: True, token goal 6
  0: stack/stream:
 (0, (0, 
 0000: -1;0:(Wisi_SOI, (1 . 1))),
@@ -45,9 +45,9 @@ recover: succeed, parser count 2
 (-1, 
 0006: 2;6:(Wisi_EOI, (59 . 58) ERROR)))
     Current_Token: (0, -9:(LPAREN))
-    Shared_Token: (-1, 3:(Wisi_EOI, (59 . 58)))
+    Shared_Token: ()
     recover_insert_delete:((INSERT, RPAREN, 2), (INSERT, RPAREN, 2))
-    resume_active: True, token goal 6, inc_shared_stream_token: FALSE
+    resume_active: True, token goal 6
 
  1: 28: (1, -7:(RPAREN)) : reduce 1 tokens to primary
 (primary_3, (56 . 56) <= (1;2:(IDENTIFIER, (56 . 56))))

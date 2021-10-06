@@ -1879,6 +1879,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             begin
                Search_Forward :
                loop
+                  exit Search_Forward when Term.Ref = Invalid_Stream_Node_Ref;
+                  --  Invalid when EOI has an error; test_incremental.adb Preserve_Parse_Errors_1
+
                   if Term.Ref.Node /= Invalid_Node_Access then
                      --  Invalid when Current_Shared_Token is an empty nonterm.
                      for Err of Tree.Error_List (Term.Ref.Node) loop
@@ -1900,6 +1903,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   Term := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
                   Search_Backward :
                   loop
+                     exit Search_Backward when Term.Ref = Invalid_Stream_Node_Ref;
+                     --  Invalid when EOI has an error; test_incremental.adb Preserve_Parse_Errors_1
+
                      Tree.Prev_Terminal (Term, Super.Stream (Parser_Index));
 
                      for Err of Tree.Error_List (Term.Ref.Node) loop
@@ -2202,7 +2208,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Try_Insert_Terminal (Super, Shared, Parser_Index, Config, Local_Config_Heap);
 
       if Push_Back_Valid (Super, Config) and then
-        (not Super.Tree.Is_Empty_Nonterm (Config.Stack.Peek.Token, Descriptor) and
+        (not Super.Tree.Is_Empty_Nonterm (Config.Stack.Peek.Token) and
            --  We only allow Push_Back of empty nonterm from Language_Fixes;
            --  otherwise it is usually redundant with Undo_Reduce.
            not Check_Reduce_To_Start (Super, Shared, Parser_Index, Config))

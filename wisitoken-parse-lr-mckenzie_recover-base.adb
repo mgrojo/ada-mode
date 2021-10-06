@@ -158,7 +158,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                      declare
                         Parser_State : Parser_Lists.Parser_State renames Parser_Status (I).Parser_State.all;
                         Cur : constant Base_Sequential_Index := Tree.Get_Sequential_Index
-                          (Tree.First_Terminal (Parser_State.Current_Token).Node);
+                          (Tree.First_Terminal (Tree.Current_Token (Parser_State.Stream)).Node);
                      begin
                         if Cur = Invalid_Sequential_Index then
                            --  ada_mode-interactive_01.adb failed here before added parser sync
@@ -174,7 +174,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                      declare
                         Parser_State : Parser_Lists.Parser_State renames Parser_Status (I).Parser_State.all;
                         Cur : constant Sequential_Index := Tree.Get_Sequential_Index
-                          (Tree.First_Terminal (Parser_State.Current_Token).Node);
+                          (Tree.First_Terminal (Tree.Current_Token (Parser_State.Stream)).Node);
                      begin
                         if abs (Cur - Min) > 4 then --  FIXME: '4' should be mckenzie param zombie_limit
                            raise SAL.Programmer_Error with "parsers not synced";

@@ -49,9 +49,10 @@ package body WisiToken.Parse.LR.Parser is
 
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
 
-      Nonterm : Syntax_Trees.Rooted_Ref := Shared_Parser.Tree.Reduce
+      Nonterm : constant Syntax_Trees.Rooted_Ref := Shared_Parser.Tree.Reduce
         (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Post_Parse_Action, New_State,
-         Default_Virtual => Shared_Parser.Tree.Contains_Virtual_Terminal (Parser_State.Current_Token.Node));
+         Default_Virtual => Shared_Parser.Tree.Contains_Virtual_Terminal
+           (Shared_Parser.Tree.Current_Token (Parser_State.Stream).Node));
       --  Default_Virtual is used if Nonterm is empty; we set it True
       --  because if Current_Token (that triggered the reduce) is virtual,
       --  then Nonterm would be Virtual if it was not empty.
@@ -97,8 +98,8 @@ package body WisiToken.Parse.LR.Parser is
                   return Ok;
 
                else
-                  Shared_Parser.Tree.Add_Error
-                    (Parser_State.Stream, Nonterm,
+                  Shared_Parser.Tree.Add_Error_To_Stack_Top
+                    (Parser_State.Stream,
                      In_Parse_Action_Error'
                        (Status       => Status,
                         Recover_Ops  => Recover_Op_Arrays.Empty_Vector,
@@ -129,6 +130,8 @@ package body WisiToken.Parse.LR.Parser is
          declare
             Current_State : constant State_Index := Tree.State (Parser_State.Stream);
 
+            Current_Token : Rooted_Ref := Shared_Parser.Tree.Current_Token (Parser_State.Stream);
+
             function Handle_Error return Boolean
             --  Return True if should return immediately; False if Undo_Reduce was done.
             is begin
@@ -153,8 +156,7 @@ package body WisiToken.Parse.LR.Parser is
                   if Trace_Parse > Detail then
                      Shared_Parser.Trace.Put_Line
                        (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
-                          Trimmed_Image (Current_State) & ": " &
-                          Tree.Image (Parser_State.Current_Token, First_Terminal => True) &
+                          Trimmed_Image (Current_State) & ": " & Tree.Image (Current_Token, First_Terminal => True) &
                           " error; undo_reduce");
                      Shared_Parser.Trace.Put
                        (" ... " & Tree.Image (Tree.Peek (Parser_State.Stream), State => True));
@@ -172,8 +174,8 @@ package body WisiToken.Parse.LR.Parser is
             end Handle_Error;
 
          begin
-            if Tree.Label (Parser_State.Current_Token.Node) in Terminal_Label then
-               Action_Cur := Action_For (Table, Current_State, Tree.ID (Parser_State.Current_Token.Node));
+            if Tree.Label (Current_Token.Node) in Terminal_Label then
+               Action_Cur := Action_For (Table, Current_State, Tree.ID (Current_Token.Node));
                Action     := Action_Cur.Item;
 
                case Action.Verb is
@@ -187,7 +189,7 @@ package body WisiToken.Parse.LR.Parser is
             else
                declare
                   New_State : constant Unknown_State_Index := Goto_For
-                    (Table, Current_State, Tree.ID (Parser_State.Current_Token.Node));
+                    (Table, Current_State, Tree.ID (Current_Token.Node));
                begin
                   if New_State /= Unknown_State then
                      Action_Cur := null;
@@ -198,8 +200,7 @@ package body WisiToken.Parse.LR.Parser is
                      return;
                   else
                      declare
-                        First_In_Current : constant Node_Access := Tree.First_Terminal
-                          (Parser_State.Current_Token.Node);
+                        First_In_Current : constant Node_Access := Tree.First_Terminal (Current_Token.Node);
                      begin
                         if First_In_Current = Invalid_Node_Access then
                            --  Current_Token is an empty nonterm; skip it. This will not affect
@@ -216,21 +217,10 @@ package body WisiToken.Parse.LR.Parser is
                                     then "-- : "
                                     else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream)) & ": ") &
                                    ": delete empty nonterm " &
-                                   Tree.Image (Parser_State.Current_Token, First_Terminal => True));
+                                   Tree.Image (Current_Token, First_Terminal => True));
                            end if;
 
-                           if Parser_State.Current_Token.Stream = Parser_State.Stream then
-                              Tree.Stream_Delete
-                                (Parser_State.Current_Token.Stream, Parser_State.Current_Token.Element);
-                              Parser_State.Current_Token :=
-                                (if Tree.Has_Input (Parser_State.Stream)
-                                 then Tree.First_Input (Parser_State.Stream)
-                                 else Parser_State.Shared_Token);
-                           else
-                              Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
-                              Parser_State.Current_Token := Parser_State.Shared_Token;
-                              Tree.Set_Shared_Link (Parser_State.Stream, Parser_State.Shared_Token.Element);
-                           end if;
+                           Tree.Delete_Input_Token (Parser_State.Stream);
 
                         else
                            Action_Cur := Action_For (Table, Current_State, Tree.ID (First_In_Current));
@@ -238,26 +228,24 @@ package body WisiToken.Parse.LR.Parser is
 
                            case Action.Verb is
                            when Shift =>
-                              if Parser_State.Current_Token.Stream /= Parser_State.Stream then
+                              if Current_Token.Stream /= Parser_State.Stream then
                                  --  To breakdown a shared_stream token, we first have to create a
                                  --  parse stream input element for it, and do the breakdown in the
                                  --  parse stream input.
-                                 Tree.Move_Shared_To_Input
-                                   (Parser_State.Shared_Token, Parser_State.Stream, Parser_State.Current_Token);
-                                 Parser_State.Inc_Shared_Stream_Token := False;
+                                 Tree.Move_Shared_To_Input (Parser_State.Stream);
+                                 Current_Token := Shared_Parser.Tree.Current_Token (Parser_State.Stream);
                               end if;
 
                               if Trace_Parse > Detail then
                                  Shared_Parser.Trace.Put_Line
                                    (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": left_breakdown " &
-                                      Tree.Image (Parser_State.Current_Token, First_Terminal => True));
+                                      Tree.Image (Current_Token, First_Terminal => True));
                               end if;
-                              Tree.Left_Breakdown (Parser_State.Current_Token);
+                              Tree.Left_Breakdown (Current_Token);
 
                               if Trace_Parse > Detail then
                                  Shared_Parser.Trace.Put_Line
-                                   (" ... current_token: " & Tree.Image
-                                      (Parser_State.Current_Token, First_Terminal => True));
+                                   (" ... current_token: " & Tree.Image (Current_Token, First_Terminal => True));
                                  if Trace_Parse > Detail then
                                     Shared_Parser.Trace.Put_Line
                                       (" ... input stream: " & Tree.Image
@@ -296,96 +284,17 @@ package body WisiToken.Parse.LR.Parser is
       Trace        : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Status       : In_Parse_Actions.Status_Label;
 
+      Current_Token : constant Syntax_Trees.Rooted_Ref := Shared_Parser.Tree.Current_Token (Parser_State.Stream);
+
       procedure Delete_Errors
-      is
-         use WisiToken.Syntax_Trees;
-         use Error_Data_Lists;
-
-         Tree             : Syntax_Trees.Tree renames Shared_Parser.Tree;
-         Inc_Shared_Token : constant Boolean := Parser_State.Current_Token = Parser_State.Shared_Token;
-
-         To_Delete : Cursor  := No_Element;
-         Deleted   : Boolean := False;
-
+      is begin
          --  There can be both a Parse_Error and a moved In_Parse_Error on a
          --  single token; test_incremental.adb Multiple_Errors_On_One_Token.
-
-         function Delete_Error (Node : in Valid_Node_Access) return Cursor
-         --  Search for one error to delete from Node; if found, return it.
-         --  Otherwise return No_Element.
-         is
-            Error_List : List renames Tree.Error_List (Node);
-         begin
-            for Err_Cur in Error_List.Iterate loop
-               if Error_List (Err_Cur) in Lexer_Error then
-                  --  Lexer errors are only cleared by re-lexing in Edit_Tree.
-                  --  test_incremental.adb Lexer_Errors_1
-                  null;
-
-               elsif Error_List (Err_Cur) in Parse_Error then
-                  --  A previous Parse_Error; test_incremental.adb Recover_1,
-                  --  test_incremental.adb Multiple_Errors_On_One_Token_1, _2,
-                  --  ada_mode-interactive_06.adb
-                  return Err_Cur;
-
-               elsif Error_List (Err_Cur) in Error_Message then
-                  --  A moved In_Parse_Error.
-                  return Err_Cur;
-               end if;
-            end loop;
-            return No_Element;
-         end Delete_Error;
-
-      begin
-         case Tree.Label (Parser_State.Current_Token.Node) is
-         when Terminal_Label =>
-            if Tree.Has_Error (Parser_State.Current_Token.Node) then
-               loop
-                  To_Delete := Delete_Error (Parser_State.Current_Token.Node);
-                  exit when To_Delete = No_Element;
-                  Tree.Delete_Error
-                    (Parser_State.Stream, Parser_State.Current_Token,
-                     Tree.Error_List (Parser_State.Current_Token.Node)(To_Delete),
-                     Shared_Parser.User_Data);
-                  Deleted := True;
-               end loop;
-               if Deleted then
-                  if Inc_Shared_Token then
-                     --  Tree.Delete_Error has incremented Stream.Shared_Link; keep
-                     --  Parser_State.Shared_Token in sync.
-                     Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
-                     Parser_State.Inc_Shared_Stream_Token := False;
-                  end if;
-               end if;
-            end if;
-
-         when Nonterm =>
-            declare
-               First_Term : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Parser_State.Current_Token);
-            begin
-               Tree.First_Terminal (First_Term);
-
-               if Tree.Has_Error (First_Term.Ref.Node) then
-                  loop
-                     To_Delete := Delete_Error (First_Term.Ref.Node);
-                     exit when To_Delete = No_Element;
-                     Tree.Delete_Error
-                       (Parser_State.Stream, First_Term,
-                        Tree.Error_List (First_Term.Ref.Node)(To_Delete),
-                        Shared_Parser.User_Data);
-                     Deleted := True;
-                  end loop;
-
-                  if Deleted then
-                     Parser_State.Current_Token := Tree.To_Rooted_Ref (First_Term.Ref.Stream, First_Term.Ref.Element);
-                     if Inc_Shared_Token then
-                        Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
-                        Parser_State.Inc_Shared_Stream_Token := False;
-                     end if;
-                  end if;
-               end if;
-            end;
-         end case;
+         Shared_Parser.Tree.Delete_Errors_In_Input
+           (Parser_State.Stream,
+            Error_Pred_Lexer_Parse_Message'Access,
+            Shared_Parser.User_Data,
+            Nonterm_First_Terminal => True);
       end Delete_Errors;
 
    begin
@@ -396,7 +305,7 @@ package body WisiToken.Parse.LR.Parser is
               (if Trace_Parse_No_State_Numbers
                then "-- : "
                else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream)) & ": ") &
-              Shared_Parser.Tree.Image (Parser_State.Current_Token, First_Terminal => True) & " : " &
+              Shared_Parser.Tree.Image (Current_Token, First_Terminal => True) & " : " &
               Trace_Image (Action, Shared_Parser.Tree.Lexer.Descriptor.all));
          Trace.New_Line;
       end if;
@@ -410,7 +319,7 @@ package body WisiToken.Parse.LR.Parser is
             Delete_Errors;
          end if;
 
-         Shared_Parser.Tree.Shift (Parser_State.Stream, Action.State, Parser_State.Current_Token);
+         Shared_Parser.Tree.Shift (Parser_State.Stream, Action.State);
 
       when Reduce =>
          declare
@@ -427,8 +336,8 @@ package body WisiToken.Parse.LR.Parser is
                Parser_State.Set_Verb (Error);
                Parser_State.Last_Action := (Error, Invalid_Production_ID);
 
-               Shared_Parser.Tree.Add_Error
-                 (Parser_State.Stream, Parser_State.Current_Token,
+               Shared_Parser.Tree.Add_Error_To_Input
+                 (Parser_State.Stream,
                   Parse_Error'
                     (First_Terminal => 1,
                      Last_Terminal  => 0,
@@ -457,16 +366,16 @@ package body WisiToken.Parse.LR.Parser is
                      end if;
 
                      --  Insert EOI on Shared_Stream
-                     if Shared_Parser.Tree.ID (Parser_State.Current_Token.Node) /=
+                     if Shared_Parser.Tree.ID (Current_Token.Node) /=
                        Shared_Parser.Tree.Lexer.Descriptor.EOI_ID
                      then
                         declare
                            Last_Token_Byte_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Byte_Region
-                             (Parser_State.Current_Token.Node).Last;
+                             (Current_Token.Node).Last;
                            Last_Token_Char_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Char_Region
-                             (Parser_State.Current_Token.Node).Last;
+                             (Current_Token.Node).Last;
                            Last_Token_Line_Region_Last : constant Line_Number_Type := Shared_Parser.Tree.Line_Region
-                             (Parser_State.Current_Token).Last;
+                             (Current_Token).Last;
 
                            EOI_Token : constant Lexer.Token :=
                              (ID          => Shared_Parser.Tree.Lexer.Descriptor.EOI_ID,
@@ -478,10 +387,10 @@ package body WisiToken.Parse.LR.Parser is
                                  Last     => Last_Token_Char_Region_Last),
                               Line_Region => (First | Last => Last_Token_Line_Region_Last));
                         begin
-                           Parser_State.Current_Token := Shared_Parser.Tree.Insert_Source_Terminal
+                           Shared_Parser.Tree.Insert_Source_Terminal
                              (Shared_Parser.Tree.Shared_Stream,
                               Terminal => EOI_Token,
-                              Before   => Shared_Parser.Tree.Stream_Next (Parser_State.Current_Token).Element,
+                              Before   => Shared_Parser.Tree.Stream_Next (Current_Token).Element,
                               Error    => Syntax_Trees.No_Error);
                         end;
                      end if;
@@ -543,9 +452,6 @@ package body WisiToken.Parse.LR.Parser is
             Expecting : constant Token_ID_Set := LR.Expecting
               (Shared_Parser.Table.all, Tree.State (Parser_State.Stream));
 
-            Inc_Shared_Token : constant Boolean := Parser_State.Current_Token = Parser_State.Shared_Token and
-              Tree.ID (Parser_State.Shared_Token.Node) /= Tree.Lexer.Descriptor.EOI_ID;
-
             New_Error : constant Parse_Error :=
               (First_Terminal => Tree.Lexer.Descriptor.First_Terminal,
                Last_Terminal  => Tree.Lexer.Descriptor.Last_Terminal,
@@ -553,69 +459,24 @@ package body WisiToken.Parse.LR.Parser is
                Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
                Recover_Cost   => 0);
 
-            Error_Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Parser_State.Current_Token);
+         begin
+            if Tree.Input_Has_Matching_Error (Parser_State.Stream, New_Error) then
+               --  Keep the recover information so it can be used again.
+               null;
 
-            Update_Current_Token : constant Boolean := Parser_State.Current_Token = Error_Ref.Ref;
+            else
+               Tree.Delete_Errors_In_Input
+                 (Parser_State.Stream,
+                  Error_Pred_Parse'Access,
+                  Shared_Parser.User_Data,
+                  Nonterm_First_Terminal => True);
 
-            procedure Add_Error
-            is begin
-               Tree.Add_Error
+               Tree.Add_Error_To_Input
                  (Stream    => Parser_State.Stream,
-                  Error_Ref => Error_Ref,
                   Data      => New_Error,
                   User_Data => Shared_Parser.User_Data);
 
-               if Update_Current_Token then
-                  Parser_State.Current_Token := Tree.To_Rooted_Ref
-                    (Error_Ref.Ref.Stream, Error_Ref.Ref.Element);
-               end if;
-               if Inc_Shared_Token then
-                  Tree.Stream_Next (Parser_State.Shared_Token, Rooted => True);
-               end if;
-            end Add_Error;
-
-         begin
-            case Tree.Label (Parser_State.Current_Token.Node) is
-            when Terminal_Label =>
-               null;
-
-            when Nonterm =>
-               --  test_incremental.adb Lexer_Errors_1
-               Tree.First_Terminal (Error_Ref);
-            end case;
-
-            declare
-               use Error_Data_Lists;
-               To_Delete  : Cursor := No_Element;
-               Error_List : List renames Tree.Error_List (Error_Ref.Ref.Node);
-            begin
-               for Err_Cur in Error_List.Iterate loop
-                  if Error_List (Err_Cur) in Parse_Error then
-                     if To_Delete /= No_Element then
-                        raise SAL.Programmer_Error; --  Should only be one Parse_Error on any node.
-                     else
-                        To_Delete := Err_Cur;
-                     end if;
-                  end if;
-               end loop;
-
-               if To_Delete = No_Element then
-                  Add_Error;
-
-               elsif Parse_Error (Error_List (To_Delete).Element.all).Expecting = Expecting then
-                  --  Keep the recover information so it can be used again.
-                  null;
-
-               else
-                  Tree.Delete_Error
-                    (Stream    => Parser_State.Stream,
-                     Error_Ref => Error_Ref,
-                     Data      => Error_List (To_Delete),
-                     User_Data => Shared_Parser.User_Data);
-
-                  Add_Error;
-               end if;
-            end;
+            end if;
 
             if Trace_Parse > Detail then
                Trace.Put_Line
@@ -648,47 +509,23 @@ package body WisiToken.Parse.LR.Parser is
          begin
             if Op.Op = Delete then
                declare
-                  Terminal : constant Stream_Node_Ref := Parser_Lists.Peek_Next_Sequential_Terminal
-                    (Parser_State, Shared_Parser.Tree).Ref;
+                  Terminal : constant Terminal_Ref := Tree.First_Sequential_Terminal
+                    (Tree.Current_Token (Parser_State.Stream));
                begin
                   if Op.Del_Index = Tree.Get_Sequential_Index (Terminal.Node) then
-
-                     Op.Del_Node := Terminal.Node;
-
-                     --  We don't want a deleted node as Op.Del_After_Node;
-                     --  ada_mode-recover_extra_end_loop.adb deletes "end loop;". So we
-                     --  don't use 'Tree.Prev_Terminal (Terminal, Parser_State.Stream);'.
-                     --  The previous terminal is on the parse stack.
-                     declare
-                        El            : constant Stream_Index := Tree.Peek (Parser_State.Stream);
-                        Prev_Terminal : Stream_Node_Parents   := Tree.To_Stream_Node_Parents
-                          ((Stream  => Parser_State.Stream,
-                            Element => El,
-                            Node    => Get_Node (El)));
-                     begin
-                        Tree.Last_Terminal (Prev_Terminal, Parser_State.Stream);
-                        if Tree.Label (Prev_Terminal.Ref.Node) /= Source_Terminal then
-                           Tree.Prev_Source_Terminal
-                             (Prev_Terminal, Parser_State.Stream, Trailing_Non_Grammar => False);
-                        end if;
-                        Tree.Add_Deleted
-                          (Deleted_Ref   => Terminal,
-                           Prev_Terminal => Prev_Terminal,
-                           User_Data     => Shared_Parser.User_Data);
-                     end;
-
-                     Ins_Del_Cur := Ins_Del_Cur + 1;
-                     if Ins_Del_Cur > Last_Index (Ins_Del)  then
-                        Ins_Del_Cur := No_Index;
-                     end if;
-
-                     Parser_Lists.Next_Token (Parser_State, Shared_Parser.Tree, Set_Current => False, Delete => True);
+                     Do_Delete (Tree, Parser_State.Stream, Op, Terminal, Shared_Parser.User_Data);
 
                      if Trace_Parse > Extra  then
                         Shared_Parser.Trace.Put_Line
                           (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": delete " &
                              Op.Del_Index'Image);
                      end if;
+
+                     Ins_Del_Cur := Ins_Del_Cur + 1;
+                     if Ins_Del_Cur > Last_Index (Ins_Del)  then
+                        Ins_Del_Cur := No_Index;
+                     end if;
+
                   else
                      exit;
                   end if;
@@ -706,7 +543,7 @@ package body WisiToken.Parse.LR.Parser is
       Zombie_Count  :    out SAL.Base_Peek_Type)
    --  Verb: the type of parser cycle to execute;
    --
-   --  Accept : all Parsers.Verb return Accept - done parsing.
+   --  Accept_It : all Parsers.Verb return Accept - done parsing.
    --
    --  Shift : some Parsers.Verb return Shift.
    --
@@ -723,7 +560,6 @@ package body WisiToken.Parse.LR.Parser is
    --
    --  Zombie_Count: count of parsers in Error state
    is
-      use all type WisiToken.Syntax_Trees.Sequential_Index;
       use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
 
       Shift_Count   : SAL.Base_Peek_Type := 0;
@@ -743,7 +579,7 @@ package body WisiToken.Parse.LR.Parser is
             Parser_State.Set_Verb (Shift);
 
             --  We call Do_Deletes here so it can break down a nonterm if needed;
-            --  then the check for resume done is correct. See
+            --  then the check for resume done is correct.
             --  ada_mode-recover_bad_char.adb.
             Do_Deletes (Shared_Parser, Parser_State);
 
@@ -755,20 +591,35 @@ package body WisiToken.Parse.LR.Parser is
                --  ada_mode-interactive_1.adb "for File_Name in File_Names loop"
                declare
                   use WisiToken.Syntax_Trees;
-                  Terminal : constant Node_Access := Shared_Parser.Tree.Last_Sequential_Terminal
-                    (Parser_State.Current_Token.Node);
+                  function Get_Terminal return Valid_Node_Access
+                  is
+                     Ref : Stream_Node_Ref := Shared_Parser.Tree.Current_Token (Parser_State.Stream);
+                  begin
+                     loop
+                        exit when not Shared_Parser.Tree.Is_Empty_Nonterm
+                          (Shared_Parser.Tree.Get_Node (Ref.Stream, Ref.Element));
+                        --  ada_mode-interactive_01.adb has empty nonterms between sequential
+                        --  terminals.
+                        Shared_Parser.Tree.Stream_Next (Ref, Rooted => True);
+                     end loop;
+                     return Shared_Parser.Tree.Last_Sequential_Terminal (Ref.Node);
+                  end Get_Terminal;
 
-                  Terminal_Index : constant Base_Sequential_Index :=
-                    (if Terminal = Invalid_Node_Access
-                     then Invalid_Sequential_Index --  Current_Token is an empty nonterm, or an Inserted virtual.
-                     else Shared_Parser.Tree.Get_Sequential_Index (Terminal));
+                  Terminal : constant Valid_Node_Access := Get_Terminal;
+
+                  Terminal_Index : constant Base_Sequential_Index := Shared_Parser.Tree.Get_Sequential_Index (Terminal);
                begin
-                  if (Terminal /= Invalid_Node_Access and then
-                        Shared_Parser.Tree.ID (Terminal) = Shared_Parser.Tree.Lexer.Descriptor.EOI_ID)
-                    --  EOI before resume_token_goal; test_incremental.adb Preserve_Parse_Errors_1
-                    or
-                    (Terminal_Index /= Invalid_Sequential_Index and
-                       Parser_State.Resume_Token_Goal <= Terminal_Index)
+                  if Terminal_Index = Invalid_Sequential_Index then
+                     --  Error recover should extend sequential_index to this point.
+                     raise SAL.Programmer_Error;
+                  end if;
+
+                  if Parser_State.Resume_Token_Goal < Terminal_Index and
+                    Parser_State.Recover_Insert_Delete_Current = Recover_Op_Nodes_Arrays.No_Index
+                    --  Parser_State.Recover_Insert_Delete_Current can be No_Index here
+                    --  when Current_Token is a nonterm that needs to be broken down
+                    --  before the remaining ops can be performed.
+                    --  ada_mode-interactive_01.adb
                   then
                      Parser_State.Resume_Active := False;
                      Parser_State.Resume_Token_Goal := Syntax_Trees.Invalid_Sequential_Index;
@@ -782,29 +633,23 @@ package body WisiToken.Parse.LR.Parser is
                end;
 
             elsif Shared_Parser.Resume_Active then
-               if Parser_State.Shared_Token /= Syntax_Trees.Invalid_Stream_Node_Ref then
-                  declare
-                     use Syntax_Trees;
-                     First_Terminal : constant Node_Access := Shared_Parser.Tree.First_Sequential_Terminal
-                       (Parser_State.Shared_Token.Node);
-                  begin
-                     if First_Terminal /= Invalid_Node_Access then
-                        Min_Sequential_Index := Syntax_Trees.Sequential_Index'Min
-                          (@, Shared_Parser.Tree.Get_Sequential_Index (First_Terminal));
-                     else
-                        --  No terminal in Shared_Token
-                        null;
-                     end if;
-                  end;
-               end if;
+               declare
+                  use Syntax_Trees;
+                  First_Terminal : constant Node_Access := Shared_Parser.Tree.First_Sequential_Terminal
+                    (Shared_Parser.Tree.Shared_Token (Parser_State.Stream).Node);
+               begin
+                  if First_Terminal /= Invalid_Node_Access then
+                     Min_Sequential_Index := Syntax_Trees.Sequential_Index'Min
+                       (@, Shared_Parser.Tree.Get_Sequential_Index (First_Terminal));
+                  else
+                     --  No terminal in Shared_Token
+                     null;
+                  end if;
+               end;
 
             else
-               --  Ensure parsers stay close to the same terminal. In general,
-               --  Parser_State.Current_Token.Byte_Region should not be within
-               --  another parser stack_top, unless it just included that token in a
-               --  reduce. But in incremental parse, one parser can shift a nonterm,
-               --  while another parser has broken down that nonterm and is working
-               --  thru it one terminal at a time.
+               --  Ensure parsers stay close to the same terminal; see note below at
+               --  use of Max_Byte_Last.
                declare
                   use Syntax_Trees;
 
@@ -864,11 +709,11 @@ package body WisiToken.Parse.LR.Parser is
          --  All error recover insert and delete are done, so all parsers must
          --  see the same terminals.
          for Parser_State of Shared_Parser.Parsers loop
-            if Parser_State.Verb = Shift and Parser_State.Shared_Token /= Syntax_Trees.Invalid_Stream_Node_Ref then
+            if Parser_State.Verb = Shift then
                declare
                   use Syntax_Trees;
                   First_Terminal : constant Node_Access := Shared_Parser.Tree.First_Sequential_Terminal
-                    (Parser_State.Shared_Token.Node);
+                    (Shared_Parser.Tree.Shared_Token (Parser_State.Stream).Node);
                begin
                   if First_Terminal /= Invalid_Node_Access and then
                     Min_Sequential_Index /= Syntax_Trees.Sequential_Index'Last and then
@@ -891,9 +736,13 @@ package body WisiToken.Parse.LR.Parser is
             McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
          end if;
 
-      else
-         --  Ensure parsers stay close to the same terminal; see note above at
-         --  setting of Max_Byte_Last.
+      elsif Shared_Parser.Parsers.Count > 1 then
+         --  Ensure parsers stay close to the same terminal. In general,
+         --  Parser_State.Current_Token.Byte_Region should not be within
+         --  another parser stack_top, unless it just included that token in a
+         --  reduce. But in incremental parse, one parser can shift a nonterm,
+         --  while another parser has broken down that nonterm and is working
+         --  thru it one terminal at a time.
          declare
             Not_Paused : array (1 .. Shared_Parser.Parsers.Count) of Boolean := (others => False);
             Parser_Index : SAL.Base_Peek_Type := Not_Paused'First;
@@ -902,9 +751,11 @@ package body WisiToken.Parse.LR.Parser is
                if Parser_State.Verb = Shift then
                   declare
                      use Syntax_Trees;
+                     Current_Token_Node : constant Node_Access := Shared_Parser.Tree.Current_Token
+                       (Parser_State.Stream).Node;
                      First_Terminal : constant Node_Access :=
-                       (if Parser_State.Current_Token.Node /= Invalid_Node_Access
-                        then Shared_Parser.Tree.First_Terminal (Parser_State.Current_Token.Node)
+                       (if Current_Token_Node /= Invalid_Node_Access
+                        then Shared_Parser.Tree.First_Terminal (Current_Token_Node)
                         else Invalid_Node_Access);
                   begin
                      if First_Terminal /= Invalid_Node_Access and then
@@ -913,31 +764,35 @@ package body WisiToken.Parse.LR.Parser is
                         declare
                            Region : constant Buffer_Region := Shared_Parser.Tree.Byte_Region (First_Terminal);
                         begin
-                           if Region.Last = Max_Byte_Last  --  This parser set Max_Byte_Last
-                             or
-                             Region.First < Max_Byte_Last
-                           then
-                              Not_Paused (Parser_Index) := True;
+                           --  Max_Byte_Last is last byte of farthest token on stack top; parsers
+                           --  whose Current_Token are within that token are not paused, so they
+                           --  can catch up.
+                           if Region.First < Max_Byte_Last then
+                              Not_Paused (Parser_Index) := False;
                            end if;
                         end;
-                     else
-                        Not_Paused (Parser_Index) := True;
                      end if;
                   end;
                   Parser_Index := @ + 1;
                end if;
             end loop;
 
-            Parser_Index := Not_Paused'First;
-            for Parser_State of Shared_Parser.Parsers loop
-               if Parser_State.Verb = Shift and not Not_Paused (Parser_Index) then
-                  Parser_State.Set_Verb (Pause);
-                  if Trace_Parse > Detail then
-                     Shared_Parser.Trace.Put_Line
-                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": pause: main sync");
+            if (for all P of Not_Paused => P = False) then
+               --  All parsers Current_Token are after farthest stack top; none need
+               --  to be paused.
+               null;
+            else
+               Parser_Index := Not_Paused'First;
+               for Parser_State of Shared_Parser.Parsers loop
+                  if Parser_State.Verb = Shift and not Not_Paused (Parser_Index) then
+                     Parser_State.Set_Verb (Pause);
+                     if Trace_Parse > Detail then
+                        Shared_Parser.Trace.Put_Line
+                          (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": pause: main sync");
+                     end if;
                   end if;
-               end if;
-            end loop;
+               end loop;
+            end if;
          end;
       end if;
    end Parse_Verb;

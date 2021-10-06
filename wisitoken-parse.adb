@@ -219,6 +219,35 @@ package body WisiToken.Parse is
       return -Data.Msg;
    end Image;
 
+   function Error_Pred_Parse (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
+   is
+      use Syntax_Trees.Error_Data_Lists;
+   begin
+      return
+        (if Element (Cur) in Parse_Error then True
+         else False);
+   end Error_Pred_Parse;
+
+   function Error_Pred_Lexer_Parse_Message (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
+   is
+      use Syntax_Trees.Error_Data_Lists;
+   begin
+      return
+        (if Element (Cur) in Lexer_Error then False
+         --  Lexer errors are only cleared by re-lexing in Edit_Tree.
+         --  test_incremental.adb Lexer_Errors_1
+
+         elsif Element (Cur) in Parse_Error then True
+         --  A previous Parse_Error; test_incremental.adb Recover_1,
+         --  test_incremental.adb Multiple_Errors_On_One_Token_1, _2,
+         --  ada_mode-interactive_06.adb
+
+         elsif Element (Cur) in Error_Message then True
+         --  A moved In_Parse_Error.
+
+         else raise SAL.Programmer_Error);
+   end Error_Pred_Lexer_Parse_Message;
+
    function Find_Parse_In_Parse_Action_Error
      (Tree : in Syntax_Trees.Tree;
       Node : in Syntax_Trees.Valid_Node_Access)

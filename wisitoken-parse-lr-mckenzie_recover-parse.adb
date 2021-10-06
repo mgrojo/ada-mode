@@ -558,11 +558,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       use Syntax_Trees;
       use all type Bounded_Streams.Cursor;
    begin
-      if Config.Current_Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref then
-         --  Happens with really bad syntax; see test_mckenzie_recover.adb Error_4.
-         raise Bad_Config;
-      end if;
-
       loop -- Op = Delete requires loop
          if Config.Current_Insert_Delete /= No_Insert_Delete and then
            (declare

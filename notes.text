@@ -34,14 +34,11 @@ update-wisitoken_grammar
 fix ada_mode-interactive_01.adb failure
     too fragile/language dependent to reproduce in test_incremental.adb
 
-    change parser_state.current_, shared_token to functions.
+    t_mck String_Quote_1 case 1 parser 1:
+        (PUSH_BACK, LESS, 1), (PUSH_BACK, simple_expression, 0), (FAST_FORWARD, 1) = no_op!
 
-    pause after shift nonterm to let others catch up
-        testing:
-            test_incremental.adb pass
-            t_mck pass
-            t_all pass
-            ada_mode: parser 7 stack_top = current_token = shared_token; oops
+    review FIXME
+        at least in syntax_trees
 
     sequential_init keep going until stack_top is set
         not clear which way to extend, so do both

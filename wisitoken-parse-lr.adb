@@ -378,18 +378,25 @@ package body WisiToken.Parse.LR is
       --  the stream element states.
       use Syntax_Trees;
    begin
-      if Tree.Error_List (Tree.Get_Node (Stream, Tree.Peek (Stream))).Length > 0 then
+      if Tree.Has_Error (Tree.Get_Node (Stream, Tree.Peek (Stream))) then
          --  Move the errors to the first terminal, so they are not lost.
          declare
             Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents
-              (Tree.To_Rooted_Ref (Stream, Tree.Stack_Top (Stream)));
+              (Tree.To_Rooted_Ref (Stream, Tree.Peek (Stream)));
 
-            Orig_Error_Node : constant Valid_Node_Access := Ref.Ref.Node;
+            New_Errors : Error_Data_Lists.List;
          begin
-            Tree.First_Terminal (Ref);
-            for Err of Tree.Error_List (Orig_Error_Node) loop
-               Tree.Add_Error (Stream, Ref, To_Message (Err, Tree, Orig_Error_Node), User_Data);
+            for Err of Tree.Error_List (Ref.Ref.Node) loop
+               New_Errors.Append (To_Message (Err, Tree, Ref.Ref.Node));
             end loop;
+
+            Tree.First_Terminal (Ref, Following => False);
+            if Ref.Ref.Node = Invalid_Node_Access then
+               --  So far, we never put an error on an empty nonterm; we just delete
+               --  it.
+               raise SAL.Programmer_Error with "undo_reduce error on empty nonterm";
+            end if;
+            Tree.Add_Errors (Ref, New_Errors, User_Data);
          end;
       end if;
 
@@ -767,6 +774,64 @@ package body WisiToken.Parse.LR is
             else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)))
         & ")";
    end Image;
+
+   procedure Do_Delete
+     (Tree        : in out Syntax_Trees.Tree;
+      Stream      : in     Syntax_Trees.Stream_ID;
+      Op          : in out Delete_Op_Nodes;
+      Deleted_Ref : in     Syntax_Trees.Stream_Node_Ref;
+      User_Data   : in     Syntax_Trees.User_Data_Access)
+   is
+      use Syntax_Trees;
+      --  We don't want a deleted node as Op.Del_After_Node;
+      --  ada_mode-recover_extra_end_loop.adb deletes "end loop ;". So we
+      --  don't use 'Tree.Prev_Terminal (Terminal, Parser_State.Stream);'.
+      --  The previous terminal is on the parse stack.
+      Prev_Terminal : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+        (Tree.To_Rooted_Ref (Stream, Tree.Peek (Stream)));
+   begin
+      Op.Del_Node := Deleted_Ref.Node;
+
+      Tree.Last_Terminal (Prev_Terminal, Stream);
+      if Tree.Label (Prev_Terminal.Ref.Node) /= Source_Terminal then
+         Tree.Prev_Source_Terminal
+           (Prev_Terminal, Stream, Trailing_Non_Grammar => False);
+      end if;
+      Tree.Add_Deleted
+        (Deleted_Ref   => Deleted_Ref,
+         Prev_Terminal => Prev_Terminal,
+         User_Data     => User_Data);
+
+      loop
+         --  Delete empty nonterms, breakdown non-empty nonterms, delete next terminal.
+         declare
+            Current_Token : Stream_Node_Ref := Tree.Current_Token (Stream);
+         begin
+            case Tree.Label (Current_Token.Node) is
+            when Terminal_Label =>
+               pragma Assert (Op.Del_Index = Tree.Get_Sequential_Index (Current_Token.Node));
+               Tree.Delete_Input_Token (Stream);
+               exit;
+
+            when Nonterm =>
+               if Tree.Is_Empty_Nonterm (Current_Token.Node) then
+                  --  Delete an empty nonterm preceding the target terminal.
+                  --  test_mckenzie_recover.adb Missing_Name_2
+                  Tree.Delete_Input_Token (Stream);
+               else
+                  --  Error recover only supports Delete for terminals.
+                  --  test_mckenzie_recover.adb String_Quote_1 case 3
+                  if Current_Token.Stream /= Stream then
+                     Tree.Move_Shared_To_Input (Stream);
+                     Current_Token := Tree.Current_Token (Stream);
+                  end if;
+
+                  Tree.Left_Breakdown (Current_Token);
+               end if;
+            end case;
+         end;
+      end loop;
+   end Do_Delete;
 
    function Stack_Has
      (Tree  : in Syntax_Trees.Tree;

@@ -51,9 +51,9 @@ recover: succeed, parser count 1
 (-1, 
 0008: 2;8:(Wisi_EOI, (24 . 23) ERROR)))
     Current_Token: (0, -14:(RIGHT_CURLY_BRACKET))
-    Shared_Token: (-1, 6:(Wisi_EOI, (24 . 23)))
+    Shared_Token: ()
     recover_insert_delete:
-    resume_active: True, token goal 6, inc_shared_stream_token: FALSE
+    resume_active: True, token goal 6
 
  0: 8: (0, -14:(RIGHT_CURLY_BRACKET)) : shift and goto state 9
  0: 9: (0, 2;8:(Wisi_EOI, (24 . 23) ERROR)) : reduce 4 tokens to EnumBody

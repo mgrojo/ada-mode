@@ -234,6 +234,14 @@ package WisiToken.Parse is
       Error_Node : in Syntax_Trees.Valid_Node_Access)
      return String;
 
+   function Error_Pred_Parse (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
+   --  Return True if Cur is a Parse_Error; for
+   --  Syntax_Trees.Error_Predicate.
+
+   function Error_Pred_Lexer_Parse_Message (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
+   --  Return True if Cur is one of Lexer_Error, Parse_Error, or
+   --  Error_Message; for Syntax_Trees.Error_Predicate.
+
    function Find_Parse_In_Parse_Action_Error
      (Tree : in Syntax_Trees.Tree;
       Node : in Syntax_Trees.Valid_Node_Access)

@@ -146,10 +146,18 @@ package body Test_Incremental is
 
       procedure Put_Tree (Parser : in WisiToken.Parse.LR.Parser.Parser)
       is begin
-         if Parser.Tree.Error_Count > 0 then
-            New_Line;
-            Parser.Put_Errors;
+         if Parser.Tree.Parents_Set then
+            if Parser.Tree.Error_Count > 0 then
+               New_Line;
+               Parser.Put_Errors;
+            end if;
+         else
+            if Parser.Tree.Error_Count (Parser.Tree.Last_Parse_Stream) > 0 then
+               New_Line;
+               Parser.Put_Errors (Parser.Tree.Last_Parse_Stream);
+            end if;
          end if;
+
          New_Line;
          Put_Line (Label_Dot & " ... tree:");
          Parser.Tree.Print_Tree (Trace, Non_Grammar => True);
@@ -183,7 +191,17 @@ package body Test_Incremental is
 
       Full_Parser.Tree.Lexer.Reset_With_String (To_String (Edited_Buffer));
 
-      Full_Parser.Parse (Log_File);
+      begin
+         Full_Parser.Parse (Log_File);
+      exception
+      when WisiToken.Syntax_Error =>
+         if WisiToken.Trace_Tests > WisiToken.Outline then
+            Put_Line (Label_Dot & "(syntax_error)");
+            Put_Tree (Full_Parser);
+         end if;
+         Check ("syntax_error", True, False);
+         return;
+      end;
 
       Full_Parser.Tree.Copy_Tree (Edited_Source_Full_Parse_Tree, User_Data'Access);
 
@@ -198,7 +216,17 @@ package body Test_Incremental is
          end if;
 
          Incremental_Parser.Tree.Lexer.Reset_With_String (Initial);
-         Incremental_Parser.Parse (Log_File);
+         begin
+            Incremental_Parser.Parse (Log_File);
+         exception
+         when WisiToken.Syntax_Error =>
+            if WisiToken.Trace_Tests > WisiToken.Outline then
+               Put_Line (Label_Dot & "(syntax_error)");
+               Put_Tree (Incremental_Parser);
+            end if;
+            Check ("syntax_error", True, False);
+            return;
+         end;
 
          if WisiToken.Trace_Tests > WisiToken.Outline then
             Put_Tree (Incremental_Parser);

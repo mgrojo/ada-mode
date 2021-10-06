@@ -45,6 +45,7 @@ with System.Multiprocessors;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
+   use all type WisiToken.Syntax_Trees.Base_Sequential_Index;
    use all type WisiToken.Syntax_Trees.Stream_ID;
    use all type SAL.Base_Peek_Type;
 
@@ -453,6 +454,8 @@ package WisiToken.Parse.LR is
       end case;
    end record;
 
+   subtype Delete_Op_Nodes is Recover_Op_Nodes (Delete);
+
    package Recover_Op_Nodes_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Positive_Index_Type, Recover_Op_Nodes, Default_Element => (others => <>));
 
@@ -462,6 +465,15 @@ package WisiToken.Parse.LR is
      (Syntax_Trees.Tree,
       Index_Trimmed_Image => Trimmed_Image,
       Element_Image       => Image);
+
+   procedure Do_Delete
+     (Tree        : in out Syntax_Trees.Tree;
+      Stream      : in     Syntax_Trees.Stream_ID;
+      Op          : in out Delete_Op_Nodes;
+      Deleted_Ref : in     Syntax_Trees.Stream_Node_Ref;
+      User_Data   : in     Syntax_Trees.User_Data_Access)
+   with Pre => Op.Del_Index = Tree.Get_Sequential_Index (Deleted_Ref.Node);
+   --  Perform Delete operation on Stream, set Op.Del_Node..
 
    type Recover_Stack_Item is record
       State : Unknown_State_Index := Unknown_State;
