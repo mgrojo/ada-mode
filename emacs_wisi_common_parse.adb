@@ -606,10 +606,7 @@ package body Emacs_Wisi_Common_Parse is
             --  Tell Emacs to send full text
             Put_Line ("(file_not_found)");
 
-         when Syntax_Error =>
-            Put_Line ("(parse_error)");
-
-         when E : Parse_Error =>
+         when E : Syntax_Error | Parse_Error =>
             Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Message (E) & """)");
 
          when E : Wisi.Protocol_Error =>

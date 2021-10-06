@@ -450,11 +450,7 @@ package body Run_Wisi_Common_Parse is
               (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                Parser.Tree);
          exception
-         when WisiToken.Syntax_Error =>
-            WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
-            Ada.Text_IO.Put_Line ("(parse_error)");
-
-         when E : WisiToken.Parse_Error =>
+         when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>
             WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
             Ada.Text_IO.Put_Line
               ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
