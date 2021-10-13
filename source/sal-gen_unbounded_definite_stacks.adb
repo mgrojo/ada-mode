@@ -185,10 +185,10 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
       S : Base_Peek_Type := Source.Top - Source_Start_Depth + 1;
       T : Base_Peek_Type := Target.Top - Target_Start_Depth + 1;
    begin
-      for I in 0 .. Count - 1  loop
+      for I in 1 .. Count  loop
          Target.Data (T) := Source.Data (S);
-         S := S - 1;
-         T := T - 1;
+         S := S + 1;
+         T := T + 1;
       end loop;
    end Copy_Slice;
 
