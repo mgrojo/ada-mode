@@ -31,23 +31,11 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-fix ada_mode-interactive_01.adb failure
-    too fragile/language dependent to reproduce in test_incremental.adb
+fix ada_mode-interactive_02.adb failure
 
-    t_mck String_Quote_1 case 1 parser 1:
-        (PUSH_BACK, LESS, 1), (PUSH_BACK, simple_expression, 0), (FAST_FORWARD, 1) = no_op!
 
-    review FIXME
-        at least in syntax_trees
-
-    sequential_init keep going until stack_top is set
-        not clear which way to extend, so do both
-        if all first_terminal.sequential_index within zombie_limit, accept it
-        otherwise raise programmer_error
-
-test_incremental.adb
-    more cases:
-        break comment; insert LF & "-- " ; need to scan to end of old comment; same result.
+review FIXME
+    at least in syntax_trees
 
 Stream.Shared_Link === Parser_State.Shared_Token
     except after parser_lists.next_token

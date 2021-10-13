@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Exceptions;
+with GNAT.Traceback.Symbolic;
 with SAL.Gen_Bounded_Definite_Queues;
 with WisiToken.Parse.LR.McKenzie_Recover.Parse;
 with WisiToken.Parse.LR.Parser;
@@ -123,12 +124,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Config.Cost := @ + Table.McKenzie_Param.Ignore_Check_Fail;
 
          if Config.Stack.Depth < Config.In_Parse_Action_Token_Count then
-            raise SAL.Programmer_Error;
+            raise Bad_Config;
          else
             Config.Stack.Pop (Config.In_Parse_Action_Token_Count);
          end if;
-         Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
-         Config.In_Parse_Action_Status   := (Label => Ok);
+         Config.Error_Token            := Syntax_Trees.Invalid_Recover_Token;
+         Config.In_Parse_Action_Status := (Label => Ok);
       end case;
 
       if Config.Stack.Depth = 0 or else Config.Stack.Peek.State = Unknown_State then
@@ -192,14 +193,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             Do_Reduce_2
               (Label, Super, Shared, Parser_Index, Local_Config_Heap, Config, Inserted_ID, Cost_Delta, Strategy);
 
-         when Accept_It | Error  =>
-            if Trace_McKenzie > Extra and Label'Length > 0 then
-               Put_Line
-                 (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index), Label & ": " &
-                    (if Action.Verb = Accept_It then "accept" else "error") & " on " &
-                    Image (Inserted_ID, Super.Tree.Lexer.Descriptor.all) &
-                    " in state" & State_Index'Image (Config.Stack.Peek.State));
-            end if;
+         when Accept_It | Error =>
+            --  Most likely a Minimal_Complete that doesn't work;
+            --  test_mckenzie_recover.adb Empty_Comments.
+            raise Invalid_Case;
          end case;
       end Do_One;
    begin
@@ -308,7 +305,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             end if;
          exception
          when Bad_Config =>
-            null;
+            if Debug_Mode then
+               raise;
+            else
+               --  Process other Parse_Items.
+               null;
+            end if;
          end;
       end loop;
    end Fast_Forward;
@@ -475,7 +477,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
    exception
    when Bad_Config =>
-      return Abandon;
+      if Debug_Mode then
+         raise;
+      else
+         return Abandon;
+      end if;
    end Check;
 
    function Check_Reduce_To_Start
@@ -532,7 +538,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    exception
    when Bad_Config =>
       --  From Do_Reduce_1
-      return False;
+      if Debug_Mode then
+         raise;
+      else
+         return False;
+      end if;
    end Check_Reduce_To_Start;
 
    procedure Try_Push_Back
@@ -754,16 +764,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                            declare
                               New_Config : Configuration := Config;
                            begin
-                              New_Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
-                              New_Config.In_Parse_Action_Status   := (Label => WisiToken.In_Parse_Actions.Ok);
+                              New_Config.Error_Token            := Syntax_Trees.Invalid_Recover_Token;
+                              New_Config.In_Parse_Action_Status := (Label => WisiToken.In_Parse_Actions.Ok);
 
                               Do_Reduce_1
-                                ("Insert", Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action);
+                                ("Insert " & Image (ID, Descriptor), Super, Shared, Parser_Index, Local_Config_Heap,
+                                 New_Config, Action);
                               Cached_Config := New_Config;
                               Cached_Action := Action;
 
                               Do_Reduce_2
-                                ("Insert", Super, Shared, Parser_Index, Local_Config_Heap, New_Config, ID,
+                                ("Insert " & Image (ID, Descriptor), Super, Shared, Parser_Index, Local_Config_Heap,
+                                 New_Config, ID,
                                  Cost_Delta => 0,
                                  Strategy   => Insert);
                            end;
@@ -773,7 +785,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                               New_Config : Configuration := Cached_Config;
                            begin
                               Do_Reduce_2
-                                ("Insert", Super, Shared, Parser_Index, Local_Config_Heap, New_Config, ID,
+                                ("Insert " & Image (ID, Descriptor) & " (cached reduce)", Super, Shared, Parser_Index,
+                                 Local_Config_Heap, New_Config, ID,
                                  Cost_Delta => 0,
                                  Strategy   => Insert);
                            end;
@@ -787,6 +800,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      end case;
                   end if;
                end if;
+            exception
+            when Invalid_Case =>
+               --  Try other actions
+               null;
             end;
             I := I.Next;
          end loop;
@@ -866,8 +883,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end Minimal_Do_Shift;
 
       procedure Enqueue_Min_Actions
-        (Label   : in String;
-         Actions : in Minimal_Action_Arrays.Vector;
+        (Actions : in Minimal_Action_Arrays.Vector;
          Config  : in Configuration)
       is
          use SAL;
@@ -877,7 +893,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       begin
          if Trace_McKenzie > Extra then
             Put_Line
-              (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index), "Minimal_Complete_Actions: " & Label &
+              (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index), "Minimal_Complete_Actions: " &
                  Image (Actions, Descriptor));
          end if;
 
@@ -927,7 +943,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      Next_State := Goto_For (Shared.Table.all, New_Stack.Peek.State, Action.Production.LHS);
                      if Next_State = Unknown_State then
                         --  We get here when Insert_From_Action_Table started us down a bad path
-                        raise Bad_Config;
+                        raise Invalid_Case;
                      end if;
 
                      New_Stack.Push
@@ -968,7 +984,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                if Trace_McKenzie > Extra then
                   Put_Line
                     (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index),
-                     ": Minimal_Complete_Actions: " & Image (Action, Descriptor));
+                     "Minimal_Complete_Actions: " & Image (Action, Descriptor));
                end if;
 
                for Item of Shared.Table.States (Next_State).Kernel loop
@@ -1028,7 +1044,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          return Token_ID_Arrays.Empty_Vector;
       end if;
 
-      Enqueue_Min_Actions ("", Table.States (Orig_Config.Stack.Peek.State).Minimal_Complete_Actions, Orig_Config);
+      Enqueue_Min_Actions (Table.States (Orig_Config.Stack.Peek.State).Minimal_Complete_Actions, Orig_Config);
 
       loop
          exit when Is_Empty (Work);
@@ -1078,7 +1094,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                         end case;
 
                      when others =>
-                        Enqueue_Min_Actions ("multiple actions ", Actions, Item.Config);
+                        Enqueue_Min_Actions (Actions, Item.Config);
                         exit;
                      end case;
                   end loop;
@@ -1087,6 +1103,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             when Shift =>
                Minimal_Do_Shift (Item.Action, Item.Cost_Delta, Item.Config);
             end case;
+         exception
+         when Invalid_Case =>
+            null;
          end;
       end loop;
 
@@ -1100,7 +1119,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       return To_Vector (Inserted (1 .. Inserted_Last));
    exception
    when Bad_Config =>
-      return Token_ID_Arrays.Empty_Vector;
+      if Debug_Mode then
+         raise;
+      else
+         return Token_ID_Arrays.Empty_Vector;
+      end if;
    end Insert_Minimal_Complete_Actions;
 
    procedure Insert_Matching_Begin
@@ -1238,7 +1261,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
    exception
    when Bad_Config =>
-      null;
+      if Debug_Mode then
+         raise;
+      else
+         null;
+      end if;
    end Try_Insert_Terminal;
 
    procedure Try_Insert_Quote_1
@@ -1439,7 +1466,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          for I in 1 .. Matching loop
             if not Push_Back_Valid (Super, Config) then
                --  Probably pushing back thru a previously inserted token
-               raise Bad_Config;
+               raise Invalid_Case;
             end if;
             Do_Push_Back (Tree, Config);
          end loop;
@@ -1478,9 +1505,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             else
                raise SAL.Programmer_Error;
             end if;
-         exception
-         when Bad_Config =>
-            raise SAL.Programmer_Error;
          end;
       end String_Literal_In_Stack;
 
@@ -1500,7 +1524,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          loop
             if not Push_Back_Valid (Super, Config) then
                --  Probably pushing back thru a previously inserted token
-               raise Bad_Config;
+               raise Invalid_Case;
             end if;
 
             if Is_Full (Config.Ops) then
@@ -1563,7 +1587,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                --  will match a grammar production (unless we are writing a code
                --  generator like WisiToken.Output_Ada, sigh). So we just abandon
                --  this.
-               raise Bad_Config;
+               raise Invalid_Case;
             end if;
 
             Append
@@ -1789,9 +1813,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             exception
             when SAL.Container_Empty =>
                --  From Stack.Pop
-               null;
-            when Bad_Config =>
-               null;
+               raise Bad_Config;
             end;
 
             --  case e: Assume the actual error is an extra quote that terminates
@@ -1826,8 +1848,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          end if;
       end;
    exception
-   when Bad_Config =>
+   when Invalid_Case =>
       null;
+
+   when Bad_Config =>
+      if Debug_Mode then
+         raise;
+      else
+         null;
+      end if;
    end Try_Insert_Quote_1;
 
    procedure Try_Insert_Quote
@@ -2241,8 +2270,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       Super.Put (Parser_Index, Local_Config_Heap);
    exception
-   when Bad_Config =>
+   when Invalid_Case =>
       --  Just abandon this config; tell Super we are done.
+      Super.Put (Parser_Index, Local_Config_Heap);
+
+   when E : Bad_Config =>
+      --  Just abandon this config; tell Super we are done.
+      if Debug_Mode then
+         Super.Trace.Put_Line ("Process_One: Bad_Config: " & Standard.Ada.Exceptions.Exception_Message (E));
+         Super.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+      end if;
       Super.Put (Parser_Index, Local_Config_Heap);
 
    when E : others =>

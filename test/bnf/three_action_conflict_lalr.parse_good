@@ -422,23 +422,22 @@ recover: succeed, parser count 3
  ... goto state 10
  6: 10: (-1, 5;24:(RBRACE, (154 . 154))) : shift and goto state 16
  1: 10: (-1, 5;24:(RBRACE, (154 . 154))) : shift and goto state 16
- 1: resume_active: False
- 1: pause: resume exit
  6: 16: (-1, 8;27:(Wisi_EOI, (160 . 159))) : reduce 3 tokens to block
 (block_0, (1 . 154) <= (-18;1:(LBRACE, (1 . 1)), (statement_list, (3 . 153)), 5;43:(RBRACE, (154 . 154) deleted: (6;25:(SEMI, (155 . 155)), 7;26:(RBRACE, (158 . 158))))))
  ... goto state 2
+ 1: 16: (-1, 6;25:(SEMI, (155 . 155))) : reduce 3 tokens to block
+(block_0, (150 . 154) <= (-65:(LBRACE), (statement_list, (150 . 153)), 5;24:(RBRACE, (154 . 154))))
+ ... goto state 21
  6: 2: (-1, 8;27:(Wisi_EOI, (160 . 159))) : accept it
 (wisitoken_accept_0, (1 . 154) <= ((block, (1 . 154))))
- 1: 16: (-1, 25:(SEMI, (155 . 155))) : reduce 3 tokens to block
-(block_0, (150 . 154) <= (-65:(LBRACE), (statement_list, (150 . 153)), 24:(RBRACE, (154 . 154))))
- ... goto state 21
- 1: 21: (-1, 25:(SEMI, (155 . 155))) : reduce 3 tokens to lambdaExpression
-(lambdaExpression_0, (142 . 154) <= ((lambdaParameters, (142 . 146)), 21:(ARROW, (147 . 148)), (block, (150 . 154))))
+ 1: 21: (-1, 6;25:(SEMI, (155 . 155))) : reduce 3 tokens to lambdaExpression
+(lambdaExpression_0, (142 . 154) <= ((lambdaParameters, (142 . 146)), 2;21:(ARROW, (147 . 148)), (block, (150 . 154))))
  ... goto state 8
- 1: 8: (-1, 25:(SEMI, (155 . 155))) : reduce 1 tokens to expression
+ 1: 8: (-1, 6;25:(SEMI, (155 . 155))) : reduce 1 tokens to expression
 (expression_3, (142 . 154) <= ((lambdaExpression, (142 . 154))))
  ... goto state 7
- 1: 7: (-1, 25:(SEMI, (155 . 155))) : shift and goto state 14
+ 1: 7: (-1, 6;25:(SEMI, (155 . 155))) : shift and goto state 14
+ 1: resume_active: False
  1: 14: (-1, 26:(RBRACE, (158 . 158))) : reduce 2 tokens to statement
 (statement_0, (142 . 155) <= ((expression, (142 . 154)), 25:(SEMI, (155 . 155))))
  ... goto state 17

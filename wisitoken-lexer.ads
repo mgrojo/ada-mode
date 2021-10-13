@@ -69,7 +69,7 @@ package WisiToken.Lexer is
      (Item       : in Token;
       Descriptor : in WisiToken.Descriptor)
      return String;
-   --  ID and Char_Region
+   --  ID, Char_Region; Line_Region if New_Line
 
    function Full_Image
      (Item       : in Token;
@@ -245,6 +245,11 @@ package WisiToken.Lexer is
       Byte_Region : in Buffer_Region)
      return Boolean is abstract;
 
+   function New_Line_Count
+     (Lexer       : in Instance;
+      Byte_Region : in Buffer_Region)
+     return Base_Line_Number_Type is abstract;
+
    type Source (<>) is private;
 
    function Line_Begin_Char_Pos
@@ -257,6 +262,11 @@ package WisiToken.Lexer is
      (Source      : in WisiToken.Lexer.Source;
       Byte_Region : in Buffer_Region)
      return Boolean;
+
+   function New_Line_Count
+     (Source      : in WisiToken.Lexer.Source;
+      Byte_Region : in Buffer_Region)
+     return Base_Line_Number_Type;
 
 private
 

@@ -228,18 +228,19 @@ recover: succeed, parser count 2
  0: 15: (-1, 3;8:(LEFT_CURLY_BRACKET, (264 . 264))) : reduce 3 tokens to Statement
 (Statement_0, (105 . 125) <= (-4;1:(LEFT_CURLY_BRACKET, (105 . 105)), (Assignment, (107 . 123)), 2;26:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)))
  ... goto state 3
- 1: resume_active: False
  0: 3: (-1, 3;8:(LEFT_CURLY_BRACKET, (264 . 264))) : reduce 1 tokens to CompilationUnit
 (CompilationUnit_0, (105 . 125) <= ((Statement, (105 . 125))))
  ... goto state 2
  0: 2: (-1, 3;8:(LEFT_CURLY_BRACKET, (264 . 264))) : shift and goto state 1
- 1: pause: resume exit
+ 1: 14: (-1, 6;11:(Identifier, (278 . 278))) : shift and goto state 21
  0: 1: (-1, 4;9:(Identifier, (266 . 275))) : shift and goto state 4
+ 1: resume_active: False
  1: pause: resume exit
  0: 4: (-1, 5;10:(LEFT_PAREN, (277 . 277))) : shift and goto state 14
+ 1: pause: resume exit
+ 0: 14: (-1, 6;11:(Identifier, (278 . 278))) : shift and goto state 21
  0: resume_active: False
- 0: terminate (1 active): duplicate state with 1: ops length (-1, 11:(Identifier, (278 . 278)))
- 1: 14: (-1, 11:(Identifier, (278 . 278))) : shift and goto state 21
+ 0: terminate (1 active): duplicate state with 1: ops length (-1, 12:(RIGHT_PAREN, (279 . 279)))
  1: 21: (-1, 12:(RIGHT_PAREN, (279 . 279))) : reduce 1 tokens to ClassType
 (ClassType_0, (278 . 278) <= (11:(Identifier, (278 . 278))))
  ... goto state 32
@@ -487,16 +488,23 @@ recover: succeed, parser count 2
  ... goto state 7
  2: 7: (-1, 5;16:(PLUS_PLUS, (346 . 347))) : shift and goto state 18
  1: 7: (-1, 5;16:(PLUS_PLUS, (346 . 347))) : shift and goto state 18
- 2: resume_active: False
- 1: resume_active: False
- 1: terminate (1 active): duplicate state with 2: random (-1, 17:(SEMICOLON, (348 . 348)))
- 2: 18: (-1, 17:(SEMICOLON, (348 . 348))) : reduce 2 tokens to PostIncrementExpression
-(PostIncrementExpression_0, (345 . 347) <= ((PostfixExpression, (345 . 345)), 16:(PLUS_PLUS, (346 . 347))))
+ 2: 18: (-1, 6;17:(SEMICOLON, (348 . 348))) : reduce 2 tokens to PostIncrementExpression
+(PostIncrementExpression_0, (345 . 347) <= ((PostfixExpression, (345 . 345)), 5;16:(PLUS_PLUS, (346 . 347))))
  ... goto state 8
- 2: 8: (-1, 17:(SEMICOLON, (348 . 348))) : reduce 1 tokens to StatementExpression
+ 1: 18: (-1, 6;17:(SEMICOLON, (348 . 348))) : reduce 2 tokens to PostIncrementExpression
+(PostIncrementExpression_0, (345 . 347) <= ((PostfixExpression, (345 . 345)), 5;16:(PLUS_PLUS, (346 . 347))))
+ ... goto state 8
+ 2: 8: (-1, 6;17:(SEMICOLON, (348 . 348))) : reduce 1 tokens to StatementExpression
 (StatementExpression_0, (345 . 347) <= ((PostIncrementExpression, (345 . 347))))
  ... goto state 12
- 2: 12: (-1, 17:(SEMICOLON, (348 . 348))) : shift and goto state 20
+ 1: 8: (-1, 6;17:(SEMICOLON, (348 . 348))) : reduce 1 tokens to StatementExpression
+(StatementExpression_0, (345 . 347) <= ((PostIncrementExpression, (345 . 347))))
+ ... goto state 12
+ 2: 12: (-1, 6;17:(SEMICOLON, (348 . 348))) : shift and goto state 20
+ 1: 12: (-1, 6;17:(SEMICOLON, (348 . 348))) : shift and goto state 20
+ 2: resume_active: False
+ 1: resume_active: False
+ 1: terminate (1 active): duplicate state with 2: random (-1, 18:(RIGHT_CURLY_BRACKET, (349 . 349)))
  2: 20: (-1, 18:(RIGHT_CURLY_BRACKET, (349 . 349))) : shift and goto state 48
  2: 48: (-1, 19:(LEFT_CURLY_BRACKET, (411 . 411))) : reduce 4 tokens to Statement
 (Statement_1, (343 . 349) <= (14:(LEFT_CURLY_BRACKET, (343 . 343)), (StatementExpression, (345 . 347)), 17:(SEMICOLON, (348 . 348)), 18:(RIGHT_CURLY_BRACKET, (349 . 349))))
@@ -528,7 +536,7 @@ recover: succeed, parser count 1
 (2, (0, 
 0000: 0:(Wisi_SOI, (1 . 1))),
 (2, 
-0094: -94:(CompilationUnit_1, (105 . 349))
+0096: -96:(CompilationUnit_1, (105 . 349))
 0085: | -85:(CompilationUnit_1, (105 . 281))
 0049: | | -49:(CompilationUnit_0, (105 . 125))
 0047: | | | -47:(Statement_0, (105 . 125))
@@ -575,9 +583,9 @@ recover: succeed, parser count 1
 0070: | | | | | -9;-70:(MINUS_MINUS)
 0077: | | | -8;-77:(SEMICOLON)
 0028: | | | -7;28:(RIGHT_CURLY_BRACKET, (281 . 281) ERROR)
-0093: | -93:(Statement_1, (343 . 349))
+0095: | -95:(Statement_1, (343 . 349))
 0014: | | -6;14:(LEFT_CURLY_BRACKET, (343 . 343))
-0092: | | -92:(StatementExpression_0, (345 . 347))
+0093: | | -93:(StatementExpression_0, (345 . 347))
 0091: | | | -91:(PostIncrementExpression_0, (345 . 347))
 0089: | | | | -89:(PostfixExpression_0, (345 . 345))
 0087: | | | | | -87:(ClassType_0, (345 . 345))
@@ -588,24 +596,24 @@ recover: succeed, parser count 1
 (1, 
 0019: -1;19:(LEFT_CURLY_BRACKET, (411 . 411))),
 (6, 
-0095: -95:(LeftHandSide_0, (413 . 413))
+0097: -97:(LeftHandSide_0, (413 . 413))
 0020: | 0;20:(Identifier, (413 . 413))),
 ^(16, 
 0021: 1;21:(EQUAL, (415 . 415))),
 (-1, 
-0098: -98:(Identifier)),
+0100: -100:(Identifier)),
 (-1, 
 0031: 2;31:(RIGHT_CURLY_BRACKET, (417 . 417) ERROR))/,
 (-1, 
 0023: 3;23:(Wisi_EOI, (435 . 434))))
-    Current_Token: (2, -98:(Identifier))
+    Current_Token: (2, -100:(Identifier))
     Shared_Token: (-1, 3;23:(Wisi_EOI, (435 . 434)))
     recover_insert_delete:
     resume_active: True, token goal 6
 
- 2: 16: (2, -98:(Identifier)) : shift and goto state 35
+ 2: 16: (2, -100:(Identifier)) : shift and goto state 35
  2: 35: (2, 2;31:(RIGHT_CURLY_BRACKET, (417 . 417) ERROR)) : reduce 1 tokens to ClassType
-(ClassType_0 <= (-98:(Identifier)))
+(ClassType_0 <= (-100:(Identifier)))
  ... goto state 45
  2: 45: (2, 2;31:(RIGHT_CURLY_BRACKET, (417 . 417) ERROR)) : reduce 1 tokens to PostfixExpression
 (PostfixExpression_0 <= ((ClassType)))

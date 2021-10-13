@@ -550,8 +550,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  Use Peek_Current_Token_ID if Config may not change at all.
    --
    --  Inc_*_Token are for Next_Token.
-   --
-   --  No precondition; raises Bad_Config for invalid situations.
    is
       use Recover_Op_Arrays;
       use Recover_Op_Array_Refs;
@@ -580,7 +578,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                           others                    => <>);
 
                when Delete =>
-                  pragma Assert (Is_Terminal (Op.Del_ID, Tree.Lexer.Descriptor.all), "IMPROVEME: allow delete nonterm");
+                  pragma Assert (Is_Terminal (Op.Del_ID, Tree.Lexer.Descriptor.all));
 
                   Do_Delete (Tree, Config);
 

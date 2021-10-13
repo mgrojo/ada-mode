@@ -183,6 +183,12 @@ package WisiToken.Lexer.re2c is
       Byte_Region : in Buffer_Region)
      return Boolean;
 
+   overriding
+   function New_Line_Count
+     (Lexer       : in Instance;
+      Byte_Region : in Buffer_Region)
+     return Base_Line_Number_Type;
+
 private
 
    type Instance is new WisiToken.Lexer.Instance with

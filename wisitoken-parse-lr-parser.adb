@@ -591,7 +591,7 @@ package body WisiToken.Parse.LR.Parser is
                --  ada_mode-interactive_1.adb "for File_Name in File_Names loop"
                declare
                   use WisiToken.Syntax_Trees;
-                  function Get_Terminal return Valid_Node_Access
+                  function Get_Terminal return Node_Access
                   is
                      Ref : Stream_Node_Ref := Shared_Parser.Tree.Current_Token (Parser_State.Stream);
                   begin
@@ -605,21 +605,23 @@ package body WisiToken.Parse.LR.Parser is
                      return Shared_Parser.Tree.Last_Sequential_Terminal (Ref.Node);
                   end Get_Terminal;
 
-                  Terminal : constant Valid_Node_Access := Get_Terminal;
+                  Terminal : constant Node_Access := Get_Terminal;
 
-                  Terminal_Index : constant Base_Sequential_Index := Shared_Parser.Tree.Get_Sequential_Index (Terminal);
+                  Terminal_Index : constant Base_Sequential_Index :=
+                    (if Terminal = Invalid_Node_Access
+                     then Invalid_Sequential_Index
+                     else Shared_Parser.Tree.Get_Sequential_Index (Terminal));
                begin
-                  if Terminal_Index = Invalid_Sequential_Index then
-                     --  Error recover should extend sequential_index to this point.
-                     raise SAL.Programmer_Error;
-                  end if;
-
-                  if Parser_State.Resume_Token_Goal < Terminal_Index and
-                    Parser_State.Recover_Insert_Delete_Current = Recover_Op_Nodes_Arrays.No_Index
-                    --  Parser_State.Recover_Insert_Delete_Current can be No_Index here
-                    --  when Current_Token is a nonterm that needs to be broken down
-                    --  before the remaining ops can be performed.
-                    --  ada_mode-interactive_01.adb
+                  if Terminal_Index = Invalid_Sequential_Index
+                    --  Most likely we just shifted a nonterm that got past the resume
+                    --  goal; ada_mode-interactive_02.adb.
+                    or else
+                    (Parser_State.Resume_Token_Goal < Terminal_Index and
+                       Parser_State.Recover_Insert_Delete_Current = Recover_Op_Nodes_Arrays.No_Index)
+                       --  Parser_State.Recover_Insert_Delete_Current can be No_Index here
+                       --  when Current_Token is a nonterm that needs to be broken down
+                       --  before the remaining ops can be performed.
+                       --  ada_mode-interactive_01.adb
                   then
                      Parser_State.Resume_Active := False;
                      Parser_State.Resume_Token_Goal := Syntax_Trees.Invalid_Sequential_Index;

@@ -371,4 +371,13 @@ package body WisiToken.Lexer.re2c is
       return Contains_New_Line (Lexer.Source, Byte_Region);
    end Contains_New_Line;
 
+   overriding
+   function New_Line_Count
+     (Lexer       : in Instance;
+      Byte_Region : in Buffer_Region)
+     return Base_Line_Number_Type
+   is begin
+      return New_Line_Count (Lexer.Source, Byte_Region);
+   end New_Line_Count;
+
 end WisiToken.Lexer.re2c;

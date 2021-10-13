@@ -38,7 +38,8 @@ package WisiToken.Parse.LR.McKenzie_Recover is
    Bad_Config : exception;
    --  Raised when a config is determined to violate some programming
    --  convention; abandon it. In Debug_Mode, report it, so it can be
-   --  fixed.
+   --  fixed. We don't use SAL.Programmer_Error for this, because the
+   --  programming bug can easily be ignored by abandoning the config.
 
    Invalid_Case : exception;
    --  Raised to abandon error recover cases that don't apply, when they
@@ -296,26 +297,27 @@ private
      (Super                 : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
       Config                : in out          Configuration;
       Push_Back_Undo_Reduce : in              Boolean := False);
-   --  If not Push_Back_Valid, raise Bad_Config. Otherwise do Push_Back.
+   --  If not Push_Back_Valid, raise Invalid_Case. Otherwise do
+   --  Push_Back.
    --
    --  Normally Push_Back_Valid forbids push_back of an entire
    --  Undo_Reduce; Language_Fixes may override that by setting
    --  Push_Back_Undo_Reduce True.
 
    procedure Push_Back_Check
-     (Super       : not null access Base.Supervisor;
-      Config      : in out          Configuration;
-      Expected_ID : in              Token_ID);
+     (Super                 : not null access Base.Supervisor;
+      Config                : in out          Configuration;
+      Expected_ID           : in              Token_ID;
+      Push_Back_Undo_Reduce : in              Boolean := False);
    --  Check that Config.Stack top has Expected_ID; raise Bad_Config if
    --  not. Then call Push_Back.
 
    procedure Push_Back_Check
-     (Super    : not null access Base.Supervisor;
-      Config   : in out          Configuration;
-      Expected : in              Token_ID_Array);
+     (Super                 : not null access Base.Supervisor;
+      Config                : in out          Configuration;
+      Expected              : in              Token_ID_Array;
+      Push_Back_Undo_Reduce : in              Boolean := False);
    --  Call Push_Back_Check for each item in Expected.
-   --
-   --  Raises Bad_Config if any of the push_backs is invalid.
 
    procedure Put
      (Message      : in     String;
@@ -353,7 +355,7 @@ private
       Config   : in out          Configuration;
       Expected : in              Token_ID)
    with Inline => True;
-   --  If not Undo_Reduce_Valid, raise Bad_Config. Else call Check,
+   --  If not Undo_Reduce_Valid, raise Invalid_Case. Else call Check,
    --  Unchecked_Undo_Reduce. Caller should check for space in
    --  Config.Ops.
 

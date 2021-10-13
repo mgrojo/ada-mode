@@ -4831,19 +4831,35 @@ package body WisiToken.Syntax_Trees is
 
          declare
             Update_Ref_Node : constant Boolean := Term.Ref.Node = Ref.Ref.Node;
+            Parent_Count : SAL.Base_Peek_Type := 0;
          begin
+            if not Update_Ref_Node then
+               loop
+                  exit when Term.Parents.Depth = Parent_Count;
+                  exit when Ref.Parents.Depth = Parent_Count;
+                  if Term.Parents.Peek (Term.Parents.Depth - Parent_Count) =
+                    Ref.Parents.Peek (Ref.Parents.Depth - Parent_Count)
+                  then
+                     Parent_Count := @ + 1;
+                  else
+                     exit;
+                  end if;
+               end loop;
+            end if;
+
             Tree.Add_Errors (Term, New_Errors, User_Data);
             if Update_Ref_Node then
                Ref.Ref.Node := Term.Ref.Node;
                Ref.Parents  := Term.Parents;
 
             else
+               --  Copy shared parents of term.ref.node, ref.ref.node.
                Node_Stacks.Copy_Slice
                  (Source             => Term.Parents,
                   Target             => Ref.Parents,
-                  Source_Start_Depth => Term.Parents.Depth - (Ref.Parents.Depth - I),
-                  Target_Start_Depth => I,
-                  Count              => Ref.Parents.Depth - I + 1);
+                  Source_Start_Depth => Term.Parents.Depth,
+                  Target_Start_Depth => Ref.Parents.Depth,
+                  Count              => Parent_Count);
             end if;
          end;
       end Move_Error;

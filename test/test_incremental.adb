@@ -403,16 +403,65 @@ package body Test_Incremental is
            "D;" & ASCII.LF &
            "-- preceding" & ASCII.LF &
            --  |7 |10       |16
-           "-- A := B;" & ASCII.LF & "C;",
-         --  |18     |25
+           "-- A := B;" & ASCII.LF &
+           --  |20  |25
+           "C;",
+         --  |29
          Edit_At => 20,
          Delete  => "",
          Insert  => "comment" & ASCII.LF);
    end Edit_Comment_5;
 
-   --  FIXME: insert end comment in floated non_grammar
-   --  FIXME: insert LF & "-- "
-   --  FIXME: delete and insert comment end.
+   procedure Edit_Comment_6 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-interactive_01.adb; capitalize a word in a comment.
+      --  Found bug in comment_end_deleted logic.
+      Parse_Text
+        (Initial =>
+           "procedure A is begin" & ASCII.LF &
+           --        |10       |20
+           "-- An_Identifier in a comment" & ASCII.LF &
+           --  |25  |30       |40       |50
+           "   A := B;" & ASCII.LF &
+           "end A;",
+         Edit_At => 25,
+         Delete  => "A",
+         Insert  => "a");
+   end Edit_Comment_6;
+
+   procedure Edit_Comment_7 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Similar to Edit_Comment_4, indent comment before editing it.
+      Parse_Text
+        (Initial   =>
+           "D;" & ASCII.LF &
+           "-- preceding" & ASCII.LF &
+           --  |7 |10       |16
+           "-- A := B;" & ASCII.LF & "C;",
+         --  |18     |25
+         Edit_At   => 17,
+         Insert    => "   ",
+         Delete    => "",
+         Edit_2_At => 20,
+         Delete_2  => "",
+         Insert_2  => "comment" & ASCII.LF);
+
+      --  Edited text:
+      --  'D;
+      --   |1
+      --  -- preceding
+      --  |4    |10
+      --     -- comment
+      --  |17     |25
+      --  A := B;
+      --  |31
+      --  C;'
+      --  |39
+   end Edit_Comment_7;
 
    procedure Edit_Whitespace_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -649,6 +698,7 @@ package body Test_Incremental is
         (Initial => "A := B + C; -- comment" & ASCII.LF &
            --        |1       |10       |20
            "D (2);" & ASCII.LF &
+           --         |30
            "C;",
          Edit_At => 23,
          Delete  => "" & ASCII.LF,
@@ -955,6 +1005,8 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment_3'Access, "Edit_Comment_3");
       Register_Routine (T, Edit_Comment_4'Access, "Edit_Comment_4");
       Register_Routine (T, Edit_Comment_5'Access, "Edit_Comment_5");
+      Register_Routine (T, Edit_Comment_6'Access, "Edit_Comment_6");
+      Register_Routine (T, Edit_Comment_7'Access, "Edit_Comment_7");
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");

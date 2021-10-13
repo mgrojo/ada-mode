@@ -552,23 +552,41 @@ package body WisiToken.Parse is
       --  if a token is deleted from Floating_Non_Grammar, Shift_Lines is
       --  not changed.
 
+      package Boolean_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+        (Positive_Index_Type, Boolean, Default_Element => False);
+
       Floating_Non_Grammar : Lexer.Token_Arrays.Vector;
+      Floating_Shifted     : Boolean_Arrays.Vector;
       --  Non_grammar that are detached from a node (for various reasons).
-      --  These are _not_ shifted, because the correct shift is unknown at
-      --  the time they are detached. ada_mode-recover_42.adb
+      --  Normally these are _not_ shifted, because the correct shift is
+      --  unknown at the time they are detached. ada_mode-recover_42.adb.
+      --  However, when a second edit occurs in a non_grammar token, the
+      --  shift for the first edit is applied, and Floating_Shifted (I) is
+      --  set True.
       --
       --  If a non_grammar is floated from a scanned node, it is unshifted
       --  to be consistent.
+      --
+      --  We structure this as two arrays, rather than an array of records,
+      --  to allow Handle_Non_Grammar below to handle both tree non_grammar
+      --  and floating non_grammar.
+
+      function Floating_Byte_Region_Shifted (I : in Positive_Index_Type) return Buffer_Region
+      is begin
+         return Floating_Non_Grammar (I).Byte_Region + (if Floating_Shifted (I) then 0 else Shift_Bytes);
+      end Floating_Byte_Region_Shifted;
 
       Comment_End_Deleted : Boolean         := False;
       New_Comment_End     : Base_Buffer_Pos := Invalid_Buffer_Pos;
       --  If Comment_End_Deleted, a comment end was deleted; delete all tree
       --  tokens thru New_Comment_End (which is not shifted).
 
-      Comment_End_Inserted : Boolean         := False;
-      New_Code_End         : Base_Buffer_Pos := Invalid_Buffer_Pos;
+      Comment_Start_Deleted : Boolean         := False;
+      Comment_End_Inserted  : Boolean         := False;
+      New_Code_End          : Base_Buffer_Pos := Invalid_Buffer_Pos;
       --  If Comment_End_Inserted, a comment end was inserted; scan all
-      --  exposed code thru New_Code_End (which is not shifted).
+      --  exposed code thru New_Code_End (which is shifted).
+      --  Similarly for Comment_Start_Deleted.
 
       Stream : Syntax_Trees.Stream_ID; -- Tree.Shared_Stream that we are editing.
 
@@ -842,6 +860,7 @@ package body WisiToken.Parse is
                   Parser.Trace.Put_Line ("terminal_non_grammar_next:" & Terminal_Non_Grammar_Next'Image);
                end if;
 
+               pragma Assert (Floating_Non_Grammar.Length = Floating_Shifted.Length);
                if Floating_Non_Grammar.Length > 0 then
                   Parser.Trace.Put_Line
                     ("floating_non_grammar: " & Lexer.Full_Image (Floating_Non_Grammar, Tree.Lexer.Descriptor.all));
@@ -1004,32 +1023,46 @@ package body WisiToken.Parse is
                            Lex_Start_Line := Token.Line_Region.First + Shift_Lines;
                            Do_Scan := True;
 
-                           if KMN.Deleted_Bytes > 0 and
-                             Tree.Lexer.Is_Comment (Token) and
-                             Contains_New_Line (Token.Line_Region) and
-                             Token.Byte_Region.First < Deleted_Region.First and
-                             Token.Byte_Region.Last >= Deleted_Region.Last
-                           then
-                              --  test_incremental.adb Edit_Comment_*, Delete_Comment_End,
-                              --  ada_mode-interactive_05.adb Ada_Identifier in comment.
-                              Comment_End_Deleted := True;
-                              declare
-                                 Ref   : Terminal_Ref;
-                                 Index : Positive_Index_Type;
-                              begin
-                                 Tree.Next_New_Line
-                                   (Start_Ref          => Terminal,
-                                    After_Non_Grammar  => Terminal_Non_Grammar_Next,
-                                    Result_Ref         => Ref,
-                                    Result_Non_Grammar => Index);
+                           if KMN.Deleted_Bytes > 0 and Tree.Lexer.Is_Comment (Token) then
+                              if Token.Byte_Region.First < Deleted_Region.First and
+                                Token.Byte_Region.Last <= Deleted_Region.Last
+                              then
+                                 --  test_incremental.adb Edit_Comment_*, Delete_Comment_End,
+                                 --  ada_mode-interactive_05.adb Ada_Identifier in comment.
+                                 Comment_End_Deleted := True;
 
-                                 New_Comment_End := Tree.Non_Grammar_Const (Ref.Node)(Index).Byte_Region.Last;
-                              end;
-                              if Trace_Incremental_Parse > Detail then
-                                 Parser.Trace.Put_Line
-                                   ("comment_end_deleted:" &
-                                      Token.Byte_Region.First'Image & " .." &
-                                      New_Comment_End'Image);
+                                 --  Find new comment end. FIXME: this assumes comments are terminated
+                                 --  by New_Line! Need Lexer.find_comment_end.
+                                 declare
+                                    Ref   : Terminal_Ref;
+                                    Index : Positive_Index_Type;
+                                 begin
+                                    Tree.Next_New_Line
+                                      (Start_Ref          => Terminal,
+                                       After_Non_Grammar  => Terminal_Non_Grammar_Next,
+                                       Result_Ref         => Ref,
+                                       Result_Non_Grammar => Index);
+
+                                    New_Comment_End := Tree.Non_Grammar_Const (Ref.Node)(Index).Byte_Region.Last;
+                                 end;
+                                 if Trace_Incremental_Parse > Detail then
+                                    Parser.Trace.Put_Line
+                                      ("comment_end_deleted:" &
+                                         Token.Byte_Region.First'Image & " .." &
+                                         New_Comment_End'Image);
+                                 end if;
+
+                              elsif Token.Byte_Region.First >= Deleted_Region.First and
+                                Token.Byte_Region.Last > Deleted_Region.Last
+                              then
+                                 --  test_incremental.adb Delete_Comment_Start
+                                 Comment_Start_Deleted := True;
+                                 New_Code_End          := Token.Byte_Region.Last + Shift_Bytes;
+                                 if Trace_Incremental_Parse > Detail then
+                                    Parser.Trace.Put_Line
+                                      ("comment_start_deleted:" &
+                                         Token.Byte_Region.First'Image & " .." & New_Code_End'Image);
+                                 end if;
                               end if;
                            end if;
 
@@ -1040,9 +1073,7 @@ package body WisiToken.Parse is
                            then
                               --  test_incremental.adb Edit_Comment_5, ada_mode-interactive_02.adb
                               Comment_End_Inserted := True;
-                              New_Code_End := KMN.Inserted_Bytes + Tree.Line_Begin_Char_Pos
-                                (Line => Token.Line_Region.Last,
-                                 Stream => Tree.Shared_Stream) - 1;
+                              New_Code_End := KMN.Inserted_Bytes + Token.Byte_Region.Last;
                               if Trace_Incremental_Parse > Detail then
                                  Parser.Trace.Put_Line
                                    ("comment_end_inserted:" &
@@ -1058,21 +1089,56 @@ package body WisiToken.Parse is
                            declare
                               Byte_Region : Buffer_Region renames Non_Grammar (I).Byte_Region;
                            begin
-                              if not
-                                ((KMN.Deleted_Bytes > 0 and then Byte_Region.First <= Deleted_Region.Last)
-                                   and
-                                   (KMN.Inserted_Bytes > 0 and then
-                                      Byte_Region.First + Shift_Bytes <= Inserted_Region.Last))
+                              if (KMN.Deleted_Bytes > 0 and then Byte_Region.First <= Deleted_Region.Last)
+                                or
+                                (KMN.Inserted_Bytes > 0 and then
+                                   Byte_Region.First + Shift_Bytes <= Inserted_Region.Last)
                               then
+                                 if (Next_KMN.Deleted_Bytes > 0 or Next_KMN.Inserted_Bytes > 0) and then
+                                   Next_KMN_Stable_First < Byte_Region.Last
+                                 then
+                                    --  Next change is an actual change (not just last placeholder KMN),
+                                    --  and it also overlaps this token; handle it then.
+                                    --  test_incremental.adb Edit_Comment_7.
+                                    declare
+                                       Token : Lexer.Token := Non_Grammar (I);
+                                    begin
+                                       Lexer.Shift (Token, Shift_Bytes, Shift_Chars, Shift_Lines);
+                                       Shift_Lines := @ - New_Line_Count (Non_Grammar (I).Line_Region);
+                                       Floating_Non_Grammar.Append (Token);
+                                       Floating_Shifted.Append (True);
+                                       Last_Floated := I;
+                                       Do_Scan := False;
+                                       if Trace_Incremental_Parse > Detail then
+                                          Parser.Trace.Put_Line ("shifted non_grammar" & I'Image);
+                                       end if;
+                                    end;
+                                 else
+                                    --  Token overlaps the change region; it will be rescanned. Delete it
+                                    --  here (ie don't copy to floating). It may contain New_Lines.
+                                    --  test_incremental.adb Delete_Comment_End.
+                                    declare
+                                       New_Line_Count : constant Base_Line_Number_Type := WisiToken.New_Line_Count
+                                         (Non_Grammar (I).Line_Region);
+                                         --  FIXME: why "after the edit region"? ada_mode-interactive_01.adb
+                                         --  auto-case in comment.
+                                         --
+                                         --  Tree.Lexer.New_Line_Count
+                                         --  (Byte_Region =>
+                                         --     (First => Buffer_Pos'Max
+                                         --        ((if KMN.Deleted_Bytes > 0 then Deleted_Region.Last else 0),
+                                         --         (if KMN.Inserted_Bytes > 0 then Inserted_Region.Last else 0)),
+                                         --      Last => Byte_Region.Last));
+                                    begin
+                                       Shift_Lines := @ - New_Line_Count;
+                                    end;
+                                 end if;
+                              else
                                  --  Token does not overlap the edit region; handle it later.
                                  Shift_Lines := @ - New_Line_Count (Non_Grammar (I).Line_Region);
                                  Floating_Non_Grammar.Append (Non_Grammar (I));
+                                 Floating_Shifted.Append (False);
                                  Last_Floated := I;
-
-                              else
-                                 --  Token is in the change region. Delete it here (ie don't copy to
-                                 --  floating); it will be rescanned.
-                                 null;
                               end if;
                            end;
                         end loop;
@@ -1086,7 +1152,7 @@ package body WisiToken.Parse is
                         if Trace_Incremental_Parse > Detail then
                            if Last_Floated /= Lexer.Token_Arrays.No_Index then
                               Parser.Trace.Put_Line
-                                ("float non_grammar" & Terminal_Non_Grammar_Next'Image & " .." &
+                                ("float or delete non_grammar" & Terminal_Non_Grammar_Next'Image & " .." &
                                    Last_Floated'Image);
                            end if;
                         end if;
@@ -1131,13 +1197,14 @@ package body WisiToken.Parse is
                      declare
                         procedure Handle_Non_Grammar
                           (Non_Grammar : in out WisiToken.Lexer.Token_Arrays.Vector;
+                           Shifted     : in out Boolean_Arrays.Vector;
                            Floating    : in     Boolean)
                         is
                            Last_Byte : constant Buffer_Pos :=
                              (if Non_Grammar.Length = 0
                               then Buffer_Pos'Last
                               else Non_Grammar (Non_Grammar.Last_Index).Byte_Region.Last +
-                                (if Floating then Shift_Bytes else 0));
+                                (if Shifted (Non_Grammar.Last_Index) then 0 else Shift_Bytes));
 
                            Delete : SAL.Base_Peek_Type := 0;
                         begin
@@ -1162,7 +1229,7 @@ package body WisiToken.Parse is
                               for I in Non_Grammar.First_Index .. Non_Grammar.Last_Index loop
                                  declare
                                     Byte_Last : constant Buffer_Pos := Non_Grammar (I).Byte_Region.Last +
-                                      (if Floating then Shift_Bytes else 0);
+                                      (if Shifted (I) then 0 else Shift_Bytes);
                                  begin
                                     if Byte_Last + 1 >= Inserted_Region.First and
                                       Byte_Last > Scanned_Byte_Pos
@@ -1187,10 +1254,6 @@ package body WisiToken.Parse is
                                  --  Edit is in or before Non_Grammar (Delete) (ie a comment); set
                                  --  Lex_Start_* to scan from edit start or start of Token, whichever
                                  --  is earlier.
-                                 --
-                                 --  If not Floating, Non_Grammar (Delete) is before Terminal and has
-                                 --  already been shifted. If Floating, Non_Grammar has not been
-                                 --  shifted.
 
                                  declare
                                     Token : WisiToken.Lexer.Token renames Non_Grammar (Delete);
@@ -1203,10 +1266,9 @@ package body WisiToken.Parse is
                                        Comment_End_Inserted := True;
                                        --  The exposed code is in the inserted text after the new comment
                                        --  end, plus in the old comment, terminated by the old comment
-                                       --  new_line. test_incremental.adb Edit_Comment_4
-                                       New_Code_End := KMN.Inserted_Bytes + Tree.Line_Begin_Char_Pos
-                                         (Line => Token.Line_Region.Last,
-                                          Stream => Tree.Shared_Stream) - 1;
+                                       --  end. test_incremental.adb Edit_Comment_4, Edit_Comment_7
+                                       --  New_Code_End is shifted.
+                                       New_Code_End := Token.Byte_Region.Last + KMN.Inserted_Bytes + Shift_Bytes;
                                        if Trace_Incremental_Parse > Detail then
                                           Parser.Trace.Put_Line
                                             ("comment_end_inserted:" &
@@ -1216,20 +1278,20 @@ package body WisiToken.Parse is
                                     end if;
 
                                     Lex_Start_Byte := Buffer_Pos'Min
-                                      (Token.Byte_Region.First + (if Floating then Shift_Bytes else 0),
+                                      (Token.Byte_Region.First + (if Shifted (Delete) then 0 else Shift_Bytes),
                                        Inserted_Region.First);
 
                                     Lex_Start_Char := Buffer_Pos'Min
-                                      (Token.Char_Region.First + (if Floating then Shift_Chars else 0),
+                                      (Token.Char_Region.First + (if Shifted (Delete) then 0 else Shift_Chars),
                                        Inserted_Region_Chars.First);
 
                                     Lex_Start_Line := Token.Line_Region.First +
-                                      (if Floating
-                                       then
+                                      (if Shifted (Delete)
+                                       then 0
+                                       else
                                           --  If this token contributed to Shift_Lines, ignore that part.
                                           --  ada_mode-recover_14 comment after extra 'begin'.
-                                          Shift_Lines + New_Line_Count (Token.Line_Region)
-                                       else 0);
+                                          Shift_Lines + New_Line_Count (Token.Line_Region));
                                  end;
 
                                  if Trace_Incremental_Parse > Detail then
@@ -1247,6 +1309,7 @@ package body WisiToken.Parse is
                                  end if;
 
                                  Non_Grammar.Set_First_Last (Non_Grammar.First_Index, Delete - 1);
+                                 Shifted.Set_First_Last (Non_Grammar.First_Index, Delete - 1);
                               else
                                  --  Edit is in whitespace between last non_grammar and Terminal
                                  Lex_Start_Byte := Inserted_Region.First;
@@ -1284,14 +1347,21 @@ package body WisiToken.Parse is
 
                         if not Do_Scan then
                            if Floating_Non_Grammar.Length > 0 and then
-                             Floating_Non_Grammar (Floating_Non_Grammar.First_Index).Byte_Region.First <
+                             Floating_Byte_Region_Shifted (Floating_Non_Grammar.First_Index).First <
                              Inserted_Region.First
                            then
-                              --  The edit start is in a floated non_grammar;
+                              --  The edit start is in a floated non_grammar.
+                              --  test_incremental.adb Edit_Comment_7
                               --  ada_mode-recover_14.adb comment after deleted "begin".
-                              Handle_Non_Grammar (Floating_Non_Grammar, Floating => True);
+                              Handle_Non_Grammar (Floating_Non_Grammar, Floating_Shifted, Floating => True);
                            else
-                              Handle_Non_Grammar (Tree.Non_Grammar_Var (Last_Grammar.Node), Floating => False);
+                              declare
+                                 Tree_Shifted : Boolean_Arrays.Vector := Boolean_Arrays.To_Vector
+                                   (True, Count => Tree.Non_Grammar_Const (Last_Grammar.Node).Length);
+                              begin
+                                 Handle_Non_Grammar
+                                   (Tree.Non_Grammar_Var (Last_Grammar.Node), Tree_Shifted, Floating => False);
+                              end;
                            end if;
                         end if;
                      end;
@@ -1321,22 +1391,6 @@ package body WisiToken.Parse is
                         Token : Lexer.Token; -- Newly scanned, and thus shifted
                         Error : constant Boolean := Tree.Lexer.Find_Next (Token);
                         Ref   : Terminal_Ref;
-
-                        function Deleted_Comment_Start return Boolean
-                        --  True if Deleted_Bytes deletes a comment start; Token was in the
-                        --  comment. test_incremental.adb Delete_Comment_Start.
-                        is begin
-                           for Tok of Floating_Non_Grammar loop
-                              --  Tok is not shifted
-                              if Contains (Deleted_Region, Tok.Byte_Region.First) and
-                                Tree.Lexer.Is_Comment (Tok) and
-                                Contains (Tok.Byte_Region, Token.Byte_Region.First - (Shift_Bytes - KMN.Deleted_Bytes))
-                              then
-                                 return True;
-                              end if;
-                           end loop;
-                           return False;
-                        end Deleted_Comment_Start;
                      begin
                         if Trace_Lexer > Outline then
                            Parser.Trace.Put_Line ("lex: " & Lexer.Image (Token, Parser.Tree.Lexer.Descriptor.all));
@@ -1355,9 +1409,9 @@ package body WisiToken.Parse is
 
                         exit Scan_Changed_Loop when Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID;
                         exit Scan_Changed_Loop when
-                          (if Comment_End_Inserted
-                           then Token.Byte_Region.Last - Shift_Bytes > New_Code_End
-                           --  test_incremental.adb Edit_Comment_4, _5
+                          (if Comment_End_Inserted or Comment_Start_Deleted
+                           then Token.Byte_Region.Last > New_Code_End
+                           --  test_incremental.adb Edit_Comment_4, _5, _7, Delete_Comment_Start
                            else
                               Token.ID >= Parser.Tree.Lexer.Descriptor.First_Terminal and then
                                 not (Token.Byte_Region.First - Shift_Bytes <= Stable_Region.Last or
@@ -1374,7 +1428,7 @@ package body WisiToken.Parse is
                                           Deleted_Region.First
                                           --  Previously existing Token starts immediately after deleted region;
                                           --  it may have been truncated (test_incremental.adb Edit_Code_4 'Cc')
-                                       ) or Deleted_Comment_Start));
+                                       )));
 
                         Scanned_Byte_Pos := Token.Byte_Region.Last;
 
@@ -1513,6 +1567,7 @@ package body WisiToken.Parse is
                                 ("float non_grammar " & Lexer.Full_Image (Token, Tree.Lexer.Descriptor.all));
                            end if;
                            Floating_Non_Grammar.Append (Token);
+                           Floating_Shifted.Append (False);
                         end if;
                      end loop;
 
@@ -1530,7 +1585,7 @@ package body WisiToken.Parse is
                     (Target_Bytes : in Buffer_Pos;
                      After        : in Boolean)
                     return Terminal_Ref
-                  --  If Target_Bytes < Terminal.byte_region.first: If After
+                  --  If Target_Bytes < Terminal.Byte_Region.First: If After
                   --  is True, return terminal node that is after or contains
                   --  Target_Bytes, where prev terminal is before Target_Bytes. Else
                   --  return terminal that is before Target_Bytes, where next is after.
@@ -1594,7 +1649,7 @@ package body WisiToken.Parse is
                   end Find_Element;
 
                   procedure Restore (I : in Positive_Index_Type)
-                  --  Restore Floating_Non_Grammar (I) to Containing_Terminal.Node
+                  --  Restore Floating_Non_Grammar (I)
                   is
                      Token : Lexer.Token renames Floating_Non_Grammar (I);
 
@@ -1605,16 +1660,20 @@ package body WisiToken.Parse is
 
                      Temp_Shift_Lines : Base_Line_Number_Type := Shift_Lines;
                   begin
-                     if Token.Byte_Region.First < Tree.Byte_Region (Terminal.Node).First then
-                        --  Only shift if inserted before Terminal. ada_mode-recover_14
-                        --
-                        --  Ignore this and remaining Floating_Non_Grammar's contribution to
-                        --  Shift_Lines; we are inserting it before those.
-                        --  ada_mode-recover_33.adb, ada_mode-recover_extra_end_loop.adb
-                        for J in I .. Floating_Non_Grammar.Last_Index loop
-                           Temp_Shift_Lines := @ + New_Line_Count (Floating_Non_Grammar (J).Line_Region);
-                        end loop;
-                        Lexer.Shift (Token, Shift_Bytes, Shift_Chars, Temp_Shift_Lines);
+                     if not Floating_Shifted (I) then
+                        if Token.Byte_Region.First < Tree.Byte_Region (Terminal.Node).First then
+                           --  Only shift if inserted before Terminal. ada_mode-recover_14
+                           --
+                           --  Ignore this and remaining Floating_Non_Grammar's contribution to
+                           --  Shift_Lines; we are inserting it before those. (new_lines in
+                           --  Floating_Non_Grammar were previously subtracted from Shift_Lines).
+                           --  ada_mode-interactive_01.adb, ada_mode-recover_33.adb,
+                           --  ada_mode-recover_extra_end_loop.adb
+                           for J in I .. Floating_Non_Grammar.Last_Index loop
+                              Temp_Shift_Lines := @ + New_Line_Count (Floating_Non_Grammar (J).Line_Region);
+                           end loop;
+                           Lexer.Shift (Token, Shift_Bytes, Shift_Chars, Temp_Shift_Lines);
+                        end if;
                      end if;
 
                      Shift_Lines := @ + New_Line_Count (Token.Line_Region);
@@ -1631,6 +1690,10 @@ package body WisiToken.Parse is
 
                begin
                   for I in Floating_Non_Grammar.First_Index .. Floating_Non_Grammar.Last_Index loop
+                     if Floating_Shifted (I) then
+                        exit;
+                     end if;
+
                      exit when Floating_Non_Grammar (I).Byte_Region.First > Next_KMN_Stable_Last;
                      --  If token is in next KMN edit region, shift_bytes is wrong here.
 
@@ -1658,8 +1721,11 @@ package body WisiToken.Parse is
                   if Last_Handled_Non_Grammar /= Lexer.Token_Arrays.No_Index then
                      if Last_Handled_Non_Grammar = Floating_Non_Grammar.Last_Index then
                         Floating_Non_Grammar.Clear;
+                        Floating_Shifted.Clear;
                      else
                         Floating_Non_Grammar.Set_First_Last
+                          (Last_Handled_Non_Grammar + 1, Floating_Non_Grammar.Last_Index);
+                        Floating_Shifted.Set_First_Last
                           (Last_Handled_Non_Grammar + 1, Floating_Non_Grammar.Last_Index);
                      end if;
                   end if;

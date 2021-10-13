@@ -456,7 +456,7 @@ begin
             --  We don't check duplicate state during resume, because the tokens
             --  inserted/deleted by error recover may cause initially duplicate
             --  states to diverge.
-            if not Current_Parser.State_Ref.Resume_Active and Current_Verb = Shift then
+            if not Shared_Parser.Resume_Active and Current_Verb = Shift then
                Shared_Parser.Parsers.Duplicate_State (Current_Parser, Shared_Parser.Tree, Shared_Parser.Trace.all);
                --  If Duplicate_State terminated Current_Parser, Current_Parser now
                --  points to the next parser. Otherwise it is unchanged.

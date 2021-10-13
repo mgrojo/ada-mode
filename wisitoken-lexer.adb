@@ -33,7 +33,7 @@ package body WisiToken.Lexer is
       else
          return "(" & ID_Image & ", " & Image (Item.Char_Region) &
            (if Item.ID = Descriptor.New_Line_ID
-            then Image (Item.Line_Region)
+            then ", " & Image (Item.Line_Region)
             else "") & ")";
       end if;
    end Image;
@@ -121,6 +121,22 @@ package body WisiToken.Lexer is
       end loop;
       return False;
    end Contains_New_Line;
+
+   function New_Line_Count
+     (Source      : in WisiToken.Lexer.Source;
+      Byte_Region : in Buffer_Region)
+     return Base_Line_Number_Type
+   is begin
+      return Count : Base_Line_Number_Type := 0 do
+         for I in To_Buffer_Index (Source, Byte_Region.First) ..
+           To_Buffer_Index (Source, Byte_Region.Last)
+         loop
+            if Source.Buffer (I) = ASCII.LF then
+               Count := @ + 1;
+            end if;
+         end loop;
+      end return;
+   end New_Line_Count;
 
    procedure Finalize (Object : in out Source)
    is begin
