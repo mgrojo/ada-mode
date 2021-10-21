@@ -474,10 +474,18 @@ package body Emacs_Wisi_Common_Parse is
                when Wisi.Parse_Context.Not_Found =>
                   raise;
 
+               when WisiToken.Syntax_Error | WisiToken.Parse_Error =>
+                  Parser.Tree.Lexer.Discard_Rest_Of_Input;
+                  if Parser.Tree.Stream_Count >= 2 then
+                     WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
+                  else
+                     --  Probably an error in Edit_Tree
+                     Parser.Put_Errors (Parser.Tree.Shared_Stream);
+                  end if;
+                  raise;
+
                when others =>
                   Parser.Tree.Lexer.Discard_Rest_Of_Input;
-                  WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
-                  raise;
                end;
 
             elsif Match ("post-parse") then

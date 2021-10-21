@@ -593,6 +593,17 @@ package body Wisi is
       end loop;
    end Set_End;
 
+   function To_Delta (Indent : in Indent_Type) return Delta_Type
+   is begin
+      return
+        (Label                  => Simple,
+         Simple_Delta           =>
+           (case Indent.Label is
+            when Not_Set  => (None, Invalid_Line_Number),
+            when Int      => (Int, Invalid_Line_Number, Indent.Int_Indent),
+            when Anchored => (Anchored, Invalid_Line_Number, Indent.Anchor_Line, Indent.Anchor_Delta)));
+   end To_Delta;
+
    ----------
    --  public subprograms (declaration order)
 
@@ -1314,25 +1325,88 @@ package body Wisi is
    procedure Initialize_Actions
      (Data : in out Parse_Data_Type;
       Tree : in     WisiToken.Syntax_Trees.Tree'Class)
-   is
-      use Syntax_Trees;
-   begin
+   is begin
       --  Parsing is complete, with error recover insert/delete tokens in
       --  the parse tree. Insert_Token, Delete_Token have been called;
 
       if Trace_Action > Outline then
          Data.Trace.Put_Line ("action_region_bytes: " & Image (Data.Action_Region_Bytes));
          Data.Trace.Put_Line ("action_region_lines: " & Image (Data.Action_Region_Lines));
-
-         if Trace_Action > Extra then
-            Tree.Print_Tree
-              (Data.Trace.all,
-               Non_Grammar  => True,
-               Line_Numbers => True);
-            Data.Trace.New_Line;
-         end if;
       end if;
    end Initialize_Actions;
+
+   overriding
+   procedure Delete_Token
+     (User_Data     : in out Parse_Data_Type;
+      Tree          : in     Syntax_Trees.Tree'Class;
+      Trace         : in out WisiToken.Trace'Class;
+      Deleted_Token : in     Syntax_Trees.Valid_Node_Access)
+   is
+      pragma Unreferenced (User_Data);
+      use Syntax_Trees;
+      Prev_Token : Valid_Node_Access := Tree.Parent (Deleted_Token);
+   begin
+      if Trace_Action > WisiToken.Outline then
+         Trace.Put_Line
+           ("delete token " & Tree.Image (Deleted_Token, Node_Numbers => True, Non_Grammar => True));
+      end if;
+
+      if Tree.Has_Non_Grammar (Deleted_Token) then
+         --  Insert_Token may have moved some Non_Grammar from
+         --  Deleted_Token.Parent to a virtual terminal inserted after that
+         --  token; ada_mode-recover_29.adb.
+         declare
+            Moving_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var (Deleted_Token);
+            Moving_Region      : constant Buffer_Region :=
+              (First => Moving_Non_Grammar (Moving_Non_Grammar.First_Index).Byte_Region.First,
+               Last  => Moving_Non_Grammar (Moving_Non_Grammar.Last_Index).Byte_Region.Last);
+            pragma Assert (Moving_Region.First > Tree.Byte_Region (Prev_Token).Last);
+
+            Next_Token : Node_Access := Tree.Next_Terminal (Prev_Token);
+         begin
+            loop
+               case Terminal_Label'(Tree.Label (Next_Token)) is
+               when Source_Terminal =>
+                  exit;
+
+               when Virtual_Terminal_Label =>
+                  if Tree.Has_Non_Grammar (Next_Token) then
+                     declare
+                        Next_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var (Next_Token);
+                        Next_Region      : constant Buffer_Region :=
+                          (First => Next_Non_Grammar (Next_Non_Grammar.First_Index).Byte_Region.First,
+                           Last  => Next_Non_Grammar (Next_Non_Grammar.Last_Index).Byte_Region.Last);
+                     begin
+                        if Moving_Region.First > Next_Region.Last then
+                           Prev_Token := Next_Token;
+                           Next_Token := Tree.Next_Terminal (Next_Token);
+
+                        elsif Moving_Region.Last < Next_Region.First then
+                           --  Move to Prev_Token
+                           exit;
+
+                        else
+                           --  regions overlap
+                           raise SAL.Not_Implemented with "wisi.adb Delete_Token non_grammar regions overlap";
+                        end if;
+                     end;
+                  else
+                     Next_Token := Tree.Next_Terminal (Next_Token);
+                  end if;
+
+                  exit when Next_Token = Invalid_Node_Access;
+               end case;
+            end loop;
+            Tree.Non_Grammar_Var (Prev_Token).Append (Moving_Non_Grammar);
+            Moving_Non_Grammar.Clear;
+         end;
+
+         if Trace_Action > WisiToken.Outline then
+            Trace.Put_Line
+              (" ... move non_grammar to " & Tree.Image (Prev_Token, Node_Numbers => True, Non_Grammar => True));
+         end if;
+      end if;
+   end Delete_Token;
 
    overriding
    procedure Insert_Token
@@ -1392,33 +1466,37 @@ package body Wisi is
             --  there is a blank line after the code line (and before any
             --  comments); assume that is the edit point; see
             --  test/ada_mode-interactive_2.adb "A := B \n+C;"
-            Blank_Line       : Base_Line_Number_Type := Invalid_Line_Number;
+            Insert_Line      : Base_Line_Number_Type := Invalid_Line_Number;
             Blank_Line_Index : SAL.Base_Peek_Type    := 0; -- new_line ending blank line
-            Comment_Present  : Boolean               := False;
+            Comment_Index    : SAL.Base_Peek_Type    := 0; -- first comment not on code line
 
             procedure Check_Non_Grammar
-            --  Set Blank_Line, Blank_Line_Index if there is a blank line
-            --  immediately after Prev_Terminal.
+            --  Set Insert_Line, Blank_Line_Index, Comment_Index
             is
                I : SAL.Base_Peek_Type := Prev_Non_Grammar.First_Index;
             begin
                loop
                   exit when I > Prev_Non_Grammar.Last_Index;
 
-                  if I > Prev_Non_Grammar.First_Index and Prev_Non_Grammar (I).ID /= Descriptor.New_Line_ID then
+                  if Comment_Index = 0 and
+                    I > Prev_Non_Grammar.First_Index and
+                    Prev_Non_Grammar (I).ID /= Descriptor.New_Line_ID
+                  then
                      --  Exclude comment on same line as code. test/ads_mode-recover_13.adb
-                     Comment_Present := True;
-                     return;
+                     Insert_Line   := Prev_Non_Grammar (I).Line_Region.First;
+                     Comment_Index := I;
                   end if;
 
-                  if I < Prev_Non_Grammar.Last_Index and then
+                  if (Blank_Line_Index = 0 and
+                        I < Prev_Non_Grammar.Last_Index) and then
                     (Prev_Non_Grammar (I).ID = Descriptor.New_Line_ID and
                        Prev_Non_Grammar (I + 1).ID = Descriptor.New_Line_ID)
                   then
-                     Blank_Line       := Prev_Non_Grammar (I + 1).Line_Region.First;
+                     Insert_Line      := Prev_Non_Grammar (I + 1).Line_Region.First;
                      Blank_Line_Index := I + 1;
-                     return;
                   end if;
+
+                  exit when Blank_Line_Index /= 0 and Comment_Index /= 0;
 
                   I := I + 1;
                end loop;
@@ -1430,45 +1508,45 @@ package body Wisi is
               (Tree,
                Insert_Token        => Inserted_Token,
                Insert_Before_Token => Next_Source_Terminal,
-               Comment_Present     => Comment_Present,
-               Blank_Line_Present  => Blank_Line /= Invalid_Line_Number);
+               Comment_Present     => Comment_Index > 0,
+               Blank_Line_Present  => Blank_Line_Index > 0);
 
             pragma Assert (Prev_Non_Grammar.Length > 0); --  else First would be false in condition above.
 
-            pragma Assert (Length (Tree.Byte_Region (Inserted_Token)) = 0); -- because it's virtual.
-
             case Insert_Location is
             when Between =>
-               --  Insert on blank line
+               --  Insert on blank line or comment line
                --
-               --  test/ada_mode-interactive_2.adb Function_Access_2 and many similar.
+               --  test/ada_mode-interactive_2.adb Function_Access_2,
+               --  ada_mode-recover_17.adb missing 'end if' at end.
                --  Indent for new code line extending previous code.
                declare
                   New_Non_Grammar : WisiToken.Lexer.Token_Arrays.Vector;
+                  Start_Index : constant SAL.Peek_Type :=
+                    (if Blank_Line_Index > 0 then Blank_Line_Index else Comment_Index);
                begin
-                  for I in Blank_Line_Index .. Prev_Non_Grammar.Last_Index loop
+                  for I in Start_Index .. Prev_Non_Grammar.Last_Index loop
                      New_Non_Grammar.Append (Prev_Non_Grammar (I));
                   end loop;
                   New_Non_Grammar.Append (Token_Non_Grammar);
 
                   Token_Non_Grammar := New_Non_Grammar;
 
-                  Prev_Non_Grammar.Set_First_Last (Prev_Non_Grammar.First_Index, Blank_Line_Index - 1);
+                  Prev_Non_Grammar.Set_First_Last (Prev_Non_Grammar.First_Index, Start_Index - 1);
 
                   Tree.Set_Insert_Location (Inserted_Token, Between);
 
                   if Trace_Action > WisiToken.Outline then
-                     Data.Trace.Put_Line
-                       ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
-                          " on blank line" & Blank_Line'Image);
+                     Trace.Put_Line
+                       ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True, Non_Grammar => True) &
+                          " on line" & Insert_Line'Image & "; move non_grammar from" &
+                          Tree.Image (Prev_Terminal, Node_Numbers => True, Non_Grammar => True));
                   end if;
                end;
 
             when After_Prev =>
-               if Prev_Terminal = Tree.SOI then
+               if Prev_Non_Grammar (Prev_Non_Grammar.First_Index).ID = Tree.Lexer.Descriptor.SOI_ID then
                   --  Don't move SOI non_grammar
-                  pragma Assert
-                    (Prev_Non_Grammar (Prev_Non_Grammar.First_Index).ID = Tree.Lexer.Descriptor.SOI_ID);
 
                   for I in Prev_Non_Grammar.First_Index + 1 .. Prev_Non_Grammar.Last_Index loop
                      Token_Non_Grammar.Append (Prev_Non_Grammar (I));
@@ -1484,9 +1562,9 @@ package body Wisi is
                Tree.Set_Insert_Location (Inserted_Token, After_Prev);
 
                if Trace_Action > WisiToken.Outline then
-                  Data.Trace.Put_Line
-                    ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
-                       " after " & Tree.Image (Prev_Terminal, Node_Numbers => True));
+                  Trace.Put_Line
+                    ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True, Non_Grammar => True) &
+                       " after " & Tree.Image (Prev_Terminal, Node_Numbers => True, Non_Grammar => True));
                end if;
 
             when Before_Next =>
@@ -1496,9 +1574,9 @@ package body Wisi is
       end if;
 
       if Insert_Location = Before_Next and Trace_Action > WisiToken.Outline then
-         Data.Trace.Put_Line
-           ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True) &
-              " before " & Tree.Image (Inserted_Before, Node_Numbers => True));
+         Trace.Put_Line
+           ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True, Non_Grammar => True) &
+              " before " & Tree.Image (Inserted_Before, Node_Numbers => True, Non_Grammar => True));
       end if;
    end Insert_Token;
 
@@ -2044,7 +2122,7 @@ package body Wisi is
       return "(" & Simple_Indent_Param_Label'Image (Item.Label) &
         (case Item.Label is
          when None => "",
-         when Block | Int => Integer'Image (Item.Int_Delta),
+         when Block | Int => ", " & Trimmed_Image (Item.Int_Delta),
          when Simple_Param_Anchored => Positive_Index_Type'Image (Item.Anchored_Index) & "," &
            Integer'Image (Item.Anchored_Delta),
          when Language => "<language_function>") & ")";
@@ -2196,7 +2274,11 @@ package body Wisi is
                end if;
 
                if Code_Delta /= Null_Delta then
-                  Indent_Token_1 (Data, Tree, Child, Code_Delta, Indenting_Comment => None);
+                  Indent_Token_1
+                    (Data, Tree,
+                     Line_Region       => Indenting.Code,
+                     Delta_Indent      => Code_Delta,
+                     Indenting_Comment => None);
                end if;
 
                if Indenting.Comment /= Null_Line_Region then
@@ -2223,11 +2305,25 @@ package body Wisi is
                      end if;
 
                      Comment_Delta := Indent_Compute_Delta
-                       (Data, Tree, Nonterm, Comment_Param, Controlling_Token, Indenting_Comment => True);
+                       (Data, Tree, Nonterm, Comment_Param,
+                        Indenting_Token   => Controlling_Token,
+                        Indenting_Comment => True);
 
                      if Comment_Delta /= Null_Delta then
                         Indent_Token_1
-                          (Data, Tree, Child, Comment_Delta,
+                          (Data, Tree,
+                           Line_Region       => Indenting.Comment,
+                           Delta_Indent      => Comment_Delta,
+                           Controlling_Delta => To_Delta
+                             (Data.Indents
+                                (Line_Number_Type'
+                                   (if Params (I).Comment_Present
+                                    then -- ada_mode-conditional_expressions.adb case expression for K, if
+                                    --  expression blank line.
+                                       Tree.Line_Region (Controlling_Token).Last
+
+                                    else --  ada_mode-conditional_expressions.adb case expression for K.
+                                       Tree.Line_Region (Controlling_Token).First))),
                            Indenting_Comment => (if Params (I).Comment_Present then Trailing else Leading));
                      end if;
                   end if;
@@ -2860,22 +2956,17 @@ package body Wisi is
    procedure Indent_Token_1
      (Data              : in out Parse_Data_Type;
       Tree              : in     Syntax_Trees.Tree;
-      Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Line_Region       : in     WisiToken.Line_Region;
       Delta_Indent      : in     Delta_Type;
-      Indenting_Comment : in     Indenting_Comment_Label)
+      Indenting_Comment : in     Indenting_Comment_Label;
+      Controlling_Delta : in     Delta_Type := Null_Delta)
    is
-      Indenting : constant Wisi.Indenting := Compute_Indenting (Data, Tree, Indenting_Token);
-
-      Line_Region : constant WisiToken.Line_Region :=
-        (if Indenting_Comment /= None
-         then Indenting.Comment
-         else Indenting.Code);
-
+      Indent : Boolean := True;
    begin
       if Trace_Action > Detail then
          Data.Trace.Put_Line
            ("indent_token_1:      " &
-              Tree.Image (Indenting_Token, Node_Numbers => True) & " " & Image (Delta_Indent) &
+              Image (Line_Region) & " " & Image (Delta_Indent) &
               (if Indenting_Comment /= None then " comment" else " code") &
               Image (Line_Region));
       end if;
@@ -2884,7 +2975,6 @@ package body Wisi is
          if Data.Indent_Comment_Col_0 then
             declare
                use all type Ada.Text_IO.Count;
-               Indent              : Boolean := True;
                Line_Begin_Char_Pos : Buffer_Pos;
 
                Containing : constant Syntax_Trees.Valid_Node_Access := Tree.Find_New_Line
@@ -2900,13 +2990,17 @@ package body Wisi is
                   end if;
                end loop;
 
-               if Indent then
-                  Indent_Line (Data, Line, Delta_Indent, Indenting_Comment);
-               else
+               if not Indent then
                   Indent_Line (Data, Line, (Simple, (Int, Invalid_Line_Number, 0)), Indenting_Comment);
                end if;
             end;
-         else
+         end if;
+
+         if Indent then
+            if Indenting_Comment /= None then
+               Indent_Line (Data, Line, Controlling_Delta, Indenting_Comment);
+            end if;
+
             Indent_Line (Data, Line, Delta_Indent, Indenting_Comment);
          end if;
       end loop;

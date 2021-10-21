@@ -145,8 +145,9 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	     ;;
 	     ;; See test/mixed_unix_dos_line_ends.adb; we'd like to
 	     ;; have truly "no conversion" here, so the count of sent
-	     ;; bytes to be the same as computed in *--send. But even
-	     ;; utf-8-emacs strips the stray ^M from that buffer.
+	     ;; bytes is the same as computed in wpp--send-*. But
+	     ;; utf-8-emacs strips the stray ^M from that buffer, and
+	     ;; binary gets something else wrong.
 
 	     :command (append (list (wisi-process--parser-exec-file parser))
 			      (wisi-process--parser-exec-opts parser))))

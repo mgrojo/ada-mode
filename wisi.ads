@@ -155,7 +155,13 @@ package Wisi is
    procedure Initialize_Actions
      (Data : in out Parse_Data_Type;
       Tree : in     WisiToken.Syntax_Trees.Tree'Class);
-   --  FIXME: called when? delete?
+
+   overriding
+   procedure Delete_Token
+     (User_Data     : in out Parse_Data_Type;
+      Tree          : in     WisiToken.Syntax_Trees.Tree'Class;
+      Trace         : in out WisiToken.Trace'Class;
+      Deleted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access);
 
    overriding
    procedure Insert_Token
@@ -539,7 +545,9 @@ private
 
    type Indent_Type (Label : Indent_Label := Not_Set) is record
       --  Indent values may be negative while indents are being computed.
+
       Controlling_Token_Line : WisiToken.Base_Line_Number_Type := WisiToken.Invalid_Line_Number;
+      --  See [2] Indent actions for description of controlling token.
 
       case Label is
       when Not_Set =>
@@ -701,12 +709,18 @@ private
    procedure Indent_Token_1
      (Data              : in out Parse_Data_Type;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Line_Region       : in     WisiToken.Line_Region;
       Delta_Indent      : in     Delta_Type;
-      Indenting_Comment : in     Indenting_Comment_Label);
-   --  Apply Delta_Indent to Data.Indents for Indenting_Token.
+      Indenting_Comment : in     Indenting_Comment_Label;
+      Controlling_Delta : in     Delta_Type := Null_Delta);
+   --  Apply Delta_Indent to lines in Line_Region.
    --
-   --  Indenting must be Compute_Indenting (Indenting_Token).
+   --  Controlling_Delta should be Null_Delta if Indenting_Comment is
+   --  None; it should be any existing indent for
+   --  Controlling_Token.Line_Region.[First | Last] if Indenting_Comment
+   --  is Leading | Trailing. This allows adding previously computed
+   --  indents for the token controlling a comment line to the comment
+   --  line indent.
    --
    --  Sets Data.Indents, so caller may not be in a renames for a
    --  Data.Indents element.

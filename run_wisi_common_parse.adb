@@ -86,6 +86,7 @@ package body Run_Wisi_Common_Parse is
                   (if Parser.Table = null then ""
                    else "; default" & Parser.Table.McKenzie_Param.Zombie_Limit'Image));
       Put_Line ("--repeat_count n : repeat parse count times, for profiling; default 1");
+      Put_Line ("--log <file_name> : output verbosity trace to <file_name>");
       New_Line;
    end Usage;
 
@@ -95,7 +96,9 @@ package body Run_Wisi_Common_Parse is
 
    Save_File_Name : Unbounded_String;
 
-   Log_File : Ada.Text_IO.File_Type; -- unused
+   Log_File : Ada.Text_IO.File_Type; -- for Parse recover log; unused
+
+   Trace_File : aliased Ada.Text_IO.File_Type; -- for Trace log; see --log.
 
    procedure Lex (Parse_Context : in Wisi.Parse_Context.Parse_Context_Access)
    --  Run lexer to get Parse_Context.Text_Buffer_Char_Last
@@ -178,7 +181,10 @@ package body Run_Wisi_Common_Parse is
 
          when Command_File =>
             Result.Command_File_Name := +Argument (2);
-            if Argument_Count > 2 then
+            if Argument_Count > 2 and then
+              Argument (3)'Length > 2 and then
+              Argument (3)(1 .. 2) /= "--"
+            then
                Result.Source_File_Name  := +Argument (3);
                Next_Arg                 := 4;
             else
@@ -323,6 +329,15 @@ package body Run_Wisi_Common_Parse is
             Params.Repeat_Count := Integer'Value (Argument (Arg + 1));
             Arg := @ + 2;
 
+         elsif Argument (Arg) = "--log" then
+            declare
+               Log_File_Name : constant String := Argument (Arg + 1);
+            begin
+               Arg := @ + 2;
+               Ada.Text_IO.Open (Trace_File, Ada.Text_IO.Out_File, Log_File_Name);
+               Trace.Set_File (Trace_File'Access);
+            end;
+
          else
             Ada.Text_IO.Put_Line ("unrecognized option: '" & Argument (Arg) & "'");
             Usage (Parser);
@@ -344,6 +359,20 @@ package body Run_Wisi_Common_Parse is
       Set_Exit_Status (Failure);
       raise SAL.Parameter_Error;
    end Command_Options;
+
+   procedure Put_Errors (Parser : in WisiToken.Parse.LR.Parser.Parser)
+   is begin
+      if Parser.Tree.Stream_Count = 0 then
+         Parser.Put_Errors;
+
+      elsif Parser.Tree.Stream_Count >= 2 then
+         Parser.Put_Errors (Parser.Tree.First_Parse_Stream);
+
+      else
+         --  Probably an error in Edit_Tree
+         Parser.Put_Errors (Parser.Tree.Shared_Stream);
+      end if;
+   end Put_Errors;
 
    procedure Process_Command
      (Parse_Context : in Wisi.Parse_Context.Parse_Context_Access;
@@ -410,11 +439,11 @@ package body Run_Wisi_Common_Parse is
                Parser.Tree);
          exception
          when WisiToken.Syntax_Error =>
-            WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
+            Put_Errors (Parser);
             Ada.Text_IO.Put_Line ("(parse_error)");
 
          when E : WisiToken.Parse_Error =>
-            WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
+            Put_Errors (Parser);
             Ada.Text_IO.Put_Line
               ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
                  Ada.Exceptions.Exception_Message (E) & """)");
@@ -451,7 +480,7 @@ package body Run_Wisi_Common_Parse is
                Parser.Tree);
          exception
          when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>
-            WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
+            Put_Errors (Parser);
             Ada.Text_IO.Put_Line
               ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
                  Ada.Exceptions.Exception_Message (E) & """)");
@@ -632,16 +661,16 @@ package body Run_Wisi_Common_Parse is
 
                exception
                when WisiToken.Syntax_Error =>
-                  WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
+                  Put_Errors (Parser);
                   Put_Line ("(parse_error)");
 
                when E : WisiToken.Parse_Error =>
-                  WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
+                  Put_Errors (Parser);
                   Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
                               Ada.Exceptions.Exception_Message (E) & """)");
 
                when E : others => -- includes Fatal_Error
-                  WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
+                  Put_Errors (Parser);
                   Put_Line ("(error """ & Ada.Exceptions.Exception_Name (E) & " " &
                               Ada.Exceptions.Exception_Message (E) & """)");
                end;
@@ -676,11 +705,11 @@ package body Run_Wisi_Common_Parse is
 
             exception
             when WisiToken.Syntax_Error =>
-               WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
+               Put_Errors (Parser);
                Put_Line ("(parse_error)");
 
             when E : WisiToken.Parse_Error =>
-               WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
+               Put_Errors (Parser);
                Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
                            Ada.Exceptions.Exception_Message (E) & """)");
             end;
@@ -735,11 +764,11 @@ package body Run_Wisi_Common_Parse is
                   Parse_Data.Put (Parser);
                exception
                when WisiToken.Syntax_Error =>
-                  WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
+                  Put_Errors (Parser);
                   Put_Line ("(parse_error)");
 
                when E : WisiToken.Parse_Error =>
-                  WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
+                  Put_Errors (Parser);
                   Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
                               Ada.Exceptions.Exception_Message (E) & """)");
                end;
@@ -754,6 +783,8 @@ package body Run_Wisi_Common_Parse is
             end case;
 
          when Command_File =>
+            Command_Options (Parser, Cl_Params, Arg);
+
             --  We don't do a full parse here, to let .cmd file set debug params for full parse.
 
             if Length (Cl_Params.Source_File_Name) > 0 then
@@ -771,12 +802,12 @@ package body Run_Wisi_Common_Parse is
                      Line : constant String := Get_Line (Cmd_File);
                   begin
                      if Line'Length > 0 then
-                        Ada.Text_IO.Put_Line (Line);
+                        Trace.Put_Line (Line);
                         if Line (1 .. 2) = "--" then
                            null;
                         else
                            Process_Command (Parse_Context, Line);
-                           Ada.Text_IO.New_Line;
+                           Trace.New_Line;
                         end if;
                      end if;
                   end;
@@ -784,6 +815,10 @@ package body Run_Wisi_Common_Parse is
             end;
          end case;
       end;
+
+      if Ada.Text_IO.Is_Open (Trace_File) then
+         Ada.Text_IO.Close (Trace_File);
+      end if;
    exception
    when SAL.Parameter_Error | Finish =>
       --  From Get_CL_Params; already handled.
@@ -798,6 +833,9 @@ package body Run_Wisi_Common_Parse is
 
       Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
       Trace.New_Line;
+      if Ada.Text_IO.Is_Open (Trace_File) then
+         Ada.Text_IO.Close (Trace_File);
+      end if;
    end Parse_File;
 
 end Run_Wisi_Common_Parse;
