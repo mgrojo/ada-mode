@@ -8,7 +8,7 @@ is
            Where =>
              --  Output parameter must have the same name as original
              Entities2.Name = Entities.Name
-             and Entities.Id = Integer_Param));
+               and Entities.Id = Integer_Param));
 begin
    null;
 end Ada_Mode.Indent_01;

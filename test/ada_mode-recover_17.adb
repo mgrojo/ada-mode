@@ -35,5 +35,6 @@ is begin
    --  Another error here; missing 'end if;'
 end Slow_Recover_4;
 -- Local Variables:
+-- ada-end-name-optional: nil
 -- wisi-mckenzie-task-count: 1
 -- End:

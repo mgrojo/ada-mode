@@ -49,55 +49,17 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-try adding wisi-refresh-prj-cache to compilation-finish-functions.
-
-send bug report on wisitoken keeps binding wisitoken-bnf-generate
-
 running all tests incremental
-    test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
-
-    ada_mode-interactive_01.adb
-
-language_fixes Handle_In_Parse_Action_Fail Match_Names_Error subprogram_body_ID raises Bad_Config
-    push_back all of a fast_forward
-        separate exception for that; Invalid_Case
-        Push_Back_Undo_Reduce_Valid return reason, not just boolean
-
-
-error: c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_01.adb:16:
-... result of ’(progn (forward-line 2)(wisi-indent-statement)(current-column))’ does not match.
-... expect ’0’
-    don't indent empty line!?
-    doing it again gives SAL.PROGRAMMER_ERROR : Line_Begin_Char_Pos = Invalid_Buffer_Pos, line 75. sigh.
-
-c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_01.adb:73: test (progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "return 0;"))
-... error: (error: nil indent for line 75)
-    it didn't ask for indent line 75?
-        lost a new_line
-
-
-
-
-
-
+    test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 15.0)"
 
 review build/test.log
-
-
-delete parser_state.current_token, shared_token;
-    add function tree.current_Token => stream.input or stream.shared_link
-    see c:/Projects/org.wisitoken.stephe-1/notes.text
+    test/ada_mode-recover_17.adb pass
 
 ada_mode_wisi_lr1_parse --version
     would be helpful
 
-still get persistent error marks for new comment
-    test case?
-
 add test of restore deleted node that is before SOI?
     insert "-" at EOB, parse, insert second "-"
-
-Extra_end_loop_2 - insert missing loop earlier in file, ask for indent. Case for restore deleted nodes
 
 wisi-reset-parser only reset current file = delete parse_context
 
@@ -256,6 +218,14 @@ build/test.log
 
 
  after incremental
+set comment-auto-fill-only-comments
+
+try adding wisi-refresh-prj-cache to compilation-finish-functions.
+
+send bug report on wisitoken keeps binding wisitoken-bnf-generate
+
+turn off undo in *gpr_query-* buffers
+
 define ada-prj-default in ada-mode.texi project files section
 
 Line_char take start_at or return array for line_region
@@ -279,8 +249,9 @@ test/mixed_unix_dos_line_ends.adb
       coding conversion in send-string strips stray ^M
         only in emacs 28?
         change to utf-8-emacs; still strips.
-        change to binary!
+        change to binary!?
             not in elisp manual list of coding conventions?
+            doesn't work
 
         write bug report
         change to use null-terminated string?
@@ -1014,9 +985,9 @@ RUNTEST=run-indent-test-lalr-partial-process-gpr_query.el ELISP="(setq-default w
 
 test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
 
-two RUN_ARGS="command_file debug.cmd > debug.log"
+two RUN_ARGS="command_file debug.cmd &> debug.log"
 
-    *.debug RUNTEST=run-indent-test-lalr-partial-process-gpr_query.el ELISP="(setq-default wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
+*.debug RUNTEST=run-indent-test-lalr-partial-process-gpr_query.el ELISP="(setq-default wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
 
 in debug.cmd:
 mckenzie_options task_count=1

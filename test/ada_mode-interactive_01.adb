@@ -15,7 +15,12 @@ is
    --EMACSCMD:(progn (forward-line 2)(wisi-indent-statement)(current-column))
    --EMACSRESULT:0
 
-   -- newline at start of comment; indent-according-to-mode is called with the comment text exposed!
+   -- newline at start of comment; indent-according-to-mode is called
+   -- with the comment text exposed if font-lock is invoked during the
+   -- function. No longer happens with Emacs 28 (and possibly earlier),
+   -- even with jit-lock-defer-time nil. Keeping test in case it comes
+   -- back.
+   --
    --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(forward-char 2) (comment-indent-new-line)(indent-for-tab-command))
    --
    --is; used to cause an unrecognized "is"

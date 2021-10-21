@@ -20,7 +20,6 @@ pragma License (Modified_GPL);
 with Ada.Exceptions;
 with Ada_Annex_P_Process_Actions;
 with GNAT.Traceback.Symbolic;
-with System.Assertions;
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
@@ -172,33 +171,53 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                   case Ada_Annex_P_Process_Actions.To_Token_Enum (Tree.ID (Config.Error_Token)) is
                   when block_statement_ID =>
-                     Push_Back_Check (Super, New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +END_ID));
+                     Push_Back_Check
+                       (Super, New_Config,
+                        (+SEMICOLON_ID, +identifier_opt_ID, +END_ID),
+                        Push_Back_Undo_Reduce => True);
                      Insert (Tree, New_Config, +BEGIN_ID);
 
                   when entry_body_ID =>
                      Push_Back_Check
                        (Super, New_Config,
-                        (+SEMICOLON_ID, +name_opt_ID, +END_ID, +handled_sequence_of_statements_ID));
+                        (+SEMICOLON_ID, +name_opt_ID, +END_ID, +handled_sequence_of_statements_ID),
+                        Push_Back_Undo_Reduce => True);
                      Insert (Tree, New_Config, +BEGIN_ID);
 
                   when loop_statement_ID =>
                      Push_Back_Check
                        (Super, New_Config,
-                        (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID));
+                        (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID),
+                        Push_Back_Undo_Reduce => True);
                      Insert (Tree, New_Config, +LOOP_ID);
 
                   when package_body_ID =>
-                     Push_Back_Check (Super, New_Config, (+SEMICOLON_ID, +name_opt_ID, +END_ID));
+                     Push_Back_Check
+                       (Super, New_Config,
+                        (+SEMICOLON_ID, +name_opt_ID, +END_ID),
+                        Push_Back_Undo_Reduce => True);
                      if Tree.ID (New_Config.Stack.Peek (1).Token) = +handled_sequence_of_statements_ID then
-                        Push_Back_Check (Super, New_Config, (+handled_sequence_of_statements_ID, +BEGIN_ID));
+                        Push_Back_Check
+                          (Super, New_Config,
+                           (+handled_sequence_of_statements_ID, +BEGIN_ID),
+                           Push_Back_Undo_Reduce => True);
                      end if;
-                     Push_Back_Check (Super, New_Config, (1 => +declarative_part_ID));
+                     Push_Back_Check
+                       (Super, New_Config,
+                        (1 => +declarative_part_ID),
+                        Push_Back_Undo_Reduce => True);
                      Insert (Tree, New_Config, (+PACKAGE_ID, +BODY_ID, +IDENTIFIER_ID, +IS_ID));
 
                   when package_specification_ID =>
-                     Push_Back_Check (Super, New_Config, (+name_opt_ID, +END_ID, +declarative_part_ID));
+                     Push_Back_Check
+                       (Super, New_Config,
+                        (+name_opt_ID, +END_ID, +declarative_part_ID),
+                        Push_Back_Undo_Reduce => True);
                      if Tree.ID (New_Config.Stack.Peek (1).Token) = +PRIVATE_ID then
-                        Push_Back_Check (Super, New_Config, (+PRIVATE_ID, +basic_declarative_item_list_ID));
+                        Push_Back_Check
+                          (Super, New_Config,
+                           (+PRIVATE_ID, +basic_declarative_item_list_ID),
+                           Push_Back_Undo_Reduce => True);
                      end if;
                      Insert (Tree, New_Config, (+PACKAGE_ID, +IDENTIFIER_ID, +IS_ID));
 
@@ -206,13 +225,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                      Push_Back_Check
                        (Super, New_Config,
                         (+SEMICOLON_ID, +name_opt_ID, +END_ID, +handled_sequence_of_statements_ID, +BEGIN_ID,
-                         +declarative_part_ID));
+                         +declarative_part_ID),
+                        Push_Back_Undo_Reduce => True);
                      Insert (Tree, New_Config, (+PROCEDURE_ID, +IDENTIFIER_ID, +IS_ID));
 
                   when task_body_ID =>
                      Push_Back_Check
                        (Super, New_Config,
-                        (+SEMICOLON_ID, +name_opt_ID, +END_ID, +handled_sequence_of_statements_ID));
+                        (+SEMICOLON_ID, +name_opt_ID, +END_ID, +handled_sequence_of_statements_ID),
+                        Push_Back_Undo_Reduce => True);
                      Insert (Tree, New_Config, +BEGIN_ID);
 
                   when others =>
@@ -245,7 +266,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                       (case Ada_Annex_P_Process_Actions.Token_Enum_ID'(-Tree.ID (Config.Error_Token)) is
                        when package_body_ID | package_specification_ID | subprogram_body_ID => +name_opt_ID,
                        when protected_type_declaration_ID | single_protected_declaration_ID => +protected_definition_ID,
-                       when others =>  +identifier_opt_ID)));
+                       when others =>  +identifier_opt_ID)),
+                     Push_Back_Undo_Reduce => True);
 
                   if New_Config.Stack.Peek.Token.Virtual then
                      --  'end' is on top of stack, and is from a previous fix; don't mess
@@ -356,7 +378,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                       (if Tree.ID (Config.Error_Token) in +block_statement_ID | +task_body_ID
                        then +identifier_opt_ID
                        else +name_opt_ID),
-                      +END_ID));
+                      +END_ID),
+                     Push_Back_Undo_Reduce => True);
 
                   if Undo_Reduce_Valid (Super, New_Config) and then
                     Tree.ID (New_Config.Stack.Peek.Token) = +handled_sequence_of_statements_ID
@@ -370,14 +393,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   end if;
 
                when package_specification_ID =>
-                  Push_Back_Check (Super, New_Config, (+SEMICOLON_ID, +name_opt_ID, +END_ID));
-                  Undo_Reduce_Check (Super, Parse_Table, New_Config, +basic_declarative_item_list_ID);
+                  Push_Back_Check
+                    (Super, New_Config,
+                     (+SEMICOLON_ID, +name_opt_ID, +END_ID),
+                     Push_Back_Undo_Reduce => True);
+                  Undo_Reduce_Check
+                    (Super, Parse_Table, New_Config, +basic_declarative_item_list_ID);
 
                when loop_statement_ID =>
                   Keyword_Item := Stack.Peek (3);
 
                   Push_Back_Check
-                    (Super, New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID));
+                    (Super, New_Config,
+                     (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID),
+                        Push_Back_Undo_Reduce => True);
 
                   if Undo_Reduce_Valid (Super, New_Config) and then
                     Tree.ID (New_Config.Stack.Peek.Token) = +handled_sequence_of_statements_ID
@@ -432,7 +461,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                    (if Tree.ID (Config.Error_Token) = +block_statement_ID
                     then +identifier_opt_ID
                     else +name_opt_ID),
-                   +END_ID, +handled_sequence_of_statements_ID));
+                   +END_ID, +handled_sequence_of_statements_ID),
+                  Push_Back_Undo_Reduce => True);
 
                Insert (Tree, New_Config, +BEGIN_ID);
 
@@ -503,6 +533,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Put
                  ("Language_Fixes Extra_Name_Error 1 " & Image (Tree.ID (Config.Error_Token), Descriptor), New_Config);
             end if;
+         exception
+         when Invalid_Case =>
+            null;
          end;
 
          --  Case 2
@@ -518,11 +551,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             when block_statement_ID =>
                --  There is almost always an open block of some sort; not worth
                --  checking.
-               Push_Back_Check (Super, New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +END_ID));
+               Push_Back_Check
+                 (Super, New_Config,
+                  (+SEMICOLON_ID, +identifier_opt_ID, +END_ID),
+                  Push_Back_Undo_Reduce => True);
 
             when loop_statement_ID =>
                Push_Back_Check
-                 (Super, New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID));
+                 (Super, New_Config,
+                  (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID),
+                  Push_Back_Undo_Reduce => True);
 
             when others =>
                raise Bad_Config with "Language_Fixes Extra_Name_Error 2: unrecognized Error_Token";
@@ -537,6 +575,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Put
                  ("Language_Fixes Extra_Name_Error 2 " & Image (Tree.ID (Config.Error_Token), Descriptor), New_Config);
             end if;
+         exception
+         when Invalid_Case =>
+            null;
          end;
 
          --  Case 3. Delete the extra begin
@@ -594,10 +635,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                if Undo_Reduce_Valid (Super, New_Config) then
                   Undo_Reduce_Check (Super, Parse_Table, New_Config, +sequence_of_statements_ID);
-               elsif Push_Back_Valid (Super, New_Config) then
+               elsif Push_Back_Valid (Super, New_Config, Push_Back_Undo_Reduce => True) then
                   Push_Back_Check (Super, New_Config, +sequence_of_statements_ID);
                else
-                  raise Bad_Config;
+                  raise Invalid_Case;
                end if;
                Local_Config_Heap.Add (New_Config);
 
@@ -620,6 +661,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                          Image (Tree.ID (Config.Error_Token), Descriptor), New_Config);
                end if;
             end if;
+         exception
+         when Invalid_Case =>
+            null;
          end;
       end case;
    exception
@@ -656,7 +700,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       if (Tree.ID (Config.Error_Token) = +COLON_ID and
             (Tree.ID (Config.Stack.Peek.Token) /= Invalid_Token_ID and then
                -Tree.ID (Config.Stack.Peek.Token) in direct_name_ID | IDENTIFIER_ID)) and then
-        Push_Back_Valid (Super, Config)
+        Push_Back_Valid (Super, Config, Push_Back_Undo_Reduce => True)
       then
          --  Code looks like:
          --
@@ -742,7 +786,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
       elsif (To_Token_Enum (Tree.ID (Config.Error_Token)) in ALIASED_ID | CONSTANT_ID | IDENTIFIER_ID and
                Tree.ID (Config.Stack.Peek.Token) = +COLON_ID) and then
-        Push_Back_Valid (Super, Config)
+        Push_Back_Valid (Super, Config, Push_Back_Undo_Reduce => True)
       then
          --  Code looks like:
          --
@@ -941,7 +985,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                        sequence_of_statements_ID => --  see test/ada_mode-recover_partial_24.adb
                         Push_Back_Check
                           (Super, New_Config_2,
-                           (+handled_sequence_of_statements_ID, +BEGIN_ID, +label_opt_ID));
+                           (+handled_sequence_of_statements_ID, +BEGIN_ID, +label_opt_ID),
+                           Push_Back_Undo_Reduce => True);
 
                      when others =>
                         if Trace_McKenzie > Outline then
@@ -977,7 +1022,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          end if;
 
       elsif To_Token_Enum (Tree.ID (Config.Error_Token)) in
-        IDENTIFIER_ID | CASE_ID | IF_ID | LOOP_ID | RECORD_ID | RETURN_ID | SELECT_ID and
+        IDENTIFIER_ID | CASE_ID | IF_ID | LOOP_ID | RECORD_ID | RETURN_ID | SELECT_ID | name_opt_ID and
         Tree.ID (Config.Stack.Peek.Token) = +END_ID
       then
          --  We've encountered a token after 'end' when expecting a
@@ -989,8 +1034,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  'end'. We can get the ID to insert from Parse_Table
          --  Minimal_Complete_Actions.
          --
-         --  b: If the error token is IDENTIFIER, and there is not a matching
-         --  name, the error token should be something else; delete it.
+         --  b: If the error token is IDENTIFIER or name_opt, and there is not
+         --  a matching name, the error token should be something else; delete
+         --  it.
          --
          --  If there is a matching name, Minimal_Complete_Actions inserts
          --  '<compound_statement_id> ;'. We want to insert 'end
@@ -1007,134 +1053,148 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --  component_statement start.
 
          declare
-            Error_Token_ID : constant Token_ID := Tree.ID (Config.Error_Token);
-            Found : constant Boolean := Find_ID (Tree, Config, Error_Token_ID);
-         begin
-            if Error_Token_ID /= +IDENTIFIER_ID and not Found then
-               --  case d. ada_mode-recover_extra_end_loop.adb
-               declare
-                  New_Config : aliased Configuration := Config;
-               begin
+            procedure Insert_End_Token_Semi (Label : in String; New_Config : in out Configuration)
+            is
+               End_ID_Actions : constant Minimal_Action_Arrays.Vector := Parse_Table.States
+                 (Config.Stack.Peek.State).Minimal_Complete_Actions;
+            begin
+               if End_ID_Actions.Length /= 1 then
+                  --  FIXME: do all actions? need a test case
+                  raise Bad_Config;
+
+               else
                   New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
 
                   New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
-                  --  We could push_back 'end' and insert a matching start, but it's
-                  --  simpler to delete 'end <keyword> ;'
-                  Push_Back (Super, New_Config); -- END_ID
-                  declare
-                     Peek_State : Peek_Sequential_State := Peek_Sequential_Start (Tree, New_Config);
-                  begin
-                     Delete_Check (Tree, New_Config, Peek_State, +END_ID);
-                     Delete_Check (Tree, New_Config, Peek_State, Error_Token_ID);
-                     Delete_Check (Tree, New_Config, Peek_State, +SEMICOLON_ID);
-                  end;
-                  Local_Config_Heap.Add (New_Config);
-                  if Trace_McKenzie > Detail then
-                     Put ("Language_Fixes " & "insert matching start keyword", New_Config);
-                  end if;
-               end;
+                  Push_Back_Check (Super, New_Config, +END_ID);
 
-            else
+                  case End_ID_Actions (End_ID_Actions.First_Index).Verb is
+                  when Shift =>
+                     --  case a or b
+
+                     --  Inserting the end keyword and semicolon here avoids the costs added by
+                     --  Insert_Minimal_Complete_Actions.
+                     Insert
+                       (Tree, New_Config,
+                        (+END_ID, End_ID_Actions (End_ID_Actions.First_Index).ID, +SEMICOLON_ID));
+
+                     Local_Config_Heap.Add (New_Config);
+                     if Trace_McKenzie > Detail then
+                        Put ("Language_Fixes " & "wrong end keyword a", New_Config);
+                     end if;
+
+                  when Reduce =>
+                     --  case c: ada_mode-recover_39.adb. We don't try to insert a matching
+                     --  name, because the name check is skipped for virtual tokens.
+                     Insert (Tree, New_Config, (+END_ID, +SEMICOLON_ID));
+
+                     Local_Config_Heap.Add (New_Config);
+                     if Trace_McKenzie > Detail then
+                        Put ("Language_Fixes " & Label, New_Config);
+                     end if;
+                  end case;
+               end if;
+            end Insert_End_Token_Semi;
+         begin
+            if not (To_Token_Enum (Tree.ID (Config.Error_Token)) in IDENTIFIER_ID | name_opt_ID) then
+               --  First exclude case b
                declare
-                  End_ID_Actions : constant Minimal_Action_Arrays.Vector := Parse_Table.States
-                    (Config.Stack.Peek.State).Minimal_Complete_Actions;
+                  New_Config     : aliased Configuration := Config;
+                  Error_Token_ID : constant Token_ID     := Tree.ID (New_Config.Error_Token);
+                  Found          : constant Boolean      := Find_ID (Tree, New_Config, Error_Token_ID);
                begin
-                  if End_ID_Actions.Length /= 1 then
-                     null;
+                  if not Found then
+                     --  case d. ada_mode-recover_extra_end_loop.adb
+                     New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
+
+                     New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
+                     --  We could push_back 'end' and insert a matching start, but it's
+                     --  simpler to delete 'end <keyword> ;'
+                     Push_Back (Super, New_Config); -- END_ID
+                     declare
+                        Peek_State : Peek_Sequential_State := Peek_Sequential_Start (Tree, New_Config);
+                     begin
+                        Delete_Check (Tree, New_Config, Peek_State, +END_ID);
+                        Delete_Check (Tree, New_Config, Peek_State, Error_Token_ID);
+                        Delete_Check (Tree, New_Config, Peek_State, +SEMICOLON_ID);
+                     end;
+                     Local_Config_Heap.Add (New_Config);
+                     if Trace_McKenzie > Detail then
+                        Put ("Language_Fixes wrong end name", New_Config);
+                     end if;
+
+                  else
+                     Insert_End_Token_Semi ("wrong end keyword c", New_Config);
+
+                  end if;
+               exception
+               when Invalid_Case =>
+                  null;
+               end;
+            end if;
+
+            --  Now try case b.
+            if Tree.ID (Config.Error_Token) in +IDENTIFIER_ID | +name_opt_ID then
+               declare
+                  New_Config : aliased Configuration := Config;
+
+                  function Get_End_Name return String
+                  is
+                     use Standard.Ada.Strings.Unbounded;
+                     Result : Unbounded_String := +Tree.Lexer.Buffer_Text
+                       (Tree.Byte_Region (New_Config.Error_Token));
+                  begin
+                     if Tree.Is_Terminal (New_Config.Error_Token) then
+                        declare
+                           Peek_State : Peek_Sequential_State := Peek_Sequential_Start (Tree, New_Config);
+                        begin
+                           loop
+                              Peek_Next_Sequential_Terminal (Tree, Peek_State);
+                              exit when Peek_Sequential_Terminal (Peek_State) = Invalid_Node_Access;
+                              exit when -Tree.ID (Peek_Sequential_Terminal (Peek_State)) not in
+                                IDENTIFIER_ID | DOT_ID;
+                              Result := Result & Tree.Lexer.Buffer_Text
+                                (Tree.Byte_Region (Peek_Sequential_Terminal (Peek_State)));
+                           end loop;
+                        end;
+                     end if;
+                     return -Result;
+                  end Get_End_Name;
+
+                  End_Name            : constant String := Get_End_Name;
+                  Matching_Name_Index : SAL.Peek_Type   := 2; -- start search before 'end'
+
+               begin
+                  Find_Matching_Name
+                    (New_Config, Tree, End_Name, Matching_Name_Index, Case_Insensitive => True);
+
+                  if Matching_Name_Index < New_Config.Stack.Depth then
+                     --  Matching name found; insert 'end ... ;' before the
+                     --  existing 'end'.
+                     Insert_End_Token_Semi ("wrong end keyword b 1", New_Config);
 
                   else
                      declare
-                        New_Config : Configuration := Config;
+                        Label      : constant String       := "wrong end keyword b 2";
                      begin
+                        --  Matching name not found: delete Error_Token
+                        New_Config.Strategy_Counts (Language_Fix) := @ + 1;
+
+                        Delete_Check (Tree, New_Config, Tree.ID (Config.Error_Token));
+
                         New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
 
-                        New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
-
-                        Push_Back_Check (Super, New_Config, +END_ID);
-
-                        case End_ID_Actions (End_ID_Actions.First_Index).Verb is
-                        when Shift =>
-                           --  case a or b
-
-                           --  Inserting the end keyword and semicolon here avoids the costs added by
-                           --  Insert_Minimal_Complete_Actions.
-                           Insert
-                             (Tree, New_Config,
-                              (+END_ID, End_ID_Actions (End_ID_Actions.First_Index).ID, +SEMICOLON_ID));
-
-                           Local_Config_Heap.Add (New_Config);
-                           if Trace_McKenzie > Detail then
-                              Put ("Language_Fixes " & "wrong end keyword a", New_Config);
-                           end if;
-
-                        when Reduce =>
-                           --  case c: ada_mode-recover_39.adb. We don't try to insert a matching
-                           --  name, because the name check is skipped for virtual tokens.
-                           Insert (Tree, New_Config, (+END_ID, +SEMICOLON_ID));
-
-                           Local_Config_Heap.Add (New_Config);
-                           if Trace_McKenzie > Detail then
-                              Put ("Language_Fixes " & "wrong end keyword c", New_Config);
-                           end if;
-
-                        end case;
+                        Local_Config_Heap.Add (New_Config);
+                        if Trace_McKenzie > Detail then
+                           Put ("Language_Fixes " & Label, New_Config);
+                        end if;
                      end;
                   end if;
                end;
             end if;
          end;
-
-         --  Now try case b.
-         if Tree.ID (Config.Error_Token) = +IDENTIFIER_ID then
-            declare
-               Label      : constant String       := "wrong end keyword b";
-               New_Config : aliased Configuration := Config;
-
-               function Get_End_Name return String
-               is
-                  use Standard.Ada.Strings.Unbounded;
-                  Result : Unbounded_String := +Tree.Lexer.Buffer_Text
-                    (Tree.Byte_Region (New_Config.Error_Token));
-                  Peek_State : Peek_Sequential_State := Peek_Sequential_Start (Tree, New_Config);
-               begin
-                  pragma Assert
-                    (Tree.ID (New_Config.Error_Token) = Tree.ID (Peek_Sequential_Terminal (Peek_State)));
-                  loop
-                     Peek_Next_Sequential_Terminal (Tree, Peek_State);
-                     exit when Peek_Sequential_Terminal (Peek_State) = Invalid_Node_Access;
-                     exit when -Tree.ID (Peek_Sequential_Terminal (Peek_State)) not in
-                       IDENTIFIER_ID | DOT_ID;
-                     Result := Result & Tree.Lexer.Buffer_Text
-                       (Tree.Byte_Region (Peek_Sequential_Terminal (Peek_State)));
-                  end loop;
-                  return -Result;
-               end Get_End_Name;
-
-               End_Name            : constant String := Get_End_Name;
-               Matching_Name_Index : SAL.Peek_Type   := 2; -- start search before 'end'
-
-            begin
-               Find_Matching_Name
-                 (Config, Tree, End_Name, Matching_Name_Index, Case_Insensitive => True);
-
-               if Matching_Name_Index < Config.Stack.Depth then
-                  --  Matching name found, don't delete Error_Token
-                  null;
-               else
-                  New_Config.Strategy_Counts (Language_Fix) := @ + 1;
-
-                  Delete_Check (Tree, New_Config, Tree.ID (Config.Error_Token));
-
-                  New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
-
-                  Local_Config_Heap.Add (New_Config);
-                  if Trace_McKenzie > Detail then
-                     Put ("Language_Fixes " & Label, New_Config);
-                  end if;
-               end if;
-            end;
-         end if;
 
       elsif To_Token_Enum (Tree.ID (Config.Error_Token)) in PRAGMA_ID | USE_ID and
         Tree.ID (Config.Stack.Peek.Token) = +BEGIN_ID
@@ -1194,7 +1254,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          begin
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
-            Push_Back_Check (Super, New_Config, +expression_ID);
+            Push_Back_Check (Super, New_Config, +expression_ID, Push_Back_Undo_Reduce => True);
 
             Insert (Tree, New_Config, +LEFT_PAREN_ID);
             --  Minimal_Complete will add the matching right paren.
@@ -1269,27 +1329,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
    when Invalid_Case =>
       null;
 
-   when E : Bad_Config =>
+   when Bad_Config =>
       if Debug_Mode then
-         Super.Trace.Put_Line
-           ("Language_Fixes Handle_Parse_Error Bad_Config: " &
-              Standard.Ada.Exceptions.Exception_Message (E));
-         Super.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
          raise;
       elsif Trace_McKenzie > Outline then
          Super.Trace.Put_Line ("Language_Fixes Handle_Parse_Error Bad_Config");
-      end if;
-
-   when E : System.Assertions.Assert_Failure =>
-      if Debug_Mode then
-         Super.Trace.Put
-           ("Language_Fixes Handle_Parse_Error assert fail: " &
-              Standard.Ada.Exceptions.Exception_Message (E),
-            Prefix => True);
-         Super.Trace.New_Line;
-         raise;
-      elsif Trace_McKenzie > Outline then
-         Super.Trace.Put_Line ("Language_Fixes Handle_Parse_Error assert fail");
       end if;
    end Handle_Parse_Error;
 

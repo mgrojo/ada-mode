@@ -69,7 +69,7 @@ package body Wisi.Ada is
                Indent_Token_1
                  (Data,
                   Tree,
-                  Indenting_Token      => Tree.Line_Begin_Token (Tree.Line_Region (Record_Token).First),
+                  Line_Region          => Tree.Line_Region (Record_Token),
                   Delta_Indent         => Indent_Anchored_2
                     (Data, Tree, Anchor_Token, Record_Token,
                      Indenting_Comment => False,
@@ -592,7 +592,8 @@ package body Wisi.Ada is
             --  'end'; between or after_prev.
             --
             --  We don't know what lines are being indented; we use the presence
-            --  of a blank line and comment to hint at that:
+            --  of a blank line and comment to hint at that, and we bias towards
+            --  continuing a block of statements, not inserting 'end'.
             --
             --  If there is a blank line followed by comments, we assume that
             --  means we are not adding code on the blank line.
@@ -605,18 +606,22 @@ package body Wisi.Ada is
             --     first 'else'
             --
             --  Before END_ID:
-            --     test/ada_mode-interactive_2 New_Line_2
-            --     blank line present
-            --     inserting 'end if;', continuing code for 'if' body => insert before 'end case;' => before_next.
-            --
-            --     test/ada_mode-interactive_2 New_Line_2
-            --     blank line and comment present, but extending code; we get it wrong.
+            --     test/ada_mode-interactive_02 New_Line_2,
+            --     actually inserting 'end if;' before 'end case;'
+            --     blank line present => assume continuing code for 'if' body
+            --     => insert before 'end case;' => before_next.
             --
             --     test/ada_mode-recover_06.adb
-            --     blank line and comment present => insert on blank line => between
+            --     actually inserting 'end;'
+            --     blank line and comment present; assume extending code for block body
+            --     => insert on blank line => between
             --
             --     test/ada_mode-recover_08.adb
             --     no blank line or comment; keep correct indent for existing 'end' => after_prev.
+            --
+            --     test/ada_mode-recover_17.adb
+            --     inserting missing 'end if;', but assume extending code
+            --     comment present, no blank line; keep correct indent for existing 'end' => between
             --
             --  Before IS_ID : test/ada_mode-recover_incremental_01.adb insert "Float"
             --     no blank line or comment
@@ -624,14 +629,14 @@ package body Wisi.Ada is
             --
             --  Before WHEN_ID : test/ada_mode-recover_34.adb
             --     completing 'if'; keep existing indent of 'when' => after_prev
-            if Blank_Line_Present then
-               if Comment_Present then
-                  return Between;
-               else
-                  return Before_Next;
-               end if;
+            if Comment_Present then
+               return Between;
             else
-               return After_Prev;
+               if Blank_Line_Present then
+                  return Before_Next;
+               else
+                  return After_Prev;
+               end if;
             end if;
 
          when others =>

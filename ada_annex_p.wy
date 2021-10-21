@@ -1403,8 +1403,8 @@ chunk_specification
   ;
 
 loop_parameter_specification
-  ;;  This is almost a subset of iterator_specification;
-  ;;  discrete_subtype_definition is a superset of 'name'; could merge
+  ;;  This is very similar to iterator_specification;
+  ;;  discrete_subtype_definition is a superset of 'name'. Could merge
   ;;  to reduce conflicts.
   : IDENTIFIER 'in' ['reverse'] discrete_subtype_definition [iterator_filter]
   ;

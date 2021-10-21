@@ -107,7 +107,7 @@ is
    end Function_Access_2;
    --EMACSCMD:(progn (forward-line -2)(execute-kbd-macro "null;")(indent-for-tab-command))
 
-   -- New_Line before 'end'
+   -- New_Line before 'end case', for 'end if;'
    --EMACSCMD:(progn (forward-line 8)(delete-char 19)(indent-for-tab-command)(current-column))
    --EMACSRESULT:15
    procedure New_Line_2
@@ -161,7 +161,7 @@ begin
    --EMACSCMD:(progn (forward-line 3)(kill-line 2))
    --EMACSCMD:(progn (end-of-line 2)(execute-kbd-macro "\r-- Comment 1")(current-indentation))
    if (A and B
-       -- Comment 1
+         -- Comment 1
       )
      -- Comment 2
      or C
