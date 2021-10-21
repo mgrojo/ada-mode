@@ -226,9 +226,19 @@ package WisiToken.Lexer is
 
    function Is_Comment
      (Lexer : in Instance;
-      Token : in WisiToken.Lexer.Token)
+      ID    : in Token_ID)
      return Boolean
    is abstract;
+
+   function Find_Comment_End
+     (Lexer         : in Instance;
+      ID            : in Token_ID;
+      Comment_Start : in Buffer_Pos)
+     return Buffer_Pos
+   is abstract
+   with Pre'Class => Is_Comment (Lexer, ID);
+   --  Given the byte position of a comment start, return the byte
+   --  position of the comment end.
 
    function Line_Begin_Char_Pos
      (Lexer : in Instance;
@@ -251,6 +261,17 @@ package WisiToken.Lexer is
      return Base_Line_Number_Type is abstract;
 
    type Source (<>) is private;
+
+   function Find_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Start  : in Buffer_Pos)
+     return Buffer_Pos;
+
+   function Find_String_Or_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Start  : in Buffer_Pos;
+      Item   : in String)
+     return Buffer_Pos;
 
    function Line_Begin_Char_Pos
      (Source : in WisiToken.Lexer.Source;
@@ -317,6 +338,9 @@ private
 
    function To_Buffer_Index (Source : in WisiToken.Lexer.Source; Byte_Pos : in Base_Buffer_Pos) return Integer
    is (Integer (Byte_Pos - Source.Buffer_Nominal_First_Byte + Buffer_Pos'First));
+
+   function From_Buffer_Index (Source : in WisiToken.Lexer.Source; Index : in Integer) return Base_Buffer_Pos
+   is (Base_Buffer_Pos (Index) + Source.Buffer_Nominal_First_Byte - Buffer_Pos'First);
 
    function File_Name (Source : in Lexer.Source) return String;
 

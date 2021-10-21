@@ -288,13 +288,12 @@ package body WisiToken.Parse.LR.Parser is
 
       procedure Delete_Errors
       is begin
-         --  There can be both a Parse_Error and a moved In_Parse_Error on a
-         --  single token; test_incremental.adb Multiple_Errors_On_One_Token.
+         --  We have to delete errors from all nodes in the subtree under
+         --  current_input; test_incremental.adb Recover_2.
          Shared_Parser.Tree.Delete_Errors_In_Input
            (Parser_State.Stream,
             Error_Pred_Lexer_Parse_Message'Access,
-            Shared_Parser.User_Data,
-            Nonterm_First_Terminal => True);
+            Shared_Parser.User_Data);
       end Delete_Errors;
 
    begin
@@ -316,6 +315,10 @@ package body WisiToken.Parse.LR.Parser is
          Parser_State.Last_Action := Action;
 
          if not Parser_State.Resume_Active then
+            --  Errors on nodes shifted during resume are the errors that are
+            --  being fixed; we want to report them so the user can actually fix
+            --  them. Errors on nodes shifted not during resume have been fixed by
+            --  user edits, so we delete them.
             Delete_Errors;
          end if;
 
@@ -430,6 +433,7 @@ package body WisiToken.Parse.LR.Parser is
          when Ok =>
             Parser_State.Set_Verb (Action.Verb);
             if not Parser_State.Resume_Active then
+               --  See note in Shift about why not delete errors during resume.
                Delete_Errors;
             end if;
 
@@ -468,8 +472,7 @@ package body WisiToken.Parse.LR.Parser is
                Tree.Delete_Errors_In_Input
                  (Parser_State.Stream,
                   Error_Pred_Parse'Access,
-                  Shared_Parser.User_Data,
-                  Nonterm_First_Terminal => True);
+                  Shared_Parser.User_Data);
 
                Tree.Add_Error_To_Input
                  (Stream    => Parser_State.Stream,
@@ -920,7 +923,9 @@ package body WisiToken.Parse.LR.Parser is
       if Parser.User_Data /= null then
          --  ada-mode-recover_33.adb requires calling Insert_Token,
          --  Delete_Token in lexical order, which is Recover_Insert_Delete
-         --  order.
+         --  order. Other use cases would benefit from calling all Delete
+         --  first, or all Insert first, but we use this order as the least
+         --  surprising.
          for Op of Parser_State.Recover_Insert_Delete loop
             case Op.Op is
             when Insert =>
@@ -943,6 +948,19 @@ package body WisiToken.Parse.LR.Parser is
                   Line_Numbers => True));
             Parser.Trace.New_Line;
          end if;
+      end if;
+
+      if Debug_Mode then
+         declare
+            use all type Ada.Containers.Count_Type;
+            Error_Reported : WisiToken.Syntax_Trees.Node_Sets.Set;
+         begin
+            Parser.Tree.Validate_Tree (Parser.User_Data.all, Error_Reported, Node_Index_Order => False);
+
+            if Error_Reported.Count /= 0 then
+               raise WisiToken.Parse_Error with "parser: validate_tree failed";
+            end if;
+         end;
       end if;
    end Finish_Parse;
 

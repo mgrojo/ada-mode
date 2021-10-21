@@ -172,8 +172,9 @@ package body Test_Incremental is
          Initial_Buffer := Edited_Buffer; --  For To_KMN, Validate_KMN
       end if;
 
-      if Edit_At in 1 .. Length (Edited_Buffer) then
-         if Edit_2_At in 1 .. Length (Edited_Buffer) then
+      --  Allow inserting after last char in Initial
+      if Edit_At in 1 .. Length (Edited_Buffer) + 1 then
+         if Edit_2_At in 1 .. Length (Edited_Buffer) + 1 then
             Edit_Text (Edit_2_At, Delete_2, Insert_2);
          end if;
          Edit_Text (Edit_At, Delete, Insert);
@@ -442,7 +443,7 @@ package body Test_Incremental is
            "-- preceding" & ASCII.LF &
            --  |7 |10       |16
            "-- A := B;" & ASCII.LF & "C;",
-         --  |18     |25
+         --  |18    |25
          Edit_At   => 17,
          Insert    => "   ",
          Delete    => "",
@@ -462,6 +463,38 @@ package body Test_Incremental is
       --  C;'
       --  |39
    end Edit_Comment_7;
+
+   procedure Edit_Comment_8 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Edit comment by inserting before and after.
+      Parse_Text
+        (Initial   =>
+           "D;" & ASCII.LF &
+           "-- comment_1" & ASCII.LF &
+           --  |7 |10       |16
+           "   C;",
+         --    |20
+         Edit_At   => 4,
+         Insert    => "   ",
+         Delete    => "",
+         Edit_2_At => 17,
+         Delete_2  => "",
+         Insert_2  => "   ");
+
+      --  Edited text:
+      --  'D;
+      --   |1
+      --     -- comment_1
+      --  |4    |10
+      --        -- comment_2
+      --  |20       |30
+      --  C;'
+      --  |39
+   end Edit_Comment_8;
+
+   --  FIXME: edit_comment_9; delete comment start and end
 
    procedure Edit_Whitespace_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -803,6 +836,27 @@ package body Test_Incremental is
          Incr_Errors => 0);
    end Recover_1;
 
+   procedure Recover_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Full parse encounters an error on "." in "end Pkg.Proc_1"; error
+      --  recovery finishes the block started by "begin". Incremental parse
+      --  edit fixes the error; main parser must delete the error on "."
+      --  when the name_opt nonterm is shifted.
+      Ada_Lite_Actions.End_Name_Optional := False;
+
+      Parse_Text
+        (Initial           =>
+           "procedure Pkg.Proc_1 is begin A; begin end Pkg.Proc_1;",
+           --        |10       |20       |30       |40       |50
+         Edit_At           => 40,
+         Delete            => "",
+         Insert            => "end; ",
+         Full_Errors => 1,
+         Incr_Errors => 0);
+   end Recover_2;
+
    procedure Lexer_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -1007,6 +1061,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment_5'Access, "Edit_Comment_5");
       Register_Routine (T, Edit_Comment_6'Access, "Edit_Comment_6");
       Register_Routine (T, Edit_Comment_7'Access, "Edit_Comment_7");
+      Register_Routine (T, Edit_Comment_8'Access, "Edit_Comment_8");
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");
@@ -1026,6 +1081,7 @@ package body Test_Incremental is
       Register_Routine (T, Names'Access, "Names");
       Register_Routine (T, Missing_Name_1'Access, "Missing_Name_1");
       Register_Routine (T, Recover_1'Access, "Recover_1");
+      Register_Routine (T, Recover_2'Access, "Recover_2");
       Register_Routine (T, Lexer_Errors_1'Access, "Lexer_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");

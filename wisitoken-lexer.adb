@@ -84,6 +84,36 @@ package body WisiToken.Lexer is
       Begin_Line := Object.Line_Nominal_First;
    end Begin_Pos;
 
+   function Find_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Start  : in Buffer_Pos)
+     return Buffer_Pos
+   is begin
+      for I in To_Buffer_Index (Source, Start) .. Source.Buffer'Last loop
+         if Source.Buffer (I) = ASCII.LF then
+            return From_Buffer_Index (Source, I);
+         end if;
+      end loop;
+      return From_Buffer_Index (Source, Source.Buffer'Last);
+   end Find_New_Line;
+
+   function Find_String_Or_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Start  : in Buffer_Pos;
+      Item   : in String)
+     return Buffer_Pos
+   is begin
+      for I in To_Buffer_Index (Source, Start) .. Source.Buffer'Last loop
+         if Source.Buffer (I) = ASCII.LF or
+           ((I + Item'Length <= Source.Buffer'Last) and then
+              Source.Buffer (I .. I + Item'Length - 1) = Item)
+         then
+            return From_Buffer_Index (Source, I);
+         end if;
+      end loop;
+      return From_Buffer_Index (Source, Source.Buffer'Last);
+   end Find_String_Or_New_Line;
+
    function Line_Begin_Char_Pos
      (Source : in WisiToken.Lexer.Source;
       Token  : in WisiToken.Lexer.Token;

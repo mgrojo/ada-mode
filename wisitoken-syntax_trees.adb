@@ -1836,80 +1836,95 @@ package body WisiToken.Syntax_Trees is
    end Current_Token;
 
    procedure Delete_Errors_In_Input
-     (Tree                   : in out Syntax_Trees.Tree;
-      Stream                 : in     Stream_ID;
-      Predicate              : in     Error_Predicate;
-      User_Data              : in     User_Data_Access;
-      Nonterm_First_Terminal : in     Boolean)
+     (Tree      : in out Syntax_Trees.Tree;
+      Stream    : in     Stream_ID;
+      Predicate : in     Error_Predicate;
+      User_Data : in     User_Data_Access)
    is
       use Stream_Element_Lists;
 
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
 
-      Error_Ref : Stream_Node_Parents :=
+      Error_Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents
         (if Parse_Stream.Stack_Top = Parse_Stream.Elements.Last then
-           (Ref        =>
-              (Stream  => Tree.Shared_Stream,
-               Element => (Cur => Parse_Stream.Shared_Link),
-               Node    => Element (Parse_Stream.Shared_Link).Node),
-            Parents    => <>)
+           (Stream  => Tree.Shared_Stream,
+            Element => (Cur => Parse_Stream.Shared_Link),
+            Node    => Element (Parse_Stream.Shared_Link).Node)
          else
-           (Ref        =>
-              (Stream  => Stream,
-               Element => (Cur => Next (Parse_Stream.Stack_Top)),
-               Node    => Element (Next (Parse_Stream.Stack_Top)).Node),
-            Parents    => <>));
-   begin
-      if Nonterm_First_Terminal and Error_Ref.Ref.Node.Label = Nonterm then
-         Tree.First_Terminal (Error_Ref, Following => False);
-         if Error_Ref.Ref.Node = Invalid_Node_Access then
-            --  Empty nonterm
-            return;
+           (Stream  => Stream,
+            Element => (Cur => Next (Parse_Stream.Stack_Top)),
+            Node    => Element (Next (Parse_Stream.Stack_Top)).Node));
+
+      procedure Delete_Errors
+      --  Delete errors matching Predicate from Error_Ref.Ref.Node
+      is
+         function Edit_Error_List return Error_List_Access
+         is begin
+            return Result : Error_List_Access := new Error_Data_Lists.List'(Error_Ref.Ref.Node.Error_List.all)
+            do
+               declare
+                  use Error_Data_Lists;
+                  Cur       : Error_Data_Lists.Cursor := Result.First;
+                  To_Delete : Error_Data_Lists.Cursor;
+               begin
+                  loop
+                     exit when Cur = Error_Data_Lists.No_Element;
+                     if Predicate (Cur) then
+                        To_Delete := Cur;
+                        Next (Cur);
+                        Result.Delete (To_Delete);
+                     else
+                        Next (Cur);
+                     end if;
+                  end loop;
+               end;
+               if Result.Length = 0 then
+                  Free (Result);
+               end if;
+            end return;
+         end Edit_Error_List;
+      begin
+         if Error_Ref.Ref.Node.Error_List /= null and then Error_Ref.Ref.Node.Error_List.Length > 0 then
+            declare
+               New_Node : constant Valid_Node_Access := Copy_Node
+                 (Tree, Error_Ref.Ref.Node,
+                  Parent         =>
+                    (if Tree.Parents_Set
+                     then Error_Ref.Ref.Node.Parent
+                     else Invalid_Node_Access),
+                  User_Data      => User_Data,
+                  Copy_Children  => False,
+                  New_Error_List => Edit_Error_List,
+                  Set_Error_List => True);
+            begin
+               Move_Element (Tree, Stream, Error_Ref, New_Node, User_Data);
+            end;
          end if;
-      end if;
 
-      if Error_Ref.Ref.Node.Error_List /= null and then Error_Ref.Ref.Node.Error_List.Length > 0 then
-         declare
-            function Delete_Errors return Error_List_Access
-            is begin
-               return Result : Error_List_Access := new Error_Data_Lists.List'(Error_Ref.Ref.Node.Error_List.all)
-               do
-                  declare
-                     use Error_Data_Lists;
-                     Cur       : Error_Data_Lists.Cursor := Result.First;
-                     To_Delete : Error_Data_Lists.Cursor;
-                  begin
-                     loop
-                        exit when Cur = Error_Data_Lists.No_Element;
-                        if Predicate (Cur) then
-                           To_Delete := Cur;
-                           Next (Cur);
-                           Result.Delete (To_Delete);
-                        else
-                           Next (Cur);
-                        end if;
-                     end loop;
-                  end;
-                  if Result.Length = 0 then
-                     Free (Result);
-                  end if;
-               end return;
-            end Delete_Errors;
+         case Error_Ref.Ref.Node.Label is
+         when Terminal_Label =>
+            null;
 
-            New_Node : constant Valid_Node_Access := Copy_Node
-              (Tree, Error_Ref.Ref.Node,
-               Parent         =>
-                 (if Tree.Parents_Set
-                  then Error_Ref.Ref.Node.Parent
-                  else Invalid_Node_Access),
-               User_Data      => User_Data,
-               Copy_Children  => False,
-               New_Error_List => Delete_Errors,
-               Set_Error_List => True);
-         begin
-            Move_Element (Tree, Stream, Error_Ref, New_Node, User_Data);
-         end;
-      end if;
+         when Nonterm =>
+            declare
+               Children : constant Node_Access_Array := Error_Ref.Ref.Node.Children;
+            begin
+               for Child of Children loop
+                  Error_Ref.Parents.Push (Error_Ref.Ref.Node);
+                  Error_Ref.Ref.Node := Child;
+                  Delete_Errors;
+               end loop;
+            end;
+         end case;
+
+         if Error_Ref.Parents.Depth > 0 then
+            Error_Ref.Ref.Node := Error_Ref.Parents.Pop;
+         end if;
+      end Delete_Errors;
+   begin
+      --  FIXME: This algorithm is not incremental, and a waste of time on
+      --  almost all nonterms; cache Has_Errors Boolean in each nonterm.
+      Delete_Errors;
    end Delete_Errors_In_Input;
 
    procedure Delete_Input_Token
@@ -1927,6 +1942,8 @@ package body WisiToken.Syntax_Trees is
             use Stream_Element_Lists;
             To_Delete : Cursor := Next (Parse_Stream.Stack_Top);
          begin
+            --  Any Non_Grammar on To_Delete should be moved in Delete_Token, called
+            --  by Execute_Actions after parse is complete.
             Parse_Stream.Elements.Delete (To_Delete);
          end;
       end if;
@@ -1986,7 +2003,7 @@ package body WisiToken.Syntax_Trees is
            ("delete token " & Tree.Image (Deleted_Token, Node_Numbers => True, Non_Grammar => True));
          if Deleted_Token.Non_Grammar.Length > 0 then
             Trace.Put_Line
-              (" ... move non_grammar to " & Tree.Image (Prev_Token, Node_Numbers => True));
+              (" ... move non_grammar to " & Tree.Image (Prev_Token, Node_Numbers => True, Non_Grammar => True));
          end if;
       end if;
       Prev_Token.Non_Grammar.Append (Deleted_Token.Non_Grammar);
@@ -2116,9 +2133,14 @@ package body WisiToken.Syntax_Trees is
       Message : in String)
      return String
    is
+      --  Tolerate broken trees where Prev_Non_Grammar doesn't find SOI
       Non_Grammar : constant Node_Access := Tree.Prev_Non_Grammar (Node);
+      Null_Non_Grammar : WisiToken.Lexer.Token_Arrays.Vector;
    begin
-      return Error_Message_1 (Tree, Non_Grammar.Non_Grammar, Tree.First_Terminal (Node), Message);
+      return Error_Message_1
+        (Tree,
+         (if Non_Grammar = Invalid_Node_Access then Null_Non_Grammar else Non_Grammar.Non_Grammar),
+         Tree.First_Terminal (Node), Message);
    end Error_Message;
 
    function Error_Message
@@ -3457,6 +3479,14 @@ package body WisiToken.Syntax_Trees is
       return Node.Following_Deleted.Length > 0;
    end Has_Following_Deleted;
 
+   function Has_Non_Grammar
+     (Tree     : in Syntax_Trees.Tree;
+      Terminal : in Valid_Node_Access)
+     return Boolean
+   is begin
+      return Terminal.Non_Grammar.Length > 0;
+   end Has_Non_Grammar;
+
    function Has_Parent (Tree : in Syntax_Trees.Tree; Child : in Valid_Node_Access) return Boolean
    is begin
       return Child.Parent /= Invalid_Node_Access;
@@ -3843,14 +3873,16 @@ package body WisiToken.Syntax_Trees is
    end Image;
 
    function Image
-     (Tree           : in Syntax_Trees.Tree;
-      Ref            : in Stream_Node_Ref;
-      First_Terminal : in Boolean                   := False;
-      Line_Numbers   : in Boolean                   := False;
-      Non_Grammar    : in Boolean                   := False;
-      Augmented      : in Boolean                   := False;
-      Expecting      : in Boolean                   := False;
-      Image_Action   : in Syntax_Trees.Image_Action := null)
+     (Tree                  : in Syntax_Trees.Tree;
+      Ref                   : in Stream_Node_Ref;
+      First_Terminal        : in Boolean                   := False;
+      Node_Numbers          : in Boolean                   := False;
+      Terminal_Node_Numbers : in Boolean                   := False;
+      Line_Numbers          : in Boolean                   := False;
+      Non_Grammar           : in Boolean                   := False;
+      Augmented             : in Boolean                   := False;
+      Expecting             : in Boolean                   := False;
+      Image_Action          : in Syntax_Trees.Image_Action := null)
      return String
    is
       use Stream_Element_Lists;
@@ -3862,19 +3894,21 @@ package body WisiToken.Syntax_Trees is
             return "(" & Trimmed_Image (Tree.Streams (Ref.Stream.Cur).Label) & ", " &
               Image
                 (Tree, Ref.Element,
-                 Node_Numbers => True,
-                 Line_Numbers => Line_Numbers,
-                 Non_Grammar  => Non_Grammar,
-                 Augmented    => Augmented,
-                 Expecting    => Expecting,
-                 Image_Action => Image_Action) &
+                 Node_Numbers           => Node_Numbers,
+                 Terminal_Node_Numbers  => Terminal_Node_Numbers,
+                 Line_Numbers           => Line_Numbers,
+                 Non_Grammar            => Non_Grammar,
+                 Augmented              => Augmented,
+                 Expecting              => Expecting,
+                 Image_Action           => Image_Action) &
               (if Ref.Node = Invalid_Node_Access or Element_Node.Label in Terminal_Label
                then ""
                elsif Element_Node.Label = Nonterm and Element_Node = Ref.Node and First_Terminal
                then ", " & Image
                  (Tree,
                   Tree.First_Terminal (Ref.Node),
-                  Terminal_Node_Numbers => True,
+                  Node_Numbers          => Node_Numbers,
+                  Terminal_Node_Numbers => Terminal_Node_Numbers,
                   Line_Numbers          => Line_Numbers,
                   Non_Grammar           => Non_Grammar,
                   Augmented             => Augmented,
@@ -4118,6 +4152,15 @@ package body WisiToken.Syntax_Trees is
    is begin
       return Node.Label = Virtual_Identifier;
    end Is_Virtual_Identifier;
+
+   function Is_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Boolean
+   is begin
+      if Item.Virtual then
+         return Is_Terminal (Item.ID, Tree.Lexer.Descriptor.all);
+      else
+         return Tree.Label (Item.Node) in Terminal_Label;
+      end if;
+   end Is_Terminal;
 
    function Last_Non_Grammar
      (Tree : in Syntax_Trees.Tree;
@@ -5740,16 +5783,20 @@ package body WisiToken.Syntax_Trees is
    function Prev_Non_Grammar
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
-     return Valid_Node_Access
+     return Node_Access
    is
       Result : Node_Access := Node;
    begin
-      if Node.ID = Tree.SOI.ID or Node = Tree.Root then
+      if Node = Tree.Root then
          return Tree.SOI;
+
+      elsif Node.ID = Tree.SOI.ID then
+         return Node;
       end if;
 
       loop
          Result := Prev_Terminal (Tree, Result);
+         exit when Result = Invalid_Node_Access;
          exit when Result.Non_Grammar.Length > 0;
       end loop;
       return Result;
@@ -7169,12 +7216,6 @@ package body WisiToken.Syntax_Trees is
       use Ada.Strings.Unbounded;
       Result : Unbounded_String := +"" & ASCII.LF;
    begin
-      if Node_Numbers then
-         Result := @ &
-           (if Node = Invalid_Node_Access
-            then "    "
-            else Decimal_Image (Node.Node_Index, Width => 4)) & ": "; --  Decimal_Image is unsigned
-      end if;
       for I in 1 .. Level loop
          Result := @ & "| ";
       end loop;
@@ -7316,6 +7357,8 @@ package body WisiToken.Syntax_Trees is
 
       Real_Root : Node_Access;
 
+      Last_Source_Terminal_Pos : Buffer_Pos := Buffer_Pos'First;
+
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
          Node : in     Valid_Node_Access)
@@ -7355,7 +7398,17 @@ package body WisiToken.Syntax_Trees is
             Put_Error ("parent null expecting set");
          end if;
 
-         if Node.Label = Nonterm then
+         case Node.Label is
+         when Source_Terminal =>
+            if Node.Byte_Region.First < Last_Source_Terminal_Pos then
+               Put_Error ("byte_region out of order");
+            end if;
+            Last_Source_Terminal_Pos := Node.Byte_Region.First;
+
+         when Virtual_Terminal | Virtual_Identifier =>
+            null;
+
+         when Nonterm =>
             for I in Node.Children'Range loop
                if Node.Children (I) = null then
                   Put_Error ("child" & I'Image & " deleted");
@@ -7380,7 +7433,7 @@ package body WisiToken.Syntax_Trees is
                   end;
                end if;
             end loop;
-         end if;
+         end case;
 
          if Validate_Node /= null then
             declare

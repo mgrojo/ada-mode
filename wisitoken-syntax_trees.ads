@@ -341,9 +341,10 @@ package WisiToken.Syntax_Trees is
    type Stream_Node_Parents is record
       Ref     : Stream_Node_Ref;
       Parents : Node_Stacks.Stack;
-      --  Parents stores the path from Ref.Element.Node to Ref.Node;
-      --  Parents.Peek is Ref.Node parent. Parents.Peek (Parents.Depth) is
-      --  Ref.Element.Node.
+      --  Parents stores the path from Ref.Element.Node to Ref.Node. Parents
+      --  is empty if Ref is rooted (ie Ref.Element.Node = Ref.Node). If not
+      --  rooted, Parents.Peek (1) is Ref.Node parent, and Parents.Peek
+      --  (Parents.Depth) is Ref.Element.Node.
    end record;
 
    Invalid_Stream_Node_Parents : constant Stream_Node_Parents;
@@ -416,6 +417,7 @@ package WisiToken.Syntax_Trees is
    Invalid_Recover_Token : constant Recover_Token := (Virtual => True, ID => Invalid_Token_ID, others => <>);
 
    function ID (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Token_ID;
+   function Is_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Boolean;
 
    function Byte_Region (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Buffer_Region;
 
@@ -523,10 +525,11 @@ package WisiToken.Syntax_Trees is
       Insert_Before_Token : in     Valid_Node_Access;
       Comment_Present     : in     Boolean;
       Blank_Line_Present  : in     Boolean)
-     return WisiToken.Insert_Location;
+     return WisiToken.Insert_Location
+   with Post'Class => (if not (Blank_Line_Present or Comment_Present) then Insert_After'Result /= Between);
    --  Return an insert location for Insert_Token. This can affect which
-   --  line it appears on, which affects indentation. Called from
-   --  Insert_Token.
+   --  line it appears on, which affects indentation. Should be called from
+   --  user-overridden Insert_Token.
    --
    --  If Comment_Present, there is a comment between Tree.Prev_Terminal
    --  (Insert_Before_Token) and Insert_Before_Token.
@@ -564,7 +567,7 @@ package WisiToken.Syntax_Trees is
    --  parse stream.
    --
    --  The default body appends Deleted_Token.Non_Grammar to
-   --  Prev_Token.Non_Grammar.
+   --  Deleted_Token.Parent.Non_Grammar.
    --
    --  Called from Execute_Actions for each deleted token, before
    --  Initialize_Actions.
@@ -894,6 +897,8 @@ package WisiToken.Syntax_Trees is
    procedure Delete_Input_Token
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID);
+   --  User must call Add_Deleted with Deleted_Ref => Tree.Current_Input
+   --  before calling Delete_Input_Token.
 
    function Stream_Next
      (Tree    : in Syntax_Trees.Tree;
@@ -1018,6 +1023,12 @@ package WisiToken.Syntax_Trees is
 
    type Token_Array_Const_Ref (Element : not null access constant WisiToken.Lexer.Token_Arrays.Vector) is private
    with Implicit_Dereference => Element;
+
+   function Has_Non_Grammar
+     (Tree     : in Syntax_Trees.Tree;
+      Terminal : in Valid_Node_Access)
+     return Boolean
+   with Pre => Tree.Label (Terminal) in Terminal_Label;
 
    function Non_Grammar_Var
      (Tree     : in Syntax_Trees.Tree;
@@ -1448,10 +1459,13 @@ package WisiToken.Syntax_Trees is
    function Prev_Non_Grammar
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
-     return Valid_Node_Access
+     return Node_Access
    with Pre => Tree.Parents_Set;
    --  Return first node before Node that has a non-empty Non_Grammar.
    --  If Node = Tree.Root or Tree.SOI, return Tree.SOI.
+   --
+   --  Returns Invalid_Node_Access only in broken trees; we tolerate this
+   --  here so we can use this in Error_Message.
 
    procedure Prev_Non_Grammar
      (Tree         : in     Syntax_Trees.Tree;
@@ -2120,12 +2134,17 @@ package WisiToken.Syntax_Trees is
       Deleted_Ref   : in     Stream_Node_Ref;
       Prev_Terminal : in out Stream_Node_Parents;
       User_Data     : in     User_Data_Access)
-   with Pre => Tree.Valid_Stream_Node (Prev_Terminal.Ref) and
-               Prev_Terminal.Ref.Stream /= Tree.Shared_Stream and
-               Tree.Label (Prev_Terminal.Ref.Node) = Source_Terminal;
+   with Pre =>
+     Tree.Valid_Stream_Node (Deleted_Ref) and
+     Tree.Label (Deleted_Ref.Node) in Terminal_Label and
+     Tree.Valid_Stream_Node (Prev_Terminal.Ref) and
+     Parents_Valid (Prev_Terminal) and
+     Prev_Terminal.Ref.Stream /= Tree.Shared_Stream and
+     Tree.Label (Prev_Terminal.Ref.Node) = Source_Terminal;
    --  Copy Prev_Terminal.Ref.Node, add Deleted_Node to
    --  Prev_Terminal.Ref.Node.Following_Deleted. Update Prev_Terminal to
-   --  point to copied node.
+   --  point to copied node. Move any non_grammar from Deleted_Node to
+   --  Prev_Terminal.Ref.Node.
    --
    --  Note that this does _not_ delete Deleted_Ref from the input; use
    --  Delete_Input_Token for that.
@@ -2266,16 +2285,13 @@ package WisiToken.Syntax_Trees is
    type Error_Predicate is access function (Cur : in Error_Data_Lists.Cursor) return Boolean;
 
    procedure Delete_Errors_In_Input
-     (Tree                   : in out Syntax_Trees.Tree;
-      Stream                 : in     Stream_ID;
-      Predicate              : in     Error_Predicate;
-      User_Data              : in     User_Data_Access;
-      Nonterm_First_Terminal : in     Boolean);
+     (Tree      : in out Syntax_Trees.Tree;
+      Stream    : in     Stream_ID;
+      Predicate : in     Error_Predicate;
+      User_Data : in     User_Data_Access);
    --  Delete errors in Current_Token where Predicate returns True.
    --
-   --  If Nonterm_First_Terminal and Current_Token is a nonterm, deletes
-   --  errors from First_Terminal (Current_Token) rather than
-   --  Current_Token.
+   --  If Current_Token is a nonterm, deletes errors the entire subtree.
 
    function Input_Has_Matching_Error
      (Tree   : in Syntax_Trees.Tree;
@@ -2478,14 +2494,16 @@ package WisiToken.Syntax_Trees is
      return String;
 
    function Image
-     (Tree           : in Syntax_Trees.Tree;
-      Ref            : in Stream_Node_Ref;
-      First_Terminal : in Boolean                   := False;
-      Line_Numbers   : in Boolean                   := False;
-      Non_Grammar    : in Boolean                   := False;
-      Augmented      : in Boolean                   := False;
-      Expecting      : in Boolean                   := False;
-      Image_Action   : in Syntax_Trees.Image_Action := null)
+     (Tree                  : in Syntax_Trees.Tree;
+      Ref                   : in Stream_Node_Ref;
+      First_Terminal        : in Boolean                   := False;
+      Node_Numbers          : in Boolean                   := False;
+      Terminal_Node_Numbers : in Boolean                   := False;
+      Line_Numbers          : in Boolean                   := False;
+      Non_Grammar           : in Boolean                   := False;
+      Augmented             : in Boolean                   := False;
+      Expecting             : in Boolean                   := False;
+      Image_Action          : in Syntax_Trees.Image_Action := null)
      return String;
    --  If First_Terminal, show First_Terminal of Ref.Node if Ref is rooted.
 
@@ -2641,6 +2659,9 @@ private
          --  Source_Terminal node. User Insert_Terminal can move it to a
          --  Virtual_Terminal node, editing the tree can copy it to a
          --  Virtual_Identifier node.
+         --
+         --  Not a pointer, because many nodes have non_grammar, and to
+         --  simplify using Tree.Non_Grammar_Var.
 
          Sequential_Index : Syntax_Trees.Base_Sequential_Index := Invalid_Sequential_Index;
 
@@ -2657,6 +2678,7 @@ private
             Following_Deleted : aliased Valid_Node_Access_Lists.List;
             --  Nodes that follow this terminal that were deleted by error
             --  recovery.
+            --  FIXME: change to ptr like error_list, for space saving?
 
          when Virtual_Terminal_Label =>
             Insert_Location : WisiToken.Insert_Location := Before_Next;

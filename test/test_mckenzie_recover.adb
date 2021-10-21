@@ -96,7 +96,7 @@ package body Test_McKenzie_Recover is
       if WisiToken.Trace_Tests > WisiToken.Outline then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("parse result:");
-         Parser.Tree.Print_Tree (Trace);
+         Parser.Tree.Print_Tree (Trace, Non_Grammar => True);
          Parser.Put_Errors;
       end if;
 
@@ -2391,6 +2391,32 @@ package body Test_McKenzie_Recover is
          Cost                    => 1);
    end Multiple_Errors_On_One_Token;
 
+   procedure Move_Non_Grammar (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  The error token 29:"else" is deleted, so any Non_Grammar on it must
+      --  be moved to 27:";" - done by the default Tree.Delete_Token.
+      Parse_Text
+        ("procedure A is B : Integer; else -- comment" & ASCII.LF &
+           --  |6  |10       |20       |30
+           "begin end A;"
+        );
+
+      Check ("line_region", Parser.Tree.Line_Region (Parser.Tree.Root), (1, 2));
+
+      Check_Recover
+        (Label                   => "1",
+         Errors_Length           => 1,
+         Error_Token_ID          => +ELSE_ID,
+         Error_Token_Byte_Region => (29, 32),
+         Ops                     => +(Delete, +ELSE_ID, 2),
+         Enqueue_Low             => 45,
+         Check_Low               => 12,
+         Cost                    => 4);
+
+   end Move_Non_Grammar;
+
    ----------
    --  Public subprograms
 
@@ -2457,6 +2483,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Check_Multiple_Delete_For_Insert'Access, "Check_Multiple_Delete_For_Insert");
       Register_Routine (T, Pushback_Nonterm_1'Access, "Pushback_Nonterm_1");
       Register_Routine (T, Multiple_Errors_On_One_Token'Access, "Multiple_Errors_On_One_Token");
+      Register_Routine (T, Move_Non_Grammar'Access, "Move_Non_Grammar");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

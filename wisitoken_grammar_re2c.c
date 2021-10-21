@@ -3339,7 +3339,7 @@ yy117:
 	YYSKIP();
 	YYDEBUG(118, YYPEEK());
 #line 244 "../wisitoken_grammar.re2c"
-	{*id = 2; lexer->line++; continue;}
+	{*id = 2; if (lexer->cursor[-1] == 0x0a || (lexer->cursor[-1] == 0x0d && lexer->cursor[-2] == 0x0a)) lexer->line++; continue;}
 #line 3344 "../wisitoken_grammar_re2c.c"
 yy119:
 	YYDEBUG(119, YYPEEK());

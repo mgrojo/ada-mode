@@ -84,6 +84,12 @@ generic
    with function Is_Comment (ID : in Token_ID) return Boolean;
    --  Implements WisiToken.Lexer.Is_Comment.
 
+   with function Find_Comment_End
+     (Source        : in WisiToken.Lexer.Source;
+      ID            : in Token_ID;
+      Comment_Start : in Buffer_Pos)
+     return Buffer_Pos;
+
    with function Line_Begin_Char_Pos
      (Source : in WisiToken.Lexer.Source;
       Token  : in Lexer.Token;
@@ -167,8 +173,15 @@ package WisiToken.Lexer.re2c is
    overriding
    function Is_Comment
      (Lexer : in Instance;
-      Token : in WisiToken.Lexer.Token)
+      ID    : in Token_ID)
      return Boolean;
+
+   overriding
+   function Find_Comment_End
+     (Lexer         : in Instance;
+      ID            : in Token_ID;
+      Comment_Start : in Buffer_Pos)
+     return Buffer_Pos;
 
    overriding
    function Line_Begin_Char_Pos

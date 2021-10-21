@@ -139,13 +139,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       New_State := Goto_For (Table, Config.Stack.Peek.State, Action.Production.LHS);
 
       if New_State = Unknown_State then
-         if Debug_Mode then
-            Put_Line
-              (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index), Label &
-                 ": Do_Reduce_1: BAD_CONFIG: unknown_State " & Config.Stack.Peek.State'Image & " " &
-                 Image (Action.Production.LHS, Descriptor));
-         end if;
-         raise Bad_Config;
+         --  Bug in LALR parser generator; use LR1
+         raise Invalid_Case;
       end if;
 
       Config.Stack.Push ((New_State, Nonterm));

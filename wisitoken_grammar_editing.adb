@@ -2999,12 +2999,13 @@ package body WisiToken_Grammar_Editing is
       end;
 
       Data.EBNF_Allowed := False;
-      Tree.Validate_Tree
-        (Data, Data.Error_Reported,
-         Root             => Tree.Root,
-         Validate_Node    => Validate_Node'Access,
-         Node_Index_Order => False);
-
+      if Debug_Mode then
+         Tree.Validate_Tree
+           (Data, Data.Error_Reported,
+            Root             => Tree.Root,
+            Validate_Node    => Validate_Node'Access,
+            Node_Index_Order => False);
+      end if;
       Data.Meta_Syntax := BNF_Syntax;
 
       if Trace_Generate_EBNF > Detail then

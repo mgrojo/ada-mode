@@ -301,7 +301,13 @@ begin
       Grammar_Parser.Parse (Log_File);
    exception
    when WisiToken.Syntax_Error =>
-      Grammar_Parser.Put_Errors;
+      if Grammar_Parser.Tree.Parents_Set then
+         Grammar_Parser.Put_Errors;
+      elsif Grammar_Parser.Tree.Stream_Count >= 2 then
+         Grammar_Parser.Put_Errors (Grammar_Parser.Tree.Last_Parse_Stream);
+      else
+         Grammar_Parser.Put_Errors (Grammar_Parser.Tree.Shared_Stream);
+      end if;
       raise;
    when E : WisiToken.Parse_Error =>
       WisiToken.Generate.Put_Error (Ada.Exceptions.Exception_Message (E));
