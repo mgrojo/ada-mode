@@ -31,7 +31,6 @@ with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with SAL.Generic_Decimal_Image;
-with WisiToken.Lexer;
 with WisiToken.Parse.LR;
 with WisiToken.Syntax_Trees;
 package Wisi is
@@ -156,7 +155,13 @@ package Wisi is
    procedure Initialize_Actions
      (Data : in out Parse_Data_Type;
       Tree : in     WisiToken.Syntax_Trees.Tree'Class);
-   --  FIXME: called when? delete?
+
+   overriding
+   procedure Delete_Token
+     (User_Data     : in out Parse_Data_Type;
+      Tree          : in     WisiToken.Syntax_Trees.Tree'Class;
+      Trace         : in out WisiToken.Trace'Class;
+      Deleted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access);
 
    overriding
    procedure Insert_Token
@@ -290,6 +295,11 @@ package Wisi is
    function "&" (Left, Right : in Integer) return Indent_Arg_Arrays.Vector;
 
    type Delta_Type (<>) is private;
+
+   type Indenting_Comment_Label is (None, Leading, Trailing);
+   --  None    : indenting code
+   --  Leading : comment indent from following token
+   --  Trailing: comment indent from preceding token
 
    type Language_Indent_Function is access function
      (Data              : in out Parse_Data_Type'Class;
@@ -433,14 +443,11 @@ package Wisi is
    --  Ada.Text_IO.Current_Output, as encoded responses as defined in [3]
    --  wisi-process-parse--execute.
 
-   procedure Put (Lexer_Errors : in WisiToken.Lexer.Error_Lists.List);
    procedure Put
      (Data         : in Parse_Data_Type;
-      Lexer_Errors : in WisiToken.Lexer.Error_Lists.List;
-      Parse_Errors : in WisiToken.Parse.Parse_Error_Lists.List;
       Recover      : in WisiToken.Parse.LR.Recover_Op_Nodes_Arrays.Vector;
       Tree         : in WisiToken.Syntax_Trees.Tree);
-   --  Put Lexer_Errors, Parse_Errors, Recover to Ada.Text_IO.Current_Output,
+   --  Put errors in Tree, and Recover to Ada.Text_IO.Current_Output,
    --  as encoded error responses as defined in [3]
    --  wisi-process-parse--execute.
    --  FIXME: change parse_errors to store recover_op_nodes_Array, delete Recover here.
@@ -539,7 +546,9 @@ private
 
    type Indent_Type (Label : Indent_Label := Not_Set) is record
       --  Indent values may be negative while indents are being computed.
+
       Controlling_Token_Line : WisiToken.Base_Line_Number_Type := WisiToken.Invalid_Line_Number;
+      --  See [2] Indent actions for description of controlling token.
 
       case Label is
       when Not_Set =>
@@ -701,28 +710,34 @@ private
    procedure Indent_Token_1
      (Data              : in out Parse_Data_Type;
       Tree              : in     WisiToken.Syntax_Trees.Tree;
-      Indenting_Token   : in     WisiToken.Syntax_Trees.Valid_Node_Access;
+      Line_Region       : in     WisiToken.Line_Region;
       Delta_Indent      : in     Delta_Type;
-      Indenting_Comment : in     Boolean);
-   --  Apply Delta_Indent to Data.Indents for Indenting_Token.
+      Indenting_Comment : in     Indenting_Comment_Label;
+      Controlling_Delta : in     Delta_Type := Null_Delta);
+   --  Apply Delta_Indent to lines in Line_Region.
    --
-   --  Indenting must be Compute_Indenting (Indenting_Token).
+   --  Controlling_Delta should be Null_Delta if Indenting_Comment is
+   --  None; it should be any existing indent for
+   --  Controlling_Token.Line_Region.[First | Last] if Indenting_Comment
+   --  is Leading | Trailing. This allows adding previously computed
+   --  indents for the token controlling a comment line to the comment
+   --  line indent.
    --
    --  Sets Data.Indents, so caller may not be in a renames for a
    --  Data.Indents element.
 
    --  Visible for language-specific children. Must match list in
    --  [3] wisi-process-parse--execute.
-   Navigate_Cache_Code  : constant String := "1";
-   Face_Property_Code   : constant String := "2";
-   Indent_Code          : constant String := "3";
-   Lexer_Error_Code     : constant String := "4";
-   Parser_Error_Code    : constant String := "5";
-   Check_Error_Code     : constant String := "6";
-   Recover_Code         : constant String := "7 ";
-   End_Code             : constant String := "8";
-   Name_Property_Code   : constant String := "9";
-   Edit_Action_Code     : constant String := "10";
-   Language_Action_Code : constant String := "11 ";
-   Query_Tree_Code      : constant String := "12";
+   Navigate_Cache_Code        : constant String := "1";
+   Face_Property_Code         : constant String := "2";
+   Indent_Code                : constant String := "3";
+   Lexer_Error_Code           : constant String := "4";
+   Parser_Error_Code          : constant String := "5";
+   In_Parse_Action_Error_Code : constant String := "6";
+   Recover_Code               : constant String := "7 ";
+   End_Code                   : constant String := "8";
+   Name_Property_Code         : constant String := "9";
+   Edit_Action_Code           : constant String := "10";
+   Language_Action_Code       : constant String := "11 ";
+   Query_Tree_Code            : constant String := "12";
 end Wisi;

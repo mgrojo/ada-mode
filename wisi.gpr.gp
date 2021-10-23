@@ -37,11 +37,12 @@ project Wisi is
       for Exec_Dir use ".";
    end case;
 
-#if ELPA="yes"
-   for Languages use ("Ada", "C"); -- C needed for wisitoken-bnf-generate; wisitoken_grammar_re2c.c
-#else
-   for Languages use ("Ada");
+   for Languages use
+   ("Ada"
+#if ELPA="yes" 
+   ,"C" -- C needed for wisitoken_grammar_re2c.c
 #end if;
+   );
 
    package Compiler is
 
@@ -51,16 +52,18 @@ project Wisi is
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Style_Checks &
            Standard_Common.Compiler.Debug_Switches;
-
+#if ELPA="yes" 
          for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C;
+#end if;
 
       when "Normal" =>
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Style_Checks &
            Standard_Common.Compiler.Release_Switches;
-
+#if ELPA="yes" 
          for Default_Switches ("C") use Standard_Common.Compiler.Release_Switches_C;
+#end if;
       end case;
 
    end Compiler;

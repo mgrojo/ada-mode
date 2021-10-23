@@ -2,7 +2,7 @@
 @settitle Wisi
 
 @copying
-Copyright @copyright{} 1999 - 2020  Free Software Foundation, Inc.
+Copyright @copyright{} 1999 - 2021  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -313,10 +313,10 @@ indent has been computed for all lines.
 
 Indent actions specify a delta indent for each token in a
 production. If the token is a nonterminal, it can contain multiple
-lines of text; the delta indent applies to the lines whose first
-tokens are contained by the nonterminal.
+lines of text; the delta indent applies to the lines where the first
+token on the line is contained by the nonterminal.
 
-When a delta indent applied to the indent for a line, it is either
+When a delta indent is applied to the indent for a line, it is either
 added or ignored. We call the token whose delta indent is being
 applied the ``controlling'' token. The indent for each line has a
 field storing the line number of the last controlling token that added
@@ -331,8 +331,17 @@ Indents are often given as a function call; the arguments to the
 function can be other function calls, or integer
 expressions. @code{wisitoken-bnf-generate} supports only simple
 integer expressions; those using integers, integer-valued variables, +
-(plus), - (minus), and * (multiply). All expressions are elisp forms;
-``ada-indent plus 1'' is @code{(+ ada-indent 1)}.
+(plus), - (minus), and * (multiply). All expressions are lisp forms;
+``ada-indent plus 1'' is written as @code{(+ ada-indent 1)}.
+
+Indent for comments are computed in the same way, except that the
+delta that applies to a comment that follows a token is given by the
+indent action entry for the next token. If a token is the last in a
+production, the comment indent is @code{nil}. These rules often give
+the wrong indent for a comment, so they can be overridden by specifing
+a comment indent for a token using @code{[CODE-INDENT
+COMMENT-INDENT]}; see below. Indent functions can also modify how
+comments are indented.
 
 @table @code
 @item wisi-indent-action [DELTA ...]
@@ -363,7 +372,7 @@ visible run-time Ada integer variable; this is checked at Ada compile
 time (variables declared in a separate package can be made visible by
 placing a with clause in a @code{%code} declaration in the grammar
 file). The elisp variable value is copied to the Ada variable value at
-the start of a parse.
+the start of each indent compute session.
 
 For example, in ada-mode two indent variable names are @code{ada-indent}
 and @code{ada-indent-broken}, giving the basic ident, and the
@@ -377,12 +386,16 @@ A function that computes a delta indent. See @ref{Indent functions}.
 A vector giving separate indents for code and comments.
 
 Normally, the indent for trailing comments (on lines with no code,
-after all code in the token) is given by the indent of the following
-token in the production; this overrides that. When the current token
-is the last, and a separate comment indent is not specified, the
-comment indent is nil.
+after all code in the token) is given by the indent of the first line
+of code in the following token in the production; this overrides that
+and the comment indent is given by COMMENT-INDENT applied to the
+current token.
 
-Comment lines that are not trailing are indented by CODE-INDENT.
+When the current token is the last, and a separate comment indent is
+not specified, the comment indent is nil.
+
+Comment lines that are not trailing (that is, they are between tokens
+in the nonterminal being indented) are indented by CODE-INDENT.
 
 @item (label . INDENT)
 Specifies that the indent applies to the token with the same label. If
@@ -412,26 +425,30 @@ Sets the delta indent for the current token to be DELTA, and ignores
 the controlling token line when adding delta indents. This is usually
 needed in block statements; @ref{Indent example} @code{if_statement}.
 
-DELTA can be any ident expression, except a variant of
+DELTA can be any indent expression, except a variant of
 @code{wisi-hanging}.
 
 @item wisi-anchored ANCHOR OFFSET
 Sets the delta indent for the current token to be OFFSET (an integer
-expression) from the start of ANCHOR (a token index). Subsequent delta
-indents are ignored; the current token is ``anchored to'' ANCHOR.
+expression) from the start of ANCHOR (a token index). Subsequent
+higher level delta indents are ignored; the current token is
+``anchored to'' ANCHOR.
 
 A trailing comment following the current token is indented the same as
-the last line of ANCHOR.
+the code in the token.
 
 @item wisi-anchored% ANCHOR OFFSET
 Sets the delta indent for the current token to be OFFSET (an integer
 expression) from a containing left parenthesis in the line containing
 ANCHOR (a token index), or the start of the line containing ANCHOR if
 there is no such paren; the current token is ``anchored to'' the paren
-or the start of the line. Subsequent delta indents are ignored.
+or the start of the line. Subsequent higher level delta indents are
+ignored.
 
 @item wisi-hanging DELTA-1 DELTA-2
-Use DELTA-1 for the first line, DELTA-2 for the rest.
+Use DELTA-1 for the first line in the current token, DELTA-2 for the
+rest. Trailing comments use DELTA-1 if there is only one code line,
+DELTA-2 if there is more than one.
 
 DELTA-1 and DELTA-2 can be any ident expression, except a variant of
 @code{wisi-hanging}.
