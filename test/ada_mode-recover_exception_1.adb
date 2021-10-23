@@ -20,4 +20,7 @@ package body Ada_Mode.Recover_Exception_1 is
    end All_Frames;
 
 end Ada_Mode.Recover_Exception_1;
---  end of file
+-- Local Variables:
+-- ada-end-name-optional: nil
+-- wisi-mckenzie-task-count: 1
+-- End:

@@ -27,9 +27,9 @@ package body Ada_Mode.Recover_02 is
       Config_Store.Get
         (Parser_Label
 
-         -- Copied from above, intending to move the function call here.
-         -- detailed recovery is not important; just verify there is no crash,
-         -- and the indent is reasonable.
+        -- Copied from above, intending to move the function call here.
+        -- detailed recovery is not important; just verify there is no crash,
+        -- and the indent is reasonable.
         Current_Input : constant Token_ID := Get_Current_Input (Shared_Lookahead, Config);
 
 if Check (Data, Config, Current_Input) then

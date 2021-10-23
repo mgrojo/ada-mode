@@ -1,5 +1,6 @@
 -- Used to get "error in resume", due to current_shared_token being a
 -- nonterm. Now fixed.
+--EMACS_SKIP_UNLESS: wisi-incremental-parse-enable
 
 procedure Ada_Mode.Incremental_Recover_01
 is

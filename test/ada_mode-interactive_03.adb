@@ -5,7 +5,7 @@ procedure Ada_Mode.Interactive_03
 is
 
    --EMACSCMD:(progn (end-of-line 6)(kill-line 4)(newline-and-indent))
-   --EMACSCMD:(progn (forward-line 5)(execute-kbd-macro "is begin\nreturn 1.0;\nend Function_Access_1;\n")(current-indentation))
+   --EMACSCMD:(progn (forward-line 5)(execute-kbd-macro "is begin\rreturn 1.0;\rend Function_Access_1;\r")(current-indentation))
    --EMACSRESULT:3
    function Function_Access_1
      (A_Param : in Float)
@@ -23,7 +23,7 @@ begin
 
    -- Insert text at end of buffer; no errors.
    --EMACSCMD:(progn (forward-line 3)(kill-line 4)(wisi-indent-statement))
-   --EMACSCMD:(progn (forward-line 2)(execute-kbd-macro "procedure Foo is begin\nnull;\nend Foo;\n")(wisi-indent-statement))
+   --EMACSCMD:(progn (forward-line 2)(execute-kbd-macro "procedure Foo is begin\rnull;\rend Foo;\r")(wisi-indent-statement))
 end Ada_Mode.Interactive_03;
 procedure Foo is begin
    null;

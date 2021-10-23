@@ -6,7 +6,7 @@
 -- and the newline is after 0:';', so outside the parameter list.
 --
 package Ada_Mode.Recover_41 is
-   --EMACSCMD:(progn (end-of-line 5) (execute-kbd-macro "\n")(current-column))
+   --EMACSCMD:(progn (end-of-line 5) (execute-kbd-macro "\r")(current-column))
    --EMACSRESULT: 3
    function Sled_Rental_Valid
      (Line : in String;

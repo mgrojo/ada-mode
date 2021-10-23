@@ -12,14 +12,15 @@ is
    -- Missing 'procedure Process_Node ('.
    Node : in     Valid_Node_Index)
    is begin
-            if Tree.Max_Terminal_Index (Node) = Modified_Token_Index then
+      if Tree.Max_Terminal_Index (Node) = Modified_Token_Index then
       -- Missing 'end if;'
    end Process_Node;
 
-   begin
+begin
 
 end Update_Containing_Nonterms;
 -- Local Variables:
+-- ada-end-name-optional: nil
 -- wisi-mckenzie-task-count: 1
 -- wisi-mckenzie-enqueue-limit: 280000
 -- End:

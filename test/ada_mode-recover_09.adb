@@ -34,14 +34,14 @@ procedure Ada_Mode.Recover_09 is
             Include_Children => True)); -- missing right paren
 
       --  Next line should be in Indent_Line("...");
-      end if;
+   end if;
 
-      Indent_Line ("   return Parser.Derivs (" & Result_Id & ")(Pos);");
+   Indent_Line ("   return Parser.Derivs (" & Result_Id & ")(Pos);");
 
    end Generate_Parser_Body;
 
-begin
-   New_Line;
+   begin
+      New_Line;
 end Ada_Mode.Recover_09;
 -- Local Variables:
 -- ada-end-name-optional: nil

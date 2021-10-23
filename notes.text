@@ -4,7 +4,7 @@ build/Makefile
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
-o.e.a.stephe-2 (with o.w.s_1/o.s_l.sal.s_1): work; incremental parse
+o.e.a.stephe-2 (with o.s_l.sal.s_1, o.w.s_1, o.e.w.s_1): work; incremental parse
 o.e.a.stephe-3 (?): emacs module parser (very old)
 o.e.a.stephe-4 (?): eglot/ada_language_server
 o.e.a.stephe-5 (?): libadalang backend
@@ -22,20 +22,22 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1):
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
    ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
-   ("../org.emacs.wisi"        . "../org.emacs.ada-mode.stephe-1")
+   ("../org.emacs.wisi"        . "../org.emacs.wisi.stephe-1")
    ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-2")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-6")))
+  (xgit . "/Projects/org.wisitoken.stephe-1")
+  (xgit . "/Projects/org.emacs.wisi.stephe-1")
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
-   ("../org.emacs.ada-mode.stephe-6"   . "../org.emacs.ada-mode")))
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
+   ("../org.emacs.wisi.stephe-1"       . "../org.emacs.wisi")
+   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
@@ -85,39 +87,31 @@ still get persistent error marks for new comment
         => error on 'begin', because matching 'end;' is not restored
         in tree-sitter, errors are nodes in tree; inc parse must delete ones that are no longer present
 
-    new node label Error_Deleted; pseudo-child of nonterm containing preceding terminal
-        on o.e.a.s-2, o.e.w.s-1
-        separate field; not in child_count
-        persistent and transient list is in tree, don't need to restore/delete in edit_tree, don't need current_list.
-        Edit_Tree will delete error nodes in edit regions via breakdown.
-        same for deleted nodes!
-        lexer_errors: discovered by next_error_token or Edit_Tree scan
-            have either a terminal or leading_non_grammar to add it to
-            => lexer_Error field in source_token
+review FIXMEs
+
+rewrite ada-which-function to use incremental
+    test/ada_mode-nominal.ads
+        don't set ada-which-func-parse-size if incremental
 
 incremental parse does full reparse every time if FAIL_ENQUEUE_LIMIT
     automatically disable face?
 
 wisi-prj-delete needs to kill gpr-query buffers for local process-env
 
-add test of restore deleted node that is before SOI?
-    insert "-" at EOB, parse, insert second "-"
+add Ada code to decrement byte_pos by one char, use in emacs_common, run_common FIXMEs
+    just reference wikipedia
 
-Extra_end_loop_2 - insert missing loop earlier in file, ask for indent. Case for restore deleted nodes
+move wisi.change .. edit_source to wisi.parse_context
+
+move Trace from Parser to Lexer
+    use in Find_Next
+    no separate param in tree operations
+
+ada_mode_wisi_lr1_parse --version
+    would be helpful
 
 wisi-reset-parser only reset current file = delete parse_context
 
-
-bad indent:
-    copy/paste syntax_trees.ads 'function Image_node ...' from before 'private' to end of file
-    => syntax error, bad indent
-       C-c TAB does not fix
-       C-c S-TAB reports "containing not set"
-           wisi-parse-buffer navigate does not fix
-           wisi-reset-parser does not help
-           wisi-kill-parser does
-
-    happened again
 
 sometimes when open a new Ada file with incremental mode enabled, get:
     File local-variables error: (error parse abandoned; parser busy)
@@ -125,41 +119,8 @@ sometimes when open a new Ada file with incremental mode enabled, get:
     font-lock should not signal that error if wisi-debug=0; just try again later
         return nil or something?
 
-doc gnat community 2021 in ada-mode.texi
-    document gnatcoll patch
-    doc how to use elpa HEAD
-
-fontify gnatprep lines
-    need fontify:
-        so don't misspell "end if" as "endif"
-        so they are not capitalized!
-
-    grammar says they are comments, so it doesn't fontify them
-    ada-mode.el, gpr-mode.el syntax doesn't fontify them
-    what did prev ada-mode do?
-
-    use case for contained language parser!
-        from Yuan Fu:
-            Tree-sitter lets you set ranges in which the parser works in. That’s
-            how they support multi-language files like html+javascript+css.
-
-fix indent:
-   type Node
-     (Label       : Node_Label;
-      Child_Count : SAL.Base_Peek_Type)
-      --  Descriminants have no default because allocated nodes are
-      --  constrained anyway (ARM 4.8 6/3).
-   is record
-   comment should align with 'type', 'is' as in subprogram body
-
-multi-major-mode
-    separate parse_context for each sub-mode region
-        => need a region # in addition to file-name
-    initial parse needs start text bound
-
 gpr-query process symbols in background elisp thread?
     or just process as it arrives?
-    o.e.a.s-2
 
 start parser process when project created, not when first buffer using it is visited
     avoid noticeable delay
@@ -170,10 +131,38 @@ don't wait for initial parse to complete
         or track changes, translate positions, ignore results in newly changed regions
     ok to override read-only if due to full parse
 
-test/ada_mode-recover_partial_02_lr1.adb
-    recover finds too many solutions (see benchmark data)
+respond to https://rust-analyzer.github.io/blog/2020/09/16/challeging-LR-parsing.html
+   https://github.com/tree-sitter/tree-sitter-rust
+
+incremental parse rationale
+    have to compute absolute buffer_pos for tokens involved in post-parse action at some point
+        either shift all during edit_tree, or sum previous during action
+        buffer_pos used for some other things; review
+
+    store length in each token
+        plus trailing whitespace
+        to compute byte_region in post-parse, sum all previous nodes, and cache it
+            also cache in nonterms
+
+    shift approach avoids caching, but we already cache parent links
+    cache approach avoids computing nodes after region required for post-parse action => some gain in compute time
+
+test/ada_mode-interactive_2.adb
+    virtual 'null;' inserted on blank line,
+        but wisi-repair-error puts it on the next line
+        position in error message is wrong
+            because set before Insert_Token changed it?
+
+change set_parents to be incremental
+    benchmark current
+    descend tree; if find a parent link, no need to descend that branch
+    insert_token also needs to set parents?
+
+build/test.log
+
 
 delete elpa branches, push o.e.*
+    so users can test elpa-devel packages
     change versions to 0 to prevent release?
         how does elpa-admin check for that?
             must store last-release-version somewhere; in name of tarball?
@@ -193,7 +182,20 @@ push to elpa
     doc how to use elpa HEAD
         except it's at version 0!?
 
+ after incremental
 review this file!
+
+set comment-auto-fill-only-comments
+
+try adding wisi-refresh-prj-cache to compilation-finish-functions.
+
+send bug report on wisitoken keeps binding wisitoken-bnf-generate
+
+turn off undo in *gpr_query-* buffers
+
+define ada-prj-default in ada-mode.texi project files section
+
+mention wisi-size-threshold in wisi & ada-mode user guides
 
 implement wisi parser for java using tree-sitter grammar
     find a large java file, compare command-line parse times
@@ -202,62 +204,39 @@ implement wisi parser for java using tree-sitter grammar
 
     also try https://codeberg.org/FelipeLema/tree-sitter-indent.el
 
-respond to https://rust-analyzer.github.io/blog/2020/09/16/challeging-LR-parsing.html
-   https://github.com/tree-sitter/tree-sitter-rust
+multi-major-mode
+    separate parse_context for each sub-mode region
+        => need a region # in addition to file-name
+    initial parse needs start text bound
 
-incremental parse rationale
-    have to compute absolute buffer_pos, line_number for tokens involved in post-parse action at some point
-        either shift all during edit_tree, or sum previous during action
+test/ada_mode-recover_partial_02_lr1.adb
+    recover finds too many solutions (see benchmark data)
 
-    store length in each token
-        plus trailing whitespace
-        to compute byte_region in post-parse, sum all previous nodes, and cache it
-            also cache in nonterms?
+c:/Eurocontrol/matreshka-internals-unicode-ucd-colls.ads
+    84,168 lines, 3,418,945 chars
+    full parse => storage_error
+        probably traversing the tree using recursion
 
-    shift approach avoids caching, but we already cache parent links
-    cache approach avoids computing nodes after region required for post-parse action => some gain in compute time
+    partial parse doesn't help, because of large aggregates?
+        first aggregate is 30,000 lines, => storage_error
+        need limit on partial_parse size?
 
+Line_char take start_at or return array for line_region
 
-move Trace from Parser to Lexer
-    use in Find_Next
-    no separate param in tree operations
+Store indent in buffer-local array, not text property?
+    Property moves with insert, but text properties are slow
 
+gpr_query failing because sal/build/devel_obj does not exist
+    when are the obj directories created?
+    apparently by something that also emitted that error; wisi-referesh-prj-cache succeeds on second try.
 
+don't add "previous parse failed ..." and other messages to *wisi syntax errors*
 
-new test case; insert comment line between two comment lines
+test/ada_mode-nested_parens.adb
+    number of parsers required grows with paren nesting level
 
-consider comments in recover?
-    in edit_tree, don't delete virtuals with comments before edit point
-    in recover, don't consider delete for tokens with comments
-
-add test case for extra 'end;' that is later matched by user inserted 'begin;'
-    'end;' deleted by error recovery in initial parse; correctly restored in final parse?
-    mckenzie_recover use parser.deleted_nodes?
-    start with ada_mode-extra_end_loop.adb
-
-move wisi.change .. edit_source to wisi_parse_context
-
-
-add Ada code to decrement byte_pos by one char, use in emacs_common, run_common FIXMEs
-    just reference wikipedia
-
-rewrite ada-which-function to use incremental
-    test/ada_mode-nominal.ads
-        don't set ada-which-func-parse-size if incremental
-
-
-test/ada_mode-interactive_2.adb
-    virtual 'null;' inserted on blank line,
-        but fix-error puts it on the next line
-        position in error message is wrong
-            because set before Insert_Token changed it?
-
-change set_parents to be incremental
-    descend tree; if find a parent link, no need to descend that branch
-    insert_token also needs to set parents?
-
-build/test.log
-
+wisi package should contain wisi.gpr, so modes that use it don't need to build it
+    only gnatprep variable is ELPA
 
  after incremental
 indent bug:
@@ -282,8 +261,9 @@ test/mixed_unix_dos_line_ends.adb
       coding conversion in send-string strips stray ^M
         only in emacs 28?
         change to utf-8-emacs; still strips.
-        change to binary!
+        change to binary!?
             not in elisp manual list of coding conventions?
+            doesn't work
 
         write bug report
         change to use null-terminated string?
@@ -332,6 +312,13 @@ incremental error recover requires higher enqueue limit
         need separate minimal_complete queue?
 
     test/ada_mode-recover_partial_07.adb
+
+    test/ada_mode-recover_24.adb
+        Fast_Forward not found in config stack, because previous error correction completed too much.
+        (delete 'loop') is not one of the language_fix solutions
+        it is found by explore, but at cost 4 it is never dequeued.
+            separate heap for minimal_complete and language_fixes
+
 
 indent (point)(point) should work for indent-line
 
@@ -1007,15 +994,15 @@ wisitoken keeps binding wisitoken-bnf-generate, thus regenerating ada_annex_p* f
 in ada_annex_p.wy:
 %partial_recursion ;; FIXME: faster compile time while debugging
 
-one ELISP="(setq-default wisi-incremental-parse-enable t save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
+one ELISP="(setq-default save-parser-log \"../debug-2.log\" save-edited-text \"../edited\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
 
-RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" debug-on-error t)" ada_mode-interactive_2.adb.debug
+RUNTEST=run-indent-test-lalr-partial-process-gpr_query.el ELISP="(setq-default wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" debug-on-error t)" ada_mode-interactive_2.adb.debug
 
-test-ada-lalr-process-gpr_query ELISP="(setq-default wisi-incremental-parse-enable t wisi-process-time-out 10.0)"
+test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
 
-two RUN_ARGS="command_file debug.cmd > debug.log"
+two RUN_ARGS="command_file debug.cmd &> debug.log"
 
-    *.debug RUNTEST=run-indent-test-lalr-process-gpr_query.el ELISP="(setq-default wisi-incremental-parse-enable t wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
+*.debug RUNTEST=run-indent-test-lalr-partial-process-gpr_query.el ELISP="(setq-default wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
 
 in debug.cmd:
 mckenzie_options task_count=1
@@ -1531,6 +1518,9 @@ commit savannah
     C-c C-c
 
     takes ~ 10 min for http://www.nongnu.org/ada-mode/ to reflect cvs commit
+
+List in FSF/UNESCO free software directory?
+    https://directory.fsf.org/
 
 publish on Alire?
     https://alire.ada.dev/

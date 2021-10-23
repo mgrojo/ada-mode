@@ -23,3 +23,6 @@ package body Ada_Mode.Recover_10 is
       --  missing several 'end ...'
    end Check_Rhs_Order;
 end Ada_Mode.Recover_10;
+-- Local Variables:
+-- ada-end-name-optional: nil
+-- End:

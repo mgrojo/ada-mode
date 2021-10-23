@@ -27,6 +27,7 @@ project Ada_Mode_Compile is
       "ada_mode-interactive_02.adb",
       "ada_mode-interactive_03.adb",
       "ada_mode-interactive_05.adb",
+      "ada_mode-interactive_06.adb",
 
       -- These have incomplete code for various reasons
       "ada_mode-incremental_01.adb",
@@ -105,7 +106,6 @@ project Ada_Mode_Compile is
       "ada_mode-recover_partial_02_lr1.adb",
       "ada_mode-recover_partial_04_lr1.adb",
       "ada_mode-recover_partial_06.adb",
-      "ada_mode-recover_partial_07.adb",
       "ada_mode-recover_partial_08.adb",
       "ada_mode-recover_partial_09.adb",
       "ada_mode-recover_partial_10.adb",

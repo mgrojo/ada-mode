@@ -128,7 +128,7 @@ tick : TICK_1 | TICK_2 ;
 %non_grammar <comment-new-line> COMMENT "--"
 
 ;; gnatprep preprocessor lines
-%non_grammar <comment-new-line> GNAT_PREP %[ ("#if"|"#elsif"|"#else"|"#end") ]%
+%non_grammar <comment-new-line> GNAT_PREP %[ ("#if"|"#elsif"|"#else"|"#end if") ]%
 
 ;; skeleton placeholders. Also terminated by newline, EOI to avoid
 ;; accidently commenting out multiple lines.
@@ -236,8 +236,10 @@ tick : TICK_1 | TICK_2 ;
 %mckenzie_cost_undo_reduce sequence_of_statements 0
 %mckenzie_cost_undo_reduce declarative_part 0
 
-;; Missing or extra closing paren are common; missing handled by
-;; Minimal_Complete.
+;; Missing or extra closing paren and comma are common; missing
+;; handled by Minimal_Complete.
+%mckenzie_cost_delete COMMA 1
+%mckenzie_cost_insert COMMA 3
 %mckenzie_cost_delete RIGHT_PAREN 1
 %mckenzie_cost_insert RIGHT_PAREN 3
 
@@ -1401,8 +1403,8 @@ chunk_specification
   ;
 
 loop_parameter_specification
-  ;;  This is almost a subset of iterator_specification;
-  ;;  discrete_subtype_definition is a superset of 'name'; could merge
+  ;;  This is very similar to iterator_specification;
+  ;;  discrete_subtype_definition is a superset of 'name'. Could merge
   ;;  to reduce conflicts.
   : IDENTIFIER 'in' ['reverse'] discrete_subtype_definition [iterator_filter]
   ;
@@ -1670,9 +1672,9 @@ actual_parameter_part
 assoc_expression ;;:new; split out from *_association for indent
   : '=>' expression
     ;; Using anchor is the only way to ignore subsequent indents
-    %((wisi-indent-action [nil (wisi-hanging
+    %((wisi-indent-action [nil (wisi-hanging%
                                 (wisi-anchored% 1 ada-indent-broken)
-                                (wisi-anchored% 1 ada-indent-broken))]))%
+                                (wisi-anchored% 1 (* 2 ada-indent-broken)))]))%
   | '=>' '<>' ;;:new from iterator_parameter_association to reduce conflicts
   ;
 

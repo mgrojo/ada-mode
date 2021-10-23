@@ -27,3 +27,6 @@ package body Ada_Mode.Recover_26 is
    end Create_Tree_Node;
 
 end Ada_Mode.Recover_26;
+-- Local Variables:
+-- ada-end-name-optional: nil
+-- End:
