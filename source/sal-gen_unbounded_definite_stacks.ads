@@ -112,6 +112,18 @@ package SAL.Gen_Unbounded_Definite_Stacks is
    --
    --  Useful when creating a stack from pre-existing data.
 
+   function Invert (Stack : in Sguds.Stack) return Sguds.Stack;
+   --  Return a new stack with the same elements as Stack, in inverted order.
+
+   procedure Copy_Slice
+     (Source             : in     Stack;
+      Target             : in out Stack;
+      Source_Start_Depth : in     Peek_Type;
+      Target_Start_Depth : in     Peek_Type;
+      Count              : in     Peek_Type);
+   --  Copy elements Source.Peek (Source_Start_Depth) .. Source.Peek
+   --  (Source_Start_Depth - Count + 1) to Target.
+
    type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
      Implicit_Dereference => Element;
 
