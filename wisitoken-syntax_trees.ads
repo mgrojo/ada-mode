@@ -417,7 +417,8 @@ package WisiToken.Syntax_Trees is
    Invalid_Recover_Token : constant Recover_Token := (Virtual => True, ID => Invalid_Token_ID, others => <>);
 
    function ID (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Token_ID;
-   function Is_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Boolean;
+   function Element_Is_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Boolean;
+   --  Virtual ID or Element_Node.
 
    function Byte_Region (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Buffer_Region;
 
@@ -894,11 +895,11 @@ package WisiToken.Syntax_Trees is
    with Post => Correct_Stream_Node (Tree, Shared_Token'Result);
    --  Stream.Shared_Link.
 
-   procedure Delete_Input_Token
+   procedure Delete_Current_Token
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID);
    --  User must call Add_Deleted with Deleted_Ref => Tree.Current_Input
-   --  before calling Delete_Input_Token.
+   --  before calling Delete_Current_Token.
 
    function Stream_Next
      (Tree    : in Syntax_Trees.Tree;
@@ -2147,7 +2148,7 @@ package WisiToken.Syntax_Trees is
    --  Prev_Terminal.Ref.Node.
    --
    --  Note that this does _not_ delete Deleted_Ref from the input; use
-   --  Delete_Input_Token for that.
+   --  Delete_Current_Token for that.
 
    function Has_Following_Deleted
      (Tree : in out Syntax_Trees.Tree;
@@ -2616,6 +2617,7 @@ package WisiToken.Syntax_Trees is
    procedure Print_Streams
      (Tree        : in     Syntax_Trees.Tree;
       Trace       : in out WisiToken.Trace'Class;
+      Children    : in     Boolean := False;
       Non_Grammar : in     Boolean := False);
 
    function Tree_Size_Image (Tree : in Syntax_Trees.Tree) return String;

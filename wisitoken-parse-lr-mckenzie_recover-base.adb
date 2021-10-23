@@ -177,6 +177,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                           (Tree.First_Terminal (Tree.Current_Token (Parser_State.Stream)).Node);
                      begin
                         if abs (Cur - Min) > 4 then --  FIXME: '4' should be mckenzie param zombie_limit
+                           Trace.Put_Line ("parsers not synced; parse streams:");
+                           Tree.Print_Streams (Trace.all, Children => True);
                            raise SAL.Programmer_Error with "parsers not synced";
                         end if;
                      end;

@@ -810,14 +810,14 @@ package body WisiToken.Parse.LR is
             case Tree.Label (Current_Token.Node) is
             when Terminal_Label =>
                pragma Assert (Op.Del_Index = Tree.Get_Sequential_Index (Current_Token.Node));
-               Tree.Delete_Input_Token (Stream);
+               Tree.Delete_Current_Token (Stream);
                exit;
 
             when Nonterm =>
                if Tree.Is_Empty_Nonterm (Current_Token.Node) then
                   --  Delete an empty nonterm preceding the target terminal.
                   --  test_mckenzie_recover.adb Missing_Name_2
-                  Tree.Delete_Input_Token (Stream);
+                  Tree.Delete_Current_Token (Stream);
                else
                   --  Error recover only supports Delete for terminals.
                   --  test_mckenzie_recover.adb String_Quote_1 case 3

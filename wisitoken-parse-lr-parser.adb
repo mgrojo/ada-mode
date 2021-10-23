@@ -220,7 +220,7 @@ package body WisiToken.Parse.LR.Parser is
                                    Tree.Image (Current_Token, First_Terminal => True));
                            end if;
 
-                           Tree.Delete_Input_Token (Parser_State.Stream);
+                           Tree.Delete_Current_Token (Parser_State.Stream);
 
                         else
                            Action_Cur := Action_For (Table, Current_State, Tree.ID (First_In_Current));
@@ -304,7 +304,7 @@ package body WisiToken.Parse.LR.Parser is
               (if Trace_Parse_No_State_Numbers
                then "-- : "
                else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream)) & ": ") &
-              Shared_Parser.Tree.Image (Current_Token, First_Terminal => True) & " : " &
+              Shared_Parser.Tree.Image (Current_Token, First_Terminal => True, Terminal_Node_Numbers => True) & " : " &
               Trace_Image (Action, Shared_Parser.Tree.Lexer.Descriptor.all));
          Trace.New_Line;
       end if;
@@ -546,20 +546,21 @@ package body WisiToken.Parse.LR.Parser is
       Zombie_Count  :    out SAL.Base_Peek_Type)
    --  Verb: the type of parser cycle to execute;
    --
-   --  Accept_It : all Parsers.Verb return Accept - done parsing.
+   --     Accept_It : all Parsers.Verb return Accept - done parsing.
    --
-   --  Shift : some Parsers.Verb return Shift.
+   --     Shift : some Parsers.Verb return Shift.
    --
-   --  Pause : Resume is active, and this parser has reached Resume_Goal,
-   --  so it is waiting for the others to catch up. Or this parser has
-   --  shifted a nonterminal, while some other parser has broken down
-   --  that nonterminal; wait for it to catch up. This ensures parsers
-   --  are within Mckenzie_Param.Zombie_Limit of the same terminal when
-   --  they enter error recovery.
+   --     Pause : Resume is active, and this parser has reached
+   --  Resume_Goal, so it is waiting for the others to catch up. Or this
+   --  parser has shifted a nonterminal, while some other parser has
+   --  broken down that nonterminal; it is waiting for the others to
+   --  catch up. This ensures parsers are within
+   --  Mckenzie_Param.Zombie_Limit of the same terminal when they enter
+   --  error recovery.
    --
-   --  Reduce : some Parsers.Verb return Reduce.
+   --     Reduce : some Parsers.Verb return Reduce.
    --
-   --  Error : all Parsers.Verb return Error.
+   --     Error : all Parsers.Verb return Error.
    --
    --  Zombie_Count: count of parsers in Error state
    is
@@ -571,11 +572,13 @@ package body WisiToken.Parse.LR.Parser is
       Some_Paused   : Boolean            := False;
 
       Min_Sequential_Index : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'Last;
-      Max_Byte_Last : Buffer_Pos := Buffer_Pos'First;
+      Max_Byte_Last        : Buffer_Pos                    := Buffer_Pos'First;
    begin
       Zombie_Count := 0;
 
       for Parser_State of Shared_Parser.Parsers loop
+         --  Parser_State.Verb is set by Do_Action, except Pause, Accept_It are
+         --  set here.
          case Parser_State.Verb is
          when Pause | Shift =>
             Shift_Count := Shift_Count + 1;
@@ -671,6 +674,8 @@ package body WisiToken.Parse.LR.Parser is
 
          when Reduce =>
             Verb := Reduce;
+            --  No need to review rest of parsers, and Zombie_Count will be
+            --  ignored.
             return;
 
          when Accept_It =>
@@ -685,9 +690,11 @@ package body WisiToken.Parse.LR.Parser is
 
       if Accept_Count > 0 and Shared_Parser.Parsers.Count = Accept_Count + Zombie_Count then
          Verb := Accept_It;
+         return;
 
       elsif Shared_Parser.Parsers.Count = Zombie_Count then
          Verb := Error;
+         return;
 
       elsif Shift_Count > 0 then
          Verb := Shift;
@@ -749,8 +756,9 @@ package body WisiToken.Parse.LR.Parser is
          --  while another parser has broken down that nonterm and is working
          --  thru it one terminal at a time.
          declare
-            Not_Paused : array (1 .. Shared_Parser.Parsers.Count) of Boolean := (others => False);
-            Parser_Index : SAL.Base_Peek_Type := Not_Paused'First;
+            Not_Paused         : array (1 .. Shared_Parser.Parsers.Count) of Boolean := (others => False);
+            Parser_Index       : SAL.Base_Peek_Type                                  := Not_Paused'First;
+            Max_Terminal_Count : Integer                                             := 0;
          begin
             for Parser_State of Shared_Parser.Parsers loop
                if Parser_State.Verb = Shift then
@@ -763,22 +771,44 @@ package body WisiToken.Parse.LR.Parser is
                         then Shared_Parser.Tree.First_Terminal (Current_Token_Node)
                         else Invalid_Node_Access);
                   begin
-                     if First_Terminal /= Invalid_Node_Access and then
-                       Shared_Parser.Tree.Label (First_Terminal) = Source_Terminal
-                     then
-                        declare
-                           Region : constant Buffer_Region := Shared_Parser.Tree.Byte_Region (First_Terminal);
-                        begin
-                           --  Max_Byte_Last is last byte of farthest token on stack top; parsers
-                           --  whose Current_Token are within that token are not paused, so they
-                           --  can catch up.
-                           if Region.First < Max_Byte_Last then
-                              Not_Paused (Parser_Index) := False;
-                           end if;
-                        end;
+                     if First_Terminal /= Invalid_Node_Access then
+                        if Shift_Count < Shared_Parser.Parsers.Count then
+                           --  Some parsers are zombies; otherwise this count is a waste of time.
+                           --  ada_mode-recover_40.adb used to require Max_Terminal_Count (before
+                           --  Matching_Begin added 'null;') .
+                           Max_Terminal_Count := Integer'Max
+                             (@, Shared_Parser.Tree.Count_Terminals (Current_Token_Node));
+                        end if;
+
+                        if Shared_Parser.Tree.Label (First_Terminal) = Source_Terminal then
+                           declare
+                              Region : constant Buffer_Region := Shared_Parser.Tree.Byte_Region (First_Terminal);
+                           begin
+                              --  Max_Byte_Last is last byte of farthest token on stack top; parsers
+                              --  whose Current_Token are within that token are not paused, so they
+                              --  can catch up.
+                              if Region.First < Max_Byte_Last then
+                                 Not_Paused (Parser_Index) := False;
+                              end if;
+                           end;
+                        end if;
                      end if;
                   end;
                   Parser_Index := @ + 1;
+               end if;
+            end loop;
+
+            for Parser_State of Shared_Parser.Parsers loop
+               if Parser_State.Verb = Error then
+                  Parser_State.Zombie_Token_Count := @ + Max_Terminal_Count;
+
+                  if Trace_Parse > Extra then
+                     Shared_Parser.Trace.Put_Line
+                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": zombie (" &
+                          Integer'Image
+                            (Shared_Parser.Table.McKenzie_Param.Zombie_Limit - Parser_State.Zombie_Token_Count) &
+                          " tokens remaining)");
+                  end if;
                end if;
             end loop;
 

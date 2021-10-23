@@ -2,19 +2,20 @@
 #set args --verbosity "debug=1" ../test/bnf/java_expressions_ch19.input
 
 # wisitoken-bnf-generate:
-#set args --test_main --output_bnf --verbosity "debug=1" ../test/bnf/skip_to_grammar.wy
+#set args --task_count 1 --output_bnf --test_main  ../test/bnf/ada_lite.wy
 #set args c:/Projects/org.emacs.ada-mode.stephe-6/gpr.wy
 
 # t_mck:
-#set args LALR "Error_2" "debug=1 test=1 mckenzie=2"
+#set args LALR "Empty_Comments" "test=1 debug=1 mckenzie=2"
 #catch except WisiToken.Parse.LR.McKenzie_Recover.Bad_Config
+#catch except WisiToken.Parse.LR.McKenzie_Recover.Invalid_Case
 
 # t_one, t_all:
-set args test_incremental.adb Lexer_Errors_1 "test=1"
+set args test_incremental.adb Recover_2 "debug=1 test=1 parse=2" "task_count=1"
 
 #catch excep
-catch excep SYSTEM.ASSERTIONS.ASSERT_FAILURE
-catch excep WISITOKEN.SYNTAX_ERROR
+catch excep ADA.ASSERTIONS.ASSERTION_ERROR
+#catch excep WISITOKEN.SYNTAX_ERROR
 catch excep CONSTRAINT_ERROR
 catch excep SAL.PROGRAMMER_ERROR
 catch excep SAL.NOT_IMPLEMENTED
@@ -41,12 +42,12 @@ end
 
 # stream_index
 define show_element
-  p $arg0.cur.ptr.element.label
   show_node $arg0.cur.ptr.element.node
 end
 
 # stream_node_ref
 define show_ref
+  p $arg0.stream.cur.ptr.element.label
   show_element $arg0.element
   show_node    $arg0.node
 end

@@ -27,19 +27,20 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with Test_Syntax_Trees;
+with Test_Incremental;
 with WisiToken;
 procedure Test_One_Harness
 is
    Usage : constant String :=
      --  command line arguments (all optional, order matters):
-     "test_name routine_name trace_config";
-   --  1         2            3
+     "test_name routine_name trace_config mckenzie_options";
+   --  1         2            3           4
    --  trace_config is passed to Wisitoken.Enable_Trace
    --
    --  routine_name can be '' to set trace for all routines.
    --  test_name cannot be ''
 
+   McKenzie_Config : String_Access;
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
    Options : constant AUnit.Options.AUnit_Options :=
@@ -53,11 +54,10 @@ is
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
 
-   function "+" (Item : in String) return Ada.Strings.Unbounded.String_Access
+   function "+" (Item : in String) return String_Access
    is begin
-      return Ada.Strings.Unbounded.String_Access'(new String'(Item));
+      return String_Access'(new String'(Item));
    end "+";
-   pragma Unreferenced ("+");
 begin
    case Argument_Count is
    when 0 =>
@@ -66,12 +66,16 @@ begin
    when 1 =>
       Filter.Test_Name := To_Unbounded_String (Argument (1)); -- test name only
 
-   when 2 | 3 =>
+   when 2 .. 4 =>
       Filter.Test_Name := To_Unbounded_String (Argument (1));
       Filter.Routine_Name := To_Unbounded_String (Argument (2));
 
-      if Argument_Count = 3 then
+      if Argument_Count >= 3 then
          WisiToken.Enable_Trace (Argument (3));
+      end if;
+
+      if Argument_Count >= 4 then
+         McKenzie_Config := +Argument (4);
       end if;
 
    when others =>
@@ -80,7 +84,7 @@ begin
 
    Filter.Verbose := WisiToken.Trace_Tests > 0;
 
-   Add_Test (Suite, Test_Case_Access'(new Test_Syntax_Trees.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Incremental.Test_Case (McKenzie_Config)));
 
    Run (Suite, Options, Result, Status);
 

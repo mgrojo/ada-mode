@@ -1835,6 +1835,28 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Current_Token;
 
+   procedure Delete_Current_Token
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID)
+   is
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+   begin
+      if Parse_Stream.Stack_Top = Parse_Stream.Elements.Last then
+         --  Input is Shared_Link
+         Stream_Element_Lists.Next (Parse_Stream.Shared_Link);
+      else
+         --  Input is Stream input.
+         declare
+            use Stream_Element_Lists;
+            To_Delete : Cursor := Next (Parse_Stream.Stack_Top);
+         begin
+            --  Any Non_Grammar on To_Delete should be moved in Delete_Token, called
+            --  by Execute_Actions after parse is complete.
+            Parse_Stream.Elements.Delete (To_Delete);
+         end;
+      end if;
+   end Delete_Current_Token;
+
    procedure Delete_Errors_In_Input
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
@@ -1927,28 +1949,6 @@ package body WisiToken.Syntax_Trees is
       Delete_Errors;
    end Delete_Errors_In_Input;
 
-   procedure Delete_Input_Token
-     (Tree   : in out Syntax_Trees.Tree;
-      Stream : in     Stream_ID)
-   is
-      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
-   begin
-      if Parse_Stream.Stack_Top = Parse_Stream.Elements.Last then
-         --  Input is Shared_Link
-         Stream_Element_Lists.Next (Parse_Stream.Shared_Link);
-      else
-         --  Input is Stream input.
-         declare
-            use Stream_Element_Lists;
-            To_Delete : Cursor := Next (Parse_Stream.Stack_Top);
-         begin
-            --  Any Non_Grammar on To_Delete should be moved in Delete_Token, called
-            --  by Execute_Actions after parse is complete.
-            Parse_Stream.Elements.Delete (To_Delete);
-         end;
-      end if;
-   end Delete_Input_Token;
-
    procedure Delete_Stream (Tree : in out Syntax_Trees.Tree; Stream : in out Stream_ID)
    is
       use Parse_Stream_Lists;
@@ -2010,10 +2010,14 @@ package body WisiToken.Syntax_Trees is
       Deleted_Token.Non_Grammar.Clear;
    end Delete_Token;
 
-   function EOI (Tree : in Syntax_Trees.Tree) return Node_Access
+   function Element_Is_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Boolean
    is begin
-      return Tree.EOI;
-   end EOI;
+      if Item.Virtual then
+         return Is_Terminal (Item.ID, Tree.Lexer.Descriptor.all);
+      else
+         return Tree.Label (Item.Element_Node) in Terminal_Label;
+      end if;
+   end Element_Is_Terminal;
 
    function Empty_Line
      (Tree        : in Syntax_Trees.Tree;
@@ -2045,6 +2049,11 @@ package body WisiToken.Syntax_Trees is
       --  Getting here violates the precondition
       raise SAL.Programmer_Error;
    end Empty_Line;
+
+   function EOI (Tree : in Syntax_Trees.Tree) return Node_Access
+   is begin
+      return Tree.EOI;
+   end EOI;
 
    function Error (Item : in Error_Ref) return Error_Data'Class
    is begin
@@ -4153,15 +4162,6 @@ package body WisiToken.Syntax_Trees is
       return Node.Label = Virtual_Identifier;
    end Is_Virtual_Identifier;
 
-   function Is_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Boolean
-   is begin
-      if Item.Virtual then
-         return Is_Terminal (Item.ID, Tree.Lexer.Descriptor.all);
-      else
-         return Tree.Label (Item.Node) in Terminal_Label;
-      end if;
-   end Is_Terminal;
-
    function Last_Non_Grammar
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
@@ -6134,10 +6134,13 @@ package body WisiToken.Syntax_Trees is
    procedure Print_Streams
      (Tree        : in     Syntax_Trees.Tree;
       Trace       : in out WisiToken.Trace'Class;
+      Children    : in     Boolean := False;
       Non_Grammar : in     Boolean := False)
    is begin
       for Stream of Tree.Streams loop
-         Trace.Put_Line (Tree.Image (Stream, Shared => True, Node_Numbers => True, Non_Grammar => Non_Grammar));
+         Trace.Put_Line
+           (Tree.Image
+              (Stream, Shared => True, Children => Children, Node_Numbers => True, Non_Grammar => Non_Grammar));
       end loop;
    end Print_Streams;
 

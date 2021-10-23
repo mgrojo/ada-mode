@@ -110,17 +110,7 @@ begin
          --  Insert_Delete.
 
          for Parser_State of Shared_Parser.Parsers loop
-            if Parser_State.Verb = Error then
-               Parser_State.Zombie_Token_Count := Parser_State.Zombie_Token_Count + 1;
-               if Trace_Parse > Extra then
-                  Trace.Put_Line
-                    (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": zombie (" &
-                       Integer'Image
-                         (Shared_Parser.Table.McKenzie_Param.Zombie_Limit - Parser_State.Zombie_Token_Count) &
-                       " tokens remaining)");
-               end if;
-
-            elsif Parser_State.Verb = Shift then
+            if Parser_State.Verb = Shift then
                --  Handle inserting from Parser_State.Recover_Insert_Delete;
                --  otherwise, Tree.Current_Token is correct.
 
