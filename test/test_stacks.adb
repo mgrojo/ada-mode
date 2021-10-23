@@ -218,13 +218,14 @@ package body Test_Stacks is
         (Source             => Stack_1,
          Target             => Stack_2,
          Source_Start_Depth => 5,
-         Target_Start_Depth => 1,
-         Count              => Stack_2.Depth);
+         Target_Start_Depth => 5,
+         Count              => 5);
 
-      Check ("1", Stack_2.Peek (1), 6);
-      Check ("2", Stack_2.Peek (2), 5);
-      Check ("3", Stack_2.Peek (3), 4);
-      Check ("6", Stack_2.Peek (6), 1);
+      Check ("1", Stack_2.Peek (1), 10);
+      Check ("2", Stack_2.Peek (2), 9);
+      Check ("3", Stack_2.Peek (3), 8);
+      Check ("5", Stack_2.Peek (5), 6);
+      Check ("6", Stack_2.Peek (6), 20);
    end Test_Copy_Slice;
 
    ----------

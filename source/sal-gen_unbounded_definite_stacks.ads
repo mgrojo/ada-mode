@@ -122,7 +122,9 @@ package SAL.Gen_Unbounded_Definite_Stacks is
       Target_Start_Depth : in     Peek_Type;
       Count              : in     Peek_Type);
    --  Copy elements Source.Peek (Source_Start_Depth) .. Source.Peek
-   --  (Source_Start_Depth - Count + 1) to Target.
+   --  (Source_Start_Depth - Count + 1) to Target (Target_Start_Depth) ..
+   --  Target (Target_Start_Depth - Count + 1), overwriting existing
+   --  Target elements.
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
      Implicit_Dereference => Element;

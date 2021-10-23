@@ -87,6 +87,8 @@ OK test_bounded_definite_vectors.adb : Nominal
 OK test_bounded_definite_vectors_sorted.adb : Nominal
 OK test_definite_doubly_linked_lists.adb : Nominal
 OK test_definite_doubly_linked_lists.adb : Test_Insert
+OK test_definite_doubly_linked_lists.adb : Test_Delete
+OK test_definite_doubly_linked_lists.adb : Test_Delete_Access
 OK test_definite_doubly_linked_lists_sorted.adb : Nominal
 OK test_definite_doubly_linked_lists_sorted.adb : Test_Find
 OK test_indefinite_doubly_linked_lists.adb : Nominal
@@ -99,9 +101,11 @@ OK test_red_black_trees.adb : Nominal
 OK test_red_black_trees.adb : Test_Copy
 OK test_red_black_trees.adb : Test_Find_Or_Insert
 OK test_sparse_ordered_sets.adb : Nominal
-OK ../../test/test_stacks.adb : Nominal
-OK ../../test/test_stacks.adb : Compare
-OK ../../test/test_stacks.adb : Test_Iterate
+OK test_stacks.adb : Nominal
+OK test_stacks.adb : Compare
+OK test_stacks.adb : Test_Iterate
+OK test_stacks.adb : Test_Invert
+OK test_stacks.adb : Test_Copy_Slice
 OK Test_Math_Float_Stats : Test_Stats
 OK test_unbounded_definite_vectors.adb : Nominal
 OK test_unbounded_definite_vectors.adb : Test_Set_First_Last
@@ -117,7 +121,7 @@ OK test_unbounded_indefinite_vectors.adb : Prepend
 OK test_unbounded_indefinite_vectors.adb : Test_Grow_1
 OK test_unbounded_indefinite_vectors.adb : Test_To_Vector_1
 
-Total Tests Run:   117
-Successful Tests:  117
+Total Tests Run:   121
+Successful Tests:  121
 Failed Assertions: 0
 Unexpected Errors: 0
