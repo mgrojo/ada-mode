@@ -3,8 +3,8 @@ build/Makefile
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
 org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - work, used by o.e.a-2
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - incremental parse, used by o.e.a-6
-org.wisitoken.stephe-3/o.s_l.sal.stephe-1 - from o.w.s-2; incremental parse error recover config.input_stream
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 -
+org.wisitoken.stephe-3/o.s_l.sal.stephe-1 -
 
 possible branch tags:
 incremental_parse-pre-config.input_stream o.w.s-2
@@ -253,6 +253,9 @@ improve bnf generation
        output substitutions so user can do them
 
 write Python INDENT, DEDENT as re2c code
+    Implement as strict extension to wisi lexer - override methods for generate.
+    similar to tree-sitter external scanner
+    ideally in a separate emacs module!
 
 delete descriptor.case_insensitive?
     used in regexp lexer?

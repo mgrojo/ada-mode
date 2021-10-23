@@ -27,7 +27,7 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with Test_Syntax_Trees;
+with Test_Incremental;
 with WisiToken;
 procedure Test_One_Harness
 is
@@ -37,8 +37,7 @@ is
    --  1         2            3
    --  trace_config is passed to Wisitoken.Enable_Trace
    --
-   --  routine_name can be '' to set trace for all routines.
-   --  test_name cannot be ''
+   --  test_name, routine_name can be '' to set trace for all routines.
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
@@ -80,7 +79,7 @@ begin
 
    Filter.Verbose := WisiToken.Trace_Tests > 0;
 
-   Add_Test (Suite, Test_Case_Access'(new Test_Syntax_Trees.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Incremental.Test_Case));
 
    Run (Suite, Options, Result, Status);
 

@@ -1680,16 +1680,6 @@ package body WisiToken.Parse is
       end loop;
    end Put;
 
-   procedure Put (Errors : in Wrapped_Lexer_Error_Sorted_Lists.List; Tree : in Syntax_Trees.Tree)
-   is begin
-      for Item of Errors loop
-         Ada.Text_IO.Put_Line
-           (Ada.Text_IO.Current_Error,
-            Tree.Lexer.File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image
-              (Item.Error.Char_Pos));
-      end loop;
-   end Put;
-
    procedure Put_Errors (Parser : in Base_Parser'Class)
    is begin
       Put (Parser.Wrapped_Lexer_Errors, Parser.Tree);

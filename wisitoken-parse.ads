@@ -23,7 +23,6 @@ with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
-with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted;
 with SAL.Gen_Indefinite_Doubly_Linked_Lists_Sorted_Aux;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Lexer;
@@ -337,9 +336,6 @@ package WisiToken.Parse is
    --  parse is still in progress.
 
    procedure Put (Errors : in Wrapped_Lexer_Error_Lists.List; Tree : in Syntax_Trees.Tree);
-   --  Output to Ada.Text_IO.Current_Error.
-
-   procedure Put (Errors : in Wrapped_Lexer_Error_Sorted_Lists.List; Tree : in Syntax_Trees.Tree);
    --  Output to Ada.Text_IO.Current_Error.
 
    procedure Put_Errors (Parser : in Base_Parser'Class);
