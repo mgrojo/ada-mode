@@ -468,13 +468,13 @@ package WisiToken is
    --  Put Item to the Trace display. If Prefix is True, prepend the stored prefix.
 
    procedure Put_Line (Trace : in out WisiToken.Trace; Item : in String) is abstract;
-   --  Put Item to the Trace display, followed by a newline.
+   --  Put Item to the Trace display, preceded by the stored prefix, followed by a newline.
 
    procedure New_Line (Trace : in out WisiToken.Trace) is abstract;
-   --  Put a newline to the Trace display.
+   --  Put a newline to the Trace display (no prefix).
 
    procedure Put_Clock (Trace : in out WisiToken.Trace; Label : in String) is abstract;
-   --  Put Ada.Calendar.Clock to Trace.
+   --  Put Ada.Calendar.Clock to Trace, preceded by stored prefix.
 
    ----------
    --  Misc

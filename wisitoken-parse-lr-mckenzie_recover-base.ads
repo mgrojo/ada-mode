@@ -142,15 +142,18 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
       function Stream (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_ID;
 
       function Min_Sequential_Index return Syntax_Trees.Sequential_Index;
-      function Min_Sequential_Index return Syntax_Trees.Stream_Node_Parents;
-      procedure Extend_Min_Sequential_Index;
+      function Min_Sequential_Index_All_SOI return Boolean;
       function Max_Sequential_Index return Syntax_Trees.Sequential_Index;
-      function Max_Sequential_Index return Syntax_Trees.Stream_Node_Parents;
-      function Max_Sequential_Index_Is_EOI return Boolean;
-      procedure Extend_Max_Sequential_Index;
+      function Max_Sequential_Index_All_EOI return Boolean;
+      function Min_Sequential_Index (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_Node_Parents;
+      function Max_Sequential_Index (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_Node_Parents;
 
+      procedure Extend_Min_Sequential_Index (Target : in Syntax_Trees.Sequential_Index);
+      procedure Extend_Max_Sequential_Index (Target : in Syntax_Trees.Sequential_Index);
+      --  In all parse streams. Clients should use
+      --  Base.Extend_Sequential_Index, below.
    private
-      Parsers : access Parser_Lists.List;
+      Parsers : access Parser_Lists.List; --  FIXME: why do we have both Parsers and Parser_Status.Parser_State?
 
       All_Parsers_Done        : Boolean;
       Success_Counter         : Natural;
@@ -162,30 +165,30 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
       Error_Message           : Ada.Strings.Unbounded.Unbounded_String;
       Parser_Status           : Parser_Status_Array (1 .. Parser_Count);
 
-      Min_Sequential_Index_Node : Syntax_Trees.Stream_Node_Parents;
-      Max_Sequential_Index_Node : Syntax_Trees.Stream_Node_Parents;
+      Min_Sequential_Indices : Syntax_Trees.Stream_Node_Parents_Array (1 .. Parser_Count);
+      Max_Sequential_Indices : Syntax_Trees.Stream_Node_Parents_Array (1 .. Parser_Count);
    end Supervisor;
 
    procedure Extend_Sequential_Index
      (Super    : not null access Base.Supervisor;
       Thru     : in              Syntax_Trees.Valid_Node_Access;
       Positive : in              Boolean);
-   --  If Thru has invalid Sequential_Index, extend Sequential_Index
-   --  range thru node Thru. If Positive extend towards EOI, else towards
-   --  SOI.
+   --  If Thru.Node has valid Sequential_Index, return.
+   --
+   --  Else extend Sequential_Index range thru node Thru, in Positive
+   --  direction.
 
    procedure Extend_Sequential_Index
      (Super : not null access Base.Supervisor;
       Thru  : in              Syntax_Trees.Sequential_Index);
-   --  If necessary, extend Sequential_Index range towards EOI thru Thru.
+   --  Ensure Sequential_Index range includes Thru, or SOI/EOI.
 
    type Shared
      --  Don't duplicate values that are in Supervisor discriminants.
      (Table                          : not null access constant Parse_Table;
       Language_Fixes                 : WisiToken.Parse.LR.Parser.Language_Fixes_Access;
       Language_Matching_Begin_Tokens : WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;
-      Language_String_ID_Set         : WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
-      Wrapped_Lexer_Errors           : not null access constant Wrapped_Lexer_Error_Lists.List)
+      Language_String_ID_Set         : WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access)
      is null record;
    --  There is only one object of this type, declared in Recover. Along
    --  with Supervisor, it provides appropriate access to Shared_Parser

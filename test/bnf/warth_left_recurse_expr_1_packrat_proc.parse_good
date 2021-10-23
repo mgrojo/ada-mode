@@ -1,5 +1,5 @@
  6 tokens lexed
-(expr, (1 . 1)) <= (1:(NUMERIC_LITERAL, (1 . 1)))
-(expr, (1 . 5)) <= ((expr, (1 . 1)), 2:(MINUS, (3 . 3)), 3:(NUMERIC_LITERAL, (5 . 5)))
-(expr, (1 . 9)) <= ((expr, (1 . 5)), 4:(MINUS, (7 . 7)), 5:(NUMERIC_LITERAL, (9 . 9)))
-(wisitoken_accept, (1 . 11)) <= ((expr, (1 . 9)), 6:(Wisi_EOI, (12 . 11)))
+(expr, (1 . 1) <= (1:(NUMERIC_LITERAL, (1 . 1))))
+(expr, (1 . 5) <= ((expr, (1 . 1)), 2:(MINUS, (3 . 3)), 3:(NUMERIC_LITERAL, (5 . 5))))
+(expr, (1 . 9) <= ((expr, (1 . 5)), 4:(MINUS, (7 . 7)), 5:(NUMERIC_LITERAL, (9 . 9))))
+(wisitoken_accept, (1 . 11) <= ((expr, (1 . 9)), 6:(Wisi_EOI, (12 . 11))))

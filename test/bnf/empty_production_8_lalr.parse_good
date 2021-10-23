@@ -1,108 +1,108 @@
  20 tokens lexed
  0: 0: 1:(IDENTIFIER, (1 . 7)) : shift and goto state 1
  0: 1: 2:(SEMICOLON, (8 . 8)) : reduce 0 tokens to aliased_opt
-(aliased_opt) <= ()
+(aliased_opt <= ())
  ... goto state 6
  0: 6: 2:(SEMICOLON, (8 . 8)) : reduce 0 tokens to constant_opt
-(constant_opt) <= ()
+(constant_opt <= ())
  ... goto state 9
  0: 9: 2:(SEMICOLON, (8 . 8)) : shift and goto state 11
  0: 11: 3:(IDENTIFIER, (10 . 16)) : reduce 4 tokens to object_declaration
-(object_declaration, (1 . 8)) <= (1:(IDENTIFIER, (1 . 7)), (aliased_opt), (constant_opt), 2:(SEMICOLON, (8 . 8)))
+(object_declaration, (1 . 8) <= (1:(IDENTIFIER, (1 . 7)), (aliased_opt), (constant_opt), 2:(SEMICOLON, (8 . 8))))
  ... goto state 3
  0: 3: 3:(IDENTIFIER, (10 . 16)) : reduce 1 tokens to object_declaration_list
-(object_declaration_list, (1 . 8)) <= ((object_declaration, (1 . 8)))
+(object_declaration_list, (1 . 8) <= ((object_declaration, (1 . 8))))
  ... goto state 2
  0: 2: 3:(IDENTIFIER, (10 . 16)) : shift and goto state 1
  0: 1: 4:(CONSTANT, (18 . 25)) : spawn 1, (2 active)
  1: 1: 4:(CONSTANT, (18 . 25)) : reduce 0 tokens to aliased_opt
-(aliased_opt) <= ()
+(aliased_opt <= ())
  ... goto state 6
  0: 1: 4:(CONSTANT, (18 . 25)) : shift and goto state 5
  1: 6: 4:(CONSTANT, (18 . 25)) : shift and goto state 5
  1: 5: 5:(SEMICOLON, (26 . 26)) : reduce 1 tokens to constant_opt
-(constant_opt, (18 . 25)) <= (4:(CONSTANT, (18 . 25)))
+(constant_opt, (18 . 25) <= (4:(CONSTANT, (18 . 25))))
  ... goto state 9
  0: 5: 5:(SEMICOLON, (26 . 26)) : reduce 1 tokens to constant_opt
-(constant_opt, (18 . 25)) <= (4:(CONSTANT, (18 . 25)))
+(constant_opt, (18 . 25) <= (4:(CONSTANT, (18 . 25))))
  ... goto state 7
  1: 9: 5:(SEMICOLON, (26 . 26)) : shift and goto state 11
  0: 7: 5:(SEMICOLON, (26 . 26)) : ERROR
  0: expecting: COLON_EQUAL
- 0: terminate (1 active):  (-1, 5:(SEMICOLON, (26 . 26)))
+ 0: terminate (1 active):  (0, 21:(SEMICOLON, (26 . 26) ERROR))
  1: 11: 6:(IDENTIFIER, (28 . 34)) : reduce 4 tokens to object_declaration
-(object_declaration, (10 . 26)) <= (3:(IDENTIFIER, (10 . 16)), (aliased_opt), (constant_opt, (18 . 25)), 5:(SEMICOLON, (26 . 26)))
+(object_declaration, (10 . 26) <= (3:(IDENTIFIER, (10 . 16)), (aliased_opt), (constant_opt, (18 . 25)), 5:(SEMICOLON, (26 . 26))))
  ... goto state 8
  1: 8: 6:(IDENTIFIER, (28 . 34)) : reduce 2 tokens to object_declaration_list
-(object_declaration_list, (1 . 26)) <= ((object_declaration_list, (1 . 8)), (object_declaration, (10 . 26)))
+(object_declaration_list, (1 . 26) <= ((object_declaration_list, (1 . 8)), (object_declaration, (10 . 26))))
  ... goto state 2
  1: 2: 6:(IDENTIFIER, (28 . 34)) : shift and goto state 1
  1: 1: 7:(ALIASED, (36 . 42)) : shift and goto state 4
  1: 4: 8:(SEMICOLON, (43 . 43)) : reduce 1 tokens to aliased_opt
-(aliased_opt, (36 . 42)) <= (7:(ALIASED, (36 . 42)))
+(aliased_opt, (36 . 42) <= (7:(ALIASED, (36 . 42))))
  ... goto state 6
  1: 6: 8:(SEMICOLON, (43 . 43)) : reduce 0 tokens to constant_opt
-(constant_opt) <= ()
+(constant_opt <= ())
  ... goto state 9
  1: 9: 8:(SEMICOLON, (43 . 43)) : shift and goto state 11
  1: 11: 9:(IDENTIFIER, (45 . 51)) : reduce 4 tokens to object_declaration
-(object_declaration, (28 . 43)) <= (6:(IDENTIFIER, (28 . 34)), (aliased_opt, (36 . 42)), (constant_opt), 8:(SEMICOLON, (43 . 43)))
+(object_declaration, (28 . 43) <= (6:(IDENTIFIER, (28 . 34)), (aliased_opt, (36 . 42)), (constant_opt), 8:(SEMICOLON, (43 . 43))))
  ... goto state 8
  1: 8: 9:(IDENTIFIER, (45 . 51)) : reduce 2 tokens to object_declaration_list
-(object_declaration_list, (1 . 43)) <= ((object_declaration_list, (1 . 26)), (object_declaration, (28 . 43)))
+(object_declaration_list, (1 . 43) <= ((object_declaration_list, (1 . 26)), (object_declaration, (28 . 43))))
  ... goto state 2
  1: 2: 9:(IDENTIFIER, (45 . 51)) : shift and goto state 1
  1: 1: 10:(ALIASED, (53 . 59)) : shift and goto state 4
  1: 4: 11:(CONSTANT, (61 . 68)) : reduce 1 tokens to aliased_opt
-(aliased_opt, (53 . 59)) <= (10:(ALIASED, (53 . 59)))
+(aliased_opt, (53 . 59) <= (10:(ALIASED, (53 . 59))))
  ... goto state 6
  1: 6: 11:(CONSTANT, (61 . 68)) : shift and goto state 5
  1: 5: 12:(SEMICOLON, (69 . 69)) : reduce 1 tokens to constant_opt
-(constant_opt, (61 . 68)) <= (11:(CONSTANT, (61 . 68)))
+(constant_opt, (61 . 68) <= (11:(CONSTANT, (61 . 68))))
  ... goto state 9
  1: 9: 12:(SEMICOLON, (69 . 69)) : shift and goto state 11
  1: 11: 13:(IDENTIFIER, (71 . 77)) : reduce 4 tokens to object_declaration
-(object_declaration, (45 . 69)) <= (9:(IDENTIFIER, (45 . 51)), (aliased_opt, (53 . 59)), (constant_opt, (61 . 68)), 12:(SEMICOLON, (69 . 69)))
+(object_declaration, (45 . 69) <= (9:(IDENTIFIER, (45 . 51)), (aliased_opt, (53 . 59)), (constant_opt, (61 . 68)), 12:(SEMICOLON, (69 . 69))))
  ... goto state 8
  1: 8: 13:(IDENTIFIER, (71 . 77)) : reduce 2 tokens to object_declaration_list
-(object_declaration_list, (1 . 69)) <= ((object_declaration_list, (1 . 43)), (object_declaration, (45 . 69)))
+(object_declaration_list, (1 . 69) <= ((object_declaration_list, (1 . 43)), (object_declaration, (45 . 69))))
  ... goto state 2
  1: 2: 13:(IDENTIFIER, (71 . 77)) : shift and goto state 1
  1: 1: 14:(COLON_EQUAL, (79 . 80)) : reduce 0 tokens to constant_opt
-(constant_opt) <= ()
+(constant_opt <= ())
  ... goto state 7
  1: 7: 14:(COLON_EQUAL, (79 . 80)) : shift and goto state 10
  1: 10: 15:(SEMICOLON, (82 . 82)) : shift and goto state 12
  1: 12: 16:(IDENTIFIER, (84 . 90)) : reduce 4 tokens to object_declaration
-(object_declaration, (71 . 82)) <= (13:(IDENTIFIER, (71 . 77)), (constant_opt), 14:(COLON_EQUAL, (79 . 80)), 15:(SEMICOLON, (82 . 82)))
+(object_declaration, (71 . 82) <= (13:(IDENTIFIER, (71 . 77)), (constant_opt), 14:(COLON_EQUAL, (79 . 80)), 15:(SEMICOLON, (82 . 82))))
  ... goto state 8
  1: 8: 16:(IDENTIFIER, (84 . 90)) : reduce 2 tokens to object_declaration_list
-(object_declaration_list, (1 . 82)) <= ((object_declaration_list, (1 . 69)), (object_declaration, (71 . 82)))
+(object_declaration_list, (1 . 82) <= ((object_declaration_list, (1 . 69)), (object_declaration, (71 . 82))))
  ... goto state 2
  1: 2: 16:(IDENTIFIER, (84 . 90)) : shift and goto state 1
  1: 1: 17:(CONSTANT, (92 . 99)) : spawn 2, (2 active)
  2: 1: 17:(CONSTANT, (92 . 99)) : reduce 0 tokens to aliased_opt
-(aliased_opt) <= ()
+(aliased_opt <= ())
  ... goto state 6
  1: 1: 17:(CONSTANT, (92 . 99)) : shift and goto state 5
  2: 6: 17:(CONSTANT, (92 . 99)) : shift and goto state 5
  2: 5: 18:(COLON_EQUAL, (101 . 102)) : reduce 1 tokens to constant_opt
-(constant_opt, (92 . 99)) <= (17:(CONSTANT, (92 . 99)))
+(constant_opt, (92 . 99) <= (17:(CONSTANT, (92 . 99))))
  ... goto state 9
  1: 5: 18:(COLON_EQUAL, (101 . 102)) : reduce 1 tokens to constant_opt
-(constant_opt, (92 . 99)) <= (17:(CONSTANT, (92 . 99)))
+(constant_opt, (92 . 99) <= (17:(CONSTANT, (92 . 99))))
  ... goto state 7
  2: 9: 18:(COLON_EQUAL, (101 . 102)) : ERROR
  2: expecting: SEMICOLON
- 2: terminate (1 active):  (-1, 18:(COLON_EQUAL, (101 . 102)))
+ 2: terminate (1 active):  (2, 22:(COLON_EQUAL, (101 . 102) ERROR))
  1: 7: 18:(COLON_EQUAL, (101 . 102)) : shift and goto state 10
  1: 10: 19:(SEMICOLON, (104 . 104)) : shift and goto state 12
  1: 12: 20:(Wisi_EOI, (106 . 105)) : reduce 4 tokens to object_declaration
-(object_declaration, (84 . 104)) <= (16:(IDENTIFIER, (84 . 90)), (constant_opt, (92 . 99)), 18:(COLON_EQUAL, (101 . 102)), 19:(SEMICOLON, (104 . 104)))
+(object_declaration, (84 . 104) <= (16:(IDENTIFIER, (84 . 90)), (constant_opt, (92 . 99)), 18:(COLON_EQUAL, (101 . 102)), 19:(SEMICOLON, (104 . 104))))
  ... goto state 8
  1: 8: 20:(Wisi_EOI, (106 . 105)) : reduce 2 tokens to object_declaration_list
-(object_declaration_list, (1 . 104)) <= ((object_declaration_list, (1 . 82)), (object_declaration, (84 . 104)))
+(object_declaration_list, (1 . 104) <= ((object_declaration_list, (1 . 82)), (object_declaration, (84 . 104))))
  ... goto state 2
  1: 2: 20:(Wisi_EOI, (106 . 105)) : accept it
-(wisitoken_accept, (1 . 104)) <= ((object_declaration_list, (1 . 104)))
+(wisitoken_accept, (1 . 104) <= ((object_declaration_list, (1 . 104))))
  1: succeed

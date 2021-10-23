@@ -94,7 +94,6 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Computed_Stream       : in Stream_ID;
       Expected_Tree         : in Syntax_Trees.Tree;
       Expected_Stream       : in Stream_ID;
-      Check_Label           : in Boolean;
       Parents               : in Boolean;
       Terminal_Node_Numbers : in Boolean)
    is
@@ -107,9 +106,6 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Expected_Element : Cursor  := Expected_Parse_Stream.Elements.First;
       I                : Integer := 1;
    begin
-      if Check_Label then
-         Check (Label & ".label", Computed_Parse_Stream.Label, Expected_Parse_Stream.Label);
-      end if;
       Check (Label & ".length",
              Computed_Tree.Stream_Length (Computed_Stream),
              Expected_Tree.Stream_Length (Expected_Stream));
@@ -122,9 +118,6 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
             Computed : Stream_Element renames Constant_Ref (Computed_Element);
             Expected : Stream_Element renames Constant_Ref (Expected_Element);
          begin
-            if Check_Label then
-               Check (Label & I'Image & ".label", Computed.Label, Expected.Label);
-            end if;
             Check (Label & " (" & Computed.Node.Node_Index'Image & ").node",
                    Computed.Node.all,
                    Expected.Node.all,
@@ -162,7 +155,6 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
               (Label & ".streams" & Computed.Streams (Computed_Stream).Label'Image,
                Computed, (Cur        => Computed_Stream),
                Expected, (Cur        => Expected_Stream),
-               Check_Label           => Shared_Stream,
                Parents               => False,
                Terminal_Node_Numbers => Terminal_Node_Numbers);
          end if;

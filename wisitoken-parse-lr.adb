@@ -369,26 +369,52 @@ package body WisiToken.Parse.LR is
    end Shift_State;
 
    procedure Undo_Reduce
-     (Tree   : in out Syntax_Trees.Tree;
-      Table  : in     Parse_Table;
-      Stream : in     Syntax_Trees.Stream_ID)
+     (Tree      : in out Syntax_Trees.Tree;
+      Table     : in     Parse_Table;
+      Stream    : in     Syntax_Trees.Stream_ID;
+      User_Data : in     Syntax_Trees.User_Data_Access)
    is
       --  We can't move this into Syntax_Trees, because we need Table to set
       --  the stream element states.
       use Syntax_Trees;
-      Nonterm    : constant Node_Access := Tree.Pop (Stream);
-      Prev_State : State_Index          := Tree.State (Stream);
    begin
-      for Child of Tree.Children (Nonterm) loop
-         Tree.Clear_Parent (Child, Clear_Children => Stream = Tree.Shared_Stream);
+      if Tree.Has_Error (Tree.Get_Node (Stream, Tree.Peek (Stream))) then
+         --  Move the errors to the first terminal, so they are not lost.
+         declare
+            Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+              (Tree.To_Rooted_Ref (Stream, Tree.Peek (Stream)));
 
-         if Is_Terminal (Tree.ID (Child), Tree.Lexer.Descriptor.all) then
-            Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (Child)));
-         else
-            Prev_State := Goto_For (Table, Prev_State, Tree.ID (Child));
-         end if;
-         Tree.Push (Stream, Child, Prev_State);
-      end loop;
+            New_Errors : Error_Data_Lists.List;
+         begin
+            for Err of Tree.Error_List (Ref.Ref.Node) loop
+               New_Errors.Append (To_Message (Err, Tree, Ref.Ref.Node));
+            end loop;
+
+            Tree.First_Terminal (Ref, Following => False);
+            if Ref.Ref.Node = Invalid_Node_Access then
+               --  So far, we never put an error on an empty nonterm; we just delete
+               --  it.
+               raise SAL.Programmer_Error with "undo_reduce error on empty nonterm";
+            end if;
+            Tree.Add_Errors (Ref, New_Errors, User_Data);
+         end;
+      end if;
+
+      declare
+         Nonterm    : constant Node_Access := Tree.Pop (Stream);
+         Prev_State : State_Index          := Tree.State (Stream);
+      begin
+         for Child of Tree.Children (Nonterm) loop
+            Tree.Clear_Parent (Child, Clear_Children => Stream = Tree.Shared_Stream);
+
+            if Is_Terminal (Tree.ID (Child), Tree.Lexer.Descriptor.all) then
+               Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (Child)));
+            else
+               Prev_State := Goto_For (Table, Prev_State, Tree.ID (Child));
+            end if;
+            Tree.Push (Stream, Child, Prev_State);
+         end loop;
+      end;
    end Undo_Reduce;
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set
@@ -460,7 +486,7 @@ package body WisiToken.Parse.LR is
             --  Buffer_Last on newline for Check_New_Line.
             Buffer_Last := Buffer_Last + 1;
          else
-            raise SAL.Programmer_Error with Error_Message
+            raise SAL.Programmer_Error with WisiToken.Error_Message
               (File_Name, 1, Ada.Text_IO.Count (Buffer_Last),
                "expecting semicolon, found '" & Buffer (Buffer_Last) & "'");
          end if;
@@ -481,7 +507,7 @@ package body WisiToken.Parse.LR is
                Buffer_Last := Buffer_Last + 1;
             end if;
          else
-            raise SAL.Programmer_Error with Error_Message
+            raise SAL.Programmer_Error with WisiToken.Error_Message
               (File_Name, 1, Ada.Text_IO.Count (Buffer_Last),
                "expecting new_line, found '" & Buffer (Buffer_Last) & "'");
          end if;
@@ -510,7 +536,7 @@ package body WisiToken.Parse.LR is
       procedure Raise_Gen_Next_Value_Constraint_Error (Name : String; Region : Buffer_Region)
       is begin
          --  Factored out from Gen_Next_Value to make Inline efficient.
-         raise SAL.Programmer_Error with Error_Message
+         raise SAL.Programmer_Error with WisiToken.Error_Message
            (File_Name, 1, Ada.Text_IO.Count (Region.First),
             "expecting " & Name & ", found '" & Buffer (Region.First .. Region.Last) & "'");
       end Raise_Gen_Next_Value_Constraint_Error;
@@ -725,7 +751,7 @@ package body WisiToken.Parse.LR is
       raise;
 
    when E : others =>
-      raise SAL.Programmer_Error with Error_Message
+      raise SAL.Programmer_Error with WisiToken.Error_Message
         (File_Name, 1, Ada.Text_IO.Count (Buffer_Last),
          Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    end Get_Text_Rep;
@@ -745,12 +771,67 @@ package body WisiToken.Parse.LR is
          when Delete =>
            (if Item.Del_Node = Invalid_Node_Access
             then Trimmed_Image (Item.Del_Index) & ":" & Image (Item.Del_ID, Tree.Lexer.Descriptor.all)
-            else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)) &
-             (if Item.Del_After_Node = Invalid_Node_Access
-              then ""
-              else ", " & Tree.Image (Item.Del_After_Node, Terminal_Node_Numbers => True)))
+            else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)))
         & ")";
    end Image;
+
+   procedure Do_Delete
+     (Tree        : in out Syntax_Trees.Tree;
+      Stream      : in     Syntax_Trees.Stream_ID;
+      Op          : in out Delete_Op_Nodes;
+      Deleted_Ref : in     Syntax_Trees.Stream_Node_Ref;
+      User_Data   : in     Syntax_Trees.User_Data_Access)
+   is
+      use Syntax_Trees;
+      --  We don't want a deleted node as Op.Del_After_Node;
+      --  ada_mode-recover_extra_end_loop.adb deletes "end loop ;". So we
+      --  don't use 'Tree.Prev_Terminal (Terminal, Parser_State.Stream);'.
+      --  The previous terminal is on the parse stack.
+      Prev_Terminal : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+        (Tree.To_Rooted_Ref (Stream, Tree.Peek (Stream)));
+   begin
+      Op.Del_Node := Deleted_Ref.Node;
+
+      Tree.Last_Terminal (Prev_Terminal, Stream);
+      if Tree.Label (Prev_Terminal.Ref.Node) /= Source_Terminal then
+         Tree.Prev_Source_Terminal
+           (Prev_Terminal, Stream, Trailing_Non_Grammar => False);
+      end if;
+      Tree.Add_Deleted
+        (Deleted_Ref   => Deleted_Ref,
+         Prev_Terminal => Prev_Terminal,
+         User_Data     => User_Data);
+
+      loop
+         --  Delete empty nonterms, breakdown non-empty nonterms, delete next terminal.
+         declare
+            Current_Token : Stream_Node_Ref := Tree.Current_Token (Stream);
+         begin
+            case Tree.Label (Current_Token.Node) is
+            when Terminal_Label =>
+               pragma Assert (Op.Del_Index = Tree.Get_Sequential_Index (Current_Token.Node));
+               Tree.Delete_Current_Token (Stream);
+               exit;
+
+            when Nonterm =>
+               if Tree.Is_Empty_Nonterm (Current_Token.Node) then
+                  --  Delete an empty nonterm preceding the target terminal.
+                  --  test_mckenzie_recover.adb Missing_Name_2
+                  Tree.Delete_Current_Token (Stream);
+               else
+                  --  Error recover only supports Delete for terminals.
+                  --  test_mckenzie_recover.adb String_Quote_1 case 3
+                  if Current_Token.Stream /= Stream then
+                     Tree.Move_Shared_To_Input (Stream);
+                     Current_Token := Tree.Current_Token (Stream);
+                  end if;
+
+                  Tree.Left_Breakdown (Current_Token);
+               end if;
+            end case;
+         end;
+      end loop;
+   end Do_Delete;
 
    function Stack_Has
      (Tree  : in Syntax_Trees.Tree;

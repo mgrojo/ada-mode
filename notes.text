@@ -19,11 +19,11 @@ incremental_parse-pre-config.input_stream o.w.s-2
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-2")))
+  (xgit . "/Projects/org.wisitoken.stephe-1")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"        . "../org.wisitoken.stephe-2")))
+   ("../org.wisitoken"        . "../org.wisitoken.stephe-1")))
 
 update-wisitoken_grammar
 (dvc-propagate-multiple
@@ -31,6 +31,37 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+fix ada_mode-interactive_02.adb failure
+
+
+review FIXME
+    at least in syntax_trees
+
+Stream.Shared_Link === Parser_State.Shared_Token
+    except after parser_lists.next_token
+    delete parser_state.current_token, shared_token
+    add function tree.current_Token => stream.input or stream.shared_link
+
+
+store errors in tree
+    t_all passing; moving to o.e.a
+
+    In test_incremental.adb Preserve_Parse_Errors_2, also change costs so recover deletes
+    END instead of inserting BEGIN; then need to restore that
+
+    test case for Right_Breakdown move_errors.
+
+    test case for wisitoken-syntax_trees.adb Add_Deleted Not_Implemented.
+
+Tree.validate check that all tree.nodes are in tree
+    possibly in following_deleted
+    call it in syntax_Trees.clear_parse_streams
+
+next error recover try prev solution first - new strategy.
+
+test_incremental.adb Recover_1 "delete empty nonterm" -27:(aspect_specification_opt)
+    better: don't delete; peek ahead to first terminal, reduce until aspect_specification_opt is shiftable
+
 move Trace from Parser to Lexer
     use in Lexer.Find_Next
     no separate param in tree operations
@@ -88,6 +119,10 @@ incremental parse
         rest of parser must understand that.
         requires merge edit_tree into incremental parse
         faster? less allocate/deallocate
+
+expand description of labels in wisitoken-user_guide
+
+add precedence to reduce conflicts?
 
 Mckenzie parallel gain
     eliminate super access that does not require lock
@@ -324,6 +359,11 @@ make "canonical list" compatible with packrat?
     ie swap rhs_index 0, 1
     better to implement list in packrat
 
+Do LR incremental on tree from packrat parse?
+    batch = packrat, incremental = LR
+    no error recover in packrate
+    need left_recursion.
+
 c:/Projects/org.emacs.java-wisi/test/recover_001.java
     don't delete next if minimal_c_a inserted
 
@@ -465,6 +505,8 @@ adacore langkit_support.packrat implements one row of the derivs table
             clearly adequate given fast performance
             compare performance to a sparse vector
         libadalang.analysis.parsers Parser_Private_Part_Type stores all the rows
+
+Write libadalang python code to generate wisitoken grammar from AdaCore grammar.
 
 use wisi-gen_output_ada_common.adb Append in wisi-output_ada, _emacs.
 

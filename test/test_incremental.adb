@@ -26,6 +26,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
+with GNAT.Traceback.Symbolic;
 with WisiToken.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
@@ -43,16 +44,16 @@ package body Test_Incremental is
    Edited_Buffer  : Ada.Strings.Unbounded.Unbounded_String;
 
    procedure Parse_Text
-     (Initial      : in String;
-      Edit_At      : in Integer;
-      Delete       : in String;
-      Insert       : in String;
-      Edit_2_At    : in Integer                   := 0;
-      Delete_2     : in String                    := "";
-      Insert_2     : in String                    := "";
-      Lexer_Errors : in Ada.Containers.Count_Type := 0;
-      Parse_Errors : in Boolean                   := False;
-      Label        : in String                    := "")
+     (Initial     : in String;
+      Edit_At     : in Integer;
+      Delete      : in String;
+      Insert      : in String;
+      Edit_2_At   : in Integer                   := 0;
+      Delete_2    : in String                    := "";
+      Insert_2    : in String                    := "";
+      Full_Errors : in Ada.Containers.Count_Type := 0;
+      Incr_Errors : in Ada.Containers.Count_Type := 0;
+      Label       : in String                    := "")
    with Pre => Edit_2_At = 0 or Edit_2_At > Edit_At
    --  If Initial is "", start from existing tree.
    is
@@ -145,7 +146,19 @@ package body Test_Incremental is
 
       procedure Put_Tree (Parser : in WisiToken.Parse.LR.Parser.Parser)
       is begin
-         Parser.Put_Errors;
+         if Parser.Tree.Parents_Set then
+            if Parser.Tree.Error_Count > 0 then
+               New_Line;
+               Parser.Put_Errors;
+            end if;
+         else
+            if Parser.Tree.Error_Count (Parser.Tree.Last_Parse_Stream) > 0 then
+               New_Line;
+               Parser.Put_Errors (Parser.Tree.Last_Parse_Stream);
+            end if;
+         end if;
+
+         New_Line;
          Put_Line (Label_Dot & " ... tree:");
          Parser.Tree.Print_Tree (Trace, Non_Grammar => True);
       end Put_Tree;
@@ -159,8 +172,9 @@ package body Test_Incremental is
          Initial_Buffer := Edited_Buffer; --  For To_KMN, Validate_KMN
       end if;
 
-      if Edit_At in 1 .. Length (Edited_Buffer) then
-         if Edit_2_At in 1 .. Length (Edited_Buffer) then
+      --  Allow inserting after last char in Initial
+      if Edit_At in 1 .. Length (Edited_Buffer) + 1 then
+         if Edit_2_At in 1 .. Length (Edited_Buffer) + 1 then
             Edit_Text (Edit_2_At, Delete_2, Insert_2);
          end if;
          Edit_Text (Edit_At, Delete, Insert);
@@ -178,7 +192,17 @@ package body Test_Incremental is
 
       Full_Parser.Tree.Lexer.Reset_With_String (To_String (Edited_Buffer));
 
-      Full_Parser.Parse (Log_File);
+      begin
+         Full_Parser.Parse (Log_File);
+      exception
+      when WisiToken.Syntax_Error =>
+         if WisiToken.Trace_Tests > WisiToken.Outline then
+            Put_Line (Label_Dot & "(syntax_error)");
+            Put_Tree (Full_Parser);
+         end if;
+         Check ("syntax_error", True, False);
+         return;
+      end;
 
       Full_Parser.Tree.Copy_Tree (Edited_Source_Full_Parse_Tree, User_Data'Access);
 
@@ -193,13 +217,27 @@ package body Test_Incremental is
          end if;
 
          Incremental_Parser.Tree.Lexer.Reset_With_String (Initial);
-         Incremental_Parser.Parse (Log_File);
+         begin
+            Incremental_Parser.Parse (Log_File);
+         exception
+         when WisiToken.Syntax_Error =>
+            if WisiToken.Trace_Tests > WisiToken.Outline then
+               Put_Line (Label_Dot & "(syntax_error)");
+               Put_Tree (Incremental_Parser);
+            end if;
+            Check ("syntax_error", True, False);
+            return;
+         end;
 
          if WisiToken.Trace_Tests > WisiToken.Outline then
             Put_Tree (Incremental_Parser);
          end if;
-         Check (Label_Dot & "lexer errors", Incremental_Parser.Wrapped_Lexer_Errors.Length, Full_Lexer_Errors);
-         Check (Label_Dot & "parse errors", Incremental_Parser.Parse_Errors.Length, Full_Parse_Errors);
+         Check (Label_Dot & "full errors", Incremental_Parser.Tree.Error_Count, Full_Errors);
+      end if;
+
+      if WisiToken.Trace_Tests > WisiToken.Outline then
+         New_Line;
+         Put_Line (Label_Dot & "incremental parse:");
       end if;
 
       Incremental_Parser.Tree.Lexer.Reset_With_String (To_String (Edited_Buffer));
@@ -227,36 +265,22 @@ package body Test_Incremental is
             Edited_Text_Char_Region  => (1, WisiToken.Base_Buffer_Pos (Length (Edited_Buffer))));
       end if;
 
-      if WisiToken.Trace_Parse + WisiToken.Trace_Incremental_Parse > WisiToken.Outline then
-         New_Line;
-         Put_Line (Label_Dot & "incremental parse:");
-      end if;
-
       Incremental_Parser.Parse (Log_File, Edits);
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
          New_Line;
          Put_Line (Label_Dot & "incremental parse result:");
          Put_Tree (Incremental_Parser);
-         if Incremental_Parser.Current_Wrapped_Lexer_Errors.Length > 0 then
-            WisiToken.Parse.Put (Incremental_Parser.Current_Wrapped_Lexer_Errors, Incremental_Parser.Tree);
-         end if;
-         if Incremental_Parser.Wrapped_Lexer_Errors.Length + Incremental_Parser.Current_Parse_Errors.Length > 0 then
-            for Error of Incremental_Parser.Current_Parse_Errors loop
-               Put_Error (Error, Incremental_Parser.Tree, Incremental_Parser.Current_Deleted_Nodes);
-            end loop;
-         end if;
-         if Incremental_Parser.Wrapped_Lexer_Errors.Length + Incremental_Parser.Parse_Errors.Length > 0 then
-            Incremental_Parser.Put_Errors;
-         end if;
       end if;
 
-      Check (Label_Dot & "lexer errors", Incremental_Parser.Wrapped_Lexer_Errors.Length, Lexer_Errors);
-      Check (Label_Dot & "parse errors", Incremental_Parser.Parse_Errors.Length, Parse_Errors);
+      Check (Label_Dot & "incr errors", Incremental_Parser.Tree.Error_Count, Incr_Errors);
       Check (Label_Dot & "tree", Incremental_Parser.Tree, Edited_Source_Full_Parse_Tree,
-             Shared_Stream => False,
+             Shared_Stream         => False,
              Terminal_Node_Numbers => False);
    exception
+   when AUnit.Assertions.Assertion_Error =>
+      raise;
+
    when WisiToken.Syntax_Error =>
       if WisiToken.Trace_Tests > WisiToken.Outline then
          Put_Line (Label_Dot & "(syntax_error) incremental parse result:");
@@ -267,6 +291,13 @@ package body Test_Incremental is
 
    when E : WisiToken.Parse_Error =>
       AUnit.Assertions.Assert (False, "parse_error: " & Ada.Exceptions.Exception_Message (E));
+
+   when E : others =>
+      Ada.Text_IO.Put_Line
+        ("unhandled exception: " & Ada.Exceptions.Exception_Name (E) & ": " &
+           Ada.Exceptions.Exception_Message (E));
+      Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+      AUnit.Assertions.Assert (False, "unhandled exception");
    end Parse_Text;
 
    ----------
@@ -325,7 +356,7 @@ package body Test_Incremental is
       --  Two edits in one token not EOI
       Parse_Text
         (Initial   => "A := B + C; --  A very long comment",
-         --          1        |10       |20
+         --            1        |10       |20
          Edit_At   => 18,
          Delete    => "",
          Insert    => "nother",
@@ -333,6 +364,137 @@ package body Test_Incremental is
          Delete_2  => "long",
          Insert_2  => "big");
    end Edit_Comment_3;
+
+   procedure Edit_Comment_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert end comment exposes code.
+      --
+      --  Preceding comment to ensure we don't mistake that for a new
+      --  comment end.
+      Parse_Text
+        (Initial =>
+           "-- preceding" & ASCII.LF &
+           --  |4    |10    |13
+           "-- A := B;" & ASCII.LF & "C;",
+         --  |15  |20
+         Edit_At => 17,
+         Delete  => "",
+         Insert  => "comment" & ASCII.LF);
+
+      --  Edited text:
+      --  -- preceding
+      --  |1
+      --  -- comment
+      --  |14
+      --  A := B;
+      --  |25
+      --  C;
+      --  |33
+   end Edit_Comment_4;
+
+   procedure Edit_Comment_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Similar to Edit_Comment_4, tests a different case in Edit_Tree.
+      Parse_Text
+        (Initial =>
+           "D;" & ASCII.LF &
+           "-- preceding" & ASCII.LF &
+           --  |7 |10       |16
+           "-- A := B;" & ASCII.LF &
+           --  |20  |25
+           "C;",
+         --  |29
+         Edit_At => 20,
+         Delete  => "",
+         Insert  => "comment" & ASCII.LF);
+   end Edit_Comment_5;
+
+   procedure Edit_Comment_6 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-interactive_01.adb; capitalize a word in a comment.
+      --  Found bug in comment_end_deleted logic.
+      Parse_Text
+        (Initial =>
+           "procedure A is begin" & ASCII.LF &
+           --        |10       |20
+           "-- An_Identifier in a comment" & ASCII.LF &
+           --  |25  |30       |40       |50
+           "   A := B;" & ASCII.LF &
+           "end A;",
+         Edit_At => 25,
+         Delete  => "A",
+         Insert  => "a");
+   end Edit_Comment_6;
+
+   procedure Edit_Comment_7 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Similar to Edit_Comment_4, indent comment before editing it.
+      Parse_Text
+        (Initial   =>
+           "D;" & ASCII.LF &
+           "-- preceding" & ASCII.LF &
+           --  |7 |10       |16
+           "-- A := B;" & ASCII.LF & "C;",
+         --  |18    |25
+         Edit_At   => 17,
+         Insert    => "   ",
+         Delete    => "",
+         Edit_2_At => 20,
+         Delete_2  => "",
+         Insert_2  => "comment" & ASCII.LF);
+
+      --  Edited text:
+      --  'D;
+      --   |1
+      --  -- preceding
+      --  |4    |10
+      --     -- comment
+      --  |17     |25
+      --  A := B;
+      --  |31
+      --  C;'
+      --  |39
+   end Edit_Comment_7;
+
+   procedure Edit_Comment_8 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Edit comment by inserting before and after.
+      Parse_Text
+        (Initial   =>
+           "D;" & ASCII.LF &
+           "-- comment_1" & ASCII.LF &
+           --  |7 |10       |16
+           "   C;",
+         --    |20
+         Edit_At   => 4,
+         Insert    => "   ",
+         Delete    => "",
+         Edit_2_At => 17,
+         Delete_2  => "",
+         Insert_2  => "   ");
+
+      --  Edited text:
+      --  'D;
+      --   |1
+      --     -- comment_1
+      --  |4    |10
+      --        -- comment_2
+      --  |20       |30
+      --  C;'
+      --  |39
+   end Edit_Comment_8;
+
+   --  FIXME: edit_comment_9; delete comment start and end
 
    procedure Edit_Whitespace_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -569,6 +731,7 @@ package body Test_Incremental is
         (Initial => "A := B + C; -- comment" & ASCII.LF &
            --        |1       |10       |20
            "D (2);" & ASCII.LF &
+           --         |30
            "C;",
          Edit_At => 23,
          Delete  => "" & ASCII.LF,
@@ -635,6 +798,26 @@ package body Test_Incremental is
       end;
    end Names;
 
+   procedure Missing_Name_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Test that error due to Missing_Name is dropped when incremental
+      --  edit fixes it.
+      Ada_Lite_Actions.End_Name_Optional := False;
+
+      Parse_Text
+        (Initial => "procedure Name is begin null; end;",
+         --          |1       |10       |20       |30
+
+         Edit_At           => 34,
+         Delete            => "",
+         Insert            => " Name",
+         Full_Errors => 1,
+         Incr_Errors => 0);
+
+   end Missing_Name_1;
+
    procedure Recover_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -642,74 +825,95 @@ package body Test_Incremental is
       --  Full parse uses error recovery to place missing return type.
       --  Incremental parse fixes the error.
       Parse_Text
-        (Initial            =>
+        (Initial           =>
            "function Func_1 (A : Integer) return " & ASCII.LF &
-             --        |10       |20       |30
-             "is begin return 1; end;",
-         Edit_At => 38,
-         Delete  => "",
-         Insert  => "Integer");
+           --        |10       |20       |30
+           "is begin return 1; end;",
+         Edit_At           => 38,
+         Delete            => "",
+         Insert            => "Integer",
+         Full_Errors => 1,
+         Incr_Errors => 0);
    end Recover_1;
+
+   procedure Recover_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Full parse encounters an error on "." in "end Pkg.Proc_1"; error
+      --  recovery finishes the block started by "begin". Incremental parse
+      --  edit fixes the error; main parser must delete the error on "."
+      --  when the name_opt nonterm is shifted.
+      Ada_Lite_Actions.End_Name_Optional := False;
+
+      Parse_Text
+        (Initial           =>
+           "procedure Pkg.Proc_1 is begin A; begin end Pkg.Proc_1;",
+           --        |10       |20       |30       |40       |50
+         Edit_At           => 40,
+         Delete            => "",
+         Insert            => "end; ",
+         Full_Errors => 1,
+         Incr_Errors => 0);
+   end Recover_2;
 
    procedure Lexer_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
       --  Missing string quote. Initial full parse recovers from it,
-      --  incremental edit does not fix it, and incremental parse does not
-      --  report it. This demonstrates that lexer errors do not need to be
-      --  preserved for incremental parse.
+      --  incremental edit does not fix it.
       Parse_Text
         (Initial          =>
            "A := 2;" & ASCII.LF &
              --  |6
-             "B := ""A string" & ASCII.LF & -- missing closing quote; lexer error at 14
+             "B := ""A string" & ASCII.LF & -- missing '";'; lexer error at 14
              --  |12      |20
              "C := 1;",
          --   |23
          Edit_At      => 6,
          Delete       => "",
-         Insert       => ASCII.LF & "33",
-         Lexer_Errors => 0,
-         Parse_Errors => False);
+         Insert       => "33",
+         Full_Errors => 2,  --  Lexer + parser.
+         Incr_Errors => 2); --  Errors are still in tree
    end Lexer_Errors_1;
 
    procedure Preserve_Parse_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
-      --  Batch parse reports a parse error (missing ';'). Incremental parse
-      --  does not, but the error is still in Parser.Parse_Errors for the
-      --  user.
+      --  Full parse reports a parse error (missing ';'). Incremental parse
+      --  does not fix it, so the error is still in the tree.
       Parse_Text
         (Initial => "A := 2" & ASCII.LF,
          --          |1   |6
 
-         Edit_At            => 2,
-         Delete             => "",
-         Insert             => "3",
-         Batch_Parse_Errors => 1,
-         Inc_Parse_Errors   => 1);
+         Edit_At      => 2,
+         Delete       => "",
+         Insert       => "3",
+         Full_Errors => 1,
+         Incr_Errors => 1);
    end Preserve_Parse_Errors_1;
 
    procedure Preserve_Parse_Errors_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
-      --  Batch parse reports a parse error (extra 'end;'). Incremental
-      --  parse fixes the error by editing in a different location. This
+      --  Full parse reports a parse error (extra 'end;'). Incremental parse
+      --  fixes the error by editing in a different location. This
       --  demonstrates the need for storing parse errors as nodes in the
-      --  syntax tree.
+      --  syntax tree, and for always deleting error corrections even in
+      --  non-edit regions.
       Parse_Text
         (Initial => "A := 2; end;" & ASCII.LF,
          --          |1      |9
 
-         Edit_At            => 1,
-         Delete             => "",
-         Insert             => "begin ",
-         Batch_Parse_Errors => 1,
-         Inc_Parse_Errors   => 0);
-   end Preserve_Parse_Errors_1;
+         Edit_At           => 1,
+         Delete            => "",
+         Insert            => "begin ",
+         Full_Errors => 1,
+         Incr_Errors => 0);
+   end Preserve_Parse_Errors_2;
 
    procedure Modify_Deleted_Node (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -730,28 +934,117 @@ package body Test_Incremental is
            ASCII.LF,
          --  | 9
 
-         Edit_At          => 9,
-         Delete           => "",
-         Insert           => "-", -- start a comment
-         Inc_Parse_Errors => 1);
+         Edit_At      => 9,
+         Delete       => "",
+         Insert       => "-", -- start a comment
+         Full_Errors => 0,
+         Incr_Errors => 1);
 
-      Check ("current deleted count", Incremental_Parser.Current_Deleted_Nodes.Length, 1);
-      Check ("deleted '-'",
-             Incremental_Parser.Tree.ID
-               (Incremental_Parser.Current_Deleted_Nodes (Incremental_Parser.Current_Deleted_Nodes.First)),
-             +MINUS_ID);
+      declare
+         use WisiToken;
+         use WisiToken.Syntax_Trees;
+         use AUnit.Checks;
+         Tree : Syntax_Trees.Tree renames Incremental_Parser.Tree;
+         Deleted : Node_Access := Tree.First_Terminal (Tree.Root);
+      begin
+         loop
+            exit when Deleted = Invalid_Node_Access;
+            exit when Tree.Label (Deleted) = Source_Terminal and then Tree.Has_Following_Deleted (Deleted);
+            Deleted := Tree.Next_Terminal (@);
+         end loop;
 
-      Check ("persistent deleted count", Incremental_Parser.Deleted_Nodes.Length, 1);
+         Check ("no deleted found", Deleted = Invalid_Node_Access, False);
+
+         declare
+            Deleted_Nodes : Valid_Node_Access_Lists.List renames Tree.Following_Deleted (Deleted);
+         begin
+            Check ("deleted count", Deleted_Nodes.Length, 1);
+            Check ("deleted '-'", Tree.ID (Deleted_Nodes (Deleted_Nodes.First)), +MINUS_ID);
+         end;
+
+         loop
+            Deleted := Tree.Next_Terminal (@);
+            exit when Deleted = Invalid_Node_Access;
+            exit when Tree.Label (Deleted) = Source_Terminal and then Tree.Has_Following_Deleted (Deleted);
+         end loop;
+
+         Check ("more deleted found", Deleted = Invalid_Node_Access, True);
+      end;
 
       Parse_Text
-        (Label            => "2",
-         Initial          => "",            -- continue from previous
-         Edit_At          => 10,
-         Delete           => "",
-         Insert           => "- a comment", -- finish comment
-         Inc_Parse_Errors => 1);
+        (Label             => "2",
+         Initial           => "",            -- continue from previous
+         Edit_At           => 10,
+         Delete            => "",
+         Insert            => "- a comment", -- finish comment
+         Full_Errors => 1,
+         Incr_Errors => 0);
 
    end Modify_Deleted_Node;
+
+   procedure Multiple_Errors_On_One_Token_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Same initial text as test_mckenzie_recover.adb
+      --  Multiple_Errors_On_One_Token_1; here we edit to fix the error.
+
+      Parse_Text
+        ("procedure A is B : Integer" & ASCII.LF &
+           --  |6  |10       |20
+           "procedure C is begin null; end A; procedure D is begin null; end D;",
+         --  |29        |40       |50       |60       |70       |80       |90
+         Edit_At     => 27,
+         Delete      => "",
+         Insert      => ";",
+         Edit_2_At   => 54,
+         Delete_2    => "",
+         Insert_2    => " end C; begin null;",
+         Full_Errors => 2,
+         Incr_Errors => 0);
+
+      --  Edited text:
+      --  "procedure A is B : Integer;" & ASCII.LF &
+      --   |1       |10       |20
+      --  "procedure C is begin null; end C; begin null; end A; procedure D is begin null; end D;",
+      --   |29        |40       |50       |60       |70       |80       |90       |100      |110
+
+      --  There are two errors; missing ';' after 'Integer',
+      --  missing_name_error on 'procedure C'. The solution to the
+      --  match_names_error requires unreducing subprogram_body C, so both
+      --  errors store an error on 'procedure', which are cleared during
+      --  incremental parse after the edits.
+   end Multiple_Errors_On_One_Token_1;
+
+   procedure Multiple_Errors_On_One_Token_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Same initial text as test_mckenzie_recover.adb
+      --  Multiple_Errors_On_One_Token_1; here we have a different edit
+      --  that breaks down procedure C, so 'procedure' is in the input
+      --  stream as a terminal.
+
+      Parse_Text
+        ("procedure A is B : Integer" & ASCII.LF &
+           --  |6  |10       |20
+           "procedure C is begin E; end A; procedure D is begin E; end D;",
+         --  |29        |40       |50       |60       |70       |80    |90
+         Edit_At     => 27,
+         Delete      => "",
+         Insert      => ";",
+         Edit_2_At   => 38,
+         Delete_2    => "C",
+         Insert_2    => "C1",
+         Full_Errors => 2,
+         Incr_Errors => 1);
+
+      --  Edited text:
+      --  "procedure A is B : Integer;" & ASCII.LF &
+      --   |1       |10       |20
+      --  "procedure C1 is begin E; end A; procedure D is begin E; end D;",
+      --   |29        |40       |50       |60       |70       |80       |90
+   end Multiple_Errors_On_One_Token_2;
 
    ----------
    --  Public subprograms
@@ -764,6 +1057,11 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment'Access, "Edit_Comment");
       Register_Routine (T, Edit_Comment_2'Access, "Edit_Comment_2");
       Register_Routine (T, Edit_Comment_3'Access, "Edit_Comment_3");
+      Register_Routine (T, Edit_Comment_4'Access, "Edit_Comment_4");
+      Register_Routine (T, Edit_Comment_5'Access, "Edit_Comment_5");
+      Register_Routine (T, Edit_Comment_6'Access, "Edit_Comment_6");
+      Register_Routine (T, Edit_Comment_7'Access, "Edit_Comment_7");
+      Register_Routine (T, Edit_Comment_8'Access, "Edit_Comment_8");
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");
@@ -781,10 +1079,15 @@ package body Test_Incremental is
       Register_Routine (T, Delete_Comment_Start'Access, "Delete_Comment_Start");
       Register_Routine (T, Insert_New_Line'Access, "Insert_New_Line");
       Register_Routine (T, Names'Access, "Names");
+      Register_Routine (T, Missing_Name_1'Access, "Missing_Name_1");
       Register_Routine (T, Recover_1'Access, "Recover_1");
+      Register_Routine (T, Recover_2'Access, "Recover_2");
       Register_Routine (T, Lexer_Errors_1'Access, "Lexer_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
+      Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
       Register_Routine (T, Modify_Deleted_Node'Access, "Modify_Deleted_Node");
+      Register_Routine (T, Multiple_Errors_On_One_Token_1'Access, "Multiple_Errors_On_One_Token_1");
+      Register_Routine (T, Multiple_Errors_On_One_Token_2'Access, "Multiple_Errors_On_One_Token_2");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
@@ -796,7 +1099,7 @@ package body Test_Incremental is
    is begin
       --  Run before all tests in register
       WisiToken.Parse.LR.Parser.New_Parser
-        (Batch_Parser,
+        (Full_Parser,
          Trace'Access,
          Ada_Lite_LR1_T1_Main.Create_Lexer,
          Ada_Lite_LR1_T1_Main.Create_Parse_Table
@@ -818,6 +1121,11 @@ package body Test_Incremental is
            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
          Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
          User_Data                      => User_Data'Access);
+
+      if T.McKenzie_Config /= null then
+         WisiToken.Parse.LR.Set_McKenzie_Options (Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+         WisiToken.Parse.LR.Set_McKenzie_Options (Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+      end if;
    end Set_Up_Case;
 
    overriding procedure Tear_Down_Case (T : in out Test_Case)
@@ -829,7 +1137,7 @@ package body Test_Incremental is
 
    overriding procedure Set_Up (T : in out Test_Case)
    is begin
-      null;
+      Ada_Lite_Actions.End_Name_Optional := True;
    end Set_Up;
 
 end Test_Incremental;

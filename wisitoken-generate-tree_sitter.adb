@@ -635,7 +635,11 @@ package body WisiToken.Generate.Tree_Sitter is
       Data.EBNF_Allowed := True;
       Data.Error_Reported.Clear;
 
-      Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
+      Tree.Validate_Tree
+        (Data, Data.Error_Reported,
+         Root             => Tree.Root,
+         Validate_Node    => WisiToken_Grammar_Editing.Validate_Node'Access,
+         Node_Index_Order => True);
 
       if Trace_Generate_EBNF > Outline then
          Ada.Text_IO.Put_Line ("empty nonterms:");
@@ -654,7 +658,11 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.New_Line;
       end if;
 
-      Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
+      Tree.Validate_Tree
+        (Data, Data.Error_Reported,
+         Root             => Tree.Root,
+         Validate_Node    => WisiToken_Grammar_Editing.Validate_Node'Access,
+         Node_Index_Order => False);
 
       for Nonterm of Empty_Nonterms loop
          Make_Optional (-Nonterm.Name);
@@ -665,7 +673,11 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.New_Line;
       end if;
 
-      Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
+      Tree.Validate_Tree
+        (Data, Data.Error_Reported,
+         Root             => Tree.Root,
+         Validate_Node    => WisiToken_Grammar_Editing.Validate_Node'Access,
+         Node_Index_Order => False);
 
       declare
          use Valid_Node_Access_Lists;
@@ -704,7 +716,11 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.New_Line;
       end if;
 
-      Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, WisiToken_Grammar_Editing.Validate_Node'Access);
+      Tree.Validate_Tree
+        (Data, Data.Error_Reported,
+         Root             => Tree.Root,
+         Validate_Node    => WisiToken_Grammar_Editing.Validate_Node'Access,
+         Node_Index_Order => False);
 
       if Trace_Generate_EBNF > Detail then
          Ada.Text_IO.New_Line;

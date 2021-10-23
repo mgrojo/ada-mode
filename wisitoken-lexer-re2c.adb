@@ -210,7 +210,7 @@ package body WisiToken.Lexer.re2c is
 
             Byte_Region =>
               (if ID = Lexer.Descriptor.EOI_ID and then Byte_Position = 0 then
-                  --  EOF in empty buffer
+                  --  EOI in empty buffer
                  (Lexer.Source.Buffer_Nominal_First_Byte,
                   Lexer.Source.Buffer_Nominal_First_Byte - 1)
                else
@@ -225,7 +225,7 @@ package body WisiToken.Lexer.re2c is
             Char_Region =>
               (if ID = Lexer.Descriptor.EOI_ID and then Byte_Position = Integer (Base_Buffer_Pos'First)
                then
-                  --  EOF in empty buffer
+                  --  EOI in empty buffer
                  (Lexer.Source.Buffer_Nominal_First_Byte,
                   Lexer.Source.Buffer_Nominal_First_Byte - 1)
                else
@@ -346,11 +346,21 @@ package body WisiToken.Lexer.re2c is
    overriding
    function Is_Comment
      (Lexer : in Instance;
-      Token : in WisiToken.Lexer.Token)
+      ID    : in Token_ID)
      return Boolean
    is begin
-      return Is_Comment (Token.ID);
+      return Is_Comment (ID);
    end Is_Comment;
+
+   overriding
+   function Find_Comment_End
+     (Lexer         : in Instance;
+      ID            : in Token_ID;
+      Comment_Start : in Buffer_Pos)
+     return Buffer_Pos
+   is begin
+      return Find_Comment_End (Lexer.Source, ID, Comment_Start);
+   end Find_Comment_End;
 
    overriding
    function Line_Begin_Char_Pos
@@ -361,5 +371,23 @@ package body WisiToken.Lexer.re2c is
    is begin
       return Line_Begin_Char_Pos (Lexer.Source, Token, Line);
    end Line_Begin_Char_Pos;
+
+   overriding
+   function Contains_New_Line
+     (Lexer       : in Instance;
+      Byte_Region : in Buffer_Region)
+     return Boolean
+   is begin
+      return Contains_New_Line (Lexer.Source, Byte_Region);
+   end Contains_New_Line;
+
+   overriding
+   function New_Line_Count
+     (Lexer       : in Instance;
+      Byte_Region : in Buffer_Region)
+     return Base_Line_Number_Type
+   is begin
+      return New_Line_Count (Lexer.Source, Byte_Region);
+   end New_Line_Count;
 
 end WisiToken.Lexer.re2c;

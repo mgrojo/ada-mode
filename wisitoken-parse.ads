@@ -17,36 +17,14 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Finalization;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image;
-with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
-with SAL.Gen_Indefinite_Doubly_Linked_Lists_Sorted_Aux;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
-
-   type Wrapped_Lexer_Error is record
-      Recover_Token_Ref : Syntax_Trees.Terminal_Ref;
-      --  Token that lexer returned at the error.
-      --
-      --  If the error token is a grammar token, Recover_Token_Ref is in Shared_Stream;
-      --  it is needed by error recovery, for Stream_Prev/_Next in
-      --  Try_Insert_Quote; the stream element is found then.
-      --
-      --  If the error token is a non-grammar token, Recover_Token_Ref is
-      --  Invalid_Stream_Node_Ref.
-
-      Error : WisiToken.Lexer.Error;
-   end record;
-
-   package Wrapped_Lexer_Error_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Wrapped_Lexer_Error);
-
-   function Image (Item : in Wrapped_Lexer_Error; Tree : in WisiToken.Syntax_Trees.Tree) return String;
-   function Image is new Wrapped_Lexer_Error_Lists.Gen_Image_Aux (WisiToken.Syntax_Trees.Tree, Image);
 
    type Recover_Op_Label is (Fast_Forward, Undo_Reduce, Push_Back, Insert, Delete);
    subtype Insert_Delete_Op_Label is Recover_Op_Label range Insert .. Delete;
@@ -88,7 +66,7 @@ package WisiToken.Parse is
          Nonterm : Token_ID;
          --  The nonterminal popped off the stack.
 
-         Token_Count : Ada.Containers.Count_Type;
+         Token_Count : SAL.Base_Peek_Type;
          --  The number of tokens pushed on the stack.
 
          UR_Token_Index : Syntax_Trees.Base_Sequential_Index;
@@ -173,60 +151,113 @@ package WisiToken.Parse is
    --  True if Ops contains no Op after the last Fast_Forward (or ops.first, if
    --  no Fast_Forward).
 
-   type Parse_Error_Label is (Parser_Action, User_Action, Message);
-
-   type Parse_Error
-     (Label          : Parse_Error_Label;
-      First_Terminal : Token_ID;
-      Last_Terminal  : Token_ID)
-   is record
-      Recover_Ops  : Recover_Op_Arrays.Vector;
-      Recover_Cost : Natural := 0;
-
-      case Label is
-      when Parser_Action =>
-         Error_Token : Syntax_Trees.Terminal_Ref;
-
-         Expecting : Token_ID_Set (First_Terminal .. Last_Terminal);
-
-      when User_Action =>
-         Status : WisiToken.In_Parse_Actions.Status;
-
-      when Message =>
-         Msg : Ada.Strings.Unbounded.Unbounded_String;
-      end case;
+   type Lexer_Error is new Syntax_Trees.Error_Data with record
+      Error : WisiToken.Lexer.Error;
    end record;
 
-   package Parse_Error_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Parse_Error);
+   overriding function Dispatch_Equal (Left : in Lexer_Error; Right : in Syntax_Trees.Error_Data'Class) return Boolean;
+   overriding function To_Message
+     (Data       : in Lexer_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class;
 
-   function Compare
-     (Left, Right : in Parse_Error;
-      Tree        : in Syntax_Trees.Tree)
-     return SAL.Compare_Result;
-   --  Error_Token byte_position or Status.Begin_Name byte_position
-   --  order. All Messages are last, in no order.
+   overriding function Image
+     (Data       : in Lexer_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String;
 
-   package Parse_Error_Sorted_Lists is new SAL.Gen_Indefinite_Doubly_Linked_Lists_Sorted_Aux
-     (Element_Type    => Parse_Error,
-      Compare_Aux     => Syntax_Trees.Tree,
-      Element_Compare => Compare);
+   type Parse_Error
+     (First_Terminal : Token_ID;
+      Last_Terminal  : Token_ID)
+   is new Syntax_Trees.Error_Data with record
+      Expecting    : Token_ID_Set (First_Terminal .. Last_Terminal);
+      Recover_Ops  : Recover_Op_Arrays.Vector;
+      Recover_Cost : Natural := 0;
+   end record;
+
+   overriding function Dispatch_Equal (Left : in Parse_Error; Right : in Syntax_Trees.Error_Data'Class) return Boolean;
+   overriding function To_Message
+     (Data       : in Parse_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class;
+
+   overriding function Image
+     (Data       : in Parse_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String;
+
+   type In_Parse_Action_Error is new Syntax_Trees.Error_Data with record
+      Status       : WisiToken.In_Parse_Actions.Status;
+      Recover_Ops  : Recover_Op_Arrays.Vector;
+      Recover_Cost : Natural := 0;
+   end record;
+
+   overriding function Dispatch_Equal
+     (Left  : in In_Parse_Action_Error;
+      Right : in Syntax_Trees.Error_Data'Class)
+     return Boolean;
+   overriding function To_Message
+     (Data       : in In_Parse_Action_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class;
+
+   overriding function Image
+     (Data       : in In_Parse_Action_Error;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String;
+
+   type Error_Message is new Syntax_Trees.Error_Data with record
+      Msg          : Ada.Strings.Unbounded.Unbounded_String;
+      Recover_Ops  : Recover_Op_Arrays.Vector;
+      Recover_Cost : Natural := 0;
+   end record;
+
+   overriding function Dispatch_Equal
+     (Left  : in Error_Message;
+      Right : in Syntax_Trees.Error_Data'Class)
+     return Boolean;
+   overriding function To_Message
+     (Data       : in Error_Message;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class;
+
+   overriding function Image
+     (Data       : in Error_Message;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String;
+
+   function Error_Pred_Parse (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
+   --  Return True if Cur is a Parse_Error; for
+   --  Syntax_Trees.Error_Predicate.
+
+   function Error_Pred_Lexer_Parse_Message (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
+   --  Return True if Cur is one of Lexer_Error, Parse_Error, or
+   --  Error_Message; for Syntax_Trees.Error_Predicate.
+
+   function Find_Parse_In_Parse_Action_Error
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class;
+   --  Return a Parse_Error or In_Parse_Action_Error from Node.
+
+   function Find_Non_Lexer_Error
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Syntax_Trees.Valid_Node_Access)
+     return Syntax_Trees.Error_Data'Class;
 
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled
    with record
       Trace     : WisiToken.Trace_Access;
       Tree      : aliased Syntax_Trees.Tree;
       User_Data : WisiToken.Syntax_Trees.User_Data_Access;
-
-      Wrapped_Lexer_Errors : aliased Wrapped_Lexer_Error_Lists.List; -- 'aliased' for error recover
-      Parse_Errors         : Parse_Error_Sorted_Lists.List;
-      --  Persistent lists; after each incremental parse, these reflects all
-      --  errors in the source text, not just those from the most recent
-      --  incremental parse.
-
-      Deleted_Nodes : WisiToken.Syntax_Trees.Valid_Node_Access_Lists.List;
-      --  Source_Terminal nodes deleted by error recovery in previous parse,
-      --  in original text order. Restored to the shared stream by
-      --  Edit_Tree.
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 
@@ -324,22 +355,12 @@ package WisiToken.Parse is
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
 
-   procedure Put_Error
-     (Item          : in Parse_Error;
-      Tree          : in Syntax_Trees.Tree;
-      Deleted_Nodes : in Syntax_Trees.Valid_Node_Access_Lists.List;
-      Stream        : in Syntax_Trees.Stream_ID := Syntax_Trees.Invalid_Stream_ID);
-   --  Output to Ada.Text_IO.Current_Error.
-   --
-   --  Stream may be Invalid_Stream_ID if Tree is Editable (as it
-   --  normally is after Parse returns); it must be the parse stream if
-   --  parse is still in progress.
+   procedure Put_Errors (Parser : in Base_Parser'Class)
+   with Pre => Parser.Tree.Parents_Set;
+   --  Output Parser.Tree errors to Ada.Text_IO.Current_Error.
 
-   procedure Put (Errors : in Wrapped_Lexer_Error_Lists.List; Tree : in Syntax_Trees.Tree);
-   --  Output to Ada.Text_IO.Current_Error.
-
-   procedure Put_Errors (Parser : in Base_Parser'Class);
-   --  Output Parser.Wrapped_Lexer_Errors, Parser.Parse_Errors to Ada.Text_IO.Current_Error.
+   procedure Put_Errors (Parser : in Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID);
+   --  Output Parser.Tree.Stream errors to Ada.Text_IO.Current_Error.
 
    procedure Execute_Actions
      (Parser              : in out Base_Parser;

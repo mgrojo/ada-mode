@@ -7,71 +7,81 @@
 
  McKenzie error recovery
 
-parser 0: State 28 Current_Token (-1, 1;(Wisi_EOI, (59 . 58))) Resume_Token_Goal 5
+parser 0: State 28 Current_Token (0, 2;4:(Wisi_EOI, (59 . 58) ERROR))
 Parser_Action
 
  1 parallel tasks
 new Worker_Task 1
  0: succeed 2, enqueue 36, check  5, cost:  1
 spawn 1 from 0 (2 active)
- 1:  1, ( 0 0 1 0 0 0 0 0 0), (57 : (RPAREN))|(-1, 1;(Wisi_EOI, (59 . 58)))|((INSERT, RPAREN, 1))
- 0:  1, ( 0 0 3 0 0 0 0 0 0), (57 : (RPAREN))|(-1, 1;(Wisi_EOI, (59 . 58)))|((INSERT, LPAREN, 1), (INSERT, RPAREN, 1), (INSERT, RPAREN, 1))
+ 1:  1, ( 0 0 1 0 0 0 0 0 0), (57 : (RPAREN))\2;4:(Wisi_EOI, (59 . 58) ERROR)\((INSERT, RPAREN, 2))
+ 0:  1, ( 0 0 3 0 0 0 0 0 0), (57 : (RPAREN))\2;4:(Wisi_EOI, (59 . 58) ERROR)\((INSERT, LPAREN, 2), (INSERT, RPAREN, 2), (INSERT, RPAREN, 2))
 
 recover: succeed, parser count 2
  1: stack/stream:
-(1, (0, -2;(Wisi_SOI, (1 . 1))),
-(7, -1;(LPAREN, (55 . 55))),
-^(28, 0;(IDENTIFIER, (56 . 56)))/,
-(-1, -5:(RPAREN))/,
-(-1, 1;(Wisi_EOI, (59 . 58))))
-    Current_Token: (1, -5:(RPAREN))
-    Shared_Token: (-1, 1;(Wisi_EOI, (59 . 58)))
+(1, (0, 
+0000: -1;0:(Wisi_SOI, (1 . 1))),
+(7, 
+0001: 0;1:(LPAREN, (55 . 55))),
+^(28, 
+0002: 1;2:(IDENTIFIER, (56 . 56))),
+(-1, 
+0007: -7:(RPAREN)),
+(-1, 
+0005: 2;5:(Wisi_EOI, (59 . 58) ERROR)))
+    Current_Token: (1, -7:(RPAREN))
+    Shared_Token: ()
     recover_insert_delete:
-    resume_active: True, token goal 5, inc_shared_stream_token: FALSE
+    resume_active: True, token goal 6
  0: stack/stream:
-(0, (0, -2;(Wisi_SOI, (1 . 1))),
-(7, -1;(LPAREN, (55 . 55))),
-^(28, 0;(IDENTIFIER, (56 . 56)))/,
-(-1, -6:(LPAREN))/,
-(-1, 1;(Wisi_EOI, (59 . 58))))
-    Current_Token: (0, -6:(LPAREN))
-    Shared_Token: (-1, 1;(Wisi_EOI, (59 . 58)))
-    recover_insert_delete:((INSERT, RPAREN, 1), (INSERT, RPAREN, 1))
-    resume_active: True, token goal 5, inc_shared_stream_token: FALSE
+(0, (0, 
+0000: -1;0:(Wisi_SOI, (1 . 1))),
+(7, 
+0001: 0;1:(LPAREN, (55 . 55))),
+^(28, 
+0002: 1;2:(IDENTIFIER, (56 . 56))),
+(-1, 
+0009: -9:(LPAREN)),
+(-1, 
+0006: 2;6:(Wisi_EOI, (59 . 58) ERROR)))
+    Current_Token: (0, -9:(LPAREN))
+    Shared_Token: ()
+    recover_insert_delete:((INSERT, RPAREN, 2), (INSERT, RPAREN, 2))
+    resume_active: True, token goal 6
 
- 1: 28: (1, -5:(RPAREN)) : reduce 1 tokens to primary
-(primary_3, (56 . 56)) <= (0;(IDENTIFIER, (56 . 56)))
+ 1: 28: (1, -7:(RPAREN)) : reduce 1 tokens to primary
+(primary_3, (56 . 56) <= (1;2:(IDENTIFIER, (56 . 56))))
  ... goto state 33
- 0: 28: (0, -6:(LPAREN)) : shift and goto state 56
- 1: 33: (1, -5:(RPAREN)) : reduce 1 tokens to expression
-(expression_0, (56 . 56)) <= ((primary, (56 . 56)))
+ 0: 28: (0, -9:(LPAREN)) : shift and goto state 56
+ 1: 33: (1, -7:(RPAREN)) : reduce 1 tokens to expression
+(expression_0, (56 . 56) <= ((primary, (56 . 56))))
  ... goto state 32
- 1: 32: (1, -5:(RPAREN)) : shift and goto state 57
- 1: 57: (-1, 1;(Wisi_EOI, (59 . 58))) : reduce 3 tokens to primary
-(primary_0, (55 . 56)) <= (-1;(LPAREN, (55 . 55)), (expression, (56 . 56)), -5:(RPAREN))
+ 1: 32: (1, -7:(RPAREN)) : shift and goto state 57
+ 1: 57: (1, 2;5:(Wisi_EOI, (59 . 58) ERROR)) : reduce 3 tokens to primary
+(primary_0, (55 . 56) <= (0;1:(LPAREN, (55 . 55)), (expression, (56 . 56)), -7:(RPAREN)))
  ... goto state 17
- 0: 56: (0, -9:(RPAREN)) : shift and goto state 110
- 1: 17: (-1, 1;(Wisi_EOI, (59 . 58))) : reduce 1 tokens to expression
-(expression_0, (55 . 56)) <= ((primary, (55 . 56)))
+ 0: 56: (0, -12:(RPAREN)) : shift and goto state 110
+ 1: 17: (1, 2;5:(Wisi_EOI, (59 . 58) ERROR)) : reduce 1 tokens to expression
+(expression_0, (55 . 56) <= ((primary, (55 . 56))))
  ... goto state 16
- 1: 16: (-1, 1;(Wisi_EOI, (59 . 58))) : accept it
-(wisitoken_accept_0, (55 . 56)) <= ((expression, (55 . 56)))
- 0: 110: (0, -13:(RPAREN)) : reduce 3 tokens to methodCall
-(methodCall_1, (56 . 56)) <= (0;(IDENTIFIER, (56 . 56)), -6:(LPAREN), -9:(RPAREN))
+ 1: 16: (1, 2;5:(Wisi_EOI, (59 . 58) ERROR)) : accept it
+(wisitoken_accept_0, (55 . 56) <= ((expression, (55 . 56))))
+ 0: 110: (0, -16:(RPAREN)) : reduce 3 tokens to methodCall
+(methodCall_1, (56 . 56) <= (1;2:(IDENTIFIER, (56 . 56)), -9:(LPAREN), -12:(RPAREN)))
  ... goto state 31
- 0: 31: (0, -13:(RPAREN)) : reduce 1 tokens to expression
-(expression_3, (56 . 56)) <= ((methodCall, (56 . 56)))
+ 0: 31: (0, -16:(RPAREN)) : reduce 1 tokens to expression
+(expression_3, (56 . 56) <= ((methodCall, (56 . 56))))
  ... goto state 32
- 0: 32: (0, -13:(RPAREN)) : shift and goto state 57
- 0: 57: (-1, 1;(Wisi_EOI, (59 . 58))) : reduce 3 tokens to primary
-(primary_0, (55 . 56)) <= (-1;(LPAREN, (55 . 55)), (expression, (56 . 56)), -13:(RPAREN))
+ 0: 32: (0, -16:(RPAREN)) : shift and goto state 57
+ 0: 57: (0, 2;6:(Wisi_EOI, (59 . 58) ERROR)) : reduce 3 tokens to primary
+(primary_0, (55 . 56) <= (0;1:(LPAREN, (55 . 55)), (expression, (56 . 56)), -16:(RPAREN)))
  ... goto state 17
- 0: 17: (-1, 1;(Wisi_EOI, (59 . 58))) : reduce 1 tokens to expression
-(expression_0, (55 . 56)) <= ((primary, (55 . 56)))
+ 0: 17: (0, 2;6:(Wisi_EOI, (59 . 58) ERROR)) : reduce 1 tokens to expression
+(expression_0, (55 . 56) <= ((primary, (55 . 56))))
  ... goto state 16
- 0: 16: (-1, 1;(Wisi_EOI, (59 . 58))) : accept it
-(wisitoken_accept_0, (55 . 56)) <= ((expression, (55 . 56)))
- 0: terminate (1 active): recover cost/length (-1, 3:(Wisi_EOI, (59 . 58)))
+ 0: 16: (0, 2;6:(Wisi_EOI, (59 . 58) ERROR)) : accept it
+(wisitoken_accept_0, (55 . 56) <= ((expression, (55 . 56))))
+ 0: terminate (1 active): recover cost/length (0, 6:(Wisi_EOI, (59 . 58) ERROR))
  1: succeed
-java_expressions_antlr.input:3:1: syntax error: expecting LPAREN, RPAREN, LBRACK, DOT, INC, DEC, ADD, SUB, MUL, DIV, MOD, found ''
-   recovered: ((INSERT, RPAREN, 1))
+java_expressions_antlr.input:3:1: syntax_error: expecting LPAREN, RPAREN, LBRACK, DOT, INC, DEC, ADD, SUB, MUL, DIV, MOD, found ''
+   recovered: ((INSERT, RPAREN, 2))

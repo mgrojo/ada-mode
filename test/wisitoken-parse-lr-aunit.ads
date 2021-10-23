@@ -77,7 +77,7 @@ package WisiToken.Parse.LR.AUnit is
 
       when Undo_Reduce =>
          Nonterm        : Token_ID;
-         Token_Count    : Ada.Containers.Count_Type;
+         Token_Count    : SAL.Base_Peek_Type;
          UR_Token_Index : Syntax_Trees.Base_Sequential_Index;
 
       when Push_Back =>
@@ -115,7 +115,5 @@ package WisiToken.Parse.LR.AUnit is
       Array_Type  => Strategy_Counts,
       Check_Index => Check,
       Check_Item  => Standard.AUnit.Checks.Check);
-
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Parse_Error_Label);
 
 end WisiToken.Parse.LR.AUnit;

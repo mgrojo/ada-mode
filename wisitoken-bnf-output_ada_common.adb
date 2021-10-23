@@ -1017,6 +1017,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("#define YYPEEK() (lexer->cursor <= lexer->buffer_last) ? *lexer->cursor : 4");
       New_Line;
 
+      --  skip() only counts new_lines when used for delimited_text tokens.
+      --  Making it always count new_lines would mean that new_line tokens
+      --  require special handling anyway.
       Indent_Line ("static void skip(wisi_lexer* lexer, int count_lines)");
       Indent_Line ("{");
       Indent := Indent + 3;
@@ -1207,18 +1210,21 @@ package body WisiToken.BNF.Output_Ada_Common is
                  (Val & " {*id =" & WisiToken.Token_ID'Image (ID (I)) &
                     "; skip_to(lexer, " & Repair_Image (Generate_Data, I) & "); continue;}");
 
-            elsif Kind (Generate_Data, I) = "new-line" or
-              Kind (Generate_Data, I) = "comment-new-line"
+            elsif Kind (Generate_Data, I) = "new-line"
             then
                Indent_Line
                  (Name (Generate_Data, I) &
                     " {*id =" & WisiToken.Token_ID'Image (ID (I)) & "; lexer->line++; continue;}");
 
-            elsif Kind (Generate_Data, I) = "comment-one-line" then
+            elsif Kind (Generate_Data, I) = "comment-one-line" or
+              Kind (Generate_Data, I) = "comment-new-line"
+            then
+               --  Comments can be terminated by new_line or EOI
                Indent_Line
                  (Name (Generate_Data, I) &
                     " {*id =" & WisiToken.Token_ID'Image (ID (I)) &
-                    "; if (lexer->cursor[-1] == 0x0a) lexer->line++; continue;}");
+                    "; if (lexer->cursor[-1] == 0x0a || (lexer->cursor[-1] == 0x0d && lexer->cursor[-2] == 0x0a))" &
+                    " lexer->line++; continue;}");
 
             elsif 0 /= Index (Source => Val, Pattern => "/") then
                Indent_Line (Val & " {*id =" & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
@@ -1418,6 +1424,56 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("end Is_Comment;");
       New_Line;
 
+      Indent_Line ("function Find_Comment_End");
+      Indent_Line ("  (Source        : in WisiToken.Lexer.Source;");
+      Indent_Line ("   ID            : in WisiToken.Token_ID;");
+      Indent_Line ("   Comment_Start : in WisiToken.Buffer_Pos)");
+      Indent_Line ("  return WisiToken.Buffer_Pos");
+      Indent_Line ("is begin");
+      Indent := @ + 3;
+      Indent_Line ("return");
+      Indent_Line ("  (case To_Token_Enum (ID) is");
+      Indent := @ + 3;
+      if Comment_Count > 0 then
+         Need_Separator := False;
+
+         for I in All_Tokens (Generate_Data).Iterate
+           (Non_Grammar  => True,
+            Nonterminals => False,
+            Include_SOI  => False)
+         loop
+            if Kind (Generate_Data, I) = "comment-new-line" then
+               if Need_Separator then
+                  Put (" | ");
+               else
+                  Indent_Start ("when ");
+                  Need_Separator := True;
+               end if;
+               Put (Name (Generate_Data, I) & "_ID");
+            end if;
+         end loop;
+         Put_Line (" => WisiToken.Lexer.Find_New_Line (Source, Comment_Start),");
+
+         for I in All_Tokens (Generate_Data).Iterate
+           (Non_Grammar  => True,
+            Nonterminals => False,
+            Include_SOI  => False)
+         loop
+            if Kind (Generate_Data, I) = "comment-one-line" then
+               Put ("when " & Name (Generate_Data, I) & "_ID");
+               Put_Line
+                 (" => WisiToken.Lexer.Find_String_Or_New_Line (Source, Comment_Start, " &
+                    --  Value includes quotes.
+                    Value (Generate_Data, I) & "),");
+            end if;
+         end loop;
+      end if;
+
+      Indent_Line ("when others => raise SAL.Programmer_Error);");
+      Indent := @ - 6;
+      Indent_Line ("end Find_Comment_End;");
+      New_Line;
+
       Indent_Line ("function Line_Begin_Char_Pos");
       Indent_Line (" (Source : in WisiToken.Lexer.Source;");
       Indent_Line ("  Token  : in WisiToken.Lexer.Token;");
@@ -1498,6 +1554,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Set_Position,");
       Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token,");
       Indent_Line ("   Is_Comment,");
+      Indent_Line ("   Find_Comment_End,");
       Indent_Line ("   Line_Begin_Char_Pos);");
       New_Line;
    end Create_re2c_Lexer;

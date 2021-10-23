@@ -110,7 +110,7 @@
 
 %token <string-double> STRING_LITERAL %[ ("[π\x20-\x21\x23-\x7F]*")+ ]%
 %token <symbol> IDENTIFIER %[ [πa-zA-Z][π0-9a-zA-Z_]* ]%
-%non_grammar <line-comment> COMMENT "--"
+%non_grammar <comment-new-line> COMMENT "--"
 %end if
 
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%

@@ -140,11 +140,18 @@ package body Test_LR_Expecting_Terminal_Sequence is
          AUnit.Assertions.Assert (False, Command & "; no exception");
       exception
       when WisiToken.Syntax_Error =>
+         if WisiToken.Trace_Tests > WisiToken.Outline then
+            Ada.Text_IO.Put_Line ("parse result:");
+            Parser.Tree.Print_Tree (Trace);
+         end if;
          declare
-            List  : WisiToken.Parse.Parse_Error_Lists.List renames Parser.Parsers.First.State_Ref.Errors;
-            Error : WisiToken.Parse.Parse_Error renames List.Constant_Reference (List.First);
+            Error_Ref : constant WisiToken.Syntax_Trees.Stream_Error_Ref :=  Parser.Tree.First_Error
+              (Parser.Tree.First_Parse_Stream);
+            Error : constant WisiToken.Syntax_Trees.Error_Data'Class := WisiToken.Syntax_Trees.Error (Error_Ref);
          begin
-            WisiToken.AUnit.Check (Command, Error.Expecting, Expected);
+            AUnit.Assertions.Assert (Error in WisiToken.Parse.Parse_Error, "not a Parse_Error");
+
+            WisiToken.AUnit.Check (Command, WisiToken.Parse.Parse_Error (Error).Expecting, Expected);
          end;
       end Execute;
    end Simple;

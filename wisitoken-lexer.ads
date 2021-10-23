@@ -48,6 +48,19 @@ package WisiToken.Lexer is
       --  buffers.
 
       Line_Region : WisiToken.Line_Region := Null_Line_Region;
+      --  SOI, EOI tokens have 0 length for Byte_Region and Char_Region, and
+      --  0 Line_Length_Count for Line_Region.
+      --
+      --  SOI.Byte_Region.First = first byte of first character in text
+      --  SOI.Char_Region.First = first character in text
+      --  SOI.Line_Region.First = first line in text,
+      --
+      --  SOI may not be Buffer_Pos'First and Line_Number_Type'First if parsing part of a file.
+      --
+      --  EOI.Byte_Region.First = Byte position of EOI character; if not
+      --  actually present, one after the last byte in the text.
+      --  EOI.Char_Region.First = Character position of EOI character.
+      --  EOI.Line_Region.First = last line in file (after final new_line).
    end record;
 
    function Column (Token : in Lexer.Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count;
@@ -56,7 +69,7 @@ package WisiToken.Lexer is
      (Item       : in Token;
       Descriptor : in WisiToken.Descriptor)
      return String;
-   --  ID and Char_Region
+   --  ID, Char_Region; Line_Region if New_Line
 
    function Full_Image
      (Item       : in Token;
@@ -213,9 +226,19 @@ package WisiToken.Lexer is
 
    function Is_Comment
      (Lexer : in Instance;
-      Token : in WisiToken.Lexer.Token)
+      ID    : in Token_ID)
      return Boolean
    is abstract;
+
+   function Find_Comment_End
+     (Lexer         : in Instance;
+      ID            : in Token_ID;
+      Comment_Start : in Buffer_Pos)
+     return Buffer_Pos
+   is abstract
+   with Pre'Class => Is_Comment (Lexer, ID);
+   --  Given the byte position of a comment start, return the byte
+   --  position of the comment end.
 
    function Line_Begin_Char_Pos
      (Lexer : in Instance;
@@ -227,13 +250,44 @@ package WisiToken.Lexer is
    --  First char position on Line; Invalid_Buffer_Pos if Token does not
    --  contain new_line that starts Line.
 
+   function Contains_New_Line
+     (Lexer       : in Instance;
+      Byte_Region : in Buffer_Region)
+     return Boolean is abstract;
+
+   function New_Line_Count
+     (Lexer       : in Instance;
+      Byte_Region : in Buffer_Region)
+     return Base_Line_Number_Type is abstract;
+
    type Source (<>) is private;
+
+   function Find_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Start  : in Buffer_Pos)
+     return Buffer_Pos;
+
+   function Find_String_Or_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Start  : in Buffer_Pos;
+      Item   : in String)
+     return Buffer_Pos;
 
    function Line_Begin_Char_Pos
      (Source : in WisiToken.Lexer.Source;
       Token  : in WisiToken.Lexer.Token;
       Line   : in Line_Number_Type)
      return Base_Buffer_Pos;
+
+   function Contains_New_Line
+     (Source      : in WisiToken.Lexer.Source;
+      Byte_Region : in Buffer_Region)
+     return Boolean;
+
+   function New_Line_Count
+     (Source      : in WisiToken.Lexer.Source;
+      Byte_Region : in Buffer_Region)
+     return Base_Line_Number_Type;
 
 private
 
@@ -284,6 +338,9 @@ private
 
    function To_Buffer_Index (Source : in WisiToken.Lexer.Source; Byte_Pos : in Base_Buffer_Pos) return Integer
    is (Integer (Byte_Pos - Source.Buffer_Nominal_First_Byte + Buffer_Pos'First));
+
+   function From_Buffer_Index (Source : in WisiToken.Lexer.Source; Index : in Integer) return Base_Buffer_Pos
+   is (Base_Buffer_Pos (Index) + Source.Buffer_Nominal_First_Byte - Buffer_Pos'First);
 
    function File_Name (Source : in Lexer.Source) return String;
 

@@ -162,19 +162,19 @@ package body WisiToken.Parse.LR.AUnit is
       Computed : in Recover_Op;
       Expected : in Test_Recover_Op)
    is
+      use SAL.AUnit;
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
-      use Standard.AUnit.Checks.Containers;
    begin
       Check (Label & ".op", Computed.Op, Expected.Op);
       case Computed.Op is
       when Fast_Forward =>
-         Check (Label & ".ff_token_index", Computed.FF_Token_Index, Expected.FF_Token_Index);
+         Check (Label & ".token_index", Computed.FF_Token_Index, Expected.FF_Token_Index);
 
       when Undo_Reduce =>
          Check (Label & ".nonterm", Computed.Nonterm, Expected.Nonterm);
          Check (Label & ".token_count", Computed.Token_Count, Expected.Token_Count);
-         Check (Label & ".ur_token_index", Computed.UR_Token_Index, Expected.UR_Token_Index);
+         Check (Label & ".token_index", Computed.UR_Token_Index, Expected.UR_Token_Index);
 
       when Push_Back =>
          Check (Label & ".id", Computed.PB_ID, Expected.PB_ID);

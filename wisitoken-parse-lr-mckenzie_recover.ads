@@ -28,6 +28,7 @@ pragma License (Modified_GPL);
 
 with Ada.Task_Attributes;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Parse.LR.Parser_Lists;
 limited with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package WisiToken.Parse.LR.McKenzie_Recover is
    use all type WisiToken.Syntax_Trees.Node_Access;
@@ -36,7 +37,14 @@ package WisiToken.Parse.LR.McKenzie_Recover is
 
    Bad_Config : exception;
    --  Raised when a config is determined to violate some programming
-   --  convention; abandon it.
+   --  convention; abandon it. In Debug_Mode, report it, so it can be
+   --  fixed. We don't use SAL.Programmer_Error for this, because the
+   --  programming bug can easily be ignored by abandoning the config.
+
+   Invalid_Case : exception;
+   --  Raised to abandon error recover cases that don't apply, when they
+   --  are not easily abandoned by 'if' or 'case'. We don't use
+   --  Bad_Config for that, because it is not a programmer error.
 
    type Recover_Status is (Fail_Check_Delta, Fail_Enqueue_Limit, Fail_No_Configs_Left, Fail_Programmer_Error, Success);
 
@@ -67,7 +75,7 @@ private
    type Config_Stream_Parents (Stream : access constant Bounded_Streams.List) is
    record
       --  Like Syntax_Trees.Stream_Node_Parents, but using a Configuration
-      --  input stream.
+      --  input stream; does not continue into Tree streams.
       Element : Bounded_Streams.Cursor;
       Node    : Syntax_Trees.Node_Access;
       Parents : Syntax_Trees.Node_Stacks.Stack;
@@ -75,8 +83,11 @@ private
 
    type Peek_Sequential_State (Stream : access constant Bounded_Streams.List) is
    record
-      Input_Terminal      : Config_Stream_Parents (Stream);
-      Sequential_Terminal : Syntax_Trees.Stream_Node_Parents;
+      --  Like Syntax_Trees.Stream_Node_Parents, but using a Configuration
+      --  input stream; continues forward into Tree shared stream. There is
+      --  no Prev operation; cannot continue backward into config stack.
+      Input_Terminal      : Config_Stream_Parents (Stream);   -- in Config.Input_Stream
+      Sequential_Terminal : Syntax_Trees.Stream_Node_Parents; -- in Tree.Shared_Stream
    end record;
 
    procedure Check (ID : Token_ID; Expected_ID : in Token_ID)
@@ -216,6 +227,62 @@ private
      (Tree  : in     Syntax_Trees.Tree;
       State : in out Peek_Sequential_State);
 
+   procedure Set_Initial_Sequential_Index
+     (Parsers    : in out WisiToken.Parse.LR.Parser_Lists.List;
+      Tree       : in     Syntax_Trees.Tree;
+      Streams    : in out Syntax_Trees.Stream_ID_Array;
+      Terminals  : in out Syntax_Trees.Stream_Node_Parents_Array;
+      Initialize : in     Boolean)
+   with Pre => Terminals'First = 1 and Terminals'Last = (if Initialize then Parsers.Count else Parsers.Count + 1) and
+               Streams'First = Terminals'First and Streams'Last = Terminals'Last,
+     Post => (for all Term of Terminals =>
+                (if Initialize
+                 then Tree.Get_Sequential_Index (Term.Ref.Node) /= Syntax_Trees.Invalid_Sequential_Index
+                 else Tree.Get_Sequential_Index (Term.Ref.Node) = Syntax_Trees.Invalid_Sequential_Index));
+   --  If Initialize, prepare for setting sequential_index in the parse
+   --  streams for error recover. If not Initialize, prepare for clearing
+   --  sequential_index after recover is done; Terminals'Last is the
+   --  shared stream (see body for rationale).
+   --
+   --  Set Terminals to a common starting point for
+   --  Extend_Sequential_Index, nominally parser Current_Token for
+   --  Initialize, stack top for not Initialize. If Initialize, set
+   --  Sequential_Index in all Terminals nodes to 1; if not Initialize,
+   --  set to Invalid_Sequential_Index.
+
+   procedure Extend_Sequential_Index
+     (Tree      : in     Syntax_Trees.Tree;
+      Streams   : in     Syntax_Trees.Stream_ID_Array;
+      Terminals : in out Syntax_Trees.Stream_Node_Parents_Array;
+      Target    : in     Syntax_Trees.Base_Sequential_Index;
+      Positive  : in     Boolean;
+      Clear     : in     Boolean)
+   with Pre =>
+     (if Clear
+      then (for all Term of Terminals =>
+              Tree.Get_Sequential_Index (Term.Ref.Node) = Syntax_Trees.Invalid_Sequential_Index)
+      else
+        (for all Term of Terminals =>
+           Tree.Get_Sequential_Index (Term.Ref.Node) /= Syntax_Trees.Invalid_Sequential_Index)
+           and then
+          (for some Term of Terminals =>
+             Tree.ID (Term.Ref.Node) /=
+             (if Positive
+              then Tree.Lexer.Descriptor.EOI_ID
+              else Tree.Lexer.Descriptor.SOI_ID) and
+             (if Positive
+              then Tree.Get_Sequential_Index (Term.Ref.Node) < Target
+              else Tree.Get_Sequential_Index (Term.Ref.Node) > Target))),
+     Post =>
+       (for all Term of Terminals =>
+          (if Clear
+           then Tree.Get_Sequential_Index (Term.Ref.Node) = Syntax_Trees.Invalid_Sequential_Index
+           else Tree.Get_Sequential_Index (Term.Ref.Node) /= Syntax_Trees.Invalid_Sequential_Index));
+   --  If Target = Invalid_Sequential_Index, clear all Sequential_Index,
+   --  starting at Terminals, and moving in Positive direction.
+   --  Otherwise, Set Sequential_Index in Tree nodes before/after
+   --  Terminals, thru Target.
+
    function Push_Back_Valid
      (Super                 : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
       Config                : in              Configuration;
@@ -230,26 +297,27 @@ private
      (Super                 : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
       Config                : in out          Configuration;
       Push_Back_Undo_Reduce : in              Boolean := False);
-   --  If not Push_Back_Valid, raise Bad_Config. Otherwise do Push_Back.
+   --  If not Push_Back_Valid, raise Invalid_Case. Otherwise do
+   --  Push_Back.
    --
    --  Normally Push_Back_Valid forbids push_back of an entire
    --  Undo_Reduce; Language_Fixes may override that by setting
    --  Push_Back_Undo_Reduce True.
 
    procedure Push_Back_Check
-     (Super       : not null access Base.Supervisor;
-      Config      : in out          Configuration;
-      Expected_ID : in              Token_ID);
+     (Super                 : not null access Base.Supervisor;
+      Config                : in out          Configuration;
+      Expected_ID           : in              Token_ID;
+      Push_Back_Undo_Reduce : in              Boolean := False);
    --  Check that Config.Stack top has Expected_ID; raise Bad_Config if
    --  not. Then call Push_Back.
 
    procedure Push_Back_Check
-     (Super    : not null access Base.Supervisor;
-      Config   : in out          Configuration;
-      Expected : in              Token_ID_Array);
+     (Super                 : not null access Base.Supervisor;
+      Config                : in out          Configuration;
+      Expected              : in              Token_ID_Array;
+      Push_Back_Undo_Reduce : in              Boolean := False);
    --  Call Push_Back_Check for each item in Expected.
-   --
-   --  Raises Bad_Config if any of the push_backs is invalid.
 
    procedure Put
      (Message      : in     String;
@@ -287,7 +355,7 @@ private
       Config   : in out          Configuration;
       Expected : in              Token_ID)
    with Inline => True;
-   --  If not Undo_Reduce_Valid, raise Bad_Config. Else call Check,
+   --  If not Undo_Reduce_Valid, raise Invalid_Case. Else call Check,
    --  Unchecked_Undo_Reduce. Caller should check for space in
    --  Config.Ops.
 

@@ -100,7 +100,8 @@ package body WisiToken_Grammar_Editing is
               (ID          => ID (Tree, Item),
                Byte_Region => Tree.Byte_Region (Item.Node),
                Char_Region => Tree.Char_Region (Item.Node),
-               Line_Region => Tree.Line_Region (Item.Node)));
+               Line_Region => Tree.Line_Region (Item.Node)),
+            Error => Syntax_Trees.No_Error);
 
       when Virtual_Terminal =>
          return Tree.Add_Terminal (ID (Tree, Item));
@@ -2867,7 +2868,13 @@ package body WisiToken_Grammar_Editing is
       end if;
 
       if Debug_Mode then
-         Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
+         --  We've edited the tree, creating new nodes, so Node_Index_Order is
+         --  no longer valid.
+         Tree.Validate_Tree
+           (Data, Data.Error_Reported,
+            Root             => Tree.Root,
+            Validate_Node    => Validate_Node'Access,
+            Node_Index_Order => False);
          Check_Original_EBNF;
          Check_Copied_EBNF;
       end if;
@@ -2905,7 +2912,11 @@ package body WisiToken_Grammar_Editing is
                Process_Node (Node);
 
                if Debug_Mode then
-                  Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
+                  Tree.Validate_Tree
+                    (Data, Data.Error_Reported,
+                     Root             => Tree.Root,
+                     Validate_Node    => Validate_Node'Access,
+                     Node_Index_Order => False);
                   Check_Original_EBNF;
                   Check_Copied_EBNF;
                end if;
@@ -2958,7 +2969,11 @@ package body WisiToken_Grammar_Editing is
                   Process_Node (Node);
 
                   if Debug_Mode then
-                     Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
+                     Tree.Validate_Tree
+                       (Data, Data.Error_Reported,
+                        Root             => Tree.Root,
+                        Validate_Node    => Validate_Node'Access,
+                        Node_Index_Order => False);
                      Check_Copied_EBNF;
                   end if;
                end if;
@@ -2984,8 +2999,13 @@ package body WisiToken_Grammar_Editing is
       end;
 
       Data.EBNF_Allowed := False;
-      Tree.Validate_Tree (Data, Data.Error_Reported, Tree.Root, Validate_Node'Access);
-
+      if Debug_Mode then
+         Tree.Validate_Tree
+           (Data, Data.Error_Reported,
+            Root             => Tree.Root,
+            Validate_Node    => Validate_Node'Access,
+            Node_Index_Order => False);
+      end if;
       Data.Meta_Syntax := BNF_Syntax;
 
       if Trace_Generate_EBNF > Detail then
@@ -3025,7 +3045,7 @@ package body WisiToken_Grammar_Editing is
                then Lexer.Token_Arrays.Empty_Vector
                else (case Tree.Label (Last_Term) is
                      when Terminal_Label => Tree.Non_Grammar_Const (Last_Term),
-                     when Nonterm => Lexer.Token_Arrays.Empty_Vector));
+                     when others => Lexer.Token_Arrays.Empty_Vector));
 
             Comments_Include_Newline : Boolean := False;
          begin

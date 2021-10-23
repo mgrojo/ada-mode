@@ -45,6 +45,7 @@ with System.Multiprocessors;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
+   use all type WisiToken.Syntax_Trees.Base_Sequential_Index;
    use all type WisiToken.Syntax_Trees.Stream_ID;
    use all type SAL.Base_Peek_Type;
 
@@ -361,12 +362,15 @@ package WisiToken.Parse.LR is
    --  Return State from the shift action in Action_List.
 
    procedure Undo_Reduce
-     (Tree   : in out Syntax_Trees.Tree;
-      Table  : in     Parse_Table;
-      Stream : in     Syntax_Trees.Stream_ID)
+     (Tree      : in out Syntax_Trees.Tree;
+      Table     : in     Parse_Table;
+      Stream    : in     Syntax_Trees.Stream_ID;
+      User_Data : in     Syntax_Trees.User_Data_Access)
    with Pre => Tree.Parents_Set or Stream /= Tree.Shared_Stream;
    --  Undo reduction of nonterm at Stream.Stack_Top; Stack_Top is then
    --  the last Child of the nonterm.
+   --
+   --  If Stream.Stack_Top has an error, it is moved to the first terminal.
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
 
@@ -420,10 +424,11 @@ package WisiToken.Parse.LR is
            Image (Fast_Token_ID_Arrays.Element (Tokens, Index), Descriptor));
 
    type Recover_Op_Nodes (Op : Insert_Delete_Op_Label := Insert) is record
-      --  Add Ins_Tree_Node to Config_Op info, set when item is
-      --  parsed; used to create user augmented token.
 
-      Error_Pos : Buffer_Pos := Invalid_Buffer_Pos; --  Position of the error that is repaired by this op.
+      Error_Pos : Buffer_Pos := Invalid_Buffer_Pos;
+      --  Position of the error that is repaired by this op. Used by the
+      --  editor to identify sets of recover ops, and compute presentation
+      --  order.
 
       case Op is
       when Insert =>
@@ -434,25 +439,22 @@ package WisiToken.Parse.LR is
          --  Ins_ID is inserted before Ins_Before in the Shared_Stream.
 
          Ins_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
-         --  The parse stream node holding the inserted token; valid after
-         --  parse is complete.
+         --  The parse stream node holding the inserted token.
 
       when Delete =>
          Del_ID : Token_ID := Invalid_Token_ID;
-         --  The token ID deleted; a terminal token. IMPROVEME: allow delete nonterm?
+         --  The token ID deleted; a terminal token.
 
          Del_Index : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'First;
          --  Token at Del_Index is deleted; used by parser to skip the token.
 
          Del_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
          --  Del_Node is deleted; used by post-parse actions to adjust for the
-         --  deleted token.
-
-         Del_After_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
-         --  Previous terminal (shared or virtual) in parse stream; used by
-         --  post-parse actions to adjust for the deleted token.
+         --  deleted token. Del_Node.Parent is the previous non-deleted terminal.
       end case;
    end record;
+
+   subtype Delete_Op_Nodes is Recover_Op_Nodes (Delete);
 
    package Recover_Op_Nodes_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Positive_Index_Type, Recover_Op_Nodes, Default_Element => (others => <>));
@@ -463,6 +465,15 @@ package WisiToken.Parse.LR is
      (Syntax_Trees.Tree,
       Index_Trimmed_Image => Trimmed_Image,
       Element_Image       => Image);
+
+   procedure Do_Delete
+     (Tree        : in out Syntax_Trees.Tree;
+      Stream      : in     Syntax_Trees.Stream_ID;
+      Op          : in out Delete_Op_Nodes;
+      Deleted_Ref : in     Syntax_Trees.Stream_Node_Ref;
+      User_Data   : in     Syntax_Trees.User_Data_Access)
+   with Pre => Op.Del_Index = Tree.Get_Sequential_Index (Deleted_Ref.Node);
+   --  Perform Delete operation on Stream, set Op.Del_Node..
 
    type Recover_Stack_Item is record
       State : Unknown_State_Index := Unknown_State;
@@ -564,19 +575,20 @@ package WisiToken.Parse.LR is
       --  we set Shared_Parser.Resume_Token_Goal only from successful
       --  configs.
 
-      String_Quote_Checked : Base_Line_Number_Type := Invalid_Line_Number;
-      --  Max line checked for missing string quote.
+      String_Quote_Checked_Line     : Base_Line_Number_Type := Invalid_Line_Number;
+      String_Quote_Checked_Byte_Pos : Base_Buffer_Pos       := Invalid_Buffer_Pos;
+      --  Max line, line_end_pos checked for missing string quote.
 
-      Error_Token             : Syntax_Trees.Recover_Token;
-      User_Action_Token_Count : Ada.Containers.Count_Type := 0;
-      User_Action_Status      : In_Parse_Actions.Status;
+      Error_Token                 : Syntax_Trees.Recover_Token;
+      In_Parse_Action_Token_Count : SAL.Base_Peek_Type := 0;
+      In_Parse_Action_Status      : In_Parse_Actions.Status;
       --  If parsing this config ended with a parse error, Error_Token is
       --  the token that failed to shift, Check_Status.Label is Ok.
       --
-      --  If parsing this config ended with a semantic check fail,
+      --  If parsing this config ended with an In_Parse_Action fail,
       --  Error_Token is the nonterm created by the reduction,
-      --  Check_Token_Count the number of tokens in the right hand side, and
-      --  Check_Status is the error.
+      --  In_Parse_Action_Token_Count the number of tokens in the right hand
+      --  side, and In_Parse_Action_Status is the error.
       --
       --  Error_Token is set to Invalid_Token_ID when Config is parsed
       --  successfully, or modified so the error is no longer meaningful (ie

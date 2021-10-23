@@ -34,15 +34,19 @@ package WisiToken.In_Parse_Actions is
          null;
 
       when Error =>
-         Begin_Name : Syntax_Trees.Recover_Token;
-         End_Name   : Syntax_Trees.Recover_Token;
+         Begin_Name : Positive_Index_Type;
+         End_Name   : Positive_Index_Type;
       end case;
    end record;
 
    subtype Error_Status is Status
    with Dynamic_Predicate => Error_Status.Label /= Ok;
 
-   function Image (Item : in Status; Tree : in Syntax_Trees.Tree) return String;
+   function Image
+     (Item       : in Status;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Error_Node : in Syntax_Trees.Valid_Node_Access)
+     return String;
 
    type In_Parse_Action is access function
      (Tree           : in     Syntax_Trees.Tree;
@@ -52,8 +56,6 @@ package WisiToken.In_Parse_Actions is
      return Status;
    --  Called during parsing and error recovery to implement higher level
    --  checks, such as block name matching in Ada.
-
-   Null_Check : constant In_Parse_Action := null;
 
    function Match_Names
      (Tree         : in Syntax_Trees.Tree;

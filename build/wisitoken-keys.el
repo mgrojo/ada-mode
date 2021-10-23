@@ -1,47 +1,5 @@
 ;; Emacs utilities for wisitoken
 
-(defun wisitoken-gnat-fix-error (msg source-buffer source-window)
-  "For `ada-gnat-fix-error-hook'."
-
-  (let ((start-pos (point))
-	result)
-    ;; Move to start of error message text
-    (skip-syntax-forward "^-")
-    (forward-char 1)
-
-    ;; recognize it, handle it
-    (setq
-     result
-     (unwind-protect
-	 (cond
-	  ;; Wisitoken access type naming convention
-	  ((looking-at (concat "expected \\(private \\)?type " ada-gnat-quoted-name-regexp))
-	   (let ((type (match-string 2)))
-	     (next-line 1)
-	     (when (looking-at "found type .*_Ptr")
-	       ;; assume just need '.all'
-	       (progn
-		 (pop-to-buffer source-buffer)
-		 (forward-word 1)
-		 (insert ".all")
-		 t)
-	       )))
-	  ;; Ada hidden in wisi packages
-	  ((looking-at "package \"Ada\" is hidden by declaration")
-	   (pop-to-buffer source-buffer)
-	   (backward-word 1)
-	   (insert "Standard.")
-	   t)
-
-	  )));; end of setq unwind-protect cond
-    (if result
-	t
-      (goto-char start-pos)
-      nil)
-    ))
-
-(add-hook 'ada-gnat-fix-error-hook 'wisitoken-gnat-fix-error)
-
 (defun wisitoken-ediff-good (good computed)
   "GOOD is the string name of the known good file (may be nil), COMPUTED the computed file"
   (cond
@@ -202,7 +160,26 @@
   (when column
     (move-to-column (string-to-number column))))
 
-(defconst wisitoken-fail-re "FAIL\\|ERROR")
+(defconst wisitoken-fail-re
+  ;; no:
+  ;; 0028: | | | (subprogram_body_0, (1 . 34), (1, 1) ERROR)
+  ;; syntax_error: :1:1: in parse action error: ((MISSING_NAME_ERROR, ...
+  ;; recover: fail FAIL_ENQUEUE_LIMIT, parser count 1
+  ;;  2:  2, ( 1 0 0 0 0 0 0 0 0), MATCH_NAMES_ERROR (34 : ...
+
+  ;;
+  ;; yes (but only on first line?):
+  ;; FAIL test_incremental.adb : Missing_Name_1
+  ;;     parse_error: CONSTRAINT_ERROR: wisitoken-syntax_trees.ads:2780 discriminant check failed
+
+  ;; exception: PROGRAM_ERROR: EXCEPTION_ACCESS_VIOLATION
+
+  ;; ERROR test_mckenzie_recover.adb LALR : Error_4
+  ;;   ADA.ASSERTIONS.ASSERTION_ERROR
+  ;;   Exception Message: failed precondition from wisitoken-syntax_trees.ads:2227
+  ;;
+  ;;
+  "^FAIL \\|^ERROR[: ]")
 
 (defun wisitoken-compilation-prev ()
   (interactive)
@@ -240,7 +217,6 @@
     (wisitoken-goto-stack-trace (match-string 1) (match-string 2) (match-string 3)))
 
    (t
-
     ;; check for ediff fail:
     (forward-line)
     (back-to-indentation)

@@ -20,6 +20,9 @@ pragma License (Modified_GPL);
 with GNAT.Traceback.Symbolic;
 package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
+   Default_Positive_Sequential_Index : constant Syntax_Trees.Sequential_Index := 10;
+   Default_Negative_Sequential_Index : constant Syntax_Trees.Sequential_Index := -10;
+
    function Get_Barrier
      (Parsers                 : not null access Parser_Lists.List;
       Parser_Status           : in              Parser_Status_Array;
@@ -92,9 +95,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
    protected body Supervisor is
 
       procedure Initialize (Parsers : not null access Parser_Lists.List)
-      is
-         Index : SAL.Peek_Type := 1;
-      begin
+      is begin
          Supervisor.Parsers      := Parsers;
          All_Parsers_Done        := False;
          Success_Counter         := 0;
@@ -104,66 +105,86 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          Result                  := Recover_Status'First;
          Error_ID                := Ada.Exceptions.Null_Id;
 
-         for I in Parsers.Iterate loop
-            if Parsers.Reference (I).Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
-               --  Previous error recovery resume not finished; this is supposed to
-               --  be checked in Parser.
-               raise SAL.Programmer_Error;
-            end if;
-
-            Parser_Status (Index) :=
-              (Recover_State  => Active,
-               Parser_State   => Parser_Lists.Persistent_State_Ref (I),
-               Fail_Mode      => Success,
-               Active_Workers => 0);
-
-            declare
-               Data : McKenzie_Data renames Parsers.Reference (I).Recover;
-            begin
-               Data.Config_Heap.Clear;
-               Data.Results.Clear;
-               Data.Enqueue_Count := 0;
-               Data.Check_Count   := 0;
-               Data.Success       := False;
-            end;
-
-            Index := Index + 1;
-         end loop;
-
          declare
-            use all type WisiToken.Syntax_Trees.Sequential_Index;
-
-            Default_Positive_Sequential_Index : constant Syntax_Trees.Sequential_Index := 10;
-            Default_Negative_Sequential_Index : constant Syntax_Trees.Sequential_Index := -10;
-
-            Tree  : Syntax_Trees.Tree renames Supervisor.Tree.all;
-            Index : Syntax_Trees.Sequential_Index := 1;
+            Index : SAL.Peek_Type := 1;
          begin
-            Max_Sequential_Index_Node := Tree.To_Stream_Node_Parents (Parsers.First_State_Ref.Shared_Token);
-            if Max_Sequential_Index_Node.Ref.Node = Syntax_Trees.Invalid_Node_Access or else
-              Tree.Label (Max_Sequential_Index_Node.Ref.Node) not in Syntax_Trees.Terminal_Label
-            then
-               Tree.First_Terminal (Max_Sequential_Index_Node);
+            for I in Parsers.Iterate loop
+               if Parsers (I).Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
+                  --  Previous error recovery resume not finished; this is supposed to
+                  --  be checked in Parser.
+                  raise SAL.Programmer_Error;
+               end if;
+
+               Parser_Status (Index) :=
+                 (Recover_State  => Active,
+                  Parser_State   => Parser_Lists.Persistent_State_Ref (I),
+                  Fail_Mode      => Success,
+                  Active_Workers => 0);
+
+               declare
+                  Data : McKenzie_Data renames Parsers (I).Recover;
+               begin
+                  Data.Config_Heap.Clear;
+                  Data.Results.Clear;
+                  Data.Enqueue_Count := 0;
+                  Data.Check_Count   := 0;
+                  Data.Success       := False;
+               end;
+
+               Index := Index + 1;
+            end loop;
+         end;
+
+         --  Set Sequential_Index
+         declare
+            Streams : Syntax_Trees.Stream_ID_Array (1 .. Parser_Count);
+         begin
+            Set_Initial_Sequential_Index
+              (Parsers.all, Supervisor.Tree.all, Streams, Max_Sequential_Indices, Initialize => True);
+
+            Min_Sequential_Indices := Max_Sequential_Indices;
+
+            Extend_Max_Sequential_Index (Default_Positive_Sequential_Index);
+            if Tree.ID (Min_Sequential_Indices (1).Ref.Node) /= Tree.Lexer.Descriptor.SOI_ID then
+               Extend_Min_Sequential_Index (Default_Negative_Sequential_Index);
             end if;
 
-            Min_Sequential_Index_Node := Max_Sequential_Index_Node;
+            if Debug_Mode then
+               declare
+                  use Syntax_Trees;
+                  Min : Sequential_Index := Sequential_Index'Last;
+               begin
+                  for I in 1 .. Parser_Count loop
+                     declare
+                        Parser_State : Parser_Lists.Parser_State renames Parser_Status (I).Parser_State.all;
+                        Cur : constant Base_Sequential_Index := Tree.Get_Sequential_Index
+                          (Tree.First_Terminal (Tree.Current_Token (Parser_State.Stream)).Node);
+                     begin
+                        if Cur = Invalid_Sequential_Index then
+                           --  ada_mode-interactive_01.adb failed here before added parser sync
+                           --  in incremental parse.
+                           raise SAL.Programmer_Error with "initialize sequential index failed";
+                        elsif Cur < Min then
+                           Min := Cur;
+                        end if;
+                     end;
+                  end loop;
 
-            loop
-               Tree.Set_Sequential_Index (Max_Sequential_Index_Node.Ref.Node, Index);
-               exit when Max_Sequential_Index_Node.Ref.Node = Tree.EOI;
-               exit when Index = Default_Positive_Sequential_Index;
-               Tree.Next_Terminal (Max_Sequential_Index_Node);
-               Index := @ + 1;
-            end loop;
-
-            Index := 0;
-            loop
-               Tree.Prev_Terminal (Min_Sequential_Index_Node);
-               Tree.Set_Sequential_Index (Min_Sequential_Index_Node.Ref.Node, Index);
-               exit when Min_Sequential_Index_Node.Ref.Node = Tree.SOI;
-               exit when Index = Default_Negative_Sequential_Index;
-               Index := @ - 1;
-            end loop;
+                  for I in 1 .. Parser_Count loop
+                     declare
+                        Parser_State : Parser_Lists.Parser_State renames Parser_Status (I).Parser_State.all;
+                        Cur : constant Sequential_Index := Tree.Get_Sequential_Index
+                          (Tree.First_Terminal (Tree.Current_Token (Parser_State.Stream)).Node);
+                     begin
+                        if abs (Cur - Min) > 4 then --  FIXME: '4' should be mckenzie param zombie_limit
+                           Trace.Put_Line ("parsers not synced; parse streams:");
+                           Tree.Print_Streams (Trace.all, Children => True);
+                           raise SAL.Programmer_Error with "parsers not synced";
+                        end if;
+                     end;
+                  end loop;
+               end;
+            end if;
          end;
       end Initialize;
 
@@ -459,6 +480,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       is begin
          Error_ID := Supervisor.Error_ID;
          Message  := Error_Message;
+
          if Trace_McKenzie > Detail then
             Trace.New_Line;
             Trace.Put_Line ("Supervisor: Done");
@@ -476,62 +498,79 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       end Stream;
 
       function Min_Sequential_Index return Syntax_Trees.Sequential_Index
-      is begin
-         return Tree.Get_Sequential_Index (Min_Sequential_Index_Node.Ref.Node);
-      end Min_Sequential_Index;
-
-      function Min_Sequential_Index return Syntax_Trees.Stream_Node_Parents
-      is begin
-         return Min_Sequential_Index_Node;
-      end Min_Sequential_Index;
-
-      procedure Extend_Min_Sequential_Index
       is
          use Syntax_Trees;
-         Index  : Sequential_Index := Tree.Get_Sequential_Index (Min_Sequential_Index_Node.Ref.Node);
-         Target : constant Sequential_Index := 2 * Index;
       begin
-         loop
-            exit when Min_Sequential_Index_Node.Ref.Node = Tree.SOI;
-            Tree.Prev_Terminal (Min_Sequential_Index_Node);
+         return Result : Sequential_Index := Sequential_Index'Last do
+            for I in 1 .. Parser_Count loop
+               Result := Sequential_Index'Min (@,  Tree.Get_Sequential_Index (Min_Sequential_Indices (I).Ref.Node));
+            end loop;
+         end return;
+      end Min_Sequential_Index;
 
-            Index := @ - 1;
-            Tree.Set_Sequential_Index (Min_Sequential_Index_Node.Ref.Node, Index);
-
-            exit when Index = Target;
+      function Min_Sequential_Index_All_SOI return Boolean
+      is
+         use Syntax_Trees;
+      begin
+         for I in 1 .. Parser_Count loop
+            if Tree.ID (Min_Sequential_Indices (I).Ref.Node) /= Tree.Lexer.Descriptor.SOI_ID then
+               return False;
+            end if;
          end loop;
-      end Extend_Min_Sequential_Index;
+         return True;
+      end Min_Sequential_Index_All_SOI;
 
       function Max_Sequential_Index return Syntax_Trees.Sequential_Index
-      is begin
-         return Tree.Get_Sequential_Index (Max_Sequential_Index_Node.Ref.Node);
-      end Max_Sequential_Index;
-
-      function Max_Sequential_Index return Syntax_Trees.Stream_Node_Parents
-      is begin
-         return Max_Sequential_Index_Node;
-      end Max_Sequential_Index;
-
-      function Max_Sequential_Index_Is_EOI return Boolean
-      is begin
-         return Tree.EOI = Max_Sequential_Index_Node.Ref.Node;
-      end Max_Sequential_Index_Is_EOI;
-
-      procedure Extend_Max_Sequential_Index
       is
          use Syntax_Trees;
-         Index  : Sequential_Index := Tree.Get_Sequential_Index (Max_Sequential_Index_Node.Ref.Node);
-         Target : constant Sequential_Index := 2 * Index;
       begin
-         loop
-            exit when Max_Sequential_Index_Node.Ref.Node = Tree.EOI;
+         return Result : Sequential_Index := Sequential_Index'First do
+            for I in Max_Sequential_Indices'Range loop
+               Result := Sequential_Index'Max (@,  Tree.Get_Sequential_Index (Max_Sequential_Indices (I).Ref.Node));
+            end loop;
+         end return;
+      end Max_Sequential_Index;
 
-            Tree.Next_Terminal (Max_Sequential_Index_Node);
-            Index := @ + 1;
-            Tree.Set_Sequential_Index (Max_Sequential_Index_Node.Ref.Node, Index);
-
-            exit when Index = Target;
+      function Max_Sequential_Index_All_EOI return Boolean
+      is
+         use Syntax_Trees;
+      begin
+         for I in 1 .. Parser_Count loop
+            if Tree.ID (Max_Sequential_Indices (I).Ref.Node) /= Tree.Lexer.Descriptor.EOI_ID then
+               return False;
+            end if;
          end loop;
+         return True;
+      end Max_Sequential_Index_All_EOI;
+
+      function Min_Sequential_Index (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_Node_Parents
+      is begin
+         return Min_Sequential_Indices (Parser_Index);
+      end Min_Sequential_Index;
+
+      function Max_Sequential_Index (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_Node_Parents
+      is begin
+         return Max_Sequential_Indices (Parser_Index);
+      end Max_Sequential_Index;
+
+      procedure Extend_Min_Sequential_Index (Target : in Syntax_Trees.Sequential_Index)
+      is
+         Streams : Syntax_Trees.Stream_ID_Array (1 .. Parser_Count);
+      begin
+         for I in Parser_Status'Range loop
+            Streams (I) := Parser_Status (I).Parser_State.Stream;
+         end loop;
+         Extend_Sequential_Index (Tree.all, Streams, Min_Sequential_Indices, Target, Positive => False, Clear => False);
+      end Extend_Min_Sequential_Index;
+
+      procedure Extend_Max_Sequential_Index (Target : in Syntax_Trees.Sequential_Index)
+      is
+         Streams : Syntax_Trees.Stream_ID_Array (1 .. Parser_Count);
+      begin
+         for I in Parser_Status'Range loop
+            Streams (I) := Parser_Status (I).Parser_State.Stream;
+         end loop;
+         Extend_Sequential_Index (Tree.all, Streams, Max_Sequential_Indices, Target, Positive => True, Clear => False);
       end Extend_Max_Sequential_Index;
 
    end Supervisor;
@@ -540,19 +579,29 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
      (Super    : not null access Base.Supervisor;
       Thru     : in              Syntax_Trees.Valid_Node_Access;
       Positive : in              Boolean)
-   is
-      use all type WisiToken.Syntax_Trees.Sequential_Index;
-   begin
+   is begin
+      if Super.Tree.Get_Sequential_Index (Thru) /= Syntax_Trees.Invalid_Sequential_Index then
+         return;
+      end if;
+
       if Positive then
          loop
+            exit when Super.Max_Sequential_Index_All_EOI;
             exit when Super.Tree.Get_Sequential_Index (Thru) /= Syntax_Trees.Invalid_Sequential_Index;
-            Super.Extend_Max_Sequential_Index;
+            Super.Extend_Max_Sequential_Index (Target => 2 * Super.Max_Sequential_Index);
          end loop;
 
       else
          loop
+            exit when Super.Min_Sequential_Index_All_SOI;
             exit when Super.Tree.Get_Sequential_Index (Thru) /= Syntax_Trees.Invalid_Sequential_Index;
-            Super.Extend_Min_Sequential_Index;
+            declare
+               Min : constant Syntax_Trees.Sequential_Index := Super.Min_Sequential_Index;
+            begin
+               pragma Assert (Min <= 0);
+               Super.Extend_Min_Sequential_Index
+                 (Target => (if Min = 0 then Default_Negative_Sequential_Index else 2 * Min));
+            end;
          end loop;
       end if;
    end Extend_Sequential_Index;
@@ -561,12 +610,26 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
      (Super : not null access Base.Supervisor;
       Thru  : in              Syntax_Trees.Sequential_Index)
    is
-      use all type WisiToken.Syntax_Trees.Sequential_Index;
+      use Syntax_Trees;
    begin
       loop
-         exit when Super.Max_Sequential_Index_Is_EOI;
-         exit when Super.Max_Sequential_Index >= Thru;
-         Super.Extend_Max_Sequential_Index;
+         declare
+            Min : constant Sequential_Index := Super.Min_Sequential_Index;
+            Max : constant Sequential_Index := Super.Max_Sequential_Index;
+         begin
+            exit when Thru in Min .. Max;
+
+            if Thru < Min then
+               exit when Super.Min_Sequential_Index_All_SOI;
+
+               pragma Assert (Min < 0);
+               Super.Extend_Min_Sequential_Index (Target => 2 * Min);
+            else
+               exit when Super.Max_Sequential_Index_All_EOI;
+
+               Super.Extend_Max_Sequential_Index (Target => 2 * Max);
+            end if;
+         end;
       end loop;
    end Extend_Sequential_Index;
 

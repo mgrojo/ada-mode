@@ -33,7 +33,7 @@ package body WisiToken.Lexer is
       else
          return "(" & ID_Image & ", " & Image (Item.Char_Region) &
            (if Item.ID = Descriptor.New_Line_ID
-            then Image (Item.Line_Region)
+            then ", " & Image (Item.Line_Region)
             else "") & ")";
       end if;
    end Image;
@@ -84,6 +84,36 @@ package body WisiToken.Lexer is
       Begin_Line := Object.Line_Nominal_First;
    end Begin_Pos;
 
+   function Find_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Start  : in Buffer_Pos)
+     return Buffer_Pos
+   is begin
+      for I in To_Buffer_Index (Source, Start) .. Source.Buffer'Last loop
+         if Source.Buffer (I) = ASCII.LF then
+            return From_Buffer_Index (Source, I);
+         end if;
+      end loop;
+      return From_Buffer_Index (Source, Source.Buffer'Last);
+   end Find_New_Line;
+
+   function Find_String_Or_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Start  : in Buffer_Pos;
+      Item   : in String)
+     return Buffer_Pos
+   is begin
+      for I in To_Buffer_Index (Source, Start) .. Source.Buffer'Last loop
+         if Source.Buffer (I) = ASCII.LF or
+           ((I + Item'Length <= Source.Buffer'Last) and then
+              Source.Buffer (I .. I + Item'Length - 1) = Item)
+         then
+            return From_Buffer_Index (Source, I);
+         end if;
+      end loop;
+      return From_Buffer_Index (Source, Source.Buffer'Last);
+   end Find_String_Or_New_Line;
+
    function Line_Begin_Char_Pos
      (Source : in WisiToken.Lexer.Source;
       Token  : in WisiToken.Lexer.Token;
@@ -106,6 +136,37 @@ package body WisiToken.Lexer is
       end loop;
       return Invalid_Buffer_Pos;
    end Line_Begin_Char_Pos;
+
+   function Contains_New_Line
+     (Source      : in WisiToken.Lexer.Source;
+      Byte_Region : in Buffer_Region)
+     return Boolean
+   is begin
+      for I in To_Buffer_Index (Source, Byte_Region.First) ..
+        To_Buffer_Index (Source, Byte_Region.Last)
+      loop
+         if Source.Buffer (I) = ASCII.LF then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Contains_New_Line;
+
+   function New_Line_Count
+     (Source      : in WisiToken.Lexer.Source;
+      Byte_Region : in Buffer_Region)
+     return Base_Line_Number_Type
+   is begin
+      return Count : Base_Line_Number_Type := 0 do
+         for I in To_Buffer_Index (Source, Byte_Region.First) ..
+           To_Buffer_Index (Source, Byte_Region.Last)
+         loop
+            if Source.Buffer (I) = ASCII.LF then
+               Count := @ + 1;
+            end if;
+         end loop;
+      end return;
+   end New_Line_Count;
 
    procedure Finalize (Object : in out Source)
    is begin

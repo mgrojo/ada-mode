@@ -2,33 +2,33 @@
  0: 0: 1:(ACCEPT, (1 . 6)) : shift and goto state 1
  0: 1: 2:(IDENTIFIER, (8 . 13)) : shift and goto state 4
  0: 4: 3:(LEFT_PAREN, (15 . 15)) : reduce 1 tokens to name
-(name, (8 . 13)) <= (2:(IDENTIFIER, (8 . 13)))
+(name, (8 . 13) <= (2:(IDENTIFIER, (8 . 13))))
  ... goto state 5
  0: 5: 3:(LEFT_PAREN, (15 . 15)) : shift and goto state 7
  0: 7: 4:(IDENTIFIER, (16 . 18)) : shift and goto state 9
  0: 9: 5:(RIGHT_PAREN, (19 . 19)) : shift and goto state 11
  0: 11: 6:(SEMICOLON, (20 . 20)) : reduce 3 tokens to parameter_profile
-(parameter_profile, (15 . 19)) <= (3:(LEFT_PAREN, (15 . 15)), 4:(IDENTIFIER, (16 . 18)), 5:(RIGHT_PAREN, (19 . 19)))
+(parameter_profile, (15 . 19) <= (3:(LEFT_PAREN, (15 . 15)), 4:(IDENTIFIER, (16 . 18)), 5:(RIGHT_PAREN, (19 . 19))))
  ... goto state 8
  0: 8: 6:(SEMICOLON, (20 . 20)) : shift and goto state 10
  0: 10: 7:(ACCEPT, (22 . 27)) : reduce 4 tokens to accept_statement
-(accept_statement, (1 . 20)) <= (1:(ACCEPT, (1 . 6)), (name, (8 . 13)), (parameter_profile, (15 . 19)), 6:(SEMICOLON, (20 . 20)))
+(accept_statement, (1 . 20) <= (1:(ACCEPT, (1 . 6)), (name, (8 . 13)), (parameter_profile, (15 . 19)), 6:(SEMICOLON, (20 . 20))))
  ... goto state 3
  0: 3: 7:(ACCEPT, (22 . 27)) : shift and goto state 1
  0: 1: 8:(IDENTIFIER, (29 . 34)) : shift and goto state 4
  0: 4: 9:(SEMICOLON, (35 . 35)) : reduce 1 tokens to name
-(name, (29 . 34)) <= (8:(IDENTIFIER, (29 . 34)))
+(name, (29 . 34) <= (8:(IDENTIFIER, (29 . 34))))
  ... goto state 5
  0: 5: 9:(SEMICOLON, (35 . 35)) : reduce 0 tokens to parameter_profile
-(parameter_profile) <= ()
+(parameter_profile <= ())
  ... goto state 8
  0: 8: 9:(SEMICOLON, (35 . 35)) : shift and goto state 10
  0: 10: 10:(Wisi_EOI, (37 . 36)) : reduce 4 tokens to accept_statement
-(accept_statement, (22 . 35)) <= (7:(ACCEPT, (22 . 27)), (name, (29 . 34)), (parameter_profile), 9:(SEMICOLON, (35 . 35)))
+(accept_statement, (22 . 35) <= (7:(ACCEPT, (22 . 27)), (name, (29 . 34)), (parameter_profile), 9:(SEMICOLON, (35 . 35))))
  ... goto state 6
  0: 6: 10:(Wisi_EOI, (37 . 36)) : reduce 2 tokens to compilation_unit
-(compilation_unit, (1 . 35)) <= ((accept_statement, (1 . 20)), (accept_statement, (22 . 35)))
+(compilation_unit, (1 . 35) <= ((accept_statement, (1 . 20)), (accept_statement, (22 . 35))))
  ... goto state 2
  0: 2: 10:(Wisi_EOI, (37 . 36)) : accept it
-(wisitoken_accept, (1 . 35)) <= ((compilation_unit, (1 . 35)))
+(wisitoken_accept, (1 . 35) <= ((compilation_unit, (1 . 35))))
  0: succeed

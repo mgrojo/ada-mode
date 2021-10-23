@@ -57,6 +57,11 @@ upload to savannah for Emacs Ada mode:
     gpg -b *.tar.bz2
     scp *.tar.bz2* stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
 
+update:
+    FSF/UNESCO free software directory? https://directory.fsf.org/
+    Alire? https://alire.ada.dev/
+    https://en.wikipedia.org/wiki/Comparison_of_parser_generators
+
 ~/Web/Makefile
     wisitoken sync
 

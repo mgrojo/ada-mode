@@ -7,44 +7,49 @@
 
  McKenzie error recovery
 
-parser 0: State 7 Current_Token (-1, 1;(Wisi_EOI, (67 . 66))) Resume_Token_Goal 5
+parser 0: State 7 Current_Token (0, 2;4:(Wisi_EOI, (67 . 66) ERROR))
 Parser_Action
 
  1 parallel tasks
 new Worker_Task 1
  0: succeed 1, enqueue 37, check  14, cost:  3
- 0:  3, ( 0 0 0 0 0 0 1 0 0), (12 : (Identifier))|(-1, 1;(Wisi_EOI, (67 . 66)))|((INSERT, Identifier, 1))
+ 0:  3, ( 0 0 0 0 0 0 1 0 0), (12 : (Identifier))\2;4:(Wisi_EOI, (67 . 66) ERROR)\((INSERT, Identifier, 2))
 
 recover: succeed, parser count 1
  0: stack/stream:
-(0, (0, -2;(Wisi_SOI, (1 . 1))),
-(1, -1;(AT, (42 . 42))),
-^(7, 0;(Identifier, (43 . 48)))/,
-(-1, -5:(Identifier))/,
-(-1, 1;(Wisi_EOI, (67 . 66))))
-    Current_Token: (0, -5:(Identifier))
-    Shared_Token: (-1, 1;(Wisi_EOI, (67 . 66)))
+(0, (0, 
+0000: -1;0:(Wisi_SOI, (1 . 1))),
+(1, 
+0001: 0;1:(AT, (42 . 42))),
+^(7, 
+0002: 1;2:(Identifier, (43 . 48))),
+(-1, 
+0007: -7:(Identifier)),
+(-1, 
+0005: 2;5:(Wisi_EOI, (67 . 66) ERROR)))
+    Current_Token: (0, -7:(Identifier))
+    Shared_Token: ()
     recover_insert_delete:
-    resume_active: True, token goal 5, inc_shared_stream_token: FALSE
+    resume_active: True, token goal 6
 
- 0: 7: (0, -5:(Identifier)) : reduce 1 tokens to ClassType
-(ClassType_3, (43 . 48)) <= (0;(Identifier, (43 . 48)))
+ 0: 7: (0, -7:(Identifier)) : reduce 1 tokens to ClassType
+(ClassType_3, (43 . 48) <= (1;2:(Identifier, (43 . 48))))
  ... goto state 9
- 0: 9: (0, -5:(Identifier)) : reduce 2 tokens to Annotation
-(Annotation_0, (42 . 48)) <= (-1;(AT, (42 . 42)), (ClassType, (43 . 48)))
+ 0: 9: (0, -7:(Identifier)) : reduce 2 tokens to Annotation
+(Annotation_0, (42 . 48) <= (0;1:(AT, (42 . 42)), (ClassType, (43 . 48))))
  ... goto state 5
- 0: 5: (0, -5:(Identifier)) : reduce 1 tokens to AnnotationList
-(AnnotationList_0, (42 . 48)) <= ((Annotation, (42 . 48)))
+ 0: 5: (0, -7:(Identifier)) : reduce 1 tokens to AnnotationList
+(AnnotationList_0, (42 . 48) <= ((Annotation, (42 . 48))))
  ... goto state 4
- 0: 4: (0, -5:(Identifier)) : shift and goto state 12
- 0: 12: (-1, 1;(Wisi_EOI, (67 . 66))) : reduce 2 tokens to ClassType
-(ClassType_1, (42 . 48)) <= ((AnnotationList, (42 . 48)), -5:(Identifier))
+ 0: 4: (0, -7:(Identifier)) : shift and goto state 12
+ 0: 12: (0, 2;5:(Wisi_EOI, (67 . 66) ERROR)) : reduce 2 tokens to ClassType
+(ClassType_1, (42 . 48) <= ((AnnotationList, (42 . 48)), -7:(Identifier)))
  ... goto state 6
- 0: 6: (-1, 1;(Wisi_EOI, (67 . 66))) : reduce 1 tokens to CompilationUnit
-(CompilationUnit_0, (42 . 48)) <= ((ClassType, (42 . 48)))
+ 0: 6: (0, 2;5:(Wisi_EOI, (67 . 66) ERROR)) : reduce 1 tokens to CompilationUnit
+(CompilationUnit_0, (42 . 48) <= ((ClassType, (42 . 48))))
  ... goto state 3
- 0: 3: (-1, 1;(Wisi_EOI, (67 . 66))) : accept it
-(wisitoken_accept_0, (42 . 48)) <= ((CompilationUnit, (42 . 48)))
+ 0: 3: (0, 2;5:(Wisi_EOI, (67 . 66) ERROR)) : accept it
+(wisitoken_accept_0, (42 . 48) <= ((CompilationUnit, (42 . 48))))
  0: succeed
-java_types_ch19.input:5:1: syntax error: expecting AT, LESS, Identifier, found ''
-   recovered: ((INSERT, Identifier, 1))
+java_types_ch19.input:5:1: syntax_error: expecting AT, LESS, Identifier, found ''
+   recovered: ((INSERT, Identifier, 2))

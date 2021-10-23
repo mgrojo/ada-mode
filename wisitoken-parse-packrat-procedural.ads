@@ -9,7 +9,7 @@
 --
 --  See parent.
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -79,12 +79,5 @@ package WisiToken.Parse.Packrat.Procedural is
       Log_File : in     Ada.Text_IO.File_Type;
       Edits    : in     KMN_Lists.List := KMN_Lists.Empty_List);
    --  Raises Parse_Error if Edits is not empty.
-
-   overriding function Any_Errors (Parser : in Procedural.Parser) return Boolean
-     is (False);
-   --  All errors are reported by Parse raising Syntax_Error.
-
-   overriding procedure Put_Errors (Parser : in Procedural.Parser)
-   is null;
 
 end WisiToken.Parse.Packrat.Procedural;

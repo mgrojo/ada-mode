@@ -322,18 +322,18 @@ endings, and end of input, are added internally. The token includes the
 line end; no separate new-line token is produced after the comment
 token.
 
-@item <comment-new-line>
+@item <comment-one-line>
 @verbatim
 %token <comment-one-line> PLACEHOLDER "{" "}"
 @end verbatim
 Declares a non-grammar comment token that is terminated by the end
 delimiter, or by a line end or end of input (to avoid accidently
-commenting out multiple lines). The two regexp arguments must match
-only the comment start and end (the example shows a template
-placeholder); DOS and Unix line endings, and end of input, are added
-internally. If the token is terminated by a line end, the token
-includes the line end; no separate new-line token is produced after
-the comment token.
+commenting out multiple lines). The two arguments are strings, not
+regular expressions, and must match only the comment start and end
+(the example shows a template placeholder); DOS and Unix line endings,
+and end of input, are added internally. If the token is terminated by
+a line end, the token includes the line end; no separate new-line
+token is produced after the comment token.
 
 @item <delimited-text>
 @verbatim

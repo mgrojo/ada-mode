@@ -2,26 +2,26 @@
  0: 0: (-1, 1:(LBRACE, (1 . 1))) : shift and goto state 1
  0: 1: (-1, 2:(IDENTIFIER, (3 . 5))) : shift and goto state 5
  0: 5: (-1, 3:(SEMI, (6 . 6))) : reduce 1 tokens to expression
-(expression_1, (3 . 5)) <= (2:(IDENTIFIER, (3 . 5)))
+(expression_1, (3 . 5) <= (2:(IDENTIFIER, (3 . 5))))
  ... goto state 7
  0: 7: (-1, 3:(SEMI, (6 . 6))) : shift and goto state 14
  0: 14: (-1, 4:(LPAREN, (73 . 73))) : reduce 2 tokens to statement
-(statement_0, (3 . 6)) <= ((expression, (3 . 5)), 3:(SEMI, (6 . 6)))
+(statement_0, (3 . 6) <= ((expression, (3 . 5)), 3:(SEMI, (6 . 6))))
  ... goto state 6
  0: 6: (-1, 4:(LPAREN, (73 . 73))) : reduce 1 tokens to statement_list
-(statement_list_0, (3 . 6)) <= ((statement, (3 . 6)))
+(statement_list_0, (3 . 6) <= ((statement, (3 . 6))))
  ... goto state 10
  0: 10: (-1, 4:(LPAREN, (73 . 73))) : shift and goto state 3
  0: 3: (-1, 5:(IDENTIFIER, (74 . 76))) : shift and goto state 11
  0: 11: (-1, 6:(RPAREN, (77 . 77))) : spawn 1, (2 active)
 tree size:  31
  1: 11: (-1, 6:(RPAREN, (77 . 77))) : reduce 1 tokens to classOrInterfaceType
-(classOrInterfaceType_0, (74 . 76)) <= (5:(IDENTIFIER, (74 . 76)))
+(classOrInterfaceType_0, (74 . 76) <= (5:(IDENTIFIER, (74 . 76))))
  ... goto state 12
  0: 11: (-1, 6:(RPAREN, (77 . 77))) : spawn 2, (3 active)
 tree size:  32
  2: 11: (-1, 6:(RPAREN, (77 . 77))) : reduce 1 tokens to expression
-(expression_1, (74 . 76)) <= (5:(IDENTIFIER, (74 . 76)))
+(expression_1, (74 . 76) <= (5:(IDENTIFIER, (74 . 76))))
  ... goto state 13
  0: 11: (-1, 6:(RPAREN, (77 . 77))) : shift and goto state 18
  2: 13: (-1, 6:(RPAREN, (77 . 77))) : shift and goto state 20
@@ -35,12 +35,12 @@ tree size:  32
  0: zombie
  2: zombie
  1: 5: (-1, 8:(SEMI, (82 . 82))) : reduce 1 tokens to expression
-(expression_1, (79 . 81)) <= (7:(IDENTIFIER, (79 . 81)))
+(expression_1, (79 . 81) <= (7:(IDENTIFIER, (79 . 81))))
  ... goto state 22
  0: zombie
  2: zombie
  1: 22: (-1, 8:(SEMI, (82 . 82))) : reduce 4 tokens to expression
-(expression_2, (73 . 81)) <= (4:(LPAREN, (73 . 73)), (classOrInterfaceType, (74 . 76)), 6:(RPAREN, (77 . 77)), (expression, (79 . 81)))
+(expression_2, (73 . 81) <= (4:(LPAREN, (73 . 73)), (classOrInterfaceType, (74 . 76)), 6:(RPAREN, (77 . 77)), (expression, (79 . 81))))
  ... goto state 7
  0: zombie
  2: zombie
@@ -48,29 +48,29 @@ tree size:  32
  0: zombie
  2: zombie
  1: 14: (-1, 9:(LPAREN, (84 . 84))) : reduce 2 tokens to statement
-(statement_0, (73 . 82)) <= ((expression, (73 . 81)), 8:(SEMI, (82 . 82)))
+(statement_0, (73 . 82) <= ((expression, (73 . 81)), 8:(SEMI, (82 . 82))))
  ... goto state 17
  0: zombie
  2: zombie
  1: 17: (-1, 9:(LPAREN, (84 . 84))) : reduce 2 tokens to statement_list
-(statement_list_1, (3 . 82)) <= ((statement_list, (3 . 6)), (statement, (73 . 82)))
+(statement_list_1, (3 . 82) <= ((statement_list, (3 . 6)), (statement, (73 . 82))))
  ... goto state 10
  0: zombie
  2: zombie
  1: 10: (-1, 9:(LPAREN, (84 . 84))) : shift and goto state 3
  0: zombie
- 2: terminate (2 active): zombie (-1, 7:(IDENTIFIER, (79 . 81)))
+ 2: terminate (2 active): zombie (2, 28:(IDENTIFIER, (79 . 81) ERROR))
  1: 3: (-1, 10:(IDENTIFIER, (85 . 87))) : shift and goto state 11
- 0: terminate (1 active): zombie (-1, 7:(IDENTIFIER, (79 . 81)))
+ 0: terminate (1 active): zombie (0, 29:(IDENTIFIER, (79 . 81) ERROR))
  1: 11: (-1, 11:(RPAREN, (88 . 88))) : spawn 3, (2 active)
-tree size:  37
+tree size:  39
  3: 11: (-1, 11:(RPAREN, (88 . 88))) : reduce 1 tokens to classOrInterfaceType
-(classOrInterfaceType_0, (85 . 87)) <= (10:(IDENTIFIER, (85 . 87)))
+(classOrInterfaceType_0, (85 . 87) <= (10:(IDENTIFIER, (85 . 87))))
  ... goto state 12
  1: 11: (-1, 11:(RPAREN, (88 . 88))) : spawn 4, (3 active)
-tree size:  38
+tree size:  40
  4: 11: (-1, 11:(RPAREN, (88 . 88))) : reduce 1 tokens to expression
-(expression_1, (85 . 87)) <= (10:(IDENTIFIER, (85 . 87)))
+(expression_1, (85 . 87) <= (10:(IDENTIFIER, (85 . 87))))
  ... goto state 13
  1: 11: (-1, 11:(RPAREN, (88 . 88))) : shift and goto state 18
  4: 13: (-1, 11:(RPAREN, (88 . 88))) : shift and goto state 20
@@ -82,7 +82,7 @@ tree size:  38
  3: 19: expecting: LPAREN, IDENTIFIER
  3: zombie
  1: 18: (-1, 12:(ARROW, (89 . 90))) : reduce 3 tokens to lambdaParameters
-(lambdaParameters_0, (84 . 88)) <= (9:(LPAREN, (84 . 84)), 10:(IDENTIFIER, (85 . 87)), 11:(RPAREN, (88 . 88)))
+(lambdaParameters_0, (84 . 88) <= (9:(LPAREN, (84 . 84)), 10:(IDENTIFIER, (85 . 87)), 11:(RPAREN, (88 . 88))))
  ... goto state 9
  4: zombie
  3: zombie
@@ -93,46 +93,46 @@ tree size:  38
  4: zombie
  3: zombie
  1: 1: (-1, 14:(IDENTIFIER, (92 . 94))) : shift and goto state 5
- 4: terminate (2 active): zombie (-1, 12:(ARROW, (89 . 90)))
- 3: terminate (1 active): zombie (-1, 12:(ARROW, (89 . 90)))
+ 4: terminate (2 active): zombie (4, 30:(ARROW, (89 . 90) ERROR))
+ 3: terminate (1 active): zombie (3, 31:(ARROW, (89 . 90) ERROR))
  1: 5: (-1, 15:(SEMI, (95 . 95))) : reduce 1 tokens to expression
-(expression_1, (92 . 94)) <= (14:(IDENTIFIER, (92 . 94)))
+(expression_1, (92 . 94) <= (14:(IDENTIFIER, (92 . 94))))
  ... goto state 7
  1: 7: (-1, 15:(SEMI, (95 . 95))) : shift and goto state 14
  1: 14: (-1, 16:(RBRACE, (96 . 96))) : reduce 2 tokens to statement
-(statement_0, (92 . 95)) <= ((expression, (92 . 94)), 15:(SEMI, (95 . 95)))
+(statement_0, (92 . 95) <= ((expression, (92 . 94)), 15:(SEMI, (95 . 95))))
  ... goto state 6
  1: 6: (-1, 16:(RBRACE, (96 . 96))) : reduce 1 tokens to statement_list
-(statement_list_0, (92 . 95)) <= ((statement, (92 . 95)))
+(statement_list_0, (92 . 95) <= ((statement, (92 . 95))))
  ... goto state 10
  1: 10: (-1, 16:(RBRACE, (96 . 96))) : shift and goto state 16
  1: 16: (-1, 17:(SEMI, (97 . 97))) : reduce 3 tokens to block
-(block_0, (91 . 96)) <= (13:(LBRACE, (91 . 91)), (statement_list, (92 . 95)), 16:(RBRACE, (96 . 96)))
+(block_0, (91 . 96) <= (13:(LBRACE, (91 . 91)), (statement_list, (92 . 95)), 16:(RBRACE, (96 . 96))))
  ... goto state 21
  1: 21: (-1, 17:(SEMI, (97 . 97))) : reduce 3 tokens to lambdaExpression
-(lambdaExpression_0, (84 . 96)) <= ((lambdaParameters, (84 . 88)), 12:(ARROW, (89 . 90)), (block, (91 . 96)))
+(lambdaExpression_0, (84 . 96) <= ((lambdaParameters, (84 . 88)), 12:(ARROW, (89 . 90)), (block, (91 . 96))))
  ... goto state 8
  1: 8: (-1, 17:(SEMI, (97 . 97))) : reduce 1 tokens to expression
-(expression_3, (84 . 96)) <= ((lambdaExpression, (84 . 96)))
+(expression_3, (84 . 96) <= ((lambdaExpression, (84 . 96))))
  ... goto state 7
  1: 7: (-1, 17:(SEMI, (97 . 97))) : shift and goto state 14
  1: 14: (-1, 18:(LPAREN, (142 . 142))) : reduce 2 tokens to statement
-(statement_0, (84 . 97)) <= ((expression, (84 . 96)), 17:(SEMI, (97 . 97)))
+(statement_0, (84 . 97) <= ((expression, (84 . 96)), 17:(SEMI, (97 . 97))))
  ... goto state 17
  1: 17: (-1, 18:(LPAREN, (142 . 142))) : reduce 2 tokens to statement_list
-(statement_list_1, (3 . 97)) <= ((statement_list, (3 . 82)), (statement, (84 . 97)))
+(statement_list_1, (3 . 97) <= ((statement_list, (3 . 82)), (statement, (84 . 97))))
  ... goto state 10
  1: 10: (-1, 18:(LPAREN, (142 . 142))) : shift and goto state 3
  1: 3: (-1, 19:(IDENTIFIER, (143 . 145))) : shift and goto state 11
  1: 11: (-1, 20:(RPAREN, (146 . 146))) : spawn 5, (2 active)
-tree size:  48
+tree size:  52
  5: 11: (-1, 20:(RPAREN, (146 . 146))) : reduce 1 tokens to classOrInterfaceType
-(classOrInterfaceType_0, (143 . 145)) <= (19:(IDENTIFIER, (143 . 145)))
+(classOrInterfaceType_0, (143 . 145) <= (19:(IDENTIFIER, (143 . 145))))
  ... goto state 12
  1: 11: (-1, 20:(RPAREN, (146 . 146))) : spawn 6, (3 active)
-tree size:  49
+tree size:  53
  6: 11: (-1, 20:(RPAREN, (146 . 146))) : reduce 1 tokens to expression
-(expression_1, (143 . 145)) <= (19:(IDENTIFIER, (143 . 145)))
+(expression_1, (143 . 145) <= (19:(IDENTIFIER, (143 . 145))))
  ... goto state 13
  1: 11: (-1, 20:(RPAREN, (146 . 146))) : shift and goto state 18
  6: 13: (-1, 20:(RPAREN, (146 . 146))) : shift and goto state 20
@@ -144,7 +144,7 @@ tree size:  49
  5: 19: expecting: LPAREN, IDENTIFIER
  5: zombie
  1: 18: (-1, 21:(ARROW, (147 . 148))) : reduce 3 tokens to lambdaParameters
-(lambdaParameters_0, (142 . 146)) <= (18:(LPAREN, (142 . 142)), 19:(IDENTIFIER, (143 . 145)), 20:(RPAREN, (146 . 146)))
+(lambdaParameters_0, (142 . 146) <= (18:(LPAREN, (142 . 142)), 19:(IDENTIFIER, (143 . 145)), 20:(RPAREN, (146 . 146))))
  ... goto state 9
  6: zombie
  5: zombie
@@ -157,165 +157,301 @@ tree size:  49
 
  McKenzie error recovery
 
-parser 6: State 20 Current_Token (-1, 1;(ARROW, (147 . 148))) Resume_Token_Goal 4
+parser 6: State 20 Current_Token (6, 2;32:(ARROW, (147 . 148) ERROR))
 Parser_Action
 
-parser 5: State 19 Current_Token (-1, 1;(ARROW, (147 . 148))) Resume_Token_Goal 4
+parser 5: State 19 Current_Token (5, 2;33:(ARROW, (147 . 148) ERROR))
 Parser_Action
 
-parser 1: State 15 Current_Token (-1, 2;(IDENTIFIER, (150 . 152))) Resume_Token_Goal 5
+parser 1: State 15 Current_Token (1, 3;34:(IDENTIFIER, (150 . 152) ERROR))
 Parser_Action
 
  1 parallel tasks
 new Worker_Task 1
  6: succeed 1, enqueue 106, check  59, cost:  15
- 6:  15, ( 0 0 1 0 0 0 0 3 0), (2 : (block))|(-1, 7;(Wisi_EOI, (160 . 159)))|((DELETE, ARROW, 1), (INSERT, SEMI, 2), (FAST_FORWARD, 5), (DELETE, SEMI, 5), (DELETE, RBRACE, 6))
+ 6:  15, ( 0 0 1 0 0 0 0 3 0), (2 : (block))|(-1, 8;27:(Wisi_EOI, (160 . 159)))|((DELETE, ARROW, 2), (INSERT, SEMI, 3), (FAST_FORWARD, 6), (DELETE, SEMI, 6), (DELETE, RBRACE, 7))
  5: succeed 1, enqueue 94, check  46, cost:  12
- 5:  12, ( 0 0 0 0 0 0 0 3 0), (2 : (block))|(-1, 7;(Wisi_EOI, (160 . 159)))|((DELETE, ARROW, 1), (FAST_FORWARD, 5), (DELETE, SEMI, 5), (DELETE, RBRACE, 6))
+ 5:  12, ( 0 0 0 0 0 0 0 3 0), (2 : (block))|(-1, 8;27:(Wisi_EOI, (160 . 159)))|((DELETE, ARROW, 2), (FAST_FORWARD, 6), (DELETE, SEMI, 6), (DELETE, RBRACE, 7))
  1: succeed 1, enqueue 4, check  2, cost:  3
- 1:  3, ( 0 0 1 0 0 0 0 0 0), (1 : (LBRACE))|(-1, 2;(IDENTIFIER, (150 . 152)))|((INSERT, LBRACE, 2))
+ 1:  3, ( 0 0 1 0 0 0 0 0 0), (1 : (LBRACE))\3;34:(IDENTIFIER, (150 . 152) ERROR)\((INSERT, LBRACE, 3))
 
 recover: succeed, parser count 3
  6: stack/stream:
-(6, (0, -20;(Wisi_SOI, (1 . 1))),
-(1, -19;(LBRACE, (1 . 1))),
-(10, -48:(statement_list, (3 . 97))),
-(3, -2;(LPAREN, (142 . 142))),
-(13, -50:(expression, (143 . 145))),
-^(20, 0;(RPAREN, (146 . 146)))/,
-(-1, -52:(SEMI))/,
-(-1, 1;(ARROW, (147 . 148))),
-(-1, 2;(IDENTIFIER, (150 . 152))),
-(-1, 3;(SEMI, (153 . 153))),
-(-1, 4;(RBRACE, (154 . 154))),
-(-1, 5;(SEMI, (155 . 155))),
-(-1, 6;(RBRACE, (158 . 158))),
-(-1, 7;(Wisi_EOI, (160 . 159))))
-    Current_Token: (6, -52:(SEMI))
-    Shared_Token: (-1, 2;(IDENTIFIER, (150 . 152)))
-    recover_insert_delete:((DELETE, 5:SEMI), (DELETE, 6:RBRACE))
-    resume_active: True, token goal 10, inc_shared_stream_token: FALSE
+(6, (0, 
+0000: -19;0:(Wisi_SOI, (1 . 1))),
+(1, 
+0001: -18;1:(LBRACE, (1 . 1))),
+(10, 
+0052: -52:(statement_list_1, (3 . 97))
+0039: | -39:(statement_list_1, (3 . 82))
+0031: | | -31:(statement_list_0, (3 . 6))
+0030: | | | -30:(statement_0, (3 . 6))
+0029: | | | | -29:(expression_1, (3 . 5))
+0002: | | | | | -17;2:(IDENTIFIER, (3 . 5))
+0003: | | | | -16;3:(SEMI, (6 . 6))
+0038: | | -38:(statement_0, (73 . 82))
+0037: | | | -37:(expression_2, (73 . 81))
+0004: | | | | -15;4:(LPAREN, (73 . 73))
+0032: | | | | -32:(classOrInterfaceType_0, (74 . 76))
+0005: | | | | | -14;5:(IDENTIFIER, (74 . 76))
+0006: | | | | -13;6:(RPAREN, (77 . 77))
+0036: | | | | -36:(expression_1, (79 . 81))
+0007: | | | | | -12;7:(IDENTIFIER, (79 . 81))
+0008: | | | -11;8:(SEMI, (82 . 82))
+0051: | -51:(statement_0, (84 . 97))
+0050: | | -50:(expression_3, (84 . 96))
+0049: | | | -49:(lambdaExpression_0, (84 . 96))
+0044: | | | | -44:(lambdaParameters_0, (84 . 88))
+0009: | | | | | -10;9:(LPAREN, (84 . 84))
+0010: | | | | | -9;10:(IDENTIFIER, (85 . 87))
+0011: | | | | | -8;11:(RPAREN, (88 . 88))
+0012: | | | | -7;12:(ARROW, (89 . 90))
+0048: | | | | -48:(block_0, (91 . 96))
+0013: | | | | | -6;13:(LBRACE, (91 . 91))
+0047: | | | | | -47:(statement_list_0, (92 . 95))
+0046: | | | | | | -46:(statement_0, (92 . 95))
+0045: | | | | | | | -45:(expression_1, (92 . 94))
+0014: | | | | | | | | -5;14:(IDENTIFIER, (92 . 94))
+0015: | | | | | | | -4;15:(SEMI, (95 . 95))
+0016: | | | | | -3;16:(RBRACE, (96 . 96))
+0017: | | -2;17:(SEMI, (97 . 97))),
+(3, 
+0018: -1;18:(LPAREN, (142 . 142))),
+(13, 
+0054: -54:(expression_1, (143 . 145))
+0019: | 0;19:(IDENTIFIER, (143 . 145))),
+^(20, 
+0036: 1;36:(RPAREN, (146 . 146) deleted: (2;35:(ARROW, (147 . 148) ERROR)))),
+(-1, 
+0061: -61:(SEMI))/,
+(-1, 
+0022: 3;22:(IDENTIFIER, (150 . 152))),
+(-1, 
+0023: 4;23:(SEMI, (153 . 153))),
+(-1, 
+0024: 5;24:(RBRACE, (154 . 154))),
+(-1, 
+0025: 6;25:(SEMI, (155 . 155))),
+(-1, 
+0026: 7;26:(RBRACE, (158 . 158))),
+(-1, 
+0027: 8;27:(Wisi_EOI, (160 . 159))))
+    Current_Token: (6, -61:(SEMI))
+    Shared_Token: (-1, 3;22:(IDENTIFIER, (150 . 152)))
+    recover_insert_delete:((DELETE, 6:SEMI), (DELETE, 7:RBRACE))
+    resume_active: True, token goal 11
  5: stack/stream:
-(5, (0, -20;(Wisi_SOI, (1 . 1))),
-(1, -19;(LBRACE, (1 . 1))),
-(10, -48:(statement_list, (3 . 97))),
-(3, -2;(LPAREN, (142 . 142))),
-(12, -49:(classOrInterfaceType, (143 . 145))),
-^(19, 0;(RPAREN, (146 . 146)))//,
-(-1, 1;(ARROW, (147 . 148))),
-(-1, 2;(IDENTIFIER, (150 . 152))),
-(-1, 3;(SEMI, (153 . 153))),
-(-1, 4;(RBRACE, (154 . 154))),
-(-1, 5;(SEMI, (155 . 155))),
-(-1, 6;(RBRACE, (158 . 158))),
-(-1, 7;(Wisi_EOI, (160 . 159))))
-    Current_Token: (-1, 2;(IDENTIFIER, (150 . 152)))
-    Shared_Token: (-1, 2;(IDENTIFIER, (150 . 152)))
-    recover_insert_delete:((DELETE, 5:SEMI), (DELETE, 6:RBRACE))
-    resume_active: True, token goal 10, inc_shared_stream_token: TRUE
+(5, (0, 
+0000: -19;0:(Wisi_SOI, (1 . 1))),
+(1, 
+0001: -18;1:(LBRACE, (1 . 1))),
+(10, 
+0052: -52:(statement_list_1, (3 . 97))
+0039: | -39:(statement_list_1, (3 . 82))
+0031: | | -31:(statement_list_0, (3 . 6))
+0030: | | | -30:(statement_0, (3 . 6))
+0029: | | | | -29:(expression_1, (3 . 5))
+0002: | | | | | -17;2:(IDENTIFIER, (3 . 5))
+0003: | | | | -16;3:(SEMI, (6 . 6))
+0038: | | -38:(statement_0, (73 . 82))
+0037: | | | -37:(expression_2, (73 . 81))
+0004: | | | | -15;4:(LPAREN, (73 . 73))
+0032: | | | | -32:(classOrInterfaceType_0, (74 . 76))
+0005: | | | | | -14;5:(IDENTIFIER, (74 . 76))
+0006: | | | | -13;6:(RPAREN, (77 . 77))
+0036: | | | | -36:(expression_1, (79 . 81))
+0007: | | | | | -12;7:(IDENTIFIER, (79 . 81))
+0008: | | | -11;8:(SEMI, (82 . 82))
+0051: | -51:(statement_0, (84 . 97))
+0050: | | -50:(expression_3, (84 . 96))
+0049: | | | -49:(lambdaExpression_0, (84 . 96))
+0044: | | | | -44:(lambdaParameters_0, (84 . 88))
+0009: | | | | | -10;9:(LPAREN, (84 . 84))
+0010: | | | | | -9;10:(IDENTIFIER, (85 . 87))
+0011: | | | | | -8;11:(RPAREN, (88 . 88))
+0012: | | | | -7;12:(ARROW, (89 . 90))
+0048: | | | | -48:(block_0, (91 . 96))
+0013: | | | | | -6;13:(LBRACE, (91 . 91))
+0047: | | | | | -47:(statement_list_0, (92 . 95))
+0046: | | | | | | -46:(statement_0, (92 . 95))
+0045: | | | | | | | -45:(expression_1, (92 . 94))
+0014: | | | | | | | | -5;14:(IDENTIFIER, (92 . 94))
+0015: | | | | | | | -4;15:(SEMI, (95 . 95))
+0016: | | | | | -3;16:(RBRACE, (96 . 96))
+0017: | | -2;17:(SEMI, (97 . 97))),
+(3, 
+0018: -1;18:(LPAREN, (142 . 142))),
+(12, 
+0053: -53:(classOrInterfaceType_0, (143 . 145))
+0019: | 0;19:(IDENTIFIER, (143 . 145))),
+^(19, 
+0038: 1;38:(RPAREN, (146 . 146) deleted: (2;37:(ARROW, (147 . 148) ERROR))))/,
+(-1, 
+0022: 3;22:(IDENTIFIER, (150 . 152))),
+(-1, 
+0023: 4;23:(SEMI, (153 . 153))),
+(-1, 
+0024: 5;24:(RBRACE, (154 . 154))),
+(-1, 
+0025: 6;25:(SEMI, (155 . 155))),
+(-1, 
+0026: 7;26:(RBRACE, (158 . 158))),
+(-1, 
+0027: 8;27:(Wisi_EOI, (160 . 159))))
+    Current_Token: (-1, 3;22:(IDENTIFIER, (150 . 152)))
+    Shared_Token: (-1, 3;22:(IDENTIFIER, (150 . 152)))
+    recover_insert_delete:((DELETE, 6:SEMI), (DELETE, 7:RBRACE))
+    resume_active: True, token goal 11
  1: stack/stream:
-(1, (0, -20;(Wisi_SOI, (1 . 1))),
-(1, -19;(LBRACE, (1 . 1))),
-(10, -48:(statement_list, (3 . 97))),
-(9, -51:(lambdaParameters, (142 . 146))),
-^(15, 1;(ARROW, (147 . 148)))/,
-(-1, -53:(LBRACE))/,
-(-1, 2;(IDENTIFIER, (150 . 152))),
-(-1, 3;(SEMI, (153 . 153))),
-(-1, 4;(RBRACE, (154 . 154))),
-(-1, 5;(SEMI, (155 . 155))),
-(-1, 6;(RBRACE, (158 . 158))),
-(-1, 7;(Wisi_EOI, (160 . 159))))
-    Current_Token: (1, -53:(LBRACE))
-    Shared_Token: (-1, 2;(IDENTIFIER, (150 . 152)))
+(1, (0, 
+0000: -19;0:(Wisi_SOI, (1 . 1))),
+(1, 
+0001: -18;1:(LBRACE, (1 . 1))),
+(10, 
+0052: -52:(statement_list_1, (3 . 97))
+0039: | -39:(statement_list_1, (3 . 82))
+0031: | | -31:(statement_list_0, (3 . 6))
+0030: | | | -30:(statement_0, (3 . 6))
+0029: | | | | -29:(expression_1, (3 . 5))
+0002: | | | | | -17;2:(IDENTIFIER, (3 . 5))
+0003: | | | | -16;3:(SEMI, (6 . 6))
+0038: | | -38:(statement_0, (73 . 82))
+0037: | | | -37:(expression_2, (73 . 81))
+0004: | | | | -15;4:(LPAREN, (73 . 73))
+0032: | | | | -32:(classOrInterfaceType_0, (74 . 76))
+0005: | | | | | -14;5:(IDENTIFIER, (74 . 76))
+0006: | | | | -13;6:(RPAREN, (77 . 77))
+0036: | | | | -36:(expression_1, (79 . 81))
+0007: | | | | | -12;7:(IDENTIFIER, (79 . 81))
+0008: | | | -11;8:(SEMI, (82 . 82))
+0051: | -51:(statement_0, (84 . 97))
+0050: | | -50:(expression_3, (84 . 96))
+0049: | | | -49:(lambdaExpression_0, (84 . 96))
+0044: | | | | -44:(lambdaParameters_0, (84 . 88))
+0009: | | | | | -10;9:(LPAREN, (84 . 84))
+0010: | | | | | -9;10:(IDENTIFIER, (85 . 87))
+0011: | | | | | -8;11:(RPAREN, (88 . 88))
+0012: | | | | -7;12:(ARROW, (89 . 90))
+0048: | | | | -48:(block_0, (91 . 96))
+0013: | | | | | -6;13:(LBRACE, (91 . 91))
+0047: | | | | | -47:(statement_list_0, (92 . 95))
+0046: | | | | | | -46:(statement_0, (92 . 95))
+0045: | | | | | | | -45:(expression_1, (92 . 94))
+0014: | | | | | | | | -5;14:(IDENTIFIER, (92 . 94))
+0015: | | | | | | | -4;15:(SEMI, (95 . 95))
+0016: | | | | | -3;16:(RBRACE, (96 . 96))
+0017: | | -2;17:(SEMI, (97 . 97))),
+(9, 
+0057: -57:(lambdaParameters_0, (142 . 146))
+0018: | -1;18:(LPAREN, (142 . 142))
+0019: | 0;19:(IDENTIFIER, (143 . 145))
+0020: | 1;20:(RPAREN, (146 . 146))),
+^(15, 
+0021: 2;21:(ARROW, (147 . 148))),
+(-1, 
+0065: -65:(LBRACE)),
+(-1, 
+0039: 3;39:(IDENTIFIER, (150 . 152) ERROR))/,
+(-1, 
+0023: 4;23:(SEMI, (153 . 153))),
+(-1, 
+0024: 5;24:(RBRACE, (154 . 154))),
+(-1, 
+0025: 6;25:(SEMI, (155 . 155))),
+(-1, 
+0026: 7;26:(RBRACE, (158 . 158))),
+(-1, 
+0027: 8;27:(Wisi_EOI, (160 . 159))))
+    Current_Token: (1, -65:(LBRACE))
+    Shared_Token: (-1, 4;23:(SEMI, (153 . 153)))
     recover_insert_delete:
-    resume_active: True, token goal 5, inc_shared_stream_token: FALSE
+    resume_active: True, token goal 6
 
- 6: 20: (6, -52:(SEMI)) : reduce 3 tokens to expression
-(expression_0, (142 . 146)) <= (-2;(LPAREN, (142 . 142)), (expression, (143 . 145)), 0;(RPAREN, (146 . 146)))
+ 6: 20: (6, -61:(SEMI)) : reduce 3 tokens to expression
+(expression_0, (142 . 146) <= (-1;18:(LPAREN, (142 . 142)), (expression, (143 . 145)), 1;36:(RPAREN, (146 . 146) deleted: (2;35:(ARROW, (147 . 148) ERROR)))))
  ... goto state 7
- 5: 19: (-1, 2;(IDENTIFIER, (150 . 152))) : shift and goto state 5
- 1: 15: (1, -53:(LBRACE)) : shift and goto state 1
- 6: 7: (6, -52:(SEMI)) : shift and goto state 14
- 6: 14: (-1, 2;(IDENTIFIER, (150 . 152))) : reduce 2 tokens to statement
-(statement_0, (142 . 146)) <= ((expression, (142 . 146)), -52:(SEMI))
+ 5: 19: (-1, 3;22:(IDENTIFIER, (150 . 152))) : shift and goto state 5
+ 1: 15: (1, -65:(LBRACE)) : shift and goto state 1
+ 6: 7: (6, -61:(SEMI)) : shift and goto state 14
+ 6: 14: (-1, 3;22:(IDENTIFIER, (150 . 152))) : reduce 2 tokens to statement
+(statement_0, (142 . 146) <= ((expression, (142 . 146)), -61:(SEMI)))
  ... goto state 17
- 5: 5: (-1, 3;(SEMI, (153 . 153))) : reduce 1 tokens to expression
-(expression_1, (150 . 152)) <= (2;(IDENTIFIER, (150 . 152)))
+ 5: 5: (-1, 4;23:(SEMI, (153 . 153))) : reduce 1 tokens to expression
+(expression_1, (150 . 152) <= (3;22:(IDENTIFIER, (150 . 152))))
  ... goto state 22
- 1: 1: (-1, 2;(IDENTIFIER, (150 . 152))) : shift and goto state 5
- 6: 17: (-1, 2;(IDENTIFIER, (150 . 152))) : reduce 2 tokens to statement_list
-(statement_list_1, (3 . 146)) <= ((statement_list, (3 . 97)), (statement, (142 . 146)))
+ 1: 1: (1, 3;39:(IDENTIFIER, (150 . 152) ERROR)) : shift and goto state 5
+ 6: 17: (-1, 3;22:(IDENTIFIER, (150 . 152))) : reduce 2 tokens to statement_list
+(statement_list_1, (3 . 146) <= ((statement_list, (3 . 97)), (statement, (142 . 146))))
  ... goto state 10
- 5: 22: (-1, 3;(SEMI, (153 . 153))) : reduce 4 tokens to expression
-(expression_2, (142 . 152)) <= (-2;(LPAREN, (142 . 142)), (classOrInterfaceType, (143 . 145)), 0;(RPAREN, (146 . 146)), (expression, (150 . 152)))
+ 5: 22: (-1, 4;23:(SEMI, (153 . 153))) : reduce 4 tokens to expression
+(expression_2, (142 . 152) <= (-1;18:(LPAREN, (142 . 142)), (classOrInterfaceType, (143 . 145)), 1;38:(RPAREN, (146 . 146) deleted: (2;37:(ARROW, (147 . 148) ERROR))), (expression, (150 . 152))))
  ... goto state 7
- 6: 10: (-1, 2;(IDENTIFIER, (150 . 152))) : shift and goto state 5
- 5: 7: (-1, 3;(SEMI, (153 . 153))) : shift and goto state 14
- 6: 5: (-1, 3;(SEMI, (153 . 153))) : reduce 1 tokens to expression
-(expression_1, (150 . 152)) <= (2;(IDENTIFIER, (150 . 152)))
+ 6: 10: (-1, 3;22:(IDENTIFIER, (150 . 152))) : shift and goto state 5
+ 5: 7: (-1, 4;23:(SEMI, (153 . 153))) : shift and goto state 14
+ 6: 5: (-1, 4;23:(SEMI, (153 . 153))) : reduce 1 tokens to expression
+(expression_1, (150 . 152) <= (3;22:(IDENTIFIER, (150 . 152))))
  ... goto state 7
- 5: 14: (-1, 4;(RBRACE, (154 . 154))) : reduce 2 tokens to statement
-(statement_0, (142 . 153)) <= ((expression, (142 . 152)), 3;(SEMI, (153 . 153)))
+ 5: 14: (-1, 5;24:(RBRACE, (154 . 154))) : reduce 2 tokens to statement
+(statement_0, (142 . 153) <= ((expression, (142 . 152)), 4;23:(SEMI, (153 . 153))))
  ... goto state 17
- 1: 5: (-1, 3;(SEMI, (153 . 153))) : reduce 1 tokens to expression
-(expression_1, (150 . 152)) <= (2;(IDENTIFIER, (150 . 152)))
+ 1: 5: (-1, 4;23:(SEMI, (153 . 153))) : reduce 1 tokens to expression
+(expression_1, (150 . 152) <= (3;39:(IDENTIFIER, (150 . 152) ERROR)))
  ... goto state 7
- 6: 7: (-1, 3;(SEMI, (153 . 153))) : shift and goto state 14
- 5: 17: (-1, 4;(RBRACE, (154 . 154))) : reduce 2 tokens to statement_list
-(statement_list_1, (3 . 153)) <= ((statement_list, (3 . 97)), (statement, (142 . 153)))
+ 6: 7: (-1, 4;23:(SEMI, (153 . 153))) : shift and goto state 14
+ 5: 17: (-1, 5;24:(RBRACE, (154 . 154))) : reduce 2 tokens to statement_list
+(statement_list_1, (3 . 153) <= ((statement_list, (3 . 97)), (statement, (142 . 153))))
  ... goto state 10
- 1: 7: (-1, 3;(SEMI, (153 . 153))) : shift and goto state 14
- 5: 10: (-1, 4;(RBRACE, (154 . 154))) : shift and goto state 16
- 6: 14: (-1, 4;(RBRACE, (154 . 154))) : reduce 2 tokens to statement
-(statement_0, (150 . 153)) <= ((expression, (150 . 152)), 3;(SEMI, (153 . 153)))
+ 1: 7: (-1, 4;23:(SEMI, (153 . 153))) : shift and goto state 14
+ 5: 10: (-1, 5;24:(RBRACE, (154 . 154))) : shift and goto state 16
+ 6: 14: (-1, 5;24:(RBRACE, (154 . 154))) : reduce 2 tokens to statement
+(statement_0, (150 . 153) <= ((expression, (150 . 152)), 4;23:(SEMI, (153 . 153))))
  ... goto state 17
- 5: 16: (-1, 7;(Wisi_EOI, (160 . 159))) : reduce 3 tokens to block
-(block_0, (1 . 154)) <= (-19;(LBRACE, (1 . 1)), (statement_list, (3 . 153)), 4;(RBRACE, (154 . 154)))
+ 5: 16: (-1, 8;27:(Wisi_EOI, (160 . 159))) : reduce 3 tokens to block
+(block_0, (1 . 154) <= (-18;1:(LBRACE, (1 . 1)), (statement_list, (3 . 153)), 5;41:(RBRACE, (154 . 154) deleted: (6;25:(SEMI, (155 . 155)), 7;26:(RBRACE, (158 . 158))))))
  ... goto state 2
- 1: 14: (-1, 4;(RBRACE, (154 . 154))) : reduce 2 tokens to statement
-(statement_0, (150 . 153)) <= ((expression, (150 . 152)), 3;(SEMI, (153 . 153)))
+ 1: 14: (-1, 5;24:(RBRACE, (154 . 154))) : reduce 2 tokens to statement
+(statement_0, (150 . 153) <= ((expression, (150 . 152)), 4;23:(SEMI, (153 . 153))))
  ... goto state 6
- 6: 17: (-1, 4;(RBRACE, (154 . 154))) : reduce 2 tokens to statement_list
-(statement_list_1, (3 . 153)) <= ((statement_list, (3 . 146)), (statement, (150 . 153)))
+ 6: 17: (-1, 5;24:(RBRACE, (154 . 154))) : reduce 2 tokens to statement_list
+(statement_list_1, (3 . 153) <= ((statement_list, (3 . 146)), (statement, (150 . 153))))
  ... goto state 10
- 5: 2: (-1, 7;(Wisi_EOI, (160 . 159))) : accept it
-(wisitoken_accept_0, (1 . 154)) <= ((block, (1 . 154)))
- 1: 6: (-1, 4;(RBRACE, (154 . 154))) : reduce 1 tokens to statement_list
-(statement_list_0, (150 . 153)) <= ((statement, (150 . 153)))
+ 5: 2: (-1, 8;27:(Wisi_EOI, (160 . 159))) : accept it
+(wisitoken_accept_0, (1 . 154) <= ((block, (1 . 154))))
+ 1: 6: (-1, 5;24:(RBRACE, (154 . 154))) : reduce 1 tokens to statement_list
+(statement_list_0, (150 . 153) <= ((statement, (150 . 153))))
  ... goto state 10
- 6: 10: (-1, 4;(RBRACE, (154 . 154))) : shift and goto state 16
- 1: 10: (-1, 4;(RBRACE, (154 . 154))) : shift and goto state 16
- 6: 16: (-1, 7;(Wisi_EOI, (160 . 159))) : reduce 3 tokens to block
-(block_0, (1 . 154)) <= (-19;(LBRACE, (1 . 1)), (statement_list, (3 . 153)), 4;(RBRACE, (154 . 154)))
+ 6: 10: (-1, 5;24:(RBRACE, (154 . 154))) : shift and goto state 16
+ 1: 10: (-1, 5;24:(RBRACE, (154 . 154))) : shift and goto state 16
+ 6: 16: (-1, 8;27:(Wisi_EOI, (160 . 159))) : reduce 3 tokens to block
+(block_0, (1 . 154) <= (-18;1:(LBRACE, (1 . 1)), (statement_list, (3 . 153)), 5;43:(RBRACE, (154 . 154) deleted: (6;25:(SEMI, (155 . 155)), 7;26:(RBRACE, (158 . 158))))))
  ... goto state 2
- 1: 16: (-1, 5;(SEMI, (155 . 155))) : reduce 3 tokens to block
-(block_0, (150 . 154)) <= (-53:(LBRACE), (statement_list, (150 . 153)), 4;(RBRACE, (154 . 154)))
+ 1: 16: (-1, 6;25:(SEMI, (155 . 155))) : reduce 3 tokens to block
+(block_0, (150 . 154) <= (-65:(LBRACE), (statement_list, (150 . 153)), 5;24:(RBRACE, (154 . 154))))
  ... goto state 21
- 6: 2: (-1, 7;(Wisi_EOI, (160 . 159))) : accept it
-(wisitoken_accept_0, (1 . 154)) <= ((block, (1 . 154)))
- 1: 21: (-1, 5;(SEMI, (155 . 155))) : reduce 3 tokens to lambdaExpression
-(lambdaExpression_0, (142 . 154)) <= ((lambdaParameters, (142 . 146)), 1;(ARROW, (147 . 148)), (block, (150 . 154)))
+ 6: 2: (-1, 8;27:(Wisi_EOI, (160 . 159))) : accept it
+(wisitoken_accept_0, (1 . 154) <= ((block, (1 . 154))))
+ 1: 21: (-1, 6;25:(SEMI, (155 . 155))) : reduce 3 tokens to lambdaExpression
+(lambdaExpression_0, (142 . 154) <= ((lambdaParameters, (142 . 146)), 2;21:(ARROW, (147 . 148)), (block, (150 . 154))))
  ... goto state 8
- 1: 8: (-1, 5;(SEMI, (155 . 155))) : reduce 1 tokens to expression
-(expression_3, (142 . 154)) <= ((lambdaExpression, (142 . 154)))
+ 1: 8: (-1, 6;25:(SEMI, (155 . 155))) : reduce 1 tokens to expression
+(expression_3, (142 . 154) <= ((lambdaExpression, (142 . 154))))
  ... goto state 7
- 1: 7: (-1, 5;(SEMI, (155 . 155))) : shift and goto state 14
+ 1: 7: (-1, 6;25:(SEMI, (155 . 155))) : shift and goto state 14
  1: resume_active: False
  1: 14: (-1, 26:(RBRACE, (158 . 158))) : reduce 2 tokens to statement
-(statement_0, (142 . 155)) <= ((expression, (142 . 154)), 25:(SEMI, (155 . 155)))
+(statement_0, (142 . 155) <= ((expression, (142 . 154)), 25:(SEMI, (155 . 155))))
  ... goto state 17
  1: 17: (-1, 26:(RBRACE, (158 . 158))) : reduce 2 tokens to statement_list
-(statement_list_1, (3 . 155)) <= ((statement_list, (3 . 97)), (statement, (142 . 155)))
+(statement_list_1, (3 . 155) <= ((statement_list, (3 . 97)), (statement, (142 . 155))))
  ... goto state 10
  1: 10: (-1, 26:(RBRACE, (158 . 158))) : shift and goto state 16
  1: 16: (-1, 27:(Wisi_EOI, (160 . 159))) : reduce 3 tokens to block
-(block_0, (1 . 158)) <= (1:(LBRACE, (1 . 1)), (statement_list, (3 . 155)), 26:(RBRACE, (158 . 158)))
+(block_0, (1 . 158) <= (1:(LBRACE, (1 . 1)), (statement_list, (3 . 155)), 26:(RBRACE, (158 . 158))))
  ... goto state 2
  1: 2: (-1, 27:(Wisi_EOI, (160 . 159))) : accept it
-(wisitoken_accept_0, (1 . 158)) <= ((block, (1 . 158)))
+(wisitoken_accept_0, (1 . 158) <= ((block, (1 . 158))))
  6: terminate (2 active): recover cost/length (-1, 27:(Wisi_EOI, (160 . 159)))
  5: terminate (1 active): recover cost/length (-1, 27:(Wisi_EOI, (160 . 159)))
  1: succeed
-three_action_conflict.input:9:9: syntax error: expecting LBRACE, found 'foo'
-   recovered: ((INSERT, LBRACE, 2))
+three_action_conflict.input:9:9: syntax_error: expecting LBRACE, found 'foo'
+   recovered: ((INSERT, LBRACE, 3))

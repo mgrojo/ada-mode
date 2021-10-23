@@ -42,8 +42,6 @@ package body WisiToken.Parse.Packrat.Generated is
       if Parser.User_Data /= null then
          Parser.User_Data.Reset;
       end if;
-      Parser.Wrapped_Lexer_Errors.Clear;
-      Parser.Parse_Errors.Clear;
       Parser.Lex_All;
 
       Parser.Derivs.Set_First_Last (Descriptor.First_Nonterminal, Descriptor.Last_Nonterminal);
@@ -71,25 +69,5 @@ package body WisiToken.Parse.Packrat.Generated is
       end if;
 
    end Parse;
-
-   overriding function Any_Errors (Parser : in Generated.Parser) return Boolean
-   is
-      use all type Ada.Containers.Count_Type;
-   begin
-      return Parser.Tree.Lexer.Errors.Length > 0;
-   end Any_Errors;
-
-   overriding procedure Put_Errors (Parser : in Generated.Parser)
-   is
-      use Ada.Text_IO;
-   begin
-      for Item of Parser.Tree.Lexer.Errors loop
-         Put_Line
-           (Current_Error,
-            Parser.Tree.Lexer.File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image (Item.Char_Pos));
-      end loop;
-
-      --  FIXME: Packrat parser does not report errors yet.
-   end Put_Errors;
 
 end WisiToken.Parse.Packrat.Generated;

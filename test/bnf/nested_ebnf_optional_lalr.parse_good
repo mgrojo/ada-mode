@@ -2,26 +2,26 @@
  0: 0: 1:(IF, (1 . 2)) : shift and goto state 1
  0: 1: 2:(TRUE, (4 . 7)) : shift and goto state 3
  0: 3: 3:(THEN, (9 . 12)) : reduce 1 tokens to expression
-(expression, (4 . 7)) <= (2:(TRUE, (4 . 7)))
+(expression, (4 . 7) <= (2:(TRUE, (4 . 7))))
  ... goto state 4
  0: 4: 3:(THEN, (9 . 12)) : shift and goto state 5
  0: 5: 4:(GOTO, (14 . 17)) : shift and goto state 6
  0: 6: 5:(SEMICOLON, (18 . 18)) : shift and goto state 8
  0: 8: 6:(ELSIF, (20 . 24)) : reduce 2 tokens to statement
-(statement, (14 . 18)) <= (4:(GOTO, (14 . 17)), 5:(SEMICOLON, (18 . 18)))
+(statement, (14 . 18) <= (4:(GOTO, (14 . 17)), 5:(SEMICOLON, (18 . 18))))
  ... goto state 7
  0: 7: 6:(ELSIF, (20 . 24)) : shift and goto state 10
  0: 10: 7:(GOTO, (26 . 29)) : shift and goto state 6
  0: 6: 8:(SEMICOLON, (30 . 30)) : shift and goto state 8
  0: 8: 9:(END, (32 . 34)) : reduce 2 tokens to statement
-(statement, (26 . 30)) <= (7:(GOTO, (26 . 29)), 8:(SEMICOLON, (30 . 30)))
+(statement, (26 . 30) <= (7:(GOTO, (26 . 29)), 8:(SEMICOLON, (30 . 30))))
  ... goto state 12
  0: 12: 9:(END, (32 . 34)) : shift and goto state 14
  0: 14: 10:(IF, (36 . 37)) : shift and goto state 16
  0: 16: 11:(SEMICOLON, (38 . 38)) : shift and goto state 18
  0: 18: 12:(Wisi_EOI, (40 . 39)) : reduce 9 tokens to if_statement
-(if_statement, (1 . 38)) <= (1:(IF, (1 . 2)), (expression, (4 . 7)), 3:(THEN, (9 . 12)), (statement, (14 . 18)), 6:(ELSIF, (20 . 24)), (statement, (26 . 30)), 9:(END, (32 . 34)), 10:(IF, (36 . 37)), 11:(SEMICOLON, (38 . 38)))
+(if_statement, (1 . 38) <= (1:(IF, (1 . 2)), (expression, (4 . 7)), 3:(THEN, (9 . 12)), (statement, (14 . 18)), 6:(ELSIF, (20 . 24)), (statement, (26 . 30)), 9:(END, (32 . 34)), 10:(IF, (36 . 37)), 11:(SEMICOLON, (38 . 38))))
  ... goto state 2
  0: 2: 12:(Wisi_EOI, (40 . 39)) : accept it
-(wisitoken_accept, (1 . 38)) <= ((if_statement, (1 . 38)))
+(wisitoken_accept, (1 . 38) <= ((if_statement, (1 . 38))))
  0: succeed
