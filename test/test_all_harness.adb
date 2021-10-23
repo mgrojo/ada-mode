@@ -48,6 +48,7 @@ with Test_Red_Black_Trees;
 with Test_Sparse_Ordered_Sets;
 with Test_Stacks;
 with Test_Stats;
+with Test_Unbounded_Definite_Hash_Tables;
 with Test_Unbounded_Definite_Vectors;
 with Test_Unbounded_Definite_Vectors_Protected;
 with Test_Unbounded_Definite_Vectors_Sorted;
@@ -118,6 +119,7 @@ begin
    Add_Test (Suite, Test_Case_Access'(new Test_Sparse_Ordered_Sets.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Stacks.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Stats.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Unbounded_Definite_Hash_Tables.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Unbounded_Definite_Vectors.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Unbounded_Definite_Vectors_Protected.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Unbounded_Definite_Vectors_Sorted.Test_Case));

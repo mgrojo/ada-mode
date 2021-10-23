@@ -42,7 +42,7 @@ generic
 
    with function Hash (Element : Element_Type; Rows : Positive) return Positive;
    --  WORKAROUND: GNAT community 2019 doesn't allow 'with post' here
-   --  with Release compilation switches.
+   --  with Release compilation switches. Fixed in GNAT community 2021.
    --  with Post => Hash'Result in 1 .. Rows;
    --
    --  Takes Element, not Key, to allow storing Hash in Element so it is

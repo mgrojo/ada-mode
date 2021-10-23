@@ -9,7 +9,7 @@
 --  This does not guard simultaneous read/write of individual element
 --  content.
 --
---  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2019, 2021 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -110,7 +110,7 @@ private
 
       procedure Release_Write;
 
-      --  It is tempting to provide an operation "update_read_to_write", so
+      --  It is tempting to provide an operation "upgrade_read_to_write", so
       --  we spend as little time as possible with a write lock. But that
       --  leads to deadlock, if two tasks aquire read lock, then both attempt
       --  to upgrade.
