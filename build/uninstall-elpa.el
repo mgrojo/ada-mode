@@ -14,14 +14,15 @@
   (concat (locate-user-emacs-file "elpa") "/" name "-" version))
 
 (defun pkg-dir-clean (name version)
-  (let ((dir (pkg-dir name version)))
-    (when (file-exists-p dir)
-      (delete-directory dir t))
-    )
-  (let* ((elpa-dir (locate-user-emacs-file "elpa"))
+  (let* ((elpa-dir (expand-file-name (locate-user-emacs-file "elpa")))
 	 (files (file-name-all-completions (concat name "-" version) elpa-dir)))
     (dolist (file files)
-      (delete-file (concat elpa-dir "/" file)))))
+      (let ((file-name (expand-file-name file elpa-dir)))
+	(if (file-directory-p file-name)
+	    ;; This handles installing from local build of elpa, where
+	    ;; the actual version has rev/date info appended.
+	    (delete-directory file-name t)
+	  (delete-file file-name))))))
 
 (pkg-dir-clean "ada-mode" ada-mode-version)
 (pkg-dir-clean "ada-ref-man" ada-ref-man-version)

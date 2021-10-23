@@ -1,4 +1,5 @@
 ;; Project definitions for compiling ada-mode
+(require 'wisi-prj)
 
 (let ((wisitoken-core "/Projects/org.wisitoken")
       (wisi-core "/Projects/org.emacs.wisi"))

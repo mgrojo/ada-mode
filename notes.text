@@ -16,11 +16,13 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1):
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.wisitoken")
 ;;  (xgit . "/Projects/elpa/packages/uniquify-files")
+  (xgit . "/Projects/org.emacs.wisi/")
   (xgit . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
    ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
+   ("../org.emacs.wisi"        . "../org.emacs.ada-mode.stephe-1")
    ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
@@ -45,6 +47,36 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+test Manuel Gomez use case
+    his former invocation: (ada-set-default-project-file "project.gpr")
+    test with installed elpa version:
+
+        emacs -Q  -l "c:/Projects/org.emacs.ada-mode/test/Example_2/test.el"
+        => (wrong-type-argument stringp nil)
+            wisi-prj-select-cache calls wisi-proj-current-parse with wisi-prj--current-file nil; should not call?
+                normally project-find-functions has more stuff, so (current-project) is not nil
+            need to set :init-prj to ada-default-prj
+            add that to wisi-prj--default with file nil? dangerous, not scalable to multiple modes
+            add with 'ada-mode?
+
+    minimal recipe/patch with ada-mode 7.1.8:
+  (package-initialize)
+  (require 'wisi-prj)
+  (setq project-find-functions '(wisi-prj-current-parse) debug-on-error t)
+  (wisi-prj-parse-file :prj-file "hello.gpr" :init-prj (ada-prj-default))
+  (wisi-prj-select-file "hello.gpr" (ada-prj-default))
+
+    add filename arg to wisi-prj-dtrt-parse-file, doc in wisi.info
+
+improve compilation-error-regexp-alist; see FIXME in gnat-core.el
+
+see ELPA pdf-tools for automatic compile, install
+    (pdf-tools-install)
+    (pdf-loader-install) in user .emacs
+
+include wisi-run-indent-test.el, wisi-tests.el in elpa
+    for running with old installed elpa, allow users to write tests
+
 send bug report on wisitoken keeps binding wisitoken-bnf-generate
 
 still get persistent error marks for new comment
@@ -62,6 +94,11 @@ still get persistent error marks for new comment
         lexer_errors: discovered by next_error_token or Edit_Tree scan
             have either a terminal or leading_non_grammar to add it to
             => lexer_Error field in source_token
+
+incremental parse does full reparse every time if FAIL_ENQUEUE_LIMIT
+    automatically disable face?
+
+wisi-prj-delete needs to kill gpr-query buffers for local process-env
 
 add test of restore deleted node that is before SOI?
     insert "-" at EOB, parse, insert second "-"
@@ -87,10 +124,6 @@ sometimes when open a new Ada file with incremental mode enabled, get:
     Error during redisplay: (jit-lock-function 1) signaled (error "parse abandoned; parser busy")
     font-lock should not signal that error if wisi-debug=0; just try again later
         return nil or something?
-
-add elpa commit check to ada-mode, wisi
-    don't find anything in emacs or elpa repository
-    next time you get one in elpa or emacs commit, trace where it comes from
 
 doc gnat community 2021 in ada-mode.texi
     document gnatcoll patch
@@ -145,6 +178,8 @@ delete elpa branches, push o.e.*
         how does elpa-admin check for that?
             must store last-release-version somewhere; in name of tarball?
         ask Stefan if there's another way?
+
+    set :url in elpa/elpa-packages; see other savannah
 
 
 README-ada-ref-man moved to org.adaic.arm_form
@@ -225,6 +260,24 @@ build/test.log
 
 
  after incremental
+indent bug:
+   procedure Find_New_Line_1
+     (Tree     : in     Syntax_Trees.Tree;
+      Ref      : in out Stream_Node_Parents;
+      Line     : in     Line_Number_Type;
+      Char_Pos :    out Buffer_Pos)
+   with Pre => Line > Line_Number_Type'First and Ref.Ref.Element /= Invalid_Stream_Index,
+     Post => Ref.Ref.Element = Ref.Ref.Element'Old and
+             (Ref.Ref.Node = Invalid_Node_Access or else
+                (Ref.Ref.Node.Label in Terminal_Label))
+                --  Update Ref to node under Ref.Node in Ref.Stream that ends Line -
+                --  1. Set Char_Pos to the position of the first character on Line. If
+                --  not found, Ref.Ref.Node is Invalid_Node_Access, Char_Pos is
+                --  Invalid_Buffer_Pos.
+   is
+
+    comment should align with 'is'
+
 test/mixed_unix_dos_line_ends.adb
       coding conversion in send-string strips stray ^M
         only in emacs 28?
@@ -236,6 +289,10 @@ test/mixed_unix_dos_line_ends.adb
         change to use null-terminated string?
             then byte, char pos wrong.
             if emacs buffer contains null, it's not valid text (even less valid than stray ^M)
+
+in gpr_query, add output line stating query:
+  References to Debug at flight.ads:25:5
+  plus blank line when append
 
 initial parse first do partial parse on visible region, for faster fontification
     also spawn a parser thread to run the full parse.
@@ -480,15 +537,6 @@ indent recover bug:
 .all fix doesn't work with Fedora gcc gnat
     try debian
 
-bug#43742:
-    https://www.gnu.org/software/emacs/manual/html_mono/ada-mode.html#Installation
-        for core ada-mode; should be deleted, since emacs 27 is current and no longer has ada-mode
-            or replace with manual from elpa
-
-
-    add 'for Driver ("C") use "gcc";' in wisi.gpr.gp package Compiler
-
-
 navigate bug
     need test
         add 'use type' for 'delete > 0': wisitoken-parse.adb
@@ -564,6 +612,7 @@ navigate in .wy buffer
 need better homepage for wisi
     point to user guide, show some screen shots
     populate Savannah 'docs' page?
+    extend http://www.nongnu.org/ada-mode/? = savannah
     set savannah devel status to 'in production'
 
 indent bugs
@@ -1148,6 +1197,10 @@ in ~/.gitconfig:
 	remote = origin
 	merge = refs/heads/master
 
+ elpa hints
+to test compiling info files:
+    in *.texi[nfo], F5 makeinfo *.texi[nfo]
+
  release process
 keep status in ~/projects.text
 do wisitoken release ../org.wisitoken/build/release_process.text
@@ -1273,51 +1326,45 @@ bump versions
             - 3 project.el integration
             - 4 incremental parse
 
-    emacs_wisi_common_parse.ads
+    o.e.ada-mode/emacs_wisi_common_parse.ads
         (should have been changed already, but verify)
         Protocol_Version if this file changed, or
         wisi-process-parse.el -send-parse, -send-refactor, -execute
         changed; ie, if installed parser must be replaced on upgrade or downgrade
 
-    wisi-ada.ads
+    o.e.ada-mode/wisi-ada.ads
         (should have been changed already, but verify)
         Language_Protocol_Version if this file changed
         ie, if installed parser must be replaced on upgrade or downgrade
 
-    wisi.el
+    o.e.wisi/wisi.el
         copyright date
         Version:
 
-    wisi.texi
+    o.e.wisi/wisi.texi
         copyright date
         @title
         @node top
 
-    README-wisi
+    o.e.wisi/README
         first line
 
-    build.sh
-        WISI_DIR wisi version
-
-    install.sh
-        WISI_DIR wisi version
-
-    ada-mode.el
+    o.e.ada-mode/ada-mode.el
         Version:
         package-requires wisi version
         ada-mode-version
 
-    ada-mode.texi
+    o.e.ada-mode/ada-mode.texi
         @title
         @node top
 
-    README-ada-mode
+    o.e.ada-mode/README
         first line
 
-    ada-ref-man.el
+    o.e.ada-mode/ada-ref-man.el
         Version:
 
-    build/Makefile
+    o.e.ada-mode/build/Makefile
         run uninstall-elpa with old values before changing!
         ADA_MODE_VERSION
         ADA_REF_MAN_VERSION
@@ -1327,6 +1374,10 @@ bump versions
         find-replace ada-mode i.j.k
         wisi version does not appear
         _not_ WisiToken (done in wisitoken release)
+
+        echoed to savannah web page on CVS commit.
+        other files in that dir updated by ~/web/Makefile
+        FIXME; need a savannah wisi package
 
     _not_ d:/Web/stephe-leake/ada/wisitoken.html - done in wisitoken release
 
@@ -1341,7 +1392,10 @@ verify other metadata
 
 prep for elpa tests:
     build/Makefile byte-compile-clean pub
-    # pushes to elpa workspace, builds archive
+    # pushes to elpa workspace
+    # commit: (dvc-state-multiple "c:/Projects/elpa/packages")
+    build/Makefile pub-install
+    # builds local elpa archive, installs it
 
 Check copyright on files in elpa
     c:/Projects/elpa/GNUMakefile check-all
@@ -1349,7 +1403,6 @@ Check copyright on files in elpa
 
 Emacs 25.3, current gnat
     ~/bin/emacs-25.sh
-    (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
     build/Makefile install-elpa
     (gpr-query-kill-all-sessions)
     (list-processes)
@@ -1393,7 +1446,10 @@ Debian testing has elpa checkout
 
     build/Makefile
         # no ARM_INFO on Debian
-        docs pub-ada pub-wisi clean-elpa build-elpa uninstall-elpa
+        docs pub-ada pub-wisi clean-elpa
+        # build-elpa uses latest commit; FIXME: change that?
+        (dvc-state-multiple "/Projects/elpa/packages")
+        build-elpa uninstall-elpa
         install-elpa
             # byte-compile errors, warnings show in *compile-log*
 
@@ -1438,8 +1494,13 @@ update elpa, commit elpa/ada-ref-man (not done on Debian)
     # 24 hrs for web repository to update
 
 after Gnu ELPA updated, test install from GNU ELPA
+    first install current version, to be sure upgrade requires new versions
+        ada-mode 7.1.5 should have required wisi 3.1.5
+
+    (list-packages)
     5.1.8 crashed emacs for me
     see 'build.sh; install.sh' above for compiling
+
     also wisitoken-grammar-mode
 
 (dvc-state-one ".")
@@ -1457,8 +1518,6 @@ in cygwin console for gpg prompts:
     # no 'sync' here; all on savannah via cvs, scp
     ada-mode
 
-add elpa .tar.gz to savannah?
-
 commit savannah
     if emacs cvs-examine fails, do 'cvs status' in shell to see real error message (probably IP address confusion)
         # see projects.text "conflicting keys for savannah"
@@ -1472,9 +1531,6 @@ commit savannah
     C-c C-c
 
     takes ~ 10 min for http://www.nongnu.org/ada-mode/ to reflect cvs commit
-
-update gnu ada-mode manual?
-     https://www.gnu.org/software/emacs/manual/html_mono/ada-mode.html
 
 publish on Alire?
     https://alire.ada.dev/
@@ -1497,32 +1553,28 @@ checkout reference copy in c:/Projects/ada-mode-releases
     git archive HEAD | tar -x -C c:/Projects/ada-mode-releases/ada-mode-i.j.k/org.stephe_leake.makerules
     aunit_ext?
 
-post on emacs-ada-mode mailing list, c.l.a newsgroup:
+post on emacs-ada-mode mailing list, c.l.a newsgroup, https://savannah.nongnu.org/news/submit.php?group_id=11631:
 
 -------------------
-Gnu Emacs Ada mode 7.1.3 released.
+Gnu Emacs Ada mode 7.1.6 released.
 -------------------
 
-Gnu Emacs Ada mode 7.1.3 is now available in GNU ELPA.
+Gnu Emacs Ada mode 7.1.6 is now available in GNU ELPA.
 
-Relative to the previous Ada mode release (7.1.2), this is a
-bug fix release.
+This is a bug fix release.
 
-Changed default of ada-end-name-optional; t is better for newbies,
-and nil is pre-mature optimization
+ada-mode and wisi are now compatible with gnat FSF 11, Pro 22,
+Community 2021.
 
-
-
-See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.1.3 and wisi-3.1.3,
+See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.1.6 and wisi-3.1.3,
 or at http://www.nongnu.org/ada-mode/, for more details.
 
 The required Ada code requires a manual compile step, after the normal
 list-packages installation ('install.sh' is new in this release):
 
-cd ~/.emacs.d/elpa/ada-mode-7.1.1
+cd ~/.emacs.d/elpa/ada-mode-7.1.6
 ./build.sh
 ./install.sh
-
 
 This requires AdaCore gnatcoll packages which you may not have
 installed; see ada-mode.info Installation for help in installing them.
@@ -1546,11 +1598,9 @@ mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     http://debbugs.gnu.org/Developer.html
     email to nnn-close@debbugs.gnu.org
-        subject: closed by ada-mode version 7.1.3
+        subject: closed by ada-mode version 7.1.6
         don't include Version: header; that's an Emacs version
     debbugs updates ada-mode summary page within half an hour; no emails
-
-post news on https://savannah.nongnu.org/news/submit.php?group_id=11631
 
 check https://www.emacswiki.org/emacs/AdaMode
     https://www.emacswiki.org/emacs/StephenLeake

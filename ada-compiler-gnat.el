@@ -266,11 +266,11 @@ Prompt user if more than one."
 	     ;; defined; if present, it will have been marked by
 	     ;; ada-gnat-compilation-filter:
 	     ;;
-	     ;; gnatquery.adb:255:13: "Has_Element" is not visible
-	     ;; gnatquery.adb:255:13: non-visible declaration at a-convec.ads:68, instance at gnatcoll-arg_lists.ads:157
-	     ;; gnatquery.adb:255:13: non-visible declaration at a-coorse.ads:62, instance at gnatcoll-xref.ads:912
-	     ;; gnatquery.adb:255:13: non-visible declaration at a-coorse.ads:62, instance at gnatcoll-xref.ads:799
-	     ;; gnatquery.adb:255:13: non-visible declaration at gnatcoll-xref.ads:314
+    ;; gnatquery.adb:255:13: error: "Has_Element" is not visible
+    ;; gnatquery.adb:255:13: error: non-visible declaration at a-convec.ads:68, instance at gnatcoll-arg_lists.ads:157
+    ;; gnatquery.adb:255:13: error: non-visible declaration at a-coorse.ads:62, instance at gnatcoll-xref.ads:912
+    ;; gnatquery.adb:255:13: error: non-visible declaration at a-coorse.ads:62, instance at gnatcoll-xref.ads:799
+    ;; gnatquery.adb:255:13: error: non-visible declaration at gnatcoll-xref.ads:314
 	     ;;
 	     ;; or the next line may contain "multiple use clauses cause hiding"
 	     ;;
@@ -289,7 +289,7 @@ Prompt user if more than one."
 			     (and
 			      (equal file-line-struct err-msg) ;; same error message?
 			      (setq pos (next-single-property-change (point) 'ada-secondary-error nil limit))
-			      (< pos limit))))
+			      (<= pos limit))))
 		 (when (not done)
 		   (let* ((item (get-text-property pos 'ada-secondary-error))
 			  (unit-file (nth 0 item))

@@ -1284,7 +1284,10 @@ begin
       --  query.
       use Ada.Directories;
    begin
-      if Exists (DB_Name.all) then
+      if DB_Name.all = ":memory:" then
+         null;
+
+      elsif Exists (DB_Name.all) then
          --  If this is read-only, we assume it is up to date and the user is
          --  just browsing.
          null;

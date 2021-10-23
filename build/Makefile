@@ -44,7 +44,11 @@ endif
 
 elisp : byte-compile-clean compile-ada-test-clean update compile-ada-test test-clean test
 
-pub : docs pub-ada pub-wisi pub-ada-ref-man clean-elpa build-elpa uninstall-elpa
+# 'pub' does not do install, because 'build-elpa' uses the last
+# commit, not the current workspace.
+pub : docs pub-ada pub-wisi pub-ada-ref-man
+# (dvc-state-multiple "c:/Projects/elpa/packages")
+pub-install: clean-elpa build-elpa uninstall-elpa
 
 docs : info html
 
@@ -83,7 +87,6 @@ byte-compile-clean :
 ifeq ($(TEST_DIR),source)
 test : build_executables
 endif
-test : test_all_harness.run
 test : test-ada-lalr-partial-process-gpr_query.stamp
 test : test-ada-lalr-incremental-process-gpr_query.stamp
 test : test-ada-lalr-process-gnatxref.stamp
@@ -353,7 +356,7 @@ ada-mode-elpa-archive-$(DATE).tar.bz2 : $(ELPA_ROOT)/archive/packages/archive-co
 tag :
 	mtn tag h:org.emacs.ada-mode org.emacs.ada-mode-$(ADA_MODE_VERSION)
 
-MANUALS := ada-mode gpr-mode wisi
+MANUALS := ada-mode gpr-mode
 
 INFO_FILES := $(addsuffix .info, $(MANUALS))
 info : ../dir-ada-mode
@@ -410,9 +413,11 @@ pub-ada-ref-man : force
 	cp $(ARM_INFO)/build/emacs_case_exceptions $(ELPA_ROOT)/packages/ada-ref-man/build
 
 
-# builds $(ELPA_ROOT)/archive-devel/*
+# builds $(ELPA_ROOT)/archive-devel/*, from the last commit, _not_ the current workspace
+# Also checks copyright; run elpa/GNUMakefile check/<pkg> first if added files.
 build-elpa : force
-	make -C $(ELPA_ROOT)/ build-devel/ada-mode build-devel/wisi
+	rm -rf $(ELPA_ROOT)/archive-devel
+	make -C $(ELPA_ROOT)/ build/ada-mode build/wisi
 
 uninstall-elpa :
 	emacs -Q --eval '(progn (load-file "uninstall-elpa.el")(kill-emacs))'

@@ -1,6 +1,10 @@
 ;; Ada specific utils for automating indentation and casing tests
 
-(require 'wisi-run-indent-test)
+(package-initialize) ;; for uniquify-files, installed wisi, ada-mode
+
+;; wisi-run-indent-test, wisi-test are not in elpa (yet?)
+(load-file "../../org.emacs.wisi/wisi-tests.el")
+(load-file "../../org.emacs.wisi/wisi-run-indent-test.el")
 
 (defun switch-to-lr1 ()
   (setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lr1_parse" ada-mode-dir))

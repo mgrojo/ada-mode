@@ -3,6 +3,10 @@
 (require 'package)
 (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive-devel"))
 
+(when (eq system-type 'windows-nt)
+  ;; Default uses "c:/"; mingw gpg requires "/c/"
+  (setq package-gnupghome-dir "/c/home/stephe/.emacs.d/elpa/gnupg"))
+
 ;; ada-mode, wisi normally disabled in Stephe's early-init.el
 (setq package-load-list '(all))
 

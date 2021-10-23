@@ -356,3 +356,5 @@ d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
 ;; FIXME: find a fontified word, time re-fontify
 ;; FIXME: measure memory use in emacs, parser process; Debian 'time -l run_ada_lalr ...', or just Windows Task Manager
    before/after visit, parse file.
+
+;; FIXME: measure edit_tree time
