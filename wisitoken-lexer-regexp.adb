@@ -281,15 +281,29 @@ package body WisiToken.Lexer.Regexp is
    overriding
    function Is_Comment
      (Lexer : in Instance;
-      Token : in WisiToken.Lexer.Token)
+      ID    : in Token_ID)
      return Boolean
    is
-      pragma Unreferenced (Lexer, Token);
+      pragma Unreferenced (Lexer, ID);
    begin
       --  regexp lexer only used in unit tests
       raise SAL.Not_Implemented;
       return False;
    end Is_Comment;
+
+   overriding
+   function Find_Comment_End
+     (Lexer         : in Instance;
+      ID            : in Token_ID;
+      Comment_Start : in Buffer_Pos)
+     return Buffer_Pos
+   is
+      pragma Unreferenced (Lexer, ID, Comment_Start);
+   begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return Buffer_Pos'First;
+   end Find_Comment_End;
 
    overriding
    function Line_Begin_Char_Pos
@@ -313,5 +327,17 @@ package body WisiToken.Lexer.Regexp is
    is begin
       return Contains_New_Line (Lexer.Source, Byte_Region);
    end Contains_New_Line;
+
+   overriding
+   function New_Line_Count
+     (Lexer       : in Instance;
+      Byte_Region : in Buffer_Region)
+     return Base_Line_Number_Type
+   is
+      pragma Unreferenced (Lexer, Byte_Region);
+   begin
+      raise SAL.Not_Implemented;
+      return Base_Line_Number_Type'First;
+   end New_Line_Count;
 
 end WisiToken.Lexer.Regexp;

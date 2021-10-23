@@ -33,23 +33,23 @@ new Worker_Task 1
 recover: succeed, parser count 1
  0: stack/stream:
 (0, (0, 
-0000: -4;0:(Wisi_SOI, (1 . 1))),
+-4;0:(Wisi_SOI, (1 . 1))),
 (1, 
-0001: -3;1:(LEFT_CURLY_BRACKET, (16 . 16))),
+-3;1:(LEFT_CURLY_BRACKET, (16 . 16))),
 (5, 
-0011: -11:(EnumConstantList_1, (18 . 21))
-0009: | -9:(EnumConstantList_0, (18 . 18))
-0008: | | -8:(EnumConstant_0, (18 . 18))
-0002: | | | -2;2:(IDENTIFIER, (18 . 18))
-0003: | -1;3:(COMMA, (19 . 19))
-0010: | -10:(EnumConstant_0, (21 . 21))
-0004: | | 0;4:(IDENTIFIER, (21 . 21))),
+-11:(EnumConstantList_1, (18 . 21))
+| -9:(EnumConstantList_0, (18 . 18))
+| | -8:(EnumConstant_0, (18 . 18))
+| | | -2;2:(IDENTIFIER, (18 . 18))
+| -1;3:(COMMA, (19 . 19))
+| -10:(EnumConstant_0, (21 . 21))
+| | 0;4:(IDENTIFIER, (21 . 21))),
 ^(8, 
-0005: 1;5:(COMMA, (22 . 22))),
+1;5:(COMMA, (22 . 22))),
 (-1, 
-0014: -14:(RIGHT_CURLY_BRACKET)),
+-14:(RIGHT_CURLY_BRACKET)),
 (-1, 
-0008: 2;8:(Wisi_EOI, (24 . 23) ERROR)))
+2;8:(Wisi_EOI, (24 . 23) ERROR)))
     Current_Token: (0, -14:(RIGHT_CURLY_BRACKET))
     Shared_Token: ()
     recover_insert_delete:

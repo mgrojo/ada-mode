@@ -1336,28 +1336,6 @@ package body WisiToken.BNF.Output_Ada_Common is
       end;
    end Create_re2c_File;
 
-   function Create_re2c_Lexer_With_Sal
-     (Generate_Data : aliased in WisiToken.BNF.Generate_Utils.Generate_Data)
-     return Boolean
-   is
-      use WisiToken.BNF.Generate_Utils;
-   begin
-      for I in All_Tokens (Generate_Data).Iterate
-        (Non_Grammar  => True,
-         Nonterminals => False,
-         Include_SOI  => False)
-      loop
-         if Kind (Generate_Data, I) = "comment-new-line" or
-           Kind (Generate_Data, I) = "comment-one-line" or
-           Kind (Generate_Data, I) = "new-line" or
-           Kind (Generate_Data, I) = "delimited-text"
-         then
-            return True;
-         end if;
-      end loop;
-      return False;
-   end Create_re2c_Lexer_With_Sal;
-
    procedure Create_re2c_Lexer
      (Generate_Data         : aliased in WisiToken.BNF.Generate_Utils.Generate_Data;
       Output_File_Name_Root :         in String)
@@ -1429,7 +1407,13 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("   ID            : in WisiToken.Token_ID;");
       Indent_Line ("   Comment_Start : in WisiToken.Buffer_Pos)");
       Indent_Line ("  return WisiToken.Buffer_Pos");
-      Indent_Line ("is begin");
+      if Comment_Count > 0 then
+         Indent_Line ("is begin");
+      else
+         Indent_Line ("is");
+         Indent_Line ("pragma Unreferenced (Source, Comment_Start);");
+         Indent_Line ("begin");
+      end if;
       Indent := @ + 3;
       Indent_Line ("return");
       Indent_Line ("  (case To_Token_Enum (ID) is");

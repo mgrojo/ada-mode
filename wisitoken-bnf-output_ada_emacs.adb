@@ -1659,9 +1659,7 @@ is
          null;
 
       when re2c_Lexer =>
-         if Create_re2c_Lexer_With_Sal (Generate_Data) then
-            Put_Line ("with SAL;");
-         end if;
+         Put_Line ("with SAL;");
          Put_Line ("with WisiToken.Lexer.re2c;");
          Put_Line ("with " & Output_File_Name_Root & "_re2c_c;");
 

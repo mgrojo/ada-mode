@@ -20,30 +20,30 @@ spawn 1 from 0 (2 active)
 recover: succeed, parser count 2
  1: stack/stream:
 (1, (0, 
-0000: -1;0:(Wisi_SOI, (1 . 1))),
+-1;0:(Wisi_SOI, (1 . 1))),
 (7, 
-0001: 0;1:(LPAREN, (55 . 55))),
+0;1:(LPAREN, (55 . 55))),
 ^(28, 
-0002: 1;2:(IDENTIFIER, (56 . 56))),
+1;2:(IDENTIFIER, (56 . 56))),
 (-1, 
-0007: -7:(RPAREN)),
+-7:(RPAREN)),
 (-1, 
-0005: 2;5:(Wisi_EOI, (59 . 58) ERROR)))
+2;5:(Wisi_EOI, (59 . 58) ERROR)))
     Current_Token: (1, -7:(RPAREN))
     Shared_Token: ()
     recover_insert_delete:
     resume_active: True, token goal 6
  0: stack/stream:
 (0, (0, 
-0000: -1;0:(Wisi_SOI, (1 . 1))),
+-1;0:(Wisi_SOI, (1 . 1))),
 (7, 
-0001: 0;1:(LPAREN, (55 . 55))),
+0;1:(LPAREN, (55 . 55))),
 ^(28, 
-0002: 1;2:(IDENTIFIER, (56 . 56))),
+1;2:(IDENTIFIER, (56 . 56))),
 (-1, 
-0009: -9:(LPAREN)),
+-9:(LPAREN)),
 (-1, 
-0006: 2;6:(Wisi_EOI, (59 . 58) ERROR)))
+2;6:(Wisi_EOI, (59 . 58) ERROR)))
     Current_Token: (0, -9:(LPAREN))
     Shared_Token: ()
     recover_insert_delete:((INSERT, RPAREN, 2), (INSERT, RPAREN, 2))

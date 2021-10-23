@@ -178,190 +178,190 @@ new Worker_Task 1
 recover: succeed, parser count 3
  6: stack/stream:
 (6, (0, 
-0000: -19;0:(Wisi_SOI, (1 . 1))),
+-19;0:(Wisi_SOI, (1 . 1))),
 (1, 
-0001: -18;1:(LBRACE, (1 . 1))),
+-18;1:(LBRACE, (1 . 1))),
 (10, 
-0052: -52:(statement_list_1, (3 . 97))
-0039: | -39:(statement_list_1, (3 . 82))
-0031: | | -31:(statement_list_0, (3 . 6))
-0030: | | | -30:(statement_0, (3 . 6))
-0029: | | | | -29:(expression_1, (3 . 5))
-0002: | | | | | -17;2:(IDENTIFIER, (3 . 5))
-0003: | | | | -16;3:(SEMI, (6 . 6))
-0038: | | -38:(statement_0, (73 . 82))
-0037: | | | -37:(expression_2, (73 . 81))
-0004: | | | | -15;4:(LPAREN, (73 . 73))
-0032: | | | | -32:(classOrInterfaceType_0, (74 . 76))
-0005: | | | | | -14;5:(IDENTIFIER, (74 . 76))
-0006: | | | | -13;6:(RPAREN, (77 . 77))
-0036: | | | | -36:(expression_1, (79 . 81))
-0007: | | | | | -12;7:(IDENTIFIER, (79 . 81))
-0008: | | | -11;8:(SEMI, (82 . 82))
-0051: | -51:(statement_0, (84 . 97))
-0050: | | -50:(expression_3, (84 . 96))
-0049: | | | -49:(lambdaExpression_0, (84 . 96))
-0044: | | | | -44:(lambdaParameters_0, (84 . 88))
-0009: | | | | | -10;9:(LPAREN, (84 . 84))
-0010: | | | | | -9;10:(IDENTIFIER, (85 . 87))
-0011: | | | | | -8;11:(RPAREN, (88 . 88))
-0012: | | | | -7;12:(ARROW, (89 . 90))
-0048: | | | | -48:(block_0, (91 . 96))
-0013: | | | | | -6;13:(LBRACE, (91 . 91))
-0047: | | | | | -47:(statement_list_0, (92 . 95))
-0046: | | | | | | -46:(statement_0, (92 . 95))
-0045: | | | | | | | -45:(expression_1, (92 . 94))
-0014: | | | | | | | | -5;14:(IDENTIFIER, (92 . 94))
-0015: | | | | | | | -4;15:(SEMI, (95 . 95))
-0016: | | | | | -3;16:(RBRACE, (96 . 96))
-0017: | | -2;17:(SEMI, (97 . 97))),
+-52:(statement_list_1, (3 . 97))
+| -39:(statement_list_1, (3 . 82))
+| | -31:(statement_list_0, (3 . 6))
+| | | -30:(statement_0, (3 . 6))
+| | | | -29:(expression_1, (3 . 5))
+| | | | | -17;2:(IDENTIFIER, (3 . 5))
+| | | | -16;3:(SEMI, (6 . 6))
+| | -38:(statement_0, (73 . 82))
+| | | -37:(expression_2, (73 . 81))
+| | | | -15;4:(LPAREN, (73 . 73))
+| | | | -32:(classOrInterfaceType_0, (74 . 76))
+| | | | | -14;5:(IDENTIFIER, (74 . 76))
+| | | | -13;6:(RPAREN, (77 . 77))
+| | | | -36:(expression_1, (79 . 81))
+| | | | | -12;7:(IDENTIFIER, (79 . 81))
+| | | -11;8:(SEMI, (82 . 82))
+| -51:(statement_0, (84 . 97))
+| | -50:(expression_3, (84 . 96))
+| | | -49:(lambdaExpression_0, (84 . 96))
+| | | | -44:(lambdaParameters_0, (84 . 88))
+| | | | | -10;9:(LPAREN, (84 . 84))
+| | | | | -9;10:(IDENTIFIER, (85 . 87))
+| | | | | -8;11:(RPAREN, (88 . 88))
+| | | | -7;12:(ARROW, (89 . 90))
+| | | | -48:(block_0, (91 . 96))
+| | | | | -6;13:(LBRACE, (91 . 91))
+| | | | | -47:(statement_list_0, (92 . 95))
+| | | | | | -46:(statement_0, (92 . 95))
+| | | | | | | -45:(expression_1, (92 . 94))
+| | | | | | | | -5;14:(IDENTIFIER, (92 . 94))
+| | | | | | | -4;15:(SEMI, (95 . 95))
+| | | | | -3;16:(RBRACE, (96 . 96))
+| | -2;17:(SEMI, (97 . 97))),
 (3, 
-0018: -1;18:(LPAREN, (142 . 142))),
+-1;18:(LPAREN, (142 . 142))),
 (13, 
-0054: -54:(expression_1, (143 . 145))
-0019: | 0;19:(IDENTIFIER, (143 . 145))),
+-54:(expression_1, (143 . 145))
+| 0;19:(IDENTIFIER, (143 . 145))),
 ^(20, 
-0036: 1;36:(RPAREN, (146 . 146) deleted: (2;35:(ARROW, (147 . 148) ERROR)))),
+1;36:(RPAREN, (146 . 146) deleted: (2;35:(ARROW, (147 . 148) ERROR)))),
 (-1, 
-0061: -61:(SEMI))/,
+-61:(SEMI))/,
 (-1, 
-0022: 3;22:(IDENTIFIER, (150 . 152))),
+3;22:(IDENTIFIER, (150 . 152))),
 (-1, 
-0023: 4;23:(SEMI, (153 . 153))),
+4;23:(SEMI, (153 . 153))),
 (-1, 
-0024: 5;24:(RBRACE, (154 . 154))),
+5;24:(RBRACE, (154 . 154))),
 (-1, 
-0025: 6;25:(SEMI, (155 . 155))),
+6;25:(SEMI, (155 . 155))),
 (-1, 
-0026: 7;26:(RBRACE, (158 . 158))),
+7;26:(RBRACE, (158 . 158))),
 (-1, 
-0027: 8;27:(Wisi_EOI, (160 . 159))))
+8;27:(Wisi_EOI, (160 . 159))))
     Current_Token: (6, -61:(SEMI))
     Shared_Token: (-1, 3;22:(IDENTIFIER, (150 . 152)))
     recover_insert_delete:((DELETE, 6:SEMI), (DELETE, 7:RBRACE))
     resume_active: True, token goal 11
  5: stack/stream:
 (5, (0, 
-0000: -19;0:(Wisi_SOI, (1 . 1))),
+-19;0:(Wisi_SOI, (1 . 1))),
 (1, 
-0001: -18;1:(LBRACE, (1 . 1))),
+-18;1:(LBRACE, (1 . 1))),
 (10, 
-0052: -52:(statement_list_1, (3 . 97))
-0039: | -39:(statement_list_1, (3 . 82))
-0031: | | -31:(statement_list_0, (3 . 6))
-0030: | | | -30:(statement_0, (3 . 6))
-0029: | | | | -29:(expression_1, (3 . 5))
-0002: | | | | | -17;2:(IDENTIFIER, (3 . 5))
-0003: | | | | -16;3:(SEMI, (6 . 6))
-0038: | | -38:(statement_0, (73 . 82))
-0037: | | | -37:(expression_2, (73 . 81))
-0004: | | | | -15;4:(LPAREN, (73 . 73))
-0032: | | | | -32:(classOrInterfaceType_0, (74 . 76))
-0005: | | | | | -14;5:(IDENTIFIER, (74 . 76))
-0006: | | | | -13;6:(RPAREN, (77 . 77))
-0036: | | | | -36:(expression_1, (79 . 81))
-0007: | | | | | -12;7:(IDENTIFIER, (79 . 81))
-0008: | | | -11;8:(SEMI, (82 . 82))
-0051: | -51:(statement_0, (84 . 97))
-0050: | | -50:(expression_3, (84 . 96))
-0049: | | | -49:(lambdaExpression_0, (84 . 96))
-0044: | | | | -44:(lambdaParameters_0, (84 . 88))
-0009: | | | | | -10;9:(LPAREN, (84 . 84))
-0010: | | | | | -9;10:(IDENTIFIER, (85 . 87))
-0011: | | | | | -8;11:(RPAREN, (88 . 88))
-0012: | | | | -7;12:(ARROW, (89 . 90))
-0048: | | | | -48:(block_0, (91 . 96))
-0013: | | | | | -6;13:(LBRACE, (91 . 91))
-0047: | | | | | -47:(statement_list_0, (92 . 95))
-0046: | | | | | | -46:(statement_0, (92 . 95))
-0045: | | | | | | | -45:(expression_1, (92 . 94))
-0014: | | | | | | | | -5;14:(IDENTIFIER, (92 . 94))
-0015: | | | | | | | -4;15:(SEMI, (95 . 95))
-0016: | | | | | -3;16:(RBRACE, (96 . 96))
-0017: | | -2;17:(SEMI, (97 . 97))),
+-52:(statement_list_1, (3 . 97))
+| -39:(statement_list_1, (3 . 82))
+| | -31:(statement_list_0, (3 . 6))
+| | | -30:(statement_0, (3 . 6))
+| | | | -29:(expression_1, (3 . 5))
+| | | | | -17;2:(IDENTIFIER, (3 . 5))
+| | | | -16;3:(SEMI, (6 . 6))
+| | -38:(statement_0, (73 . 82))
+| | | -37:(expression_2, (73 . 81))
+| | | | -15;4:(LPAREN, (73 . 73))
+| | | | -32:(classOrInterfaceType_0, (74 . 76))
+| | | | | -14;5:(IDENTIFIER, (74 . 76))
+| | | | -13;6:(RPAREN, (77 . 77))
+| | | | -36:(expression_1, (79 . 81))
+| | | | | -12;7:(IDENTIFIER, (79 . 81))
+| | | -11;8:(SEMI, (82 . 82))
+| -51:(statement_0, (84 . 97))
+| | -50:(expression_3, (84 . 96))
+| | | -49:(lambdaExpression_0, (84 . 96))
+| | | | -44:(lambdaParameters_0, (84 . 88))
+| | | | | -10;9:(LPAREN, (84 . 84))
+| | | | | -9;10:(IDENTIFIER, (85 . 87))
+| | | | | -8;11:(RPAREN, (88 . 88))
+| | | | -7;12:(ARROW, (89 . 90))
+| | | | -48:(block_0, (91 . 96))
+| | | | | -6;13:(LBRACE, (91 . 91))
+| | | | | -47:(statement_list_0, (92 . 95))
+| | | | | | -46:(statement_0, (92 . 95))
+| | | | | | | -45:(expression_1, (92 . 94))
+| | | | | | | | -5;14:(IDENTIFIER, (92 . 94))
+| | | | | | | -4;15:(SEMI, (95 . 95))
+| | | | | -3;16:(RBRACE, (96 . 96))
+| | -2;17:(SEMI, (97 . 97))),
 (3, 
-0018: -1;18:(LPAREN, (142 . 142))),
+-1;18:(LPAREN, (142 . 142))),
 (12, 
-0053: -53:(classOrInterfaceType_0, (143 . 145))
-0019: | 0;19:(IDENTIFIER, (143 . 145))),
+-53:(classOrInterfaceType_0, (143 . 145))
+| 0;19:(IDENTIFIER, (143 . 145))),
 ^(19, 
-0038: 1;38:(RPAREN, (146 . 146) deleted: (2;37:(ARROW, (147 . 148) ERROR))))/,
+1;38:(RPAREN, (146 . 146) deleted: (2;37:(ARROW, (147 . 148) ERROR))))/,
 (-1, 
-0022: 3;22:(IDENTIFIER, (150 . 152))),
+3;22:(IDENTIFIER, (150 . 152))),
 (-1, 
-0023: 4;23:(SEMI, (153 . 153))),
+4;23:(SEMI, (153 . 153))),
 (-1, 
-0024: 5;24:(RBRACE, (154 . 154))),
+5;24:(RBRACE, (154 . 154))),
 (-1, 
-0025: 6;25:(SEMI, (155 . 155))),
+6;25:(SEMI, (155 . 155))),
 (-1, 
-0026: 7;26:(RBRACE, (158 . 158))),
+7;26:(RBRACE, (158 . 158))),
 (-1, 
-0027: 8;27:(Wisi_EOI, (160 . 159))))
+8;27:(Wisi_EOI, (160 . 159))))
     Current_Token: (-1, 3;22:(IDENTIFIER, (150 . 152)))
     Shared_Token: (-1, 3;22:(IDENTIFIER, (150 . 152)))
     recover_insert_delete:((DELETE, 6:SEMI), (DELETE, 7:RBRACE))
     resume_active: True, token goal 11
  1: stack/stream:
 (1, (0, 
-0000: -19;0:(Wisi_SOI, (1 . 1))),
+-19;0:(Wisi_SOI, (1 . 1))),
 (1, 
-0001: -18;1:(LBRACE, (1 . 1))),
+-18;1:(LBRACE, (1 . 1))),
 (10, 
-0052: -52:(statement_list_1, (3 . 97))
-0039: | -39:(statement_list_1, (3 . 82))
-0031: | | -31:(statement_list_0, (3 . 6))
-0030: | | | -30:(statement_0, (3 . 6))
-0029: | | | | -29:(expression_1, (3 . 5))
-0002: | | | | | -17;2:(IDENTIFIER, (3 . 5))
-0003: | | | | -16;3:(SEMI, (6 . 6))
-0038: | | -38:(statement_0, (73 . 82))
-0037: | | | -37:(expression_2, (73 . 81))
-0004: | | | | -15;4:(LPAREN, (73 . 73))
-0032: | | | | -32:(classOrInterfaceType_0, (74 . 76))
-0005: | | | | | -14;5:(IDENTIFIER, (74 . 76))
-0006: | | | | -13;6:(RPAREN, (77 . 77))
-0036: | | | | -36:(expression_1, (79 . 81))
-0007: | | | | | -12;7:(IDENTIFIER, (79 . 81))
-0008: | | | -11;8:(SEMI, (82 . 82))
-0051: | -51:(statement_0, (84 . 97))
-0050: | | -50:(expression_3, (84 . 96))
-0049: | | | -49:(lambdaExpression_0, (84 . 96))
-0044: | | | | -44:(lambdaParameters_0, (84 . 88))
-0009: | | | | | -10;9:(LPAREN, (84 . 84))
-0010: | | | | | -9;10:(IDENTIFIER, (85 . 87))
-0011: | | | | | -8;11:(RPAREN, (88 . 88))
-0012: | | | | -7;12:(ARROW, (89 . 90))
-0048: | | | | -48:(block_0, (91 . 96))
-0013: | | | | | -6;13:(LBRACE, (91 . 91))
-0047: | | | | | -47:(statement_list_0, (92 . 95))
-0046: | | | | | | -46:(statement_0, (92 . 95))
-0045: | | | | | | | -45:(expression_1, (92 . 94))
-0014: | | | | | | | | -5;14:(IDENTIFIER, (92 . 94))
-0015: | | | | | | | -4;15:(SEMI, (95 . 95))
-0016: | | | | | -3;16:(RBRACE, (96 . 96))
-0017: | | -2;17:(SEMI, (97 . 97))),
+-52:(statement_list_1, (3 . 97))
+| -39:(statement_list_1, (3 . 82))
+| | -31:(statement_list_0, (3 . 6))
+| | | -30:(statement_0, (3 . 6))
+| | | | -29:(expression_1, (3 . 5))
+| | | | | -17;2:(IDENTIFIER, (3 . 5))
+| | | | -16;3:(SEMI, (6 . 6))
+| | -38:(statement_0, (73 . 82))
+| | | -37:(expression_2, (73 . 81))
+| | | | -15;4:(LPAREN, (73 . 73))
+| | | | -32:(classOrInterfaceType_0, (74 . 76))
+| | | | | -14;5:(IDENTIFIER, (74 . 76))
+| | | | -13;6:(RPAREN, (77 . 77))
+| | | | -36:(expression_1, (79 . 81))
+| | | | | -12;7:(IDENTIFIER, (79 . 81))
+| | | -11;8:(SEMI, (82 . 82))
+| -51:(statement_0, (84 . 97))
+| | -50:(expression_3, (84 . 96))
+| | | -49:(lambdaExpression_0, (84 . 96))
+| | | | -44:(lambdaParameters_0, (84 . 88))
+| | | | | -10;9:(LPAREN, (84 . 84))
+| | | | | -9;10:(IDENTIFIER, (85 . 87))
+| | | | | -8;11:(RPAREN, (88 . 88))
+| | | | -7;12:(ARROW, (89 . 90))
+| | | | -48:(block_0, (91 . 96))
+| | | | | -6;13:(LBRACE, (91 . 91))
+| | | | | -47:(statement_list_0, (92 . 95))
+| | | | | | -46:(statement_0, (92 . 95))
+| | | | | | | -45:(expression_1, (92 . 94))
+| | | | | | | | -5;14:(IDENTIFIER, (92 . 94))
+| | | | | | | -4;15:(SEMI, (95 . 95))
+| | | | | -3;16:(RBRACE, (96 . 96))
+| | -2;17:(SEMI, (97 . 97))),
 (9, 
-0057: -57:(lambdaParameters_0, (142 . 146))
-0018: | -1;18:(LPAREN, (142 . 142))
-0019: | 0;19:(IDENTIFIER, (143 . 145))
-0020: | 1;20:(RPAREN, (146 . 146))),
+-57:(lambdaParameters_0, (142 . 146))
+| -1;18:(LPAREN, (142 . 142))
+| 0;19:(IDENTIFIER, (143 . 145))
+| 1;20:(RPAREN, (146 . 146))),
 ^(15, 
-0021: 2;21:(ARROW, (147 . 148))),
+2;21:(ARROW, (147 . 148))),
 (-1, 
-0065: -65:(LBRACE)),
+-65:(LBRACE)),
 (-1, 
-0039: 3;39:(IDENTIFIER, (150 . 152) ERROR))/,
+3;39:(IDENTIFIER, (150 . 152) ERROR))/,
 (-1, 
-0023: 4;23:(SEMI, (153 . 153))),
+4;23:(SEMI, (153 . 153))),
 (-1, 
-0024: 5;24:(RBRACE, (154 . 154))),
+5;24:(RBRACE, (154 . 154))),
 (-1, 
-0025: 6;25:(SEMI, (155 . 155))),
+6;25:(SEMI, (155 . 155))),
 (-1, 
-0026: 7;26:(RBRACE, (158 . 158))),
+7;26:(RBRACE, (158 . 158))),
 (-1, 
-0027: 8;27:(Wisi_EOI, (160 . 159))))
+8;27:(Wisi_EOI, (160 . 159))))
     Current_Token: (1, -65:(LBRACE))
     Shared_Token: (-1, 4;23:(SEMI, (153 . 153)))
     recover_insert_delete:
@@ -438,6 +438,7 @@ recover: succeed, parser count 3
  ... goto state 7
  1: 7: (-1, 6;25:(SEMI, (155 . 155))) : shift and goto state 14
  1: resume_active: False
+ 6: terminate (2 active): duplicate state with 5: cost (-1, 27:(Wisi_EOI, (160 . 159)))
  1: 14: (-1, 26:(RBRACE, (158 . 158))) : reduce 2 tokens to statement
 (statement_0, (142 . 155) <= ((expression, (142 . 154)), 25:(SEMI, (155 . 155))))
  ... goto state 17
@@ -450,7 +451,6 @@ recover: succeed, parser count 3
  ... goto state 2
  1: 2: (-1, 27:(Wisi_EOI, (160 . 159))) : accept it
 (wisitoken_accept_0, (1 . 158) <= ((block, (1 . 158))))
- 6: terminate (2 active): recover cost/length (-1, 27:(Wisi_EOI, (160 . 159)))
  5: terminate (1 active): recover cost/length (-1, 27:(Wisi_EOI, (160 . 159)))
  1: succeed
 three_action_conflict.input:9:9: syntax_error: expecting LBRACE, found 'foo'

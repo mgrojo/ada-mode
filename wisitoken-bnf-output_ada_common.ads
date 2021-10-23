@@ -90,10 +90,6 @@ package WisiToken.BNF.Output_Ada_Common is
    --  Create_re2c is called from wisitoken-bnf-generate, which does not declare
    --  Common_Data.
 
-   function Create_re2c_Lexer_With_Sal
-     (Generate_Data : aliased in WisiToken.BNF.Generate_Utils.Generate_Data)
-     return Boolean;
-
    procedure Create_re2c_Lexer
      (Generate_Data         : aliased in WisiToken.BNF.Generate_Utils.Generate_Data;
       Output_File_Name_Root :         in String);

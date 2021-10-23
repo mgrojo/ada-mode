@@ -985,7 +985,15 @@ package body WisiToken.Parse.LR.Parser is
             use all type Ada.Containers.Count_Type;
             Error_Reported : WisiToken.Syntax_Trees.Node_Sets.Set;
          begin
-            Parser.Tree.Validate_Tree (Parser.User_Data.all, Error_Reported, Node_Index_Order => False);
+            if Parser.User_Data = null then
+               declare
+                  Dummy : User_Data_Type;
+               begin
+                  Parser.Tree.Validate_Tree (Dummy, Error_Reported, Node_Index_Order => False);
+               end;
+            else
+               Parser.Tree.Validate_Tree (Parser.User_Data.all, Error_Reported, Node_Index_Order => False);
+            end if;
 
             if Error_Reported.Count /= 0 then
                raise WisiToken.Parse_Error with "parser: validate_tree failed";

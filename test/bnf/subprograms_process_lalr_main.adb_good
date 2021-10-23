@@ -31,6 +31,18 @@ package body Subprograms_Process_LALR_Main is
       end case;
    end Is_Comment;
 
+   function Find_Comment_End
+     (Source        : in WisiToken.Lexer.Source;
+      ID            : in WisiToken.Token_ID;
+      Comment_Start : in WisiToken.Buffer_Pos)
+     return WisiToken.Buffer_Pos
+   is begin
+      return
+        (case To_Token_Enum (ID) is
+         when COMMENT_1_ID | COMMENT_2_ID => WisiToken.Lexer.Find_New_Line (Source, Comment_Start),
+         when others => raise SAL.Programmer_Error);
+   end Find_Comment_End;
+
    function Line_Begin_Char_Pos
     (Source : in WisiToken.Lexer.Source;
      Token  : in WisiToken.Lexer.Token;
@@ -53,6 +65,7 @@ package body Subprograms_Process_LALR_Main is
       subprograms_re2c_c.Set_Position,
       subprograms_re2c_c.Next_Token,
       Is_Comment,
+      Find_Comment_End,
       Line_Begin_Char_Pos);
 
    function Create_Parse_Table

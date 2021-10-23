@@ -27,112 +27,112 @@ spawn 1 from 0 (2 active)
 recover: succeed, parser count 2
  1: stack/stream:
 (1, (0, 
-0000: -5;0:(Wisi_SOI, (1 . 1))),
+-5;0:(Wisi_SOI, (1 . 1))),
 (1, 
-0001: -4;1:(LEFT_CURLY_BRACKET, (105 . 105))),
+-4;1:(LEFT_CURLY_BRACKET, (105 . 105))),
 (6, 
-0025: -25:(LeftHandSide_0, (107 . 107))
-0002: | -3;2:(Identifier, (107 . 107))),
+-25:(LeftHandSide_0, (107 . 107))
+| -3;2:(Identifier, (107 . 107))),
 (16, 
-0003: -2;3:(EQUAL, (109 . 109))),
+-2;3:(EQUAL, (109 . 109))),
 (35, 
-0004: -1;4:(Identifier, (111 . 120))),
+-1;4:(Identifier, (111 . 120))),
 (62, 
-0005: 0;5:(LEFT_PAREN, (122 . 122))),
+0;5:(LEFT_PAREN, (122 . 122))),
 ^(21, 
-0006: 1;6:(Identifier, (123 . 123))),
+1;6:(Identifier, (123 . 123))),
 (-1, 
-0028: -28:(RIGHT_PAREN)),
+-28:(RIGHT_PAREN)),
 (-1, 
-0025: 2;25:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR))/,
+2;25:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR))/,
 (-1, 
-0008: 3;8:(LEFT_CURLY_BRACKET, (264 . 264))),
+3;8:(LEFT_CURLY_BRACKET, (264 . 264))),
 (-1, 
-0009: 4;9:(Identifier, (266 . 275))),
+4;9:(Identifier, (266 . 275))),
 (-1, 
-0010: 5;10:(LEFT_PAREN, (277 . 277))),
+5;10:(LEFT_PAREN, (277 . 277))),
 (-1, 
-0011: 6;11:(Identifier, (278 . 278))),
+6;11:(Identifier, (278 . 278))),
 (-1, 
-0012: 7;12:(RIGHT_PAREN, (279 . 279))),
+7;12:(RIGHT_PAREN, (279 . 279))),
 (-1, 
-0013: 8;13:(RIGHT_CURLY_BRACKET, (281 . 281))),
+8;13:(RIGHT_CURLY_BRACKET, (281 . 281))),
 (-1, 
-0014: 9;14:(LEFT_CURLY_BRACKET, (343 . 343))),
+9;14:(LEFT_CURLY_BRACKET, (343 . 343))),
 (-1, 
-0015: 10;15:(Identifier, (345 . 345))),
+10;15:(Identifier, (345 . 345))),
 (-1, 
-0016: 16:(PLUS_PLUS, (346 . 347))),
+16:(PLUS_PLUS, (346 . 347))),
 (-1, 
-0017: 17:(SEMICOLON, (348 . 348))),
+17:(SEMICOLON, (348 . 348))),
 (-1, 
-0018: 18:(RIGHT_CURLY_BRACKET, (349 . 349))),
+18:(RIGHT_CURLY_BRACKET, (349 . 349))),
 (-1, 
-0019: 19:(LEFT_CURLY_BRACKET, (411 . 411))),
+19:(LEFT_CURLY_BRACKET, (411 . 411))),
 (-1, 
-0020: 20:(Identifier, (413 . 413))),
+20:(Identifier, (413 . 413))),
 (-1, 
-0021: 21:(EQUAL, (415 . 415))),
+21:(EQUAL, (415 . 415))),
 (-1, 
-0022: 22:(RIGHT_CURLY_BRACKET, (417 . 417))),
+22:(RIGHT_CURLY_BRACKET, (417 . 417))),
 (-1, 
-0023: 23:(Wisi_EOI, (435 . 434))))
+23:(Wisi_EOI, (435 . 434))))
     Current_Token: (1, -28:(RIGHT_PAREN))
     Shared_Token: (-1, 3;8:(LEFT_CURLY_BRACKET, (264 . 264)))
     recover_insert_delete:
     resume_active: True, token goal 6
  0: stack/stream:
 (0, (0, 
-0000: -5;0:(Wisi_SOI, (1 . 1))),
+-5;0:(Wisi_SOI, (1 . 1))),
 (1, 
-0001: -4;1:(LEFT_CURLY_BRACKET, (105 . 105))),
+-4;1:(LEFT_CURLY_BRACKET, (105 . 105))),
 (6, 
-0025: -25:(LeftHandSide_0, (107 . 107))
-0002: | -3;2:(Identifier, (107 . 107))),
+-25:(LeftHandSide_0, (107 . 107))
+| -3;2:(Identifier, (107 . 107))),
 (16, 
-0003: -2;3:(EQUAL, (109 . 109))),
+-2;3:(EQUAL, (109 . 109))),
 (35, 
-0004: -1;4:(Identifier, (111 . 120))),
+-1;4:(Identifier, (111 . 120))),
 (62, 
-0005: 0;5:(LEFT_PAREN, (122 . 122))),
+0;5:(LEFT_PAREN, (122 . 122))),
 ^(21, 
-0006: 1;6:(Identifier, (123 . 123))),
+1;6:(Identifier, (123 . 123))),
 (-1, 
-0030: -30:(MINUS_GREATER)),
+-30:(MINUS_GREATER)),
 (-1, 
-0026: 2;26:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR))/,
+2;26:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR))/,
 (-1, 
-0008: 3;8:(LEFT_CURLY_BRACKET, (264 . 264))),
+3;8:(LEFT_CURLY_BRACKET, (264 . 264))),
 (-1, 
-0009: 4;9:(Identifier, (266 . 275))),
+4;9:(Identifier, (266 . 275))),
 (-1, 
-0010: 5;10:(LEFT_PAREN, (277 . 277))),
+5;10:(LEFT_PAREN, (277 . 277))),
 (-1, 
-0011: 6;11:(Identifier, (278 . 278))),
+6;11:(Identifier, (278 . 278))),
 (-1, 
-0012: 7;12:(RIGHT_PAREN, (279 . 279))),
+7;12:(RIGHT_PAREN, (279 . 279))),
 (-1, 
-0013: 8;13:(RIGHT_CURLY_BRACKET, (281 . 281))),
+8;13:(RIGHT_CURLY_BRACKET, (281 . 281))),
 (-1, 
-0014: 9;14:(LEFT_CURLY_BRACKET, (343 . 343))),
+9;14:(LEFT_CURLY_BRACKET, (343 . 343))),
 (-1, 
-0015: 10;15:(Identifier, (345 . 345))),
+10;15:(Identifier, (345 . 345))),
 (-1, 
-0016: 16:(PLUS_PLUS, (346 . 347))),
+16:(PLUS_PLUS, (346 . 347))),
 (-1, 
-0017: 17:(SEMICOLON, (348 . 348))),
+17:(SEMICOLON, (348 . 348))),
 (-1, 
-0018: 18:(RIGHT_CURLY_BRACKET, (349 . 349))),
+18:(RIGHT_CURLY_BRACKET, (349 . 349))),
 (-1, 
-0019: 19:(LEFT_CURLY_BRACKET, (411 . 411))),
+19:(LEFT_CURLY_BRACKET, (411 . 411))),
 (-1, 
-0020: 20:(Identifier, (413 . 413))),
+20:(Identifier, (413 . 413))),
 (-1, 
-0021: 21:(EQUAL, (415 . 415))),
+21:(EQUAL, (415 . 415))),
 (-1, 
-0022: 22:(RIGHT_CURLY_BRACKET, (417 . 417))),
+22:(RIGHT_CURLY_BRACKET, (417 . 417))),
 (-1, 
-0023: 23:(Wisi_EOI, (435 . 434))))
+23:(Wisi_EOI, (435 . 434))))
     Current_Token: (0, -30:(MINUS_GREATER))
     Shared_Token: (-1, 3;8:(LEFT_CURLY_BRACKET, (264 . 264)))
     recover_insert_delete:((INSERT, Identifier, 2), (INSERT, RIGHT_PAREN, 2))
@@ -281,148 +281,148 @@ spawn 2 from 1 (2 active)
 recover: succeed, parser count 2
  2: stack/stream:
 (2, (0, 
-0000: 0:(Wisi_SOI, (1 . 1))),
+0:(Wisi_SOI, (1 . 1))),
 (2, 
-0049: -49:(CompilationUnit_0, (105 . 125))
-0047: | -47:(Statement_0, (105 . 125))
-0001: | | 1:(LEFT_CURLY_BRACKET, (105 . 105))
-0045: | | -45:(Assignment_0, (107 . 123))
-0025: | | | -25:(LeftHandSide_0, (107 . 107))
-0002: | | | | -10;2:(Identifier, (107 . 107))
-0003: | | | -9;3:(EQUAL, (109 . 109))
-0044: | | | -44:(Expression_1, (111 . 123))
-0043: | | | | -43:(AssignmentExpression_0, (111 . 123))
-0042: | | | | | -42:(AdditiveExpression_0, (111 . 123))
-0041: | | | | | | -41:(MultiplicativeExpression_0, (111 . 123))
-0040: | | | | | | | -40:(PostfixExpression_1, (111 . 123))
-0039: | | | | | | | | -39:(MethodInvocation_0, (111 . 123))
-0004: | | | | | | | | | -8;4:(Identifier, (111 . 120))
-0005: | | | | | | | | | -7;5:(LEFT_PAREN, (122 . 122))
-0037: | | | | | | | | | -37:(ArgumentList_0, (123 . 123))
-0036: | | | | | | | | | | -36:(Expression_1, (123 . 123))
-0035: | | | | | | | | | | | -35:(AssignmentExpression_0, (123 . 123))
-0034: | | | | | | | | | | | | -34:(AdditiveExpression_0, (123 . 123))
-0033: | | | | | | | | | | | | | -33:(MultiplicativeExpression_0, (123 . 123))
-0032: | | | | | | | | | | | | | | -32:(PostfixExpression_0, (123 . 123))
-0031: | | | | | | | | | | | | | | | -31:(ClassType_0, (123 . 123))
-0006: | | | | | | | | | | | | | | | | -6;6:(Identifier, (123 . 123))
-0028: | | | | | | | | | -5;-28:(RIGHT_PAREN)
-0025: | | -4;25:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)),
+-49:(CompilationUnit_0, (105 . 125))
+| -47:(Statement_0, (105 . 125))
+| | 1:(LEFT_CURLY_BRACKET, (105 . 105))
+| | -45:(Assignment_0, (107 . 123))
+| | | -25:(LeftHandSide_0, (107 . 107))
+| | | | -10;2:(Identifier, (107 . 107))
+| | | -9;3:(EQUAL, (109 . 109))
+| | | -44:(Expression_1, (111 . 123))
+| | | | -43:(AssignmentExpression_0, (111 . 123))
+| | | | | -42:(AdditiveExpression_0, (111 . 123))
+| | | | | | -41:(MultiplicativeExpression_0, (111 . 123))
+| | | | | | | -40:(PostfixExpression_1, (111 . 123))
+| | | | | | | | -39:(MethodInvocation_0, (111 . 123))
+| | | | | | | | | -8;4:(Identifier, (111 . 120))
+| | | | | | | | | -7;5:(LEFT_PAREN, (122 . 122))
+| | | | | | | | | -37:(ArgumentList_0, (123 . 123))
+| | | | | | | | | | -36:(Expression_1, (123 . 123))
+| | | | | | | | | | | -35:(AssignmentExpression_0, (123 . 123))
+| | | | | | | | | | | | -34:(AdditiveExpression_0, (123 . 123))
+| | | | | | | | | | | | | -33:(MultiplicativeExpression_0, (123 . 123))
+| | | | | | | | | | | | | | -32:(PostfixExpression_0, (123 . 123))
+| | | | | | | | | | | | | | | -31:(ClassType_0, (123 . 123))
+| | | | | | | | | | | | | | | | -6;6:(Identifier, (123 . 123))
+| | | | | | | | | -5;-28:(RIGHT_PAREN)
+| | -4;25:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)),
 (1, 
-0008: -3;8:(LEFT_CURLY_BRACKET, (264 . 264))),
+-3;8:(LEFT_CURLY_BRACKET, (264 . 264))),
 (4, 
-0009: -2;9:(Identifier, (266 . 275))),
+-2;9:(Identifier, (266 . 275))),
 (14, 
-0010: -1;10:(LEFT_PAREN, (277 . 277))),
+-1;10:(LEFT_PAREN, (277 . 277))),
 (34, 
-0067: -67:(ArgumentList_0, (278 . 278))
-0066: | -66:(Expression_1, (278 . 278))
-0065: | | -65:(AssignmentExpression_0, (278 . 278))
-0064: | | | -64:(AdditiveExpression_0, (278 . 278))
-0063: | | | | -63:(MultiplicativeExpression_0, (278 . 278))
-0062: | | | | | -62:(PostfixExpression_0, (278 . 278))
-0061: | | | | | | -61:(ClassType_0, (278 . 278))
-0011: | | | | | | | 0;11:(Identifier, (278 . 278))),
+-67:(ArgumentList_0, (278 . 278))
+| -66:(Expression_1, (278 . 278))
+| | -65:(AssignmentExpression_0, (278 . 278))
+| | | -64:(AdditiveExpression_0, (278 . 278))
+| | | | -63:(MultiplicativeExpression_0, (278 . 278))
+| | | | | -62:(PostfixExpression_0, (278 . 278))
+| | | | | | -61:(ClassType_0, (278 . 278))
+| | | | | | | 0;11:(Identifier, (278 . 278))),
 ^(61, 
-0012: 1;12:(RIGHT_PAREN, (279 . 279))),
+1;12:(RIGHT_PAREN, (279 . 279))),
 (-1, 
-0070: -70:(MINUS_MINUS)),
+-70:(MINUS_MINUS)),
 (-1, 
-0028: 2;28:(RIGHT_CURLY_BRACKET, (281 . 281) ERROR))/,
+2;28:(RIGHT_CURLY_BRACKET, (281 . 281) ERROR))/,
 (-1, 
-0014: 3;14:(LEFT_CURLY_BRACKET, (343 . 343))),
+3;14:(LEFT_CURLY_BRACKET, (343 . 343))),
 (-1, 
-0015: 4;15:(Identifier, (345 . 345))),
+4;15:(Identifier, (345 . 345))),
 (-1, 
-0016: 5;16:(PLUS_PLUS, (346 . 347))),
+5;16:(PLUS_PLUS, (346 . 347))),
 (-1, 
-0017: 6;17:(SEMICOLON, (348 . 348))),
+6;17:(SEMICOLON, (348 . 348))),
 (-1, 
-0018: 7;18:(RIGHT_CURLY_BRACKET, (349 . 349))),
+7;18:(RIGHT_CURLY_BRACKET, (349 . 349))),
 (-1, 
-0019: 8;19:(LEFT_CURLY_BRACKET, (411 . 411))),
+8;19:(LEFT_CURLY_BRACKET, (411 . 411))),
 (-1, 
-0020: 9;20:(Identifier, (413 . 413))),
+9;20:(Identifier, (413 . 413))),
 (-1, 
-0021: 10;21:(EQUAL, (415 . 415))),
+10;21:(EQUAL, (415 . 415))),
 (-1, 
-0022: 22:(RIGHT_CURLY_BRACKET, (417 . 417))),
+22:(RIGHT_CURLY_BRACKET, (417 . 417))),
 (-1, 
-0023: 23:(Wisi_EOI, (435 . 434))))
+23:(Wisi_EOI, (435 . 434))))
     Current_Token: (2, -70:(MINUS_MINUS))
     Shared_Token: (-1, 3;14:(LEFT_CURLY_BRACKET, (343 . 343)))
     recover_insert_delete:((INSERT, SEMICOLON, 2))
     resume_active: True, token goal 6
  1: stack/stream:
 (1, (0, 
-0000: 0:(Wisi_SOI, (1 . 1))),
+0:(Wisi_SOI, (1 . 1))),
 (2, 
-0049: -49:(CompilationUnit_0, (105 . 125))
-0047: | -47:(Statement_0, (105 . 125))
-0001: | | 1:(LEFT_CURLY_BRACKET, (105 . 105))
-0045: | | -45:(Assignment_0, (107 . 123))
-0025: | | | -25:(LeftHandSide_0, (107 . 107))
-0002: | | | | -10;2:(Identifier, (107 . 107))
-0003: | | | -9;3:(EQUAL, (109 . 109))
-0044: | | | -44:(Expression_1, (111 . 123))
-0043: | | | | -43:(AssignmentExpression_0, (111 . 123))
-0042: | | | | | -42:(AdditiveExpression_0, (111 . 123))
-0041: | | | | | | -41:(MultiplicativeExpression_0, (111 . 123))
-0040: | | | | | | | -40:(PostfixExpression_1, (111 . 123))
-0039: | | | | | | | | -39:(MethodInvocation_0, (111 . 123))
-0004: | | | | | | | | | -8;4:(Identifier, (111 . 120))
-0005: | | | | | | | | | -7;5:(LEFT_PAREN, (122 . 122))
-0037: | | | | | | | | | -37:(ArgumentList_0, (123 . 123))
-0036: | | | | | | | | | | -36:(Expression_1, (123 . 123))
-0035: | | | | | | | | | | | -35:(AssignmentExpression_0, (123 . 123))
-0034: | | | | | | | | | | | | -34:(AdditiveExpression_0, (123 . 123))
-0033: | | | | | | | | | | | | | -33:(MultiplicativeExpression_0, (123 . 123))
-0032: | | | | | | | | | | | | | | -32:(PostfixExpression_0, (123 . 123))
-0031: | | | | | | | | | | | | | | | -31:(ClassType_0, (123 . 123))
-0006: | | | | | | | | | | | | | | | | -6;6:(Identifier, (123 . 123))
-0028: | | | | | | | | | -5;-28:(RIGHT_PAREN)
-0025: | | -4;25:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)),
+-49:(CompilationUnit_0, (105 . 125))
+| -47:(Statement_0, (105 . 125))
+| | 1:(LEFT_CURLY_BRACKET, (105 . 105))
+| | -45:(Assignment_0, (107 . 123))
+| | | -25:(LeftHandSide_0, (107 . 107))
+| | | | -10;2:(Identifier, (107 . 107))
+| | | -9;3:(EQUAL, (109 . 109))
+| | | -44:(Expression_1, (111 . 123))
+| | | | -43:(AssignmentExpression_0, (111 . 123))
+| | | | | -42:(AdditiveExpression_0, (111 . 123))
+| | | | | | -41:(MultiplicativeExpression_0, (111 . 123))
+| | | | | | | -40:(PostfixExpression_1, (111 . 123))
+| | | | | | | | -39:(MethodInvocation_0, (111 . 123))
+| | | | | | | | | -8;4:(Identifier, (111 . 120))
+| | | | | | | | | -7;5:(LEFT_PAREN, (122 . 122))
+| | | | | | | | | -37:(ArgumentList_0, (123 . 123))
+| | | | | | | | | | -36:(Expression_1, (123 . 123))
+| | | | | | | | | | | -35:(AssignmentExpression_0, (123 . 123))
+| | | | | | | | | | | | -34:(AdditiveExpression_0, (123 . 123))
+| | | | | | | | | | | | | -33:(MultiplicativeExpression_0, (123 . 123))
+| | | | | | | | | | | | | | -32:(PostfixExpression_0, (123 . 123))
+| | | | | | | | | | | | | | | -31:(ClassType_0, (123 . 123))
+| | | | | | | | | | | | | | | | -6;6:(Identifier, (123 . 123))
+| | | | | | | | | -5;-28:(RIGHT_PAREN)
+| | -4;25:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)),
 (1, 
-0008: -3;8:(LEFT_CURLY_BRACKET, (264 . 264))),
+-3;8:(LEFT_CURLY_BRACKET, (264 . 264))),
 (4, 
-0009: -2;9:(Identifier, (266 . 275))),
+-2;9:(Identifier, (266 . 275))),
 (14, 
-0010: -1;10:(LEFT_PAREN, (277 . 277))),
+-1;10:(LEFT_PAREN, (277 . 277))),
 (34, 
-0067: -67:(ArgumentList_0, (278 . 278))
-0066: | -66:(Expression_1, (278 . 278))
-0065: | | -65:(AssignmentExpression_0, (278 . 278))
-0064: | | | -64:(AdditiveExpression_0, (278 . 278))
-0063: | | | | -63:(MultiplicativeExpression_0, (278 . 278))
-0062: | | | | | -62:(PostfixExpression_0, (278 . 278))
-0061: | | | | | | -61:(ClassType_0, (278 . 278))
-0011: | | | | | | | 0;11:(Identifier, (278 . 278))),
+-67:(ArgumentList_0, (278 . 278))
+| -66:(Expression_1, (278 . 278))
+| | -65:(AssignmentExpression_0, (278 . 278))
+| | | -64:(AdditiveExpression_0, (278 . 278))
+| | | | -63:(MultiplicativeExpression_0, (278 . 278))
+| | | | | -62:(PostfixExpression_0, (278 . 278))
+| | | | | | -61:(ClassType_0, (278 . 278))
+| | | | | | | 0;11:(Identifier, (278 . 278))),
 ^(61, 
-0012: 1;12:(RIGHT_PAREN, (279 . 279))),
+1;12:(RIGHT_PAREN, (279 . 279))),
 (-1, 
-0072: -72:(PLUS_PLUS)),
+-72:(PLUS_PLUS)),
 (-1, 
-0029: 2;29:(RIGHT_CURLY_BRACKET, (281 . 281) ERROR))/,
+2;29:(RIGHT_CURLY_BRACKET, (281 . 281) ERROR))/,
 (-1, 
-0014: 3;14:(LEFT_CURLY_BRACKET, (343 . 343))),
+3;14:(LEFT_CURLY_BRACKET, (343 . 343))),
 (-1, 
-0015: 4;15:(Identifier, (345 . 345))),
+4;15:(Identifier, (345 . 345))),
 (-1, 
-0016: 5;16:(PLUS_PLUS, (346 . 347))),
+5;16:(PLUS_PLUS, (346 . 347))),
 (-1, 
-0017: 6;17:(SEMICOLON, (348 . 348))),
+6;17:(SEMICOLON, (348 . 348))),
 (-1, 
-0018: 7;18:(RIGHT_CURLY_BRACKET, (349 . 349))),
+7;18:(RIGHT_CURLY_BRACKET, (349 . 349))),
 (-1, 
-0019: 8;19:(LEFT_CURLY_BRACKET, (411 . 411))),
+8;19:(LEFT_CURLY_BRACKET, (411 . 411))),
 (-1, 
-0020: 9;20:(Identifier, (413 . 413))),
+9;20:(Identifier, (413 . 413))),
 (-1, 
-0021: 10;21:(EQUAL, (415 . 415))),
+10;21:(EQUAL, (415 . 415))),
 (-1, 
-0022: 22:(RIGHT_CURLY_BRACKET, (417 . 417))),
+22:(RIGHT_CURLY_BRACKET, (417 . 417))),
 (-1, 
-0023: 23:(Wisi_EOI, (435 . 434))))
+23:(Wisi_EOI, (435 . 434))))
     Current_Token: (1, -72:(PLUS_PLUS))
     Shared_Token: (-1, 3;14:(LEFT_CURLY_BRACKET, (343 . 343)))
     recover_insert_delete:((INSERT, SEMICOLON, 2))
@@ -534,78 +534,78 @@ Parser_Action
 recover: succeed, parser count 1
  2: stack/stream:
 (2, (0, 
-0000: 0:(Wisi_SOI, (1 . 1))),
+0:(Wisi_SOI, (1 . 1))),
 (2, 
-0096: -96:(CompilationUnit_1, (105 . 349))
-0085: | -85:(CompilationUnit_1, (105 . 281))
-0049: | | -49:(CompilationUnit_0, (105 . 125))
-0047: | | | -47:(Statement_0, (105 . 125))
-0001: | | | | 1:(LEFT_CURLY_BRACKET, (105 . 105))
-0045: | | | | -45:(Assignment_0, (107 . 123))
-0025: | | | | | -25:(LeftHandSide_0, (107 . 107))
-0002: | | | | | | 2:(Identifier, (107 . 107))
-0003: | | | | | 3:(EQUAL, (109 . 109))
-0044: | | | | | -44:(Expression_1, (111 . 123))
-0043: | | | | | | -43:(AssignmentExpression_0, (111 . 123))
-0042: | | | | | | | -42:(AdditiveExpression_0, (111 . 123))
-0041: | | | | | | | | -41:(MultiplicativeExpression_0, (111 . 123))
-0040: | | | | | | | | | -40:(PostfixExpression_1, (111 . 123))
-0039: | | | | | | | | | | -39:(MethodInvocation_0, (111 . 123))
-0004: | | | | | | | | | | | 4:(Identifier, (111 . 120))
-0005: | | | | | | | | | | | 5:(LEFT_PAREN, (122 . 122))
-0037: | | | | | | | | | | | -37:(ArgumentList_0, (123 . 123))
-0036: | | | | | | | | | | | | -36:(Expression_1, (123 . 123))
-0035: | | | | | | | | | | | | | -35:(AssignmentExpression_0, (123 . 123))
-0034: | | | | | | | | | | | | | | -34:(AdditiveExpression_0, (123 . 123))
-0033: | | | | | | | | | | | | | | | -33:(MultiplicativeExpression_0, (123 . 123))
-0032: | | | | | | | | | | | | | | | | -32:(PostfixExpression_0, (123 . 123))
-0031: | | | | | | | | | | | | | | | | | -31:(ClassType_0, (123 . 123))
-0006: | | | | | | | | | | | | | | | | | | 6:(Identifier, (123 . 123))
-0028: | | | | | | | | | | | -28:(RIGHT_PAREN)
-0025: | | | | 25:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)
-0083: | | -83:(Statement_1, (264 . 281))
-0008: | | | 8:(LEFT_CURLY_BRACKET, (264 . 264))
-0081: | | | -81:(StatementExpression_1, (266 . 279))
-0079: | | | | -79:(PostDecrementExpression_0, (266 . 279))
-0075: | | | | | -75:(PostfixExpression_1, (266 . 279))
-0073: | | | | | | -73:(MethodInvocation_0, (266 . 279))
-0009: | | | | | | | 9:(Identifier, (266 . 275))
-0010: | | | | | | | 10:(LEFT_PAREN, (277 . 277))
-0067: | | | | | | | -67:(ArgumentList_0, (278 . 278))
-0066: | | | | | | | | -66:(Expression_1, (278 . 278))
-0065: | | | | | | | | | -65:(AssignmentExpression_0, (278 . 278))
-0064: | | | | | | | | | | -64:(AdditiveExpression_0, (278 . 278))
-0063: | | | | | | | | | | | -63:(MultiplicativeExpression_0, (278 . 278))
-0062: | | | | | | | | | | | | -62:(PostfixExpression_0, (278 . 278))
-0061: | | | | | | | | | | | | | -61:(ClassType_0, (278 . 278))
-0011: | | | | | | | | | | | | | | 11:(Identifier, (278 . 278))
-0012: | | | | | | | -10;12:(RIGHT_PAREN, (279 . 279))
-0070: | | | | | -9;-70:(MINUS_MINUS)
-0077: | | | -8;-77:(SEMICOLON)
-0028: | | | -7;28:(RIGHT_CURLY_BRACKET, (281 . 281) ERROR)
-0095: | -95:(Statement_1, (343 . 349))
-0014: | | -6;14:(LEFT_CURLY_BRACKET, (343 . 343))
-0093: | | -93:(StatementExpression_0, (345 . 347))
-0091: | | | -91:(PostIncrementExpression_0, (345 . 347))
-0089: | | | | -89:(PostfixExpression_0, (345 . 345))
-0087: | | | | | -87:(ClassType_0, (345 . 345))
-0015: | | | | | | -5;15:(Identifier, (345 . 345))
-0016: | | | | -4;16:(PLUS_PLUS, (346 . 347))
-0017: | | -3;17:(SEMICOLON, (348 . 348))
-0018: | | -2;18:(RIGHT_CURLY_BRACKET, (349 . 349))),
+-96:(CompilationUnit_1, (105 . 349))
+| -85:(CompilationUnit_1, (105 . 281))
+| | -49:(CompilationUnit_0, (105 . 125))
+| | | -47:(Statement_0, (105 . 125))
+| | | | 1:(LEFT_CURLY_BRACKET, (105 . 105))
+| | | | -45:(Assignment_0, (107 . 123))
+| | | | | -25:(LeftHandSide_0, (107 . 107))
+| | | | | | 2:(Identifier, (107 . 107))
+| | | | | 3:(EQUAL, (109 . 109))
+| | | | | -44:(Expression_1, (111 . 123))
+| | | | | | -43:(AssignmentExpression_0, (111 . 123))
+| | | | | | | -42:(AdditiveExpression_0, (111 . 123))
+| | | | | | | | -41:(MultiplicativeExpression_0, (111 . 123))
+| | | | | | | | | -40:(PostfixExpression_1, (111 . 123))
+| | | | | | | | | | -39:(MethodInvocation_0, (111 . 123))
+| | | | | | | | | | | 4:(Identifier, (111 . 120))
+| | | | | | | | | | | 5:(LEFT_PAREN, (122 . 122))
+| | | | | | | | | | | -37:(ArgumentList_0, (123 . 123))
+| | | | | | | | | | | | -36:(Expression_1, (123 . 123))
+| | | | | | | | | | | | | -35:(AssignmentExpression_0, (123 . 123))
+| | | | | | | | | | | | | | -34:(AdditiveExpression_0, (123 . 123))
+| | | | | | | | | | | | | | | -33:(MultiplicativeExpression_0, (123 . 123))
+| | | | | | | | | | | | | | | | -32:(PostfixExpression_0, (123 . 123))
+| | | | | | | | | | | | | | | | | -31:(ClassType_0, (123 . 123))
+| | | | | | | | | | | | | | | | | | 6:(Identifier, (123 . 123))
+| | | | | | | | | | | -28:(RIGHT_PAREN)
+| | | | 25:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)
+| | -83:(Statement_1, (264 . 281))
+| | | 8:(LEFT_CURLY_BRACKET, (264 . 264))
+| | | -81:(StatementExpression_1, (266 . 279))
+| | | | -79:(PostDecrementExpression_0, (266 . 279))
+| | | | | -75:(PostfixExpression_1, (266 . 279))
+| | | | | | -73:(MethodInvocation_0, (266 . 279))
+| | | | | | | 9:(Identifier, (266 . 275))
+| | | | | | | 10:(LEFT_PAREN, (277 . 277))
+| | | | | | | -67:(ArgumentList_0, (278 . 278))
+| | | | | | | | -66:(Expression_1, (278 . 278))
+| | | | | | | | | -65:(AssignmentExpression_0, (278 . 278))
+| | | | | | | | | | -64:(AdditiveExpression_0, (278 . 278))
+| | | | | | | | | | | -63:(MultiplicativeExpression_0, (278 . 278))
+| | | | | | | | | | | | -62:(PostfixExpression_0, (278 . 278))
+| | | | | | | | | | | | | -61:(ClassType_0, (278 . 278))
+| | | | | | | | | | | | | | 11:(Identifier, (278 . 278))
+| | | | | | | -10;12:(RIGHT_PAREN, (279 . 279))
+| | | | | -9;-70:(MINUS_MINUS)
+| | | -8;-77:(SEMICOLON)
+| | | -7;28:(RIGHT_CURLY_BRACKET, (281 . 281) ERROR)
+| -95:(Statement_1, (343 . 349))
+| | -6;14:(LEFT_CURLY_BRACKET, (343 . 343))
+| | -93:(StatementExpression_0, (345 . 347))
+| | | -91:(PostIncrementExpression_0, (345 . 347))
+| | | | -89:(PostfixExpression_0, (345 . 345))
+| | | | | -87:(ClassType_0, (345 . 345))
+| | | | | | -5;15:(Identifier, (345 . 345))
+| | | | -4;16:(PLUS_PLUS, (346 . 347))
+| | -3;17:(SEMICOLON, (348 . 348))
+| | -2;18:(RIGHT_CURLY_BRACKET, (349 . 349))),
 (1, 
-0019: -1;19:(LEFT_CURLY_BRACKET, (411 . 411))),
+-1;19:(LEFT_CURLY_BRACKET, (411 . 411))),
 (6, 
-0097: -97:(LeftHandSide_0, (413 . 413))
-0020: | 0;20:(Identifier, (413 . 413))),
+-97:(LeftHandSide_0, (413 . 413))
+| 0;20:(Identifier, (413 . 413))),
 ^(16, 
-0021: 1;21:(EQUAL, (415 . 415))),
+1;21:(EQUAL, (415 . 415))),
 (-1, 
-0100: -100:(Identifier)),
+-100:(Identifier)),
 (-1, 
-0031: 2;31:(RIGHT_CURLY_BRACKET, (417 . 417) ERROR))/,
+2;31:(RIGHT_CURLY_BRACKET, (417 . 417) ERROR))/,
 (-1, 
-0023: 3;23:(Wisi_EOI, (435 . 434))))
+3;23:(Wisi_EOI, (435 . 434))))
     Current_Token: (2, -100:(Identifier))
     Shared_Token: (-1, 3;23:(Wisi_EOI, (435 . 434)))
     recover_insert_delete:

@@ -18,15 +18,15 @@ new Worker_Task 1
 recover: succeed, parser count 1
  0: stack/stream:
 (0, (0, 
-0000: -1;0:(Wisi_SOI, (1 . 1))),
+-1;0:(Wisi_SOI, (1 . 1))),
 (1, 
-0001: 0;1:(AT, (42 . 42))),
+0;1:(AT, (42 . 42))),
 ^(7, 
-0002: 1;2:(Identifier, (43 . 48))),
+1;2:(Identifier, (43 . 48))),
 (-1, 
-0007: -7:(Identifier)),
+-7:(Identifier)),
 (-1, 
-0005: 2;5:(Wisi_EOI, (67 . 66) ERROR)))
+2;5:(Wisi_EOI, (67 . 66) ERROR)))
     Current_Token: (0, -7:(Identifier))
     Shared_Token: ()
     recover_insert_delete:

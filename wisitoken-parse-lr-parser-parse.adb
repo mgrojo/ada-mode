@@ -389,11 +389,11 @@ begin
                               Node_Numbers => not Trace_Parse_No_State_Numbers,
                               Children => Trace_Parse > Detail));
                         Trace.Put_Line
-                          ("    Current_Token: " &
-                             Shared_Parser.Tree.Image (Shared_Parser.Tree.Current_Token (Parser_State.Stream)));
+                          ("    Current_Token: " & Shared_Parser.Tree.Image
+                               (Shared_Parser.Tree.Current_Token (Parser_State.Stream), Terminal_Node_Numbers => True));
                         Trace.Put_Line
-                          ("    Shared_Token: " &
-                             Shared_Parser.Tree.Image (Shared_Parser.Tree.Shared_Token (Parser_State.Stream)));
+                          ("    Shared_Token: " & Shared_Parser.Tree.Image
+                             (Shared_Parser.Tree.Shared_Token (Parser_State.Stream), Terminal_Node_Numbers => True));
                         Trace.Put_Line
                           ("    recover_insert_delete:" &
                              (if Parser_State.Recover_Insert_Delete_Current = Recover_Op_Nodes_Arrays.No_Index
@@ -566,7 +566,8 @@ begin
                                 (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
                                    Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream)) & ": " &
                                    Shared_Parser.Tree.Image
-                                     (Shared_Parser.Tree.Current_Token (Parser_State.Stream)) & " : " &
+                                     (Shared_Parser.Tree.Current_Token (Parser_State.Stream),
+                                      Terminal_Node_Numbers => True) & " : " &
                                    "spawn " & Shared_Parser.Tree.Next_Stream_ID_Trimmed_Image & ", (" &
                                    Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
                               if Debug_Mode then

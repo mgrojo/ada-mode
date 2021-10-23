@@ -173,7 +173,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Trace.Put_Line
            ("parser " & Super.Tree.Trimmed_Image (Parser_State.Stream) &
               ": State" & Super.Tree.State (Parser_State.Stream)'Image &
-              " Current_Token " & Super.Tree.Image (Super.Tree.Current_Token (Parser_State.Stream)));
+              " Current_Token " & Super.Tree.Image
+                (Super.Tree.Current_Token (Parser_State.Stream), Terminal_Node_Numbers => True));
          Trace.Put_Line
            (if Error in Parse_Error
             then "Parser_Action"
@@ -1782,7 +1783,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
            (Config.Input_Stream (Config.Input_Stream.First), Node_Numbers => True) & "\";
 
       else
-         Result := Result & "|" & Tree.Image (Config.Current_Shared_Token) & "|";
+         Result := Result & "|" & Tree.Image (Config.Current_Shared_Token, Terminal_Node_Numbers => True) & "|";
       end if;
 
       Result := Result & Image (Config.Ops, Descriptor);

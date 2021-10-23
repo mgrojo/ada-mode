@@ -166,7 +166,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Trace.Put_Line
               (" " & Tree.Trimmed_Image (Current.Stream) & ": terminate (" &
                  Trimmed_Image (Integer (Parsers.Count) - 1) & " active)" &
-                 ": " & Message & " " & Tree.Image (Tree.Current_Token (State.Stream)));
+                 ": " & Message & " " & Tree.Image (Tree.Current_Token (State.Stream), Terminal_Node_Numbers => True));
          end if;
 
          Tree.Delete_Stream (State.Stream);
