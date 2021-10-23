@@ -3,7 +3,7 @@
 --  Make installed and source ELPA package wisi Ada code available for
 --  other projects.
 --
---  Copyright (C) 2017, 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017, 2019, 2021 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -37,7 +37,11 @@ project Wisi is
       for Exec_Dir use ".";
    end case;
 
+#if ELPA="yes"
    for Languages use ("Ada", "C"); -- C needed for wisitoken-bnf-generate; wisitoken_grammar_re2c.c
+#else
+   for Languages use ("Ada");
+#end if;
 
    package Compiler is
 

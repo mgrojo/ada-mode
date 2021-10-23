@@ -1,5 +1,0 @@
-project Hello is
-   package Compiler is
-      for Default_Switches ("Ada") use ("-gnatyt");
-   end Compiler;
-end Hello;

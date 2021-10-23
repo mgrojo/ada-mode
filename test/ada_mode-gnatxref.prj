@@ -1,8 +1,0 @@
--- wisi project file for gnatxref
-
--- src_dir has '.' by default
-src_dir=subdir
-
-obj_dir=.
-
--- end of file

@@ -38,7 +38,7 @@ package body Run_Wisi_Common_Parse is
 
    use Ada.Strings.Unbounded;
 
-   procedure Usage_1 (Parse_Data : Wisi.Parse_Data_Type'Class)
+   procedure Usage_1 (Parse_Data : in Wisi.Parse_Data_Type'Class)
    is
       use Ada.Text_IO;
    begin
@@ -54,12 +54,13 @@ package body Run_Wisi_Common_Parse is
    end Usage_1;
 
    procedure Usage
-     (Parser : in out WisiToken.Parse.LR.Parser.Parser)
+     (Parse_Data  : in Wisi.Parse_Data_Type'Class;
+      Parse_Table : in WisiToken.Parse.LR.Parse_Table_Ptr)
    is
       use all type WisiToken.Parse.LR.Parse_Table_Ptr;
       use Ada.Text_IO;
    begin
-      Usage_1 (Wisi.Parse_Data_Type'Class (Parser.User_Data.all));
+      Usage_1 (Parse_Data);
       Put_Line ("partial parse params: begin_byte_pos end_byte_pos goal_byte_pos begin_char_pos end_char_pos" &
                   " begin_line begin_indent");
       Put_Line ("options:");
@@ -68,23 +69,23 @@ package body Run_Wisi_Common_Parse is
       Put_Line ("--save_text <file_name> : write edited file text to file_name");
       Put_Line ("--lang_params <language-specific params>");
       Put_Line ("--max_parallel n  : set maximum count of parallel parsers" &
-                  (if Parser.Table = null then ""
-                   else "; default" & Parser.Table.Max_Parallel'Image));
+                  (if Parse_Table = null then ""
+                   else "; default" & Parse_Table.Max_Parallel'Image));
       Put_Line ("--mckenzie_check_limit n  : set error recover token check limit" &
-                  (if Parser.Table = null then ""
-                   else "; default" & Parser.Table.McKenzie_Param.Check_Limit'Image));
+                  (if Parse_Table = null then ""
+                   else "; default" & Parse_Table.McKenzie_Param.Check_Limit'Image));
       Put_Line ("--mckenzie_check_delta n  : set error recover delta check limit" &
-                  (if Parser.Table = null then ""
-                   else "; default" & Parser.Table.McKenzie_Param.Check_Delta_Limit'Image));
+                  (if Parse_Table = null then ""
+                   else "; default" & Parse_Table.McKenzie_Param.Check_Delta_Limit'Image));
       Put_Line ("--mckenzie_enqueue_limit n  : set error recover token enqueue limit" &
-                  (if Parser.Table = null then ""
-                   else "; default" & Parser.Table.McKenzie_Param.Enqueue_Limit'Image));
+                  (if Parse_Table = null then ""
+                   else "; default" & Parse_Table.McKenzie_Param.Enqueue_Limit'Image));
       Put_Line ("--mckenzie_full_explore : force error recover explore all solutions");
       Put_Line ("--mckenzie_high_cost : error recover report high cost solutions");
       Put_Line ("--mckenzie_task_count n : worker tasks in error recovery");
       Put_Line ("--mckenzie_zombie_limit n  : set error recover token zombie limit" &
-                  (if Parser.Table = null then ""
-                   else "; default" & Parser.Table.McKenzie_Param.Zombie_Limit'Image));
+                  (if Parse_Table = null then ""
+                   else "; default" & Parse_Table.McKenzie_Param.Zombie_Limit'Image));
       Put_Line ("--repeat_count n : repeat parse count times, for profiling; default 1");
       New_Line;
    end Usage;
@@ -152,7 +153,7 @@ package body Run_Wisi_Common_Parse is
       Command : Command_Type;
    begin
       if Argument_Count < 2 then
-         Usage_1 (Parse_Data);
+         Usage (Parse_Data, null);
          Set_Exit_Status (Failure);
          raise Finish;
       end if;
@@ -192,7 +193,7 @@ package body Run_Wisi_Common_Parse is
 
    when E : others =>
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-      Usage_1 (Parse_Data);
+      Usage (Parse_Data, null);
       Set_Exit_Status (Failure);
       raise SAL.Parameter_Error;
    end Command_File_Name;
@@ -207,7 +208,7 @@ package body Run_Wisi_Common_Parse is
       use WisiToken;
    begin
       if Argument_Count >= Arg and then Argument (Arg) = "--help" then
-         Usage (Parser);
+         Usage (Wisi.Parse_Data_Type'Class (Parser.User_Data.all), Parser.Table);
          raise Finish;
       end if;
 
@@ -256,7 +257,7 @@ package body Run_Wisi_Common_Parse is
 
    when E : others =>
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-      Usage (Parser);
+      Usage (Wisi.Parse_Data_Type'Class (Parser.User_Data.all), Parser.Table);
       Set_Exit_Status (Failure);
       raise SAL.Parameter_Error;
    end Remaining_Command_Params;
@@ -325,7 +326,7 @@ package body Run_Wisi_Common_Parse is
 
          else
             Ada.Text_IO.Put_Line ("unrecognized option: '" & Argument (Arg) & "'");
-            Usage (Parser);
+            Usage (Wisi.Parse_Data_Type'Class (Parser.User_Data.all), Parser.Table);
             Set_Exit_Status (Failure);
             raise SAL.Parameter_Error;
          end if;
@@ -340,7 +341,7 @@ package body Run_Wisi_Common_Parse is
 
    when E : others =>
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-      Usage (Parser);
+      Usage (Wisi.Parse_Data_Type'Class (Parser.User_Data.all), Parser.Table);
       Set_Exit_Status (Failure);
       raise SAL.Parameter_Error;
    end Command_Options;

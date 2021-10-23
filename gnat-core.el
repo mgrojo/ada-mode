@@ -392,7 +392,16 @@ which is displayed on error."
 
 (cl-defmethod wisi-compiler-select-prj ((_compiler gnat-compiler) _project)
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
-  (setq compilation-error-regexp-alist '(gnat))
+  (setq compilation-error-regexp-alist
+	;; FIXME: Provide a user option for this, set the TYPE subexpression, and doc why it isn't '(gnu)
+	;;
+	;; gnu matches the summary line from make:
+	;; make: *** [rules.make:143: wisitoken-bnf-generate.exe] Error 4
+	;; which is just annoying, but should be up to the user.
+
+	;;'(gnat)
+	'(gnu)
+	)
   )
 
 (cl-defmethod wisi-compiler-deselect-prj ((_compiler gnat-compiler) _project)

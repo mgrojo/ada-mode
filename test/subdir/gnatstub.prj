@@ -1,7 +1,0 @@
--- wisi project file for 'gnat stub'; see ada_mode-spec.ads
-
--- scr_dir has '.' by default
-
-obj_dir=.
-
--- end of file

@@ -90,6 +90,8 @@ package Wisi.Parse_Context is
    --
    --  Raise Not_Found if no context found for File_Name.
 
+   procedure Kill (File_Name : in String);
+
    procedure Clear;
    --  Delete all contexts.
 

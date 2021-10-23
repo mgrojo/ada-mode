@@ -322,7 +322,10 @@ package body Emacs_Wisi_Common_Parse is
                Trace.Put_Line ("'" & Command_Line & "' length:" & Command_Length'Image);
             end if;
 
-            if Match ("parse") then
+            if Match ("kill-context") then
+               Wisi.Parse_Context.Kill (File_Name => Wisi.Get_String (Command_Line, Last));
+
+            elsif Match ("parse") then
                --  Args: see wisi-process-parse.el wisi-process-parse--send-parse,
                --    wisi-process-parse--send-incremental-parse
                --  Input: <source text>

@@ -1,11 +1,11 @@
-;; Project definitions for compiling ada-mode
+;; Project definitions for working on wisi
 
 (let ((wisitoken-core "/Projects/org.wisitoken"))
 
   (wisi-prj-select-cache
-   "ada_mode_wisi_parse.prj"
+   "wisi.prj"
    (create-ada-prj
-    :name "ada_mode_wisi_parse main"
+    :name "wisi main"
     :compile-env
     (append
      (list "SAL=../../org.stephe_leake.sal")

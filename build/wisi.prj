@@ -1,0 +1,15 @@
+gpr_project_path=..
+gpr_project_path=$WISITOKEN/build
+gpr_project_path=$SAL/build
+gpr_project_path=../../org.stephe_leake.makerules
+gpr_project_path=../../org.stephe_leake.aunit_ext/build
+
+gpr_file=wisi.gpr
+
+casing=libadalang.casing
+-- casing=wisi.casing
+casing=$WISITOKEN/build/emacs_case_exceptions
+casing=$SAL/build/sal.casing
+casing=$SAL/../org.stephe_leake.aunit_ext/build/aunit.casing
+
+-- end of file

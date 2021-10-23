@@ -19,6 +19,7 @@
 
 (require 'wisi-tests)
 (require 'wisi-prj)
+(require 'wisi-process-parse)
 
 ;; user can set these to t in an EMACSCMD
 (defvar skip-cmds nil)
@@ -378,8 +379,6 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 (defun run-test (file-name)
   "Run an indentation and casing test on FILE-NAME."
   (interactive "f")
-
-  (package-initialize) ;; for uniquify-files
 
   (setq-default indent-tabs-mode nil) ;; no tab chars in files
 

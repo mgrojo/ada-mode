@@ -303,13 +303,12 @@ package body Wisi is
    end Put;
 
    procedure Put
-     (Item : in Parse.LR.Recover_Op_Arrays.Vector;
+     (Item : in Parse.LR.Recover_Op_Nodes_Arrays.Vector;
       Data : in Parse_Data_Type;
       Tree : in Syntax_Trees.Tree)
    is
       use Ada.Strings.Unbounded;
-      use Parse.LR;
-      use Parse.LR.Recover_Op_Arrays;
+      use all type Parse.Recover_Op_Label;
       use all type Ada.Containers.Count_Type;
 
       Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
@@ -328,7 +327,7 @@ package body Wisi is
       Last_Edit_Pos  : Buffer_Pos          := Invalid_Buffer_Pos;
       Line           : Unbounded_String    := To_Unbounded_String ("[");
       Deleted_Region : Buffer_Region       := Null_Buffer_Region;
-      Last_Deleted   : Recover_Op (Delete) :=
+      Last_Deleted   : WisiToken.Parse.LR.Recover_Op_Nodes (Delete) :=
         (Delete, Invalid_Buffer_Pos, Invalid_Token_ID, Syntax_Trees.Sequential_Index'Last,
          Syntax_Trees.Invalid_Node_Access, Syntax_Trees.Invalid_Node_Access);
 
@@ -360,17 +359,17 @@ package body Wisi is
          Data.Trace.Put_Line ("recover: " & Parse.LR.Image (Item, Tree));
       end if;
 
-      if Length (Item) = 0 or not Tree.Parents_Set then
+      if Item.Length = 0 or not Tree.Parents_Set then
          --  Parents not set due to failed recover.
          return;
       end if;
 
       Append (Line, Recover_Code);
-      for I in First_Index (Item) .. Last_Index (Item) loop
+      for I in Item.First_Index .. Item.Last_Index loop
          declare
             use WisiToken.Syntax_Trees;
 
-            Op : constant Recover_Op := Element (Item, I);
+            Op : constant Parse.LR.Recover_Op_Nodes := Item (I);
 
             Edit_Pos_Node : constant Node_Access :=
               --  Can be Invalid_Node_Access when recover fails.
@@ -476,20 +475,6 @@ package body Wisi is
 
       SOI_Lines : constant Line_Region := Tree.Line_Region (Tree.SOI, Trailing_Non_Grammar => True);
       EOI_Lines : constant Line_Region := Tree.Line_Region (Tree.EOI, Trailing_Non_Grammar => True);
-
-      function Anchor_Indent (Line : in Line_Number_Type) return Integer
-      is
-         Item : Indent_Type renames Data.Indents (Line);
-      begin
-         case Item.Label is
-         when Not_Set | Anchored =>
-            raise SAL.Programmer_Error with "non-int anchor indent line" & Line'Image;
-
-         when Int =>
-            return Item.Int_Indent;
-         end case;
-      end Anchor_Indent;
-
    begin
       if Trace_Action > Outline then
          Data.Trace.New_Line;
@@ -514,8 +499,20 @@ package body Wisi is
                Data.Indents.Replace_Element (Line, (Int, Invalid_Line_Number, Indent.Int_Indent + Begin_Indent));
 
             when Anchored =>
-               Data.Indents.Replace_Element
-                 (Line, (Int, Invalid_Line_Number, Anchor_Indent (Indent.Anchor_Line) + Indent.Anchor_Delta));
+               declare
+                  Anchor_Line_Indent : Indent_Type renames Data.Indents (Indent.Anchor_Line);
+               begin
+                  case Anchor_Line_Indent.Label is
+                  when Not_Set | Anchored =>
+                     raise SAL.Programmer_Error with
+                       "indent line" & Line'Image &
+                       " uses anchor line" & Indent.Anchor_Line'Image &
+                       " which has non-int anchor";
+                  when Int =>
+                     Data.Indents.Replace_Element
+                       (Line, (Int, Invalid_Line_Number, Anchor_Line_Indent.Int_Indent + Indent.Anchor_Delta));
+                  end case;
+               end;
 
             end case;
          end;
@@ -1288,23 +1285,13 @@ package body Wisi is
    procedure Initialize_Actions
      (Data : in out Parse_Data_Type;
       Tree : in     WisiToken.Syntax_Trees.Tree'Class)
-   is
-      use Syntax_Trees;
-   begin
+   is begin
       --  Parsing is complete, with error recover insert/delete tokens in
       --  the parse tree. Insert_Token, Delete_Token have been called;
 
       if Trace_Action > Outline then
          Data.Trace.Put_Line ("action_region_bytes: " & Image (Data.Action_Region_Bytes));
          Data.Trace.Put_Line ("action_region_lines: " & Image (Data.Action_Region_Lines));
-
-         if Trace_Action > Extra then
-            Tree.Print_Tree
-              (Data.Trace.all,
-               Non_Grammar  => True,
-               Line_Numbers => True);
-            Data.Trace.New_Line;
-         end if;
       end if;
    end Initialize_Actions;
 
@@ -2425,12 +2412,13 @@ package body Wisi is
    procedure Put
      (Data         : in Parse_Data_Type;
       Lexer_Errors : in Lexer.Error_Lists.List;
-      Parse_Errors : in Parse.LR.Parse_Error_Lists.List;
-      Recover      : in Parse.LR.Recover_Op_Arrays.Vector;
+      Parse_Errors : in Parse.Parse_Error_Lists.List;
+      Recover      : in Parse.LR.Recover_Op_Nodes_Arrays.Vector;
       Tree         : in Syntax_Trees.Tree)
    is
       use Ada.Text_IO;
       use In_Parse_Actions;
+
       Descriptor  : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
       function Safe_Pos_Image (Token : in Syntax_Trees.Recover_Token) return String
@@ -2464,13 +2452,13 @@ package body Wisi is
 
       for Item of Parse_Errors loop
          case Item.Label is
-         when Parse.LR.LR_Parse_Action =>
+         when Parse.Parser_Action =>
             Put_Line
               ('[' & Parser_Error_Code & Base_Buffer_Pos'Image (Safe_Pos (Item.Error_Token.Node)) &
                  " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                  ", found '" & Image (Tree.ID (Item.Error_Token.Node), Descriptor) & "'""]");
 
-         when Parse.LR.User_Parse_Action =>
+         when Parse.User_Action =>
             Put_Line
               ('[' & Check_Error_Code & Integer'Image
                  (In_Parse_Actions.Status_Label'Pos (Item.Status.Label)) &
@@ -2485,7 +2473,7 @@ package body Wisi is
                         when Match_Names_Error => "match") &
                        " name error""]"));
 
-         when Parse.LR.Message =>
+         when Parse.Message =>
             Put_Line
               ('[' & Parser_Error_Code & Buffer_Pos'Image (Buffer_Pos'First) &
                  " """ & (-Item.Msg) & """]");

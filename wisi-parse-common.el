@@ -20,6 +20,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
+(require 'cl-lib)
 
 (defcustom wisi-partial-parse-threshold 100001
   "Minimum size that will be parsed by each call to the parser.
@@ -303,10 +304,6 @@ Returns cache, or nil if at end of buffer."
   :safe 'integerp)
 
 ;; The following parameters are easily changeable for debugging.
-(defvar wisi-action-disable nil
-  "If non-nil, disable all elisp actions during parsing.
-Allows timing parse separate from actions.")
-
 (defcustom wisi-parser-verbosity ""
   "WisiToken trace config; empty string for none.
 See WisiToken Trace_Enable for complete set of options.
@@ -360,18 +357,6 @@ value from grammar file (default 15)"
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-parse-max-parallel)
 
-(defcustom wisi-branched-tree-limit 1000
-  "Maximum size of branched syntax table during regular parsing.
-Only checked when wisi-debug > 0.
-If a file needs more than this, it's probably an indication that
-the grammar has excessive conflicts."
-  :type 'integer
-  :group 'wisi
-  :safe 'integerp)
-
-(defvar wisi-parse-max-stack-size 500
-  "Maximum parse stack size.
-Larger stack size allows more deeply nested constructs.")
 ;; end of easily changeable parameters
 
 (defvar-local wisi-indent-comment-col-0 nil

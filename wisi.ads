@@ -437,12 +437,13 @@ package Wisi is
    procedure Put
      (Data         : in Parse_Data_Type;
       Lexer_Errors : in WisiToken.Lexer.Error_Lists.List;
-      Parse_Errors : in WisiToken.Parse.LR.Parse_Error_Lists.List;
-      Recover      : in WisiToken.Parse.LR.Recover_Op_Arrays.Vector;
+      Parse_Errors : in WisiToken.Parse.Parse_Error_Lists.List;
+      Recover      : in WisiToken.Parse.LR.Recover_Op_Nodes_Arrays.Vector;
       Tree         : in WisiToken.Syntax_Trees.Tree);
    --  Put Lexer_Errors, Parse_Errors, Recover to Ada.Text_IO.Current_Output,
    --  as encoded error responses as defined in [3]
    --  wisi-process-parse--execute.
+   --  FIXME: change parse_errors to store recover_op_nodes_Array, delete Recover here.
 
    procedure Put_Error
      (Tree        : in WisiToken.Syntax_Trees.Tree;

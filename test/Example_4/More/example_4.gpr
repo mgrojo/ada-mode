@@ -1,7 +1,0 @@
-project Example_4 is
-   for Source_Dirs use (".", "..");
-   
-   package Compiler is
-      for Default_Switches ("Ada") use ("-gnatyknpr");
-   end Compiler;
-end Example_4;

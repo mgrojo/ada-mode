@@ -166,6 +166,26 @@ package body Wisi.Parse_Context is
       end;
    end Find;
 
+   procedure Kill (File_Name : in String)
+   is begin
+      if File_Name'Length = 0 then
+         raise Wisi.Protocol_Error with "no file name given";
+      end if;
+
+      declare
+         use File_Parse_Context_Maps;
+
+         Found : constant Cursor := Map.Find (File_Name);
+      begin
+         if not Has_Element (Found) then
+            --  already killed, or never opened
+            null;
+         else
+            Map.Delete (File_Name);
+         end if;
+      end;
+   end Kill;
+
    procedure Clear
    is begin
       Map.Clear;

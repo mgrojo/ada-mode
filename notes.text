@@ -30,11 +30,7 @@ org.emacs.wisi: release, in use
    ("../org.emacs.wisi.stephe-1"       . "../org.emacs.wisi")))
 
  current work
-Most notes are in ada-mode/notes.text, for simplicity in finding them
-
-finish deleting non-wisi files
-
-push to savannah
+Most notes are in ../org.emacs.ada-mode/notes.text, for simplicity in finding them
 
  release process
 keep status in ~/projects.text

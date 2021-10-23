@@ -839,10 +839,10 @@ Run the parser first if needed."
 	   (msg (when (> wisi-debug 0)
 		  (format "wisi: %s %s %s:%d %d %d ..."
 			  (cond
-			   (partial-parse-p "parse partial ")
+			   (partial-parse-p "parse partial")
 			   (wisi-incremental-parse-enable
-			    (if wisi--changes "parse incremental " "post-parse "))
-			   (t "parse "))
+			    (if wisi--changes "parse incremental" "post-parse"))
+			   (t "parse"))
 			  parse-action
 			  (buffer-name)
 			  begin
@@ -870,7 +870,8 @@ Run the parser first if needed."
 	    (cond
 	     (partial-parse-p
 	      (let ((send-region (wisi-parse-expand-region wisi--parser begin parse-end)))
-		(setq parsed-region (wisi-parse-current wisi--parser parse-action (car send-region) (cdr send-region) parse-end))
+		(setq parsed-region
+		      (wisi-parse-current wisi--parser parse-action (car send-region) (cdr send-region) parse-end))
 		(wisi-cache-add-region parsed-region parse-action)))
 
 	     (wisi-incremental-parse-enable

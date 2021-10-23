@@ -317,6 +317,23 @@ complete."
       ;; We don’t wait for the send to complete here.
       )))
 
+(defun wisi-process--kill-context (parser)
+  "Send a 'kill-context' command to PARSER external process.
+Does not wait for command to complete."
+  (let* ((cmd (format "kill-context \"%s\""
+		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		      ))
+	 (process (wisi-process--parser-process parser)))
+
+    (with-current-buffer (wisi-process--parser-buffer parser)
+      (erase-buffer))
+
+    (wisi-parse-log-message parser cmd)
+    (process-send-string process (wisi-process-parse--add-cmd-length cmd))
+
+    ;; We don’t wait for the send to complete here.
+    ))
+
 (defun wisi-process-parse--send-action (parser parse-action begin end)
   "Send a post-parse PARSE-ACTION command to PARSER external process.
 Does not wait for command to complete."
@@ -687,7 +704,9 @@ one or more Query messages."
 ;;;;; main
 
 (cl-defgeneric wisi-parse-reset ((parser wisi-process--parser))
-  (setf (wisi-process--parser-busy parser) nil))
+  (setf (wisi-process--parser-busy parser) nil)
+  (wisi-process--kill-context parser)
+  (wisi-process-parse--wait parser))
 
 (cl-defmethod wisi-parse-kill ((parser wisi-process--parser))
   (when (process-live-p (wisi-process--parser-process parser))
@@ -1075,7 +1094,9 @@ one or more Query messages."
 
 	 (insert "file " source-file "\n")
 
-	 (insert "verbosity " verbosity "\n")
+	 (when (not (string-equal verbosity ""))
+	   (insert "verbosity " verbosity "\n"))
+
 	 (insert "save_text_auto debug_edited\n")
 
 	 (when (or (not (string-equal mckenzie_task_count "-1"))
@@ -1182,8 +1203,9 @@ one or more Query messages."
 
       )
     (with-current-buffer cmd-buffer
-      (when (buffer-file-name)
-	(save-buffer)))
+      (if (buffer-file-name)
+	  (save-buffer)
+	(write-file cmd-buffer-name)))
     (goto-char log-buffer-point)))
 
 (defun wisi-process-log-to-cmd-1 ()

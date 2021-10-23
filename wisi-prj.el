@@ -40,8 +40,8 @@
 
   file-env
   ;; Environment (list of strings NAME=VALUE) set in project file;
-  ;; prepended to `process-environment' running tools in an external
-  ;; process.
+  ;; prepended to `process-environment' for running tools in an
+  ;; external process.
 
   compiler
   xref
