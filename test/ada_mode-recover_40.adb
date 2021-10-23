@@ -21,3 +21,6 @@ package body Ada_Mode.Recover_Navigate_1 is
       Params (Last) := +Value;
    end Add_Param;
 end Ada_Mode.Recover_Navigate_1;
+-- Local Variables:
+-- ada-end-name-optional: nil
+-- End:

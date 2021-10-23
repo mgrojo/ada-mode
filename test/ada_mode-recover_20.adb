@@ -18,9 +18,10 @@ begin
       or
      B
    then
-   --  missing 'end if;' - all inserted after 'then'.
+   --  missing 'end if;'
 
 end Ada_Mode.Recover_20;
 -- Local Variables:
+-- ada-end-name-optional: nil
 -- wisi-mckenzie-task-count: 1
 -- End:

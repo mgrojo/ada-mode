@@ -381,15 +381,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                       +END_ID),
                      Push_Back_Undo_Reduce => True);
 
-                  if Undo_Reduce_Valid (Super, New_Config) and then
-                    Tree.ID (New_Config.Stack.Peek.Token) = +handled_sequence_of_statements_ID
-                  then
-                     Undo_Reduce_Check
-                       (Super, Parse_Table, New_Config,
-                        (+handled_sequence_of_statements_ID,
-                         +sequence_of_statements_ID));
+                  if Undo_Reduce_Valid (Super, New_Config) then
+                     if Tree.ID (New_Config.Stack.Peek.Token) = +handled_sequence_of_statements_ID then
+                        Undo_Reduce_Check
+                          (Super, Parse_Table, New_Config,
+                           (+handled_sequence_of_statements_ID,
+                            +sequence_of_statements_ID));
+                     else
+                        raise Bad_Config with "Language_Fixes unimplemented nonterm for Missing_Name_Error.";
+                     end if;
                   else
-                     raise Bad_Config with "Language_Fixes unimplemented nonterm for Missing_Name_Error.";
+                     raise Invalid_Case;
                   end if;
 
                when package_specification_ID =>
@@ -1146,7 +1148,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                      Result : Unbounded_String := +Tree.Lexer.Buffer_Text
                        (Tree.Byte_Region (New_Config.Error_Token));
                   begin
-                     if Tree.Is_Terminal (New_Config.Error_Token) then
+                     if Tree.Element_Is_Terminal (New_Config.Error_Token) then
                         declare
                            Peek_State : Peek_Sequential_State := Peek_Sequential_Start (Tree, New_Config);
                         begin
@@ -1177,7 +1179,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                   else
                      declare
-                        Label      : constant String       := "wrong end keyword b 2";
+                        Label : constant String := "wrong end keyword b 2";
                      begin
                         --  Matching name not found: delete Error_Token
                         New_Config.Strategy_Counts (Language_Fix) := @ + 1;
@@ -1434,7 +1436,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             Matching_Tokens := To_Vector ((+NULL_ID, +SEMICOLON_ID));
             Forbid_Minimal_Complete := True;
          else
-            Matching_Tokens := To_Vector ((+IF_ID, +IDENTIFIER_ID, +THEN_ID));
+            --  ada_mode-recover_40.adb
+            Matching_Tokens := To_Vector ((+IF_ID, +IDENTIFIER_ID, +THEN_ID, +NULL_ID, +SEMICOLON_ID));
          end if;
 
       when THEN_ID =>

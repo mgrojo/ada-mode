@@ -8,8 +8,8 @@ package body Wisitoken.Syntax_Trees is
    is
    begin
       Find_New_Line;
-   end;
-     end Line_Begin_Token;
+      end;
+   end Line_Begin_Token;
 
 end Wisitoken.Syntax_Trees;
 -- Local Variables:

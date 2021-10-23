@@ -83,7 +83,6 @@ byte-compile-clean :
 ifeq ($(TEST_DIR),source)
 test : build_executables
 endif
-test : test_all_harness.run
 test : test-ada-lalr-partial-process-gpr_query.stamp
 test : test-ada-lalr-incremental-process-gpr_query.stamp
 test : test-ada-lalr-process-gnatxref.stamp
@@ -110,7 +109,7 @@ one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
 #	rm -f ../test/gpr_query.db*
 one :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
-#one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
+##one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
@@ -175,9 +174,6 @@ include rules.make
 
 update-test-log : force
 	find . -name "*.diff" -not -size 0 >> test.log
-
-test_all_harness.run : ../test_all_harness.exe force
-	../test_all_harness.exe $(RUN_ARGS)
 
 test-ada-lalr-process-gnatxref : RUNTEST := run-indent-test-lalr-process-gnatxref.el
 test-ada-lalr-process-gnatxref : $(addsuffix .diff, $(subst subdir/,,$(GNATXREF_TEST_FILES)))

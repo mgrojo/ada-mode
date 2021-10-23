@@ -17,9 +17,10 @@ package body Ada_Mode.Recover_String_Quote_1 is
 
       Close (Test_File);
 
-      end Quote_Unquote;
+   end Quote_Unquote;
 
-   end Ada_Mode.Recover_String_Quote_1;
-   --  Local Variables:
-   --  wisi-mckenzie-task-count: 1
-   --  End:
+end Ada_Mode.Recover_String_Quote_1;
+--  Local Variables:
+--  wisi-mckenzie-task-count: 1
+--  ada-end-name-optional: nil
+--  End:

@@ -9,6 +9,10 @@ d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
     copied to c:/eurocontrol/gnatcoll-xref.adb
     7252 lines, 29461 tokens, 254989 characters
 
+FIXME: also matreshka-internals-unicode-ucd-colls.ads
+    84,168 lines, 3,418,945 chars
+    => storage_error
+
  wisitoken-bnf-generate
     $WISITOKEN/build/wisitoken-bnf-generate.exe --time ada_annex_p.wy
 
