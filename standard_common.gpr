@@ -22,6 +22,9 @@ project Standard_Common is
    type Build_Type is ("Debug", "Normal");
    Build : Build_Type := External ("Standard_Common_Build", "Normal");
 
+   type Assertions_Type is ("Build", "Off");
+   Assertions : Assertions_Type := External ("Standard_Common_Assertions", "Off");
+
    type Profile_Type is ("On", "Off");
    Profile : Profile_Type := External ("Standard_Common_Profile", "Off");
 
@@ -66,11 +69,19 @@ project Standard_Common is
       Base_Debug_Switches := Common_Switches &
         (
          "-O0", --  we don't use -Og because that causes gdb to report incorrect results in some cases in Ada.
-         "-gnata",  -- assertions, pre/post-conditions
          "-gnatVa", -- validity checks
          "-gnateE", -- extra info in exceptions
          "-gnatwaP" -- no warn on Inline
         );
+
+      case Assertions is
+      when "Build" =>
+         Base_Debug_Switches := Base_Debug_Switches &
+           ("-gnata");  -- assertions, pre/post-conditions
+      when "Off" =>
+         --  Allow turning off assertions with debug on, for execution speed.
+         null;
+      end case;
 
       Debug_Switches := Base_Debug_Switches &
         ("-gnat2020"); -- @, declare_expression. Community 2021 says it's -gnat2022, but accepts -gnat2020
