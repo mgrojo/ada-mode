@@ -1,4 +1,4 @@
-;; Disable installed ELPA ada-mode, wisi
+;; Disable installed ELPA packages
 (defvar package-load-list '(all))
 (push '(ada-mode . nil) package-load-list)
 (push '(wisi . nil) package-load-list)

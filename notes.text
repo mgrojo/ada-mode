@@ -49,6 +49,92 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+ada-which-function returns empty string
+    wisitoken-syntax_trees.ads lots
+    wisi.adb in Indent_Token_1
+    wisi.ads Parse_Data_Type
+
+start parser process when project created, not when first buffer using it is visited
+    avoid delay for loading lr1 parse table
+    parse started in wisi-post-local-vars
+    (wisi-process-parse--require-process parser) starts parser and waits for it, to check version
+        (wisi-process-parse--wait parser) could check version if a boolean is not set in parser
+            =>don't need thread
+
+    need wisi-parse-require-process?
+
+
+don't wait for initial parse to complete
+    font-lock use separate partial_parse process while incremental parse is busy with full parse.
+    mark read-only while waiting for full parse, so can apply results
+        or track changes, translate positions, ignore results in newly changed regions
+    ok to override read-only if due to full parse
+
+review FIXMEs
+
+rewrite ada-which-function to use incremental
+    test/ada_mode-nominal.ads
+        don't set ada-which-func-parse-size if incremental
+
+incremental parse does full reparse every time if FAIL_ENQUEUE_LIMIT
+    automatically disable face?
+    check for changes?
+
+move wisi.change .. edit_source to wisi.parse_context
+
+gpr-query process symbols in background elisp thread?
+    or just process as it arrives?
+
+respond to https://rust-analyzer.github.io/blog/2020/09/16/challeging-LR-parsing.html
+   https://github.com/tree-sitter/tree-sitter-rust
+
+incremental parse rationale
+    have to compute absolute buffer_pos for tokens involved in post-parse action at some point
+        either shift all during edit_tree, or sum previous during action
+        buffer_pos used for some other things; review
+
+    store length in each token
+        plus trailing whitespace
+        to compute byte_region in post-parse, sum all previous nodes, and cache it
+            also cache in nonterms
+
+    shift approach avoids caching, but we already cache parent links
+    cache approach avoids computing nodes after region required for post-parse action => some gain in compute time
+
+test/ada_mode-interactive_2.adb
+    virtual 'null;' inserted on blank line,
+        but wisi-repair-error puts it on the next line
+        position in error message is wrong
+            because set before Insert_Token changed it?
+
+change set_parents to be incremental
+    benchmark current
+    descend tree; if find a parent link, no need to descend that branch
+    insert_token also needs to set parents?
+
+delete elpa branches, push o.e.*
+    so users can test elpa-devel packages
+    don't change versions to prevent release
+        change version everywhere except :version header, so users can keep track
+        how does elpa-admin check for that?
+            must store last-release-version somewhere; in name of tarball?
+        ask Stefan if there's another way?
+
+    set :url in elpa/elpa-packages; see other savannah
+
+README-ada-ref-man moved to org.adaic.arm_form
+    change elpa to push from there.
+
+wisitoken-grammar-mode
+    change to push to elpa
+
+push to elpa
+    advertize alpha testing on comp.lang.ada, ada-mode mailing list
+    doc how to use elpa HEAD
+
+ after incremental
+review this file!
+
 test Manuel Gomez use case
     his former invocation: (ada-set-default-project-file "project.gpr")
     test with installed elpa version:
@@ -81,27 +167,10 @@ include wisi-run-indent-test.el, wisi-tests.el in elpa
 
 send bug report on wisitoken keeps binding wisitoken-bnf-generate
 
-still get persistent error marks for new comment
-    some errors are fixed by an edit far away
-        error on unmatched 'end;' fixed by insert 'begin'.
-        => error on 'begin', because matching 'end;' is not restored
-        in tree-sitter, errors are nodes in tree; inc parse must delete ones that are no longer present
-
-review FIXMEs
-
-rewrite ada-which-function to use incremental
-    test/ada_mode-nominal.ads
-        don't set ada-which-func-parse-size if incremental
-
-incremental parse does full reparse every time if FAIL_ENQUEUE_LIMIT
-    automatically disable face?
-
 wisi-prj-delete needs to kill gpr-query buffers for local process-env
 
 add Ada code to decrement byte_pos by one char, use in emacs_common, run_common FIXMEs
     just reference wikipedia
-
-move wisi.change .. edit_source to wisi.parse_context
 
 move Trace from Parser to Lexer
     use in Find_Next
@@ -109,81 +178,6 @@ move Trace from Parser to Lexer
 
 ada_mode_wisi_lr1_parse --version
     would be helpful
-
-wisi-reset-parser only reset current file = delete parse_context
-
-
-sometimes when open a new Ada file with incremental mode enabled, get:
-    File local-variables error: (error parse abandoned; parser busy)
-    Error during redisplay: (jit-lock-function 1) signaled (error "parse abandoned; parser busy")
-    font-lock should not signal that error if wisi-debug=0; just try again later
-        return nil or something?
-
-gpr-query process symbols in background elisp thread?
-    or just process as it arrives?
-
-start parser process when project created, not when first buffer using it is visited
-    avoid noticeable delay
-
-don't wait for initial parse to complete
-    font-lock use separate partial_parse process while incremental parse is busy with full parse.
-    mark read-only while waiting for full parse, so can apply results
-        or track changes, translate positions, ignore results in newly changed regions
-    ok to override read-only if due to full parse
-
-respond to https://rust-analyzer.github.io/blog/2020/09/16/challeging-LR-parsing.html
-   https://github.com/tree-sitter/tree-sitter-rust
-
-incremental parse rationale
-    have to compute absolute buffer_pos for tokens involved in post-parse action at some point
-        either shift all during edit_tree, or sum previous during action
-        buffer_pos used for some other things; review
-
-    store length in each token
-        plus trailing whitespace
-        to compute byte_region in post-parse, sum all previous nodes, and cache it
-            also cache in nonterms
-
-    shift approach avoids caching, but we already cache parent links
-    cache approach avoids computing nodes after region required for post-parse action => some gain in compute time
-
-test/ada_mode-interactive_2.adb
-    virtual 'null;' inserted on blank line,
-        but wisi-repair-error puts it on the next line
-        position in error message is wrong
-            because set before Insert_Token changed it?
-
-change set_parents to be incremental
-    benchmark current
-    descend tree; if find a parent link, no need to descend that branch
-    insert_token also needs to set parents?
-
-build/test.log
-
-
-delete elpa branches, push o.e.*
-    so users can test elpa-devel packages
-    change versions to 0 to prevent release?
-        how does elpa-admin check for that?
-            must store last-release-version somewhere; in name of tarball?
-        ask Stefan if there's another way?
-
-    set :url in elpa/elpa-packages; see other savannah
-
-
-README-ada-ref-man moved to org.adaic.arm_form
-    change elpa to push from there.
-
-wisitoken-grammar-mode
-    change to push to elpa
-
-push to elpa
-    advertize alpha testing on comp.lang.ada, ada-mode mailing list
-    doc how to use elpa HEAD
-        except it's at version 0!?
-
- after incremental
-review this file!
 
 set comment-auto-fill-only-comments
 
@@ -196,6 +190,14 @@ turn off undo in *gpr_query-* buffers
 define ada-prj-default in ada-mode.texi project files section
 
 mention wisi-size-threshold in wisi & ada-mode user guides
+
+doc ada-indent-record, other ada indent functions, in ada-mode.texi
+
+add option ada-record-end-names-optional, default t
+
+don't use navigate text_properties cache?
+    just get pos of destination from tree
+    requires general tree query
 
 implement wisi parser for java using tree-sitter grammar
     find a large java file, compare command-line parse times
@@ -234,11 +236,11 @@ don't add "previous parse failed ..." and other messages to *wisi syntax errors*
 
 test/ada_mode-nested_parens.adb
     number of parsers required grows with paren nesting level
+    fix grammar
 
 wisi package should contain wisi.gpr, so modes that use it don't need to build it
     only gnatprep variable is ELPA
 
- after incremental
 indent bug:
    procedure Find_New_Line_1
      (Tree     : in     Syntax_Trees.Tree;

@@ -52,4 +52,11 @@ package Wisi.Gpr is
      (Data   : in out Parse_Data_Type;
       Params : in     String);
 
+   overriding
+   function Get_Token_IDs
+     (User_Data           : in out Parse_Data_Type;
+      Command_Line : in String;
+      Last : in out Integer)
+     return WisiToken.Token_ID_Arrays.Vector;
+
 end Wisi.Gpr;

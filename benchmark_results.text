@@ -101,8 +101,21 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
         compute conflicts time: 0.254446308
         LR1 re2c generate time: 86.369092214
 
+    28 Oct 2021 minor grammar changes
+        translate to bnf time: 0.083168330
+        compute kernels, recursion time: 53.932331761
+        compute parse table time: 0.459277475
+        compute minimal actions time: 0.003926091
+        LALR re2c generate time: 54.455590394
+        compute kernels, recursion time: 78.574388432
+        initial item_sets time: 5.433464883
+        add_actions time: 7.206880967
+        compute minimal actions time: 1.619322876
+        compute conflicts time: 0.269349910
+        LR1 re2c generate time: 90.013807017
+
  mckenzie recover
-    ./run_ada_lr1_parse.exe parse_partial indent test/ada_mode-recover_partial_02_lr1.adb --mckenzie_enqueue_limit 120_000 --mckenzie_check_delta 20_000 --verbosity "debug=1 time=1 mckenzie=1" --mckenzie_task_count 8
+    ./run_ada_lr1_parse.exe parse_partial indent test/ada_mode-recover_partial_02_lr1.adb --mckenzie_enqueue_limit 500_000 --mckenzie_check_delta 100_000 --verbosity "debug=1 time=1 mckenzie=1" --mckenzie_task_count 8
         record all recover sessions
         post-recover time line reports net recover time
 
@@ -212,7 +225,6 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
                 1.16 seconds, 1.12 seconds
 
     13 Jul 2020 incremental parse devel branch (main branch similar):
-        --debug_mode does not show time; use --repeat_count 2
         ;; parser 0: State 14545 Current_Token (LEFT_PAREN, (859 . 859)) Resume_Token_Goal 51
         ;;  0: succeed 2, enqueue 217, check  21, cost:  2
 
@@ -246,25 +258,43 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
             time: 0.22 seconds
 
     23 Jul 2021 o.e.a main (incremental passes tests)
-    ;; parser 2: State 19014 Current_Token (-1, 1;(LEFT_PAREN, (1122 . 1122))) Resume_Token_Goal 5
-    ;;  2: succeed 3, enqueue 183, check  20, cost:  2
-        0.004547594 seconds
+        ;; parser 2: State 19014 Current_Token (-1, 1;(LEFT_PAREN, (1122 . 1122))) Resume_Token_Goal 5
+        ;;  2: succeed 3, enqueue 183, check  20, cost:  2
+            0.004547594 seconds
 
-    ;; parser 6: State 4514 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
-    ;;  6: succeed 6, enqueue 23961, check  1878, cost:  5
-    ;; parser 5: State 3590 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
-    ;;  5: succeed 10, enqueue 6545, check  563, cost:  3
-    ;; parser 4: State 3589 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
-    ;;  4: succeed 10, enqueue 6542, check  563, cost:  3
-    ;; parser 3: State 2065 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
-    ;;  3: succeed 2, enqueue 6439, check  494, cost:  3
-    ;; parser 2: State 4513 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
-    ;;  2: succeed 6, enqueue 23939, check  1877, cost:  5
+        ;; parser 6: State 4514 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
+        ;;  6: succeed 6, enqueue 23961, check  1878, cost:  5
+        ;; parser 5: State 3590 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
+        ;;  5: succeed 10, enqueue 6545, check  563, cost:  3
+        ;; parser 4: State 3589 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
+        ;;  4: succeed 10, enqueue 6542, check  563, cost:  3
+        ;; parser 3: State 2065 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
+        ;;  3: succeed 2, enqueue 6439, check  494, cost:  3
+        ;; parser 2: State 4513 Current_Token (-1, 1;(RIGHT_PAREN, (1169 . 1169))) Resume_Token_Goal 5
+        ;;  2: succeed 6, enqueue 23939, check  1877, cost:  5
 
-    ;; too many parallel parsers required in recover; dropping some solutions
-        0.460547048 seconds
+        ;; too many parallel parsers required in recover; dropping some solutions
+            0.460547048 seconds
 
-    mckenzie_task_count 1: 0.002248122, 0.541077686 seconds
+        mckenzie_task_count 1: 0.002248122, 0.541077686 seconds
+
+    28 Oct 2021 o.e.a main incremental parse actually working
+        ;; parser 2: State 17529 Current_Token (2, 2;65:(LEFT_PAREN, (1122 . 1122) ERROR))
+        ;;  2: succeed 3, enqueue 183, check  20, cost:  2
+        0.004948958 seconds
+
+        ;; parser 6: State 3205 Current_Token (6, 2;69:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;;  6: succeed 10, enqueue 5616, check  498, cost:  3
+        ;; parser 5: State 4067 Current_Token (5, 2;70:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;;  5: succeed 1, enqueue 109388, check  8722, cost:  4
+        ;; parser 4: State 4066 Current_Token (4, 2;71:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;;  4: succeed 1, enqueue 77437, check  6151, cost:  5
+        ;; parser 3: State 3204 Current_Token (3, 2;72:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;;  3: succeed 10, enqueue 5613, check  498, cost:  3
+        ;; parser 2: State 3648 Current_Token (2, 2;73:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;;  2: succeed 2, enqueue 3749, check  312, cost:  3
+        ;; too many parallel parsers required in recover; dropping some solutions
+        0.858843105 seconds
 
     IMPROVEME: max memory use?
 
@@ -272,7 +302,6 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
     make -r benchmark RUN_ARGS="c:/eurocontrol/gnatcoll-xref.adb"
     make -r benchmark RUN_ARGS="c:/Projects/org.emacs.ada-mode/test/ada_mode.ads"
         copy per iteration values here
-        uses gnatcoll-xref.adb
 
         also get emacs, parser memory size from windows task manager
 
@@ -356,6 +385,18 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
             re-indent    0.038999 seconds 0 gcs 3 responses 0.005204 wait
 
             run_lr1 full parse: 0.19 seconds
+
+    28 Oct 2021 incremental parse working
+        gnatcoll-xref.adb:
+            partial parse:
+            navigate  1.482249 seconds 8 gcs 6240 responses 0.210432 wait
+            face      1.472934 seconds 7 gcs 2149 responses 0.199545 wait
+            indent    2.199243 seconds 5 gcs 7252 responses 0.825091 wait
+            re-indent 0.013047 seconds 0 gcs 25 responses 0.007724 wait
+
+            incremental parse:
+            initial   1.116354 seconds 0 gcs 0 responses 0.178810 wait
+            re-indent 0.034965 seconds 0 gcs 3 responses 0.002071 wait
 
 ;; FIXME: find a fontified word, time re-fontify
 ;; FIXME: measure memory use in emacs, parser process; Debian 'time -l run_ada_lalr ...', or just Windows Task Manager

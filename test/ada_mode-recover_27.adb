@@ -1,6 +1,7 @@
 -- From a real editing session
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+-- We get different indent results from incremental and partial parse
+--EMACS_SKIP_UNLESS:wisi-incremental-parse-enable
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 --EMACSCMD:(setq skip-recase-test t)
 

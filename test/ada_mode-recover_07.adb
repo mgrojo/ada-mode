@@ -21,6 +21,9 @@ package body Ada_Mode.Recover_7 is -- 6
 
             Prev_Result := Result; -- 27
             return Result; -- 31
-         end Follow;
+   end Follow;
 
-   end Ada_Mode.Recover_7;
+end Ada_Mode.Recover_7;
+-- Local Variables:
+-- ada-end-name-optional: nil
+-- End:

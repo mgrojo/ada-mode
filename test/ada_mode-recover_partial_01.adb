@@ -6,8 +6,8 @@
 Term.Last_Trailing_Comment_Line  := Deleted_Term.Last_Trailing_Comment_Line;
 end;
 else
-if not Data.Terminals (Op.Token_Index + 1).First then
+   if not Data.Terminals (Op.Token_Index + 1).First then
 
-   -- Local Variables:
-   -- wisi-mckenzie-task-count: 1
-   -- End:
+      -- Local Variables:
+      -- wisi-mckenzie-task-count: 1
+      -- End:

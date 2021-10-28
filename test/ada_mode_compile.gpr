@@ -36,6 +36,7 @@ project Ada_Mode_Compile is
       "ada_mode-long_paren.adb",
 
       -- These have syntax errors on purpose
+      "ada_mode-nested_parens.adb",
       "ada_mode-partial_parse.ads",
       "ada_mode-partial_parse.adb",
       "ada_mode-placeholders.adb",
@@ -148,7 +149,8 @@ project Ada_Mode_Compile is
 
       "bug_2016_11_21_01.adb", -- missing declarations
       "g-comlin.adb", -- copied from gnat runtime; gnat won't compile it!
-      "gnatprep.adb" -- could run thru gnatprep, but it's not worth it.
+      "gnatprep.adb", -- could run thru gnatprep, but it's not worth it.
+      "pragma_in_po.ads" -- no body
      );
 
    -- .ali files are in source dir, so they are shared between backend

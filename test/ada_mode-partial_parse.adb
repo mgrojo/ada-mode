@@ -136,7 +136,7 @@ begin
 
    -- blank line before "end"
    --EMACSCMD:(progn (forward-line 3)(wisi-indent-line)(back-to-indentation)(current-column))
-   --EMACSRESULT: (if wisi-incremental-parse-enable 3 6)
+   --EMACSRESULT: 3
 
 
 end Ada_Mode.Partial_Parse;

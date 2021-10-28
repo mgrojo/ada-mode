@@ -107,7 +107,6 @@ package Wisi.Ada is
       Object_Index_To_Element_Object, -- 3
       Format_Parameter_List);         -- 4
 
-
    overriding
    function Refactor_Parse  (Data : in Parse_Data_Type; Item : in String) return Refactor_Action
    is (Refactor_Action (Refactor_Label'Pos (Refactor_Label'Value (Item))));
@@ -121,6 +120,13 @@ package Wisi.Ada is
       Tree       : in out WisiToken.Syntax_Trees.Tree;
       Action     : in     Refactor_Action;
       Edit_Begin : in     WisiToken.Buffer_Pos);
+
+   overriding
+   function Get_Token_IDs
+     (User_Data           : in out Parse_Data_Type;
+      Command_Line : in String;
+      Last : in out Integer)
+     return WisiToken.Token_ID_Arrays.Vector;
 
    ----------
    --  The following are declared in ada.wy %elisp_indent, and must match

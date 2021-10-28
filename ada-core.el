@@ -207,7 +207,16 @@ is the package spec.")
 
 (defun ada-refactor (action)
   "Perform refactor action ACTION on symbol at point."
-  (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
+  (cond
+   (wisi-incremental-parse-enable
+    (let ((query-result (wisi-parse-tree-query wisi--parser 'containing-statement (point))))
+      (wisi-validate-cache (car (wisi-tree-node-char-region query-result))
+			   (cdr (wisi-tree-node-char-region query-result))
+			   t
+			   'navigate)))
+   (t
+    (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)))
+
   (save-excursion
     ;; We include punctuation and quote for operators.
     (skip-syntax-backward "w_.\"")
@@ -305,10 +314,10 @@ PARSE-RESULT must be the result of `syntax-ppss'."
     ;; In parens.
     (cond
      (wisi-incremental-parse-enable
-      ;; FIXME: need wisi-prj-tree-query or similar to hide wisi--parser?
-      (save-excursion
-	(eq 'formal_part (wisi-parse-tree-query wisi--parser 'nonterm (nth 1 parse-result))))
-      )
+      (let ((node (wisi-parse-tree-query wisi--parser 'node (nth 1 parse-result))))
+	(eq 'formal_part
+	    (wisi-tree-node-id
+	     (wisi-parse-tree-query wisi--parser 'parent (wisi-tree-node-address node) 1)))))
 
      (t ;; not incremental parse
 

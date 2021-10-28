@@ -28,10 +28,11 @@ begin
       Matching_Begin_Token := Invalid_Token_ID;
    end if;
    else
-Use_Complete := False;
-Matching_Begin_Token := Invalid_Token_ID;
-end if;
+      Use_Complete := False;
+      Matching_Begin_Token := Invalid_Token_ID;
+   end if;
 end Use_Minimal_Complete_Actions;
---  Local Variables:
---  wisi-mckenzie-task-count: 1
---  End:
+-- Local Variables:
+-- wisi-mckenzie-task-count: 1
+-- ada-end-name-optional: nil
+-- End:

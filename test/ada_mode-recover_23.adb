@@ -17,13 +17,12 @@ is begin
                 First => Line /= Token.Line));
 
          end; -- error here; misplaced 'end'. recover converts to 'if then end if ;'
-         else
-      raise WisiToken.Programmer_Error;
+      else
+         raise WisiToken.Programmer_Error;
       end if;
       -- missing 'end;'
    end loop;
 end Ada_Mode.Recover_23;
--- Error recovery has a race condition; force it to return repeatable results
 -- Local Variables:
 -- ada-end-name-optional: nil
 -- wisi-mckenzie-task-count: 1

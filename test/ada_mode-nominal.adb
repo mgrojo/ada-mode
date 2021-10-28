@@ -22,7 +22,14 @@ package body Ada_Mode.Nominal
 with
   Spark_Mode => On
 is -- target 0
+   --EMACSCMD:(and wisi-incremental-parse-enable (progn (forward-line -4)(wisi-parse-tree-query wisi--parser 'containing-statement (point))))
+   --EMACSRESULT:nil
 
+   --EMACSCMD:(and wisi-incremental-parse-enable (progn (end-of-line 2)(goto-char (car (wisi-tree-node-char-region (wisi-parse-tree-query wisi--parser 'containing-statement (point)))))(looking-at "package body Ada_Mode.Nominal")))
+   --EMACSRESULT:wisi-incremental-parse-enable
+
+   --EMACSCMD:(and wisi-incremental-parse-enable (progn (forward-line 3)(back-to-indentation)(goto-char (car (wisi-tree-node-char-region (wisi-parse-tree-query wisi--parser 'containing-statement (point)))))(looking-at "package body Ada_Mode.Nominal")))
+   --EMACSRESULT:wisi-incremental-parse-enable
    --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
    use Ada.Strings;
 

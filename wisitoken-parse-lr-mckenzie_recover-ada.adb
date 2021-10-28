@@ -1302,7 +1302,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             end if;
          end;
 
-      elsif Tree.ID (Config.Error_Token) = +IN_ID then
+      elsif Tree.ID (Config.Error_Token) = +IN_ID and then
+        Tree.ID (Config.Stack.Peek.Token) = +COLON_ID
+      then
          --  See test/ada_mode-recover_partial_03.adb.
          --  Code looks like:
          --

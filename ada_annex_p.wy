@@ -612,7 +612,7 @@ record_type_definition ::= [['abstract'] 'tagged'] ['limited'] record_definition
 
 record_definition
   : 'record' component_list 'end' 'record' [IDENTIFIER]
-    %((wisi-indent-action [[(ada-indent-record* 'TYPE 1 0) (ada-indent-record* 'TYPE 1 ada-indent)]
+    %((wisi-indent-action [(ada-indent-record* 'TYPE 1 0)
                            [(ada-indent-record* 'TYPE 1 ada-indent) (ada-indent-record* 'TYPE 1 ada-indent)]
                            (ada-indent-record* 'TYPE 1 0)
                            nil ada-indent-broken]))%
@@ -2027,8 +2027,9 @@ protected_definition
     %((wisi-propagate-name 5))%
   ;
 
-protected_operation_declaration ::=
-    subprogram_declaration
+protected_operation_declaration
+  : subprogram_declaration
+  | pragma_g ;;:new for pragma
   | entry_declaration
   | aspect_clause
 

@@ -38,11 +38,13 @@ else
 EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 endif
 
-# compile with debug to get assertions for testing new code
+# compile with debug with default Standard_Common_Assertions to get assertions for testing new code
+# assertions off with debug, for speed
 #export Standard_Common_Build := Debug
+#export Standard_Common_Assertions := Off
 #export Gnatcoll_Build := Debug
 
-elisp : byte-compile-clean compile-ada-test-clean update compile-ada-test test-clean test
+all : byte-compile-clean compile-ada-test-clean update compile-ada-test test-clean test
 
 # 'pub' does not do install, because 'build-elpa' uses the last
 # commit, not the current workspace.
@@ -79,7 +81,7 @@ install : install_executables
 # 'package-initialize' is required for 'uniquify-files'.
 byte-compile : byte-compile-clean
 	$(MAKE) -C $(WISI)/build byte-compile
-	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -l build/exclude-ada-mode.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
+	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(WISI) -l build/exclude-elpa.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
 
 byte-compile-clean :
 	cd ..; rm -f *.elc
@@ -113,11 +115,15 @@ one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
 #	rm -f ../test/gpr_query.db*
 one :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
-##one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
+#one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 #one :: $(addsuffix .debug, $(ONE_TEST_FILES))
+
+oneb :: one-clean
+oneb :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
+oneb :: $(addsuffix .diff, $(ONE_TEST_FILES))
 
 #two : RUN_ARGS ?= command_file debug.cmd test/debug.adb
 two : RUN_ARGS ?= parse_partial indent c:/eurocontrol/gnatcoll-xref.adb > debug.log
@@ -164,7 +170,7 @@ endif
 # WISITOKEN_GENERATE must be after WISITOKEN
 ifeq ($(TEST_DIR),source)
 # test with development source
-ADA_MODE_DIR := -L .. -L $(WISI) -l autoloads.el -l build/exclude-ada-mode.el
+ADA_MODE_DIR := -L .. -L $(WISI) -l autoloads.el -l build/exclude-elpa.el
 WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 
 else
@@ -177,7 +183,7 @@ endif
 include rules.make
 
 update-test-log : force
-	find . -name "*.diff" -not -size 0 >> test.log
+	find . -maxdepth 1 -name "*.diff" -not -size 0 >> test.log
 
 test-ada-lalr-process-gnatxref : RUNTEST := run-indent-test-lalr-process-gnatxref.el
 test-ada-lalr-process-gnatxref : $(addsuffix .diff, $(subst subdir/,,$(GNATXREF_TEST_FILES)))

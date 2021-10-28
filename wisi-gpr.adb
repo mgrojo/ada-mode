@@ -59,4 +59,25 @@ package body Wisi.Gpr is
       end if;
    end Parse_Language_Params;
 
+   overriding
+   function Get_Token_IDs
+     (User_Data           : in out Parse_Data_Type;
+      Command_Line : in String;
+      Last : in out Integer)
+     return WisiToken.Token_ID_Arrays.Vector
+   is
+      pragma Unreferenced (User_Data);
+      use Gpr_Process_Actions;
+   begin
+      return IDs : WisiToken.Token_ID_Arrays.Vector do
+         Wisi.Skip (Command_Line, Last, '(');
+         loop
+            IDs.Append (+Token_Enum_ID'Value (Wisi.Get_Enum (Command_Line, Last)));
+            Wisi.Skip (Command_Line, Last, ' ');
+            exit when Command_Line (Last + 1) = ')';
+         end loop;
+         Last := Last + 1;
+      end return;
+   end Get_Token_IDs;
+
 end Wisi.Gpr;

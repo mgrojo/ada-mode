@@ -1,6 +1,5 @@
---  Test incremental parser with deleted lines
+--  Test incremental parser with deleted lines; also passes with partial parse.
 
---EMACS_SKIP_UNLESS: wisi-incremental-parse-enable
 procedure Ada_Mode.Incremental_Delete_Lines is
 
    -- First edit file to pre insert/delete line state
@@ -24,6 +23,3 @@ procedure Ada_Mode.Incremental_Delete_Lines is
 begin
    null;
 end Ada_Mode.Incremental_Delete_Lines;
--- Local Variables:
--- wisi-incremental-parse-enable: t
--- End:

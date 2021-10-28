@@ -20,7 +20,7 @@ package body Ada_Mode.Recover_10 is
                   Cur : Token_Id_Arrays.Vector renames Prod.Rhss (I).Tokens;
                begin
 
-      --  missing several 'end ...'
+               --  missing several 'end ...'
    end Check_Rhs_Order;
 end Ada_Mode.Recover_10;
 -- Local Variables:
