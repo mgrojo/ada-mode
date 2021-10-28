@@ -383,8 +383,8 @@ package body Run_Wisi_Common_Parse is
       use WisiToken; -- "+" unbounded
 
       type File_Command_Type is
-        (File, Language_Params, McKenzie_Options, Parse_Full, Parse_Incremental, Post_Parse, Refactor, Query_Tree,
-         Save_Text, Save_Text_Auto, Verbosity);
+        (File, Language_Params, McKenzie_Options, Parse_Full, Parse_Incremental, Post_Parse, Refactor,
+         Query_Tree, Save_Text, Save_Text_Auto, Verbosity);
 
       Parser : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
 
@@ -472,10 +472,6 @@ package body Run_Wisi_Common_Parse is
 
             Parser.Parse (Log_File, KMN_List);
 
-            if Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
-               Wisi.Query_Tree (Parse_Data, Parser.Tree, Wisi.Bounds, Buffer_Pos'First);
-            end if;
-
             Parse_Data.Put
               (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                Parser.Tree);
@@ -524,10 +520,38 @@ package body Run_Wisi_Common_Parse is
 
       when Query_Tree =>
          declare
-            Label : constant Wisi.Query_Label     := Wisi.Query_Label'Value (Wisi.Get_Enum (Line, Last));
-            Point : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
+            use Wisi;
+            Label : constant Wisi.Query_Label := Wisi.Query_Label'Value (Wisi.Get_Enum (Line, Last));
          begin
-            Wisi.Query_Tree (Parse_Data, Parser.Tree, Label, Point);
+            case Label is
+            when Point_Query =>
+               declare
+                  Point : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
+                  IDs : constant WisiToken.Token_ID_Arrays.Vector :=
+                    (case Point_Query'(Label) is
+                     when Node | Containing_Statement => WisiToken.Token_ID_Arrays.Empty_Vector,
+                     when Ancestor => Wisi.Get_Token_IDs (Parse_Data, Line, Last));
+                  Query : constant Wisi.Query :=
+                    (case Point_Query'(Label) is
+                     when Node => (Node, Point),
+                     when Containing_Statement => (Containing_Statement, Point),
+                     when Ancestor => (Ancestor, Point, IDs));
+               begin
+                  Wisi.Query_Tree (Parse_Data, Parser.Tree, Query);
+               end;
+
+            when Parent | Child =>
+               declare
+                  Address : constant String := Wisi.Get_String (Line, Last);
+                  Node    : constant WisiToken.Syntax_Trees.Valid_Node_Access := Wisi.To_Node_Access (Address);
+                  N       : constant Integer := Wisi.Get_Integer (Line, Last);
+               begin
+                  Wisi.Query_Tree (Parse_Data, Parse_Context.Parser.Tree, (Node_Query'(Label), Node, N));
+               end;
+
+            when Print =>
+               Wisi.Query_Tree (Parse_Data, Parser.Tree, (Label => Print));
+            end case;
          end;
 
       when Save_Text =>

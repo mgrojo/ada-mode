@@ -107,15 +107,8 @@ package Wisi is
 
    type Post_Parse_Action_Type is (Navigate, Face, Indent);
 
-   type Parse_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with private;
+   type Parse_Data_Type is abstract new WisiToken.Syntax_Trees.User_Data_Type with private;
    type Parse_Data_Access is access all Parse_Data_Type'Class;
-
-   overriding
-   function New_User_Data (Template : in Parse_Data_Type) return WisiToken.Syntax_Trees.User_Data_Access
-   is (new Parse_Data_Type);
-
-   function New_Parse_Data (Template : in Parse_Data_Type'Class) return Parse_Data_Access
-   is (Parse_Data_Access (New_User_Data (Template)));
 
    procedure Initialize
      (Data  : in out Parse_Data_Type;
@@ -422,14 +415,50 @@ package Wisi is
       Action     : in     Refactor_Action;
       Edit_Begin : in     WisiToken.Buffer_Pos) is null;
 
-   type Query_Label is (Bounds, Containing_Statement, Nonterm, Virtuals, Print);
+   type Query_Label is (Node, Containing_Statement, Ancestor, Parent, Child, Print);
    --  Must match wisi-parse-common.el wisi-parse-tree-queries
 
+   subtype Point_Query is Query_Label range Node .. Ancestor;
+   subtype Node_Query is Query_Label range Parent .. Child;
+
+   type Query (Label : Query_Label) is
+   record
+      case Label is
+      when Point_Query =>
+         Char_Point : WisiToken.Buffer_Pos;
+
+         case Label is
+         when Ancestor =>
+            IDs : WisiToken.Token_ID_Arrays.Vector;
+         when others =>
+            null;
+         end case;
+
+      when Parent | Child =>
+         Node : WisiToken.Syntax_Trees.Node_Access;
+         N    : Positive;
+
+      when Print =>
+         null;
+      end case;
+   end record;
+
+   function Address_Image (Item : in WisiToken.Syntax_Trees.Valid_Node_Access) return String;
+   --  Hexadecimal address of Item, for Query_Tree.
+
+   function To_Node_Access (Item : in String) return WisiToken.Syntax_Trees.Valid_Node_Access;
+
+   function Get_Token_IDs
+     (User_Data           : in out Parse_Data_Type;
+      Command_Line : in String;
+      Last : in out Integer)
+     return WisiToken.Token_ID_Arrays.Vector
+   is abstract;
+
    procedure Query_Tree
-     (Data       : in Parse_Data_Type;
-      Tree       : in WisiToken.Syntax_Trees.Tree;
-      Label      : in Query_Label;
-      Char_Point : in WisiToken.Buffer_Pos);
+     (Data  : in Parse_Data_Type;
+      Tree  : in WisiToken.Syntax_Trees.Tree;
+      Query : in Wisi.Query);
 
    type Arg_Index_Array is array (Positive range <>) of WisiToken.Positive_Index_Type;
 
@@ -568,7 +597,7 @@ private
    package Navigate_Cursor_Lists is new Ada.Containers.Doubly_Linked_Lists
      (Navigate_Cache_Trees.Cursor, Navigate_Cache_Trees."=");
 
-   type Parse_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
+   type Parse_Data_Type is abstract new WisiToken.Syntax_Trees.User_Data_Type with
    record
       Trace : WisiToken.Trace_Access;
 

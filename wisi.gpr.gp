@@ -20,8 +20,9 @@
 with "gnatcoll";
 with "standard_common";
 #if ELPA="no"
-with "sal";
-with "wisitoken";
+with "aunit_ext";
+with "sal_devel";
+with "wisitoken_devel";
 #end if;
 project Wisi is
 

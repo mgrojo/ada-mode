@@ -25,7 +25,6 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with Test_Edit_Source;
-with Test_Syntax_Trees;
 with WisiToken;
 procedure Test_All_Harness
 is
@@ -80,7 +79,6 @@ begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
    Add_Test (Suite, Test_Case_Access'(new Test_Edit_Source.Test_Case));
-   Add_Test (Suite, Test_Case_Access'(new Test_Syntax_Trees.Test_Case));
    --  end test cases
 
    Run (Suite, Options, Result, Status);

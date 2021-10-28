@@ -21,6 +21,8 @@ with Ada.Strings.Bounded;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with SAL;
+with System.Address_To_Access_Conversions;
+with System.Storage_Elements;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Lexer;
 package body Wisi is
@@ -616,6 +618,7 @@ package body Wisi is
 
          elsif Source (Last + 1) = ' ' then
             Last := Last + 1;
+            exit when Char = ' ';
 
          elsif Source (Last + 1) = Char then
             Last := Last + 1;
@@ -2228,7 +2231,7 @@ package body Wisi is
            (Contains (Data.Action_Region_Lines, Node_Region.First) or
               Contains (Data.Action_Region_Lines, Node_Region.Last) or
               (Node_Region.First < Data.Action_Region_Lines.First and
-              Node_Region.Last > Data.Action_Region_Lines.Last));
+                 Node_Region.Last > Data.Action_Region_Lines.Last));
       end In_Line_Region;
 
    begin
@@ -2289,7 +2292,6 @@ package body Wisi is
                      Comment_Param     := Params (I + 1).Code_Delta;
                      Controlling_Token := Tree.Child (Nonterm, I + 1);
                      Comment_Param_Set := True;
-
                   end if;
 
                   if Comment_Param_Set then
@@ -2317,7 +2319,7 @@ package body Wisi is
                                 (Line_Number_Type'
                                    (if Params (I).Comment_Present
                                     then -- ada_mode-conditional_expressions.adb case expression for K, if
-                                    --  expression blank line.
+                                       --  expression blank line.
                                        Tree.Line_Region (Controlling_Token).Last
 
                                     else --  ada_mode-conditional_expressions.adb case expression for K.
@@ -2403,84 +2405,105 @@ package body Wisi is
       end return;
    end Indent_Hanging_1;
 
+   package Node_Access_Address is new System.Address_To_Access_Conversions (WisiToken.Syntax_Trees.Node);
+
+   function Address_Image (Item : in WisiToken.Syntax_Trees.Valid_Node_Access) return String
+   is
+      use Ada.Strings, Ada.Strings.Fixed;
+      Int : constant System.Storage_Elements.Integer_Address := System.Storage_Elements.To_Integer
+        (Node_Access_Address.To_Address (Node_Access_Address.Object_Pointer (Item)));
+   begin
+      return """" & Trim (Int'Image, Both) & """";
+   end Address_Image;
+
+   function To_Node_Access (Item : in String) return WisiToken.Syntax_Trees.Valid_Node_Access
+   is
+      Int : constant System.Address := System.Storage_Elements.To_Address
+        (System.Storage_Elements.Integer_Address'Value (Item));
+   begin
+      return WisiToken.Syntax_Trees.Valid_Node_Access (Node_Access_Address.To_Pointer (Int));
+   end To_Node_Access;
+
    procedure Query_Tree
      (Data       : in Parse_Data_Type;
       Tree       : in WisiToken.Syntax_Trees.Tree;
-      Label      : in Query_Label;
-      Char_Point : in WisiToken.Buffer_Pos)
+      Query      : in Wisi.Query)
    is
       use Syntax_Trees;
    begin
-      case Label is
-      when Bounds =>
+      case Query.Label is
+      when Point_Query =>
          declare
-            Result_Chars : constant WisiToken.Buffer_Region := Tree.Char_Region (Tree.Root);
-            Result_Lines : constant WisiToken.Line_Region   := Tree.Line_Region (Tree.Root);
+            Terminal : constant Node_Access := Tree.Find_Char_Pos
+              (Query.Char_Point, After => True, Trailing_Non_Grammar => True);
          begin
-            Ada.Text_IO.Put_Line
-              ("[" & Query_Tree_Code &
-                 Query_Label'Pos (Label)'Image &
-                 Result_Chars.First'Image &
-                 Result_Chars.Last'Image &
-                 Result_Lines.First'Image &
-                 Result_Lines.Last'Image & "]");
-         end;
-
-      when Containing_Statement =>
-         declare
-            Node : constant Node_Access := Tree.Find_Char_Pos
-              (Char_Point, After => True, Trailing_Non_Grammar => True);
-         begin
-            if Node = Invalid_Node_Access then
-               Ada.Text_IO.Put_Line ("[" & Query_Tree_Code & Query_Label'Pos (Label)'Image & " nil]");
+            if Terminal = Invalid_Node_Access then
+               Ada.Text_IO.Put_Line ("[" & Query_Tree_Code & Query_Label'Pos (Query.Label)'Image & " nil]");
+               return;
             else
                declare
-                  Statement : constant Node_Access := Tree.Find_Ancestor (Node, To_Array (Data.Statement_IDs));
-                  Char_Region : constant Buffer_Region :=
-                    (if Statement = Invalid_Node_Access
-                     then Null_Buffer_Region
-                     else Tree.Char_Region (Statement, Trailing_Non_Grammar => False));
+                  Result   : Node_Access :=
+                    (case Point_Query'(Query.Label) is
+                     when Node => Terminal,
+                     when Containing_Statement => Tree.Find_Ancestor (Terminal, To_Array (Data.Statement_IDs)),
+                     when Ancestor => Tree.Find_Ancestor (Terminal, To_Array (Query.IDs)));
+                  Char_Region : Buffer_Region;
                begin
-                  if Statement = Invalid_Node_Access then
-                     Ada.Text_IO.Put_Line ("[" & Query_Tree_Code & Query_Label'Pos (Label)'Image & " nil]");
-                  else
-                     Ada.Text_IO.Put_Line
-                       ("[" & Query_Tree_Code &
-                          Query_Label'Pos (Label)'Image &
-                          Tree.ID (Statement)'Image & " " &
-                          Char_Region.First'Image & " " &
-                          Char_Region.Last'Image & "]");
-                  end if;
+                  case Point_Query'(Query.Label) is
+                  when Node | Ancestor =>
+                     if Result = Invalid_Node_Access then
+                        --  Node is tree.root, or ancestor not found.
+                        Ada.Text_IO.Put_Line ("[" & Query_Tree_Code & Query_Label'Pos (Query.Label)'Image & " nil]");
+                        return;
+                     end if;
+
+                     Char_Region := Tree.Char_Region (Result, Trailing_Non_Grammar => False);
+
+                  when Containing_Statement =>
+                     loop
+                        if Result = Invalid_Node_Access then
+                           --  ancestor not found.
+                           Ada.Text_IO.Put_Line ("[" & Query_Tree_Code & Query_Label'Pos (Query.Label)'Image & " nil]");
+                           return;
+                        end if;
+
+                        Char_Region := Tree.Char_Region (Result, Trailing_Non_Grammar => False);
+
+                        if Query.Char_Point = Char_Region.First then
+                           --  Find container of this statement
+                           Result := Tree.Find_Ancestor (Result, To_Array (Data.Statement_IDs));
+                        else
+                           exit;
+                        end if;
+                     end loop;
+                  end case;
+
+                  Ada.Text_IO.Put_Line
+                    ("[" & Query_Tree_Code &
+                       Query_Label'Pos (Query.Label)'Image & " " &
+                       Address_Image (Result) & " " &
+                       Tree.ID (Result)'Image & " " &
+                       Char_Region.First'Image & " " &
+                       Char_Region.Last'Image & "]");
                end;
             end if;
          end;
-      when Nonterm =>
-         declare
-            Terminal : constant Node_Access := Tree.Find_Char_Pos
-              (Char_Point, After => False, Trailing_Non_Grammar => False);
-         begin
-            if Terminal = Invalid_Node_Access then
-               Ada.Text_IO.Put_Line ("[" & Query_Tree_Code & Query_Label'Pos (Label)'Image & " nil]");
-            else
-               Ada.Text_IO.Put_Line
-                 ("[" & Query_Tree_Code &
-                    Query_Label'Pos (Label)'Image &
-                    Tree.ID (Tree.Parent (Terminal))'Image & "]");
-            end if;
-         end;
 
-      when Virtuals =>
+      when Parent | Child =>
          declare
-            Result_Nodes : constant WisiToken.Syntax_Trees.Valid_Node_Access_Array := Tree.Get_Virtuals (Tree.Root);
-            Result_String : Ada.Strings.Unbounded.Unbounded_String;
+            Result   : constant Node_Access :=
+              (if Query.Label = Parent
+               then Tree.Parent (Query.Node, Query.N)
+               else Tree.Child (Query.Node, Positive_Index_Type (Query.N)));
+            Char_Region : constant Buffer_Region := Tree.Char_Region (Result, Trailing_Non_Grammar => False);
          begin
-            for N of Result_Nodes loop
-               Ada.Strings.Unbounded.Append
-                 (Result_String, "[" & Tree.ID (N)'Image & Tree.Char_Region (N).First'Image & "]");
-            end loop;
-
             Ada.Text_IO.Put_Line
-              ("[" & Query_Tree_Code & Query_Label'Pos (Label)'Image & "[" & (-Result_String) & "]]");
+              ("[" & Query_Tree_Code &
+                 Query_Label'Pos (Query.Label)'Image & " " &
+                 Address_Image (Result) & " " &
+                 Tree.ID (Result)'Image & " " &
+                 Char_Region.First'Image & " " &
+                 Char_Region.Last'Image & "]");
          end;
 
       when Print =>
@@ -2738,8 +2761,8 @@ package body Wisi is
                      Trailing_Non_Grammar : Token_Arrays.Vector renames Tree.Non_Grammar_Const (Last_Terminal);
                   begin
                      if Trailing_Non_Grammar.Length in 0 | 1 then
-                        --  Single non_grammar either contains a single new_line or is a
-                        --  non-new_line comment (ie placeholder); neither needs indenting.
+                        --  Single non_grammar either contains a single new_line, a new_line comment, or a
+                        --  non-new_line comment (ie placeholder); none need indenting.
                         --  FIXME: handle multi-line comments
                         Result.Comment := Null_Line_Region;
 
@@ -2765,12 +2788,8 @@ package body Wisi is
                            end;
                         end if;
 
-                        Result.Comment.Last  :=
-                          (if Contains_New_Line (Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region)
-                           then
-                              Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region.First
-                           else
-                              Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region.Last);
+                        Result.Comment.Last :=
+                           Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region.First;
                      end if;
                   end;
                end if;
@@ -2965,12 +2984,12 @@ package body Wisi is
          Data.Trace.Put_Line
            ("indent_token_1:      " &
               Image (Line_Region) & " " & Image (Delta_Indent) &
-              (if Indenting_Comment /= None then " comment" else " code") &
-              Image (Line_Region));
+              (if Indenting_Comment /= None then " comment" else " code"));
       end if;
 
       for Line in Line_Region.First .. Line_Region.Last loop
          if Data.Indent_Comment_Col_0 then
+            Indent := True;
             declare
                use all type Ada.Text_IO.Count;
                Line_Begin_Char_Pos : Buffer_Pos;
@@ -2995,7 +3014,15 @@ package body Wisi is
          end if;
 
          if Indent then
-            if Indenting_Comment /= None then
+            if Indenting_Comment /= None and Data.Indents (Line).Label = Not_Set then
+               --  In ada_mode-conditional_expressions.adb, case expression for K,
+               --  comment before "(if J > 42", the if expression is indented by
+               --  ada-indent-aggregate, which returns -1. We need to apply that to
+               --  the comment also.
+               --
+               --  However, in ada_mode-nominal.adb, line "-- Comment before 'end
+               --  case'", we don't want to add Controlling_Delta; that applies the
+               --  same indent twice.
                Indent_Line (Data, Line, Controlling_Delta, Indenting_Comment);
             end if;
 

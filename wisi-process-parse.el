@@ -386,17 +386,32 @@ messages."
     (wisi-process-parse--wait parser)
     ))
 
-(defun wisi-process-parse--send-query (parser query point)
+(defun wisi-process-parse--send-query (parser query &rest args)
   "Send a query command to PARSER external process, wait for command to complete. PARSER will respond with
 one or more Query messages."
   ;; Must match "query-tree" command arguments read by
   ;; emacs_wisi_common_parse.adb Process_Stream "query-tree"
-  (let* ((cmd (format "query-tree \"%s\" %d %d"
+  (let* ((cmd (format "query-tree \"%s\" %d "
 		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		      (cdr (assoc query wisi-parse-tree-queries))
-		      point
 		      ))
 	 (process (wisi-process--parser-process parser)))
+
+    (cl-ecase query
+      ((node containing-statement)
+       (setq cmd (concat cmd (format "%d" (car args)))))
+
+     (ancestor
+      (setq cmd
+	    (concat cmd
+		    (format "%d (%s_id )"
+			    (nth 0 args)
+			    (mapconcat (lambda (s) (symbol-name s)) (nth 1 args) "_id ")))))
+
+     ((parent child)
+      (setq cmd (concat cmd (format "\"%s\" %d" (car args) (nth 1 args)))))
+
+     (print nil))
 
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
@@ -491,18 +506,19 @@ one or more Query messages."
   (let ((pos (aref sexp 1))
 	err)
 
-    (goto-char pos);; for current-column
+    (save-excursion
+      (goto-char pos);; for current-column
 
-    (setq err
-	  (make-wisi--parse-error
-	   :pos (copy-marker pos)
-	   :message
-	   (format "%s:%d:%d: %s"
-		   (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
-		   ;; file-name can be nil during vc-resolve-conflict
-		   (line-number-at-pos pos)
-		   (1+ (current-column))
-		   (aref sexp 2))))
+      (setq err
+	    (make-wisi--parse-error
+	     :pos (copy-marker pos)
+	     :message
+	     (format "%s:%d:%d: %s"
+		     (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
+		     ;; file-name can be nil during vc-resolve-conflict
+		     (line-number-at-pos pos)
+		     (1+ (current-column))
+		     (aref sexp 2)))))
 
     (push err (wisi-parser-parse-errors parser))
     ))
@@ -587,29 +603,20 @@ one or more Query messages."
   ;; sexp is [Language language-action ...]
   (funcall (aref (wisi-process--parser-language-action-table parser) (aref sexp 1)) sexp))
 
+(defun wisi-process-parse--to-tree-node (parser sexp)
+  "Return a `wisi-tree-node' or nil."
+  (when (aref sexp 2)
+    (make-wisi-tree-node
+     :address     (aref sexp 2)
+     :id          (aref (wisi-process--parser-token-table parser) (aref sexp 3))
+     :char-region (cons (aref sexp 4) (aref sexp 5)))))
+
 (defun wisi-process-parse--Query (parser sexp)
-  ;; sexp is [Query query-label ...] see `wisi-parse-tree-queries
+  ;; sexp is [Query query-label ...] see `wisi-parse-tree-queries'
   (cl-ecase (car (rassoc (aref sexp 1) wisi-parse-tree-queries))
-    (bounds
+    ((node containing-statement ancestor parent child)
      (setf (wisi-process--parser-query-result parser)
-	   (list (aref sexp 2)(aref sexp 3)(aref sexp 4)(aref sexp 5))))
-
-    (containing-statement
-     (setf (wisi-process--parser-query-result parser)
-	   (when (aref sexp 2)
-	     (list (aref sexp 2) (cons (aref sexp 3) (aref sexp 4))))))
-
-    (nonterm
-     (setf (wisi-process--parser-query-result parser)
-	   (when (aref sexp 2)
-	     (aref (wisi-process--parser-token-table parser) (aref sexp 2)))))
-
-    (virtuals
-     ;; sexp is [Query query-label [...]]
-     ;; IMPROVEME: convert to elisp token_ids. for now we only need the count in unit tests.
-     (setf (wisi-process--parser-query-result parser)
-	     (aref sexp 2)))
-
+	   (wisi-process-parse--to-tree-node parser sexp)))
     (print
      (setf (wisi-process--parser-query-result parser)
 	   t))
@@ -706,6 +713,7 @@ one or more Query messages."
 
 (cl-defgeneric wisi-parse-reset ((parser wisi-process--parser))
   (setf (wisi-process--parser-busy parser) nil)
+  (wisi-process-parse--require-process parser)
   (wisi-process--kill-context parser)
   (wisi-process-parse--wait parser))
 
@@ -961,11 +969,12 @@ one or more Query messages."
 
 (defun wisi-process-parse--handle-messages-file-not-found (parser action)
   (funcall action)
-  (condition-case-unless-debug _err
+  (condition-case _err
       (wisi-process-parse--handle-messages parser)
     ('wisi-file_not_found
      (message "parsing buffer ...")
      (wisi-process-parse--send-incremental-parse parser t)
+     (wisi-process-parse--wait parser)
      (message "parsing buffer ... done")
      (funcall action)
      (wisi-process-parse--handle-messages parser)
@@ -985,7 +994,7 @@ one or more Query messages."
   (setf (wisi-parser-lexer-errors parser) nil)
   (setf (wisi-parser-parse-errors parser) nil)
   (wisi-process-parse--send-incremental-parse parser full)
-  (condition-case-unless-debug _err
+  (condition-case _err
       (wisi-process-parse--handle-messages parser)
     ('wisi-file_not_found
      (message "parsing buffer ...")
@@ -1019,7 +1028,7 @@ one or more Query messages."
    parser
    (lambda () (wisi-process-parse--send-refactor parser refactor-action edit-begin))))
 
-(cl-defmethod wisi-parse-tree-query ((parser wisi-process--parser) query point)
+(cl-defmethod wisi-parse-tree-query ((parser wisi-process--parser) query &rest args)
   (cl-assert wisi-incremental-parse-enable)
   (when wisi--changes
     (wisi-parse-incremental parser nil))
@@ -1028,7 +1037,8 @@ one or more Query messages."
   (setf (wisi-process--parser-query-result parser) nil)
   (wisi-process-parse--handle-messages-file-not-found
    parser
-   (lambda () (wisi-process-parse--send-query parser query point)))
+   (lambda ()
+     (apply 'wisi-process-parse--send-query parser query args)))
   (wisi-process--parser-query-result parser))
 
 ;;;;; debugging
@@ -1119,7 +1129,7 @@ one or more Query messages."
 
 	 (insert "language_params " language_param "\n\n")
 
-	 (insert "parse_full " source-file "\n\n"))))
+	 (insert "parse_full\n\n"))))
 
     (set-buffer log-buffer)
     (goto-char (point-min))
@@ -1172,11 +1182,12 @@ one or more Query messages."
 	  (goto-char (point-max))
 	  (insert "--  query_tree "
 		  (cl-ecase label
-		    (0 "bounds ")
+		    (0 "node ")
 		    (1 "containing_statement ")
-		    (2 "nonterm ")
-		    (3 "virtuals ")
-		    (4 "print "))
+		    (2 "ancestor ")
+		    (3 "parent ")
+		    (4 "child ")
+		    (5 "print "))
 		  pos "\n\n")
 	  (set-buffer log-buffer)))
 

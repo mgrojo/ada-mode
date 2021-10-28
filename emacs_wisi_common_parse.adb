@@ -437,10 +437,6 @@ package body Emacs_Wisi_Common_Parse is
                         end if;
 
                         --  No Execute_Actions here; that's done in "post-parse" command
-
-                        if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
-                           Wisi.Query_Tree (Parse_Data, Parser.Tree, Wisi.Bounds, Buffer_Pos'First);
-                        end if;
                      end;
 
                   when Full =>
@@ -546,11 +542,11 @@ package body Emacs_Wisi_Common_Parse is
                --  [elisp vector]...
                --  prompt
                declare
+                  use Wisi;
                   Source_File_Name : constant Ada.Strings.Unbounded.Unbounded_String :=
                     +Wisi.Get_String (Command_Line, Last);
 
-                  Label : constant Wisi.Query_Label     := Wisi.Query_Label'Val (Wisi.Get_Integer (Command_Line, Last));
-                  Point : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Command_Line, Last));
+                  Label : constant Wisi.Query_Label := Wisi.Query_Label'Val (Wisi.Get_Integer (Command_Line, Last));
 
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
                     (-Source_File_Name, Language);
@@ -558,9 +554,42 @@ package body Emacs_Wisi_Common_Parse is
                   Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class
                     (Parse_Context.Parser.User_Data.all);
                begin
-                  Check_Command_Length (Command_Length, Last);
+                  case Label is
+                  when Point_Query =>
+                     declare
+                        Point : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos
+                          (Wisi.Get_Integer (Command_Line, Last));
+                        IDs : constant WisiToken.Token_ID_Arrays.Vector :=
+                          (case Point_Query'(Label) is
+                           when Node | Containing_Statement => WisiToken.Token_ID_Arrays.Empty_Vector,
+                           when Ancestor => Wisi.Get_Token_IDs (Parse_Data, Command_Line, Last));
+                        Query : constant Wisi.Query :=
+                          (case Point_Query'(Label) is
+                           when Node => (Node, Point),
+                           when Containing_Statement => (Containing_Statement, Point),
+                           when Ancestor => (Ancestor, Point, IDs));
+                     begin
+                        Check_Command_Length (Command_Length, Last);
 
-                  Wisi.Query_Tree (Parse_Data, Parse_Context.Parser.Tree, Label, Point);
+                        Wisi.Query_Tree (Parse_Data, Parse_Context.Parser.Tree, Query);
+                     end;
+
+                  when Parent | Child =>
+                     declare
+                        Address : constant String := Wisi.Get_String (Command_Line, Last);
+                        Node    : constant WisiToken.Syntax_Trees.Valid_Node_Access := Wisi.To_Node_Access (Address);
+                        N       : constant Integer := Wisi.Get_Integer (Command_Line, Last);
+                     begin
+                        Check_Command_Length (Command_Length, Last);
+
+                        Wisi.Query_Tree (Parse_Data, Parse_Context.Parser.Tree, (Node_Query'(Label), Node, N));
+                     end;
+
+                  when Print =>
+                     Check_Command_Length (Command_Length, Last);
+
+                     Wisi.Query_Tree (Parse_Data, Parse_Context.Parser.Tree, (Label => Print));
+                  end case;
                end;
 
             elsif Match ("save_text") then

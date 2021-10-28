@@ -185,17 +185,47 @@ STMT-START, STMT-END are the start and end positions of the
 statement containing EDIT_BEGIN.")
 
 (defconst wisi-parse-tree-queries
-  ;; Must match wisi.ads Query_Label
-  '((bounds . 0)  ;; return [point-min point-max line-min line-max]
-    (containing-statement . 1) ;; (statement-token_id (start_pos . end_pos))
-    (nonterm . 2) ;; return first parent token id of terminal at point
-    (virtuals . 3) ;; return list of virtual terminals in tree
-    (print . 4) ;; output parse tree to trace log
+  ;; Must match wisi.ads Query_Label. Results defined in doc string of `wisi-parse-tree-query'.
+  '((node                   .   0)
+    (containing-statement   .	1)
+    (ancestor		    .	2)
+    (parent		    .	3)
+    (child		    .	4)
+    (print		    .	5)
     )
   "Query values for `wisi-parse-tree-query'.")
 
-(cl-defgeneric wisi-parse-tree-query ((parser wisi-parser) query point)
-  "Return result of parse tree query QUERY at POINT.")
+(cl-defstruct wisi-tree-node
+  "A syntax tree node"
+  address     ;; hexadecimal string
+  id          ;; token_id, a symbol
+  char-region ;; cons (start_pos . end_pos)
+  )
+
+(cl-defgeneric wisi-parse-tree-query ((parser wisi-parser) query &rest args)
+  "Return result of parse tree query QUERY with ARGS:
+
+- node: ARGS is a buffer position. Return terminal at ARGS (a
+  wisi-tree-node). If ARGS is in whitespace or comment, preceding
+  terminal.
+
+- containing-statement: ARGS is a buffer position. Return
+  statement ancestor of terminal at that pos (a wisi-tree-node),
+  or nil if no such ancestor. A 'statement' is one of the
+  statement ids declared by the language-specific grammar
+  backend.
+
+- ancestor: ARGS are a buffer position and a list of ids. Return
+  ancestor of terminal at that pos that is one of the ids (a
+  wisi-tree-node), or nil if no such ancestor.
+
+- parent: ARGS are (node-address n). Return nth parent of the
+  node (a wisi-tree-node), or nil if no such parent.
+
+- child: ARGS are (node-address n). Return nth child of the
+  node (a wisi-tree-node), or nil if no such child.
+
+- print: ARGS ignored. Output parse tree to trace log. Returns t.")
 
 (cl-defgeneric wisi-parse-reset ((parser wisi-parser))
   "Ensure parser is ready to process a new parse.")
