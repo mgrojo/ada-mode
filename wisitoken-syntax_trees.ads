@@ -2027,9 +2027,9 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Editable,
      Post => Find_New_Line'Result = Invalid_Node_Access or else
              (Tree.Is_Terminal (Find_New_Line'Result));
-   --  Return the terminal node that ends Line - 1; SOI, EOI or contains
-   --  the non-grammar New_Line. Result is Invalid_Node_Access if Line is
-   --  outside range spanned by Tree.
+   --  Return the terminal node containing a non_grammar that ends Line -
+   --  1. Result is Invalid_Node_Access if Line is outside range spanned
+   --  by Tree.
 
    function Find_New_Line
      (Tree                : in     Syntax_Trees.Tree;

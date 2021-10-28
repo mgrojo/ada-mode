@@ -1111,12 +1111,12 @@ package body WisiToken.Parse is
                                    Byte_Region.First + Shift_Bytes <= Inserted_Region.Last)
                               then
                                  if (Next_KMN.Deleted_Bytes > 0 or Next_KMN.Inserted_Bytes > 0) and then
-                                   Next_KMN_Stable_First < Byte_Region.Last
+                                   Next_KMN_Stable_Last < Byte_Region.Last
                                  then
                                     --  Next change is an actual change (not just last placeholder KMN),
                                     --  and it also overlaps this token. It may insert or delete a comment
                                     --  end, so we don't know when to end a scan; handle it then.
-                                    --  test_incremental.adb Edit_Comment_7.
+                                    --  test_incremental.adb Edit_Comment_7, ada_mode-partial_parse.adb.
                                     Shift_Lines := @ - New_Line_Count (Non_Grammar (I).Line_Region);
                                     Floating_Non_Grammar.Append (Non_Grammar (I));
                                     Last_Floated := I;
@@ -1550,18 +1550,20 @@ package body WisiToken.Parse is
                   declare
                      To_Delete : Stream_Node_Ref := Terminal;
                   begin
+                     if Comment_End_Deleted and then
+                       Tree.Byte_Region (To_Delete, Trailing_Non_Grammar => True).First > New_Comment_End
+                       --  test_incremental.adb Edit_Comment_9
+                     then
+                        Comment_End_Deleted := False;
+                        New_Comment_End     := Invalid_Buffer_Pos;
+                        exit Delete_Loop;
+                     end if;
+
                      Tree.Next_Terminal (Terminal);
                      if Trace_Incremental_Parse > Detail then
                         Parser.Trace.Put_Line
                           ("delete deleted or modified " &
                              Tree.Image (To_Delete.Element, Terminal_Node_Numbers => True, Non_Grammar => True));
-                     end if;
-
-                     if Comment_End_Deleted and then
-                       Tree.Byte_Region (To_Delete, Trailing_Non_Grammar => True).Last >= New_Comment_End
-                     then
-                        Comment_End_Deleted := False;
-                        New_Comment_End     := Invalid_Buffer_Pos;
                      end if;
 
                      for Token of Tree.Non_Grammar_Const (To_Delete.Node) loop

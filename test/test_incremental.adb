@@ -494,7 +494,29 @@ package body Test_Incremental is
       --  |39
    end Edit_Comment_8;
 
-   --  FIXME: edit_comment_9; delete comment start and end
+   procedure Edit_Comment_9 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Edit comment not adjacent to next token should not delete next
+      --  token. Reproduces test case in ada_mode-interactive_07.adb.
+      Parse_Text
+        (Initial   =>
+           "package A is procedure D;" & ASCII.LF &
+             --      |10       |20       |26
+             "   -- Return the terminal" & ASCII.LF &
+             --  |30       |40       |50   |52
+             "   -- 1. foo bar" & ASCII.LF &
+             --  |56              |66
+             "   -- Result is" & ASCII.LF &
+             --            |80   |82
+             "   -- by Tree." & ASCII.LF &
+             "   procedure C; end A;",
+         Edit_At   => 62,
+         Insert    => "",
+         Delete    => "foo bar" & ASCII.LF);
+
+   end Edit_Comment_9;
 
    procedure Edit_Whitespace_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1062,6 +1084,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment_6'Access, "Edit_Comment_6");
       Register_Routine (T, Edit_Comment_7'Access, "Edit_Comment_7");
       Register_Routine (T, Edit_Comment_8'Access, "Edit_Comment_8");
+      Register_Routine (T, Edit_Comment_9'Access, "Edit_Comment_9");
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");

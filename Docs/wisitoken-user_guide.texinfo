@@ -537,8 +537,7 @@ first two are token indices.
 Declare elisp and Ada names for a custom action subprogram written in
 Ada.
 
-The term ``elisp'' here is historical; the name is not actually used
-by elisp in the current implementation.
+The elisp name is used in grammar actions.
 
 Note that custom Ada functions can also be declared by
 @code{%elisp_indent}; those must appear as an argument to a

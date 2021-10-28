@@ -8,15 +8,14 @@ ZIP_VERSION := 2.1
 all : test-clean tests recover_stats.exe wisitoken-followed_by.exe doc
 
 #export Standard_Common_Build := Debug
+#export Standard_Common_Assertions := Off
 export GENERATE := BNF_EBNF
 
 # test_one_harness.adb
 # test_all_harness.adb
 #
 #t_one :: one-clean
-t_one :: one-clean
-t_one :: ada_lite_ebnf_re2c.c
-t_one :: ada_lite_ebnf/parser.c
+t_one :: ada_lite_re2c.c
 t_one :: test_one_harness.run
 
 t_all :: wisitoken-bnf-generate.exe gen test-executables
