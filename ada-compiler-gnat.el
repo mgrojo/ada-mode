@@ -513,7 +513,7 @@ Prompt user if more than one."
 	   (let ((type (match-string 1))
 		 (package-file (match-string 2))
 		 ;; IMPROVEME: we'd like to handle ", instance at
-		 ;; <file:line:column>, but gnatcoll.xref does not
+		 ;; <file:line:column>", but gnatcoll.xref does not
 		 ;; support looking up an entity by location alone; it
 		 ;; requires the name, and this error message does not
 		 ;; give the name of the instance. When we implement

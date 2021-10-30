@@ -627,89 +627,84 @@ See `ff-other-file-alist'.")
 (defun ada-which-function (&optional include-type)
   "Return name of subprogram/task/package containing point.
 Also sets ff-function-name for ff-pre-load-hook."
-  (interactive) ;; because which-function-mode does not provide which-function to call intermittently!
+  (interactive)
+  ;; which-function-mode does not provide which-function to call
+  ;; interactively!
+
   ;; Fail gracefully and silently, since this could be called from
   ;; which-function-mode.
-  (let (parse-begin parse-end)
-    (cond
-     (wisi-incremental-parse-enable
-      (let (query-result
-	    (pos (point)))
-	(while (not (and query-result
-			 (eq 'declarative_item (wisi-tree-node-id query-result))))
-	  (setq query-result (wisi-parse-tree-query wisi--parser 'containing-statement pos))
-	  (setq pos (car (wisi-tree-node-char-region query-result))))
-	(setq parse-begin (car (wisi-tree-node-char-region query-result))
-	      parse-end   (cdr (wisi-tree-node-char-region query-result)))))
+  (cond
+   (wisi-incremental-parse-enable
+    (ada-validate-enclosing-declaration nil 'navigate))
 
-     (t
-      (setq parse-begin (max (point-min) (- (point) (/ ada-which-func-parse-size 2)))
-	    parse-end   (min (point-max) (+ (point) (/ ada-which-func-parse-size 2))))))
+   (t
+    (wisi-validate-cache (max (point-min) (- (point) (/ ada-which-func-parse-size 2)))
+			 (min (point-max) (+ (point) (/ ada-which-func-parse-size 2)))
+			 nil
+			 'navigate)
+    ))
 
+  (when (wisi-cache-covers-region parse-begin parse-end 'navigate)
     (save-excursion
       (condition-case nil
-	  (progn
-	    (wisi-validate-cache parse-begin parse-end nil 'navigate)
-	    (when (wisi-cache-covers-region parse-begin parse-end 'navigate)
-	      (let ((result nil)
-		    (cache (ada-goto-declaration-start-1 include-type)))
-		(if (null cache)
-		    ;; bob or failed parse
-		    (setq result "")
+	  (let ((result nil)
+		(cache (ada-goto-declaration-start-1 include-type)))
+	    (if (null cache)
+		;; bob or failed parse
+		(setq result "")
 
-		  (when (memq (wisi-cache-nonterm cache)
-			      '(generic_package_declaration generic_subprogram_declaration))
-		    ;; name is after next statement keyword
-		    (setq cache (wisi-next-statement-cache cache)))
+	      (when (memq (wisi-cache-nonterm cache)
+			  '(generic_package_declaration generic_subprogram_declaration))
+		;; name is after next statement keyword
+		(setq cache (wisi-next-statement-cache cache)))
 
-		  ;; add or delete 'body' as needed
-		  (cl-ecase (wisi-cache-nonterm cache)
-		    ((entry_body entry_declaration)
-		     (setq result (ada-which-function-1 "entry" nil)))
+	      ;; add or delete 'body' as needed
+	      (cl-ecase (wisi-cache-nonterm cache)
+		((entry_body entry_declaration)
+		 (setq result (ada-which-function-1 "entry" nil)))
 
-		    ((full_type_declaration private_type_declaration)
-		     (setq result (ada-which-function-1 "type" nil)))
+		((full_type_declaration private_type_declaration)
+		 (setq result (ada-which-function-1 "type" nil)))
 
-		    (package_body
-		     (setq result (ada-which-function-1 "package" nil)))
+		(package_body
+		 (setq result (ada-which-function-1 "package" nil)))
 
-		    ((package_declaration
-		      package_specification) ;; after 'generic'
-		     (setq result (ada-which-function-1 "package" t)))
+		((package_declaration
+		  package_specification) ;; after 'generic'
+		 (setq result (ada-which-function-1 "package" t)))
 
-		    (protected_body
-		     (setq result (ada-which-function-1 "protected" nil)))
+		(protected_body
+		 (setq result (ada-which-function-1 "protected" nil)))
 
-		    ((protected_type_declaration single_protected_declaration)
-		     (setq result (ada-which-function-1 "protected" t)))
+		((protected_type_declaration single_protected_declaration)
+		 (setq result (ada-which-function-1 "protected" t)))
 
-		    ((abstract_subprogram_declaration
-		      expression_function_declaration
-		      subprogram_declaration
-		      subprogram_renaming_declaration
-		      generic_subprogram_declaration ;; after 'generic'
-		      null_procedure_declaration)
-		     (setq result (ada-which-function-1
-				   (progn (search-forward-regexp "function\\|procedure")(match-string 0))
-				   nil))) ;; no 'body' keyword in subprogram bodies
+		((abstract_subprogram_declaration
+		  expression_function_declaration
+		  subprogram_declaration
+		  subprogram_renaming_declaration
+		  generic_subprogram_declaration ;; after 'generic'
+		  null_procedure_declaration)
+		 (setq result (ada-which-function-1
+			       (progn (search-forward-regexp "function\\|procedure")(match-string 0))
+			       nil))) ;; no 'body' keyword in subprogram bodies
 
-		    ((subprogram_body subunit)
-		     (setq result (ada-which-function-1
-				   (progn (search-forward-regexp "function\\|procedure")(match-string 0))
-				   nil)))
+		((subprogram_body subunit)
+		 (setq result (ada-which-function-1
+			       (progn (search-forward-regexp "function\\|procedure")(match-string 0))
+			       nil)))
 
-		    ((single_task_declaration task_type_declaration)
-		     (setq result (ada-which-function-1 "task" t)))
+		((single_task_declaration task_type_declaration)
+		 (setq result (ada-which-function-1 "task" t)))
 
 
-		    (task_body
-		     (setq result (ada-which-function-1 "task" nil)))
-		    ))
-		(when (called-interactively-p 'interactive)
-		  (message result))
-		result)))
-	(error "")))
-    ))
+		(task_body
+		 (setq result (ada-which-function-1 "task" nil)))
+		))
+	    (when (called-interactively-p 'interactive)
+	      (message result))
+	    result))
+      (error ""))))
 
 (defun ada-add-log-current-function ()
   "For `add-log-current-defun-function'."
@@ -966,7 +961,8 @@ compiler-specific compilation filters."
 subprogram, or task declaration point is currently in or just
 after.  For `beginning-of-defun-function'."
   (interactive)
-  (wisi-validate-cache-current-statement t 'navigate)
+  (push-mark)
+  (ada-validate-enclosing-declaration t 'navigate)
   (ada-goto-declaration-start-1 include-type))
 
 (defun ada-goto-declaration-end ()
