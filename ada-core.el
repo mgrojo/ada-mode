@@ -58,7 +58,7 @@ Called by `syntax-propertize', which is called by font-lock in
 If already in a declaration at or before a declarative region
 start, goto containing region start."
   (interactive)
-  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (wisi-validate-cache-current-statement t 'navigate)
   (push-mark)
 
   (let ((done nil)
@@ -528,7 +528,7 @@ extend a with_clause to include CHILD-NAME."
   (interactive)
   (wisi-goto-statement-start)
   ;; point is at start of subprogram specification;
-  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (wisi-validate-cache-current-statement t 'navigate)
 
   (let* ((begin (point))
 	 (end (wisi-cache-end (wisi-get-cache (point))));; point is before terminal ';'

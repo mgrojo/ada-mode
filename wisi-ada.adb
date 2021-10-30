@@ -428,12 +428,16 @@ package body Wisi.Ada is
       Data.Left_Paren_ID    := +LEFT_PAREN_ID;
       Data.Right_Paren_ID   := +RIGHT_PAREN_ID;
 
-      --  All nonterms in compilation_unit
+      --  All nonterms in compilation_unit, basic_declarative_item for
+      --  package specs, wisitoken_accept for point in leading/trailing
+      --  comments.
       Data.Statement_IDs.Append (+compilation_unit_ID);
       Data.Statement_IDs.Append (+with_clause_ID);
       Data.Statement_IDs.Append (+declarative_item_ID);
       Data.Statement_IDs.Append (+statement_ID);
       Data.Statement_IDs.Append (+subunit_ID);
+      Data.Statement_IDs.Append (+basic_declarative_item_ID);
+      Data.Statement_IDs.Append (+wisitoken_accept_ID);
       --  not entry_declaration; only needed with partial parse
 
       Data.Embedded_Quote_Escape_Doubled := True;

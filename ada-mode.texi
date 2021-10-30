@@ -525,14 +525,26 @@ first.
 @node Slow response
 @section Slow response
 
-In large files, parsing takes a noticable amount of time, so it gets
-in the way of interactive typing due to immediate fontification
-triggering a parse.
+The external process that runs the Ada parser can be slow to start,
+due to loading the very large LR1 parse table. The impact of this can
+be minimized by starting the process before it is actually needed, by
+executing @code{ada-parse-require-process} as part of Emacs startup.
 
-There are three ways to deal with this:
+In addition, in large files, parsing takes a noticable amount of time,
+so it gets in the way of interactive typing due to immediate
+fontification triggering a parse.
+
+There are several ways to deal with this:
 
 @enumerate
-@item Set @code{wisi-partial-parse-threshold}
+@item Set @code{wisi-incremental-parse-enabled t}
+This enables incremental parsing. In this mode, the entire file is
+parsed once when it is opened, and then changes to the text are parsed
+incrementally, which is both fast and accurate.
+
+@item Lower @code{wisi-partial-parse-threshold}
+This assumes @code{wisi-incremental-parse-enabled} is @code{nil}.
+
 In your @file{~./emacs}:
 
 @example

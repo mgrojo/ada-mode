@@ -630,10 +630,24 @@ Also sets ff-function-name for ff-pre-load-hook."
   (interactive) ;; because which-function-mode does not provide which-function to call intermittently!
   ;; Fail gracefully and silently, since this could be called from
   ;; which-function-mode.
-  (let ((parse-begin (max (point-min) (- (point) (/ ada-which-func-parse-size 2))))
-	(parse-end   (min (point-max) (+ (point) (/ ada-which-func-parse-size 2)))))
+  (let (parse-begin parse-end)
+    (cond
+     (wisi-incremental-parse-enable
+      (let (query-result
+	    (pos (point)))
+	(while (not (and query-result
+			 (eq 'declarative_item (wisi-tree-node-id query-result))))
+	  (setq query-result (wisi-parse-tree-query wisi--parser 'containing-statement pos))
+	  (setq pos (car (wisi-tree-node-char-region query-result))))
+	(setq parse-begin (car (wisi-tree-node-char-region query-result))
+	      parse-end   (cdr (wisi-tree-node-char-region query-result)))))
+
+     (t
+      (setq parse-begin (max (point-min) (- (point) (/ ada-which-func-parse-size 2)))
+	    parse-end   (min (point-max) (+ (point) (/ ada-which-func-parse-size 2))))))
+
     (save-excursion
-      (condition-case-unless-debug nil
+      (condition-case nil
 	  (progn
 	    (wisi-validate-cache parse-begin parse-end nil 'navigate)
 	    (when (wisi-cache-covers-region parse-begin parse-end 'navigate)
@@ -952,7 +966,7 @@ compiler-specific compilation filters."
 subprogram, or task declaration point is currently in or just
 after.  For `beginning-of-defun-function'."
   (interactive)
-  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (wisi-validate-cache-current-statement t 'navigate)
   (ada-goto-declaration-start-1 include-type))
 
 (defun ada-goto-declaration-end ()
@@ -1579,6 +1593,23 @@ Prompts with completion, defaults to filename at point."
 (defvar which-func-non-auto-modes) ;; ""
 
 ;;;###autoload
+(defun ada-parse-require-process ()
+  "Start the Ada parser in an external process, if not already started.
+Does not wait for parser to respond. Returns the parser object."
+  (interactive)
+  (let ((parser (wisi-process-parse-get
+		 (make-ada-wisi-parser
+		  :label "Ada"
+		  :language-protocol-version ada-wisi-language-protocol-version
+		  :exec-file ada-process-parse-exec
+		  :exec-opts ada-process-parse-exec-opts
+		  :face-table ada_annex_p-process-face-table
+		  :token-table ada_annex_p-process-token-table
+		  :repair-image ada_annex_p-process-repair-image))))
+    (wisi-parse-require-process parser t)
+    parser))
+
+;;;###autoload
 (define-derived-mode ada-mode prog-mode "Ada"
   "The major mode for editing Ada code."
   :group 'ada
@@ -1660,16 +1691,7 @@ Prompts with completion, defaults to filename at point."
   (wisi-setup
    :indent-calculate '(ada-wisi-comment)
    :post-indent-fail 'ada-wisi-post-indent-fail
-   :parser
-   (wisi-process-parse-get
-    (make-ada-wisi-parser
-     :label "Ada"
-     :language-protocol-version ada-wisi-language-protocol-version
-     :exec-file ada-process-parse-exec
-     :exec-opts ada-process-parse-exec-opts
-     :face-table ada_annex_p-process-face-table
-     :token-table ada_annex_p-process-token-table
-     :repair-image ada_annex_p-process-repair-image)))
+   :parser (ada-parse-require-process))
 
   (setq wisi-prj-parse-undefined-function #'ada-prj-parse-undefined)
   (setq wisi-xref-full-path ada-xref-full-path)
