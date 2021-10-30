@@ -52,6 +52,7 @@ Must match emacs_wisi_common_parse.ads Protocol_Version.")
   (busy nil)              ;; t while parser is active
   (process nil) 	  ;; running *_wisi_parse executable
   (buffer nil) 		  ;; receives output of executable
+  version-checked         ;; nil if not checked, t if checked and passed.
   (total-wait-time 0.0)   ;; total time during last parse spent waiting for subprocess output.
   (response-count 0)      ;; responses received from subprocess during last parse; for profiling.
   end-pos                 ;; last character position parsed
@@ -116,8 +117,36 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	     (wisi-process--parser-label parser))
     )))
 
-(defun wisi-process-parse--require-process (parser)
-  "Start the process for PARSER if not already started."
+(defun wisi-process-parse--filter (process text)
+  "Process filter for parser process."
+  (when (buffer-live-p (process-buffer process))
+    (with-current-buffer (process-buffer process)
+      (let ((search-start (marker-position (process-mark process))))
+        (goto-char (process-mark process))
+        (insert text)
+        (set-marker (process-mark process) (point))
+
+	(goto-char search-start)
+	;; back up a line in case we got part of the line previously.
+	(forward-line -1)
+	(when (re-search-forward wisi-process-parse-prompt (point-max) t)
+	  (when wisi-parse-full-active
+	    (with-current-buffer (car wisi-parse-full-active)
+	      (setf (wisi-process--parser-busy wisi--parser) nil)
+	      (read-only-mode -1)
+	      (let ((region (cdr wisi-parse-full-active)))
+		(when (>= (cdr region) (car region))
+		  (font-lock-flush (car region) (cdr region)))))
+	    (setq wisi-parse-full-active nil)
+	    (set-process-filter process nil))
+
+	  (when (not (wisi-process--parser-version-checked wisi--parser))
+	    (wisi-process-parse--check-version wisi--parser)
+	    (setf (wisi-process--parser-version-checked wisi--parser) t)
+	    (set-process-filter process nil))
+	  )))))
+
+(cl-defmethod wisi-parse-require-process (parser &optional nowait)
   (unless (process-live-p (wisi-process--parser-process parser))
     (let ((process-connection-type nil) ;; use a pipe, not a pty; avoid line-by-line reads
 	  (process-name (format " *%s_wisi_parse*" (wisi-process--parser-label parser))))
@@ -127,13 +156,16 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	(setf (wisi-process--parser-buffer parser)
 	      (get-buffer-create process-name))
 	(with-current-buffer (wisi-process--parser-buffer parser)
-	  (emacs-lisp-mode))) ;; for comment syntax
+	  (emacs-lisp-mode) ;; for comment syntax
+	  (setq wisi--parser parser) ;; for process filter
+	  ))
 
       (with-current-buffer (wisi-process--parser-buffer parser)
 	(erase-buffer));; delete any previous messages, prompt
 
       (wisi-parse-log-message parser "create process")
 
+      (setf (wisi-process--parser-version-checked parser) nil)
       (setf (wisi-process--parser-process parser)
 	    (make-process
 	     :name process-name
@@ -153,9 +185,10 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 			      (wisi-process--parser-exec-opts parser))))
 
       (set-process-query-on-exit-flag (wisi-process--parser-process parser) nil)
+      (set-process-filter (wisi-process--parser-process parser) #'wisi-process-parse--filter)
 
-      (wisi-process-parse--wait parser)
-      (wisi-process-parse--check-version parser)
+      (unless nowait
+	(wisi-process-parse--wait parser))
       )))
 
 (defun wisi-process-parse--wait (parser)
@@ -173,12 +206,12 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 		    (not (setq found (re-search-forward wisi-process-parse-prompt (point-max) t)))))
 	(setq search-start (point));; don't search same text again
 	(setq wait-count (1+ wait-count))
-	(accept-process-output process 0.1))
+	(accept-process-output process 0.1)))
 
-      (unless found
-	(wisi-parse-log-message parser "process died")
-	(error "%s process died" (wisi-process--parser-exec-file parser)))
-      )))
+    (unless found
+      (wisi-parse-log-message parser "process died")
+      (error "%s process died" (wisi-process--parser-exec-file parser)))
+    ))
 
 (defun wisi-process-parse-show-buffer (parser)
   "Show PARSER buffer."
@@ -391,7 +424,7 @@ messages."
 one or more Query messages."
   ;; Must match "query-tree" command arguments read by
   ;; emacs_wisi_common_parse.adb Process_Stream "query-tree"
-  (let* ((cmd (format "query-tree \"%s\" %d "
+  (let* ((cmd (format "query-tree \"%s\" %d"
 		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		      (cdr (assoc query wisi-parse-tree-queries))
 		      ))
@@ -399,17 +432,21 @@ one or more Query messages."
 
     (cl-ecase query
       ((node containing-statement)
-       (setq cmd (concat cmd (format "%d" (car args)))))
+       ;; arg is a buffer-pos. If eob, query will fail because eob is
+       ;; after the char-region of the tree.
+       (let* ((arg (car args))
+	      (query-point (if (= (point-max) arg) (point-min) arg)))
+	 (setq cmd (concat cmd (format " %d" query-point)))))
 
      (ancestor
       (setq cmd
 	    (concat cmd
-		    (format "%d (%s_id )"
+		    (format " %d (%s_id )"
 			    (nth 0 args)
 			    (mapconcat (lambda (s) (symbol-name s)) (nth 1 args) "_id ")))))
 
      ((parent child)
-      (setq cmd (concat cmd (format "\"%s\" %d" (car args) (nth 1 args)))))
+      (setq cmd (concat cmd (format " \"%s\" %d" (car args) (nth 1 args)))))
 
      (print nil))
 
@@ -713,7 +750,7 @@ one or more Query messages."
 
 (cl-defgeneric wisi-parse-reset ((parser wisi-process--parser))
   (setf (wisi-process--parser-busy parser) nil)
-  (wisi-process-parse--require-process parser)
+  (wisi-parse-require-process parser)
   (wisi-process--kill-context parser)
   (wisi-process-parse--wait parser))
 
@@ -733,32 +770,22 @@ one or more Query messages."
 (defun wisi-process-parse--prepare (parser)
   ;; font-lock can trigger a face parse via a timer delay while
   ;; navigate or indent parse is active, due to
-  ;; ‘accept-process-output’ in w-p-p--handle-messages. Signaling an
-  ;; error tells font-lock to try again later.
+  ;; ‘accept-process-output’ in w-p-p--handle-messages.
   (if (wisi-process--parser-busy parser)
-      (progn
-  	(setf (wisi-parser-parse-errors parser)
-	      (list
-	       (make-wisi--parse-error
-		:pos (point-min)
-		:message (format "%s:%d:%d: parser busy (try ’wisi-kill-parser’)"
-				 (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "") 1 1))
-	       ))
-	(error "parse abandoned; parser busy")
-	)
+      (error "parse abandoned; parser busy")
 
     ;; It is not possible for a background elisp function (ie
-    ;; font-lock) to interrupt this code between checking and setting
-    ;; parser-busy; background elisp can only run when we call
-    ;; accept-process-output in w-p-p--handle-messages.
+    ;; font-lock run from a timer) to interrupt this code between
+    ;; checking and setting parser-busy; background elisp can only run
+    ;; when we call accept-process-output in w-p-p--handle-messages.
     (setf (wisi-process--parser-busy parser) t)
 
     ;; If the parser process has not started yet,
-    ;; wisi-process-parse--require-process calls
+    ;; wisi-parse-require-process calls
     ;; wisi-process-parse--wait, which can let font-lock invoke the
     ;; parser again. Thus this call must be after we set
     ;; wisi-process--parser-busy t
-    (wisi-process-parse--require-process parser)
+    (wisi-parse-require-process parser)
 
     (setf (wisi-process--parser-total-wait-time parser) 0.0)
 
@@ -989,19 +1016,29 @@ one or more Query messages."
   (cons begin (wisi-process--parser-end-pos parser))
   )
 
-(cl-defmethod wisi-parse-incremental ((parser wisi-process--parser) &optional full)
+(cl-defmethod wisi-parse-incremental ((parser wisi-process--parser) &optional full nowait)
+  (if (and full nowait wisi-parse-full-active)
+    (user-error "already doing full parse on %s" (buffer-name wisi-parse-full-active)))
   (wisi-process-parse--prepare parser)
   (setf (wisi-parser-lexer-errors parser) nil)
   (setf (wisi-parser-parse-errors parser) nil)
-  (wisi-process-parse--send-incremental-parse parser full)
-  (condition-case _err
-      (wisi-process-parse--handle-messages parser)
-    ('wisi-file_not_found
-     (message "parsing buffer ...")
-     (wisi-process-parse--send-incremental-parse parser t)
-     (message "parsing buffer ... done")
-     (wisi-process-parse--handle-messages parser)
-     )))
+  (cond
+   ((and full nowait)
+    (message "background parsing buffer")
+    (set-process-filter (wisi-process--parser-process parser) #'wisi-process-parse--filter)
+    (setq wisi-parse-full-active (cons (current-buffer) (cons (point-max) (point-min))))
+    (read-only-mode 1)
+    (wisi-process-parse--send-incremental-parse parser full))
+   (t
+    (wisi-process-parse--send-incremental-parse parser full)
+    (condition-case _err
+	(wisi-process-parse--handle-messages parser)
+      ('wisi-file_not_found
+       (message "parsing buffer ...")
+       (wisi-process-parse--send-incremental-parse parser t)
+       (message "parsing buffer ... done")
+       (wisi-process-parse--handle-messages parser)
+       )))))
 
 (cl-defmethod wisi-post-parse ((parser wisi-process--parser) parse-action begin end)
   (wisi-process-parse--prepare parser)

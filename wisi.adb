@@ -2469,7 +2469,9 @@ package body Wisi is
 
                         Char_Region := Tree.Char_Region (Result, Trailing_Non_Grammar => False);
 
-                        if Query.Char_Point = Char_Region.First then
+                        if Query.Char_Point = Char_Region.First and
+                          Tree.ID (Result) /= Tree.Lexer.Descriptor.Accept_ID
+                        then
                            --  Find container of this statement
                            Result := Tree.Find_Ancestor (Result, To_Array (Data.Statement_IDs));
                         else
@@ -2484,7 +2486,8 @@ package body Wisi is
                        Address_Image (Result) & " " &
                        Tree.ID (Result)'Image & " " &
                        Char_Region.First'Image & " " &
-                       Char_Region.Last'Image & "]");
+                       Buffer_Pos'Image (Char_Region.Last + 1) & -- Emacs 'end' convention.
+                       "]");
                end;
             end if;
          end;

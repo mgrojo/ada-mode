@@ -120,6 +120,9 @@ handle gracefully."
   (cons begin end))
 
 (defvar-local wisi--parser nil
+  ;; This has "--" in the name, even though clients muse use it
+  ;; occasionally (for example, to call wisi-parse-tree-query). It
+  ;; must be a different name than the wisi-parser cl-defstruct.
   "The current wisi parser; a ‘wisi-parser’ object.")
 
 (defconst wisi-post-parse-actions '(face navigate indent)
@@ -162,6 +165,10 @@ Return nil if no match found before eob."
   "Adjust INDENT for REPAIR (a wisi--parse-error-repair struct). Return new indent."
   indent)
 
+(cl-defgeneric wisi-parse-require-process ((parser wisi-parser) &optional nowait)
+    "If PARSER uses an external process, start the process for PARSER.
+If NOWAIT is non-nil, does not wait for the process to respond.")
+
 (cl-defgeneric wisi-parse-current ((parser wisi-parser) parse-action begin send-end parse-end)
   "Parse current buffer starting at BEGIN, continuing at least thru PARSE-END.
 Send the parser BEGIN thru SEND-END, which does a full or partial
@@ -169,9 +176,21 @@ parse, and performs post-parse action PARSE-ACTION (one of
 `wisi-post-parse-actions') on region BEGIN PARSE-END.  Returns
 parsed region.")
 
-(cl-defgeneric wisi-parse-incremental ((parser wisi-parser) &optional full)
+(defvar wisi-parse-full-active nil
+  ;; Only one buffer can be doing a full parse. FIXME: we need
+  ;; a queue, and/or process needs multiple threads.
+  "The source buffer if `wisi-parse-incremental was called with full and nowait.
+The value is a list (source-buffer (font-lock-begin
+. font-lock-end)), where (FONT-LOCK-BEGIN . FONT-LOCK-END) is the
+region font-lock attempted to fontify while the parser was
+busy. ")
+
+(cl-defgeneric wisi-parse-incremental ((parser wisi-parser) &optional full nowait)
   "Incrementally parse current buffer. If FULL, do initial full parse.
-Text changes are stored in `wisi--changes', created by `wisi-after-change'.")
+If FULL and NOWAIT, don't wait for parse to complete; buffer is
+read-only until full parse completes.  Text changes for
+incremental parse are stored in `wisi--changes', created by
+`wisi-after-change'.")
 
 (cl-defgeneric wisi-post-parse ((parser wisi-parser) parse-action begin end)
   "Perform PARSE-ACTION on region BEGIN END.

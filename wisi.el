@@ -984,9 +984,8 @@ Run the parser first if needed."
 	    (message "parse %s skipped: parse-failed" parse-action)))
 
 	 (t
-	  (progn
-	    (wisi-set-parse-try nil parse-action)
-	    (wisi--run-parse parse-action begin end))))
+	  (wisi-set-parse-try nil parse-action)
+	  (wisi--run-parse parse-action begin end)))
 
 	;; We want this error even if we did not try to parse; it means
 	;; the parse results are not valid.
@@ -1001,9 +1000,31 @@ Run the parser first if needed."
 	       wisi-inhibit-parse
 	       wisi-size-threshold))))
 
+(defun wisi-validate-cache-current-statement (error-on-fail parse-action)
+  "Validate PARSE-ACTION caches on at least current statement.
+If ERROR-ON-FAIL, signal error if parse fails."
+  (let (parse-begin parse-end)
+    (cond
+     (wisi-incremental-parse-enable
+      (let ((query-result (wisi-parse-tree-query wisi--parser 'containing-statement (point))))
+	(setq parse-begin (car (wisi-tree-node-char-region query-result))
+	      parse-end   (cdr (wisi-tree-node-char-region query-result)))))
+
+     (t
+      (setq parse-begin (point-min)
+	    parse-end   (point-max))))
+
+    (wisi-validate-cache parse-begin parse-end error-on-fail parse-action)))
+
 (defun wisi-fontify-region (begin end)
   "For `jit-lock-functions'."
-  (wisi-validate-cache begin end nil 'face))
+  (if wisi-parse-full-active
+      ;; record region to fontify when full parse is done.
+      (let ((region (cdr wisi-parse-full-active)))
+	(when (< begin (car region)) (setf (car region) begin))
+	(when (> end (cdr region)) (setf (cdr region) begin)))
+
+    (wisi-validate-cache begin end nil 'face)))
 
 (defun wisi-get-containing-cache (cache)
   "Return cache from (wisi-cache-containing CACHE)."
@@ -1066,7 +1087,8 @@ If LIMIT (a buffer position) is reached, throw an error."
 cache. Otherwise move to cache-next, or cache-end, or next cache
 if both nil.  Return cache found."
   (unless (eobp)
-    (wisi-validate-cache (point-min) (point-max) t 'navigate)
+    (wisi-validate-cache-current-statement t 'navigate)
+
     (let ((cache (wisi-get-cache (point))))
       (if (and cache
 	       (not (eq (wisi-cache-class cache) 'statement-end)))
@@ -1083,7 +1105,7 @@ if both nil.  Return cache found."
 (defun wisi-backward-statement-keyword ()
   "If not at a cached token, move backward to prev
 cache. Otherwise move to cache-prev, or prev cache if nil."
-  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (wisi-validate-cache-current-statement t 'navigate)
   (let ((cache (wisi-get-cache (point)))
 	prev)
     (when cache
@@ -1170,14 +1192,15 @@ Return start cache."
   "Move point to token at start of statement point is in or after.
 Return start cache."
   (interactive)
-  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (wisi-validate-cache-current-statement t 'navigate)
   (wisi-goto-start (or (wisi-get-cache (point))
 		       (wisi-backward-cache))))
 
 (defun wisi-goto-statement-end ()
   "Move point to token at end of statement point is in or before."
   (interactive)
-  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (wisi-validate-cache-current-statement t 'navigate)
+
   (let ((cache (or (wisi-get-cache (point))
 		   (wisi-forward-cache))))
     (when (wisi-cache-end cache)
@@ -1188,7 +1211,7 @@ Return start cache."
 (defun wisi-goto-containing-statement-start ()
   "Move point to the start of the statement containing the current statement."
   (interactive)
-  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (wisi-validate-cache-current-statement t 'navigate)
   (let ((cache (or (wisi-get-cache (point))
 		   (wisi-backward-cache))))
     (when cache
@@ -1248,14 +1271,15 @@ the comment on the previous line."
 (defun wisi-indent-statement ()
   "Indent region given by `wisi-goto-start', `wisi-cache-end'."
   (interactive)
-  (if wisi-incremental-parse-enable
-      (let ((containing (wisi-parse-tree-query wisi--parser 'containing-statement (point))))
-	(when containing
-	  (save-excursion
-	    (indent-region (car (wisi-tree-node-char-region containing))
-			   (cdr (wisi-tree-node-char-region containing))))))
+  (cond
+   (wisi-incremental-parse-enable
+    (let ((containing (wisi-parse-tree-query wisi--parser 'containing-statement (point))))
+      (when containing
+	(save-excursion
+	  (indent-region (car (wisi-tree-node-char-region containing))
+			 (cdr (wisi-tree-node-char-region containing)))))))
 
-    ;; else partial parse.
+   (t ;; partial parse.
     (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
     (save-excursion
@@ -1270,12 +1294,12 @@ the comment on the previous line."
 		       (point))))
 	    (indent-region start end)
 	    ))
-	))))
+	)))))
 
 (defun wisi-indent-containing-statement ()
   "Indent region given by `wisi-goto-containing-statement-start', `wisi-cache-end'."
   (interactive)
-  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (wisi-validate-cache-current-statement t 'navigate)
 
   (save-excursion
     (let ((cache (or (wisi-get-cache (point))
@@ -1788,21 +1812,11 @@ where the car is a list (FILE LINE COL)."
   (unless wisi-disable-face
     (jit-lock-register #'wisi-fontify-region))
 
-  ;; We don't run this in the background, because the next action is
-  ;; most likely font-lock, which would then have to wait for the
-  ;; parse anyway. IMPROVEME: do partial parse + incremental on that
-  ;; until actually need full parse.
   (when wisi-incremental-parse-enable
-    (message "parsing buffer ...")
-    (condition-case-unless-debug err
-	(wisi-parse-incremental wisi--parser t)
-      (wisi-parse-error
-       (setq wisi-parse-failed t)
-       (when (> wisi-debug 0)
-	 (signal (car err) (cdr err)))
-       ))
-    (message "parsing buffer ... done")
-    ))
+    ;; We don't wait for this to complete here, so users can scroll
+    ;; around while the initial parse runs. font-lock will not work
+    ;; during that time (the parser is busy, the buffer is read-only).
+    (wisi-parse-incremental wisi--parser t t)))
 
 (provide 'wisi)
 ;;; wisi.el ends here
