@@ -91,7 +91,7 @@
 
 ;;;###autoload
 (defun wisitoken-parse_table-goto ()
-  "Get symbol at point, switch to `wisitoken-parse_table-last-buffer', goto symbol's definition.
+  "Get symbol at point, goto symbol's definition.
 Symbol can be a nonterminal name, or a state number."
   (interactive)
   (let ((symbol (thing-at-point 'symbol)))
@@ -165,7 +165,7 @@ Symbol can be a nonterminal name, or a state number."
 
 ;;;###autoload
 (defun wisitoken-parse_table-conflict-goto (&optional prompt)
-  "Get conflict at point, switch to `wisitoken-parse_table-last-buffer', goto first occurance.
+  "Get conflict at point, goto first occurance.
 With user arg, prompt for parse table buffer."
   (interactive "P")
   (when prompt

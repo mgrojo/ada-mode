@@ -270,7 +270,7 @@ LINE, COLUMN are Emacs origin."
     (goto-char (marker-position marker))))
 
 (defun wisi-filter-table (table file)
-  "If FILE is nil, return TABLE. Otherwise return only items in TABLE with location FILE."
+  "If FILE is nil, return TABLE. Otherwise items in TABLE with location FILE."
   (cond
    ((null file)
     table)
@@ -283,7 +283,7 @@ LINE, COLUMN are Emacs origin."
       result))))
 
 (defun wisi-get-identifier (prompt)
-  "Get identifier at point, or, if no identifier at point or with user arg, prompt for one.
+  "Get identifier at point, or, prompt for one.
 Single user arg completes on all identifiers in project; double
 user arg limits completion to current file."
   ;; Similar to xref--read-identifier, but uses a different completion
@@ -333,24 +333,22 @@ If no symbol at point, or with prefix arg, prompt for symbol, goto spec."
      ((stringp identifier)
       ;; from xref-backend-identifier-at-point; desired location is 'other'
       (let ((item (wisi-xref-item identifier prj)))
-	(condition-case-unless-debug err
-	    (with-slots (summary location) item
-	      (let ((eieio-skip-typecheck t))
-		(with-slots (file line column) location
-		  (let ((target
-			 (wisi-xref-other
-			  (wisi-prj-xref prj) prj
-			  :identifier summary
-			  :filename file
-			  :line line
-			  :column column)))
-		    (setq desired-loc
-			  (xref-make summary
-				     (xref-make-file-location
-				      (nth 0 target) ;; file
-				      (nth 1 target) ;; line
-				      (nth 2 target))) ;; column
-			  )))))
+	(condition-case err
+	    (let ((location (xref-item-location item)))
+	      (let ((target
+		     (wisi-xref-other
+		      (wisi-prj-xref prj) prj
+		      :identifier (xref-item-summary item)
+		      :filename (xref-file-location-file location)
+		      :line (xref-file-location-line location)
+		      :column (xref-file-location-column location))))
+		(setq desired-loc
+		      (xref-make (xref-item-summary item)
+				 (xref-make-file-location
+				  (nth 0 target) ;; file
+				  (nth 1 target) ;; line
+				  (nth 2 target))) ;; column
+		      )))
 	  (user-error ;; from gpr-query; current file might be new to project, so try wisi-names
 	   (let ((item (assoc identifier (wisi-names nil t))))
 	     (if item
@@ -434,7 +432,7 @@ Displays a buffer in compilation-mode giving locations of the
 parent type declarations.")
 
 (defun wisi-show-declaration-parents ()
-  "Display the locations of the parent type declarations of the type identifier around point."
+  "Display the parent type declarations of the type identifier around point."
   (interactive)
   (let* ((project (wisi-check-current-project (buffer-file-name)))
 	 (id (wisi-prj-identifier-at-point project)))
@@ -1431,7 +1429,8 @@ Also add DOMINATING-FILE (default current buffer file name) to
 
 ;;;###autoload
 (defun wisi-prj-current-parse (_dir)
-  "For `project-find-functions'; parse the current project file, select and return the project"
+  "Parse the current project file, select and return the project.
+For `project-find-functions'."
   (let ((prj (wisi-prj-parse-file
 	      :prj-file wisi-prj--current-file
 	      :init-prj (cdr (assoc-string wisi-prj--current-file wisi-prj--default))

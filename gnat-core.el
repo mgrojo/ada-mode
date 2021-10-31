@@ -176,7 +176,7 @@ Throw an error if current project does not have a gnat-compiler."
     ))
 
 (defun gnat-parse-gpr (gpr-file project compiler)
-  "Append to source-path and project-path in PROJECT (a `wisi-prj' object) by parsing GPR-FILE.
+  "Parse GPR-FILE, append to PROJECT (a `wisi-prj' object).
 GPR-FILE must be absolute file name.
 source-path will include compiler runtime."
   ;; this can take a long time; let the user know what's up
@@ -288,7 +288,7 @@ Assumes current buffer is (gnat-run-buffer)"
     ))
 
 (defun gnat-run-no-prj (command &optional dir)
-  "Run the gnat command line tool, as \"gnat COMMAND\", with DIR as current directory.
+  "Run \"gnat COMMAND\", with DIR as current directory.
 Return process status.  Process output goes to current buffer,
 which is displayed on error."
   (set 'buffer-read-only nil)

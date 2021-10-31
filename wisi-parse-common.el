@@ -288,7 +288,7 @@ For use in grammar actions.")
   (get-text-property pos 'wisi-cache))
 
 (defun wisi-backward-cache ()
-  "Move point backward to the beginning of the first token preceding point that has a cache.
+  "Move point backward to the first token cache preceding point.
 Returns cache, or nil if at beginning of buffer."
   ;; If point is not near cache, p-s-p-c will return pos just after
   ;; cache, so 1- is the beginning of cache.
@@ -316,7 +316,7 @@ Returns cache, or nil if at beginning of buffer."
      )))
 
 (defun wisi-forward-cache ()
-  "Move point forward to the beginning of the first token after point that has a cache.
+  "Move point forward to the first token cache after point.
 Returns cache, or nil if at end of buffer."
   (let (cache pos)
     (when (get-text-property (point) 'wisi-cache)

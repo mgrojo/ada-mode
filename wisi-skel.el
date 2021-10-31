@@ -62,8 +62,8 @@ after AFTER-1. If AFTER-1 is a nested alist, add the new entry after AFTER-2."
 
 (defun wisi-skel-build-prompt (alist count)
   "Build a prompt from the keys of the ALIST.
-The prompt consists of the first COUNT keys from the alist, separated by `|', with
-trailing `...' if there are more keys."
+The prompt consists of the first COUNT keys from the alist,
+separated by `|', with trailing `...' if there are more keys."
   (if (>= count (length alist))
       (concat (mapconcat 'car alist " | ") " : ")
     (let ((alist-1 (butlast alist (- (length alist) count))))

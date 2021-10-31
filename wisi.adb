@@ -2486,7 +2486,7 @@ package body Wisi is
                        Address_Image (Result) & " " &
                        Tree.ID (Result)'Image & " " &
                        Char_Region.First'Image & " " &
-                       Buffer_Pos'Image (Char_Region.Last + 1) & -- Emacs 'end' convention.
+                       Buffer_Pos'Image (Char_Region.Last + 1) & -- Emacs region end convention.
                        "]");
                end;
             end if;

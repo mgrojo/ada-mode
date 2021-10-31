@@ -194,11 +194,12 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 (defun wisi-process-parse--wait (parser)
   "Wait for the current command to complete."
   (let ((process (wisi-process--parser-process parser))
-	(search-start (point-min))
+	search-start
 	(wait-count 0)
 	(found nil))
 
     (with-current-buffer (wisi-process--parser-buffer parser)
+      (setq search-start (point-min))
       (while (and (process-live-p process)
 		  (progn
 		    ;; process output is inserted before point, so move back over it to search it
@@ -420,8 +421,8 @@ messages."
     ))
 
 (defun wisi-process-parse--send-query (parser query &rest args)
-  "Send a query command to PARSER external process, wait for command to complete. PARSER will respond with
-one or more Query messages."
+  "Send a query command to PARSER external process, wait for command to complete.
+PARSER will respond with one or more Query messages."
   ;; Must match "query-tree" command arguments read by
   ;; emacs_wisi_common_parse.adb Process_Stream "query-tree"
   (let* ((cmd (format "query-tree \"%s\" %d"
@@ -1036,8 +1037,8 @@ one or more Query messages."
       ('wisi-file_not_found
        (message "parsing buffer ...")
        (wisi-process-parse--send-incremental-parse parser t)
-       (message "parsing buffer ... done")
        (wisi-process-parse--handle-messages parser)
+       (message "parsing buffer ... done")
        )))))
 
 (cl-defmethod wisi-post-parse ((parser wisi-process--parser) parse-action begin end)

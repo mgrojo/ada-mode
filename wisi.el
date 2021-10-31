@@ -267,7 +267,7 @@ Cleared when parse succeeds.")
 Regions in a list are in random order.")
 
 (defun wisi--contained-region (begin end region)
-  "Non-nil if BEGIN and END (buffer positions) are both contained in REGION (a cons of positions)."
+  "Non-nil if BEGIN and END are both contained in REGION (a cons of positions)."
   ;; We assume begin < end
   (and (<= (car region) begin)
        (<= end (cdr region))))
@@ -952,7 +952,7 @@ Run the parser first if needed."
     ))
 
 (defun wisi-validate-cache (begin end error-on-fail parse-action)
-  "Ensure cached data for PARSE-ACTION is valid in region BEGIN END in current buffer."
+  "Ensure cached data for PARSE-ACTION is valid in region BEGIN END"
 
   ;; Tolerate (point) +- size exeeding buffer limits.
   (setq begin (max begin (point-min)))
@@ -1119,7 +1119,7 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
   ))
 
 (defun wisi-forward-sexp (&optional arg)
-  "If on paren or string quote, move to matching one. Otherwise move to next statement keyword.
+  "If on paren or quote, move to matching. Otherwise to next statement keyword.
 For `forward-sexp-function'."
   (interactive "^p")
   (or arg (setq arg 1))

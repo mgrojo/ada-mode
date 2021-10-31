@@ -120,7 +120,7 @@ FACE may be a list."
     )))
 
 (defun test-cache-containing (containing contained)
-  "Test if CONTAINING in next code line has wisi-cache with that contains CONTAINED."
+  "Test if CONTAINING in next code line has wisi-cache that contains CONTAINED."
   (save-excursion
     (wisi-validate-cache (line-beginning-position 0) (line-end-position 3) nil 'navigate)
     (beginning-of-line)
@@ -410,6 +410,10 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 
   (let ((dir default-directory))
     (find-file file-name) ;; sets default-directory
+
+    (when wisi-incremental-parse-enable
+      ;; wait for initial full parse to complete
+      (wisi-process-parse--wait wisi--parser))
 
     (run-test-here)
 

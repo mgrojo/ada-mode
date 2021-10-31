@@ -21,11 +21,12 @@ update : byte-compile
 #
 # 'package-initialize' is required for 'uniquify-files'.
 byte-compile : byte-compile-clean
-	cd ../; emacs -Q -batch -L . -l build/exclude-wisi.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
+	cd ../; emacs -Q -batch -L . -l build/exclude-elpa.el --eval '(progn (package-initialize)(setq byte-compile-error-on-warn t)(batch-byte-compile))' *.el
 
 byte-compile-clean :
 	cd ..; rm -f *.elc
 
+# Most of wisi is tested via ada-mode; see the tests there.
 test : test_all_harness.run
 
 # WISITOKEN is correct for Stephe's development machines;
