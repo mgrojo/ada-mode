@@ -48,7 +48,7 @@ section entitled "GNU Free Documentation License".
 @node Overview
 @chapter Overview
 
-WisiToken is a parser and parser generator toolkit, supporting
+WisiToken is a parser runtime and generator toolkit, supporting
 generalized LR (both LALR and LR1) and packrat parsers; the LR parser
 provides robust error recovery and incremental parsing. The grammar
 can be expressed as either Ada source code statements, or in an EBNF
@@ -74,7 +74,7 @@ re2c, and other lexers can be added.
 
 re2c is available from @url{http://re2c.org/}; it is also packaged in
 Mingw64 and Debian. WisiToken requires at least version 1.3.
-WisiToken assumes the executable @code{re2c} is in
+The WisiToken makefile assumes the executable @code{re2c} is in
 @code{$PATH}.
 
 @node Common grammar problems
@@ -776,5 +776,7 @@ the current lexer or parser is not the one specified in the @code{%if,
 
 @code{%if ... %end if} cannot be nested.
 
+@c @node Language-specific runtime functions
+@c @chapter Language-specific runtime functions
 @c FIXME: doc language_fixes etc.
 @bye

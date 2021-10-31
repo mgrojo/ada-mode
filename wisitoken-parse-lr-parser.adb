@@ -930,15 +930,16 @@ package body WisiToken.Parse.LR.Parser is
    --  User_Data.Insert_Token, Delete_Token.
    is
       use WisiToken.Syntax_Trees;
+      use all type Ada.Containers.Count_Type;
       Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
    begin
       --  We need parents set in the following code.
       Parser.Tree.Clear_Parse_Streams;
       Parser_State.Clear_Stream;
 
-      if Trace_Action > Extra then
+      if Trace_Parse > Extra and then Parser_State.Recover_Insert_Delete.Length > 0 then
          Parser.Trace.New_Line;
-         Parser.Trace.Put_Line ("post-parse tree:");
+         Parser.Trace.Put_Line ("before insert/delete tree:");
          Parser.Trace.Put_Line
            (Parser.Tree.Image
               (Children     => True,
@@ -968,8 +969,8 @@ package body WisiToken.Parse.LR.Parser is
             end case;
          end loop;
 
-         if Trace_Action > Extra then
-            Parser.Trace.Put_Line ("after insert/delete tree:");
+         if Trace_Parse > Extra or Trace_Action > Extra then
+            Parser.Trace.Put_Line ("post-parse tree:");
             Parser.Trace.Put_Line
               (Parser.Tree.Image
                  (Children     => True,
@@ -982,7 +983,6 @@ package body WisiToken.Parse.LR.Parser is
 
       if Debug_Mode then
          declare
-            use all type Ada.Containers.Count_Type;
             Error_Reported : WisiToken.Syntax_Trees.Node_Sets.Set;
          begin
             if Parser.User_Data = null then
