@@ -325,8 +325,7 @@ begin
                Start := Ada.Calendar.Clock;
             end if;
 
-            if McKenzie_Defaulted (Shared_Parser.Table.all) then
-               --  McKenzie parameters not set, so don't attempt recover.
+            if not Shared_Parser.Table.Error_Recover_Enabled then
                if Trace_Parse > Outline or Trace_McKenzie > Outline then
                   Trace.Put_Line ("recover disabled");
                end if;

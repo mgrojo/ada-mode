@@ -42,7 +42,8 @@ package WisiToken.BNF is
    --  See also WisiToken exceptions
 
    Not_Found : exception;
-   --  something not found; should be handled and converted to Syntax_ or Grammar_Error
+   --  Something not found; should be handled and converted to another
+   --  exception.
 
    type Generate_Algorithm is (None, LALR, LR1, Packrat_Gen, Packrat_Proc, External, Tree_Sitter);
    subtype Valid_Generate_Algorithm is Generate_Algorithm range LALR .. Generate_Algorithm'Last;
@@ -154,7 +155,7 @@ package WisiToken.BNF is
       Case_Insensitive          : Boolean  := False;
       Declare_Enums             : Boolean  := True;
       End_Names_Optional_Option : Ada.Strings.Unbounded.Unbounded_String;
-      Error_Recover             : Boolean  := False;
+      Error_Recover             : Boolean  := False; -- True if grammar specifies error recover parameters.
       LR1_Hash_Table_Size       : Positive := 113; --  Should match sal-gen_unbounded_definite_hash_tables.ads
       Language_Runtime_Name     : Ada.Strings.Unbounded.Unbounded_String;
       Partial_Recursion         : Boolean  := False;

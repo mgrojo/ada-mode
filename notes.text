@@ -31,11 +31,12 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-fix ada_mode-interactive_02.adb failure
-
-
 review FIXME
     at least in syntax_trees
+
+    handle utf-8
+        test_incremental.adb add non_ascii case
+        on o.w.s-1
 
 Stream.Shared_Link === Parser_State.Shared_Token
     except after parser_lists.next_token
@@ -298,15 +299,6 @@ delete descriptor.case_insensitive?
 
 syntax_trees.Replace_Child
     update cached data as in Set_Children
-
--explore.check
-         --  FIXME: if there were conflicts, enqueue them; they might yield a
-         --  cheaper or same cost solution?
-         same code as fast_forward; just use that?
-
-        see if parsing all affects any tests
-
-        item.shift_count not used
 
 String_literal, numeric_literal, identifier are equivalent - only insert one
     minimal_complete does this for expression

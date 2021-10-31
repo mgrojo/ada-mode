@@ -56,7 +56,7 @@ package WisiToken.Parse.LR.Parser is
       Config                  : in     Configuration;
       Matching_Tokens         :    out Token_ID_Arrays.Vector;
       Forbid_Minimal_Complete :    out Boolean);
-   --  Tokens (1) caused a parse error; Tokens (2 .. 3) are the following
+   --  Tokens (1) is the current token; Tokens (2 .. 3) are the following
    --  tokens (Invalid_Token_ID if none). Set Matching_Tokens to a token
    --  sequence that starts a production matching Tokens. If
    --  Minimal_Complete would produce a bad solution at this error point,

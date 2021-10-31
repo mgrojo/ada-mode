@@ -37,7 +37,7 @@
 %generate LALR Ada re2c
 %generate LR1 Ada re2c text_rep
 %generate Tree_Sitter Ada tree_sitter
-;; FIXME: support indirect left recursion, add Packrat_Gen, Packrat_Proc
+;; IMPROVEME: support indirect left recursion, add Packrat_Gen, Packrat_Proc
 
 ;; We don't actually need this for speed here, but we do need to test it.
 %lr1_hash_table_size 200

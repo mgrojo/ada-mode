@@ -776,7 +776,37 @@ the current lexer or parser is not the one specified in the @code{%if,
 
 @code{%if ... %end if} cannot be nested.
 
-@c @node Language-specific runtime functions
-@c @chapter Language-specific runtime functions
-@c FIXME: doc language_fixes etc.
+@c FIXME: overview of error correction, and its role in parsing,
+@c consequences for indent, etc. Clean up error correction paper, add
+@c to elpa :docs, reference here.
+
+@node Language-specific parser runtime functions
+@chapter Language-specific parser runtime functions
+The parser has several hooks for language-specific functions:
+
+@table @code
+@item Language_Fixes
+Called by error correction for each error (either the original error,
+or another encountered while checking a proposed solution); it should
+enqueue new solutions if it recognizes the error.
+
+For example, in Ada, compound statements like @code{if then else end
+if;} or @code{loop end loop;} have a matching keyword after the
+@code{end}. So if the error is an incorrect keyword after @code{end},
+@code{Language_Fixes} can recognize that, push back the @code{end},
+and insert @code{end <keyword>;}.
+
+@item Language_Matching_Begin_Tokens
+Called by error correction for each proposed solution; it should
+return a token sequence to precede the current token.
+
+For example, in Ada, if the current token is @code{end} and the next
+token is @code{if}, @code{Language_Matching_Begin_Tokens} should
+return @code{if}.
+
+@item Language_String_ID_Set
+Called during language initialization; return a set of @code{Token_ID}
+that can contain the given string literal ID. The set is then used by
+error correction when correcting missing string quotes.
+
 @bye

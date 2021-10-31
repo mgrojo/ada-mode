@@ -4595,16 +4595,17 @@ package body WisiToken.Syntax_Trees is
          Begin_Char_Pos : Buffer_Pos;
          Node           : Node_Access := Find_New_Line (Tree, Line, Root (Tree), Begin_Char_Pos);
       begin
-         if Node.ID = Tree.EOI.ID then
+         if Node = Invalid_Node_Access then
+            --  Line is after EOI.
+            return Invalid_Node_Access;
+
+         elsif Node.ID = Tree.EOI.ID then
             --  Find_New_Line allows both Line, Line - 1.
             if Node.Non_Grammar (Node.Non_Grammar.First_Index).Line_Region.First = Line then
                return Node;
             else
                return Invalid_Node_Access;
             end if;
-
-         elsif Node = Invalid_Node_Access then
-            return Invalid_Node_Access;
 
          else
             --  Node now contains the non-grammar that ends Line - 1

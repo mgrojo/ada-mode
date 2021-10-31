@@ -520,6 +520,7 @@ package body Subprograms_Process_LALR_Main is
          Table.Error_Action := new Parse_Action_Node'((Verb => Error, others => <>), null);
       end;
 
+      Table.Error_Recover_Enabled := True;
       Table.McKenzie_Param := McKenzie_Param;
       Table.Max_Parallel := 10;
       return Table;

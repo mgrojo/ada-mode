@@ -760,6 +760,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       end if;
 
       if Input_Data.Language_Params.Error_Recover then
+         Indent_Line ("Table.Error_Recover_Enabled := True;");
          Indent_Line ("Table.McKenzie_Param := McKenzie_Param;");
       end if;
       Indent_Line ("Table.Max_Parallel :=" & Table.Max_Parallel'Image & ";");

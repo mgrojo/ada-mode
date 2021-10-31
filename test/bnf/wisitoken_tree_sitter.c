@@ -1,6 +1,6 @@
 // Function to run the tree-sitter parser, given a language object and input file name.
 //
-//  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2020 Free Software Foundation, Inc.
+//  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2021 Free Software Foundation, Inc.
 //
 //  This file is part of the WisiToken package.
 //
@@ -46,12 +46,6 @@ int wisitoken_tree_sitter_parse_file (const TSLanguage *language, const char* fi
   ts_parser_set_logger (parser, logger);
 
   TSTree *tree = ts_parser_parse_string (parser, NULL, buffer, last);
-
-  // FIXME: output parse errors? return non-zero status
-  // ts_node_has_error; traverse tree to find these?
-  // ts_tree_root_node ts_node_parent, ts_node_child_count, ts_node_child
-  //
-  // or ts_tree_cursor_new
 
   // This doesn't work reliably on mingw, even after attempting to patch subtree.c
   /* TSNode root_node = ts_tree_root_node(tree); */

@@ -118,7 +118,7 @@ package body BNF_WY_Test is
       Check ("grammar parse other error", WisiToken.Generate.Error, False);
 
       --  FIXME: need clear Boolean McKenzie_Specified
-      McKenzie_Recover := Input_Data.McKenzie_Recover.Default_Insert /= 0;
+      McKenzie_Recover := Input_Data.Language_Params.Error_Recover;
 
       WisiToken.Trace_Parse := Save_Trace_Parse;
    exception
