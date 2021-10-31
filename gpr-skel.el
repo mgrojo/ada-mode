@@ -1,6 +1,6 @@
 ;; gpr-skel.el --- Extension to gpr-mode for inserting statement skeletons  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2015, 2018 - 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2015, 2018 - 2021 Free Software Foundation, Inc.
 
 ;; Authors: Stephen Leake <stephen_leake@stephe-leake.org>
 
@@ -85,7 +85,7 @@ This could end in a token recognized by `gpr-skel-expand'."
   "end case;")
 
 (define-skeleton gpr-skel-header
-  "Insert a file header comment, with automatic copyright year and prompt for copyright owner/license.
+  "Insert a file header comment, prompt for copyright owner/license.
 Each user will probably want to override this."
   ()
   "--  Abstract :\n"

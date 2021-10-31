@@ -644,67 +644,66 @@ Also sets ff-function-name for ff-pre-load-hook."
 			 'navigate)
     ))
 
-  (when (wisi-cache-covers-region parse-begin parse-end 'navigate)
-    (save-excursion
-      (condition-case nil
-	  (let ((result nil)
-		(cache (ada-goto-declaration-start-1 include-type)))
-	    (if (null cache)
-		;; bob or failed parse
-		(setq result "")
+  (save-excursion
+    (condition-case nil
+	(let ((result nil)
+	      (cache (ada-goto-declaration-start-1 include-type)))
+	  (if (null cache)
+	      ;; bob or failed parse
+	      (setq result "")
 
-	      (when (memq (wisi-cache-nonterm cache)
-			  '(generic_package_declaration generic_subprogram_declaration))
-		;; name is after next statement keyword
-		(setq cache (wisi-next-statement-cache cache)))
+	    (when (memq (wisi-cache-nonterm cache)
+			'(generic_package_declaration generic_subprogram_declaration))
+	      ;; name is after next statement keyword
+	      (setq cache (wisi-next-statement-cache cache)))
 
-	      ;; add or delete 'body' as needed
-	      (cl-ecase (wisi-cache-nonterm cache)
-		((entry_body entry_declaration)
-		 (setq result (ada-which-function-1 "entry" nil)))
+	    ;; add or delete 'body' as needed
+	    (cl-ecase (wisi-cache-nonterm cache)
+	      ((entry_body entry_declaration)
+	       (setq result (ada-which-function-1 "entry" nil)))
 
-		((full_type_declaration private_type_declaration)
-		 (setq result (ada-which-function-1 "type" nil)))
+	      ((full_type_declaration private_type_declaration)
+	       (setq result (ada-which-function-1 "type" nil)))
 
-		(package_body
-		 (setq result (ada-which-function-1 "package" nil)))
+	      (package_body
+	       (setq result (ada-which-function-1 "package" nil)))
 
-		((package_declaration
-		  package_specification) ;; after 'generic'
-		 (setq result (ada-which-function-1 "package" t)))
+	      ((package_declaration
+		package_specification) ;; after 'generic'
+	       (setq result (ada-which-function-1 "package" t)))
 
-		(protected_body
-		 (setq result (ada-which-function-1 "protected" nil)))
+	      (protected_body
+	       (setq result (ada-which-function-1 "protected" nil)))
 
-		((protected_type_declaration single_protected_declaration)
-		 (setq result (ada-which-function-1 "protected" t)))
+	      ((protected_type_declaration single_protected_declaration)
+	       (setq result (ada-which-function-1 "protected" t)))
 
-		((abstract_subprogram_declaration
-		  expression_function_declaration
-		  subprogram_declaration
-		  subprogram_renaming_declaration
-		  generic_subprogram_declaration ;; after 'generic'
-		  null_procedure_declaration)
-		 (setq result (ada-which-function-1
-			       (progn (search-forward-regexp "function\\|procedure")(match-string 0))
-			       nil))) ;; no 'body' keyword in subprogram bodies
+	      ((abstract_subprogram_declaration
+		expression_function_declaration
+		subprogram_declaration
+		subprogram_renaming_declaration
+		generic_subprogram_declaration ;; after 'generic'
+		null_procedure_declaration)
+	       (setq result (ada-which-function-1
+			     (progn (search-forward-regexp "function\\|procedure")(match-string 0))
+			     nil))) ;; no 'body' keyword in subprogram bodies
 
-		((subprogram_body subunit)
-		 (setq result (ada-which-function-1
-			       (progn (search-forward-regexp "function\\|procedure")(match-string 0))
-			       nil)))
+	      ((subprogram_body subunit)
+	       (setq result (ada-which-function-1
+			     (progn (search-forward-regexp "function\\|procedure")(match-string 0))
+			     nil)))
 
-		((single_task_declaration task_type_declaration)
-		 (setq result (ada-which-function-1 "task" t)))
+	      ((single_task_declaration task_type_declaration)
+	       (setq result (ada-which-function-1 "task" t)))
 
 
-		(task_body
-		 (setq result (ada-which-function-1 "task" nil)))
-		))
-	    (when (called-interactively-p 'interactive)
-	      (message result))
-	    result))
-      (error ""))))
+	      (task_body
+	       (setq result (ada-which-function-1 "task" nil)))
+	      ))
+	  (when (called-interactively-p 'interactive)
+	    (message result))
+	  result))
+    (error "")))
 
 (defun ada-add-log-current-function ()
   "For `add-log-current-defun-function'."
@@ -1092,7 +1091,8 @@ The ident for the paragraph is taken from the first line."
   "List of Ada keywords for current `ada-language-version'.")
 
 (defun ada-font-lock-keywords ()
-  "Return Ada mode value for `font-lock-keywords', depending on `ada-language-version'."
+  "Return Ada mode value for `font-lock-keywords',
+Depends on `ada-language-version'."
    ;; Grammar actions set `font-lock-face' property for all
    ;; non-keyword tokens that need it.
   (list

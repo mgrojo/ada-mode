@@ -49,20 +49,13 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-do commit
+gpr-query process symbols in background elisp thread
+    testing; doesn't work, emacs still tied up when processing symbols
 
 delete face in wisi-fontify-region, not in wisi-post-change
     similarly for other caches; delete only in region being updated, just before update
 
-query containing_statement fails if at bob
-    bug in wisi.adb _query; if id = accept, don't find parent.
-
-
-
 do commit
-
-gpr-query process symbols in background elisp thread?
-    or just process as it arrives?
 
 review FIXMEs
     (grep-find "find c:/Projects/org.wisitoken -type f -print | \"xargs\" grep  -nH --null FIXME")

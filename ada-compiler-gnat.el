@@ -163,7 +163,7 @@ For `compilation-filter-hook'."
   "regexp to extract quoted punctuation in error messages")
 
 (defun ada-gnat-misspelling ()
-  "Return correct spelling from current compiler error, if there are corrections offered.
+  "Return correct spelling from current compiler error.
 Prompt user if more than one."
   ;; wisi-output.adb:115:41: no selector "Productions" for type "RHS_Type" defined at wisi.ads:77
   ;; wisi-output.adb:115:41: invalid expression in loop iterator

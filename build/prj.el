@@ -24,4 +24,5 @@
    "Makefile"
    ))
 
+(ada-parse-require-process) ;; slow start due to lr1 parse table
 ;; end of file

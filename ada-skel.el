@@ -185,7 +185,7 @@ This could end in a token recognized by `ada-skel-expand'."
   "function " str " return A;\n")
 
 (define-skeleton ada-skel-header
-  "Insert a file header comment, with automatic copyright year and prompt for copyright owner/license.
+  "Insert a file header comment, prompt for copyright owner/license.
 Each user will probably want to override this."
   ()
   "--  Abstract :\n"

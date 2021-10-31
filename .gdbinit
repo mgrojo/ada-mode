@@ -8,7 +8,7 @@
 set args command_file debug.cmd
 
 # Process_Command verbosity
-break run_wisi_common_parse.adb:549 
+break run_wisi_common_parse.adb:574 
 
 # gpr_query
 #set args -P test/ada_mode.gpr --db=c:/tmp/gpr_query.db --tracefile=gpr_query.trace

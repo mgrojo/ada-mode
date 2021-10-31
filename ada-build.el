@@ -1,7 +1,7 @@
 ;; ada-build.el --- Extensions to ada-mode for compiling and running  -*- lexical-binding:t -*-
 ;; Ada projects without 'make' or similar tool
 ;;
-;; Copyright (C) 1994, 1995, 1997 - 2017, 2019  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2017, 2019, 2021  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -314,7 +314,7 @@ If CONFIRM is non-nil, prompt for user confirmation of the command."
 
 ;;;###autoload
 (defun ada-build-set-make (&optional confirm)
-  "Set the main project variable to the current file, then run the make_cmd project variable.
+  "Set the main project variable to the current file, then run make_cmd.
 By default, this compiles and links the new main program.
 If CONFIRM is non-nil, prompt for user confirmation of the command."
   (interactive "P")

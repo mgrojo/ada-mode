@@ -517,7 +517,7 @@ extend a with_clause to include CHILD-NAME."
     (delete-char 1)))
 
 (defun ada-fix-add-use-type (type)
-  "Insert `use type' clause for TYPE at start of declarative part for current construct."
+  "Insert `use type' clause for TYPE."
   (ada-goto-declarative-region-start); leaves point after 'is'
   (newline-and-indent)
   (cl-ecase ada-language-version
@@ -536,7 +536,7 @@ extend a with_clause to include CHILD-NAME."
     ))
 
 (defun ada-fix-add-use (package)
-  "Insert `use' clause for PACKAGE at start of declarative part for current construct."
+  "Insert `use' clause for PACKAGE."
   (ada-goto-declarative-region-start); leaves point after 'is'
   (newline-and-indent)
   (insert "use " package ";"))
