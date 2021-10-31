@@ -77,6 +77,7 @@ Must match gpr_query.adb Version.")
   (xref-process nil) ;; running gpr_query, for xrefs; default-directory gives location of db
   no-symbols           ;; boolean; if non-nil, don't start symbols process
   (symbols-process nil);; runs 'complete' gpr_query command to get symbol-locs, symbols; then dies.
+  (symbols-thread nil);; thread started by symbols-process to run gpr-query--read-symbols
 
   symbol-locs ;; alist completion table, with locations; see gpr-query--read-symbols
   symbols ;; just symbols completion table; see gpr-query--read-symbols
@@ -215,7 +216,8 @@ Must match gpr_query.adb Version.")
 
 	   ((eq (gpr-query--session-symbols gpr-query--local-session) 'sent-complete)
 	    (message "gpr-query symbols received; processing ...")
-	    (gpr-query--read-symbols gpr-query--local-session)
+	    (setf (gpr-query--session-symbols-thread gpr-query--local-session)
+		   (make-thread (lambda () (gpr-query--read-symbols gpr-query--local-session))))
 	    (set-process-filter process nil)
 	    (message "gpr-query symbols processing done")
 	    (process-send-string process "exit\n"))
@@ -354,7 +356,10 @@ COMMAND-TYPE is one of 'xref or 'symbols."
 
 	;; process output is inserted before point, so move back over it to search it
 	(goto-char search-start)
-	(if (re-search-forward gpr-query-prompt (point-max) 1)
+	(if (and
+	     (re-search-forward gpr-query-prompt (point-max) 1)
+	     (or (eq command-type 'xref)
+		 (gpr-query--session-symbols session))) ;; wait for --read-symbols thread
 	    (setq done t)
 
 	  ;; else wait for more input
@@ -474,7 +479,8 @@ Uses `gpr_query'. Returns new list."
 (defun gpr-query--read-symbols (session)
   "Read result of gpr_query 'complete' command, store completion table in SESSION."
   (let ((symbol-locs nil)
-	(symbols nil))
+	(symbols nil)
+	(line-count 0))
     ;; The gpr_query 'complete' command returns a fully qualified name
     ;; and declaration location for each name:
     ;;
@@ -497,6 +503,12 @@ Uses `gpr_query'. Returns new list."
     (goto-char (point-min))
 
     (while (not (eobp))
+      (setq line-count (1+ line-count))
+      ;; FIXME: debugging
+      ;; (when (= 0 (mod line-count 1000))
+      (thread-yield)
+      ;;)
+
       (cond
        ;; FIXME: dispatch on language
 
