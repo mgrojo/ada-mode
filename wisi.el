@@ -158,6 +158,12 @@ Useful when debugging parser or parser actions."
   :group 'wisi
   :safe 'booleanp)
 
+(defcustom wisi-parse-full-background t
+  "If non-nil, do initial full parse in background."
+  :type 'boolean
+  :group 'wisi
+  :safe 'booleanp)
+
 (defconst wisi-error-buffer-name "*wisi syntax errors*"
   "Name of buffer for displaying syntax errors.")
 
@@ -1003,13 +1009,28 @@ Run the parser first if needed."
 
 (defun wisi-validate-cache-current-statement (error-on-fail parse-action)
   "Validate PARSE-ACTION caches on at least current statement.
-If ERROR-ON-FAIL, signal error if parse fails."
+If point is in trailing comment of a statement, validate at least
+that and the next one.  If ERROR-ON-FAIL, signal error if parse
+fails."
   (let (parse-begin parse-end)
     (cond
      (wisi-incremental-parse-enable
-      (let ((query-result (wisi-parse-tree-query wisi--parser 'containing-statement (point))))
-	(setq parse-begin (car (wisi-tree-node-char-region query-result))
-	      parse-end   (cdr (wisi-tree-node-char-region query-result)))))
+      (let ((pos (point))
+	    query-result
+	    done)
+      (while (not done)
+	(setq query-result (wisi-parse-tree-query wisi--parser 'containing-statement pos))
+	(when (null parse-begin)
+	  (setq parse-begin (car (wisi-tree-node-char-region query-result))))
+	(setq parse-end   (cdr (wisi-tree-node-char-region query-result)))
+	(if (<= (point) parse-end)
+	    (setq done t)
+	  (setq pos
+		(save-excursion
+                  ;; forward-comment must start out of a comment
+		  (goto-char (nth 8 (syntax-ppss pos))) ;; start of comment or string
+		  (forward-comment 100)
+		  (point)))))))
 
      (t
       (setq parse-begin (point-min)
@@ -1820,7 +1841,7 @@ where the car is a list (FILE LINE COL)."
     ;; We don't wait for this to complete here, so users can scroll
     ;; around while the initial parse runs. font-lock will not work
     ;; during that time (the parser is busy, the buffer is read-only).
-    (wisi-parse-incremental wisi--parser t t)))
+    (wisi-parse-incremental wisi--parser t wisi-parse-full-background)))
 
 (provide 'wisi)
 ;;; wisi.el ends here

@@ -411,9 +411,8 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
   (let ((dir default-directory))
     (find-file file-name) ;; sets default-directory
 
-    (when wisi-incremental-parse-enable
-      ;; wait for initial full parse to complete
-      (wisi-process-parse--wait wisi--parser))
+     ;; always for initial full parse to complete
+    (setq wisi-parse-full-background nil)
 
     (run-test-here)
 

@@ -200,11 +200,12 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 
     (with-current-buffer (wisi-process--parser-buffer parser)
       (setq search-start (point-min))
-      (while (and (process-live-p process)
+      (while (or wisi-parse-full-active
+		 (and (process-live-p process)
 		  (progn
 		    ;; process output is inserted before point, so move back over it to search it
 		    (goto-char search-start)
-		    (not (setq found (re-search-forward wisi-process-parse-prompt (point-max) t)))))
+		    (not (setq found (re-search-forward wisi-process-parse-prompt (point-max) t))))))
 	(setq search-start (point));; don't search same text again
 	(setq wait-count (1+ wait-count))
 	(accept-process-output process 0.1)))
@@ -1025,7 +1026,6 @@ PARSER will respond with one or more Query messages."
   (setf (wisi-parser-parse-errors parser) nil)
   (cond
    ((and full nowait)
-    (message "background parsing buffer")
     (set-process-filter (wisi-process--parser-process parser) #'wisi-process-parse--filter)
     (setq wisi-parse-full-active (cons (current-buffer) (cons (point-max) (point-min))))
     (read-only-mode 1)
