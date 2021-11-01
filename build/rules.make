@@ -96,8 +96,11 @@ autoloads : force
 %.tmp : %
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP)(run-test "$<")(kill-emacs))' $(RUN_ARGS)
 
+# We can't include (setq debug-on-signal t) here; that enters debug
+# for every defcustom in ada-mode! Set it manually after ada-mode
+# loaded.
 %.debug : %
-	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP)(package-initialize)(setq debug-on-error t))' $<
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP)(setq debug-on-error t))' $<
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
 COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)

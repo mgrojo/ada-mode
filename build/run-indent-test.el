@@ -32,11 +32,10 @@
   (let ((xrefs (funcall generator))
 	result)
     (dolist (ref xrefs)
-      (with-slots (summary location) ref
-	(with-slots (file) location
-	  (push (list (file-name-nondirectory file) summary) result))))
+	  (push (list (file-name-nondirectory (xref-file-location-file (xref-item-location ref)))
+		      (xref-item-summary ref))
+		result))
     (nreverse result)))
-
 
 (defun test-all-refs (name)
   "Return list of (FILENAME CATEGORY) for all (class-wide) references of NAME."
