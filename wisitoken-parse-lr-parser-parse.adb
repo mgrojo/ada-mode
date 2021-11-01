@@ -417,10 +417,11 @@ begin
                end if;
 
             else
-               --  Terminate with error. Parser_State has all the required info on
-               --  the original error (recorded by Error in Do_Action).
+               --  Terminate with error (parse_error because user expects parse to
+               --  succeed on Syntax_Error). Parser_State has all the required info
+               --  on the original error (recorded by Error in Do_Action).
                McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
-               raise WisiToken.Syntax_Error with "recover fail: " & Recover_Result'Image;
+               raise WisiToken.Parse_Error with "recover fail: " & Recover_Result'Image;
             end if;
 
             --  Recover sets Parser.Verb to Shift for all active parsers, to
