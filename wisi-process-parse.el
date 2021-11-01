@@ -1019,7 +1019,7 @@ PARSER will respond with one or more Query messages."
 
 (cl-defmethod wisi-parse-incremental ((parser wisi-process--parser) &optional full nowait)
   (if (and full nowait wisi-parse-full-active)
-    (user-error "already doing full parse on %s" (buffer-name wisi-parse-full-active)))
+    (user-error "already doing full parse on %s" (buffer-name (car wisi-parse-full-active))))
   (wisi-process-parse--prepare parser)
   (setf (wisi-parser-lexer-errors parser) nil)
   (setf (wisi-parser-parse-errors parser) nil)

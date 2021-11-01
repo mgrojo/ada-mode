@@ -177,9 +177,8 @@ parse, and performs post-parse action PARSE-ACTION (one of
 parsed region.")
 
 (defvar wisi-parse-full-active nil
-  ;; Only one buffer can be doing a full parse. FIXME: we need
-  ;; a queue, and/or process needs multiple threads.
-  "The source buffer if `wisi-parse-incremental was called with full and nowait.
+  ;; Only one buffer can be doing a full parse.
+  "Non-nil if `wisi-parse-incremental was called with full and nowait.
 The value is a list (source-buffer (font-lock-begin
 . font-lock-end)), where (FONT-LOCK-BEGIN . FONT-LOCK-END) is the
 region font-lock attempted to fontify while the parser was

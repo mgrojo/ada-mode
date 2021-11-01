@@ -349,8 +349,9 @@ Truncate any region that overlaps POS."
     ))
 
 (defun wisi--delete-face-cache (after)
-  (with-silent-modifications
-    (remove-text-properties after (point-max) '(font-lock-face nil)))
+  ;; We don't do remove-text-properties here; done in
+  ;; wisi-fontify-region to avoid flicker and bad fontify due to
+  ;; syntax errors.
   (if (= after (point-min))
       (setcdr (assoc 'face wisi--cached-regions) nil)
     (wisi-cache-delete-regions-after 'face after)))
@@ -1018,11 +1019,14 @@ If ERROR-ON-FAIL, signal error if parse fails."
 
 (defun wisi-fontify-region (begin end)
   "For `jit-lock-functions'."
+  (with-silent-modifications
+    (remove-text-properties begin end '(font-lock-face nil)))
+
   (if wisi-parse-full-active
-      ;; record region to fontify when full parse is done.
+      ;; Record region to fontify when full parse is done.
       (let ((region (cdr wisi-parse-full-active)))
 	(when (< begin (car region)) (setf (car region) begin))
-	(when (> end (cdr region)) (setf (cdr region) begin)))
+	(when (> end (cdr region)) (setf (cdr region) end)))
 
     (wisi-validate-cache begin end nil 'face)))
 
