@@ -49,16 +49,15 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-delete face in wisi-fontify-region, not in wisi-post-change
-    similarly for other caches; delete only in region being updated, just before update
-
-do commit
-
 review FIXMEs
     (grep-find "find c:/Projects/org.wisitoken -type f -print | \"xargs\" grep  -nH --null FIXME")
+    (grep-find "find c:/Projects/org.emacs.wisi -type f -print | \"xargs\" grep  -nH --null FIXME")
+    (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
 
-c:/Projects/org.wisitoken/Docs/wisitoken-user_guide.texinfo:779:@c FIXME: doc language_fixes etc.
+    see c:/Projects/org.wisitoken/notes.text
 
+    add edits to non_ascii.ads
+        on o.e.a-m.s-2
 
 rewrite ada-which-function to use incremental
     test/ada_mode-nominal.ads

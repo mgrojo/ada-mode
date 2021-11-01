@@ -702,8 +702,8 @@ Also sets ff-function-name for ff-pre-load-hook."
 	      ))
 	  (when (called-interactively-p 'interactive)
 	    (message result))
-	  result))
-    (error "")))
+	  result)
+      (error ""))))
 
 (defun ada-add-log-current-function ()
   "For `add-log-current-defun-function'."

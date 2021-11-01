@@ -479,8 +479,7 @@ Uses `gpr_query'. Returns new list."
 (defun gpr-query--read-symbols (session)
   "Read result of gpr_query 'complete' command, store completion table in SESSION."
   (let ((symbol-locs nil)
-	(symbols nil)
-	(line-count 0))
+	(symbols nil))
     ;; The gpr_query 'complete' command returns a fully qualified name
     ;; and declaration location for each name:
     ;;
@@ -503,11 +502,7 @@ Uses `gpr_query'. Returns new list."
     (goto-char (point-min))
 
     (while (not (eobp))
-      (setq line-count (1+ line-count))
-      ;; FIXME: debugging
-      ;; (when (= 0 (mod line-count 1000))
       (thread-yield)
-      ;;)
 
       (cond
        ;; FIXME: dispatch on language
