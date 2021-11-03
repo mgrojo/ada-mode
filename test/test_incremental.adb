@@ -32,6 +32,7 @@ with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Syntax_Trees.AUnit_Public;
 with WisiToken.Text_IO_Trace;
+with WisiToken.UTF_8;
 package body Test_Incremental is
    Trace     : aliased WisiToken.Text_IO_Trace.Trace;
    Log_File  : Ada.Text_IO.File_Type;
@@ -90,7 +91,9 @@ package body Test_Incremental is
 
          if Delete'Length > 0 then
             if Initial (Edit_At .. Edit_At + Delete'Length - 1) /= Delete then
-               AUnit.Assertions.Assert (False, "invalid delete");
+               AUnit.Assertions.Assert
+                 (False, "invalid delete: '" & Delete & "' /= '" &
+                    Initial (Edit_At .. Edit_At + Delete'Length - 1) & "'");
             end if;
             Edited (Edit_At .. Edited'Last - Delete'Length) := Edited (Edit_At + Delete'Length .. Edited'Last);
             Edited (Edited'Last - Delete'Length + 1 .. Edited'Last) := (others => ' ');
@@ -107,19 +110,21 @@ package body Test_Incremental is
       end Edit_Text;
 
       procedure To_KMN
-        (Edit_At : in Integer;
-         Delete  : in String;
-         Insert  : in String)
+        (Edit_At_Bytes : in Integer;
+         Delete        : in String;
+         Insert        : in String)
       is
          use WisiToken;
 
+         Edit_At_Chars : constant Integer := Edit_At_Bytes - KMN_Next_Bytes + KMN_Next_Chars;
+
          Edit_1 : constant KMN :=
-           (Stable_Bytes   => Base_Buffer_Pos (Edit_At - KMN_Next_Bytes),
-            Stable_Chars   => Base_Buffer_Pos (Edit_At - KMN_Next_Bytes), --  FIXME: test utf-8
+           (Stable_Bytes   => Base_Buffer_Pos (Edit_At_Bytes - KMN_Next_Bytes),
+            Stable_Chars   => Base_Buffer_Pos (Edit_At_Chars - KMN_Next_Chars),
             Deleted_Bytes  => Delete'Length,
-            Deleted_Chars  => Delete'Length,
+            Deleted_Chars  => Base_Buffer_Pos (UTF_8.Code_Point_Length (Delete)),
             Inserted_Bytes => Insert'Length,
-            Inserted_Chars => Insert'Length);
+            Inserted_Chars => Base_Buffer_Pos (UTF_8.Code_Point_Length (Insert)));
       begin
          Edits.Append (Edit_1);
 
@@ -1068,6 +1073,25 @@ package body Test_Incremental is
       --   |29        |40       |50       |60       |70       |80       |90
    end Multiple_Errors_On_One_Token_2;
 
+   procedure Non_Ascii (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert, delete non-ASCII text.
+
+      Parse_Text
+        ("package A is Theta : Wide_Character := ""Θ""; B : F := ""π_Non""; end A;",
+         --    |6  |10       |20       |30       |40
+         Edit_At     => 41,
+         Delete      => "",
+         Insert      => "Π",
+         Edit_2_At   => 56,
+         Delete_2    => "π_",
+         Insert_2    => "pi_",
+         Full_Errors => 0,
+         Incr_Errors => 0);
+   end Non_Ascii;
+
    ----------
    --  Public subprograms
 
@@ -1111,6 +1135,7 @@ package body Test_Incremental is
       Register_Routine (T, Modify_Deleted_Node'Access, "Modify_Deleted_Node");
       Register_Routine (T, Multiple_Errors_On_One_Token_1'Access, "Multiple_Errors_On_One_Token_1");
       Register_Routine (T, Multiple_Errors_On_One_Token_2'Access, "Multiple_Errors_On_One_Token_2");
+      Register_Routine (T, Non_Ascii'Access, "Non_Ascii");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

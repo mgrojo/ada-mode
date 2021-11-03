@@ -34,31 +34,12 @@ update-wisitoken_grammar
 review FIXME
     at least in syntax_trees
 
-    handle utf-8
-        test_incremental.adb add non_ascii case
-        on o.w.s-1
-
-Stream.Shared_Link === Parser_State.Shared_Token
-    except after parser_lists.next_token
-    delete parser_state.current_token, shared_token
-    add function tree.current_Token => stream.input or stream.shared_link
-
-
-store errors in tree
-    t_all passing; moving to o.e.a
-
-    In test_incremental.adb Preserve_Parse_Errors_2, also change costs so recover deletes
-    END instead of inserting BEGIN; then need to restore that
-
-    test case for Right_Breakdown move_errors.
-
-    test case for wisitoken-syntax_trees.adb Add_Deleted Not_Implemented.
 
 Tree.validate check that all tree.nodes are in tree
     possibly in following_deleted
     call it in syntax_Trees.clear_parse_streams
 
-next error recover try prev solution first - new strategy.
+error recover try prev solution first - new strategy.
 
 test_incremental.adb Recover_1 "delete empty nonterm" -27:(aspect_specification_opt)
     better: don't delete; peek ahead to first terminal, reduce until aspect_specification_opt is shiftable
@@ -67,12 +48,19 @@ move Trace from Parser to Lexer
     use in Lexer.Find_Next
     no separate param in tree operations
 
+delete descriptor.case_insensitive?
+    used in regexp lexer?
+    move to lexer?
+
+String_literal, numeric_literal, identifier are equivalent - only insert one
+    minimal_complete does this for expression
+
 set_parents is not incremental
     see fixme
 
-review fixme
-
-add %no_error_recover, instead of detecting mckenzie /= default
+add %no_error_recover
+    to document that it is deliberate
+    don't use presence of error recover param settings
 
 move Execute_Actions to wisitoken.parse?
     lots of shared code between packrat, lr
@@ -94,6 +82,7 @@ in wisitoken-bnf-generate_utils
     move iterator aspects to Data
 
 add lexer option to terminate open string quote at line end
+    currently, terminates at open quote.
 
 wisitoken_grammar_1.wy
     nonterminal
@@ -225,7 +214,7 @@ implement %local_keyword?
     add in-parse action to check identifier in local_keyword set.
 
 need gnat-prep for tree-sitter
-    most devels won't have it
+    most devels won't have tree-sitter
 
 add tree-sitter parser, lexer
     ada_lite.wy
@@ -292,16 +281,6 @@ write Python INDENT, DEDENT as re2c code
     Implement as strict extension to wisi lexer - override methods for generate.
     similar to tree-sitter external scanner
     ideally in a separate emacs module!
-
-delete descriptor.case_insensitive?
-    used in regexp lexer?
-    move to lexer?
-
-syntax_trees.Replace_Child
-    update cached data as in Set_Children
-
-String_literal, numeric_literal, identifier are equivalent - only insert one
-    minimal_complete does this for expression
 
 test/ada_mode-recover_31.adb
     language_fixes changes char_literal '|-' to string_literal; ok for first call on real error

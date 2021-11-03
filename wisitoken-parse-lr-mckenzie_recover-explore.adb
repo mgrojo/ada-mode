@@ -1224,8 +1224,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       if Shared.Language_Matching_Begin_Tokens /= null then
          Parse.Current_Token_ID_Peek_3 (Super, Config, Tokens);
 
-         Shared.Language_Matching_Begin_Tokens
-           (Super.Tree.all, Tokens, Config, Matching_Begin_Tokens, Forbid_Minimal_Insert);
+         if Tokens (1) /= Invalid_Token_ID then
+            Shared.Language_Matching_Begin_Tokens
+              (Super.Tree.all, Tokens, Config, Matching_Begin_Tokens, Forbid_Minimal_Insert);
+         end if;
       end if;
 
       if not Forbid_Minimal_Insert then
@@ -1973,7 +1975,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       use Recover_Op_Arrays, Recover_Op_Array_Refs;
 
-      EOF_ID      : constant Token_ID                := Super.Tree.Lexer.Descriptor.EOI_ID;
       Check_Limit : constant Syntax_Trees.Sequential_Index := Shared.Table.McKenzie_Param.Check_Limit;
 
       McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
@@ -1989,13 +1990,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          then Invalid_Token_ID
          else Super.Tree.ID (Next_Node));
    begin
-      if Next_Node = Syntax_Trees.Invalid_Node_Access then
+      if Super.Tree.ID (Config.Error_Token) = Invalid_Token_ID then
+         --  Error_Token is a character not recognized by the lexer. Delete
+         --  with no cost. test_mckenzie_recover.adb Invalid_Char_Literal
+         null;
+
+      elsif Next_Node = Syntax_Trees.Invalid_Node_Access then
          --  Current token is an empty nonterm; we don't delete that here. It
          --  can be deleted by Parse, if it can't be shifted.
          return;
 
-      elsif Next_ID = EOF_ID then
-         --  can't delete EOF
+      elsif Next_ID in Super.Tree.Lexer.Descriptor.EOI_ID | Invalid_Token_ID then
+         --  can't delete EOI
          return;
 
       elsif Length (Config.Ops) > 0 and then
@@ -2030,10 +2036,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             return False;
          end Matching_Push_Back;
       begin
-         New_Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
-         New_Config.In_Parse_Action_Status   := (Label => WisiToken.In_Parse_Actions.Ok);
+         New_Config.Error_Token            := Syntax_Trees.Invalid_Recover_Token;
+         New_Config.In_Parse_Action_Status := (Label => WisiToken.In_Parse_Actions.Ok);
 
-         New_Config.Cost := New_Config.Cost + McKenzie_Param.Delete (Next_ID);
+         New_Config.Cost := New_Config.Cost +
+           (if Super.Tree.ID (Config.Error_Token) = Invalid_Token_ID
+            then 0
+            else McKenzie_Param.Delete (Next_ID));
+
          New_Config.Strategy_Counts (Delete) := Config.Strategy_Counts (Delete) + 1;
 
          if Matching_Push_Back then

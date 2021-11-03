@@ -163,12 +163,8 @@ package body Test_McKenzie_Recover is
                   Error_Ref : WisiToken.Syntax_Trees.Error_Ref := Parser.Tree.First_Error;
                begin
                   loop
-                     if Error (Error_Ref) in WisiToken.Parse.Lexer_Error then
-                        null;
-                     else
-                        Found_Errors := @ + 1;
-                        exit when Found_Errors = Checking_Error;
-                     end if;
+                     Found_Errors := @ + 1;
+                     exit when Found_Errors = Checking_Error;
                      Parser.Tree.Next_Error (Error_Ref);
                   end loop;
                   Error_Node   := Parser.Tree.Error_Node (Error_Ref);
@@ -2417,6 +2413,63 @@ package body Test_McKenzie_Recover is
 
    end Move_Non_Grammar;
 
+   procedure Invalid_Char_Literal (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  This encountered several edge cases in error recover. ada_lite.wy
+      --  does not define a character literal, nor a string-single literal,
+      --  so ' is an invalid character, which appears in the parse stream as
+      --  an Invalid_Token_ID.
+      Parse_Text ("procedure A is B : Character := 'ab'; begin null; end A;");
+
+      --  There are two errors on the first '; Lexer_Error and Parse_Error.
+      --  Then another lexer_error on the second '.
+      --
+      --  First we check the type of all three errors to verify
+      --  Tree.Next_Error.
+
+      declare
+         Error_Ref : WisiToken.Syntax_Trees.Error_Ref := Parser.Tree.First_Error;
+      begin
+         for I in 1 .. 3 loop
+            declare
+               Error : constant WisiToken.Syntax_Trees.Error_Data'Class := WisiToken.Syntax_Trees.Error (Error_Ref);
+               Error_Node : constant WisiToken.Syntax_Trees.Node_Access := Parser.Tree.Error_Node (Error_Ref);
+            begin
+               case I is
+               when 1 =>
+                  Check ("error 1 type", Error in WisiToken.Parse.Lexer_Error, True);
+                  Check ("error 1 pos", Parser.Tree.Byte_Region (Error_Node), (33, 33));
+
+               when 2 =>
+                  Check ("error 2 type", Error in WisiToken.Parse.Parse_Error, True);
+                  Check ("error 2 pos", Parser.Tree.Byte_Region (Error_Node), (33, 33));
+
+               when 3 =>
+                  Check ("error 3 type", Error in WisiToken.Parse.Lexer_Error, True);
+                  Check ("error 3 pos", Parser.Tree.Byte_Region (Error_Node), (36, 36));
+               end case;
+            end;
+
+            Parser.Tree.Next_Error (Error_Ref);
+         end loop;
+      end;
+
+      Check_Recover
+        (Label                   => "1",
+         Errors_Length           => 3,
+         Checking_Error          => 2,
+         Error_Token_ID          => WisiToken.Invalid_Token_ID,
+         Error_Token_Byte_Region => (33, 33),
+         Ops                     => +(Delete, WisiToken.Invalid_Token_ID, 2) & (Fast_Forward, 4) &
+           (Delete, WisiToken.Invalid_Token_ID, 4),
+         Enqueue_Low             => 52,
+         Check_Low               => 6,
+         Cost                    => 0);
+
+   end Invalid_Char_Literal;
+
    ----------
    --  Public subprograms
 
@@ -2484,6 +2537,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Pushback_Nonterm_1'Access, "Pushback_Nonterm_1");
       Register_Routine (T, Multiple_Errors_On_One_Token'Access, "Multiple_Errors_On_One_Token");
       Register_Routine (T, Move_Non_Grammar'Access, "Move_Non_Grammar");
+      Register_Routine (T, Invalid_Char_Literal'Access, "Invalid_Char_Literal");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

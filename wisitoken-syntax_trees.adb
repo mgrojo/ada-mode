@@ -5053,6 +5053,12 @@ package body WisiToken.Syntax_Trees is
       use Valid_Node_Access_Lists;
       use Error_Data_Lists;
    begin
+      if Has_Element (Error.Error) then
+         Next (Error.Error);
+      end if;
+      if Has_Element (Error.Error) then
+         return;
+      end if;
       if Has_Element (Error.Deleted) then
          Next (Error.Deleted);
          if not Has_Element (Error.Deleted) then

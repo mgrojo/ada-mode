@@ -78,7 +78,7 @@ package body WisiToken.Parse is
       use Ada.Strings.Unbounded;
       Result : Unbounded_String;
    begin
-      Append (Result, "(" & Data.Error.Char_Pos'Image & ", '");
+      Append (Result, "lexer error:" & Data.Error.Char_Pos'Image & ", '");
       for C of Data.Error.Recover_Char loop
          if C /= ASCII.NUL then
             Append (Result, C);
@@ -125,7 +125,7 @@ package body WisiToken.Parse is
 
       Item_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Error_Node);
       Msg : constant String :=
-        "expecting " & Image (Data.Expecting, Tree.Lexer.Descriptor.all) &
+        "syntax error: expecting " & Image (Data.Expecting, Tree.Lexer.Descriptor.all) &
         ", found '" & Tree.Lexer.Buffer_Text (Item_Byte_Region) &
         "'";
    begin
@@ -175,7 +175,7 @@ package body WisiToken.Parse is
 
       Result : Unbounded_String;
    begin
-      Result := +"in parse action error: (" & In_Parse_Actions.Image (Data.Status, Tree, Error_Node);
+      Result := +"in parse action error: " & In_Parse_Actions.Image (Data.Status, Tree, Error_Node);
 
       if Recover_Op_Arrays.Length (Data.Recover_Ops) /= 0 then
          Append (Result, ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree.Lexer.Descriptor.all));
@@ -216,7 +216,7 @@ package body WisiToken.Parse is
       Error_Node : in Syntax_Trees.Valid_Node_Access)
      return String
    is begin
-      return -Data.Msg;
+      return "message: " & (-Data.Msg);
    end Image;
 
    function Error_Pred_Parse (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
@@ -1798,7 +1798,7 @@ package body WisiToken.Parse is
          begin
             Ada.Text_IO.Put_Line
               (Tree.Error_Message
-               (Error_Node, "syntax_error: " & Error (Err).Image (Tree, Error_Node)));
+               (Error_Node, Error (Err).Image (Tree, Error_Node)));
          end;
       end loop;
    end Put_Errors;
@@ -1817,7 +1817,7 @@ package body WisiToken.Parse is
                Ada.Text_IO.Put_Line
                  (Tree.Error_Message
                     (Ref     => Error_Ref.Ref.Ref, -- For line, column
-                     Message => "syntax_error: " & Err.Image (Tree, Error_Node)));
+                     Message => Err.Image (Tree, Error_Node)));
             end loop;
          end;
       end loop;
