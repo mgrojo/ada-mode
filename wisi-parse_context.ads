@@ -95,6 +95,34 @@ package Wisi.Parse_Context is
    procedure Clear;
    --  Delete all contexts.
 
+   type Change is record
+      Begin_Byte_Pos        : WisiToken.Buffer_Pos; -- inserted or deleted
+      Begin_Char_Pos        : WisiToken.Buffer_Pos;
+      Inserted_End_Byte_Pos : WisiToken.Buffer_Pos;
+      Inserted_End_Char_Pos : WisiToken.Buffer_Pos; --  emacs convention: end is after last inserted char
+      Inserted_Text         : Ada.Strings.Unbounded.Unbounded_String;
+      Deleted_Bytes         : Natural;
+      Deleted_Chars         : Natural;
+   end record;
+
+   function Image (Item : in Change) return String;
+
+   package Change_Lists is new Ada.Containers.Doubly_Linked_Lists (Change);
+
+   function Get_Emacs_Change_List
+     (Command_Line : in     String;
+      Last         : in out Integer)
+     return Change_Lists.List;
+
+   procedure Edit_Source
+     (Trace            : in out WisiToken.Trace'Class;
+      Source           : in out Ada.Strings.Unbounded.String_Access;
+      Source_Byte_Last : in out Integer;
+      Source_Char_Last : in out Integer;
+      Changes          : in     Change_Lists.List;
+      KMN_List         :    out WisiToken.Parse.KMN_Lists.List);
+   --  Source must be UTF-8 with Unix line endings. FIXME: why Unix line endings?
+
    procedure Save_Text
      (Context       : in Parse_Context;
       File_Name     : in String;
