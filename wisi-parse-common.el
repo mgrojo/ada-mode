@@ -125,7 +125,7 @@ handle gracefully."
   ;; must be a different name than the wisi-parser cl-defstruct.
   "The current wisi parser; a ‘wisi-parser’ object.")
 
-(defconst wisi-post-parse-actions '(face navigate indent)
+(defconst wisi-post-parse-actions '(navigate face indent)
   "Actions that the parser can perform after parsing.")
 
 (defun wisi-read-parse-action ()
@@ -182,14 +182,15 @@ parsed region.")
 The value is a list (source-buffer (font-lock-begin
 . font-lock-end)), where (FONT-LOCK-BEGIN . FONT-LOCK-END) is the
 region font-lock attempted to fontify while the parser was
-busy. ")
+busy.")
 
-(cl-defgeneric wisi-parse-incremental ((parser wisi-parser) &optional full nowait)
-  "Incrementally parse current buffer. If FULL, do initial full parse.
-If FULL and NOWAIT, don't wait for parse to complete; buffer is
-read-only until full parse completes.  Text changes for
-incremental parse are stored in `wisi--changes', created by
-`wisi-after-change'.")
+(cl-defgeneric wisi-parse-incremental ((parser wisi-parser) parser-action &key full nowait)
+  "Incrementally parse current buffer.
+PARSER-ACTION is used to decide whether to wait if parser is
+busy.  If FULL, do initial full parse.  If FULL and NOWAIT, don't
+wait for parse to complete; buffer is read-only until full parse
+completes.  Text changes for incremental parse are stored in
+`wisi--changes', created by `wisi-after-change'.")
 
 (cl-defgeneric wisi-post-parse ((parser wisi-parser) parse-action begin end)
   "Perform PARSE-ACTION on region BEGIN END.

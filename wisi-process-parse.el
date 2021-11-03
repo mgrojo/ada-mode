@@ -96,27 +96,6 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (wisi-parse-kill parser)
       (setf (wisi-process--parser-exec-file parser) exec-file))))
 
-(defun wisi-process-parse--check-version (parser)
-  "Verify protocol version reported by process."
-  ;; The process has just started; the first non-comment line in the
-  ;; process buffer contains the process and language protocol versions.
-  (with-current-buffer (wisi-process--parser-buffer parser)
-    (goto-char (point-min))
-    (if (search-forward-regexp "protocol: process version \\([0-9]+\\) language version \\([0-9]+\\)" nil t)
-	(unless (and (match-string 1)
-		     (string-equal (match-string 1) wisi-process-parse-protocol-version)
-		     (match-string 2)
-		     (string-equal (match-string 2) (wisi-process--parser-language-protocol-version parser)))
-	  (wisi-parse-kill parser)
-	  (error "%s parser process protocol version mismatch: elisp %s %s, process %s %s"
-		 (wisi-process--parser-label parser)
-		 wisi-process-parse-protocol-version (wisi-process--parser-language-protocol-version parser)
-		 (match-string 1) (match-string 2)))
-      ;; Search failed
-      (error "%s parser process protocol version message not found"
-	     (wisi-process--parser-label parser))
-    )))
-
 (defun wisi-process-parse--filter (process text)
   "Process filter for parser process."
   (when (buffer-live-p (process-buffer process))
@@ -141,7 +120,27 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	    (set-process-filter process nil))
 
 	  (when (not (wisi-process--parser-version-checked wisi--parser))
-	    (wisi-process-parse--check-version wisi--parser)
+	    (save-excursion
+	      ;; The process has just started; the first non-comment line in the
+	      ;; process buffer contains the process and language protocol versions.
+	      (goto-char (point-min))
+	      (if (search-forward-regexp "protocol: process version \\([0-9]+\\) language version \\([0-9]+\\)" nil t)
+		  (unless (and (match-string 1)
+			       (string-equal (match-string 1) wisi-process-parse-protocol-version)
+			       (match-string 2)
+			       (string-equal (match-string 2)
+					     (wisi-process--parser-language-protocol-version wisi--parser)))
+		    (wisi-parse-kill wisi--parser)
+		    (error "%s parser process protocol version mismatch: elisp %s %s, process %s %s"
+			   (wisi-process--parser-label wisi--parser)
+			   wisi-process-parse-protocol-version
+			   (wisi-process--parser-language-protocol-version wisi--parser)
+			   (match-string 1) (match-string 2)))
+		;; Search failed
+		(error "%s parser process protocol version message not found"
+		       (wisi-process--parser-label wisi--parser))))
+
+	    (delete-region (point-min) (point))
 	    (setf (wisi-process--parser-version-checked wisi--parser) t)
 	    (set-process-filter process nil))
 	  )))))
@@ -197,7 +196,6 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	search-start
 	(wait-count 0)
 	(found nil))
-
     (with-current-buffer (wisi-process--parser-buffer parser)
       (setq search-start (point-min))
       (while (or wisi-parse-full-active
@@ -378,7 +376,7 @@ Does not wait for command to complete."
 		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		      wisi-parser-verbosity
 		      (cl-ecase parse-action
-			(navigate 0)
+			(navigate 0) ;; same order as wisi-parse-common wisi-post-parse-actions
 			(face 1)
 			(indent 2))
 		      (position-bytes begin)
@@ -769,33 +767,55 @@ PARSER will respond with one or more Query messages."
     (kill-process (wisi-process--parser-process parser)))
   (setf (wisi-process--parser-busy parser) nil))
 
-(defun wisi-process-parse--prepare (parser)
-  ;; font-lock can trigger a face parse via a timer delay while
-  ;; navigate or indent parse is active, due to
-  ;; ‘accept-process-output’ in w-p-p--handle-messages.
-  (if (wisi-process--parser-busy parser)
-      (error "parse abandoned; parser busy")
+(defun wisi-process-parse--prepare (parser parse-action)
+  (when (wisi-process--parser-busy parser)
+    (when
+	(cl-ecase parse-action
+	  (face
+	   ;; font-lock can trigger a face parse via a timer delay while
+	   ;; navigate or indent parse is active, due to
+	   ;; ‘accept-process-output’ in w-p-p--handle-messages.
+	   t)
 
-    ;; It is not possible for a background elisp function (ie
-    ;; font-lock run from a timer) to interrupt this code between
-    ;; checking and setting parser-busy; background elisp can only run
-    ;; when we call accept-process-output in w-p-p--handle-messages.
-    (setf (wisi-process--parser-busy parser) t)
+	  ((navigate indent other)
+	   (cond
+	    (wisi-parse-full-active
+	     ;; User just opened a file and is doing some action that
+	     ;; requires a parse; wait for full parse to complete.
+	     (message "waiting for full parse to complete ...")
+	     (wisi-process-parse--wait parser)
+	     nil)
 
-    ;; If the parser process has not started yet,
-    ;; wisi-parse-require-process calls
-    ;; wisi-process-parse--wait, which can let font-lock invoke the
-    ;; parser again. Thus this call must be after we set
-    ;; wisi-process--parser-busy t
-    (wisi-parse-require-process parser)
+	    ((eq #'wisi-process-parse--filter (process-filter (wisi-process--parser-process parser)))
+	     ;; Initial process start still running
+	     (message "waiting for parser process start ...")
+	     (wisi-process-parse--wait parser)
+	     nil)
 
-    (setf (wisi-process--parser-total-wait-time parser) 0.0)
+	    (t t))))
 
-    ;; We con't clear errors here; only clear before parse, not post-parse.
+      (error "parse abandoned; parser busy")))
 
-    ;; We don't erase the parser-buffer here, because we call --send*
-    ;; without --prepare in response to wisi-file_not_found.
-    ))
+  ;; It is not possible for a background elisp function (ie
+  ;; font-lock run from a timer) to interrupt this code between
+  ;; checking and setting parser-busy; background elisp can only run
+  ;; when we call accept-process-output in w-p-p--handle-messages.
+  (setf (wisi-process--parser-busy parser) t)
+
+  ;; If the parser process has not started yet,
+  ;; wisi-parse-require-process calls
+  ;; wisi-process-parse--wait, which can let font-lock invoke the
+  ;; parser again. Thus this call must be after we set
+  ;; wisi-process--parser-busy t
+  (wisi-parse-require-process parser)
+
+  (setf (wisi-process--parser-total-wait-time parser) 0.0)
+
+  ;; We con't clear errors here; only clear before parse, not post-parse.
+
+  ;; We don't erase the parser-buffer here, because we call --send*
+  ;; without --prepare in response to wisi-file_not_found.
+  )
 
 (defun wisi-process-parse--handle-messages (parser)
   ;; signals 'wisi-file_not_found if parser reports (file-not-found)
@@ -836,7 +856,10 @@ PARSER will respond with one or more Query messages."
 		(setq need-more t))
 
 	       ((looking-at wisi-process-parse-prompt)
-		(setq done t))
+		(forward-line 1)
+		(if (eobp)
+		    (setq done t)
+		  (error "wisi-process-parse: extra messages")))
 
 	       ((wisi-in-comment-p)
 		;; In debug output. Just move to beginning of comment;
@@ -1010,7 +1033,7 @@ PARSER will respond with one or more Query messages."
      )))
 
 (cl-defmethod wisi-parse-current ((parser wisi-process--parser) parse-action begin send-end parse-end)
-  (wisi-process-parse--prepare parser)
+  (wisi-process-parse--prepare parser parse-action)
   (setf (wisi-parser-lexer-errors parser) nil)
   (setf (wisi-parser-parse-errors parser) nil)
   (wisi-process-parse--send-parse parser parse-action begin send-end parse-end)
@@ -1018,10 +1041,8 @@ PARSER will respond with one or more Query messages."
   (cons begin (wisi-process--parser-end-pos parser))
   )
 
-(cl-defmethod wisi-parse-incremental ((parser wisi-process--parser) &optional full nowait)
-  (if (and full nowait wisi-parse-full-active)
-    (user-error "already doing full parse on %s" (buffer-name (car wisi-parse-full-active))))
-  (wisi-process-parse--prepare parser)
+(cl-defmethod wisi-parse-incremental ((parser wisi-process--parser) parse-action &key full nowait)
+  (wisi-process-parse--prepare parser parse-action)
   (setf (wisi-parser-lexer-errors parser) nil)
   (setf (wisi-parser-parse-errors parser) nil)
   (cond
@@ -1042,26 +1063,25 @@ PARSER will respond with one or more Query messages."
        )))))
 
 (cl-defmethod wisi-post-parse ((parser wisi-process--parser) parse-action begin end)
-  (wisi-process-parse--prepare parser)
+  (wisi-process-parse--prepare parser parse-action)
   (wisi-process-parse--handle-messages-file-not-found
    parser
-   (lambda () (wisi-process-parse--send-action parser parse-action begin end)))
-)
+   (lambda () (wisi-process-parse--send-action parser parse-action begin end))))
 
 (cl-defmethod wisi-refactor ((parser wisi-process--parser) refactor-action stmt-begin stmt-end edit-begin)
   (cond
    (wisi-incremental-parse-enable
     (when wisi--changes
-      (wisi-parse-incremental parser nil)))
+      (wisi-parse-incremental parser 'other)))
 
    (t
     ;; IMPROVEME: stmt-begin, stmt-end not used if only incremental supported.
-    (wisi-process-parse--prepare parser)
+    (wisi-process-parse--prepare parser 'other)
     (wisi-process-parse--send-parse parser 'navigate stmt-begin stmt-end stmt-end)
     (wisi-process-parse--handle-messages parser)
     ))
 
-  (wisi-process-parse--prepare parser)
+  (wisi-process-parse--prepare parser 'other)
   (wisi-process-parse--handle-messages-file-not-found
    parser
    (lambda () (wisi-process-parse--send-refactor parser refactor-action edit-begin))))
@@ -1069,9 +1089,9 @@ PARSER will respond with one or more Query messages."
 (cl-defmethod wisi-parse-tree-query ((parser wisi-process--parser) query &rest args)
   (cl-assert wisi-incremental-parse-enable)
   (when wisi--changes
-    (wisi-parse-incremental parser nil))
+    (wisi-parse-incremental parser 'other))
 
-  (wisi-process-parse--prepare parser)
+  (wisi-process-parse--prepare parser 'other)
   (setf (wisi-process--parser-query-result parser) nil)
   (wisi-process-parse--handle-messages-file-not-found
    parser
@@ -1089,7 +1109,7 @@ PARSER will respond with one or more Query messages."
       (accept-process-output process))))
 
 (defun wisi-process-parse-save-text (parser save-file-name auto)
-  (wisi-process-parse--prepare parser)
+  (wisi-process-parse--prepare parser 'other)
   (let* ((cmd
 	  (format (concat (if auto "save_text_auto" "save_text")
 			    " \"%s\" \"%s\"")

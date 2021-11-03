@@ -409,10 +409,10 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
   (setq xref-prompt-for-identifier nil)
 
   (let ((dir default-directory))
-    (find-file file-name) ;; sets default-directory
-
-     ;; always for initial full parse to complete
+    ;; Always wait for initial full parse to complete.
     (setq wisi-parse-full-background nil)
+
+    (find-file file-name) ;; sets default-directory
 
     (run-test-here)
 

@@ -451,10 +451,12 @@ Truncate any region that overlaps POS."
     )))
 
 (defun wisi-reset-parser ()
-  "Force a parse."
+  "Delete any saved parse state, force a parse."
   (interactive)
   (when wisi--parser
     (wisi-parse-reset wisi--parser))
+  (setf (wisi-parser-lexer-errors wisi--parser) nil)
+  (setf (wisi-parser-parse-errors wisi--parser) nil)
   (syntax-ppss-flush-cache (point-min)) ;; necessary after edit during ediff-regions
 
   (setq wisi--changes nil)
@@ -469,6 +471,7 @@ Truncate any region that overlaps POS."
 	 (cons 'face nil)
 	 (cons 'navigate nil)
 	 (cons 'indent nil)))
+  (setq wisi-parse-failed nil)
   (wisi-set-parse-try t 'indent)
   (wisi-set-parse-try t 'face)
   (wisi-set-parse-try t 'navigate)
@@ -883,7 +886,7 @@ Run the parser first if needed."
 
 	     (wisi-incremental-parse-enable
 	      (when wisi--changes
-		(wisi-parse-incremental wisi--parser))
+		(wisi-parse-incremental wisi--parser parse-action))
 	      (wisi-post-parse wisi--parser parse-action begin parse-end)
 	      (setq parsed-region (cons begin parse-end))
 	      (wisi-cache-add-region parsed-region parse-action))
@@ -1027,9 +1030,11 @@ fails."
 	    (setq done t)
 	  (setq pos
 		(save-excursion
-                  ;; forward-comment must start out of a comment
-		  (goto-char (nth 8 (syntax-ppss pos))) ;; start of comment or string
-		  (forward-comment 100)
+		  (when (nth 8 (syntax-ppss pos))
+                    ;; forward-comment must start out of a comment
+		    (goto-char (nth 8 (syntax-ppss pos))) ;; start of comment or string
+		    (forward-comment 100))
+		  (skip-syntax-forward " >") ;; new-line might also be comment end.
 		  (point)))))))
 
      (t
@@ -1841,7 +1846,7 @@ where the car is a list (FILE LINE COL)."
     ;; We don't wait for this to complete here, so users can scroll
     ;; around while the initial parse runs. font-lock will not work
     ;; during that time (the parser is busy, the buffer is read-only).
-    (wisi-parse-incremental wisi--parser t wisi-parse-full-background)))
+    (wisi-parse-incremental wisi--parser 'other :full t :nowait wisi-parse-full-background)))
 
 (provide 'wisi)
 ;;; wisi.el ends here
