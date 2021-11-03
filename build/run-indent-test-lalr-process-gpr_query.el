@@ -16,16 +16,8 @@
 
 (setq project-find-functions '(wisi-prj-current-cached))
 
-(cond
- ((eq debug-on-error t)
-  (setq debug-on-error nil))
+(setq debug-on-error nil) ;; can be overridden on make command line via ELISP
 
- ((string-equal debug-on-error "really-t")
-  (setq debug-on-error t))
-
- (t
-  (setq debug-on-error nil))
- )
 (setq wisi-debug 1) ;; abort on non-syntax errors
 
 (provide 'run-indent-test-lalr-process-gpr_query)

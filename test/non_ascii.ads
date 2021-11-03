@@ -1,6 +1,5 @@
 -- Test non-ASCII source encoding, and ASCII equivalent of non-ASCII
--- characters. Ensure that multi-byte characters don't interfere with
--- setting text properties.
+-- characters.
 
 --EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 
@@ -13,7 +12,6 @@
 with Ada.Numerics;
 package Non_ASCII is
 
-   --  Programmer wants this, but must use ASCII equivalents in source:
    X1_Non : Wide_String    := "in ‰"; -- per mille sign
 
    --EMACSCMD:(test-face "Wide_String" font-lock-type-face)
@@ -51,5 +49,16 @@ package Non_ASCII is
    ["03c0"]_ASCII : constant := 3.14159;
    --EMACSCMD:(progn (forward-line -1)(forward-word) (nth 2 (wisi-prj-identifier-at-point (project-current))))
    --EMACSRESULT: "[\"03c0\"]_ASCII"
+
+   --EMACSCMD:(progn (forward-line 3)(back-to-indentation)(insert "θ"))
+   --EMACSCMD:(progn (end-of-line 3)(forward-word -1)(kill-word 1)(insert "0"))
+   --EMACSCMD:(progn (forward-line 1)(forward-word) (nth 2 (wisi-prj-identifier-at-point (project-current))))
+   π_non : constant := 3.14159;
+   --EMACSRESULT:"θπ_non"
+   --EMACSCMD:(progn (end-of-line -1)(forward-word -2) (looking-at "3.0"))
+   --EMACSRESULT:t
+
+   -- Undo changes so diff test passes
+   --EMACSCMD:(progn (forward-line -6)(kill-line 1)(insert "   π_non : constant := 3.14159;\n"))
 
 end Non_ASCII;

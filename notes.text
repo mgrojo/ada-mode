@@ -49,23 +49,31 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+typing correct code leaves errors
+    wisitoken-utf_8.adb
+    test/ada_mode-incremental_08.adb does not reproduce.
+
+    add wisi-record-test
+        wisi-reset-parser erase *Ada parser log*
+        use w-pr-lo-to-cmd to write *.adb.cmd
+        use that .cmd as a test
+
 review FIXMEs
     (grep-find "find c:/Projects/org.wisitoken -type f -print | \"xargs\" grep  -nH --null FIXME")
     (grep-find "find c:/Projects/org.emacs.wisi -type f -print | \"xargs\" grep  -nH --null FIXME")
     (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
 
-    see c:/Projects/org.wisitoken/notes.text
+    wisi.el wisi-after-change
+        parser compute byte length of change, don't put text in change
+        on o.e.a-m.s-2 - needs propagate
 
-    add edits to non_ascii.ads
-        on o.e.a-m.s-2
-
-rewrite ada-which-function to use incremental
-    test/ada_mode-nominal.ads
-        don't set ada-which-func-parse-size if incremental
+editing file header comment (including deleting comment line end) lost face in entire visible part of buffer
+    test/non_ascii.ads
 
 incremental parse does full reparse every time if FAIL_ENQUEUE_LIMIT
-    automatically disable face?
-    check for changes?
+    every char for font-lock
+    automatically disable font-lock
+        re-enable on wisi-reset-parser
 
 move wisi.change .. edit_source to wisi.parse_context
 
@@ -995,7 +1003,7 @@ test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-ti
 
 two RUN_ARGS="command_file debug.cmd &> debug.log"
 
-*.debug RUNTEST=run-indent-test-lalr-partial-process-gpr_query.el ELISP="(setq-default wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
+*.debug RUNTEST=run-indent-test-lalr-incremental-process-gpr_query.el\ ELISP="(setq-default wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
 
 in debug.cmd:
 mckenzie_options task_count=1

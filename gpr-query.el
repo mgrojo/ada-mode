@@ -215,11 +215,9 @@ Must match gpr_query.adb Version.")
 	     (setq gpr-query--symbols-progress "0%"))
 
 	   ((eq (gpr-query--session-symbols gpr-query--local-session) 'sent-complete)
-	    (message "gpr-query symbols received; processing ...")
 	    (setf (gpr-query--session-symbols-thread gpr-query--local-session)
 		   (make-thread (lambda () (gpr-query--read-symbols gpr-query--local-session))))
 	    (set-process-filter process nil)
-	    (message "gpr-query symbols processing done")
 	    (process-send-string process "exit\n"))
 
 	   ))
