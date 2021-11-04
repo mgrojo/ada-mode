@@ -145,7 +145,7 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	    (set-process-filter process nil))
 	  )))))
 
-(cl-defmethod wisi-parse-require-process (parser &optional nowait)
+(cl-defmethod wisi-parse-require-process (parser &key nowait)
   (unless (process-live-p (wisi-process--parser-process parser))
     (let ((process-connection-type nil) ;; use a pipe, not a pty; avoid line-by-line reads
 	  (process-name (format " *%s_wisi_parse*" (wisi-process--parser-label parser))))
@@ -162,6 +162,8 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (with-current-buffer (wisi-process--parser-buffer parser)
 	(erase-buffer));; delete any previous messages, prompt
 
+      (unless nowait
+	(message "starting parser ..."))
       (wisi-parse-log-message parser "create process")
 
       (setf (wisi-process--parser-version-checked parser) nil)
@@ -187,28 +189,32 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (set-process-filter (wisi-process--parser-process parser) #'wisi-process-parse--filter)
 
       (unless nowait
+	(message "starting parser ... done")
 	(wisi-process-parse--wait parser))
       )))
 
 (defun wisi-process-parse--wait (parser)
   "Wait for the current command to complete."
-  (let ((process (wisi-process--parser-process parser))
-	search-start
-	(wait-count 0)
-	(found nil))
+  (let* ((process (wisi-process--parser-process parser))
+	 search-start
+	 (filter-active (not (eq #'internal-default-process-filter (process-filter process))))
+	 (wait-count 0)
+	 (found nil))
     (with-current-buffer (wisi-process--parser-buffer parser)
       (setq search-start (point-min))
-      (while (or wisi-parse-full-active
-		 (and (process-live-p process)
-		  (progn
-		    ;; process output is inserted before point, so move back over it to search it
-		    (goto-char search-start)
-		    (not (setq found (re-search-forward wisi-process-parse-prompt (point-max) t))))))
+      (while (if filter-active
+		 (not (eq #'internal-default-process-filter (process-filter process)));; wait for filter to finish
+
+	      (and (process-live-p process)
+		   (progn
+		     ;; process output is inserted before point, so move back over it to search it
+		     (goto-char search-start)
+		     (not (setq found (re-search-forward wisi-process-parse-prompt (point-max) t))))))
 	(setq search-start (point));; don't search same text again
 	(setq wait-count (1+ wait-count))
 	(accept-process-output process 0.1)))
 
-    (unless found
+    (unless (or filter-active found)
       (wisi-parse-log-message parser "process died")
       (error "%s process died" (wisi-process--parser-exec-file parser)))
     ))
@@ -307,6 +313,10 @@ complete."
   (let ((changes
 	 ;; wisi--changes is in reverse time order.
 	 (prin1-to-string (nreverse wisi--changes))))
+    (when wisi-parse-save-changes
+      (with-current-buffer wisi-parse-save-changes
+	(goto-char (point-max))
+	(insert changes)))
     (when (> (length changes) 9999)
       (setq full t))
 
@@ -767,7 +777,7 @@ PARSER will respond with one or more Query messages."
     (kill-process (wisi-process--parser-process parser)))
   (setf (wisi-process--parser-busy parser) nil))
 
-(defun wisi-process-parse--prepare (parser parse-action)
+(cl-defun wisi-process-parse--prepare (parser parse-action &key nowait)
   (when (wisi-process--parser-busy parser)
     (when
 	(cl-ecase parse-action
@@ -807,7 +817,7 @@ PARSER will respond with one or more Query messages."
   ;; wisi-process-parse--wait, which can let font-lock invoke the
   ;; parser again. Thus this call must be after we set
   ;; wisi-process--parser-busy t
-  (wisi-parse-require-process parser)
+  (wisi-parse-require-process parser :nowait nowait)
 
   (setf (wisi-process--parser-total-wait-time parser) 0.0)
 
@@ -1042,7 +1052,7 @@ PARSER will respond with one or more Query messages."
   )
 
 (cl-defmethod wisi-parse-incremental ((parser wisi-process--parser) parse-action &key full nowait)
-  (wisi-process-parse--prepare parser parse-action)
+  (wisi-process-parse--prepare parser parse-action :nowait nowait)
   (setf (wisi-parser-lexer-errors parser) nil)
   (setf (wisi-parser-parse-errors parser) nil)
   (cond

@@ -165,7 +165,7 @@ Return nil if no match found before eob."
   "Adjust INDENT for REPAIR (a wisi--parse-error-repair struct). Return new indent."
   indent)
 
-(cl-defgeneric wisi-parse-require-process ((parser wisi-parser) &optional nowait)
+(cl-defgeneric wisi-parse-require-process ((parser wisi-parser) &key nowait)
     "If PARSER uses an external process, start the process for PARSER.
 If NOWAIT is non-nil, does not wait for the process to respond.")
 
@@ -500,5 +500,69 @@ Normally set from a language-specific option.")
    (t
     (format "(%s)" (wisi-tok-token tok)))
    ))
+
+(defconst wisi-parse-changes-default-buffer-name "*wisi-changes*")
+
+(defvar wisi-parse-save-changes nil
+  "When non-nil, a buffer for saving all edits.
+Saved in wisi change format, for later replay by
+`wisi-replay-changes'. Mostly used for creating tests.")
+
+(defun wisi-record-changes (&optional buffer-name)
+  "Start recording changes.
+End recording with `wisi-end-record-changes'.
+Replay with `wisi-replay-changes'."
+  (interactive)
+  (let ((buffer (get-buffer-create (or buffer-name wisi-parse-changes-default-buffer-name))))
+    ;; Append to current content, to make it easier to capture an
+    ;; entire test.
+    (goto-char (point-max))
+    (setq wisi-parse-save-changes buffer)))
+
+(defun wisi-end-record-changes (&optional file-name)
+  "End recording changes, write to file if name provided."
+  (interactive)
+  (unless wisi-parse-save-changes
+    (error "record changes not started"))
+
+  (with-current-buffer wisi-parse-save-changes
+    (cond
+     ((and (null file-name)
+	       (string-equal (buffer-name) wisi-parse-changes-default-buffer-name))
+      (message "no name provided for changes file; not written."))
+
+     (t
+      (unless file-name (setq file-name (buffer-name)))
+      (write-file file-name)
+      (message "changes saved to file '%s'" file-name))))
+
+  (setq wisi-parse-save-changes nil))
+
+(defun wisi-replay-changes (file-name)
+  "Replay changes from FILE-NAME, into current buffer.
+Changes must have been saved by `wisi-record-test'."
+  (let ((edit-buffer (current-buffer))
+	(changes-buffer (find-file-noselect file-name))
+	end change-list)
+
+    (set-buffer changes-buffer)
+    (goto-char (point-min))
+    (setq end (scan-sexps (point) 1))
+
+    (while end
+      (setq change-list (car (read-from-string (buffer-substring-no-properties (point) end))))
+      ;; See `wisi-after-change' for change format
+      (goto-char end)
+      (dolist (change change-list)
+	(let ((pos           (nth 1 change))
+	      (deleted-chars (nth 5 change))
+	      (inserted      (nth 6 change)))
+	  (set-buffer edit-buffer)
+	  (goto-char pos)
+	  (delete-char deleted-chars)
+	  (execute-kbd-macro inserted)))
+      (set-buffer changes-buffer)
+      (setq end (scan-sexps (point) 1))
+      )))
 
 (provide 'wisi-parse-common)

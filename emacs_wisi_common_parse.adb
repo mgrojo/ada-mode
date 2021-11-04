@@ -485,6 +485,7 @@ package body Emacs_Wisi_Common_Parse is
 
                when others =>
                   Parser.Tree.Lexer.Discard_Rest_Of_Input;
+                  raise;
                end;
 
             elsif Match ("post-parse") then

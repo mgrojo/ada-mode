@@ -480,6 +480,8 @@ Truncate any region that overlaps POS."
   (wisi-set-last-parse-region (point-min) (point-min) 'navigate)
   (wisi-invalidate-cache 'indent (point-min))
   (wisi-invalidate-cache 'face (point-min))
+  (with-silent-modifications
+    (remove-text-properties (point-min) (point-max) '(font-lock-face nil fontified nil)))
   (wisi-invalidate-cache 'navigate (point-min))
   (wisi-fringe-clean))
 
