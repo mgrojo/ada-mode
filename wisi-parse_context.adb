@@ -14,6 +14,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Directories;
+with Ada.Exceptions;
 with Ada.Finalization;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
@@ -190,6 +191,508 @@ package body Wisi.Parse_Context is
    is begin
       Map.Clear;
    end Clear;
+
+   function Image (Item : in Change) return String
+   is
+      use WisiToken;
+   begin
+      return "(" &
+        Item.Begin_Byte_Pos'Image & "," &
+        Item.Begin_Char_Pos'Image & "," &
+        Item.Inserted_End_Byte_Pos'Image & "," &
+        Item.Inserted_End_Char_Pos'Image & "," &
+        " +""" & (-Item.Inserted_Text) & """," &
+        Item.Deleted_Bytes'Image & "," &
+        Item.Deleted_Chars'Image & ")";
+   end Image;
+
+   function Get_Emacs_Change_List
+     (Command_Line : in     String;
+      Last         : in out Integer)
+     return Change_Lists.List
+   is
+      function Substitute_Escapes (Item : in String) return String
+      is begin
+         if Item'Length = 0 then
+            return Item;
+         else
+            declare
+               I      : Integer := Item'First;
+               J      : Integer := Item'First;
+               Result : String (Item'Range);
+            begin
+               loop
+                  if Item (I) = '\' and I < Item'Last then
+                     if Item (I + 1) = 'n' then
+                        Result (J) := ASCII.LF;
+                        I := @ + 2;
+                     elsif Item (I + 1) = '"' then
+                        Result (J) := '"';
+                        I := @ + 2;
+                     elsif Item (I + 1) = '\' then
+                        Result (J) := '\';
+                        I := @ + 2;
+                     else
+                        Result (J) := Item (I);
+                        I := @ + 1;
+                     end if;
+                  else
+                     Result (J) := Item (I);
+                     I := @ + 1;
+                  end if;
+                  exit when I > Item'Last;
+                  J := @ + 1;
+               end loop;
+               return Result (Result'First .. J);
+            end;
+         end if;
+      end Substitute_Escapes;
+
+   begin
+      return Result : Change_Lists.List do
+         Skip (Command_Line, Last, '('); --  start of changes list
+         loop
+            exit when Last = Command_Line'Last;
+            exit when Command_Line (Last + 1) = ')';
+
+            declare
+               use WisiToken;
+               Item : Change;
+            begin
+               Skip (Command_Line, Last, '(');
+               Item.Begin_Byte_Pos        := Base_Buffer_Pos (Get_Integer (Command_Line, Last));
+               Item.Begin_Char_Pos        := Base_Buffer_Pos (Get_Integer (Command_Line, Last));
+               Item.Inserted_End_Byte_Pos := Base_Buffer_Pos (Get_Integer (Command_Line, Last));
+               Item.Inserted_End_Char_Pos := Base_Buffer_Pos (Get_Integer (Command_Line, Last));
+               Item.Deleted_Bytes         := Get_Integer (Command_Line, Last);
+               Item.Deleted_Chars         := Get_Integer (Command_Line, Last);
+               Item.Inserted_Text         := +Substitute_Escapes (Get_String (Command_Line, Last));
+               Skip (Command_Line, Last, ')');
+
+               if Integer (Item.Inserted_End_Byte_Pos - Item.Begin_Byte_Pos) /=
+                 Ada.Strings.Unbounded.Length (Item.Inserted_Text)
+               then
+                  raise Protocol_Error with "invalid change; begin, end does not match inserted_text length" &
+                    Item.Begin_Byte_Pos'Image & Item.Inserted_End_Byte_Pos'Image & Integer'Image
+                      (Ada.Strings.Unbounded.Length (Item.Inserted_Text));
+               end if;
+               Result.Append (Item);
+            end;
+         end loop;
+         Skip (Command_Line, Last, ')'); --  end of edits list
+      end return;
+   end Get_Emacs_Change_List;
+
+   procedure Edit_Source
+     (Trace         : in out WisiToken.Trace'Class;
+      Parse_Context : in out Wisi.Parse_Context.Parse_Context;
+      Changes       : in     Change_Lists.List;
+      KMN_List      :    out WisiToken.Parse.KMN_Lists.List)
+   is
+      use Ada.Containers;
+      use WisiToken;
+
+      --  Changes is in increasing time order (ie _not_ in buffer pos
+      --  order); KMN_List is in buffer pos order.
+
+      Source           : Ada.Strings.Unbounded.String_Access renames Parse_Context.Text_Buffer;
+      Source_Byte_Last : Integer renames Parse_Context.Text_Buffer_Byte_Last;
+      Source_Char_Last : Integer renames Parse_Context.Text_Buffer_Char_Last;
+
+      Initial_Text_Byte_Region : constant Buffer_Region := (1, Base_Buffer_Pos (Source_Byte_Last));
+      Initial_Text_Char_Region : constant Buffer_Region := (1, Base_Buffer_Pos (Source_Char_Last));
+
+      Gap_First : Integer := Source_Byte_Last + 1;
+      Gap_Last  : Integer := Source'Last;
+
+      function Gap_Invariant return Boolean
+      is (Gap_Last - Gap_First = Source'Last - (Source_Byte_Last + 1));
+
+      Total_Inserted_Bytes : Integer := 0;
+
+      function Reallocate return Boolean
+      is begin
+         --  This is a conservative analysis; Total_Inserted_Bytes is correct
+         --  if all Changes are inserted with no overlap and no deletes;
+         --  otherwise it is too large. But the savings from being more
+         --  accurate are not large, and this simplifies the editing algorithm.
+         if Changes.Length = 0 then
+            return False;
+         end if;
+
+         for Change of Changes loop
+            Total_Inserted_Bytes := @ + Ada.Strings.Unbounded.Length (Change.Inserted_Text);
+         end loop;
+
+         if Source_Byte_Last + Total_Inserted_Bytes > Source'Last then
+            return True;
+         else
+            return False;
+         end if;
+      end Reallocate;
+
+      procedure Move_Gap (New_Gap_First : in Integer)
+      with Pre => New_Gap_First /= Gap_First and Gap_Invariant,
+        Post => Gap_Invariant
+      is
+         --  Examples:
+         --  gap_first : 15
+         --  gap_last  : 19
+         --
+         --  new_gap_first: 5
+         --     new_gap_last := 9
+         --     source (10 .. 19) := source (5 .. 14)
+         --
+         --  new_gap_first: 25
+         --  new_gap_last : 29
+         --      source (15 .. 24) := source (20 .. 29)
+
+         New_Gap_Last : constant Integer := New_Gap_First + Gap_Last - Gap_First;
+      begin
+         if New_Gap_First < Gap_First then
+            Source (New_Gap_Last + 1 .. Gap_Last) := Source (New_Gap_First .. Gap_First - 1);
+         else
+            Source (Gap_First .. New_Gap_First - 1) := Source (Gap_Last + 1 .. New_Gap_Last);
+         end if;
+
+         Gap_First := New_Gap_First;
+         Gap_Last  := New_Gap_Last;
+      end Move_Gap;
+
+      procedure Edit_Text (Change : in Wisi.Parse_Context.Change)
+      with Pre => Gap_Invariant, Post => Gap_Invariant
+      --  Apply Change to Source. Leaves Gap at edit point.
+      is
+         use Ada.Strings.Unbounded;
+         Inserted_Bytes : constant Integer := Ada.Strings.Unbounded.Length (Change.Inserted_Text);
+      begin
+         if Gap_First /= Integer (Change.Begin_Byte_Pos) then
+            Move_Gap (Integer (Change.Begin_Byte_Pos));
+         end if;
+
+         if Change.Deleted_Bytes > 0 then
+            Gap_Last         := @ + Change.Deleted_Bytes;
+            pragma Assert (Gap_Last <= Source'Last);
+            Source_Byte_Last := @ - Change.Deleted_Bytes;
+            Source_Char_Last := @ - Change.Deleted_Chars;
+         end if;
+
+         if Inserted_Bytes > 0 then
+            pragma Assert (Gap_Last + 1 - Gap_First >= Inserted_Bytes);
+            Source (Gap_First .. Gap_First + Inserted_Bytes - 1) := -Change.Inserted_Text;
+
+            Gap_First        := Gap_First + Inserted_Bytes;
+            Source_Byte_Last := @ + Inserted_Bytes;
+            Source_Char_Last := @ + Integer (Change.Inserted_End_Char_Pos - Change.Begin_Char_Pos);
+         end if;
+      end Edit_Text;
+
+      procedure Delete_KMNs
+        (KMN_Last_Byte     : in     Zero_Buffer_Pos;
+         KMN_Last_Char     : in     Zero_Buffer_Pos;
+         After             : in     Parse.KMN_Lists.Cursor;
+         Last_Deleted_Byte : in     Buffer_Pos;
+         Last_Deleted_Char : in     Buffer_Pos;
+         KMN               : in out Parse.KMN)
+      --  Last_Deleted_Byte is deleted from current text by current
+      --  Change. Delete KMNs after After whose Stable are entirely within
+      --  Last_Deleted_Byte; merge into KMN (initially the current Change).
+      --  Adjust following KMN if stable contains Last_Deleted_Byte.
+      is
+         use Parse.KMN_Lists;
+         use all type Parse.KMN;
+
+         Last_Byte : Zero_Buffer_Pos := KMN_Last_Byte + KMN_List (After).Stable_Bytes +
+           KMN_List (After).Inserted_Bytes; -- end of After KMN and subsequent deleted KMN
+         Last_Char : Zero_Buffer_Pos := KMN_Last_Char + KMN_List (After).Stable_Chars +
+           KMN_List (After).Inserted_Chars;
+
+         Cur : Cursor := Next (After);
+      begin
+         loop
+            exit when not Has_Element (Cur);
+            if Last_Byte + KMN_List (Cur).Stable_Bytes + KMN_List (Cur).Inserted_Bytes <=
+              Last_Deleted_Byte
+            then
+               --  All of cur inserted are deleted, and some of next.
+               --  test_edit_source.adb Edit_06.
+               KMN.Deleted_Bytes := @ + KMN_List (Cur).Deleted_Bytes - KMN_List (Cur).Inserted_Bytes;
+               KMN.Deleted_Chars := @ + KMN_List (Cur).Deleted_Chars - KMN_List (Cur).Inserted_Chars;
+
+               Last_Byte := @ + KMN_List (Cur).Stable_Bytes + KMN_List (Cur).Inserted_Bytes;
+               Last_Char := @ + KMN_List (Cur).Stable_Chars + KMN_List (Cur).Inserted_Chars;
+
+               declare
+                  To_Delete : Cursor := Cur;
+               begin
+                  Cur := Next (Cur);
+                  KMN_List.Delete (To_Delete);
+               end;
+
+            elsif Last_Byte + KMN_List (Cur).Stable_Bytes <= Last_Deleted_Byte then
+               --  Some of Cur.inserted are deleted. test_edit_source.adb Edit_05.
+               declare
+                  Deleted_Bytes : constant Zero_Buffer_Pos := Last_Deleted_Byte -
+                    (Last_Byte + KMN_List (Cur).Stable_Bytes); -- bytes of cur.inserted that are deleted
+                  Deleted_Chars : constant Zero_Buffer_Pos := Last_Deleted_Char -
+                    (Last_Char + KMN_List (Cur).Stable_Chars);
+               begin
+                  KMN.Inserted_Bytes := @ - Deleted_Bytes + KMN_List (Cur).Inserted_Bytes;
+                  KMN.Inserted_Chars := @ - Deleted_Chars + KMN_List (Cur).Inserted_Chars;
+
+                  KMN.Deleted_Bytes := @ + KMN_List (Cur).Deleted_Bytes - Deleted_Bytes;
+                  KMN.Deleted_Chars := @ + KMN_List (Cur).Deleted_Chars - Deleted_Chars;
+
+                  KMN_List.Delete (Cur);
+                  exit;
+               end;
+            else
+               --  Last_Byte is in Cur.stable
+               KMN_List (Cur).Stable_Bytes := @ - (Last_Deleted_Byte - Last_Byte);
+               KMN_List (Cur).Stable_Chars := @ - (Last_Deleted_Char - Last_Char);
+
+               if KMN_List (Cur) = (others => 0) then
+                  KMN_List.Delete (Cur);
+               end if;
+               exit;
+            end if;
+         end loop;
+      end Delete_KMNs;
+
+      procedure Edit_KMN (Change : in Wisi.Parse_Context.Change)
+      --  Apply Change to KMN list
+      is
+         use Parse.KMN_Lists;
+         use all type Parse.KMN;
+
+         Cur : Cursor := KMN_List.First;
+
+         KMN_Last_Byte : Base_Buffer_Pos := 0; --  Last byte of prev KMN.
+         KMN_Last_Char : Base_Buffer_Pos := 0; --  Last char of prev KMN.
+
+         function To_KMN (Item : in Wisi.Parse_Context.Change) return Parse.KMN
+         --  Assuming Change does not overlap any current KMN non-stable,
+         --  return a new KMN for it.
+         is (Stable_Bytes   => Item.Begin_Byte_Pos - KMN_Last_Byte - 1, -- Begin_Byte_Pos is deleted or inserted
+             Stable_Chars   => Item.Begin_Char_Pos - KMN_Last_Char - 1,
+             Inserted_Bytes => Item.Inserted_End_Byte_Pos - Item.Begin_Byte_Pos, -- End_Byte_Pos is after last inserted
+             Inserted_Chars => Item.Inserted_End_Char_Pos - Item.Begin_Char_Pos,
+             Deleted_Bytes  => Base_Buffer_Pos (Item.Deleted_Bytes),
+             Deleted_Chars  => Base_Buffer_Pos (Item.Deleted_Chars));
+
+      begin
+         loop
+            declare
+               Cur_KMN : Parse.KMN renames KMN_List (Cur);
+               KMN     : Parse.KMN := To_KMN (Change);
+
+               Cur_Last_Inserted_Byte : constant Base_Buffer_Pos :=
+                 KMN_Last_Byte + Cur_KMN.Stable_Bytes + Cur_KMN.Inserted_Bytes;
+               Cur_Last_Inserted_Char : constant Base_Buffer_Pos :=
+                 KMN_Last_Char + Cur_KMN.Stable_Chars + Cur_KMN.Inserted_Chars;
+
+               Change_Last_Deleted_Byte : constant Base_Buffer_Pos :=
+                 Change.Begin_Byte_Pos + Base_Buffer_Pos (Change.Deleted_Bytes) - 1;
+
+               Change_Last_Deleted_Char : constant Base_Buffer_Pos :=
+                 Change.Begin_Char_Pos + Base_Buffer_Pos (Change.Deleted_Chars) - 1;
+            begin
+               pragma Assert (KMN_Last_Byte < Change.Begin_Byte_Pos);
+
+               if Change.Begin_Byte_Pos + Base_Buffer_Pos (Change.Deleted_Bytes) - 1 <
+                 KMN_Last_Byte + Cur_KMN.Stable_Bytes
+               then
+                  --  Change is entirely within Cur_KMN.Stable_Bytes;
+                  --  test_edit_source.adb Edit_01
+                  --
+                  --  Or Change is inserting at end of text; Edit_10.
+                  Cur_KMN.Stable_Bytes := @ - (KMN.Stable_Bytes + KMN.Deleted_Bytes);
+                  Cur_KMN.Stable_Chars := @ - (KMN.Stable_Chars + KMN.Deleted_Chars);
+
+                  if KMN_List (Cur) = (others => 0) then
+                     Cur_KMN := KMN;
+                  else
+                     KMN_List.Insert (Before => Cur, Element => KMN);
+                  end if;
+                  exit;
+
+               elsif Change.Begin_Byte_Pos <= KMN_Last_Byte + Cur_KMN.Stable_Bytes + 1 then
+                  --  Change starts in or immediately after Cur_KMN.Stable_Bytes, ends
+                  --  in or after Cur_KMN.Insert; merge Change into Cur_KMN.
+
+                  if Cur_Last_Inserted_Byte >= Change_Last_Deleted_Byte then
+                     --  Some of Cur_KMN.Inserted are preserved; test_edit_source.adb
+                     --  Edit_02, _03, Deindent.
+                     --
+                     --   cur_kmn       next_kmn
+                     --  stable|  ins| stable| ins| ...
+                     --
+                     --   change
+                     --     | ins     |
+                     --     | del  |
+
+                     Cur_KMN.Inserted_Bytes := KMN.Inserted_Bytes + Cur_Last_Inserted_Byte - Change_Last_Deleted_Byte;
+                     Cur_KMN.Inserted_Chars := KMN.Inserted_Chars + Cur_Last_Inserted_Char - Change_Last_Deleted_Char;
+
+                     Cur_KMN.Deleted_Bytes := @ + KMN_Last_Byte + Cur_KMN.Stable_Bytes + 1 - Change.Begin_Byte_Pos;
+                     Cur_KMN.Deleted_Chars := @ + KMN_Last_Char + Cur_KMN.Stable_Chars + 1 - Change.Begin_Char_Pos;
+                  else
+                     --  All of Cur_KMN.Inserted and some of following KMN are deleted;
+                     --  test_edit_source.adb Edit_04, _05, _06.
+
+                     --  cur_kmn      next_kmn
+                     --  stable|   ins| stable| ins| ...
+                     --
+                     --   change
+                     --     | ins    |
+                     --     | del                          |
+
+                     Delete_KMNs
+                       (KMN_Last_Byte, KMN_Last_Char, Cur,
+                        Last_Deleted_Byte => Change.Begin_Byte_Pos + KMN.Deleted_Bytes - 1,
+                        Last_Deleted_Char => Change.Begin_Char_Pos + KMN.Deleted_Chars - 1,
+                        KMN               => KMN);
+
+                     Cur_KMN.Deleted_Bytes := @ + KMN.Deleted_Bytes - Cur_KMN.Inserted_Bytes;
+                     Cur_KMN.Deleted_Chars := @ + KMN.Deleted_Chars - Cur_KMN.Inserted_Chars;
+
+                     Cur_KMN.Inserted_Bytes := KMN.Inserted_Bytes;
+                     Cur_KMN.Inserted_Chars := KMN.Inserted_Chars;
+                  end if;
+
+                  Cur_KMN.Stable_Bytes := KMN.Stable_Bytes;
+                  Cur_KMN.Stable_Chars := KMN.Stable_Chars;
+                  exit;
+
+               elsif Change.Begin_Byte_Pos <= KMN_Last_Byte + Cur_KMN.Stable_Bytes + Cur_KMN.Inserted_Bytes + 1 then
+                  --  Change starts in or immediately after Cur_KMN inserted; merge
+                  --  Change into Cur_KMN. test_edit_source.adb Edit_07, _08, _09,
+                  --  Insert_Deindent
+
+                  if Cur_Last_Inserted_Byte >= Change_Last_Deleted_Byte then
+                     --  Beginning and end of Cur_KMN.Inserted are preserved; test_edit_source.adb
+                     --  Edit_07.
+                     --
+                     --   cur_kmn          next_kmn
+                     --  stable|  ins   | stable| ins| ...
+                     --
+                     --   change
+                     --          | ins     |
+                     --          | del|
+
+                     Cur_KMN.Inserted_Bytes := KMN.Inserted_Bytes + Cur_KMN.Inserted_Bytes - KMN.Deleted_Bytes;
+                     Cur_KMN.Inserted_Chars := KMN.Inserted_Chars + Cur_KMN.Inserted_Chars - KMN.Deleted_Chars;
+
+                     --  Cur_KMN.Deleted_Bytes unchanged
+                  else
+                     --  Remainder of Cur_KMN.Inserted and some of following KMN are deleted;
+                     --  test_edit_source.adb Edit_08, _09
+
+                     --  cur_kmn      next_kmn
+                     --  stable|   ins| stable| ins| ...
+                     --
+                     --   change
+                     --         | ins    |
+                     --         | del                          |
+
+                     Delete_KMNs
+                       (KMN_Last_Byte, KMN_Last_Char, Cur,
+                        Last_Deleted_Byte => Change.Begin_Byte_Pos + KMN.Deleted_Bytes - 1,
+                        Last_Deleted_Char => Change.Begin_Char_Pos + KMN.Deleted_Chars - 1,
+                        KMN               => KMN);
+
+                     declare
+                        Remaining_Cur_Ins_Bytes : constant Zero_Buffer_Pos :=
+                          Change.Begin_Byte_Pos - (KMN_Last_Byte + Cur_KMN.Stable_Bytes + 1);
+
+                        Remaining_Cur_Ins_Chars : constant Zero_Buffer_Pos :=
+                          Change.Begin_Char_Pos - (KMN_Last_Char + Cur_KMN.Stable_Chars + 1);
+                     begin
+                        Cur_KMN.Deleted_Bytes := @ + KMN.Deleted_Bytes -
+                          (Cur_KMN.Inserted_Bytes - Remaining_Cur_Ins_Bytes);
+
+                        Cur_KMN.Deleted_Chars := @ + KMN.Deleted_Chars -
+                          (Cur_KMN.Inserted_Chars  - Remaining_Cur_Ins_Chars);
+
+                        Cur_KMN.Inserted_Bytes := Remaining_Cur_Ins_Bytes + KMN.Inserted_Bytes;
+                        Cur_KMN.Inserted_Chars := Remaining_Cur_Ins_Chars + KMN.Inserted_Chars;
+                     end;
+                  end if;
+
+                  exit;
+
+               else
+                  --  Change is entirely after Cur_KMN
+                  KMN_Last_Byte := @ + Cur_KMN.Stable_Bytes + Cur_KMN.Inserted_Bytes;
+                  KMN_Last_Char := @ + Cur_KMN.Stable_Chars + Cur_KMN.Inserted_Chars;
+
+                  Cur := Next (Cur);
+
+                  if not Has_Element (Cur) then
+                     --  Since KMN_List starts with one KMN covering all of Source, we
+                     --  should never get here.
+                     raise SAL.Programmer_Error;
+                  end if;
+               end if;
+            end;
+         end loop;
+
+         if Debug_Mode then
+            begin
+               WisiToken.Parse.Validate_KMN
+                 (List                     => KMN_List,
+                  Initial_Text_Byte_Region => Initial_Text_Byte_Region,
+                  Initial_Text_Char_Region => Initial_Text_Char_Region,
+                  Edited_Text_Byte_Region  => Buffer_Region'(1, Base_Buffer_Pos (Source_Byte_Last)),
+                  Edited_Text_Char_Region  => Buffer_Region'(1, Base_Buffer_Pos (Source_Char_Last)));
+            exception
+            when E : WisiToken.User_Error =>
+               raise Protocol_Error with Ada.Exceptions.Exception_Message (E);
+            end;
+         end if;
+      end Edit_KMN;
+
+   begin
+      if Reallocate then
+         declare
+            New_Source : constant Ada.Strings.Unbounded.String_Access := new String
+              (Source'First .. Source_Byte_Last + Total_Inserted_Bytes);
+         begin
+            New_Source (Source'First .. Source_Byte_Last) := Source (Source'First .. Source_Byte_Last);
+            Ada.Strings.Unbounded.Free (Source);
+            Source := New_Source;
+         end;
+
+         Gap_Last := Source'Last;
+      end if;
+
+      --  Start with one KMN with stable region = entire source.
+      KMN_List.Append
+        ((Stable_Bytes   => Base_Buffer_Pos (Source_Byte_Last),
+          Stable_Chars   => Base_Buffer_Pos (Source_Char_Last),
+          Deleted_Bytes  => 0,
+          Deleted_Chars  => 0,
+          Inserted_Bytes => 0,
+          Inserted_Chars => 0));
+
+      for Change of Changes loop
+         Edit_Text (Change);
+         Edit_KMN (Change);
+
+         if Trace_Incremental_Parse > Detail then
+            Trace.Put_Line ("change:" & Image (Change));
+            Trace.Put_Line ("kmn_list:");
+            for KMN of KMN_List loop
+               Trace.Put_Line (Parse.Image (KMN));
+            end loop;
+         end if;
+      end loop;
+
+      if Gap_Last /= Source'Last then
+         --  Remove the gap
+         Source (Gap_First .. Source_Byte_Last) := Source (Gap_Last + 1 .. Source'Last);
+      end if;
+   end Edit_Source;
 
    procedure Save_Text
      (Context       : in Parse_Context;

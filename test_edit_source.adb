@@ -19,7 +19,7 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with Wisi;
+with Wisi.Parse_Context;
 with WisiToken.Parse.AUnit;
 with WisiToken.Text_IO_Trace;
 package body Test_Edit_Source is
@@ -52,7 +52,7 @@ package body Test_Edit_Source is
      (Label                     : in String;
       Initial_Source            : in String;
       Initial_Source_Char_Last  : in Integer;
-      Changes                   : in Wisi.Change_Lists.List;
+      Changes                   : in Wisi.Parse_Context.Change_Lists.List;
       Expected_Source           : in String;
       Expected_Source_Char_Last : in Integer;
       Expected_KMN              : in WisiToken.Parse.KMN_Lists.List)
@@ -61,12 +61,13 @@ package body Test_Edit_Source is
       use WisiToken;
       use WisiToken.Parse.AUnit.KMN_Lists_AUnit;
 
-      Computed_Source  : Ada.Strings.Unbounded.String_Access := new String'(Initial_Source);
-      Unix_Initial_Source : Ada.Strings.Unbounded.Unbounded_String;
+      Context : Wisi.Parse_Context.Parse_Context :=
+        (Text_Buffer           => new String'(Initial_Source),
+         Text_Buffer_Byte_Last => Initial_Source'Last,
+         Text_Buffer_Char_Last => Initial_Source_Char_Last,
+         others                => <>);
 
-      Computed_Source_Byte_Last : Integer := Initial_Source'Last;
-      Computed_Source_Char_Last : Integer := Initial_Source_Char_Last;
-      Computed_KMN              : WisiToken.Parse.KMN_Lists.List;
+      Computed_KMN : WisiToken.Parse.KMN_Lists.List;
    begin
       if Trace_Tests > Detail then
          Ada.Text_IO.Put_Line ("Expected_KMN:");
@@ -75,14 +76,11 @@ package body Test_Edit_Source is
          end loop;
       end if;
 
-      Unix_Initial_Source := +Computed_Source (Computed_Source'First .. Computed_Source_Byte_Last);
-
-      Wisi.Edit_Source
-        (Trace, Computed_Source, Computed_Source_Byte_Last, Computed_Source_Char_Last, Changes, Computed_KMN);
+      Wisi.Parse_Context.Edit_Source (Trace, Context, Changes, Computed_KMN);
 
       if WisiToken.Trace_Tests > WisiToken.Detail then
          Ada.Text_IO.Put_Line (Label & ".edited source:");
-         Ada.Text_IO.Put_Line (Computed_Source (1 .. Computed_Source_Byte_Last));
+         Ada.Text_IO.Put_Line (Context.Text_Buffer (1 .. Context.Text_Buffer_Byte_Last));
 
          Ada.Text_IO.Put_Line (Label & ".computed KMN:");
          for KMN of Computed_KMN loop
@@ -90,21 +88,21 @@ package body Test_Edit_Source is
          end loop;
       end if;
 
-      Check (Label & ".source", Computed_Source (1 .. Computed_Source_Byte_Last), Expected_Source);
+      Check (Label & ".source", Context.Text_Buffer (1 .. Context.Text_Buffer_Byte_Last), Expected_Source);
 
-      Check (Label & ".char_last", Computed_Source_Char_Last, Expected_Source_Char_Last);
+      Check (Label & ".char_last", Context.Text_Buffer_Char_Last, Expected_Source_Char_Last);
 
-      Check_Valid_KMN (Computed_KMN, -Unix_Initial_Source, Expected_Source);
+      Check_Valid_KMN (Computed_KMN, Initial_Source, Expected_Source);
       Check (Label & ".kmn", Computed_KMN, Expected_KMN);
 
-      Ada.Strings.Unbounded.Free (Computed_Source);
+      Ada.Strings.Unbounded.Free (Context.Text_Buffer);
    exception
    when AUnit.Assertions.Assertion_Error =>
-      Ada.Strings.Unbounded.Free (Computed_Source);
+      Ada.Strings.Unbounded.Free (Context.Text_Buffer);
       raise;
 
    when E : others =>
-      Ada.Strings.Unbounded.Free (Computed_Source);
+      Ada.Strings.Unbounded.Free (Context.Text_Buffer);
       AUnit.Assertions.Assert (False, Ada.Exceptions.Exception_Message (E));
    end Test;
 
@@ -119,7 +117,7 @@ package body Test_Edit_Source is
       Initial_Source  : constant String := "An_Integer := Another_Integer;";
       Expected_Source : constant String := Initial_Source;
 
-      Changes  : Wisi.Change_Lists.List;
+      Changes  : Wisi.Parse_Context.Change_Lists.List;
 
       Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
    begin
@@ -139,6 +137,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  Modeled on de-indent in test/ada_mode-incremental_parse.adb
@@ -225,6 +224,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       Line_3 : constant String := "     is (Float (A));" & ASCII.LF;
@@ -300,6 +300,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  Complex_Noop followed by Deindent, all in one change list. This
@@ -413,6 +414,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  Insert followed by Deindent, all in one change list. This
@@ -522,6 +524,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  Insert followed by Deindent, all in one change list. This
@@ -594,6 +597,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  First of systematic tests of all relations of Change to existing KMN.
@@ -632,6 +636,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  New change inserted length does not affect Edit_Source logic.
@@ -671,6 +676,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  New change delete ends in 1st KMN inserted; merge them.
@@ -707,6 +713,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  New change delete ends after 1st KMN inserted, in 2nd KMN stable;
@@ -744,6 +751,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  New change delete ends in 2nd KMN inserted; delete 2nd KMN, merge
@@ -780,6 +788,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  New change delete ends in final stable; delete 2nd KMN, merge
@@ -816,6 +825,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  New change starts, ends in 1st KMN inserted.
@@ -852,6 +862,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  New change starts in 1st KMN inserted, ends in 2nd KMN stable.
@@ -888,6 +899,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  New change starts in 1st KMN inserted, ends in 3rd KMN stable;
@@ -933,6 +945,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  Change inserts at end of text.
@@ -960,6 +973,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  Typing one character at a time produces one KMN.
@@ -992,6 +1006,7 @@ package body Test_Edit_Source is
    is
       pragma Unreferenced (T);
       use Wisi;
+      use Wisi.Parse_Context;
       use WisiToken;
 
       --  Same as WisiToken test_incremental.adb Non_Ascii

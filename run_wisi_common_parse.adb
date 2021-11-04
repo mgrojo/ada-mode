@@ -134,6 +134,9 @@ package body Run_Wisi_Common_Parse is
          --  Test case: ada_mode-recover_partial_14.adb
          Parse_Context.Text_Buffer_Char_Last := Parse_Context.Text_Buffer'Last;
 
+         --  wisi-process-parse.el wisi-parse-require-process sets the coding
+         --  convention for sending data to the parser process to utf-8-unix.
+         --  So we have to convert DOS line endings to Unix here to match.
          Wisi.To_Unix_Line_Endings
            (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last,
             Parse_Context.Text_Buffer_Char_Last);
@@ -241,7 +244,7 @@ package body Run_Wisi_Common_Parse is
             Text : constant String := Argument (4);
             Last : Integer := Text'First - 1;
          begin
-            Params.Changes := Wisi.Get_Emacs_Change_List (Text, Last);
+            Params.Changes := Wisi.Parse_Context.Get_Emacs_Change_List (Text, Last);
          end;
 
          Params.Inc_Begin_Byte_Pos := WisiToken.Buffer_Pos'Value (Argument (5));
@@ -452,16 +455,11 @@ package body Run_Wisi_Common_Parse is
 
       when Parse_Incremental =>
          declare
-            Changes  : constant Wisi.Change_Lists.List := Wisi.Get_Emacs_Change_List (Line, Last);
+            Changes  : constant Wisi.Parse_Context.Change_Lists.List :=
+              Wisi.Parse_Context.Get_Emacs_Change_List (Line, Last);
             KMN_List : WisiToken.Parse.KMN_Lists.List;
          begin
-            Wisi.Edit_Source
-              (Trace,
-               Parse_Context.Text_Buffer,
-               Parse_Context.Text_Buffer_Byte_Last,
-               Parse_Context.Text_Buffer_Char_Last,
-               Changes,
-               KMN_List);
+            Wisi.Parse_Context.Edit_Source (Trace, Parse_Context.all, Changes, KMN_List);
 
             if Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
                Parse_Context.Save_Text_Auto (Emacs_Message => False);
@@ -744,13 +742,7 @@ package body Run_Wisi_Common_Parse is
                declare
                   KMN_List : WisiToken.Parse.KMN_Lists.List;
                begin
-                  Wisi.Edit_Source
-                    (Trace,
-                     Parse_Context.Text_Buffer,
-                     Parse_Context.Text_Buffer_Byte_Last,
-                     Parse_Context.Text_Buffer_Char_Last,
-                     Cl_Params.Changes,
-                     KMN_List);
+                  Wisi.Parse_Context.Edit_Source (Trace, Parse_Context.all, Cl_Params.Changes, KMN_List);
 
                   if -Save_File_Name /= "" then
                      declare

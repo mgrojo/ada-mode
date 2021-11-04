@@ -119,7 +119,7 @@ package Emacs_Wisi_Common_Parse is
          Partial_Parse_Active : Boolean;
 
       when Incremental =>
-         Changes : Wisi.Change_Lists.List;
+         Changes : Wisi.Parse_Context.Change_Lists.List;
 
       when Full =>
          Full_End_Char_Pos : WisiToken.Buffer_Pos; -- Emacs convention; after last char

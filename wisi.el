@@ -519,7 +519,7 @@ Each element is
 
 (defvar-local wisi--affected-text 0
   "Cached text of range passed to `wisi-before-change',
-used by `wisi-after-change' to get byte, char count of actual
+used by `wisi-after-change' to get byte count of actual
 deleted range.")
 
 (defun wisi-before-change (begin end)
@@ -578,9 +578,6 @@ deleted range.")
     ;; "First", before-change (begin end) is entire word, but
     ;; after-change length is 1, because only the F is actually
     ;; replaced.
-    ;;
-    ;;  FIXME: let parser compute char or byte length, to avoid
-    ;;  caching lots of text here.
     (let ((deleted (substring wisi--affected-text 0 length)))
       (push
        (list (position-bytes begin) begin (position-bytes end) end
