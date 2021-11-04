@@ -1,6 +1,7 @@
 --  Abstract :
 --
---  Utilities for UTF-8 encoded strings.
+--  Utilities for UTF-8 encoded strings not provided by
+--  Ada.Strings.UTF_Encoding*.
 --
 --  Copyright (C) 2021 Free Software Foundation All Rights Reserved.
 --
