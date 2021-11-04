@@ -191,6 +191,87 @@ package body Wisi.Parse_Context is
       Map.Clear;
    end Clear;
 
+   function Image (Item : in Change) return String
+   is
+      use WisiToken;
+   begin
+      return "(" &
+        Item.Begin_Byte_Pos'Image & "," &
+        Item.Begin_Char_Pos'Image & "," &
+        Item.Inserted_End_Byte_Pos'Image & "," &
+        Item.Inserted_End_Char_Pos'Image & "," &
+        " +""" & (-Item.Inserted_Text) & """," &
+        Item.Deleted_Bytes'Image & "," &
+        Item.Deleted_Chars'Image & ")";
+   end Image;
+
+   function Get_Emacs_Change_List
+     (Command_Line : in     String;
+      Last         : in out Integer)
+     return Change_Lists.List
+   is
+      function Substitute_Escapes (Item : in String) return String
+      is begin
+         if Item'Length = 0 then
+            return Item;
+         else
+            declare
+               I      : Integer := Item'First;
+               J      : Integer := Item'First;
+               Result : String (Item'Range);
+            begin
+               loop
+                  if Item (I) = '\' and I < Item'Last then
+                     if Item (I + 1) = 'n' then
+                        Result (J) := ASCII.LF;
+                        I := @ + 2;
+                     elsif Item (I + 1) = '"' then
+                        Result (J) := '"';
+                        I := @ + 2;
+                     else
+                        Result (J) := Item (I);
+                        I := @ + 1;
+                     end if;
+                  else
+                     Result (J) := Item (I);
+                     I := @ + 1;
+                  end if;
+                  exit when I > Item'Last;
+                  J := @ + 1;
+               end loop;
+               return Result (Result'First .. J);
+            end;
+         end if;
+      end Substitute_Escapes;
+
+   begin
+      return Result : Change_Lists.List do
+         Skip (Command_Line, Last, '('); --  start of changes list
+         loop
+            exit when Last = Command_Line'Last;
+            exit when Command_Line (Last + 1) = ')';
+
+            declare
+               use WisiToken;
+               Item : Change;
+            begin
+               Skip (Command_Line, Last, '(');
+               Item.Begin_Byte_Pos        := Base_Buffer_Pos (Get_Integer (Command_Line, Last));
+               Item.Begin_Char_Pos        := Base_Buffer_Pos (Get_Integer (Command_Line, Last));
+               Item.Inserted_End_Byte_Pos := Base_Buffer_Pos (Get_Integer (Command_Line, Last));
+               Item.Inserted_End_Char_Pos := Base_Buffer_Pos (Get_Integer (Command_Line, Last));
+               Item.Deleted_Bytes         := Get_Integer (Command_Line, Last);
+               Item.Deleted_Chars         := Get_Integer (Command_Line, Last);
+               Item.Inserted_Text         := +Substitute_Escapes (Get_String (Command_Line, Last));
+               Skip (Command_Line, Last, ')');
+
+               Result.Append (Item);
+            end;
+         end loop;
+         Skip (Command_Line, Last, ')'); --  end of edits list
+      end return;
+   end Get_Emacs_Change_List;
+
    procedure Edit_Source
      (Trace            : in out WisiToken.Trace'Class;
       Source           : in out Ada.Strings.Unbounded.String_Access;
@@ -200,9 +281,10 @@ package body Wisi.Parse_Context is
       KMN_List         :    out WisiToken.Parse.KMN_Lists.List)
    is
       use Ada.Containers;
+      use WisiToken;
 
-      --  Changes is in time order (ie _not_ in buffer pos order); KMN_List
-      --  is in buffer pos order.
+      --  Changes is in increasing time order (ie _not_ in buffer pos
+      --  order); KMN_List is in buffer pos order.
 
       Initial_Text_Byte_Region : constant Buffer_Region := (1, Base_Buffer_Pos (Source_Byte_Last));
       Initial_Text_Char_Region : constant Buffer_Region := (1, Base_Buffer_Pos (Source_Char_Last));
@@ -216,35 +298,23 @@ package body Wisi.Parse_Context is
       Total_Inserted_Bytes : Integer := 0;
 
       function Reallocate return Boolean
-      is
-         Last_Begin : Base_Buffer_Pos := 0;
-         Result     : Boolean         := False;
-      begin
+      is begin
+         --  This is a conservative analysis; Total_Inserted_Bytes is correct
+         --  if all Changes are inserted with no overlap and no deletes;
+         --  otherwise it is too large. But the savings from being more
+         --  accurate are not large, and this simplifies the editing algorithm.
          if Changes.Length = 0 then
             return False;
          end if;
 
          for Change of Changes loop
-            --  We loop thru all changes to compute Total_Inserted_Bytes.
-
-            pragma Assert
-              (Ada.Strings.Unbounded.Length (Change.Inserted_Text) =
-                 Integer (Change.Inserted_End_Byte_Pos - Change.Begin_Byte_Pos),
-               "inconsistent Change: text length" & Ada.Strings.Unbounded.Length (Change.Inserted_Text)'Image &
-                 " region length" & Integer (Change.Inserted_End_Byte_Pos - Change.Begin_Byte_Pos)'Image);
-
             Total_Inserted_Bytes := @ + Ada.Strings.Unbounded.Length (Change.Inserted_Text);
-
-            if Change.Begin_Byte_Pos < Last_Begin then
-               Result := True;
-            end if;
-            Last_Begin := Change.Begin_Byte_Pos;
          end loop;
 
          if Source_Byte_Last + Total_Inserted_Bytes > Source'Last then
             return True;
          else
-            return Result;
+            return False;
          end if;
       end Reallocate;
 
@@ -276,12 +346,12 @@ package body Wisi.Parse_Context is
          Gap_Last  := New_Gap_Last;
       end Move_Gap;
 
-      procedure Edit_Text (Change : in Wisi.Change)
+      procedure Edit_Text (Change : in Wisi.Parse_Context.Change)
       with Pre => Gap_Invariant, Post => Gap_Invariant
       --  Apply Change to Source. Leaves Gap at edit point.
       is
          use Ada.Strings.Unbounded;
-         Inserted_Bytes : constant Integer := Integer (Change.Inserted_End_Byte_Pos - Change.Begin_Byte_Pos);
+         Inserted_Bytes : constant Integer := Ada.Strings.Unbounded.Length (Change.Inserted_Text);
       begin
          if Gap_First /= Integer (Change.Begin_Byte_Pos) then
             Move_Gap (Integer (Change.Begin_Byte_Pos));
@@ -376,7 +446,7 @@ package body Wisi.Parse_Context is
          end loop;
       end Delete_KMNs;
 
-      procedure Edit_KMN (Change : in Wisi.Change)
+      procedure Edit_KMN (Change : in Wisi.Parse_Context.Change)
       --  Apply Change to KMN list
       is
          use Parse.KMN_Lists;
@@ -387,7 +457,7 @@ package body Wisi.Parse_Context is
          KMN_Last_Byte : Base_Buffer_Pos := 0; --  Last byte of prev KMN.
          KMN_Last_Char : Base_Buffer_Pos := 0; --  Last char of prev KMN.
 
-         function To_KMN (Item : in Wisi.Change) return Parse.KMN
+         function To_KMN (Item : in Wisi.Parse_Context.Change) return Parse.KMN
          --  Assuming Change does not overlap any current KMN non-stable,
          --  return a new KMN for it.
          is (Stable_Bytes   => Item.Begin_Byte_Pos - KMN_Last_Byte - 1, -- Begin_Byte_Pos is deleted or inserted
