@@ -45,7 +45,7 @@ package Run_Wisi_Common_Parse is
 
       when Parse_Incremental =>
          --  Incremental edit, parse, post_parse_action
-         Changes               : Wisi.Change_Lists.List;
+         Changes               : Wisi.Parse_Context.Change_Lists.List;
          Inc_Post_Parse_Action : Wisi.Post_Parse_Action_Type;
          Inc_Begin_Byte_Pos    : WisiToken.Buffer_Pos := WisiToken.Invalid_Buffer_Pos;
          Inc_Begin_Char_Pos    : WisiToken.Buffer_Pos := WisiToken.Invalid_Buffer_Pos;

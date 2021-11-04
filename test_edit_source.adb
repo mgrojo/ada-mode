@@ -61,12 +61,13 @@ package body Test_Edit_Source is
       use WisiToken;
       use WisiToken.Parse.AUnit.KMN_Lists_AUnit;
 
-      Computed_Source  : Ada.Strings.Unbounded.String_Access := new String'(Initial_Source);
-      Unix_Initial_Source : Ada.Strings.Unbounded.Unbounded_String;
+      Context : Wisi.Parse_Context.Parse_Context :=
+        (Text_Buffer           => new String'(Initial_Source),
+         Text_Buffer_Byte_Last => Initial_Source'Last,
+         Text_Buffer_Char_Last => Initial_Source_Char_Last,
+         others                => <>);
 
-      Computed_Source_Byte_Last : Integer := Initial_Source'Last;
-      Computed_Source_Char_Last : Integer := Initial_Source_Char_Last;
-      Computed_KMN              : WisiToken.Parse.KMN_Lists.List;
+      Computed_KMN : WisiToken.Parse.KMN_Lists.List;
    begin
       if Trace_Tests > Detail then
          Ada.Text_IO.Put_Line ("Expected_KMN:");
@@ -75,14 +76,11 @@ package body Test_Edit_Source is
          end loop;
       end if;
 
-      Unix_Initial_Source := +Computed_Source (Computed_Source'First .. Computed_Source_Byte_Last);
-
-      Wisi.Parse_Context.Edit_Source
-        (Trace, Computed_Source, Computed_Source_Byte_Last, Computed_Source_Char_Last, Changes, Computed_KMN);
+      Wisi.Parse_Context.Edit_Source (Trace, Context, Changes, Computed_KMN);
 
       if WisiToken.Trace_Tests > WisiToken.Detail then
          Ada.Text_IO.Put_Line (Label & ".edited source:");
-         Ada.Text_IO.Put_Line (Computed_Source (1 .. Computed_Source_Byte_Last));
+         Ada.Text_IO.Put_Line (Context.Text_Buffer (1 .. Context.Text_Buffer_Byte_Last));
 
          Ada.Text_IO.Put_Line (Label & ".computed KMN:");
          for KMN of Computed_KMN loop
@@ -90,21 +88,21 @@ package body Test_Edit_Source is
          end loop;
       end if;
 
-      Check (Label & ".source", Computed_Source (1 .. Computed_Source_Byte_Last), Expected_Source);
+      Check (Label & ".source", Context.Text_Buffer (1 .. Context.Text_Buffer_Byte_Last), Expected_Source);
 
-      Check (Label & ".char_last", Computed_Source_Char_Last, Expected_Source_Char_Last);
+      Check (Label & ".char_last", Context.Text_Buffer_Char_Last, Expected_Source_Char_Last);
 
-      Check_Valid_KMN (Computed_KMN, -Unix_Initial_Source, Expected_Source);
+      Check_Valid_KMN (Computed_KMN, Initial_Source, Expected_Source);
       Check (Label & ".kmn", Computed_KMN, Expected_KMN);
 
-      Ada.Strings.Unbounded.Free (Computed_Source);
+      Ada.Strings.Unbounded.Free (Context.Text_Buffer);
    exception
    when AUnit.Assertions.Assertion_Error =>
-      Ada.Strings.Unbounded.Free (Computed_Source);
+      Ada.Strings.Unbounded.Free (Context.Text_Buffer);
       raise;
 
    when E : others =>
-      Ada.Strings.Unbounded.Free (Computed_Source);
+      Ada.Strings.Unbounded.Free (Context.Text_Buffer);
       AUnit.Assertions.Assert (False, Ada.Exceptions.Exception_Message (E));
    end Test;
 

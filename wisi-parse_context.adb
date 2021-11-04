@@ -14,6 +14,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Directories;
+with Ada.Exceptions;
 with Ada.Finalization;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
@@ -228,6 +229,9 @@ package body Wisi.Parse_Context is
                      elsif Item (I + 1) = '"' then
                         Result (J) := '"';
                         I := @ + 2;
+                     elsif Item (I + 1) = '\' then
+                        Result (J) := '\';
+                        I := @ + 2;
                      else
                         Result (J) := Item (I);
                         I := @ + 1;
@@ -265,6 +269,13 @@ package body Wisi.Parse_Context is
                Item.Inserted_Text         := +Substitute_Escapes (Get_String (Command_Line, Last));
                Skip (Command_Line, Last, ')');
 
+               if Integer (Item.Inserted_End_Byte_Pos - Item.Begin_Byte_Pos) /=
+                 Ada.Strings.Unbounded.Length (Item.Inserted_Text)
+               then
+                  raise Protocol_Error with "invalid change; begin, end does not match inserted_text length" &
+                    Item.Begin_Byte_Pos'Image & Item.Inserted_End_Byte_Pos'Image & Integer'Image
+                      (Ada.Strings.Unbounded.Length (Item.Inserted_Text));
+               end if;
                Result.Append (Item);
             end;
          end loop;
@@ -273,18 +284,20 @@ package body Wisi.Parse_Context is
    end Get_Emacs_Change_List;
 
    procedure Edit_Source
-     (Trace            : in out WisiToken.Trace'Class;
-      Source           : in out Ada.Strings.Unbounded.String_Access;
-      Source_Byte_Last : in out Integer;
-      Source_Char_Last : in out Integer;
-      Changes          : in     Change_Lists.List;
-      KMN_List         :    out WisiToken.Parse.KMN_Lists.List)
+     (Trace         : in out WisiToken.Trace'Class;
+      Parse_Context : in out Wisi.Parse_Context.Parse_Context;
+      Changes       : in     Change_Lists.List;
+      KMN_List      :    out WisiToken.Parse.KMN_Lists.List)
    is
       use Ada.Containers;
       use WisiToken;
 
       --  Changes is in increasing time order (ie _not_ in buffer pos
       --  order); KMN_List is in buffer pos order.
+
+      Source           : Ada.Strings.Unbounded.String_Access renames Parse_Context.Text_Buffer;
+      Source_Byte_Last : Integer renames Parse_Context.Text_Buffer_Byte_Last;
+      Source_Char_Last : Integer renames Parse_Context.Text_Buffer_Char_Last;
 
       Initial_Text_Byte_Region : constant Buffer_Region := (1, Base_Buffer_Pos (Source_Byte_Last));
       Initial_Text_Char_Region : constant Buffer_Region := (1, Base_Buffer_Pos (Source_Char_Last));
@@ -625,12 +638,17 @@ package body Wisi.Parse_Context is
          end loop;
 
          if Debug_Mode then
-            WisiToken.Parse.Validate_KMN
-              (List                     => KMN_List,
-               Initial_Text_Byte_Region => Initial_Text_Byte_Region,
-               Initial_Text_Char_Region => Initial_Text_Char_Region,
-               Edited_Text_Byte_Region  => Buffer_Region'(1, Base_Buffer_Pos (Source_Byte_Last)),
-               Edited_Text_Char_Region  => Buffer_Region'(1, Base_Buffer_Pos (Source_Char_Last)));
+            begin
+               WisiToken.Parse.Validate_KMN
+                 (List                     => KMN_List,
+                  Initial_Text_Byte_Region => Initial_Text_Byte_Region,
+                  Initial_Text_Char_Region => Initial_Text_Char_Region,
+                  Edited_Text_Byte_Region  => Buffer_Region'(1, Base_Buffer_Pos (Source_Byte_Last)),
+                  Edited_Text_Char_Region  => Buffer_Region'(1, Base_Buffer_Pos (Source_Char_Last)));
+            exception
+            when E : WisiToken.User_Error =>
+               raise Protocol_Error with Ada.Exceptions.Exception_Message (E);
+            end;
          end if;
       end Edit_KMN;
 

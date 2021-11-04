@@ -176,7 +176,7 @@ package body Emacs_Wisi_Common_Parse is
             case Kind is
             when Partial => null;
             when Incremental =>
-               Result.Changes := Wisi.Get_Emacs_Change_List (Command_Line, Last);
+               Result.Changes := Wisi.Parse_Context.Get_Emacs_Change_List (Command_Line, Last);
 
             when Full =>
                Result.Full_End_Char_Pos := Buffer_Pos (Get_Integer (Command_Line, Last)) - 1;
@@ -407,13 +407,7 @@ package body Emacs_Wisi_Common_Parse is
                      declare
                         KMN_List : Parse.KMN_Lists.List;
                      begin
-                        Wisi.Edit_Source
-                          (Trace,
-                           Parse_Context.Text_Buffer,
-                           Parse_Context.Text_Buffer_Byte_Last,
-                           Parse_Context.Text_Buffer_Char_Last,
-                           Params.Changes,
-                           KMN_List);
+                        Wisi.Parse_Context.Edit_Source (Trace, Parse_Context.all, Params.Changes, KMN_List);
 
                         if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
                            Parse_Context.Save_Text_Auto (Emacs_Message => True);

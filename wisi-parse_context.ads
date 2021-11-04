@@ -38,9 +38,9 @@ package Wisi.Parse_Context is
 
       File_Name   : Ada.Strings.Unbounded.Unbounded_String;
       Text_Buffer : Ada.Strings.Unbounded.String_Access;
-      --  Text_Buffer may hold all or part of the actual Emacs buffer
-      --  content. If partial, the lexer holds the mapping from Text_Buffer
-      --  index to Emacs buffer position.
+      --  Text_Buffer is encoded in UTF-8. Text_Buffer may hold all or part
+      --  of the actual Emacs buffer content. If partial, the lexer holds
+      --  the mapping from Text_Buffer index to Emacs buffer position.
 
       Text_Buffer_Byte_Last : Integer := Integer'First;
       Text_Buffer_Char_Last : Integer := Integer'Last;
@@ -115,13 +115,11 @@ package Wisi.Parse_Context is
      return Change_Lists.List;
 
    procedure Edit_Source
-     (Trace            : in out WisiToken.Trace'Class;
-      Source           : in out Ada.Strings.Unbounded.String_Access;
-      Source_Byte_Last : in out Integer;
-      Source_Char_Last : in out Integer;
-      Changes          : in     Change_Lists.List;
-      KMN_List         :    out WisiToken.Parse.KMN_Lists.List);
-   --  Source must be UTF-8 with Unix line endings. FIXME: why Unix line endings?
+     (Trace         : in out WisiToken.Trace'Class;
+      Parse_Context : in out Wisi.Parse_Context.Parse_Context;
+      Changes       : in     Change_Lists.List;
+      KMN_List      :    out WisiToken.Parse.KMN_Lists.List);
+   --  Changes must be UTF-8.
 
    procedure Save_Text
      (Context       : in Parse_Context;

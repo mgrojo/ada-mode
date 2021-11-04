@@ -73,7 +73,6 @@ package Wisi is
       Source_Byte_Last : in out Integer;
       Source_Char_Last : in out Integer);
    --  Source is assumed to have DOS line endings; convert them to Unix.
-   --  FIXME: is this used?
 
    function Image_Action (Action : in WisiToken.Syntax_Trees.Post_Parse_Action) return String;
    --  For Image_Action in Syntax_Trees.Image
