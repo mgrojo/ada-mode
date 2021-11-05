@@ -53,8 +53,8 @@ package Non_ASCII is
    --EMACSCMD:(progn (forward-line 3)(back-to-indentation)(insert "θ"))
    --EMACSCMD:(progn (end-of-line 3)(forward-word -1)(kill-word 1)(insert "0"))
    --EMACSCMD:(progn (forward-line 1)(forward-word) (nth 2 (wisi-prj-identifier-at-point (project-current))))
-   π_non : constant := 3.14159;
-   --EMACSRESULT:"θπ_non"
+   π_non_1 : constant := 3.14159;
+   --EMACSRESULT:"θπ_non_1"
    --EMACSCMD:(progn (end-of-line -1)(forward-word -2) (looking-at "3.0"))
    --EMACSRESULT:t
 

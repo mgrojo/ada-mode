@@ -49,9 +49,13 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+editing file header comment (including deleting comment line end) lost face in entire visible part of buffer
+    test/non_ascii.ads
+
 typing correct code leaves errors in tree, displayed in fringes
     wisitoken-utf_8.adb
     use wisi-record-changes, replay-changes
+        test/ada_mode-interactive_09.adb.changes
         small delay caused by saving changes (and switching buffers?) eliminates problem
         yet another race condition.
 
@@ -63,15 +67,10 @@ review FIXMEs
     (grep-find "find c:/Projects/org.emacs.wisi -type f -print | \"xargs\" grep  -nH --null FIXME")
     (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
 
-editing file header comment (including deleting comment line end) lost face in entire visible part of buffer
-    test/non_ascii.ads
-
 incremental parse does full reparse every time if FAIL_ENQUEUE_LIMIT
     every char for font-lock
     automatically disable font-lock
         re-enable on wisi-reset-parser
-
-move wisi.change .. edit_source to wisi.parse_context
 
 respond to https://rust-analyzer.github.io/blog/2020/09/16/challeging-LR-parsing.html
    https://github.com/tree-sitter/tree-sitter-rust
@@ -992,8 +991,6 @@ in ada_annex_p.wy:
 %partial_recursion ;; FIXME: faster compile time while debugging
 
 one ELISP="(setq-default save-parser-log \"../debug-2.log\" save-edited-text \"../edited\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
-
-RUNTEST=run-indent-test-lalr-partial-process-gpr_query.el ELISP="(setq-default wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\" debug-on-error t)" ada_mode-interactive_2.adb.debug
 
 test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
 
