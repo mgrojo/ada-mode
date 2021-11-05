@@ -49,23 +49,19 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-typing correct code leaves errors
+typing correct code leaves errors in tree, displayed in fringes
     wisitoken-utf_8.adb
-    test/ada_mode-incremental_08.adb does not reproduce.
+    use wisi-record-changes, replay-changes
+        small delay caused by saving changes (and switching buffers?) eliminates problem
+        yet another race condition.
 
-    add wisi-record-test
-        wisi-reset-parser erase *Ada parser log*
-        use w-pr-lo-to-cmd to write *.adb.cmd
-        use that .cmd as a test
+typing code leaves errors in wisi-parser-parse-errors
+
 
 review FIXMEs
     (grep-find "find c:/Projects/org.wisitoken -type f -print | \"xargs\" grep  -nH --null FIXME")
     (grep-find "find c:/Projects/org.emacs.wisi -type f -print | \"xargs\" grep  -nH --null FIXME")
     (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
-
-    wisi.el wisi-after-change
-        parser compute byte length of change, don't put text in change
-        on o.e.a-m.s-2 - needs propagate
 
 editing file header comment (including deleting comment line end) lost face in entire visible part of buffer
     test/non_ascii.ads
