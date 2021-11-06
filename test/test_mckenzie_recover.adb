@@ -102,12 +102,12 @@ package body Test_McKenzie_Recover is
 
       Check ("exception", False, Expect_Exception);
    exception
-   when WisiToken.Syntax_Error =>
+   when WisiToken.Parse_Error =>
       if WisiToken.Trace_Tests > WisiToken.Outline then
          Parser.Put_Errors (Parser.Tree.First_Parse_Stream);
       end if;
 
-      Check ("syntax_error", True, Expect_Exception);
+      Check ("parse_error", True, Expect_Exception);
    end Parse_Text;
 
    procedure Check_Recover
@@ -151,8 +151,6 @@ package body Test_McKenzie_Recover is
       --  Set Error_Node, Error_Cursor.
       is
          use all type Ada.Containers.Count_Type;
-
-         --  Don't count lexer errors here.
          Found_Errors : Ada.Containers.Count_Type := 0;
       begin
          if Parser.Tree.Parents_Set then
@@ -207,8 +205,8 @@ package body Test_McKenzie_Recover is
             Error_Classwide : constant Error_Data'Class := Parser.Tree.Error_List (Error_Node)(Error_Cursor);
          begin
             if Code = Ok then
-               --  Expecting a Parse_Action error. Label is "code" so prj.el
-               --  wisitoken-goto-aunit-fail can find it.
+               --  Expecting a Parse_Action error. Label is "code" so
+               --  wisitoken-keys.el wisitoken-goto-aunit-fail can find it.
                if Error_Classwide in WisiToken.Parse.Parse_Error then
                   declare
                      Error : WisiToken.Parse.Parse_Error renames WisiToken.Parse.Parse_Error (Error_Classwide);
@@ -224,7 +222,8 @@ package body Test_McKenzie_Recover is
                   end;
 
                else
-                  Assert (False, Label_I & ".Code expecting Parse_Error, got something else");
+                  Assert (False, Label_I & ".Code expecting Parse_Error, got " &
+                       Image (Error_Classwide, Parser.Tree, Error_Node));
                end if;
 
             else
@@ -255,7 +254,8 @@ package body Test_McKenzie_Recover is
                   end;
                else
                   Assert
-                    (False, Label_I & ".Code expecting In_Parse_Action_Error or Message_Error, got something else");
+                    (False, Label_I & ".Code expecting In_Parse_Action_Error or Message_Error, got " &
+                       Image (Error_Classwide, Parser.Tree, Error_Node));
                end if;
             end if;
          end;
@@ -446,7 +446,7 @@ package body Test_McKenzie_Recover is
    begin
       Parse_Text ("when in the course of human events", Expect_Exception => True);
       --  Bogus syntax; test no exceptions due to empty stack, etc. Only
-      --  Syntax_Error due to Enqueue_Limit is allowed.
+      --  Parse_Error due to Enqueue_Limit is allowed.
 
    end Error_4;
 
@@ -917,9 +917,10 @@ package body Test_McKenzie_Recover is
 
       Check_Recover
         (Errors_Length           => 2, --  1 lexer, 1 parse
+         Checking_Error          => 2,
          Error_Token_ID          => +STRING_LITERAL_ID,
          Error_Token_Byte_Region => (50, 50),
-         Ops                     => +(Push_Back, +IDENTIFIER_ID, 1) & (Delete, +IDENTIFIER_ID, 1) & (Fast_Forward, 3),
+         Ops                     => +(Push_Back, +IDENTIFIER_ID, 1) & (Delete, +IDENTIFIER_ID, 1) & (Fast_Forward, 2),
          Enqueue_Low             => 32,
          Check_Low               => 3,
          Cost                    => 1);
@@ -1641,6 +1642,7 @@ package body Test_McKenzie_Recover is
 
       Check_Recover
         (Errors_Length           => 2,
+         Checking_Error          => 2,
          Error_Token_ID          => +SLASH_ID,
          Error_Token_Byte_Region => (90, 90),
          Ops                     => +(Push_Back, +LESS_ID, 1) & (Push_Back, +simple_expression_ID, 0) &
@@ -1743,6 +1745,7 @@ package body Test_McKenzie_Recover is
 
       Check_Recover
         (Errors_Length           => 2,
+         Checking_Error          => 2,
          Error_Token_ID          => +STRING_LITERAL_ID,
          Error_Token_Byte_Region => (33, 33),
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 1) & (Delete, +IDENTIFIER_ID, 1) &
@@ -1779,7 +1782,7 @@ package body Test_McKenzie_Recover is
 
       Check_Recover
         (Errors_Length           => 3,
-         Checking_Error          => 2,
+         Checking_Error          => 3,
          Error_Token_ID          => +Wisi_EOI_ID,
          Error_Token_Byte_Region => (27, 26),
          Ops                     => +(Insert, +END_ID, 2) & (Insert, +LOOP_ID, 2) & (Insert, +SEMICOLON_ID, 2),
@@ -2464,8 +2467,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (33, 33),
          Ops                     => +(Delete, WisiToken.Invalid_Token_ID, 2) & (Fast_Forward, 4) &
            (Delete, WisiToken.Invalid_Token_ID, 4),
-         Enqueue_Low             => 52,
-         Check_Low               => 6,
+         Enqueue_Low             => 38,
+         Check_Low               => 4,
          Cost                    => 0);
 
    end Invalid_Char_Literal;

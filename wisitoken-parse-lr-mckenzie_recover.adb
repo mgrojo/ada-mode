@@ -565,7 +565,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                            case Op.Op is
                            when Fast_Forward =>
                               if Stack_Matches_Ops then
-                                 if Op.FF_Token_Index = Tree.Get_Sequential_Index (Current_Token.Node) then
+                                 if Op.FF_Token_Index = Tree.Get_Sequential_Index
+                                   (Tree.First_Sequential_Terminal (Current_Token.Node))
+                                 then
                                     --  Fast_Forward is a noop. test_mckenzie_recover String_Quote_5.
                                     null;
 
@@ -611,10 +613,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                              Tree.Breakdown (Target, Shared_Parser.User_Data);
                                           end if;
                                        end;
-                                       --  The parser would do shifts and reduces for the tokens we are
-                                       --  skipping here
-                                       Stack_Matches_Ops := False;
                                     end if;
+
+                                    --  The parser would do shifts and reduces for the tokens we are
+                                    --  skipping here
+                                    Stack_Matches_Ops := False;
                                  end if;
                               end if;
 
@@ -653,11 +656,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  after other ops.
                               if Stack_Matches_Ops then
                                  if not (Op.PB_ID = Tree.ID (Parser_State.Stream, Tree.Peek (Stack))) then
-                                    Raise_Bad_Config ("Push_Back does not match stack top in apply config");
+                                    Raise_Bad_Config
+                                      ("Push_Back does not match stack top in apply config: " &
+                                         Image (Op, Tree.Lexer.Descriptor.all));
                                  end if;
-                              end if;
-
-                              if Stack_Matches_Ops then
                                  Tree.Push_Back (Parser_State.Stream);
                               end if;
 

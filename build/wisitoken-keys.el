@@ -71,10 +71,10 @@
 	(small-case-alg-present nil))
     (setq filename (thing-at-point 'filename))
     (end-of-line)
-    (backward-word 1)
+    (forward-symbol -1)
     (setq subprogram-name (thing-at-point 'symbol))
     (when (string-equal filename "test_mckenzie_recover.adb")
-      (forward-symbol -2)
+      (forward-symbol -1)
       (setq alg (thing-at-point 'symbol))
       (forward-line 1)
       (back-to-indentation)
@@ -129,8 +129,7 @@
 		  (unless test-label
 		    (search-forward "Check_Recover"))
 		(search-forward-regexp (concat "Checking_Error +=> " error-number)))
-	      (when field
-		(search-forward field)
+	      (when (and field (search-forward field end))
 		(if (search-forward "(case Test.Alg" (line-end-position) t)
 		    (progn (search-forward (concat "when " alg))
 			   (forward-word 1))

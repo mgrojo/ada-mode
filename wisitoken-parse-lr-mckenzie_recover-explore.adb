@@ -560,8 +560,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  to give this operation zero cost. But then we keep doing push_back
       --  forever, making no progress. So we give it a cost.
 
-      New_Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
-      New_Config.In_Parse_Action_Status   := (Label => WisiToken.In_Parse_Actions.Ok);
+      New_Config.Error_Token            := Syntax_Trees.Invalid_Recover_Token;
+      New_Config.In_Parse_Action_Status := (Label => WisiToken.In_Parse_Actions.Ok);
 
       if Is_Full (New_Config.Ops) then
          Super.Config_Full ("push_back 1", Parser_Index);
@@ -1991,11 +1991,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
         (if Next_Node = Syntax_Trees.Invalid_Node_Access
          then Invalid_Token_ID
          else Super.Tree.ID (Next_Node));
+
+      Zero_Cost : Boolean := False;
    begin
-      if Super.Tree.ID (Config.Error_Token) = Invalid_Token_ID then
+      if not Config.Error_Token.Virtual and then Super.Tree.ID (Config.Error_Token.Node) = Invalid_Token_ID then
          --  Error_Token is a character not recognized by the lexer. Delete
          --  with no cost. test_mckenzie_recover.adb Invalid_Char_Literal
-         null;
+         Zero_Cost := True;
 
       elsif Next_Node = Syntax_Trees.Invalid_Node_Access then
          --  Current token is an empty nonterm; we don't delete that here. It
@@ -2038,13 +2040,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             return False;
          end Matching_Push_Back;
       begin
+         New_Config.Cost := New_Config.Cost +
+           (if Zero_Cost
+            then 0 --  See note above.
+            else McKenzie_Param.Delete (Next_ID));
+
          New_Config.Error_Token            := Syntax_Trees.Invalid_Recover_Token;
          New_Config.In_Parse_Action_Status := (Label => WisiToken.In_Parse_Actions.Ok);
-
-         New_Config.Cost := New_Config.Cost +
-           (if Super.Tree.ID (Config.Error_Token) = Invalid_Token_ID
-            then 0
-            else McKenzie_Param.Delete (Next_ID));
 
          New_Config.Strategy_Counts (Delete) := Config.Strategy_Counts (Delete) + 1;
 

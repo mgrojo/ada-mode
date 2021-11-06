@@ -125,7 +125,7 @@ package body WisiToken.Parse is
 
       Item_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Error_Node);
       Msg : constant String :=
-        "syntax error: expecting " & Image (Data.Expecting, Tree.Lexer.Descriptor.all) &
+        "syntax_error: expecting " & Image (Data.Expecting, Tree.Lexer.Descriptor.all) &
         ", found '" & Tree.Lexer.Buffer_Text (Item_Byte_Region) &
         "'";
    begin
@@ -175,7 +175,7 @@ package body WisiToken.Parse is
 
       Result : Unbounded_String;
    begin
-      Result := +"in parse action error: " & In_Parse_Actions.Image (Data.Status, Tree, Error_Node);
+      Result := +"in_parse_action_error: " & In_Parse_Actions.Image (Data.Status, Tree, Error_Node);
 
       if Recover_Op_Arrays.Length (Data.Recover_Ops) /= 0 then
          Append (Result, ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree.Lexer.Descriptor.all));

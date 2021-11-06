@@ -238,7 +238,7 @@ recover: succeed, parser count 3
 8;27:(Wisi_EOI, (160 . 159))))
     Current_Token: (6, -61:(SEMI))
     Shared_Token: (-1, 3;22:(IDENTIFIER, (150 . 152)))
-    recover_insert_delete:((DELETE, 6:SEMI), (DELETE, 7:RBRACE))
+    recover_insert_delete:((DELETE, SEMI, 6), (DELETE, RBRACE, 7))
     resume_active: True, token goal 11
  5: stack/stream:
 (5, (0, 
@@ -300,7 +300,7 @@ recover: succeed, parser count 3
 8;27:(Wisi_EOI, (160 . 159))))
     Current_Token: (-1, 3;22:(IDENTIFIER, (150 . 152)))
     Shared_Token: (-1, 3;22:(IDENTIFIER, (150 . 152)))
-    recover_insert_delete:((DELETE, 6:SEMI), (DELETE, 7:RBRACE))
+    recover_insert_delete:((DELETE, SEMI, 6), (DELETE, RBRACE, 7))
     resume_active: True, token goal 11
  1: stack/stream:
 (1, (0, 

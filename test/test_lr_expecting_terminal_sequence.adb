@@ -139,7 +139,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
          Parser.Parse (Log_File);
          AUnit.Assertions.Assert (False, Command & "; no exception");
       exception
-      when WisiToken.Syntax_Error =>
+      when WisiToken.Parse_Error =>
          if WisiToken.Trace_Tests > WisiToken.Outline then
             Ada.Text_IO.Put_Line ("parse result:");
             Parser.Tree.Print_Tree (Trace);

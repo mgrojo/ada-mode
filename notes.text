@@ -34,9 +34,6 @@ update-wisitoken_grammar
 fix ada_mode-interactive_09.adb bug
     can't duplicate in test_incremental.adb, because sequence_of_statements can be empty
     change ada_lite.wy to not allow empty, see what tests break
-
-t_mck String_Quote_5 fail
-
     or add ada_lite_2.wy
 
 review FIXME
