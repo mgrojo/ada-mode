@@ -1646,7 +1646,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
          --  Let explore do insert after these deletes.
          Base.Extend_Sequential_Index (Super, Config.Current_Shared_Token.Node, Positive => True);
-         Append (Config.Ops, (Fast_Forward, Tree.Get_Sequential_Index (Config.Current_Shared_Token.Node)));
+         Append
+           (Config.Ops,
+            (Fast_Forward, Tree.Get_Sequential_Index (Parse.Peek_Current_First_Sequential_Terminal (Tree, Config))));
 
          if Config.Resume_Token_Goal - Check_Limit < Tree.Get_Sequential_Index (Config.Current_Shared_Token.Node)
          then

@@ -565,51 +565,58 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                            case Op.Op is
                            when Fast_Forward =>
                               if Stack_Matches_Ops then
-                                 if Tree.Label (Current_Token.Node) = Nonterm then
-                                    declare
-                                       Target : Stream_Node_Parents;
+                                 if Op.FF_Token_Index = Tree.Get_Sequential_Index (Current_Token.Node) then
+                                    --  Fast_Forward is a noop. test_mckenzie_recover String_Quote_5.
+                                    null;
 
-                                       procedure Find_FF_Target (Ref : in Stream_Node_Ref)
-                                       is begin
-                                          Target := Tree.To_Stream_Node_Parents (Ref);
-                                          Tree.First_Sequential_Terminal (Target);
-                                          loop
-                                             exit when Tree.Get_Sequential_Index (Target.Ref.Node) = Op.FF_Token_Index;
-                                             Tree.Next_Sequential_Terminal (Target);
-                                          end loop;
-                                       end Find_FF_Target;
+                                 else
+                                    if Tree.Label (Current_Token.Node) = Nonterm then
+                                       declare
+                                          Target : Stream_Node_Parents;
 
-                                    begin
-                                       Find_FF_Target (Current_Token);
+                                          procedure Find_FF_Target (Ref : in Stream_Node_Ref)
+                                          is begin
+                                             Target := Tree.To_Stream_Node_Parents (Ref);
+                                             Tree.First_Sequential_Terminal (Target);
+                                             loop
+                                                exit when Tree.Get_Sequential_Index (Target.Ref.Node) =
+                                                  Op.FF_Token_Index;
+                                                Tree.Next_Sequential_Terminal (Target);
+                                             end loop;
+                                          end Find_FF_Target;
 
-                                       if Tree.First_Terminal (Tree.Get_Node (Target.Ref.Stream, Target.Ref.Element)) /=
-                                         Target.Ref.Node
-                                       then
-                                          --  Target is a nonterm that should not be shifted as a whole
-                                          --  (otherwise FF index would be after Target), so break it down.
-                                          --  ada_mode-recover_bad_char.adb
-                                          if Target.Ref.Stream = Tree.Shared_Stream then
-                                             --  First we need to move all tokens Shared_Token .. Target
-                                             --  to the input stream. ada_mode-recover_10.adb
-                                             pragma Assert
-                                               (Super.Tree.Shared_Token (Parser_State.Stream) = Current_Token);
+                                       begin
+                                          Find_FF_Target (Current_Token);
 
-                                             Tree.Move_Shared_To_Input
-                                               (First  => Current_Token,
-                                                Last   => Target.Ref,
-                                                Stream => Parser_State.Stream);
+                                          if Tree.First_Terminal
+                                            (Tree.Get_Node (Target.Ref.Stream, Target.Ref.Element)) /=
+                                            Target.Ref.Node
+                                          then
+                                             --  Target is a nonterm that should not be shifted as a whole
+                                             --  (otherwise FF index would be after Target), so break it down.
+                                             --  ada_mode-recover_bad_char.adb
+                                             if Target.Ref.Stream = Tree.Shared_Stream then
+                                                --  First we need to move all tokens Shared_Token .. Target
+                                                --  to the input stream. ada_mode-recover_10.adb
+                                                pragma Assert
+                                                  (Super.Tree.Shared_Token (Parser_State.Stream) = Current_Token);
 
-                                             Find_FF_Target (Tree.First_Input (Parser_State.Stream));
+                                                Tree.Move_Shared_To_Input
+                                                  (First  => Current_Token,
+                                                   Last   => Target.Ref,
+                                                   Stream => Parser_State.Stream);
+
+                                                Find_FF_Target (Tree.First_Input (Parser_State.Stream));
+                                             end if;
+                                             Tree.Breakdown (Target, Shared_Parser.User_Data);
                                           end if;
-                                          Tree.Breakdown (Target, Shared_Parser.User_Data);
-                                       end if;
-                                    end;
+                                       end;
+                                       --  The parser would do shifts and reduces for the tokens we are
+                                       --  skipping here
+                                       Stack_Matches_Ops := False;
+                                    end if;
                                  end if;
                               end if;
-
-                              --  The parser would do shifts and reduces for the tokens we are
-                              --  skipping here
-                              Stack_Matches_Ops := False;
 
                            when Undo_Reduce =>
                               --  If Stack_Matches_Ops, we must do the Stack.Pop and Pushes, and we

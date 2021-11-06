@@ -766,12 +766,13 @@ package body WisiToken.Parse.LR is
          when Insert =>
            (if Item.Ins_Node = Invalid_Node_Access
             then Image (Item.Ins_ID, Tree.Lexer.Descriptor.all)
-            else Tree.Image (Item.Ins_Node, Terminal_Node_Numbers => True)) & "," &
-              Item.Ins_Before'Image,
+            else Tree.Image (Item.Ins_Node, Terminal_Node_Numbers => True)) &
+              "," & Item.Ins_Before'Image,
          when Delete =>
            (if Item.Del_Node = Invalid_Node_Access
-            then Trimmed_Image (Item.Del_Index) & ":" & Image (Item.Del_ID, Tree.Lexer.Descriptor.all)
-            else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)))
+            then Image (Item.Del_ID, Tree.Lexer.Descriptor.all)
+            else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)) &
+              "," & Item.Del_Index'Image)
         & ")";
    end Image;
 
