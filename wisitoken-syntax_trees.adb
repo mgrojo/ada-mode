@@ -677,7 +677,7 @@ package body WisiToken.Syntax_Trees is
    is
       Ref_Parents : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Ref);
    begin
-      Move_Errors (Tree, Ref_Parents, User_Data);
+      Move_Errors (Tree, Ref_Parents, User_Data); --  FIXME: only move errors in parents that are deleted.
 
       Breakdown (Tree, Ref_Parents);
       Ref := Ref_Parents.Ref;
@@ -691,11 +691,6 @@ package body WisiToken.Syntax_Trees is
       Move_Errors (Tree, Ref, User_Data);
 
       Breakdown (Tree, Ref);
-
-      Ref.Parents.Clear;
-      Ref.Ref.Node := First_Terminal
-        (Tree, Tree.Streams (Ref.Ref.Stream.Cur).Elements (Ref.Ref.Element.Cur).Node,
-         Ref.Parents);
    end Breakdown;
 
    function Byte_Region
@@ -4871,7 +4866,9 @@ package body WisiToken.Syntax_Trees is
          end loop;
 
          Tree.First_Terminal (Term, Following => False);
-         pragma Assert (Term.Ref.Node /= Invalid_Node_Access); -- Term has children
+         pragma Assert (Term.Ref.Node /= Invalid_Node_Access);
+         --  We know Term has at least one terminal, because we don't put
+         --  errors on empty nonterms, we just delete them.
 
          declare
             Update_Ref_Node : constant Boolean := Term.Ref.Node = Ref.Ref.Node;
@@ -6161,11 +6158,10 @@ package body WisiToken.Syntax_Trees is
    is
       procedure Print_Node (Node : in Valid_Node_Access; Level : in Integer)
       is begin
-         Trace.Put (Decimal_Image (Node.Node_Index, Width => 4) & ": ", Prefix => True);
          for I in 1 .. Level loop
             Trace.Put ("| ", Prefix => False);
          end loop;
-         Trace.Put (Image (Tree, Node, Children => False, RHS_Index => True, Terminal_Node_Numbers => True,
+         Trace.Put (Image (Tree, Node, Children => False, RHS_Index => True, Node_Numbers => True,
                            Line_Numbers => Line_Numbers, Non_Grammar => Non_Grammar),
                     Prefix => False);
 

@@ -31,6 +31,11 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+fix ada_mode-interactive_09.adb bug
+    can't duplicate in test_incremental.adb, because sequence_of_statements can be empty
+    change ada_lite.wy to not allow empty, see what tests break
+    or add ada_lite_2.wy
+
 review FIXME
     at least in syntax_trees
 

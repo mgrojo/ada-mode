@@ -27,6 +27,7 @@ with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
 with GNAT.Traceback.Symbolic;
+with System.Multiprocessors;
 with WisiToken.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
@@ -40,6 +41,8 @@ package body Test_Incremental is
 
    Incremental_Parser : WisiToken.Parse.LR.Parser.Parser;
    Full_Parser        : WisiToken.Parse.LR.Parser.Parser;
+
+   McKenzie_Task_Count : System.Multiprocessors.CPU_Range;
 
    Initial_Buffer : Ada.Strings.Unbounded.Unbounded_String;
    Edited_Buffer  : Ada.Strings.Unbounded.Unbounded_String;
@@ -890,6 +893,11 @@ package body Test_Incremental is
    begin
       --  Missing string quote. Initial full parse recovers from it,
       --  incremental edit does not fix it.
+      --
+      --  With multiple tasks, error recover finds different solutions.
+      Full_Parser.Table.McKenzie_Param.Task_Count := 1;
+      Incremental_Parser.Table.McKenzie_Param.Task_Count := 1;
+
       Parse_Text
         (Initial          =>
            "A := 2;" & ASCII.LF &
@@ -1092,6 +1100,26 @@ package body Test_Incremental is
          Incr_Errors => 0);
    end Non_Ascii;
 
+   procedure Restore_Deleted_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Simplified from ada_mode-interactive_09.adb
+
+      Parse_Text
+        ("procedure A is begin" & ASCII.LF &
+           --  |6  |10       |20  |21
+           "   if" & ASCII.LF &
+           --  |25   |27
+           "end A;",
+         Edit_At     => 27,
+         Delete      => "",
+         Insert      => " ",
+         Full_Errors => 1,
+         Incr_Errors => 1);
+      --  FIXME: check that 'if' was restored.
+   end Restore_Deleted_01;
+
    ----------
    --  Public subprograms
 
@@ -1136,6 +1164,7 @@ package body Test_Incremental is
       Register_Routine (T, Multiple_Errors_On_One_Token_1'Access, "Multiple_Errors_On_One_Token_1");
       Register_Routine (T, Multiple_Errors_On_One_Token_2'Access, "Multiple_Errors_On_One_Token_2");
       Register_Routine (T, Non_Ascii'Access, "Non_Ascii");
+      Register_Routine (T, Restore_Deleted_01'Access, "Restore_Deleted_01");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
@@ -1174,6 +1203,8 @@ package body Test_Incremental is
          WisiToken.Parse.LR.Set_McKenzie_Options (Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
          WisiToken.Parse.LR.Set_McKenzie_Options (Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
       end if;
+
+      McKenzie_Task_Count := Full_Parser.Table.McKenzie_Param.Task_Count;
    end Set_Up_Case;
 
    overriding procedure Tear_Down_Case (T : in out Test_Case)
@@ -1186,6 +1217,8 @@ package body Test_Incremental is
    overriding procedure Set_Up (T : in out Test_Case)
    is begin
       Ada_Lite_Actions.End_Name_Optional := True;
+      Full_Parser.Table.McKenzie_Param.Task_Count := McKenzie_Task_Count;
+      Incremental_Parser.Table.McKenzie_Param.Task_Count := McKenzie_Task_Count;
    end Set_Up;
 
 end Test_Incremental;

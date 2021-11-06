@@ -625,27 +625,33 @@ package body WisiToken.Parse is
       --  Preserve_Parse_Errors_2.
       --
       --  FIXME: This algorithm visits every terminal; not incremental.
-      --  Cache Has_Deleted in nonterms.
+      --  Cache Has_Following_Deleted in nonterms.
 
-      Terminal := Tree.First_Terminal (Tree.Stream_First (Stream));
+      Terminal := Tree.First_Terminal (Tree.Stream_First (Stream, Skip_SOI => False));
+      Undo_Recover :
       loop
-         exit when Terminal.Node = Invalid_Node_Access;
-         exit when Tree.Label (Terminal.Node) in Virtual_Terminal;
-         exit when Tree.Label (Terminal.Node) = Source_Terminal and then Tree.Has_Following_Deleted (Terminal.Node);
-         Tree.Next_Terminal (Terminal);
-      end loop;
-
-      loop
-         exit when Terminal.Node = Invalid_Node_Access; -- from Next_Terminal, so after EOI
-
          declare
-            Next_Element : Stream_Index := Tree.Stream_Next (Terminal.Stream, Terminal.Element);
-            Next_Terminal_Done : Boolean := False;
+            Next_Element       : Stream_Index := Tree.Stream_Next (Terminal.Stream, Terminal.Element);
+            Next_Terminal_Done : Boolean      := True;
          begin
+            Next_Recover :
+            loop
+               if Next_Terminal_Done then
+                  Next_Terminal_Done := False;
+               else
+                  Tree.Next_Terminal (Terminal);
+               end if;
+               exit Undo_Recover when Terminal.Node = Invalid_Node_Access;
+               exit Next_Recover when Tree.Label (Terminal.Node) in Virtual_Terminal;
+               exit Next_Recover when Tree.Label (Terminal.Node) = Source_Terminal and then
+                 Tree.Has_Following_Deleted (Terminal.Node);
+            end loop Next_Recover;
+
             case Terminal_Label'(Tree.Label (Terminal.Node)) is
             when Source_Terminal =>
                declare
-                  --  Don't restore before a virtual terminal; ada_mode-interactive_01.adb
+                  --  Don't restore before a virtual terminal; they are deleted as part
+                  --  of this loop. ada_mode-interactive_01.adb
                   Insert_Before : Terminal_Ref := Terminal;
                begin
                   Tree.Next_Source_Terminal (Insert_Before, Trailing_Non_Grammar => False);
@@ -783,20 +789,8 @@ package body WisiToken.Parse is
                   end loop;
                end;
             end case;
-
-            loop
-               if Next_Terminal_Done then
-                  Next_Terminal_Done := False;
-               else
-                  Tree.Next_Terminal (Terminal);
-               end if;
-               exit when Terminal.Node = Invalid_Node_Access;
-               exit when Tree.Label (Terminal.Node) in Virtual_Terminal;
-               exit when Tree.Label (Terminal.Node) = Source_Terminal and then
-                 Tree.Has_Following_Deleted (Terminal.Node);
-            end loop;
          end;
-      end loop;
+      end loop Undo_Recover;
 
       --  Now process source edits.
       Terminal := Tree.First_Terminal (Tree.Stream_First (Stream));
@@ -839,7 +833,7 @@ package body WisiToken.Parse is
             --  stable, deleted are inside the initial text. Caller should use
             --  Validate_KMN.
 
-            if Trace_Incremental_Parse > Outline then
+            if Trace_Incremental_Parse > Detail then
                Parser.Trace.New_Line;
                Parser.Trace.Put_Line
                  ("KMN: " & Image (Stable_Region) & Image (Inserted_Region) & Image (Deleted_Region));
@@ -850,7 +844,7 @@ package body WisiToken.Parse is
                Parser.Trace.Put_Line
                  ("stream:" & Tree.Image
                     (Stream,
-                     Children    => Trace_Incremental_Parse > Detail,
+                     Children    => True,
                      Non_Grammar => True,
                      Augmented   => True));
 
@@ -864,9 +858,7 @@ package body WisiToken.Parse is
                     ("floating_non_grammar: " & Lexer.Full_Image (Floating_Non_Grammar, Tree.Lexer.Descriptor.all));
                end if;
 
-               if WisiToken.Trace_Incremental_Parse > Detail then
-                  Parser.Trace.New_Line;
-               end if;
+               Parser.Trace.New_Line;
             end if;
 
             if not Contains (Outer => Parser.Tree.Lexer.Buffer_Region_Byte, Inner => Inserted_Region) then
@@ -1379,7 +1371,7 @@ package body WisiToken.Parse is
                end if;
 
                if Do_Scan then
-                  if Trace_Incremental_Parse > Outline then
+                  if Trace_Incremental_Parse > Detail then
                      Parser.Trace.Put_Line
                        ("lexer.set_position" & Lex_Start_Byte'Image & Lex_Start_Char'Image & Lex_Start_Line'Image);
                   end if;
