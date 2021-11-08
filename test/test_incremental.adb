@@ -878,9 +878,9 @@ package body Test_Incremental is
 
       Parse_Text
         (Initial           =>
-           "procedure Pkg.Proc_1 is begin A; begin end Pkg.Proc_1;",
+           "procedure Pkg.Proc_1 is begin A; begin B; end Pkg.Proc_1;",
            --        |10       |20       |30       |40       |50
-         Edit_At           => 40,
+         Edit_At           => 43,
          Delete            => "",
          Insert            => "end; ",
          Full_Errors => 1,

@@ -28,13 +28,12 @@ incremental_parse-pre-config.input_stream o.w.s-2
 update-wisitoken_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
 fix ada_mode-interactive_09.adb bug
-    can't duplicate in test_incremental.adb, because sequence_of_statements can be empty
-    change ada_lite.wy to not allow empty, see what tests break
-    or add ada_lite_2.wy
+    test_incremental.adb Restore_Deleted_01
+
 
 review FIXME
     at least in syntax_trees
@@ -77,6 +76,9 @@ syntax_trees find_new_line
 mckenzie_recover-explore Try_Insert_Quote
     often don't know where parse error is; do both b and c
         actually, parse error is after current_token; that might help.
+
+separate heap for minimal_complete
+    t_mck extra_name_2
 
 deallocating Graph takes as long as computing redundancy
     use storage_pool to deallocate all at once?

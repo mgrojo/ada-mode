@@ -163,6 +163,10 @@
 ;; keywords.
 %mckenzie_cost_delete STRING_LITERAL 2
 
+;; We don't allow empty sequence_of_statements, so make one short
+;; statement cheaper to insert.
+%mckenzie_cost_insert EXIT 2
+
 %if parser in LALR | LR1
 %conflict SHIFT generic_instantiation | REDUCE aspect_specification_opt on token IS
 %elsif parser = tree_sitter
@@ -539,14 +543,9 @@ selected_component
     %(return Merge_Names (Tree, Nonterm, Tokens, 1, 3);)%
   ;
 
-sequence_of_statements_list
-  : sequence_of_statements_list statement
-  | statement
-  ;
-
 sequence_of_statements
-  : sequence_of_statements_list
-  | ;; empty
+  : sequence_of_statements statement
+  | statement
   ;
 
 simple_expression

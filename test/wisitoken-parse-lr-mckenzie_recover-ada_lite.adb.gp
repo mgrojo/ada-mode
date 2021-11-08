@@ -215,6 +215,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   end if;
 
                   Push_Back_Check (Super, New_Config, +END_ID);
+                  if Tree.ID (New_Config.Stack.Peek.Token) = +BEGIN_ID then
+                     --  test_mckenzie_recover.adb Extra_Name_1.
+                     Insert (Tree, New_Config, (+EXIT_ID, +SEMICOLON_ID));
+                  end if;
                   Insert (Tree, New_Config, (+END_ID, +SEMICOLON_ID));
 
                   Local_Config_Heap.Add (New_Config);
@@ -313,11 +317,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   (+handled_sequence_of_statements_ID,
                    +sequence_of_statements_ID));
 
-#if ADA_LITE = "Ada_Lite" then
-               Check (Tree.ID (New_Config.Stack.Peek (1).Token), +sequence_of_statements_list_ID);
-#elsif ADA_LITE = "Ada_Lite_Ebnf" then
-               Check (Tree.ID (New_Config.Stack.Peek (1).Token), +statement_list_ID);
-#end if;
                --  This is handling Missing_Name_Error, so we know the identifier_opt
                --  or name_opt is empty.
                Delete_Check (Tree, New_Config, (+END_ID, +SEMICOLON_ID));
@@ -440,6 +439,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                      Push_Back (Super, New_Config, Push_Back_Undo_Reduce => True);
                   end loop;
 
+                  if Tree.ID (New_Config.Stack.Peek.Token) = +BEGIN_ID then
+                     --  test_mckenzie_recover.adb Extra_Name_1.
+                     Insert (Tree, New_Config, (+EXIT_ID, +SEMICOLON_ID));
+                  end if;
                   Insert (Tree, New_Config, +END_ID);
                   --  We don't insert ';' here, because we may need to insert other
                   --  stuff first; let Minimal_Complete_Actions handle it. See
@@ -475,6 +478,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                       else +name_opt_ID),
                       +END_ID));
 
+                  if Tree.ID (New_Config.Stack.Peek.Token) = +BEGIN_ID then
+                     --  test_mckenzie_recover.adb Extra_Name_1.
+                     Insert (Tree, New_Config, (+EXIT_ID, +SEMICOLON_ID));
+                  end if;
                   Insert (Tree, New_Config, +END_ID);
                   --  Let Minimal_Complete_Actions do the rest of the insert; see
                   --  comment in case 1.
@@ -644,6 +651,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
                   --  Inserting the end keyword and semicolon here avoids the costs added by
                   --  Insert_Minimal_Complete_Actions.
+                  if To_Token_Enum (Tree.ID (New_Config.Stack.Peek.Token)) in BEGIN_ID then
+                     --  test_mckenzie_recover.adb Extra_Name_1.
+                     Insert (Tree, New_Config, (+EXIT_ID, +SEMICOLON_ID));
+                  end if;
                   Insert (Tree, New_Config, (+END_ID, End_ID_Actions (End_ID_Actions.First_Index).ID, +SEMICOLON_ID));
 
                   Local_Config_Heap.Add (New_Config);
@@ -705,7 +716,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
             else
                case To_Token_Enum (Tokens (Next_Index)) is
                when IF_ID =>
-                  Result := To_Vector (+IF_ID);
+                  Result := To_Vector ((+IF_ID, +NUMERIC_LITERAL_ID, +THEN_ID));
 
                when IDENTIFIER_ID =>
                   if Tokens (Next_Index + 1) /= Invalid_Token_ID and then
@@ -799,5 +810,5 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
 end WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE;
 --  Local Variables:
---  ada-case-strict: t
+--  ada-case-strict: nil
 --  End:

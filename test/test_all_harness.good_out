@@ -61,6 +61,7 @@ OK test_incremental.adb : Edit_Comment_5
 OK test_incremental.adb : Edit_Comment_6
 OK test_incremental.adb : Edit_Comment_7
 OK test_incremental.adb : Edit_Comment_8
+OK test_incremental.adb : Edit_Comment_9
 OK test_incremental.adb : Edit_Whitespace_1
 OK test_incremental.adb : Edit_Whitespace_2
 OK test_incremental.adb : Edit_Leading_Non_Grammar
@@ -87,6 +88,7 @@ OK test_incremental.adb : Preserve_Parse_Errors_2
 OK test_incremental.adb : Modify_Deleted_Node
 OK test_incremental.adb : Multiple_Errors_On_One_Token_1
 OK test_incremental.adb : Multiple_Errors_On_One_Token_2
+OK test_incremental.adb : Non_Ascii
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
 OK test_mckenzie_recover.adb LALR : No_Error
 OK test_mckenzie_recover.adb LALR : Empty_Comments
@@ -148,6 +150,7 @@ OK test_mckenzie_recover.adb LALR : Check_Multiple_Delete_For_Insert
 OK test_mckenzie_recover.adb LALR : Pushback_Nonterm_1
 OK test_mckenzie_recover.adb LALR : Multiple_Errors_On_One_Token
 OK test_mckenzie_recover.adb LALR : Move_Non_Grammar
+OK test_mckenzie_recover.adb LALR : Invalid_Char_Literal
 OK test_mckenzie_recover.adb LR1 : No_Error
 OK test_mckenzie_recover.adb LR1 : Empty_Comments
 OK test_mckenzie_recover.adb LR1 : Error_1
@@ -208,6 +211,7 @@ OK test_mckenzie_recover.adb LR1 : Check_Multiple_Delete_For_Insert
 OK test_mckenzie_recover.adb LR1 : Pushback_Nonterm_1
 OK test_mckenzie_recover.adb LR1 : Multiple_Errors_On_One_Token
 OK test_mckenzie_recover.adb LR1 : Move_Non_Grammar
+OK test_mckenzie_recover.adb LR1 : Invalid_Char_Literal
 OK test_partial_parse.adb : Plain_String
 OK test_partial_parse.adb : File_String_Access
 OK test_skip_to.adb : Nominal
@@ -219,7 +223,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   219
-Successful Tests:  219
+Total Tests Run:   223
+Successful Tests:  223
 Failed Assertions: 0
 Unexpected Errors: 0

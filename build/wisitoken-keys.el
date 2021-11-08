@@ -86,8 +86,7 @@
       (search-forward "got")
       (forward-char 2))
     (let* ((uniq-files (uniq-file-uniquify (project-files (project-current))))
-	   (result (all-completions filename uniq-files))
-	   (abs-file (cdr (assoc (car result) uniq-files #'string=)))
+	   (abs-file (cdr (assoc filename uniq-files #'string=)))
 	   (display-buffer-overriding-action
 	    (cons (list #'ofw-display-buffer-other-window) nil)))
       (when (not (stringp abs-file))
@@ -248,13 +247,14 @@
   ;; list. Assume it was copied from compilation; convert one op to
   ;; required syntax.
   (forward-char 1)
-  (let ((insertp (looking-at "INSERT"))
-	(ffp (looking-at "FAST_FORWARD")))
+  (let ((basep (looking-at "INSERT\\|DELETE\\|PUSH_BACK"))
+	(ffp (looking-at "FAST_FORWARD"))
+	(urp (looking-at "UNDO_REDUCE")))
     (forward-symbol 1)
     (let ((wisi-case-strict t))
       (wisi-case-adjust-at-point))
     (cond
-     ((not ffp)
+     (basep
       (forward-char 2)
       (insert "+")
       (forward-symbol 1)
@@ -262,13 +262,19 @@
       (forward-symbol 1))
 
      (ffp
-      (forward-char 2)
-      (delete-char 1)
       (forward-symbol 1))
+
+     (urp
+      (forward-char 2)
+      (insert "+")
+      (forward-symbol 1)
+      (insert "_ID")
+      (forward-symbol 2))
      )
 
     (forward-char 1); ')'
-    (unless (eolp)
+    (if (eolp)
+	(insert ",")
       (delete-char 1)
       (insert " &")
       (forward-char 1))

@@ -426,8 +426,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                return Abandon;
 
             else
-               pragma Assert (Super.Tree.ID (Item.Config.Error_Token) /= Invalid_Token_ID);
-
                if Item.Shift_Count = 0 then
                   --  Parse did not process any Deletes from Insert_Delete; Fast_Forward
                   --  did that. So the very first token caused an error, and Config is

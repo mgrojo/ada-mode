@@ -276,7 +276,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    function Recover (Shared_Parser : in out LR.Parser.Parser) return Recover_Status
    is
-      use all type Parser.Post_Recover_Access;
       Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Tree  : Syntax_Trees.Tree renames Shared_Parser.Tree;
 
@@ -814,9 +813,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             end if;
          end loop;
       end;
-      if Shared_Parser.Post_Recover /= null then
-         Shared_Parser.Post_Recover.all;
-      end if;
 
       return Super.Recover_Result;
 

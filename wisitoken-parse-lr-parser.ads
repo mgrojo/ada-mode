@@ -75,8 +75,6 @@ package WisiToken.Parse.LR.Parser is
    --  nonterminals that can contain String_Literal_ID as part of an
    --  expression. Used in placing a missing string quote.
 
-   type Post_Recover_Access is access procedure;
-
    type Parser is new WisiToken.Parse.Base_Parser with record
       Table                          : Parse_Table_Ptr;
       Language_Fixes                 : Language_Fixes_Access;
@@ -85,9 +83,6 @@ package WisiToken.Parse.LR.Parser is
 
       String_Quote_Checked : Base_Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
-
-      Post_Recover : Post_Recover_Access;
-      --  Gather data for tests.
 
       Resume_Active : Boolean := False;
       Min_Sequential_Index : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'Last;
