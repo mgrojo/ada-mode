@@ -23,7 +23,7 @@ project Standard_Common is
    Build : Build_Type := External ("Standard_Common_Build", "Normal");
 
    type Assertions_Type is ("Build", "Off");
-   Assertions : Assertions_Type := External ("Standard_Common_Assertions", "Off");
+   Assertions : Assertions_Type := External ("Standard_Common_Assertions", "Build");
 
    type Profile_Type is ("On", "Off");
    Profile : Profile_Type := External ("Standard_Common_Profile", "Off");
