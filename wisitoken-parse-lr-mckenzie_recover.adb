@@ -254,7 +254,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                if Trace_McKenzie > Detail then
                   Put
                     ("undo_reduce " & Image
-                       (Super.Tree.ID (Config.Error_Token), Super.Tree.Lexer.Descriptor.all),
+                       (Super.Tree.Element_ID (Config.Error_Token), Super.Tree.Lexer.Descriptor.all),
                        Trace, Super.Tree.all, Parser_State.Stream, Config, Task_ID => False);
                end if;
             else
@@ -959,7 +959,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Token : constant Recover_Token := Config.Stack.Pop.Token;
    begin
       Recover_Op_Arrays.Append
-        (Config.Ops, (Push_Back, Tree.ID (Token), Tree.Get_Sequential_Index (Tree.First_Terminal (Token))));
+        (Config.Ops, (Push_Back, Tree.Element_ID (Token), Tree.Get_Sequential_Index (Tree.First_Terminal (Token))));
 
       if Token.Virtual then
          if Token.First_Terminal = Invalid_Node_Access then
@@ -1321,7 +1321,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    is begin
       for I in 1 .. Config.Stack.Depth - 1 loop
          --  Depth has Invalid_Token_ID
-         if ID = Tree.ID (Config.Stack.Peek (I).Token) then
+         if ID = Tree.Element_ID (Config.Stack.Peek (I).Token) then
             return True;
          end if;
       end loop;
@@ -1337,7 +1337,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       loop
          exit when Matching_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
          declare
-            Stack_ID : Token_ID renames Tree.ID (Config.Stack.Peek (Matching_Index).Token);
+            Stack_ID : Token_ID renames Tree.Element_ID (Config.Stack.Peek (Matching_Index).Token);
          begin
             exit when Stack_ID = ID;
          end;
@@ -1354,7 +1354,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       loop
          exit when Matching_Index >= Config.Stack.Depth; -- Depth has Invalid_Token_ID
          declare
-            ID : Token_ID renames Tree.ID (Config.Stack.Peek (Matching_Index).Token);
+            ID : Token_ID renames Tree.Element_ID (Config.Stack.Peek (Matching_Index).Token);
          begin
             exit when ID in IDs'First .. IDs'Last and then IDs (ID);
          end;
@@ -1375,8 +1375,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Token renames Config.Stack.Peek (Matching_Index).Token;
       begin
          return
-           Tree.ID (Token) in ID_Set'Range and then
-           (ID_Set (Tree.ID (Token)) and
+           Tree.Element_ID (Token) in ID_Set'Range and then
+           (ID_Set (Tree.Element_ID (Token)) and
               (not Token.Virtual and then
                  Tree.Find_Descendant (Token.Element_Node, ID) /=
                  Invalid_Node_Access));
@@ -1443,7 +1443,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                then To_Lower (Tree.Lexer.Buffer_Text (Name_Region))
                else Tree.Lexer.Buffer_Text (Name_Region));
 
-            if Other_ID = Tree.ID (Token) then
+            if Other_ID = Tree.Element_ID (Token) then
                Other_Count := Other_Count + 1;
             end if;
 
@@ -1722,7 +1722,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Expected_ID           : in              Token_ID;
       Push_Back_Undo_Reduce : in              Boolean := False)
    is begin
-      Check (Super.Tree.ID (Config.Stack.Peek (1).Token), Expected_ID);
+      Check (Super.Tree.Element_ID (Config.Stack.Peek (1).Token), Expected_ID);
       Push_Back (Super, Config, Push_Back_Undo_Reduce);
    end Push_Back_Check;
 
@@ -1749,8 +1749,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    is
       use Recover_Op_Array_Refs;
       use all type Ada.Strings.Unbounded.Unbounded_String;
-      use all type WisiToken.In_Parse_Actions.Status_Label;
       use all type Bounded_Streams.Cursor;
+      use all type WisiToken.In_Parse_Actions.Status_Label;
+      use all type WisiToken.Syntax_Trees.Recover_Token;
 
       --  Build a string, call trace.put_line once, so output from multiple
       --  tasks is not interleaved (mostly).
@@ -1774,7 +1775,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end if;
       if Config.In_Parse_Action_Status.Label /= Ok then
          Result := Result & In_Parse_Actions.Status_Label'Image (Config.In_Parse_Action_Status.Label) & " ";
-      elsif Tree.ID (Config.Error_Token) /= Invalid_Token_ID then
+      elsif Config.Error_Token /= Syntax_Trees.Invalid_Recover_Token then
          Result := Result & "Error " & Syntax_Trees.Image (Tree, Config.Error_Token) & " ";
       end if;
       Result := Result & Image (Config.Stack, Tree, Depth => 1);
@@ -1896,7 +1897,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       if not Undo_Reduce_Valid (Super, Config) then
          raise Invalid_Case;
       end if;
-      Check (Super.Tree.ID (Config.Stack.Peek (1).Token), Expected);
+      Check (Super.Tree.Element_ID (Config.Stack.Peek (1).Token), Expected);
       Unchecked_Undo_Reduce (Super, Table, Config);
    end Undo_Reduce_Check;
 

@@ -27,7 +27,6 @@ with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
 with GNAT.Traceback.Symbolic;
-with System.Multiprocessors;
 with WisiToken.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
@@ -42,7 +41,11 @@ package body Test_Incremental is
    Incremental_Parser : WisiToken.Parse.LR.Parser.Parser;
    Full_Parser        : WisiToken.Parse.LR.Parser.Parser;
 
-   McKenzie_Task_Count : System.Multiprocessors.CPU_Range;
+   Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
+     (Ada_Lite_Actions.Descriptor.First_Terminal,
+      Ada_Lite_Actions.Descriptor.Last_Terminal,
+      Ada_Lite_Actions.Descriptor.First_Nonterminal,
+      Ada_Lite_Actions.Descriptor.Last_Nonterminal);
 
    Initial_Buffer : Ada.Strings.Unbounded.Unbounded_String;
    Edited_Buffer  : Ada.Strings.Unbounded.Unbounded_String;
@@ -384,8 +387,8 @@ package body Test_Incremental is
       Parse_Text
         (Initial =>
            "-- preceding" & ASCII.LF &
-           --  |4    |10    |13
-           "-- A := B;" & ASCII.LF & "C;",
+             --  |4    |10    |13
+             "-- A := B;" & ASCII.LF & "C;",
          --  |15  |20
          Edit_At => 17,
          Delete  => "",
@@ -410,11 +413,11 @@ package body Test_Incremental is
       Parse_Text
         (Initial =>
            "D;" & ASCII.LF &
-           "-- preceding" & ASCII.LF &
-           --  |7 |10       |16
-           "-- A := B;" & ASCII.LF &
-           --  |20  |25
-           "C;",
+             "-- preceding" & ASCII.LF &
+             --  |7 |10       |16
+             "-- A := B;" & ASCII.LF &
+             --  |20  |25
+             "C;",
          --  |29
          Edit_At => 20,
          Delete  => "",
@@ -430,11 +433,11 @@ package body Test_Incremental is
       Parse_Text
         (Initial =>
            "procedure A is begin" & ASCII.LF &
-           --        |10       |20
-           "-- An_Identifier in a comment" & ASCII.LF &
-           --  |25  |30       |40       |50
-           "   A := B;" & ASCII.LF &
-           "end A;",
+             --        |10       |20
+             "-- An_Identifier in a comment" & ASCII.LF &
+             --  |25  |30       |40       |50
+             "   A := B;" & ASCII.LF &
+             "end A;",
          Edit_At => 25,
          Delete  => "A",
          Insert  => "a");
@@ -448,9 +451,9 @@ package body Test_Incremental is
       Parse_Text
         (Initial   =>
            "D;" & ASCII.LF &
-           "-- preceding" & ASCII.LF &
-           --  |7 |10       |16
-           "-- A := B;" & ASCII.LF & "C;",
+             "-- preceding" & ASCII.LF &
+             --  |7 |10       |16
+             "-- A := B;" & ASCII.LF & "C;",
          --  |18    |25
          Edit_At   => 17,
          Insert    => "   ",
@@ -480,9 +483,9 @@ package body Test_Incremental is
       Parse_Text
         (Initial   =>
            "D;" & ASCII.LF &
-           "-- comment_1" & ASCII.LF &
-           --  |7 |10       |16
-           "   C;",
+             "-- comment_1" & ASCII.LF &
+             --  |7 |10       |16
+             "   C;",
          --    |20
          Edit_At   => 4,
          Insert    => "   ",
@@ -533,13 +536,13 @@ package body Test_Incremental is
       Parse_Text
         (Initial   =>
            "package Test is" & ASCII.LF &
-           --        |10       |16
-           "   --  A comment" & ASCII.LF &
-           --  |20       |30
-           "   function Bar return Integer;" & ASCII.LF &
-           --     |40       |50       |60
-           "end Test;",
-           --   |70
+             --        |10       |16
+             "   --  A comment" & ASCII.LF &
+             --  |20       |30
+             "   function Bar return Integer;" & ASCII.LF &
+             --     |40       |50       |60
+             "end Test;",
+         --   |70
          Edit_At   => 19,
          Delete    => " ",
          Insert    => "",
@@ -557,13 +560,13 @@ package body Test_Incremental is
       Parse_Text
         (Initial   =>
            "package Test is" & ASCII.LF &
-           --        |10       |16
-           "   --  A comment" & ASCII.LF &
-           --  |20       |30
-           "     function Bar return Integer;" & ASCII.LF &
-           --     |40       |50       |60
-           "end Test;",
-           --   |70
+             --        |10       |16
+             "   --  A comment" & ASCII.LF &
+             --  |20       |30
+             "     function Bar return Integer;" & ASCII.LF &
+             --     |40       |50       |60
+             "end Test;",
+         --   |70
          Edit_At   => 34,
          Delete    => " ",
          Insert    => "",
@@ -580,11 +583,11 @@ package body Test_Incremental is
       Parse_Text
         (Initial   =>
            "--  Leading comment" & ASCII.LF &
-           --        |10           |20
-           "package Test is" & ASCII.LF &
-           "   --  A comment" & ASCII.LF &
-           "   function Bar return Integer;" & ASCII.LF &
-           "end Test;",
+             --        |10           |20
+             "package Test is" & ASCII.LF &
+             "   --  A comment" & ASCII.LF &
+             "   function Bar return Integer;" & ASCII.LF &
+             "end Test;",
          Edit_At   => 3,
          Delete    => " ",
          Insert    => "");
@@ -857,8 +860,8 @@ package body Test_Incremental is
       Parse_Text
         (Initial           =>
            "function Func_1 (A : Integer) return " & ASCII.LF &
-           --        |10       |20       |30
-           "is begin return 1; end;",
+             --        |10       |20       |30
+             "is begin return 1; end;",
          Edit_At           => 38,
          Delete            => "",
          Insert            => "Integer",
@@ -879,7 +882,7 @@ package body Test_Incremental is
       Parse_Text
         (Initial           =>
            "procedure Pkg.Proc_1 is begin A; begin B; end Pkg.Proc_1;",
-           --        |10       |20       |30       |40       |50
+         --        |10       |20       |30       |40       |50
          Edit_At           => 43,
          Delete            => "",
          Insert            => "end; ",
@@ -903,7 +906,7 @@ package body Test_Incremental is
            "A := 2;" & ASCII.LF &
              --  |6
              "B := ""A string" & ASCII.LF & -- missing '";'; lexer error at 14
-             --  |12      |20
+                                             --  |12      |20
              "C := 1;",
          --   |23
          Edit_At      => 6,
@@ -965,8 +968,8 @@ package body Test_Incremental is
         (Label        => "1",
          Initial      =>
            "A := 2;" & ASCII.LF &
-           --  |6
-           ASCII.LF,
+             --  |6
+             ASCII.LF,
          --  | 9
 
          Edit_At      => 9,
@@ -1109,15 +1112,14 @@ package body Test_Incremental is
       Parse_Text
         ("procedure A is begin" & ASCII.LF &
            --  |6  |10       |20  |21
-           "   if" & ASCII.LF &
-           --  |25   |27
+           "   for" & ASCII.LF &
+           --  |25    |28
            "end A;",
-         Edit_At     => 27,
+         Edit_At     => 28,
          Delete      => "",
          Insert      => " ",
          Full_Errors => 1,
          Incr_Errors => 1);
-      --  FIXME: check that 'if' was restored.
    end Restore_Deleted_01;
 
    ----------
@@ -1204,7 +1206,7 @@ package body Test_Incremental is
          WisiToken.Parse.LR.Set_McKenzie_Options (Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
       end if;
 
-      McKenzie_Task_Count := Full_Parser.Table.McKenzie_Param.Task_Count;
+      Orig_McKenzie_Param := Full_Parser.Table.McKenzie_Param;
    end Set_Up_Case;
 
    overriding procedure Tear_Down_Case (T : in out Test_Case)
@@ -1216,9 +1218,9 @@ package body Test_Incremental is
 
    overriding procedure Set_Up (T : in out Test_Case)
    is begin
-      Ada_Lite_Actions.End_Name_Optional := True;
-      Full_Parser.Table.McKenzie_Param.Task_Count := McKenzie_Task_Count;
-      Incremental_Parser.Table.McKenzie_Param.Task_Count := McKenzie_Task_Count;
+      Ada_Lite_Actions.End_Name_Optional      := True;
+      Full_Parser.Table.McKenzie_Param        := Orig_McKenzie_Param;
+      Incremental_Parser.Table.McKenzie_Param := Orig_McKenzie_Param;
    end Set_Up;
 
 end Test_Incremental;

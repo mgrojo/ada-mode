@@ -416,7 +416,10 @@ package WisiToken.Syntax_Trees is
 
    Invalid_Recover_Token : constant Recover_Token := (Virtual => True, ID => Invalid_Token_ID, others => <>);
 
-   function ID (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Token_ID;
+   function Node_ID (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Token_ID
+   with Pre => Item.Virtual = False;
+   function Element_ID (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Token_ID;
+
    function Element_Is_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Boolean;
    --  Virtual ID or Element_Node.
 

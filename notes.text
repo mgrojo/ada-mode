@@ -31,10 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-fix ada_mode-interactive_09.adb bug
-    test_incremental.adb Restore_Deleted_01
-
-
 review FIXME
     at least in syntax_trees
 

@@ -703,15 +703,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             declare
                Current_State : constant State_Index := Config.Stack.Peek.State;
             begin
-               if Is_Terminal (Tree.ID (Current_Token), Descriptor) then
-                  Action_Cur := Action_For (Table, Current_State, Tree.ID (Current_Token));
+               if Is_Terminal (Tree.Element_ID (Current_Token), Descriptor) then
+                  Action_Cur := Action_For (Table, Current_State, Tree.Element_ID (Current_Token));
                   Action     := Action_Cur.Item;
                   return;
                else
                   --  nonterminal.
                   declare
                      New_State : constant Unknown_State_Index := Goto_For
-                       (Table, Current_State, Tree.ID (Current_Token));
+                       (Table, Current_State, Tree.Element_ID (Current_Token));
 
                      Dummy : Ada.Containers.Count_Type;
                      pragma Unreferenced (Dummy);

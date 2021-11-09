@@ -843,7 +843,7 @@ package body WisiToken.Parse.LR is
       use Recover_Stacks;
    begin
       for I in 1 .. Depth (Stack) loop
-         if Tree.ID (Peek (Stack, I).Token) = ID then
+         if Tree.Element_ID (Peek (Stack, I).Token) = ID then
             return True;
          end if;
       end loop;

@@ -461,7 +461,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          declare
             Item : Parse.Parse_Item renames Parse.Parse_Item_Array_Refs.Variable_Ref (Parse_Items, I);
          begin
-            pragma Assert (Item.Parsed and Super.Tree.ID (Item.Config.Error_Token) /= Invalid_Token_ID);
+            pragma Assert (Item.Parsed and Super.Tree.Element_ID (Item.Config.Error_Token) /= Invalid_Token_ID);
 
             Enqueue (Item);
          end;
@@ -567,13 +567,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end if;
 
       Do_Push_Back (Super.Tree.all, New_Config);
-      New_Config.Cost := @ + Shared.Table.McKenzie_Param.Push_Back (Super.Tree.ID (Token));
+      New_Config.Cost := @ + Shared.Table.McKenzie_Param.Push_Back (Super.Tree.Element_ID (Token));
       New_Config.Strategy_Counts (Push_Back) := New_Config.Strategy_Counts (Push_Back) + 1;
 
       Local_Config_Heap.Add (New_Config);
 
       if Trace_McKenzie > Detail then
-         Base.Put ("push_back " & Image (Super.Tree.ID (Token), Super.Tree.Lexer.Descriptor.all), Super,
+         Base.Put ("push_back " & Image (Super.Tree.Element_ID (Token), Super.Tree.Lexer.Descriptor.all), Super,
                    Parser_Index, New_Config);
       end if;
    end Try_Push_Back;
@@ -659,7 +659,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       if not Super.Tree.Is_Empty_Nonterm (Token.Element_Node) then
          --  Token is not empty.
-         New_Config.Cost := New_Config.Cost + McKenzie_Param.Undo_Reduce (Super.Tree.ID (Token));
+         New_Config.Cost := New_Config.Cost + McKenzie_Param.Undo_Reduce (Super.Tree.Element_ID (Token));
       end if;
 
       if Is_Full (New_Config.Ops) then
@@ -674,7 +674,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Local_Config_Heap.Add (New_Config);
 
       if Trace_McKenzie > Detail then
-         Base.Put ("undo_reduce " & Image (Super.Tree.ID (Token), Super.Tree.Lexer.Descriptor.all), Super,
+         Base.Put ("undo_reduce " & Image (Super.Tree.Element_ID (Token), Super.Tree.Lexer.Descriptor.all), Super,
                    Parser_Index, New_Config);
       end if;
    end Try_Undo_Reduce;
@@ -1730,7 +1730,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             --  token would not be the lexer repaired string literal, since a
             --  string literal would be legal here.
 
-         elsif Tree.ID (Config.Error_Token) = Invalid_Token_ID or else
+         elsif Tree.Element_ID (Config.Error_Token) = Invalid_Token_ID or else
            (Tree.Byte_Region (Lexer_Error_Node).First < Tree.Byte_Region (Config.Error_Token).First and
               Tree.Get_Sequential_Index (Next_Line_Begin_Token) /= Invalid_Sequential_Index)
          then
@@ -2134,7 +2134,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       pragma Assert (Config.Current_Insert_Delete = 0);
       --  Config.Current_Insert_Delete > 0 is a programming error.
 
-      if Super.Tree.ID (Config.Error_Token) /= Invalid_Token_ID then
+      if Super.Tree.Element_ID (Config.Error_Token) /= Invalid_Token_ID then
          if Shared.Language_Fixes = null then
             null;
          else
@@ -2169,7 +2169,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                begin
                   if Last /= SAL.Invalid_Peek_Index and then
                     Constant_Ref (Config.Ops, Last).Op = Undo_Reduce and then
-                    Constant_Ref (Config.Ops, Last).Nonterm = Super.Tree.ID (Config.Error_Token)
+                    Constant_Ref (Config.Ops, Last).Nonterm = Super.Tree.Element_ID (Config.Error_Token)
                   then
                      --  We are ignoring this undo_reduce.
                      Delete_Last (Config.Ops);
@@ -2179,7 +2179,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                --  finish reduce.
                Config.Stack.Pop (Config.In_Parse_Action_Token_Count);
 
-               New_State := Goto_For (Table, Config.Stack.Peek.State, Super.Tree.ID (Config.Error_Token));
+               New_State := Goto_For (Table, Config.Stack.Peek.State, Super.Tree.Element_ID (Config.Error_Token));
 
                if New_State = Unknown_State then
                   if Config.Stack.Depth = 1 then
@@ -2191,7 +2191,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      raise SAL.Programmer_Error with
                        "process_one found test case for new_state = Unknown; old state " &
                        Trimmed_Image (Config.Stack.Peek.State) & " nonterm " & Image
-                         (Super.Tree.ID (Config.Error_Token), Descriptor);
+                         (Super.Tree.Element_ID (Config.Error_Token), Descriptor);
                   end if;
                end if;
 

@@ -101,6 +101,8 @@ private
    --  Check that the next input token in Config has ID. Append a Delete op
    --  to Config.Ops, and append it to Config.Insert_Delete.
    --
+   --  ID = Invalid_Token_ID skips the check.
+   --
    --  This or the next routine must be used instead of Config.Ops.Append
    --  (Delete...) unless the code also takes care of changing
    --  Config.Current_Shared_Token or Config.Input_Stream. Note that this

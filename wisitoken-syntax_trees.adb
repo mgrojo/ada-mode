@@ -2005,6 +2005,19 @@ package body WisiToken.Syntax_Trees is
       Deleted_Token.Non_Grammar.Clear;
    end Delete_Token;
 
+   function Element_ID
+     (Tree : in Syntax_Trees.Tree;
+      Item : in Recover_Token)
+     return Token_ID
+   is
+      pragma Unreferenced (Tree);
+   begin
+      return
+        (if Item.Virtual
+         then Item.ID
+         else Item.Element_Node.ID);
+   end Element_ID;
+
    function Element_Is_Terminal (Tree : in Syntax_Trees.Tree; Item : in Recover_Token) return Boolean
    is begin
       if Item.Virtual then
@@ -3495,21 +3508,6 @@ package body WisiToken.Syntax_Trees is
    is begin
       return Child.Parent /= Invalid_Node_Access;
    end Has_Parent;
-
-   function ID
-     (Tree   : in Syntax_Trees.Tree;
-      Item : in Recover_Token)
-     return Token_ID
-   is
-      pragma Unreferenced (Tree);
-   begin
-      return
-        (if Item.Virtual
-         then Item.ID
-         elsif Item.Element_Node /= Invalid_Node_Access
-         then Item.Element_Node.ID
-         else Item.Node.ID);
-   end ID;
 
    function ID
      (Tree : in Syntax_Trees.Tree;
@@ -5695,6 +5693,16 @@ package body WisiToken.Syntax_Trees is
       elsif abs Left.Node_Index > abs Right.Node_Index then SAL.Greater
       elsif abs Left.Node_Index < abs Right.Node_Index then SAL.Less
       else SAL.Equal);
+
+   function Node_ID
+     (Tree   : in Syntax_Trees.Tree;
+      Item : in Recover_Token)
+     return Token_ID
+   is
+      pragma Unreferenced (Tree);
+   begin
+      return Item.Node.ID;
+   end Node_ID;
 
    function Non_Grammar_Var
      (Tree     : in Syntax_Trees.Tree;
