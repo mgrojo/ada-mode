@@ -49,22 +49,14 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-editing file header comment (including deleting comment line end) lost face in entire visible part of buffer
-    test/non_ascii.ads
-
-typing correct code leaves errors
-    wisitoken-utf_8.adb
-    test/ada_mode-incremental_08.adb does not reproduce.
-
-    add wisi-record-test
-        wisi-reset-parser erase *Ada parser log*
-        use w-pr-lo-to-cmd to write *.adb.cmd
-        use that .cmd as a test
+propagate to main
 
 review FIXMEs
     (grep-find "find c:/Projects/org.wisitoken -type f -print | \"xargs\" grep  -nH --null FIXME")
     (grep-find "find c:/Projects/org.emacs.wisi -type f -print | \"xargs\" grep  -nH --null FIXME")
     (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
+
+    wisitoken-parse-lr-mckenzie_recover-ada.adb insert statement before 'end'?
 
 incremental parse does full reparse every time if FAIL_ENQUEUE_LIMIT
     every char for font-lock
@@ -990,6 +982,7 @@ in ada_annex_p.wy:
 %partial_recursion ;; FIXME: faster compile time while debugging
 
 one ELISP="(setq-default save-parser-log \"../debug-2.log\" save-edited-text \"../edited\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
+    wisi-parser-transaction-log-buffer-size-default 600000
 
 test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
 
