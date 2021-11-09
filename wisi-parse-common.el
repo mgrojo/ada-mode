@@ -501,4 +501,33 @@ Normally set from a language-specific option.")
     (format "(%s)" (wisi-tok-token tok)))
    ))
 
+
+(defun wisi-save-kbd-macro (file-name)
+  "Write `last-kbd-macro' to FILE_NAME."
+  (interactive "F")
+  (with-temp-buffer
+    (insert (format "%s" last-kbd-macro))
+    (write-file file-name))
+  (message "keyboard macro saved to file '%s'" file-name))
+
+(defun wisi-replay-kbd-macro (file-name)
+  "Replay keyboard macro from FILE-NAME, into current buffer.
+Macro must have been saved by `wisi-save-kbd-macro'."
+  (interactive "F")
+  (let ((edit-buffer (current-buffer))
+	(macro-buffer (find-file-noselect file-name))
+	macro
+	(i 0))
+
+    (set-buffer macro-buffer)
+    (setq macro (car (read-from-string (buffer-substring-no-properties (point) (scan-sexps (point) 1)))))
+    (set-buffer edit-buffer)
+    ;; We force a delay between each event in the macro, to better
+    ;; mimic actual typing. This lets font-lock run, which can affect
+    ;; results due to error correction and bugs.
+    (while (< i  (length macro))
+      (execute-kbd-macro (make-vector 1 (aref macro i)))
+      (sit-for 0.1)
+      (setq i (1+ i)))))
+
 (provide 'wisi-parse-common)
