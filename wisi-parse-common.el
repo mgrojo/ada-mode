@@ -501,68 +501,33 @@ Normally set from a language-specific option.")
     (format "(%s)" (wisi-tok-token tok)))
    ))
 
-(defconst wisi-parse-changes-default-buffer-name "*wisi-changes*")
 
-(defvar wisi-parse-save-changes nil
-  "When non-nil, a buffer for saving all edits.
-Saved in wisi change format, for later replay by
-`wisi-replay-changes'. Mostly used for creating tests.")
+(defun wisi-save-kbd-macro (file-name)
+  "Write `last-kbd-macro' to FILE_NAME."
+  (interactive "F")
+  (with-temp-buffer
+    (insert (format "%s" last-kbd-macro))
+    (write-file file-name))
+  (message "keyboard macro saved to file '%s'" file-name))
 
-(defun wisi-record-changes (&optional buffer-name)
-  "Start recording changes.
-End recording with `wisi-end-record-changes'.
-Replay with `wisi-replay-changes'."
-  (interactive)
-  (let ((buffer (get-buffer-create (or buffer-name wisi-parse-changes-default-buffer-name))))
-    ;; Append to current content, to make it easier to capture an
-    ;; entire test.
-    (goto-char (point-max))
-    (setq wisi-parse-save-changes buffer)))
-
-(defun wisi-end-record-changes (&optional file-name)
-  "End recording changes, write to file if name provided."
-  (interactive)
-  (unless wisi-parse-save-changes
-    (error "record changes not started"))
-
-  (with-current-buffer wisi-parse-save-changes
-    (cond
-     ((and (null file-name)
-	       (string-equal (buffer-name) wisi-parse-changes-default-buffer-name))
-      (message "no name provided for changes file; not written."))
-
-     (t
-      (unless file-name (setq file-name (buffer-name)))
-      (write-file file-name)
-      (message "changes saved to file '%s'" file-name))))
-
-  (setq wisi-parse-save-changes nil))
-
-(defun wisi-replay-changes (file-name)
-  "Replay changes from FILE-NAME, into current buffer.
-Changes must have been saved by `wisi-record-test'."
+(defun wisi-replay-kbd-macro (file-name)
+  "Replay keyboard macro from FILE-NAME, into current buffer.
+Macro must have been saved by `wisi-save-kbd-macro'."
+  (interactive "F")
   (let ((edit-buffer (current-buffer))
-	(changes-buffer (find-file-noselect file-name))
-	end change-list)
+	(macro-buffer (find-file-noselect file-name))
+	macro
+	(i 0))
 
-    (set-buffer changes-buffer)
-    (goto-char (point-min))
-    (setq end (scan-sexps (point) 1))
-
-    (while end
-      (setq change-list (car (read-from-string (buffer-substring-no-properties (point) end))))
-      ;; See `wisi-after-change' for change format
-      (goto-char end)
-      (dolist (change change-list)
-	(let ((pos           (nth 1 change))
-	      (deleted-chars (nth 5 change))
-	      (inserted      (nth 6 change)))
-	  (set-buffer edit-buffer)
-	  (goto-char pos)
-	  (delete-char deleted-chars)
-	  (execute-kbd-macro inserted)))
-      (set-buffer changes-buffer)
-      (setq end (scan-sexps (point) 1))
-      )))
+    (set-buffer macro-buffer)
+    (setq macro (car (read-from-string (buffer-substring-no-properties (point) (scan-sexps (point) 1)))))
+    (set-buffer edit-buffer)
+    ;; We force a delay between each event in the macro, to better
+    ;; mimic actual typing. This lets font-lock run, which can affect
+    ;; results due to error correction and bugs.
+    (while (< i  (length macro))
+      (execute-kbd-macro (make-vector 1 (aref macro i)))
+      (sit-for 0.1)
+      (setq i (1+ i)))))
 
 (provide 'wisi-parse-common)

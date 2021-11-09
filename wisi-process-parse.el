@@ -313,10 +313,6 @@ complete."
   (let ((changes
 	 ;; wisi--changes is in reverse time order.
 	 (prin1-to-string (nreverse wisi--changes))))
-    (when wisi-parse-save-changes
-      (with-current-buffer wisi-parse-save-changes
-	(goto-char (point-max))
-	(insert changes)))
     (when (> (length changes) 9999)
       (setq full t))
 
