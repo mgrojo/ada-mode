@@ -20,6 +20,13 @@ pragma License (Modified_GPL);
 package Wisi.WisiToken_Grammar is
 
    Language_Protocol_Version : constant String := "1";
+   --  Defines the data passed to Initialize in Params.
+   --
+   --  This value must match :language-protocol-version in
+   --  wisitoken-grammar-mode in wisitoken-grammar-mode.el
+   --
+   --  Only changes once per wisitoken-grammar-mode release. Increment as
+   --  soon as required, record new version in NEWS.
 
    type Parse_Data_Type is new Wisi.Parse_Data_Type with null record;
 
@@ -28,22 +35,16 @@ package Wisi.WisiToken_Grammar is
    is (new Parse_Data_Type);
 
    overriding
-   procedure Initialize_Partial_Parse
-     (Data              : in out Parse_Data_Type;
-      Trace             : in     WisiToken.Trace_Access;
-      Post_Parse_Action : in     Post_Parse_Action_Type;
-      Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type);
-   --  Call Wisi.Initialize_Partial_Parse, then do any other
-   --  initialization that Data needs.
+   procedure Initialize
+     (Data  : in out Parse_Data_Type;
+      Trace : in     WisiToken.Trace_Access);
 
    overriding
-   procedure Initialize_Full_Parse
-     (Data     : in out Parse_Data_Type;
-      Trace    : in     WisiToken.Trace_Access;
-      End_Line : in     WisiToken.Line_Number_Type);
-   --  Call Wisi.Initialize_Full_Parse, then do any other
-   --  initialization that Data needs.
+   function Get_Token_IDs
+     (User_Data    : in out Parse_Data_Type;
+      Command_Line : in     String;
+      Last         : in out Integer)
+     return WisiToken.Token_ID_Arrays.Vector;
 
    procedure Check_Parens
      (Data    : in out Wisi.Parse_Data_Type'Class;

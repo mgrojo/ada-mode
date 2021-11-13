@@ -23,7 +23,7 @@
 ;;  EBNF syntax.
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -137,7 +137,7 @@
 ;;;; grammar rules, no particular order
 
 declaration
-  : PERCENT token_keyword_non_grammar IDENTIFIER declaration_item_list
+  : PERCENT token_keyword_non_grammar IDENTIFIER [declaration_item_list]
     %((wisi-statement-action [1 statement-start])
       (wisi-name-action 3)
       (wisi-face-apply-action

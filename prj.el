@@ -9,11 +9,11 @@
     (gnu/linux
      (list
       "WISITOKEN=/Projects/org.wisitoken"
-      "EMACS_WISI=/Projects/org.emacs.ada-mode"))
+      "WISI=/Projects/org.emacs.wisi"))
     (windows-nt
      (list
       "WISITOKEN=c:/Projects/org.wisitoken"
-      "EMACS_WISI=c:/Projects/org.emacs.ada-mode"))
+      "WISI=c:/Projects/org.emacs.wisi"))
     ))
   "Makefile")
 

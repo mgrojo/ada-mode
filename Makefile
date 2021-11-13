@@ -56,30 +56,13 @@ two_pro : build_executables
 # is all we need after a CM update. Doing byte-compile-clean
 # first avoids errors caused by loading new source on old .elc.
 byte-compile : byte-compile-clean
-	$(EMACS_EXE) -Q -batch -L . -L $(EMACS_WISI) -l exclude-wisi.el $(MMM_MODE) --eval "(progn (package-initialize)(batch-byte-compile))" *.el
+	$(EMACS_EXE) -Q -batch -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) --eval "(progn (package-initialize)(batch-byte-compile))" *.el
 
 byte-compile-clean :
 	rm -f *.elc
 
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval "(progn (require 'autoload)(setq generated-autoload-file (expand-file-name \"autoloads.el\"))(update-directory-autoloads \".\"))"
-
-# WISITOKEN is correct for Stephe's development machines;
-# it can be overridden on the 'make' command line or by an
-# external environment variable.
-ifeq ($(shell uname),Linux)
-export WISITOKEN ?= /Projects/org.wisitoken
-export EMACS_WISI ?= /Projects/org.emacs.ada-mode.stephe-2
-
-else ifeq ($(shell uname),Darwin)
-export WISITOKEN ?= /home/Projects/wisitoken/org.wisitoken
-export EMACS_WISI ?= /Projects/org.emacs.ada-mode.stephe-2
-else
-# windows
-export WISITOKEN ?= c:/Projects/org.wisitoken
-export EMACS_WISI ?= c:/Projects/org.emacs.ada-mode.stephe-2
-
-endif
 
 $(WISITOKEN)/build/wisitoken-bnf-generate.exe : force
 	$(MAKE) -C $(WISITOKEN)/build wisitoken-bnf-generate.exe
@@ -92,10 +75,10 @@ TEST_FILES := $(shell cd test; ls *.wy)
 	-diff -u $< $*.tmp > $*.diff
 
 %.tmp : %
-	$(EMACS_EXE) -Q -L . -L $(EMACS_WISI) $(MMM_MODE) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) -Q -L . -L $(WISI) $(MMM_MODE) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
 %.debug : %
-	$(EMACS_EXE) -Q -L . -L $(EMACS_WISI) $(MMM_MODE) -l $(RUNTEST) --eval '(progn (package-initialize)(setq debug-on-error t))' $<
+	$(EMACS_EXE) -Q -L . -L $(WISI) $(MMM_MODE) -l $(RUNTEST) --eval '(progn (package-initialize)(setq debug-on-error t))' $<
 
 test-wisitoken_grammar : RUNTEST := run-indent-test-grammar.el
 test-wisitoken_grammar : $(addsuffix .diff, $(TEST_FILES))

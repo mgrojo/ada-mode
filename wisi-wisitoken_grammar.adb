@@ -22,36 +22,38 @@ package body Wisi.WisiToken_Grammar is
 
    Check_Parens_Action_Index : constant String := "0";
 
-   procedure Initialize (Data : in out Parse_Data_Type)
+   overriding
+   procedure Initialize
+     (Data  : in out Parse_Data_Type;
+      Trace : in     WisiToken.Trace_Access)
    is
       use all type Wisitoken_Grammar_1_Process_Actions.Token_Enum_ID;
    begin
+      Wisi.Initialize (Wisi.Parse_Data_Type (Data), Trace);
+
       Data.First_Comment_ID := +COMMENT_ID;
    end Initialize;
 
    overriding
-   procedure Initialize_Partial_Parse
-     (Data              : in out Parse_Data_Type;
-      Trace             : in     WisiToken.Trace_Access;
-      Post_Parse_Action : in     Post_Parse_Action_Type;
-      Begin_Line        : in     WisiToken.Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type)
-   is begin
-      Wisi.Initialize_Partial_Parse (Wisi.Parse_Data_Type (Data), Trace, Post_Parse_Action, Begin_Line, End_Line);
-
-      Initialize (Data);
-   end Initialize_Partial_Parse;
-
-   overriding
-   procedure Initialize_Full_Parse
-     (Data     : in out Parse_Data_Type;
-      Trace    : in     WisiToken.Trace_Access;
-      End_Line : in     WisiToken.Line_Number_Type)
-   is begin
-      Wisi.Initialize_Full_Parse (Wisi.Parse_Data_Type (Data), Trace, End_Line);
-
-      Initialize (Data);
-   end Initialize_Full_Parse;
+   function Get_Token_IDs
+     (User_Data    : in out Parse_Data_Type;
+      Command_Line : in     String;
+      Last         : in out Integer)
+     return WisiToken.Token_ID_Arrays.Vector
+   is
+      pragma Unreferenced (User_Data);
+      use Wisitoken_Grammar_1_Process_Actions;
+   begin
+      return IDs : WisiToken.Token_ID_Arrays.Vector do
+         Wisi.Skip (Command_Line, Last, '(');
+         loop
+            IDs.Append (+Token_Enum_ID'Value (Wisi.Get_Enum (Command_Line, Last)));
+            Wisi.Skip (Command_Line, Last, ' ');
+            exit when Command_Line (Last + 1) = ')';
+         end loop;
+         Last := Last + 1;
+      end return;
+   end Get_Token_IDs;
 
    procedure Check_Parens
      (Data    : in out Wisi.Parse_Data_Type'Class;

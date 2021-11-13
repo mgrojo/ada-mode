@@ -1,6 +1,6 @@
 ;;; wisitoken-grammar-mode.el --- Major mode for editing WisiToken grammar files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017 - 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2017 - 2021  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -217,7 +217,7 @@
 	(delete-region (match-beginning 0) (match-end 0))))))
 
 (defun wisitoken-grammar-tree-sitter-conflict ()
-  "Convert a list of nonterms from a tree-sitter conflict error message to a %conflict."
+  "Convert a tree-sitter conflict error message to a %conflict."
   (interactive)
   (let ((wy-buffer (current-buffer))
 	nonterms)
@@ -270,7 +270,8 @@ Otherwise insert a plain new line."
       (wisi-next-name))))
 
 (defun wisitoken-grammar-add-log-current-function ()
-  "For `add-log-current-defun-function'; return name of current non-terminal or declaration."
+  "Return name of current non-terminal or declaration.
+For `add-log-current-defun-function'."
   ;; add-log-current-defun is typically called with point at the start
   ;; of an ediff change section, which is before the start of the
   ;; declaration of a new item. So go to the end of the current line

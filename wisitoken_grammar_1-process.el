@@ -1,7 +1,7 @@
 ;;; wisitoken_grammar_1-process.el --- Generated parser support file  -*- buffer-read-only:t lexical-binding:t -*-
 ;;  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS wisitoken_grammar_1.wy
 
-;;  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -85,6 +85,7 @@
    rhs_alternative_list
    compilation_unit
    compilation_unit_list
+   Wisi_SOI
    ])
 
 (defconst wisitoken_grammar_1-process-face-table
