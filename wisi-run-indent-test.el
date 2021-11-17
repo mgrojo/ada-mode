@@ -34,6 +34,9 @@
   "If non-nil, a file name telling where to save wisi parser edited
 text, after each edit in an incremental parse, and before each partial parse.")
 
+(defvar compare-tree-text nil
+  "If non-nil, after each incremental parse, compare tree to fresh full parse.")
+
 (defun test-in-comment-p ()
   (nth 4 (syntax-ppss)))
 
@@ -181,10 +184,6 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
       (message "saving parser transaction log '%s' to '%s'" (buffer-name) save-parser-log)
       (write-region nil nil save-parser-log))))
 
-(defun wisi-test-enable-save-edited ()
-  (when (stringp save-edited-text)
-    (wisi-process-parse-save-text wisi--parser save-edited-text t)))
-
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."
   (interactive)
@@ -197,7 +196,11 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	(setq project-find-functions (list #'wisi-prj-current-cached))
 	(setq xref-backend-functions (list #'wisi-prj-xref-backend))
 
-	(wisi-test-enable-save-edited)
+	(when (stringp save-edited-text)
+	  (wisi-process-parse-save-text wisi--parser save-edited-text t))
+
+	(when compare-tree-text
+	  (wisi-process-parse-compare-tree-text wisi--parser))
 
 	(let ((error-count 0)
 	      (test-buffer (current-buffer))

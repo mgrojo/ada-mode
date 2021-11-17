@@ -171,7 +171,6 @@ package body Emacs_Wisi_Common_Parse is
             Result.Zombie_Limit     := Get_Integer (Command_Line, Last);
             Result.Enqueue_Limit    := Get_Integer (Command_Line, Last);
             Result.Max_Parallel     := Get_Integer (Command_Line, Last);
-            Result.Byte_Count       := Get_Integer (Command_Line, Last);
 
             case Kind is
             when Partial => null;
@@ -179,6 +178,7 @@ package body Emacs_Wisi_Common_Parse is
                Result.Changes := Wisi.Parse_Context.Get_Emacs_Change_List (Command_Line, Last);
 
             when Full =>
+               Result.Byte_Count        := Get_Integer (Command_Line, Last);
                Result.Full_End_Char_Pos := Buffer_Pos (Get_Integer (Command_Line, Last)) - 1;
             end case;
          end case;
@@ -322,7 +322,27 @@ package body Emacs_Wisi_Common_Parse is
                Trace.Put_Line ("'" & Command_Line & "' length:" & Command_Length'Image);
             end if;
 
-            if Match ("kill-context") then
+            if Match ("compare_tree_text_auto") then
+               --  Args: source_file_name
+               --  Input: <none>
+               --  Response:
+               --  message, prompt
+               --
+               --  Compare tree to fresh full parse after each incremental edit.
+               declare
+                  Source_File_Name : constant String := Wisi.Get_String (Command_Line, Last);
+
+                  Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
+                    (Source_File_Name, Language);
+               begin
+                  Check_Command_Length (Command_Length, Last);
+
+                  Parse_Context.Compare_Tree_Text_Auto := True;
+
+                  Put_Line ("(message ""auto compare tree text enabled"")");
+               end;
+
+            elsif Match ("kill-context") then
                Wisi.Parse_Context.Kill (File_Name => Wisi.Get_String (Command_Line, Last));
 
             elsif Match ("parse") then
@@ -336,8 +356,12 @@ package body Emacs_Wisi_Common_Parse is
                declare
                   Params : constant Parse_Params := Get_Parse_Params (Command_Line, Last);
 
-                  Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find_Create
-                    (-Params.Source_File_Name, Language, Trace'Access);
+                  Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access :=
+                    (case Params.Kind is
+                     when Full | Partial => Wisi.Parse_Context.Find_Create
+                       (-Params.Source_File_Name, Language, Trace'Access),
+                     when Incremental => Wisi.Parse_Context.Find
+                       (-Params.Source_File_Name, Language, Have_Text => True));
 
                   Parser     : Parse.LR.Parser.Parser renames Parse_Context.Parser;
                   Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
@@ -369,10 +393,12 @@ package body Emacs_Wisi_Common_Parse is
                      Parse_Context.Text_Buffer_Byte_Last := Params.End_Byte_Pos;
                      Parse_Context.Text_Buffer_Char_Last := Integer (Params.End_Char_Pos);
 
-                     Read_Input (Parse_Context.Text_Buffer (Params.Begin_Byte_Pos)'Address, Params.Byte_Count);
+                     Read_Input
+                       (Parse_Context.Text_Buffer (Params.Begin_Byte_Pos)'Address,
+                        Parse_Context.Text_Buffer'Length);
 
                      if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
-                        Parse_Context.Save_Text_Auto (Emacs_Message => True);
+                        Parse_Context.Save_Text_Auto;
                      end if;
 
                      Parser.Tree.Lexer.Reset_With_String_Access
@@ -410,7 +436,7 @@ package body Emacs_Wisi_Common_Parse is
                         Wisi.Parse_Context.Edit_Source (Trace, Parse_Context.all, Params.Changes, KMN_List);
 
                         if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
-                           Parse_Context.Save_Text_Auto (Emacs_Message => True);
+                           Parse_Context.Save_Text_Auto;
                         end if;
 
                         Parse_Data.Parse_Language_Params (-Params.Language_Params);
@@ -423,6 +449,9 @@ package body Emacs_Wisi_Common_Parse is
                         if Parser.Tree.Editable then
                            Parser.Parse (Recover_Log_File, KMN_List);
 
+                           if Parse_Context.Compare_Tree_Text_Auto then
+                              Parse_Context.Compare_Tree_Text;
+                           end if;
                         else
                            --  Last parse failed; can't edit tree, so do full parse.
                            --
@@ -492,7 +521,7 @@ package body Emacs_Wisi_Common_Parse is
                   Params : constant Post_Parse_Params := Get_Post_Parse_Params (Command_Line, Last);
 
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
-                    (-Params.Source_File_Name, Language);
+                    (-Params.Source_File_Name, Language, Have_Text => True);
 
                   Parser     : Parse.LR.Parser.Parser renames Parse_Context.Parser;
                   Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
@@ -601,7 +630,7 @@ package body Emacs_Wisi_Common_Parse is
                begin
                   Check_Command_Length (Command_Length, Last);
 
-                  Parse_Context.Save_Text (Save_File_Name, Emacs_Message => True);
+                  Parse_Context.Save_Text (Save_File_Name);
                end;
 
             elsif Match ("save_text_auto") then

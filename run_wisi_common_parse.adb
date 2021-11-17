@@ -24,6 +24,7 @@ with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Real_Time;
 with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with GNATCOLL.Mmap;
@@ -37,6 +38,49 @@ with WisiToken.Text_IO_Trace;
 package body Run_Wisi_Common_Parse is
 
    use Ada.Strings.Unbounded;
+
+   type Command_Type is (Parse_Partial, Parse_Incremental, Refactor, Command_File);
+
+   type Command_Line_Params (Command : Command_Type) is record
+
+      Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
+      Language_Params  : Ada.Strings.Unbounded.Unbounded_String;
+      Repeat_Count     : Integer                    := 1;
+
+      case Command is
+      when Parse_Partial =>
+         Partial_Post_Parse_Action : Wisi.Post_Parse_Action_Type;
+         Partial_Begin_Byte_Pos    : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
+         Partial_End_Byte_Pos      : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
+         Partial_Goal_Byte_Pos     : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
+         Partial_Begin_Char_Pos    : WisiToken.Buffer_Pos       := WisiToken.Buffer_Pos'First;
+         Partial_End_Char_Pos      : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
+         Partial_Begin_Line        : WisiToken.Line_Number_Type := WisiToken.Line_Number_Type'First;
+         Partial_Begin_Indent      : Integer                    := 0;
+
+      when Parse_Incremental =>
+         --  Incremental edit, parse, post_parse_action
+         Changes               : Wisi.Parse_Context.Change_Lists.List;
+         Inc_Post_Parse_Action : Wisi.Post_Parse_Action_Type;
+         Inc_Begin_Byte_Pos    : WisiToken.Buffer_Pos := WisiToken.Invalid_Buffer_Pos;
+         Inc_Begin_Char_Pos    : WisiToken.Buffer_Pos := WisiToken.Invalid_Buffer_Pos;
+         Inc_End_Byte_Pos      : WisiToken.Buffer_Pos := WisiToken.Invalid_Buffer_Pos;
+         Inc_End_Char_Pos      : WisiToken.Buffer_Pos := WisiToken.Invalid_Buffer_Pos;
+
+      when Refactor =>
+         --  We assume the file contains only the one statement/declaration
+         --  that needs refactoring.
+
+         Refactor_Action : Wisi.Refactor_Action;
+         --  Language-specific
+
+         Edit_Begin : WisiToken.Buffer_Pos;
+         --  Source file byte position at start of expression to refactor.
+
+      when Command_File =>
+         Command_File_Name : Ada.Strings.Unbounded.Unbounded_String;
+      end case;
+   end record;
 
    procedure Usage_1 (Parse_Data : in Wisi.Parse_Data_Type'Class)
    is
@@ -386,8 +430,8 @@ package body Run_Wisi_Common_Parse is
       use WisiToken; -- "+" unbounded
 
       type File_Command_Type is
-        (File, Language_Params, McKenzie_Options, Parse_Full, Parse_Incremental, Post_Parse, Refactor,
-         Query_Tree, Save_Text, Save_Text_Auto, Verbosity);
+        (Compare_Tree_Text_Auto, File, Language_Params, McKenzie_Options, Parse_Full, Parse_Incremental, Post_Parse,
+         Refactor, Query_Tree, Save_Text, Save_Text_Auto, Verbosity);
 
       Parser : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
 
@@ -415,6 +459,9 @@ package body Run_Wisi_Common_Parse is
       Command : constant File_Command_Type := Get_Command;
    begin
       case Command is
+      when Compare_Tree_Text_Auto =>
+         Parse_Context.Compare_Tree_Text_Auto := True;
+
       when File =>
          declare
             Source_File_Name : constant String := Line (Last + 1 .. Line'Last);
@@ -462,7 +509,7 @@ package body Run_Wisi_Common_Parse is
             Wisi.Parse_Context.Edit_Source (Trace, Parse_Context.all, Changes, KMN_List);
 
             if Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
-               Parse_Context.Save_Text_Auto (Emacs_Message => False);
+               Parse_Context.Save_Text_Auto;
             end if;
 
             Parser.Tree.Lexer.Reset_With_String_Access
@@ -473,6 +520,10 @@ package body Run_Wisi_Common_Parse is
             Parse_Data.Put
               (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                Parser.Tree);
+
+            if Parse_Context.Compare_Tree_Text_Auto then
+               Parse_Context.Compare_Tree_Text;
+            end if;
          exception
          when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>
             Put_Errors (Parser);
@@ -556,7 +607,7 @@ package body Run_Wisi_Common_Parse is
          declare
             Save_File_Name : constant String := Line (Last + 1 .. Line'Last);
          begin
-            Parse_Context.Save_Text (Save_File_Name, Emacs_Message => False);
+            Parse_Context.Save_Text (Save_File_Name);
          end;
 
       when Save_Text_Auto =>

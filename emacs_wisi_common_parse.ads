@@ -86,10 +86,6 @@ package Emacs_Wisi_Common_Parse is
 
       Language_Params : Ada.Strings.Unbounded.Unbounded_String;
 
-      Byte_Count : Integer;
-      --  Count of bytes of source file sent; 0 for Incremental, redundant
-      --  for Partial.
-
       case Kind is
       when Partial =>
          Post_Parse_Action : Wisi.Post_Parse_Action_Type;
@@ -122,7 +118,10 @@ package Emacs_Wisi_Common_Parse is
          Changes : Wisi.Parse_Context.Change_Lists.List;
 
       when Full =>
-         Full_End_Char_Pos : WisiToken.Buffer_Pos; -- Emacs convention; after last char
+         Byte_Count        : Integer;
+         Full_End_Char_Pos : WisiToken.Buffer_Pos;
+         --  Emacs convention; after last char
+
 
       end case;
    end record;
