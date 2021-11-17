@@ -1635,7 +1635,7 @@ Does not wait for parser to respond. Returns the parser object."
 
   (setq font-lock-defaults
 	'(ada-font-lock-keywords ;; keywords
-	  nil ;; keywords only; comment, string faces not set by wisi parser
+	  nil ;; keywords-only; font-lock set comment, string faces
 	  t ;; case-fold
 	  ((?\_ . "w")))); treat underscore as a word component
 

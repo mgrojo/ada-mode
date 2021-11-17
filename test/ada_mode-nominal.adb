@@ -23,7 +23,7 @@ with
   Spark_Mode => On
 is -- target 0
    --EMACSCMD:(and wisi-incremental-parse-enable (progn (forward-line -4)(wisi-tree-node-id (wisi-parse-tree-query wisi--parser 'containing-statement (point)))))
-   --EMACSRESULT:'wisitoken_accept
+   --EMACSRESULT:(and wisi-incremental-parse-enable 'wisitoken_accept)
 
    --EMACSCMD:(and wisi-incremental-parse-enable (progn (end-of-line 2)(goto-char (car (wisi-tree-node-char-region (wisi-parse-tree-query wisi--parser 'containing-statement (point)))))(looking-at "package body Ada_Mode.Nominal")))
    --EMACSRESULT:wisi-incremental-parse-enable

@@ -19,7 +19,7 @@ is
    -- Deliberately kill parser to emulate it crashing for some reason.
    -- Then request a partial parse, which causes a "file_not_found"
    -- error; error will be handled by requesting a full parse.
-   --EMACSCMD:(progn (wisi-process-parse-soft-kill wisi--parser)(wisi-reset-parser))
+   --EMACSCMD:(wisi-reset-parser)
 
    --EMACSCMD:(progn (end-of-line 3)(kill-line 2)(insert "\n is (-1);\n"))
    --EMACSCMD:(progn (end-of-line 3)(wisi-indent-statement))

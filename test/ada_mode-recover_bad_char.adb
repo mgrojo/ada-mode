@@ -1,6 +1,4 @@
---  Abstract :
---
---  An error from a real editing session; typed '"' instead of '?'.
+-- An error from a real editing session; typed '"' instead of '?'.
 -- There are several unrecognized chars as well as an unbalanced
 -- string quote.
 --
