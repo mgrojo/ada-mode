@@ -1166,14 +1166,6 @@ package WisiToken.Syntax_Trees is
    function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
-   function Is_Next_Stream_Input
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Ref    : in Stream_Node_Ref)
-     return Boolean;
-   --  True if Ref is Stream.First_Input or Stream.Shared_Link if
-   --  Stream_First_Input is invalid.
-
    procedure Set_Insert_Location
      (Tree            : in Syntax_Trees.Tree;
       Node            : in Valid_Node_Access;

@@ -690,7 +690,11 @@ package body WisiToken.Parse.LR.Parser is
 
       if Accept_Count > 0 and Shared_Parser.Parsers.Count = Accept_Count + Zombie_Count then
          Verb := Accept_It;
-         return;
+
+         if Shared_Parser.Resume_Active then
+            Shared_Parser.Resume_Active := False;
+            McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
+         end if;
 
       elsif Shared_Parser.Parsers.Count = Zombie_Count then
          Verb := Error;

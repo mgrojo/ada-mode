@@ -380,6 +380,10 @@ back tokens. Each possible solution is given a cost, and enqueued to
 be checked later. Solutions are checked in cost order (lowest first).
 
 @table @code
+@item %no_error_recover
+States that there is no error recovery for this parser. This is the
+default if no error recover parameters are specified.
+
 @item %mckenzie_check_limit <limit>
 The number of tokens past the error point that must be parsed
 successfully for a solution to be deemed successful. Smaller values

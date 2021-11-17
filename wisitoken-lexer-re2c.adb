@@ -202,6 +202,7 @@ package body WisiToken.Lexer.re2c is
       Char_Length   : Natural;
       Line_Start    : Line_Number_Type;
       Line_Length   : Base_Line_Number_Type;
+      Result        : Boolean := False; -- default to no lexer error.
 
       procedure Build_Token
       is begin
@@ -248,12 +249,13 @@ package body WisiToken.Lexer.re2c is
             case Status is
             when 0 =>
                Build_Token;
-               return False;
+               return Result;
 
             when 1 =>
                --  Unrecognized character from lexer. Handle missing quotes by
                --  inserting a virtual quote at the existing quote, and telling the
                --  lexer to skip the char.
+               Result := True;
                declare
                   Buffer : constant GNATCOLL.Mmap.Str_Access := WisiToken.Lexer.Buffer (Lexer.Source);
                begin
@@ -262,7 +264,7 @@ package body WisiToken.Lexer.re2c is
                      Ada.Text_IO.Put_Line ("lexer error char " & Buffer (Byte_Position));
                   end if;
 
-                  if Buffer (Byte_Position) = ''' then
+                  if Lexer.Descriptor.String_1_ID /= Invalid_Token_ID and Buffer (Byte_Position) = ''' then
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after '.
                      Lexer.Errors.Append
@@ -273,7 +275,7 @@ package body WisiToken.Lexer.re2c is
                      Build_Token;
                      return True;
 
-                  elsif Buffer (Byte_Position) = '"' then
+                  elsif Lexer.Descriptor.String_2_ID /= Invalid_Token_ID and Buffer (Byte_Position) = '"' then
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after ".
                      Lexer.Errors.Append

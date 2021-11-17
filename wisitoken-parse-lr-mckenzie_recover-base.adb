@@ -24,12 +24,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
    Default_Negative_Sequential_Index : constant Syntax_Trees.Sequential_Index := -10;
 
    function Get_Barrier
-     (Parsers                 : not null access Parser_Lists.List;
-      Parser_Status           : in              Parser_Status_Array;
-      Min_Success_Check_Count : in              Natural;
-      Total_Enqueue_Count     : in              Natural;
-      Check_Delta_Limit       : in              Natural;
-      Enqueue_Limit           : in              Natural)
+     (Parser_Count            : in SAL.Base_Peek_Type;
+      Parser_Status           : in Parser_Status_Array;
+      Min_Success_Check_Count : in Natural;
+      Total_Enqueue_Count     : in Natural;
+      Check_Delta_Limit       : in Natural;
+      Enqueue_Limit           : in Natural)
      return Boolean
    is
       Done_Count : SAL.Base_Peek_Type := 0;
@@ -89,14 +89,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          end case;
       end loop;
 
-      return Done_Count = Parsers.Count;
+      return Done_Count = Parser_Count;
    end Get_Barrier;
 
    protected body Supervisor is
 
       procedure Initialize (Parsers : not null access Parser_Lists.List)
       is begin
-         Supervisor.Parsers      := Parsers;
          All_Parsers_Done        := False;
          Success_Counter         := 0;
          Min_Success_Check_Count := Natural'Last;
@@ -193,7 +192,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          Config       : out Configuration;
          Status       : out Config_Status)
         when (Fatal_Called or All_Parsers_Done) or else Get_Barrier
-          (Parsers, Parser_Status, Min_Success_Check_Count, Total_Enqueue_Count, Check_Delta_Limit, Enqueue_Limit)
+          (Parser_Count, Parser_Status, Min_Success_Check_Count, Total_Enqueue_Count, Check_Delta_Limit, Enqueue_Limit)
       is
          Done_Count     : SAL.Base_Peek_Type := 0;
          Skip           : Boolean;
@@ -327,7 +326,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          if Min_Cost /= Integer'Last then
             Set_Outputs (Min_Cost_Index);
 
-         elsif Done_Count = Parsers.Count then
+         elsif Done_Count = Parser_Count then
             if Trace_McKenzie > Extra then
                Trace.Put_Line ("Supervisor: done, " & (if Success_Counter > 0 then "succeed" else "fail"));
             end if;

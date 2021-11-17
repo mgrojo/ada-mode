@@ -245,7 +245,7 @@ package body WisiToken.Parse is
          elsif Element (Cur) in Error_Message then True
          --  A moved In_Parse_Error.
 
-         else raise SAL.Programmer_Error);
+         else False);
    end Error_Pred_Lexer_Parse_Message;
 
    function Find_Parse_In_Parse_Action_Error
@@ -823,7 +823,7 @@ package body WisiToken.Parse is
             Inserted_Region : constant Buffer_Region :=
               (New_Byte_Pos + KMN.Stable_Bytes + 1, New_Byte_Pos + KMN.Stable_Bytes + KMN.Inserted_Bytes);
             --  Inserted_Region.First is the first char after the stable region in
-            --  the edited text.
+            --  the edited text (which means it is shifted).
             --
             --  If Length (Inserted_Region) = 0 and Length (Deleted_Region) = 0
             --  then this is the final stable region
@@ -1364,9 +1364,8 @@ package body WisiToken.Parse is
 
                         if not Do_Scan then
                            if Floating_Non_Grammar.Length > 0 and then
-                             Floating_Non_Grammar (Floating_Non_Grammar.First_Index).Byte_Region.First <
+                             Floating_Non_Grammar (Floating_Non_Grammar.First_Index).Byte_Region.First + Shift_Bytes <
                              Inserted_Region.First
-                             --  FIXME: floating_non_grammar is not shifted, inserted_region is shifted.
                            then
                               --  The edit start is in a floated non_grammar.
                               --  test_incremental.adb Edit_Comment_7

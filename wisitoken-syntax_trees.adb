@@ -614,7 +614,7 @@ package body WisiToken.Syntax_Trees is
                Tree.Stack_Top (Ref.Ref.Stream) /= Ref.Ref.Element and
                Ref.Ref.Node /= Invalid_Node_Access and
                Ref.Ref.Node.Label in Terminal_Label,
-     Post => Ref.Ref.Node = Ref.Ref.Node'Old and
+     Post => Parents_Valid (Ref) and Ref.Ref.Node = Ref.Ref.Node'Old and
              Tree.First_Terminal (Get_Node (Ref.Ref.Element)) = Ref.Ref.Node
    is
       use Stream_Element_Lists;
@@ -668,6 +668,7 @@ package body WisiToken.Syntax_Trees is
          end;
          To_Delete := Cur;
       end loop Undo_Reduce_Loop;
+      Ref.Parents := Inverted_Parents.Invert;
    end Breakdown;
 
    procedure Breakdown
@@ -4116,24 +4117,6 @@ package body WisiToken.Syntax_Trees is
            Tree.Byte_Region (Node) = Null_Buffer_Region -- all terminals are virtual
         );
    end Is_Empty_Or_Virtual_Nonterm;
-
-   function Is_Next_Stream_Input
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Ref    : in Stream_Node_Ref)
-     return Boolean
-   is
-      use Stream_Element_Lists;
-      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
-   begin
-      return
-        (if Stream = Ref.Stream
-         then
-           (Parse_Stream.Stack_Top /= No_Element and --  FIXME: when is parse_stream empty?
-              Parse_Stream.Stack_Top /= Parse_Stream.Elements.Last) and then
-              Ref.Element.Cur = Stream_Element_Lists.Next (Parse_Stream.Stack_Top)
-         else Ref.Element.Cur = Parse_Stream.Shared_Link);
-   end Is_Next_Stream_Input;
 
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is begin

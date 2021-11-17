@@ -186,8 +186,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                --  Case 1.
                declare
                   New_Config : Configuration := Config;
-                  --  We don't use Configuration_Access here because we might abandon
-                  --  this config.
                begin
                   --  This is a not a guess, so it has zero cost.
 
@@ -215,10 +213,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   end if;
 
                   Push_Back_Check (Super, New_Config, +END_ID);
-                  if Tree.Element_ID (New_Config.Stack.Peek.Token) = +BEGIN_ID then
-                     --  test_mckenzie_recover.adb Extra_Name_1.
-                     Insert (Tree, New_Config, (+EXIT_ID, +SEMICOLON_ID));
-                  end if;
                   Insert (Tree, New_Config, (+END_ID, +SEMICOLON_ID));
 
                   Local_Config_Heap.Add (New_Config);

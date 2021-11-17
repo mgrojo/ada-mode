@@ -153,8 +153,6 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
       --  In all parse streams. Clients should use
       --  Base.Extend_Sequential_Index, below.
    private
-      Parsers : access Parser_Lists.List; --  FIXME: why do we have both Parsers and Parser_Status.Parser_State?
-
       All_Parsers_Done        : Boolean;
       Success_Counter         : Natural;
       Min_Success_Check_Count : Natural;
