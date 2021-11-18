@@ -264,6 +264,7 @@ Download gnatcoll-db from
 @url{https://github.com/AdaCore/gnatcoll-db}; select the latest
 release branch (or the one that matches your compiler), click on the
 ``clone or download'' button, select ``Download ZIP''.
+@c FIXME: or adacore gnatpro gnatstudio sources
 
 @c branch nn-sustained?
 
