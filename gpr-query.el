@@ -747,6 +747,18 @@ FILE is from gpr-query."
     (message "project cache refreshed")
     ))
 
+(defun gpr-query-refresh-lite ()
+  "Send a refresh command to the current gpr-query process."
+  (interactive)
+  (let* ((project (project-current))
+	 (session (gpr-query-cached-session project))
+	 (process (gpr-query--session-xref-process session)))
+
+    (process-send-string process "refresh\n")
+    (gpr-query-session-wait session 'xref)
+    (message "gpr_query refreshed")
+    ))
+
 (defun gpr-query-tree-refs (project item op)
   "Run gpr_query tree command OP on ITEM (an xref-item), return list of xref-items."
   (let* ((summary (xref-item-summary item))

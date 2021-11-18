@@ -529,6 +529,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Push_Back (Super, New_Config, Push_Back_Undo_Reduce => True);
             end loop;
 
+            if To_Token_Enum (Tree.Element_ID (New_Config.Stack.Peek.Token)) /= sequence_of_statements_ID then
+               Insert (Tree, New_Config, (+NULL_ID, +SEMICOLON_ID));
+               --  We don't need Undo_Reduce if sequence_of_statements is present;
+               --  parser will handle that.
+            end if;
             Insert (Tree, New_Config, +END_ID);
             --  Let Minimal_Complete_Actions handle (insert ';').
 

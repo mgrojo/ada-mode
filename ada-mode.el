@@ -1615,7 +1615,7 @@ Does not wait for parser to respond. Returns the parser object."
 
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
-  (set 'case-fold-search t); Ada is case insensitive; the syntax parsing requires this setting
+  (set 'case-fold-search t); Ada is case insensitive
   (set 'completion-ignore-case t)
   (set (make-local-variable 'comment-start) "--")
   (set (make-local-variable 'comment-end) "")
