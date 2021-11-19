@@ -206,9 +206,9 @@ package body BNF_WY_Test is
       Args : GNAT.OS_Lib.String_List (1 .. 9) :=
         (1      => new String'("--verbosity"),
          2      => new String'
-           ("""debug=1 parse=2" &
+           ("debug=1 parse=2" &
               (if Generate_Alg in LR_Generate_Algorithm and McKenzie_Recover
-               then " mckenzie=1""" else """")),
+               then " mckenzie=1" else "")),
          others => null);
 
       Last : Integer := 2;
