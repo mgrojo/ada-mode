@@ -18,6 +18,7 @@ export GENERATE := BNF_EBNF
 t_one :: ada_lite_re2c.c
 t_one :: test_one_harness.run
 
+t_all :: wisitoken_test.gpr
 t_all :: wisitoken-bnf-generate.exe gen test-executables
 t_all :: test_all_harness.run
 

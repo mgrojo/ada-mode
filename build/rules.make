@@ -28,6 +28,7 @@ else
    $(error "Don't know dynamic lib file extension for $(GPRBUILD_TARGET)")
 endif
 
+tests :: wisitoken_test.gpr
 tests :: wisitoken-bnf-generate.exe
 tests :: gen
 tests :: test_all_harness.diff
