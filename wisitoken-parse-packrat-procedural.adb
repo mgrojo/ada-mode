@@ -300,7 +300,7 @@ package body WisiToken.Parse.Packrat.Procedural is
             Parser.Trace.Put_Line ("parse failed");
          end if;
 
-         raise Syntax_Error with "parse failed"; --  FIXME: need better error message!
+         raise Syntax_Error with "parse failed"; --  FIXME packrat: need better error message!
       else
          Parser.Tree.Set_Root (Result.Result);
       end if;

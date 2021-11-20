@@ -1270,9 +1270,6 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Editable;
    --  Return line that contains Byte_Pos; Invalid_Line_Number is outside
    --  range of text spanned by Tree.
-   --
-   --  FIXME: If Byte_Pos is in a multi-line terminal or non_grammar
-   --  token, should return a line_region.
 
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;

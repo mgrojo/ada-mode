@@ -36,8 +36,8 @@ is
 
    subtype Terminal is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
 
-   --  FIXME: optimize memoizing? small productions not worth the memory cost?
-   --  or just use langkit space optimization.
+   --  FIXME packrat: optimize memoizing? small productions not worth the
+   --  memory cost? or just use langkit space optimization.
 
    function Parser_Name (Nonterm : in Token_ID) return String
    is begin
@@ -115,7 +115,6 @@ is
       Indent_Line ("   return Parser.Derivs (" & Result_ID & ")(Start_Pos_Index);");
       Indent_Line ("when Failure =>");
 
-      --  FIXME: Could simplify this when not doing left recursion
       Indent_Line ("   goto RHS_" & Trimmed_Image (Prod.RHSs.Last_Index) & "_Fail;");
 
       Indent_Line ("when No_Result =>");

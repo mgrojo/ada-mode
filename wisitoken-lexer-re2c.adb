@@ -304,7 +304,7 @@ package body WisiToken.Lexer.re2c is
       Char_Position : in     Buffer_Pos;
       Line          : in     Line_Number_Type)
    is begin
-      --  FIXME: respect partial parse lexer.source.*_Nominal_first_*
+      --  FIXME: respect partial parse lexer.source.*_Nominal_first_*. only needed if doing incremental after partial.
       Set_Position
         (Lexer.Lexer,
          Byte_Position => Interfaces.C.size_t (Byte_Position),

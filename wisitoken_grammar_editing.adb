@@ -797,7 +797,6 @@ package body WisiToken_Grammar_Editing is
                                       (Tree, Tree.Child (Mult_Item, 2), +rhs_alternative_list_ID, +rhs_item_list_ID);
                                  begin
                                     if Content_List.Count = 1 then
-                                       --  FIXME: check rhs_item_list.count!
                                        Add_Token_Label (Element);
                                     else
                                        Add_Token_Labels_1 (Tree.Child (Mult_Item, 2));

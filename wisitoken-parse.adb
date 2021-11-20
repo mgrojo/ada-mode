@@ -286,7 +286,6 @@ package body WisiToken.Parse is
       use Syntax_Trees;
       Found : Boolean := False;
    begin
-      --  FIXME: use a Cursor
       for Err of Tree.Error_List (Node) loop
          if not (Err in Lexer_Error) then
             Found := True;
@@ -625,7 +624,7 @@ package body WisiToken.Parse is
       --  Preserve_Parse_Errors_2.
       --
       --  FIXME: This algorithm visits every terminal; not incremental.
-      --  Cache Has_Following_Deleted in nonterms.
+      --  Cache Has_Following_Deleted, has_virtual in nonterms.
 
       Terminal := Tree.First_Terminal (Tree.Stream_First (Stream, Skip_SOI => False));
       Undo_Recover :
@@ -1139,15 +1138,6 @@ package body WisiToken.Parse is
                                     declare
                                        New_Line_Count : constant Base_Line_Number_Type := WisiToken.New_Line_Count
                                          (Non_Grammar (I).Line_Region);
-                                       --  FIXME: why "after the edit region"? ada_mode-interactive_01.adb
-                                       --  auto-case in comment.
-                                       --
-                                       --  Tree.Lexer.New_Line_Count
-                                       --  (Byte_Region =>
-                                       --     (First => Buffer_Pos'Max
-                                       --        ((if KMN.Deleted_Bytes > 0 then Deleted_Region.Last else 0),
-                                       --         (if KMN.Inserted_Bytes > 0 then Inserted_Region.Last else 0)),
-                                       --      Last => Byte_Region.Last));
                                     begin
                                        Shift_Lines := @ - New_Line_Count;
                                     end;

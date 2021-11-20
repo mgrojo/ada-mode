@@ -112,7 +112,7 @@
 ;; The tree-sitter grammar file requires JavaScript regular expressions; see
 ;; https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet
 ;;
-;; FIXME: that only allows 16 bit code points, not 32 bit characters.
+;; FIXME tree-sitter: that only allows 16 bit code points, not 32 bit characters.
 ;; And even then, it still complains about non-Unicode chars; limiting
 ;; to ASCII + π (see ada_lite.input) for now. See tree-sitter github
 ;; issue #621.

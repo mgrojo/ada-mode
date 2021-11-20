@@ -271,7 +271,6 @@ package body Test_Incremental is
             Initial_Text_Byte_Region => (1, WisiToken.Base_Buffer_Pos (Length (Initial_Buffer))),
             Initial_Text_Char_Region =>
               (1, WisiToken.Base_Buffer_Pos (Length (Initial_Buffer))),
-            --  FIXME: test utf-8
             Edited_Text_Byte_Region  => (1, WisiToken.Base_Buffer_Pos (Length (Edited_Buffer))),
             Edited_Text_Char_Region  => (1, WisiToken.Base_Buffer_Pos (Length (Edited_Buffer))));
       end if;

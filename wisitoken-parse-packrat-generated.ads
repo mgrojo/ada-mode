@@ -62,7 +62,7 @@ package WisiToken.Parse.Packrat.Generated is
      function (Parser : in out Base_Parser'Class; Last_Pos : in Syntax_Trees.Stream_Index) return Result_Type;
 
    type Parser is new Packrat.Parser with record
-      Derivs : Generated.Derivs.Vector; --  FIXME: use discriminated array, as in procedural
+      Derivs : Generated.Derivs.Vector; --  FIXME packrat: use discriminated array, as in procedural
 
       Parse_WisiToken_Accept : Generated.Parse_WisiToken_Accept;
    end record;

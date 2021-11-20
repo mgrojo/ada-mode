@@ -4491,7 +4491,6 @@ package body WisiToken.Syntax_Trees is
                     (if Last_Term = Invalid_Node_Access
                      then Invalid_Node_Access
                      else Tree.Next_Source_Terminal (Last_Term, Trailing_Non_Grammar => True));
-                  --  FIXME: got Next_Term = Invalid when First_Term valid
                begin
                   if First_Term = Invalid_Node_Access then
                      --  Empty or all virtual
@@ -4623,9 +4622,6 @@ package body WisiToken.Syntax_Trees is
       Begin_Char_Pos  : Buffer_Pos;
 
       EOI_Line : constant Line_Number_Type := Tree.EOI.Non_Grammar (Tree.EOI.Non_Grammar.First).Line_Region.First;
-      --  FIXME: if delete tokens including new_line just before EOI, should
-      --  EOI have different line_region? ie, use parse_stream.last, not
-      --  tree.eoi. need test case.
    begin
       Ref.Ref := Stream_First (Tree, Stream);
 
@@ -5102,7 +5098,6 @@ package body WisiToken.Syntax_Trees is
       use Valid_Node_Access_Lists;
    begin
       if not Has_Element (Error.Deleted) then
-         --  FIXME: search nonterms
          Next_Terminal (Tree, Error.Ref);
          if Error.Ref.Ref.Node = Invalid_Node_Access then
             --  No more errors.

@@ -130,7 +130,6 @@ package body WisiToken.Lexer is
             if Found_Line = Line then
                return Base_Buffer_Pos (I);
                --  FIXME: handle multi-byte UTF-8; need test case.
-               --  If high bit of Char is set, don't increment char counter.
             end if;
          end if;
       end loop;

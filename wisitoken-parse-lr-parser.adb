@@ -440,7 +440,6 @@ package body WisiToken.Parse.LR.Parser is
          when In_Parse_Actions.Error =>
             Parser_State.Set_Verb (Error);
             Parser_State.Zombie_Token_Count := 1;
-            --  FIXME: set error on EOI?
          end case;
 
       when Error =>

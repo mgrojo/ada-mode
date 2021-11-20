@@ -99,8 +99,8 @@ package body WisiToken.Generate.Packrat is
             --  We only implement the simplest left recursion solution ([warth
             --  2008] figure 3); [tratt 2010] section 6.3 gives this condition for
             --  that to be valid.
-            --  FIXME: not quite? definite direct right recursive ok?
-            --  FIXME: for indirect left recursion, need potential indirect right recursive check?
+            --  FIXME packrat: not quite? definite direct right recursive ok?
+            --  FIXME packrat: for indirect left recursion, need potential indirect right recursive check?
             Put_Error
               (Error_Message
                  (-Data.Source_File_Name, Data.Source_Line_Map (Prod.LHS).Line, "'" & Image (Prod.LHS, Descriptor) &
@@ -222,7 +222,7 @@ package body WisiToken.Generate.Packrat is
    is
       subtype Nonterminal is Token_ID range Grammar.First_Index .. Grammar.Last_Index;
    begin
-      --  FIXME: this duplicates the computation of Data.First; if keep Data.First,
+      --  FIXME packrat: this duplicates the computation of Data.First; if keep Data.First,
       --  change this to use it.
       return Result : Token_ID_Set (Nonterminal) := (others => False) do
          for Prod of Grammar loop

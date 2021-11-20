@@ -225,7 +225,7 @@ package body WisiToken.Generate.Tree_Sitter is
                end;
 
             when others =>
-               --  FIXME: handle rhs_list %if, %end if
+               --  FIXME tree-sitter: handle rhs_list %if, %end if
                null;
             end case;
             return;
@@ -292,7 +292,7 @@ package body WisiToken.Generate.Tree_Sitter is
             end case;
 
          when nonterminal_ID =>
-            --  FIXME: handle %if in rhs_list; need test case
+            --  FIXME tree-sitter: handle %if in rhs_list; need test case
 
             --  tree-sitter allows the start nonterm of the grammar to be empty.
             --  For WisiToken, that's always wisitoken_accept_ID, which is not in
@@ -934,7 +934,7 @@ package body WisiToken.Generate.Tree_Sitter is
                               Put (File, "$." & Ident);
 
                            when STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
-                              --  FIXME: STRING_LITERAL_1_ID in regexp is case insensitive; not
+                              --  FIXME tree-sitter: STRING_LITERAL_1_ID in regexp is case insensitive; not
                               --  clear how to do that in tree-sitter.
                               Put (File, Get_Text (Item));
 
@@ -1146,15 +1146,14 @@ package body WisiToken.Generate.Tree_Sitter is
                null;
 
             when 2 =>
-               --  FIXME: CODE copyright_license
-
+               --  FIXME tree-sitter: CODE copyright_license
                null;
 
             when 3 =>
                declare
                   Kind : constant String := Get_Text (Tree.Child (Node, 2));
                begin
-                  --  FIXME: lexer_regexp
+                  --  FIXME tree-sitter: lexer_regexp
                   if Kind = "conflict" then
                      --  .wy LR format:
                      --  %conflict action LHS [| action LHS]* 'on token' on
