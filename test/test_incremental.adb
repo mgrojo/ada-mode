@@ -51,16 +51,16 @@ package body Test_Incremental is
    Edited_Buffer  : Ada.Strings.Unbounded.Unbounded_String;
 
    procedure Parse_Text
-     (Initial     : in String;
-      Edit_At     : in Integer;
-      Delete      : in String;
-      Insert      : in String;
-      Edit_2_At   : in Integer                   := 0;
-      Delete_2    : in String                    := "";
-      Insert_2    : in String                    := "";
-      Full_Errors : in Ada.Containers.Count_Type := 0;
-      Incr_Errors : in Ada.Containers.Count_Type := 0;
-      Label       : in String                    := "")
+     (Initial        : in String;
+      Edit_At        : in Integer;
+      Delete         : in String;
+      Insert         : in String;
+      Edit_2_At      : in Integer                   := 0;
+      Delete_2       : in String                    := "";
+      Insert_2       : in String                    := "";
+      Initial_Errors : in Ada.Containers.Count_Type := 0;
+      Incr_Errors    : in Ada.Containers.Count_Type := 0;
+      Label          : in String                    := "")
    with Pre => Edit_2_At = 0 or Edit_2_At > Edit_At
    --  If Initial is "", start from existing tree.
    is
@@ -205,6 +205,7 @@ package body Test_Incremental is
 
       begin
          Full_Parser.Parse (Log_File);
+         Check (Label_Dot & "edited full parse errors", Full_Parser.Tree.Error_Count, Incr_Errors);
       exception
       when WisiToken.Syntax_Error =>
          if WisiToken.Trace_Tests > WisiToken.Outline then
@@ -243,7 +244,7 @@ package body Test_Incremental is
          if WisiToken.Trace_Tests > WisiToken.Outline then
             Put_Tree (Incremental_Parser);
          end if;
-         Check (Label_Dot & "full errors", Incremental_Parser.Tree.Error_Count, Full_Errors);
+         Check (Label_Dot & "initial errors", Incremental_Parser.Tree.Error_Count, Initial_Errors);
       end if;
 
       if WisiToken.Trace_Tests > WisiToken.Outline then
@@ -761,7 +762,8 @@ package body Test_Incremental is
    begin
       --  Delete a new_line that ends a comment, converting code into comment.
       Parse_Text
-        (Initial => "A := B + C; -- comment" & ASCII.LF &
+        (Label   => "1",
+         Initial => "A := B + C; -- comment" & ASCII.LF &
            --        |1       |10       |20
            "D (2);" & ASCII.LF &
            --         |30
@@ -769,9 +771,22 @@ package body Test_Incremental is
          Edit_At => 23,
          Delete  => "" & ASCII.LF,
          Insert  => "");
-
       --  Edited: "A := B + C; -- commentD (2);" & ASCII.LF & "C;"
       --           |1       |10       |20          |29
+
+      --  This one does not delete a comment end.
+      Parse_Text
+        (Label   => "2",
+         Initial => "A := B + C; -- comment" & ASCII.LF &
+           --        |1       |10       |20
+           "D (2);" & ASCII.LF &
+           --         |30
+           "C;",
+         Edit_At => 20,
+         Delete  => "ent",
+         Insert  => "");
+      --  Edited: "A := B + C; -- comm" & ASCII.LF & "D (2);" & ASCII.LF & "C;"
+      --           |1       |10           |20                   |27
    end Delete_Comment_End;
 
    procedure Delete_Comment_Start (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -780,7 +795,8 @@ package body Test_Incremental is
    begin
       --  Delete a comment start, converting into code.
       Parse_Text
-        (Initial => "A := B + C; " & ASCII.LF &
+        (Label   => "1",
+         Initial => "A := B + C; " & ASCII.LF &
            --        |1       |10    |13
            "-- D;" & ASCII.LF &
            --  |17
@@ -789,6 +805,35 @@ package body Test_Incremental is
          Edit_At => 14,
          Delete  => "--",
          Insert  => "");
+
+      --  This one does _not_ delete a comment start. From ada_mode-interactive_01.adb.
+      Parse_Text
+        (Label     => "2",
+         Initial   => "A := B + C; " & ASCII.LF &
+           --        |1       |10    |13
+           "-- ada_identifier" & ASCII.LF &
+           --  |17          |30
+           "C;",
+         Edit_At   => 17,
+         Delete    => "a",
+         Insert    => "A",
+         Edit_2_At => 21,
+         Delete_2  => "i",
+         Insert_2  => "I");
+
+      --  This one modifies a comment start, which is the same as deleting it.
+      Parse_Text
+        (Label          => "3",
+         Initial        => "A := B + C; " & ASCII.LF &
+           --        |1       |10    |13
+           "-- ada_identifier;" & ASCII.LF &
+           --  |17          |30
+           "C;",
+         Edit_At        => 15,
+         Delete         => "-",
+         Insert         => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 1);
    end Delete_Comment_Start;
 
    procedure Insert_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -846,7 +891,7 @@ package body Test_Incremental is
          Edit_At           => 34,
          Delete            => "",
          Insert            => " Name",
-         Full_Errors => 1,
+         Initial_Errors => 1,
          Incr_Errors => 0);
 
    end Missing_Name_1;
@@ -865,7 +910,7 @@ package body Test_Incremental is
          Edit_At           => 38,
          Delete            => "",
          Insert            => "Integer",
-         Full_Errors => 1,
+         Initial_Errors => 1,
          Incr_Errors => 0);
    end Recover_1;
 
@@ -886,7 +931,7 @@ package body Test_Incremental is
          Edit_At           => 43,
          Delete            => "",
          Insert            => "end; ",
-         Full_Errors => 1,
+         Initial_Errors => 1,
          Incr_Errors => 0);
    end Recover_2;
 
@@ -912,7 +957,7 @@ package body Test_Incremental is
          Edit_At      => 6,
          Delete       => "",
          Insert       => "33",
-         Full_Errors => 2,  --  Lexer + parser.
+         Initial_Errors => 2,  --  Lexer + parser.
          Incr_Errors => 2); --  Errors are still in tree
    end Lexer_Errors_1;
 
@@ -929,7 +974,7 @@ package body Test_Incremental is
          Edit_At      => 2,
          Delete       => "",
          Insert       => "3",
-         Full_Errors => 1,
+         Initial_Errors => 1,
          Incr_Errors => 1);
    end Preserve_Parse_Errors_1;
 
@@ -949,7 +994,7 @@ package body Test_Incremental is
          Edit_At           => 1,
          Delete            => "",
          Insert            => "begin ",
-         Full_Errors => 1,
+         Initial_Errors => 1,
          Incr_Errors => 0);
    end Preserve_Parse_Errors_2;
 
@@ -975,7 +1020,7 @@ package body Test_Incremental is
          Edit_At      => 9,
          Delete       => "",
          Insert       => "-", -- start a comment
-         Full_Errors => 0,
+         Initial_Errors => 0,
          Incr_Errors => 1);
 
       declare
@@ -1015,7 +1060,7 @@ package body Test_Incremental is
          Edit_At           => 10,
          Delete            => "",
          Insert            => "- a comment", -- finish comment
-         Full_Errors => 1,
+         Initial_Errors => 1,
          Incr_Errors => 0);
 
    end Modify_Deleted_Node;
@@ -1038,7 +1083,7 @@ package body Test_Incremental is
          Edit_2_At   => 54,
          Delete_2    => "",
          Insert_2    => " end C; begin null;",
-         Full_Errors => 2,
+         Initial_Errors => 2,
          Incr_Errors => 0);
 
       --  Edited text:
@@ -1074,7 +1119,7 @@ package body Test_Incremental is
          Edit_2_At   => 38,
          Delete_2    => "C",
          Insert_2    => "C1",
-         Full_Errors => 2,
+         Initial_Errors => 2,
          Incr_Errors => 1);
 
       --  Edited text:
@@ -1099,7 +1144,7 @@ package body Test_Incremental is
          Edit_2_At   => 56,
          Delete_2    => "π_",
          Insert_2    => "pi_",
-         Full_Errors => 0,
+         Initial_Errors => 0,
          Incr_Errors => 0);
    end Non_Ascii;
 
@@ -1118,7 +1163,7 @@ package body Test_Incremental is
          Edit_At     => 28,
          Delete      => "",
          Insert      => " ",
-         Full_Errors => 1,
+         Initial_Errors => 1,
          Incr_Errors => 1);
    end Restore_Deleted_01;
 

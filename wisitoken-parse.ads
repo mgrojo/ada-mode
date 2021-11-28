@@ -267,7 +267,8 @@ package WisiToken.Parse is
    function Next_Grammar_Token
      (Parser            : in out Base_Parser'Class;
       Last_Grammar_Node : in out WisiToken.Syntax_Trees.Node_Access)
-     return Token_ID;
+     return Token_ID
+   with Post => Next_Grammar_Token'Result /= Invalid_Token_ID;
    --  Get next token from Lexer, call User_Data.Lexer_To_Augmented. If
    --  it is a grammar token, store in Parser.Tree (Stream) and return
    --  its ID. If is it a non_grammar token, store it in

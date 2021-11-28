@@ -867,6 +867,9 @@ package body WisiToken.Parse is
                if Floating_Non_Grammar.Length > 0 then
                   Parser.Trace.Put_Line
                     ("floating_non_grammar: " & Lexer.Full_Image (Floating_Non_Grammar, Tree.Lexer.Descriptor.all));
+                  if Delayed_Scan then
+                     Parser.Trace.Put_Line ("delayed_floating_index:" & Delayed_Floating_Index'Image);
+                  end if;
                end if;
 
                Parser.Trace.New_Line;
@@ -994,22 +997,23 @@ package body WisiToken.Parse is
 
                procedure Check_Comment_End (Token : in Lexer.Token)
                is begin
-                  if KMN.Deleted_Bytes > 0 and Tree.Lexer.Is_Comment (Token.ID) then
-                     if Token.Byte_Region.First < Deleted_Region.First and
-                       Token.Byte_Region.Last <= Deleted_Region.Last
-                     then
-                        --  test_incremental.adb Edit_Comment_*, Delete_Comment_End,
-                        --  ada_mode-interactive_05.adb Ada_Identifier in comment.
-                        Comment_End_Deleted := True;
+                  if (KMN.Deleted_Bytes > 0 and Tree.Lexer.Is_Comment (Token.ID)) and then
+                    Overlaps
+                      (Deleted_Region,
+                       (Token.Byte_Region.Last - Buffer_Pos (Tree.Lexer.Comment_Start_Length (Token.ID)) + 1,
+                        Token.Byte_Region.Last))
+                  then
+                     --  test_incremental.adb Edit_Comment_*, Delete_Comment_End,
+                     --  ada_mode-interactive_05.adb Ada_Identifier in comment.
+                     Comment_End_Deleted := True;
 
-                        New_Comment_End := Tree.Lexer.Find_Comment_End (Token.ID, Token.Byte_Region.First);
+                     New_Comment_End := Tree.Lexer.Find_Comment_End (Token.ID, Token.Byte_Region.First);
 
-                        if Trace_Incremental_Parse > Detail then
-                           Parser.Trace.Put_Line
-                             ("comment_end_deleted:" &
-                                Token.Byte_Region.First'Image & " .." &
-                                New_Comment_End'Image);
-                        end if;
+                     if Trace_Incremental_Parse > Detail then
+                        Parser.Trace.Put_Line
+                          ("comment_end_deleted:" &
+                             Token.Byte_Region.First'Image & " .." &
+                             New_Comment_End'Image);
                      end if;
                   end if;
 
@@ -1054,7 +1058,7 @@ package body WisiToken.Parse is
                   end;
 
                elsif Terminal_Byte_Region.Last + Shift_Bytes > Scanned_Byte_Pos
-                 --  else Terminal was scanned by a previous KMN.
+                 --  Terminal was scanned by a previous KMN.
                  --  ada_mode-recover_align_1.adb, ada_mode-interactive_02.adb
                  and Next_KMN_Stable_First + Shift_Bytes > Scanned_Byte_Pos
                  --  else all of current edit has been scanned. test_incremental.adb Edit_Comment_2
@@ -1086,11 +1090,15 @@ package body WisiToken.Parse is
                            Lex_Start_Line := Token.Line_Region.First + Shift_Lines;
                            Do_Scan := True;
 
-                           if KMN.Deleted_Bytes > 0 and
-                             Tree.Lexer.Is_Comment (Token.ID) and
-                             Token.Byte_Region.Last > Deleted_Region.Last
+                           if (KMN.Deleted_Bytes > 0 and
+                                 Tree.Lexer.Is_Comment (Token.ID)) and then
+                             Overlaps
+                               (Deleted_Region,
+                                (Token.Byte_Region.First,
+                                 Token.Byte_Region.First + Buffer_Pos (Tree.Lexer.Comment_Start_Length (Token.ID)) - 1))
                            then
                               --  test_incremental.adb Delete_Comment_Start
+                              --  not ada_mode-interactive_01.adb "-- ada_identifier"
                               Comment_Start_Deleted := True;
                               New_Code_End          := Token.Byte_Region.Last + Shift_Bytes;
                               if Trace_Incremental_Parse > Detail then

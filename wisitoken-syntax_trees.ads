@@ -1161,7 +1161,7 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Access)
      return Boolean;
    --  True if Node contains no terminals, or all terminals are virtual,
-   --  and thus have Null_Buffer_Region for Byte_ and Char_Region.
+   --  and thus have an empty Buffer_Region for Byte_ and Char_Region.
 
    function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;

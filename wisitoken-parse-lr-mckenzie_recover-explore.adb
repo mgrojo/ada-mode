@@ -1893,6 +1893,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                  Config.String_Quote_Checked_Line < Current_Line)
             then
                return;
+            elsif Config.Current_Shared_Token = Invalid_Stream_Node_Ref then
+               --  Current token is in Config.Input_Stream, shared is past EOI. ada_mode-recover_partial_15.adb
+               return;
             end if;
 
             Config.String_Quote_Checked_Line     := Current_Line;

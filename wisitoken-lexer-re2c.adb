@@ -211,7 +211,7 @@ package body WisiToken.Lexer.re2c is
 
             Byte_Region =>
               (if ID = Lexer.Descriptor.EOI_ID and then Byte_Position = 0 then
-                  --  EOI in empty buffer
+                 --  EOI in empty buffer
                  (Lexer.Source.Buffer_Nominal_First_Byte,
                   Lexer.Source.Buffer_Nominal_First_Byte - 1)
                else
@@ -226,7 +226,7 @@ package body WisiToken.Lexer.re2c is
             Char_Region =>
               (if ID = Lexer.Descriptor.EOI_ID and then Byte_Position = Integer (Base_Buffer_Pos'First)
                then
-                  --  EOI in empty buffer
+                 --  EOI in empty buffer
                  (Lexer.Source.Buffer_Nominal_First_Byte,
                   Lexer.Source.Buffer_Nominal_First_Byte - 1)
                else
@@ -355,6 +355,24 @@ package body WisiToken.Lexer.re2c is
    end Is_Comment;
 
    overriding
+   function Comment_Start_Length
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Integer
+   is begin
+      return Comment_Start_Length (ID);
+   end Comment_Start_Length;
+
+   overriding
+   function Comment_End_Length
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Integer
+   is begin
+      return Comment_End_Length (ID);
+   end Comment_End_Length;
+
+   overriding
    function Find_Comment_End
      (Lexer         : in Instance;
       ID            : in Token_ID;
@@ -391,5 +409,14 @@ package body WisiToken.Lexer.re2c is
    is begin
       return New_Line_Count (Lexer.Source, Byte_Region);
    end New_Line_Count;
+
+   overriding
+   function Terminated_By_New_Line
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean
+   is begin
+      return Terminated_By_New_Line (ID);
+   end Terminated_By_New_Line;
 
 end WisiToken.Lexer.re2c;

@@ -84,11 +84,18 @@ generic
    with function Is_Comment (ID : in Token_ID) return Boolean;
    --  Implements WisiToken.Lexer.Is_Comment.
 
+   with function Comment_Start_Length (ID : in Token_ID) return Integer;
+   --  Implements WisiToken.Lexer.Comment_Start_Length.
+
+   with function Comment_End_Length (ID : in Token_ID) return Integer;
+   --  Implements WisiToken.Lexer.Comment_Start_Length.
+
    with function Find_Comment_End
      (Source        : in WisiToken.Lexer.Source;
       ID            : in Token_ID;
       Comment_Start : in Buffer_Pos)
      return Buffer_Pos;
+   --  Implements WisiToken.Lexer.Find_Comment_End.
 
    with function Line_Begin_Char_Pos
      (Source : in WisiToken.Lexer.Source;
@@ -97,6 +104,9 @@ generic
      return Buffer_Pos;
    --  Implements WisiToken.Lexer.Line_Begin_Char_Pos, so that
    --  precondition applies.
+
+   with function Terminated_By_New_Line (ID : in Token_ID) return Boolean;
+   --  Implements WisiToken.Lexer.Terminated_By_New_Line;
 
 package WisiToken.Lexer.re2c is
 
@@ -177,6 +187,18 @@ package WisiToken.Lexer.re2c is
      return Boolean;
 
    overriding
+   function Comment_Start_Length
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Integer;
+
+   overriding
+   function Comment_End_Length
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Integer;
+
+   overriding
    function Find_Comment_End
      (Lexer         : in Instance;
       ID            : in Token_ID;
@@ -201,6 +223,12 @@ package WisiToken.Lexer.re2c is
      (Lexer       : in Instance;
       Byte_Region : in Buffer_Region)
      return Base_Line_Number_Type;
+
+   overriding
+   function Terminated_By_New_Line
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean;
 
 private
 
