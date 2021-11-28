@@ -49,86 +49,26 @@ for ada_mode_wisi_parse.gpr:
 (setenv "GPR_PROJECT_PATH" "C:\Projects\org.emacs.ada-mode;c:/Projects/org.emacs.ada-mode;c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules;d:/Apps/GNAT-gpl_2019/x86_64-windows/lib/gnat;d:/Apps/GNAT-gpl_2019/x86_64-windows/share/gpr;d:/Apps/GNAT-gpl_2019/share/gpr;d:/Apps/GNAT-gpl_2019/lib/gnat;d:/apps/gnat-gpl_2019/x86_64-windows/share/gpr;d:/apps/gnat-gpl_2019/x86_64-windows/lib/gnat;d:/apps/gnat-gpl_2019/share/gpr;d:/apps/gnat-gpl_2019/lib/gnat")
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
- respond to eurocontrol
-    experiment with ALS via eglot; below
-        need to try version 22 in Debian
-            upgrade debian first
-        still worth using to explore xref speed
-        get access to full eurocontrol project, to see for myself how fast it is?
-            account on their machine, or tarball of source?
-
-    read source of als to find format; still uses text spec?
-        browse with eglot so don't have to compile
-            still need dependencies for .gpr
-            libadalang-tools - lal_tools.gpr installed in GNAT-gpl_2021
-                master git checkout in c:/Projects/libadalang-tools
-
-            VSS - gnatcoll_text.gpr installed in GNAT-gpl_2021
-                _not_ vss_text, vss_json.gpr
-
-            lsp.gpr ok, lsp_server.gpr requires ada_libfswatch.gpr
-
-        if ada-eglot-gnat-prj-file and eglot-workspace-configuration not set when start eglot, server doesn't find it
-        if then invoke eglot-signal-didChangeConfiguration,
-            server dies with constraint_error in catch-all exception handler (sigh).
-        so set it here.
-        (progn
-            (load-file "c:/Projects/org.stephe_leake.misc/source/ada-eglot-mode.el")
-            (setcdr (rassoc 'ada-mode auto-mode-alist) #'ada-eglot-mode)
-            (setq ada-eglot-gnat-prj-file "c:/Projects/ada_language_server/gnat/lsp.gpr")
-            UB12-023
-            (setq-default eglot-workspace-configuration `((ada (projectFile ., ada-eglot-gnat-prj-file))))
-            )
-        (setcdr (rassoc 'ada-eglot-mode auto-mode-alist) #'ada-mode)
-
-        c:/Projects/ada_language_server/source/ada/lsp-ada_handlers.adb On_Formatting_Request
-            checkout is on branch 22
-            gives up if there are any diagnostics
-                master branch the same
-                has On_Range_Formatting_Request
-            calls lsp-ada_documents.adb function Formatting
-            calls procedure LSP.Lal_Utils.Format_Vector
-            calls pp-actions.adb Format_Vector from lal_tools
-            format specified in pp-actions.adb Template_For_Kind
-
-            Init_Template_Tables calls Init_Custom_Templates, uses a user file
-                also in version 22
-
+ experiment with ada-eglot-mode/ada_language_server
     ask AdaCore:
         old issues: SA31-041 Oct 31, 2019 GNAT Studio using libadalang for format? (closed)
             short answer: wait for ada_language_server (estimated 2020, ie now)
             so this is just a ping
 
-This is a followup to SA31-041 on the status of GNAT Studio using libadalang for format.
+        submitted UB18-067 18 Nov:
+            What is the plan to improve error correction and
+            formatting to allow indent/format one line while editing?
 
-I've looked thru the ada_language_server code (version 22 and master),
-and found the handler On_Formatting_Request in
-ada/lsp-ada_handlers.adb. It errors out if there are any diagnostics
-from the parse, so this does not tolerate any syntax errors in the
-source, which means is cannot be used for indent while editing the
-file. What is the current plan to improve that?
+            documentation on the format of the custom format template file?
 
-There is support for users to customize the code formatting with a
-custom template file (in file pp-actions.adb function
-Init_Custom_Templates); I assume we can use that to implement the
-Eurocontrol coding style, but there may be some issues there. Is there
-a document on the format of that file?
+    Negotiate with Eurocontrol:
 
-Since Eurocontrol has many very large files, processing changes
-incrementally is important. I see in lsp-ada_handlers.adb
-On_DidChangeTextDocument_Notification that it accepts incremental text
-changes, but it's not clear whether that means the parse tree is also
-updated incrementally - Document.Apply_Changes talks about markers,
-not parsing, and I did not see any calls to the actual parser (I'm
-assuming I did not dig deep enough). I see in google scholar that
-there are recent papers about packrat incremental parsing - I have not
-read them yet. Does ada_language_server support incremental parsing?
-
-
-    - start using GPS
-        - feature request to AdaCore to support your indent style
-          - they will probably ask for money; consider spending it on me/in-house emacs worker instead
-        - UA19-052 reports a storage_error, so they are trying it
+For the near future, we still need the WisiToken parser to support
+indent while editing, which means we need incremental parse to make it
+faster and more accurate/reliable. It will also most likely make sense
+to implement a libadalang xref backend, or something else to replace
+gpr_query. I'm not clear which you prefer done first. We can discuss
+that after we get the xref benchmark working.
 
     - improve Emacs Ada mode
         - currently doing incremental (making progress)
@@ -137,77 +77,15 @@ read them yet. Does ada_language_server support incremental parsing?
         - find another volunteer to speed up
         - pay someone in-house to work on this - I will mentor
 
-test/benchmark ada-mode vs eglot/Ada_Language_Server
-    build/prj-eglot.el
-    set ada.projectFile in some eglot config
-        seem to have it working, but it's not convenient
-
-    xref works
-        noticeable delay on M-. wisi-ada.adb Indent_Record Tree.ID
-            parsing wisitoken-syntax_trees.ads?
-                still slow on second invoke
-
-            M-. on wisitoken-syntax_trees.ads Function ID fast
-
-            xref down to sal fast
-
-        user-error: No definitions found for: LSP identifier at point.
-            that means the parse failed; need better error correction
-
-
-    editing debug_eldoc.adb
-        on open, flymake error mark on 'procedure Debug_Eldoc
-            correct; previous line missing ;
-
-        hover on Tree.ID: eldoc works even with previous syntax error
-            but gives too many matches, even without syntax error
-                doesn't check actual signature of function call at point.
-                    eglot doesn't have access to the AST, it can't find "function call at point".
-                    but ada_language_server does!
-                Gnat Studio lists the wrong one!
-            and not too serious an error; delete "Wisi.Delta_Type" after "return" defeats eldoc, xref
-
-        indent is not active
-            there is a function eglot-format; reports "Server can't format"
-                because actual request is textDocument/rangeFormatting which ALS doesn't support
-            eglot-format-buffer uses textDocument/formatting, which is supported, but gives an error:
-                "Incorrect code can't be formatted"
-                because of missing return type
-                same message after restore return type. sigh
-
  current work
-need gpr-query.el symbols-valid?
-
 running all tests
-    partial_parse done
+    partial_parse
+        test-ada-lalr-partial-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
+
     incremental
-c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_01.adb:54: test (progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body))
-parse 1 "c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_01.adb" "debug=1" 1 -1 -1 -1 0 ((2402 2402 2417 2417 0 0 "
-... error: (error: nil indent for line 56)
-
-tree does not match text
-    lost 3 non_grammars after 'is'
-
-first compare_tree_text fail after parse_incremental ((2085 2085 2086 2086 1 1 "i") (2081 2081 2082 2082 1 1 "A") (2085 2085 2086 2086 1 1 "I") (2403 2403 2403 2403 29 29 "") (2403 2403 2404 2404 0 0 ";"))
-pre-edit debug_edited_019 Ada_Identifier
-
-duplicate, simplify in debug.adb
-    finally
-
-
-parse 1 "c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_01.adb" "debug=1" 1 -1 -1 -1 0 ((2403 2403 2406 2406 0 0 "   ") (2625 2625 2625 2625 29 29 "") (2625 2625 2626 2626 0 0 ";")) "3 2 0 0 -3 3 2 0 2 3 2 2 1"
-Fri Nov 12 02:45:31 2021:
-(message "text saved to '../edited_022'")
-;; task  1: CONSTRAINT_ERROR: wisitoken-parse-lr-mckenzie_recover-parse.adb:344:7 access check failed
-    first_terminal returned null node!
-    not in run_ada.exe!
+        test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
 
     review build/test.log
-
-
-test/ada_mode-recover_repair_2.adb
-    restores comment in wrong place, edits comment
-
 
 wisitoken-syntax_trees.adb parser hangs adding "Valid_Parents (ref) and" to Breakdown post-condition
     hangs after type (
@@ -271,6 +149,17 @@ push to elpa
 
  after incremental
 review this file!
+
+uniquify-files should not set project-read-file-name-function
+    set or let-bind it in ada-mode
+
+xref workaround
+    use "summary", not ":summary"
+    "oref", "with-slots" work with cl-defstruct on master
+        test on 28.
+
+test/ada_mode-nested_packages.adb
+    symbols length = 2!?
 
 font-lock use separate partial_parse process while incremental parse is busy with full parse?
 
@@ -1357,6 +1246,7 @@ elpa builds info; don't check them into .git
 
 check for ELPA patches by others
     (dvc-status "/Projects/elpa")
+    (dvc-state-multiple "/Projects/elpa/packages")
         revert local changes in ada, wisi, ada-ref-main; commit in uniquify
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
@@ -1436,6 +1326,7 @@ bump versions
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features, no user-incompatible changes
         bump second digit for major features, mostly backward-compatible
+            or if third digit gets to 10
             - GPS indentation engine add/delete
             - partial parse
             - delete elisp lexer
@@ -1443,16 +1334,16 @@ bump versions
             - incremental parse
             - ? module?
 
-        bump first digit for really major user-visible changes
+        bump first digit for really major user-visible changes:
             ada-mode:
             - 5 use parser
             - 6 compute indentation in grammar actions, external parser with error correction
             - 7 move lots of stuff to wisi; many ada-* variables, functions deleted.
-            - 8 restructure git to match elpa?
+            - future: restructure git to match elpa? incremental parse?
 
             wisi:
             - 3 project.el integration
-            - 4 incremental parse
+            - future: restructure git to match elpa? incremental parse?
 
     o.e.ada-mode/emacs_wisi_common_parse.ads
         (should have been changed already, but verify)
@@ -1469,6 +1360,9 @@ bump versions
         copyright date
         Version:
 
+    o.e.wisi/NEWS
+        if not done above
+
     o.e.wisi/wisi.texi
         copyright date
         @title
@@ -1481,6 +1375,9 @@ bump versions
         Version:
         package-requires wisi version
         ada-mode-version
+
+    o.e.ada-mode/NEWS
+        if not done above
 
     o.e.ada-mode/ada-mode.texi
         @title

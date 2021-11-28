@@ -562,11 +562,28 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
             case To_Token_Enum (Tree.Element_ID (Config.Error_Token)) is
-            when block_statement_ID | single_protected_declaration_ID =>
+            when block_statement_ID =>
                Push_Back_Check
                  (Super, New_Config,
                   (+SEMICOLON_ID, +identifier_opt_ID, +END_ID),
                   Push_Back_Undo_Reduce => True);
+
+            when single_protected_declaration_ID =>
+               Push_Back_Check (Super, New_Config, +SEMICOLON_ID, Push_Back_Undo_Reduce => True);
+
+               case To_Token_Enum (Tree.Element_ID (New_Config.Stack.Peek.Token)) is
+               when protected_definition_ID =>
+                  raise Invalid_Case;
+
+               when identifier_opt_ID =>
+                  Push_Back_Check
+                    (Super, New_Config,
+                     (+identifier_opt_ID, +END_ID),
+                     Push_Back_Undo_Reduce => True);
+
+               when others =>
+                  raise SAL.Programmer_Error with "code does not match grammar";
+               end case;
 
             when loop_statement_ID =>
                Push_Back_Check

@@ -80,7 +80,7 @@ Must match gpr_query.adb Version.")
   (symbols-thread nil);; thread started by symbols-process to run gpr-query--read-symbols
 
   symbol-locs ;; alist completion table, with locations; see gpr-query--read-symbols
-  symbols ;; just symbols completion table; see gpr-query--read-symbols
+  symbols ;; symbols completion table. Also set to intermediate states; see gpr-query--symbols-filter
   symbols-count-total
   )
 
@@ -162,7 +162,7 @@ Must match gpr_query.adb Version.")
 
 (defun gpr-query--update-progress ()
   ;; separate for debugging; update gpr-query--symbols-progress
-  (let* ((count (line-number-at-pos (point-max)))
+  (let* ((count (line-number-at-pos (point)))
 	 (percent (/ (* 100 count) (gpr-query--session-symbols-count-total gpr-query--local-session))))
     (setq gpr-query--symbols-progress (format "%d%%" percent))
     ))
@@ -215,6 +215,8 @@ Must match gpr_query.adb Version.")
 	     (setq gpr-query--symbols-progress "0%"))
 
 	   ((eq (gpr-query--session-symbols gpr-query--local-session) 'sent-complete)
+	    ;; All symbols received; read the buffer.
+	    (setq gpr-query--symbols-progress "0%")
 	    (setf (gpr-query--session-symbols-thread gpr-query--local-session)
 		   (make-thread (lambda () (gpr-query--read-symbols gpr-query--local-session))))
 	    (set-process-filter process nil)
@@ -254,6 +256,7 @@ Must match gpr_query.adb Version.")
       (erase-buffer); delete any previous messages, prompt
       (setf (gpr-query--session-symbol-locs session) nil)
       (setf (gpr-query--session-symbols session) nil)
+      (setf (gpr-query--session-symbols-thread session) nil)
       (let ((args (cl-delete-if
 		   'null
 		   (append
@@ -341,36 +344,51 @@ COMMAND-TYPE is one of 'xref or 'symbols."
       (gpr-query--show-buffer session command-type)
       (error "gpr-query process died"))
 
-    (with-current-buffer (process-buffer process)
-      (setq search-start (point-min))
+    (while (and (process-live-p process)
+		(not done))
+      (cl-ecase command-type
+	(symbols
+	 ;; The process filter is storing symbols text in the process
+	 ;; buffer, or the thread is reading the buffer; don't move
+	 ;; point or otherwise modify the buffer.
+	 (cond
+	  ((gpr-query--session-symbols-thread session)
+	   (message "gpr-query processing symbols ...")
+	   (thread-join (gpr-query--session-symbols-thread session)) ;; wait for thread to complete
+	   (setq done t))
 
-      (while (and (process-live-p process)
-		  (not done))
-	(cl-ecase command-type
-	  (symbols
-	   (message "gpr-query waiting for symbols %s" gpr-query--symbols-progress))
-	  (xref
-	   (message (concat "running gpr_query ..." (make-string wait-count ?.)))))
+	  (t
+	   (message "gpr-query receiving symbols %s" gpr-query--symbols-progress))))
 
-	;; process output is inserted before point, so move back over it to search it
-	(goto-char search-start)
-	(if (and
-	     (re-search-forward gpr-query-prompt (point-max) 1)
-	     (or (eq command-type 'xref)
-		 (gpr-query--session-symbols session))) ;; wait for --read-symbols thread
-	    (setq done t)
+	(xref
+	 (message (concat "running gpr_query ..." (make-string wait-count ?.)))
 
-	  ;; else wait for more input
-	  (unless (accept-process-output process 1.0)
-	    ;; accept-process returns non-nil when we got output, so we
-	    ;; did not wait for timeout.
-	    (setq wait-count (1+ wait-count))
-	    ))
-      ))
+	 ;; process output is inserted before point, so move back over it to search it
+	 (with-current-buffer (process-buffer process)
+	   (setq search-start (point-min))
+
+    	   (goto-char search-start)
+	   (if (re-search-forward gpr-query-prompt (point-max) 1)
+	       (setq done t))))
+	)
+
+      (when (not done);; wait for more input
+	(unless (accept-process-output process 1.0)
+	  ;; accept-process returns non-nil when we got output, so we
+	  ;; did not wait for timeout.
+	  (setq wait-count (1+ wait-count))
+	  ))
+      )
 
     (if (or (eq command-type 'symbols);; symbols process is supposed to die
 	    (process-live-p process))
-	(message (concat "running gpr_query ... done"))
+	(cl-ecase command-type
+	  (symbols
+	   (message "gpr-query symbols done; symbols length %d"
+		    (length (gpr-query--session-symbols session)))
+	   )
+	  (xref
+	   (message (concat "running gpr_query ... done"))))
       (gpr-query--show-buffer session command-type)
       (error "gpr_query process died"))
     ))
@@ -407,6 +425,7 @@ Returns t if the process was live."
 Return t if either process was live."
   (setf (gpr-query--session-symbol-locs session) nil)
   (setf (gpr-query--session-symbols session) nil)
+  (setf (gpr-query--session-symbols-thread session) nil)
   (let (result)
     (setq result (gpr-query--kill-process (gpr-query--session-xref-process session)))
     (setq result (or (gpr-query--kill-process (gpr-query--session-symbols-process session))
@@ -519,10 +538,12 @@ Uses `gpr_query'. Returns new list."
 	       (list (gpr-query--normalize-filename (match-string-no-properties 4))
 		     (string-to-number (match-string 5))
 		     (1- (string-to-number (match-string 6)))))
-	 symbol-locs))
+	 symbol-locs)
+	(gpr-query--update-progress)
+	)
 
        (t ;; ignore line
-	)
+	nil)
        )
       (forward-line 1))
 
@@ -670,10 +691,10 @@ FILE is from gpr-query."
   ;; FILE must be abs
   (cond
    ((eq system-type 'windows-nt)
-    ;; 'expand-file-name' converts Windows directory
-    ;; separators to normal Emacs.
-    ;; FIXME: we used to downcase here; need use case. Counter use case:
-    ;; completion table matching (buffer-file-name) in wisi-filter-table
+    ;; 'expand-file-name' converts Windows directory separators to
+    ;; normal Emacs.  Normally we would downcase here, but that
+    ;; interferes with completion table matching (buffer-file-name) in
+    ;; wisi-filter-table.
     (expand-file-name file))
 
    ((eq system-type 'darwin)
