@@ -997,7 +997,7 @@ package body Wisi is
 
                   if (Blank_Line_Index = 0 and
                         I < Prev_Non_Grammar.Last_Index) and then
-                    (Prev_Non_Grammar (I).ID = Descriptor.New_Line_ID and
+                    (Tree.Lexer.Terminated_By_New_Line (Prev_Non_Grammar (I).ID) and
                        Prev_Non_Grammar (I + 1).ID = Descriptor.New_Line_ID)
                   then
                      Insert_Line      := Prev_Non_Grammar (I + 1).Line_Region.First;
@@ -1938,6 +1938,13 @@ package body Wisi is
    is
       use Syntax_Trees;
    begin
+      if Trace_Action > Outline then
+         Data.Trace.Put_Line ("post-parse tree:");
+         Tree.Print_Tree
+           (Data.Trace.all,
+            Non_Grammar  => True,
+            Line_Numbers => True);
+      end if;
       case Query.Label is
       when Point_Query =>
          declare

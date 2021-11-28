@@ -55,6 +55,10 @@ package Wisi.Parse_Context is
       --  increments.
 
       Save_Edited_Count : Integer := 0;
+
+      Compare_Tree_Text_Auto : Boolean := False;
+      --  If True, after each incremental parse, compare the syntax tree to
+      --  a fresh full parse.
    end record;
    type Parse_Context_Access is access all Parse_Context;
 
@@ -80,7 +84,8 @@ package Wisi.Parse_Context is
 
    function Find
      (File_Name : in String;
-      Language  : in Wisi.Parse_Context.Language)
+      Language  : in Wisi.Parse_Context.Language;
+      Have_Text : in Boolean := False)
      return Parse_Context_Access;
    --  If a context for File_Name exists, return it if Language matches.
    --
@@ -89,6 +94,7 @@ package Wisi.Parse_Context is
    --  Raise WisiToken.User_Error if context found for File_Name, but Language does not match.
    --
    --  Raise Not_Found if no context found for File_Name.
+   --  If Have_Text, raise Not_Found if Text_Buffer is empty.
 
    procedure Kill (File_Name : in String);
 
@@ -122,13 +128,18 @@ package Wisi.Parse_Context is
    --  Changes must be UTF-8.
 
    procedure Save_Text
-     (Context       : in Parse_Context;
-      File_Name     : in String;
-      Emacs_Message : in Boolean);
+     (Context   : in Parse_Context;
+      File_Name : in String);
    --  Write Context.Text_Buffer to File_Name.
 
-   procedure Save_Text_Auto
-     (Context       : in out Parse_Context;
-      Emacs_Message : in     Boolean);
+   procedure Save_Text_Auto (Context : in out Parse_Context);
+
+   procedure Compare_Tree_Text (Context : in out Parse_Context);
+   --  Save a copy of Context.Parser.Tree, do a new full parse of
+   --  Context.Text_Buffer, storing result in Context.Parser.Tree.
+   --  Compare trees, output an error message for first difference.
+   --
+   --  Raises WisiToken.Syntax_Error or WisiToken.Parse_Error if the
+   --  full parse fails.
 
 end Wisi.Parse_Context;

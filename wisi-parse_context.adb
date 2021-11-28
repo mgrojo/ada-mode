@@ -11,14 +11,17 @@
 --  but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN-
 --  TABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-pragma License (Modified_GPL);
+pragma License (GPL);
 
+with AUnit.Assertions;
+with AUnit.Test_Results;
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Finalization;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
+with WisiToken.Syntax_Trees.AUnit_Public;
 package body Wisi.Parse_Context is
 
    function Source_File_Name (Item : in Parse_Context_Access) return String
@@ -57,7 +60,8 @@ package body Wisi.Parse_Context is
                Partial_Parse_Byte_Goal        => Language.Partial_Parse_Byte_Goal,
                others                         => <>),
             Root_Save_Edited_Name             => <>,
-            Save_Edited_Count                 => <>))
+            Save_Edited_Count                 => <>,
+            Compare_Tree_Text_Auto            => <>))
       do
          Result.Parser.Tree.Lexer := Language.Lexer;
       end return;
@@ -122,7 +126,8 @@ package body Wisi.Parse_Context is
                   Partial_Parse_Byte_Goal        => Language.Partial_Parse_Byte_Goal,
                   others                         => <>),
                Root_Save_Edited_Name             => <>,
-               Save_Edited_Count                 => <>))
+               Save_Edited_Count                 => <>,
+               Compare_Tree_Text_Auto            => <>))
          do
             Result.Parser.Tree.Lexer := Language.Lexer;
             Map.Insert (Result);
@@ -135,7 +140,8 @@ package body Wisi.Parse_Context is
 
    function Find
      (File_Name : in String;
-      Language  : in Wisi.Parse_Context.Language)
+      Language  : in Wisi.Parse_Context.Language;
+      Have_Text : in Boolean := False)
      return Parse_Context_Access
    is begin
       if File_Name'Length = 0 then
@@ -146,6 +152,7 @@ package body Wisi.Parse_Context is
          use File_Parse_Context_Maps;
          use WisiToken;
          use all type WisiToken.Descriptor_Access_Constant;
+         use all type Ada.Strings.Unbounded.String_Access;
 
          Found : constant Cursor := Map.Find (File_Name);
       begin
@@ -154,14 +161,18 @@ package body Wisi.Parse_Context is
                if Language.Descriptor /= Result.Parser.Tree.Lexer.Descriptor then
                   raise WisiToken.User_Error with "language does not match for buffer '" & File_Name & "'";
                end if;
+               if Have_Text and (Result.Text_Buffer = null or else Result.Text_Buffer'Length = 0) then
+                  if Trace_Incremental_Parse > Outline then
+                     Result.Parser.Trace.Put_Line ("parse_context found, but text buffer empty");
+                  end if;
+                  raise Not_Found;
+               end if;
                if Trace_Incremental_Parse > Outline then
-                  Result.Parser.Trace.Put_Line ("parse_context found");
+                  Result.Parser.Trace.Put_Line
+                    ("parse_context found" & (if Have_Text then " and text present" else ""));
                end if;
             end return;
          else
-            if Trace_Incremental_Parse > Outline then
-               Ada.Text_IO.Put_Line ("parse_context not found");
-            end if;
             raise Not_Found;
          end if;
       end;
@@ -696,9 +707,8 @@ package body Wisi.Parse_Context is
    end Edit_Source;
 
    procedure Save_Text
-     (Context       : in Parse_Context;
-      File_Name     : in String;
-      Emacs_Message : in Boolean)
+     (Context   : in Parse_Context;
+      File_Name : in String)
    is
       use GNAT.OS_Lib;
       File : File_Descriptor;
@@ -715,16 +725,10 @@ package body Wisi.Parse_Context is
       --  nothing to do.
       Close (File);
 
-      if Emacs_Message then
-         Ada.Text_IO.Put_Line ("(message ""text saved to '" & File_Name & "'"")");
-      else
-         Ada.Text_IO.Put_Line ("text saved to '" & File_Name & "'");
-      end if;
+      Context.Parser.Trace.Put_Line ("text saved to '" & File_Name & "'");
    end Save_Text;
 
-   procedure Save_Text_Auto
-     (Context       : in out Parse_Context;
-      Emacs_Message : in     Boolean)
+   procedure Save_Text_Auto (Context : in out Parse_Context)
    is begin
       Context.Save_Edited_Count := @ + 1;
 
@@ -733,8 +737,42 @@ package body Wisi.Parse_Context is
            Ada.Strings.Unbounded.To_String (Context.Root_Save_Edited_Name) & "_" &
            Wisi.Integer_Filled_Image (Item => Context.Save_Edited_Count, Width => 3);
       begin
-         Save_Text (Context, Save_File_Name, Emacs_Message);
+         Save_Text (Context, Save_File_Name);
       end;
    end Save_Text_Auto;
+
+   procedure Compare_Tree_Text (Context : in out Parse_Context)
+   is
+      Parser     : WisiToken.Parse.LR.Parser.Parser renames Context.Parser;
+      Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
+      Saved_Tree : WisiToken.Syntax_Trees.Tree;
+      Log_File   : Ada.Text_IO.File_Type; -- for Parse recover log; unused
+   begin
+      Parser.Tree.Copy_Tree (Saved_Tree, Parser.User_Data);
+      Parse_Data.Initialize (Parse_Data.Trace);
+      Parse_Data.Reset;
+      Parser.Tree.Lexer.Reset;
+      Parser.Parse (Log_File);
+      WisiToken.Syntax_Trees.AUnit_Public.Check
+        ("compare tree/text", Saved_Tree, Parser.Tree,
+         Shared_Stream         => False,
+         Terminal_Node_Numbers => False);
+      Parse_Data.Trace.Put_Line ("compare tree/text pass");
+   exception
+   when AUnit.Assertions.Assertion_Error =>
+      declare
+         use AUnit.Assertions;
+         type Dummy_Test is new Test with null record;
+         T : Dummy_Test;
+         Failure : constant AUnit.Test_Results.Test_Failure := Get_Failure (First_Failure (T));
+      begin
+         Parse_Data.Trace.Put_Line ("compare tree/text fail " & Failure.Message.all);
+         if WisiToken.Trace_Incremental_Parse > WisiToken.Extra then
+            Parse_Data.Trace.New_Line;
+            Ada.Text_IO.Put_Line ("incremental tree:");
+            Saved_Tree.Print_Tree (Parse_Data.Trace.all, Line_Numbers => True, Non_Grammar => True);
+         end if;
+      end;
+   end Compare_Tree_Text;
 
 end Wisi.Parse_Context;

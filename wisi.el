@@ -1020,21 +1020,30 @@ fails."
       (let ((pos (point))
 	    query-result
 	    done)
-      (while (not done)
-	(setq query-result (wisi-parse-tree-query wisi--parser 'containing-statement pos))
-	(when (null parse-begin)
-	  (setq parse-begin (car (wisi-tree-node-char-region query-result))))
-	(setq parse-end   (cdr (wisi-tree-node-char-region query-result)))
-	(if (<= (point) parse-end)
-	    (setq done t)
-	  (setq pos
-		(save-excursion
-		  (when (nth 8 (syntax-ppss pos))
-                    ;; forward-comment must start out of a comment
-		    (goto-char (nth 8 (syntax-ppss pos))) ;; start of comment or string
-		    (forward-comment 100))
-		  (skip-syntax-forward " >") ;; new-line might also be comment end.
-		  (point)))))))
+	(while (not done)
+	  (setq query-result (wisi-parse-tree-query wisi--parser 'containing-statement pos))
+	  (when (null parse-begin)
+	    (setq parse-begin (car (wisi-tree-node-char-region query-result))))
+	  (setq parse-end   (cdr (wisi-tree-node-char-region query-result)))
+	  (if (<= (point) parse-end)
+	      (setq done t)
+	    (setq pos
+		  ;; point is in whitespace or comment after a preceding
+		  ;; statement; ada_mode-interactive_01.adb procedure
+		  ;; Proc_1. Normally that would be included in the
+		  ;; statement trailing non_grammar, but incremental
+		  ;; parse can make that not so.
+		  (save-excursion
+		    (if (nth 8 (syntax-ppss pos))
+			(progn
+			  ;; in comment - forward-comment must start out
+			  ;; of a comment
+			  (goto-char (nth 8 (syntax-ppss pos))) ;; start of comment or string
+			  (forward-comment 100)
+			  (skip-syntax-forward " >")) ;; new-line might also be comment end.
+		      ;; in whitespace
+		      (beginning-of-line 2))
+		    (point)))))))
 
      (t
       (setq parse-begin (point-min)
@@ -1848,6 +1857,7 @@ where the car is a list (FILE LINE COL)."
     ;; We don't wait for this to complete here, so users can scroll
     ;; around while the initial parse runs. font-lock will not work
     ;; during that time (the parser is busy, the buffer is read-only).
+    (when (< 0 wisi-debug) (message "start initial full parse"))
     (wisi-parse-incremental wisi--parser 'other :full t :nowait wisi-parse-full-background)))
 
 (provide 'wisi)
