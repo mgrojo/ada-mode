@@ -149,8 +149,7 @@ package body Emacs_Wisi_Common_Parse is
             Result.Source_File_Name  := +Get_String (Command_Line, Last);
             Result.Begin_Byte_Pos    := Get_Integer (Command_Line, Last);
             Result.End_Byte_Pos      := Get_Integer (Command_Line, Last) - 1;
-            --  Emacs end is after last char. FIXME: if last char is multibyte,
-            --  this is wrong; subtract 1 char in elisp.
+            --  Emacs end is after last byte.
             Result.Goal_Byte_Pos        := Get_Integer (Command_Line, Last);
             Result.Begin_Char_Pos       := Buffer_Pos (Get_Integer (Command_Line, Last));
             Result.End_Char_Pos         := Buffer_Pos (Get_Integer (Command_Line, Last)) - 1;
@@ -162,7 +161,6 @@ package body Emacs_Wisi_Common_Parse is
             Result.Zombie_Limit         := Get_Integer (Command_Line, Last);
             Result.Enqueue_Limit        := Get_Integer (Command_Line, Last);
             Result.Max_Parallel         := Get_Integer (Command_Line, Last);
-            Result.Byte_Count           := Get_Integer (Command_Line, Last);
 
          when Incremental | Full =>
             Result.Source_File_Name := +Get_String (Command_Line, Last);

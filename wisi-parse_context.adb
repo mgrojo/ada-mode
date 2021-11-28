@@ -766,6 +766,11 @@ package body Wisi.Parse_Context is
          Failure : constant AUnit.Test_Results.Test_Failure := Get_Failure (First_Failure (T));
       begin
          Parse_Data.Trace.Put_Line ("compare tree/text fail " & Failure.Message.all);
+         if WisiToken.Trace_Incremental_Parse > WisiToken.Extra then
+            Parse_Data.Trace.New_Line;
+            Ada.Text_IO.Put_Line ("incremental tree:");
+            Saved_Tree.Print_Tree (Parse_Data.Trace.all, Line_Numbers => True, Non_Grammar => True);
+         end if;
       end;
    end Compare_Tree_Text;
 
