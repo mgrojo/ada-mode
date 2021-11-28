@@ -78,18 +78,6 @@ that after we get the xref benchmark working.
         - pay someone in-house to work on this - I will mentor
 
  current work
-running all tests
-    partial_parse
-        test-ada-lalr-partial-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
-
-    incremental
-        test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
-
-    review build/test.log
-
-wisitoken-syntax_trees.adb parser hangs adding "Valid_Parents (ref) and" to Breakdown post-condition
-    hangs after type (
-
 review FIXMEs
     (grep-find "find c:/Projects/org.wisitoken -type f -print | \"xargs\" grep  -nH --null FIXME")
     (grep-find "find c:/Projects/org.emacs.wisi -type f -print | \"xargs\" grep  -nH --null FIXME")

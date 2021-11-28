@@ -532,6 +532,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Push_Back (Super, New_Config, Push_Back_Undo_Reduce => True);
             end loop;
 
+            if New_Config.Stack.Depth <= 1 then
+               --  ada_mode-partial_parse_indent_begin.adb
+               raise Invalid_Case;
+            end if;
+
             if To_Token_Enum (Tree.Element_ID (New_Config.Stack.Peek.Token)) /= sequence_of_statements_ID then
                Insert (Tree, New_Config, (+NULL_ID, +SEMICOLON_ID));
                --  We don't need Undo_Reduce if sequence_of_statements is present;
@@ -1416,14 +1421,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Result := Empty_Vector;
             else
                case To_Token_Enum (Tokens (Next_Index)) is
-               when CASE_ID | IF_ID | LOOP_ID | RETURN_ID | SELECT_ID =>
+               when CASE_ID | IF_ID | RETURN_ID | SELECT_ID =>
                   Result := To_Vector (Tokens (Next_Index));
+
+               when LOOP_ID =>
+                  --  loop_statement starts with label_opt; we can't insert nonterms
+                  --  here. ada_mode-recover_partial_15.adb FIXME: debugging.
+                  Result := To_Vector (+LOOP_ID);
 
                when IDENTIFIER_ID =>
                   if Tokens (Next_Index + 1) /= Invalid_Token_ID and then
                     To_Token_Enum (Tokens (Next_Index + 1)) = DOT_ID
                   then
-                     Result := To_Vector ((+PACKAGE_ID, +BODY_ID, +IDENTIFIER_ID, +IS_ID)); --  package body
+                     Result := To_Vector ((+PACKAGE_ID, +BODY_ID, +IDENTIFIER_ID, +IS_ID)); -- package body
                   else
                      Result := To_Vector ((+IDENTIFIER_ID, +COLON_ID, +BEGIN_ID)); -- named block begin
                   end if;

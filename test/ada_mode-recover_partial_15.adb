@@ -1,6 +1,7 @@
---  Raised exception in recover. Fixed now
+-- Raised exception in recover. Fixed now
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+-- We get different indent with partial vs incremental parse.
+--EMACS_SKIP_UNLESS:(not wisi-incremental-parse-enable)
 
 declare
    Min_Rhs := Min (); -- copied assignment to create initialized declaration; recover inserts 'begin'
@@ -13,11 +14,11 @@ begin
    end if; -- expecting 'end'. recover has various solutions, can change with small code changes.
 end;
 end loop;
-   Rhs_Set (Nonterm)(Rhs) := True;
-   if Trace_Generate > Extra then
-      Ada.Text_Io.Put_Line
-        (Trimmed_Image (Production_Id'(Nonterm, Rhs)) & " => " &
-           Image (All_Sequences (Nonterm)(Rhs), Descriptor));
-      -- Local Variables:
-      -- wisi-mckenzie-task-count: 1
-      -- End:
+Rhs_Set (Nonterm)(Rhs) := True;
+if Trace_Generate > Extra then
+   Ada.Text_Io.Put_Line
+     (Trimmed_Image (Production_Id'(Nonterm, Rhs)) & " => " &
+        Image (All_Sequences (Nonterm)(Rhs), Descriptor));
+   -- Local Variables:
+   -- wisi-mckenzie-task-count: 1
+   -- End:

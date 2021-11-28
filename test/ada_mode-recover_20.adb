@@ -18,7 +18,7 @@ begin
       or
      B
    then
-   --  missing 'end if;'
+      --  missing 'end if;'
 
 end Ada_Mode.Recover_20;
 -- Local Variables:

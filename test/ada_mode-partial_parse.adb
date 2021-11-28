@@ -103,17 +103,17 @@ begin
             Put (Cache);
          end loop;
 
-         -- Parse region starts after 'end loop;'
+         -- Partial parse region starts after 'end loop;'
          -- indent leading comment
          --EMACSCMD:(progn (forward-line -1)(delete-char 2)(indent-for-tab-command)(back-to-indentation)(current-column))
          --EMACSRESULT: 9
 
          --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(wisi-indent-newline-indent)(back-to-indentation) (current-column))
-         --EMACSRESULT: 9
+         --EMACSRESULT:(if wisi-incremental-parse-enable 9 15)
       when Face =>
 
          --EMACSCMD:(progn (end-of-line 4)(delete-char 1)(wisi-indent-newline-indent)(back-to-indentation)(current-column))
-         --EMACSRESULT: 12
+         --EMACSRESULT: (if wisi-incremental-parse-enable 12 18)
          Resolve_Anchors
            (Data       => User_Data,
             Descriptor => User_Descriptor);
@@ -136,7 +136,7 @@ begin
 
    -- blank line before "end"
    --EMACSCMD:(progn (forward-line 3)(wisi-indent-line)(back-to-indentation)(current-column))
-   --EMACSRESULT: 3
+   --EMACSRESULT: (if wisi-incremental-parse-enable 3 5)
 
 
 end Ada_Mode.Partial_Parse;
