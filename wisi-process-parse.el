@@ -189,8 +189,8 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (set-process-filter (wisi-process--parser-process parser) #'wisi-process-parse--filter)
 
       (unless nowait
-	(message "starting parser ... done")
-	(wisi-process-parse--wait parser))
+	(wisi-process-parse--wait parser)
+	(message "starting parser ... done"))
       )))
 
 (defun wisi-process-parse--wait (parser)
@@ -1106,14 +1106,6 @@ PARSER will respond with one or more Query messages."
   (wisi-process--parser-query-result parser))
 
 ;;;;; debugging
-(defun wisi-process-parse-soft-kill (parser)
-  "Send 'quit' command to parser, for repeatable termination in unit tests."
-  (let ((process (wisi-process--parser-process parser)))
-    (wisi-parse-log-message parser "soft kill process")
-    (process-send-string process (wisi-process-parse--add-cmd-length "quit"))
-    (while (process-live-p process)
-      (accept-process-output process))))
-
 (defun wisi-process-parse-save-text (parser save-file-name auto)
   (wisi-process-parse--prepare parser 'other)
   (let* ((cmd
@@ -1143,6 +1135,10 @@ PARSER will respond with one or more Query messages."
 
     (set-buffer log-buffer)
     (goto-char (point-min))
+
+    (when (search-forward-regexp "kill-context " nil t)
+      ;; IMPROVEME: use last auto-save file to restore context
+      (user-error "kill-context not implemented"))
 
     ;; get options from full parse line; we assume they don't change
     (unless (search-forward-regexp "parse \\([02]\\)" nil t)

@@ -1339,10 +1339,13 @@ the comment on the previous line."
 		       (setq cache (wisi-goto-containing (wisi-goto-start cache)))
 		       (point)))
 	      end)
+	  (unless cache
+	      (wisi-validate-cache-current-statement t 'navigate)
+	      (setq cache (wisi-get-cache (point))))
 	  (if cache
 	      (setq end (or (wisi-cache-end cache) ;; nil when cache is statement-end
 			    (point)))
-	    (error "containing not set; try M-x wisi-parse-buffer navigate"))
+	    (error "containing not set; try M-x wisi-reset-parser"))
 	  (indent-region start end)
 	  ))
       )))

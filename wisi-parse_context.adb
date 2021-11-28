@@ -222,6 +222,7 @@ package body Wisi.Parse_Context is
                Result : String (Item'Range);
             begin
                loop
+                  --  FIXME: handle _all_ elisp escapes (need reference).
                   if Item (I) = '\' and I < Item'Last then
                      if Item (I + 1) = 'n' then
                         Result (J) := ASCII.LF;
