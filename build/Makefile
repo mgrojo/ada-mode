@@ -141,9 +141,9 @@ two_pro : build_executables
 	../exec_pro/run_ada_lalr_parse.exe ../test/ada_mode-recover_partial_02_lr1.adb Indent --enqueue_limit 120_000 --task_count 1
 	gprof ../exec_pro/run_ada_lalr_parse.exe > recover_partial_02-lalr.profile
 
-three : RUN_ARGS := -P subdir/ada_mode_parent.gpr --db=c:/tmp/gpr_query.db --tracefile=../gpr_query.trace
-three : gpr_query.exe
-	cd ../test; ../gpr_query.exe $(RUN_ARGS)
+three : RUN_ARGS := c:/Eurocontrol 10
+three : run_libadalang.exe
+	cd ..; ./run_libadalang.exe $(RUN_ARGS)
 
 # WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
@@ -448,7 +448,7 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
 
 %$(EXE_EXT) : %.adb force
-	cd ..; gprbuild -p -j8 -vh -P ada_mode_wisi_parse.gpr $*.adb
+	cd ..; gprbuild -p -j8 -P ada_mode_wisi_parse.gpr $*.adb
 
 build_executables : $(WISI)/wisi.gpr ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr
