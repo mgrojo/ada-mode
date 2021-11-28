@@ -1130,9 +1130,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Table      : Parse_Table renames Shared.Table.all;
       Descriptor : WisiToken.Descriptor renames Super.Tree.Lexer.Descriptor.all;
    begin
-      --  We don't check for insert = current token; that's either ok or a
-      --  severe bug in Shared.Language_Matching_Begin_Tokens.
-
       if Config.Matching_Begin_Done then
          if Trace_McKenzie > Extra then
             Put_Line (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index), "Matching_Begin abandoned: done");
