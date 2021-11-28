@@ -54,23 +54,27 @@ Called by `syntax-propertize', which is called by font-lock in
 `after-change-functions'.")
 
 (defun ada-validate-enclosing-declaration (error-on-fail parse-action)
-  "Call `wisi-validate-cache' on at least the declaration enclosing point.
-`wisi-incremental-parse-enable must be t."
-  (cl-assert wisi-incremental-parse-enable)
+  "Call `wisi-validate-cache' on at least the declaration enclosing point."
   ;; Not in wisi because it's not clear other languages have useful
   ;; declarations, or they use other terms for them.
-  (let (query-result
-	(pos (point)))
-    (while (not (and query-result
-		     ;; package specs have no declarative_item
-		     (memq (wisi-tree-node-id query-result) '(declarative_item wisitoken_accept))))
-      (setq query-result (wisi-parse-tree-query wisi--parser 'containing-statement pos))
-      (setq pos (car (wisi-tree-node-char-region query-result))))
+  (cond
+   (wisi-incremental-parse-enable
+    (let (query-result
+	  (pos (point)))
+      (while (not (and query-result
+		       ;; package specs have no declarative_item
+		       (memq (wisi-tree-node-id query-result) '(declarative_item wisitoken_accept))))
+	(setq query-result (wisi-parse-tree-query wisi--parser 'containing-statement pos))
+	(setq pos (car (wisi-tree-node-char-region query-result))))
 
-    (wisi-validate-cache (car (wisi-tree-node-char-region query-result))
-			 (cdr (wisi-tree-node-char-region query-result))
-			 error-on-fail
-			 parse-action)))
+      (wisi-validate-cache (car (wisi-tree-node-char-region query-result))
+			   (cdr (wisi-tree-node-char-region query-result))
+			   error-on-fail
+			   parse-action)))
+
+   (t
+    (wisi-validate-cache (point-min) (point-max) error-on-fail parse-action))))
+
 
 (defun ada-goto-declarative-region-start ()
   "Goto start of declarative region containing point.
@@ -78,13 +82,7 @@ If in a statement, goto declarative region of the containing
 declaration.  If already in a declaration at or before a
 declarative region start, goto containing region start."
   (interactive)
-  (cond
-     (wisi-incremental-parse-enable
-      (ada-validate-enclosing-declaration t 'navigate))
-
-     (t
-      (wisi-validate-cache (point-min) (point-max) t 'navigate)))
-
+  (ada-validate-enclosing-declaration t 'navigate)
   (push-mark)
 
   (let ((done nil)
@@ -556,7 +554,7 @@ extend a with_clause to include CHILD-NAME."
   ;; point is at start of subprogram specification;
 
   (let* ((begin (point))
-	 (end (wisi-cache-end (wisi-get-cache (point))));; point is before terminal ';'
+	 (end (wisi-cache-end (wisi-get-cache (point))))
 	 (name (wisi-next-name)))
     (goto-char end)
     (insert "\nis begin\n\nend ")

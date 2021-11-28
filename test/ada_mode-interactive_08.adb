@@ -1,31 +1,9 @@
 -- From a real editing session. Inserting text with '\' encountered an
--- error in Edit_Source.
+-- error in Edit_Source. Also tests large change.
 
-pragma License (Modified_Gpl);
+procedure Ada_Mode.Interactive_08 is
 
-with Ada.Directories;
-with Ada.Finalization;
-with Ada.Text_Io;
-with Gnat.Os_Lib;
-with Sal.Gen_Unbounded_Definite_Red_Black_Trees;
-package body Wisi.Parse_Context is
-
-
-   --EMACSCMD:(progn (forward-line 1)(set-mark-command nil)(forward-line 80)(kill-region nil nil t))
-   function Image (Item : in Change) return String
-   is
-      use Wisitoken;
-   begin
-      return "(" &
-        Item.Begin_Byte_Pos'Image & "," &
-        Item.Begin_Char_Pos'Image & "," &
-        Item.Inserted_End_Byte_Pos'Image & "," &
-        Item.Inserted_End_Char_Pos'Image & "," &
-        " +""" & (-Item.Inserted_Text) & """," &
-        Item.Deleted_Bytes'Image & "," &
-        Item.Deleted_Chars'Image & ")";
-   end Image;
-
+   --EMACSCMD:(progn (forward-line 1)(set-mark-command nil)(forward-line 67)(kill-region nil nil t))
    function Get_Emacs_Change_List
      (Command_Line : in     String;
       Last         : in out Integer)
@@ -94,7 +72,7 @@ package body Wisi.Parse_Context is
    end Get_Emacs_Change_List;
 
    --EMACSCMD:(progn (forward-line 12)(insert " ")(indent-for-tab-command))
-   --EMACSCMD:(progn (forward-line -2)(yank))
+   --EMACSCMD:(progn (forward-line -1)(yank))
    --EMACSCMD:(progn (forward-line 10)(insert " ")(indent-for-tab-command))
    procedure Edit_Source
      (Trace            : in out Wisitoken.Trace'Class;
@@ -114,5 +92,6 @@ package body Wisi.Parse_Context is
    begin
       null;
    end Edit_Source;
-
-end Wisi.Parse_Context;
+begin
+   null;
+end Ada_Mode.Interactive_08;

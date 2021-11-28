@@ -608,7 +608,7 @@ package body Wisi.Ada is
          case Insert_ID is
          when END_ID =>
             --  Ending a block of statements. The desired result depends on what
-            --  the user is doing, and what indent is begin computed.
+            --  the user is doing, and what indent is begin computed (if any).
             --
             --  If continuing the block of statements and indenting a blank line,
             --  the 'end' should be placed after the indent line; before_next.
@@ -616,9 +616,10 @@ package body Wisi.Ada is
             --  If indenting a block of code, keep the indent of the existing
             --  'end'; between or after_prev.
             --
-            --  We don't know what lines are being indented; we use the presence
-            --  of a blank line and comment to hint at that, and we bias towards
-            --  continuing a block of statements, not inserting 'end'.
+            --  We don't know why the parse is being done, nor what lines are
+            --  being indented; we use the presence of a blank line and comment to
+            --  hint at that, and we bias towards continuing a block of
+            --  statements, not inserting 'end'.
             --
             --  If there is a blank line followed by comments, we assume that
             --  means we are not adding code on the blank line.
@@ -647,6 +648,10 @@ package body Wisi.Ada is
             --     test/ada_mode-recover_17.adb
             --     inserting missing 'end if;', but assume extending code
             --     comment present, no blank line; keep correct indent for existing 'end' => between
+            --
+            --     test/ada_mode-recover_repair_1.adb
+            --     deleted 'end if;', inserting 'end loop;'
+            --     comment followed by blank line; between.
             --
             --  Before IS_ID : test/ada_mode-recover_incremental_01.adb insert "Float"
             --     no blank line or comment

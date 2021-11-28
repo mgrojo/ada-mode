@@ -210,9 +210,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                      Insert (Tree, New_Config, (+PACKAGE_ID, +BODY_ID, +IDENTIFIER_ID, +IS_ID));
 
                   when package_specification_ID =>
+                     --  ada_mode-recover_bad_char.adb
                      Push_Back_Check
                        (Super, New_Config,
-                        (+name_opt_ID, +END_ID, +declarative_part_ID),
+                        (+name_opt_ID, +END_ID, +basic_declarative_item_list_ID),
                         Push_Back_Undo_Reduce => True);
                      if Tree.Element_ID (New_Config.Stack.Peek (1).Token) = +PRIVATE_ID then
                         Push_Back_Check
@@ -391,7 +392,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                            (+handled_sequence_of_statements_ID,
                             +sequence_of_statements_ID));
                      else
-                        raise Bad_Config with "Language_Fixes unimplemented nonterm for Missing_Name_Error.";
+                        raise Bad_Config with "Language_Fixes unimplemented nonterm for Missing_Name_Error " &
+                          Image (Tree.Element_ID (Config.Error_Token), Descriptor);
                      end if;
                   else
                      raise Invalid_Case;
@@ -422,7 +424,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                          +sequence_of_statements_ID));
                   end if;
                when others =>
-                  raise Bad_Config with "Language_Fixes unimplemented nonterm for Missing_Name_Error.";
+                  raise Bad_Config with "Language_Fixes unimplemented nonterm for Missing_Name_Error " &
+                    Image (Tree.Element_ID (Config.Error_Token), Descriptor);
                end case;
 
                if not Has_Space (Ops, 3) then
@@ -529,6 +532,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Push_Back (Super, New_Config, Push_Back_Undo_Reduce => True);
             end loop;
 
+            if New_Config.Stack.Depth <= 1 then
+               --  ada_mode-partial_parse_indent_begin.adb
+               raise Invalid_Case;
+            end if;
+
             if To_Token_Enum (Tree.Element_ID (New_Config.Stack.Peek.Token)) /= sequence_of_statements_ID then
                Insert (Tree, New_Config, (+NULL_ID, +SEMICOLON_ID));
                --  We don't need Undo_Reduce if sequence_of_statements is present;
@@ -560,12 +568,27 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
             case To_Token_Enum (Tree.Element_ID (Config.Error_Token)) is
             when block_statement_ID =>
-               --  There is almost always an open block of some sort; not worth
-               --  checking.
                Push_Back_Check
                  (Super, New_Config,
                   (+SEMICOLON_ID, +identifier_opt_ID, +END_ID),
                   Push_Back_Undo_Reduce => True);
+
+            when single_protected_declaration_ID =>
+               Push_Back_Check (Super, New_Config, +SEMICOLON_ID, Push_Back_Undo_Reduce => True);
+
+               case To_Token_Enum (Tree.Element_ID (New_Config.Stack.Peek.Token)) is
+               when protected_definition_ID =>
+                  raise Invalid_Case;
+
+               when identifier_opt_ID =>
+                  Push_Back_Check
+                    (Super, New_Config,
+                     (+identifier_opt_ID, +END_ID),
+                     Push_Back_Undo_Reduce => True);
+
+               when others =>
+                  raise SAL.Programmer_Error with "code does not match grammar";
+               end case;
 
             when loop_statement_ID =>
                Push_Back_Check
@@ -574,7 +597,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   Push_Back_Undo_Reduce => True);
 
             when others =>
-               raise Bad_Config with "Language_Fixes Extra_Name_Error 2: unrecognized Error_Token";
+               raise Bad_Config with "Language_Fixes Extra_Name_Error 2: unrecognized Error_Token " &
+                 Image (Tree.Element_ID (Config.Error_Token), Tree.Lexer.Descriptor.all);
             end case;
 
             --  Let Minimal_Complete_Actions finish insert
@@ -1001,11 +1025,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                            Push_Back_Undo_Reduce => True);
 
                      when others =>
-                        if Trace_McKenzie > Outline then
-                           Put ("Language_Fixes " & Label & " unimplemented case " & Image
-                                  (Tree.Element_ID (New_Config_2.Stack.Peek.Token), Descriptor), Config);
-                        end if;
-                        raise Bad_Config;
+                        raise Bad_Config with "Language_Fixes " & Label & " unimplemented case " & Image
+                          (Tree.Element_ID (New_Config_2.Stack.Peek.Token), Descriptor);
                      end case;
 
                      Insert (Tree, New_Config_2, +END_ID);
@@ -1072,7 +1093,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             begin
                if End_ID_Actions.Length /= 1 then
                   --  FIXME: do all actions? need a test case
-                  raise Bad_Config;
+                  raise Bad_Config with "Language_Fixes Insert_End_Token_Semi multiple actions";
 
                else
                   New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
@@ -1400,14 +1421,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Result := Empty_Vector;
             else
                case To_Token_Enum (Tokens (Next_Index)) is
-               when CASE_ID | IF_ID | LOOP_ID | RETURN_ID | SELECT_ID =>
+               when CASE_ID | IF_ID | RETURN_ID | SELECT_ID =>
                   Result := To_Vector (Tokens (Next_Index));
+
+               when LOOP_ID =>
+                  --  loop_statement starts with label_opt; we can't insert nonterms
+                  --  here. ada_mode-recover_partial_15.adb FIXME: debugging.
+                  Result := To_Vector (+LOOP_ID);
 
                when IDENTIFIER_ID =>
                   if Tokens (Next_Index + 1) /= Invalid_Token_ID and then
                     To_Token_Enum (Tokens (Next_Index + 1)) = DOT_ID
                   then
-                     Result := To_Vector ((+PACKAGE_ID, +BODY_ID, +IDENTIFIER_ID, +IS_ID)); --  package body
+                     Result := To_Vector ((+PACKAGE_ID, +BODY_ID, +IDENTIFIER_ID, +IS_ID)); -- package body
                   else
                      Result := To_Vector ((+IDENTIFIER_ID, +COLON_ID, +BEGIN_ID)); -- named block begin
                   end if;

@@ -1,6 +1,7 @@
 General notes on Emacs Ada mode
 
 build/Makefile
+(load-file "build/prj-eglot.el")
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
@@ -54,11 +55,9 @@ review FIXMEs
     (grep-find "find c:/Projects/org.emacs.wisi -type f -print | \"xargs\" grep  -nH --null FIXME")
     (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
 
-    wisitoken-parse-lr-mckenzie_recover-ada.adb insert statement before 'end'?
-
 incremental parse does full reparse every time if FAIL_ENQUEUE_LIMIT
     every char for font-lock
-    automatically disable font-lock
+    automatically disable parsing
         re-enable on wisi-reset-parser
 
 respond to https://rust-analyzer.github.io/blog/2020/09/16/challeging-LR-parsing.html
@@ -110,6 +109,17 @@ push to elpa
 
  after incremental
 review this file!
+
+uniquify-files should not set project-read-file-name-function
+    set or let-bind it in ada-mode
+
+xref workaround
+    use "summary", not ":summary"
+    "oref", "with-slots" work with cl-defstruct on master
+        test on 28.
+
+test/ada_mode-nested_packages.adb
+    symbols length = 2!?
 
 font-lock use separate partial_parse process while incremental parse is busy with full parse?
 
@@ -786,14 +796,9 @@ libadalang/lsp backend
 
     https://github.com/microsoft/language-server-protocol/issues/18 semantic info for highlight = face
 
-    Convert wisitoken syntax tree to adalang - plug in to Lang server
-
     use lang server infrastructure as wrapper around wisitoken ada parser/wisi post-process
 
-    use wisitoken parser with GPS
-        add incremental parsing
-        ebooks/Parsing/Wager, Graham 1998 Efficient and Flexible Incremental Parsing.pdf
-        new error correction metric; minimize tree change span
+    better error correction; parse with wisitoken parser, apply corrections, feed that to libadalang
 
 AdaCore tickets:
     Q406-078 2017-Aug : AdaCore (Nicolas Setton, Arnaud Charlet)
@@ -981,12 +986,13 @@ in ada_annex_p.wy:
 
 one ELISP="(setq-default save-parser-log \"../debug-2.log\" save-edited-text \"../edited\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
     wisi-parser-transaction-log-buffer-size-default 600000
+    compare-tree-text t
 
 test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
 
 two RUN_ARGS="command_file debug.cmd &> debug.log"
 
-*.debug RUNTEST=run-indent-test-lalr-incremental-process-gpr_query.el\ ELISP="(setq-default wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
+*.debug RUNTEST=run-indent-test-lalr-incremental-process-gpr_query.el ELISP="(setq-default wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
 
 in debug.cmd:
 mckenzie_options task_count=1
@@ -1200,6 +1206,7 @@ elpa builds info; don't check them into .git
 
 check for ELPA patches by others
     (dvc-status "/Projects/elpa")
+    (dvc-state-multiple "/Projects/elpa/packages")
         revert local changes in ada, wisi, ada-ref-main; commit in uniquify
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
@@ -1279,6 +1286,7 @@ bump versions
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features, no user-incompatible changes
         bump second digit for major features, mostly backward-compatible
+            or if third digit gets to 10
             - GPS indentation engine add/delete
             - partial parse
             - delete elisp lexer
@@ -1286,16 +1294,16 @@ bump versions
             - incremental parse
             - ? module?
 
-        bump first digit for really major user-visible changes
+        bump first digit for really major user-visible changes:
             ada-mode:
             - 5 use parser
             - 6 compute indentation in grammar actions, external parser with error correction
             - 7 move lots of stuff to wisi; many ada-* variables, functions deleted.
-            - 8 restructure git to match elpa?
+            - future: restructure git to match elpa? incremental parse?
 
             wisi:
             - 3 project.el integration
-            - 4 incremental parse
+            - future: restructure git to match elpa? incremental parse?
 
     o.e.ada-mode/emacs_wisi_common_parse.ads
         (should have been changed already, but verify)
@@ -1312,6 +1320,9 @@ bump versions
         copyright date
         Version:
 
+    o.e.wisi/NEWS
+        if not done above
+
     o.e.wisi/wisi.texi
         copyright date
         @title
@@ -1324,6 +1335,9 @@ bump versions
         Version:
         package-requires wisi version
         ada-mode-version
+
+    o.e.ada-mode/NEWS
+        if not done above
 
     o.e.ada-mode/ada-mode.texi
         @title

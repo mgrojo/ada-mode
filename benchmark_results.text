@@ -403,3 +403,12 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
    before/after visit, parse file.
 
 ;; FIXME: measure edit_tree time
+
+ just parse, compare to libadalang
+./run_ada_lr1_parse.exe vs ./run_libadalang.exe
+
+2021 Nov 18
+name                                         bytes    wisi           libadalang
+gnatcoll-xref.adb                            254_981  0.205500254    0.001929097
+flight-behaviour-perform_action_single.adb   537_512  0.312344092    0.002793039
+matreshka-internals-unicode-ucd-colls.ads  3_418_945                 0.036745881

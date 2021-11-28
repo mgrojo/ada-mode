@@ -1,6 +1,7 @@
---  Raised exception in recover. Fixed now
+-- Raised exception in recover. Fixed now
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+-- We get different indent with partial vs incremental parse.
+--EMACS_SKIP_UNLESS:(not wisi-incremental-parse-enable)
 
 declare
    Min_Rhs := Min (); -- copied assignment to create initialized declaration; recover inserts 'begin'

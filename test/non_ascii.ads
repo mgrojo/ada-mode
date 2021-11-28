@@ -59,6 +59,6 @@ package Non_ASCII is
    --EMACSRESULT:t
 
    -- Undo changes so diff test passes
-   --EMACSCMD:(progn (forward-line -6)(kill-line 1)(insert "   π_non : constant := 3.14159;\n"))
+   --EMACSCMD:(progn (forward-line -6)(kill-line 1)(insert "   π_non_1 : constant := 3.14159;\n"))
 
 end Non_ASCII;
