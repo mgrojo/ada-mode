@@ -34,6 +34,48 @@ update-wisitoken_grammar
 review FIXME
     at least in syntax_trees
 
+first because easy or possible bug or important:
+c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.adb:680:      Move_Errors (Tree, Ref_Parents, User_Data); --  FIXME: only move errors in parents that are deleted.
+
+c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.ads:798:   --  FIXME: move errors as in Breakdown.
+
+c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-parser.adb:209:                           --  ada_mode-interactive_03.adb. FIXME: better: peek at next terminal,
+
+faster incremental (need benchmarks):
+c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-parse.adb:46:         --  FIXME: tree.contains_virtual_terminal is expensive, non-incremental - don't cache
+
+c:/Projects/org.wisitoken.stephe-1/wisitoken-parse.adb:627:      --  FIXME: This algorithm visits every terminal; not incremental.
+
+c:/Projects/org.wisitoken.stephe-1/wisitoken-parse.adb:894:               --  FIXME: only need to scan trailing stable terminal?
+
+c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.adb:1942:      --  FIXME: This algorithm is not incremental, and a waste of time on
+
+c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.adb:6683:      --  FIXME: only need to handle fully parsed tree, no streams. Use
+
+other:
+c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-explore.adb:1549:      --  Delete tokens First .. Last from Tree Shared_Stream. FIXME: why not from Parse_Stream?
+
+c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-explore.adb:1779:            --  The unbalanced quote is after the parse error token. FIXME: also
+
+
+c:/Projects/org.wisitoken.stephe-1/wisitoken-bnf-output_ada_common.adb:1167: comment-one-line not implemented                  --  FIXME: similar to delimited-text, but terminate on new-line, eoi.
+
+c:/Projects/org.wisitoken.stephe-1/wisitoken-lexer.adb:132:               --  FIXME: handle multi-byte UTF-8; need test case.
+
+c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-base.adb:179:                        if abs (Cur - Min) > 4 then --  FIXME: '4' should be mckenzie param zombie_limit
+
+c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.adb:4448:         --  FIXME: handle multi-line tokens
+
+c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.ads:2686:            --  FIXME: change to ptr like error_list, for space saving?
+    need memory benchmark
+
+
+first parser operation after opening a large file is slow
+    waiting for full parse to complete
+    do partial parse on visible part for font-lock
+    then incremental parse expand tree.
+    meanwhile separate thread does full parse
+    wait until get user requests for it
 
 Tree.validate check that all tree.nodes are in tree
     possibly in following_deleted
@@ -382,14 +424,6 @@ lalr generator bug
 
 re2c now has --location-format <gnu | msvc>
     Apr 2019 in devel, not release
-
-c:/eurocontrol/query_display-flight_operations.adb
-    errors cause huge slowdown in parse speed
-        due to parallel parse, delete_dup?
-
-    do multi-cpu parsing?
-        benefit depends on density, duration of conflicts
-        errors are when speed is noticeable
 
 enqueue_limit should be for total over all parsers; more consistent max time
     need test case?

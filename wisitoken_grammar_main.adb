@@ -35,6 +35,20 @@ package body Wisitoken_Grammar_Main is
       end case;
    end Is_Comment;
 
+   function Comment_Start_Length (ID : in WisiToken.Token_ID) return Integer
+   is
+      pragma Unreferenced (ID);
+   begin
+      return 2;
+   end Comment_Start_Length;
+
+   function Comment_End_Length (ID : in WisiToken.Token_ID) return Integer
+   is
+      pragma Unreferenced (ID);
+   begin
+      return 1;
+   end Comment_End_Length;
+
    function Find_Comment_End
      (Source        : in WisiToken.Lexer.Source;
       ID            : in WisiToken.Token_ID;
@@ -61,6 +75,15 @@ package body Wisitoken_Grammar_Main is
       when others => raise SAL.Programmer_Error;
       end case;
    end Line_Begin_Char_Pos;
+
+   function Terminated_By_New_Line (ID : in WisiToken.Token_ID) return Boolean
+   is begin
+      case To_Token_Enum (ID) is
+      when NEW_LINE_ID | COMMENT_ID => return True;
+      when others => return False;
+      end case;
+   end Terminated_By_New_Line;
+
    package Lexer is new WisiToken.Lexer.re2c
      (wisitoken_grammar_re2c_c.New_Lexer,
       wisitoken_grammar_re2c_c.Free_Lexer,
@@ -69,8 +92,11 @@ package body Wisitoken_Grammar_Main is
       wisitoken_grammar_re2c_c.Set_Position,
       wisitoken_grammar_re2c_c.Next_Token,
       Is_Comment,
+      Comment_Start_Length,
+      Comment_End_Length,
       Find_Comment_End,
-      Line_Begin_Char_Pos);
+      Line_Begin_Char_Pos,
+      Terminated_By_New_Line);
 
    function Create_Parse_Table
      return WisiToken.Parse.LR.Parse_Table_Ptr

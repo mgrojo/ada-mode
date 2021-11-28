@@ -341,7 +341,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          end;
       end if;
 
-      --  Always finds EOI. FIXME: Config.Current_Shared_Token is already the first terminal.
       return Tree.First_Terminal (Config.Current_Shared_Token).Node;
    end Peek_Current_First_Terminal;
 
@@ -867,7 +866,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                   New_State := Goto_For (Table, New_State, Action.Production.LHS);
 
                   if New_State = Unknown_State then
-                     --  Most likely from an inappropriate language fix.
                      if Trace_McKenzie > Outline then
                         Base.Put (Trace_Prefix & ": Unknown_State: ", Super, Parser_Index, Config);
                         Put_Line
@@ -876,7 +874,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                      end if;
 
                      --  We can't just return False here; user must abandon this config.
-                     raise Bad_Config;
+                     --  This is not always an error; it could be from an inappropriate
+                     --  language fix or it could be the wrong branch of a conflict.
+                     --  ada_mode-recover_partial_15.adb.
+                     raise Invalid_Case;
                   end if;
 
                   Config.Stack.Push ((New_State, Nonterm));

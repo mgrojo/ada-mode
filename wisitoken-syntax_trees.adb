@@ -614,7 +614,7 @@ package body WisiToken.Syntax_Trees is
                Tree.Stack_Top (Ref.Ref.Stream) /= Ref.Ref.Element and
                Ref.Ref.Node /= Invalid_Node_Access and
                Ref.Ref.Node.Label in Terminal_Label,
-     Post => Ref.Ref.Node = Ref.Ref.Node'Old and
+     Post => Parents_Valid (Ref) and Ref.Ref.Node = Ref.Ref.Node'Old and
              Tree.First_Terminal (Get_Node (Ref.Ref.Element)) = Ref.Ref.Node
    is
       use Stream_Element_Lists;
@@ -668,6 +668,7 @@ package body WisiToken.Syntax_Trees is
          end;
          To_Delete := Cur;
       end loop Undo_Reduce_Loop;
+      Ref.Parents := Inverted_Parents.Invert;
    end Breakdown;
 
    procedure Breakdown
@@ -780,16 +781,14 @@ package body WisiToken.Syntax_Trees is
             if Tree.Parents_Set then
                Set_Prev;
                if Prev_Source_Terminal = Invalid_Node_Access then
-                  --  Node is the root of an empty parse stream element.
+                  --  Node is the root of an empty tree or parse stream element.
                   return Null_Buffer_Region;
                else
                   declare
                      First : constant Buffer_Pos := Tree.Byte_Region
-                       (Prev_Source_Terminal, Trailing_Non_Grammar).Last + 1;
+                       (Prev_Source_Terminal, Trailing_Non_Grammar => True).Last + 1;
                   begin
-                     return
-                       (First => First,
-                        Last  => First - 1);
+                     return (First, First - 1);
                   end;
                end if;
             else
@@ -801,31 +800,26 @@ package body WisiToken.Syntax_Trees is
          end if;
 
          if Prev_Source_Terminal = Invalid_Node_Access then
+            --  Node.Child_Count > 0, but Node contains no source_terminals; it is
+            --  all virtual. Find best estimate for First.
             if Tree.Parents_Set then
-               if Node.ID = Tree.SOI.ID then
-                  Prev_Source_Terminal := Node;
-               else
-                  Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar);
-               end if;
+               Set_Prev;
+               declare
+                  First : constant Buffer_Pos := Tree.Char_Region
+                    (Prev_Source_Terminal, Trailing_Non_Grammar).First + 1;
+               begin
+                  return (First, First - 1);
+               end;
 
-               if Node.ID = Tree.EOI.ID then
-                  Next_Source_Terminal := Node;
-               else
-                  Next_Source_Terminal := Tree.Next_Source_Terminal (Node, Trailing_Non_Grammar);
-               end if;
             else
                return Null_Buffer_Region;
             end if;
          end if;
 
-         if Prev_Source_Terminal = Invalid_Node_Access or Next_Source_Terminal = Invalid_Node_Access then
-            --  Prev or Next is in prev/next stream element
-            return Null_Buffer_Region;
-         else
-            return
-              (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
-               Last  => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar).Last);
-         end if;
+         pragma Assert (Prev_Source_Terminal /= Invalid_Node_Access and Next_Source_Terminal /= Invalid_Node_Access);
+         return
+           (First => Tree.Byte_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
+            Last  => Tree.Byte_Region (Next_Source_Terminal, Trailing_Non_Grammar).Last);
       end case;
    end Byte_Region;
 
@@ -1070,11 +1064,15 @@ package body WisiToken.Syntax_Trees is
             if Tree.Parents_Set then
                Set_Prev;
                if Prev_Source_Terminal = Invalid_Node_Access then
-                  --  Node is the root of an empty parse stream element.
+                  --  Node is the root of an empty tree or parse stream element.
                   return Null_Buffer_Region;
                else
-                  return (First => Tree.Char_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
-                          Last  => Tree.Char_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First - 1);
+                  declare
+                     First : constant Buffer_Pos := Tree.Char_Region
+                       (Prev_Source_Terminal, Trailing_Non_Grammar => True).Last + 1;
+                  begin
+                     return (First, First - 1);
+                  end;
                end if;
             else
                return Null_Buffer_Region;
@@ -1085,31 +1083,26 @@ package body WisiToken.Syntax_Trees is
          end if;
 
          if Prev_Source_Terminal = Invalid_Node_Access then
+            --  Node.Child_Count > 0, but Node contains no source_terminals; it is
+            --  all virtual. Find best estimate for First.
             if Tree.Parents_Set then
-               if Node.ID = Tree.SOI.ID then
-                  Prev_Source_Terminal := Node;
-               else
-                  Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar);
-               end if;
+               Set_Prev;
+               declare
+                  First : constant Buffer_Pos := Tree.Char_Region
+                    (Prev_Source_Terminal, Trailing_Non_Grammar).First + 1;
+               begin
+                  return (First, First - 1);
+               end;
 
-               if Node.ID = Tree.EOI.ID then
-                  Next_Source_Terminal := Node;
-               else
-                  Next_Source_Terminal := Tree.Next_Source_Terminal (Node, Trailing_Non_Grammar);
-               end if;
             else
                return Null_Buffer_Region;
             end if;
          end if;
 
-         if Prev_Source_Terminal = Invalid_Node_Access or Next_Source_Terminal = Invalid_Node_Access then
-            --  Prev or Next is in prev/next stream element
-            return Null_Buffer_Region;
-         else
-            return
-              (First => Tree.Char_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
-               Last  => Tree.Char_Region (Next_Source_Terminal, Trailing_Non_Grammar).Last);
-         end if;
+         pragma Assert (Prev_Source_Terminal /= Invalid_Node_Access and Next_Source_Terminal /= Invalid_Node_Access);
+         return
+           (First => Tree.Char_Region (Prev_Source_Terminal, Trailing_Non_Grammar).First,
+            Last  => Tree.Char_Region (Next_Source_Terminal, Trailing_Non_Grammar).Last);
       end case;
    end Char_Region;
 
@@ -2428,8 +2421,8 @@ package body WisiToken.Syntax_Trees is
             declare
                Region : constant Buffer_Region := Tree.Char_Region (Child, Include_Non_Grammar);
             begin
-               if Region = Null_Buffer_Region then
-                  --  Child is empty or virtual; try next
+               if Length (Region) = 0 then
+                  --  Child is empty or all virtual; try next
                   null;
                elsif Char_Pos <= Region.Last then
                   return Find_Char_Pos (Tree, Child, Char_Pos, After, Include_Non_Grammar);
@@ -4113,27 +4106,9 @@ package body WisiToken.Syntax_Trees is
    is begin
       return Node.Label = Nonterm and then
         (Tree.First_Terminal (Node) = Invalid_Node_Access or else -- no terminals
-           Tree.Byte_Region (Node) = Null_Buffer_Region -- all terminals are virtual
+           Length (Tree.Byte_Region (Node)) = 0 -- all terminals are virtual
         );
    end Is_Empty_Or_Virtual_Nonterm;
-
-   function Is_Next_Stream_Input
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID;
-      Ref    : in Stream_Node_Ref)
-     return Boolean
-   is
-      use Stream_Element_Lists;
-      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
-   begin
-      return
-        (if Stream = Ref.Stream
-         then
-           (Parse_Stream.Stack_Top /= No_Element and --  FIXME: when is parse_stream empty?
-              Parse_Stream.Stack_Top /= Parse_Stream.Elements.Last) and then
-              Ref.Element.Cur = Stream_Element_Lists.Next (Parse_Stream.Stack_Top)
-         else Ref.Element.Cur = Parse_Stream.Shared_Link);
-   end Is_Next_Stream_Input;
 
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is begin

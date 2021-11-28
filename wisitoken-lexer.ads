@@ -230,6 +230,22 @@ package WisiToken.Lexer is
      return Boolean
    is abstract;
 
+   function Comment_Start_Length
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Integer
+   is abstract
+   with Pre'Class => Lexer.Is_Comment (ID);
+   --  Return length in bytes of the characters in a comment start character sequence.
+
+   function Comment_End_Length
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Integer
+   is abstract
+   with Pre'Class => Lexer.Is_Comment (ID);
+   --  Return length in bytes of the characters in a comment start character sequence.
+
    function Find_Comment_End
      (Lexer         : in Instance;
       ID            : in Token_ID;
@@ -259,6 +275,13 @@ package WisiToken.Lexer is
      (Lexer       : in Instance;
       Byte_Region : in Buffer_Region)
      return Base_Line_Number_Type is abstract;
+
+   function Terminated_By_New_Line
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean is abstract;
+   --  True for New_Line, comment-new-line. Not for comment-one-line;
+   --  terminating that by a new_line is actually an error.
 
    type Source (<>) is private;
 

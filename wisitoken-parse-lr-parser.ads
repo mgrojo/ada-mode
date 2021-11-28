@@ -55,7 +55,8 @@ package WisiToken.Parse.LR.Parser is
       Tokens                  : in     Token_ID_Array_1_3;
       Config                  : in     Configuration;
       Matching_Tokens         :    out Token_ID_Arrays.Vector;
-      Forbid_Minimal_Complete :    out Boolean);
+      Forbid_Minimal_Complete :    out Boolean)
+   with Post => (for all ID of Matching_Tokens => Is_Terminal (ID, Tree.Lexer.Descriptor.all));
    --  Tokens (1) is the current token; Tokens (2 .. 3) are the following
    --  tokens (Invalid_Token_ID if none). Set Matching_Tokens to a token
    --  sequence that starts a production matching Tokens. If

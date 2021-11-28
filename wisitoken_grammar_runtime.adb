@@ -819,6 +819,9 @@ package body WisiToken_Grammar_Runtime is
                elsif Kind = "no_language_runtime" then
                   Data.Language_Params.Use_Language_Runtime := False;
 
+               elsif Kind = "no_error_recover" then
+                  Data.Language_Params.Error_Recover := False;
+
                elsif Kind = "partial_recursion" then
                   Data.Language_Params.Partial_Recursion := True;
 

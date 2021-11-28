@@ -172,12 +172,6 @@ begin
 
       when Accept_It =>
          --  All parsers accepted or are zombies.
-         if Shared_Parser.Resume_Active then
-            --  FIXME: move to Parse_Verb
-            Shared_Parser.Resume_Active := False;
-            McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
-         end if;
-
          declare
             Count : constant SAL.Base_Peek_Type := Shared_Parser.Parsers.Count;
             Current_Parser : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
@@ -379,7 +373,7 @@ begin
                      Parser_State.Total_Recover_Cost := @ + Parser_State.Recover.Results.Min_Key;
 
                      Parser_State.Zombie_Token_Count := 0;
-                     if Trace_Parse > Outline and Trace_McKenzie <= Extra then
+                     if Trace_Parse > Detail and Trace_McKenzie <= Extra then
                         Trace.Put_Line
                           (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": stack/stream:");
                         Trace.Put_Line

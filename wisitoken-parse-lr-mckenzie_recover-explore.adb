@@ -1130,9 +1130,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Table      : Parse_Table renames Shared.Table.all;
       Descriptor : WisiToken.Descriptor renames Super.Tree.Lexer.Descriptor.all;
    begin
-      --  We don't check for insert = current token; that's either ok or a
-      --  severe bug in Shared.Language_Matching_Begin_Tokens.
-
       if Config.Matching_Begin_Done then
          if Trace_McKenzie > Extra then
             Put_Line (Super.Trace.all, Super.Tree.all, Super.Stream (Parser_Index), "Matching_Begin abandoned: done");
@@ -1893,59 +1890,64 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                  Config.String_Quote_Checked_Line < Current_Line)
             then
                return;
+            elsif Config.Current_Shared_Token = Invalid_Stream_Node_Ref then
+               --  Current token is in Config.Input_Stream, shared is past EOI. ada_mode-recover_partial_15.adb
+               return;
             end if;
 
-            Config.String_Quote_Checked_Line := Current_Line;
+            Config.String_Quote_Checked_Line     := Current_Line;
             Config.String_Quote_Checked_Byte_Pos := Current_Byte_Pos;
 
-            --  Find a lexer_error on the same line.
+            --  Find a recovered string quote lexer_error on the same line.
             declare
                Term  : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
                Found : Boolean             := False;
-            begin
-               Search_Forward :
-               loop
-                  exit Search_Forward when Term.Ref = Invalid_Stream_Node_Ref;
-                  --  Invalid when EOI has an error; test_incremental.adb Preserve_Parse_Errors_1
 
-                  if Term.Ref.Node /= Invalid_Node_Access then
-                     --  Invalid when Current_Shared_Token is an empty nonterm.
+               procedure Search (Forward : in Boolean)
+               is begin
+                  loop
+                     exit when Term.Ref = Invalid_Stream_Node_Ref;
+                     --  Invalid when EOI or SOI has an error; test_incremental.adb Preserve_Parse_Errors_1
+
                      for Err of Tree.Error_List (Term.Ref.Node) loop
                         if Err in Lexer_Error then
-                           Found := True;
-                           exit Search_Forward;
+                           declare
+                              Lex_Err : WisiToken.Lexer.Error renames Lexer_Error (Err).Error;
+                           begin
+                              if Lex_Err.Recover_Char (1) in ''' | '"' and Lex_Err.Recover_Char (2) = ASCII.NUL then
+                                 Found := True;
+                                 return;
+                              end if;
+                           end;
                         end if;
                      end loop;
 
-                     exit Search_Forward when Tree.ID (Term.Ref.Node) = Tree.Lexer.Descriptor.EOI_ID;
-                  end if;
+                     exit when Tree.ID (Term.Ref.Node) =
+                       (if Forward
+                        then Tree.Lexer.Descriptor.EOI_ID
+                        else Tree.Lexer.Descriptor.SOI_ID);
 
-                  exit Search_Forward when Tree.Line_Region (Term, Super.Stream (Parser_Index)).First /= Current_Line;
+                     exit when Tree.Line_Region (Term, Super.Stream (Parser_Index)).First /= Current_Line;
 
+                     if Forward then
+                        Tree.Next_Terminal (Term);
+                     else
+                        Tree.Prev_Terminal (Term, Super.Stream (Parser_Index));
+                     end if;
+                  end loop;
+               end Search;
+
+            begin
+               if Term.Ref.Node = Invalid_Node_Access then
+                  --  Invalid when Current_Shared_Token is an empty nonterm.
                   Tree.Next_Terminal (Term);
-               end loop Search_Forward;
+               end if;
 
+               Search (Forward => True);
                if not Found then
                   Term := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
-                  Search_Backward :
-                  loop
-                     exit Search_Backward when Term.Ref = Invalid_Stream_Node_Ref;
-                     --  Invalid when EOI has an error; test_incremental.adb Preserve_Parse_Errors_1
-
-                     Tree.Prev_Terminal (Term, Super.Stream (Parser_Index));
-
-                     for Err of Tree.Error_List (Term.Ref.Node) loop
-                        if Err in Lexer_Error then
-                           Found := True;
-                           exit Search_Backward;
-                        end if;
-                     end loop;
-
-                     exit Search_Backward when Tree.ID (Term.Ref.Node) = Tree.Lexer.Descriptor.SOI_ID;
-
-                     exit Search_Backward when Tree.Line_Region
-                       (Term, Super.Stream (Parser_Index)).First /= Current_Line;
-                  end loop Search_Backward;
+                  Tree.Prev_Terminal (Term, Super.Stream (Parser_Index));
+                  Search (Forward => False);
                end if;
 
                if not Found then
@@ -1989,15 +1991,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
         (if Next_Node = Syntax_Trees.Invalid_Node_Access
          then Invalid_Token_ID
          else Super.Tree.ID (Next_Node));
-
-      Zero_Cost : Boolean := False;
    begin
-      if not Config.Error_Token.Virtual and then Super.Tree.ID (Config.Error_Token.Node) = Invalid_Token_ID then
-         --  Error_Token is a character not recognized by the lexer. Delete
-         --  with no cost. test_mckenzie_recover.adb Invalid_Char_Literal
-         Zero_Cost := True;
-
-      elsif Next_Node = Syntax_Trees.Invalid_Node_Access then
+      if  Next_Node = Syntax_Trees.Invalid_Node_Access then
          --  Current token is an empty nonterm; we don't delete that here. It
          --  can be deleted by Parse, if it can't be shifted.
          return;
@@ -2038,10 +2033,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             return False;
          end Matching_Push_Back;
       begin
-         New_Config.Cost := New_Config.Cost +
-           (if Zero_Cost
-            then 0 --  See note above.
-            else McKenzie_Param.Delete (Next_ID));
+         New_Config.Cost := New_Config.Cost + McKenzie_Param.Delete (Next_ID);
 
          New_Config.Error_Token            := Syntax_Trees.Invalid_Recover_Token;
          New_Config.In_Parse_Action_Status := (Label => WisiToken.In_Parse_Actions.Ok);
