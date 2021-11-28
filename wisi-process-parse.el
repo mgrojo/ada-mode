@@ -109,7 +109,7 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	;; back up a line in case we got part of the line previously.
 	(forward-line -1)
 	(while (re-search-forward wisi-process-parse-prompt (point-max) t)
-	  (when (< 0 wisi-debug) (message "parse--filter found prompt"))
+	  (when (< 1 wisi-debug) (message "parse--filter found prompt"))
 	  (cond
 	   ((not (wisi-process--parser-version-checked wisi--parser))
 	    (save-excursion
@@ -754,7 +754,7 @@ PARSER will respond with one or more Query messages."
   "Check for parser busy and startup, mark parser busy, require parser process."
   (if (wisi-process--parser-busy parser)
       (progn
-	(when (< 0 wisi-debug) (message "parse--prepare %s parser busy" parse-action))
+	(when (< 1 wisi-debug) (message "parse--prepare %s parser busy" parse-action))
 	(when
 	    (cl-ecase parse-action
 	      (face
@@ -782,7 +782,7 @@ PARSER will respond with one or more Query messages."
 
 	  (error "parse %s abandoned; parser busy" parse-action)))
 
-    (when (< 0 wisi-debug) (message "parse--prepare %s parser not busy" parse-action)))
+    (when (< 1 wisi-debug) (message "parse--prepare %s parser not busy" parse-action)))
 
   ;; It is not possible for a background elisp function (ie
   ;; font-lock run from a timer) to interrupt this code between
@@ -989,7 +989,7 @@ PARSER will respond with one or more Query messages."
 	  (setf (wisi-process--parser-response-count parser) response-count)
 	  (setf (wisi-process--parser-busy parser) nil)
 	  (set-buffer source-buffer)
-	  (when (< 0 wisi-debug) (message "parse--handle-messages done"))
+	  (when (< 1 wisi-debug) (message "parse--handle-messages done"))
 	  )
 
       ;; These do _not_ catch 'wisi-file_not_found
