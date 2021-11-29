@@ -1425,7 +1425,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          end loop;
       end if;
 
-      Indent_Line ("when others => raise SAL.Programmer_Error;");
+      Indent_Line ("when others => raise SAL.Programmer_Error; return 0;");
       Indent_Line ("end case;");
       Indent := @ - 3;
       Indent_Line ("end Comment_Start_Length;");
@@ -1470,7 +1470,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          end loop;
       end if;
 
-      Indent_Line ("when others => raise SAL.Programmer_Error;");
+      Indent_Line ("when others => raise SAL.Programmer_Error; return 0;");
       Indent_Line ("end case;");
       Indent := @ - 3;
       Indent_Line ("end Comment_End_Length;");
@@ -1485,7 +1485,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("is begin");
       else
          Indent_Line ("is");
-         Indent_Line ("pragma Unreferenced (Source, Comment_Start);");
+         Indent_Line ("   pragma Unreferenced (Source, Comment_Start);");
          Indent_Line ("begin");
       end if;
       Indent := @ + 3;
