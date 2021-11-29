@@ -264,6 +264,7 @@ Download gnatcoll-db from
 @url{https://github.com/AdaCore/gnatcoll-db}; select the latest
 release branch (or the one that matches your compiler), click on the
 ``clone or download'' button, select ``Download ZIP''.
+@c FIXME: or adacore gnatpro gnatstudio sources
 
 @c branch nn-sustained?
 
@@ -298,6 +299,9 @@ make -C sqlite install
 make -C xref
 make -C xref install
 @end example
+
+If @code{./setup.py} complains it can't find @code{python}, try
+@code{python3 setup.py ...}.
 
 @c To build gnatcoll-core with debug, edit the corresponding gpr file
 @c to delete @code{-gnatwe} (there are lots of warnings about license

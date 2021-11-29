@@ -1602,7 +1602,7 @@ Does not wait for parser to respond. Returns the parser object."
 		  :face-table ada_annex_p-process-face-table
 		  :token-table ada_annex_p-process-token-table
 		  :repair-image ada_annex_p-process-repair-image))))
-    (wisi-parse-require-process parser t)
+    (wisi-parse-require-process parser :nowait t)
     parser))
 
 ;;;###autoload
@@ -1615,7 +1615,7 @@ Does not wait for parser to respond. Returns the parser object."
 
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
-  (set 'case-fold-search t); Ada is case insensitive; the syntax parsing requires this setting
+  (set 'case-fold-search t); Ada is case insensitive
   (set 'completion-ignore-case t)
   (set (make-local-variable 'comment-start) "--")
   (set (make-local-variable 'comment-end) "")
