@@ -49,9 +49,34 @@ for ada_mode_wisi_parse.gpr:
 (setenv "GPR_PROJECT_PATH" "C:\Projects\org.emacs.ada-mode;c:/Projects/org.emacs.ada-mode;c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules;d:/Apps/GNAT-gpl_2019/x86_64-windows/lib/gnat;d:/Apps/GNAT-gpl_2019/x86_64-windows/share/gpr;d:/Apps/GNAT-gpl_2019/share/gpr;d:/Apps/GNAT-gpl_2019/lib/gnat;d:/apps/gnat-gpl_2019/x86_64-windows/share/gpr;d:/apps/gnat-gpl_2019/x86_64-windows/lib/gnat;d:/apps/gnat-gpl_2019/share/gpr;d:/apps/gnat-gpl_2019/lib/gnat")
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
+ Negotiate with Eurocontrol:
+    ask AdaCore:
+        old issues: SA31-041 Oct 31, 2019 GNAT Studio using libadalang for format? (closed)
+            short answer: wait for ada_language_server (estimated 2020, ie now)
+            so this is just a ping
+
+        submitted UB18-067 18 Nov:
+            What is the plan to improve error correction and
+            formatting to allow indent/format one line while editing?
+
+            documentation on the format of the custom format template file?
+
+For the near future, we still need the WisiToken parser to support
+indent while editing, which means we need incremental parse to make it
+faster and more accurate/reliable. It will also most likely make sense
+to implement a libadalang xref backend, or something else to replace
+gpr_query.
+
+        - currently doing incremental (making progress. ready for beta test?)
+        - send money to speed up
+        - send money to integrate libadalang xref backend
+        - find another volunteer to speed up
+        - pay someone in-house to work on this - I will mentor
+
  current work
 review FIXMEs
     (grep-find "find c:/Projects/org.wisitoken -type f -print | \"xargs\" grep  -nH --null FIXME")
+        c:/Projects/org.wisitoken/notes.text
     (grep-find "find c:/Projects/org.emacs.wisi -type f -print | \"xargs\" grep  -nH --null FIXME")
     (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
 
