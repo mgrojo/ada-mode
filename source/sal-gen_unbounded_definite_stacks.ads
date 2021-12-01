@@ -92,6 +92,11 @@ package SAL.Gen_Unbounded_Definite_Stacks is
    --
    --  Raises Container_Empty if Is_Empty.
 
+   procedure Bottom_Pop (Stack : in out Sguds.Stack)
+   with Pre => Stack.Depth >= 1;
+   --  Remove one item from the bottom of the stack (element
+   --  Stack.Depth), discard it.
+
    procedure Set_Depth
      (Stack : in out Sguds.Stack;
       Depth : in     Peek_Type);
@@ -159,7 +164,7 @@ private
       Top  : Base_Peek_Type := Invalid_Peek_Index; -- empty
       Data : Element_Array_Access;
 
-      --  Top of stack is at Data (Top).
+      --  Top of stack is at Data (Top); bottom at Data (1).
       --  Data (1 .. Top) has been set at some point.
    end record;
 

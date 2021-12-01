@@ -143,6 +143,16 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
       end if;
    end Top;
 
+   procedure Bottom_Pop (Stack : in out Sguds.Stack)
+   is begin
+      if Stack.Top = 0 then
+         raise Container_Empty;
+      else
+         Stack.Top := Stack.Top - 1;
+         Stack.Data (1 .. Stack.Top) := Stack.Data (2 .. Stack.Top + 1);
+      end if;
+   end Bottom_Pop;
+
    procedure Set_Depth
      (Stack : in out Sguds.Stack;
       Depth : in     Peek_Type)
