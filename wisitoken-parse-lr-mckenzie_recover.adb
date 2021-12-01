@@ -208,11 +208,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
               (Super.Tree.Shared_Token (Parser_State.Stream));
          end if;
 
-         Config.Resume_Token_Goal := Super.Tree.Get_Sequential_Index
-           (if First_Current /= Invalid_Node_Access
-            then First_Current
-            else Config.Current_Shared_Token.Node) +
-           Shared.Table.McKenzie_Param.Check_Limit;
+         declare
+            Seq : constant Base_Sequential_Index := Super.Tree.Get_Sequential_Index
+              (if First_Current /= Invalid_Node_Access
+               then First_Current
+               else Config.Current_Shared_Token.Node);
+         begin
+            Config.Resume_Token_Goal :=
+              (if Seq = Invalid_Sequential_Index then 0 else Seq) + -- Invalid on empty source text.
+              Shared.Table.McKenzie_Param.Check_Limit;
+         end;
       end;
 
       --  Additional initialization of Parser_State.Recover is done in

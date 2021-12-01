@@ -241,7 +241,7 @@ package body WisiToken.Parse.LR.Parser is
                                    (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": left_breakdown " &
                                       Tree.Image (Current_Token, First_Terminal => True));
                               end if;
-                              Tree.Left_Breakdown (Current_Token);
+                              Tree.Left_Breakdown (Current_Token, Shared_Parser.User_Data);
 
                               if Trace_Parse > Detail then
                                  Shared_Parser.Trace.Put_Line

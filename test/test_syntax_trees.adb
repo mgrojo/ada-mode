@@ -68,7 +68,7 @@ package body Test_Syntax_Trees is
       --  deleted.
       Ref : Stream_Node_Ref := Parse_Text ("begin A := B; end;");
    begin
-      Tree.Left_Breakdown (Ref);
+      Tree.Left_Breakdown (Ref, User_Data'Access);
 
       if Trace_Tests > Outline then
          Put_Line ("left_breakdown:");

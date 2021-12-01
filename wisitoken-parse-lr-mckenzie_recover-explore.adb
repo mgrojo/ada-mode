@@ -282,11 +282,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      Super.Config_Full ("fast_forward 1", Parser_Index);
                      raise Bad_Config;
                   else
-                     Append
-                       (Item.Config.Ops,
-                        (Fast_Forward,
-                         Super.Tree.Get_Sequential_Index
-                           (Parse.Peek_Current_First_Sequential_Terminal (Super.Tree.all, Item.Config))));
+                     declare
+                        Node : constant Syntax_Trees.Valid_Node_Access := Parse.Peek_Current_First_Sequential_Terminal
+                          (Super.Tree.all, Item.Config);
+                     begin
+                        Base.Extend_Sequential_Index (Super, Thru => Node, Positive => True);
+                        Append (Item.Config.Ops, (Fast_Forward, Super.Tree.Get_Sequential_Index (Node)));
+                     end;
                   end if;
                end if;
 

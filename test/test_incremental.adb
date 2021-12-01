@@ -820,7 +820,13 @@ package body Test_Incremental is
          Delete_2  => "i",
          Insert_2  => "I");
 
-      --  This one modifies a comment start, which is the same as deleting it.
+      --  This one modifies a comment start, which is the same as deleting
+      --  it. Full parse of edited source finds different error recover
+      --  solution from incremental parse unless we tweak things.
+
+      Full_Parser.Table.McKenzie_Param.Task_Count        := 1;
+      Incremental_Parser.Table.McKenzie_Param.Task_Count := 1;
+
       Parse_Text
         (Label          => "3",
          Initial        => "A := B + C; " & ASCII.LF &
@@ -832,7 +838,7 @@ package body Test_Incremental is
          Delete         => "-",
          Insert         => "",
          Initial_Errors => 0,
-         Incr_Errors    => 1);
+         Incr_Errors    => 1); -- "- ada_identifier" is not a statement.
    end Delete_Comment_Start;
 
    procedure Insert_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -887,11 +893,11 @@ package body Test_Incremental is
         (Initial => "procedure Name is begin null; end;",
          --          |1       |10       |20       |30
 
-         Edit_At           => 34,
-         Delete            => "",
-         Insert            => " Name",
+         Edit_At        => 34,
+         Delete         => "",
+         Insert         => " Name",
          Initial_Errors => 1,
-         Incr_Errors => 0);
+         Incr_Errors    => 0);
 
    end Missing_Name_1;
 
@@ -1166,6 +1172,28 @@ package body Test_Incremental is
          Incr_Errors => 1);
    end Restore_Deleted_01;
 
+   procedure Parsers_Sync_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Got "parsers not synced" on error recover init; now fixed.
+      --  From ada_mode-recover_sync_01.adb. FIXME: does not reproduce error.
+
+      Parse_Text
+        ("procedure Move_Errors" & ASCII.LF &
+           "is begin" & ASCII.LF &
+           "declare" & ASCII.LF &
+           "Update_Target : constant Boolean :=    Term.Ref.Node = Target then" & ASCII.LF &
+           "Tree.Add_Errors (Term, New_Errors, User_Data);" & ASCII.LF &
+           "Inverted_Parents := Term.Parents.Invert;" & ASCII.LF &
+           "end Move_Errors;",
+         Edit_At        => 76,
+         Delete         => " ",
+         Insert         => "",
+         Initial_Errors => 3,
+         Incr_Errors    => 3);
+   end Parsers_Sync_01;
+
    ----------
    --  Public subprograms
 
@@ -1211,6 +1239,7 @@ package body Test_Incremental is
       Register_Routine (T, Multiple_Errors_On_One_Token_2'Access, "Multiple_Errors_On_One_Token_2");
       Register_Routine (T, Non_Ascii'Access, "Non_Ascii");
       Register_Routine (T, Restore_Deleted_01'Access, "Restore_Deleted_01");
+      Register_Routine (T, Parsers_Sync_01'Access, "Parsers_Sync_01");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
