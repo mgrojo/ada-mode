@@ -675,8 +675,12 @@ package body WisiToken.Syntax_Trees is
                pragma Assert (First_Terminal.Ref.Node /= Invalid_Node_Access);
 
                First_Terminal.Parents.Bottom_Pop;
-               Modify_Element_Node := First_Terminal.Parents.Peek (First_Terminal.Parents.Depth);
-
+               if First_Terminal.Parents.Depth = 0 then
+                  --  ada_mode-recover_debbugs_36548.adb
+                  Modify_Element_Node := First_Terminal.Ref.Node;
+               else
+                  Modify_Element_Node := First_Terminal.Parents.Peek (First_Terminal.Parents.Depth);
+               end if;
                loop
                   exit when Constant_Ref (Modify_Element).Node = Modify_Element_Node;
                   Next (Modify_Element);
@@ -1498,6 +1502,10 @@ package body WisiToken.Syntax_Trees is
       New_Stack : Node_Stacks.Stack;
    begin
       Ref.Ref.Node := New_Node;
+      if Ref.Parents.Depth = 0 then
+         --  ada_mode-recover_debbugs_36548.adb
+         return;
+      end if;
       loop
          declare
             Old_Parent  : constant Valid_Node_Access := Ref.Parents.Pop;
@@ -6398,96 +6406,6 @@ package body WisiToken.Syntax_Trees is
    is begin
       return Node.RHS_Index;
    end RHS_Index;
-
-   procedure Right_Breakdown
-     (Tree      : in out Syntax_Trees.Tree;
-      Ref       : in out Stream_Node_Ref;
-      User_Data : in     Syntax_Trees.User_Data_Access)
-   is
-      --  Same algorithm as Left_Breakdown, processing Node.Children in
-      --  opposite order.
-      --
-      --  Any errors on stream elements that are deleted along the way are
-      --  moved to their First_Terminal, which may be Last_Terminal (Ref).
-      use Stream_Element_Lists;
-
-      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Ref.Stream.Cur);
-
-      Insert_Before : constant Cursor := Next (Ref.Element.Cur);
-
-      Cur        : Cursor            := Ref.Element.Cur;
-      To_Delete  : Cursor            := Cur;
-      Node       : Valid_Node_Access := Parse_Stream.Elements (Cur).Node;
-      Next_I     : Positive_Index_Type;
-      Last_Child : Positive_Index_Type;
-   begin
-      loop
-         Next_I := Positive_Index_Type'Last;
-
-         for I in 1 .. Node.Child_Count - 1 loop
-            if Node.Children (I).Child_Count > 0 or Node.Children (I).Label in Terminal_Label then
-               Next_I := I;
-            end if;
-
-            Cur := Parse_Stream.Elements.Insert
-              (Element  =>
-                 (Node  => Node.Children (I),
-                  State => Unknown_State),
-               Before   => Insert_Before);
-
-            Node.Children (I).Parent := Invalid_Node_Access;
-         end loop;
-
-         Last_Child := Node.Child_Count;
-
-         Node.Children (Node.Child_Count).Parent := Invalid_Node_Access;
-
-         if Node.Children (Node.Child_Count).Child_Count > 0 or
-           Node.Children (Node.Child_Count).Label in Terminal_Label
-         then
-            Next_I := Last_Child;
-
-         else
-            --  Node.Children (Node.Child_Count) is an empty nonterm. Last
-            --  non_empty child is in Node.Children (Next_I); Delete other empty
-            --  nonterms that were added to the stream.
-            for I in Next_I + 1 .. Node.Child_Count - 1 loop
-               declare
-                  To_Delete : Cursor := Cur;
-               begin
-                  Previous (Cur);
-                  Parse_Stream.Elements.Delete (To_Delete);
-               end;
-            end loop;
-            pragma Assert (Element (Cur).Node = Node.Children (Next_I));
-
-            --  Delete the nonterm that we were breaking down, and record the one
-            --  we are now breaking down for deletion.
-            Parse_Stream.Elements.Delete (To_Delete);
-            To_Delete := Cur;
-         end if;
-
-         Node := Node.Children (Next_I);
-
-         if Node.Label in Terminal_Label then
-            if To_Delete /= Cur and Next_I /= Last_Child then
-               Ref.Element.Cur := Cur;
-
-            else
-               Ref.Element.Cur := Parse_Stream.Elements.Insert
-                 (Element  =>
-                    (Node  => Node,
-                     State => Unknown_State),
-                  Before   => Insert_Before);
-            end if;
-
-            Ref.Node := Node;
-
-            Parse_Stream.Elements.Delete (To_Delete);
-            exit;
-         end if;
-      end loop;
-   end Right_Breakdown;
 
    function Root (Tree : in Syntax_Trees.Tree) return Node_Access
    is begin

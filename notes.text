@@ -34,13 +34,6 @@ update-wisitoken_grammar
 review FIXME
 
 first because easy or possible bug or important:
-c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.ads:798:   --  FIXME: move errors as in Breakdown.
-    left_breakdown: test_incremental, t_mck passing
-
-    right_breakdown:
-        closer to breakdown?
-
-
 c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-parser.adb:209:                           --  ada_mode-interactive_03.adb. FIXME: better: peek at next terminal,
 
 faster incremental (need benchmarks):
