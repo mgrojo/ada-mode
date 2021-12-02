@@ -531,7 +531,13 @@ PARSER will respond with one or more Query messages."
 (defun wisi-process-parse--Parser_Error (parser sexp)
   ;; sexp is [Parser_Error char-position <string>]
   ;; see `wisi-process-parse--execute'
-  (let ((pos (aref sexp 1))
+  (let ((pos (min (point-max) (aref sexp 1)))
+	;; pos from parser can be > (point-max) if user has edited
+	;; the buffer since the parse; we don't force read-only except
+	;; during initial full parse. This happens during dvc ediff; dvc
+	;; creates an empty buffer, puts it in ada-mode, which inserts
+	;; the {header} placeholder. font-lock requests a parse, dvc
+	;; erases the buffer preparing to insert old revision.
 	err)
 
     (save-excursion
@@ -772,11 +778,12 @@ PARSER will respond with one or more Query messages."
 	       ;; `accept-process-output' in w-p-p--handle-messages.
 	       t)
 
-	      ((navigate indent other)
+	      ((navigate indent none refactor query debug)
 	       (cond
 		(wisi-parse-full-active
-		 ;; User just opened a file and is doing some action that
-		 ;; requires a parse; wait for full parse to complete.
+		 ;; User just opened a buffer and is doing some action
+		 ;; that requires a parse; wait for full parse in
+		 ;; other buffer to complete.
 		 (wisi-parse-log-message
 		  parser
 		  (format "parse %s in %s waiting for full parse of %s to complete ..."
@@ -863,6 +870,7 @@ PARSER will respond with one or more Query messages."
 		(forward-line 1)
 		(if (eobp)
 		    (setq done t)
+		  (wisi-parse-log-message parser "extra messages \"%s\"" (buffer-substring (point) (point-max)))
 		  (error "wisi-process-parse: extra messages \"%s\"" (buffer-substring (point) (point-max)))))
 
 	       ((wisi-in-comment-p)
@@ -906,17 +914,23 @@ PARSER will respond with one or more Query messages."
 		     ((equal '(parse_error) response)
 		      ;; Parser detected a syntax error, and recovery failed, so signal it.
 		      (if (wisi-parser-parse-errors parser)
-			  (signal 'wisi-parse-error
-				  (wisi--parse-error-message (car (wisi-parser-parse-errors parser))))
+			  (progn
+			    (wisi-parse-log-message
+			     parser
+			     (wisi--parse-error-message (car (wisi-parser-parse-errors parser))))
+			    (signal 'wisi-parse-error
+				    (wisi--parse-error-message (car (wisi-parser-parse-errors parser)))))
 
 			;; Can have no errors when testing a new parser
+			(wisi-parse-log-message parser "parser failed with no message")
 			(push
 			 (make-wisi--parse-error :pos 0 :message "parser failed with no message")
 			 (wisi-parser-parse-errors parser))
 			(signal 'wisi-parse-error "parser failed with no message")))
 
 		     ((equal 'parse_error (car response))
-		      ;; Parser detected some other error non-fatal error, so signal it.
+		      ;; Parser detected some other non-fatal error, so signal it.
+		      (wisi-parse-log-message parser (cadr response))
 		      (push
 		       (make-wisi--parse-error :pos (point-min) :message (cadr response))
 		       (wisi-parser-parse-errors parser))
@@ -928,6 +942,7 @@ PARSER will respond with one or more Query messages."
 		      ;; content bytes as commands. Kill the process
 		      ;; to kill the pipes; there is no other way to
 		      ;; flush them.
+		      (wisi-parse-log-message parser "parser lost sync; killed")
 		      (kill-process (wisi-process--parser-process parser))
 		      (signal 'wisi-parse-error "parser lost sync; killed"))
 
@@ -936,6 +951,7 @@ PARSER will respond with one or more Query messages."
 		      (condition-case-unless-debug err
 			  (eval response)
 			(error
+			 (wisi-parse-log-message parser (cadr err))
 			 (push (make-wisi--parse-error
 				:pos (point)
 				:message (cadr err))
@@ -950,7 +966,7 @@ PARSER will respond with one or more Query messages."
 			(wisi-process-parse--execute parser response)
 
 		      (error ;; from bug in action code above, or bad data from parser.
-		       (let ((msg (format "elisp processing of post-parse message '%s' failed" response)))
+		       (let ((msg (format "elisp processing of message '%s' failed in %s" response source-buffer)))
 			 (wisi-parse-log-message parser msg)
 			 (error msg)))
 		      ))
@@ -1103,16 +1119,16 @@ PARSER will respond with one or more Query messages."
   (cond
    (wisi-incremental-parse-enable
     (when wisi--changes
-      (wisi-parse-incremental parser 'other)))
+      (wisi-parse-incremental parser 'refactor)))
 
    (t
     ;; IMPROVEME: stmt-begin, stmt-end not used if only incremental supported.
-    (wisi-process-parse--prepare parser 'other)
+    (wisi-process-parse--prepare parser 'refactor)
     (wisi-process-parse--send-parse parser 'navigate stmt-begin stmt-end stmt-end)
     (wisi-process-parse--handle-messages parser)
     ))
 
-  (wisi-process-parse--prepare parser 'other)
+  (wisi-process-parse--prepare parser 'refactor)
   (wisi-process-parse--handle-messages-file-not-found
    parser
    (lambda () (wisi-process-parse--send-refactor parser refactor-action edit-begin))))
@@ -1120,9 +1136,9 @@ PARSER will respond with one or more Query messages."
 (cl-defmethod wisi-parse-tree-query ((parser wisi-process--parser) query &rest args)
   (cl-assert wisi-incremental-parse-enable)
   (when wisi--changes
-    (wisi-parse-incremental parser 'other))
+    (wisi-parse-incremental parser 'query))
 
-  (wisi-process-parse--prepare parser 'other)
+  (wisi-process-parse--prepare parser 'query)
   (setf (wisi-process--parser-query-result parser) nil)
   (wisi-process-parse--handle-messages-file-not-found
    parser
@@ -1132,7 +1148,7 @@ PARSER will respond with one or more Query messages."
 
 ;;;;; debugging
 (defun wisi-process-parse-save-text (parser save-file-name auto)
-  (wisi-process-parse--prepare parser 'other)
+  (wisi-process-parse--prepare parser 'debug)
   (let* ((cmd
 	  (format (concat (if auto "save_text_auto" "save_text")
 			    " \"%s\" \"%s\"")
@@ -1147,7 +1163,7 @@ PARSER will respond with one or more Query messages."
     (wisi-process-parse--handle-messages parser)))
 
 (defun wisi-process-parse-compare-tree-text (parser)
-  (wisi-process-parse--prepare parser 'other)
+  (wisi-process-parse--prepare parser 'debug)
   (let* ((cmd
 	  (format "compare_tree_text_auto \"%s\""
 		  (if (buffer-file-name) (buffer-file-name) (buffer-name))))
