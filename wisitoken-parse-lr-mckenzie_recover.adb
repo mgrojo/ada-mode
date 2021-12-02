@@ -989,12 +989,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       use Syntax_Trees;
 
       --  The parsers may have different error points, and different parse
-      --  stream input after the error point; we arbitrarily pick the first
-      --  parser as the origin for Sequential_Index. Because most terminal
-      --  nodes are shared, we must set Sequential_Index consistently for
-      --  all parsers, including in terminal tokens copied from
-      --  Shared_Stream (for Set_Error or Add_Deleted). So we walk prev/next
-      --  terminal for each parser.
+      --  stream input after the error point; we arbitrarily pick the last
+      --  terminal in the first parser stack top as the origin for
+      --  Sequential_Index. Because most terminal nodes are shared, we must
+      --  set Sequential_Index consistently for all parsers, including in
+      --  terminal tokens copied from Shared_Stream (for Set_Error or
+      --  Add_Deleted). So we walk prev/next terminal for each parser.
 
       --  If not Initialize, we are clearing sequential_index. A node may
       --  have been copied from shared_stream into a parse stream after
@@ -1018,7 +1018,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             --  Start with the stack top; it is the error token for
             --  In_Parse_Actions, is one stream element before the error token for
             --  Parse_Actions, is in the parse stream, and is SOI for an empty
-            --  buffer. It may be an nonterm, possibly empty.
+            --  buffer. It may be a nonterm, possibly empty.
             Terminals (I) := Tree.To_Stream_Node_Parents
               (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Peek (Parser_State.Stream)));
 
@@ -1069,13 +1069,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             --  There are several cases:
             --
             --  1. I node is copied
-            --  2. Reference node is before or after parser node.
-            --  3. Reference node is deleted in parser.
+            --  2. Reference node is before or after I node.
+            --  3. Reference node is deleted in I.
             --
-            --  In case 3, the parser node does not need Sequential_Index.
+            --  In case 3, the I node does not need Sequential_Index.
             --
             --  Note that the reference node cannot be inserted or deleted in the
-            --  reference parser, because we start with Parse_State.Current_Token,
+            --  reference parser, because we start with stack_top,
             --  which is after any deleted tokens.
 
             declare

@@ -145,7 +145,7 @@ package body WisiToken.Lexer.re2c is
       Begin_Line     : in     Line_Number_Type := Line_Number_Type'First)
    is
       use GNATCOLL.Mmap;
-      Length : Buffer_Pos;
+      Length : Base_Buffer_Pos; -- 0 in empty file
    begin
       Finalize (Lexer);
 
@@ -161,7 +161,7 @@ package body WisiToken.Lexer.re2c is
 
       if Begin_Byte_Pos = Invalid_Buffer_Pos then
          Lexer.Source.Region := Read (Lexer.Source.File);
-         Length              := Buffer_Pos (Last (Lexer.Source.Region));
+         Length              := Base_Buffer_Pos (Last (Lexer.Source.Region));
       else
          Length := End_Byte_Pos - Begin_Byte_Pos + 1;
 
