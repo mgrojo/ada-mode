@@ -930,7 +930,7 @@ Run the parser first if needed."
 	  (seq-map (lambda (err) (wisi--lexer-error-pos err)) (wisi-parser-lexer-errors wisi--parser))
 	  (seq-map (lambda (err) (wisi--parse-error-pos err)) (wisi-parser-parse-errors wisi--parser)))))
 
-      (when (> wisi-debug 1)
+      (when (> wisi-debug 2)
 	(if (or (wisi-parser-lexer-errors wisi--parser)
 		(wisi-parser-parse-errors wisi--parser))
 	    (progn
