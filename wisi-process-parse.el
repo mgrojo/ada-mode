@@ -1049,6 +1049,7 @@ PARSER will respond with one or more Query messages."
      (message "parsing buffer ...")
      (wisi-process-parse--send-incremental-parse parser t)
      (wisi-process-parse--wait parser)
+     (wisi-process-parse--handle-messages parser)
      (message "parsing buffer ... done")
      (funcall action)
      (wisi-process-parse--handle-messages parser)
