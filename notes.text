@@ -67,6 +67,12 @@ faster and more accurate/reliable. It will also most likely make sense
 to implement a libadalang xref backend, or something else to replace
 gpr_query.
 
+acknowledge that previous work was not really worth it, because
+gnatstudio indent was not adaptable to Eurocontrol style.
+
+Research Eurocontrol - what is there area of business, what location/culture are they - linked in etc.
+read Kate's book on culture/persuasion.
+
         - currently doing incremental (making progress. ready for beta test?)
         - send money to speed up
         - send money to integrate libadalang xref backend
@@ -74,9 +80,33 @@ gpr_query.
         - pay someone in-house to work on this - I will mentor
 
  current work
+emacs UI slow while gpr-query-symbols-filter is waiting for symbols, and while thread is processing symbols
+    nothing is running gpr-query-session-wait!
+    just created ada project; wisitoken makefile
+    (progn
+     (gpr-query-kill-all-sessions)
+     (gpr-query-cached-session (project-current)))
+    main UI slow while --read-symbols running
+        resource monitor shows 12% CPU = 1 core out of 8
+        same 12% while running filter, but UI not slow then
+
+    add (sit-for 0.1) in --read-symbols; better, but takes a long time; 2 hrs!
+    try 0.001, add time to verbosity; 2 min 45 sec
+    change to 0.01; better, but still annoying
+        need preemptive threads
+
+    better: don't use thread; build list in filter, using cl-push-new.
+
+Error during redisplay: (jit-lock-function 1468) signaled (error "Attempt to accept output from process  *Ada_wisi_parse* locked to thread #<thread 00007ff6ebbb1540>")
+    ask on emacs-devel?
+    change sit-for to sleep-for
+
+    don't use thread; build lists in filter, using cl-push-new
+        need --parser-symbols-valid
+
 review FIXMEs
     (grep-find "find c:/Projects/org.wisitoken -type f -print | \"xargs\" grep  -nH --null FIXME")
-        c:/Projects/org.wisitoken/notes.text
+        c:/Projects/org.wisitoken.stephe-1/notes.text
     (grep-find "find c:/Projects/org.emacs.wisi -type f -print | \"xargs\" grep  -nH --null FIXME")
     (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
 
@@ -1013,7 +1043,7 @@ one ELISP="(setq-default save-parser-log \"../debug-2.log\" save-edited-text \".
     wisi-parser-transaction-log-buffer-size-default 600000
     compare-tree-text t
 
-test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 10.0)"
+test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 20.0)"
 
 two RUN_ARGS="command_file debug.cmd &> debug.log"
 
