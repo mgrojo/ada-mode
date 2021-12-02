@@ -1717,10 +1717,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                Push_Back_Tokens ("insert quote 4 a", New_Config, Min_Pushed_Back_Index);
 
                pragma Assert (not Config.Error_Token.Virtual);
+               --  Error_Token can be a nonterm. ada_mode-recover_partial_09.adb
                Finish
                  ("a", New_Config,
                   First => Min_Pushed_Back_Index,
-                  Last  => Tree.Get_Sequential_Index (Config.Error_Token.Node) - 1);
+                  Last  => Tree.Get_Sequential_Index (Tree.First_Terminal (Config.Error_Token)) - 1);
                Local_Config_Heap.Add (New_Config);
             end;
 

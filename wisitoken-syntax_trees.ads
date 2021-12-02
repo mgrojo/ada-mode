@@ -307,7 +307,7 @@ package WisiToken.Syntax_Trees is
      (Tree : in Syntax_Trees.Tree;
       Ref  : in Terminal_Ref)
      return Boolean
-   is (Valid_Stream_Node (Tree, Ref));
+   is (Valid_Stream_Node (Tree, Ref) and Ref.Node /= Invalid_Node_Access);
    --  True if Ref refers to a Terminal node.
 
    function Single_Terminal (Ref : in Stream_Node_Ref) return Boolean;
@@ -762,49 +762,15 @@ package WisiToken.Syntax_Trees is
    --  Update Parse_Stream.Shared_Link to next Shared_Stream element
    --  after Last.
 
-   procedure Left_Breakdown
-     (Tree : in out Syntax_Trees.Tree;
-      Ref  : in out Stream_Node_Ref)
-   with Pre =>
-     Valid_Stream_Node (Tree, Ref) and then
-     (Tree.Label (Ref.Element) = Nonterm and
-        Ref.Node /= Invalid_Node_Access and
-        Tree.Stack_Top (Ref.Stream) /= Ref.Element),
-     Post => Valid_Single_Terminal (Tree, Ref);
-   --  Bring first terminal of Ref.Element to the stream Ref.Stream
-   --  (which may be Shared_Stream in Edit_Tree). Ref.Element is updated
-   --  to the element containing the first terminal.
-   --
-   --  The stack top is unchanged. Note that Ref.Node is ignored on input.
-   --
-   --  Parent links are set to Invalid_Node_Access; if
-   --  Tree.Parents_Set, Child links are also cleared.
-
-   procedure Right_Breakdown
-     (Tree : in out Syntax_Trees.Tree;
-      Ref  : in out Stream_Node_Ref)
-   with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
-               Ref.Node /= Invalid_Node_Access and
-               Tree.Stack_Top (Ref.Stream) /= Ref.Element,
-     Post => Valid_Single_Terminal (Tree, Ref);
-   --  Bring last terminal of Ref.Element to the parse stream.
-   --  Ref.Element is updated to the element containing the last terminal.
-   --
-   --  The stack top is unchanged. Note that Ref.Node is ignored on input.
-   --
-   --  Parent links are set to Invalid_Node_Access. However, even if
-   --  Tree.Parents_Set, Child links are not changed.
-   --
-   --  FIXME: move errors as in Breakdown.
-
    procedure Breakdown
      (Tree      : in out Syntax_Trees.Tree;
-      Ref       : in out Terminal_Ref;
-      User_Data : in     User_Data_Access)
-   with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
-               Ref.Node /= Invalid_Node_Access and
-               Tree.Stack_Top (Ref.Stream) /= Ref.Element,
-     Post => Tree.First_Terminal (Get_Node (Ref.Element)) = Ref.Node;
+      Ref       : in out Stream_Node_Parents;
+      User_Data : in     Syntax_Trees.User_Data_Access)
+   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref) and
+               Tree.Label (Ref.Ref.Element) = Nonterm and Ref.Ref.Node /= Invalid_Node_Access and
+               Tree.Stack_Top (Ref.Ref.Stream) /= Ref.Ref.Element,
+     Post => Parents_Valid (Ref) and Tree.Valid_Terminal (Ref.Ref) and
+             Tree.First_Terminal (Get_Node (Ref.Ref.Element)) = Ref.Ref.Node;
    --  Bring descendants of Ref.Element to the parse stream, until
    --  First_Terminal of one of the parse stream elements = Ref.Node.
    --  Ref.Element is updated to the element whose first terminal is
@@ -821,14 +787,27 @@ package WisiToken.Syntax_Trees is
 
    procedure Breakdown
      (Tree      : in out Syntax_Trees.Tree;
-      Ref       : in out Stream_Node_Parents;
+      Ref       : in out Terminal_Ref;
+      User_Data : in     User_Data_Access)
+   with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
+               Ref.Node /= Invalid_Node_Access and
+               Tree.Stack_Top (Ref.Stream) /= Ref.Element,
+     Post => Tree.First_Terminal (Get_Node (Ref.Element)) = Ref.Node;
+   --  Same as Breakdown (Stream_Node_Parents), but supports not
+   --  Tree.Parents_Set, using an internal Stream_Node_Parent.
+
+   procedure Left_Breakdown
+     (Tree      : in out Syntax_Trees.Tree;
+      Ref       : in out Stream_Node_Ref;
       User_Data : in     Syntax_Trees.User_Data_Access)
-   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Tree.Label (Ref.Ref.Element) = Nonterm and
-               Ref.Ref.Node /= Invalid_Node_Access and Tree.Stack_Top (Ref.Ref.Stream) /= Ref.Ref.Element and
-               Parents_Valid (Ref),
-     Post => Parents_Valid (Ref) and
-             Tree.First_Terminal (Get_Node (Ref.Ref.Element)) = Ref.Ref.Node;
-   --  Same as Breakdown (Ref.Ref), but supports not Tree.Parents_Set.
+   with Pre =>
+     Valid_Stream_Node (Tree, Ref) and then
+     (Tree.Label (Ref.Element) = Nonterm and
+        Ref.Node /= Invalid_Node_Access and
+        Tree.Stack_Top (Ref.Stream) /= Ref.Element),
+     Post => Valid_Single_Terminal (Tree, Ref);
+   --  Similar to Breakdown; bring first terminal of Ref.Element to
+   --  the stream Ref.Stream. Ref.Node is ignored on input.
 
    function State (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return State_Index
    with Pre => Tree.Is_Valid (Stream);
@@ -2980,10 +2959,7 @@ private
    is (Tree.Shared_Stream);
 
    function Single_Terminal (Ref : in Stream_Node_Ref) return Boolean
-   is (declare
-          Element : Stream_Element renames Stream_Element_Lists.Constant_Ref (Ref.Element.Cur);
-       begin
-          Element.Node = Ref.Node and Ref.Node.Label in Terminal_Label);
+   is (Stream_Element_Lists.Constant_Ref (Ref.Element.Cur).Node = Ref.Node and Ref.Node.Label in Terminal_Label);
 
    function Terminal_Ref_Image (Item : in Syntax_Trees.Terminal_Ref; Aux : in Syntax_Trees.Tree'Class) return String
    is (Aux.Image (Item));
@@ -3030,7 +3006,7 @@ private
           then Ref /= Invalid_Stream_Node_Ref
           else
             (not Tree.Parents_Set or else
-               Tree.Subtree_Root (Ref.Node) = Tree.Get_Node (Ref.Stream, Ref.Element))));
+               Tree.Is_Descendant_Of (Root => Tree.Get_Node (Ref.Stream, Ref.Element), Descendant => Ref.Node))));
 
    Dummy_Node : constant Node_Access := new Node'(Label => Virtual_Identifier, Child_Count => 0, others => <>);
 

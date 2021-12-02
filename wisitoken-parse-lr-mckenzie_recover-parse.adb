@@ -172,8 +172,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    exception
    when SAL.Container_Full =>
-      --  From Stream.Insert
-      raise Bad_Config;
+      --  From Stream.Insert. We don't raise Bad_Config here, because the
+      --  only problem is the subtree is too large.
+      raise Invalid_Case;
    end Left_Breakdown;
 
    function Delete_Current_Applies

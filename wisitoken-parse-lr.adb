@@ -827,7 +827,7 @@ package body WisiToken.Parse.LR is
                      Current_Token := Tree.Current_Token (Stream);
                   end if;
 
-                  Tree.Left_Breakdown (Current_Token);
+                  Tree.Left_Breakdown (Current_Token, User_Data);
                end if;
             end case;
          end;

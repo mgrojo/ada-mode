@@ -32,13 +32,8 @@ update-wisitoken_grammar
 
  current work
 review FIXME
-    at least in syntax_trees
 
 first because easy or possible bug or important:
-c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.adb:680:      Move_Errors (Tree, Ref_Parents, User_Data); --  FIXME: only move errors in parents that are deleted.
-
-c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.ads:798:   --  FIXME: move errors as in Breakdown.
-
 c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-parser.adb:209:                           --  ada_mode-interactive_03.adb. FIXME: better: peek at next terminal,
 
 faster incremental (need benchmarks):

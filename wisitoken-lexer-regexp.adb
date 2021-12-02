@@ -292,6 +292,32 @@ package body WisiToken.Lexer.Regexp is
    end Is_Comment;
 
    overriding
+   function Comment_Start_Length
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Integer
+   is
+      pragma Unreferenced (Lexer, ID);
+   begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return Integer'Last;
+   end Comment_Start_Length;
+
+   overriding
+   function Comment_End_Length
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Integer
+   is
+      pragma Unreferenced (Lexer, ID);
+   begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return Integer'Last;
+   end Comment_End_Length;
+
+   overriding
    function Find_Comment_End
      (Lexer         : in Instance;
       ID            : in Token_ID;
@@ -339,5 +365,18 @@ package body WisiToken.Lexer.Regexp is
       raise SAL.Not_Implemented;
       return Base_Line_Number_Type'First;
    end New_Line_Count;
+
+   overriding
+   function Terminated_By_New_Line
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean
+   is
+      pragma Unreferenced (Lexer, ID);
+   begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return False;
+   end Terminated_By_New_Line;
 
 end WisiToken.Lexer.Regexp;

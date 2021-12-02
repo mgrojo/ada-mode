@@ -114,6 +114,18 @@ package WisiToken.Lexer.Regexp is
      return Boolean;
 
    overriding
+   function Comment_Start_Length
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Integer;
+
+   overriding
+   function Comment_End_Length
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Integer;
+
+   overriding
    function Find_Comment_End
      (Lexer         : in Instance;
       ID            : in Token_ID;
@@ -138,6 +150,12 @@ package WisiToken.Lexer.Regexp is
      (Lexer       : in Instance;
       Byte_Region : in Buffer_Region)
      return Base_Line_Number_Type;
+
+   overriding
+   function Terminated_By_New_Line
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean;
 
 private
 

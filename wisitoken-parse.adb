@@ -601,7 +601,7 @@ package body WisiToken.Parse is
             Tree.Breakdown (Terminal, Parser.User_Data);
 
             if To_Single and then Tree.Label (Terminal.Element) = Nonterm then
-               Tree.Left_Breakdown (Terminal);
+               Tree.Left_Breakdown (Terminal, Parser.User_Data);
             end if;
             if Trace_Incremental_Parse > Extra then
                Parser.Trace.Put_Line
@@ -1105,8 +1105,9 @@ package body WisiToken.Parse is
                                    ("comment_start_deleted:" &
                                       Token.Byte_Region.First'Image & " .." & New_Code_End'Image);
                               end if;
+                           else
+                              Check_Comment_End (Token);
                            end if;
-                           Check_Comment_End (Token);
                         end if;
 
                         --  Remaining Non_Grammar will either be scanned, or moved to
