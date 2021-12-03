@@ -125,8 +125,9 @@ handle gracefully."
   ;; must be a different name than the wisi-parser cl-defstruct.
   "The current wisi parser; a ‘wisi-parser’ object.")
 
-(defconst wisi-post-parse-actions '(navigate face indent)
-  "Actions that the parser can perform after parsing.")
+(defconst wisi-post-parse-actions '(navigate face indent none refactor query debug)
+  "Actions that the parser can perform after parsing.
+Only navigate thru indent are valid for partial parse.")
 
 (defun wisi-read-parse-action ()
   "Read a parse action symbol from the minibuffer."
@@ -186,11 +187,12 @@ busy.")
 
 (cl-defgeneric wisi-parse-incremental ((parser wisi-parser) parser-action &key full nowait)
   "Incrementally parse current buffer.
-PARSER-ACTION is used to decide whether to wait if parser is
-busy.  If FULL, do initial full parse.  If FULL and NOWAIT, don't
-wait for parse to complete; buffer is read-only until full parse
-completes.  Text changes for incremental parse are stored in
-`wisi--changes', created by `wisi-after-change'.")
+PARSER-ACTION (one of `wisi-post-parse-actions') is used to
+decide whether to wait if parser is busy.  If FULL, do initial
+full parse.  If FULL and NOWAIT, don't wait for parse to
+complete; buffer is read-only until full parse completes.  Text
+changes for incremental parse are stored in `wisi--changes',
+created by `wisi-after-change'.")
 
 (cl-defgeneric wisi-post-parse ((parser wisi-parser) parse-action begin end)
   "Perform PARSE-ACTION on region BEGIN END.

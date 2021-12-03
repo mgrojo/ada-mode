@@ -874,7 +874,7 @@ Run the parser first if needed."
 	    (when (get-buffer-window wisi-error-buffer)
 	      (delete-window (get-buffer-window wisi-error-buffer))))))
 
-      (condition-case-unless-debug err
+      (condition-case err
 	  (save-excursion
 	    (cond
 	     (partial-parse-p
@@ -1857,8 +1857,8 @@ where the car is a list (FILE LINE COL)."
     ;; We don't wait for this to complete here, so users can scroll
     ;; around while the initial parse runs. font-lock will not work
     ;; during that time (the parser is busy, the buffer is read-only).
-    (when (< 0 wisi-debug) (message "start initial full parse"))
-    (wisi-parse-incremental wisi--parser 'other :full t :nowait wisi-parse-full-background)))
+    (when (< 0 wisi-debug) (message "start initial full parse in %s" (current-buffer)))
+    (wisi-parse-incremental wisi--parser 'none :full t :nowait wisi-parse-full-background)))
 
 (provide 'wisi)
 ;;; wisi.el ends here
