@@ -340,6 +340,9 @@ package body Emacs_Wisi_Common_Parse is
                   Put_Line ("(message ""auto compare tree text enabled"")");
                end;
 
+            elsif Match ("create-context") then
+               Wisi.Parse_Context.Create_No_Text (Wisi.Get_String (Command_Line, Last), Language, Trace'Access);
+
             elsif Match ("kill-context") then
                Wisi.Parse_Context.Kill (File_Name => Wisi.Get_String (Command_Line, Last));
 
