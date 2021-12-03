@@ -32,16 +32,16 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  Reduce Stack according to Action, setting Nonterm.
 
    function Delete_Current_Applies
-     (Tree   : in Syntax_Trees.Tree;
-      Config : in Configuration)
+     (Super  : not null access Base.Supervisor;
+      Config : in              Configuration)
      return Boolean;
    --  True if Config has a Delete op that applies to the current token.
 
    function Peek_Current_Token_ID
-     (Tree   : in Syntax_Trees.Tree;
-      Config : in Configuration)
+     (Super  : not null access Base.Supervisor;
+      Config : in              Configuration)
      return Token_ID
-   with Pre => not Delete_Current_Applies (Tree, Config);
+   with Pre => not Delete_Current_Applies (Super, Config);
    --  Return ID of Config current token. In incremental parse, this may
    --  be a nonterminal.
    --
@@ -72,9 +72,9 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  First_Terminal from Shared_Stream starting at Config.Shared_Token, or Config.Input_Stream.
 
    function Peek_Current_First_Sequential_Terminal
-     (Tree              : in Syntax_Trees.Tree;
-      Config            : in Configuration;
-      Following_Element : in Boolean := True)
+     (Super             : not null access Base.Supervisor;
+      Config            : in              Configuration;
+      Following_Element : in              Boolean := True)
      return Syntax_Trees.Node_Access;
    --  First_Sequential_Terminal from Config.Input_Stream,
    --  Config.Shared_Token or, if Following_Element, a following stream
@@ -91,12 +91,12 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Ref  : in out Config_Stream_Parents);
 
    procedure First_Sequential_Terminal
-     (Tree : in     Syntax_Trees.Tree;
-      Ref  :    out Config_Stream_Parents);
+     (Super : not null access Base.Supervisor;
+      Ref   :    out          Config_Stream_Parents);
 
    procedure Last_Sequential_Terminal
-     (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Config_Stream_Parents);
+     (Super : not null access Base.Supervisor;
+      Ref   : in out          Config_Stream_Parents);
 
    procedure Next_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;

@@ -95,9 +95,9 @@ private
    --  Check that ID = Expected_ID; raise Bad_Config if not.
 
    procedure Delete_Check
-     (Tree   : in     Syntax_Trees.Tree;
-      Config : in out Configuration;
-      ID     : in     Token_ID);
+     (Super  : not null access Base.Supervisor;
+      Config : in out          Configuration;
+      ID     : in              Token_ID);
    --  Check that the next input token in Config has ID. Append a Delete op
    --  to Config.Ops, and append it to Config.Insert_Delete.
    --
@@ -110,17 +110,17 @@ private
    --  Config.Input_Stream, so it can only be used to delete one token.
 
    procedure Delete_Check
-     (Tree   :         in     Syntax_Trees.Tree;
+     (Super  :         not null access Base.Supervisor;
       Config : aliased in out Configuration;
       IDs    :         in     Token_ID_Array);
    --  Call Delete_Check for each ID in IDs, incrementing to the next
    --  token for each.
 
    procedure Delete_Check
-     (Tree       : in     Syntax_Trees.Tree;
-      Config     : in out Configuration;
-      Peek_State : in out Peek_Sequential_State;
-      ID         : in     Token_ID);
+     (Super      : not null access Base.Supervisor;
+      Config     : in out          Configuration;
+      Peek_State : in out          Peek_Sequential_State;
+      ID         : in              Token_ID);
    --  If ID is not Invalid_Token_ID, check that
    --  Parse.Peek_Sequential_Terminal (Peek_State) has ID. Append a Delete op
    --  to Config.Ops, and append it to Config.Insert_Delete. Then
@@ -198,7 +198,7 @@ private
    --  Also count tokens with ID = Other_ID.
 
    procedure Insert
-     (Tree   : in     Syntax_Trees.Tree;
+     (Super  : not null access Base.Supervisor;
       Config : in out Configuration;
       ID     : in     Token_ID);
    --  Append an Insert before Config.Current_Shared_Token or
@@ -206,24 +206,27 @@ private
    --  Config.Insert_Deleted.
 
    procedure Insert
-     (Tree   : in     Syntax_Trees.Tree;
+     (Super  : not null access Base.Supervisor;
       Config : in out Configuration;
       IDs    : in     Token_ID_Array);
    --  Call Insert for each item in IDs.
 
    procedure Insert
-     (Tree   : in     Syntax_Trees.Tree;
+     (Super  : not null access Base.Supervisor;
       Config : in out Configuration;
       Before : in     Syntax_Trees.Valid_Node_Access;
       ID     : in     Token_ID);
    --  Same as Insert, but before Before.
 
    function Peek_Sequential_Start
-     (Tree   :         in Syntax_Trees.Tree;
-      Config : aliased in Configuration)
+     (Super  :         not null access Base.Supervisor;
+      Config : aliased in              Configuration)
      return Peek_Sequential_State;
 
    function Peek_Sequential_Terminal (State : in Peek_Sequential_State) return Syntax_Trees.Node_Access;
+   --  Returns Invalid_Node_Access when Peek_Sequential_Start was called
+   --  with Current_Shared_Token past EOI, because shared EOI had an
+   --  error.
 
    procedure Peek_Next_Sequential_Terminal
      (Tree  : in     Syntax_Trees.Tree;

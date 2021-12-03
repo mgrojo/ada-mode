@@ -836,18 +836,21 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    --  Spec private subprograms; for child packages. Declaration order
 
    function Peek_Sequential_Start
-     (Tree   :         in Syntax_Trees.Tree;
-      Config : aliased in Configuration)
+     (Super  :         not null access Base.Supervisor;
+      Config : aliased in              Configuration)
      return Peek_Sequential_State
    is
       use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
+      Tree : Syntax_Trees.Tree renames Super.Tree.all;
    begin
       return State : Peek_Sequential_State (Config.Input_Stream'Access) do
-         Parse.First_Sequential_Terminal (Tree, State.Input_Terminal);
+         Parse.First_Sequential_Terminal (Super, State.Input_Terminal);
 
          if Config.Current_Shared_Token = Syntax_Trees.Invalid_Stream_Node_Ref then
             --  test_incremental.adb Preserve_Parse_Errors_1; EOI has error
             State.Sequential_Terminal := Syntax_Trees.Invalid_Stream_Node_Parents;
+            --  This should be the only time we set State.Sequential_Terminal
+            --  Invalid.
          else
             State.Sequential_Terminal := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
             if Syntax_Trees.Rooted (State.Sequential_Terminal.Ref) or
@@ -855,6 +858,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
               --  Ref is an empty nonterm. ada_mode-interactive_03.adb
             then
                Tree.First_Sequential_Terminal (State.Sequential_Terminal);
+               pragma Assert (State.Sequential_Terminal.Ref /= Syntax_Trees.Invalid_Stream_Node_Ref);
             end if;
          end if;
       end return;
@@ -920,12 +924,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Delete_Check;
 
    procedure Delete_Check
-     (Tree   : in     Syntax_Trees.Tree;
-      Config : in out Configuration;
-      ID     : in     Token_ID)
+     (Super  : not null access Base.Supervisor;
+      Config : in out          Configuration;
+      ID     : in              Token_ID)
    is
+      Tree : Syntax_Trees.Tree renames Super.Tree.all;
       Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Sequential_Terminal
-        (Tree, Config, Following_Element => False);
+        (Super, Config, Following_Element => False);
    begin
       if Node = Syntax_Trees.Invalid_Node_Access then
          raise Bad_Config;
@@ -934,11 +939,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Delete_Check;
 
    procedure Delete_Check
-     (Tree   :         in     Syntax_Trees.Tree;
+     (Super  :         not null access Base.Supervisor;
       Config : aliased in out Configuration;
       IDs    :         in     Token_ID_Array)
    is
-      State : Peek_Sequential_State := Peek_Sequential_Start (Tree, Config);
+      Tree   : Syntax_Trees.Tree renames Super.Tree.all;
+      State : Peek_Sequential_State := Peek_Sequential_Start (Super, Config);
    begin
       for ID of IDs loop
          Delete_Check (Tree, Config, Peek_Sequential_Terminal (State), ID);
@@ -947,13 +953,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Delete_Check;
 
    procedure Delete_Check
-     (Tree       : in     Syntax_Trees.Tree;
+     (Super  :         not null access Base.Supervisor;
       Config     : in out Configuration;
       Peek_State : in out Peek_Sequential_State;
       ID         : in     Token_ID)
    is begin
-      Delete_Check (Tree, Config, Peek_Sequential_Terminal (Peek_State), ID);
-      Peek_Next_Sequential_Terminal (Tree, Peek_State);
+      Delete_Check (Super.Tree.all, Config, Peek_Sequential_Terminal (Peek_State), ID);
+      Peek_Next_Sequential_Terminal (Super.Tree.all, Peek_State);
    end Delete_Check;
 
    procedure Do_Push_Back
@@ -994,12 +1000,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       use Syntax_Trees;
 
       --  The parsers may have different error points, and different parse
-      --  stream input after the error point; we arbitrarily pick the first
-      --  parser as the origin for Sequential_Index. Because most terminal
-      --  nodes are shared, we must set Sequential_Index consistently for
-      --  all parsers, including in terminal tokens copied from
-      --  Shared_Stream (for Set_Error or Add_Deleted). So we walk prev/next
-      --  terminal for each parser.
+      --  stream input after the error point; we arbitrarily pick the last
+      --  terminal in the first parser stack top as the origin for
+      --  Sequential_Index. Because most terminal nodes are shared, we must
+      --  set Sequential_Index consistently for all parsers, including in
+      --  terminal tokens copied from Shared_Stream (for Set_Error or
+      --  Add_Deleted). So we walk prev/next terminal for each parser.
 
       --  If not Initialize, we are clearing sequential_index. A node may
       --  have been copied from shared_stream into a parse stream after
@@ -1023,7 +1029,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             --  Start with the stack top; it is the error token for
             --  In_Parse_Actions, is one stream element before the error token for
             --  Parse_Actions, is in the parse stream, and is SOI for an empty
-            --  buffer. It may be an nonterm, possibly empty.
+            --  buffer. It may be a nonterm, possibly empty.
             Terminals (I) := Tree.To_Stream_Node_Parents
               (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Peek (Parser_State.Stream)));
 
@@ -1074,13 +1080,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             --  There are several cases:
             --
             --  1. I node is copied
-            --  2. Reference node is before or after parser node.
-            --  3. Reference node is deleted in parser.
+            --  2. Reference node is before or after I node.
+            --  3. Reference node is deleted in I.
             --
-            --  In case 3, the parser node does not need Sequential_Index.
+            --  In case 3, the I node does not need Sequential_Index.
             --
             --  Note that the reference node cannot be inserted or deleted in the
-            --  reference parser, because we start with Parse_State.Current_Token,
+            --  reference parser, because we start with stack_top,
             --  which is after any deleted tokens.
 
             declare
@@ -1458,38 +1464,41 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Find_Matching_Name;
 
    procedure Insert
-     (Tree   : in     Syntax_Trees.Tree;
-      Config : in out Configuration;
-      ID     : in     Token_ID)
+     (Super  : not null access Base.Supervisor;
+      Config : in out          Configuration;
+      ID     : in              Token_ID)
    is begin
-      Insert (Tree, Config, Parse.Peek_Current_First_Sequential_Terminal (Tree, Config), ID);
+      Insert (Super, Config, Parse.Peek_Current_First_Sequential_Terminal (Super, Config), ID);
    end Insert;
 
    procedure Insert
-     (Tree   : in     Syntax_Trees.Tree;
+     (Super  : not null access Base.Supervisor;
       Config : in out Configuration;
       IDs    : in     Token_ID_Array)
    is begin
       for ID of IDs loop
-         Insert (Tree, Config, ID);
+         Insert (Super, Config, ID);
       end loop;
    end Insert;
 
    procedure Insert
-     (Tree   : in     Syntax_Trees.Tree;
+     (Super  : not null access Base.Supervisor;
       Config : in out Configuration;
       Before : in     Syntax_Trees.Valid_Node_Access;
       ID     : in     Token_ID)
-   is
-      use Recover_Op_Arrays;
-      Op : constant Recover_Op := (Insert, ID, Tree.Get_Sequential_Index (Before));
-   begin
-      if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
-         raise Bad_Config;
-      end if;
-      Append (Config.Ops, Op);
-      Append (Config.Insert_Delete, Op);
-      Config.Current_Insert_Delete := 1;
+   is begin
+      Base.Extend_Sequential_Index (Super, Thru => Before, Positive => True);
+      declare
+         use Recover_Op_Arrays;
+         Op : constant Recover_Op := (Insert, ID, Super.Tree.Get_Sequential_Index (Before));
+      begin
+         if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
+            raise Bad_Config;
+         end if;
+         Append (Config.Ops, Op);
+         Append (Config.Insert_Delete, Op);
+         Config.Current_Insert_Delete := 1;
+      end;
    end Insert;
 
    function Undo_Reduce_Op_Order_Valid (Ops : in Recover_Op_Arrays.Vector) return Boolean

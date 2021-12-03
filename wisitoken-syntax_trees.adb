@@ -6158,6 +6158,7 @@ package body WisiToken.Syntax_Trees is
          Trace.Put_Line
            (Tree.Image
               (Stream, Shared => True, Children => Children, Node_Numbers => True, Non_Grammar => Non_Grammar));
+         Trace.New_Line;
       end loop;
    end Print_Streams;
 
