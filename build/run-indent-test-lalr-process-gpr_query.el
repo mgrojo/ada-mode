@@ -16,7 +16,11 @@
 
 (setq project-find-functions '(wisi-prj-current-cached))
 
-(setq debug-on-error nil) ;; can be overridden on make command line via ELISP
+;; The following can be overridden on make command line via ELISP
+(setq debug-on-error nil)
+(setq-default wisi-parser-verbosity "debug=1")
+(setq-default compare-tree-text t)
+(setq-default wisi-process-time-out 30.0) ;; running with debug/assert is slow, ada_mode-recover_30.adb
 
 (setq wisi-debug 1) ;; abort on non-syntax errors
 

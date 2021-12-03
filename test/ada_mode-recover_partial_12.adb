@@ -1,7 +1,7 @@
 --  LR1 error recovery used to fail with enqueue_limit. Now finds a solution quickly.
 
 -- Different indent results partial vs incremental
---EMACS_SKIP_UNLESS:(wisi-incremental-parse-enable)
+--EMACS_SKIP_UNLESS:wisi-incremental-parse-enable
 --EMACSCMD:(switch-to-lr1)
 --EMACSCMD:(setq skip-recase-test t)
 

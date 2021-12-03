@@ -96,6 +96,10 @@ emacs UI slow while gpr-query-symbols-filter is waiting for symbols, and while t
         need preemptive threads
 
     better: don't use thread; build list in filter, using cl-push-new.
+        that ties up Emacs UI ; cl-push-new on large list too slow.
+            try cl-push, let completion delete dups.
+        just go back to parse all at once when done.
+        for now, turn off symbols entirely
 
 Error during redisplay: (jit-lock-function 1468) signaled (error "Attempt to accept output from process  *Ada_wisi_parse* locked to thread #<thread 00007ff6ebbb1540>")
     ask on emacs-devel?
