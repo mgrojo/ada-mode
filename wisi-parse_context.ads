@@ -67,6 +67,12 @@ package Wisi.Parse_Context is
       Trace    : in WisiToken.Trace_Access)
      return Parse_Context_Access;
 
+   function Create_No_Text
+     (File_Name : in String;
+      Language  : in Wisi.Parse_Context.Language;
+      Trace     : in WisiToken.Trace_Access)
+     return Parse_Context_Access;
+
    procedure Set_File (File_Name : in String; Parse_Context : in Parse_Context_Access);
 
    function Find_Create

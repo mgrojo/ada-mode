@@ -67,6 +67,17 @@ package body Wisi.Parse_Context is
       end return;
    end Create_No_File;
 
+   function Create_No_Text
+     (File_Name : in String;
+      Language  : in Wisi.Parse_Context.Language;
+      Trace     : in WisiToken.Trace_Access)
+     return Parse_Context_Access
+   is begin
+      return Result : constant Parse_Context_Access := Create_No_File (Language, Trace) do
+         Set_File (File_Name, Result);
+      end return;
+   end Create_No_Text;
+
    procedure Set_File (File_Name : in String; Parse_Context : in Parse_Context_Access)
    is
       use File_Parse_Context_Maps;
@@ -766,10 +777,10 @@ package body Wisi.Parse_Context is
          T : Dummy_Test;
          Failure : constant AUnit.Test_Results.Test_Failure := Get_Failure (First_Failure (T));
       begin
-         Parse_Data.Trace.Put_Line ("compare tree/text fail " & Failure.Message.all);
+         Ada.Text_IO.Put_Line ("(error ""compare tree/text fail " & Failure.Message.all & """)");
          if WisiToken.Trace_Incremental_Parse > WisiToken.Extra then
             Parse_Data.Trace.New_Line;
-            Ada.Text_IO.Put_Line ("incremental tree:");
+            Parse_Data.Trace.Put_Line ("incremental tree:");
             Saved_Tree.Print_Tree (Parse_Data.Trace.all, Line_Numbers => True, Non_Grammar => True);
          end if;
       end;

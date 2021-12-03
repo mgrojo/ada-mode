@@ -151,11 +151,16 @@ Otherwise add PARSER to `wisi-process--alist', return it."
 		  (font-lock-flush (car region) (cdr region))))
 
 	      (set-process-filter process nil)
-	      (setq wisi-parse-full-active nil)
 
 	      ;; handle syntax error messages from full parse
               (set-marker (process-mark process) (point-min))
-	      (wisi-process-parse--handle-messages wisi--parser)
+	      (condition-case err
+		  (progn
+		    (wisi-process-parse--handle-messages wisi--parser)
+		    (setq wisi-parse-full-active nil))
+		(error
+		 (setq wisi-parse-full-active nil)
+		 (signal (car err) (cdr err))))
 	      ))))
 	  ))))
 
@@ -766,45 +771,46 @@ PARSER will respond with one or more Query messages."
 
 (cl-defun wisi-process-parse--prepare (parser parse-action &key nowait)
   "Check for parser busy and startup, mark parser busy, require parser process."
-  (if (wisi-process--parser-busy parser)
-      (progn
-	(when (< 1 wisi-debug)
-	  (wisi-parse-log-message parser (format "parse--prepare %s in %s parser busy" parse-action (current-buffer))))
-	(when
-	    (cl-ecase parse-action
-	      (face
-	       ;; font-lock can trigger a face parse via a timer delay while
-	       ;; navigate or indent parse is active, due to
-	       ;; `accept-process-output' in w-p-p--handle-messages.
-	       t)
-
-	      ((navigate indent none refactor query debug)
-	       (cond
-		(wisi-parse-full-active
-		 ;; User just opened a buffer and is doing some action
-		 ;; that requires a parse; wait for full parse in
-		 ;; other buffer to complete.
-		 (wisi-parse-log-message
-		  parser
-		  (format "parse %s in %s waiting for full parse of %s to complete ..."
-			  parse-action
-			  (current-buffer)
-			  (wisi-process--parser-source-buffer parser)))
-		 (wisi-process-parse--wait parser)
-		 nil)
-
-		((eq #'wisi-process-parse--filter (process-filter (wisi-process--parser-process parser)))
-		 ;; Initial process start still running
-		 (message "parse %s in %s waiting for parser process start ..." parse-action (current-buffer))
-		 (wisi-process-parse--wait parser)
-		 nil)
-
-		(t t))))
-
-	  (error "parse %s in %s abandoned; parser busy" parse-action (current-buffer))))
-
+  (when (wisi-process--parser-busy parser)
     (when (< 1 wisi-debug)
-      (wisi-parse-log-message parser (format "parse--prepare %s in %s parser not busy" parse-action (current-buffer)))))
+      (wisi-parse-log-message parser (format "parse--prepare %s in %s parser busy" parse-action (current-buffer))))
+
+    (when
+	;; Decide whether to wait or signal.
+	(cl-ecase parse-action
+	  (face
+	   ;; font-lock can trigger a face parse via a timer delay while
+	   ;; navigate or indent parse is active, due to
+	   ;; `accept-process-output' in w-p-p--handle-messages.
+	   t)
+
+	  ((navigate indent none refactor query debug)
+	   (cond
+	    (wisi-parse-full-active
+	     ;; User just opened a buffer and is doing some action
+	     ;; that requires a parse; wait for full parse in
+	     ;; other buffer to complete.
+	     (wisi-parse-log-message
+	      parser
+	      (format "parse %s in %s waiting for full parse of %s to complete ..."
+		      parse-action
+		      (current-buffer)
+		      (wisi-process--parser-source-buffer parser)))
+	     (wisi-process-parse--wait parser)
+	     nil)
+
+	    ((eq #'wisi-process-parse--filter (process-filter (wisi-process--parser-process parser)))
+	     ;; Initial process start still running
+	     (message "parse %s in %s waiting for parser process start ..." parse-action (current-buffer))
+	     (wisi-process-parse--wait parser)
+	     nil)
+
+	    (t t))))
+      (error "parse %s in %s abandoned; parser busy" parse-action (current-buffer))))
+
+  ;; parser is now not busy
+  (when (< 1 wisi-debug)
+    (wisi-parse-log-message parser (format "parse--prepare %s in %s parser not busy" parse-action (current-buffer))))
 
   ;; It is not possible for a background elisp function (ie
   ;; font-lock run from a timer) to interrupt this code between
@@ -814,10 +820,9 @@ PARSER will respond with one or more Query messages."
   (setf (wisi-process--parser-source-buffer parser) (current-buffer))
 
   ;; If the parser process has not started yet,
-  ;; wisi-parse-require-process calls
-  ;; wisi-process-parse--wait, which can let font-lock invoke the
-  ;; parser again. Thus this call must be after we set
-  ;; wisi-process--parser-busy t
+  ;; wisi-parse-require-process calls wisi-process-parse--wait, which
+  ;; can let font-lock invoke the parser again. Thus this call must be
+  ;; after we set wisi-process--parser-busy t
   (wisi-parse-require-process parser :nowait nowait)
 
   (setf (wisi-process--parser-total-wait-time parser) 0.0)
@@ -870,8 +875,15 @@ PARSER will respond with one or more Query messages."
 		(forward-line 1)
 		(if (eobp)
 		    (setq done t)
-		  (wisi-parse-log-message parser "extra messages \"%s\"" (buffer-substring (point) (point-max)))
-		  (error "wisi-process-parse: extra messages \"%s\"" (buffer-substring (point) (point-max)))))
+		  (if wisi-parse-full-active
+		      ;; Messages are probably from a parse command
+		      ;; send from the mode hook, before the full
+		      ;; parse was started.
+		      nil
+		    (wisi-parse-log-message
+		     parser
+		     (format "extra messages \"%s\"" (buffer-substring (point) (point-max))))
+		    (error "wisi-process-parse: extra messages \"%s\"" (buffer-substring (point) (point-max))))))
 
 	       ((wisi-in-comment-p)
 		;; In debug output. Just move to beginning of comment;
@@ -1041,19 +1053,30 @@ PARSER will respond with one or more Query messages."
        (signal (car err) (cdr err)))
       )))
 
-(defun wisi-process-parse--handle-messages-file-not-found (parser action)
+(cl-defun wisi-process-parse--handle-messages-file-not-found (parser action &key no-text)
   (funcall action)
   (condition-case _err
       (wisi-process-parse--handle-messages parser)
     ('wisi-file_not_found
-     (message "parsing buffer ...")
-     (wisi-process-parse--send-incremental-parse parser t)
-     (wisi-process-parse--wait parser)
-     (wisi-process-parse--handle-messages parser)
-     (message "parsing buffer ... done")
-     (funcall action)
-     (wisi-process-parse--handle-messages parser)
-     )))
+     (cond
+      (no-text
+       (let ((cmd (format "create-context \"%s\"" (if (buffer-file-name) (buffer-file-name) (buffer-name))))
+	     (process (wisi-process--parser-process parser)))
+	 (process-send-string process (wisi-process-parse--add-cmd-length cmd)))
+       (wisi-process-parse--wait parser)
+       (wisi-process-parse--handle-messages parser)
+       (funcall action)
+       (wisi-process-parse--handle-messages parser)
+       )
+      (t
+       (message "parsing buffer ...")
+       (wisi-process-parse--send-incremental-parse parser t)
+       (wisi-process-parse--wait parser)
+       (wisi-process-parse--handle-messages parser)
+       (message "parsing buffer ... done")
+       (funcall action)
+       (wisi-process-parse--handle-messages parser)
+       )))))
 
 (cl-defmethod wisi-parse-current ((parser wisi-process--parser) parse-action begin send-end parse-end)
   (wisi-process-parse--prepare parser parse-action)
@@ -1065,6 +1088,14 @@ PARSER will respond with one or more Query messages."
   )
 
 (cl-defmethod wisi-parse-incremental ((parser wisi-process--parser) parse-action &key full nowait)
+  (when (and full nowait (not (wisi-process--parser-version-checked wisi--parser)))
+    ;; The parser process has not finished starting up, or has not yet
+    ;; been started. If this is the very first Ada file in the current
+    ;; project, and there is more text in the file than the process
+    ;; send buffer holds, w-p-p--send-* hangs waiting for the process
+    ;; to start reading, which is after it loads the parse table,
+    ;; which can take noticeable time for Ada.
+    (message "starting parser ..."))
   (wisi-process-parse--prepare parser parse-action :nowait nowait)
   (setf (wisi-parser-lexer-errors parser) nil)
   (setf (wisi-parser-parse-errors parser) nil)
@@ -1165,16 +1196,20 @@ PARSER will respond with one or more Query messages."
 
 (defun wisi-process-parse-compare-tree-text (parser)
   (wisi-process-parse--prepare parser 'debug)
-  (let* ((cmd
-	  (format "compare_tree_text_auto \"%s\""
-		  (if (buffer-file-name) (buffer-file-name) (buffer-name))))
-	 (process (wisi-process--parser-process parser)))
+  (let ((cmd
+	 (format "compare_tree_text_auto \"%s\""
+		 (if (buffer-file-name) (buffer-file-name) (buffer-name))))
+	(process (wisi-process--parser-process parser)))
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
 
-    (wisi-parse-log-message parser cmd)
-    (process-send-string process (wisi-process-parse--add-cmd-length cmd))
-    (wisi-process-parse--handle-messages parser)))
+    (wisi-process-parse--handle-messages-file-not-found
+     parser
+     (lambda ()
+       (wisi-parse-log-message parser cmd)
+       (process-send-string process (wisi-process-parse--add-cmd-length cmd)))
+     :no-text t)
+    ))
 
 (defun wisi-process-log-to-cmd (&optional cmd-buffer-name)
   "Convert parser log in current buffer to command file in CMD-BUFFER-NAME."
