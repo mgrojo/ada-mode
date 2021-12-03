@@ -74,6 +74,16 @@ gpr_query.
         - pay someone in-house to work on this - I will mentor
 
  current work
+ada-mode-hook runs before initial parse
+    because we want to allow it to set debug etc that affect initial parse
+    set compare_tree_text_auto causes parse via file-not-found
+        that confuses things, get extra messages because of nowait
+        distinguish between context-not-found and need-text?
+        need command sequence numbers. sigh.
+        or process extra messages if nowait? not working
+
+    need another hook that runs after initial parse started
+
 review FIXMEs
     (grep-find "find c:/Projects/org.wisitoken -type f -print | \"xargs\" grep  -nH --null FIXME")
         c:/Projects/org.wisitoken/notes.text

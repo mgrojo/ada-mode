@@ -161,7 +161,10 @@ elements of the result may be nil."
 	    (gnat-run project (ada-gnat-xref-common-cmd project) args)
 
 	    (goto-char (point-min))
-	    (when ada-gnat-debug-run (forward-line 2)); skip ADA_PROJECT_PATH, 'gnat find'
+	    (when ada-gnat-debug-run (forward-line 2)); skip ADA_PROJECT_PATH, command
+	    (if (looking-at "WARNING: gnatfind is obsolete.*")
+		;; Added in gnat pro 23
+		(forward-line 2))
 
 	    (while (not (eobp))
 	      (cond
