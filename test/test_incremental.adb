@@ -739,7 +739,7 @@ package body Test_Incremental is
          --          |1       |10              |12
          Edit_At => 12,
          Delete  => "exit",
-         Insert  => "EXIT");
+         Insert  => "EXIT"); -- ada_lite is case sensitive, so this is an IDENTIFIER.
    end Edit_Code_9;
 
    procedure Delete_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)

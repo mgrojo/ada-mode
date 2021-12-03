@@ -200,16 +200,10 @@ package body WisiToken.Parse.LR.Parser is
                      return;
                   else
                      declare
-                        First_In_Current : constant Node_Access := Tree.First_Terminal (Current_Token.Node);
-                     begin
-                        if First_In_Current = Invalid_Node_Access then
-                           --  Current_Token is an empty nonterm; skip it. This will not affect
-                           --  Insert_Delete; that already skipped it via First_Shared_Terminal
-                           --  (Stream), and we don't Delete nonterms.
-                           --  ada_mode-interactive_03.adb. FIXME: better: peek at next terminal,
-                           --  do reduce until this nonterm is shiftable. test_incremental.adb
-                           --  Recover_1 aspect_specification_opt.
+                        Checking_Next : Boolean := False;
 
+                        procedure Delete_Empty
+                        is begin
                            if Trace_Parse > Detail then
                               Shared_Parser.Trace.Put_Line
                                 (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
@@ -221,13 +215,38 @@ package body WisiToken.Parse.LR.Parser is
                            end if;
 
                            Tree.Delete_Current_Token (Parser_State.Stream);
+                        end Delete_Empty;
 
-                        else
-                           Action_Cur := Action_For (Table, Current_State, Tree.ID (First_In_Current));
-                           Action     := Action_Cur.Item;
+                        function Get_First_Terminal return Valid_Node_Access
+                        is
+                           Temp : Node_Access := Tree.First_Terminal (Current_Token.Node);
+                        begin
+                           if Temp = Invalid_Node_Access then
+                              --  Current_Token is an empty nonterm; peek at next terminal,
+                              --  do reduce until this nonterm is shiftable.
+                              --  ada_mode-interactive_03.adb
+                              --  test_incremental.adb Recover_1 aspect_specification_opt.
+                              Temp := Tree.First_Terminal (Current_Token).Node;
+                              Checking_Next := True;
+                           end if;
+                           return Temp;
+                        end Get_First_Terminal;
 
-                           case Action.Verb is
-                           when Shift =>
+                        First_In_Current : constant Valid_Node_Access := Get_First_Terminal;
+
+                     begin
+                        Action_Cur := Action_For (Table, Current_State, Tree.ID (First_In_Current));
+                        Action     := Action_Cur.Item;
+
+                        case Action.Verb is
+                        when Shift =>
+                           if Checking_Next then
+                              --  If the empty nonterm was shiftable, it would have been handled by
+                              --  Goto_For above. test_incremental.adb Edit_Code_9. Edit_Tree could
+                              --  delete this nonterm, but handling it here is simpler.
+                              Delete_Empty;
+
+                           else
                               if Current_Token.Stream /= Parser_State.Stream then
                                  --  To breakdown a shared_stream token, we first have to create a
                                  --  parse stream input element for it, and do the breakdown in the
@@ -253,17 +272,19 @@ package body WisiToken.Parse.LR.Parser is
                                  end if;
                               end if;
                               return;
+                           end if;
 
-                           when Accept_It | Reduce =>
+                        when Accept_It | Reduce =>
+                           return;
+
+                        when Error =>
+                           if Checking_Next then
+                              Delete_Empty;
+
+                           elsif Handle_Error then
                               return;
-
-                           when Error =>
-                              if Handle_Error then
-                                 return;
-                              end if;
-
-                           end case;
-                        end if;
+                           end if;
+                        end case;
                      end;
                   end if;
                end;

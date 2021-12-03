@@ -33,9 +33,6 @@ update-wisitoken_grammar
  current work
 review FIXME
 
-first because easy or possible bug or important:
-c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-parser.adb:209:                           --  ada_mode-interactive_03.adb. FIXME: better: peek at next terminal,
-
 faster incremental (need benchmarks):
 c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-parse.adb:46:         --  FIXME: tree.contains_virtual_terminal is expensive, non-incremental - don't cache
 
