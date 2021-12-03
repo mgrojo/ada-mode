@@ -80,33 +80,25 @@ read Kate's book on culture/persuasion.
         - pay someone in-house to work on this - I will mentor
 
  current work
-emacs UI slow while gpr-query-symbols-filter is waiting for symbols, and while thread is processing symbols
-    nothing is running gpr-query-session-wait!
-    just created ada project; wisitoken makefile
+emacs UI slow while gpr-query-symbols-filter is waiting for symbols
     (progn
      (gpr-query-kill-all-sessions)
      (gpr-query-cached-session (project-current)))
-    main UI slow while --read-symbols running
-        resource monitor shows 12% CPU = 1 core out of 8
-        same 12% while running filter, but UI not slow then
-
-    add (sit-for 0.1) in --read-symbols; better, but takes a long time; 2 hrs!
-    try 0.001, add time to verbosity; 2 min 45 sec
-    change to 0.01; better, but still annoying
-        need preemptive threads
-
-    better: don't use thread; build list in filter, using cl-push-new.
+    don't use thread; build list in filter, using cl-push-new.
         that ties up Emacs UI ; cl-push-new on large list too slow.
             try cl-push, let completion delete dups.
-        just go back to parse all at once when done.
-        for now, turn off symbols entirely
 
-Error during redisplay: (jit-lock-function 1468) signaled (error "Attempt to accept output from process  *Ada_wisi_parse* locked to thread #<thread 00007ff6ebbb1540>")
-    ask on emacs-devel?
-    change sit-for to sleep-for
+    for now, turn off symbols entirely
 
-    don't use thread; build lists in filter, using cl-push-new
-        need --parser-symbols-valid
+ada-mode-hook runs before initial parse
+    because we want to allow it to set debug etc that affect initial parse
+    set compare_tree_text_auto causes parse via file-not-found
+        that confuses things, get extra messages because of nowait
+        distinguish between context-not-found and need-text?
+        need command sequence numbers. sigh.
+        or process extra messages if nowait? not working
+
+    need another hook that runs after initial parse started
 
 review FIXMEs
     (grep-find "find c:/Projects/org.wisitoken -type f -print | \"xargs\" grep  -nH --null FIXME")
