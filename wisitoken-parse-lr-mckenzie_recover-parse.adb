@@ -43,7 +43,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
       for T of Tokens loop
          Nonterm.Contains_Virtual_Terminal := @ or Tree.Contains_Virtual_Terminal (T);
-         --  FIXME: tree.contains_virtual_terminal is expensive, non-incremental - don't cache
 
          if not First_Terminal_Set then
             Nonterm.First_Terminal := Tree.First_Terminal (T);

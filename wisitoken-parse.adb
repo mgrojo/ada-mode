@@ -623,8 +623,8 @@ package body WisiToken.Parse is
       --  as part of an edit in another place; test_incremental.adb
       --  Preserve_Parse_Errors_2.
       --
-      --  FIXME: This algorithm visits every terminal; not incremental.
-      --  Cache Has_Following_Deleted, has_virtual in nonterms.
+      --  IMPROVEME incremental: This algorithm visits every terminal; not
+      --  incremental. Cache Has_Following_Deleted, has_virtual in nonterms.
 
       Terminal := Tree.First_Terminal (Tree.Stream_First (Stream, Skip_SOI => False));
       Undo_Recover :
@@ -893,7 +893,7 @@ package body WisiToken.Parse is
                --  It is tempting to skip Unchanged_Loop if Shift_Bytes = 0 and
                --  Shift_Chars = 0 and Shift_Lines = 0. But we need to scan all
                --  Non_Grammar for Floating_Non_Grammar, which changes Shift_Lines.
-               --  FIXME: only need to scan trailing stable terminal?
+               --  IMPROVEME: only need to scan trailing stable terminal?
 
                Unchanged_Loop :
                loop

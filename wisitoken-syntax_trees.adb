@@ -2013,8 +2013,9 @@ package body WisiToken.Syntax_Trees is
          end if;
       end Delete_Errors;
    begin
-      --  FIXME: This algorithm is not incremental, and a waste of time on
-      --  almost all nonterms; cache Has_Errors Boolean in each nonterm.
+      --  IMPROVEME incremental: This algorithm is not incremental, and a
+      --  waste of time on almost all nonterms; cache Has_Errors Boolean in
+      --  each nonterm.
       Delete_Errors;
    end Delete_Errors_In_Input;
 
@@ -6600,10 +6601,10 @@ package body WisiToken.Syntax_Trees is
          end case;
       end Set_Parents;
    begin
-      --  FIXME: only need to handle fully parsed tree, no streams. Use
-      --  incremental algorithm; if find a set parent link, assume subtree
-      --  under that node has parent links set? requires all "node.parent =
-      --  null" to do all ancestors as well.
+      --  IMPROVEME incremental: only need to handle fully parsed tree, no
+      --  streams. Use incremental algorithm; if find a set parent link,
+      --  assume subtree under that node has parent links set? requires all
+      --  "node.parent = null" to do all ancestors as well.
       if Stream = Invalid_Stream_ID then
          if Tree.Streams.Length = 0 then
             if Tree.Root = Invalid_Node_Access then
