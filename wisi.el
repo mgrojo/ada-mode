@@ -450,11 +450,9 @@ Truncate any region that overlaps POS."
      )
     )))
 
-(defun wisi-reset-parser ()
-  "Delete any saved parse state, force a parse."
-  (interactive)
-  (when wisi--parser
-    (wisi-parse-reset wisi--parser))
+(defun wisi-force-parse ()
+  "Force a parse when `wisi-validate-cache' is next invoked.
+For debugging."
   (setf (wisi-parser-lexer-errors wisi--parser) nil)
   (setf (wisi-parser-parse-errors wisi--parser) nil)
   (syntax-ppss-flush-cache (point-min)) ;; necessary after edit during ediff-regions
@@ -484,6 +482,13 @@ Truncate any region that overlaps POS."
     (remove-text-properties (point-min) (point-max) '(font-lock-face nil fontified nil)))
   (wisi-invalidate-cache 'navigate (point-min))
   (wisi-fringe-clean))
+
+(defun wisi-reset-parser ()
+  "Delete any saved parse state, force a parse."
+  (interactive)
+  (wisi-force-parse)
+  (when wisi--parser
+    (wisi-parse-reset wisi--parser)))
 
 ;; wisi--change-* keep track of buffer modifications.
 ;; If wisi--change-end comes before wisi--change-beg, it means there were
@@ -819,12 +824,10 @@ deleted range.")
 
 (defun wisi-kill-parser ()
   "Kill the background process running the parser for the current buffer.
-Usefull if the parser appears to be hung."
+Useful if the parser appears to be hung."
   (interactive)
   (wisi-parse-kill wisi--parser)
-  ;; also force re-parse
-  (wisi-reset-parser)
-  )
+  (wisi-force-parse))
 
 (defun wisi-partial-parse-p (begin end)
   (and (not wisi-incremental-parse-enable)
@@ -842,7 +845,8 @@ Run the parser first if needed."
   ;; production. If the user has narrowed to an arbitrary region, the
   ;; parse will probably be incorrect.
   (unless (or (= (point-min) (point-max)) ;; some parsers can’t handle an empty buffer.
-	      (and (eq parse-action 'face)
+	      (and (< wisi-debug 2)
+                   (eq parse-action 'face)
 		   (null font-lock-mode))) ;; disabling font-lock in a buffer does _not_ prevent it calling parse!
     (let* ((partial-parse-p (wisi-partial-parse-p begin parse-end))
 	   (msg (when (> wisi-debug 0)
@@ -881,11 +885,15 @@ Run the parser first if needed."
 	      (let ((send-region (wisi-parse-expand-region wisi--parser begin parse-end)))
 		(setq parsed-region
 		      (wisi-parse-current wisi--parser parse-action (car send-region) (cdr send-region) parse-end))
-		(wisi-cache-add-region parsed-region parse-action)))
+		(wisi-cache-add-region parsed-region parse-action)
+		(setq wisi-parse-failed nil)))
 
 	     (wisi-incremental-parse-enable
 	      (when wisi--changes
-		(wisi-parse-incremental wisi--parser parse-action))
+		(wisi-parse-incremental wisi--parser parse-action)
+		(when (> wisi-debug 1) (wisi-parse-log-message wisi--parser  "parse succeeded"))
+		(setq wisi-parse-failed nil))
+	      ;; Don't clear wisi-parse-failed if only run post-parse.
 	      (wisi-post-parse wisi--parser parse-action begin parse-end)
 	      (setq parsed-region (cons begin parse-end))
 	      (wisi-cache-add-region parsed-region parse-action))
@@ -894,10 +902,9 @@ Run the parser first if needed."
 	      (setq parsed-region (cons (point-min) (point-max)))
 	      (wisi-cache-set-region
 	       (wisi-parse-current wisi--parser parse-action (point-min) (point-max) (point-max))
-	       parse-action))
-	     )
-
-	    (setq wisi-parse-failed nil))
+	       parse-action)
+	      (setq wisi-parse-failed nil))
+	     ))
 	(wisi-parse-error
 	 (cl-ecase parse-action
 	   (face
@@ -907,14 +914,16 @@ Run the parser first if needed."
 	      (wisi--delete-face-cache (cdr parsed-region))))
 
 	   (navigate
-	    ;; elisp parse partially resets caches
+	    ;; don't trust parse result
 	    (wisi--delete-navigate-cache (point-min)))
 
 	   (indent
 	    ;; parse does not set caches; see `wisi-indent-region'
 	    nil))
+	 (when (> wisi-debug 1)
+	   (wisi-parse-log-message wisi--parser  (format "parse failed in %s" (current-buffer))))
 	 (setq wisi-parse-failed t)
-	 ;; parser should have stored this error message in parser-error-msgs
+	 ;; parser should have stored an error message in parser-error-msgs
 	 (when (> wisi-debug 0)
 	   (signal (car err) (cdr err)))
 	 )

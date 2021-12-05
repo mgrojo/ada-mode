@@ -242,9 +242,13 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 		(save-excursion
 		  (setq last-result
 			(condition-case-unless-debug err
-			    (eval (car (read-from-string last-cmd)))
-			  (error
+			    (progn
+			      (eval (car (read-from-string last-cmd)))
+			      (when (> wisi-debug 1) (wisi-parse-log-message wisi--parser (concat msg " ... done"))))
+			  ((error wisi-parse-error)
 			   (setq error-count (1+ error-count))
+			   (setq msg (concat msg " ... signaled"))
+			   (wisi-parse-log-message wisi--parser msg)
 			   (message msg)
 			   (setq msg (format "... %s: %s" (car err) (cdr err)))
 			   (wisi-parse-log-message wisi--parser msg)
@@ -260,7 +264,12 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	     ((string= (match-string 1) "RESULT")
 	      (looking-at ".*$")
 	      (setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
-	      (unless (equal expected-result last-result)
+	      (if (equal expected-result last-result)
+		  (when (> wisi-debug 1)
+		    (let ((msg (format "test passes %s:%d:\n" (buffer-file-name) (line-number-at-pos))))
+		      (wisi-parse-log-message wisi--parser msg)
+		      (message msg)))
+
 		(setq error-count (1+ error-count))
 		(let ((msg (concat
 			    (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))

@@ -522,6 +522,7 @@ Macro must have been saved by `wisi-save-kbd-macro'."
 	(i 0))
 
     (set-buffer macro-buffer)
+    (goto-char (point-min))
     (setq macro (car (read-from-string (buffer-substring-no-properties (point) (scan-sexps (point) 1)))))
     (set-buffer edit-buffer)
     ;; We force a delay between each event in the macro, to better

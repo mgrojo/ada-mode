@@ -112,7 +112,10 @@ Otherwise add PARSER to `wisi-process--alist', return it."
 	(while (re-search-forward wisi-process-parse-prompt (point-max) t)
 	  (cond
 	   ((not (wisi-process--parser-version-checked wisi--parser))
-	    (when (< 1 wisi-debug) (wisi-parse-log-message wisi--parser "parse--filter found prompt - protocol"))
+	    (when (< 1 wisi-debug)
+              (wisi-parse-log-message
+               wisi--parser
+               (format "parse--filter found prompt - protocol; wisi-parse-full-active %s" wisi-parse-full-active)))
 	    (save-excursion
 	      ;; The process has just started; the first non-comment line in the
 	      ;; process buffer contains the process and language protocol versions.
@@ -779,9 +782,11 @@ PARSER will respond with one or more Query messages."
 	;; Decide whether to wait or signal.
 	(cl-ecase parse-action
 	  (face
-	   ;; font-lock can trigger a face parse via a timer delay while
-	   ;; navigate or indent parse is active, due to
-	   ;; `accept-process-output' in w-p-p--handle-messages.
+	   ;; font-lock can trigger a face parse during initial full
+	   ;; parse, or via a timer delay while navigate or indent
+	   ;; parse is active, due to `accept-process-output' in
+	   ;; w-p-p--handle-messages. If we signal here, it will try
+	   ;; again later.
 	   t)
 
 	  ((navigate indent none refactor query debug)
@@ -838,7 +843,7 @@ PARSER will respond with one or more Query messages."
   (let ((response-buffer (wisi-process--parser-buffer parser))
         (source-buffer (wisi-process--parser-source-buffer parser))
 	log-start)
-    (condition-case-unless-debug err
+    (condition-case err
 	(let* ((process (wisi-process--parser-process parser))
 	       (w32-pipe-read-delay 0) ;; fastest subprocess read
 	       response
@@ -912,41 +917,21 @@ PARSER will respond with one or more Query messages."
 
 		  (cond
 		   ((listp response)
-		    ;; non-syntax error of some sort
+		    ;; error or message
 		    (cond
 		     ((equal 'file_not_found (car response))
-		      ;; Parser does not have full text for file; most
-		      ;; likely because it crashed or was killed since
-		      ;; we last did a full parse. Signal it; caller
-		      ;; will do a full parse.
+		      ;; Parser does not have full text for file;
+		      ;; signal it, caller will do a full parse.
 		      (wisi-parse-log-message parser (buffer-substring log-start (point)))
 		      (set-buffer source-buffer)
 		      (signal 'wisi-file_not_found nil))
 
-		     ((equal '(parse_error) response)
-		      ;; Parser detected a syntax error, and recovery failed, so signal it.
-		      (if (wisi-parser-parse-errors parser)
-			  (progn
-			    (wisi-parse-log-message
-			     parser
-			     (wisi--parse-error-message (car (wisi-parser-parse-errors parser))))
-			    (signal 'wisi-parse-error
-				    (wisi--parse-error-message (car (wisi-parser-parse-errors parser)))))
-
-			;; Can have no errors when testing a new parser
-			(wisi-parse-log-message parser "parser failed with no message")
-			(push
-			 (make-wisi--parse-error :pos 0 :message "parser failed with no message")
-			 (wisi-parser-parse-errors parser))
-			(signal 'wisi-parse-error "parser failed with no message")))
-
 		     ((equal 'parse_error (car response))
-		      ;; Parser detected some other non-fatal error, so signal it.
-		      (wisi-parse-log-message parser (cadr response))
+		      ;; Parse failed for some reason, so signal it, and report it in error list.
 		      (push
-		       (make-wisi--parse-error :pos (point-min) :message (cadr response))
+		       (make-wisi--parse-error :pos 0 :message (cadr response))
 		       (wisi-parser-parse-errors parser))
-		      (signal 'wisi-parse-error (cdr response)))
+		      (signal 'wisi-parse-error (cadr response)))
 
 		     ((and (eq 'error (car response))
 			   (string-prefix-p "bad command:" (cadr response)))
@@ -959,7 +944,7 @@ PARSER will respond with one or more Query messages."
 		      (signal 'wisi-parse-error "parser lost sync; killed"))
 
 		     (t
-		      ;; Some other error
+		      ;; Something else
 		      (condition-case-unless-debug err
 			  (eval response)
 			(error
@@ -974,10 +959,10 @@ PARSER will respond with one or more Query messages."
 		   ((arrayp response)
 		    ;; encoded action
 		    (set-buffer source-buffer) ;; for put-text-property in actions
-		    (condition-case-unless-debug err
+		    (condition-case err
 			(wisi-process-parse--execute parser response)
 
-		      (error ;; from bug in action code above, or bad data from parser.
+		      (t ;; error from bug in action code above, or bad data from parser.
 		       (let ((msg (format "elisp processing of message '%s' failed in %s" response source-buffer)))
 			 (wisi-parse-log-message parser msg)
 			 (error msg)))
@@ -1046,6 +1031,7 @@ PARSER will respond with one or more Query messages."
        (signal (car err) (cdr err)))
 
       (error
+       (wisi-parse-log-message parser (cadr err))
        (set-buffer response-buffer)
        (wisi-parse-log-message parser (buffer-substring log-start (point)))
        (setf (wisi-process--parser-busy parser) nil)
@@ -1062,6 +1048,9 @@ PARSER will respond with one or more Query messages."
       (no-text
        (let ((cmd (format "create-context \"%s\"" (if (buffer-file-name) (buffer-file-name) (buffer-name))))
 	     (process (wisi-process--parser-process parser)))
+	 (with-current-buffer (wisi-process--parser-buffer parser)
+	   (erase-buffer))
+	 (wisi-parse-log-message parser cmd)
 	 (process-send-string process (wisi-process-parse--add-cmd-length cmd)))
        (wisi-process-parse--wait parser)
        (wisi-process-parse--handle-messages parser)
@@ -1206,6 +1195,8 @@ PARSER will respond with one or more Query messages."
     (wisi-process-parse--handle-messages-file-not-found
      parser
      (lambda ()
+       (with-current-buffer (wisi-process--parser-buffer parser)
+	 (erase-buffer))
        (wisi-parse-log-message parser cmd)
        (process-send-string process (wisi-process-parse--add-cmd-length cmd)))
      :no-text t)
@@ -1259,6 +1250,7 @@ PARSER will respond with one or more Query messages."
 	   (insert "verbosity " verbosity "\n"))
 
 	 (insert "save_text_auto debug_edited\n")
+	 (insert "compare_tree_text_auto\n")
 
 	 (when (or (not (string-equal mckenzie_task_count "-1"))
 		   (not (string-equal mckenzie_zombie_limit "-1"))
@@ -1422,7 +1414,7 @@ PARSER will respond with one or more Query messages."
 		  ))
     (kill-new cmd)))
 
-(defun wisi-time (func count &optional report-wait-time)
+(cl-defun wisi-time (func count &key report-wait-time)
   "call FUNC COUNT times, show total time"
   (interactive "afunction \nncount ")
 

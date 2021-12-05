@@ -67,15 +67,14 @@ package body Wisi.Parse_Context is
       end return;
    end Create_No_File;
 
-   function Create_No_Text
+   procedure Create_No_Text
      (File_Name : in String;
       Language  : in Wisi.Parse_Context.Language;
       Trace     : in WisiToken.Trace_Access)
-     return Parse_Context_Access
-   is begin
-      return Result : constant Parse_Context_Access := Create_No_File (Language, Trace) do
-         Set_File (File_Name, Result);
-      end return;
+   is
+      Temp : constant Parse_Context_Access := Create_No_File (Language, Trace);
+   begin
+      Set_File (File_Name, Temp);
    end Create_No_Text;
 
    procedure Set_File (File_Name : in String; Parse_Context : in Parse_Context_Access)
@@ -765,7 +764,7 @@ package body Wisi.Parse_Context is
       Parser.Tree.Lexer.Reset;
       Parser.Parse (Log_File);
       WisiToken.Syntax_Trees.AUnit_Public.Check
-        ("compare tree/text", Saved_Tree, Parser.Tree,
+        ("", Saved_Tree, Parser.Tree,
          Shared_Stream         => False,
          Terminal_Node_Numbers => False);
       Parse_Data.Trace.Put_Line ("compare tree/text pass");
@@ -777,7 +776,7 @@ package body Wisi.Parse_Context is
          T : Dummy_Test;
          Failure : constant AUnit.Test_Results.Test_Failure := Get_Failure (First_Failure (T));
       begin
-         Ada.Text_IO.Put_Line ("(error ""compare tree/text fail " & Failure.Message.all & """)");
+         Ada.Text_IO.Put_Line ("(parse_error ""compare tree/text fail " & Failure.Message.all & """)");
          if WisiToken.Trace_Incremental_Parse > WisiToken.Extra then
             Parse_Data.Trace.New_Line;
             Parse_Data.Trace.Put_Line ("incremental tree:");
