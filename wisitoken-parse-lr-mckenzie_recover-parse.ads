@@ -102,6 +102,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Config_Stream_Parents)
    with Pre => Bounded_Streams.Has_Element (Ref.Element) and Ref.Node /= Syntax_Trees.Invalid_Node_Access;
+   --  Can step past EOI.
 
    procedure Prev_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;

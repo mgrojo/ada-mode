@@ -1819,6 +1819,8 @@ package WisiToken.Syntax_Trees is
       Ref  : in out Syntax_Trees.Stream_Node_Parents)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
+   --  Update Node to the first terminal with valid Sequential_Index
+   --  succeeding Node. Can step past EOI.
 
    procedure Prev_Sequential_Terminal
      (Tree    : in     Syntax_Trees.Tree;
@@ -1826,7 +1828,7 @@ package WisiToken.Syntax_Trees is
       Parents : in out Node_Stacks.Stack)
    with Pre => Tree.Label (Node) in Terminal_Label;
    --  Update Node to the last terminal with valid Sequential_Index
-   --  preceding Node.
+   --  preceding Node. Can step past SOI.
 
    procedure Prev_Sequential_Terminal
      (Tree         : in     Syntax_Trees.Tree;

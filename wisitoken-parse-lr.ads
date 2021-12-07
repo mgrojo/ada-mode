@@ -524,7 +524,7 @@ package WisiToken.Parse.LR is
    type Minimal_Complete_State is (None, Active, Done);
 
    type Configuration is record
-      Stack : Recover_Stacks.Stack (70);
+      Stack : Recover_Stacks.Stack (90);
       --  Initially built from the parser stack, then the stack after the
       --  Ops below have been performed.
       --
@@ -533,6 +533,7 @@ package WisiToken.Parse.LR is
       --  allocation.
       --
       --  Emacs ada-mode wisi.adb needs > 50
+      --  wisitoken-parse.adb Edit_Tree needs > 70
 
       Current_Shared_Token : Syntax_Trees.Terminal_Ref := Syntax_Trees.Invalid_Stream_Node_Ref;
       --  Current input token in Shared_Stream; to be input after all of
