@@ -781,6 +781,9 @@ package body Wisi.Parse_Context is
             Parse_Data.Trace.New_Line;
             Parse_Data.Trace.Put_Line ("incremental tree:");
             Saved_Tree.Print_Tree (Parse_Data.Trace.all, Line_Numbers => True, Non_Grammar => True);
+            Parse_Data.Trace.New_Line;
+            Parse_Data.Trace.Put_Line ("full tree:");
+            Parser.Tree.Print_Tree (Parse_Data.Trace.all, Line_Numbers => True, Non_Grammar => True);
          end if;
       end;
    end Compare_Tree_Text;

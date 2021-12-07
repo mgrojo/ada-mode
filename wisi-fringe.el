@@ -134,7 +134,7 @@ displaying that buffer must be current."
 	(window-pos-last  (window-end))
 	(window-line-first (line-number-at-pos (window-start))))
     (dolist (pos positions)
-      (let* ((line (line-number-at-pos pos))
+      (let* ((line (line-number-at-pos (max (point-min) (min (point-max) pos))))
 	     (scaled-pos (wisi-fringe--scale line buffer-lines window-line-first window-lines)))
 	(when (and (>= pos window-pos-first)
 		   (<= pos window-pos-last))

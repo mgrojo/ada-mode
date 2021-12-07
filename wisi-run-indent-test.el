@@ -242,9 +242,12 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 		(save-excursion
 		  (setq last-result
 			(condition-case-unless-debug err
-			    (progn
+			    (prog1
 			      (eval (car (read-from-string last-cmd)))
-			      (when (> wisi-debug 1) (wisi-parse-log-message wisi--parser (concat msg " ... done"))))
+			      (when (> wisi-debug 1)
+			        (setq msg (concat msg " ... done"))
+                                (wisi-parse-log-message wisi--parser msg)
+                                (message msg)))
 			  ((error wisi-parse-error)
 			   (setq error-count (1+ error-count))
 			   (setq msg (concat msg " ... signaled"))
