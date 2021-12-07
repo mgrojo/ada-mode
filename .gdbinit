@@ -8,13 +8,14 @@
 set args command_file debug.cmd
 
 # Process_Command verbosity
-break run_wisi_common_parse.adb:574 
+break run_wisi_common_parse.adb:623
 
 # gpr_query
 #set args -P test/ada_mode.gpr --db=c:/tmp/gpr_query.db --tracefile=gpr_query.trace
 
 #catch excep
 catch excep ADA.ASSERTIONS.ASSERTION_ERROR
+catch excep WISI.PROTOCOL_ERROR
 catch excep WISITOKEN.SYNTAX_ERROR
 catch excep CONSTRAINT_ERROR
 catch excep SAL.PROGRAMMER_ERROR
