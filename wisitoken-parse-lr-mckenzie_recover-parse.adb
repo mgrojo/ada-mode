@@ -387,17 +387,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    is
       use Bounded_Streams;
       use Syntax_Trees;
-      Tree  : Syntax_Trees.Tree renames Super.Tree.all;
+      Tree       : Syntax_Trees.Tree renames Super.Tree.all;
+      First_Term : Node_Access;
    begin
       Ref.Element := Ref.Stream.First;
       Ref.Node    := Invalid_Node_Access;
 
       loop
          exit when not Has_Element (Ref.Element);
+         First_Term := Tree.First_Terminal (Ref.Stream.Element (Ref.Element));
+         exit when First_Term = Invalid_Node_Access;
 
          Base.Extend_Sequential_Index
            (Super,
-            Thru     => Tree.First_Terminal (Ref.Stream.Element (Ref.Element)),
+            Thru     => First_Term,
             Positive => True);
          Ref.Node := Tree.First_Sequential_Terminal (Ref.Stream.Element (Ref.Element), Ref.Parents);
          exit when Ref.Node /= Invalid_Node_Access;

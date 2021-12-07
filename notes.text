@@ -34,8 +34,6 @@ update-wisitoken_grammar
 review FIXME
 
 other:
-c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-explore.adb:1549:      --  Delete tokens First .. Last from Tree Shared_Stream. FIXME: why not from Parse_Stream?
-
 c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-explore.adb:1779:            --  The unbalanced quote is after the parse error token. FIXME: also
 
 

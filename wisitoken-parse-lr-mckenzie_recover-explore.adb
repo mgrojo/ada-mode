@@ -1545,7 +1545,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
         (Label       : in     String;
          Config      : in out Configuration;
          First, Last : in     Syntax_Trees.Sequential_Index)
-      --  Delete tokens First .. Last from Tree Shared_Stream. FIXME: why not from Parse_Stream?
+      --  Delete tokens First .. Last from Tree Shared_Stream; caller has
+      --  already done deletes Config.Input_Stream.
       --  Config.Current_Shared_Token must be in First .. Last + 1. Leave
       --  Current_Shared_Token at Last + 1.
       is

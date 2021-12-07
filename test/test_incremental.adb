@@ -205,12 +205,14 @@ package body Test_Incremental is
 
       begin
          Full_Parser.Parse (Log_File);
+         if WisiToken.Trace_Tests > WisiToken.Outline then
+            Put_Tree (Full_Parser);
+         end if;
          Check (Label_Dot & "edited full parse errors", Full_Parser.Tree.Error_Count, Incr_Errors);
       exception
       when WisiToken.Syntax_Error =>
          if WisiToken.Trace_Tests > WisiToken.Outline then
             Put_Line (Label_Dot & "(syntax_error)");
-            Put_Tree (Full_Parser);
          end if;
          Check ("syntax_error", True, False);
          return;
@@ -594,7 +596,7 @@ package body Test_Incremental is
 
    end Edit_Leading_Non_Grammar;
 
-   procedure Edit_Code_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Code_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -606,9 +608,9 @@ package body Test_Incremental is
          Delete  => "",
          Insert  => "A_");
       --             |1
-   end Edit_Code_1;
+   end Edit_Code_01;
 
-   procedure Edit_Code_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Code_02 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -620,9 +622,9 @@ package body Test_Incremental is
          Delete  => "B",
          Insert  => "A_1");
       --             |20
-   end Edit_Code_2;
+   end Edit_Code_02;
 
-   procedure Edit_Code_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Code_03 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -634,9 +636,9 @@ package body Test_Incremental is
          Delete  => ";",
          Insert  => "_1;");
       --             |25
-   end Edit_Code_3;
+   end Edit_Code_03;
 
-   procedure Edit_Code_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Code_04 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -657,9 +659,9 @@ package body Test_Incremental is
 
       --  Edited: "A :=1 +  --  comment 1" & ASCII.LF & "c;",
       --           |1       |10       |20                |24
-   end Edit_Code_4;
+   end Edit_Code_04;
 
-   procedure Edit_Code_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Code_05 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -675,9 +677,9 @@ package body Test_Incremental is
          Edit_2_At => 24,
          Delete_2  => "",
          Insert_2  => "_2");
-   end Edit_Code_5;
+   end Edit_Code_05;
 
-   procedure Edit_Code_6 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Code_06 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -696,9 +698,9 @@ package body Test_Incremental is
 
       --  Edited: "A_1 := BC;",
       --           |1     |8
-   end Edit_Code_6;
+   end Edit_Code_06;
 
-   procedure Edit_Code_7 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Code_07 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -714,9 +716,9 @@ package body Test_Incremental is
          Edit_2_At => 9,
          Delete_2  => " ",
          Insert_2  => "");
-   end Edit_Code_7;
+   end Edit_Code_07;
 
-   procedure Edit_Code_8 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Code_08 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -727,9 +729,9 @@ package body Test_Incremental is
          Edit_At => 10,
          Delete  => "Cab",
          Insert  => "Cad");
-   end Edit_Code_8;
+   end Edit_Code_08;
 
-   procedure Edit_Code_9 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Code_09 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -739,8 +741,40 @@ package body Test_Incremental is
          --          |1       |10              |12
          Edit_At => 12,
          Delete  => "exit",
-         Insert  => "EXIT"); -- ada_lite is case sensitive, so this is an IDENTIFIER.
-   end Edit_Code_9;
+         Insert  => "EXIT");
+   end Edit_Code_09;
+
+   procedure Edit_Code_10 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Simplified from ada_mode-interactive_10.adb
+      Parse_Text
+        (Initial        => "procedure Foo is a : integer" & ASCII.LF & ASCII.LF & "begin exit; end Foo;",
+         --                 |1       |10       |20          |29
+         Edit_At        => 22,
+         Delete         => "i",
+         Insert         => "I",
+         Edit_2_At      => 29,
+         Delete_2       => "",
+         Insert_2       => ";",
+         Initial_Errors => 1);
+   end Edit_Code_10;
+
+   procedure Edit_Code_11 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Similar to Edit_Code_10, tests another case in Edit_Tree.
+      Parse_Text
+        (Initial        => "procedure Foo is a : integer" & ASCII.LF & "begin" & ASCII.LF & "exit; end Foo;",
+         --                 |1       |10       |20          |29
+         Edit_At        => 31,
+         Delete         => "e",
+         Insert         => "e",
+         Initial_Errors => 1,
+         Incr_Errors    => 1);
+   end Edit_Code_11;
 
    procedure Delete_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1192,15 +1226,17 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");
-      Register_Routine (T, Edit_Code_1'Access, "Edit_Code_1");
-      Register_Routine (T, Edit_Code_2'Access, "Edit_Code_2");
-      Register_Routine (T, Edit_Code_3'Access, "Edit_Code_3");
-      Register_Routine (T, Edit_Code_4'Access, "Edit_Code_4");
-      Register_Routine (T, Edit_Code_5'Access, "Edit_Code_5");
-      Register_Routine (T, Edit_Code_6'Access, "Edit_Code_6");
-      Register_Routine (T, Edit_Code_7'Access, "Edit_Code_7");
-      Register_Routine (T, Edit_Code_8'Access, "Edit_Code_8");
-      Register_Routine (T, Edit_Code_9'Access, "Edit_Code_9");
+      Register_Routine (T, Edit_Code_01'Access, "Edit_Code_01");
+      Register_Routine (T, Edit_Code_02'Access, "Edit_Code_02");
+      Register_Routine (T, Edit_Code_03'Access, "Edit_Code_03");
+      Register_Routine (T, Edit_Code_04'Access, "Edit_Code_04");
+      Register_Routine (T, Edit_Code_05'Access, "Edit_Code_05");
+      Register_Routine (T, Edit_Code_06'Access, "Edit_Code_06");
+      Register_Routine (T, Edit_Code_07'Access, "Edit_Code_07");
+      Register_Routine (T, Edit_Code_08'Access, "Edit_Code_08");
+      Register_Routine (T, Edit_Code_09'Access, "Edit_Code_09");
+      Register_Routine (T, Edit_Code_10'Access, "Edit_Code_10");
+      Register_Routine (T, Edit_Code_11'Access, "Edit_Code_11");
       Register_Routine (T, Delete_New_Line'Access, "Delete_New_Line");
       Register_Routine (T, Delete_Comment_End'Access, "Delete_Comment_End");
       Register_Routine (T, Delete_Comment_Start'Access, "Delete_Comment_Start");

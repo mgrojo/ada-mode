@@ -989,10 +989,7 @@ package body WisiToken.Parse is
                Lex_Start_Char : Buffer_Pos       := Buffer_Pos'Last;
                Lex_Start_Line : Line_Number_Type := Line_Number_Type'Last;
 
-               Last_Grammar : Stream_Node_Ref :=
-                 (if Terminal_Non_Grammar_Next = Lexer.Token_Arrays.No_Index
-                  then Tree.Prev_Terminal (Terminal) -- Shifted
-                  else Terminal); -- Not shifted
+               Last_Grammar : Stream_Node_Ref := Invalid_Stream_Node_Ref;
 
                procedure Check_Comment_End (Token : in Lexer.Token)
                is begin
@@ -1056,11 +1053,15 @@ package body WisiToken.Parse is
                      end if;
                   end;
 
+               elsif KMN.Inserted_Bytes = 0 and KMN.Deleted_Bytes = 0 then
+                  --  Nothing to scan; last KMN
+                  null;
+
                elsif Terminal_Byte_Region.Last + Shift_Bytes > Scanned_Byte_Pos
-                 --  Terminal was scanned by a previous KMN.
+                 --  Else Terminal was scanned by a previous KMN.
                  --  ada_mode-recover_align_1.adb, ada_mode-interactive_02.adb
                  and Next_KMN_Stable_First + Shift_Bytes > Scanned_Byte_Pos
-                 --  else all of current edit has been scanned. test_incremental.adb Edit_Comment_2
+                 --  Else all of current edit has been scanned. test_incremental.adb Edit_Comment_2
                then
                   if Terminal_Non_Grammar_Next /= Lexer.Token_Arrays.No_Index then
                      --  Edit start is in Terminal_Non_Grammar_Next.
@@ -1179,9 +1180,8 @@ package body WisiToken.Parse is
                         Tree.Next_Terminal (Terminal);
                      end;
 
-
-                  elsif Terminal_Byte_Region.First + Shift_Bytes <= Inserted_Region.First then
-                     --  Edit start is in Terminal.
+                  elsif Terminal_Byte_Region.First + Shift_Bytes < Inserted_Region.First then
+                     --  Edit start is in Terminal. test_incremental.adb Edit_Code_10, _11.
 
                      if Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.EOI_ID then
                         if Length (Inserted_Region) > 0 then
@@ -1203,7 +1203,7 @@ package body WisiToken.Parse is
                         Lex_Start_Char := Tree.Char_Region (Terminal.Node).First + Shift_Chars;
 
                         --  Line_Region.First is from prev_terminal.non_grammar, which is shifted
-                        Lex_Start_Line := Tree.Line_Region (Terminal).First;
+                        Lex_Start_Line := Tree.Line_Region (Terminal, Trailing_Non_Grammar => True).First;
                      end if;
 
                   else
@@ -1302,13 +1302,23 @@ package body WisiToken.Parse is
                                       (Token.Char_Region.First + (if Floating then Shift_Bytes else 0),
                                        Inserted_Region_Chars.First);
 
-                                    Lex_Start_Line := Token.Line_Region.First +
-                                      (if Floating
-                                       then
-                                          --  If this token contributed to Shift_Lines, ignore that part.
-                                          --  ada_mode-recover_14 comment after extra 'begin'.
-                                          Shift_Lines + New_Line_Count (Token.Line_Region)
-                                       else 0);
+                                    if Floating then
+                                       --  Tokens Delete .. Non_Grammar.Last contributed to Shift_Lines;
+                                       --  ignore that contribution because they are after the lex start.
+                                       --  test_incremental.adb Edit_Code_10
+                                       --  ada_mode-interactive_10.adb
+                                       --  ada_mode-recover_14 comment after extra 'begin'.
+                                       declare
+                                          Temp_Shift_Lines : Base_Line_Number_Type := Shift_Lines;
+                                       begin
+                                          for I in Delete .. Non_Grammar.Last_Index loop
+                                             Temp_Shift_Lines := @ + New_Line_Count (Non_Grammar (I).Line_Region);
+                                          end loop;
+                                          Lex_Start_Line := Token.Line_Region.First + Temp_Shift_Lines;
+                                       end;
+                                    else
+                                       Lex_Start_Line := Token.Line_Region.First;
+                                    end if;
                                  end;
 
                                  if Trace_Incremental_Parse > Detail then
@@ -1336,44 +1346,21 @@ package body WisiToken.Parse is
                            end if;
                         end Handle_Non_Grammar;
                      begin
-                        loop
-                           --  Set Last_Grammar to the token containing the non_grammar that may
-                           --  contain the edit start.
-                           exit when Tree.Label (Last_Grammar.Node) = Source_Terminal;
+                        --  Set Last_Grammar to the token containing the non_grammar that may
+                        --  contain the edit start.
+                        Last_Grammar := Tree.Prev_Terminal (Terminal);
 
-                           if Tree.Non_Grammar_Const (Last_Grammar.Node).Length > 0 then
-                              --  This token will be deleted below. Ensure we scan all of this
-                              --  non_grammar.
-                              declare
-                                 Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Const
-                                   (Last_Grammar.Node);
-                                 Token : Lexer.Token renames Non_Grammar (Non_Grammar.First_Index);
-                              begin
-                                 Do_Scan        := True;
-                                 Lex_Start_Byte := Buffer_Pos'Min
-                                   (Token.Byte_Region.First, Inserted_Region.First);
-                                 Lex_Start_Char := Buffer_Pos'Min
-                                   (Token.Char_Region.First, Inserted_Region_Chars.First);
-                                 Lex_Start_Line := Token.Line_Region.First;
-                              end;
-                           end if;
-
-                           Tree.Prev_Terminal (Last_Grammar);
-                        end loop;
-
-                        if not Do_Scan then
-                           if Floating_Non_Grammar.Length > 0 and then
-                             Floating_Non_Grammar (Floating_Non_Grammar.First_Index).Byte_Region.First + Shift_Bytes <
-                             Inserted_Region.First
-                           then
-                              --  The edit start is in a floated non_grammar.
-                              --  test_incremental.adb Edit_Comment_7
-                              --  ada_mode-recover_14.adb comment after deleted "begin".
-                              Handle_Non_Grammar (Floating_Non_Grammar, Floating => True);
-                           else
-                              Handle_Non_Grammar
-                                (Tree.Non_Grammar_Var (Last_Grammar.Node), Floating => False);
-                           end if;
+                        if Floating_Non_Grammar.Length > 0 and then
+                          Floating_Non_Grammar (Floating_Non_Grammar.First_Index).Byte_Region.First + Shift_Bytes <=
+                          Inserted_Region.First
+                        then
+                           --  The edit start is in a floated non_grammar.
+                           --  test_incremental.adb Edit_Comment_7, Edit_Code_10
+                           --  ada_mode-recover_14.adb comment after deleted "begin".
+                           Handle_Non_Grammar (Floating_Non_Grammar, Floating => True);
+                        else
+                           Handle_Non_Grammar
+                             (Tree.Non_Grammar_Var (Last_Grammar.Node), Floating => False);
                         end if;
                      end;
                   end if;
