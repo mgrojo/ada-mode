@@ -55,5 +55,13 @@
 		   (xref-backend-identifier-at-point (xref-find-backend))))))
     ))
 
+;;; Settings for all tests; can be overridden on make command line via ELISP
+(setq debug-on-error nil)
+(setq-default wisi-parser-verbosity "debug=1")
+(setq-default compare-tree-text t)
+(setq-default wisi-process-time-out 30.0) ;; running with debug/assert is slow, ada_mode-recover_30.adb
+
+(setq wisi-debug 1) ;; abort on non-syntax errors
+
 (provide 'run-indent-test)
 ;; end of file

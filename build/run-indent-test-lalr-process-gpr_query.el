@@ -16,9 +16,5 @@
 
 (setq project-find-functions '(wisi-prj-current-cached))
 
-(setq debug-on-error nil) ;; can be overridden on make command line via ELISP
-
-(setq wisi-debug 1) ;; abort on non-syntax errors
-
 (provide 'run-indent-test-lalr-process-gpr_query)
 ;;; end of file

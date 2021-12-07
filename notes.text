@@ -74,15 +74,7 @@ gpr_query.
         - pay someone in-house to work on this - I will mentor
 
  current work
-ada-mode-hook runs before initial parse
-    because we want to allow it to set debug etc that affect initial parse
-    set compare_tree_text_auto causes parse via file-not-found
-        that confuses things, get extra messages because of nowait
-        distinguish between context-not-found and need-text?
-        need command sequence numbers. sigh.
-        or process extra messages if nowait? not working
-
-    need another hook that runs after initial parse started
+do uniquify-files patch
 
 review FIXMEs
     (grep-find "find c:/Projects/org.wisitoken -type f -print | \"xargs\" grep  -nH --null FIXME")
@@ -1029,63 +1021,18 @@ two RUN_ARGS="command_file debug.cmd &> debug.log"
 
 *.debug RUNTEST=run-indent-test-lalr-incremental-process-gpr_query.el ELISP="(setq-default wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
 
-in debug.cmd:
-mckenzie_options task_count=1
-save_text_auto debug_edited
-verbosity debug=1 action=3
-verbosity mckenzie=1 parse=2 incremental=3 lexer=1
+when saving kbd macros for tests:
+    (define-key global-map "\M-w" 'kill-ring-save)
+    (define-key global-map "\M-w" 'sal-save-all-buffers)
+
+after each wisi-reset-parser:
+    (wisi-process-parse-compare-tree-text wisi--parser)
 
 ada-mode option defaults:
 --lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 1"
 
 end-name-optional nil:
 --lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 0"
-
-wisi.adb insert_token
-    p data.descriptor.image (tree.shared_tree.nodes.elements (token).id).all
-
-gdb run_ada_parse
-    syntax_trees.adb
-        Find_New_Line
-        show_id node.id
-        show_id child.id
-        p line
-        p child.line
-        p child.line_last
-        p child.byte_region
-
-        Update_Cache
-        show_id node.id
-        show_id child.id
-        p child.byte_region
-        p child.line
-        p child.line_last
-
-    wisi.adb
-        reduce
-        show_id nonterm.id
-        show_id token.base.id
-        p token.base.byte_region
-        p token.aug
-
-    in wisitoken-wisi_runtime.adb Indent_Action_0:
-        break on 'if token.first_indent_line then' line 1050
-        call wisitoken.syntax_trees.id (tree, nonterm)
-        p data.descriptor.image ($)
-        p i
-        p data.descriptor.image (token.id)
-        p token.line
-        p token.col
-        p pair
-        p data.indents.elements.ea(token.line)
-
-    in wisitoken-semantic_state.adb Reduce
-        break on 'nonterm.paren_state := ' line 334
-        p descriptor.image (nonterm.id)
-        p i
-        p descriptor.image (aug_token.id)
-        p aug_token
-        p nonterm
 
 to change process executable for all current and future buffers:
 
@@ -1106,47 +1053,6 @@ to change process executable for all current and future buffers:
     (setq wisi-process--alist nil)
     M-x <lang>-mode
 
-Edebug displays
-
-in wisi-process-parse--Reduce_Stack:
-
-
-in wisi-parse-reduce:
-(setq edebug-eval-list
- '(nonterm
-   tok
-   first
-   ))
-
-in wisi--indent-token-1:
-(setq edebug-eval-list
- '((wisi-ind-indent wisi--indent)
-   wisi-nterm
-   i
-   delta
-   indent
-   ))
-
-in wisi-indent-action:
-(setq edebug-eval-list
- '((wisi-ind-indent wisi--indent)
-   wisi-nterm
-   wisi-tokens
-   deltas
-   wisi-token-index
-   tok
-   token-delta
-   comment-delta
-   ))
-
-wisi-indent-region:
-(setq edebug-eval-list
- '((wisi-ind-indent wisi--indent)
-   anchor-indent
-   i
-   indent
-   new-indent
-   ))
 
 use elp (emacs lisp profiler)?
     (with-current-buffer (find-file-noselect "~/src/xdisp.c")
@@ -1170,23 +1076,6 @@ attach gud-gdb to running emacs: attach <process id>
 (info "(aarm2012)Annex P" "*info Annex P*")
 http://www.ada-auth.org/standards/
 (info "(elisp)Parser State" "*info syntax-ppss*")
-"c:/home/stephe/Backup/eBooks/Dick Grune/Parsing.pdf" [dickgrune]
-
-http://savannah.gnu.org/projects/emacs/
-
-http://git.savannah.gnu.org/cgit/emacs.git/tree/README?h=elpa
-http://elpa.gnu.org/
-
-https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
-    w32 builds of cutting-edge emacs branches, pretests
-
-ftp://alpha.gnu.org/gnu/emacs/pretest/
-    untar with cygwin
-    in mys32 under emacs:
-        cd /c/Projects/emacs/emacs-24.3.9x
-        ./configure --prefix=/mingw32
-        make
-        # don't make install, just run from the build dir
 
  git config for elpa checkout
 in ~/.gitconfig:

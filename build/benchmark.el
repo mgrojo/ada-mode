@@ -1,6 +1,7 @@
 ;; emacs command line arg: Ada source file to parse.
 (package-initialize)
 
+(setq debug-on-error t)
 (setq benchmark-source-file (pop command-line-args-left))
 
 (require 'ada-mode)
@@ -15,27 +16,47 @@
 (find-file benchmark-source-file)
 (wisi-parse-buffer 'indent) ; time with warm caches.
 (message "partial parse:")
+
 (message "navigate")
-(wisi-time (lambda () (wisi-parse-buffer 'navigate)) 4 t); t for process stats
+(wisi-time (lambda () (wisi-parse-buffer 'navigate)) 4 :report-wait-time t)
+
 (message "face")
-(wisi-time (lambda () (wisi-parse-buffer 'face)) 4 t); t for process stats
+(wisi-time (lambda () (wisi-parse-buffer 'face)) 4 :report-wait-time t)
+
 (message "indent")
-(wisi-time (lambda () (wisi-parse-buffer 'indent)) 4 t); t for process stats
+(wisi-time (lambda () (wisi-parse-buffer 'indent)) 4 :report-wait-time t)
+
 (message "re-indent")
+(goto-char (/ (point-max) 3))
+(goto-char (line-beginning-position))
+(wisi-time (lambda () (indent-rigidly (point)(line-beginning-position 2) -1)(indent-for-tab-command)) 4 :report-wait-time t)
+
+(message "recover")
 (goto-char (/ (point-max) 2))
 (goto-char (line-beginning-position))
-(wisi-time (lambda () (indent-rigidly (point)(line-beginning-position 2) -1)(indent-for-tab-command)) 4 t)
+(forward-comment (point-max))
+(kill-line 2)
+(wisi-time 'indent-for-tab-command 4 :report-wait-time t)
+(undo)
 
 (setq-default wisi-incremental-parse-enable t)
 (message "incremental parse:")
+
 (message "initial")
-(wisi-time (lambda () (wisi-parse-incremental wisi--parser t)) 4 t)
+(wisi-time (lambda () (wisi-parse-incremental wisi--parser 'none :full t)) 4 :report-wait-time t)
+
 (message "re-indent")
+(goto-char (/ (point-max) 3))
+(goto-char (line-beginning-position))
+(wisi-time (lambda () (indent-rigidly (point)(line-beginning-position 2) -1)(indent-for-tab-command)) 4 :report-wait-time t)
+
+(message "recover")
 (goto-char (/ (point-max) 2))
 (goto-char (line-beginning-position))
-(wisi-time (lambda () (indent-rigidly (point)(line-beginning-position 2) -1)(indent-for-tab-command)) 4 t)
-
-;; FIXME: find a fontified word, time re-fontify
+(forward-comment (point-max))
+(kill-line 2)
+(wisi-time 'indent-for-tab-command 4 :report-wait-time t)
+(undo)
 
 (split-window-vertically)
 (pop-to-buffer "*Messages*")
