@@ -213,7 +213,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   end if;
 
                   Push_Back_Check (Super, New_Config, +END_ID);
-                  Insert (Tree, New_Config, (+END_ID, +SEMICOLON_ID));
+                  Insert (Super, New_Config, (+END_ID, +SEMICOLON_ID));
 
                   Local_Config_Heap.Add (New_Config);
 
@@ -314,7 +314,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
                --  This is handling Missing_Name_Error, so we know the identifier_opt
                --  or name_opt is empty.
-               Delete_Check (Tree, New_Config, (+END_ID, +SEMICOLON_ID));
+               Delete_Check (Super, New_Config, (+END_ID, +SEMICOLON_ID));
 
                if Trace_McKenzie > Detail then
                   Put
@@ -348,7 +348,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                     else +name_opt_ID),
                    +END_ID, +handled_sequence_of_statements_ID));
 
-               Insert (Tree, New_Config, +BEGIN_ID);
+               Insert (Super, New_Config, +BEGIN_ID);
 
                if Trace_McKenzie > Detail then
                   Put ("Language_Fixes Missing_Name_Error 1b " &
@@ -436,9 +436,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
                   if Tree.Element_ID (New_Config.Stack.Peek.Token) = +BEGIN_ID then
                      --  test_mckenzie_recover.adb Extra_Name_1.
-                     Insert (Tree, New_Config, (+EXIT_ID, +SEMICOLON_ID));
+                     Insert (Super, New_Config, (+EXIT_ID, +SEMICOLON_ID));
                   end if;
-                  Insert (Tree, New_Config, +END_ID);
+                  Insert (Super, New_Config, +END_ID);
                   --  We don't insert ';' here, because we may need to insert other
                   --  stuff first; let Minimal_Complete_Actions handle it. See
                   --  test_mckenzie_recover Two_Missing_Ends.
@@ -475,9 +475,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
                   if Tree.Element_ID (New_Config.Stack.Peek.Token) = +BEGIN_ID then
                      --  test_mckenzie_recover.adb Extra_Name_1.
-                     Insert (Tree, New_Config, (+EXIT_ID, +SEMICOLON_ID));
+                     Insert (Super, New_Config, (+EXIT_ID, +SEMICOLON_ID));
                   end if;
-                  Insert (Tree, New_Config, +END_ID);
+                  Insert (Super, New_Config, +END_ID);
                   --  Let Minimal_Complete_Actions do the rest of the insert; see
                   --  comment in case 1.
 
@@ -566,7 +566,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   declare
                      New_Config_2 : Configuration := New_Config_1;
                   begin
-                     Insert (Tree, New_Config_2, (+END_ID, +SEMICOLON_ID));
+                     Insert (Super, New_Config_2, (+END_ID, +SEMICOLON_ID));
 
                      New_Config_2.Strategy_Counts (Language_Fix) := New_Config_2.Strategy_Counts (Language_Fix) + 1;
 
@@ -580,11 +580,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   Push_Back_Check
                     (Super, New_Config_1,
                      (+handled_sequence_of_statements_ID, +BEGIN_ID, +block_label_opt_ID));
-                  Insert (Tree, New_Config_1, (+END_ID, +SEMICOLON_ID));
+                  Insert (Super, New_Config_1, (+END_ID, +SEMICOLON_ID));
 
                when declarative_part_ID =>
                   --  case 2
-                  Insert (Tree, New_Config_1, (+END_ID, +SEMICOLON_ID));
+                  Insert (Super, New_Config_1, (+END_ID, +SEMICOLON_ID));
 
                when others =>
                   if Trace_McKenzie > Outline then
@@ -649,9 +649,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   --  Insert_Minimal_Complete_Actions.
                   if To_Token_Enum (Tree.Element_ID (New_Config.Stack.Peek.Token)) in BEGIN_ID then
                      --  test_mckenzie_recover.adb Extra_Name_1.
-                     Insert (Tree, New_Config, (+EXIT_ID, +SEMICOLON_ID));
+                     Insert (Super, New_Config, (+EXIT_ID, +SEMICOLON_ID));
                   end if;
-                  Insert (Tree, New_Config, (+END_ID, End_ID_Actions (End_ID_Actions.First_Index).ID, +SEMICOLON_ID));
+                  Insert (Super, New_Config, (+END_ID, End_ID_Actions (End_ID_Actions.First_Index).ID, +SEMICOLON_ID));
 
                   Local_Config_Heap.Add (New_Config);
                   if Trace_McKenzie > Detail then

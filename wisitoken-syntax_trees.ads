@@ -803,7 +803,7 @@ package WisiToken.Syntax_Trees is
    with Pre =>
      Valid_Stream_Node (Tree, Ref) and then
      (Tree.Label (Ref.Element) = Nonterm and
-        Ref.Node /= Invalid_Node_Access and
+        Tree.First_Terminal (Ref).Node /= Invalid_Node_Access and
         Tree.Stack_Top (Ref.Stream) /= Ref.Element),
      Post => Valid_Single_Terminal (Tree, Ref);
    --  Similar to Breakdown; bring first terminal of Ref.Element to

@@ -224,13 +224,17 @@ private
      return Peek_Sequential_State;
 
    function Peek_Sequential_Terminal (State : in Peek_Sequential_State) return Syntax_Trees.Node_Access;
-   --  Returns Invalid_Node_Access when Peek_Sequential_Start was called
-   --  with Current_Shared_Token past EOI, because shared EOI had an
-   --  error.
+   --  Return State current sequential terminal; set by
+   --  Peek_Sequential_Start and Peek_Next_Sequential_Terminal.
+   --
+   --  Returns Invalid_Node_Access when the current sequential terminal
+   --  is past EOI, possibly because shared EOI had an error, and was
+   --  found in the config input stream.
 
    procedure Peek_Next_Sequential_Terminal
      (Tree  : in     Syntax_Trees.Tree;
       State : in out Peek_Sequential_State);
+   --  Step State to next sequential terminal. Can step past EOI.
 
    procedure Set_Initial_Sequential_Index
      (Parsers    : in out WisiToken.Parse.LR.Parser_Lists.List;

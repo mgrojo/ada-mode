@@ -33,23 +33,7 @@ update-wisitoken_grammar
  current work
 review FIXME
 
-first because easy or possible bug or important:
-c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-parser.adb:209:                           --  ada_mode-interactive_03.adb. FIXME: better: peek at next terminal,
-
-faster incremental (need benchmarks):
-c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-parse.adb:46:         --  FIXME: tree.contains_virtual_terminal is expensive, non-incremental - don't cache
-
-c:/Projects/org.wisitoken.stephe-1/wisitoken-parse.adb:627:      --  FIXME: This algorithm visits every terminal; not incremental.
-
-c:/Projects/org.wisitoken.stephe-1/wisitoken-parse.adb:894:               --  FIXME: only need to scan trailing stable terminal?
-
-c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.adb:1942:      --  FIXME: This algorithm is not incremental, and a waste of time on
-
-c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.adb:6683:      --  FIXME: only need to handle fully parsed tree, no streams. Use
-
 other:
-c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-explore.adb:1549:      --  Delete tokens First .. Last from Tree Shared_Stream. FIXME: why not from Parse_Stream?
-
 c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-explore.adb:1779:            --  The unbalanced quote is after the parse error token. FIXME: also
 
 
@@ -75,6 +59,12 @@ first parser operation after opening a large file is slow
 Tree.validate check that all tree.nodes are in tree
     possibly in following_deleted
     call it in syntax_Trees.clear_parse_streams
+
+recover significantly slower with incremental; ada-mode benchmark_results 27 Nov 2020 0.22 vs 03 Dec 2021 1.6!
+    don't have just recover time from released version 7.1.8
+    however, incremental recover still fast enough
+    and mult-tasking doesn't help: 8 1.6, 1 1.8
+    review Super use, minimize serialization
 
 error recover try prev solution first - new strategy.
 
