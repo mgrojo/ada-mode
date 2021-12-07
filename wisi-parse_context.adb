@@ -67,15 +67,14 @@ package body Wisi.Parse_Context is
       end return;
    end Create_No_File;
 
-   function Create_No_Text
+   procedure Create_No_Text
      (File_Name : in String;
       Language  : in Wisi.Parse_Context.Language;
       Trace     : in WisiToken.Trace_Access)
-     return Parse_Context_Access
-   is begin
-      return Result : constant Parse_Context_Access := Create_No_File (Language, Trace) do
-         Set_File (File_Name, Result);
-      end return;
+   is
+      Temp : constant Parse_Context_Access := Create_No_File (Language, Trace);
+   begin
+      Set_File (File_Name, Temp);
    end Create_No_Text;
 
    procedure Set_File (File_Name : in String; Parse_Context : in Parse_Context_Access)
@@ -782,6 +781,9 @@ package body Wisi.Parse_Context is
             Parse_Data.Trace.New_Line;
             Parse_Data.Trace.Put_Line ("incremental tree:");
             Saved_Tree.Print_Tree (Parse_Data.Trace.all, Line_Numbers => True, Non_Grammar => True);
+            Parse_Data.Trace.New_Line;
+            Parse_Data.Trace.Put_Line ("full tree:");
+            Parser.Tree.Print_Tree (Parse_Data.Trace.all, Line_Numbers => True, Non_Grammar => True);
          end if;
       end;
    end Compare_Tree_Text;
