@@ -92,13 +92,21 @@ emacs UI slow while gpr-query-symbols-filter is waiting for symbols
 
 ada-mode-hook runs before initial parse
     because we want to allow it to set debug etc that affect initial parse
-    set compare_tree_text_auto causes parse via file-not-found
+    if user puts a function on ada-mode-hook that requires parse, it signals file-not-found
         that confuses things, get extra messages because of nowait
         distinguish between context-not-found and need-text?
         need command sequence numbers. sigh.
-        or process extra messages if nowait? not working
+        or process extra messages if nowait?
+            need test
+            run-test sets wisi-parse-full-background
 
     need another hook that runs after initial parse started
+
+ada_mode-interactive_10.adb
+    if add another ';', get SAL.Programmer_Error.
+
+debug.adb
+    could be fixed by ada_mode-interactive_10.adb fix
 
 review FIXMEs
     (grep-find "find c:/Projects/org.wisitoken -type f -print | \"xargs\" grep  -nH --null FIXME")
@@ -1044,6 +1052,10 @@ test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-ti
 two RUN_ARGS="command_file debug.cmd &> debug.log"
 
 *.debug RUNTEST=run-indent-test-lalr-incremental-process-gpr_query.el ELISP="(setq-default wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
+
+when saving kbd macros for tests:
+    (define-key global-map "\M-w" 'kill-ring-save)
+    (define-key global-map "\M-w" 'sal-save-all-buffers)
 
 in debug.cmd:
 mckenzie_options task_count=1
