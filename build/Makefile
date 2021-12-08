@@ -15,6 +15,8 @@ export GENERATE := BNF_EBNF
 # test_all_harness.adb
 #
 #t_one :: one-clean
+t_one :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
+t_one :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 t_one :: ada_lite_re2c.c
 t_one :: test_one_harness.run
 
