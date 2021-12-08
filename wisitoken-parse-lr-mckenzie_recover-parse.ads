@@ -92,7 +92,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    procedure First_Sequential_Terminal
      (Super : not null access Base.Supervisor;
-      Ref   :    out          Config_Stream_Parents);
+      Ref   : out             Config_Stream_Parents);
 
    procedure Last_Sequential_Terminal
      (Super : not null access Base.Supervisor;
