@@ -890,6 +890,9 @@ package body WisiToken.Parse is
                end if;
 
             elsif not Delayed_Scan then
+               --  If there was a Delayed_Scan, some changed tokens may be before
+               --  Stable_Region, so we don't do Unchanged_Loop.
+               --
                --  It is tempting to skip Unchanged_Loop if Shift_Bytes = 0 and
                --  Shift_Chars = 0 and Shift_Lines = 0. But we need to scan all
                --  Non_Grammar for Floating_Non_Grammar, which changes Shift_Lines.
@@ -901,12 +904,12 @@ package body WisiToken.Parse is
                   exit Unchanged_Loop when Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.EOI_ID;
 
                   if Terminal_Non_Grammar_Next = Lexer.Token_Arrays.No_Index then
-                     --  If there was a Delayed_Scan, some tokens may be before
-                     --  Stable_Region. Exit when Terminal may be changed by the current
-                     --  KMN edit; it is partly past or adjacent to Stable_Region.Last.
+                     --  Exit when Terminal may be changed by the current KMN edit; it is
+                     --  partly past or adjacent to Stable_Region.Last. Also exit when last
+                     --  KMN is done.
                      exit Unchanged_Loop when
                        (if Length (Inserted_Region) = 0 and Length (Deleted_Region) = 0
-                        then Tree.Byte_Region (Terminal.Node).Last > Stable_Region.Last
+                        then Tree.Byte_Region (Terminal.Node).Last > Stable_Region.Last -- Last KMN
                         else Tree.Byte_Region (Terminal.Node).Last >= Stable_Region.Last);
 
                      if Trace_Incremental_Parse > Detail then

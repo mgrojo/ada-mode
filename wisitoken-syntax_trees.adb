@@ -6753,7 +6753,7 @@ package body WisiToken.Syntax_Trees is
          declare
             Token : Lexer.Token renames Node.Non_Grammar (I);
          begin
-            if Token.Byte_Region.Last <= Last_Stable_Byte then
+            if Token.Byte_Region.Last < Last_Stable_Byte then
                Token.Byte_Region := @ + Shift_Bytes;
                Token.Char_Region := @ + Shift_Chars;
                Token.Line_Region := @ + Shift_Lines;

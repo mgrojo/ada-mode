@@ -1067,9 +1067,9 @@ package WisiToken.Syntax_Trees is
       Non_Grammar_Next : in out Lexer.Token_Arrays.Extended_Index)
    with Pre => Tree.Label (Node) in Terminal_Label;
    --  Add Shift_* to token, non_grammar, and augmented corresponding
-   --  regions. If a non_grammar is after Last_Stable_Byte, set
-   --  Non_Grammar_Next to it, without shifting, and skip the rest of
-   --  non_grammar.
+   --  regions. If a non_grammar is adjacent to or after
+   --  Last_Stable_Byte, set Non_Grammar_Next to it, without shifting,
+   --  and skip the rest of non_grammar.
 
    procedure Set_Node_Index
      (Tree       : in Syntax_Trees.Tree;
