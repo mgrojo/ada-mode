@@ -383,6 +383,16 @@ package body WisiToken.Lexer.re2c is
    end Find_Comment_End;
 
    overriding
+   function Contains_Comment_End
+     (Lexer         : in Instance;
+      ID            : in Token_ID;
+      Region : in Buffer_Region)
+     return Boolean
+   is begin
+      return Contains_Comment_End (Lexer.Source, ID, Region);
+   end Contains_Comment_End;
+
+   overriding
    function Line_Begin_Char_Pos
      (Lexer : in Instance;
       Token : in WisiToken.Lexer.Token;

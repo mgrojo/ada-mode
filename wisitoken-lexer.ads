@@ -256,6 +256,16 @@ package WisiToken.Lexer is
    --  Given the byte position of a comment start, return the byte
    --  position of the comment end.
 
+   function Contains_Comment_End
+     (Lexer  : in Instance;
+      ID     : in Token_ID;
+      Region : in Buffer_Region)
+     return Boolean
+   is abstract
+   with Pre'Class => Is_Comment (Lexer, ID);
+   --  True if Region contains a comment end for ID. Does not check for
+   --  matching comment start.
+
    function Line_Begin_Char_Pos
      (Lexer : in Instance;
       Token : in WisiToken.Lexer.Token;
@@ -295,6 +305,15 @@ package WisiToken.Lexer is
       Start  : in Buffer_Pos;
       Item   : in String)
      return Buffer_Pos;
+   --  Returns last byte in Source if not found, for an implicit New_Line
+   --  at EOI.
+
+   function Find_String_Or_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Region : in Buffer_Region;
+      Item   : in String)
+     return Zero_Buffer_Pos;
+   --  Returns 0 if not found in Region.
 
    function Line_Begin_Char_Pos
      (Source : in WisiToken.Lexer.Source;

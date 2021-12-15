@@ -61,7 +61,7 @@ package body Test_Incremental is
       Initial_Errors : in Ada.Containers.Count_Type := 0;
       Incr_Errors    : in Ada.Containers.Count_Type := 0;
       Label          : in String                    := "")
-   with Pre => Edit_2_At = 0 or Edit_2_At > Edit_At
+   with Pre => Edit_2_At = 0 or Edit_2_At >= Edit_At
    --  If Initial is "", start from existing tree.
    is
       use Ada.Text_IO;
@@ -170,7 +170,7 @@ package body Test_Incremental is
          end if;
 
          New_Line;
-         Put_Line (Label_Dot & " ... tree:");
+         Put_Line (Label_Dot & "tree:");
          Parser.Tree.Print_Tree (Trace, Non_Grammar => True);
       end Put_Tree;
 
@@ -220,10 +220,6 @@ package body Test_Incremental is
 
       Full_Parser.Tree.Copy_Tree (Edited_Source_Full_Parse_Tree, User_Data'Access);
 
-      if WisiToken.Trace_Tests > WisiToken.Outline then
-         Put_Tree (Full_Parser);
-      end if;
-
       if Initial /= "" then
          if WisiToken.Trace_Tests > WisiToken.Outline then
             New_Line;
@@ -233,6 +229,9 @@ package body Test_Incremental is
          Incremental_Parser.Tree.Lexer.Reset_With_String (Initial);
          begin
             Incremental_Parser.Parse (Log_File);
+            if WisiToken.Trace_Tests > WisiToken.Outline then
+               Put_Tree (Incremental_Parser);
+            end if;
          exception
          when WisiToken.Syntax_Error =>
             if WisiToken.Trace_Tests > WisiToken.Outline then
@@ -243,9 +242,6 @@ package body Test_Incremental is
             return;
          end;
 
-         if WisiToken.Trace_Tests > WisiToken.Outline then
-            Put_Tree (Incremental_Parser);
-         end if;
          Check (Label_Dot & "initial errors", Incremental_Parser.Tree.Error_Count, Initial_Errors);
       end if;
 
@@ -531,6 +527,59 @@ package body Test_Incremental is
 
    end Edit_Comment_9;
 
+   procedure Edit_Comment_10 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-interactive_02
+      Parse_Text
+        (Initial   =>
+           "package A is" & ASCII.LF &
+             --      |10     |13
+             "   -- comment 1" & ASCII.LF &
+             --     |20          |29
+             "   -- comment 2" & ASCII.LF &
+             --    |35           |45
+             "" & ASCII.LF &
+             --   |46
+             "   " & ASCII.LF &
+             --      |50
+             "   -- comment 3" & ASCII.LF &
+             --   |55       |65
+             "   procedure C; end A;",
+         Edit_At   => 47,
+         Insert    => "   ",
+         Delete    => "",
+         Edit_2_At   => 67,
+         Insert_2    => "" & ASCII.LF,
+         Delete_2    => "   ");
+   end Edit_Comment_10;
+
+   procedure Edit_Comment_11 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Another case from ada_mode-interactive_02
+      Parse_Text
+        (Initial   =>
+           "package A is" & ASCII.LF &
+             --      |10     |13
+             "   -- comment 1" & ASCII.LF &
+             --     |20          |29
+             "   --" & ASCII.LF &
+             --        |35
+             "   -- comment 3" & ASCII.LF &
+             --   |40       |50
+             "   procedure C; end A;",
+
+         Edit_At   => 33,
+         Insert    => "",
+         Delete    => "--" & ASCII.LF,
+         Edit_2_At => 65,
+         Insert_2  => "c",
+         Delete_2  => "C");
+   end Edit_Comment_11;
+
    procedure Edit_Whitespace_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -704,9 +753,10 @@ package body Test_Incremental is
    is
       pragma Unreferenced (T);
    begin
-      --  Delete whitespace after insert, _not_ modifying token
+      --  Delete whitespace after previous edit, possibly modifying '+' token
       Parse_Text
-        (Initial => "A := B +  C;",
+        (Label   => "1",
+         Initial => "A := B +  C;",
          --          |1       |10
          Edit_At => 2,
          Delete  => "",
@@ -714,6 +764,20 @@ package body Test_Incremental is
          --          |2
 
          Edit_2_At => 9,
+         Delete_2  => " ",
+         Insert_2  => "");
+
+      --  Same, but not modifying any token
+      Parse_Text
+        (Label   => "2",
+         Initial => "A := B +   C;",
+         --          |1       |10
+         Edit_At => 2,
+         Delete  => "",
+         Insert  => "_1",
+         --          |2
+
+         Edit_2_At => 10,
          Delete_2  => " ",
          Insert_2  => "");
    end Edit_Code_07;
@@ -776,6 +840,72 @@ package body Test_Incremental is
          Incr_Errors    => 1);
    end Edit_Code_11;
 
+   procedure Edit_Code_12 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  from ada_mode-interactive_02.adb
+      Parse_Text
+        (Initial        =>
+           "if (A and B" & ASCII.LF &
+             --      |10   |12
+             "  -- Comment 1" & ASCII.LF &
+             --      |20        |27
+             ")" & ASCII.LF &
+             "  -- comment 2" & ASCII.LF &
+             "  or C then null; end if;",
+         Edit_At        => 11,
+         Delete         => "B",
+         Insert         => "B",
+         Edit_2_At      => 13,
+         Delete_2       => "  -- Comment 1" & ASCII.LF &  ")",
+         Initial_Errors => 0,
+         Incr_Errors    => 1);
+   end Edit_Code_12;
+
+   procedure Edit_Code_13 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Just indent
+      Parse_Text
+        (Initial        => "   null;",
+         Edit_At        => 1,
+         Delete         => "   ",
+         Insert         => "   ");
+   end Edit_Code_13;
+
+   procedure Edit_Code_14 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-nominal-child.adb
+      Parse_Text
+        (Initial        => "package body A is function B return Float;end A;",
+         --                 |1       |10       |20       |30       |40
+         Edit_At        => 42,
+         Delete         => "",
+         Insert         => " is begin end B",
+         Edit_2_At      => 43,
+         Delete_2       => "",
+         Insert_2       => "" & ASCII.LF,
+         Initial_Errors => 0,
+         Incr_Errors    => 1);
+   end Edit_Code_14;
+
+   procedure Edit_Code_15 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Just indent
+      Parse_Text
+        (Initial        => "procedure A is begin" & ASCII.LF & "return B; null; end A;",
+         --                 |1       |10       |20
+         Edit_At        => 22,
+         Delete         => "",
+         Insert         => "   ");
+   end Edit_Code_15;
+
    procedure Delete_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -822,14 +952,13 @@ package body Test_Incremental is
       --           |1       |10           |20                   |27
    end Delete_Comment_End;
 
-   procedure Delete_Comment_Start (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Delete_Comment_Start_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
       --  Delete a comment start, converting into code.
       Parse_Text
-        (Label   => "1",
-         Initial => "A := B + C; " & ASCII.LF &
+        (Initial => "A := B + C; " & ASCII.LF &
            --        |1       |10    |13
            "-- D;" & ASCII.LF &
            --  |17
@@ -838,11 +967,15 @@ package body Test_Incremental is
          Edit_At => 14,
          Delete  => "--",
          Insert  => "");
+   end Delete_Comment_Start_01;
 
+   procedure Delete_Comment_Start_02 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
       --  This one does _not_ delete a comment start. From ada_mode-interactive_01.adb.
       Parse_Text
-        (Label     => "2",
-         Initial   => "A := B + C; " & ASCII.LF &
+        (Initial   => "A := B + C; " & ASCII.LF &
            --        |1       |10    |13
            "-- ada_identifier" & ASCII.LF &
            --  |17          |30
@@ -853,7 +986,12 @@ package body Test_Incremental is
          Edit_2_At => 21,
          Delete_2  => "i",
          Insert_2  => "I");
+   end Delete_Comment_Start_02;
 
+   procedure Delete_Comment_Start_03 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
       --  This one modifies a comment start, which is the same as deleting
       --  it. Full parse of edited source finds different error recover
       --  solution from incremental parse unless we tweak things.
@@ -862,18 +1000,61 @@ package body Test_Incremental is
       Incremental_Parser.Table.McKenzie_Param.Task_Count := 1;
 
       Parse_Text
-        (Label          => "3",
-         Initial        => "A := B + C; " & ASCII.LF &
+        (Label   => "3",
+         Initial => "A := B + C; " & ASCII.LF &
            --        |1       |10    |13
            "-- ada_identifier;" & ASCII.LF &
            --  |17          |30
            "C;",
+
          Edit_At        => 15,
          Delete         => "-",
          Insert         => "",
          Initial_Errors => 0,
          Incr_Errors    => 1); -- "- ada_identifier" is not a statement.
-   end Delete_Comment_Start;
+   end Delete_Comment_Start_03;
+
+   procedure Delete_Comment_Start_04 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  This one deletes part of a token, all of a following comment, and
+      --  the comment start of the second comment.
+      Parse_Text
+        (Label   => "3",
+         Initial => "A := B_1 " & ASCII.LF &
+           --        |1           |10
+           "-- comment" & ASCII.LF &
+           "-- + ada_identifier" & ASCII.LF &
+           " + C;",
+
+         Edit_At        => 7,
+         Delete         => "_1 " & ASCII.LF & "-- comment" & ASCII.LF & "--",
+         Insert         => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Delete_Comment_Start_04;
+
+   procedure Delete_Comment_Start_05 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  This one deletes part of a token, all of a second token, all of a
+      --  following comment, and the comment start of the second comment.
+      Parse_Text
+        (Label   => "3",
+         Initial => "A := B_1 + " & ASCII.LF &
+           --        |1       |10
+           "-- comment" & ASCII.LF &
+           "-- + ada_identifier;" & ASCII.LF &
+           "C;",
+
+         Edit_At        => 7,
+         Delete         => "_1 + " & ASCII.LF & "-- comment" & ASCII.LF & "--",
+         Insert         => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Delete_Comment_Start_05;
 
    procedure Insert_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1223,6 +1404,8 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment_7'Access, "Edit_Comment_7");
       Register_Routine (T, Edit_Comment_8'Access, "Edit_Comment_8");
       Register_Routine (T, Edit_Comment_9'Access, "Edit_Comment_9");
+      Register_Routine (T, Edit_Comment_10'Access, "Edit_Comment_10");
+      Register_Routine (T, Edit_Comment_11'Access, "Edit_Comment_11");
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");
@@ -1237,9 +1420,17 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_09'Access, "Edit_Code_09");
       Register_Routine (T, Edit_Code_10'Access, "Edit_Code_10");
       Register_Routine (T, Edit_Code_11'Access, "Edit_Code_11");
+      Register_Routine (T, Edit_Code_12'Access, "Edit_Code_12");
+      Register_Routine (T, Edit_Code_13'Access, "Edit_Code_13");
+      Register_Routine (T, Edit_Code_14'Access, "Edit_Code_14");
+      Register_Routine (T, Edit_Code_15'Access, "Edit_Code_15");
       Register_Routine (T, Delete_New_Line'Access, "Delete_New_Line");
       Register_Routine (T, Delete_Comment_End'Access, "Delete_Comment_End");
-      Register_Routine (T, Delete_Comment_Start'Access, "Delete_Comment_Start");
+      Register_Routine (T, Delete_Comment_Start_01'Access, "Delete_Comment_Start_01");
+      Register_Routine (T, Delete_Comment_Start_02'Access, "Delete_Comment_Start_02");
+      Register_Routine (T, Delete_Comment_Start_03'Access, "Delete_Comment_Start_03");
+      Register_Routine (T, Delete_Comment_Start_04'Access, "Delete_Comment_Start_04");
+      Register_Routine (T, Delete_Comment_Start_05'Access, "Delete_Comment_Start_05");
       Register_Routine (T, Insert_New_Line'Access, "Insert_New_Line");
       Register_Routine (T, Names'Access, "Names");
       Register_Routine (T, Missing_Name_1'Access, "Missing_Name_1");

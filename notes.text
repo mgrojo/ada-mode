@@ -31,6 +31,10 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+run all ada-mode incremental tests
+
+propagate to main
+
 review FIXME
 
 other:

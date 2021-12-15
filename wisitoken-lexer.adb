@@ -111,7 +111,26 @@ package body WisiToken.Lexer is
             return From_Buffer_Index (Source, I);
          end if;
       end loop;
-      return From_Buffer_Index (Source, Source.Buffer'Last);
+      return From_Buffer_Index (Source, Source.Buffer'Last); --  Implicit new_line at EOI
+   end Find_String_Or_New_Line;
+
+   function Find_String_Or_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Region : in Buffer_Region;
+      Item   : in String)
+     return Zero_Buffer_Pos
+   is
+      Index_Last : constant Integer := To_Buffer_Index (Source, Region.Last);
+   begin
+      for I in To_Buffer_Index (Source, Region.First) .. Index_Last loop
+         if Source.Buffer (I) = ASCII.LF or
+           ((I + Item'Length <= Index_Last) and then
+              Source.Buffer (I .. I + Item'Length - 1) = Item)
+         then
+            return From_Buffer_Index (Source, I);
+         end if;
+      end loop;
+      return 0;
    end Find_String_Or_New_Line;
 
    function Line_Begin_Char_Pos

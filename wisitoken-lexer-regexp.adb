@@ -332,6 +332,18 @@ package body WisiToken.Lexer.Regexp is
    end Find_Comment_End;
 
    overriding
+   function Contains_Comment_End
+     (Lexer  : in Instance;
+      ID     : in Token_ID;
+      Region : in Buffer_Region)
+     return Boolean
+   is begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return False;
+   end Contains_Comment_End;
+
+   overriding
    function Line_Begin_Char_Pos
      (Lexer : in Instance;
       Token : in WisiToken.Lexer.Token;

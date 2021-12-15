@@ -1440,6 +1440,10 @@ package WisiToken.Syntax_Trees is
    --  here so we can use this in Error_Message.
 
    procedure Prev_Non_Grammar
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Stream_Node_Ref);
+
+   procedure Prev_Non_Grammar
      (Tree         : in     Syntax_Trees.Tree;
       Ref          : in out Stream_Node_Parents;
       Parse_Stream : in     Stream_ID)
@@ -1967,18 +1971,22 @@ package WisiToken.Syntax_Trees is
 
    function Find_Byte_Pos
      (Tree                 : in Syntax_Trees.Tree;
-      Stream               : in Stream_ID;
       Byte_Pos             : in Buffer_Pos;
       Trailing_Non_Grammar : in Boolean;
-      Start_At             : in Terminal_Ref)
+      Start_At             : in Terminal_Ref;
+      Stream               : in Stream_ID := Invalid_Stream_ID)
      return Terminal_Ref
-   with Pre => Start_At = Invalid_Stream_Node_Ref or else Tree.Byte_Region (Start_At.Node).First <= Byte_Pos;
+   with Pre =>
+     Tree.Parents_Set and
+     (Start_At /= Invalid_Stream_Node_Ref or Stream /= Invalid_Stream_ID);
    --  Return the terminal that contains (including non_grammar if
    --  Trailing_Non_Grammar) or is first after Byte_Pos.
    --  Invalid_Stream_Node_Ref if Byte_Pos is after text spanned by
    --  Tree.Stream.
    --
-   --  If Start_At is not Invalid_Stream_Node_Ref, start search there.
+   --  If Start_At is not Invalid_Stream_Node_Ref, start search there,
+   --  move forward. If Start_At is Invalid_Stream_Node_Ref, start search
+   --  at SOI in Stream.
 
    function Find_Char_Pos
      (Tree                 : in Syntax_Trees.Tree;

@@ -857,6 +857,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
               State.Sequential_Terminal.Ref.Node = Syntax_Trees.Invalid_Node_Access
               --  Ref is an empty nonterm. ada_mode-interactive_03.adb
             then
+               Tree.First_Terminal (State.Sequential_Terminal, Following => True);
+               Base.Extend_Sequential_Index (Super, Thru => State.Sequential_Terminal.Ref.Node, Positive => True);
                Tree.First_Sequential_Terminal (State.Sequential_Terminal);
                pragma Assert (State.Sequential_Terminal.Ref /= Syntax_Trees.Invalid_Stream_Node_Ref);
             end if;

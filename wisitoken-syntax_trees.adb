@@ -185,10 +185,6 @@ package body WisiToken.Syntax_Trees is
 
    function Pop (Parse_Stream : in out Syntax_Trees.Parse_Stream) return Valid_Node_Access;
 
-   procedure Prev_Non_Grammar
-     (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Stream_Node_Ref);
-
    function Prev_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Node_Access;
@@ -2442,19 +2438,40 @@ package body WisiToken.Syntax_Trees is
 
    function Find_Byte_Pos
      (Tree                 : in Syntax_Trees.Tree;
-      Stream               : in Stream_ID;
       Byte_Pos             : in Buffer_Pos;
       Trailing_Non_Grammar : in Boolean;
-      Start_At             : in Terminal_Ref)
+      Start_At             : in Terminal_Ref;
+      Stream               : in Stream_ID := Invalid_Stream_ID)
      return Terminal_Ref
    is
       use Stream_Element_Lists;
 
-      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
-      Result       : Stream_Node_Ref :=
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams
+        (if Start_At = Invalid_Stream_Node_Ref
+         then Stream.Cur
+         else Start_At.Stream.Cur);
+
+      function Find_Parent return Stream_Node_Ref
+      is
+         Node : Node_Access := Start_At.Node;
+      begin
+         loop
+            if Node.Parent = null then
+               return Tree.To_Rooted_Ref (Start_At.Stream, (Cur => Stream_Element_Lists.Next (Start_At.Element.Cur)));
+
+            elsif Contains (Tree.Byte_Region (Node.Parent), Byte_Pos) then
+               return (Start_At.Stream, Start_At.Element, Node.Parent);
+
+            else
+               Node := Node.Parent;
+            end if;
+         end loop;
+      end Find_Parent;
+
+      Result : Stream_Node_Ref :=
         (if Start_At = Invalid_Stream_Node_Ref
          then (Stream, (Cur => Parse_Stream.Elements.First), null)
-         else Start_At);
+         else Find_Parent);
    begin
       loop
          Result.Node := Find_Byte_Pos
@@ -6753,7 +6770,7 @@ package body WisiToken.Syntax_Trees is
          declare
             Token : Lexer.Token renames Node.Non_Grammar (I);
          begin
-            if Token.Byte_Region.Last <= Last_Stable_Byte then
+            if Token.Byte_Region.Last < Last_Stable_Byte then
                Token.Byte_Region := @ + Shift_Bytes;
                Token.Char_Region := @ + Shift_Chars;
                Token.Line_Region := @ + Shift_Lines;

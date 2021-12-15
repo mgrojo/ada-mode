@@ -1533,6 +1533,65 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("end Find_Comment_End;");
       New_Line;
 
+      Indent_Line ("function Contains_Comment_End");
+      Indent_Line ("  (Source : in WisiToken.Lexer.Source;");
+      Indent_Line ("   ID     : in WisiToken.Token_ID;");
+      Indent_Line ("   Region : in WisiToken.Buffer_Region)");
+      Indent_Line ("  return Boolean");
+      if Comment_Count > 0 then
+         Indent_Line ("is");
+         Indent_Line ("   use WisiToken;");
+         Indent_Line ("begin");
+      else
+         Indent_Line ("is");
+         Indent_Line ("   pragma Unreferenced (Source, Region);");
+         Indent_Line ("begin");
+      end if;
+      Indent := @ + 3;
+      Indent_Line ("return");
+      Indent_Line ("  (case To_Token_Enum (ID) is");
+      Indent := @ + 3;
+      if Comment_Count > 0 then
+         Indent_Line ("when");
+         Need_Separator := False;
+         Indent := @ + 3;
+         for I in All_Tokens (Generate_Data).Iterate
+           (Non_Grammar  => True,
+            Nonterminals => False,
+            Include_SOI  => False)
+         loop
+            if Kind (Generate_Data, I) = "comment-new-line" then
+               if Need_Separator then
+                  Put_Line (" |");
+               else
+                  Need_Separator := True;
+               end if;
+               Indent_Start (Name (Generate_Data, I) & "_ID");
+            end if;
+         end loop;
+         Put_Line (" => Lexer.Contains_New_Line (Source, Region),");
+         Indent := @ - 3;
+
+         for I in All_Tokens (Generate_Data).Iterate
+           (Non_Grammar  => True,
+            Nonterminals => False,
+            Include_SOI  => False)
+         loop
+            if Kind (Generate_Data, I) = "comment-one-line" then
+               Indent_Line
+                 ("when " & Name (Generate_Data, I) &
+                    "_ID => 0 < Lexer.Find_String_Or_New_Line (Source, Region, " &
+                    --  Value includes quotes.
+                    Value (Generate_Data, I) & "),");
+            end if;
+         end loop;
+      end if;
+
+      Indent_Line ("when others => raise SAL.Programmer_Error);");
+      Indent := @ - 6;
+      Indent_Line ("end Contains_Comment_End;");
+      New_Line;
+
       Indent_Line ("function Line_Begin_Char_Pos");
       Indent_Line (" (Source : in WisiToken.Lexer.Source;");
       Indent_Line ("  Token  : in WisiToken.Lexer.Token;");
@@ -1665,6 +1724,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("   Comment_Start_Length,");
       Indent_Line ("   Comment_End_Length,");
       Indent_Line ("   Find_Comment_End,");
+      Indent_Line ("   Contains_Comment_End,");
       Indent_Line ("   Line_Begin_Char_Pos,");
       Indent_Line ("   Terminated_By_New_Line);");
       New_Line;
