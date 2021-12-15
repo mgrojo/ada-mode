@@ -777,7 +777,7 @@ package body Wisi.Parse_Context is
          Failure : constant AUnit.Test_Results.Test_Failure := Get_Failure (First_Failure (T));
       begin
          Ada.Text_IO.Put_Line ("(error ""compare tree/text fail " & Failure.Message.all & """)");
-         if WisiToken.Trace_Incremental_Parse > WisiToken.Extra then
+         if WisiToken.Trace_Incremental_Parse > WisiToken.Outline then
             Parse_Data.Trace.New_Line;
             Parse_Data.Trace.Put_Line ("incremental tree:");
             Saved_Tree.Print_Tree (Parse_Data.Trace.all, Line_Numbers => True, Non_Grammar => True);
@@ -785,6 +785,7 @@ package body Wisi.Parse_Context is
             Parse_Data.Trace.Put_Line ("full tree:");
             Parser.Tree.Print_Tree (Parse_Data.Trace.all, Line_Numbers => True, Non_Grammar => True);
          end if;
+         Clear_Failures (T);
       end;
    end Compare_Tree_Text;
 
