@@ -36,6 +36,7 @@ text, after each edit in an incremental parse, and before each partial parse.")
 
 (defvar compare-tree-text nil
   "If non-nil, after each incremental parse, compare tree to fresh full parse.")
+(put 'compare-tree-text 'safe-local-variable 'booleanp)
 
 (defun test-in-comment-p ()
   (nth 4 (syntax-ppss)))
@@ -199,7 +200,8 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	(when (stringp save-edited-text)
 	  (wisi-process-parse-save-text wisi--parser save-edited-text t))
 
-	(when compare-tree-text
+	(when (and compare-tree-text
+		   wisi-incremental-parse-enable)
 	  (wisi-process-parse-compare-tree-text wisi--parser))
 
 	(let ((error-count 0)

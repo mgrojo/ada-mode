@@ -2158,6 +2158,9 @@ package body Wisi is
       end loop;
 
       Put (Recover, Data, Tree);
+      if WisiToken.Debug_Mode then
+         Data.Trace.Put_Line ("recover: " & Parse.LR.Image (Recover, Tree));
+      end if;
    end Put;
 
    procedure Put_Error
