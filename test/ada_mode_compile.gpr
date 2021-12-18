@@ -31,6 +31,7 @@ project Ada_Mode_Compile is
       "ada_mode-interactive_07.ads",
       "ada_mode-interactive_08.adb",
       "ada_mode-interactive_09.adb",
+      "ada_mode-interactive_10.adb",
 
       -- These have incomplete code for various reasons
       "ada_mode-incremental_01.adb",
@@ -85,6 +86,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_41.adb",
       "ada_mode-recover_42.adb",
       "ada_mode-recover_43.adb",
+      "ada_mode-recover_44.adb",
       "ada_mode-recover_align_1.adb",
       "ada_mode-recover_ambiguous_parse.adb",
       "ada_mode-recover_bad_char.adb",
@@ -132,6 +134,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_partial_27.adb",
       "ada_mode-recover_renaming_1.adb",
       "ada_mode-recover_repair_1.adb",
+      "ada_mode-recover_stack_size_01.adb",
       "ada_mode-recover_string_quote_1.adb",
       "ada_mode-recover_string_quote_2.adb",
       "ada_mode-recover_string_quote_3.adb",

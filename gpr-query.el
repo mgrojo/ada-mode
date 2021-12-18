@@ -227,9 +227,11 @@ Must match gpr_query.adb Version.")
 				  "\\.\\(" gpr-query--symbol-char "+\\)" ;; 2: simple name
 				  "\\((.*)\\)? "                         ;; 3: args,
 				  wisi-file-line-col-regexp))            ;; 4, 5, 6 file:line:col
-	      ;; process line
-	      (cl-pushnew (match-string-no-properties 2) (gpr-query--session-symbols gpr-query--local-session))
-	      (cl-pushnew
+	      ;; Process line. `cl-pushnew' would slow down the
+	      ;; processing too much; it noticeably ties up the Emacs
+	      ;; foreground process in large projects.
+	      (push (match-string-no-properties 2) (gpr-query--session-symbols gpr-query--local-session))
+	      (push
 	       (cons (concat (match-string-no-properties 2)
 			     (match-string-no-properties 3)
 			     "<" (match-string-no-properties 1) "<" (match-string-no-properties 5) ">>")

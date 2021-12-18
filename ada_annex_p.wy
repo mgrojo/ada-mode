@@ -205,7 +205,7 @@ tick : TICK_1 | TICK_2 ;
 ;; This cost is applied once, independent of token count.
 ;; test/ada_mode-recover_40.adb requires cost < 3, so insert 'if
 ;; identifier then' is as cheap as 'delete else'.
-%mckenzie_cost_matching_begin 2
+%mckenzie_cost_matching_begin 1
 
 ;; Prefer doing more work at the current error point over moving
 ;; forward to a new one; there is normally only one real error point.

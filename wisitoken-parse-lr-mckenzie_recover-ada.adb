@@ -1462,13 +1462,32 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          end if;
 
       when END_ID =>
-         if Tree.Element_ID (Config.Stack.Peek.Token) = +LOOP_ID then
-            --  Empty sequence_of_statements
+         case To_Token_Enum (Tree.Element_ID (Config.Stack.Peek.Token)) is
+         when
+           ABORT_ID | -- asynchronous_select
+           BEGIN_ID | -- ada_mode-recover_indent_3.adb
+           DO_ID | -- return_statement, accept_statement
+           ELSE_ID | -- if_statement, select_statement, conditional_entry_call
+           THEN_ID | LOOP_ID =>
+            --  Empty sequence_of_statements. This can be handled by
+            --  minimal_complete, but we want to prevent Matching_Begin_For_End,
+            --  and we know what to insert.
             Matching_Tokens := To_Vector ((+NULL_ID, +SEMICOLON_ID));
             Forbid_Minimal_Complete := True;
-         else
+
+         when
+           AND_ID | -- parallel_block_statement or expression
+           IS_ID | -- variant_part,package_spec, *_body, case_statement ...
+           OR_ID | -- timed_entry_call, expression
+           PRIVATE_ID | --  package_specification, protected_definition, task_item_list
+           RECORD_ID -- record_representation_clause or record_defition
+           =>
+            --  We don't know what to insert; let minimal_complete handle it.
+            return;
+
+         when others =>
             Matching_Tokens := Matching_Begin_For_End (2);
-         end if;
+         end case;
 
       when ELSE_ID | ELSIF_ID =>
          if Tree.Element_ID (Config.Stack.Peek.Token) = +THEN_ID then

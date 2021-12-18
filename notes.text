@@ -70,7 +70,7 @@ gpr_query.
 acknowledge that previous work was not really worth it, because
 gnatstudio indent was not adaptable to Eurocontrol style.
 
-Research Eurocontrol - what is there area of business, what location/culture are they - linked in etc.
+Research Eurocontrol - what is their area of business, what location/culture are they - linked in etc.
 read Kate's book on culture/persuasion.
 
         - currently doing incremental (making progress. ready for beta test?)
@@ -170,6 +170,12 @@ push to elpa
 
  after incremental
 review this file!
+
+ada_mode-recover_44.adb
+    matching_begin return list of token arrays, so insert '(if foo' is cheap
+        also '(case foo' before 'when'
+        '(declare' before 'begin'
+        look thru ada_annex_p.wy for more.
 
 uniquify-files should not set project-read-file-name-function
     set or let-bind it in ada-mode
