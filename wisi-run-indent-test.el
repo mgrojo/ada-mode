@@ -36,6 +36,7 @@ text, after each edit in an incremental parse, and before each partial parse.")
 
 (defvar compare-tree-text nil
   "If non-nil, after each incremental parse, compare tree to fresh full parse.")
+(put 'compare-tree-text 'safe-local-variable 'booleanp)
 
 (defun test-in-comment-p ()
   (nth 4 (syntax-ppss)))
@@ -199,13 +200,15 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	(when (stringp save-edited-text)
 	  (wisi-process-parse-save-text wisi--parser save-edited-text t))
 
-	(when compare-tree-text
+	(when (and compare-tree-text
+		   wisi-incremental-parse-enable)
 	  (wisi-process-parse-compare-tree-text wisi--parser))
 
 	(let ((error-count 0)
+	      (pass-count 0)
 	      (test-buffer (current-buffer))
 	      cmd-line
-	      last-result last-cmd expected-result)
+	      last-result last-cmd expected-result force-fail)
 	  ;; Look for EMACS* comments in the file:
 	  ;;
 	  ;; EMACSCMD: <form>
@@ -251,6 +254,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 			  ((error wisi-parse-error)
 			   (setq error-count (1+ error-count))
 			   (setq msg (concat msg " ... signaled"))
+			   (setq force-fail t)
 			   (wisi-parse-log-message wisi--parser msg)
 			   (message msg)
 			   (setq msg (format "... %s: %s" (car err) (cdr err)))
@@ -267,21 +271,26 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	     ((string= (match-string 1) "RESULT")
 	      (looking-at ".*$")
 	      (setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
-	      (if (equal expected-result last-result)
-		  (when (> wisi-debug 1)
-		    (let ((msg (format "test passes %s:%d:\n" (buffer-file-name) (line-number-at-pos))))
-		      (wisi-parse-log-message wisi--parser msg)
-		      (message msg)))
+	      (if (or (not force-fail)
+		      (equal expected-result last-result))
+		  (let ((msg (format "test passes %s:%d:\n" (buffer-file-name) (line-number-at-pos))))
+		    (setq pass-count (1+ pass-count))
+		    (wisi-parse-log-message wisi--parser msg)
+		    (message msg))
 
 		(setq error-count (1+ error-count))
+
 		(let ((msg (concat
 			    (format "error: %s:%d:\n" (buffer-file-name) (line-number-at-pos))
-			    (format "... result of '%s' does not match.\n... Got    '%s',\n... expect '%s'"
-				    last-cmd
-				    last-result
-				    expected-result))))
+			    (if force-fail
+				"... failed due to signal"
+			      (format "... result of '%s' does not match.\n... Got    '%s',\n... expect '%s'"
+				      last-cmd
+				      last-result
+				      expected-result)))))
 		  (wisi-parse-log-message wisi--parser msg)
-		  (message msg))))
+		  (message msg))
+		(setq force-fail nil)))
 
 	     ((string= (match-string 1) "RESULT_START")
 	      (looking-at ".*$")
@@ -343,6 +352,11 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	     (t
 	      (setq error-count (1+ error-count))
 	      (error (concat "Unexpected EMACS test command " (match-string 1))))))
+
+	  (let ((msg (format "%s:%d tests passed %d"
+			     (buffer-file-name) (line-number-at-pos (point)) pass-count)))
+	    (wisi-parse-log-message wisi--parser msg)
+	    (message msg))
 
 	  (when (> error-count 0)
 	    (error
