@@ -90,7 +90,10 @@ private
       Sequential_Terminal : Syntax_Trees.Stream_Node_Parents; -- in Tree.Shared_Stream
    end record;
 
-   procedure Check (ID : Token_ID; Expected_ID : in Token_ID)
+   procedure Check
+     (ID          : in Token_ID;
+      Expected_ID : in Token_ID;
+      Descriptor  : in WisiToken.Descriptor)
    with Inline => True;
    --  Check that ID = Expected_ID; raise Bad_Config if not.
 

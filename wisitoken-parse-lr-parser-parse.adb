@@ -273,7 +273,7 @@ begin
                                  (if Recover_Cost = Min_Recover_Cost and then
                                     Recover_Ops_Length = Min_Recover_Ops_Length
                                   then "random"
-                                  else "recover cost/length"),
+                                  else "recover cost/min length"),
                                  Shared_Parser.Trace.all);
                            end;
                         end if;

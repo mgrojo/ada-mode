@@ -245,7 +245,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
                if Other.State_Ref.Max_Recover_Ops_Length = Current.State_Ref.Max_Recover_Ops_Length then
                   Append (Msg, ": random");
                else
-                  Append (Msg, ": ops length");
+                  Append (Msg, ": min ops length");
                   --  Keep the minimum ops length
                   if Other.State_Ref.Max_Recover_Ops_Length > Current.State_Ref.Max_Recover_Ops_Length then
                      null;

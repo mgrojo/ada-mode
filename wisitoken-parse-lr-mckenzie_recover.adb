@@ -893,10 +893,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end if;
    end Peek_Next_Sequential_Terminal;
 
-   procedure Check (ID : Token_ID; Expected_ID : in Token_ID)
+   procedure Check (ID : Token_ID; Expected_ID : in Token_ID; Descriptor : in WisiToken.Descriptor)
    is begin
       if ID /= Expected_ID then
-         raise Bad_Config with ID'Image & " /=" & Expected_ID'Image;
+         raise Bad_Config with "expected " & Image (Expected_ID, Descriptor) & " found " & Image (ID, Descriptor);
       end if;
    end Check;
 
@@ -915,7 +915,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Tree.Get_Sequential_Index (Node));
    begin
       if Expected_ID /= Invalid_Token_ID then
-         Check (Tree.ID (Node), Expected_ID);
+         Check (Tree.ID (Node), Expected_ID, Tree.Lexer.Descriptor.all);
       end if;
       if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
          raise Bad_Config;
@@ -1738,7 +1738,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Expected_ID           : in              Token_ID;
       Push_Back_Undo_Reduce : in              Boolean := False)
    is begin
-      Check (Super.Tree.Element_ID (Config.Stack.Peek (1).Token), Expected_ID);
+      Check (Super.Tree.Element_ID (Config.Stack.Peek (1).Token), Expected_ID, Super.Tree.Lexer.Descriptor.all);
       Push_Back (Super, Config, Push_Back_Undo_Reduce);
    end Push_Back_Check;
 
@@ -1891,7 +1891,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Stack.Push ((Prev_State, Tree.Get_Recover_Token (C)));
       end loop;
 
-      if First_Terminal /= Syntax_Trees.Invalid_Node_Access then
+      if First_Terminal /= Syntax_Trees.Invalid_Node_Access and then
+        Tree.ID (First_Terminal) /= Tree.Lexer.Descriptor.SOI_ID
+      then
          Base.Extend_Sequential_Index (Super, First_Terminal, Positive => False);
       end if;
 
@@ -1913,7 +1915,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       if not Undo_Reduce_Valid (Super, Config) then
          raise Invalid_Case;
       end if;
-      Check (Super.Tree.Element_ID (Config.Stack.Peek (1).Token), Expected);
+      Check (Super.Tree.Element_ID (Config.Stack.Peek (1).Token), Expected, Super.Tree.Lexer.Descriptor.all);
       Unchecked_Undo_Reduce (Super, Table, Config);
    end Undo_Reduce_Check;
 

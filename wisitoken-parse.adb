@@ -1082,13 +1082,21 @@ package body WisiToken.Parse is
                --  deleting that comment end. Must be called before
                --  Terminal.Non_Grammar is modified.
                is
-                  Deleted_Last_Ref : constant Terminal_Ref := Tree.Find_Byte_Pos
-                    (Deleted_Region.Last,
-                     Trailing_Non_Grammar => True,
-                     Start_At => Tree.Next_Terminal (Terminal));
+                  Next_Term : constant Terminal_Ref := Tree.Next_Terminal (Terminal);
+                  Deleted_Last_Ref : constant Terminal_Ref :=
+                    (if Next_Term = Invalid_Stream_Node_Ref
+                     then Invalid_Stream_Node_Ref -- ada_mode-recover_partial_01.adb
+                     else Tree.Find_Byte_Pos
+                       (Deleted_Region.Last,
+                        Trailing_Non_Grammar => True,
+                        Start_At => Tree.Next_Terminal (Terminal)));
                begin
                   Need_Check_Comment_Start := False;
-                  if Contains
+                  if Deleted_Last_Ref = Invalid_Stream_Node_Ref then
+                     --  ada_mode-recover_ambiguous_parse.adb
+                     null;
+
+                  elsif Contains
                     (Tree.Byte_Region (Deleted_Last_Ref.Node, Trailing_Non_Grammar => False),
                      Deleted_Region.Last)
                   then

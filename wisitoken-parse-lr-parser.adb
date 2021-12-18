@@ -50,12 +50,7 @@ package body WisiToken.Parse.LR.Parser is
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
 
       Nonterm : constant Syntax_Trees.Rooted_Ref := Shared_Parser.Tree.Reduce
-        (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Post_Parse_Action, New_State,
-         Default_Virtual => Shared_Parser.Tree.Contains_Virtual_Terminal
-           (Shared_Parser.Tree.Current_Token (Parser_State.Stream).Node));
-      --  Default_Virtual is used if Nonterm is empty; we set it True
-      --  because if Current_Token (that triggered the reduce) is virtual,
-      --  then Nonterm would be Virtual if it was not empty.
+        (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Post_Parse_Action, New_State);
    begin
       if Trace_Parse > Detail then
          Shared_Parser.Trace.Put_Line
@@ -262,7 +257,7 @@ package body WisiToken.Parse.LR.Parser is
                               end if;
                               Tree.Left_Breakdown (Current_Token, Shared_Parser.User_Data);
 
-                              if Trace_Parse > Detail then
+                              if Trace_Parse > Extra then
                                  Shared_Parser.Trace.Put_Line
                                    (" ... current_token: " & Tree.Image (Current_Token, First_Terminal => True));
                                  if Trace_Parse > Detail then

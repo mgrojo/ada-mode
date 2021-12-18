@@ -695,19 +695,18 @@ package WisiToken.Syntax_Trees is
    --  shared stream.
 
    function Reduce
-     (Tree            : in out Syntax_Trees.Tree;
-      Stream          : in     Stream_ID;
-      Production      : in     WisiToken.Production_ID;
-      Child_Count     : in     Ada.Containers.Count_Type;
-      Action          : in     Post_Parse_Action := null;
-      State           : in     State_Index;
-      Default_Virtual : in     Boolean         := False)
+     (Tree        : in out Syntax_Trees.Tree;
+      Stream      : in     Stream_ID;
+      Production  : in     WisiToken.Production_ID;
+      Child_Count : in     Ada.Containers.Count_Type;
+      Action      : in     Post_Parse_Action := null;
+      State       : in     State_Index)
      return Rooted_Ref
    with Pre => not Tree.Traversing and not Tree.Parents_Set and Tree.Is_Valid (Stream) and Stream /= Tree.Shared_Stream,
      Post => Reduce'Result.Stream = Stream and Tree.Valid_Stream_Node (Reduce'Result);
    --  Reduce Child_Count tokens on Stream top of stack to a new Nonterm
    --  node on Stream top of stack. Result points to the new Nonterm
-   --  node. If Child_Count = 0, set Nonterm.Virtual := Default_Virtual.
+   --  node.
    --
    --  Set Result byte_region, char_region, line, column,
    --  first_terminal to min/max of children.
@@ -2074,17 +2073,15 @@ package WisiToken.Syntax_Trees is
    --  stream if there are no grammar tokens on Line.
 
    function Add_Nonterm
-     (Tree            : in out Syntax_Trees.Tree;
-      Production      : in     WisiToken.Production_ID;
-      Children        : in     Valid_Node_Access_Array;
-      Clear_Parents   : in     Boolean;
-      Action          : in     Post_Parse_Action := null;
-      Default_Virtual : in     Boolean         := False)
+     (Tree          : in out Syntax_Trees.Tree;
+      Production    : in     WisiToken.Production_ID;
+      Children      : in     Valid_Node_Access_Array;
+      Clear_Parents : in     Boolean;
+      Action        : in     Post_Parse_Action := null)
      return Valid_Node_Access
    with Pre => not Tree.Traversing and Children'First = 1;
    --  Add a new Nonterm node (not on any stream), containing
-   --  Children, with no parent. Result points to the added node. If
-   --  Children'Length = 0, set Nonterm.Virtual := Default_Virtual.
+   --  Children, with no parent. Result points to the added node..
    --
    --  If Parents_Set, Children.Parent are set to the new node. If a
    --  child has a previous parent, then if Clear_Parents, the
