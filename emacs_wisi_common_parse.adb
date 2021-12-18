@@ -321,7 +321,7 @@ package body Emacs_Wisi_Common_Parse is
             end if;
 
             if Match ("compare_tree_text_auto") then
-               --  Args: source_file_name
+               --  Args: source_file_name enable
                --  Input: <none>
                --  Response:
                --  message, prompt
@@ -329,13 +329,14 @@ package body Emacs_Wisi_Common_Parse is
                --  Compare tree to fresh full parse after each incremental edit.
                declare
                   Source_File_Name : constant String := Wisi.Get_String (Command_Line, Last);
+                  Enable : constant Boolean := 1 = Wisi.Get_Integer (Command_Line, Last);
 
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
                     (Source_File_Name, Language);
                begin
                   Check_Command_Length (Command_Length, Last);
 
-                  Parse_Context.Compare_Tree_Text_Auto := True;
+                  Parse_Context.Compare_Tree_Text_Auto := Enable;
 
                   Put_Line ("(message ""auto compare tree text enabled"")");
                end;

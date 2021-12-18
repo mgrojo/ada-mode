@@ -1183,11 +1183,12 @@ PARSER will respond with one or more Query messages."
     (process-send-string process (wisi-process-parse--add-cmd-length cmd))
     (wisi-process-parse--handle-messages parser)))
 
-(defun wisi-process-parse-compare-tree-text (parser)
+(cl-defun wisi-process-parse-compare-tree-text (parser &key disable)
   (wisi-process-parse--prepare parser 'debug)
   (let ((cmd
-	 (format "compare_tree_text_auto \"%s\""
-		 (if (buffer-file-name) (buffer-file-name) (buffer-name))))
+	 (format "compare_tree_text_auto \"%s\" %d"
+		 (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		 (if disable 0 1)))
 	(process (wisi-process--parser-process parser)))
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
