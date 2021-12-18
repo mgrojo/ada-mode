@@ -1,6 +1,8 @@
 -- From a real editing session
 
--- We get different indent results from incremental and partial parse
+-- We get different parse trees, and thus different indent results,
+-- from incremental and partial parse.
+--
 --EMACS_SKIP_UNLESS:wisi-incremental-parse-enable
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 --EMACSCMD:(setq skip-recase-test t)
@@ -52,4 +54,5 @@ end Wisi.Libadalang;
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1
 -- ada-end-name-optional: nil
+-- compare-tree-text: nil
 -- End:

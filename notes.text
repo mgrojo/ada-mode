@@ -80,15 +80,10 @@ read Kate's book on culture/persuasion.
         - pay someone in-house to work on this - I will mentor
 
  current work
-emacs UI slow while gpr-query-symbols-filter is waiting for symbols
-    (progn
-     (gpr-query-kill-all-sessions)
-     (gpr-query-cached-session (project-current)))
-    don't use thread; build list in filter, using cl-push-new.
-        that ties up Emacs UI ; cl-push-new on large list too slow.
-            try cl-push, let completion delete dups.
-
-    for now, turn off symbols entirely
+test/ada_mode-recover_27.adb
+    incremental recover for extra 'begin' has only one solution (insert begin)
+    full also has (push_back ...) (delete begin), which would be the best solution
+    possibly because incremental doesn't enounter 'renames' during recover, while full does?
 
 ada-mode-hook runs before initial parse
     because we want to allow it to set debug etc that affect initial parse
@@ -98,7 +93,7 @@ ada-mode-hook runs before initial parse
         need command sequence numbers. sigh.
         or process extra messages if nowait?
             need test
-            run-test sets wisi-parse-full-background
+            run-test sets wisi-parse-full-background; it should not
 
     need another hook that runs after initial parse started
 
@@ -1047,7 +1042,7 @@ one ELISP="(setq-default save-parser-log \"../debug-2.log\" save-edited-text \".
     wisi-parser-transaction-log-buffer-size-default 600000
     compare-tree-text t
 
-test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 20.0)"
+test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 30.0)"
 
 two RUN_ARGS="command_file debug.cmd &> debug.log"
 

@@ -170,4 +170,5 @@ package body Ada_Mode.Recover_Match_Names is
 end Ada_Mode.Recover_Match_Names;
 -- Local Variables:
 -- ada-end-name-optional: nil
+-- compare-tree-text: nil
 -- End:

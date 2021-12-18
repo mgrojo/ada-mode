@@ -47,4 +47,5 @@ package body Wisitoken.Lr.Parser is
 end Wisitoken.Lr.Parser;
 -- Local Variables:
 -- ada-end-name-optional: nil
+-- wisi-mckenzie-task-count: 1
 -- End:

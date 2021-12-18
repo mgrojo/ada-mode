@@ -21,7 +21,7 @@ package body Ada_Mode.Recover_24 is
 
       Parsed_Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
       Local_Config_Heap.Add (Parsed_Config);
-      end if;
+   end if;
 
    end;
 end loop;
@@ -29,7 +29,9 @@ end loop;
 end Fast_Forward;
 
 end Ada_Mode.Recover_24;
+-- Incremental and full get different error recover, so disable compare tree/text
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1
 -- ada-end-name-optional: nil
+-- compare-tree-text: nil
 -- End:

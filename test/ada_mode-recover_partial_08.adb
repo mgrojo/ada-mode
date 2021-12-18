@@ -5,3 +5,6 @@
 for ID loop
    Recursive");
 --  Recover inserts 'end loop;' here.
+-- Local Variables:
+-- compare-tree-text: nil
+-- End:
