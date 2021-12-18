@@ -574,6 +574,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   (+SEMICOLON_ID, +identifier_opt_ID, +END_ID),
                   Push_Back_Undo_Reduce => True);
 
+            when loop_statement_ID =>
+               Push_Back_Check
+                 (Super, New_Config,
+                  (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID),
+                  Push_Back_Undo_Reduce => True);
+
+            when package_specification_ID =>
+               --  ada_mode-recover_string_quote_1.adb
+               Push_Back_Check
+                 (Super, New_Config,
+                  (+name_opt_ID, +END_ID),
+                  Push_Back_Undo_Reduce => True);
+
             when single_protected_declaration_ID =>
                Push_Back_Check (Super, New_Config, +SEMICOLON_ID, Push_Back_Undo_Reduce => True);
 
@@ -590,12 +603,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                when others =>
                   raise SAL.Programmer_Error with "code does not match grammar";
                end case;
-
-            when loop_statement_ID =>
-               Push_Back_Check
-                 (Super, New_Config,
-                  (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID),
-                  Push_Back_Undo_Reduce => True);
 
             when others =>
                raise Bad_Config with "Language_Fixes Extra_Name_Error 2: unrecognized Error_Token " &

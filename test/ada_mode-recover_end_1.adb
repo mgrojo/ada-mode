@@ -39,4 +39,5 @@ package body Ada_Mode.Recover_End_1 is
    end Ada_Mode.Recover_End_1;
 -- Local Variables:
 -- ada-end-name-optional: t
+-- compare-tree-text: nil
 -- End:
