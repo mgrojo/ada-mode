@@ -97,6 +97,13 @@ generic
      return Buffer_Pos;
    --  Implements WisiToken.Lexer.Find_Comment_End.
 
+   with function Contains_Comment_End
+     (Source : in WisiToken.Lexer.Source;
+      ID     : in Token_ID;
+      Region : in Buffer_Region)
+     return Boolean;
+   --  Implements WisiToken.Lexer.Contains_Comment_End
+
    with function Line_Begin_Char_Pos
      (Source : in WisiToken.Lexer.Source;
       Token  : in Lexer.Token;
@@ -204,6 +211,13 @@ package WisiToken.Lexer.re2c is
       ID            : in Token_ID;
       Comment_Start : in Buffer_Pos)
      return Buffer_Pos;
+
+   overriding
+   function Contains_Comment_End
+     (Lexer         : in Instance;
+      ID            : in Token_ID;
+      Region : in Buffer_Region)
+     return Boolean;
 
    overriding
    function Line_Begin_Char_Pos

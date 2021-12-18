@@ -695,19 +695,18 @@ package WisiToken.Syntax_Trees is
    --  shared stream.
 
    function Reduce
-     (Tree            : in out Syntax_Trees.Tree;
-      Stream          : in     Stream_ID;
-      Production      : in     WisiToken.Production_ID;
-      Child_Count     : in     Ada.Containers.Count_Type;
-      Action          : in     Post_Parse_Action := null;
-      State           : in     State_Index;
-      Default_Virtual : in     Boolean         := False)
+     (Tree        : in out Syntax_Trees.Tree;
+      Stream      : in     Stream_ID;
+      Production  : in     WisiToken.Production_ID;
+      Child_Count : in     Ada.Containers.Count_Type;
+      Action      : in     Post_Parse_Action := null;
+      State       : in     State_Index)
      return Rooted_Ref
    with Pre => not Tree.Traversing and not Tree.Parents_Set and Tree.Is_Valid (Stream) and Stream /= Tree.Shared_Stream,
      Post => Reduce'Result.Stream = Stream and Tree.Valid_Stream_Node (Reduce'Result);
    --  Reduce Child_Count tokens on Stream top of stack to a new Nonterm
    --  node on Stream top of stack. Result points to the new Nonterm
-   --  node. If Child_Count = 0, set Nonterm.Virtual := Default_Virtual.
+   --  node.
    --
    --  Set Result byte_region, char_region, line, column,
    --  first_terminal to min/max of children.
@@ -1440,6 +1439,10 @@ package WisiToken.Syntax_Trees is
    --  here so we can use this in Error_Message.
 
    procedure Prev_Non_Grammar
+     (Tree : in     Syntax_Trees.Tree;
+      Ref  : in out Stream_Node_Ref);
+
+   procedure Prev_Non_Grammar
      (Tree         : in     Syntax_Trees.Tree;
       Ref          : in out Stream_Node_Parents;
       Parse_Stream : in     Stream_ID)
@@ -1969,18 +1972,22 @@ package WisiToken.Syntax_Trees is
 
    function Find_Byte_Pos
      (Tree                 : in Syntax_Trees.Tree;
-      Stream               : in Stream_ID;
       Byte_Pos             : in Buffer_Pos;
       Trailing_Non_Grammar : in Boolean;
-      Start_At             : in Terminal_Ref)
+      Start_At             : in Terminal_Ref;
+      Stream               : in Stream_ID := Invalid_Stream_ID)
      return Terminal_Ref
-   with Pre => Start_At = Invalid_Stream_Node_Ref or else Tree.Byte_Region (Start_At.Node).First <= Byte_Pos;
+   with Pre =>
+     Tree.Parents_Set and
+     (Start_At /= Invalid_Stream_Node_Ref or Stream /= Invalid_Stream_ID);
    --  Return the terminal that contains (including non_grammar if
    --  Trailing_Non_Grammar) or is first after Byte_Pos.
    --  Invalid_Stream_Node_Ref if Byte_Pos is after text spanned by
    --  Tree.Stream.
    --
-   --  If Start_At is not Invalid_Stream_Node_Ref, start search there.
+   --  If Start_At is not Invalid_Stream_Node_Ref, start search there,
+   --  move forward. If Start_At is Invalid_Stream_Node_Ref, start search
+   --  at SOI in Stream.
 
    function Find_Char_Pos
      (Tree                 : in Syntax_Trees.Tree;
@@ -2068,17 +2075,15 @@ package WisiToken.Syntax_Trees is
    --  stream if there are no grammar tokens on Line.
 
    function Add_Nonterm
-     (Tree            : in out Syntax_Trees.Tree;
-      Production      : in     WisiToken.Production_ID;
-      Children        : in     Valid_Node_Access_Array;
-      Clear_Parents   : in     Boolean;
-      Action          : in     Post_Parse_Action := null;
-      Default_Virtual : in     Boolean         := False)
+     (Tree          : in out Syntax_Trees.Tree;
+      Production    : in     WisiToken.Production_ID;
+      Children      : in     Valid_Node_Access_Array;
+      Clear_Parents : in     Boolean;
+      Action        : in     Post_Parse_Action := null)
      return Valid_Node_Access
    with Pre => not Tree.Traversing and Children'First = 1;
    --  Add a new Nonterm node (not on any stream), containing
-   --  Children, with no parent. Result points to the added node. If
-   --  Children'Length = 0, set Nonterm.Virtual := Default_Virtual.
+   --  Children, with no parent. Result points to the added node..
    --
    --  If Parents_Set, Children.Parent are set to the new node. If a
    --  child has a previous parent, then if Clear_Parents, the

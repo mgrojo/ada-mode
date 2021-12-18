@@ -185,10 +185,6 @@ package body WisiToken.Syntax_Trees is
 
    function Pop (Parse_Stream : in out Syntax_Trees.Parse_Stream) return Valid_Node_Access;
 
-   procedure Prev_Non_Grammar
-     (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Stream_Node_Ref);
-
    function Prev_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Node_Access;
@@ -448,12 +444,11 @@ package body WisiToken.Syntax_Trees is
    end Add_Identifier;
 
    function Add_Nonterm_1
-     (Tree            : in out Syntax_Trees.Tree;
-      Production      : in     WisiToken.Production_ID;
-      Children        : in     Valid_Node_Access_Array;
-      Action          : in     Post_Parse_Action;
-      Default_Virtual : in     Boolean;
-      Clear_Parents   : in     Boolean)
+     (Tree          : in out Syntax_Trees.Tree;
+      Production    : in     WisiToken.Production_ID;
+      Children      : in     Valid_Node_Access_Array;
+      Action        : in     Post_Parse_Action;
+      Clear_Parents : in     Boolean)
      return Valid_Node_Access
    is
       Nonterm_Node : constant Valid_Node_Access := new Node'
@@ -464,7 +459,7 @@ package body WisiToken.Syntax_Trees is
          Children    => To_Node_Access (Children),
          Action      => Action,
          RHS_Index   => Production.RHS,
-         Virtual     => (if Children'Length = 0 then Default_Virtual else False),
+         Virtual     => False,
          others      => <>);
    begin
       Tree.Nodes.Append (Nonterm_Node);
@@ -506,15 +501,14 @@ package body WisiToken.Syntax_Trees is
    end Add_Nonterm_1;
 
    function Add_Nonterm
-     (Tree            : in out Syntax_Trees.Tree;
-      Production      : in     WisiToken.Production_ID;
-      Children        : in     Valid_Node_Access_Array;
-      Clear_Parents   : in     Boolean;
-      Action          : in     Post_Parse_Action := null;
-      Default_Virtual : in     Boolean           := False)
+     (Tree          : in out Syntax_Trees.Tree;
+      Production    : in     WisiToken.Production_ID;
+      Children      : in     Valid_Node_Access_Array;
+      Clear_Parents : in     Boolean;
+      Action        : in     Post_Parse_Action := null)
      return Valid_Node_Access
    is begin
-      return Add_Nonterm_1 (Tree, Production, Children, Action, Default_Virtual, Clear_Parents);
+      return Add_Nonterm_1 (Tree, Production, Children, Action, Clear_Parents);
    end Add_Nonterm;
 
    function Add_Source_Terminal_1
@@ -2442,27 +2436,57 @@ package body WisiToken.Syntax_Trees is
 
    function Find_Byte_Pos
      (Tree                 : in Syntax_Trees.Tree;
-      Stream               : in Stream_ID;
       Byte_Pos             : in Buffer_Pos;
       Trailing_Non_Grammar : in Boolean;
-      Start_At             : in Terminal_Ref)
+      Start_At             : in Terminal_Ref;
+      Stream               : in Stream_ID := Invalid_Stream_ID)
      return Terminal_Ref
    is
       use Stream_Element_Lists;
 
-      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
-      Result       : Stream_Node_Ref :=
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams
+        (if Start_At = Invalid_Stream_Node_Ref
+         then Stream.Cur
+         else Start_At.Stream.Cur);
+
+      function Find_Parent return Stream_Node_Ref
+      is
+         Node : Node_Access := Start_At.Node;
+      begin
+         loop
+            if Node.Parent = null then
+               declare
+                  Cur : constant Stream_Element_Lists.Cursor := Stream_Element_Lists.Next (Start_At.Element.Cur);
+               begin
+                  if Stream_Element_Lists.Has_Element (Cur) then
+                     return Tree.To_Rooted_Ref (Start_At.Stream, (Cur => Cur));
+                  else
+                     return Invalid_Stream_Node_Ref;
+                  end if;
+               end;
+
+            elsif Contains (Tree.Byte_Region (Node.Parent), Byte_Pos) then
+               return (Start_At.Stream, Start_At.Element, Node.Parent);
+
+            else
+               Node := Node.Parent;
+            end if;
+         end loop;
+      end Find_Parent;
+
+      Result : Stream_Node_Ref :=
         (if Start_At = Invalid_Stream_Node_Ref
          then (Stream, (Cur => Parse_Stream.Elements.First), null)
-         else Start_At);
+         else Find_Parent);
    begin
       loop
+         exit when Result.Element.Cur = No_Element;
+
          Result.Node := Find_Byte_Pos
            (Tree, Parse_Stream.Elements (Result.Element.Cur).Node, Byte_Pos, Trailing_Non_Grammar);
          if Result.Node = Invalid_Node_Access then
             --  Try next stream element
             Result.Element.Cur := Next (Result.Element.Cur);
-            exit when Result.Element.Cur = No_Element;
          else
             return Result;
          end if;
@@ -6357,13 +6381,12 @@ package body WisiToken.Syntax_Trees is
    end Push_Back;
 
    function Reduce
-     (Tree            : in out Syntax_Trees.Tree;
-      Stream          : in     Stream_ID;
-      Production      : in     WisiToken.Production_ID;
-      Child_Count     : in     Ada.Containers.Count_Type;
-      Action          : in     Post_Parse_Action := null;
-      State           : in     State_Index;
-      Default_Virtual : in     Boolean           := False)
+     (Tree        : in out Syntax_Trees.Tree;
+      Stream      : in     Stream_ID;
+      Production  : in     WisiToken.Production_ID;
+      Child_Count : in     Ada.Containers.Count_Type;
+      Action      : in     Post_Parse_Action := null;
+      State       : in     State_Index)
      return Rooted_Ref
    is
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
@@ -6379,7 +6402,7 @@ package body WisiToken.Syntax_Trees is
       end Pop_Children;
 
       New_Node : constant Node_Access := Tree.Add_Nonterm_1
-        (Production, Pop_Children, Action, Default_Virtual, Clear_Parents => False);
+        (Production, Pop_Children, Action, Clear_Parents => False);
    begin
       return Push (Parse_Stream, Stream, New_Node, State);
    end Reduce;

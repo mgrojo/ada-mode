@@ -133,6 +133,13 @@ package WisiToken.Lexer.Regexp is
      return Buffer_Pos;
 
    overriding
+   function Contains_Comment_End
+     (Lexer  : in Instance;
+      ID     : in Token_ID;
+      Region : in Buffer_Region)
+     return Boolean;
+
+   overriding
    function Line_Begin_Char_Pos
      (Lexer : in Instance;
       Token : in WisiToken.Lexer.Token;

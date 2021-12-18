@@ -61,6 +61,18 @@ package body Wisitoken_Grammar_Main is
          when others => raise SAL.Programmer_Error);
    end Find_Comment_End;
 
+   function Contains_Comment_End
+     (Source : in WisiToken.Lexer.Source;
+      ID     : in WisiToken.Token_ID;
+      Region : in WisiToken.Buffer_Region)
+     return Boolean
+   is begin
+      return
+        (case To_Token_Enum (ID) is
+         when COMMENT_ID => WisiToken.Lexer.Contains_New_Line (Source, Region),
+         when others => raise SAL.Programmer_Error);
+   end Contains_Comment_End;
+
    function Line_Begin_Char_Pos
     (Source : in WisiToken.Lexer.Source;
      Token  : in WisiToken.Lexer.Token;
@@ -95,6 +107,7 @@ package body Wisitoken_Grammar_Main is
       Comment_Start_Length,
       Comment_End_Length,
       Find_Comment_End,
+      Contains_Comment_End,
       Line_Begin_Char_Pos,
       Terminated_By_New_Line);
 
