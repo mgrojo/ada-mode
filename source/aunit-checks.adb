@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2004 - 2009, 2012, 2015, 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2009, 2012, 2015, 2017 - 2019, 2021 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -77,6 +77,17 @@ package body AUnit.Checks is
         (Computed = Expected,
          Label & " got " & Item_Type'Image (Computed) & " expecting " & Item_Type'Image (Expected));
    end Gen_Check_Discrete;
+
+   procedure Gen_Check_Discrete_Aux
+     (Label    : in String;
+      Computed : in Item_Type;
+      Expected : in Item_Type;
+      Aux      : in Aux_Type := Default_Aux)
+   is begin
+      AUnit.Assertions.Assert
+        (Computed = Expected,
+         Label & " got " & Image (Computed, Aux) & " expecting " & Image (Expected, Aux));
+   end Gen_Check_Discrete_Aux;
 
    procedure Gen_Check_Integer_Tolerance
      (Label     : in String;

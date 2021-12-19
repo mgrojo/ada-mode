@@ -65,6 +65,17 @@ package AUnit.Checks is
       Expected : in Item_Type);
 
    generic
+      type Item_Type is (<>);
+      type Aux_Type (<>) is limited private;
+      with function Image (Item : in Item_Type; Aux : in Aux_Type) return String;
+      Default_Aux : in Aux_Type;
+   procedure Gen_Check_Discrete_Aux
+     (Label    : in String;
+      Computed : in Item_Type;
+      Expected : in Item_Type;
+      Aux      : in Aux_Type := Default_Aux);
+
+   generic
       type Item_Type is range <>;
    procedure Gen_Check_Integer_Tolerance
      (Label     : in String;
