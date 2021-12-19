@@ -4566,8 +4566,6 @@ package body WisiToken.Syntax_Trees is
          --  Byte_Pos can be in whitespace or non_grammar, so we construct the
          --  region to check from two successive terminals. We need line number
          --  information, so we find the terminals with prev/next non_grammar.
-         --
-         --  FIXME: handle multi-line tokens
          case Node.Label is
          when Terminal_Label =>
             declare
@@ -4577,28 +4575,53 @@ package body WisiToken.Syntax_Trees is
                Check_Region : constant Buffer_Region :=
                  (First => Prev_Non_Grammar.Non_Grammar (Prev_Non_Grammar.Non_Grammar.First_Index).Byte_Region.First,
                   Last  => Next_Non_Grammar.Non_Grammar (Next_Non_Grammar.Non_Grammar.Last_Index).Byte_Region.First);
+
+               function Check_Non_Grammar (Non_Grammar : in Lexer.Token_Arrays.Vector) return Base_Line_Number_Type
+               is begin
+                  for Token of Non_Grammar loop
+                     if Byte_Pos < Token.Byte_Region.First then
+                        return Token.Line_Region.First;
+
+                     elsif Byte_Pos <= Token.Byte_Region.Last then
+                        return Tree.Lexer.Line_At_Byte_Pos (Token, Byte_Pos);
+
+                     end if;
+                  end loop;
+                  return Invalid_Line_Number;
+               end Check_Non_Grammar;
+
             begin
                if Contains (Check_Region, Byte_Pos) then
-                  for Token of Prev_Non_Grammar.Non_Grammar loop
-                     if Byte_Pos <= Token.Byte_Region.First then
-                        return Token.Line_Region.First;
+                  declare
+                     Temp : constant Base_Line_Number_Type := Check_Non_Grammar (Prev_Non_Grammar.Non_Grammar);
+                  begin
+                     if Temp /= Invalid_Line_Number then
+                        return Temp;
                      end if;
-                  end loop;
+                  end;
 
-                  if Node.Non_Grammar.Length > 0 then
-                     for Token of Node.Non_Grammar loop
-                        if Byte_Pos <= Token.Byte_Region.First then
-                           return Token.Line_Region.First;
+                  if Byte_Pos < Node.Byte_Region.First then
+                     --  In whitespace before token
+                     return Prev_Non_Grammar.Non_Grammar (Prev_Non_Grammar.Non_Grammar.Last_Index).Line_Region.Last;
+
+                  elsif Byte_Pos <= Node.Byte_Region.Last then
+                     return Tree.Lexer.Line_At_Byte_Pos
+                       (Node.ID, Node.Byte_Region, Byte_Pos,
+                        First_Line => Prev_Non_Grammar.Non_Grammar
+                          (Prev_Non_Grammar.Non_Grammar.Last_Index).Line_Region.Last);
+
+                  elsif Node.Non_Grammar.Length > 0 then
+                     declare
+                        Temp : constant Base_Line_Number_Type := Check_Non_Grammar (Node.Non_Grammar);
+                     begin
+                        if Temp /= Invalid_Line_Number then
+                           return Temp;
                         end if;
-                     end loop;
+                     end;
                   end if;
 
-                  for Token of Next_Non_Grammar.Non_Grammar loop
-                     if Byte_Pos <= Token.Byte_Region.First then
-                        return Token.Line_Region.First;
-                     end if;
-                  end loop;
-                  raise SAL.Programmer_Error; -- inconsistent Check_Region.
+                  return Check_Non_Grammar (Next_Non_Grammar.Non_Grammar);
+
                else
                   return Invalid_Line_Number;
                end if;

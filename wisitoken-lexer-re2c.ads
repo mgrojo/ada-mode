@@ -106,11 +106,20 @@ generic
 
    with function Line_Begin_Char_Pos
      (Source : in WisiToken.Lexer.Source;
-      Token  : in Lexer.Token;
+      Token  : in WisiToken.Lexer.Token;
       Line   : in WisiToken.Line_Number_Type)
      return Buffer_Pos;
    --  Implements WisiToken.Lexer.Line_Begin_Char_Pos, so that
    --  precondition applies.
+
+   with function Line_At_Byte_Pos
+     (Source      : in WisiToken.Lexer.Source;
+      ID          : in Token_ID;
+      Byte_Region : in WisiToken.Buffer_Region;
+      Byte_Pos    : in Buffer_Pos;
+      First_Line  : in Line_Number_Type)
+     return WisiToken.Line_Number_Type;
+   --  Implements WisiToken.Lexer.Line_At_Byte_Pos.
 
    with function Terminated_By_New_Line (ID : in Token_ID) return Boolean;
    --  Implements WisiToken.Lexer.Terminated_By_New_Line;
@@ -225,6 +234,15 @@ package WisiToken.Lexer.re2c is
       Token : in WisiToken.Lexer.Token;
       Line  : in Line_Number_Type)
      return Base_Buffer_Pos;
+
+   overriding
+   function Line_At_Byte_Pos
+     (Lexer       : in Instance;
+      ID          : in Token_ID;
+      Byte_Region : in WisiToken.Buffer_Region;
+      Byte_Pos    : in Buffer_Pos;
+      First_Line  : in Line_Number_Type)
+     return Line_Number_Type;
 
    overriding
    function Contains_New_Line

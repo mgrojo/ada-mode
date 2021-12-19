@@ -72,6 +72,9 @@ package body Test_McKenzie_Recover is
 
    Invalid : constant WisiToken.Syntax_Trees.Base_Sequential_Index := WisiToken.Syntax_Trees.Invalid_Sequential_Index;
 
+   procedure Check_ID is new AUnit.Checks.Gen_Check_Discrete_Aux
+     (WisiToken.Token_ID, WisiToken.Descriptor, WisiToken.Image, Ada_Lite_Actions.Descriptor);
+
    procedure Parse_Text
      (Text             : in String;
       Multiple_Tasks   : in Boolean := False;
@@ -133,6 +136,9 @@ package body Test_McKenzie_Recover is
    is
       --  Only set Ops_Race_Condition True when Parse_Text.Multiple_Tasks is
       --  True; otherwise, add case on LALR | LR1.
+      --
+      --  Enqueue_*, Check_* can only be checked on the last error in parse
+      --  order.
 
       use AUnit.Assertions;
       use WisiToken.Parse.LR.AUnit;
@@ -198,7 +204,7 @@ package body Test_McKenzie_Recover is
       Get_Error;
 
       if Error_Node /= Invalid_Node_Access then
-         Check (Label_I & ".Error.TOKEN_ID", Parser.Tree.ID (Error_Node), Error_Token_ID);
+         Check_ID (Label_I & ".Error.TOKEN_ID", Parser.Tree.ID (Error_Node), Error_Token_ID);
          Check
            (Label_I & ".Error_Token.Byte_Region", Parser.Tree.Byte_Region (Error_Node),
             Error_Token_Byte_Region);
@@ -275,6 +281,10 @@ package body Test_McKenzie_Recover is
       --  succeeding parser was spawned after error recovery, but we copy
       --  Enqueue_Count and Check_Count in Parser_Lists.Prepend_Copy just
       --  for this check.
+      --
+      --  There is only one Parser_State.Recover, so it stores counts from
+      --  the last error in parse order. Since tree order can be different
+      --  from parse order, we can't check that here.
       if Enqueue_Low = 0 and Enqueue_High = Integer'Last then
          --  Not checking enqueue or check counts
          null;
@@ -1822,8 +1832,12 @@ package body Test_McKenzie_Recover is
 
       Parse_Text ("A; exception when A => null; end Debug;");
 
+      --  The error on 'exception' is encountered by the parser first, but
+      --  the name error on 'block_statement' is first in tree order.
+
       Check_Recover
-        (Errors_Length           => 1,
+        (Errors_Length           => 2,
+         Checking_Error          => 2,
          Error_Token_ID          => +EXCEPTION_ID,
          Error_Token_Byte_Region => (4, 12),
          Ops                     =>
@@ -1831,8 +1845,17 @@ package body Test_McKenzie_Recover is
             when LALR => +(Undo_Reduce, +statement_ID, 1, 0) & (Insert, +BEGIN_ID, 2) & (Insert, +EXIT_ID, 2) &
               (Insert, +SEMICOLON_ID, 2),
             when LR1 => +(Insert, +BEGIN_ID, 2) & (Insert, +EXIT_ID, 2) & (Insert, +SEMICOLON_ID, 2)),
-         Enqueue_Low             => (case Test.Alg is when LALR => 32, when LR1 => 31),
-         Check_Low               => 5,
+         Cost                    => 2);
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 1,
+         Code                    => Extra_Name_Error,
+         Error_Token_ID          => +block_statement_ID,
+         Error_Token_Byte_Region => (4, 39),
+         Ops                     => Empty_Ops,
+         Enqueue_Low             => 1,
+         Check_Low               => 1,
          Cost                    => 2);
    end Minimal_Complete_Full_Reduce_1;
 

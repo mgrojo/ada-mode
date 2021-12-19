@@ -196,7 +196,6 @@ is
                   end loop;
                end if;
 
-               Indent_Line (" Default_Virtual => False,");
                Indent_Line (" Clear_Parents   => True),");
                --  We must be able to steal nodes from failed nonterms;
                --  body_instantiation_conflict.wy.

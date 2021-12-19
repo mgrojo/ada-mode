@@ -1238,8 +1238,9 @@ package WisiToken.Syntax_Trees is
       Byte_Pos : in Buffer_Pos)
      return Base_Line_Number_Type
    with Pre => Tree.Editable;
-   --  Return line that contains Byte_Pos; Invalid_Line_Number is outside
-   --  range of text spanned by Tree.
+   --  Return line that contains Byte_Pos; Invalid_Line_Number if outside
+   --  range of text spanned by Tree. If Byte_Pos is on a New_Line,
+   --  result is the line that the character ends.
 
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;

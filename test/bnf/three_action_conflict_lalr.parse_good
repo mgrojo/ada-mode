@@ -451,7 +451,7 @@ recover: succeed, parser count 3
  ... goto state 2
  1: 2: (-1, 27:(Wisi_EOI, (160 . 159))) : accept it
 (wisitoken_accept_0, (1 . 158) <= ((block, (1 . 158))))
- 5: terminate (1 active): recover cost/length (-1, 27:(Wisi_EOI, (160 . 159)))
+ 5: terminate (1 active): recover cost/min length (-1, 27:(Wisi_EOI, (160 . 159)))
  1: succeed
 three_action_conflict.input:9:9: syntax_error: expecting LBRACE, found 'foo'
    recovered: ((INSERT, LBRACE, 3))

@@ -358,6 +358,20 @@ package body WisiToken.Lexer.Regexp is
    end Line_Begin_Char_Pos;
 
    overriding
+   function Line_At_Byte_Pos
+     (Lexer       : in Instance;
+      ID          : in Token_ID;
+      Byte_Region : in WisiToken.Buffer_Region;
+      Byte_Pos    : in Buffer_Pos;
+      First_Line  : in Line_Number_Type)
+     return Line_Number_Type
+   is begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return Line_Number_Type'Last;
+   end Line_At_Byte_Pos;
+
+   overriding
    function Contains_New_Line
      (Lexer       : in Instance;
       Byte_Region : in Buffer_Region)

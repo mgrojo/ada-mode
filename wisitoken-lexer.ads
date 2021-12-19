@@ -276,6 +276,26 @@ package WisiToken.Lexer is
    --  First char position on Line; Invalid_Buffer_Pos if Token does not
    --  contain new_line that starts Line.
 
+   function Line_At_Byte_Pos
+     (Lexer       : in Instance;
+      ID          : in Token_ID;
+      Byte_Region : in WisiToken.Buffer_Region;
+      Byte_Pos    : in Buffer_Pos;
+      First_Line  : in Line_Number_Type)
+     return Line_Number_Type
+   is abstract
+   with Pre'Class => Contains (Byte_Region, Byte_Pos);
+   --  Return line that contains Byte_Pos. If Byte_Pos is on a New_Line,
+   --  result is the line that the character ends.
+
+   function Line_At_Byte_Pos
+     (Lexer    : in Instance;
+      Token    : in WisiToken.Lexer.Token;
+      Byte_Pos : in Buffer_Pos)
+     return Line_Number_Type;
+   --  Return line that contains Byte_Pos. If Byte_Pos is on a New_Line,
+   --  result is the line that the character ends.
+
    function Contains_New_Line
      (Lexer       : in Instance;
       Byte_Region : in Buffer_Region)
@@ -320,6 +340,15 @@ package WisiToken.Lexer is
       Token  : in WisiToken.Lexer.Token;
       Line   : in Line_Number_Type)
      return Base_Buffer_Pos;
+   --  Implement Line_Begin_Char_Pos (Lexer ...)
+
+   function Line_At_Byte_Pos
+     (Source      : in WisiToken.Lexer.Source;
+      Byte_Region : in WisiToken.Buffer_Region;
+      Byte_Pos    : in Buffer_Pos;
+      First_Line  : in Line_Number_Type)
+     return Line_Number_Type;
+   --  Implement Line_At_Byte_Pos (Lexer ...)
 
    function Contains_New_Line
      (Source      : in WisiToken.Lexer.Source;

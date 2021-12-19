@@ -31,26 +31,11 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-run all ada-mode incremental tests
-
-propagate to main
-
 review FIXME
-
-other:
-c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-explore.adb:1779:            --  The unbalanced quote is after the parse error token. FIXME: also
-
-
-c:/Projects/org.wisitoken.stephe-1/wisitoken-bnf-output_ada_common.adb:1167: comment-one-line not implemented                  --  FIXME: similar to delimited-text, but terminate on new-line, eoi.
-
-c:/Projects/org.wisitoken.stephe-1/wisitoken-lexer.adb:132:               --  FIXME: handle multi-byte UTF-8; need test case.
-
-c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-base.adb:179:                        if abs (Cur - Min) > 4 then --  FIXME: '4' should be mckenzie param zombie_limit
-
-c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.adb:4448:         --  FIXME: handle multi-line tokens
 
 c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.ads:2686:            --  FIXME: change to ptr like error_list, for space saving?
     need memory benchmark
+    may also affect speed
 
 
 first parser operation after opening a large file is slow

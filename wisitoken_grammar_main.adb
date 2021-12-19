@@ -88,6 +88,21 @@ package body Wisitoken_Grammar_Main is
       end case;
    end Line_Begin_Char_Pos;
 
+   function Line_At_Byte_Pos
+     (Source      : in WisiToken.Lexer.Source;
+      ID          : in WisiToken.Token_ID;
+      Byte_Region : in WisiToken.Buffer_Region;
+      Byte_Pos    : in WisiToken.Buffer_Pos;
+      First_Line  : in WisiToken.Line_Number_Type)
+     return WisiToken.Line_Number_Type
+   is begin
+      case To_Token_Enum (ID) is
+      when RAW_CODE_ID | REGEXP_ID | ACTION_ID =>
+         return WisiToken.Lexer.Line_At_Byte_Pos (Source, Byte_Region, Byte_Pos, First_Line);
+      when others => return First_Line;
+      end case;
+   end Line_At_Byte_Pos;
+
    function Terminated_By_New_Line (ID : in WisiToken.Token_ID) return Boolean
    is begin
       case To_Token_Enum (ID) is
@@ -109,6 +124,7 @@ package body Wisitoken_Grammar_Main is
       Find_Comment_End,
       Contains_Comment_End,
       Line_Begin_Char_Pos,
+      Line_At_Byte_Pos,
       Terminated_By_New_Line);
 
    function Create_Parse_Table
