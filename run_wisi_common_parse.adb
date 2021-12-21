@@ -27,6 +27,7 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
+with GNATCOLL.Memory;
 with GNATCOLL.Mmap;
 with SAL;
 with System.Multiprocessors;
@@ -332,6 +333,13 @@ package body Run_Wisi_Common_Parse is
 
             Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
 
+            if Trace_Time then
+               GNATCOLL.Memory.Configure
+                 (Activate_Monitor      => True,
+                  Stack_Trace_Depth     => 0,
+                  Reset_Content_On_Free => False);
+            end if;
+
          elsif Argument (Arg) = "--save_text" then
             Save_File_Name := +Argument (Arg + 1);
             Arg := @ + 2;
@@ -430,8 +438,8 @@ package body Run_Wisi_Common_Parse is
       use WisiToken; -- "+" unbounded
 
       type File_Command_Type is
-        (Compare_Tree_Text_Auto, File, Language_Params, McKenzie_Options, Parse_Full, Parse_Incremental, Post_Parse,
-         Refactor, Query_Tree, Save_Text, Save_Text_Auto, Verbosity);
+        (Compare_Tree_Text_Auto, File, Language_Params, McKenzie_Options, Memory, Parse_Full, Parse_Incremental,
+         Post_Parse, Refactor, Query_Tree, Save_Text, Save_Text_Auto, Verbosity);
 
       Parser : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
 
@@ -477,6 +485,18 @@ package body Run_Wisi_Common_Parse is
       when McKenzie_Options =>
          WisiToken.Parse.LR.Set_McKenzie_Options
            (Parser.Table.McKenzie_Param, Line (Last + 1 .. Line'Last));
+
+      when Memory =>
+         declare
+            use GNATCOLL.Memory;
+            Memory_Use : constant Watermark_Info := Get_Ada_Allocations;
+         begin
+            Ada.Text_IO.Put_Line
+              (";; memory use: delta high " & Byte_Count'Image (Memory_Use.High - Wisi.Parse_Context.Memory_Use.High) &
+                 " delta current " & Byte_Count'Image (Memory_Use.Current - Wisi.Parse_Context.Memory_Use.Current) &
+                 " abs high " & Memory_Use.High'Image &
+                 " abs current " & Memory_Use.Current'Image);
+         end;
 
       when Parse_Full =>
          Parse_Data.Initialize (Trace'Access);
@@ -622,6 +642,12 @@ package body Run_Wisi_Common_Parse is
       when Verbosity =>
          WisiToken.Enable_Trace (Line (Last + 1 .. Line'Last));
          Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
+         if Trace_Time then
+            GNATCOLL.Memory.Configure
+              (Activate_Monitor      => True,
+               Stack_Trace_Depth     => 0,
+               Reset_Content_On_Free => False);
+         end if;
 
       end case;
    end Process_Command;
@@ -632,6 +658,24 @@ package body Run_Wisi_Common_Parse is
       use WisiToken;
 
       Start : Ada.Real_Time.Time;
+
+      procedure Report_Memory
+      is
+         use GNATCOLL.Memory;
+         Memory_Use : constant Watermark_Info := Get_Ada_Allocations;
+      begin
+         Ada.Text_IO.Put_Line
+           ("(message ""memory: delta high" &
+              Byte_Count'Image (Memory_Use.High - Wisi.Parse_Context.Memory_Use.High) &
+              " current" &
+              Byte_Count'Image (Memory_Use.Current - Wisi.Parse_Context.Memory_Use.Current) &
+              " abs high" & Memory_Use.High'Image &
+              " current" & Memory_Use.Current'Image &
+              """)");
+
+         Wisi.Parse_Context.Memory_Use := Memory_Use;
+      end Report_Memory;
+
    begin
       declare
          Arg       : Integer;
@@ -731,6 +775,10 @@ package body Run_Wisi_Common_Parse is
                      Parse_Data.Put
                        (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                         Parser.Tree);
+
+                     if Trace_Time then
+                        Report_Memory;
+                     end if;
                   end if;
 
                exception
@@ -776,6 +824,10 @@ package body Run_Wisi_Common_Parse is
                Parse_Data.Put
                  (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                   Parser.Tree);
+               if Trace_Time then
+                  Put ("initial full parse ");
+                  Report_Memory;
+               end if;
 
             exception
             when WisiToken.Syntax_Error =>
@@ -830,6 +882,12 @@ package body Run_Wisi_Common_Parse is
                     (Action_Region_Bytes => (Cl_Params.Inc_Begin_Byte_Pos, Cl_Params.Inc_End_Byte_Pos));
 
                   Parse_Data.Put (Parser);
+
+                  if Trace_Time then
+                     Put ("incremental parse ");
+                     Report_Memory;
+                  end if;
+
                exception
                when WisiToken.Syntax_Error =>
                   Put_Errors (Parser);

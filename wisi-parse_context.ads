@@ -14,12 +14,15 @@
 pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
+with GNATCOLL.Memory;
 with Wisi;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
 package Wisi.Parse_Context is
 
    Not_Found : exception;
+
+   Memory_Use : GNATCOLL.Memory.Watermark_Info := (others => 0);
 
    type Language is record
       Descriptor              : WisiToken.Descriptor_Access_Constant;
