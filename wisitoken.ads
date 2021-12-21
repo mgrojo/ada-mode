@@ -433,6 +433,8 @@ package WisiToken is
    Trace_Time : Boolean := False;
    --  Output execution time for various things.
 
+   Trace_Memory : Integer := 0;
+
    Trace_Parse_No_State_Numbers : Boolean := False;
    --  For test_lr1_parallel.adb
 
@@ -445,8 +447,8 @@ package WisiToken is
    --
    --  name=value ...
    --
-   --  where "name" is the suffix of on of the Trace_* variables above,
-   --  and "value" is an integer.
+   --  where "name" is the suffix of on of the Trace_* variables above
+   --  (or an abbreviation; see body), and "value" is an integer.
    --
    --  For Boolean variables, value > 0 is True, 0 is False.
    --

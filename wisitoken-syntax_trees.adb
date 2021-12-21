@@ -4600,17 +4600,20 @@ package body WisiToken.Syntax_Trees is
                      end if;
                   end;
 
-                  if Byte_Pos < Node.Byte_Region.First then
-                     --  In whitespace before token
-                     return Prev_Non_Grammar.Non_Grammar (Prev_Non_Grammar.Non_Grammar.Last_Index).Line_Region.Last;
+                  if Node.Label = Source_Terminal then
+                     if Byte_Pos < Node.Byte_Region.First then
+                        --  In whitespace before token
+                        return Prev_Non_Grammar.Non_Grammar (Prev_Non_Grammar.Non_Grammar.Last_Index).Line_Region.Last;
 
-                  elsif Byte_Pos <= Node.Byte_Region.Last then
-                     return Tree.Lexer.Line_At_Byte_Pos
-                       (Node.ID, Node.Byte_Region, Byte_Pos,
-                        First_Line => Prev_Non_Grammar.Non_Grammar
-                          (Prev_Non_Grammar.Non_Grammar.Last_Index).Line_Region.Last);
+                     elsif Byte_Pos <= Node.Byte_Region.Last then
+                        return Tree.Lexer.Line_At_Byte_Pos
+                          (Node.ID, Node.Byte_Region, Byte_Pos,
+                           First_Line => Prev_Non_Grammar.Non_Grammar
+                             (Prev_Non_Grammar.Non_Grammar.Last_Index).Line_Region.Last);
+                     end if;
+                  end if;
 
-                  elsif Node.Non_Grammar.Length > 0 then
+                  if Node.Non_Grammar.Length > 0 then
                      declare
                         Temp : constant Base_Line_Number_Type := Check_Non_Grammar (Node.Non_Grammar);
                      begin

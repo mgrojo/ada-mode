@@ -31,12 +31,13 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+delete mckenzie multi-tasking
+
 review FIXME
 
 c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.ads:2686:            --  FIXME: change to ptr like error_list, for space saving?
-    need memory benchmark
+    use memory benchmark
     may also affect speed
-
 
 first parser operation after opening a large file is slow
     waiting for full parse to complete
@@ -48,12 +49,6 @@ first parser operation after opening a large file is slow
 Tree.validate check that all tree.nodes are in tree
     possibly in following_deleted
     call it in syntax_Trees.clear_parse_streams
-
-recover significantly slower with incremental; ada-mode benchmark_results 27 Nov 2020 0.22 vs 03 Dec 2021 1.6!
-    don't have just recover time from released version 7.1.8
-    however, incremental recover still fast enough
-    and mult-tasking doesn't help: 8 1.6, 1 1.8
-    review Super use, minimize serialization
 
 error recover try prev solution first - new strategy.
 

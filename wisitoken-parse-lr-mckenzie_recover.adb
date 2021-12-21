@@ -21,6 +21,7 @@ with Ada.Characters.Handling;
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with GNAT.Traceback.Symbolic;
+with GNATCOLL.Memory;
 with System.Multiprocessors;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
@@ -164,7 +165,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Config : Configuration;
       Error_Node : constant Syntax_Trees.Valid_Node_Access := Parser_State.Current_Error_Node (Super.Tree.all).Ref.Node;
       Error : constant Syntax_Trees.Error_Data'Class := Find_Parse_In_Parse_Action_Error (Super.Tree.all, Error_Node);
-
    begin
       Parser_State.Recover.Enqueue_Count := @ + 1;
 
@@ -286,6 +286,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       Parsers : Parser_Lists.List renames Shared_Parser.Parsers;
 
+      Initial_Memory_Use : constant GNATCOLL.Memory.Watermark_Info := GNATCOLL.Memory.Get_Ada_Allocations;
+
       Skip_Next : Boolean := False;
 
       Super : aliased Base.Supervisor
@@ -367,6 +369,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             Raise_Exception (ID, -Message);
          end if;
       end;
+
+      if Trace_Memory > Outline then
+         declare
+            use GNATCOLL.Memory;
+            Memory_Use : constant Watermark_Info := Get_Ada_Allocations;
+         begin
+            Trace.Put_Line
+              ("recover memory use: high" & Byte_Count'Image (Memory_Use.High - Initial_Memory_Use.High) &
+                 " current" & Byte_Count'Image (Memory_Use.Current - Initial_Memory_Use.Current));
+         end;
+      end if;
 
       Shared_Parser.Min_Sequential_Index := Super.Min_Sequential_Index;
       Shared_Parser.Max_Sequential_Index := Super.Max_Sequential_Index;
