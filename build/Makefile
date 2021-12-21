@@ -101,7 +101,7 @@ summarize :
 
 benchmark : RUN_ARGS ?= c:/eurocontrol/gnatcoll-xref.adb
 benchmark :
-	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l source_ada_wisi.el -l benchmark.el $(RUN_ARGS)
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l benchmark.el $(RUN_ARGS)
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 #ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
@@ -130,6 +130,9 @@ two : RUN_ARGS ?= parse_partial indent c:/eurocontrol/gnatcoll-xref.adb > debug.
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 two : ../run_ada_lalr_parse.exe
 	cd ../; ./run_ada_lalr_parse.exe $(RUN_ARGS)
+
+two-lr1 : ../run_ada_lr1_parse.exe
+	cd ../; ./run_ada_lr1_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_executables

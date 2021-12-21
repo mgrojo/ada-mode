@@ -80,6 +80,8 @@ read Kate's book on culture/persuasion.
         - pay someone in-house to work on this - I will mentor
 
  current work
+need kill-context on delete buffer
+
 test/ada_mode-recover_27.adb
     incremental recover for extra 'begin' has only one solution (insert begin)
     full also has (push_back ...) (delete begin), which would be the best solution
