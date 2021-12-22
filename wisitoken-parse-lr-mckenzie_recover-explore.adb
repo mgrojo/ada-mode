@@ -2278,12 +2278,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Super.Put (Parser_Index, Local_Config_Heap);
 
    when E : Bad_Config =>
-      --  Just abandon this config; tell Super we are done.
       if Debug_Mode then
+         --  Tell the developer about this bug.
          Super.Trace.Put_Line ("Process_One: Bad_Config: " & Standard.Ada.Exceptions.Exception_Message (E));
          Super.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+         raise;
+      else
+         --  Just abandon this config; tell Super we are done.
+         Super.Put (Parser_Index, Local_Config_Heap);
       end if;
-      Super.Put (Parser_Index, Local_Config_Heap);
 
    when E : others =>
       Super.Put (Parser_Index, Local_Config_Heap);

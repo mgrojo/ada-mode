@@ -301,10 +301,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Shared_Parser.Language_Matching_Begin_Tokens,
          Shared_Parser.Language_String_ID_Set);
 
-      Task_Count : constant System.Multiprocessors.CPU_Range :=
-        (if Shared_Parser.Table.McKenzie_Param.Task_Count = 0
-         then Worker_Tasks'Last
-         else Shared_Parser.Table.McKenzie_Param.Task_Count);
+      Task_Count : constant System.Multiprocessors.CPU_Range := 1;
+      --  FIXME: using multiple tasks means we get errors we can't
+      --  reproduce, and gains very little in speed. Delete multitasking.
 
    begin
       if Trace_McKenzie > Outline then
