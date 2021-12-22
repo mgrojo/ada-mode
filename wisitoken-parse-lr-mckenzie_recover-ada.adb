@@ -17,9 +17,7 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Exceptions;
 with Ada_Annex_P_Process_Actions;
-with GNAT.Traceback.Symbolic;
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
 with WisiToken.Parse.LR.McKenzie_Recover.Parse;
 package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
@@ -711,12 +709,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          end;
       end case;
    exception
-   when E : Bad_Config =>
+   when Bad_Config =>
       if Debug_Mode then
-         Super.Trace.Put_Line
-           ("Language_Fixes Handle_In_Parse_Action_Fail Bad_Config: " &
-              Standard.Ada.Exceptions.Exception_Message (E));
-         Super.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
          raise;
       elsif Trace_McKenzie > Outline then
          Super.Trace.Put_Line ("Language_Fixes Handle_In_Parse_Action_Fail Bad_Config");
