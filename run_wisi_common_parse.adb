@@ -430,6 +430,23 @@ package body Run_Wisi_Common_Parse is
       end if;
    end Put_Errors;
 
+   procedure Report_Memory
+   is
+      use GNATCOLL.Memory;
+      Memory_Use : constant Watermark_Info := Get_Ada_Allocations;
+   begin
+      Ada.Text_IO.Put_Line
+        ("(message ""memory: delta high" &
+           Byte_Count'Image (Memory_Use.High - Wisi.Parse_Context.Memory_Use.High) &
+           " current" &
+           Byte_Count'Image (Memory_Use.Current - Wisi.Parse_Context.Memory_Use.Current) &
+           " abs high" & Memory_Use.High'Image &
+           " current" & Memory_Use.Current'Image &
+           """)");
+
+      Wisi.Parse_Context.Memory_Use := Memory_Use;
+   end Report_Memory;
+
    procedure Process_Command
      (Parse_Context : in Wisi.Parse_Context.Parse_Context_Access;
       Line : in String)
@@ -487,16 +504,7 @@ package body Run_Wisi_Common_Parse is
            (Parser.Table.McKenzie_Param, Line (Last + 1 .. Line'Last));
 
       when Memory =>
-         declare
-            use GNATCOLL.Memory;
-            Memory_Use : constant Watermark_Info := Get_Ada_Allocations;
-         begin
-            Ada.Text_IO.Put_Line
-              (";; memory use: delta high " & Byte_Count'Image (Memory_Use.High - Wisi.Parse_Context.Memory_Use.High) &
-                 " delta current " & Byte_Count'Image (Memory_Use.Current - Wisi.Parse_Context.Memory_Use.Current) &
-                 " abs high " & Memory_Use.High'Image &
-                 " abs current " & Memory_Use.Current'Image);
-         end;
+         Report_Memory;
 
       when Parse_Full =>
          Parse_Data.Initialize (Trace'Access);
@@ -658,24 +666,6 @@ package body Run_Wisi_Common_Parse is
       use WisiToken;
 
       Start : Ada.Real_Time.Time;
-
-      procedure Report_Memory
-      is
-         use GNATCOLL.Memory;
-         Memory_Use : constant Watermark_Info := Get_Ada_Allocations;
-      begin
-         Ada.Text_IO.Put_Line
-           ("(message ""memory: delta high" &
-              Byte_Count'Image (Memory_Use.High - Wisi.Parse_Context.Memory_Use.High) &
-              " current" &
-              Byte_Count'Image (Memory_Use.Current - Wisi.Parse_Context.Memory_Use.Current) &
-              " abs high" & Memory_Use.High'Image &
-              " current" & Memory_Use.Current'Image &
-              """)");
-
-         Wisi.Parse_Context.Memory_Use := Memory_Use;
-      end Report_Memory;
-
    begin
       declare
          Arg       : Integer;
