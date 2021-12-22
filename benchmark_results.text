@@ -128,11 +128,9 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
         LR1 re2c generate time: 89.548030332
 
  mckenzie recover
-    ./run_ada_lr1_parse.exe parse_partial indent test/ada_mode-recover_partial_02_lr1.adb --mckenzie_enqueue_limit 500_000 --mckenzie_check_delta 100_000 --verbosity "debug=1 time=1 mckenzie=1" --mckenzie_task_count 8
+    ./run_ada_lr1_parse.exe parse_partial indent test/ada_mode-recover_partial_02_lr1.adb --mckenzie_enqueue_limit 500_000 --mckenzie_check_delta 100_000 --verbosity "debug=1 time=1 mckenzie=1"
         record all recover sessions
         post-recover time line reports net recover time
-
-        also do --task_count 1
 
     12 Jul 2019 ada-mode 6.1.1
         0: succeed 2, enqueue 110, check  14, cost:  2
@@ -336,14 +334,123 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
         mckenzie_task_count 1: 0.002189212, 1.786355067
 
 
-IMPROVEME: max memory use?
+    20 Dec 2021 fix bugs, add memory report
+        high limits, task_count 8: values change on repeat
+        ;; parser 2: State 14755 Current_Token (2, 2;65:(LEFT_PAREN, (1122 . 1122) ERROR))
+        ;;  2: succeed 3, enqueue 212, 183, check  22, 29, cost:  2
+        0.005738850
+
+        ;; parser 6: State 3971 Current_Token (6, 2;69:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  6: succeed 10, enqueue 5616, check  498, cost:  3
+        ;; parser 5: State 3220 Current_Token (5, 2;70:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  5: succeed 1, enqueue 225506, 77970, check  17828, cost:  5
+        ;; parser 4: State 3219 Current_Token (4, 2;71:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  4: succeed 2, enqueue 3428, 3649, check  290, cost:  3
+        ;; parser 3: State 2376 Current_Token (3, 2;72:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  3: succeed 1, enqueue 73634, 76191, check  5882, cost:  4
+        ;; parser 2: State 3970 Current_Token (2, 2;73:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  2: succeed 10, enqueue 5613, check  498, cost:  3
+        ;; too many parallel parsers required in recover; dropping some solutions
+        1.773672049, 0.969427286
+        memory: high 2_059_106_984, 1_108_686_316 current 201_432
+
+        high limits, task_count 1: values do not change on repeat, except total time slightly
+        ;; parser 2: State 14755 Current_Token (2, 2;65:(LEFT_PAREN, (1122 . 1122) ERROR))
+        ;; Parser_Action
+        ;;  2: succeed 3, enqueue 183, check  20, cost:  2
+        0.003422014
+
+        ;; parser 6: State 3971 Current_Token (6, 2;69:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  6: succeed 10, enqueue 5616, check  498, cost:  3
+        ;; parser 5: State 3220 Current_Token (5, 2;70:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  5: succeed 1, enqueue 82072, check  6528, cost:  4
+        ;; parser 4: State 3219 Current_Token (4, 2;71:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  4: succeed 1, enqueue 185791, check  14730, cost:  5
+        ;; parser 3: State 3970 Current_Token (3, 2;72:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  3: succeed 10, enqueue 5613, check  498, cost:  3
+        ;; parser 2: State 2376 Current_Token (2, 2;73:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  2: succeed 1, enqueue 1886, check  157, cost:  3
+        ;; too many parallel parsers required in recover; dropping some solutions
+        2.169599840, 2.321926115
+        memory: high 1_843_488_016 current 12_428_660
+
+        default limits, task count 8:
+        ;; parser 2: State 14755 Current_Token (2, 2;65:(LEFT_PAREN, (1122 . 1122) ERROR))
+        ;; Parser_Action
+        ;;  2: succeed 3, enqueue 183, check  20, cost:  2
+        0.006011841
+
+        ;; parser 6: State 3220 Current_Token (6, 2;69:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  6: fail; check delta (limit 180)
+        ;;  6: fail, enqueue 2340, 2406, check  180
+        ;; parser 5: State 3971 Current_Token (5, 2;70:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  5: fail; check delta (limit 180)
+        ;;  5: succeed 1, enqueue 2060, 2266, check  180, cost:  3
+        ;; parser 4: State 3970 Current_Token (4, 2;71:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  4: fail; check delta (limit 180)
+        ;;  4: succeed 1, enqueue 2046, 2220, check  180, cost:  3
+        ;; parser 3: State 3219 Current_Token (3, 2;72:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  3: fail; check delta (limit 180)
+        ;;  3: fail, enqueue 2333, check  180
+        ;; parser 2: State 2376 Current_Token (2, 2;73:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  2: fail; check delta (limit 180)
+        ;;  2: fail, enqueue 2179, check  180
+        0.075332649, 0.079020858
+        memory: high 71_888_636, 77_087_492 current 13_577_640, 184_160
+
+        default limits, task count 1:
+        ;; parser 2: State 14755 Current_Token (2, 2;65:(LEFT_PAREN, (1122 . 1122) ERROR))
+        ;; Parser_Action
+        ;;  2: succeed 3, enqueue 183, check  20, cost:  2
+        0.004689175
+
+        ;; parser 6: State 3971 Current_Token (6, 2;69:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  6: fail; check delta (limit 273)
+        ;;  6: succeed 1, enqueue 3194, check  273, cost:  3
+
+        ;; parser 5: State 3220 Current_Token (5, 2;70:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  5: fail; check delta (limit 210)
+        ;;  5: fail, enqueue 2478, check  210
+
+        ;; parser 4: State 3219 Current_Token (4, 2;71:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  4: fail; check delta (limit 210)
+        ;;  4: fail, enqueue 2531, check  210
+
+        ;; parser 3: State 3970 Current_Token (3, 2;72:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  3: fail; check delta (limit 210)
+        ;;  3: succeed 2, enqueue 2412, check  210, cost:  3
+
+        ;; parser 2: State 2376 Current_Token (2, 2;73:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;; Parser_Action
+        ;;  2: succeed 1, enqueue 1886, check  157, cost:  3
+        0.122274622, 0.04 seconds faster; not worth it
+        memory: high 81_672_136 current 12_410_052
 
  navigate, face, indent
     make -r benchmark RUN_ARGS="c:/eurocontrol/gnatcoll-xref.adb"
     make -r benchmark RUN_ARGS="c:/Projects/org.emacs.ada-mode/test/ada_mode.ads"
         copy per iteration values here
 
-        also get emacs, parser memory size from windows task manager
+        also get emacs memory size from windows task manager
 
     27 Nov 2017 - compute actions in Ada
         1.377199 seconds 3 gcs 6560 responses 0.509915 wait
@@ -452,13 +559,49 @@ IMPROVEME: max memory use?
             re-indent   0.035626 seconds 0 gcs 2 responses 0.002378 wait
             recover     0.029302 seconds 0 gcs 2 responses 0.008866 wait
 
-;; FIXME: find a fontified word, time re-fontify
-;; FIXME: measure memory use in emacs, parser process;
-    Debian 'time -l run_ada_lalr ...'
-    Windows Task Manager
-    copy Ada_Language_Server memory monitor trace
-   before/after visit, parse file.
+    20 Dec 2021 fix bugs, add memory report
+        gnatcoll-xref.adb:
+            partial parse:
+            navigate    1.718927 seconds 7 gcs 6240 responses 0.449018 wait
+            face        1.680061 seconds 6 gcs 2149 responses 0.421800 wait
+            indent      3.412465 seconds 6 gcs 7252 responses 2.019837 wait
+            re-indent   0.023303 seconds 0 gcs 25 responses 0.018063 wait
+                memory: high 28_846_628 current  14_470_176
 
+            incremental parse:
+            initial     1.208588 seconds 0 gcs 0 responses 0.270062 wait
+                memory: high 31_991_488 current 29_509_456
+
+            re-indent   0.050737 seconds 0 gcs 2 responses 0.004537 wait
+                memory: high 31_991_488 current 29_510_772
+
+            emacs memory: 25 MB
+
+        ada_mode.ads:
+            partial parse:
+            navigate    0.002177 seconds 0 gcs 25 responses 0.001326 wait
+            face        0.005411 seconds 0 gcs 10 responses 0.001727 wait
+            indent      0.001424 seconds 0 gcs 24 responses 0.000804 wait
+            re-indent   0.001717 seconds 0 gcs 24 responses 0.000876 wait
+            memory:
+                delta high  48_572 current  48_196
+                  abs high  90_768 current  89_896
+
+            incremental parse:
+            initial     0.000803 seconds 0 gcs 1 responses 0.000665 wait
+            memory:
+                delta high  11_748 current  10_596
+                  abs high 102_516 current 100_492
+
+            re-indent   0.001324 seconds 0 gcs 2 responses 0.000317 wait
+            memory:
+                delta high   2_624 current   1_416
+                  abs high 105_140 current 101_908
+
+            emacs memory: 18.2 MB
+
+
+;; FIXME: find a fontified word, time re-fontify
 ;; FIXME: measure edit_tree time
 
  just parse, compare to libadalang

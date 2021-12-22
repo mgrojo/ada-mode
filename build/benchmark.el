@@ -12,9 +12,15 @@
 (setq-default wisi-incremental-parse-enable nil)
 
 (setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lr1_parse.exe" ada-mode-dir))
+(let ((parser (ada-parse-require-process)))
+  (wisi-parse-enable-memory-report parser)
+  (wisi-parse-memory-report parser))
 
-(find-file benchmark-source-file)
+(setq-default wisi-incremental-parse-enable nil)
+(find-file benchmark-source-file) ;; does not do initial parse, since incremental not enabled
 (wisi-parse-buffer 'indent) ; time with warm caches.
+(wisi-parse-memory-report wisi--parser)
+
 (message "partial parse:")
 
 (message "navigate")
@@ -38,17 +44,20 @@
 (kill-line 2)
 (wisi-time 'indent-for-tab-command 4 :report-wait-time t)
 (undo)
+(wisi-parse-memory-report wisi--parser)
 
 (setq-default wisi-incremental-parse-enable t)
 (message "incremental parse:")
 
 (message "initial")
 (wisi-time (lambda () (wisi-parse-incremental wisi--parser 'none :full t)) 4 :report-wait-time t)
+(wisi-parse-memory-report wisi--parser)
 
 (message "re-indent")
 (goto-char (/ (point-max) 3))
 (goto-char (line-beginning-position))
 (wisi-time (lambda () (indent-rigidly (point)(line-beginning-position 2) -1)(indent-for-tab-command)) 4 :report-wait-time t)
+(wisi-parse-memory-report wisi--parser)
 
 (message "recover")
 (goto-char (/ (point-max) 2))
