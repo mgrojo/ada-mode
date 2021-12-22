@@ -492,13 +492,20 @@ PARSER will respond with one or more Query messages."
   ;; sexp is [Face_Property first-pos last-pos face-index]
   ;; see `wisi-process-parse--execute'
   ;; implements wisi--face-action-1
-  (with-silent-modifications
-    (add-text-properties
-     (aref sexp 1)
-     (1+ (aref sexp 2))
-     (list 'font-lock-face (aref (wisi-process--parser-face-table parser) (aref sexp 3))
-	   'fontified t)
-     )))
+  (let ((first (aref sexp 1))
+	(last (1+ (aref sexp 2))))
+
+    (when (or (< 0 wisi-debug)
+	      (and
+	       (<= (point-min) first (point-max))
+	       (<= (point-min) last (point-max))))
+      (with-silent-modifications
+	(add-text-properties
+	 first
+	 (1+ (aref sexp 2))
+	 (list 'font-lock-face (aref (wisi-process--parser-face-table parser) (aref sexp 3))
+	       'fontified t)
+	 )))))
 
 (defun wisi-process-parse--Indent (parser sexp)
   ;; sexp is [Indent line-number line-begin-char-pos indent]

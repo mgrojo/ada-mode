@@ -289,16 +289,33 @@ For use in grammar actions.")
   "Return `wisi-cache' struct from the `wisi-cache' text property at POS."
   (get-text-property pos 'wisi-cache))
 
+(defun wisi-prev-cache (pos)
+  "Return previous cache before POS, or nil if none."
+  (let (cache)
+    ;; If pos is not near cache, p-s-p-c will return pos just after
+    ;; cache, so 1- is the beginning of cache.
+    ;;
+    ;; If pos is just after end of cache, p-s-p-c will return pos at
+    ;; start of cache.
+    ;;
+    ;; So we test for the property before subtracting 1.
+    (setq pos (previous-single-property-change pos 'wisi-cache))
+    (cond
+     ((null pos)
+       nil)
+
+     ((setq cache (get-text-property pos 'wisi-cache))
+      cache)
+
+     (t
+      (setq pos (1- pos))
+      (setq cache (get-text-property pos 'wisi-cache))
+      cache)
+     )))
+
 (defun wisi-backward-cache ()
   "Move point backward to the first token cache preceding point.
 Returns cache, or nil if at beginning of buffer."
-  ;; If point is not near cache, p-s-p-c will return pos just after
-  ;; cache, so 1- is the beginning of cache.
-  ;;
-  ;; If point is just after end of cache, p-s-p-c will return pos at
-  ;; start of cache.
-  ;;
-  ;; So we test for the property before subtracting 1.
   (let ((pos (previous-single-property-change (point) 'wisi-cache))
 	cache)
     (cond
@@ -316,6 +333,22 @@ Returns cache, or nil if at beginning of buffer."
       (goto-char pos)
       cache)
      )))
+
+(defun wisi-next-cache (pos)
+  "Return next cache after POS, or nil if none."
+  (let (cache)
+    (when (get-text-property pos 'wisi-cache)
+      ;; on a cache; get past it
+      (setq pos (1+ pos)))
+
+    (setq cache (get-text-property pos 'wisi-cache))
+    (unless cache
+      (setq pos (next-single-property-change pos 'wisi-cache))
+      (when pos
+	(setq cache (get-text-property pos 'wisi-cache)))
+      )
+    cache
+    ))
 
 (defun wisi-forward-cache ()
   "Move point forward to the first token cache after point.
@@ -503,7 +536,6 @@ Normally set from a language-specific option.")
     (format "(%s)" (wisi-tok-token tok)))
    ))
 
-
 (defun wisi-save-kbd-macro (file-name)
   "Write `last-kbd-macro' to FILE_NAME."
   (interactive "F")
@@ -512,9 +544,22 @@ Normally set from a language-specific option.")
     (write-file file-name))
   (message "keyboard macro saved to file '%s'" file-name))
 
-(defun wisi-replay-kbd-macro (file-name)
-  "Replay keyboard macro from FILE-NAME, into current buffer.
-Macro must have been saved by `wisi-save-kbd-macro'."
+(defun wisi-replay-kbd-macro (macro)
+  "Replay keyboard macro MACRO into current buffer,
+with delay between each key event."
+  (let ((i 0))
+    ;; We force a delay between each event in the macro, to better
+    ;; mimic actual typing. This lets font-lock run, which can affect
+    ;; results due to error correction and bugs.
+    (while (< i  (length macro))
+      (execute-kbd-macro (make-vector 1 (aref macro i)))
+      (sit-for 0.1)
+      (setq i (1+ i)))))
+
+(defun wisi-replay-kbd-macro-file (file-name)
+  "Replay keyboard macro from FILE-NAME, into current buffer,
+with delay between each key event.  Macro must have been saved by
+`wisi-save-kbd-macro'."
   (interactive "F")
   (let ((edit-buffer (current-buffer))
 	(macro-buffer (find-file-noselect file-name))
@@ -532,5 +577,77 @@ Macro must have been saved by `wisi-save-kbd-macro'."
       (execute-kbd-macro (make-vector 1 (aref macro i)))
       (sit-for 0.1)
       (setq i (1+ i)))))
+
+(defun wisi-undo-save-macro ()
+  "Prompt for FILE-NAME. Undo the current buffer to the minimum of
+undo limit or `recent-keys' count, save that many keystrokes from
+`recent-keys' to `last-kbd-macro', write the current buffer to
+FILE-NAME, write last-kbd-macro to FILE-NAME.macro.
+
+This allows reproducing errors using `wisi-replay-kbd-macro'.
+
+This assumes that one keystroke corresponds to one undo boundary,
+which means `amalgamating-undo-limit' is 0, no commands that
+insert extra undo boundaries have been executed, and no commands
+that change buffers have been executed."
+  ;; if need more than recent-keys, use open-dribble-file
+
+  ;; We can't use an interactive spec to prompt for the filename; that
+  ;; would add unwanted events to `recent-keys'.
+  (interactive)
+  (let ((macro (recent-keys nil))
+	(event-count 0)
+	(file-name (read-file-name "debug file-name:")))
+    (undo-start)
+    (while (and (not (eq t pending-undo-list))
+		(< event-count (length macro)))
+      (undo-more 1)
+      (setq event-count (1+ event-count)))
+
+    (setq last-kbd-macro (seq-subseq macro (- event-count)))
+    (write-file file-name t)
+    (wisi-save-kbd-macro (concat file-name ".macro"))))
+
+(defun wisi-undo-save-redo (file-name)
+  "Undo the current buffer to the undo limit, write the
+current buffer to FILE-NAME. Save pending-undo-list to
+FILE-NAME.redo, for `wisi-replay-redo'."
+  (interactive "Fdebug file-name:")
+  (undo-start)
+  (while (not (eq t pending-undo-list))
+    (undo-more 1))
+  (with-temp-buffer
+    ;; Undo list can contain markers, which cannot be read by
+    ;; read-from-string. We don't need those items for this purpose.
+    (insert (format "%s"
+		    (cl-remove-if
+		     (lambda (item)
+		       (and (listp item)
+			    (markerp (car item))))
+		     buffer-undo-list)))
+    (write-file (concat file-name ".redo")))
+  ;; Preserve redo info in current buffer
+  (let ((text (buffer-substring (point-min)(point-max))))
+    (with-temp-buffer
+      (insert text)
+      (write-region (point-min)(point-max) file-name t))))
+
+(defun wisi-undo-redo (file-name)
+  "Set `buffer-undo-list' to saved undo list in FILE-NAME.
+Normal `undo-redo' will redo it."
+  (interactive "Fredo file-name:")
+  (let ((edit-buffer (current-buffer))
+	(redo-buffer (find-file-noselect file-name))
+	undo-list)
+
+    (set-buffer redo-buffer)
+    (goto-char (point-min))
+    (setq undo-list (car (read-from-string (buffer-substring-no-properties (point) (scan-sexps (point) 1)))))
+
+    (set-buffer edit-buffer)
+    ;; We don't do the redo here, to give the user some control.
+    (setq buffer-undo-list (nreverse undo-list))
+    (message "use `undo-redo' to perform redo")
+    ))
 
 (provide 'wisi-parse-common)
