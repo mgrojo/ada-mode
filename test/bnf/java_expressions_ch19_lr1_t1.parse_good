@@ -240,7 +240,7 @@ recover: succeed, parser count 2
  1: pause: resume exit
  0: 14: (-1, 6;11:(Identifier, (278 . 278))) : shift and goto state 21
  0: resume_active: False
- 0: terminate (1 active): duplicate state with 1: ops length (-1, 12:(RIGHT_PAREN, (279 . 279)))
+ 0: terminate (1 active): duplicate state with 1: min ops length (-1, 12:(RIGHT_PAREN, (279 . 279)))
  1: 21: (-1, 12:(RIGHT_PAREN, (279 . 279))) : reduce 1 tokens to ClassType
 (ClassType_0, (278 . 278) <= (11:(Identifier, (278 . 278))))
  ... goto state 32

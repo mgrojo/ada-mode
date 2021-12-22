@@ -987,17 +987,17 @@ package body WisiToken.Parse.LR.Parser is
                   Deleted_Token => Op.Del_Node);
             end case;
          end loop;
+      end if;
 
-         if Trace_Parse > Extra or Trace_Action > Extra then
-            Parser.Trace.Put_Line ("post-parse tree:");
-            Parser.Trace.Put_Line
-              (Parser.Tree.Image
-                 (Children     => True,
-                  Non_Grammar  => True,
-                  Augmented    => True,
-                  Line_Numbers => True));
-            Parser.Trace.New_Line;
-         end if;
+      if Trace_Parse > Extra or Trace_Action > Extra then
+         Parser.Trace.Put_Line ("post-parse tree:");
+         Parser.Trace.Put_Line
+           (Parser.Tree.Image
+              (Children     => True,
+               Non_Grammar  => True,
+               Augmented    => True,
+               Line_Numbers => True));
+         Parser.Trace.New_Line;
       end if;
 
       if Debug_Mode then

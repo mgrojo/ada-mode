@@ -108,7 +108,6 @@ package body WisiToken.Parse.Packrat.Procedural is
                        (Production      => (R, RHS_Index),
                         Action          => RHS.Post_Parse_Action,
                         Children        => Syntax_Trees.To_Valid_Node_Access (Children),
-                        Default_Virtual => False,
                         Clear_Parents   => True),
                      --  We must be able to steal nodes from failed nonterms;
                      --  body_instantiation_conflict.wy.

@@ -31,27 +31,13 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-run all ada-mode incremental tests
-
-propagate to main
+delete mckenzie multi-tasking
 
 review FIXME
 
-other:
-c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-explore.adb:1779:            --  The unbalanced quote is after the parse error token. FIXME: also
-
-
-c:/Projects/org.wisitoken.stephe-1/wisitoken-bnf-output_ada_common.adb:1167: comment-one-line not implemented                  --  FIXME: similar to delimited-text, but terminate on new-line, eoi.
-
-c:/Projects/org.wisitoken.stephe-1/wisitoken-lexer.adb:132:               --  FIXME: handle multi-byte UTF-8; need test case.
-
-c:/Projects/org.wisitoken.stephe-1/wisitoken-parse-lr-mckenzie_recover-base.adb:179:                        if abs (Cur - Min) > 4 then --  FIXME: '4' should be mckenzie param zombie_limit
-
-c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.adb:4448:         --  FIXME: handle multi-line tokens
-
 c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.ads:2686:            --  FIXME: change to ptr like error_list, for space saving?
-    need memory benchmark
-
+    use memory benchmark
+    may also affect speed
 
 first parser operation after opening a large file is slow
     waiting for full parse to complete
@@ -63,12 +49,6 @@ first parser operation after opening a large file is slow
 Tree.validate check that all tree.nodes are in tree
     possibly in following_deleted
     call it in syntax_Trees.clear_parse_streams
-
-recover significantly slower with incremental; ada-mode benchmark_results 27 Nov 2020 0.22 vs 03 Dec 2021 1.6!
-    don't have just recover time from released version 7.1.8
-    however, incremental recover still fast enough
-    and mult-tasking doesn't help: 8 1.6, 1 1.8
-    review Super use, minimize serialization
 
 error recover try prev solution first - new strategy.
 

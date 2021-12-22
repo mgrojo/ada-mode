@@ -4,7 +4,7 @@ with "sal";
 with "standard_common";
 project WisiToken is
 
-   for Source_Dirs use ("..");
+   for Source_Dirs use ("..", "../memory");
 
    for Languages use ("Ada", "C");
 
@@ -46,6 +46,9 @@ project WisiToken is
            Standard_Common.Compiler.Style_Checks;
 
       end case;
+
+      for Switches ("s-memory.adb") use Standard_Common.Compiler.Release_Switches & ("-gnatg", "-gnata");
+      --  See comment in gnatcoll-memory.ads
 
    end Compiler;
 

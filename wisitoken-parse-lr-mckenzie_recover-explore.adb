@@ -1681,12 +1681,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  before, at, or after that string literal.
       --
       --  Here we assume the parse error in Config.Error_Token is due to
-      --  putting the balancing quote in the wrong place (although we do
-      --  check that; see test_mckenzie_recover.adb String_Quote_6), and
-      --  attempt to find a better place to put the balancing quote. Then
-      --  all tokens from the balancing quote to the unbalanced quote are
-      --  now part of a string literal, so delete them, leaving just the
-      --  string literal created by Lexer error recovery.
+      --  putting the balancing quote in the wrong place (although we also
+      --  check that solution; see test_mckenzie_recover.adb
+      --  String_Quote_6), and attempt to find a better place to put the
+      --  balancing quote. Then all tokens from the balancing quote to the
+      --  unbalanced quote are now part of a string literal, so delete them,
+      --  leaving just the string literal created by Lexer error recovery.
 
       --  First we check to see if there is an unbalanced quote in the
       --  current line; if not, just return. Some lexer errors are for other
@@ -1777,8 +1777,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             end;
 
          else
-            --  The unbalanced quote is after the parse error token. FIXME: also
-            --  do case c when we don't know where the error token is.
+            --  The unbalanced quote is after the parse error token.
 
             --  case c: Assume a missing quote belongs immediately before the
             --  current token. See test_mckenzie_recover.adb String_Quote_3.

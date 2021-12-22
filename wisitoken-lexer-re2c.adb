@@ -403,6 +403,18 @@ package body WisiToken.Lexer.re2c is
    end Line_Begin_Char_Pos;
 
    overriding
+   function Line_At_Byte_Pos
+     (Lexer       : in Instance;
+      ID          : in Token_ID;
+      Byte_Region : in Buffer_Region;
+      Byte_Pos    : in Buffer_Pos;
+      First_Line  : in Line_Number_Type)
+     return Line_Number_Type
+   is begin
+      return Line_At_Byte_Pos (Lexer.Source, ID, Byte_Region, Byte_Pos, First_Line);
+   end Line_At_Byte_Pos;
+
+   overriding
    function Contains_New_Line
      (Lexer       : in Instance;
       Byte_Region : in Buffer_Region)

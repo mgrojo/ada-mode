@@ -147,6 +147,15 @@ package WisiToken.Lexer.Regexp is
      return Base_Buffer_Pos;
 
    overriding
+   function Line_At_Byte_Pos
+     (Lexer       : in Instance;
+      ID          : in Token_ID;
+      Byte_Region : in WisiToken.Buffer_Region;
+      Byte_Pos    : in Buffer_Pos;
+      First_Line  : in Line_Number_Type)
+     return Line_Number_Type;
+
+   overriding
    function Contains_New_Line
      (Lexer       : in Instance;
       Byte_Region : in Buffer_Region)

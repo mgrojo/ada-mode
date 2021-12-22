@@ -1061,7 +1061,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       if Is_In (Input_Data.Tokens.Tokens, "delimited-text") then
          Indent_Line ("static void skip_to(wisi_lexer* lexer, char* target)");
          Indent_Line ("{");
-         Indent_Line ("  int i;");
+         Indent_Line ("  int i, j;");
          New_Line;
          Indent_Line ("  while (lexer->cursor <= lexer->buffer_last)");
          Indent_Line ("    {");
@@ -1076,8 +1076,8 @@ package body WisiToken.BNF.Output_Ada_Common is
          New_Line;
          Indent_Line ("        if (0 == target[i])");
          Indent_Line ("          {");
-         Indent_Line ("            for (i = 0; 0 != target[i]; i++)");
-         Indent_Line ("               skip(lexer, 1);");
+         Indent_Line ("            for (j = 0; j< i; j++)");
+         Indent_Line ("               skip(lexer, 0);");
          Indent_Line ("            break;");
          Indent_Line ("          }");
          Indent_Line ("      }");
@@ -1156,15 +1156,15 @@ package body WisiToken.BNF.Output_Ada_Common is
                Open  : constant String := Value (Generate_Data, I);
                Close : constant String := Repair_Image (Generate_Data, I);
             begin
-               --  Open and Close are both strings. Here we handle the special case
-               --  of Close being a single character.
+               --  Open and Close are both strings.
                if Close'Length = 3 then
+                  --  Here we handle the special case of Close being a single character.
                   Indent_Line
                     (Name (Generate_Data, I) & " = " & Open & " [^\x0a\x04" & Close (2) & "]*(" &
                        Close & "|[\x0a]|[\x0d][\x0a]|[\x04]);");
                else
                   raise SAL.Not_Implemented;
-                  --  FIXME: similar to delimited-text, but terminate on new-line, eoi.
+                  --  IMPROVEME: similar to delimited-text, but terminate on new-line, eoi.
                end if;
             end;
 
@@ -1669,6 +1669,52 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("end Line_Begin_Char_Pos;");
       New_Line;
 
+      Indent_Line ("function Line_At_Byte_Pos");
+      Indent_Line (" (Source      : in WisiToken.Lexer.Source;");
+      Indent_Line ("  ID          : in WisiToken.Token_ID;");
+      Indent_Line ("  Byte_Region : in WisiToken.Buffer_Region;");
+      Indent_Line ("  Byte_Pos    : in WisiToken.Buffer_Pos;");
+      Indent_Line ("  First_Line  : in WisiToken.Line_Number_Type)");
+      Indent_Line ("return WisiToken.Line_Number_Type");
+      Indent_Line ("is");
+      if Block_Count = 0 then
+         Indent_Line ("   pragma Unreferenced (Source, ID, Byte_Region, Byte_Pos);");
+      end if;
+      Indent_Line ("begin");
+      Indent := @ + 3;
+      if Block_Count = 0 then
+         Indent_Line ("return First_Line;");
+
+      else
+         Indent_Line ("case To_Token_Enum (ID) is");
+         Indent_Line ("when");
+         Need_Separator := False;
+         Indent := @ + 3;
+         for I in All_Tokens (Generate_Data).Iterate
+           (Non_Grammar  => True,
+            Nonterminals => False,
+            Include_SOI  => False)
+         loop
+            if Kind (Generate_Data, I) = "delimited-text" then
+               if Need_Separator then
+                  Put_Line (" |");
+               else
+                  Need_Separator := True;
+               end if;
+               Indent_Start (Name (Generate_Data, I) & "_ID");
+            end if;
+         end loop;
+         Put_Line
+           (" => return WisiToken.Lexer.Line_At_Byte_Pos (Source, Byte_Region, Byte_Pos, First_Line);");
+         Indent := @ - 3;
+
+         Indent_Line ("when others => return First_Line;");
+         Indent_Line ("end case;");
+      end if;
+      Indent := @ - 3;
+      Indent_Line ("end Line_At_Byte_Pos;");
+      New_Line;
+
       Indent_Line ("function Terminated_By_New_Line (ID : in WisiToken.Token_ID) return Boolean");
       Indent_Line ("is begin");
       Indent := @ + 3;
@@ -1726,6 +1772,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("   Find_Comment_End,");
       Indent_Line ("   Contains_Comment_End,");
       Indent_Line ("   Line_Begin_Char_Pos,");
+      Indent_Line ("   Line_At_Byte_Pos,");
       Indent_Line ("   Terminated_By_New_Line);");
       New_Line;
    end Create_re2c_Lexer;

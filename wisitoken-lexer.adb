@@ -84,6 +84,16 @@ package body WisiToken.Lexer is
       Begin_Line := Object.Line_Nominal_First;
    end Begin_Pos;
 
+   function Line_At_Byte_Pos
+     (Lexer    : in Instance;
+      Token    : in WisiToken.Lexer.Token;
+      Byte_Pos : in Buffer_Pos)
+     return Line_Number_Type
+   is begin
+      return Line_At_Byte_Pos
+        (Instance'Class (Lexer), Token.ID, Token.Byte_Region, Byte_Pos, First_Line => Token.Line_Region.First);
+   end Line_At_Byte_Pos;
+
    function Find_New_Line
      (Source : in WisiToken.Lexer.Source;
       Start  : in Buffer_Pos)
@@ -148,12 +158,35 @@ package body WisiToken.Lexer is
             Found_Line := @ + 1;
             if Found_Line = Line then
                return Base_Buffer_Pos (I);
-               --  FIXME: handle multi-byte UTF-8; need test case.
             end if;
          end if;
       end loop;
       return Invalid_Buffer_Pos;
    end Line_Begin_Char_Pos;
+
+   function Line_At_Byte_Pos
+     (Source      : in WisiToken.Lexer.Source;
+      Byte_Region : in WisiToken.Buffer_Region;
+      Byte_Pos    : in Buffer_Pos;
+      First_Line  : in Line_Number_Type)
+     return Line_Number_Type
+   is
+      Index_Pos : constant Integer := To_Buffer_Index (Source, Byte_Pos);
+      Found_Line : Base_Line_Number_Type := First_Line;
+   begin
+      for I in To_Buffer_Index (Source, Byte_Region.First) ..
+        To_Buffer_Index (Source, Byte_Region.Last)
+      loop
+         if I = Index_Pos then
+            return Found_Line;
+         end if;
+
+         if Source.Buffer (I) = ASCII.LF then
+            Found_Line := @ + 1;
+         end if;
+      end loop;
+      raise SAL.Programmer_Error; -- precondition false.
+   end Line_At_Byte_Pos;
 
    function Contains_New_Line
      (Source      : in WisiToken.Lexer.Source;
