@@ -25,6 +25,7 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
 with GNAT.Traceback.Symbolic;
+with GNATCOLL.Memory;
 with SAL;
 with System.Multiprocessors;
 with System.Storage_Elements;
@@ -346,6 +347,39 @@ package body Emacs_Wisi_Common_Parse is
 
             elsif Match ("kill-context") then
                Wisi.Parse_Context.Kill (File_Name => Wisi.Get_String (Command_Line, Last));
+
+            elsif Match ("enable_memory_report") then
+               --  Args: <none>
+               --  Input: <none>
+               --  Response:
+               --  (message "memory ...)
+               --  prompt
+               GNATCOLL.Memory.Configure
+                 (Activate_Monitor      => True,
+                  Stack_Trace_Depth     => 0,
+                  Reset_Content_On_Free => False);
+
+            elsif Match ("memory_report") then
+               --  Args: <none>
+               --  Input: <none>
+               --  Response:
+               --  (message "memory ...)
+               --  prompt
+               declare
+                  use GNATCOLL.Memory;
+                  Memory_Use : constant Watermark_Info := Get_Ada_Allocations;
+               begin
+                  Ada.Text_IO.Put_Line
+                    ("(message ""memory: delta high" &
+                       Byte_Count'Image (Memory_Use.High - Wisi.Parse_Context.Memory_Use.High) &
+                       " current" &
+                       Byte_Count'Image (Memory_Use.Current - Wisi.Parse_Context.Memory_Use.Current) &
+                       " abs high" & Memory_Use.High'Image &
+                       " current" & Memory_Use.Current'Image &
+                       """)");
+
+                  Wisi.Parse_Context.Memory_Use := Memory_Use;
+               end;
 
             elsif Match ("parse") then
                --  Args: see wisi-process-parse.el wisi-process-parse--send-parse,

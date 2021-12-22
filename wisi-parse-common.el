@@ -254,13 +254,11 @@ statement containing EDIT_BEGIN.")
 (cl-defgeneric wisi-parse-kill ((parser wisi-parser))
   "Kill any external process associated with parser.")
 
-(cl-defgeneric wisi-parse-find-token ((parser wisi-parser) token-symbol)
-  "Find token with TOKEN-SYMBOL on current parser stack, return token struct.
-For use in grammar actions.")
+(cl-defgeneric wisi-parse-enable-memory-report ((parser wisi-parser))
+  "Configure parser to report memory use.")
 
-(cl-defgeneric wisi-parse-stack-peek ((parser wisi-parser) n)
-  "Return the Nth token on the parse stack.
-For use in grammar actions.")
+(cl-defgeneric wisi-parse-memory-report ((parser wisi-parser))
+  "Display delta and total memory use.")
 
 (cl-defstruct
   (wisi-cache
