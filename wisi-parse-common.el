@@ -630,7 +630,7 @@ FILE-NAME.redo, for `wisi-replay-redo'."
       (insert text)
       (write-region (point-min)(point-max) file-name t))))
 
-(defun wisi-undo-redo (file-name)
+(defun wisi-replay-redo (file-name)
   "Set `buffer-undo-list' to saved undo list in FILE-NAME.
 Normal `undo-redo' will redo it."
   (interactive "Fredo file-name:")
@@ -641,10 +641,17 @@ Normal `undo-redo' will redo it."
     (set-buffer redo-buffer)
     (goto-char (point-min))
     (setq undo-list (car (read-from-string (buffer-substring-no-properties (point) (scan-sexps (point) 1)))))
+    (while (eq (car undo-list) nil)
+      (setq undo-list (cdr undo-list)))
 
     (set-buffer edit-buffer)
+    (setq buffer-undo-list undo-list)
+
+    ;; undo-redo checks `undo-equiv-table' to see if buffer-undo-list
+    ;; is valid.
+    (puthash buffer-undo-list nil undo-equiv-table)
+
     ;; We don't do the redo here, to give the user some control.
-    (setq buffer-undo-list (nreverse undo-list))
     (message "use `undo-redo' to perform redo")
     ))
 

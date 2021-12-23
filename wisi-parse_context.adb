@@ -758,6 +758,12 @@ package body Wisi.Parse_Context is
       Saved_Tree : WisiToken.Syntax_Trees.Tree;
       Log_File   : Ada.Text_IO.File_Type; -- for Parse recover log; unused
    begin
+      if Parser.Tree.Has_Errors then
+         --  Compare can easily fail due to different error recover result
+         --  between full and partial parse.
+         return;
+      end if;
+
       Parser.Tree.Copy_Tree (Saved_Tree, Parser.User_Data);
       Parse_Data.Initialize (Parse_Data.Trace);
       Parse_Data.Reset;
