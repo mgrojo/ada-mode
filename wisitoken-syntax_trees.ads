@@ -2364,6 +2364,10 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Parents_Set;
    function Error_Count (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Ada.Containers.Count_Type;
 
+   function Has_Errors (Tree : in Syntax_Trees.Tree) return Boolean;
+   --  If there are errors, faster than Error_Count; also independent of
+   --  Tree.Parents_Set.
+
    function Has_Error (Error : in Error_Ref) return Boolean;
    function Has_Error (Error : in Stream_Error_Ref) return Boolean;
    function Has_Error (Position : in Stream_Error_Cursor) return Boolean;

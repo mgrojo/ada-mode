@@ -3596,6 +3596,20 @@ package body WisiToken.Syntax_Trees is
       return Node.Error_List /= null;
    end Has_Error;
 
+   function Has_Errors (Tree : in Syntax_Trees.Tree) return Boolean
+   is begin
+      if Tree.Parents_Set then
+         return Tree.First_Error /= Invalid_Error_Ref;
+      else
+         for Cur in Tree.Streams.Iterate loop
+            if Tree.First_Error ((Cur => Cur)) /= Invalid_Stream_Error_Ref then
+               return True;
+            end if;
+         end loop;
+         return False;
+      end if;
+   end Has_Errors;
+
    function Has_Following_Deleted
      (Tree : in out Syntax_Trees.Tree;
       Node : in     Valid_Node_Access)
