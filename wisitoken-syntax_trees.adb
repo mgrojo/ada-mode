@@ -771,7 +771,7 @@ package body WisiToken.Syntax_Trees is
 
       procedure Set_Prev
       is begin
-         if Node.ID = Tree.SOI.ID then
+         if Node.ID = Tree.Lexer.Descriptor.SOI_ID then
             Prev_Source_Terminal := Node;
          else
             Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar => True);
@@ -823,7 +823,7 @@ package body WisiToken.Syntax_Trees is
                   Last  => Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last);
 
             elsif Tree.Parents_Set then
-               if Node.ID = Tree.EOI.ID then
+               if Node.ID = Tree.Lexer.Descriptor.EOI_ID then
                   Next_Source_Terminal := Node;
                else
                   Next_Source_Terminal := Tree.Next_Source_Terminal (Node, Trailing_Non_Grammar => True);
@@ -1066,7 +1066,7 @@ package body WisiToken.Syntax_Trees is
 
       procedure Set_Prev
       is begin
-         if Node.ID = Tree.SOI.ID then
+         if Node.ID = Tree.Lexer.Descriptor.SOI_ID then
             Prev_Source_Terminal := Node;
          else
             Prev_Source_Terminal := Tree.Prev_Source_Terminal (Node, Trailing_Non_Grammar => True);
@@ -1110,7 +1110,7 @@ package body WisiToken.Syntax_Trees is
 
                when Before_Next =>
                if Tree.Parents_Set then
-                  if Node.ID = Tree.EOI.ID then
+                  if Node.ID = Tree.Lexer.Descriptor.EOI_ID then
                      Next_Source_Terminal := Node;
                   else
                      Next_Source_Terminal := Tree.Next_Source_Terminal (Node, Trailing_Non_Grammar => True);
@@ -2379,7 +2379,7 @@ package body WisiToken.Syntax_Trees is
            Byte_Pos <= Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last
          then
             return Node;
-         elsif Node.ID = Tree.EOI.ID and Byte_Pos = Node.Byte_Region.First then
+         elsif Node.ID = Tree.Lexer.Descriptor.EOI_ID and Byte_Pos = Node.Byte_Region.First then
             return Node;
          else
             return Invalid_Node_Access;
@@ -4753,7 +4753,7 @@ package body WisiToken.Syntax_Trees is
             --  Line is after EOI.
             return Invalid_Node_Access;
 
-         elsif Node.ID = Tree.EOI.ID then
+         elsif Node.ID = Tree.Lexer.Descriptor.EOI_ID then
             --  Find_New_Line allows both Line, Line - 1.
             if Node.Non_Grammar (Node.Non_Grammar.First_Index).Line_Region.First = Line then
                return Node;
@@ -4863,10 +4863,10 @@ package body WisiToken.Syntax_Trees is
    begin
       return Result : constant WisiToken.Line_Region :=
         (First =>
-           (if (Node = Tree.Root and Prev_Non_Grammar = Tree.SOI)
+           (if (Node = Tree.Root and Prev_Non_Grammar.ID = Tree.Lexer.Descriptor.SOI_ID)
               --  We are finding the line_region of wisi_accept in an Editable
               --  tree; we want to include the leading non_grammar in SOI.
-              or Node = Tree.SOI
+              or Node.ID = Tree.Lexer.Descriptor.SOI_ID
               --  We are finding the line_region of SOI.
             then
                Prev_Non_Grammar.Non_Grammar (Prev_Non_Grammar.Non_Grammar.First_Index).Line_Region.First
@@ -5223,7 +5223,7 @@ package body WisiToken.Syntax_Trees is
             end if;
          end loop Next_Non_Grammar;
 
-         exit when Result_Ref.Node.ID = Tree.EOI.ID or
+         exit when Result_Ref.Node.ID = Tree.Lexer.Descriptor.EOI_ID or
            Contains_New_Line (Result_Ref.Node.Non_Grammar (Index).Line_Region);
       end loop;
       Result_Non_Grammar := Index;
@@ -5317,7 +5317,10 @@ package body WisiToken.Syntax_Trees is
    is
       Result : Node_Access := Node;
    begin
-      if Node.ID = Tree.EOI.ID or Node = Tree.Root then
+      if Node.ID = Tree.Lexer.Descriptor.EOI_ID then
+         return Node;
+
+      elsif Node = Tree.Root then
          return Tree.EOI;
       end if;
 
@@ -5332,7 +5335,7 @@ package body WisiToken.Syntax_Trees is
      (Tree    : in     Syntax_Trees.Tree;
       Ref     : in out Stream_Node_Ref)
    is begin
-      if Ref.Node /= Invalid_Node_Access and then Ref.Node.ID = Tree.EOI.ID then
+      if Ref.Node /= Invalid_Node_Access and then Ref.Node.ID = Tree.Lexer.Descriptor.EOI_ID then
          return;
       end if;
       loop
@@ -5346,7 +5349,7 @@ package body WisiToken.Syntax_Trees is
      (Tree    : in     Syntax_Trees.Tree;
       Ref     : in out Stream_Node_Parents)
    is begin
-      if Ref.Ref.Node /= Invalid_Node_Access and then Ref.Ref.Node.ID = Tree.EOI.ID then
+      if Ref.Ref.Node /= Invalid_Node_Access and then Ref.Ref.Node.ID = Tree.Lexer.Descriptor.EOI_ID then
          return;
       end if;
       loop
@@ -5872,7 +5875,7 @@ package body WisiToken.Syntax_Trees is
       if Node = Tree.Root then
          return Tree.SOI;
 
-      elsif Node.ID = Tree.SOI.ID then
+      elsif Node.ID = Tree.Lexer.Descriptor.SOI_ID then
          return Node;
       end if;
 
@@ -5888,7 +5891,7 @@ package body WisiToken.Syntax_Trees is
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Stream_Node_Ref)
    is begin
-      if Ref.Node /= Invalid_Node_Access and then Ref.Node.ID = Tree.SOI.ID then
+      if Ref.Node /= Invalid_Node_Access and then Ref.Node.ID = Tree.Lexer.Descriptor.SOI_ID then
          return;
       end if;
 
@@ -5904,7 +5907,7 @@ package body WisiToken.Syntax_Trees is
       Ref          : in out Stream_Node_Parents;
       Parse_Stream : in     Stream_ID)
    is begin
-      if Ref.Ref.Node /= Invalid_Node_Access and then Ref.Ref.Node.ID = Tree.SOI.ID then
+      if Ref.Ref.Node /= Invalid_Node_Access and then Ref.Ref.Node.ID = Tree.Lexer.Descriptor.SOI_ID then
          return;
       end if;
       loop
@@ -6797,11 +6800,12 @@ package body WisiToken.Syntax_Trees is
       Shift_Bytes      : in     Base_Buffer_Pos;
       Shift_Chars      : in     Base_Buffer_Pos;
       Shift_Lines      : in     Base_Line_Number_Type;
-      Last_Stable_Byte : in     Buffer_Pos;
+      Last_Stable_Byte : in     Base_Buffer_Pos;
       Non_Grammar_Next : in out Lexer.Token_Arrays.Extended_Index)
    is begin
       case Terminal_Label'(Node.Label) is
       when Source_Terminal =>
+         pragma Assert (if Node.ID = Tree.Lexer.Descriptor.SOI_ID then Shift_Bytes = 0 and Shift_Chars = 0);
          if Node.Byte_Region /= Null_Buffer_Region then
             Node.Byte_Region := @ + Shift_Bytes;
          end if;
@@ -6816,10 +6820,14 @@ package body WisiToken.Syntax_Trees is
          declare
             Token : Lexer.Token renames Node.Non_Grammar (I);
          begin
-            if Token.Byte_Region.Last < Last_Stable_Byte then
+            if Token.ID = Tree.Lexer.Descriptor.SOI_ID then
+               null;
+
+            elsif Token.Byte_Region.Last < Last_Stable_Byte then
                Token.Byte_Region := @ + Shift_Bytes;
                Token.Char_Region := @ + Shift_Chars;
                Token.Line_Region := @ + Shift_Lines;
+
             else
                Non_Grammar_Next := I;
                exit;

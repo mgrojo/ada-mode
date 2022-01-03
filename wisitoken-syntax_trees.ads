@@ -1062,7 +1062,7 @@ package WisiToken.Syntax_Trees is
       Shift_Bytes      : in     Base_Buffer_Pos;
       Shift_Chars      : in     Base_Buffer_Pos;
       Shift_Lines      : in     Base_Line_Number_Type;
-      Last_Stable_Byte : in     Buffer_Pos;
+      Last_Stable_Byte : in     Base_Buffer_Pos;
       Non_Grammar_Next : in out Lexer.Token_Arrays.Extended_Index)
    with Pre => Tree.Label (Node) in Terminal_Label;
    --  Add Shift_* to token, non_grammar, and augmented corresponding
@@ -1400,8 +1400,9 @@ package WisiToken.Syntax_Trees is
       Node      : in     Valid_Node_Access;
       Predicate : access function (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean)
      return Node_Access;
-   --  Return the descendant of Node (may be Node) for which Predicate
-   --  returns True, or Invalid_Node_Access if none do.
+   --  Return the first descendant of Node (may be Node; breadth first
+   --  search) for which Predicate returns True, or Invalid_Node_Access
+   --  if none do.
 
    function Is_Descendant_Of
      (Tree       : in Syntax_Trees.Tree;

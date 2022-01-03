@@ -6,7 +6,7 @@
 ;; deleting stuff.
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -97,7 +97,7 @@
 %if lexer = re2c
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
-%non_grammar <comment-new-line> COMMENT %[ "--" ]%
+%non_grammar <comment-new-line> COMMENT "--"
 
 %elsif lexer = tree_sitter
 ;; The tree-sitter grammar file requires JavaScript regular expressions; see
