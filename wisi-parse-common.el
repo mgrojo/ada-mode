@@ -230,15 +230,15 @@ statement containing EDIT_BEGIN.")
   wisi-tree-node). If ARGS is in whitespace or comment, preceding
   terminal.
 
-- containing-statement: ARGS is a buffer position. Return
-  statement ancestor of terminal at that pos (a wisi-tree-node),
-  or nil if no such ancestor. A 'statement' is one of the
-  statement ids declared by the language-specific grammar
-  backend.
+- containing-statement: ARGS is a buffer position. Return the
+  statement ancestor of the terminal at or after that pos (a
+  wisi-tree-node), or nil if no such ancestor. A 'statement' is
+  one of the statement ids declared by the language-specific
+  grammar backend.
 
 - ancestor: ARGS are a buffer position and a list of ids. Return
-  ancestor of terminal at that pos that is one of the ids (a
-  wisi-tree-node), or nil if no such ancestor.
+  the ancestor of the terminal at or after that pos that is one
+  of the ids (a wisi-tree-node), or nil if no such ancestor.
 
 - parent: ARGS are (node-address n). Return nth parent of the
   node (a wisi-tree-node), or nil if no such parent.
@@ -360,6 +360,7 @@ Returns cache, or nil if at end of buffer."
     (if cache
 	nil
 
+      (wisi-validate-cache-current-statement t 'navigate)
       (setq pos (next-single-property-change (point) 'wisi-cache))
       (if pos
 	  (progn
@@ -616,7 +617,9 @@ FILE-NAME.redo, for `wisi-replay-redo'."
     (undo-more 1))
   (with-temp-buffer
     ;; Undo list can contain markers, which cannot be read by
-    ;; read-from-string. We don't need those items for this purpose.
+    ;; read-from-string. FIXME: They may be for deletion, which cannot
+    ;; be recreated appropriately in a copied file. So we need to
+    ;; translate this to a kbd macro.
     (insert (format "%s"
 		    (cl-remove-if
 		     (lambda (item)

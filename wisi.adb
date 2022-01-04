@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -648,7 +648,29 @@ package body Wisi is
             Pattern => """",
             From    => Temp);
          exit when Last = 0;
-         exit when Source (Last - 1) /= '\';
+         if Source'First <= Last - 2 then
+            if Source (Last - 2 .. Last - 1) = "\\" then
+               exit;
+            elsif Source (Last - 1) = '\' then
+               --  Elisp escaped quote; continue.
+               null;
+            else
+               --  Not an escape; return string
+               exit;
+            end if;
+
+         elsif Source'First <= Last - 1 then
+            if Source (Last - 1) = '\' then
+               --  Elisp escaped quote; continue.
+               null;
+            else
+               --  Not an escape; return string
+               exit;
+            end if;
+         else
+            exit;
+         end if;
+
          Temp := Last + 1;
       end loop;
 
@@ -1936,6 +1958,8 @@ package body Wisi is
       Tree       : in WisiToken.Syntax_Trees.Tree;
       Query      : in Wisi.Query)
    is
+      --  See wisi-parse-common.el wisi-parse-tree query for definition of
+      --  queries.
       use Syntax_Trees;
    begin
       if Trace_Action > Outline then
@@ -1949,7 +1973,13 @@ package body Wisi is
       when Point_Query =>
          declare
             Terminal : constant Node_Access := Tree.Find_Char_Pos
-              (Query.Char_Point, After => True, Trailing_Non_Grammar => True);
+              (Query.Char_Point,
+               After => True,
+               Trailing_Non_Grammar =>
+                 (case Point_Query'(Query.Label) is
+                  when Node                 => True,
+                  when Containing_Statement => False,
+                  when Ancestor             => False));
          begin
             if Terminal = Invalid_Node_Access then
                Ada.Text_IO.Put_Line ("[" & Query_Tree_Code & Query_Label'Pos (Query.Label)'Image & " nil]");

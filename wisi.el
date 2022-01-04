@@ -1,6 +1,6 @@
 ;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LR parser -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012 - 2021  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2022  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -771,7 +771,7 @@ deleted range.")
       (setq wisi-error-buffer (get-buffer-create wisi-error-buffer-name))
 
       (let ((lexer-errs (sort (cl-copy-seq (wisi-parser-lexer-errors wisi--parser))
-			      (lambda (a b) (< (wisi--parse-error-pos a) (wisi--parse-error-pos b)))))
+			      (lambda (a b) (< (wisi--lexer-error-pos a) (wisi--lexer-error-pos b)))))
 	    (parse-errs (sort (cl-copy-seq (wisi-parser-parse-errors wisi--parser))
 			      (lambda (a b) (< (wisi--parse-error-pos a) (wisi--parse-error-pos b)))))
 	    (dir default-directory))
@@ -1019,7 +1019,7 @@ Run the parser first if needed."
 	       wisi-size-threshold))))
 
 (defun wisi-validate-cache-current-statement (error-on-fail parse-action)
-  "Validate PARSE-ACTION caches on at least current statement.
+  "Validate PARSE-ACTION caches on at least statement containing point.
 If point is in trailing comment of a statement, validate at least
 that and the next one.  If ERROR-ON-FAIL, signal error if parse
 fails."
