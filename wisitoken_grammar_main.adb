@@ -30,23 +30,27 @@ package body Wisitoken_Grammar_Main is
    function Is_Comment (ID : in WisiToken.Token_ID) return Boolean
    is begin
       case To_Token_Enum (ID) is
-      when COMMENT_ID => return True;
+      when
+         COMMENT_ID => return True;
       when others => return False;
       end case;
    end Is_Comment;
 
    function Comment_Start_Length (ID : in WisiToken.Token_ID) return Integer
-   is
-      pragma Unreferenced (ID);
-   begin
-      return 2;
+   is begin
+      case To_Token_Enum (ID) is
+      when COMMENT_ID => return 6;
+      when others => raise SAL.Programmer_Error; return 0;
+      end case;
    end Comment_Start_Length;
 
    function Comment_End_Length (ID : in WisiToken.Token_ID) return Integer
-   is
-      pragma Unreferenced (ID);
-   begin
-      return 1;
+   is begin
+      case To_Token_Enum (ID) is
+      when
+         COMMENT_ID => return 1;
+      when others => raise SAL.Programmer_Error; return 0;
+      end case;
    end Comment_End_Length;
 
    function Find_Comment_End
@@ -57,7 +61,8 @@ package body Wisitoken_Grammar_Main is
    is begin
       return
         (case To_Token_Enum (ID) is
-         when COMMENT_ID => WisiToken.Lexer.Find_New_Line (Source, Comment_Start),
+         when
+            COMMENT_ID => WisiToken.Lexer.Find_New_Line (Source, Comment_Start),
          when others => raise SAL.Programmer_Error);
    end Find_Comment_End;
 
@@ -66,10 +71,13 @@ package body Wisitoken_Grammar_Main is
       ID     : in WisiToken.Token_ID;
       Region : in WisiToken.Buffer_Region)
      return Boolean
-   is begin
+   is
+      use WisiToken;
+   begin
       return
         (case To_Token_Enum (ID) is
-         when COMMENT_ID => WisiToken.Lexer.Contains_New_Line (Source, Region),
+         when
+            COMMENT_ID => Lexer.Contains_New_Line (Source, Region),
          when others => raise SAL.Programmer_Error);
    end Contains_Comment_End;
 
@@ -82,23 +90,31 @@ package body Wisitoken_Grammar_Main is
       use all type WisiToken.Base_Buffer_Pos;
    begin
       case To_Token_Enum (Token.ID) is
-      when NEW_LINE_ID | COMMENT_ID => return Token.Char_Region.Last + 1;
-      when RAW_CODE_ID | REGEXP_ID | ACTION_ID => return WisiToken.Lexer.Line_Begin_Char_Pos (Source, Token, Line);
+      when
+         NEW_LINE_ID |
+         COMMENT_ID => return Token.Char_Region.Last + 1;
+      when
+         RAW_CODE_ID |
+         REGEXP_ID |
+         ACTION_ID => return WisiToken.Lexer.Line_Begin_Char_Pos (Source, Token, Line);
       when others => raise SAL.Programmer_Error;
       end case;
    end Line_Begin_Char_Pos;
 
    function Line_At_Byte_Pos
-     (Source      : in WisiToken.Lexer.Source;
-      ID          : in WisiToken.Token_ID;
-      Byte_Region : in WisiToken.Buffer_Region;
-      Byte_Pos    : in WisiToken.Buffer_Pos;
-      First_Line  : in WisiToken.Line_Number_Type)
-     return WisiToken.Line_Number_Type
-   is begin
+    (Source      : in WisiToken.Lexer.Source;
+     ID          : in WisiToken.Token_ID;
+     Byte_Region : in WisiToken.Buffer_Region;
+     Byte_Pos    : in WisiToken.Buffer_Pos;
+     First_Line  : in WisiToken.Line_Number_Type)
+   return WisiToken.Line_Number_Type
+   is
+   begin
       case To_Token_Enum (ID) is
-      when RAW_CODE_ID | REGEXP_ID | ACTION_ID =>
-         return WisiToken.Lexer.Line_At_Byte_Pos (Source, Byte_Region, Byte_Pos, First_Line);
+      when
+         RAW_CODE_ID |
+         REGEXP_ID |
+         ACTION_ID => return WisiToken.Lexer.Line_At_Byte_Pos (Source, Byte_Region, Byte_Pos, First_Line);
       when others => return First_Line;
       end case;
    end Line_At_Byte_Pos;
@@ -106,7 +122,9 @@ package body Wisitoken_Grammar_Main is
    function Terminated_By_New_Line (ID : in WisiToken.Token_ID) return Boolean
    is begin
       case To_Token_Enum (ID) is
-      when NEW_LINE_ID | COMMENT_ID => return True;
+      when NEW_LINE_ID => return True;
+      when
+         COMMENT_ID => return True;
       when others => return False;
       end case;
    end Terminated_By_New_Line;

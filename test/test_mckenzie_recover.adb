@@ -6,7 +6,7 @@
 --  written, but as the algorithm evolved, the tests behavior changed.
 --  They all still test something useful.
 --
---  Copyright (C) 2017 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -2318,8 +2318,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (46, 46),
          Ops                     => +(Push_Back, +END_ID, 1) & (Insert, +END_ID, 1) & (Insert, +LOOP_ID, 1) &
            (Insert, +SEMICOLON_ID, 1),
-         Enqueue_Low             => (case Test.Alg is when LALR => 312, when LR1 => 491),
-         Check_Low               => (case Test.Alg is when LALR => 63, when LR1 => 87),
+         Enqueue_Low             => (case Test.Alg is when LALR => 312, when LR1 => 390),
+         Check_Low               => (case Test.Alg is when LALR => 63, when LR1 => 71),
          Cost                    => 0);
    end Pushback_Nonterm_1;
 

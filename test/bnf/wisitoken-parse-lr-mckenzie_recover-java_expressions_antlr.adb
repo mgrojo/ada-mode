@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2019, 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019, 2021, 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -25,13 +25,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Antlr is
    Descriptor : WisiToken.Descriptor renames Java_Expressions_Antlr_Actions.Descriptor;
 
    procedure Matching_Begin_Tokens
-     (Tree                     : in     Syntax_Trees.Tree;
-      Tokens                   : in     Token_ID_Array_1_3;
-      Config                   : in     Configuration;
-      Matching_Begin_Tokens    :    out Token_ID_Arrays.Vector;
-      Forbid_Matching_Complete :    out Boolean)
+     (Super                    :         not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
+      Tokens                   :         in              Token_ID_Array_1_3;
+      Config                   : aliased in              Configuration;
+      Matching_Begin_Tokens    :            out          Token_ID_Arrays.Vector;
+      Forbid_Matching_Complete :            out          Boolean)
    is
-      pragma Unreferenced (Tree);
+      pragma Unreferenced (Super);
       use Java_Expressions_Antlr_Actions;
       use Token_ID_Arrays;
    begin

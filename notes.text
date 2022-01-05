@@ -36,7 +36,7 @@ run ada tests
 propagate to main
 
 add reference count to Element ; o.w.s-3
-    Edit_Code_03, Delete_New_Line assertion fail
+    test_incremental.adb Edit_Code_03, Delete_New_Line assertion fail
         not when run separately!?
     ada_mode-interactive_01.adb Edit_Tree breakdown Find_Element Assert fail
         not under debugger

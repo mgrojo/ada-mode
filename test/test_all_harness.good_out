@@ -62,21 +62,36 @@ OK test_incremental.adb : Edit_Comment_6
 OK test_incremental.adb : Edit_Comment_7
 OK test_incremental.adb : Edit_Comment_8
 OK test_incremental.adb : Edit_Comment_9
+OK test_incremental.adb : Edit_Comment_10
+OK test_incremental.adb : Edit_Comment_11
+OK test_incremental.adb : Edit_Comment_12
 OK test_incremental.adb : Edit_Whitespace_1
 OK test_incremental.adb : Edit_Whitespace_2
 OK test_incremental.adb : Edit_Leading_Non_Grammar
-OK test_incremental.adb : Edit_Code_1
-OK test_incremental.adb : Edit_Code_2
-OK test_incremental.adb : Edit_Code_3
-OK test_incremental.adb : Edit_Code_4
-OK test_incremental.adb : Edit_Code_5
-OK test_incremental.adb : Edit_Code_6
-OK test_incremental.adb : Edit_Code_7
-OK test_incremental.adb : Edit_Code_8
-OK test_incremental.adb : Edit_Code_9
+OK test_incremental.adb : Edit_Code_01
+OK test_incremental.adb : Edit_Code_02
+OK test_incremental.adb : Edit_Code_03
+OK test_incremental.adb : Edit_Code_04
+OK test_incremental.adb : Edit_Code_05
+OK test_incremental.adb : Edit_Code_06
+OK test_incremental.adb : Edit_Code_07
+OK test_incremental.adb : Edit_Code_08
+OK test_incremental.adb : Edit_Code_09
+OK test_incremental.adb : Edit_Code_10
+OK test_incremental.adb : Edit_Code_11
+OK test_incremental.adb : Edit_Code_12
+OK test_incremental.adb : Edit_Code_13
+OK test_incremental.adb : Edit_Code_14
+OK test_incremental.adb : Edit_Code_15
+OK test_incremental.adb : Edit_Code_16
+OK test_incremental.adb : Edit_Code_17
 OK test_incremental.adb : Delete_New_Line
 OK test_incremental.adb : Delete_Comment_End
-OK test_incremental.adb : Delete_Comment_Start
+OK test_incremental.adb : Delete_Comment_Start_01
+OK test_incremental.adb : Delete_Comment_Start_02
+OK test_incremental.adb : Delete_Comment_Start_03
+OK test_incremental.adb : Delete_Comment_Start_04
+OK test_incremental.adb : Delete_Comment_Start_05
 OK test_incremental.adb : Insert_New_Line
 OK test_incremental.adb : Names
 OK test_incremental.adb : Missing_Name_1
@@ -89,6 +104,7 @@ OK test_incremental.adb : Modify_Deleted_Node
 OK test_incremental.adb : Multiple_Errors_On_One_Token_1
 OK test_incremental.adb : Multiple_Errors_On_One_Token_2
 OK test_incremental.adb : Non_Ascii
+OK test_incremental.adb : Restore_Deleted_01
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
 OK test_mckenzie_recover.adb LALR : No_Error
 OK test_mckenzie_recover.adb LALR : Empty_Comments
@@ -150,7 +166,7 @@ OK test_mckenzie_recover.adb LALR : Check_Multiple_Delete_For_Insert
 OK test_mckenzie_recover.adb LALR : Pushback_Nonterm_1
 OK test_mckenzie_recover.adb LALR : Multiple_Errors_On_One_Token
 OK test_mckenzie_recover.adb LALR : Move_Non_Grammar
-OK test_mckenzie_recover.adb LALR : Invalid_Char_Literal
+OK test_mckenzie_recover.adb LALR : Lexer_Error_01
 OK test_mckenzie_recover.adb LR1 : No_Error
 OK test_mckenzie_recover.adb LR1 : Empty_Comments
 OK test_mckenzie_recover.adb LR1 : Error_1
@@ -211,19 +227,21 @@ OK test_mckenzie_recover.adb LR1 : Check_Multiple_Delete_For_Insert
 OK test_mckenzie_recover.adb LR1 : Pushback_Nonterm_1
 OK test_mckenzie_recover.adb LR1 : Multiple_Errors_On_One_Token
 OK test_mckenzie_recover.adb LR1 : Move_Non_Grammar
-OK test_mckenzie_recover.adb LR1 : Invalid_Char_Literal
+OK test_mckenzie_recover.adb LR1 : Lexer_Error_01
 OK test_partial_parse.adb : Plain_String
 OK test_partial_parse.adb : File_String_Access
 OK test_skip_to.adb : Nominal
 OK test_syntax_trees.adb : Left_Breakdown_1
 OK test_syntax_trees.adb : Find_New_Line_1
 OK test_syntax_trees.adb : Byte_Region_1
+OK test_syntax_trees.adb : Line_At_Byte_Pos_1
+OK test_syntax_trees.adb : Line_At_Byte_Pos_2
 OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   223
-Successful Tests:  223
+Total Tests Run:   241
+Successful Tests:  241
 Failed Assertions: 0
 Unexpected Errors: 0
