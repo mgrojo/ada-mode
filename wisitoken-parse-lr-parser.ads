@@ -5,7 +5,7 @@
 --  In a child package of Parser.LR partly for historical reasons,
 --  partly to allow McKenzie_Recover to be in a sibling package.
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -51,17 +51,16 @@ package WisiToken.Parse.LR.Parser is
    --  caused the error.
 
    type Language_Matching_Begin_Tokens_Access is access procedure
-     (Tree                    : in     Syntax_Trees.Tree;
+     (Super                   : not null access Base.Supervisor;
       Tokens                  : in     Token_ID_Array_1_3;
-      Config                  : in     Configuration;
+      Config                  : aliased in     Configuration;
       Matching_Tokens         :    out Token_ID_Arrays.Vector;
-      Forbid_Minimal_Complete :    out Boolean)
-   with Post => (for all ID of Matching_Tokens => Is_Terminal (ID, Tree.Lexer.Descriptor.all));
+      Forbid_Minimal_Complete :    out Boolean);
    --  Tokens (1) is the current token; Tokens (2 .. 3) are the following
-   --  tokens (Invalid_Token_ID if none). Set Matching_Tokens to a token
-   --  sequence that starts a production matching Tokens. If
-   --  Minimal_Complete would produce a bad solution at this error point,
-   --  set Forbid_Minimal_Complete True.
+   --  tokens (Invalid_Token_ID if none). Set Matching_Tokens to a
+   --  terminal token sequence that starts a production matching Tokens.
+   --  If Minimal_Complete would produce a bad solution at this error
+   --  point, set Forbid_Minimal_Complete True.
    --
    --  For example, if Tokens is a block end, return tokens that are the
    --  corresponding block begin. If the error point is inside a

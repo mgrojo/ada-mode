@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -943,8 +943,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       ID     : in              Token_ID)
    is
       Tree : Syntax_Trees.Tree renames Super.Tree.all;
-      Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Sequential_Terminal
-        (Super, Config, Following_Element => False);
+      Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Terminal (Tree, Config);
    begin
       if Node = Syntax_Trees.Invalid_Node_Access then
          raise Bad_Config;
@@ -1705,10 +1704,21 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end if;
 
       declare
-         Token : Syntax_Trees.Recover_Token renames Config.Stack.Peek.Token;
-         First_Terminal : constant Syntax_Trees.Node_Access := Tree.First_Terminal (Token);
+         use Syntax_Trees;
+         Token : Recover_Token renames Config.Stack.Peek.Token;
+         First_Terminal : constant Node_Access := Tree.First_Terminal (Token);
       begin
          return
+           --  Push_Back needs a terminal node or an empty nonterm.
+           --  ada_mode-recover_38.adb partial parse,
+           --  ada_mode-recover_indent_3.adb partial parse.
+           (not Token.Virtual or
+              (Token.Virtual and then
+                 ((Is_Terminal (Token.ID, Super.Tree.Lexer.Descriptor.all) and
+                    Token.First_Terminal /= Invalid_Node_Access) or
+                    Is_Nonterminal (Token.ID, Super.Tree.Lexer.Descriptor.all))))
+
+           and then
            (Push_Back_Undo_Reduce or not Tree.Contains_Virtual_Terminal (Token)) and then
            --  Normally, if Contains_Virtual_Terminal, Token was inserted earlier
            --  in this or a previous recover session; no point in recomputing it.
