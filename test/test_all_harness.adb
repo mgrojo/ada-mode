@@ -2,7 +2,7 @@
 --
 --  Run all AUnit tests for SAL.
 --
---  Copyright (C) 2003 - 2009, 2012, 2015 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2003 - 2009, 2012, 2015 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -36,6 +36,7 @@ with Test_Bounded_Definite_Queues;
 with Test_Bounded_Definite_Vectors;
 with Test_Bounded_Definite_Vectors_Sorted;
 with Test_Definite_Doubly_Linked_Lists;
+with Test_Definite_Doubly_Linked_Lists_Ref_Count;
 with Test_Definite_Doubly_Linked_Lists_Sorted;
 with Test_Gen_Images;
 with Test_Graphs;
@@ -109,6 +110,7 @@ begin
    Add_Test (Suite, Test_Case_Access'(new Test_Bounded_Definite_Vectors.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Bounded_Definite_Vectors_Sorted.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Definite_Doubly_Linked_Lists.Test_Case));
+   Add_Test (Suite, Test_Case_Access'(new Test_Definite_Doubly_Linked_Lists_Ref_Count.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Definite_Doubly_Linked_Lists_Sorted.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Indefinite_Doubly_Linked_Lists.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Min_Heap_Binary.Test_Case));
