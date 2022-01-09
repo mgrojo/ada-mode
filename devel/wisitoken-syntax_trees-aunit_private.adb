@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2018 - 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2022 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -115,8 +115,8 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       loop
          exit when not (Has_Element (Computed_Element) and Has_Element (Expected_Element));
          declare
-            Computed : Stream_Element renames Constant_Ref (Computed_Element);
-            Expected : Stream_Element renames Constant_Ref (Expected_Element);
+            Computed : constant Stream_Element := Element (Computed_Element);
+            Expected : constant Stream_Element := Element (Expected_Element);
          begin
             Check (Label & " (" & Computed.Node.Node_Index'Image & ").node",
                    Computed.Node.all,

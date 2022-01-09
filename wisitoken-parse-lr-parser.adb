@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -527,11 +527,11 @@ package body WisiToken.Parse.LR.Parser is
          begin
             if Op.Op = Delete then
                declare
-                  Terminal : constant Terminal_Ref := Tree.First_Sequential_Terminal
-                    (Tree.Current_Token (Parser_State.Stream));
+                  Terminal_Node : constant Valid_Node_Access := Tree.First_Sequential_Terminal
+                    (Tree.Current_Token (Parser_State.Stream)).Node;
                begin
-                  if Op.Del_Index = Tree.Get_Sequential_Index (Terminal.Node) then
-                     Do_Delete (Tree, Parser_State.Stream, Op, Terminal, Shared_Parser.User_Data);
+                  if Op.Del_Index = Tree.Get_Sequential_Index (Terminal_Node) then
+                     Do_Delete (Tree, Parser_State.Stream, Op, Terminal_Node, Shared_Parser.User_Data);
 
                      if Trace_Parse > Extra  then
                         Shared_Parser.Trace.Put_Line

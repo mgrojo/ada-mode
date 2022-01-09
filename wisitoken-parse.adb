@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -1196,35 +1196,35 @@ package body WisiToken.Parse is
                   is
                      Terminal_Is_Check_Deleted : constant Boolean := Terminal = Check_Deleted;
                   begin
+                     if Terminal_Is_Check_Deleted then
+                        Terminal := Invalid_Stream_Node_Ref; -- allow deleting Terminal.Element via Check_Deleted
+                     end if;
+
                      if Saved_Prev_Terminal = Invalid_Stream_Node_Ref and not Terminal_Is_Check_Deleted then
                         if Terminal.Element = Check_Deleted.Element then
+                           Check_Deleted.Element := Invalid_Stream_Index;
+
                            Breakdown (Terminal, To_Single => False);
 
+                           --  Find the stream element that contains Check_Deleted_Node.
+                           Check_Deleted.Element := Terminal.Element;
+                           loop
+                              pragma Assert
+                                (Tree.ID (Tree.Get_Node (Check_Deleted.Stream, Check_Deleted.Element)) /=
+                                   Tree.Lexer.Descriptor.EOI_ID);
+
+                              if Tree.Is_Descendant_Of
+                                (Root => Tree.Get_Node (Check_Deleted.Stream, Check_Deleted.Element),
+                                 Descendant => Check_Deleted.Node)
+                              then
+                                 exit;
+                              end if;
+                              Check_Deleted.Element := Tree.Stream_Next (Check_Deleted.Stream, Check_Deleted.Element);
+                           end loop;
                            if Terminal.Element = Check_Deleted.Element then
                               --  Check_Deleted.Element was not deleted.
                               Saved_Prev_Terminal := Tree.Prev_Terminal (Terminal);
-                           else
-                              --  Check_Deleted.Element was deleted. Find the stream element that
-                              --  contains Check_Deleted.Node.
-                              Check_Deleted.Element := Terminal.Element;
-                              loop
-                                 pragma Assert
-                                   (Tree.ID (Tree.Get_Node (Check_Deleted.Stream, Check_Deleted.Element)) /=
-                                      Tree.Lexer.Descriptor.EOI_ID);
-
-                                 if Tree.Is_Descendant_Of
-                                   (Root => Tree.Get_Node (Check_Deleted.Stream, Check_Deleted.Element),
-                                    Descendant => Check_Deleted.Node)
-                                 then
-                                    exit;
-                                 end if;
-                                 Check_Deleted.Element := Tree.Stream_Next
-                                   (Check_Deleted.Stream, Check_Deleted.Element);
-                              end loop;
-                              if Terminal.Element = Check_Deleted.Element then
-                                 --  Check_Deleted.Element was not deleted.
-                                 Saved_Prev_Terminal := Tree.Prev_Terminal (Terminal);
-                              end if;
+                              Terminal := Invalid_Stream_Node_Ref;
                            end if;
                         end if;
                      end if;
