@@ -4,7 +4,7 @@
 --
 --  [2] ada-indent-user-options.el
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -116,10 +116,10 @@ package Wisi.Ada is
 
    overriding
    procedure Refactor
-     (Data       : in out Parse_Data_Type;
-      Tree       : in out WisiToken.Syntax_Trees.Tree;
-      Action     : in     Refactor_Action;
-      Edit_Begin : in     WisiToken.Buffer_Pos);
+     (Data            : in out Parse_Data_Type;
+      Tree            : in out WisiToken.Syntax_Trees.Tree;
+      Action          : in     Refactor_Action;
+      Edit_Begin_Char : in     WisiToken.Buffer_Pos);
 
    overriding
    function Get_Token_IDs

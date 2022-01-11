@@ -13,7 +13,7 @@ procedure Ada_Mode.Recover_03 is
    is
       Node_Id : Token_Id
         -- missing '<identifier> ;' after renames. There are two solutions
-        -- here; 'delete renames, insert ;' and 'insert <<identifier> ;'. They
+        -- here; 'delete renames, insert ;' and 'insert <identifier> ;'. They
         -- give different indents; one is chosen at random, which makes the
         -- indent change with small changes in the error recover code.
 
@@ -21,8 +21,9 @@ procedure Ada_Mode.Recover_03 is
       return Node.Id = Id;
    end Process_1;
 
-   --  missing 'begin'
+   --  missing 'begin null;'
 end Ada_Mode.Recover_03;
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1
+-- ada-end-name-optional: nil
 -- End:

@@ -21,8 +21,8 @@ pragma License (GPL);
 with WisiToken.Syntax_Trees.LR_Utils; use WisiToken.Syntax_Trees.LR_Utils;
 separate (Wisi.Ada)
 procedure Format_Parameter_List
-  (Tree       : in out WisiToken.Syntax_Trees.Tree;
-   Edit_Begin : in     WisiToken.Buffer_Pos)
+  (Tree            : in out WisiToken.Syntax_Trees.Tree;
+   Edit_Begin_Char : in     WisiToken.Buffer_Pos)
 is
    use Standard.Ada.Containers;
    use Ada_Annex_P_Process_Actions;
@@ -44,7 +44,7 @@ is
       Default_Exp : Buffer_Region := Null_Buffer_Region;
    end record;
 
-   Formal_Part : constant Node_Access := Find_ID_At (Tree, +formal_part_ID, Edit_Begin);
+   Formal_Part : constant Node_Access := Find_ID_Containing (Tree, (1 => +formal_part_ID), Edit_Begin_Char);
    Param_List  : constant Constant_List :=
      (if Formal_Part = Invalid_Node_Access
       then Creators.Invalid_List (Tree)
@@ -54,7 +54,6 @@ is
          List_ID    => +parameter_specification_list_ID,
          Element_ID => +parameter_specification_ID));
 
-   Edit_End    : Buffer_Pos;
    Param_Count : Count_Type := 0;
 
    function Get_Text (Region : in WisiToken.Buffer_Region) return String
@@ -65,14 +64,12 @@ is
 begin
    if Formal_Part = Invalid_Node_Access then
       --  Most likely the edit point is wrong.
-      raise SAL.Parameter_Error with "no parameter list found at byte_pos" & Edit_Begin'Image;
+      raise SAL.Parameter_Error with "no parameter list found containing byte_pos" & Edit_Begin_Char'Image;
    end if;
 
    if WisiToken.Trace_Action > Detail then
       Put_Line (";; format parameter list node " & Tree.Image (Formal_Part, Node_Numbers => True));
    end if;
-
-   Edit_End := Tree.Byte_Region (Formal_Part).Last;
 
    --  The last parameter might be empty, due to syntax errors.
    for N of Param_List loop
@@ -315,10 +312,16 @@ begin
 
                Need_New_Line := True;
             end loop;
-               Result := Result & ")";
+            Result := Result & ")";
          end if;
-         Put_Line
-           ("[" & Edit_Action_Code & Edit_Begin'Image & Edit_End'Image & " """ & Elisp_Escape_Quotes (-Result) & """]");
+         declare
+            Region : constant Buffer_Region := Tree.Char_Region
+              (Formal_Part, Trailing_Non_Grammar => False);
+         begin
+            Put_Line
+              ("[" & Edit_Action_Code & Region.First'Image & Region.Last'Image &
+                 " """ & Elisp_Escape_Quotes (-Result) & """]");
+         end;
       end;
    end;
 end Format_Parameter_List;

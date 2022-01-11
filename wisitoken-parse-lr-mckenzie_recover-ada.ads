@@ -2,7 +2,7 @@
 --
 --  Ada language specific algorithms for McKenzie_Recover
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -28,9 +28,9 @@ package WisiToken.Parse.LR.McKenzie_Recover.Ada is
    --  See wisitoken-parse-lr-parser.ads Language_Fixes_Access for description.
 
    procedure Matching_Begin_Tokens
-     (Tree                    : in     Syntax_Trees.Tree;
+     (Super                   : not null access Base.Supervisor;
       Tokens                  : in     Token_ID_Array_1_3;
-      Config                  : in     Configuration;
+      Config                  : aliased in     Configuration;
       Matching_Tokens         :    out Token_ID_Arrays.Vector;
       Forbid_Minimal_Complete :    out Boolean);
    --  See wisitoken-parse-lr-parser.ads Language_Matching_Begin_Tokens_Access

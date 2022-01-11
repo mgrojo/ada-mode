@@ -48,4 +48,11 @@ package body Ada_Mode.Refactor_Object_Method_To_Method_Object is
       end loop;
    end Parse_One_Item;
 
+   procedure Refactor_Procedure_Call
+   is begin
+      --EMACSCMD:(test-moom nil "Compute (Config)")
+      Compute (Config);
+      --EMACSCMD:(test-refactor-inverse)
+   end Refactor_Procedure_Call;
+
 end Ada_Mode.Refactor_Object_Method_To_Method_Object;
