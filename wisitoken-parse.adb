@@ -585,11 +585,6 @@ package body WisiToken.Parse is
       --  the correct scan end when handling the first edit. So the scan is
       --  delayed.
 
-      Comment_End_Deleted : Boolean         := False;
-      New_Comment_End     : Base_Buffer_Pos := Invalid_Buffer_Pos;
-      --  If Comment_End_Deleted, a comment end was deleted; delete all tree
-      --  tokens thru New_Comment_End (which is not shifted).
-
       Comment_Start_Deleted : Boolean         := False;
       Comment_End_Inserted  : Boolean         := False;
       New_Code_End          : Base_Buffer_Pos := Invalid_Buffer_Pos;
@@ -1073,18 +1068,13 @@ package body WisiToken.Parse is
                      if Contains (Body_End_Region, Deleted_Region.First) and
                        End_Region.First <= Deleted_Region.Last
                      then
-                        Comment_End_Deleted := True;
-
                         --  test_incremental.adb Edit_Comment_*, Delete_Comment_End,
                         --  ada_mode-interactive_05.adb Ada_Identifier in comment.
-
-                        New_Comment_End := Tree.Lexer.Find_Comment_End (Token.ID, Token.Byte_Region.First);
-
                         if Trace_Incremental_Parse > Detail then
                            Parser.Trace.Put_Line
                              ("comment_end_deleted:" &
                                 Token.Byte_Region.First'Image & " .." &
-                                New_Comment_End'Image);
+                                Tree.Lexer.Find_Comment_End (Token.ID, Token.Byte_Region.First)'Image);
                         end if;
                      end if;
                   end Check_Comment_Start_End;
@@ -1323,6 +1313,8 @@ package body WisiToken.Parse is
                Lex_Start_Line : Line_Number_Type := Line_Number_Type'Last;
 
                Last_Grammar : Stream_Node_Ref := Invalid_Stream_Node_Ref;
+
+               Last_Scanned_Token : Lexer.Token;
 
                procedure Check_Comment_End_Inserted (Token : in Lexer.Token)
                --  If Token is a comment, check if Inserted_Region inserts a comment
@@ -1742,12 +1734,13 @@ package body WisiToken.Parse is
                   Scan_Changed_Loop :
                   loop
                      declare
-                        Token : Lexer.Token; -- Newly scanned, and thus shifted
+                        Token : Lexer.Token; -- not shifted.
                         Error : constant Boolean := Tree.Lexer.Find_Next (Token);
                         Ref   : Terminal_Ref;
                      begin
                         if Trace_Lexer > Outline then
-                           Parser.Trace.Put_Line ("lex: " & Lexer.Image (Token, Parser.Tree.Lexer.Descriptor.all));
+                           Parser.Trace.Put_Line
+                             ("lex: " & Lexer.Image (Token, Parser.Tree.Lexer.Descriptor.all));
                            if Error then
                               declare
                                  Error : Lexer.Error renames Tree.Lexer.Errors (Tree.Lexer.Errors.Last);
@@ -1788,13 +1781,14 @@ package body WisiToken.Parse is
                                     (KMN.Deleted_Bytes > 0 and then
                                        Token.Byte_Region.First - (Shift_Bytes + KMN.Inserted_Bytes) =
                                        Deleted_Region.First
-                                       --  Previously existing Token starts immediately after deleted region;
+                                       --  Previously existing token starts immediately after deleted region;
                                        --  it may have been truncated (test_incremental.adb Edit_Code_4 'Cc')
                                     ));
                         end if;
 
-                        Scanned_Byte_Pos := Token.Byte_Region.Last;
-                        Scanned_Char_Pos := Token.Char_Region.Last;
+                        Scanned_Byte_Pos   := Token.Byte_Region.Last; --  FIXME: use last_scanned_token?
+                        Scanned_Char_Pos   := Token.Char_Region.Last;
+                        Last_Scanned_Token := Token;
 
                         if Token.ID >= Parser.Tree.Lexer.Descriptor.First_Terminal then
                            --  grammar token
@@ -1839,17 +1833,22 @@ package body WisiToken.Parse is
                New_Char_Pos := Inserted_Region_Chars.Last;
                pragma Assert (New_Byte_Pos - Old_Byte_Pos = Shift_Bytes);
 
-               if Do_Scan then
+               if Do_Scan and Last_Scanned_Token.ID /= Invalid_Token_ID then
+                  --  If Last_Scanned_Token.ID = Invalid_Token_ID, only whitespace was
+                  --  scanned; Edit_Comment_8
+                  --
                   --  Delete tokens that were replaced by the scan.
                   --
                   --  If a scan covers more than one KMN, we can't process more than the
                   --  first because Shift_* is not known. test_incremental.adb
                   --  Edit_Code_4, ada_skel.adb ada-skel-return.
                   --
-                  --  However, if a comment start was inserted, or a comment end
-                  --  deleted, then we must delete all tokens that were covered by the
-                  --  current scan, not just the current KMN insertion.
-                  --  test_incremental.adb Delete_Comment_End.
+                  --  However, if the last token scanned was a comment created by an
+                  --  inserted comment start or extended by a deleted comment end then
+                  --  we must delete all tokens are now part of by the comment. We only
+                  --  need to check if the last scanned token is a comment; if so, it
+                  --  cannot be started in the next KMN. test_incremental.adb
+                  --  Delete_Comment_End, Edit_Comment_9, Insert_Comment_Start
                   Delete_Scanned_Loop :
                   loop
                      exit Delete_Scanned_Loop when Tree.ID (Terminal.Node) = Parser.Tree.Lexer.Descriptor.EOI_ID;
@@ -1858,18 +1857,12 @@ package body WisiToken.Parse is
                        (if Tree.Byte_Region (Terminal.Node).First < Inserted_Region.First
                         then KMN.Inserted_Bytes --  test_incremental.adb Edit_Code_14
                         else 0) >
-                       (if Comment_End_Deleted -- FIXME: or comment_start_inserted?
+                       (if Tree.Lexer.Is_Comment (Last_Scanned_Token.ID)
                         then Scanned_Byte_Pos
                         else Inserted_Region.Last + 1); --  Terminal is in next KMN.
 
                      if Tree.ID (Terminal) = Tree.Lexer.Descriptor.SOI_ID then
                         Tree.Next_Terminal (Terminal);
-
-                     elsif Comment_End_Deleted and Tree.Byte_Region (Terminal.Node).First > New_Comment_End then
-                        --  test_incremental.adb Edit_Comment_9
-                        Comment_End_Deleted := False;
-                        New_Comment_End     := Invalid_Buffer_Pos;
-                        exit Delete_Scanned_Loop;
 
                      else
                         --  Ensure Terminal is Single, so we can delete it.
@@ -1878,15 +1871,6 @@ package body WisiToken.Parse is
                         declare
                            To_Delete : Stream_Node_Ref := Terminal;
                         begin
-                           if Comment_End_Deleted and then
-                             Tree.Byte_Region (To_Delete, Trailing_Non_Grammar => True).First > New_Comment_End
-                             --  test_incremental.adb Edit_Comment_9
-                           then
-                              Comment_End_Deleted := False;
-                              New_Comment_End     := Invalid_Buffer_Pos;
-                              exit Delete_Scanned_Loop;
-                           end if;
-
                            Tree.Next_Terminal (Terminal);
                            if Trace_Incremental_Parse > Detail then
                               Parser.Trace.Put_Line

@@ -5243,7 +5243,11 @@ package body WisiToken.Syntax_Trees is
          end;
 
       elsif Orig_Element_Node = Ref.Ref.Node then
+<<<<<<< variant A
          Replace_Node (Ref.Ref.Element, New_Node);
+>>>>>>> variant B
+         Parse_Stream.Elements (Ref.Ref.Element.Cur).Node := New_Node;
+======= end
       end if;
 
       if Orig_Element_Node = Ref.Ref.Node then
@@ -5981,6 +5985,10 @@ package body WisiToken.Syntax_Trees is
       User_Data  : in     User_Data_Access)
      return Stream_ID
    is
+<<<<<<< variant A
+>>>>>>> variant B
+      --  FIXME: use or delete
+======= end
       pragma Unreferenced (User_Data);
    begin
       if Old_Stream = Invalid_Stream_ID then
@@ -6147,7 +6155,11 @@ package body WisiToken.Syntax_Trees is
       use Stream_Element_Lists;
       Temp : Cursor := Parse_Stream.Stack_Top;
    begin
+<<<<<<< variant A
       return Result : constant Valid_Node_Access := Element (Parse_Stream.Stack_Top).Node do
+>>>>>>> variant B
+      return Result : constant Valid_Node_Access := Constant_Ref (Parse_Stream.Stack_Top).Node do
+======= end
          Previous (Parse_Stream.Stack_Top);
          Parse_Stream.Elements.Delete (Temp);
          --  This does not change Parse_Stream.Shared_Link
