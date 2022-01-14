@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -585,11 +585,6 @@ package body WisiToken.Parse is
       --  the correct scan end when handling the first edit. So the scan is
       --  delayed.
 
-      Comment_End_Deleted : Boolean         := False;
-      New_Comment_End     : Base_Buffer_Pos := Invalid_Buffer_Pos;
-      --  If Comment_End_Deleted, a comment end was deleted; delete all tree
-      --  tokens thru New_Comment_End (which is not shifted).
-
       Comment_Start_Deleted : Boolean         := False;
       Comment_End_Inserted  : Boolean         := False;
       New_Code_End          : Base_Buffer_Pos := Invalid_Buffer_Pos;
@@ -670,31 +665,15 @@ package body WisiToken.Parse is
             case Terminal_Label'(Tree.Label (Terminal.Node)) is
             when Source_Terminal =>
                declare
-                  --  Don't restore before a virtual terminal; they are deleted as part
-                  --  of this loop. ada_mode-interactive_01.adb
-                  Insert_Before : Terminal_Ref := Terminal;
+                  Has_Deleted   : constant Valid_Node_Access := Terminal.Node;
+                  Insert_Before : Terminal_Ref;
                begin
-                  Tree.Next_Source_Terminal (Insert_Before, Trailing_Non_Grammar => False);
+                  Tree.Next_Terminal (Terminal);
 
-                  loop
-                     exit when Terminal.Element /= Insert_Before.Element;
-                     pragma Assert (Terminal.Node /= Insert_Before.Node);
-                     if Terminal.Node = Tree.First_Terminal (Get_Node (Terminal.Element)) then
-                        --  test_incremental.adb Modify_Deleted_Element
-                        Tree.Prev_Terminal (Terminal);
-                        Breakdown (Insert_Before);
-                        Tree.Next_Terminal (Terminal);
-                        Next_Terminal_Done := True;
-                     else
-                        Breakdown (Terminal);
-                        Insert_Before := Terminal;
-                        Tree.Next_Source_Terminal (Insert_Before, Trailing_Non_Grammar => False);
-                     end if;
-                  end loop;
+                  Breakdown (Terminal);
+                  Insert_Before := Terminal;
 
-                  Breakdown (Insert_Before);
-
-                  for Deleted_Node of reverse Tree.Following_Deleted (Terminal.Node) loop
+                  for Deleted_Node of reverse Tree.Following_Deleted (Has_Deleted) loop
                      if Tree.Label (Deleted_Node) in Virtual_Terminal_Label then
                         --  This would be deleted in the next step, so don't bother restoring
                         --  it.
@@ -707,33 +686,33 @@ package body WisiToken.Parse is
                         declare
                            Deleted_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Deleted_Node);
 
-                           Terminal_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var
-                             (Terminal.Node);
+                           Has_Deleted_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var
+                             (Has_Deleted);
                            First_To_Move : Positive_Index_Type := Positive_Index_Type'Last;
                            Deleted_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var (Deleted_Node);
                            pragma Assert (Deleted_Non_Grammar.Length = 0);
                         begin
-                           if Terminal_Non_Grammar.Length > 0 and then
-                             Deleted_Byte_Region.First < Terminal_Non_Grammar
-                               (Terminal_Non_Grammar.Last_Index).Byte_Region.Last
+                           if Has_Deleted_Non_Grammar.Length > 0 and then
+                             Deleted_Byte_Region.First < Has_Deleted_Non_Grammar
+                               (Has_Deleted_Non_Grammar.Last_Index).Byte_Region.Last
                            then
-                              --  Move some Terminal_Non_Grammar to Deleted_Non_Grammar
+                              --  Move some Non_Grammar to Deleted_Non_Grammar
                               --  test_incremental.adb Modify_Deleted_Element, Lexer_Errors_1,
                               --  Restore_Deleted_01
-                              for I in Terminal_Non_Grammar.First_Index .. Terminal_Non_Grammar.Last_Index loop
-                                 if Deleted_Byte_Region.First < Terminal_Non_Grammar (I).Byte_Region.Last then
+                              for I in Has_Deleted_Non_Grammar.First_Index .. Has_Deleted_Non_Grammar.Last_Index loop
+                                 if Deleted_Byte_Region.First < Has_Deleted_Non_Grammar (I).Byte_Region.Last then
                                     First_To_Move := I;
                                     exit;
                                  end if;
                               end loop;
-                              for I in First_To_Move .. Terminal_Non_Grammar.Last_Index loop
-                                 Deleted_Non_Grammar.Append (Terminal_Non_Grammar (I));
+                              for I in First_To_Move .. Has_Deleted_Non_Grammar.Last_Index loop
+                                 Deleted_Non_Grammar.Append (Has_Deleted_Non_Grammar (I));
                               end loop;
-                              if First_To_Move = Terminal_Non_Grammar.First_Index then
-                                 Terminal_Non_Grammar.Clear;
+                              if First_To_Move = Has_Deleted_Non_Grammar.First_Index then
+                                 Has_Deleted_Non_Grammar.Clear;
                               else
-                                 Terminal_Non_Grammar.Set_First_Last
-                                   (Terminal_Non_Grammar.First_Index, First_To_Move - 1);
+                                 Has_Deleted_Non_Grammar.Set_First_Last
+                                   (Has_Deleted_Non_Grammar.First_Index, First_To_Move - 1);
                               end if;
                            end if;
                         end;
@@ -759,7 +738,7 @@ package body WisiToken.Parse is
                         end if;
                      end if;
                   end loop;
-                  Tree.Following_Deleted (Terminal.Node).Clear;
+                  Tree.Following_Deleted (Has_Deleted).Clear;
                end;
 
             when Virtual_Terminal_Label =>
@@ -1089,18 +1068,13 @@ package body WisiToken.Parse is
                      if Contains (Body_End_Region, Deleted_Region.First) and
                        End_Region.First <= Deleted_Region.Last
                      then
-                        Comment_End_Deleted := True;
-
                         --  test_incremental.adb Edit_Comment_*, Delete_Comment_End,
                         --  ada_mode-interactive_05.adb Ada_Identifier in comment.
-
-                        New_Comment_End := Tree.Lexer.Find_Comment_End (Token.ID, Token.Byte_Region.First);
-
                         if Trace_Incremental_Parse > Detail then
                            Parser.Trace.Put_Line
                              ("comment_end_deleted:" &
                                 Token.Byte_Region.First'Image & " .." &
-                                New_Comment_End'Image);
+                                Tree.Lexer.Find_Comment_End (Token.ID, Token.Byte_Region.First)'Image);
                         end if;
                      end if;
                   end Check_Comment_Start_End;
@@ -1196,35 +1170,35 @@ package body WisiToken.Parse is
                   is
                      Terminal_Is_Check_Deleted : constant Boolean := Terminal = Check_Deleted;
                   begin
+                     if Terminal_Is_Check_Deleted then
+                        Terminal := Invalid_Stream_Node_Ref; -- allow deleting Terminal.Element via Check_Deleted
+                     end if;
+
                      if Saved_Prev_Terminal = Invalid_Stream_Node_Ref and not Terminal_Is_Check_Deleted then
                         if Terminal.Element = Check_Deleted.Element then
+                           Check_Deleted.Element := Invalid_Stream_Index;
+
                            Breakdown (Terminal, To_Single => False);
 
+                           --  Find the stream element that contains Check_Deleted_Node.
+                           Check_Deleted.Element := Terminal.Element;
+                           loop
+                              pragma Assert
+                                (Tree.ID (Tree.Get_Node (Check_Deleted.Stream, Check_Deleted.Element)) /=
+                                   Tree.Lexer.Descriptor.EOI_ID);
+
+                              if Tree.Is_Descendant_Of
+                                (Root => Tree.Get_Node (Check_Deleted.Stream, Check_Deleted.Element),
+                                 Descendant => Check_Deleted.Node)
+                              then
+                                 exit;
+                              end if;
+                              Check_Deleted.Element := Tree.Stream_Next (Check_Deleted.Stream, Check_Deleted.Element);
+                           end loop;
                            if Terminal.Element = Check_Deleted.Element then
                               --  Check_Deleted.Element was not deleted.
                               Saved_Prev_Terminal := Tree.Prev_Terminal (Terminal);
-                           else
-                              --  Check_Deleted.Element was deleted. Find the stream element that
-                              --  contains Check_Deleted.Node.
-                              Check_Deleted.Element := Terminal.Element;
-                              loop
-                                 pragma Assert
-                                   (Tree.ID (Tree.Get_Node (Check_Deleted.Stream, Check_Deleted.Element)) /=
-                                      Tree.Lexer.Descriptor.EOI_ID);
-
-                                 if Tree.Is_Descendant_Of
-                                   (Root => Tree.Get_Node (Check_Deleted.Stream, Check_Deleted.Element),
-                                    Descendant => Check_Deleted.Node)
-                                 then
-                                    exit;
-                                 end if;
-                                 Check_Deleted.Element := Tree.Stream_Next
-                                   (Check_Deleted.Stream, Check_Deleted.Element);
-                              end loop;
-                              if Terminal.Element = Check_Deleted.Element then
-                                 --  Check_Deleted.Element was not deleted.
-                                 Saved_Prev_Terminal := Tree.Prev_Terminal (Terminal);
-                              end if;
+                              Terminal := Invalid_Stream_Node_Ref;
                            end if;
                         end if;
                      end if;
@@ -1339,6 +1313,8 @@ package body WisiToken.Parse is
                Lex_Start_Line : Line_Number_Type := Line_Number_Type'Last;
 
                Last_Grammar : Stream_Node_Ref := Invalid_Stream_Node_Ref;
+
+               Last_Scanned_Token : Lexer.Token;
 
                procedure Check_Comment_End_Inserted (Token : in Lexer.Token)
                --  If Token is a comment, check if Inserted_Region inserts a comment
@@ -1758,12 +1734,13 @@ package body WisiToken.Parse is
                   Scan_Changed_Loop :
                   loop
                      declare
-                        Token : Lexer.Token; -- Newly scanned, and thus shifted
+                        Token : Lexer.Token; -- not shifted.
                         Error : constant Boolean := Tree.Lexer.Find_Next (Token);
                         Ref   : Terminal_Ref;
                      begin
                         if Trace_Lexer > Outline then
-                           Parser.Trace.Put_Line ("lex: " & Lexer.Image (Token, Parser.Tree.Lexer.Descriptor.all));
+                           Parser.Trace.Put_Line
+                             ("lex: " & Lexer.Image (Token, Parser.Tree.Lexer.Descriptor.all));
                            if Error then
                               declare
                                  Error : Lexer.Error renames Tree.Lexer.Errors (Tree.Lexer.Errors.Last);
@@ -1804,13 +1781,14 @@ package body WisiToken.Parse is
                                     (KMN.Deleted_Bytes > 0 and then
                                        Token.Byte_Region.First - (Shift_Bytes + KMN.Inserted_Bytes) =
                                        Deleted_Region.First
-                                       --  Previously existing Token starts immediately after deleted region;
+                                       --  Previously existing token starts immediately after deleted region;
                                        --  it may have been truncated (test_incremental.adb Edit_Code_4 'Cc')
                                     ));
                         end if;
 
-                        Scanned_Byte_Pos := Token.Byte_Region.Last;
-                        Scanned_Char_Pos := Token.Char_Region.Last;
+                        Scanned_Byte_Pos   := Token.Byte_Region.Last; --  FIXME: use last_scanned_token?
+                        Scanned_Char_Pos   := Token.Char_Region.Last;
+                        Last_Scanned_Token := Token;
 
                         if Token.ID >= Parser.Tree.Lexer.Descriptor.First_Terminal then
                            --  grammar token
@@ -1855,17 +1833,22 @@ package body WisiToken.Parse is
                New_Char_Pos := Inserted_Region_Chars.Last;
                pragma Assert (New_Byte_Pos - Old_Byte_Pos = Shift_Bytes);
 
-               if Do_Scan then
+               if Do_Scan and Last_Scanned_Token.ID /= Invalid_Token_ID then
+                  --  If Last_Scanned_Token.ID = Invalid_Token_ID, only whitespace was
+                  --  scanned; Edit_Comment_8
+                  --
                   --  Delete tokens that were replaced by the scan.
                   --
                   --  If a scan covers more than one KMN, we can't process more than the
                   --  first because Shift_* is not known. test_incremental.adb
                   --  Edit_Code_4, ada_skel.adb ada-skel-return.
                   --
-                  --  However, if a comment start was inserted, or a comment end
-                  --  deleted, then we must delete all tokens that were covered by the
-                  --  current scan, not just the current KMN insertion.
-                  --  test_incremental.adb Delete_Comment_End.
+                  --  However, if the last token scanned was a comment created by an
+                  --  inserted comment start or extended by a deleted comment end then
+                  --  we must delete all tokens are now part of by the comment. We only
+                  --  need to check if the last scanned token is a comment; if so, it
+                  --  cannot be started in the next KMN. test_incremental.adb
+                  --  Delete_Comment_End, Edit_Comment_9, Insert_Comment_Start
                   Delete_Scanned_Loop :
                   loop
                      exit Delete_Scanned_Loop when Tree.ID (Terminal.Node) = Parser.Tree.Lexer.Descriptor.EOI_ID;
@@ -1874,18 +1857,12 @@ package body WisiToken.Parse is
                        (if Tree.Byte_Region (Terminal.Node).First < Inserted_Region.First
                         then KMN.Inserted_Bytes --  test_incremental.adb Edit_Code_14
                         else 0) >
-                       (if Comment_End_Deleted -- FIXME: or comment_start_inserted?
+                       (if Tree.Lexer.Is_Comment (Last_Scanned_Token.ID)
                         then Scanned_Byte_Pos
                         else Inserted_Region.Last + 1); --  Terminal is in next KMN.
 
                      if Tree.ID (Terminal) = Tree.Lexer.Descriptor.SOI_ID then
                         Tree.Next_Terminal (Terminal);
-
-                     elsif Comment_End_Deleted and Tree.Byte_Region (Terminal.Node).First > New_Comment_End then
-                        --  test_incremental.adb Edit_Comment_9
-                        Comment_End_Deleted := False;
-                        New_Comment_End     := Invalid_Buffer_Pos;
-                        exit Delete_Scanned_Loop;
 
                      else
                         --  Ensure Terminal is Single, so we can delete it.
@@ -1894,15 +1871,6 @@ package body WisiToken.Parse is
                         declare
                            To_Delete : Stream_Node_Ref := Terminal;
                         begin
-                           if Comment_End_Deleted and then
-                             Tree.Byte_Region (To_Delete, Trailing_Non_Grammar => True).First > New_Comment_End
-                             --  test_incremental.adb Edit_Comment_9
-                           then
-                              Comment_End_Deleted := False;
-                              New_Comment_End     := Invalid_Buffer_Pos;
-                              exit Delete_Scanned_Loop;
-                           end if;
-
                            Tree.Next_Terminal (Terminal);
                            if Trace_Incremental_Parse > Detail then
                               Parser.Trace.Put_Line

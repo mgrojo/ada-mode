@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -485,15 +485,6 @@ package body Test_Incremental is
          Delete_2  => "",
          Insert_2  => "   ");
 
-      --  Edited text:
-      --  'D;
-      --   |1
-      --     -- comment_1
-      --  |4    |10
-      --        -- comment_2
-      --  |20       |30
-      --  C;'
-      --  |39
    end Edit_Comment_8;
 
    procedure Edit_Comment_9 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1108,7 +1099,7 @@ package body Test_Incremental is
          Incr_Errors    => 0);
 
       --  Edited source:
-      --  "A := B + ada_identifier;" & ASCII.LF  & "C;"
+      --  "A := B + ada_identifier;" & ASCII.LF & "C;"
       --   |1       |10       |20      |25
    end Delete_Comment_Start_05;
 
@@ -1124,6 +1115,19 @@ package body Test_Incremental is
          Delete  => " ",
          Insert  => "" & ASCII.LF);
    end Insert_New_Line;
+
+   procedure Insert_Comment_Start_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert a comment start; from ada_mode-interactive_02.adb
+      Parse_Text
+        (Initial => "A := B;" & ASCII.LF & " C := D;" & ASCII.LF & " E := F;",
+         --          |1         |8           |10        |17
+         Edit_At => 9,
+         Delete  => "",
+         Insert  => "-- ");
+   end Insert_Comment_Start_01;
 
    procedure Names (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1491,6 +1495,7 @@ package body Test_Incremental is
       Register_Routine (T, Delete_Comment_Start_04'Access, "Delete_Comment_Start_04");
       Register_Routine (T, Delete_Comment_Start_05'Access, "Delete_Comment_Start_05");
       Register_Routine (T, Insert_New_Line'Access, "Insert_New_Line");
+      Register_Routine (T, Insert_Comment_Start_01'Access, "Insert_Comment_Start_01");
       Register_Routine (T, Names'Access, "Names");
       Register_Routine (T, Missing_Name_1'Access, "Missing_Name_1");
       Register_Routine (T, Recover_1'Access, "Recover_1");
