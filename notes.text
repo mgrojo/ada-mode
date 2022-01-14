@@ -34,20 +34,20 @@ update-wisitoken_grammar
 add reference count to syntax_trees.Element
     running tests:
         test_syntax_trees pass
-        test_incremental.adb
-    p shared_parser.tree.shared_stream.cur.ptr.element.elements.head.next.next.all
+        test_incremental.adb pass
+        t_mck pass
+        t_all pass
 
-Lexer_Errors_1
-    edit_tree undo_recover loop breakdown ref_count fail
-        factor out breakdown_2
-            or delete (predicate)?
-
-    test_incremental.adb Edit_Code_03, Delete_New_Line assertion fail
-        not when run separately!?
+    run ada tests;
     ada_mode-interactive_01.adb Edit_Tree breakdown Find_Element Assert fail
         not under debugger
     ada_mode-interactive_02.adb
         different errors in different runs
+
+    Compare timing benchmark
+        configuration has Current_Shared_Token, which requires finalize for all enqueued objects
+        if that's too slow, change to Sequential_Index, base store map from index to terminal_ref
+        in o.w.s-2, after eliminate tasking
 
 test insert that modifies a comment start so it no longer is one
     ie "-- ..." => "- foo - ..."

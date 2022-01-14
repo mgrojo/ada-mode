@@ -6,7 +6,7 @@
 --
 --  See wisitoken-parse-packrat.ads.
 --
---  Copyright (C) 2018, 2020, 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2020 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -102,6 +102,11 @@ is
       Indent_Line ("begin");
       Indent := Indent + 3;
 
+      Indent_Line ("if Trace_Parse > Extra then");
+      Indent_Line ("   Parser.Trace.Put_Line (""" & Parser_Name (Prod.LHS) & " enter ref_counts:"");");
+      Indent_Line ("   Tree.Print_Ref_Counts (Parser.Trace.all);");
+      Indent_Line ("end if;");
+
       Indent_Line ("if Next_Pos = Syntax_Trees.Invalid_Stream_Index then");
       Indent_Line ("   return (State => Failure);");
       Indent_Line ("end if;");
@@ -112,6 +117,10 @@ is
       Indent := Indent + 3;
       Indent_Line ("case Memo.State is");
       Indent_Line ("when Success =>");
+      Indent_Line ("   if Trace_Parse > Extra then");
+      Indent_Line ("      Parser.Trace.Put_Line (""" & Parser_Name (Prod.LHS) & " success ref_counts:"");");
+      Indent_Line ("      Tree.Print_Ref_Counts (Parser.Trace.all);");
+      Indent_Line ("   end if;");
       Indent_Line ("   return Parser.Derivs (" & Result_ID & ")(Start_Pos_Index);");
       Indent_Line ("when Failure =>");
 

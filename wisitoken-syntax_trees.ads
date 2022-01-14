@@ -910,7 +910,8 @@ package WisiToken.Syntax_Trees is
                 (if Rooted
                  then Tree.Get_Node (Ref.Stream, Ref.Element) = Ref.Node
                  else Tree.First_Terminal (Tree.Get_Node (Ref.Stream, Ref.Element)) = Ref.Node));
-   --  Update Ref to root or first terminal of next stream element after Ref.Element.
+   --  Update Ref to root or first terminal of next stream element after
+   --  Ref.Element. Follows Shared_Link.
 
    procedure Stream_Next
      (Tree   : in     Syntax_Trees.Tree;
@@ -1732,6 +1733,17 @@ package WisiToken.Syntax_Trees is
    --
    --  Visible for use with error recovery Configuration input stream.
 
+   function Get_Sequential_Index (Tree : in Syntax_Trees.Tree; Node : in Node_Access) return Base_Sequential_Index
+   with Pre => Node = Invalid_Node_Access or else Tree.Label (Node) in Terminal_Label;
+   --  For convenience, returns Invalid_Sequential_Index if Node =
+   --  Invalid_Node_Access.
+
+   procedure Set_Sequential_Index
+     (Tree  : in Syntax_Trees.Tree;
+      Node  : in Valid_Node_Access;
+      Index : in Base_Sequential_Index)
+   with Pre => Tree.Label (Node) in Terminal_Label;
+
    function First_Sequential_Terminal
      (Tree : in Syntax_Trees.Tree;
       Node : in Node_Access)
@@ -2513,17 +2525,13 @@ package WisiToken.Syntax_Trees is
    with Pre => Element = Invalid_Stream_Index or else Tree.Contains (Stream, Element);
    --  Version without Tree requires Syntax_Trees.Get_Node_Index. Returns
    --  Invalid_Node_Index for Invalid_Node_Access.
+   --  FIXME: delete?
 
-   function Get_Sequential_Index (Tree : in Syntax_Trees.Tree; Node : in Node_Access) return Base_Sequential_Index
-   with Pre => Node = Invalid_Node_Access or else Tree.Label (Node) in Terminal_Label;
-   --  For convenience, returns Invalid_Sequential_Index if Node =
-   --  Invalid_Node_Access.
-
-   procedure Set_Sequential_Index
-     (Tree  : in Syntax_Trees.Tree;
-      Node  : in Valid_Node_Access;
-      Index : in Base_Sequential_Index)
-   with Pre => Tree.Label (Node) in Terminal_Label;
+   procedure Enable_Ref_Count_Check (Tree : in out Syntax_Trees.Tree; Stream : in Stream_ID; Enable : in Boolean)
+   with Pre => Stream /= Invalid_Stream_ID;
+   --  Default is enabled.
+   --
+   --  Disabling is useful when there are bugs you want to ignore.
 
    function Node_Access_Compare (Left, Right : in Node_Access) return SAL.Compare_Result
    with Pre => Left /= Invalid_Node_Access and Right /= Invalid_Node_Access;
@@ -2607,6 +2615,10 @@ package WisiToken.Syntax_Trees is
 
    function Tree_Size_Image (Tree : in Syntax_Trees.Tree) return String;
    --  For debugging; node counts.
+
+   procedure Print_Ref_Counts
+     (Tree  : in     Syntax_Trees.Tree;
+      Trace : in out WisiToken.Trace'Class);
 
 private
    use all type Ada.Containers.Count_Type;

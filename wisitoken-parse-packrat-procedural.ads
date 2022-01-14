@@ -9,7 +9,7 @@
 --
 --  See parent.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -73,6 +73,9 @@ package WisiToken.Parse.Packrat.Procedural is
       Lexer                 : in WisiToken.Lexer.Handle;
       User_Data             : in WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser;
+
+   Enable_Ref_Count_Check : Boolean := True;
+   --  Set False to disable while parsing.
 
    overriding procedure Parse
      (Parser   : in out Procedural.Parser;

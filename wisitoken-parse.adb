@@ -670,31 +670,15 @@ package body WisiToken.Parse is
             case Terminal_Label'(Tree.Label (Terminal.Node)) is
             when Source_Terminal =>
                declare
-                  --  Don't restore before a virtual terminal; they are deleted as part
-                  --  of this loop. ada_mode-interactive_01.adb
-                  Insert_Before : Terminal_Ref := Terminal;
+                  Has_Deleted   : constant Valid_Node_Access := Terminal.Node;
+                  Insert_Before : Terminal_Ref;
                begin
-                  Tree.Next_Source_Terminal (Insert_Before, Trailing_Non_Grammar => False);
+                  Tree.Next_Terminal (Terminal);
 
-                  loop
-                     exit when Terminal.Element /= Insert_Before.Element;
-                     pragma Assert (Terminal.Node /= Insert_Before.Node);
-                     if Terminal.Node = Tree.First_Terminal (Get_Node (Terminal.Element)) then
-                        --  test_incremental.adb Modify_Deleted_Element
-                        Tree.Prev_Terminal (Terminal);
-                        Breakdown (Insert_Before);
-                        Tree.Next_Terminal (Terminal);
-                        Next_Terminal_Done := True;
-                     else
-                        Breakdown (Terminal);
-                        Insert_Before := Terminal;
-                        Tree.Next_Source_Terminal (Insert_Before, Trailing_Non_Grammar => False);
-                     end if;
-                  end loop;
+                  Breakdown (Terminal);
+                  Insert_Before := Terminal;
 
-                  Breakdown (Insert_Before);
-
-                  for Deleted_Node of reverse Tree.Following_Deleted (Terminal.Node) loop
+                  for Deleted_Node of reverse Tree.Following_Deleted (Has_Deleted) loop
                      if Tree.Label (Deleted_Node) in Virtual_Terminal_Label then
                         --  This would be deleted in the next step, so don't bother restoring
                         --  it.
@@ -707,33 +691,33 @@ package body WisiToken.Parse is
                         declare
                            Deleted_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Deleted_Node);
 
-                           Terminal_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var
-                             (Terminal.Node);
+                           Has_Deleted_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var
+                             (Has_Deleted);
                            First_To_Move : Positive_Index_Type := Positive_Index_Type'Last;
                            Deleted_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var (Deleted_Node);
                            pragma Assert (Deleted_Non_Grammar.Length = 0);
                         begin
-                           if Terminal_Non_Grammar.Length > 0 and then
-                             Deleted_Byte_Region.First < Terminal_Non_Grammar
-                               (Terminal_Non_Grammar.Last_Index).Byte_Region.Last
+                           if Has_Deleted_Non_Grammar.Length > 0 and then
+                             Deleted_Byte_Region.First < Has_Deleted_Non_Grammar
+                               (Has_Deleted_Non_Grammar.Last_Index).Byte_Region.Last
                            then
-                              --  Move some Terminal_Non_Grammar to Deleted_Non_Grammar
+                              --  Move some Non_Grammar to Deleted_Non_Grammar
                               --  test_incremental.adb Modify_Deleted_Element, Lexer_Errors_1,
                               --  Restore_Deleted_01
-                              for I in Terminal_Non_Grammar.First_Index .. Terminal_Non_Grammar.Last_Index loop
-                                 if Deleted_Byte_Region.First < Terminal_Non_Grammar (I).Byte_Region.Last then
+                              for I in Has_Deleted_Non_Grammar.First_Index .. Has_Deleted_Non_Grammar.Last_Index loop
+                                 if Deleted_Byte_Region.First < Has_Deleted_Non_Grammar (I).Byte_Region.Last then
                                     First_To_Move := I;
                                     exit;
                                  end if;
                               end loop;
-                              for I in First_To_Move .. Terminal_Non_Grammar.Last_Index loop
-                                 Deleted_Non_Grammar.Append (Terminal_Non_Grammar (I));
+                              for I in First_To_Move .. Has_Deleted_Non_Grammar.Last_Index loop
+                                 Deleted_Non_Grammar.Append (Has_Deleted_Non_Grammar (I));
                               end loop;
-                              if First_To_Move = Terminal_Non_Grammar.First_Index then
-                                 Terminal_Non_Grammar.Clear;
+                              if First_To_Move = Has_Deleted_Non_Grammar.First_Index then
+                                 Has_Deleted_Non_Grammar.Clear;
                               else
-                                 Terminal_Non_Grammar.Set_First_Last
-                                   (Terminal_Non_Grammar.First_Index, First_To_Move - 1);
+                                 Has_Deleted_Non_Grammar.Set_First_Last
+                                   (Has_Deleted_Non_Grammar.First_Index, First_To_Move - 1);
                               end if;
                            end if;
                         end;
@@ -759,7 +743,7 @@ package body WisiToken.Parse is
                         end if;
                      end if;
                   end loop;
-                  Tree.Following_Deleted (Terminal.Node).Clear;
+                  Tree.Following_Deleted (Has_Deleted).Clear;
                end;
 
             when Virtual_Terminal_Label =>

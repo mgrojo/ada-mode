@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018, 2020 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018, 2020, 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -49,6 +49,10 @@ package body Dragon_4_43_Packrat_Gen is
          Parser.Tree.Lexer.Reset_With_String (Input);
          Parser.Parse (Log_File);
 
+         if WisiToken.Trace_Tests > WisiToken.Detail then
+            Trace.Put_Line ("ref_counts:");
+            Parser.Tree.Print_Ref_Counts (Trace);
+         end if;
          AUnit.Assertions.Assert (Expected = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
 
       exception
