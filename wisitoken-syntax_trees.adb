@@ -633,11 +633,30 @@ package body WisiToken.Syntax_Trees is
 
                declare
                   Update_Target : constant Boolean := First_Terminal.Ref.Node = Target;
+
+                  --  Inverted_Parents holds the path from To_Delete to Target; if
+                  --  Add_Errors copies any of those nodes, update the Inverted_Parents
+                  --  value.
+                  Update_Parents_Index         : SAL.Base_Peek_Type := 0;
+                  Inverted_Parents_Index       : SAL.Base_Peek_Type := 1;
+                  First_Terminal_Parents_Index : SAL.Base_Peek_Type := First_Terminal.Parents.Depth;
                begin
+                  loop
+                     exit when First_Terminal_Parents_Index = 0 or Inverted_Parents_Index > Inverted_Parents.Depth;
+                     exit when Inverted_Parents.Peek (Inverted_Parents_Index) /=
+                       First_Terminal.Parents.Peek (First_Terminal_Parents_Index);
+                     Update_Parents_Index := Inverted_Parents_Index;
+                     Inverted_Parents_Index := @ + 1;
+                     First_Terminal_Parents_Index := @ - 1;
+                  end loop;
+
                   Tree.Add_Errors (First_Terminal, New_Errors, User_Data);
 
+                  for I in 1 .. Update_Parents_Index loop
+                     Inverted_Parents.Set
+                       (I, Inverted_Parents.Depth, First_Terminal.Parents.Peek (First_Terminal.Parents.Depth - I + 1));
+                  end loop;
                   if Update_Target then
-                     Inverted_Parents := First_Terminal.Parents.Invert;
                      Target           := First_Terminal.Ref.Node;
                   end if;
                end;
@@ -667,7 +686,9 @@ package body WisiToken.Syntax_Trees is
          end;
 
          --  We need to do Move_Errors before the children of To_Delete are set
-         --  Invalid. test_incremental.adb Missing_Name_1.
+         --  Invalid. test_incremental.adb Missing_Name_1. Pop To_Delete from
+         --  Inverted_Parents now, to match First_Terminal in Move_Errors.
+         Inverted_Parents.Pop;
          Move_Errors;
 
          if Tree.Parents_Set then
@@ -678,7 +699,6 @@ package body WisiToken.Syntax_Trees is
             end;
          end if;
          Stream.Elements.Delete (To_Delete);
-         Inverted_Parents.Pop;
 
          --  Find stream element containing Target
          declare
