@@ -1,4 +1,4 @@
-e--  Abstract :
+--  Abstract :
 --
 --  See spec.
 --
