@@ -189,16 +189,10 @@ package body WisiToken.Syntax_Trees is
 
    procedure Add_Deleted
      (Tree          : in out Syntax_Trees.Tree;
-      Deleted_Ref   : in     Stream_Node_Ref;
+      Deleted_Node  : in     Valid_Node_Access;
       Prev_Terminal : in out Stream_Node_Parents;
       User_Data     : in     User_Data_Access)
    is
-      use Stream_Element_Lists;
-
-      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Prev_Terminal.Ref.Stream.Cur);
-
-      Element : Stream_Element renames Parse_Stream.Elements (Prev_Terminal.Ref.Element.Cur);
-
       --  We need to copy Prev_Terminal.Node, and replace any links to it.
       --  It is tempting to attempt to optimize this; if no parsers have
       --  spawned since Following_Deleted was last edited, we don't need to
@@ -218,7 +212,7 @@ package body WisiToken.Syntax_Trees is
       if Prev_Terminal.Parents.Depth = 0 then
          pragma Assert (Rooted (Prev_Terminal.Ref));
          --  There are no child links yet
-         Element.Node := New_Node;
+         Tree.Streams (Prev_Terminal.Ref.Stream.Cur).Elements (Prev_Terminal.Ref.Element.Cur).Node := New_Node;
 
          Prev_Terminal.Ref.Node := New_Node;
 
@@ -228,7 +222,7 @@ package body WisiToken.Syntax_Trees is
          Copy_Ancestors (Tree, Prev_Terminal, New_Node, User_Data);
       end if;
 
-      Prev_Terminal.Ref.Node.Following_Deleted.Append (Deleted_Ref.Node);
+      Prev_Terminal.Ref.Node.Following_Deleted.Append (Deleted_Node);
    end Add_Deleted;
 
    function Add_Error
@@ -635,11 +629,30 @@ package body WisiToken.Syntax_Trees is
 
                declare
                   Update_Target : constant Boolean := First_Terminal.Ref.Node = Target;
+
+                  --  Inverted_Parents holds the path from To_Delete to Target; if
+                  --  Add_Errors copies any of those nodes, update the Inverted_Parents
+                  --  value.
+                  Update_Parents_Index         : SAL.Base_Peek_Type := 0;
+                  Inverted_Parents_Index       : SAL.Base_Peek_Type := 1;
+                  First_Terminal_Parents_Index : SAL.Base_Peek_Type := First_Terminal.Parents.Depth;
                begin
+                  loop
+                     exit when First_Terminal_Parents_Index = 0 or Inverted_Parents_Index > Inverted_Parents.Depth;
+                     exit when Inverted_Parents.Peek (Inverted_Parents_Index) /=
+                       First_Terminal.Parents.Peek (First_Terminal_Parents_Index);
+                     Update_Parents_Index := Inverted_Parents_Index;
+                     Inverted_Parents_Index := @ + 1;
+                     First_Terminal_Parents_Index := @ - 1;
+                  end loop;
+
                   Tree.Add_Errors (First_Terminal, New_Errors, User_Data);
 
+                  for I in 1 .. Update_Parents_Index loop
+                     Inverted_Parents.Set
+                       (I, Inverted_Parents.Depth, First_Terminal.Parents.Peek (First_Terminal.Parents.Depth - I + 1));
+                  end loop;
                   if Update_Target then
-                     Inverted_Parents := First_Terminal.Parents.Invert;
                      Target           := First_Terminal.Ref.Node;
                   end if;
                end;
@@ -669,7 +682,9 @@ package body WisiToken.Syntax_Trees is
          end;
 
          --  We need to do Move_Errors before the children of To_Delete are set
-         --  Invalid. test_incremental.adb Missing_Name_1.
+         --  Invalid. test_incremental.adb Missing_Name_1. Pop To_Delete from
+         --  Inverted_Parents now, to match First_Terminal in Move_Errors.
+         Inverted_Parents.Pop;
          Move_Errors;
 
          if Tree.Parents_Set then
@@ -680,7 +695,6 @@ package body WisiToken.Syntax_Trees is
             end;
          end if;
          Stream.Elements.Delete (To_Delete);
-         Inverted_Parents.Pop;
 
          --  Find stream element containing Target
          declare

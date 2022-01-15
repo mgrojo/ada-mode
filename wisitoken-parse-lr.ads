@@ -9,7 +9,7 @@
 --
 --  See wisitoken.ads
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -461,13 +461,13 @@ package WisiToken.Parse.LR is
       Element_Image       => Image);
 
    procedure Do_Delete
-     (Tree        : in out Syntax_Trees.Tree;
-      Stream      : in     Syntax_Trees.Stream_ID;
-      Op          : in out Delete_Op_Nodes;
-      Deleted_Ref : in     Syntax_Trees.Stream_Node_Ref;
-      User_Data   : in     Syntax_Trees.User_Data_Access)
-   with Pre => Op.Del_Index = Tree.Get_Sequential_Index (Deleted_Ref.Node);
-   --  Perform Delete operation on Stream, set Op.Del_Node..
+     (Tree         : in out Syntax_Trees.Tree;
+      Stream       : in     Syntax_Trees.Stream_ID;
+      Op           : in out Delete_Op_Nodes;
+      Deleted_Node : in     Syntax_Trees.Valid_Node_Access;
+      User_Data    : in     Syntax_Trees.User_Data_Access)
+   with Pre => Op.Del_Index = Tree.Get_Sequential_Index (Deleted_Node);
+   --  Perform Delete operation on Stream, set Op.Del_Node to Deleted_Node.
 
    type Recover_Stack_Item is record
       State : Unknown_State_Index := Unknown_State;

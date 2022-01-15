@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -125,8 +125,6 @@ package body WisiToken.Parse.LR.Parser is
          declare
             Current_State : constant State_Index := Tree.State (Parser_State.Stream);
 
-            Current_Token : Rooted_Ref := Shared_Parser.Tree.Current_Token (Parser_State.Stream);
-
             function Handle_Error return Boolean
             --  Return True if should return immediately; False if Undo_Reduce was done.
             is begin
@@ -151,7 +149,8 @@ package body WisiToken.Parse.LR.Parser is
                   if Trace_Parse > Detail then
                      Shared_Parser.Trace.Put_Line
                        (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
-                          Trimmed_Image (Current_State) & ": " & Tree.Image (Current_Token, First_Terminal => True) &
+                          Trimmed_Image (Current_State) & ": " & Tree.Image
+                            (Shared_Parser.Tree.Current_Token (Parser_State.Stream), First_Terminal => True) &
                           " error; undo_reduce");
                      Shared_Parser.Trace.Put
                        (" ... " & Tree.Image (Tree.Peek (Parser_State.Stream), State => True));
@@ -168,9 +167,11 @@ package body WisiToken.Parse.LR.Parser is
                end if;
             end Handle_Error;
 
+            Current_Node : constant Valid_Node_Access := Shared_Parser.Tree.Current_Token (Parser_State.Stream).Node;
+
          begin
-            if Tree.Label (Current_Token.Node) in Terminal_Label then
-               Action_Cur := Action_For (Table, Current_State, Tree.ID (Current_Token.Node));
+            if Tree.Label (Current_Node) in Terminal_Label then
+               Action_Cur := Action_For (Table, Current_State, Tree.ID (Current_Node));
                Action     := Action_Cur.Item;
 
                case Action.Verb is
@@ -184,7 +185,7 @@ package body WisiToken.Parse.LR.Parser is
             else
                declare
                   New_State : constant Unknown_State_Index := Goto_For
-                    (Table, Current_State, Tree.ID (Current_Token.Node));
+                    (Table, Current_State, Tree.ID (Current_Node));
                begin
                   if New_State /= Unknown_State then
                      Action_Cur := null;
@@ -206,7 +207,8 @@ package body WisiToken.Parse.LR.Parser is
                                     then "-- : "
                                     else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream)) & ": ") &
                                    ": delete empty nonterm " &
-                                   Tree.Image (Current_Token, First_Terminal => True));
+                                   Tree.Image
+                                     (Shared_Parser.Tree.Current_Token (Parser_State.Stream), First_Terminal => True));
                            end if;
 
                            Tree.Delete_Current_Token (Parser_State.Stream);
@@ -214,14 +216,14 @@ package body WisiToken.Parse.LR.Parser is
 
                         function Get_First_Terminal return Valid_Node_Access
                         is
-                           Temp : Node_Access := Tree.First_Terminal (Current_Token.Node);
+                           Temp : Node_Access := Tree.First_Terminal (Current_Node);
                         begin
                            if Temp = Invalid_Node_Access then
                               --  Current_Token is an empty nonterm; peek at next terminal,
                               --  do reduce until this nonterm is shiftable.
                               --  ada_mode-interactive_03.adb
                               --  test_incremental.adb Recover_1 aspect_specification_opt.
-                              Temp := Tree.First_Terminal (Current_Token).Node;
+                              Temp := Tree.First_Terminal (Shared_Parser.Tree.Current_Token (Parser_State.Stream)).Node;
                               Checking_Next := True;
                            end if;
                            return Temp;
@@ -242,30 +244,37 @@ package body WisiToken.Parse.LR.Parser is
                               Delete_Empty;
 
                            else
-                              if Current_Token.Stream /= Parser_State.Stream then
-                                 --  To breakdown a shared_stream token, we first have to create a
-                                 --  parse stream input element for it, and do the breakdown in the
-                                 --  parse stream input.
-                                 Tree.Move_Shared_To_Input (Parser_State.Stream);
-                                 Current_Token := Shared_Parser.Tree.Current_Token (Parser_State.Stream);
-                              end if;
+                              declare
+                                 Current_Token : Rooted_Ref := Shared_Parser.Tree.Current_Token (Parser_State.Stream);
+                              begin
+                                 if Shared_Parser.Tree.Current_Token (Parser_State.Stream).Stream /=
+                                   Parser_State.Stream
+                                 then
+                                    --  To breakdown a shared_stream token, we first have to create a
+                                    --  parse stream input element for it, and do the breakdown in the
+                                    --  parse stream input.
+                                    Tree.Move_Shared_To_Input (Parser_State.Stream);
+                                    Current_Token := Shared_Parser.Tree.Current_Token (Parser_State.Stream);
+                                 end if;
 
-                              if Trace_Parse > Detail then
-                                 Shared_Parser.Trace.Put_Line
-                                   (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": left_breakdown " &
-                                      Tree.Image (Current_Token, First_Terminal => True));
-                              end if;
-                              Tree.Left_Breakdown (Current_Token, Shared_Parser.User_Data);
-
-                              if Trace_Parse > Extra then
-                                 Shared_Parser.Trace.Put_Line
-                                   (" ... current_token: " & Tree.Image (Current_Token, First_Terminal => True));
                                  if Trace_Parse > Detail then
                                     Shared_Parser.Trace.Put_Line
-                                      (" ... input stream: " & Tree.Image
-                                         (Parser_State.Stream, Stack => False, Input => True, Shared => True));
+                                      (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
+                                         ": left_breakdown " &
+                                         Tree.Image (Current_Token, First_Terminal => True));
                                  end if;
-                              end if;
+                                 Tree.Left_Breakdown (Current_Token, Shared_Parser.User_Data);
+
+                                 if Trace_Parse > Extra then
+                                    Shared_Parser.Trace.Put_Line
+                                      (" ... current_token: " & Tree.Image (Current_Token, First_Terminal => True));
+                                    if Trace_Parse > Detail then
+                                       Shared_Parser.Trace.Put_Line
+                                         (" ... input stream: " & Tree.Image
+                                            (Parser_State.Stream, Stack => False, Input => True, Shared => True));
+                                    end if;
+                                 end if;
+                              end;
                               return;
                            end if;
 
@@ -300,8 +309,6 @@ package body WisiToken.Parse.LR.Parser is
       Trace        : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Status       : In_Parse_Actions.Status_Label;
 
-      Current_Token : constant Syntax_Trees.Rooted_Ref := Shared_Parser.Tree.Current_Token (Parser_State.Stream);
-
       procedure Delete_Errors
       is begin
          --  We have to delete errors from all nodes in the subtree under
@@ -320,7 +327,9 @@ package body WisiToken.Parse.LR.Parser is
               (if Trace_Parse_No_State_Numbers
                then "-- : "
                else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream)) & ": ") &
-              Shared_Parser.Tree.Image (Current_Token, First_Terminal => True, Terminal_Node_Numbers => True) & " : " &
+              Shared_Parser.Tree.Image
+                (Shared_Parser.Tree.Current_Token (Parser_State.Stream),
+                 First_Terminal => True, Terminal_Node_Numbers => True) & " : " &
               Trace_Image (Action, Shared_Parser.Tree.Lexer.Descriptor.all));
          Trace.New_Line;
       end if;
@@ -384,36 +393,41 @@ package body WisiToken.Parse.LR.Parser is
                         Trace.Put_Line (" ... partial parse done");
                      end if;
 
-                     --  Insert EOI on Shared_Stream
-                     if Shared_Parser.Tree.ID (Current_Token.Node) /=
-                       Shared_Parser.Tree.Lexer.Descriptor.EOI_ID
-                     then
-                        declare
-                           Last_Token_Byte_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Byte_Region
-                             (Current_Token.Node).Last;
-                           Last_Token_Char_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Char_Region
-                             (Current_Token.Node).Last;
-                           Last_Token_Line_Region_Last : constant Line_Number_Type := Shared_Parser.Tree.Line_Region
-                             (Current_Token).Last;
+                     declare
+                        Current_Token : constant Syntax_Trees.Rooted_Ref := Shared_Parser.Tree.Current_Token
+                          (Parser_State.Stream);
+                     begin
 
-                           EOI_Token : constant Lexer.Token :=
-                             (ID          => Shared_Parser.Tree.Lexer.Descriptor.EOI_ID,
-                              Byte_Region =>
-                                (First    => Last_Token_Byte_Region_Last + 1,
-                                 Last     => Last_Token_Byte_Region_Last),
-                              Char_Region =>
-                                (First    => Last_Token_Char_Region_Last + 1,
-                                 Last     => Last_Token_Char_Region_Last),
-                              Line_Region => (First | Last => Last_Token_Line_Region_Last));
-                        begin
-                           Shared_Parser.Tree.Insert_Source_Terminal
-                             (Shared_Parser.Tree.Shared_Stream,
-                              Terminal => EOI_Token,
-                              Before   => Shared_Parser.Tree.Stream_Next (Current_Token).Element,
-                              Error    => Syntax_Trees.No_Error);
-                        end;
-                     end if;
+                        --  Insert EOI on Shared_Stream
+                        if Shared_Parser.Tree.ID (Current_Token.Node) /=
+                          Shared_Parser.Tree.Lexer.Descriptor.EOI_ID
+                        then
+                           declare
+                              Last_Token_Byte_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Byte_Region
+                                (Current_Token.Node).Last;
+                              Last_Token_Char_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Char_Region
+                                (Current_Token.Node).Last;
+                              Last_Token_Line_Region_Last : constant Line_Number_Type := Shared_Parser.Tree.Line_Region
+                                (Current_Token).Last;
 
+                              EOI_Token : constant Lexer.Token :=
+                                (ID          => Shared_Parser.Tree.Lexer.Descriptor.EOI_ID,
+                                 Byte_Region =>
+                                   (First    => Last_Token_Byte_Region_Last + 1,
+                                    Last     => Last_Token_Byte_Region_Last),
+                                 Char_Region =>
+                                   (First    => Last_Token_Char_Region_Last + 1,
+                                    Last     => Last_Token_Char_Region_Last),
+                                 Line_Region => (First | Last => Last_Token_Line_Region_Last));
+                           begin
+                              Shared_Parser.Tree.Insert_Source_Terminal
+                                (Shared_Parser.Tree.Shared_Stream,
+                                 Terminal => EOI_Token,
+                                 Before   => Shared_Parser.Tree.Stream_Next (Current_Token).Element,
+                                 Error    => Syntax_Trees.No_Error);
+                           end;
+                        end if;
+                     end;
                      raise;
                   end if;
                end;
@@ -527,11 +541,11 @@ package body WisiToken.Parse.LR.Parser is
          begin
             if Op.Op = Delete then
                declare
-                  Terminal : constant Terminal_Ref := Tree.First_Sequential_Terminal
-                    (Tree.Current_Token (Parser_State.Stream));
+                  Terminal_Node : constant Valid_Node_Access := Tree.First_Sequential_Terminal
+                    (Tree.Current_Token (Parser_State.Stream)).Node;
                begin
-                  if Op.Del_Index = Tree.Get_Sequential_Index (Terminal.Node) then
-                     Do_Delete (Tree, Parser_State.Stream, Op, Terminal, Shared_Parser.User_Data);
+                  if Op.Del_Index = Tree.Get_Sequential_Index (Terminal_Node) then
+                     Do_Delete (Tree, Parser_State.Stream, Op, Terminal_Node, Shared_Parser.User_Data);
 
                      if Trace_Parse > Extra  then
                         Shared_Parser.Trace.Put_Line

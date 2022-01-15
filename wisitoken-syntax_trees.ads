@@ -2112,12 +2112,11 @@ package WisiToken.Syntax_Trees is
 
    procedure Add_Deleted
      (Tree          : in out Syntax_Trees.Tree;
-      Deleted_Ref   : in     Stream_Node_Ref;
+      Deleted_Node  : in     Valid_Node_Access;
       Prev_Terminal : in out Stream_Node_Parents;
       User_Data     : in     User_Data_Access)
    with Pre =>
-     Tree.Valid_Stream_Node (Deleted_Ref) and
-     Tree.Label (Deleted_Ref.Node) in Terminal_Label and
+     Tree.Label (Deleted_Node) in Terminal_Label and
      Tree.Valid_Stream_Node (Prev_Terminal.Ref) and
      Parents_Valid (Prev_Terminal) and
      Prev_Terminal.Ref.Stream /= Tree.Shared_Stream and

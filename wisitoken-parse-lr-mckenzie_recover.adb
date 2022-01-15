@@ -738,16 +738,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  non-deleted node, so we must get Op.Del_After_Node from the
                               --  parser stack, not Prev_Terminal.
                               declare
-                                 Deleted_Ref : constant Stream_Node_Ref := Tree.First_Sequential_Terminal
-                                   (Tree.Current_Token (Parser_State.Stream));
+                                 Deleted_Node : constant Valid_Node_Access := Tree.First_Sequential_Terminal
+                                   (Tree.Current_Token (Parser_State.Stream)).Node;
                                  Op_Nodes : Recover_Op_Nodes renames Parser_State.Recover_Insert_Delete.Variable_Ref
                                    (Parser_State.Recover_Insert_Delete.Last_Index);
                               begin
                                  if Stack_Matches_Ops and Parser_State.Recover_Insert_Delete_Current = No_Index and
-                                   Op.Del_Token_Index = Tree.Get_Sequential_Index (Deleted_Ref.Node)
+                                   Op.Del_Token_Index = Tree.Get_Sequential_Index (Deleted_Node)
                                  then
                                     Do_Delete
-                                      (Tree, Parser_State.Stream, Op_Nodes, Deleted_Ref, Shared_Parser.User_Data);
+                                      (Tree, Parser_State.Stream, Op_Nodes, Deleted_Node, Shared_Parser.User_Data);
 
                                  else
                                     if Parser_State.Recover_Insert_Delete_Current = No_Index then
