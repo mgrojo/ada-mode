@@ -7,7 +7,7 @@
 --  [1] Introduction to Algorithms, Third Edition. Thomas H. Cormen,
 --  Charles E. Leiserson, Ronald L. Rivest, Clifford Stein. Chapter 19.
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -78,6 +78,16 @@ package SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
    --  Return a constant reference to the min element.
    pragma Inline (Peek);
 
+   type Variable_Reference_Type (Element : not null access Element_Type) is private with
+     Implicit_Dereference => Element;
+
+   function Peek_Var (Heap : in Heap_Type) return Variable_Reference_Type
+   with Pre => Heap.Count > 0;
+   pragma Inline (Peek_Var);
+   --  Return a variable reference to the min element. User must not change Key.
+   --
+   --  Not named "Peek" to avoid ambiguity with the constant version.
+
    --  We don't provide a Cursor/Iterator interface; too complex to
    --  implement. So far, we only need a read-only forward iterator,
    --  which Process provides.
@@ -107,6 +117,11 @@ private
    end record;
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Variable_Reference_Type (Element : not null access Element_Type) is
    record
       Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;

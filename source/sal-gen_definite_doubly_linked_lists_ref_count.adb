@@ -66,7 +66,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Ref_Count is
       loop
          exit when Next = null;
          Next := Container.Head.Next;
-         if Container.Head.Ref_Count /= 0 then
+         if Container.Enable_Checks and Container.Head.Ref_Count /= 0 then
             raise Invalid_Operation with "ref_count " & Container.Head.Ref_Count'Image;
          end if;
          Free (Container.Head);
@@ -75,6 +75,11 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Ref_Count is
       Container.Tail  := null;
       Container.Count := 0;
    end Finalize;
+
+   procedure Enable_Ref_Count_Check (Container : in out List; Enable : in Boolean)
+   is begin
+      Container.Enable_Checks := Enable;
+   end Enable_Ref_Count_Check;
 
    function Length (Container : in List) return Ada.Containers.Count_Type
    is begin
@@ -199,7 +204,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Ref_Count is
       use all type Ada.Containers.Count_Type;
       Node : Node_Access renames Position.Ptr;
    begin
-      if Node.Ref_Count /= 1 then
+      if Container.Enable_Checks and Node.Ref_Count /= 1 then
          raise Invalid_Operation with "ref_count " & Node.Ref_Count'Image;
       end if;
 

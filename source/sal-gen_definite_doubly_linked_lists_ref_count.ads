@@ -3,6 +3,10 @@
 --  A generic doubly linked list with definite elements, with
 --  reference counting on cursors to detect dangling references.
 --
+--  WORKAROUND: there is a bug in GNAT Community 2020 (Eurocontrol
+--  ticket V107-045) that causes reference counting to be inaccurate
+--  in some cases, so we support turning off the reference counting.
+--
 --  Rationale for not implementing reference types and iterators:
 --  Consider a typical reference type use:
 --
@@ -73,6 +77,11 @@ package SAL.Gen_Definite_Doubly_Linked_Lists_Ref_Count is
    overriding procedure Finalize (Container : in out List);
    --  Free all items in List.
 
+   procedure Enable_Ref_Count_Check (Container : in out List; Enable : in Boolean);
+   --  Enable or disable checks; default is enabled.
+   --
+   --  This is useful when there are bugs that you want to ignore.
+
    procedure Clear (Container : in out List) renames Finalize;
 
    function Length (Container : in List) return Ada.Containers.Count_Type;
@@ -90,6 +99,9 @@ package SAL.Gen_Definite_Doubly_Linked_Lists_Ref_Count is
    function Has_Element (Position : in Cursor) return Boolean;
 
    No_Element : constant Cursor;
+
+   function Ref_Count (Position : in Cursor) return Integer;
+   --  For debugging, tests, preconditions.
 
    function First (Container : in List'Class) return Cursor;
    function Last (Container : in List'Class) return Cursor;
@@ -110,7 +122,7 @@ package SAL.Gen_Definite_Doubly_Linked_Lists_Ref_Count is
    with Pre => Has_Element (Position);
 
    procedure Delete (Container : in out List; Position : in out Cursor'Class)
-   with Pre => Has_Element (Position);
+   with Pre => Has_Element (Position) and then Ref_Count (Position) = 1;
    --  Raises SAL.Invalid_Operation if any other cursors, iterators, or
    --  reference objects reference the same element as Position.
 
@@ -161,6 +173,8 @@ private
       Head  : Node_Access               := null;
       Tail  : Node_Access               := null;
       Count : Ada.Containers.Count_Type := 0;
+
+      Enable_Checks : Boolean := True;
    end record;
 
    Empty_List : constant List := (Ada.Finalization.Controlled with others => <>);
@@ -176,5 +190,8 @@ private
    --  Increment external reference count of Object.Ptr.all.
 
    No_Element : constant Cursor := (Ada.Finalization.Controlled with Ptr => null);
+
+   function Ref_Count (Position : in Cursor) return Integer
+   is (Position.Ptr.Ref_Count);
 
 end SAL.Gen_Definite_Doubly_Linked_Lists_Ref_Count;
