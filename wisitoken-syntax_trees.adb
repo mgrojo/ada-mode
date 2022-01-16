@@ -4810,7 +4810,7 @@ package body WisiToken.Syntax_Trees is
                function Check_Non_Grammar (Non_Grammar : in Lexer.Token_Arrays.Vector) return Base_Line_Number_Type
                is begin
                   for Token of Non_Grammar loop
-                     if Byte_Pos < Token.Byte_Region.First then
+                     if Byte_Pos <= Token.Byte_Region.First then
                         return Token.Line_Region.First;
 
                      elsif Byte_Pos <= Token.Byte_Region.Last then
@@ -4877,7 +4877,10 @@ package body WisiToken.Syntax_Trees is
 
                   elsif Contains
                     ((First => Byte_Region (Tree, First_Term).First,
-                      Last  => Byte_Region (Tree, Next_Term).First),
+                      Last  =>
+                        (if Next_Term = Invalid_Node_Access
+                         then Byte_Region (Tree, Last_Term).Last
+                         else Byte_Region (Tree, Next_Term).First)),
                      Byte_Pos)
                   then
                      declare

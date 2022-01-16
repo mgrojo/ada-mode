@@ -2,7 +2,7 @@
 --
 --  Base utilities for McKenzie_Recover
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -132,7 +132,11 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
       --  Report a fatal error; abort all processing, make Done
       --  available.
 
-      entry Done (Error_ID : out Ada.Exceptions.Exception_Id; Message : out Ada.Strings.Unbounded.Unbounded_String);
+      entry Done
+        (Error_ID             : out Ada.Exceptions.Exception_Id;
+         Message              : out Ada.Strings.Unbounded.Unbounded_String;
+         Min_Sequential_Index : out Syntax_Trees.Sequential_Index;
+         Max_Sequential_Index : out Syntax_Trees.Sequential_Index);
       --  Available when all parsers have failed or succeeded, or an error
       --  occured.
       --
@@ -145,13 +149,12 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
       function Min_Sequential_Index_All_SOI return Boolean;
       function Max_Sequential_Index return Syntax_Trees.Sequential_Index;
       function Max_Sequential_Index_All_EOI return Boolean;
-      function Min_Sequential_Index (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_Node_Parents;
-      function Max_Sequential_Index (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_Node_Parents;
 
       procedure Extend_Min_Sequential_Index (Target : in Syntax_Trees.Sequential_Index);
       procedure Extend_Max_Sequential_Index (Target : in Syntax_Trees.Sequential_Index);
       --  In all parse streams. Clients should use
       --  Base.Extend_Sequential_Index, below.
+
    private
       All_Parsers_Done        : Boolean;
       Success_Counter         : Natural;

@@ -746,22 +746,36 @@ package body WisiToken.Parse is
                Breakdown (Terminal, To_Single => True);
 
                declare
-                  Terminal_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Const (Terminal.Node);
-                  Prev_Non_Terminal    : constant Stream_Node_Ref := Tree.Prev_Terminal (Terminal);
-                  Next_Non_Terminal    : constant Stream_Node_Ref := Tree.Next_Terminal (Terminal);
-                  Next_Byte_Region     : constant Buffer_Region   := Tree.Byte_Region (Next_Non_Terminal.Node);
-
+                  Terminal_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var (Terminal.Node);
                   To_Delete    : Stream_Index := Terminal.Element;
-                  Next_Element : Stream_Index := Tree.Stream_Next (Terminal.Stream, Terminal.Element);
                begin
-                  --  Terminal_Non_Grammar is non-empty only if User_Data.Insert_Token
-                  --  moved some non_grammar to it. If the terminal they were moved from
-                  --  was subsequently deleted, it may now be Next_Non_Terminal.
-                  --  ada_mode-interactive_09.adb new_line after 'for'.
-                  if (for some N of Terminal_Non_Grammar => Next_Byte_Region.First < N.Byte_Region.Last) then
-                     Tree.Non_Grammar_Var (Next_Non_Terminal.Node).Append (Terminal_Non_Grammar);
-                  else
-                     Tree.Non_Grammar_Var (Prev_Non_Terminal.Node).Append (Terminal_Non_Grammar);
+                  if Terminal_Non_Grammar.Length > 0 then
+                     declare
+                        Term_Non_Gramm_Region : constant Buffer_Region :=
+                          (First => Terminal_Non_Grammar (Terminal_Non_Grammar.First_Index).Byte_Region.First,
+                           Last  => Terminal_Non_Grammar (Terminal_Non_Grammar.Last_Index).Byte_Region.Last);
+
+                        Next_Terminal : Stream_Node_Ref := Tree.Next_Terminal (Terminal);
+                     begin
+                        --  Terminal_Non_Grammar is non-empty only if User_Data.Insert_Token
+                        --  moved some non_grammar to it. If the terminal they were moved from
+                        --  was subsequently deleted and restored, it may now be
+                        --  Next_Terminal: ada_mode-interactive_09.adb new_line after 'for'.
+                        --  Or it may be before a previous terminal; ada_mode-recover_09.adb.
+                        --
+                        --  Find a terminal to move Terminal_Non_Grammar to.
+                        loop
+                           exit when Tree.Byte_Region (Next_Terminal.Node).First < Term_Non_Gramm_Region.First;
+                           Tree.Prev_Terminal (Next_Terminal);
+                        end loop;
+                        Tree.Non_Grammar_Var (Next_Terminal.Node).Append (Terminal_Non_Grammar);
+                        Terminal_Non_Grammar.Clear;
+                        if Trace_Incremental_Parse > Detail then
+                           Parser.Trace.Put_Line
+                             ("move non_grammar to " & Tree.Image
+                                (Next_Terminal.Node, Node_Numbers => True, Non_Grammar => True));
+                        end if;
+                     end;
                   end if;
 
                   if Trace_Incremental_Parse > Detail then
@@ -772,10 +786,16 @@ package body WisiToken.Parse is
                   Tree.Next_Terminal (Terminal);
                   Next_Terminal_Done := True;
                   Tree.Stream_Delete (Terminal.Stream, To_Delete);
+               end;
 
-                  --  Delete immediately following empty nonterms. For example, in Ada,
-                  --  error recover often inserts 'end <name_opt> ;', where name_opt is
-                  --  empty; delete all three tokens.
+               --  Delete immediately following empty nonterms. For example, in Ada,
+               --  error recover often inserts 'end <name_opt> ;', where name_opt is
+               --  empty; delete all three tokens. On the other hand, and empty
+               --  nonterm could be a block name; it will be recreated by the parser,
+               --  not treated as an error.
+               declare
+                  Next_Element : Stream_Index := Tree.Stream_Next (Terminal.Stream, Terminal.Element);
+               begin
                   loop
                      exit when Next_Element = Invalid_Stream_Index;
                      declare

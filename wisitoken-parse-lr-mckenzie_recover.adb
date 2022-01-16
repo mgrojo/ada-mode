@@ -347,7 +347,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          ID      : Exception_Id;
          Message : Ada.Strings.Unbounded.Unbounded_String;
       begin
-         Super.Done (ID, Message); -- Wait for all parsers to fail or succeed
+         --  Wait for all parsers to fail or succeed
+         Super.Done (ID, Message, Shared_Parser.Min_Sequential_Index, Shared_Parser.Max_Sequential_Index);
 
          --  Ensure all worker tasks stop getting configs before proceeding;
          --  otherwise local variables disappear while the task is still trying
@@ -379,9 +380,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                  " current" & Byte_Count'Image (Memory_Use.Current - Initial_Memory_Use.Current));
          end;
       end if;
-
-      Shared_Parser.Min_Sequential_Index := Super.Min_Sequential_Index;
-      Shared_Parser.Max_Sequential_Index := Super.Max_Sequential_Index;
 
       --  Spawn new parsers for multiple solutions.
       --
@@ -585,17 +583,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                            case Op.Op is
                            when Fast_Forward =>
                               declare
-                                 Current_Token : Rooted_Ref renames Super.Tree.Current_Token (Parser_State.Stream);
+                                 Current_Token_Node : constant Node_Access := Super.Tree.Current_Token
+                                   (Parser_State.Stream).Node;
                               begin
                                  if Stack_Matches_Ops then
                                     if Op.FF_Token_Index = Tree.Get_Sequential_Index
-                                      (Tree.First_Sequential_Terminal (Current_Token.Node))
+                                      (Tree.First_Sequential_Terminal (Current_Token_Node))
                                     then
                                        --  Fast_Forward is a noop. test_mckenzie_recover String_Quote_5.
                                        null;
 
                                     else
-                                       if Tree.Label (Current_Token.Node) = Nonterm then
+                                       if Tree.Label (Current_Token_Node) = Nonterm then
                                           declare
                                              Target : Stream_Node_Parents;
 
@@ -611,7 +610,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                              end Find_FF_Target;
 
                                           begin
-                                             Find_FF_Target (Current_Token);
+                                             Find_FF_Target (Super.Tree.Current_Token (Parser_State.Stream));
 
                                              if Tree.First_Terminal
                                                (Tree.Get_Node (Target.Ref.Stream, Target.Ref.Element)) /=
@@ -624,10 +623,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                                    --  First we need to move all tokens Shared_Token .. Target
                                                    --  to the input stream. ada_mode-recover_10.adb
                                                    pragma Assert
-                                                     (Super.Tree.Shared_Token (Parser_State.Stream) = Current_Token);
+                                                     (Super.Tree.Shared_Token (Parser_State.Stream) =
+                                                      Super.Tree.Current_Token (Parser_State.Stream));
 
                                                    Tree.Move_Shared_To_Input
-                                                     (First  => Current_Token,
+                                                     (First  => Super.Tree.Current_Token (Parser_State.Stream),
                                                       Last   => Target.Ref,
                                                       Stream => Parser_State.Stream);
 
@@ -673,11 +673,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  to check if the Push_Back is valid.
                               --
                               --  If not Stack_Matches_Ops, we have to assume Op.PB_Token_Index is
-                              --  correct, and we do not do Stack.Pop. We can still check the target
-                              --  token index against the previous ops.
+                              --  correct, and we do not do Stack.Pop.
                               --
                               --  See test_mckenzie_recover.adb Error_2 for an example of Push_Back
-                              --  after other ops.
+                              --  after other ops. FIXME: there must be more checks to allow that case.
+                              --
+                              --  On the other hand, the main parser does not do Push_Back, so the
+                              --  rest of Result.Ops will not apply; the main parser will report an
+                              --  error. ada_mode-recover_45.adb.
                               if Stack_Matches_Ops then
                                  if not (Op.PB_ID = Tree.ID (Parser_State.Stream, Tree.Peek (Stack))) then
                                     Raise_Bad_Config
@@ -685,6 +688,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                          Image (Op, Tree.Lexer.Descriptor.all));
                                  end if;
                                  Tree.Push_Back (Parser_State.Stream);
+                              else
+                                 raise Invalid_Case;
+                                 --  FIXME: perhaps the rules in Explore should be enhanced to forbid
+                                 --  this case.
                               end if;
 
                            when Insert =>
@@ -787,6 +794,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Parser_State.Recover.Results.Clear;
                   end;
                exception
+               when Invalid_Case =>
+                  Parsers.Terminate_Parser (Current_Parser, Shared_Parser.Tree, "invalid config in recover", Trace);
+                  --  Terminate advances Current_Parser
+                  Skip_Next := True;
+
+                  if Parsers.Count = 0 then
+                     --  Oops. Just give up.
+                     return Fail_Programmer_Error;
+                  end if;
+
                when E : Bad_Config =>
                   if Debug_Mode then
                      Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
@@ -1335,6 +1352,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Min_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Parsers.Count + 1);
       Max_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Parsers.Count + 1);
    begin
+      if Shared_Parsaer.Parsers.Count = 0 then
+         --  We get here when recover fails by terminating all parsers.
+         return;
+      end if;
+
       Set_Initial_Sequential_Index
         (Shared_Parser.Parsers, Shared_Parser.Tree, Streams, Max_Terminals, Initialize => False);
       Min_Terminals := Max_Terminals;

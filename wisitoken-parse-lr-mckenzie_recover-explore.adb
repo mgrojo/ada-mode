@@ -1770,7 +1770,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
                   Finish
                     ("b", New_Config,
-                     First => Super.Tree.Get_Sequential_Index (Config.Current_Shared_Token.Node),
+                     First => Super.Tree.Get_Sequential_Index (Super.Tree.First_Terminal (Config.Error_Token)),
                      Last  => Super.Tree.Get_Sequential_Index (Next_Line_Begin_Token) - 1);
                   Local_Config_Heap.Add (New_Config);
                end;

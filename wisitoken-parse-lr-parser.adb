@@ -580,12 +580,12 @@ package body WisiToken.Parse.LR.Parser is
    --     Shift : some Parsers.Verb return Shift.
    --
    --     Pause : Resume is active, and this parser has reached
-   --  Resume_Goal, so it is waiting for the others to catch up. Or this
-   --  parser has shifted a nonterminal, while some other parser has
-   --  broken down that nonterminal; it is waiting for the others to
-   --  catch up. This ensures parsers are within
-   --  Mckenzie_Param.Zombie_Limit of the same terminal when they enter
-   --  error recovery.
+   --  Resume_Goal, so it is waiting for the others to catch up. Or
+   --  resume is not active, and this parser has shifted a nonterminal,
+   --  while some other parser has broken down that nonterminal; it is
+   --  waiting for the others to catch up. This ensures parsers are
+   --  within Mckenzie_Param.Zombie_Limit of the same terminal when they
+   --  enter error recovery.
    --
    --     Reduce : some Parsers.Verb return Reduce.
    --
