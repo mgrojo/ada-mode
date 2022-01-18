@@ -70,6 +70,10 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
    function Done (Super : in Supervisor) return Boolean;
    --  True when all parsers have failed or succeeded.
 
+   procedure Finish
+     (Min_Sequential_Index : out Syntax_Trees.Sequential_Index;
+     Max_Sequential_Index : out Syntax_Trees.Sequential_Index);
+
    function Parser_State
      (Super        : in Supervisor;
       Parser_Index : in SAL.Peek_Type)

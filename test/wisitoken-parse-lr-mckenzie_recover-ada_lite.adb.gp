@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2018 - 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -646,7 +646,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
                   New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
-                  Push_Back_Check (Super, Tree, New_Config, +END_ID);
+                  Push_Back_Check (Super, Tree, New_Config, +END_ID, Push_Back_Undo_Reduce => True);
 
                   --  Inserting the end keyword and semicolon here avoids the costs added by
                   --  Insert_Minimal_Complete_Actions.
@@ -700,13 +700,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    end Fixes;
 
    procedure Matching_Begin_Tokens
-     (Tree                    : in     Syntax_Trees.Tree;
-      Tokens                  : in     Token_ID_Array_1_3;
-      Config                  : in     Configuration;
-      Matching_Tokens         :    out Token_ID_Arrays.Vector;
-      Forbid_Minimal_Complete :    out Boolean)
+     (Super                   :         not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
+      Tokens                  :         in              Token_ID_Array_1_3;
+      Config                  : aliased in              Configuration;
+      Matching_Tokens         :            out          Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :            out          Boolean)
    is
       use Token_ID_Arrays;
+
+      Tree                    : Syntax_Trees.Tree renames Super.Tree.all;
 
       function Matching_Begin_For_End (Next_Index : in Positive) return Token_ID_Arrays.Vector
       is begin

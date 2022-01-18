@@ -143,7 +143,7 @@ static void skip(wisi_lexer* lexer, int count_lines)
 
 static void skip_to(wisi_lexer* lexer, char* target)
 {
-  int i;
+  int i, j;
 
   while (lexer->cursor <= lexer->buffer_last)
     {
@@ -158,8 +158,8 @@ static void skip_to(wisi_lexer* lexer, char* target)
 
         if (0 == target[i])
           {
-            for (i = 0; 0 != target[i]; i++)
-               skip(lexer, 1);
+            for (j = 0; j< i; j++)
+               skip(lexer, 0);
             break;
           }
       }

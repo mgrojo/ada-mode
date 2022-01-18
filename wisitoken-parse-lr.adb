@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2013-2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -777,11 +777,11 @@ package body WisiToken.Parse.LR is
    end Image;
 
    procedure Do_Delete
-     (Tree        : in out Syntax_Trees.Tree;
-      Stream      : in     Syntax_Trees.Stream_ID;
-      Op          : in out Delete_Op_Nodes;
-      Deleted_Ref : in     Syntax_Trees.Stream_Node_Ref;
-      User_Data   : in     Syntax_Trees.User_Data_Access)
+     (Tree         : in out Syntax_Trees.Tree;
+      Stream       : in     Syntax_Trees.Stream_ID;
+      Op           : in out Delete_Op_Nodes;
+      Deleted_Node : in     Syntax_Trees.Valid_Node_Access;
+      User_Data    : in     Syntax_Trees.User_Data_Access)
    is
       use Syntax_Trees;
       --  We don't want a deleted node as Op.Del_After_Node;
@@ -791,7 +791,7 @@ package body WisiToken.Parse.LR is
       Prev_Terminal : Stream_Node_Parents := Tree.To_Stream_Node_Parents
         (Tree.To_Rooted_Ref (Stream, Tree.Peek (Stream)));
    begin
-      Op.Del_Node := Deleted_Ref.Node;
+      Op.Del_Node := Deleted_Node;
 
       Tree.Last_Terminal (Prev_Terminal, Stream);
       if Tree.Label (Prev_Terminal.Ref.Node) /= Source_Terminal then
@@ -799,7 +799,7 @@ package body WisiToken.Parse.LR is
            (Prev_Terminal, Stream, Trailing_Non_Grammar => False);
       end if;
       Tree.Add_Deleted
-        (Deleted_Ref   => Deleted_Ref,
+        (Deleted_Node  => Deleted_Node,
          Prev_Terminal => Prev_Terminal,
          User_Data     => User_Data);
 
@@ -811,6 +811,7 @@ package body WisiToken.Parse.LR is
             case Tree.Label (Current_Token.Node) is
             when Terminal_Label =>
                pragma Assert (Op.Del_Index = Tree.Get_Sequential_Index (Current_Token.Node));
+               Current_Token := Invalid_Stream_Node_Ref; -- allow delete Current_Token.Element
                Tree.Delete_Current_Token (Stream);
                exit;
 
@@ -818,6 +819,7 @@ package body WisiToken.Parse.LR is
                if Tree.Is_Empty_Nonterm (Current_Token.Node) then
                   --  Delete an empty nonterm preceding the target terminal.
                   --  test_mckenzie_recover.adb Missing_Name_2
+                  Current_Token := Invalid_Stream_Node_Ref; -- allow delete Current_Token.Element
                   Tree.Delete_Current_Token (Stream);
                else
                   --  Error recover only supports Delete for terminals.

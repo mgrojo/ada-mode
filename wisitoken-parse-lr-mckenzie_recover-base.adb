@@ -2,7 +2,7 @@
 --
 --  Base utilities for McKenzie_Recover
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -343,6 +343,25 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       return Super.All_Parsers_Done;
    end Done;
 
+   procedure Finish
+     (Min_Sequential_Index : out Syntax_Trees.Sequential_Index;
+      Max_Sequential_Index : out Syntax_Trees.Sequential_Index)
+   is begin
+      Error_ID := Supervisor.Error_ID;
+      Message  := Error_Message;
+
+      --  Allow streams to be terminated.
+      Min_Sequential_Index   := Supervisor.Min_Sequential_Index;
+      Max_Sequential_Index   := Supervisor.Max_Sequential_Index;
+      Min_Sequential_Indices := (others => Syntax_Trees.Invalid_Stream_Node_Parents);
+      Max_Sequential_Indices := (others => Syntax_Trees.Invalid_Stream_Node_Parents);
+
+      if Trace_McKenzie > Detail then
+         Trace.New_Line;
+         Trace.Put_Line ("Supervisor: Done");
+      end if;
+   end Finish;
+
       function Parser_State (Parser_Index : in SAL.Peek_Type) return Parser_Lists.Constant_Reference_Type
       is begin
          return (Element => Super.Parser_Status (Parser_Index).Parser_State);
@@ -398,16 +417,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          end loop;
          return True;
       end Max_Sequential_Index_All_EOI;
-
-      function Min_Sequential_Index (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_Node_Parents
-      is begin
-         return Min_Sequential_Indices (Parser_Index);
-      end Min_Sequential_Index;
-
-      function Max_Sequential_Index (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_Node_Parents
-      is begin
-         return Max_Sequential_Indices (Parser_Index);
-      end Max_Sequential_Index;
 
       procedure Extend_Min_Sequential_Index (Target : in Syntax_Trees.Sequential_Index)
       is

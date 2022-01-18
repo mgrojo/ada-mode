@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -1223,7 +1223,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
          if Tokens (1) /= Invalid_Token_ID then
             Shared.Language_Matching_Begin_Tokens
-              (Super.Tree.all, Tokens, Config, Matching_Begin_Tokens, Forbid_Minimal_Insert);
+              (Super, Tokens, Config, Matching_Begin_Tokens, Forbid_Minimal_Insert);
          end if;
       end if;
 
@@ -1770,7 +1770,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
                   Finish
                     ("b", New_Config,
-                     First => Super.Tree.Get_Sequential_Index (Config.Current_Shared_Token.Node),
+                     First => Super.Tree.Get_Sequential_Index (Super.Tree.First_Terminal (Config.Error_Token)),
                      Last  => Super.Tree.Get_Sequential_Index (Next_Line_Begin_Token) - 1);
                   Local_Config_Heap.Add (New_Config);
                end;

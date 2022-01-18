@@ -36,9 +36,48 @@ delete mckenzie multi-tasking
 
         wisi-undo-save-redo still not working
 
-    found a reproducible parser bug
-        ada_mode-interactive_11.adb, _12.adb
-        see c:/Projects/org.wisitoken.stephe-1/notes.text
+
+test insert that modifies a comment start so it no longer is one
+    ie "-- ..." => "- foo - ..."
+    assume insert before/after delimiter cannot change it
+        except insert "-" before "--"!
+
+    same for delimited_text end
+
+test comment start and comment end deleted, in consecutive comments and similar cases
+
+editing edit_code_16 string errors did not go away
+    ada_mode-interactive_14
+
+
+editing wisitoken-parse.adb keeps needing reset
+    getting error during resume
+    duplicated in o.e.a.s-2/test/ada_mode-recover_45.adb, with lr1, ada-end-name-optional nil
+
+editing wisitoken-parse.adb to add 'declare check_deleted : ...'
+    error marks flash, disappear
+    errors accumulate, position is wrong.
+
+    when finish 'if not Keep_Terminal', nil indent
+
+bad indent:
+                     pragma Assert
+                       (if Saved_Prev_Terminal = Invalid_Stream_Node_Ref
+                      then Saved_Prev_Terminal.Element /= Check_Deleted.Element
+                      else Terminal.Element /= Check_Deleted.Element);
+
+sometimes wisi-forward-sexp on a terminal semicolon goes to end of file
+    change to use tree-query if incremental
+
+run all tests
+    t_all:
+    ada_mode:
+
+AdaCore ticket V107-045
+    appears to be a bug in finalize/adjust calls
+    test_d_d_l_l_ref_Count.adb all pass
+    test/debug_ref_count.adb => error
+    test/debug_ref_count_2.adb => no error.
 
 review FIXME
 
