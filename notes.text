@@ -31,19 +31,10 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-add reference count to syntax_trees.Element
-    running tests:
-        test_syntax_trees pass
-        test_incremental.adb pass
-        t_mck pass
-        t_all pass
+run ada tests
+propagate to main
 
-    run ada tests;
-    ada_mode-interactive_01.adb Edit_Tree breakdown Find_Element Assert fail
-        not under debugger
-    ada_mode-interactive_02.adb
-        different errors in different runs
-
+add reference count to Element ; o.w.s-3
     Compare timing benchmark
         configuration has Current_Shared_Token, which requires finalize for all enqueued objects
         if that's too slow, change to Sequential_Index, base store map from index to terminal_ref

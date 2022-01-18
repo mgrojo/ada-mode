@@ -563,6 +563,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                            use all type WisiToken.Syntax_Trees.Node_Label;
                            Op : Recover_Op renames Constant_Ref (Result.Ops, I);
 
+                           Pre_FF_Index : Base_Sequential_Index := Invalid_Sequential_Index;
+                           --  The current token sequential_index before a fast_forward, when
+                           --  Stack_Matches_Ops is true before the Fast_Forward.
+
                            --  We don't declare Current_Token here, because Delete may need to
                            --  delete it.
 
@@ -641,7 +645,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                        --  The parser would do shifts and reduces for the tokens we are
                                        --  skipping here
                                        Stack_Matches_Ops := False;
+
+                                       Pre_FF_Index := Tree.Get_Sequential_Index
+                                         (Tree.First_Sequential_Terminal (Current_Token_Node));
                                     end if;
+
+                                 else
+                                    Pre_FF_Index := Invalid_Sequential_Index;
                                  end if;
                               end;
 
@@ -669,18 +679,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               end if;
 
                            when Push_Back =>
-                              --  If Stack_Matches_Ops, we must do the Stack.Pop, and can use that
-                              --  to check if the Push_Back is valid.
-                              --
-                              --  If not Stack_Matches_Ops, we have to assume Op.PB_Token_Index is
-                              --  correct, and we do not do Stack.Pop.
-                              --
-                              --  See test_mckenzie_recover.adb Error_2 for an example of Push_Back
-                              --  after other ops. FIXME: there must be more checks to allow that case.
-                              --
-                              --  On the other hand, the main parser does not do Push_Back, so the
-                              --  rest of Result.Ops will not apply; the main parser will report an
-                              --  error. ada_mode-recover_45.adb.
+                              --  If Stack_Matches_Ops, we must do the Tree.Push_Back.
+
+                              --  If not Stack_Matches_Ops, we assume Push_Back_Valid ensures that
+                              --  the Push_Back is indeed valid here, so the main parser will not
+                              --  encounter an error; test_mckenzie_recover.adb Error_3.
+
                               if Stack_Matches_Ops then
                                  if not (Op.PB_ID = Tree.ID (Parser_State.Stream, Tree.Peek (Stack))) then
                                     Raise_Bad_Config
@@ -689,9 +693,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  end if;
                                  Tree.Push_Back (Parser_State.Stream);
                               else
-                                 raise Invalid_Case;
-                                 --  FIXME: perhaps the rules in Explore should be enhanced to forbid
-                                 --  this case.
+                                 pragma Assert (I > 1); --  else stack_matches_ops is true.
+                                 declare
+                                    Prev_Op : Recover_Op renames Constant_Ref (Result.Ops, I - 1);
+                                 begin
+                                    if (Prev_Op.Op = Fast_Forward and Op.PB_Token_Index /= Invalid_Sequential_Index)
+                                      and then Pre_FF_Index = Op.PB_Token_Index
+                                    then
+                                       --  This Push_Back exactly cancels the previous Fast_Forward, so we
+                                       --  must apply following insert/delete. test_mckenzie_recover.adb
+                                       --  Push_Back_2.
+                                       Stack_Matches_Ops := True;
+                                    end if;
+                                 end;
                               end if;
 
                            when Insert =>
@@ -1352,7 +1366,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Min_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Parsers.Count + 1);
       Max_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Parsers.Count + 1);
    begin
-      if Shared_Parsaer.Parsers.Count = 0 then
+      if Shared_Parser.Parsers.Count = 0 then
          --  We get here when recover fails by terminating all parsers.
          return;
       end if;
@@ -1599,12 +1613,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       function Check_Insert_Delete (Op_Index : in Sequential_Index) return Boolean
       is begin
-         --  We allow '=' here, so we can try adding more ops at a previous
-         --  edit point; in particular, another Language_Fix. See
-         --  test_mckenzie_Recover Error_3.
+         --  test_mckenzie_Recover Push_Back_2 requires no '=' here, consistent
+         --  with the comments below. However, we allow Language_Fixes (which
+         --  sets Push_Back_Undo_Reduce) to insert more ops at a previous error
+         --  location.
          return Fast_Forward_Seen and
            (Target_Index = Invalid_Sequential_Index or
-              Target_Index >= Op_Index);
+              (if Push_Back_Undo_Reduce
+               then Target_Index >= Op_Index
+               else Target_Index > Op_Index));
       end Check_Insert_Delete;
 
    begin
