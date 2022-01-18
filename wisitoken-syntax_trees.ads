@@ -2745,6 +2745,10 @@ private
       --  Unknown_State in Shared_Stream or a parse stream input.
    end record;
 
+   --  We often hold copies of Stream_Element_Lists cursors while editing
+   --  a tree, so we use a ref_count list to detect dangling references.
+   --  This is not measureably slower according to the ada-mode timing
+   --  benchmarks.
    package Stream_Element_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Ref_Count (Stream_Element);
    use all type Stream_Element_Lists.Cursor;
 

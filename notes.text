@@ -31,15 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-run ada tests
-propagate to main
-
-add reference count to Element ; o.w.s-3
-    Compare timing benchmark
-        configuration has Current_Shared_Token, which requires finalize for all enqueued objects
-        if that's too slow, change to Sequential_Index, base store map from index to terminal_ref
-        in o.w.s-2, after eliminate tasking
-
 test insert that modifies a comment start so it no longer is one
     ie "-- ..." => "- foo - ..."
     assume insert before/after delimiter cannot change it
