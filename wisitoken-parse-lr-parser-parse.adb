@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -370,8 +370,6 @@ begin
                      end if;
 
                   when Shift =>
-                     Parser_State.Total_Recover_Cost := @ + Parser_State.Recover.Results.Min_Key;
-
                      Parser_State.Zombie_Token_Count := 0;
                      if Trace_Parse > Detail and Trace_McKenzie <= Extra then
                         Trace.Put_Line

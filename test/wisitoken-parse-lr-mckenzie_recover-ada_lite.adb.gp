@@ -643,7 +643,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
                   New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
-                  Push_Back_Check (Super, New_Config, +END_ID);
+                  Push_Back_Check (Super, New_Config, +END_ID, Push_Back_Undo_Reduce => True);
 
                   --  Inserting the end keyword and semicolon here avoids the costs added by
                   --  Insert_Minimal_Complete_Actions.
