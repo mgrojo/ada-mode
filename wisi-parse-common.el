@@ -327,6 +327,7 @@ Returns cache, or nil if at beginning of buffer."
 
      (t
       (setq pos (1- pos))
+      (wisi-validate-cache-current-statement t 'navigate)
       (setq cache (get-text-property pos 'wisi-cache))
       (goto-char pos)
       cache)
