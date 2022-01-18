@@ -166,6 +166,9 @@ push to elpa
  after incremental
 review this file!
 
+new refactor:
+    expression_function <> subprogram_body
+
 ada_mode-recover_44.adb
     matching_begin return list of token arrays, so insert '(if foo' is cheap
         also '(case foo' before 'when'
@@ -173,7 +176,9 @@ ada_mode-recover_44.adb
         look thru ada_annex_p.wy for more.
 
 uniquify-files should not set project-read-file-name-function
+    https://debbugs.gnu.org/cgi/bugreport.cgi?bug=52167
     set or let-bind it in ada-mode
+    also make uniquify-files a "recommends" (in README? in .info), not a hard dependency
 
 xref workaround
     use "summary", not ":summary"
