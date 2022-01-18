@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Test Emacs_Wisi_Common_Parse.Edit_Source
+--  Test Emacs_Wisi_Common_Parse.Edit_Source and related subprograms
 --
 --  Copyright (C) 2020, 2021 Free Software Foundation All Rights Reserved.
 --

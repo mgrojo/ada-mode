@@ -1,6 +1,6 @@
 ;;; wisi-parse-common.el --- declarations used by wisi-parse.el, wisi-ada-parse.el, and wisi.el -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2014, 2015, 2017 - 2021  Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2015, 2017 - 2022  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -200,10 +200,8 @@ PARSE-ACTION is one of `wisi-post-parse-actions'. Buffer must
 have been previously parsed by `wisi-parse-current' or
 `wisi-parse-incremental'");
 
-(cl-defgeneric wisi-refactor ((parser wisi-parser) refactor-action stmt-start stmt-end edit-begin)
-  "Perform REFACTOR-ACTION at point EDIT_BEGIN.
-STMT-START, STMT-END are the start and end positions of the
-statement containing EDIT_BEGIN.")
+(cl-defgeneric wisi-refactor ((parser wisi-parser) refactor-action pos)
+  "Perform REFACTOR-ACTION at point POS")
 
 (defconst wisi-parse-tree-queries
   ;; Must match wisi.ads Query_Label. Results defined in doc string of `wisi-parse-tree-query'.
@@ -573,6 +571,15 @@ with delay between each key event.  Macro must have been saved by
     ;; results due to error correction and bugs.
     (while (< i  (length macro))
       (execute-kbd-macro (make-vector 1 (aref macro i)))
+      (sit-for 0.1)
+      (setq i (1+ i)))))
+
+(defun wisi-replay-undo (count)
+  "Execute `undo' COUNT times, delaying in between each."
+  (let ((i 0))
+    (undo-start)
+    (while (< i count)
+      (undo-more 1)
       (sit-for 0.1)
       (setq i (1+ i)))))
 

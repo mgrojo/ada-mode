@@ -396,7 +396,7 @@ Does not wait for command to complete."
     ;; We don't wait for the send to complete here.
     ))
 
-(defun wisi-process-parse--send-refactor (parser refactor-action edit-begin)
+(defun wisi-process-parse--send-refactor (parser refactor-action pos)
   "Send a refactor command to PARSER external process, wait for
 command to complete. PARSER will respond with one or more Edit
 messages."
@@ -405,7 +405,7 @@ messages."
   (let* ((cmd (format "refactor \"%s\" %d %d \"%s\""
 		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		      refactor-action
-		      (position-bytes edit-begin)
+		      (position-bytes pos)
 		      wisi-parser-verbosity
 		      ))
 	 (process (wisi-process--parser-process parser)))
@@ -1165,23 +1165,14 @@ PARSER will respond with one or more Query messages."
     ;; We don't wait for the send to complete here.
     ))))
 
-(cl-defmethod wisi-refactor ((parser wisi-process--parser) refactor-action stmt-begin stmt-end edit-begin)
-  (cond
-   (wisi-incremental-parse-enable
-    (when wisi--changes
-      (wisi-parse-incremental parser 'refactor)))
-
-   (t
-    ;; IMPROVEME: stmt-begin, stmt-end not used if only incremental supported.
-    (wisi-process-parse--prepare parser 'refactor)
-    (wisi-process-parse--send-parse parser 'navigate stmt-begin stmt-end stmt-end)
-    (wisi-process-parse--handle-messages parser)
-    ))
+(cl-defmethod wisi-refactor ((parser wisi-process--parser) refactor-action pos)
+  (when (and wisi-incremental-parse-enable wisi--changes)
+    (wisi-parse-incremental parser 'refactor))
 
   (wisi-process-parse--prepare parser 'refactor)
   (wisi-process-parse--handle-messages-file-not-found
    parser
-   (lambda () (wisi-process-parse--send-refactor parser refactor-action edit-begin))))
+   (lambda () (wisi-process-parse--send-refactor parser refactor-action pos))))
 
 (cl-defmethod wisi-parse-tree-query ((parser wisi-process--parser) query &rest args)
   (cl-assert wisi-incremental-parse-enable)

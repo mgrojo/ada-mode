@@ -648,7 +648,30 @@ package body Wisi is
             Pattern => """",
             From    => Temp);
          exit when Last = 0;
-         exit when Source (Last - 1) /= '\';
+         if Source'First <= Last - 2 then
+            --  test_edit_string String_Escape
+            if Source (Last - 2 .. Last - 1) = "\\" then
+               exit;
+            elsif Source (Last - 1) = '\' then
+               --  Elisp escaped quote; continue.
+               null;
+            else
+               --  Not an escape; return string
+               exit;
+            end if;
+
+         elsif Source'First <= Last - 1 then
+            if Source (Last - 1) = '\' then
+               --  Elisp escaped quote; continue.
+               null;
+            else
+               --  Not an escape; return string
+               exit;
+            end if;
+         else
+            exit;
+         end if;
+
          Temp := Last + 1;
       end loop;
 
