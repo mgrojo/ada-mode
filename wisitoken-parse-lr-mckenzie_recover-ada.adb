@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -665,20 +665,30 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   Push_Back (Super, New_Config, Push_Back_Undo_Reduce => True);
                end loop;
 
-               if Tree.Element_ID (New_Config.Stack.Peek.Token) = +COLON_ID then
+               case To_Token_Enum (Tree.Element_ID (New_Config.Stack.Peek.Token)) is
+               when COLON_ID =>
                   --  block label is present
-                  --  FIXME: what about 'declare declarative_part'?
                   Push_Back_Check (Super, New_Config, (+COLON_ID, +statement_identifier_ID));
 
                   Delete_Check (Super, New_Config, (+IDENTIFIER_ID, +COLON_ID, +BEGIN_ID));
-               else
+
+               when label_opt_ID =>
+                  if Tree.Is_Empty_Nonterm (New_Config.Stack.Peek.Token) then
+                     Undo_Reduce_Check (Super, Parse_Table, New_Config, +label_opt_ID);
+                  else
+                     Undo_Reduce_Check (Super, Parse_Table, New_Config, +label_opt_ID);
+                     Push_Back_Check (Super, New_Config, (+COLON_ID, +statement_identifier_ID));
+                     Delete_Check (Super, New_Config, (+IDENTIFIER_ID, +COLON_ID, +BEGIN_ID));
+                  end if;
+
+               when others =>
                   Delete_Check (Super, New_Config, +BEGIN_ID);
-               end if;
+               end case;
 
                if Undo_Reduce_Valid (Super, New_Config) then
-                  Undo_Reduce_Check (Super, Parse_Table, New_Config, +sequence_of_statements_ID);
+                  Undo_Reduce_Check (Super, Parse_Table, New_Config, +statement_statement_list_ID);
                elsif Push_Back_Valid (Super, New_Config, Push_Back_Undo_Reduce => True) then
-                  Push_Back_Check (Super, New_Config, +sequence_of_statements_ID);
+                  Push_Back_Check (Super, New_Config, +statement_statement_list_ID);
                else
                   raise Invalid_Case;
                end if;
@@ -911,7 +921,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          declare
             New_Config_1 : Configuration := Config;
          begin
-            Push_Back_Check (Super, New_Config_1, (+COLON_ID, +statement_identifier_ID));
+            Push_Back_Check (Super, New_Config_1, +COLON_ID);
+            Push_Back_Check
+              (Super, New_Config_1,
+               (if Tree.Element_ID (New_Config_1.Stack.Peek.Token) = +statement_identifier_ID
+                then +statement_identifier_ID -- incremental parse
+                else +IDENTIFIER_ID)); -- partial parse. ada_mode-recover_38.adb
 
             if Tree.Element_ID (New_Config_1.Stack.Peek.Token) = +sequence_of_statements_ID then
                --  Case 2
@@ -924,12 +939,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                begin
                   if Push_Back_Valid (Super, New_Config_1) then
                      Push_Back_Check (Super, New_Config_2, +BEGIN_ID);
+                     Delete_Check (Super, New_Config_2, +BEGIN_ID);
                      if Undo_Reduce_Valid (Super, New_Config_2) then
-                        if -Tree.Element_ID (New_Config_2.Stack.Peek.Token) = declarative_part_ID then
+                        if Tree.Element_ID (New_Config_2.Stack.Peek.Token) = +declarative_part_ID then
                            Undo_Reduce_Check (Super, Parse_Table, New_Config_2, +declarative_part_ID);
                         end if;
                      end if;
-                     Delete_Check (Super, New_Config_2, +BEGIN_ID);
 
                      --  This is a guess, so add a cost, equal to case 1, 2.
                      New_Config_2.Cost := New_Config_2.Cost + 1;
@@ -1343,7 +1358,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          end;
 
       elsif Tree.Element_ID (Config.Error_Token) = +IN_ID and then
-        Tree.Element_ID (Config.Stack.Peek.Token) = +COLON_ID
+        (Tree.Element_ID (Config.Stack.Peek.Token) = +COLON_ID and
+           Tree.Element_ID (Config.Stack.Peek (2).Token) = +defining_identifier_list_ID)
       then
          --  See test/ada_mode-recover_partial_03.adb.
          --  Code looks like:
@@ -1407,16 +1423,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
    end Language_Fixes;
 
    procedure Matching_Begin_Tokens
-     (Tree                    : in     Syntax_Trees.Tree;
+     (Super                   : not null access Base.Supervisor;
       Tokens                  : in     Token_ID_Array_1_3;
-      Config                  : in     Configuration;
+      Config                  : aliased in     Configuration;
       Matching_Tokens         :    out Token_ID_Arrays.Vector;
       Forbid_Minimal_Complete :    out Boolean)
    is
       use Token_ID_Arrays;
 
-      function Matching_Begin_For_End (Next_Index : in Positive) return Token_ID_Arrays.Vector
-      is begin
+      Tree : Syntax_Trees.Tree renames Super.Tree.all;
+
+      function Matching_Begin_For_End return Token_ID_Arrays.Vector
+      is
+         Next_Index : constant Positive := 2;
+      begin
          return Result : Token_ID_Arrays.Vector do
             if Tokens (Next_Index) = Invalid_Token_ID then
                --  Better to delete 'end'
@@ -1427,13 +1447,45 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   Result := To_Vector (Tokens (Next_Index));
 
                when IDENTIFIER_ID =>
-                  if Tokens (Next_Index + 1) /= Invalid_Token_ID and then
-                    To_Token_Enum (Tokens (Next_Index + 1)) = DOT_ID
-                  then
-                     Result := To_Vector ((+PACKAGE_ID, +BODY_ID, +IDENTIFIER_ID, +IS_ID)); --  package body
-                  else
-                     Result := To_Vector ((+IDENTIFIER_ID, +COLON_ID, +BEGIN_ID)); -- named block begin
-                  end if;
+                  --  Check for existing 'begin' with matching name. ada_mode-recover_03.adb
+                  declare
+                     function Get_End_Name return String
+                     is
+                        use Standard.Ada.Strings.Unbounded;
+                        use Syntax_Trees;
+                        Result : Unbounded_String;
+
+                        Peek_State : Peek_Sequential_State := Peek_Sequential_Start (Super, Config);
+                     begin
+                        loop
+                           Peek_Next_Sequential_Terminal (Tree, Peek_State);
+                           exit when Peek_Sequential_Terminal (Peek_State) = Invalid_Node_Access;
+                           exit when -Tree.ID (Peek_Sequential_Terminal (Peek_State)) not in
+                             IDENTIFIER_ID | DOT_ID;
+                           Result := Result & Tree.Lexer.Buffer_Text
+                             (Tree.Byte_Region (Peek_Sequential_Terminal (Peek_State)));
+                        end loop;
+                        return -Result;
+                     end Get_End_Name;
+
+                     End_Name            : constant String := Get_End_Name;
+                     Matching_Name_Index : SAL.Peek_Type   := 1;
+                  begin
+                     Find_Matching_Name
+                       (Config, Tree, End_Name, Matching_Name_Index, Case_Insensitive => True);
+
+                     if Matching_Name_Index < Config.Stack.Depth then
+                        --  Matching name found; let minimal_complete handle it.
+                        null;
+
+                     elsif Tokens (Next_Index + 1) /= Invalid_Token_ID and then
+                       To_Token_Enum (Tokens (Next_Index + 1)) = DOT_ID
+                     then
+                        Result := To_Vector ((+PACKAGE_ID, +BODY_ID, +IDENTIFIER_ID, +IS_ID)); --  package body
+                     else
+                        Result := To_Vector ((+IDENTIFIER_ID, +COLON_ID, +BEGIN_ID)); -- named block begin
+                     end if;
+                  end;
 
                when SEMICOLON_ID =>
                   Result := To_Vector (+BEGIN_ID);
@@ -1463,6 +1515,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          end if;
 
       when END_ID =>
+         if Config.Stack.Depth = 1 then
+            --  ada_mode-partial_parse.adb
+            return;
+         end if;
+
          case To_Token_Enum (Tree.Element_ID (Config.Stack.Peek.Token)) is
          when
            ABORT_ID | -- asynchronous_select
@@ -1487,7 +1544,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             return;
 
          when others =>
-            Matching_Tokens := Matching_Begin_For_End (2);
+            Matching_Tokens := Matching_Begin_For_End;
          end case;
 
       when ELSE_ID | ELSIF_ID =>

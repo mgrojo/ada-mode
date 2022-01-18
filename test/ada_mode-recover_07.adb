@@ -17,10 +17,10 @@ package body Ada_Mode.Recover_7 is -- 6
    begin -- 10
 
       for B in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop -- 21
-         end loop
+      end loop
 
-            Prev_Result := Result; -- 27
-            return Result; -- 31
+      Prev_Result := Result; -- 27
+      return Result; -- 31
    end Follow;
 
 end Ada_Mode.Recover_7;

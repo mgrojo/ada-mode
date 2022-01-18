@@ -9,7 +9,7 @@ o.e.a.stephe-2 (with o.s_l.sal.s_1, o.w.s_1, o.e.w.s_1): work; incremental parse
 o.e.a.stephe-3 (?): emacs module parser (very old)
 o.e.a.stephe-4 (?): eglot/ada_language_server
 o.e.a.stephe-5 (?): libadalang backend
-o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1):
+o.e.a.stephe-6 (o.w.s-3/o.s_l.sal.stephe-1): ref_count stream_element_list
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -30,9 +30,9 @@ o.e.a.stephe-6 (with o.w.s-2/o.s_l.sal.stephe-1):
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-1")
+  (xgit . "/Projects/org.wisitoken.stephe-3")
   (xgit . "/Projects/org.emacs.wisi.stephe-1")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-6")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
@@ -166,8 +166,15 @@ push to elpa
  after incremental
 review this file!
 
+
 new refactor:
     expression_function <> subprogram_body
+
+test/ada_mode-recover_45.adb
+    bad solution to "mixed logical ops" error
+    minimal complete went too far
+    need language fix for 'expression and then expression or expression'.
+        error on 'or'; insert left paren before prev expression
 
 ada_mode-recover_44.adb
     matching_begin return list of token arrays, so insert '(if foo' is cheap

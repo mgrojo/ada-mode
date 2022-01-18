@@ -1,6 +1,6 @@
 ;;; ada-core.el --- core facilities for ada-mode -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1995, 1997 - 2017, 2019 - 2021  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2017, 2019 - 2022  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -230,34 +230,10 @@ is the package spec.")
 (defconst ada-refactor-format-paramlist 4)
 
 (defun ada-refactor (action)
-  "Perform refactor action ACTION on symbol at point."
-  (cond
-   (wisi-incremental-parse-enable
-    (let ((query-result (wisi-parse-tree-query wisi--parser 'containing-statement (point))))
-      (wisi-validate-cache (car (wisi-tree-node-char-region query-result))
-			   (cdr (wisi-tree-node-char-region query-result))
-			   t
-			   'navigate)))
-   (t
-    (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)))
-
-  (save-excursion
-    ;; We include punctuation and quote for operators.
-    (skip-syntax-backward "w_.\"")
-
-    ;; Skip leading punctuation, for "-Foo.Bar".
-    (skip-syntax-forward ".")
-
-    (let* ((edit-begin (point))
-	   (cache (wisi-goto-statement-start))
-	   (parse-begin (point))
-	   (parse-end (wisi-cache-end cache)))
-      (if parse-end
-	  (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
-	;; else there is a syntax error; missing end of statement
-	(setq parse-end (point-max)))
-      (wisi-refactor wisi--parser action parse-begin parse-end edit-begin)
-      )))
+  "Perform refactor action ACTION at point."
+  (unless wisi-incremental-parse-enable
+   (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate))
+  (wisi-refactor wisi--parser action (point)))
 
 (defun ada-refactor-1 ()
   "Refactor Method (Object) => Object.Method.
@@ -363,6 +339,7 @@ PARSE-RESULT must be the result of `syntax-ppss'."
   "Reformat the parameter list point is in."
   (interactive)
   (condition-case-unless-debug nil
+      ;; FIXME: this aborts if missing close paren, but incremental parse can handle that
       (wisi-goto-open-paren)
     (error
      (user-error "Not in parameter list")))
@@ -372,6 +349,19 @@ PARSE-RESULT must be the result of `syntax-ppss'."
     (delete-horizontal-space)
     (insert " "))
   (funcall indent-line-function); so reformatted list is indented properly
+  (when (not wisi-incremental-parse-enable)
+    ;; Force parse of current statement after indent
+    (let* ((paren (point))
+	   (cache (wisi-goto-statement-start))
+	   (parse-begin (point))
+	   (parse-end (wisi-cache-end cache)))
+      (if parse-end
+	  (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
+	;; else there is a syntax error; missing end of statement
+	(setq parse-end (point-max)))
+      (wisi-invalidate-cache 'navigate parse-begin)
+      (wisi-validate-cache parse-begin parse-end t 'navigate)
+      (goto-char paren)))
   (ada-refactor ada-refactor-format-paramlist))
 
 ;;;; fix compiler errors

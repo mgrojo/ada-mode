@@ -90,17 +90,18 @@ package body Wisi.Ada is
    ----------
    --  Refactor body subprograms
 
-   function Find_ID_At
-     (Tree       : in WisiToken.Syntax_Trees.Tree;
-      ID         : in Token_ID;
-      Edit_Begin : in WisiToken.Buffer_Pos)
+   function Find_ID_Containing
+     (Tree            : in WisiToken.Syntax_Trees.Tree;
+      IDs             : in Token_ID_Array;
+      Edit_Begin_Char : in WisiToken.Buffer_Pos)
      return WisiToken.Syntax_Trees.Node_Access
    is
-      function Match (Tree : in Syntax_Trees.Tree; Node : in Syntax_Trees.Valid_Node_Access) return Boolean
-        is (Tree.ID (Node) = ID and then Tree.Byte_Region (Node).First = Edit_Begin);
+      use Syntax_Trees;
+      Terminal : constant Node_Access := Tree.Find_Char_Pos
+        (Edit_Begin_Char, After => True, Trailing_Non_Grammar => True);
    begin
-      return Tree.Find_Descendant (Tree.Root, Predicate => Match'Access);
-   end Find_ID_At;
+      return Tree.Find_Ancestor (Terminal, IDs);
+   end Find_ID_Containing;
 
    procedure Unrecognized
      (Expecting : in     String;
@@ -116,17 +117,18 @@ package body Wisi.Ada is
    procedure Method_Object_To_Object_Method
      (Tree       : in     WisiToken.Syntax_Trees.Tree;
       Data       : in out Parse_Data_Type;
-      Edit_Begin : in     WisiToken.Buffer_Pos)
-   --  Data.Tree contains one statement or declaration; Edit_Begin is at
-   --  start of a subprogram call. Convert the subprogram call from
-   --  Prefix.Method (Object, ...) to Object.Method (...).
+      Edit_Begin_Char : in     WisiToken.Buffer_Pos)
+   --  Data.Tree contains one statement or declaration; Edit_Begin_Char
+   --  is the character position at the start of a subprogram call.
+   --  Convert the subprogram call from Prefix.Method (Object, ...) to
+   --  Object.Method (...).
    is
       use Ada_Annex_P_Process_Actions;
       use Standard.Ada.Strings.Unbounded;
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call : constant Node_Access := Find_ID_At (Tree, +function_call_ID, Edit_Begin);
+      Call : constant Node_Access := Find_ID_Containing (Tree, (1 => +function_call_ID), Edit_Begin_Char);
 
       Edit_End              : WisiToken.Buffer_Pos;
       Actual_Parameter_Part : Node_Access;
@@ -136,7 +138,7 @@ package body Wisi.Ada is
    begin
       if Call = Invalid_Node_Access then
          --  Most likely the edit point is wrong.
-         raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin'Image;
+         raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin_Char'Image;
       end if;
 
       if Trace_Action > Detail then
@@ -212,7 +214,7 @@ package body Wisi.Ada is
             end if;
          end loop;
          Result := (Get_Text (Data, Tree, Object) & "." & Get_Text (Data, Tree, Method)) & Result;
-         Put_Line ("[" & Edit_Action_Code & Edit_Begin'Image & Edit_End'Image & " """ &
+         Put_Line ("[" & Edit_Action_Code & Edit_Begin_Char'Image & Edit_End'Image & " """ &
                      Elisp_Escape_Quotes (To_String (Result)) & """]");
       end;
    end Method_Object_To_Object_Method;
@@ -220,16 +222,18 @@ package body Wisi.Ada is
    procedure Object_Method_To_Method_Object
      (Tree       : in     WisiToken.Syntax_Trees.Tree;
       Data       : in out Parse_Data_Type;
-      Edit_Begin : in     WisiToken.Buffer_Pos)
+      Edit_Begin_Char : in     WisiToken.Buffer_Pos)
    is
-      --  Data.Tree contains one statement or declaration; Edit_Begin is at
-      --  start of a subprogram call. Convert the subprogram call from
-      --  Object.Method (...) to Method (Object, ...).
+      --  Data.Tree contains one statement or declaration; Edit_Begin is the
+      --  character position at the start of a subprogram call. Convert the
+      --  subprogram call from Object.Method (...) to Method (Object, ...).
       use Ada_Annex_P_Process_Actions;
       use Standard.Ada.Strings.Unbounded;
       use WisiToken.Syntax_Trees;
 
-      Call          : Node_Access := Find_ID_At (Tree, +name_ID, Edit_Begin);
+      --  ada_mode-refactor_object_method_to_method_object.adb
+      Call          : Node_Access := Find_ID_Containing
+        (Tree, (+primary_ID, +procedure_call_statement_ID), Edit_Begin_Char);
       Edit_End      : WisiToken.Buffer_Pos;
       Object_Method : Node_Access;
       Args          : Node_Access := Invalid_Node_Access;
@@ -239,13 +243,16 @@ package body Wisi.Ada is
    begin
       if Call = Invalid_Node_Access then
          --  Most likely the edit point is wrong.
-         raise SAL.Parameter_Error with "no 'name' at byte_pos" & Edit_Begin'Image;
+         raise SAL.Parameter_Error with "no 'name' at byte_pos" & Edit_Begin_Char'Image;
       end if;
 
       if Trace_Action > Detail then
          Data.Trace.Put_Line
            ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
+
+      Call := Tree.Child (Call, 1);
+      pragma Assert (Tree.ID (Call) = +name_ID);
 
       if Tree.ID (Tree.Child (Call, 1)) = +attribute_reference_ID then
          --  Code looks like: Container.Length'Old. We only want to edit
@@ -285,23 +292,24 @@ package body Wisi.Ada is
       end if;
       Result := Result & ")";
       Standard.Ada.Text_IO.Put_Line
-        ("[" & Edit_Action_Code & Edit_Begin'Image & Edit_End'Image & " """ &
+        ("[" & Edit_Action_Code & Edit_Begin_Char'Image & Edit_End'Image & " """ &
            Elisp_Escape_Quotes (To_String (Result)) & """]");
    end Object_Method_To_Method_Object;
 
    procedure Element_Object_To_Object_Index
      (Tree       : in     WisiToken.Syntax_Trees.Tree;
       Data       : in out Parse_Data_Type;
-      Edit_Begin : in     WisiToken.Buffer_Pos)
-   --  Data.Tree contains one statement or declaration; Edit_Begin is at
-   --  start of a subprogram call. Convert the subprogram call from
-   --  Prefix.Element (Object, Index) to Object (Index).
+      Edit_Begin_Char : in     WisiToken.Buffer_Pos)
+   --  Data.Tree contains one statement or declaration; Edit_Begin_Char
+   --  is the character position at the start of a subprogram call.
+   --  Convert the subprogram call from Prefix.Element (Object, Index) to
+   --  Object (Index).
    is
       use Ada_Annex_P_Process_Actions;
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call             : constant Node_Access := Find_ID_At (Tree, +function_call_ID, Edit_Begin);
+      Call             : constant Node_Access := Find_ID_Containing (Tree, (1 => +function_call_ID), Edit_Begin_Char);
       Edit_End         : WisiToken.Buffer_Pos;
       Temp             : Node_Access;
       Association_List : Node_Access;
@@ -310,7 +318,7 @@ package body Wisi.Ada is
    begin
       if Call = Invalid_Node_Access then
          --  Most likely the edit point is wrong.
-         raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin'Image;
+         raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin_Char'Image;
       end if;
 
       if Trace_Action > Detail then
@@ -342,7 +350,7 @@ package body Wisi.Ada is
       end if;
 
       Put_Line
-        ("[" & Edit_Action_Code & Edit_Begin'Image & Edit_End'Image & " """ &
+        ("[" & Edit_Action_Code & Edit_Begin_Char'Image & Edit_End'Image & " """ &
            Elisp_Escape_Quotes (Get_Text (Data, Tree, Object) & " (" & Get_Text (Data, Tree, Index) & ")") &
            """]");
    end Element_Object_To_Object_Index;
@@ -350,16 +358,17 @@ package body Wisi.Ada is
    procedure Object_Index_To_Element_Object
      (Tree       : in     WisiToken.Syntax_Trees.Tree;
       Data       : in out Parse_Data_Type;
-      Edit_Begin : in     WisiToken.Buffer_Pos)
-   --  Data.Tree contains one statement or declaration; Edit_Begin is at
-   --  start of a subprogram call. Convert the subprogram call from
-   --  Object (Index) to Element (Object, Index).
+      Edit_Begin_Char : in     WisiToken.Buffer_Pos)
+   --  Data.Tree contains one statement or declaration; Edit_Begin_Char
+   --  is the character position at the start of a subprogram call.
+   --  Convert the subprogram call from Object (Index) to Element
+   --  (Object, Index).
    is
       use Ada_Annex_P_Process_Actions;
       use Standard.Ada.Text_IO;
       use WisiToken.Syntax_Trees;
 
-      Call             : constant Node_Access := Find_ID_At (Tree, +function_call_ID, Edit_Begin);
+      Call             : constant Node_Access := Find_ID_Containing (Tree, (1 => +function_call_ID), Edit_Begin_Char);
       Edit_End         : WisiToken.Buffer_Pos;
       Temp             : Node_Access;
       Association_List : Node_Access;
@@ -368,7 +377,7 @@ package body Wisi.Ada is
    begin
       if Call = Invalid_Node_Access then
          --  Most likely the edit point is wrong.
-         raise SAL.Parameter_Error with "no subprogram_call found at byte_pos" & Edit_Begin'Image;
+         raise SAL.Parameter_Error with "no subprogram_call found at byte_pos" & Edit_Begin_Char'Image;
       end if;
 
       if Trace_Action > Detail then
@@ -396,18 +405,19 @@ package body Wisi.Ada is
       end if;
 
       Put_Line
-        ("[" & Edit_Action_Code & Edit_Begin'Image & Edit_End'Image & " """ &
+        ("[" & Edit_Action_Code & Edit_Begin_Char'Image & Edit_End'Image & " """ &
            Elisp_Escape_Quotes
              ("Element (" & Get_Text (Data, Tree, Object) & ", " & Get_Text (Data, Tree, Index) & ")") &
            """]");
    end Object_Index_To_Element_Object;
 
    procedure Format_Parameter_List
-     (Tree       : in out WisiToken.Syntax_Trees.Tree;
-      Edit_Begin : in     WisiToken.Buffer_Pos)
+     (Tree            : in out WisiToken.Syntax_Trees.Tree;
+      Edit_Begin_Char : in     WisiToken.Buffer_Pos)
    is separate;
-   --  Tree contains a subprogram declaration or body; Edit_Begin is
-   --  at the start of the parameter list. Format the parameter list.
+   --  Tree contains a subprogram declaration or body; Edit_Begin_Char is
+   --  the character position at the start of the parameter list. Format
+   --  the parameter list.
    --
    --  Handle virtual tokens as much as possible; at least closing paren.
 
@@ -770,10 +780,10 @@ package body Wisi.Ada is
 
    overriding
    procedure Refactor
-     (Data       : in out Parse_Data_Type;
-      Tree       : in out WisiToken.Syntax_Trees.Tree;
-      Action     : in     Refactor_Action;
-      Edit_Begin : in     WisiToken.Buffer_Pos)
+     (Data            : in out Parse_Data_Type;
+      Tree            : in out WisiToken.Syntax_Trees.Tree;
+      Action          : in     Refactor_Action;
+      Edit_Begin_Char : in     WisiToken.Buffer_Pos)
    is
       Enum_Action : Refactor_Label;
    begin
@@ -785,20 +795,20 @@ package body Wisi.Ada is
          return;
       end;
 
-      if Trace_Action > Extra then
+      if Trace_Action > Detail then
          Data.Trace.Put_Line (Tree.Image (Children => True));
       end if;
       case Enum_Action is
       when Method_Object_To_Object_Method =>
-         Wisi.Ada.Method_Object_To_Object_Method (Tree, Data, Edit_Begin);
+         Wisi.Ada.Method_Object_To_Object_Method (Tree, Data, Edit_Begin_Char);
       when Object_Method_To_Method_Object =>
-         Wisi.Ada.Object_Method_To_Method_Object (Tree, Data, Edit_Begin);
+         Wisi.Ada.Object_Method_To_Method_Object (Tree, Data, Edit_Begin_Char);
       when Element_Object_To_Object_Index =>
-         Wisi.Ada.Element_Object_To_Object_Index (Tree, Data, Edit_Begin);
+         Wisi.Ada.Element_Object_To_Object_Index (Tree, Data, Edit_Begin_Char);
       when Object_Index_To_Element_Object =>
-         Wisi.Ada.Object_Index_To_Element_Object (Tree, Data, Edit_Begin);
+         Wisi.Ada.Object_Index_To_Element_Object (Tree, Data, Edit_Begin_Char);
       when Format_Parameter_List =>
-         Wisi.Ada.Format_Parameter_List (Tree, Edit_Begin);
+         Wisi.Ada.Format_Parameter_List (Tree, Edit_Begin_Char);
       end case;
    exception
    when E : others =>

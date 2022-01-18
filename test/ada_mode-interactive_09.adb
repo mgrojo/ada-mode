@@ -4,7 +4,7 @@
 procedure Ada_Mode.Interactive_09 is
 
    --EMACSCMD:(progn (forward-line 4)(kill-line 5))
-   --EMACSCMD:(progn (wisi-reset-parser)(end-of-line 3)(wisi-replay-kbd-macro "ada_mode-interactive_09.adb.macro"))
+   --EMACSCMD:(progn (wisi-reset-parser)(end-of-line 3)(wisi-replay-kbd-macro-file "ada_mode-interactive_09.adb.macro"))
    procedure Code_Point_Length (Item : in String)
    is begin
       for C of Item loop
