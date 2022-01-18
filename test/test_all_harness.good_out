@@ -89,6 +89,11 @@ OK test_definite_doubly_linked_lists.adb : Nominal
 OK test_definite_doubly_linked_lists.adb : Test_Insert
 OK test_definite_doubly_linked_lists.adb : Test_Delete
 OK test_definite_doubly_linked_lists.adb : Test_Delete_Access
+OK test_definite_doubly_linked_lists_ref_count.adb : Nominal
+OK test_definite_doubly_linked_lists_ref_count.adb : Test_Insert
+OK test_definite_doubly_linked_lists_ref_count.adb : Test_Delete
+OK test_definite_doubly_linked_lists_ref_count.adb : Detect_Dangling
+OK test_definite_doubly_linked_lists_ref_count.adb : Test_Prev_Next
 OK test_definite_doubly_linked_lists_sorted.adb : Nominal
 OK test_definite_doubly_linked_lists_sorted.adb : Test_Find
 OK test_indefinite_doubly_linked_lists.adb : Nominal
@@ -121,7 +126,7 @@ OK test_unbounded_indefinite_vectors.adb : Prepend
 OK test_unbounded_indefinite_vectors.adb : Test_Grow_1
 OK test_unbounded_indefinite_vectors.adb : Test_To_Vector_1
 
-Total Tests Run:   121
-Successful Tests:  121
+Total Tests Run:   126
+Successful Tests:  126
 Failed Assertions: 0
 Unexpected Errors: 0
