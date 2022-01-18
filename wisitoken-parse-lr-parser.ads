@@ -32,11 +32,11 @@ package WisiToken.Parse.LR.Parser is
    type Parser;
 
    type Language_Fixes_Access is access procedure
-     (Super             : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
-      Parser_Index      : in              SAL.Peek_Type;
-      Parse_Table       : in              WisiToken.Parse.LR.Parse_Table;
-      Local_Config_Heap : in out          Config_Heaps.Heap_Type;
-      Config            : in              Configuration);
+     (Super             : in out Base.Supervisor;
+      Shared_Parser     : in     Parser;
+      Parser_Index      : in     SAL.Peek_Type;
+      Local_Config_Heap : in out Config_Heaps.Heap_Type;
+      Config            : in     Configuration);
    --  Config encountered a parse table Error action, or failed a
    --  semantic check; attempt to provide a language-specific fix,
    --  enqueuing new configs on Local_Config_Heap.

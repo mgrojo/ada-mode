@@ -21,9 +21,9 @@ with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
    procedure Fixes
-     (Super             : not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
-      Parser_Index      : in              SAL.Peek_Type;
-      Parse_Table       : in              WisiToken.Parse.LR.Parse_Table;
+     (Super             : in out Base.Supervisor;
+      Shared_Parser     : in     Parser.Parser;
+      Parser_Index      : in     SAL.Peek_Type;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration);
 

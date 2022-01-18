@@ -17,303 +17,222 @@
 
 pragma License (Modified_GPL);
 
-with GNAT.Traceback.Symbolic;
 package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    Default_Positive_Sequential_Index : constant Syntax_Trees.Sequential_Index := 10;
    Default_Negative_Sequential_Index : constant Syntax_Trees.Sequential_Index := -10;
 
-   function Get_Barrier
-     (Parser_Count            : in SAL.Base_Peek_Type;
-      Parser_Status           : in Parser_Status_Array;
-      Min_Success_Check_Count : in Natural;
-      Total_Enqueue_Count     : in Natural;
-      Check_Delta_Limit       : in Natural;
-      Enqueue_Limit           : in Natural)
-     return Boolean
-   is
-      Done_Count : SAL.Base_Peek_Type := 0;
-      Skip : Boolean;
-   begin
-      --  Return True if all parsers are done, or if any parser has a config
-      --  available to check.
-      for P_Status of Parser_Status loop
-         Skip := False;
-
-         case P_Status.Recover_State is
-         when Active | Ready =>
-            if P_Status.Parser_State.Recover.Config_Heap.Count > 0 then
-               if P_Status.Parser_State.Recover.Check_Count - Check_Delta_Limit >= Min_Success_Check_Count then
-                  --  fail; another parser succeeded, this one taking too long.
-                  Done_Count := Done_Count + 1;
-                  Skip := True;
-
-               elsif Total_Enqueue_Count + P_Status.Parser_State.Recover.Config_Full_Count >= Enqueue_Limit then
-                  --  fail
-                  Done_Count := Done_Count + 1;
-                  Skip := True;
-               end if;
-            end if;
-
-            if not Skip then
-               case P_Status.Recover_State is
-               when Active =>
-                  if P_Status.Parser_State.Recover.Config_Heap.Count > 0 then
-                     --  Still working
-                     return True;
-                  else
-                     if P_Status.Active_Workers = 0 then
-                        --  fail; no configs left to check.
-                        Done_Count := Done_Count + 1;
-                     end if;
-                  end if;
-
-               when Ready =>
-                  if P_Status.Parser_State.Recover.Config_Heap.Count > 0 and then
-                    P_Status.Parser_State.Recover.Config_Heap.Min_Key <= P_Status.Parser_State.Recover.Results.Min_Key
-                  then
-                     --  Still more to check.
-                     return True;
-
-                  elsif P_Status.Active_Workers = 0 then
-                     Done_Count := Done_Count + 1;
-                  end if;
-
-               when others =>
-                  null;
-               end case;
-            end if;
-
-         when Success | Fail =>
-            Done_Count := Done_Count + 1;
-         end case;
-      end loop;
-
-      return Done_Count = Parser_Count;
-   end Get_Barrier;
-
-   protected body Supervisor is
-
-      procedure Initialize (Parsers : not null access Parser_Lists.List)
-      is begin
-         All_Parsers_Done        := False;
-         Success_Counter         := 0;
-         Min_Success_Check_Count := Natural'Last;
-         Total_Enqueue_Count     := 0;
-         Fatal_Called            := False;
-         Result                  := Recover_Status'First;
-         Error_ID                := Ada.Exceptions.Null_Id;
-
-         declare
-            Index : SAL.Peek_Type := 1;
-         begin
-            for I in Parsers.Iterate loop
-               if Parsers (I).Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
-                  --  Previous error recovery resume not finished; this is supposed to
-                  --  be checked in Parser.
-                  raise SAL.Programmer_Error;
-               end if;
-
-               Parser_Status (Index) :=
-                 (Recover_State  => Active,
-                  Parser_State   => Parser_Lists.Persistent_State_Ref (I),
-                  Fail_Mode      => Success,
-                  Active_Workers => 0);
-
-               declare
-                  Data : McKenzie_Data renames Parsers (I).Recover;
-               begin
-                  Data.Config_Heap.Clear;
-                  Data.Results.Clear;
-                  Data.Enqueue_Count := 0;
-                  Data.Check_Count   := 0;
-                  Data.Success       := False;
-               end;
-
-               Index := Index + 1;
-            end loop;
-         end;
-
-         --  Set Sequential_Index
-         declare
-            Streams : Syntax_Trees.Stream_ID_Array (1 .. Parser_Count);
-         begin
-            Set_Initial_Sequential_Index
-              (Parsers.all, Supervisor.Tree.all, Streams, Max_Sequential_Indices, Initialize => True);
-
-            Min_Sequential_Indices := Max_Sequential_Indices;
-
-            Extend_Max_Sequential_Index (Default_Positive_Sequential_Index);
-            if Tree.ID (Min_Sequential_Indices (1).Ref.Node) /= Tree.Lexer.Descriptor.SOI_ID then
-               Extend_Min_Sequential_Index (Default_Negative_Sequential_Index);
-            end if;
-         end;
-      end Initialize;
-
-      entry Get
-        (Parser_Index : out SAL.Base_Peek_Type;
-         Config       : out Configuration;
-         Status       : out Config_Status)
-        when (Fatal_Called or All_Parsers_Done) or else Get_Barrier
-          (Parser_Count, Parser_Status, Min_Success_Check_Count, Total_Enqueue_Count, Check_Delta_Limit, Enqueue_Limit)
-      is
-         Done_Count     : SAL.Base_Peek_Type := 0;
-         Skip           : Boolean;
-         Min_Cost       : Integer            := Integer'Last;
-         Min_Cost_Index : SAL.Base_Peek_Type;
-
-         procedure Set_Outputs (I : in SAL.Peek_Type)
-         is begin
-            Parser_Index := I;
-            Config       := Parser_Status (I).Parser_State.Recover.Config_Heap.Remove;
-            Status       := Valid;
-
-            Parser_Status (I).Parser_State.Recover.Check_Count :=
-              Parser_Status (I).Parser_State.Recover.Check_Count + 1;
-
-            Parser_Status (I).Active_Workers := Parser_Status (I).Active_Workers + 1;
-         end Set_Outputs;
-
-         procedure Set_All_Done
-         is begin
-            Parser_Index := SAL.Base_Peek_Type'First;
-
-            pragma Warnings (Off, "aggregate not fully initialized");
-            --  Config.Stack.Data is not initialized, but no uninitialized data is
-            --  ever referenced.
-            Config       := (others => <>);
-            pragma Warnings (On, "aggregate not fully initialized");
-
-            Status       := All_Done;
-         end Set_All_Done;
-
+   procedure Initialize
+     (Super         : in out Supervisor;
+      Shared_Parser : in out Parser.Parser)
+   is begin
+      declare
+         Index : SAL.Peek_Type := 1;
       begin
-         if Fatal_Called or All_Parsers_Done then
-            Set_All_Done;
-            return;
-         end if;
+         for Cur in Shared_Parser.Parsers.Iterate loop
+            if Shared_Parser.Parsers (Cur).Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
+               --  Previous error recovery resume not finished; this is supposed to
+               --  be checked in Parser.
+               raise SAL.Programmer_Error;
+            end if;
 
-         --  Same logic as in Get_Barrier, but different actions.
-         --
-         --  No task_id in outline trace messages, because they may appear in
-         --  .parse_good
-         for I in Parser_Status'Range loop
-            Skip := False;
+            Super.Parser_Status (Index) :=
+              (Recover_State  => Active,
+               Parser_State   => Parser_Lists.Persistent_State_Ref (Cur),
+               Fail_Mode      => Success);
 
             declare
-               P_Status : Base.Parser_Status renames Parser_Status (I);
+               Data : McKenzie_Data renames Shared_Parser.Parsers (Cur).Recover;
             begin
-               case P_Status.Recover_State is
-               when Active | Ready =>
-                  if P_Status.Parser_State.Recover.Config_Heap.Count > 0 then
-                     if P_Status.Parser_State.Recover.Check_Count - Check_Delta_Limit >= Min_Success_Check_Count then
-                        if Trace_McKenzie > Outline then
-                           Put_Line
-                             (Trace.all, Tree.all,
-                              P_Status.Parser_State.Stream, "fail; check delta (limit" &
-                                Integer'Image (Min_Success_Check_Count + Check_Delta_Limit) & ")",
-                              Task_ID => False);
-                        end if;
-                        P_Status.Recover_State := Fail;
-                        P_Status.Fail_Mode     := Fail_Check_Delta;
-
-                        Done_Count := Done_Count + 1;
-                        Skip := True;
-
-                     elsif Total_Enqueue_Count + P_Status.Parser_State.Recover.Config_Full_Count >= Enqueue_Limit then
-                        if Trace_McKenzie > Outline then
-                           Put_Line
-                             (Trace.all, Tree.all,
-                              P_Status.Parser_State.Stream, "fail; total enqueue limit (" &
-                                Enqueue_Limit'Image & " cost" &
-                                P_Status.Parser_State.Recover.Config_Heap.Min_Key'Image & ")",
-                              Task_ID => False);
-                        end if;
-                        P_Status.Recover_State := Fail;
-                        P_Status.Fail_Mode     := Fail_Enqueue_Limit;
-
-                        Done_Count := Done_Count + 1;
-                        Skip := True;
-                     end if;
-                  end if;
-
-                  if not Skip then
-                     case P_Status.Recover_State is
-                     when Active =>
-                        if P_Status.Parser_State.Recover.Config_Heap.Count > 0 then
-                           if P_Status.Parser_State.Recover.Config_Heap.Min_Key < Min_Cost then
-                              Min_Cost       := P_Status.Parser_State.Recover.Config_Heap.Min_Key;
-                              Min_Cost_Index := I;
-                              --  not done
-                           end if;
-                        else
-                           if P_Status.Active_Workers = 0 then
-                              --  No configs left to check (rarely happens with real languages).
-                              if Trace_McKenzie > Outline then
-                                 Put_Line
-                                   (Trace.all, Tree.all, P_Status.Parser_State.Stream, "fail; no configs left",
-                                    Task_ID => False);
-                              end if;
-                              P_Status.Recover_State := Fail;
-                              P_Status.Fail_Mode     := Fail_No_Configs_Left;
-
-                              Done_Count := Done_Count + 1;
-                           end if;
-                        end if;
-
-                     when Ready =>
-                        if P_Status.Parser_State.Recover.Config_Heap.Count > 0 and then
-                          P_Status.Parser_State.Recover.Config_Heap.Min_Key <=
-                          P_Status.Parser_State.Recover.Results.Min_Key
-                        then
-                           --  Still more to check. We don't check Min_Cost here so this parser
-                           --  can finish quickly.
-                           Set_Outputs (I);
-                           return;
-
-                        elsif P_Status.Active_Workers = 0 then
-                           P_Status.Recover_State := Success;
-                           Done_Count             := Done_Count + 1;
-                        end if;
-                     when others =>
-                        null;
-                     end case;
-                  end if;
-
-               when Success | Fail =>
-                  Done_Count := Done_Count + 1;
-               end case;
+               Data.Config_Heap.Clear;
+               Data.Results.Clear;
+               Data.Enqueue_Count := 0;
+               Data.Check_Count   := 0;
+               Data.Success       := False;
             end;
+
+            Index := Index + 1;
          end loop;
+      end;
 
-         if Min_Cost /= Integer'Last then
-            Set_Outputs (Min_Cost_Index);
+      --  Set Sequential_Index
+      declare
+         Streams : Syntax_Trees.Stream_ID_Array (1 .. Parser_Count);
+      begin
+         Set_Initial_Sequential_Index
+           (Shared_Parser, Streams, Super.Max_Sequential_Indices, Initialize => True);
 
-         elsif Done_Count = Parser_Count then
-            if Trace_McKenzie > Extra then
-               Trace.Put_Line ("Supervisor: done, " & (if Success_Counter > 0 then "succeed" else "fail"));
-            end if;
+         Super.Min_Sequential_Indices := Super.Max_Sequential_Indices;
 
-            Set_All_Done;
-            All_Parsers_Done := True;
-         else
-            raise SAL.Programmer_Error with "Get_Barrier and Get logic do not match";
+         Extend_Max_Sequential_Index (Default_Positive_Sequential_Index);
+         if Tree.ID (Min_Sequential_Indices (1).Ref.Node) /= Tree.Lexer.Descriptor.SOI_ID then
+            Extend_Min_Sequential_Index (Default_Negative_Sequential_Index);
          end if;
-      end Get;
+      end;
+   end Initialize;
+
+   procedure Get
+     (Super        : in out Supervisor;
+      Parser_Index :    out SAL.Base_Peek_Type;
+      Config       :    out Configuration)
+   is
+      Done_Count     : SAL.Base_Peek_Type := 0;
+      Skip           : Boolean;
+      Min_Cost       : Integer            := Integer'Last;
+      Min_Cost_Index : SAL.Base_Peek_Type;
+
+      procedure Set_Outputs (I : in SAL.Peek_Type)
+      is begin
+         Parser_Index := I;
+         Config       := Super.Parser_Status (I).Parser_State.Recover.Config_Heap.Remove;
+         Status       := Valid;
+
+         Super.Parser_Status (I).Parser_State.Recover.Check_Count :=
+           Super.Parser_Status (I).Parser_State.Recover.Check_Count + 1;
+
+         Super.Parser_Status (I).Active_Workers := Super.Parser_Status (I).Active_Workers + 1;
+      end Set_Outputs;
+
+      procedure Set_All_Done
+      is begin
+         Parser_Index := SAL.Base_Peek_Type'First;
+
+         pragma Warnings (Off, "aggregate not fully initialized");
+         --  Config.Stack.Data is not initialized, but no uninitialized data is
+         --  ever referenced.
+         Config       := (others => <>);
+         pragma Warnings (On, "aggregate not fully initialized");
+
+         Status       := All_Done;
+      end Set_All_Done;
+
+   begin
+      if Fatal_Called or All_Parsers_Done then
+         Set_All_Done;
+         return;
+      end if;
+
+      --  Same logic as in Get_Barrier, but different actions.
+      --
+      --  No task_id in outline trace messages, because they may appear in
+      --  .parse_good
+      for I in Super.Parser_Status'Range loop
+         Skip := False;
+
+         declare
+            P_Status : Base.Parser_Status renames Super.Parser_Status (I);
+         begin
+            case P_Status.Recover_State is
+            when Active | Ready =>
+               if P_Status.Parser_State.Recover.Config_Heap.Count > 0 then
+                  if P_Status.Parser_State.Recover.Check_Count - Check_Delta_Limit >= Min_Success_Check_Count then
+                     if Trace_McKenzie > Outline then
+                        Put_Line
+                          (Trace.all, Tree.all,
+                           P_Status.Parser_State.Stream, "fail; check delta (limit" &
+                             Integer'Image (Min_Success_Check_Count + Check_Delta_Limit) & ")",
+                           Task_ID => False);
+                     end if;
+                     P_Status.Recover_State := Fail;
+                     P_Status.Fail_Mode     := Fail_Check_Delta;
+
+                     Done_Count := Done_Count + 1;
+                     Skip := True;
+
+                  elsif Total_Enqueue_Count + P_Status.Parser_State.Recover.Config_Full_Count >= Enqueue_Limit then
+                     if Trace_McKenzie > Outline then
+                        Put_Line
+                          (Trace.all, Tree.all,
+                           P_Status.Parser_State.Stream, "fail; total enqueue limit (" &
+                             Enqueue_Limit'Image & " cost" &
+                             P_Status.Parser_State.Recover.Config_Heap.Min_Key'Image & ")",
+                           Task_ID => False);
+                     end if;
+                     P_Status.Recover_State := Fail;
+                     P_Status.Fail_Mode     := Fail_Enqueue_Limit;
+
+                     Done_Count := Done_Count + 1;
+                     Skip := True;
+                  end if;
+               end if;
+
+               if not Skip then
+                  case P_Status.Recover_State is
+                  when Active =>
+                     if P_Status.Parser_State.Recover.Config_Heap.Count > 0 then
+                        if P_Status.Parser_State.Recover.Config_Heap.Min_Key < Min_Cost then
+                           Min_Cost       := P_Status.Parser_State.Recover.Config_Heap.Min_Key;
+                           Min_Cost_Index := I;
+                           --  not done
+                        end if;
+                     else
+                        if P_Status.Active_Workers = 0 then
+                           --  No configs left to check (rarely happens with real languages).
+                           if Trace_McKenzie > Outline then
+                              Put_Line
+                                (Trace.all, Tree.all, P_Status.Parser_State.Stream, "fail; no configs left",
+                                 Task_ID => False);
+                           end if;
+                           P_Status.Recover_State := Fail;
+                           P_Status.Fail_Mode     := Fail_No_Configs_Left;
+
+                           Done_Count := Done_Count + 1;
+                        end if;
+                     end if;
+
+                  when Ready =>
+                     if P_Status.Parser_State.Recover.Config_Heap.Count > 0 and then
+                       P_Status.Parser_State.Recover.Config_Heap.Min_Key <=
+                       P_Status.Parser_State.Recover.Results.Min_Key
+                     then
+                        --  Still more to check. We don't check Min_Cost here so this parser
+                        --  can finish quickly.
+                        Set_Outputs (I);
+                        return;
+
+                     elsif P_Status.Active_Workers = 0 then
+                        P_Status.Recover_State := Success;
+                        Done_Count             := Done_Count + 1;
+                     end if;
+                  when others =>
+                     null;
+                  end case;
+               end if;
+
+            when Success | Fail =>
+               Done_Count := Done_Count + 1;
+            end case;
+         end;
+      end loop;
+
+      if Min_Cost /= Integer'Last then
+         Set_Outputs (Min_Cost_Index);
+
+      elsif Done_Count = Parser_Count then
+         if Trace_McKenzie > Extra then
+            Trace.Put_Line ("Supervisor: done, " & (if Success_Counter > 0 then "succeed" else "fail"));
+         end if;
+
+         Set_All_Done;
+         All_Parsers_Done := True;
+      else
+         raise SAL.Programmer_Error with "Get_Barrier and Get logic do not match";
+      end if;
+   end Get;
 
       procedure Success
         (Parser_Index : in     SAL.Peek_Type;
          Config       : in     Configuration;
          Configs      : in out Config_Heaps.Heap_Type)
       is
-         Data : McKenzie_Data renames Parser_Status (Parser_Index).Parser_State.Recover;
+         Data : McKenzie_Data renames Super.Parser_Status (Parser_Index).Parser_State.Recover;
       begin
          Put (Parser_Index, Configs); --  Decrements Active_Worker_Count.
 
          if Trace_McKenzie > Detail then
             Put
               ("succeed: enqueue" & Integer'Image (Data.Enqueue_Count) & ", check " & Integer'Image (Data.Check_Count),
-               Trace.all, Tree.all, Parser_Status (Parser_Index).Parser_State.Stream, Config);
+               Trace.all, Tree.all, Super.Parser_Status (Parser_Index).Parser_State.Stream, Config);
          end if;
 
          Success_Counter := Success_Counter + 1;
@@ -333,13 +252,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          if Force_High_Cost_Solutions then
             Data.Results.Add (Config);
             if Data.Results.Count > 3 then
-               Parser_Status (Parser_Index).Recover_State := Ready;
+               Super.Parser_Status (Parser_Index).Recover_State := Ready;
             end if;
          else
             if Data.Results.Count = 0 then
                Data.Results.Add (Config);
 
-               Parser_Status (Parser_Index).Recover_State := Ready;
+               Super.Parser_Status (Parser_Index).Recover_State := Ready;
 
             elsif Config.Cost < Data.Results.Min_Key then
                --  delete higher cost configs from Results
@@ -365,7 +284,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       is
          Configs_Count : constant SAL.Base_Peek_Type := Configs.Count; -- Before it is emptied, for Trace.
 
-         P_Status : Base.Parser_Status renames Parser_Status (Parser_Index);
+         P_Status : Base.Parser_Status renames Super.Parser_Status (Parser_Index);
          Data : McKenzie_Data renames P_Status.Parser_State.Recover;
       begin
          P_Status.Active_Workers := P_Status.Active_Workers - 1;
@@ -395,7 +314,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
       procedure Config_Full (Prefix : in String; Parser_Index : in SAL.Peek_Type)
       is
-         P_Status : Base.Parser_Status renames Parser_Status (Parser_Index);
+         P_Status : Base.Parser_Status renames Super.Parser_Status (Parser_Index);
          Data : McKenzie_Data renames P_Status.Parser_State.Recover;
       begin
          Data.Config_Full_Count := Data.Config_Full_Count + 1;
@@ -412,51 +331,26 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          if Result = Success then
             return Success;
          else
-            for S of Parser_Status loop
+            for S of Super.Parser_Status loop
                Temp := Recover_Status'Max (Result, S.Fail_Mode);
             end loop;
             return Temp;
          end if;
       end Recover_Result;
 
-      procedure Fatal (E : in Ada.Exceptions.Exception_Occurrence)
-      is
-         use Ada.Exceptions;
-      begin
-         if Trace_McKenzie > Outline then
-            Trace.Put_Line ("task " & Task_Attributes.Value'Image & " Supervisor: Error");
-         end if;
-         Fatal_Called   := True;
-         Error_ID       := Exception_Identity (E);
-         Error_Message  := +Exception_Message (E);
-         if Debug_Mode then
-            Trace.Put_Line
-              ("task " & Task_Attributes.Value'Image & ": " & Exception_Name (E) & ": " & Exception_Message (E) &
-                 ASCII.LF & -- keep the message together
-                 GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-         end if;
-      end Fatal;
-
-      entry Done (Error_ID : out Ada.Exceptions.Exception_Id; Message : out Ada.Strings.Unbounded.Unbounded_String)
-        when All_Parsers_Done or Fatal_Called
-      is begin
-         Error_ID := Supervisor.Error_ID;
-         Message  := Error_Message;
-
-         if Trace_McKenzie > Detail then
-            Trace.New_Line;
-            Trace.Put_Line ("Supervisor: Done");
-         end if;
-      end Done;
+   function Done (Super : in Supervisor) return Boolean
+   is begin
+      return Super.All_Parsers_Done;
+   end Done;
 
       function Parser_State (Parser_Index : in SAL.Peek_Type) return Parser_Lists.Constant_Reference_Type
       is begin
-         return (Element => Parser_Status (Parser_Index).Parser_State);
+         return (Element => Super.Parser_Status (Parser_Index).Parser_State);
       end Parser_State;
 
       function Stream (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_ID
       is begin
-         return Parser_Status (Parser_Index).Parser_State.Stream;
+         return Super.Parser_Status (Parser_Index).Parser_State.Stream;
       end Stream;
 
       function Min_Sequential_Index return Syntax_Trees.Sequential_Index
@@ -519,8 +413,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       is
          Streams : Syntax_Trees.Stream_ID_Array (1 .. Parser_Count);
       begin
-         for I in Parser_Status'Range loop
-            Streams (I) := Parser_Status (I).Parser_State.Stream;
+         for I in Super.Parser_Status'Range loop
+            Streams (I) := Super.Parser_Status (I).Parser_State.Stream;
          end loop;
          Extend_Sequential_Index (Tree.all, Streams, Min_Sequential_Indices, Target, Positive => False, Clear => False);
       end Extend_Min_Sequential_Index;
@@ -529,13 +423,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       is
          Streams : Syntax_Trees.Stream_ID_Array (1 .. Parser_Count);
       begin
-         for I in Parser_Status'Range loop
-            Streams (I) := Parser_Status (I).Parser_State.Stream;
-         end loop;
          Extend_Sequential_Index (Tree.all, Streams, Max_Sequential_Indices, Target, Positive => True, Clear => False);
       end Extend_Max_Sequential_Index;
 
-   end Supervisor;
 
    procedure Extend_Sequential_Index
      (Super    : not null access Base.Supervisor;
