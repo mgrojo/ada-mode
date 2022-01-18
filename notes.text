@@ -30,9 +30,9 @@ o.e.a.stephe-6 (o.w.s-3/o.s_l.sal.stephe-1): ref_count stream_element_list
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-1")
+  (xgit . "/Projects/org.wisitoken.stephe-3")
   (xgit . "/Projects/org.emacs.wisi.stephe-1")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-6")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
@@ -80,32 +80,6 @@ read Kate's book on culture/persuasion.
         - pay someone in-house to work on this - I will mentor
 
  current work
-
-run all tests
-    partial parse: done
-
-    incremental
-        test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 30.0)"
-
-c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_02.adb:187: test
-    edit_tree validate_tree fail
-
-        ada_mode-recover_45.adb
-            incremental parse gets error during resume
-
-test/ada_mode-interactive_01.adb
-;; exception: ADA.ASSERTIONS.ASSERTION_ERROR: failed precondition from sal-gen_definite_doubly_linked_lists.ads:113 instantiated at wisitoken-syntax_trees.ads:2735
-;; [c:\Projects\org.emacs.ada-mode.stephe-2\ada_mode_wisi_lalr_parse.exe]
-;; 0x10c9d06 Long_Float_Elementary_Functions."**" at s-assert.adb:46
-;; 0x48c800 Long_Float_Elementary_Functions."**" at sal-gen_definite_doubly_linked_lists.ads:113
-;; 0x4b02f0 Long_Float_Elementary_Functions."**" at wisitoken-syntax_trees.adb:742
-;; 0x4b24a6 Long_Float_Elementary_Functions."**" at wisitoken-syntax_trees.adb:759
-;; 0x535997 Long_Float_Elementary_Functions."**" at wisitoken-parse.adb:623
-;; 0x5302c6 Long_Float_Elementary_Functions."**" at wisitoken-parse.adb:1754
-;; 0x6a9026 Long_Float_Elementary_Functions."**" at wisitoken-parse-lr-parser-parse.adb:58
-        Edit_Tree breakdown Find_Element
-        not under debugger; need reference count elements
-
 need kill-context on delete buffer
 
 test/ada_mode-recover_27.adb
@@ -191,6 +165,12 @@ push to elpa
 
  after incremental
 review this file!
+
+test/ada_mode-recover_45.adb
+    bad solution to "mixed logical ops" error
+    minimal complete went too far
+    need language fix for 'expression and then expression or expression'.
+        error on 'or'; insert left paren before prev expression
 
 ada_mode-recover_44.adb
     matching_begin return list of token arrays, so insert '(if foo' is cheap

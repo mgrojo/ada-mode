@@ -1,6 +1,7 @@
--- FIXME: incremental parse gets "error during resume".
+-- From a real editing session: incremental parse used to get "error during resume".
 -- partial parse gets bad indent
 --EMACS_SKIP_UNLESS:wisi-incremental-parse-enable
+--EMACSCMD:(setq skip-recase-test t)
 --EMACSCMD:(switch-to-lr1)
 package body Ada_Mode.Recover_45 is
 
@@ -33,7 +34,7 @@ package body Ada_Mode.Recover_45 is
                end if;
 
                if Do_Scan then
-                  Delete_Scanned_Loop :
+               Delete_Scanned_Loop :
                   loop
                      exit Delete_Loop when Tree.ID (Terminal.Node) = Parser.Tree.Lexer.Descriptor.EOI_ID;
 

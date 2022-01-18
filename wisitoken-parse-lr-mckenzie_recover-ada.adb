@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -665,20 +665,30 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   Push_Back (Super, New_Config, Push_Back_Undo_Reduce => True);
                end loop;
 
-               if Tree.Element_ID (New_Config.Stack.Peek.Token) = +COLON_ID then
+               case To_Token_Enum (Tree.Element_ID (New_Config.Stack.Peek.Token)) is
+               when COLON_ID =>
                   --  block label is present
-                  --  FIXME: what about 'declare declarative_part'?
                   Push_Back_Check (Super, New_Config, (+COLON_ID, +statement_identifier_ID));
 
                   Delete_Check (Super, New_Config, (+IDENTIFIER_ID, +COLON_ID, +BEGIN_ID));
-               else
+
+               when label_opt_ID =>
+                  if Tree.Is_Empty_Nonterm (New_Config.Stack.Peek.Token) then
+                     Undo_Reduce_Check (Super, Parse_Table, New_Config, +label_opt_ID);
+                  else
+                     Undo_Reduce_Check (Super, Parse_Table, New_Config, +label_opt_ID);
+                     Push_Back_Check (Super, New_Config, (+COLON_ID, +statement_identifier_ID));
+                     Delete_Check (Super, New_Config, (+IDENTIFIER_ID, +COLON_ID, +BEGIN_ID));
+                  end if;
+
+               when others =>
                   Delete_Check (Super, New_Config, +BEGIN_ID);
-               end if;
+               end case;
 
                if Undo_Reduce_Valid (Super, New_Config) then
-                  Undo_Reduce_Check (Super, Parse_Table, New_Config, +sequence_of_statements_ID);
+                  Undo_Reduce_Check (Super, Parse_Table, New_Config, +statement_statement_list_ID);
                elsif Push_Back_Valid (Super, New_Config, Push_Back_Undo_Reduce => True) then
-                  Push_Back_Check (Super, New_Config, +sequence_of_statements_ID);
+                  Push_Back_Check (Super, New_Config, +statement_statement_list_ID);
                else
                   raise Invalid_Case;
                end if;
