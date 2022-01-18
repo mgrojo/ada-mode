@@ -93,6 +93,7 @@ OK test_incremental.adb : Delete_Comment_Start_03
 OK test_incremental.adb : Delete_Comment_Start_04
 OK test_incremental.adb : Delete_Comment_Start_05
 OK test_incremental.adb : Insert_New_Line
+OK test_incremental.adb : Insert_Comment_Start_01
 OK test_incremental.adb : Names
 OK test_incremental.adb : Missing_Name_1
 OK test_incremental.adb : Recover_1
@@ -124,6 +125,7 @@ OK test_mckenzie_recover.adb LALR : Error_Token_When_Parallel
 OK test_mckenzie_recover.adb LALR : If_In_Handler
 OK test_mckenzie_recover.adb LALR : Zombie_In_Resume
 OK test_mckenzie_recover.adb LALR : Push_Back_1
+OK test_mckenzie_recover.adb LALR : Push_Back_2
 OK test_mckenzie_recover.adb LALR : String_Quote_0
 OK test_mckenzie_recover.adb LALR : Missing_Name_0
 OK test_mckenzie_recover.adb LALR : Missing_Name_1
@@ -185,6 +187,7 @@ OK test_mckenzie_recover.adb LR1 : Error_Token_When_Parallel
 OK test_mckenzie_recover.adb LR1 : If_In_Handler
 OK test_mckenzie_recover.adb LR1 : Zombie_In_Resume
 OK test_mckenzie_recover.adb LR1 : Push_Back_1
+OK test_mckenzie_recover.adb LR1 : Push_Back_2
 OK test_mckenzie_recover.adb LR1 : String_Quote_0
 OK test_mckenzie_recover.adb LR1 : Missing_Name_0
 OK test_mckenzie_recover.adb LR1 : Missing_Name_1
@@ -241,7 +244,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   241
-Successful Tests:  241
+Total Tests Run:   244
+Successful Tests:  244
 Failed Assertions: 0
 Unexpected Errors: 0
