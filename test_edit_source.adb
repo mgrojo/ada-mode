@@ -1033,6 +1033,37 @@ package body Test_Edit_Source is
         ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
    end Non_Ascii;
 
+   procedure String_Escape (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Wisi;
+
+      --  Test lisp \" in Wisi.Get_String
+
+      procedure Test_One
+        (Label : in String;
+         Source    : in String;
+         Expected_String : in String;
+         Expected_Last : in Integer;
+         Initial_Last : in Integer := 0)
+      is
+         use AUnit.Checks;
+         Last     : Integer         := Initial_Last;
+         Computed : constant String := Get_String (Source, Last);
+      begin
+         Check (Label & ".last", Last, Expected_Last);
+         Check (Label & ".string", Computed, Expected_String);
+      end Test_One;
+
+   begin
+      Test_One ("1", """Hello""", "Hello", 7);
+      Test_One ("2", """\""""", "\""", 4);
+      Test_One ("3", "(1 2 ""\"""") (3 4 ""Foo"")", "\""", Expected_Last => 9, Initial_Last => 4);
+
+      --  This one is _not_ a string quote escape
+      Test_One ("4", """\\""", "\\", 4);
+   end String_Escape;
+
    ----------
    --  Public subprograms
 
@@ -1058,6 +1089,7 @@ package body Test_Edit_Source is
       Register_Routine (T, Edit_10'Access, "Edit_10");
       Register_Routine (T, Merge_Single_Letters'Access, "Merge_Single_Letters");
       Register_Routine (T, Non_Ascii'Access, "Non_Ascii");
+      Register_Routine (T, String_Escape'Access, "String_Escape");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

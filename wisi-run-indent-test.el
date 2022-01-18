@@ -1,6 +1,6 @@
 ;;; wisi-run-indent-test.el --- utils for automating indentation and casing tests
 ;;
-;; Copyright (C) 2018 - 2021  Free Software Foundation, Inc.
+;; Copyright (C) 2018 - 2022  Free Software Foundation, Inc.
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -152,29 +152,23 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
     (search-forward search-string (line-end-position 7)))
   (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
   (search-forward refactor-string (line-end-position 7))
-  (let* ((edit-begin (match-beginning 0))
-	 (cache (wisi-goto-statement-start))
-	 (parse-begin (point))
-	 (parse-end (wisi-cache-end cache)))
-    (setq parse-end (+ parse-end (wisi-cache-last (wisi-get-cache (wisi-cache-end cache)))))
+  (let ((edit-begin (match-beginning 0)))
     (push (list
 	   inverse-action
-	   (copy-marker parse-begin nil)
-	   (copy-marker parse-end nil)
 	   (copy-marker edit-begin nil))
 	  test-refactor-markers)
-    (wisi-refactor wisi--parser action parse-begin parse-end edit-begin)
+    (wisi-refactor wisi--parser action edit-begin)
     ))
 
 (defun test-refactor-inverse ()
   "Reverse refactors done by recent set of `test-refactor-1'."
+  ;; Force parse of forward refactor for partial parse
+  (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
   (save-excursion
     (dolist (item test-refactor-markers)
       (wisi-refactor wisi--parser
 		     (nth 0 item)
-		     (marker-position (nth 1 item))
-		     (marker-position (nth 2 item))
-		     (marker-position (nth 3 item))))
+		     (marker-position (nth 1 item))))
     (setq test-refactor-markers nil)))
 
 (defun wisi-test-save-log ()

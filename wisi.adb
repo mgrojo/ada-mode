@@ -649,6 +649,7 @@ package body Wisi is
             From    => Temp);
          exit when Last = 0;
          if Source'First <= Last - 2 then
+            --  test_edit_string.adb String_Escape
             if Source (Last - 2 .. Last - 1) = "\\" then
                exit;
             elsif Source (Last - 1) = '\' then
