@@ -2007,13 +2007,18 @@ package WisiToken.Syntax_Trees is
    function Find_Char_Pos
      (Tree                 : in Syntax_Trees.Tree;
       Char_Pos             : in Buffer_Pos;
-      After                : in Boolean;
-      Trailing_Non_Grammar : in Boolean)
+      Trailing_Non_Grammar : in Boolean;
+      After                : in Boolean := False)
      return Node_Access;
    --  If After, return the first terminal after or containing
    --  Char_Point. Otherwise return the terminal containing Char_Point.
    --  If Include_Non_Grammar, non_grammar is included in token
    --  char_region. Invalid_Node_Access if none.
+   --
+   --  Adding a "Before" option here would significantly complicate the
+   --  logic, and would only make a difference when Char_Pos is in the
+   --  whitespace immediately before a token; calling code can move
+   --  Char_Pos out of such whitespace if it matters.
 
    function Find_New_Line
      (Tree : in Syntax_Trees.Tree;

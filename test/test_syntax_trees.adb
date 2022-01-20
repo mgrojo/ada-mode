@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2021 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -170,6 +170,71 @@ package body Test_Syntax_Trees is
       Check ("3", Skip_To_Parser.Tree.Line_At_Byte_Pos (41), 3);
    end Line_At_Byte_Pos_2;
 
+   procedure Find_Char_Pos_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Ada_Lite_Actions;
+
+      Text : constant String :=
+        "  -- leading comment" & ASCII.LF & "  A; -- comment" & ASCII.LF & "  B;  ";
+      --  |2      |10       |20                |24   |30                      |40
+
+      procedure Test_1
+        (Label                     : in String;
+         Pos                       : in Buffer_Pos;
+         Trailing_Non_Grammar      : in Boolean;
+         After                     : in Boolean;
+         Expected_ID               : in Token_ID;
+         Expected_Token_Char_First : in Buffer_Pos)
+      is
+         use WisiToken.AUnit;
+
+         Tree : WisiToken.Syntax_Trees.Tree renames Ada_Lite_Parser.Tree;
+         Node : constant WisiToken.Syntax_Trees.Node_Access := Tree.Find_Char_Pos
+           (Pos, Trailing_Non_Grammar, After);
+      begin
+         if Expected_ID = Invalid_Token_ID then
+            WisiToken.Syntax_Trees.AUnit_Public.Check_Address (Label & ".id", Node, null);
+
+         elsif Node = null then
+            WisiToken.Syntax_Trees.AUnit_Public.Check_Address (Label & ".id", Node, Tree.SOI);
+
+         else
+            Check (Label & ".id", Tree.ID (Node), Expected_ID);
+            Check (Label & ".char_first", Tree.Char_Region (Node).First, Expected_Token_Char_First);
+         end if;
+      end Test_1;
+   begin
+      Ada_Lite_Parser.Tree.Lexer.Reset_With_String (Text);
+
+      Ada_Lite_Parser.Parse (Log_File);
+
+      --  IMPROVEME: set lexer buffer start after actual text buffer start, test before text.
+
+      Test_1 ("leading whitespace 1", 1, False, False, Invalid_Token_ID, Invalid_Buffer_Pos);
+      Test_1 ("leading whitespace 2", 1, True,  False, +Wisi_SOI_ID, 1);
+      Test_1 ("leading whitespace 4", 1, False, True,  +IDENTIFIER_ID, 24);
+
+      Test_1 ("leading non_grammar 1", 6, False, False, Invalid_Token_ID, Invalid_Buffer_Pos);
+      Test_1 ("leading non_grammar 2", 6, True,  False, +Wisi_SOI_ID, 1);
+      Test_1 ("leading non_grammar 4", 6, False, True,  +IDENTIFIER_ID, 24);
+
+      Test_1 ("A leading whitespace 1", 23, False, False, Invalid_Token_ID, Invalid_Buffer_Pos);
+      Test_1 ("A leading whitespace 2", 23, True,  False, Invalid_Token_ID, Invalid_Buffer_Pos);
+      Test_1 ("A leading whitespace 4", 23, False, True,  +IDENTIFIER_ID, 24);
+
+      Test_1 ("A", 24, False, False, +IDENTIFIER_ID, 24);
+
+      Test_1 ("A trailing whitespace 1", 26, False, False, Invalid_Token_ID, Invalid_Buffer_Pos);
+      Test_1 ("A trailing whitespace 2", 26, True,  False, +SEMICOLON_ID, 25);
+      Test_1 ("A trailing whitespace 4", 26, False, True,  +IDENTIFIER_ID, 40);
+
+      Test_1 ("B", 40, False, False, +IDENTIFIER_ID, 40);
+
+      Test_1 ("after text 1", 45, True,  False, Invalid_Token_ID, Invalid_Buffer_Pos);
+      Test_1 ("after text 2", 45, False, True,  Invalid_Token_ID, Invalid_Buffer_Pos);
+   end Find_Char_Pos_1;
+
    ----------
    --  Public subprograms
 
@@ -182,6 +247,7 @@ package body Test_Syntax_Trees is
       Register_Routine (T, Byte_Region_1'Access, "Byte_Region_1");
       Register_Routine (T, Line_At_Byte_Pos_1'Access, "Line_At_Byte_Pos_1");
       Register_Routine (T, Line_At_Byte_Pos_2'Access, "Line_At_Byte_Pos_2");
+      Register_Routine (T, Find_Char_Pos_1'Access, "Find_Char_Pos_1");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

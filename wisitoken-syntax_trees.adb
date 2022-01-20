@@ -2552,12 +2552,9 @@ package body WisiToken.Syntax_Trees is
      (Tree                : in Syntax_Trees.Tree;
       Node                : in Node_Access;
       Char_Pos            : in Buffer_Pos;
-      After               : in Boolean;
-      Include_Non_Grammar : in Boolean)
+      Include_Non_Grammar : in Boolean;
+      After               : in Boolean)
      return Node_Access
-   --  Return terminal in subtree under Node that contains (possibly including
-   --  non_grammar) or is after Char_Pos. Invalid_Node_Access if char_Pos
-   --  is after all of Node.
    is begin
       case Node.Label is
       when Source_Terminal =>
@@ -2591,7 +2588,35 @@ package body WisiToken.Syntax_Trees is
                   --  Child is empty or all virtual; try next
                   null;
                elsif Char_Pos <= Region.Last then
-                  return Find_Char_Pos (Tree, Child, Char_Pos, After, Include_Non_Grammar);
+                  declare
+                     Result : constant Node_Access := Find_Char_Pos
+                       (Tree, Child, Char_Pos, Include_Non_Grammar, After);
+                  begin
+                     if Tree.ID (Child) = Tree.Lexer.Descriptor.SOI_ID then
+                        pragma Assert (Child.Label = Source_Terminal);
+                        --  SOI does not have an empty region (see comment in Start_Lex), but
+                        --  we define it to not contain any text. EOI does have an empty
+                        --  region.
+                        if Char_Pos < Child.Char_Region.Last then
+                           if After then
+                              return Child;
+                           else
+                              return Invalid_Node_Access;
+                           end if;
+
+                        elsif (Include_Non_Grammar and Child.Non_Grammar.Length > 1) and then
+                          Char_Pos <= Child.Non_Grammar (Child.Non_Grammar.Last_Index).Char_Region.Last
+                        then
+                           return Child;
+                        else
+                           null; -- try next child
+                        end if;
+
+                     else
+                        return Result;
+                     end if;
+                  end;
+
                else
                   null; -- try next child
                end if;
@@ -2605,19 +2630,25 @@ package body WisiToken.Syntax_Trees is
    function Find_Char_Pos
      (Tree                 : in Syntax_Trees.Tree;
       Char_Pos             : in Buffer_Pos;
-      After                : in Boolean;
-      Trailing_Non_Grammar : in Boolean)
+      Trailing_Non_Grammar : in Boolean;
+      After                : in Boolean := False)
      return Node_Access
    is
       Node : constant Node_Access := Root (Tree);
       Char_Region : constant Buffer_Region := Tree.Char_Region (Node, Trailing_Non_Grammar);
    begin
-      if After and Char_Pos < Char_Region.First then
-         return Tree.First_Terminal (Node);
+      if Char_Pos < Char_Region.First then
+         if After then
+            return Tree.First_Terminal (Node);
+         else
+            return Invalid_Node_Access;
+         end if;
+
       elsif Char_Pos > Char_Region.Last then
          return Invalid_Node_Access;
+
       else
-         return Find_Char_Pos (Tree, Node, Char_Pos, After, Trailing_Non_Grammar);
+         return Find_Char_Pos (Tree, Node, Char_Pos, Trailing_Non_Grammar, After);
       end if;
    end Find_Char_Pos;
 
