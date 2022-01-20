@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -50,7 +50,7 @@ package body Run_Wisi_Common_Parse is
 
       case Command is
       when Parse_Partial =>
-         Partial_Post_Parse_Action : Wisi.Post_Parse_Action_Type;
+         Partial_Post_Parse_Action : Wisi.Base_Post_Parse_Action_Type;
          Partial_Begin_Byte_Pos    : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
          Partial_End_Byte_Pos      : WisiToken.Base_Buffer_Pos  := WisiToken.Invalid_Buffer_Pos;
          Partial_Goal_Byte_Pos     : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
@@ -62,7 +62,7 @@ package body Run_Wisi_Common_Parse is
       when Parse_Incremental =>
          --  Incremental edit, parse, post_parse_action
          Changes               : Wisi.Parse_Context.Change_Lists.List;
-         Inc_Post_Parse_Action : Wisi.Post_Parse_Action_Type;
+         Inc_Post_Parse_Action : Wisi.Base_Post_Parse_Action_Type;
          Inc_Begin_Byte_Pos    : WisiToken.Buffer_Pos      := WisiToken.Invalid_Buffer_Pos;
          Inc_Begin_Char_Pos    : WisiToken.Buffer_Pos      := WisiToken.Invalid_Buffer_Pos;
          Inc_End_Byte_Pos      : WisiToken.Base_Buffer_Pos := WisiToken.Invalid_Buffer_Pos;
@@ -214,12 +214,12 @@ package body Run_Wisi_Common_Parse is
       return Result : Command_Line_Params (Command) do
          case Command is
          when Parse_Partial =>
-            Result.Partial_Post_Parse_Action := Wisi.Post_Parse_Action_Type'Value (Argument (2));
+            Result.Partial_Post_Parse_Action := Wisi.Base_Post_Parse_Action_Type'Value (Argument (2));
             Result.Source_File_Name  := +Argument (3);
             Next_Arg := 4;
 
          when Parse_Incremental =>
-            Result.Inc_Post_Parse_Action := Wisi.Post_Parse_Action_Type'Value (Argument (2));
+            Result.Inc_Post_Parse_Action := Wisi.Base_Post_Parse_Action_Type'Value (Argument (2));
             Result.Source_File_Name      := +Argument (3);
             Next_Arg                     := 4;
 
@@ -668,6 +668,8 @@ package body Run_Wisi_Common_Parse is
       Start : Ada.Real_Time.Time;
    begin
       declare
+         use all type Wisi.Base_Post_Parse_Action_Type;
+
          Arg       : Integer;
          Cl_Params : Command_Line_Params := Command_File_Name (Language.Parse_Data_Template.all, Arg);
 
@@ -751,26 +753,27 @@ package body Run_Wisi_Common_Parse is
                   Parser.Parse (Log_File);
                   --  Raises Parse_Error for ambiguous parse and similar errors.
 
-                  Parse_Data.Reset_Post_Parse
-                    (Parser.Tree,
-                     Post_Parse_Action   => Cl_Params.Partial_Post_Parse_Action,
-                     Action_Region_Bytes => (Cl_Params.Partial_Begin_Byte_Pos, Cl_Params.Partial_End_Byte_Pos),
-                     Action_Region_Chars => (Cl_Params.Partial_Begin_Char_Pos, Cl_Params.Partial_End_Char_Pos),
-                     Begin_Indent        => Cl_Params.Partial_Begin_Indent);
+                  if Cl_Params.Partial_Post_Parse_Action /= None then
+                     Parse_Data.Reset_Post_Parse
+                       (Parser.Tree,
+                        Post_Parse_Action   => Cl_Params.Partial_Post_Parse_Action,
+                        Action_Region_Bytes => (Cl_Params.Partial_Begin_Byte_Pos, Cl_Params.Partial_End_Byte_Pos),
+                        Action_Region_Chars => (Cl_Params.Partial_Begin_Char_Pos, Cl_Params.Partial_End_Char_Pos),
+                        Begin_Indent        => Cl_Params.Partial_Begin_Indent);
 
-                  Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
+                     Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
 
-                  if Cl_Params.Repeat_Count = 1 then
-                     Parse_Data.Put (Parser);
-                     Parse_Data.Put
-                       (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-                        Parser.Tree);
+                     if Cl_Params.Repeat_Count = 1 then
+                        Parse_Data.Put (Parser);
+                        Parse_Data.Put
+                          (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+                           Parser.Tree);
 
-                     if Trace_Time then
-                        Report_Memory;
+                        if Trace_Time then
+                           Report_Memory;
+                        end if;
                      end if;
                   end if;
-
                exception
                when WisiToken.Syntax_Error =>
                   Put_Errors (Parser);
@@ -862,16 +865,18 @@ package body Run_Wisi_Common_Parse is
                     (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                      Parser.Tree);
 
-                  Parse_Data.Reset_Post_Parse
-                    (Parser.Tree, Cl_Params.Inc_Post_Parse_Action,
-                     Action_Region_Bytes => (Cl_Params.Inc_Begin_Byte_Pos, Cl_Params.Inc_End_Byte_Pos),
-                     Action_Region_Chars => (Cl_Params.Inc_Begin_Char_Pos, Cl_Params.Inc_End_Char_Pos),
-                     Begin_Indent        => 0);
+                  if Cl_Params.Inc_Post_Parse_Action /= None then
+                     Parse_Data.Reset_Post_Parse
+                       (Parser.Tree, Cl_Params.Inc_Post_Parse_Action,
+                        Action_Region_Bytes => (Cl_Params.Inc_Begin_Byte_Pos, Cl_Params.Inc_End_Byte_Pos),
+                        Action_Region_Chars => (Cl_Params.Inc_Begin_Char_Pos, Cl_Params.Inc_End_Char_Pos),
+                        Begin_Indent        => 0);
 
-                  Parser.Execute_Actions
-                    (Action_Region_Bytes => (Cl_Params.Inc_Begin_Byte_Pos, Cl_Params.Inc_End_Byte_Pos));
+                     Parser.Execute_Actions
+                       (Action_Region_Bytes => (Cl_Params.Inc_Begin_Byte_Pos, Cl_Params.Inc_End_Byte_Pos));
 
-                  Parse_Data.Put (Parser);
+                     Parse_Data.Put (Parser);
+                  end if;
 
                   if Trace_Time then
                      Put ("incremental parse ");

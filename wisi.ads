@@ -10,7 +10,7 @@
 --
 --  [3] wisi-process-parse.el - defines elisp/process API
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -77,7 +77,10 @@ package Wisi is
    function Image_Action (Action : in WisiToken.Syntax_Trees.Post_Parse_Action) return String;
    --  For Image_Action in Syntax_Trees.Image
 
-   type Post_Parse_Action_Type is (Navigate, Face, Indent);
+   type Base_Post_Parse_Action_Type is (Navigate, Face, Indent, None);
+   --  Must match first few items in wisi-parse-common.el wisi-post-parse-actions.
+
+   subtype Post_Parse_Action_Type is Base_Post_Parse_Action_Type range Navigate .. Indent;
 
    type Parse_Data_Type is abstract new WisiToken.Syntax_Trees.User_Data_Type with private;
    type Parse_Data_Access is access all Parse_Data_Type'Class;

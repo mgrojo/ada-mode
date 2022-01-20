@@ -224,27 +224,32 @@ have been previously parsed by `wisi-parse-current' or
 (cl-defgeneric wisi-parse-tree-query ((parser wisi-parser) query &rest args)
   "Return result of parse tree query QUERY with ARGS:
 
-- node: ARGS is a buffer position. Return terminal at ARGS (a
-  wisi-tree-node). If ARGS is in whitespace or comment, preceding
-  terminal.
+- node: ARGS is a buffer position. Return the wisi-tree-node for
+  the terminal at ARGS. If ARGS is in whitespace or comment,
+  preceding terminal.
 
 - containing-statement: ARGS is a buffer position. Return the
-  statement ancestor of the terminal at or after that pos (a
-  wisi-tree-node), or nil if no such ancestor. A 'statement' is
-  one of the statement ids declared by the language-specific
-  grammar backend.
+  wisi-tree-node for the statement ancestor of the terminal at
+  ARGS, or nil if no such ancestor. A 'statement' is one of the
+  statement ids declared by the language-specific grammar
+  backend.
 
 - ancestor: ARGS are a buffer position and a list of ids. Return
-  the ancestor of the terminal at or after that pos that is one
-  of the ids (a wisi-tree-node), or nil if no such ancestor.
+  the wisi-tree-node for the ancestor of the terminal at that pos
+  that is one of the ids, or nil if no such ancestor.
 
-- parent: ARGS are (node-address n). Return nth parent of the
-  node (a wisi-tree-node), or nil if no such parent.
+- parent: ARGS are (node-address n). Return the wisi-tree-node
+  for the nth parent of the node, or nil if no such parent.
 
-- child: ARGS are (node-address n). Return nth child of the
-  node (a wisi-tree-node), or nil if no such child.
+- child: ARGS are (node-address n). Return wisi-tree-node for the
+  nth child of the node, or nil if no such child.
 
-- print: ARGS ignored. Output parse tree to trace log. Returns t.")
+- print: ARGS ignored. Output parse tree to trace log. Returns t.
+
+'terminal at pos' means pos is in the region defined by the
+terminal token text plus following non_grammar and whitespace."
+  ;; wisi-indent-statement requires this definition of 'terminal at pos'.
+  )
 
 (cl-defgeneric wisi-parse-reset ((parser wisi-parser))
   "Ensure parser is ready to process a new parse.")
@@ -311,7 +316,8 @@ have been previously parsed by `wisi-parse-current' or
 
 (defun wisi-backward-cache ()
   "Move point backward to the first token cache preceding point.
-Returns cache, or nil if at beginning of buffer."
+Returns cache, or nil if at beginning of buffer.
+Assumes the buffer is fully parsed."
   (let ((pos (previous-single-property-change (point) 'wisi-cache))
 	cache)
     (cond
@@ -325,7 +331,6 @@ Returns cache, or nil if at beginning of buffer."
 
      (t
       (setq pos (1- pos))
-      (wisi-validate-cache-current-statement t 'navigate)
       (setq cache (get-text-property pos 'wisi-cache))
       (goto-char pos)
       cache)
@@ -349,7 +354,8 @@ Returns cache, or nil if at beginning of buffer."
 
 (defun wisi-forward-cache ()
   "Move point forward to the first token cache after point.
-Returns cache, or nil if at end of buffer."
+Returns cache, or nil if at end of buffer.
+Assumes the buffer is fully parsed."
   (let (cache pos)
     (when (get-text-property (point) 'wisi-cache)
       ;; on a cache; get past it
@@ -359,7 +365,6 @@ Returns cache, or nil if at end of buffer."
     (if cache
 	nil
 
-      (wisi-validate-cache-current-statement t 'navigate)
       (setq pos (next-single-property-change (point) 'wisi-cache))
       (if pos
 	  (progn

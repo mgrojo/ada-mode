@@ -1973,14 +1973,16 @@ package body Wisi is
       case Query.Label is
       when Point_Query =>
          declare
+            --  IMPROVEME: if Query.Char_Point is in the whitespace between a
+            --  token A non_grammar and the next grammar token B, this will return
+            --  the next grammar token, which is not right; wisi-parse-tree says
+            --  it should return A. Let's see if that's actually a problem. This
+            --  is better then setting After False; then it would return
+            --  Invalid_Node_Access.
             Terminal : constant Node_Access := Tree.Find_Char_Pos
               (Query.Char_Point,
-               After => True,
-               Trailing_Non_Grammar =>
-                 (case Point_Query'(Query.Label) is
-                  when Node                 => True,
-                  when Containing_Statement => False,
-                  when Ancestor             => False));
+               Trailing_Non_Grammar => True,
+               After                => True);
          begin
             if Terminal = Invalid_Node_Access then
                Ada.Text_IO.Put_Line ("[" & Query_Tree_Code & Query_Label'Pos (Query.Label)'Image & " nil]");

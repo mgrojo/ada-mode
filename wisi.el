@@ -400,7 +400,8 @@ Truncate any region that overlaps POS."
       (wisi--delete-face-cache after))
 
      ((eq 'navigate action)
-      (when (wisi-cache-covers-pos 'navigate after)
+      (when (and (not wisi-incremental-parse-enable)
+		 (wisi-cache-covers-pos 'navigate after))
 	;; We goto statement start to ensure that motion within nested
 	;; structures is properly done (ie prev/next on ’elsif’ is not
 	;; set by wisi-motion-action if already set by a lower level
@@ -414,7 +415,9 @@ Truncate any region that overlaps POS."
 	  ;; call that because it would call ‘wisi-validate-cache’,
 	  ;; which would call ‘wisi-invalidate-cache’; infinite loop.
 	  ;; If this needed a navigate parse to succeed, we would not
-	  ;; get here.
+	  ;; get here. FIXME: not true for incremental parse. Best
+	  ;; solution is to always ask the parser for the correct pos,
+	  ;; not use text property caches.
 	  (let ((cache (or (wisi-get-cache (point))
 			   (wisi-backward-cache))))
 	    (cond
@@ -1316,7 +1319,7 @@ the comment on the previous line."
    ))
 
 (defun wisi-indent-statement ()
-  "Indent region given by `wisi-goto-start', `wisi-cache-end'."
+  "Indent statement point is in or after."
   (interactive)
   (cond
    (wisi-incremental-parse-enable
