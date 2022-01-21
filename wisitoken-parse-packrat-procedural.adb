@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -281,6 +281,8 @@ package body WisiToken.Parse.Packrat.Procedural is
          Parser.User_Data.Reset;
       end if;
       Parser.Lex_All;
+
+      Parser.Tree.Enable_Ref_Count_Check (Parser.Tree.Shared_Stream, Enable_Ref_Count_Check);
 
       for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);

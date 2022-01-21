@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2018, 2020, 2021 Stephe Leake
+--  Copyright (C) 2018, 2020 - 2022 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -32,7 +32,7 @@ procedure Gen_Packrat_Parser_Run
 is
    procedure Put_Usage
    is begin
-      Put_Line ("usage: *_run [-v <integer>] filename");
+      Put_Line ("usage: *_run [--verbosity <string>] filename");
       Put_Line ("  parse input file, execute grammar actions");
       Put_Line ("  --verbosity <string> : trace options");
    end Put_Usage;

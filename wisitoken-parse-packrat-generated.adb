@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -35,16 +35,29 @@ package body WisiToken.Parse.Packrat.Generated is
          raise WisiToken.Parse_Error;
       end if;
 
+      for Deriv of Parser.Derivs loop
+         for Memo of Deriv loop
+            case Memo.State is
+            when No_Result | Failure =>
+               null;
+            when Success =>
+               Memo.Last_Pos := Syntax_Trees.Invalid_Stream_Index;
+            end case;
+         end loop;
+      end loop;
+
+      Parser.Derivs.Set_First_Last (Descriptor.First_Nonterminal, Descriptor.Last_Nonterminal);
+
       Parser.Tree.Clear;
-      --  Creates Shared_Stream, but no parse stream; packrat does not
-      --  use a parse stream.
 
       if Parser.User_Data /= null then
          Parser.User_Data.Reset;
       end if;
-      Parser.Lex_All;
+      Parser.Lex_All; -- Creates Tree.Shared_Stream
 
-      Parser.Derivs.Set_First_Last (Descriptor.First_Nonterminal, Descriptor.Last_Nonterminal);
+      --  FIXME: there appears to be a bug in GNAT Community 2021 that makes
+      --  ref_count fail in this usage. May be related to AdaCore ticket V107-045.
+      Parser.Tree.Enable_Ref_Count_Check (Parser.Tree.Shared_Stream, Enable => False);
 
       for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);

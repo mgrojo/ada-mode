@@ -67,6 +67,12 @@ run all tests
     t_all:
     ada_mode:
 
+AdaCore ticket V107-045
+    appears to be a bug in finalize/adjust calls
+    test_d_d_l_l_ref_Count.adb all pass
+    test/debug_ref_count.adb => error
+    test/debug_ref_count_2.adb => no error.
+
 propagate to main
 
 delete mckenzie multi-tasking

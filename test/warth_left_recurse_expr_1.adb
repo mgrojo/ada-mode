@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018, 2020 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018, 2020 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -114,7 +114,10 @@ package body Warth_Left_Recurse_Expr_1 is
             Ada.Text_IO.Put_Line ("input: '" & Input & "'");
          end if;
 
+         --  FIXME: Bug in GNAT Community 2021. Possibly AdaCore ticket V107-045.
+         WisiToken.Parse.Packrat.Procedural.Enable_Ref_Count_Check := False;
          Parser.Parse (Log_File);
+         WisiToken.Parse.Packrat.Procedural.Enable_Ref_Count_Check := True;
 
          AUnit.Assertions.Assert
            (Expected_State = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
@@ -130,7 +133,6 @@ package body Warth_Left_Recurse_Expr_1 is
          Parser.Execute_Actions
            (Action_Region_Bytes => (WisiToken.Buffer_Pos (Input'First), WisiToken.Buffer_Pos (Input'Last)));
          Check ("result", User_Data.Stack.Pop, Expected_Result);
-
       exception
       when WisiToken.Syntax_Error =>
          AUnit.Assertions.Assert (Expected_State = Failure, "'" & Input & "': expected success; got Syntax_Error");
