@@ -619,39 +619,31 @@ package body WisiToken.Parse.LR.Parser is
             Do_Deletes (Shared_Parser, Parser_State);
 
             if Parser_State.Resume_Active then
-               --  We check Parser_State.Current_Token, not
-               --  Parser_State.Shared_Token, because Shared_Token might be a
-               --  large nonterm when Current_Token is the token goal inside
-               --  Shared_Token, in the parse stream input from breakdown.
-               --  ada_mode-interactive_1.adb "for File_Name in File_Names loop"
+               --  We want to set Resume_Active False _after_ we shift the goal
+               --  token, so we check the stack top. test_incremental.adb
+               --  Nonterm_Resume_01.
                declare
                   use WisiToken.Syntax_Trees;
                   function Get_Terminal return Node_Access
                   is
-                     Ref : Stream_Node_Ref := Shared_Parser.Tree.Current_Token (Parser_State.Stream);
+                     Ref : Stream_Node_Parents := Shared_Parser.Tree.To_Stream_Node_Parents
+                       (Shared_Parser.Tree.To_Rooted_Ref
+                          (Parser_State.Stream, Shared_Parser.Tree.Peek (Parser_State.Stream)));
                   begin
-                     loop
-                        exit when not Shared_Parser.Tree.Is_Empty_Nonterm
-                          (Shared_Parser.Tree.Get_Node (Ref.Stream, Ref.Element));
-                        --  ada_mode-interactive_01.adb has empty nonterms between sequential
-                        --  terminals.
-                        Shared_Parser.Tree.Stream_Next (Ref, Rooted => True);
-                     end loop;
-                     return Shared_Parser.Tree.Last_Sequential_Terminal (Ref.Node);
+                     Shared_Parser.Tree.Last_Sequential_Terminal (Ref, Parser_State.Stream);
+                     return Ref.Ref.Node;
                   end Get_Terminal;
 
                   Terminal : constant Node_Access := Get_Terminal;
 
-                  Terminal_Index : constant Base_Sequential_Index :=
-                    (if Terminal = Invalid_Node_Access
-                     then Invalid_Sequential_Index
-                     else Shared_Parser.Tree.Get_Sequential_Index (Terminal));
+                  Terminal_Index : constant Base_Sequential_Index := Shared_Parser.Tree.Get_Sequential_Index
+                    (Terminal);
                begin
                   if Terminal_Index = Invalid_Sequential_Index
                     --  Most likely we just shifted a nonterm that got past the resume
                     --  goal; ada_mode-interactive_02.adb.
                     or else
-                    (Parser_State.Resume_Token_Goal < Terminal_Index and
+                    (Parser_State.Resume_Token_Goal <= Terminal_Index and
                        Parser_State.Recover_Insert_Delete_Current = Recover_Op_Nodes_Arrays.No_Index)
                        --  Parser_State.Recover_Insert_Delete_Current can be No_Index here
                        --  when Current_Token is a nonterm that needs to be broken down

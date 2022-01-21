@@ -1440,12 +1440,30 @@ package body Test_Incremental is
            "   for" & ASCII.LF &
            --  |25    |28
            "end A;",
-         Edit_At     => 28,
-         Delete      => "",
-         Insert      => " ",
+         Edit_At        => 28,
+         Delete         => "",
+         Insert         => " ",
          Initial_Errors => 1,
-         Incr_Errors => 1);
+         Incr_Errors    => 1);
    end Restore_Deleted_01;
+
+   procedure Nonterm_Resume_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Test that resume_active is computed properly when the error is on a nonterm.
+
+      Parse_Text
+        ("procedure A is b : Int;" &
+           --      |10       |20
+           " Tree Tree : WisiToken.Syntax_Trees.Tree := C; begin null; end A;",
+         --  |25  |30       |40       |50       |60       |70
+         Edit_At        => 28,
+         Delete         => "",
+         Insert         => "e",
+         Initial_Errors => 1,
+         Incr_Errors    => 1);
+   end Nonterm_Resume_01;
 
    ----------
    --  Public subprograms
@@ -1508,6 +1526,7 @@ package body Test_Incremental is
       Register_Routine (T, Multiple_Errors_On_One_Token_2'Access, "Multiple_Errors_On_One_Token_2");
       Register_Routine (T, Non_Ascii'Access, "Non_Ascii");
       Register_Routine (T, Restore_Deleted_01'Access, "Restore_Deleted_01");
+      Register_Routine (T, Nonterm_Resume_01'Access, "Nonterm_Resume_01");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
