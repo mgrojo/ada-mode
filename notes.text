@@ -31,33 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-forbid push_back when not stack_matches_ops
-    t_mck lots failing
-    ada_mode-recover_45.adb encounters a bug in apply
-        (FAST_FORWARD, 1), (PUSH_BACK, END, -1) is actually an exact noop, so Push_Back should reset Stack_Matches_Ops to true, and it should apply the following DELETEs.
-        apply needs to save ff_start_index
-        reproduce in test_mck_recover?
-
-
-    found a different bug; push_back_2
-            (INSERT, EXIT, 3), (FAST_FORWARD, 6), (PUSH_BACK, END, 5), (PUSH_BACK, sequence_of_statements, 3), (INSERT, EXIT, 3)
-            ff, pb, pb is an exact noop; push_back_valid should be false
-            only encountered because pb cost is zero.
-
-    fixed push_back_valid logic; broke other t_mck tests
-
-commit
-run ada tests
-propagate to main
-
-add reference count to Element ; o.w.s-3
-    test_incremental.adb Edit_Code_03, Delete_New_Line assertion fail
-        not when run separately!?
-    ada_mode-interactive_01.adb Edit_Tree breakdown Find_Element Assert fail
-        not under debugger
-    ada_mode-interactive_02.adb
-        different errors in different runs
-
 test insert that modifies a comment start so it no longer is one
     ie "-- ..." => "- foo - ..."
     assume insert before/after delimiter cannot change it

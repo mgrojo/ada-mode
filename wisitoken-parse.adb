@@ -764,8 +764,13 @@ package body WisiToken.Parse is
                         --  Or it may be before a previous terminal; ada_mode-recover_09.adb.
                         --
                         --  Find a terminal to move Terminal_Non_Grammar to.
+                        if Next_Terminal = Invalid_Stream_Node_Ref then
+                           --  ada_mode-recover_partial_26.adb
+                           Next_Terminal := Terminal;
+                        end if;
                         loop
                            exit when Tree.Byte_Region (Next_Terminal.Node).First < Term_Non_Gramm_Region.First;
+                           exit when Tree.ID (Next_Terminal.Node) = Tree.Lexer.Descriptor.SOI_ID;
                            Tree.Prev_Terminal (Next_Terminal);
                         end loop;
                         Tree.Non_Grammar_Var (Next_Terminal.Node).Append (Terminal_Non_Grammar);
