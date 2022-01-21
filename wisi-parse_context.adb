@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2020, 2021 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020 - 2022 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -758,22 +758,26 @@ package body Wisi.Parse_Context is
       Saved_Tree : WisiToken.Syntax_Trees.Tree;
       Log_File   : Ada.Text_IO.File_Type; -- for Parse recover log; unused
    begin
-      if Parser.Tree.Has_Errors then
-         --  Compare can easily fail due to different error recover result
-         --  between full and partial parse.
-         return;
-      end if;
-
       Parser.Tree.Copy_Tree (Saved_Tree, Parser.User_Data);
       Parse_Data.Initialize (Parse_Data.Trace);
       Parse_Data.Reset;
       Parser.Tree.Lexer.Reset;
       Parser.Parse (Log_File);
-      WisiToken.Syntax_Trees.AUnit_Public.Check
-        ("", Saved_Tree, Parser.Tree,
-         Shared_Stream         => False,
-         Terminal_Node_Numbers => False);
-      Parse_Data.Trace.Put_Line ("compare tree/text pass");
+      if Parser.Tree.Has_Errors then
+         --  Compare can easily fail due to different error recover result
+         --  between full and incremental parse; assume it's ok.
+         return;
+      else
+         if Saved_Tree.Has_Errors then
+            Ada.Text_IO.Put_Line ("(error ""compare tree/text fail; incremental tree has errors"")");
+         else
+            WisiToken.Syntax_Trees.AUnit_Public.Check
+              ("", Saved_Tree, Parser.Tree,
+               Shared_Stream         => False,
+               Terminal_Node_Numbers => False);
+            Parse_Data.Trace.Put_Line ("compare tree/text pass");
+         end if;
+      end if;
    exception
    when AUnit.Assertions.Assertion_Error =>
       declare
