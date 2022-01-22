@@ -65,6 +65,7 @@
 %keyword PACKAGE "package"
 %keyword PROCEDURE "procedure"
 %keyword RANGE "range"
+%keyword RENAMES "renames"
 %keyword RETURN "return"
 %keyword RIGHT_PAREN ")"
 %keyword SEPARATE "separate"
@@ -173,11 +174,12 @@
 %conflict SHIFT generic_instantiation | REDUCE procedure_specification on token IS
 %end if
 
-%conflict SHIFT generic_instantiation | REDUCE parameter_profile_opt on token IS
-%conflict SHIFT subprogram_body_stub | REDUCE aspect_specification_opt on token IS
 %conflict REDUCE association_opt | REDUCE parameter_specification on token RIGHT_PAREN
 %conflict REDUCE discrete_subtype_definition | REDUCE range_list on token RIGHT_PAREN
 %conflict REDUCE primary | REDUCE subtype_indication on token RIGHT_PAREN
+%conflict SHIFT generic_instantiation | REDUCE parameter_profile_opt on token IS
+%conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list on token COLON (131)
+%conflict SHIFT subprogram_body_stub | REDUCE aspect_specification_opt on token IS
 
 ;;;; grammar rules
 
@@ -290,6 +292,7 @@ constraint
 declaration
   : body_g
   | object_declaration
+  | object_renaming_declaration
   | subprogram_declaration
   | type_declaration
   ;
@@ -302,6 +305,11 @@ declarations
 declarative_part
   : declarations
   | ;; empty
+  ;
+
+defining_identifier_list
+  : IDENTIFIER
+  | defining_identifier_list COMMA IDENTIFIER
   ;
 
 discrete_subtype_definition : subtype_indication | range_g ;
@@ -437,8 +445,12 @@ name_opt
   ;
 
 object_declaration
-  : IDENTIFIER COLON subtype_indication COLON_EQUAL expression SEMICOLON
-  | IDENTIFIER COLON subtype_indication SEMICOLON
+  : defining_identifier_list COLON subtype_indication COLON_EQUAL expression SEMICOLON
+  | defining_identifier_list COLON subtype_indication SEMICOLON
+  ;
+
+object_renaming_declaration
+  : IDENTIFIER COLON subtype_indication RENAMES name SEMICOLON
   ;
 
 package_body

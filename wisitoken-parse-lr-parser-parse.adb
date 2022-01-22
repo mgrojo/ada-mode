@@ -556,7 +556,9 @@ begin
                            begin
                               Trace.Put_Line
                                 (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
-                                   Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream)) & ": " &
+                                   (if Trace_Parse_No_State_Numbers
+                                    then "--"
+                                    else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream))) & ": " &
                                    Shared_Parser.Tree.Image
                                      (Shared_Parser.Tree.Current_Token (Parser_State.Stream),
                                       Terminal_Node_Numbers => True) & " : " &
