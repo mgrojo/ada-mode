@@ -106,6 +106,8 @@ OK test_incremental.adb : Multiple_Errors_On_One_Token_1
 OK test_incremental.adb : Multiple_Errors_On_One_Token_2
 OK test_incremental.adb : Non_Ascii
 OK test_incremental.adb : Restore_Deleted_01
+OK test_incremental.adb : Nonterm_Resume_01
+OK test_incremental.adb : Undo_Conflict_01
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
 OK test_mckenzie_recover.adb LALR : No_Error
 OK test_mckenzie_recover.adb LALR : Empty_Comments
@@ -245,7 +247,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   245
-Successful Tests:  245
+Total Tests Run:   247
+Successful Tests:  247
 Failed Assertions: 0
 Unexpected Errors: 0

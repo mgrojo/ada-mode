@@ -31,8 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-add test for ada_mode-interactive_15.adb
-
 test insert that modifies a comment start so it no longer is one
     ie "-- ..." => "- foo - ..."
     assume insert before/after delimiter cannot change it

@@ -1465,6 +1465,23 @@ package body Test_Incremental is
          Incr_Errors    => 1);
    end Nonterm_Resume_01;
 
+   procedure Undo_Conflict_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Requires Edit_Tree to breakdown nonterms marked Recover_Conflict.
+      --  Simplified from ada_mode-interactive_15.adb.
+
+      Parse_Text
+        ("procedure A is P : S; C : N begin null; end A;",
+         --   |5   |10       |20       |30
+         Edit_At        => 29,
+         Delete         => "",
+         Insert         => "renames B; ",
+         Initial_Errors => 1,
+         Incr_Errors    => 0);
+   end Undo_Conflict_01;
+
    ----------
    --  Public subprograms
 
@@ -1527,6 +1544,7 @@ package body Test_Incremental is
       Register_Routine (T, Non_Ascii'Access, "Non_Ascii");
       Register_Routine (T, Restore_Deleted_01'Access, "Restore_Deleted_01");
       Register_Routine (T, Nonterm_Resume_01'Access, "Nonterm_Resume_01");
+      Register_Routine (T, Undo_Conflict_01'Access, "Undo_Conflict_01");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

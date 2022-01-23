@@ -615,7 +615,7 @@ package body WisiToken.Parse is
                     (Tree.Get_Node (Terminal.Stream, Terminal.Element), Node_Numbers => True) &
                     " target " & Tree.Image (Terminal.Node, Node_Numbers => True));
             end if;
-            Tree.Breakdown (Terminal, Parser.User_Data);
+            Tree.Breakdown (Terminal, Parser.User_Data, First_Terminal => True);
 
             if To_Single and then Tree.Label (Terminal.Element) = Nonterm then
                Tree.Left_Breakdown (Terminal, Parser.User_Data);
@@ -636,8 +636,87 @@ package body WisiToken.Parse is
 
       Stream := Tree.Shared_Stream;
 
-      --  First undo all error recover insert/delete, in case this is needed
-      --  as part of an edit in another place; test_incremental.adb
+      --  Breakdown Recover_Conflict nonterms. Nonterms are marked
+      --  Recover_Conflict when the initial parse resolves a conflict during
+      --  error recovery; a subseuent edit may require a different conflict
+      --  resolution. We breakdown all the way to terminals, because some of
+      --  the children may be nonterms that were created before the error
+      --  was detected, but need to change. test_incremental.adb
+      --  Undo_Conflict_01.
+      --
+      --  We must do this before Undo_Recover, because that might breakdown
+      --  a Recover_Conflict node.
+      declare
+         Ref          : Stream_Node_Ref := Tree.First_Recover_Conflict;
+         To_Breakdown : Stream_Node_Ref;
+      begin
+         Breakdown_Recover_Conflict :
+         loop
+            exit Breakdown_Recover_Conflict when Ref = Invalid_Stream_Node_Ref;
+
+            if Tree.Label (Ref.Node) = Nonterm and then Tree.Child_Count (Ref.Node) = 0 then
+               if Trace_Incremental_Parse > Detail then
+                  Parser.Trace.Put_Line
+                    ("delete empty recover_conflict node " & Tree.Image (Ref.Node, Node_Numbers => True));
+               end if;
+
+               declare
+                  To_Delete : Stream_Index := Ref.Element;
+               begin
+                  Tree.Stream_Next (Ref, Rooted => True);
+                  Tree.Stream_Delete (Stream, To_Delete);
+               end;
+
+            else
+               if Trace_Incremental_Parse > Detail then
+                  Parser.Trace.Put_Line
+                    ("breakdown recover_conflict node " & Tree.Image (Ref, Node_Numbers => True));
+               end if;
+
+               Tree.Breakdown (Ref, Parser.User_Data, First_Terminal => False);
+               To_Breakdown := Ref;
+               Tree.First_Terminal (To_Breakdown);
+               Tree.Stream_Next (Ref, Rooted => True);
+
+               To_Terminals :
+               loop
+                  if Trace_Incremental_Parse > Extra then
+                     Parser.Trace.Put_Line
+                       ("... to_breakdown " & Tree.Image (To_Breakdown, Node_Numbers => True));
+                  end if;
+
+                  if Tree.Label (To_Breakdown.Element) = Nonterm then
+                     if Tree.Child_Count (Tree.Get_Node (Stream, To_Breakdown.Element)) = 0 then
+                        declare
+                           To_Delete : Stream_Index := To_Breakdown.Element;
+                        begin
+                           Tree.Stream_Next (To_Breakdown, Rooted => False);
+                           Tree.Stream_Delete (Stream, To_Delete);
+                        end;
+                     else
+                        Tree.Left_Breakdown (To_Breakdown, Parser.User_Data);
+                        Tree.Stream_Next (To_Breakdown, Rooted => False);
+                     end if;
+                     if Trace_Incremental_Parse > Extra then
+                        Parser.Trace.Put_Line
+                          ("... stream " & Tree.Image (Stream, Node_Numbers => True));
+                     end if;
+
+                  else
+                     Tree.Stream_Next (To_Breakdown, Rooted => False);
+                  end if;
+                  exit To_Terminals when To_Breakdown.Element = Ref.Element;
+               end loop To_Terminals;
+
+               To_Breakdown := Invalid_Stream_Node_Ref;
+            end if;
+
+            Tree.First_Recover_Conflict (Ref);
+         end loop Breakdown_Recover_Conflict;
+      end;
+
+      --  Undo all error recover insert/delete, in case this is needed as
+      --  part of an edit in another place; test_incremental.adb
       --  Preserve_Parse_Errors_2.
       --
       --  IMPROVEME incremental: This algorithm visits every terminal; not
