@@ -50,7 +50,8 @@ package body WisiToken.Parse.LR.Parser is
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
 
       Nonterm : constant Syntax_Trees.Rooted_Ref := Shared_Parser.Tree.Reduce
-        (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Post_Parse_Action, New_State);
+        (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Post_Parse_Action, New_State,
+         Recover_Conflict => Parser_State.Resume_Active and Shared_Parser.Parsers.Count > 1);
    begin
       if Trace_Parse > Detail then
          Shared_Parser.Trace.Put_Line

@@ -199,7 +199,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                      (+SEMICOLON_ID,
                       (if Tree.Element_ID (Config.Error_Token) = +block_statement_ID
                        then +identifier_opt_ID
-                       else +name_opt_ID)));
+                       else +name_opt_ID)),
+                     Push_Back_Undo_Reduce => True);
 
                   if New_Config.Stack.Peek (1).Token.Virtual then
                      --  'end' is on top of stack. We want to set Current_Shared_Token to
@@ -212,7 +213,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                      return;
                   end if;
 
-                  Push_Back_Check (Super, New_Config, +END_ID);
+                  Push_Back_Check (Super, New_Config, +END_ID, Push_Back_Undo_Reduce => True);
                   Insert (Super, New_Config, (+END_ID, +SEMICOLON_ID));
 
                   Local_Config_Heap.Add (New_Config);
@@ -305,7 +306,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                    (if Tree.Element_ID (Config.Error_Token) = +block_statement_ID
                     then +identifier_opt_ID
                     else +name_opt_ID),
-                   +END_ID));
+                   +END_ID),
+                  Push_Back_Undo_Reduce => True);
 
                Undo_Reduce_Check
                  (Super, Parse_Table, New_Config,
@@ -346,7 +348,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                    (if Tree.Element_ID (Config.Error_Token) = +block_statement_ID
                     then +identifier_opt_ID
                     else +name_opt_ID),
-                   +END_ID, +handled_sequence_of_statements_ID));
+                   +END_ID, +handled_sequence_of_statements_ID),
+                  Push_Back_Undo_Reduce => True);
 
                Insert (Super, New_Config, +BEGIN_ID);
 
@@ -471,7 +474,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                      (if Tree.Element_ID (Config.Error_Token) = +block_statement_ID
                       then +identifier_opt_ID
                       else +name_opt_ID),
-                      +END_ID));
+                      +END_ID),
+                     Push_Back_Undo_Reduce => True);
 
                   if Tree.Element_ID (New_Config.Stack.Peek.Token) = +BEGIN_ID then
                      --  test_mckenzie_recover.adb Extra_Name_1.
@@ -557,7 +561,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
             begin
                New_Config_1.Error_Token := Invalid_Recover_Token;
 
-               Push_Back_Check (Super, New_Config_1, (+IDENTIFIER_ID, +END_ID));
+               Push_Back_Check (Super, New_Config_1, (+IDENTIFIER_ID, +END_ID), Push_Back_Undo_Reduce => True);
 
                case To_Token_Enum (Tree.Element_ID (New_Config_1.Stack.Peek (3).Token)) is
                when block_label_opt_ID =>
@@ -579,7 +583,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
                   Push_Back_Check
                     (Super, New_Config_1,
-                     (+handled_sequence_of_statements_ID, +BEGIN_ID, +block_label_opt_ID));
+                     (+handled_sequence_of_statements_ID, +BEGIN_ID, +block_label_opt_ID),
+                     Push_Back_Undo_Reduce => True);
                   Insert (Super, New_Config_1, (+END_ID, +SEMICOLON_ID));
 
                when declarative_part_ID =>

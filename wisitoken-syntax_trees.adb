@@ -119,6 +119,8 @@ package body WisiToken.Syntax_Trees is
      (Tree    : in     Syntax_Trees.Tree;
       Ref     : in out Stream_Node_Ref);
 
+   procedure Next_Nonterm (Tree : in Syntax_Trees.Tree; Ref : in out Stream_Node_Ref);
+
    function Next_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
       Ref                  : in Stream_Node_Ref;
@@ -389,23 +391,25 @@ package body WisiToken.Syntax_Trees is
    end Add_Identifier;
 
    function Add_Nonterm_1
-     (Tree          : in out Syntax_Trees.Tree;
-      Production    : in     WisiToken.Production_ID;
-      Children      : in     Valid_Node_Access_Array;
-      Action        : in     Post_Parse_Action;
-      Clear_Parents : in     Boolean)
+     (Tree             : in out Syntax_Trees.Tree;
+      Production       : in     WisiToken.Production_ID;
+      Children         : in     Valid_Node_Access_Array;
+      Action           : in     Post_Parse_Action;
+      Clear_Parents    : in     Boolean;
+      Recover_Conflict : in     Boolean)
      return Valid_Node_Access
    is
       Nonterm_Node : constant Valid_Node_Access := new Node'
-        (Label       => Syntax_Trees.Nonterm,
-         Child_Count => Children'Last,
-         ID          => Production.LHS,
-         Node_Index  => -(Tree.Nodes.Last_Index + 1),
-         Children    => To_Node_Access (Children),
-         Action      => Action,
-         RHS_Index   => Production.RHS,
-         Virtual     => False,
-         others      => <>);
+        (Label            => Syntax_Trees.Nonterm,
+         Child_Count      => Children'Last,
+         ID               => Production.LHS,
+         Node_Index       => -(Tree.Nodes.Last_Index + 1),
+         Children         => To_Node_Access (Children),
+         Action           => Action,
+         RHS_Index        => Production.RHS,
+         Virtual          => False,
+         Recover_Conflict => Recover_Conflict,
+         others           => <>);
    begin
       Tree.Nodes.Append (Nonterm_Node);
 
@@ -453,7 +457,7 @@ package body WisiToken.Syntax_Trees is
       Action        : in     Post_Parse_Action := null)
      return Valid_Node_Access
    is begin
-      return Add_Nonterm_1 (Tree, Production, Children, Action, Clear_Parents);
+      return Add_Nonterm_1 (Tree, Production, Children, Action, Clear_Parents, Recover_Conflict => False);
    end Add_Nonterm;
 
    function Add_Source_Terminal_1
@@ -573,9 +577,10 @@ package body WisiToken.Syntax_Trees is
    end Augmented_Const;
 
    procedure Breakdown
-     (Tree      : in out Syntax_Trees.Tree;
-      Ref       : in out Stream_Node_Parents;
-      User_Data : in     Syntax_Trees.User_Data_Access)
+     (Tree           : in out Syntax_Trees.Tree;
+      Ref            : in out Stream_Node_Parents;
+      User_Data      : in     Syntax_Trees.User_Data_Access;
+      First_Terminal : in     Boolean)
    is
       use Stream_Element_Lists;
       Stream    : Syntax_Trees.Parse_Stream renames Tree.Streams (Ref.Ref.Stream.Cur);
@@ -672,7 +677,10 @@ package body WisiToken.Syntax_Trees is
             pragma Assert (Node.Label = Nonterm);
             pragma Assert (Node.Child_Count > 0); -- otherwise we would not get here.
 
-            exit Undo_Reduce_Loop when Tree.First_Terminal (Node) = Target;
+            exit Undo_Reduce_Loop when
+              (if First_Terminal
+               then Tree.First_Terminal (Node) = Target
+               else Node = Target);
 
             for I in reverse 1 .. Node.Child_Count loop
                Cur := Stream.Elements.Insert
@@ -720,14 +728,15 @@ package body WisiToken.Syntax_Trees is
    end Breakdown;
 
    procedure Breakdown
-     (Tree      : in out Syntax_Trees.Tree;
-      Ref       : in out Terminal_Ref;
-      User_Data : in     Syntax_Trees.User_Data_Access)
+     (Tree           : in out Syntax_Trees.Tree;
+      Ref            : in out Stream_Node_Ref;
+      User_Data      : in     Syntax_Trees.User_Data_Access;
+      First_Terminal : in     Boolean)
    is
       Ref_Parents : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Ref);
    begin
       Ref := Invalid_Stream_Node_Ref; --  Allow Delete Ref.Element.
-      Breakdown (Tree, Ref_Parents, User_Data);
+      Breakdown (Tree, Ref_Parents, User_Data, First_Terminal);
       Ref := Ref_Parents.Ref;
    end Breakdown;
 
@@ -1333,12 +1342,13 @@ package body WisiToken.Syntax_Trees is
               (if Tree.Root.Error_List = null
                then null
                else new Error_Data_Lists.List'(Tree.Root.Error_List.all)),
-            Virtual     => Tree.Root.Virtual,
-            RHS_Index   => Tree.Root.RHS_Index,
-            Action      => Tree.Root.Action,
-            Name_Offset => Tree.Root.Name_Offset,
-            Name_Length => Tree.Root.Name_Length,
-            Children    => New_Children);
+            Virtual          => Tree.Root.Virtual,
+            Recover_Conflict => False,
+            RHS_Index        => Tree.Root.RHS_Index,
+            Action           => Tree.Root.Action,
+            Name_Offset      => Tree.Root.Name_Offset,
+            Name_Length      => Tree.Root.Name_Length,
+            Children         => New_Children);
 
          for Child of New_Children loop
             Child.Parent := Tree.Root;
@@ -1669,13 +1679,14 @@ package body WisiToken.Syntax_Trees is
                  (if Node.Augmented = null or User_Data = null
                   then null
                   else Copy_Augmented (User_Data.all, Node.Augmented)),
-               Error_List  => New_Error_List,
-               Virtual     => Node.Virtual,
-               RHS_Index   => Node.RHS_Index,
-               Action      => Node.Action,
-               Name_Offset => Node.Name_Offset,
-               Name_Length => Node.Name_Length,
-               Children    => New_Children);
+               Error_List       => New_Error_List,
+               Virtual          => Node.Virtual,
+               Recover_Conflict => Node.Recover_Conflict,
+               RHS_Index        => Node.RHS_Index,
+               Action           => Node.Action,
+               Name_Offset      => Node.Name_Offset,
+               Name_Length      => Node.Name_Length,
+               Children         => New_Children);
 
             if Copy_Children then
                pragma Assert (Tree.Parents_Set);
@@ -1812,13 +1823,14 @@ package body WisiToken.Syntax_Trees is
                     (if Source_Node.Augmented = null or User_Data = null
                      then null
                      else Copy_Augmented (User_Data.all, Source_Node.Augmented)),
-                  Error_List             => Copy_Errors,
-                  Virtual                => Source_Node.Virtual,
-                  RHS_Index              => Source_Node.RHS_Index,
-                  Action                 => Source_Node.Action,
-                  Name_Offset            => Source_Node.Name_Offset,
-                  Name_Length            => Source_Node.Name_Length,
-                  Children               => New_Children);
+                  Error_List       => Copy_Errors,
+                  Virtual          => Source_Node.Virtual,
+                  Recover_Conflict => Source_Node.Recover_Conflict,
+                  RHS_Index        => Source_Node.RHS_Index,
+                  Action           => Source_Node.Action,
+                  Name_Offset      => Source_Node.Name_Offset,
+                  Name_Length      => Source_Node.Name_Length,
+                  Children         => New_Children);
 
                for Child of New_Dest_Node.Children loop
                   Child.Parent := New_Dest_Node;
@@ -3174,6 +3186,27 @@ package body WisiToken.Syntax_Trees is
       return (Cur => Parse_Stream_Lists.Next (Tree.Shared_Stream.Cur));
    end First_Parse_Stream;
 
+   procedure First_Recover_Conflict (Tree : in Syntax_Trees.Tree; Ref : in out Stream_Node_Ref)
+   is begin
+      loop
+         exit when Ref = Invalid_Stream_Node_Ref;
+         exit when Ref.Node.Label = Nonterm and then Ref.Node.Recover_Conflict;
+
+         Next_Nonterm (Tree, Ref);
+      end loop;
+   end First_Recover_Conflict;
+
+   function First_Recover_Conflict (Tree : in Syntax_Trees.Tree) return Stream_Node_Ref
+   is begin
+      return Result : Stream_Node_Ref :=
+        (Stream  => Tree.Shared_Stream,
+         Element => (Cur => Tree.Streams (Tree.Shared_Stream.Cur).Elements.First),
+         Node    => Tree.SOI)
+      do
+         First_Recover_Conflict (Tree, Result);
+      end return;
+   end First_Recover_Conflict;
+
    function First_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
@@ -4109,6 +4142,10 @@ package body WisiToken.Syntax_Trees is
                Result := @ & Image_Action (Node.Action);
             end if;
 
+            if (Node_Numbers and Node.Label = Nonterm) and then Node.Recover_Conflict then
+               Append (Result, " recover_conflict");
+            end if;
+
             if Node.Error_List /= null then
                if Expecting then
                   for Err of Node.Error_List.all loop
@@ -4230,6 +4267,7 @@ package body WisiToken.Syntax_Trees is
                else ", " & Image
                  (Tree,
                   Ref.Node,
+                  Node_Numbers          => Node_Numbers,
                   Terminal_Node_Numbers => True,
                   Line_Numbers          => Line_Numbers,
                   Non_Grammar           => Non_Grammar,
@@ -5674,6 +5712,71 @@ package body WisiToken.Syntax_Trees is
       end loop;
    end Next_Non_Grammar;
 
+   procedure Next_Nonterm (Tree : in Syntax_Trees.Tree; Ref : in out Stream_Node_Ref)
+   is
+      procedure Next_Sibling
+      is begin
+         loop
+            if Ref.Node.Parent = Invalid_Node_Access then
+               loop
+                  Stream_Next (Tree, Ref, Rooted => True);
+                  if Ref = Invalid_Stream_Node_Ref then
+                     return;
+
+                  elsif Ref.Node.ID = Tree.Lexer.Descriptor.EOI_ID then
+                     Ref := Invalid_Stream_Node_Ref;
+                     return;
+                  elsif Ref.Node.Label = Nonterm then
+                     return;
+                  else
+                     null;
+                  end if;
+               end loop;
+            else
+               declare
+                  Child_Index : constant Positive_Index_Type := Syntax_Trees.Child_Index
+                    (Ref.Node.Parent.all, Ref.Node);
+               begin
+                  if Child_Index = Ref.Node.Parent.Child_Count then
+                     Ref.Node := Ref.Node.Parent;
+                  else
+                     for I in Child_Index + 1 .. Ref.Node.Parent.Child_Count loop
+                        if Ref.Node.Parent.Children (I).ID = Tree.Lexer.Descriptor.EOI_ID then
+                           Ref := Invalid_Stream_Node_Ref;
+                           return;
+                        elsif Ref.Node.Parent.Children (I).Label = Nonterm then
+                           Ref.Node := Ref.Node.Parent.Children (I);
+                           return;
+                        end if;
+                     end loop;
+                     Ref.Node := Ref.Node.Parent;
+                  end if;
+               end;
+            end if;
+         end loop;
+      end Next_Sibling;
+
+   begin
+      case Ref.Node.Label is
+      when Terminal_Label =>
+         Next_Sibling;
+
+      when Nonterm =>
+         if Ref.Node.Child_Count > 0 then
+            for N of Ref.Node.Children loop
+               if N.ID = Tree.Lexer.Descriptor.EOI_ID then
+                  Ref := Invalid_Stream_Node_Ref;
+                  return;
+               elsif N.Label = Nonterm then
+                  Ref.Node := N;
+                  return;
+               end if;
+            end loop;
+         end if;
+         Next_Sibling;
+      end case;
+   end Next_Nonterm;
+
    procedure Next_Parse_Stream (Tree : in Syntax_Trees.Tree; Stream : in out Stream_ID)
    is begin
       Parse_Stream_Lists.Next (Stream.Cur);
@@ -6589,7 +6692,6 @@ package body WisiToken.Syntax_Trees is
       end loop;
    end Print_Ref_Counts;
 
-
    procedure Print_Streams
      (Tree        : in     Syntax_Trees.Tree;
       Trace       : in out WisiToken.Trace'Class;
@@ -6799,13 +6901,19 @@ package body WisiToken.Syntax_Trees is
       --  This does not change Parse_Stream.Shared_Link
    end Push_Back;
 
+   function Recover_Conflict (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
+   is begin
+      return Node.Recover_Conflict;
+   end Recover_Conflict;
+
    function Reduce
-     (Tree        : in out Syntax_Trees.Tree;
-      Stream      : in     Stream_ID;
-      Production  : in     WisiToken.Production_ID;
-      Child_Count : in     Ada.Containers.Count_Type;
-      Action      : in     Post_Parse_Action := null;
-      State       : in     State_Index)
+     (Tree             : in out Syntax_Trees.Tree;
+      Stream           : in     Stream_ID;
+      Production       : in     WisiToken.Production_ID;
+      Child_Count      : in     Ada.Containers.Count_Type;
+      Action           : in     Post_Parse_Action := null;
+      State            : in     State_Index;
+      Recover_Conflict : in     Boolean)
      return Rooted_Ref
    is
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
@@ -6821,7 +6929,7 @@ package body WisiToken.Syntax_Trees is
       end Pop_Children;
 
       New_Node : constant Node_Access := Tree.Add_Nonterm_1
-        (Production, Pop_Children, Action, Clear_Parents => False);
+        (Production, Pop_Children, Action, Clear_Parents => False, Recover_Conflict => Recover_Conflict);
    begin
       return Push (Parse_Stream, Stream, New_Node, State);
    end Reduce;
@@ -6948,12 +7056,13 @@ package body WisiToken.Syntax_Trees is
                  (if Parent.Error_List = null
                   then null
                   else new Error_Data_Lists.List'(Parent.Error_List.all)),
-               Virtual     => False,
-               RHS_Index   => Parent.RHS_Index,
-               Action      => Parent.Action,
-               Name_Offset => Parent.Name_Offset,
-               Name_Length => Parent.Name_Length,
-               Children    => Children);
+               Virtual          => False,
+               Recover_Conflict => Parent.Recover_Conflict,
+               RHS_Index        => Parent.RHS_Index,
+               Action           => Parent.Action,
+               Name_Offset      => Parent.Name_Offset,
+               Name_Length      => Parent.Name_Length,
+               Children         => Children);
          begin
             Tree.Nodes.Append (Realloc_Parent);
 
@@ -7119,7 +7228,6 @@ package body WisiToken.Syntax_Trees is
          Tree.Root := New_Root;
       else
          declare
-
             function Create_New_Children return Node_Access_Array
             is
                Last : Positive_Index_Type := New_Root.Children'Last;
@@ -7151,12 +7259,13 @@ package body WisiToken.Syntax_Trees is
                  (if New_Root.Error_List = null
                   then null
                   else new Error_Data_Lists.List'(New_Root.Error_List.all)),
-               Virtual     => New_Root.Virtual,
-               RHS_Index   => New_Root.RHS_Index,
-               Action      => New_Root.Action,
-               Name_Offset => New_Root.Name_Offset,
-               Name_Length => New_Root.Name_Length,
-               Children    => New_Children);
+               Virtual          => New_Root.Virtual,
+               Recover_Conflict => New_Root.Recover_Conflict,
+               RHS_Index        => New_Root.RHS_Index,
+               Action           => New_Root.Action,
+               Name_Offset      => New_Root.Name_Offset,
+               Name_Length      => New_Root.Name_Length,
+               Children         => New_Children);
 
             for Child of New_Children loop
                Child.Parent := Tree.Root;
@@ -7334,12 +7443,13 @@ package body WisiToken.Syntax_Trees is
               (if Tree.Root.Error_List = null
                then null
                else new Error_Data_Lists.List'(Tree.Root.Error_List.all)),
-            Virtual     => Tree.Root.Virtual,
-            RHS_Index   => Tree.Root.RHS_Index,
-            Action      => Tree.Root.Action,
-            Name_Offset => Tree.Root.Name_Offset,
-            Name_Length => Tree.Root.Name_Length,
-            Children    => New_Children);
+            Virtual          => Tree.Root.Virtual,
+            Recover_Conflict => Tree.Root.Recover_Conflict,
+            RHS_Index        => Tree.Root.RHS_Index,
+            Action           => Tree.Root.Action,
+            Name_Offset      => Tree.Root.Name_Offset,
+            Name_Length      => Tree.Root.Name_Length,
+            Children         => New_Children);
 
          for Child of New_Children loop
             Child.Parent := Tree.Root;

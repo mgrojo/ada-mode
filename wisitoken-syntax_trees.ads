@@ -696,12 +696,13 @@ package WisiToken.Syntax_Trees is
    --  shared stream.
 
    function Reduce
-     (Tree        : in out Syntax_Trees.Tree;
-      Stream      : in     Stream_ID;
-      Production  : in     WisiToken.Production_ID;
-      Child_Count : in     Ada.Containers.Count_Type;
-      Action      : in     Post_Parse_Action := null;
-      State       : in     State_Index)
+     (Tree             : in out Syntax_Trees.Tree;
+      Stream           : in     Stream_ID;
+      Production       : in     WisiToken.Production_ID;
+      Child_Count      : in     Ada.Containers.Count_Type;
+      Action           : in     Post_Parse_Action := null;
+      State            : in     State_Index;
+      Recover_Conflict : in     Boolean)
      return Rooted_Ref
    with Pre => not Tree.Traversing and not Tree.Parents_Set and Tree.Is_Valid (Stream) and Stream /= Tree.Shared_Stream,
      Post => Reduce'Result.Stream = Stream and Tree.Valid_Stream_Node (Reduce'Result);
@@ -711,6 +712,8 @@ package WisiToken.Syntax_Trees is
    --
    --  Set Result byte_region, char_region, line, column,
    --  first_terminal to min/max of children.
+   --
+   --  See comment in 'type Node' below for Recover_Conflict.
 
    procedure Shift
      (Tree   : in out Syntax_Trees.Tree;
@@ -763,18 +766,26 @@ package WisiToken.Syntax_Trees is
    --  after Last.
 
    procedure Breakdown
-     (Tree      : in out Syntax_Trees.Tree;
-      Ref       : in out Stream_Node_Parents;
-      User_Data : in     Syntax_Trees.User_Data_Access)
+     (Tree           : in out Syntax_Trees.Tree;
+      Ref            : in out Stream_Node_Parents;
+      User_Data      : in     Syntax_Trees.User_Data_Access;
+      First_Terminal : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref) and
                Tree.Label (Ref.Ref.Element) = Nonterm and Ref.Ref.Node /= Invalid_Node_Access and
                Tree.Stack_Top (Ref.Ref.Stream) /= Ref.Ref.Element,
-     Post => Parents_Valid (Ref) and Tree.Valid_Terminal (Ref.Ref) and
-             Tree.First_Terminal (Get_Node (Ref.Ref.Element)) = Ref.Ref.Node;
-   --  Bring descendants of Ref.Element to the parse stream, until
-   --  First_Terminal of one of the parse stream elements = Ref.Node.
-   --  Ref.Element is updated to the element whose first terminal is
-   --  (a copy of) Ref.Node.
+     Post => Parents_Valid (Ref) and
+             (if First_Terminal
+              then Tree.Valid_Terminal (Ref.Ref)
+              else Valid_Stream_Node (Tree, Ref.Ref))
+             and Ref.Ref.Node =
+             (if First_Terminal
+              then Tree.First_Terminal (Get_Node (Ref.Ref.Element))
+              else Get_Node (Ref.Ref.Element));
+   --  Bring descendants of Ref.Element to the parse stream. If
+   --  First_Terminal, stop when First_Terminal of one of the parse
+   --  stream elements = Ref.Node; otherwise stop when one of the element
+   --  nodes = Ref.Node. Ref.Element is updated to the terminating
+   --  element.
    --
    --  If Ref.Parents nonterms contain any errors, the errors are moved to
    --  the first terminal of that nonterm, copying ancestor nodes, and
@@ -786,13 +797,14 @@ package WisiToken.Syntax_Trees is
    --  Parent/child links are set to Invalid_Node_Access as appropriate.
 
    procedure Breakdown
-     (Tree      : in out Syntax_Trees.Tree;
-      Ref       : in out Terminal_Ref;
-      User_Data : in     User_Data_Access)
+     (Tree           : in out Syntax_Trees.Tree;
+      Ref            : in out Stream_Node_Ref;
+      User_Data      : in     User_Data_Access;
+      First_Terminal : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
                Ref.Node /= Invalid_Node_Access and
                Tree.Stack_Top (Ref.Stream) /= Ref.Element,
-     Post => Tree.First_Terminal (Get_Node (Ref.Element)) = Ref.Node;
+     Post => Valid_Stream_Node (Tree, Ref);
    --  Same as Breakdown (Stream_Node_Parents), but supports not
    --  Tree.Parents_Set, using an internal Stream_Node_Parent.
 
@@ -1144,6 +1156,9 @@ package WisiToken.Syntax_Trees is
    --  and thus have an empty Buffer_Region for Byte_ and Char_Region.
 
    function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
+   function Recover_Conflict (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
+   with Pre => Tree.Label (Node) = Nonterm;
+
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
    procedure Set_Insert_Location
@@ -2246,6 +2261,17 @@ package WisiToken.Syntax_Trees is
    --  Clear_Children should be False unless Tree is Editable or Node is
    --  in Shared_Stream.
 
+   function First_Recover_Conflict (Tree : in Syntax_Trees.Tree) return Stream_Node_Ref
+   with
+     Pre  => Tree.Parents_Set,
+     Post => First_Recover_Conflict'Result = Invalid_Stream_Node_Ref or else
+             Tree.Recover_Conflict (First_Recover_Conflict'Result.Node);
+   --  First recover conflict node in Tree; Invalid_Stream_Node_Ref if none.
+
+   procedure First_Recover_Conflict (Tree : in Syntax_Trees.Tree; Ref : in out Stream_Node_Ref)
+   with Pre => Tree.Parents_Set;
+   --  First recover conflict node at or after Ref; Invalid_Stream_Ref if none.
+
    ----------
    --  Accessing parse errors
 
@@ -2708,6 +2734,13 @@ private
          --  True if any child node is Virtual_Terminal or Nonterm with Virtual
          --  set. Used by In_Parse_Actions and error recover, via
          --  Contains_Virtual_Terminal.
+
+         Recover_Conflict : Boolean := False;
+         --  True if this node is created during error recover Resume when more
+         --  than one parser is active, due to a grammar conflict. Edit_Tree
+         --  must breakdown this node to redo the conflict resolution; the
+         --  correct resolution may require a different branch.
+         --  test_incremental.adb Undo_Conflict_01.
 
          RHS_Index : Natural;
          --  With ID, index into Productions.
