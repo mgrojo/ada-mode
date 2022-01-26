@@ -445,6 +445,24 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
         0.122274622, 0.04 seconds faster; not worth it
         memory: high 81_672_136 current 12_410_052
 
+    18 Jan 2022 syntax_trees stream_element_lists ref_count; all tests passing
+        ;; parser 2: State 19294 Current_Token (2, 2;65:(LEFT_PAREN, (1122 . 1122) ERROR))
+        ;;  2: succeed 3, enqueue 183, check  20, cost:  2
+        0.005705628, 0.003898902
+
+        ;; parser 6: State 4093 Current_Token (6, 2;69:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;;  6: succeed 10, enqueue 5667, check  500, cost:  3
+        ;; parser 5: State 2160 Current_Token (5, 2;70:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;;  5: succeed 1, enqueue 21998, check  1761, cost:  4
+        ;; parser 4: State 2157 Current_Token (4, 2;71:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;;  4: succeed 1, enqueue 16623, check  1326, cost:  3
+        ;; parser 3: State 4092 Current_Token (3, 2;72:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;;  3: succeed 10, enqueue 5664, check  500, cost:  3
+        ;; parser 2: State 2483 Current_Token (2, 2;73:(RIGHT_PAREN, (1169 . 1169) ERROR))
+        ;;  2: succeed 4, enqueue 2838, check  248, cost:  3
+        0.723593680, 0.718634909
+        memory: high 401_146_984, 401_116_048 current 101_568, 101_568
+
  navigate, face, indent
     make -r benchmark RUN_ARGS="c:/eurocontrol/gnatcoll-xref.adb"
     make -r benchmark RUN_ARGS="c:/Projects/org.emacs.ada-mode/test/ada_mode.ads"
@@ -599,6 +617,24 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
                   abs high 105_140 current 101_908
 
             emacs memory: 18.2 MB
+
+    18 Jan 2022 syntax_trees stream_element_lists ref_count; all tests passing
+        gnatcoll-xref.adb:
+            memory: delta high 19072116 current 16729224 abs high 19072116 current 16729224
+            partial parse:
+                navigate    1.794680 seconds 7 gcs 6240 responses 0.834100 wait
+                face        1.779701 seconds 6 gcs 2149 responses 0.841272 wait
+                indent      3.634572 seconds 6 gcs 7252 responses 2.543252 wait
+                re-indent   0.022114 seconds 0 gcs 12 responses 0.016725 wait
+                recover     0.021034 seconds 0 gcs 25 responses 0.080868 wait
+                memory: delta high 11076596 current 18446744073706405312 abs high 30148712 current 13582920
+
+            incremental parse:
+                initial     1.273012 seconds 0 gcs 0 responses 0.662294 wait
+                memory: delta high 2118284 current 15966300 abs high 32266996 current 29549220
+                re-indent   0.048352 seconds 0 gcs 2 responses 0.004485 wait
+                memory: delta high 0 current 1480 abs high 32266996 current 29550700
+                recover     0.035123 seconds 0 gcs 2 responses 0.003822 wait
 
 
 ;; FIXME: find a fontified word, time re-fontify

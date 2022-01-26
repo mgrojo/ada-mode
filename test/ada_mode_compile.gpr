@@ -33,9 +33,9 @@ project Ada_Mode_Compile is
       "ada_mode-interactive_09.adb",
       "ada_mode-interactive_10.adb",
       "ada_mode-interactive_11.adb",
-      "ada_mode-interactive_12.adb",
       "ada_mode-interactive_13.adb",
       "ada_mode-interactive_14.adb",
+      "ada_mode-interactive_15.adb",
 
       -- These have incomplete code for various reasons
       "ada_mode-incremental_01.adb",

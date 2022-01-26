@@ -17,7 +17,7 @@
 --
 --  Does not compile.
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -170,5 +170,4 @@ package body Ada_Mode.Recover_Match_Names is
 end Ada_Mode.Recover_Match_Names;
 -- Local Variables:
 -- ada-end-name-optional: nil
--- compare-tree-text: nil
 -- End:

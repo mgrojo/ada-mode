@@ -54,5 +54,4 @@ end Wisi.Libadalang;
 -- Local Variables:
 -- wisi-mckenzie-task-count: 1
 -- ada-end-name-optional: nil
--- compare-tree-text: nil
 -- End:
