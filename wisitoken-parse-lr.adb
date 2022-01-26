@@ -766,7 +766,7 @@ package body WisiToken.Parse.LR is
          when Insert =>
            (if Item.Ins_Node = Invalid_Node_Access
             then Image (Item.Ins_ID, Tree.Lexer.Descriptor.all)
-            else Tree.Image (Item.Ins_Node, Terminal_Node_Numbers => True)) &
+            else Tree.Image (Item.Ins_Node)) &
               "," & Item.Ins_Before'Image,
          when Delete =>
            (if Item.Del_Node = Invalid_Node_Access

@@ -2059,8 +2059,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Parse.Do_Delete (Super.Tree.all, New_Config);
 
          declare
-            Node : constant Syntax_Trees.Valid_Node_Access := Parse.Peek_Current_First_Sequential_Terminal
-              (Super, New_Config);
+            Node : constant Syntax_Trees.Valid_Node_Access := Parse.Peek_Current_First_Terminal
+              (Super.Tree.all, New_Config);
             New_Next_Index : Syntax_Trees.Sequential_Index;
          begin
             Base.Extend_Sequential_Index (Super, Node, Positive => True);
