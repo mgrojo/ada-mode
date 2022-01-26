@@ -172,6 +172,7 @@ declarative region start, goto containing region start."
 
 		(when (< start-pos (point))
 		  (wisi-goto-start cache)
+                  (ada-validate-enclosing-declaration t 'navigate)
 		  (setq cache (wisi-backward-cache))))
 
 	       ((protected_type_declaration single_protected_declaration single_task_declaration task_type_declaration)

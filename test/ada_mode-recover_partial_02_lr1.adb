@@ -4,7 +4,6 @@
 -- Still requires a high enqueue limit, because there are two parsers
 -- in recovery.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(switch-to-lr1)
 
 -- this must be after switch-to-lr1
@@ -27,4 +26,4 @@ begin
                      -- does not find that.
 
                      (not Data.Terminals (Op.Token_Index + 1).First))
-                       then
+                     then

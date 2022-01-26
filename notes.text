@@ -30,9 +30,9 @@ o.e.a.stephe-6 (o.w.s-3/o.s_l.sal.stephe-1): ref_count stream_element_list
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-3")
+  (xgit . "/Projects/org.wisitoken.stephe-1")
   (xgit . "/Projects/org.emacs.wisi.stephe-1")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-6")))
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
@@ -166,6 +166,15 @@ push to elpa
  after incremental
 review this file!
 
+ada_mode-recover_27.adb
+    delete end loop needs undo_reduce handled_sequence_of_statements
+    undo_reduce not valid? because must be done before delete
+    ((PUSH_BACK, END, 1), (UNDO_REDUCE, handled_sequence_of_statements, 1, -70) not continued
+    because check returns abandon
+    because check would undo it
+        so don't run check?
+            otherwise try_undo_reduce is pointless; it can only be used by language_fixes
+        need test_mckenzie_recover test
 
 new refactor:
     expression_function <> subprogram_body
@@ -987,8 +996,6 @@ support variable pitch fonts
 
 add wisi-forward-anchor, use for comments after 'is', 'when' in record type
 
- wisi work
-
 disable or use electric-indent-post-self-insert-function
     called during ada-indent-newline-indent
     on post-self-insert-hook
@@ -1058,7 +1065,7 @@ wisitoken keeps binding wisitoken-bnf-generate, thus regenerating ada_annex_p* f
 in ada_annex_p.wy:
 %partial_recursion ;; FIXME: faster compile time while debugging
 
-one ELISP="(setq-default save-parser-log \"../debug-2.log\" save-edited-text \"../edited\" wisi-parser-verbosity \"debug=1\")" ONE_TEST_FILES=ada_mode-*.adb
+one ELISP="(setq save-parser-log \"../debug-2.log\" save-edited-text \"../edited\")" ONE_TEST_FILES=ada_mode-*.adb
     wisi-parser-transaction-log-buffer-size-default 600000
     compare-tree-text t
 

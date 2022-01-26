@@ -3,9 +3,6 @@
 --
 -- Used to raise Constraint_Error in McKenzie_Recover; too many ops in
 -- a config. Now finds a reasonable solution quickly.
---
--- We get different indent results from partial and incremental parse;
---EMACSCMD:(setq skip-reindent-test (not wisi-incremental-parse-enable))
 procedure Ada_Mode.Recover_09 is
    procedure Generate_Parser_Body (Prod : in Productions.Instance)
    is
@@ -29,19 +26,19 @@ procedure Ada_Mode.Recover_09 is
 
       --  missing end quote
       Indent_Line ("Parser.Trace.Put_Line
-                     ("accept: Memo " & Parser.Tree.Image
-                        (Parser.Derivs (Accept_Id)(Start_Pos).Result, Parser.Trace.Descriptor.all,
-                         Include_Children => True)); -- missing right paren
+        ("accept: Memo " & Parser.Tree.Image
+           (Parser.Derivs (Accept_Id)(Start_Pos).Result, Parser.Trace.Descriptor.all,
+            Include_Children => True)); -- missing right paren
 
-         --  Next line should be in Indent_Line("...");
-      end if;
+      --  Next line should be in Indent_Line("...");
+   end if;
 
-      Indent_Line ("   return Parser.Derivs (" & Result_Id & ")(Pos);");
+   Indent_Line ("   return Parser.Derivs (" & Result_Id & ")(Pos);");
 
    end Generate_Parser_Body;
 
-begin
-   New_Line;
+   begin
+      New_Line;
 end Ada_Mode.Recover_09;
 -- Local Variables:
 -- ada-end-name-optional: nil
