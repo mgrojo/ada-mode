@@ -51,6 +51,9 @@ gpr-skel.gpr.tmp :
 ../run_ada_annex_p_lr1_parse.exe : ../run_ada_annex_p_lr1_parse.ads ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
 
+../run_gpr_parse.exe : ../run_gpr_parse.ads ../gpr_re2c.c force
+	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
+
 elisp-clean :
 	rm -f ../*.output ../autoloads.el
 	rm -f ../*.elc
