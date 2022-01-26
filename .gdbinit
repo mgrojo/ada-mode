@@ -1,14 +1,14 @@
 # test_all_harness
 #set args test_edit_source.adb DOS_Line_Endings "test=2"
 
-# run_*_parse
-#set args parse_partial indent test/debug.adb --verbosity "mckenzie=3" --mckenzie_task_count 1
-
 # run_*_parse command_file
-set args command_file debug.cmd
+#set args command_file debug.cmd
+
+# run_*_parse parse_partial etc
+set args parse_partial indent test/gpr/debug.gpr --verbosity "debug=1 action=3"
 
 # Process_Command verbosity
-break run_wisi_common_parse.adb:623
+break run_wisi_common_parse.adb:651
 
 # gpr_query
 #set args -P test/ada_mode.gpr --db=c:/tmp/gpr_query.db --tracefile=gpr_query.trace
@@ -33,8 +33,7 @@ end
 # node_access
 define show_node 
   print $arg0.all
-  print ada_annex_p_process_actions.descriptor.image ($.id).all
-#  print gpr_process_actions.descriptor.image ($.id).all
+  show_id ($arg0).id
 end
 
 # stream_index
