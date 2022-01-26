@@ -656,7 +656,7 @@ package body WisiToken.Parse is
          loop
             exit Breakdown_Recover_Conflict when Ref = Invalid_Stream_Node_Ref;
 
-            if Tree.Label (Ref.Node) = Nonterm and then Tree.Child_Count (Ref.Node) = 0 then
+            if Tree.Label (Ref.Node) = Nonterm and then Tree.Is_Empty_Nonterm (Ref.Node) then
                if Trace_Incremental_Parse > Detail then
                   Parser.Trace.Put_Line
                     ("delete empty recover_conflict node " & Tree.Image (Ref.Node, Node_Numbers => True));

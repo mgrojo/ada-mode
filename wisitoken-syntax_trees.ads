@@ -771,7 +771,10 @@ package WisiToken.Syntax_Trees is
       User_Data      : in     Syntax_Trees.User_Data_Access;
       First_Terminal : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref) and
-               Tree.Label (Ref.Ref.Element) = Nonterm and Ref.Ref.Node /= Invalid_Node_Access and
+               Tree.Label (Ref.Ref.Element) = Nonterm and
+               (if First_Terminal
+                then not Tree.Is_Empty_Nonterm (Ref.Ref.Node)
+                else Get_Node (Ref.Ref.Element) /= Invalid_Node_Access) and
                Tree.Stack_Top (Ref.Ref.Stream) /= Ref.Ref.Element,
      Post => Parents_Valid (Ref) and
              (if First_Terminal
@@ -802,7 +805,9 @@ package WisiToken.Syntax_Trees is
       User_Data      : in     User_Data_Access;
       First_Terminal : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
-               Ref.Node /= Invalid_Node_Access and
+               (if First_Terminal
+                then not Tree.Is_Empty_Nonterm (Ref.Node)
+                else Get_Node (Ref.Element) /= Invalid_Node_Access) and
                Tree.Stack_Top (Ref.Stream) /= Ref.Element,
      Post => Valid_Stream_Node (Tree, Ref);
    --  Same as Breakdown (Stream_Node_Parents), but supports not
