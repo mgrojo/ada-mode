@@ -1458,7 +1458,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             raise Bad_Config;
          end if;
          for I in 1 .. Matching loop
-            if not Push_Back_Valid (Super, Config) then
+            if not Push_Back_Valid (Super, Config, Push_Back_Undo_Reduce => False) then
                --  Probably pushing back thru a previously inserted token
                raise Invalid_Case;
             end if;
@@ -1516,7 +1516,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       begin
          Min_Pushed_Back_Index := Sequential_Index'Last; -- Should be overwritten
          loop
-            if not Push_Back_Valid (Super, Config) then
+            if not Push_Back_Valid (Super, Config, Push_Back_Undo_Reduce => False) then
                --  Probably pushing back thru a previously inserted token
                raise Invalid_Case;
             end if;
@@ -2238,7 +2238,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       Try_Insert_Terminal (Super, Shared, Parser_Index, Config, Local_Config_Heap);
 
-      if Push_Back_Valid (Super, Config) and then
+      if Push_Back_Valid (Super, Config, Push_Back_Undo_Reduce => False) and then
         (not Super.Tree.Is_Empty_Nonterm (Config.Stack.Peek.Token) and
            --  We only allow Push_Back of empty nonterm from Language_Fixes;
            --  otherwise it is usually redundant with Undo_Reduce.

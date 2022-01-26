@@ -585,6 +585,62 @@ package body Test_Incremental is
          Incr_Errors    => 0);
    end Edit_Comment_12;
 
+   procedure Edit_Comment_13 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-interactive_09.adb. Scanned comments cross two KMN,
+      --  confusing shift computations.
+      Parse_Text
+        (Initial   =>
+           "procedure A" & ASCII.LF &
+             --      |10
+             "is" & ASCII.LF &
+             --     |15
+             "   -- comment 1" & ASCII.LF &
+             --  |19
+             "   -- comment 2" & ASCII.LF &
+             --  |35
+             "begin null; end A;",
+
+         Edit_At        => 19,
+         Insert         => "   ",
+         Delete         => "",
+         Edit_2_At      => 35,
+         Insert_2       => "   ",
+         Delete_2       => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Edit_Comment_13;
+
+   procedure Edit_Comment_14 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode.adb.
+      Parse_Text
+        (Initial   =>
+           "procedure Ask" & ASCII.LF &
+             --      |10
+             "is begin null;" & ASCII.LF &
+             --    |20          |29
+             "   -- comment 1" & ASCII.LF &
+             --  |33    |40      |45
+             "   -- comment 2" & ASCII.LF &
+             --  |49        |60
+             "end Ask;",
+         --       |66
+
+         Edit_At        => 33,
+         Insert         => "   ",
+         Delete         => "",
+         Edit_2_At      => 66,
+         Insert_2       => "A",
+         Delete_2       => "A",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Edit_Comment_14;
+
    procedure Edit_Whitespace_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -1502,6 +1558,8 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment_10'Access, "Edit_Comment_10");
       Register_Routine (T, Edit_Comment_11'Access, "Edit_Comment_11");
       Register_Routine (T, Edit_Comment_12'Access, "Edit_Comment_12");
+      Register_Routine (T, Edit_Comment_13'Access, "Edit_Comment_13");
+      Register_Routine (T, Edit_Comment_14'Access, "Edit_Comment_14");
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");

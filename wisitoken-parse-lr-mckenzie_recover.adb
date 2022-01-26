@@ -1747,7 +1747,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    function Push_Back_Valid
      (Super                 : not null access Base.Supervisor;
       Config                : in              Configuration;
-      Push_Back_Undo_Reduce : in              Boolean := False)
+      Push_Back_Undo_Reduce : in              Boolean)
      return Boolean
    is
       Tree : Syntax_Trees.Tree renames Super.Tree.all;
@@ -1796,7 +1796,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    procedure Push_Back
      (Super                 : not null access Base.Supervisor;
       Config                : in out          Configuration;
-      Push_Back_Undo_Reduce : in              Boolean := False)
+      Push_Back_Undo_Reduce : in              Boolean)
    is begin
       --  We relax the "don't push back into previous recover" restriction
       --  for Language_Fixes; see test_mckenzie_recover.adb Missing_Name_5.
@@ -1811,7 +1811,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
      (Super                 : not null access Base.Supervisor;
       Config                : in out          Configuration;
       Expected_ID           : in              Token_ID;
-      Push_Back_Undo_Reduce : in              Boolean := False)
+      Push_Back_Undo_Reduce : in              Boolean)
    is begin
       Check (Super.Tree.Element_ID (Config.Stack.Peek (1).Token), Expected_ID, Super.Tree.Lexer.Descriptor.all);
       Push_Back (Super, Config, Push_Back_Undo_Reduce);
@@ -1821,7 +1821,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
      (Super                 : not null access Base.Supervisor;
       Config                : in out          Configuration;
       Expected              : in              Token_ID_Array;
-      Push_Back_Undo_Reduce : in              Boolean := False)
+      Push_Back_Undo_Reduce : in              Boolean)
    is begin
       for ID of Expected loop
          Push_Back_Check (Super, Config, ID, Push_Back_Undo_Reduce);
@@ -1926,7 +1926,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             --  push them on the stack. Thus we need a valid Tree first terminal
             --  node, or an empty nonterm.
             return
-              (Tree.Child_Count (Token.Node) = 0 and
+              (Tree.Child_Count (Token.Node) = 0 and then
                  Undo_Reduce_Op_Order_Valid (Config.Ops))
               or else
               (Push_Back_Undo_Reduce_Valid

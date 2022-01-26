@@ -6692,7 +6692,6 @@ package body WisiToken.Syntax_Trees is
       end loop;
    end Print_Ref_Counts;
 
-
    procedure Print_Streams
      (Tree        : in     Syntax_Trees.Tree;
       Trace       : in out WisiToken.Trace'Class;

@@ -1486,8 +1486,8 @@ package body Test_McKenzie_Recover is
            +(Push_Back, +IDENTIFIER_ID, 1) & (Push_Back, +END_ID, 0) &
              (Push_Back, +handled_sequence_of_statements_ID, -2) & (Push_Back, +BEGIN_ID, -3) &
              (Push_Back, +block_label_opt_ID, Invalid) & (Insert, +END_ID, -3) & (Insert, +SEMICOLON_ID, -3),
-         Enqueue_Low             => (case Test.Alg is when LALR => 9, when LR1 => 22),
-         Check_Low               => (case Test.Alg is when LALR => 6, when LR1 => 6),
+         Enqueue_Low             => (case Test.Alg is when LALR => 23, when LR1 => 35),
+         Check_Low               => 8,
          Cost                    => 0);
    end Match_Selected_Component_1;
 
