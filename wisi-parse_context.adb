@@ -648,7 +648,7 @@ package body Wisi.Parse_Context is
                   KMN_Last_Byte := @ + Cur_KMN.Stable_Bytes + Cur_KMN.Inserted_Bytes;
                   KMN_Last_Char := @ + Cur_KMN.Stable_Chars + Cur_KMN.Inserted_Chars;
 
-                  Cur := Next (Cur);
+                  Next (Cur);
 
                   if not Has_Element (Cur) then
                      --  Since KMN_List starts with one KMN covering all of Source, we
@@ -658,6 +658,18 @@ package body Wisi.Parse_Context is
                end if;
             end;
          end loop;
+
+         if Cur /= KMN_List.Last and then (KMN_List (Cur).Inserted_Bytes = 0 and KMN_List (Cur).Deleted_Bytes = 0) then
+            --  Change undone; merge stable with next KMN. test_edit_source.adb Edit_11
+            declare
+               To_Delete : Cursor := Cur;
+            begin
+               Next (Cur);
+               KMN_List (Cur).Stable_Bytes := @ + KMN_List (To_Delete).Stable_Bytes;
+               KMN_List (Cur).Stable_Chars := @ + KMN_List (To_Delete).Stable_Chars;
+               KMN_List.Delete (To_Delete);
+            end;
+         end if;
 
          if Debug_Mode then
             begin

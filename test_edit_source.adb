@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2020, 2021 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020 - 2022 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -969,6 +969,41 @@ package body Test_Edit_Source is
         ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
    end Edit_10;
 
+   procedure Edit_11 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Wisi;
+      use Wisi.Parse_Context;
+      use WisiToken;
+
+      --  From ada_mode.adb; used to produce two KMN with zero insert, delete.
+
+      Initial_Source : constant String :=
+        "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+      --          |10       |20       |30       |40
+
+      Expected_Source : constant String :=
+        "0123456789012345678901234  5678901234567890123456789012345678901Ada_M789012345678901234567890123456789";
+
+      Changes : Change_Lists.List;
+
+      Expected_KMN_List : WisiToken.Parse.KMN_Lists.List;
+   begin
+      Changes.Append ((63, 63, 68, 68, +"ada_m", 5, 5));
+      Changes.Append ((63, 63, 64, 64, +"A", 1, 1));
+      Changes.Append ((67, 67, 68, 68, +"M", 1, 1));
+      Changes.Append ((71, 71, 72, 72, +" ", 0, 0));
+      Changes.Append ((71, 71, 71, 71, +"", 1, 1));
+      Changes.Append ((26, 26, 28, 28, +"  ", 0, 0));
+
+      Expected_KMN_List.Append ((25, 25, 2, 2, 0, 0));
+      Expected_KMN_List.Append ((37, 37, 5, 5, 5, 5));
+      Expected_KMN_List.Append ((33, 33, 0, 0, 0, 0));
+
+      Test
+        ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
+   end Edit_11;
+
    procedure Merge_Single_Letters (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -1087,6 +1122,7 @@ package body Test_Edit_Source is
       Register_Routine (T, Edit_08'Access, "Edit_08");
       Register_Routine (T, Edit_09'Access, "Edit_09");
       Register_Routine (T, Edit_10'Access, "Edit_10");
+      Register_Routine (T, Edit_11'Access, "Edit_11");
       Register_Routine (T, Merge_Single_Letters'Access, "Merge_Single_Letters");
       Register_Routine (T, Non_Ascii'Access, "Non_Ascii");
       Register_Routine (T, String_Escape'Access, "String_Escape");
