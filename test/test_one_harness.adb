@@ -2,7 +2,7 @@
 --
 --  Run one WisiToken AUnit test
 --
---  Copyright (C) 2009, 2010, 2012 - 2014, 2017 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012 - 2014, 2017 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -40,6 +40,7 @@ is
    --  test_name, routine_name can be '' to set trace for all routines.
 
    McKenzie_Config : String_Access;
+   --  pragma Unreferenced (McKenzie_Config);
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
    Options : constant AUnit.Options.AUnit_Options :=
