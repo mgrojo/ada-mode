@@ -5,11 +5,11 @@ build/Makefile
 
 o.e.a: release, in use
 o.e.a.stephe-1: dead
-o.e.a.stephe-2 (with o.s_l.sal.s_1, o.w.s_1, o.e.w.s_1): work; incremental parse
+o.e.a.stephe-2 (with o.s_l.sal.s_1, o.w.s_1, o.e.w.s_1): work
 o.e.a.stephe-3 (?): emacs module parser (very old)
 o.e.a.stephe-4 (?): eglot/ada_language_server
 o.e.a.stephe-5 (?): libadalang backend
-o.e.a.stephe-6 (o.w.s-3/o.s_l.sal.stephe-1): ref_count stream_element_list
+o.e.a.stephe-6 (o.w.s-2/o.s_l.sal.stephe-1): delete error recover multi-tasking
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -30,9 +30,9 @@ o.e.a.stephe-6 (o.w.s-3/o.s_l.sal.stephe-1): ref_count stream_element_list
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-3")
+  (xgit . "/Projects/org.wisitoken.stephe-1")
   (xgit . "/Projects/org.emacs.wisi.stephe-1")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-6")))
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
@@ -80,6 +80,57 @@ read Kate's book on culture/persuasion.
         - pay someone in-house to work on this - I will mentor
 
  current work
+o.w.s-2 wisitoken-parse-lr-mckenzie_recover-base.adb
+    editing Get, declare Check_Delta_limit
+        error mark on next line does not go away
+        not when done with replay-kbd-macro
+            race condition with font-lock
+            add wisi-replay-kbd-macro-2; explicitly call font-lock-ensure every n chars instead of delay
+                no help
+
+        type by hand, copy *Ada-parser-log* after kill-context to debug-3.log, convert to debug.cmd
+            in debug-3.log, final parse gives error "found renames"
+
+        reproduce in debug.adb
+            main editor log debug-4.log
+            command file    debug-4.cmd
+            run_ada_lr1 log debug-4b.log
+            run_ada_lalr    debug-4c.log
+            full parse lalr debug-4d.log
+
+            final parse is for insert "B;"
+                why does that still have an error?
+                compare to full parse
+                tree has defining_identifier_list instead of seleced_component
+                    that node was created before renames was typed
+                    after recover, spawned a parser to consider renames, didn't find it
+
+                    flag nonterm nodes that are the result of conflict during recover, break those down in edit_tree
+                        ie, all nonterms created while resume_active true and parsers.count > 1
+
+        reproduced in ada_mode-interactive_15.adb
+
+        need wisitoken test
+
+
+test_incremental.adb
+    added nonterm_resume_01; indenting paramlist => compare tree/text fail .root.virtual got TRUE expecting FALSE
+
+    indent restore_deleted_01
+        didn't work, reported fallback
+        insert space, invoke ada-format-paramlist => worked, compare tree/text fail
+
+wisi-kill-parser must be followed by wisi-reset-parser
+    fix it.
+
+ada-align-paramlist very rarely puts garbage
+    yet another screwed up tree error
+
+wisi-indent-current-statement
+    should indent statement before or containing pos
+    edited code, but something broken; query-tree with pos after statement returns nil
+    add to test_syntax_tree?
+
 need kill-context on delete buffer
 
 test/ada_mode-recover_27.adb
