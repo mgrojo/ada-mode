@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -19,7 +19,6 @@ pragma License (GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-with System.Multiprocessors;
 with WisiToken.BNF.Generate_Grammar;
 with WisiToken.BNF.Utils;
 with WisiToken.Generate; use WisiToken.Generate;
@@ -425,8 +424,6 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("Fast_Forward => " & Integer'Image (Table.McKenzie_Param.Fast_Forward) & ",");
          Indent_Line ("Matching_Begin => " & Integer'Image (Table.McKenzie_Param.Matching_Begin) & ",");
          Indent_Line ("Ignore_Check_Fail  =>" & Integer'Image (Table.McKenzie_Param.Ignore_Check_Fail) & ",");
-         Indent_Line ("Task_Count  =>" & System.Multiprocessors.CPU_Range'Image
-                        (Table.McKenzie_Param.Task_Count) & ",");
          Indent_Line ("Check_Limit =>" & Table.McKenzie_Param.Check_Limit'Image & ",");
          Indent_Line ("Zombie_Limit =>" & Table.McKenzie_Param.Zombie_Limit'Image & ",");
          Indent_Line ("Check_Delta_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Delta_Limit) & ",");

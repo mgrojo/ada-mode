@@ -41,7 +41,6 @@ with SAL.Gen_Bounded_Definite_Stacks.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
-with System.Multiprocessors;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
@@ -284,10 +283,6 @@ package WisiToken.Parse.LR is
       --  Cost of ignoring a semantic check failure. Should be at least the
       --  cost of a typical fix for such a failure.
 
-      Task_Count : System.Multiprocessors.CPU_Range;
-      --  Number of parallel tasks during recovery. If 0, use
-      --  System.Multiprocessors.Number_Of_CPUs - 1.
-
       Zombie_Limit : Positive;
       --  Terminal tokens to wait before terminating parser that encountered
       --  an error. See test_mckenzie_recover.adb Revive_Zombie for example
@@ -315,7 +310,6 @@ package WisiToken.Parse.LR is
       Fast_Forward                => 0,
       Matching_Begin              => 0,
       Ignore_Check_Fail           => 0,
-      Task_Count                  => System.Multiprocessors.CPU_Range'Last,
       Zombie_Limit                => 4,
       Check_Limit                 => 4,
       Check_Delta_Limit           => Natural'Last,

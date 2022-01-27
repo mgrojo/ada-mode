@@ -95,7 +95,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    end Find_Matching_Name;
 
    procedure Handle_In_Parse_Action_Fail
-     (Super             : in     Base.Supervisor;
+     (Super             : in out Base.Supervisor;
       Shared_Parser     : in     Parser.Parser;
       Parser_Index      : in     SAL.Peek_Type;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
@@ -498,7 +498,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    end Handle_In_Parse_Action_Fail;
 
    procedure Handle_Parse_Error
-     (Super             : in     WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
+     (Super             : in out WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
       Shared_Parser     : in     Parser.Parser;
       Parser_Index      : in     SAL.Peek_Type;
       Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
@@ -692,7 +692,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
       case Config.In_Parse_Action_Status.Label is
       when Ok =>
-         Handle_Parse_Error (Super, Shared_Parser, Parser_Index, Parse_Table, Local_Config_Heap, Config);
+         Handle_Parse_Error (Super, Shared_Parser, Parser_Index, Shared_Parser.Table.all, Local_Config_Heap, Config);
 
       when others =>
          Handle_In_Parse_Action_Fail (Super, Shared_Parser, Parser_Index, Local_Config_Heap, Config);
@@ -700,15 +700,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    end Fixes;
 
    procedure Matching_Begin_Tokens
-     (Super                   :         not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
-      Tokens                  :         in              Token_ID_Array_1_3;
-      Config                  : aliased in              Configuration;
-      Matching_Tokens         :            out          Token_ID_Arrays.Vector;
-      Forbid_Minimal_Complete :            out          Boolean)
+     (Tree                    : in     Syntax_Trees.Tree;
+      Tokens                  : in     Token_ID_Array_1_3;
+      Config                  : in     Configuration;
+      Matching_Tokens         :    out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :    out Boolean)
    is
       use Token_ID_Arrays;
-
-      Tree                    : Syntax_Trees.Tree renames Super.Tree.all;
 
       function Matching_Begin_For_End (Next_Index : in Positive) return Token_ID_Arrays.Vector
       is begin

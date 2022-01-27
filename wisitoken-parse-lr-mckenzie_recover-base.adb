@@ -25,7 +25,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
    procedure Initialize
      (Super         : in out Supervisor;
       Shared_Parser : in out Parser.Parser)
-   is begin
+   is
+      Tree : WisiToken.Syntax_Trees.Tree renames Shared_Parser.Tree;
+   begin
       declare
          Index : SAL.Peek_Type := 1;
       begin
@@ -57,16 +59,25 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
       --  Set Sequential_Index
       declare
-         Streams : Syntax_Trees.Stream_ID_Array (1 .. Parser_Count);
+         Streams : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Parsers.Count);
       begin
          Set_Initial_Sequential_Index
-           (Shared_Parser, Streams, Super.Max_Sequential_Indices, Initialize => True);
+           (Shared_Parser.Parsers, Tree, Streams, Super.Max_Sequential_Indices, Initialize => True);
 
          Super.Min_Sequential_Indices := Super.Max_Sequential_Indices;
 
-         Extend_Max_Sequential_Index (Default_Positive_Sequential_Index);
-         if Tree.ID (Min_Sequential_Indices (1).Ref.Node) /= Tree.Lexer.Descriptor.SOI_ID then
-            Extend_Min_Sequential_Index (Default_Negative_Sequential_Index);
+         Extend_Sequential_Index
+           (Tree, Streams, Super.Max_Sequential_Indices,
+            Target   => Default_Positive_Sequential_Index,
+            Positive => True,
+            Clear    => False);
+
+         if Tree.ID (Super.Min_Sequential_Indices (1).Ref.Node) /= Tree.Lexer.Descriptor.SOI_ID then
+            Extend_Sequential_Index
+              (Tree, Streams, Super.Min_Sequential_Indices,
+               Target   => Default_Negative_Sequential_Index,
+               Positive => False,
+               Clear    => False);
          end if;
       end;
    end Initialize;
@@ -85,12 +96,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       is begin
          Parser_Index := I;
          Config       := Super.Parser_Status (I).Parser_State.Recover.Config_Heap.Remove;
-         Status       := Valid;
 
          Super.Parser_Status (I).Parser_State.Recover.Check_Count :=
            Super.Parser_Status (I).Parser_State.Recover.Check_Count + 1;
-
-         Super.Parser_Status (I).Active_Workers := Super.Parser_Status (I).Active_Workers + 1;
       end Set_Outputs;
 
       procedure Set_All_Done
@@ -100,14 +108,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          pragma Warnings (Off, "aggregate not fully initialized");
          --  Config.Stack.Data is not initialized, but no uninitialized data is
          --  ever referenced.
-         Config       := (others => <>);
+         Config := (others => <>);
          pragma Warnings (On, "aggregate not fully initialized");
-
-         Status       := All_Done;
       end Set_All_Done;
 
    begin
-      if Fatal_Called or All_Parsers_Done then
+      if Super.All_Parsers_Done then
          Set_All_Done;
          return;
       end if;
@@ -120,7 +126,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          Skip := False;
 
          declare
-            P_Status : Base.Parser_Status renames Super.Parser_Status (I);
+            P_Status          : Base.Parser_Status renames Super.Parser_Status (I);
+            Check_Delta_Limit : Natural renames Shared_Parser.Table.McKenzie_Param.Check_Delta_Limit;
          begin
             case P_Status.Recover_State is
             when Active | Ready =>
@@ -214,129 +221,129 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          end if;
 
          Set_All_Done;
-         All_Parsers_Done := True;
+         Super.All_Parsers_Done := True;
       else
          raise SAL.Programmer_Error with "Get_Barrier and Get logic do not match";
       end if;
    end Get;
 
-      procedure Success
-        (Parser_Index : in     SAL.Peek_Type;
-         Config       : in     Configuration;
-         Configs      : in out Config_Heaps.Heap_Type)
-      is
-         Data : McKenzie_Data renames Super.Parser_Status (Parser_Index).Parser_State.Recover;
-      begin
-         Put (Parser_Index, Configs); --  Decrements Active_Worker_Count.
+   procedure Success
+     (Parser_Index : in     SAL.Peek_Type;
+      Config       : in     Configuration;
+      Configs      : in out Config_Heaps.Heap_Type)
+   is
+      Data : McKenzie_Data renames Super.Parser_Status (Parser_Index).Parser_State.Recover;
+   begin
+      Put (Parser_Index, Configs); --  Decrements Active_Worker_Count.
 
-         if Trace_McKenzie > Detail then
-            Put
-              ("succeed: enqueue" & Integer'Image (Data.Enqueue_Count) & ", check " & Integer'Image (Data.Check_Count),
-               Trace.all, Tree.all, Super.Parser_Status (Parser_Index).Parser_State.Stream, Config);
+      if Trace_McKenzie > Detail then
+         Put
+           ("succeed: enqueue" & Integer'Image (Data.Enqueue_Count) & ", check " & Integer'Image (Data.Check_Count),
+            Trace.all, Tree.all, Super.Parser_Status (Parser_Index).Parser_State.Stream, Config);
+      end if;
+
+      Success_Counter := Success_Counter + 1;
+      Result          := Success;
+
+      Data.Success := True;
+
+      if Force_Full_Explore then
+         Data.Results.Add (Config);
+         return;
+      end if;
+
+      if Data.Check_Count < Min_Success_Check_Count then
+         Min_Success_Check_Count := Data.Check_Count;
+      end if;
+
+      if Force_High_Cost_Solutions then
+         Data.Results.Add (Config);
+         if Data.Results.Count > 3 then
+            Super.Parser_Status (Parser_Index).Recover_State := Ready;
          end if;
-
-         Success_Counter := Success_Counter + 1;
-         Result          := Success;
-
-         Data.Success := True;
-
-         if Force_Full_Explore then
+      else
+         if Data.Results.Count = 0 then
             Data.Results.Add (Config);
-            return;
-         end if;
 
-         if Data.Check_Count < Min_Success_Check_Count then
-            Min_Success_Check_Count := Data.Check_Count;
-         end if;
+            Super.Parser_Status (Parser_Index).Recover_State := Ready;
 
-         if Force_High_Cost_Solutions then
-            Data.Results.Add (Config);
-            if Data.Results.Count > 3 then
-               Super.Parser_Status (Parser_Index).Recover_State := Ready;
-            end if;
-         else
-            if Data.Results.Count = 0 then
-               Data.Results.Add (Config);
-
-               Super.Parser_Status (Parser_Index).Recover_State := Ready;
-
-            elsif Config.Cost < Data.Results.Min_Key then
-               --  delete higher cost configs from Results
-               loop
-                  Data.Results.Drop;
-                  exit when Data.Results.Count = 0 or else
-                    Config.Cost >= Data.Results.Min_Key;
-               end loop;
-
-               Data.Results.Add (Config);
-
-            elsif Config.Cost = Data.Results.Min_Key then
-               Data.Results.Add (Config);
-
-            else
-               --  Config.Cost > Results.Min_Key
-               null;
-            end if;
-         end if;
-      end Success;
-
-      procedure Put (Parser_Index : in SAL.Peek_Type; Configs : in out Config_Heaps.Heap_Type)
-      is
-         Configs_Count : constant SAL.Base_Peek_Type := Configs.Count; -- Before it is emptied, for Trace.
-
-         P_Status : Base.Parser_Status renames Super.Parser_Status (Parser_Index);
-         Data : McKenzie_Data renames P_Status.Parser_State.Recover;
-      begin
-         P_Status.Active_Workers := P_Status.Active_Workers - 1;
-
-         Total_Enqueue_Count := Total_Enqueue_Count + Integer (Configs_Count);
-         Data.Enqueue_Count  := Data.Enqueue_Count + Integer (Configs_Count);
-         loop
-            exit when Configs.Count = 0;
-
-            Data.Config_Heap.Add (Configs.Remove);
-         end loop;
-
-         if Trace_McKenzie > Detail then
-            Put_Line
-              (Trace.all, Tree.all, P_Status.Parser_State.Stream,
-               "enqueue:" & SAL.Base_Peek_Type'Image (Configs_Count) &
-                 "/" & SAL.Base_Peek_Type'Image (Data.Config_Heap.Count) &
-                 "/" & Trimmed_Image (Total_Enqueue_Count) &
-                 "/" & Trimmed_Image (Data.Check_Count) &
-                 ", min cost:" &
-                 (if Data.Config_Heap.Count > 0
-                  then Integer'Image (Data.Config_Heap.Min_Key)
-                  else " ? ") &
-                 ", active workers:" & Integer'Image (P_Status.Active_Workers));
-         end if;
-      end Put;
-
-      procedure Config_Full (Prefix : in String; Parser_Index : in SAL.Peek_Type)
-      is
-         P_Status : Base.Parser_Status renames Super.Parser_Status (Parser_Index);
-         Data : McKenzie_Data renames P_Status.Parser_State.Recover;
-      begin
-         Data.Config_Full_Count := Data.Config_Full_Count + 1;
-         if Trace_McKenzie > Outline then
-            Put_Line (Trace.all, Tree.all, Stream (Parser_Index), Prefix & ": config.ops is full; " &
-                        Data.Config_Full_Count'Image);
-         end if;
-      end Config_Full;
-
-      function Recover_Result return Recover_Status
-      is
-         Temp : Recover_Status := Result;
-      begin
-         if Result = Success then
-            return Success;
-         else
-            for S of Super.Parser_Status loop
-               Temp := Recover_Status'Max (Result, S.Fail_Mode);
+         elsif Config.Cost < Data.Results.Min_Key then
+            --  delete higher cost configs from Results
+            loop
+               Data.Results.Drop;
+               exit when Data.Results.Count = 0 or else
+                 Config.Cost >= Data.Results.Min_Key;
             end loop;
-            return Temp;
+
+            Data.Results.Add (Config);
+
+         elsif Config.Cost = Data.Results.Min_Key then
+            Data.Results.Add (Config);
+
+         else
+            --  Config.Cost > Results.Min_Key
+            null;
          end if;
-      end Recover_Result;
+      end if;
+   end Success;
+
+   procedure Put (Parser_Index : in SAL.Peek_Type; Configs : in out Config_Heaps.Heap_Type)
+   is
+      Configs_Count : constant SAL.Base_Peek_Type := Configs.Count; -- Before it is emptied, for Trace.
+
+      P_Status : Base.Parser_Status renames Super.Parser_Status (Parser_Index);
+      Data : McKenzie_Data renames P_Status.Parser_State.Recover;
+   begin
+      P_Status.Active_Workers := P_Status.Active_Workers - 1;
+
+      Total_Enqueue_Count := Total_Enqueue_Count + Integer (Configs_Count);
+      Data.Enqueue_Count  := Data.Enqueue_Count + Integer (Configs_Count);
+      loop
+         exit when Configs.Count = 0;
+
+         Data.Config_Heap.Add (Configs.Remove);
+      end loop;
+
+      if Trace_McKenzie > Detail then
+         Put_Line
+           (Trace.all, Tree.all, P_Status.Parser_State.Stream,
+            "enqueue:" & SAL.Base_Peek_Type'Image (Configs_Count) &
+              "/" & SAL.Base_Peek_Type'Image (Data.Config_Heap.Count) &
+              "/" & Trimmed_Image (Total_Enqueue_Count) &
+              "/" & Trimmed_Image (Data.Check_Count) &
+              ", min cost:" &
+              (if Data.Config_Heap.Count > 0
+               then Integer'Image (Data.Config_Heap.Min_Key)
+               else " ? ") &
+              ", active workers:" & Integer'Image (P_Status.Active_Workers));
+      end if;
+   end Put;
+
+   procedure Config_Full (Prefix : in String; Parser_Index : in SAL.Peek_Type)
+   is
+      P_Status : Base.Parser_Status renames Super.Parser_Status (Parser_Index);
+      Data : McKenzie_Data renames P_Status.Parser_State.Recover;
+   begin
+      Data.Config_Full_Count := Data.Config_Full_Count + 1;
+      if Trace_McKenzie > Outline then
+         Put_Line (Trace.all, Tree.all, Stream (Parser_Index), Prefix & ": config.ops is full; " &
+                     Data.Config_Full_Count'Image);
+      end if;
+   end Config_Full;
+
+   function Recover_Result return Recover_Status
+   is
+      Temp : Recover_Status := Result;
+   begin
+      if Result = Success then
+         return Success;
+      else
+         for S of Super.Parser_Status loop
+            Temp := Recover_Status'Max (Result, S.Fail_Mode);
+         end loop;
+         return Temp;
+      end if;
+   end Recover_Result;
 
    function Done (Super : in Supervisor) return Boolean
    is begin
@@ -362,79 +369,54 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       end if;
    end Finish;
 
-      function Parser_State (Parser_Index : in SAL.Peek_Type) return Parser_Lists.Constant_Reference_Type
-      is begin
-         return (Element => Super.Parser_Status (Parser_Index).Parser_State);
-      end Parser_State;
+   function Parser_State (Parser_Index : in SAL.Peek_Type) return Parser_Lists.Constant_Reference_Type
+   is begin
+      return (Element => Super.Parser_Status (Parser_Index).Parser_State);
+   end Parser_State;
 
-      function Stream (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_ID
-      is begin
-         return Super.Parser_Status (Parser_Index).Parser_State.Stream;
-      end Stream;
+   function Stream (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_ID
+   is begin
+      return Super.Parser_Status (Parser_Index).Parser_State.Stream;
+   end Stream;
 
-      function Min_Sequential_Index return Syntax_Trees.Sequential_Index
-      is
-         use Syntax_Trees;
-      begin
-         return Result : Sequential_Index := Sequential_Index'Last do
-            for I in 1 .. Parser_Count loop
-               Result := Sequential_Index'Min (@,  Tree.Get_Sequential_Index (Min_Sequential_Indices (I).Ref.Node));
-            end loop;
-         end return;
-      end Min_Sequential_Index;
+   function Stream (Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_ID
+   is begin
+      return Super.Parser_Status (Parser_Index).Parser_State.Stream;
+   end Stream;
 
-      function Min_Sequential_Index_All_SOI return Boolean
-      is
-         use Syntax_Trees;
-      begin
+   function Min_Sequential_Index return Syntax_Trees.Sequential_Index
+   is
+      use Syntax_Trees;
+   begin
+      return Result : Sequential_Index := Sequential_Index'Last do
          for I in 1 .. Parser_Count loop
-            if Tree.ID (Min_Sequential_Indices (I).Ref.Node) /= Tree.Lexer.Descriptor.SOI_ID then
-               return False;
-            end if;
+            Result := Sequential_Index'Min (@,  Tree.Get_Sequential_Index (Min_Sequential_Indices (I).Ref.Node));
          end loop;
-         return True;
-      end Min_Sequential_Index_All_SOI;
+      end return;
+   end Min_Sequential_Index;
 
-      function Max_Sequential_Index return Syntax_Trees.Sequential_Index
-      is
-         use Syntax_Trees;
-      begin
-         return Result : Sequential_Index := Sequential_Index'First do
-            for I in Max_Sequential_Indices'Range loop
-               Result := Sequential_Index'Max (@,  Tree.Get_Sequential_Index (Max_Sequential_Indices (I).Ref.Node));
-            end loop;
-         end return;
-      end Max_Sequential_Index;
+   function Min_Sequential_Index_All_SOI return Boolean
+   is
+      use Syntax_Trees;
+   begin
+      for I in 1 .. Parser_Count loop
+         if Tree.ID (Min_Sequential_Indices (I).Ref.Node) /= Tree.Lexer.Descriptor.SOI_ID then
+            return False;
+         end if;
+      end loop;
+      return True;
+   end Min_Sequential_Index_All_SOI;
 
-      function Max_Sequential_Index_All_EOI return Boolean
-      is
-         use Syntax_Trees;
-      begin
-         for I in 1 .. Parser_Count loop
-            if Tree.ID (Max_Sequential_Indices (I).Ref.Node) /= Tree.Lexer.Descriptor.EOI_ID then
-               return False;
-            end if;
+   function Max_Sequential_Index return Syntax_Trees.Sequential_Index
+   is
+      use Syntax_Trees;
+   begin
+      return Result : Sequential_Index := Sequential_Index'First do
+         for I in Max_Sequential_Indices'Range loop
+            Result := Sequential_Index'Max (@,  Tree.Get_Sequential_Index (Max_Sequential_Indices (I).Ref.Node));
          end loop;
-         return True;
-      end Max_Sequential_Index_All_EOI;
-
-      procedure Extend_Min_Sequential_Index (Target : in Syntax_Trees.Sequential_Index)
-      is
-         Streams : Syntax_Trees.Stream_ID_Array (1 .. Parser_Count);
-      begin
-         for I in Super.Parser_Status'Range loop
-            Streams (I) := Super.Parser_Status (I).Parser_State.Stream;
-         end loop;
-         Extend_Sequential_Index (Tree.all, Streams, Min_Sequential_Indices, Target, Positive => False, Clear => False);
-      end Extend_Min_Sequential_Index;
-
-      procedure Extend_Max_Sequential_Index (Target : in Syntax_Trees.Sequential_Index)
-      is
-         Streams : Syntax_Trees.Stream_ID_Array (1 .. Parser_Count);
-      begin
-         Extend_Sequential_Index (Tree.all, Streams, Max_Sequential_Indices, Target, Positive => True, Clear => False);
-      end Extend_Max_Sequential_Index;
-
+      end return;
+   end Max_Sequential_Index;
 
    procedure Extend_Sequential_Index
      (Super    : not null access Base.Supervisor;
@@ -449,7 +431,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          loop
             exit when Super.Max_Sequential_Index_All_EOI;
             exit when Super.Tree.Get_Sequential_Index (Thru) /= Syntax_Trees.Invalid_Sequential_Index;
-            Super.Extend_Max_Sequential_Index (Target => 2 * Super.Max_Sequential_Index);
+            declare
+               Streams : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Parsers.Count);
+            begin
+               for I in Super.Parser_Status'Range loop
+                  Streams (I) := Super.Parser_Status (I).Parser_State.Stream;
+               end loop;
+
+               Extend_Sequential_Index
+                 (Tree.all, Streams, Max_Sequential_Indices,
+                  Target   => 2 * Super.Max_Sequential_Index,
+                  Positive => True,
+                  Clear    => False);
+            end;
          end loop;
 
       else
@@ -458,10 +452,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
             exit when Super.Tree.Get_Sequential_Index (Thru) /= Syntax_Trees.Invalid_Sequential_Index;
             declare
                Min : constant Syntax_Trees.Sequential_Index := Super.Min_Sequential_Index;
-            begin
                pragma Assert (Min <= 0);
-               Super.Extend_Min_Sequential_Index
-                 (Target => (if Min = 0 then Default_Negative_Sequential_Index else 2 * Min));
+
+               Streams : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Parsers.Count);
+            begin
+               for I in Super.Parser_Status'Range loop
+                  Streams (I) := Super.Parser_Status (I).Parser_State.Stream;
+               end loop;
+
+               Extend_Sequential_Index
+                 (Tree.all, Streams, Min_Sequential_Indices,
+                  Target   => (if Min = 0 then Default_Negative_Sequential_Index else 2 * Min),
+                  Positive => False,
+                  Clear    => False);
             end;
          end loop;
       end if;

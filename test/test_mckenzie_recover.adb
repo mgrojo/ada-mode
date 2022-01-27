@@ -77,7 +77,6 @@ package body Test_McKenzie_Recover is
 
    procedure Parse_Text
      (Text             : in String;
-      Multiple_Tasks   : in Boolean := False;
       Expect_Exception : in Boolean := False)
    is begin
       if WisiToken.Trace_Tests > WisiToken.Outline then
@@ -86,10 +85,6 @@ package body Test_McKenzie_Recover is
       end if;
 
       Parser.Tree.Lexer.Reset_With_String (Text);
-
-      if not Multiple_Tasks then
-         Parser.Table.McKenzie_Param.Task_Count := 1;
-      end if;
 
       Parser.Parse (Log_File);
 
@@ -125,7 +120,6 @@ package body Test_McKenzie_Recover is
       Ops : in WisiToken.Parse.LR.AUnit.Test_Recover_Op_Arrays.Vector :=
         WisiToken.Parse.LR.AUnit.Test_Recover_Op_Arrays.Empty_Vector;
 
-      Ops_Race_Condition : in Boolean                                 := False;
       Enqueue_Low        : in Integer                                 := 0;
       Enqueue_High       : in Integer                                 := Integer'Last;
       Check_Low          : in Integer                                 := 0;
@@ -134,9 +128,6 @@ package body Test_McKenzie_Recover is
       Expecting          : in WisiToken.Token_ID_Set                  := Empty_Token_ID_Set;
       Code               : in WisiToken.In_Parse_Actions.Status_Label := WisiToken.In_Parse_Actions.Ok)
    is
-      --  Only set Ops_Race_Condition True when Parse_Text.Multiple_Tasks is
-      --  True; otherwise, add case on LALR | LR1.
-      --
       --  Enqueue_*, Check_* can only be checked on the last error in parse
       --  order.
 
@@ -223,9 +214,7 @@ package body Test_McKenzie_Recover is
                         Check (Label_I & ".Expecting", Error.Expecting, Expecting);
                      end if;
 
-                     if not Ops_Race_Condition then
-                        Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
-                     end if;
+                     Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
                      Check (Label_I & ".Cost", Error.Recover_Cost, Cost);
                   end;
 
@@ -244,9 +233,7 @@ package body Test_McKenzie_Recover is
                        (Error_Classwide);
                   begin
                      Check (Label_I & ".Code", Error.Status.Label, Code);
-                     if not Ops_Race_Condition then
-                        Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
-                     end if;
+                     Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
 
                      Check (Label_I & ".Cost", Error.Recover_Cost, Cost);
                   end;
@@ -255,9 +242,7 @@ package body Test_McKenzie_Recover is
                   declare
                      Error : WisiToken.Parse.Error_Message renames WisiToken.Parse.Error_Message (Error_Classwide);
                   begin
-                     if not Ops_Race_Condition then
-                        Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
-                     end if;
+                     Check (Label_I & ".Ops", Error.Recover_Ops, Ops);
                      Check (Label_I & ".Cost", Error.Recover_Cost, Cost);
                   end;
                else
@@ -1841,7 +1826,6 @@ package body Test_McKenzie_Recover is
 
       Parse_Text
         ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end Foo;",
-         Multiple_Tasks   => False,
          Expect_Exception => True);
 
       --  One error message from the syntax error; Enqueue_Limit is not
@@ -1850,7 +1834,6 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +IDENTIFIER_ID,
          Error_Token_Byte_Region => (35, 36),
-         Ops_Race_Condition      => True,
          Enqueue_Low             => 20,
          Enqueue_High            => 70,
          Check_Low               => 3,
@@ -2052,7 +2035,6 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +NUMERIC_LITERAL_ID,
          Error_Token_Byte_Region => (34, 35),
-         Ops_Race_Condition      => True,
          Enqueue_Low             => 46,
          Check_Low               => 25,
          Cost                    => 4);

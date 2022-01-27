@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014, 2015, 2017 - 2021  All Rights Reserved.
+--  Copyright (C) 2014, 2015, 2017 - 2022  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -804,7 +804,6 @@ package body WisiToken.BNF.Generate_Utils is
          Fast_Forward                => Item.Fast_Forward,
          Matching_Begin              => Item.Matching_Begin,
          Ignore_Check_Fail           => Item.Ignore_Check_Fail,
-         Task_Count                  => 0,
          Zombie_Limit                => Item.Zombie_Limit,
          Check_Limit                 => Item.Check_Limit,
          Check_Delta_Limit           => Item.Check_Delta_Limit,

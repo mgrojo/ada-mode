@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -19,7 +19,6 @@ pragma License (GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
-with System.Multiprocessors;
 with WisiToken.Generate;
 with WisiToken.Syntax_Trees;
 with SAL.Unix_Text_IO;
@@ -1311,7 +1310,6 @@ package body WisiToken.Generate.LR is
       Put_Line ("Fast_Forward      => " & Integer'Image (Item.Fast_Forward));
       Put_Line ("Matching_Begin    => " & Integer'Image (Item.Matching_Begin));
       Put_Line ("Ignore_Check_Fail =>" & Integer'Image (Item.Ignore_Check_Fail));
-      Put_Line ("Task_Count        =>" & System.Multiprocessors.CPU_Range'Image (Item.Task_Count));
       Put_Line ("Check_Limit       =>" & Item.Check_Limit'Image);
       Put_Line ("Check_Delta_Limit =>" & Integer'Image (Item.Check_Delta_Limit));
       Put_Line ("Enqueue_Limit     =>" & Integer'Image (Item.Enqueue_Limit));

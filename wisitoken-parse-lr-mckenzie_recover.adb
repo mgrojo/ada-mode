@@ -26,26 +26,6 @@ with WisiToken.Parse.LR.McKenzie_Recover.Base;
 with WisiToken.Parse.LR.McKenzie_Recover.Explore;
 with WisiToken.Parse.LR.McKenzie_Recover.Parse;
 package body WisiToken.Parse.LR.McKenzie_Recover is
-   use all type System.Multiprocessors.CPU_Range;
-
-   function Push_Back_Undo_Reduce_Valid
-     (Super                 : in Base.Supervisor;
-      Shared_Parser         : in Parser.Parser;
-      Target_Op             : in Recover_Op_Label;
-      Target_Node           : in Syntax_Trees.Node_Access;
-      Ops                   : in Recover_Op_Arrays.Vector;
-      Last_Op_Index         : in Positive_Index_Type;
-      Push_Back_Undo_Reduce : in Boolean)
-     return Boolean
-   with Pre => Target_Node = Syntax_Trees.Invalid_Node_Access or else
-               Shared_Parser.Tree.Label (Target_Node) in Syntax_Trees.Terminal_Label;
-   --  Target_Node is the first terminal in a token that is the object of
-   --  Target_Op; a Push_Back or Undo_Reduce that will be the next Op
-   --  after Last_Op. Return True if that respects restrictions on Op
-   --  order.
-   --
-   --  Language_Fixes may set Push_Back_Undo_Reduce True; other callers
-   --  must set it False.
 
    procedure To_Recover
      (Parser_Stack : in     Syntax_Trees.Stream_ID;
@@ -166,7 +146,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Config.Error_Token := Tree.Get_Recover_Token (Error_Node);
 
          if Trace_McKenzie > Detail then
-            Put ("enqueue", Trace, Tree, Parser_State.Stream, Config, Task_ID => False);
+            Put ("enqueue", Trace, Tree, Parser_State.Stream, Config);
          end if;
 
       elsif Error in In_Parse_Action_Error then
@@ -174,7 +154,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             --  The only fix is to ignore the error.
             if Trace_McKenzie > Detail then
                Config.Strategy_Counts (Ignore_Error) := 1;
-               Put ("enqueue", Trace, Tree, Parser_State.Stream, Config, Task_ID => False);
+               Put ("enqueue", Trace, Tree, Parser_State.Stream, Config);
             end if;
 
          else
@@ -196,14 +176,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   Put
                     ("undo_reduce " & Image
                        (Tree.Element_ID (Config.Error_Token), Tree.Lexer.Descriptor.all),
-                       Trace, Tree, Parser_State.Stream, Config, Task_ID => False);
+                       Trace, Tree, Parser_State.Stream, Config);
                end if;
             else
                --  Ignore error
                if Trace_McKenzie > Detail then
                   Config.Strategy_Counts (Ignore_Error) := 1;
-                  Put ("enqueue", Trace, Tree, Parser_State.Stream, Config,
-                       Task_ID => False);
+                  Put ("enqueue", Trace, Tree, Parser_State.Stream, Config);
                end if;
             end if;
          end if;
@@ -240,7 +219,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end loop;
 
       loop
-         Explore.Process_One (Super, Shared);
+         Explore.Process_One (Super, Shared_Parser);
          exit when Super.Done;
       end loop;
 
@@ -312,8 +291,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                 Tree.Trimmed_Image (Cur.Stream) & " (" &
                                 Trimmed_Image (Integer (Parsers.Count)) &
                                 " active)");
-                           Put ("", Trace, Tree, Parsers.First.Stream,
-                                Data.Results.Peek, Task_ID => False, Strategy => True);
+                           Put ("", Trace, Tree, Parsers.First.Stream, Data.Results.Peek, Strategy => True);
                         end if;
 
                         State_Ref (Parsers.First).Recover.Results.Add (Data.Results.Remove);
@@ -322,8 +300,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   end if;
 
                   if Trace_McKenzie > Outline or Trace_Parse > Outline then
-                     Put ("", Trace, Tree, Cur.Stream, Data.Results.Peek,
-                          Task_ID => False, Strategy => True);
+                     Put ("", Trace, Tree, Cur.Stream, Data.Results.Peek, Strategy => True);
                   end if;
                else
                   if Trace_McKenzie > Outline then
@@ -410,7 +387,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Parser_State.Resume_Token_Goal := Result.Resume_Token_Goal;
 
                      if Trace_McKenzie > Extra then
-                        Put_Line (Trace, Tree, Parser_State.Stream, "before Ops applied:", Task_ID => False);
+                        Put_Line (Trace, Tree, Parser_State.Stream, "before Ops applied:");
                         Trace.Put_Line
                           ("   stack/stream:" & ASCII.LF & Tree.Image
                              (Parser_State.Stream, Stack => True, Input => True, Shared => True, Children => True));
@@ -453,9 +430,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               end if;
 
                               if Trace_McKenzie > Outline then
-                                 Put_Line
-                                   (Trace, Tree, Parser_State.Stream, Message,
-                                    Task_ID => False);
+                                 Put_Line (Trace, Tree, Parser_State.Stream, Message);
                               end if;
                               raise Bad_Config;
                            end Raise_Bad_Config;
@@ -463,7 +438,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                            case Op.Op is
                            when Fast_Forward =>
                               declare
-                                 Current_Token_Node : constant Node_Access := Super.Tree.Current_Token
+                                 Current_Token_Node : constant Node_Access := Tree.Current_Token
                                    (Parser_State.Stream).Node;
                               begin
                                  if Stack_Matches_Ops then
@@ -490,7 +465,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                              end Find_FF_Target;
 
                                           begin
-                                             Find_FF_Target (Super.Tree.Current_Token (Parser_State.Stream));
+                                             Find_FF_Target (Tree.Current_Token (Parser_State.Stream));
 
                                              if Tree.First_Terminal
                                                (Tree.Get_Node (Target.Ref.Stream, Target.Ref.Element)) /=
@@ -503,11 +478,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                                    --  First we need to move all tokens Shared_Token .. Target
                                                    --  to the input stream. ada_mode-recover_10.adb
                                                    pragma Assert
-                                                     (Super.Tree.Shared_Token (Parser_State.Stream) =
-                                                      Super.Tree.Current_Token (Parser_State.Stream));
+                                                     (Tree.Shared_Token (Parser_State.Stream) =
+                                                      Tree.Current_Token (Parser_State.Stream));
 
                                                    Tree.Move_Shared_To_Input
-                                                     (First  => Super.Tree.Current_Token (Parser_State.Stream),
+                                                     (First  => Tree.Current_Token (Parser_State.Stream),
                                                       Last   => Target.Ref,
                                                       Stream => Parser_State.Stream);
 
@@ -666,7 +641,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      end loop;
 
                      if Trace_McKenzie > Extra then
-                        Put_Line (Trace, Tree, Parser_State.Stream, "after Ops applied:", Task_ID => False);
+                        Put_Line (Trace, Tree, Parser_State.Stream, "after Ops applied:");
                         Trace.Put_Line
                           ("   stack/stream:" & ASCII.LF & Tree.Image
                              (Parser_State.Stream, Stack => True, Input => True, Shared => True, Children => True));
@@ -768,12 +743,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    --  Spec private subprograms; for child packages. Declaration order
 
    function Peek_Sequential_Start
-     (Super  :         not null access Base.Supervisor;
-      Config : aliased in              Configuration)
+     (Super  :         in out Base.Supervisor;
+      Tree   :         in     Syntax_Trees.Tree;
+      Config : aliased in     Configuration)
      return Peek_Sequential_State
    is
       use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
-      Tree : Syntax_Trees.Tree renames Tree;
    begin
       return State : Peek_Sequential_State (Config.Input_Stream'Access) do
          Parse.First_Sequential_Terminal (Super, State.Input_Terminal);
@@ -790,7 +765,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
               --  Ref is an empty nonterm. ada_mode-interactive_03.adb
             then
                Tree.First_Terminal (State.Sequential_Terminal, Following => True);
-               Base.Extend_Sequential_Index (Super, Thru => State.Sequential_Terminal.Ref.Node, Positive => True);
+               Base.Extend_Sequential_Index (Super, Tree, Thru => State.Sequential_Terminal.Ref.Node, Positive => True);
                Tree.First_Sequential_Terminal (State.Sequential_Terminal);
                pragma Assert (State.Sequential_Terminal.Ref /= Syntax_Trees.Invalid_Stream_Node_Ref);
             end if;
@@ -858,11 +833,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Delete_Check;
 
    procedure Delete_Check
-     (Super  : not null access Base.Supervisor;
-      Config : in out          Configuration;
-      ID     : in              Token_ID)
+     (Super  : in     Base.Supervisor;
+      Tree   : in     Syntax_Trees.Tree;
+      Config : in out Configuration;
+      ID     : in     Token_ID)
    is
-      Tree : Syntax_Trees.Tree renames Super.Tree.all;
+      pragma Unreferenced (Super);
       Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Terminal (Tree, Config);
    begin
       if Node = Syntax_Trees.Invalid_Node_Access then
@@ -872,12 +848,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Delete_Check;
 
    procedure Delete_Check
-     (Super  :         not null access Base.Supervisor;
+     (Super  :         in out Base.Supervisor;
+      Tree   :         in     Syntax_Trees.Tree;
       Config : aliased in out Configuration;
       IDs    :         in     Token_ID_Array)
    is
-      Tree   : Syntax_Trees.Tree renames Tree;
-      State : Peek_Sequential_State := Peek_Sequential_Start (Super, Config);
+      State : Peek_Sequential_State := Peek_Sequential_Start (Super, Tree, Config);
    begin
       for ID of IDs loop
          Delete_Check (Tree, Config, Peek_Sequential_Terminal (State), ID);
@@ -886,11 +862,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Delete_Check;
 
    procedure Delete_Check
-     (Super  :         not null access Base.Supervisor;
+     (Super      : in     Base.Supervisor;
+      Tree       : in     Syntax_Trees.Tree;
       Config     : in out Configuration;
       Peek_State : in out Peek_Sequential_State;
       ID         : in     Token_ID)
-   is begin
+   is
+      pragma Unreferenced (Super);
+   begin
       Delete_Check (Tree, Config, Peek_Sequential_Terminal (Peek_State), ID);
       Peek_Next_Sequential_Terminal (Tree, Peek_State);
    end Delete_Check;
@@ -926,7 +905,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    procedure Set_Initial_Sequential_Index
      (Parsers    : in out Parser_Lists.List;
       Tree       : in     Syntax_Trees.Tree;
-      Streams    : in     Syntax_Trees.Stream_ID_Array;
+      Streams    : in out     Syntax_Trees.Stream_ID_Array;
       Terminals  : in out Syntax_Trees.Stream_Node_Parents_Array;
       Initialize : in     Boolean)
    is
@@ -947,68 +926,69 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       --  traverse the shared stream as well as the parse streams.
 
       Seq_Index : constant Base_Sequential_Index := (if Initialize then 1 else Invalid_Sequential_Index);
+      I : Positive_Index_Type := 1; --  first parse stream
    begin
       for Parser_State of Parsers loop
          Streams (I) := Parser_State.Stream;
+         I := @ + 1;
       end loop;
 
       --  First set starting point.
-      declare
-         I : Positive_Index_Type := 1; --  first parse stream
-      begin
-         if not Initialize then
-            Streams (Streams'Last) := Tree.Shared_Stream;
+
+      I := 1; --  first parse stream
+
+      if not Initialize then
+         Streams (Streams'Last) := Tree.Shared_Stream;
+      end if;
+
+      for Parser_State of Parsers loop
+         Streams (I) := Parser_State.Stream;
+
+         --  Start with the stack top; it is the error token for
+         --  In_Parse_Actions, is one stream element before the error token for
+         --  Parse_Actions, is in the parse stream, and is SOI for an empty
+         --  buffer. It may be a nonterm, possibly empty.
+         Terminals (I) := Tree.To_Stream_Node_Parents
+           (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Peek (Parser_State.Stream)));
+
+         if not Initialize and I = 1 then
+            --  Set Terminals (Terminals'Last), which must be in the shared stream.
+            --  Current_Token is not invalid here; error recover succeeded.
+            declare
+               Current_Token : Rooted_Ref renames Tree.Current_Token (Parser_State.Stream);
+            begin
+               if Tree.ID (Current_Token.Node) = Tree.Lexer.Descriptor.EOI_ID then
+                  --  test_mckenzie_recover.adb Empty_Comments
+                  Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
+                    (Tree.To_Rooted_Ref (Tree.Shared_Stream, Tree.Stream_Last (Tree.Shared_Stream)));
+               else
+                  if Current_Token.Stream /= Tree.Shared_Stream then
+                     --  Current_Token is the error token, so it was copied to the parse
+                     --  stream input. test_mckenzie_recover.adb Error_4.
+                     Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
+                       (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Stream_Last (Parser_State.Stream)));
+                     Tree.Next_Terminal (Terminals (Terminals'Last));
+                     if Terminals (Terminals'Last).Ref = Invalid_Stream_Node_Ref then
+                        --  EOI was in stream input
+                        Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
+                          (Tree.To_Rooted_Ref (Tree.Shared_Stream, Tree.Stream_Last (Tree.Shared_Stream)));
+                     end if;
+                     pragma Assert
+                       (Terminals (Terminals'Last).Ref.Stream = Tree.Shared_Stream and
+                          (Terminals (Terminals'Last).Ref.Node /= Invalid_Node_Access and then
+                             Tree.Label (Terminals (Terminals'Last).Ref.Node) in Terminal_Label));
+
+                  else
+                     Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents (Current_Token);
+                     Tree.Last_Terminal (Terminals (Terminals'Last), Streams (Terminals'Last));
+                  end if;
+               end if;
+            end;
          end if;
 
-         for Parser_State of Parsers loop
-            Streams (I) := Parser_State.Stream;
-
-            --  Start with the stack top; it is the error token for
-            --  In_Parse_Actions, is one stream element before the error token for
-            --  Parse_Actions, is in the parse stream, and is SOI for an empty
-            --  buffer. It may be a nonterm, possibly empty.
-            Terminals (I) := Tree.To_Stream_Node_Parents
-              (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Peek (Parser_State.Stream)));
-
-            if not Initialize and I = 1 then
-               --  Set Terminals (Terminals'Last), which must be in the shared stream.
-               --  Current_Token is not invalid here; error recover succeeded.
-               declare
-                  Current_Token : Rooted_Ref renames Tree.Current_Token (Parser_State.Stream);
-               begin
-                  if Tree.ID (Current_Token.Node) = Tree.Lexer.Descriptor.EOI_ID then
-                     --  test_mckenzie_recover.adb Empty_Comments
-                     Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
-                       (Tree.To_Rooted_Ref (Tree.Shared_Stream, Tree.Stream_Last (Tree.Shared_Stream)));
-                  else
-                     if Current_Token.Stream /= Tree.Shared_Stream then
-                        --  Current_Token is the error token, so it was copied to the parse
-                        --  stream input. test_mckenzie_recover.adb Error_4.
-                        Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
-                          (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Stream_Last (Parser_State.Stream)));
-                        Tree.Next_Terminal (Terminals (Terminals'Last));
-                        if Terminals (Terminals'Last).Ref = Invalid_Stream_Node_Ref then
-                           --  EOI was in stream input
-                           Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
-                             (Tree.To_Rooted_Ref (Tree.Shared_Stream, Tree.Stream_Last (Tree.Shared_Stream)));
-                        end if;
-                        pragma Assert
-                          (Terminals (Terminals'Last).Ref.Stream = Tree.Shared_Stream and
-                             (Terminals (Terminals'Last).Ref.Node /= Invalid_Node_Access and then
-                                Tree.Label (Terminals (Terminals'Last).Ref.Node) in Terminal_Label));
-
-                     else
-                        Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents (Current_Token);
-                        Tree.Last_Terminal (Terminals (Terminals'Last), Streams (Terminals'Last));
-                     end if;
-                  end if;
-               end;
-            end if;
-
-            Tree.Last_Terminal (Terminals (I), Streams (I));
-            I := @ + 1;
-         end loop;
-      end;
+         Tree.Last_Terminal (Terminals (I), Streams (I));
+         I := @ + 1;
+      end loop;
 
       --  Get all Terminals to the same node. Terminals (1) is the
       --  "reference" terminal.
@@ -1076,6 +1056,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Extend_Sequential_Index
      (Tree      : in     Syntax_Trees.Tree;
+      Streams   : in     Syntax_Trees.Stream_ID_Array;
       Terminals : in out Syntax_Trees.Stream_Node_Parents_Array;
       Target    : in     Syntax_Trees.Base_Sequential_Index;
       Positive  : in     Boolean;
@@ -1092,11 +1073,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Skip_Step_Reference : Boolean := False;
       Skip_Step_Terminals : array (2 .. Terminals'Last) of Boolean := (others => False);
       Target_Seen : array (1 .. Terminals'Last) of Boolean := (others => False);
-      Streams   : Syntax_Trees.Stream_ID_Array (1 .. Parsers.Count);
    begin
-      for Parser_State of Parsers loop
-         Streams (I) := Parser_State.Stream;
-      end loop;
       loop
          if Skip_Step_Reference then
             Skip_Step_Reference := False;
@@ -1210,8 +1187,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          if Clear then
             if (for all Seen of Target_Seen => Seen) and then
               (for all Term of Terminals =>
-                  Tree.Label (Term.Ref.Node) = Source_Terminal and then
-                  Tree.Get_Sequential_Index (Term.Ref.Node) = Invalid_Sequential_Index)
+                 Tree.Label (Term.Ref.Node) = Source_Terminal and then
+                   Tree.Get_Sequential_Index (Term.Ref.Node) = Invalid_Sequential_Index)
             then
                exit;
             end if;
@@ -1230,14 +1207,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                then Index >= Target
                else Index <= Target) and
               (for all Term of Terminals => Tree.Label (Term.Ref.Node) = Source_Terminal and then
-                  Tree.Get_Sequential_Index (Term.Ref.Node) /= Invalid_Sequential_Index);
+                 Tree.Get_Sequential_Index (Term.Ref.Node) /= Invalid_Sequential_Index);
 
             exit when
               (for all Term of Terminals =>
                  Tree.ID (Term.Ref.Node) =
-                 (if Positive
-                  then Tree.Lexer.Descriptor.EOI_ID
-                  else Tree.Lexer.Descriptor.SOI_ID));
+                   (if Positive
+                    then Tree.Lexer.Descriptor.EOI_ID
+                    else Tree.Lexer.Descriptor.SOI_ID));
          end if;
 
       end loop;
@@ -1409,17 +1386,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Find_Matching_Name;
 
    procedure Insert
-     (Super  : not null access Base.Supervisor;
-      Tree   : in              Syntax_Trees.Tree;
-      Config : in out          Configuration;
-      ID     : in              Token_ID)
+     (Super  : in out Base.Supervisor;
+      Tree   : in     Syntax_Trees.Tree;
+      Config : in out Configuration;
+      ID     : in     Token_ID)
    is begin
       Insert (Super, Tree, Config, Parse.Peek_Current_First_Sequential_Terminal (Super, Config), ID);
    end Insert;
 
    procedure Insert
-     (Super  : not null access Base.Supervisor;
-      Tree   : in              Syntax_Trees.Tree;
+     (Super  : in out Base.Supervisor;
+      Tree   : in     Syntax_Trees.Tree;
       Config : in out Configuration;
       IDs    : in     Token_ID_Array)
    is begin
@@ -1429,13 +1406,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Insert;
 
    procedure Insert
-     (Super  : not null access Base.Supervisor;
-      Tree   : in              Syntax_Trees.Tree;
-      Config : in out          Configuration;
-      Before : in              Syntax_Trees.Valid_Node_Access;
-      ID     : in              Token_ID)
+     (Super  : in out Base.Supervisor;
+      Tree   : in     Syntax_Trees.Tree;
+      Config : in out Configuration;
+      Before : in     Syntax_Trees.Valid_Node_Access;
+      ID     : in     Token_ID)
    is begin
-      Base.Extend_Sequential_Index (Super, Thru => Before, Positive => True);
+      Base.Extend_Sequential_Index (Super, Tree, Thru => Before, Positive => True);
       declare
          use Recover_Op_Arrays;
          Op : constant Recover_Op := (Insert, ID, Tree.Get_Sequential_Index (Before));
@@ -1479,13 +1456,21 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Undo_Reduce_Op_Order_Valid;
 
    function Push_Back_Undo_Reduce_Valid
-     (Super                 : not null access Base.Supervisor;
-      Target_Op             : in              Recover_Op_Label;
-      Target_Node           : in              Syntax_Trees.Node_Access;
-      Ops                   : in              Recover_Op_Arrays.Vector;
-      Last_Op_Index         : in              Positive_Index_Type;
-      Push_Back_Undo_Reduce : in              Boolean)
+     (Super                 : in out Base.Supervisor;
+      Tree                  : in     Syntax_Trees.Tree;
+      Target_Op             : in     Recover_Op_Label;
+      Target_Node           : in     Syntax_Trees.Node_Access;
+      Ops                   : in     Recover_Op_Arrays.Vector;
+      Last_Op_Index         : in     Positive_Index_Type;
+      Push_Back_Undo_Reduce : in     Boolean)
      return Boolean
+   --  Target_Node is the first terminal in a token that is the object of
+   --  Target_Op; a Push_Back or Undo_Reduce that will be the next Op
+   --  after Last_Op. Return True if that respects restrictions on Op
+   --  order.
+   --
+   --  Language_Fixes may set Push_Back_Undo_Reduce True; other callers
+   --  must set it False.
    is
       use Syntax_Trees;
       use Recover_Op_Arrays;
@@ -1512,7 +1497,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    begin
       if Target_Index = Invalid_Sequential_Index and Target_Node /= Invalid_Node_Access then
-         Base.Extend_Sequential_Index (Super, Target_Node, Positive => False);
+         Base.Extend_Sequential_Index (Super, Tree, Target_Node, Positive => False);
          Target_Index := Tree.Get_Sequential_Index (Target_Node);
       end if;
 
@@ -1630,13 +1615,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Push_Back_Undo_Reduce_Valid;
 
    function Push_Back_Valid
-     (Super                 : not null access Base.Supervisor;
-      Config                : in              Configuration;
-      Push_Back_Undo_Reduce : in              Boolean := False)
+     (Super                 : in out Base.Supervisor;
+      Tree                  : in     Syntax_Trees.Tree;
+      Config                : in     Configuration;
+      Push_Back_Undo_Reduce : in     Boolean := False)
      return Boolean
-   is
-      Tree : Syntax_Trees.Tree renames Tree;
-   begin
+   is begin
       if Config.Stack.Depth <= 1 then
          return False;
       end if;
@@ -1652,9 +1636,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
            --  ada_mode-recover_indent_3.adb partial parse.
            (not Token.Virtual or
               (Token.Virtual and then
-                 ((Is_Terminal (Token.ID, Super.Tree.Lexer.Descriptor.all) and
+                 ((Is_Terminal (Token.ID, Tree.Lexer.Descriptor.all) and
                     Token.First_Terminal /= Invalid_Node_Access) or
-                    Is_Nonterminal (Token.ID, Super.Tree.Lexer.Descriptor.all))))
+                    Is_Nonterminal (Token.ID, Tree.Lexer.Descriptor.all))))
 
            and then
            (Push_Back_Undo_Reduce or not Tree.Contains_Virtual_Terminal (Token)) and then
@@ -1669,7 +1653,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
            --  state to allow completing a production with a non-empty nonterm.
            (Recover_Op_Arrays.Length (Config.Ops) = 0 or else
               Push_Back_Undo_Reduce_Valid
-                (Super,
+                (Super, Tree,
                  Push_Back,
                  First_Terminal,
                  Config.Ops,
@@ -1679,13 +1663,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Push_Back_Valid;
 
    procedure Push_Back
-     (Super                 : not null access Base.Supervisor;
-      Config                : in out          Configuration;
-      Push_Back_Undo_Reduce : in              Boolean := False)
+     (Super                 : in out Base.Supervisor;
+      Tree                  : in     Syntax_Trees.Tree;
+      Config                : in out Configuration;
+      Push_Back_Undo_Reduce : in     Boolean := False)
    is begin
       --  We relax the "don't push back into previous recover" restriction
       --  for Language_Fixes; see test_mckenzie_recover.adb Missing_Name_5.
-      if not Push_Back_Valid (Super, Config, Push_Back_Undo_Reduce => Push_Back_Undo_Reduce) then
+      if not Push_Back_Valid (Super, Tree, Config, Push_Back_Undo_Reduce => Push_Back_Undo_Reduce) then
          raise Invalid_Case;
       end if;
 
@@ -1693,23 +1678,25 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Push_Back;
 
    procedure Push_Back_Check
-     (Super                 : not null access Base.Supervisor;
-      Config                : in out          Configuration;
-      Expected_ID           : in              Token_ID;
-      Push_Back_Undo_Reduce : in              Boolean := False)
+     (Super                 : in out Base.Supervisor;
+      Tree                  : in     Syntax_Trees.Tree;
+      Config                : in out Configuration;
+      Expected_ID           : in     Token_ID;
+      Push_Back_Undo_Reduce : in     Boolean := False)
    is begin
       Check (Tree.Element_ID (Config.Stack.Peek (1).Token), Expected_ID, Tree.Lexer.Descriptor.all);
-      Push_Back (Super, Config, Push_Back_Undo_Reduce);
+      Push_Back (Super, Tree, Config, Push_Back_Undo_Reduce);
    end Push_Back_Check;
 
    procedure Push_Back_Check
-     (Super                 : not null access Base.Supervisor;
-      Config                : in out          Configuration;
-      Expected              : in              Token_ID_Array;
-      Push_Back_Undo_Reduce : in              Boolean := False)
+     (Super                 : in out Base.Supervisor;
+      Tree                  : in     Syntax_Trees.Tree;
+      Config                : in out Configuration;
+      Expected              : in     Token_ID_Array;
+      Push_Back_Undo_Reduce : in     Boolean := False)
    is begin
       for ID of Expected loop
-         Push_Back_Check (Super, Config, ID, Push_Back_Undo_Reduce);
+         Push_Back_Check (Super, Tree, Config, ID, Push_Back_Undo_Reduce);
       end loop;
    end Push_Back_Check;
 
@@ -1719,7 +1706,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Tree         : in     Syntax_Trees.Tree;
       Parser_Label : in     Syntax_Trees.Stream_ID;
       Config       : in     Configuration;
-      Task_ID      : in     Boolean := True;
       Strategy     : in     Boolean := False)
    --  For debugging output
    is
@@ -1735,8 +1721,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
-        (if Task_ID then +"task" & Task_Attributes.Value'Image & " " else +" ") &
-        Tree.Trimmed_Image (Parser_Label) & ": " &
+        +Tree.Trimmed_Image (Parser_Label) & ": " &
         (if Message'Length > 0 then Message & ":" else "");
    begin
       Result := Result & Natural'Image (Config.Cost);
@@ -1776,21 +1761,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
      (Trace        : in out WisiToken.Trace'Class;
       Tree         : in     Syntax_Trees.Tree;
       Parser_Label : in     Syntax_Trees.Stream_ID;
-      Message      : in     String;
-      Task_ID      : in     Boolean := True)
+      Message      : in     String)
    is begin
-      Trace.Put_Line
-        ((if Task_ID then "task" & Task_Attributes.Value'Image & " " else " ") &
-           Tree.Trimmed_Image (Parser_Label) & ": " & Message);
+      Trace.Put_Line (Tree.Trimmed_Image (Parser_Label) & ": " & Message);
    end Put_Line;
 
    function Undo_Reduce_Valid
-     (Super  : not null access Base.Supervisor;
-      Config : in out          Configuration)
+     (Super  : in out Base.Supervisor;
+      Tree   : in     Syntax_Trees.Tree;
+      Config : in out Configuration)
      return Boolean
-   is
-      Tree : Syntax_Trees.Tree renames Tree;
-   begin
+   is begin
       if Config.Stack.Depth = 0 then
          return False;
       end if;
@@ -1815,18 +1796,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                  Undo_Reduce_Op_Order_Valid (Config.Ops))
               or else
               (Push_Back_Undo_Reduce_Valid
-                 (Super, Undo_Reduce,  Tree.First_Sequential_Terminal (Token.Node), Config.Ops, Last_Index (Config.Ops),
+                 (Super, Tree, Undo_Reduce,  Tree.First_Sequential_Terminal (Token.Node), Config.Ops,
+                  Last_Index (Config.Ops),
                   Push_Back_Undo_Reduce => False));
          end if;
       end;
    end Undo_Reduce_Valid;
 
    procedure Unchecked_Undo_Reduce
-     (Super  : not null access Base.Supervisor;
-      Table  : in              Parse_Table;
-      Config : in out          Configuration)
+     (Super  : in out Base.Supervisor;
+      Tree   : in     Syntax_Trees.Tree;
+      Table  : in     Parse_Table;
+      Config : in out Configuration)
    is
-      Tree         : Syntax_Trees.Tree renames Shared_Parser.Tree;
       Stack        : Recover_Stacks.Stack renames Config.Stack;
       Nonterm_Item : constant Recover_Stack_Item := Recover_Stacks.Pop (Stack);
 
@@ -1854,7 +1836,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       if First_Terminal /= Syntax_Trees.Invalid_Node_Access and then
         Tree.ID (First_Terminal) /= Tree.Lexer.Descriptor.SOI_ID
       then
-         Base.Extend_Sequential_Index (Super, First_Terminal, Positive => False);
+         Base.Extend_Sequential_Index (Super, Tree, First_Terminal, Positive => False);
       end if;
 
       Recover_Op_Arrays.Append
@@ -1867,26 +1849,28 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Unchecked_Undo_Reduce;
 
    procedure Undo_Reduce_Check
-     (Super    : not null access Base.Supervisor;
-      Table    : in              Parse_Table;
-      Config   : in out          Configuration;
-      Expected : in              Token_ID)
+     (Super    : in out Base.Supervisor;
+      Tree     : in     Syntax_Trees.Tree;
+      Table    : in     Parse_Table;
+      Config   : in out Configuration;
+      Expected : in     Token_ID)
    is begin
-      if not Undo_Reduce_Valid (Super, Config) then
+      if not Undo_Reduce_Valid (Super, Tree, Config) then
          raise Invalid_Case;
       end if;
       Check (Tree.Element_ID (Config.Stack.Peek (1).Token), Expected, Tree.Lexer.Descriptor.all);
-      Unchecked_Undo_Reduce (Super, Table, Config);
+      Unchecked_Undo_Reduce (Super, Tree, Table, Config);
    end Undo_Reduce_Check;
 
    procedure Undo_Reduce_Check
-     (Super    : not null access Base.Supervisor;
-      Table    : in              Parse_Table;
-      Config   : in out          Configuration;
-      Expected : in              Token_ID_Array)
+     (Super    : in out Base.Supervisor;
+      Tree     : in     Syntax_Trees.Tree;
+      Table    : in     Parse_Table;
+      Config   : in out Configuration;
+      Expected : in     Token_ID_Array)
    is begin
       for ID of Expected loop
-         Undo_Reduce_Check (Super, Table, Config, ID);
+         Undo_Reduce_Check (Super, Tree, Table, Config, ID);
       end loop;
    end Undo_Reduce_Check;
 

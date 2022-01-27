@@ -315,9 +315,6 @@ package body WisiToken.Parse.LR is
             elsif Name = "enqueue_limit" then
                Param.Enqueue_Limit := Value;
 
-            elsif Name = "task_count" then
-               Param.Task_Count := System.Multiprocessors.CPU_Range (Value);
-
             elsif Name = "zombie_limit" then
                Param.Zombie_Limit := Value;
 

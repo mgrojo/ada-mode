@@ -25,16 +25,16 @@ with WisiToken.Parse.LR.Parser;
 package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
    procedure Do_Shift
-     (Label             : in              String;
-      Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
-      Parser_Index      : in              SAL.Peek_Type;
-      Local_Config_Heap : in out          Config_Heaps.Heap_Type;
-      Config            : in out          Configuration;
-      State             : in              State_Index;
-      ID                : in              Token_ID;
-      Cost_Delta        : in              Integer;
-      Strategy          : in              Strategies)
+     (Label             : in     String;
+      Super             : in out Base.Supervisor;
+      Shared            : in     Parser.Parser;
+      Parser_Index      : in     SAL.Peek_Type;
+      Local_Config_Heap : in out Config_Heaps.Heap_Type;
+      Config            : in out Configuration;
+      State             : in     State_Index;
+      ID                : in     Token_ID;
+      Cost_Delta        : in     Integer;
+      Strategy          : in     Strategies)
    is
       use Recover_Op_Arrays;
 
@@ -85,14 +85,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Do_Shift;
 
    procedure Do_Reduce_1
-     (Label             : in              String;
-      Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
-      Parser_Index      : in              SAL.Peek_Type;
-      Local_Config_Heap : in out          Config_Heaps.Heap_Type;
-      Config            : in out          Configuration;
-      Action            : in              Reduce_Action_Rec;
-      Do_Language_Fixes : in              Boolean := True)
+     (Label             : in     String;
+      Super             : in out Base.Supervisor;
+      Shared            : in     Parser.Parser;
+      Parser_Index      : in     SAL.Peek_Type;
+      Local_Config_Heap : in out Config_Heaps.Heap_Type;
+      Config            : in out Configuration;
+      Action            : in     Reduce_Action_Rec;
+      Do_Language_Fixes : in     Boolean := True)
    is
       use all type In_Parse_Actions.Status_Label;
       use all type WisiToken.Parse.LR.Parser.Language_Fixes_Access;
@@ -157,8 +157,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
    procedure Do_Reduce_2
      (Label             : in              String;
-      Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
+      Super             : in out Base.Supervisor;
+      Shared            : in Parser.Parser;
       Parser_Index      : in              SAL.Peek_Type;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
       Config            : in out          Configuration;
@@ -222,7 +222,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Do_Reduce_2;
 
    function Edit_Point_Matches_Ops
-     (Super  : not null access Base.Supervisor;
+     (Super  : in out Base.Supervisor;
       Config : in              Configuration)
      return Boolean
    is
@@ -240,8 +240,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Edit_Point_Matches_Ops;
 
    procedure Fast_Forward
-     (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
+     (Super             : in out Base.Supervisor;
+      Shared            : in Parser.Parser;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
       Config            : in              Configuration)
@@ -313,8 +313,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Fast_Forward;
 
    function Check
-     (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
+     (Super             : in out Base.Supervisor;
+      Shared            : in Parser.Parser;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Config            : in out          Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
@@ -480,8 +480,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Check;
 
    function Check_Reduce_To_Start
-     (Super        : not null access Base.Supervisor;
-      Shared       : not null access Base.Shared;
+     (Super        : in out Base.Supervisor;
+      Shared       : in Parser.Parser;
       Parser_Index : in              SAL.Base_Peek_Type;
       Orig_Config  : in              Configuration)
      return Boolean
@@ -541,8 +541,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Check_Reduce_To_Start;
 
    procedure Try_Push_Back
-     (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
+     (Super             : in out Base.Supervisor;
+      Shared            : in Parser.Parser;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Config            : in              Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
@@ -581,7 +581,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Try_Push_Back;
 
    function Just_Pushed_Back_Or_Deleted
-     (Super  : not null access Base.Supervisor;
+     (Super  : in out Base.Supervisor;
       Config : in              Configuration;
       ID     : in              Token_ID)
      return Boolean
@@ -642,8 +642,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Just_Pushed_Back_Or_Deleted;
 
    procedure Try_Undo_Reduce
-     (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
+     (Super             : in out Base.Supervisor;
+      Shared            : in Parser.Parser;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Config            : in              Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
@@ -682,8 +682,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Try_Undo_Reduce;
 
    procedure Insert_From_Action_List
-     (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
+     (Super             : in out Base.Supervisor;
+      Shared            : in Parser.Parser;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Config            : in              Configuration;
       Minimal_Insert    : in              Token_ID_Arrays.Vector;
@@ -806,8 +806,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Insert_From_Action_List;
 
    function Insert_Minimal_Complete_Actions
-     (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
+     (Super             : in out Base.Supervisor;
+      Shared            : in Parser.Parser;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Orig_Config       : in out          Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
@@ -1122,8 +1122,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Insert_Minimal_Complete_Actions;
 
    procedure Insert_Matching_Begin
-     (Super                 : not null access Base.Supervisor;
-      Shared                : not null access Base.Shared;
+     (Super                 : in out Base.Supervisor;
+      Shared                : in Parser.Parser;
       Parser_Index          : in              SAL.Base_Peek_Type;
       Config                : in              Configuration;
       Local_Config_Heap     : in out          Config_Heaps.Heap_Type;
@@ -1205,8 +1205,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Insert_Matching_Begin;
 
    procedure Try_Insert_Terminal
-     (Super             :         not null access Base.Supervisor;
-      Shared            :         not null access Base.Shared;
+     (Super             :         in out Base.Supervisor;
+      Shared            :         in Parser.Parser;
       Parser_Index      :         in              SAL.Base_Peek_Type;
       Config            : aliased in out          Configuration;
       Local_Config_Heap :         in out          Config_Heaps.Heap_Type)
@@ -1263,8 +1263,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Try_Insert_Terminal;
 
    procedure Try_Insert_Quote_1
-     (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
+     (Super             : in out Base.Supervisor;
+      Shared            : in Parser.Parser;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Current_Line      : in              Line_Number_Type;
       Lexer_Error_Node  : in              Syntax_Trees.Valid_Node_Access;
@@ -1857,8 +1857,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Try_Insert_Quote_1;
 
    procedure Try_Insert_Quote
-     (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
+     (Super             : in out Base.Supervisor;
+      Shared            : in Parser.Parser;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Config            : in out          Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
@@ -1970,8 +1970,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Try_Insert_Quote;
 
    procedure Try_Delete_Input
-     (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared;
+     (Super             : in out Base.Supervisor;
+      Shared            : in Parser.Parser;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Config            : in              Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
@@ -2081,9 +2081,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Try_Delete_Input;
 
    procedure Process_One
-     (Super         : not null access Base.Supervisor;
-      Shared        : not null access Base.Shared;
-      Config_Status : out             Base.Config_Status)
+     (Super         : in out Base.Supervisor;
+      Shared        : in     Parser.Parser;
+      Config_Status :    out Base.Config_Status)
    is
       --  Get one config from Super, check to see if it is a viable
       --  solution. If not, enqueue variations to check.

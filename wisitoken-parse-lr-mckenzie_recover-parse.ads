@@ -2,7 +2,7 @@
 --
 --  Config parsing subprograms.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -23,23 +23,23 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    use all type WisiToken.Syntax_Trees.Node_Label;
 
    function Reduce_Stack
-     (Super                    : not null access Base.Supervisor;
-      Stack                    : in out          Recover_Stacks.Stack;
-      Action                   : in              Reduce_Action_Rec;
-      Nonterm                  :    out          Syntax_Trees.Recover_Token;
-      Default_Contains_Virtual : in              Boolean)
+     (Super                    : in     Base.Supervisor;
+      Stack                    : in out Recover_Stacks.Stack;
+      Action                   : in     Reduce_Action_Rec;
+      Nonterm                  :    out Syntax_Trees.Recover_Token;
+      Default_Contains_Virtual : in     Boolean)
      return In_Parse_Actions.Status;
    --  Reduce Stack according to Action, setting Nonterm.
 
    function Delete_Current_Applies
-     (Super  : not null access Base.Supervisor;
-      Config : in              Configuration)
+     (Super  : in Base.Supervisor;
+      Config : in Configuration)
      return Boolean;
    --  True if Config has a Delete op that applies to the current token.
 
    function Peek_Current_Token_ID
-     (Super  : not null access Base.Supervisor;
-      Config : in              Configuration)
+     (Super  : in Base.Supervisor;
+      Config : in Configuration)
      return Token_ID
    with Pre => not Delete_Current_Applies (Super, Config);
    --  Return ID of Config current token. In incremental parse, this may
@@ -48,11 +48,12 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  In Parse because it has similar code to Current_Token.
 
    procedure Current_Token_ID_Peek_3
-     (Super  :         not null access Base.Supervisor;
+     (Super  :         in     Base.Supervisor;
+      Tree   :         in     Syntax_Trees.Tree;
       Config : aliased in     Configuration;
       Tokens :            out Token_ID_Array_1_3)
    with Post =>
-     (for all Tok of Tokens => Tok = Invalid_Token_ID or else Is_Terminal (Tok, Super.Tree.Lexer.Descriptor.all));
+     (for all Tok of Tokens => Tok = Invalid_Token_ID or else Is_Terminal (Tok, Tree.Lexer.Descriptor.all));
    --  Return the current terminal token from Config in Tokens (1).
    --  Return the two following terminal tokens in Tokens (2 .. 3). In
    --  incremental parse, they may be virtual.
@@ -72,9 +73,9 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  First_Terminal from Shared_Stream starting at Config.Shared_Token, or Config.Input_Stream.
 
    function Peek_Current_First_Sequential_Terminal
-     (Super             : not null access Base.Supervisor;
-      Config            : in              Configuration;
-      Following_Element : in              Boolean := True)
+     (Super             : in Base.Supervisor;
+      Config            : in Configuration;
+      Following_Element : in Boolean := True)
      return Syntax_Trees.Node_Access;
    --  First_Sequential_Terminal from Config.Input_Stream,
    --  Config.Shared_Token or, if Following_Element, a following stream
@@ -91,12 +92,12 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Ref  : in out Config_Stream_Parents);
 
    procedure First_Sequential_Terminal
-     (Super : not null access Base.Supervisor;
-      Ref   : out             Config_Stream_Parents);
+     (Super : in     Base.Supervisor;
+      Ref   :    out Config_Stream_Parents);
 
    procedure Last_Sequential_Terminal
-     (Super : not null access Base.Supervisor;
-      Ref   : in out          Config_Stream_Parents);
+     (Super : in     Base.Supervisor;
+      Ref   : in out Config_Stream_Parents);
 
    procedure Next_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
@@ -156,14 +157,14 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    package Parse_Item_Array_Refs is new Parse_Item_Arrays.Gen_Refs;
 
    function Parse
-     (Super             :         not null access Base.Supervisor;
-      Shared            :         not null access Base.Shared;
-      Parser_Index      :         in              SAL.Peek_Type;
-      Parse_Items       : aliased    out          Parse_Item_Arrays.Vector;
-      Config            :         in              Configuration;
-      Shared_Token_Goal :         in              Syntax_Trees.Base_Sequential_Index;
-      All_Conflicts     :         in              Boolean;
-      Trace_Prefix      :         in              String)
+     (Super             :         in     Base.Supervisor;
+      Shared_Parser     :         in out WisiToken.Parse.LR.Parser.Parser;
+      Parser_Index      :         in     SAL.Peek_Type;
+      Parse_Items       : aliased    out Parse_Item_Arrays.Vector;
+      Config            :         in     Configuration;
+      Shared_Token_Goal :         in     Syntax_Trees.Base_Sequential_Index;
+      All_Conflicts     :         in     Boolean;
+      Trace_Prefix      :         in     String)
      return Boolean;
    --  Attempt to parse Config and any conflict configs. A config is
    --  parsed when Config.Insert_Delete is all processed, and either

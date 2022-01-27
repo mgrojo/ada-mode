@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -575,7 +575,6 @@ package body WisiToken.Generate.LR.LALR_Generate is
             Fast_Forward                => Default_McKenzie_Param.Fast_Forward,
             Matching_Begin              => Default_McKenzie_Param.Matching_Begin,
             Ignore_Check_Fail           => Default_McKenzie_Param.Ignore_Check_Fail,
-            Task_Count                  => Default_McKenzie_Param.Task_Count,
             Zombie_Limit                => Default_McKenzie_Param.Zombie_Limit,
             Check_Limit                 => Default_McKenzie_Param.Check_Limit,
             Check_Delta_Limit           => Default_McKenzie_Param.Check_Delta_Limit,

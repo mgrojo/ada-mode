@@ -28,11 +28,11 @@ package WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Config            : in     Configuration);
 
    procedure Matching_Begin_Tokens
-     (Super                   :         not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
-      Tokens                  :         in              Token_ID_Array_1_3;
-      Config                  : aliased in              Configuration;
-      Matching_Tokens         :            out          Token_ID_Arrays.Vector;
-      Forbid_Minimal_Complete :            out          Boolean);
+     (Tree                    : in     Syntax_Trees.Tree;
+      Tokens                  : in     Token_ID_Array_1_3;
+      Config                  : in     Configuration;
+      Matching_Tokens         :    out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :    out Boolean);
 
    function String_ID_Set
      (Descriptor        : in WisiToken.Descriptor;

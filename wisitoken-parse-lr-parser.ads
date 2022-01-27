@@ -51,11 +51,11 @@ package WisiToken.Parse.LR.Parser is
    --  caused the error.
 
    type Language_Matching_Begin_Tokens_Access is access procedure
-     (Super                   :         not null access Base.Supervisor;
-      Tokens                  :         in              Token_ID_Array_1_3;
-      Config                  : aliased in              Configuration;
-      Matching_Tokens         :            out          Token_ID_Arrays.Vector;
-      Forbid_Minimal_Complete :            out          Boolean);
+     (Tree                    : in     Syntax_Trees.Tree;
+      Tokens                  : in     Token_ID_Array_1_3;
+      Config                  : in     Configuration;
+      Matching_Tokens         :    out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :    out Boolean);
    --  Tokens (1) is the current token; Tokens (2 .. 3) are the following
    --  tokens (Invalid_Token_ID if none). Set Matching_Tokens to a
    --  terminal token sequence that starts a production matching Tokens.

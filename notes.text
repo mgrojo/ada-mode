@@ -31,10 +31,12 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-delete mckenzie multi-tasking
-    make t_mck
+propagate from main
 
-        wisi-undo-save-redo still not working
+delete mckenzie multi-tasking
+    delete mckenzie_task_count option
+    t_mck
+    t_all
 
 
 test insert that modifies a comment start so it no longer is one

@@ -36,7 +36,7 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Initialize
      (Super         : in out Supervisor;
-      Shared_Parser : in     WisiToken.Parse.LR.Parser.Parser);
+      Shared_Parser : in out WisiToken.Parse.LR.Parser.Parser);
 
    procedure Get
      (Super        : in out Supervisor;
@@ -71,8 +71,9 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
    --  True when all parsers have failed or succeeded.
 
    procedure Finish
-     (Min_Sequential_Index : out Syntax_Trees.Sequential_Index;
-     Max_Sequential_Index : out Syntax_Trees.Sequential_Index);
+     (Super                : in out Supervisor;
+      Min_Sequential_Index :    out Syntax_Trees.Sequential_Index;
+      Max_Sequential_Index :    out Syntax_Trees.Sequential_Index);
 
    function Parser_State
      (Super        : in Supervisor;
@@ -83,6 +84,7 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Extend_Sequential_Index
      (Super    : in out Supervisor;
+      Tree     : in     Syntax_Trees.Tree;
       Thru     : in     Syntax_Trees.Valid_Node_Access;
       Positive : in     Boolean);
    --  If Thru.Node has valid Sequential_Index, return.
@@ -92,6 +94,7 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Extend_Sequential_Index
      (Super : in out Supervisor;
+      Tree  : in     Syntax_Trees.Tree;
       Thru  : in     Syntax_Trees.Sequential_Index);
    --  Ensure Sequential_Index range includes Thru, or SOI/EOI.
 
