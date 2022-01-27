@@ -80,6 +80,8 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  First_Sequential_Terminal from Config.Input_Stream,
    --  Config.Shared_Token or, if Following_Element, a following stream
    --  element.
+   --
+   --  Caller must ensure there is such a terminal.
 
    function First_Terminal
      (Tree   : in Syntax_Trees.Tree;

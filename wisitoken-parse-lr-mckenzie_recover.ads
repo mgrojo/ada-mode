@@ -305,7 +305,7 @@ private
      (Super                 : in out Base.Supervisor;
       Tree                  : in     Syntax_Trees.Tree;
       Config                : in     Configuration;
-      Push_Back_Undo_Reduce : in     Boolean := False)
+      Push_Back_Undo_Reduce : in     Boolean)
      return Boolean;
    --  True if Push_Back is a valid op for Config.
    --
@@ -317,7 +317,7 @@ private
      (Super                 : in out Base.Supervisor;
       Tree                  : in     Syntax_Trees.Tree;
       Config                : in out Configuration;
-      Push_Back_Undo_Reduce : in     Boolean := False);
+      Push_Back_Undo_Reduce : in     Boolean);
    --  If not Push_Back_Valid, raise Invalid_Case. Otherwise do
    --  Push_Back.
    --
@@ -330,7 +330,7 @@ private
       Tree                  : in     Syntax_Trees.Tree;
       Config                : in out Configuration;
       Expected_ID           : in     Token_ID;
-      Push_Back_Undo_Reduce : in     Boolean := False);
+      Push_Back_Undo_Reduce : in     Boolean);
    --  Check that Config.Stack top has Expected_ID; raise Bad_Config if
    --  not. Then call Push_Back.
 
@@ -339,7 +339,7 @@ private
       Tree                  : in     Syntax_Trees.Tree;
       Config                : in out Configuration;
       Expected              : in     Token_ID_Array;
-      Push_Back_Undo_Reduce : in     Boolean := False);
+      Push_Back_Undo_Reduce : in     Boolean);
    --  Call Push_Back_Check for each item in Expected.
 
    procedure Put

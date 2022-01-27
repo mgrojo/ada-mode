@@ -585,6 +585,62 @@ package body Test_Incremental is
          Incr_Errors    => 0);
    end Edit_Comment_12;
 
+   procedure Edit_Comment_13 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-interactive_09.adb. Scanned comments cross two KMN,
+      --  confusing shift computations.
+      Parse_Text
+        (Initial   =>
+           "procedure A" & ASCII.LF &
+             --      |10
+             "is" & ASCII.LF &
+             --     |15
+             "   -- comment 1" & ASCII.LF &
+             --  |19
+             "   -- comment 2" & ASCII.LF &
+             --  |35
+             "begin null; end A;",
+
+         Edit_At        => 19,
+         Insert         => "   ",
+         Delete         => "",
+         Edit_2_At      => 35,
+         Insert_2       => "   ",
+         Delete_2       => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Edit_Comment_13;
+
+   procedure Edit_Comment_14 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode.adb.
+      Parse_Text
+        (Initial   =>
+           "procedure Ask" & ASCII.LF &
+             --      |10
+             "is begin null;" & ASCII.LF &
+             --    |20          |29
+             "   -- comment 1" & ASCII.LF &
+             --  |33    |40      |45
+             "   -- comment 2" & ASCII.LF &
+             --  |49        |60
+             "end Ask;",
+         --       |66
+
+         Edit_At        => 33,
+         Insert         => "   ",
+         Delete         => "",
+         Edit_2_At      => 66,
+         Insert_2       => "A",
+         Delete_2       => "A",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Edit_Comment_14;
+
    procedure Edit_Whitespace_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -1440,12 +1496,47 @@ package body Test_Incremental is
            "   for" & ASCII.LF &
            --  |25    |28
            "end A;",
-         Edit_At     => 28,
-         Delete      => "",
-         Insert      => " ",
+         Edit_At        => 28,
+         Delete         => "",
+         Insert         => " ",
          Initial_Errors => 1,
-         Incr_Errors => 1);
+         Incr_Errors    => 1);
    end Restore_Deleted_01;
+
+   procedure Nonterm_Resume_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Test that resume_active is computed properly when the error is on a nonterm.
+
+      Parse_Text
+        ("procedure A is b : Int;" &
+           --      |10       |20
+           " Tree Tree : WisiToken.Syntax_Trees.Tree := C; begin null; end A;",
+         --  |25  |30       |40       |50       |60       |70
+         Edit_At        => 28,
+         Delete         => "",
+         Insert         => "e",
+         Initial_Errors => 1,
+         Incr_Errors    => 1);
+   end Nonterm_Resume_01;
+
+   procedure Undo_Conflict_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Requires Edit_Tree to breakdown nonterms marked Recover_Conflict.
+      --  Simplified from ada_mode-interactive_15.adb.
+
+      Parse_Text
+        ("procedure A is P : S; C : N begin null; end A;",
+         --   |5   |10       |20       |30
+         Edit_At        => 29,
+         Delete         => "",
+         Insert         => "renames B; ",
+         Initial_Errors => 1,
+         Incr_Errors    => 0);
+   end Undo_Conflict_01;
 
    ----------
    --  Public subprograms
@@ -1467,6 +1558,8 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment_10'Access, "Edit_Comment_10");
       Register_Routine (T, Edit_Comment_11'Access, "Edit_Comment_11");
       Register_Routine (T, Edit_Comment_12'Access, "Edit_Comment_12");
+      Register_Routine (T, Edit_Comment_13'Access, "Edit_Comment_13");
+      Register_Routine (T, Edit_Comment_14'Access, "Edit_Comment_14");
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");
@@ -1508,6 +1601,8 @@ package body Test_Incremental is
       Register_Routine (T, Multiple_Errors_On_One_Token_2'Access, "Multiple_Errors_On_One_Token_2");
       Register_Routine (T, Non_Ascii'Access, "Non_Ascii");
       Register_Routine (T, Restore_Deleted_01'Access, "Restore_Deleted_01");
+      Register_Routine (T, Nonterm_Resume_01'Access, "Nonterm_Resume_01");
+      Register_Routine (T, Undo_Conflict_01'Access, "Undo_Conflict_01");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
