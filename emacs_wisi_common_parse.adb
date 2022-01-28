@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -390,6 +390,8 @@ package body Emacs_Wisi_Common_Parse is
                --  [elisp error form]...
                --  prompt
                declare
+                  use all type SAL.Base_Peek_Type;
+
                   Params : constant Parse_Params := Get_Parse_Params (Command_Line, Last);
 
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access :=
@@ -525,9 +527,13 @@ package body Emacs_Wisi_Common_Parse is
                      end;
                   end case;
 
-                  Parse_Data.Put
-                    (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-                     Parser.Tree);
+                  if Parser.Parsers.Count > 0 then
+                     --  else edits did not require parse
+                     Parse_Data.Put
+                       (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+                        Parser.Tree);
+                  end if;
+
                exception
                when Wisi.Parse_Context.Not_Found =>
                   raise;
