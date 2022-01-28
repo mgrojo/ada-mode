@@ -530,6 +530,8 @@ package body Run_Wisi_Common_Parse is
 
       when Parse_Incremental =>
          declare
+            use all type SAL.Base_Peek_Type;
+
             Changes  : constant Wisi.Parse_Context.Change_Lists.List :=
               Wisi.Parse_Context.Get_Emacs_Change_List (Line, Last);
             KMN_List : WisiToken.Parse.KMN_Lists.List;
@@ -545,9 +547,12 @@ package body Run_Wisi_Common_Parse is
 
             Parser.Parse (Log_File, KMN_List);
 
-            Parse_Data.Put
-              (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-               Parser.Tree);
+            if Parser.Parsers.Count > 0 then
+               --  else edits did not require parse
+               Parse_Data.Put
+                 (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+                  Parser.Tree);
+            end if;
 
             if Parse_Context.Compare_Tree_Text_Auto then
                Parse_Context.Compare_Tree_Text;
