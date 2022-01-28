@@ -80,56 +80,19 @@ read Kate's book on culture/persuasion.
         - pay someone in-house to work on this - I will mentor
 
  current work
-o.w.s-2 wisitoken-parse-lr-mckenzie_recover-base.adb
-    editing Get, declare Check_Delta_limit
-        error mark on next line does not go away
-        not when done with replay-kbd-macro
-            race condition with font-lock
-            add wisi-replay-kbd-macro-2; explicitly call font-lock-ensure every n chars instead of delay
-                no help
+ediff ada_annex_p.wy
+    parse 2 "ada_annex_p.wy" "debug=1" 1 -1 -1 -1 0 1 ""
+    Fri Jan 28 02:41:29 2022:
+    protocol error at 49: emacs_wisi_common_parse.adb:181 range check failed
+        empty buffer before retrieve original?
 
-        type by hand, copy *Ada-parser-log* after kill-context to debug-3.log, convert to debug.cmd
-            in debug-3.log, final parse gives error "found renames"
+    wisitoken-which-function fails with nil tree node
 
-        reproduce in debug.adb
-            main editor log debug-4.log
-            command file    debug-4.cmd
-            run_ada_lr1 log debug-4b.log
-            run_ada_lalr    debug-4c.log
-            full parse lalr debug-4d.log
-
-            final parse is for insert "B;"
-                why does that still have an error?
-                compare to full parse
-                tree has defining_identifier_list instead of seleced_component
-                    that node was created before renames was typed
-                    after recover, spawned a parser to consider renames, didn't find it
-
-                    flag nonterm nodes that are the result of conflict during recover, break those down in edit_tree
-                        ie, all nonterms created while resume_active true and parsers.count > 1
-
-        reproduced in ada_mode-interactive_15.adb
-
-        need wisitoken test
-
-
-test_incremental.adb
-    added nonterm_resume_01; indenting paramlist => compare tree/text fail .root.virtual got TRUE expecting FALSE
-
-    indent restore_deleted_01
-        didn't work, reported fallback
-        insert space, invoke ada-format-paramlist => worked, compare tree/text fail
-
-wisi-kill-parser must be followed by wisi-reset-parser
-    fix it.
-
-ada-align-paramlist very rarely puts garbage
-    yet another screwed up tree error
-
-wisi-indent-current-statement
-    should indent statement before or containing pos
-    edited code, but something broken; query-tree with pos after statement returns nil
-    add to test_syntax_tree?
+handle merge conflict markers
+    ada_mode-recover_conflict_markers.adb
+    treat them as comment-new-line
+    better treat variant b as comment delimiters
+        but that loses highlighting there.
 
 need kill-context on delete buffer
 
@@ -1117,7 +1080,7 @@ in ada_annex_p.wy:
 %partial_recursion ;; FIXME: faster compile time while debugging
 
 one ELISP="(setq save-parser-log \"../debug-2.log\" save-edited-text \"../edited\")" ONE_TEST_FILES=ada_mode-*.adb
-    wisi-parser-transaction-log-buffer-size-default 600000
+    wisi-parser-transaction-log-buffer-size-default most-positive-fixnum
     compare-tree-text t
 
 test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 30.0)"

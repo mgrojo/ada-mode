@@ -35,7 +35,7 @@
 %meta_syntax EBNF
 
 %code copyright_license %{
-;;  Copyright (C) 2013 - 2021 Free Software Foundation, Inc.
+;;  Copyright (C) 2013 - 2022 Free Software Foundation, Inc.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -282,7 +282,6 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT at_clause | REDUCE name on token USE
 %conflict SHIFT attribute_definition_clause | REDUCE attribute_reference on token USE
 %conflict SHIFT attribute_definition_clause | REDUCE label_opt on token FOR
-%conflict SHIFT attribute_designator | REDUCE attribute_designator on token LEFT_PAREN
 %conflict SHIFT binary_adding_operator | REDUCE simple_expression on token AMPERSAND
 %conflict SHIFT binary_adding_operator | REDUCE simple_expression on token MINUS
 %conflict SHIFT binary_adding_operator | REDUCE simple_expression on token PLUS
@@ -838,11 +837,7 @@ selector_name
 attribute_reference : name tick attribute_designator | reduction_attribute_reference ;
 
 attribute_designator
-  : IDENTIFIER ['(' expression ')']
-    %((wisi-indent-action [nil nil
-                               (wisi-hanging (wisi-anchored 2 1)
-                                             (wisi-anchored 2 (+ 1 ada-indent-broken)))
-                               (wisi-anchored 2 0)]))%
+  : IDENTIFIER ;; deleted ['(' expression ')'] - redundant with function_call in name
   | 'access'
   | 'delta'
   | 'digits'
@@ -1233,7 +1228,7 @@ declare_item ::= object_declaration | object_renaming_declaration
 
 reduction_attribute_reference
   : value_sequence tick reduction_attribute_designator
-  | name tick reduction_attribute_designator
+  ;; name tick reduction_attribute_designator ;; redundant with attribute_reference in name
   ;
 
 value_sequence : '[' ['parallel' ['(' chunk_specification ')']] iterated_element_association ']' ;
