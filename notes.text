@@ -80,6 +80,20 @@ read Kate's book on culture/persuasion.
         - pay someone in-house to work on this - I will mentor
 
  current work
+ediff ada_annex_p.wy
+    parse 2 "ada_annex_p.wy" "debug=1" 1 -1 -1 -1 0 1 ""
+    Fri Jan 28 02:41:29 2022:
+    protocol error at 49: emacs_wisi_common_parse.adb:181 range check failed
+        empty buffer before retrieve original?
+
+    wisitoken-which-function fails with nil tree node
+
+handle merge conflict markers
+    ada_mode-recover_conflict_markers.adb
+    treat them as comment-new-line
+    better treat variant b as comment delimiters
+        but that loses highlighting there.
+
 need kill-context on delete buffer
 
 test/ada_mode-recover_27.adb
@@ -1066,7 +1080,7 @@ in ada_annex_p.wy:
 %partial_recursion ;; FIXME: faster compile time while debugging
 
 one ELISP="(setq save-parser-log \"../debug-2.log\" save-edited-text \"../edited\")" ONE_TEST_FILES=ada_mode-*.adb
-    wisi-parser-transaction-log-buffer-size-default 600000
+    wisi-parser-transaction-log-buffer-size-default most-positive-fixnum
     compare-tree-text t
 
 test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-time-out 30.0)"
