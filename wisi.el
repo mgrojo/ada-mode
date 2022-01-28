@@ -522,7 +522,7 @@ Used to ignore whitespace changes in before/after change hooks.")
   "Cached list of args to wisi-after-change, for incremental parse.
 Each element is
 (INSERT-BEGIN-BYTE-POS INSERT-BEGIN-CHAR-POS
- INSERT-END-BYTE-POS INSERT-END-CHAR-POSS
+ INSERT-END-BYTE-POS INSERT-END-CHAR-POS
  DELETED-BYTE-COUNT DELETED-CHAR-COUNT INSERTED-TEXT)")
 
 (defvar-local wisi--affected-text 0

@@ -1,6 +1,6 @@
 ;;; wisi-process-parse.el --- interface to external parse program
 ;;
-;; Copyright (C) 2014, 2017 - 2021 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2017 - 2022 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -1434,6 +1434,58 @@ PARSER will respond with one or more Query messages."
 		  (when (not (string-equal "" language_param)) (format "--lang_params \"%s\" " language_param))
 		  ))
     (kill-new cmd)))
+
+;; (defun wisi-process-log-to-kbd (&optional cmd-buffer-name)
+;;   "Convert parser log in current buffer to kbd macro."
+;;   (interactive)
+;;   (unless cmd-buffer-name
+;;     (setq cmd-buffer-name "debug.macro"))
+;;   (let ((log-buffer (current-buffer))
+;; 	(log-buffer-point (point))
+;; 	(cmd-buffer (get-buffer-create cmd-buffer-name))
+;; 	edit changes begin end)
+;;     (set-buffer cmd-buffer)
+;;     (erase-buffer)
+
+;;     (set-buffer log-buffer)
+;;     (goto-char (point-min))
+
+;;     (goto-char (point-min))
+;;     (while (search-forward-regexp "^parse 1 \"\\([^\"]+\\)\"" nil t)
+;;       (search-forward-regexp "((")
+;;       (goto-char (match-beginning 0))
+;;       (setq changes (car (read-from-string (buffer-substring-no-properties (point) (scan-sexps (point) 1)))))
+;;       (setq edit (car (car changes)))
+;;       (insert "(goto-char " edit ")")
+
+;;       (set-buffer cmd-buffer)
+;;       (goto-char (point-max))
+;;       (dolist (change changes)
+;; 	;; CHANGE is (byte-begin char-begin byte-end char-end delete-bytes delete-chars insert)
+;; 	;; see docstring of `wisi--changes'.
+;; 	(if (= char-begin edit)
+;; 	(cond
+;; 	 ((0 = (nth 4 change))
+
+
+;;       (set-buffer log-buffer)
+;;       (setq end (copy-marker (point) t))
+;;       (goto-char begin)
+;;       (while (search-forward "\n" end t)
+;; 	  (delete-char -1)
+;; 	  (insert "\\n"))
+;; 	(goto-char (point-max))
+;; 	(insert "\n\n")
+
+;; 	(set-buffer log-buffer))
+
+
+;;       )
+;;     (with-current-buffer cmd-buffer
+;;       (if (buffer-file-name)
+;; 	  (save-buffer)
+;; 	(write-file cmd-buffer-name)))
+;;    (goto-char log-buffer-point)))
 
 (cl-defun wisi-time (func count &key report-wait-time)
   "call FUNC COUNT times, show total time"
