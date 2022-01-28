@@ -48,7 +48,7 @@ begin
          raise WisiToken.Parse_Error with "previous parse failed, can't edit tree";
       end if;
 
-      if Trace_Parse > Outline or Trace_Incremental_Parse > Outline then
+      if Trace_Parse > Detail or Trace_Incremental_Parse > Outline then
          Trace.New_Line;
          Trace.Put_Line ("pre-edit tree:");
          Shared_Parser.Tree.Print_Tree (Trace, Line_Numbers => True, Non_Grammar => True);
