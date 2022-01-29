@@ -1093,9 +1093,6 @@ package body Test_Incremental is
       --  it. Full parse of edited source finds different error recover
       --  solution from incremental parse unless we tweak things.
 
-      Full_Parser.Table.McKenzie_Param.Task_Count        := 1;
-      Incremental_Parser.Table.McKenzie_Param.Task_Count := 1;
-
       Parse_Text
         (Label   => "3",
          Initial => "A := B + C; " & ASCII.LF &
@@ -1277,10 +1274,6 @@ package body Test_Incremental is
    begin
       --  Missing string quote. Initial full parse recovers from it,
       --  incremental edit does not fix it.
-      --
-      --  With multiple tasks, error recover finds different solutions.
-      Full_Parser.Table.McKenzie_Param.Task_Count := 1;
-      Incremental_Parser.Table.McKenzie_Param.Task_Count := 1;
 
       Parse_Text
         (Initial          =>

@@ -143,7 +143,6 @@ Minimal_Complete_Cost_Delta => -3
 Fast_Forward      =>  0
 Matching_Begin    =>  0
 Ignore_Check_Fail => 0
-Task_Count        => 0
 Check_Limit       => 4
 Check_Delta_Limit => 2147483647
 Enqueue_Limit     => 10000

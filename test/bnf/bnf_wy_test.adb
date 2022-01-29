@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2015, 2017 - 2021 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017 - 2022 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -214,15 +214,6 @@ package body BNF_WY_Test is
    begin
       if WisiToken.Trace_Tests > WisiToken.Outline then
          Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "parse " & Exe);
-      end if;
-
-      if Generate_Alg in LR_Generate_Algorithm and McKenzie_Recover then
-         --  One task in McKenzie_Recover for repeatable results. Verbosity 1
-         --  to show algorithm errors.
-         Last := Last + 1;
-         Args (Last) := new String'("-t");
-         Last := Last + 1;
-         Args (Last) := new String'("1");
       end if;
 
       Last := Last + 1; -- For input file name

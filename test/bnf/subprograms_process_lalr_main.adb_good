@@ -161,7 +161,6 @@ package body Subprograms_Process_LALR_Main is
          Fast_Forward =>  0,
          Matching_Begin =>  0,
          Ignore_Check_Fail  => 4,
-         Task_Count  => 0,
          Check_Limit => 3,
          Zombie_Limit => 3,
          Check_Delta_Limit => 200,

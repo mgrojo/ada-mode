@@ -8029,7 +8029,7 @@ package body WisiToken.Syntax_Trees is
 
       Real_Root : Node_Access;
 
-      Last_Source_Terminal_Pos : Buffer_Pos := Buffer_Pos'First;
+      Last_Source_Terminal_Pos : Base_Buffer_Pos := Buffer_Pos'First;
 
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;

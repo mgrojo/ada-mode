@@ -2035,6 +2035,7 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +NUMERIC_LITERAL_ID,
          Error_Token_Byte_Region => (34, 35),
+         Ops                     => +(Insert, +AMPERSAND_ID, 2),
          Enqueue_Low             => 46,
          Check_Low               => 25,
          Cost                    => 4);

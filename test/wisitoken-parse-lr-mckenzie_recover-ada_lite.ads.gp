@@ -22,7 +22,7 @@ package WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
    procedure Fixes
      (Super             : in out Base.Supervisor;
-      Shared_Parser     : in     Parser.Parser;
+      Shared_Parser     : in out Parser.Parser;
       Parser_Index      : in     SAL.Peek_Type;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration);

@@ -2,7 +2,7 @@
 --
 --  Code to explore parse table, enqueuing new configs to check.
 --
---  Copyright (C) 2018, 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2021, 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -21,7 +21,7 @@ with WisiToken.Parse.LR.McKenzie_Recover.Base;
 private package WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
    procedure Process_One
-     (Super         : in out Base.Supervisor;
-      Shared_Parser : in     Parser.Parser);
+     (Super  : in out Base.Supervisor;
+      Shared : in out Parser.Parser);
 
 end WisiToken.Parse.LR.McKenzie_Recover.Explore;

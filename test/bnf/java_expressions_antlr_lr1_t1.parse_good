@@ -9,9 +9,6 @@
 
 parser 0: State 28 Current_Token (0, 2;4:(Wisi_EOI, (59 . 58) ERROR))
 Parser_Action
-
- 1 parallel tasks
-new Worker_Task 1
  0: succeed 2, enqueue 36, check  5, cost:  1
 spawn 1 from 0 (2 active)
  1:  1, ( 0 0 1 0 0 0 0 0 0), (57 : (RPAREN))\2;4:(Wisi_EOI, (59 . 58) ERROR)\((INSERT, RPAREN, 2))

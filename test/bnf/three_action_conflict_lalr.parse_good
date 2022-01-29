@@ -165,9 +165,6 @@ Parser_Action
 
 parser 1: State 15 Current_Token (1, 3;34:(IDENTIFIER, (150 . 152) ERROR))
 Parser_Action
-
- 1 parallel tasks
-new Worker_Task 1
  6: succeed 1, enqueue 99, check  57, cost:  15
  6:  15, ( 0 0 1 0 0 0 0 3 0), (2 : (block))|(-1, 8;27:(Wisi_EOI, (160 . 159)))|((DELETE, ARROW, 2), (INSERT, SEMI, 3), (FAST_FORWARD, 6), (DELETE, SEMI, 6), (DELETE, RBRACE, 7))
  5: succeed 1, enqueue 87, check  44, cost:  12

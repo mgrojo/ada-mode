@@ -16,9 +16,6 @@
 
 parser 0: State 21 Current_Token (0, 2;24:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR))
 Parser_Action
-
- 1 parallel tasks
-new Worker_Task 1
  0: succeed 2, enqueue 19, check  5, cost:  1
 spawn 1 from 0 (2 active)
  1:  1, ( 0 0 1 0 0 0 0 0 0), (93 : (RIGHT_PAREN))\2;24:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)\((INSERT, RIGHT_PAREN, 2))
@@ -271,8 +268,6 @@ recover: succeed, parser count 2
 
 parser 1: State 61 Current_Token (1, 2;27:(RIGHT_CURLY_BRACKET, (281 . 281) ERROR))
 Parser_Action
-
- 1 parallel tasks
  1: succeed 2, enqueue 203, check  54, cost:  6
 spawn 2 from 1 (2 active)
  2:  6, ( 0 0 0 0 0 0 2 0 0), (20 : (SEMICOLON))\2;27:(RIGHT_CURLY_BRACKET, (281 . 281) ERROR)\((INSERT, MINUS_MINUS, 2), (INSERT, SEMICOLON, 2))
@@ -526,8 +521,6 @@ recover: succeed, parser count 2
 
 parser 2: State 16 Current_Token (2, 2;30:(RIGHT_CURLY_BRACKET, (417 . 417) ERROR))
 Parser_Action
-
- 1 parallel tasks
  2: succeed 1, enqueue 4, check  2, cost:  1
  2:  1, ( 0 0 1 0 0 0 0 0 0), (35 : (Identifier))\2;30:(RIGHT_CURLY_BRACKET, (417 . 417) ERROR)\((INSERT, Identifier, 2))
 

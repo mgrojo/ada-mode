@@ -23,7 +23,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    use all type WisiToken.Syntax_Trees.Node_Label;
 
    function Reduce_Stack
-     (Super                    : in     Base.Supervisor;
+     (Shared_Parser            : in out LR.Parser.Parser;
       Stack                    : in out Recover_Stacks.Stack;
       Action                   : in     Reduce_Action_Rec;
       Nonterm                  :    out Syntax_Trees.Recover_Token;
@@ -32,28 +32,31 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  Reduce Stack according to Action, setting Nonterm.
 
    function Delete_Current_Applies
-     (Super  : in Base.Supervisor;
-      Config : in Configuration)
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in     Configuration)
      return Boolean;
    --  True if Config has a Delete op that applies to the current token.
 
    function Peek_Current_Token_ID
-     (Super  : in Base.Supervisor;
-      Config : in Configuration)
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in     Configuration)
      return Token_ID
-   with Pre => not Delete_Current_Applies (Super, Config);
+   with Pre => not Delete_Current_Applies (Super, Shared_Parser, Config);
    --  Return ID of Config current token. In incremental parse, this may
    --  be a nonterminal.
    --
    --  In Parse because it has similar code to Current_Token.
 
    procedure Current_Token_ID_Peek_3
-     (Super  :         in     Base.Supervisor;
-      Tree   :         in     Syntax_Trees.Tree;
-      Config : aliased in     Configuration;
-      Tokens :            out Token_ID_Array_1_3)
+     (Super         :         in out Base.Supervisor;
+      Shared_Parser :         in out LR.Parser.Parser;
+      Config        : aliased in     Configuration;
+      Tokens        :            out Token_ID_Array_1_3)
    with Post =>
-     (for all Tok of Tokens => Tok = Invalid_Token_ID or else Is_Terminal (Tok, Tree.Lexer.Descriptor.all));
+     (for all Tok of Tokens => Tok = Invalid_Token_ID or else
+        Is_Terminal (Tok, Shared_Parser.Tree.Lexer.Descriptor.all));
    --  Return the current terminal token from Config in Tokens (1).
    --  Return the two following terminal tokens in Tokens (2 .. 3). In
    --  incremental parse, they may be virtual.
@@ -73,9 +76,10 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  First_Terminal from Shared_Stream starting at Config.Shared_Token, or Config.Input_Stream.
 
    function Peek_Current_First_Sequential_Terminal
-     (Super             : in Base.Supervisor;
-      Config            : in Configuration;
-      Following_Element : in Boolean := True)
+     (Super             : in out Base.Supervisor;
+      Shared_Parser     : in out LR.Parser.Parser;
+      Config            : in     Configuration;
+      Following_Element : in     Boolean := True)
      return Syntax_Trees.Node_Access;
    --  First_Sequential_Terminal from Config.Input_Stream,
    --  Config.Shared_Token or, if Following_Element, a following stream
@@ -94,12 +98,14 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Ref  : in out Config_Stream_Parents);
 
    procedure First_Sequential_Terminal
-     (Super : in     Base.Supervisor;
-      Ref   :    out Config_Stream_Parents);
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Ref           :    out Config_Stream_Parents);
 
    procedure Last_Sequential_Terminal
-     (Super : in     Base.Supervisor;
-      Ref   : in out Config_Stream_Parents);
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Ref           : in out Config_Stream_Parents);
 
    procedure Next_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
@@ -159,7 +165,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    package Parse_Item_Array_Refs is new Parse_Item_Arrays.Gen_Refs;
 
    function Parse
-     (Super             :         in     Base.Supervisor;
+     (Super             :         in out Base.Supervisor;
       Shared_Parser     :         in out WisiToken.Parse.LR.Parser.Parser;
       Parser_Index      :         in     SAL.Peek_Type;
       Parse_Items       : aliased    out Parse_Item_Arrays.Vector;

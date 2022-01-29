@@ -39,29 +39,35 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
       Shared_Parser : in out WisiToken.Parse.LR.Parser.Parser);
 
    procedure Get
-     (Super        : in out Supervisor;
-      Parser_Index :    out SAL.Base_Peek_Type;
-      Config       :    out Configuration);
-   --  Get a new configuration to check.
+     (Super         : in out Supervisor;
+      Shared_Parser : in     Parser.Parser;
+      Parser_Index  :    out SAL.Base_Peek_Type;
+      Config        :    out Configuration);
+   --  Get a new configuration to check. If Parser_Index =
+   --  SAL.Base_Peek_Type'First, Config is invalid; there are no
+   --  configurations left to check.
 
    procedure Success
-     (Super        : in out Supervisor;
-      Parser_Index : in     SAL.Peek_Type;
-      Config       : in     Configuration;
-      Configs      : in out Config_Heaps.Heap_Type);
+     (Super         : in out Supervisor;
+      Shared_Parser : in     Parser.Parser;
+      Parser_Index  : in     SAL.Peek_Type;
+      Config        : in     Configuration;
+      Configs       : in out Config_Heaps.Heap_Type);
    --  Report that Configuration succeeds for Parser_Label, and enqueue
    --  Configs.
 
    procedure Put
-     (Super        : in out Supervisor;
-      Parser_Index : in     SAL.Peek_Type;
-      Configs      : in out Config_Heaps.Heap_Type);
+     (Super         : in out Supervisor;
+      Shared_Parser : in     Parser.Parser;
+      Parser_Index  : in     SAL.Peek_Type;
+      Configs       : in out Config_Heaps.Heap_Type);
    --  Add Configs to the McKenzie_Data Config_Heap for Parser_Label
 
    procedure Config_Full
-     (Super        : in out Supervisor;
-      Prefix       : in     String;
-      Parser_Index : in     SAL.Peek_Type);
+     (Super         : in out Supervisor;
+      Shared_Parser : in     Parser.Parser;
+      Prefix        : in     String;
+      Parser_Index  : in     SAL.Peek_Type);
    --  Report that a config.ops was full when trying to add another op.
    --  This is counted towards the enqueue limit.
 
@@ -71,9 +77,8 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
    --  True when all parsers have failed or succeeded.
 
    procedure Finish
-     (Super                : in out Supervisor;
-      Min_Sequential_Index :    out Syntax_Trees.Sequential_Index;
-      Max_Sequential_Index :    out Syntax_Trees.Sequential_Index);
+     (Super         : in out Supervisor;
+      Shared_Parser : in out Parser.Parser);
 
    function Parser_State
      (Super        : in Supervisor;
@@ -83,30 +88,27 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
    function Stream (Super : in Supervisor; Parser_Index : in SAL.Peek_Type) return Syntax_Trees.Stream_ID;
 
    procedure Extend_Sequential_Index
-     (Super    : in out Supervisor;
-      Tree     : in     Syntax_Trees.Tree;
-      Thru     : in     Syntax_Trees.Valid_Node_Access;
-      Positive : in     Boolean);
+     (Super         : in out Supervisor;
+      Shared_Parser : in out Parser.Parser;
+      Thru          : in     Syntax_Trees.Valid_Node_Access;
+      Positive      : in     Boolean);
    --  If Thru.Node has valid Sequential_Index, return.
    --
    --  Else extend Sequential_Index range thru node Thru, in Positive
    --  direction.
 
    procedure Extend_Sequential_Index
-     (Super : in out Supervisor;
-      Tree  : in     Syntax_Trees.Tree;
-      Thru  : in     Syntax_Trees.Sequential_Index);
+     (Super         : in out Supervisor;
+      Shared_Parser : in out Parser.Parser;
+      Thru          : in     Syntax_Trees.Sequential_Index);
    --  Ensure Sequential_Index range includes Thru, or SOI/EOI.
 
-   function Min_Sequential_Index (Super : in Supervisor) return Syntax_Trees.Stream_Node_Parents_Array;
-   function Max_Sequential_Index (Super : in Supervisor) return Syntax_Trees.Stream_Node_Parents_Array;
-
    procedure Put
-     (Super        : in Supervisor;
-      Message      : in String;
-      Parser_Index : in SAL.Peek_Type;
-      Config       : in Configuration;
-      Task_ID      : in Boolean := True);
+     (Super         : in Supervisor;
+      Shared_Parser : in Parser.Parser;
+      Message       : in String;
+      Parser_Index  : in SAL.Peek_Type;
+      Config        : in Configuration);
 
 private
 

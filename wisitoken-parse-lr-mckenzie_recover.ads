@@ -97,10 +97,10 @@ private
    --  Check that ID = Expected_ID; raise Bad_Config if not.
 
    procedure Delete_Check
-     (Super  : in     Base.Supervisor;
-      Tree   : in     Syntax_Trees.Tree;
-      Config : in out Configuration;
-      ID     : in     Token_ID);
+     (Super         : in     Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in out Configuration;
+      ID            : in     Token_ID);
    --  Check that the next input token in Config has ID. Append a Delete op
    --  to Config.Ops, and append it to Config.Insert_Delete.
    --
@@ -113,10 +113,10 @@ private
    --  Config.Input_Stream, so it can only be used to delete one token.
 
    procedure Delete_Check
-     (Super  :         in out Base.Supervisor;
-      Tree   :         in     Syntax_Trees.Tree;
-      Config : aliased in out Configuration;
-      IDs    :         in     Token_ID_Array);
+     (Super         :         in out Base.Supervisor;
+      Shared_Parser :         in out LR.Parser.Parser;
+      Config        : aliased in out Configuration;
+      IDs           :         in     Token_ID_Array);
    --  Call Delete_Check for each ID in IDs, incrementing to the next
    --  token for each.
 
@@ -203,33 +203,33 @@ private
    --  Also count tokens with ID = Other_ID.
 
    procedure Insert
-     (Super  : in out Base.Supervisor;
-      Tree   : in     Syntax_Trees.Tree;
-      Config : in out Configuration;
-      ID     : in     Token_ID);
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in out Configuration;
+      ID            : in     Token_ID);
    --  Append an Insert before Config.Current_Shared_Token or
    --  Config.Input_Stream.First op to Config.Ops, and append it to
    --  Config.Insert_Deleted.
 
    procedure Insert
-     (Super  : in out Base.Supervisor;
-      Tree   : in     Syntax_Trees.Tree;
-      Config : in out Configuration;
-      IDs    : in     Token_ID_Array);
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in out Configuration;
+      IDs           : in     Token_ID_Array);
    --  Call Insert for each item in IDs.
 
    procedure Insert
-     (Super  : in out Base.Supervisor;
-      Tree   : in     Syntax_Trees.Tree;
-      Config : in out Configuration;
-      Before : in     Syntax_Trees.Valid_Node_Access;
-      ID     : in     Token_ID);
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in out Configuration;
+      Before        : in     Syntax_Trees.Valid_Node_Access;
+      ID            : in     Token_ID);
    --  Same as Insert, but before Before.
 
    function Peek_Sequential_Start
-     (Super  :         in out Base.Supervisor;
-      Tree   :         in     Syntax_Trees.Tree;
-      Config : aliased in     Configuration)
+     (Super         :         in out Base.Supervisor;
+      Shared_Parser :         in out LR.Parser.Parser;
+      Config        : aliased in     Configuration)
      return Peek_Sequential_State;
 
    function Peek_Sequential_Terminal (State : in Peek_Sequential_State) return Syntax_Trees.Node_Access;
@@ -251,7 +251,7 @@ private
       Streams    : in out Syntax_Trees.Stream_ID_Array;
       Terminals  : in out Syntax_Trees.Stream_Node_Parents_Array;
       Initialize : in     Boolean)
-   with Pre => Terminals'First = 1 and Terminals'Last = Parsers.Count + 1 and
+   with Pre => Terminals'First = 1 and Terminals'Last = (if Initialize then Parsers.Count else Parsers.Count + 1) and
                Streams'First = Terminals'First and Streams'Last = Terminals'Last,
      Post => (for all Term of Terminals =>
                 (if Initialize
@@ -303,7 +303,7 @@ private
 
    function Push_Back_Valid
      (Super                 : in out Base.Supervisor;
-      Tree                  : in     Syntax_Trees.Tree;
+      Shared_Parser :         in out LR.Parser.Parser;
       Config                : in     Configuration;
       Push_Back_Undo_Reduce : in     Boolean)
      return Boolean;
@@ -315,7 +315,7 @@ private
 
    procedure Push_Back
      (Super                 : in out Base.Supervisor;
-      Tree                  : in     Syntax_Trees.Tree;
+      Shared_Parser         : in out LR.Parser.Parser;
       Config                : in out Configuration;
       Push_Back_Undo_Reduce : in     Boolean);
    --  If not Push_Back_Valid, raise Invalid_Case. Otherwise do
@@ -327,7 +327,7 @@ private
 
    procedure Push_Back_Check
      (Super                 : in out Base.Supervisor;
-      Tree                  : in     Syntax_Trees.Tree;
+      Shared_Parser         : in out LR.Parser.Parser;
       Config                : in out Configuration;
       Expected_ID           : in     Token_ID;
       Push_Back_Undo_Reduce : in     Boolean);
@@ -336,7 +336,7 @@ private
 
    procedure Push_Back_Check
      (Super                 : in out Base.Supervisor;
-      Tree                  : in     Syntax_Trees.Tree;
+      Shared_Parser         : in out LR.Parser.Parser;
       Config                : in out Configuration;
       Expected              : in     Token_ID_Array;
       Push_Back_Undo_Reduce : in     Boolean);
@@ -359,36 +359,33 @@ private
    --  Put message to Trace, with parser and task info.
 
    function Undo_Reduce_Valid
-     (Super  : in out Base.Supervisor;
-      Tree   : in     Syntax_Trees.Tree;
-      Config : in out Configuration)
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in out Configuration)
      return Boolean;
    --  True if Undo_Reduce is valid for Config.
 
    procedure Unchecked_Undo_Reduce
-     (Super  : in out Base.Supervisor;
-      Tree   : in     Syntax_Trees.Tree;
-      Table  : in     Parse_Table;
-      Config : in out Configuration);
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in out Configuration);
    --  Undo the reduction that produced the top stack item, append op.
 
    procedure Undo_Reduce_Check
-     (Super    : in out Base.Supervisor;
-      Tree     : in     Syntax_Trees.Tree;
-      Table    : in     Parse_Table;
-      Config   : in out Configuration;
-      Expected : in     Token_ID)
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in out Configuration;
+      Expected      : in     Token_ID)
    with Inline => True;
    --  If not Undo_Reduce_Valid, raise Invalid_Case. Else call Check,
    --  Unchecked_Undo_Reduce. Caller should check for space in
    --  Config.Ops.
 
    procedure Undo_Reduce_Check
-     (Super    : in out Base.Supervisor;
-      Tree     : in     Syntax_Trees.Tree;
-      Table    : in     Parse_Table;
-      Config   : in out Configuration;
-      Expected : in     Token_ID_Array);
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in out Configuration;
+      Expected      : in     Token_ID_Array);
    --  Call Undo_Reduce_Check for each item in Expected.
 
 end WisiToken.Parse.LR.McKenzie_Recover;

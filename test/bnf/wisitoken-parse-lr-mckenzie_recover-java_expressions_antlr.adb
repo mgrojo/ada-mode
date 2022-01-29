@@ -25,13 +25,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Antlr is
    Descriptor : WisiToken.Descriptor renames Java_Expressions_Antlr_Actions.Descriptor;
 
    procedure Matching_Begin_Tokens
-     (Super                    :         not null access WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
-      Tokens                   :         in              Token_ID_Array_1_3;
-      Config                   : aliased in              Configuration;
-      Matching_Begin_Tokens    :            out          Token_ID_Arrays.Vector;
-      Forbid_Matching_Complete :            out          Boolean)
+     (Tree                     : in     Syntax_Trees.Tree;
+      Tokens                   : in     Token_ID_Array_1_3;
+      Config                   : in     Configuration;
+      Matching_Begin_Tokens    :    out Token_ID_Arrays.Vector;
+      Forbid_Matching_Complete :    out Boolean)
    is
-      pragma Unreferenced (Super);
+      pragma Unreferenced (Tree);
       use Java_Expressions_Antlr_Actions;
       use Token_ID_Arrays;
    begin

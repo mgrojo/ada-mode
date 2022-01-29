@@ -24,9 +24,6 @@
 
 parser 0: State 8 Current_Token (0, 2;7:(Wisi_EOI, (24 . 23) ERROR))
 Parser_Action
-
- 1 parallel tasks
-new Worker_Task 1
  0: succeed 1, enqueue 4, check  2, cost:  1
  0:  1, ( 0 0 1 0 0 0 0 0 0), (9 : (RIGHT_CURLY_BRACKET))\2;7:(Wisi_EOI, (24 . 23) ERROR)\((INSERT, RIGHT_CURLY_BRACKET, 2))
 

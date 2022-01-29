@@ -31,12 +31,10 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-propagate from main
-
 delete mckenzie multi-tasking
-    delete mckenzie_task_count option
-    t_mck
-    t_all
+    t_mck pass
+    t_all pass
+    ada-mode tests
 
 
 test insert that modifies a comment start so it no longer is one

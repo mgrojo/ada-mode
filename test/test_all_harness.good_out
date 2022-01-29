@@ -65,6 +65,8 @@ OK test_incremental.adb : Edit_Comment_9
 OK test_incremental.adb : Edit_Comment_10
 OK test_incremental.adb : Edit_Comment_11
 OK test_incremental.adb : Edit_Comment_12
+OK test_incremental.adb : Edit_Comment_13
+OK test_incremental.adb : Edit_Comment_14
 OK test_incremental.adb : Edit_Whitespace_1
 OK test_incremental.adb : Edit_Whitespace_2
 OK test_incremental.adb : Edit_Leading_Non_Grammar
@@ -247,7 +249,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   247
-Successful Tests:  247
+Total Tests Run:   249
+Successful Tests:  249
 Failed Assertions: 0
 Unexpected Errors: 0
