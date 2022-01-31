@@ -2145,15 +2145,21 @@ package body Wisi is
             end;
          end if;
       end Safe_Pos;
-   begin
-      for Err_Ref in Tree.Error_Iterate loop
-         if Syntax_Trees.Error (Err_Ref) in WisiToken.Parse.Lexer_Error then
-            Put (WisiToken.Parse.Lexer_Error (Syntax_Trees.Error (Err_Ref)));
 
-         elsif Syntax_Trees.Error (Err_Ref) in WisiToken.Parse.Parse_Error then
+      Error_Present : Boolean := False;
+
+      procedure Handle_Error
+        (Err        : in Syntax_Trees.Error_Data'Class;
+         Error_Node : in WisiToken.Syntax_Trees.Valid_Node_Access)
+      is begin
+         Error_Present := True;
+
+         if Err in WisiToken.Parse.Lexer_Error then
+            Put (WisiToken.Parse.Lexer_Error (Err));
+
+         elsif Err in WisiToken.Parse.Parse_Error then
             declare
-               Item : WisiToken.Parse.Parse_Error renames WisiToken.Parse.Parse_Error (Syntax_Trees.Error (Err_Ref));
-               Error_Node : constant WisiToken.Syntax_Trees.Valid_Node_Access := Tree.Error_Node (Err_Ref);
+               Item : WisiToken.Parse.Parse_Error renames WisiToken.Parse.Parse_Error (Err);
             begin
                Put_Line
                  ('[' & Parser_Error_Code & Base_Buffer_Pos'Image (Safe_Pos (Error_Node)) &
@@ -2161,11 +2167,10 @@ package body Wisi is
                     ", found '" & Image (Tree.ID (Error_Node), Descriptor) & "'""]");
             end;
 
-         elsif Syntax_Trees.Error (Err_Ref) in WisiToken.Parse.In_Parse_Action_Error then
+         elsif Err in WisiToken.Parse.In_Parse_Action_Error then
             declare
                Item : WisiToken.Parse.In_Parse_Action_Error renames WisiToken.Parse.In_Parse_Action_Error
-                 (Syntax_Trees.Error (Err_Ref));
-               Error_Node : constant WisiToken.Syntax_Trees.Valid_Node_Access := Tree.Error_Node (Err_Ref);
+                 (Err);
             begin
                Put_Line
                  ('[' & In_Parse_Action_Error_Code & Integer'Image
@@ -2182,16 +2187,31 @@ package body Wisi is
                           " name error""]"));
             end;
 
-         elsif Syntax_Trees.Error (Err_Ref) in WisiToken.Parse.Error_Message then
+         elsif Err in WisiToken.Parse.Error_Message then
             --  FIXME: convert moved In_Parse_Action_Error to In_Parse_Action_Error_Code?
             Put_Line
               ('[' & Parser_Error_Code & Buffer_Pos'Image (Buffer_Pos'First) &
-                 " """ & (-WisiToken.Parse.Error_Message (Syntax_Trees.Error (Err_Ref)).Msg) & """]");
+                 " """ & (-WisiToken.Parse.Error_Message (Err).Msg) & """]");
          end if;
-      end loop;
+      end Handle_Error;
+
+   begin
+      if Tree.Parents_Set then
+         for Err_Ref in Tree.Error_Iterate loop
+            Handle_Error (Syntax_Trees.Error (Err_Ref), Tree.Error_Node (Err_Ref));
+         end loop;
+      else
+         for Err_Cur in Tree.Stream_Error_Iterate (Tree.First_Parse_Stream) loop
+            declare
+               Stream_Err_Ref : constant Syntax_Trees.Stream_Error_Ref := Syntax_Trees.Error (Err_Cur);
+            begin
+               Handle_Error (Syntax_Trees.Error (Stream_Err_Ref), Tree.Error_Node (Stream_Err_Ref));
+            end;
+         end loop;
+      end if;
 
       Put (Recover, Data, Tree);
-      if WisiToken.Debug_Mode then
+      if WisiToken.Debug_Mode and Error_Present then
          Data.Trace.Put_Line ("recover: " & Parse.LR.Image (Recover, Tree));
       end if;
    end Put;

@@ -27,7 +27,6 @@ with GNAT.OS_Lib;
 with GNAT.Traceback.Symbolic;
 with GNATCOLL.Memory;
 with SAL;
-with System.Multiprocessors;
 with System.Storage_Elements;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
@@ -158,7 +157,6 @@ package body Emacs_Wisi_Common_Parse is
             Result.Begin_Indent         := Get_Integer (Command_Line, Last);
             Result.Partial_Parse_Active := 1 = Get_Integer (Command_Line, Last);
             Result.Verbosity            := +Get_String (Command_Line, Last);
-            Result.Task_Count           := Get_Integer (Command_Line, Last);
             Result.Zombie_Limit         := Get_Integer (Command_Line, Last);
             Result.Enqueue_Limit        := Get_Integer (Command_Line, Last);
             Result.Max_Parallel         := Get_Integer (Command_Line, Last);
@@ -166,7 +164,6 @@ package body Emacs_Wisi_Common_Parse is
          when Incremental | Full =>
             Result.Source_File_Name := +Get_String (Command_Line, Last);
             Result.Verbosity        := +Get_String (Command_Line, Last);
-            Result.Task_Count       := Get_Integer (Command_Line, Last);
             Result.Zombie_Limit     := Get_Integer (Command_Line, Last);
             Result.Enqueue_Limit    := Get_Integer (Command_Line, Last);
             Result.Max_Parallel     := Get_Integer (Command_Line, Last);
@@ -404,9 +401,6 @@ package body Emacs_Wisi_Common_Parse is
                   Parser     : Parse.LR.Parser.Parser renames Parse_Context.Parser;
                   Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
                begin
-                  if Params.Task_Count > 0 then
-                     Parser.Table.McKenzie_Param.Task_Count := System.Multiprocessors.CPU_Range (Params.Task_Count);
-                  end if;
                   if Params.Zombie_Limit > 0 then
                      Parser.Table.McKenzie_Param.Zombie_Limit := Params.Zombie_Limit;
                   end if;
@@ -539,7 +533,13 @@ package body Emacs_Wisi_Common_Parse is
                   raise;
 
                when WisiToken.Syntax_Error | WisiToken.Parse_Error =>
-                  Parser.Tree.Lexer.Discard_Rest_Of_Input;
+                  if Parser.Parsers.Count > 0 then
+                     --  Else last parser terminated
+                     Parse_Data.Put
+                       (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+                        Parser.Tree);
+                  end if;
+
                   if Parser.Tree.Stream_Count >= 2 then
                      WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
                   else

@@ -264,7 +264,7 @@ complete. PARSE-END is end of desired parse region."
   ;; Must match "full/partial parse" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Parse_Params.
   ;; Parse_Kind is always Partial here; that really means "legacy".
-  (let* ((cmd (format "parse 0 %d \"%s\" %d %d %d %d %d %d %d %d \"%s\" %d %d %d %d %d \"%s\""
+  (let* ((cmd (format "parse 0 %d \"%s\" %d %d %d %d %d %d %d %d \"%s\" %d %d %d %d \"%s\""
 		      (cl-ecase parse-action
 			(navigate 0)
 			(face 1)
@@ -297,7 +297,6 @@ complete. PARSE-END is end of desired parse region."
 			      (< (point-max) wisi-partial-parse-threshold))
 			  0 1) ;; partial parse active
 		      wisi-parser-verbosity
-		      (or wisi-mckenzie-task-count -1)
 		      (or wisi-mckenzie-zombie-limit -1)
 		      (or wisi-mckenzie-enqueue-limit -1)
 		      (or wisi-parse-max-parallel -1)
@@ -343,7 +342,7 @@ complete."
     (let* ((cmd
 	    (apply #'format
 		   (concat
-		    "parse %d \"%s\" \"%s\" %d %d %d %d "
+		    "parse %d \"%s\" \"%s\" %d %d %d "
 		    (if full "%d %d " "%s ")
 		    "\"%s\""
 		    )
@@ -352,7 +351,6 @@ complete."
 		     (if full 2 1) ;; Parse_Kind
 		     (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		     wisi-parser-verbosity
-		     (or wisi-mckenzie-task-count -1)
 		     (or wisi-mckenzie-zombie-limit -1)
 		     (or wisi-mckenzie-enqueue-limit -1)
 		     (or wisi-parse-max-parallel -1)
@@ -1253,7 +1251,6 @@ PARSER will respond with one or more Query messages."
       (2 ;; full parse
        (looking-at " \"\\([^\"]*\\)\" \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) [-0-9]+ [-0-9]+ \"\\([^\"]*\\)\"")
        (let ((verbosity (match-string 2))
-	     (mckenzie_task_count (match-string 3))
 	     (mckenzie_zombie_limit (match-string 4))
 	     (mckenzie_enqueue_limit (match-string 5))
 	     (parse_max_parallel (match-string 6))
@@ -1273,13 +1270,9 @@ PARSER will respond with one or more Query messages."
 	 (insert "save_text_auto debug_edited\n")
 	 (insert "compare_tree_text_auto\n")
 
-	 (when (or (not (string-equal mckenzie_task_count "-1"))
-		   (not (string-equal mckenzie_zombie_limit "-1"))
+	 (when (or (not (string-equal mckenzie_zombie_limit "-1"))
 		   (not (string-equal mckenzie_enqueue_limit "-1")))
 	   (insert "mckenzie_options ")
-
-	   (when (not (string-equal mckenzie_task_count "-1"))
-	     (insert "task_count=" mckenzie_task_count " "))
 
 	   (when (not (string-equal mckenzie_zombie_limit "-1"))
 	     (insert "zombie_limit=" mckenzie_zombie_limit " "))
@@ -1401,7 +1394,6 @@ PARSER will respond with one or more Query messages."
 	(begin-indent (match-string 9))
 	(_partial-parse-active (match-string 10))
 	(verbosity (match-string 11))
-	(mckenzie_task_count (string-to-number (match-string 12)))
 	(mckenzie_zombie_limit (string-to-number (match-string 13)))
 	(mckenzie_enqueue_limit (string-to-number (match-string 14)))
 	(parse_max_parallel (string-to-number (match-string 15)))
@@ -1424,7 +1416,6 @@ PARSER will respond with one or more Query messages."
 		  begin-line " "
 		  begin-indent " "
 		  (when (not (string-equal "" verbosity)) (format "--verbosity \"%s\" " verbosity))
-		  (when (not (= -1 mckenzie_task_count)) (format "--mckenzie_task_count %d " mckenzie_task_count))
 		  (when (not (= -1 mckenzie_zombie_limit)) (format "--mckenzie_zombie_limit %d" mckenzie_zombie_limit))
 		  " "
 		  (when (not (= -1 mckenzie_enqueue_limit))

@@ -3,6 +3,8 @@ General notes on Emacs wisi package
 build/Makefile
 
 org.emacs.wisi: release, in use
+org.emacs.wisi.stephe-1 (o.w.s-1): work
+org.emacs.wisi.stephe-2 (o.w.s-2):
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")

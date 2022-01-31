@@ -30,7 +30,6 @@ with GNAT.Traceback.Symbolic;
 with GNATCOLL.Memory;
 with GNATCOLL.Mmap;
 with SAL;
-with System.Multiprocessors;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.McKenzie_Recover;
 with WisiToken.Parse.LR.Parser;
@@ -127,7 +126,6 @@ package body Run_Wisi_Common_Parse is
                    else "; default" & Parse_Table.McKenzie_Param.Enqueue_Limit'Image));
       Put_Line ("--mckenzie_full_explore : force error recover explore all solutions");
       Put_Line ("--mckenzie_high_cost : error recover report high cost solutions");
-      Put_Line ("--mckenzie_task_count n : worker tasks in error recovery");
       Put_Line ("--mckenzie_zombie_limit n  : set error recover token zombie limit" &
                   (if Parse_Table = null then ""
                    else "; default" & Parse_Table.McKenzie_Param.Zombie_Limit'Image));
@@ -373,10 +371,6 @@ package body Run_Wisi_Common_Parse is
             WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions := True;
             Arg := @ + 1;
 
-         elsif Argument (Arg) = "--mckenzie_task_count" then
-            Parser.Table.McKenzie_Param.Task_Count := System.Multiprocessors.CPU_Range'Value (Argument (Arg + 1));
-            Arg := @ + 2;
-
          elsif Argument (Arg) = "--mckenzie_zombie_limit" then
             Parser.Table.McKenzie_Param.Zombie_Limit := Integer'Value (Argument (Arg + 1));
             Arg := @ + 2;
@@ -401,10 +395,6 @@ package body Run_Wisi_Common_Parse is
             raise SAL.Parameter_Error;
          end if;
       end loop;
-
-      if Trace_McKenzie > Detail then
-         Parser.Table.McKenzie_Param.Task_Count := 1;
-      end if;
    exception
    when SAL.Parameter_Error =>
       raise;

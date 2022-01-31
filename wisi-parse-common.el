@@ -401,17 +401,6 @@ debug=1 lexer=1 parse=2 action=3"
   :safe 'stringp)
 (make-variable-buffer-local 'wisi-parser-verbosity)
 
-(defcustom wisi-mckenzie-task-count nil
-  "If integer, sets McKenzie error recovery task count.
-Higher value (up to system processor limit) runs error recovery
-faster, but may encounter race conditions.  Using only one task
-makes error recovery repeatable; useful for tests.  If nil, uses
-value from grammar file."
-  :type 'integer
-  :group 'wisi
-  :safe 'integerp)
-(make-variable-buffer-local 'wisi-mckenzie-task-count)
-
 (defcustom wisi-mckenzie-zombie-limit nil
   "If integer, overrides %mckenzie_zombie_limit.
 This sets the number of tokens past the error point that other
