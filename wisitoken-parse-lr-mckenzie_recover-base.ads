@@ -119,7 +119,6 @@ private
       Min_Success_Check_Count : Natural                     := Natural'Last;
       Total_Enqueue_Count     : Natural                     := 0;
       Fatal_Called            : Boolean                     := False;
-      Result                  : Recover_Status              := Recover_Status'First;
       Error_ID                : Ada.Exceptions.Exception_Id := Ada.Exceptions.Null_Id;
       Error_Message           : Ada.Strings.Unbounded.Unbounded_String;
       Parser_Status           : Parser_Status_Array (1 .. Parser_Count);

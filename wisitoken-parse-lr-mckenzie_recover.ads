@@ -121,11 +121,11 @@ private
    --  token for each.
 
    procedure Delete_Check
-     (Super      : in     Base.Supervisor;
-      Tree       : in     Syntax_Trees.Tree;
-      Config     : in out Configuration;
-      Peek_State : in out Peek_Sequential_State;
-      ID         : in     Token_ID);
+     (Super         : in     Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in out Configuration;
+      Peek_State    : in out Peek_Sequential_State;
+      ID            : in     Token_ID);
    --  If ID is not Invalid_Token_ID, check that
    --  Parse.Peek_Sequential_Terminal (Peek_State) has ID. Append a Delete op
    --  to Config.Ops, and append it to Config.Insert_Delete. Then

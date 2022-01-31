@@ -865,16 +865,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Delete_Check;
 
    procedure Delete_Check
-     (Super      : in     Base.Supervisor;
-      Tree       : in     Syntax_Trees.Tree;
-      Config     : in out Configuration;
-      Peek_State : in out Peek_Sequential_State;
-      ID         : in     Token_ID)
+     (Super         : in     Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in out Configuration;
+      Peek_State    : in out Peek_Sequential_State;
+      ID            : in     Token_ID)
    is
       pragma Unreferenced (Super);
    begin
-      Delete_Check (Tree, Config, Peek_Sequential_Terminal (Peek_State), ID);
-      Peek_Next_Sequential_Terminal (Tree, Peek_State);
+      Delete_Check (Shared_Parser.Tree, Config, Peek_Sequential_Terminal (Peek_State), ID);
+      Peek_Next_Sequential_Terminal (Shared_Parser.Tree, Peek_State);
    end Delete_Check;
 
    procedure Do_Push_Back

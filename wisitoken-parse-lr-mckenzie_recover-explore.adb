@@ -1231,7 +1231,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
          if Tokens (1) /= Invalid_Token_ID then
             Shared.Language_Matching_Begin_Tokens
-              (Shared.Tree, Tokens, Config, Matching_Begin_Tokens, Forbid_Minimal_Insert);
+              (Super, Shared, Tokens, Config, Matching_Begin_Tokens, Forbid_Minimal_Insert);
          end if;
       end if;
 

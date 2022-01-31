@@ -51,11 +51,12 @@ package WisiToken.Parse.LR.Parser is
    --  caused the error.
 
    type Language_Matching_Begin_Tokens_Access is access procedure
-     (Tree                    : in     Syntax_Trees.Tree;
-      Tokens                  : in     Token_ID_Array_1_3;
-      Config                  : in     Configuration;
-      Matching_Tokens         :    out Token_ID_Arrays.Vector;
-      Forbid_Minimal_Complete :    out Boolean);
+     (Super                   :         in out Base.Supervisor;
+      Shared_Parser           :         in out Parser;
+      Tokens                  :         in     Token_ID_Array_1_3;
+      Config                  : aliased in     Configuration;
+      Matching_Tokens         :            out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :            out Boolean);
    --  Tokens (1) is the current token; Tokens (2 .. 3) are the following
    --  tokens (Invalid_Token_ID if none). Set Matching_Tokens to a
    --  terminal token sequence that starts a production matching Tokens.
@@ -66,6 +67,9 @@ package WisiToken.Parse.LR.Parser is
    --  corresponding block begin. If the error point is inside a
    --  multi-token 'end' (ie 'end if;', or 'end <name>;'), set
    --  Forbid_Minimal_Complete True.
+   --
+   --  ada-mode uses Peek_Sequential_Start in this subprogram, so it
+   --  requires Super, Shared_Parser, aliased Config.
 
    type Language_String_ID_Set_Access is access function
      (Descriptor        : in WisiToken.Descriptor;
