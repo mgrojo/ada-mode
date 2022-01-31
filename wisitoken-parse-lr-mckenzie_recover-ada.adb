@@ -923,13 +923,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          declare
             New_Config_1 : Configuration := Config;
          begin
+            --  ada_mode-recover_38.adb, ada_mode-recover_46.adb
             Push_Back_Check (Super, New_Config_1, +COLON_ID, Push_Back_Undo_Reduce => True);
             Push_Back_Check
               (Super, New_Config_1,
-               (if Tree.Element_ID (New_Config_1.Stack.Peek.Token) = +statement_identifier_ID
-                then +statement_identifier_ID -- incremental parse
-                else +IDENTIFIER_ID),
-               Push_Back_Undo_Reduce => True); -- partial parse. ada_mode-recover_38.adb
+               Tree.Element_ID (New_Config_1.Stack.Peek.Token),
+               Push_Back_Undo_Reduce => True);
 
             if Tree.Element_ID (New_Config_1.Stack.Peek.Token) = +sequence_of_statements_ID then
                --  Case 2

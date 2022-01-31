@@ -1076,8 +1076,7 @@ wisitoken keeps binding wisitoken-bnf-generate, thus regenerating ada_annex_p* f
     first happened in gnat community 2020
     still there in 2021
 
-in ada_annex_p.wy:
-%partial_recursion ;; FIXME: faster compile time while debugging
+(wisi-process-parse-save-text wisi--parser "c:/Projects/org.emacs.ada-mode.stephe-2/real_edited" t)
 
 one ELISP="(setq save-parser-log \"../debug-2.log\" save-edited-text \"../edited\")" ONE_TEST_FILES=ada_mode-*.adb
     wisi-parser-transaction-log-buffer-size-default most-positive-fixnum
