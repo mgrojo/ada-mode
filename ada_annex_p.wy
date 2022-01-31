@@ -137,6 +137,11 @@ tick : TICK_1 | TICK_2 ;
 ;; accidently commenting out multiple lines.
 %non_grammar <comment-one-line> PLACEHOLDER "{" "}"
 
+;; git conflict marks. ada_mode-recover_conflict_marks.adb
+%non_grammar <comment-new-line> CONFLICT_MARK_A "<<<<<<<"
+%non_grammar <comment-new-line> CONFLICT_MARK_B ">>>>>>>"
+%non_grammar <comment-new-line> CONFLICT_MARK_END "======="
+
 ;; '$' for gnatprep symbols.
 %token <symbol> IDENTIFIER
     %[ ([$a-zA-Z\x80-\U0010FFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\U0010FFFF]|GNAT_Char_Coding)* ]%

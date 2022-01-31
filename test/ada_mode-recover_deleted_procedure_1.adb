@@ -22,6 +22,3 @@ begin
       end if;
    end;
 end Modify_Schema;
--- Local Variables:
--- wisi-mckenzie-task-count: 1
--- End:

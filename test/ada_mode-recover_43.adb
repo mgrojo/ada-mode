@@ -1,4 +1,4 @@
--- Recover fails with ENQUEUE_LIMIT even if mckenzie_task_count = 8.
+-- Recover fails with ENQUEUE_LIMIT
 -- Handle that cleanly (don't signal errors if wisi-debug = 0).
 
 --EMACSCMD:(setq wisi-debug 0)
@@ -37,6 +37,3 @@ package body Wisitoken.Parse is
       end if;
    end Edit_Tree;
 end Wisitoken.Parse;
--- Local Variables:
--- wisi-mckenzie-task-count: 1
--- End:

@@ -18,5 +18,4 @@ begin
 end Ada_Mode.Recover_Extra_End_Loop;
 -- Local Variables:
 -- ada-end-name-optional: nil
--- wisi-mckenzie-task-count: 1
 -- End:

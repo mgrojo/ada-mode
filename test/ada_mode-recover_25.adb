@@ -28,5 +28,4 @@ begin
    File.Close;
 end Ada_Mode.Recover_25;
 -- Local Variables:
--- wisi-mckenzie-task-count: 1
 -- End:

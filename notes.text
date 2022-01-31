@@ -9,7 +9,7 @@ o.e.a.stephe-2 (with o.s_l.sal.s_1, o.w.s_1, o.e.w.s_1): work
 o.e.a.stephe-3 (?): emacs module parser (very old)
 o.e.a.stephe-4 (?): eglot/ada_language_server
 o.e.a.stephe-5 (?): libadalang backend
-o.e.a.stephe-6 (o.w.s-2/o.s_l.sal.stephe-1): delete error recover multi-tasking
+o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1):
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -22,9 +22,9 @@ o.e.a.stephe-6 (o.w.s-2/o.s_l.sal.stephe-1): delete error recover multi-tasking
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
-   ("../org.emacs.wisi"        . "../org.emacs.wisi.stephe-1")
-   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
+   ("../org.wisitoken"         . "../org.wisitoken.stephe-2")
+   ("../org.emacs.wisi"        . "../org.emacs.wisi.stephe-2")
+   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-6")))
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -36,9 +36,9 @@ o.e.a.stephe-6 (o.w.s-2/o.s_l.sal.stephe-1): delete error recover multi-tasking
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
-   ("../org.emacs.wisi.stephe-1"       . "../org.emacs.wisi")
-   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
+   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
+   ("../org.emacs.wisi.stephe-2"       . "../org.emacs.wisi")
+   ("../org.emacs.ada-mode.stephe-6"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
@@ -87,12 +87,6 @@ ediff ada_annex_p.wy
         empty buffer before retrieve original?
 
     wisitoken-which-function fails with nil tree node
-
-handle merge conflict markers
-    ada_mode-recover_conflict_markers.adb
-    treat them as comment-new-line
-    better treat variant b as comment delimiters
-        but that loses highlighting there.
 
 need kill-context on delete buffer
 

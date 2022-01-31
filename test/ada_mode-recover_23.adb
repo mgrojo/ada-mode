@@ -25,5 +25,4 @@ is begin
 end Ada_Mode.Recover_23;
 -- Local Variables:
 -- ada-end-name-optional: nil
--- wisi-mckenzie-task-count: 1
 -- End:

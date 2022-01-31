@@ -19,6 +19,3 @@ procedure Ada_Mode.Interactive_09 is
 begin
    null;
 end Ada_Mode.Interactive_09;
--- Local Variables:
--- wisi-mckenzie-task-count: 1
--- End:

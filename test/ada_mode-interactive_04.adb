@@ -29,6 +29,3 @@ begin
    E := 'A';
 
 end Ada_Mode.Interactive_04;
--- Local Variables:
--- wisi-mckenzie-task-count: 1
--- End:

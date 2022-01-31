@@ -33,6 +33,5 @@ begin
    end if;
 end Use_Minimal_Complete_Actions;
 -- Local Variables:
--- wisi-mckenzie-task-count: 1
 -- ada-end-name-optional: nil
 -- End:

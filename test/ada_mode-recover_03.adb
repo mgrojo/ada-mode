@@ -24,6 +24,5 @@ procedure Ada_Mode.Recover_03 is
    --  missing 'begin null;'
 end Ada_Mode.Recover_03;
 -- Local Variables:
--- wisi-mckenzie-task-count: 1
 -- ada-end-name-optional: nil
 -- End:

@@ -21,6 +21,5 @@ begin
 end Update_Containing_Nonterms;
 -- Local Variables:
 -- ada-end-name-optional: nil
--- wisi-mckenzie-task-count: 1
 -- wisi-mckenzie-enqueue-limit: 280000
 -- End:

@@ -16,6 +16,5 @@ begin
    null;
 end Ada_Mode.Incremental_Recover_01;
 -- Local Variables:
--- wisi-mckenzie-task-count: 1
 -- wisi-incremental-parse-enable: t
 -- End:

@@ -15,6 +15,3 @@ exception
    when  Sal.Invalid_Format =>
       raise;
 end Ada_Mode.Recover_Constant_As_Expression_1;
---  Local Variables:
---  wisi-mckenzie-task-count: 1
---  End:
