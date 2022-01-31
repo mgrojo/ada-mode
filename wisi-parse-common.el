@@ -251,6 +251,10 @@ terminal token text plus following non_grammar and whitespace."
   ;; wisi-indent-statement requires this definition of 'terminal at pos'.
   )
 
+(cl-defgeneric wisi-parse-kill-buffer ((parser wisi-parser))
+  "Tell parser the current buffer is being deleted.
+For `kill-buffer-hook'.")
+
 (cl-defgeneric wisi-parse-reset ((parser wisi-parser))
   "Ensure parser is ready to process a new parse.")
 

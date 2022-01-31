@@ -378,7 +378,7 @@ complete."
       )))
 
 (defun wisi-process--kill-context (parser)
-  "Send a 'kill-context' command to PARSER external process.
+  "Send a 'kill-context' command for the current buffer to PARSER.
 Does not wait for command to complete."
   (let* ((cmd (format "kill-context \"%s\""
 		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
@@ -758,7 +758,11 @@ PARSER will respond with one or more Query messages."
 
 ;;;;; main
 
-(cl-defgeneric wisi-parse-reset ((parser wisi-process--parser))
+(cl-defmethod wisi-parse-kill-buffer ((parser wisi-process--parser))
+  (when (process-live-p (wisi-process--parser-process parser))
+    (wisi-process--kill-context parser)))
+
+(cl-defmethod wisi-parse-reset ((parser wisi-process--parser))
   (setf (wisi-process--parser-busy parser) nil)
   (wisi-parse-require-process parser)
   (wisi-process--kill-context parser)
