@@ -17,6 +17,5 @@ package body Ada_Mode.Recover_Block_Name_Mismatch is
 begin
 end Ada_Mode.Recover_Block_Name_Mismatch;
 -- Local Variables:
--- wisi-mckenzie-task-count: 1
 -- ada-end-name-optional: nil
 -- End:

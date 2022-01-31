@@ -24,6 +24,3 @@ package body Ada_Mode.Recover_13 is
    overriding procedure Parse (Parser : aliased in out Packrat.Parser);
 
 end Ada_Mode.Recover_13;
--- Local Variables:
--- wisi-mckenzie-task-count: 1
--- End:

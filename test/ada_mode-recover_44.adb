@@ -10,6 +10,5 @@ is begin
       else 0);
 end Ada_Mode.Recover_44;
 -- Local Variables:
--- wisi-mckenzie-task-count: 1
 -- wisi-mckenzie-enqueue-limit: 750000
 -- End:

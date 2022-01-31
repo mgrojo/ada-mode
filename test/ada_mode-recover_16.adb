@@ -26,7 +26,3 @@ package body Ada_Mode.Recover_16 is
 
 
 end Ada_Mode.Recover_16;
--- Ensure the full and incremental parse get the same recover solution.
--- Local Variables:
--- wisi-mckenzie-task-count: 1
--- End:

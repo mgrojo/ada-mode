@@ -13,6 +13,5 @@ package body Wisitoken.Syntax_Trees is
 
 end Wisitoken.Syntax_Trees;
 -- Local Variables:
--- wisi-mckenzie-task-count: 1
 -- ada-end-name-optional: nil
 -- End:

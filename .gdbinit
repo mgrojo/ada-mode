@@ -15,13 +15,14 @@ break run_wisi_common_parse.adb:651
 
 #catch excep
 catch excep ADA.ASSERTIONS.ASSERTION_ERROR
-catch excep WISI.PROTOCOL_ERROR
-catch excep WISITOKEN.SYNTAX_ERROR
 catch excep CONSTRAINT_ERROR
-catch excep SAL.PROGRAMMER_ERROR
+catch excep SAL.INVALID_OPERATION
 catch excep SAL.NOT_IMPLEMENTED
-catch except WisiToken.Parse.LR.McKenzie_Recover.Bad_Config
-# catch except WisiToken.Parse.LR.McKenzie_Recover.Invalid_Case
+catch excep SAL.PROGRAMMER_ERROR
+catch excep WISI.PROTOCOL_ERROR
+catch excep WISITOKEN.PARSE.LR.McKenzie_Recover.Bad_Config
+catch excep WISITOKEN.SYNTAX_ERROR
+# catch excep WisiToken.Parse.LR.McKenzie_Recover.Invalid_Case
 set varsize-limit 0
 
 # token_id
@@ -33,7 +34,7 @@ end
 # node_access
 define show_node 
   print $arg0.all
-  show_id ($arg0).id
+  show_id $arg0.id
 end
 
 # stream_index

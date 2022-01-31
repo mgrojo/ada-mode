@@ -19,6 +19,5 @@ exception
       null;
 end Parse_File;
 -- Local Variables:
--- wisi-mckenzie-task-count: 1
 -- wisi-mckenzie-enqueue-limit: 5000
 -- End:

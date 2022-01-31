@@ -21,7 +21,5 @@ package body Ada_Mode.Recover_String_Quote_1 is
 
 end Ada_Mode.Recover_String_Quote_1;
 --  Local Variables:
---  wisi-mckenzie-task-count: 1
 --  ada-end-name-optional: nil
---  compare-tree-text: nil
 --  End:

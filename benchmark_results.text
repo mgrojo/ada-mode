@@ -128,7 +128,7 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
         LR1 re2c generate time: 89.548030332
 
  mckenzie recover
-    ./run_ada_lr1_parse.exe parse_partial indent test/ada_mode-recover_partial_02_lr1.adb --mckenzie_enqueue_limit 500_000 --mckenzie_check_delta 100_000 --verbosity "debug=1 time=1 mckenzie=1"
+    ./run_ada_lr1_parse.exe parse_partial none test/ada_mode-recover_partial_02_lr1.adb --mckenzie_enqueue_limit 500_000 --mckenzie_check_delta 100_000 --verbosity "debug=1 time=1 mckenzie=1 memory=1"
         record all recover sessions
         post-recover time line reports net recover time
 
@@ -462,6 +462,24 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
         ;;  2: succeed 4, enqueue 2838, check  248, cost:  3
         0.723593680, 0.718634909
         memory: high 401_146_984, 401_116_048 current 101_568, 101_568
+
+    30 Jan 2022 delete mckenzie multitasking
+        ;; parser 2: State 19643 Current_Token (2, 2;65:(LEFT_PAREN, (1038 . 1038) ERROR))
+        ;;  2: succeed 3, enqueue 183, check  20, cost:  2
+        0.003070867, 0.004014442
+
+        ;; parser 6: State 4498 Current_Token (6, 2;69:(RIGHT_PAREN, (1085 . 1085) ERROR))
+        ;;  6: succeed 10, enqueue 5667, check  500, cost:  3
+        ;; parser 5: State 2895 Current_Token (5, 2;70:(RIGHT_PAREN, (1085 . 1085) ERROR))
+        ;;  5: succeed 1, enqueue 21998, check  1761, cost:  4
+        ;; parser 4: State 2892 Current_Token (4, 2;71:(RIGHT_PAREN, (1085 . 1085) ERROR))
+        ;;  4: succeed 1, enqueue 16623, check  1326, cost:  3
+        ;; parser 3: State 4497 Current_Token (3, 2;72:(RIGHT_PAREN, (1085 . 1085) ERROR))
+        ;;  3: succeed 10, enqueue 5664, check  500, cost:  3
+        ;; parser 2: State 3981 Current_Token (2, 2;73:(RIGHT_PAREN, (1085 . 1085) ERROR))
+        ;;  2: succeed 4, enqueue 2838, check  248, cost:  3
+        0.740031671, 0.774715889
+        memory: high 399_692_760 current 401_034_832
 
  navigate, face, indent
     make -r benchmark RUN_ARGS="c:/eurocontrol/gnatcoll-xref.adb"

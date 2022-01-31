@@ -34,6 +34,3 @@ is
 begin
    null;
 end Ada_Mode.Interactive_05;
--- Local Variables:
--- wisi-mckenzie-task-count: 1
--- End:

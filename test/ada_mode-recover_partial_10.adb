@@ -23,5 +23,4 @@ end Ada_Mode.Recover_Partial_10;
 -- Local Variables:
 -- wisi-partial-parse-threshold: 0
 -- wisi-disable-face: t
--- wisi-mckenzie-task-count: 1
 -- End:

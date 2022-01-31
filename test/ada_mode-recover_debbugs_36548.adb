@@ -46,6 +46,3 @@ procedure Field_parent is
 begin
    Put_Line ("Hi:" & Child.Child_Field'Image);
 end Field_parent;
--- Local Variables:
--- wisi-mckenzie-task-count: 1
--- End:

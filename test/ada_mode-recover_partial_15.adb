@@ -19,6 +19,3 @@ if Trace_Generate > Extra then
    Ada.Text_Io.Put_Line
      (Trimmed_Image (Production_Id'(Nonterm, Rhs)) & " => " &
         Image (All_Sequences (Nonterm)(Rhs), Descriptor));
-   -- Local Variables:
-   -- wisi-mckenzie-task-count: 1
-   -- End:

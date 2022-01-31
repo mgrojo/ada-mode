@@ -11,6 +11,3 @@ begin
       Filter => (Ordinary_File =>
                    Process =>
 end Ada_Mode.Recover_33;
--- Local Variables:
--- wisi-mckenzie-task-count: 1
--- End:

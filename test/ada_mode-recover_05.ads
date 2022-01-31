@@ -18,6 +18,3 @@ package Ada_Mode.Recover_5 is
       function Additive (Input : String) return Result;
 
 end Ada_Mode.Recover_5;
--- Local Variables:
--- wisi-mckenzie-task-count: 1
--- End:

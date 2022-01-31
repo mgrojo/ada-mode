@@ -443,7 +443,7 @@ Makefile.conf : create_makefile_conf.sh
 
 include Makefile.conf
 
-../ada_mode_wisi_parse.gpr : ../ada_mode_wisi_parse.gpr.gp
+../ada_mode_wisi_parse.gpr : ../ada_mode_wisi_parse.gpr.gp $(WISI)/wisi.gpr
 	gnatprep -DHAVE_GNAT_UTIL=$(HAVE_GNAT_UTIL) -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) -DELPA="no" $< $@
 
 $(WISI)/wisi.gpr : force

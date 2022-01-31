@@ -37,5 +37,4 @@ Kmn_Loop :
    end loop Kmn_Loop;
 end Edit_Tree;
 -- Local Variables:
--- wisi-mckenzie-task-count: 1
 -- End:
