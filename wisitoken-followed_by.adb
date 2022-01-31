@@ -2,7 +2,7 @@
 --
 --  Show productions where a token is followed by another token
 --
---  Copyright (C) 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2020, 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,6 +17,7 @@ with Ada.Command_Line;
 with WisiToken.BNF.Generate_Utils;
 with WisiToken.Generate;
 with WisiToken.Productions;
+with WisiToken.Text_IO_Trace;
 with WisiToken_Grammar_Runtime;
 procedure WisiToken.Followed_By
 is
@@ -182,10 +183,11 @@ begin
       use Ada.Text_IO;
 
       Input_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
+      Trace : WisiToken.Text_IO_Trace.Trace;
 
       Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
         WisiToken.BNF.Generate_Utils.Parse_Grammar_File
-          (-Grammar_File_Name, Input_Data'Unchecked_Access, BNF.LALR, BNF.re2c_Lexer, Ignore_Conflicts => True);
+          (-Grammar_File_Name, Input_Data'Unchecked_Access, BNF.LALR, BNF.re2c_Lexer, Trace, Ignore_Conflicts => True);
       --  Builds Generate_Data.Descriptor, Generate_Data.Grammar
 
       Token_A : constant Token_ID := BNF.Generate_Utils.Find_Token_ID (Generate_Data, -Token_A_Name);

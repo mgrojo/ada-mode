@@ -811,43 +811,46 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Check;
 
    procedure Delete_Check
-     (Tree        : in     Syntax_Trees.Tree;
-      Config      : in out Configuration;
-      Node        : in     Syntax_Trees.Valid_Node_Access;
-      Expected_ID : in     Token_ID)
-   is
-      use Recover_Op_Arrays;
-      Op : constant Recover_Op :=
-        (Delete,
-         (if Expected_ID = Invalid_Token_ID
-          then Tree.ID (Node)
-          else Expected_ID),
-         Tree.Get_Sequential_Index (Node));
-   begin
-      if Expected_ID /= Invalid_Token_ID then
-         Check (Tree.ID (Node), Expected_ID, Tree.Lexer.Descriptor.all);
-      end if;
-      if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
-         raise Bad_Config;
-      end if;
-      Append (Config.Ops, Op);
-      Append (Config.Insert_Delete, Op);
-      Config.Current_Insert_Delete := 1;
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in out Configuration;
+      Node          : in     Syntax_Trees.Valid_Node_Access;
+      Expected_ID   : in     Token_ID)
+   is begin
+      Super.Extend_Sequential_Index (Shared_Parser, Thru => Node, Positive => True);
+      declare
+         use Recover_Op_Arrays;
+         Op : constant Recover_Op :=
+           (Delete,
+            (if Expected_ID = Invalid_Token_ID
+             then Shared_Parser.Tree.ID (Node)
+             else Expected_ID),
+            Shared_Parser.Tree.Get_Sequential_Index (Node));
+      begin
+         if Expected_ID /= Invalid_Token_ID then
+            Check (Shared_Parser.Tree.ID (Node), Expected_ID, Shared_Parser.Tree.Lexer.Descriptor.all);
+         end if;
+         if Is_Full (Config.Ops) or Is_Full (Config.Insert_Delete) then
+            raise Bad_Config;
+         end if;
+         Append (Config.Ops, Op);
+         Append (Config.Insert_Delete, Op);
+         Config.Current_Insert_Delete := 1;
+      end;
    end Delete_Check;
 
    procedure Delete_Check
-     (Super         : in     Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
-      Config        : in out Configuration;
-      ID            : in     Token_ID)
+(Super        : in out     Base.Supervisor;
+Shared_Parser : in out LR.Parser.Parser;
+Config        : in out Configuration;
+ID            : in     Token_ID)
    is
-      pragma Unreferenced (Super);
       Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Terminal (Shared_Parser.Tree, Config);
    begin
       if Node = Syntax_Trees.Invalid_Node_Access then
          raise Bad_Config;
       end if;
-      Delete_Check (Shared_Parser.Tree, Config, Node, ID);
+      Delete_Check (Super, Shared_Parser, Config, Node, ID);
    end Delete_Check;
 
    procedure Delete_Check
@@ -859,21 +862,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       State : Peek_Sequential_State := Peek_Sequential_Start (Super, Shared_Parser, Config);
    begin
       for ID of IDs loop
-         Delete_Check (Shared_Parser.Tree, Config, Peek_Sequential_Terminal (State), ID);
+         Delete_Check (Super, Shared_Parser, Config, Peek_Sequential_Terminal (State), ID);
          Peek_Next_Sequential_Terminal (Shared_Parser.Tree, State);
       end loop;
    end Delete_Check;
 
    procedure Delete_Check
-     (Super         : in     Base.Supervisor;
+     (Super         : in out Base.Supervisor;
       Shared_Parser : in out LR.Parser.Parser;
       Config        : in out Configuration;
       Peek_State    : in out Peek_Sequential_State;
       ID            : in     Token_ID)
-   is
-      pragma Unreferenced (Super);
-   begin
-      Delete_Check (Shared_Parser.Tree, Config, Peek_Sequential_Terminal (Peek_State), ID);
+   is begin
+      Delete_Check (Super, Shared_Parser, Config, Peek_Sequential_Terminal (Peek_State), ID);
       Peek_Next_Sequential_Terminal (Shared_Parser.Tree, Peek_State);
    end Delete_Check;
 

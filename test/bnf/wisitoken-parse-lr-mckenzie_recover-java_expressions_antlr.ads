@@ -11,11 +11,12 @@ package WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Antlr is
    is null;
 
    procedure Matching_Begin_Tokens
-     (Tree                     : in     Syntax_Trees.Tree;
-      Tokens                   : in     Token_ID_Array_1_3;
-      Config                   : in     Configuration;
-      Matching_Begin_Tokens    :    out Token_ID_Arrays.Vector;
-      Forbid_Matching_Complete :    out Boolean);
+     (Super                    :         in out Base.Supervisor;
+      Shared_Parser            :         in out Parser.Parser;
+      Tokens                   :         in     Token_ID_Array_1_3;
+      Config                   : aliased in     Configuration;
+      Matching_Begin_Tokens    :            out Token_ID_Arrays.Vector;
+      Forbid_Matching_Complete :            out Boolean);
    --  See wisitoken-parse-lr-parser.ads Language_Matching_Begin_Tokens_Access
    --  for description.
 

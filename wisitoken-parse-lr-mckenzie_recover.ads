@@ -97,7 +97,7 @@ private
    --  Check that ID = Expected_ID; raise Bad_Config if not.
 
    procedure Delete_Check
-     (Super         : in     Base.Supervisor;
+     (Super         : in out Base.Supervisor;
       Shared_Parser : in out LR.Parser.Parser;
       Config        : in out Configuration;
       ID            : in     Token_ID);
@@ -121,7 +121,7 @@ private
    --  token for each.
 
    procedure Delete_Check
-     (Super         : in     Base.Supervisor;
+     (Super         : in out Base.Supervisor;
       Shared_Parser : in out LR.Parser.Parser;
       Config        : in out Configuration;
       Peek_State    : in out Peek_Sequential_State;

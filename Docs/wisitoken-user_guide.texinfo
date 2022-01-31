@@ -5,7 +5,7 @@
 @settitle WisiToken User Guide
 
 @copying
-Copyright @copyright{} 2014-2015, 2017-2018, 2020-2021 Stephen Leake.
+Copyright @copyright{} 2014-2015, 2017-2018, 2020-2022 Stephen Leake.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this
@@ -43,6 +43,7 @@ section entitled "GNU Free Documentation License".
 * Overview::
 * Common grammar problems::
 * Grammar File Syntax::
+* Language-specific parser runtime functions::
 @end menu
 
 @node Overview
@@ -249,7 +250,7 @@ the section is output.
 
 Sometimes the generator cannot tell what context clauses for other
 packages are required in the actions package body; then you must use a
-@verb|%code| declaration to add them.
+@verb{|%code|} declaration to add them.
 
 @node Keywords
 @subsection Keywords
@@ -711,7 +712,7 @@ The actions are written in output-language code; for @code{Ada_Emacs}
 output, this is elisp (a hold-over from when WisiToken only output
 elisp code).
 
-If using BNF, the syntax of an @verb|rhs_item| is:
+If using BNF, the syntax of an @verb{|rhs_item|} is:
 @verbatim
 rhs_item : token ;
 @end verbatim
@@ -812,5 +813,6 @@ return @code{if}.
 Called during language initialization; return a set of @code{Token_ID}
 that can contain the given string literal ID. The set is then used by
 error correction when correcting missing string quotes.
+@end table
 
 @bye

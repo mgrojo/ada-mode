@@ -25,13 +25,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Enum_Ch19 is
    Descriptor : WisiToken.Descriptor renames Java_Enum_Ch19_Actions.Descriptor;
 
    procedure Matching_Begin_Tokens
-     (Tree                    : in     Syntax_Trees.Tree;
-      Tokens                  : in     Token_ID_Array_1_3;
-      Config                  : in     Configuration;
-      Matching_Begin_Tokens   :    out Token_ID_Arrays.Vector;
-      Forbid_Minimal_Complete :    out Boolean)
+     (Super                   :         in out Base.Supervisor;
+      Shared_Parser           :         in out Parser.Parser;
+      Tokens                  :         in     Token_ID_Array_1_3;
+      Config                  : aliased in     Configuration;
+      Matching_Begin_Tokens   :            out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :            out Boolean)
    is
-      pragma Unreferenced (Tree);
+      pragma Unreferenced (Super, Shared_Parser);
       use Java_Enum_Ch19_Actions;
       use Token_ID_Arrays;
    begin
