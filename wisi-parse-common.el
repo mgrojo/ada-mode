@@ -93,7 +93,7 @@ Text properties on MESSAGE are preserved,"
     (when (> max 0)
       (unless (buffer-live-p (wisi-parser-transaction-log-buffer parser))
 	(setf (wisi-parser-transaction-log-buffer parser)
-	      (get-buffer-create (wisi-parser-transaction-log-buffer-name parser))) ;; FIXME: emacs 28 allows second arg 't'
+	      (get-buffer-create (wisi-parser-transaction-log-buffer-name parser)))
 	(with-current-buffer (wisi-parser-transaction-log-buffer parser)
 	  (read-only-mode 1)
 	  (buffer-disable-undo)))
@@ -573,95 +573,5 @@ with delay between each key event.  Macro must have been saved by
       (execute-kbd-macro (make-vector 1 (aref macro i)))
       (sit-for 0.1)
       (setq i (1+ i)))))
-
-(defun wisi-replay-undo (count)
-  "Execute `undo' COUNT times, delaying in between each."
-  (let ((i 0))
-    (undo-start)
-    (while (< i count)
-      (undo-more 1)
-      (sit-for 0.1)
-      (setq i (1+ i)))))
-
-(defun wisi-undo-save-macro ()
-  "Prompt for FILE-NAME. Undo the current buffer to the minimum of
-undo limit or `recent-keys' count, save that many keystrokes from
-`recent-keys' to `last-kbd-macro', write the current buffer to
-FILE-NAME, write last-kbd-macro to FILE-NAME.macro.
-
-This allows reproducing errors using `wisi-replay-kbd-macro'.
-
-This assumes that one keystroke corresponds to one undo boundary,
-which means `amalgamating-undo-limit' is 0, no commands that
-insert extra undo boundaries have been executed, and no commands
-that change buffers have been executed."
-  ;; if need more than recent-keys, use open-dribble-file
-
-  ;; We can't use an interactive spec to prompt for the filename; that
-  ;; would add unwanted events to `recent-keys'.
-  (interactive)
-  (let ((macro (recent-keys nil))
-	(event-count 0)
-	(file-name (read-file-name "debug file-name:")))
-    (undo-start)
-    (while (and (not (eq t pending-undo-list))
-		(< event-count (length macro)))
-      (undo-more 1)
-      (setq event-count (1+ event-count)))
-
-    (setq last-kbd-macro (seq-subseq macro (- event-count)))
-    (write-file file-name t)
-    (wisi-save-kbd-macro (concat file-name ".macro"))))
-
-(defun wisi-undo-save-redo (file-name)
-  "Undo the current buffer to the undo limit, write the
-current buffer to FILE-NAME. Save pending-undo-list to
-FILE-NAME.redo, for `wisi-replay-redo'."
-  (interactive "Fdebug file-name:")
-  (undo-start)
-  (while (not (eq t pending-undo-list))
-    (undo-more 1))
-  (with-temp-buffer
-    ;; Undo list can contain markers, which cannot be read by
-    ;; read-from-string. FIXME: They may be for deletion, which cannot
-    ;; be recreated appropriately in a copied file. So we need to
-    ;; translate this to a kbd macro.
-    (insert (format "%s"
-		    (cl-remove-if
-		     (lambda (item)
-		       (and (listp item)
-			    (markerp (car item))))
-		     buffer-undo-list)))
-    (write-file (concat file-name ".redo")))
-  ;; Preserve redo info in current buffer
-  (let ((text (buffer-substring (point-min)(point-max))))
-    (with-temp-buffer
-      (insert text)
-      (write-region (point-min)(point-max) file-name t))))
-
-(defun wisi-replay-redo (file-name)
-  "Set `buffer-undo-list' to saved undo list in FILE-NAME.
-Normal `undo-redo' will redo it."
-  (interactive "Fredo file-name:")
-  (let ((edit-buffer (current-buffer))
-	(redo-buffer (find-file-noselect file-name))
-	undo-list)
-
-    (set-buffer redo-buffer)
-    (goto-char (point-min))
-    (setq undo-list (car (read-from-string (buffer-substring-no-properties (point) (scan-sexps (point) 1)))))
-    (while (eq (car undo-list) nil)
-      (setq undo-list (cdr undo-list)))
-
-    (set-buffer edit-buffer)
-    (setq buffer-undo-list undo-list)
-
-    ;; undo-redo checks `undo-equiv-table' to see if buffer-undo-list
-    ;; is valid.
-    (puthash buffer-undo-list nil undo-equiv-table)
-
-    ;; We don't do the redo here, to give the user some control.
-    (message "use `undo-redo' to perform redo")
-    ))
 
 (provide 'wisi-parse-common)

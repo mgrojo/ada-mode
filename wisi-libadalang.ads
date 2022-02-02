@@ -3,7 +3,7 @@
 --  WisiToken wrappers for the Libadalang lexer and parser for use
 --  with the Wisi indentation engine.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -57,7 +57,6 @@ package Wisi.Libadalang is
       Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
 
       Unit : aliased Standard.Libadalang.Analysis.Analysis_Unit;
-      --  FIXME: Errors : ?
 
       Base_Tree : aliased WisiToken.Syntax_Trees.Base_Tree;
       Tree      : WisiToken.Syntax_Trees.Tree;

@@ -206,7 +206,7 @@ package body Emacs_Wisi_Common_Parse is
          Result.Begin_Char_Pos    := Get_Integer (Command_Line, Last);
 
          --  Emacs end is after last char. FIXME: if last char is
-         --  multibyte, this is wrong; subtract 1 char in elisp.
+         --  multibyte, this is wrong; add something to wisitoken.utf_8.
          Result.End_Byte_Pos      := Get_Integer (Command_Line, Last) - 1;
          Result.End_Char_Pos      := Get_Integer (Command_Line, Last) - 1;
 
@@ -487,7 +487,8 @@ package body Emacs_Wisi_Common_Parse is
                         else
                            --  Last parse failed; can't edit tree, so do full parse.
                            --
-                           --  FIXME: Edit_Tree should handle a partially parsed tree
+                           --  IMPROVEME: Edit_Tree could handle a partially parsed tree, if
+                           --  there is only one stream.
                            Parser.Parse (Recover_Log_File, Parse.KMN_Lists.Empty_List);
                         end if;
 
