@@ -22,9 +22,9 @@ o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1):
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"         . "../org.wisitoken.stephe-2")
-   ("../org.emacs.wisi"        . "../org.emacs.wisi.stephe-2")
-   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-6")))
+   ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
+   ("../org.emacs.wisi"        . "../org.emacs.wisi.stephe-1")
+   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
@@ -36,9 +36,9 @@ o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1):
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")
-   ("../org.emacs.wisi.stephe-2"       . "../org.emacs.wisi")
-   ("../org.emacs.ada-mode.stephe-6"   . "../org.emacs.ada-mode")))
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
+   ("../org.emacs.wisi.stephe-1"       . "../org.emacs.wisi")
+   ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
 (setenv "GPR_PROJECT_PATH" "c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules")
 
@@ -88,13 +88,6 @@ ediff ada_annex_p.wy
 
     wisitoken-which-function fails with nil tree node
 
-need kill-context on delete buffer
-
-test/ada_mode-recover_27.adb
-    incremental recover for extra 'begin' has only one solution (insert begin)
-    full also has (push_back ...) (delete begin), which would be the best solution
-    possibly because incremental doesn't enounter 'renames' during recover, while full does?
-
 ada-mode-hook runs before initial parse
     because we want to allow it to set debug etc that affect initial parse
     if user puts a function on ada-mode-hook that requires parse, it signals file-not-found
@@ -107,22 +100,12 @@ ada-mode-hook runs before initial parse
 
     need another hook that runs after initial parse started
 
-ada_mode-interactive_10.adb
-    if add another ';', get SAL.Programmer_Error.
-
-debug.adb
-    could be fixed by ada_mode-interactive_10.adb fix
-
 review FIXMEs
-    (grep-find "find c:/Projects/org.wisitoken -type f -print | \"xargs\" grep  -nH --null FIXME")
-        c:/Projects/org.wisitoken.stephe-1/notes.text
-    (grep-find "find c:/Projects/org.emacs.wisi -type f -print | \"xargs\" grep  -nH --null FIXME")
-    (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
+    (grep-find "find c:/Projects/org.emacs.wisi.stephe-1 -type f -print | \"xargs\" grep  -nH --null FIXME:")
+    wisi-parse_context.adb Get_Emacs_Change_List Substitute_Escapes all non-printing ASCII control chars
+        (prin1-to-string "\x00\x01\x02\x03" t)
 
-incremental parse does full reparse every time if FAIL_ENQUEUE_LIMIT
-    every char for font-lock
-    automatically disable parsing
-        re-enable on wisi-reset-parser
+    (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
 
 respond to https://rust-analyzer.github.io/blog/2020/09/16/challeging-LR-parsing.html
    https://github.com/tree-sitter/tree-sitter-rust
@@ -174,7 +157,11 @@ push to elpa
  after incremental
 review this file!
 
-ada_mode-recover_27.adb
+test/ada_mode-recover_27.adb
+    incremental recover for extra 'begin' has only one solution (insert begin)
+    full also has (push_back ...) (delete begin), which would be the best solution
+    possibly because incremental doesn't enounter 'renames' during recover, while full does?
+
     delete end loop needs undo_reduce handled_sequence_of_statements
     undo_reduce not valid? because must be done before delete
     ((PUSH_BACK, END, 1), (UNDO_REDUCE, handled_sequence_of_statements, 1, -70) not continued
@@ -209,8 +196,13 @@ xref workaround
     "oref", "with-slots" work with cl-defstruct on master
         test on 28.
 
-test/ada_mode-nested_packages.adb
-    symbols length = 2!?
+incremental parse does full reparse every time if FAIL_ENQUEUE_LIMIT
+    test/ada
+    every char for font-lock
+    wait til user complains
+
+    automatically disable parsing
+        re-enable on wisi-reset-parser
 
 font-lock use separate partial_parse process while incremental parse is busy with full parse?
 
