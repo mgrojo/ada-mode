@@ -567,7 +567,8 @@ package body Run_Wisi_Common_Parse is
             Begin_Byte_Pos : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
             Begin_Char_Pos : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last));
 
-            --  Emacs end is after last char. FIXME: if last char is multibyte, this is wrong; subtract 1 char in elisp.
+            --  Emacs end is after last char. FIXME: if last char is multibyte,
+            --  this is wrong; add something in wisitoken-utf_8.
             End_Byte_Pos   : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last)) - 1;
             End_Char_Pos   : constant WisiToken.Buffer_Pos := WisiToken.Buffer_Pos (Wisi.Get_Integer (Line, Last)) - 1;
          begin

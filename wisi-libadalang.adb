@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -477,7 +477,8 @@ package body Wisi.Libadalang is
 
       subtype Terminal is WisiToken.Token_ID range Data.Descriptor.First_Terminal .. Data.Descriptor.Last_Terminal;
       subtype Child_Index is SAL.Base_Peek_Type range 0 .. 20;
-      --  FIXME: '20' is max WisiToken grammar production token count; declare in external_main.
+      --  FIXME libadalang: '20' is max WisiToken grammar production token
+      --  count; declare in external_main.
       type Create_Result (Count : Child_Index := 0) is record
          Nodes : WisiToken.Syntax_Trees.Valid_Node_Index_Array (1 .. Count);
       end record;
@@ -578,7 +579,7 @@ package body Wisi.Libadalang is
                         use all type Ada.Containers.Count_Type;
                         Item : Action_Item renames Actions (-Prod.LHS)(I);
                      begin
-                        --  FIXME: token_count not enough; see selected_component, name
+                        --  FIXME libadalang: token_count not enough; see selected_component, name
                         if SAL.Base_Peek_Type (Item.Token_Count) = Tree_Children.Count then
                            Prod.RHS := I;
                            return Item.Action;
@@ -673,7 +674,7 @@ package body Wisi.Libadalang is
       use Standard.Libadalang.Analysis;
       use WisiToken;
 
-      Ctx : constant Analysis_Context := Create (With_Trivia => True); --  FIXME: specify utf-8 charset
+      Ctx : constant Analysis_Context := Create (With_Trivia => True); --  FIXME libadalang: specify utf-8 charset
 
       Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
 
@@ -696,7 +697,7 @@ package body Wisi.Libadalang is
          L_Last_Token : constant L_Lex.Token_Data_Type := L_Lex.Token_Data_Handlers.Get_Token
            (TDH.all, L_Last_Token_Index);
          W_Last_Line : constant Line_Number_Type := Line_Number_Type (L_Last_Token.Sloc_Range.End_Line);
-         --  FIXME: includes comments after last token?
+         --  FIXME libadalang: includes comments after last token?
       begin
          Parser.Terminals.Clear;
          Parser.Terminals.Set_First_Last (1, Token_Index (L_Last_Token_Index));
@@ -788,7 +789,7 @@ package body Wisi.Libadalang is
       pragma Unreferenced (Input_File_Name);
    begin
       for D of Standard.Libadalang.Analysis.Diagnostics (Parser.Unit) loop
-         --  FIXME: convert to Parser.Errors, let main put thru Wisi_Runtime for elisp
+         --  FIXME libadalang: convert to Parser.Errors, let main put thru Wisi_Runtime for elisp
          Ada.Text_IO.Put_Line (Standard.Libadalang.Analysis.Format_GNU_Diagnostic (Parser.Unit, D));
       end loop;
    end Put_Errors;

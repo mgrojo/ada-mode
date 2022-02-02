@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 All Rights Reserved.
+--  Copyright (C) 2018, 2022 All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -102,7 +102,7 @@ begin
      (Post_Parse_Action => Post_Parse_Action,
       Descriptor        => Descriptor'Unrestricted_Access,
       Source_File_Name  => -Source_File_Name,
-      Line_Count        => 1, --  FIXME: fix wisi_runtime to not need this!
+      Line_Count        => 1,
       Params            => -Lang_Params);
 
    if Repeat_Count > 1 then
@@ -115,7 +115,7 @@ begin
          is begin
             if I = 1 then
                null;
-               --  FIXME: Errors!
+               --  FIXME libadalang: get errors from libadalang
                --  Parse_Data.Put
                --    (Parser.Lexer.Errors,
                --     Parser.Parsers.First.State_Ref.Errors,
