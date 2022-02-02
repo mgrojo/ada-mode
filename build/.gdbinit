@@ -6,12 +6,12 @@
 #set args c:/Projects/org.emacs.ada-mode.stephe-6/gpr.wy
 
 # t_mck:
-#set args LALR "Empty_Comments" "test=1 debug=1 mckenzie=2"
+#set args LALR Push_Back_2 "test=1 debug=1 mckenzie=2 parse=1"
 #catch except WisiToken.Parse.LR.McKenzie_Recover.Bad_Config
 #catch except WisiToken.Parse.LR.McKenzie_Recover.Invalid_Case
 
 # t_one, t_all:
-set args test_incremental.adb Recover_2 "debug=1 test=1 parse=2" "task_count=1"
+set args test_incremental.adb Multiple_Errors_On_One_Token_1 "debug=1 test=1 incremental=3" "task_count=1"
 
 #catch excep
 catch excep ADA.ASSERTIONS.ASSERTION_ERROR
@@ -25,15 +25,14 @@ set varsize-limit 0
 define show_id
 #  print java_expressions_ch19_actions.descriptor.image ($arg0).all
 #  print wisitoken_grammar_actions.descriptor.image ($arg0).all
+#  print skip_to_grammar_actions.descriptor.image ($arg0).all
   print ada_lite_actions.descriptor.image ($arg0).all
 end
 
 # node
 define show_node 
   print $arg0.all
-#  print java_expressions_ch19_actions.descriptor.image ($arg0.id).all
-#  print wisitoken_grammar_actions.descriptor.image ($arg0.id).all
-  print ada_lite_actions.descriptor.image ($arg0.id).all
+  show_id $arg0.id
 end
 
 define show_children

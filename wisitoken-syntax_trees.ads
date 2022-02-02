@@ -2561,7 +2561,6 @@ package WisiToken.Syntax_Trees is
    with Pre => Element = Invalid_Stream_Index or else Tree.Contains (Stream, Element);
    --  Version without Tree requires Syntax_Trees.Get_Node_Index. Returns
    --  Invalid_Node_Index for Invalid_Node_Access.
-   --  FIXME: delete?
 
    procedure Enable_Ref_Count_Check (Tree : in out Syntax_Trees.Tree; Stream : in Stream_ID; Enable : in Boolean)
    with Pre => Stream /= Invalid_Stream_ID;
@@ -2757,7 +2756,7 @@ private
          --  Name_* are set and checked by In_Parse_Actions. We use an offset
          --  from First_Terminal (Node).Byte_Region.First, rather than a
          --  Buffer_Region, to avoid needing to shift it during Edit_Tree for
-         --  incremental parse. FIXME: generalize for other actions;
+         --  incremental parse. IMPROVEME: generalize for other actions;
          --  post_parse_augmented, in_parse_augmented.
 
          Children : Node_Access_Array (1 .. Child_Count);
