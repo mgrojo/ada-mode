@@ -4176,7 +4176,6 @@ package body WisiToken.Syntax_Trees is
    when E : others =>
       --  Tolerate corrupt tree, for debugging.
       if Debug_Mode then
-         --  FIXME: need tree.trace
          Ada.Text_IO.Put_Line
            ("corrupt tree; " & Ada.Exceptions.Exception_Name (E) & ":" &
               Ada.Exceptions.Exception_Message (E));
@@ -4198,9 +4197,6 @@ package body WisiToken.Syntax_Trees is
       Image_Action          : in Syntax_Trees.Image_Action := null)
      return String
    is
-      --  FIXME: use or delete these
-      pragma Unreferenced (Augmented);
-      pragma Unreferenced (RHS_Index);
       use Ada.Strings.Unbounded;
       Result     : Unbounded_String := +"(";
       Need_Comma : Boolean := False;
@@ -4210,10 +4206,12 @@ package body WisiToken.Syntax_Trees is
            (if Nodes (I) = null then " - "
             else Tree.Image
               (Nodes (I),
+               RHS_Index             => RHS_Index,
                Node_Numbers          => Node_Numbers,
                Terminal_Node_Numbers => Terminal_Node_Numbers,
                Line_Numbers          => Line_Numbers,
                Non_Grammar           => Non_Grammar,
+               Augmented             => Augmented,
                Image_Action          => Image_Action));
          Need_Comma := True;
       end loop;

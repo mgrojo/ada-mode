@@ -1513,7 +1513,7 @@ package body WisiToken.Parse is
                         end;
 
                         --  Remaining Non_Grammar will either be scanned, or moved to a new
-                        --  grammar token, so delete or move to floating now. FIXME:
+                        --  grammar token, so delete or move to floating now. IMPROVEME:
                         --  partly duplicates Handle_Non_Grammar in Delete_Deleted_Loop; move
                         --  delete/float to Delete_Scanned_Loop?
                         for I in Terminal_Non_Grammar_Next .. Non_Grammar.Last_Index loop
@@ -1885,7 +1885,7 @@ package body WisiToken.Parse is
                                     ));
                         end if;
 
-                        Scanned_Byte_Pos   := Token.Byte_Region.Last; --  FIXME: use last_scanned_token?
+                        Scanned_Byte_Pos   := Token.Byte_Region.Last;
                         Scanned_Char_Pos   := Token.Char_Region.Last;
                         Last_Scanned_Token := Token;
 
