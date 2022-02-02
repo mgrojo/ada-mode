@@ -840,10 +840,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    end Delete_Check;
 
    procedure Delete_Check
-(Super        : in out     Base.Supervisor;
-Shared_Parser : in out LR.Parser.Parser;
-Config        : in out Configuration;
-ID            : in     Token_ID)
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in out Configuration;
+      ID            : in     Token_ID)
    is
       Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Terminal (Shared_Parser.Tree, Config);
    begin
