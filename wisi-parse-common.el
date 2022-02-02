@@ -253,7 +253,13 @@ terminal token text plus following non_grammar and whitespace."
 
 (cl-defgeneric wisi-parse-kill-buffer ((parser wisi-parser))
   "Tell parser the current buffer is being deleted.
-For `kill-buffer-hook'.")
+Called by `wisi-parse-kill-buf'.")
+
+(defun wisi-parse-kill-buf ()
+  "Tell parser the current buffer is being deleted.
+For `kill-buffer-hook'."
+  (when wisi--parser
+    (wisi-parse-kill-buffer wisi--parser)))
 
 (cl-defgeneric wisi-parse-reset ((parser wisi-parser))
   "Ensure parser is ready to process a new parse.")
