@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -145,9 +145,9 @@ package body Test_Skip_To_Aux is
                --  Second delimited text, with non-ascii.
                Test_1 (Label, Nonterm, (12, 16), (196, 264), 5, 6);
 
-               Check (Label & ".non_grammar.length", Non_Grammar.Length, 5);
-               Test_Comment (Label & ".comment 1", Non_Grammar (3), (18, 19), (267, 311), 6, 7);
-               Test_Comment (Label & ".comment 2", Non_Grammar (5), (20, 21), (313, 335), 7, 7);
+               Check (Label & ".non_grammar.length", Non_Grammar.Length, 6);
+               Test_Comment (Label & ".comment 1", Non_Grammar (3), (18, 18), (267, 289), 6, 7); -- placeholder
+               Test_Comment (Label & ".comment 2", Non_Grammar (6), (20, 21), (292, 314), 7, 7); -- end of file comment
             when others =>
                raise Fatal_Error;
             end case;

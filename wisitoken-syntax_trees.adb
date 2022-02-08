@@ -1324,37 +1324,44 @@ package body WisiToken.Syntax_Trees is
 
          New_Children : Node_Access_Array (1 .. Tree.Root.Child_Count + 2);
       begin
-         New_Children (1) := SOI;
-         New_Children (2 .. New_Children'Last - 1) := Tree.Root.Children;
-         New_Children (New_Children'Last) := EOI;
+         if Tree.Streams.Last = Tree.Shared_Stream.Cur and Tree.Root.Child_Count = 3 then
+            --  This is a packrat parse; SOI, EOI already in tree
+            pragma Assert (Tree.Root.Children (1) = Tree.SOI and Tree.Root.Children (3) = EOI);
+         else
+            --  There is a parse stream, or this is an incremental parse where the
+            --  edit did not require a parse.
+            New_Children (1) := SOI;
+            New_Children (2 .. New_Children'Last - 1) := Tree.Root.Children;
+            New_Children (New_Children'Last) := EOI;
 
-         Tree.SOI := SOI;
-         Tree.EOI := EOI;
+            Tree.SOI := SOI;
+            Tree.EOI := EOI;
 
-         Tree.Root := new Node'
-           (Label       => Nonterm,
-            Child_Count => Tree.Root.Child_Count + 2,
-            ID          => Tree.Root.ID,
-            Node_Index  => Tree.Root.Node_Index,
-            Parent      => null,
-            Augmented   => Tree.Root.Augmented,
-            Error_List  =>
-              (if Tree.Root.Error_List = null
-               then null
-               else new Error_Data_Lists.List'(Tree.Root.Error_List.all)),
-            Virtual          => Tree.Root.Virtual,
-            Recover_Conflict => False,
-            RHS_Index        => Tree.Root.RHS_Index,
-            Action           => Tree.Root.Action,
-            Name_Offset      => Tree.Root.Name_Offset,
-            Name_Length      => Tree.Root.Name_Length,
-            Children         => New_Children);
+            Tree.Root := new Node'
+              (Label       => Nonterm,
+               Child_Count => Tree.Root.Child_Count + 2,
+               ID          => Tree.Root.ID,
+               Node_Index  => Tree.Root.Node_Index,
+               Parent      => null,
+               Augmented   => Tree.Root.Augmented,
+               Error_List  =>
+                 (if Tree.Root.Error_List = null
+                  then null
+                  else new Error_Data_Lists.List'(Tree.Root.Error_List.all)),
+               Virtual          => Tree.Root.Virtual,
+               Recover_Conflict => False,
+               RHS_Index        => Tree.Root.RHS_Index,
+               Action           => Tree.Root.Action,
+               Name_Offset      => Tree.Root.Name_Offset,
+               Name_Length      => Tree.Root.Name_Length,
+               Children         => New_Children);
 
-         for Child of New_Children loop
-            Child.Parent := Tree.Root;
-         end loop;
+            for Child of New_Children loop
+               Child.Parent := Tree.Root;
+            end loop;
 
-         Tree.Nodes.Append (Tree.Root);
+            Tree.Nodes.Append (Tree.Root);
+         end if;
       end;
 
       --  Clear saved element list cursors in parse streams before freeing
@@ -1956,6 +1963,42 @@ package body WisiToken.Syntax_Trees is
          end;
       end if;
    end Delete_Current_Token;
+
+   procedure Delete_Error
+     (Tree  : in out Syntax_Trees.Tree;
+      Error : in out Error_Ref)
+   is
+      Error_Node : constant Valid_Node_Access :=
+        (if Error.Deleted = Valid_Node_Access_Lists.No_Element
+         then Error.Node
+         else Error.Node.Following_Deleted (Error.Deleted));
+
+      To_Delete : Error_Data_Lists.Cursor := Error.Error;
+   begin
+      Tree.Next_Error (Error);
+      Error_Node.Error_List.Delete (To_Delete);
+      if Error_Node.Error_List.Length = 0 then
+         Free (Error_Node.Error_List);
+      end if;
+   end Delete_Error;
+
+   procedure Delete_Error
+     (Tree  : in out Syntax_Trees.Tree;
+      Error : in out Stream_Error_Ref)
+   is
+      Error_Node : constant Valid_Node_Access :=
+        (if Error.Deleted = Valid_Node_Access_Lists.No_Element
+         then Error.Ref.Ref.Node
+         else Error.Ref.Ref.Node.Following_Deleted (Error.Deleted));
+
+      To_Delete : Error_Data_Lists.Cursor := Error.Error;
+   begin
+      Tree.Next_Error (Error);
+      Error_Node.Error_List.Delete (To_Delete);
+      if Error_Node.Error_List.Length = 0 then
+         Free (Error_Node.Error_List);
+      end if;
+   end Delete_Error;
 
    procedure Delete_Errors_In_Input
      (Tree      : in out Syntax_Trees.Tree;
@@ -4905,7 +4948,7 @@ package body WisiToken.Syntax_Trees is
 
                      elsif Byte_Pos <= Node.Byte_Region.Last then
                         return Tree.Lexer.Line_At_Byte_Pos
-                          (Node.ID, Node.Byte_Region, Byte_Pos,
+                          (Node.Byte_Region, Byte_Pos,
                            First_Line => Prev_Non_Grammar.Non_Grammar
                              (Prev_Non_Grammar.Non_Grammar.Last_Index).Line_Region.Last);
                      end if;
@@ -5522,26 +5565,54 @@ package body WisiToken.Syntax_Trees is
    procedure Next_Error (Tree : in Syntax_Trees.Tree; Error : in out Stream_Error_Ref)
    is
       use Valid_Node_Access_Lists;
+      use Error_Data_Lists;
    begin
-      if not Has_Element (Error.Deleted) then
-         Next_Terminal (Tree, Error.Ref);
-         if Error.Ref.Ref.Node = Invalid_Node_Access then
-            --  No more errors.
-            return;
-         end if;
-
-         Error.Deleted :=
-           (if Error.Ref.Ref.Node.Label = Source_Terminal
-            then Error.Ref.Ref.Node.Following_Deleted.First
-            else No_Element);
-         First_Error (Tree, Error);
-
-      else
+      if Has_Element (Error.Error) then
+         Next (Error.Error);
+      end if;
+      if Has_Element (Error.Error) then
+         return;
+      end if;
+      if Has_Element (Error.Deleted) then
          Next (Error.Deleted);
          if not Has_Element (Error.Deleted) then
-            Next_Terminal (Tree, Error.Ref);
+            Next_Node (Tree, Error.Ref);
          end if;
          First_Error (Tree, Error);
+      else
+         if Error.Ref.Ref.Node.Error_List = null then
+            if Error.Ref.Ref.Node.Label = Source_Terminal then
+               Error.Deleted := Error.Ref.Ref.Node.Following_Deleted.First;
+            else
+               Next_Node (Tree, Error.Ref);
+               if Error.Ref.Ref.Node = Invalid_Node_Access then
+                  --  No more errors.
+                  return;
+               end if;
+            end if;
+
+            First_Error (Tree, Error);
+         else
+            if Has_Element (Error.Error) then
+               Next (Error.Error);
+            end if;
+            if not Has_Element (Error.Error) then
+               if Error.Ref.Ref.Node.Label = Source_Terminal then
+                  Error.Deleted := Error.Ref.Ref.Node.Following_Deleted.First;
+                  if not Has_Element (Error.Deleted) then
+                     Next_Node (Tree, Error.Ref);
+                  end if;
+               else
+                  Next_Node (Tree, Error.Ref);
+               end if;
+
+               if Error.Ref.Ref.Node = Invalid_Node_Access then
+                  --  No more errors.
+                  return;
+               end if;
+               First_Error (Tree, Error);
+            end if;
+         end if;
       end if;
    end Next_Error;
 

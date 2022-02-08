@@ -1,0 +1,13 @@
+%generate LALR Ada re2c
+
+%token <comment-one-line> COMMENT "\" "\"
+%token <delimited-text> RAW_CODE "%" "%"
+
+%start  parameter_specification
+
+%elisp_face font-lock-function-name-face
+%elisp_face font-lock-type-face
+
+parameter_specification
+  : COMMENT RAW_CODE
+  ;

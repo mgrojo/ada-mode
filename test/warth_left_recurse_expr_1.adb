@@ -114,10 +114,7 @@ package body Warth_Left_Recurse_Expr_1 is
             Ada.Text_IO.Put_Line ("input: '" & Input & "'");
          end if;
 
-         --  FIXME packrat: Bug in GNAT Community 2021. Possibly AdaCore ticket V107-045.
-         WisiToken.Parse.Packrat.Procedural.Enable_Ref_Count_Check := False;
          Parser.Parse (Log_File);
-         WisiToken.Parse.Packrat.Procedural.Enable_Ref_Count_Check := True;
 
          AUnit.Assertions.Assert
            (Expected_State = Success, "'" & Input & "': expected fail; did not get Syntax_Error");

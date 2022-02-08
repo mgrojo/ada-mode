@@ -2,7 +2,7 @@
 --
 --  An abstract lexer interface.
 --
---  Copyright (C) 2014 - 2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2014 - 2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -224,47 +224,88 @@ package WisiToken.Lexer is
    with Pre'Class => Lexer.Has_Source;
    --  Return values from Reset*.
 
-   function Is_Comment
+   function Is_Block_Delimited
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Boolean
    is abstract;
+   --  True if ID is a token that spans a region of text defined by
+   --  delimiters; a string, a comment, or some similar delimited text.
+   --
+   --  Incremental parse uses this and the following related functions to
+   --  determine how much text is affected by an edit that inserts or
+   --  deletes a delimiter.
 
-   function Comment_Start_Length
+   function Same_Block_Delimiters
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean
+   is abstract;
+   --  True if Is_Block_Delimited (ID) and the start and end delimiters
+   --  are the same (typically true for strings, false for comments).
+
+   function Start_Delimiter_Length
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Integer
    is abstract
-   with Pre'Class => Lexer.Is_Comment (ID);
-   --  Return length in bytes of the characters in a comment start character sequence.
+   with Pre'Class => Lexer.Is_Block_Delimited (ID);
+   --  Return length in bytes of the characters in the start delimiter character sequence.
 
-   function Comment_End_Length
+   function End_Delimiter_Length
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Integer
    is abstract
-   with Pre'Class => Lexer.Is_Comment (ID);
-   --  Return length in bytes of the characters in a comment start character sequence.
+   with Pre'Class => Lexer.Is_Block_Delimited (ID);
+   --  Return length in bytes of the characters in the end delimiter character sequence.
 
-   function Find_Comment_End
-     (Lexer         : in Instance;
-      ID            : in Token_ID;
-      Comment_Start : in Buffer_Pos)
+   function Find_End_Delimiter
+     (Lexer       : in Instance;
+      ID          : in Token_ID;
+      Token_Start : in Buffer_Pos)
      return Buffer_Pos
    is abstract
-   with Pre'Class => Is_Comment (Lexer, ID);
-   --  Given the byte position of a comment start, return the byte
-   --  position of the comment end.
+   with Pre'Class => Is_Block_Delimited (Lexer, ID);
+   --  Given the byte position of a start delimiter, return the byte
+   --  position of the corresponding end delimiter.
+   --
+   --  If no end delimiter is found, returns EOI position.
 
-   function Contains_Comment_End
+   function Contains_End_Delimiter
      (Lexer  : in Instance;
       ID     : in Token_ID;
       Region : in Buffer_Region)
-     return Boolean
+     return Base_Buffer_Pos
    is abstract
-   with Pre'Class => Is_Comment (Lexer, ID);
-   --  True if Region contains a comment end for ID. Does not check for
-   --  matching comment start.
+   with Pre'Class => Is_Block_Delimited (Lexer, ID);
+   --  If Region contains an end delimiter for ID, returns the buffer
+   --  position of the start of that delimiter. Otherwise returns
+   --  Invalid_Buffer_Pos. Does not check for matching or nested start.
+
+   function Find_Scan_End
+     (Lexer       : in Instance;
+      ID          : in Token_ID;
+      Byte_Region : in Buffer_Region;
+      Inserted    : in Boolean;
+      Start       : in Boolean)
+     return Buffer_Pos
+   is abstract
+   with Pre'Class => Is_Block_Delimited (Lexer, ID);
+   --  If Inserted, a delimiter for ID was inserted at Byte_Region.First,
+   --  and Byte_Region.Last is the end of the inserted text. If Start, a
+   --  start delimiter for ID was inserted. If not Start, an end
+   --  delimeter was inserted.
+   --
+   --  If not Inserted, a delimeter was deleted, and Byte_Region is the
+   --  token text before the deletion (shifted to match the current lexer
+   --  buffer). If Start, a start delimiter for ID was deleted at
+   --  Byte_Region.First. If not Start, an end delimeter was deleted at
+   --  Byte_Region.Last.
+   --
+   --  Text was either hidden in the new token, or exposed as code;
+   --  return the end of the buffer region that must be scanned by the
+   --  lexer.
 
    function Line_Begin_Char_Pos
      (Lexer : in Instance;
@@ -273,12 +314,11 @@ package WisiToken.Lexer is
      return Base_Buffer_Pos
    is abstract
    with Pre'Class => Contains (Token.Line_Region, Line) and New_Line_Count (Token.Line_Region) > 0;
-   --  First char position on Line; Invalid_Buffer_Pos if Token does not
-   --  contain new_line that starts Line.
+   --  Return first char position on Line; Invalid_Buffer_Pos if Token
+   --  does not contain the new-line that starts Line.
 
    function Line_At_Byte_Pos
      (Lexer       : in Instance;
-      ID          : in Token_ID;
       Byte_Region : in WisiToken.Buffer_Region;
       Byte_Pos    : in Buffer_Pos;
       First_Line  : in Line_Number_Type)
@@ -286,13 +326,15 @@ package WisiToken.Lexer is
    is abstract
    with Pre'Class => Contains (Byte_Region, Byte_Pos);
    --  Return line that contains Byte_Pos. If Byte_Pos is on a New_Line,
-   --  result is the line that the character ends.
+   --  result is the line that the character ends. First_Line must be the
+   --  line number at Byte_Region.First.
 
    function Line_At_Byte_Pos
      (Lexer    : in Instance;
       Token    : in WisiToken.Lexer.Token;
       Byte_Pos : in Buffer_Pos)
-     return Line_Number_Type;
+     return Line_Number_Type
+   with Pre => Contains (Token.Byte_Region, Byte_Pos);
    --  Return line that contains Byte_Pos. If Byte_Pos is on a New_Line,
    --  result is the line that the character ends.
 
@@ -310,10 +352,14 @@ package WisiToken.Lexer is
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Boolean is abstract;
-   --  True for New_Line, comment-new-line. Not for comment-one-line;
-   --  terminating that by a new_line is actually an error.
+   --  True for tokens that can be terminated by new-line.
+   --
+   --  Returns false for comment-one-line; terminating that by a new_line
+   --  is actually an error.
 
    type Source (<>) is private;
+
+   function Buffer_Region_Byte (Object : in Source) return Buffer_Region;
 
    function Find_New_Line
      (Source : in WisiToken.Lexer.Source;
@@ -328,12 +374,33 @@ package WisiToken.Lexer is
    --  Returns last byte in Source if not found, for an implicit New_Line
    --  at EOI.
 
+   function Find_String
+     (Source : in WisiToken.Lexer.Source;
+      Start  : in Buffer_Pos;
+      Item   : in String)
+     return Buffer_Pos;
+   --  Returns last byte in Source if not found, for an implicit delimiter
+   --  at EOI.
+
+   function Find_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Region : in Buffer_Region)
+     return Base_Buffer_Pos;
+   --  Returns Invalid_Bufer_Pos if not found in Region.
+
    function Find_String_Or_New_Line
      (Source : in WisiToken.Lexer.Source;
       Region : in Buffer_Region;
       Item   : in String)
-     return Zero_Buffer_Pos;
-   --  Returns 0 if not found in Region.
+     return Base_Buffer_Pos;
+   --  Returns Invalid_Bufer_Pos if not found in Region.
+
+   function Find_String
+     (Source : in WisiToken.Lexer.Source;
+      Region  : in Buffer_Region;
+      Item   : in String)
+     return Base_Buffer_Pos;
+   --  Returns Invalid_Bufer_Pos if not found in Region.
 
    function Line_Begin_Char_Pos
      (Source : in WisiToken.Lexer.Source;
@@ -398,8 +465,6 @@ private
 
    function Has_Source (Object : in Source) return Boolean;
    --  True if one of Reset_* has been called; lexer has source to process.
-
-   function Buffer_Region_Byte (Object : in Source) return Buffer_Region;
 
    function Buffer (Source : in Lexer.Source) return GNATCOLL.Mmap.Str_Access;
    --  The bounds on the result are not present; 'First, 'Last are not

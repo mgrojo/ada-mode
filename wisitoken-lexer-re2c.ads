@@ -6,7 +6,7 @@
 --
 --  [1] http://re2c.org/
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -81,28 +81,39 @@ generic
    --  0 - no error
    --  1 - there is an unrecognized character at Position.
 
-   with function Is_Comment (ID : in Token_ID) return Boolean;
-   --  Implements WisiToken.Lexer.Is_Comment.
+   with function Is_Block_Delimited (ID : in Token_ID) return Boolean;
+   --  Implements WisiToken.Lexer.Is_Block_Delimited.
 
-   with function Comment_Start_Length (ID : in Token_ID) return Integer;
-   --  Implements WisiToken.Lexer.Comment_Start_Length.
+   with function Same_Block_Delimiters (ID : in Token_ID) return Boolean;
+   --  Implements WisiToken.Lexer.Same_Block_Delimiters.
 
-   with function Comment_End_Length (ID : in Token_ID) return Integer;
-   --  Implements WisiToken.Lexer.Comment_Start_Length.
+   with function Start_Delimiter_Length (ID : in Token_ID) return Integer;
+   --  Implements WisiToken.Lexer.Start_Delimiter_Length.
 
-   with function Find_Comment_End
-     (Source        : in WisiToken.Lexer.Source;
-      ID            : in Token_ID;
-      Comment_Start : in Buffer_Pos)
+   with function End_Delimiter_Length (ID : in Token_ID) return Integer;
+   --  Implements WisiToken.Lexer.End_Delimiter_Length.
+
+   with function Find_End_Delimiter
+     (Source      : in WisiToken.Lexer.Source;
+      ID          : in Token_ID;
+      Token_Start : in Buffer_Pos)
      return Buffer_Pos;
-   --  Implements WisiToken.Lexer.Find_Comment_End.
+   --  Implements WisiToken.Lexer.Find_End_Delimiter.
 
-   with function Contains_Comment_End
+   with function Contains_End_Delimiter
      (Source : in WisiToken.Lexer.Source;
       ID     : in Token_ID;
       Region : in Buffer_Region)
-     return Boolean;
-   --  Implements WisiToken.Lexer.Contains_Comment_End
+     return Base_Buffer_Pos;
+   --  Implements WisiToken.Lexer.Contains_End_Delimiter
+
+   with function Find_Scan_End
+     (Source      : in WisiToken.Lexer.Source;
+      ID          : in Token_ID;
+      Byte_Region : in Buffer_Region;
+      Inserted    : in Boolean;
+      Start       : in Boolean)
+     return Buffer_Pos;
 
    with function Line_Begin_Char_Pos
      (Source : in WisiToken.Lexer.Source;
@@ -111,15 +122,6 @@ generic
      return Buffer_Pos;
    --  Implements WisiToken.Lexer.Line_Begin_Char_Pos, so that
    --  precondition applies.
-
-   with function Line_At_Byte_Pos
-     (Source      : in WisiToken.Lexer.Source;
-      ID          : in Token_ID;
-      Byte_Region : in WisiToken.Buffer_Region;
-      Byte_Pos    : in Buffer_Pos;
-      First_Line  : in Line_Number_Type)
-     return WisiToken.Line_Number_Type;
-   --  Implements WisiToken.Lexer.Line_At_Byte_Pos.
 
    with function Terminated_By_New_Line (ID : in Token_ID) return Boolean;
    --  Implements WisiToken.Lexer.Terminated_By_New_Line;
@@ -197,36 +199,51 @@ package WisiToken.Lexer.re2c is
       Begin_Line :    out Line_Number_Type);
 
    overriding
-   function Is_Comment
+   function Is_Block_Delimited
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Boolean;
 
    overriding
-   function Comment_Start_Length
+   function Same_Block_Delimiters
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean;
+
+   overriding
+   function Start_Delimiter_Length
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Integer;
 
    overriding
-   function Comment_End_Length
+   function End_Delimiter_Length
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Integer;
 
    overriding
-   function Find_Comment_End
-     (Lexer         : in Instance;
-      ID            : in Token_ID;
-      Comment_Start : in Buffer_Pos)
+   function Find_End_Delimiter
+     (Lexer       : in Instance;
+      ID          : in Token_ID;
+      Token_Start : in Buffer_Pos)
      return Buffer_Pos;
 
    overriding
-   function Contains_Comment_End
-     (Lexer         : in Instance;
-      ID            : in Token_ID;
+   function Contains_End_Delimiter
+     (Lexer  : in Instance;
+      ID     : in Token_ID;
       Region : in Buffer_Region)
-     return Boolean;
+     return Base_Buffer_Pos;
+
+   overriding
+   function Find_Scan_End
+     (Lexer       : in Instance;
+      ID          : in Token_ID;
+      Byte_Region : in Buffer_Region;
+      Inserted    : in Boolean;
+      Start       : in Boolean)
+     return Buffer_Pos;
 
    overriding
    function Line_Begin_Char_Pos
@@ -238,7 +255,6 @@ package WisiToken.Lexer.re2c is
    overriding
    function Line_At_Byte_Pos
      (Lexer       : in Instance;
-      ID          : in Token_ID;
       Byte_Region : in WisiToken.Buffer_Region;
       Byte_Pos    : in Buffer_Pos;
       First_Line  : in Line_Number_Type)

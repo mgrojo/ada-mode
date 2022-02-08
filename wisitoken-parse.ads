@@ -2,7 +2,7 @@
 --
 --  Subprograms common to more than one parser, higher-level than in wisitoken.ads
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -357,7 +357,7 @@ package WisiToken.Parse is
    --  message.
 
    procedure Put_Errors (Parser : in Base_Parser'Class)
-   with Pre => Parser.Tree.Parents_Set;
+   with Pre => Parser.Tree.Editable;
    --  Output Parser.Tree errors to Ada.Text_IO.Current_Error.
 
    procedure Put_Errors (Parser : in Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID);

@@ -74,9 +74,6 @@ package WisiToken.Parse.Packrat.Procedural is
       User_Data             : in WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser;
 
-   Enable_Ref_Count_Check : Boolean := True;
-   --  Set False to disable while parsing.
-
    overriding procedure Parse
      (Parser   : in out Procedural.Parser;
       Log_File : in     Ada.Text_IO.File_Type;

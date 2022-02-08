@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -59,7 +59,11 @@ package body Test_Skip_To is
          use Ada.Exceptions;
       begin
          Ada.Text_IO.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
-         Test_Skip_To_Aux.Parser.Put_Errors;
+         if Test_Skip_To_Aux.Parser.Tree.Editable then
+            Test_Skip_To_Aux.Parser.Put_Errors;
+         else
+            Test_Skip_To_Aux.Parser.Put_Errors (Test_Skip_To_Aux.Parser.Tree.First_Parse_Stream);
+         end if;
       end;
       AUnit.Assertions.Assert (False, "exception");
    end Nominal;

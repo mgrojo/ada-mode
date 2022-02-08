@@ -1,6 +1,7 @@
 
 OK test_generate_errors.adb ../test/bnf/unused_tokens : Run_Test
 OK bnf_wy_errors_test.adb indent_param_count.wy : Run_Test
+OK bnf_wy_errors_test.adb same_delimiters.wy : Run_Test
 OK bnf_wy_test.adb ada_lite : Run_Test
 OK test_lr1_parallel.adb ada_lite : Compare_LR1_Sets
 OK test_lr1_parallel.adb ada_lite : Compare_Parse
@@ -54,14 +55,14 @@ OK test_accept_state.adb : Nominal
 OK test_follow.adb : Subprograms.One
 OK test_incremental.adb : No_Change
 OK test_incremental.adb : Edit_Comment
-OK test_incremental.adb : Edit_Comment_2
-OK test_incremental.adb : Edit_Comment_3
-OK test_incremental.adb : Edit_Comment_4
-OK test_incremental.adb : Edit_Comment_5
-OK test_incremental.adb : Edit_Comment_6
-OK test_incremental.adb : Edit_Comment_7
-OK test_incremental.adb : Edit_Comment_8
-OK test_incremental.adb : Edit_Comment_9
+OK test_incremental.adb : Edit_Comment_02
+OK test_incremental.adb : Edit_Comment_03
+OK test_incremental.adb : Edit_Comment_04
+OK test_incremental.adb : Edit_Comment_05
+OK test_incremental.adb : Edit_Comment_06
+OK test_incremental.adb : Edit_Comment_07
+OK test_incremental.adb : Edit_Comment_08
+OK test_incremental.adb : Edit_Comment_09
 OK test_incremental.adb : Edit_Comment_10
 OK test_incremental.adb : Edit_Comment_11
 OK test_incremental.adb : Edit_Comment_12
@@ -110,6 +111,11 @@ OK test_incremental.adb : Non_Ascii
 OK test_incremental.adb : Restore_Deleted_01
 OK test_incremental.adb : Nonterm_Resume_01
 OK test_incremental.adb : Undo_Conflict_01
+OK test_incremental.adb : Edit_String_01
+OK test_incremental.adb : Edit_String_02
+OK test_incremental.adb : Edit_String_03
+OK test_incremental.adb : Edit_String_04
+OK test_incremental.adb : Edit_String_05
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
 OK test_mckenzie_recover.adb LALR : No_Error
 OK test_mckenzie_recover.adb LALR : Empty_Comments
@@ -249,7 +255,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   249
-Successful Tests:  249
+Total Tests Run:   255
+Successful Tests:  255
 Failed Assertions: 0
 Unexpected Errors: 0

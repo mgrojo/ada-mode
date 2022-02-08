@@ -2,7 +2,7 @@
 --
 --  Build AUnit test suite containing tests that run wisitoken-bnf-generate
 --
---  Copyright (C) 2013-2015, 2017 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -48,6 +48,7 @@ begin
            (+"../test/bnf/unused_tokens", +(LR1 | LALR => True, others => False))));
 
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Errors_Test.Test_Case (+"indent_param_count.wy")));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Errors_Test.Test_Case (+"same_delimiters.wy")));
 
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite", null)));
    Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"ada_lite")));

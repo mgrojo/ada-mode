@@ -31,6 +31,19 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+handle insert/delete string quote
+    test_incremental.adb
+    Edit_String_06
+        incr 2 errors; should be 0.
+        insert end quote scan from open quote
+            when considering lex_start_byte:
+            if input_region has unmatched string quote,
+            look back for string_literal with lexer error (which we just deleted!)
+                delete lexer errors on shifted terminals after scan_loop
+            scan from there
+
+    add more
+
 delete wisitoken-parse-lr-mckenzie_recover.ads Reduce_Stack Default_Contains_Virtual arg
     as in -lr-parse.ads
 

@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -279,7 +279,7 @@ package body WisiToken.Lexer.Regexp is
    end Begin_Pos;
 
    overriding
-   function Is_Comment
+   function Is_Block_Delimited
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Boolean
@@ -289,10 +289,23 @@ package body WisiToken.Lexer.Regexp is
       --  regexp lexer only used in unit tests
       raise SAL.Not_Implemented;
       return False;
-   end Is_Comment;
+   end Is_Block_Delimited;
 
    overriding
-   function Comment_Start_Length
+   function Same_Block_Delimiters
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean
+   is
+      pragma Unreferenced (Lexer, ID);
+   begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return True;
+   end Same_Block_Delimiters;
+
+   overriding
+   function Start_Delimiter_Length
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Integer
@@ -302,10 +315,10 @@ package body WisiToken.Lexer.Regexp is
       --  regexp lexer only used in unit tests
       raise SAL.Not_Implemented;
       return Integer'Last;
-   end Comment_Start_Length;
+   end Start_Delimiter_Length;
 
    overriding
-   function Comment_End_Length
+   function End_Delimiter_Length
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Integer
@@ -315,10 +328,10 @@ package body WisiToken.Lexer.Regexp is
       --  regexp lexer only used in unit tests
       raise SAL.Not_Implemented;
       return Integer'Last;
-   end Comment_End_Length;
+   end End_Delimiter_Length;
 
    overriding
-   function Find_Comment_End
+   function Find_End_Delimiter
      (Lexer         : in Instance;
       ID            : in Token_ID;
       Comment_Start : in Buffer_Pos)
@@ -329,19 +342,35 @@ package body WisiToken.Lexer.Regexp is
       --  regexp lexer only used in unit tests
       raise SAL.Not_Implemented;
       return Buffer_Pos'First;
-   end Find_Comment_End;
+   end Find_End_Delimiter;
 
    overriding
-   function Contains_Comment_End
+   function Contains_End_Delimiter
      (Lexer  : in Instance;
       ID     : in Token_ID;
       Region : in Buffer_Region)
-     return Boolean
+     return Base_Buffer_Pos
    is begin
       --  regexp lexer only used in unit tests
       raise SAL.Not_Implemented;
-      return False;
-   end Contains_Comment_End;
+      return Buffer_Pos'First;
+   end Contains_End_Delimiter;
+
+   overriding
+   function Find_Scan_End
+     (Lexer       : in Instance;
+      ID          : in Token_ID;
+      Byte_Region : in Buffer_Region;
+      Inserted    : in Boolean;
+      Start       : in Boolean)
+     return Buffer_Pos
+   is
+      pragma Unreferenced (Lexer, ID, Inserted, Start);
+   begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return Buffer_Pos'First;
+   end Find_Scan_End;
 
    overriding
    function Line_Begin_Char_Pos
@@ -360,7 +389,6 @@ package body WisiToken.Lexer.Regexp is
    overriding
    function Line_At_Byte_Pos
      (Lexer       : in Instance;
-      ID          : in Token_ID;
       Byte_Region : in WisiToken.Buffer_Region;
       Byte_Pos    : in Buffer_Pos;
       First_Line  : in Line_Number_Type)
