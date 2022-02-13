@@ -60,6 +60,16 @@ package body WisiToken.Lexer is
       Token.Line_Region := @ + Shift_Lines;
    end Shift;
 
+   function To_String (Item : in Recover_Characters) return String
+   is begin
+      for I in Item'Range loop
+         if Item (I) = ASCII.NUL then
+            return Item (Item'First .. I - 1);
+         end if;
+      end loop;
+      return Item;
+   end To_String;
+
    function Column (Token : in Lexer.Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count
    is begin
       if Token.Line_Region.First = 1 then

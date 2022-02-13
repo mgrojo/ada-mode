@@ -295,6 +295,9 @@ package body Test_Incremental is
       Check ("syntax_error", True, False);
 
    when E : WisiToken.Parse_Error =>
+      if WisiToken.Debug_Mode then
+         Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+      end if;
       AUnit.Assertions.Assert (False, "parse_error: " & Ada.Exceptions.Exception_Message (E));
 
    when E : others =>
@@ -374,7 +377,8 @@ package body Test_Incremental is
    is
       pragma Unreferenced (T);
    begin
-      --  Insert end comment exposes code; extend existing comment confuses New_Code_End compute.
+      --  Insert end comment exposes code; extend existing comment confuses
+      --  New_Code_End compute.
       --
       --  Preceding comment to ensure we don't mistake that for a new
       --  comment end.
@@ -1271,7 +1275,7 @@ package body Test_Incremental is
          Incr_Errors => 0);
    end Recover_2;
 
-   procedure Lexer_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Lexer_Errors_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -1291,7 +1295,7 @@ package body Test_Incremental is
          Insert       => "33",
          Initial_Errors => 2,  --  Lexer + parser.
          Incr_Errors => 2); --  Errors are still in tree
-   end Lexer_Errors_1;
+   end Lexer_Errors_01;
 
    procedure Preserve_Parse_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1653,10 +1657,12 @@ package body Test_Incremental is
    end Edit_String_06;
 
    --  FIXME: insert string quote, with/without new-line
+   --  Edit affect string_literal with error, so terminal = lexer_error node.
    --  delete string quote and insert one in same KMN
-   --  FIXME: same for delimited_text token
-   --  FIXME: insert even and odd numbers of string quotes
-   --  FIXME: add boundary cases where new_code_end_set should be false
+   --   same for delimited_text token
+   --   insert even and odd numbers of string quotes
+   --   insert unbalanced delimiter inside a non-matching delimited token
+   --   add boundary cases where new_code_end_set should be false
 
    ----------
    --  Public subprograms
@@ -1713,7 +1719,7 @@ package body Test_Incremental is
       Register_Routine (T, Missing_Name_1'Access, "Missing_Name_1");
       Register_Routine (T, Recover_1'Access, "Recover_1");
       Register_Routine (T, Recover_2'Access, "Recover_2");
-      Register_Routine (T, Lexer_Errors_1'Access, "Lexer_Errors_1");
+      Register_Routine (T, Lexer_Errors_01'Access, "Lexer_Errors_01");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
       Register_Routine (T, Modify_Deleted_Node'Access, "Modify_Deleted_Node");

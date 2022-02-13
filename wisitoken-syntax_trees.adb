@@ -19,6 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Containers;
 with Ada.Exceptions;
+with Ada.Tags;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 package body WisiToken.Syntax_Trees is
@@ -2410,13 +2411,16 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Error_Node;
 
-   function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Stream_Error_Ref) return Node_Access
+   function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Stream_Error_Ref) return Stream_Node_Ref
    is begin
-      return Tree.Error_Node
-        (Error_Ref'
-           (Node    => Error.Ref.Ref.Node,
-            Deleted => Error.Deleted,
-            Error   => Error.Error));
+      return
+        (Stream        => Error.Ref.Ref.Stream,
+         Element       => Error.Ref.Ref.Element,
+         Node          => Tree.Error_Node
+           (Error_Ref'
+              (Node    => Error.Ref.Ref.Node,
+               Deleted => Error.Deleted,
+               Error   => Error.Error)));
    end Error_Node;
 
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree)
@@ -3813,6 +3817,32 @@ package body WisiToken.Syntax_Trees is
    begin
       return Node.Error_List /= null;
    end Has_Error;
+
+   function Has_Error_Class
+     (Tree        : in Syntax_Trees.Tree;
+      Node        : in Valid_Node_Access;
+      Error_Class : in Error_Data'Class)
+     return Error_Ref
+   is
+      use all type Error_Data_Lists.Cursor;
+      use all type Ada.Tags.Tag;
+
+      Result : Error_Ref :=
+        (Node    => Node,
+         Deleted => Valid_Node_Access_Lists.No_Element,
+         Error   => Node.Error_List.First);
+   begin
+      if Node.Error_List /= null then
+         loop
+            if Node.Error_List.Constant_Reference (Result.Error).Element.all'Tag = Error_Class'Tag then
+               return Result;
+            end if;
+            Error_Data_Lists.Next (Result.Error);
+            exit when Result.Error = Error_Data_Lists.No_Element;
+         end loop;
+      end if;
+      return Invalid_Error_Ref;
+   end Has_Error_Class;
 
    function Has_Errors (Tree : in Syntax_Trees.Tree) return Boolean
    is begin
@@ -7946,6 +7976,29 @@ package body WisiToken.Syntax_Trees is
    begin
       return (Stream, Element, Stream_Element_Lists.Element (Element.Cur).Node);
    end To_Rooted_Ref;
+
+   function To_Stream_Node_Ref
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID;
+      Node   : in Valid_Node_Access)
+     return Stream_Node_Ref
+   is
+      use Stream_Element_Lists;
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+
+      Root : constant Valid_Node_Access := Tree.Subtree_Root (Node);
+      Cur  : Cursor                     := Parse_Stream.Elements.First;
+   begin
+      loop
+         exit when Element (Cur).Node = Root;
+         Next (Cur);
+      end loop;
+
+      return
+        (Stream  => Stream,
+         Element => (Cur => Cur),
+         Node    => Node);
+   end To_Stream_Node_Ref;
 
    function To_Stream_Node_Parents (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return Stream_Node_Parents
    is begin

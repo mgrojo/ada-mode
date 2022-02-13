@@ -101,7 +101,7 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
-%non_grammar <comment-new-line> COMMENT %[ ";;" ]%
+%non_grammar <comment-new-line> COMMENT ";;"
 
 %elisp_face font-lock-constant-face
 %elisp_face font-lock-function-name-face

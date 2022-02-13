@@ -299,6 +299,14 @@ package WisiToken.Syntax_Trees is
      return Boolean;
    --  True if Ref refers to a node (possibly an empty nonterm).
 
+   function To_Stream_Node_Ref
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Node : in Valid_Node_Access)
+     return Stream_Node_Ref
+   with Pre => Tree.Parents_Set,
+     Post => Tree.Valid_Stream_Node (To_Stream_Node_Ref'Result);
+
    subtype Terminal_Ref is Stream_Node_Ref
    with Dynamic_Predicate =>
      Terminal_Ref.Node = Invalid_Node_Access or else
@@ -2401,7 +2409,7 @@ package WisiToken.Syntax_Trees is
    function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Error_Ref) return Node_Access
    with Pre => Valid_Error_Ref (Error);
 
-   function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Stream_Error_Ref) return Node_Access
+   function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Stream_Error_Ref) return Stream_Node_Ref
    with Pre => Valid_Error_Ref (Error);
 
    function First_Error (Tree : in Syntax_Trees.Tree) return Error_Ref
@@ -2436,8 +2444,16 @@ package WisiToken.Syntax_Trees is
    function Has_Error (Error : in Error_Ref) return Boolean;
    function Has_Error (Error : in Stream_Error_Ref) return Boolean;
    function Has_Error (Position : in Stream_Error_Cursor) return Boolean;
-   function Has_Error (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Has_Error (Node : in Valid_Node_Access) return Boolean;
+   function Has_Error (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
+
+   function Has_Error_Class
+     (Tree        : in Syntax_Trees.Tree;
+      Node        : in Valid_Node_Access;
+      Error_Class : in Error_Data'Class)
+     return Error_Ref;
+   --  Return a reference to the first error in Node that is in Error_Class;
+   --  Invalid_Error_Ref if none.
 
    package Error_Iterator_Interfaces is new Ada.Iterator_Interfaces
      (Cursor      => Error_Ref,

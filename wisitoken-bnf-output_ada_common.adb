@@ -1657,24 +1657,20 @@ package body WisiToken.BNF.Output_Ada_Common is
          loop
             if Kind (Generate_Data, I) = "comment-new-line" then
                Indent_Line ("when " & Name (Generate_Data, I) & "_ID =>");
-               Indent_Line ("(if Inserted then");
-               Indent_Line ("   Lexer.Find_New_Line (Source, (if Start then Region.First else Region.Last))");
+               Indent_Line
+                 ("(if Inserted then (if Start then Lexer.Find_New_Line (Source, Region.First) else Region.Last)");
                Indent_Line (" elsif Start then Region.Last");
                Indent_Line (" else Lexer.Find_New_Line (Source, Region.Last)),");
 
             elsif Kind (Generate_Data, I) = "string-double-one-line" or
               Kind (Generate_Data, I) = "string-single-one-line"
             then
-               Indent_Line
-                 ("when " & Name (Generate_Data, I) &
-                    "_ID => Lexer.Find_New_Line (Source, Region.Last),");
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => Lexer.Find_New_Line (Source, Region.First),");
 
             elsif Kind (Generate_Data, I) = "string-double" or
               Kind (Generate_Data, I) = "string-single"
             then
-               Indent_Line
-                 ("when " & Name (Generate_Data, I) &
-                    "_ID => Lexer.Buffer_Region_Byte (Source).Last,");
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => Lexer.Buffer_Region_Byte (Source).First,");
 
             elsif Kind (Generate_Data, I) = "comment-one-line" or
               Kind (Generate_Data, I) = "delimited-text"

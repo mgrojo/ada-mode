@@ -92,15 +92,20 @@ package WisiToken.Lexer is
    function Image is new Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Image);
    function Full_Image is new Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Trimmed_Image, Full_Image);
 
+   subtype Recover_Characters is String (1 .. 4);
+
    type Error is record
       Char_Pos : Buffer_Pos := Invalid_Buffer_Pos;
       --  Character at that position is not recognized as part of a token.
 
-      Recover_Char : String (1 .. 4) := (others => ASCII.NUL);
+      Recover_Char : Recover_Characters := (others => ASCII.NUL);
       --  If the error was corrected, the character (in UTF-8 encoding) that
       --  was inserted; unused trailing bytes set to ASCII.NUL. Otherwise,
       --  all ASCII.Nul.
    end record;
+
+   function To_String (Item : in Recover_Characters) return String;
+   --  Item must be Recover_Char from an error; delete the trailing NULs.
 
    package Error_Lists is new Ada.Containers.Doubly_Linked_Lists (Error);
 
@@ -292,14 +297,16 @@ package WisiToken.Lexer is
      return Buffer_Pos
    is abstract
    with Pre'Class => Is_Block_Delimited (Lexer, ID);
-   --  If Inserted, a delimiter for ID was inserted at Byte_Region.First,
-   --  and Byte_Region.Last is the end of the inserted text. If Start, a
-   --  start delimiter for ID was inserted. If not Start, an end
-   --  delimeter was inserted.
+   --  If Inserted, a delimiter for ID was inserted. If Start, a start
+   --  delimiter for ID was inserted at Byte_Region.First, and
+   --  Byte_Region.Last is ignored. If not Start, an end delimeter was
+   --  inserted at Byte_Region.First, and Byte_Region.Last is the
+   --  previous end of the token, shifted to match the current edited
+   --  text.
    --
    --  If not Inserted, a delimeter was deleted, and Byte_Region is the
-   --  token text before the deletion (shifted to match the current lexer
-   --  buffer). If Start, a start delimiter for ID was deleted at
+   --  token region before the deletion, shifted to match the current
+   --  edited text. If Start, a start delimiter for ID was deleted at
    --  Byte_Region.First. If not Start, an end delimeter was deleted at
    --  Byte_Region.Last.
    --

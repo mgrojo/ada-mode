@@ -57,7 +57,7 @@ package body Wisitoken_Grammar_Main is
    function Start_Delimiter_Length (ID : in WisiToken.Token_ID) return Integer
    is begin
       case To_Token_Enum (ID) is
-      when COMMENT_ID => return 6;
+      when COMMENT_ID => return 2;
       when RAW_CODE_ID => return 2;
       when REGEXP_ID => return 2;
       when ACTION_ID => return 2;
@@ -111,8 +111,7 @@ package body Wisitoken_Grammar_Main is
       return
         (case To_Token_Enum (ID) is
          when COMMENT_ID =>
-         (if Inserted then
-            Lexer.Find_New_Line (Source, (if Start then Region.First else Region.Last))
+         (if Inserted then Lexer.Find_New_Line (Source, Region.First)
           elsif Start then Region.Last
           else Lexer.Find_New_Line (Source, Region.Last)),
          when RAW_CODE_ID =>
@@ -133,8 +132,8 @@ package body Wisitoken_Grammar_Main is
             elsif Start
             then Region.Last
             else Lexer.Find_String (Source, Region.Last, "%(")),
-         when STRING_LITERAL_1_ID => Lexer.Find_New_Line (Source, Region.Last),
-         when STRING_LITERAL_2_ID => Lexer.Find_New_Line (Source, Region.Last),
+         when STRING_LITERAL_1_ID => Lexer.Find_New_Line (Source, Region.First),
+         when STRING_LITERAL_2_ID => Lexer.Find_New_Line (Source, Region.First),
          when others => raise SAL.Programmer_Error);
    end Find_Scan_End;
 

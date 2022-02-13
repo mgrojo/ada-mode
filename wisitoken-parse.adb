@@ -586,6 +586,7 @@ package body WisiToken.Parse is
       --  insert or delete a comment end, so it is not possible to compute
       --  the correct scan end when handling the first edit. So the scan is
       --  delayed.
+      --  FIXME: generalize to any delimited token
 
       Scan_End : Base_Buffer_Pos := Invalid_Buffer_Pos;
       --  If Scan_End /= Invalid_Buffer_Pos, an edit exposed text as
@@ -603,6 +604,23 @@ package body WisiToken.Parse is
       --  strings), then deleting either delimiter requires all text thru
       --  new-line or EOI be scanned.
 
+      type Lexer_Error_Data is record
+         Node     : Node_Access;
+         Scan_End : Base_Buffer_Pos;
+      end record;
+
+      package Lexer_Error_Data_Lists is new Ada.Containers.Doubly_Linked_Lists (Lexer_Error_Data);
+
+      Lexer_Errors : Lexer_Error_Data_Lists.List;
+      --  If a lexer_error is on a delimited token, this list records the
+      --  scan region for that token; Node.Byte_Region.First .. Scan_End.
+      --  Then if an edit occurs in the scan region, the scan for the edit
+      --  covers that region. That lets an edit fix the lexer error.
+      --  test_incremental.adb Edit_String_06.
+      --
+      --  Other lexer errors are fixed by editing the region containing the
+      --  error.
+
       Stream : Syntax_Trees.Stream_ID; -- Tree.Shared_Stream that we are editing.
 
       Terminal : Terminal_Ref;
@@ -614,6 +632,7 @@ package body WisiToken.Parse is
       --  Next non_grammar in Terminal to be shifted or deleted.
 
       procedure Breakdown (Terminal : in out Terminal_Ref; To_Single : in Boolean := False)
+      with Pre => Terminal /= Invalid_Stream_Node_Ref
       is begin
          if Tree.Label (Terminal.Element) = Nonterm then
             if Trace_Incremental_Parse > Detail then
@@ -923,14 +942,18 @@ package body WisiToken.Parse is
          loop
             exit when not Has_Error (Err_Ref);
             declare
-               Err        : constant Error_Data'Class  := Error (Err_Ref);
-               Error_Node : constant Valid_Node_Access := Tree.Error_Node (Err_Ref);
+               Err       : constant Error_Data'Class := Error (Err_Ref);
+               Error_Ref : constant Stream_Node_Ref  := Tree.Error_Node (Err_Ref);
             begin
                if Err in Lexer_Error then
+                  if Tree.Lexer.Is_Block_Delimited (Tree.ID (Error_Ref.Node)) then
+                     --  We don't know Shift_Bytes yet, so we can't find Scan_End.
+                     Lexer_Errors.Append ((Error_Ref.Node, Scan_End => Invalid_Buffer_Pos));
+                  end if;
                   Tree.Next_Error (Err_Ref);
                else
                   if Trace_Incremental_Parse > Detail then
-                     Parser.Trace.Put_Line ("delete " & Err.Image (Tree, Error_Node));
+                     Parser.Trace.Put_Line ("delete " & Err.Image (Tree, Error_Ref.Node));
                   end if;
                   Tree.Delete_Error (Err_Ref);
                end if;
@@ -1022,6 +1045,49 @@ package body WisiToken.Parse is
                raise User_Error with "KMN insert region " & Image (Inserted_Region) & " outside edited source text " &
                  Image (Parser.Tree.Lexer.Buffer_Region_Byte);
             end if;
+
+            declare
+               use Lexer_Error_Data_Lists;
+               Cur : Cursor := Lexer_Errors.First;
+            begin
+               loop
+                  exit when Cur = No_Element;
+
+                  if Tree.Byte_Region (Lexer_Errors (Cur).Node).First in
+                    Stable_Region.First .. Next_KMN_Stable_First
+                  then
+                     --  Now we know Shift for this lexer error.
+                     --
+                     --  FIXME: if lexer_error.node is in edit region, this shift is wrong,
+                     --  and the token will be deleted anyway. Just delete this error? need
+                     --  test case.
+                     declare
+                        Node : constant Valid_Node_Access := Lexer_Errors (Cur).Node;
+                     begin
+                        --  Node has not yet been shifted.
+                        Lexer_Errors (Cur).Scan_End := Tree.Lexer.Find_Scan_End
+                          (Tree.ID (Node), (Tree.Byte_Region (Node).First + Shift_Bytes, Invalid_Buffer_Pos),
+                           Inserted  => True,
+                           Start     => True);
+                     end;
+
+                     if Lexer_Errors (Cur).Scan_End <= Stable_Region.Last + Shift_Bytes then
+                        --  This lexer error is not fixed by these edits.
+                        declare
+                           To_Delete : Cursor := Cur;
+                        begin
+                           Next (Cur);
+                           Lexer_Errors.Delete (To_Delete);
+                        end;
+                     else
+                        --  We must scan from this lexer error to find out if it is fixed.
+                        Next (Cur);
+                     end if;
+                  else
+                     exit;
+                  end if;
+               end loop;
+            end;
 
             if Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.EOI_ID then
                --  We only shift EOI after all KMN are processed; it may need to be
@@ -1559,6 +1625,43 @@ package body WisiToken.Parse is
                   --  not adjacent to KMN end. test_incremental.adb Edit_Comment_2
                   null;
 
+               elsif Lexer_Errors.Length > 0 and then
+                 Lexer_Errors (Lexer_Errors.First).Scan_End /= Invalid_Buffer_Pos
+               then
+                  --  Edit may fix a lexer error.
+                  --  test_incremental.adb Edit_String_06
+                  declare
+                     Data : Lexer_Error_Data renames Lexer_Errors (Lexer_Errors.First);
+                     Ref  : Stream_Node_Ref := Tree.To_Stream_Node_Ref (Stream, Data.Node);
+                  begin
+                     --  Data.Node is now shifted. FIXME: handle Terminal = Data.Node
+                     Do_Scan        := True;
+                     Lex_Start_Byte := Tree.Byte_Region (Data.Node).First;
+                     Lex_Start_Char := Tree.Char_Region (Data.Node).First;
+                     Lex_Start_Line := Tree.Line_Region (Ref).First;
+                     Scan_End       := Data.Scan_End;
+
+                     if Ref.Node /= Terminal.Node then
+                        --  Delete Ref thru prev (terminal); normally scanned tokens get
+                        --  deleted in Delete_Scanned_Loop below, but that only deletes tokens
+                        --  Terminal and after.
+                        Breakdown (Terminal);
+                        Ref := Tree.To_Stream_Node_Ref (Stream, Ref.Node);
+                        loop
+                           Breakdown (Ref, To_Single => True);
+                           declare
+                              To_Delete : Stream_Node_Ref := Ref;
+                           begin
+                              Tree.Next_Terminal (Ref);
+                              Tree.Stream_Delete (Stream, To_Delete.Element);
+                           end;
+                           exit when Ref.Node = Terminal.Node;
+                        end loop;
+                     end if;
+                  end;
+
+                  Lexer_Errors.Delete_First;
+
                elsif Terminal_Byte_Region.Last + Shift_Bytes +
                  (if Inserted_Region.First <= Terminal_Byte_Region.Last + Shift_Bytes
                   then Base_Buffer_Pos (KMN.Inserted_Bytes)
@@ -1568,23 +1671,6 @@ package body WisiToken.Parse is
                   --  ada_mode-interactive_02.adb
 
                then
-                  --  FIXME: do this for test_incremental.adb Edit_String_06
-                  --  declare
-                  --     Delimiter_ID    : Token_ID;
-                  --     Delimiter_Start : Boolean;
-                  --     Delimiter_Pos   : Base_Buffer_Pos;
-                  --  begin
-                  --     Tree.Lexer.Unbalanced_Delimiter
-                  --       (Inserted_Region, Delimiter_ID, Delimiter_Start, Delimiter_Pos);
-                  --     if Delimiter_ID /= Invalid_Token_ID then
-                  --        if Start then
-                  --        --  Inserted_Region contains a start delimiter for ID without a
-                  --        --  matching end delimiter.
-                  --        else
-                  --        --  Inserted_Region contains an end delimiter for ID without a
-                  --        --  matching start delimiter.
-                  --        end if;
-
                   if Terminal_Non_Grammar_Next /= Lexer.Token_Arrays.No_Index then
                      --  Edit start is in Terminal_Non_Grammar_Next.
                      --  test_incremental.adb Edit_Comment*
@@ -1857,8 +1943,7 @@ package body WisiToken.Parse is
                                              --  Token as code. test_incremental.adb Edit_Comment_4, Edit_Comment_7
                                              Scan_End := Tree.Lexer.Find_Scan_End
                                                (Token.ID,
-                                                (Delimiter_Pos,
-                                                 Token.Byte_Region.Last + KMN.Inserted_Bytes + Shift_Bytes),
+                                                (Delimiter_Pos, Invalid_Buffer_Pos),
                                                 Inserted => True,
                                                 Start    => False);
 
@@ -2045,32 +2130,6 @@ package body WisiToken.Parse is
                            Shift_Lines := @ + New_Line_Count (Token.Line_Region);
                         end if;
 
-                        --  Check for inserting an unbalanced delimiter.
-                        --  FIXME: this needs to be done when computing Lex_Start_Byte;
-                        --  test_incremental.adb edit_string_06
-                        if Tree.Lexer.Same_Block_Delimiters (Token.ID) and then
-                          not Contains (Outer => Inserted_Region, Inner => Token.Byte_Region)
-                        then
-                           declare
-                              Delimiter_Pos : constant Base_Buffer_Pos := Tree.Lexer.Contains_End_Delimiter
-                                (Token.ID, Inserted_Region);
-                           begin
-                              if Delimiter_Pos /= Invalid_Buffer_Pos then
-                                 --  If the new delimiter is inserted in an existing token with ID,
-                                 --  we've already handled this and set Scan_End. Otherwise this is
-                                 --  a new token. We can't tell if that happened, because Scan_End
-                                 --  may have been set for a deleted delimiter. So we just set
-                                 --  Scan_End. test_incremental.adb Edit_String_06, _07.
-                                 Scan_End := Tree.Lexer.Find_Scan_End
-                                   (Token.ID, (Delimiter_Pos, Inserted_Region.Last), Inserted => True, Start => False);
-
-                                 if Token.Byte_Region.Last > Scan_End then
-                                    --  Already scanned.
-                                    Scan_End := Invalid_Buffer_Pos;
-                                 end if;
-                              end if;
-                           end;
-                        end if;
                      end;
                   end loop Scan_Changed_Loop;
                end if;
@@ -2389,8 +2448,8 @@ package body WisiToken.Parse is
    begin
       for Cur in Tree.Stream_Error_Iterate (Stream) loop
          declare
-            Error_Ref : constant Stream_Error_Ref := Error (Cur);
-            Error_Node : constant Valid_Node_Access := Tree.Error_Node (Error_Ref);
+            Error_Ref  : constant Stream_Error_Ref  := Error (Cur);
+            Error_Node : constant Valid_Node_Access := Tree.Error_Node (Error_Ref).Node;
          begin
             for Err of Tree.Error_List (Error_Node) loop
                Ada.Text_IO.Put_Line
