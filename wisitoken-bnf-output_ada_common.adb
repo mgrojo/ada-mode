@@ -1658,29 +1658,26 @@ package body WisiToken.BNF.Output_Ada_Common is
             if Kind (Generate_Data, I) = "comment-new-line" then
                Indent_Line ("when " & Name (Generate_Data, I) & "_ID =>");
                Indent_Line
-                 ("(if Inserted then (if Start then Lexer.Find_New_Line (Source, Region.First) else Region.Last)");
+                 ("(if Inserted then (if Start then Lexer.Find_New_Line (Source, Region.Last) else Region.Last)");
                Indent_Line (" elsif Start then Region.Last");
                Indent_Line (" else Lexer.Find_New_Line (Source, Region.Last)),");
 
             elsif Kind (Generate_Data, I) = "string-double-one-line" or
               Kind (Generate_Data, I) = "string-single-one-line"
             then
-               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => Lexer.Find_New_Line (Source, Region.First),");
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => Lexer.Find_New_Line (Source, Region.Last),");
 
             elsif Kind (Generate_Data, I) = "string-double" or
               Kind (Generate_Data, I) = "string-single"
             then
-               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => Lexer.Buffer_Region_Byte (Source).First,");
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => Lexer.Buffer_Region_Byte (Source).Last,");
 
             elsif Kind (Generate_Data, I) = "comment-one-line" or
               Kind (Generate_Data, I) = "delimited-text"
             then
                Indent_Line ("when " & Name (Generate_Data, I) & "_ID =>");
-               Indent_Line ("  (if Inserted");
-               Indent_Line ("   then Lexer.Find_String (Source, Region.First, " & Value (Generate_Data, I) & ")");
-               Indent_Line ("   elsif Start");
-               Indent_Line ("   then Region.Last");
-               Indent_Line ("   else Lexer.Find_String (Source, Region.Last, " & Value (Generate_Data, I) & ")),");
+               Indent_Line ("  (if Start then Region.Last");
+               Indent_Line ("   else Lexer.Find_String (Source, Region.First, " & Value (Generate_Data, I) & ")),");
             end if;
          end loop;
       end if;

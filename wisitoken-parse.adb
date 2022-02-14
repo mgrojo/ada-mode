@@ -1064,7 +1064,7 @@ package body WisiToken.Parse is
                      begin
                         --  Node has not yet been shifted.
                         Lexer_Errors (Cur).Scan_End := Tree.Lexer.Find_Scan_End
-                          (Tree.ID (Node), (Tree.Byte_Region (Node).First + Shift_Bytes, Invalid_Buffer_Pos),
+                          (Tree.ID (Node), Tree.Byte_Region (Node) + Shift_Bytes,
                            Inserted  => True,
                            Start     => True);
                      end;
@@ -1439,6 +1439,28 @@ package body WisiToken.Parse is
                                 Tree.Image (To_Delete.Element, Terminal_Node_Numbers => True, Non_Grammar => False));
                         end if;
 
+                        if Invalid_Error_Ref /= Tree.Has_Error_Class (To_Delete.Node, Lexer_Error'(others => <>)) then
+                           --  Delete from Lexer_Errors. test_incremental.adb Edit_String_09
+                           declare
+                              use Lexer_Error_Data_Lists;
+                              Cur : Cursor := Lexer_Errors.First;
+                           begin
+                              loop
+                                 exit when Cur = No_Element;
+
+                                 if Lexer_Errors (Cur).Node = To_Delete.Node then
+                                    declare
+                                       To_Delete_1 : Cursor := Cur;
+                                    begin
+                                       Next (Cur);
+                                       Lexer_Errors.Delete (To_Delete_1);
+                                    end;
+                                 end if;
+                                 Next (Cur);
+                              end loop;
+                           end;
+                        end if;
+
                         if Tree.Lexer.Is_Block_Delimited (Tree.ID (To_Delete.Node)) then
                            Check_Scan_End (To_Delete.Node);
                         end if;
@@ -1646,7 +1668,10 @@ package body WisiToken.Parse is
                      Data : Lexer_Error_Data renames Lexer_Errors (Lexer_Errors.First);
                      Ref  : Stream_Node_Ref := Tree.To_Stream_Node_Ref (Stream, Data.Node);
                   begin
-                     --  Data.Node is now shifted. FIXME: handle Terminal = Data.Node
+                     --  Data.Node is now shifted.
+
+                     pragma Assert (Terminal.Node /= Data.Node); -- Could not construct a case where this is false.
+
                      Do_Scan        := True;
                      Lex_Start_Byte := Tree.Byte_Region (Data.Node).First;
                      Lex_Start_Char := Tree.Char_Region (Data.Node).First;

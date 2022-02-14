@@ -1681,7 +1681,8 @@ package body Test_Incremental is
    is
       pragma Unreferenced (T);
    begin
-      --  Another Delayed_Scan case.
+      --  Another Delayed_Scan case; inserted new_line complicates
+      --  Find_Scan_End.
 
       Parse_Text
         ("procedure A is B : S := ""123456"";" & ASCII.LF &
@@ -1697,8 +1698,23 @@ package body Test_Incremental is
          Incr_Errors    => 0);
    end Edit_String_08;
 
-   --  FIXME: insert string quote, with/without new-line
-   --  Edit affect string_literal with error, so terminal = lexer_error node.
+   procedure Edit_String_09 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  The edit affects a string_literal with a lexer error.
+
+      Parse_Text
+        ("procedure A is B : S := ""123;" & ASCII.LF &
+           --      |10       |20            |30
+           "begin null; end A;",
+         Edit_At        => 25,
+         Delete         => """",
+         Insert         => "",
+         Initial_Errors => 2,
+         Incr_Errors    => 0);
+   end Edit_String_09;
+
    --  delete string quote and insert one in same KMN
    --   same for delimited_text token
    --   insert even and odd numbers of string quotes
@@ -1778,6 +1794,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_String_06'Access, "Edit_String_06");
       Register_Routine (T, Edit_String_07'Access, "Edit_String_07");
       Register_Routine (T, Edit_String_08'Access, "Edit_String_08");
+      Register_Routine (T, Edit_String_09'Access, "Edit_String_09");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
