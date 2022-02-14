@@ -555,8 +555,6 @@ package body WisiToken.Parse is
       --  unshifted token positions to Scanned_Byte_Pos, we may need to
       --  add KMN.Deleted_Bytes.
 
-      Last_Scanned_Token : Lexer.Token;
-
       Shift_Bytes      : Base_Buffer_Pos  := 0;
       Shift_Chars      : Base_Buffer_Pos  := 0;
 
@@ -582,11 +580,11 @@ package body WisiToken.Parse is
       Delayed_Lex_Start_Byte : Buffer_Pos          := Buffer_Pos'Last;
       Delayed_Lex_Start_Char : Buffer_Pos          := Buffer_Pos'Last;
       Delayed_Lex_Start_Line : Line_Number_Type    := Line_Number_Type'Last;
-      --  When multiple edits occur in a non_grammar token, the last one may
-      --  insert or delete a comment end, so it is not possible to compute
-      --  the correct scan end when handling the first edit. So the scan is
-      --  delayed.
-      --  FIXME: generalize to any delimited token
+      --  When multiple edits occur in a token, the last one may insert or
+      --  delete an end delimiter, so it is not possible to compute the
+      --  correct scan end when handling the first edit. So the scan is
+      --  delayed. If Delayed_Floating_Index /= 'Last, the token is a
+      --  non_grammar.
 
       Scan_End : Base_Buffer_Pos := Invalid_Buffer_Pos;
       --  If Scan_End /= Invalid_Buffer_Pos, an edit exposed text as
@@ -1033,7 +1031,7 @@ package body WisiToken.Parse is
                if Floating_Non_Grammar.Length > 0 then
                   Parser.Trace.Put_Line
                     ("floating_non_grammar: " & Lexer.Full_Image (Floating_Non_Grammar, Tree.Lexer.Descriptor.all));
-                  if Delayed_Scan then
+                  if Delayed_Floating_Index /= Positive_Index_Type'Last then
                      Parser.Trace.Put_Line ("delayed_floating_index:" & Delayed_Floating_Index'Image);
                   end if;
                end if;
@@ -1541,12 +1539,13 @@ package body WisiToken.Parse is
                Lex_Start_Char : Buffer_Pos       := Buffer_Pos'Last;
                Lex_Start_Line : Line_Number_Type := Line_Number_Type'Last;
 
-               Last_Grammar : Stream_Node_Ref := Invalid_Stream_Node_Ref;
+               Last_Grammar       : Stream_Node_Ref := Invalid_Stream_Node_Ref;
+               Last_Scanned_Token : Lexer.Token;
 
                procedure Check_Scan_End
                  (ID     : in Token_ID;
                   Region : in Buffer_Region)
-               --  Check if Inserted_Region inserts an unbalanced delimiter for ID in
+               --  Check if Inserted_Region inserts an end delimiter for ID in
                --  Region.
                is
                   Shift : constant Base_Buffer_Pos := KMN.Inserted_Bytes - KMN.Deleted_Bytes +
@@ -1593,12 +1592,21 @@ package body WisiToken.Parse is
 
             begin
                if Delayed_Scan then
-                  --  A previous edit start affected Floating_Non_Grammar (Delayed_Floating_Index)
+                  --  A previous edit start affected Terminal or Floating_Non_Grammar
+                  --  (Delayed_Floating_Index). test_incremental.adb Edit_String_07
                   declare
-                     Token : Lexer.Token renames Floating_Non_Grammar (Delayed_Floating_Index);
+                     Token_ID : constant WisiToken.Token_ID :=
+                       (if Delayed_Floating_Index = Positive_Index_Type'Last
+                        then Tree.ID (Terminal.Node)
+                        else Floating_Non_Grammar (Delayed_Floating_Index).ID);
+
+                     Token_Byte_Region : constant Buffer_Region :=
+                       (if Delayed_Floating_Index = Positive_Index_Type'Last
+                        then Tree.Byte_Region (Terminal)
+                        else Floating_Non_Grammar (Delayed_Floating_Index).Byte_Region);
                   begin
                      if (Next_KMN.Deleted_Bytes > 0 or Next_KMN.Inserted_Bytes > 0) and then
-                       Next_KMN_Stable_First < Token.Byte_Region.Last
+                       Next_KMN_Stable_First < Token_Byte_Region.Last
                      then
                         --  Next change also edits the token; more delay.
                         null;
@@ -1608,8 +1616,12 @@ package body WisiToken.Parse is
                         Lex_Start_Char := Delayed_Lex_Start_Char;
                         Lex_Start_Line := Delayed_Lex_Start_Line;
 
-                        if Tree.Lexer.Is_Block_Delimited (Token.ID) then
-                           Check_Scan_End (Floating_Non_Grammar (Delayed_Floating_Index));
+                        if Tree.Lexer.Is_Block_Delimited (Token_ID) then
+                           if Delayed_Floating_Index = Positive_Index_Type'Last then
+                              Check_Scan_End (Terminal.Node);
+                           else
+                              Check_Scan_End (Floating_Non_Grammar (Delayed_Floating_Index));
+                           end if;
                         end if;
 
                         Delayed_Scan := False;
@@ -2023,6 +2035,27 @@ package body WisiToken.Parse is
                         end if;
                      end;
                   end if;
+
+                  if Do_Scan and not Delayed_Scan then
+                     if (Next_KMN.Deleted_Bytes > 0 or Next_KMN.Inserted_Bytes > 0) and then
+                       Next_KMN_Stable_Last < Terminal_Byte_Region.Last
+                     then
+                        --  Next change is an actual change (not just last placeholder KMN),
+                        --  and it also overlaps this token. It may insert or delete a delimiter
+                        --  end, so we don't know when to end a scan; handle it then.
+                        --  test_incremental.adb Edit_String_07.
+                        Do_Scan                := False;
+                        Delayed_Scan           := True;
+                        Delayed_Floating_Index := Positive_Index_Type'Last;
+                        Delayed_Lex_Start_Byte := Lex_Start_Byte;
+                        Delayed_Lex_Start_Char := Lex_Start_Char;
+                        Delayed_Lex_Start_Line := Lex_Start_Line;
+
+                        if Trace_Incremental_Parse > Detail then
+                           Parser.Trace.Put_Line ("scan delayed");
+                        end if;
+                     end if;
+                  end if;
                end if;
 
                if Do_Scan then
@@ -2340,7 +2373,10 @@ package body WisiToken.Parse is
                   end Restore;
 
                begin
-                  if Delayed_Scan and then Floating_Non_Grammar.First_Index = Delayed_Floating_Index then
+                  if Delayed_Scan and then
+                    (Delayed_Floating_Index = Positive_Index_Type'Last or
+                       Floating_Non_Grammar.First_Index = Delayed_Floating_Index)
+                  then
                      null;
                   else
                      for I in Floating_Non_Grammar.First_Index ..

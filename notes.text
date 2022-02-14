@@ -33,11 +33,8 @@ update-wisitoken_grammar
  current work
 handle insert/delete string quote
     test_incremental.adb
-    Edit_String_06 passes
-        broke other tests
-        Lexer_Errors_01
 
-    add more test cases; see FIXME list in test_incremental.adb
+    add more test cases; see FIXMEs in wisitoken-parse.adb, test_incremental.adb
 
 incremental parse slows down in large file after many edits
     heap fragmentation?

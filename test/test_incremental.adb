@@ -1537,6 +1537,7 @@ package body Test_Incremental is
          Incr_Errors    => 0);
    end Undo_Conflict_01;
 
+   --  See also Lexer_Error_01 for an additional string case.
    procedure Edit_String_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -1656,6 +1657,46 @@ package body Test_Incremental is
          Incr_Errors    => 0);
    end Edit_String_06;
 
+   procedure Edit_String_07 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Another insert end delimiter case; requires Delayed_Scan.
+
+      Parse_Text
+        ("procedure A is B : S := ""123456"";" & ASCII.LF &
+           --      |10       |20         |30
+           "begin null; end A;",
+         Edit_At        => 27,
+         Delete         => "",
+         Insert         => "a",
+         Edit_2_At      => 29,
+         Delete_2       => "",
+         Insert_2       => "b"" & """,
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Edit_String_07;
+
+   procedure Edit_String_08 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Another Delayed_Scan case.
+
+      Parse_Text
+        ("procedure A is B : S := ""123456"";" & ASCII.LF &
+           --      |10       |20         |30
+           "begin null; end A;",
+         Edit_At        => 27,
+         Delete         => "",
+         Insert         => "a",
+         Edit_2_At      => 29,
+         Delete_2       => "",
+         Insert_2       => "b"" &" & ASCII.LF & """",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Edit_String_08;
+
    --  FIXME: insert string quote, with/without new-line
    --  Edit affect string_literal with error, so terminal = lexer_error node.
    --  delete string quote and insert one in same KMN
@@ -1735,6 +1776,8 @@ package body Test_Incremental is
       Register_Routine (T, Edit_String_04'Access, "Edit_String_04");
       Register_Routine (T, Edit_String_05'Access, "Edit_String_05");
       Register_Routine (T, Edit_String_06'Access, "Edit_String_06");
+      Register_Routine (T, Edit_String_07'Access, "Edit_String_07");
+      Register_Routine (T, Edit_String_08'Access, "Edit_String_08");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
