@@ -1076,11 +1076,11 @@ package body Test_Edit_Source is
       --  Test lisp \" in Wisi.Get_String
 
       procedure Test_One
-        (Label : in String;
-         Source    : in String;
+        (Label           : in String;
+         Source          : in String;
          Expected_String : in String;
-         Expected_Last : in Integer;
-         Initial_Last : in Integer := 0)
+         Expected_Last   : in Integer;
+         Initial_Last    : in Integer := 0)
       is
          use AUnit.Checks;
          Last     : Integer         := Initial_Last;
@@ -1097,6 +1097,20 @@ package body Test_Edit_Source is
 
       --  This one is _not_ a string quote escape
       Test_One ("4", """\\""", "\\", 4);
+
+      --  ASCII control chars. wisi prints Changes to a string using
+      --  `prin1-to-string', which leaves literal ASCII control chars as is,
+      --  except for DEL:
+      --
+      --  (prin1-to-string "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\xFF" t)
+      --  Literal non-ascii chars not kept here to avoid defeating diff.
+
+      Test_One ("5", """" & ASCII.HT & """", "" & ASCII.HT, 3);
+      Test_One ("6", """" & ASCII.LF & """", "" & ASCII.LF, 3);
+      Test_One ("7", """\\377""", "\\377", 7);
+
+      --  From the comment line above
+      Test_One ("8", """--  Test lisp \\\"" in Wisi.Get_String""", "--  Test lisp \\\"" in Wisi.Get_String", 39);
    end String_Escape;
 
    ----------

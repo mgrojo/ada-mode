@@ -19,6 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Strings.Bounded;
 with Ada.Strings.Fixed;
+with Ada.Strings.Maps;
 with Ada.Text_IO;
 with SAL;
 with System.Address_To_Access_Conversions;
@@ -636,44 +637,61 @@ package body Wisi is
      return String
    is
       use Ada.Strings.Fixed;
+      --  First we find the starting '"'; typically at Last + 1, but we
+      --  allow for other cases.
       First : constant Integer := Index
         (Source  => Source,
          Pattern => """",
          From    => Last + 1);
+
+      --  We must handle an arbitrary sequence of '\', and find the
+      --  terminating '"'; so we search for either.
+      Set  : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set ("\""");
+
       Temp : Integer := First + 1;
    begin
+      Find_End :
       loop
          Last := Index
-           (Source  => Source,
-            Pattern => """",
-            From    => Temp);
-         exit when Last = 0;
-         if Source'First <= Last - 2 then
-            --  test_edit_string.adb String_Escape
-            if Source (Last - 2 .. Last - 1) = "\\" then
-               exit;
-            elsif Source (Last - 1) = '\' then
-               --  Elisp escaped quote; continue.
-               null;
-            else
-               --  Not an escape; return string
-               exit;
-            end if;
+           (Source => Source,
+            Set    => Set,
+            From   => Temp);
 
-         elsif Source'First <= Last - 1 then
-            if Source (Last - 1) = '\' then
-               --  Elisp escaped quote; continue.
-               null;
-            else
-               --  Not an escape; return string
-               exit;
-            end if;
-         else
-            exit;
-         end if;
+         exit Find_End when Last = 0;
 
+         case Source (Last) is
+         when '\' =>
+            declare
+               subtype Mod_2_Result is Integer range 0 .. 1;
+               Escape : Integer := 1;
+            begin
+               loop
+                  exit Find_End when Source'Last < Last + Escape;
+
+                  exit when Source (Last + Escape) /= '\';
+                  Escape := @ + 1;
+               end loop;
+               Last := @ + Escape - 1;
+
+               case Mod_2_Result'(Escape mod 2) is
+               when 0 =>
+                  --  Even number of '\'; next char is not escaped.
+                  null;
+
+               when 1 =>
+                  --  Odd number of '\'; next char is escaped.
+                  Last := @ + 1;
+
+               end case;
+            end;
+
+         when '"' =>
+            exit Find_End;
+         when others =>
+            raise SAL.Programmer_Error;
+         end case;
          Temp := Last + 1;
-      end loop;
+      end loop Find_End;
 
       if First = 0 or Last = 0 then
          raise Protocol_Error with "at" & Last'Image & ": no '""' found for string";
@@ -2205,7 +2223,7 @@ package body Wisi is
             declare
                Stream_Err_Ref : constant Syntax_Trees.Stream_Error_Ref := Syntax_Trees.Error (Err_Cur);
             begin
-               Handle_Error (Syntax_Trees.Error (Stream_Err_Ref), Tree.Error_Node (Stream_Err_Ref));
+               Handle_Error (Syntax_Trees.Error (Stream_Err_Ref), Tree.Error_Node (Stream_Err_Ref).Node);
             end;
          end loop;
       end if;
