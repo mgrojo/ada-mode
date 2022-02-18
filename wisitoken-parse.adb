@@ -550,10 +550,12 @@ package body WisiToken.Parse is
 
       Scanned_Byte_Pos : Base_Buffer_Pos  := 0;
       Scanned_Char_Pos : Base_Buffer_Pos  := 0;
-      --  Last pos scanned by lexer. Note that the lexer has effectively
-      --  scanned the deleted bytes in the current KMN, so when comparing
-      --  unshifted token positions to Scanned_Byte_Pos, we may need to
-      --  add KMN.Deleted_Bytes.
+      --  End of last token saved after being scanned by the lexer; this
+      --  does not include trailing whitespace, so it is not actually the
+      --  last position scanned by the lexer. Note that the lexer has
+      --  effectively scanned the deleted bytes in the current KMN, so when
+      --  comparing unshifted token positions to Scanned_Byte_Pos, we may
+      --  need to add KMN.Deleted_Bytes.
 
       Shift_Bytes      : Base_Buffer_Pos  := 0;
       Shift_Chars      : Base_Buffer_Pos  := 0;
@@ -1056,9 +1058,10 @@ package body WisiToken.Parse is
                   then
                      --  Now we know Shift for this lexer error.
                      --
-                     --  FIXME: if lexer_error.node is in edit region, this shift is wrong,
-                     --  and the token will be deleted anyway. Just delete this error? need
-                     --  test case.
+                     --  If lexer_error.node is in the edit region after some
+                     --  insert/delete, this shift is wrong. But the token will be deleted
+                     --  anyway, so we just ignore that case. test_incremental.adb
+                     --  Edit_String_09.
                      declare
                         Node : constant Valid_Node_Access := Lexer_Errors (Cur).Node;
                      begin
@@ -1739,7 +1742,6 @@ package body WisiToken.Parse is
                               Do_Scan := True;
 
                               if Tree.Lexer.Is_Block_Delimited (Token.ID) then
-                                 --  FIXME: this is superceded by Unbalanced_Delimiter check above.
                                  Check_Scan_End (Token);
                               end if;
                            end if;
@@ -2130,7 +2132,7 @@ package body WisiToken.Parse is
                         if Token.ID >= Parser.Tree.Lexer.Descriptor.First_Terminal and
                           Scan_End /= Invalid_Buffer_Pos
                         then
-                           if Token.Byte_Region.Last > Scan_End then
+                           if Token.Byte_Region.Last > Scan_End then -- FIXME: should be .first?
                               --  test_incremental.adb Edit_Comment_4, _5, _7, Delete_Comment_Start,
                               --  edit_String_*
                               Scan_End := Invalid_Buffer_Pos;
@@ -2192,7 +2194,10 @@ package body WisiToken.Parse is
                   end loop Scan_Changed_Loop;
                end if;
 
-               --  Do this here so Shift_Bytes is correct in Delete_Scanned_Loop
+               --  Do this here so Shift_Bytes is correct in Delete_Scanned_Loop.
+               --
+               --  However, if Terminal is before the edit region, the previous
+               --  shift applies. test_incremental.adb Edit_Whitespace
                Shift_Bytes := @ - KMN.Deleted_Bytes + KMN.Inserted_Bytes;
                Shift_Chars := @ - KMN.Deleted_Chars + KMN.Inserted_Chars;
 
@@ -2230,9 +2235,9 @@ package body WisiToken.Parse is
                      --  Terminal is in next KMN; we don't know Shift_Bytes to compare to
                      --  Scanned_Byte_Pos. test_incremental.adb Edit_Comment_13
 
-                     pragma Assert (Scanned_Byte_Pos >= Inserted_Region.Last);
-                     exit Delete_Scanned_Loop when Tree.Byte_Region (Terminal.Node).First + Shift_Bytes >
-                       Scanned_Byte_Pos;
+                     exit Delete_Scanned_Loop when Tree.Byte_Region (Terminal.Node).First + Shift_Bytes -
+                       (if Tree.Byte_Region (Terminal.Node).First <= Stable_Region.Last
+                        then -KMN.Deleted_Bytes + KMN.Inserted_Bytes else 0) > Scanned_Byte_Pos;
 
                      if Tree.ID (Terminal) = Tree.Lexer.Descriptor.SOI_ID then
                         Tree.Next_Terminal (Terminal);

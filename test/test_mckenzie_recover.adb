@@ -184,7 +184,7 @@ package body Test_McKenzie_Recover is
                      end if;
                      Parser.Tree.Next_Error (Error_Ref);
                   end loop;
-                  Error_Node   := Parser.Tree.Error_Node (Error_Ref);
+                  Error_Node   := Parser.Tree.Error_Node (Error_Ref).Node;
                   Error_Cursor := Error_Ref.Error;
                end;
             end if;

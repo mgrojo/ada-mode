@@ -472,16 +472,22 @@ private
    --  True if one of Reset_* has been called; lexer has source to process.
 
    function Buffer (Source : in Lexer.Source) return GNATCOLL.Mmap.Str_Access;
-   --  The bounds on the result are not present; 'First, 'Last are not
-   --  reliable. If Source_Label is String_label, actual bounds are
-   --  Source.Buffer'First, 'Last. Otherwise, actual bounds are 1 ..
-   --  Source.Buffer_Last. Indexing is reliable.
+   --  If Source_Label is String_label, actual bounds are
+   --  Source.Buffer'First, 'Last. Otherwise, The bounds on the result
+   --  are not present; 'First, 'Last are not reliable. actual bounds are
+   --  1 .. Source.Buffer_Last. Indexing is reliable.
 
    function To_Buffer_Index (Source : in WisiToken.Lexer.Source; Byte_Pos : in Base_Buffer_Pos) return Integer
-   is (Integer (Byte_Pos - Source.Buffer_Nominal_First_Byte + Buffer_Pos'First));
+   is (Integer (Byte_Pos - Source.Buffer_Nominal_First_Byte) +
+                  (case Source.Label is
+                   when String_Label => Source.Buffer'First,
+                   when File_Label => Integer (Buffer_Pos'First)));
 
    function From_Buffer_Index (Source : in WisiToken.Lexer.Source; Index : in Integer) return Base_Buffer_Pos
-   is (Base_Buffer_Pos (Index) + Source.Buffer_Nominal_First_Byte - Buffer_Pos'First);
+   is (Base_Buffer_Pos (Index) + Source.Buffer_Nominal_First_Byte -
+         (case Source.Label is
+          when String_Label => Base_Buffer_Pos (Source.Buffer'First),
+          when File_Label => Buffer_Pos'First));
 
    function File_Name (Source : in Lexer.Source) return String;
 

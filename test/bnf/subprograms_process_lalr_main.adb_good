@@ -87,13 +87,11 @@ package body Subprograms_Process_LALR_Main is
       return
         (case To_Token_Enum (ID) is
          when COMMENT_1_ID =>
-         (if Inserted then
-            Lexer.Find_New_Line (Source, (if Start then Region.First else Region.Last))
+         (if Inserted then (if Start then Lexer.Find_New_Line (Source, Region.Last) else Region.Last)
           elsif Start then Region.Last
           else Lexer.Find_New_Line (Source, Region.Last)),
          when COMMENT_2_ID =>
-         (if Inserted then
-            Lexer.Find_New_Line (Source, (if Start then Region.First else Region.Last))
+         (if Inserted then (if Start then Lexer.Find_New_Line (Source, Region.Last) else Region.Last)
           elsif Start then Region.Last
           else Lexer.Find_New_Line (Source, Region.Last)),
          when others => raise SAL.Programmer_Error);

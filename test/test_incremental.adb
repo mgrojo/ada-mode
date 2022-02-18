@@ -695,6 +695,20 @@ package body Test_Incremental is
 
    end Edit_Whitespace_2;
 
+   procedure Edit_Whitespace_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-nested_packages.adb; insert whitespace after a
+      --  token that is shorter than the inserted text.
+      Parse_Text
+        (Initial   => "procedure Test is begin null; end Test;",
+         --            |1       |10       |20       |30
+         Edit_At   => 30,
+         Delete    => "",
+         Insert    => "   ");
+   end Edit_Whitespace_3;
+
    procedure Edit_Leading_Non_Grammar (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -1715,12 +1729,6 @@ package body Test_Incremental is
          Incr_Errors    => 0);
    end Edit_String_09;
 
-   --  delete string quote and insert one in same KMN
-   --   same for delimited_text token
-   --   insert even and odd numbers of string quotes
-   --   insert unbalanced delimiter inside a non-matching delimited token
-   --   add boundary cases where new_code_end_set should be false
-
    ----------
    --  Public subprograms
 
@@ -1745,6 +1753,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment_14'Access, "Edit_Comment_14");
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
+      Register_Routine (T, Edit_Whitespace_3'Access, "Edit_Whitespace_3");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");
       Register_Routine (T, Edit_Code_01'Access, "Edit_Code_01");
       Register_Routine (T, Edit_Code_02'Access, "Edit_Code_02");

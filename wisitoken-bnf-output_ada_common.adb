@@ -1775,13 +1775,15 @@ package body WisiToken.BNF.Output_Ada_Common is
                Include_SOI  => False)
             loop
                if Kind (Generate_Data, I) = "comment-new-line" or
+                 Kind (Generate_Data, I) = "comment-one-line" or
                  Kind (Generate_Data, I) = "string-double-one-line" or
                  Kind (Generate_Data, I) = "string-single-one-line" or
                  Kind (Generate_Data, I) = "new-line"
                then
                   null;
-               elsif               Kind (Generate_Data, I) = "comment-one-line" or
-                 Kind (Generate_Data, I) = "delimited-text"
+               elsif Kind (Generate_Data, I) = "delimited-text" or
+                 Kind (Generate_Data, I) = "string-double" or
+                 Kind (Generate_Data, I) = "string-single"
                then
                   Need_Source_Line := True;
                end if;
@@ -1808,22 +1810,22 @@ package body WisiToken.BNF.Output_Ada_Common is
             Include_SOI  => False)
          loop
             --  The preconditions on Lexer.Line_Begin_Char_Pos ensure that Token
-            --  does contain the new-line for Line.
+            --  contains the new-line for Line. "comment-one-line",
+            --  "string-double-one-line", "string-single-one-line" cannot contain
+            --  new-line.
             if Kind (Generate_Data, I) = "comment-new-line" or
-              Kind (Generate_Data, I) = "comment-one-line" or
-              Kind (Generate_Data, I) = "string-double-one-line" or
-              Kind (Generate_Data, I) = "string-single-one-line" or
               Kind (Generate_Data, I) = "new-line"
             then
                Indent_Line ("when " & Name (Generate_Data, I) & "_ID => return Token.Char_Region.Last + 1;");
 
             elsif Kind (Generate_Data, I) = "delimited-text" or
-              Kind (Generate_Data, I) = "string-double-one-line" or
-              Kind (Generate_Data, I) = "string-single-one-line"
+              Kind (Generate_Data, I) = "string-double" or
+              Kind (Generate_Data, I) = "string-single"
             then
                Indent_Line
                  ("when " & Name (Generate_Data, I) & "_ID => return " &
                     "WisiToken.Lexer.Line_Begin_Char_Pos (Source, Token, Line);");
+
             end if;
          end loop;
 

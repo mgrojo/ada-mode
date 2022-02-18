@@ -101,7 +101,7 @@ OK test_incremental.adb : Names
 OK test_incremental.adb : Missing_Name_1
 OK test_incremental.adb : Recover_1
 OK test_incremental.adb : Recover_2
-OK test_incremental.adb : Lexer_Errors_1
+OK test_incremental.adb : Lexer_Errors_01
 OK test_incremental.adb : Preserve_Parse_Errors_1
 OK test_incremental.adb : Preserve_Parse_Errors_2
 OK test_incremental.adb : Modify_Deleted_Node
@@ -116,6 +116,10 @@ OK test_incremental.adb : Edit_String_02
 OK test_incremental.adb : Edit_String_03
 OK test_incremental.adb : Edit_String_04
 OK test_incremental.adb : Edit_String_05
+OK test_incremental.adb : Edit_String_06
+OK test_incremental.adb : Edit_String_07
+OK test_incremental.adb : Edit_String_08
+OK test_incremental.adb : Edit_String_09
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
 OK test_mckenzie_recover.adb LALR : No_Error
 OK test_mckenzie_recover.adb LALR : Empty_Comments
@@ -255,7 +259,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   255
-Successful Tests:  255
+Total Tests Run:   259
+Successful Tests:  259
 Failed Assertions: 0
 Unexpected Errors: 0

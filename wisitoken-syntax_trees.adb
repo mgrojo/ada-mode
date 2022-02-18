@@ -3826,20 +3826,22 @@ package body WisiToken.Syntax_Trees is
    is
       use all type Error_Data_Lists.Cursor;
       use all type Ada.Tags.Tag;
-
-      Result : Error_Ref :=
-        (Node    => Node,
-         Deleted => Valid_Node_Access_Lists.No_Element,
-         Error   => Node.Error_List.First);
    begin
       if Node.Error_List /= null then
-         loop
-            if Node.Error_List.Constant_Reference (Result.Error).Element.all'Tag = Error_Class'Tag then
-               return Result;
-            end if;
-            Error_Data_Lists.Next (Result.Error);
-            exit when Result.Error = Error_Data_Lists.No_Element;
-         end loop;
+         declare
+            Result : Error_Ref :=
+              (Node    => Node,
+               Deleted => Valid_Node_Access_Lists.No_Element,
+               Error   => Node.Error_List.First);
+         begin
+            loop
+               if Node.Error_List.Constant_Reference (Result.Error).Element.all'Tag = Error_Class'Tag then
+                  return Result;
+               end if;
+               Error_Data_Lists.Next (Result.Error);
+               exit when Result.Error = Error_Data_Lists.No_Element;
+            end loop;
+         end;
       end if;
       return Invalid_Error_Ref;
    end Has_Error_Class;
