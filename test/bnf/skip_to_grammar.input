@@ -15,6 +15,6 @@ with non-ascii θ (theta)
 to test line_begin_char
 }%
 
-{ placeholder theta θ terminated by new-line
+{ placeholder theta θ }
 
 ;; end of file comment

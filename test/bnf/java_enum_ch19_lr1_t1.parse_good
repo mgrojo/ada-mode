@@ -5,7 +5,7 @@
 (EnumConstant_0, (18 . 18) <= (2:(IDENTIFIER, (18 . 18))))
  ... goto state 6
  0: 6: (-1, 3:(COMMA, (19 . 19))) : reduce 1 tokens to EnumConstantList
-(EnumConstantList_0, (18 . 18) <= ((EnumConstant, (18 . 18))))
+(EnumConstantList_0, (18 . 18) <= ((EnumConstant_0, (18 . 18))))
  ... goto state 5
  0: 5: (-1, 3:(COMMA, (19 . 19))) : shift and goto state 8
  0: 8: (-1, 4:(IDENTIFIER, (21 . 21))) : shift and goto state 4
@@ -13,7 +13,7 @@
 (EnumConstant_0, (21 . 21) <= (4:(IDENTIFIER, (21 . 21))))
  ... goto state 10
  0: 10: (-1, 5:(COMMA, (22 . 22))) : reduce 3 tokens to EnumConstantList
-(EnumConstantList_1, (18 . 21) <= ((EnumConstantList, (18 . 18)), 3:(COMMA, (19 . 19)), (EnumConstant, (21 . 21))))
+(EnumConstantList_1, (18 . 21) <= ((EnumConstantList_0, (18 . 18)), 3:(COMMA, (19 . 19)), (EnumConstant_0, (21 . 21))))
  ... goto state 5
  0: 5: (-1, 5:(COMMA, (22 . 22))) : shift and goto state 8
  0: 8: (-1, 6:(Wisi_EOI, (24 . 23))) : ERROR
@@ -54,10 +54,10 @@ recover: succeed, parser count 1
 
  0: 8: (0, -14:(RIGHT_CURLY_BRACKET)) : shift and goto state 9
  0: 9: (0, 2;8:(Wisi_EOI, (24 . 23) ERROR)) : reduce 4 tokens to EnumBody
-(EnumBody_0, (16 . 22) <= (-3;1:(LEFT_CURLY_BRACKET, (16 . 16)), (EnumConstantList, (18 . 21)), 1;5:(COMMA, (22 . 22)), -14:(RIGHT_CURLY_BRACKET)))
+(EnumBody_0, (16 . 22) <= (-3;1:(LEFT_CURLY_BRACKET, (16 . 16)), (EnumConstantList_1, (18 . 21)), 1;5:(COMMA, (22 . 22)), -14:(RIGHT_CURLY_BRACKET)))
  ... goto state 2
  0: 2: (0, 2;8:(Wisi_EOI, (24 . 23) ERROR)) : accept it
-(wisitoken_accept_0, (16 . 22) <= ((EnumBody, (16 . 22))))
+(wisitoken_accept_0, (16 . 22) <= ((EnumBody_0, (16 . 22))))
  0: succeed
 java_enum_ch19.input:3:1: syntax_error: expecting RIGHT_CURLY_BRACKET, IDENTIFIER, found ''
    recovered: ((INSERT, RIGHT_CURLY_BRACKET, 2))

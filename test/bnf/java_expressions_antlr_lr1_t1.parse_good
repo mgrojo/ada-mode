@@ -51,33 +51,33 @@ recover: succeed, parser count 2
  ... goto state 33
  0: 28: (0, -9:(LPAREN)) : shift and goto state 56
  1: 33: (1, -7:(RPAREN)) : reduce 1 tokens to expression
-(expression_0, (56 . 56) <= ((primary, (56 . 56))))
+(expression_0, (56 . 56) <= ((primary_3, (56 . 56))))
  ... goto state 32
  1: 32: (1, -7:(RPAREN)) : shift and goto state 57
  1: 57: (1, 2;5:(Wisi_EOI, (59 . 58) ERROR)) : reduce 3 tokens to primary
-(primary_0, (55 . 56) <= (0;1:(LPAREN, (55 . 55)), (expression, (56 . 56)), -7:(RPAREN)))
+(primary_0, (55 . 56) <= (0;1:(LPAREN, (55 . 55)), (expression_0, (56 . 56)), -7:(RPAREN)))
  ... goto state 17
  0: 56: (0, -12:(RPAREN)) : shift and goto state 110
  1: 17: (1, 2;5:(Wisi_EOI, (59 . 58) ERROR)) : reduce 1 tokens to expression
-(expression_0, (55 . 56) <= ((primary, (55 . 56))))
+(expression_0, (55 . 56) <= ((primary_0, (55 . 56))))
  ... goto state 16
  1: 16: (1, 2;5:(Wisi_EOI, (59 . 58) ERROR)) : accept it
-(wisitoken_accept_0, (55 . 56) <= ((expression, (55 . 56))))
+(wisitoken_accept_0, (55 . 56) <= ((expression_0, (55 . 56))))
  0: 110: (0, -16:(RPAREN)) : reduce 3 tokens to methodCall
 (methodCall_1, (56 . 56) <= (1;2:(IDENTIFIER, (56 . 56)), -9:(LPAREN), -12:(RPAREN)))
  ... goto state 31
  0: 31: (0, -16:(RPAREN)) : reduce 1 tokens to expression
-(expression_3, (56 . 56) <= ((methodCall, (56 . 56))))
+(expression_3, (56 . 56) <= ((methodCall_1, (56 . 56))))
  ... goto state 32
  0: 32: (0, -16:(RPAREN)) : shift and goto state 57
  0: 57: (0, 2;6:(Wisi_EOI, (59 . 58) ERROR)) : reduce 3 tokens to primary
-(primary_0, (55 . 56) <= (0;1:(LPAREN, (55 . 55)), (expression, (56 . 56)), -16:(RPAREN)))
+(primary_0, (55 . 56) <= (0;1:(LPAREN, (55 . 55)), (expression_3, (56 . 56)), -16:(RPAREN)))
  ... goto state 17
  0: 17: (0, 2;6:(Wisi_EOI, (59 . 58) ERROR)) : reduce 1 tokens to expression
-(expression_0, (55 . 56) <= ((primary, (55 . 56))))
+(expression_0, (55 . 56) <= ((primary_0, (55 . 56))))
  ... goto state 16
  0: 16: (0, 2;6:(Wisi_EOI, (59 . 58) ERROR)) : accept it
-(wisitoken_accept_0, (55 . 56) <= ((expression, (55 . 56))))
+(wisitoken_accept_0, (55 . 56) <= ((expression_0, (55 . 56))))
  0: terminate (1 active): recover cost/min length (0, 6:(Wisi_EOI, (59 . 58) ERROR))
  1: succeed
 java_expressions_antlr.input:3:1: syntax_error: expecting LPAREN, RPAREN, LBRACK, DOT, INC, DEC, ADD, SUB, MUL, DIV, MOD, found ''

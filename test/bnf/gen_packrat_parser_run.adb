@@ -77,7 +77,7 @@ begin
 
    Parser.Tree.Lexer.Reset_With_File (-File_Name);
    Parser.Parse (Log_File);
-   Parser.Tree.Set_Parents;
+   Parser.Tree.Clear_Parse_Streams;
 
    --  No user data, so no point in Execute_Actions
 

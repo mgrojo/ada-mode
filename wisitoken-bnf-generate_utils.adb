@@ -227,7 +227,13 @@ package body WisiToken.BNF.Generate_Utils is
             Result.Descriptor.Case_Insensitive := Input_Data.Language_Params.Case_Insensitive;
             Result.Descriptor.New_Line_ID      := Find_Kind (Container, "new-line");
             Result.Descriptor.String_1_ID      := Find_Kind (Container, "string-single");
+            if Result.Descriptor.String_1_ID = Invalid_Token_ID then
+               Result.Descriptor.String_1_ID := Find_Kind (Container, "string-single-one-line");
+            end if;
             Result.Descriptor.String_2_ID      := Find_Kind (Container, "string-double");
+            if Result.Descriptor.String_2_ID = Invalid_Token_ID then
+               Result.Descriptor.String_2_ID := Find_Kind (Container, "string-double-one-line");
+            end if;
          end;
 
          --  Image set in loop below, which also updates these widths.

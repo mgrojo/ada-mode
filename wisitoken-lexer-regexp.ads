@@ -6,7 +6,7 @@
 --  used in most of the WisiToken unit tests. Since it uses regexp, it
 --  is easy to convert to an Aflex lexer.
 --
---  Copyright (C) 2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -108,36 +108,51 @@ package WisiToken.Lexer.Regexp is
       Begin_Line :    out Line_Number_Type);
 
    overriding
-   function Is_Comment
+   function Is_Block_Delimited
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Boolean;
 
    overriding
-   function Comment_Start_Length
+   function Same_Block_Delimiters
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean;
+
+   overriding
+   function Start_Delimiter_Length
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Integer;
 
    overriding
-   function Comment_End_Length
+   function End_Delimiter_Length
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Integer;
 
    overriding
-   function Find_Comment_End
+   function Find_End_Delimiter
      (Lexer         : in Instance;
       ID            : in Token_ID;
       Comment_Start : in Buffer_Pos)
      return Buffer_Pos;
 
    overriding
-   function Contains_Comment_End
+   function Contains_End_Delimiter
      (Lexer  : in Instance;
       ID     : in Token_ID;
       Region : in Buffer_Region)
-     return Boolean;
+     return Base_Buffer_Pos;
+
+   overriding
+   function Find_Scan_End
+     (Lexer       : in Instance;
+      ID          : in Token_ID;
+      Byte_Region : in Buffer_Region;
+      Inserted    : in Boolean;
+      Start       : in Boolean)
+     return Buffer_Pos;
 
    overriding
    function Line_Begin_Char_Pos
@@ -149,7 +164,6 @@ package WisiToken.Lexer.Regexp is
    overriding
    function Line_At_Byte_Pos
      (Lexer       : in Instance;
-      ID          : in Token_ID;
       Byte_Region : in WisiToken.Buffer_Region;
       Byte_Pos    : in Buffer_Pos;
       First_Line  : in Line_Number_Type)

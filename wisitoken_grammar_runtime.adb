@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -467,14 +467,28 @@ package body WisiToken_Grammar_Runtime is
             when Wisitoken_Grammar_Actions.TOKEN_ID =>
                declare
                   Children_4 : constant Syntax_Trees.Node_Access_Array := Tree.Children (Tree.Child (Nonterm, 4));
+
+                  Kind  : constant String := Get_Text (Data, Tree, Children_2 (3));
+                  Name  : constant String := Get_Text (Data, Tree, Tree.Child (Nonterm, 3));
+                  Value : constant String := Get_Text (Data, Tree, Children_4 (1));
+                  Repair_Image : constant String :=
+                    (if Children_4'Length = 1 then "" else Get_Text (Data, Tree, Children_4 (2)));
                begin
+                  if Kind = "delimited_text" or
+                    Kind = "comment-one-line"
+                  then
+                     if Value = Repair_Image then
+                        raise Grammar_Error with
+                          Tree.Error_Message (Nonterm, "start, end delimiters must be different");
+                     end if;
+                  end if;
+
                   WisiToken.BNF.Add_Token
                     (Data.Tokens.Tokens,
-                     Kind         => Get_Text (Data, Tree, Children_2 (3)),
-                     Name         => Get_Text (Data, Tree, Tree.Child (Nonterm, 3)),
-                     Value        => Get_Text (Data, Tree, Children_4 (1)),
-                     Repair_Image =>
-                       (if Children_4'Length = 1 then "" else Get_Text (Data, Tree, Children_4 (2))));
+                     Kind         => Kind,
+                     Name         => Name,
+                     Value        => Value,
+                     Repair_Image => Repair_Image);
                end;
 
             when KEYWORD_ID =>

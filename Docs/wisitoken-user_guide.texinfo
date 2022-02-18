@@ -289,17 +289,51 @@ WisiToken generator. Other token kinds may be used for documentation;
 they just declare a token name and regular expression.
 
 @table @code
+@item <string-double-one-line>
+@verbatim
+%token <string-double-one-line> STRING_LITERAL %[ ... ]%
+@end verbatim
+A string of characters that have string syntax, with double quote
+delimiters, may not contain a new-line.
+
+The regular expression is assumed to match such a string; this is
+not checked.
+
+The restriction of not containing a new-line allows improving
+incremental parse when inserting/deleting string quotes; the text is
+affected only thru the following new-line. Without this restriction,
+when a string quote is inserted/deleted, the entire following text
+must be scanned by the lexer, and parsed.
+
+@item <string-single-one-line>
+@verbatim
+%token <string-single-one-line> CHARACTER_LITERAL %[ ... ]%
+@end verbatim
+A string of characters that have string syntax, with single quote
+delimiters, may not contain a new-line.
+
+The regular expression is assumed to match such a string; this is
+not checked.
+
 @item <string-double>
 @verbatim
 %token <string-double> STRING_LITERAL %[ ... ]%
 @end verbatim
-A string of characters that have string syntax, with double quote delimiters.
+A string of characters that have string syntax, with double quote
+delimiters, may contain a newline.
+
+The regular expression is assumed to match such a string; this is
+not checked.
 
 @item <string-single>
 @verbatim
 %token <string-single> CHARACTER_LITERAL %[ ... ]%
 @end verbatim
-A string of characters that have string syntax, with single quote delimiters.
+A string of characters that have string syntax, with single quote
+delimiters, may contain a newline.
+
+The regular expression is assumed to match such a string; this is
+not checked.
 
 @item <new-line>
 @verbatim
@@ -328,22 +362,27 @@ token.
 %token <comment-one-line> PLACEHOLDER "{" "}"
 @end verbatim
 Declares a non-grammar comment token that is terminated by the end
-delimiter, or by a line end or end of input (to avoid accidently
-commenting out multiple lines). The two arguments are strings, and
-must match only the comment start and end (the example shows a
+delimiter, may not contain a new-line. The two arguments are strings,
+and must match only the comment start and end (the example shows a
 template placeholder); DOS and Unix line endings, and end of input,
-are added internally. If the token is terminated by a line end, the
-token includes the line end; no separate new-line token is produced
-after the comment token.
+are added internally. The delimiters must be different; this is
+checked at grammar generation time.
+
+Does not handle nested delimiters; the token is terminated by the
+first end delimiter.
 
 @item <delimited-text>
 @verbatim
 %token <delimited-text> RAW_CODE "%{" "}%"
 @end verbatim
-A token that contains arbitrary text, delimited by the two
-strings. The arguments provide the comment start and end - the rest of
-the regular expression is provided by the generator. This is treated
-as a comment; it can be used to declare block comments.
+A token that contains arbitrary text (including new-line), delimited
+by the two strings. The arguments provide the comment start and end -
+the rest of the regular expression is provided by the generator. The
+delimiters must be different; this is checked at grammar generation
+time.
+
+Does not handle nested delimiters; the token is terminated by the
+first end delimiter.
 
 @item <non-reporting>
 @verbatim

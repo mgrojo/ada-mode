@@ -202,6 +202,7 @@ package body Test_Incremental is
       end if;
 
       Full_Parser.Tree.Lexer.Reset_With_String (To_String (Edited_Buffer));
+      Full_Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
 
       begin
          Full_Parser.Parse (Log_File);
@@ -224,6 +225,7 @@ package body Test_Incremental is
          end if;
 
          Incremental_Parser.Tree.Lexer.Reset_With_String (Initial);
+         Incremental_Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
          begin
             Incremental_Parser.Parse (Log_File);
             if WisiToken.Trace_Tests > WisiToken.Detail then
@@ -244,6 +246,7 @@ package body Test_Incremental is
       end if;
 
       Incremental_Parser.Tree.Lexer.Reset_With_String (To_String (Edited_Buffer));
+      Incremental_Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
 
       if Edit_At in 1 .. Length (Edited_Buffer) then
          To_KMN (Edit_At, Delete, Insert);
@@ -292,6 +295,9 @@ package body Test_Incremental is
       Check ("syntax_error", True, False);
 
    when E : WisiToken.Parse_Error =>
+      if WisiToken.Debug_Mode then
+         Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+      end if;
       AUnit.Assertions.Assert (False, "parse_error: " & Ada.Exceptions.Exception_Message (E));
 
    when E : others =>
@@ -331,7 +337,7 @@ package body Test_Incremental is
 
    end Edit_Comment;
 
-   procedure Edit_Comment_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Comment_02 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -349,9 +355,9 @@ package body Test_Incremental is
       --  edited: "A := B + C; --  Another very big comment" & ASCII.LF & "D;",
       --           1        |10       |20       |30       |40
 
-   end Edit_Comment_2;
+   end Edit_Comment_02;
 
-   procedure Edit_Comment_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Comment_03 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -365,22 +371,23 @@ package body Test_Incremental is
          Edit_2_At => 24,
          Delete_2  => "long",
          Insert_2  => "big");
-   end Edit_Comment_3;
+   end Edit_Comment_03;
 
-   procedure Edit_Comment_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Comment_04 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
-      --  Insert end comment exposes code.
+      --  Insert end comment exposes code; extend existing comment confuses
+      --  New_Code_End compute.
       --
       --  Preceding comment to ensure we don't mistake that for a new
       --  comment end.
       Parse_Text
         (Initial =>
            "-- preceding" & ASCII.LF &
-             --  |4    |10    |13
+             --  |6  |10    |13
              "-- A := B;" & ASCII.LF & "C;",
-         --  |15  |20
+         --    |15  |20     |24
          Edit_At => 17,
          Delete  => "",
          Insert  => "comment" & ASCII.LF);
@@ -394,13 +401,13 @@ package body Test_Incremental is
       --  |25
       --  C;
       --  |33
-   end Edit_Comment_4;
+   end Edit_Comment_04;
 
-   procedure Edit_Comment_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Comment_05 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
-      --  Similar to Edit_Comment_4, tests a different case in Edit_Tree.
+      --  Similar to Edit_Comment_04, tests a different case in Edit_Tree.
       Parse_Text
         (Initial =>
            "D;" & ASCII.LF &
@@ -413,9 +420,9 @@ package body Test_Incremental is
          Edit_At => 20,
          Delete  => "",
          Insert  => "comment" & ASCII.LF);
-   end Edit_Comment_5;
+   end Edit_Comment_05;
 
-   procedure Edit_Comment_6 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Comment_06 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -432,13 +439,13 @@ package body Test_Incremental is
          Edit_At => 25,
          Delete  => "A",
          Insert  => "a");
-   end Edit_Comment_6;
+   end Edit_Comment_06;
 
-   procedure Edit_Comment_7 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Comment_07 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
-      --  Similar to Edit_Comment_4, indent comment before editing it.
+      --  Similar to Edit_Comment_04, indent comment before editing it.
       Parse_Text
         (Initial   =>
            "D;" & ASCII.LF &
@@ -464,9 +471,9 @@ package body Test_Incremental is
       --  |31
       --  C;'
       --  |39
-   end Edit_Comment_7;
+   end Edit_Comment_07;
 
-   procedure Edit_Comment_8 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Comment_08 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -485,9 +492,9 @@ package body Test_Incremental is
          Delete_2  => "",
          Insert_2  => "   ");
 
-   end Edit_Comment_8;
+   end Edit_Comment_08;
 
-   procedure Edit_Comment_9 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Edit_Comment_09 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -509,7 +516,7 @@ package body Test_Incremental is
          Insert    => "",
          Delete    => "foo bar" & ASCII.LF);
 
-   end Edit_Comment_9;
+   end Edit_Comment_09;
 
    procedure Edit_Comment_10 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -687,6 +694,20 @@ package body Test_Incremental is
          Insert_2  => "");
 
    end Edit_Whitespace_2;
+
+   procedure Edit_Whitespace_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-nested_packages.adb; insert whitespace after a
+      --  token that is shorter than the inserted text.
+      Parse_Text
+        (Initial   => "procedure Test is begin null; end Test;",
+         --            |1       |10       |20       |30
+         Edit_At   => 30,
+         Delete    => "",
+         Insert    => "   ");
+   end Edit_Whitespace_3;
 
    procedure Edit_Leading_Non_Grammar (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1268,7 +1289,7 @@ package body Test_Incremental is
          Incr_Errors => 0);
    end Recover_2;
 
-   procedure Lexer_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Lexer_Errors_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -1288,7 +1309,7 @@ package body Test_Incremental is
          Insert       => "33",
          Initial_Errors => 2,  --  Lexer + parser.
          Incr_Errors => 2); --  Errors are still in tree
-   end Lexer_Errors_1;
+   end Lexer_Errors_01;
 
    procedure Preserve_Parse_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1406,14 +1427,14 @@ package body Test_Incremental is
            --  |6  |10       |20
            "procedure C is begin null; end A; procedure D is begin null; end D;",
          --  |29        |40       |50       |60       |70       |80       |90
-         Edit_At     => 27,
-         Delete      => "",
-         Insert      => ";",
-         Edit_2_At   => 54,
-         Delete_2    => "",
-         Insert_2    => " end C; begin null;",
+         Edit_At        => 27,
+         Delete         => "",
+         Insert         => ";",
+         Edit_2_At      => 54,
+         Delete_2       => "",
+         Insert_2       => " end C; begin null;",
          Initial_Errors => 2,
-         Incr_Errors => 0);
+         Incr_Errors    => 0);
 
       --  Edited text:
       --  "procedure A is B : Integer;" & ASCII.LF &
@@ -1424,8 +1445,7 @@ package body Test_Incremental is
       --  There are two errors; missing ';' after 'Integer',
       --  missing_name_error on 'procedure C'. The solution to the
       --  match_names_error requires unreducing subprogram_body C, so both
-      --  errors store an error on 'procedure', which are cleared during
-      --  incremental parse after the edits.
+      --  errors store an error on 'procedure', which are cleared by Edit_Tree.
    end Multiple_Errors_On_One_Token_1;
 
    procedure Multiple_Errors_On_One_Token_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1531,6 +1551,184 @@ package body Test_Incremental is
          Incr_Errors    => 0);
    end Undo_Conflict_01;
 
+   --  See also Lexer_Error_01 for an additional string case.
+   procedure Edit_String_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Delete the start string quote of an existing string literal. New
+      --  string literal created by trailing quote is terminated by
+      --  new-line.
+
+      Parse_Text
+        ("procedure A is B : S := ""123"";" & ASCII.LF &
+           --      |10       |20         |30
+           "C : S := ""ABC"";" & ASCII.LF &
+           --  |35   |41    |47
+           "begin null; end A;",
+         Edit_At        => 25,
+         Delete         => """",
+         Insert         => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 2); -- lexer and syntax errors
+   end Edit_String_01;
+
+   procedure Edit_String_02 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Delete the end string quote of an existing string literal; string
+      --  literal now terminated by new-line.
+
+      Parse_Text
+        ("procedure A is B : S := ""123"";" & ASCII.LF &
+           --      |10       |20         |30
+           "C : S := ""ABC"";" & ASCII.LF &
+           --  |35   |41    |47
+           "begin null; end A;",
+         Edit_At        => 29,
+         Delete         => """",
+         Insert         => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 2); -- lexer and syntax errors
+   end Edit_String_02;
+
+   procedure Edit_String_03 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Delete the start string quote of an existing string literal. New
+      --  string literal created by trailing quote is terminated by next
+      --  string literal start delimiter, leaving a dangling string start.
+      --  This requires that deleting a string terminator always lex thru
+      --  the end of line.
+
+      Parse_Text
+        ("procedure A is B : S := ""123""; C : S := ""ABC"";" & ASCII.LF &
+           --      |10       |20         |30       |40
+           "begin null; end A;",
+         Edit_At        => 25,
+         Delete         => """",
+         Insert         => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 2); -- lexer and syntax errors
+   end Edit_String_03;
+
+   procedure Edit_String_04 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Delete the end string quote of an existing string literal; it is
+      --  then terminated by the next string literal start delimiter,
+      --  leaving a dangling string start. This requires that deleting a
+      --  string terminator always lex thru the end of line.
+
+      Parse_Text
+        ("procedure A is B : S := ""123""; C : S := ""ABC"";" & ASCII.LF &
+           --      |10       |20         |30       |40
+           "begin null; end A;",
+         Edit_At        => 29,
+         Delete         => """",
+         Insert         => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 2); -- lexer and syntax errors
+   end Edit_String_04;
+
+   procedure Edit_String_05 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert a string quote immediately before a new-line to start a
+      --  desired string literal.
+
+      Parse_Text
+        ("procedure A is B : S :=" & ASCII.LF &
+           --      |10       |20     |24
+           "C : S := ""ABC"";" & ASCII.LF &
+           "begin null; end A;",
+         Edit_At        => 24,
+         Delete         => "",
+         Insert         => " ""123",
+         Initial_Errors => 1, -- missing expression
+         Incr_Errors    => 2); -- 1 lexer and 2 syntax errors. FIXME: edited full parse gets 2
+   end Edit_String_05;
+
+   procedure Edit_String_06 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert the end string quote to complete a desired string literal.
+
+      Parse_Text
+        ("procedure A is B : S := ""123" & ASCII.LF &
+           --      |10       |20           |29
+           "C : S := ""ABC"";" & ASCII.LF &
+           "begin null; end A;",
+         Edit_At        => 29,
+         Delete         => "",
+         Insert         => """;",
+         Initial_Errors => 2,
+         Incr_Errors    => 0);
+   end Edit_String_06;
+
+   procedure Edit_String_07 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Another insert end delimiter case; requires Delayed_Scan.
+
+      Parse_Text
+        ("procedure A is B : S := ""123456"";" & ASCII.LF &
+           --      |10       |20         |30
+           "begin null; end A;",
+         Edit_At        => 27,
+         Delete         => "",
+         Insert         => "a",
+         Edit_2_At      => 29,
+         Delete_2       => "",
+         Insert_2       => "b"" & """,
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Edit_String_07;
+
+   procedure Edit_String_08 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Another Delayed_Scan case; inserted new_line complicates
+      --  Find_Scan_End.
+
+      Parse_Text
+        ("procedure A is B : S := ""123456"";" & ASCII.LF &
+           --      |10       |20         |30
+           "begin null; end A;",
+         Edit_At        => 27,
+         Delete         => "",
+         Insert         => "a",
+         Edit_2_At      => 29,
+         Delete_2       => "",
+         Insert_2       => "b"" &" & ASCII.LF & """",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Edit_String_08;
+
+   procedure Edit_String_09 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  The edit affects a string_literal with a lexer error.
+
+      Parse_Text
+        ("procedure A is B : S := ""123;" & ASCII.LF &
+           --      |10       |20            |30
+           "begin null; end A;",
+         Edit_At        => 25,
+         Delete         => """",
+         Insert         => "",
+         Initial_Errors => 2,
+         Incr_Errors    => 0);
+   end Edit_String_09;
+
    ----------
    --  Public subprograms
 
@@ -1540,14 +1738,14 @@ package body Test_Incremental is
    begin
       Register_Routine (T, No_Change'Access, "No_Change");
       Register_Routine (T, Edit_Comment'Access, "Edit_Comment");
-      Register_Routine (T, Edit_Comment_2'Access, "Edit_Comment_2");
-      Register_Routine (T, Edit_Comment_3'Access, "Edit_Comment_3");
-      Register_Routine (T, Edit_Comment_4'Access, "Edit_Comment_4");
-      Register_Routine (T, Edit_Comment_5'Access, "Edit_Comment_5");
-      Register_Routine (T, Edit_Comment_6'Access, "Edit_Comment_6");
-      Register_Routine (T, Edit_Comment_7'Access, "Edit_Comment_7");
-      Register_Routine (T, Edit_Comment_8'Access, "Edit_Comment_8");
-      Register_Routine (T, Edit_Comment_9'Access, "Edit_Comment_9");
+      Register_Routine (T, Edit_Comment_02'Access, "Edit_Comment_02");
+      Register_Routine (T, Edit_Comment_03'Access, "Edit_Comment_03");
+      Register_Routine (T, Edit_Comment_04'Access, "Edit_Comment_04");
+      Register_Routine (T, Edit_Comment_05'Access, "Edit_Comment_05");
+      Register_Routine (T, Edit_Comment_06'Access, "Edit_Comment_06");
+      Register_Routine (T, Edit_Comment_07'Access, "Edit_Comment_07");
+      Register_Routine (T, Edit_Comment_08'Access, "Edit_Comment_08");
+      Register_Routine (T, Edit_Comment_09'Access, "Edit_Comment_09");
       Register_Routine (T, Edit_Comment_10'Access, "Edit_Comment_10");
       Register_Routine (T, Edit_Comment_11'Access, "Edit_Comment_11");
       Register_Routine (T, Edit_Comment_12'Access, "Edit_Comment_12");
@@ -1555,6 +1753,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment_14'Access, "Edit_Comment_14");
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
+      Register_Routine (T, Edit_Whitespace_3'Access, "Edit_Whitespace_3");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");
       Register_Routine (T, Edit_Code_01'Access, "Edit_Code_01");
       Register_Routine (T, Edit_Code_02'Access, "Edit_Code_02");
@@ -1586,7 +1785,7 @@ package body Test_Incremental is
       Register_Routine (T, Missing_Name_1'Access, "Missing_Name_1");
       Register_Routine (T, Recover_1'Access, "Recover_1");
       Register_Routine (T, Recover_2'Access, "Recover_2");
-      Register_Routine (T, Lexer_Errors_1'Access, "Lexer_Errors_1");
+      Register_Routine (T, Lexer_Errors_01'Access, "Lexer_Errors_01");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
       Register_Routine (T, Modify_Deleted_Node'Access, "Modify_Deleted_Node");
@@ -1596,6 +1795,15 @@ package body Test_Incremental is
       Register_Routine (T, Restore_Deleted_01'Access, "Restore_Deleted_01");
       Register_Routine (T, Nonterm_Resume_01'Access, "Nonterm_Resume_01");
       Register_Routine (T, Undo_Conflict_01'Access, "Undo_Conflict_01");
+      Register_Routine (T, Edit_String_01'Access, "Edit_String_01");
+      Register_Routine (T, Edit_String_02'Access, "Edit_String_02");
+      Register_Routine (T, Edit_String_03'Access, "Edit_String_03");
+      Register_Routine (T, Edit_String_04'Access, "Edit_String_04");
+      Register_Routine (T, Edit_String_05'Access, "Edit_String_05");
+      Register_Routine (T, Edit_String_06'Access, "Edit_String_06");
+      Register_Routine (T, Edit_String_07'Access, "Edit_String_07");
+      Register_Routine (T, Edit_String_08'Access, "Edit_String_08");
+      Register_Routine (T, Edit_String_09'Access, "Edit_String_09");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

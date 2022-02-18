@@ -9,22 +9,22 @@ in_parse_action OK
 (parameter_profile_opt_1 <= ())
  ... goto state 238
  0: 238: (-1, 3:(SEMICOLON, (178 . 178))) : reduce 3 tokens to procedure_specification
-(procedure_specification_0, (161 . 177) <= (1:(PROCEDURE, (161 . 169)), (name, (171 . 177)), (parameter_profile_opt)))
+(procedure_specification_0, (161 . 177) <= (1:(PROCEDURE, (161 . 169)), (name_2, (171 . 177)), (parameter_profile_opt_1)))
 in_parse_action OK
  ... goto state 29
  0: 29: (-1, 3:(SEMICOLON, (178 . 178))) : reduce 1 tokens to subprogram_specification
-(subprogram_specification_0, (161 . 177) <= ((procedure_specification, (161 . 177))))
+(subprogram_specification_0, (161 . 177) <= ((procedure_specification_0, (161 . 177))))
 in_parse_action OK
  ... goto state 36
  0: 36: (-1, 3:(SEMICOLON, (178 . 178))) : shift and goto state 142
  0: 142: (-1, 4:(PROCEDURE, (181 . 189))) : reduce 2 tokens to subprogram_declaration
-(subprogram_declaration_0, (161 . 178) <= ((subprogram_specification, (161 . 177)), 3:(SEMICOLON, (178 . 178))))
+(subprogram_declaration_0, (161 . 178) <= ((subprogram_specification_0, (161 . 177)), 3:(SEMICOLON, (178 . 178))))
  ... goto state 35
  0: 35: (-1, 4:(PROCEDURE, (181 . 189))) : reduce 1 tokens to compilation_unit
-(compilation_unit_2, (161 . 178) <= ((subprogram_declaration, (161 . 178))))
+(compilation_unit_2, (161 . 178) <= ((subprogram_declaration_0, (161 . 178))))
  ... goto state 15
  0: 15: (-1, 4:(PROCEDURE, (181 . 189))) : reduce 1 tokens to compilation_unit_list
-(compilation_unit_list_1, (161 . 178) <= ((compilation_unit, (161 . 178))))
+(compilation_unit_list_1, (161 . 178) <= ((compilation_unit_2, (161 . 178))))
 in_parse_action OK
  ... goto state 16
  0: 16: (-1, 4:(PROCEDURE, (181 . 189))) : shift and goto state 8
@@ -40,11 +40,11 @@ tree size:  173
  ... goto state 238
  0: 109: (-1, 6:(IS, (199 . 200))) : shift and goto state 233
  1: 238: (-1, 6:(IS, (199 . 200))) : reduce 3 tokens to procedure_specification
-(procedure_specification_0, (181 . 197) <= (4:(PROCEDURE, (181 . 189)), (name, (191 . 197)), (parameter_profile_opt)))
+(procedure_specification_0, (181 . 197) <= (4:(PROCEDURE, (181 . 189)), (name_2, (191 . 197)), (parameter_profile_opt_1)))
 in_parse_action OK
  ... goto state 29
  1: 29: (-1, 6:(IS, (199 . 200))) : reduce 1 tokens to subprogram_specification
-(subprogram_specification_0, (181 . 197) <= ((procedure_specification, (181 . 197))))
+(subprogram_specification_0, (181 . 197) <= ((procedure_specification_0, (181 . 197))))
 in_parse_action OK
  ... goto state 36
  1: 36: (-1, 6:(IS, (199 . 200))) : reduce 0 tokens to aspect_specification_opt
@@ -76,7 +76,7 @@ in_parse_action OK
  1: zombie
  0: terminate (2 active): zombie (0, 165:(IDENTIFIER, (205 . 205) ERROR))
  2: 1002: (-1, 10:(COLON_EQUAL, (217 . 218))) : reduce 1 tokens to subtype_indication
-(subtype_indication_1, (209 . 215) <= ((name, (209 . 215))))
+(subtype_indication_1, (209 . 215) <= ((name_2, (209 . 215))))
  ... goto state 1004
  1: zombie
  2: 1004: (-1, 10:(COLON_EQUAL, (217 . 218))) : shift and goto state 1549
@@ -88,11 +88,11 @@ in_parse_action OK
  ... goto state 121
  1: zombie
  2: 121: (-1, 12:(SLASH, (223 . 223))) : reduce 1 tokens to factor
-(factor_0, (220 . 221) <= ((primary, (220 . 221))))
+(factor_0, (220 . 221) <= ((primary_0, (220 . 221))))
  ... goto state 118
  1: zombie
  2: 118: (-1, 12:(SLASH, (223 . 223))) : reduce 1 tokens to term
-(term_1, (220 . 221) <= ((factor, (220 . 221))))
+(term_1, (220 . 221) <= ((factor_0, (220 . 221))))
  ... goto state 128
  1: zombie
  2: 128: (-1, 12:(SLASH, (223 . 223))) : shift and goto state 181
@@ -106,35 +106,35 @@ in_parse_action OK
 (primary_0, (225 . 225) <= (13:(NUMERIC_LITERAL, (225 . 225))))
  ... goto state 121
  2: 121: (-1, 14:(SEMICOLON, (226 . 226))) : reduce 1 tokens to factor
-(factor_0, (225 . 225) <= ((primary, (225 . 225))))
+(factor_0, (225 . 225) <= ((primary_0, (225 . 225))))
  ... goto state 642
  2: 642: (-1, 14:(SEMICOLON, (226 . 226))) : reduce 3 tokens to term
-(term_0, (220 . 225) <= ((term, (220 . 221)), (multiplying_operator, (223 . 223)), (factor, (225 . 225))))
+(term_0, (220 . 225) <= ((term_1, (220 . 221)), (multiplying_operator_1, (223 . 223)), (factor_0, (225 . 225))))
  ... goto state 128
  2: 128: (-1, 14:(SEMICOLON, (226 . 226))) : reduce 1 tokens to term_list
-(term_list_1, (220 . 225) <= ((term, (220 . 225))))
+(term_list_1, (220 . 225) <= ((term_0, (220 . 225))))
  ... goto state 129
  2: 129: (-1, 14:(SEMICOLON, (226 . 226))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (220 . 225) <= ((term_list, (220 . 225))))
+(simple_expression_1, (220 . 225) <= ((term_list_1, (220 . 225))))
  ... goto state 127
  2: 127: (-1, 14:(SEMICOLON, (226 . 226))) : reduce 1 tokens to relation
-(relation_1, (220 . 225) <= ((simple_expression, (220 . 225))))
+(relation_1, (220 . 225) <= ((simple_expression_1, (220 . 225))))
  ... goto state 125
  2: 125: (-1, 14:(SEMICOLON, (226 . 226))) : reduce 1 tokens to expression
-(expression_0, (220 . 225) <= ((relation, (220 . 225))))
+(expression_0, (220 . 225) <= ((relation_1, (220 . 225))))
  ... goto state 1928
  2: 1928: (-1, 14:(SEMICOLON, (226 . 226))) : shift and goto state 2285
  2: 2285: (-1, 15:(BEGIN, (228 . 232))) : reduce 6 tokens to object_declaration
-(object_declaration_0, (205 . 226) <= ((defining_identifier_list, (205 . 205)), 8:(COLON, (207 . 207)), (subtype_indication, (209 . 215)), 10:(COLON_EQUAL, (217 . 218)), (expression, (220 . 225)), 14:(SEMICOLON, (226 . 226))))
+(object_declaration_0, (205 . 226) <= ((defining_identifier_list_0, (205 . 205)), 8:(COLON, (207 . 207)), (subtype_indication_1, (209 . 215)), 10:(COLON_EQUAL, (217 . 218)), (expression_0, (220 . 225)), 14:(SEMICOLON, (226 . 226))))
  ... goto state 291
  2: 291: (-1, 15:(BEGIN, (228 . 232))) : reduce 1 tokens to declaration
-(declaration_1, (205 . 226) <= ((object_declaration, (205 . 226))))
+(declaration_1, (205 . 226) <= ((object_declaration_0, (205 . 226))))
  ... goto state 286
  2: 286: (-1, 15:(BEGIN, (228 . 232))) : reduce 1 tokens to declarations
-(declarations_1, (205 . 226) <= ((declaration, (205 . 226))))
+(declarations_1, (205 . 226) <= ((declaration_1, (205 . 226))))
  ... goto state 287
  2: 287: (-1, 15:(BEGIN, (228 . 232))) : reduce 1 tokens to declarative_part
-(declarative_part_0, (205 . 226) <= ((declarations, (205 . 226))))
+(declarative_part_0, (205 . 226) <= ((declarations_1, (205 . 226))))
  ... goto state 711
  2: 711: (-1, 15:(BEGIN, (228 . 232))) : shift and goto state 1180
  2: 1180: (-1, 16:(IDENTIFIER, (237 . 237))) : shift and goto state 10
@@ -149,13 +149,13 @@ in_parse_action OK
 in_parse_action OK
  ... goto state 119
  2: 119: (-1, 19:(STAR, (244 . 244))) : reduce 1 tokens to primary
-(primary_2, (242 . 242) <= ((name, (242 . 242))))
+(primary_2, (242 . 242) <= ((name_2, (242 . 242))))
  ... goto state 121
  2: 121: (-1, 19:(STAR, (244 . 244))) : reduce 1 tokens to factor
-(factor_0, (242 . 242) <= ((primary, (242 . 242))))
+(factor_0, (242 . 242) <= ((primary_2, (242 . 242))))
  ... goto state 118
  2: 118: (-1, 19:(STAR, (244 . 244))) : reduce 1 tokens to term
-(term_1, (242 . 242) <= ((factor, (242 . 242))))
+(term_1, (242 . 242) <= ((factor_0, (242 . 242))))
  ... goto state 128
  2: 128: (-1, 19:(STAR, (244 . 244))) : shift and goto state 182
  2: 182: (-1, 20:(NUMERIC_LITERAL, (246 . 246))) : reduce 1 tokens to multiplying_operator
@@ -166,38 +166,38 @@ in_parse_action OK
 (primary_0, (246 . 246) <= (20:(NUMERIC_LITERAL, (246 . 246))))
  ... goto state 121
  2: 121: (-1, 21:(SEMICOLON, (247 . 247))) : reduce 1 tokens to factor
-(factor_0, (246 . 246) <= ((primary, (246 . 246))))
+(factor_0, (246 . 246) <= ((primary_0, (246 . 246))))
  ... goto state 642
  2: 642: (-1, 21:(SEMICOLON, (247 . 247))) : reduce 3 tokens to term
-(term_0, (242 . 246) <= ((term, (242 . 242)), (multiplying_operator, (244 . 244)), (factor, (246 . 246))))
+(term_0, (242 . 246) <= ((term_1, (242 . 242)), (multiplying_operator_0, (244 . 244)), (factor_0, (246 . 246))))
  ... goto state 128
  2: 128: (-1, 21:(SEMICOLON, (247 . 247))) : reduce 1 tokens to term_list
-(term_list_1, (242 . 246) <= ((term, (242 . 246))))
+(term_list_1, (242 . 246) <= ((term_0, (242 . 246))))
  ... goto state 129
  2: 129: (-1, 21:(SEMICOLON, (247 . 247))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (242 . 246) <= ((term_list, (242 . 246))))
+(simple_expression_1, (242 . 246) <= ((term_list_1, (242 . 246))))
  ... goto state 127
  2: 127: (-1, 21:(SEMICOLON, (247 . 247))) : reduce 1 tokens to relation
-(relation_1, (242 . 246) <= ((simple_expression, (242 . 246))))
+(relation_1, (242 . 246) <= ((simple_expression_1, (242 . 246))))
  ... goto state 125
  2: 125: (-1, 21:(SEMICOLON, (247 . 247))) : reduce 1 tokens to expression
-(expression_0, (242 . 246) <= ((relation, (242 . 246))))
+(expression_0, (242 . 246) <= ((relation_1, (242 . 246))))
  ... goto state 989
  2: 989: (-1, 21:(SEMICOLON, (247 . 247))) : shift and goto state 1525
  2: 1525: (-1, 22:(END, (249 . 251))) : reduce 4 tokens to assignment_statement
-(assignment_statement_0, (237 . 247) <= ((name, (237 . 237)), 17:(COLON_EQUAL, (239 . 240)), (expression, (242 . 246)), 21:(SEMICOLON, (247 . 247))))
+(assignment_statement_0, (237 . 247) <= ((name_2, (237 . 237)), 17:(COLON_EQUAL, (239 . 240)), (expression_0, (242 . 246)), 21:(SEMICOLON, (247 . 247))))
  ... goto state 263
  2: 263: (-1, 22:(END, (249 . 251))) : reduce 1 tokens to simple_statement
-(simple_statement_0, (237 . 247) <= ((assignment_statement, (237 . 247))))
+(simple_statement_0, (237 . 247) <= ((assignment_statement_0, (237 . 247))))
  ... goto state 278
  2: 278: (-1, 22:(END, (249 . 251))) : reduce 1 tokens to statement
-(statement_0, (237 . 247) <= ((simple_statement, (237 . 247))))
+(statement_0, (237 . 247) <= ((simple_statement_0, (237 . 247))))
  ... goto state 279
  2: 279: (-1, 22:(END, (249 . 251))) : reduce 1 tokens to sequence_of_statements
-(sequence_of_statements_1, (237 . 247) <= ((statement, (237 . 247))))
+(sequence_of_statements_1, (237 . 247) <= ((statement_0, (237 . 247))))
  ... goto state 276
  2: 276: (-1, 22:(END, (249 . 251))) : reduce 1 tokens to handled_sequence_of_statements
-(handled_sequence_of_statements_1, (237 . 247) <= ((sequence_of_statements, (237 . 247))))
+(handled_sequence_of_statements_1, (237 . 247) <= ((sequence_of_statements_1, (237 . 247))))
  ... goto state 1644
  2: 1644: (-1, 22:(END, (249 . 251))) : shift and goto state 2075
  2: 2075: (-1, 23:(SEMICOLON, (252 . 252))) : reduce 0 tokens to name_opt
@@ -205,14 +205,14 @@ in_parse_action OK
  ... goto state 2355
  2: 2355: (-1, 23:(SEMICOLON, (252 . 252))) : shift and goto state 2538
  2: 2538: (-1, 24:(FUNCTION, (255 . 262))) : reduce 9 tokens to subprogram_body
-(subprogram_body_0, (181 . 252) <= ((subprogram_specification, (181 . 197)), (aspect_specification_opt), 6:(IS, (199 . 200)), (declarative_part, (205 . 226)), 15:(BEGIN, (228 . 232)), (handled_sequence_of_statements, (237 . 247)), 22:(END, (249 . 251)), (name_opt), 23:(SEMICOLON, (252 . 252))))
+(subprogram_body_0, (181 . 252) <= ((subprogram_specification_0, (181 . 197)), (aspect_specification_opt_1), 6:(IS, (199 . 200)), (declarative_part_0, (205 . 226)), 15:(BEGIN, (228 . 232)), (handled_sequence_of_statements_1, (237 . 247)), 22:(END, (249 . 251)), (name_opt_1), 23:(SEMICOLON, (252 . 252))))
 in_parse_action OK
  ... goto state 34
  2: 34: (-1, 24:(FUNCTION, (255 . 262))) : reduce 1 tokens to compilation_unit
-(compilation_unit_3, (181 . 252) <= ((subprogram_body, (181 . 252))))
+(compilation_unit_3, (181 . 252) <= ((subprogram_body_0, (181 . 252))))
  ... goto state 134
  2: 134: (-1, 24:(FUNCTION, (255 . 262))) : reduce 2 tokens to compilation_unit_list
-(compilation_unit_list_0, (161 . 252) <= ((compilation_unit_list, (161 . 178)), (compilation_unit, (181 . 252))))
+(compilation_unit_list_0, (161 . 252) <= ((compilation_unit_list_1, (161 . 178)), (compilation_unit_3, (181 . 252))))
  ... goto state 16
  2: 16: (-1, 24:(FUNCTION, (255 . 262))) : shift and goto state 4
  2: 4: (-1, 25:(IDENTIFIER, (264 . 269))) : shift and goto state 61
@@ -228,7 +228,7 @@ in_parse_action OK
 (parameter_specification_1, (272 . 285) <= (27:(IDENTIFIER, (272 . 275)), 28:(COLON, (277 . 277)), 29:(IDENTIFIER, (279 . 285))))
  ... goto state 454
  2: 454: (-1, 30:(SEMICOLON, (286 . 286))) : reduce 1 tokens to parameter_specification_list
-(parameter_specification_list_1, (272 . 285) <= ((parameter_specification, (272 . 285))))
+(parameter_specification_list_1, (272 . 285) <= ((parameter_specification_1, (272 . 285))))
  ... goto state 455
  2: 455: (-1, 30:(SEMICOLON, (286 . 286))) : shift and goto state 839
  2: 839: (-1, 31:(IDENTIFIER, (288 . 292))) : shift and goto state 1317
@@ -238,34 +238,34 @@ in_parse_action OK
 (parameter_specification_1, (288 . 302) <= (31:(IDENTIFIER, (288 . 292)), 32:(COLON, (294 . 294)), 33:(IDENTIFIER, (296 . 302))))
  ... goto state 1318
  2: 1318: (-1, 34:(RIGHT_PAREN, (303 . 303))) : reduce 3 tokens to parameter_specification_list
-(parameter_specification_list_0, (272 . 302) <= ((parameter_specification_list, (272 . 285)), 30:(SEMICOLON, (286 . 286)), (parameter_specification, (288 . 302))))
+(parameter_specification_list_0, (272 . 302) <= ((parameter_specification_list_1, (272 . 285)), 30:(SEMICOLON, (286 . 286)), (parameter_specification_1, (288 . 302))))
  ... goto state 455
  2: 455: (-1, 34:(RIGHT_PAREN, (303 . 303))) : shift and goto state 838
  2: 838: (-1, 35:(RETURN, (305 . 310))) : reduce 3 tokens to formal_part
-(formal_part_0, (271 . 303) <= (26:(LEFT_PAREN, (271 . 271)), (parameter_specification_list, (272 . 302)), 34:(RIGHT_PAREN, (303 . 303))))
+(formal_part_0, (271 . 303) <= (26:(LEFT_PAREN, (271 . 271)), (parameter_specification_list_0, (272 . 302)), 34:(RIGHT_PAREN, (303 . 303))))
  ... goto state 196
  2: 196: (-1, 35:(RETURN, (305 . 310))) : shift and goto state 459
  2: 459: (-1, 36:(IDENTIFIER, (312 . 318))) : shift and goto state 841
  2: 841: (-1, 37:(SEMICOLON, (319 . 319))) : reduce 3 tokens to parameter_and_result_profile
-(parameter_and_result_profile_0, (271 . 318) <= ((formal_part, (271 . 303)), 35:(RETURN, (305 . 310)), 36:(IDENTIFIER, (312 . 318))))
+(parameter_and_result_profile_0, (271 . 318) <= ((formal_part_0, (271 . 303)), 35:(RETURN, (305 . 310)), 36:(IDENTIFIER, (312 . 318))))
  ... goto state 197
  2: 197: (-1, 37:(SEMICOLON, (319 . 319))) : reduce 3 tokens to function_specification
-(function_specification_0, (255 . 318) <= (24:(FUNCTION, (255 . 262)), (name, (264 . 269)), (parameter_and_result_profile, (271 . 318))))
+(function_specification_0, (255 . 318) <= (24:(FUNCTION, (255 . 262)), (name_2, (264 . 269)), (parameter_and_result_profile_0, (271 . 318))))
 in_parse_action OK
  ... goto state 20
  2: 20: (-1, 37:(SEMICOLON, (319 . 319))) : reduce 1 tokens to subprogram_specification
-(subprogram_specification_1, (255 . 318) <= ((function_specification, (255 . 318))))
+(subprogram_specification_1, (255 . 318) <= ((function_specification_0, (255 . 318))))
 in_parse_action OK
  ... goto state 36
  2: 36: (-1, 37:(SEMICOLON, (319 . 319))) : shift and goto state 142
  2: 142: (-1, 38:(FUNCTION, (321 . 328))) : reduce 2 tokens to subprogram_declaration
-(subprogram_declaration_0, (255 . 319) <= ((subprogram_specification, (255 . 318)), 37:(SEMICOLON, (319 . 319))))
+(subprogram_declaration_0, (255 . 319) <= ((subprogram_specification_1, (255 . 318)), 37:(SEMICOLON, (319 . 319))))
  ... goto state 35
  2: 35: (-1, 38:(FUNCTION, (321 . 328))) : reduce 1 tokens to compilation_unit
-(compilation_unit_2, (255 . 319) <= ((subprogram_declaration, (255 . 319))))
+(compilation_unit_2, (255 . 319) <= ((subprogram_declaration_0, (255 . 319))))
  ... goto state 134
  2: 134: (-1, 38:(FUNCTION, (321 . 328))) : reduce 2 tokens to compilation_unit_list
-(compilation_unit_list_0, (161 . 319) <= ((compilation_unit_list, (161 . 252)), (compilation_unit, (255 . 319))))
+(compilation_unit_list_0, (161 . 319) <= ((compilation_unit_list_0, (161 . 252)), (compilation_unit_2, (255 . 319))))
  ... goto state 16
  2: 16: (-1, 38:(FUNCTION, (321 . 328))) : shift and goto state 4
  2: 4: (-1, 39:(IDENTIFIER, (330 . 335))) : shift and goto state 61
@@ -281,7 +281,7 @@ in_parse_action OK
 (parameter_specification_1, (338 . 351) <= (41:(IDENTIFIER, (338 . 341)), 42:(COLON, (343 . 343)), 43:(IDENTIFIER, (345 . 351))))
  ... goto state 454
  2: 454: (-1, 44:(SEMICOLON, (352 . 352))) : reduce 1 tokens to parameter_specification_list
-(parameter_specification_list_1, (338 . 351) <= ((parameter_specification, (338 . 351))))
+(parameter_specification_list_1, (338 . 351) <= ((parameter_specification_1, (338 . 351))))
  ... goto state 455
  2: 455: (-1, 44:(SEMICOLON, (352 . 352))) : shift and goto state 839
  2: 839: (-1, 45:(IDENTIFIER, (354 . 358))) : shift and goto state 1317
@@ -291,23 +291,23 @@ in_parse_action OK
 (parameter_specification_1, (354 . 368) <= (45:(IDENTIFIER, (354 . 358)), 46:(COLON, (360 . 360)), 47:(IDENTIFIER, (362 . 368))))
  ... goto state 1318
  2: 1318: (-1, 48:(RIGHT_PAREN, (369 . 369))) : reduce 3 tokens to parameter_specification_list
-(parameter_specification_list_0, (338 . 368) <= ((parameter_specification_list, (338 . 351)), 44:(SEMICOLON, (352 . 352)), (parameter_specification, (354 . 368))))
+(parameter_specification_list_0, (338 . 368) <= ((parameter_specification_list_1, (338 . 351)), 44:(SEMICOLON, (352 . 352)), (parameter_specification_1, (354 . 368))))
  ... goto state 455
  2: 455: (-1, 48:(RIGHT_PAREN, (369 . 369))) : shift and goto state 838
  2: 838: (-1, 49:(RETURN, (371 . 376))) : reduce 3 tokens to formal_part
-(formal_part_0, (337 . 369) <= (40:(LEFT_PAREN, (337 . 337)), (parameter_specification_list, (338 . 368)), 48:(RIGHT_PAREN, (369 . 369))))
+(formal_part_0, (337 . 369) <= (40:(LEFT_PAREN, (337 . 337)), (parameter_specification_list_0, (338 . 368)), 48:(RIGHT_PAREN, (369 . 369))))
  ... goto state 196
  2: 196: (-1, 49:(RETURN, (371 . 376))) : shift and goto state 459
  2: 459: (-1, 50:(IDENTIFIER, (378 . 384))) : shift and goto state 841
  2: 841: (-1, 51:(IS, (386 . 387))) : reduce 3 tokens to parameter_and_result_profile
-(parameter_and_result_profile_0, (337 . 384) <= ((formal_part, (337 . 369)), 49:(RETURN, (371 . 376)), 50:(IDENTIFIER, (378 . 384))))
+(parameter_and_result_profile_0, (337 . 384) <= ((formal_part_0, (337 . 369)), 49:(RETURN, (371 . 376)), 50:(IDENTIFIER, (378 . 384))))
  ... goto state 197
  2: 197: (-1, 51:(IS, (386 . 387))) : reduce 3 tokens to function_specification
-(function_specification_0, (321 . 384) <= (38:(FUNCTION, (321 . 328)), (name, (330 . 335)), (parameter_and_result_profile, (337 . 384))))
+(function_specification_0, (321 . 384) <= (38:(FUNCTION, (321 . 328)), (name_2, (330 . 335)), (parameter_and_result_profile_0, (337 . 384))))
 in_parse_action OK
  ... goto state 20
  2: 20: (-1, 51:(IS, (386 . 387))) : reduce 1 tokens to subprogram_specification
-(subprogram_specification_1, (321 . 384) <= ((function_specification, (321 . 384))))
+(subprogram_specification_1, (321 . 384) <= ((function_specification_0, (321 . 384))))
 in_parse_action OK
  ... goto state 36
  2: 36: (-1, 51:(IS, (386 . 387))) : reduce 0 tokens to aspect_specification_opt
@@ -325,16 +325,16 @@ in_parse_action OK
 in_parse_action OK
  ... goto state 119
  2: 119: (-1, 55:(PLUS, (410 . 410))) : reduce 1 tokens to primary
-(primary_2, (405 . 408) <= ((name, (405 . 408))))
+(primary_2, (405 . 408) <= ((name_2, (405 . 408))))
  ... goto state 121
  2: 121: (-1, 55:(PLUS, (410 . 410))) : reduce 1 tokens to factor
-(factor_0, (405 . 408) <= ((primary, (405 . 408))))
+(factor_0, (405 . 408) <= ((primary_2, (405 . 408))))
  ... goto state 118
  2: 118: (-1, 55:(PLUS, (410 . 410))) : reduce 1 tokens to term
-(term_1, (405 . 408) <= ((factor, (405 . 408))))
+(term_1, (405 . 408) <= ((factor_0, (405 . 408))))
  ... goto state 128
  2: 128: (-1, 55:(PLUS, (410 . 410))) : reduce 1 tokens to term_list
-(term_list_1, (405 . 408) <= ((term, (405 . 408))))
+(term_list_1, (405 . 408) <= ((term_1, (405 . 408))))
  ... goto state 129
  2: 129: (-1, 55:(PLUS, (410 . 410))) : shift and goto state 186
  2: 186: (-1, 56:(LEFT_PAREN, (412 . 412))) : reduce 1 tokens to binary_adding_operator
@@ -347,16 +347,16 @@ in_parse_action OK
 in_parse_action OK
  ... goto state 151
  2: 151: (-1, 58:(MINUS, (419 . 419))) : reduce 1 tokens to primary
-(primary_2, (413 . 417) <= ((name, (413 . 417))))
+(primary_2, (413 . 417) <= ((name_2, (413 . 417))))
  ... goto state 153
  2: 153: (-1, 58:(MINUS, (419 . 419))) : reduce 1 tokens to factor
-(factor_0, (413 . 417) <= ((primary, (413 . 417))))
+(factor_0, (413 . 417) <= ((primary_2, (413 . 417))))
  ... goto state 150
  2: 150: (-1, 58:(MINUS, (419 . 419))) : reduce 1 tokens to term
-(term_1, (413 . 417) <= ((factor, (413 . 417))))
+(term_1, (413 . 417) <= ((factor_0, (413 . 417))))
  ... goto state 160
  2: 160: (-1, 58:(MINUS, (419 . 419))) : reduce 1 tokens to term_list
-(term_list_1, (413 . 417) <= ((term, (413 . 417))))
+(term_list_1, (413 . 417) <= ((term_1, (413 . 417))))
  ... goto state 161
  2: 161: (-1, 58:(MINUS, (419 . 419))) : shift and goto state 185
  2: 185: (-1, 59:(NUMERIC_LITERAL, (421 . 421))) : reduce 1 tokens to binary_adding_operator
@@ -367,63 +367,63 @@ in_parse_action OK
 (primary_0, (421 . 421) <= (59:(NUMERIC_LITERAL, (421 . 421))))
  ... goto state 153
  2: 153: (-1, 60:(RIGHT_PAREN, (422 . 422))) : reduce 1 tokens to factor
-(factor_0, (421 . 421) <= ((primary, (421 . 421))))
+(factor_0, (421 . 421) <= ((primary_0, (421 . 421))))
  ... goto state 150
  2: 150: (-1, 60:(RIGHT_PAREN, (422 . 422))) : reduce 1 tokens to term
-(term_1, (421 . 421) <= ((factor, (421 . 421))))
+(term_1, (421 . 421) <= ((factor_0, (421 . 421))))
  ... goto state 779
  2: 779: (-1, 60:(RIGHT_PAREN, (422 . 422))) : reduce 3 tokens to term_list
-(term_list_0, (413 . 421) <= ((term_list, (413 . 417)), (binary_adding_operator, (419 . 419)), (term, (421 . 421))))
+(term_list_0, (413 . 421) <= ((term_list_1, (413 . 417)), (binary_adding_operator_1, (419 . 419)), (term_1, (421 . 421))))
  ... goto state 161
  2: 161: (-1, 60:(RIGHT_PAREN, (422 . 422))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (413 . 421) <= ((term_list, (413 . 421))))
+(simple_expression_1, (413 . 421) <= ((term_list_0, (413 . 421))))
  ... goto state 159
  2: 159: (-1, 60:(RIGHT_PAREN, (422 . 422))) : reduce 1 tokens to relation
-(relation_1, (413 . 421) <= ((simple_expression, (413 . 421))))
+(relation_1, (413 . 421) <= ((simple_expression_1, (413 . 421))))
  ... goto state 157
  2: 157: (-1, 60:(RIGHT_PAREN, (422 . 422))) : reduce 1 tokens to expression
-(expression_0, (413 . 421) <= ((relation, (413 . 421))))
+(expression_0, (413 . 421) <= ((relation_1, (413 . 421))))
  ... goto state 239
  2: 239: (-1, 60:(RIGHT_PAREN, (422 . 422))) : shift and goto state 572
  2: 572: (-1, 61:(SEMICOLON, (423 . 423))) : reduce 3 tokens to paren_expression
-(paren_expression_0, (412 . 422) <= (56:(LEFT_PAREN, (412 . 412)), (expression, (413 . 421)), 60:(RIGHT_PAREN, (422 . 422))))
+(paren_expression_0, (412 . 422) <= (56:(LEFT_PAREN, (412 . 412)), (expression_0, (413 . 421)), 60:(RIGHT_PAREN, (422 . 422))))
  ... goto state 120
  2: 120: (-1, 61:(SEMICOLON, (423 . 423))) : reduce 1 tokens to primary
-(primary_3, (412 . 422) <= ((paren_expression, (412 . 422))))
+(primary_3, (412 . 422) <= ((paren_expression_0, (412 . 422))))
  ... goto state 121
  2: 121: (-1, 61:(SEMICOLON, (423 . 423))) : reduce 1 tokens to factor
-(factor_0, (412 . 422) <= ((primary, (412 . 422))))
+(factor_0, (412 . 422) <= ((primary_3, (412 . 422))))
  ... goto state 118
  2: 118: (-1, 61:(SEMICOLON, (423 . 423))) : reduce 1 tokens to term
-(term_1, (412 . 422) <= ((factor, (412 . 422))))
+(term_1, (412 . 422) <= ((factor_0, (412 . 422))))
  ... goto state 643
  2: 643: (-1, 61:(SEMICOLON, (423 . 423))) : reduce 3 tokens to term_list
-(term_list_0, (405 . 422) <= ((term_list, (405 . 408)), (binary_adding_operator, (410 . 410)), (term, (412 . 422))))
+(term_list_0, (405 . 422) <= ((term_list_1, (405 . 408)), (binary_adding_operator_0, (410 . 410)), (term_1, (412 . 422))))
  ... goto state 129
  2: 129: (-1, 61:(SEMICOLON, (423 . 423))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (405 . 422) <= ((term_list, (405 . 422))))
+(simple_expression_1, (405 . 422) <= ((term_list_0, (405 . 422))))
  ... goto state 127
  2: 127: (-1, 61:(SEMICOLON, (423 . 423))) : reduce 1 tokens to relation
-(relation_1, (405 . 422) <= ((simple_expression, (405 . 422))))
+(relation_1, (405 . 422) <= ((simple_expression_1, (405 . 422))))
  ... goto state 125
  2: 125: (-1, 61:(SEMICOLON, (423 . 423))) : reduce 1 tokens to expression
-(expression_0, (405 . 422) <= ((relation, (405 . 422))))
+(expression_0, (405 . 422) <= ((relation_1, (405 . 422))))
  ... goto state 648
  2: 648: (-1, 61:(SEMICOLON, (423 . 423))) : shift and goto state 983
  2: 983: (-1, 62:(END, (425 . 427))) : reduce 3 tokens to simple_return_statement
-(simple_return_statement_0, (398 . 423) <= (53:(RETURN, (398 . 403)), (expression, (405 . 422)), 61:(SEMICOLON, (423 . 423))))
+(simple_return_statement_0, (398 . 423) <= (53:(RETURN, (398 . 403)), (expression_0, (405 . 422)), 61:(SEMICOLON, (423 . 423))))
  ... goto state 277
  2: 277: (-1, 62:(END, (425 . 427))) : reduce 1 tokens to simple_statement
-(simple_statement_3, (398 . 423) <= ((simple_return_statement, (398 . 423))))
+(simple_statement_3, (398 . 423) <= ((simple_return_statement_0, (398 . 423))))
  ... goto state 278
  2: 278: (-1, 62:(END, (425 . 427))) : reduce 1 tokens to statement
-(statement_0, (398 . 423) <= ((simple_statement, (398 . 423))))
+(statement_0, (398 . 423) <= ((simple_statement_3, (398 . 423))))
  ... goto state 279
  2: 279: (-1, 62:(END, (425 . 427))) : reduce 1 tokens to sequence_of_statements
-(sequence_of_statements_1, (398 . 423) <= ((statement, (398 . 423))))
+(sequence_of_statements_1, (398 . 423) <= ((statement_0, (398 . 423))))
  ... goto state 276
  2: 276: (-1, 62:(END, (425 . 427))) : reduce 1 tokens to handled_sequence_of_statements
-(handled_sequence_of_statements_1, (398 . 423) <= ((sequence_of_statements, (398 . 423))))
+(handled_sequence_of_statements_1, (398 . 423) <= ((sequence_of_statements_1, (398 . 423))))
  ... goto state 1644
  2: 1644: (-1, 62:(END, (425 . 427))) : shift and goto state 2075
  2: 2075: (-1, 63:(IDENTIFIER, (429 . 434))) : shift and goto state 907
@@ -432,19 +432,19 @@ in_parse_action OK
 in_parse_action OK
  ... goto state 1856
  2: 1856: (-1, 64:(SEMICOLON, (435 . 435))) : reduce 1 tokens to name_opt
-(name_opt_0, (429 . 434) <= ((name, (429 . 434))))
+(name_opt_0, (429 . 434) <= ((name_2, (429 . 434))))
 in_parse_action OK
  ... goto state 2355
  2: 2355: (-1, 64:(SEMICOLON, (435 . 435))) : shift and goto state 2538
  2: 2538: (-1, 65:(PROCEDURE, (438 . 446))) : reduce 9 tokens to subprogram_body
-(subprogram_body_0, (321 . 435) <= ((subprogram_specification, (321 . 384)), (aspect_specification_opt), 51:(IS, (386 . 387)), (declarative_part), 52:(BEGIN, (389 . 393)), (handled_sequence_of_statements, (398 . 423)), 62:(END, (425 . 427)), (name_opt, (429 . 434)), 64:(SEMICOLON, (435 . 435))))
+(subprogram_body_0, (321 . 435) <= ((subprogram_specification_1, (321 . 384)), (aspect_specification_opt_1), 51:(IS, (386 . 387)), (declarative_part_1), 52:(BEGIN, (389 . 393)), (handled_sequence_of_statements_1, (398 . 423)), 62:(END, (425 . 427)), (name_opt_0, (429 . 434)), 64:(SEMICOLON, (435 . 435))))
 in_parse_action OK
  ... goto state 34
  2: 34: (-1, 65:(PROCEDURE, (438 . 446))) : reduce 1 tokens to compilation_unit
-(compilation_unit_3, (321 . 435) <= ((subprogram_body, (321 . 435))))
+(compilation_unit_3, (321 . 435) <= ((subprogram_body_0, (321 . 435))))
  ... goto state 134
  2: 134: (-1, 65:(PROCEDURE, (438 . 446))) : reduce 2 tokens to compilation_unit_list
-(compilation_unit_list_0, (161 . 435) <= ((compilation_unit_list, (161 . 319)), (compilation_unit, (321 . 435))))
+(compilation_unit_list_0, (161 . 435) <= ((compilation_unit_list_0, (161 . 319)), (compilation_unit_3, (321 . 435))))
  ... goto state 16
  2: 16: (-1, 65:(PROCEDURE, (438 . 446))) : shift and goto state 8
  2: 8: (-1, 66:(IDENTIFIER, (448 . 453))) : shift and goto state 108
@@ -459,11 +459,11 @@ tree size:  280
  ... goto state 238
  2: 109: (-1, 67:(IS, (455 . 456))) : shift and goto state 233
  3: 238: (-1, 67:(IS, (455 . 456))) : reduce 3 tokens to procedure_specification
-(procedure_specification_0, (438 . 453) <= (65:(PROCEDURE, (438 . 446)), (name, (448 . 453)), (parameter_profile_opt)))
+(procedure_specification_0, (438 . 453) <= (65:(PROCEDURE, (438 . 446)), (name_2, (448 . 453)), (parameter_profile_opt_1)))
 in_parse_action OK
  ... goto state 29
  3: 29: (-1, 67:(IS, (455 . 456))) : reduce 1 tokens to subprogram_specification
-(subprogram_specification_0, (438 . 453) <= ((procedure_specification, (438 . 453))))
+(subprogram_specification_0, (438 . 453) <= ((procedure_specification_0, (438 . 453))))
 in_parse_action OK
  ... goto state 36
  3: 36: (-1, 67:(IS, (455 . 456))) : reduce 0 tokens to aspect_specification_opt
@@ -495,21 +495,21 @@ in_parse_action OK
  3: zombie
  2: terminate (2 active): zombie (2, 167:(IDENTIFIER, (461 . 461) ERROR))
  4: 1002: (-1, 71:(SEMICOLON, (472 . 472))) : reduce 1 tokens to subtype_indication
-(subtype_indication_1, (465 . 471) <= ((name, (465 . 471))))
+(subtype_indication_1, (465 . 471) <= ((name_2, (465 . 471))))
  ... goto state 1004
  3: zombie
  4: 1004: (-1, 71:(SEMICOLON, (472 . 472))) : shift and goto state 1550
  3: zombie
  4: 1550: (-1, 72:(IDENTIFIER, (477 . 477))) : reduce 4 tokens to object_declaration
-(object_declaration_1, (461 . 472) <= ((defining_identifier_list, (461 . 461)), 69:(COLON, (463 . 463)), (subtype_indication, (465 . 471)), 71:(SEMICOLON, (472 . 472))))
+(object_declaration_1, (461 . 472) <= ((defining_identifier_list_0, (461 . 461)), 69:(COLON, (463 . 463)), (subtype_indication_1, (465 . 471)), 71:(SEMICOLON, (472 . 472))))
  ... goto state 291
  3: zombie
  4: 291: (-1, 72:(IDENTIFIER, (477 . 477))) : reduce 1 tokens to declaration
-(declaration_1, (461 . 472) <= ((object_declaration, (461 . 472))))
+(declaration_1, (461 . 472) <= ((object_declaration_1, (461 . 472))))
  ... goto state 286
  3: zombie
  4: 286: (-1, 72:(IDENTIFIER, (477 . 477))) : reduce 1 tokens to declarations
-(declarations_1, (461 . 472) <= ((declaration, (461 . 472))))
+(declarations_1, (461 . 472) <= ((declaration_1, (461 . 472))))
  ... goto state 287
  3: zombie
  4: 287: (-1, 72:(IDENTIFIER, (477 . 477))) : shift and goto state 283
@@ -534,25 +534,25 @@ in_parse_action OK
  4: 996: expecting: LEFT_PAREN, RANGE, RENAMES, DOT
  4: zombie
  5: 1002: (-1, 75:(SEMICOLON, (488 . 488))) : reduce 1 tokens to subtype_indication
-(subtype_indication_1, (481 . 487) <= ((name, (481 . 487))))
+(subtype_indication_1, (481 . 487) <= ((name_2, (481 . 487))))
  ... goto state 1004
  4: zombie
  5: 1004: (-1, 75:(SEMICOLON, (488 . 488))) : shift and goto state 1550
  4: zombie
  5: 1550: (-1, 76:(BEGIN, (490 . 494))) : reduce 4 tokens to object_declaration
-(object_declaration_1, (477 . 488) <= ((defining_identifier_list, (477 . 477)), 73:(COLON, (479 . 479)), (subtype_indication, (481 . 487)), 75:(SEMICOLON, (488 . 488))))
+(object_declaration_1, (477 . 488) <= ((defining_identifier_list_0, (477 . 477)), 73:(COLON, (479 . 479)), (subtype_indication_1, (481 . 487)), 75:(SEMICOLON, (488 . 488))))
  ... goto state 291
  4: zombie
  5: 291: (-1, 76:(BEGIN, (490 . 494))) : reduce 1 tokens to declaration
-(declaration_1, (477 . 488) <= ((object_declaration, (477 . 488))))
+(declaration_1, (477 . 488) <= ((object_declaration_1, (477 . 488))))
  ... goto state 662
  4: zombie
  5: 662: (-1, 76:(BEGIN, (490 . 494))) : reduce 2 tokens to declarations
-(declarations_0, (461 . 488) <= ((declarations, (461 . 472)), (declaration, (477 . 488))))
+(declarations_0, (461 . 488) <= ((declarations_1, (461 . 472)), (declaration_1, (477 . 488))))
  ... goto state 287
  4: zombie
  5: 287: (-1, 76:(BEGIN, (490 . 494))) : reduce 1 tokens to declarative_part
-(declarative_part_0, (461 . 488) <= ((declarations, (461 . 488))))
+(declarative_part_0, (461 . 488) <= ((declarations_0, (461 . 488))))
  ... goto state 711
  4: zombie
  5: 711: (-1, 76:(BEGIN, (490 . 494))) : shift and goto state 1180
@@ -571,19 +571,19 @@ in_parse_action OK
 in_parse_action OK
  ... goto state 119
  5: 119: (-1, 81:(EQUAL, (519 . 519))) : reduce 1 tokens to primary
-(primary_2, (517 . 517) <= ((name, (517 . 517))))
+(primary_2, (517 . 517) <= ((name_2, (517 . 517))))
  ... goto state 121
  5: 121: (-1, 81:(EQUAL, (519 . 519))) : reduce 1 tokens to factor
-(factor_0, (517 . 517) <= ((primary, (517 . 517))))
+(factor_0, (517 . 517) <= ((primary_2, (517 . 517))))
  ... goto state 118
  5: 118: (-1, 81:(EQUAL, (519 . 519))) : reduce 1 tokens to term
-(term_1, (517 . 517) <= ((factor, (517 . 517))))
+(term_1, (517 . 517) <= ((factor_0, (517 . 517))))
  ... goto state 128
  5: 128: (-1, 81:(EQUAL, (519 . 519))) : reduce 1 tokens to term_list
-(term_list_1, (517 . 517) <= ((term, (517 . 517))))
+(term_list_1, (517 . 517) <= ((term_1, (517 . 517))))
  ... goto state 129
  5: 129: (-1, 81:(EQUAL, (519 . 519))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (517 . 517) <= ((term_list, (517 . 517))))
+(simple_expression_1, (517 . 517) <= ((term_list_1, (517 . 517))))
  ... goto state 127
  5: 127: (-1, 81:(EQUAL, (519 . 519))) : shift and goto state 174
  5: 174: (-1, 82:(NUMERIC_LITERAL, (521 . 521))) : reduce 1 tokens to relational_operator
@@ -594,35 +594,35 @@ in_parse_action OK
 (primary_0, (521 . 521) <= (82:(NUMERIC_LITERAL, (521 . 521))))
  ... goto state 636
  5: 636: (-1, 83:(SEMICOLON, (522 . 522))) : reduce 1 tokens to factor
-(factor_0, (521 . 521) <= ((primary, (521 . 521))))
+(factor_0, (521 . 521) <= ((primary_0, (521 . 521))))
  ... goto state 633
  5: 633: (-1, 83:(SEMICOLON, (522 . 522))) : reduce 1 tokens to term
-(term_1, (521 . 521) <= ((factor, (521 . 521))))
+(term_1, (521 . 521) <= ((factor_0, (521 . 521))))
  ... goto state 639
  5: 639: (-1, 83:(SEMICOLON, (522 . 522))) : reduce 1 tokens to term_list
-(term_list_1, (521 . 521) <= ((term, (521 . 521))))
+(term_list_1, (521 . 521) <= ((term_1, (521 . 521))))
  ... goto state 640
  5: 640: (-1, 83:(SEMICOLON, (522 . 522))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (521 . 521) <= ((term_list, (521 . 521))))
+(simple_expression_1, (521 . 521) <= ((term_list_1, (521 . 521))))
  ... goto state 638
  5: 638: (-1, 83:(SEMICOLON, (522 . 522))) : reduce 3 tokens to relation
-(relation_0, (517 . 521) <= ((simple_expression, (517 . 517)), (relational_operator, (519 . 519)), (simple_expression, (521 . 521))))
+(relation_0, (517 . 521) <= ((simple_expression_1, (517 . 517)), (relational_operator_0, (519 . 519)), (simple_expression_1, (521 . 521))))
  ... goto state 125
  5: 125: (-1, 83:(SEMICOLON, (522 . 522))) : reduce 1 tokens to expression
-(expression_0, (517 . 521) <= ((relation, (517 . 521))))
+(expression_0, (517 . 521) <= ((relation_0, (517 . 521))))
  ... goto state 897
  5: 897: (-1, 83:(SEMICOLON, (522 . 522))) : shift and goto state 1403
  5: 1403: (-1, 84:(IF, (530 . 531))) : reduce 5 tokens to exit_statement
-(exit_statement_0, (507 . 522) <= (78:(EXIT, (507 . 510)), (identifier_opt), 79:(WHEN, (512 . 515)), (expression, (517 . 521)), 83:(SEMICOLON, (522 . 522))))
+(exit_statement_0, (507 . 522) <= (78:(EXIT, (507 . 510)), (identifier_opt_1), 79:(WHEN, (512 . 515)), (expression_0, (517 . 521)), 83:(SEMICOLON, (522 . 522))))
  ... goto state 93
  5: 93: (-1, 84:(IF, (530 . 531))) : reduce 1 tokens to simple_statement
-(simple_statement_1, (507 . 522) <= ((exit_statement, (507 . 522))))
+(simple_statement_1, (507 . 522) <= ((exit_statement_0, (507 . 522))))
  ... goto state 102
  5: 102: (-1, 84:(IF, (530 . 531))) : reduce 1 tokens to statement
-(statement_0, (507 . 522) <= ((simple_statement, (507 . 522))))
+(statement_0, (507 . 522) <= ((simple_statement_1, (507 . 522))))
  ... goto state 103
  5: 103: (-1, 84:(IF, (530 . 531))) : reduce 1 tokens to sequence_of_statements
-(sequence_of_statements_1, (507 . 522) <= ((statement, (507 . 522))))
+(sequence_of_statements_1, (507 . 522) <= ((statement_0, (507 . 522))))
  ... goto state 647
  5: 647: (-1, 84:(IF, (530 . 531))) : shift and goto state 85
  5: 85: (-1, 85:(IDENTIFIER, (533 . 533))) : shift and goto state 67
@@ -631,19 +631,19 @@ in_parse_action OK
 in_parse_action OK
  ... goto state 71
  5: 71: (-1, 86:(GREATER, (535 . 535))) : reduce 1 tokens to primary
-(primary_2, (533 . 533) <= ((name, (533 . 533))))
+(primary_2, (533 . 533) <= ((name_2, (533 . 533))))
  ... goto state 73
  5: 73: (-1, 86:(GREATER, (535 . 535))) : reduce 1 tokens to factor
-(factor_0, (533 . 533) <= ((primary, (533 . 533))))
+(factor_0, (533 . 533) <= ((primary_2, (533 . 533))))
  ... goto state 70
  5: 70: (-1, 86:(GREATER, (535 . 535))) : reduce 1 tokens to term
-(term_1, (533 . 533) <= ((factor, (533 . 533))))
+(term_1, (533 . 533) <= ((factor_0, (533 . 533))))
  ... goto state 80
  5: 80: (-1, 86:(GREATER, (535 . 535))) : reduce 1 tokens to term_list
-(term_list_1, (533 . 533) <= ((term, (533 . 533))))
+(term_list_1, (533 . 533) <= ((term_1, (533 . 533))))
  ... goto state 81
  5: 81: (-1, 86:(GREATER, (535 . 535))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (533 . 533) <= ((term_list, (533 . 533))))
+(simple_expression_1, (533 . 533) <= ((term_list_1, (533 . 533))))
  ... goto state 79
  5: 79: (-1, 86:(GREATER, (535 . 535))) : shift and goto state 175
  5: 175: (-1, 87:(NUMERIC_LITERAL, (537 . 537))) : reduce 1 tokens to relational_operator
@@ -654,22 +654,22 @@ in_parse_action OK
 (primary_0, (537 . 537) <= (87:(NUMERIC_LITERAL, (537 . 537))))
  ... goto state 541
  5: 541: (-1, 88:(THEN, (539 . 542))) : reduce 1 tokens to factor
-(factor_0, (537 . 537) <= ((primary, (537 . 537))))
+(factor_0, (537 . 537) <= ((primary_0, (537 . 537))))
  ... goto state 538
  5: 538: (-1, 88:(THEN, (539 . 542))) : reduce 1 tokens to term
-(term_1, (537 . 537) <= ((factor, (537 . 537))))
+(term_1, (537 . 537) <= ((factor_0, (537 . 537))))
  ... goto state 544
  5: 544: (-1, 88:(THEN, (539 . 542))) : reduce 1 tokens to term_list
-(term_list_1, (537 . 537) <= ((term, (537 . 537))))
+(term_list_1, (537 . 537) <= ((term_1, (537 . 537))))
  ... goto state 545
  5: 545: (-1, 88:(THEN, (539 . 542))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (537 . 537) <= ((term_list, (537 . 537))))
+(simple_expression_1, (537 . 537) <= ((term_list_1, (537 . 537))))
  ... goto state 543
  5: 543: (-1, 88:(THEN, (539 . 542))) : reduce 3 tokens to relation
-(relation_0, (533 . 537) <= ((simple_expression, (533 . 533)), (relational_operator, (535 . 535)), (simple_expression, (537 . 537))))
+(relation_0, (533 . 537) <= ((simple_expression_1, (533 . 533)), (relational_operator_4, (535 . 535)), (simple_expression_1, (537 . 537))))
  ... goto state 77
  5: 77: (-1, 88:(THEN, (539 . 542))) : reduce 1 tokens to expression
-(expression_0, (533 . 537) <= ((relation, (533 . 537))))
+(expression_0, (533 . 537) <= ((relation_0, (533 . 537))))
  ... goto state 216
  5: 216: (-1, 88:(THEN, (539 . 542))) : shift and goto state 552
  5: 552: (-1, 89:(IDENTIFIER, (553 . 553))) : shift and goto state 10
@@ -683,35 +683,35 @@ in_parse_action OK
 (primary_0, (558 . 558) <= (91:(NUMERIC_LITERAL, (558 . 558))))
  ... goto state 121
  5: 121: (-1, 92:(SEMICOLON, (559 . 559))) : reduce 1 tokens to factor
-(factor_0, (558 . 558) <= ((primary, (558 . 558))))
+(factor_0, (558 . 558) <= ((primary_0, (558 . 558))))
  ... goto state 118
  5: 118: (-1, 92:(SEMICOLON, (559 . 559))) : reduce 1 tokens to term
-(term_1, (558 . 558) <= ((factor, (558 . 558))))
+(term_1, (558 . 558) <= ((factor_0, (558 . 558))))
  ... goto state 128
  5: 128: (-1, 92:(SEMICOLON, (559 . 559))) : reduce 1 tokens to term_list
-(term_list_1, (558 . 558) <= ((term, (558 . 558))))
+(term_list_1, (558 . 558) <= ((term_1, (558 . 558))))
  ... goto state 129
  5: 129: (-1, 92:(SEMICOLON, (559 . 559))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (558 . 558) <= ((term_list, (558 . 558))))
+(simple_expression_1, (558 . 558) <= ((term_list_1, (558 . 558))))
  ... goto state 127
  5: 127: (-1, 92:(SEMICOLON, (559 . 559))) : reduce 1 tokens to relation
-(relation_1, (558 . 558) <= ((simple_expression, (558 . 558))))
+(relation_1, (558 . 558) <= ((simple_expression_1, (558 . 558))))
  ... goto state 125
  5: 125: (-1, 92:(SEMICOLON, (559 . 559))) : reduce 1 tokens to expression
-(expression_0, (558 . 558) <= ((relation, (558 . 558))))
+(expression_0, (558 . 558) <= ((relation_1, (558 . 558))))
  ... goto state 1329
  5: 1329: (-1, 92:(SEMICOLON, (559 . 559))) : shift and goto state 1793
  5: 1793: (-1, 93:(ELSIF, (567 . 571))) : reduce 4 tokens to assignment_statement
-(assignment_statement_0, (553 . 559) <= ((name, (553 . 553)), 90:(COLON_EQUAL, (555 . 556)), (expression, (558 . 558)), 92:(SEMICOLON, (559 . 559))))
+(assignment_statement_0, (553 . 559) <= ((name_2, (553 . 553)), 90:(COLON_EQUAL, (555 . 556)), (expression_0, (558 . 558)), 92:(SEMICOLON, (559 . 559))))
  ... goto state 466
  5: 466: (-1, 93:(ELSIF, (567 . 571))) : reduce 1 tokens to simple_statement
-(simple_statement_0, (553 . 559) <= ((assignment_statement, (553 . 559))))
+(simple_statement_0, (553 . 559) <= ((assignment_statement_0, (553 . 559))))
  ... goto state 480
  5: 480: (-1, 93:(ELSIF, (567 . 571))) : reduce 1 tokens to statement
-(statement_0, (553 . 559) <= ((simple_statement, (553 . 559))))
+(statement_0, (553 . 559) <= ((simple_statement_0, (553 . 559))))
  ... goto state 481
  5: 481: (-1, 93:(ELSIF, (567 . 571))) : reduce 1 tokens to sequence_of_statements
-(sequence_of_statements_1, (553 . 559) <= ((statement, (553 . 559))))
+(sequence_of_statements_1, (553 . 559) <= ((statement_0, (553 . 559))))
  ... goto state 898
  5: 898: (-1, 93:(ELSIF, (567 . 571))) : shift and goto state 854
  5: 854: (-1, 94:(IDENTIFIER, (573 . 573))) : shift and goto state 67
@@ -720,19 +720,19 @@ in_parse_action OK
 in_parse_action OK
  ... goto state 71
  5: 71: (-1, 95:(LESS, (575 . 575))) : reduce 1 tokens to primary
-(primary_2, (573 . 573) <= ((name, (573 . 573))))
+(primary_2, (573 . 573) <= ((name_2, (573 . 573))))
  ... goto state 73
  5: 73: (-1, 95:(LESS, (575 . 575))) : reduce 1 tokens to factor
-(factor_0, (573 . 573) <= ((primary, (573 . 573))))
+(factor_0, (573 . 573) <= ((primary_2, (573 . 573))))
  ... goto state 70
  5: 70: (-1, 95:(LESS, (575 . 575))) : reduce 1 tokens to term
-(term_1, (573 . 573) <= ((factor, (573 . 573))))
+(term_1, (573 . 573) <= ((factor_0, (573 . 573))))
  ... goto state 80
  5: 80: (-1, 95:(LESS, (575 . 575))) : reduce 1 tokens to term_list
-(term_list_1, (573 . 573) <= ((term, (573 . 573))))
+(term_list_1, (573 . 573) <= ((term_1, (573 . 573))))
  ... goto state 81
  5: 81: (-1, 95:(LESS, (575 . 575))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (573 . 573) <= ((term_list, (573 . 573))))
+(simple_expression_1, (573 . 573) <= ((term_list_1, (573 . 573))))
  ... goto state 79
  5: 79: (-1, 95:(LESS, (575 . 575))) : shift and goto state 177
  5: 177: (-1, 96:(NUMERIC_LITERAL, (577 . 577))) : reduce 1 tokens to relational_operator
@@ -743,22 +743,22 @@ in_parse_action OK
 (primary_0, (577 . 577) <= (96:(NUMERIC_LITERAL, (577 . 577))))
  ... goto state 541
  5: 541: (-1, 97:(THEN, (579 . 582))) : reduce 1 tokens to factor
-(factor_0, (577 . 577) <= ((primary, (577 . 577))))
+(factor_0, (577 . 577) <= ((primary_0, (577 . 577))))
  ... goto state 538
  5: 538: (-1, 97:(THEN, (579 . 582))) : reduce 1 tokens to term
-(term_1, (577 . 577) <= ((factor, (577 . 577))))
+(term_1, (577 . 577) <= ((factor_0, (577 . 577))))
  ... goto state 544
  5: 544: (-1, 97:(THEN, (579 . 582))) : reduce 1 tokens to term_list
-(term_list_1, (577 . 577) <= ((term, (577 . 577))))
+(term_list_1, (577 . 577) <= ((term_1, (577 . 577))))
  ... goto state 545
  5: 545: (-1, 97:(THEN, (579 . 582))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (577 . 577) <= ((term_list, (577 . 577))))
+(simple_expression_1, (577 . 577) <= ((term_list_1, (577 . 577))))
  ... goto state 543
  5: 543: (-1, 97:(THEN, (579 . 582))) : reduce 3 tokens to relation
-(relation_0, (573 . 577) <= ((simple_expression, (573 . 573)), (relational_operator, (575 . 575)), (simple_expression, (577 . 577))))
+(relation_0, (573 . 577) <= ((simple_expression_1, (573 . 573)), (relational_operator_2, (575 . 575)), (simple_expression_1, (577 . 577))))
  ... goto state 77
  5: 77: (-1, 97:(THEN, (579 . 582))) : reduce 1 tokens to expression
-(expression_0, (573 . 577) <= ((relation, (573 . 577))))
+(expression_0, (573 . 577) <= ((relation_0, (573 . 577))))
  ... goto state 1331
  5: 1331: (-1, 97:(THEN, (579 . 582))) : shift and goto state 1795
  5: 1795: (-1, 98:(IDENTIFIER, (593 . 593))) : shift and goto state 10
@@ -772,41 +772,41 @@ in_parse_action OK
 (primary_0, (598 . 598) <= (100:(NUMERIC_LITERAL, (598 . 598))))
  ... goto state 121
  5: 121: (-1, 101:(SEMICOLON, (599 . 599))) : reduce 1 tokens to factor
-(factor_0, (598 . 598) <= ((primary, (598 . 598))))
+(factor_0, (598 . 598) <= ((primary_0, (598 . 598))))
  ... goto state 118
  5: 118: (-1, 101:(SEMICOLON, (599 . 599))) : reduce 1 tokens to term
-(term_1, (598 . 598) <= ((factor, (598 . 598))))
+(term_1, (598 . 598) <= ((factor_0, (598 . 598))))
  ... goto state 128
  5: 128: (-1, 101:(SEMICOLON, (599 . 599))) : reduce 1 tokens to term_list
-(term_list_1, (598 . 598) <= ((term, (598 . 598))))
+(term_list_1, (598 . 598) <= ((term_1, (598 . 598))))
  ... goto state 129
  5: 129: (-1, 101:(SEMICOLON, (599 . 599))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (598 . 598) <= ((term_list, (598 . 598))))
+(simple_expression_1, (598 . 598) <= ((term_list_1, (598 . 598))))
  ... goto state 127
  5: 127: (-1, 101:(SEMICOLON, (599 . 599))) : reduce 1 tokens to relation
-(relation_1, (598 . 598) <= ((simple_expression, (598 . 598))))
+(relation_1, (598 . 598) <= ((simple_expression_1, (598 . 598))))
  ... goto state 125
  5: 125: (-1, 101:(SEMICOLON, (599 . 599))) : reduce 1 tokens to expression
-(expression_0, (598 . 598) <= ((relation, (598 . 598))))
+(expression_0, (598 . 598) <= ((relation_1, (598 . 598))))
  ... goto state 1329
  5: 1329: (-1, 101:(SEMICOLON, (599 . 599))) : shift and goto state 1793
  5: 1793: (-1, 102:(ELSE, (607 . 610))) : reduce 4 tokens to assignment_statement
-(assignment_statement_0, (593 . 599) <= ((name, (593 . 593)), 99:(COLON_EQUAL, (595 . 596)), (expression, (598 . 598)), 101:(SEMICOLON, (599 . 599))))
+(assignment_statement_0, (593 . 599) <= ((name_2, (593 . 593)), 99:(COLON_EQUAL, (595 . 596)), (expression_0, (598 . 598)), 101:(SEMICOLON, (599 . 599))))
  ... goto state 466
  5: 466: (-1, 102:(ELSE, (607 . 610))) : reduce 1 tokens to simple_statement
-(simple_statement_0, (593 . 599) <= ((assignment_statement, (593 . 599))))
+(simple_statement_0, (593 . 599) <= ((assignment_statement_0, (593 . 599))))
  ... goto state 480
  5: 480: (-1, 102:(ELSE, (607 . 610))) : reduce 1 tokens to statement
-(statement_0, (593 . 599) <= ((simple_statement, (593 . 599))))
+(statement_0, (593 . 599) <= ((simple_statement_0, (593 . 599))))
  ... goto state 481
  5: 481: (-1, 102:(ELSE, (607 . 610))) : reduce 1 tokens to sequence_of_statements
-(sequence_of_statements_1, (593 . 599) <= ((statement, (593 . 599))))
+(sequence_of_statements_1, (593 . 599) <= ((statement_0, (593 . 599))))
  ... goto state 2181
  5: 2181: (-1, 102:(ELSE, (607 . 610))) : reduce 4 tokens to elsif_statement_item
-(elsif_statement_item_0, (567 . 599) <= (93:(ELSIF, (567 . 571)), (expression, (573 . 577)), 97:(THEN, (579 . 582)), (sequence_of_statements, (593 . 599))))
+(elsif_statement_item_0, (567 . 599) <= (93:(ELSIF, (567 . 571)), (expression_0, (573 . 577)), 97:(THEN, (579 . 582)), (sequence_of_statements_1, (593 . 599))))
  ... goto state 856
  5: 856: (-1, 102:(ELSE, (607 . 610))) : reduce 1 tokens to elsif_statement_list
-(elsif_statement_list_1, (567 . 599) <= ((elsif_statement_item, (567 . 599))))
+(elsif_statement_list_1, (567 . 599) <= ((elsif_statement_item_0, (567 . 599))))
  ... goto state 1406
  5: 1406: (-1, 102:(ELSE, (607 . 610))) : shift and goto state 1834
  5: 1834: (-1, 103:(IDENTIFIER, (621 . 621))) : shift and goto state 10
@@ -820,50 +820,50 @@ in_parse_action OK
 (primary_0, (626 . 626) <= (105:(NUMERIC_LITERAL, (626 . 626))))
  ... goto state 121
  5: 121: (-1, 106:(SEMICOLON, (627 . 627))) : reduce 1 tokens to factor
-(factor_0, (626 . 626) <= ((primary, (626 . 626))))
+(factor_0, (626 . 626) <= ((primary_0, (626 . 626))))
  ... goto state 118
  5: 118: (-1, 106:(SEMICOLON, (627 . 627))) : reduce 1 tokens to term
-(term_1, (626 . 626) <= ((factor, (626 . 626))))
+(term_1, (626 . 626) <= ((factor_0, (626 . 626))))
  ... goto state 128
  5: 128: (-1, 106:(SEMICOLON, (627 . 627))) : reduce 1 tokens to term_list
-(term_list_1, (626 . 626) <= ((term, (626 . 626))))
+(term_list_1, (626 . 626) <= ((term_1, (626 . 626))))
  ... goto state 129
  5: 129: (-1, 106:(SEMICOLON, (627 . 627))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (626 . 626) <= ((term_list, (626 . 626))))
+(simple_expression_1, (626 . 626) <= ((term_list_1, (626 . 626))))
  ... goto state 127
  5: 127: (-1, 106:(SEMICOLON, (627 . 627))) : reduce 1 tokens to relation
-(relation_1, (626 . 626) <= ((simple_expression, (626 . 626))))
+(relation_1, (626 . 626) <= ((simple_expression_1, (626 . 626))))
  ... goto state 125
  5: 125: (-1, 106:(SEMICOLON, (627 . 627))) : reduce 1 tokens to expression
-(expression_0, (626 . 626) <= ((relation, (626 . 626))))
+(expression_0, (626 . 626) <= ((relation_1, (626 . 626))))
  ... goto state 559
  5: 559: (-1, 106:(SEMICOLON, (627 . 627))) : shift and goto state 903
  5: 903: (-1, 107:(END, (635 . 637))) : reduce 4 tokens to assignment_statement
-(assignment_statement_0, (621 . 627) <= ((name, (621 . 621)), 104:(COLON_EQUAL, (623 . 624)), (expression, (626 . 626)), 106:(SEMICOLON, (627 . 627))))
+(assignment_statement_0, (621 . 627) <= ((name_2, (621 . 621)), 104:(COLON_EQUAL, (623 . 624)), (expression_0, (626 . 626)), 106:(SEMICOLON, (627 . 627))))
  ... goto state 88
  5: 88: (-1, 107:(END, (635 . 637))) : reduce 1 tokens to simple_statement
-(simple_statement_0, (621 . 627) <= ((assignment_statement, (621 . 627))))
+(simple_statement_0, (621 . 627) <= ((assignment_statement_0, (621 . 627))))
  ... goto state 102
  5: 102: (-1, 107:(END, (635 . 637))) : reduce 1 tokens to statement
-(statement_0, (621 . 627) <= ((simple_statement, (621 . 627))))
+(statement_0, (621 . 627) <= ((simple_statement_0, (621 . 627))))
  ... goto state 103
  5: 103: (-1, 107:(END, (635 . 637))) : reduce 1 tokens to sequence_of_statements
-(sequence_of_statements_1, (621 . 627) <= ((statement, (621 . 627))))
+(sequence_of_statements_1, (621 . 627) <= ((statement_0, (621 . 627))))
  ... goto state 2205
  5: 2205: (-1, 107:(END, (635 . 637))) : shift and goto state 2430
  5: 2430: (-1, 108:(IF, (639 . 640))) : shift and goto state 2644
  5: 2644: (-1, 109:(SEMICOLON, (641 . 641))) : shift and goto state 2754
  5: 2754: (-1, 110:(END, (646 . 648))) : reduce 10 tokens to if_statement
-(if_statement_0, (530 . 641) <= (84:(IF, (530 . 531)), (expression, (533 . 537)), 88:(THEN, (539 . 542)), (sequence_of_statements, (553 . 559)), (elsif_statement_list, (567 . 599)), 102:(ELSE, (607 . 610)), (sequence_of_statements, (621 . 627)), 107:(END, (635 . 637)), 108:(IF, (639 . 640)), 109:(SEMICOLON, (641 . 641))))
+(if_statement_0, (530 . 641) <= (84:(IF, (530 . 531)), (expression_0, (533 . 537)), 88:(THEN, (539 . 542)), (sequence_of_statements_1, (553 . 559)), (elsif_statement_list_1, (567 . 599)), 102:(ELSE, (607 . 610)), (sequence_of_statements_1, (621 . 627)), 107:(END, (635 . 637)), 108:(IF, (639 . 640)), 109:(SEMICOLON, (641 . 641))))
  ... goto state 95
  5: 95: (-1, 110:(END, (646 . 648))) : reduce 1 tokens to compound_statement
-(compound_statement_0, (530 . 641) <= ((if_statement, (530 . 641))))
+(compound_statement_0, (530 . 641) <= ((if_statement_0, (530 . 641))))
  ... goto state 92
  5: 92: (-1, 110:(END, (646 . 648))) : reduce 1 tokens to statement
-(statement_1, (530 . 641) <= ((compound_statement, (530 . 641))))
+(statement_1, (530 . 641) <= ((compound_statement_0, (530 . 641))))
  ... goto state 226
  5: 226: (-1, 110:(END, (646 . 648))) : reduce 2 tokens to sequence_of_statements
-(sequence_of_statements_0, (507 . 641) <= ((sequence_of_statements, (507 . 522)), (statement, (530 . 641))))
+(sequence_of_statements_0, (507 . 641) <= ((sequence_of_statements_1, (507 . 522)), (statement_1, (530 . 641))))
  ... goto state 647
  5: 647: (-1, 110:(END, (646 . 648))) : shift and goto state 982
  5: 982: (-1, 111:(LOOP, (650 . 653))) : shift and goto state 1520
@@ -872,19 +872,19 @@ in_parse_action OK
  ... goto state 1902
  5: 1902: (-1, 112:(SEMICOLON, (654 . 654))) : shift and goto state 2264
  5: 2264: (-1, 113:(END, (656 . 658))) : reduce 6 tokens to loop_statement
-(loop_statement_1, (499 . 654) <= (77:(LOOP, (499 . 502)), (sequence_of_statements, (507 . 641)), 110:(END, (646 . 648)), 111:(LOOP, (650 . 653)), (identifier_opt), 112:(SEMICOLON, (654 . 654))))
+(loop_statement_1, (499 . 654) <= (77:(LOOP, (499 . 502)), (sequence_of_statements_0, (507 . 641)), 110:(END, (646 . 648)), 111:(LOOP, (650 . 653)), (identifier_opt_1), 112:(SEMICOLON, (654 . 654))))
  ... goto state 273
  5: 273: (-1, 113:(END, (656 . 658))) : reduce 1 tokens to compound_statement
-(compound_statement_2, (499 . 654) <= ((loop_statement, (499 . 654))))
+(compound_statement_2, (499 . 654) <= ((loop_statement_1, (499 . 654))))
  ... goto state 267
  5: 267: (-1, 113:(END, (656 . 658))) : reduce 1 tokens to statement
-(statement_1, (499 . 654) <= ((compound_statement, (499 . 654))))
+(statement_1, (499 . 654) <= ((compound_statement_2, (499 . 654))))
  ... goto state 279
  5: 279: (-1, 113:(END, (656 . 658))) : reduce 1 tokens to sequence_of_statements
-(sequence_of_statements_1, (499 . 654) <= ((statement, (499 . 654))))
+(sequence_of_statements_1, (499 . 654) <= ((statement_1, (499 . 654))))
  ... goto state 276
  5: 276: (-1, 113:(END, (656 . 658))) : reduce 1 tokens to handled_sequence_of_statements
-(handled_sequence_of_statements_1, (499 . 654) <= ((sequence_of_statements, (499 . 654))))
+(handled_sequence_of_statements_1, (499 . 654) <= ((sequence_of_statements_1, (499 . 654))))
  ... goto state 1644
  5: 1644: (-1, 113:(END, (656 . 658))) : shift and goto state 2075
  5: 2075: (-1, 114:(SEMICOLON, (659 . 659))) : reduce 0 tokens to name_opt
@@ -892,14 +892,14 @@ in_parse_action OK
  ... goto state 2355
  5: 2355: (-1, 114:(SEMICOLON, (659 . 659))) : shift and goto state 2538
  5: 2538: (-1, 115:(PROCEDURE, (662 . 670))) : reduce 9 tokens to subprogram_body
-(subprogram_body_0, (438 . 659) <= ((subprogram_specification, (438 . 453)), (aspect_specification_opt), 67:(IS, (455 . 456)), (declarative_part, (461 . 488)), 76:(BEGIN, (490 . 494)), (handled_sequence_of_statements, (499 . 654)), 113:(END, (656 . 658)), (name_opt), 114:(SEMICOLON, (659 . 659))))
+(subprogram_body_0, (438 . 659) <= ((subprogram_specification_0, (438 . 453)), (aspect_specification_opt_1), 67:(IS, (455 . 456)), (declarative_part_0, (461 . 488)), 76:(BEGIN, (490 . 494)), (handled_sequence_of_statements_1, (499 . 654)), 113:(END, (656 . 658)), (name_opt_1), 114:(SEMICOLON, (659 . 659))))
 in_parse_action OK
  ... goto state 34
  5: 34: (-1, 115:(PROCEDURE, (662 . 670))) : reduce 1 tokens to compilation_unit
-(compilation_unit_3, (438 . 659) <= ((subprogram_body, (438 . 659))))
+(compilation_unit_3, (438 . 659) <= ((subprogram_body_0, (438 . 659))))
  ... goto state 134
  5: 134: (-1, 115:(PROCEDURE, (662 . 670))) : reduce 2 tokens to compilation_unit_list
-(compilation_unit_list_0, (161 . 659) <= ((compilation_unit_list, (161 . 435)), (compilation_unit, (438 . 659))))
+(compilation_unit_list_0, (161 . 659) <= ((compilation_unit_list_0, (161 . 435)), (compilation_unit_3, (438 . 659))))
  ... goto state 16
  5: 16: (-1, 115:(PROCEDURE, (662 . 670))) : shift and goto state 8
  5: 8: (-1, 116:(IDENTIFIER, (672 . 677))) : shift and goto state 108
@@ -914,11 +914,11 @@ tree size:  400
  ... goto state 238
  5: 109: (-1, 117:(IS, (679 . 680))) : shift and goto state 233
  6: 238: (-1, 117:(IS, (679 . 680))) : reduce 3 tokens to procedure_specification
-(procedure_specification_0, (662 . 677) <= (115:(PROCEDURE, (662 . 670)), (name, (672 . 677)), (parameter_profile_opt)))
+(procedure_specification_0, (662 . 677) <= (115:(PROCEDURE, (662 . 670)), (name_2, (672 . 677)), (parameter_profile_opt_1)))
 in_parse_action OK
  ... goto state 29
  6: 29: (-1, 117:(IS, (679 . 680))) : reduce 1 tokens to subprogram_specification
-(subprogram_specification_0, (662 . 677) <= ((procedure_specification, (662 . 677))))
+(subprogram_specification_0, (662 . 677) <= ((procedure_specification_0, (662 . 677))))
 in_parse_action OK
  ... goto state 36
  6: 36: (-1, 117:(IS, (679 . 680))) : reduce 0 tokens to aspect_specification_opt
@@ -950,21 +950,21 @@ in_parse_action OK
  6: zombie
  5: terminate (2 active): zombie (5, 170:(IDENTIFIER, (685 . 685) ERROR))
  7: 1002: (-1, 121:(SEMICOLON, (696 . 696))) : reduce 1 tokens to subtype_indication
-(subtype_indication_1, (689 . 695) <= ((name, (689 . 695))))
+(subtype_indication_1, (689 . 695) <= ((name_2, (689 . 695))))
  ... goto state 1004
  6: zombie
  7: 1004: (-1, 121:(SEMICOLON, (696 . 696))) : shift and goto state 1550
  6: zombie
  7: 1550: (-1, 122:(IDENTIFIER, (701 . 701))) : reduce 4 tokens to object_declaration
-(object_declaration_1, (685 . 696) <= ((defining_identifier_list, (685 . 685)), 119:(COLON, (687 . 687)), (subtype_indication, (689 . 695)), 121:(SEMICOLON, (696 . 696))))
+(object_declaration_1, (685 . 696) <= ((defining_identifier_list_0, (685 . 685)), 119:(COLON, (687 . 687)), (subtype_indication_1, (689 . 695)), 121:(SEMICOLON, (696 . 696))))
  ... goto state 291
  6: zombie
  7: 291: (-1, 122:(IDENTIFIER, (701 . 701))) : reduce 1 tokens to declaration
-(declaration_1, (685 . 696) <= ((object_declaration, (685 . 696))))
+(declaration_1, (685 . 696) <= ((object_declaration_1, (685 . 696))))
  ... goto state 286
  6: zombie
  7: 286: (-1, 122:(IDENTIFIER, (701 . 701))) : reduce 1 tokens to declarations
-(declarations_1, (685 . 696) <= ((declaration, (685 . 696))))
+(declarations_1, (685 . 696) <= ((declaration_1, (685 . 696))))
  ... goto state 287
  6: zombie
  7: 287: (-1, 122:(IDENTIFIER, (701 . 701))) : shift and goto state 283
@@ -989,25 +989,25 @@ in_parse_action OK
  7: 996: expecting: LEFT_PAREN, RANGE, RENAMES, DOT
  7: zombie
  8: 1002: (-1, 125:(SEMICOLON, (712 . 712))) : reduce 1 tokens to subtype_indication
-(subtype_indication_1, (705 . 711) <= ((name, (705 . 711))))
+(subtype_indication_1, (705 . 711) <= ((name_2, (705 . 711))))
  ... goto state 1004
  7: zombie
  8: 1004: (-1, 125:(SEMICOLON, (712 . 712))) : shift and goto state 1550
  7: zombie
  8: 1550: (-1, 126:(BEGIN, (714 . 718))) : reduce 4 tokens to object_declaration
-(object_declaration_1, (701 . 712) <= ((defining_identifier_list, (701 . 701)), 123:(COLON, (703 . 703)), (subtype_indication, (705 . 711)), 125:(SEMICOLON, (712 . 712))))
+(object_declaration_1, (701 . 712) <= ((defining_identifier_list_0, (701 . 701)), 123:(COLON, (703 . 703)), (subtype_indication_1, (705 . 711)), 125:(SEMICOLON, (712 . 712))))
  ... goto state 291
  7: zombie
  8: 291: (-1, 126:(BEGIN, (714 . 718))) : reduce 1 tokens to declaration
-(declaration_1, (701 . 712) <= ((object_declaration, (701 . 712))))
+(declaration_1, (701 . 712) <= ((object_declaration_1, (701 . 712))))
  ... goto state 662
  7: zombie
  8: 662: (-1, 126:(BEGIN, (714 . 718))) : reduce 2 tokens to declarations
-(declarations_0, (685 . 712) <= ((declarations, (685 . 696)), (declaration, (701 . 712))))
+(declarations_0, (685 . 712) <= ((declarations_1, (685 . 696)), (declaration_1, (701 . 712))))
  ... goto state 287
  7: zombie
  8: 287: (-1, 126:(BEGIN, (714 . 718))) : reduce 1 tokens to declarative_part
-(declarative_part_0, (685 . 712) <= ((declarations, (685 . 712))))
+(declarative_part_0, (685 . 712) <= ((declarations_0, (685 . 712))))
  ... goto state 711
  7: zombie
  8: 711: (-1, 126:(BEGIN, (714 . 718))) : shift and goto state 1180
@@ -1021,25 +1021,25 @@ in_parse_action OK
 in_parse_action OK
  ... goto state 46
  8: 46: (-1, 129:(IS, (730 . 731))) : reduce 1 tokens to primary
-(primary_2, (728 . 728) <= ((name, (728 . 728))))
+(primary_2, (728 . 728) <= ((name_2, (728 . 728))))
  ... goto state 48
  8: 48: (-1, 129:(IS, (730 . 731))) : reduce 1 tokens to factor
-(factor_0, (728 . 728) <= ((primary, (728 . 728))))
+(factor_0, (728 . 728) <= ((primary_2, (728 . 728))))
  ... goto state 45
  8: 45: (-1, 129:(IS, (730 . 731))) : reduce 1 tokens to term
-(term_1, (728 . 728) <= ((factor, (728 . 728))))
+(term_1, (728 . 728) <= ((factor_0, (728 . 728))))
  ... goto state 55
  8: 55: (-1, 129:(IS, (730 . 731))) : reduce 1 tokens to term_list
-(term_list_1, (728 . 728) <= ((term, (728 . 728))))
+(term_list_1, (728 . 728) <= ((term_1, (728 . 728))))
  ... goto state 56
  8: 56: (-1, 129:(IS, (730 . 731))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (728 . 728) <= ((term_list, (728 . 728))))
+(simple_expression_1, (728 . 728) <= ((term_list_1, (728 . 728))))
  ... goto state 54
  8: 54: (-1, 129:(IS, (730 . 731))) : reduce 1 tokens to relation
-(relation_1, (728 . 728) <= ((simple_expression, (728 . 728))))
+(relation_1, (728 . 728) <= ((simple_expression_1, (728 . 728))))
  ... goto state 52
  8: 52: (-1, 129:(IS, (730 . 731))) : reduce 1 tokens to expression
-(expression_0, (728 . 728) <= ((relation, (728 . 728))))
+(expression_0, (728 . 728) <= ((relation_1, (728 . 728))))
  ... goto state 644
  8: 644: (-1, 129:(IS, (730 . 731))) : shift and goto state 978
  8: 978: (-1, 130:(WHEN, (736 . 739))) : shift and goto state 364
@@ -1052,25 +1052,25 @@ in_parse_action OK
 in_parse_action OK
  ... goto state 46
  8: 46: (-1, 135:(IS, (760 . 761))) : reduce 1 tokens to primary
-(primary_2, (758 . 758) <= ((name, (758 . 758))))
+(primary_2, (758 . 758) <= ((name_2, (758 . 758))))
  ... goto state 48
  8: 48: (-1, 135:(IS, (760 . 761))) : reduce 1 tokens to factor
-(factor_0, (758 . 758) <= ((primary, (758 . 758))))
+(factor_0, (758 . 758) <= ((primary_2, (758 . 758))))
  ... goto state 45
  8: 45: (-1, 135:(IS, (760 . 761))) : reduce 1 tokens to term
-(term_1, (758 . 758) <= ((factor, (758 . 758))))
+(term_1, (758 . 758) <= ((factor_0, (758 . 758))))
  ... goto state 55
  8: 55: (-1, 135:(IS, (760 . 761))) : reduce 1 tokens to term_list
-(term_list_1, (758 . 758) <= ((term, (758 . 758))))
+(term_list_1, (758 . 758) <= ((term_1, (758 . 758))))
  ... goto state 56
  8: 56: (-1, 135:(IS, (760 . 761))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (758 . 758) <= ((term_list, (758 . 758))))
+(simple_expression_1, (758 . 758) <= ((term_list_1, (758 . 758))))
  ... goto state 54
  8: 54: (-1, 135:(IS, (760 . 761))) : reduce 1 tokens to relation
-(relation_1, (758 . 758) <= ((simple_expression, (758 . 758))))
+(relation_1, (758 . 758) <= ((simple_expression_1, (758 . 758))))
  ... goto state 52
  8: 52: (-1, 135:(IS, (760 . 761))) : reduce 1 tokens to expression
-(expression_0, (758 . 758) <= ((relation, (758 . 758))))
+(expression_0, (758 . 758) <= ((relation_1, (758 . 758))))
  ... goto state 2108
  8: 2108: (-1, 135:(IS, (760 . 761))) : shift and goto state 2374
  8: 2374: (-1, 136:(WHEN, (769 . 772))) : shift and goto state 364
@@ -1083,22 +1083,22 @@ in_parse_action OK
  ... goto state 1726
  8: 1726: (-1, 140:(SEMICOLON, (794 . 794))) : shift and goto state 2118
  8: 2118: (-1, 141:(WHEN, (802 . 805))) : reduce 2 tokens to procedure_call_statement
-(procedure_call_statement_0, (788 . 794) <= ((name, (788 . 793)), 140:(SEMICOLON, (794 . 794))))
+(procedure_call_statement_0, (788 . 794) <= ((name_2, (788 . 793)), 140:(SEMICOLON, (794 . 794))))
  ... goto state 1727
  8: 1727: (-1, 141:(WHEN, (802 . 805))) : reduce 1 tokens to simple_statement
-(simple_statement_2, (788 . 794) <= ((procedure_call_statement, (788 . 794))))
+(simple_statement_2, (788 . 794) <= ((procedure_call_statement_0, (788 . 794))))
  ... goto state 1730
  8: 1730: (-1, 141:(WHEN, (802 . 805))) : reduce 1 tokens to statement
-(statement_0, (788 . 794) <= ((simple_statement, (788 . 794))))
+(statement_0, (788 . 794) <= ((simple_statement_2, (788 . 794))))
  ... goto state 1731
  8: 1731: (-1, 141:(WHEN, (802 . 805))) : reduce 1 tokens to sequence_of_statements
-(sequence_of_statements_1, (788 . 794) <= ((statement, (788 . 794))))
+(sequence_of_statements_1, (788 . 794) <= ((statement_0, (788 . 794))))
  ... goto state 1728
  8: 1728: (-1, 141:(WHEN, (802 . 805))) : reduce 4 tokens to case_statement_alternative
-(case_statement_alternative_0, (769 . 794) <= (136:(WHEN, (769 . 772)), 137:(NUMERIC_LITERAL, (774 . 774)), 138:(EQUAL_GREATER, (776 . 777)), (sequence_of_statements, (788 . 794))))
+(case_statement_alternative_0, (769 . 794) <= (136:(WHEN, (769 . 772)), 137:(NUMERIC_LITERAL, (774 . 774)), 138:(EQUAL_GREATER, (776 . 777)), (sequence_of_statements_1, (788 . 794))))
  ... goto state 365
  8: 365: (-1, 141:(WHEN, (802 . 805))) : reduce 1 tokens to case_statement_alternative_list
-(case_statement_alternative_list_1, (769 . 794) <= ((case_statement_alternative, (769 . 794))))
+(case_statement_alternative_list_1, (769 . 794) <= ((case_statement_alternative_0, (769 . 794))))
  ... goto state 2545
  8: 2545: (-1, 141:(WHEN, (802 . 805))) : shift and goto state 364
  8: 364: (-1, 142:(NUMERIC_LITERAL, (807 . 807))) : shift and goto state 780
@@ -1115,31 +1115,31 @@ in_parse_action OK
 in_parse_action OK
  ... goto state 310
  8: 310: (-1, 147:(COMMA, (830 . 830))) : reduce 1 tokens to primary
-(primary_2, (829 . 829) <= ((name, (829 . 829))))
+(primary_2, (829 . 829) <= ((name_2, (829 . 829))))
  ... goto state 312
  8: 312: (-1, 147:(COMMA, (830 . 830))) : reduce 1 tokens to factor
-(factor_0, (829 . 829) <= ((primary, (829 . 829))))
+(factor_0, (829 . 829) <= ((primary_2, (829 . 829))))
  ... goto state 309
  8: 309: (-1, 147:(COMMA, (830 . 830))) : reduce 1 tokens to term
-(term_1, (829 . 829) <= ((factor, (829 . 829))))
+(term_1, (829 . 829) <= ((factor_0, (829 . 829))))
  ... goto state 321
  8: 321: (-1, 147:(COMMA, (830 . 830))) : reduce 1 tokens to term_list
-(term_list_1, (829 . 829) <= ((term, (829 . 829))))
+(term_list_1, (829 . 829) <= ((term_1, (829 . 829))))
  ... goto state 322
  8: 322: (-1, 147:(COMMA, (830 . 830))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (829 . 829) <= ((term_list, (829 . 829))))
+(simple_expression_1, (829 . 829) <= ((term_list_1, (829 . 829))))
  ... goto state 320
  8: 320: (-1, 147:(COMMA, (830 . 830))) : reduce 1 tokens to relation
-(relation_1, (829 . 829) <= ((simple_expression, (829 . 829))))
+(relation_1, (829 . 829) <= ((simple_expression_1, (829 . 829))))
  ... goto state 318
  8: 318: (-1, 147:(COMMA, (830 . 830))) : reduce 1 tokens to expression
-(expression_0, (829 . 829) <= ((relation, (829 . 829))))
+(expression_0, (829 . 829) <= ((relation_1, (829 . 829))))
  ... goto state 308
  8: 308: (-1, 147:(COMMA, (830 . 830))) : reduce 1 tokens to association_opt
-(association_opt_1, (829 . 829) <= ((expression, (829 . 829))))
+(association_opt_1, (829 . 829) <= ((expression_0, (829 . 829))))
  ... goto state 306
  8: 306: (-1, 147:(COMMA, (830 . 830))) : reduce 1 tokens to association_list
-(association_list_1, (829 . 829) <= ((association_opt, (829 . 829))))
+(association_list_1, (829 . 829) <= ((association_opt_1, (829 . 829))))
  ... goto state 307
  8: 307: (-1, 147:(COMMA, (830 . 830))) : shift and goto state 675
  8: 675: (-1, 148:(IDENTIFIER, (832 . 832))) : shift and goto state 1025
@@ -1148,78 +1148,78 @@ in_parse_action OK
 in_parse_action OK
  ... goto state 1017
  8: 1017: (-1, 149:(RIGHT_PAREN, (833 . 833))) : reduce 1 tokens to primary
-(primary_2, (832 . 832) <= ((name, (832 . 832))))
+(primary_2, (832 . 832) <= ((name_2, (832 . 832))))
  ... goto state 1019
  8: 1019: (-1, 149:(RIGHT_PAREN, (833 . 833))) : reduce 1 tokens to factor
-(factor_0, (832 . 832) <= ((primary, (832 . 832))))
+(factor_0, (832 . 832) <= ((primary_2, (832 . 832))))
  ... goto state 1016
  8: 1016: (-1, 149:(RIGHT_PAREN, (833 . 833))) : reduce 1 tokens to term
-(term_1, (832 . 832) <= ((factor, (832 . 832))))
+(term_1, (832 . 832) <= ((factor_0, (832 . 832))))
  ... goto state 1022
  8: 1022: (-1, 149:(RIGHT_PAREN, (833 . 833))) : reduce 1 tokens to term_list
-(term_list_1, (832 . 832) <= ((term, (832 . 832))))
+(term_list_1, (832 . 832) <= ((term_1, (832 . 832))))
  ... goto state 1023
  8: 1023: (-1, 149:(RIGHT_PAREN, (833 . 833))) : reduce 1 tokens to simple_expression
-(simple_expression_1, (832 . 832) <= ((term_list, (832 . 832))))
+(simple_expression_1, (832 . 832) <= ((term_list_1, (832 . 832))))
  ... goto state 1021
  8: 1021: (-1, 149:(RIGHT_PAREN, (833 . 833))) : reduce 1 tokens to relation
-(relation_1, (832 . 832) <= ((simple_expression, (832 . 832))))
+(relation_1, (832 . 832) <= ((simple_expression_1, (832 . 832))))
  ... goto state 318
  8: 318: (-1, 149:(RIGHT_PAREN, (833 . 833))) : reduce 1 tokens to expression
-(expression_0, (832 . 832) <= ((relation, (832 . 832))))
+(expression_0, (832 . 832) <= ((relation_1, (832 . 832))))
  ... goto state 308
  8: 308: (-1, 149:(RIGHT_PAREN, (833 . 833))) : reduce 1 tokens to association_opt
-(association_opt_1, (832 . 832) <= ((expression, (832 . 832))))
+(association_opt_1, (832 . 832) <= ((expression_0, (832 . 832))))
  ... goto state 1026
  8: 1026: (-1, 149:(RIGHT_PAREN, (833 . 833))) : reduce 3 tokens to association_list
-(association_list_0, (829 . 832) <= ((association_list, (829 . 829)), 147:(COMMA, (830 . 830)), (association_opt, (832 . 832))))
+(association_list_0, (829 . 832) <= ((association_list_1, (829 . 829)), 147:(COMMA, (830 . 830)), (association_opt_1, (832 . 832))))
  ... goto state 307
  8: 307: (-1, 149:(RIGHT_PAREN, (833 . 833))) : shift and goto state 674
  8: 674: (-1, 150:(SEMICOLON, (834 . 834))) : reduce 3 tokens to actual_parameter_part
-(actual_parameter_part_0, (828 . 833) <= (145:(LEFT_PAREN, (828 . 828)), (association_list, (829 . 832)), 149:(RIGHT_PAREN, (833 . 833))))
+(actual_parameter_part_0, (828 . 833) <= (145:(LEFT_PAREN, (828 . 828)), (association_list_0, (829 . 832)), 149:(RIGHT_PAREN, (833 . 833))))
  ... goto state 140
  8: 140: (-1, 150:(SEMICOLON, (834 . 834))) : reduce 2 tokens to name
-(name_1, (821 . 833) <= ((name, (821 . 826)), (actual_parameter_part, (828 . 833))))
+(name_1, (821 . 833) <= ((name_2, (821 . 826)), (actual_parameter_part_0, (828 . 833))))
  ... goto state 1726
  8: 1726: (-1, 150:(SEMICOLON, (834 . 834))) : shift and goto state 2118
  8: 2118: (-1, 151:(END, (842 . 844))) : reduce 2 tokens to procedure_call_statement
-(procedure_call_statement_0, (821 . 834) <= ((name, (821 . 833)), 150:(SEMICOLON, (834 . 834))))
+(procedure_call_statement_0, (821 . 834) <= ((name_1, (821 . 833)), 150:(SEMICOLON, (834 . 834))))
  ... goto state 1727
  8: 1727: (-1, 151:(END, (842 . 844))) : reduce 1 tokens to simple_statement
-(simple_statement_2, (821 . 834) <= ((procedure_call_statement, (821 . 834))))
+(simple_statement_2, (821 . 834) <= ((procedure_call_statement_0, (821 . 834))))
  ... goto state 1730
  8: 1730: (-1, 151:(END, (842 . 844))) : reduce 1 tokens to statement
-(statement_0, (821 . 834) <= ((simple_statement, (821 . 834))))
+(statement_0, (821 . 834) <= ((simple_statement_2, (821 . 834))))
  ... goto state 1731
  8: 1731: (-1, 151:(END, (842 . 844))) : reduce 1 tokens to sequence_of_statements
-(sequence_of_statements_1, (821 . 834) <= ((statement, (821 . 834))))
+(sequence_of_statements_1, (821 . 834) <= ((statement_0, (821 . 834))))
  ... goto state 1728
  8: 1728: (-1, 151:(END, (842 . 844))) : reduce 4 tokens to case_statement_alternative
-(case_statement_alternative_0, (802 . 834) <= (141:(WHEN, (802 . 805)), 142:(NUMERIC_LITERAL, (807 . 807)), 143:(EQUAL_GREATER, (809 . 810)), (sequence_of_statements, (821 . 834))))
+(case_statement_alternative_0, (802 . 834) <= (141:(WHEN, (802 . 805)), 142:(NUMERIC_LITERAL, (807 . 807)), 143:(EQUAL_GREATER, (809 . 810)), (sequence_of_statements_1, (821 . 834))))
  ... goto state 782
  8: 782: (-1, 151:(END, (842 . 844))) : reduce 2 tokens to case_statement_alternative_list
-(case_statement_alternative_list_0, (769 . 834) <= ((case_statement_alternative_list, (769 . 794)), (case_statement_alternative, (802 . 834))))
+(case_statement_alternative_list_0, (769 . 834) <= ((case_statement_alternative_list_1, (769 . 794)), (case_statement_alternative_0, (802 . 834))))
  ... goto state 2545
  8: 2545: (-1, 151:(END, (842 . 844))) : shift and goto state 2696
  8: 2696: (-1, 152:(CASE, (846 . 849))) : shift and goto state 2782
  8: 2782: (-1, 153:(SEMICOLON, (850 . 850))) : shift and goto state 2877
  8: 2877: (-1, 154:(WHEN, (855 . 858))) : reduce 7 tokens to case_statement
-(case_statement_0, (753 . 850) <= (133:(CASE, (753 . 756)), (expression, (758 . 758)), 135:(IS, (760 . 761)), (case_statement_alternative_list, (769 . 834)), 151:(END, (842 . 844)), 152:(CASE, (846 . 849)), 153:(SEMICOLON, (850 . 850))))
+(case_statement_0, (753 . 850) <= (133:(CASE, (753 . 756)), (expression_0, (758 . 758)), 135:(IS, (760 . 761)), (case_statement_alternative_list_0, (769 . 834)), 151:(END, (842 . 844)), 152:(CASE, (846 . 849)), 153:(SEMICOLON, (850 . 850))))
  ... goto state 1719
  8: 1719: (-1, 154:(WHEN, (855 . 858))) : reduce 1 tokens to compound_statement
-(compound_statement_1, (753 . 850) <= ((case_statement, (753 . 850))))
+(compound_statement_1, (753 . 850) <= ((case_statement_0, (753 . 850))))
  ... goto state 1720
  8: 1720: (-1, 154:(WHEN, (855 . 858))) : reduce 1 tokens to statement
-(statement_1, (753 . 850) <= ((compound_statement, (753 . 850))))
+(statement_1, (753 . 850) <= ((compound_statement_1, (753 . 850))))
  ... goto state 1731
  8: 1731: (-1, 154:(WHEN, (855 . 858))) : reduce 1 tokens to sequence_of_statements
-(sequence_of_statements_1, (753 . 850) <= ((statement, (753 . 850))))
+(sequence_of_statements_1, (753 . 850) <= ((statement_1, (753 . 850))))
  ... goto state 1728
  8: 1728: (-1, 154:(WHEN, (855 . 858))) : reduce 4 tokens to case_statement_alternative
-(case_statement_alternative_0, (736 . 850) <= (130:(WHEN, (736 . 739)), 131:(NUMERIC_LITERAL, (741 . 741)), 132:(EQUAL_GREATER, (743 . 744)), (sequence_of_statements, (753 . 850))))
+(case_statement_alternative_0, (736 . 850) <= (130:(WHEN, (736 . 739)), 131:(NUMERIC_LITERAL, (741 . 741)), 132:(EQUAL_GREATER, (743 . 744)), (sequence_of_statements_1, (753 . 850))))
  ... goto state 365
  8: 365: (-1, 154:(WHEN, (855 . 858))) : reduce 1 tokens to case_statement_alternative_list
-(case_statement_alternative_list_1, (736 . 850) <= ((case_statement_alternative, (736 . 850))))
+(case_statement_alternative_list_1, (736 . 850) <= ((case_statement_alternative_0, (736 . 850))))
  ... goto state 1517
  8: 1517: (-1, 154:(WHEN, (855 . 858))) : shift and goto state 364
  8: 364: (-1, 155:(NUMERIC_LITERAL, (860 . 860))) : shift and goto state 780
@@ -1231,40 +1231,40 @@ in_parse_action OK
  ... goto state 1726
  8: 1726: (-1, 158:(SEMICOLON, (878 . 878))) : shift and goto state 2118
  8: 2118: (-1, 159:(END, (883 . 885))) : reduce 2 tokens to procedure_call_statement
-(procedure_call_statement_0, (871 . 878) <= ((name, (871 . 877)), 158:(SEMICOLON, (878 . 878))))
+(procedure_call_statement_0, (871 . 878) <= ((name_2, (871 . 877)), 158:(SEMICOLON, (878 . 878))))
  ... goto state 1727
  8: 1727: (-1, 159:(END, (883 . 885))) : reduce 1 tokens to simple_statement
-(simple_statement_2, (871 . 878) <= ((procedure_call_statement, (871 . 878))))
+(simple_statement_2, (871 . 878) <= ((procedure_call_statement_0, (871 . 878))))
  ... goto state 1730
  8: 1730: (-1, 159:(END, (883 . 885))) : reduce 1 tokens to statement
-(statement_0, (871 . 878) <= ((simple_statement, (871 . 878))))
+(statement_0, (871 . 878) <= ((simple_statement_2, (871 . 878))))
  ... goto state 1731
  8: 1731: (-1, 159:(END, (883 . 885))) : reduce 1 tokens to sequence_of_statements
-(sequence_of_statements_1, (871 . 878) <= ((statement, (871 . 878))))
+(sequence_of_statements_1, (871 . 878) <= ((statement_0, (871 . 878))))
  ... goto state 1728
  8: 1728: (-1, 159:(END, (883 . 885))) : reduce 4 tokens to case_statement_alternative
-(case_statement_alternative_0, (855 . 878) <= (154:(WHEN, (855 . 858)), 155:(NUMERIC_LITERAL, (860 . 860)), 156:(EQUAL_GREATER, (862 . 863)), (sequence_of_statements, (871 . 878))))
+(case_statement_alternative_0, (855 . 878) <= (154:(WHEN, (855 . 858)), 155:(NUMERIC_LITERAL, (860 . 860)), 156:(EQUAL_GREATER, (862 . 863)), (sequence_of_statements_1, (871 . 878))))
  ... goto state 782
  8: 782: (-1, 159:(END, (883 . 885))) : reduce 2 tokens to case_statement_alternative_list
-(case_statement_alternative_list_0, (736 . 878) <= ((case_statement_alternative_list, (736 . 850)), (case_statement_alternative, (855 . 878))))
+(case_statement_alternative_list_0, (736 . 878) <= ((case_statement_alternative_list_1, (736 . 850)), (case_statement_alternative_0, (855 . 878))))
  ... goto state 1517
  8: 1517: (-1, 159:(END, (883 . 885))) : shift and goto state 1897
  8: 1897: (-1, 160:(CASE, (887 . 890))) : shift and goto state 2259
  8: 2259: (-1, 161:(SEMICOLON, (891 . 891))) : shift and goto state 2461
  8: 2461: (-1, 162:(END, (893 . 895))) : reduce 7 tokens to case_statement
-(case_statement_0, (723 . 891) <= (127:(CASE, (723 . 726)), (expression, (728 . 728)), 129:(IS, (730 . 731)), (case_statement_alternative_list, (736 . 878)), 159:(END, (883 . 885)), 160:(CASE, (887 . 890)), 161:(SEMICOLON, (891 . 891))))
+(case_statement_0, (723 . 891) <= (127:(CASE, (723 . 726)), (expression_0, (728 . 728)), 129:(IS, (730 . 731)), (case_statement_alternative_list_0, (736 . 878)), 159:(END, (883 . 885)), 160:(CASE, (887 . 890)), 161:(SEMICOLON, (891 . 891))))
  ... goto state 266
  8: 266: (-1, 162:(END, (893 . 895))) : reduce 1 tokens to compound_statement
-(compound_statement_1, (723 . 891) <= ((case_statement, (723 . 891))))
+(compound_statement_1, (723 . 891) <= ((case_statement_0, (723 . 891))))
  ... goto state 267
  8: 267: (-1, 162:(END, (893 . 895))) : reduce 1 tokens to statement
-(statement_1, (723 . 891) <= ((compound_statement, (723 . 891))))
+(statement_1, (723 . 891) <= ((compound_statement_1, (723 . 891))))
  ... goto state 279
  8: 279: (-1, 162:(END, (893 . 895))) : reduce 1 tokens to sequence_of_statements
-(sequence_of_statements_1, (723 . 891) <= ((statement, (723 . 891))))
+(sequence_of_statements_1, (723 . 891) <= ((statement_1, (723 . 891))))
  ... goto state 276
  8: 276: (-1, 162:(END, (893 . 895))) : reduce 1 tokens to handled_sequence_of_statements
-(handled_sequence_of_statements_1, (723 . 891) <= ((sequence_of_statements, (723 . 891))))
+(handled_sequence_of_statements_1, (723 . 891) <= ((sequence_of_statements_1, (723 . 891))))
  ... goto state 1644
  8: 1644: (-1, 162:(END, (893 . 895))) : shift and goto state 2075
  8: 2075: (-1, 163:(SEMICOLON, (896 . 896))) : reduce 0 tokens to name_opt
@@ -1272,15 +1272,15 @@ in_parse_action OK
  ... goto state 2355
  8: 2355: (-1, 163:(SEMICOLON, (896 . 896))) : shift and goto state 2538
  8: 2538: (-1, 164:(Wisi_EOI, (898 . 897))) : reduce 9 tokens to subprogram_body
-(subprogram_body_0, (662 . 896) <= ((subprogram_specification, (662 . 677)), (aspect_specification_opt), 117:(IS, (679 . 680)), (declarative_part, (685 . 712)), 126:(BEGIN, (714 . 718)), (handled_sequence_of_statements, (723 . 891)), 162:(END, (893 . 895)), (name_opt), 163:(SEMICOLON, (896 . 896))))
+(subprogram_body_0, (662 . 896) <= ((subprogram_specification_0, (662 . 677)), (aspect_specification_opt_1), 117:(IS, (679 . 680)), (declarative_part_0, (685 . 712)), 126:(BEGIN, (714 . 718)), (handled_sequence_of_statements_1, (723 . 891)), 162:(END, (893 . 895)), (name_opt_1), 163:(SEMICOLON, (896 . 896))))
 in_parse_action OK
  ... goto state 34
  8: 34: (-1, 164:(Wisi_EOI, (898 . 897))) : reduce 1 tokens to compilation_unit
-(compilation_unit_3, (662 . 896) <= ((subprogram_body, (662 . 896))))
+(compilation_unit_3, (662 . 896) <= ((subprogram_body_0, (662 . 896))))
  ... goto state 134
  8: 134: (-1, 164:(Wisi_EOI, (898 . 897))) : reduce 2 tokens to compilation_unit_list
-(compilation_unit_list_0, (161 . 896) <= ((compilation_unit_list, (161 . 659)), (compilation_unit, (662 . 896))))
+(compilation_unit_list_0, (161 . 896) <= ((compilation_unit_list_0, (161 . 659)), (compilation_unit_3, (662 . 896))))
  ... goto state 16
  8: 16: (-1, 164:(Wisi_EOI, (898 . 897))) : accept it
-(wisitoken_accept_0, (161 . 896) <= ((compilation_unit_list, (161 . 896))))
+(wisitoken_accept_0, (161 . 896) <= ((compilation_unit_list_0, (161 . 896))))
  8: succeed

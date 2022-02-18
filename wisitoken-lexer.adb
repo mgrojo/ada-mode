@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -60,6 +60,16 @@ package body WisiToken.Lexer is
       Token.Line_Region := @ + Shift_Lines;
    end Shift;
 
+   function To_String (Item : in Recover_Characters) return String
+   is begin
+      for I in Item'Range loop
+         if Item (I) = ASCII.NUL then
+            return Item (Item'First .. I - 1);
+         end if;
+      end loop;
+      return Item;
+   end To_String;
+
    function Column (Token : in Lexer.Token; Line_Begin_Char_Pos : in Buffer_Pos) return Ada.Text_IO.Count
    is begin
       if Token.Line_Region.First = 1 then
@@ -91,7 +101,7 @@ package body WisiToken.Lexer is
      return Line_Number_Type
    is begin
       return Line_At_Byte_Pos
-        (Instance'Class (Lexer), Token.ID, Token.Byte_Region, Byte_Pos, First_Line => Token.Line_Region.First);
+        (Instance'Class (Lexer), Token.Byte_Region, Byte_Pos, First_Line => Token.Line_Region.First);
    end Line_At_Byte_Pos;
 
    function Find_New_Line
@@ -124,11 +134,40 @@ package body WisiToken.Lexer is
       return From_Buffer_Index (Source, Source.Buffer'Last); --  Implicit new_line at EOI
    end Find_String_Or_New_Line;
 
+   function Find_String
+     (Source : in WisiToken.Lexer.Source;
+      Start  : in Buffer_Pos;
+      Item   : in String)
+     return Buffer_Pos
+   is begin
+      for I in To_Buffer_Index (Source, Start) .. Source.Buffer'Last loop
+         if (I + Item'Length <= Source.Buffer'Last) and then
+           Source.Buffer (I .. I + Item'Length - 1) = Item
+         then
+            return From_Buffer_Index (Source, I);
+         end if;
+      end loop;
+      return From_Buffer_Index (Source, Source.Buffer'Last); --  Implicit delimiter at EOI
+   end Find_String;
+
+   function Find_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Region : in Buffer_Region)
+     return Base_Buffer_Pos
+   is begin
+      for I in To_Buffer_Index (Source, Region.First) .. To_Buffer_Index (Source, Region.Last) loop
+         if Source.Buffer (I) = ASCII.LF then
+            return From_Buffer_Index (Source, I);
+         end if;
+      end loop;
+      return Invalid_Buffer_Pos;
+   end Find_New_Line;
+
    function Find_String_Or_New_Line
      (Source : in WisiToken.Lexer.Source;
       Region : in Buffer_Region;
       Item   : in String)
-     return Zero_Buffer_Pos
+     return Base_Buffer_Pos
    is
       Index_Last : constant Integer := To_Buffer_Index (Source, Region.Last);
    begin
@@ -140,8 +179,26 @@ package body WisiToken.Lexer is
             return From_Buffer_Index (Source, I);
          end if;
       end loop;
-      return 0;
+      return Invalid_Buffer_Pos;
    end Find_String_Or_New_Line;
+
+   function Find_String
+     (Source : in WisiToken.Lexer.Source;
+      Region : in Buffer_Region;
+      Item   : in String)
+     return Base_Buffer_Pos
+   is
+      Index_Last : constant Integer := To_Buffer_Index (Source, Region.Last);
+   begin
+      for I in To_Buffer_Index (Source, Region.First) .. Index_Last loop
+         if (I + Item'Length <= Index_Last) and then
+           Source.Buffer (I .. I + Item'Length - 1) = Item
+         then
+            return From_Buffer_Index (Source, I);
+         end if;
+      end loop;
+      return Invalid_Buffer_Pos;
+   end Find_String;
 
    function Line_Begin_Char_Pos
      (Source : in WisiToken.Lexer.Source;

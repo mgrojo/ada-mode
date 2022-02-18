@@ -57,7 +57,7 @@ package body WisiToken.BNF.Output_Ada_Common is
    end Duplicate_Reduce;
 
    function Image (Item : in Boolean) return String
-     is (if Item then "True" else "False");
+   is (if Item then "True" else "False");
 
    function Symbols_Image (State : in Parse.LR.Parse_State) return String
    is
@@ -1157,11 +1157,10 @@ package body WisiToken.BNF.Output_Ada_Common is
                if Close'Length = 3 then
                   --  Here we handle the special case of Close being a single character.
                   Indent_Line
-                    (Name (Generate_Data, I) & " = " & Open & " [^\x0a\x04" & Close (2) & "]*(" &
-                       Close & "|[\x0a]|[\x0d][\x0a]|[\x04]);");
+                    (Name (Generate_Data, I) & " = " & Open & " [^\x0a\x04" & Close (2) & "]* " & Close & ";");
                else
                   raise SAL.Not_Implemented;
-                  --  IMPROVEME: similar to delimited-text, but terminate on new-line, eoi.
+                  --  IMPROVEME: similar to delimited-text, but exclude new-line.
                end if;
             end;
 
@@ -1342,7 +1341,6 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       New_Line_Count : Integer := 0;
       Block_Count    : Integer := 0;
-      Comment_Count  : Integer := 0;
       Need_Separator : Boolean := False;
    begin
       for I in All_Tokens (Generate_Data).Iterate
@@ -1351,27 +1349,32 @@ package body WisiToken.BNF.Output_Ada_Common is
          Include_SOI  => False)
       loop
          if Kind (Generate_Data, I) = "comment-new-line" or
-           Kind (Generate_Data, I) = "comment-one-line"
-           --  comment-one-line does not always contain a new_line, but the
-           --  preconditions in WisiToken.Lexer guarantee it does if we ask for
-           --  Line_Begin_Char_Pos from one.
+           Kind (Generate_Data, I) = "comment-one-line" or
+           Kind (Generate_Data, I) = "string-double-one-line" or
+           Kind (Generate_Data, I) = "string-single-one-line"
+           --  comment-one-line, strings do not always contain a new_line, but
+           --  the preconditions in WisiToken.Lexer guarantee it does if we ask
+           --  for Line_Begin_Char_Pos from one.
          then
             New_Line_Count := @ + 1;
-            Comment_Count  := @ + 1;
+            Block_Count  := @ + 1;
 
          elsif Kind (Generate_Data, I) = "new-line" then
             New_Line_Count := @ + 1;
 
-         elsif Kind (Generate_Data, I) = "delimited-text" then
+         elsif Kind (Generate_Data, I) = "string-double" or
+           Kind (Generate_Data, I) = "string-single" or
+           Kind (Generate_Data, I) = "delimited-text"
+         then
             Block_Count := @ + 1;
          end if;
       end loop;
 
-      Indent_Line ("function Is_Comment (ID : in WisiToken.Token_ID) return Boolean");
+      Indent_Line ("function Is_Block_Delimited (ID : in WisiToken.Token_ID) return Boolean");
       Indent_Line ("is begin");
       Indent := @ + 3;
       Indent_Line ("case To_Token_Enum (ID) is");
-      if Comment_Count > 0 then
+      if Block_Count > 0 then
          Indent_Line ("when");
          Need_Separator := False;
          Indent := @ + 3;
@@ -1382,7 +1385,12 @@ package body WisiToken.BNF.Output_Ada_Common is
             Include_SOI  => False)
          loop
             if Kind (Generate_Data, I) = "comment-new-line" or
-              Kind (Generate_Data, I) = "comment-one-line"
+              Kind (Generate_Data, I) = "comment-one-line" or
+              Kind (Generate_Data, I) = "string-double-one-line" or
+              Kind (Generate_Data, I) = "string-single-one-line" or
+              Kind (Generate_Data, I) = "string-double" or
+              Kind (Generate_Data, I) = "string-single" or
+              Kind (Generate_Data, I) = "delimited-text"
             then
                if Need_Separator then
                   Put_Line (" |");
@@ -1399,25 +1407,66 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("when others => return False;");
       Indent_Line ("end case;");
       Indent := @ - 3;
-      Indent_Line ("end Is_Comment;");
+      Indent_Line ("end Is_Block_Delimited;");
       New_Line;
 
-      Indent_Line ("function Comment_Start_Length (ID : in WisiToken.Token_ID) return Integer");
+      Indent_Line ("function Same_Block_Delimiters (ID : in WisiToken.Token_ID) return Boolean");
       Indent_Line ("is begin");
       Indent := @ + 3;
       Indent_Line ("case To_Token_Enum (ID) is");
-      if Comment_Count > 0 then
+      if Block_Count > 0 then
+         for I in All_Tokens (Generate_Data).Iterate
+           (Non_Grammar  => True,
+            Nonterminals => False,
+            Include_SOI  => False)
+         loop
+            if Kind (Generate_Data, I) = "string-double-one-line" or
+              Kind (Generate_Data, I) = "string-single-one-line" or
+              Kind (Generate_Data, I) = "string-double" or
+              Kind (Generate_Data, I) = "string-single"
+            then
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => return True;");
+
+            elsif Kind (Generate_Data, I) = "comment-new-line" or
+              Kind (Generate_Data, I) = "comment-one-line" or
+              Kind (Generate_Data, I) = "delimited-text"
+            then
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => return False;");
+            end if;
+         end loop;
+      end if;
+
+      Indent_Line ("when others => return False;");
+      Indent_Line ("end case;");
+      Indent := @ - 3;
+      Indent_Line ("end Same_Block_Delimiters;");
+      New_Line;
+
+      Indent_Line ("function Start_Delimiter_Length (ID : in WisiToken.Token_ID) return Integer");
+      Indent_Line ("is begin");
+      Indent := @ + 3;
+      Indent_Line ("case To_Token_Enum (ID) is");
+      if Block_Count > 0 then
          for I in All_Tokens (Generate_Data).Iterate
            (Non_Grammar  => True,
             Nonterminals => False,
             Include_SOI  => False)
          loop
             if Kind (Generate_Data, I) = "comment-new-line" or
-              Kind (Generate_Data, I) = "comment-one-line"
+              Kind (Generate_Data, I) = "comment-one-line" or
+              Kind (Generate_Data, I) = "delimited-text"
             then
                Indent_Line
                  ("when " & Name (Generate_Data, I) & "_ID => return" &
-                  Integer'Image (Utils.Strip_Quotes (Value (Generate_Data, I))'Length) & ";");
+                    Integer'Image (Utils.Strip_Quotes (Value (Generate_Data, I))'Length) & ";");
+
+            elsif Kind (Generate_Data, I) = "string-double-one-line" or
+              Kind (Generate_Data, I) = "string-single-one-line" or
+              Kind (Generate_Data, I) = "string-double" or
+              Kind (Generate_Data, I) = "string-single"
+            then
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => return 1;");
+
             end if;
          end loop;
       end if;
@@ -1425,14 +1474,14 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("when others => raise SAL.Programmer_Error; return 0;");
       Indent_Line ("end case;");
       Indent := @ - 3;
-      Indent_Line ("end Comment_Start_Length;");
+      Indent_Line ("end Start_Delimiter_Length;");
       New_Line;
 
-      Indent_Line ("function Comment_End_Length (ID : in WisiToken.Token_ID) return Integer");
+      Indent_Line ("function End_Delimiter_Length (ID : in WisiToken.Token_ID) return Integer");
       Indent_Line ("is begin");
       Indent := @ + 3;
       Indent_Line ("case To_Token_Enum (ID) is");
-      if Comment_Count > 0 then
+      if Block_Count > 0 then
          Indent_Line ("when");
          Need_Separator := False;
          Indent := @ + 3;
@@ -1442,7 +1491,12 @@ package body WisiToken.BNF.Output_Ada_Common is
             Nonterminals => False,
             Include_SOI  => False)
          loop
-            if Kind (Generate_Data, I) = "comment-new-line" then
+            if Kind (Generate_Data, I) = "comment-new-line" or
+              Kind (Generate_Data, I) = "string-double-one-line" or
+              Kind (Generate_Data, I) = "string-single-one-line" or
+              Kind (Generate_Data, I) = "string-double" or
+              Kind (Generate_Data, I) = "string-single"
+            then
                if Need_Separator then
                   Put_Line (" |");
                else
@@ -1459,7 +1513,9 @@ package body WisiToken.BNF.Output_Ada_Common is
             Nonterminals => False,
             Include_SOI  => False)
          loop
-            if Kind (Generate_Data, I) = "comment-one-line" then
+            if Kind (Generate_Data, I) = "comment-one-line" or
+              Kind (Generate_Data, I) = "delimited-text"
+            then
                Indent_Line
                  ("when " & Name (Generate_Data, I) & "_ID => return" &
                     Integer'Image (Utils.Strip_Quotes (Repair_Image (Generate_Data, I))'Length) & ";");
@@ -1470,55 +1526,58 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("when others => raise SAL.Programmer_Error; return 0;");
       Indent_Line ("end case;");
       Indent := @ - 3;
-      Indent_Line ("end Comment_End_Length;");
+      Indent_Line ("end End_Delimiter_Length;");
       New_Line;
 
-      Indent_Line ("function Find_Comment_End");
-      Indent_Line ("  (Source        : in WisiToken.Lexer.Source;");
-      Indent_Line ("   ID            : in WisiToken.Token_ID;");
-      Indent_Line ("   Comment_Start : in WisiToken.Buffer_Pos)");
+      Indent_Line ("function Find_End_Delimiter");
+      Indent_Line ("  (Source      : in WisiToken.Lexer.Source;");
+      Indent_Line ("   ID          : in WisiToken.Token_ID;");
+      Indent_Line ("   Token_Start : in WisiToken.Buffer_Pos)");
       Indent_Line ("  return WisiToken.Buffer_Pos");
-      if Comment_Count > 0 then
+      if Block_Count > 0 then
          Indent_Line ("is begin");
       else
          Indent_Line ("is");
-         Indent_Line ("   pragma Unreferenced (Source, Comment_Start);");
+         Indent_Line ("   pragma Unreferenced (Source, Token_Start);");
          Indent_Line ("begin");
       end if;
       Indent := @ + 3;
       Indent_Line ("return");
       Indent_Line ("  (case To_Token_Enum (ID) is");
       Indent := @ + 3;
-      if Comment_Count > 0 then
-         Indent_Line ("when");
-         Need_Separator := False;
-         Indent := @ + 3;
+      if Block_Count > 0 then
          for I in All_Tokens (Generate_Data).Iterate
            (Non_Grammar  => True,
             Nonterminals => False,
             Include_SOI  => False)
          loop
             if Kind (Generate_Data, I) = "comment-new-line" then
-               if Need_Separator then
-                  Put_Line (" |");
-               else
-                  Need_Separator := True;
-               end if;
-               Indent_Start (Name (Generate_Data, I) & "_ID");
-            end if;
-         end loop;
-         Put_Line (" => WisiToken.Lexer.Find_New_Line (Source, Comment_Start),");
-         Indent := @ - 3;
+               Indent_Line
+                 ("when " & Name (Generate_Data, I) & "_ID => WisiToken.Lexer.Find_New_Line (Source, Token_Start),");
 
-         for I in All_Tokens (Generate_Data).Iterate
-           (Non_Grammar  => True,
-            Nonterminals => False,
-            Include_SOI  => False)
-         loop
-            if Kind (Generate_Data, I) = "comment-one-line" then
+            elsif Kind (Generate_Data, I) = "string-double-one-line" or
+              Kind (Generate_Data, I) = "string-single-one-line"
+            then
                Indent_Line
                  ("when " & Name (Generate_Data, I) &
-                    "_ID => WisiToken.Lexer.Find_String_Or_New_Line (Source, Comment_Start, " &
+                    "_ID => WisiToken.Lexer.Find_String_Or_New_Line (Source, Token_Start, """"""""),");
+
+            elsif Kind (Generate_Data, I) = "string-double" then
+               Indent_Line
+                 ("when " & Name (Generate_Data, I) &
+                    "_ID => WisiToken.Lexer.Find_String (Source, Token_Start, """"""""),");
+
+            elsif Kind (Generate_Data, I) = "string-single" then
+               Indent_Line
+                 ("when " & Name (Generate_Data, I) &
+                    "_ID => WisiToken.Lexer.Find_String (Source, Token_Start, ""'""),");
+
+            elsif Kind (Generate_Data, I) = "comment-one-line" or
+              Kind (Generate_Data, I) = "delimited-text"
+            then
+               Indent_Line
+                 ("when " & Name (Generate_Data, I) &
+                    "_ID => WisiToken.Lexer.Find_String (Source, Token_Start, " &
                     --  Value includes quotes.
                     Value (Generate_Data, I) & "),");
             end if;
@@ -1527,20 +1586,119 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       Indent_Line ("when others => raise SAL.Programmer_Error);");
       Indent := @ - 6;
-      Indent_Line ("end Find_Comment_End;");
+      Indent_Line ("end Find_End_Delimiter;");
       New_Line;
 
-      Indent_Line ("function Contains_Comment_End");
+      Indent_Line ("function Find_Scan_End");
+      Indent_Line ("  (Source   : in WisiToken.Lexer.Source;");
+      Indent_Line ("   ID       : in WisiToken.Token_ID;");
+      Indent_Line ("   Region   : in WisiToken.Buffer_Region;");
+      Indent_Line ("   Inserted : in Boolean;");
+      Indent_Line ("   Start    : in Boolean)");
+      Indent_Line ("  return WisiToken.Buffer_Pos");
+      declare
+         Need_Region : constant Boolean :=
+           (for some I in All_Tokens (Generate_Data).Iterate
+              (Non_Grammar  => True,
+               Nonterminals => False,
+               Include_SOI  => False)
+              => Kind (Generate_Data, I) = "comment-new-line" or
+                Kind (Generate_Data, I) = "string-double-one-line" or
+                Kind (Generate_Data, I) = "string-single-one-line" or
+                Kind (Generate_Data, I) = "comment-one-line" or
+                Kind (Generate_Data, I) = "delimited-text");
+
+         Need_Inserted : constant Boolean :=
+           (for some I in All_Tokens (Generate_Data).Iterate
+              (Non_Grammar  => True,
+               Nonterminals => False,
+               Include_SOI  => False)
+              => Kind (Generate_Data, I) = "comment-new-line" or
+                Kind (Generate_Data, I) = "comment-one-line" or
+                Kind (Generate_Data, I) = "delimited-text");
+
+         Need_Start : constant Boolean :=
+           (for some I in All_Tokens (Generate_Data).Iterate
+              (Non_Grammar  => True,
+               Nonterminals => False,
+               Include_SOI  => False)
+              => Kind (Generate_Data, I) = "comment-new-line" or
+                Kind (Generate_Data, I) = "comment-one-line" or
+                Kind (Generate_Data, I) = "delimited-text");
+      begin
+         if Block_Count > 0 then
+            Indent_Line ("is");
+            Indent_Line ("   use WisiToken;");
+            if not Need_Region then
+               Indent_Line ("   pragma Unreferenced (Region);");
+            end if;
+            if not Need_Inserted then
+               Indent_Line ("   pragma Unreferenced (Inserted);");
+            end if;
+            if not Need_Start then
+               Indent_Line ("   pragma Unreferenced (Start);");
+            end if;
+            Indent_Line ("begin");
+         else
+            Indent_Line ("is");
+            Indent_Line ("   pragma Unreferenced (Source, Region, Inserted, Start);");
+            Indent_Line ("begin");
+         end if;
+      end;
+      Indent := @ + 3;
+      Indent_Line ("return");
+      Indent_Line ("  (case To_Token_Enum (ID) is");
+      Indent := @ + 3;
+      if Block_Count > 0 then
+         for I in All_Tokens (Generate_Data).Iterate
+           (Non_Grammar  => True,
+            Nonterminals => False,
+            Include_SOI  => False)
+         loop
+            if Kind (Generate_Data, I) = "comment-new-line" then
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID =>");
+               Indent_Line
+                 ("(if Inserted then (if Start then Lexer.Find_New_Line (Source, Region.Last) else Region.Last)");
+               Indent_Line (" elsif Start then Region.Last");
+               Indent_Line (" else Lexer.Find_New_Line (Source, Region.Last)),");
+
+            elsif Kind (Generate_Data, I) = "string-double-one-line" or
+              Kind (Generate_Data, I) = "string-single-one-line"
+            then
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => Lexer.Find_New_Line (Source, Region.Last),");
+
+            elsif Kind (Generate_Data, I) = "string-double" or
+              Kind (Generate_Data, I) = "string-single"
+            then
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => Lexer.Buffer_Region_Byte (Source).Last,");
+
+            elsif Kind (Generate_Data, I) = "comment-one-line" or
+              Kind (Generate_Data, I) = "delimited-text"
+            then
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID =>");
+               Indent_Line ("  (if Start then Region.Last");
+               Indent_Line ("   else Lexer.Find_String (Source, Region.First, " & Value (Generate_Data, I) & ")),");
+            end if;
+         end loop;
+      end if;
+
+      Indent_Line ("when others => raise SAL.Programmer_Error);");
+      Indent := @ - 6;
+      Indent_Line ("end Find_Scan_End;");
+      New_Line;
+
+      Indent_Line ("function Contains_End_Delimiter");
       Indent_Line ("  (Source : in WisiToken.Lexer.Source;");
       Indent_Line ("   ID     : in WisiToken.Token_ID;");
       Indent_Line ("   Region : in WisiToken.Buffer_Region)");
-      Indent_Line ("  return Boolean");
-      if Comment_Count > 0 then
+      Indent_Line ("  return WisiToken.Base_Buffer_Pos");
+      if Block_Count > 0 then
          Indent_Line ("is");
          Indent_Line ("   use WisiToken;");
          Indent_Line ("begin");
       else
          Indent_Line ("is");
+         Indent_Line ("   use WisiToken;");
          Indent_Line ("   pragma Unreferenced (Source, Region);");
          Indent_Line ("begin");
       end if;
@@ -1548,36 +1706,43 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("return");
       Indent_Line ("  (case To_Token_Enum (ID) is");
       Indent := @ + 3;
-      if Comment_Count > 0 then
-         Indent_Line ("when");
-         Need_Separator := False;
-         Indent := @ + 3;
+      if Block_Count > 0 then
          for I in All_Tokens (Generate_Data).Iterate
            (Non_Grammar  => True,
             Nonterminals => False,
             Include_SOI  => False)
          loop
             if Kind (Generate_Data, I) = "comment-new-line" then
-               if Need_Separator then
-                  Put_Line (" |");
-               else
-                  Need_Separator := True;
-               end if;
-               Indent_Start (Name (Generate_Data, I) & "_ID");
-            end if;
-         end loop;
-         Put_Line (" => Lexer.Contains_New_Line (Source, Region),");
-         Indent := @ - 3;
-
-         for I in All_Tokens (Generate_Data).Iterate
-           (Non_Grammar  => True,
-            Nonterminals => False,
-            Include_SOI  => False)
-         loop
-            if Kind (Generate_Data, I) = "comment-one-line" then
                Indent_Line
                  ("when " & Name (Generate_Data, I) &
-                    "_ID => 0 < Lexer.Find_String_Or_New_Line (Source, Region, " &
+                    "_ID => Lexer.Find_New_Line (Source, Region),");
+
+            elsif Kind (Generate_Data, I) = "string-double-one-line" then
+               Indent_Line
+                 ("when " & Name (Generate_Data, I) &
+                    "_ID => Lexer.Find_String_Or_New_Line (Source, Region, """"""""),");
+
+            elsif Kind (Generate_Data, I) = "string-single-one-line" then
+               Indent_Line
+                 ("when " & Name (Generate_Data, I) &
+                    "_ID => Lexer.Find_String_Or_New_Line (Source, Region, ""'""),");
+
+            elsif Kind (Generate_Data, I) = "string-double" then
+               Indent_Line
+                 ("when " & Name (Generate_Data, I) &
+                    "_ID => Lexer.Find_String (Source, Region, """"""""),");
+
+            elsif Kind (Generate_Data, I) = "string-single" then
+               Indent_Line
+                 ("when " & Name (Generate_Data, I) &
+                    "_ID => Lexer.Find_String (Source, Region, ""'""),");
+
+            elsif Kind (Generate_Data, I) = "comment-one-line"  or
+              Kind (Generate_Data, I) = "delimited-text"
+            then
+               Indent_Line
+                 ("when " & Name (Generate_Data, I) &
+                    "_ID => Lexer.Find_String_Or_New_Line (Source, Region, " &
                     --  Value includes quotes.
                     Value (Generate_Data, I) & "),");
             end if;
@@ -1586,7 +1751,7 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       Indent_Line ("when others => raise SAL.Programmer_Error);");
       Indent := @ - 6;
-      Indent_Line ("end Contains_Comment_End;");
+      Indent_Line ("end Contains_End_Delimiter;");
       New_Line;
 
       Indent_Line ("function Line_Begin_Char_Pos");
@@ -1600,6 +1765,33 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       elsif Block_Count = 0 then
          Indent_Line ("   pragma Unreferenced (Source, Line);");
+      else
+         declare
+            Need_Source_Line : Boolean := False;
+         begin
+            for I in All_Tokens (Generate_Data).Iterate
+              (Non_Grammar  => True,
+               Nonterminals => False,
+               Include_SOI  => False)
+            loop
+               if Kind (Generate_Data, I) = "comment-new-line" or
+                 Kind (Generate_Data, I) = "comment-one-line" or
+                 Kind (Generate_Data, I) = "string-double-one-line" or
+                 Kind (Generate_Data, I) = "string-single-one-line" or
+                 Kind (Generate_Data, I) = "new-line"
+               then
+                  null;
+               elsif Kind (Generate_Data, I) = "delimited-text" or
+                 Kind (Generate_Data, I) = "string-double" or
+                 Kind (Generate_Data, I) = "string-single"
+               then
+                  Need_Source_Line := True;
+               end if;
+            end loop;
+            if not Need_Source_Line then
+               Indent_Line ("   pragma Unreferenced (Source, Line);");
+            end if;
+         end;
       end if;
 
       if New_Line_Count > 0 then
@@ -1612,104 +1804,36 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       else
          Indent_Line ("case To_Token_Enum (Token.ID) is");
-         if New_Line_Count > 0 then
-            Indent_Line ("when");
-            Need_Separator := False;
-            Indent := @ + 3;
-            for I in All_Tokens (Generate_Data).Iterate
-              (Non_Grammar  => True,
-               Nonterminals => False,
-               Include_SOI  => False)
-            loop
-               if Kind (Generate_Data, I) = "comment-new-line" or
-                 Kind (Generate_Data, I) = "comment-one-line" or
-                 Kind (Generate_Data, I) = "new-line"
-               then
-                  if Need_Separator then
-                     Put_Line (" |");
-                  else
-                     Need_Separator := True;
-                  end if;
-                  Indent_Start (Name (Generate_Data, I) & "_ID");
-               end if;
-            end loop;
-            Put_Line (" => return Token.Char_Region.Last + 1;");
-            Indent := @ - 3;
-         end if;
+         for I in All_Tokens (Generate_Data).Iterate
+           (Non_Grammar  => True,
+            Nonterminals => False,
+            Include_SOI  => False)
+         loop
+            --  The preconditions on Lexer.Line_Begin_Char_Pos ensure that Token
+            --  contains the new-line for Line. "comment-one-line",
+            --  "string-double-one-line", "string-single-one-line" cannot contain
+            --  new-line.
+            if Kind (Generate_Data, I) = "comment-new-line" or
+              Kind (Generate_Data, I) = "new-line"
+            then
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => return Token.Char_Region.Last + 1;");
 
-         if Block_Count > 0 then
-            Indent_Line ("when");
-            Need_Separator := False;
-            Indent := @ + 3;
-            for I in All_Tokens (Generate_Data).Iterate
-              (Non_Grammar  => True,
-               Nonterminals => False,
-               Include_SOI  => False)
-            loop
-               if Kind (Generate_Data, I) = "delimited-text" then
-                  if Need_Separator then
-                     Put_Line (" |");
-                  else
-                     Need_Separator := True;
-                  end if;
-                  Indent_Start (Name (Generate_Data, I) & "_ID");
-               end if;
-            end loop;
-            Put_Line (" => return WisiToken.Lexer.Line_Begin_Char_Pos (Source, Token, Line);");
-            Indent := @ - 3;
-         end if;
+            elsif Kind (Generate_Data, I) = "delimited-text" or
+              Kind (Generate_Data, I) = "string-double" or
+              Kind (Generate_Data, I) = "string-single"
+            then
+               Indent_Line
+                 ("when " & Name (Generate_Data, I) & "_ID => return " &
+                    "WisiToken.Lexer.Line_Begin_Char_Pos (Source, Token, Line);");
+
+            end if;
+         end loop;
 
          Indent_Line ("when others => raise SAL.Programmer_Error;");
          Indent_Line ("end case;");
       end if;
       Indent := @ - 3;
       Indent_Line ("end Line_Begin_Char_Pos;");
-      New_Line;
-
-      Indent_Line ("function Line_At_Byte_Pos");
-      Indent_Line (" (Source      : in WisiToken.Lexer.Source;");
-      Indent_Line ("  ID          : in WisiToken.Token_ID;");
-      Indent_Line ("  Byte_Region : in WisiToken.Buffer_Region;");
-      Indent_Line ("  Byte_Pos    : in WisiToken.Buffer_Pos;");
-      Indent_Line ("  First_Line  : in WisiToken.Line_Number_Type)");
-      Indent_Line ("return WisiToken.Line_Number_Type");
-      Indent_Line ("is");
-      if Block_Count = 0 then
-         Indent_Line ("   pragma Unreferenced (Source, ID, Byte_Region, Byte_Pos);");
-      end if;
-      Indent_Line ("begin");
-      Indent := @ + 3;
-      if Block_Count = 0 then
-         Indent_Line ("return First_Line;");
-
-      else
-         Indent_Line ("case To_Token_Enum (ID) is");
-         Indent_Line ("when");
-         Need_Separator := False;
-         Indent := @ + 3;
-         for I in All_Tokens (Generate_Data).Iterate
-           (Non_Grammar  => True,
-            Nonterminals => False,
-            Include_SOI  => False)
-         loop
-            if Kind (Generate_Data, I) = "delimited-text" then
-               if Need_Separator then
-                  Put_Line (" |");
-               else
-                  Need_Separator := True;
-               end if;
-               Indent_Start (Name (Generate_Data, I) & "_ID");
-            end if;
-         end loop;
-         Put_Line
-           (" => return WisiToken.Lexer.Line_At_Byte_Pos (Source, Byte_Region, Byte_Pos, First_Line);");
-         Indent := @ - 3;
-
-         Indent_Line ("when others => return First_Line;");
-         Indent_Line ("end case;");
-      end if;
-      Indent := @ - 3;
-      Indent_Line ("end Line_At_Byte_Pos;");
       New_Line;
 
       Indent_Line ("function Terminated_By_New_Line (ID : in WisiToken.Token_ID) return Boolean");
@@ -1722,33 +1846,14 @@ package body WisiToken.BNF.Output_Ada_Common is
          Nonterminals => False,
          Include_SOI  => False)
       loop
-         if Kind (Generate_Data, I) = "new-line" then
+         if Kind (Generate_Data, I) = "new-line" or
+           Kind (Generate_Data, I) = "comment-new-line" or
+           Kind (Generate_Data, I) = "string-double-one-line" or
+           Kind (Generate_Data, I) = "string-single-one-line"
+         then
             Indent_Line ("when " & Name (Generate_Data, I) & "_ID => return True;");
          end if;
       end loop;
-
-      if Comment_Count > 0 then
-         Indent_Line ("when");
-         Need_Separator := False;
-         Indent := @ + 3;
-
-         for I in All_Tokens (Generate_Data).Iterate
-           (Non_Grammar  => True,
-            Nonterminals => False,
-            Include_SOI  => False)
-         loop
-            if Kind (Generate_Data, I) = "comment-new-line" then
-               if Need_Separator then
-                  Put_Line (" |");
-               else
-                  Need_Separator := True;
-               end if;
-               Indent_Start (Name (Generate_Data, I) & "_ID");
-            end if;
-         end loop;
-         Put_Line (" => return True;");
-         Indent := @ - 3;
-      end if;
 
       Indent_Line ("when others => return False;");
       Indent_Line ("end case;");
@@ -1763,13 +1868,14 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Set_Verbosity,");
       Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Set_Position,");
       Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token,");
-      Indent_Line ("   Is_Comment,");
-      Indent_Line ("   Comment_Start_Length,");
-      Indent_Line ("   Comment_End_Length,");
-      Indent_Line ("   Find_Comment_End,");
-      Indent_Line ("   Contains_Comment_End,");
+      Indent_Line ("   Is_Block_Delimited,");
+      Indent_Line ("   Same_Block_Delimiters,");
+      Indent_Line ("   Start_Delimiter_Length,");
+      Indent_Line ("   End_Delimiter_Length,");
+      Indent_Line ("   Find_End_Delimiter,");
+      Indent_Line ("   Contains_End_Delimiter,");
+      Indent_Line ("   Find_Scan_End,");
       Indent_Line ("   Line_Begin_Char_Pos,");
-      Indent_Line ("   Line_At_Byte_Pos,");
       Indent_Line ("   Terminated_By_New_Line);");
       New_Line;
    end Create_re2c_Lexer;

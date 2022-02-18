@@ -282,7 +282,9 @@ package body WisiToken.Parse.Packrat.Procedural is
       end if;
       Parser.Lex_All;
 
-      Parser.Tree.Enable_Ref_Count_Check (Parser.Tree.Shared_Stream, Enable_Ref_Count_Check);
+      --  WORKAROUND: there appears to be a bug in GNAT Community 2021 that makes
+      --  ref_count fail in this usage. May be related to AdaCore ticket V107-045.
+      Parser.Tree.Enable_Ref_Count_Check (Parser.Tree.Shared_Stream, Enable => False);
 
       for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);

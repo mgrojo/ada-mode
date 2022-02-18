@@ -198,7 +198,7 @@ package WisiToken.Syntax_Trees is
    function Dispatch_Equal (Left : in Error_Data; Right : in Error_Data'Class) return Boolean
    is abstract;
    --  True if Left matches Right for purposes of Update_Error and
-   --  Delete_Error, below.
+   --  Delete_Errors_In_Input, below.
    --
    --  Not named "=" because that's always ambiguous with the predefined "=".
 
@@ -298,6 +298,14 @@ package WisiToken.Syntax_Trees is
       Ref  : in Stream_Node_Ref)
      return Boolean;
    --  True if Ref refers to a node (possibly an empty nonterm).
+
+   function To_Stream_Node_Ref
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Node : in Valid_Node_Access)
+     return Stream_Node_Ref
+   with Pre => Tree.Parents_Set,
+     Post => Tree.Valid_Stream_Node (To_Stream_Node_Ref'Result);
 
    subtype Terminal_Ref is Stream_Node_Ref
    with Dynamic_Predicate =>
@@ -2354,9 +2362,10 @@ package WisiToken.Syntax_Trees is
       Node    : Node_Access;
       Deleted : Valid_Node_Access_Lists.Cursor;
       --  If Node = Invalid_Node_Access, no error. If Deleted = No_Element,
-      --  Node has an error. If Deleted /= No_Element, any error on Node has
-      --  already been visited, Element (Deleted) is a Source_Terminal that
-      --  has an error, and Element (Deleted).Parent = Node.
+      --  the error node is Node. If Deleted /= No_Element, any error on
+      --  Node has already been visited, the error node is Element
+      --  (Deleted), which is a Source_Terminal, and Element
+      --  (Deleted).Parent = Node.
 
       Error : Error_Data_Lists.Cursor;
       --  Element in error node Error_Data_List.
@@ -2364,6 +2373,13 @@ package WisiToken.Syntax_Trees is
 
    Invalid_Error_Ref : constant Error_Ref :=
      (Invalid_Node_Access, Valid_Node_Access_Lists.No_Element, Error_Data_Lists.No_Element);
+
+   procedure Delete_Error
+     (Tree  : in out Syntax_Trees.Tree;
+      Error : in out Error_Ref)
+   with Pre => Tree.Parents_Set and Has_Error (Error);
+   --  Delete Error from its containing node. Error is updated to next
+   --  error (Invalid_Error_Ref if none).
 
    type Stream_Error_Ref is record
       --  Used while parsing
@@ -2373,6 +2389,13 @@ package WisiToken.Syntax_Trees is
    end record;
 
    Invalid_Stream_Error_Ref : constant Stream_Error_Ref;
+
+   procedure Delete_Error
+     (Tree  : in out Syntax_Trees.Tree;
+      Error : in out Stream_Error_Ref)
+   with Pre => Tree.Parents_Set and Has_Error (Error);
+   --  Delete Error from its containing node. Error is updated to next
+   --  error (Invalid_Stream_Error_Ref if none).
 
    type Stream_Error_Cursor is private;
    --  We need an extra layer of indirection for this type because
@@ -2386,11 +2409,11 @@ package WisiToken.Syntax_Trees is
    function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Error_Ref) return Node_Access
    with Pre => Valid_Error_Ref (Error);
 
-   function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Stream_Error_Ref) return Node_Access
+   function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Stream_Error_Ref) return Stream_Node_Ref
    with Pre => Valid_Error_Ref (Error);
 
    function First_Error (Tree : in Syntax_Trees.Tree) return Error_Ref
-   with Pre => Tree.Parents_Set;
+   with Pre => Tree.Editable;
    --  Return first error node in Tree.
 
    function First_Error (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Stream_Error_Ref;
@@ -2421,8 +2444,16 @@ package WisiToken.Syntax_Trees is
    function Has_Error (Error : in Error_Ref) return Boolean;
    function Has_Error (Error : in Stream_Error_Ref) return Boolean;
    function Has_Error (Position : in Stream_Error_Cursor) return Boolean;
-   function Has_Error (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
    function Has_Error (Node : in Valid_Node_Access) return Boolean;
+   function Has_Error (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
+
+   function Has_Error_Class
+     (Tree        : in Syntax_Trees.Tree;
+      Node        : in Valid_Node_Access;
+      Error_Class : in Error_Data'Class)
+     return Error_Ref;
+   --  Return a reference to the first error in Node that is in Error_Class;
+   --  Invalid_Error_Ref if none.
 
    package Error_Iterator_Interfaces is new Ada.Iterator_Interfaces
      (Cursor      => Error_Ref,

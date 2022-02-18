@@ -310,16 +310,6 @@ package body WisiToken.Parse.LR.Parser is
       Trace        : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Status       : In_Parse_Actions.Status_Label;
 
-      procedure Delete_Errors
-      is begin
-         --  We have to delete errors from all nodes in the subtree under
-         --  current_input; test_incremental.adb Recover_2.
-         Shared_Parser.Tree.Delete_Errors_In_Input
-           (Parser_State.Stream,
-            Error_Pred_Lexer_Parse_Message'Access,
-            Shared_Parser.User_Data);
-      end Delete_Errors;
-
    begin
       if Trace_Parse > Detail then
          Trace.Put
@@ -339,14 +329,6 @@ package body WisiToken.Parse.LR.Parser is
       when Shift =>
          Parser_State.Set_Verb (Shift);
          Parser_State.Last_Action := Action;
-
-         if not Parser_State.Resume_Active then
-            --  Errors on nodes shifted during resume are the errors that are
-            --  being fixed; we want to report them so the user can actually fix
-            --  them. Errors on nodes shifted not during resume have been fixed by
-            --  user edits, so we delete them.
-            Delete_Errors;
-         end if;
 
          Shared_Parser.Tree.Shift (Parser_State.Stream, Action.State);
 
@@ -463,10 +445,6 @@ package body WisiToken.Parse.LR.Parser is
          is
          when Ok =>
             Parser_State.Set_Verb (Action.Verb);
-            if not Parser_State.Resume_Active then
-               --  See note in Shift about why not delete errors during resume.
-               Delete_Errors;
-            end if;
 
          when In_Parse_Actions.Error =>
             Parser_State.Set_Verb (Error);
