@@ -152,10 +152,10 @@ tick : TICK_1 | TICK_2 ;
   "A_Bogus_Identifier"
 
 ;; \x22 is "
-%token <string-double> STRING_LITERAL
+%token <string-double-one-line> STRING_LITERAL
     %[ (["]([\x20-\x21\x23-\U0010FFFF]|GNAT_Char_Coding)*["])+ ]% '""'
 
-%token <string-single> CHARACTER_LITERAL %[ "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]% "' '"
+%token <string-single-one-line> CHARACTER_LITERAL %[ "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]% "' '"
 
 %elisp_face font-lock-constant-face
 %elisp_face font-lock-function-name-face

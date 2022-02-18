@@ -10,6 +10,7 @@ project Ada_Mode is
    -- see subdir/ada_mode-spec.ads.
    for Excluded_Source_Files use
      (
+      "ada_mode-ascii_control_chars.adb",
       "ada_mode-recover_partial_12.adb",
       "ada_mode-recover_partial_09.adb",
       "ada_mode-recover_partial_08.adb"

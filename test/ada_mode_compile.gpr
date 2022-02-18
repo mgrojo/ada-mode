@@ -16,6 +16,7 @@ project Ada_Mode_Compile is
       "ada_mode-ada2012.ads", -- font-lock only
 
       "ada_mode-ada2020_more.adb", -- not supported by gnat community 2019 -gnatX
+      "ada_mode-ascii_control_chars.adb",
 
       -- parents are not pure
       "ada_mode-generic_parent_instantiation.ads",
@@ -93,6 +94,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_43.adb",
       "ada_mode-recover_44.adb",
       "ada_mode-recover_45.adb",
+      "ada_mode-recover_46.adb",
       "ada_mode-recover_align_1.adb",
       "ada_mode-recover_ambiguous_parse.adb",
       "ada_mode-recover_bad_char.adb",
@@ -145,6 +147,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_string_quote_1.adb",
       "ada_mode-recover_string_quote_2.adb",
       "ada_mode-recover_string_quote_3.adb",
+      "ada_mode-recover_string_quote_4.adb",
       "ada_mode-recover_sync_01.adb",
       "ada_mode-recover_type_1.ads",
       "ada_mode-recover_virtual_renames.adb",

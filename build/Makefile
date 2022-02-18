@@ -119,7 +119,11 @@ one :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one :: $(addsuffix .diff, $(ONE_TEST_FILES))
-#one :: $(addsuffix .debug, $(ONE_TEST_FILES))
+
+one-debug :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
+one-debug :: force
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn $(ELISP))'
+
 
 oneb :: one-clean
 #oneb :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el

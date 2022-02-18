@@ -2,7 +2,7 @@
 
 --EMACSCMD:(setq skip-recase-test t)
 
---  Missing '}'; lexer terminates placeholder at end of line, as specified in COMMENT regexp.
+--  Missing '}'; lexer reports an error for '{', parse error recover inserts ';'.
 {hea
 procedure Ada_Mode.Placeholders
 is begin
@@ -10,8 +10,8 @@ is begin
    if {expression} then
       null;
 
-      --  missing '}'; 'then' not seen; null is 'expression'
+      --  missing '}'; lexer error, but no parse error
    elsif {expression then
-     null;
+      null;
    end if;
 end Ada_Mode.Placeholders;

@@ -49,61 +49,29 @@ for ada_mode_wisi_parse.gpr:
 (setenv "GPR_PROJECT_PATH" "C:\Projects\org.emacs.ada-mode;c:/Projects/org.emacs.ada-mode;c:/Projects/org.wisitoken/build;c:/Projects/org.stephe_leake.sal/build;c:/Projects/org.stephe_leake.makerules;d:/Apps/GNAT-gpl_2019/x86_64-windows/lib/gnat;d:/Apps/GNAT-gpl_2019/x86_64-windows/share/gpr;d:/Apps/GNAT-gpl_2019/share/gpr;d:/Apps/GNAT-gpl_2019/lib/gnat;d:/apps/gnat-gpl_2019/x86_64-windows/share/gpr;d:/apps/gnat-gpl_2019/x86_64-windows/lib/gnat;d:/apps/gnat-gpl_2019/share/gpr;d:/apps/gnat-gpl_2019/lib/gnat")
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
- Negotiate with Eurocontrol:
-    ask AdaCore:
-        old issues: SA31-041 Oct 31, 2019 GNAT Studio using libadalang for format? (closed)
-            short answer: wait for ada_language_server (estimated 2020, ie now)
-            so this is just a ping
-
-        submitted UB18-067 18 Nov:
-            What is the plan to improve error correction and
-            formatting to allow indent/format one line while editing?
-
-            documentation on the format of the custom format template file?
-
-For the near future, we still need the WisiToken parser to support
-indent while editing, which means we need incremental parse to make it
-faster and more accurate/reliable. It will also most likely make sense
-to implement a libadalang xref backend, or something else to replace
-gpr_query.
-
-acknowledge that previous work was not really worth it, because
-gnatstudio indent was not adaptable to Eurocontrol style.
-
-Research Eurocontrol - what is their area of business, what location/culture are they - linked in etc.
-read Kate's book on culture/persuasion.
-
-        - currently doing incremental (making progress. ready for beta test?)
-        - send money to speed up
-        - send money to integrate libadalang xref backend
-        - find another volunteer to speed up
-        - pay someone in-house to work on this - I will mentor
-
  current work
-ediff ada_annex_p.wy
-    parse 2 "ada_annex_p.wy" "debug=1" 1 -1 -1 -1 0 1 ""
-    Fri Jan 28 02:41:29 2022:
-    protocol error at 49: emacs_wisi_common_parse.adb:181 range check failed
-        empty buffer before retrieve original?
+"editing is slow" notes in o.w.s/notes.text
 
-    wisitoken-which-function fails with nil tree node
+indent wrong:
+    wisioken-bnf-output_ada_common.adb
+       Append
+                          ((if Generate_Data.Action_Names (Action_Node.Item.Production.LHS) = null then "null"
+                            elsif Generate_Data.Action_Names
+                              (Action_Node.Item.Production.LHS)(Action_Node.Item.Production.RHS) = null
+                            then "null"
+                            else Generate_Data.Action_Names
+                              (Action_Node.Item.Production.LHS)(Action_Node.Item.Production.RHS).all &
+                              "'Access"));
 
-ada-mode-hook runs before initial parse
-    because we want to allow it to set debug etc that affect initial parse
-    if user puts a function on ada-mode-hook that requires parse, it signals file-not-found
-        that confuses things, get extra messages because of nowait
-        distinguish between context-not-found and need-text?
-        need command sequence numbers. sigh.
-        or process extra messages if nowait?
-            need test
-            run-test sets wisi-parse-full-background; it should not
-
-    need another hook that runs after initial parse started
+    pragma Assert
+      (if Saved_Prev_Terminal = Invalid_Stream_Node_Ref
+     then Saved_Prev_Terminal.Element /= Check_Deleted.Element
+     else Terminal.Element /= Check_Deleted.Element);
 
 review FIXMEs
     (grep-find "find c:/Projects/org.emacs.wisi.stephe-1 -type f -print | \"xargs\" grep  -nH --null FIXME:")
     wisi-parse_context.adb Get_Emacs_Change_List Substitute_Escapes all non-printing ASCII control chars
-        (prin1-to-string "\x00\x01\x02\x03" t)
+    c:/Projects/org.emacs.wisi.stephe-1/build/Makefile
 
     (grep-find "find c:/Projects/org.emacs.ada-mode -type f -print | \"xargs\" grep  -nH --null FIXME")
 
@@ -154,8 +122,53 @@ push to elpa
     advertize alpha testing on comp.lang.ada, ada-mode mailing list
     doc how to use elpa HEAD
 
+ada-mode-hook runs before initial parse
+    because we want to allow it to set debug etc that affect initial parse
+    if user puts a function on ada-mode-hook that requires parse, it signals file-not-found
+        that confuses things, get extra messages because of nowait
+        distinguish between context-not-found and need-text?
+        need command sequence numbers. sigh.
+        or process extra messages if nowait?
+            need test
+            run-test sets wisi-parse-full-background; it should not
+
+    need another hook that runs after initial parse started
+
+ Negotiate with Eurocontrol:
+    ask AdaCore:
+        old issues: SA31-041 Oct 31, 2019 GNAT Studio using libadalang for format? (closed)
+            short answer: wait for ada_language_server (estimated 2020, ie now)
+            so this is just a ping
+
+        submitted UB18-067 18 Nov:
+            What is the plan to improve error correction and
+            formatting to allow indent/format one line while editing?
+
+            documentation on the format of the custom format template file?
+
+For the near future, we still need the WisiToken parser to support
+indent while editing, which means we need incremental parse to make it
+faster and more accurate/reliable. It will also most likely make sense
+to implement a libadalang xref backend, or something else to replace
+gpr_query.
+
+acknowledge that previous work was not really worth it, because
+gnatstudio indent was not adaptable to Eurocontrol style.
+
+Research Eurocontrol - what is their area of business, what location/culture are they - linked in etc.
+read Kate's book on culture/persuasion.
+
+        - currently doing incremental (making progress. ready for beta test?)
+        - send money to speed up
+        - send money to integrate libadalang xref backend
+        - find another volunteer to speed up
+        - pay someone in-house to work on this - I will mentor
+
  after incremental
 review this file!
+
+move string, placeholder face to parser
+    syntax-table processing does not respect new-line
 
 test/ada_mode-recover_27.adb
     incremental recover for extra 'begin' has only one solution (insert begin)
@@ -1063,6 +1076,8 @@ wisitoken keeps binding wisitoken-bnf-generate, thus regenerating ada_annex_p* f
     still there in 2021
 
 (wisi-process-parse-save-text wisi--parser "c:/Projects/org.emacs.ada-mode.stephe-2/real_edited" t)
+(wisi-process-parse-compare-tree-text wisi--parser :disable t)
+(setq jit-lock-defer-time 1.5)
 
 one ELISP="(setq save-parser-log \"../debug-2.log\" save-edited-text \"../edited\")" ONE_TEST_FILES=ada_mode-*.adb
     wisi-parser-transaction-log-buffer-size-default most-positive-fixnum
