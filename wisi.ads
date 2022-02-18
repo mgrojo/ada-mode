@@ -53,8 +53,11 @@ package Wisi is
      (Source : in     String;
       Last   : in out Integer)
      return String;
-   --  Returns content of quoted string in Source at Last + 1 ...
-   --  Handles \" by copying them literally into result.
+   --  Returns content of quoted string in Source at Last + 1 ... Handles
+   --  all '\' escapes by copying them literally into result, while using
+   --  them to find the terminating quote.
+   --
+   --  Raises Protocol_Error for a missing end quote.
 
    function Get_Enum
      (Source : in     String;

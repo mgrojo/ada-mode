@@ -243,7 +243,8 @@ package body Wisi.Parse_Context is
                Result : String (Item'Range);
             begin
                loop
-                  --  FIXME: handle _all_ elisp escapes (need reference).
+                  --  See test_edit_source.adb String_Escape for rationale of what is
+                  --  handled here.
                   if Item (I) = '\' and I < Item'Last then
                      if Item (I + 1) = 'n' then
                         Result (J) := ASCII.LF;

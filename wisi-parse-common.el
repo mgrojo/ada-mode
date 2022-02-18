@@ -580,4 +580,13 @@ with delay between each key event.  Macro must have been saved by
       (sit-for 0.1)
       (setq i (1+ i)))))
 
+(defun wisi-replay-undo (count)
+  "Execute `undo' COUNT times, delaying in between each."
+  (let ((i 0))
+    (undo-start)
+    (while (< i count)
+      (undo-more 1)
+      (sit-for 0.1)
+      (setq i (1+ i)))))
+
 (provide 'wisi-parse-common)
