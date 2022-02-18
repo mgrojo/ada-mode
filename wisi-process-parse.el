@@ -1253,13 +1253,13 @@ PARSER will respond with one or more Query messages."
        (user-error "can't create command file for partial parse"))
 
       (2 ;; full parse
-       (looking-at " \"\\([^\"]*\\)\" \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) [-0-9]+ [-0-9]+ \"\\([^\"]*\\)\"")
+       (looking-at " \"\\([^\"]*\\)\" \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) [-0-9]+ [-0-9]+ \"\\([^\"]*\\)\"")
+       (setq source-file (match-string 1))
        (let ((verbosity (match-string 2))
-	     (mckenzie_zombie_limit (match-string 4))
-	     (mckenzie_enqueue_limit (match-string 5))
-	     (parse_max_parallel (match-string 6))
-	     (language_param (match-string 7)))
-	 (setq source-file (match-string 1))
+	     (mckenzie_zombie_limit (match-string 3))
+	     (mckenzie_enqueue_limit (match-string 4))
+	     (parse_max_parallel (match-string 5))
+	     (language_param (match-string 6)))
 
 	 (set-buffer cmd-buffer)
 	 (setq-local comment-start "-- ")
@@ -1384,7 +1384,7 @@ PARSER will respond with one or more Query messages."
   "Convert parse_partial process command at point to run_* command line."
   (interactive)
   (forward-line 0)
-  (unless (looking-at "parse 0 \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\"")
+  (unless (looking-at "parse 0 \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\"")
     (user-error "not on partial_parse command"))
 
   (let ((parse-action (string-to-number (match-string 1)))
@@ -1398,11 +1398,11 @@ PARSER will respond with one or more Query messages."
 	(begin-indent (match-string 9))
 	(_partial-parse-active (match-string 10))
 	(verbosity (match-string 11))
-	(mckenzie_zombie_limit (string-to-number (match-string 13)))
-	(mckenzie_enqueue_limit (string-to-number (match-string 14)))
-	(parse_max_parallel (string-to-number (match-string 15)))
-	(_byte-count (match-string 16))
-	(language_param (match-string 17))
+	(mckenzie_zombie_limit (string-to-number (match-string 12)))
+	(mckenzie_enqueue_limit (string-to-number (match-string 13)))
+	(parse_max_parallel (string-to-number (match-string 14)))
+	(_byte-count (match-string 15))
+	(language_param (match-string 16))
 	cmd)
 
     (setq cmd

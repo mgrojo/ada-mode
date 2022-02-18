@@ -1851,7 +1851,7 @@ where the car is a list (FILE LINE COL)."
   (add-hook 'after-change-functions #'wisi-after-change nil t)
   (setq wisi--change-end (copy-marker (point-min) t))
 
-  (add-hook 'kill-buffer-hook 'wisi-parse-kill-buffer 90 t)
+  (add-hook 'kill-buffer-hook 'wisi-parse-kill-buf 90 t)
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
 

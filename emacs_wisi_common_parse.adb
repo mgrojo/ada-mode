@@ -326,8 +326,8 @@ package body Emacs_Wisi_Common_Parse is
                --
                --  Compare tree to fresh full parse after each incremental edit.
                declare
-                  Source_File_Name : constant String := Wisi.Get_String (Command_Line, Last);
-                  Enable : constant Boolean := 1 = Wisi.Get_Integer (Command_Line, Last);
+                  Source_File_Name : constant String  := Wisi.Get_String (Command_Line, Last);
+                  Enable           : constant Boolean := 1 = Wisi.Get_Integer (Command_Line, Last);
 
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
                     (Source_File_Name, Language);
@@ -336,7 +336,7 @@ package body Emacs_Wisi_Common_Parse is
 
                   Parse_Context.Compare_Tree_Text_Auto := Enable;
 
-                  Put_Line ("(message ""auto compare tree text enabled"")");
+                  Put_Line ("(message ""auto compare tree text " & (if Enable then "enabled" else "disabled") & """)");
                end;
 
             elsif Match ("create-context") then
@@ -506,9 +506,11 @@ package body Emacs_Wisi_Common_Parse is
                      Parse_Context.Text_Buffer := new String (Integer (Buffer_Pos'First) .. Params.Byte_Count);
                      Parse_Context.Text_Buffer_Byte_Last := Params.Byte_Count;
                      Parse_Context.Text_Buffer_Char_Last := Integer (Params.Full_End_Char_Pos);
-                     Read_Input
-                       (Parse_Context.Text_Buffer (Parse_Context.Text_Buffer'First)'Address,
-                        Params.Byte_Count);
+                     if Parse_Context.Text_Buffer'Length > 0 then
+                        Read_Input
+                          (Parse_Context.Text_Buffer (Parse_Context.Text_Buffer'First)'Address,
+                           Params.Byte_Count);
+                     end if;
 
                      Parser.Tree.Lexer.Reset_With_String_Access
                        (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, Params.Source_File_Name);

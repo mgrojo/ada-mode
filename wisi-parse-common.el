@@ -100,12 +100,12 @@ Text properties on MESSAGE are preserved,"
       (with-current-buffer (wisi-parser-transaction-log-buffer parser)
 	(goto-char (point-max))
 	(let ((inhibit-read-only t))
-	  (insert (format "%s:\n%s\n" (current-time-string) message))
+	  (insert (format "%s:\n%s\n" (format-time-string "%H:%M:%S.%3N") message))
 	  (when (> (buffer-size) max)
 	    (save-excursion
 	      (goto-char (- (buffer-size) max))
-	      ;; search for tail of time stamp ":mm:ss yyyy:\n"
-	      (search-forward-regexp ":[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]:$" nil t)
+	      ;; search for tail of time stamp "mm:ss.mmm:\n"
+	      (search-forward-regexp ":[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9]:$" nil t)
 	      (forward-line -1)
 	      (delete-region (point-min) (point)))))))))
 

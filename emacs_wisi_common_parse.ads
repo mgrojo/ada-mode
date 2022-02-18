@@ -2,7 +2,7 @@
 --
 --  Common utilities for Gen_Emacs_Wisi_*_Parse
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -102,9 +102,9 @@ package Emacs_Wisi_Common_Parse is
          --  or after here.
 
          Begin_Char_Pos : WisiToken.Buffer_Pos;
-         End_Char_Pos   : WisiToken.Buffer_Pos;
-         --  Char positions of first, last char sent.
-         --  Emacs convention; End is after last char
+         End_Char_Pos   : WisiToken.Base_Buffer_Pos;
+         --  Char positions of first, last char sent. End_Char_Pos is 0 if
+         --  buffer empty.
 
          Begin_Line : WisiToken.Line_Number_Type;
          --  Line containing Begin_Byte_Pos
@@ -119,9 +119,7 @@ package Emacs_Wisi_Common_Parse is
 
       when Full =>
          Byte_Count        : Integer;
-         Full_End_Char_Pos : WisiToken.Buffer_Pos;
-         --  Emacs convention; after last char
-
+         Full_End_Char_Pos : WisiToken.Base_Buffer_Pos; -- 0 if buffer empty.
 
       end case;
    end record;
