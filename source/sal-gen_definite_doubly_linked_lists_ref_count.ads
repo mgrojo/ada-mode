@@ -60,7 +60,7 @@ generic
 package SAL.Gen_Definite_Doubly_Linked_Lists_Ref_Count is
 
    type List is new Ada.Finalization.Controlled with private;
-   --  We cannot implement reference couting that detects reference
+   --  We cannot implement reference counting that detects reference
    --  types (see discussion above), so no reference types, no iterators.
 
    type List_Access_Constant is access constant List;
