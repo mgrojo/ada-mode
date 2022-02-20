@@ -2132,7 +2132,7 @@ package body WisiToken.Parse is
                         if Token.ID >= Parser.Tree.Lexer.Descriptor.First_Terminal and
                           Scan_End /= Invalid_Buffer_Pos
                         then
-                           if Token.Byte_Region.Last > Scan_End then -- FIXME: should be .first?
+                           if Token.Byte_Region.First > Scan_End then
                               --  test_incremental.adb Edit_Comment_4, _5, _7, Delete_Comment_Start,
                               --  edit_String_*
                               Scan_End := Invalid_Buffer_Pos;

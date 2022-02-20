@@ -104,8 +104,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Nonterm    : Syntax_Trees.Recover_Token;
       New_State  : Unknown_State_Index;
    begin
-      Config.In_Parse_Action_Status := Parse.Reduce_Stack
-        (Shared, Config.Stack, Action, Nonterm, Default_Contains_Virtual => True);
+      Config.In_Parse_Action_Status := Parse.Reduce_Stack (Shared, Config.Stack, Action, Nonterm);
       case Config.In_Parse_Action_Status.Label is
       when Ok =>
          null;

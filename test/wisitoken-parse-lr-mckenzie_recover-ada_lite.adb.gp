@@ -155,7 +155,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          --  <bad_begin_name_token> does not, and the erroneous reduce has
          --  matched <bad_begin_name_token> with <end_name_token>.
          --
-         --  The fix is to insert one or more 'end ;' before <end_name_token>.
+         --  The fix is to insert one or more 'end IDENTIFIER ;' before <end_name_token>.
          --  See test_mckenzie_recover.adb Block_Match_Names_1, Extra_Name_2.
          --
          --
@@ -215,7 +215,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   end if;
 
                   Push_Back_Check (Super, Shared_Parser, New_Config, +END_ID, Push_Back_Undo_Reduce => True);
-                  Insert (Super, Shared_Parser, New_Config, (+END_ID, +SEMICOLON_ID));
+                  Insert (Super, Shared_Parser, New_Config, (+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID));
 
                   Local_Config_Heap.Add (New_Config);
 
@@ -242,7 +242,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          --  0a looks like a subprogram or named block; 0b looks like a package
          --  body.
          --
-         --  The fix is to ignore the error. See test_mckenzie_recover
+         --  The fix is to insert a virtual identifier. See test_mckenzie_recover
          --  Missing_Name_*.
          --
          --  1. missing 'begin' or extra 'end'. The stack looks like:
@@ -266,8 +266,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          --  inside that using the syntax tree.
          --
          --  We cannot distinguish between cases 0 and 1, other than by parsing
-         --  ahead, except in case 0b. So we enqueue two solutions; 'ignore
-         --  error' and either 'insert begin' or 'delete end;'.
+         --  ahead, except in case 0b. So we enqueue two solutions; 'insert
+         --  name' and either 'insert begin' or 'delete end;'.
 
          if not Valid_Tree_Indices (Config.Stack, Config.In_Parse_Action_Token_Count) then
             --  Invalid tree indices happens when recover enqueues a config that
@@ -276,11 +276,33 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
             return;
          end if;
 
-         if Tree.Element_ID (Config.Error_Token) = +package_body_ID then
-            --  case 0b.
-            return;
-         end if;
+         --  Handle case 0
+         declare
+            New_Config : aliased Configuration := Config;
+         begin
+            New_Config.Error_Token  := Invalid_Recover_Token;
+            New_Config.In_Parse_Action_Status := (Label => Ok);
 
+            New_Config.Cost := New_Config.Cost + 1;
+
+            New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
+            Push_Back_Check (Super, Shared_Parser, New_Config, +SEMICOLON_ID, Push_Back_Undo_Reduce => True);
+            Undo_Reduce_Check (Super, Shared_Parser, New_Config, +name_opt_ID);
+            Insert (Super, Shared_Parser, New_Config, +IDENTIFIER_ID);
+
+            if Trace_McKenzie > Detail then
+               Put
+                 ("Language_Fixes Missing_Name_Error 0b " & Image (Tree.Element_ID (Config.Error_Token), Descriptor),
+                  New_Config);
+               if Trace_McKenzie > Extra then
+                  Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Tree));
+               end if;
+            end if;
+            Local_Config_Heap.Add (New_Config);
+         end;
+
+         --  Handle case 1
          if Config.Stack.Depth >= 4 and then
            (declare
                Handled_Sequence : Syntax_Trees.Recover_Token renames Config.Stack.Peek (4).Token;
@@ -572,7 +594,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   declare
                      New_Config_2 : Configuration := New_Config_1;
                   begin
-                     Insert (Super, Shared_Parser, New_Config_2, (+END_ID, +SEMICOLON_ID));
+                     Insert (Super, Shared_Parser, New_Config_2, (+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID));
 
                      New_Config_2.Strategy_Counts (Language_Fix) := New_Config_2.Strategy_Counts (Language_Fix) + 1;
 
@@ -587,7 +609,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                     (Super, Shared_Parser, New_Config_1,
                      (+handled_sequence_of_statements_ID, +BEGIN_ID, +block_label_opt_ID),
                      Push_Back_Undo_Reduce => True);
-                  Insert (Super, Shared_Parser, New_Config_1, (+END_ID, +SEMICOLON_ID));
+                  Insert (Super, Shared_Parser, New_Config_1, (+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID));
 
                when declarative_part_ID =>
                   --  case 2
