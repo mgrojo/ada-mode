@@ -38,11 +38,11 @@ else
 EMACS_EXE ?= emacs -xrm Emacs.fontBackend:uniscribe
 endif
 
-# compile with debug with default Standard_Common_Assertions to get assertions for testing new code
-# assertions off with debug, for speed
-#export Standard_Common_Build := Debug
-#export Standard_Common_Assertions := Off
-#export Gnatcoll_Build := Debug
+# compile with debug with default Standard_Common_Assertions to get
+# assertions for testing new code, or to allow running debugger.
+# assertions off for speed
+# export Standard_Common_Build := Debug
+# export Standard_Common_Assertions := Off
 
 all : byte-compile-clean compile-ada-test-clean update compile-ada-test test-clean test
 
