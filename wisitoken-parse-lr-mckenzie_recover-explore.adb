@@ -2140,7 +2140,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          if Shared.Language_Fixes = null then
             null;
          else
-            Shared.Language_Fixes (Super, Shared, Parser_Index, Local_Config_Heap, Config);
+            begin
+               Shared.Language_Fixes (Super, Shared, Parser_Index, Local_Config_Heap, Config);
+            exception
+            when Invalid_Case =>
+               if Debug_Mode then
+                  raise SAL.Programmer_Error with "Language_Fixes raised Invalid_Case; should handle that locally";
+               end if;
+            end;
 
             --  The solutions enqueued by Language_Fixes should be lower cost than
             --  others (typically 0), so they will be checked first.

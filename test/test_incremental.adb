@@ -197,7 +197,9 @@ package body Test_Incremental is
          Ada.Text_IO.Put_Line (Label_Dot & "edited source : '" & To_String (Edited_Buffer) & "'");
       end if;
 
-      if WisiToken.Trace_Tests > WisiToken.Detail then
+      if WisiToken.Trace_Tests > WisiToken.Detail or
+        WisiToken.Trace_McKenzie + WisiToken.Trace_Parse > WisiToken.Outline
+      then
          Put_Line (Label_Dot & "edited source full parse:");
       end if;
 
@@ -219,7 +221,9 @@ package body Test_Incremental is
       Full_Parser.Tree.Copy_Tree (Edited_Source_Full_Parse_Tree, User_Data'Access);
 
       if Initial /= "" then
-         if WisiToken.Trace_Tests > WisiToken.Detail then
+         if WisiToken.Trace_Tests > WisiToken.Detail or
+           WisiToken.Trace_McKenzie + WisiToken.Trace_Parse > WisiToken.Outline
+         then
             New_Line;
             Put_Line (Label_Dot & "initial source full parse:");
          end if;
@@ -240,7 +244,9 @@ package body Test_Incremental is
          Check (Label_Dot & "initial errors", Incremental_Parser.Tree.Error_Count, Initial_Errors);
       end if;
 
-      if WisiToken.Trace_Tests > WisiToken.Detail then
+      if WisiToken.Trace_Tests > WisiToken.Detail or
+        WisiToken.Trace_McKenzie + WisiToken.Trace_Parse > WisiToken.Outline
+      then
          New_Line;
          Put_Line (Label_Dot & "incremental parse:");
       end if;
@@ -647,6 +653,32 @@ package body Test_Incremental is
          Initial_Errors => 0,
          Incr_Errors    => 0);
    end Edit_Comment_14;
+
+   procedure Edit_Comment_15 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Edit modifies comment start
+      Parse_Text
+        (Initial   =>
+           "procedure Ask" & ASCII.LF &
+             --      |10
+             "is begin" & ASCII.LF &
+             --    |20    |23
+             "   A :=" & ASCII.LF &
+             --     |30
+             "   --" & ASCII.LF &
+             --  |35
+             "   bar;" & ASCII.LF &
+             "end Ask;",
+         --       |66
+
+         Edit_At        => 36,
+         Insert         => " foo ",
+         Delete         => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Edit_Comment_15;
 
    procedure Edit_Whitespace_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1250,7 +1282,7 @@ package body Test_Incremental is
 
    end Missing_Name_1;
 
-   procedure Recover_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Recover_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -1266,9 +1298,9 @@ package body Test_Incremental is
          Insert            => "Integer",
          Initial_Errors => 1,
          Incr_Errors => 0);
-   end Recover_1;
+   end Recover_01;
 
-   procedure Recover_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Recover_02 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -1281,13 +1313,31 @@ package body Test_Incremental is
       Parse_Text
         (Initial           =>
            "procedure Pkg.Proc_1 is begin A; begin B; end Pkg.Proc_1;",
-         --        |10       |20       |30       |40       |50
+         --          |10       |20       |30       |40       |50
          Edit_At           => 43,
          Delete            => "",
          Insert            => "end; ",
          Initial_Errors => 1,
          Incr_Errors => 0);
-   end Recover_2;
+   end Recover_02;
+
+   procedure Recover_03 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  LR1 incremental parse encountered an invalid sequential index
+      --  error in error recovery; now fixed.
+
+      Parse_Text
+        (Initial        =>
+           "procedure Debug is A : Integer := 4; end Debug;",
+         --          |10       |20       |30       |40
+         Edit_At        => 15,
+         Delete         => "g",
+         Insert         => "",
+         Initial_Errors => 1,
+         Incr_Errors    => 1);
+   end Recover_03;
 
    procedure Lexer_Errors_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1751,6 +1801,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment_12'Access, "Edit_Comment_12");
       Register_Routine (T, Edit_Comment_13'Access, "Edit_Comment_13");
       Register_Routine (T, Edit_Comment_14'Access, "Edit_Comment_14");
+      Register_Routine (T, Edit_Comment_15'Access, "Edit_Comment_15");
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Whitespace_3'Access, "Edit_Whitespace_3");
@@ -1783,8 +1834,9 @@ package body Test_Incremental is
       Register_Routine (T, Insert_Comment_Start_01'Access, "Insert_Comment_Start_01");
       Register_Routine (T, Names'Access, "Names");
       Register_Routine (T, Missing_Name_1'Access, "Missing_Name_1");
-      Register_Routine (T, Recover_1'Access, "Recover_1");
-      Register_Routine (T, Recover_2'Access, "Recover_2");
+      Register_Routine (T, Recover_01'Access, "Recover_01");
+      Register_Routine (T, Recover_02'Access, "Recover_02");
+      Register_Routine (T, Recover_03'Access, "Recover_03");
       Register_Routine (T, Lexer_Errors_01'Access, "Lexer_Errors_01");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");

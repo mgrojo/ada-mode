@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009-2010, 2012-2015, 2017 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009-2010, 2012-2015, 2017 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -137,7 +137,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
       is begin
          Parser.Tree.Lexer.Reset_With_String (Command);
          Parser.Parse (Log_File);
-         AUnit.Assertions.Assert (False, Command & "; no exception");
+         AUnit.Assertions.Assert (False, "'" & Command & "'; no exception");
       exception
       when WisiToken.Parse_Error =>
          if WisiToken.Trace_Tests > WisiToken.Outline then
