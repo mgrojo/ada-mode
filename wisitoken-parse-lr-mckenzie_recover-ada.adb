@@ -250,6 +250,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                             Image (Tree.Element_ID (Config.Error_Token), Descriptor), New_Config);
                   end if;
                   Local_Config_Heap.Add (New_Config);
+               exception
+               when Invalid_Case =>
+                  null;
                end;
 
             else
@@ -279,9 +282,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                   Push_Back_Check (Super, Shared_Parser, New_Config, +END_ID, Push_Back_Undo_Reduce => True);
 
-                  --  We don't insert ';' here, because we may need to insert other
-                  --  stuff first; let Minimal_Complete_Actions handle it.
-                  Insert (Super, Shared_Parser, New_Config, +END_ID);
+                  --  Minimal_Complete_Actions does not insert an optional name, but we
+                  --  know we need one here.
+                  Insert (Super, Shared_Parser, New_Config, (+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID));
 
                   Local_Config_Heap.Add (New_Config);
 
@@ -291,6 +294,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                           (Tree.Element_ID (Config.Error_Token), Descriptor),
                         New_Config);
                   end if;
+               exception
+               when Invalid_Case =>
+                  null;
                end;
             end if;
          end;
@@ -481,8 +487,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   Put ("Language_Fixes Missing_Name_Error 1b " & Image
                          (Tree.Element_ID (Config.Error_Token), Descriptor), New_Config);
                end if;
+            exception
+            when Invalid_Case =>
+               null;
             end;
-
          end if;
 
       when Extra_Name_Error =>
@@ -543,8 +551,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                --  We don't need Undo_Reduce if sequence_of_statements is present;
                --  parser will handle that.
             end if;
-            Insert (Super, Shared_Parser, New_Config, +END_ID);
-            --  Let Minimal_Complete_Actions handle (insert ';').
+
+            --  We know there is no name here.
+            Insert (Super, Shared_Parser, New_Config, (+END_ID, +SEMICOLON_ID));
 
             Local_Config_Heap.Add (New_Config);
 
@@ -609,8 +618,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                  Image (Tree.Element_ID (Config.Error_Token), Tree.Lexer.Descriptor.all);
             end case;
 
-            --  Let Minimal_Complete_Actions finish insert
-            Insert (Super, Shared_Parser, New_Config, +END_ID);
+            --  We know there is no name here.
+            Insert (Super, Shared_Parser, New_Config, (+END_ID, +SEMICOLON_ID));
 
             Local_Config_Heap.Add (New_Config);
 
@@ -967,9 +976,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Insert (Super, Shared_Parser, New_Config_1, (+NULL_ID, +SEMICOLON_ID));
             end if;
 
-            Insert (Super, Shared_Parser, New_Config_1, (+END_ID, +SEMICOLON_ID));
             --  If we don't insert the ';' here, <variable_name> looks like a
             --  block end name.
+            Insert (Super, Shared_Parser, New_Config_1, (+END_ID, +SEMICOLON_ID));
 
             --  This is a guess, so add a cost, equal to case 1.
             New_Config_1.Cost := New_Config_1.Cost + 1;
@@ -979,6 +988,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             if Trace_McKenzie > Detail then
                Put ("Language_Fixes constant decl as statement 2", New_Config_1);
             end if;
+         exception
+         when Invalid_Case =>
+            null;
          end;
 
       elsif Tree.Element_ID (Config.Error_Token) = +DOT_ID then
@@ -1034,7 +1046,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                if Tree.Element_ID (New_Config_1.Stack.Peek (3).Token) = +declarative_part_ID then
                   --  'declare' is present; case 2
-                  Insert (Super, Shared_Parser, New_Config_1, +END_ID);
+                  Insert (Super, Shared_Parser, New_Config_1, (+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID));
                   Local_Config_Heap.Add (New_Config_1);
                else
                   --  no 'declare'; either case 1 or 2, so enqueue both
@@ -1050,22 +1062,28 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                            (+handled_sequence_of_statements_ID, +BEGIN_ID, +label_opt_ID),
                            Push_Back_Undo_Reduce => True);
 
+                     when protected_operation_item_list_ID =>
+                        --  ada_mode-recover_protected_01.adb
+                        --  Can't be case 2.
+                        raise Invalid_Case;
+
                      when others =>
                         raise Bad_Config with "Language_Fixes " & Label & " unimplemented case " & Image
                           (Tree.Element_ID (New_Config_2.Stack.Peek.Token), Descriptor);
                      end case;
 
-                     Insert (Super, Shared_Parser, New_Config_2, +END_ID);
-                     --  for case 1; let Minimal_Complete_Actions finish insert.
+                     Insert (Super, Shared_Parser, New_Config_2, (+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID));
 
                      Local_Config_Heap.Add (New_Config_2);
                      if Trace_McKenzie > Detail then
                         Put ("Language_Fixes " & Label, New_Config_2);
                      end if;
+                  exception
+                  when Invalid_Case =>
+                     null;
                   end;
 
-                  Insert (Super, Shared_Parser, New_Config_1, +END_ID);
-                  --  for case 2; let Minimal_Complete_Actions finish insert.
+                  Insert (Super, Shared_Parser, New_Config_1, (+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID));
 
                   Local_Config_Heap.Add (New_Config_1);
                end if;
@@ -1144,9 +1162,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                      end if;
 
                   when Reduce =>
-                     --  case c: ada_mode-recover_39.adb. We don't try to insert a matching
-                     --  name, because the name check is skipped for virtual tokens.
-                     Insert (Super, Shared_Parser, New_Config, (+END_ID, +SEMICOLON_ID));
+                     --  case c: ada_mode-recover_39.adb.
+                     Insert (Super, Shared_Parser, New_Config, (+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID));
 
                      Local_Config_Heap.Add (New_Config);
                      if Trace_McKenzie > Detail then
@@ -1258,6 +1275,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                         end if;
                      end;
                   end if;
+               exception
+               when Invalid_Case =>
+                  null;
                end;
             end if;
          end;
@@ -1329,6 +1349,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             if Trace_McKenzie > Detail then
                Put ("Language_Fixes and/or", New_Config);
             end if;
+         exception
+         when Invalid_Case =>
+            null;
          end;
 
       elsif Tree.Element_ID (Config.Error_Token) = +TICK_1_ID and Config.Error_Token.Virtual = False then
@@ -1365,6 +1388,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             if Trace_McKenzie > Detail then
                Put ("Language_Fixes char_literal to string", New_Config);
             end if;
+         exception
+         when Invalid_Case =>
+            null;
          end;
 
       elsif Tree.Element_ID (Config.Error_Token) = +IN_ID and then
@@ -1394,13 +1420,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             if Trace_McKenzie > Detail then
                Put ("Language_Fixes exposed argument list", New_Config);
             end if;
+         exception
+         when Invalid_Case =>
+            null;
          end;
 
       end if;
    exception
-   when Invalid_Case =>
-      null;
-
    when Bad_Config =>
       if Debug_Mode then
          raise;

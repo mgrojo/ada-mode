@@ -15,7 +15,9 @@
 -- loop' in the right place, so the errors do not cascade, and 'end
 -- subprogram_body' is indented properly.
 --
---  Does not compile.
+-- Does not compile. The code requires more complex error correction
+-- than the minimal needed to check recovery for Match_Name failures;
+-- this serves as an additional test on error recovery.
 --
 --  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
@@ -50,12 +52,12 @@ package body Ada_Mode.Recover_Match_Names is
    is
       A : Integer;
    begin
-   Block_1:
+   Block_0:
       declare
       begin
          loop
             loop;
-      end Block_1;
+      end Block_0;
    end Block_Statement_0;
 
    procedure Block_Statement_1
