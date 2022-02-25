@@ -50,7 +50,8 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-"editing is slow" notes in o.w.s/notes.text
+do spark on wisi-parse_context.adb Edit_Source
+    find cause of constraint_error in Move_Gap
 
 indent wrong:
     wisioken-bnf-output_ada_common.adb
@@ -1088,13 +1089,6 @@ test-ada-lalr-incremental-process-gpr_query ELISP="(setq-default wisi-process-ti
 two RUN_ARGS="command_file debug.cmd &> debug.log"
 
 *.debug RUNTEST=run-indent-test-lalr-incremental-process-gpr_query.el ELISP="(setq-default wisi-mckenzie-task-count 1 save-parser-log \"../debug-2.log\" wisi-parser-verbosity \"debug=1\")"
-
-when saving kbd macros for tests:
-    (define-key global-map "\M-w" 'kill-ring-save)
-    (define-key global-map "\M-w" 'sal-save-all-buffers)
-
-after each wisi-reset-parser:
-    (wisi-process-parse-compare-tree-text wisi--parser)
 
 ada-mode option defaults:
 --lang_params "3 2 0 0 -3 3 2 0 2 3 2 2 1"
