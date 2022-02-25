@@ -355,7 +355,15 @@ package body Wisi.Parse_Context is
       end Reallocate;
 
       procedure Move_Gap (New_Gap_First : in Integer)
-      with Pre => New_Gap_First /= Gap_First and Gap_Invariant,
+      with Pre =>
+        New_Gap_First /= Gap_First and Gap_Invariant and
+        (if New_Gap_First < Gap_First
+         then
+            (New_Gap_First + Gap_Last - Gap_First) + 1 in Source'First .. Source'Last and
+              New_Gap_First in Source'First .. Source'Last
+         else
+            New_Gap_First - 1 in Source'First .. Source'Last and
+              Gap_Last + 1 in Source'First .. Source'Last),
         Post => Gap_Invariant
       is
          --  Examples:
