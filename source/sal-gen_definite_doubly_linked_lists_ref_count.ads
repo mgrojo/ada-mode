@@ -82,6 +82,9 @@ package SAL.Gen_Definite_Doubly_Linked_Lists_Ref_Count is
    --
    --  This is useful when there are bugs that you want to ignore.
 
+   procedure Check_Ref_Counts (Container : in out List);
+   --  Raises SAL.Invalid_Operation if any ref count is non-zero.
+
    procedure Clear (Container : in out List) renames Finalize;
 
    function Length (Container : in List) return Ada.Containers.Count_Type;

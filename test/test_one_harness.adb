@@ -19,8 +19,6 @@ is
    --  <verbose> test_name routine_name trace
    --   1        2         3            4
    --
-   --  trace_config is passed to Wisitoken.Enable_Trace
-   --
    --  test_name, routine_name can be '' to set trace for all routines.
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;

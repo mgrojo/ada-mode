@@ -66,6 +66,9 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Ref_Count is
       loop
          exit when Next = null;
          Next := Container.Head.Next;
+         --  We raise an exception here, even though Finalize never should,
+         --  because Finalize is also renamed to Clear, and called as a
+         --  normal procedure.
          if Container.Enable_Checks and Container.Head.Ref_Count /= 0 then
             raise Invalid_Operation with "ref_count " & Container.Head.Ref_Count'Image;
          end if;
@@ -80,6 +83,19 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Ref_Count is
    is begin
       Container.Enable_Checks := Enable;
    end Enable_Ref_Count_Check;
+
+   procedure Check_Ref_Counts (Container : in out List)
+   is
+      Next : Node_Access := Container.Head;
+   begin
+      loop
+         exit when Next = null;
+         if Container.Enable_Checks and Next.Ref_Count /= 0 then
+            raise Invalid_Operation with "ref_count " & Next.Ref_Count'Image;
+         end if;
+         Next := Next.Next;
+      end loop;
+   end Check_Ref_Counts;
 
    function Length (Container : in List) return Ada.Containers.Count_Type
    is begin
