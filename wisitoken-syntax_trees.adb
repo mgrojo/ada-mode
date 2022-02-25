@@ -1265,10 +1265,14 @@ package body WisiToken.Syntax_Trees is
       --  Clear saved element list cursors in parse streams before freeing
       --  the element lists, so they don't try to decrement reference counts
       --  in deallocated elements. We can't rely on cursor Finalize for
-      --  this; that's done in arbitrary order.
-      for Stream of Tree.Streams loop
+      --  this; that's done in arbitrary order. Loop in reverse order so
+      --  shared stream is last; other streams have links to it.
+      for Stream of reverse Tree.Streams loop
          Stream.Stack_Top   := Stream_Element_Lists.No_Element;
          Stream.Shared_Link := Stream_Element_Lists.No_Element;
+         if Debug_Mode then
+            Stream.Elements.Check_Ref_Counts;
+         end if;
       end loop;
       Tree.Streams.Clear;
 

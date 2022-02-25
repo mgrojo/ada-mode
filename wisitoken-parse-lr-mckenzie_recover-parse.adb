@@ -20,12 +20,11 @@ pragma License (Modified_GPL);
 package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    procedure Compute_Nonterm
-     (Tree                     : in     Syntax_Trees.Tree;
-      ID                       : in     Token_ID;
-      Stack                    : in     Recover_Stacks.Stack;
-      Tokens                   : in out Syntax_Trees.Recover_Token_Array;
-      Nonterm                  :    out Syntax_Trees.Virtual_Recover_Token;
-      Default_Contains_Virtual : in     Boolean)
+     (Tree    : in     Syntax_Trees.Tree;
+      ID      : in     Token_ID;
+      Stack   : in     Recover_Stacks.Stack;
+      Tokens  : in out Syntax_Trees.Recover_Token_Array;
+      Nonterm :    out Syntax_Trees.Virtual_Recover_Token)
    is
       use Syntax_Trees;
 
@@ -34,7 +33,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Nonterm :=
         (Virtual                   => True,
          ID                        => ID,
-         Contains_Virtual_Terminal => (if Tokens'Length = 0 then Default_Contains_Virtual else False),
+         Contains_Virtual_Terminal => False,
          others                    => <>);
 
       for I in Tokens'Range loop
@@ -61,11 +60,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    end Compute_Nonterm;
 
    function Reduce_Stack
-     (Shared_Parser            : in out LR.Parser.Parser;
-      Stack                    : in out Recover_Stacks.Stack;
-      Action                   : in     Reduce_Action_Rec;
-      Nonterm                  :    out Syntax_Trees.Recover_Token;
-      Default_Contains_Virtual : in     Boolean)
+     (Shared_Parser : in out LR.Parser.Parser;
+      Stack         : in out Recover_Stacks.Stack;
+      Action        : in     Reduce_Action_Rec;
+      Nonterm       :    out Syntax_Trees.Recover_Token)
      return In_Parse_Actions.Status
    is
       use all type In_Parse_Actions.In_Parse_Action;
@@ -78,7 +76,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          raise Bad_Config;
       end if;
 
-      Compute_Nonterm (Shared_Parser.Tree, Action.Production.LHS, Stack, Tokens, Nonterm, Default_Contains_Virtual);
+      Compute_Nonterm (Shared_Parser.Tree, Action.Production.LHS, Stack, Tokens, Nonterm);
 
       if Action.In_Parse_Action = null then
          --  Now we can pop the stack.
@@ -883,9 +881,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             declare
                Nonterm : Syntax_Trees.Recover_Token;
             begin
-               Config.In_Parse_Action_Status := Reduce_Stack
-                 (Shared_Parser, Config.Stack, Action, Nonterm,
-                  Default_Contains_Virtual => Config.Current_Insert_Delete /= No_Insert_Delete);
+               Config.In_Parse_Action_Status := Reduce_Stack (Shared_Parser, Config.Stack, Action, Nonterm);
 
                case Config.In_Parse_Action_Status.Label is
                when Ok =>

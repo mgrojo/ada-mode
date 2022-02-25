@@ -111,29 +111,20 @@ package body Wisitoken_Grammar_Main is
       return
         (case To_Token_Enum (ID) is
          when COMMENT_ID =>
-         (if Inserted then Lexer.Find_New_Line (Source, Region.First)
+         (if Inserted then (if Start then Lexer.Find_New_Line (Source, Region.Last) else Region.Last)
           elsif Start then Region.Last
           else Lexer.Find_New_Line (Source, Region.Last)),
          when RAW_CODE_ID =>
-           (if Inserted
-            then Lexer.Find_String (Source, Region.First, "%{")
-            elsif Start
-            then Region.Last
-            else Lexer.Find_String (Source, Region.Last, "%{")),
+           (if Start then Region.Last
+            else Lexer.Find_String (Source, Region.First, "%{")),
          when REGEXP_ID =>
-           (if Inserted
-            then Lexer.Find_String (Source, Region.First, "%[")
-            elsif Start
-            then Region.Last
-            else Lexer.Find_String (Source, Region.Last, "%[")),
+           (if Start then Region.Last
+            else Lexer.Find_String (Source, Region.First, "%[")),
          when ACTION_ID =>
-           (if Inserted
-            then Lexer.Find_String (Source, Region.First, "%(")
-            elsif Start
-            then Region.Last
-            else Lexer.Find_String (Source, Region.Last, "%(")),
-         when STRING_LITERAL_1_ID => Lexer.Find_New_Line (Source, Region.First),
-         when STRING_LITERAL_2_ID => Lexer.Find_New_Line (Source, Region.First),
+           (if Start then Region.Last
+            else Lexer.Find_String (Source, Region.First, "%(")),
+         when STRING_LITERAL_1_ID => Lexer.Find_New_Line (Source, Region.Last),
+         when STRING_LITERAL_2_ID => Lexer.Find_New_Line (Source, Region.Last),
          when others => raise SAL.Programmer_Error);
    end Find_Scan_End;
 
@@ -170,8 +161,6 @@ package body Wisitoken_Grammar_Main is
       when RAW_CODE_ID => return WisiToken.Lexer.Line_Begin_Char_Pos (Source, Token, Line);
       when REGEXP_ID => return WisiToken.Lexer.Line_Begin_Char_Pos (Source, Token, Line);
       when ACTION_ID => return WisiToken.Lexer.Line_Begin_Char_Pos (Source, Token, Line);
-      when STRING_LITERAL_1_ID => return Token.Char_Region.Last + 1;
-      when STRING_LITERAL_2_ID => return Token.Char_Region.Last + 1;
       when others => raise SAL.Programmer_Error;
       end case;
    end Line_Begin_Char_Pos;

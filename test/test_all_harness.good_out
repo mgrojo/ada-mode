@@ -68,8 +68,10 @@ OK test_incremental.adb : Edit_Comment_11
 OK test_incremental.adb : Edit_Comment_12
 OK test_incremental.adb : Edit_Comment_13
 OK test_incremental.adb : Edit_Comment_14
+OK test_incremental.adb : Edit_Comment_15
 OK test_incremental.adb : Edit_Whitespace_1
 OK test_incremental.adb : Edit_Whitespace_2
+OK test_incremental.adb : Edit_Whitespace_3
 OK test_incremental.adb : Edit_Leading_Non_Grammar
 OK test_incremental.adb : Edit_Code_01
 OK test_incremental.adb : Edit_Code_02
@@ -99,8 +101,9 @@ OK test_incremental.adb : Insert_New_Line
 OK test_incremental.adb : Insert_Comment_Start_01
 OK test_incremental.adb : Names
 OK test_incremental.adb : Missing_Name_1
-OK test_incremental.adb : Recover_1
-OK test_incremental.adb : Recover_2
+OK test_incremental.adb : Recover_01
+OK test_incremental.adb : Recover_02
+OK test_incremental.adb : Recover_03
 OK test_incremental.adb : Lexer_Errors_01
 OK test_incremental.adb : Preserve_Parse_Errors_1
 OK test_incremental.adb : Preserve_Parse_Errors_2
@@ -259,7 +262,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   259
-Successful Tests:  259
+Total Tests Run:   262
+Successful Tests:  262
 Failed Assertions: 0
 Unexpected Errors: 0

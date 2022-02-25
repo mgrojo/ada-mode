@@ -981,25 +981,17 @@ package body Test_McKenzie_Recover is
       --  'exception', so we choose 'insert begin' for this, and 'delete
       --  end' for those.
       --
-      --  For all four Missing_Name_* tests, Language_Fixes enqueues
-      --  two solutions.
-      --
       --  In this case, the desired fix is 'insert "Remove" 68', which
-      --  recover doesn't do; it's equivalent to 'ignore error', cost 2.
-      --
-      --  With help from Language_Fixes, Recover finds a cost 1 solution.
+      --  is language fix Missing_Name_Error 0a
 
       Check_Recover
         (Errors_Length           => 1,
          Error_Token_ID          => +PROCEDURE_ID, --  error is moved here
          Error_Token_Byte_Region => (19, 27),
          Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, -9) & (Push_Back, +SEMICOLON_ID, 1) &
-           (Push_Back, +name_opt_ID, Invalid) & (Push_Back, +END_ID, 0) &
-           (Push_Back, +handled_sequence_of_statements_ID, -5) & (Insert, +BEGIN_ID, -5) & (Fast_Forward, 5) &
-           (Push_Back, +SEMICOLON_ID, 4) & (Push_Back, +name_opt_ID, 3) & (Push_Back, +END_ID, 2) &
-           (Insert, +END_ID, 2) & (Insert, +SEMICOLON_ID, 2),
-         Enqueue_Low             => 6,
-         Check_Low               => 6,
+           (Undo_Reduce, +name_opt_ID, 0, Invalid) & (Insert, +IDENTIFIER_ID, 1),
+         Enqueue_Low             => 8,
+         Check_Low               => 8,
          Cost                    => 1,
          Code                    => Missing_Name_Error);
    end Missing_Name_0;
@@ -1039,8 +1031,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, -9) & (Push_Back, +SEMICOLON_ID, 1) &
            (Push_Back, +name_opt_ID, Invalid) & (Push_Back, +END_ID, 0) &
            (Push_Back, +handled_sequence_of_statements_ID, -5) & (Insert, +BEGIN_ID, -5),
-         Enqueue_Low             => 13,
-         Check_Low               => 3,
+         Enqueue_Low             => 23,
+         Check_Low               => 6,
          Cost                    => 1);
    end Missing_Name_1;
 
@@ -1079,8 +1071,8 @@ package body Test_McKenzie_Recover is
              (Undo_Reduce, +handled_sequence_of_statements_ID, 1, -4) &
              (Undo_Reduce, +sequence_of_statements_ID, 1, -4) &
              (Delete, +END_ID, 0) & (Delete, +SEMICOLON_ID, 1),
-         Enqueue_Low             => 13,
-         Check_Low               => 3,
+         Enqueue_Low             => 23,
+         Check_Low               => 6,
          Cost                    => 1);
    end Missing_Name_2;
 
@@ -1099,10 +1091,7 @@ package body Test_McKenzie_Recover is
       --  Missing_Name_Error. See Missing_Name_0 for general discussion. See
       --  Missing_Name_2; there is no way to distinguish this case from
       --  that, other than parsing to EOI. So Language_Fixes returns
-      --  two solutions; 'ignore error' and 'push_back, delete end;'.
-      --
-      --  In this case, 'ignore error' passes recover check, but is
-      --  more expensive.
+      --  two solutions; 'insert identifier' and 'push_back, delete end;'.
 
       Check_Recover
         (Errors_Length           => 1,
@@ -1110,12 +1099,9 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +PROCEDURE_ID,
          Error_Token_Byte_Region => (19, 27),
          Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, -8) & (Push_Back, +SEMICOLON_ID, 1) &
-           (Push_Back, +name_opt_ID, Invalid) & (Push_Back, +END_ID, 0) &
-           (Undo_Reduce, +handled_sequence_of_statements_ID, 1, -4) & (Undo_Reduce, +sequence_of_statements_ID, 1, -4) &
-           (Delete, +END_ID, 0) & (Delete, +SEMICOLON_ID, 1) & (Fast_Forward, 5) & (Push_Back, +SEMICOLON_ID, 4) &
-           (Push_Back, +name_opt_ID, 3) & (Push_Back, +END_ID, 2) & (Insert, +END_ID, 2) & (Insert, +SEMICOLON_ID, 2),
-         Enqueue_Low             => 6,
-         Check_Low               => 6,
+           (Undo_Reduce, +name_opt_ID, 0, Invalid) & (Insert, +IDENTIFIER_ID, 1),
+         Enqueue_Low             => 8,
+         Check_Low               => 8,
          Cost                    => 1);
    end Missing_Name_3;
 
@@ -1132,23 +1118,24 @@ package body Test_McKenzie_Recover is
       --  Missing 'Remove' 58. Enters error recovery on 'end' 60 with
       --  Missing_Name_Error.
       --
-      --  In this case, 'ignore error' is the only solution returned by
+      --  In this case, 'insert identifier' is the only solution returned by
       --  Language_Fixes. The check immediately succeeds, and that is
       --  the result from recover.
       Check_Recover
         (Errors_Length           => 1,
-         Error_Token_ID          => +package_body_ID,
-         Error_Token_Byte_Region => (19, 58),
-         Ops                     => Empty_Ops,
-         Enqueue_Low             => 1,
-         Check_Low               => 1,
-         Cost                    => 2,
-         Code                    => Missing_Name_Error);
+         Code                    => Missing_Name_Error,
+         Error_Token_ID          => +PACKAGE_ID,
+         Error_Token_Byte_Region => (19, 25),
+         Ops                     => +(Undo_Reduce, +package_body_ID, 9, -8) & (Push_Back, +SEMICOLON_ID, 1) &
+           (Undo_Reduce, +name_opt_ID, 0, Invalid) & (Insert, +IDENTIFIER_ID, 1),
+         Enqueue_Low             => 3,
+         Check_Low               => 3,
+         Cost                    => 1);
    end Missing_Name_4;
 
    procedure Missing_Name_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
    begin
       End_Name_Optional := False; -- Triggers Missing_Name_Error.
 
@@ -1161,63 +1148,19 @@ package body Test_McKenzie_Recover is
       --  Missing 'Proc_2' 68. Enters error recovery on 'begin' 58 with
       --  Missing_Name_Error for Proc_2.
       --
-      --  Language_Fixes enqueues the solution below, inserting a matching
-      --  'end' (which is not the desired solution in this case, but we
-      --  assume it is more likely to be the desired solution in practice).
-      --
-      --  In LALR, that fails at EOI with an Extra_Name_Error; the solution
-      --  reverts the solution to the first error. In LR1, it fails with a
-      --  parser error - expecting another 'end'; same solution as the LALR
-      --  case. The difference is because LALR merges lookaheads.
+      --  Language_Fixes enqueues the solution below.
 
       Check_Recover
-        (Errors_Length           => 2,
+        (Errors_Length           => 1,
          Checking_Error          => 1,
          Code                    => Missing_Name_Error,
          Error_Token_ID          => +PROCEDURE_ID,
          Error_Token_Byte_Region => (21, 29),
          Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, -6) & (Push_Back, +SEMICOLON_ID, 1) &
-           (Push_Back, +name_opt_ID, Invalid) & (Push_Back, +END_ID, 0) &
-           (Undo_Reduce, +handled_sequence_of_statements_ID, 1, -2) & (Undo_Reduce, +sequence_of_statements_ID, 1, -2) &
-           (Delete, +END_ID, 0) & (Delete, +SEMICOLON_ID, 1),
+           (Undo_Reduce, +name_opt_ID, 0, Invalid) &  (Insert, +IDENTIFIER_ID, 1),
+         Enqueue_Low             => 5,
+         Check_Low               => 5,
          Cost                    => 1);
-
-      case Test.Alg is
-      when LALR =>
-         Check_Recover
-           (Errors_Length           => 2,
-            Checking_Error          => 2,
-            Code                    => Extra_Name_Error,
-            Error_Token_ID          => +BEGIN_ID,
-            Error_Token_Byte_Region => (58, 62),
-            Ops                     => +(Undo_Reduce, +block_statement_ID, 6, -4) & (Push_Back, +SEMICOLON_ID, 1) &
-              (Push_Back, +identifier_opt_ID, 0) & (Push_Back, +END_ID, -1) &
-              (Push_Back, +handled_sequence_of_statements_ID, -3) & (Push_Back, +BEGIN_ID, -4) &
-              (Push_Back, +block_label_opt_ID, Invalid) & (Insert, +END_ID, -4) &
-              (Insert, +SEMICOLON_ID, -4),
-            Enqueue_Low             => 18,
-            Check_Low               => 4,
-            Cost                    => 1);
-
-      when LR1                      =>
-         Check_Recover
-           (Errors_Length           => 2,
-            Checking_Error          => 2,
-            Error_Token_ID          => +Wisi_EOI_ID,
-            Error_Token_Byte_Region => (81, 80),
-            Ops                     => +(Push_Back, +SEMICOLON_ID, 1) & (Push_Back, +identifier_opt_ID, 0) &
-              (Push_Back, +END_ID, -1) & (Push_Back, +handled_sequence_of_statements_ID, -3) &
-              (Push_Back, +BEGIN_ID, -4) & (Push_Back, +block_label_opt_ID, Invalid) &
-              (Insert, +END_ID, -4) & (Insert, +SEMICOLON_ID, -4),
-            Enqueue_Low             => 19,
-            Check_Low               => 5,
-            Cost                    => 1,
-            Expecting               => WisiToken.To_Token_ID_Set
-              (Descriptor.First_Terminal,
-               Descriptor.Last_Terminal,
-               (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +EXCEPTION_ID, +FOR_ID, +IF_ID, +LOOP_ID,
-                +RETURN_ID, +IDENTIFIER_ID)));
-      end case;
    end Missing_Name_5;
 
    procedure Block_Match_Names_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1357,8 +1300,8 @@ package body Test_McKenzie_Recover is
            (Push_Back, +block_label_opt_ID, Invalid) & (Insert, +EXIT_ID, -4) & (Insert, +SEMICOLON_ID, -4) &
            (Insert, +END_ID, -4) & (Insert, +SEMICOLON_ID, -4) & (Fast_Forward, 2) & (Push_Back, +SEMICOLON_ID, 1) &
            (Push_Back, +name_opt_ID, 0) & (Push_Back, +END_ID, -1) & (Insert, +END_ID, -1) &
-           (Insert, +SEMICOLON_ID, -1) & (Insert, +BEGIN_ID, -1) & (Insert, +EXIT_ID, -1) &
-           (Insert, +SEMICOLON_ID, -1),
+           (Insert, +IDENTIFIER_ID, -1) & (Insert, +SEMICOLON_ID, -1) & (Insert, +BEGIN_ID, -1) &
+           (Insert, +EXIT_ID, -1) & (Insert, +SEMICOLON_ID, -1),
          Enqueue_Low             => 39,
          Check_Low               => 13,
          Cost                    => 2);
@@ -1470,7 +1413,8 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            +(Push_Back, +IDENTIFIER_ID, 1) & (Push_Back, +END_ID, 0) &
              (Push_Back, +handled_sequence_of_statements_ID, -2) & (Push_Back, +BEGIN_ID, -3) &
-             (Push_Back, +block_label_opt_ID, Invalid) & (Insert, +END_ID, -3) & (Insert, +SEMICOLON_ID, -3),
+             (Push_Back, +block_label_opt_ID, Invalid) & (Insert, +END_ID, -3) & (Insert, +IDENTIFIER_ID, -3) &
+             (Insert, +SEMICOLON_ID, -3),
          Enqueue_Low             => (case Test.Alg is when LALR => 23, when LR1 => 35),
          Check_Low               => 8,
          Cost                    => 0);
@@ -2278,21 +2222,27 @@ package body Test_McKenzie_Recover is
       Parse_Text ("procedure A is begin null; end;");
       --           1         2 3  4     5   6 7  8
 
-      --  There is a missing 'A' after 10:'end'. If only check for one op in
-      --  Just_Pushed_Back_Or_Deleted, the Language_Fixes solution followed
-      --  by Minimal_Complete ends in:
-      --  ... (DELETE, END, 7), (DELETE, SEMICOLON, 8), (INSERT, END, 9), (INSERT, SEMICOLON, 9)
+      --  There is a missing 'A' after 10:'end'.
+      --
+      --  If only check for one op in Just_Pushed_Back_Or_Deleted, a
+      --  previous Language_Fixes solution followed by Minimal_Complete ends
+      --  in: ... (DELETE, END, 7), (DELETE, SEMICOLON, 8), (INSERT, END,
+      --  9), (INSERT, SEMICOLON, 9), which motivated checking for multiple
+      --  delete when deciding what inserts to ignore.
+      --
+      --  Now Language_Fixes just inserts IDENTIFIER.
 
       Check_Recover
         (Label                   => "1",
          Errors_Length           => 1,
          Code                    => Missing_Name_Error,
-         Error_Token_ID          => +subprogram_body_ID,
-         Error_Token_Byte_Region => (1, 31),
-         Ops                     => Empty_Ops, --  solution is to ignore the error.
-         Enqueue_Low             => 13,
-         Check_Low               => 3,
-         Cost                    => 2);
+         Error_Token_ID          => +PROCEDURE_ID,
+         Error_Token_Byte_Region => (1, 9),
+         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, -6) & (Push_Back, +SEMICOLON_ID, 1) &
+           (Undo_Reduce, +name_opt_ID, 0, Invalid) & (Insert, +IDENTIFIER_ID, 1),
+         Enqueue_Low             => 15,
+         Check_Low               => 5,
+         Cost                    => 1);
 
       Parse_Text ("procedure C is procedure A is begin null; end; begin end C  ;");
       --           1         2 3  4         5 6  7     8   9 10 11 12   13  14 15
@@ -2305,8 +2255,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +subprogram_body_ID,
          Error_Token_Byte_Region => (16, 46),
          Ops                     => +(Fast_Forward, 3) & (Insert, +EXIT_ID, 3) & (Insert, +SEMICOLON_ID, 3),
-         Enqueue_Low             => (case Test.Alg is when LALR => 97, when LR1 => 145),
-         Check_Low               => (case Test.Alg is when LALR => 21, when LR1 => 25),
+         Enqueue_Low             => (case Test.Alg is when LALR => 141, when LR1 => 189),
+         Check_Low               => (case Test.Alg is when LALR => 33, when LR1 => 37),
          Cost                    => 2);
    end Check_Multiple_Delete_For_Insert;
 
@@ -2378,7 +2328,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (28, 36),
          Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9, -7) & (Push_Back, +SEMICOLON_ID, 1) &
            (Push_Back, +name_opt_ID, 0) & (Push_Back, +END_ID, -1) & (Insert, +END_ID, -1) &
-           (Insert, +SEMICOLON_ID, -1) & (Insert, +BEGIN_ID, -1) & (Insert, +EXIT_ID, -1) & (Insert, +SEMICOLON_ID, -1),
+           (Insert, +IDENTIFIER_ID, -1) & (Insert, +SEMICOLON_ID, -1) & (Insert, +BEGIN_ID, -1) &
+           (Insert, +EXIT_ID, -1) & (Insert, +SEMICOLON_ID, -1),
          Enqueue_Low             => (case Test.Alg is when LALR => 71, when LR1 => 69),
          Check_Low               => (case Test.Alg is when LALR => 20, when LR1 => 16),
          Cost                    => 2);

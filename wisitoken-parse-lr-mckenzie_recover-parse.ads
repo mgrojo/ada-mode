@@ -23,11 +23,10 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    use all type WisiToken.Syntax_Trees.Node_Label;
 
    function Reduce_Stack
-     (Shared_Parser            : in out LR.Parser.Parser;
-      Stack                    : in out Recover_Stacks.Stack;
-      Action                   : in     Reduce_Action_Rec;
-      Nonterm                  :    out Syntax_Trees.Recover_Token;
-      Default_Contains_Virtual : in     Boolean)
+     (Shared_Parser : in out LR.Parser.Parser;
+      Stack         : in out Recover_Stacks.Stack;
+      Action        : in     Reduce_Action_Rec;
+      Nonterm       :    out Syntax_Trees.Recover_Token)
      return In_Parse_Actions.Status;
    --  Reduce Stack according to Action, setting Nonterm.
 

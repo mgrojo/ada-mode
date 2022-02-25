@@ -104,8 +104,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Nonterm    : Syntax_Trees.Recover_Token;
       New_State  : Unknown_State_Index;
    begin
-      Config.In_Parse_Action_Status := Parse.Reduce_Stack
-        (Shared, Config.Stack, Action, Nonterm, Default_Contains_Virtual => True);
+      Config.In_Parse_Action_Status := Parse.Reduce_Stack (Shared, Config.Stack, Action, Nonterm);
       case Config.In_Parse_Action_Status.Label is
       when Ok =>
          null;
@@ -2141,7 +2140,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          if Shared.Language_Fixes = null then
             null;
          else
-            Shared.Language_Fixes (Super, Shared, Parser_Index, Local_Config_Heap, Config);
+            begin
+               Shared.Language_Fixes (Super, Shared, Parser_Index, Local_Config_Heap, Config);
+            exception
+            when Invalid_Case =>
+               if Debug_Mode then
+                  raise SAL.Programmer_Error with "Language_Fixes raised Invalid_Case; should handle that locally";
+               end if;
+            end;
 
             --  The solutions enqueued by Language_Fixes should be lower cost than
             --  others (typically 0), so they will be checked first.
