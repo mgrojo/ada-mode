@@ -1613,9 +1613,7 @@ package body WisiToken.BNF.Output_Ada_Common is
               (Non_Grammar  => True,
                Nonterminals => False,
                Include_SOI  => False)
-              => Kind (Generate_Data, I) = "comment-new-line" or
-                Kind (Generate_Data, I) = "comment-one-line" or
-                Kind (Generate_Data, I) = "delimited-text");
+              => Kind (Generate_Data, I) = "comment-new-line");
 
          Need_Start : constant Boolean :=
            (for some I in All_Tokens (Generate_Data).Iterate
