@@ -284,8 +284,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      raise Bad_Config;
                   else
                      declare
-                        Node : constant Syntax_Trees.Valid_Node_Access := Parse.Peek_Current_First_Sequential_Terminal
-                          (Super, Shared, Item.Config);
+                        Node : constant Syntax_Trees.Valid_Node_Access := Parse.Peek_Current_First_Terminal
+                          (Shared.Tree, Item.Config);
                      begin
                         Super.Extend_Sequential_Index (Shared, Thru => Node, Positive => True);
                         Append (Item.Config.Ops, (Fast_Forward, Shared.Tree.Get_Sequential_Index (Node)));
@@ -1277,6 +1277,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Lexer_Error_Node  : in     Syntax_Trees.Valid_Node_Access;
       Config            : in out Configuration;
       Local_Config_Heap : in out Config_Heaps.Heap_Type)
+   with Pre => Current_Line < Shared.Tree.Line_Region (Shared.Tree.EOI).Last
    is
       use Recover_Op_Arrays;
       use all type Parser.Language_String_ID_Set_Access;
@@ -1650,23 +1651,24 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Config.Cost := Config.Cost + 1;
 
          --  Let explore do insert after these deletes.
-         Super.Extend_Sequential_Index (Shared, Config.Current_Shared_Token.Node, Positive => True);
-         Append
-           (Config.Ops,
-            (Fast_Forward,
-             Tree.Get_Sequential_Index (Parse.Peek_Current_First_Sequential_Terminal (Super, Shared, Config))));
+         declare
+            Target_Node : constant Valid_Node_Access := Parse.Peek_Current_First_Terminal (Shared.Tree, Config);
+         begin
+            Super.Extend_Sequential_Index (Shared, Target_Node, Positive => True);
+            Append (Config.Ops, (Fast_Forward, Tree.Get_Sequential_Index (Target_Node)));
 
-         if Config.Resume_Token_Goal - Check_Limit < Tree.Get_Sequential_Index (Config.Current_Shared_Token.Node)
-         then
-            Config.Resume_Token_Goal := Tree.Get_Sequential_Index (Config.Current_Shared_Token.Node) + Check_Limit;
-            Super.Extend_Sequential_Index (Shared, Thru => Config.Resume_Token_Goal);
+            if Config.Resume_Token_Goal - Check_Limit < Tree.Get_Sequential_Index (Target_Node)
+            then
+               Config.Resume_Token_Goal := Tree.Get_Sequential_Index (Target_Node) + Check_Limit;
+               Super.Extend_Sequential_Index (Shared, Thru => Config.Resume_Token_Goal);
 
-            if Trace_McKenzie > Extra then
-               Put_Line
-                 (Shared.Trace.all, Tree, Super.Stream (Parser_Index), "resume_token_goal:" &
-                    Config.Resume_Token_Goal'Image);
+               if Trace_McKenzie > Extra then
+                  Put_Line
+                    (Shared.Trace.all, Tree, Super.Stream (Parser_Index), "resume_token_goal:" &
+                       Config.Resume_Token_Goal'Image);
+               end if;
             end if;
-         end if;
+         end;
 
          Config.Strategy_Counts (String_Quote) := Config.Strategy_Counts (String_Quote) + 1;
 
@@ -1903,6 +1905,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                return;
             elsif Config.Current_Shared_Token = Invalid_Stream_Node_Ref then
                --  Current token is in Config.Input_Stream, shared is past EOI. ada_mode-recover_partial_15.adb
+               return;
+
+            elsif Current_Line >= Tree.Line_Region.Last then
+               --  There is no New_Line token ending this line; test_incremental.adb
+               --  Edit_String_10.
                return;
             end if;
 

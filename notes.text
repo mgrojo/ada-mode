@@ -31,28 +31,61 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-set_parents is not incremental
-    see fixme
+editing wisitoken-syntax_trees.adb to add Tree.Line_region;
+    slow, even with "fast parser" settings in develop_settings.el
+    (setq wisi-parser-verbosity "time=1")
+;; 2022-02-27 11:47:11.47 start
+;; 2022-02-27 11:47:11.51 post edit tree
+;; 2022-02-27 11:47:11.91 pre-recover 2 active
+    faster if at end of file editing Sequential_Index_Cleared:
+;; 2022-02-27 11:50:21.46 start
+;; 2022-02-27 11:50:21.48 post edit tree
+;; 2022-02-27 11:50:21.48 pre-recover 1 active
 
-c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.ads:2686:            --  FIXME: change to ptr like error_list, for space saving?
-    use memory benchmark
-    may also affect speed
+    lots of subprograms; parse is slow building declarations list.
+    optimize syntax tree list structure
+        breakdown to node in middle just split list in two at node
+        parse that node splice the lists
+        tree_sitter uses balanced tree
 
-first parser operation after opening a large file is slow
-    waiting for full parse to complete
-    do partial parse on visible part for font-lock
-    then incremental parse expand tree.
-    meanwhile separate thread does full parse
-    wait until get user requests for it
+delete wi-m_r_parse.first, last_sequential_terminal?
 
-Tree.validate check that all tree.nodes are in tree
-    possibly in following_deleted
-    call it in syntax_Trees.clear_parse_streams
+packrat left recursion
+    copy from libadalang
 
-error recover try prev solution first - new strategy.
+Do LR incremental, error recover on tree from packrat parse?
+    batch = packrat, incremental = LR
+    adacore packrat 100 times faster than wisitoken LR
+    no error recover in packrat
+    need left_recursion in packrat
+        copy from adacore
 
-test_incremental.adb Recover_1 "delete empty nonterm" -27:(aspect_specification_opt)
-    better: don't delete; peek ahead to first terminal, reduce until aspect_specification_opt is shiftable
+    LR states added to parse stream by Undo_Reduce
+
+terminate duplicate_state missed one
+    convert_if_to_case.ada_lite
+task 0 3: (2891 : 20:(SEMICOLON, (145 . 145)), 2865 : 19:(IF, (143 . 144)), 2817 : 18:(END, (139 . 141)), 2724 :(sequence_of_statements, (97 . 137)), 2646 : 13:(ELSE, (89 . 92)), 2505 :(sequence_of_statements, (49 . 87)), 2351 : 7:(THEN, (41 . 44)), 2090 :(expression_opt, (25 . 39)), 1701 :(IF), 1216 :(EQUAL_GREATER), 783 :(NUMERIC_LITERAL), 368 :(WHEN), 169 : 3:(IS, (20 . 21)), 45 :(expression_opt, (6 . 18)), 1 : 1:(CASE, (1 . 4)), 0 :)
+task 0 2: (2891 : 20:(SEMICOLON, (145 . 145)), 2865 : 19:(IF, (143 . 144)), 2817 : 18:(END, (139 . 141)), 2724 :(sequence_of_statements, (97 . 137)), 2646 : 13:(ELSE, (89 . 92)), 2505 :(sequence_of_statements, (49 . 87)), 2351 : 7:(THEN, (41 . 44)), 2090 :(expression_opt, (23 . 39)), 1701 :(IF), 1216 :(EQUAL_GREATER), 783 :(NUMERIC_LITERAL), 368 :(WHEN), 169 : 3:(IS, (20 . 21)), 45 :(expression_opt, (6 . 18)), 1 : 1:(CASE, (1 . 4)), 0 :)
+    should have terminated one!
+
+Plot generate time as a function of task_count
+    delete generate multi-task
+    ensures consistent state numbers.
+
+    super needs C_Tree to compute unique state numbers.
+    w workers
+    worker gets N states, returns M new
+    of which Md are also found by other workers before wi are processed
+    super searches/inserts M states in 1 trees, (M - Md) in w trees.
+    when average M << N (later in process), worker search dominates super insert => parallel wins,
+    when average M >> N, super insert into w workers dominates worker search
+    ada.wy states: 469_463
+        rows:     113; initial item sets time: 178.?
+        rows:     467; initial item_sets time: 168.460805229, max_row_depth: 14 average_row_depth: 13
+        rows:    1877; initial item_sets time: 165.346752806, max_row_depth: 12 average_row_depth: 10
+        rows:  62_039; initial item_sets time: 163.757085680, max_row_depth: 9 average_row_depth: 4
+        rows: 124_087; initial item_sets time: 161.564576128, max_row_depth: 9 average_row_depth: 2
+        rows: 248_177; initial item_sets time: 163.082249550, max_row_depth: 9 average_row_depth: 1
 
 move Trace from Parser to Lexer
     use in Lexer.Find_Next
@@ -62,12 +95,46 @@ delete descriptor.case_insensitive?
     used in regexp lexer?
     move to lexer?
 
+in wisitoken-bnf-generate_utils
+    delete Token_Container
+    move iterator aspects to Data
+
+wisitoken_grammar_1.wy
+    nonterminal
+  : IDENTIFIER (COLON | COLON_COLON_EQUAL) rhs_list semicolon_opt
+    %((wisi-indent-action [[nil 2] 2 2 (wisi-block 2) 2]))%
+    indent not applied to (COLON | COLON_COLON_EQUAL); actions not copied to new nonterminal
+    need error
+
+Tree.validate check that all tree.nodes are in tree
+    possibly in following_deleted
+    call it in syntax_Trees.clear_parse_streams
+
+write Python INDENT, DEDENT as re2c code
+    Implement as strict extension to wisi lexer - override methods for generate.
+    similar to tree-sitter external scanner
+    ideally in a separate emacs module!
+
+set_parents is not incremental
+    benchmark current
+    descend tree; if find a parent link, no need to descend that branch
+    insert_token also needs to set parents?
+    see fixme
+
+separate heap for minimal_complete
+    t_mck extra_name_2
+
+c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.ads:2686:            --  FIXME: change to ptr like error_list, for space saving?
+    use memory benchmark
+    may also affect speed
+
+error recover try prev solution first - new strategy.
+
+test_incremental.adb Recover_1 "delete empty nonterm" -27:(aspect_specification_opt)
+    better: don't delete; peek ahead to first terminal, reduce until aspect_specification_opt is shiftable
+
 String_literal, numeric_literal, identifier are equivalent - only insert one
     minimal_complete does this for expression
-
-add %no_error_recover
-    to document that it is deliberate
-    don't use presence of error recover param settings
 
 move Execute_Actions to wisitoken.parse?
     lots of shared code between packrat, lr
@@ -80,31 +147,26 @@ mckenzie_recover-explore Try_Insert_Quote
     often don't know where parse error is; do both b and c
         actually, parse error is after current_token; that might help.
 
-separate heap for minimal_complete
-    t_mck extra_name_2
-
 deallocating Graph takes as long as computing redundancy
     use storage_pool to deallocate all at once?
         Unchecked_Deallocate_Subpool.
 
-in wisitoken-bnf-generate_utils
-    delete Token_Container
-    move iterator aspects to Data
+incremental parse rationale
+    have to compute absolute buffer_pos for tokens for various things
+        either shift all during edit_tree (not incremental), or sum previous on use (also not incremental)
+        buffer_pos used for; review
+        in_parse actions; name compare
+        sequential_index init; required for error correction
+        post_parse actions; line_at_pos, token_at_pos
 
-add lexer option to terminate open string quote at line end
-    currently, terminates at open quote.
+    if choose compute on use;
+        store length in each token, plus trailing whitespace
+        to compute byte_region in post-parse, sum all previous nodes, and cache it
+            also cache in nonterms
 
-wisitoken_grammar_1.wy
-    nonterminal
-  : IDENTIFIER (COLON | COLON_COLON_EQUAL) rhs_list semicolon_opt
-    %((wisi-indent-action [[nil 2] 2 2 (wisi-block 2) 2]))%
-    indent not applied to (COLON | COLON_COLON_EQUAL); actions not copied to new nonterminal
-    need error
 
-incremental parse
-    branched parse stack would simplify duplicate_state check?
-        but have to move branch point in error recover for push_back, undo_reduce.
-            or not; the other parser will do that?
+    shift approach avoids caching, but we already cache parent links
+    cache approach avoids computing nodes after region required for post-parse action => some gain in compute time
 
     tree-sitter doesn't store text regions in syntax_tree, just text length
         no Shift in Edit_Tree
@@ -112,23 +174,24 @@ incremental parse
         non_grammar must store whitespace
             maybe add trailing_whitespace_bytes to each node
 
-    [Wagner Graham 1998] doesn't modify the tree structure for
-        Left_Breakdown; it just moves the Current_Token pointer around.
-        requires significantly different tree structure.
-            child pointers are bastardized as stream pointers.
-        rest of parser must understand that.
-        requires merge edit_tree into incremental parse
-        faster? less allocate/deallocate
+[Wagner Graham 1998] doesn't modify the tree structure for
+    Left_Breakdown; it just moves the Current_Token pointer around.
+    requires significantly different tree structure.
+        child pointers are bastardized as stream pointers.
+    rest of parser must understand that.
+    doesn't work for generalized?
+    requires merge edit_tree into incremental parse
+    faster? less allocate/deallocate
+
+branched parse stack would simplify duplicate_state check?
+    but have to move branch point in error recover for push_back, undo_reduce.
+        or not; the other parser will do that?
 
 expand description of labels in wisitoken-user_guide
 
 add precedence to reduce conflicts?
-
-Mckenzie parallel gain
-    eliminate super access that does not require lock
-
-recover supervisor should provide Put_Trace_line
-    to control access to Trace
+    lots of tree-sitter grammars use precedence
+    implement each of those?
 
 target AdaWebPack
     https://github.com/godunko/adawebpack/
@@ -136,8 +199,6 @@ target AdaWebPack
     really compete with tree-sitter
 
 See emacs hash_table for hash of bytes
-
-Nullable can be a boolean array
 
 auto_token_labels
     check for empty statement-action params
@@ -197,27 +258,6 @@ hit that limit is fairly consistent, and the user can set that limit.
      McKenzie in ACM Transactions on Programming Languages and Systems
      Fischer/Mauney in  Acta Informatica Springer
      Stefan Monnier paper on SMIE in  https://programming-journal.org/
-
-Plot generate time as a function of task_count
-
-generate Tree Sitter C code
-    use tree-sitter runtime, and therefore web languages
-
-LR1 algorithm.tex:
-    super needs C_Tree to compute unique state numbers.
-    w workers
-    worker gets N states, returns M new
-    of which Md are also found by other workers before wi are processed
-    super searches/inserts M states in 1 trees, (M - Md) in w trees.
-    when average M << N (later in process), worker search dominates super insert => parallel wins,
-    when average M >> N, super insert into w workers dominates worker search
-    ada.wy states: 469_463
-        rows:     113; initial item sets time: 178.?
-        rows:     467; initial item_sets time: 168.460805229, max_row_depth: 14 average_row_depth: 13
-        rows:    1877; initial item_sets time: 165.346752806, max_row_depth: 12 average_row_depth: 10
-        rows:  62_039; initial item_sets time: 163.757085680, max_row_depth: 9 average_row_depth: 4
-        rows: 124_087; initial item_sets time: 161.564576128, max_row_depth: 9 average_row_depth: 2
-        rows: 248_177; initial item_sets time: 163.082249550, max_row_depth: 9 average_row_depth: 1
 
 implement %local_keyword?
     for ada_annex_p aspect_mark 'class', some others
@@ -287,35 +327,12 @@ improve bnf generation
        also have to edit conflicts, or user will be confused
        output substitutions so user can do them
 
-write Python INDENT, DEDENT as re2c code
-    Implement as strict extension to wisi lexer - override methods for generate.
-    similar to tree-sitter external scanner
-    ideally in a separate emacs module!
-
-test/ada_mode-recover_31.adb
-    language_fixes changes char_literal '|-' to string_literal; ok for first call on real error
-
-    but later, it gets a config where Error_Token is set by Parse.Parse
-        with min_terminal_index = invalid_token_index, virtual = true
-
-    because in Parse.Parse_One_Item, Current_Token is a Base_Token, which does not have Token_Index
-        use parser_state.current_shared_token?
-        or change Current_Token to Recover_Token?
-
 redesign parse table to speed recovery
     group identical reduce actions
         ada_mode-recover_02.adb
         only do each reduce once, then insert lots of terminals
 
-rename "semantic checks" to "in-parse actions", others to "post-parse actions".
-
 wisitoken user guide mention concrete syntax tree
-
-terminate duplicate_state missed one
-    convert_if_to_case.ada_lite
-task 0 3: (2891 : 20:(SEMICOLON, (145 . 145)), 2865 : 19:(IF, (143 . 144)), 2817 : 18:(END, (139 . 141)), 2724 :(sequence_of_statements, (97 . 137)), 2646 : 13:(ELSE, (89 . 92)), 2505 :(sequence_of_statements, (49 . 87)), 2351 : 7:(THEN, (41 . 44)), 2090 :(expression_opt, (25 . 39)), 1701 :(IF), 1216 :(EQUAL_GREATER), 783 :(NUMERIC_LITERAL), 368 :(WHEN), 169 : 3:(IS, (20 . 21)), 45 :(expression_opt, (6 . 18)), 1 : 1:(CASE, (1 . 4)), 0 :)
-task 0 2: (2891 : 20:(SEMICOLON, (145 . 145)), 2865 : 19:(IF, (143 . 144)), 2817 : 18:(END, (139 . 141)), 2724 :(sequence_of_statements, (97 . 137)), 2646 : 13:(ELSE, (89 . 92)), 2505 :(sequence_of_statements, (49 . 87)), 2351 : 7:(THEN, (41 . 44)), 2090 :(expression_opt, (23 . 39)), 1701 :(IF), 1216 :(EQUAL_GREATER), 783 :(NUMERIC_LITERAL), 368 :(WHEN), 169 : 3:(IS, (20 . 21)), 45 :(expression_opt, (6 . 18)), 1 : 1:(CASE, (1 . 4)), 0 :)
-    should have terminated one!
 
 java-ch19.wy TryStatement has optional statement-end
     need override on previous tokens
@@ -325,25 +342,9 @@ improve mismatched paren checks in actions
         only active if mmm-mode recognizes action; improve that?
     partial parse in ada.wy?
 
-use duplicate_reduce in text_rep
-
-allow undo_reduce after insert/fast_forward
-    in Recover, processing ops
-        need test case; ada_mode.recover_25 with language_fix that does not push_back declarative_part_opt
-        ada_mode-recover_27.adb uses Undo_Reduce (to allow 'insert loop'), but not after insert.
-        if no useful test cases, delete Try_Undo_Reduce, and doc why.
-        or add None_At_All (Insert) to try_Undo_Reduce.
-
-test_mckenzie use lr-parser-gen_aunit
-
 make "canonical list" compatible with packrat?
     ie swap rhs_index 0, 1
     better to implement list in packrat
-
-Do LR incremental on tree from packrat parse?
-    batch = packrat, incremental = LR
-    no error recover in packrate
-    need left_recursion.
 
 c:/Projects/org.emacs.java-wisi/test/recover_001.java
     don't delete next if minimal_c_a inserted
@@ -387,15 +388,7 @@ lalr generator bug
             parse .input using bison table
             bison state 36 is the same
 
-re2c now has --location-format <gnu | msvc>
-    Apr 2019 in devel, not release
-
-enqueue_limit should be for total over all parsers; more consistent max time
-    need test case?
-
-Error messages need gen_alg prefix - add to Error_message
-
-capture diff between lr1, lalr recover
+example diff between lr1, lalr recover
     ./ada_lite_lalr_run.exe -m 1 -t 1
     ada_lite_recover_repeatable.input:45:
         package body P is procedure Remove is begin A := B; exception end; A := B; end Remove; end P; procedure Q;
@@ -403,10 +396,6 @@ capture diff between lr1, lalr recover
         lalr: reports match_names_error, two parsers fail on cost
 
         similar on line 47; lalr finds no solutions
-
-can generate code for LR parser, rather than using table
-    see Google drive/Parsing/notes
-    screws up recover because parse stack = cpu stack; not accessible?
 
 try packrat indirect recursion solution
     see paper by laurent, mens
@@ -445,32 +434,20 @@ try packrat indirect recursion solution
 
 Implement Redziejowski language hiding check
 
-add packrat to ada-mode s-4
-    time, compare to langkit
-
-   - https://arxiv.org/pdf/1806.11150 error recovery for PEG
-     compares LPegLabel to ANTLR, on synthetic errors
-
-
-compare to bison times
-
-implement IELR?
-    merges states like LALR, but only if that doesn't introduce new conflicts
-        => faster than LR1
-        for Ada, would only add 1 state
-
-    IELR and LALR merge states with different lookaheads; it is the lookaheads that determine error correction
-        define some other state merging criteria for error correction?
-
 packrat space use
     can free low level derivs; they will never be evaled
+        adacore only stores 16 derivs
         derive condition
         use free list in syntax tree
 
 add packrat error recover
     "d:/Books/eBooks/Parsing/Fischer Mauney 1992 - Simple fast LL1 error repair.pdf"
-    assumes no backtracking?
+        assumes no backtracking?
         pg 112: "parser announces error when prediction does not fit next input"
+
+    https://arxiv.org/pdf/1806.11150 error recovery for PEG
+        requires adding error recover labels to grammar
+        compares LPegLabel to ANTLR, on synthetic errors
 
 adacore langkit_support.packrat implements one row of the derivs table
         it only stores 16 most recently computed items; enough to compute a typical subroutine?
@@ -480,8 +457,6 @@ adacore langkit_support.packrat implements one row of the derivs table
         libadalang.analysis.parsers Parser_Private_Part_Type stores all the rows
 
 Write libadalang python code to generate wisitoken grammar from AdaCore grammar.
-
-use wisi-gen_output_ada_common.adb Append in wisi-output_ada, _emacs.
 
 do google search for "ada parser generator"
     add wisitoken to those sites
@@ -494,11 +469,6 @@ rename mckenzie to dpa_explore?
     grune also uses 'deterministic fs automata' (Finite State)
 
     includes special rules
-
-
-automatically augment grammar with empty productions
-    anything not a keyword is optional
-    may create too many conflicts
 
 integrate with emacs module
 

@@ -1779,6 +1779,23 @@ package body Test_Incremental is
          Incr_Errors    => 0);
    end Edit_String_09;
 
+   procedure Edit_String_10 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  precondition fail on lexer.Line_Begin_Char_Pos
+
+      Parse_Text
+        ("procedure A is begin A := 123;" & ASCII.LF &
+         --   |5   |10       |20       |30
+         "begin null; end end A;",
+         Edit_At        => 27,
+         Delete         => "",
+         Insert         => """",
+         Initial_Errors => 1,
+         Incr_Errors    => 3);
+   end Edit_String_10;
+
    ----------
    --  Public subprograms
 
@@ -1856,6 +1873,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_String_07'Access, "Edit_String_07");
       Register_Routine (T, Edit_String_08'Access, "Edit_String_08");
       Register_Routine (T, Edit_String_09'Access, "Edit_String_09");
+      Register_Routine (T, Edit_String_10'Access, "Edit_String_10");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

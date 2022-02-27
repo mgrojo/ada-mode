@@ -50,12 +50,16 @@ begin
 
       if Trace_Parse > Detail or Trace_Incremental_Parse > Outline then
          Trace.New_Line;
-         Trace.Put_Line ("pre-edit tree:");
+         Trace.Put_Line ("pre edit tree:");
          Shared_Parser.Tree.Print_Tree (Trace, Line_Numbers => True, Non_Grammar => True);
          Trace.New_Line;
       end if;
 
       Edit_Tree (Shared_Parser, Edits);
+
+      if Trace_Time then
+         Trace.Put_Clock ("post edit tree");
+      end if;
 
       if Trace_Parse > Outline or Trace_Incremental_Parse > Outline then
          Trace.New_Line;

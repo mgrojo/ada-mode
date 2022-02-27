@@ -384,7 +384,7 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       procedure Append (Item : in String)
       is begin
-         Line := Line & Item;
+         Append (Line, Item);
       end Append;
 
       procedure Put (Label : in String; Item : in Token_ID_Array_Natural)

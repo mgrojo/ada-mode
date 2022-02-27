@@ -91,11 +91,12 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
      (Super         : in out Supervisor;
       Shared_Parser : in out Parser.Parser;
       Thru          : in     Syntax_Trees.Valid_Node_Access;
-      Positive      : in     Boolean);
+      Positive      : in     Boolean)
+   with Pre => Shared_Parser.Tree.Is_Terminal (Thru);
    --  If Thru.Node has valid Sequential_Index, return.
    --
-   --  Else extend Sequential_Index range thru node Thru, in Positive
-   --  direction.
+   --  Else extend Sequential_Index range thru Thru; if Positive, towards
+   --  EOI, else towards SOI.
 
    procedure Extend_Sequential_Index
      (Super         : in out Supervisor;

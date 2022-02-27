@@ -398,18 +398,6 @@ parser.
 The parser uses an error recovery algorithm when it encounters a
 syntax error; if a solution is found, the parse continues.
 
-Error recovery uses multiple tasks to take advantage of multiple CPU
-cores.  Unfortunately, this means there is a race condition; the
-solutions found can be delivered in different orders on different
-runs. This matters because each solution results in a successful
-parse, possibly with different actions (different indentation
-computed, for example).  Which solution finally succeeds depends on
-which are terminated due to identical parser stacks, which in turn
-depends on the order they were delivered.
-
-Once the syntax errors are fixed, only ambiguities in the grammar
-itself can cause a similar problem.
-
 Several grammar file declarations set parameters for the error
 recovery. If none of these parameters are present in the grammar file,
 the generated parser does not do error recovery.

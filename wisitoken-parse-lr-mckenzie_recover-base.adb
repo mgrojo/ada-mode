@@ -465,47 +465,38 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          return;
       end if;
 
-      if Positive then
+      declare
+         Streams : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Parsers.Count);
+
+         function Target_Index return Syntax_Trees.Sequential_Index
+         is begin
+            if Positive then
+               return 2 * Super.Max_Sequential_Index (Shared_Parser);
+            else
+               declare
+                  Min : constant Syntax_Trees.Sequential_Index := Super.Min_Sequential_Index (Shared_Parser);
+                  pragma Assert (Min <= 0);
+               begin
+                  return (if Min = 0 then Default_Negative_Sequential_Index else 2 * Min);
+               end;
+            end if;
+         end Target_Index;
+
+      begin
+         for I in Super.Parser_Status'Range loop
+            Streams (I) := Super.Parser_Status (I).Parser_State.Stream;
+         end loop;
+
          loop
             exit when Super.Max_Sequential_Index_All_EOI (Shared_Parser);
             exit when Shared_Parser.Tree.Get_Sequential_Index (Thru) /= Syntax_Trees.Invalid_Sequential_Index;
-            declare
-               Streams : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Parsers.Count);
-            begin
-               for I in Super.Parser_Status'Range loop
-                  Streams (I) := Super.Parser_Status (I).Parser_State.Stream;
-               end loop;
-
-               Extend_Sequential_Index
-                 (Shared_Parser.Tree, Streams, Super.Max_Sequential_Indices,
-                  Target   => 2 * Super.Max_Sequential_Index (Shared_Parser),
-                  Positive => True,
-                  Clear    => False);
-            end;
+            Extend_Sequential_Index
+              (Shared_Parser.Tree, Streams, Super.Max_Sequential_Indices,
+               Target   => Target_Index,
+               Positive => Positive,
+               Clear    => False);
          end loop;
-
-      else
-         loop
-            exit when Super.Min_Sequential_Index_All_SOI (Shared_Parser);
-            exit when Shared_Parser.Tree.Get_Sequential_Index (Thru) /= Syntax_Trees.Invalid_Sequential_Index;
-            declare
-               Min : constant Syntax_Trees.Sequential_Index := Super.Min_Sequential_Index (Shared_Parser);
-               pragma Assert (Min <= 0);
-
-               Streams : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Parsers.Count);
-            begin
-               for I in Super.Parser_Status'Range loop
-                  Streams (I) := Super.Parser_Status (I).Parser_State.Stream;
-               end loop;
-
-               Extend_Sequential_Index
-                 (Shared_Parser.Tree, Streams, Super.Min_Sequential_Indices,
-                  Target   => (if Min = 0 then Default_Negative_Sequential_Index else 2 * Min),
-                  Positive => False,
-                  Clear    => False);
-            end;
-         end loop;
-      end if;
+      end;
    end Extend_Sequential_Index;
 
    procedure Extend_Sequential_Index

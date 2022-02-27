@@ -195,7 +195,7 @@ ada_lite_lr1_t8_run.ads : ada_lite.wy wisitoken-bnf-generate.exe
 %.exe : force; gprbuild -p -j8 -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
 
 %_re2c.c : %.re2c
-	re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	re2c --location-format gnu --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 	dos2unix $*_re2c.c
 
 %_tree_sitter.c : %.re2c wisitoken-bnf-generate.exe

@@ -1272,6 +1272,10 @@ package WisiToken.Syntax_Trees is
    --  range of text spanned by Tree. If Byte_Pos is on a New_Line,
    --  result is the line that the character ends.
 
+   function Line_Region (Tree : in Syntax_Trees.Tree) return WisiToken.Line_Region
+   with Pre => Tree.SOI /= Invalid_Node_Access and Tree.EOI /= Invalid_Node_Access;
+   --  Region spanned by entire tree; from SOI and EOI.
+
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;

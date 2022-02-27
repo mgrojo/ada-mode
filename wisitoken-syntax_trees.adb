@@ -2197,12 +2197,14 @@ package body WisiToken.Syntax_Trees is
       Non_Grammar : in Lexer.Token_Arrays.Vector;
       Line        : in Line_Number_Type)
      return Boolean
-   with Pre => (for some Token of Non_Grammar => Contains (Token.Line_Region, Line))
+   with Pre =>
+     (for some Token of Non_Grammar => Contains (Token.Line_Region, Line) and
+        New_Line_Count (Token.Line_Region) > 0)
    --  Return True if Line in Non_Grammar contains no non_grammar tokens
    --  other than New_Line or EOI.
    is begin
       for I in Non_Grammar.First_Index .. Non_Grammar.Last_Index loop
-         if Contains (Non_Grammar (I).Line_Region, Line) then
+         if Contains (Non_Grammar (I).Line_Region, Line) and New_Line_Count (Non_Grammar (I).Line_Region) > 0 then
             declare
                Line_Begin_Char_Pos : constant Base_Buffer_Pos := Tree.Lexer.Line_Begin_Char_Pos (Non_Grammar (I), Line);
             begin
@@ -5177,9 +5179,13 @@ package body WisiToken.Syntax_Trees is
       if Ref.Ref = Invalid_Stream_Node_Ref then
          return Invalid_Node_Access;
       else
-         --  Ref now contains the non-grammar that ends Line - 1
+         --  Ref now contains the non-grammar that ends Line - 1, or EOI.
 
-         if Empty_Line (Tree, Ref.Ref.Node.Non_Grammar, Line) then
+         if Ref.Ref.Node.ID = Tree.Lexer.Descriptor.EOI_ID then
+            --  test_incremental.adb Edit_String_10
+            return Invalid_Node_Access;
+
+         elsif Empty_Line (Tree, Ref.Ref.Node.Non_Grammar, Line) then
             if Following_Source_Terminal then
                Next_Source_Terminal (Tree, Ref, Trailing_Non_Grammar => False);
                return Ref.Ref.Node;
@@ -5246,6 +5252,13 @@ package body WisiToken.Syntax_Trees is
             then Actual_Last_Non_Grammar.Non_Grammar.Last_Index
             else Actual_Last_Non_Grammar.Non_Grammar.First_Index).Line_Region.First);
    end Line_Region_Internal;
+
+   function Line_Region (Tree : in Syntax_Trees.Tree) return WisiToken.Line_Region
+   is begin
+      return
+        (First => Tree.SOI.Non_Grammar (1).Line_Region.First,
+         Last  => Tree.EOI.Non_Grammar (1).Line_Region.Last);
+   end Line_Region;
 
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;
