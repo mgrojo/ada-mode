@@ -1,0 +1,9 @@
+--  Used to get CONSTRAINT_ERROR in recover.
+
+--EMACSCMD:(progn (end-of-line 2)(insert "\nwith \"")(indent-according-to-mode))
+with "tree_sitter"; -- tree-sitter utils Installed
+with "libadalang";
+project Gpr_Recover_02 is
+   --EMACSCMD:(progn (forward-line -3)(kill-line 1))
+
+end Gpr_Recover_02;
