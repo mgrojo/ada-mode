@@ -50,24 +50,30 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+with just 'with "tree_sitter";,
+    (parse_error "recover fail: FAIL_ENQUEUE_LIMIT")
+
+
+
 do spark on wisi-parse_context.adb Edit_Source
     find cause of constraint_error in Move_Gap
 
 indent wrong:
-    wisioken-bnf-output_ada_common.adb
-       Append
-                          ((if Generate_Data.Action_Names (Action_Node.Item.Production.LHS) = null then "null"
-                            elsif Generate_Data.Action_Names
-                              (Action_Node.Item.Production.LHS)(Action_Node.Item.Production.RHS) = null
-                            then "null"
-                            else Generate_Data.Action_Names
-                              (Action_Node.Item.Production.LHS)(Action_Node.Item.Production.RHS).all &
-                              "'Access"));
-
     pragma Assert
       (if Saved_Prev_Terminal = Invalid_Stream_Node_Ref
      then Saved_Prev_Terminal.Element /= Check_Deleted.Element
      else Terminal.Element /= Check_Deleted.Element);
+
+    in test/debug.adb
+        compare tree/text fail
+        debug.cmd Move_Gap constraint_error!
+            source'first = 1, source'last = 1
+            input file is actually c:/Projects/org.emacs.ada-mode/test/debug.adb, which is empty.
+                so change_list is invalid
+
+        propagate from main for better precondition
+            now debug.cmd succeeds
+            but breakpoint in Edit_Source never hit?
 
 review FIXMEs
     (grep-find "find c:/Projects/org.emacs.wisi.stephe-1 -type f -print | \"xargs\" grep  -nH --null FIXME:")
@@ -78,19 +84,6 @@ review FIXMEs
 
 respond to https://rust-analyzer.github.io/blog/2020/09/16/challeging-LR-parsing.html
    https://github.com/tree-sitter/tree-sitter-rust
-
-incremental parse rationale
-    have to compute absolute buffer_pos for tokens involved in post-parse action at some point
-        either shift all during edit_tree, or sum previous during action
-        buffer_pos used for some other things; review
-
-    store length in each token
-        plus trailing whitespace
-        to compute byte_region in post-parse, sum all previous nodes, and cache it
-            also cache in nonterms
-
-    shift approach avoids caching, but we already cache parent links
-    cache approach avoids computing nodes after region required for post-parse action => some gain in compute time
 
 test/ada_mode-interactive_2.adb
     virtual 'null;' inserted on blank line,
