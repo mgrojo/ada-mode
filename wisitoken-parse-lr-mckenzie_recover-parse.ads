@@ -100,17 +100,20 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
      (Super         : in out Base.Supervisor;
       Shared_Parser : in out LR.Parser.Parser;
       Ref           :    out Config_Stream_Parents);
+   --  Calls Extend_Sequential_Terminal as needed.
 
    procedure Last_Sequential_Terminal
      (Super         : in out Base.Supervisor;
       Shared_Parser : in out LR.Parser.Parser;
       Ref           : in out Config_Stream_Parents);
+   --  Calls Extend_Sequential_Terminal as needed.
 
    procedure Next_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
       Ref  : in out Config_Stream_Parents)
    with Pre => Bounded_Streams.Has_Element (Ref.Element) and Ref.Node /= Syntax_Trees.Invalid_Node_Access;
    --  Can step past EOI.
+   --  Calls Extend_Sequential_Terminal as needed.
 
    procedure Prev_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
