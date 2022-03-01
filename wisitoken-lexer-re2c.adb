@@ -63,8 +63,14 @@ package body WisiToken.Lexer.re2c is
    overriding procedure Set_Verbosity
      (Lexer     : in Instance;
       Verbosity : in Integer)
-   is begin
-      Set_Verbosity (Lexer.Lexer, Interfaces.C.int (Verbosity));
+   is
+      use all type System.Address;
+   begin
+      --  Allow calling this before the lexer is configured, for
+      --  run_emacs_common_parse.adb.
+      if Lexer.Lexer /= System.Null_Address then
+         Set_Verbosity (Lexer.Lexer, Interfaces.C.int (Verbosity));
+      end if;
    end Set_Verbosity;
 
    overriding procedure Reset_With_String

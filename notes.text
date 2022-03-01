@@ -31,7 +31,19 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-editing wisitoken-syntax_trees.adb to add Tree.Line_region;
+improve memory benchmarks
+    incremental initial parse uses more memory than partial indent
+        need memory report details
+        submit adacore ticket
+
+move Post_Parse_Action, In_Parse_Action out of Parse_Action_Rec and Syntax_Tree
+    store in parse_table.productions, indexed by Production.LHS, Production.RHS
+    get memory, time benchmarks
+
+move Post_Parse_Action, In_Parse_Action out of Parse_Action_Rec and Syntax_Tree
+
+optimize syntax tree structure for lists
+    editing wisitoken-syntax_trees.adb to add Tree.Line_region;
     slow, even with "fast parser" settings in develop_settings.el
     (setq wisi-parser-verbosity "time=1")
 ;; 2022-02-27 11:47:11.47 start
@@ -46,9 +58,31 @@ editing wisitoken-syntax_trees.adb to add Tree.Line_region;
     optimize syntax tree list structure
         breakdown to node in middle just split list in two at node
         parse that node splice the lists
-        tree_sitter uses balanced tree
+        key idea briefly described in Wagner, Graham 1998
+            that references Gafter 1990 Parallel Incremental Compilation
+            given a canonical list:
+                list : element | list element ;
+            batch parser does not change; list nodes have one or two children, one is an element, other is a list
+            Edit_Tree Breakdown rearranges that into a tree: both children can be list nodes
+                then split top node into two list nodes, breakdown right node to expose the edit
+            incremental parse must allow a list where an element is expected:
+                list : element | list element | list list ;
+                Wagner, Graham 1998 treats this as a special case of conflict resolution.
+                produces an unbalanced tree
+            list is only rebalanced in Breakdown
+                in error recover?
 
-delete wi-m_r_parse.first, last_sequential_terminal?
+    WisiToken design
+        "optimized list" is recognized in grammar as:
+        list : element | list element | list list ;
+        that gives conflicts:
+%conflict SHIFT declaration | REDUCE declarations on token IDENTIFIER (6)
+%conflict REDUCE declarations | REDUCE declarations on token IDENTIFIER (5)
+%conflict REDUCE declarations | REDUCE declarations on token Wisi_EOI (5)
+
+        those conflicts are handled specially
+            if production LHS is an optimized list, choose reduce two lists to a single list.
+        conflicts still have to be declared
 
 packrat left recursion
     copy from libadalang

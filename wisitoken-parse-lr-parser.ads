@@ -99,8 +99,10 @@ package WisiToken.Parse.LR.Parser is
       --  Used by In_Parse_Actions to terminate Partial_Parse.
    end record;
 
-   overriding procedure Finalize (Object : in out LR.Parser.Parser);
-   --  Deep free Object.Table.
+   --  It is tempting to declare Finalize here, to free Parser.Table. But
+   --  Wisi.Parse_Context reuses the table between parser instances, so
+   --  we can't do that. Other applications must explicitly free
+   --  Parser.Table if they care.
 
    procedure New_Parser
      (Parser                         :    out LR.Parser.Parser;
