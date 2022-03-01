@@ -356,6 +356,18 @@ package body Emacs_Wisi_Common_Parse is
                   Stack_Trace_Depth     => 0,
                   Reset_Content_On_Free => False);
 
+            elsif Match ("memory_report_reset") then
+               --  Args: <none>
+               --  Input: <none>
+               --  Response:
+               --  (message "memory report reset")
+               --  prompt
+
+               --  GNATCOLL.Memory.Reset does not reset the values returned by
+               --  Get_Ada_Allocations; only those used by Dump. Sigh.
+               Wisi.Parse_Context.Memory_Baseline := GNATCOLL.Memory.Get_Ada_Allocations.Current;
+               Ada.Text_IO.Put_Line ("(message ""memory report reset"")");
+
             elsif Match ("memory_report") then
                --  Args: <none>
                --  Input: <none>
@@ -367,15 +379,10 @@ package body Emacs_Wisi_Common_Parse is
                   Memory_Use : constant Watermark_Info := Get_Ada_Allocations;
                begin
                   Ada.Text_IO.Put_Line
-                    ("(message ""memory: delta high" &
-                       Byte_Count'Image (Memory_Use.High - Wisi.Parse_Context.Memory_Use.High) &
+                    ("(message ""memory: high" &
+                       Byte_Count'Image (Memory_Use.High) &
                        " current" &
-                       Byte_Count'Image (Memory_Use.Current - Wisi.Parse_Context.Memory_Use.Current) &
-                       " abs high" & Memory_Use.High'Image &
-                       " current" & Memory_Use.Current'Image &
-                       """)");
-
-                  Wisi.Parse_Context.Memory_Use := Memory_Use;
+                       Byte_Count'Image (Memory_Use.Current - Wisi.Parse_Context.Memory_Baseline) & """)");
                end;
 
             elsif Match ("parse") then

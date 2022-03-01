@@ -203,7 +203,12 @@ package body Wisi.Parse_Context is
             --  already killed, or never opened
             null;
          else
-            Map.Delete (File_Name);
+            declare
+               Context : Parse_Context_Access := Element (Found);
+            begin
+               Map.Delete (File_Name);
+               Free (Context);
+            end;
          end if;
       end;
    end Kill;

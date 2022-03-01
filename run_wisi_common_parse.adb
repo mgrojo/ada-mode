@@ -331,7 +331,7 @@ package body Run_Wisi_Common_Parse is
 
             Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
 
-            if Trace_Time then
+            if Trace_Memory > 0 then
                GNATCOLL.Memory.Configure
                  (Activate_Monitor      => True,
                   Stack_Trace_Depth     => 0,
@@ -420,21 +420,20 @@ package body Run_Wisi_Common_Parse is
       end if;
    end Put_Errors;
 
-   procedure Report_Memory
+   procedure Report_Memory (Size : in Positive)
    is
       use GNATCOLL.Memory;
       Memory_Use : constant Watermark_Info := Get_Ada_Allocations;
    begin
-      Ada.Text_IO.Put_Line
-        ("(message ""memory: delta high" &
-           Byte_Count'Image (Memory_Use.High - Wisi.Parse_Context.Memory_Use.High) &
-           " current" &
-           Byte_Count'Image (Memory_Use.Current - Wisi.Parse_Context.Memory_Use.Current) &
-           " abs high" & Memory_Use.High'Image &
-           " current" & Memory_Use.Current'Image &
-           """)");
+      if WisiToken.Trace_Memory > 1 then
+         Dump (Size, Report => Memory_Usage);
+      end if;
 
-      Wisi.Parse_Context.Memory_Use := Memory_Use;
+      Ada.Text_IO.Put_Line
+        ("(message ""memory: high" &
+           Byte_Count'Image (Memory_Use.High) &
+           " current" &
+           Byte_Count'Image (Memory_Use.Current - Wisi.Parse_Context.Memory_Baseline) & """)");
    end Report_Memory;
 
    procedure Process_Command
@@ -443,10 +442,12 @@ package body Run_Wisi_Common_Parse is
    is
       use Ada.Strings.Fixed;
       use WisiToken; -- "+" unbounded
+      use all type WisiToken.Lexer.Handle;
 
       type File_Command_Type is
-        (Compare_Tree_Text_Auto, File, Language_Params, McKenzie_Options, Memory, Parse_Full, Parse_Incremental,
-         Post_Parse, Refactor, Query_Tree, Save_Text, Save_Text_Auto, Verbosity);
+        (Compare_Tree_Text_Auto, File, Kill_Context, Language_Params, McKenzie_Options, Memory_Report_Reset,
+         Memory_Report, Parse_Full, Parse_Incremental, Post_Parse, Refactor, Query_Tree, Save_Text, Save_Text_Auto,
+         Verbosity);
 
       Parser : WisiToken.Parse.LR.Parser.Parser renames Parse_Context.Parser;
 
@@ -484,6 +485,17 @@ package body Run_Wisi_Common_Parse is
             Read_Source_File (Source_File_Name, Parse_Context);
             Lex (Parse_Context);
             Wisi.Parse_Context.Set_File (Source_File_Name, Parse_Context);
+         exception
+         when Ada.IO_Exceptions.Name_Error =>
+            Ada.Text_IO.Put_Line ("'" & Source_File_Name & "' cannot be opened");
+            return;
+         end;
+
+      when Kill_Context =>
+         declare
+            Source_File_Name : constant String := Line (Last + 1 .. Line'Last);
+         begin
+            Wisi.Parse_Context.Kill (Source_File_Name);
          end;
 
       when Language_Params =>
@@ -493,8 +505,16 @@ package body Run_Wisi_Common_Parse is
          WisiToken.Parse.LR.Set_McKenzie_Options
            (Parser.Table.McKenzie_Param, Line (Last + 1 .. Line'Last));
 
-      when Memory =>
-         Report_Memory;
+      when Memory_Report_Reset =>
+         Wisi.Parse_Context.Memory_Baseline := GNATCOLL.Memory.Get_Ada_Allocations.Current;
+         Ada.Text_IO.Put_Line ("(message ""memory report reset"")");
+
+      when Memory_Report =>
+         declare
+            Size : constant Integer := Wisi.Get_Integer (Line, Last);
+         begin
+            Report_Memory (Size);
+         end;
 
       when Parse_Full =>
          Parse_Data.Initialize (Trace'Access);
@@ -645,8 +665,10 @@ package body Run_Wisi_Common_Parse is
 
       when Verbosity =>
          WisiToken.Enable_Trace (Line (Last + 1 .. Line'Last));
-         Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
-         if Trace_Time then
+         if Parser.Tree.Lexer /= null then
+            Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
+         end if;
+         if Trace_Memory > 0 then
             GNATCOLL.Memory.Configure
               (Activate_Monitor      => True,
                Stack_Trace_Depth     => 0,
@@ -765,8 +787,8 @@ package body Run_Wisi_Common_Parse is
                           (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                            Parser.Tree);
 
-                        if Trace_Time then
-                           Report_Memory;
+                        if Trace_Memory > 0 then
+                           Report_Memory (Trace_Memory);
                         end if;
                      end if;
                   end if;
@@ -813,9 +835,9 @@ package body Run_Wisi_Common_Parse is
                Parse_Data.Put
                  (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                   Parser.Tree);
-               if Trace_Time then
+               if Trace_Memory > 0 then
                   Put ("initial full parse ");
-                  Report_Memory;
+                  Report_Memory (Trace_Memory);
                end if;
 
             exception
@@ -874,9 +896,9 @@ package body Run_Wisi_Common_Parse is
                      Parse_Data.Put (Parser);
                   end if;
 
-                  if Trace_Time then
+                  if Trace_Memory > 0 then
                      Put ("incremental parse ");
-                     Report_Memory;
+                     Report_Memory (Trace_Memory);
                   end if;
 
                exception

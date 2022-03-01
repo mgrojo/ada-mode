@@ -2,7 +2,7 @@
 --
 --  Parse context for one source file.
 --
---  Copyright (C) 2020, 2021 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020 - 2022 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -14,6 +14,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
+with Ada.Unchecked_Deallocation;
 with GNATCOLL.Memory;
 with Wisi;
 with WisiToken.Lexer;
@@ -22,7 +23,9 @@ package Wisi.Parse_Context is
 
    Not_Found : exception;
 
-   Memory_Use : GNATCOLL.Memory.Watermark_Info := (others => 0);
+   Memory_Baseline : GNATCOLL.Memory.Byte_Count := 0;
+   --  This is only the Current value; trying to save the high water mark
+   --  for later subtraction does not make sense.
 
    type Language is record
       Descriptor              : WisiToken.Descriptor_Access_Constant;
@@ -149,5 +152,8 @@ package Wisi.Parse_Context is
    --
    --  Raises WisiToken.Syntax_Error or WisiToken.Parse_Error if the
    --  full parse fails.
+
+   procedure Free is new Ada.Unchecked_Deallocation (Parse_Context, Parse_Context_Access);
+   --  Declared last to avoid freezing rules.
 
 end Wisi.Parse_Context;

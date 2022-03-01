@@ -2095,6 +2095,7 @@ package body Wisi is
       --  +1 to match Emacs region
       Ada.Text_IO.Put_Line ('[' & End_Code & Buffer_Pos'Image (Tree.Char_Region (Tree.EOI).Last + 1) & ']');
 
+      --  Caches are populated by Execute_Actions.
       case Data.Post_Parse_Action is
       when Navigate =>
          for Cache of Data.Navigate_Caches loop
@@ -2102,11 +2103,14 @@ package body Wisi is
                Put (Cache);
             end if;
          end loop;
+         Data.Navigate_Caches.Clear;
+
          for Cache of Data.Name_Caches loop
             if Contains (Outer => Data.Action_Region_Chars, Inner => Cache) then
                Put (Cache);
             end if;
          end loop;
+         Data.Name_Caches.Clear;
 
       when Face =>
          for Cache of Data.Face_Caches loop
@@ -2114,12 +2118,14 @@ package body Wisi is
                Put (Cache);
             end if;
          end loop;
+         Data.Face_Caches.Clear;
 
       when Indent =>
          Resolve_Anchors (Data, Tree);
          for Line in Data.Action_Region_Lines.First .. Data.Action_Region_Lines.Last loop
             Put (Tree, Line, Data.Indents (Line));
          end loop;
+         Data.Indents.Clear;
       end case;
    end Put;
 
@@ -2214,7 +2220,13 @@ package body Wisi is
       end Handle_Error;
 
    begin
-      if Tree.Parents_Set then
+      if Tree.Is_Empty then
+         --  No errors.
+         if WisiToken.Debug_Mode then
+            Data.Trace.Put_Line ("empty tree");
+         end if;
+
+      elsif Tree.Parents_Set then
          for Err_Ref in Tree.Error_Iterate loop
             Handle_Error (Syntax_Trees.Error (Err_Ref), Tree.Error_Node (Err_Ref));
          end loop;

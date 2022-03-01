@@ -1087,6 +1087,17 @@ PARSER will respond with one or more Query messages."
     (process-send-string process (wisi-process-parse--add-cmd-length cmd))
     (wisi-process-parse--handle-messages parser)))
 
+(cl-defmethod wisi-parse-memory-report-reset ((parser wisi-parser))
+  (wisi-process-parse--prepare parser 'debug)
+  (let* ((cmd "memory_report_reset")
+	 (process (wisi-process--parser-process parser)))
+    (with-current-buffer (wisi-process--parser-buffer parser)
+      (erase-buffer))
+
+    (wisi-parse-log-message parser cmd)
+    (process-send-string process (wisi-process-parse--add-cmd-length cmd))
+    (wisi-process-parse--handle-messages parser)))
+
 (cl-defmethod wisi-parse-memory-report ((parser wisi-process--parser))
   (wisi-process-parse--prepare parser 'debug)
   (let* ((cmd "memory_report")

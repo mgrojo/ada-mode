@@ -270,8 +270,11 @@ For `kill-buffer-hook'."
 (cl-defgeneric wisi-parse-enable-memory-report ((parser wisi-parser))
   "Configure parser to report memory use.")
 
+(cl-defgeneric wisi-parse-memory-report-reset ((parser wisi-parser))
+  "Reset memory report base.")
+
 (cl-defgeneric wisi-parse-memory-report ((parser wisi-parser))
-  "Display delta and total memory use.")
+  "Display memory use since last reset.")
 
 (cl-defstruct
   (wisi-cache
