@@ -14,7 +14,7 @@
 (setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lr1_parse.exe" ada-mode-dir))
 (let ((parser (ada-parse-require-process)))
   (wisi-parse-enable-memory-report parser)
-  (wisi-parse-memory-report parser))
+  (wisi-parse-memory-report parser)) ;; 0
 
 (setq-default wisi-incremental-parse-enable nil)
 (find-file benchmark-source-file) ;; does not do initial parse, since incremental not enabled
@@ -31,11 +31,13 @@
 
 (message "indent")
 (wisi-time (lambda () (wisi-parse-buffer 'indent)) 4 :report-wait-time t)
+(wisi-parse-memory-report wisi--parser) ;; memory for post-parse caches
 
 (message "re-indent")
 (goto-char (/ (point-max) 3))
 (goto-char (line-beginning-position))
 (wisi-time (lambda () (indent-rigidly (point)(line-beginning-position 2) -1)(indent-for-tab-command)) 4 :report-wait-time t)
+(wisi-parse-memory-report wisi--parser)
 
 (message "recover")
 (goto-char (/ (point-max) 2))
@@ -45,6 +47,10 @@
 (wisi-time 'indent-for-tab-command 4 :report-wait-time t)
 (undo)
 (wisi-parse-memory-report wisi--parser)
+
+(message "reset parser")
+(wisi-reset-parser) ;; delete syntax tree before reset memory counts
+(wisi-parse-memory-report wisi--parser) ;; current should be near 0; just parse table
 
 (setq-default wisi-incremental-parse-enable t)
 (message "incremental parse:")
@@ -66,6 +72,7 @@
 (kill-line 2)
 (wisi-time 'indent-for-tab-command 4 :report-wait-time t)
 (undo)
+(wisi-parse-memory-report wisi--parser)
 
 (split-window-vertically)
 (pop-to-buffer "*Messages*")
