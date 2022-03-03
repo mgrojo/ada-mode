@@ -50,32 +50,14 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-gpr with just 'with "tree_sitter";,
-    (parse_error "recover fail: FAIL_ENQUEUE_LIMIT")
+replace gen_run_wisi_lr_parse parse_data_template with factory?
 
 (wisi-show-parse-error) should fetch errors from parser parse_context, not from elisp?
-    elisp errors are overridden by next parse?
+    elisp errors are overridden by parse in another buffer?
     errors disappeared in emacs_wisi_common_parse.adb
 
 do spark on wisi-parse_context.adb Edit_Source
     find cause of constraint_error in Move_Gap
-
-indent wrong:
-    pragma Assert
-      (if Saved_Prev_Terminal = Invalid_Stream_Node_Ref
-     then Saved_Prev_Terminal.Element /= Check_Deleted.Element
-     else Terminal.Element /= Check_Deleted.Element);
-
-    in test/debug.adb
-        compare tree/text fail
-        debug.cmd Move_Gap constraint_error!
-            source'first = 1, source'last = 1
-            input file is actually c:/Projects/org.emacs.ada-mode/test/debug.adb, which is empty.
-                so change_list is invalid
-
-        propagate from main for better precondition
-            now debug.cmd succeeds
-            but breakpoint in Edit_Source never hit?
 
 review FIXMEs
     (grep-find "find c:/Projects/org.emacs.wisi.stephe-1 -type f -print | \"xargs\" grep  -nH --null FIXME:")
