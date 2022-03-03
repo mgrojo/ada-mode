@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2009, 2014-2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2009, 2014-2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -314,6 +314,36 @@ package body WisiToken is
          Put_Line ((if Paren_Done then " " else "") & "others => (others => False))");
       end if;
    end Put;
+
+   procedure Report_Memory (Trace : in out WisiToken.Trace'Class)
+   is
+      use GNATCOLL.Memory;
+      Memory_Use : constant Watermark_Info := Get_Ada_Allocations;
+
+      procedure Trace_Put_Line (S : in String)
+      is begin
+         Trace.Put_Line (S);
+      end Trace_Put_Line;
+
+      procedure Trace_Put (S : in String)
+      is begin
+         Trace.Put (S);
+      end Trace_Put;
+
+      procedure Trace_Dump is new Redirectable_Dump
+        (Put_Line => Trace_Put_Line,
+         Put      => Trace_Put);
+   begin
+      if WisiToken.Trace_Memory > 1 then
+         Trace_Dump (Trace_Memory, Report => Memory_Usage);
+      end if;
+
+      Trace.Put_Line
+        ("(message ""memory: high" &
+           Byte_Count'Image (Memory_Use.High) &
+           " current" &
+           Byte_Count'Image (Memory_Use.Current - Memory_Baseline) & """)");
+   end Report_Memory;
 
    function Error_Message
      (File_Name : in String;

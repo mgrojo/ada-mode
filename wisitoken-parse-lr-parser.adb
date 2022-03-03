@@ -985,6 +985,11 @@ package body WisiToken.Parse.LR.Parser is
          Parser.Trace.New_Line;
       end if;
 
+      if Trace_Memory > Detail then
+         Parser.Trace.Put_Line ("parse complete");
+         Report_Memory (Parser.Trace.all);
+      end if;
+
       if Debug_Mode then
          declare
             Error_Reported : WisiToken.Syntax_Trees.Node_Sets.Set;

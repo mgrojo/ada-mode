@@ -92,7 +92,8 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
       Shared_Parser : in out Parser.Parser;
       Thru          : in     Syntax_Trees.Valid_Node_Access;
       Positive      : in     Boolean)
-   with Pre => Shared_Parser.Tree.Is_Terminal (Thru);
+   with Pre => Shared_Parser.Tree.Is_Terminal (Thru),
+     Post => Shared_Parser.Tree.Get_Sequential_Index (Thru) /= Syntax_Trees.Invalid_Sequential_Index;
    --  If Thru.Node has valid Sequential_Index, return.
    --
    --  Else extend Sequential_Index range thru Thru; if Positive, towards

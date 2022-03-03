@@ -61,6 +61,10 @@ begin
          Trace.Put_Clock ("post edit tree");
       end if;
 
+      if Trace_Memory > Detail then
+         Trace.Put_Line ("post edit tree");
+         Report_Memory (Shared_Parser.Trace.all);
+      end if;
       if Trace_Parse > Outline or Trace_Incremental_Parse > Outline then
          Trace.New_Line;
          --  Parents not set, can't get Line_Numbers
@@ -88,6 +92,10 @@ begin
    else
       Shared_Parser.Tree.Clear;
       Shared_Parser.Lex_All;
+      if Trace_Memory > Detail then
+         Trace.Put_Line ("post lex");
+         Report_Memory (Shared_Parser.Trace.all);
+      end if;
    end if;
 
    Shared_Parser.Parsers := Parser_Lists.New_List (Shared_Parser.Tree);

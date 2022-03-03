@@ -26,7 +26,7 @@
 --  Efficient and flexible incremental parsing. ACM Transactions on
 --  Programming Languages and Systems,20(5):980-1013, 1998
 --
---  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -53,6 +53,7 @@ pragma License (Modified_GPL);
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
+with GNATCOLL.Memory;
 with SAL.Gen_Trimmed_Image;
 with SAL.Gen_Unbounded_Definite_Queues;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
@@ -477,6 +478,13 @@ package WisiToken is
 
    procedure Put_Clock (Trace : in out WisiToken.Trace; Label : in String) is abstract;
    --  Put Ada.Calendar.Clock to Trace, preceded by stored prefix.
+
+   Memory_Baseline : GNATCOLL.Memory.Byte_Count := 0;
+   --  This is only the Current value; trying to save the high water mark
+   --  for later subtraction does not make sense.
+
+   procedure Report_Memory (Trace : in out WisiToken.Trace'Class);
+   --  Output data from GNATCOLL.Memory, relative to Memory_Baseline.
 
    ----------
    --  Misc
