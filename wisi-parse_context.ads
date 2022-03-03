@@ -15,17 +15,12 @@ pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
-with GNATCOLL.Memory;
 with Wisi;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
 package Wisi.Parse_Context is
 
    Not_Found : exception;
-
-   Memory_Baseline : GNATCOLL.Memory.Byte_Count := 0;
-   --  This is only the Current value; trying to save the high water mark
-   --  for later subtraction does not make sense.
 
    type Language is record
       Descriptor              : WisiToken.Descriptor_Access_Constant;

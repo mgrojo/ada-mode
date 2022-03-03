@@ -18,6 +18,7 @@ with AUnit.Test_Results;
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Finalization;
+with Ada.Tags;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
@@ -64,6 +65,14 @@ package body Wisi.Parse_Context is
             Compare_Tree_Text_Auto            => <>))
       do
          Result.Parser.Tree.Lexer := Language.Lexer;
+         if Trace_Incremental_Parse > Outline then
+            Trace.Put_Line
+              ("parse_context (no file) created, language " & Ada.Tags.Expanded_Name
+                 (Language.Parse_Data_Template.all'Tag));
+            if Trace_Memory > Outline then
+               Report_Memory (Trace.all);
+            end if;
+         end if;
       end return;
    end Create_No_File;
 
@@ -142,7 +151,11 @@ package body Wisi.Parse_Context is
             Result.Parser.Tree.Lexer := Language.Lexer;
             Map.Insert (Result);
             if Trace_Incremental_Parse > Outline then
-               Trace.Put_Line ("parse_context created");
+               Trace.Put_Line
+                 ("parse_context created, language " & Ada.Tags.Expanded_Name (Language.Parse_Data_Template.all'Tag));
+               if Trace_Memory > Outline then
+                  Report_Memory (Trace.all);
+               end if;
             end if;
          end return;
       end;
@@ -207,6 +220,7 @@ package body Wisi.Parse_Context is
                Context : Parse_Context_Access := Element (Found);
             begin
                Map.Delete (File_Name);
+               Ada.Strings.Unbounded.Free (Context.Text_Buffer);
                Free (Context);
             end;
          end if;
