@@ -572,6 +572,7 @@ package WisiToken.Syntax_Trees is
       Tree          : in     Syntax_Trees.Tree'Class;
       Trace         : in out WisiToken.Trace'Class;
       Deleted_Token : in     Valid_Node_Access)
+   is null
    with Pre'Class =>
      Tree.Parents_Set and
      Tree.Label (Deleted_Token) in Terminal_Label;
@@ -579,8 +580,9 @@ package WisiToken.Syntax_Trees is
    --  is the non-deleted terminal token before Deleted_Token in the
    --  parse stream.
    --
-   --  The default body appends Deleted_Token.Non_Grammar to
-   --  Deleted_Token.Parent.Non_Grammar.
+   --  Any Non_Grammar that were on Deleted_Token have been moved to
+   --  Deleted_Token.Parent.Non_Grammar during error recover; user code
+   --  may now move them somewhere else if desired.
    --
    --  Called from Execute_Actions for each deleted token, before
    --  Initialize_Actions.

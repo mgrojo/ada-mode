@@ -1788,7 +1788,8 @@ package body Test_Incremental is
       Parse_Text
         ("procedure A is begin A := 123;" & ASCII.LF &
          --   |5   |10       |20       |30
-         "begin null; end end A;",
+           "begin null; end end A;",
+         --    |35  |40
          Edit_At        => 27,
          Delete         => "",
          Insert         => """",

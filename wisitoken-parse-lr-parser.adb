@@ -967,6 +967,11 @@ package body WisiToken.Parse.LR.Parser is
                Parser.User_Data.Insert_Token (Parser.Tree, Parser.Trace.all, Op.Ins_Node);
 
             when Delete =>
+               --  Op.Del_Node.Non_Grammar were previously moved to
+               --  Op.Del_Node.Parent in Syntax_Tree.Add_Deleted; now we can edit the
+               --  shared stream, so we can clear them.
+               Parser.Tree.Non_Grammar_Var (Op.Del_Node).Clear;
+
                Parser.User_Data.Delete_Token
                  (Parser.Tree, Parser.Trace.all,
                   Deleted_Token => Op.Del_Node);

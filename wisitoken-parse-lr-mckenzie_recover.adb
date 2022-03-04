@@ -615,9 +615,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  consecutive (for example, ada_mode-recover_extra_end_loop.adb
                               --  deletes "end loop ;"), because the main parser expects
                               --  Current_Token to be correct before checking for
-                              --  Delete on return from Recover. Op.Del_After_Node must be a
-                              --  non-deleted node, so we must get Op.Del_After_Node from the
-                              --  parser stack, not Prev_Terminal.
+                              --  Delete on return from Recover.
                               declare
                                  Deleted_Node : constant Valid_Node_Access := Tree.First_Sequential_Terminal
                                    (Tree.Current_Token (Parser_State.Stream)).Node;

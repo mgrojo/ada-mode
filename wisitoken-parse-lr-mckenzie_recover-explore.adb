@@ -1277,8 +1277,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Lexer_Error_Node  : in     Syntax_Trees.Valid_Node_Access;
       Config            : in out Configuration;
       Local_Config_Heap : in out Config_Heaps.Heap_Type)
-   with Pre => Current_Line < Shared.Tree.Line_Region.Last
-   --  We need to find the first token on Current_Line + 1
    is
       use Recover_Op_Arrays;
       use all type Parser.Language_String_ID_Set_Access;
@@ -1337,7 +1335,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   end if;
                end;
 
-               --  FIXME: handle non_grammar
+               --  non_grammar are moved during "apply ops".
                Delete (Config.Input_Stream, To_Delete);
             end if;
          end loop;
@@ -1376,7 +1374,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
             Max_Index := Tree.Get_Sequential_Index (Stream (To_Delete));
 
-            --  FIXME: handle non_grammar
+            --  non_grammar are moved during "apply ops".
             Delete (Stream, To_Delete);
          end Delete_First;
       begin
@@ -1713,6 +1711,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       declare
          Next_Line_Begin_Token : constant Valid_Node_Access := Tree.Line_Begin_Token
            (Current_Line + 1, Super.Stream (Parser_Index), Following_Source_Terminal => True);
+         --  EOI if Current_Line is last line in source.
       begin
          Super.Extend_Sequential_Index (Shared, Next_Line_Begin_Token, Positive => True);
 
@@ -1908,11 +1907,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                return;
             elsif Config.Current_Shared_Token = Invalid_Stream_Node_Ref then
                --  Current token is in Config.Input_Stream, shared is past EOI. ada_mode-recover_partial_15.adb
-               return;
-
-            elsif Current_Line >= Tree.Line_Region.Last then
-               --  There is no New_Line token ending this line; test_incremental.adb
-               --  Edit_String_10.
                return;
             end if;
 

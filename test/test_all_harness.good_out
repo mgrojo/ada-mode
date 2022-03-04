@@ -123,6 +123,7 @@ OK test_incremental.adb : Edit_String_06
 OK test_incremental.adb : Edit_String_07
 OK test_incremental.adb : Edit_String_08
 OK test_incremental.adb : Edit_String_09
+OK test_incremental.adb : Edit_String_10
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
 OK test_mckenzie_recover.adb LALR : No_Error
 OK test_mckenzie_recover.adb LALR : Empty_Comments
@@ -262,7 +263,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   262
-Successful Tests:  262
+Total Tests Run:   263
+Successful Tests:  263
 Failed Assertions: 0
 Unexpected Errors: 0

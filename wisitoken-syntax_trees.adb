@@ -224,6 +224,26 @@ package body WisiToken.Syntax_Trees is
       end if;
 
       Prev_Terminal.Ref.Node.Following_Deleted.Append (Deleted_Node);
+
+      --  We need to move the non_grammar now, so they are correct for later
+      --  error recover sessions. test_incremental.adb : Edit_String_10
+
+      --  FIXME: need Tree.Lexer.Trace
+      --  if Trace_Action > WisiToken.Outline then
+      --     Trace_Action to be consistent with messages from user
+      --     Delete_Token.
+      --     Trace.Put_Line
+      --       ("delete token " & Tree.Image (Deleted_Node, Node_Numbers => True, Non_Grammar => True));
+      --     if Deleted_Node.Non_Grammar.Length > 0 then
+      --        Trace.Put_Line
+      --          (" ... move non_grammar to " & Tree.Image
+      --             (Prev_Terminal.Ref.Node, Node_Numbers => True, Non_Grammar => True));
+      --     end if;
+      --  end if;
+      Prev_Terminal.Ref.Node.Non_Grammar.Append (Deleted_Node.Non_Grammar);
+
+      --  We don't do Deleted_Node.Non_Grammar.Clear here; we are not
+      --  editing the shared stream. That is done in Finish_Parse.
    end Add_Deleted;
 
    function Add_Error
@@ -2145,26 +2165,6 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Delete_Subtree;
 
-   procedure Delete_Token
-     (User_Data     : in out User_Data_Type;
-      Tree          : in     Syntax_Trees.Tree'Class;
-      Trace         : in out WisiToken.Trace'Class;
-      Deleted_Token : in     Valid_Node_Access)
-   is
-      Prev_Token : constant Valid_Node_Access := Deleted_Token.Parent;
-   begin
-      if Trace_Action > WisiToken.Outline then
-         Trace.Put_Line
-           ("delete token " & Tree.Image (Deleted_Token, Node_Numbers => True, Non_Grammar => True));
-         if Deleted_Token.Non_Grammar.Length > 0 then
-            Trace.Put_Line
-              (" ... move non_grammar to " & Tree.Image (Prev_Token, Node_Numbers => True, Non_Grammar => True));
-         end if;
-      end if;
-      Prev_Token.Non_Grammar.Append (Deleted_Token.Non_Grammar);
-      Deleted_Token.Non_Grammar.Clear;
-   end Delete_Token;
-
    function Editable (Tree : in Syntax_Trees.Tree) return Boolean
    is begin
       return Tree.Parents_Set and Tree.Streams.Length = 0 and Tree.Shared_Stream.Cur = Parse_Stream_Lists.No_Element;
@@ -2979,7 +2979,7 @@ package body WisiToken.Syntax_Trees is
             begin
                if Contains (Node_Line_Region, Line - 1) then
                   if Node_Line_Region.First = Node_Line_Region.Last or
-                    Line - 1 = Node_Line_Region.Last
+                    Line - 1 = Node_Line_Region.Last --  FIXME: redundant condition
                   then
                      --  Faster to check last child first.
                      for I in reverse Ref.Ref.Node.Children'Range loop

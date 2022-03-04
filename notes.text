@@ -31,20 +31,16 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-t_all broken
-    test_mckenzie String_Quote_4 FAIL_ENQUEUE_LIMIT
-        try_insert_quote_1 not run
-        because Current_Line = Tree.Line_Region.Last
-            that check added for Edit_String_10
-                fix that to handle EOI, since t_mck does.
-                tree.line_begin_token (current_line+1) fails in second recover session
-                    lost the non_grammar new_line
-                        it was on semicolon, now deleted by first recover
-                            string_quote delete needs to move non_grammar!
-                            could have not deleted it
+move Trace from Parser to Lexer
+    use in Lexer.Find_Next
+    no separate param in tree operations
+    see FIXME: in Syntax_Tree.Add_Deleted
 
-                        eoi says it's on line 2, but there is no new_line that ends line 1.
+change wisi.adb Delete_Token to match.
 
+run all tests
+
+propagate to main
 
 
 improve memory benchmarks
@@ -167,10 +163,6 @@ Plot generate time as a function of task_count
         rows:  62_039; initial item_sets time: 163.757085680, max_row_depth: 9 average_row_depth: 4
         rows: 124_087; initial item_sets time: 161.564576128, max_row_depth: 9 average_row_depth: 2
         rows: 248_177; initial item_sets time: 163.082249550, max_row_depth: 9 average_row_depth: 1
-
-move Trace from Parser to Lexer
-    use in Lexer.Find_Next
-    no separate param in tree operations
 
 delete descriptor.case_insensitive?
     used in regexp lexer?
