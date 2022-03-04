@@ -556,7 +556,6 @@ package WisiToken.Syntax_Trees is
    procedure Insert_Token
      (User_Data      : in out User_Data_Type;
       Tree           : in out Syntax_Trees.Tree'Class;
-      Trace          : in out WisiToken.Trace'Class;
       Inserted_Token : in     Syntax_Trees.Valid_Node_Access)
    is null
    with Pre'Class => Tree.Parents_Set and Tree.Is_Virtual_Terminal (Inserted_Token);
@@ -570,7 +569,6 @@ package WisiToken.Syntax_Trees is
    procedure Delete_Token
      (User_Data     : in out User_Data_Type;
       Tree          : in     Syntax_Trees.Tree'Class;
-      Trace         : in out WisiToken.Trace'Class;
       Deleted_Token : in     Valid_Node_Access)
    is null
    with Pre'Class =>
@@ -2667,13 +2665,12 @@ package WisiToken.Syntax_Trees is
 
    procedure Print_Tree
      (Tree         : in     Syntax_Trees.Tree;
-      Trace        : in out WisiToken.Trace'Class;
       Root         : in     Node_Access               := Invalid_Node_Access;
       Image_Action : in     Syntax_Trees.Image_Action := null;
       Line_Numbers : in     Boolean                   := False;
       Non_Grammar  : in     Boolean                   := False);
    --  Print tree rooted at Root (default Tree.Root) to
-   --  Trace, for debugging.
+   --  Tree.Lexer.Trace, for debugging.
    --
    --  This is the same as Trace.Put_Line (Tree.Image (..., Children =>
    --  True)), but avoids storing the entire trace image on the stack;
@@ -2681,16 +2678,13 @@ package WisiToken.Syntax_Trees is
 
    procedure Print_Streams
      (Tree        : in     Syntax_Trees.Tree;
-      Trace       : in out WisiToken.Trace'Class;
       Children    : in     Boolean := False;
       Non_Grammar : in     Boolean := False);
 
    function Tree_Size_Image (Tree : in Syntax_Trees.Tree) return String;
    --  For debugging; node counts.
 
-   procedure Print_Ref_Counts
-     (Tree  : in     Syntax_Trees.Tree;
-      Trace : in out WisiToken.Trace'Class);
+   procedure Print_Ref_Counts (Tree : in Syntax_Trees.Tree);
 
 private
    use all type Ada.Containers.Count_Type;

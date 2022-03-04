@@ -60,7 +60,7 @@ is
       Parser : WisiToken.Parse.LR.Parser.Parser;
    begin
       WisiToken.Parse.LR.Parser.New_Parser
-        (Parser, Trace'Unchecked_Access, Create_Lexer, Create_Parse_Table,
+        (Parser, Create_Lexer (Trace'Unchecked_Access), Create_Parse_Table,
          (if Disable_Fixes then null else Language_Fixes),
          (if Disable_Match_Begin then null else Language_Matching_Begin_Tokens),
          Language_String_ID_Set,

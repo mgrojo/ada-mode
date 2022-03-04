@@ -73,7 +73,7 @@ package body WisiToken.Parse.Packrat.Generated is
 
       if Result.State /= Success then
          if Trace_Parse > Outline then
-            Parser.Trace.Put_Line ("parse failed");
+            Parser.Tree.Lexer.Trace.Put_Line ("parse failed");
          end if;
 
          raise Syntax_Error with "parse failed"; --  FIXME packrat: need better error message!

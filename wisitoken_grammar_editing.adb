@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -624,9 +624,8 @@ package body WisiToken_Grammar_Editing is
    end Validate_Node;
 
    procedure Translate_EBNF_To_BNF
-     (Tree  : in out Syntax_Trees.Tree;
-      Data  : in out WisiToken_Grammar_Runtime.User_Data_Type;
-      Trace : in out WisiToken.Trace'Class)
+     (Tree : in out Syntax_Trees.Tree;
+      Data : in out WisiToken_Grammar_Runtime.User_Data_Type)
    is
       use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
@@ -1223,7 +1222,7 @@ package body WisiToken_Grammar_Editing is
          if Trace_Generate_EBNF > Extra then
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("Insert_Optional_RHS start: " & Get_Text (Data, Tree, Container));
-            Tree.Print_Tree (Trace, Container);
+            Tree.Print_Tree (Container);
          end if;
 
          declare
@@ -1320,12 +1319,12 @@ package body WisiToken_Grammar_Editing is
                   if Container_ID = +rhs_ID then
                      Ada.Text_IO.Put_Line
                        ("Insert_Optional_RHS old rhs, new rhs: " & Get_Text (Data, Tree, Container_List.Root));
-                     Tree.Print_Tree (Trace, Container_List.Root);
+                     Tree.Print_Tree (Container_List.Root);
                   else
                      Ada.Text_IO.Put_Line
                        ("Insert_Optional_RHS edited rhs_alternative_list: " & Get_Text
                           (Data, Tree, Tree.Parent (Container_List.Root)));
-                     Tree.Print_Tree (Trace, Tree.Parent (Container_List.Root));
+                     Tree.Print_Tree (Tree.Parent (Container_List.Root));
                   end if;
                end if;
             end if;
@@ -1387,7 +1386,7 @@ package body WisiToken_Grammar_Editing is
               ("new " & Label & ":" & Trimmed_Image (Get_Node_Index (Comp_Unit)) & ": '" &
                  Get_Text (Data, Tree, Unit) & "'");
             if Trace_Generate_EBNF > Extra then
-               Tree.Print_Tree (Trace, Comp_Unit);
+               Tree.Print_Tree (Comp_Unit);
             end if;
          end if;
       end Add_Compilation_Unit;
@@ -2146,7 +2145,7 @@ package body WisiToken_Grammar_Editing is
                if Trace_Generate_EBNF > Extra then
                   Ada.Text_IO.New_Line;
                   Ada.Text_IO.Put_Line ("Simple_Named Canonical_List edited nonterm:");
-                  Tree.Print_Tree (Trace, List_Nonterm_Decl);
+                  Tree.Print_Tree (List_Nonterm_Decl);
                end if;
             end Do_Simple_Named;
 
@@ -2440,7 +2439,7 @@ package body WisiToken_Grammar_Editing is
                Ada.Text_IO.New_Line;
                Ada.Text_IO.Put_Line ("Translate_RHS_Multiple_Item edited: " & Get_Text (Data, Tree, Item));
                if Trace_Generate_EBNF > Extra then
-                  Tree.Print_Tree (Trace, Item);
+                  Tree.Print_Tree (Item);
                end if;
             end;
          end if;
@@ -2614,7 +2613,7 @@ package body WisiToken_Grammar_Editing is
          if WisiToken.Trace_Generate_EBNF > Detail then
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("Translate_RHS_Optional_Item edited:");
-            Tree.Print_Tree (Trace, Container_List_Root);
+            Tree.Print_Tree (Container_List_Root);
          end if;
       end Translate_RHS_Optional_Item;
 

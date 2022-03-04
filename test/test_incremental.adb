@@ -171,7 +171,7 @@ package body Test_Incremental is
 
          New_Line;
          Put_Line (Label_Dot & "tree:");
-         Parser.Tree.Print_Tree (Trace, Non_Grammar => True);
+         Parser.Tree.Print_Tree (Non_Grammar => True);
       end Put_Tree;
 
    begin
@@ -1887,8 +1887,7 @@ package body Test_Incremental is
       --  Run before Register_Tests
       WisiToken.Parse.LR.Parser.New_Parser
         (Full_Parser,
-         Trace'Access,
-         Ada_Lite_LR1_T1_Main.Create_Lexer,
+         Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
          Ada_Lite_LR1_T1_Main.Create_Parse_Table
            (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
          Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
@@ -1899,8 +1898,7 @@ package body Test_Incremental is
 
       WisiToken.Parse.LR.Parser.New_Parser
         (Incremental_Parser,
-         Trace'Access,
-         Ada_Lite_LR1_T1_Main.Create_Lexer,
+         Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
          Ada_Lite_LR1_T1_Main.Create_Parse_Table
            (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
          Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,

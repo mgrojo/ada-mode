@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2009-2010, 2012-2015, 2017 - 2021 Stephen Leake
+--  Copyright (C) 2009-2010, 2012-2015, 2017 - 2022 Stephen Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the WisiToken package.
@@ -94,8 +94,7 @@ package body Trivial_Productions_Test is
 
          WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
-            Trace'Access,
-            Lexer.New_Lexer (LALR_Descriptor'Access, Syntax),
+            Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
             WisiToken.Generate.LR.LALR_Generate.Generate
               (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
             User_Data                      => null,
@@ -192,8 +191,7 @@ package body Trivial_Productions_Test is
 
          WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
-            Trace'Access,
-            Lexer.New_Lexer (LALR_Descriptor'Access, Syntax),
+            Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
             WisiToken.Generate.LR.LALR_Generate.Generate
               (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
             User_Data                      => null,

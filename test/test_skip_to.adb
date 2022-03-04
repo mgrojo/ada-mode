@@ -91,8 +91,7 @@ package body Test_Skip_To is
    begin
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
         (Test_Skip_To_Aux.Parser,
-         Trace'Access,
-         Skip_To_Grammar_LALR_Main.Create_Lexer,
+         Skip_To_Grammar_LALR_Main.Create_Lexer (Trace'Access),
          Skip_To_Grammar_LALR_Main.Create_Parse_Table ("skip_to_grammar_lalr_parse_table.txt"),
          User_Data'Access);
    end Set_Up_Case;

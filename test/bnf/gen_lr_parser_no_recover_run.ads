@@ -2,7 +2,7 @@
 --
 --  Main program to run a parser.
 --
---  Copyright (C) 2015, 2017, 2018, 2020 Stephe Leake
+--  Copyright (C) 2015, 2017, 2018, 2020, 2022 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -24,6 +24,6 @@ with WisiToken.Lexer;
 with WisiToken.Parse.LR;
 generic
    with function Create_Parse_Table return WisiToken.Parse.LR.Parse_Table_Ptr;
-   with function Create_Lexer return WisiToken.Lexer.Handle;
+   with function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;
 
 procedure Gen_LR_Parser_No_Recover_Run;

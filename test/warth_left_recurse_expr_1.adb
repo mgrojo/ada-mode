@@ -122,7 +122,7 @@ package body Warth_Left_Recurse_Expr_1 is
          if WisiToken.Trace_Tests > WisiToken.Outline then
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("parse tree:");
-            Parser.Tree.Print_Tree (Trace, Parser.Tree.Root, null);
+            Parser.Tree.Print_Tree (Parser.Tree.Root, null);
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("root node: " & Parser.Tree.Image (Parser.Tree.Root));
          end if;

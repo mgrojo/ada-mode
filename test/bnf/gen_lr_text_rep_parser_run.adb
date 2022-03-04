@@ -51,7 +51,7 @@ is
       Parser : WisiToken.Parse.LR.Parser.Parser;
    begin
       WisiToken.Parse.LR.Parser.New_Parser
-        (Parser, Trace'Unchecked_Access, Create_Lexer, Create_Parse_Table
+        (Parser, Create_Lexer (Trace'Unchecked_Access), Create_Parse_Table
            (Text_Rep_File_Name => Text_Rep_File_Name),
          Language_Fixes,
          Language_Matching_Begin_Tokens,

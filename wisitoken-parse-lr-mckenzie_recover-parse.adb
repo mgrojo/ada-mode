@@ -694,8 +694,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       use Recover_Op_Arrays;
       use all type In_Parse_Actions.Status_Label;
 
-      Trace      : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Tree       : WisiToken.Syntax_Trees.Tree renames Shared_Parser.Tree;
+      Trace      : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
       Descriptor : WisiToken.Descriptor renames Shared_Parser.Tree.Lexer.Descriptor.all;
       Table      : Parse_Table renames Shared_Parser.Table.all;
 
@@ -806,17 +806,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          if Trace_McKenzie > Extra then
             Put_Line (Trace, Trace_Prefix & ": stack: " & LR.Image (Config.Stack, Tree));
             if Config.Current_Insert_Delete /= No_Insert_Delete then
-               Put_Line (Trace, Tree, Super.Stream (Parser_Index), Trace_Prefix & ": Insert_Delete: " &
+               Put_Line (Tree, Super.Stream (Parser_Index), Trace_Prefix & ": Insert_Delete: " &
                            Image (Config.Insert_Delete, Descriptor));
             end if;
             if Config.Input_Stream.Length > 0 then
-               Put_Line (Trace, Tree, Super.Stream (Parser_Index), Trace_Prefix & ": input_stream: " &
+               Put_Line (Tree, Super.Stream (Parser_Index), Trace_Prefix & ": input_stream: " &
                            LR.Image (Config.Input_Stream, Tree));
             end if;
          end if;
 
          if Shared_Token_Goal /= Syntax_Trees.Invalid_Sequential_Index then
-            Put_Line (Trace, Tree, Super.Stream (Parser_Index), Trace_Prefix & ": Shared_Token_Goal :" &
+            Put_Line (Tree, Super.Stream (Parser_Index), Trace_Prefix & ": Shared_Token_Goal :" &
                         Shared_Token_Goal'Image);
          end if;
       end if;
@@ -839,14 +839,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             if Conflict /= null then
                if Is_Full (Parse_Items) then
                   if Trace_McKenzie > Outline then
-                     Put_Line (Trace, Tree, Super.Stream (Parser_Index),
+                     Put_Line (Tree, Super.Stream (Parser_Index),
                                Trace_Prefix & ": too many conflicts; abandoning");
                      raise Bad_Config;
                   end if;
                else
                   if Trace_McKenzie > Detail then
                      Put_Line
-                       (Trace, Tree, Super.Stream (Parser_Index), Trace_Prefix & ":" & State_Index'Image
+                       (Tree, Super.Stream (Parser_Index), Trace_Prefix & ":" & State_Index'Image
                           (Config.Stack.Peek.State) & ": add conflict " &
                           Image (Conflict.Item, Descriptor));
                   end if;
@@ -858,7 +858,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          if Trace_McKenzie > Extra then
             Put_Line
-              (Trace, Tree, Super.Stream (Parser_Index), Trace_Prefix & ":" &
+              (Tree, Super.Stream (Parser_Index), Trace_Prefix & ":" &
                  Config.Stack.Peek.State'Image &
                  ":" & Syntax_Trees.Image (Tree, Current_Token) &
                  " : " & Image (Action, Descriptor) &
@@ -892,7 +892,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                      if Trace_McKenzie > Outline then
                         Base.Put (Super, Shared_Parser, Trace_Prefix & ": Unknown_State: ", Parser_Index, Config);
                         Put_Line
-                          (Trace, Tree, Super.Stream (Parser_Index), Trace_Prefix & ": stack: " &
+                          (Tree, Super.Stream (Parser_Index), Trace_Prefix & ": stack: " &
                              LR.Image (Config.Stack, Tree));
                      end if;
 
@@ -948,8 +948,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
      return Boolean
    is
       use Parse_Item_Arrays;
-      Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
-
       Last_Parsed : Natural;
       Success     : Boolean;
    begin
@@ -977,7 +975,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
          Last_Parsed := Last_Parsed + 1;
          if Trace_McKenzie > Detail then
-            Put_Line (Trace, Shared_Parser.Tree, Super.Stream (Parser_Index), Trace_Prefix & ": parse conflict");
+            Put_Line (Shared_Parser.Tree, Super.Stream (Parser_Index), Trace_Prefix & ": parse conflict");
          end if;
       end loop;
 

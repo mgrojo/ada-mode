@@ -51,7 +51,7 @@ package body Dragon_4_43_Packrat_Gen is
 
          if WisiToken.Trace_Tests > WisiToken.Detail then
             Trace.Put_Line ("ref_counts:");
-            Parser.Tree.Print_Ref_Counts (Trace);
+            Parser.Tree.Print_Ref_Counts;
          end if;
          AUnit.Assertions.Assert (Expected = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
 

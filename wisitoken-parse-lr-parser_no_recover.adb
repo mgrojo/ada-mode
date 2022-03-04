@@ -59,7 +59,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       use all type Ada.Containers.Count_Type;
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
-      Trace        : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
+      Trace        : WisiToken.Trace'Class renames Shared_Parser.Tree.Lexer.Trace.all;
    begin
       if Trace_Parse > Detail then
          Trace.Put
@@ -205,13 +205,11 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
    procedure New_Parser
      (Parser             :    out LR.Parser_No_Recover.Parser;
-      Trace              : in     WisiToken.Trace_Access;
       Lexer              : in     WisiToken.Lexer.Handle;
       Table              : in     Parse_Table_Ptr;
       User_Data          : in     WisiToken.Syntax_Trees.User_Data_Access)
    is begin
       Parser.Tree.Lexer := Lexer;
-      Parser.Trace      := Trace;
       Parser.Table      := Table;
       Parser.User_Data  := User_Data;
    end New_Parser;
@@ -227,7 +225,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       use all type WisiToken.Syntax_Trees.Terminal_Ref;
       use all type Syntax_Trees.User_Data_Access;
 
-      Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
+      Trace : WisiToken.Trace'Class renames Shared_Parser.Tree.Lexer.Trace.all;
 
       Current_Verb : All_Parse_Action_Verbs;
       Action       : Parse_Action_Node_Ptr;
@@ -242,7 +240,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             if Shared_Parser.Parsers.Count = 1 then
                raise Syntax_Error;
             else
-               Shared_Parser.Parsers.Terminate_Parser (Check_Parser, Shared_Parser.Tree, "", Shared_Parser.Trace.all);
+               Shared_Parser.Parsers.Terminate_Parser (Check_Parser, Shared_Parser.Tree, "", Trace);
             end if;
          else
             Check_Parser.Next;
@@ -324,7 +322,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                exit when Current_Parser.Is_Done;
 
                if Current_Verb = Shift then
-                  Shared_Parser.Parsers.Duplicate_State (Current_Parser, Shared_Parser.Tree, Shared_Parser.Trace.all);
+                  Shared_Parser.Parsers.Duplicate_State (Current_Parser, Shared_Parser.Tree, Trace);
                   --  If Duplicate_State terminated Current_Parser, Current_Parser now
                   --  points to the next parser. Otherwise it is unchanged.
                end if;
@@ -419,13 +417,13 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       Shared_Parser.Tree.Clear_Parse_Streams;
 
       if Trace_Action > Extra then
-         Shared_Parser.Trace.Put_Line
+         Trace.Put_Line
            (Shared_Parser.Tree.Image
               (Children     => True,
                Non_Grammar  => True,
                Augmented    => True,
                Line_Numbers => True));
-         Shared_Parser.Trace.New_Line;
+         Trace.New_Line;
       end if;
 
       --  We don't raise Syntax_Error for lexer errors, since they are all
@@ -465,8 +463,9 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                      raise;
 
                   elsif WisiToken.Debug_Mode then
-                     Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
-                     Parser.Trace.New_Line;
+                     Parser.Tree.Lexer.Trace.Put_Line
+                       (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
+                     Parser.Tree.Lexer.Trace.New_Line;
                   end if;
 
                   raise WisiToken.Parse_Error with Tree.Error_Message

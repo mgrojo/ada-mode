@@ -47,10 +47,14 @@ package body WisiToken.Lexer.re2c is
 
    type Instance_Access is access Instance; --  silence compiler warning
 
-   function New_Lexer (Descriptor  : in WisiToken.Descriptor_Access_Constant) return Handle
+   function New_Lexer
+     (Trace      : in WisiToken.Trace_Access;
+      Descriptor  : in WisiToken.Descriptor_Access_Constant)
+     return Handle
    is
       Result : constant Instance_Access := new Instance;
    begin
+      Result.Trace      := Trace;
       Result.Descriptor := Descriptor;
       return Handle (Result);
    end New_Lexer;

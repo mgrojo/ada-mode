@@ -62,8 +62,7 @@ package body BNF_WY_Test is
 
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
         (Parser    => Grammar_Parser,
-         Trace     => Trace'Unchecked_Access,
-         Lexer     => Wisitoken_Grammar_Main.Create_Lexer,
+         Lexer     => Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
          Table     => Wisitoken_Grammar_Main.Create_Parse_Table,
          User_Data => Input_Data'Unchecked_Access);
 
@@ -108,8 +107,7 @@ package body BNF_WY_Test is
       when EBNF_Syntax =>
          --  The BNF file is output by rules.make, and debugged separately. We
          --  need to translate this here in order to set McKenzie_Recover.
-         WisiToken_Grammar_Editing.Translate_EBNF_To_BNF
-           (Grammar_Parser.Tree, Input_Data, Trace);
+         WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Grammar_Parser.Tree, Input_Data);
       end case;
 
       Input_Data.Phase := WisiToken_Grammar_Runtime.Other;

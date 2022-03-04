@@ -6,7 +6,7 @@
 --
 --  [1] tree-sitter grammar: https://tree-sitter.github.io/tree-sitter/creating-parsers#the-grammar-dsl
 --
---  Copyright (C) 2020 - 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2020 - 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -29,9 +29,8 @@ package body WisiToken.Generate.Tree_Sitter is
    use WisiToken.Syntax_Trees;
 
    procedure Eliminate_Empty_Productions
-     (Data  : in out WisiToken_Grammar_Runtime.User_Data_Type;
-      Tree  : in out WisiToken.Syntax_Trees.Tree;
-      Trace : in out WisiToken.Trace'Class)
+     (Data : in out WisiToken_Grammar_Runtime.User_Data_Type;
+      Tree : in out WisiToken.Syntax_Trees.Tree)
    is
       Ignore_Lines    : Boolean := False;
 
@@ -617,7 +616,7 @@ package body WisiToken.Generate.Tree_Sitter is
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("tree_sitter eliminate empty productions start");
          if Trace_Generate_EBNF > Detail then
-            Tree.Print_Tree (Trace, Tree.Root);
+            Tree.Print_Tree (Tree.Root);
          end if;
       end if;
 
@@ -725,7 +724,7 @@ package body WisiToken.Generate.Tree_Sitter is
       if Trace_Generate_EBNF > Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("tree_sitter eliminate empty productions end");
-         Tree.Print_Tree (Trace, Tree.Root);
+         Tree.Print_Tree (Tree.Root);
       end if;
    end Eliminate_Empty_Productions;
 

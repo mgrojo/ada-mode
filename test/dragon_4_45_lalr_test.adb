@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -253,8 +253,7 @@ package body Dragon_4_45_LALR_Test is
    begin
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
-         Trace'Access,
-         Lexer.New_Lexer (LALR_Descriptor'Access, Syntax),
+         Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate
            (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,

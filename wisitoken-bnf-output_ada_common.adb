@@ -257,7 +257,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          end if;
          Indent_Line ("  return WisiToken.Parse.LR.Parse_Table_Ptr;");
          New_Line;
-         Indent_Line ("function Create_Lexer return WisiToken.Lexer.Handle;");
+         Indent_Line ("function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;");
       end LR_Process;
 
       procedure Packrat_Process
@@ -767,9 +767,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent := Indent - 3;
       Indent_Line ("end Create_Parse_Table;");
       New_Line;
-      Indent_Line ("function Create_Lexer return WisiToken.Lexer.Handle");
+      Indent_Line ("function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle");
       Indent_Line ("is begin");
-      Indent_Line ("   return Lexer.New_Lexer (" & Actions_Package_Name & ".Descriptor'Access);");
+      Indent_Line ("   return Lexer.New_Lexer (Trace, " & Actions_Package_Name & ".Descriptor'Access);");
       Indent_Line ("end Create_Lexer;");
    end LR_Create_Create_Parse_Table;
 
@@ -795,8 +795,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent := Indent + 3;
          Indent_Line ("return Parser : WisiToken.Parse.Packrat.Generated.Parser do");
          Indent := Indent + 3;
-         Indent_Line ("Parser.Trace := Trace;");
-         Indent_Line ("Parser.Tree.Lexer := Lexer.New_Lexer (" & Actions_Package_Name & ".Descriptor'Access);");
+         Indent_Line ("Parser.Tree.Lexer := Lexer.New_Lexer (Trace, " & Actions_Package_Name & ".Descriptor'Access);");
          Indent_Line ("Parser.User_Data := User_Data;");
          Indent_Line ("Parser.Parse_WisiToken_Accept := Parse_wisitoken_accept_1'Access;");
          Indent := Indent - 3;
@@ -840,8 +839,8 @@ package body WisiToken.BNF.Output_Ada_Common is
 
          Indent_Line ("return WisiToken.Parse.Packrat.Procedural.Create");
          Indent_Line ("  (Grammar, Direct_Left_Recursive, " & Trimmed_Image (Generate_Data.Descriptor.Accept_ID) &
-                        ", Trace, Lexer.New_Lexer");
-         Indent_Line ("     (" & Actions_Package_Name & ".Descriptor'Access), User_Data);");
+                        ", Lexer.New_Lexer");
+         Indent_Line ("     (Trace, " & Actions_Package_Name & ".Descriptor'Access), User_Data);");
       end case;
       Indent := Indent - 3;
       Indent_Line ("end Create_Parser;");

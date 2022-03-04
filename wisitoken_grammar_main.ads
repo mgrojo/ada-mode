@@ -28,5 +28,5 @@ package Wisitoken_Grammar_Main is
    function Create_Parse_Table
      return WisiToken.Parse.LR.Parse_Table_Ptr;
 
-   function Create_Lexer return WisiToken.Lexer.Handle;
+   function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;
 end Wisitoken_Grammar_Main;

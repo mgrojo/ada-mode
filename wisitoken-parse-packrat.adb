@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018, 2020 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2020 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -66,10 +66,10 @@ package body WisiToken.Parse.Packrat is
 
       if Trace_Action > Outline then
          if Trace_Action > Extra then
-            Parser.Tree.Print_Tree (Parser.Trace.all, Parser.Tree.Root);
-            Parser.Trace.New_Line;
+            Parser.Tree.Print_Tree (Parser.Tree.Root);
+            Parser.Tree.Lexer.Trace.New_Line;
          end if;
-         Parser.Trace.Put_Line ("root node: " & Parser.Tree.Image (Parser.Tree.Root));
+         Parser.Tree.Lexer.Trace.Put_Line ("root node: " & Parser.Tree.Image (Parser.Tree.Root));
       end if;
 
       Parser.User_Data.Initialize_Actions (Parser.Tree);
@@ -77,9 +77,10 @@ package body WisiToken.Parse.Packrat is
    exception
    when E : others =>
       if Debug_Mode then
-         Parser.Trace.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-         Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-         Parser.Trace.New_Line;
+         Parser.Tree.Lexer.Trace.Put_Line
+           (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+         Parser.Tree.Lexer.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+         Parser.Tree.Lexer.Trace.New_Line;
       end if;
       raise;
    end Execute_Actions;

@@ -114,7 +114,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                      Last_Pos           => Pos)
                   do
                      if Trace_Parse > Extra then
-                        Parser.Trace.Put_Line
+                        Parser.Tree.Lexer.Trace.Put_Line
                           ("eval: " & Parser.Tree.Image (Root => Result.Result, Children => True));
                      end if;
                   end return;
@@ -176,10 +176,10 @@ package body WisiToken.Parse.Packrat.Procedural is
             if (Trace_Parse > Detail and Memo.State = Success) or Trace_Parse > Extra then
                case Memo.State is
                when Success =>
-                  Parser.Trace.Put_Line
+                  Parser.Tree.Lexer.Trace.Put_Line
                     (Parser.Tree.Image (Memo.Result, Children => True, Terminal_Node_Numbers => True));
                when Failure =>
-                  Parser.Trace.Put_Line
+                  Parser.Tree.Lexer.Trace.Put_Line
                     (Image (R, Descriptor) & " failed at pos " & Image_Pos (Tree, Tree.Shared_Stream, Last_Pos));
                when No_Result =>
                   raise SAL.Programmer_Error;
@@ -211,7 +211,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                Recursing        := True;
 
                if WisiToken.Trace_Parse > Detail then
-                  Parser.Trace.Put_Line
+                  Parser.Tree.Lexer.Trace.Put_Line
                     (Parser.Tree.Image
                        (Result_Recurse.Result, Children => True, Terminal_Node_Numbers => True));
                end if;
@@ -241,13 +241,11 @@ package body WisiToken.Parse.Packrat.Procedural is
      (Grammar               : in WisiToken.Productions.Prod_Arrays.Vector;
       Direct_Left_Recursive : in Token_ID_Set;
       Start_ID              : in Token_ID;
-      Trace                 : in WisiToken.Trace_Access;
       Lexer                 : in WisiToken.Lexer.Handle;
       User_Data             : in WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser
    is begin
       return Parser                   : Procedural.Parser (Grammar.First_Index, Grammar.Last_Index) do
-         Parser.Trace                 := Trace;
          Parser.Tree.Lexer            := Lexer;
          Parser.User_Data             := User_Data;
          Parser.Grammar               := Grammar;
@@ -300,7 +298,7 @@ package body WisiToken.Parse.Packrat.Procedural is
 
       if Result.State /= Success then
          if Trace_Parse > Outline then
-            Parser.Trace.Put_Line ("parse failed");
+            Parser.Tree.Lexer.Trace.Put_Line ("parse failed");
          end if;
 
          raise Syntax_Error with "parse failed"; --  FIXME packrat: need better error message!

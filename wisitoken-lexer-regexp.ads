@@ -52,7 +52,8 @@ package WisiToken.Lexer.Regexp is
    type Instance (Last_Terminal : Token_ID) is new WisiToken.Lexer.Instance with private;
 
    function New_Lexer
-     (Descriptor : in WisiToken.Descriptor_Access_Constant;
+     (Trace      : in WisiToken.Trace_Access;
+      Descriptor : in WisiToken.Descriptor_Access_Constant;
       Syntax     : in WisiToken.Lexer.Regexp.Syntax)
      return WisiToken.Lexer.Handle;
 

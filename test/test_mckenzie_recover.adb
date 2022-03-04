@@ -95,7 +95,7 @@ package body Test_McKenzie_Recover is
          if WisiToken.Trace_Tests > WisiToken.Detail then
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("parse result:");
-            Parser.Tree.Print_Tree (Trace, Non_Grammar => True);
+            Parser.Tree.Print_Tree (Non_Grammar => True);
          end if;
          Parser.Put_Errors;
       end if;
@@ -2481,7 +2481,7 @@ package body Test_McKenzie_Recover is
       case T.Alg is
       when WisiToken.BNF.LALR =>
          WisiToken.Parse.LR.Parser.New_Parser
-           (Parser, Trace'Access, Ada_Lite_LALR_Main.Create_Lexer, Ada_Lite_LALR_Main.Create_Parse_Table,
+           (Parser, Ada_Lite_LALR_Main.Create_Lexer (Trace'Access), Ada_Lite_LALR_Main.Create_Parse_Table,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
@@ -2489,7 +2489,7 @@ package body Test_McKenzie_Recover is
 
       when WisiToken.BNF.LR1 =>
          WisiToken.Parse.LR.Parser.New_Parser
-           (Parser, Trace'Access, Ada_Lite_LR1_T1_Main.Create_Lexer,
+           (Parser, Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
             Ada_Lite_LR1_T1_Main.Create_Parse_Table
               (Text_Rep_File_Name => "ada_lite_lr1_t1_re2c_parse_table.txt"),
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,

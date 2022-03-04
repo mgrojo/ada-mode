@@ -106,7 +106,6 @@ package WisiToken.Parse.LR.Parser is
 
    procedure New_Parser
      (Parser                         :    out LR.Parser.Parser;
-      Trace                          : in     WisiToken.Trace_Access;
       Lexer                          : in     WisiToken.Lexer.Handle;
       Table                          : in     Parse_Table_Ptr;
       Language_Fixes                 : in     Language_Fixes_Access;

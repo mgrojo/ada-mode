@@ -2,7 +2,7 @@
 --
 --  Main program to run an LR parser with error recovery.
 --
---  Copyright (C) 2015, 2017 - 2020 Stephe Leake
+--  Copyright (C) 2015, 2017 - 2020, 2022 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -30,6 +30,6 @@ generic
    Language_String_ID_Set : in WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
 
    with function Create_Parse_Table return WisiToken.Parse.LR.Parse_Table_Ptr;
-   with function Create_Lexer return WisiToken.Lexer.Handle;
+   with function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;
 
 procedure Gen_LR_Parser_Run;

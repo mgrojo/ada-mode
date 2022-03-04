@@ -136,7 +136,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                   if P_Status.Parser_State.Recover.Check_Count - Check_Delta_Limit >= Super.Min_Success_Check_Count then
                      if Trace_McKenzie > Outline then
                         Put_Line
-                          (Shared_Parser.Trace.all, Shared_Parser.Tree,
+                          (Shared_Parser.Tree,
                            P_Status.Parser_State.Stream, "fail; check delta (limit" &
                              Integer'Image (Super.Min_Success_Check_Count + Check_Delta_Limit) & ")");
                      end if;
@@ -151,7 +151,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                   then
                      if Trace_McKenzie > Outline then
                         Put_Line
-                          (Shared_Parser.Trace.all, Shared_Parser.Tree,
+                          (Shared_Parser.Tree,
                            P_Status.Parser_State.Stream, "fail; total enqueue limit (" &
                              Shared_Parser.Table.McKenzie_Param.Enqueue_Limit'Image & " cost" &
                              P_Status.Parser_State.Recover.Config_Heap.Min_Key'Image & ")");
@@ -177,7 +177,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                         --  No configs left to check (rarely happens with real languages).
                         if Trace_McKenzie > Outline then
                            Put_Line
-                             (Shared_Parser.Trace.all, Shared_Parser.Tree, P_Status.Parser_State.Stream,
+                             (Shared_Parser.Tree, P_Status.Parser_State.Stream,
                               "fail; no configs left");
                         end if;
                         P_Status.Recover_State := Fail;
@@ -216,7 +216,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
       elsif Done_Count = Super.Parser_Count then
          if Trace_McKenzie > Extra then
-            Shared_Parser.Trace.Put_Line
+            Shared_Parser.Tree.Lexer.Trace.Put_Line
               ("Supervisor: done, " & (if Super.Success_Counter > 0 then "succeed" else "fail"));
          end if;
 
@@ -241,7 +241,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       if Trace_McKenzie > Detail then
          Put
            ("succeed: enqueue" & Integer'Image (Data.Enqueue_Count) & ", check " & Integer'Image (Data.Check_Count),
-            Shared_Parser.Trace.all, Shared_Parser.Tree, Super.Parser_Status (Parser_Index).Parser_State.Stream,
+            Shared_Parser.Tree, Super.Parser_Status
+              (Parser_Index).Parser_State.Stream,
             Config);
       end if;
 
@@ -309,7 +310,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
       if Trace_McKenzie > Detail then
          Put_Line
-           (Shared_Parser.Trace.all, Shared_Parser.Tree, P_Status.Parser_State.Stream,
+           (Shared_Parser.Tree, P_Status.Parser_State.Stream,
             "enqueue:" & SAL.Base_Peek_Type'Image (Configs_Count) &
               "/" & SAL.Base_Peek_Type'Image (Data.Config_Heap.Count) &
               "/" & Trimmed_Image (Super.Total_Enqueue_Count) &
@@ -333,7 +334,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       Data.Config_Full_Count := Data.Config_Full_Count + 1;
       if Trace_McKenzie > Outline then
          Put_Line
-           (Shared_Parser.Trace.all, Shared_Parser.Tree, Super.Stream (Parser_Index),
+           (Shared_Parser.Tree, Super.Stream (Parser_Index),
             Prefix & ": config.ops is full; " & Data.Config_Full_Count'Image);
       end if;
    end Config_Full;
@@ -404,8 +405,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       Super.Max_Sequential_Indices := (others => Syntax_Trees.Invalid_Stream_Node_Parents);
 
       if Trace_McKenzie > Detail then
-         Shared_Parser.Trace.New_Line;
-         Shared_Parser.Trace.Put_Line ("Supervisor: Done");
+         Shared_Parser.Tree.Lexer.Trace.New_Line;
+         Shared_Parser.Tree.Lexer.Trace.Put_Line ("Supervisor: Done");
       end if;
    end Finish;
 
@@ -554,8 +555,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       Parser_Index  : in SAL.Peek_Type;
       Config        : in Configuration)
    is begin
-      Put (Message, Shared_Parser.Trace.all, Shared_Parser.Tree, Super.Parser_State (Parser_Index).Stream,
-           Config);
+      Put (Message, Shared_Parser.Tree, Super.Parser_State (Parser_Index).Stream, Config);
    end Put;
 
 end WisiToken.Parse.LR.McKenzie_Recover.Base;

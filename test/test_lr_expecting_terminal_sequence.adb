@@ -142,7 +142,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
       when WisiToken.Parse_Error =>
          if WisiToken.Trace_Tests > WisiToken.Outline then
             Ada.Text_IO.Put_Line ("parse result:");
-            Parser.Tree.Print_Tree (Trace);
+            Parser.Tree.Print_Tree;
          end if;
          declare
             Error_Ref : constant WisiToken.Syntax_Trees.Stream_Error_Ref :=  Parser.Tree.First_Error
@@ -172,8 +172,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
    begin
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
-         Trace'Access,
-         Lexer.New_Lexer (LALR_Descriptor'Access, Syntax),
+         Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate
            (Top_Level.Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,

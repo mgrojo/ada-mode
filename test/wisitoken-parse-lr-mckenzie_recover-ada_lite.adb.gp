@@ -104,13 +104,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    is
       use Syntax_Trees;
 
-      Trace        : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Tree         : Syntax_Trees.Tree renames Shared_Parser.Tree;
+      Trace        : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
       Parser_Label : constant Syntax_Trees.Stream_ID := Super.Stream (Parser_Index);
 
       procedure Put (Message : in String; Config : in Configuration)
       is begin
-         Put (Message, Shared_Parser.Trace.all, Tree, Parser_Label, Config);
+         Put (Message, Tree, Parser_Label, Config);
       end Put;
 
       --  Config.Error_Token is a virtual nonterm; the In_Parse_Action for
@@ -537,7 +537,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
       procedure Put (Message : in String; Config : in Configuration)
       is begin
-         Put (Message, Shared_Parser.Trace.all, Tree, Parser_Label, Config);
+         Put (Message, Tree, Parser_Label, Config);
       end Put;
    begin
       if Tree.Element_ID (Config.Error_Token) = +DOT_ID then
@@ -713,8 +713,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    is begin
       if Trace_McKenzie > Extra then
          Put_Line
-           (Shared_Parser.Trace.all, Shared_Parser.Tree, Super.Stream (Parser_Index), "Language_Fixes stack: " &
-              LR.Image (Config.Stack, Shared_Parser.Tree));
+           (Shared_Parser.Tree, Super.Stream (Parser_Index),
+            "Language_Fixes stack: " & LR.Image (Config.Stack, Shared_Parser.Tree));
       end if;
 
       case Config.In_Parse_Action_Status.Label is

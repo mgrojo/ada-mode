@@ -255,7 +255,6 @@ package WisiToken.Parse is
 
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled
    with record
-      Trace     : WisiToken.Trace_Access;
       Tree      : aliased Syntax_Trees.Tree;
       User_Data : WisiToken.Syntax_Trees.User_Data_Access;
    end record;

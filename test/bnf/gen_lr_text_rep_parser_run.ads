@@ -2,7 +2,7 @@
 --
 --  Main program to run an LR text_rep parser with error recovery.
 --
---  Copyright (C) 2018 - 2020 Stephe Leake
+--  Copyright (C) 2018 - 2020, 2022 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -35,6 +35,6 @@ generic
      (Text_Rep_File_Name : in String)
      return WisiToken.Parse.LR.Parse_Table_Ptr;
 
-   with function Create_Lexer return WisiToken.Lexer.Handle;
+   with function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;
 
 procedure Gen_LR_Text_Rep_Parser_Run;

@@ -146,7 +146,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       if Trace_McKenzie > Extra and Label'Length > 0 then
          Put_Line
-           (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index), Label &
+           (Shared.Tree, Super.Stream (Parser_Index), Label &
               ": state" & State_Index'Image (Prev_State) & " reduce" &
               Ada.Containers.Count_Type'Image (Action.Token_Count) & " to " &
               Image (Action.Production.LHS, Descriptor) & ", goto" &
@@ -400,7 +400,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       then
          Config.Error_Token    := Syntax_Trees.Invalid_Recover_Token;
          if Trace_McKenzie > Extra then
-            Put_Line (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index), "check result: SUCCESS");
+            Put_Line (Shared.Tree, Super.Stream (Parser_Index), "check result: SUCCESS");
          end if;
          return Success;
       end if;
@@ -730,7 +730,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   if Just_Pushed_Back_Or_Deleted (Super, Shared, Config, ID) then
                      if Trace_McKenzie > Extra then
                         Put_Line
-                          (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index),
+                          (Shared.Tree, Super.Stream (Parser_Index),
                            "Insert: abandon " & Image (ID, Descriptor) & ": undo push_back");
                      end if;
                   elsif ID = Current_First_Terminal_ID then
@@ -739,7 +739,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      --  'identifier ;' in ada_lite).
                      if Trace_McKenzie > Extra then
                         Put_Line
-                          (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index),
+                          (Shared.Tree, Super.Stream (Parser_Index),
                            "Insert: abandon " & Image (ID, Descriptor) & ": current token");
                      end if;
 
@@ -861,7 +861,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          if Just_Pushed_Back_Or_Deleted (Super, Shared, Config, Action.ID) then
             if Trace_McKenzie > Extra then
                Put_Line
-                 (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index),
+                 (Shared.Tree, Super.Stream (Parser_Index),
                   "Minimal_Complete_Actions: abandon " & Image (Action.ID, Descriptor) & ": undo push back");
             end if;
          else
@@ -893,7 +893,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       begin
          if Trace_McKenzie > Extra then
             Put_Line
-              (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index), "Minimal_Complete_Actions: " &
+              (Shared.Tree, Super.Stream (Parser_Index), "Minimal_Complete_Actions: " &
                  Image (Actions, Descriptor));
          end if;
 
@@ -952,7 +952,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   end case;
 
                   if Trace_McKenzie > Extra then
-                     Shared.Trace.Put (Next_State'Image & " " & Trimmed_Image (Item.Production));
+                     Shared.Tree.Lexer.Trace.Put (Next_State'Image & " " & Trimmed_Image (Item.Production));
                   end if;
 
                   for Item of Shared.Table.States (Next_State).Kernel loop
@@ -983,7 +983,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             begin
                if Trace_McKenzie > Extra then
                   Put_Line
-                    (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index),
+                    (Shared.Tree, Super.Stream (Parser_Index),
                      "Minimal_Complete_Actions: " & Image (Action, Descriptor));
                end if;
 
@@ -998,14 +998,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      elsif Item.Length_After_Dot < Length (I) then
                         if Trace_McKenzie > Extra then
                            --  Length_After_Dot outputs this in other branch
-                           Shared.Trace.Put (Next_State'Image & " " & Trimmed_Image (Item.Production));
+                           Shared.Tree.Lexer.Trace.Put (Next_State'Image & " " & Trimmed_Image (Item.Production));
                         end if;
                         Length (I) := Item.Length_After_Dot;
 
                      end if;
 
                      if Trace_McKenzie > Extra then
-                        Shared.Trace.Put (" length" & Length (I)'Image);
+                        Shared.Tree.Lexer.Trace.Put (" length" & Length (I)'Image);
                      end if;
                      if Length (I) < Min_Length then
                         Min_Length := Length (I);
@@ -1013,7 +1013,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   end if;
                end loop;
                if Trace_McKenzie > Extra then
-                  Shared.Trace.New_Line;
+                  Shared.Tree.Lexer.Trace.New_Line;
                end if;
             end;
          end loop Actions_Loop;
@@ -1024,7 +1024,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
             elsif Trace_McKenzie > Extra then
                Put_Line
-                 (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index), "Minimal_Complete_Actions: drop " &
+                 (Shared.Tree, Super.Stream (Parser_Index), "Minimal_Complete_Actions: drop " &
                     Image (Actions (I), Descriptor) & " not minimal");
             end if;
          end loop;
@@ -1038,8 +1038,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       elsif Orig_Config.Minimal_Complete_State = Done then
          if Trace_McKenzie > Extra then
-            Put_Line
-              (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index), "Minimal_Complete_Actions: done");
+            Put_Line (Shared.Tree, Super.Stream (Parser_Index), "Minimal_Complete_Actions: done");
          end if;
          return Token_ID_Arrays.Empty_Vector;
       end if;
@@ -1054,7 +1053,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          begin
             if Trace_McKenzie > Extra then
                Put_Line
-                 (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index),
+                 (Shared.Tree, Super.Stream (Parser_Index),
                   "Minimal_Complete_Actions: dequeue work item " &
                     Image (Item.Action, Descriptor));
             end if;
@@ -1079,7 +1078,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      when 0 =>
                         if Trace_McKenzie > Detail then
                            Put_Line
-                             (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index),
+                             (Shared.Tree, Super.Stream (Parser_Index),
                               "Minimal_Complete_Actions state" & Item.Config.Stack.Peek.State'Image &
                                 " abandoned: no actions");
                         end if;
@@ -1139,7 +1138,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    begin
       if Config.Matching_Begin_Done then
          if Trace_McKenzie > Extra then
-            Put_Line (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index), "Matching_Begin abandoned: done");
+            Put_Line (Shared.Tree, Super.Stream (Parser_Index), "Matching_Begin abandoned: done");
          end if;
          return;
       end if;
@@ -1148,7 +1147,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       then
          if Trace_McKenzie > Extra then
             Put_Line
-              (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index), "Matching_Begin abandoned " &
+              (Shared.Tree, Super.Stream (Parser_Index), "Matching_Begin abandoned " &
                  Image (Matching_Begin_Tokens (Matching_Begin_Tokens.First_Index), Descriptor) & ": undo push_back");
          end if;
          return;
@@ -1664,9 +1663,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                Super.Extend_Sequential_Index (Shared, Thru => Config.Resume_Token_Goal);
 
                if Trace_McKenzie > Extra then
-                  Put_Line
-                    (Shared.Trace.all, Tree, Super.Stream (Parser_Index), "resume_token_goal:" &
-                       Config.Resume_Token_Goal'Image);
+                  Put_Line (Tree, Super.Stream (Parser_Index), "resume_token_goal:" & Config.Resume_Token_Goal'Image);
                end if;
             end if;
          end;
@@ -1679,7 +1676,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       exception
       when Bad_Config =>
          if Trace_McKenzie > Detail then
-            Put_Line (Shared.Trace.all, Tree, Super.Stream (Parser_Index), "insert quote Bad_Config " & Label);
+            Put_Line (Tree, Super.Stream (Parser_Index), "insert quote Bad_Config " & Label);
          end if;
          raise;
       end Finish;
@@ -1768,9 +1765,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                   --  String literal is in a virtual nonterm; it is not from the lexer
                   --  error, so abandon this.
                   if Trace_McKenzie > Detail then
-                     Put_Line
-                       (Shared.Trace.all, Tree, Super.Stream (Parser_Index),
-                        "insert quote b abandon; string literal in virtual");
+                     Put_Line (Tree, Super.Stream (Parser_Index), "insert quote b abandon; string literal in virtual");
                   end if;
                   return;
                end if;
@@ -2102,7 +2097,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       use all type Parser.Language_Fixes_Access;
       use all type In_Parse_Actions.Status_Label;
 
-      Trace      : WisiToken.Trace'Class renames Shared.Trace.all;
       Descriptor : WisiToken.Descriptor renames Shared.Tree.Lexer.Descriptor.all;
       Table      : Parse_Table renames Shared.Table.all;
 
@@ -2238,8 +2232,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       if Trace_McKenzie > Detail then
          Super.Put (Shared, "continuing", Parser_Index, Config);
          if Trace_McKenzie > Extra then
-            Put_Line
-              (Trace, Shared.Tree, Super.Stream (Parser_Index), "stack: " & LR.Image (Config.Stack, Shared.Tree));
+            Put_Line (Shared.Tree, Super.Stream (Parser_Index), "stack: " & LR.Image (Config.Stack, Shared.Tree));
          end if;
       end if;
 
@@ -2302,8 +2295,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    when E : Bad_Config =>
       if Debug_Mode then
          --  Tell the developer about this bug.
-         Shared.Trace.Put_Line ("Process_One: Bad_Config: " & Standard.Ada.Exceptions.Exception_Message (E));
-         Shared.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+         Shared.Tree.Lexer.Trace.Put_Line ("Process_One: Bad_Config: " & Standard.Ada.Exceptions.Exception_Message (E));
+         Shared.Tree.Lexer.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
          raise;
       else
          --  Just abandon this config; tell Super we are done.
@@ -2316,7 +2309,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          raise;
       elsif Trace_McKenzie > Outline then
          Put_Line
-           (Shared.Trace.all, Shared.Tree, Super.Stream (Parser_Index),
+           (Shared.Tree, Super.Stream (Parser_Index),
             "Process_One: unhandled exception " & Ada.Exceptions.Exception_Name (E) & ": " &
               Ada.Exceptions.Exception_Message (E));
       end if;

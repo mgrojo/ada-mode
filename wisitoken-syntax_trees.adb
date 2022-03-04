@@ -228,18 +228,17 @@ package body WisiToken.Syntax_Trees is
       --  We need to move the non_grammar now, so they are correct for later
       --  error recover sessions. test_incremental.adb : Edit_String_10
 
-      --  FIXME: need Tree.Lexer.Trace
-      --  if Trace_Action > WisiToken.Outline then
-      --     Trace_Action to be consistent with messages from user
-      --     Delete_Token.
-      --     Trace.Put_Line
-      --       ("delete token " & Tree.Image (Deleted_Node, Node_Numbers => True, Non_Grammar => True));
-      --     if Deleted_Node.Non_Grammar.Length > 0 then
-      --        Trace.Put_Line
-      --          (" ... move non_grammar to " & Tree.Image
-      --             (Prev_Terminal.Ref.Node, Node_Numbers => True, Non_Grammar => True));
-      --     end if;
-      --  end if;
+      if Trace_Action > WisiToken.Outline then
+         --  Trace_Action to be consistent with messages from user Delete_Token.
+         Tree.Lexer.Trace.Put_Line
+           ("delete token " & Tree.Image (Deleted_Node, Node_Numbers => True, Non_Grammar => True));
+         if Deleted_Node.Non_Grammar.Length > 0 then
+            Tree.Lexer.Trace.Put_Line
+              (" ... move non_grammar to " & Tree.Image
+                 (Prev_Terminal.Ref.Node, Node_Numbers => True, Non_Grammar => True));
+         end if;
+      end if;
+
       Prev_Terminal.Ref.Node.Non_Grammar.Append (Deleted_Node.Non_Grammar);
 
       --  We don't do Deleted_Node.Non_Grammar.Clear here; we are not
@@ -2978,9 +2977,7 @@ package body WisiToken.Syntax_Trees is
 
             begin
                if Contains (Node_Line_Region, Line - 1) then
-                  if Node_Line_Region.First = Node_Line_Region.Last or
-                    Line - 1 = Node_Line_Region.Last --  FIXME: redundant condition
-                  then
+                  if Line - 1 = Node_Line_Region.Last then
                      --  Faster to check last child first.
                      for I in reverse Ref.Ref.Node.Children'Range loop
                         if Check_Child (I, Forward => False) then
@@ -6790,74 +6787,70 @@ package body WisiToken.Syntax_Trees is
       end loop;
    end Prev_Terminal;
 
-   procedure Print_Ref_Counts
-     (Tree  : in     Syntax_Trees.Tree;
-      Trace : in out WisiToken.Trace'Class)
+   procedure Print_Ref_Counts (Tree : in Syntax_Trees.Tree)
    is begin
       for Stream of Tree.Streams loop
-         Trace.Put (Trimmed_Image (Stream.Label) & ":");
+         Tree.Lexer.Trace.Put (Trimmed_Image (Stream.Label) & ":");
          declare
             use Stream_Element_Lists;
             Cur : Cursor := Stream.Elements.First;
          begin
             loop
                exit when Cur = No_Element;
-               Trace.Put (Integer'Image (Ref_Count (Cur) - 1));
+               Tree.Lexer.Trace.Put (Integer'Image (Ref_Count (Cur) - 1));
                Next (Cur);
             end loop;
          end;
-         Trace.New_Line;
+         Tree.Lexer.Trace.New_Line;
       end loop;
    end Print_Ref_Counts;
 
    procedure Print_Streams
      (Tree        : in     Syntax_Trees.Tree;
-      Trace       : in out WisiToken.Trace'Class;
       Children    : in     Boolean := False;
       Non_Grammar : in     Boolean := False)
    is begin
       for Stream of Tree.Streams loop
-         Trace.Put_Line
+         Tree.Lexer.Trace.Put_Line
            (Tree.Image
               (Stream, Shared => True, Children => Children, Node_Numbers => True, Non_Grammar => Non_Grammar));
-         Trace.New_Line;
+         Tree.Lexer.Trace.New_Line;
       end loop;
    end Print_Streams;
 
    procedure Print_Tree
-     (Tree         : in     Syntax_Trees.Tree;
-      Trace        : in out WisiToken.Trace'Class;
-      Root         : in     Node_Access               := Invalid_Node_Access;
-      Image_Action : in     Syntax_Trees.Image_Action := null;
-      Line_Numbers : in     Boolean                   := False;
-      Non_Grammar  : in     Boolean                   := False)
+     (Tree         : in Syntax_Trees.Tree;
+      Root         : in Node_Access               := Invalid_Node_Access;
+      Image_Action : in Syntax_Trees.Image_Action := null;
+      Line_Numbers : in Boolean                   := False;
+      Non_Grammar  : in Boolean                   := False)
    is
       procedure Print_Node (Node : in Valid_Node_Access; Level : in Integer)
       is begin
          for I in 1 .. Level loop
-            Trace.Put ("| ", Prefix => False);
+            Tree.Lexer.Trace.Put ("| ", Prefix => False);
          end loop;
-         Trace.Put (Image (Tree, Node, Children => False, RHS_Index => True, Node_Numbers => True,
+         Tree.Lexer.Trace.Put (Image (Tree, Node, Children => False, RHS_Index => True, Node_Numbers => True,
                            Line_Numbers => Line_Numbers, Non_Grammar => Non_Grammar),
                     Prefix => False);
 
          if Node.Augmented /= null then
-            Trace.Put (Image_Augmented (Node.Augmented.all), Prefix => False);
+            Tree.Lexer.Trace.Put (Image_Augmented (Node.Augmented.all), Prefix => False);
          end if;
          if Node.Label = Nonterm and then (Image_Action /= null and Node.Action /= null) then
-            Trace.Put (" - " & Image_Action (Node.Action), Prefix => False);
+            Tree.Lexer.Trace.Put (" - " & Image_Action (Node.Action), Prefix => False);
          end if;
 
-         Trace.New_Line;
+         Tree.Lexer.Trace.New_Line;
          if Node.Label = Nonterm then
             for Child of Node.Children loop
                if Child = null then
-                  Trace.Put ("    : ", Prefix => True);
+                  Tree.Lexer.Trace.Put ("    : ", Prefix => True);
                   for I in 1 .. Level + 1 loop
-                     Trace.Put ("| ", Prefix => False);
+                     Tree.Lexer.Trace.Put ("| ", Prefix => False);
                   end loop;
-                  Trace.Put ("<null>", Prefix => False);
-                  Trace.New_Line;
+                  Tree.Lexer.Trace.Put ("<null>", Prefix => False);
+                  Tree.Lexer.Trace.New_Line;
                else
                   Print_Node (Child, Level + 1);
                end if;
@@ -6871,7 +6864,7 @@ package body WisiToken.Syntax_Trees is
         Tree.Streams.Length > 0;
    begin
       if Print_Root = Invalid_Node_Access then
-         Trace.Put_Line ("<empty tree>");
+         Tree.Lexer.Trace.Put_Line ("<empty tree>");
       else
          if Print_SOI_EOI then
             declare

@@ -344,19 +344,17 @@ private
 
    procedure Put
      (Message      : in     String;
-      Trace        : in out WisiToken.Trace'Class;
       Tree         : in     Syntax_Trees.Tree;
       Parser_Label : in     Syntax_Trees.Stream_ID;
       Config       : in     Configuration;
       Strategy     : in     Boolean := False);
-   --  Put Message and an image of Config to Trace.
+   --  Put Message and an image of Config to Tree.Lexer.Trace.
 
    procedure Put_Line
-     (Trace        : in out WisiToken.Trace'Class;
-      Tree         : in     Syntax_Trees.Tree;
+     (Tree         : in     Syntax_Trees.Tree;
       Parser_Label : in     Syntax_Trees.Stream_ID;
       Message      : in     String);
-   --  Put message to Trace, with parser and task info.
+   --  Put message to Tree.Lexer.Trace, with parser and task info.
 
    function Undo_Reduce_Valid
      (Super         : in out Base.Supervisor;

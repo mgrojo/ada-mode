@@ -24,7 +24,7 @@ is
    use all type Syntax_Trees.User_Data_Access;
    use all type Ada.Containers.Count_Type;
 
-   Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
+   Trace : WisiToken.Trace'Class renames Shared_Parser.Tree.Lexer.Trace.all;
 
    Current_Verb : All_Parse_Action_Verbs;
    Zombie_Count : SAL.Base_Peek_Type;
@@ -51,7 +51,7 @@ begin
       if Trace_Parse > Detail or Trace_Incremental_Parse > Outline then
          Trace.New_Line;
          Trace.Put_Line ("pre edit tree:");
-         Shared_Parser.Tree.Print_Tree (Trace, Line_Numbers => True, Non_Grammar => True);
+         Shared_Parser.Tree.Print_Tree (Line_Numbers => True, Non_Grammar => True);
          Trace.New_Line;
       end if;
 
@@ -63,7 +63,7 @@ begin
 
       if Trace_Memory > Detail then
          Trace.Put_Line ("post edit tree");
-         Report_Memory (Shared_Parser.Trace.all);
+         Report_Memory (Trace);
       end if;
       if Trace_Parse > Outline or Trace_Incremental_Parse > Outline then
          Trace.New_Line;
@@ -94,7 +94,7 @@ begin
       Shared_Parser.Lex_All;
       if Trace_Memory > Detail then
          Trace.Put_Line ("post lex");
-         Report_Memory (Shared_Parser.Trace.all);
+         Report_Memory (Trace);
       end if;
    end if;
 
@@ -203,7 +203,7 @@ begin
                      begin
                         Current_Parser.Next;
                         Shared_Parser.Parsers.Terminate_Parser
-                          (Temp, Shared_Parser.Tree, "zombie", Shared_Parser.Trace.all);
+                          (Temp, Shared_Parser.Tree, "zombie", Trace);
                      end;
                   end if;
                   exit when Current_Parser.Is_Done;
@@ -236,7 +236,7 @@ begin
                         begin
                            Current_Parser.Next;
                            Shared_Parser.Parsers.Terminate_Parser
-                             (Temp, Shared_Parser.Tree, "zombie", Shared_Parser.Trace.all);
+                             (Temp, Shared_Parser.Tree, "zombie", Trace);
                         end;
                      end if;
                      exit when Current_Parser.Is_Done;
@@ -286,7 +286,7 @@ begin
                                     Recover_Ops_Length = Min_Recover_Ops_Length
                                   then "random"
                                   else "recover cost/min length"),
-                                 Shared_Parser.Trace.all);
+                                 Trace);
                            end;
                         end if;
                         exit when Current_Parser.Is_Done;
@@ -406,7 +406,7 @@ begin
                                  First => Parser_State.Recover_Insert_Delete_Current)));
 
                         if Trace_Parse > Detail then
-                           Shared_Parser.Trace.Put_Line
+                           Trace.Put_Line
                              ("    resume_active: True, token goal" & Parser_State.Resume_Token_Goal'Image);
                         end if;
                      end if;
@@ -417,7 +417,7 @@ begin
                end loop;
 
                if Trace_Parse > Detail then
-                  Shared_Parser.Trace.New_Line;
+                  Trace.New_Line;
                end if;
 
             else
@@ -451,7 +451,7 @@ begin
             --  inserted/deleted by error recover may cause initially duplicate
             --  states to diverge.
             if not Shared_Parser.Resume_Active and Current_Verb = Shift then
-               Shared_Parser.Parsers.Duplicate_State (Current_Parser, Shared_Parser.Tree, Shared_Parser.Trace.all);
+               Shared_Parser.Parsers.Duplicate_State (Current_Parser, Shared_Parser.Tree, Trace);
                --  If Duplicate_State terminated Current_Parser, Current_Parser now
                --  points to the next parser. Otherwise it is unchanged.
             end if;
@@ -496,7 +496,7 @@ begin
                   Current_Parser.Next;
                else
                   Shared_Parser.Parsers.Terminate_Parser
-                    (Current_Parser, Shared_Parser.Tree, "zombie", Shared_Parser.Trace.all);
+                    (Current_Parser, Shared_Parser.Tree, "zombie", Trace);
                end if;
 
             elsif Current_Parser.Verb = Current_Verb then

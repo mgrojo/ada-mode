@@ -111,6 +111,7 @@ package WisiToken.Lexer is
 
    type Instance
    is abstract new Ada.Finalization.Limited_Controlled with record
+      Trace      : WisiToken.Trace_Access;
       Descriptor : WisiToken.Descriptor_Access_Constant;
       Errors     : Error_Lists.List;
    end record;

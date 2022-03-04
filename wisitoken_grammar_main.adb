@@ -906,8 +906,8 @@ package body Wisitoken_Grammar_Main is
       return Table;
    end Create_Parse_Table;
 
-   function Create_Lexer return WisiToken.Lexer.Handle
+   function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle
    is begin
-      return Lexer.New_Lexer (Wisitoken_Grammar_Actions.Descriptor'Access);
+      return Lexer.New_Lexer (Trace, Wisitoken_Grammar_Actions.Descriptor'Access);
    end Create_Lexer;
 end Wisitoken_Grammar_Main;

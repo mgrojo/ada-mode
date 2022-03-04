@@ -331,7 +331,7 @@ package body WisiToken.Parse is
          Error := Lexer.Find_Next (Token);
 
          if Trace_Lexer > Outline then
-            Parser.Trace.Put_Line (WisiToken.Lexer.Full_Image (Token, Tree.Lexer.Descriptor.all));
+            Tree.Lexer.Trace.Put_Line (WisiToken.Lexer.Full_Image (Token, Tree.Lexer.Descriptor.all));
          end if;
 
          if Token.ID >= Lexer.Descriptor.First_Terminal then
@@ -346,7 +346,7 @@ package body WisiToken.Parse is
             Last_Grammar_Node := Ref.Node;
          else
             if Trace_Lexer > Detail then
-               Parser.Trace.Put_Line ("non-grammar in " & Parser.Tree.Image (Last_Grammar_Node));
+               Tree.Lexer.Trace.Put_Line ("non-grammar in " & Parser.Tree.Image (Last_Grammar_Node));
             end if;
             if Error then
                raise SAL.Programmer_Error with "lexer error in non_grammar";
@@ -376,7 +376,7 @@ package body WisiToken.Parse is
          exit when EOI_ID = Next_Grammar_Token (Parser, Last_Grammar_Node);
       end loop;
       if Trace_Parse > Outline then
-         Parser.Trace.Put_Line (Syntax_Trees.Get_Node_Index (Last_Grammar_Node)'Image & " tokens lexed");
+         Parser.Tree.Lexer.Trace.Put_Line (Syntax_Trees.Get_Node_Index (Last_Grammar_Node)'Image & " tokens lexed");
       end if;
 
    end Lex_All;
@@ -636,7 +636,7 @@ package body WisiToken.Parse is
       is begin
          if Tree.Label (Terminal.Element) = Nonterm then
             if Trace_Incremental_Parse > Detail then
-               Parser.Trace.Put_Line
+               Tree.Lexer.Trace.Put_Line
                  ("breakdown " & (if To_Single then "single " else "") & Tree.Image
                     (Tree.Get_Node (Terminal.Stream, Terminal.Element), Node_Numbers => True) &
                     " target " & Tree.Image (Terminal.Node, Node_Numbers => True));
@@ -647,7 +647,7 @@ package body WisiToken.Parse is
                Tree.Left_Breakdown (Terminal, Parser.User_Data);
             end if;
             if Trace_Incremental_Parse > Extra then
-               Parser.Trace.Put_Line
+               Tree.Lexer.Trace.Put_Line
                  ("... result " & Tree.Image (Stream));
             end if;
          end if;
@@ -682,7 +682,7 @@ package body WisiToken.Parse is
 
             if Tree.Label (Ref.Node) = Nonterm and then Tree.Is_Empty_Nonterm (Ref.Node) then
                if Trace_Incremental_Parse > Detail then
-                  Parser.Trace.Put_Line
+                  Tree.Lexer.Trace.Put_Line
                     ("delete empty recover_conflict node " & Tree.Image (Ref.Node, Node_Numbers => True));
                end if;
 
@@ -699,7 +699,7 @@ package body WisiToken.Parse is
 
             else
                if Trace_Incremental_Parse > Detail then
-                  Parser.Trace.Put_Line
+                  Tree.Lexer.Trace.Put_Line
                     ("breakdown recover_conflict node " & Tree.Image (Ref, Node_Numbers => True));
                end if;
 
@@ -711,7 +711,7 @@ package body WisiToken.Parse is
                To_Terminals :
                loop
                   if Trace_Incremental_Parse > Extra then
-                     Parser.Trace.Put_Line
+                     Tree.Lexer.Trace.Put_Line
                        ("... to_breakdown " & Tree.Image (To_Breakdown, Node_Numbers => True));
                   end if;
 
@@ -728,7 +728,7 @@ package body WisiToken.Parse is
                         Tree.Stream_Next (To_Breakdown, Rooted => False);
                      end if;
                      if Trace_Incremental_Parse > Extra then
-                        Parser.Trace.Put_Line
+                        Tree.Lexer.Trace.Put_Line
                           ("... stream " & Tree.Image (Stream, Node_Numbers => True));
                      end if;
 
@@ -780,7 +780,7 @@ package body WisiToken.Parse is
                      --  This would be deleted in the next step, so don't bother restoring
                      --  it.
                      if Trace_Incremental_Parse > Detail then
-                        Parser.Trace.Put_Line
+                        Tree.Lexer.Trace.Put_Line
                           ("drop virtual deleted node " & Tree.Image (Deleted_Node, Node_Numbers => True));
                      end if;
 
@@ -820,7 +820,7 @@ package body WisiToken.Parse is
                      end;
 
                      if Trace_Incremental_Parse > Detail then
-                        Parser.Trace.Put_Line
+                        Tree.Lexer.Trace.Put_Line
                           ("restore deleted node " & Tree.Image
                              (Deleted_Node, Node_Numbers => True, Non_Grammar => True) &
                              " before " & Tree.Image
@@ -834,7 +834,7 @@ package body WisiToken.Parse is
                Tree.Following_Deleted (Has_Deleted).Clear;
 
                if Trace_Incremental_Parse > Extra then
-                  Parser.Trace.Put_Line
+                  Tree.Lexer.Trace.Put_Line
                     ("stream:" & Tree.Image
                        (Stream,
                         Children    => Trace_Incremental_Parse > Detail,
@@ -879,7 +879,7 @@ package body WisiToken.Parse is
                      Tree.Non_Grammar_Var (Next_Terminal.Node).Append (Terminal_Non_Grammar);
                      Terminal_Non_Grammar.Clear;
                      if Trace_Incremental_Parse > Detail then
-                        Parser.Trace.Put_Line
+                        Tree.Lexer.Trace.Put_Line
                           ("move non_grammar to " & Tree.Image
                              (Next_Terminal.Node, Node_Numbers => True, Non_Grammar => True));
                      end if;
@@ -887,7 +887,7 @@ package body WisiToken.Parse is
                end if;
 
                if Trace_Incremental_Parse > Detail then
-                  Parser.Trace.Put_Line
+                  Tree.Lexer.Trace.Put_Line
                     ("delete virtual " & Tree.Image (To_Delete, Node_Numbers => True, Non_Grammar => True));
                end if;
 
@@ -910,7 +910,7 @@ package body WisiToken.Parse is
                         To_Delete := Next_Element;
 
                         if Trace_Incremental_Parse > Detail then
-                           Parser.Trace.Put_Line
+                           Tree.Lexer.Trace.Put_Line
                              ("delete empty nonterm " & Tree.Image
                                 (To_Delete, Node_Numbers => True, Non_Grammar => True));
                         end if;
@@ -953,7 +953,7 @@ package body WisiToken.Parse is
                   Tree.Next_Error (Err_Ref);
                else
                   if Trace_Incremental_Parse > Detail then
-                     Parser.Trace.Put_Line ("delete " & Err.Image (Tree, Error_Ref.Node));
+                     Tree.Lexer.Trace.Put_Line ("delete " & Err.Image (Tree, Error_Ref.Node));
                   end if;
                   Tree.Delete_Error (Err_Ref);
                end if;
@@ -1011,34 +1011,35 @@ package body WisiToken.Parse is
             --  Validate_KMN.
 
             if Trace_Incremental_Parse > Detail then
-               Parser.Trace.New_Line;
-               Parser.Trace.Put_Line
+               Tree.Lexer.Trace.New_Line;
+               Tree.Lexer.Trace.Put_Line
                  ("KMN: " & Image (Stable_Region) & Image (Inserted_Region) & Image (Deleted_Region));
-               Parser.Trace.Put_Line ("old  :" & Old_Byte_Pos'Image & Old_Char_Pos'Image);
-               Parser.Trace.Put_Line
+               Tree.Lexer.Trace.Put_Line ("old  :" & Old_Byte_Pos'Image & Old_Char_Pos'Image);
+               Tree.Lexer.Trace.Put_Line
                  ("shift:" & Shift_Bytes'Image & " " & Shift_Chars'Image & " " & Shift_Lines'Image);
-               Parser.Trace.Put_Line ("scanned_byte_pos:" & Scanned_Byte_Pos'Image);
-               Parser.Trace.Put_Line
+               Tree.Lexer.Trace.Put_Line ("scanned_byte_pos:" & Scanned_Byte_Pos'Image);
+               Tree.Lexer.Trace.Put_Line
                  ("stream:" & Tree.Image
                     (Stream,
                      Children    => True,
                      Non_Grammar => True,
                      Augmented   => True));
 
-               Parser.Trace.Put_Line ("terminal: " & Tree.Image (Terminal, Non_Grammar => True, Node_Numbers => True));
+               Tree.Lexer.Trace.Put_Line
+                 ("terminal: " & Tree.Image (Terminal, Non_Grammar => True, Node_Numbers => True));
                if Terminal_Non_Grammar_Next /= Lexer.Token_Arrays.No_Index then
-                  Parser.Trace.Put_Line ("terminal_non_grammar_next:" & Terminal_Non_Grammar_Next'Image);
+                  Tree.Lexer.Trace.Put_Line ("terminal_non_grammar_next:" & Terminal_Non_Grammar_Next'Image);
                end if;
 
                if Floating_Non_Grammar.Length > 0 then
-                  Parser.Trace.Put_Line
+                  Tree.Lexer.Trace.Put_Line
                     ("floating_non_grammar: " & Lexer.Full_Image (Floating_Non_Grammar, Tree.Lexer.Descriptor.all));
                   if Delayed_Floating_Index /= Positive_Index_Type'Last then
-                     Parser.Trace.Put_Line ("delayed_floating_index:" & Delayed_Floating_Index'Image);
+                     Tree.Lexer.Trace.Put_Line ("delayed_floating_index:" & Delayed_Floating_Index'Image);
                   end if;
                end if;
 
-               Parser.Trace.New_Line;
+               Tree.Lexer.Trace.New_Line;
             end if;
 
             if not Contains (Outer => Parser.Tree.Lexer.Buffer_Region_Byte, Inner => Inserted_Region) then
@@ -1095,7 +1096,7 @@ package body WisiToken.Parse is
                --  shifted for more than one edit point. test_incremental.adb
                --  Edit_Comment_3.
                if Trace_Incremental_Parse > Detail then
-                  Parser.Trace.Put_Line
+                  Tree.Lexer.Trace.Put_Line
                     ("nothing left to shift; terminal:" & Tree.Image
                        (Terminal, Non_Grammar => True, Augmented => True));
                end if;
@@ -1128,7 +1129,7 @@ package body WisiToken.Parse is
                         else Tree.Byte_Region (Terminal.Node).Last >= Stable_Region.Last);
 
                      if Trace_Incremental_Parse > Detail then
-                        Parser.Trace.Put_Line
+                        Tree.Lexer.Trace.Put_Line
                           ("stable shift " & Tree.Image
                              (Terminal.Node,
                               Non_Grammar => True, Terminal_Node_Numbers => True, Augmented => True));
@@ -1145,7 +1146,7 @@ package body WisiToken.Parse is
                         Non_Grammar_Next => Terminal_Non_Grammar_Next);
 
                      if Trace_Incremental_Parse > Detail then
-                        Parser.Trace.Put_Line
+                        Tree.Lexer.Trace.Put_Line
                           ("  => " & Tree.Image
                              (Terminal.Node, Non_Grammar => True, Terminal_Node_Numbers => True,
                               Augmented => True));
@@ -1153,7 +1154,7 @@ package body WisiToken.Parse is
 
                      if Terminal_Non_Grammar_Next /= Lexer.Token_Arrays.No_Index then
                         if Trace_Incremental_Parse > Detail then
-                           Parser.Trace.Put_Line ("terminal_non_grammar_next:" & Terminal_Non_Grammar_Next'Image);
+                           Tree.Lexer.Trace.Put_Line ("terminal_non_grammar_next:" & Terminal_Non_Grammar_Next'Image);
                         end if;
                         exit Unchanged_Loop;
                      else
@@ -1163,7 +1164,7 @@ package body WisiToken.Parse is
                   else
                      --  The previous KMN left Terminal_Non_Grammar_Next /= No_Index
                      if Trace_Incremental_Parse > Detail then
-                        Parser.Trace.Put_Line ("Terminal_Non_Grammar_Next:" & Terminal_Non_Grammar_Next'Image);
+                        Tree.Lexer.Trace.Put_Line ("Terminal_Non_Grammar_Next:" & Terminal_Non_Grammar_Next'Image);
                      end if;
 
                      --  Shift remaining non_grammar in Stable_Region
@@ -1189,9 +1190,9 @@ package body WisiToken.Parse is
 
                      if Trace_Incremental_Parse > Detail then
                         if Terminal_Non_Grammar_Next = Lexer.Token_Arrays.No_Index then
-                           Parser.Trace.Put_Line ("terminal_non_grammar_next cleared");
+                           Tree.Lexer.Trace.Put_Line ("terminal_non_grammar_next cleared");
                         else
-                           Parser.Trace.Put_Line ("terminal_non_grammar_next:" & Terminal_Non_Grammar_Next'Image);
+                           Tree.Lexer.Trace.Put_Line ("terminal_non_grammar_next:" & Terminal_Non_Grammar_Next'Image);
                         end if;
                      end if;
                   end if;
@@ -1262,7 +1263,7 @@ package body WisiToken.Parse is
                            Start    => True);
 
                         if Trace_Incremental_Parse > Detail then
-                           Parser.Trace.Put_Line
+                           Tree.Lexer.Trace.Put_Line
                              ("start delimiter deleted:" &
                                 Start_Region.First'Image & " .." & Scan_End'Image);
                         end if;
@@ -1369,7 +1370,7 @@ package body WisiToken.Parse is
 
                            when Delete =>
                               if Trace_Incremental_Parse > Detail then
-                                 Parser.Trace.Put_Line
+                                 Tree.Lexer.Trace.Put_Line
                                    ("delete " & (if Floating then "floating " else "") &
                                       "non_grammar " & Lexer.Image (Token, Tree.Lexer.Descriptor.all));
                               end if;
@@ -1377,7 +1378,7 @@ package body WisiToken.Parse is
                            when Float =>
                               if not Floating then
                                  if Trace_Incremental_Parse > Detail then
-                                    Parser.Trace.Put_Line
+                                    Tree.Lexer.Trace.Put_Line
                                       ("float non_grammar " & Lexer.Full_Image (Token, Tree.Lexer.Descriptor.all));
                                  end if;
                                  Floating_Non_Grammar.Append (Token);
@@ -1437,7 +1438,7 @@ package body WisiToken.Parse is
                      begin
                         Tree.Next_Terminal (Check_Deleted);
                         if Trace_Incremental_Parse > Detail then
-                           Parser.Trace.Put_Line
+                           Tree.Lexer.Trace.Put_Line
                              ("delete deleted " &
                                 Tree.Image (To_Delete.Element, Terminal_Node_Numbers => True, Non_Grammar => False));
                         end if;
@@ -1543,9 +1544,9 @@ package body WisiToken.Parse is
                      Terminal_Non_Grammar_Next := Check_Non_Grammar_Next;
                   end if;
                   if Trace_Incremental_Parse > Extra then
-                     Parser.Trace.Put_Line
+                     Tree.Lexer.Trace.Put_Line
                        ("terminal: " & Tree.Image (Terminal, Non_Grammar => True, Node_Numbers => True));
-                     Parser.Trace.Put_Line ("deleted_shift_lines:" & Deleted_Shift_Lines'Image);
+                     Tree.Lexer.Trace.Put_Line ("deleted_shift_lines:" & Deleted_Shift_Lines'Image);
                   end if;
                end;
             end if;
@@ -1589,7 +1590,7 @@ package body WisiToken.Parse is
                              (ID, (Delimiter_Pos, Region.Last + Shift), Inserted => True, Start => False);
 
                            if Trace_Incremental_Parse > Detail then
-                              Parser.Trace.Put_Line
+                              Tree.Lexer.Trace.Put_Line
                                 ("end delimiter inserted:" &
                                    Region.First'Image & " .." &
                                    Scan_End'Image);
@@ -1778,14 +1779,14 @@ package body WisiToken.Parse is
                                     Delayed_Lex_Start_Char := Lex_Start_Char;
                                     Delayed_Lex_Start_Line := Lex_Start_Line;
                                     if Trace_Incremental_Parse > Detail then
-                                       Parser.Trace.Put_Line ("scan delayed");
+                                       Tree.Lexer.Trace.Put_Line ("scan delayed");
                                     end if;
                                  else
                                     --  Token overlaps or is adjacent to the change region; it will be
                                     --  rescanned. Delete it here (ie don't copy to floating). It may
                                     --  contain New_Lines. test_incremental.adb Delete_Comment_End.
                                     if Trace_Incremental_Parse > Extra then
-                                       Parser.Trace.Put_Line
+                                       Tree.Lexer.Trace.Put_Line
                                          ("delete non_grammar" & I'Image & ":" &
                                             Lexer.Full_Image (Token, Tree.Lexer.Descriptor.all));
                                     end if;
@@ -1801,7 +1802,7 @@ package body WisiToken.Parse is
                                  Shift_Lines := @ - New_Line_Count (Non_Grammar (I).Line_Region);
                                  Floating_Non_Grammar.Append (Non_Grammar (I));
                                  if Trace_Incremental_Parse > Extra then
-                                    Parser.Trace.Put_Line
+                                    Tree.Lexer.Trace.Put_Line
                                       ("float non_grammar" & I'Image & ":" &
                                          Lexer.Full_Image (Non_Grammar (I), Tree.Lexer.Descriptor.all));
                                  end if;
@@ -1818,7 +1819,7 @@ package body WisiToken.Parse is
 
                         if Trace_Incremental_Parse > Detail then
                            if Last_Floated /= Lexer.Token_Arrays.No_Index then
-                              Parser.Trace.Put_Line
+                              Tree.Lexer.Trace.Put_Line
                                 ("float or delete non_grammar" & Terminal_Non_Grammar_Next'Image & " .." &
                                    Last_Floated'Image);
                            end if;
@@ -1987,7 +1988,7 @@ package body WisiToken.Parse is
                                                 Start    => False);
 
                                              if Trace_Incremental_Parse > Detail then
-                                                Parser.Trace.Put_Line
+                                                Tree.Lexer.Trace.Put_Line
                                                   ("end delimiter inserted:" &
                                                      Token.Byte_Region.First'Image & " .." &
                                                      Scan_End'Image);
@@ -2024,7 +2025,7 @@ package body WisiToken.Parse is
                                  end;
 
                                  if Trace_Incremental_Parse > Detail then
-                                    Parser.Trace.Put_Line
+                                    Tree.Lexer.Trace.Put_Line
                                       ((if Floating
                                         then "delete floating_non_grammar"
                                         else "delete non_grammar") &
@@ -2079,7 +2080,7 @@ package body WisiToken.Parse is
                         Delayed_Lex_Start_Line := Lex_Start_Line;
 
                         if Trace_Incremental_Parse > Detail then
-                           Parser.Trace.Put_Line ("scan delayed");
+                           Tree.Lexer.Trace.Put_Line ("scan delayed");
                         end if;
                      end if;
                   end if;
@@ -2089,7 +2090,7 @@ package body WisiToken.Parse is
                   Last_Scanned_Token := (others => <>);
 
                   if Trace_Incremental_Parse > Detail then
-                     Parser.Trace.Put_Line
+                     Tree.Lexer.Trace.Put_Line
                        ("lexer.set_position" & Lex_Start_Byte'Image & Lex_Start_Char'Image & Lex_Start_Line'Image);
                   end if;
 
@@ -2112,13 +2113,13 @@ package body WisiToken.Parse is
                         Ref   : Terminal_Ref;
                      begin
                         if Trace_Lexer > Outline then
-                           Parser.Trace.Put_Line
+                           Tree.Lexer.Trace.Put_Line
                              ("lex: " & Lexer.Image (Token, Parser.Tree.Lexer.Descriptor.all));
                            if Error then
                               declare
                                  Error : Lexer.Error renames Tree.Lexer.Errors (Tree.Lexer.Errors.Last);
                               begin
-                                 Parser.Trace.Put_Line
+                                 Tree.Lexer.Trace.Put_Line
                                    (" ... error: " & Error.Char_Pos'Image &
                                       (if Error.Recover_Char (1) /= ASCII.NUL
                                        then "'" & Error.Recover_Char (1) & "'"
@@ -2176,13 +2177,13 @@ package body WisiToken.Parse is
                            Last_Grammar := Ref;
 
                            if Trace_Incremental_Parse > Detail then
-                              Parser.Trace.Put_Line ("scan new " & Tree.Image (Ref));
+                              Tree.Lexer.Trace.Put_Line ("scan new " & Tree.Image (Ref));
                            end if;
 
                         else
                            --  non_grammar token
                            if Trace_Incremental_Parse > Detail then
-                              Parser.Trace.Put_Line
+                              Tree.Lexer.Trace.Put_Line
                                 ("scan new " & Lexer.Full_Image (Token, Parser.Tree.Lexer.Descriptor.all));
                            end if;
 
@@ -2251,7 +2252,7 @@ package body WisiToken.Parse is
                         begin
                            Tree.Next_Terminal (Terminal);
                            if Trace_Incremental_Parse > Detail then
-                              Parser.Trace.Put_Line
+                              Tree.Lexer.Trace.Put_Line
                                 ("delete modified " &
                                    Tree.Image (To_Delete.Element, Terminal_Node_Numbers => True, Non_Grammar => True));
                            end if;
@@ -2269,12 +2270,12 @@ package body WisiToken.Parse is
                                 --  token was deleted. test/ada_mode-interactive_03.adb delete text end of buffer.
                               then
                                  if Trace_Incremental_Parse > Detail then
-                                    Parser.Trace.Put_Line
+                                    Tree.Lexer.Trace.Put_Line
                                       ("delete non_grammar " & Lexer.Image (Token, Tree.Lexer.Descriptor.all));
                                  end if;
                               else
                                  if Trace_Incremental_Parse > Detail then
-                                    Parser.Trace.Put_Line
+                                    Tree.Lexer.Trace.Put_Line
                                       ("float non_grammar " & Lexer.Full_Image (Token, Tree.Lexer.Descriptor.all));
                                  end if;
                                  Floating_Non_Grammar.Append (Token);
@@ -2395,9 +2396,9 @@ package body WisiToken.Parse is
                      Tree.Non_Grammar_Var (Containing_Terminal.Node).Append (Token);
 
                      if Trace_Incremental_Parse > Detail then
-                        Parser.Trace.Put_Line
+                        Tree.Lexer.Trace.Put_Line
                           ("restore floating_non_grammar " & Lexer.Image (Old_Token, Tree.Lexer.Descriptor.all));
-                        Parser.Trace.Put_Line
+                        Tree.Lexer.Trace.Put_Line
                           (" ... to " & Tree.Image (Containing_Terminal, Non_Grammar => True));
                      end if;
                   end Restore;
@@ -2420,7 +2421,7 @@ package body WisiToken.Parse is
                            --  test case: ada_mode-recover_align_1.adb, test_incremental.adb Edit_Whitespace
 
                            if Trace_Incremental_Parse > Detail then
-                              Parser.Trace.Put_Line
+                              Tree.Lexer.Trace.Put_Line
                                 ("delete floating_non_grammar " & Lexer.Full_Image
                                    (Floating_Non_Grammar (I), Tree.Lexer.Descriptor.all));
                            end if;
@@ -2459,7 +2460,7 @@ package body WisiToken.Parse is
                  (Terminal.Node, Shift_Bytes, Shift_Chars, Shift_Lines, Buffer_Pos'Last, Terminal_Non_Grammar_Next);
 
                if Trace_Incremental_Parse > Detail then
-                  Parser.Trace.Put_Line ("final shift " & Tree.Image (Terminal, Non_Grammar => True));
+                  Tree.Lexer.Trace.Put_Line ("final shift " & Tree.Image (Terminal, Non_Grammar => True));
                end if;
 
                exit KMN_Loop;
@@ -2483,7 +2484,7 @@ package body WisiToken.Parse is
             Parser.Tree.Validate_Tree (Parser.User_Data.all, Error_Reported, Node_Index_Order => False);
             if Error_Reported.Count /= 0 then
                if Trace_Incremental_Parse > Outline then
-                  Tree.Print_Tree (Parser.Trace.all, Non_Grammar => True);
+                  Tree.Print_Tree (Non_Grammar => True);
                end if;
                raise WisiToken.Parse_Error with "edit_tree: validate_tree failed";
             end if;

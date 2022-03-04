@@ -141,14 +141,16 @@ package body WisiToken.Lexer.Regexp is
    type Instance_Access is access Instance; --  silence compiler warning
 
    function New_Lexer
-     (Descriptor : in WisiToken.Descriptor_Access_Constant;
+     (Trace      : in WisiToken.Trace_Access;
+      Descriptor : in WisiToken.Descriptor_Access_Constant;
       Syntax     : in WisiToken.Lexer.Regexp.Syntax)
      return WisiToken.Lexer.Handle
    is
       New_Lexer : constant Instance_Access := new Instance (Syntax'Last);
    begin
+      New_Lexer.Trace      := Trace;
       New_Lexer.Descriptor := Descriptor;
-      New_Lexer.Syntax := Syntax;
+      New_Lexer.Syntax     := Syntax;
 
       return Handle (New_Lexer);
    end New_Lexer;

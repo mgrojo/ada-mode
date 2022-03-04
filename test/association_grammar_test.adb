@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002-2003, 2009-2010, 2013-2015, 2017-2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002-2003, 2009-2010, 2013-2015, 2017-2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -167,8 +167,7 @@ package body Association_Grammar_Test is
 
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
-         Trace'Access,
-         Lexer.New_Lexer (Token_Enum.LALR_Descriptor'Access, Syntax),
+         Lexer.New_Lexer (Trace'Access, Token_Enum.LALR_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate
            (Full_Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
          User_Data                      => null,

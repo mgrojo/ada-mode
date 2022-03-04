@@ -3,7 +3,7 @@
 --  Parser for Wisi grammar files, producing Ada source
 --  files for a parser.
 --
---  Copyright (C) 2012 - 2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -152,7 +152,7 @@ is
       Output_File_Name_Root := +Ada.Directories.Base_Name (File_Name) & Suffix;
 
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Grammar_Parser, Trace'Unchecked_Access, Wisitoken_Grammar_Main.Create_Lexer,
+        (Grammar_Parser, Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
          Wisitoken_Grammar_Main.Create_Parse_Table, Input_Data'Unchecked_Access);
 
       Grammar_Parser.Tree.Lexer.Reset_With_File (File_Name);
@@ -414,16 +414,16 @@ begin
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.Put_Line ("EBNF tree:");
                Tree.Print_Tree
-                 (Trace, Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
+                 (Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
             end if;
 
-            WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data, Trace);
+            WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data);
 
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.New_Line;
                Ada.Text_IO.Put_Line ("BNF tree:");
                Tree.Print_Tree
-                 (Trace, Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
+                 (Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
             end if;
 
             if Output_BNF then
@@ -468,7 +468,7 @@ begin
                      Ada.Text_IO.Put_Line ("output tree_sitter grammar");
                   end if;
 
-                  Eliminate_Empty_Productions (Input_Data, Tree, Trace);
+                  Eliminate_Empty_Productions (Input_Data, Tree);
 
                   Print_Tree_Sitter
                     (Input_Data,

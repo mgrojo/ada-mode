@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2015, 2017 - 2021 Stephe Leake
+--  Copyright (C) 2015, 2017 - 2022 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -53,7 +53,7 @@ is
       Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
    begin
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Parser, Trace'Unchecked_Access, Create_Lexer, Create_Parse_Table (Text_Rep_File_Name),
+        (Parser, Create_Lexer (Trace'Unchecked_Access), Create_Parse_Table (Text_Rep_File_Name),
          User_Data'Unchecked_Access);
 
       Parser.Tree.Lexer.Reset_With_File (-File_Name);

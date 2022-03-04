@@ -162,7 +162,7 @@ package body Test_Syntax_Trees is
       Skip_To_Parser.Parse (Log_File);
 
       if Trace_Tests > Outline then
-         Skip_To_Parser.Tree.Print_Tree (Trace, Non_Grammar => True);
+         Skip_To_Parser.Tree.Print_Tree (Non_Grammar => True);
       end if;
 
       Check ("1", Skip_To_Parser.Tree.Line_At_Byte_Pos (13), 1);
@@ -260,8 +260,7 @@ package body Test_Syntax_Trees is
       --  Run before all tests in register
       WisiToken.Parse.LR.Parser.New_Parser
         (Ada_Lite_Parser,
-         Trace'Access,
-         Ada_Lite_LR1_T1_Main.Create_Lexer,
+         Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
          Ada_Lite_LR1_T1_Main.Create_Parse_Table
            (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
          Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
@@ -272,8 +271,7 @@ package body Test_Syntax_Trees is
 
       WisiToken.Parse.LR.Parser.New_Parser
         (Skip_To_Parser,
-         Trace'Access,
-         Skip_To_Grammar_LALR_Main.Create_Lexer,
+         Skip_To_Grammar_LALR_Main.Create_Lexer (Trace'Access),
          Skip_To_Grammar_LALR_Main.Create_Parse_Table ("skip_to_grammar_lalr_parse_table.txt"),
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

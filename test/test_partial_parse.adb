@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2019 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -52,7 +52,7 @@ package body Test_Partial_Parse is
          Node  : Valid_Node_Access := Parser.Tree.Root;
       begin
          if WisiToken.Trace_Tests > WisiToken.Outline then
-            Parser.Tree.Print_Tree (Trace, Line_Numbers => True);
+            Parser.Tree.Print_Tree (Line_Numbers => True);
          end if;
 
          Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, Parse_End_Byte_Pos));
@@ -279,8 +279,7 @@ package body Test_Partial_Parse is
       --  Run before all tests in register
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
-         Trace'Access,
-         Ada_Lite_LALR_Main.Create_Lexer,
+         Ada_Lite_LALR_Main.Create_Lexer (Trace'Access),
          Ada_Lite_LALR_Main.Create_Parse_Table,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

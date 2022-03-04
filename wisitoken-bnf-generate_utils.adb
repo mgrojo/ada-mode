@@ -279,7 +279,7 @@ package body WisiToken.BNF.Generate_Utils is
       Log_File   : Ada.Text_IO.File_Type;
    begin
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Grammar_Parser, Trace'Unchecked_Access, Wisitoken_Grammar_Main.Create_Lexer,
+        (Grammar_Parser, Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
          Wisitoken_Grammar_Main.Create_Parse_Table, Input_Data'Unchecked_Access);
 
       Grammar_Parser.Tree.Lexer.Reset_With_File (Grammar_File_Name);
@@ -309,7 +309,7 @@ package body WisiToken.BNF.Generate_Utils is
       Log_File       : Ada.Text_IO.File_Type;
    begin
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Grammar_Parser, Trace'Unchecked_Access, Wisitoken_Grammar_Main.Create_Lexer,
+        (Grammar_Parser, Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
          Wisitoken_Grammar_Main.Create_Parse_Table, Syntax_Trees.User_Data_Access (Input_Data));
 
       Grammar_Parser.Tree.Lexer.Reset_With_File (Grammar_File_Name);
@@ -320,8 +320,7 @@ package body WisiToken.BNF.Generate_Utils is
       if Input_Data.Meta_Syntax = WisiToken_Grammar_Runtime.EBNF_Syntax then
          WisiToken_Grammar_Editing.Translate_EBNF_To_BNF
            (Grammar_Parser.Tree,
-            WisiToken_Grammar_Runtime.User_Data_Type (Input_Data.all),
-            Trace);
+            WisiToken_Grammar_Runtime.User_Data_Type (Input_Data.all));
          if WisiToken.Generate.Error then
             raise WisiToken.Grammar_Error with "errors during translating EBNF to BNF: aborting";
          end if;

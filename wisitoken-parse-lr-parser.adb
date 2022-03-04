@@ -54,7 +54,7 @@ package body WisiToken.Parse.LR.Parser is
          Recover_Conflict => Parser_State.Resume_Active and Shared_Parser.Parsers.Count > 1);
    begin
       if Trace_Parse > Detail then
-         Shared_Parser.Trace.Put_Line
+         Shared_Parser.Tree.Lexer.Trace.Put_Line
            (Shared_Parser.Tree.Image
               (Nonterm.Node,
                Children              => True,
@@ -80,7 +80,7 @@ package body WisiToken.Parse.LR.Parser is
               (Shared_Parser.Tree, Nonterm_Token, Children_Token, Recover_Active => False);
 
             if Trace_Parse > Detail then
-               Shared_Parser.Trace.Put_Line
+               Shared_Parser.Tree.Lexer.Trace.Put_Line
                  ("in_parse_action " & In_Parse_Actions.Image (Status, Shared_Parser.Tree, Nonterm.Node));
             end if;
 
@@ -148,21 +148,21 @@ package body WisiToken.Parse.LR.Parser is
                   end if;
 
                   if Trace_Parse > Detail then
-                     Shared_Parser.Trace.Put_Line
+                     Shared_Parser.Tree.Lexer.Trace.Put_Line
                        (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
                           Trimmed_Image (Current_State) & ": " & Tree.Image
                             (Shared_Parser.Tree.Current_Token (Parser_State.Stream), First_Terminal => True) &
                           " error; undo_reduce");
-                     Shared_Parser.Trace.Put
+                     Shared_Parser.Tree.Lexer.Trace.Put
                        (" ... " & Tree.Image (Tree.Peek (Parser_State.Stream), State => True));
                   end if;
                   Undo_Reduce (Tree, Table, Parser_State.Stream, Shared_Parser.User_Data);
 
                   if Trace_Parse > Detail then
-                     Shared_Parser.Trace.Put
+                     Shared_Parser.Tree.Lexer.Trace.Put
                        (" => " & Tree.Image (Tree.Peek (Parser_State.Stream), State => True),
                         Prefix => False);
-                     Shared_Parser.Trace.New_Line;
+                     Shared_Parser.Tree.Lexer.Trace.New_Line;
                   end if;
                   return False;
                end if;
@@ -202,7 +202,7 @@ package body WisiToken.Parse.LR.Parser is
                         procedure Delete_Empty
                         is begin
                            if Trace_Parse > Detail then
-                              Shared_Parser.Trace.Put_Line
+                              Shared_Parser.Tree.Lexer.Trace.Put_Line
                                 (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": " &
                                    (if Trace_Parse_No_State_Numbers
                                     then "-- : "
@@ -259,7 +259,7 @@ package body WisiToken.Parse.LR.Parser is
                                  end if;
 
                                  if Trace_Parse > Detail then
-                                    Shared_Parser.Trace.Put_Line
+                                    Shared_Parser.Tree.Lexer.Trace.Put_Line
                                       (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
                                          ": left_breakdown " &
                                          Tree.Image (Current_Token, First_Terminal => True));
@@ -267,10 +267,10 @@ package body WisiToken.Parse.LR.Parser is
                                  Tree.Left_Breakdown (Current_Token, Shared_Parser.User_Data);
 
                                  if Trace_Parse > Extra then
-                                    Shared_Parser.Trace.Put_Line
+                                    Shared_Parser.Tree.Lexer.Trace.Put_Line
                                       (" ... current_token: " & Tree.Image (Current_Token, First_Terminal => True));
                                     if Trace_Parse > Detail then
-                                       Shared_Parser.Trace.Put_Line
+                                       Shared_Parser.Tree.Lexer.Trace.Put_Line
                                          (" ... input stream: " & Tree.Image
                                             (Parser_State.Stream, Stack => False, Input => True, Shared => True));
                                     end if;
@@ -307,7 +307,7 @@ package body WisiToken.Parse.LR.Parser is
       use all type In_Parse_Actions.Status_Label;
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
-      Trace        : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
+      Trace        : WisiToken.Trace'Class renames Shared_Parser.Tree.Lexer.Trace.all;
       Status       : In_Parse_Actions.Status_Label;
 
    begin
@@ -527,7 +527,7 @@ package body WisiToken.Parse.LR.Parser is
                      Do_Delete (Tree, Parser_State.Stream, Op, Terminal_Node, Shared_Parser.User_Data);
 
                      if Trace_Parse > Extra  then
-                        Shared_Parser.Trace.Put_Line
+                        Shared_Parser.Tree.Lexer.Trace.Put_Line
                           (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": delete " &
                              Op.Del_Index'Image);
                      end if;
@@ -632,7 +632,7 @@ package body WisiToken.Parse.LR.Parser is
                      Parser_State.Resume_Active := False;
                      Parser_State.Resume_Token_Goal := Syntax_Trees.Invalid_Sequential_Index;
                      if Trace_Parse > Detail then
-                        Shared_Parser.Trace.Put_Line
+                        Shared_Parser.Tree.Lexer.Trace.Put_Line
                           (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": resume_active: False");
                      end if;
                   else
@@ -714,7 +714,7 @@ package body WisiToken.Parse.LR.Parser is
             if Parser_State.Verb = Shift and not Parser_State.Resume_Active then
                Parser_State.Set_Verb (Pause);
                if Trace_Parse > Detail then
-                  Shared_Parser.Trace.Put_Line
+                  Shared_Parser.Tree.Lexer.Trace.Put_Line
                     (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": pause: resume exit");
                end if;
             end if;
@@ -738,7 +738,7 @@ package body WisiToken.Parse.LR.Parser is
                      Some_Paused := True;
                      Parser_State.Set_Verb (Pause);
                      if Trace_Parse > Detail then
-                        Shared_Parser.Trace.Put_Line
+                        Shared_Parser.Tree.Lexer.Trace.Put_Line
                           (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) &
                              ": pause: resume sync (min index" & Min_Sequential_Index'Image & ")");
                      end if;
@@ -807,7 +807,7 @@ package body WisiToken.Parse.LR.Parser is
                   Parser_State.Zombie_Token_Count := @ + Max_Terminal_Count;
 
                   if Trace_Parse > Extra then
-                     Shared_Parser.Trace.Put_Line
+                     Shared_Parser.Tree.Lexer.Trace.Put_Line
                        (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": zombie (" &
                           Integer'Image
                             (Shared_Parser.Table.McKenzie_Param.Zombie_Limit - Parser_State.Zombie_Token_Count) &
@@ -826,7 +826,7 @@ package body WisiToken.Parse.LR.Parser is
                   if Parser_State.Verb = Shift and not Not_Paused (Parser_Index) then
                      Parser_State.Set_Verb (Pause);
                      if Trace_Parse > Detail then
-                        Shared_Parser.Trace.Put_Line
+                        Shared_Parser.Tree.Lexer.Trace.Put_Line
                           (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": pause: main sync");
                      end if;
                   end if;
@@ -904,7 +904,8 @@ package body WisiToken.Parse.LR.Parser is
          if not Check_Parser.State_Ref.Resume_Active then
             --  Parser is now a zombie
             if Trace_Parse > Detail then
-               Shared_Parser.Trace.Put_Line (" " & Shared_Parser.Tree.Trimmed_Image (Check_Parser.Stream) & ": zombie");
+               Shared_Parser.Tree.Lexer.Trace.Put_Line
+                 (" " & Shared_Parser.Tree.Trimmed_Image (Check_Parser.Stream) & ": zombie");
             end if;
             Check_Parser.Next;
 
@@ -918,7 +919,8 @@ package body WisiToken.Parse.LR.Parser is
                --  programmer error.
                if Check_Parser.State_Ref.Conflict_During_Resume then
                   Shared_Parser.Parsers.Terminate_Parser
-                    (Check_Parser, Shared_Parser.Tree, "error in conflict during resume", Shared_Parser.Trace.all);
+                    (Check_Parser, Shared_Parser.Tree, "error in conflict during resume",
+                     Shared_Parser.Tree.Lexer.Trace.all);
                else
                   Report_Error;
                end if;
@@ -942,17 +944,17 @@ package body WisiToken.Parse.LR.Parser is
       Parser_State.Clear_Stream;
 
       if Trace_Parse > Extra and then Parser_State.Recover_Insert_Delete.Length > 0 then
-         Parser.Trace.New_Line;
-         Parser.Trace.Put_Line ("before insert/delete tree:");
-         Parser.Trace.Put_Line
+         Parser.Tree.Lexer.Trace.New_Line;
+         Parser.Tree.Lexer.Trace.Put_Line ("before insert/delete tree:");
+         Parser.Tree.Lexer.Trace.Put_Line
            (Parser.Tree.Image
               (Children     => True,
                Non_Grammar  => True,
                Augmented    => True,
                Line_Numbers => True));
-         Parser.Trace.Put_Line
+         Parser.Tree.Lexer.Trace.Put_Line
            ("recover_insert_delete: " & Image (Parser_State.Recover_Insert_Delete, Parser.Tree));
-         Parser.Trace.New_Line;
+         Parser.Tree.Lexer.Trace.New_Line;
       end if;
 
       if Parser.User_Data /= null then
@@ -964,7 +966,7 @@ package body WisiToken.Parse.LR.Parser is
          for Op of Parser_State.Recover_Insert_Delete loop
             case Op.Op is
             when Insert =>
-               Parser.User_Data.Insert_Token (Parser.Tree, Parser.Trace.all, Op.Ins_Node);
+               Parser.User_Data.Insert_Token (Parser.Tree, Op.Ins_Node);
 
             when Delete =>
                --  Op.Del_Node.Non_Grammar were previously moved to
@@ -972,27 +974,25 @@ package body WisiToken.Parse.LR.Parser is
                --  shared stream, so we can clear them.
                Parser.Tree.Non_Grammar_Var (Op.Del_Node).Clear;
 
-               Parser.User_Data.Delete_Token
-                 (Parser.Tree, Parser.Trace.all,
-                  Deleted_Token => Op.Del_Node);
+               Parser.User_Data.Delete_Token (Parser.Tree, Deleted_Token => Op.Del_Node);
             end case;
          end loop;
       end if;
 
       if Trace_Parse > Extra or Trace_Action > Extra then
-         Parser.Trace.Put_Line ("post-parse tree:");
-         Parser.Trace.Put_Line
+         Parser.Tree.Lexer.Trace.Put_Line ("post-parse tree:");
+         Parser.Tree.Lexer.Trace.Put_Line
            (Parser.Tree.Image
               (Children     => True,
                Non_Grammar  => True,
                Augmented    => True,
                Line_Numbers => True));
-         Parser.Trace.New_Line;
+         Parser.Tree.Lexer.Trace.New_Line;
       end if;
 
       if Trace_Memory > Detail then
-         Parser.Trace.Put_Line ("parse complete");
-         Report_Memory (Parser.Trace.all);
+         Parser.Tree.Lexer.Trace.Put_Line ("parse complete");
+         Report_Memory (Parser.Tree.Lexer.Trace.all);
       end if;
 
       if Debug_Mode then
@@ -1021,7 +1021,6 @@ package body WisiToken.Parse.LR.Parser is
 
    procedure New_Parser
      (Parser                         :    out LR.Parser.Parser;
-      Trace                          : in     WisiToken.Trace_Access;
       Lexer                          : in     WisiToken.Lexer.Handle;
       Table                          : in     Parse_Table_Ptr;
       Language_Fixes                 : in     Language_Fixes_Access;
@@ -1029,7 +1028,6 @@ package body WisiToken.Parse.LR.Parser is
       Language_String_ID_Set         : in     Language_String_ID_Set_Access;
       User_Data                      : in     Syntax_Trees.User_Data_Access)
    is begin
-      Parser.Trace      := Trace;
       Parser.Tree.Lexer := Lexer;
       Parser.User_Data  := User_Data;
 
@@ -1087,10 +1085,10 @@ package body WisiToken.Parse.LR.Parser is
             exception
             when E : others =>
                if WisiToken.Debug_Mode then
-                  Parser.Trace.Put_Line
+                  Parser.Tree.Lexer.Trace.Put_Line
                     (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-                  Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-                  Parser.Trace.New_Line;
+                  Parser.Tree.Lexer.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+                  Parser.Tree.Lexer.Trace.New_Line;
                end if;
 
                raise WisiToken.Parse_Error with Tree.Error_Message
@@ -1121,9 +1119,10 @@ package body WisiToken.Parse.LR.Parser is
 
    when E : others =>
       if Debug_Mode then
-         Parser.Trace.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-         Parser.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-         Parser.Trace.New_Line;
+         Parser.Tree.Lexer.Trace.Put_Line
+           (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+         Parser.Tree.Lexer.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+         Parser.Tree.Lexer.Trace.New_Line;
       end if;
       raise;
    end Execute_Actions;

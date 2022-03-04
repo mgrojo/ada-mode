@@ -103,8 +103,8 @@ is
       Indent := Indent + 3;
 
       Indent_Line ("if Trace_Parse > Extra then");
-      Indent_Line ("   Parser.Trace.Put_Line (""" & Parser_Name (Prod.LHS) & " enter ref_counts:"");");
-      Indent_Line ("   Tree.Print_Ref_Counts (Parser.Trace.all);");
+      Indent_Line ("   Tree.Lexer.Trace.Put_Line (""" & Parser_Name (Prod.LHS) & " enter ref_counts:"");");
+      Indent_Line ("   Tree.Print_Ref_Counts;");
       Indent_Line ("end if;");
 
       Indent_Line ("if Next_Pos = Syntax_Trees.Invalid_Stream_Index then");
@@ -118,8 +118,8 @@ is
       Indent_Line ("case Memo.State is");
       Indent_Line ("when Success =>");
       Indent_Line ("   if Trace_Parse > Extra then");
-      Indent_Line ("      Parser.Trace.Put_Line (""" & Parser_Name (Prod.LHS) & " success ref_counts:"");");
-      Indent_Line ("      Tree.Print_Ref_Counts (Parser.Trace.all);");
+      Indent_Line ("      Tree.Lexer.Trace.Put_Line (""" & Parser_Name (Prod.LHS) & " success ref_counts:"");");
+      Indent_Line ("      Tree.Print_Ref_Counts;");
       Indent_Line ("   end if;");
       Indent_Line ("   return Parser.Derivs (" & Result_ID & ")(Start_Pos_Index);");
       Indent_Line ("when Failure =>");
@@ -301,7 +301,7 @@ is
          Indent_Line ("Parser.Derivs (" & Result_ID & ").Replace_Element (Start_Pos_Index, Result_Recurse);");
          Indent_Line ("Pos_Recurse_Last := Pos;");
          Indent_Line ("if WisiToken.Trace_Parse > Detail then");
-         Indent_Line ("   Parser.Trace.Put_Line");
+         Indent_Line ("   Tree.Lexer.Trace.Put_Line");
          Indent_Line ("     (Parser.Tree.Image (Result_Recurse.Result,");
          Indent_Line ("      Children => True, Terminal_Node_Numbers => True));");
          Indent_Line ("end if;");
@@ -324,7 +324,7 @@ is
          Indent_Line ("<<Succeed>>");
          Indent_Line ("if WisiToken.Trace_Parse > Detail then");
          Indent := Indent + 3;
-         Indent_Line ("Parser.Trace.Put_Line");
+         Indent_Line ("Tree.Lexer.Trace.Put_Line");
          Indent_Line ("  (Parser.Tree.Image");
          Indent_Line ("    (Parser.Derivs (" & Result_ID & ")(Start_Pos_Index).Result,");
          Indent_Line ("     Children => True, Terminal_Node_Numbers => True));");

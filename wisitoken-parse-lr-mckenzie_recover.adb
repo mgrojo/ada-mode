@@ -76,8 +76,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       use Recover_Op_Arrays;
       use all type WisiToken.Parse.LR.Parser.Language_Fixes_Access;
 
-      Trace  : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
+      Trace  : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
       Config : Configuration;
       Error_Node : constant Syntax_Trees.Valid_Node_Access := Parser_State.Current_Error_Node (Tree).Ref.Node;
       Error : constant Syntax_Trees.Error_Data'Class := Find_Parse_In_Parse_Action_Error (Tree, Error_Node);
@@ -146,7 +146,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Config.Error_Token := Tree.Get_Recover_Token (Error_Node);
 
          if Trace_McKenzie > Detail then
-            Put ("enqueue", Trace, Tree, Parser_State.Stream, Config);
+            Put ("enqueue", Tree, Parser_State.Stream, Config);
          end if;
 
       elsif Error in In_Parse_Action_Error then
@@ -154,7 +154,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             --  The only fix is to ignore the error.
             if Trace_McKenzie > Detail then
                Config.Strategy_Counts (Ignore_Error) := 1;
-               Put ("enqueue", Trace, Tree, Parser_State.Stream, Config);
+               Put ("enqueue", Tree, Parser_State.Stream, Config);
             end if;
 
          else
@@ -176,13 +176,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   Put
                     ("undo_reduce " & Image
                        (Tree.Element_ID (Config.Error_Token), Tree.Lexer.Descriptor.all),
-                       Trace, Tree, Parser_State.Stream, Config);
+                       Tree, Parser_State.Stream, Config);
                end if;
             else
                --  Ignore error
                if Trace_McKenzie > Detail then
                   Config.Strategy_Counts (Ignore_Error) := 1;
-                  Put ("enqueue", Trace, Tree, Parser_State.Stream, Config);
+                  Put ("enqueue", Tree, Parser_State.Stream, Config);
                end if;
             end if;
          end if;
@@ -196,8 +196,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    function Recover (Shared_Parser : in out LR.Parser.Parser) return Recover_Status
    is
-      Trace   : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Tree    : Syntax_Trees.Tree renames Shared_Parser.Tree;
+      Trace   : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
       Parsers : Parser_Lists.List renames Shared_Parser.Parsers;
 
       Initial_Memory_Use : constant GNATCOLL.Memory.Watermark_Info := GNATCOLL.Memory.Get_Ada_Allocations;
@@ -291,7 +291,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                 Tree.Trimmed_Image (Cur.Stream) & " (" &
                                 Trimmed_Image (Integer (Parsers.Count)) &
                                 " active)");
-                           Put ("", Trace, Tree, Parsers.First.Stream, Data.Results.Peek, Strategy => True);
+                           Put ("", Tree, Parsers.First.Stream, Data.Results.Peek, Strategy => True);
                         end if;
 
                         State_Ref (Parsers.First).Recover.Results.Add (Data.Results.Remove);
@@ -300,7 +300,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   end if;
 
                   if Trace_McKenzie > Outline or Trace_Parse > Outline then
-                     Put ("", Trace, Tree, Cur.Stream, Data.Results.Peek, Strategy => True);
+                     Put ("", Tree, Cur.Stream, Data.Results.Peek, Strategy => True);
                   end if;
                else
                   if Trace_McKenzie > Outline then
@@ -387,7 +387,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Parser_State.Resume_Token_Goal := Result.Resume_Token_Goal;
 
                      if Trace_McKenzie > Extra then
-                        Put_Line (Trace, Tree, Parser_State.Stream, "before Ops applied:");
+                        Put_Line (Tree, Parser_State.Stream, "before Ops applied:");
                         Trace.Put_Line
                           ("   stack/stream:" & ASCII.LF & Tree.Image
                              (Parser_State.Stream, Stack => True, Input => True, Shared => True, Children => True));
@@ -430,7 +430,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               end if;
 
                               if Trace_McKenzie > Outline then
-                                 Put_Line (Trace, Tree, Parser_State.Stream, Message);
+                                 Put_Line (Tree, Parser_State.Stream, Message);
                               end if;
                               raise Bad_Config;
                            end Raise_Bad_Config;
@@ -640,7 +640,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      end loop;
 
                      if Trace_McKenzie > Extra then
-                        Put_Line (Trace, Tree, Parser_State.Stream, "after Ops applied:");
+                        Put_Line (Tree, Parser_State.Stream, "after Ops applied:");
                         Trace.Put_Line
                           ("   stack/stream:" & ASCII.LF & Tree.Image
                              (Parser_State.Stream, Stack => True, Input => True, Shared => True, Children => True));
@@ -1713,7 +1713,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Put
      (Message      : in     String;
-      Trace        : in out WisiToken.Trace'Class;
       Tree         : in     Syntax_Trees.Tree;
       Parser_Label : in     Syntax_Trees.Stream_ID;
       Config       : in     Configuration;
@@ -1762,16 +1761,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end if;
 
       Result := Result & Image (Config.Ops, Descriptor);
-      Trace.Put_Line (-Result);
+      Tree.Lexer.Trace.Put_Line (-Result);
    end Put;
 
    procedure Put_Line
-     (Trace        : in out WisiToken.Trace'Class;
-      Tree         : in     Syntax_Trees.Tree;
+     (Tree         : in     Syntax_Trees.Tree;
       Parser_Label : in     Syntax_Trees.Stream_ID;
       Message      : in     String)
    is begin
-      Trace.Put_Line (Tree.Trimmed_Image (Parser_Label) & ": " & Message);
+      Tree.Lexer.Trace.Put_Line (Tree.Trimmed_Image (Parser_Label) & ": " & Message);
    end Put_Line;
 
    function Undo_Reduce_Valid
