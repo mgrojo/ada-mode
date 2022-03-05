@@ -77,7 +77,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
       procedure Put (Message : in String; Config : in Configuration)
       is begin
-         Put (Message, Shared_Parser.Trace.all, Tree, Parser_Label, Config);
+         Put (Message, Tree, Parser_Label, Config);
       end Put;
 
       End_Name_Token   : constant Recover_Token := Recover_Stacks.Peek
@@ -739,7 +739,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       if Debug_Mode then
          raise;
       elsif Trace_McKenzie > Outline then
-         Shared_Parser.Trace.Put_Line ("Language_Fixes Handle_In_Parse_Action_Fail Bad_Config");
+         Tree.Lexer.Trace.Put_Line ("Language_Fixes Handle_In_Parse_Action_Fail Bad_Config");
       end if;
    end Handle_In_Parse_Action_Fail;
 
@@ -758,7 +758,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
       procedure Put (Message : in String; Config : in Configuration)
       is begin
-         Put (Message, Shared_Parser.Trace.all, Tree, Parser_Label, Config);
+         Put (Message, Tree, Parser_Label, Config);
       end Put;
    begin
       if (Tree.Element_ID (Config.Error_Token) = +COLON_ID and
@@ -1431,7 +1431,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       if Debug_Mode then
          raise;
       elsif Trace_McKenzie > Outline then
-         Shared_Parser.Trace.Put_Line ("Language_Fixes Handle_Parse_Error Bad_Config");
+         Tree.Lexer.Trace.Put_Line ("Language_Fixes Handle_Parse_Error Bad_Config");
       end if;
    end Handle_Parse_Error;
 
@@ -1446,8 +1446,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       Config            : in     Configuration)
    is begin
       if Trace_McKenzie > Extra then
-         Put ("Language_Fixes", Shared_Parser.Trace.all, Shared_Parser.Tree, Super.Stream (Parser_Index), Config);
-         Put_Line (Shared_Parser.Trace.all, Shared_Parser.Tree, Super.Stream (Parser_Index),
+         Put ("Language_Fixes", Shared_Parser.Tree, Super.Stream (Parser_Index), Config);
+         Put_Line (Shared_Parser.Tree, Super.Stream (Parser_Index),
                    "config stack: " & Image (Config.Stack, Shared_Parser.Tree));
       end if;
 

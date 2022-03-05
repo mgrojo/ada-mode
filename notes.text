@@ -50,6 +50,10 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+wisitoken now moves non_grammar from deleted tokens in error recover
+    edit wisi.adb Delete_Token to match; see fixme there
+
+
 replace gen_run_wisi_lr_parse parse_data_template with factory?
 
 (wisi-show-parse-error) should fetch errors from parser parse_context, not from elisp?

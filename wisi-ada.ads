@@ -80,9 +80,7 @@ package Wisi.Ada is
    is (new Parse_Data_Type);
 
    overriding
-   procedure Initialize
-     (Data  : in out Parse_Data_Type;
-      Trace : in     WisiToken.Trace_Access);
+   procedure Initialize (Data : in out Parse_Data_Type);
 
    overriding
    procedure Parse_Language_Params
