@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2014, 2017 - 2020 All Rights Reserved.
+--  Copyright (C) 2014, 2017 - 2020, 2022 All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,14 +20,18 @@ pragma License (GPL);
 
 with Emacs_Wisi_Common_Parse; use Emacs_Wisi_Common_Parse;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Text_IO_Trace;
 procedure Gen_Emacs_Wisi_LR_Parse
 is
+   Trace               : aliased WisiToken.Text_IO_Trace.Trace;
    Parse_Data_Template : aliased Parse_Data_Type;
 
    Params : constant Process_Start_Params := Get_Process_Start_Params;
 begin
    Process_Stream
      (Name, Language_Protocol_Version, Params,
-      (Descriptor, Create_Lexer, Create_Parse_Table, Partial_Parse_Active, Partial_Parse_Byte_Goal, Language_Fixes,
-       Language_Matching_Begin_Tokens, Language_String_ID_Set, Parse_Data_Template'Unchecked_Access));
+      (Descriptor, Create_Lexer (Trace'Unchecked_Access), Create_Parse_Table, Partial_Parse_Active,
+       Partial_Parse_Byte_Goal, Language_Fixes, Language_Matching_Begin_Tokens, Language_String_ID_Set,
+       Parse_Data_Template'Unchecked_Access),
+      Trace'Unchecked_Access);
 end Gen_Emacs_Wisi_LR_Parse;

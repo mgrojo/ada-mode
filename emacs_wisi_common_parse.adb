@@ -31,7 +31,6 @@ with System.Storage_Elements;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Syntax_Trees;
-with WisiToken.Text_IO_Trace;
 package body Emacs_Wisi_Common_Parse is
 
    procedure Usage (Name : in String)
@@ -44,8 +43,6 @@ package body Emacs_Wisi_Common_Parse is
       Put_Line ("commands are case sensitive");
       Put_Line ("See wisi-process-parse.el *--send-parse, *--send-noop for arguments.");
    end Usage;
-
-   Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
    Trace_Protocol : Natural := 0;
 
@@ -248,10 +245,11 @@ package body Emacs_Wisi_Common_Parse is
    end Get_Refactor_Params;
 
    procedure Process_Stream
-     (Name                      : in     String;
-      Language_Protocol_Version : in     String;
-      Params                    : in     Process_Start_Params;
-      Language                  : in     Wisi.Parse_Context.Language)
+     (Name                      : in String;
+      Language_Protocol_Version : in String;
+      Params                    : in Process_Start_Params;
+      Language                  : in Wisi.Parse_Context.Language;
+      Trace                     : in WisiToken.Trace_Access)
    is
       use Ada.Text_IO;
       use WisiToken; -- "+", "-" Unbounded_string
@@ -340,7 +338,7 @@ package body Emacs_Wisi_Common_Parse is
                end;
 
             elsif Match ("create-context") then
-               Wisi.Parse_Context.Create_No_Text (Wisi.Get_String (Command_Line, Last), Language, Trace'Access);
+               Wisi.Parse_Context.Create_No_Text (Wisi.Get_String (Command_Line, Last), Language, Trace);
 
             elsif Match ("kill-context") then
                Wisi.Parse_Context.Kill (File_Name => Wisi.Get_String (Command_Line, Last));
@@ -374,7 +372,7 @@ package body Emacs_Wisi_Common_Parse is
                --  Response:
                --  (message "memory ...)
                --  prompt
-               Report_Memory (Trace);
+               Report_Memory (Trace.all);
 
             elsif Match ("parse") then
                --  Args: see wisi-process-parse.el wisi-process-parse--send-parse,
@@ -392,7 +390,7 @@ package body Emacs_Wisi_Common_Parse is
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access :=
                     (case Params.Kind is
                      when Full | Partial => Wisi.Parse_Context.Find_Create
-                       (-Params.Source_File_Name, Language, Trace'Access),
+                       (-Params.Source_File_Name, Language, Trace),
                      when Incremental => Wisi.Parse_Context.Find
                        (-Params.Source_File_Name, Language, Have_Text => True));
 
@@ -414,7 +412,7 @@ package body Emacs_Wisi_Common_Parse is
                      Parser.Partial_Parse_Active.all    := Params.Partial_Parse_Active;
                      Parser.Partial_Parse_Byte_Goal.all := Buffer_Pos (Params.Goal_Byte_Pos);
 
-                     Parse_Data.Initialize (Trace'Access);
+                     Parse_Data.Initialize;
 
                      Parse_Data.Parse_Language_Params (-Params.Language_Params);
 
@@ -463,7 +461,7 @@ package body Emacs_Wisi_Common_Parse is
                      declare
                         KMN_List : Parse.KMN_Lists.List;
                      begin
-                        Wisi.Parse_Context.Edit_Source (Trace, Parse_Context.all, Params.Changes, KMN_List);
+                        Wisi.Parse_Context.Edit_Source (Trace.all, Parse_Context.all, Params.Changes, KMN_List);
 
                         if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
                            Parse_Context.Save_Text_Auto;
@@ -496,7 +494,7 @@ package body Emacs_Wisi_Common_Parse is
                   when Full =>
                      Parser.Partial_Parse_Active.all := False;
 
-                     Parse_Data.Initialize (Trace'Access);
+                     Parse_Data.Initialize;
 
                      Parse_Data.Parse_Language_Params (-Params.Language_Params);
 
@@ -692,7 +690,7 @@ package body Emacs_Wisi_Common_Parse is
 
                   --  We need "create" here for partial parse.
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find_Create
-                    (Source_File_Name, Language, Trace'Access);
+                    (Source_File_Name, Language, Trace);
                begin
                   Check_Command_Length (Command_Length, Last);
 

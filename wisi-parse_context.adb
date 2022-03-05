@@ -51,7 +51,6 @@ package body Wisi.Parse_Context is
             Text_Buffer_Char_Last             => 0,
             Parser                            => WisiToken.Parse.LR.Parser.Parser'
               (Ada.Finalization.Limited_Controlled with
-               Trace                          => Trace,
                User_Data                      => Wisi.New_User_Data (Language.Parse_Data_Template.all),
                Table                          => Language.Table,
                Language_Fixes                 => Language.Fixes,
@@ -135,7 +134,6 @@ package body Wisi.Parse_Context is
                Text_Buffer_Char_Last             => 0,
                Parser                            => WisiToken.Parse.LR.Parser.Parser'
                  (Ada.Finalization.Limited_Controlled with
-                  Trace                          => Trace,
                   User_Data                      => Wisi.New_User_Data (Language.Parse_Data_Template.all),
                   Table                          => Language.Table,
                   Language_Fixes                 => Language.Fixes,
@@ -186,12 +184,12 @@ package body Wisi.Parse_Context is
                end if;
                if Have_Text and (Result.Text_Buffer = null or else Result.Text_Buffer'Length = 0) then
                   if Trace_Incremental_Parse > Outline then
-                     Result.Parser.Trace.Put_Line ("parse_context found, but text buffer empty");
+                     Result.Parser.Tree.Lexer.Trace.Put_Line ("parse_context found, but text buffer empty");
                   end if;
                   raise Not_Found;
                end if;
                if Trace_Incremental_Parse > Outline then
-                  Result.Parser.Trace.Put_Line
+                  Result.Parser.Tree.Lexer.Trace.Put_Line
                     ("parse_context found" & (if Have_Text then " and text present" else ""));
                end if;
             end return;
@@ -775,7 +773,7 @@ package body Wisi.Parse_Context is
       --  nothing to do.
       Close (File);
 
-      Context.Parser.Trace.Put_Line ("text saved to '" & File_Name & "'");
+      Context.Parser.Tree.Lexer.Trace.Put_Line ("text saved to '" & File_Name & "'");
    end Save_Text;
 
    procedure Save_Text_Auto (Context : in out Parse_Context)
@@ -799,7 +797,7 @@ package body Wisi.Parse_Context is
       Log_File   : Ada.Text_IO.File_Type; -- for Parse recover log; unused
    begin
       Parser.Tree.Copy_Tree (Saved_Tree, Parser.User_Data);
-      Parse_Data.Initialize (Parse_Data.Trace);
+      Parse_Data.Initialize;
       Parse_Data.Reset;
       Parser.Tree.Lexer.Reset;
       Parser.Parse (Log_File);
@@ -815,7 +813,7 @@ package body Wisi.Parse_Context is
               ("", Saved_Tree, Parser.Tree,
                Shared_Stream         => False,
                Terminal_Node_Numbers => False);
-            Parse_Data.Trace.Put_Line ("compare tree/text pass");
+            Parser.Tree.Lexer.Trace.Put_Line ("compare tree/text pass");
          end if;
       end if;
    exception
@@ -828,12 +826,12 @@ package body Wisi.Parse_Context is
       begin
          Ada.Text_IO.Put_Line ("(error ""compare tree/text fail " & Failure.Message.all & """)");
          if WisiToken.Trace_Incremental_Parse > WisiToken.Outline then
-            Parse_Data.Trace.New_Line;
-            Parse_Data.Trace.Put_Line ("incremental tree:");
-            Saved_Tree.Print_Tree (Parse_Data.Trace.all, Line_Numbers => True, Non_Grammar => True);
-            Parse_Data.Trace.New_Line;
-            Parse_Data.Trace.Put_Line ("full tree:");
-            Parser.Tree.Print_Tree (Parse_Data.Trace.all, Line_Numbers => True, Non_Grammar => True);
+            Parser.Tree.Lexer.Trace.New_Line;
+            Parser.Tree.Lexer.Trace.Put_Line ("incremental tree:");
+            Saved_Tree.Print_Tree (Line_Numbers => True, Non_Grammar => True);
+            Parser.Tree.Lexer.Trace.New_Line;
+            Parser.Tree.Lexer.Trace.Put_Line ("full tree:");
+            Parser.Tree.Print_Tree (Line_Numbers => True, Non_Grammar => True);
          end if;
          Clear_Failures (T);
       end;

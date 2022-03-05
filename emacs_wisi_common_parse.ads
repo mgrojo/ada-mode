@@ -64,10 +64,11 @@ package Emacs_Wisi_Common_Parse is
    --  raising Finish.
 
    procedure Process_Stream
-     (Name                      : in     String;
-      Language_Protocol_Version : in     String;
-      Params                    : in     Process_Start_Params;
-      Language                  : in     Wisi.Parse_Context.Language);
+     (Name                      : in String;
+      Language_Protocol_Version : in String;
+      Params                    : in Process_Start_Params;
+      Language                  : in Wisi.Parse_Context.Language;
+      Trace                     : in WisiToken.Trace_Access);
 
    ----------
    --  Parse command

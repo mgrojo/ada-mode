@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2020 All Rights Reserved.
+--  Copyright (C) 2017 - 2020, 2022 All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,13 +18,34 @@
 
 pragma License (GPL);
 
+with GNATCOLL.Memory;
 with Run_Wisi_Common_Parse;
+with WisiToken.Text_IO_Trace;
 procedure Gen_Run_Wisi_LR_Parse
 is
+   Trace               : aliased WisiToken.Text_IO_Trace.Trace;
    Parse_Data_Template : aliased Parse_Data_Type;
 begin
-   Run_Wisi_Common_Parse.Parse_File
-     ((Descriptor, Create_Lexer, Create_Parse_Table, Partial_Parse_Active, Partial_Parse_Byte_Goal,
-       Language_Fixes, Language_Matching_Begin_Tokens, Language_String_ID_Set, Parse_Data_Template'Unchecked_Access));
+   --  FIXME: report memory during lexer, parser create
+   --  WisiToken.Trace_Memory            := 1;
+   --  WisiToken.Trace_Incremental_Parse := 1;
+   GNATCOLL.Memory.Configure
+     (Activate_Monitor      => True,
+      Stack_Trace_Depth     => 0,
+      Reset_Content_On_Free => False);
 
+   declare
+      Lexer : constant WisiToken.Lexer.Handle := Create_Lexer (Trace'Unchecked_Access);
+      --  No point in reporting lexer memory; it's very small
+      Parse_Table : constant WisiToken.Parse.LR.Parse_Table_Ptr := Create_Parse_Table;
+   begin
+      Trace.Put_Line ("parse table created");
+      WisiToken.Report_Memory (Trace);
+
+      Run_Wisi_Common_Parse.Parse_File
+        ((Descriptor, Lexer, Parse_Table, Partial_Parse_Active, Partial_Parse_Byte_Goal,
+          Language_Fixes, Language_Matching_Begin_Tokens, Language_String_ID_Set,
+          Parse_Data_Template'Unchecked_Access),
+         Trace'Unchecked_Access);
+   end;
 end Gen_Run_Wisi_LR_Parse;

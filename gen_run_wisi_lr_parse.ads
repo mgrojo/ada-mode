@@ -4,7 +4,7 @@
 --
 --  See gen_emacs_wisi_lr_parse.ads for the Emacs background process.
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -33,7 +33,7 @@ generic
    Language_Matching_Begin_Tokens : in WisiToken.Parse.LR.Parser.Language_Matching_Begin_Tokens_Access;
    Language_String_ID_Set         : in WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
 
-   with function Create_Lexer return WisiToken.Lexer.Handle;
+   with function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;
    with function Create_Parse_Table return WisiToken.Parse.LR.Parse_Table_Ptr;
 
 procedure Gen_Run_Wisi_LR_Parse;

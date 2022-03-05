@@ -2,7 +2,7 @@
 --
 --  Common utilities for Gen_Run_Wisi_*_Parse
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,7 +23,7 @@ with WisiToken;
 with Wisi.Parse_Context;
 package Run_Wisi_Common_Parse is
 
-   procedure Parse_File (Language : in Wisi.Parse_Context.Language);
+   procedure Parse_File (Language : in Wisi.Parse_Context.Language; Trace : in WisiToken.Trace_Access);
    --  Reads command line, processes command(s).
 
 end Run_Wisi_Common_Parse;

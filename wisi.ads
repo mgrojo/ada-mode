@@ -88,9 +88,8 @@ package Wisi is
    type Parse_Data_Type is abstract new WisiToken.Syntax_Trees.User_Data_Type with private;
    type Parse_Data_Access is access all Parse_Data_Type'Class;
 
-   procedure Initialize
-     (Data  : in out Parse_Data_Type;
-      Trace : in     WisiToken.Trace_Access);
+   procedure Initialize (Data : in out Parse_Data_Type)
+   is null;
    --  Initialize Data before parse.
    --
    --  User should later call Reset_Post_Parse before any post_parse
@@ -131,14 +130,12 @@ package Wisi is
    procedure Delete_Token
      (User_Data     : in out Parse_Data_Type;
       Tree          : in     WisiToken.Syntax_Trees.Tree'Class;
-      Trace         : in out WisiToken.Trace'Class;
       Deleted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access);
 
    overriding
    procedure Insert_Token
      (Data           : in out Parse_Data_Type;
       Tree           : in out WisiToken.Syntax_Trees.Tree'Class;
-      Trace          : in out WisiToken.Trace'Class;
       Inserted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access);
 
    type Navigate_Class_Type is (Motion, Statement_End, Statement_Override, Statement_Start, Misc);
@@ -577,8 +574,6 @@ private
 
    type Parse_Data_Type is abstract new WisiToken.Syntax_Trees.User_Data_Type with
    record
-      Trace : WisiToken.Trace_Access;
-
       --  Aux token info
       First_Comment_ID : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
       Last_Comment_ID  : WisiToken.Token_ID := WisiToken.Invalid_Token_ID;
