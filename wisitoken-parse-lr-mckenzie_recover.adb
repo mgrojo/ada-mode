@@ -1518,9 +1518,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                --
                --  Push_Back/Undo_Reduce into a Fast_Forward region is ok, but not
                --  all of a Fast_Forward; that would just repeat the same ops.
-               --
-               --  FF_Token_Index is at the end of the Fast_Forward region; we need
-               --  to see the next op to find the beginning.
                Fast_Forward_Seen        := True;
                Fast_Forward_First_Index := Op.FF_First_Index;
 
