@@ -880,95 +880,6 @@ package body Wisi is
    end Initialize_Actions;
 
    overriding
-   procedure Delete_Token
-     (User_Data     : in out Parse_Data_Type;
-      Tree          : in     Syntax_Trees.Tree'Class;
-      Deleted_Token : in     Syntax_Trees.Valid_Node_Access)
-   is
-      pragma Unreferenced (User_Data);
-      use Syntax_Trees;
-      Prev_Token : constant Valid_Node_Access := Tree.Parent (Deleted_Token);
-   begin
-      if Trace_Action > WisiToken.Outline then
-         Tree.Lexer.Trace.Put_Line
-           ("delete token " & Tree.Image (Deleted_Token, Node_Numbers => True, Non_Grammar => True));
-      end if;
-
-      if Tree.Has_Non_Grammar (Prev_Token) then
-         --  Prev_Token.Non_Grammar holds all the non_grammar from
-         --  all the deleted tokens in Prev_Token.Following_Deleted.
-         --  Move some of them to later tokens.
-         --
-         --  Insert_Token may have moved some Non_Grammar from
-         --  Prev_Token to a virtual terminal inserted after that
-         --  token; ada_mode-recover_29.adb.
-         --
-         --  IMPROVEME: This code is repeated for each token in
-         --  Prev_Token.Non_Grammar; record that we've already processed it
-         --  after the first time.
-         declare
-            use all type SAL.Base_Peek_Type;
-
-            Moving_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var (Prev_Token);
-            pragma Assert
-              (Moving_Non_Grammar (Moving_Non_Grammar.First_Index).Byte_Region.First >
-               Tree.Byte_Region (Prev_Token).Last);
-
-            Next_Token  : Node_Access        := Tree.Next_Terminal (Prev_Token);
-            pragma Unreferenced (Next_Token);
-            First_Moved : SAL.Base_Peek_Type := Moving_Non_Grammar.First_Index - 1;
-            pragma Unreferenced (First_Moved);
-            Last_Moved  : SAL.Base_Peek_Type := Moving_Non_Grammar.First_Index - 2;
-            pragma Unreferenced (Last_Moved);
-         begin
-            --  FIXME: groups of non_grammar may be moved to different following
-            --  tokens. Find first group, move it, then find next group, etc.
-            raise SAL.Not_Implemented;
-            --  loop
-            --     case Terminal_Label'(Tree.Label (Next_Token)) is
-            --     when Source_Terminal =>
-            --        exit;
-
-            --     when Virtual_Terminal_Label =>
-            --        if Tree.Has_Non_Grammar (Next_Token) then
-            --           declare
-            --              Next_Non_Grammar : Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Var (Next_Token);
-            --              Next_Region      : constant Buffer_Region :=
-            --                (First => Next_Non_Grammar (Next_Non_Grammar.First_Index).Byte_Region.First,
-            --                 Last  => Next_Non_Grammar (Next_Non_Grammar.Last_Index).Byte_Region.Last);
-            --           begin
-            --              if Moving_Region.First > Next_Region.Last then
-            --                 Prev_Token := Next_Token;
-            --                 Next_Token := Tree.Next_Terminal (Next_Token);
-
-            --              elsif Moving_Region.Last < Next_Region.First then
-            --                 --  Move to Prev_Token
-            --                 exit;
-
-            --              else
-            --                 --  regions overlap
-            --                 raise SAL.Not_Implemented with "wisi.adb Delete_Token non_grammar regions overlap";
-            --              end if;
-            --           end;
-            --        else
-            --           Next_Token := Tree.Next_Terminal (Next_Token);
-            --        end if;
-
-            --        exit when Next_Token = Invalid_Node_Access;
-            --     end case;
-            --  end loop;
-            --  Tree.Non_Grammar_Var (Prev_Token).Append (Moving_Non_Grammar);
-            --  Moving_Non_Grammar.Clear;
-         end;
-
-         --  if Trace_Action > WisiToken.Outline then
-         --     Trace.Put_Line
-         --       (" ... move non_grammar to " & Tree.Image (Prev_Token, Node_Numbers => True, Non_Grammar => True));
-         --  end if;
-      end if;
-   end Delete_Token;
-
-   overriding
    procedure Insert_Token
      (Data           : in out Parse_Data_Type;
       Tree           : in out Syntax_Trees.Tree'Class;
@@ -990,7 +901,7 @@ package body Wisi is
             use all type Ada.Containers.Count_Type;
             use all type SAL.Base_Peek_Type;
 
-            --  See test/ada_mode-interactive_2.adb, "Typing ..."; three tests.
+            --  See ada_mode-interactive_02.adb, "Typing ..."; three tests.
             --
             --  When typing new code, we want a new blank line to be indented as
             --  if the code was there already. To accomplish that, we put the

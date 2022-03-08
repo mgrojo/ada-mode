@@ -127,12 +127,6 @@ package Wisi is
       Tree : in     WisiToken.Syntax_Trees.Tree'Class);
 
    overriding
-   procedure Delete_Token
-     (User_Data     : in out Parse_Data_Type;
-      Tree          : in     WisiToken.Syntax_Trees.Tree'Class;
-      Deleted_Token : in     WisiToken.Syntax_Trees.Valid_Node_Access);
-
-   overriding
    procedure Insert_Token
      (Data           : in out Parse_Data_Type;
       Tree           : in out WisiToken.Syntax_Trees.Tree'Class;
