@@ -174,63 +174,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       raise Invalid_Case;
    end Left_Breakdown;
 
-   function Delete_Current_Applies
-     (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
-      Config        : in     Configuration)
-     return Boolean
-   is
-      use Syntax_Trees;
-   begin
-      if Config.Current_Shared_Token = Invalid_Stream_Node_Ref then
-         --  Happens with really bad syntax; see test_mckenzie_recover.adb Error_4.
-         return False;
-      end if;
-
-      declare
-         Next_Node : constant Node_Access := Peek_Current_First_Sequential_Terminal
-           (Super, Shared_Parser, Config, Following_Element => False);
-      begin
-         return Next_Node /= Invalid_Node_Access and then
-           Config.Current_Insert_Delete /= No_Insert_Delete and then
-           Token_Index (Recover_Op_Array_Refs.Constant_Ref (Config.Insert_Delete, Config.Current_Insert_Delete)) =
-           Shared_Parser.Tree.Get_Sequential_Index (Next_Node);
-      end;
-   end Delete_Current_Applies;
-
-   function Peek_Current_Token_ID
-     (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
-      Config        : in     Configuration)
-     return Token_ID
-   is
-      Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
-   begin
-      if Config.Current_Insert_Delete /= No_Insert_Delete and then
-        (declare
-            Next_Shared_Node : constant Syntax_Trees.Valid_Node_Access :=
-              Peek_Current_First_Sequential_Terminal (Super, Shared_Parser, Config);
-         begin
-            Token_Index (Recover_Op_Array_Refs.Constant_Ref (Config.Insert_Delete, Config.Current_Insert_Delete)) =
-              Tree.Get_Sequential_Index (Next_Shared_Node))
-      then
-         declare
-            Op : Insert_Delete_Op renames Recover_Op_Array_Refs.Constant_Ref
-              (Config.Insert_Delete, Config.Current_Insert_Delete);
-         begin
-            case Insert_Delete_Op_Label (Op.Op) is
-            when Insert =>
-               return ID (Op);
-
-            when Delete =>
-               raise SAL.Programmer_Error; --  Precondition ensures this cannot happen.
-            end case;
-         end;
-      else
-         return Tree.ID (Peek_Current_Element_Node (Tree, Config));
-      end if;
-   end Peek_Current_Token_ID;
-
    procedure Current_Token_ID_Peek_3
      (Super         :         in out Base.Supervisor;
       Shared_Parser :         in out LR.Parser.Parser;
@@ -344,38 +287,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    end Peek_Current_First_Terminal;
 
    function Peek_Current_First_Sequential_Terminal
-     (Super             : in out Base.Supervisor;
-      Shared_Parser     : in out LR.Parser.Parser;
-      Config            : in     Configuration;
-      Following_Element : in     Boolean := True)
-     return Syntax_Trees.Node_Access
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in     Configuration)
+     return Syntax_Trees.Valid_Node_Access
    is
-      use Bounded_Streams;
       use Syntax_Trees;
-      Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
-
+      Result : constant Valid_Node_Access := Peek_Current_First_Terminal (Shared_Parser.Tree, Config);
    begin
-      if Config.Input_Stream.First /= No_Element then
-         declare
-            Ref : Config_Stream_Parents (Config.Input_Stream'Access);
-         begin
-            First_Sequential_Terminal (Super, Shared_Parser, Ref);
-            if Ref.Node /= Invalid_Node_Access then
-               return Ref.Node;
-            end if;
-         end;
-      end if;
-
-      if Config.Current_Shared_Token.Node = Invalid_Node_Access and Following_Element then
-         declare
-            Temp : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
-         begin
-            Tree.Next_Sequential_Terminal (Temp);
-            return Temp.Ref.Node;
-         end;
-      else
-         return Config.Current_Shared_Token.Node;
-      end if;
+      Super.Extend_Sequential_Index (Shared_Parser, Thru => Result, Positive => True);
+      return Result;
    end Peek_Current_First_Sequential_Terminal;
 
    procedure First_Sequential_Terminal

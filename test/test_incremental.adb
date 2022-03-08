@@ -1797,6 +1797,23 @@ package body Test_Incremental is
          Incr_Errors    => 3);
    end Edit_String_10;
 
+   procedure Edit_String_11 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Used to get "error in resume"
+
+      Parse_Text
+        ("procedure Ada_Mode.Recover_String_Quote_5 is begin Test_One; end Ada_Mode.Recover_String_Quote_5;" &
+           --  |6  |10       |20       |30       |40       |50       |60       |70       |80
+           ASCII.LF,
+         Edit_At        => 80,
+         Delete         => "",
+         Insert         => """",
+         Initial_Errors => 0,
+         Incr_Errors    => 2);
+   end Edit_String_11;
+
    ----------
    --  Public subprograms
 
@@ -1875,6 +1892,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_String_08'Access, "Edit_String_08");
       Register_Routine (T, Edit_String_09'Access, "Edit_String_09");
       Register_Routine (T, Edit_String_10'Access, "Edit_String_10");
+      Register_Routine (T, Edit_String_11'Access, "Edit_String_11");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

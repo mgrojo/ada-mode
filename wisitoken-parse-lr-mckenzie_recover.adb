@@ -442,7 +442,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                    (Parser_State.Stream).Node;
                               begin
                                  if Stack_Matches_Ops then
-                                    if Op.FF_Token_Index = Tree.Get_Sequential_Index
+                                    if Op.FF_Next_Index = Tree.Get_Sequential_Index
                                       (Tree.First_Sequential_Terminal (Current_Token_Node))
                                     then
                                        --  Fast_Forward is a noop. test_mckenzie_recover String_Quote_5.
@@ -459,7 +459,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                                 Tree.First_Sequential_Terminal (Target);
                                                 loop
                                                    exit when Tree.Get_Sequential_Index (Target.Ref.Node) =
-                                                     Op.FF_Token_Index;
+                                                     Op.FF_Next_Index;
                                                    Tree.Next_Sequential_Terminal (Target);
                                                 end loop;
                                              end Find_FF_Target;
@@ -844,11 +844,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Config        : in out Configuration;
       ID            : in     Token_ID)
    is
-      Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Terminal (Shared_Parser.Tree, Config);
+      Node : constant Syntax_Trees.Valid_Node_Access := Parse.Peek_Current_First_Terminal (Shared_Parser.Tree, Config);
    begin
-      if Node = Syntax_Trees.Invalid_Node_Access then
-         raise Bad_Config;
-      end if;
       Delete_Check (Super, Shared_Parser, Config, Node, ID);
    end Delete_Check;
 
@@ -1486,19 +1483,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          then Invalid_Sequential_Index
          else Tree.Get_Sequential_Index (Target_Node));
 
-      Fast_Forward_Seen : Boolean := False;
+      Fast_Forward_Seen        : Boolean               := False;
+      Fast_Forward_First_Index : Base_Sequential_Index := Invalid_Sequential_Index;
 
-      function Check_Insert_Delete (Op_Index : in Sequential_Index) return Boolean
+      function Check_Insert_Delete return Boolean
       is begin
-         --  test_mckenzie_Recover Push_Back_2 requires no '=' here, consistent
-         --  with the comments below. However, we allow Language_Fixes (which
-         --  sets Push_Back_Undo_Reduce) to insert more ops at a previous error
-         --  location.
-         return Fast_Forward_Seen and
+         return Fast_Forward_Seen and then
            (Target_Index = Invalid_Sequential_Index or
               (if Push_Back_Undo_Reduce
-               then Target_Index >= Op_Index
-               else Target_Index > Op_Index));
+               then True
+               --  allow Language_Fixes (which sets Push_Back_Undo_Reduce) to insert
+               --  more ops at a previous error location.
+               else Target_Index > Fast_Forward_First_Index
+               --  test_mckenzie_recover.adb Push_Back_2, String_Quote_7
+              ));
       end Check_Insert_Delete;
 
    begin
@@ -1523,7 +1521,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                --
                --  FF_Token_Index is at the end of the Fast_Forward region; we need
                --  to see the next op to find the beginning.
-               Fast_Forward_Seen := True;
+               Fast_Forward_Seen        := True;
+               Fast_Forward_First_Index := Op.FF_First_Index;
 
             when Undo_Reduce =>
                --  We allow mixing push_back and undo_reduce in any order, so we can
@@ -1606,10 +1605,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                end if;
 
             when Insert =>
-               return Check_Insert_Delete (Op.Ins_Before);
+               return Check_Insert_Delete;
 
             when Delete =>
-               return Check_Insert_Delete (Op.Del_Token_Index);
+               return Check_Insert_Delete;
             end case;
          end;
       end loop;
@@ -1642,7 +1641,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
            --  Push_Back needs a terminal node or an empty nonterm.
            --  ada_mode-recover_38.adb partial parse,
            --  ada_mode-recover_indent_3.adb partial parse.
-           (not Token.Virtual or
+           (not Token.Virtual or else
               (Token.Virtual and then
                  ((Is_Terminal (Token.ID, Tree.Lexer.Descriptor.all) and
                     Token.First_Terminal /= Invalid_Node_Access) or

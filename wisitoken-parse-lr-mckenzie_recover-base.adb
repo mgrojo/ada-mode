@@ -57,28 +57,71 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          end loop;
       end;
 
-      --  Set Sequential_Index
+      --  Set Sequential_Index. Ensure that all of the error node in each
+      --  parser is indexed (ada_mode-recover_incremental_02.adb). After
+      --  that, Push_Back extends towards SOI, and everything else towards
+      --  EOI.
       declare
-         Streams : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Parsers.Count);
+         use Syntax_Trees;
+         Streams     : Stream_ID_Array (1 .. Shared_Parser.Parsers.Count);
+         First_Nodes : Valid_Node_Access_Array (1 .. Super.Parser_Count) := (others => Dummy_Node);
+         Last_Nodes  : Valid_Node_Access_Array (1 .. Super.Parser_Count) := (others => Dummy_Node);
+
+         Min_Target : Sequential_Index := Default_Negative_Sequential_Index;
+         Max_Target : Sequential_Index := Default_Positive_Sequential_Index;
+         Done       : Boolean          := True;
       begin
+         for I in Last_Nodes'Range loop
+            pragma Assert
+              (not Tree.Is_Empty_Nonterm (Tree.Current_Token (Super.Parser_Status (I).Parser_State.Stream).Node));
+
+            First_Nodes (I) := Tree.First_Terminal
+              (Tree.Current_Token (Super.Parser_Status (I).Parser_State.Stream).Node);
+
+            Last_Nodes (I) := Tree.Last_Terminal
+              (Tree.Current_Token (Super.Parser_Status (I).Parser_State.Stream).Node);
+         end loop;
+
          Set_Initial_Sequential_Index
            (Shared_Parser.Parsers, Tree, Streams, Super.Max_Sequential_Indices, Initialize => True);
 
          Super.Min_Sequential_Indices := Super.Max_Sequential_Indices;
 
-         Extend_Sequential_Index
-           (Tree, Streams, Super.Max_Sequential_Indices,
-            Target   => Default_Positive_Sequential_Index,
-            Positive => True,
-            Clear    => False);
+         loop
+            if (for some Term of Super.Max_Sequential_Indices =>
+                  Tree.ID (Term.Ref.Node) /= Tree.Lexer.Descriptor.EOI_ID)
+            then
+               Extend_Sequential_Index
+                 (Tree, Streams, Super.Max_Sequential_Indices,
+                  Target   => Max_Target,
+                  Positive => True,
+                  Clear    => False);
+            end if;
 
-         if Tree.ID (Super.Min_Sequential_Indices (1).Ref.Node) /= Tree.Lexer.Descriptor.SOI_ID then
-            Extend_Sequential_Index
-              (Tree, Streams, Super.Min_Sequential_Indices,
-               Target   => Default_Negative_Sequential_Index,
-               Positive => False,
-               Clear    => False);
-         end if;
+            if (for some Term of Super.Min_Sequential_Indices =>
+                  Tree.ID (Term.Ref.Node) /= Tree.Lexer.Descriptor.SOI_ID)
+            then
+               Extend_Sequential_Index
+                 (Tree, Streams, Super.Min_Sequential_Indices,
+                  Target   => Min_Target,
+                  Positive => False,
+                  Clear    => False);
+            end if;
+
+            if (for some Node of First_Nodes => Tree.Get_Sequential_Index (Node) = Invalid_Sequential_Index) then
+               Done := False;
+               Min_Target := 2 * @;
+            end if;
+
+            if (for some Node of Last_Nodes  => Tree.Get_Sequential_Index (Node) = Invalid_Sequential_Index) then
+               Done := False;
+               Max_Target := 2 * @;
+            end if;
+
+            exit when Done;
+
+            Done := True;
+         end loop;
       end;
    end Initialize;
 

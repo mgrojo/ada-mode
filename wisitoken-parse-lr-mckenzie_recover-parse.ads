@@ -30,24 +30,6 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
      return In_Parse_Actions.Status;
    --  Reduce Stack according to Action, setting Nonterm.
 
-   function Delete_Current_Applies
-     (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
-      Config        : in     Configuration)
-     return Boolean;
-   --  True if Config has a Delete op that applies to the current token.
-
-   function Peek_Current_Token_ID
-     (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
-      Config        : in     Configuration)
-     return Token_ID
-   with Pre => not Delete_Current_Applies (Super, Shared_Parser, Config);
-   --  Return ID of Config current token. In incremental parse, this may
-   --  be a nonterminal.
-   --
-   --  In Parse because it has similar code to Current_Token.
-
    procedure Current_Token_ID_Peek_3
      (Super         :         in out Base.Supervisor;
       Shared_Parser :         in out LR.Parser.Parser;
@@ -75,16 +57,12 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  First_Terminal from Shared_Stream starting at Config.Shared_Token, or Config.Input_Stream.
 
    function Peek_Current_First_Sequential_Terminal
-     (Super             : in out Base.Supervisor;
-      Shared_Parser     : in out LR.Parser.Parser;
-      Config            : in     Configuration;
-      Following_Element : in     Boolean := True)
-     return Syntax_Trees.Node_Access;
-   --  First_Sequential_Terminal from Config.Input_Stream,
-   --  Config.Shared_Token or, if Following_Element, a following stream
-   --  element.
-   --
-   --  Caller must ensure there is such a terminal.
+     (Super         : in out Base.Supervisor;
+      Shared_Parser : in out LR.Parser.Parser;
+      Config        : in     Configuration)
+     return Syntax_Trees.Valid_Node_Access;
+   --  Calls Peek_Current_First_Terminal, then
+   --  Super.Extend_Sequential_Index on the result.
 
    function First_Terminal
      (Tree   : in Syntax_Trees.Tree;

@@ -227,6 +227,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                         Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Tree));
                      end if;
                   end if;
+               exception
+               when Invalid_Case =>
+                  null;
                end;
             end if;
          end;
@@ -300,6 +303,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                end if;
             end if;
             Local_Config_Heap.Add (New_Config);
+         exception
+         when Invalid_Case =>
+            null;
          end;
 
          --  Handle case 1
@@ -350,6 +356,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   end if;
                end if;
                Local_Config_Heap.Add (New_Config);
+            exception
+            when Invalid_Case =>
+               null;
             end;
 
          else
@@ -384,6 +393,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   end if;
                end if;
                Local_Config_Heap.Add (New_Config);
+            exception
+            when Invalid_Case =>
+               null;
             end;
          end if;
 
@@ -477,6 +489,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                      end if;
                   end if;
                   Local_Config_Heap.Add (New_Config);
+               exception
+               when Invalid_Case =>
+                  null;
                end;
 
             else
@@ -494,9 +509,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   Push_Back_Check
                     (Super, Shared_Parser, New_Config,
                      (+SEMICOLON_ID,
-                     (if Tree.Element_ID (Config.Error_Token) = +block_statement_ID
-                      then +identifier_opt_ID
-                      else +name_opt_ID),
+                      (if Tree.Element_ID (Config.Error_Token) = +block_statement_ID
+                       then +identifier_opt_ID
+                       else +name_opt_ID),
                       +END_ID),
                      Push_Back_Undo_Reduce => True);
 
@@ -513,13 +528,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                           New_Config);
                   end if;
                   Local_Config_Heap.Add (New_Config);
+               exception
+               when Invalid_Case =>
+                  null;
                end;
             end if;
          end;
       end case;
-   exception
-   when Bad_Config =>
-      null;
    end Handle_In_Parse_Action_Fail;
 
    procedure Handle_Parse_Error
@@ -630,6 +645,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                        New_Config_1);
                end if;
                Local_Config_Heap.Add (New_Config_1);
+            exception
+            when Invalid_Case =>
+               null;
             end;
          end if;
 
@@ -689,16 +707,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                      Put ("Language_Fixes " & Label, New_Config);
                   end if;
                exception
-               when Bad_Config =>
+               when Invalid_Case =>
                   null;
                end;
             end if;
          end;
 
       end if;
-   exception
-   when Bad_Config =>
-      null;
    end Handle_Parse_Error;
 
    ----------

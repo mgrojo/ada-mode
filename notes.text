@@ -31,10 +31,7 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-move Trace from Parser to Lexer
-    use in Lexer.Find_Next
-    no separate param in tree operations
-    see FIXME: in Syntax_Tree.Add_Deleted
+debug build should always run t_mck with debug=1; catch bad_config
 
 change wisi.adb Delete_Token to match.
 

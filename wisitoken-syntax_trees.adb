@@ -3864,8 +3864,8 @@ package body WisiToken.Syntax_Trees is
    end Has_Errors;
 
    function Has_Following_Deleted
-     (Tree : in out Syntax_Trees.Tree;
-      Node : in     Valid_Node_Access)
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access)
      return Boolean
    is begin
       return Node.Following_Deleted.Length > 0;

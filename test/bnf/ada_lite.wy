@@ -550,9 +550,14 @@ relational_operator
   ;
 
 selected_component
-  : name DOT IDENTIFIER
+  : name DOT selector_name
     %()%
     %(return Merge_Names (Tree, Nonterm, Tokens, 1, 3);)%
+  ;
+
+selector_name
+  : IDENTIFIER
+  | STRING_LITERAL
   ;
 
 sequence_of_statements

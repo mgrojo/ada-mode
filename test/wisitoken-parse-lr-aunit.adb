@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2022 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -169,7 +169,8 @@ package body WisiToken.Parse.LR.AUnit is
       Check (Label & ".op", Computed.Op, Expected.Op);
       case Computed.Op is
       when Fast_Forward =>
-         Check (Label & ".token_index", Computed.FF_Token_Index, Expected.FF_Token_Index);
+         Check (Label & ".FF_First_index", Computed.FF_First_Index, Expected.FF_First_Index);
+         Check (Label & ".FF_Next_index", Computed.FF_Next_Index, Expected.FF_Next_Index);
 
       when Undo_Reduce =>
          Check (Label & ".nonterm", Computed.Nonterm, Expected.Nonterm);

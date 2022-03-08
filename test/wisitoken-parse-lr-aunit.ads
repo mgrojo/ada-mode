@@ -2,7 +2,7 @@
 --
 --  AUnit checks for parent
 --
---  Copyright (C) 2017 - 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2022 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -73,7 +73,8 @@ package WisiToken.Parse.LR.AUnit is
 
       case Op is
       when Fast_Forward =>
-         FF_Token_Index : Syntax_Trees.Sequential_Index;
+         FF_First_Index : Syntax_Trees.Sequential_Index;
+         FF_Next_Index  : Syntax_Trees.Sequential_Index;
 
       when Undo_Reduce =>
          Nonterm        : Token_ID;
@@ -95,7 +96,7 @@ package WisiToken.Parse.LR.AUnit is
    end record;
 
    package Test_Recover_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Test_Recover_Op, Default_Element => (Fast_Forward, 0), Capacity => 80);
+     (Positive_Index_Type, Test_Recover_Op, Default_Element => (Fast_Forward, 0, 0), Capacity => 80);
 
    procedure Check
      (Label    : in String;

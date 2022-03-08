@@ -938,6 +938,8 @@ package body WisiToken.Parse.LR.Parser is
       use WisiToken.Syntax_Trees;
       use all type Ada.Containers.Count_Type;
       Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
+
+      Last_Deleted_Node_Parent : Node_Access;
    begin
       --  We need parents set in the following code.
       Parser.Tree.Clear_Parse_Streams;
@@ -974,7 +976,10 @@ package body WisiToken.Parse.LR.Parser is
                --  shared stream, so we can clear them.
                Parser.Tree.Non_Grammar_Var (Op.Del_Node).Clear;
 
-               Parser.User_Data.Delete_Token (Parser.Tree, Deleted_Token => Op.Del_Node);
+               if Parser.Tree.Parent (Op.Del_Node) /= Last_Deleted_Node_Parent then
+                  Last_Deleted_Node_Parent := Parser.Tree.Parent (Op.Del_Node);
+                  Parser.User_Data.Delete_Tokens (Parser.Tree, Last_Deleted_Node_Parent);
+               end if;
             end case;
          end loop;
       end if;

@@ -59,8 +59,16 @@ package WisiToken.Parse is
 
       case Op is
       when Fast_Forward =>
-         FF_Token_Index : Syntax_Trees.Sequential_Index;
-         --  Config current_token after the operation is done.
+         FF_First_Index : Syntax_Trees.Sequential_Index;
+         --  First token in fast forward region
+
+         FF_Next_Index : Syntax_Trees.Sequential_Index;
+         --  Config current_token after the operation is done; next after the
+         --  last token in the fast forward region.
+         --
+         --  If FF_First_Index = FF_Next_Index, no tokens were actually parsed
+         --  for the fast_forward; it is just a marker to allow error recovery
+         --  to reset op order restrictions.
 
       when Undo_Reduce =>
          Nonterm : Token_ID;
@@ -114,7 +122,7 @@ package WisiToken.Parse is
 
    package Recover_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
      (Positive_Index_Type, Recover_Op, Default_Element =>
-        (Fast_Forward, Syntax_Trees.Sequential_Index'First), Capacity => 80);
+        (Fast_Forward, Syntax_Trees.Sequential_Index'Last, Syntax_Trees.Sequential_Index'First), Capacity => 80);
    --  Using a fixed size vector significantly speeds up
    --  McKenzie_Recover. The capacity is determined by the maximum number
    --  of repair operations, which is limited by the cost_limit McKenzie
@@ -128,7 +136,8 @@ package WisiToken.Parse is
    function Recover_Op_Image (Item : in Recover_Op; Descriptor : in WisiToken.Descriptor) return String
    is ("(" & Image (Item.Op) & ", " &
          (case Item.Op is
-          when Fast_Forward => Syntax_Trees.Trimmed_Image (Item.FF_Token_Index),
+          when Fast_Forward => Syntax_Trees.Trimmed_Image (Item.FF_First_Index) & ", " &
+            Syntax_Trees.Trimmed_Image (Item.FF_Next_Index),
           when Undo_Reduce  => Image (Item.Nonterm, Descriptor) & "," &
             Item.Token_Count'Image & ", " & Syntax_Trees.Trimmed_Image (Item.UR_Token_Index),
           when Push_Back    => Image (Item.PB_ID, Descriptor) & ", " & Syntax_Trees.Trimmed_Image (Item.PB_Token_Index),

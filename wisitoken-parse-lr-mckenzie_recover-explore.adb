@@ -233,7 +233,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    begin
       return Shared.Tree.Get_Sequential_Index (Term) =
         (case Op.Op is
-         when Fast_Forward => Op.FF_Token_Index,
+         when Fast_Forward => Op.FF_Next_Index,
          when Undo_Reduce  => Op.UR_Token_Index,
          when Push_Back    => Op.PB_Token_Index,
          when Insert       => Op.Ins_Before,
@@ -255,6 +255,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       use Recover_Op_Arrays;
 
       Parse_Items : aliased Parse.Parse_Item_Arrays.Vector;
+
+      First_Node : constant Syntax_Trees.Valid_Node_Access := Parse.Peek_Current_First_Sequential_Terminal
+        (Super, Shared, Config);
 
       Dummy : Boolean := Parse.Parse
         (Super, Shared, Parser_Index, Parse_Items, Config,
@@ -284,11 +287,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      raise Bad_Config;
                   else
                      declare
-                        Node : constant Syntax_Trees.Valid_Node_Access := Parse.Peek_Current_First_Terminal
-                          (Shared.Tree, Item.Config);
+                        Next_Node : constant Syntax_Trees.Valid_Node_Access :=
+                          Parse.Peek_Current_First_Sequential_Terminal (Super, Shared, Item.Config);
                      begin
-                        Super.Extend_Sequential_Index (Shared, Thru => Node, Positive => True);
-                        Append (Item.Config.Ops, (Fast_Forward, Shared.Tree.Get_Sequential_Index (Node)));
+                        Super.Extend_Sequential_Index (Shared, Thru => Next_Node, Positive => True);
+
+                        Append
+                          (Item.Config.Ops,
+                           (Fast_Forward,
+                            FF_First_Index => Shared.Tree.Get_Sequential_Index (First_Node),
+                            FF_Next_Index  => Shared.Tree.Get_Sequential_Index (Next_Node)));
                      end;
                   end if;
                end if;
@@ -325,6 +333,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       use Parse.Parse_Item_Arrays;
       use all type In_Parse_Actions.Status_Label;
 
+      First_Node : constant Syntax_Trees.Valid_Node_Access := Parse.Peek_Current_First_Sequential_Terminal
+        (Super, Shared, Config);
+
       Parse_Items : aliased Parse.Parse_Item_Arrays.Vector;
 
       procedure Enqueue (Item : in out Parse.Parse_Item)
@@ -338,7 +349,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
            Constant_Ref (Item.Config.Ops, Last_Index (Item.Config.Ops)).Op = Fast_Forward
          then
             --  Update the trailing Fast_Forward.
-            Variable_Ref (Item.Config.Ops, Last_Index (Item.Config.Ops)).FF_Token_Index :=
+            Variable_Ref (Item.Config.Ops, Last_Index (Item.Config.Ops)).FF_Next_Index :=
               Shared.Tree.Get_Sequential_Index
                 (Parse.Peek_Current_First_Sequential_Terminal (Super, Shared, Item.Config));
          else
@@ -347,10 +358,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                raise Bad_Config;
             else
                declare
-                  Term : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Sequential_Terminal
+                  Next_Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_First_Sequential_Terminal
                     (Super, Shared, Item.Config);
                begin
-                  Append (Item.Config.Ops, (Fast_Forward, Shared.Tree.Get_Sequential_Index (Term)));
+                  Append
+                    (Item.Config.Ops,
+                     (Fast_Forward,
+                      FF_First_Index => Shared.Tree.Get_Sequential_Index (First_Node),
+                      FF_Next_Index  => Shared.Tree.Get_Sequential_Index (Next_Node)));
                end;
             end if;
          end if;
@@ -1488,6 +1503,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          --  Process the deletes so Config matches Ops. Also parse the string
          --  literal.
          declare
+            First_Node  : constant Valid_Node_Access := Parse.Peek_Current_First_Sequential_Terminal
+              (Super, Shared, Config);
             Parse_Items : aliased Parse.Parse_Item_Arrays.Vector;
          begin
             if Parse.Parse
@@ -1503,7 +1520,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                Append
                  (Config.Ops,
                   (Fast_Forward,
-                   Tree.Get_Sequential_Index (Parse.Peek_Current_First_Sequential_Terminal (Super, Shared, Config))));
+                   FF_First_Index   => Tree.Get_Sequential_Index (First_Node),
+                   FF_Next_Index    => Tree.Get_Sequential_Index
+                     (Parse.Peek_Current_First_Sequential_Terminal (Super, Shared, Config))));
             else
                raise SAL.Programmer_Error;
             end if;
@@ -1652,10 +1671,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
          --  Let explore do insert after these deletes.
          declare
-            Target_Node : constant Valid_Node_Access := Parse.Peek_Current_First_Terminal (Shared.Tree, Config);
+            Target_Node : constant Valid_Node_Access := Parse.Peek_Current_First_Sequential_Terminal
+              (Super, Shared, Config);
          begin
-            Super.Extend_Sequential_Index (Shared, Target_Node, Positive => True);
-            Append (Config.Ops, (Fast_Forward, Tree.Get_Sequential_Index (Target_Node)));
+            Append
+              (Config.Ops, (Fast_Forward, FF_First_Index | FF_Next_Index => Tree.Get_Sequential_Index (Target_Node)));
 
             if Config.Resume_Token_Goal - Check_Limit < Tree.Get_Sequential_Index (Target_Node)
             then
@@ -1991,12 +2011,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
 
-      Next_Node  : constant Syntax_Trees.Node_Access      := Parse.Peek_Current_First_Sequential_Terminal
-        (Super, Shared, Config, Following_Element => False);
+      Next_Element_Node : constant Syntax_Trees.Node_Access := Parse.Peek_Current_Element_Node (Shared.Tree, Config);
+
+      Next_Node : constant Syntax_Trees.Node_Access := Shared.Tree.First_Terminal (Next_Element_Node);
+
       Next_Index : constant Syntax_Trees.Sequential_Index :=
         (if Next_Node = Syntax_Trees.Invalid_Node_Access
          then Syntax_Trees.Sequential_Index'Last
          else Shared.Tree.Get_Sequential_Index (Next_Node));
+
       Next_ID : constant Token_ID :=
         (if Next_Node = Syntax_Trees.Invalid_Node_Access
          then Invalid_Token_ID
@@ -2066,11 +2089,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          Parse.Do_Delete (Shared.Tree, New_Config);
 
          declare
-            Node : constant Syntax_Trees.Valid_Node_Access := Parse.Peek_Current_First_Terminal
-              (Shared.Tree, New_Config);
+            Node : constant Syntax_Trees.Valid_Node_Access := Parse.Peek_Current_First_Sequential_Terminal
+              (Super, Shared, New_Config);
             New_Next_Index : Syntax_Trees.Sequential_Index;
          begin
-            Super.Extend_Sequential_Index (Shared, Node, Positive => True);
             New_Next_Index := Shared.Tree.Get_Sequential_Index (Node);
             if New_Config.Resume_Token_Goal - Check_Limit < New_Next_Index then
                New_Config.Resume_Token_Goal := New_Next_Index + Check_Limit;

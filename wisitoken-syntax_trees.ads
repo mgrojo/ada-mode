@@ -566,24 +566,24 @@ package WisiToken.Syntax_Trees is
    --  Called from Execute_Actions for each inserted token, before
    --  Initialize_Actions.
 
-   procedure Delete_Token
-     (User_Data     : in out User_Data_Type;
-      Tree          : in     Syntax_Trees.Tree'Class;
-      Deleted_Token : in     Valid_Node_Access)
+   procedure Delete_Tokens
+     (User_Data  : in out User_Data_Type;
+      Tree       : in     Syntax_Trees.Tree'Class;
+      Prev_Token : in     Valid_Node_Access)
    is null
    with Pre'Class =>
      Tree.Parents_Set and
-     Tree.Label (Deleted_Token) in Terminal_Label;
-   --  Deleted_Token was deleted in error recovery; Deleted_Token.Parent
-   --  is the non-deleted terminal token before Deleted_Token in the
-   --  parse stream.
+     Tree.Has_Following_Deleted (Prev_Token);
+   --  Prev_Token.Following_Deleted contains tokens that were deleted in
+   --  error recovery; Prev_Token is the non-deleted terminal token
+   --  before the deleted tokens in the parse stream.
    --
-   --  Any Non_Grammar that were on Deleted_Token have been moved to
-   --  Deleted_Token.Parent.Non_Grammar during error recover; user code
+   --  Any Non_Grammar that were on the deleted tokens have been moved to
+   --  Prev_Token.Non_Grammar during error recover; user code
    --  may now move them somewhere else if desired.
    --
-   --  Called from Execute_Actions for each deleted token, before
-   --  Initialize_Actions.
+   --  Called from Execute_Actions for each node with deleted tokens,
+   --  before Initialize_Actions.
 
    procedure Reduce
      (User_Data : in out User_Data_Type;
@@ -2180,8 +2180,8 @@ package WisiToken.Syntax_Trees is
    --  Delete_Current_Token for that.
 
    function Has_Following_Deleted
-     (Tree : in out Syntax_Trees.Tree;
-      Node : in     Valid_Node_Access)
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access)
      return Boolean
    with Pre => Tree.Label (Node) = Source_Terminal;
 
