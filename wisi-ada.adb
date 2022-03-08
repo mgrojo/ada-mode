@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -142,7 +142,7 @@ package body Wisi.Ada is
       end if;
 
       if Trace_Action > Detail then
-         Data.Trace.Put_Line
+         Tree.Lexer.Trace.Put_Line
            ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
@@ -247,7 +247,7 @@ package body Wisi.Ada is
       end if;
 
       if Trace_Action > Detail then
-         Data.Trace.Put_Line
+         Tree.Lexer.Trace.Put_Line
            ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
@@ -322,7 +322,7 @@ package body Wisi.Ada is
       end if;
 
       if Trace_Action > Detail then
-         Data.Trace.Put_Line
+         Tree.Lexer.Trace.Put_Line
            ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
@@ -381,7 +381,7 @@ package body Wisi.Ada is
       end if;
 
       if Trace_Action > Detail then
-         Data.Trace.Put_Line
+         Tree.Lexer.Trace.Put_Line
            ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
       end if;
 
@@ -425,14 +425,10 @@ package body Wisi.Ada is
    --  Public subprograms, declaration order
 
    overriding
-   procedure Initialize
-     (Data  : in out Parse_Data_Type;
-      Trace : in     WisiToken.Trace_Access)
+   procedure Initialize (Data  : in out Parse_Data_Type)
    is
       use all type Ada_Annex_P_Process_Actions.Token_Enum_ID;
    begin
-      Wisi.Initialize (Wisi.Parse_Data_Type (Data), Trace);
-
       Data.First_Comment_ID := +COMMENT_ID;
       Data.Last_Comment_ID  := WisiToken.Invalid_Token_ID;
       Data.Left_Paren_ID    := +LEFT_PAREN_ID;
@@ -796,7 +792,7 @@ package body Wisi.Ada is
       end;
 
       if Trace_Action > Detail then
-         Data.Trace.Put_Line (Tree.Image (Children => True));
+         Tree.Lexer.Trace.Put_Line (Tree.Image (Children => True));
       end if;
       case Enum_Action is
       when Method_Object_To_Object_Method =>
@@ -813,10 +809,10 @@ package body Wisi.Ada is
    exception
    when E : others =>
       if Debug_Mode then
-         Data.Trace.Put_Line
+         Tree.Lexer.Trace.Put_Line
            (Standard.Ada.Exceptions.Exception_Name (E) & ": " & Standard.Ada.Exceptions.Exception_Message (E));
-         Data.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-         Data.Trace.New_Line;
+         Tree.Lexer.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+         Tree.Lexer.Trace.New_Line;
       end if;
       raise;
    end Refactor;
