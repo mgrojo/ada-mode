@@ -21,6 +21,8 @@ project Ada_Mode_Compile is
       -- parents are not pure
       "ada_mode-generic_parent_instantiation.ads",
 
+      "ada_mode-indent_02.adb",
+
       -- These have incomplete code deliberately; used for interactive editing test (via EMACSCMD)
       "ada_mode-incremental_recover_01.adb",
       "ada_mode-interactive_case_statement.adb",
@@ -95,6 +97,8 @@ project Ada_Mode_Compile is
       "ada_mode-recover_44.adb",
       "ada_mode-recover_45.adb",
       "ada_mode-recover_46.adb",
+      "ada_mode-recover_47.adb",
+      "ada_mode-recover_48.adb",
       "ada_mode-recover_align_1.adb",
       "ada_mode-recover_ambiguous_parse.adb",
       "ada_mode-recover_bad_char.adb",

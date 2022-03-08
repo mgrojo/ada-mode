@@ -50,9 +50,7 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-wisitoken now moves non_grammar from deleted tokens in error recover
-    edit wisi.adb Delete_Token to match; see fixme there
-
+propagate to main
 
 replace gen_run_wisi_lr_parse parse_data_template with factory?
 
@@ -1112,6 +1110,8 @@ use elp (emacs lisp profiler)?
 attach gud-gdb to running emacs: attach <process id>
     source emacs/src/.gdbinit
     xbacktrace shows lisp backtrace
+
+call wisitoken.parse.lr.mckenzie_recover.put ("", shared_parser.tree, Super.parser_Status (Parser_Index).parser_state.stream, config, false)
 
 "kill -USR2 <emacspid>" which should also drop you into the (elisp?) debugger.
 

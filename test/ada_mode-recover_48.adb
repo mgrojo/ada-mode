@@ -1,5 +1,5 @@
 -- Used to get CONSTRAINT_ERROR in error recover, due to bug in Ada language fixes.
-
+--EMACSCMD:(setq skip-recase-test t)
 procedure Gen_Run_Wisi_LR_Text_Rep_Parse
 is
    Parse_Data_Template : aliased Parse_Data_Type;
@@ -20,9 +20,9 @@ begin
       Trace.Put_Line ("parse table created");
       WisiToken.Report_Memory (Trace);
 
-   Run_Wisi_Common_Parse.Parse_File
-     ((Descriptor, Create_Lexer, Create_Parse_Table
-         (Ada.Directories.Containing_Directory (Ada.Command_Line.Command_Name) & "/" & Text_Rep_File_Name),
-       Partial_Parse_Active, Partial_Parse_Byte_Goal, Language_Fixes, Language_Matching_Begin_Tokens,
-       Language_String_ID_Set, Parse_Data_Template'Unchecked_Access));
+      Run_Wisi_Common_Parse.Parse_File
+        ((Descriptor, Create_Lexer, Create_Parse_Table
+            (Ada.Directories.Containing_Directory (Ada.Command_Line.Command_Name) & "/" & Text_Rep_File_Name),
+          Partial_Parse_Active, Partial_Parse_Byte_Goal, Language_Fixes, Language_Matching_Begin_Tokens,
+          Language_String_ID_Set, Parse_Data_Template'Unchecked_Access));
 end Gen_Run_Wisi_LR_Text_Rep_Parse;

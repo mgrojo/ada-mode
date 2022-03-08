@@ -1196,7 +1196,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                         Delete_Check (Super, Shared_Parser, New_Config, Peek_State, Error_Token_ID);
                         if +SEMICOLON_ID = Tree.ID
                           (WisiToken.Parse.LR.McKenzie_Recover.Parse.Peek_Current_First_Sequential_Terminal
-                             (Super, Shared_Parser, Config, Following_Element => False))
+                             (Super, Shared_Parser, Config))
                         then
                            --  Might not be there while typing code; ada_mode-interactive_09.adb
                            Delete_Check (Super, Shared_Parser, New_Config, Peek_State, +SEMICOLON_ID);
