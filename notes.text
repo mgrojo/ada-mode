@@ -60,23 +60,6 @@ gpr with just 'with "tree_sitter";,
 do spark on wisi-parse_context.adb Edit_Source
     find cause of constraint_error in Move_Gap
 
-indent wrong:
-    pragma Assert
-      (if Saved_Prev_Terminal = Invalid_Stream_Node_Ref
-     then Saved_Prev_Terminal.Element /= Check_Deleted.Element
-     else Terminal.Element /= Check_Deleted.Element);
-
-    in test/debug.adb
-        compare tree/text fail
-        debug.cmd Move_Gap constraint_error!
-            source'first = 1, source'last = 1
-            input file is actually c:/Projects/org.emacs.ada-mode/test/debug.adb, which is empty.
-                so change_list is invalid
-
-        propagate from main for better precondition
-            now debug.cmd succeeds
-            but breakpoint in Edit_Source never hit?
-
 review FIXMEs
     (grep-find "find c:/Projects/org.emacs.wisi.stephe-1 -type f -print | \"xargs\" grep  -nH --null FIXME:")
     wisi-parse_context.adb Get_Emacs_Change_List Substitute_Escapes all non-printing ASCII control chars
@@ -94,9 +77,7 @@ test/ada_mode-interactive_2.adb
             because set before Insert_Token changed it?
 
 change set_parents to be incremental
-    benchmark current
-    descend tree; if find a parent link, no need to descend that branch
-    insert_token also needs to set parents?
+    notes in o.w.s-1/notes.text
 
 delete elpa branches, push o.e.*
     so users can test elpa-devel packages
@@ -129,6 +110,13 @@ ada-mode-hook runs before initial parse
             run-test sets wisi-parse-full-background; it should not
 
     need another hook that runs after initial parse started
+
+first parser operation after opening a large file is slow
+    waiting for full parse to complete
+    do partial parse on visible part for font-lock
+    then incremental parse expand tree.
+    meanwhile separate thread does full parse
+    wait until get user requests for it
 
  Negotiate with Eurocontrol:
     ask AdaCore:
