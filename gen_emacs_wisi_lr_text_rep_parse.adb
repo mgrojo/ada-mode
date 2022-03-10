@@ -33,7 +33,7 @@ begin
      (Name, Language_Protocol_Version, Params,
       (Descriptor, Create_Lexer (Trace'Unchecked_Access), Create_Parse_Table
          (Ada.Directories.Containing_Directory (Ada.Command_Line.Command_Name) & "/" & Text_Rep_File_Name),
-       Partial_Parse_Active, Partial_Parse_Byte_Goal, Language_Fixes, Language_Matching_Begin_Tokens,
-       Language_String_ID_Set, Parse_Data_Template'Unchecked_Access),
+       Create_In_Parse_Actions, Create_Post_Parse_Actions, Partial_Parse_Active, Partial_Parse_Byte_Goal,
+       Language_Fixes, Language_Matching_Begin_Tokens, Language_String_ID_Set, Parse_Data_Template'Unchecked_Access),
      Trace'Unchecked_Access);
 end Gen_Emacs_Wisi_LR_Text_Rep_Parse;
