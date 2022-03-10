@@ -2,7 +2,7 @@
 --
 --  External process parser for Ada mode
 --
---  Copyright (C) 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2020, 2022 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -34,4 +34,6 @@ procedure Ada_Mode_Wisi_LALR_Parse is new Gen_Emacs_Wisi_LR_Parse
    Language_Matching_Begin_Tokens => WisiToken.Parse.LR.McKenzie_Recover.Ada.Matching_Begin_Tokens'Access,
    Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
    Create_Lexer                   => Ada_Annex_P_Process_LALR_Main.Create_Lexer,
-   Create_Parse_Table             => Ada_Annex_P_Process_LALR_Main.Create_Parse_Table);
+   Create_Parse_Table             => Ada_Annex_P_Process_LALR_Main.Create_Parse_Table,
+   Create_In_Parse_Actions        => Ada_Annex_P_Process_LALR_Main.Create_In_Parse_Actions,
+   Create_Post_Parse_Actions      => Ada_Annex_P_Process_LALR_Main.Create_Post_Parse_Actions);

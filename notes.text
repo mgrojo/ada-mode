@@ -50,7 +50,49 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-propagate to main
+parse fail on ediff startup; empty buffer?
+
+trying to copy c:/Projects/org.wisitoken.stephe-1/test/test_incremental.adb:623 Edit_Comment_14
+    wisi-validate-cache-current-statement cancels active region highlight
+    but leaves mark-active t!
+    even when no parsing needed due to cache valid
+    c:/Projects/org.emacs.wisi/wisi-process-parse.el wisi-parse-tree-query cancels it
+        recompile that body, now it does not cancel!
+        reproduces on restart emacs
+        explicitly byte-compile that file: no help
+        delete wisi-process-parse.elc: no help
+        delete c:/Projects/org.emacs.wisi/*.elc: no help
+           recompiling wisi-parse-tree-query does not fix.
+           recompiling debug, step thru => not canceled
+              go => still cancels
+
+        call wisi-parse-tree-query explicitly, not from wisi-forward-sexp
+           (wisi-parse-tree-query wisi--parser 'containing-statement (point))
+           => cancels
+
+        call (wisi-process-parse--send-query wisi--parser 'containing-statement (point))
+           => no cancel
+           must be in wisi-process-parse--handle-messages-file-not-found
+           call
+           (progn (wisi-process-parse--send-query wisi--parser 'containing-statement (point))
+                  (wisi-process-parse--handle-messages wisi--parser))
+              => no cancel
+
+        call (wisi-process-parse--prepare wisi--parser 'containing-statement)
+
+        wisi-reset-parser fixes it!?
+            not in fresh emacs, only after something else.
+            got "parser busy" error during last try.
+            can't reproduce.
+
+    how is highlight displayed?
+        and therefore how is it removed
+        transient-mark-mode
+        applies region face
+        (redisplay--update-region-highlight (selected-window))
+        calls redisplay-unhighlight-region-function, which is some lambda, which calls delete-overlay
+
+    doing any paste fixes it!
 
 replace gen_run_wisi_lr_parse parse_data_template with factory?
 
