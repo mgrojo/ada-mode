@@ -79,7 +79,7 @@ package body Test_McKenzie_Recover is
      (Text             : in String;
       Expect_Exception : in Boolean := False)
    is begin
-      if WisiToken.Trace_Tests > WisiToken.Outline then
+      if WisiToken.Trace_Tests > WisiToken.Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("input: '" & Text & "'");
       end if;
@@ -91,7 +91,7 @@ package body Test_McKenzie_Recover is
       --  We don't run Parser.Execute_Actions, so Error.Recover.Ops
       --  Stream_Index values are still valid.
 
-      if WisiToken.Trace_Tests > WisiToken.Outline then
+      if WisiToken.Trace_Tests > WisiToken.Detail then
          if WisiToken.Trace_Tests > WisiToken.Detail then
             Ada.Text_IO.New_Line;
             Ada.Text_IO.Put_Line ("parse result:");
@@ -103,7 +103,7 @@ package body Test_McKenzie_Recover is
       Check ("exception", False, Expect_Exception);
    exception
    when WisiToken.Parse_Error =>
-      if WisiToken.Trace_Tests > WisiToken.Outline then
+      if WisiToken.Trace_Tests > WisiToken.Detail then
          Parser.Put_Errors (Parser.Tree.First_Parse_Stream);
       end if;
 
@@ -395,7 +395,7 @@ package body Test_McKenzie_Recover is
       Parse_Text
         ("procedure Water is begin loop begin D; if A then if B then D; end if; exit when C; end; end loop; end Water; "
          --        |10       |20       |30       |40       |50       |60       |70       |80       |90       |100
-         --  error 1 sequential_index:                                                    -1 0  1 2   3   4
+         --  error 1 sequential_index:                                                     0 1  2 3   4   5
          --  error 2 sequential_index:                                                                 -1 0 1   2
         );
       --  Missing "end if" at byte 67, before token 18.
@@ -1129,8 +1129,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (19, 25),
          Ops                     => +(Undo_Reduce, +package_body_ID, 9, -8) & (Push_Back, +SEMICOLON_ID, 1) &
            (Undo_Reduce, +name_opt_ID, 0, Invalid) & (Insert, +IDENTIFIER_ID, 1),
-         Enqueue_Low             => 3,
-         Check_Low               => 3,
+         Enqueue_Low             => 8,
+         Check_Low               => 8,
          Cost                    => 1);
    end Missing_Name_4;
 
@@ -1202,8 +1202,8 @@ package body Test_McKenzie_Recover is
             Error_Token_Byte_Region => (102, 110),
             Ops                     => +(Push_Back, +SEMICOLON_ID, 1) & (Push_Back, +identifier_opt_ID, 0) &
               (Push_Back, +END_ID, -1) & (Insert, +END_ID, -1) & (Insert, +SEMICOLON_ID, -1),
-            Enqueue_Low             => 20,
-            Check_Low               => 5,
+            Enqueue_Low             => 18,
+            Check_Low               => 4,
             Cost                    => 1);
       end case;
    end Block_Match_Names_1;
@@ -2509,6 +2509,7 @@ package body Test_McKenzie_Recover is
       when WisiToken.BNF.LALR =>
          WisiToken.Parse.LR.Parser.New_Parser
            (Parser, Ada_Lite_LALR_Main.Create_Lexer (Trace'Access), Ada_Lite_LALR_Main.Create_Parse_Table,
+            Ada_Lite_LALR_Main.Create_In_Parse_Actions, Ada_Lite_LALR_Main.Create_Post_Parse_Actions,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
@@ -2519,6 +2520,7 @@ package body Test_McKenzie_Recover is
            (Parser, Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
             Ada_Lite_LR1_T1_Main.Create_Parse_Table
               (Text_Rep_File_Name => "ada_lite_lr1_t1_re2c_parse_table.txt"),
+            Ada_Lite_LR1_T1_Main.Create_In_Parse_Actions, Ada_Lite_LR1_T1_Main.Create_Post_Parse_Actions,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,

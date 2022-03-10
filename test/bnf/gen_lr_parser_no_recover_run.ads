@@ -24,6 +24,7 @@ with WisiToken.Lexer;
 with WisiToken.Parse.LR;
 generic
    with function Create_Parse_Table return WisiToken.Parse.LR.Parse_Table_Ptr;
+   with function Create_In_Parse_Actions return WisiToken.Parse.In_Parse_Action_Trees.Vector;
+   with function Create_Post_Parse_Actions return WisiToken.Parse.Post_Parse_Action_Trees.Vector;
    with function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;
-
 procedure Gen_LR_Parser_No_Recover_Run;

@@ -255,7 +255,7 @@ package body Dragon_4_43_LR1_Test is
       Add_Goto (Expected.States (Map (0)), +Upper_C_ID, Map (2));
       Add_Goto (Expected.States (Map (0)), +Upper_S_ID, Map (1));
 
-      Add_Action (Expected.States (Map (1)), +EOI_ID, Accept_It, (+Accept_ID, 0), 1, Null_Action, null);
+      Add_Action (Expected.States (Map (1)), +EOI_ID, Accept_It, (+Accept_ID, 0), 1);
 
       Add_Action (Expected.States (Map (2)), +Lower_C_ID, (3, 0), Map (6));
       Add_Action (Expected.States (Map (2)), +Lower_D_ID, (3, 1), Map (7));
@@ -265,21 +265,21 @@ package body Dragon_4_43_LR1_Test is
       Add_Action (Expected.States (Map (3)), +Lower_D_ID, (3, 1), Map (4));
       Add_Goto (Expected.States (Map (3)), +Upper_C_ID, Map (8));
 
-      Add_Action (Expected.States (Map (4)), +Lower_C_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
-      Add_Action (Expected.States (Map (4)), +Lower_D_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
+      Add_Action (Expected.States (Map (4)), +Lower_C_ID, Reduce, (+Upper_C_ID, 1), 1);
+      Add_Action (Expected.States (Map (4)), +Lower_D_ID, Reduce, (+Upper_C_ID, 1), 1);
 
-      Add_Action (Expected.States (Map (5)), +EOI_ID, Reduce, (+Upper_S_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (Map (5)), +EOI_ID, Reduce, (+Upper_S_ID, 0), 2);
 
       Add_Action (Expected.States (Map (6)), +Lower_C_ID, (3, 0), Map (6));
       Add_Action (Expected.States (Map (6)), +Lower_D_ID, (3, 1), Map (7));
       Add_Goto (Expected.States (Map (6)), +Upper_C_ID, Map (9));
 
-      Add_Action (Expected.States (Map (7)), +EOI_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
+      Add_Action (Expected.States (Map (7)), +EOI_ID, Reduce, (+Upper_C_ID, 1), 1);
 
-      Add_Action (Expected.States (Map (8)), +Lower_C_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
-      Add_Action (Expected.States (Map (8)), +Lower_D_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (Map (8)), +Lower_C_ID, Reduce, (+Upper_C_ID, 0), 2);
+      Add_Action (Expected.States (Map (8)), +Lower_D_ID, Reduce, (+Upper_C_ID, 0), 2);
 
-      Add_Action (Expected.States (Map (9)), +EOI_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (Map (9)), +EOI_ID, Reduce, (+Upper_C_ID, 0), 2);
 
       Check ("", Computed.all, Expected);
    end Parser_Table;
@@ -306,6 +306,8 @@ package body Dragon_4_43_LR1_Test is
          Lexer.New_Lexer (Trace'Access, LR1_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LR1_Generate.Generate
            (Grammar, LR1_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
+         WisiToken.Parse.In_Parse_Action_Trees.Empty_Vector,
+         WisiToken.Parse.Post_Parse_Action_Trees.Empty_Vector,
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

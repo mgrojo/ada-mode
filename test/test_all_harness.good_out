@@ -124,6 +124,7 @@ OK test_incremental.adb : Edit_String_07
 OK test_incremental.adb : Edit_String_08
 OK test_incremental.adb : Edit_String_09
 OK test_incremental.adb : Edit_String_10
+OK test_incremental.adb : Edit_String_11
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
 OK test_mckenzie_recover.adb LALR : No_Error
 OK test_mckenzie_recover.adb LALR : Empty_Comments
@@ -167,6 +168,7 @@ OK test_mckenzie_recover.adb LALR : String_Quote_3
 OK test_mckenzie_recover.adb LALR : String_Quote_4
 OK test_mckenzie_recover.adb LALR : String_Quote_5
 OK test_mckenzie_recover.adb LALR : String_Quote_6
+OK test_mckenzie_recover.adb LALR : String_Quote_7
 OK test_mckenzie_recover.adb LALR : Enqueue_Limit
 OK test_mckenzie_recover.adb LALR : Minimal_Complete_Full_Reduce_1
 OK test_mckenzie_recover.adb LALR : Minimal_Complete_Full_Reduce_2
@@ -229,6 +231,7 @@ OK test_mckenzie_recover.adb LR1 : String_Quote_3
 OK test_mckenzie_recover.adb LR1 : String_Quote_4
 OK test_mckenzie_recover.adb LR1 : String_Quote_5
 OK test_mckenzie_recover.adb LR1 : String_Quote_6
+OK test_mckenzie_recover.adb LR1 : String_Quote_7
 OK test_mckenzie_recover.adb LR1 : Enqueue_Limit
 OK test_mckenzie_recover.adb LR1 : Minimal_Complete_Full_Reduce_1
 OK test_mckenzie_recover.adb LR1 : Minimal_Complete_Full_Reduce_2
@@ -263,7 +266,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   263
-Successful Tests:  263
+Total Tests Run:   266
+Successful Tests:  266
 Failed Assertions: 0
 Unexpected Errors: 0

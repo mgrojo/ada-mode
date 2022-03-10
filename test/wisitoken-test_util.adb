@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2021, 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -33,7 +33,7 @@ package body WisiToken.Test_Util is
          AUnit.Assertions.Assert (False, "'" & Program & "' not found on path");
       end if;
 
-      if WisiToken.Trace_Tests > WisiToken.Outline then
+      if WisiToken.Trace_Tests > WisiToken.Detail then
          Put (Standard_Error, Program);
          for Str_Acc of Args loop
             Put (Standard_Error, " ");

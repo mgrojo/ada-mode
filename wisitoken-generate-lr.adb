@@ -528,7 +528,7 @@ package body WisiToken.Generate.LR is
                      begin
                         Add_Action
                           (Dot_ID,
-                           (Accept_It, P_ID, RHS.Post_Parse_Action, RHS.In_Parse_Action, RHS.Tokens.Length - 1),
+                           (Accept_It, P_ID, RHS.Tokens.Length - 1),
                            --  EOF is not pushed on stack in parser, because the action for EOF
                            --  is Accept, not Shift.
                            Table.States (State).Action_List, Descriptor);
@@ -574,8 +574,7 @@ package body WisiToken.Generate.LR is
    is
       Prod   : Productions.Instance renames Grammar (Item.Prod.LHS);
       RHS    : Productions.Right_Hand_Side renames Prod.RHSs (Item.Prod.RHS);
-      Action : constant Parse_Action_Rec :=
-        (Reduce, Item.Prod, RHS.Post_Parse_Action, RHS.In_Parse_Action, RHS.Tokens.Length);
+      Action : constant Parse_Action_Rec := (Reduce, Item.Prod, RHS.Tokens.Length);
    begin
       if Trace_Generate_Table > Detail then
          Ada.Text_IO.Put_Line ("processing lookaheads");
@@ -1117,10 +1116,8 @@ package body WisiToken.Generate.LR is
    --  Parse table output
 
    procedure Put_Text_Rep
-     (Table        : in Parse_Table;
-      File_Name    : in String;
-      Action_Names : in Names_Array_Array;
-      Check_Names  : in Names_Array_Array)
+     (Table     : in Parse_Table;
+      File_Name : in String)
    is
       use all type SAL.Base_Peek_Type;
       use Ada.Containers;
@@ -1129,8 +1126,7 @@ package body WisiToken.Generate.LR is
    begin
       --  Only space, semicolon, newline delimit object values. Bounds of
       --  arrays output before each array, unless known from discriminants.
-      --  End of lists indicated by semicolon. Action, Check subprograms are
-      --  represented by True if present, False if not.
+      --  End of lists indicated by semicolon.
       --
       --  We use Unix_Text_IO to enforce Unix line endings; a later dos2unix
       --  step is very slow on very large files.
@@ -1162,21 +1158,6 @@ package body WisiToken.Generate.LR is
                      Put (File, State_Index'Image (Node_J.Item.State));
 
                   when Reduce | Accept_It =>
-                     if Action_Names (Node_J.Item.Production.LHS) /= null and then
-                       Action_Names (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS) /= null
-                     then
-                        Put (File, " true");
-                     else
-                        Put (File, " false");
-                     end if;
-                     if Check_Names (Node_J.Item.Production.LHS) /= null and then
-                       Check_Names (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS) /= null
-                     then
-                        Put (File, " true");
-                     else
-                        Put (File, " false");
-                     end if;
-
                      Put (File, Ada.Containers.Count_Type'Image (Node_J.Item.Token_Count));
 
                   when Parse.LR.Error =>

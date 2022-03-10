@@ -79,9 +79,7 @@ package WisiToken.Parse.LR is
 
       when Reduce | Accept_It =>
          --  Production.LHS is the result nonterm
-         Post_Parse_Action : WisiToken.Syntax_Trees.Post_Parse_Action   := null;
-         In_Parse_Action   : WisiToken.In_Parse_Actions.In_Parse_Action := null;
-         Token_Count       : Ada.Containers.Count_Type                  := 0;
+         Token_Count : Ada.Containers.Count_Type := 0;
 
       when Error =>
          null;
@@ -223,22 +221,18 @@ package WisiToken.Parse.LR is
    --  Add a Shift action to tail of State action list.
 
    procedure Add_Action
-     (State             : in out Parse_State;
-      Symbol            : in     Token_ID;
-      Verb              : in     Parse_Action_Verbs;
-      Production        : in     Production_ID;
-      RHS_Token_Count   : in     Ada.Containers.Count_Type;
-      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
-      In_Parse_Action   : in     WisiToken.In_Parse_Actions.In_Parse_Action);
+     (State           : in out Parse_State;
+      Symbol          : in     Token_ID;
+      Verb            : in     Parse_Action_Verbs;
+      Production      : in     Production_ID;
+      RHS_Token_Count : in     Ada.Containers.Count_Type);
    --  Add a Reduce or Accept_It action to tail of State action list.
 
    procedure Add_Action
-     (State             : in out Parse_State;
-      Symbols           : in     Token_ID_Array;
-      Production        : in     Production_ID;
-      RHS_Token_Count   : in     Ada.Containers.Count_Type;
-      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
-      In_Parse_Action   : in     WisiToken.In_Parse_Actions.In_Parse_Action);
+     (State           : in out Parse_State;
+      Symbols         : in     Token_ID_Array;
+      Production      : in     Production_ID;
+      RHS_Token_Count : in     Ada.Containers.Count_Type);
    --  Add duplicate Reduce actions, and final Error action, to tail of
    --  State action list.
 
@@ -246,9 +240,7 @@ package WisiToken.Parse.LR is
      (State             : in out Parse_State;
       Symbol            : in     Token_ID;
       Reduce_Production : in     Production_ID;
-      RHS_Token_Count   : in     Ada.Containers.Count_Type;
-      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
-      In_Parse_Action   : in     WisiToken.In_Parse_Actions.In_Parse_Action);
+      RHS_Token_Count   : in     Ada.Containers.Count_Type);
    --  Add a Reduce conflict to State.
 
    procedure Add_Goto
@@ -372,22 +364,9 @@ package WisiToken.Parse.LR is
    type Parse_Table_Ptr is access Parse_Table;
    procedure Free_Table (Table : in out Parse_Table_Ptr);
 
-   type Parse_Actions is record
-      Post_Parse : Syntax_Trees.Post_Parse_Action   := null;
-      In_Parse   : In_Parse_Actions.In_Parse_Action := null;
-   end record;
-
-   package Parse_Actions_Arrays is new SAL.Gen_Unbounded_Definite_vectors (Natural, Parse_Actions, (others => <>));
-   package Parse_Actions_Array_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Token_ID, Parse_Actions_Arrays.Vector, Parse_Actions_Arrays.Empty_Vector);
-
-   function Get_Text_Rep
-     (File_Name : in String;
-      Actions   : in Parse_Actions_Array_Arrays.Vector)
-     return Parse_Table_Ptr;
+   function Get_Text_Rep (File_Name : in String) return Parse_Table_Ptr;
    --  Read machine-readable text format of states (as output by
-   --  WisiToken.Generate.LR.Put_Text_Rep) from file File_Name. Result
-   --  has actions, checks from Productions.
+   --  WisiToken.Generate.LR.Put_Text_Rep) from file File_Name.
 
    ----------
    --  For McKenzie_Recover. Declared here because Parser_Lists needs

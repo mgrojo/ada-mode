@@ -917,13 +917,6 @@ package body WisiToken_Grammar_Runtime is
       end if;
    end Add_Nonterminal;
 
-   function Image_Grammar_Action (Action : in WisiToken.Syntax_Trees.Post_Parse_Action) return String
-   is
-      pragma Unreferenced (Action);
-   begin
-      return "action";
-   end Image_Grammar_Action;
-
    procedure Check_EBNF
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;

@@ -2,7 +2,7 @@
 --
 --  Types and operations shared by Ada and Ada_Emacs outputs.
 --
---  Copyright (C) 2017, 2018, 2020, 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017, 2018, 2020 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -80,6 +80,9 @@ package WisiToken.BNF.Output_Ada_Common is
       Packrat_Data         :         in     WisiToken.Generate.Packrat.Data);
 
    procedure External_Create_Create_Grammar
+     (Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data);
+
+   procedure Create_Create_Actions
      (Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data);
 
    procedure Create_re2c_File

@@ -103,6 +103,8 @@ package body Test_Accept_State is
          Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate
            (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
+         WisiToken.Parse.In_Parse_Action_Trees.Empty_Vector,
+         WisiToken.Parse.Post_Parse_Action_Trees.Empty_Vector,
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

@@ -93,6 +93,8 @@ package body Test_Skip_To is
         (Test_Skip_To_Aux.Parser,
          Skip_To_Grammar_LALR_Main.Create_Lexer (Trace'Access),
          Skip_To_Grammar_LALR_Main.Create_Parse_Table ("skip_to_grammar_lalr_parse_table.txt"),
+         WisiToken.Parse.In_Parse_Action_Trees.Empty_Vector,
+         WisiToken.Parse.Post_Parse_Action_Trees.Empty_Vector,
          User_Data'Access);
    end Set_Up_Case;
 

@@ -708,7 +708,6 @@ package WisiToken.Syntax_Trees is
       Stream           : in     Stream_ID;
       Production       : in     WisiToken.Production_ID;
       Child_Count      : in     Ada.Containers.Count_Type;
-      Action           : in     Post_Parse_Action := null;
       State            : in     State_Index;
       Recover_Conflict : in     Boolean)
      return Rooted_Ref
@@ -1376,12 +1375,6 @@ package WisiToken.Syntax_Trees is
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access)
      return Augmented_Class_Access_Constant;
-
-   function Action
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Access)
-     return Post_Parse_Action
-   with Pre => Tree.Is_Nonterm (Node);
 
    function Find_Ancestor
      (Tree       : in Syntax_Trees.Tree;
@@ -2130,8 +2123,7 @@ package WisiToken.Syntax_Trees is
      (Tree          : in out Syntax_Trees.Tree;
       Production    : in     WisiToken.Production_ID;
       Children      : in     Valid_Node_Access_Array;
-      Clear_Parents : in     Boolean;
-      Action        : in     Post_Parse_Action := null)
+      Clear_Parents : in     Boolean)
      return Valid_Node_Access
    with Pre => not Tree.Traversing and Children'First = 1;
    --  Add a new Nonterm node (not on any stream), containing
@@ -2249,9 +2241,6 @@ package WisiToken.Syntax_Trees is
    --
    --  Then set ID of Node to New_ID, and Node.Children to Children; set
    --  parents of Children to Node.
-   --
-   --  If New_ID /= Tree.Production_ID (Node), Node.Action is set
-   --  to null, because the old Action probably no longer applies.
    --
    --  We use a precondition on Children, rather than
    --  Valid_Node_Access_Array, so constructs like:
@@ -2488,16 +2477,13 @@ package WisiToken.Syntax_Trees is
    function Next_Stream_ID_Trimmed_Image (Tree : in Syntax_Trees.Tree) return String;
    --  Trimmed integer.
 
-   type Image_Action is access function (Action : in Post_Parse_Action) return String;
-
    function Image
      (Tree         : in Syntax_Trees.Tree;
-      Children     : in Boolean                   := False;
-      Non_Grammar  : in Boolean                   := False;
-      Augmented    : in Boolean                   := False;
-      Line_Numbers : in Boolean                   := False;
-      Root         : in Node_Access               := Invalid_Node_Access;
-      Image_Action : in Syntax_Trees.Image_Action := null)
+      Children     : in Boolean     := False;
+      Non_Grammar  : in Boolean     := False;
+      Augmented    : in Boolean     := False;
+      Line_Numbers : in Boolean     := False;
+      Root         : in Node_Access := Invalid_Node_Access)
      return String;
    --  Image of all streams, or root node if no streams.
    --  If Children, subtree of each stream element is included.
@@ -2505,16 +2491,15 @@ package WisiToken.Syntax_Trees is
    function Image
      (Tree          : in Syntax_Trees.Tree;
       Stream        : in Stream_ID;
-      Stack         : in Boolean                   := True;
-      Input         : in Boolean                   := True;
-      Shared        : in Boolean                   := False;
-      Children      : in Boolean                   := False;
-      Node_Numbers  : in Boolean                   := True;
-      Non_Grammar   : in Boolean                   := False;
-      Augmented     : in Boolean                   := False;
-      Line_Numbers  : in Boolean                   := False;
-      Image_Action  : in Syntax_Trees.Image_Action := null;
-      State_Numbers : in Boolean                   := True)
+      Stack         : in Boolean := True;
+      Input         : in Boolean := True;
+      Shared        : in Boolean := False;
+      Children      : in Boolean := False;
+      Node_Numbers  : in Boolean := True;
+      Non_Grammar   : in Boolean := False;
+      Augmented     : in Boolean := False;
+      Line_Numbers  : in Boolean := False;
+      State_Numbers : in Boolean := True)
      return String;
    --  Image of each node. If Stack, includes stack; if Input, includes
    --  input; if Shared, includes continuation in Shared_Stream. If
@@ -2524,55 +2509,51 @@ package WisiToken.Syntax_Trees is
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Element               : in Stream_Index;
-      State                 : in Boolean                   := False;
-      Children              : in Boolean                   := False;
-      RHS_Index             : in Boolean                   := False;
-      Node_Numbers          : in Boolean                   := False;
-      Terminal_Node_Numbers : in Boolean                   := False;
-      Line_Numbers          : in Boolean                   := False;
-      Non_Grammar           : in Boolean                   := False;
-      Augmented             : in Boolean                   := False;
-      Expecting             : in Boolean                   := False;
-      Image_Action          : in Syntax_Trees.Image_Action := null)
+      State                 : in Boolean := False;
+      Children              : in Boolean := False;
+      RHS_Index             : in Boolean := False;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False;
+      Line_Numbers          : in Boolean := False;
+      Non_Grammar           : in Boolean := False;
+      Augmented             : in Boolean := False;
+      Expecting             : in Boolean := False)
      return String;
    --  Element can be from any stream, or Invalid_Stream_Index
 
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Node                  : in Node_Access;
-      Children              : in Boolean                   := False;
-      RHS_Index             : in Boolean                   := False;
-      Node_Numbers          : in Boolean                   := False;
-      Terminal_Node_Numbers : in Boolean                   := False;
-      Line_Numbers          : in Boolean                   := False;
-      Non_Grammar           : in Boolean                   := False;
-      Augmented             : in Boolean                   := False;
-      Expecting             : in Boolean                   := False;
-      Image_Action          : in Syntax_Trees.Image_Action := null)
+      Children              : in Boolean := False;
+      RHS_Index             : in Boolean := False;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False;
+      Line_Numbers          : in Boolean := False;
+      Non_Grammar           : in Boolean := False;
+      Augmented             : in Boolean := False;
+      Expecting             : in Boolean := False)
      return String;
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Nodes                 : in Node_Access_Array;
-      RHS_Index             : in Boolean                   := False;
-      Node_Numbers          : in Boolean                   := False;
-      Terminal_Node_Numbers : in Boolean                   := False;
-      Line_Numbers          : in Boolean                   := False;
-      Non_Grammar           : in Boolean                   := False;
-      Augmented             : in Boolean                   := False;
-      Image_Action          : in Syntax_Trees.Image_Action := null)
+      RHS_Index             : in Boolean := False;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False;
+      Line_Numbers          : in Boolean := False;
+      Non_Grammar           : in Boolean := False;
+      Augmented             : in Boolean := False)
      return String;
 
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Ref                   : in Stream_Node_Ref;
-      First_Terminal        : in Boolean                   := False;
-      Node_Numbers          : in Boolean                   := False;
-      Terminal_Node_Numbers : in Boolean                   := False;
-      Line_Numbers          : in Boolean                   := False;
-      Non_Grammar           : in Boolean                   := False;
-      Augmented             : in Boolean                   := False;
-      Expecting             : in Boolean                   := False;
-      Image_Action          : in Syntax_Trees.Image_Action := null)
+      First_Terminal        : in Boolean := False;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False;
+      Line_Numbers          : in Boolean := False;
+      Non_Grammar           : in Boolean := False;
+      Augmented             : in Boolean := False;
+      Expecting             : in Boolean := False)
      return String;
    --  If First_Terminal, show First_Terminal of Ref.Node if Ref is rooted.
 
@@ -2664,11 +2645,10 @@ package WisiToken.Syntax_Trees is
    --  has Sequential_Index /= Invalid_Sequential_Index.
 
    procedure Print_Tree
-     (Tree         : in     Syntax_Trees.Tree;
-      Root         : in     Node_Access               := Invalid_Node_Access;
-      Image_Action : in     Syntax_Trees.Image_Action := null;
-      Line_Numbers : in     Boolean                   := False;
-      Non_Grammar  : in     Boolean                   := False);
+     (Tree         : in Syntax_Trees.Tree;
+      Root         : in Node_Access := Invalid_Node_Access;
+      Line_Numbers : in Boolean     := False;
+      Non_Grammar  : in Boolean     := False);
    --  Print tree rooted at Root (default Tree.Root) to
    --  Tree.Lexer.Trace, for debugging.
    --
@@ -2779,8 +2759,6 @@ private
 
          RHS_Index : Natural;
          --  With ID, index into Productions.
-
-         Action : Post_Parse_Action := null;
 
          Name_Offset : Base_Buffer_Pos := 0;
          Name_Length : Base_Buffer_Pos := 0;

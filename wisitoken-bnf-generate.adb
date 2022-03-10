@@ -153,7 +153,8 @@ is
 
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
         (Grammar_Parser, Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
-         Wisitoken_Grammar_Main.Create_Parse_Table, Input_Data'Unchecked_Access);
+         Wisitoken_Grammar_Main.Create_Parse_Table, Wisitoken_Grammar_Main.Create_In_Parse_Actions,
+         Wisitoken_Grammar_Main.Create_Post_Parse_Actions, Input_Data'Unchecked_Access);
 
       Grammar_Parser.Tree.Lexer.Reset_With_File (File_Name);
 
@@ -413,8 +414,7 @@ begin
 
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.Put_Line ("EBNF tree:");
-               Tree.Print_Tree
-                 (Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
+               Tree.Print_Tree;
             end if;
 
             WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data);
@@ -422,8 +422,7 @@ begin
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.New_Line;
                Ada.Text_IO.Put_Line ("BNF tree:");
-               Tree.Print_Tree
-                 (Image_Action => WisiToken_Grammar_Runtime.Image_Grammar_Action'Access);
+               Tree.Print_Tree;
             end if;
 
             if Output_BNF then
@@ -674,8 +673,7 @@ begin
                      WisiToken.Generate.LR.Put_Text_Rep
                        (Generate_Data.LR_Parse_Table.all,
                         Text_Rep_File_Name
-                          (-Output_File_Name_Root, Tuple, Generate_Task_Count, Input_Data.If_Lexer_Present, Test_Main),
-                        Generate_Data.Action_Names.all, Generate_Data.Check_Names.all);
+                          (-Output_File_Name_Root, Tuple, Generate_Task_Count, Input_Data.If_Lexer_Present, Test_Main));
                   end if;
 
                when others =>

@@ -50,8 +50,11 @@ package body WisiToken.Parse.LR.Parser is
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
 
       Nonterm : constant Syntax_Trees.Rooted_Ref := Shared_Parser.Tree.Reduce
-        (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Post_Parse_Action, New_State,
+        (Parser_State.Stream, Action.Production, Action.Token_Count, New_State,
          Recover_Conflict => Parser_State.Resume_Active and Shared_Parser.Parsers.Count > 1);
+
+      In_Parse_Action : constant In_Parse_Actions.In_Parse_Action := Shared_Parser.Get_In_Parse_Action
+        (Action.Production);
    begin
       if Trace_Parse > Detail then
          Shared_Parser.Tree.Lexer.Trace.Put_Line
@@ -62,7 +65,7 @@ package body WisiToken.Parse.LR.Parser is
                RHS_Index             => True));
       end if;
 
-      if Action.In_Parse_Action = null then
+      if In_Parse_Action = null then
          return Ok;
 
       else
@@ -76,7 +79,7 @@ package body WisiToken.Parse.LR.Parser is
               Shared_Parser.Tree.Children_Recover_Tokens (Parser_State.Stream, Nonterm.Element);
             Status         : In_Parse_Actions.Status;
          begin
-            Status := Action.In_Parse_Action
+            Status := In_Parse_Action
               (Shared_Parser.Tree, Nonterm_Token, Children_Token, Recover_Active => False);
 
             if Trace_Parse > Detail then
@@ -440,7 +443,7 @@ package body WisiToken.Parse.LR.Parser is
       when Accept_It =>
          case Reduce_Stack_1
            (Shared_Parser, Current_Parser,
-            (Reduce, Action.Production, Action.Post_Parse_Action, Action.In_Parse_Action, Action.Token_Count),
+            (Reduce, Action.Production, Action.Token_Count),
             Accept_State)
          is
          when Ok =>
@@ -1028,13 +1031,17 @@ package body WisiToken.Parse.LR.Parser is
      (Parser                         :    out LR.Parser.Parser;
       Lexer                          : in     WisiToken.Lexer.Handle;
       Table                          : in     Parse_Table_Ptr;
+      In_Parse_Actions               : in     In_Parse_Action_Trees.Vector;
+      Post_Parse_Actions             : in     Post_Parse_Action_Trees.Vector;
       Language_Fixes                 : in     Language_Fixes_Access;
       Language_Matching_Begin_Tokens : in     Language_Matching_Begin_Tokens_Access;
       Language_String_ID_Set         : in     Language_String_ID_Set_Access;
       User_Data                      : in     Syntax_Trees.User_Data_Access)
    is begin
-      Parser.Tree.Lexer := Lexer;
-      Parser.User_Data  := User_Data;
+      Parser.Tree.Lexer         := Lexer;
+      Parser.In_Parse_Actions   := In_Parse_Actions;
+      Parser.Post_Parse_Actions := Post_Parse_Actions;
+      Parser.User_Data          := User_Data;
 
       --  In Base_Parser; Tree, Line_Begin_Token, Last_Grammar_Node are default initialized.
 
@@ -1084,24 +1091,29 @@ package body WisiToken.Parse.LR.Parser is
          end loop;
 
          Parser.User_Data.Reduce (Tree, Node);
-         if Tree.Action (Node) /= null then
-            begin
-               Tree.Action (Node) (Parser.User_Data.all, Tree, Node);
-            exception
-            when E : others =>
-               if WisiToken.Debug_Mode then
-                  Parser.Tree.Lexer.Trace.Put_Line
-                    (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-                  Parser.Tree.Lexer.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-                  Parser.Tree.Lexer.Trace.New_Line;
-               end if;
+         declare
+            Post_Parse_Action : constant Syntax_Trees.Post_Parse_Action := Parser.Get_Post_Parse_Action
+              (Tree.Production_ID (Node));
+         begin
+            if Post_Parse_Action /= null then
+               begin
+                  Post_Parse_Action (Parser.User_Data.all, Tree, Node);
+               exception
+               when E : others =>
+                  if WisiToken.Debug_Mode then
+                     Parser.Tree.Lexer.Trace.Put_Line
+                       (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+                     Parser.Tree.Lexer.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+                     Parser.Tree.Lexer.Trace.New_Line;
+                  end if;
 
-               raise WisiToken.Parse_Error with Tree.Error_Message
-                 (Node,
-                  "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
-                    Ada.Exceptions.Exception_Message (E));
-            end;
-         end if;
+                  raise WisiToken.Parse_Error with Tree.Error_Message
+                    (Node,
+                     "action raised exception " & Ada.Exceptions.Exception_Name (E) & ": " &
+                       Ada.Exceptions.Exception_Message (E));
+               end;
+            end if;
+         end;
       end Process_Node;
 
    begin

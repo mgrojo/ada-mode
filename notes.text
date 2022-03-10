@@ -31,57 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-debug build should always run t_mck with debug=1; catch bad_config
-
-change wisi.adb Delete_Token to match.
-
-run all tests
-
-propagate to main
-
-
-improve memory benchmarks
-    incremental initial parse uses more memory than partial indent?
-
-    get memory report at each stage
-        create parse table:
-            lalr:     2_696_888
-            lr1
-        create parse context: 2_697_712
-        gnatcoll-xref.adb:
-            read  high  2_953_192 current  2_952_984
-                but only 254_989 bytes in file; gnatcoll.mmap allocates more stuff?
-                which is not cleaned up by Free (Region), Close (File)
-
-            lex   high  8_898_248 current  8_898_248
-            parse high 25_346_920 current 21_549_352
-                                          21_294_368
-        kill_context: high 25_346_920 current 6_576_936
-            something not freed. gnatcoll.mmap remainder, parse table => 926_240 unknown
-
-run_wisi_common_parse.adb 39_184 bytes
-    lex            high 3_837_632 current 3_837_632
-    parse          high 6_186_112 current 5_687_880
-    kill_context : high 6_186_112 current 5_687_880
-        same 926240 unknown => not related to file size
-
-both files in one run
-    gnatcoll-xref.adb          parse 21_549_360
-    run_wisi_common_parse.adb: parse 24_626_752
-    final kill_context                7_020_872
-
-same files in emacs process: debug.el
-    memory report enabled in gen_
-
-gnatcoll.memory.Dump not helpful
-    adacore ticket V302-002
-
-move Post_Parse_Action, In_Parse_Action out of Parse_Action_Rec and Syntax_Tree
-    store in parse_table.productions, indexed by Production.LHS, Production.RHS
-    get memory, time benchmarks
-
-move Post_Parse_Action, In_Parse_Action out of Parse_Action_Rec and Syntax_Tree
-
 optimize syntax tree structure for lists
     editing wisitoken-syntax_trees.adb to add Tree.Line_region;
     slow, even with "fast parser" settings in develop_settings.el
@@ -94,6 +43,8 @@ optimize syntax tree structure for lists
 ;; 2022-02-27 11:50:21.48 post edit tree
 ;; 2022-02-27 11:50:21.48 pre-recover 1 active
 
+    improve time benchmark; edit near beginning of file, near end of file.
+
     lots of subprograms; parse is slow building declarations list.
     optimize syntax tree list structure
         breakdown to node in middle just split list in two at node
@@ -102,6 +53,7 @@ optimize syntax tree structure for lists
             that references Gafter 1990 Parallel Incremental Compilation
             given a canonical list:
                 list : element | list element ;
+            ebnf * is optimized list
             batch parser does not change; list nodes have one or two children, one is an element, other is a list
             Edit_Tree Breakdown rearranges that into a tree: both children can be list nodes
                 then split top node into two list nodes, breakdown right node to expose the edit
@@ -123,6 +75,12 @@ optimize syntax tree structure for lists
         those conflicts are handled specially
             if production LHS is an optimized list, choose reduce two lists to a single list.
         conflicts still have to be declared
+
+
+Find_matching_name compares large amounts of text
+    Name_Region (sequence_of_statements) returns the whole sequence
+    should return invalid_region
+    declare IDENTIFIER as name
 
 packrat left recursion
     copy from libadalang

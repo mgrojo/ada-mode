@@ -71,6 +71,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
       Last   : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type (Action.Token_Count);
       Tokens : Syntax_Trees.Recover_Token_Array (1 .. Last);
+
+      In_Parse_Action : constant In_Parse_Actions.In_Parse_Action := Shared_Parser.Get_In_Parse_Action
+        (Action.Production);
    begin
       if Stack.Depth <= Last then
          raise Bad_Config;
@@ -78,13 +81,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
       Compute_Nonterm (Shared_Parser.Tree, Action.Production.LHS, Stack, Tokens, Nonterm);
 
-      if Action.In_Parse_Action = null then
+      if In_Parse_Action = null then
          --  Now we can pop the stack.
          Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
          return (Label => Ok);
       else
          return Status : constant In_Parse_Actions.Status :=
-           Action.In_Parse_Action (Shared_Parser.Tree, Nonterm, Tokens, Recover_Active => True)
+           In_Parse_Action (Shared_Parser.Tree, Nonterm, Tokens, Recover_Active => True)
          do
             if Status.Label = Ok then
                Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));

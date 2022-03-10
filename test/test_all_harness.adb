@@ -2,7 +2,7 @@
 --
 --  Run all WisiToken AUnit tests; see Makefile for other tests.
 --
---  Copyright (C) 2009, 2010, 2012 - 2015, 2017 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012 - 2015, 2017 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -25,6 +25,7 @@ with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line;
+with Ada.Environment_Variables;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
@@ -70,6 +71,14 @@ is
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
 begin
+   begin
+      if Ada.Environment_Variables.Value ("Standard_Common_Build") = "Debug" then
+         WisiToken.Debug_Mode := True;
+      end if;
+   exception
+   when others => null;
+   end;
+
    declare
       use Ada.Command_Line;
    begin

@@ -191,14 +191,14 @@ package body Test_Incremental is
          Edit_Text (Edit_At, Delete, Insert);
       end if;
 
-      if WisiToken.Trace_Tests > WisiToken.Outline then
+      if WisiToken.Trace_Tests > WisiToken.Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line (Label_Dot & "initial source: '" & Initial & "'");
          Ada.Text_IO.Put_Line (Label_Dot & "edited source : '" & To_String (Edited_Buffer) & "'");
       end if;
 
       if WisiToken.Trace_Tests > WisiToken.Detail or
-        WisiToken.Trace_McKenzie + WisiToken.Trace_Parse > WisiToken.Outline
+        WisiToken.Trace_McKenzie + WisiToken.Trace_Parse > WisiToken.Detail
       then
          Put_Line (Label_Dot & "edited source full parse:");
       end if;
@@ -222,7 +222,7 @@ package body Test_Incremental is
 
       if Initial /= "" then
          if WisiToken.Trace_Tests > WisiToken.Detail or
-           WisiToken.Trace_McKenzie + WisiToken.Trace_Parse > WisiToken.Outline
+           WisiToken.Trace_McKenzie + WisiToken.Trace_Parse > WisiToken.Detail
          then
             New_Line;
             Put_Line (Label_Dot & "initial source full parse:");
@@ -245,7 +245,7 @@ package body Test_Incremental is
       end if;
 
       if WisiToken.Trace_Tests > WisiToken.Detail or
-        WisiToken.Trace_McKenzie + WisiToken.Trace_Parse > WisiToken.Outline
+        WisiToken.Trace_McKenzie + WisiToken.Trace_Parse > WisiToken.Detail
       then
          New_Line;
          Put_Line (Label_Dot & "incremental parse:");
@@ -1908,6 +1908,8 @@ package body Test_Incremental is
          Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
          Ada_Lite_LR1_T1_Main.Create_Parse_Table
            (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
+         Ada_Lite_LR1_T1_Main.Create_In_Parse_Actions,
+         Ada_Lite_LR1_T1_Main.Create_Post_Parse_Actions,
          Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
          Language_Matching_Begin_Tokens =>
            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
@@ -1919,6 +1921,8 @@ package body Test_Incremental is
          Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
          Ada_Lite_LR1_T1_Main.Create_Parse_Table
            (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
+         Ada_Lite_LR1_T1_Main.Create_In_Parse_Actions,
+         Ada_Lite_LR1_T1_Main.Create_Post_Parse_Actions,
          Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
          Language_Matching_Begin_Tokens =>
            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,

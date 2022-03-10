@@ -22,8 +22,6 @@ with AUnit.Checks;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted.Gen_AUnit;
 package WisiToken.Parse.LR.AUnit is
 
-   Strict : Boolean := False;
-
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (All_Parse_Action_Verbs);
 
    procedure Check

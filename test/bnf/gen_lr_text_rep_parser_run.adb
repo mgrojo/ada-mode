@@ -53,6 +53,7 @@ is
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser, Create_Lexer (Trace'Unchecked_Access), Create_Parse_Table
            (Text_Rep_File_Name => Text_Rep_File_Name),
+         Create_In_Parse_Actions, Create_Post_Parse_Actions,
          Language_Fixes,
          Language_Matching_Begin_Tokens,
          Language_String_ID_Set,

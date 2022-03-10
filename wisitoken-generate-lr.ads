@@ -2,7 +2,7 @@
 --
 --  Common utilities for LR parser table generators.
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -209,10 +209,8 @@ package WisiToken.Generate.LR is
    --  Parse table output
 
    procedure Put_Text_Rep
-     (Table        : in Parse_Table;
-      File_Name    : in String;
-      Action_Names : in Names_Array_Array;
-      Check_Names  : in Names_Array_Array);
+     (Table     : in Parse_Table;
+      File_Name : in String);
    --  Write machine-readable text format of Table.States to a file
    --  File_Name, to be read by the parser executable at startup, using
    --  WisiToken.Parse.LR.Get_Text_Rep.

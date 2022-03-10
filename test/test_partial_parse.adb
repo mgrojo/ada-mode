@@ -51,7 +51,7 @@ package body Test_Partial_Parse is
          use all type WisiToken.Token_ID;
          Node  : Valid_Node_Access := Parser.Tree.Root;
       begin
-         if WisiToken.Trace_Tests > WisiToken.Outline then
+         if WisiToken.Trace_Tests > WisiToken.Detail then
             Parser.Tree.Print_Tree (Line_Numbers => True);
          end if;
 
@@ -82,7 +82,7 @@ package body Test_Partial_Parse is
                Parse_End_Byte_Pos);
          end if;
 
-         if WisiToken.Trace_Action > WisiToken.Outline then
+         if WisiToken.Trace_Action > WisiToken.Detail then
             Parser.Put_Errors;
          end if;
       end Finish;
@@ -101,7 +101,7 @@ package body Test_Partial_Parse is
       Finish;
 
    when WisiToken.Syntax_Error =>
-      if WisiToken.Trace_Action > WisiToken.Outline then
+      if WisiToken.Trace_Action > WisiToken.Detail then
          Parser.Put_Errors;
       end if;
       raise;
@@ -121,7 +121,7 @@ package body Test_Partial_Parse is
       use WisiToken;
       Partial_Text : String renames Text (Begin_Byte_Pos .. End_Byte_Pos);
    begin
-      if WisiToken.Trace_Tests > WisiToken.Outline then
+      if WisiToken.Trace_Tests > WisiToken.Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line
            ("input: '" & Partial_Text & "'," &
@@ -146,7 +146,7 @@ package body Test_Partial_Parse is
    is
       use WisiToken;
    begin
-      if WisiToken.Trace_Parse > WisiToken.Outline then
+      if WisiToken.Trace_Parse > WisiToken.Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line
            ("input file: " & File_Name & Buffer_Pos'Image (Begin_Byte_Pos) & " .." & Buffer_Pos'Image (End_Byte_Pos));
@@ -174,7 +174,7 @@ package body Test_Partial_Parse is
 
       Buffer : aliased String := Data (Region)(Integer (Begin_Byte_Pos) .. Integer (End_Byte_Pos));
    begin
-      if WisiToken.Trace_Parse > WisiToken.Outline then
+      if WisiToken.Trace_Parse > WisiToken.Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line
            ("input file: " & File_Name & Buffer_Pos'Image (Begin_Byte_Pos) & " .." & Buffer_Pos'Image (End_Byte_Pos));
@@ -281,6 +281,8 @@ package body Test_Partial_Parse is
         (Parser,
          Ada_Lite_LALR_Main.Create_Lexer (Trace'Access),
          Ada_Lite_LALR_Main.Create_Parse_Table,
+         Ada_Lite_LALR_Main.Create_In_Parse_Actions,
+         Ada_Lite_LALR_Main.Create_Post_Parse_Actions,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,
          Language_String_ID_Set         => null,
