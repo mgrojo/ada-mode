@@ -103,8 +103,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Table      : Parse_Table renames Shared.Table.all;
       Nonterm    : Syntax_Trees.Recover_Token;
       New_State  : Unknown_State_Index;
+
+      Status : constant In_Parse_Actions.Status := Parse.Reduce_Stack (Shared, Config.Stack, Action, Nonterm);
    begin
-      Config.In_Parse_Action_Status := Parse.Reduce_Stack (Shared, Config.Stack, Action, Nonterm);
+      Config.In_Parse_Action_Status := Status;
       case Config.In_Parse_Action_Status.Label is
       when Ok =>
          null;
@@ -150,7 +152,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
               ": state" & State_Index'Image (Prev_State) & " reduce" &
               Ada.Containers.Count_Type'Image (Action.Token_Count) & " to " &
               Image (Action.Production.LHS, Descriptor) & ", goto" &
-              State_Index'Image (New_State) & " via" & State_Index'Image (Config.Stack.Peek (2).State));
+              State_Index'Image (New_State) & " via" & State_Index'Image (Config.Stack.Peek (2).State) &
+              (case Status.Label is
+               when Ok => "",
+               when In_Parse_Actions.Error => " " & Status.Label'Image));
       end if;
    end Do_Reduce_1;
 
