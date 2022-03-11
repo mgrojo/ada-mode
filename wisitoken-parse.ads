@@ -21,6 +21,7 @@ with Ada.Finalization;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image;
+with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
@@ -262,15 +263,39 @@ package WisiToken.Parse is
       Node : in Syntax_Trees.Valid_Node_Access)
      return Syntax_Trees.Error_Data'Class;
 
+   package In_Parse_Action_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Natural, In_Parse_Actions.In_Parse_Action, Default_Element => null);
+   package In_Parse_Action_Trees is new SAL.Gen_Unbounded_Definite_Vectors
+     (Token_ID, In_Parse_Action_Arrays.Vector, Default_Element => In_Parse_Action_Arrays.Empty_Vector);
+   --  Indexed by Production_ID.
+
+   package Post_Parse_Action_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Natural, Syntax_Trees.Post_Parse_Action, Default_Element => null);
+   package Post_Parse_Action_Trees is new SAL.Gen_Unbounded_Definite_Vectors
+     (Token_ID, Post_Parse_Action_Arrays.Vector, Default_Element => Post_Parse_Action_Arrays.Empty_Vector);
+   --  Indexed by Production_ID.
+
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled
    with record
-      Tree      : aliased Syntax_Trees.Tree;
-      User_Data : WisiToken.Syntax_Trees.User_Data_Access;
+      Tree               : aliased Syntax_Trees.Tree;
+      In_Parse_Actions   : In_Parse_Action_Trees.Vector;
+      Post_Parse_Actions : Post_Parse_Action_Trees.Vector;
+      User_Data          : WisiToken.Syntax_Trees.User_Data_Access;
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 
    function Source_File_Name (Item : in Base_Parser'Class) return String
    is (Item.Tree.Lexer.File_Name);
+
+   function Get_In_Parse_Action
+     (Parser : in Base_Parser;
+      ID     : in Production_ID)
+     return In_Parse_Actions.In_Parse_Action;
+
+   function Get_Post_Parse_Action
+     (Parser : in Base_Parser;
+      ID     : in Production_ID)
+     return Syntax_Trees.Post_Parse_Action;
 
    function Next_Grammar_Token
      (Parser            : in out Base_Parser'Class;

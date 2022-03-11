@@ -205,18 +205,16 @@ package body WisiToken.Parse.LR is
    end Add_Action;
 
    procedure Add_Action
-     (State             : in out LR.Parse_State;
-      Symbol            : in     Token_ID;
-      Verb              : in     LR.Parse_Action_Verbs;
-      Production        : in     Production_ID;
-      RHS_Token_Count   : in     Ada.Containers.Count_Type;
-      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
-      In_Parse_Action   : in     In_Parse_Actions.In_Parse_Action)
+     (State           : in out LR.Parse_State;
+      Symbol          : in     Token_ID;
+      Verb            : in     LR.Parse_Action_Verbs;
+      Production      : in     Production_ID;
+      RHS_Token_Count : in     Ada.Containers.Count_Type)
    is
       Action : constant Parse_Action_Rec :=
         (case Verb is
-         when Reduce    => (Reduce, Production, Post_Parse_Action, In_Parse_Action, RHS_Token_Count),
-         when Accept_It => (Accept_It, Production, Post_Parse_Action, In_Parse_Action, RHS_Token_Count),
+         when Reduce    => (Reduce, Production, RHS_Token_Count),
+         when Accept_It => (Accept_It, Production, RHS_Token_Count),
          when others    => raise SAL.Programmer_Error);
    begin
       Add (State.Action_List, Symbol, Action);
@@ -226,16 +224,12 @@ package body WisiToken.Parse.LR is
      (State             : in out Parse_State;
       Symbols           : in     Token_ID_Array;
       Production        : in     Production_ID;
-      RHS_Token_Count   : in     Ada.Containers.Count_Type;
-      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
-      In_Parse_Action   : in     WisiToken.In_Parse_Actions.In_Parse_Action)
+      RHS_Token_Count   : in     Ada.Containers.Count_Type)
    is begin
       --  We assume WisiToken.BNF.Output_Ada_Common.Duplicate_Reduce is True
       --  for this state; no conflicts, all the same action, Recursive.
       for Symbol of Symbols loop
-         Add_Action
-           (State, Symbol, Reduce, Production, RHS_Token_Count,
-            Post_Parse_Action, In_Parse_Action);
+         Add_Action (State, Symbol, Reduce, Production, RHS_Token_Count);
       end loop;
    end Add_Action;
 
@@ -243,12 +237,9 @@ package body WisiToken.Parse.LR is
      (State             : in out LR.Parse_State;
       Symbol            : in     Token_ID;
       Reduce_Production : in     Production_ID;
-      RHS_Token_Count   : in     Ada.Containers.Count_Type;
-      Post_Parse_Action : in     WisiToken.Syntax_Trees.Post_Parse_Action;
-      In_Parse_Action   : in     In_Parse_Actions.In_Parse_Action)
+      RHS_Token_Count   : in     Ada.Containers.Count_Type)
    is
-      Conflict : constant Parse_Action_Rec :=
-        (Reduce, Reduce_Production, Post_Parse_Action, In_Parse_Action, RHS_Token_Count);
+      Conflict : constant Parse_Action_Rec := (Reduce, Reduce_Production, RHS_Token_Count);
 
       Ref : constant Action_Arrays.Find_Reference_Constant_Type := State.Action_List.Find_Constant (Symbol);
 
@@ -449,10 +440,7 @@ package body WisiToken.Parse.LR is
       Free (Table);
    end Free_Table;
 
-   function Get_Text_Rep
-     (File_Name : in String;
-      Actions   : in Parse_Actions_Array_Arrays.Vector)
-     return Parse_Table_Ptr
+   function Get_Text_Rep (File_Name : in String) return Parse_Table_Ptr
    is
       use Ada.Text_IO;
 
@@ -558,7 +546,6 @@ package body WisiToken.Parse.LR is
       function Next_Token_ID is new Gen_Next_Value (Token_ID, "Token_ID");
       function Next_Integer is new Gen_Next_Value (Integer, "Integer");
       function Next_Parse_Action_Verbs is new Gen_Next_Value (Parse_Action_Verbs, "Parse_Action_Verbs");
-      function Next_Boolean is new Gen_Next_Value (Boolean, "Boolean");
       function Next_Count_Type is new Gen_Next_Value (Ada.Containers.Count_Type, "Count_Type");
    begin
       File            := GNATCOLL.Mmap.Open_Read (File_Name);
@@ -614,18 +601,6 @@ package body WisiToken.Parse.LR is
                            Node_J.Item.State := Next_State_Index;
 
                         when Reduce | Accept_It =>
-                           if Next_Boolean then
-                              Node_J.Item.Post_Parse_Action := Actions
-                                (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS).Post_Parse;
-                           else
-                              Node_J.Item.Post_Parse_Action := null;
-                           end if;
-                           if Next_Boolean then
-                              Node_J.Item.In_Parse_Action := Actions
-                                (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS).In_Parse;
-                           else
-                              Node_J.Item.In_Parse_Action := null;
-                           end if;
                            Node_J.Item.Token_Count := Next_Count_Type;
 
                         when Error =>

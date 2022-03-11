@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2019 - 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019 - 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -878,7 +878,6 @@ package body WisiToken.Syntax_Trees.LR_Utils is
 
                return Tree.Add_Nonterm
                  (Tree.Production_ID (Node), To_Valid_Node_Access (Dest_Children),
-                  Action        => Tree.Action (Node),
                   Clear_Parents => False);
             end;
          end if;

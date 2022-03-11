@@ -906,7 +906,6 @@ package body WisiToken_Grammar_Editing is
          return Tree.Add_Nonterm
            (Production    => (+nonterminal_ID, 0),
             Children      => (Child_1, Child_2, Child_3, Child_4),
-            Action        => Wisitoken_Grammar_Actions.nonterminal_0'Access,
             Clear_Parents => False);
       end Tree_Add_Nonterminal;
 
@@ -1544,7 +1543,6 @@ package body WisiToken_Grammar_Editing is
          New_Nonterm : constant Valid_Node_Access := Tree.Add_Nonterm
            (Production    => (+nonterminal_ID, 0),
             Children      => (Child_1, Child_2, Child_3, Child_4),
-            Action        => Wisitoken_Grammar_Actions.nonterminal_0'Access,
             Clear_Parents => True); -- Child_3 can be Content
       begin
          Add_Compilation_Unit (Label & New_Identifier'Image, New_Nonterm);
@@ -2725,7 +2723,6 @@ package body WisiToken_Grammar_Editing is
             Name    : constant Valid_Node_Access := Tree.Add_Identifier (+IDENTIFIER_ID, Name_Ident);
             Decl    : constant Valid_Node_Access := Tree.Add_Nonterm
               ((+declaration_ID, 0), (Percent, Kind, Name, Decl_Item_List),
-               Action        => declaration_0'Access,
                Clear_Parents => False);
          begin
             Add_Compilation_Unit ("literal token", Decl, Prepend => True);

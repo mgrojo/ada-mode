@@ -167,26 +167,15 @@ package body WisiToken.Syntax_Trees is
    function Subtree_Image
      (Tree         : in Syntax_Trees.Tree;
       Node         : in Node_Access;
-      Node_Numbers : in Boolean                   := True;
-      Non_Grammar  : in Boolean                   := False;
-      Augmented    : in Boolean                   := False;
-      Line_Numbers : in Boolean                   := False;
-      Level        : in Integer                   := 0;
-      Image_Action : in Syntax_Trees.Image_Action := null)
+      Node_Numbers : in Boolean := True;
+      Non_Grammar  : in Boolean := False;
+      Augmented    : in Boolean := False;
+      Line_Numbers : in Boolean := False;
+      Level        : in Integer := 0)
      return String;
 
    ----------
    --  Public and body operations, alphabetical
-
-   function Action
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Access)
-     return Post_Parse_Action
-   is
-      pragma Unreferenced (Tree);
-   begin
-      return Node.Action;
-   end Action;
 
    procedure Add_Deleted
      (Tree          : in out Syntax_Trees.Tree;
@@ -414,7 +403,6 @@ package body WisiToken.Syntax_Trees is
      (Tree             : in out Syntax_Trees.Tree;
       Production       : in     WisiToken.Production_ID;
       Children         : in     Valid_Node_Access_Array;
-      Action           : in     Post_Parse_Action;
       Clear_Parents    : in     Boolean;
       Recover_Conflict : in     Boolean)
      return Valid_Node_Access
@@ -425,7 +413,6 @@ package body WisiToken.Syntax_Trees is
          ID               => Production.LHS,
          Node_Index       => -(Tree.Nodes.Last_Index + 1),
          Children         => To_Node_Access (Children),
-         Action           => Action,
          RHS_Index        => Production.RHS,
          Virtual          => False,
          Recover_Conflict => Recover_Conflict,
@@ -473,11 +460,10 @@ package body WisiToken.Syntax_Trees is
      (Tree          : in out Syntax_Trees.Tree;
       Production    : in     WisiToken.Production_ID;
       Children      : in     Valid_Node_Access_Array;
-      Clear_Parents : in     Boolean;
-      Action        : in     Post_Parse_Action := null)
+      Clear_Parents : in     Boolean)
      return Valid_Node_Access
    is begin
-      return Add_Nonterm_1 (Tree, Production, Children, Action, Clear_Parents, Recover_Conflict => False);
+      return Add_Nonterm_1 (Tree, Production, Children, Clear_Parents, Recover_Conflict => False);
    end Add_Nonterm;
 
    function Add_Source_Terminal_1
@@ -1375,7 +1361,6 @@ package body WisiToken.Syntax_Trees is
                Virtual          => Tree.Root.Virtual,
                Recover_Conflict => False,
                RHS_Index        => Tree.Root.RHS_Index,
-               Action           => Tree.Root.Action,
                Name_Offset      => Tree.Root.Name_Offset,
                Name_Length      => Tree.Root.Name_Length,
                Children         => New_Children);
@@ -1714,7 +1699,6 @@ package body WisiToken.Syntax_Trees is
                Virtual          => Node.Virtual,
                Recover_Conflict => Node.Recover_Conflict,
                RHS_Index        => Node.RHS_Index,
-               Action           => Node.Action,
                Name_Offset      => Node.Name_Offset,
                Name_Length      => Node.Name_Length,
                Children         => New_Children);
@@ -1858,7 +1842,6 @@ package body WisiToken.Syntax_Trees is
                   Virtual          => Source_Node.Virtual,
                   Recover_Conflict => Source_Node.Recover_Conflict,
                   RHS_Index        => Source_Node.RHS_Index,
-                  Action           => Source_Node.Action,
                   Name_Offset      => Source_Node.Name_Offset,
                   Name_Length      => Source_Node.Name_Length,
                   Children         => New_Children);
@@ -3960,16 +3943,15 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree          : in Syntax_Trees.Tree;
       Stream        : in Parse_Stream;
-      Stack         : in Boolean                   := True;
-      Input         : in Boolean                   := True;
-      Shared        : in Boolean                   := False;
-      Children      : in Boolean                   := False;
-      Node_Numbers  : in Boolean                   := False;
-      Non_Grammar   : in Boolean                   := False;
-      Augmented     : in Boolean                   := False;
-      Line_Numbers  : in Boolean                   := False;
-      Image_Action  : in Syntax_Trees.Image_Action := null;
-      State_Numbers : in Boolean                   := True)
+      Stack         : in Boolean := True;
+      Input         : in Boolean := True;
+      Shared        : in Boolean := False;
+      Children      : in Boolean := False;
+      Node_Numbers  : in Boolean := False;
+      Non_Grammar   : in Boolean := False;
+      Augmented     : in Boolean := False;
+      Line_Numbers  : in Boolean := False;
+      State_Numbers : in Boolean := True)
      return String
    is
       --  stack ^ stack_top input / shared
@@ -4012,8 +3994,7 @@ package body WisiToken.Syntax_Trees is
             else "--") & ", " &
            (if Children
             then Tree.Subtree_Image
-              (Stream_Element_Lists.Element (Element).Node, Node_Numbers, Non_Grammar, Augmented, Line_Numbers,
-               Image_Action => Image_Action)
+              (Stream_Element_Lists.Element (Element).Node, Node_Numbers, Non_Grammar, Augmented, Line_Numbers)
             else Tree.Image
               (Stream_Element_Lists.Element (Element).Node,
                Children              => False,
@@ -4022,8 +4003,7 @@ package body WisiToken.Syntax_Trees is
                Terminal_Node_Numbers => True,
                Non_Grammar           => Non_Grammar,
                Augmented             => Augmented,
-               Line_Numbers          => Line_Numbers,
-               Image_Action          => Image_Action))
+               Line_Numbers          => Line_Numbers))
            & ")";
 
          if not Input then
@@ -4038,12 +4018,11 @@ package body WisiToken.Syntax_Trees is
 
    function Image
      (Tree         : in Syntax_Trees.Tree;
-      Children     : in Boolean                   := False;
-      Non_Grammar  : in Boolean                   := False;
-      Augmented    : in Boolean                   := False;
-      Line_Numbers : in Boolean                   := False;
-      Root         : in Node_Access               := Invalid_Node_Access;
-      Image_Action : in Syntax_Trees.Image_Action := null)
+      Children     : in Boolean     := False;
+      Non_Grammar  : in Boolean     := False;
+      Augmented    : in Boolean     := False;
+      Line_Numbers : in Boolean     := False;
+      Root         : in Node_Access := Invalid_Node_Access)
      return String
    is begin
       if Root /= Invalid_Node_Access then
@@ -4059,8 +4038,7 @@ package body WisiToken.Syntax_Trees is
               (Tree, Tree.Root,
                Non_Grammar  => Non_Grammar,
                Augmented    => Augmented,
-               Line_Numbers => Line_Numbers,
-               Image_Action => Image_Action);
+               Line_Numbers => Line_Numbers);
          end if;
       else
          declare
@@ -4078,8 +4056,7 @@ package body WisiToken.Syntax_Trees is
                  (Tree, Stream, Children,
                   Non_Grammar  => Non_Grammar,
                   Augmented    => Augmented,
-                  Line_Numbers => Line_Numbers,
-                  Image_Action => Image_Action);
+                  Line_Numbers => Line_Numbers);
             end loop;
             return -Result;
          end;
@@ -4089,36 +4066,34 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree          : in Syntax_Trees.Tree;
       Stream        : in Stream_ID;
-      Stack         : in Boolean                   := True;
-      Input         : in Boolean                   := True;
-      Shared        : in Boolean                   := False;
-      Children      : in Boolean                   := False;
-      Node_Numbers  : in Boolean                   := True;
-      Non_Grammar   : in Boolean                   := False;
-      Augmented     : in Boolean                   := False;
-      Line_Numbers  : in Boolean                   := False;
-      Image_Action  : in Syntax_Trees.Image_Action := null;
-      State_Numbers : in Boolean                   := True)
+      Stack         : in Boolean := True;
+      Input         : in Boolean := True;
+      Shared        : in Boolean := False;
+      Children      : in Boolean := False;
+      Node_Numbers  : in Boolean := True;
+      Non_Grammar   : in Boolean := False;
+      Augmented     : in Boolean := False;
+      Line_Numbers  : in Boolean := False;
+      State_Numbers : in Boolean := True)
      return String
    is begin
       return Image
         (Tree, Tree.Streams (Stream.Cur), Stack, Input, Shared,
-         Children, Node_Numbers, Non_Grammar, Augmented, Line_Numbers, Image_Action, State_Numbers);
+         Children, Node_Numbers, Non_Grammar, Augmented, Line_Numbers, State_Numbers);
    end Image;
 
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Element               : in Stream_Index;
-      State                 : in Boolean                   := False;
-      Children              : in Boolean                   := False;
-      RHS_Index             : in Boolean                   := False;
-      Node_Numbers          : in Boolean                   := False;
-      Terminal_Node_Numbers : in Boolean                   := False;
-      Line_Numbers          : in Boolean                   := False;
-      Non_Grammar           : in Boolean                   := False;
-      Augmented             : in Boolean                   := False;
-      Expecting             : in Boolean                   := False;
-      Image_Action          : in Syntax_Trees.Image_Action := null)
+      State                 : in Boolean := False;
+      Children              : in Boolean := False;
+      RHS_Index             : in Boolean := False;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False;
+      Line_Numbers          : in Boolean := False;
+      Non_Grammar           : in Boolean := False;
+      Augmented             : in Boolean := False;
+      Expecting             : in Boolean := False)
      return String
    is begin
       if Element.Cur = Stream_Element_Lists.No_Element then
@@ -4137,8 +4112,7 @@ package body WisiToken.Syntax_Trees is
                  Line_Numbers => Line_Numbers,
                  Non_Grammar  => Non_Grammar,
                  Augmented    => Augmented,
-                 Expecting    => Expecting,
-                 Image_Action => Image_Action) &
+                 Expecting    => Expecting) &
               (if State then ")" else "");
          end;
       end if;
@@ -4147,15 +4121,14 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Node                  : in Node_Access;
-      Children              : in Boolean                   := False;
-      RHS_Index             : in Boolean                   := False;
-      Node_Numbers          : in Boolean                   := False;
-      Terminal_Node_Numbers : in Boolean                   := False;
-      Line_Numbers          : in Boolean                   := False;
-      Non_Grammar           : in Boolean                   := False;
-      Augmented             : in Boolean                   := False;
-      Expecting             : in Boolean                   := False;
-      Image_Action          : in Syntax_Trees.Image_Action := null)
+      Children              : in Boolean := False;
+      RHS_Index             : in Boolean := False;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False;
+      Line_Numbers          : in Boolean := False;
+      Non_Grammar           : in Boolean := False;
+      Augmented             : in Boolean := False;
+      Expecting             : in Boolean := False)
      return String
    is
       use Ada.Strings.Unbounded;
@@ -4216,10 +4189,6 @@ package body WisiToken.Syntax_Trees is
                Result := @ & Image_Augmented (Node.Augmented.all);
             end if;
 
-            if Image_Action /= null and then Node.Label = Nonterm and then Node.Action /= null then
-               Result := @ & Image_Action (Node.Action);
-            end if;
-
             if (Node_Numbers and Node.Label = Nonterm) and then Node.Recover_Conflict then
                Append (Result, " recover_conflict");
             end if;
@@ -4266,13 +4235,12 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Nodes                 : in Node_Access_Array;
-      RHS_Index             : in Boolean                   := False;
-      Node_Numbers          : in Boolean                   := False;
-      Terminal_Node_Numbers : in Boolean                   := False;
-      Line_Numbers          : in Boolean                   := False;
-      Non_Grammar           : in Boolean                   := False;
-      Augmented             : in Boolean                   := False;
-      Image_Action          : in Syntax_Trees.Image_Action := null)
+      RHS_Index             : in Boolean := False;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False;
+      Line_Numbers          : in Boolean := False;
+      Non_Grammar           : in Boolean := False;
+      Augmented             : in Boolean := False)
      return String
    is
       use Ada.Strings.Unbounded;
@@ -4289,8 +4257,7 @@ package body WisiToken.Syntax_Trees is
                Terminal_Node_Numbers => Terminal_Node_Numbers,
                Line_Numbers          => Line_Numbers,
                Non_Grammar           => Non_Grammar,
-               Augmented             => Augmented,
-               Image_Action          => Image_Action));
+               Augmented             => Augmented));
          Need_Comma := True;
       end loop;
       Result := Result & ")";
@@ -4300,14 +4267,13 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Ref                   : in Stream_Node_Ref;
-      First_Terminal        : in Boolean                   := False;
-      Node_Numbers          : in Boolean                   := False;
-      Terminal_Node_Numbers : in Boolean                   := False;
-      Line_Numbers          : in Boolean                   := False;
-      Non_Grammar           : in Boolean                   := False;
-      Augmented             : in Boolean                   := False;
-      Expecting             : in Boolean                   := False;
-      Image_Action          : in Syntax_Trees.Image_Action := null)
+      First_Terminal        : in Boolean := False;
+      Node_Numbers          : in Boolean := False;
+      Terminal_Node_Numbers : in Boolean := False;
+      Line_Numbers          : in Boolean := False;
+      Non_Grammar           : in Boolean := False;
+      Augmented             : in Boolean := False;
+      Expecting             : in Boolean := False)
      return String
    is
       use Stream_Element_Lists;
@@ -4324,8 +4290,7 @@ package body WisiToken.Syntax_Trees is
                  Line_Numbers           => Line_Numbers,
                  Non_Grammar            => Non_Grammar,
                  Augmented              => Augmented,
-                 Expecting              => Expecting,
-                 Image_Action           => Image_Action) &
+                 Expecting              => Expecting) &
               (if Ref.Node = Invalid_Node_Access or Element_Node.Label in Terminal_Label
                then ""
                elsif Element_Node.Label = Nonterm and Element_Node = Ref.Node and First_Terminal
@@ -4337,8 +4302,7 @@ package body WisiToken.Syntax_Trees is
                   Line_Numbers          => Line_Numbers,
                   Non_Grammar           => Non_Grammar,
                   Augmented             => Augmented,
-                  Expecting             => Expecting,
-                  Image_Action          => Image_Action)
+                  Expecting             => Expecting)
 
                else ", " & Image
                  (Tree,
@@ -4347,8 +4311,7 @@ package body WisiToken.Syntax_Trees is
                   Terminal_Node_Numbers => True,
                   Line_Numbers          => Line_Numbers,
                   Non_Grammar           => Non_Grammar,
-                  Augmented             => Augmented,
-                  Image_Action          => Image_Action)) & ")";
+                  Augmented             => Augmented)) & ")";
          end;
       elsif Ref.Node /= Invalid_Node_Access then
          return "(" & Image
@@ -6820,10 +6783,9 @@ package body WisiToken.Syntax_Trees is
 
    procedure Print_Tree
      (Tree         : in Syntax_Trees.Tree;
-      Root         : in Node_Access               := Invalid_Node_Access;
-      Image_Action : in Syntax_Trees.Image_Action := null;
-      Line_Numbers : in Boolean                   := False;
-      Non_Grammar  : in Boolean                   := False)
+      Root         : in Node_Access := Invalid_Node_Access;
+      Line_Numbers : in Boolean     := False;
+      Non_Grammar  : in Boolean     := False)
    is
       procedure Print_Node (Node : in Valid_Node_Access; Level : in Integer)
       is begin
@@ -6836,9 +6798,6 @@ package body WisiToken.Syntax_Trees is
 
          if Node.Augmented /= null then
             Tree.Lexer.Trace.Put (Image_Augmented (Node.Augmented.all), Prefix => False);
-         end if;
-         if Node.Label = Nonterm and then (Image_Action /= null and Node.Action /= null) then
-            Tree.Lexer.Trace.Put (" - " & Image_Action (Node.Action), Prefix => False);
          end if;
 
          Tree.Lexer.Trace.New_Line;
@@ -7022,7 +6981,6 @@ package body WisiToken.Syntax_Trees is
       Stream           : in     Stream_ID;
       Production       : in     WisiToken.Production_ID;
       Child_Count      : in     Ada.Containers.Count_Type;
-      Action           : in     Post_Parse_Action := null;
       State            : in     State_Index;
       Recover_Conflict : in     Boolean)
      return Rooted_Ref
@@ -7040,7 +6998,7 @@ package body WisiToken.Syntax_Trees is
       end Pop_Children;
 
       New_Node : constant Node_Access := Tree.Add_Nonterm_1
-        (Production, Pop_Children, Action, Clear_Parents => False, Recover_Conflict => Recover_Conflict);
+        (Production, Pop_Children, Clear_Parents => False, Recover_Conflict => Recover_Conflict);
    begin
       return Push (Parse_Stream, Stream, New_Node, State);
    end Reduce;
@@ -7170,7 +7128,6 @@ package body WisiToken.Syntax_Trees is
                Virtual          => False,
                Recover_Conflict => Parent.Recover_Conflict,
                RHS_Index        => Parent.RHS_Index,
-               Action           => Parent.Action,
                Name_Offset      => Parent.Name_Offset,
                Name_Length      => Parent.Name_Length,
                Children         => Children);
@@ -7207,10 +7164,6 @@ package body WisiToken.Syntax_Trees is
       Children : in     Node_Access_Array)
    is
    begin
-      if New_ID /= (Node.ID, Node.RHS_Index) then
-         Node.Action := null;
-      end if;
-
       Node.ID        := New_ID.LHS;
       Node.RHS_Index := New_ID.RHS;
 
@@ -7373,7 +7326,6 @@ package body WisiToken.Syntax_Trees is
                Virtual          => New_Root.Virtual,
                Recover_Conflict => New_Root.Recover_Conflict,
                RHS_Index        => New_Root.RHS_Index,
-               Action           => New_Root.Action,
                Name_Offset      => New_Root.Name_Offset,
                Name_Length      => New_Root.Name_Length,
                Children         => New_Children);
@@ -7557,7 +7509,6 @@ package body WisiToken.Syntax_Trees is
             Virtual          => Tree.Root.Virtual,
             Recover_Conflict => Tree.Root.Recover_Conflict,
             RHS_Index        => Tree.Root.RHS_Index,
-            Action           => Tree.Root.Action,
             Name_Offset      => Tree.Root.Name_Offset,
             Name_Length      => Tree.Root.Name_Length,
             Children         => New_Children);
@@ -7915,12 +7866,11 @@ package body WisiToken.Syntax_Trees is
    function Subtree_Image
      (Tree         : in Syntax_Trees.Tree;
       Node         : in Node_Access;
-      Node_Numbers : in Boolean                   := True;
-      Non_Grammar  : in Boolean                   := False;
-      Augmented    : in Boolean                   := False;
-      Line_Numbers : in Boolean                   := False;
-      Level        : in Integer                   := 0;
-      Image_Action : in Syntax_Trees.Image_Action := null)
+      Node_Numbers : in Boolean := True;
+      Non_Grammar  : in Boolean := False;
+      Augmented    : in Boolean := False;
+      Line_Numbers : in Boolean := False;
+      Level        : in Integer := 0)
      return String
    is
       use Ada.Strings.Unbounded;
@@ -7940,13 +7890,12 @@ package body WisiToken.Syntax_Trees is
             Terminal_Node_Numbers => True,
             Non_Grammar           => Non_Grammar,
             Line_Numbers          => Line_Numbers,
-            Augmented             => Augmented,
-            Image_Action          => Image_Action));
+            Augmented             => Augmented));
 
       if Node /= Invalid_Node_Access and then Node.Label = Nonterm then
          for Child of Node.Children loop
             Result := @ & Subtree_Image
-              (Tree, Child, Node_Numbers, Non_Grammar, Augmented, Line_Numbers, Level + 1, Image_Action);
+              (Tree, Child, Node_Numbers, Non_Grammar, Augmented, Line_Numbers, Level + 1);
          end loop;
       end if;
 

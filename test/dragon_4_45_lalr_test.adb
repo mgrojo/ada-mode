@@ -202,14 +202,12 @@ package body Dragon_4_45_LALR_Test is
 
    begin
       --  figure 4.41 pg 239
-      WisiToken.Parse.LR.AUnit.Strict := False;
-
       Add_Action (Expected.States (S0), +Lower_C_ID, (3, 0), S36);
       Add_Action (Expected.States (S0), +Lower_D_ID, (3, 1), S47);
       Add_Goto (Expected.States (S0), +Upper_C_ID, S2);
       Add_Goto (Expected.States (S0), +Upper_S_ID, S1);
 
-      Add_Action (Expected.States (S1), +EOI_ID, Accept_It, (+Accept_ID, 0), 1, Null_Action, null);
+      Add_Action (Expected.States (S1), +EOI_ID, Accept_It, (+Accept_ID, 0), 1);
 
       Add_Action (Expected.States (S2), +Lower_C_ID, (3, 0), S36);
       Add_Action (Expected.States (S2), +Lower_D_ID, (3, 1), S47);
@@ -219,15 +217,15 @@ package body Dragon_4_45_LALR_Test is
       Add_Action (Expected.States (S36), +Lower_D_ID, (3, 1), S47);
       Add_Goto (Expected.States (S36), +Upper_C_ID, S89);
 
-      Add_Action (Expected.States (S47), +Lower_C_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
-      Add_Action (Expected.States (S47), +Lower_D_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
-      Add_Action (Expected.States (S47), +EOI_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
+      Add_Action (Expected.States (S47), +Lower_C_ID, Reduce, (+Upper_C_ID, 1), 1);
+      Add_Action (Expected.States (S47), +Lower_D_ID, Reduce, (+Upper_C_ID, 1), 1);
+      Add_Action (Expected.States (S47), +EOI_ID, Reduce, (+Upper_C_ID, 1), 1);
 
-      Add_Action (Expected.States (S5), +EOI_ID, Reduce, (+Upper_S_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (S5), +EOI_ID, Reduce, (+Upper_S_ID, 0), 2);
 
-      Add_Action (Expected.States (S89), +Lower_C_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
-      Add_Action (Expected.States (S89), +Lower_D_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
-      Add_Action (Expected.States (S89), +EOI_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (S89), +Lower_C_ID, Reduce, (+Upper_C_ID, 0), 2);
+      Add_Action (Expected.States (S89), +Lower_D_ID, Reduce, (+Upper_C_ID, 0), 2);
+      Add_Action (Expected.States (S89), +EOI_ID, Reduce, (+Upper_C_ID, 0), 2);
 
       Check ("", Computed.all, Expected);
    end Parser_Table;
@@ -256,6 +254,8 @@ package body Dragon_4_45_LALR_Test is
          Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate
            (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
+         WisiToken.Parse.In_Parse_Action_Trees.Empty_Vector,
+         WisiToken.Parse.Post_Parse_Action_Trees.Empty_Vector,
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,
@@ -283,12 +283,4 @@ package body Dragon_4_45_LALR_Test is
       Register_Routine (T, Parser_Table'Access, "Parser_Table");
       Register_Routine (T, Test_Parse'Access, "Test_Parse");
    end Register_Tests;
-
-   overriding procedure Tear_Down_Case (T : in out Test_Case)
-   is
-      pragma Unreferenced (T);
-   begin
-      WisiToken.Parse.LR.AUnit.Strict := True;
-   end Tear_Down_Case;
-
 end Dragon_4_45_LALR_Test;

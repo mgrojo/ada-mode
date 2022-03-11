@@ -514,7 +514,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       function To_Reduce_Action (Item : in Minimal_Action) return Reduce_Action_Rec
       is begin
-         return (Reduce, Item.Production, null, null, Item.Token_Count);
+         return (Reduce, Item.Production, Item.Token_Count);
       end To_Reduce_Action;
 
       Local_Config_Heap : Config_Heaps.Heap_Type; -- never used, because Do_Language_Fixes is False.
@@ -871,7 +871,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       end Safe_Add_Work;
 
       function To_Reduce_Action (Action : in Minimal_Action) return Reduce_Action_Rec
-        is (Reduce, Action.Production, null, null, Action.Token_Count);
+        is (Reduce, Action.Production, Action.Token_Count);
 
       procedure Minimal_Do_Shift
         (Action     : in     Minimal_Action;

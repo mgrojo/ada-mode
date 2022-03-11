@@ -2,7 +2,7 @@
 --
 --  Runtime utils for wisitoken_grammar.wy actions.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -140,9 +140,6 @@ package WisiToken_Grammar_Runtime is
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
-
-   function Image_Grammar_Action (Action : in WisiToken.Syntax_Trees.Post_Parse_Action) return String;
-   --  For Syntax_Trees.Print_Tree.
 
    procedure Check_EBNF
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;

@@ -338,10 +338,21 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                    +END_ID),
                   Push_Back_Undo_Reduce => True);
 
-               Undo_Reduce_Check
-                 (Super, Shared_Parser, New_Config,
-                  (+handled_sequence_of_statements_ID,
-                   +sequence_of_statements_ID));
+               case To_Token_Enum (Tree.Element_ID (New_Config.Stack.Peek.Token)) is
+               when handled_sequence_of_statements_ID =>
+                  Undo_Reduce_Check
+                    (Super, Shared_Parser, New_Config,
+                     (+handled_sequence_of_statements_ID,
+                      +sequence_of_statements_ID));
+
+               when declarative_part_ID =>
+                  --  A package body. test_mckenzie_recover.adb Missing_Name_4
+                  Undo_Reduce_Check (Super, Shared_Parser, New_Config, +declarative_part_ID);
+
+               when others =>
+                  raise Bad_Config with "Language_Fixes unimplemented nonterm for Missing_Name_Error " &
+                    Image (Tree.Element_ID (Config.Error_Token), Descriptor);
+               end case;
 
                --  This is handling Missing_Name_Error, so we know the identifier_opt
                --  or name_opt is empty.

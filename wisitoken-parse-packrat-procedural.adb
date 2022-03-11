@@ -65,7 +65,6 @@ package body WisiToken.Parse.Packrat.Procedural is
                  (State            => Success,
                   Result           => Tree.Add_Nonterm
                     (Production    => (R, RHS_Index),
-                     Action        => RHS.Post_Parse_Action,
                      Children      => (1 .. 0 => Syntax_Trees.Invalid_Node_Access),
                      Clear_Parents => False),
                   Last_Pos         => Pos);
@@ -106,7 +105,6 @@ package body WisiToken.Parse.Packrat.Procedural is
                     (State              => Success,
                      Result             => Parser.Tree.Add_Nonterm
                        (Production      => (R, RHS_Index),
-                        Action          => RHS.Post_Parse_Action,
                         Children        => Syntax_Trees.To_Valid_Node_Access (Children),
                         Clear_Parents   => True),
                      --  We must be able to steal nodes from failed nonterms;
@@ -242,11 +240,15 @@ package body WisiToken.Parse.Packrat.Procedural is
       Direct_Left_Recursive : in Token_ID_Set;
       Start_ID              : in Token_ID;
       Lexer                 : in WisiToken.Lexer.Handle;
+      In_Parse_Actions      : in WisiToken.Parse.In_Parse_Action_Trees.Vector;
+      Post_Parse_Actions    : in WisiToken.Parse.Post_Parse_Action_Trees.Vector;
       User_Data             : in WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser
    is begin
       return Parser                   : Procedural.Parser (Grammar.First_Index, Grammar.Last_Index) do
          Parser.Tree.Lexer            := Lexer;
+         Parser.In_Parse_Actions      := In_Parse_Actions;
+         Parser.Post_Parse_Actions    := Post_Parse_Actions;
          Parser.User_Data             := User_Data;
          Parser.Grammar               := Grammar;
          Parser.Start_ID              := Start_ID;

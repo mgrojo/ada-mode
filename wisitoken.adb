@@ -338,11 +338,13 @@ package body WisiToken is
          Trace_Dump (Trace_Memory, Report => Memory_Usage);
       end if;
 
-      Trace.Put_Line
+      Trace.Put
         ("(message ""memory: high" &
            Byte_Count'Image (Memory_Use.High) &
            " current" &
-           Byte_Count'Image (Memory_Use.Current - Memory_Baseline) & """)");
+           Byte_Count'Image (Memory_Use.Current - Memory_Baseline) & """)",
+         Prefix => False);
+      Trace.New_Line;
    end Report_Memory;
 
    function Error_Message

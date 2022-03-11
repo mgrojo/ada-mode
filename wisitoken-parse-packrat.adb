@@ -43,7 +43,9 @@ package body WisiToken.Parse.Packrat is
          end if;
 
          declare
-            Tree_Children : constant Syntax_Trees.Node_Access_Array := Tree.Children (Node);
+            Tree_Children     : constant Syntax_Trees.Node_Access_Array := Tree.Children (Node);
+            Post_Parse_Action : constant Syntax_Trees.Post_Parse_Action := Parser.Get_Post_Parse_Action
+              (Tree.Production_ID (Node));
          begin
             for Child of Tree_Children loop
                if Child /= null and then Overlaps (Tree.Byte_Region (Child), Action_Region_Bytes) then
@@ -53,8 +55,8 @@ package body WisiToken.Parse.Packrat is
 
             Parser.User_Data.Reduce (Tree, Node);
 
-            if Tree.Action (Node) /= null then
-               Tree.Action (Node) (Parser.User_Data.all, Tree, Node);
+            if Post_Parse_Action /= null then
+               Post_Parse_Action (Parser.User_Data.all, Tree, Node);
             end if;
          end;
       end Process_Node;

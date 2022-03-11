@@ -46,8 +46,8 @@ package body Test_Syntax_Trees is
       Parser.Parse (Log_File);
       Parser.Tree.Start_Edit;
 
-      if WisiToken.Trace_Tests > WisiToken.Outline then
-         Put_Line ("shared stream:");
+      if WisiToken.Trace_Tests > WisiToken.Detail then
+         Put_Line ("tree:");
          Put_Line (Parser.Tree.Image (Parser.Tree.Shared_Stream, Input => True, Shared => True, Children => True));
          New_Line;
       end if;
@@ -72,8 +72,8 @@ package body Test_Syntax_Trees is
    begin
       Tree.Left_Breakdown (Ref, User_Data'Access);
 
-      if Trace_Tests > Outline then
-         Put_Line ("left_breakdown:");
+      if Trace_Tests > Detail then
+         Put_Line ("tree:");
          Put_Line (Tree.Image (Ref.Stream, Stack => True, Input => True, Shared => True, Children => True));
       end if;
       Check ("1 el", Tree.ID (Ref.Stream, Ref.Element), +BEGIN_ID);
@@ -161,7 +161,7 @@ package body Test_Syntax_Trees is
 
       Skip_To_Parser.Parse (Log_File);
 
-      if Trace_Tests > Outline then
+      if Trace_Tests > Detail then
          Skip_To_Parser.Tree.Print_Tree (Non_Grammar => True);
       end if;
 
@@ -263,6 +263,8 @@ package body Test_Syntax_Trees is
          Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
          Ada_Lite_LR1_T1_Main.Create_Parse_Table
            (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
+         Ada_Lite_LR1_T1_Main.Create_In_Parse_Actions,
+         Ada_Lite_LR1_T1_Main.Create_Post_Parse_Actions,
          Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
          Language_Matching_Begin_Tokens =>
            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
@@ -273,6 +275,8 @@ package body Test_Syntax_Trees is
         (Skip_To_Parser,
          Skip_To_Grammar_LALR_Main.Create_Lexer (Trace'Access),
          Skip_To_Grammar_LALR_Main.Create_Parse_Table ("skip_to_grammar_lalr_parse_table.txt"),
+         Skip_To_Grammar_LALR_Main.Create_In_Parse_Actions,
+         Skip_To_Grammar_LALR_Main.Create_Post_Parse_Actions,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,
          Language_String_ID_Set         => null,

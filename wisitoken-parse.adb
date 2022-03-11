@@ -313,6 +313,30 @@ package body WisiToken.Parse is
       raise SAL.Programmer_Error; -- keep the compiler happy
    end Find_Non_Lexer_Error;
 
+   function Get_In_Parse_Action
+     (Parser : in Base_Parser;
+      ID     : in Production_ID)
+     return In_Parse_Actions.In_Parse_Action
+   is begin
+      if Parser.In_Parse_Actions.Is_Empty or else Parser.In_Parse_Actions (ID.LHS).Is_Empty then
+         return null;
+      else
+         return Parser.In_Parse_Actions (ID.LHS)(ID.RHS);
+      end if;
+   end Get_In_Parse_Action;
+
+   function Get_Post_Parse_Action
+     (Parser : in Base_Parser;
+      ID     : in Production_ID)
+     return Syntax_Trees.Post_Parse_Action
+   is begin
+      if Parser.Post_Parse_Actions.Is_Empty or else Parser.Post_Parse_Actions (ID.LHS).Is_Empty then
+         return null;
+      else
+         return Parser.Post_Parse_Actions (ID.LHS)(ID.RHS);
+      end if;
+   end Get_Post_Parse_Action;
+
    function Next_Grammar_Token
      (Parser            : in out Base_Parser'Class;
       Last_Grammar_Node : in out WisiToken.Syntax_Trees.Node_Access)

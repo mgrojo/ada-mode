@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2015, 2017 - 2021 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017 - 2022 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -135,80 +135,88 @@ package body Test_LR1_Parallel is
 
    procedure Compare_LR1_Sets (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use AUnit.Checks;
-      use AUnit.Checks.Containers;
-      use WisiToken.Generate;
-      use WisiToken.Generate.LR;
-      use WisiToken;
-
-      Test : Test_Case renames Test_Case (T);
-
-      Grammar_File_Name : constant String := "../test/bnf/" & Test.Root_Name.all & ".wy";
-
-      Trace : WisiToken.Text_IO_Trace.Trace;
-      Input_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-      Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
-        WisiToken.BNF.Generate_Utils.Parse_Grammar_File
-          (Grammar_File_Name, Input_Data'Unchecked_Access, WisiToken.BNF.LR1, WisiToken.BNF.re2c_Lexer, Trace,
-           Ignore_Conflicts => True);
-      --  Builds Generate_Data.Descriptor, Generate_Data.Grammar
-
-      Descriptor : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
-      Grammar    : WisiToken.Productions.Prod_Arrays.Vector renames Generate_Data.Grammar;
-
-      Nullable : constant Token_Array_Production_ID := WisiToken.Generate.Nullable (Grammar);
-      Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Nullable);
-
-      First_Nonterm_Set : constant Token_Array_Token_Set := WisiToken.Generate.First
-        (Grammar, Has_Empty_Production, Descriptor.First_Terminal);
-
-      First_Terminal_Sequence : constant Token_Sequence_Arrays.Vector :=
-        WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Descriptor);
-
-      Item_Sets_1 : constant LR1_Items.Item_Set_List := LR1_Generate.LR1_Item_Sets_Single
-        (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
+      Saved_Debug_Mode : constant Boolean := WisiToken.Debug_Mode;
    begin
-      WisiToken.Trace_Generate_Table := Test_LR1_Parallel.Trace_Generate_Table;
+      WisiToken.Debug_Mode := False;  -- EBNF tree edit leaves byte region out of order.
       declare
-         Item_Sets_8_Array : constant LR1_Items.Item_Set_List := LR1_Generate.LR1_Item_Sets_Parallel
-           (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor, Task_Count => 8);
+         use AUnit.Checks;
+         use AUnit.Checks.Containers;
+         use WisiToken.Generate;
+         use WisiToken.Generate.LR;
+         use WisiToken;
 
-         Item_Sets_8_Tree : LR1_Items.Item_Set_Tree;
+         Test : Test_Case renames Test_Case (T);
 
-         Map    : State_Map (Item_Sets_1.First_Index .. Item_Sets_1.Last_Index);
-         --  Map (t1_state) = t8_state
-         Mapped : array (State_Index range Item_Sets_1.First_Index .. Item_Sets_1.Last_Index) of Boolean :=
-           (others => False);
+         Grammar_File_Name : constant String := "../test/bnf/" & Test.Root_Name.all & ".wy";
 
-         use LR1_Items.Item_Set_Arrays;
-         Found : Boolean;
+         Trace : WisiToken.Text_IO_Trace.Trace;
+         Input_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
+         Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
+           WisiToken.BNF.Generate_Utils.Parse_Grammar_File
+             (Grammar_File_Name, Input_Data'Unchecked_Access, WisiToken.BNF.LR1, WisiToken.BNF.re2c_Lexer, Trace,
+              Ignore_Conflicts => True);
+         --  Builds Generate_Data.Descriptor, Generate_Data.Grammar
       begin
-         if WisiToken.Trace_Action > Outline then
-            --  We can't use the lr1_t8_re2c.parse_table created by rules.make;
-            --  the state numbers change randomly with each run.
-            Put_Sets (Test.Root_Name.all & "_lr1_t8.set_table", Item_Sets_8_Array, Grammar, Descriptor);
-         end if;
+         WisiToken.Debug_Mode := Saved_Debug_Mode;
+         declare
+            Descriptor : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
+            Grammar    : WisiToken.Productions.Prod_Arrays.Vector renames Generate_Data.Grammar;
 
-         Check ("item_set.length", Item_Sets_8_Array.Length, Item_Sets_1.Length);
+            Nullable : constant Token_Array_Production_ID := WisiToken.Generate.Nullable (Grammar);
+            Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Nullable);
 
-         for Item_Set of Item_Sets_8_Array loop
-            Item_Sets_8_Tree.Insert (Item_Set.Tree_Node, Duplicate => SAL.Error);
-         end loop;
+            First_Nonterm_Set : constant Token_Array_Token_Set := WisiToken.Generate.First
+              (Grammar, Has_Empty_Production, Descriptor.First_Terminal);
 
-         for I in Map'Range loop
-            Map (I) := Item_Sets_8_Tree.Find_Or_Insert (Item_Sets_1 (I).Tree_Node, Found).State;
-            Check (I'Image & ".found", Found, True);
-            Mapped (Map (I)) := True;
-         end loop;
+            First_Terminal_Sequence : constant Token_Sequence_Arrays.Vector :=
+              WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Descriptor);
 
-         Check ("all states found", (for all M of Mapped => M), True);
+            Item_Sets_1 : constant LR1_Items.Item_Set_List := LR1_Generate.LR1_Item_Sets_Single
+              (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
+         begin
+            WisiToken.Trace_Generate_Table := Test_LR1_Parallel.Trace_Generate_Table;
+            declare
+               Item_Sets_8_Array : constant LR1_Items.Item_Set_List := LR1_Generate.LR1_Item_Sets_Parallel
+                 (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor, Task_Count => 8);
 
-         for I in Map'Range loop
-            Check (I'Image & "-" & Map (I)'Image & ".goto_list",
-                   Map,
-                   Item_Sets_8_Array (Map (I)).Goto_List,
-                   Item_Sets_1 (I).Goto_List);
-         end loop;
+               Item_Sets_8_Tree : LR1_Items.Item_Set_Tree;
+
+               Map    : State_Map (Item_Sets_1.First_Index .. Item_Sets_1.Last_Index);
+               --  Map (t1_state) = t8_state
+               Mapped : array (State_Index range Item_Sets_1.First_Index .. Item_Sets_1.Last_Index) of Boolean :=
+                 (others => False);
+
+               use LR1_Items.Item_Set_Arrays;
+               Found : Boolean;
+            begin
+               if WisiToken.Trace_Action > Outline then
+                  --  We can't use the lr1_t8_re2c.parse_table created by rules.make;
+                  --  the state numbers change randomly with each run.
+                  Put_Sets (Test.Root_Name.all & "_lr1_t8.set_table", Item_Sets_8_Array, Grammar, Descriptor);
+               end if;
+
+               Check ("item_set.length", Item_Sets_8_Array.Length, Item_Sets_1.Length);
+
+               for Item_Set of Item_Sets_8_Array loop
+                  Item_Sets_8_Tree.Insert (Item_Set.Tree_Node, Duplicate => SAL.Error);
+               end loop;
+
+               for I in Map'Range loop
+                  Map (I) := Item_Sets_8_Tree.Find_Or_Insert (Item_Sets_1 (I).Tree_Node, Found).State;
+                  Check (I'Image & ".found", Found, True);
+                  Mapped (Map (I)) := True;
+               end loop;
+
+               Check ("all states found", (for all M of Mapped => M), True);
+
+               for I in Map'Range loop
+                  Check (I'Image & "-" & Map (I)'Image & ".goto_list",
+                         Map,
+                         Item_Sets_8_Array (Map (I)).Goto_List,
+                         Item_Sets_1 (I).Goto_List);
+               end loop;
+            end;
+         end;
       end;
    end Compare_LR1_Sets;
 

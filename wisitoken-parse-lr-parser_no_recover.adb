@@ -41,7 +41,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
 
       Nonterm : constant Syntax_Trees.Stream_Node_Ref := Shared_Parser.Tree.Reduce
-        (Parser_State.Stream, Action.Production, Action.Token_Count, Action.Post_Parse_Action, New_State,
+        (Parser_State.Stream, Action.Production, Action.Token_Count, New_State,
          Recover_Conflict => False);
    begin
       if Trace_Parse > Detail then
@@ -109,7 +109,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
          Reduce_Stack_1
            (Shared_Parser, Current_Parser,
-            (Reduce, Action.Production, Action.Post_Parse_Action, Action.In_Parse_Action, Action.Token_Count),
+            (Reduce, Action.Production, Action.Token_Count),
             Accept_State, Trace);
 
       when Error =>
@@ -207,11 +207,15 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
      (Parser             :    out LR.Parser_No_Recover.Parser;
       Lexer              : in     WisiToken.Lexer.Handle;
       Table              : in     Parse_Table_Ptr;
+      In_Parse_Actions   : in     In_Parse_Action_Trees.Vector;
+      Post_Parse_Actions : in     Post_Parse_Action_Trees.Vector;
       User_Data          : in     WisiToken.Syntax_Trees.User_Data_Access)
    is begin
-      Parser.Tree.Lexer := Lexer;
-      Parser.Table      := Table;
-      Parser.User_Data  := User_Data;
+      Parser.Tree.Lexer         := Lexer;
+      Parser.Table              := Table;
+      Parser.In_Parse_Actions   := In_Parse_Actions;
+      Parser.Post_Parse_Actions := Post_Parse_Actions;
+      Parser.User_Data          := User_Data;
    end New_Parser;
 
    overriding procedure Parse
@@ -452,10 +456,12 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
          declare
             use all type Syntax_Trees.Post_Parse_Action;
+            Action : constant Syntax_Trees.Post_Parse_Action := Parser.Get_Post_Parse_Action
+              (Tree.Production_ID (Node));
          begin
-            if Tree.Action (Node) /= null then
+            if Action /= null then
                begin
-                  Tree.Action (Node) (Parser.User_Data.all, Tree, Node);
+                  Action (Parser.User_Data.all, Tree, Node);
                exception
                when E : others =>
                   if Trace_Tests > Outline then

@@ -140,7 +140,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
          AUnit.Assertions.Assert (False, "'" & Command & "'; no exception");
       exception
       when WisiToken.Parse_Error =>
-         if WisiToken.Trace_Tests > WisiToken.Outline then
+         if WisiToken.Trace_Tests > WisiToken.Detail then
             Ada.Text_IO.Put_Line ("parse result:");
             Parser.Tree.Print_Tree;
          end if;
@@ -175,6 +175,8 @@ package body Test_LR_Expecting_Terminal_Sequence is
          Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate
            (Top_Level.Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
+         WisiToken.Parse.In_Parse_Action_Trees.Empty_Vector,
+         WisiToken.Parse.Post_Parse_Action_Trees.Empty_Vector,
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

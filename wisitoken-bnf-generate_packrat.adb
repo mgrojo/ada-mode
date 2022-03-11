@@ -31,8 +31,7 @@ procedure WisiToken.BNF.Generate_Packrat
 is
    use WisiToken.Generate;
 
-   Descriptor   : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
-   Action_Names : Names_Array_Array renames Generate_Data.Action_Names.all;
+   Descriptor : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
 
    subtype Terminal is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
 
@@ -157,22 +156,17 @@ is
                   Indent_Line ("  (Start_Pos_Index,");
                   Indent := Indent + 3;
                end if;
-               Indent_Line ("(State              => Success,");
-               Indent_Line (" Result             => Parser.Tree.Add_Nonterm");
+               Indent_Line ("(State            => Success,");
+               Indent_Line (" Result           => Parser.Tree.Add_Nonterm");
 
                Indent := Indent + 3;
-               Indent_Line ("(Production      => (" & Result_ID & ", " & Trimmed_Image (RHS_Index) & "),");
-               Indent_Line
-                 (" Action          => " &
-                    (if Action_Names (Prod.LHS) = null or else Action_Names (Prod.LHS)(RHS_Index) = null
-                     then "null,"
-                     else Action_Names (Prod.LHS)(RHS_Index).all & "'Access,"));
+               Indent_Line ("(Production    => (" & Result_ID & ", " & Trimmed_Image (RHS_Index) & "),");
 
                if RHS.Tokens.Length = 0 then
-                  Indent_Line (" Children        => (1 .. 0 => Syntax_Trees.Invalid_Node_Access),");
+                  Indent_Line (" Children      => (1 .. 0 => Syntax_Trees.Invalid_Node_Access),");
 
                elsif RHS.Tokens.Length = 1 then
-                  Indent_Start (" Children        => ");
+                  Indent_Start (" Children      => ");
                   if RHS.Tokens (RHS.Tokens.First_Index) in Terminal then
                      Put ("(1 => Tree.Get_Node (Tree.Shared_Stream, Pos_" &
                             Var_Suffix (RHS_Index, RHS.Tokens.First_Index) & ")),");
@@ -181,7 +175,7 @@ is
                   end if;
 
                else
-                  Indent_Line (" Children        =>");
+                  Indent_Line (" Children      =>");
 
                   for Token_Index in RHS.Tokens.First_Index .. RHS.Tokens.Last_Index loop
                      if RHS.Tokens (Token_Index) in Terminal then
@@ -205,12 +199,12 @@ is
                   end loop;
                end if;
 
-               Indent_Line (" Clear_Parents   => True),");
+               Indent_Line (" Clear_Parents => True),");
                --  We must be able to steal nodes from failed nonterms;
                --  body_instantiation_conflict.wy.
 
                Indent := Indent - 3;
-               Indent_Start (" Last_Pos        => Pos)");
+               Indent_Start (" Last_Pos         => Pos)");
 
                if Data.Direct_Left_Recursive (Prod.LHS) then
                   Put_Line (";");

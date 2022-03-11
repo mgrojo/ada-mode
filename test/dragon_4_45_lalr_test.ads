@@ -3,7 +3,7 @@
 --  Test Red Dragon Book example 4.45; example grammar with LALR
 --  parser tables.
 --
---  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018, 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -29,6 +29,5 @@ package Dragon_4_45_LALR_Test is
    overriding procedure Register_Tests (T : in out Test_Case);
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
-   overriding procedure Tear_Down_Case (T : in out Test_Case);
 
 end Dragon_4_45_LALR_Test;

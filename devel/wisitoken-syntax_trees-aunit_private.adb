@@ -76,7 +76,6 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       when Nonterm =>
          Check (Label & ".virtual", Computed.Virtual, Expected.Virtual);
          Check (Label & ".rhs_index", Computed.RHS_Index, Expected.RHS_Index);
-         Check (Label & ".action", Computed.Action, Expected.Action);
          Check (Label & ".name_offset", Computed.Name_Offset, Expected.Name_Offset);
          Check (Label & ".name_length", Computed.Name_Length, Expected.Name_Length);
          for I in Computed.Children'Range loop

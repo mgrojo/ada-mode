@@ -4,7 +4,7 @@
 --  parameters, and a parser for that grammar. The grammar parser
 --  actions must be Ada.
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -345,13 +345,15 @@ is
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
          LR_Create_Create_Parse_Table (Input_Data, Common_Data, Generate_Data, Actions_Package_Name);
+         Create_Create_Actions (Generate_Data);
 
       when Packrat_Gen =>
          WisiToken.BNF.Generate_Packrat (Packrat_Data, Generate_Data);
-
+         Create_Create_Actions (Generate_Data);
          Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
 
       when Packrat_Proc =>
+         Create_Create_Actions (Generate_Data);
          Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
 
       when External =>
@@ -436,7 +438,10 @@ is
                Put_Line ("   null, null, null,");
             end if;
          end if;
-         Put_Line ("   " & Main_Package_Name & ".Create_Parse_Table, " & Main_Package_Name & ".Create_Lexer);");
+         Put_Line ("   " & Main_Package_Name & ".Create_Parse_Table,");
+         Put_Line ("   " & Main_Package_Name & ".Create_In_Parse_Actions,");
+         Put_Line ("   " & Main_Package_Name & ".Create_Post_Parse_Actions,");
+         Put_Line ("   " & Main_Package_Name & ".Create_Lexer);");
 
       when Packrat_Generate_Algorithm | Tree_Sitter =>
          Put_Line ("   " & Main_Package_Name & ".Create_Parser);");
