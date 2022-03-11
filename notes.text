@@ -50,8 +50,6 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-parse fail on ediff startup; empty buffer?
-
 trying to copy c:/Projects/org.wisitoken.stephe-1/test/test_incremental.adb:623 Edit_Comment_14
     wisi-validate-cache-current-statement cancels active region highlight
     but leaves mark-active t!

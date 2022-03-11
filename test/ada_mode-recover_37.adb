@@ -1,5 +1,6 @@
--- LALR and LR1 parsers failed error recovery with default enqueue_limit. With
--- higher limit, raised Constraint_Error.
+-- LALR and LR1 parsers failed error recovery with default
+-- enqueue_limit. With higher limit, raised Constraint_Error. Then got
+-- "error during resume". Now fixed.
 --
 -- Constraint_Error now fixed, recover improved.
 
@@ -21,5 +22,4 @@ begin
 end Update_Containing_Nonterms;
 -- Local Variables:
 -- ada-end-name-optional: nil
--- wisi-mckenzie-enqueue-limit: 280000
 -- End:
