@@ -53,6 +53,8 @@ package body Wisi.Parse_Context is
               (Ada.Finalization.Limited_Controlled with
                User_Data                      => Wisi.New_User_Data (Language.Parse_Data_Template.all),
                Table                          => Language.Table,
+               In_Parse_Actions               => Language.In_Parse_Actions,
+               Post_Parse_Actions             => Language.Post_Parse_Actions,
                Language_Fixes                 => Language.Fixes,
                Language_Matching_Begin_Tokens => Language.Matching_Begin_Tokens,
                Language_String_ID_Set         => Language.String_ID_Set,
@@ -136,6 +138,8 @@ package body Wisi.Parse_Context is
                  (Ada.Finalization.Limited_Controlled with
                   User_Data                      => Wisi.New_User_Data (Language.Parse_Data_Template.all),
                   Table                          => Language.Table,
+                  In_Parse_Actions               => Language.In_Parse_Actions,
+                  Post_Parse_Actions             => Language.Post_Parse_Actions,
                   Language_Fixes                 => Language.Fixes,
                   Language_Matching_Begin_Tokens => Language.Matching_Begin_Tokens,
                   Language_String_ID_Set         => Language.String_ID_Set,

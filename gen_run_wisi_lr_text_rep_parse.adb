@@ -46,8 +46,9 @@ begin
       WisiToken.Report_Memory (Trace);
 
       Run_Wisi_Common_Parse.Parse_File
-        ((Descriptor, Lexer, Parse_Table, Partial_Parse_Active, Partial_Parse_Byte_Goal,
-          Language_Fixes, Language_Matching_Begin_Tokens, Language_String_ID_Set, Parse_Data_Template'Unchecked_Access),
+        ((Descriptor, Lexer, Parse_Table, Create_In_Parse_Actions, Create_Post_Parse_Actions, Partial_Parse_Active,
+          Partial_Parse_Byte_Goal, Language_Fixes, Language_Matching_Begin_Tokens, Language_String_ID_Set,
+          Parse_Data_Template'Unchecked_Access),
          Trace'Unchecked_Access);
    end;
 end Gen_Run_Wisi_LR_Text_Rep_Parse;
