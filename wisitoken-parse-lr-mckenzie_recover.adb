@@ -1486,14 +1486,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Fast_Forward_Seen        : Boolean               := False;
       Fast_Forward_First_Index : Base_Sequential_Index := Invalid_Sequential_Index;
 
-      function Check_Insert_Delete return Boolean
+      function Check_Insert_Delete (Op : in Insert_Delete_Op) return Boolean
       is begin
          return Fast_Forward_Seen and then
            (Target_Index = Invalid_Sequential_Index or
               (if Push_Back_Undo_Reduce
-               then True
+               then
+                 (case Insert_Delete_Op_Label'(Op.Op) is
+                  when Insert => Target_Index >= Op.Ins_Before,
+                  when Delete => Target_Index > Op.Del_Token_Index)
                --  allow Language_Fixes (which sets Push_Back_Undo_Reduce) to insert
-               --  more ops at a previous error location.
+               --  more ops at a previous error location, but not cross Insert or
+               --  Delete; that would cause out-of-order ops. ada_mode-recover_37.adb
                else Target_Index > Fast_Forward_First_Index
                --  test_mckenzie_recover.adb Push_Back_2, String_Quote_7
               ));
@@ -1602,10 +1606,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                end if;
 
             when Insert =>
-               return Check_Insert_Delete;
+               return Check_Insert_Delete (Op);
 
             when Delete =>
-               return Check_Insert_Delete;
+               return Check_Insert_Delete (Op);
             end case;
          end;
       end loop;
