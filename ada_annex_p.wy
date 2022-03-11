@@ -189,7 +189,7 @@ tick : TICK_1 | TICK_2 ;
 ;;
 ;; test/ada_mode-recover_change_name.adb needs 'ignore check fail' cost 2
 ;;
-;; Default cost for insert, delete, push back/undo_reduce, ignore check fail.
+;; Default cost for insert, delete, push_back/undo_reduce, ignore check fail.
 %mckenzie_cost_default 4 3 2 2
 %mckenzie_minimal_complete_cost_delta -3
 
