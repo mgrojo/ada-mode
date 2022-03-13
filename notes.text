@@ -19,7 +19,7 @@ incremental_parse-pre-config.input_stream o.w.s-2
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-2")))
+  (xgit . "/Projects/org.wisitoken.stephe-1")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
@@ -43,39 +43,20 @@ optimize syntax tree structure for lists
 ;; 2022-02-27 11:50:21.48 post edit tree
 ;; 2022-02-27 11:50:21.48 pre-recover 1 active
 
-    improve time benchmark; edit near beginning of file, near end of file.
-
     lots of subprograms; parse is slow building declarations list.
     optimize syntax tree list structure
-        breakdown to node in middle just split list in two at node
-        parse that node splice the lists
-        key idea briefly described in Wagner, Graham 1998
-            that references Gafter 1990 Parallel Incremental Compilation
-            given a canonical list:
-                list : element | list element ;
-            ebnf * is optimized list
-            batch parser does not change; list nodes have one or two children, one is an element, other is a list
-            Edit_Tree Breakdown rearranges that into a tree: both children can be list nodes
-                then split top node into two list nodes, breakdown right node to expose the edit
-            incremental parse must allow a list where an element is expected:
-                list : element | list element | list list ;
-                Wagner, Graham 1998 treats this as a special case of conflict resolution.
-                produces an unbalanced tree
-            list is only rebalanced in Breakdown
-                in error recover?
+        commit
 
-    WisiToken design
-        "optimized list" is recognized in grammar as:
-        list : element | list element | list list ;
-        that gives conflicts:
-%conflict SHIFT declaration | REDUCE declarations on token IDENTIFIER (6)
-%conflict REDUCE declarations | REDUCE declarations on token IDENTIFIER (5)
-%conflict REDUCE declarations | REDUCE declarations on token Wisi_EOI (5)
+        optimize undo_reduce in syntax_trees
+            add test to test_syntax_trees
 
-        those conflicts are handled specially
-            if production LHS is an optimized list, choose reduce two lists to a single list.
-        conflicts still have to be declared
+        add to recover
+            test in optimized_list.input
 
+        ebnf * is an optimized list
+            used in ada_annex_p.wy
+            in ada_lite_ebnf; declarative_part : {declaration} ;
+            test in ada_lite_ebnf.input
 
 Find_matching_name compares large amounts of text
     Name_Region (sequence_of_statements) returns the whole sequence

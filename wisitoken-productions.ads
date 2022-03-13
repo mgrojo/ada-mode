@@ -2,7 +2,7 @@
 --
 --  Type and operations for building grammar productions.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -50,8 +50,9 @@ package WisiToken.Productions is
      (Natural, Right_Hand_Side, Default_Element => (others => <>));
 
    type Instance is record
-      LHS  : Token_ID := Invalid_Token_ID;
-      RHSs : RHS_Arrays.Vector;
+      LHS            : Token_ID := Invalid_Token_ID;
+      Optimized_List : Boolean  := False;
+      RHSs           : RHS_Arrays.Vector;
    end record;
 
    package Prod_Arrays is new SAL.Gen_Unbounded_Definite_Vectors

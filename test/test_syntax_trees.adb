@@ -263,8 +263,7 @@ package body Test_Syntax_Trees is
          Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
          Ada_Lite_LR1_T1_Main.Create_Parse_Table
            (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
-         Ada_Lite_LR1_T1_Main.Create_In_Parse_Actions,
-         Ada_Lite_LR1_T1_Main.Create_Post_Parse_Actions,
+         Ada_Lite_LR1_T1_Main.Create_Productions,
          Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
          Language_Matching_Begin_Tokens =>
            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
@@ -275,8 +274,7 @@ package body Test_Syntax_Trees is
         (Skip_To_Parser,
          Skip_To_Grammar_LALR_Main.Create_Lexer (Trace'Access),
          Skip_To_Grammar_LALR_Main.Create_Parse_Table ("skip_to_grammar_lalr_parse_table.txt"),
-         Skip_To_Grammar_LALR_Main.Create_In_Parse_Actions,
-         Skip_To_Grammar_LALR_Main.Create_Post_Parse_Actions,
+         Skip_To_Grammar_LALR_Main.Create_Productions,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,
          Language_String_ID_Set         => null,

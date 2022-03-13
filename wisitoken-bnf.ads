@@ -10,7 +10,7 @@
 --  [1] https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
 --  [2] http://www.nongnu.org/ada-mode/wisi/wisi-user_guide.html, (info "(wisi-user_guide)Top")
 --
---  Copyright (C) 2012 - 2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -317,6 +317,7 @@ package WisiToken.BNF is
       Left_Hand_Side   : aliased Ada.Strings.Unbounded.Unbounded_String;
       Right_Hand_Sides : RHS_Lists.List;
       Labels           : String_Arrays.Vector;
+      Optimized_List   : Boolean := False;
       Source_Line      : WisiToken.Line_Number_Type;
    end record;
 

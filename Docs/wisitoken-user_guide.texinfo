@@ -812,6 +812,38 @@ the current lexer or parser is not the one specified in the @code{%if,
 @c consequences for indent, etc. Clean up error correction paper, add
 @c to elpa :docs, reference here.
 
+@node Optimized lists
+@section Optimized lists
+A list of tokens is often specified as:
+@example
+declarations
+  : declaration
+  | declarations declaration
+  ;
+@end example
+If the input syntax consists of a single long list of declarations,
+the resulting syntax tree is a linear list at the top level. This
+causes performance problems in incremental parse; editing the syntax
+tree requires breaking down then entire list, taking time proportional
+to the input text length.
+
+This is improved by recognizing the following construct:
+@example
+declarations
+  : declaration
+  | declarations declaration
+  | declarations declarations
+  ;
+@end example
+This is called an ``optimized list''. It has conflicts, which are
+resolved by choosing to reduce to declarations. In a batch parse, this
+produces the same syntax tree as the first definition of
+``declarations''. However, when the tree is edited for incremental
+parse, the list is broken into two sublists, rather than breaking down
+the entire list.
+
+The various EBNF repeats all produce optimized lists.
+
 @node Language-specific parser runtime functions
 @chapter Language-specific parser runtime functions
 The parser has several hooks for language-specific functions:

@@ -170,7 +170,8 @@ package body WisiToken.BNF.Generate_Utils is
                RHS_Index := RHS_Index + 1;
             end loop;
 
-            Data.Grammar (LHS) := LHS <= RHSs;
+            Data.Grammar (LHS) := (LHS, Rule.Optimized_List, RHSs);
+
             if not Action_All_Empty then
                Data.Action_Names (LHS) := new Names_Array'(Action_Names);
             end if;
@@ -280,8 +281,8 @@ package body WisiToken.BNF.Generate_Utils is
    begin
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
         (Grammar_Parser, Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
-         Wisitoken_Grammar_Main.Create_Parse_Table, Wisitoken_Grammar_Main.Create_In_Parse_Actions,
-         Wisitoken_Grammar_Main.Create_Post_Parse_Actions, Input_Data'Unchecked_Access);
+         Wisitoken_Grammar_Main.Create_Parse_Table, Wisitoken_Grammar_Main.Create_Productions,
+         Input_Data'Unchecked_Access);
 
       Grammar_Parser.Tree.Lexer.Reset_With_File (Grammar_File_Name);
 
@@ -311,8 +312,8 @@ package body WisiToken.BNF.Generate_Utils is
    begin
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
         (Grammar_Parser, Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
-         Wisitoken_Grammar_Main.Create_Parse_Table, Wisitoken_Grammar_Main.Create_In_Parse_Actions,
-         Wisitoken_Grammar_Main.Create_Post_Parse_Actions, Syntax_Trees.User_Data_Access (Input_Data));
+         Wisitoken_Grammar_Main.Create_Parse_Table, Wisitoken_Grammar_Main.Create_Productions,
+         Syntax_Trees.User_Data_Access (Input_Data));
 
       Grammar_Parser.Tree.Lexer.Reset_With_File (Grammar_File_Name);
 

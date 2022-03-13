@@ -61,12 +61,11 @@ package body BNF_WY_Test is
       WisiToken.Generate.Error := False;
 
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Parser             => Grammar_Parser,
-         Lexer              => Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
-         Table              => Wisitoken_Grammar_Main.Create_Parse_Table,
-         In_Parse_Actions   => Wisitoken_Grammar_Main.Create_In_Parse_Actions,
-         Post_Parse_Actions => Wisitoken_Grammar_Main.Create_Post_Parse_Actions,
-         User_Data          => Input_Data'Unchecked_Access);
+        (Parser      => Grammar_Parser,
+         Lexer       => Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
+         Table       => Wisitoken_Grammar_Main.Create_Parse_Table,
+         Productions => Wisitoken_Grammar_Main.Create_Productions,
+         User_Data   => Input_Data'Unchecked_Access);
 
       Grammar_Parser.Tree.Lexer.Reset_With_File ("../test/bnf/" & Root_Name & ".wy");
       Grammar_Parser.Parse (Log_File);

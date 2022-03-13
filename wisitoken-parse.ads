@@ -263,24 +263,28 @@ package WisiToken.Parse is
       Node : in Syntax_Trees.Valid_Node_Access)
      return Syntax_Trees.Error_Data'Class;
 
-   package In_Parse_Action_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Natural, In_Parse_Actions.In_Parse_Action, Default_Element => null);
-   package In_Parse_Action_Trees is new SAL.Gen_Unbounded_Definite_Vectors
-     (Token_ID, In_Parse_Action_Arrays.Vector, Default_Element => In_Parse_Action_Arrays.Empty_Vector);
-   --  Indexed by Production_ID.
+   type RHS_Info is record
+      In_Parse_Action   : In_Parse_Actions.In_Parse_Action;
+      Post_Parse_Action : Syntax_Trees.Post_Parse_Action;
+   end record;
 
-   package Post_Parse_Action_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Natural, Syntax_Trees.Post_Parse_Action, Default_Element => null);
-   package Post_Parse_Action_Trees is new SAL.Gen_Unbounded_Definite_Vectors
-     (Token_ID, Post_Parse_Action_Arrays.Vector, Default_Element => Post_Parse_Action_Arrays.Empty_Vector);
+   package RHS_Info_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Natural, RHS_Info, Default_Element => (others => <>));
+
+   type Production_Info is record
+      Optimized_List : Boolean := False;
+      RHSs           : RHS_Info_Arrays.Vector;
+   end record;
+
+   package Production_Info_Trees is new SAL.Gen_Unbounded_Definite_Vectors
+     (Token_ID, Production_Info, Default_Element => (others => <>));
    --  Indexed by Production_ID.
 
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled
    with record
-      Tree               : aliased Syntax_Trees.Tree;
-      In_Parse_Actions   : In_Parse_Action_Trees.Vector;
-      Post_Parse_Actions : Post_Parse_Action_Trees.Vector;
-      User_Data          : WisiToken.Syntax_Trees.User_Data_Access;
+      Tree        : aliased Syntax_Trees.Tree;
+      Productions : Production_Info_Trees.Vector;
+      User_Data   : WisiToken.Syntax_Trees.User_Data_Access;
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 
@@ -296,6 +300,11 @@ package WisiToken.Parse is
      (Parser : in Base_Parser;
       ID     : in Production_ID)
      return Syntax_Trees.Post_Parse_Action;
+
+   function Is_Optimized_List
+     (Parser : in Base_Parser;
+      ID     : in Production_ID)
+     return Boolean;
 
    function Next_Grammar_Token
      (Parser            : in out Base_Parser'Class;

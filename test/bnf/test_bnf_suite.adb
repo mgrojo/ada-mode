@@ -41,6 +41,8 @@ is
 
    Suite : constant Access_Test_Suite := new Test_Suite;
 begin
+   --  Tests are grouped by test package, then alphabetical by grammar name
+
    --  test error handling when generate fails
    Add_Test
      (Suite, Test_Case_Access'
@@ -50,11 +52,10 @@ begin
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Errors_Test.Test_Case (+"indent_param_count.wy")));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Errors_Test.Test_Case (+"same_delimiters.wy")));
 
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_ebnf", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite", null)));
-   Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"ada_lite")));
-   Add_Test
-     (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"body_instantiation_conflict", null)));
-   Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"body_instantiation_conflict")));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite_ebnf", +"ada_lite")));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"body_instantiation_conflict", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"case_expression", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"character_literal", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"conflict_name", null)));
@@ -67,26 +68,25 @@ begin
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_6", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_7", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_8", null)));
-   Add_Test
-     (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"identifier_list_name_conflict", null)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"range_conflict", null)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"skip_to_grammar", null)));
-   Add_Test
-     (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"warth_left_recurse_expr_1", null)));
-
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_ebnf", null)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"ada_lite_ebnf", +"ada_lite")));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"identifier_list_name_conflict", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_ebnf", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_enum_ch19", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_expressions_antlr", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_expressions_ch19", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_types_ch19", null)));
-   Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"java_types_ch19")));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"lalr_generator_bug_01", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"nested_ebnf_optional", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"optimized_list", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"python_ebnf", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"range_conflict", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"skip_to_grammar", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"subprograms", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"three_action_conflict", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"warth_left_recurse_expr_1", null)));
+
+   Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"ada_lite")));
+   Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"body_instantiation_conflict")));
+   Add_Test (Suite, Test_Case_Access'(new Test_LR1_Parallel.Test_Case (+"java_types_ch19")));
 
    --  other *.wy files in ../wisi/test are used in Ada parser
    --  generator/parse tests, not run from here.

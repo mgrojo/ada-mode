@@ -879,10 +879,61 @@ package body WisiToken_Grammar_Runtime is
       Data : User_Data_Type renames User_Data_Type (User_Data);
 
       LHS_Node   : constant Valid_Node_Access := Tree.Child (Nonterm, 1);
-      LHS_String : constant String           := Get_Text (Data, Tree, LHS_Node);
+      LHS_String : constant String            := Get_Text (Data, Tree, LHS_Node);
 
       Right_Hand_Sides : WisiToken.BNF.RHS_Lists.List;
       Labels           : WisiToken.BNF.String_Arrays.Vector;
+
+      function Is_Optimized_List return Boolean
+      is begin
+         --  From optimized_list.wy:
+         --  declarations
+         --  : declaration
+         --  | declarations declaration
+         --  | declarations declarations
+         --  ;
+
+         if Right_Hand_Sides.Length /= 3 then
+            return False;
+         end if;
+
+         declare
+            use Ada.Strings.Unbounded;
+            use WisiToken.BNF.RHS_Lists;
+
+            RHS     : Cursor := Right_Hand_Sides.First;
+            Element : Unbounded_String;
+         begin
+            if Right_Hand_Sides (RHS).Tokens.Length /= 1 then
+               return False;
+            end if;
+            Element := Right_Hand_Sides (RHS).Tokens (1).Identifier;
+
+            Next (RHS);
+            if Right_Hand_Sides (RHS).Tokens.Length /= 2 then
+               return False;
+            end if;
+            if -Right_Hand_Sides (RHS).Tokens (1).Identifier /= LHS_String then
+               return False;
+            end if;
+            if Right_Hand_Sides (RHS).Tokens (2).Identifier /= Element then
+               return False;
+            end if;
+
+            Next (RHS);
+            if Right_Hand_Sides (RHS).Tokens.Length /= 2 then
+               return False;
+            end if;
+            if -Right_Hand_Sides (RHS).Tokens (1).Identifier /= LHS_String then
+               return False;
+            end if;
+            if Right_Hand_Sides (RHS).Tokens (2).Identifier /= LHS_String then
+               return False;
+            end if;
+            return True;
+         end;
+      end Is_Optimized_List;
+
    begin
       if Data.Phase = Meta or Data.Ignore_Lines then
          return;
@@ -909,6 +960,7 @@ package body WisiToken_Grammar_Runtime is
 
          Data.Tokens.Rules.Append
            ((+LHS_String, Right_Hand_Sides, Labels,
+             Optimized_List => Is_Optimized_List,
              Source_Line =>
                (case Tree.Label (LHS_Node) is
                 when Source_Terminal    => Tree.Line_Region (LHS_Node).First,

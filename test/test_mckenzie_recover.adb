@@ -2509,7 +2509,7 @@ package body Test_McKenzie_Recover is
       when WisiToken.BNF.LALR =>
          WisiToken.Parse.LR.Parser.New_Parser
            (Parser, Ada_Lite_LALR_Main.Create_Lexer (Trace'Access), Ada_Lite_LALR_Main.Create_Parse_Table,
-            Ada_Lite_LALR_Main.Create_In_Parse_Actions, Ada_Lite_LALR_Main.Create_Post_Parse_Actions,
+            Ada_Lite_LALR_Main.Create_Productions,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
@@ -2520,7 +2520,7 @@ package body Test_McKenzie_Recover is
            (Parser, Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
             Ada_Lite_LR1_T1_Main.Create_Parse_Table
               (Text_Rep_File_Name => "ada_lite_lr1_t1_re2c_parse_table.txt"),
-            Ada_Lite_LR1_T1_Main.Create_In_Parse_Actions, Ada_Lite_LR1_T1_Main.Create_Post_Parse_Actions,
+            Ada_Lite_LR1_T1_Main.Create_Productions,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
             WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,

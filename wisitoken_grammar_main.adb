@@ -878,45 +878,59 @@ package body Wisitoken_Grammar_Main is
       return Lexer.New_Lexer (Trace, Wisitoken_Grammar_Actions.Descriptor'Access);
    end Create_Lexer;
 
-   function Create_In_Parse_Actions return WisiToken.Parse.In_Parse_Action_Trees.Vector
+   function Create_Productions return WisiToken.Parse.Production_Info_Trees.Vector
    is begin
-      return Acts : WisiToken.Parse.In_Parse_Action_Trees.Vector do
-         Acts.Set_First_Last (39, 59);
-         null;
+      return Result : WisiToken.Parse.Production_Info_Trees.Vector do
+         Result.Set_First_Last (39, 59);
+         Result (40).RHSs.Set_First_Last (0, 9);
+         Result (40).RHSs (0).In_Parse_Action := null;
+         Result (40).RHSs (0).Post_Parse_Action := declaration_0'Access;
+         Result (40).RHSs (1).In_Parse_Action := null;
+         Result (40).RHSs (1).Post_Parse_Action := declaration_1'Access;
+         Result (40).RHSs (2).In_Parse_Action := null;
+         Result (40).RHSs (2).Post_Parse_Action := declaration_2'Access;
+         Result (40).RHSs (3).In_Parse_Action := null;
+         Result (40).RHSs (3).Post_Parse_Action := declaration_3'Access;
+         Result (40).RHSs (4).In_Parse_Action := null;
+         Result (40).RHSs (4).Post_Parse_Action := declaration_4'Access;
+         Result (40).RHSs (5).In_Parse_Action := null;
+         Result (40).RHSs (5).Post_Parse_Action := declaration_5'Access;
+         Result (40).RHSs (6).In_Parse_Action := null;
+         Result (40).RHSs (6).Post_Parse_Action := declaration_6'Access;
+         Result (40).RHSs (7).In_Parse_Action := null;
+         Result (40).RHSs (7).Post_Parse_Action := declaration_7'Access;
+         Result (40).RHSs (8).In_Parse_Action := null;
+         Result (40).RHSs (8).Post_Parse_Action := declaration_8'Access;
+         Result (40).RHSs (9).In_Parse_Action := null;
+         Result (40).RHSs (9).Post_Parse_Action := declaration_9'Access;
+         Result (46).RHSs.Set_First_Last (0, 1);
+         Result (46).RHSs (0).In_Parse_Action := null;
+         Result (46).RHSs (0).Post_Parse_Action := nonterminal_0'Access;
+         Result (46).RHSs (1).In_Parse_Action := null;
+         Result (46).RHSs (1).Post_Parse_Action := nonterminal_1'Access;
+         Result (53).RHSs.Set_First_Last (0, 5);
+         Result (53).RHSs (0).In_Parse_Action := null;
+         Result (53).RHSs (0).Post_Parse_Action := null;
+         Result (53).RHSs (1).In_Parse_Action := null;
+         Result (53).RHSs (1).Post_Parse_Action := rhs_item_1'Access;
+         Result (53).RHSs (2).In_Parse_Action := null;
+         Result (53).RHSs (2).Post_Parse_Action := rhs_item_2'Access;
+         Result (53).RHSs (3).In_Parse_Action := null;
+         Result (53).RHSs (3).Post_Parse_Action := rhs_item_3'Access;
+         Result (53).RHSs (4).In_Parse_Action := null;
+         Result (53).RHSs (4).Post_Parse_Action := rhs_item_4'Access;
+         Result (53).RHSs (5).In_Parse_Action := null;
+         Result (53).RHSs (5).Post_Parse_Action := rhs_item_5'Access;
+         Result (55).RHSs.Set_First_Last (0, 3);
+         Result (55).RHSs (0).In_Parse_Action := null;
+         Result (55).RHSs (0).Post_Parse_Action := null;
+         Result (55).RHSs (1).In_Parse_Action := null;
+         Result (55).RHSs (1).Post_Parse_Action := null;
+         Result (55).RHSs (2).In_Parse_Action := null;
+         Result (55).RHSs (2).Post_Parse_Action := null;
+         Result (55).RHSs (3).In_Parse_Action := null;
+         Result (55).RHSs (3).Post_Parse_Action := rhs_optional_item_3'Access;
       end return;
-   end Create_In_Parse_Actions;
-
-   function Create_Post_Parse_Actions return WisiToken.Parse.Post_Parse_Action_Trees.Vector
-   is begin
-      return Acts : WisiToken.Parse.Post_Parse_Action_Trees.Vector do
-         Acts.Set_First_Last (39, 59);
-         Acts (40).Set_First_Last (0, 9);
-         Acts (40)(0) := declaration_0'Access;
-         Acts (40)(1) := declaration_1'Access;
-         Acts (40)(2) := declaration_2'Access;
-         Acts (40)(3) := declaration_3'Access;
-         Acts (40)(4) := declaration_4'Access;
-         Acts (40)(5) := declaration_5'Access;
-         Acts (40)(6) := declaration_6'Access;
-         Acts (40)(7) := declaration_7'Access;
-         Acts (40)(8) := declaration_8'Access;
-         Acts (40)(9) := declaration_9'Access;
-         Acts (46).Set_First_Last (0, 1);
-         Acts (46)(0) := nonterminal_0'Access;
-         Acts (46)(1) := nonterminal_1'Access;
-         Acts (53).Set_First_Last (0, 5);
-         Acts (53)(0) := null;
-         Acts (53)(1) := rhs_item_1'Access;
-         Acts (53)(2) := rhs_item_2'Access;
-         Acts (53)(3) := rhs_item_3'Access;
-         Acts (53)(4) := rhs_item_4'Access;
-         Acts (53)(5) := rhs_item_5'Access;
-         Acts (55).Set_First_Last (0, 3);
-         Acts (55)(0) := null;
-         Acts (55)(1) := null;
-         Acts (55)(2) := null;
-         Acts (55)(3) := rhs_optional_item_3'Access;
-      end return;
-   end Create_Post_Parse_Actions;
+   end Create_Productions;
 
 end Wisitoken_Grammar_Main;

@@ -1,0 +1,24 @@
+ 9 tokens lexed
+ 0: 0: (-1, 1:(IDENTIFIER, (1 . 1))) : shift and goto state 1
+ 0: 1: (-1, 2:(COLON, (3 . 3))) : shift and goto state 4
+ 0: 4: (-1, 3:(IDENTIFIER, (5 . 5))) : shift and goto state 7
+ 0: 7: (-1, 4:(SEMICOLON, (6 . 6))) : shift and goto state 8
+ 0: 8: (-1, 5:(IDENTIFIER, (8 . 8))) : reduce 4 tokens to declaration
+(declaration_0, (1 . 6) <= (1:(IDENTIFIER, (1 . 1)), 2:(COLON, (3 . 3)), 3:(IDENTIFIER, (5 . 5)), 4:(SEMICOLON, (6 . 6))))
+ ... goto state 2
+ 0: 2: (-1, 5:(IDENTIFIER, (8 . 8))) : reduce 1 tokens to declarations
+(declarations_0, (1 . 6) <= ((declaration_0, (1 . 6))))
+ ... goto state 3
+ 0: 3: (-1, 5:(IDENTIFIER, (8 . 8))) : shift and goto state 1
+ 0: 1: (-1, 6:(COLON, (10 . 10))) : shift and goto state 4
+ 0: 4: (-1, 7:(IDENTIFIER, (12 . 12))) : shift and goto state 7
+ 0: 7: (-1, 8:(SEMICOLON, (13 . 13))) : shift and goto state 8
+ 0: 8: (-1, 9:(Wisi_EOI, (15 . 14))) : reduce 4 tokens to declaration
+(declaration_0, (8 . 13) <= (5:(IDENTIFIER, (8 . 8)), 6:(COLON, (10 . 10)), 7:(IDENTIFIER, (12 . 12)), 8:(SEMICOLON, (13 . 13))))
+ ... goto state 5
+ 0: 5: (-1, 9:(Wisi_EOI, (15 . 14))) : reduce 2 tokens to declarations
+(declarations_1, (1 . 13) <= ((declarations_0, (1 . 6)), (declaration_0, (8 . 13))))
+ ... goto state 3
+ 0: 3: (-1, 9:(Wisi_EOI, (15 . 14))) : accept it
+(wisitoken_accept_0, (1 . 13) <= ((declarations_1, (1 . 13))))
+ 0: succeed

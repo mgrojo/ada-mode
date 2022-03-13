@@ -306,8 +306,7 @@ package body Dragon_4_43_LR1_Test is
          Lexer.New_Lexer (Trace'Access, LR1_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LR1_Generate.Generate
            (Grammar, LR1_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
-         WisiToken.Parse.In_Parse_Action_Trees.Empty_Vector,
-         WisiToken.Parse.Post_Parse_Action_Trees.Empty_Vector,
+         WisiToken.Parse.Production_Info_Trees.Empty_Vector,
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

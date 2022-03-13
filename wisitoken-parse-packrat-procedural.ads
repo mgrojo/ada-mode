@@ -70,8 +70,7 @@ package WisiToken.Parse.Packrat.Procedural is
       Direct_Left_Recursive : in Token_ID_Set;
       Start_ID              : in Token_ID;
       Lexer                 : in WisiToken.Lexer.Handle;
-      In_Parse_Actions      : in WisiToken.Parse.In_Parse_Action_Trees.Vector;
-      Post_Parse_Actions    : in WisiToken.Parse.Post_Parse_Action_Trees.Vector;
+      Productions           : in WisiToken.Parse.Production_Info_Trees.Vector;
       User_Data             : in WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser;
 

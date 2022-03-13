@@ -204,18 +204,16 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    end Finalize;
 
    procedure New_Parser
-     (Parser             :    out LR.Parser_No_Recover.Parser;
-      Lexer              : in     WisiToken.Lexer.Handle;
-      Table              : in     Parse_Table_Ptr;
-      In_Parse_Actions   : in     In_Parse_Action_Trees.Vector;
-      Post_Parse_Actions : in     Post_Parse_Action_Trees.Vector;
-      User_Data          : in     WisiToken.Syntax_Trees.User_Data_Access)
+     (Parser      :    out LR.Parser_No_Recover.Parser;
+      Lexer       : in     WisiToken.Lexer.Handle;
+      Table       : in     Parse_Table_Ptr;
+      Productions : in     Production_Info_Trees.Vector;
+      User_Data   : in     WisiToken.Syntax_Trees.User_Data_Access)
    is begin
-      Parser.Tree.Lexer         := Lexer;
-      Parser.Table              := Table;
-      Parser.In_Parse_Actions   := In_Parse_Actions;
-      Parser.Post_Parse_Actions := Post_Parse_Actions;
-      Parser.User_Data          := User_Data;
+      Parser.Tree.Lexer  := Lexer;
+      Parser.Table       := Table;
+      Parser.Productions := Productions;
+      Parser.User_Data   := User_Data;
    end New_Parser;
 
    overriding procedure Parse

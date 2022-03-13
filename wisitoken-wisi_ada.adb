@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2013, 2014, 2015, 2017 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2013, 2014, 2015, 2017 - 2020, 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -79,7 +79,7 @@ package body WisiToken.Wisi_Ada is
 
    function "<=" (LHS : in Token_ID; RHSs : in WisiToken.Productions.RHS_Arrays.Vector) return Instance
    is begin
-      return (LHS, RHSs);
+      return (LHS, Optimized_List => False, RHSs => RHSs);
    end "<=";
 
    function Only (Subject : in Instance) return Prod_Arrays.Vector

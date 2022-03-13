@@ -39,12 +39,11 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    --  Deep free Object.Table.
 
    procedure New_Parser
-     (Parser             :    out LR.Parser_No_Recover.Parser;
-      Lexer              : in     WisiToken.Lexer.Handle;
-      Table              : in     Parse_Table_Ptr;
-      In_Parse_Actions   : in     In_Parse_Action_Trees.Vector;
-      Post_Parse_Actions : in     Post_Parse_Action_Trees.Vector;
-      User_Data          : in     Syntax_Trees.User_Data_Access);
+     (Parser      :    out LR.Parser_No_Recover.Parser;
+      Lexer       : in     WisiToken.Lexer.Handle;
+      Table       : in     Parse_Table_Ptr;
+      Productions : in     Production_Info_Trees.Vector;
+      User_Data   : in     Syntax_Trees.User_Data_Access);
 
    overriding procedure Parse
      (Shared_Parser : in out LR.Parser_No_Recover.Parser;

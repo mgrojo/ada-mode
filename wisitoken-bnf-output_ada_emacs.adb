@@ -1691,15 +1691,15 @@ is
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
          LR_Create_Create_Parse_Table (Input_Data, Common_Data, Generate_Data, Actions_Package_Name);
-         Create_Create_Actions (Generate_Data);
+         Create_Create_Productions (Generate_Data);
 
       when Packrat_Gen =>
          WisiToken.BNF.Generate_Packrat (Packrat_Data, Generate_Data);
-         Create_Create_Actions (Generate_Data);
+         Create_Create_Productions (Generate_Data);
          Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
 
       when Packrat_Proc =>
-         Create_Create_Actions (Generate_Data);
+         Create_Create_Productions (Generate_Data);
          Packrat_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data, Packrat_Data);
 
       when External =>

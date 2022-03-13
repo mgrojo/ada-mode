@@ -108,8 +108,7 @@ package WisiToken.Parse.LR.Parser is
      (Parser                         :    out LR.Parser.Parser;
       Lexer                          : in     WisiToken.Lexer.Handle;
       Table                          : in     Parse_Table_Ptr;
-      In_Parse_Actions               : in     In_Parse_Action_Trees.Vector;
-      Post_Parse_Actions             : in     Post_Parse_Action_Trees.Vector;
+      Productions                    : in     Production_Info_Trees.Vector;
       Language_Fixes                 : in     Language_Fixes_Access;
       Language_Matching_Begin_Tokens : in     Language_Matching_Begin_Tokens_Access;
       Language_String_ID_Set         : in     Language_String_ID_Set_Access;
