@@ -64,15 +64,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Stack         : in out Recover_Stacks.Stack;
       Action        : in     Reduce_Action_Rec;
       Nonterm       :    out Syntax_Trees.Recover_Token)
-     return In_Parse_Actions.Status
+     return Syntax_Trees.In_Parse_Actions.Status
    is
-      use all type In_Parse_Actions.In_Parse_Action;
-      use all type In_Parse_Actions.Status_Label;
+      use all type Syntax_Trees.In_Parse_Actions.In_Parse_Action;
+      use all type Syntax_Trees.In_Parse_Actions.Status_Label;
 
       Last   : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type (Action.Token_Count);
       Tokens : Syntax_Trees.Recover_Token_Array (1 .. Last);
 
-      In_Parse_Action : constant In_Parse_Actions.In_Parse_Action := Shared_Parser.Get_In_Parse_Action
+      In_Parse_Action : constant Syntax_Trees.In_Parse_Actions.In_Parse_Action := Shared_Parser.Get_In_Parse_Action
         (Action.Production);
    begin
       if Stack.Depth <= Last then
@@ -86,7 +86,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
          return (Label => Ok);
       else
-         return Status : constant In_Parse_Actions.Status :=
+         return Status : constant Syntax_Trees.In_Parse_Actions.Status :=
            In_Parse_Action (Shared_Parser.Tree, Nonterm, Tokens, Recover_Active => True)
          do
             if Status.Label = Ok then
@@ -616,7 +616,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    is
       use Parse_Item_Arrays;
       use Recover_Op_Arrays;
-      use all type In_Parse_Actions.Status_Label;
+      use all type Syntax_Trees.In_Parse_Actions.Status_Label;
 
       Tree       : WisiToken.Syntax_Trees.Tree renames Shared_Parser.Tree;
       Trace      : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
@@ -829,7 +829,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
                   Config.Stack.Push ((New_State, Nonterm));
 
-               when In_Parse_Actions.Error =>
+               when Syntax_Trees.In_Parse_Actions.Error =>
                   Config.Error_Token                 := Nonterm;
                   Config.In_Parse_Action_Token_Count := SAL.Base_Peek_Type (Action.Token_Count);
                   Success                            := False;
@@ -884,7 +884,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
            (Parse_Items, First_Index (Parse_Items)).Config;
       begin
          Config.Error_Token        := Syntax_Trees.Invalid_Recover_Token;
-         Config.In_Parse_Action_Status := (Label => In_Parse_Actions.Ok);
+         Config.In_Parse_Action_Status := (Label => Syntax_Trees.In_Parse_Actions.Ok);
       end;
 
       Last_Parsed := First_Index (Parse_Items);

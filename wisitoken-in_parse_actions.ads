@@ -2,7 +2,7 @@
 --
 --  Grammar in parse action routines.
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -20,42 +20,11 @@ pragma License (Modified_GPL);
 with WisiToken.Syntax_Trees;
 package WisiToken.In_Parse_Actions is
 
-   type Status_Label is
-     (Ok,
-      Missing_Name_Error, -- block start has name, required block end name missing
-      Extra_Name_Error,   -- block start has no name, end has one
-      Match_Names_Error); -- both names present, but don't match
-
-   subtype Error is Status_Label range Status_Label'Succ (Ok) .. Status_Label'Last;
-
-   type Status (Label : Status_Label := Ok) is record
-      case Label is
-      when Ok =>
-         null;
-
-      when Error =>
-         Begin_Name : Positive_Index_Type;
-         End_Name   : Positive_Index_Type;
-      end case;
-   end record;
-
-   subtype Error_Status is Status
-   with Dynamic_Predicate => Error_Status.Label /= Ok;
-
    function Image
-     (Item       : in Status;
+     (Item       : in Syntax_Trees.In_Parse_Actions.Status;
       Tree       : in Syntax_Trees.Tree'Class;
       Error_Node : in Syntax_Trees.Valid_Node_Access)
      return String;
-
-   type In_Parse_Action is access function
-     (Tree           : in     Syntax_Trees.Tree;
-      Nonterm        : in out Syntax_Trees.Recover_Token;
-      Tokens         : in     Syntax_Trees.Recover_Token_Array;
-      Recover_Active : in     Boolean)
-     return Status;
-   --  Called during parsing and error recovery to implement higher level
-   --  checks, such as block name matching in Ada.
 
    function Match_Names
      (Tree         : in Syntax_Trees.Tree;
@@ -63,7 +32,7 @@ package WisiToken.In_Parse_Actions is
       Start_Index  : in Positive_Index_Type;
       End_Index    : in Positive_Index_Type;
       End_Optional : in Boolean)
-     return Status;
+     return Syntax_Trees.In_Parse_Actions.Status;
    --  Check that buffer text at Tokens (Start_Index).Name matches buffer
    --  text at Tokens (End_Index).Name. Comparison is controlled by
    --  Descriptor.Case_Insensitive.
@@ -73,13 +42,13 @@ package WisiToken.In_Parse_Actions is
       Nonterm    : in out Syntax_Trees.Recover_Token;
       Tokens     : in     Syntax_Trees.Recover_Token_Array;
       Name_Index : in     Positive_Index_Type)
-     return Status;
+     return Syntax_Trees.In_Parse_Actions.Status;
    function Merge_Names
      (Tree       : in     Syntax_Trees.Tree;
       Nonterm    : in out Syntax_Trees.Recover_Token;
       Tokens     : in     Syntax_Trees.Recover_Token_Array;
       Name_Index : in     Positive_Index_Type)
-     return Status
+     return Syntax_Trees.In_Parse_Actions.Status
    renames Propagate_Name;
    --  Set Nonterm.Name to Tokens (Name_Index).Name, or .Byte_Region, if
    --  .Name is Null_Buffer_Region. Return Ok.
@@ -90,7 +59,7 @@ package WisiToken.In_Parse_Actions is
       Tokens      : in     Syntax_Trees.Recover_Token_Array;
       First_Index : in     Positive_Index_Type;
       Last_Index  : in     Positive_Index_Type)
-     return Status;
+     return Syntax_Trees.In_Parse_Actions.Status;
    --  Set Nonterm.Name to the merger of Tokens (First_Index ..
    --  Last_Index).Name, return Ok.
    --
@@ -103,7 +72,7 @@ package WisiToken.In_Parse_Actions is
       Partial_Parse_Byte_Goal : in Buffer_Pos;
       Recover_Active          : in Boolean;
       Nonterm                 : in Syntax_Trees.Recover_Token)
-     return Status;
+     return Syntax_Trees.In_Parse_Actions.Status;
    pragma Inline (Terminate_Partial_Parse);
    --  If partial parse is complete, raise Wisitoken.Partial_Parse;
    --  otherwise return Ok.

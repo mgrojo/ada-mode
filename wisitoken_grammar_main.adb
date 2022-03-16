@@ -878,9 +878,9 @@ package body Wisitoken_Grammar_Main is
       return Lexer.New_Lexer (Trace, Wisitoken_Grammar_Actions.Descriptor'Access);
    end Create_Lexer;
 
-   function Create_Productions return WisiToken.Parse.Production_Info_Trees.Vector
+   function Create_Productions return WisiToken.Syntax_Trees.Production_Info_Trees.Vector
    is begin
-      return Result : WisiToken.Parse.Production_Info_Trees.Vector do
+      return Result : WisiToken.Syntax_Trees.Production_Info_Trees.Vector do
          Result.Set_First_Last (39, 59);
          Result (40).RHSs.Set_First_Last (0, 9);
          Result (40).RHSs (0).In_Parse_Action := null;

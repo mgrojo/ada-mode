@@ -17,7 +17,8 @@ separate (WisiToken.Parse.LR.Parser)
 overriding procedure Parse
   (Shared_Parser    : in out LR.Parser.Parser;
    Recover_Log_File : in     Ada.Text_IO.File_Type;
-   Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List)
+   Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List;
+   Pre_Edited       : in     Boolean        := False)
 is
    use Syntax_Trees;
    use all type KMN_Lists.List;
@@ -77,8 +78,8 @@ begin
          Trace.New_Line;
       end if;
 
-      if Shared_Parser.Tree.Stream_Length (Shared_Parser.Tree.Shared_Stream) = 3 and then
-        Shared_Parser.Tree.ID (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream).Node) =
+      if Shared_Parser.Tree.Stream_Length (Shared_Parser.Tree.Shared_Stream) = 3 and then Shared_Parser.Tree.ID
+        (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream, Skip_SOI => True).Node) =
         Shared_Parser.Tree.Lexer.Descriptor.Accept_ID
       then
          if Trace_Parse > Outline then
@@ -89,7 +90,14 @@ begin
          return;
       end if;
 
+   elsif Pre_Edited then
+      --  Unit test providing an edited stream; see test_syntax_trees.adb
+      --  Breakdown_Optimized_List_01. We assume this is the same as a tree
+      --  resulting from Edit_Tree.
+      null;
+
    else
+      --  Normal initial parse
       Shared_Parser.Tree.Clear;
       Shared_Parser.Lex_All;
       if Trace_Memory > Detail then
@@ -393,7 +401,7 @@ begin
                               Children => Trace_Parse > Detail));
                         Trace.Put_Line
                           ("    Current_Token: " & Shared_Parser.Tree.Image
-                               (Shared_Parser.Tree.Current_Token (Parser_State.Stream), Terminal_Node_Numbers => True));
+                             (Shared_Parser.Tree.Current_Token (Parser_State.Stream), Terminal_Node_Numbers => True));
                         Trace.Put_Line
                           ("    Shared_Token: " & Shared_Parser.Tree.Image
                              (Shared_Parser.Tree.Shared_Token (Parser_State.Stream), Terminal_Node_Numbers => True));
@@ -509,6 +517,8 @@ begin
                   Conflict := (if Action_Cur = null then null else Action_Cur.Next);
 
                   if Conflict /= null and then Shared_Parser.Is_Optimized_List (Action.Production) then
+                     pragma Assert (Conflict.Next = null);
+
                      --  From optimized_list parse table, the conflicts are:
                      --
                      --  State 5:
@@ -531,7 +541,6 @@ begin
                      --  For all three conflicts, we prefer the second option.
                      Action := Conflict.Item;
 
-                     pragma Assert (Action_Cur.Next = null);
                   else
                      loop
                         exit when Conflict = null;

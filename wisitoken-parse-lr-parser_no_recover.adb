@@ -207,8 +207,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
      (Parser      :    out LR.Parser_No_Recover.Parser;
       Lexer       : in     WisiToken.Lexer.Handle;
       Table       : in     Parse_Table_Ptr;
-      Productions : in     Production_Info_Trees.Vector;
-      User_Data   : in     WisiToken.Syntax_Trees.User_Data_Access)
+      Productions : in     Syntax_Trees.Production_Info_Trees.Vector;
+      User_Data   : in     Syntax_Trees.User_Data_Access)
    is begin
       Parser.Tree.Lexer  := Lexer;
       Parser.Table       := Table;
@@ -219,9 +219,10 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    overriding procedure Parse
      (Shared_Parser : in out Parser;
       Log_File      : in     Ada.Text_IO.File_Type;
-      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List)
+      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List;
+      Pre_Edited    : in     Boolean        := False)
    is
-      pragma Unreferenced (Log_File);
+      pragma Unreferenced (Log_File, Pre_Edited);
 
       use all type KMN_Lists.List;
       use all type WisiToken.Syntax_Trees.Terminal_Ref;

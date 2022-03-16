@@ -489,7 +489,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                                    Find_FF_Target (Tree.First_Input (Parser_State.Stream));
                                                 end if;
                                                 Tree.Breakdown
-                                                  (Target, Shared_Parser.User_Data, First_Terminal => True);
+                                                  (Target, Shared_Parser.Productions, Shared_Parser.User_Data,
+                                                   First_Terminal => True);
                                              end if;
                                           end;
                                        end if;
@@ -960,18 +961,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                if Tree.ID (Current_Token.Node) = Tree.Lexer.Descriptor.EOI_ID then
                   --  test_mckenzie_recover.adb Empty_Comments
                   Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
-                    (Tree.To_Rooted_Ref (Tree.Shared_Stream, Tree.Stream_Last (Tree.Shared_Stream)));
+                    (Tree.To_Rooted_Ref (Tree.Shared_Stream, Tree.Stream_Last (Tree.Shared_Stream, Skip_EOI => False)));
                else
                   if Current_Token.Stream /= Tree.Shared_Stream then
                      --  Current_Token is the error token, so it was copied to the parse
                      --  stream input. test_mckenzie_recover.adb Error_4.
                      Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
-                       (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Stream_Last (Parser_State.Stream)));
+                       (Tree.To_Rooted_Ref
+                          (Parser_State.Stream, Tree.Stream_Last (Parser_State.Stream, Skip_EOI => False)));
                      Tree.Next_Terminal (Terminals (Terminals'Last));
                      if Terminals (Terminals'Last).Ref = Invalid_Stream_Node_Ref then
                         --  EOI was in stream input
                         Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
-                          (Tree.To_Rooted_Ref (Tree.Shared_Stream, Tree.Stream_Last (Tree.Shared_Stream)));
+                          (Tree.To_Rooted_Ref
+                             (Tree.Shared_Stream, Tree.Stream_Last (Tree.Shared_Stream, Skip_EOI => False)));
                      end if;
                      pragma Assert
                        (Terminals (Terminals'Last).Ref.Stream = Tree.Shared_Stream and
@@ -1722,7 +1725,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       use Recover_Op_Array_Refs;
       use all type Ada.Strings.Unbounded.Unbounded_String;
       use all type Bounded_Streams.Cursor;
-      use all type WisiToken.In_Parse_Actions.Status_Label;
+      use all type WisiToken.Syntax_Trees.In_Parse_Actions.Status_Label;
       use all type WisiToken.Syntax_Trees.Recover_Token;
 
       Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
@@ -1742,7 +1745,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Result := Result & ", ";
       end if;
       if Config.In_Parse_Action_Status.Label /= Ok then
-         Result := Result & In_Parse_Actions.Status_Label'Image (Config.In_Parse_Action_Status.Label) & " ";
+         Result := Result & Config.In_Parse_Action_Status.Label'Image & " ";
       elsif Config.Error_Token /= Syntax_Trees.Invalid_Recover_Token then
          Result := Result & "Error " & Syntax_Trees.Image (Tree, Config.Error_Token) & " ";
       end if;

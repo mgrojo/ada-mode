@@ -31,7 +31,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 #end if;
 
    use all type Actions.Token_Enum_ID; -- token names
-   use all type In_Parse_Actions.Status_Label;
+   use all type WisiToken.Syntax_Trees.In_Parse_Actions.Status_Label;
 
    Descriptor : WisiToken.Descriptor renames Actions.Descriptor;
 

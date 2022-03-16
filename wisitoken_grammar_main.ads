@@ -21,6 +21,7 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+with WisiToken.Syntax_Trees;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR;
 package Wisitoken_Grammar_Main is
@@ -28,7 +29,7 @@ package Wisitoken_Grammar_Main is
    function Create_Parse_Table
      return WisiToken.Parse.LR.Parse_Table_Ptr;
 
-   function Create_Productions return WisiToken.Parse.Production_Info_Trees.Vector;
+   function Create_Productions return WisiToken.Syntax_Trees.Production_Info_Trees.Vector;
 
    function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;
 end Wisitoken_Grammar_Main;

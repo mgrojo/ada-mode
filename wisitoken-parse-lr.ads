@@ -41,7 +41,6 @@ with SAL.Gen_Bounded_Definite_Stacks.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
-with WisiToken.In_Parse_Actions;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
    use all type WisiToken.Syntax_Trees.Base_Sequential_Index;
@@ -549,7 +548,7 @@ package WisiToken.Parse.LR is
 
       Error_Token                 : Syntax_Trees.Recover_Token;
       In_Parse_Action_Token_Count : SAL.Base_Peek_Type := 0;
-      In_Parse_Action_Status      : In_Parse_Actions.Status;
+      In_Parse_Action_Status      : Syntax_Trees.In_Parse_Actions.Status;
       --  If parsing this config ended with a parse error, Error_Token is
       --  the token that failed to shift, Check_Status.Label is Ok.
       --

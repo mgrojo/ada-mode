@@ -444,7 +444,7 @@ package body WisiToken.Syntax_Trees is
                   Other_Parent.Children (Child_Index) := Invalid_Node_Access;
                end;
             else
-               pragma Assert (False, "attempt to use children with existing parents");
+               raise SAL.Programmer_Error with "attempt to use children with existing parents";
             end if;
          end if;
 
@@ -585,17 +585,21 @@ package body WisiToken.Syntax_Trees is
    procedure Breakdown
      (Tree           : in out Syntax_Trees.Tree;
       Ref            : in out Stream_Node_Parents;
+      Productions    : in     Production_Info_Trees.Vector;
       User_Data      : in     Syntax_Trees.User_Data_Access;
       First_Terminal : in     Boolean)
    is
       use Stream_Element_Lists;
+
       Stream    : Syntax_Trees.Parse_Stream renames Tree.Streams (Ref.Ref.Stream.Cur);
       Cur       : Cursor                    renames Ref.Ref.Element.Cur;
       Target    : Valid_Node_Access         renames Ref.Ref.Node;
       To_Delete : Cursor                    := Cur;
 
       Inverted_Parents : Node_Stacks.Stack := Ref.Parents.Invert;
-      --  Parents from Target to Cur.
+      --  Parents from Target to Cur. Inverted_Parents.Peek (1) is
+      --  Ref.Element.Node, and Inverted_Parents.Peek
+      --  (Inverted_Parents.Depth) is Ref.Node parent.
 
       procedure Move_Errors
       --  Move errors on To_Delete.Element.Node to first terminal. Update
@@ -607,7 +611,7 @@ package body WisiToken.Syntax_Trees is
          if Node.Error_List = null or else Node.Error_List.Length = 0 then
             return;
          else
-            for Err of Tree.Error_List (Node) loop
+            for Err of Node.Error_List.all loop
                New_Errors.Append (To_Message (Err, Tree, Node));
             end loop;
 
@@ -678,55 +682,236 @@ package body WisiToken.Syntax_Trees is
       Undo_Reduce_Loop :
       loop
          declare
-            Node : constant Valid_Node_Access := Element (Cur).Node;
+            Stream_Node : constant Valid_Node_Access := Element (Cur).Node;
          begin
-            pragma Assert (Node.Label = Nonterm);
-            pragma Assert (Node.Child_Count > 0); -- otherwise we would not get here.
-
             exit Undo_Reduce_Loop when
               (if First_Terminal
-               then Tree.First_Terminal (Node) = Target
-               else Node = Target);
+               then Tree.First_Terminal (Stream_Node) = Target
+               else Stream_Node = Target);
 
-            for I in reverse 1 .. Node.Child_Count loop
-               Cur := Stream.Elements.Insert
-                 (Element  =>
-                    (Node  => Node.Children (I),
-                     State => Unknown_State),
-                  Before   => Cur);
+            pragma Assert (Stream_Node.Label = Nonterm);
+            pragma Assert (Stream_Node.Child_Count > 0); -- otherwise we would not get here.
 
-               Node.Children (I).Parent := Invalid_Node_Access;
-            end loop;
-         end;
+            if Is_Optimized_List (Productions, Stream_Node.ID) and Stream_Node.RHS_Index = 1 then
+               --  Split list at list ancestor of Ref.Node
+               --
+               --  From test_syntax_trees.adb Breakdown_Optimized_List_01, stream looks
+               --  like:
+               --
+               --  <prev_stream_element>
+               --
+               --  -32:declarations_1
+               --  | -30:declarations_1         Split_Node_Parent_2
+               --  | | -28:declarations_1       Split_Node_Parent_1
+               --  | | | -26:declarations_1
+               --  | | | | -24:declarations_0
+               --  | | | | | -23:declaration_0
+               --  | | | | | | <a : A;>
+               --  | | | | -25:declaration_0
+               --  | | | | | <b : B;>
+               --  | | | -27:declaration_0      Split_Node
+               --  | | | | <c : C;>
+               --  | | -29:declaration_0
+               --  | | | <d : D;>
+               --  | -31:declaration_0
+               --  | | <e : E;>
+               --
+               --  <next_stream_element>
+               --
+               --  Stream_Node is node -32; the top declarations node with RHS_Index
+               --  1.
+               --
+               --  Note that if this list has been edited before, it will have top
+               --  nodes with RHS_Index 2; each of those declarations node has two
+               --  declarations children, and are already optimized, so they are
+               --  broken down the same as non-list nodes.
+               declare
+                  List_ID         : constant Token_ID := Stream_Node.ID;
+                  List_Element_ID : constant Token_ID :=
+                    Stream_Node.Children ((if Stream_Node.RHS_Index = 0 then 1 else 2)).ID;
 
-         --  We need to do Move_Errors before the children of To_Delete are set
-         --  Invalid. test_incremental.adb Missing_Name_1. Pop To_Delete from
-         --  Inverted_Parents now, to match First_Terminal in Move_Errors.
-         Inverted_Parents.Pop;
-         Move_Errors;
+                  Index          : SAL.Base_Peek_Type := Inverted_Parents.Depth;
+                  Split_Node     : Node_Access;
+                  Following_Node : Node_Access        := Invalid_Node_Access;
 
-         if Tree.Parents_Set then
-            declare
-               Node : constant Valid_Node_Access := Element (To_Delete).Node;
-            begin
-               Node.Children := (others => Invalid_Node_Access);
-            end;
-         end if;
-         Stream.Elements.Delete (To_Delete);
+                  Insert_Before : constant Stream_Element_Lists.Cursor := Next (Cur);
+               begin
+                  --  Find Split_Node, the first ancestor of Ref.Node that is a
+                  --  declarations.
+                  loop
+                     exit when Inverted_Parents.Peek (Index).ID = List_ID;
+                     Index := @ - 1;
+                  end loop;
+                  Split_Node := Inverted_Parents.Peek (Index);
 
-         --  Find stream element containing Target
-         declare
-            Node : constant Valid_Node_Access :=
-              (if Inverted_Parents.Depth = 0
-               then Target
-               else Inverted_Parents.Peek);
-         begin
-            Find_Element :
-            loop
-               exit Undo_Reduce_Loop when Element (Cur).Node = Target;
-               exit Find_Element when Element (Cur).Node = Node;
-               Next (Cur);
-            end loop Find_Element;
+                  --  Bring Split_Node to the stream, with previous and following list
+                  --  nodes each under a single stream element.
+                  --
+                  --  Suppose Split_Node is node -27 (Breakdown_Optimized_List_01 case
+                  --  "c"). The desired stream is:
+                  --
+                  --  <prev_stream_element>
+                  --
+                  --  -26:declarations_1
+                  --  | -24:declarations_0
+                  --  | | -23:declaration_0
+                  --  | | | <a : A;>
+                  --  | -25:declaration_0
+                  --  | | <b : B;>
+                  --
+                  --  -27:declaration_0       Split_Node
+                  --  | <c : C;>
+                  --
+                  --  -35:declarations_1      New node
+                  --  | -34:declarations_0    New node
+                  --  | | | -29:declaration_0
+                  --  | | | | <d : D;>
+                  --  | | -31:declaration_0
+                  --  | | | <e : E;>
+                  --
+                  --  <next_stream_element>
+                  --
+                  --  The other test cases in Breakdown_Optimized_List_01 test special
+                  --  cases where Split_Node is near or at the beginning or end of the
+                  --  list.
+
+                  if Split_Node.RHS_Index = 0 then
+                     --  There are no list elements preceding Split_Node
+                     Replace_Element (Cur, (Split_Node.Children (1), Unknown_State));
+                     Split_Node.Children (1).Parent := Invalid_Node_Access;
+
+                  elsif Split_Node.Children (1).RHS_Index = 0 then
+                     --  There is one list element preceding Split_Node
+                     Replace_Element (Cur, (Split_Node.Children (1).Children (1), Unknown_State));
+                     Split_Node.Children (1).Parent := Invalid_Node_Access;
+                     Split_Node.Children (1).Children (1).Parent := Invalid_Node_Access;
+
+                     Cur := Stream.Elements.Insert (Insert_Before, (Split_Node.Children (2), Unknown_State));
+                     Split_Node.Children (2).Parent := Invalid_Node_Access;
+
+                  else
+                     --  There are more than one list elements preceding Split_Node
+                     Replace_Element (Cur, (Split_Node.Children (1), Unknown_State));
+                     Split_Node.Children (1).Parent := Invalid_Node_Access;
+                     Cur := Stream.Elements.Insert (Insert_Before, (Split_Node.Children (2), Unknown_State));
+                     Split_Node.Children (2).Parent := Invalid_Node_Access;
+                  end if;
+
+                  Split_Node.Parent := Invalid_Node_Access;
+
+                  pragma Assert (Element (Cur).Node.ID = List_Element_ID);
+
+                  if Index - 1 = 0 then
+                     --  There are no list elements following Split_node
+                     null;
+
+                  elsif Index - 1 = 1 then
+                     --  There is only one list element following Split_Node
+                     --  test_syntax_trees.adb Breakdown_Optimized_List_01 case d1
+                     declare
+                        Deleting_Node : constant Valid_Node_Access := Inverted_Parents.Pop;
+                     begin
+                        if Deleting_Node.Error_List /= null then
+                           --  FIXME: Move errors. need test case
+                           raise SAL.Not_Implemented with "error on optimized_list";
+                        end if;
+
+                        Following_Node := Deleting_Node.Children (2);
+
+                        Deleting_Node.Parent := Invalid_Node_Access;
+                        for Child of Deleting_Node.Children loop
+                           Child.Parent := Invalid_Node_Access;
+                        end loop;
+                     end;
+
+                  else
+                     --  Multiple list elements following Split_Node
+                     for I in reverse 1 .. Index - 1 loop
+                        declare
+                           Deleting_Node : constant Valid_Node_Access := Inverted_Parents.Peek (I);
+                        begin
+                           pragma Assert (Deleting_Node.ID = Stream_Node.ID and Deleting_Node.RHS_Index = 1);
+
+                           if Deleting_Node.Error_List /= null then
+                              --  FIXME: Move errors. need test case
+                              raise SAL.Not_Implemented with "error on optimized_list";
+                           end if;
+
+                           for Child of Deleting_Node.Children loop
+                              Child.Parent := Invalid_Node_Access;
+                           end loop;
+
+                           if Following_Node = Invalid_Node_Access then
+                              pragma Assert
+                                (Deleting_Node.Children (1).ID = List_ID and
+                                 Deleting_Node.Children (2).RHS_Index = 0 and
+                                 Deleting_Node.Children (2).ID = List_Element_ID);
+
+                              Following_Node := Add_Nonterm_1
+                                (Tree, (List_ID, 0),
+                                 Children         => (1 => Deleting_Node.Children (2)),
+                                 Clear_Parents    => False,
+                                 Recover_Conflict => False);
+
+                           else
+                              pragma Assert
+                                (Deleting_Node.Children (1).ID = List_ID and
+                                 Deleting_Node.Children (1).RHS_Index = 1);
+
+                              Following_Node := Add_Nonterm_1
+                                (Tree, (List_ID, 1),
+                                 Children         =>
+                                   (1             => Following_Node,
+                                    2             => Deleting_Node.Children (2)),
+                                 Clear_Parents    => False,
+                                 Recover_Conflict => False);
+                           end if;
+                        end;
+                     end loop;
+                     Inverted_Parents.Pop (Index - 1);
+                  end if;
+                  Inverted_Parents.Pop; --  Split_Node
+
+                  if Following_Node /= Invalid_Node_Access then
+                     Stream.Elements.Insert (Insert_Before, (Following_Node, Unknown_State));
+                  end if;
+               end;
+
+            else
+               --  Not an optimized_list node. Bring all children of Node to stream.
+               for I in reverse 1 .. Stream_Node.Child_Count loop
+                  Cur := Stream.Elements.Insert
+                    (Element  =>
+                       (Node  => Stream_Node.Children (I),
+                        State => Unknown_State),
+                     Before   => Cur);
+
+                  Stream_Node.Children (I).Parent := Invalid_Node_Access;
+               end loop;
+
+               --  We need to do Move_Errors before the children of To_Delete are set
+               --  Invalid. test_incremental.adb Missing_Name_1. Pop To_Delete from
+               --  Inverted_Parents now, to match First_Terminal in Move_Errors.
+               Inverted_Parents.Pop;
+               Move_Errors;
+
+               Stream.Elements.Delete (To_Delete);
+
+               --  Find stream element containing Target
+               declare
+                  Node : constant Valid_Node_Access :=
+                    (if Inverted_Parents.Depth = 0
+                     then Target
+                     else Inverted_Parents.Peek);
+               begin
+                  Find_Element :
+                  loop
+                     exit Undo_Reduce_Loop when Element (Cur).Node = Target;
+                     exit Find_Element when Element (Cur).Node = Node;
+                     Next (Cur);
+                  end loop Find_Element;
+               end;
+            end if;
          end;
          To_Delete := Cur;
       end loop Undo_Reduce_Loop;
@@ -736,13 +921,14 @@ package body WisiToken.Syntax_Trees is
    procedure Breakdown
      (Tree           : in out Syntax_Trees.Tree;
       Ref            : in out Stream_Node_Ref;
+      Productions    : in     Production_Info_Trees.Vector;
       User_Data      : in     Syntax_Trees.User_Data_Access;
       First_Terminal : in     Boolean)
    is
       Ref_Parents : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Ref);
    begin
       Ref := Invalid_Stream_Node_Ref; --  Allow Delete Ref.Element.
-      Breakdown (Tree, Ref_Parents, User_Data, First_Terminal);
+      Breakdown (Tree, Ref_Parents, Productions, User_Data, First_Terminal);
       Ref := Ref_Parents.Ref;
    end Breakdown;
 
@@ -1347,6 +1533,8 @@ package body WisiToken.Syntax_Trees is
             Tree.SOI := SOI;
             Tree.EOI := EOI;
 
+            Tree.Root.Children := (others => Invalid_Node_Access);
+
             Tree.Root := new Node'
               (Label       => Nonterm,
                Child_Count => Tree.Root.Child_Count + 2,
@@ -1401,6 +1589,11 @@ package body WisiToken.Syntax_Trees is
            Node /= Tree.EOI and then
            not (for some N of Keep_Nodes => N = (Node))
          then
+            --  It is tempting to try to enforce that all deleted nonterms have
+            --  Children = (others => Invalid_Node_Access) here. However, that is
+            --  not true when Breakdown is called by the main parser;
+            --  Tree.Parents_Set is false, indicating there might be multiple
+            --  streams, so Breakdown does not clear children.
             Free (Node);
          end if;
       end loop;
@@ -2813,9 +3006,7 @@ package body WisiToken.Syntax_Trees is
                return Invalid_Node_Access;
 
             elsif Line - 1 in Node_Line_Region.First .. Node_Line_Region.Last then
-               if Node_Line_Region.First = Node_Line_Region.Last or
-                 Line - 1 = Node_Line_Region.Last
-               then
+               if Line - 1 = Node_Line_Region.Last then
                   --  Faster to check last child first.
                   for I in reverse Node.Children'Range loop
                      declare
@@ -3165,7 +3356,8 @@ package body WisiToken.Syntax_Trees is
    function First_Error (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Stream_Error_Ref
    is begin
       return Result : Stream_Error_Ref :=
-        (Ref     => Tree.To_Stream_Node_Parents (Tree.To_Rooted_Ref (Stream, Tree.Stream_First (Stream))),
+        (Ref     => Tree.To_Stream_Node_Parents
+           (Tree.To_Rooted_Ref (Stream, Tree.Stream_First (Stream, Skip_SOI => True))),
          Deleted => Valid_Node_Access_Lists.No_Element,
          Error   => Error_Data_Lists.No_Element)
       do
@@ -3714,33 +3906,6 @@ package body WisiToken.Syntax_Trees is
          Get_Terminal_IDs (Tree, Node, Result, Last);
       end return;
    end Get_Terminal_IDs;
-
-   function Get_Virtuals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access_Array
-   is
-      N     : Node_Access        := Tree.First_Terminal (Node);
-      Count : SAL.Base_Peek_Type := 0;
-      I     : SAL.Base_Peek_Type := 0;
-   begin
-      loop
-         exit when N = Invalid_Node_Access;
-         if N.Label in Virtual_Terminal_Label then
-            Count := @ + 1;
-         end if;
-         N := Tree.Next_Terminal (N);
-      end loop;
-
-      N := Tree.First_Terminal (Node);
-      return Result : Valid_Node_Access_Array (1 .. Count) := (others => Dummy_Node) do
-         loop
-            exit when N = Invalid_Node_Access;
-            if N.Label in Virtual_Terminal_Label then
-               I := @ + 1;
-               Result (I) := N;
-            end if;
-            N := Tree.Next_Terminal (N);
-         end loop;
-      end return;
-   end Get_Virtuals;
 
    function Has_Child
      (Tree  : in Syntax_Trees.Tree;
@@ -4516,6 +4681,18 @@ package body WisiToken.Syntax_Trees is
       return Node.Label = Nonterm;
    end Is_Nonterm;
 
+   function Is_Optimized_List
+     (Productions : in Production_Info_Trees.Vector;
+      ID          : in Token_ID)
+     return Boolean
+   is begin
+      if Productions.Is_Empty then
+         return False;
+      else
+         return Productions (ID).Optimized_List;
+      end if;
+   end Is_Optimized_List;
+
    function Is_Source_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean
    is
       pragma Unreferenced (Tree);
@@ -5113,7 +5290,7 @@ package body WisiToken.Syntax_Trees is
 
       EOI_Line : constant Line_Number_Type := Tree.EOI.Non_Grammar (Tree.EOI.Non_Grammar.First).Line_Region.First;
    begin
-      Ref.Ref := Stream_First (Tree, Stream);
+      Ref.Ref := Stream_First (Tree, Stream, Skip_SOI => True);
 
       if Line = Line_Number_Type'First then
          if Line = Tree.Line_Region (Ref, Stream).First then
@@ -5332,6 +5509,25 @@ package body WisiToken.Syntax_Trees is
             Node => Item.Element_Node);
       end if;
    end Make_Rooted;
+
+   type Augmented_In_Tree is new Base_Augmented with record I : Integer; end record;
+   In_Tree : constant Augmented_In_Tree := (Base_Augmented with 1);
+
+   procedure Mark_In_Tree
+     (Tree                : in     Syntax_Trees.Tree;
+      Node                : in     Valid_Node_Access;
+      Data                : in out User_Data_Type'Class;
+      Node_Image_Output   : in out Boolean;
+      Node_Error_Reported : in out Boolean)
+   is
+      pragma Unreferenced (Node_Error_Reported);
+      pragma Unreferenced (Node_Image_Output);
+   begin
+      if Node.Augmented /= null then
+         raise SAL.Programmer_Error with "Mark_In_Tree called with Augmented already set.";
+      end if;
+      Node.Augmented := new Augmented_In_Tree'(In_Tree);
+   end Mark_In_Tree;
 
    procedure Move_Element
      (Tree      : in out Syntax_Trees.Tree;
@@ -6203,7 +6399,7 @@ package body WisiToken.Syntax_Trees is
         (Cur             => Tree.Streams.Append
            ((Label       => Tree.Next_Stream_Label,
              Stack_Top   => Invalid_Stream_Index.Cur,
-             Shared_Link => Tree.Stream_First (Tree.Shared_Stream).Element.Cur,
+             Shared_Link => Tree.Stream_First (Tree.Shared_Stream, Skip_SOI => True).Element.Cur,
              Elements    => <>)))
       do
          Tree.Next_Stream_Label := @ + 1;
@@ -7643,12 +7839,12 @@ package body WisiToken.Syntax_Trees is
    function Stream_First
      (Tree     : in Syntax_Trees.Tree;
       Stream   : in Stream_ID;
-      Skip_SOI : in Boolean := True)
+      Skip_SOI : in Boolean)
      return Stream_Index
    is begin
       return Result : Stream_Index := (Cur => Tree.Streams (Stream.Cur).Elements.First) do
          if Skip_SOI then
-            Result.Cur := Stream_Element_Lists.Next (@);
+            Stream_Element_Lists.Next (Result.Cur);
          end if;
       end return;
    end Stream_First;
@@ -7656,7 +7852,7 @@ package body WisiToken.Syntax_Trees is
    function Stream_First
      (Tree     : in Syntax_Trees.Tree;
       Stream   : in Stream_ID;
-      Skip_SOI : in Boolean := True)
+      Skip_SOI : in Boolean)
      return Rooted_Ref
    is
       Cur : constant Stream_Element_Lists.Cursor := Tree.Streams (Stream.Cur).Elements.First;
@@ -7723,11 +7919,25 @@ package body WisiToken.Syntax_Trees is
    end Stream_Insert;
 
    function Stream_Last
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID)
+     (Tree     : in Syntax_Trees.Tree;
+      Stream   : in Stream_ID;
+      Skip_EOI : in Boolean)
      return Stream_Index
    is begin
-      return (Cur => Tree.Streams (Stream.Cur).Elements.Last);
+      return Result : Stream_Index := (Cur => Tree.Streams (Stream.Cur).Elements.Last) do
+         if Skip_EOI then
+            Stream_Element_Lists.Previous (Result.Cur);
+         end if;
+      end return;
+   end Stream_Last;
+
+   function Stream_Last
+     (Tree     : in Syntax_Trees.Tree;
+      Stream   : in Stream_ID;
+      Skip_EOI : in Boolean)
+     return Rooted_Ref
+   is begin
+      return To_Rooted_Ref (Tree, Stream, Stream_Last (Tree, Stream, Skip_EOI));
    end Stream_Last;
 
    function Stream_Length (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return SAL.Base_Peek_Type
@@ -8154,20 +8364,26 @@ package body WisiToken.Syntax_Trees is
          end if;
 
          case Node.Label is
-         when Source_Terminal =>
-            if Node.Byte_Region.First < Last_Source_Terminal_Pos then
-               Put_Error ("byte_region out of order");
+         when Terminal_Label =>
+            if Node.Sequential_Index /= Invalid_Sequential_Index then
+               Put_Error ("invalid Sequential_Index:" & Node.Sequential_Index'Image);
             end if;
-            if Node.Non_Grammar.Length > 0 then
-               Last_Source_Terminal_Pos := Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last;
-            else
-               Last_Source_Terminal_Pos := Node.Byte_Region.Last;
-            end if;
+            case Terminal_Label'(Node.Label) is
+            when Source_Terminal =>
+               if Node.Byte_Region.First < Last_Source_Terminal_Pos then
+                  Put_Error ("byte_region out of order");
+               end if;
+               if Node.Non_Grammar.Length > 0 then
+                  Last_Source_Terminal_Pos := Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last;
+               else
+                  Last_Source_Terminal_Pos := Node.Byte_Region.Last;
+               end if;
 
-         when Virtual_Terminal | Virtual_Identifier =>
-            if Node.Non_Grammar.Length > 0 then
-               Last_Source_Terminal_Pos := Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last;
-            end if;
+            when Virtual_Terminal | Virtual_Identifier =>
+               if Node.Non_Grammar.Length > 0 then
+                  Last_Source_Terminal_Pos := Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last;
+               end if;
+            end case;
 
          when Nonterm =>
             for I in Node.Children'Range loop
@@ -8221,6 +8437,24 @@ package body WisiToken.Syntax_Trees is
             else
                Real_Root := Tree.Root;
                Process_Tree (Tree, Tree.Root, Process_Node'Access);
+
+               if Validate_Node = Mark_In_Tree'Access then
+                  for Node of Tree.Nodes loop
+                     if Node.Augmented = null then
+                        Error_Reported.Insert (Node);
+
+                        Ada.Text_IO.Put_Line
+                          (Ada.Text_IO.Current_Error,
+                           Tree.Error_Message
+                             (Node,
+                              Image (Tree, Node,
+                                     Children     => False,
+                                     Node_Numbers => True)));
+                        Ada.Text_IO.Put_Line
+                          (Ada.Text_IO.Current_Error, Tree.Error_Message (Node, "... invalid_tree: node not in tree"));
+                     end if;
+                  end loop;
+               end if;
             end if;
          else
             for Stream of Tree.Streams loop

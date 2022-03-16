@@ -21,8 +21,6 @@ with Ada.Finalization;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image;
-with SAL.Gen_Unbounded_Definite_Vectors;
-with WisiToken.In_Parse_Actions;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
@@ -201,7 +199,7 @@ package WisiToken.Parse is
      return String;
 
    type In_Parse_Action_Error is new Syntax_Trees.Error_Data with record
-      Status       : WisiToken.In_Parse_Actions.Status;
+      Status       : WisiToken.Syntax_Trees.In_Parse_Actions.Status;
       Recover_Ops  : Recover_Op_Arrays.Vector;
       Recover_Cost : Natural := 0;
    end record;
@@ -263,28 +261,11 @@ package WisiToken.Parse is
       Node : in Syntax_Trees.Valid_Node_Access)
      return Syntax_Trees.Error_Data'Class;
 
-   type RHS_Info is record
-      In_Parse_Action   : In_Parse_Actions.In_Parse_Action;
-      Post_Parse_Action : Syntax_Trees.Post_Parse_Action;
-   end record;
-
-   package RHS_Info_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Natural, RHS_Info, Default_Element => (others => <>));
-
-   type Production_Info is record
-      Optimized_List : Boolean := False;
-      RHSs           : RHS_Info_Arrays.Vector;
-   end record;
-
-   package Production_Info_Trees is new SAL.Gen_Unbounded_Definite_Vectors
-     (Token_ID, Production_Info, Default_Element => (others => <>));
-   --  Indexed by Production_ID.
-
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled
    with record
       Tree        : aliased Syntax_Trees.Tree;
-      Productions : Production_Info_Trees.Vector;
-      User_Data   : WisiToken.Syntax_Trees.User_Data_Access;
+      Productions : Syntax_Trees.Production_Info_Trees.Vector;
+      User_Data   : Syntax_Trees.User_Data_Access;
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 
@@ -294,7 +275,7 @@ package WisiToken.Parse is
    function Get_In_Parse_Action
      (Parser : in Base_Parser;
       ID     : in Production_ID)
-     return In_Parse_Actions.In_Parse_Action;
+     return Syntax_Trees.In_Parse_Actions.In_Parse_Action;
 
    function Get_Post_Parse_Action
      (Parser : in Base_Parser;
@@ -380,20 +361,24 @@ package WisiToken.Parse is
    --  is in Tree.Shared_Stream.
 
    procedure Parse
-     (Parser   : in out Base_Parser;
-      Log_File : in     Ada.Text_IO.File_Type;
-      Edits    : in     KMN_Lists.List := KMN_Lists.Empty_List)
+     (Parser     : in out Base_Parser;
+      Log_File   : in     Ada.Text_IO.File_Type;
+      Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
+      Pre_Edited : in     Boolean        := False)
    is abstract;
-   --  If Edits is empty, call Lex_All. If Edits is not empty, call
-   --  Edit_Tree. Then execute parse algorithm to parse the new tokens,
+   --  If Pre_Edited, skip this first step (used for unit tests). Else if
+   --  Edits is empty, call Lex_All; if Edits is not empty, call
+   --  Edit_Tree.
+   --
+   --  Then execute parse algorithm to parse the new tokens,
    --  storing the result in Parser.Tree for Execute_Actions.
    --
    --  If Log_File is open, write information about each error recover
    --  session to it. See implementation for format.
    --
-   --  If a parse error is encountered, raises Syntax_Error.
-   --  Parser.Lexer_Errors and Parser contain information about the
-   --  errors.
+   --  If a non-recoverable parse error is encountered, raises
+   --  Syntax_Error. Parser.Lexer_Errors and Parser contain information
+   --  about the errors.
    --
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.

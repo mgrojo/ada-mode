@@ -27,7 +27,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Stack         : in out Recover_Stacks.Stack;
       Action        : in     Reduce_Action_Rec;
       Nonterm       :    out Syntax_Trees.Recover_Token)
-     return In_Parse_Actions.Status;
+     return Syntax_Trees.In_Parse_Actions.Status;
    --  Reduce Stack according to Action, setting Nonterm.
 
    procedure Current_Token_ID_Peek_3

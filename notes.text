@@ -31,6 +31,11 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+test_syntax_trees Breakdown_Optimized_List_01 passing
+
+    add Breakdown_Optimized_List_02
+        breakdown twice.
+
 optimize syntax tree structure for lists
     editing wisitoken-syntax_trees.adb to add Tree.Line_region;
     slow, even with "fast parser" settings in develop_settings.el
@@ -45,16 +50,11 @@ optimize syntax tree structure for lists
 
     lots of subprograms; parse is slow building declarations list.
     optimize syntax tree list structure
-        commit
 
-        optimize undo_reduce in syntax_trees
-            add test to test_syntax_trees
-
-        add to recover
+    add optimized_list conflict resolution to recover?
             test in optimized_list.input
-
-        ebnf * is an optimized list
-            used in ada_annex_p.wy
+    ebnf * is an optimized list
+           used in ada_annex_p.wy
             in ada_lite_ebnf; declarative_part : {declaration} ;
             test in ada_lite_ebnf.input
 

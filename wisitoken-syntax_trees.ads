@@ -15,12 +15,12 @@
 --
 --  During parsing, the Shared_Stream contains all of the input source
 --  text, either as terminal tokens from the lexer in batch parse, or
---  a mix of terminal (possibly virtual) and nonterminal tokens from
---  Parse.Edit_Tree in incremental parse.
+--  a mix of terminal and nonterminal tokens from Parse.Edit_Tree in
+--  incremental parse.
 --
 --  Node_Index is used only for debugging. Node_Index on nonterms is
 --  negative. Node_Index on terminal nodes created by the lexer in the
---  shared stream is positive; Nod_Index on virtual nodes inserted by
+--  shared stream is positive; Node_Index on virtual nodes inserted by
 --  error recover is negative.
 --
 --  During a batch parse, Node_Index on terminals is sequential, as a
@@ -36,8 +36,8 @@
 --  Error recover uses Sequential_Index to determine success, and to
 --  control where terminals are inserted and deleted. To be
 --  incremental, Sequential_Index is only set in a small portion of
---  the shared stream at error recover start, and cleared when error
---  recover completes.
+--  the shared stream at error recover start, extended as needed
+--  during error recover, and cleared when error recover completes.
 --
 --  During and after parsing, the sequence of terminals in the parse
 --  stream or syntax tree is given by Next_Terminal/Prev_Terminal.
@@ -51,21 +51,21 @@
 --  are referenced from the preceding terminal node or SOI, so they
 --  may be restored on the next incremental parse if appropriate.
 --  Similarly, parse errors are referenced from the error node. In
---  order to avoid editing shared nodes, the nodes that are edited are
---  copied to the parse stream first.
+--  order to avoid editing shared nodes, any nodes that are edited to
+--  add deleted or error references are copied to the parse stream
+--  first.
 --
 --  Each node contains a Parent link, to make it easy to traverse the
 --  tree in any direction after parsing is done. We do not set the
---  Parent links while parsing, to avoid having to copy nodes. At the
---  start of incremental parse (during and after Edit_Tree), the
---  shared stream has complete parent links. However, Breakdown clears
---  parent links, so shared nodes may not have complete parent links;
---  error recover must use explicit Parent stack versions of tree
---  routines. All Parent links are set when parse completes; condition
---  Tree.Editable ensures that there is a single fully parsed tree
---  with all parent links set. While editing the syntax tree after
---  parse, any functions that modify children or parent relationships
---  update the corresponding links, setting them to
+--  Parent links while parsing, to avoid having to copy nodes. During
+--  batch parsing, parent links are not set; error recover must use
+--  explicit Parent stack versions of tree routines. All Parent links
+--  are set when parse completes; condition Tree.Editable ensures that
+--  there is a single fully parsed tree with all parent links set. At
+--  the start of incremental parse (during and after Edit_Tree), the
+--  shared stream has complete parent links. While editing the syntax
+--  tree after parse, any functions that modify children or parent
+--  relationships update the corresponding links, setting them to
 --  Invalid_Node_Access as appropriate.
 --
 --  We don't store the parse State in syntax tree nodes, to avoid
@@ -73,18 +73,14 @@
 --  stream elements. This means Parse.LR.Undo_Reduce has to call
 --  Action_For to compute the state for the child nodes.
 --
---  During parsing, nodes are never deleted, copied or edited in any
---  way once they are created, except for clearing parent links and
---  setting Sequential_Index.
---
 --  Type Tree is limited because a bit-copy is not a good start on copy
 --  for assign; use Copy_Tree.
 --
 --  We can't traverse Tree.Streams to deallocate tree Nodes, either
 --  when streams are terminated or during Finalize; in general Nodes
 --  are referenced multiple times in multiple streams. So we keep
---  track of nodes to deallocate in Tree.Nodes. Nodes are deleted in
---  Clear_Parse_Streams and when the entire tree is Finalized.
+--  track of nodes to deallocate in Tree.Nodes. Nodes are deallocated
+--  in Clear_Parse_Streams and when the entire tree is Finalized.
 --
 --  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
@@ -593,6 +589,12 @@ package WisiToken.Syntax_Trees is
    --  Called by Parser.Execute_Actions, just before processing Nonterm;
    --  Nonterm was created by a 'reduce' parse action.
 
+   ----------
+   --  In_, Post_ Parse_Actions
+   --
+   --  Declared here because Breakdown needs Optimized_List, and the
+   --  actions need Tree and Valid_Node_Access.
+
    type Post_Parse_Action is access procedure
      (User_Data : in out User_Data_Type'Class;
       Tree      : in out Syntax_Trees.Tree;
@@ -602,6 +604,61 @@ package WisiToken.Syntax_Trees is
    --  node in the syntax tree.
 
    Null_Action : constant Post_Parse_Action := null;
+
+   package In_Parse_Actions is
+      type Status_Label is
+        (Ok,
+         Missing_Name_Error, -- block start has name, required block end name missing
+         Extra_Name_Error,   -- block start has no name, end has one
+         Match_Names_Error); -- both names present, but don't match
+
+      subtype Error is Status_Label range Status_Label'Succ (Ok) .. Status_Label'Last;
+
+      type Status (Label : Status_Label := Ok) is record
+         case Label is
+         when Ok =>
+            null;
+
+         when Error =>
+            Begin_Name : Positive_Index_Type;
+            End_Name   : Positive_Index_Type;
+         end case;
+      end record;
+
+      subtype Error_Status is Status
+      with Dynamic_Predicate => Error_Status.Label /= Ok;
+
+      type In_Parse_Action is access function
+        (Tree           : in     Syntax_Trees.Tree;
+         Nonterm        : in out Recover_Token;
+         Tokens         : in     Recover_Token_Array;
+         Recover_Active : in     Boolean)
+        return Status;
+      --  Called during parsing and error recovery to implement higher level
+      --  checks, such as block name matching in Ada.
+   end In_Parse_Actions;
+
+   type RHS_Info is record
+      In_Parse_Action   : In_Parse_Actions.In_Parse_Action;
+      Post_Parse_Action : Syntax_Trees.Post_Parse_Action;
+   end record;
+
+   package RHS_Info_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Natural, RHS_Info, Default_Element => (others => <>));
+
+   type Production_Info is record
+      Optimized_List : Boolean := False;
+      RHSs           : RHS_Info_Arrays.Vector;
+   end record;
+
+   package Production_Info_Trees is new SAL.Gen_Unbounded_Definite_Vectors
+     (Token_ID, Production_Info, Default_Element => (others => <>));
+   --  Indexed by Production_ID.
+
+   function Is_Optimized_List
+     (Productions : in Production_Info_Trees.Vector;
+      ID          : in Token_ID)
+     return Boolean;
 
    ----------
    --  Parsing operations (including error recovery and incremental
@@ -775,6 +832,7 @@ package WisiToken.Syntax_Trees is
    procedure Breakdown
      (Tree           : in out Syntax_Trees.Tree;
       Ref            : in out Stream_Node_Parents;
+      Productions    : in     Production_Info_Trees.Vector;
       User_Data      : in     Syntax_Trees.User_Data_Access;
       First_Terminal : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref) and
@@ -802,13 +860,19 @@ package WisiToken.Syntax_Trees is
    --  Ref.Parents is updated to match. If Ref.Node is one of those first
    --  terminals, it will be copied.
    --
+   --  If one of the nodes brought to the parse stream is an optimized
+   --  list, the list is split at the immediate ancestor of Ref.Node.
+   --
    --  The stack top is unchanged.
    --
-   --  Parent/child links are set to Invalid_Node_Access as appropriate.
+   --  Parent links are set to Invalid_Node_Access as appropriate, but
+   --  child links are not, since Breakdown is called from main parse,
+   --  where nodes are shared.
 
    procedure Breakdown
      (Tree           : in out Syntax_Trees.Tree;
       Ref            : in out Stream_Node_Ref;
+      Productions    : in     Production_Info_Trees.Vector;
       User_Data      : in     User_Data_Access;
       First_Terminal : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
@@ -848,21 +912,29 @@ package WisiToken.Syntax_Trees is
    function Stream_First
      (Tree     : in Syntax_Trees.Tree;
       Stream   : in Stream_ID;
-      Skip_SOI : in Boolean := True)
+      Skip_SOI : in Boolean)
      return Stream_Index
    with Pre => Tree.Is_Valid (Stream);
 
    function Stream_First
      (Tree     : in Syntax_Trees.Tree;
       Stream   : in Stream_ID;
-      Skip_SOI : in Boolean := True)
+      Skip_SOI : in Boolean)
      return Rooted_Ref
    with Pre => Tree.Is_Valid (Stream);
 
    function Stream_Last
-     (Tree   : in Syntax_Trees.Tree;
-      Stream : in Stream_ID)
+     (Tree     : in Syntax_Trees.Tree;
+      Stream   : in Stream_ID;
+      Skip_EOI : in Boolean)
      return Stream_Index
+   with Pre => Tree.Is_Valid (Stream);
+
+   function Stream_Last
+     (Tree     : in Syntax_Trees.Tree;
+      Stream   : in Stream_ID;
+      Skip_EOI : in Boolean)
+     return Rooted_Ref
    with Pre => Tree.Is_Valid (Stream);
 
    function Stack_Top
@@ -1573,11 +1645,6 @@ package WisiToken.Syntax_Trees is
       Trailing_Non_Grammar : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and not Tree.Parents_Set,
      Post   => Tree.Correct_Stream_Node (Ref.Ref);
-
-   function Get_Virtuals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Valid_Node_Access_Array
-   with Pre => Tree.Parents_Set,
-     Post => (for all Node of Get_Virtuals'Result => Tree.Label (Node) in Virtual_Terminal_Label);
-   --  Return list of virtual terminals in Node.
 
    function Count_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Natural;
 
@@ -2624,6 +2691,18 @@ package WisiToken.Syntax_Trees is
    --
    --  If Node_Image_Output is False, output Image (Tree, Node,
    --  Node_Numbers => True) once before any error messages.
+
+   procedure Mark_In_Tree
+     (Tree                : in     Syntax_Trees.Tree;
+      Node                : in     Valid_Node_Access;
+      Data                : in out User_Data_Type'Class;
+      Node_Image_Output   : in out Boolean;
+      Node_Error_Reported : in out Boolean);
+   --  Mark Node as being "in tree".
+   --
+   --  If this is provided to Validate_Tree as the Validate_Node
+   --  argument, Validate_Tree will check that all nodes in Tree.Nodes
+   --  are marked as "in tree".
 
    procedure Validate_Tree
      (Tree             : in out Syntax_Trees.Tree;

@@ -30,6 +30,7 @@ pragma License (Modified_GPL);
 with Ada.Calendar.Formatting;
 with Ada.Exceptions;
 with GNAT.Traceback.Symbolic;
+with WisiToken.In_Parse_Actions;
 with WisiToken.Parse.LR.McKenzie_Recover;
 package body WisiToken.Parse.LR.Parser is
 
@@ -38,14 +39,14 @@ package body WisiToken.Parse.LR.Parser is
       Current_Parser : in     Parser_Lists.Cursor;
       Action         : in     Reduce_Action_Rec;
       New_State      : in     State_Index)
-     return WisiToken.In_Parse_Actions.Status_Label
+     return Syntax_Trees.In_Parse_Actions.Status_Label
    is
       --  We treat semantic check errors as parse errors here, to allow
       --  error recovery to take better advantage of them. One recovery
       --  strategy is to fix things so the semantic check passes.
 
-      use all type In_Parse_Actions.Status_Label;
-      use all type In_Parse_Actions.In_Parse_Action;
+      use all type Syntax_Trees.In_Parse_Actions.Status_Label;
+      use all type Syntax_Trees.In_Parse_Actions.In_Parse_Action;
 
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
 
@@ -53,7 +54,7 @@ package body WisiToken.Parse.LR.Parser is
         (Parser_State.Stream, Action.Production, Action.Token_Count, New_State,
          Recover_Conflict => Parser_State.Resume_Active and Shared_Parser.Parsers.Count > 1);
 
-      In_Parse_Action : constant In_Parse_Actions.In_Parse_Action := Shared_Parser.Get_In_Parse_Action
+      In_Parse_Action : constant Syntax_Trees.In_Parse_Actions.In_Parse_Action := Shared_Parser.Get_In_Parse_Action
         (Action.Production);
    begin
       if Trace_Parse > Detail then
@@ -77,21 +78,21 @@ package body WisiToken.Parse.LR.Parser is
 
             Children_Token : constant Syntax_Trees.Recover_Token_Array :=
               Shared_Parser.Tree.Children_Recover_Tokens (Parser_State.Stream, Nonterm.Element);
-            Status         : In_Parse_Actions.Status;
+            Status         : Syntax_Trees.In_Parse_Actions.Status;
          begin
             Status := In_Parse_Action
               (Shared_Parser.Tree, Nonterm_Token, Children_Token, Recover_Active => False);
 
             if Trace_Parse > Detail then
                Shared_Parser.Tree.Lexer.Trace.Put_Line
-                 ("in_parse_action " & In_Parse_Actions.Image (Status, Shared_Parser.Tree, Nonterm.Node));
+                 ("in_parse_action " & WisiToken.In_Parse_Actions.Image (Status, Shared_Parser.Tree, Nonterm.Node));
             end if;
 
             case Status.Label is
             when Ok =>
                return Ok;
 
-            when In_Parse_Actions.Error =>
+            when Syntax_Trees.In_Parse_Actions.Error =>
                if Parser_State.Resume_Active then
                   --  Ignore this error; that's how McKenzie_Recover decided to fix it
                   return Ok;
@@ -307,11 +308,11 @@ package body WisiToken.Parse.LR.Parser is
       Shared_Parser  : in out LR.Parser.Parser)
    --  Apply Action to Current_Parser; sets Current_Parser.Verb.
    is
-      use all type In_Parse_Actions.Status_Label;
+      use all type Syntax_Trees.In_Parse_Actions.Status_Label;
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
       Trace        : WisiToken.Trace'Class renames Shared_Parser.Tree.Lexer.Trace.all;
-      Status       : In_Parse_Actions.Status_Label;
+      Status       : Syntax_Trees.In_Parse_Actions.Status_Label;
 
    begin
       if Trace_Parse > Detail then
@@ -431,7 +432,7 @@ package body WisiToken.Parse.LR.Parser is
                            else Trimmed_Image (New_State)));
                   end if;
 
-               when In_Parse_Actions.Error =>
+               when Syntax_Trees.In_Parse_Actions.Error =>
                   Parser_State.Set_Verb (Error);
                   Parser_State.Last_Action := Action; -- not Error, since we did a reduce.
                   Parser_State.Error_Count        := @ + 1;
@@ -449,7 +450,7 @@ package body WisiToken.Parse.LR.Parser is
          when Ok =>
             Parser_State.Set_Verb (Action.Verb);
 
-         when In_Parse_Actions.Error =>
+         when Syntax_Trees.In_Parse_Actions.Error =>
             Parser_State.Set_Verb (Error);
             Parser_State.Zombie_Token_Count := 1;
          end case;
@@ -1031,7 +1032,7 @@ package body WisiToken.Parse.LR.Parser is
      (Parser                         :    out LR.Parser.Parser;
       Lexer                          : in     WisiToken.Lexer.Handle;
       Table                          : in     Parse_Table_Ptr;
-      Productions                    : in     Production_Info_Trees.Vector;
+      Productions                    : in     Syntax_Trees.Production_Info_Trees.Vector;
       Language_Fixes                 : in     Language_Fixes_Access;
       Language_Matching_Begin_Tokens : in     Language_Matching_Begin_Tokens_Access;
       Language_String_ID_Set         : in     Language_String_ID_Set_Access;
@@ -1055,7 +1056,8 @@ package body WisiToken.Parse.LR.Parser is
    overriding procedure Parse
      (Shared_Parser    : in out LR.Parser.Parser;
       Recover_Log_File : in     Ada.Text_IO.File_Type;
-      Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List)
+      Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List;
+      Pre_Edited       : in     Boolean        := False)
    is separate;
 
    overriding procedure Execute_Actions

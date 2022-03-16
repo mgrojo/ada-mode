@@ -17,6 +17,7 @@
 
 pragma License (Modified_GPL);
 
+with WisiToken.In_Parse_Actions;
 package body WisiToken.Parse is
 
    --  Body subprograms
@@ -153,7 +154,7 @@ package body WisiToken.Parse is
          return False;
       else
          declare
-            use all type WisiToken.In_Parse_Actions.Status;
+            use all type WisiToken.Syntax_Trees.In_Parse_Actions.Status;
             Right_In_Parse : In_Parse_Action_Error renames In_Parse_Action_Error (Right);
          begin
             --  Allow updating recover info after error recovery.
@@ -183,7 +184,7 @@ package body WisiToken.Parse is
 
       Result : Unbounded_String;
    begin
-      Result := +"in_parse_action_error: " & In_Parse_Actions.Image (Data.Status, Tree, Error_Node);
+      Result := +"in_parse_action_error: " & WisiToken.In_Parse_Actions.Image (Data.Status, Tree, Error_Node);
 
       if Recover_Op_Arrays.Length (Data.Recover_Ops) /= 0 then
          Append (Result, ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree.Lexer.Descriptor.all));
@@ -316,7 +317,7 @@ package body WisiToken.Parse is
    function Get_In_Parse_Action
      (Parser : in Base_Parser;
       ID     : in Production_ID)
-     return In_Parse_Actions.In_Parse_Action
+     return Syntax_Trees.In_Parse_Actions.In_Parse_Action
    is begin
       if Parser.Productions.Is_Empty then
          return null;
@@ -346,11 +347,7 @@ package body WisiToken.Parse is
       ID     : in Production_ID)
      return Boolean
    is begin
-      if Parser.Productions.Is_Empty then
-         return False;
-      else
-         return Parser.Productions (ID.LHS).Optimized_List;
-      end if;
+      return Syntax_Trees.Is_Optimized_List (Parser.Productions, ID.LHS);
    end Is_Optimized_List;
 
    function Next_Grammar_Token
@@ -681,7 +678,7 @@ package body WisiToken.Parse is
                     (Tree.Get_Node (Terminal.Stream, Terminal.Element), Node_Numbers => True) &
                     " target " & Tree.Image (Terminal.Node, Node_Numbers => True));
             end if;
-            Tree.Breakdown (Terminal, Parser.User_Data, First_Terminal => True);
+            Tree.Breakdown (Terminal, Parser.Productions, Parser.User_Data, First_Terminal => True);
 
             if To_Single and then Tree.Label (Terminal.Element) = Nonterm then
                Tree.Left_Breakdown (Terminal, Parser.User_Data);
@@ -727,7 +724,7 @@ package body WisiToken.Parse is
                end if;
 
                if Get_Node (Ref.Element) /= Ref.Node then
-                  Tree.Breakdown (Ref, Parser.User_Data, First_Terminal => False);
+                  Tree.Breakdown (Ref, Parser.Productions, Parser.User_Data, First_Terminal => False);
                end if;
 
                declare
@@ -743,7 +740,7 @@ package body WisiToken.Parse is
                     ("breakdown recover_conflict node " & Tree.Image (Ref, Node_Numbers => True));
                end if;
 
-               Tree.Breakdown (Ref, Parser.User_Data, First_Terminal => False);
+               Tree.Breakdown (Ref, Parser.Productions, Parser.User_Data, First_Terminal => False);
                To_Breakdown := Ref;
                Tree.First_Terminal (To_Breakdown);
                Tree.Stream_Next (Ref, Rooted => True);

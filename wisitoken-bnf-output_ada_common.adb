@@ -116,9 +116,6 @@ package body WisiToken.BNF.Output_Ada_Common is
       if Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0 then
          Put_Line ("with WisiToken.Syntax_Trees;");
       end if;
-      if Input_Data.Check_Count > 0 then
-         Put_Line ("with WisiToken.In_Parse_Actions;");
-      end if;
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Spec_Context));
       Put_Line ("package " & Package_Name & " is");
       Indent := Indent + 3;
@@ -225,7 +222,7 @@ package body WisiToken.BNF.Output_Ada_Common is
                   Indent_Line ("  Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
                   Indent_Line ("  Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
                   Indent_Line ("  Recover_Active : in     Boolean)");
-                  Indent_Line (" return WisiToken.In_Parse_Actions.Status;");
+                  Indent_Line (" return WisiToken.Syntax_Trees.In_Parse_Actions.Status;");
                end if;
             end loop;
          end if;
@@ -257,7 +254,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          end if;
          Indent_Line ("  return WisiToken.Parse.LR.Parse_Table_Ptr;");
          New_Line;
-         Indent_Line ("function Create_Productions return WisiToken.Parse.Production_Info_Trees.Vector;");
+         Indent_Line ("function Create_Productions return WisiToken.Syntax_Trees.Production_Info_Trees.Vector;");
          New_Line;
          Indent_Line ("function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;");
       end LR_Process;
@@ -287,6 +284,8 @@ package body WisiToken.BNF.Output_Ada_Common is
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
+      Put_Line ("with WisiToken.Syntax_Trees;");
+
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
          Put_Line ("with WisiToken.Lexer;");
@@ -294,7 +293,6 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       when Packrat_Generate_Algorithm =>
          Put_Line ("with WisiToken.Parse;");
-         Put_Line ("with WisiToken.Syntax_Trees;");
 
       when External | Tree_Sitter =>
          null;
@@ -777,10 +775,10 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       Actions_Present : Boolean := False;
    begin
-      Indent_Line ("function Create_Productions return WisiToken.Parse.Production_Info_Trees.Vector");
+      Indent_Line ("function Create_Productions return WisiToken.Syntax_Trees.Production_Info_Trees.Vector");
       Indent_Line ("is begin");
       Indent := Indent + 3;
-      Indent_Line ("return Result : WisiToken.Parse.Production_Info_Trees.Vector do");
+      Indent_Line ("return Result : WisiToken.Syntax_Trees.Production_Info_Trees.Vector do");
       Indent := Indent + 3;
       Indent_Line
         ("Result.Set_First_Last (" &

@@ -93,14 +93,15 @@ is
       --  because some declared labels are not actually used in actions. The
       --  user will have to add 'with SAL;' in a code declaration.
 
+      if Input_Data.Check_Count > 0 then
+         --  For Match_Names etc
+         Indent_Line ("with  WisiToken.In_Parse_Actions; use WisiToken.In_Parse_Actions;");
+         New_Line;
+      end if;
+
       Put_Line ("package body " & Package_Name & " is");
       Indent := Indent + 3;
       New_Line;
-
-      if Input_Data.Check_Count > 0 then
-         Indent_Line ("use WisiToken.In_Parse_Actions;");
-         New_Line;
-      end if;
 
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Body_Pre));
 
@@ -232,7 +233,7 @@ is
                      Indent_Line ("   Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
                      Indent_Line ("   Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
                      Indent_Line ("   Recover_Active : in     Boolean)");
-                     Indent_Line ("  return WisiToken.In_Parse_Actions.Status");
+                     Indent_Line ("  return WisiToken.Syntax_Trees.In_Parse_Actions.Status");
                      Indent_Line ("is");
 
                      Indent := Indent + 3;
@@ -368,7 +369,7 @@ is
       Set_Output (Standard_Output);
    end Create_Ada_Main_Body;
 
-   procedure Create_Ada_Test_Main (Main_Package_Name    : in String)
+   procedure Create_Ada_Test_Main (Main_Package_Name : in String)
    is
       use WisiToken.Generate;
 
