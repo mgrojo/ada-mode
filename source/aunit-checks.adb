@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2004 - 2009, 2012, 2015, 2017 - 2019, 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2009, 2012, 2015, 2017 - 2019, 2021 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -28,7 +28,7 @@ package body AUnit.Checks is
       Computed : in Item_Access_Type;
       Expected : in Item_Access_Type)
    is begin
-      AUnit.Assertions.Assert (Computed = Expected, Label & ": access type mismatch");
+      AUnit.Assertions.Assert (Computed = Expected, Label & ": access address mismatch");
    end Gen_Check_Access_All;
 
    procedure Gen_Check_Access_Constant
@@ -36,7 +36,7 @@ package body AUnit.Checks is
       Computed : in Item_Access_Type;
       Expected : in Item_Access_Type)
    is begin
-      AUnit.Assertions.Assert (Computed = Expected, Label & ": access type mismatch");
+      AUnit.Assertions.Assert (Computed = Expected, Label & ": access address mismatch");
    end Gen_Check_Access_Constant;
 
    procedure Gen_Check_Access
@@ -44,7 +44,7 @@ package body AUnit.Checks is
       Computed : in Item_Access_Type;
       Expected : in Item_Access_Type)
    is begin
-      AUnit.Assertions.Assert (Computed = Expected, Label & ": access type mismatch");
+      AUnit.Assertions.Assert (Computed = Expected, Label & ": access address mismatch");
    end Gen_Check_Access;
 
    procedure Gen_Check_Access_Class
