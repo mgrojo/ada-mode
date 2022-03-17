@@ -31,10 +31,13 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-test_syntax_trees Breakdown_Optimized_List_01 passing
+optimized_list parse fails
+    CONSTRAINT_ERROR: wisitoken-parse-lr-mckenzie_recover-explore.adb:1257:14 invalid data
+    value 56 not in 0..1
+        happens with mckenzie=1|2, but not mckenzie=3
+        matching_begin_tokens out params should be in out to allow null implementation
 
-    add Breakdown_Optimized_List_02
-        breakdown twice.
+
 
 optimize syntax tree structure for lists
     editing wisitoken-syntax_trees.adb to add Tree.Line_region;
@@ -51,12 +54,11 @@ optimize syntax tree structure for lists
     lots of subprograms; parse is slow building declarations list.
     optimize syntax tree list structure
 
-    add optimized_list conflict resolution to recover?
-            test in optimized_list.input
     ebnf * is an optimized list
            used in ada_annex_p.wy
             in ada_lite_ebnf; declarative_part : {declaration} ;
             test in ada_lite_ebnf.input
+            move optimized_list detection to grammar_utils.to_grammar
 
 Find_matching_name compares large amounts of text
     Name_Region (sequence_of_statements) returns the whole sequence

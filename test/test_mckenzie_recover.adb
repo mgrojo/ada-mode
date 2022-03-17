@@ -30,7 +30,6 @@ with Ada_Lite_Actions;
 with Ada_Lite_LALR_Main;
 with Ada_Lite_LR1_T1_Main;
 with WisiToken.AUnit;
-with WisiToken.In_Parse_Actions.AUnit;
 with WisiToken.Parse.LR.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser;
@@ -45,7 +44,7 @@ package body Test_McKenzie_Recover is
    use WisiToken.AUnit;
    use all type WisiToken.BNF.LR_Generate_Algorithm;
    use all type WisiToken.Parse.Recover_Op_Label;
-   use all type WisiToken.In_Parse_Actions.Status_Label;
+   use all type WisiToken.Syntax_Trees.In_Parse_Actions.Status_Label;
    use all type WisiToken.Syntax_Trees.Sequential_Index;
 
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
@@ -120,21 +119,22 @@ package body Test_McKenzie_Recover is
       Ops : in WisiToken.Parse.LR.AUnit.Test_Recover_Op_Arrays.Vector :=
         WisiToken.Parse.LR.AUnit.Test_Recover_Op_Arrays.Empty_Vector;
 
-      Enqueue_Low        : in Integer                                 := 0;
-      Enqueue_High       : in Integer                                 := Integer'Last;
-      Check_Low          : in Integer                                 := 0;
-      Check_High         : in Integer                                 := Integer'Last;
-      Cost               : in Integer;
-      Expecting          : in WisiToken.Token_ID_Set                  := Empty_Token_ID_Set;
-      Code               : in WisiToken.In_Parse_Actions.Status_Label := WisiToken.In_Parse_Actions.Ok)
+      Enqueue_Low  : in Integer                                 := 0;
+      Enqueue_High : in Integer                                 := Integer'Last;
+      Check_Low    : in Integer                                 := 0;
+      Check_High   : in Integer                                 := Integer'Last;
+      Cost         : in Integer;
+      Expecting    : in WisiToken.Token_ID_Set                  := Empty_Token_ID_Set;
+      Code         : in WisiToken.Syntax_Trees.In_Parse_Actions.Status_Label :=
+        WisiToken.Syntax_Trees.In_Parse_Actions.Ok)
    is
       --  Enqueue_*, Check_* can only be checked on the last error in parse
       --  order.
 
       use AUnit.Assertions;
       use WisiToken.Parse.LR.AUnit;
-      use WisiToken.In_Parse_Actions.AUnit;
       use WisiToken.Syntax_Trees;
+      use WisiToken.Syntax_Trees.AUnit_Public;
       use all type WisiToken.Buffer_Region;
       use all type WisiToken.Token_ID;
       use all type WisiToken.Token_ID_Set;

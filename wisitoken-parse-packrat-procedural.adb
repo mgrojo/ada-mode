@@ -240,7 +240,7 @@ package body WisiToken.Parse.Packrat.Procedural is
       Direct_Left_Recursive : in Token_ID_Set;
       Start_ID              : in Token_ID;
       Lexer                 : in WisiToken.Lexer.Handle;
-      Productions           : in WisiToken.Parse.Production_Info_Trees.Vector;
+      Productions           : in WisiToken.Syntax_Trees.Production_Info_Trees.Vector;
       User_Data             : in WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser
    is begin
@@ -255,11 +255,12 @@ package body WisiToken.Parse.Packrat.Procedural is
    end Create;
 
    overriding procedure Parse
-     (Parser   : in out Procedural.Parser;
-      Log_File : in     Ada.Text_IO.File_Type;
-      Edits    : in     KMN_Lists.List := KMN_Lists.Empty_List)
+     (Parser     : in out Procedural.Parser;
+      Log_File   : in     Ada.Text_IO.File_Type;
+      Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
+      Pre_Edited : in     Boolean        := False)
    is
-      pragma Unreferenced (Log_File);
+      pragma Unreferenced (Log_File, Pre_Edited);
       use all type Ada.Containers.Count_Type;
       use all type WisiToken.Syntax_Trees.User_Data_Access;
 
@@ -288,9 +289,9 @@ package body WisiToken.Parse.Packrat.Procedural is
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);
          Parser.Derivs (Nonterm).Set_First_Last
            (Parser.Tree.Get_Node_Index
-              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream)),
+              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream, Skip_SOI => True)),
             Parser.Tree.Get_Node_Index
-              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_Last (Parser.Tree.Shared_Stream)));
+              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_Last (Parser.Tree.Shared_Stream, Skip_EOI => False)));
       end loop;
 
       Result := Apply_Rule

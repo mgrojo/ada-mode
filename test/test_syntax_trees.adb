@@ -844,7 +844,143 @@ package body Test_Syntax_Trees is
          Declarations_2 => False);
    end Breakdown_Optimized_List_01;
 
-   --  FIXME: breakdown optimized_list twice
+   procedure Breakdown_Optimized_List_02 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use WisiToken.Syntax_Trees.AUnit_Public;
+
+      Text : constant String := "a : A; b : B; c : C; d : D; e : E;";
+      --  char_pos               |1        |10        |20        |30
+      --  node_index             |1     |5     |9     |13    |18
+
+      Tree : WisiToken.Syntax_Trees.Tree renames Optimized_List_Parser.Tree;
+      procedure Test_1
+        (Label   : in String;
+         Index_1 : in Node_Index;
+         Index_2 : in Node_Index)
+      is begin
+         if Trace_Tests > Detail then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line (Label & " initial parse");
+         end if;
+
+         Optimized_List_Parser.Tree.Lexer.Reset_With_String (Text);
+         Optimized_List_Parser.Parse (Log_File);
+
+         Tree.Start_Edit;
+
+         declare
+            All_Terminals : constant Valid_Node_Access_Array := Tree.Get_Terminals
+              (Get_Node (Tree.Stream_First (Tree.Shared_Stream, Skip_SOI => True)));
+
+            Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+              (Tree.Stream_First (Tree.Shared_Stream, Skip_SOI => True));
+         begin
+            Tree.First_Terminal (Ref, Following => False);
+            for I in 1 .. Index_1 - 1 loop
+               Tree.Next_Terminal (Ref);
+            end loop;
+            Check (Label & ".node_index_1", Tree.Get_Node_Index (Ref.Ref.Node), Index_1);
+
+            Tree.Breakdown (Ref, Optimized_List_Parser.Productions, null, First_Terminal => True);
+            Ref := Invalid_Stream_Node_Parents;
+
+            if Trace_Tests > Detail then
+               Ada.Text_IO.Put_Line (Label & " parse edited stream 1");
+            end if;
+            Optimized_List_Parser.Parse (Log_File, Pre_Edited => True);
+
+            if Trace_Tests > Detail then
+               Ada.Text_IO.Put_Line (Label & " parsed tree 1:");
+               Tree.Print_Tree;
+            end if;
+
+            Tree.Start_Edit;
+            Ref := Tree.To_Stream_Node_Parents (Tree.Stream_First (Tree.Shared_Stream, Skip_SOI => True));
+            Tree.First_Terminal (Ref, Following => False);
+            for I in 1 .. Index_2 - 1 loop
+               Tree.Next_Terminal (Ref);
+            end loop;
+
+            Check (Label & ".node_index_2", Tree.Get_Node_Index (Ref.Ref.Node), Index_2);
+
+            Tree.Breakdown (Ref, Optimized_List_Parser.Productions, null, First_Terminal => True);
+
+            if Trace_Tests > Detail then
+               Ada.Text_IO.Put_Line (Label & " edited stream 2:");
+               Tree.Print_Streams (Children => True);
+               Ada.Text_IO.Put_Line (Label & "  ref: " & Tree.Image (Ref.Ref, Node_Numbers => True));
+            end if;
+
+            declare
+               use all type Ada.Containers.Count_Type;
+               Error_Reported : Node_Sets.Set;
+            begin
+               Tree.Validate_Tree
+                 (User_Data, Error_Reported,
+                  Node_Index_Order => False,
+                  Validate_Node    => null);
+               --  Mark_In_Tree doesn't work when the tree isn't fully parsed.
+               if Error_Reported.Count > 0 then
+                  AUnit.Assertions.Assert (False, "invalid tree");
+               end if;
+            end;
+
+            --  All terminals should still be present.
+            declare
+               use all type SAL.Base_Peek_Type;
+
+               Term : Terminal_Ref := Tree.First_Terminal (Tree.Stream_First (Tree.Shared_Stream, Skip_SOI => True));
+               I : Positive_Index_Type := All_Terminals'First;
+            begin
+               if Trace_Tests > Detail then
+                  Ada.Text_IO.Put ("terminals: (");
+                  for T of All_Terminals loop
+                     Ada.Text_IO.Put (Tree.Image (T, Node_Numbers => True) & ", ");
+                  end loop;
+                  Ada.Text_IO.Put_Line (")");
+               end if;
+
+               loop
+                  exit when Term = Invalid_Stream_Node_Ref or else
+                    Tree.ID (Term.Node) = Tree.Lexer.Descriptor.EOI_ID;
+
+                  Check_Address (Label & ".terminals (" & Trimmed_Image (I) & ")", Term.Node, All_Terminals (I));
+
+                  I := I + 1;
+                  Tree.Next_Terminal (Term);
+               end loop;
+               if I /= All_Terminals'Last + 1 then
+                  AUnit.Assertions.Assert (False, Label & " all_terminals length mismatch");
+               end if;
+            end;
+         end;
+
+         if Trace_Tests > Detail then
+            Ada.Text_IO.Put_Line (Label & " parse edited stream 2");
+         end if;
+         Optimized_List_Parser.Parse (Log_File, Pre_Edited => True);
+
+         if Trace_Tests > Detail then
+            Ada.Text_IO.Put_Line (Label & " parsed tree 2:");
+            Tree.Print_Tree;
+         end if;
+         declare
+            use all type Ada.Containers.Count_Type;
+            Error_Reported : Node_Sets.Set;
+         begin
+            Tree.Validate_Tree
+              (User_Data, Error_Reported,
+               Node_Index_Order => False,
+               Validate_Node    => Mark_In_Tree'Access);
+            if Error_Reported.Count > 0 then
+               AUnit.Assertions.Assert (False, "invalid tree");
+            end if;
+         end;
+      end Test_1;
+   begin
+      Test_1 ("b, c", 5, 9);
+   end Breakdown_Optimized_List_02;
 
    ----------
    --  Public subprograms
@@ -860,6 +996,7 @@ package body Test_Syntax_Trees is
       Register_Routine (T, Line_At_Byte_Pos_2'Access, "Line_At_Byte_Pos_2");
       Register_Routine (T, Find_Char_Pos_1'Access, "Find_Char_Pos_1");
       Register_Routine (T, Breakdown_Optimized_List_01'Access, "Breakdown_Optimized_List_01");
+      Register_Routine (T, Breakdown_Optimized_List_02'Access, "Breakdown_Optimized_List_02");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

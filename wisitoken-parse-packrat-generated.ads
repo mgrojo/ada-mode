@@ -7,7 +7,7 @@
 --
 --  see parent.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -68,9 +68,10 @@ package WisiToken.Parse.Packrat.Generated is
    end record;
 
    overriding procedure Parse
-     (Parser   : in out Generated.Parser;
-      Log_File : in     Ada.Text_IO.File_Type;
-      Edits    : in     KMN_Lists.List := KMN_Lists.Empty_List);
-   --  Raises Parse_Error if Edits is not empty.
+     (Parser     : in out Generated.Parser;
+      Log_File   : in     Ada.Text_IO.File_Type;
+      Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
+      Pre_Edited : in     Boolean        := False);
+   --  Raises Parse_Error if Edits is not empty. Log_File, Pre_Edited are ignored.
 
 end WisiToken.Parse.Packrat.Generated;

@@ -22,6 +22,7 @@ pragma License (GPL);
 
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Syntax_Trees;
 generic
    Language_Fixes : in WisiToken.Parse.LR.Parser.Language_Fixes_Access;
 
@@ -30,7 +31,7 @@ generic
    Language_String_ID_Set : in WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
 
    with function Create_Parse_Table return WisiToken.Parse.LR.Parse_Table_Ptr;
-   with function Create_Productions return WisiToken.Parse.Production_Info_Trees.Vector;
+   with function Create_Productions return WisiToken.Syntax_Trees.Production_Info_Trees.Vector;
    with function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;
 
 procedure Gen_LR_Parser_Run;

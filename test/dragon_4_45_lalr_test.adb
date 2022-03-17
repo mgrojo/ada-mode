@@ -254,7 +254,7 @@ package body Dragon_4_45_LALR_Test is
          Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
          WisiToken.Generate.LR.LALR_Generate.Generate
            (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
-         WisiToken.Parse.Production_Info_Trees.Empty_Vector,
+         WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
          User_Data                      => null,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,

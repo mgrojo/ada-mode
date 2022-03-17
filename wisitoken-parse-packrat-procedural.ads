@@ -70,14 +70,15 @@ package WisiToken.Parse.Packrat.Procedural is
       Direct_Left_Recursive : in Token_ID_Set;
       Start_ID              : in Token_ID;
       Lexer                 : in WisiToken.Lexer.Handle;
-      Productions           : in WisiToken.Parse.Production_Info_Trees.Vector;
+      Productions           : in WisiToken.Syntax_Trees.Production_Info_Trees.Vector;
       User_Data             : in WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser;
 
    overriding procedure Parse
-     (Parser   : in out Procedural.Parser;
-      Log_File : in     Ada.Text_IO.File_Type;
-      Edits    : in     KMN_Lists.List := KMN_Lists.Empty_List);
+     (Parser     : in out Procedural.Parser;
+      Log_File   : in     Ada.Text_IO.File_Type;
+      Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
+      Pre_Edited : in     Boolean        := False);
    --  Raises Parse_Error if Edits is not empty.
 
 end WisiToken.Parse.Packrat.Procedural;

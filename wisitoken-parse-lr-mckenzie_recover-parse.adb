@@ -761,21 +761,26 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             --  We don't loop on Conflict here; if Conflict.Next is non null, it
             --  will be enqueued when Conflict is parsed.
             if Conflict /= null then
-               if Is_Full (Parse_Items) then
-                  if Trace_McKenzie > Outline then
-                     Put_Line (Tree, Super.Stream (Parser_Index),
-                               Trace_Prefix & ": too many conflicts; abandoning");
-                     raise Bad_Config;
-                  end if;
+               if Shared_Parser.Is_Optimized_List (Action.Production) then
+                  --  See comment in wisitoken-parse-lr-parser-parse.adb for Optimized_List conflict resolution.
+                  Action := Conflict.Item;
                else
-                  if Trace_McKenzie > Detail then
-                     Put_Line
-                       (Tree, Super.Stream (Parser_Index), Trace_Prefix & ":" & State_Index'Image
-                          (Config.Stack.Peek.State) & ": add conflict " &
-                          Image (Conflict.Item, Descriptor));
-                  end if;
+                  if Is_Full (Parse_Items) then
+                     if Trace_McKenzie > Outline then
+                        Put_Line (Tree, Super.Stream (Parser_Index),
+                                  Trace_Prefix & ": too many conflicts; abandoning");
+                        raise Bad_Config;
+                     end if;
+                  else
+                     if Trace_McKenzie > Detail then
+                        Put_Line
+                          (Tree, Super.Stream (Parser_Index), Trace_Prefix & ":" & State_Index'Image
+                             (Config.Stack.Peek.State) & ": add conflict " &
+                             Image (Conflict.Item, Descriptor));
+                     end if;
 
-                  Append (Parse_Items, (Config, Conflict, Parsed => False, Shift_Count => Item.Shift_Count));
+                     Append (Parse_Items, (Config, Conflict, Parsed => False, Shift_Count => Item.Shift_Count));
+                  end if;
                end if;
             end if;
          end;

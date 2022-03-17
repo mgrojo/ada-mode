@@ -15,8 +15,8 @@ package WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Antlr is
       Shared_Parser            :         in out Parser.Parser;
       Tokens                   :         in     Token_ID_Array_1_3;
       Config                   : aliased in     Configuration;
-      Matching_Begin_Tokens    :            out Token_ID_Arrays.Vector;
-      Forbid_Matching_Complete :            out Boolean);
+      Matching_Begin_Tokens    :         in out Token_ID_Arrays.Vector;
+      Forbid_Matching_Complete :         in out Boolean);
    --  See wisitoken-parse-lr-parser.ads Language_Matching_Begin_Tokens_Access
    --  for description.
 

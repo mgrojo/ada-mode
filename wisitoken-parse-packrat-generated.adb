@@ -20,11 +20,12 @@ pragma License (Modified_GPL);
 package body WisiToken.Parse.Packrat.Generated is
 
    overriding procedure Parse
-     (Parser   : in out Generated.Parser;
-      Log_File : in     Ada.Text_IO.File_Type;
-      Edits    : in     KMN_Lists.List := KMN_Lists.Empty_List)
+     (Parser     : in out Generated.Parser;
+      Log_File   : in     Ada.Text_IO.File_Type;
+      Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
+      Pre_Edited : in     Boolean        := False)
    is
-      pragma Unreferenced (Log_File);
+      pragma Unreferenced (Log_File, Pre_Edited);
       use all type WisiToken.Syntax_Trees.User_Data_Access;
       use all type Ada.Containers.Count_Type;
       Descriptor : WisiToken.Descriptor renames Parser.Tree.Lexer.Descriptor.all;
@@ -63,9 +64,9 @@ package body WisiToken.Parse.Packrat.Generated is
          Parser.Derivs (Nonterm).Clear (Free_Memory => True);
          Parser.Derivs (Nonterm).Set_First_Last
            (Parser.Tree.Get_Node_Index
-              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream)),
+              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream, Skip_SOI => True)),
             Parser.Tree.Get_Node_Index
-              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_Last (Parser.Tree.Shared_Stream)));
+              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_Last (Parser.Tree.Shared_Stream, Skip_EOI => False)));
       end loop;
 
       Result := Parser.Parse_WisiToken_Accept

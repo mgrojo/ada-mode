@@ -1,23 +1,24 @@
 Tokens:
  0 => WHITESPACE
  1 => NEW_LINE
- 2 => COLON
- 3 => SEMICOLON
- 4 => IDENTIFIER
- 5 => Wisi_EOI
- 6 => wisitoken_accept
- 7 => declaration
- 8 => declarations
+ 2 => COMMENT
+ 3 => COLON
+ 4 => SEMICOLON
+ 5 => IDENTIFIER
+ 6 => Wisi_EOI
+ 7 => wisitoken_accept
+ 8 => declaration
+ 9 => declarations
 
 Productions:
-6.0: wisitoken_accept <= declarations Wisi_EOI
-7.0: declaration <= IDENTIFIER COLON IDENTIFIER SEMICOLON
-8.0: declarations <= declaration
-8.1: declarations <= declarations declaration ; (1 => Direct_Left)
-8.2: declarations <= declarations declarations ; (1 => Direct_Left, 2 => Direct_Right)
+7.0: wisitoken_accept <= declarations Wisi_EOI
+8.0: declaration <= IDENTIFIER COLON IDENTIFIER SEMICOLON
+9.0: declarations <= declaration
+9.1: declarations <= declarations declaration ; (1 => Direct_Left)
+9.2: declarations <= declarations declarations ; (1 => Direct_Left, 2 => Direct_Right)
 
 Recursions:
-1 => (8 (1.1, 2.1, 2.2) -> )
+1 => (9 (1.1, 2.1, 2.2) -> )
 
 McKenzie:
 (Insert =>
@@ -52,9 +53,9 @@ Enqueue_Limit     => 1000
 
 LR1 Parse Table:
 State 0:
-      6.0:wisitoken_accept <= ^ declarations Wisi_EOI
+      7.0:wisitoken_accept <= ^ declarations Wisi_EOI
 
-   IDENTIFIER       => shift and goto state 1 7.0
+   IDENTIFIER       => shift and goto state 1 8.0
    default          => ERROR
 
    declaration      goto state 2
@@ -63,29 +64,29 @@ State 0:
    Minimal_Complete_Actions => 
 
 State 1:
-      7.0:declaration <= IDENTIFIER ^ COLON IDENTIFIER SEMICOLON
+      8.0:declaration <= IDENTIFIER ^ COLON IDENTIFIER SEMICOLON
 
-   COLON            => shift and goto state 4 7.0
+   COLON            => shift and goto state 4 8.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (COLON 7.0)
+   Minimal_Complete_Actions => (COLON 8.0)
 
 State 2:
-      8.0:declarations <= declaration ^
+      9.0:declarations <= declaration ^
 
-   IDENTIFIER       => reduce 1 tokens to declarations 8.0
-   Wisi_EOI         => reduce 1 tokens to declarations 8.0
+   IDENTIFIER       => reduce 1 tokens to declarations 9.0
+   Wisi_EOI         => reduce 1 tokens to declarations 9.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (1 declarations 8.0)
+   Minimal_Complete_Actions => (1 declarations 9.0)
 
 State 3:
-      6.0:wisitoken_accept <= declarations ^ Wisi_EOI
-      8.1:declarations <= declarations ^ declaration
-      8.2:declarations <= declarations ^ declarations
+      7.0:wisitoken_accept <= declarations ^ Wisi_EOI
+      9.1:declarations <= declarations ^ declaration
+      9.2:declarations <= declarations ^ declarations
 
-   IDENTIFIER       => shift and goto state 1 7.0
-   Wisi_EOI         => accept it 6.0
+   IDENTIFIER       => shift and goto state 1 8.0
+   Wisi_EOI         => accept it 7.0
    default          => ERROR
 
    declaration      goto state 5
@@ -94,56 +95,56 @@ State 3:
    Minimal_Complete_Actions => 
 
 State 4:
-      7.0:declaration <= IDENTIFIER COLON ^ IDENTIFIER SEMICOLON
+      8.0:declaration <= IDENTIFIER COLON ^ IDENTIFIER SEMICOLON
 
-   IDENTIFIER       => shift and goto state 7 7.0
+   IDENTIFIER       => shift and goto state 7 8.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (IDENTIFIER 7.0)
+   Minimal_Complete_Actions => (IDENTIFIER 8.0)
 
 State 5:
-      8.0:declarations <= declaration ^
-      8.1:declarations <= declarations declaration ^
+      9.0:declarations <= declaration ^
+      9.1:declarations <= declarations declaration ^
 
-   IDENTIFIER       => reduce 1 tokens to declarations 8.0,
-                       reduce 2 tokens to declarations 8.1
-   Wisi_EOI         => reduce 1 tokens to declarations 8.0,
-                       reduce 2 tokens to declarations 8.1
+   IDENTIFIER       => reduce 1 tokens to declarations 9.0,
+                       reduce 2 tokens to declarations 9.1
+   Wisi_EOI         => reduce 1 tokens to declarations 9.0,
+                       reduce 2 tokens to declarations 9.1
    default          => ERROR
 
-   Minimal_Complete_Actions => ((1 declarations 8.0), (2 declarations 8.1))
+   Minimal_Complete_Actions => ((1 declarations 9.0), (2 declarations 9.1))
 
 State 6:
-      8.1:declarations <= declarations ^ declaration
-      8.2:declarations <= declarations declarations ^
-      8.2:declarations <= declarations ^ declarations
+      9.1:declarations <= declarations ^ declaration
+      9.2:declarations <= declarations declarations ^
+      9.2:declarations <= declarations ^ declarations
 
-   IDENTIFIER       => shift and goto state 1 7.0,
-                       reduce 2 tokens to declarations 8.2
-   Wisi_EOI         => reduce 2 tokens to declarations 8.2
+   IDENTIFIER       => shift and goto state 1 8.0,
+                       reduce 2 tokens to declarations 9.2
+   Wisi_EOI         => reduce 2 tokens to declarations 9.2
    default          => ERROR
 
    declaration      goto state 5
    declarations     goto state 6
 
-   Minimal_Complete_Actions => (2 declarations 8.2)
+   Minimal_Complete_Actions => (2 declarations 9.2)
 
 State 7:
-      7.0:declaration <= IDENTIFIER COLON IDENTIFIER ^ SEMICOLON
+      8.0:declaration <= IDENTIFIER COLON IDENTIFIER ^ SEMICOLON
 
-   SEMICOLON        => shift and goto state 8 7.0
+   SEMICOLON        => shift and goto state 8 8.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (SEMICOLON 7.0)
+   Minimal_Complete_Actions => (SEMICOLON 8.0)
 
 State 8:
-      7.0:declaration <= IDENTIFIER COLON IDENTIFIER SEMICOLON ^
+      8.0:declaration <= IDENTIFIER COLON IDENTIFIER SEMICOLON ^
 
-   IDENTIFIER       => reduce 4 tokens to declaration 7.0
-   Wisi_EOI         => reduce 4 tokens to declaration 7.0
+   IDENTIFIER       => reduce 4 tokens to declaration 8.0
+   Wisi_EOI         => reduce 4 tokens to declaration 8.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (4 declaration 7.0)
+   Minimal_Complete_Actions => (4 declaration 8.0)
 
 7 states with minimal_complete_actions; 8 total minimal_complete_actions.
 

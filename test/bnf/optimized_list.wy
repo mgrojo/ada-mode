@@ -17,6 +17,7 @@
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE
+%non_grammar <comment-new-line> COMMENT "--"
 
 %conflict SHIFT declaration | REDUCE declarations on token IDENTIFIER (6)
 %conflict REDUCE declarations | REDUCE declarations on token IDENTIFIER (5)

@@ -617,9 +617,9 @@ package body Subprograms_Process_LALR_Main is
       return Lexer.New_Lexer (Trace, Subprograms_Process_Actions.Descriptor'Access);
    end Create_Lexer;
 
-   function Create_Productions return WisiToken.Parse.Production_Info_Trees.Vector
+   function Create_Productions return WisiToken.Syntax_Trees.Production_Info_Trees.Vector
    is begin
-      return Result : WisiToken.Parse.Production_Info_Trees.Vector do
+      return Result : WisiToken.Syntax_Trees.Production_Info_Trees.Vector do
          Result.Set_First_Last (22, 34);
          Result (23).RHSs.Set_First_Last (0, 7);
          Result (23).RHSs (0).In_Parse_Action := block_0_check'Access;

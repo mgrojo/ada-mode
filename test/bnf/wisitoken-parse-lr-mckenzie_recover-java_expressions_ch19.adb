@@ -38,8 +38,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Ch19 is
       Shared_Parser            :         in out Parser.Parser;
       Tokens                   :         in     Token_ID_Array_1_3;
       Config                   : aliased in     Configuration;
-      Matching_Begin_Tokens    :            out Token_ID_Arrays.Vector;
-      Forbid_Matching_Complete :            out Boolean)
+      Matching_Begin_Tokens    :         in out Token_ID_Arrays.Vector;
+      Forbid_Matching_Complete :         in out Boolean)
    is
       pragma Unreferenced (Super, Shared_Parser);
       use Java_Expressions_Ch19_Actions;

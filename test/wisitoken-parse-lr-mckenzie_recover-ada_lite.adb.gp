@@ -757,8 +757,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
       Shared_Parser           :         in out Parser.Parser;
       Tokens                  :         in     Token_ID_Array_1_3;
       Config                  : aliased in     Configuration;
-      Matching_Tokens         :            out Token_ID_Arrays.Vector;
-      Forbid_Minimal_Complete :            out Boolean)
+      Matching_Tokens         :         in out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :         in out Boolean)
    is
       pragma Unreferenced (Super);
       use Token_ID_Arrays;
