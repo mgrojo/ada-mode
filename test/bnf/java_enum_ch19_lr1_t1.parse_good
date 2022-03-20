@@ -11,8 +11,8 @@
  0: 8: (-1, 4:(IDENTIFIER, (21 . 21))) : shift and goto state 4
  0: 4: (-1, 5:(COMMA, (22 . 22))) : reduce 1 tokens to EnumConstant
 (EnumConstant_0, (21 . 21) <= (4:(IDENTIFIER, (21 . 21))))
- ... goto state 10
- 0: 10: (-1, 5:(COMMA, (22 . 22))) : reduce 3 tokens to EnumConstantList
+ ... goto state 11
+ 0: 11: (-1, 5:(COMMA, (22 . 22))) : reduce 3 tokens to EnumConstantList
 (EnumConstantList_1, (18 . 21) <= ((EnumConstantList_0, (18 . 18)), 3:(COMMA, (19 . 19)), (EnumConstant_0, (21 . 21))))
  ... goto state 5
  0: 5: (-1, 5:(COMMA, (22 . 22))) : shift and goto state 8

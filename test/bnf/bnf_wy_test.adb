@@ -108,15 +108,7 @@ package body BNF_WY_Test is
       when EBNF_Syntax =>
          --  The BNF file is output by rules.make, and debugged separately. We
          --  need to translate this here in order to set McKenzie_Recover.
-         declare
-            Saved_Debug_Mode : constant Boolean := WisiToken.Debug_Mode;
-         begin
-            WisiToken.Debug_Mode := False;  -- EBNF tree edit leaves byte region out of order.
-
-            WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Grammar_Parser.Tree, Input_Data);
-
-            WisiToken.Debug_Mode := Saved_Debug_Mode;
-         end;
+         WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Grammar_Parser.Tree, Input_Data);
       end case;
 
       Input_Data.Phase := WisiToken_Grammar_Runtime.Other;

@@ -55541,8 +55541,6 @@ State 3113:
 
 3037 states with minimal_complete_actions; 3060 total minimal_complete_actions.
 
-12 states with conflicts: 106 109 192 234 283 298 930 945 1321 1322 1452 1467
-
- 0 accept/reduce conflicts, 8 shift/reduce conflicts, 4 reduce/reduce conflicts
+12 states with other conflicts: 106 109 192 234 283 298 930 945 1321 1322 1452 1467
 
  85 rules, 0 user actions, 17 checks, 3114 states

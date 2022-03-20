@@ -1,4 +1,8 @@
-;;; Testing "optimized list" for incremental parse
+;;; generated from optimized_list_ebnf.wy -*- buffer-read-only:t -*-
+;;;
+;;; Testing "optimized list" via EBNF.
+
+%meta_syntax BNF
 
 %generate LR1 Ada re2c
 
@@ -10,10 +14,10 @@
 
 %start compilation
 
-%keyword PRAGMA 'pragma'
-
 %token <punctuation> COLON ":"
 %token <punctuation> SEMICOLON ";"
+%token <punctuation> LESS_LESS "<<"
+%token <punctuation> GREATER_GREATER ">>"
 
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 
@@ -26,7 +30,7 @@ declaration
   ;
 
 declarations
-  ;; This is recognized as an optimized list.
+;; This generates an optimized list.
   : declaration
   | declarations declaration
   | declarations declarations
@@ -36,24 +40,29 @@ statement
   : IDENTIFIER SEMICOLON
   ;
 
-pragma_g
-  : PRAGMA IDENTIFIER SEMICOLON
+label
+  : LESS_LESS IDENTIFIER GREATER_GREATER
   ;
 
-statement_list
-  ;; This is not automatically recognized as an optimized list; the
-  ;; %optimized_list declaration makes it one.
-  : pragma_g
-  | statement
-  | statement_list statement
-  | statement_list pragma_g
-  | statement_list statement_list
+sequence_of_statements
+;; This generates a statement_statement_list nonterm that is an
+;; optimized_list.
+  : statement_statement_list label_list
+  | statement_statement_list
   ;
-%optimized_list statement_list
 
 compilation
-  : declarations
-  | declarations statement_list
+  : declarations sequence_of_statements
   ;
 
 ;;; end of file
+statement_statement_list
+  : statement
+  | statement_statement_list statement
+  | statement_statement_list statement_statement_list
+  ;
+label_list
+  : label
+  | label_list label
+  | label_list label_list
+  ;

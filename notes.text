@@ -31,14 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-optimized_list parse fails
-    CONSTRAINT_ERROR: wisitoken-parse-lr-mckenzie_recover-explore.adb:1257:14 invalid data
-    value 56 not in 0..1
-        happens with mckenzie=1|2, but not mckenzie=3
-        matching_begin_tokens out params should be in out to allow null implementation
-
-
-
 optimize syntax tree structure for lists
     editing wisitoken-syntax_trees.adb to add Tree.Line_region;
     slow, even with "fast parser" settings in develop_settings.el
@@ -51,14 +43,43 @@ optimize syntax tree structure for lists
 ;; 2022-02-27 11:50:21.48 post edit tree
 ;; 2022-02-27 11:50:21.48 pre-recover 1 active
 
-    lots of subprograms; parse is slow building declarations list.
-    optimize syntax tree list structure
+    time Ada
+found an optimized_list conflict that is also another conflict:
+%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list | REDUCE term_binary_adding_operator_list on token STAR (681)
+State 681:
+    232.1:term <= term ^ multiplying_operator factor
+    232.2:term <= term ^ multiplying_operator term
+    463.0:term_binary_adding_operator_list <= term ^
+    463.1:term_binary_adding_operator_list <= term_binary_adding_operator_list binary_adding_operator term ^
 
-    ebnf * is an optimized list
-           used in ada_annex_p.wy
-            in ada_lite_ebnf; declarative_part : {declaration} ;
-            test in ada_lite_ebnf.input
-            move optimized_list detection to grammar_utils.to_grammar
+
+term : factor * factor
+term : allocator * 4
+term : new subtype_indication * 4
+term : new {name range 1 .. a + b} * 4
+    is that actually legal Ada?
+    if we define "*" (access_integer, integer)?
+    nope; constraint not allowed here
+        language constraint, not grammar constraint. (emacs parser reports no errors)
+        so can eliminate that conflict by adding a resolution rule (ie, choose shift)
+        or add allocator_no_constraint nonterm?
+
+    how does tree-sitter store conflict resolution rules in parser?
+    search literator, books for lr conflict resolution?
+
+meanwhile, add this grammar to wisitoken, handle the conflict properly
+    optimized_conflict_01.wy
+
+
+typed \ in an Ada file
+    got Programmer_Error: lexer error in non_grammar
+    from wisitoken-parse.adb Next_Grammar_Token
+    supposedly tested in test_mckenzie_recover.adb Lexer_Error_01
+    need a better test
+
+add general conflict resolution mechanism?
+    solve Ada expression problem
+    and java
 
 Find_matching_name compares large amounts of text
     Name_Region (sequence_of_statements) returns the whole sequence
@@ -67,6 +88,7 @@ Find_matching_name compares large amounts of text
 
 packrat left recursion
     copy from libadalang
+    add packrat to optimized_list*.wy, ada_lite*.wy
 
 Do LR incremental, error recover on tree from packrat parse?
     batch = packrat, incremental = LR

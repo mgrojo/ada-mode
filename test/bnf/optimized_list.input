@@ -1,5 +1,15 @@
+--declarations
+
 a : B;
 c : D;
 
+-- statements
+
+x;
+y;
+pragma M;
+z;
+
 -- test error recover handle optimized list conflict
-e : E
+e
+

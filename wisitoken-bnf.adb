@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2012 - 2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -292,11 +292,27 @@ package body WisiToken.BNF is
             Found := True;
          end if;
       end Process;
-
    begin
       Rules.Iterate (Process'Access);
       return Found;
    end Is_Present;
+
+   function Find (Rules : in Rule_Lists.List; LHS : in String) return Rule_Lists.Cursor
+   is
+      use Rule_Lists;
+
+      Found : Cursor := No_Element;
+
+      procedure Process (Position : in Cursor)
+      is begin
+         if -Rules (Position).Left_Hand_Side = LHS then
+            Found := Position;
+         end if;
+      end Process;
+   begin
+      Rules.Iterate (Process'Access);
+      return Found;
+   end Find;
 
    function "+" (List : in String_Lists.List; Item : in String) return String_Lists.List
    is

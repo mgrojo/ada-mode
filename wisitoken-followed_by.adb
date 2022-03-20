@@ -254,6 +254,16 @@ begin
 
    begin
       New_Line;
+      if Is_Terminal (Token_B, Descriptor) then
+         Put_Line ("nonterminals where FIRST contains " & Image (Token_B, Descriptor) & ":");
+         for I in First_Set'Range (1) loop
+            if First_Set (I, Token_B) then
+               Put (Image (I, Descriptor) & " ");
+            end if;
+         end loop;
+         New_Line (2);
+      end if;
+
       Put_Line ("Last path of " & Image (Token_A, Descriptor) & " " & Image (Token_B, Descriptor) & ":");
       declare
          Last_Set     : Token_ID_Set (Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index)

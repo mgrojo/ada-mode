@@ -72,7 +72,11 @@ is
    exception
    when WisiToken.Syntax_Error =>
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
-      Parser.Put_Errors;
+      if Parser.Tree.Editable then
+         Parser.Put_Errors;
+      else
+         Parser.Put_Errors (Parser.Tree.First_Parse_Stream);
+      end if;
 
    when E : WisiToken.Parse_Error =>
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);

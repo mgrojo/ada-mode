@@ -64,6 +64,4 @@ State 4:
 
 3 states with minimal_complete_actions; 3 total minimal_complete_actions.
 
- 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
-
  1 rules, 2 user actions, 0 checks, 5 states

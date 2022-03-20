@@ -101,6 +101,7 @@ package WisiToken.Generate.LR is
       Known_Conflicts  : in out Conflict_Lists.Tree;
       File_Name        : in     String;
       Descriptor       : in     WisiToken.Descriptor;
+      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
       Ignore_Conflicts : in     Boolean);
    --  Compare Found and Known Conflicts. If they differ, and
    --  Ignore_Conflicts is false, output appropriate error messages.

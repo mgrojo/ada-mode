@@ -2705,12 +2705,13 @@ package WisiToken.Syntax_Trees is
    --  are marked as "in tree".
 
    procedure Validate_Tree
-     (Tree             : in out Syntax_Trees.Tree;
-      User_Data        : in out User_Data_Type'Class;
-      Error_Reported   : in out Node_Sets.Set;
-      Node_Index_Order : in     Boolean;
-      Root             : in     Node_Access                := Invalid_Node_Access;
-      Validate_Node    : in     Syntax_Trees.Validate_Node := null);
+     (Tree              : in out Syntax_Trees.Tree;
+      User_Data         : in out User_Data_Type'Class;
+      Error_Reported    : in out Node_Sets.Set;
+      Node_Index_Order  : in     Boolean;
+      Byte_Region_Order : in     Boolean                    := True;
+      Root              : in     Node_Access                := Invalid_Node_Access;
+      Validate_Node     : in     Syntax_Trees.Validate_Node := null);
    --  Verify that no children are Invalid_Node_Access. Verify
    --  child/parent links. If Node_Index_Order, verify that
    --  Node.Node_Index > Node.Children.Node_Index (which is true in a

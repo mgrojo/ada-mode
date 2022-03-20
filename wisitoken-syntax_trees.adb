@@ -5402,12 +5402,20 @@ package body WisiToken.Syntax_Trees is
       Node                 : in Valid_Node_Access;
       Trailing_Non_Grammar : in Boolean := True)
      return WisiToken.Line_Region
-   is begin
-      return Line_Region_Internal
-        (Tree, Node,
-         Prev_Non_Grammar     => Tree.Prev_Non_Grammar (Node),
-         Next_Non_Grammar     => Tree.Next_Non_Grammar (Node),
-         Trailing_Non_Grammar => Trailing_Non_Grammar);
+   is
+      Prev_Non_Grammar     : constant Node_Access := Tree.Prev_Non_Grammar (Node);
+      Next_Non_Grammar     : constant Node_Access := Tree.Next_Non_Grammar (Node);
+   begin
+      if Prev_Non_Grammar = Invalid_Node_Access or Next_Non_Grammar = Invalid_Node_Access then
+         --  Tolerate this because used in error messages.
+         return Null_Line_Region;
+      else
+         return Line_Region_Internal
+           (Tree, Node,
+            Prev_Non_Grammar     => Tree.Prev_Non_Grammar (Node),
+            Next_Non_Grammar     => Tree.Next_Non_Grammar (Node),
+            Trailing_Non_Grammar => Trailing_Non_Grammar);
+      end if;
    end Line_Region;
 
    function Line_Region
@@ -8312,12 +8320,13 @@ package body WisiToken.Syntax_Trees is
    end Valid_Stream_Node;
 
    procedure Validate_Tree
-     (Tree             : in out Syntax_Trees.Tree;
-      User_Data        : in out User_Data_Type'Class;
-      Error_Reported   : in out Node_Sets.Set;
-      Node_Index_Order : in     Boolean;
-      Root             : in     Node_Access                := Invalid_Node_Access;
-      Validate_Node    : in     Syntax_Trees.Validate_Node := null)
+     (Tree              : in out Syntax_Trees.Tree;
+      User_Data         : in out User_Data_Type'Class;
+      Error_Reported    : in out Node_Sets.Set;
+      Node_Index_Order  : in     Boolean;
+      Byte_Region_Order : in     Boolean                    := True;
+      Root              : in     Node_Access                := Invalid_Node_Access;
+      Validate_Node     : in     Syntax_Trees.Validate_Node := null)
    is
 
       Real_Root : Node_Access;
@@ -8370,7 +8379,7 @@ package body WisiToken.Syntax_Trees is
             end if;
             case Terminal_Label'(Node.Label) is
             when Source_Terminal =>
-               if Node.Byte_Region.First < Last_Source_Terminal_Pos then
+               if Byte_Region_Order and then Node.Byte_Region.First < Last_Source_Terminal_Pos then
                   Put_Error ("byte_region out of order");
                end if;
                if Node.Non_Grammar.Length > 0 then

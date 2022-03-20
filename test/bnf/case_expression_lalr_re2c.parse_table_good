@@ -207,6 +207,4 @@ State 17:
 
 16 states with minimal_complete_actions; 18 total minimal_complete_actions.
 
- 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
-
  7 rules, 0 user actions, 0 checks, 18 states

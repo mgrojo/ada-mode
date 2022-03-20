@@ -165,6 +165,4 @@ State 11:
 
 10 states with minimal_complete_actions; 10 total minimal_complete_actions.
 
- 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
-
  5 rules, 2 user actions, 0 checks, 12 states

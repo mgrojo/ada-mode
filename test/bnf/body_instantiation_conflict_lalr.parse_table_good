@@ -257,8 +257,6 @@ State 24:
 
 23 states with minimal_complete_actions; 24 total minimal_complete_actions.
 
-1 states with conflicts: 7
-
- 0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts
+1 states with other conflicts: 7
 
  6 rules, 0 user actions, 0 checks, 25 states

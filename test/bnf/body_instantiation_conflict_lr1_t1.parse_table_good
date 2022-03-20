@@ -395,8 +395,6 @@ State 41:
 
 40 states with minimal_complete_actions; 42 total minimal_complete_actions.
 
-2 states with conflicts: 7 17
-
- 0 accept/reduce conflicts, 2 shift/reduce conflicts, 0 reduce/reduce conflicts
+2 states with other conflicts: 7 17
 
  6 rules, 0 user actions, 0 checks, 42 states

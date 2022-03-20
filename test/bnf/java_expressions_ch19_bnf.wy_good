@@ -57,6 +57,7 @@
 CompilationUnit
   : Statement
   | CompilationUnit Statement
+  | CompilationUnit CompilationUnit
   ;
 
 Statement
@@ -126,6 +127,7 @@ MethodInvocation
 ArgumentList
   : Expression
   | ArgumentList COMMA Expression
+  | ArgumentList COMMA ArgumentList
   ;
 
 StatementExpression

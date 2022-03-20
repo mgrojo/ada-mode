@@ -286,6 +286,7 @@ use_clause
 declaration_list
   : declaration
   | declaration_list declaration
+  | declaration_list declaration_list
   ;
 nonterminal_014
   : T2=name_list

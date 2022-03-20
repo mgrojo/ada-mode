@@ -231,6 +231,7 @@ association
 association_list
   : association
   | association_list COMMA association
+  | association_list COMMA association_list
   ;
 
 binary_adding_operator
@@ -590,6 +591,7 @@ subtype_indication
 term
   : factor
   | term multiplying_operator factor
+  | term multiplying_operator term
   ;
 
 type_declaration
@@ -609,44 +611,55 @@ unary_adding_operator
 case_statement_alternative_list
   : case_statement_alternative
   | case_statement_alternative_list case_statement_alternative
+  | case_statement_alternative_list case_statement_alternative_list
   ;
 declaration_list
   : declaration
   | declaration_list declaration
+  | declaration_list declaration_list
   ;
 IDENTIFIER_COMMA_list
   : IDENTIFIER
   | IDENTIFIER_COMMA_list COMMA IDENTIFIER
+  | IDENTIFIER_COMMA_list COMMA IDENTIFIER_COMMA_list
   ;
 AND_relation_list
   : AND relation
   | AND_relation_list AND relation
+  | AND_relation_list AND_relation_list
   ;
 OR_relation_list
   : OR relation
   | OR_relation_list OR relation
+  | OR_relation_list OR_relation_list
   ;
 XOR_relation_list
   : XOR relation
   | XOR_relation_list XOR relation
+  | XOR_relation_list XOR_relation_list
   ;
 parameter_specification_SEMICOLON_list
   : parameter_specification
   | parameter_specification_SEMICOLON_list SEMICOLON parameter_specification
+  | parameter_specification_SEMICOLON_list SEMICOLON parameter_specification_SEMICOLON_list
   ;
 exception_handler_list
   : exception_handler
   | exception_handler_list exception_handler
+  | exception_handler_list exception_handler_list
   ;
 ELSIF_expression_list
   : ELSIF expression THEN sequence_of_statements
   | ELSIF_expression_list ELSIF expression THEN sequence_of_statements
+  | ELSIF_expression_list ELSIF_expression_list
   ;
 statement_list
   : statement
   | statement_list statement
+  | statement_list statement_list
   ;
 term_binary_adding_operator_list
   : term
   | term_binary_adding_operator_list binary_adding_operator term
+  | term_binary_adding_operator_list binary_adding_operator term_binary_adding_operator_list
   ;

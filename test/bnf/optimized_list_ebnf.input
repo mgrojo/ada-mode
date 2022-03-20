@@ -1,0 +1,14 @@
+-- Declarations
+a : B;
+c : D;
+
+-- test error recover handle optimized list conflict
+e : E
+
+
+-- Statements
+
+x;
+y;
+z;
+<<end>> 

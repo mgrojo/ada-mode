@@ -1,0 +1,370 @@
+Tokens:
+ 0 => WHITESPACE
+ 1 => NEW_LINE
+ 2 => COMMENT
+ 3 => COLON
+ 4 => SEMICOLON
+ 5 => LESS_LESS
+ 6 => GREATER_GREATER
+ 7 => IDENTIFIER
+ 8 => Wisi_EOI
+ 9 => wisitoken_accept
+ 10 => declaration
+ 11 => declarations
+ 12 => statement
+ 13 => label
+ 14 => sequence_of_statements
+ 15 => compilation
+ 16 => statement_statement_list
+ 17 => label_list
+
+Productions:
+9.0: wisitoken_accept <= compilation Wisi_EOI
+10.0: declaration <= IDENTIFIER COLON IDENTIFIER SEMICOLON
+11.0: declarations <= declaration
+11.1: declarations <= declarations declaration ; (1 => Direct_Left)
+11.2: declarations <= declarations declarations ; (1 => Direct_Left, 2 => Direct_Right)
+12.0: statement <= IDENTIFIER SEMICOLON
+13.0: label <= LESS_LESS IDENTIFIER GREATER_GREATER
+14.0: sequence_of_statements <= statement_statement_list label_list
+14.1: sequence_of_statements <= statement_statement_list
+15.0: compilation <= declarations sequence_of_statements
+16.0: statement_statement_list <= statement
+16.1: statement_statement_list <= statement_statement_list statement ; (1 => Direct_Left)
+16.2: statement_statement_list <= statement_statement_list statement_statement_list ; (1 => Direct_Left, 2 => Direct_Right)
+17.0: label_list <= label
+17.1: label_list <= label_list label ; (1 => Direct_Left)
+17.2: label_list <= label_list label_list ; (1 => Direct_Left, 2 => Direct_Right)
+
+Optimized_Lists:
+ declarations statement_statement_list label_list
+
+Recursions:
+1 => (11 (1.1, 2.1, 2.2) -> )
+2 => (16 (1.1, 2.1, 2.2) -> )
+3 => (17 (1.1, 2.1, 2.2) -> )
+
+McKenzie:
+(Insert =>
+ COLON           => 4,
+ SEMICOLON       => 4,
+ LESS_LESS       => 4,
+ GREATER_GREATER => 4,
+ IDENTIFIER      => 4,
+ Wisi_EOI        => 4)
+(Delete =>
+ COLON           => 4,
+ SEMICOLON       => 4,
+ LESS_LESS       => 4,
+ GREATER_GREATER => 4,
+ IDENTIFIER      => 4,
+ Wisi_EOI        => 4)
+(Push_Back =>
+ COLON           => 4,
+ SEMICOLON       => 4,
+ LESS_LESS       => 4,
+ GREATER_GREATER => 4,
+ IDENTIFIER      => 4,
+ Wisi_EOI        => 4,
+ wisitoken_accept         => 4,
+ declaration              => 4,
+ declarations             => 4,
+ statement                => 4,
+ label                    => 4,
+ sequence_of_statements   => 4,
+ compilation              => 4,
+ statement_statement_list => 4,
+ label_list               => 4)
+(Undo_Reduce =>
+ wisitoken_accept         => 4,
+ declaration              => 4,
+ declarations             => 4,
+ statement                => 4,
+ label                    => 4,
+ sequence_of_statements   => 4,
+ compilation              => 4,
+ statement_statement_list => 4,
+ label_list               => 4)
+Minimal_Complete_Cost_Delta => -1
+Fast_Forward      =>  0
+Matching_Begin    =>  0
+Ignore_Check_Fail => 2
+Check_Limit       => 3
+Check_Delta_Limit => 2147483647
+Enqueue_Limit     => 1000
+
+LR1 Parse Table:
+State 0:
+      9.0:wisitoken_accept <= ^ compilation Wisi_EOI
+
+   IDENTIFIER               => shift and goto state 1 10.0
+   default                  => ERROR
+
+   declaration              goto state 2
+   declarations             goto state 3
+   compilation              goto state 4
+
+   Minimal_Complete_Actions => 
+
+State 1:
+     10.0:declaration <= IDENTIFIER ^ COLON IDENTIFIER SEMICOLON
+
+   COLON                    => shift and goto state 5 10.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (COLON 10.0)
+
+State 2:
+     11.0:declarations <= declaration ^
+
+   IDENTIFIER               => reduce 1 tokens to declarations 11.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (1 declarations 11.0)
+
+State 3:
+     11.1:declarations <= declarations ^ declaration
+     11.2:declarations <= declarations ^ declarations
+     15.0:compilation <= declarations ^ sequence_of_statements
+
+   IDENTIFIER               => shift and goto state 6 10.0
+   default                  => ERROR
+
+   declaration              goto state 7
+   declarations             goto state 8
+   statement                goto state 9
+   sequence_of_statements   goto state 10
+   statement_statement_list goto state 11
+
+   Minimal_Complete_Actions => (IDENTIFIER 10.0)
+
+State 4:
+      9.0:wisitoken_accept <= compilation ^ Wisi_EOI
+
+   Wisi_EOI                 => accept it 9.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 5:
+     10.0:declaration <= IDENTIFIER COLON ^ IDENTIFIER SEMICOLON
+
+   IDENTIFIER               => shift and goto state 12 10.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (IDENTIFIER 10.0)
+
+State 6:
+     10.0:declaration <= IDENTIFIER ^ COLON IDENTIFIER SEMICOLON
+     12.0:statement <= IDENTIFIER ^ SEMICOLON
+
+   COLON                    => shift and goto state 5 10.0
+   SEMICOLON                => shift and goto state 13 12.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (SEMICOLON 12.0)
+
+State 7:
+     11.0:declarations <= declaration ^
+     11.1:declarations <= declarations declaration ^
+
+   IDENTIFIER               => reduce 1 tokens to declarations 11.0,
+                               reduce 2 tokens to declarations 11.1
+   default                  => ERROR
+
+   Minimal_Complete_Actions => ((1 declarations 11.0), (2 declarations 11.1))
+
+State 8:
+     11.1:declarations <= declarations ^ declaration
+     11.2:declarations <= declarations declarations ^
+     11.2:declarations <= declarations ^ declarations
+
+   IDENTIFIER               => shift and goto state 1 10.0,
+                               reduce 2 tokens to declarations 11.2
+   default                  => ERROR
+
+   declaration              goto state 7
+   declarations             goto state 8
+
+   Minimal_Complete_Actions => (2 declarations 11.2)
+
+State 9:
+     16.0:statement_statement_list <= statement ^
+
+   LESS_LESS                => reduce 1 tokens to statement_statement_list 16.0
+   IDENTIFIER               => reduce 1 tokens to statement_statement_list 16.0
+   Wisi_EOI                 => reduce 1 tokens to statement_statement_list 16.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (1 statement_statement_list 16.0)
+
+State 10:
+     15.0:compilation <= declarations sequence_of_statements ^
+
+   Wisi_EOI                 => reduce 2 tokens to compilation 15.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (2 compilation 15.0)
+
+State 11:
+     14.0:sequence_of_statements <= statement_statement_list ^ label_list
+     14.1:sequence_of_statements <= statement_statement_list ^
+     16.1:statement_statement_list <= statement_statement_list ^ statement
+     16.2:statement_statement_list <= statement_statement_list ^ statement_statement_list
+
+   LESS_LESS                => shift and goto state 14 13.0
+   IDENTIFIER               => shift and goto state 15 12.0
+   Wisi_EOI                 => reduce 1 tokens to sequence_of_statements 14.1
+   default                  => ERROR
+
+   statement                goto state 16
+   label                    goto state 17
+   statement_statement_list goto state 18
+   label_list               goto state 19
+
+   Minimal_Complete_Actions => ((LESS_LESS 13.0), (1 sequence_of_statements 14.1))
+
+State 12:
+     10.0:declaration <= IDENTIFIER COLON IDENTIFIER ^ SEMICOLON
+
+   SEMICOLON                => shift and goto state 20 10.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (SEMICOLON 10.0)
+
+State 13:
+     12.0:statement <= IDENTIFIER SEMICOLON ^
+
+   LESS_LESS                => reduce 2 tokens to statement 12.0
+   IDENTIFIER               => reduce 2 tokens to statement 12.0
+   Wisi_EOI                 => reduce 2 tokens to statement 12.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (2 statement 12.0)
+
+State 14:
+     13.0:label <= LESS_LESS ^ IDENTIFIER GREATER_GREATER
+
+   IDENTIFIER               => shift and goto state 21 13.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (IDENTIFIER 13.0)
+
+State 15:
+     12.0:statement <= IDENTIFIER ^ SEMICOLON
+
+   SEMICOLON                => shift and goto state 13 12.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (SEMICOLON 12.0)
+
+State 16:
+     16.0:statement_statement_list <= statement ^
+     16.1:statement_statement_list <= statement_statement_list statement ^
+
+   LESS_LESS                => reduce 1 tokens to statement_statement_list 16.0,
+                               reduce 2 tokens to statement_statement_list 16.1
+   IDENTIFIER               => reduce 1 tokens to statement_statement_list 16.0,
+                               reduce 2 tokens to statement_statement_list 16.1
+   Wisi_EOI                 => reduce 1 tokens to statement_statement_list 16.0,
+                               reduce 2 tokens to statement_statement_list 16.1
+   default                  => ERROR
+
+   Minimal_Complete_Actions => ((1 statement_statement_list 16.0), (2 statement_statement_list 16.1))
+
+State 17:
+     17.0:label_list <= label ^
+
+   LESS_LESS                => reduce 1 tokens to label_list 17.0
+   Wisi_EOI                 => reduce 1 tokens to label_list 17.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (1 label_list 17.0)
+
+State 18:
+     16.1:statement_statement_list <= statement_statement_list ^ statement
+     16.2:statement_statement_list <= statement_statement_list statement_statement_list ^
+     16.2:statement_statement_list <= statement_statement_list ^ statement_statement_list
+
+   LESS_LESS                => reduce 2 tokens to statement_statement_list 16.2
+   IDENTIFIER               => shift and goto state 15 12.0,
+                               reduce 2 tokens to statement_statement_list 16.2
+   Wisi_EOI                 => reduce 2 tokens to statement_statement_list 16.2
+   default                  => ERROR
+
+   statement                goto state 16
+   statement_statement_list goto state 18
+
+   Minimal_Complete_Actions => (2 statement_statement_list 16.2)
+
+State 19:
+     14.0:sequence_of_statements <= statement_statement_list label_list ^
+     17.1:label_list <= label_list ^ label
+     17.2:label_list <= label_list ^ label_list
+
+   LESS_LESS                => shift and goto state 14 13.0
+   Wisi_EOI                 => reduce 2 tokens to sequence_of_statements 14.0
+   default                  => ERROR
+
+   label                    goto state 22
+   label_list               goto state 23
+
+   Minimal_Complete_Actions => (2 sequence_of_statements 14.0)
+
+State 20:
+     10.0:declaration <= IDENTIFIER COLON IDENTIFIER SEMICOLON ^
+
+   IDENTIFIER               => reduce 4 tokens to declaration 10.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (4 declaration 10.0)
+
+State 21:
+     13.0:label <= LESS_LESS IDENTIFIER ^ GREATER_GREATER
+
+   GREATER_GREATER          => shift and goto state 24 13.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (GREATER_GREATER 13.0)
+
+State 22:
+     17.0:label_list <= label ^
+     17.1:label_list <= label_list label ^
+
+   LESS_LESS                => reduce 1 tokens to label_list 17.0,
+                               reduce 2 tokens to label_list 17.1
+   Wisi_EOI                 => reduce 1 tokens to label_list 17.0,
+                               reduce 2 tokens to label_list 17.1
+   default                  => ERROR
+
+   Minimal_Complete_Actions => ((1 label_list 17.0), (2 label_list 17.1))
+
+State 23:
+     17.1:label_list <= label_list ^ label
+     17.2:label_list <= label_list label_list ^
+     17.2:label_list <= label_list ^ label_list
+
+   LESS_LESS                => shift and goto state 14 13.0,
+                               reduce 2 tokens to label_list 17.2
+   Wisi_EOI                 => reduce 2 tokens to label_list 17.2
+   default                  => ERROR
+
+   label                    goto state 22
+   label_list               goto state 23
+
+   Minimal_Complete_Actions => (2 label_list 17.2)
+
+State 24:
+     13.0:label <= LESS_LESS IDENTIFIER GREATER_GREATER ^
+
+   LESS_LESS                => reduce 3 tokens to label 13.0
+   Wisi_EOI                 => reduce 3 tokens to label 13.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (3 label 13.0)
+
+23 states with minimal_complete_actions; 27 total minimal_complete_actions.
+
+6 states with optimized_list conflicts: 7 8 16 18 22 23
+
+ 8 rules, 0 user actions, 0 checks, 25 states

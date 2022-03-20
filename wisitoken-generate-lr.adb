@@ -330,6 +330,7 @@ package body WisiToken.Generate.LR is
       Known_Conflicts  : in out Conflict_Lists.Tree;
       File_Name        : in     String;
       Descriptor       : in     WisiToken.Descriptor;
+      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
       Ignore_Conflicts : in     Boolean)
    is
       use Conflict_Lists;
@@ -344,6 +345,35 @@ package body WisiToken.Generate.LR is
 
       To_Delete : Conflict_Lists.Tree;
    begin
+      --  First delete Found conflicts with resolutions that don't require error recovery.
+      loop
+         exit when Found = No_Element;
+         declare
+            Conflict : WisiToken.Generate.LR.Conflict renames Element (Found);
+         begin
+            if Conflict.Items.Length = 2 and then
+              Grammar (Conflict.Items (2).LHS).Optimized_List
+            then
+               To_Delete.Insert (Element (Found));
+
+               --  It is tempting to check more about the conflict; it is possible
+               --  that an optimized list token participates in a conflict that is
+               --  not due to the optimized_list construct. But that requires
+               --  duplicating a lot of the parser generator logic, so we don't
+               --  bother. If we find a test case that requires more accuracy here,
+               --  we'll add it then.
+            end if;
+            Found := Found_Iter.Next (Found);
+         end;
+      end loop;
+
+      for Conflict of To_Delete loop
+         Found_Conflicts.Delete (Conflict);
+      end loop;
+
+      To_Delete.Clear;
+
+      Found := Found_Iter.First;
       loop
          exit when Known = No_Element or Found = No_Element;
 
@@ -1428,6 +1458,26 @@ package body WisiToken.Generate.LR is
       Put_Line ("Productions:");
       WisiToken.Productions.Put (Grammar, Descriptor);
 
+      declare
+         Count : Integer := 0;
+      begin
+         for Prod of Grammar loop
+            if Prod.Optimized_List then
+               Count := @ + 1;
+            end if;
+         end loop;
+         if Count > 0 then
+            New_Line;
+            Put_Line ("Optimized_Lists:");
+            for Prod of Grammar loop
+               if Prod.Optimized_List then
+                  Put (" " & Image (Prod.LHS, Descriptor));
+               end if;
+            end loop;
+            New_Line;
+         end if;
+      end;
+
       if Include_Extra then
          New_Line;
          Put_Line ((if Recursions.Full then "Recursions:" else "Partial recursions:"));
@@ -1481,45 +1531,69 @@ package body WisiToken.Generate.LR is
 
       declare
          use Ada.Strings.Unbounded;
-         Line          : Unbounded_String;
-         State_Count   : Integer          := 0;
-         Accept_Reduce : Integer          := 0;
-         Shift_Reduce  : Integer          := 0;
-         Reduce_Reduce : Integer          := 0;
+         Optimized_List_Conflict_Count : Integer := 0;
+         Optimized_List_Line           : Unbounded_String;
+         Other_Conflict_Count          : Integer := 0;
+         Other_Line                    : Unbounded_String;
+
+         function Is_Optimized_List (State : in State_Index) return Boolean
+         is
+            use WisiToken.Generate.LR1_Items;
+            LHS : Token_ID := Invalid_Token_ID;
+         begin
+            for Item of Kernels (State).Set loop
+               if In_Kernel (Grammar, Descriptor, Item) then
+                  if LHS = Invalid_Token_ID then
+                     LHS := Item.Prod.LHS;
+                  elsif LHS /= Item.Prod.LHS then
+                     return False;
+                  end if;
+               end if;
+            end loop;
+            return Grammar (LHS).Optimized_List;
+         end Is_Optimized_List;
+
       begin
-         for State in Conflicts.Iterate loop
+         for State in Conflicts.First_Index .. Conflicts.Last_Index loop
             if Conflicts (State).Accept_Reduce > 0 or
               Conflicts (State).Shift_Reduce > 0 or
               Conflicts (State).Reduce_Reduce > 0
             then
-               State_Count   := State_Count + 1;
-               if Include_Extra then
-                  Line := Line & Conflict_Count_Lists.To_Index (State)'Image;
+               if Is_Optimized_List (State) then
+                  Optimized_List_Conflict_Count := @ + 1;
+                  if Include_Extra then
+                     Append (Optimized_List_Line, State'Image);
+                  end if;
+               else
+                  Other_Conflict_Count := @ + 1;
+                  if Include_Extra then
+                     Append (Other_Line, State'Image);
+                  end if;
                end if;
-               Accept_Reduce := @ + Conflicts (State).Accept_Reduce;
-               Shift_Reduce  := @ + Conflicts (State).Shift_Reduce;
-               Reduce_Reduce := @ + Conflicts (State).Reduce_Reduce;
             end if;
          end loop;
 
-         if State_Count > 0 then
+         if Optimized_List_Conflict_Count > 0 then
             New_Line;
 
             if Include_Extra then
-               Line := Trimmed_Image (State_Count) & " states with conflicts:" & Line;
-               Indent_Wrap (-Line);
-               New_Line;
+               Optimized_List_Line := Trimmed_Image (Optimized_List_Conflict_Count) &
+                 " states with optimized_list conflicts:" &
+                 Optimized_List_Line;
+               Indent_Wrap (-Optimized_List_Line);
             else
-               Put_Line (Trimmed_Image (State_Count) & " states with conflicts");
+               Put_Line (Trimmed_Image (Optimized_List_Conflict_Count) & " states with optimized_list conflicts");
             end if;
+         end if;
 
-            Put_Line
-              (Accept_Reduce'Image & " accept/reduce conflicts," &
-                 Shift_Reduce'Image & " shift/reduce conflicts," &
-                 Reduce_Reduce'Image & " reduce/reduce conflicts");
-         else
+         if Other_Conflict_Count > 0 then
             New_Line;
-            Put_Line (" 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts");
+            if Include_Extra then
+               Other_Line := Trimmed_Image (Other_Conflict_Count) & " states with other conflicts:" & Other_Line;
+               Indent_Wrap (-Other_Line);
+            else
+               Put_Line (Trimmed_Image (Other_Conflict_Count) & " states with other conflicts");
+            end if;
          end if;
       end;
       Set_Output (Standard_Output);

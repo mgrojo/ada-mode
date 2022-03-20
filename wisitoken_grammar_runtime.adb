@@ -261,7 +261,8 @@ package body WisiToken_Grammar_Runtime is
       Data.Raw_Code          := (others => <>);
       Data.Language_Params   :=
         (Case_Insensitive => Data.Language_Params.Case_Insensitive,
-         others => <>);
+         Error_Recover    => Data.Language_Params.Error_Recover,
+         others           => <>);
       Data.Tokens            :=
         (Virtual_Identifiers => Data.Tokens.Virtual_Identifiers,
          others => <>);
@@ -420,6 +421,9 @@ package body WisiToken_Grammar_Runtime is
                         end loop;
                         WisiToken.BNF.Add (Data.Generate_Set, Tuple);
                      end;
+
+                  elsif Kind'Length > 8 and then Kind (Kind'First .. Kind'First + 7) = "mckenzie" then
+                     Data.Language_Params.Error_Recover := True;
 
                   elsif Kind = "meta_syntax" then
                      if Data.Meta_Syntax = Unknown then
@@ -681,6 +685,20 @@ package body WisiToken_Grammar_Runtime is
                   --  matching '%if' specified current lexer.
                   null;
 
+               elsif Kind = "optimized_list" then
+                  declare
+                     use WisiToken.BNF.Rule_Lists;
+                     Nonterm_Name : constant String := Get_Text (Data, Tree, Tree.Child (Nonterm, 3));
+                     Nonterm_Decl : constant Cursor := WisiToken.BNF.Find (Data.Tokens.Rules, Nonterm_Name);
+                  begin
+                     if Nonterm_Decl = No_Element then
+                        raise Grammar_Error with Tree.Error_Message
+                          (Tree.Child (Nonterm, 3), "nonterm '" & Nonterm_Name & "' not found.");
+                     end if;
+
+                     Data.Tokens.Rules (Nonterm_Decl).Optimized_List := True;
+                  end;
+
                elsif Kind = "elisp_face" then
                   Data.Tokens.Faces.Append (Get_Text (Data, Tree, Tree.Child (Nonterm, 3), Strip_Quotes => True));
 
@@ -747,12 +765,10 @@ package body WisiToken_Grammar_Runtime is
                   Data.Max_Parallel := SAL.Base_Peek_Type'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_check_limit" then
-                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Check_Limit := Syntax_Trees.Sequential_Index'Value
                     (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_check_delta_limit" then
-                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Check_Delta_Limit := Integer'Value
                     (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
@@ -765,7 +781,6 @@ package body WisiToken_Grammar_Runtime is
                             " default costs; should be 'insert, delete, push back, ignore check fail'.");
                   end if;
 
-                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Default_Insert          := Natural'Value
                     (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1));
                   Data.McKenzie_Recover.Default_Delete_Terminal := Natural'Value
@@ -776,50 +791,41 @@ package body WisiToken_Grammar_Runtime is
                     (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 4));
 
                elsif Kind = "mckenzie_cost_delete" then
-                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Delete.Append
                     ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
                       +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
 
                elsif Kind = "mckenzie_cost_fast_forward" then
-                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Fast_Forward :=
                     Integer'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_cost_insert" then
-                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Insert.Append
                     ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
                       +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
 
                elsif Kind = "mckenzie_cost_matching_begin" then
-                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Matching_Begin :=
                     Integer'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_cost_push_back" then
-                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Push_Back.Append
                     ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
                       +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
 
                elsif Kind = "mckenzie_cost_undo_reduce" then
-                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Undo_Reduce.Append
                     ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
                       +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
 
                elsif Kind = "mckenzie_enqueue_limit" then
-                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Enqueue_Limit := Natural'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_minimal_complete_cost_delta" then
-                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Minimal_Complete_Cost_Delta :=
                     Integer'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
                elsif Kind = "mckenzie_zombie_limit" then
-                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Zombie_Limit := Integer'Value
                     (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
@@ -892,43 +898,111 @@ package body WisiToken_Grammar_Runtime is
          --  | declarations declaration
          --  | declarations declarations
          --  ;
+         --
+         --  From ada_lite_ebnf_bnf.wy
+         --
+         --  optimized list with separator:
+         --  term
+         --    : factor
+         --    | term multiplying_operator factor
+         --    | term multiplying_operator term
+         --    ;
+         --
+         --  AND_relation_list
+         --    : AND relation
+         --    | AND_relation_list AND relation
+         --    | AND_relation_list AND_relation_list
+         --    ;
+         --
+         --  ELSIF_expression_list
+         --    : ELSIF expression THEN sequence_of_statements
+         --    | ELSIF_expression_list ELSIF expression THEN sequence_of_statements
+         --    | ELSIF_expression_list ELSIF_expression_list
+         --    ;
 
          if Right_Hand_Sides.Length /= 3 then
             return False;
          end if;
 
          declare
+            use Ada.Containers;
             use Ada.Strings.Unbounded;
             use WisiToken.BNF.RHS_Lists;
 
-            RHS     : Cursor := Right_Hand_Sides.First;
-            Element : Unbounded_String;
+            RHS                 : Cursor  := Right_Hand_Sides.First;
+            Element             : Unbounded_String;
+            Element_Token_Count : Count_Type := 0;
+            Has_Separator       : Boolean := False;
+            Separator           : Unbounded_String;
          begin
-            if Right_Hand_Sides (RHS).Tokens.Length /= 1 then
-               return False;
-            end if;
-            Element := Right_Hand_Sides (RHS).Tokens (1).Identifier;
+            for Tok of Right_Hand_Sides (RHS).Tokens loop
+               Append (Element, Tok.Identifier);
+               Element_Token_Count := @ + 1;
+            end loop;
 
             Next (RHS);
-            if Right_Hand_Sides (RHS).Tokens.Length /= 2 then
+            if -Right_Hand_Sides (RHS).Tokens (1).Identifier /= LHS_String then
+               return False;
+            end if;
+
+            if Element_Token_Count = 1 then
+               case Right_Hand_Sides (RHS).Tokens.Length is
+               when 2 =>
+                  null;
+
+               when 3 =>
+                  Has_Separator := True;
+                  Separator     := Right_Hand_Sides (RHS).Tokens (2).Identifier;
+
+               when others =>
+                  return False;
+               end case;
+
+               if Has_Separator and then Right_Hand_Sides (RHS).Tokens (2).Identifier /= Separator then
+                  return False;
+               end if;
+               if Right_Hand_Sides (RHS).Tokens (Right_Hand_Sides (RHS).Tokens.Last_Index).Identifier /= Element
+               then
+                  return False;
+               end if;
+            else
+               if Right_Hand_Sides (RHS).Tokens.Length /= 1 + Element_Token_Count then
+                  return False;
+               end if;
+
+               declare
+                  Temp : Unbounded_String;
+                  Temp_Token_Count : Count_Type := 0;
+               begin
+                  for I in 2 .. Positive_Index_Type (Right_Hand_Sides (RHS).Tokens.Length) loop
+                     Append (Temp, Right_Hand_Sides (RHS).Tokens (I).Identifier);
+                     Temp_Token_Count := @ + 1;
+                  end loop;
+
+                  if Temp /= Element or Temp_Token_Count /= Element_Token_Count then
+                     return False;
+                  end if;
+               end;
+            end if;
+
+            Next (RHS);
+            if Right_Hand_Sides (RHS).Tokens.Length /= (if Has_Separator then 3 else 2) then
                return False;
             end if;
             if -Right_Hand_Sides (RHS).Tokens (1).Identifier /= LHS_String then
                return False;
             end if;
-            if Right_Hand_Sides (RHS).Tokens (2).Identifier /= Element then
-               return False;
-            end if;
-
-            Next (RHS);
-            if Right_Hand_Sides (RHS).Tokens.Length /= 2 then
-               return False;
-            end if;
-            if -Right_Hand_Sides (RHS).Tokens (1).Identifier /= LHS_String then
-               return False;
-            end if;
-            if Right_Hand_Sides (RHS).Tokens (2).Identifier /= LHS_String then
-               return False;
+            if Has_Separator then
+               if Right_Hand_Sides (RHS).Tokens (2).Identifier /= Separator then
+                  return False;
+               end if;
+               if Right_Hand_Sides (RHS).Tokens (3).Identifier /= LHS_String then
+                  return False;
+               end if;
+            else
+               if Right_Hand_Sides (RHS).Tokens (2).Identifier /= LHS_String then
+                  return False;
+               end if;
             end if;
             return True;
          end;

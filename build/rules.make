@@ -58,6 +58,7 @@ gen_BNF :: empty_production_5_re2c.c
 gen_BNF :: empty_production_6_re2c.c
 gen_BNF :: empty_production_7_re2c.c
 gen_BNF :: empty_production_8_re2c.c
+gen_BNF :: optimized_list_re2c.c
 gen_BNF :: range_conflict_re2c.c
 gen_BNF :: skip_to_grammar_re2c.c
 gen_BNF :: warth_left_recurse_expr_1_re2c.c
@@ -73,6 +74,7 @@ gen_EBNF :: java_types_ch19_re2c.c
 gen_EBNF :: java_types_ch19_lr1_t8_run.ads
 gen_EBNF :: lalr_generator_bug_01_re2c.c
 gen_EBNF :: nested_ebnf_optional_re2c.c
+gen_EBNF :: optimized_list_ebnf_re2c.c
 gen_EBNF :: python_ebnf_bnf.wy # not a valid grammar
 gen_EBNF :: subprograms_re2c.c
 gen_EBNF :: three_action_conflict_re2c.c

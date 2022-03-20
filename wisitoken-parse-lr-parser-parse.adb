@@ -517,6 +517,10 @@ begin
                   Conflict := (if Action_Cur = null then null else Action_Cur.Next);
 
                   if Conflict /= null and then Shared_Parser.Is_Optimized_List (Action.Production) then
+                     --  This is an optimized_list conflict.
+                     --
+                     --  See comments in wisitoken-generate-lr.adb Check_Conflicts for
+                     --  accuracy of optimized_list recognition.
                      pragma Assert (Conflict.Next = null);
 
                      --  From optimized_list parse table, the conflicts are:

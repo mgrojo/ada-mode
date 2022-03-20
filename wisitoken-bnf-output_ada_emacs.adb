@@ -1380,7 +1380,7 @@ is
             Indent_Line ("  Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
             Indent_Line ("  Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
             Indent_Line ("  Recover_Active : in     Boolean)");
-            Indent_Line (" return WisiToken.In_Parse_Actions.Status");
+            Indent_Line (" return WisiToken.Syntax_Trees.In_Parse_Actions.Status");
             declare
                Unref_Tree    : constant Boolean := 0 = Index (Check_Line, "Tree");
                Unref_Nonterm : constant Boolean := 0 = Index (Check_Line, "Nonterm");
@@ -1567,6 +1567,9 @@ is
          end;
       end if;
 
+      if Input_Data.Check_Count > 0 then
+         Indent_Line ("with WisiToken.In_Parse_Actions; use WisiToken.In_Parse_Actions;"); -- Match_Names etc.
+      end if;
       case Common_Data.Interface_Kind is
       when Process =>
          null;
@@ -1582,7 +1585,7 @@ is
       New_Line;
 
       if Input_Data.Check_Count > 0 then
-         Indent_Line ("use WisiToken.In_Parse_Actions;");
+         Indent_Line ("use WisiToken.Syntax_Trees.In_Parse_Actions;");
       end if;
       if Motion_Actions then
          Indent_Line ("use all type Motion_Param_Array;");

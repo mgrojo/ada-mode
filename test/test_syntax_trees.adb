@@ -405,53 +405,58 @@ package body Test_Syntax_Trees is
          end;
 
          if Declarations_2 then
-            Check (Label & ".declarations_2", Tree.RHS_Index (Tree.Child (Tree.Root, 2)), 2);
+            Check
+              (Label & ".declarations_2",
+               Tree.RHS_Index
+                 (Tree.Child (Tree.Child (Tree.Root, 2), 1)),
+               2);
          end if;
       end Test_1;
    begin
       --  Initial stream is:
       --  0:(Wisi_SOI, (1 . 1))
       --
-      --  -33:(wisitoken_accept_0, (1 . 34))
-      --  | -32:(declarations_1, (1 . 34))
-      --  | | -30:(declarations_1, (1 . 27))
-      --  | | | -28:(declarations_1, (1 . 20))
-      --  | | | | -26:(declarations_1, (1 . 13))
-      --  | | | | | -24:(declarations_0, (1 . 6))
-      --  | | | | | | -23:(declaration_0, (1 . 6))
-      --  | | | | | | | 1:(IDENTIFIER, (1 . 1))   a
-      --  | | | | | | | 2:(COLON, (3 . 3))
-      --  | | | | | | | 3:(IDENTIFIER, (5 . 5))
-      --  | | | | | | | 4:(SEMICOLON, (6 . 6))
-      --  | | | | | -25:(declaration_0, (8 . 13))
-      --  | | | | | | 5:(IDENTIFIER, (8 . 8))     b
-      --  | | | | | | 6:(COLON, (10 . 10))
-      --  | | | | | | 7:(IDENTIFIER, (12 . 12))
-      --  | | | | | | 8:(SEMICOLON, (13 . 13))
-      --  | | | | -27:(declaration_0, (15 . 20))
-      --  | | | | | 9:(IDENTIFIER, (15 . 15))     c
-      --  | | | | | 10:(COLON, (17 . 17))
-      --  | | | | | 11:(IDENTIFIER, (19 . 19))
-      --  | | | | | 12:(SEMICOLON, (20 . 20))
-      --  | | | -29:(declaration_0, (22 . 27))
-      --  | | | | 13:(IDENTIFIER, (22 . 22))      d
-      --  | | | | 14:(COLON, (24 . 24))
-      --  | | | | 15:(IDENTIFIER, (26 . 26))
-      --  | | | | 16:(SEMICOLON, (27 . 27))
-      --  | | -31:(declaration_0, (29 . 34))
-      --  | | | 17:(IDENTIFIER, (29 . 29))        e
-      --  | | | 18:(COLON, (31 . 31))
-      --  | | | 19:(IDENTIFIER, (33 . 33))
-      --  | | | 20:(SEMICOLON, (34 . 34))),
+      --  -34:(wisitoken_accept_0, (1 . 34))
+      --  | -33:(compilation_0, (1 . 34))
+      --  | | -32:(declarations_1, (1 . 34))
+      --  | | | -30:(declarations_1, (1 . 27))
+      --  | | | | -28:(declarations_1, (1 . 20))
+      --  | | | | | -26:(declarations_1, (1 . 13))
+      --  | | | | | | -24:(declarations_0, (1 . 6))
+      --  | | | | | | | -23:(declaration_0, (1 . 6))
+      --  | | | | | | | | 1:(IDENTIFIER, (1 . 1))
+      --  | | | | | | | | 2:(COLON, (3 . 3))
+      --  | | | | | | | | 3:(IDENTIFIER, (5 . 5))
+      --  | | | | | | | | 4:(SEMICOLON, (6 . 6))
+      --  | | | | | | -25:(declaration_0, (8 . 13))
+      --  | | | | | | | 5:(IDENTIFIER, (8 . 8))
+      --  | | | | | | | 6:(COLON, (10 . 10))
+      --  | | | | | | | 7:(IDENTIFIER, (12 . 12))
+      --  | | | | | | | 8:(SEMICOLON, (13 . 13))
+      --  | | | | | -27:(declaration_0, (15 . 20))
+      --  | | | | | | 9:(IDENTIFIER, (15 . 15))
+      --  | | | | | | 10:(COLON, (17 . 17))
+      --  | | | | | | 11:(IDENTIFIER, (19 . 19))
+      --  | | | | | | 12:(SEMICOLON, (20 . 20))
+      --  | | | | -29:(declaration_0, (22 . 27))
+      --  | | | | | 13:(IDENTIFIER, (22 . 22))
+      --  | | | | | 14:(COLON, (24 . 24))
+      --  | | | | | 15:(IDENTIFIER, (26 . 26))
+      --  | | | | | 16:(SEMICOLON, (27 . 27))
+      --  | | | -31:(declaration_0, (29 . 34))
+      --  | | | | 17:(IDENTIFIER, (29 . 29))
+      --  | | | | 18:(COLON, (31 . 31))
+      --  | | | | 19:(IDENTIFIER, (33 . 33))
+      --  | | | | 20:(SEMICOLON, (34 . 34))),
       --
       --  21:(Wisi_EOI, (35 . 34))))
 
       Test_1
         (Label          => "a1",     -- stream is unchanged
          Index          => 1,        -- a
-         Node_Expected  => (-33, 7), -- a
+         Node_Expected  => (-34, 8), -- a
          Prev_Expected  => (0, 0),   -- SOI
-         Last_Expected  => (-33, 3), -- e
+         Last_Expected  => (-34, 4), -- e
          Declarations_2 => False);
 
       --  "a2" result stream
@@ -462,10 +467,10 @@ package body Test_Syntax_Trees is
       --  3:(IDENTIFIER, (5 . 5))
       --  4:(SEMICOLON, (6 . 6))
       --
-      --  -38:declarations_1
-      --  | -37:declarations_1
-      --  | | -36:declarations_1
-      --  | | | -35:declarations_1
+      --  -39:declarations_1
+      --  | -38:declarations_1
+      --  | | -37:declarations_1
+      --  | | | -36:declarations_1
       --  | | | | -25:(declaration_0, (8 . 13))
       --  | | | | | 5:(IDENTIFIER, (8 . 8))     b
       --  | | | | | 6:(COLON, (10 . 10))
@@ -490,10 +495,10 @@ package body Test_Syntax_Trees is
       --  21:(Wisi_EOI, (35 . 34))))
       Test_1
         ("a2",
-         2,         -- : after a
-         Node_Expected => (2, 0),  -- :
-         Prev_Expected => (1, 0),  -- a
-         Last_Expected => (-38, 2)); -- e
+         2,                          -- : after a
+         Node_Expected => (2, 0),    -- :
+         Prev_Expected => (1, 0),    -- a
+         Last_Expected => (-39, 2)); -- e
 
       --  "b1" result stream:
       --  0:(Wisi_SOI, (1 . 1))
@@ -507,9 +512,9 @@ package body Test_Syntax_Trees is
       --  | 7:(IDENTIFIER, (12 . 12))
       --  | 8:(SEMICOLON, (13 . 13))
       --
-      --  -37:declarations_1
-      --  | -36:declarations_1
-      --  | | -35:declarations_0
+      --  -38:declarations_1
+      --  | -37:declarations_1
+      --  | | -36:declarations_0
       --  | | | -27:(declaration_0, (15 . 20))
       --  | | | | 9:(IDENTIFIER, (15 . 15))     c
       --  | | | | 10:(COLON, (17 . 17))
@@ -529,10 +534,10 @@ package body Test_Syntax_Trees is
       --  21:(Wisi_EOI, (35 . 34))))
       Test_1
         ("b1",
-         5,         -- b
+         5,                          -- b
          Node_Expected => (-25, 1),  -- b
          Prev_Expected => (-23, 1),  -- a
-         Last_Expected => (-37, 2)); -- e
+         Last_Expected => (-38, 2)); -- e
 
       --  "b2" result stream:
       --  0:(Wisi_SOI, (1 . 1))
@@ -548,9 +553,9 @@ package body Test_Syntax_Trees is
       --
       --  8:(SEMICOLON, (13 . 13))
       --
-      --  -37:declarations_1
-      --  | -36:declarations_1
-      --  | | -35:declarations_0
+      --  -38:declarations_1
+      --  | -37:declarations_1
+      --  | | -36:declarations_0
       --  | | | -27:(declaration_0, (15 . 20))
       --  | | | | 9:(IDENTIFIER, (15 . 15))     c
       --  | | | | 10:(COLON, (17 . 17))
@@ -570,10 +575,10 @@ package body Test_Syntax_Trees is
       --  21:(Wisi_EOI, (35 . 34))))
       Test_1
         ("b2",
-         6,         -- : after b
-         Node_Expected => (6, 0),  -- :
-         Prev_Expected => (5, 0),  -- b
-         Last_Expected => (-37, 2)); -- e
+         6,                          -- : after b
+         Node_Expected => (6, 0),    -- :
+         Prev_Expected => (5, 0),    -- b
+         Last_Expected => (-38, 2)); -- e
 
       --  "c1" result stream:
       --  0:SOI
@@ -597,8 +602,8 @@ package body Test_Syntax_Trees is
       --  | 11:(IDENTIFIER, (19 . 19))
       --  | 12:(SEMICOLON, (20 . 20))
       --
-      --  -36:declarations_1
-      --  | -35:declarations_0
+      --  -37:declarations_1
+      --  | -36:declarations_0
       --  | | -29:(declaration_0, (22 . 27))
       --  | | | 13:(IDENTIFIER, (22 . 22))      d
       --  | | | 14:(COLON, (24 . 24))
@@ -617,7 +622,7 @@ package body Test_Syntax_Trees is
          9,                          -- c
          Node_Expected => (-27, 1),  -- c
          Prev_Expected => (-26, 2),  -- b
-         Last_Expected => (-36, 2)); -- e
+         Last_Expected => (-37, 2)); -- e
 
       --  "c2" result stream:
       --  0:SOI
@@ -643,8 +648,8 @@ package body Test_Syntax_Trees is
       --
       --  12:(SEMICOLON, (20 . 20))
       --
-      --  -36:declarations_1
-      --  | -35:declarations_0
+      --  -37:declarations_1
+      --  | -36:declarations_0
       --  | | -29:(declaration_0, (22 . 27))
       --  | | | 13:(IDENTIFIER, (22 . 22))      d
       --  | | | 14:(COLON, (24 . 24))
@@ -663,7 +668,7 @@ package body Test_Syntax_Trees is
          10,                         -- : after c
          Node_Expected => (10, 0),   -- :
          Prev_Expected => (9, 0),    -- c
-         Last_Expected => (-36, 2)); -- e
+         Last_Expected => (-37, 2)); -- e
 
       --  "d1" result stream:
       --  0:(Wisi_SOI, (1 . 1))

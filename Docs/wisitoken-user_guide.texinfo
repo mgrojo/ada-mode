@@ -530,6 +530,10 @@ in the parse table file, which has more information that might help
 resolve the conflict. @code{wisitoken-grammar-mode} binds that command
 to @key{^c .}.
 
+@item %optimized_list <nonterminal>
+Declare the nonterminal to be an optimized list; @xref{Optimized
+lists}. The nonterm must be declared before this declaration.
+
 @item %elisp_face <name>
 Declare a name for an elisp face constant.
 
@@ -836,13 +840,27 @@ declarations
   ;
 @end example
 This is called an ``optimized list''. It has conflicts, which are
-resolved by choosing to reduce to declarations. In a batch parse, this
-produces the same syntax tree as the first definition of
-``declarations''. However, when the tree is edited for incremental
-parse, the list is broken into two sublists, rather than breaking down
-the entire list.
+resolved by choosing to reduce to declarations; they do not need to be
+declared in the grammar file. In a batch parse, this produces the same
+syntax tree as the first definition of ``declarations''. However, when
+the tree is edited for incremental parse, the list is broken into two
+sublists, rather than breaking down the entire list.
 
 The various EBNF repeats all produce optimized lists.
+
+If you have a nonterminal that is a list but is not of the form above,
+you can declare it to be an optimized list by adding the last right
+hand side and a declaration:
+@example
+statement_list
+  : pragma_g
+  | statement
+  | statement_list statement
+  | statement_list pragma_g
+  | statement_list statement_list
+  ;
+%optimized_list statement_list
+@end example
 
 @node Language-specific parser runtime functions
 @chapter Language-specific parser runtime functions

@@ -27,6 +27,7 @@ OK bnf_wy_test.adb java_types_ch19 : Run_Test
 OK bnf_wy_test.adb lalr_generator_bug_01 : Run_Test
 OK bnf_wy_test.adb nested_ebnf_optional : Run_Test
 OK bnf_wy_test.adb optimized_list : Run_Test
+OK bnf_wy_test.adb optimized_list_ebnf : Run_Test
 OK bnf_wy_test.adb python_ebnf : Run_Test
 OK bnf_wy_test.adb range_conflict : Run_Test
 OK bnf_wy_test.adb skip_to_grammar : Run_Test
@@ -269,7 +270,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   269
-Successful Tests:  269
+Total Tests Run:   270
+Successful Tests:  270
 Failed Assertions: 0
 Unexpected Errors: 0

@@ -618,7 +618,8 @@ package body WisiToken.Generate.LR.LALR_Generate is
       end if;
 
       Check_Conflicts
-        ("LALR", Unknown_Conflicts, Known_Conflicts_Edit, Grammar_File_Name, Descriptor, Ignore_Unknown_Conflicts);
+        ("LALR", Unknown_Conflicts, Known_Conflicts_Edit, Grammar_File_Name, Descriptor, Grammar,
+         Ignore_Unknown_Conflicts);
 
       return Table;
    end Generate;

@@ -1,79 +1,127 @@
- 12 tokens lexed
- 0: 0: (-1, 1:(IDENTIFIER, (1 . 1))) : shift and goto state 1
- 0: 1: (-1, 2:(COLON, (3 . 3))) : shift and goto state 4
- 0: 4: (-1, 3:(IDENTIFIER, (5 . 5))) : shift and goto state 7
- 0: 7: (-1, 4:(SEMICOLON, (6 . 6))) : shift and goto state 8
- 0: 8: (-1, 5:(IDENTIFIER, (8 . 8))) : reduce 4 tokens to declaration
-(declaration_0, (1 . 6) <= (1:(IDENTIFIER, (1 . 1)), 2:(COLON, (3 . 3)), 3:(IDENTIFIER, (5 . 5)), 4:(SEMICOLON, (6 . 6))))
+ 19 tokens lexed
+ 0: 0: (-1, 1:(IDENTIFIER, (17 . 17))) : shift and goto state 1
+ 0: 1: (-1, 2:(COLON, (19 . 19))) : shift and goto state 5
+ 0: 5: (-1, 3:(IDENTIFIER, (21 . 21))) : shift and goto state 13
+ 0: 13: (-1, 4:(SEMICOLON, (22 . 22))) : shift and goto state 20
+ 0: 20: (-1, 5:(IDENTIFIER, (24 . 24))) : reduce 4 tokens to declaration
+(declaration_0, (17 . 22) <= (1:(IDENTIFIER, (17 . 17)), 2:(COLON, (19 . 19)), 3:(IDENTIFIER, (21 . 21)), 4:(SEMICOLON, (22 . 22))))
  ... goto state 2
- 0: 2: (-1, 5:(IDENTIFIER, (8 . 8))) : reduce 1 tokens to declarations
-(declarations_0, (1 . 6) <= ((declaration_0, (1 . 6))))
+ 0: 2: (-1, 5:(IDENTIFIER, (24 . 24))) : reduce 1 tokens to declarations
+(declarations_0, (17 . 22) <= ((declaration_0, (17 . 22))))
  ... goto state 3
- 0: 3: (-1, 5:(IDENTIFIER, (8 . 8))) : shift and goto state 1
- 0: 1: (-1, 6:(COLON, (10 . 10))) : shift and goto state 4
- 0: 4: (-1, 7:(IDENTIFIER, (12 . 12))) : shift and goto state 7
- 0: 7: (-1, 8:(SEMICOLON, (13 . 13))) : shift and goto state 8
- 0: 8: (-1, 9:(IDENTIFIER, (69 . 69))) : reduce 4 tokens to declaration
-(declaration_0, (8 . 13) <= (5:(IDENTIFIER, (8 . 8)), 6:(COLON, (10 . 10)), 7:(IDENTIFIER, (12 . 12)), 8:(SEMICOLON, (13 . 13))))
- ... goto state 5
- 0: 5: (-1, 9:(IDENTIFIER, (69 . 69))) : reduce 2 tokens to declarations
-(declarations_1, (1 . 13) <= ((declarations_0, (1 . 6)), (declaration_0, (8 . 13))))
+ 0: 3: (-1, 5:(IDENTIFIER, (24 . 24))) : shift and goto state 7
+ 0: 7: (-1, 6:(COLON, (26 . 26))) : shift and goto state 5
+ 0: 5: (-1, 7:(IDENTIFIER, (28 . 28))) : shift and goto state 13
+ 0: 13: (-1, 8:(SEMICOLON, (29 . 29))) : shift and goto state 20
+ 0: 20: (-1, 9:(IDENTIFIER, (47 . 47))) : reduce 4 tokens to declaration
+(declaration_0, (24 . 29) <= (5:(IDENTIFIER, (24 . 24)), 6:(COLON, (26 . 26)), 7:(IDENTIFIER, (28 . 28)), 8:(SEMICOLON, (29 . 29))))
+ ... goto state 8
+ 0: 8: (-1, 9:(IDENTIFIER, (47 . 47))) : reduce 2 tokens to declarations
+(declarations_1, (17 . 29) <= ((declarations_0, (17 . 22)), (declaration_0, (24 . 29))))
  ... goto state 3
- 0: 3: (-1, 9:(IDENTIFIER, (69 . 69))) : shift and goto state 1
- 0: 1: (-1, 10:(COLON, (71 . 71))) : shift and goto state 4
- 0: 4: (-1, 11:(IDENTIFIER, (73 . 73))) : shift and goto state 7
- 0: 7: (-1, 12:(Wisi_EOI, (75 . 74))) : ERROR
- 0: 7: expecting: SEMICOLON
+ 0: 3: (-1, 9:(IDENTIFIER, (47 . 47))) : shift and goto state 7
+ 0: 7: (-1, 10:(SEMICOLON, (48 . 48))) : shift and goto state 15
+ 0: 15: (-1, 11:(IDENTIFIER, (50 . 50))) : reduce 2 tokens to statement
+(statement_0, (47 . 48) <= (9:(IDENTIFIER, (47 . 47)), 10:(SEMICOLON, (48 . 48))))
+ ... goto state 10
+ 0: 10: (-1, 11:(IDENTIFIER, (50 . 50))) : reduce 1 tokens to statement_list
+(statement_list_1, (47 . 48) <= ((statement_0, (47 . 48))))
+ ... goto state 12
+ 0: 12: (-1, 11:(IDENTIFIER, (50 . 50))) : shift and goto state 16
+ 0: 16: (-1, 12:(SEMICOLON, (51 . 51))) : shift and goto state 15
+ 0: 15: (-1, 13:(PRAGMA, (53 . 58))) : reduce 2 tokens to statement
+(statement_0, (50 . 51) <= (11:(IDENTIFIER, (50 . 50)), 12:(SEMICOLON, (51 . 51))))
+ ... goto state 17
+ 0: 17: (-1, 13:(PRAGMA, (53 . 58))) : reduce 2 tokens to statement_list
+(statement_list_2, (47 . 51) <= ((statement_list_1, (47 . 48)), (statement_0, (50 . 51))))
+ ... goto state 12
+ 0: 12: (-1, 13:(PRAGMA, (53 . 58))) : shift and goto state 6
+ 0: 6: (-1, 14:(IDENTIFIER, (60 . 60))) : shift and goto state 14
+ 0: 14: (-1, 15:(SEMICOLON, (61 . 61))) : shift and goto state 21
+ 0: 21: (-1, 16:(IDENTIFIER, (63 . 63))) : reduce 3 tokens to pragma_g
+(pragma_g_0, (53 . 61) <= (13:(PRAGMA, (53 . 58)), 14:(IDENTIFIER, (60 . 60)), 15:(SEMICOLON, (61 . 61))))
+ ... goto state 18
+ 0: 18: (-1, 16:(IDENTIFIER, (63 . 63))) : reduce 2 tokens to statement_list
+(statement_list_3, (47 . 61) <= ((statement_list_2, (47 . 51)), (pragma_g_0, (53 . 61))))
+ ... goto state 12
+ 0: 12: (-1, 16:(IDENTIFIER, (63 . 63))) : shift and goto state 16
+ 0: 16: (-1, 17:(SEMICOLON, (64 . 64))) : shift and goto state 15
+ 0: 15: (-1, 18:(IDENTIFIER, (120 . 120))) : reduce 2 tokens to statement
+(statement_0, (63 . 64) <= (16:(IDENTIFIER, (63 . 63)), 17:(SEMICOLON, (64 . 64))))
+ ... goto state 17
+ 0: 17: (-1, 18:(IDENTIFIER, (120 . 120))) : reduce 2 tokens to statement_list
+(statement_list_2, (47 . 64) <= ((statement_list_3, (47 . 61)), (statement_0, (63 . 64))))
+ ... goto state 12
+ 0: 12: (-1, 18:(IDENTIFIER, (120 . 120))) : shift and goto state 16
+ 0: 16: (-1, 19:(Wisi_EOI, (123 . 122))) : ERROR
+ 0: 16: expecting: SEMICOLON
  0: zombie
 
  McKenzie error recovery
 
-parser 0: State 7 Current_Token (0, 2;13:(Wisi_EOI, (75 . 74) ERROR))
+parser 0: State 16 Current_Token (0, 2;20:(Wisi_EOI, (123 . 122) ERROR))
 Parser_Action
  0: succeed 1, enqueue 3, check  2, cost:  3
- 0:  3, ( 0 0 1 0 0 0 0 0 0), (8 : (SEMICOLON))\2;13:(Wisi_EOI, (75 . 74) ERROR)\((INSERT, SEMICOLON, 2))
+ 0:  3, ( 0 0 1 0 0 0 0 0 0), (15 : (SEMICOLON))\2;20:(Wisi_EOI, (123 . 122) ERROR)\((INSERT, SEMICOLON, 2))
 
 recover: succeed, parser count 1
  0: stack/stream:
 (0, (0, 
--10;0:(Wisi_SOI, (1 . 1))),
+0:(Wisi_SOI, (1 . 1))),
 (3, 
--17:(declarations_1, (1 . 13))
-| -15:(declarations_0, (1 . 6))
-| | -14:(declaration_0, (1 . 6))
-| | | -9;1:(IDENTIFIER, (1 . 1))
-| | | -8;2:(COLON, (3 . 3))
-| | | -7;3:(IDENTIFIER, (5 . 5))
-| | | -6;4:(SEMICOLON, (6 . 6))
-| -16:(declaration_0, (8 . 13))
-| | -5;5:(IDENTIFIER, (8 . 8))
-| | -4;6:(COLON, (10 . 10))
-| | -3;7:(IDENTIFIER, (12 . 12))
-| | -2;8:(SEMICOLON, (13 . 13))),
-(1, 
--1;9:(IDENTIFIER, (69 . 69))),
-(4, 
-0;10:(COLON, (71 . 71))),
-^(7, 
-1;11:(IDENTIFIER, (73 . 73))),
+-24:(declarations_1, (17 . 29))
+| -22:(declarations_0, (17 . 22))
+| | -21:(declaration_0, (17 . 22))
+| | | 1:(IDENTIFIER, (17 . 17))
+| | | 2:(COLON, (19 . 19))
+| | | 3:(IDENTIFIER, (21 . 21))
+| | | 4:(SEMICOLON, (22 . 22))
+| -23:(declaration_0, (24 . 29))
+| | 5:(IDENTIFIER, (24 . 24))
+| | 6:(COLON, (26 . 26))
+| | -10;7:(IDENTIFIER, (28 . 28))
+| | -9;8:(SEMICOLON, (29 . 29))),
+(12, 
+-32:(statement_list_2, (47 . 64))
+| -30:(statement_list_3, (47 . 61))
+| | -28:(statement_list_2, (47 . 51))
+| | | -26:(statement_list_1, (47 . 48))
+| | | | -25:(statement_0, (47 . 48))
+| | | | | -8;9:(IDENTIFIER, (47 . 47))
+| | | | | -7;10:(SEMICOLON, (48 . 48))
+| | | -27:(statement_0, (50 . 51))
+| | | | -6;11:(IDENTIFIER, (50 . 50))
+| | | | -5;12:(SEMICOLON, (51 . 51))
+| | -29:(pragma_g_0, (53 . 61))
+| | | -4;13:(PRAGMA, (53 . 58))
+| | | -3;14:(IDENTIFIER, (60 . 60))
+| | | -2;15:(SEMICOLON, (61 . 61))
+| -31:(statement_0, (63 . 64))
+| | -1;16:(IDENTIFIER, (63 . 63))
+| | 0;17:(SEMICOLON, (64 . 64))),
+^(16, 
+1;18:(IDENTIFIER, (120 . 120))),
 (-1, 
--20:(SEMICOLON)),
+-35:(SEMICOLON)),
 (-1, 
-2;14:(Wisi_EOI, (75 . 74) ERROR)))
-    Current_Token: (0, -20:(SEMICOLON))
+2;21:(Wisi_EOI, (123 . 122) ERROR)))
+    Current_Token: (0, -35:(SEMICOLON))
     Shared_Token: ()
     recover_insert_delete:
     resume_active: True, token goal 5
 
- 0: 7: (0, -20:(SEMICOLON)) : shift and goto state 8
- 0: 8: (0, 2;14:(Wisi_EOI, (75 . 74) ERROR)) : reduce 4 tokens to declaration
-(declaration_0, (69 . 73) <= (-1;9:(IDENTIFIER, (69 . 69)), 0;10:(COLON, (71 . 71)), 1;11:(IDENTIFIER, (73 . 73)), -20:(SEMICOLON)))
- ... goto state 5
- 0: 5: (0, 2;14:(Wisi_EOI, (75 . 74) ERROR)) : reduce 2 tokens to declarations
-(declarations_1, (1 . 73) <= ((declarations_1, (1 . 13)), (declaration_0, (69 . 73))))
- ... goto state 3
- 0: 3: (0, 2;14:(Wisi_EOI, (75 . 74) ERROR)) : accept it
-(wisitoken_accept_0, (1 . 73) <= ((declarations_1, (1 . 73))))
+ 0: 16: (0, -35:(SEMICOLON)) : shift and goto state 15
+ 0: 15: (0, 2;21:(Wisi_EOI, (123 . 122) ERROR)) : reduce 2 tokens to statement
+(statement_0, (120 . 120) <= (1;18:(IDENTIFIER, (120 . 120)), -35:(SEMICOLON)))
+ ... goto state 17
+ 0: 17: (0, 2;21:(Wisi_EOI, (123 . 122) ERROR)) : reduce 2 tokens to statement_list
+(statement_list_2, (47 . 120) <= ((statement_list_2, (47 . 64)), (statement_0, (120 . 120))))
+ ... goto state 12
+ 0: 12: (0, 2;21:(Wisi_EOI, (123 . 122) ERROR)) : reduce 2 tokens to compilation
+(compilation_1, (17 . 120) <= ((declarations_1, (17 . 29)), (statement_list_2, (47 . 120))))
+ ... goto state 4
+ 0: 4: (0, 2;21:(Wisi_EOI, (123 . 122) ERROR)) : accept it
+(wisitoken_accept_0, (17 . 120) <= ((compilation_1, (17 . 120))))
  0: succeed
-optimized_list.input:6:1: syntax_error: expecting SEMICOLON, found ''
+optimized_list.input:16:1: syntax_error: expecting SEMICOLON, found ''
    recovered: ((INSERT, SEMICOLON, 2))
