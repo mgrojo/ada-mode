@@ -2,7 +2,7 @@
 --
 --  Wisitoken_grammar parser language-specific runtime
 --
---  Copyright (C) 2019 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2019 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -35,9 +35,7 @@ package Wisi.WisiToken_Grammar is
    is (new Parse_Data_Type);
 
    overriding
-   procedure Initialize
-     (Data  : in out Parse_Data_Type;
-      Trace : in     WisiToken.Trace_Access);
+   procedure Initialize (Data : in out Parse_Data_Type);
 
    overriding
    function Get_Token_IDs

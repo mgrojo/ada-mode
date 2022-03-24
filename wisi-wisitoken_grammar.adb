@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2019 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2019 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -23,13 +23,11 @@ package body Wisi.WisiToken_Grammar is
    Check_Parens_Action_Index : constant String := "0";
 
    overriding
-   procedure Initialize
-     (Data  : in out Parse_Data_Type;
-      Trace : in     WisiToken.Trace_Access)
+   procedure Initialize (Data : in out Parse_Data_Type)
    is
       use all type Wisitoken_Grammar_1_Process_Actions.Token_Enum_ID;
    begin
-      Wisi.Initialize (Wisi.Parse_Data_Type (Data), Trace);
+      Wisi.Initialize (Wisi.Parse_Data_Type (Data));
 
       Data.First_Comment_ID := +COMMENT_ID;
    end Initialize;

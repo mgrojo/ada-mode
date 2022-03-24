@@ -23,7 +23,7 @@
 ;;  EBNF syntax.
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -98,8 +98,8 @@
 ;;
 ;; 0x22 = "
 ;; 0x27 = \'
-%token <string-double> STRING_LITERAL_1 %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]% '""'
-%token <string-single> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]% "''"
+%token <string-double-one-line> STRING_LITERAL_1 %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]% '""'
+%token <string-single-one-line> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]% "''"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%

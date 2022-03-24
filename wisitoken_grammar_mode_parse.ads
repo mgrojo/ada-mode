@@ -2,7 +2,7 @@
 --
 --  External process parser for wisitoken-grammar mode
 --
---  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -33,4 +33,6 @@ procedure WisiToken_Grammar_Mode_Parse is new Gen_Emacs_Wisi_LR_Parse
    Language_Matching_Begin_Tokens => null,
    Language_String_ID_Set         => null,
    Create_Lexer                   => Wisitoken_Grammar_1_Process_Main.Create_Lexer,
-   Create_Parse_Table             => Wisitoken_Grammar_1_Process_Main.Create_Parse_Table);
+   Create_Parse_Table             => Wisitoken_Grammar_1_Process_Main.Create_Parse_Table,
+   Create_In_Parse_Actions        => Wisitoken_Grammar_1_Process_Main.Create_In_Parse_Actions,
+   Create_Post_Parse_Actions      => Wisitoken_Grammar_1_Process_Main.Create_Post_Parse_Actions);
