@@ -63,7 +63,7 @@ begin
 
       if Trace_Memory > Detail then
          Trace.Put_Line ("post edit tree");
-         Report_Memory (Trace);
+         Report_Memory (Trace, Prefix => True);
       end if;
       if Trace_Parse > Outline or Trace_Incremental_Parse > Outline then
          Trace.New_Line;
@@ -94,7 +94,7 @@ begin
       Shared_Parser.Lex_All;
       if Trace_Memory > Detail then
          Trace.Put_Line ("post lex");
-         Report_Memory (Trace);
+         Report_Memory (Trace, Prefix => True);
       end if;
    end if;
 

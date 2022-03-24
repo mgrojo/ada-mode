@@ -373,7 +373,11 @@ package body WisiToken.Parse is
                Tree.Lexer.Trace.Put_Line ("non-grammar in " & Parser.Tree.Image (Last_Grammar_Node));
             end if;
             if Error then
-               raise SAL.Programmer_Error with "lexer error in non_grammar";
+               raise SAL.Programmer_Error with WisiToken.Error_Message
+                 (File_Name => Lexer.File_Name,
+                  Line      => 1,
+                  Column    => Ada.Text_IO.Count (Token.Char_Region.First),
+                  Message   => "lexer error in non_grammar");
             end if;
 
             Process_Non_Grammar_Token (Parser, Last_Grammar_Node, Token);

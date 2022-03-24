@@ -1000,7 +1000,9 @@ package body WisiToken.Parse.LR.Parser is
 
       if Trace_Memory > Detail then
          Parser.Tree.Lexer.Trace.Put_Line ("parse complete");
-         Report_Memory (Parser.Tree.Lexer.Trace.all);
+         --  IMPROVEME: we want Prefix True when running as an Emacs
+         --  subprocess, False otherwise. No way to tell from here.
+         Report_Memory (Parser.Tree.Lexer.Trace.all, Prefix => True);
       end if;
 
       if Debug_Mode then

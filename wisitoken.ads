@@ -483,7 +483,7 @@ package WisiToken is
    --  This is only the Current value; trying to save the high water mark
    --  for later subtraction does not make sense.
 
-   procedure Report_Memory (Trace : in out WisiToken.Trace'Class);
+   procedure Report_Memory (Trace : in out WisiToken.Trace'Class; Prefix : in Boolean);
    --  Output data from GNATCOLL.Memory, relative to Memory_Baseline.
 
    ----------

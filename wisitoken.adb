@@ -315,19 +315,20 @@ package body WisiToken is
       end if;
    end Put;
 
-   procedure Report_Memory (Trace : in out WisiToken.Trace'Class)
+   procedure Report_Memory (Trace : in out WisiToken.Trace'Class; Prefix : in Boolean)
    is
       use GNATCOLL.Memory;
       Memory_Use : constant Watermark_Info := Get_Ada_Allocations;
 
       procedure Trace_Put_Line (S : in String)
       is begin
-         Trace.Put_Line (S);
+         Trace.Put (S, Prefix);
+         Trace.New_Line;
       end Trace_Put_Line;
 
       procedure Trace_Put (S : in String)
       is begin
-         Trace.Put (S);
+         Trace.Put (S, Prefix);
       end Trace_Put;
 
       procedure Trace_Dump is new Redirectable_Dump
@@ -335,7 +336,7 @@ package body WisiToken is
          Put      => Trace_Put);
    begin
       if WisiToken.Trace_Memory > 1 then
-         Trace_Dump (Trace_Memory, Report => Memory_Usage);
+         Trace_Dump (4 * Trace_Memory, Report => Memory_Usage);
       end if;
 
       Trace.Put
