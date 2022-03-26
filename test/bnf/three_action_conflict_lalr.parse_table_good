@@ -282,12 +282,9 @@ State 17:
      18.0:statement_list <= statement ^
      18.1:statement_list <= statement_list statement ^
 
-   LPAREN               => reduce 1 tokens to statement_list 18.0,
-                           reduce 2 tokens to statement_list 18.1
-   RBRACE               => reduce 1 tokens to statement_list 18.0,
-                           reduce 2 tokens to statement_list 18.1
-   IDENTIFIER           => reduce 1 tokens to statement_list 18.0,
-                           reduce 2 tokens to statement_list 18.1
+   LPAREN               => reduce 2 tokens to statement_list 18.1
+   RBRACE               => reduce 2 tokens to statement_list 18.1
+   IDENTIFIER           => reduce 2 tokens to statement_list 18.1
    default              => ERROR
 
    Minimal_Complete_Actions => ((1 statement_list 18.0), (2 statement_list 18.1))
@@ -297,11 +294,9 @@ State 18:
      18.2:statement_list <= statement_list statement_list ^
      18.2:statement_list <= statement_list ^ statement_list
 
-   LPAREN               => shift and goto state 3 15.0,
-                           reduce 2 tokens to statement_list 18.2
+   LPAREN               => reduce 2 tokens to statement_list 18.2
    RBRACE               => reduce 2 tokens to statement_list 18.2
-   IDENTIFIER           => shift and goto state 5 15.1,
-                           reduce 2 tokens to statement_list 18.2
+   IDENTIFIER           => reduce 2 tokens to statement_list 18.2
    default              => ERROR
 
    statement            goto state 17
@@ -362,8 +357,6 @@ State 23:
 
 22 states with minimal_complete_actions; 25 total minimal_complete_actions.
 
-2 states with optimized_list conflicts: 17 18
-
-1 states with other conflicts: 11
+1 states with conflicts: 11
 
  7 rules, 0 user actions, 0 checks, 24 states

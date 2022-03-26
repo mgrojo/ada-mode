@@ -465,6 +465,8 @@ package body WisiToken is
                Debug_Mode := Value > 0;
             elsif Name = "action" then
                Trace_Action := Value;
+            elsif Name = "conflicts" or Name = "generate_conflicts" then
+               Trace_Generate_Conflicts := Value;
             elsif Name = "ebnf" or Name = "generate_ebnf" then
                Trace_Generate_EBNF := Value;
             elsif Name = "minimal_complete" or Name = "generate_minimal_complete" then

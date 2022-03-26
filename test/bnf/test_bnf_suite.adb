@@ -68,6 +68,7 @@ begin
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_6", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_7", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"empty_production_8", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"grammar_grammar_01", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"identifier_list_name_conflict", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_ebnf", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_enum_ch19", null)));
@@ -76,6 +77,10 @@ begin
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_types_ch19", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"lalr_generator_bug_01", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"nested_ebnf_optional", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"optimized_conflict_01", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"optimized_conflict_02", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"optimized_conflict_03", null)));
+   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"optimized_conflict_04", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"optimized_list", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"optimized_list_ebnf", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"python_ebnf", null)));

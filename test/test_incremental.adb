@@ -18,6 +18,9 @@
 
 pragma License (GPL);
 
+with Grammar_Grammar_01_Actions;
+with Grammar_Grammar_01_LR1_T1_Main;
+with WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01;
 with AUnit.Assertions;
 with AUnit.Checks.Containers;
 with Ada.Containers;
@@ -38,17 +41,33 @@ package body Test_Incremental is
    Log_File  : Ada.Text_IO.File_Type;
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
-   Incremental_Parser : WisiToken.Parse.LR.Parser.Parser;
-   Full_Parser        : WisiToken.Parse.LR.Parser.Parser;
+   package Ada_Lite is
+      Incremental_Parser : aliased WisiToken.Parse.LR.Parser.Parser;
+      Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser;
 
-   Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
-     (Ada_Lite_Actions.Descriptor.First_Terminal,
-      Ada_Lite_Actions.Descriptor.Last_Terminal,
-      Ada_Lite_Actions.Descriptor.First_Nonterminal,
-      Ada_Lite_Actions.Descriptor.Last_Nonterminal);
+      Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
+        (Ada_Lite_Actions.Descriptor.First_Terminal,
+         Ada_Lite_Actions.Descriptor.Last_Terminal,
+         Ada_Lite_Actions.Descriptor.First_Nonterminal,
+         Ada_Lite_Actions.Descriptor.Last_Nonterminal);
+   end Ada_Lite;
+
+   package Grammar is
+      Incremental_Parser : aliased WisiToken.Parse.LR.Parser.Parser;
+      Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser;
+
+      Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
+        (Grammar_Grammar_01_Actions.Descriptor.First_Terminal,
+         Grammar_Grammar_01_Actions.Descriptor.Last_Terminal,
+         Grammar_Grammar_01_Actions.Descriptor.First_Nonterminal,
+         Grammar_Grammar_01_Actions.Descriptor.Last_Nonterminal);
+   end Grammar;
 
    Initial_Buffer : Ada.Strings.Unbounded.Unbounded_String;
    Edited_Buffer  : Ada.Strings.Unbounded.Unbounded_String;
+
+   Incremental_Parser : access WisiToken.Parse.LR.Parser.Parser := Ada_Lite.Incremental_Parser'Access;
+   Full_Parser        : access WisiToken.Parse.LR.Parser.Parser := Ada_Lite.Full_Parser'Access;
 
    procedure Parse_Text
      (Initial        : in String;
@@ -62,7 +81,7 @@ package body Test_Incremental is
       Incr_Errors    : in Ada.Containers.Count_Type := 0;
       Label          : in String                    := "")
    with Pre => Edit_2_At = 0 or Edit_2_At >= Edit_At
-   --  If Initial is "", start from existing tree.
+   --  If Initial is "", start from previous edited text and existing tree.
    is
       use Ada.Text_IO;
       use AUnit.Checks;
@@ -209,7 +228,7 @@ package body Test_Incremental is
       begin
          Full_Parser.Parse (Log_File);
          if WisiToken.Trace_Tests > WisiToken.Detail then
-            Put_Tree (Full_Parser);
+            Put_Tree (Full_Parser.all);
          end if;
          Check (Label_Dot & "edited full parse errors", Full_Parser.Tree.Error_Count, Incr_Errors);
       exception
@@ -233,7 +252,7 @@ package body Test_Incremental is
          begin
             Incremental_Parser.Parse (Log_File);
             if WisiToken.Trace_Tests > WisiToken.Detail then
-               Put_Tree (Incremental_Parser);
+               Put_Tree (Incremental_Parser.all);
             end if;
          exception
          when WisiToken.Syntax_Error =>
@@ -281,7 +300,7 @@ package body Test_Incremental is
       if WisiToken.Trace_Tests > WisiToken.Detail then
          New_Line;
          Put_Line (Label_Dot & "incremental parse result:");
-         Put_Tree (Incremental_Parser);
+         Put_Tree (Incremental_Parser.all);
       end if;
 
       Check (Label_Dot & "incr errors", Incremental_Parser.Tree.Error_Count, Incr_Errors);
@@ -295,7 +314,7 @@ package body Test_Incremental is
    when WisiToken.Syntax_Error =>
       if WisiToken.Trace_Tests > WisiToken.Detail then
          Put_Line (Label_Dot & "(syntax_error) incremental parse result:");
-         Put_Tree (Incremental_Parser);
+         Put_Tree (Incremental_Parser.all);
       end if;
 
       Check ("syntax_error", True, False);
@@ -1251,7 +1270,7 @@ package body Test_Incremental is
          use WisiToken.Syntax_Trees;
          use Ada_Lite_Actions;
          use AUnit.Checks;
-         Tree : WisiToken.Syntax_Trees.Tree renames Incremental_Parser.Tree;
+         Tree : WisiToken.Syntax_Trees.Tree renames Ada_Lite.Incremental_Parser.Tree;
          Begin_Name_Node : constant Valid_Node_Access := Tree.Find_Descendant (Tree.Root, +subprogram_specification_ID);
          End_Name_Node   : constant Valid_Node_Access := Tree.Find_Descendant (Tree.Root, +name_opt_ID);
       begin
@@ -1338,6 +1357,62 @@ package body Test_Incremental is
          Initial_Errors => 1,
          Incr_Errors    => 1);
    end Recover_03;
+
+   procedure Recover_04 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  This encountered a bug in recover Left_Breakdown. From
+      --  wisitoken_grammar_mode recover_01.wy.
+
+      Incremental_Parser := Grammar.Incremental_Parser'Access;
+      Full_Parser        := Grammar.Full_Parser'Access;
+
+      Parse_Text
+        (Label   => "1",
+         Initial =>
+           "range_attribute_designator : 'range' '(' expression ')' ;" & ASCII.LF &
+             --      |10       |20       |30       |40       |50         |58
+             "aggregate : record_aggregate" & ASCII.LF &
+             --  |62     |70       |80
+             " | extension_aggregate ;" & ASCII.LF &
+             --  |91      |100      |110
+             "record_aggregate : '(' record_component_association_list ')' ;",
+         --   |113
+
+         Edit_At        => 113,
+         Delete         => "",
+         Insert         => ";; ",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+
+      Parse_Text
+        (Label          => "2",
+         Initial        => "",
+         Edit_At        => 69,
+         Delete         => "",
+         Insert         => ";",
+         Initial_Errors => 1,
+         Incr_Errors    => 1);
+
+      Parse_Text
+        (Label          => "3",
+         Initial        => "",
+         Edit_At        => 70,
+         Delete         => "",
+         Insert         => ";",
+         Initial_Errors => 1,
+         Incr_Errors    => 1);
+
+      Parse_Text
+        (Label          => "4",
+         Initial        => "",
+         Edit_At        => 71,
+         Delete         => "",
+         Insert         => " ",
+         Initial_Errors => 1,
+         Incr_Errors    => 1);
+   end Recover_04;
 
    procedure Lexer_Errors_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1427,7 +1502,7 @@ package body Test_Incremental is
          use WisiToken;
          use WisiToken.Syntax_Trees;
          use AUnit.Checks;
-         Tree : Syntax_Trees.Tree renames Incremental_Parser.Tree;
+         Tree : Syntax_Trees.Tree renames Ada_Lite.Incremental_Parser.Tree;
          Deleted : Node_Access := Tree.First_Terminal (Tree.Root);
       begin
          loop
@@ -1872,6 +1947,7 @@ package body Test_Incremental is
       Register_Routine (T, Recover_01'Access, "Recover_01");
       Register_Routine (T, Recover_02'Access, "Recover_02");
       Register_Routine (T, Recover_03'Access, "Recover_03");
+      Register_Routine (T, Recover_04'Access, "Recover_04");
       Register_Routine (T, Lexer_Errors_01'Access, "Lexer_Errors_01");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
@@ -1904,7 +1980,7 @@ package body Test_Incremental is
    is begin
       --  Run before Register_Tests
       WisiToken.Parse.LR.Parser.New_Parser
-        (Full_Parser,
+        (Ada_Lite.Full_Parser,
          Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
          Ada_Lite_LR1_T1_Main.Create_Parse_Table
            (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
@@ -1916,7 +1992,7 @@ package body Test_Incremental is
          User_Data                      => User_Data'Access);
 
       WisiToken.Parse.LR.Parser.New_Parser
-        (Incremental_Parser,
+        (Ada_Lite.Incremental_Parser,
          Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
          Ada_Lite_LR1_T1_Main.Create_Parse_Table
            (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
@@ -1928,19 +2004,57 @@ package body Test_Incremental is
          User_Data                      => User_Data'Access);
 
       if T.McKenzie_Config /= null then
-         WisiToken.Parse.LR.Set_McKenzie_Options (Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
-         WisiToken.Parse.LR.Set_McKenzie_Options (Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+         WisiToken.Parse.LR.Set_McKenzie_Options
+           (Ada_Lite.Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+         WisiToken.Parse.LR.Set_McKenzie_Options (Ada_Lite.Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
       end if;
 
-      Orig_McKenzie_Param := Full_Parser.Table.McKenzie_Param;
+      Ada_Lite.Orig_McKenzie_Param := Ada_Lite.Full_Parser.Table.McKenzie_Param;
+
+      WisiToken.Parse.LR.Parser.New_Parser
+        (Grammar.Full_Parser,
+         Grammar_Grammar_01_LR1_T1_Main.Create_Lexer (Trace'Access),
+         Grammar_Grammar_01_LR1_T1_Main.Create_Parse_Table,
+         Grammar_Grammar_01_LR1_T1_Main.Create_Productions,
+         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Fixes'Access,
+         Language_Matching_Begin_Tokens =>
+           WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Matching_Begin_Tokens'Access,
+         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.String_ID_Set'Access,
+         User_Data                      => User_Data'Access);
+
+      WisiToken.Parse.LR.Parser.New_Parser
+        (Grammar.Incremental_Parser,
+         Grammar_Grammar_01_LR1_T1_Main.Create_Lexer (Trace'Access),
+         Grammar_Grammar_01_LR1_T1_Main.Create_Parse_Table,
+         Grammar_Grammar_01_LR1_T1_Main.Create_Productions,
+         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Fixes'Access,
+         Language_Matching_Begin_Tokens =>
+           WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Matching_Begin_Tokens'Access,
+         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.String_ID_Set'Access,
+         User_Data                      => User_Data'Access);
+
+      if T.McKenzie_Config /= null then
+         WisiToken.Parse.LR.Set_McKenzie_Options
+           (Grammar.Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+         WisiToken.Parse.LR.Set_McKenzie_Options (Grammar.Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+      end if;
+
+      Grammar.Orig_McKenzie_Param := Grammar.Full_Parser.Table.McKenzie_Param;
+
    end Set_Up_Case;
 
    overriding procedure Set_Up (T : in out Test_Case)
    is begin
       --  Run before each test in Register_Tests
-      Ada_Lite_Actions.End_Name_Optional      := True;
-      Full_Parser.Table.McKenzie_Param        := Orig_McKenzie_Param;
-      Incremental_Parser.Table.McKenzie_Param := Orig_McKenzie_Param;
+      Incremental_Parser := Ada_Lite.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite.Full_Parser'Access;
+
+      Ada_Lite_Actions.End_Name_Optional               := True;
+      Ada_Lite.Full_Parser.Table.McKenzie_Param        := Ada_Lite.Orig_McKenzie_Param;
+      Ada_Lite.Incremental_Parser.Table.McKenzie_Param := Ada_Lite.Orig_McKenzie_Param;
+
+      Grammar.Full_Parser.Table.McKenzie_Param        := Grammar.Orig_McKenzie_Param;
+      Grammar.Incremental_Parser.Table.McKenzie_Param := Grammar.Orig_McKenzie_Param;
    end Set_Up;
 
 end Test_Incremental;

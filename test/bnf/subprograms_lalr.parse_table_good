@@ -449,14 +449,10 @@ State 21:
      33.0:declaration_list <= declaration ^
      33.1:declaration_list <= declaration_list declaration ^
 
-   FUNCTION         => reduce 1 tokens to declaration_list 33.0,
-                       reduce 2 tokens to declaration_list 33.1
-   PROCEDURE        => reduce 1 tokens to declaration_list 33.0,
-                       reduce 2 tokens to declaration_list 33.1
-   USE              => reduce 1 tokens to declaration_list 33.0,
-                       reduce 2 tokens to declaration_list 33.1
-   Wisi_EOI         => reduce 1 tokens to declaration_list 33.0,
-                       reduce 2 tokens to declaration_list 33.1
+   FUNCTION         => reduce 2 tokens to declaration_list 33.1
+   PROCEDURE        => reduce 2 tokens to declaration_list 33.1
+   USE              => reduce 2 tokens to declaration_list 33.1
+   Wisi_EOI         => reduce 2 tokens to declaration_list 33.1
    default          => ERROR
 
    Minimal_Complete_Actions => ((1 declaration_list 33.0), (2 declaration_list 33.1))
@@ -466,12 +462,9 @@ State 22:
      33.2:declaration_list <= declaration_list declaration_list ^
      33.2:declaration_list <= declaration_list ^ declaration_list
 
-   FUNCTION         => shift and goto state 1 30.0,
-                       reduce 2 tokens to declaration_list 33.2
-   PROCEDURE        => shift and goto state 2 30.8,
-                       reduce 2 tokens to declaration_list 33.2
-   USE              => shift and goto state 3 32.0,
-                       reduce 2 tokens to declaration_list 33.2
+   FUNCTION         => reduce 2 tokens to declaration_list 33.2
+   PROCEDURE        => reduce 2 tokens to declaration_list 33.2
+   USE              => reduce 2 tokens to declaration_list 33.2
    Wisi_EOI         => reduce 2 tokens to declaration_list 33.2
    default          => ERROR
 
@@ -981,7 +974,5 @@ State 71:
    Minimal_Complete_Actions => (9 block 23.0)
 
 70 states with minimal_complete_actions; 78 total minimal_complete_actions.
-
-2 states with optimized_list conflicts: 21 22
 
  12 rules, 28 user actions, 11 checks, 72 states

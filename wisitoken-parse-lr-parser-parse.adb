@@ -516,36 +516,7 @@ begin
 
                   Conflict := (if Action_Cur = null then null else Action_Cur.Next);
 
-                  if Conflict /= null and then Shared_Parser.Is_Optimized_List (Action.Production) then
-                     --  This is an optimized_list conflict.
-                     --
-                     --  See comments in wisitoken-generate-lr.adb Check_Conflicts for
-                     --  accuracy of optimized_list recognition.
-                     pragma Assert (Conflict.Next = null);
-
-                     --  From optimized_list parse table, the conflicts are:
-                     --
-                     --  State 5:
-                     --        8.0:declarations <= declaration ^
-                     --        8.1:declarations <= declarations declaration ^
-                     --
-                     --     IDENTIFIER       => reduce 1 tokens to declarations 8.0,
-                     --                         reduce 2 tokens to declarations 8.1
-                     --     Wisi_EOI         => reduce 1 tokens to declarations 8.0,
-                     --                         reduce 2 tokens to declarations 8.1
-                     --
-                     --  State 6:
-                     --        8.1:declarations <= declarations ^ declaration
-                     --        8.2:declarations <= declarations declarations ^
-                     --        8.2:declarations <= declarations ^ declarations
-                     --
-                     --     IDENTIFIER       => shift and goto state 1 7.0,
-                     --                         reduce 2 tokens to declarations 8.2
-
-                     --  For all three conflicts, we prefer the second option.
-                     Action := Conflict.Item;
-
-                  else
+                  if Conflict /= null then
                      loop
                         exit when Conflict = null;
                         --  Spawn a new parser (before modifying Current_Parser stack).

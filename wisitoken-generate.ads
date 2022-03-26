@@ -12,7 +12,7 @@
 --
 --  See wisitoken.ads
 --
---  Copyright (C) 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2020, 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -83,7 +83,7 @@ package WisiToken.Generate is
    --
    --  LALR, LR1 generate want First as both Token_Sequence_Arrays.Vector
    --  and Token_Array_Token_Set, Packrat wants Token_Array_Token_Set,
-   --  existing tests all use Token_Array_Token_Set. So for LR1 we use
+   --  existing tests all use Token_Array_Token_Set. So for LR we use
    --  To_Terminal_Sequence_Array.
 
    function To_Terminal_Sequence_Array

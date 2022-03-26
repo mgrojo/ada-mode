@@ -53,16 +53,16 @@
 (statement_list_2, (47 . 64) <= ((statement_list_3, (47 . 61)), (statement_0, (63 . 64))))
  ... goto state 12
  0: 12: (-1, 18:(IDENTIFIER, (120 . 120))) : shift and goto state 16
- 0: 16: (-1, 19:(Wisi_EOI, (123 . 122))) : ERROR
+ 0: 16: (-1, 19:(Wisi_EOI, (122 . 121))) : ERROR
  0: 16: expecting: SEMICOLON
  0: zombie
 
  McKenzie error recovery
 
-parser 0: State 16 Current_Token (0, 2;20:(Wisi_EOI, (123 . 122) ERROR))
+parser 0: State 16 Current_Token (0, 2;20:(Wisi_EOI, (122 . 121) ERROR))
 Parser_Action
  0: succeed 1, enqueue 3, check  2, cost:  3
- 0:  3, ( 0 0 1 0 0 0 0 0 0), (15 : (SEMICOLON))\2;20:(Wisi_EOI, (123 . 122) ERROR)\((INSERT, SEMICOLON, 2))
+ 0:  3, ( 0 0 1 0 0 0 0 0 0), (15 : (SEMICOLON))\2;20:(Wisi_EOI, (122 . 121) ERROR)\((INSERT, SEMICOLON, 2))
 
 recover: succeed, parser count 1
  0: stack/stream:
@@ -104,24 +104,24 @@ recover: succeed, parser count 1
 (-1, 
 -35:(SEMICOLON)),
 (-1, 
-2;21:(Wisi_EOI, (123 . 122) ERROR)))
+2;21:(Wisi_EOI, (122 . 121) ERROR)))
     Current_Token: (0, -35:(SEMICOLON))
     Shared_Token: ()
     recover_insert_delete:
     resume_active: True, token goal 5
 
  0: 16: (0, -35:(SEMICOLON)) : shift and goto state 15
- 0: 15: (0, 2;21:(Wisi_EOI, (123 . 122) ERROR)) : reduce 2 tokens to statement
+ 0: 15: (0, 2;21:(Wisi_EOI, (122 . 121) ERROR)) : reduce 2 tokens to statement
 (statement_0, (120 . 120) <= (1;18:(IDENTIFIER, (120 . 120)), -35:(SEMICOLON)))
  ... goto state 17
- 0: 17: (0, 2;21:(Wisi_EOI, (123 . 122) ERROR)) : reduce 2 tokens to statement_list
+ 0: 17: (0, 2;21:(Wisi_EOI, (122 . 121) ERROR)) : reduce 2 tokens to statement_list
 (statement_list_2, (47 . 120) <= ((statement_list_2, (47 . 64)), (statement_0, (120 . 120))))
  ... goto state 12
- 0: 12: (0, 2;21:(Wisi_EOI, (123 . 122) ERROR)) : reduce 2 tokens to compilation
+ 0: 12: (0, 2;21:(Wisi_EOI, (122 . 121) ERROR)) : reduce 2 tokens to compilation
 (compilation_1, (17 . 120) <= ((declarations_1, (17 . 29)), (statement_list_2, (47 . 120))))
  ... goto state 4
- 0: 4: (0, 2;21:(Wisi_EOI, (123 . 122) ERROR)) : accept it
+ 0: 4: (0, 2;21:(Wisi_EOI, (122 . 121) ERROR)) : accept it
 (wisitoken_accept_0, (17 . 120) <= ((compilation_1, (17 . 120))))
  0: succeed
-optimized_list.input:16:1: syntax_error: expecting SEMICOLON, found ''
+optimized_list.input:15:1: syntax_error: expecting SEMICOLON, found ''
    recovered: ((INSERT, SEMICOLON, 2))

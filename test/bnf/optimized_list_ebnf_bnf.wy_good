@@ -15,15 +15,21 @@
 %start compilation
 
 %token <punctuation> COLON ":"
-%token <punctuation> SEMICOLON ";"
-%token <punctuation> LESS_LESS "<<"
 %token <punctuation> GREATER_GREATER ">>"
+%token <punctuation> LESS_LESS "<<"
+%token <punctuation> SEMICOLON ";"
+%token <punctuation> SLASH "/"
+%token <punctuation> STAR "*"
 
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE
 %non_grammar <comment-new-line> COMMENT "--"
+
+;; These are grammar conflicts, not optimized_list conflicts.
+%conflict SHIFT statement | REDUCE term on token SEMICOLON (6, 22)
+%conflict SHIFT declaration | REDUCE rhs_item on token SEMICOLON (28)
 
 declaration
   : IDENTIFIER COLON IDENTIFIER SEMICOLON
@@ -36,10 +42,6 @@ declarations
   | declarations declarations
   ;
 
-statement
-  : IDENTIFIER SEMICOLON
-  ;
-
 label
   : LESS_LESS IDENTIFIER GREATER_GREATER
   ;
@@ -49,6 +51,37 @@ sequence_of_statements
 ;; optimized_list.
   : statement_statement_list label_list
   | statement_statement_list
+  ;
+
+;; optimized list with a separator
+multiplying_operator
+  : STAR
+  | SLASH
+  ;
+
+term
+  : IDENTIFIER
+  | term multiplying_operator IDENTIFIER
+  | term multiplying_operator term
+  ;
+
+rhs_item
+  : IDENTIFIER
+  ;
+
+rhs
+  : ;; empty
+  | rhs_item_list
+  ;
+
+nonterminal
+  : IDENTIFIER COLON rhs SEMICOLON
+  ;
+
+statement
+  : IDENTIFIER SEMICOLON
+  | term SEMICOLON
+  | nonterminal
   ;
 
 compilation
@@ -65,4 +98,9 @@ label_list
   : label
   | label_list label
   | label_list label_list
+  ;
+rhs_item_list
+  : rhs_item
+  | rhs_item_list rhs_item
+  | rhs_item_list rhs_item_list
   ;

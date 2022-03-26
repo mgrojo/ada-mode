@@ -6603,6 +6603,6 @@ State 330:
 
 328 states with minimal_complete_actions; 341 total minimal_complete_actions.
 
-7 states with other conflicts: 65 66 110 131 146 177 255
+7 states with conflicts: 65 66 110 131 146 177 255
 
  85 rules, 0 user actions, 17 checks, 331 states

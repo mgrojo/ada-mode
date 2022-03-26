@@ -330,8 +330,7 @@ State 13:
      22.2:CompilationUnit <= CompilationUnit CompilationUnit ^
      22.2:CompilationUnit <= CompilationUnit ^ CompilationUnit
 
-   LEFT_CURLY_BRACKET       => shift and goto state 1 23.0,
-                               reduce 2 tokens to CompilationUnit 22.2
+   LEFT_CURLY_BRACKET       => reduce 2 tokens to CompilationUnit 22.2
    Wisi_EOI                 => reduce 2 tokens to CompilationUnit 22.2
    default                  => ERROR
 
@@ -344,10 +343,8 @@ State 14:
      22.0:CompilationUnit <= Statement ^
      22.1:CompilationUnit <= CompilationUnit Statement ^
 
-   LEFT_CURLY_BRACKET       => reduce 1 tokens to CompilationUnit 22.0,
-                               reduce 2 tokens to CompilationUnit 22.1
-   Wisi_EOI                 => reduce 1 tokens to CompilationUnit 22.0,
-                               reduce 2 tokens to CompilationUnit 22.1
+   LEFT_CURLY_BRACKET       => reduce 2 tokens to CompilationUnit 22.1
+   Wisi_EOI                 => reduce 2 tokens to CompilationUnit 22.1
    default                  => ERROR
 
    Minimal_Complete_Actions => ((1 CompilationUnit 22.0), (2 CompilationUnit 22.1))
@@ -1304,10 +1301,8 @@ State 83:
      36.0:ArgumentList <= Expression ^
      36.1:ArgumentList <= ArgumentList COMMA Expression ^
 
-   COMMA                    => reduce 1 tokens to ArgumentList 36.0,
-                               reduce 3 tokens to ArgumentList 36.1
-   RIGHT_PAREN              => reduce 1 tokens to ArgumentList 36.0,
-                               reduce 3 tokens to ArgumentList 36.1
+   COMMA                    => reduce 3 tokens to ArgumentList 36.1
+   RIGHT_PAREN              => reduce 3 tokens to ArgumentList 36.1
    default                  => ERROR
 
    Minimal_Complete_Actions => ((1 ArgumentList 36.0), (3 ArgumentList 36.1))
@@ -1317,8 +1312,7 @@ State 84:
      36.2:ArgumentList <= ArgumentList COMMA ArgumentList ^
      36.2:ArgumentList <= ArgumentList ^ COMMA ArgumentList
 
-   COMMA                    => shift and goto state 61 36.1,
-                               reduce 3 tokens to ArgumentList 36.2
+   COMMA                    => reduce 3 tokens to ArgumentList 36.2
    RIGHT_PAREN              => reduce 3 tokens to ArgumentList 36.2
    default                  => ERROR
 
@@ -1492,7 +1486,5 @@ State 95:
    Minimal_Complete_Actions => (4 MethodInvocation 35.0)
 
 92 states with minimal_complete_actions; 104 total minimal_complete_actions.
-
-4 states with optimized_list conflicts: 13 14 83 84
 
  16 rules, 0 user actions, 0 checks, 96 states

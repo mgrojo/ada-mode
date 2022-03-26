@@ -1,0 +1,215 @@
+Tokens:
+ 0 => WHITESPACE
+ 1 => NEW_LINE
+ 2 => COMMENT
+ 3 => NEW
+ 4 => RANGE
+ 5 => DOT_DOT
+ 6 => MINUS
+ 7 => PLUS
+ 8 => IDENTIFIER
+ 9 => Wisi_EOI
+ 10 => wisitoken_accept
+ 11 => subtype_indication
+ 12 => simple_expression
+ 13 => primary
+ 14 => binary_adding_operator
+ 15 => allocator
+
+Productions:
+10.0: wisitoken_accept <= subtype_indication Wisi_EOI
+11.0: subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT simple_expression ; (3 => Other, 5 => Other_Right)
+12.0: simple_expression <= primary ; (1 => Other_Left)
+12.1: simple_expression <= simple_expression binary_adding_operator primary ; (1 => Direct_Left, 3 => Other_Right)
+13.0: primary <= IDENTIFIER
+13.1: primary <= allocator ; (1 => Other_Left)
+14.0: binary_adding_operator <= PLUS
+14.1: binary_adding_operator <= MINUS
+15.0: allocator <= NEW subtype_indication ; (2 => Other_Right)
+
+Recursions:
+1 => (11 (0.3, 0.5) -> 12 (0.1, 1.3) -> 13 (1.1) -> 15 (0.2) -> )
+2 => (12 (1.1) -> )
+
+LALR Parse Table:
+State 0:
+     10.0:wisitoken_accept <= ^ subtype_indication Wisi_EOI
+
+   IDENTIFIER             => shift and goto state 1 11.0
+   default                => ERROR
+
+   subtype_indication     goto state 2
+
+   Minimal_Complete_Actions => 
+
+State 1:
+     11.0:subtype_indication <= IDENTIFIER ^ RANGE simple_expression DOT_DOT simple_expression
+
+   RANGE                  => shift and goto state 3 11.0
+   default                => ERROR
+
+   Minimal_Complete_Actions => (RANGE 11.0)
+
+State 2:
+     10.0:wisitoken_accept <= subtype_indication ^ Wisi_EOI
+
+   Wisi_EOI               => accept it 10.0
+   default                => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 3:
+     11.0:subtype_indication <= IDENTIFIER RANGE ^ simple_expression DOT_DOT simple_expression
+
+   NEW                    => shift and goto state 4 15.0
+   IDENTIFIER             => shift and goto state 5 13.0
+   default                => ERROR
+
+   simple_expression      goto state 6
+   primary                goto state 7
+   allocator              goto state 8
+
+   Minimal_Complete_Actions => (IDENTIFIER 13.0)
+
+State 4:
+     15.0:allocator <= NEW ^ subtype_indication
+
+   IDENTIFIER             => shift and goto state 1 11.0
+   default                => ERROR
+
+   subtype_indication     goto state 9
+
+   Minimal_Complete_Actions => (IDENTIFIER 11.0)
+
+State 5:
+     13.0:primary <= IDENTIFIER ^
+
+   DOT_DOT                => reduce 1 tokens to primary 13.0
+   MINUS                  => reduce 1 tokens to primary 13.0
+   PLUS                   => reduce 1 tokens to primary 13.0
+   Wisi_EOI               => reduce 1 tokens to primary 13.0
+   default                => ERROR
+
+   Minimal_Complete_Actions => (1 primary 13.0)
+
+State 6:
+     11.0:subtype_indication <= IDENTIFIER RANGE simple_expression ^ DOT_DOT simple_expression
+     12.1:simple_expression <= simple_expression ^ binary_adding_operator primary
+
+   DOT_DOT                => shift and goto state 10 11.0
+   MINUS                  => shift and goto state 11 14.1
+   PLUS                   => shift and goto state 12 14.0
+   default                => ERROR
+
+   binary_adding_operator goto state 13
+
+   Minimal_Complete_Actions => (DOT_DOT 11.0)
+
+State 7:
+     12.0:simple_expression <= primary ^
+
+   DOT_DOT                => reduce 1 tokens to simple_expression 12.0
+   MINUS                  => reduce 1 tokens to simple_expression 12.0
+   PLUS                   => reduce 1 tokens to simple_expression 12.0
+   Wisi_EOI               => reduce 1 tokens to simple_expression 12.0
+   default                => ERROR
+
+   Minimal_Complete_Actions => (1 simple_expression 12.0)
+
+State 8:
+     13.1:primary <= allocator ^
+
+   DOT_DOT                => reduce 1 tokens to primary 13.1
+   MINUS                  => reduce 1 tokens to primary 13.1
+   PLUS                   => reduce 1 tokens to primary 13.1
+   Wisi_EOI               => reduce 1 tokens to primary 13.1
+   default                => ERROR
+
+   Minimal_Complete_Actions => (1 primary 13.1)
+
+State 9:
+     15.0:allocator <= NEW subtype_indication ^
+
+   DOT_DOT                => reduce 2 tokens to allocator 15.0
+   MINUS                  => reduce 2 tokens to allocator 15.0
+   PLUS                   => reduce 2 tokens to allocator 15.0
+   Wisi_EOI               => reduce 2 tokens to allocator 15.0
+   default                => ERROR
+
+   Minimal_Complete_Actions => (2 allocator 15.0)
+
+State 10:
+     11.0:subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT ^ simple_expression
+
+   NEW                    => shift and goto state 4 15.0
+   IDENTIFIER             => shift and goto state 5 13.0
+   default                => ERROR
+
+   simple_expression      goto state 14
+   primary                goto state 7
+   allocator              goto state 8
+
+   Minimal_Complete_Actions => (IDENTIFIER 13.0)
+
+State 11:
+     14.1:binary_adding_operator <= MINUS ^
+
+   NEW                    => reduce 1 tokens to binary_adding_operator 14.1
+   IDENTIFIER             => reduce 1 tokens to binary_adding_operator 14.1
+   default                => ERROR
+
+   Minimal_Complete_Actions => (1 binary_adding_operator 14.1)
+
+State 12:
+     14.0:binary_adding_operator <= PLUS ^
+
+   NEW                    => reduce 1 tokens to binary_adding_operator 14.0
+   IDENTIFIER             => reduce 1 tokens to binary_adding_operator 14.0
+   default                => ERROR
+
+   Minimal_Complete_Actions => (1 binary_adding_operator 14.0)
+
+State 13:
+     12.1:simple_expression <= simple_expression binary_adding_operator ^ primary
+
+   NEW                    => shift and goto state 4 15.0
+   IDENTIFIER             => shift and goto state 5 13.0
+   default                => ERROR
+
+   primary                goto state 15
+   allocator              goto state 8
+
+   Minimal_Complete_Actions => (IDENTIFIER 13.0)
+
+State 14:
+     11.0:subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT simple_expression ^
+     12.1:simple_expression <= simple_expression ^ binary_adding_operator primary
+
+   DOT_DOT                => reduce 5 tokens to subtype_indication 11.0
+   MINUS                  => shift and goto state 11 14.1,
+                             reduce 5 tokens to subtype_indication 11.0
+   PLUS                   => shift and goto state 12 14.0,
+                             reduce 5 tokens to subtype_indication 11.0
+   Wisi_EOI               => reduce 5 tokens to subtype_indication 11.0
+   default                => ERROR
+
+   binary_adding_operator goto state 13
+
+   Minimal_Complete_Actions => (5 subtype_indication 11.0)
+
+State 15:
+     12.1:simple_expression <= simple_expression binary_adding_operator primary ^
+
+   DOT_DOT                => reduce 3 tokens to simple_expression 12.1
+   MINUS                  => reduce 3 tokens to simple_expression 12.1
+   PLUS                   => reduce 3 tokens to simple_expression 12.1
+   Wisi_EOI               => reduce 3 tokens to simple_expression 12.1
+   default                => ERROR
+
+   Minimal_Complete_Actions => (3 simple_expression 12.1)
+
+14 states with minimal_complete_actions; 14 total minimal_complete_actions.
+
+1 states with conflicts: 14
+
+ 5 rules, 0 user actions, 0 checks, 16 states

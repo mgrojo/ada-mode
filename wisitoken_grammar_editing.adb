@@ -1050,7 +1050,7 @@ package body WisiToken_Grammar_Editing is
          --  B is an optional item in an rhs_item_list:
          --  | A B? C
          --
-         --  or B is a rhs_multiple_item that is allowed to be empty:
+         --  or B is an rhs_multiple_item that is allowed to be empty:
          --  | A B* C
          --
          --  or B is a virtual identifier naming the new nonterm replacing the
@@ -2032,7 +2032,7 @@ package body WisiToken_Grammar_Editing is
                else Element (RHS_Item_List_Iter.Previous (Element_2)));
             --  The rhs_element containing the first list element
 
-            Can_Be_Empty : constant Boolean := Element_1 = Invalid_Node_Access and Tree.RHS_Index (B) in 0 | 3;
+            Can_Be_Empty : constant Boolean := Element_1 = Invalid_Node_Access and Tree.RHS_Index (B) in 0 | 3 | 5;
 
             procedure Do_Simple_Named (List_Elements : in Valid_Node_Access)
             with Pre => To_Token_Enum (Tree.ID (List_Elements)) in rhs_element_ID | rhs_item_list_ID | IDENTIFIER_ID

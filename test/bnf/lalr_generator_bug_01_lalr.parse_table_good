@@ -553,6 +553,6 @@ State 46:
 
 45 states with minimal_complete_actions; 49 total minimal_complete_actions.
 
-2 states with other conflicts: 10 28
+2 states with conflicts: 10 28
 
  16 rules, 0 user actions, 0 checks, 47 states

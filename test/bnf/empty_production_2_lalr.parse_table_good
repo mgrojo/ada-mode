@@ -132,6 +132,6 @@ State 8:
 
 7 states with minimal_complete_actions; 7 total minimal_complete_actions.
 
-4 states with other conflicts: 0 1 3 5
+4 states with conflicts: 0 1 3 5
 
  3 rules, 1 user actions, 0 checks, 9 states

@@ -428,6 +428,7 @@ package WisiToken is
 
    Trace_Generate_EBNF             : Integer := 0;
    Trace_Generate_Table            : Integer := 0;
+   Trace_Generate_Conflicts        : Integer := 0;
    Trace_Generate_Minimal_Complete : Integer := 0;
    --  Output during grammar generation.
 

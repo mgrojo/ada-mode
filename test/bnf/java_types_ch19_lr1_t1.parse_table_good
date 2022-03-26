@@ -936,8 +936,7 @@ State 63:
      22.2:TypeArgumentList <= TypeArgumentList COMMA TypeArgumentList ^
      22.2:TypeArgumentList <= TypeArgumentList ^ COMMA TypeArgumentList
 
-   COMMA                                   => shift and goto state 48 22.1,
-                                              reduce 3 tokens to TypeArgumentList 22.2
+   COMMA                                   => reduce 3 tokens to TypeArgumentList 22.2
    GREATER                                 => reduce 3 tokens to TypeArgumentList 22.2
    default                                 => ERROR
 
@@ -947,10 +946,8 @@ State 64:
      22.0:TypeArgumentList <= TypeArgument ^
      22.1:TypeArgumentList <= TypeArgumentList COMMA TypeArgument ^
 
-   COMMA                                   => reduce 1 tokens to TypeArgumentList 22.0,
-                                              reduce 3 tokens to TypeArgumentList 22.1
-   GREATER                                 => reduce 1 tokens to TypeArgumentList 22.0,
-                                              reduce 3 tokens to TypeArgumentList 22.1
+   COMMA                                   => reduce 3 tokens to TypeArgumentList 22.1
+   GREATER                                 => reduce 3 tokens to TypeArgumentList 22.1
    default                                 => ERROR
 
    Minimal_Complete_Actions => ((1 TypeArgumentList 22.0), (3 TypeArgumentList 22.1))
@@ -1159,14 +1156,10 @@ State 81:
      29.0:AnnotationList_LEFT_SQUARE_BRACKET_list <= AnnotationList_LEFT_SQUARE_BRACKET ^
      29.1:AnnotationList_LEFT_SQUARE_BRACKET_list <= AnnotationList_LEFT_SQUARE_BRACKET_list AnnotationList_LEFT_SQUARE_BRACKET ^
 
-   AT                                      => reduce 1 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.0,
-                                              reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.1
-   COMMA                                   => reduce 1 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.0,
-                                              reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.1
-   GREATER                                 => reduce 1 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.0,
-                                              reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.1
-   LEFT_SQUARE_BRACKET                     => reduce 1 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.0,
-                                              reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.1
+   AT                                      => reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.1
+   COMMA                                   => reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.1
+   GREATER                                 => reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.1
+   LEFT_SQUARE_BRACKET                     => reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.1
    default                                 => ERROR
 
    Minimal_Complete_Actions => ((1 AnnotationList_LEFT_SQUARE_BRACKET_list 29.0), (2 AnnotationList_LEFT_SQUARE_BRACKET_list 29.1))
@@ -1176,12 +1169,10 @@ State 82:
      29.2:AnnotationList_LEFT_SQUARE_BRACKET_list <= AnnotationList_LEFT_SQUARE_BRACKET_list AnnotationList_LEFT_SQUARE_BRACKET_list ^
      29.2:AnnotationList_LEFT_SQUARE_BRACKET_list <= AnnotationList_LEFT_SQUARE_BRACKET_list ^ AnnotationList_LEFT_SQUARE_BRACKET_list
 
-   AT                                      => shift and goto state 43 19.0,
-                                              reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.2
+   AT                                      => reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.2
    COMMA                                   => reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.2
    GREATER                                 => reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.2
-   LEFT_SQUARE_BRACKET                     => shift and goto state 71 28.1,
-                                              reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.2
+   LEFT_SQUARE_BRACKET                     => reduce 2 tokens to AnnotationList_LEFT_SQUARE_BRACKET_list 29.2
    default                                 => ERROR
 
    AnnotationList                          goto state 72
@@ -1230,7 +1221,5 @@ State 85:
    Minimal_Complete_Actions => (3 AnnotationList_LEFT_SQUARE_BRACKET 28.0)
 
 75 states with minimal_complete_actions; 83 total minimal_complete_actions.
-
-4 states with optimized_list conflicts: 63 64 81 82
 
  13 rules, 0 user actions, 0 checks, 86 states

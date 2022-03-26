@@ -168,12 +168,9 @@ State 8:
      10.0:declarations <= declaration ^
      10.1:declarations <= declarations declaration ^
 
-   PRAGMA           => reduce 1 tokens to declarations 10.0,
-                       reduce 2 tokens to declarations 10.1
-   IDENTIFIER       => reduce 1 tokens to declarations 10.0,
-                       reduce 2 tokens to declarations 10.1
-   Wisi_EOI         => reduce 1 tokens to declarations 10.0,
-                       reduce 2 tokens to declarations 10.1
+   PRAGMA           => reduce 2 tokens to declarations 10.1
+   IDENTIFIER       => reduce 2 tokens to declarations 10.1
+   Wisi_EOI         => reduce 2 tokens to declarations 10.1
    default          => ERROR
 
    Minimal_Complete_Actions => ((1 declarations 10.0), (2 declarations 10.1))
@@ -184,8 +181,7 @@ State 9:
      10.2:declarations <= declarations ^ declarations
 
    PRAGMA           => reduce 2 tokens to declarations 10.2
-   IDENTIFIER       => shift and goto state 1 9.0,
-                       reduce 2 tokens to declarations 10.2
+   IDENTIFIER       => reduce 2 tokens to declarations 10.2
    Wisi_EOI         => reduce 2 tokens to declarations 10.2
    default          => ERROR
 
@@ -269,12 +265,9 @@ State 17:
      13.1:statement_list <= statement ^
      13.2:statement_list <= statement_list statement ^
 
-   PRAGMA           => reduce 1 tokens to statement_list 13.1,
-                       reduce 2 tokens to statement_list 13.2
-   IDENTIFIER       => reduce 1 tokens to statement_list 13.1,
-                       reduce 2 tokens to statement_list 13.2
-   Wisi_EOI         => reduce 1 tokens to statement_list 13.1,
-                       reduce 2 tokens to statement_list 13.2
+   PRAGMA           => reduce 2 tokens to statement_list 13.2
+   IDENTIFIER       => reduce 2 tokens to statement_list 13.2
+   Wisi_EOI         => reduce 2 tokens to statement_list 13.2
    default          => ERROR
 
    Minimal_Complete_Actions => ((1 statement_list 13.1), (2 statement_list 13.2))
@@ -283,12 +276,9 @@ State 18:
      13.0:statement_list <= pragma_g ^
      13.3:statement_list <= statement_list pragma_g ^
 
-   PRAGMA           => reduce 1 tokens to statement_list 13.0,
-                       reduce 2 tokens to statement_list 13.3
-   IDENTIFIER       => reduce 1 tokens to statement_list 13.0,
-                       reduce 2 tokens to statement_list 13.3
-   Wisi_EOI         => reduce 1 tokens to statement_list 13.0,
-                       reduce 2 tokens to statement_list 13.3
+   PRAGMA           => reduce 2 tokens to statement_list 13.3
+   IDENTIFIER       => reduce 2 tokens to statement_list 13.3
+   Wisi_EOI         => reduce 2 tokens to statement_list 13.3
    default          => ERROR
 
    Minimal_Complete_Actions => ((1 statement_list 13.0), (2 statement_list 13.3))
@@ -299,10 +289,8 @@ State 19:
      13.4:statement_list <= statement_list statement_list ^
      13.4:statement_list <= statement_list ^ statement_list
 
-   PRAGMA           => shift and goto state 6 12.0,
-                       reduce 2 tokens to statement_list 13.4
-   IDENTIFIER       => shift and goto state 16 11.0,
-                       reduce 2 tokens to statement_list 13.4
+   PRAGMA           => reduce 2 tokens to statement_list 13.4
+   IDENTIFIER       => reduce 2 tokens to statement_list 13.4
    Wisi_EOI         => reduce 2 tokens to statement_list 13.4
    default          => ERROR
 
@@ -333,7 +321,5 @@ State 21:
    Minimal_Complete_Actions => (3 pragma_g 12.0)
 
 20 states with minimal_complete_actions; 24 total minimal_complete_actions.
-
-5 states with optimized_list conflicts: 8 9 17 18 19
 
  6 rules, 0 user actions, 0 checks, 22 states

@@ -999,7 +999,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("{");
       Indent := Indent + 3;
       Indent_Line ("if (lexer->cursor <= lexer->buffer_last)");
-      Indent_Line ("   ++lexer->cursor;");
+      Indent_Line ("{");
+      Indent := Indent + 3;
+      Indent_Line ("++lexer->cursor;");
       Indent_Line ("if (lexer->cursor <= lexer->buffer_last)");
       Indent_Line ("{");
       Indent_Line ("   if (count_lines && *lexer->cursor == 0x0A)");
@@ -1017,6 +1019,8 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("     lexer->char_pos++;");
       Indent_Line ("} else ");
       Indent_Line ("   lexer->char_pos++;");
+      Indent := Indent - 3;
+      Indent_Line ("}");
       Indent := Indent - 3;
       Indent_Line ("}");
       Indent_Start ("#define YYSKIP() skip(lexer, 0)");

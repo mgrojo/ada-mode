@@ -283,7 +283,7 @@ package WisiToken.BNF is
    type Conflict is record
       Source_Line : WisiToken.Line_Number_Type;
       Items       : String_Pair_Lists.List;
-      --  Item (I).Name = action, .Value = lhs_rhs
+      --  Item (I).Name = action, .Value = lhs
       On          : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 

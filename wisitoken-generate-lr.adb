@@ -252,7 +252,7 @@ package body WisiToken.Generate.LR is
             Need_Bar := True;
          end if;
 
-         Result := Result & Image (Item.Action) & " " & Image (Item.LHS, Descriptor);
+         Result := Result & Image (Item.Verb) & " " & Image (Item.LHS, Descriptor);
       end loop;
 
       Result := Result & " on token " & Image (Conflict.On, Descriptor);
@@ -324,15 +324,147 @@ package body WisiToken.Generate.LR is
       end loop;
    end Put;
 
+   function Is_Optimized_List_Conflict
+     (Conflict         : in WisiToken.Parse.LR.Parse_Action_Node_Ptr;
+      Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor       : in WisiToken.Descriptor;
+      File_Name        : in String;
+      Ignore_Conflicts : in Boolean)
+     return Boolean
+   --  True if Conflict is due to an optimized_list. Outputs an error
+   --  message for mixed optimized_list/grammar conflicts.
+   is
+      use all type Ada.Containers.Count_Type;
+      Item_1 : Parse_Action_Rec renames Conflict.Item;
+
+      function Any_Optimized_List return Boolean
+      is
+         Temp : Parse_Action_Node_Ptr := Conflict;
+      begin
+         loop
+            exit when Temp = null;
+            if Grammar (Temp.Item.Production.LHS).Optimized_List then
+               return True;
+            end if;
+            Temp := Temp.Next;
+         end loop;
+         return False;
+      end Any_Optimized_List;
+
+   begin
+      --  Also see wisitoken_grammar_runtime.adb Add_Nonterminal
+      --  Is_Optimized_List.
+
+      if Conflict.Next = null then
+         --  Not a conflict
+         return False;
+
+      elsif Conflict.Next.Next /= null then
+         if Trace_Generate_Conflicts > Detail then
+            Ada.Text_IO.Put_Line ("conflict.length > 2:");
+            Put (Ada.Text_IO.Current_Output, Conflict, Descriptor);
+            Ada.Text_IO.New_Line;
+         end if;
+         if Any_Optimized_List then
+            --  This is a mixed optimized_list and grammar conflict with more than
+            --  two actions; for now, we forbid such conflicts. We leave all the
+            --  conflict items in the parse table so the user can try to fix the
+            --  grammar.
+            --
+            --  Note that if the first two actions added here form an
+            --  optimized_list conflict, it is resolved to one action, and another
+            --  action maybe added later, resulting in a mixed
+            --  grammar/optimized_list conflict that we can handle.
+            --  optimized_list_01.wy
+            declare
+               use Ada.Text_IO;
+            begin
+               Put_Line (Current_Error, Error_Message (File_Name, 1, " mixed optimized_list/grammar conflict:"));
+               Put (Current_Error, Conflict, Descriptor);
+               New_Line (Current_Error);
+               WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Conflicts;
+            end;
+         end if;
+         return False;
+      end if;
+
+      declare
+         Item_2 : Parse_Action_Rec renames Conflict.Next.Item;
+         List_Prod : WisiToken.Productions.Instance renames Grammar (Item_2.Production.LHS);
+      begin
+         if not List_Prod.Optimized_List then
+            --  not an optimized_list
+            return False;
+         end if;
+
+         --  From optimized_list_lr1_t1.parse_table; list_element is a first level nonterm:
+         --  State 8:
+         --       10.0:declarations <= declaration ^
+         --       10.1:declarations <= declarations declaration ^
+         --
+         --     PRAGMA           => reduce 1 tokens to declarations 10.0,
+         --                         reduce 2 tokens to declarations 10.1
+         --     IDENTIFIER       => reduce 1 tokens to declarations 10.0,
+         --                         reduce 2 tokens to declarations 10.1
+
+         --  From ada_lite_ebnf_lalr_re2c.parse_table; list element is a higher-level nonterm:
+         --
+         --  State 117:
+         --      135.1:statement_list <= statement_list ^ statement
+         --      135.2:statement_list <= statement_list statement_list ^
+         --      135.2:statement_list <= statement_list ^ statement_list
+         --     BEGIN                                  => reduce 0 tokens to block_label_opt 63.1,
+         --                                               reduce 2 tokens to statement_list 135.2
+         --     CASE                                   => shift and goto state 1 67.0,
+         --                                               reduce 2 tokens to statement_list 135.2
+
+         case Item_1.Verb is
+         when Shift =>
+            if Item_2.Production.RHS /= List_Prod.RHSs.Last_Index then
+               --  This is a mixed optimized_list and other conflict that we handle
+               --  by treating it as a grammar conflict.
+               return False;
+            end if;
+
+         when Reduce =>
+            if Item_2.Verb = Accept_It then
+               --  From empty_production_2_lalr.parse_table :
+               --  %conflict REDUCE declaration | ACCEPT_IT wisitoken_accept on token Wisi_EOI (3)
+               --  State 3:
+               --        7.0:wisitoken_accept <= declarations ^ Wisi_EOI
+               --        9.0:declarations <= declarations ^ declaration
+               --
+               --     IS               => shift and goto state 1 10.0,
+               --                         reduce 0 tokens to declaration 8.1
+               --     Wisi_EOI         => accept it 7.0,
+               --                         reduce 0 tokens to declaration 8.1
+               null;
+
+            elsif Item_1.Production.LHS /= Item_2.Production.LHS then
+               if Item_1.Token_Count > 0 then
+                  --  This is a mixed optimized_list and other conflict that we handle
+                  --  by treating it as a grammar conflict.
+                  return False;
+               end if;
+            end if;
+
+         when Accept_It | WisiToken.Parse.LR.Error =>
+            --  Accept is always in Item_2, Error never occurs in conflicts
+            raise SAL.Programmer_Error;
+         end case;
+      end;
+      return True;
+   end Is_Optimized_List_Conflict;
+
    procedure Check_Conflicts
      (Label            : in     String;
       Found_Conflicts  : in out Conflict_Lists.Tree;
       Known_Conflicts  : in out Conflict_Lists.Tree;
       File_Name        : in     String;
       Descriptor       : in     WisiToken.Descriptor;
-      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
       Ignore_Conflicts : in     Boolean)
    is
+      use Ada.Text_IO;
       use Conflict_Lists;
       use all type SAL.Compare_Result;
       use all type Ada.Containers.Count_Type;
@@ -345,35 +477,6 @@ package body WisiToken.Generate.LR is
 
       To_Delete : Conflict_Lists.Tree;
    begin
-      --  First delete Found conflicts with resolutions that don't require error recovery.
-      loop
-         exit when Found = No_Element;
-         declare
-            Conflict : WisiToken.Generate.LR.Conflict renames Element (Found);
-         begin
-            if Conflict.Items.Length = 2 and then
-              Grammar (Conflict.Items (2).LHS).Optimized_List
-            then
-               To_Delete.Insert (Element (Found));
-
-               --  It is tempting to check more about the conflict; it is possible
-               --  that an optimized list token participates in a conflict that is
-               --  not due to the optimized_list construct. But that requires
-               --  duplicating a lot of the parser generator logic, so we don't
-               --  bother. If we find a test case that requires more accuracy here,
-               --  we'll add it then.
-            end if;
-            Found := Found_Iter.Next (Found);
-         end;
-      end loop;
-
-      for Conflict of To_Delete loop
-         Found_Conflicts.Delete (Conflict);
-      end loop;
-
-      To_Delete.Clear;
-
-      Found := Found_Iter.First;
       loop
          exit when Known = No_Element or Found = No_Element;
 
@@ -400,26 +503,25 @@ package body WisiToken.Generate.LR is
       end loop;
 
       if Found_Conflicts.Length > 0 then
-         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Error_Message (File_Name, 1, Label & " unknown conflicts:"));
-         Put (Found_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
-         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
+         New_Line (Current_Error);
+         Put_Line (Current_Error, Error_Message (File_Name, 1, Label & " unknown conflicts:"));
+         Put (Found_Conflicts, Current_Error, Descriptor);
+         New_Line (Current_Error);
          WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Conflicts;
       end if;
 
       if Known_Conflicts.Length > 0 then
-         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
-         Ada.Text_IO.Put_Line
-           (Ada.Text_IO.Current_Error, Error_Message (File_Name, 1, Label & " excess known conflicts:"));
-         Put (Known_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
-         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
+         New_Line (Current_Error);
+         Put_Line (Current_Error, Error_Message (File_Name, 1, Label & " excess known conflicts:"));
+         Put (Known_Conflicts, Current_Error, Descriptor);
+         New_Line (Current_Error);
          WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Conflicts;
       end if;
 
    end Check_Conflicts;
 
    procedure Collect_Conflicts
-     (Table           : in Parse_Table;
+     (Table           : in     Parse_Table;
       Conflicts       : in out Conflict_Lists.Tree;
       Conflict_Counts : in out Conflict_Count_Lists.Vector)
    is
@@ -428,36 +530,25 @@ package body WisiToken.Generate.LR is
       Conflict_Counts.Set_First_Last (Table.States'First, Table.States'Last);
 
       for State in Table.States'Range loop
-         declare
-            Counts : Conflict_Count renames Conflict_Counts (State);
-         begin
+         for Action_Node of Table.States (State).Action_List loop
+            if Count (Action_Node.Actions) > 1 then
+               declare
+                  use Conflict_Lists;
 
-            for Action_Node of Table.States (State).Action_List loop
-               if Count (Action_Node.Actions) > 1 then
-                  declare
-                     use Conflict_Lists;
+                  New_Conflict : constant Conflict := To_Conflict (Action_Node, State);
 
-                     New_Conflict : constant Conflict := To_Conflict (Action_Node, State);
+                  Existing_Conflict : constant Cursor := Conflicts.Iterate.Find (New_Conflict);
+               begin
+                  if Existing_Conflict = No_Element then
+                     Conflicts.Insert (New_Conflict);
+                  else
+                     Conflicts.Variable_Ref (Existing_Conflict).States.Append (State);
+                  end if;
 
-                     Existing_Conflict : constant Cursor := Conflicts.Iterate.Find (New_Conflict);
-                  begin
-                     if Existing_Conflict = No_Element then
-                        Conflicts.Insert (New_Conflict);
-                     else
-                        Conflicts.Variable_Ref (Existing_Conflict).States.Append (State);
-                     end if;
-
-                     if Action_Node.Actions.Item.Verb = Shift then
-                        Counts.Shift_Reduce := @ + 1;
-                     elsif New_Conflict.Items (New_Conflict.Items.Last_Index).Action = Accept_It then
-                        Counts.Accept_Reduce := @ + 1;
-                     else
-                        Counts.Reduce_Reduce := @ + 1;
-                     end if;
-                  end;
-               end if;
-            end loop;
-         end;
+                  Conflict_Counts (State) := Conflict_Counts (State) + 1;
+               end;
+            end if;
+         end loop;
       end loop;
    end Collect_Conflicts;
 
@@ -465,10 +556,13 @@ package body WisiToken.Generate.LR is
    --  Build parse table
 
    procedure Add_Action
-     (Symbol      : in     Token_ID;
-      Action      : in     Parse_Action_Rec;
-      Action_List : in out Action_Arrays.Vector;
-      Descriptor  : in     WisiToken.Descriptor)
+     (Symbol           : in     Token_ID;
+      Action           : in     Parse_Action_Rec;
+      Action_List      : in out Action_Arrays.Vector;
+      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor       : in     WisiToken.Descriptor;
+      File_Name        : in     String;
+      Ignore_Conflicts : in     Boolean)
    is
       Matching_Action_Node : constant Action_Arrays.Find_Reference_Type := Action_List.Find (Symbol);
    begin
@@ -510,6 +604,61 @@ package body WisiToken.Generate.LR is
                   end if;
                end;
             end if;
+
+            if Is_Optimized_List_Conflict
+              (Matching_Action_Node.Actions, Grammar, Descriptor, File_Name, Ignore_Conflicts)
+            then
+               if Trace_Generate_Conflicts > Detail then
+                  Ada.Text_IO.Put_Line ("optimized_list conflict:");
+                  Put (Ada.Text_IO.Current_Output, Matching_Action_Node.Actions, Descriptor);
+                  Ada.Text_IO.New_Line;
+               end if;
+               --  Apply optimized_list conflict resolution.
+               --
+               --  From optimized_list parse table (without applying conflict
+               --  resolution), the conflicts are:
+               --
+               --  State 8:
+               --        10.0:declarations <= declaration ^
+               --        10.1:declarations <= declarations declaration ^
+               --
+               --     PRAGMA           => reduce 1 tokens to declarations 10.0,
+               --                         reduce 2 tokens to declarations 10.1
+               --     IDENTIFIER       => reduce 1 tokens to declarations 8.0,
+               --                         reduce 2 tokens to declarations 8.1
+               --     Wisi_EOI         => reduce 1 tokens to declarations 8.0,
+               --                         reduce 2 tokens to declarations 8.1
+               --
+               --  In this state, we know 'declarations declaration' is on the parse
+               --  stack, and we want to reduce both to 'declarations', no matter what
+               --  the rest of the input is.
+               --
+               --  State 9:
+               --        10.1:declarations <= declarations ^ declaration
+               --        10.2:declarations <= declarations declarations ^
+               --        10.2:declarations <= declarations ^ declarations
+               --
+               --     IDENTIFIER       => shift and goto state 1 7.0,
+               --                         reduce 2 tokens to declarations 8.2
+               --
+               --  In this state, 'declarations declarations' is on the stack (which
+               --  can only happen in incremental parse), and we want to reduce to
+               --  'declarations'.
+               --
+               --  The other optimized_list cases (see test/bnf/optimized*.wy) are
+               --  similar, and have the same result here.
+               declare
+                  Temp : constant Parse_Action_Node_Ptr := Matching_Action_Node.Actions.Next;
+               begin
+                  Free (Matching_Action_Node.Actions);
+                  Matching_Action_Node.Actions := Temp;
+               end;
+               if Trace_Generate_Conflicts > Detail then
+                  Ada.Text_IO.Put_Line ("... resolved:");
+                  Put (Ada.Text_IO.Current_Output, Matching_Action_Node.Actions, Descriptor);
+                  Ada.Text_IO.New_Line;
+               end if;
+            end if;
          end if;
       else
          WisiToken.Parse.LR.Add (Action_List, Symbol, Action);
@@ -517,10 +666,12 @@ package body WisiToken.Generate.LR is
    end Add_Action;
 
    procedure Add_Actions
-     (Closure    : in     LR1_Items.Item_Set;
-      Table      : in out Parse_Table;
-      Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in     WisiToken.Descriptor)
+     (Closure          : in     LR1_Items.Item_Set;
+      Table            : in out Parse_Table;
+      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor       : in     WisiToken.Descriptor;
+      File_Name        : in     String;
+      Ignore_Conflicts : in     Boolean)
    is
       use Token_ID_Arrays;
 
@@ -536,7 +687,8 @@ package body WisiToken.Generate.LR is
               (Grammar, Item.Prod).Tokens;
          begin
             if Item.Dot not in Item_Tokens.First_Index .. Item_Tokens.Last_Index then
-               Add_Lookahead_Actions (Item, Table.States (State).Action_List, Grammar, Descriptor);
+               Add_Lookahead_Actions
+                 (Item, Table.States (State).Action_List, Grammar, Descriptor, File_Name, Ignore_Conflicts);
 
             elsif Item_Tokens (Item.Dot) in Descriptor.First_Terminal .. Descriptor.Last_Terminal
             then
@@ -561,7 +713,8 @@ package body WisiToken.Generate.LR is
                            (Accept_It, P_ID, RHS.Tokens.Length - 1),
                            --  EOF is not pushed on stack in parser, because the action for EOF
                            --  is Accept, not Shift.
-                           Table.States (State).Action_List, Descriptor);
+                           Table.States (State).Action_List,
+                           Grammar, Descriptor, File_Name, Ignore_Conflicts);
                      end;
                   else
                      if Goto_State /= Unknown_State then
@@ -569,7 +722,7 @@ package body WisiToken.Generate.LR is
                           (Dot_ID,
                            (Shift, P_ID, Goto_State),
                            Table.States (State).Action_List,
-                           Descriptor);
+                           Grammar, Descriptor, File_Name, Ignore_Conflicts);
                      end if;
                   end if;
                end;
@@ -597,10 +750,12 @@ package body WisiToken.Generate.LR is
    end Add_Actions;
 
    procedure Add_Lookahead_Actions
-     (Item        : in     LR1_Items.Item;
-      Action_List : in out Action_Arrays.Vector;
-      Grammar     : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor  : in     WisiToken.Descriptor)
+     (Item             : in     LR1_Items.Item;
+      Action_List      : in out Action_Arrays.Vector;
+      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor       : in     WisiToken.Descriptor;
+      File_Name        : in     String;
+      Ignore_Conflicts : in     Boolean)
    is
       Prod   : Productions.Instance renames Grammar (Item.Prod.LHS);
       RHS    : Productions.Right_Hand_Side renames Prod.RHSs (Item.Prod.RHS);
@@ -616,7 +771,7 @@ package body WisiToken.Generate.LR is
             if Lookahead = Descriptor.First_Nonterminal then
                null;
             else
-               Add_Action (Lookahead, Action, Action_List, Descriptor);
+               Add_Action (Lookahead, Action, Action_List, Grammar, Descriptor, File_Name, Ignore_Conflicts);
             end if;
          end if;
       end loop;
@@ -1351,6 +1506,28 @@ package body WisiToken.Generate.LR is
       end case;
    end Put;
 
+   function Image
+     (Item       : in Parse_Action_Rec;
+      Descriptor : in WisiToken.Descriptor)
+      return String
+   is
+      use Ada.Containers;
+   begin
+      case Item.Verb is
+      when Shift =>
+         return "(Shift, " & Image (Item.Production, Descriptor) & "," & State_Index'Image (Item.State) & ")";
+
+      when Reduce =>
+         return "(Reduce, " & Image (Item.Production, Descriptor) & "," & Count_Type'Image (Item.Token_Count) & ")";
+
+      when Accept_It =>
+         return "(Accept_It, " & Image (Item.Production, Descriptor) & "," & Count_Type'Image (Item.Token_Count) & ")";
+
+      when Parse.LR.Error =>
+         return "(Error)";
+      end case;
+   end Image;
+
    procedure Put (Descriptor : in WisiToken.Descriptor; Action : in Parse_Action_Node_Ptr)
    is
       use Ada.Text_IO;
@@ -1363,6 +1540,22 @@ package body WisiToken.Generate.LR is
          exit when Ptr = null;
          Put_Line (",");
          Set_Col (Column);
+      end loop;
+   end Put;
+
+   procedure Put
+     (File       : in Ada.Text_IO.File_Type;
+      Action     : in Parse_Action_Node_Ptr;
+      Descriptor : in WisiToken.Descriptor)
+   is
+      use Ada.Text_IO;
+      Ptr : Parse_Action_Node_Ptr := Action;
+   begin
+      loop
+         Put (File, Image (Ptr.Item, Descriptor));
+         Ptr := Ptr.Next;
+         exit when Ptr = null;
+         Put_Line (File, ",");
       end loop;
    end Put;
 
@@ -1531,68 +1724,26 @@ package body WisiToken.Generate.LR is
 
       declare
          use Ada.Strings.Unbounded;
-         Optimized_List_Conflict_Count : Integer := 0;
-         Optimized_List_Line           : Unbounded_String;
-         Other_Conflict_Count          : Integer := 0;
-         Other_Line                    : Unbounded_String;
-
-         function Is_Optimized_List (State : in State_Index) return Boolean
-         is
-            use WisiToken.Generate.LR1_Items;
-            LHS : Token_ID := Invalid_Token_ID;
-         begin
-            for Item of Kernels (State).Set loop
-               if In_Kernel (Grammar, Descriptor, Item) then
-                  if LHS = Invalid_Token_ID then
-                     LHS := Item.Prod.LHS;
-                  elsif LHS /= Item.Prod.LHS then
-                     return False;
-                  end if;
-               end if;
-            end loop;
-            return Grammar (LHS).Optimized_List;
-         end Is_Optimized_List;
+         Conflict_Count          : Integer := 0;
+         Line                    : Unbounded_String;
 
       begin
          for State in Conflicts.First_Index .. Conflicts.Last_Index loop
-            if Conflicts (State).Accept_Reduce > 0 or
-              Conflicts (State).Shift_Reduce > 0 or
-              Conflicts (State).Reduce_Reduce > 0
-            then
-               if Is_Optimized_List (State) then
-                  Optimized_List_Conflict_Count := @ + 1;
-                  if Include_Extra then
-                     Append (Optimized_List_Line, State'Image);
-                  end if;
-               else
-                  Other_Conflict_Count := @ + 1;
-                  if Include_Extra then
-                     Append (Other_Line, State'Image);
-                  end if;
+            if Conflicts (State) > 0 then
+               Conflict_Count := @ + 1;
+               if Include_Extra then
+                  Append (Line, State'Image);
                end if;
             end if;
          end loop;
 
-         if Optimized_List_Conflict_Count > 0 then
-            New_Line;
-
-            if Include_Extra then
-               Optimized_List_Line := Trimmed_Image (Optimized_List_Conflict_Count) &
-                 " states with optimized_list conflicts:" &
-                 Optimized_List_Line;
-               Indent_Wrap (-Optimized_List_Line);
-            else
-               Put_Line (Trimmed_Image (Optimized_List_Conflict_Count) & " states with optimized_list conflicts");
-            end if;
-         end if;
-
-         if Other_Conflict_Count > 0 then
+         if Conflict_Count > 0 then
             New_Line;
             if Include_Extra then
-               Other_Line := Trimmed_Image (Other_Conflict_Count) & " states with other conflicts:" & Other_Line;
-               Indent_Wrap (-Other_Line);
+               Line := Trimmed_Image (Conflict_Count) & " states with conflicts:" & Line;
+               Indent_Wrap (-Line);
             else
-               Put_Line (Trimmed_Image (Other_Conflict_Count) & " states with other conflicts");
+               Put_Line (Trimmed_Image (Conflict_Count) & " states with conflicts");
             end if;
          end if;
       end;

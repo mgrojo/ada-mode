@@ -69,7 +69,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
          Min_Target : Sequential_Index := Default_Negative_Sequential_Index;
          Max_Target : Sequential_Index := Default_Positive_Sequential_Index;
-         Done       : Boolean          := True;
+         Min_Done   : Boolean          := False;
+         Max_Done   : Boolean          := False;
       begin
          for I in Last_Nodes'Range loop
             pragma Assert
@@ -87,10 +88,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
          Super.Min_Sequential_Indices := Super.Max_Sequential_Indices;
 
+         if (for all Term of Super.Max_Sequential_Indices => Tree.ID (Term.Ref.Node) = Tree.Lexer.Descriptor.EOI_ID)
+         then
+            Max_Done := True;
+         end if;
+
+         if (for all Term of Super.Min_Sequential_Indices => Tree.ID (Term.Ref.Node) = Tree.Lexer.Descriptor.SOI_ID)
+         then
+            Min_Done := True;
+         end if;
+
          loop
-            if (for some Term of Super.Max_Sequential_Indices =>
-                  Tree.ID (Term.Ref.Node) /= Tree.Lexer.Descriptor.EOI_ID)
-            then
+            if not Max_Done then
                Extend_Sequential_Index
                  (Tree, Streams, Super.Max_Sequential_Indices,
                   Target   => Max_Target,
@@ -98,9 +107,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
                   Clear    => False);
             end if;
 
-            if (for some Term of Super.Min_Sequential_Indices =>
-                  Tree.ID (Term.Ref.Node) /= Tree.Lexer.Descriptor.SOI_ID)
-            then
+            if not Min_Done then
                Extend_Sequential_Index
                  (Tree, Streams, Super.Min_Sequential_Indices,
                   Target   => Min_Target,
@@ -109,18 +116,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
             end if;
 
             if (for some Node of First_Nodes => Tree.Get_Sequential_Index (Node) = Invalid_Sequential_Index) then
-               Done := False;
                Min_Target := 2 * @;
+            else
+               Min_Done := True;
             end if;
 
             if (for some Node of Last_Nodes  => Tree.Get_Sequential_Index (Node) = Invalid_Sequential_Index) then
-               Done := False;
                Max_Target := 2 * @;
+            else
+               Max_Done := True;
             end if;
 
-            exit when Done;
-
-            Done := True;
+            exit when Min_Done and Max_Done;
          end loop;
       end;
    end Initialize;
@@ -357,11 +364,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
             "enqueue:" & SAL.Base_Peek_Type'Image (Configs_Count) &
               "/" & SAL.Base_Peek_Type'Image (Data.Config_Heap.Count) &
               "/" & Trimmed_Image (Super.Total_Enqueue_Count) &
-              "/" & Trimmed_Image (Data.Check_Count) &
-              ", min cost:" &
-              (if Data.Config_Heap.Count > 0
-               then Integer'Image (Data.Config_Heap.Min_Key)
-               else " ? "));
+              "/" & Trimmed_Image (Data.Check_Count));
       end if;
    end Put;
 

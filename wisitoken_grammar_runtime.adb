@@ -929,10 +929,10 @@ package body WisiToken_Grammar_Runtime is
             use Ada.Strings.Unbounded;
             use WisiToken.BNF.RHS_Lists;
 
-            RHS                 : Cursor  := Right_Hand_Sides.First;
+            RHS                 : Cursor     := Right_Hand_Sides.First;
             Element             : Unbounded_String;
             Element_Token_Count : Count_Type := 0;
-            Has_Separator       : Boolean := False;
+            Has_Separator       : Boolean    := False;
             Separator           : Unbounded_String;
          begin
             for Tok of Right_Hand_Sides (RHS).Tokens loop
@@ -971,7 +971,7 @@ package body WisiToken_Grammar_Runtime is
                end if;
 
                declare
-                  Temp : Unbounded_String;
+                  Temp             : Unbounded_String;
                   Temp_Token_Count : Count_Type := 0;
                begin
                   for I in 2 .. Positive_Index_Type (Right_Hand_Sides (RHS).Tokens.Length) loop
@@ -1035,7 +1035,7 @@ package body WisiToken_Grammar_Runtime is
          Data.Tokens.Rules.Append
            ((+LHS_String, Right_Hand_Sides, Labels,
              Optimized_List => Is_Optimized_List,
-             Source_Line =>
+             Source_Line    =>
                (case Tree.Label (LHS_Node) is
                 when Source_Terminal    => Tree.Line_Region (LHS_Node).First,
                 when Virtual_Identifier => Line_Number_Type'First, -- IMPROVEME: get line from Right_Hand_Sides

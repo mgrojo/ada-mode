@@ -50,6 +50,7 @@ package WisiToken.Parse.LR is
    type All_Parse_Action_Verbs is (Pause, Shift, Reduce, Accept_It, Error);
    subtype Parse_Action_Verbs is All_Parse_Action_Verbs range Shift .. Error;
    subtype Minimal_Verbs is All_Parse_Action_Verbs range Shift .. Reduce;
+   subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
    --  Pause is only used for error recovery, to allow parallel parsers
    --  to re-sync on the same input terminal.
 

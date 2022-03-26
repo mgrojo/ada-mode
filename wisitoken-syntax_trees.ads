@@ -655,11 +655,6 @@ package WisiToken.Syntax_Trees is
      (Token_ID, Production_Info, Default_Element => (others => <>));
    --  Indexed by Production_ID.
 
-   function Is_Optimized_List
-     (Productions : in Production_Info_Trees.Vector;
-      ID          : in Token_ID)
-     return Boolean;
-
    ----------
    --  Parsing operations (including error recovery and incremental
    --  parse), Tree and Node attributes.

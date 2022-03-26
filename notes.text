@@ -31,6 +31,64 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+reviewing ada_annex_p conflicts; see notes in o.e.a.s-2
+
+error on mixed conflicts
+    ada_annex_p:
+ada_annex_p.wy:1:1:  mixed optimized_list/grammar conflict:
+(Shift, parallel_block_statement_0, 17),
+(Reduce, label_opt_1, 0),
+(Reduce, statement_statement_list_2, 2)
+    need another optimized_list test
+
+    PARALLEL is in FIRST (statement), same as label_opt, so this is a pure optimized_list conflict.
+    statement_statement_list statement_statement_list is on stack, so do that
+    is_optimized_list_conflict requires First_Nonterm_Set
+        combine that with grammar, descriptor, file_name in generate_data
+
+    or fix grammar to eliminate this conflict; see o.e.a.s-2/notes
+
+bad fontify
+    editing test_bnf_suite.adb
+    captured in o.e.a/debug.cmd; reproduces!
+        file is out of sync with actual edit, but reproduces anyway
+        first face region is too large
+
+followed_by to
+    improve to show expansion that gives the conflict for optimized_conflict_02.wy
+        (no optimized_list)
+        add option --no_optimized_list for _01.wy (turn off error recover? )
+        also for ada_annex_p
+
+        need to actually expand nonterms to show token sequence
+    when can 'label_opt' be followed by 'parallel'?
+
+parallel occurs in :
+value_sequence : '[' ['parallel' ['(' chunk_specification ')']] iterated_element_association ']' ;
+iteration_scheme
+  | ['parallel'] 'for' procedural_iterator
+  | 'parallel' [ '(' chunk_specification ')' ] 'for' loop_parameter_specification
+  | 'parallel' [ '(' chunk_specification ')' ] 'for' iterator_specification
+parallel_block_statement
+  : 'parallel' 'do' handled_sequence_of_statements 'and' statement_AND_list 'end' 'do' ';'
+
+label_opt occurs in :
+loop_statement
+  : label_opt [iteration_scheme] 'loop' sequence_of_statements 'end' 'loop' identifier_opt ';'
+block_statement
+  : label_opt ['declare' declarative_part] 'begin' handled_sequence_of_statements
+    'end' identifier_opt ';'
+
+expand iteration_scheme in loop_statement:
+label_opt parallel for procedural_iterator loop ...
+
+document this process in wisitoken user guide; don't need code.
+    unless automating helps review all conflicts
+
+
+        could continue with minimal_action to get terminal token sequence.
+
+
 optimize syntax tree structure for lists
     editing wisitoken-syntax_trees.adb to add Tree.Line_region;
     slow, even with "fast parser" settings in develop_settings.el
@@ -44,38 +102,13 @@ optimize syntax tree structure for lists
 ;; 2022-02-27 11:50:21.48 pre-recover 1 active
 
     time Ada
-found an optimized_list conflict that is also another conflict:
-%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list | REDUCE term_binary_adding_operator_list on token STAR (681)
-State 681:
-    232.1:term <= term ^ multiplying_operator factor
-    232.2:term <= term ^ multiplying_operator term
-    463.0:term_binary_adding_operator_list <= term ^
-    463.1:term_binary_adding_operator_list <= term_binary_adding_operator_list binary_adding_operator term ^
-
-
-term : factor * factor
-term : allocator * 4
-term : new subtype_indication * 4
-term : new {name range 1 .. a + b} * 4
-    is that actually legal Ada?
-    if we define "*" (access_integer, integer)?
-    nope; constraint not allowed here
-        language constraint, not grammar constraint. (emacs parser reports no errors)
-        so can eliminate that conflict by adding a resolution rule (ie, choose shift)
-        or add allocator_no_constraint nonterm?
-
-    how does tree-sitter store conflict resolution rules in parser?
-    search literator, books for lr conflict resolution?
-
-meanwhile, add this grammar to wisitoken, handle the conflict properly
-    optimized_conflict_01.wy
 
 
 typed \ in an Ada file
     got Programmer_Error: lexer error in non_grammar
     from wisitoken-parse.adb Next_Grammar_Token
     supposedly tested in test_mckenzie_recover.adb Lexer_Error_01
-    need a better test
+    need a better test; turn it into a syntax_error
 
 add general conflict resolution mechanism?
     solve Ada expression problem

@@ -87,6 +87,11 @@ package body WisiToken.Syntax_Trees is
      return Rooted_Ref;
    --  Same as procedure, return new element.
 
+   function Is_Optimized_List
+     (Productions : in Production_Info_Trees.Vector;
+      ID          : in Token_ID)
+     return Boolean;
+
    function Last_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
@@ -4988,40 +4993,51 @@ package body WisiToken.Syntax_Trees is
             Next_I := First_Child;
          else
             --  Node.Children (First_Child) is an empty nonterm; it has not
-            --  been added to stream. First non_empty is in Node.Children
-            --  (Next_I); delete leading empty nonterms that were added to the
-            --  stream.
-            for I in First_Child + 1 .. Next_I - 1 loop
-               declare
-                  To_Delete_2 : Cursor := Cur;
-               begin
-                  Next (Cur);
-                  --  We do not set errors on empty nonterms.
-                  pragma Assert (Stream_Element_Lists.Element (To_Delete_2).Node.Error_List = null);
-                  Parse_Stream.Elements.Delete (To_Delete_2);
-               end;
-            end loop;
-            pragma Assert (Element (Cur).Node = Node.Children (Next_I));
+            --  been added to stream.
+            if Next_I = Positive_Index_Type'Last then
+               --  Node is an empty nonterm; move to first sibling below.
+               null;
+            else
+               --  First non_empty is in Node.Children (Next_I); delete leading empty
+               --  nonterms that were added to the stream.
+               for I in First_Child + 1 .. Next_I - 1 loop
+                  declare
+                     To_Delete_2 : Cursor := Cur;
+                  begin
+                     Next (Cur);
+                     --  We do not set errors on empty nonterms.
+                     pragma Assert (Stream_Element_Lists.Element (To_Delete_2).Node.Error_List = null);
+                     Parse_Stream.Elements.Delete (To_Delete_2);
+                  end;
+               end loop;
+               pragma Assert (Element (Cur).Node = Node.Children (Next_I));
 
-            --  Delete the nonterm that we were breaking down, and record the one
-            --  we are now breaking down for deletion.
-            declare
-               Node : constant Valid_Node_Access := Stream_Element_Lists.Element (To_Delete).Node;
-            begin
-               if Node.Error_List /= null then
-                  for Err of Tree.Error_List (Node) loop
-                     New_Errors.Append (To_Message (Err, Tree, Node));
-                  end loop;
-               end if;
-            end;
-            Parse_Stream.Elements.Delete (To_Delete);
-            To_Delete := Cur;
+               --  Delete the nonterm that we were breaking down, and record the one
+               --  we are now breaking down for deletion.
+               declare
+                  Node : constant Valid_Node_Access := Stream_Element_Lists.Element (To_Delete).Node;
+               begin
+                  if Node.Error_List /= null then
+                     for Err of Tree.Error_List (Node) loop
+                        New_Errors.Append (To_Message (Err, Tree, Node));
+                     end loop;
+                  end if;
+               end;
+               Parse_Stream.Elements.Delete (To_Delete);
+               To_Delete := Cur;
+            end if;
          end if;
 
          declare
             Temp : constant Node_Access := Node;
          begin
-            Node := Node.Children (Next_I);
+            if Next_I = Positive_Index_Type'Last then
+               --  Node is an empty nonterm; move to first sibling. Possibly similar
+               --  to test_incremental.adb Recover_04.
+               raise SAL.Not_Implemented with "FIXME: Syntax_Trees.Left_Breakdown move to next sibling.";
+            else
+               Node := Node.Children (Next_I);
+            end if;
 
             --  Now we can clear the children of Temp (was Node).
             if Tree.Parents_Set then

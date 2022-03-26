@@ -3114,34 +3114,20 @@ State 116:
     135.0:statement_list <= statement ^
     135.1:statement_list <= statement_list statement ^
 
-   BEGIN                                  => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
-   CASE                                   => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
-   DECLARE                                => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
-   ELSE                                   => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
-   ELSIF                                  => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
-   END                                    => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
-   EXIT                                   => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
-   EXCEPTION                              => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
-   FOR                                    => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
-   IF                                     => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
-   LOOP                                   => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
-   RETURN                                 => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
-   WHEN                                   => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
-   IDENTIFIER                             => reduce 1 tokens to statement_list 135.0,
-                                             reduce 2 tokens to statement_list 135.1
+   BEGIN                                  => reduce 2 tokens to statement_list 135.1
+   CASE                                   => reduce 2 tokens to statement_list 135.1
+   DECLARE                                => reduce 2 tokens to statement_list 135.1
+   ELSE                                   => reduce 2 tokens to statement_list 135.1
+   ELSIF                                  => reduce 2 tokens to statement_list 135.1
+   END                                    => reduce 2 tokens to statement_list 135.1
+   EXIT                                   => reduce 2 tokens to statement_list 135.1
+   EXCEPTION                              => reduce 2 tokens to statement_list 135.1
+   FOR                                    => reduce 2 tokens to statement_list 135.1
+   IF                                     => reduce 2 tokens to statement_list 135.1
+   LOOP                                   => reduce 2 tokens to statement_list 135.1
+   RETURN                                 => reduce 2 tokens to statement_list 135.1
+   WHEN                                   => reduce 2 tokens to statement_list 135.1
+   IDENTIFIER                             => reduce 2 tokens to statement_list 135.1
    default                                => ERROR
 
    Minimal_Complete_Actions => ((1 statement_list 135.0), (2 statement_list 135.1))
@@ -3151,29 +3137,20 @@ State 117:
     135.2:statement_list <= statement_list statement_list ^
     135.2:statement_list <= statement_list ^ statement_list
 
-   BEGIN                                  => reduce 0 tokens to block_label_opt 63.1,
-                                             reduce 2 tokens to statement_list 135.2
-   CASE                                   => shift and goto state 1 67.0,
-                                             reduce 2 tokens to statement_list 135.2
-   DECLARE                                => reduce 0 tokens to block_label_opt 63.1,
-                                             reduce 2 tokens to statement_list 135.2
+   BEGIN                                  => reduce 2 tokens to statement_list 135.2
+   CASE                                   => reduce 2 tokens to statement_list 135.2
+   DECLARE                                => reduce 2 tokens to statement_list 135.2
    ELSE                                   => reduce 2 tokens to statement_list 135.2
    ELSIF                                  => reduce 2 tokens to statement_list 135.2
    END                                    => reduce 2 tokens to statement_list 135.2
-   EXIT                                   => shift and goto state 2 79.0,
-                                             reduce 2 tokens to statement_list 135.2
+   EXIT                                   => reduce 2 tokens to statement_list 135.2
    EXCEPTION                              => reduce 2 tokens to statement_list 135.2
-   FOR                                    => shift and goto state 3 92.0,
-                                             reduce 2 tokens to statement_list 135.2
-   IF                                     => shift and goto state 5 90.0,
-                                             reduce 2 tokens to statement_list 135.2
-   LOOP                                   => shift and goto state 6 93.1,
-                                             reduce 2 tokens to statement_list 135.2
-   RETURN                                 => shift and goto state 9 82.0,
-                                             reduce 2 tokens to statement_list 135.2
+   FOR                                    => reduce 2 tokens to statement_list 135.2
+   IF                                     => reduce 2 tokens to statement_list 135.2
+   LOOP                                   => reduce 2 tokens to statement_list 135.2
+   RETURN                                 => reduce 2 tokens to statement_list 135.2
    WHEN                                   => reduce 2 tokens to statement_list 135.2
-   IDENTIFIER                             => shift and goto state 10 63.0,
-                                             reduce 2 tokens to statement_list 135.2
+   IDENTIFIER                             => reduce 2 tokens to statement_list 135.2
    default                                => ERROR
 
    assignment_statement                   goto state 11
@@ -3914,8 +3891,7 @@ State 167:
     129.2:AND_relation_list <= AND_relation_list AND_relation_list ^
     129.2:AND_relation_list <= AND_relation_list ^ AND_relation_list
 
-   AND                                    => shift and goto state 166 129.0,
-                                             reduce 2 tokens to AND_relation_list 129.2
+   AND                                    => reduce 2 tokens to AND_relation_list 129.2
    IS                                     => reduce 2 tokens to AND_relation_list 129.2
    RIGHT_PAREN                            => reduce 2 tokens to AND_relation_list 129.2
    THEN                                   => reduce 2 tokens to AND_relation_list 129.2
@@ -3959,8 +3935,7 @@ State 169:
     130.2:OR_relation_list <= OR_relation_list ^ OR_relation_list
 
    IS                                     => reduce 2 tokens to OR_relation_list 130.2
-   OR                                     => shift and goto state 168 130.0,
-                                             reduce 2 tokens to OR_relation_list 130.2
+   OR                                     => reduce 2 tokens to OR_relation_list 130.2
    RIGHT_PAREN                            => reduce 2 tokens to OR_relation_list 130.2
    THEN                                   => reduce 2 tokens to OR_relation_list 130.2
    COMMA                                  => reduce 2 tokens to OR_relation_list 130.2
@@ -4005,8 +3980,7 @@ State 171:
    IS                                     => reduce 2 tokens to XOR_relation_list 131.2
    RIGHT_PAREN                            => reduce 2 tokens to XOR_relation_list 131.2
    THEN                                   => reduce 2 tokens to XOR_relation_list 131.2
-   XOR                                    => shift and goto state 170 131.0,
-                                             reduce 2 tokens to XOR_relation_list 131.2
+   XOR                                    => reduce 2 tokens to XOR_relation_list 131.2
    COMMA                                  => reduce 2 tokens to XOR_relation_list 131.2
    SEMICOLON                              => reduce 2 tokens to XOR_relation_list 131.2
    default                                => ERROR
@@ -4034,50 +4008,28 @@ State 173:
     122.0:term <= factor ^
     122.1:term <= term multiplying_operator factor ^
 
-   AND                                    => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   IS                                     => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   LOOP                                   => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   OR                                     => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   RIGHT_PAREN                            => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   THEN                                   => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   XOR                                    => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   AMPERSAND                              => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   COLON_EQUAL                            => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   COMMA                                  => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   DOT_DOT                                => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   EQUAL                                  => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   GREATER                                => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   GREATER_EQUAL                          => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   LESS                                   => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   LESS_EQUAL                             => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   MINUS                                  => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   PLUS                                   => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   SEMICOLON                              => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   SLASH                                  => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   SLASH_EQUAL                            => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
-   STAR                                   => reduce 1 tokens to term 122.0,
-                                             reduce 3 tokens to term 122.1
+   AND                                    => reduce 3 tokens to term 122.1
+   IS                                     => reduce 3 tokens to term 122.1
+   LOOP                                   => reduce 3 tokens to term 122.1
+   OR                                     => reduce 3 tokens to term 122.1
+   RIGHT_PAREN                            => reduce 3 tokens to term 122.1
+   THEN                                   => reduce 3 tokens to term 122.1
+   XOR                                    => reduce 3 tokens to term 122.1
+   AMPERSAND                              => reduce 3 tokens to term 122.1
+   COLON_EQUAL                            => reduce 3 tokens to term 122.1
+   COMMA                                  => reduce 3 tokens to term 122.1
+   DOT_DOT                                => reduce 3 tokens to term 122.1
+   EQUAL                                  => reduce 3 tokens to term 122.1
+   GREATER                                => reduce 3 tokens to term 122.1
+   GREATER_EQUAL                          => reduce 3 tokens to term 122.1
+   LESS                                   => reduce 3 tokens to term 122.1
+   LESS_EQUAL                             => reduce 3 tokens to term 122.1
+   MINUS                                  => reduce 3 tokens to term 122.1
+   PLUS                                   => reduce 3 tokens to term 122.1
+   SEMICOLON                              => reduce 3 tokens to term 122.1
+   SLASH                                  => reduce 3 tokens to term 122.1
+   SLASH_EQUAL                            => reduce 3 tokens to term 122.1
+   STAR                                   => reduce 3 tokens to term 122.1
    default                                => ERROR
 
    Minimal_Complete_Actions => ((1 term 122.0), (3 term 122.1))
@@ -4106,11 +4058,9 @@ State 174:
    MINUS                                  => reduce 3 tokens to term 122.2
    PLUS                                   => reduce 3 tokens to term 122.2
    SEMICOLON                              => reduce 3 tokens to term 122.2
-   SLASH                                  => shift and goto state 98 94.1,
-                                             reduce 3 tokens to term 122.2
+   SLASH                                  => reduce 3 tokens to term 122.2
    SLASH_EQUAL                            => reduce 3 tokens to term 122.2
-   STAR                                   => shift and goto state 99 94.0,
-                                             reduce 3 tokens to term 122.2
+   STAR                                   => reduce 3 tokens to term 122.2
    default                                => ERROR
 
    multiplying_operator                   goto state 100
@@ -4123,47 +4073,27 @@ State 175:
     136.0:term_binary_adding_operator_list <= term ^
     136.1:term_binary_adding_operator_list <= term_binary_adding_operator_list binary_adding_operator term ^
 
-   AND                                    => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   IS                                     => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   LOOP                                   => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   OR                                     => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   RIGHT_PAREN                            => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   THEN                                   => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   XOR                                    => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   AMPERSAND                              => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   COLON_EQUAL                            => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   COMMA                                  => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   DOT_DOT                                => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   EQUAL                                  => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   GREATER                                => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   GREATER_EQUAL                          => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   LESS                                   => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   LESS_EQUAL                             => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   MINUS                                  => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   PLUS                                   => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
-   SEMICOLON                              => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
+   AND                                    => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   IS                                     => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   LOOP                                   => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   OR                                     => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   RIGHT_PAREN                            => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   THEN                                   => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   XOR                                    => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   AMPERSAND                              => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   COLON_EQUAL                            => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   COMMA                                  => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   DOT_DOT                                => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   EQUAL                                  => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   GREATER                                => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   GREATER_EQUAL                          => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   LESS                                   => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   LESS_EQUAL                             => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   MINUS                                  => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   PLUS                                   => reduce 3 tokens to term_binary_adding_operator_list 136.1
+   SEMICOLON                              => reduce 3 tokens to term_binary_adding_operator_list 136.1
    SLASH                                  => shift and goto state 98 94.1
-   SLASH_EQUAL                            => reduce 1 tokens to term_binary_adding_operator_list 136.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.1
+   SLASH_EQUAL                            => reduce 3 tokens to term_binary_adding_operator_list 136.1
    STAR                                   => shift and goto state 99 94.0
    default                                => ERROR
 
@@ -4183,8 +4113,7 @@ State 176:
    RIGHT_PAREN                            => reduce 3 tokens to term_binary_adding_operator_list 136.2
    THEN                                   => reduce 3 tokens to term_binary_adding_operator_list 136.2
    XOR                                    => reduce 3 tokens to term_binary_adding_operator_list 136.2
-   AMPERSAND                              => shift and goto state 102 62.2,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.2
+   AMPERSAND                              => reduce 3 tokens to term_binary_adding_operator_list 136.2
    COLON_EQUAL                            => reduce 3 tokens to term_binary_adding_operator_list 136.2
    COMMA                                  => reduce 3 tokens to term_binary_adding_operator_list 136.2
    DOT_DOT                                => reduce 3 tokens to term_binary_adding_operator_list 136.2
@@ -4193,10 +4122,8 @@ State 176:
    GREATER_EQUAL                          => reduce 3 tokens to term_binary_adding_operator_list 136.2
    LESS                                   => reduce 3 tokens to term_binary_adding_operator_list 136.2
    LESS_EQUAL                             => reduce 3 tokens to term_binary_adding_operator_list 136.2
-   MINUS                                  => shift and goto state 103 62.1,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.2
-   PLUS                                   => shift and goto state 104 62.0,
-                                             reduce 3 tokens to term_binary_adding_operator_list 136.2
+   MINUS                                  => reduce 3 tokens to term_binary_adding_operator_list 136.2
+   PLUS                                   => reduce 3 tokens to term_binary_adding_operator_list 136.2
    SEMICOLON                              => reduce 3 tokens to term_binary_adding_operator_list 136.2
    SLASH_EQUAL                            => reduce 3 tokens to term_binary_adding_operator_list 136.2
    default                                => ERROR
@@ -4633,20 +4560,13 @@ State 204:
     127.0:declaration_list <= declaration ^
     127.1:declaration_list <= declaration_list declaration ^
 
-   BEGIN                                  => reduce 1 tokens to declaration_list 127.0,
-                                             reduce 2 tokens to declaration_list 127.1
-   END                                    => reduce 1 tokens to declaration_list 127.0,
-                                             reduce 2 tokens to declaration_list 127.1
-   FUNCTION                               => reduce 1 tokens to declaration_list 127.0,
-                                             reduce 2 tokens to declaration_list 127.1
-   PACKAGE                                => reduce 1 tokens to declaration_list 127.0,
-                                             reduce 2 tokens to declaration_list 127.1
-   PROCEDURE                              => reduce 1 tokens to declaration_list 127.0,
-                                             reduce 2 tokens to declaration_list 127.1
-   TYPE                                   => reduce 1 tokens to declaration_list 127.0,
-                                             reduce 2 tokens to declaration_list 127.1
-   IDENTIFIER                             => reduce 1 tokens to declaration_list 127.0,
-                                             reduce 2 tokens to declaration_list 127.1
+   BEGIN                                  => reduce 2 tokens to declaration_list 127.1
+   END                                    => reduce 2 tokens to declaration_list 127.1
+   FUNCTION                               => reduce 2 tokens to declaration_list 127.1
+   PACKAGE                                => reduce 2 tokens to declaration_list 127.1
+   PROCEDURE                              => reduce 2 tokens to declaration_list 127.1
+   TYPE                                   => reduce 2 tokens to declaration_list 127.1
+   IDENTIFIER                             => reduce 2 tokens to declaration_list 127.1
    default                                => ERROR
 
    Minimal_Complete_Actions => ((1 declaration_list 127.0), (2 declaration_list 127.1))
@@ -4658,16 +4578,11 @@ State 205:
 
    BEGIN                                  => reduce 2 tokens to declaration_list 127.2
    END                                    => reduce 2 tokens to declaration_list 127.2
-   FUNCTION                               => shift and goto state 4 86.0,
-                                             reduce 2 tokens to declaration_list 127.2
-   PACKAGE                                => shift and goto state 128 98.0,
-                                             reduce 2 tokens to declaration_list 127.2
-   PROCEDURE                              => shift and goto state 129 105.0,
-                                             reduce 2 tokens to declaration_list 127.2
-   TYPE                                   => shift and goto state 130 85.0,
-                                             reduce 2 tokens to declaration_list 127.2
-   IDENTIFIER                             => shift and goto state 131 97.0,
-                                             reduce 2 tokens to declaration_list 127.2
+   FUNCTION                               => reduce 2 tokens to declaration_list 127.2
+   PACKAGE                                => reduce 2 tokens to declaration_list 127.2
+   PROCEDURE                              => reduce 2 tokens to declaration_list 127.2
+   TYPE                                   => reduce 2 tokens to declaration_list 127.2
+   IDENTIFIER                             => reduce 2 tokens to declaration_list 127.2
    default                                => ERROR
 
    body_g                                 goto state 132
@@ -4961,10 +4876,8 @@ State 218:
     126.0:case_statement_alternative_list <= case_statement_alternative ^
     126.1:case_statement_alternative_list <= case_statement_alternative_list case_statement_alternative ^
 
-   END                                    => reduce 1 tokens to case_statement_alternative_list 126.0,
-                                             reduce 2 tokens to case_statement_alternative_list 126.1
-   WHEN                                   => reduce 1 tokens to case_statement_alternative_list 126.0,
-                                             reduce 2 tokens to case_statement_alternative_list 126.1
+   END                                    => reduce 2 tokens to case_statement_alternative_list 126.1
+   WHEN                                   => reduce 2 tokens to case_statement_alternative_list 126.1
    default                                => ERROR
 
    Minimal_Complete_Actions => ((1 case_statement_alternative_list 126.0), (2 case_statement_alternative_list 126.1))
@@ -4975,8 +4888,7 @@ State 219:
     126.2:case_statement_alternative_list <= case_statement_alternative_list ^ case_statement_alternative_list
 
    END                                    => reduce 2 tokens to case_statement_alternative_list 126.2
-   WHEN                                   => shift and goto state 160 68.0,
-                                             reduce 2 tokens to case_statement_alternative_list 126.2
+   WHEN                                   => reduce 2 tokens to case_statement_alternative_list 126.2
    default                                => ERROR
 
    case_statement_alternative             goto state 218
@@ -4988,18 +4900,12 @@ State 220:
     129.0:AND_relation_list <= AND relation ^
     129.1:AND_relation_list <= AND_relation_list AND relation ^
 
-   AND                                    => reduce 2 tokens to AND_relation_list 129.0,
-                                             reduce 3 tokens to AND_relation_list 129.1
-   IS                                     => reduce 2 tokens to AND_relation_list 129.0,
-                                             reduce 3 tokens to AND_relation_list 129.1
-   RIGHT_PAREN                            => reduce 2 tokens to AND_relation_list 129.0,
-                                             reduce 3 tokens to AND_relation_list 129.1
-   THEN                                   => reduce 2 tokens to AND_relation_list 129.0,
-                                             reduce 3 tokens to AND_relation_list 129.1
-   COMMA                                  => reduce 2 tokens to AND_relation_list 129.0,
-                                             reduce 3 tokens to AND_relation_list 129.1
-   SEMICOLON                              => reduce 2 tokens to AND_relation_list 129.0,
-                                             reduce 3 tokens to AND_relation_list 129.1
+   AND                                    => reduce 3 tokens to AND_relation_list 129.1
+   IS                                     => reduce 3 tokens to AND_relation_list 129.1
+   RIGHT_PAREN                            => reduce 3 tokens to AND_relation_list 129.1
+   THEN                                   => reduce 3 tokens to AND_relation_list 129.1
+   COMMA                                  => reduce 3 tokens to AND_relation_list 129.1
+   SEMICOLON                              => reduce 3 tokens to AND_relation_list 129.1
    default                                => ERROR
 
    Minimal_Complete_Actions => ((2 AND_relation_list 129.0), (3 AND_relation_list 129.1))
@@ -5008,18 +4914,12 @@ State 221:
     130.0:OR_relation_list <= OR relation ^
     130.1:OR_relation_list <= OR_relation_list OR relation ^
 
-   IS                                     => reduce 2 tokens to OR_relation_list 130.0,
-                                             reduce 3 tokens to OR_relation_list 130.1
-   OR                                     => reduce 2 tokens to OR_relation_list 130.0,
-                                             reduce 3 tokens to OR_relation_list 130.1
-   RIGHT_PAREN                            => reduce 2 tokens to OR_relation_list 130.0,
-                                             reduce 3 tokens to OR_relation_list 130.1
-   THEN                                   => reduce 2 tokens to OR_relation_list 130.0,
-                                             reduce 3 tokens to OR_relation_list 130.1
-   COMMA                                  => reduce 2 tokens to OR_relation_list 130.0,
-                                             reduce 3 tokens to OR_relation_list 130.1
-   SEMICOLON                              => reduce 2 tokens to OR_relation_list 130.0,
-                                             reduce 3 tokens to OR_relation_list 130.1
+   IS                                     => reduce 3 tokens to OR_relation_list 130.1
+   OR                                     => reduce 3 tokens to OR_relation_list 130.1
+   RIGHT_PAREN                            => reduce 3 tokens to OR_relation_list 130.1
+   THEN                                   => reduce 3 tokens to OR_relation_list 130.1
+   COMMA                                  => reduce 3 tokens to OR_relation_list 130.1
+   SEMICOLON                              => reduce 3 tokens to OR_relation_list 130.1
    default                                => ERROR
 
    Minimal_Complete_Actions => ((2 OR_relation_list 130.0), (3 OR_relation_list 130.1))
@@ -5028,18 +4928,12 @@ State 222:
     131.0:XOR_relation_list <= XOR relation ^
     131.1:XOR_relation_list <= XOR_relation_list XOR relation ^
 
-   IS                                     => reduce 2 tokens to XOR_relation_list 131.0,
-                                             reduce 3 tokens to XOR_relation_list 131.1
-   RIGHT_PAREN                            => reduce 2 tokens to XOR_relation_list 131.0,
-                                             reduce 3 tokens to XOR_relation_list 131.1
-   THEN                                   => reduce 2 tokens to XOR_relation_list 131.0,
-                                             reduce 3 tokens to XOR_relation_list 131.1
-   XOR                                    => reduce 2 tokens to XOR_relation_list 131.0,
-                                             reduce 3 tokens to XOR_relation_list 131.1
-   COMMA                                  => reduce 2 tokens to XOR_relation_list 131.0,
-                                             reduce 3 tokens to XOR_relation_list 131.1
-   SEMICOLON                              => reduce 2 tokens to XOR_relation_list 131.0,
-                                             reduce 3 tokens to XOR_relation_list 131.1
+   IS                                     => reduce 3 tokens to XOR_relation_list 131.1
+   RIGHT_PAREN                            => reduce 3 tokens to XOR_relation_list 131.1
+   THEN                                   => reduce 3 tokens to XOR_relation_list 131.1
+   XOR                                    => reduce 3 tokens to XOR_relation_list 131.1
+   COMMA                                  => reduce 3 tokens to XOR_relation_list 131.1
+   SEMICOLON                              => reduce 3 tokens to XOR_relation_list 131.1
    default                                => ERROR
 
    Minimal_Complete_Actions => ((2 XOR_relation_list 131.0), (3 XOR_relation_list 131.1))
@@ -5470,12 +5364,9 @@ State 252:
      61.0:association_list <= association ^
      61.1:association_list <= association_list COMMA association ^
 
-   IS                                     => reduce 1 tokens to association_list 61.0,
-                                             reduce 3 tokens to association_list 61.1
-   RIGHT_PAREN                            => reduce 1 tokens to association_list 61.0,
-                                             reduce 3 tokens to association_list 61.1
-   COMMA                                  => reduce 1 tokens to association_list 61.0,
-                                             reduce 3 tokens to association_list 61.1
+   IS                                     => reduce 3 tokens to association_list 61.1
+   RIGHT_PAREN                            => reduce 3 tokens to association_list 61.1
+   COMMA                                  => reduce 3 tokens to association_list 61.1
    default                                => ERROR
 
    Minimal_Complete_Actions => ((1 association_list 61.0), (3 association_list 61.1))
@@ -5487,8 +5378,7 @@ State 253:
 
    IS                                     => reduce 3 tokens to association_list 61.2
    RIGHT_PAREN                            => reduce 3 tokens to association_list 61.2
-   COMMA                                  => shift and goto state 209 61.1,
-                                             reduce 3 tokens to association_list 61.2
+   COMMA                                  => reduce 3 tokens to association_list 61.2
    default                                => ERROR
 
    Minimal_Complete_Actions => (3 association_list 61.2)
@@ -5659,10 +5549,8 @@ State 265:
     132.0:parameter_specification_SEMICOLON_list <= parameter_specification ^
     132.1:parameter_specification_SEMICOLON_list <= parameter_specification_SEMICOLON_list SEMICOLON parameter_specification ^
 
-   RIGHT_PAREN                            => reduce 1 tokens to parameter_specification_SEMICOLON_list 132.0,
-                                             reduce 3 tokens to parameter_specification_SEMICOLON_list 132.1
-   SEMICOLON                              => reduce 1 tokens to parameter_specification_SEMICOLON_list 132.0,
-                                             reduce 3 tokens to parameter_specification_SEMICOLON_list 132.1
+   RIGHT_PAREN                            => reduce 3 tokens to parameter_specification_SEMICOLON_list 132.1
+   SEMICOLON                              => reduce 3 tokens to parameter_specification_SEMICOLON_list 132.1
    default                                => ERROR
 
    Minimal_Complete_Actions => ((1 parameter_specification_SEMICOLON_list 132.0), (3 parameter_specification_SEMICOLON_list 132.1))
@@ -5673,8 +5561,7 @@ State 266:
     132.2:parameter_specification_SEMICOLON_list <= parameter_specification_SEMICOLON_list ^ SEMICOLON parameter_specification_SEMICOLON_list
 
    RIGHT_PAREN                            => reduce 3 tokens to parameter_specification_SEMICOLON_list 132.2
-   SEMICOLON                              => shift and goto state 230 132.1,
-                                             reduce 3 tokens to parameter_specification_SEMICOLON_list 132.2
+   SEMICOLON                              => reduce 3 tokens to parameter_specification_SEMICOLON_list 132.2
    default                                => ERROR
 
    Minimal_Complete_Actions => (3 parameter_specification_SEMICOLON_list 132.2)
@@ -5780,8 +5667,7 @@ State 273:
     134.2:ELSIF_expression_list <= ELSIF_expression_list ^ ELSIF_expression_list
 
    ELSE                                   => reduce 2 tokens to ELSIF_expression_list 134.2
-   ELSIF                                  => shift and goto state 271 134.0,
-                                             reduce 2 tokens to ELSIF_expression_list 134.2
+   ELSIF                                  => reduce 2 tokens to ELSIF_expression_list 134.2
    END                                    => reduce 2 tokens to ELSIF_expression_list 134.2
    default                                => ERROR
 
@@ -5967,10 +5853,8 @@ State 283:
     133.0:exception_handler_list <= exception_handler ^
     133.1:exception_handler_list <= exception_handler_list exception_handler ^
 
-   END                                    => reduce 1 tokens to exception_handler_list 133.0,
-                                             reduce 2 tokens to exception_handler_list 133.1
-   WHEN                                   => reduce 1 tokens to exception_handler_list 133.0,
-                                             reduce 2 tokens to exception_handler_list 133.1
+   END                                    => reduce 2 tokens to exception_handler_list 133.1
+   WHEN                                   => reduce 2 tokens to exception_handler_list 133.1
    default                                => ERROR
 
    Minimal_Complete_Actions => ((1 exception_handler_list 133.0), (2 exception_handler_list 133.1))
@@ -5981,8 +5865,7 @@ State 284:
     133.2:exception_handler_list <= exception_handler_list ^ exception_handler_list
 
    END                                    => reduce 2 tokens to exception_handler_list 133.2
-   WHEN                                   => shift and goto state 243 78.0,
-                                             reduce 2 tokens to exception_handler_list 133.2
+   WHEN                                   => reduce 2 tokens to exception_handler_list 133.2
    default                                => ERROR
 
    exception_handler                      goto state 283
@@ -6776,12 +6659,9 @@ State 338:
     134.0:ELSIF_expression_list <= ELSIF expression THEN sequence_of_statements ^
     134.1:ELSIF_expression_list <= ELSIF_expression_list ELSIF expression THEN sequence_of_statements ^
 
-   ELSE                                   => reduce 4 tokens to ELSIF_expression_list 134.0,
-                                             reduce 5 tokens to ELSIF_expression_list 134.1
-   ELSIF                                  => reduce 4 tokens to ELSIF_expression_list 134.0,
-                                             reduce 5 tokens to ELSIF_expression_list 134.1
-   END                                    => reduce 4 tokens to ELSIF_expression_list 134.0,
-                                             reduce 5 tokens to ELSIF_expression_list 134.1
+   ELSE                                   => reduce 5 tokens to ELSIF_expression_list 134.1
+   ELSIF                                  => reduce 5 tokens to ELSIF_expression_list 134.1
+   END                                    => reduce 5 tokens to ELSIF_expression_list 134.1
    default                                => ERROR
 
    Minimal_Complete_Actions => ((4 ELSIF_expression_list 134.0), (5 ELSIF_expression_list 134.1))
@@ -6833,10 +6713,8 @@ State 342:
     128.0:IDENTIFIER_COMMA_list <= IDENTIFIER ^
     128.1:IDENTIFIER_COMMA_list <= IDENTIFIER_COMMA_list COMMA IDENTIFIER ^
 
-   RIGHT_PAREN                            => reduce 1 tokens to IDENTIFIER_COMMA_list 128.0,
-                                             reduce 3 tokens to IDENTIFIER_COMMA_list 128.1
-   COMMA                                  => reduce 1 tokens to IDENTIFIER_COMMA_list 128.0,
-                                             reduce 3 tokens to IDENTIFIER_COMMA_list 128.1
+   RIGHT_PAREN                            => reduce 3 tokens to IDENTIFIER_COMMA_list 128.1
+   COMMA                                  => reduce 3 tokens to IDENTIFIER_COMMA_list 128.1
    default                                => ERROR
 
    Minimal_Complete_Actions => ((1 IDENTIFIER_COMMA_list 128.0), (3 IDENTIFIER_COMMA_list 128.1))
@@ -6847,8 +6725,7 @@ State 343:
     128.2:IDENTIFIER_COMMA_list <= IDENTIFIER_COMMA_list ^ COMMA IDENTIFIER_COMMA_list
 
    RIGHT_PAREN                            => reduce 3 tokens to IDENTIFIER_COMMA_list 128.2
-   COMMA                                  => shift and goto state 331 128.1,
-                                             reduce 3 tokens to IDENTIFIER_COMMA_list 128.2
+   COMMA                                  => reduce 3 tokens to IDENTIFIER_COMMA_list 128.2
    default                                => ERROR
 
    Minimal_Complete_Actions => (3 IDENTIFIER_COMMA_list 128.2)
@@ -6954,9 +6831,6 @@ State 348:
 
 341 states with minimal_complete_actions; 367 total minimal_complete_actions.
 
-25 states with optimized_list conflicts: 116 117 167 169 171 173 174 176 204 205 218 219 220 221 222 252 253 265 266
-273 283 284 338 342 343
-
-4 states with other conflicts: 64 175 180 261
+3 states with conflicts: 64 180 261
 
  80 rules, 4 user actions, 19 checks, 349 states

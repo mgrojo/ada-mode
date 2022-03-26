@@ -25,16 +25,15 @@ with WisiToken.Productions;
 package WisiToken.Generate.LR is
    use WisiToken.Parse.LR;
 
-   subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
    type Conflict_Item is record
-      Action : Conflict_Parse_Actions := Conflict_Parse_Actions'First;
-      LHS    : Token_ID := Invalid_Token_ID;
+      Verb : Conflict_Parse_Actions := Conflict_Parse_Actions'First;
+      LHS  : Token_ID               := Invalid_Token_ID;
    end record;
 
    function Conflict_Item_Compare (Left, Right : in Conflict_Item) return SAL.Compare_Result
-   is (if Left.Action > Right.Action
+   is (if Left.Verb > Right.Verb
        then SAL.Greater
-       elsif Left.Action < Right.Action
+       elsif Left.Verb < Right.Verb
        then SAL.Less
        else
          (if Left.LHS > Right.LHS
@@ -101,22 +100,15 @@ package WisiToken.Generate.LR is
       Known_Conflicts  : in out Conflict_Lists.Tree;
       File_Name        : in     String;
       Descriptor       : in     WisiToken.Descriptor;
-      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
       Ignore_Conflicts : in     Boolean);
    --  Compare Found and Known Conflicts. If they differ, and
    --  Ignore_Conflicts is false, output appropriate error messages.
 
-   type Conflict_Count is record
-      Accept_Reduce : Integer := 0;
-      Shift_Reduce  : Integer := 0;
-      Reduce_Reduce : Integer := 0;
-   end record;
-
    package Conflict_Count_Lists is new SAL.Gen_Unbounded_Definite_Vectors
-     (State_Index, Conflict_Count, Default_Element => (others => <>));
+     (State_Index, Integer, Default_Element => 0);
 
    procedure Collect_Conflicts
-     (Table           : in Parse_Table;
+     (Table           : in     Parse_Table;
       Conflicts       : in out Conflict_Lists.Tree;
       Conflict_Counts : in out Conflict_Count_Lists.Vector);
 
@@ -124,24 +116,32 @@ package WisiToken.Generate.LR is
    --  Build parse table
 
    procedure Add_Action
-     (Symbol      : in     Token_ID;
-      Action      : in     Parse_Action_Rec;
-      Action_List : in out Action_Arrays.Vector;
-      Descriptor  : in     WisiToken.Descriptor);
-   --  Add (Symbol, Action) to Action_List
+     (Symbol           : in     Token_ID;
+      Action           : in     Parse_Action_Rec;
+      Action_List      : in out Action_Arrays.Vector;
+      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor       : in     WisiToken.Descriptor;
+      File_Name        : in     String;
+      Ignore_Conflicts : in     Boolean);
+   --  Add (Symbol, Action) to Action_List. Other args are for conflict
+   --  detection and error reporting.
 
    procedure Add_Actions
-     (Closure    : in     LR1_Items.Item_Set;
-      Table      : in out Parse_Table;
-      Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in     WisiToken.Descriptor);
+     (Closure          : in     LR1_Items.Item_Set;
+      Table            : in out Parse_Table;
+      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor       : in     WisiToken.Descriptor;
+      File_Name        : in     String;
+      Ignore_Conflicts : in     Boolean);
    --  Add actions in Closure to Table.
 
    procedure Add_Lookahead_Actions
-     (Item        : in     LR1_Items.Item;
-      Action_List : in out Action_Arrays.Vector;
-      Grammar     : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor  : in     WisiToken.Descriptor);
+     (Item             : in     LR1_Items.Item;
+      Action_List      : in out Action_Arrays.Vector;
+      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor       : in     WisiToken.Descriptor;
+      File_Name        : in     String;
+      Ignore_Conflicts : in     Boolean);
    --  Add actions for Item.Lookaheads to Action_List
    --  Closure must be from the item set containing Item.
 
@@ -222,6 +222,18 @@ package WisiToken.Generate.LR is
    procedure Put (Descriptor : in WisiToken.Descriptor; Action : in Parse_Action_Node_Ptr);
    procedure Put (Descriptor : in WisiToken.Descriptor; State : in Parse_State);
    --  Put Item to Ada.Text_IO.Current_Output in parse table format.
+
+   function Image
+     (Item       : in Parse_Action_Rec;
+      Descriptor : in WisiToken.Descriptor)
+      return String;
+   --  Ada aggregate format.
+
+   procedure Put
+     (File       : in Ada.Text_IO.File_Type;
+      Action     : in Parse_Action_Node_Ptr;
+      Descriptor : in WisiToken.Descriptor);
+   --  Put Action to File in error message format.
 
    procedure Put_Parse_Table
      (Table                 : in Parse_Table_Ptr;

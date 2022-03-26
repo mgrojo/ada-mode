@@ -758,8 +758,8 @@ package body WisiToken.BNF.Generate_Utils is
          begin
             for I of Item.Items loop
                Conflict.Items.Insert
-                 ((Action => Conflict_Parse_Actions'Value (-I.Name),
-                   LHS    => Find_Token_ID (Data, -I.Value)));
+                 ((Verb => WisiToken.Parse.LR.Conflict_Parse_Actions'Value (-I.Name),
+                   LHS  => Find_Token_ID (Data, -I.Value)));
             end loop;
 
             Conflict.On := Find_Token_ID (Data, -Item.On);

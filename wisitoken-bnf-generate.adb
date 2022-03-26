@@ -351,6 +351,12 @@ begin
          Input_Data.Reset; -- only resets Other data
 
          Input_Data.Phase := Phase;
+
+         if Trace_Action > Outline then
+            Trace.New_Line;
+            Trace.Put_Line ("grammar syntax tree:");
+            Grammar_Parser.Tree.Print_Tree;
+         end if;
          Grammar_Parser.Execute_Actions;
 
          case Phase is

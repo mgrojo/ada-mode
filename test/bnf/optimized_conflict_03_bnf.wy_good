@@ -1,0 +1,51 @@
+;;; generated from optimized_conflict_03.wy -*- buffer-read-only:t -*-
+;;;
+;; Same grammar as optimized_conflict_02.wy, but with no multiply.
+
+%meta_syntax BNF
+
+%keyword NEW "new"
+%keyword RANGE "range"
+%generate LALR Ada re2c
+
+%start subtype_indication
+
+%token <punctuation> DOT_DOT ".."
+%token <punctuation> MINUS "-"
+%token <punctuation> PLUS "+"
+
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+
+%non_grammar <new-line> NEW_LINE
+
+%non_grammar <comment-new-line> COMMENT "--"
+
+%token <symbol> IDENTIFIER %[ [a-zA-Z]+ ]%
+
+%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token MINUS (30)
+%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token PLUS (30)
+
+subtype_indication
+  : IDENTIFIER RANGE simple_expression DOT_DOT simple_expression
+  ;
+
+simple_expression
+  : primary
+  | simple_expression binary_adding_operator primary
+  ;
+
+primary
+  : IDENTIFIER
+  | allocator
+  ;
+
+binary_adding_operator
+  : PLUS
+  | MINUS
+  ;
+
+allocator
+  : NEW subtype_indication
+  ;
+
+;; end of file

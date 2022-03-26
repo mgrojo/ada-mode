@@ -1,0 +1,41 @@
+;; Same grammar as optimized_conflict_02.wy, but with no multiply.
+
+%meta_syntax EBNF
+
+%generate LALR Ada re2c
+
+%start subtype_indication
+
+%token <punctuation> DOT_DOT ".."
+%token <punctuation> MINUS "-"
+%token <punctuation> PLUS "+"
+
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+
+%non_grammar <new-line> NEW_LINE
+
+%non_grammar <comment-new-line> COMMENT "--"
+
+%token <symbol> IDENTIFIER %[ [a-zA-Z]+ ]%
+
+%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token MINUS (30)
+%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token PLUS (30)
+
+subtype_indication
+  : IDENTIFIER 'range' simple_expression '..' simple_expression
+  ;
+
+simple_expression : primary {binary_adding_operator primary} ;
+
+primary
+  : IDENTIFIER
+  | allocator
+  ;
+
+binary_adding_operator : '+' | '-' ;
+
+allocator
+  : 'new' subtype_indication
+  ;
+
+;; end of file

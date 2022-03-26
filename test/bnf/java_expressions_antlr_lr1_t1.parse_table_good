@@ -2249,8 +2249,7 @@ State 108:
      39.2:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK_RBRACK_list ^
      39.2:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK_RBRACK_list
 
-   LBRACK             => shift and goto state 107 39.0,
-                         reduce 2 tokens to LBRACK_RBRACK_list 39.2
+   LBRACK             => reduce 2 tokens to LBRACK_RBRACK_list 39.2
    DOT                => reduce 2 tokens to LBRACK_RBRACK_list 39.2
    default            => ERROR
 
@@ -2575,8 +2574,7 @@ State 124:
      39.2:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK_RBRACK_list
 
    RPAREN             => reduce 2 tokens to LBRACK_RBRACK_list 39.2
-   LBRACK             => shift and goto state 123 39.0,
-                         reduce 2 tokens to LBRACK_RBRACK_list 39.2
+   LBRACK             => reduce 2 tokens to LBRACK_RBRACK_list 39.2
    DOT                => reduce 2 tokens to LBRACK_RBRACK_list 39.2
    default            => ERROR
 
@@ -3170,10 +3168,8 @@ State 152:
      39.0:LBRACK_RBRACK_list <= LBRACK RBRACK ^
      39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK RBRACK ^
 
-   LBRACK             => reduce 2 tokens to LBRACK_RBRACK_list 39.0,
-                         reduce 3 tokens to LBRACK_RBRACK_list 39.1
-   DOT                => reduce 2 tokens to LBRACK_RBRACK_list 39.0,
-                         reduce 3 tokens to LBRACK_RBRACK_list 39.1
+   LBRACK             => reduce 3 tokens to LBRACK_RBRACK_list 39.1
+   DOT                => reduce 3 tokens to LBRACK_RBRACK_list 39.1
    default            => ERROR
 
    Minimal_Complete_Actions => ((2 LBRACK_RBRACK_list 39.0), (3 LBRACK_RBRACK_list 39.1))
@@ -3251,12 +3247,9 @@ State 156:
      39.0:LBRACK_RBRACK_list <= LBRACK RBRACK ^
      39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK RBRACK ^
 
-   RPAREN             => reduce 2 tokens to LBRACK_RBRACK_list 39.0,
-                         reduce 3 tokens to LBRACK_RBRACK_list 39.1
-   LBRACK             => reduce 2 tokens to LBRACK_RBRACK_list 39.0,
-                         reduce 3 tokens to LBRACK_RBRACK_list 39.1
-   DOT                => reduce 2 tokens to LBRACK_RBRACK_list 39.0,
-                         reduce 3 tokens to LBRACK_RBRACK_list 39.1
+   RPAREN             => reduce 3 tokens to LBRACK_RBRACK_list 39.1
+   LBRACK             => reduce 3 tokens to LBRACK_RBRACK_list 39.1
+   DOT                => reduce 3 tokens to LBRACK_RBRACK_list 39.1
    default            => ERROR
 
    Minimal_Complete_Actions => ((2 LBRACK_RBRACK_list 39.0), (3 LBRACK_RBRACK_list 39.1))
@@ -3342,8 +3335,7 @@ State 161:
      28.2:expressionList <= expressionList ^ COMMA expressionList
 
    RPAREN             => reduce 3 tokens to expressionList 28.2
-   COMMA              => shift and goto state 129 28.1,
-                         reduce 3 tokens to expressionList 28.2
+   COMMA              => reduce 3 tokens to expressionList 28.2
    default            => ERROR
 
    Minimal_Complete_Actions => (3 expressionList 28.2)
@@ -3357,11 +3349,9 @@ State 162:
      30.7:expression <= expression ^ nonterminal_031 expression
      30.8:expression <= expression ^ nonterminal_032 expression
 
-   RPAREN             => reduce 1 tokens to expressionList 28.0,
-                         reduce 3 tokens to expressionList 28.1
+   RPAREN             => reduce 3 tokens to expressionList 28.1
    LBRACK             => shift and goto state 130 30.2
-   COMMA              => reduce 1 tokens to expressionList 28.0,
-                         reduce 3 tokens to expressionList 28.1
+   COMMA              => reduce 3 tokens to expressionList 28.1
    DOT                => shift and goto state 131 30.1
    INC                => shift and goto state 132 35.0
    DEC                => shift and goto state 133 35.1
@@ -3969,8 +3959,6 @@ State 188:
 
 182 states with minimal_complete_actions; 195 total minimal_complete_actions.
 
-5 states with optimized_list conflicts: 108 124 152 156 161
-
-17 states with other conflicts: 53 69 103 104 118 119 120 138 151 153 162 168 169 180 181 183 186
+16 states with conflicts: 53 69 103 104 118 119 120 138 151 153 168 169 180 181 183 186
 
  14 rules, 0 user actions, 0 checks, 189 states

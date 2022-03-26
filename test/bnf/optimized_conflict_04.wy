@@ -1,0 +1,56 @@
+;; Same as optimized_conflict_01.wy, but fixes the grammar conflict,
+;; so the simple optimized_list conflict resolution works adequately.
+
+%meta_syntax EBNF
+
+%generate LALR Ada re2c
+
+%start subtype_indication
+
+%token <punctuation> AMPERSAND "&"
+%token <punctuation> DOT_DOT ".."
+%token <punctuation> MINUS "-"
+%token <punctuation> PLUS "+"
+%token <punctuation> SLASH "/"
+%token <punctuation> STAR "*"
+
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+
+%non_grammar <new-line> NEW_LINE
+
+%non_grammar <comment-new-line> COMMENT "--"
+
+%token <symbol> IDENTIFIER %[ [a-zA-Z]+ ]%
+
+;; Specify the shortest possible check_limit, to minimize the
+;; difference between parsing with this grammar and
+;; optimized_conflict_02.wy.
+%mckenzie_cost_default 4 3 2 2
+%mckenzie_check_limit 1
+
+subtype_indication
+  : IDENTIFIER 'range' simple_expression '..' simple_expression
+  ;
+
+subtype_indication_no_constraint
+  : IDENTIFIER
+  ;
+
+simple_expression : term {binary_adding_operator term} ;
+
+term : primary {multiplying_operator primary} ;
+
+primary
+  : IDENTIFIER
+  | allocator
+  ;
+
+binary_adding_operator : '+' | '-' | '&' ;
+
+multiplying_operator : '*' | '/' ;
+
+allocator
+  : 'new' subtype_indication_no_constraint
+  ;
+
+;; end of file

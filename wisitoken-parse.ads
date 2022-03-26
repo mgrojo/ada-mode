@@ -282,11 +282,6 @@ package WisiToken.Parse is
       ID     : in Production_ID)
      return Syntax_Trees.Post_Parse_Action;
 
-   function Is_Optimized_List
-     (Parser : in Base_Parser;
-      ID     : in Production_ID)
-     return Boolean;
-
    function Next_Grammar_Token
      (Parser            : in out Base_Parser'Class;
       Last_Grammar_Node : in out WisiToken.Syntax_Trees.Node_Access)
