@@ -65,13 +65,23 @@
 (wisi-time (lambda () (indent-rigidly (point)(line-beginning-position 2) -1)(indent-for-tab-command)) 4 :report-wait-time t)
 (wisi-parse-memory-report wisi--parser)
 
-(message "recover")
-(goto-char (/ (point-max) 2))
-(goto-char (line-beginning-position))
-(forward-comment (point-max))
-(kill-line 2)
-(wisi-time 'indent-for-tab-command 4 :report-wait-time t)
-(undo)
+(defun time-recover ()
+  (goto-char (line-beginning-position))
+  (forward-comment (point-max))
+  (kill-line 2)
+  (wisi-time 'indent-for-tab-command 4 :report-wait-time t)
+  (undo)
+  (indent-for-tab-command);; parse with no errors for next test
+  )
+
+(message "recover near start of file")
+(goto-char (+ (point-min) 10000))
+(time-recover)
+
+(message "recover near end of file")
+(goto-char (- (point-max) 10000))
+(time-recover)
+
 (wisi-parse-memory-report wisi--parser)
 
 (split-window-vertically)

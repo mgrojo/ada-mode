@@ -34,5 +34,4 @@ procedure Gpr_Mode_Wisi_Parse is new Gen_Emacs_Wisi_LR_Parse
    Language_String_ID_Set         => null,
    Create_Lexer                   => Gpr_Process_Main.Create_Lexer,
    Create_Parse_Table             => Gpr_Process_Main.Create_Parse_Table,
-   Create_In_Parse_Actions        => Gpr_Process_Main.Create_In_Parse_Actions,
-   Create_Post_Parse_Actions      => Gpr_Process_Main.Create_Post_Parse_Actions);
+   Create_Productions             => Gpr_Process_Main.Create_Productions);

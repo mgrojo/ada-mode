@@ -267,20 +267,8 @@ tick : TICK_1 | TICK_2 ;
 
 %end_names_optional_option End_Names_Optional
 
-%conflict REDUCE defining_identifier_list | REDUCE IDENTIFIER_COMMA_list on token COMMA
 %conflict REDUCE defining_identifier_list | REDUCE direct_name on token COMMA
-%conflict REDUCE direct_name | REDUCE selector_name on token BAR
-%conflict REDUCE direct_name | REDUCE selector_name on token EQUAL_GREATER
-%conflict REDUCE discrete_choice | REDUCE selector_name on token BAR
-%conflict REDUCE discrete_choice | REDUCE selector_name on token EQUAL_GREATER
-%conflict REDUCE name | REDUCE selector_name on token BAR
-%conflict REDUCE name | REDUCE selector_name on token EQUAL_GREATER
-%conflict REDUCE primary | REDUCE global_aspect_definition on token COMMA
-%conflict REDUCE primary | REDUCE global_aspect_definition on token IS
-%conflict REDUCE primary | REDUCE global_aspect_definition on token SEMICOLON
-%conflict REDUCE primary | REDUCE global_aspect_definition on token WHEN
-%conflict REDUCE record_component_association | REDUCE expression_list on token COMMA
-%conflict REDUCE record_component_association | REDUCE expression_list on token RIGHT_PAREN
+
 %conflict REDUCE subtype_indication | REDUCE iterator_specification on token EQUAL_GREATER
 %conflict REDUCE subtype_indication | REDUCE iterator_specification on token LOOP
 %conflict REDUCE subtype_indication | REDUCE iterator_specification on token USE
@@ -291,14 +279,9 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT at_clause | REDUCE name on token USE
 %conflict SHIFT attribute_definition_clause | REDUCE attribute_reference on token USE
 %conflict SHIFT attribute_definition_clause | REDUCE label_opt on token FOR
-%conflict SHIFT binary_adding_operator | REDUCE simple_expression on token AMPERSAND
-%conflict SHIFT binary_adding_operator | REDUCE simple_expression on token MINUS
-%conflict SHIFT binary_adding_operator | REDUCE simple_expression on token PLUS
-%conflict SHIFT digits_constraint | REDUCE subtype_indication on token DIGITS
 %conflict SHIFT dispatching_operation_set | REDUCE extended_global_aspect_element on token COMMA
 %conflict SHIFT dispatching_operation_specifier | REDUCE subtype_indication | REDUCE primary on token RIGHT_PAREN
 %conflict SHIFT expression_function_declaration | REDUCE subprogram_specification on token IS
-%conflict SHIFT factor | REDUCE factor on token STAR_STAR
 %conflict SHIFT formal_derived_type_definition | REDUCE formal_derived_type_definition on token WITH
 %conflict SHIFT full_type_declaration | REDUCE discriminant_part on token IS
 %conflict SHIFT generic_instantiation | REDUCE parameter_profile on token IS
@@ -308,11 +291,7 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT global_set | REDUCE formal_parameter_set on token COMMA
 %conflict SHIFT global_set | REDUCE global_aspect_element on token COMMA
 %conflict SHIFT iterator_filter | REDUCE subtype_indication on token WHEN
-%conflict SHIFT membership_choice_list | REDUCE relation on token BAR (668, 991)
-%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token MOD
-%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token REM
-%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token SLASH
-%conflict SHIFT multiplying_operator | REDUCE term_binary_adding_operator_list on token STAR
+%conflict SHIFT membership_choice_list | REDUCE relation on token BAR
 %conflict SHIFT null_exclusion | REDUCE mode on token NOT
 %conflict SHIFT null_procedure_declaration | REDUCE subprogram_specification on token IS
 %conflict SHIFT object_renaming_declaration | REDUCE defining_identifier_list on token COLON
@@ -320,14 +299,10 @@ tick : TICK_1 | TICK_2 ;
 %conflict SHIFT package_body_stub | REDUCE direct_name on token IS
 %conflict SHIFT parallel_block_statement | REDUCE label_opt on token PARALLEL
 %conflict SHIFT raise_expression | REDUCE raise_expression on token WITH
-%conflict SHIFT range_constraint | REDUCE delta_constraint on token RANGE
-%conflict SHIFT range_constraint | REDUCE digits_constraint on token RANGE
-%conflict SHIFT range_constraint | REDUCE subtype_indication on token RANGE
 %conflict SHIFT record_extension_part | REDUCE derived_type_definition on token WITH
 %conflict SHIFT tick | REDUCE direct_name on token TICK_1
 %conflict SHIFT tick | REDUCE direct_name on token TICK_2
 %conflict SHIFT value_sequence | REDUCE array_component_association on token RIGHT_SQUARE_BRACKET
-
 
 ;;; grammar rules
 
@@ -443,6 +418,7 @@ subtype_indication
 constraint
   : scalar_constraint
   | index_constraint
+  ;; discriminant_constraint deleted; redundant with subprogram_call in name
   ;
 
 scalar_constraint ::= range_constraint | digits_constraint | delta_constraint ;
@@ -765,7 +741,9 @@ declarative_item_list ;;:new for pragma_g
   | declarative_item
   | declarative_item_list declarative_item
   | declarative_item_list pragma_g
+  | declarative_item_list declarative_item_list
   ;
+%optimized_list declarative_item_list
 
 declarative_part : [declarative_item_list] ;
 
@@ -837,9 +815,8 @@ selected_component
   ;
 
 selector_name
-  : IDENTIFIER
+  : direct_name ;; edited; redundant IDENTIFIER | STRING_LITERAL
   | CHARACTER_LITERAL
-  | STRING_LITERAL
   | 'others' ;;:new from component_choice_list, formal_package_actual_part to reduce conflicts
   ;
 
@@ -868,10 +845,10 @@ range_attribute_designator
 ;; generalized_indexing ::= name actual_parameter_part - redundant with function_call
 
 aggregate
-  : record_aggregate
-  | extension_aggregate
+  ;; : record_aggregate ;;deleted; subset of array_aggregate
+  : extension_aggregate
   | array_aggregate
-  | delta_aggregate
+  | array_delta_aggregate ;; redundant with record_delta_aggregate
   ;; container_aggregate ;; redundant with array_aggregate
 
   ;; ARM 4.5.7(7), ARM 4.5.8(4), ARM 4.5.9(4) allow
@@ -885,34 +862,34 @@ aggregate
     %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
   ;
 
-record_aggregate
-  : '(' record_component_association_list ')'
-    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
-  ;
+;; record_aggregate ;; subset of array_aggregate
+;;   : '(' record_component_association_list ')'
+;;     %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
+;;   ;
 
-record_component_association_list ::=
-    record_component_association {',' record_component_association}
-  | 'null' 'record'
+;; record_component_association_list ::=
+;;     record_component_association {',' record_component_association}
+;;   | 'null' 'record'
 
-record_component_association
-  : component_choice_list assoc_expression ;;:edited:; [] inlined for action
-    %((wisi-indent-action [nil ada-indent-broken]))%
-  | expression ;;new:; [] inlined for action
-    %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
-  ;; | component_choice_list '=>' '<>' ;;:redundant with expanded assoc_expression
-  ;
+;; record_component_association
+;;   : component_choice_list assoc_expression ;;:edited:; [] inlined for action
+;;     %((wisi-indent-action [nil ada-indent-broken]))%
+;;   | expression ;;new:; [] inlined for action
+;;     %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
+;;   ;; | component_choice_list '=>' '<>' ;;:redundant with expanded assoc_expression
+;;   ;
 
-component_choice_list
-  : selector_name
-  | component_choice_list '|' selector_name
-    ;; This indent is not consistent with discrete_choice_list in
-    ;; case_statement, but it is backward-compatible.
-    %((wisi-indent-action [nil nil ada-indent-broken]))%
-  ;; | 'others' ;;:redundant with expanded selector_name
-  ;
+;; component_choice_list
+;;   : selector_name
+;;   | component_choice_list '|' selector_name
+;;     ;; This indent is not consistent with discrete_choice_list in
+;;     ;; case_statement, but it is backward-compatible.
+;;     %((wisi-indent-action [nil nil ada-indent-broken]))%
+;;   ;; | 'others' ;;:redundant with expanded selector_name
+;;   ;
 
 extension_aggregate
-  : '(' expression 'with' record_component_association_list ')'
+  : '(' expression 'with' array_component_association_list ')' ;; edited; record_component_association_list redundant with array_component_association_list
     %((wisi-indent-action [nil
                            (wisi-hanging (wisi-anchored 1 1)
                                          (wisi-anchored 1 (+ 1 ada-indent-broken)))
@@ -984,18 +961,18 @@ array_component_association
 ;;   | 'for' iterator_specification '=>' expression
 ;;   ;
 
-delta_aggregate ::= record_delta_aggregate | array_delta_aggregate
+;; delta_aggregate ::= array_delta_aggregate
 
-record_delta_aggregate
-  : '(' expression 'with' 'delta' record_component_association_list ')'
-    %((wisi-indent-action [nil
-                           (wisi-hanging (wisi-anchored 1 1)
-                                         (wisi-anchored 1 (+ 1 ada-indent-broken)))
-                           (wisi-anchored 1 1)
-                           (wisi-anchored 1 1)
-                           [(wisi-anchored 1 1) (wisi-anchored 1 1)]
-                           (wisi-anchored 1 0)]))%
-  ;
+;; record_delta_aggregate ;; deleted; redundant with array_delta_aggregate
+;;   : '(' expression 'with' 'delta' array_component_association_list ')' ;; edited; record_component_association_list redundant with array_component_association_list
+;;     %((wisi-indent-action [nil
+;;                            (wisi-hanging (wisi-anchored 1 1)
+;;                                          (wisi-anchored 1 (+ 1 ada-indent-broken)))
+;;                            (wisi-anchored 1 1)
+;;                            (wisi-anchored 1 1)
+;;                            [(wisi-anchored 1 1) (wisi-anchored 1 1)]
+;;                            (wisi-anchored 1 0)]))%
+;;   ;
 
 array_delta_aggregate
   : '(' expression 'with' 'delta' array_component_association_list ')'
@@ -1263,9 +1240,29 @@ qualified_expression
       (wisi-indent-action [nil (wisi-anchored% 1 ada-indent-broken) (wisi-anchored% 1 ada-indent-broken)]))%
   ;
 
+;; LRM 4.8 has 'subtype_indication' here, which allows a constraint.
+;; That allows this derivation:
+;;
+;; term : factor * factor
+;; term : allocator * 4
+;; term : new subtype_indication * 4
+;; term : new   name range 1 .. a + b   * 4
+;;
+;; which gives conflicts on *, /, leading to geometric explosion of
+;; parallel parsing in arithmetic expressions. LRM 4.8(4) says the
+;; constraint is only allowed if the subtype is unconstrained, and the
+;; allocator is uninitialized. A constraint for an unconstrained
+;; subtype is either an index_constraint or discriminant_constraint;
+;; we can eliminate the conflicts by stating that explicitly here.
 allocator
-  : 'new' [subpool_specification] subtype_indication
+  : 'new' [subpool_specification] subtype_indication_paren_constraint
   ;; 'new' [ subpool_specification ] qualified_expression ;;:redundant with name in subtype_indication
+  ;
+subtype_indication_paren_constraint
+  : [null_exclusion] name ;; includes discriminant_constraint; redundant with subprogram_call
+    %((wisi-face-apply-action [2 font-lock-function-name-face font-lock-type-face]))%
+  | [null_exclusion] name index_constraint
+    %((wisi-face-apply-action [2 font-lock-function-name-face font-lock-type-face]))%
   ;
 
 subpool_specification ::= '(' name ')'
@@ -1434,7 +1431,7 @@ procedural_iterator
 
 iterator_parameter_specification ::=
     formal_part
-  | '(' IDENTIFIER {',' IDENTIFIER} ')'
+  | '(' defining_identifier_list ')' ;; 'IDENTIFIER {',' IDENTIFIER}' redundant with defining_identifier_list
   ;
 
 ;; iterator_procedure_call ;;:redundant with expanded function_call
@@ -1600,10 +1597,10 @@ parameter_specification
 
 mode : ['in'] | 'in' 'out' | 'out' ;
 
-global_aspect_definition ::=
-    'null'
+global_aspect_definition
+  ;;  'null' ;;deleted; redundant with expression in aspect
   ;; | 'unspecified'  ;;deleted: not a keyword
-  | global_mode global_designator
+  : global_mode global_designator
   |  '(' global_aspect_element{ ','  global_aspect_element} ')'
   | extended_global_aspect_definition
 
@@ -1686,7 +1683,7 @@ assoc_expression ;;:new; split out from *_association for indent
   ;
 
 parameter_association
-  : component_choice_list assoc_expression ;;:inlined for action, expanded to component_choice_list to reduce conflicts
+  : discrete_choice_list assoc_expression ;;:inlined for action, expanded to discrete_choice_list to reduce conflicts
     %((wisi-indent-action [nil ada-indent-broken ada-indent-broken]))%
   | expression ;;:inlined for action
     %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%

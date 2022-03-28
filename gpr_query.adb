@@ -3,7 +3,7 @@
 --  Support Emacs Ada mode and gpr-query minor mode queries about
 --  GNAT projects and cross reference data
 --
---  Copyright (C) 2014 - 2021 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2014 - 2022 Free Software Foundation All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -52,6 +52,7 @@ procedure Gpr_Query is
    --  changes; must match gpr-query.el gpr-query-protocol-version
 
    Me : constant GNATCOLL.Traces.Trace_Handle := GNATCOLL.Traces.Create ("gpr_query");
+   --  See gnatcoll-xref.adb for xref traces.
 
    DB_Error        : exception;
    Invalid_Command : exception;

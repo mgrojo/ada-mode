@@ -36,5 +36,4 @@ procedure Ada_Mode_Wisi_LR1_Parse is new Gen_Emacs_Wisi_LR_Text_Rep_Parse
    Text_Rep_File_Name             => "ada_annex_p_lr1_parse_table.txt",
    Create_Lexer                   => Ada_Annex_P_Process_LR1_Main.Create_Lexer,
    Create_Parse_Table             => Ada_Annex_P_Process_LR1_Main.Create_Parse_Table,
-   Create_In_Parse_Actions        => Ada_Annex_P_Process_LR1_Main.Create_In_Parse_Actions,
-   Create_Post_Parse_Actions      => Ada_Annex_P_Process_LR1_Main.Create_Post_Parse_Actions);
+   Create_Productions             => Ada_Annex_P_Process_LR1_Main.Create_Productions);

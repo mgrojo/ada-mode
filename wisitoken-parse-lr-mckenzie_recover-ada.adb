@@ -23,7 +23,7 @@ with WisiToken.Parse.LR.McKenzie_Recover.Parse;
 package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
    use Ada_Annex_P_Process_Actions; -- token names, To_Token_Enum
-   use all type In_Parse_Actions.Status_Label;
+   use all type Syntax_Trees.In_Parse_Actions.Status_Label;
 
    Descriptor : WisiToken.Descriptor renames Ada_Annex_P_Process_Actions.Descriptor;
 
@@ -1465,8 +1465,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       Shared_Parser           :         in out Parser.Parser;
       Tokens                  :         in     Token_ID_Array_1_3;
       Config                  : aliased in     Configuration;
-      Matching_Tokens         :            out Token_ID_Arrays.Vector;
-      Forbid_Minimal_Complete :            out Boolean)
+      Matching_Tokens         :         in out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :         in out Boolean)
    is
       use Token_ID_Arrays;
 

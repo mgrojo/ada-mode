@@ -50,6 +50,96 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+review conflicts to see if we can fix them in the grammar
+%conflict REDUCE subtype_indication | REDUCE iterator_specification on token EQUAL_GREATER
+%conflict REDUCE subtype_indication | REDUCE iterator_specification on token USE
+
+State 1081:
+    131.2:subtype_indication <= name ^ constraint
+    131.3:subtype_indication <= name ^
+
+   USE                                       => reduce 1 tokens to subtype_indication 131.3,
+                                                reduce 4 tokens to iterator_specification 274.5
+   EQUAL_GREATER                             => reduce 1 tokens to subtype_indication 131.3,
+                                                reduce 4 tokens to iterator_specification 274.5
+
+when is subtype_indication used in an iterator_specification, followed by 'use' or '=>'?
+
+discrete_choice : subtype_indication
+iterator_specification
+  : IDENTIFIER [':' loop_parameter_subtype_indication] 'in' ['reverse'] name [iterator_filter]
+loop_parameter_subtype_indication ::= subtype_indication | access_definition
+
+    need wisitoken-followed_by
+
+
+align error
+    test_incremental.adb Parse_Text parameter_list
+
+memory use
+    run_ada_lalr gnatcoll-xref.adb
+
+  36.3%: 7210200 bytes in 87181 chunks at  0x000000000097F2CB  0x00000000009F8DCB  0x0000000000A0931F  0x000000000049F851  0x000000000049FC19  0x000000000058E69D  0x000000000059057F  0x0000000000596DFC  0x00000000009624A8  0x000000000040196D  0x0000000000A3F48D  0x0000000000401423  0x000000000040113B  0x00007FFAC23513F0  0x00007FFAC2675502
+C:/Projects/org.wisitoken/wisitoken-syntax_trees.adb:410 Add_Nonterm_1 new Node
+C:/Projects/org.wisitoken/wisitoken-syntax_trees.adb:7000
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser.adb:52 Reduce_Stack_1
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser.adb:369 Do_Action
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser-parse.adb:602 main
+C:/Projects/org.emacs.wisi/run_wisi_common_parse.adb:776
+
+  21.3%: 4242384 bytes in 29461 chunks at  0x000000000097F2CB  0x00000000009F8DCB  0x0000000000A0931F  0x000000000047F6A8  0x000000000047F9FC  0x00000000004CE180  0x00000000004CE689  0x0000000000597555  0x00000000009624A8  0x000000000040196D  0x0000000000A3F48D  0x0000000000401423  0x000000000040113B  0x00007FFAC23513F0  0x00007FFAC2675502
+C:/Projects/org.wisitoken/wisitoken-syntax_trees.adb:476  Add_Source_Terminal_1 new Node
+C:/Projects/org.wisitoken/wisitoken-syntax_trees.adb:513
+C:/Projects/org.wisitoken/wisitoken-parse.adb:362  Next_Grammar_Token
+C:/Projects/org.wisitoken/wisitoken-parse.adb:400
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser-parse.adb:94
+C:/Projects/org.emacs.wisi/run_wisi_common_parse.adb:776
+
+  18.6%: 3691512 bytes in 2607 chunks at  0x000000000097F2CB  0x00000000009F8DCB  0x0000000000A0931F  0x000000000044B345  0x00000000004810BB  0x00000000004813AB  0x0000000000590B52  0x0000000000596DFC  0x00000000009624A8  0x000000000040196D  0x0000000000A3F48D  0x0000000000401423  0x000000000040113B  0x00007FFAC23513F0  0x00007FFAC2675502
+C:/Projects/org.stephe_leake.sal/source/sal-gen_indefinite_doubly_linked_lists.adb:44 Adjust (copying error lists)
+C:/Projects/org.wisitoken/wisitoken-syntax_trees.adb:248  Add_Error new Error_Data_Lists.List
+C:/Projects/org.wisitoken/wisitoken-syntax_trees.adb:318
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser.adb:488
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser-parse.adb:602 main
+C:/Projects/org.emacs.wisi/run_wisi_common_parse.adb:776
+
+  10.6%: 2097160 bytes in 1 chunks at  0x000000000097F2CB  0x000000000047E664  0x000000000047F175  0x000000000049F902  0x000000000049FC19  0x000000000058E69D  0x000000000059057F  0x0000000000596DFC  0x00000000009624A8  0x000000000040196D  0x0000000000A3F48D  0x0000000000401423  0x000000000040113B  0x00007FFAC23513F0  0x00007FFAC2675502
+C:/Projects/org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors.adb:62
+C:/Projects/org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors.adb:189
+C:/Projects/org.wisitoken/wisitoken-syntax_trees.adb:421 Add_Nonterm_1 tree.nodes.append
+C:/Projects/org.wisitoken/wisitoken-syntax_trees.adb:7000
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser.adb:52
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser.adb:369
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser-parse.adb:602
+C:/Projects/org.emacs.wisi/run_wisi_common_parse.adb:776
+
+  1.6%: 309064 bytes in 1 chunks at  0x000000000097F29B  0x00000000009F8D9B  0x0000000000A092EF  0x000000000093CAF1  0x00000000004017D4  0x0000000000A3F45D  0x0000000000401423  0x000000000040113B  0x00007FFAC23513F0  0x00007FFAC2675502
+C:/Projects/org.emacs.ada-mode/ada_annex_p_process_lalr_main.adb:309 new Parse_Table_ptr
+C:/Projects/org.emacs.wisi/gen_run_wisi_lr_parse.adb:40
+
+  0.9%: 188592 bytes in 2358 chunks at  0x000000000097F29B  0x00000000009F8D9B  0x0000000000A092EF  0x000000000049F861  0x000000000049FC29  0x000000000058E6AD  0x000000000059058F  0x0000000000596D96  0x0000000000962478  0x000000000040196D
+C:/Projects/org.wisitoken/wisitoken-syntax_trees.adb:410 Add_Nonterm_1 new Node
+C:/Projects/org.wisitoken/wisitoken-syntax_trees.adb:7000 Reduce
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser.adb:52 Reduce_Stack_1
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser.adb:369 Do_Action
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser-parse.adb:588 conflict
+C:/Projects/org.emacs.wisi/run_wisi_common_parse.adb:776
+
+  0.8%: 158364 bytes in 4399 chunks at  0x000000000097F29B  0x000000000043F6E5  0x00000000004CDE97  0x00000000004CE699  0x0000000000597565  0x0000000000962478  0x000000000040196D  0x0000000000A3F45D  0x0000000000401423  0x000000000040113B
+C:/Projects/org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors.adb:186
+C:/Projects/org.wisitoken/wisitoken-parse.adb:44 Process_Non_Grammar_Token non_grammar.append
+C:/Projects/org.wisitoken/wisitoken-parse.adb:400
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser-parse.adb:94 shared_parser.lex.all
+C:/Projects/org.emacs.wisi/run_wisi_common_parse.adb:776
+
+  0.6%: 125136 bytes in 2607 chunks at  0x000000000097F29B  0x00000000009F8D9B  0x0000000000A092EF  0x0000000000481094  0x00000000004813BB  0x0000000000590B62  0x0000000000596E0C  0x0000000000962478  0x000000000040196D  0x0000000000A3F45D
+C:/Projects/org.wisitoken/wisitoken-syntax_trees.adb:248 Add_Error new Error_Data_Lists.List (not later copied)
+C:/Projects/org.wisitoken/wisitoken-syntax_trees.adb:318 Add_Error_To_Input
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser.adb:488 Do_Action Error
+C:/Projects/org.wisitoken/wisitoken-parse-lr-parser-parse.adb:602 main
+C:/Projects/org.emacs.wisi/run_wisi_common_parse.adb:776
+
+
 trying to copy c:/Projects/org.wisitoken.stephe-1/test/test_incremental.adb:623 Edit_Comment_14
     wisi-validate-cache-current-statement cancels active region highlight
     but leaves mark-active t!
@@ -186,6 +276,14 @@ read Kate's book on culture/persuasion.
 
  after incremental
 review this file!
+
+editing wisitoken-parse-lr-parser-parse.adb to add conflict resolution for optimized list
+    error marks erased on scroll
+        not actually erased, just not visible;
+        left mark not drawn because below window when parse run
+        right mark scrolls with buffer
+
+    could refresh them
 
 move string, placeholder face to parser
     syntax-table processing does not respect new-line
