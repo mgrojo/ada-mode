@@ -1,5 +1,4 @@
-;; Illustrates a grammar conflict involving an optimized list; this confuses the
-;; optimized_list conflict resolution.
+;; Illustrates a grammar conflict involving an optimized list.
 ;;
 ;; This grammar is simplified from Ada. The Ada compiler rejects the
 ;; construct in the input file; constraints are not allowed in
@@ -20,12 +19,6 @@
 ;; In the absence of extra conflict resolution information, the parser
 ;; must do all of the possible interpretations, resulting in an
 ;; ambiguous parse.
-;;
-;; The problem here is to distinguish between the grammar and
-;; optimized_list conflicts, and resolve the latter appropriately
-;; while keeping all of the grammar conflicts. For now, we simply
-;; forbid such conflicts; the user must change the grammar to avoid
-;; them.
 ;;
 ;; related grammars:
 ;; optimized_conflict_01.wy : most complicated; optimized_lists, add and multiply, conflict in grammar
@@ -60,13 +53,12 @@
 %mckenzie_cost_default 4 3 2 2
 %mckenzie_check_limit 1
 
-%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token AMPERSAND (30)
-%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token MINUS (30)
-%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token PLUS (30)
+%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token AMPERSAND
+%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token MINUS
+%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token PLUS
 
-;; These are the problematic conflicts
-%conflict SHIFT multiplying_operator | REDUCE simple_expression | REDUCE simple_expression on token SLASH (32)
-%conflict SHIFT multiplying_operator | REDUCE simple_expression | REDUCE simple_expression on token STAR (32)
+%conflict SHIFT multiplying_operator | REDUCE simple_expression on token SLASH
+%conflict SHIFT multiplying_operator | REDUCE simple_expression on token STAR
 
 subtype_indication
   : IDENTIFIER 'range' simple_expression '..' simple_expression

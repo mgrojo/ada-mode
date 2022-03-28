@@ -57,12 +57,12 @@
 %mckenzie_cost_default 4 3 2 2
 %mckenzie_check_limit 1
 
-%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token AMPERSAND (30)
-%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token MINUS (30)
-%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token PLUS (30)
+%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token AMPERSAND
+%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token MINUS
+%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token PLUS
 
-%conflict SHIFT multiplying_operator | REDUCE simple_expression on token SLASH (32)
-%conflict SHIFT multiplying_operator | REDUCE simple_expression on token STAR (32)
+%conflict SHIFT multiplying_operator | REDUCE simple_expression on token SLASH
+%conflict SHIFT multiplying_operator | REDUCE simple_expression on token STAR
 
 subtype_indication
   : IDENTIFIER RANGE simple_expression DOT_DOT simple_expression

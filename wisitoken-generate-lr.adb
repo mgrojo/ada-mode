@@ -324,137 +324,295 @@ package body WisiToken.Generate.LR is
       end loop;
    end Put;
 
-   function Is_Optimized_List_Conflict
-     (Conflict         : in WisiToken.Parse.LR.Parse_Action_Node_Ptr;
-      Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor       : in WisiToken.Descriptor;
-      File_Name        : in String;
-      Ignore_Conflicts : in Boolean)
+   function Apply_Optimized_List_Conflict
+     (Conflict          : in out WisiToken.Parse.LR.Parse_Action_Node_Ptr;
+      Conflict_Count    : in     Integer;
+      Grammar           : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor        : in     WisiToken.Descriptor;
+      First_Nonterm_Set : in     WisiToken.Token_Array_Token_Set;
+      File_Name         : in     String)
      return Boolean
-   --  True if Conflict is due to an optimized_list. Outputs an error
-   --  message for mixed optimized_list/grammar conflicts.
+   with Pre => Conflict.Next /= null
+   --  If Conflict is due to an optimized_list, it is modified to
+   --  implement the appropriate conflict resolution, and the function
+   --  returns True. Otherwize, Conflict is not modified, and the
+   --  function returns False.
    is
       use all type Ada.Containers.Count_Type;
-      Item_1 : Parse_Action_Rec renames Conflict.Item;
 
-      function Any_Optimized_List return Boolean
+      Temp : Parse_Action_Node_Ptr := Conflict;
+
+      procedure Report_Error (Message : in String)
       is
-         Temp : Parse_Action_Node_Ptr := Conflict;
+         use Ada.Text_IO;
       begin
-         loop
-            exit when Temp = null;
-            if Grammar (Temp.Item.Production.LHS).Optimized_List then
-               return True;
-            end if;
-            Temp := Temp.Next;
-         end loop;
-         return False;
-      end Any_Optimized_List;
+         Put_Line (Current_Error, Error_Message (File_Name, 1, " " & Message & ":"));
+         Put (Current_Error, Conflict, Descriptor);
+         New_Line (Current_Error);
+         WisiToken.Generate.Error := True;
+      end Report_Error;
 
    begin
       --  Also see wisitoken_grammar_runtime.adb Add_Nonterminal
       --  Is_Optimized_List.
 
-      if Conflict.Next = null then
-         --  Not a conflict
-         return False;
+      --  In the following examples, the parse tables are generated with
+      --  --ignore_conflicts, so the optimized_list resolutions are not
+      --  applied, and the full conflicts appear in the tables.
+      --
+      --  From optimized_list parse table (without applying conflict
+      --  resolution), the conflicts are:
+      --
+      --  State 8:
+      --       10.0:declarations <= declaration ^
+      --       10.1:declarations <= declarations declaration ^
+      --
+      --     PRAGMA           => reduce 1 tokens to declarations 10.0,
+      --                         reduce 2 tokens to declarations 10.1
+      --     IDENTIFIER       => reduce 1 tokens to declarations 10.0,
+      --                         reduce 2 tokens to declarations 10.1
+      --     Wisi_EOI         => reduce 1 tokens to declarations 10.0,
+      --                         reduce 2 tokens to declarations 10.1
+      --
+      --  In this state, we know 'declarations declaration' is on the parse
+      --  stack, and we want to use production 10.1 to reduce 2 tokens to
+      --  'declarations'.
+      --
+      --  resolution: reduce 2 tokens to declarations 10.1
+      --
+      --  State 9:
+      --        10.1:declarations <= declarations ^ declaration
+      --        10.2:declarations <= declarations declarations ^
+      --        10.2:declarations <= declarations ^ declarations
+      --
+      --     IDENTIFIER       => shift and goto state 1 9.0,
+      --                         reduce 2 tokens to declarations 10.2
+      --
+      --  In this state, 'declarations declarations' is on the stack (which
+      --  can only happen in incremental parse), so:
+      --
+      --  resolution: reduce 2 tokens to declarations 10.2
 
-      elsif Conflict.Next.Next /= null then
-         if Trace_Generate_Conflicts > Detail then
-            Ada.Text_IO.Put_Line ("conflict.length > 2:");
-            Put (Ada.Text_IO.Current_Output, Conflict, Descriptor);
-            Ada.Text_IO.New_Line;
-         end if;
-         if Any_Optimized_List then
-            --  This is a mixed optimized_list and grammar conflict with more than
-            --  two actions; for now, we forbid such conflicts. We leave all the
-            --  conflict items in the parse table so the user can try to fix the
-            --  grammar.
-            --
-            --  Note that if the first two actions added here form an
-            --  optimized_list conflict, it is resolved to one action, and another
-            --  action maybe added later, resulting in a mixed
-            --  grammar/optimized_list conflict that we can handle.
-            --  optimized_list_01.wy
-            declare
-               use Ada.Text_IO;
-            begin
-               Put_Line (Current_Error, Error_Message (File_Name, 1, " mixed optimized_list/grammar conflict:"));
-               Put (Current_Error, Conflict, Descriptor);
-               New_Line (Current_Error);
-               WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Conflicts;
-            end;
-         end if;
-         return False;
-      end if;
+      --  From optimized_list_ebnf; a list with a separator:
+      --
+      --  State 33:
+      --       17.1:term <= term ^ multiplying_operator IDENTIFIER
+      --       17.2:term <= term multiplying_operator term ^
+      --       17.2:term <= term ^ multiplying_operator term
+      --
+      --     SLASH                    => shift and goto state 18 16.1,
+      --                                 reduce 3 tokens to term 17.2
+      --
+      --  production 16.1 is: multiplying_operator <= SLASH
+      --
+      --  multiplying_operator is the second token in RHS 17.2 for term.
+      --
+      --  resolution: reduce 3 tokens to term 17.2
+
+      --  From empty_production_2_optimized_list:
+      --
+      --  State 3:
+      --        7.0:wisitoken_accept <= declarations ^ Wisi_EOI
+      --        9.0:declarations <= declarations ^ declaration
+      --
+      --     Wisi_EOI         => accept it 7.0,
+      --                         reduce 0 tokens to declaration 8.1
+      --
+      --  resolution: accept it 7.0
+
+      --  From ada_lite_ebnf; list element is a higher-level nonterm:
+      --
+      --  State 117:
+      --      135.1:statement_list <= statement_list ^ statement
+      --      135.2:statement_list <= statement_list statement_list ^
+      --      135.2:statement_list <= statement_list ^ statement_list
+      --     BEGIN     => reduce 0 tokens to block_label_opt 63.1,
+      --                  reduce 2 tokens to statement_list 135.2
+      --     CASE      => shift and goto state 1 67.0,
+      --                  reduce 2 tokens to statement_list 135.2
+      --
+      --  resolution: reduce 2 tokens to statement_list 135.2
+
+
+      --  From ada_annex_p, a conflict with three items, all from the same optimized_list:
+      --  State 585:
+      --      452.1:statement_statement_list <= statement_statement_list ^ statement
+      --      452.2:statement_statement_list <= statement_statement_list statement_statement_list ^
+      --      452.2:statement_statement_list <= statement_statement_list ^ statement_statement_list
+
+      --     PARALLEL    => shift and goto state 17 282.0,
+      --                    reduce 0 tokens to label_opt 279.1,
+      --                    reduce 2 tokens to statement_statement_list 452.2
+      --
+      --  resolution: reduce 2 tokens to statement_statement_list 452.2
+
+
+      --  From optimized_conflict_01; a conflict with one item from an optimized_list, the other not.
+      --
+      --  State 19:
+      --    14.0:subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT simple_expression ^
+      --    15.1:simple_expression <= simple_expression ^ binary_adding_operator term
+      --    15.2:simple_expression <= simple_expression ^ binary_adding_operator simple_expression
+      --
+      --  AMPERSAND              => shift and goto state 11 18.2,
+      --                            reduce 5 tokens to subtype_indication 14.0
+      --
+      --  no resolution: keep both conflict items
+
+      --  We can distinguish optimized_list conflict items from others by
+      --  checking First_Nonterm_Set; if the LHS of an item A is in the
+      --  first nonterm set of the LHS of an optimized_list conflict item B,
+      --  they are from the same optimized list, and the resolution is to
+      --  delete item A. Alternately, A may be a list separator (as in
+      --  optimized_list_ebnf multiplying_operator above); then it is the
+      --  second token in the RHS of B, and the resolution is to delete item
+      --  A.
 
       declare
-         Item_2 : Parse_Action_Rec renames Conflict.Next.Item;
-         List_Prod : WisiToken.Productions.Instance renames Grammar (Item_2.Production.LHS);
+         Prods : Production_ID_Array (1 .. Conflict_Count) := (others => Invalid_Production_ID);
+
+         Opt_List_Count : Integer := 0;
+         I              : Integer := 1;
+         Opt_List_I     : Integer := 0;
+
+         Delete : array (1 .. Conflict_Count) of Boolean := (others => False);
       begin
-         if not List_Prod.Optimized_List then
-            --  not an optimized_list
-            return False;
-         end if;
+         Temp := Conflict;
+         loop
+            exit when Temp = null;
+            Prods (I) := Temp.Item.Production;
+            if Grammar (Prods (I).LHS).Optimized_List then
 
-         --  From optimized_list_lr1_t1.parse_table; list_element is a first level nonterm:
-         --  State 8:
-         --       10.0:declarations <= declaration ^
-         --       10.1:declarations <= declarations declaration ^
-         --
-         --     PRAGMA           => reduce 1 tokens to declarations 10.0,
-         --                         reduce 2 tokens to declarations 10.1
-         --     IDENTIFIER       => reduce 1 tokens to declarations 10.0,
-         --                         reduce 2 tokens to declarations 10.1
+               if Opt_List_Count = 0 then
+                  Opt_List_I     := I;
+                  Opt_List_Count := @ + 1;
+               else
+                  if Prods (I) = Prods (Opt_List_I) then
+                     --  Similar to optimized_list state 8 above. Because of the way
+                     --  conflicts are encountered and ordered, we want Opt_List_I to be
+                     --  the later one. Token count is 3 if there is a separator in the list.
+                     pragma Assert (Temp.Item.Verb = Reduce and then Temp.Item.Token_Count in 2 | 3);
+                     Opt_List_I := I;
 
-         --  From ada_lite_ebnf_lalr_re2c.parse_table; list element is a higher-level nonterm:
-         --
-         --  State 117:
-         --      135.1:statement_list <= statement_list ^ statement
-         --      135.2:statement_list <= statement_list statement_list ^
-         --      135.2:statement_list <= statement_list ^ statement_list
-         --     BEGIN                                  => reduce 0 tokens to block_label_opt 63.1,
-         --                                               reduce 2 tokens to statement_list 135.2
-         --     CASE                                   => shift and goto state 1 67.0,
-         --                                               reduce 2 tokens to statement_list 135.2
-
-         case Item_1.Verb is
-         when Shift =>
-            if Item_2.Production.RHS /= List_Prod.RHSs.Last_Index then
-               --  This is a mixed optimized_list and other conflict that we handle
-               --  by treating it as a grammar conflict.
-               return False;
-            end if;
-
-         when Reduce =>
-            if Item_2.Verb = Accept_It then
-               --  From empty_production_2_lalr.parse_table :
-               --  %conflict REDUCE declaration | ACCEPT_IT wisitoken_accept on token Wisi_EOI (3)
-               --  State 3:
-               --        7.0:wisitoken_accept <= declarations ^ Wisi_EOI
-               --        9.0:declarations <= declarations ^ declaration
-               --
-               --     IS               => shift and goto state 1 10.0,
-               --                         reduce 0 tokens to declaration 8.1
-               --     Wisi_EOI         => accept it 7.0,
-               --                         reduce 0 tokens to declaration 8.1
-               null;
-
-            elsif Item_1.Production.LHS /= Item_2.Production.LHS then
-               if Item_1.Token_Count > 0 then
-                  --  This is a mixed optimized_list and other conflict that we handle
-                  --  by treating it as a grammar conflict.
-                  return False;
+                  else
+                     --  Something else is going on; a nested optimized_list? We report
+                     --  this as an error below.
+                     Opt_List_Count := @ + 1;
+                  end if;
                end if;
             end if;
+            Temp := Temp.Next;
+            I := I + 1;
+         end loop;
 
-         when Accept_It | WisiToken.Parse.LR.Error =>
-            --  Accept is always in Item_2, Error never occurs in conflicts
-            raise SAL.Programmer_Error;
-         end case;
+         if Opt_List_Count = 0 then
+            --  Just a grammar conflict.
+            return False;
+
+         elsif Opt_List_Count = 1 then
+            --  Opt_List_I is the last conflict item in each of the examples
+            --  above.
+            declare
+               Opt_List_Prod : constant Production_ID := Prods (Opt_List_I);
+            begin
+               for I in 1 .. Conflict_Count loop
+                  if I /= Opt_List_I then
+                     if First_Nonterm_Set (Opt_List_Prod.LHS, Prods (I).LHS) then
+                        --  Conflict item I is one of the other optimzed_list conflict items
+                        --  in the examples above.
+                        Delete (I) := True;
+
+                     elsif Grammar (Opt_List_Prod.LHS).RHSs (Opt_List_Prod.RHS).Tokens.Length > 2 and then
+                       Prods (I).LHS = Grammar (Opt_List_Prod.LHS).RHSs (Opt_List_Prod.RHS).Tokens (2)
+                     then
+                        --  LHSs (I) is the list separator, as in optimized_list_ebnf
+                        --  multiplying_operator above.
+                        Delete (I) := True;
+                     else
+                        --  Conflict item I is from a grammar conflict, similar to the
+                        --  optimized_conflict_01 example above; keep it.
+                        null;
+                     end if;
+                  end if;
+               end loop;
+            end;
+         else
+            --  Opt_List_Count > 1. There are several cases:
+            --
+            --  a) Similar to optimized_list state 8 or 9 above; all of the
+            --  conflict items have the same LHS.
+            --
+            --  b) Nested optimized_lists, as in sequence_of_statements in
+            --  optimized_list_ebnf.wy term. Look for an LHS that has the others
+            --  in First_Nonterm_Set.
+            --
+            --  c) Something else; report an error.
+
+            if (for all P of Prods => P.LHS = Prods (1).LHS) then
+               --  case a. Keep the production "list <= list list", which is the last
+               --  conflict item; auto-generated optimized_lists have that production
+               --  last, and %optimized_list requires it.
+               for I in 1 .. Conflict_Count - 1 loop
+                  Delete (I) := True;
+               end loop;
+            else
+               declare
+                  Candidate      : Integer  := 1;
+                  Candidate_Prod : Production_ID := Prods (Candidate);
+               begin
+                  Find_Candidate :
+                  loop
+                     loop
+                        exit Find_Candidate when Candidate > Conflict_Count;
+                        exit when Grammar (Prods (Candidate).LHS).Optimized_List;
+                        Candidate      := @ + 1;
+                        Candidate_Prod := Prods (Candidate);
+                     end loop;
+
+                     Valid_Candidate :
+                     for I in 1 .. Conflict_Count loop
+                        if I /= Candidate then
+                           if First_Nonterm_Set (Candidate_Prod.LHS, Prods (I).LHS) then
+                              Delete (I) := True;
+                           else
+                              --  Try the next candidate.
+                              Delete := (others => False);
+                              exit Valid_Candidate;
+                           end if;
+                        end if;
+                     end loop Valid_Candidate;
+                     Candidate := @ + 1;
+                  end loop Find_Candidate;
+
+                  if (for some B of Delete => B) then
+                     null; --  Do Delete below.
+                  else
+                     --  No valid candidate found
+                     Report_Error ("mixed optimized_list conflicts");
+                     return False;
+                  end if;
+               end;
+            end if;
+         end if;
+
+         Temp := Conflict;
+         for I in 1 .. Conflict_Count loop
+            if Delete (I) then
+               declare
+                  To_Delete : Parse_Action_Node_Ptr := Temp;
+               begin
+                  Temp := Temp.Next;
+                  if Conflict = To_Delete then
+                     Conflict := Temp;
+                  end if;
+                  Free (To_Delete);
+               end;
+            end if;
+         end loop;
       end;
+
       return True;
-   end Is_Optimized_List_Conflict;
+   end Apply_Optimized_List_Conflict;
 
    procedure Check_Conflicts
      (Label            : in     String;
@@ -556,13 +714,14 @@ package body WisiToken.Generate.LR is
    --  Build parse table
 
    procedure Add_Action
-     (Symbol           : in     Token_ID;
-      Action           : in     Parse_Action_Rec;
-      Action_List      : in out Action_Arrays.Vector;
-      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor       : in     WisiToken.Descriptor;
-      File_Name        : in     String;
-      Ignore_Conflicts : in     Boolean)
+     (Symbol            : in     Token_ID;
+      Action            : in     Parse_Action_Rec;
+      Action_List       : in out Action_Arrays.Vector;
+      Grammar           : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor        : in     WisiToken.Descriptor;
+      First_Nonterm_Set : in     WisiToken.Token_Array_Token_Set;
+      File_Name         : in     String;
+      Ignore_Conflicts  : in     Boolean)
    is
       Matching_Action_Node : constant Action_Arrays.Find_Reference_Type := Action_List.Find (Symbol);
    begin
@@ -605,59 +764,45 @@ package body WisiToken.Generate.LR is
                end;
             end if;
 
-            if Is_Optimized_List_Conflict
-              (Matching_Action_Node.Actions, Grammar, Descriptor, File_Name, Ignore_Conflicts)
-            then
-               if Trace_Generate_Conflicts > Detail then
-                  Ada.Text_IO.Put_Line ("optimized_list conflict:");
-                  Put (Ada.Text_IO.Current_Output, Matching_Action_Node.Actions, Descriptor);
-                  Ada.Text_IO.New_Line;
-               end if;
-               --  Apply optimized_list conflict resolution.
-               --
-               --  From optimized_list parse table (without applying conflict
-               --  resolution), the conflicts are:
-               --
-               --  State 8:
-               --        10.0:declarations <= declaration ^
-               --        10.1:declarations <= declarations declaration ^
-               --
-               --     PRAGMA           => reduce 1 tokens to declarations 10.0,
-               --                         reduce 2 tokens to declarations 10.1
-               --     IDENTIFIER       => reduce 1 tokens to declarations 8.0,
-               --                         reduce 2 tokens to declarations 8.1
-               --     Wisi_EOI         => reduce 1 tokens to declarations 8.0,
-               --                         reduce 2 tokens to declarations 8.1
-               --
-               --  In this state, we know 'declarations declaration' is on the parse
-               --  stack, and we want to reduce both to 'declarations', no matter what
-               --  the rest of the input is.
-               --
-               --  State 9:
-               --        10.1:declarations <= declarations ^ declaration
-               --        10.2:declarations <= declarations declarations ^
-               --        10.2:declarations <= declarations ^ declarations
-               --
-               --     IDENTIFIER       => shift and goto state 1 7.0,
-               --                         reduce 2 tokens to declarations 8.2
-               --
-               --  In this state, 'declarations declarations' is on the stack (which
-               --  can only happen in incremental parse), and we want to reduce to
-               --  'declarations'.
-               --
-               --  The other optimized_list cases (see test/bnf/optimized*.wy) are
-               --  similar, and have the same result here.
+            if not Ignore_Conflicts then
+               --  We don't apply conflict resolutions when --ignore_conflicts is
+               --  specified; the full original conflict is shown in the parse table.
+               --  This helps with debugging conflict resolutions and other issues.
                declare
-                  Temp : constant Parse_Action_Node_Ptr := Matching_Action_Node.Actions.Next;
+                  Temp : Parse_Action_Node_Ptr := Matching_Action_Node.Actions;
+                  Conflict_Count : Integer := 0;
                begin
-                  Free (Matching_Action_Node.Actions);
-                  Matching_Action_Node.Actions := Temp;
+                  loop
+                     exit when Temp = null;
+                     Conflict_Count := @ + 1;
+                     Temp := Temp.Next;
+                  end loop;
+                  pragma Assert (Conflict_Count > 0);
+
+                  if Trace_Generate_Conflicts > Detail then
+                     if Trace_Generate_Conflicts > Extra or Conflict_Count > 2 then
+                        Ada.Text_IO.Put_Line
+                          ("conflict on " & Image (Matching_Action_Node.Symbol, Descriptor) &
+                             ", length :" & Conflict_Count'Image);
+                        Put (Ada.Text_IO.Current_Output, Matching_Action_Node.Actions, Descriptor);
+                        Ada.Text_IO.New_Line;
+                     end if;
+                  end if;
+
+                  if Apply_Optimized_List_Conflict
+                    (Matching_Action_Node.Actions, Conflict_Count, Grammar, Descriptor, First_Nonterm_Set, File_Name)
+                  then
+                     if Trace_Generate_Conflicts > Detail then
+                        Ada.Text_IO.Put_Line ("optimized_list conflict resolved:");
+                        Put (Ada.Text_IO.Current_Output, Matching_Action_Node.Actions, Descriptor);
+                        Ada.Text_IO.New_Line;
+                     end if;
+                  else
+                     if Trace_Generate_Conflicts > Extra then
+                        Ada.Text_IO.Put_Line ("... NOT resolved");
+                     end if;
+                  end if;
                end;
-               if Trace_Generate_Conflicts > Detail then
-                  Ada.Text_IO.Put_Line ("... resolved:");
-                  Put (Ada.Text_IO.Current_Output, Matching_Action_Node.Actions, Descriptor);
-                  Ada.Text_IO.New_Line;
-               end if;
             end if;
          end if;
       else
@@ -666,12 +811,13 @@ package body WisiToken.Generate.LR is
    end Add_Action;
 
    procedure Add_Actions
-     (Closure          : in     LR1_Items.Item_Set;
-      Table            : in out Parse_Table;
-      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor       : in     WisiToken.Descriptor;
-      File_Name        : in     String;
-      Ignore_Conflicts : in     Boolean)
+     (Closure           : in     LR1_Items.Item_Set;
+      Table             : in out Parse_Table;
+      Grammar           : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor        : in     WisiToken.Descriptor;
+      First_Nonterm_Set : in     WisiToken.Token_Array_Token_Set;
+      File_Name         : in     String;
+      Ignore_Conflicts  : in     Boolean)
    is
       use Token_ID_Arrays;
 
@@ -688,7 +834,8 @@ package body WisiToken.Generate.LR is
          begin
             if Item.Dot not in Item_Tokens.First_Index .. Item_Tokens.Last_Index then
                Add_Lookahead_Actions
-                 (Item, Table.States (State).Action_List, Grammar, Descriptor, File_Name, Ignore_Conflicts);
+                 (Item, Table.States (State).Action_List, Grammar, Descriptor, First_Nonterm_Set, File_Name,
+                  Ignore_Conflicts);
 
             elsif Item_Tokens (Item.Dot) in Descriptor.First_Terminal .. Descriptor.Last_Terminal
             then
@@ -714,7 +861,7 @@ package body WisiToken.Generate.LR is
                            --  EOF is not pushed on stack in parser, because the action for EOF
                            --  is Accept, not Shift.
                            Table.States (State).Action_List,
-                           Grammar, Descriptor, File_Name, Ignore_Conflicts);
+                           Grammar, Descriptor, First_Nonterm_Set, File_Name, Ignore_Conflicts);
                      end;
                   else
                      if Goto_State /= Unknown_State then
@@ -722,7 +869,7 @@ package body WisiToken.Generate.LR is
                           (Dot_ID,
                            (Shift, P_ID, Goto_State),
                            Table.States (State).Action_List,
-                           Grammar, Descriptor, File_Name, Ignore_Conflicts);
+                           Grammar, Descriptor, First_Nonterm_Set, File_Name, Ignore_Conflicts);
                      end if;
                   end if;
                end;
@@ -750,12 +897,13 @@ package body WisiToken.Generate.LR is
    end Add_Actions;
 
    procedure Add_Lookahead_Actions
-     (Item             : in     LR1_Items.Item;
-      Action_List      : in out Action_Arrays.Vector;
-      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor       : in     WisiToken.Descriptor;
-      File_Name        : in     String;
-      Ignore_Conflicts : in     Boolean)
+     (Item              : in     LR1_Items.Item;
+      Action_List       : in out Action_Arrays.Vector;
+      Grammar           : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor        : in     WisiToken.Descriptor;
+      First_Nonterm_Set : in     WisiToken.Token_Array_Token_Set;
+      File_Name         : in     String;
+      Ignore_Conflicts  : in     Boolean)
    is
       Prod   : Productions.Instance renames Grammar (Item.Prod.LHS);
       RHS    : Productions.Right_Hand_Side renames Prod.RHSs (Item.Prod.RHS);
@@ -771,7 +919,8 @@ package body WisiToken.Generate.LR is
             if Lookahead = Descriptor.First_Nonterminal then
                null;
             else
-               Add_Action (Lookahead, Action, Action_List, Grammar, Descriptor, File_Name, Ignore_Conflicts);
+               Add_Action
+                 (Lookahead, Action, Action_List, Grammar, Descriptor, First_Nonterm_Set, File_Name, Ignore_Conflicts);
             end if;
          end if;
       end loop;

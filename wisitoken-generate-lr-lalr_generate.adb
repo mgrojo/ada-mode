@@ -448,6 +448,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Grammar                 : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production    : in     Token_ID_Set;
       First_Terminal_Sequence : in     Token_Sequence_Arrays.Vector;
+      First_Nonterm_Set       : in     Token_Array_Token_Set;
       Table                   : in out Parse_Table;
       Descriptor              : in     WisiToken.Descriptor;
       File_Name               : in     String;
@@ -462,7 +463,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
          --  LALR_Goto_Transitions, Fill_In_Lookaheads, and here.
          Closure := LR1_Items.Closure (Kernel, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
-         Add_Actions (Closure, Table, Grammar, Descriptor, File_Name, Ignore_Conflicts);
+         Add_Actions (Closure, Table, Grammar, Descriptor, First_Nonterm_Set, File_Name, Ignore_Conflicts);
       end loop;
 
       if Trace_Generate_Table > Detail then
@@ -588,7 +589,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Table.Max_Parallel := Max_Parallel;
 
       Add_Actions
-        (Kernels, Grammar, Has_Empty_Production, First_Terminal_Sequence, Table.all,
+        (Kernels, Grammar, Has_Empty_Production, First_Terminal_Sequence, First_Nonterm_Set, Table.all,
          Descriptor, Grammar_File_Name, Ignore_Conflicts);
 
       if Trace_Time then

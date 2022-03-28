@@ -525,7 +525,7 @@ begin
                   Generate_Data.Descriptor.Last_Nonterminal);
 
                Parse_Table_File_Name : constant String :=
-                 (if WisiToken.Trace_Generate_Table = 0 and Tuple.Gen_Alg in LALR .. Packrat_Proc
+                 (if Tuple.Gen_Alg in LALR .. Packrat_Proc
                   then -Output_File_Name_Root & "_" & To_Lower (Tuple.Gen_Alg'Image) &
                     (if Tuple.Gen_Alg = LR1 and Test_Main
                      then "_t" & Ada.Strings.Fixed.Trim (Generate_Task_Count'Image, Ada.Strings.Both)

@@ -32,21 +32,14 @@ update-wisitoken_grammar
 
  current work
 reviewing ada_annex_p conflicts; see notes in o.e.a.s-2
+    need wisitoken-followed_by
 
-error on mixed conflicts
-    ada_annex_p:
-ada_annex_p.wy:1:1:  mixed optimized_list/grammar conflict:
-(Shift, parallel_block_statement_0, 17),
-(Reduce, label_opt_1, 0),
-(Reduce, statement_statement_list_2, 2)
-    need another optimized_list test
 
-    PARALLEL is in FIRST (statement), same as label_opt, so this is a pure optimized_list conflict.
-    statement_statement_list statement_statement_list is on stack, so do that
-    is_optimized_list_conflict requires First_Nonterm_Set
-        combine that with grammar, descriptor, file_name in generate_data
-
-    or fix grammar to eliminate this conflict; see o.e.a.s-2/notes
+redundant minimal_complete_actions:
+    in ada_annex_p parse_table:
+    state 12 minimal_compelete_actions:
+        ((1 sequence_of_statements 17.0), (2 sequence_of_statements 17.1))
+        redundant, because optimized_list
 
 bad fontify
     editing test_bnf_suite.adb

@@ -1,0 +1,39 @@
+;; An optimized_list with a 3-element conflict.
+;;
+;; Derived from ada_annex_p.wy
+
+%meta_syntax EBNF
+
+%generate LALR Ada re2c
+%start sequence_of_statements
+
+%token <punctuation> COLON ":"
+%token <punctuation> SEMICOLON ";"
+
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+
+%non_grammar <non-reporting> WHITESPACE %[ [ \x00\x01\x02\x03\x05\x06\x07\x08\t\x0B\x0C\x0D\x0E\x0F\xFF]+ ]%
+%non_grammar <new-line> NEW_LINE
+%non_grammar <comment-new-line> COMMENT "--"
+
+%mckenzie_cost_default 4 3 2 2
+
+sequence_of_statements : statement {statement} ;
+
+label_opt : [IDENTIFIER ':'] ;
+
+block_statement
+  : label_opt 'begin' sequence_of_statements 'end' ';'
+  ;
+
+parallel_block_statement
+  : 'parallel' 'do' sequence_of_statements 'and' statement 'end' 'do' ';'
+  ;
+
+statement
+  : IDENTIFIER ';'
+  | block_statement
+  | parallel_block_statement
+  ;
+
+;; end of file

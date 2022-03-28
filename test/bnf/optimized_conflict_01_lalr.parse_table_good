@@ -42,6 +42,11 @@ Productions:
 Optimized_Lists:
  simple_expression term
 
+Recursions:
+1 => (14 (0.3, 0.5) -> 15 (0.1, 1.3) -> 16 (0.1, 1.3) -> 17 (1.1) -> 20 (0.2) -> )
+2 => (15 (1.1, 2.1, 2.3) -> )
+3 => (16 (1.1, 2.1, 2.3) -> )
+
 McKenzie:
 (Insert =>
  NEW        => 4,
@@ -426,6 +431,6 @@ State 23:
 
 20 states with minimal_complete_actions; 22 total minimal_complete_actions.
 
-3 states with other conflicts
+3 states with conflicts: 7 19 21
 
  7 rules, 0 user actions, 0 checks, 24 states

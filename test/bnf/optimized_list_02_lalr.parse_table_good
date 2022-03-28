@@ -1,0 +1,345 @@
+Tokens:
+ 0 => WHITESPACE
+ 1 => NEW_LINE
+ 2 => COMMENT
+ 3 => AND
+ 4 => DO
+ 5 => PARALLEL
+ 6 => END
+ 7 => BEGIN
+ 8 => COLON
+ 9 => SEMICOLON
+ 10 => IDENTIFIER
+ 11 => Wisi_EOI
+ 12 => wisitoken_accept
+ 13 => sequence_of_statements
+ 14 => label_opt
+ 15 => block_statement
+ 16 => parallel_block_statement
+ 17 => statement
+
+Productions:
+12.0: wisitoken_accept <= sequence_of_statements Wisi_EOI
+13.0: sequence_of_statements <= statement ; (1 => Other_Left)
+13.1: sequence_of_statements <= sequence_of_statements statement ; (1 => Direct_Left, 2 => Other_Right)
+13.2: sequence_of_statements <= sequence_of_statements sequence_of_statements ; (1 => Direct_Left, 2 => Direct_Right)
+14.0: label_opt <= IDENTIFIER COLON
+14.1: label_opt <=
+15.0: block_statement <= label_opt BEGIN sequence_of_statements END SEMICOLON ; (3 => Other)
+16.0: parallel_block_statement <= PARALLEL DO sequence_of_statements AND statement END DO SEMICOLON ; (3 => Other, 5 => Other)
+17.0: statement <= IDENTIFIER SEMICOLON
+17.1: statement <= block_statement ; (1 => Other_Left)
+17.2: statement <= parallel_block_statement ; (1 => Other_Left)
+
+Optimized_Lists:
+ sequence_of_statements
+
+Recursions:
+1 => (13 (1.1, 2.1, 2.2) -> )
+2 => (13 (0.1, 1.2) -> 17 (1.1) -> 15 (0.3) -> )
+3 => (13 (0.1, 1.2) -> 17 (2.1) -> 16 (0.3) -> )
+4 => (16 (0.5) -> 17 (2.1) -> )
+
+LALR Parse Table:
+State 0:
+     12.0:wisitoken_accept <= ^ sequence_of_statements Wisi_EOI
+
+   PARALLEL                 => shift and goto state 1 16.0
+   BEGIN                    => reduce 0 tokens to label_opt 14.1
+   IDENTIFIER               => shift and goto state 2 14.0
+   default                  => ERROR
+
+   sequence_of_statements   goto state 3
+   label_opt                goto state 4
+   block_statement          goto state 5
+   parallel_block_statement goto state 6
+   statement                goto state 7
+
+   Minimal_Complete_Actions => 
+
+State 1:
+     16.0:parallel_block_statement <= PARALLEL ^ DO sequence_of_statements AND statement END DO SEMICOLON
+
+   DO                       => shift and goto state 8 16.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (DO 16.0)
+
+State 2:
+     14.0:label_opt <= IDENTIFIER ^ COLON
+     17.0:statement <= IDENTIFIER ^ SEMICOLON
+
+   COLON                    => shift and goto state 9 14.0
+   SEMICOLON                => shift and goto state 10 17.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => ((COLON 14.0), (SEMICOLON 17.0))
+
+State 3:
+     12.0:wisitoken_accept <= sequence_of_statements ^ Wisi_EOI
+     13.1:sequence_of_statements <= sequence_of_statements ^ statement
+     13.2:sequence_of_statements <= sequence_of_statements ^ sequence_of_statements
+
+   PARALLEL                 => shift and goto state 1 16.0
+   BEGIN                    => reduce 0 tokens to label_opt 14.1
+   IDENTIFIER               => shift and goto state 2 14.0
+   Wisi_EOI                 => accept it 12.0
+   default                  => ERROR
+
+   sequence_of_statements   goto state 11
+   label_opt                goto state 4
+   block_statement          goto state 5
+   parallel_block_statement goto state 6
+   statement                goto state 12
+
+   Minimal_Complete_Actions => 
+
+State 4:
+     15.0:block_statement <= label_opt ^ BEGIN sequence_of_statements END SEMICOLON
+
+   BEGIN                    => shift and goto state 13 15.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (BEGIN 15.0)
+
+State 5:
+     17.1:statement <= block_statement ^
+
+   AND                      => reduce 1 tokens to statement 17.1
+   PARALLEL                 => reduce 1 tokens to statement 17.1
+   END                      => reduce 1 tokens to statement 17.1
+   BEGIN                    => reduce 1 tokens to statement 17.1
+   IDENTIFIER               => reduce 1 tokens to statement 17.1
+   Wisi_EOI                 => reduce 1 tokens to statement 17.1
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (1 statement 17.1)
+
+State 6:
+     17.2:statement <= parallel_block_statement ^
+
+   AND                      => reduce 1 tokens to statement 17.2
+   PARALLEL                 => reduce 1 tokens to statement 17.2
+   END                      => reduce 1 tokens to statement 17.2
+   BEGIN                    => reduce 1 tokens to statement 17.2
+   IDENTIFIER               => reduce 1 tokens to statement 17.2
+   Wisi_EOI                 => reduce 1 tokens to statement 17.2
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (1 statement 17.2)
+
+State 7:
+     13.0:sequence_of_statements <= statement ^
+
+   AND                      => reduce 1 tokens to sequence_of_statements 13.0
+   PARALLEL                 => reduce 1 tokens to sequence_of_statements 13.0
+   END                      => reduce 1 tokens to sequence_of_statements 13.0
+   BEGIN                    => reduce 1 tokens to sequence_of_statements 13.0
+   IDENTIFIER               => reduce 1 tokens to sequence_of_statements 13.0
+   Wisi_EOI                 => reduce 1 tokens to sequence_of_statements 13.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (1 sequence_of_statements 13.0)
+
+State 8:
+     16.0:parallel_block_statement <= PARALLEL DO ^ sequence_of_statements AND statement END DO SEMICOLON
+
+   PARALLEL                 => shift and goto state 1 16.0
+   BEGIN                    => reduce 0 tokens to label_opt 14.1
+   IDENTIFIER               => shift and goto state 2 14.0
+   default                  => ERROR
+
+   sequence_of_statements   goto state 14
+   label_opt                goto state 4
+   block_statement          goto state 5
+   parallel_block_statement goto state 6
+   statement                goto state 7
+
+   Minimal_Complete_Actions => (IDENTIFIER 14.0)
+
+State 9:
+     14.0:label_opt <= IDENTIFIER COLON ^
+
+   BEGIN                    => reduce 2 tokens to label_opt 14.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (2 label_opt 14.0)
+
+State 10:
+     17.0:statement <= IDENTIFIER SEMICOLON ^
+
+   AND                      => reduce 2 tokens to statement 17.0
+   PARALLEL                 => reduce 2 tokens to statement 17.0
+   END                      => reduce 2 tokens to statement 17.0
+   BEGIN                    => reduce 2 tokens to statement 17.0
+   IDENTIFIER               => reduce 2 tokens to statement 17.0
+   Wisi_EOI                 => reduce 2 tokens to statement 17.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (2 statement 17.0)
+
+State 11:
+     13.1:sequence_of_statements <= sequence_of_statements ^ statement
+     13.2:sequence_of_statements <= sequence_of_statements sequence_of_statements ^
+     13.2:sequence_of_statements <= sequence_of_statements ^ sequence_of_statements
+
+   AND                      => reduce 2 tokens to sequence_of_statements 13.2
+   PARALLEL                 => reduce 2 tokens to sequence_of_statements 13.2
+   END                      => reduce 2 tokens to sequence_of_statements 13.2
+   BEGIN                    => reduce 0 tokens to label_opt 14.1
+   IDENTIFIER               => reduce 2 tokens to sequence_of_statements 13.2
+   Wisi_EOI                 => reduce 2 tokens to sequence_of_statements 13.2
+   default                  => ERROR
+
+   sequence_of_statements   goto state 11
+   label_opt                goto state 4
+   block_statement          goto state 5
+   parallel_block_statement goto state 6
+   statement                goto state 12
+
+   Minimal_Complete_Actions => (2 sequence_of_statements 13.2)
+
+State 12:
+     13.0:sequence_of_statements <= statement ^
+     13.1:sequence_of_statements <= sequence_of_statements statement ^
+
+   AND                      => reduce 2 tokens to sequence_of_statements 13.1
+   PARALLEL                 => reduce 2 tokens to sequence_of_statements 13.1
+   END                      => reduce 2 tokens to sequence_of_statements 13.1
+   BEGIN                    => reduce 2 tokens to sequence_of_statements 13.1
+   IDENTIFIER               => reduce 2 tokens to sequence_of_statements 13.1
+   Wisi_EOI                 => reduce 2 tokens to sequence_of_statements 13.1
+   default                  => ERROR
+
+   Minimal_Complete_Actions => ((1 sequence_of_statements 13.0), (2 sequence_of_statements 13.1))
+
+State 13:
+     15.0:block_statement <= label_opt BEGIN ^ sequence_of_statements END SEMICOLON
+
+   PARALLEL                 => shift and goto state 1 16.0
+   BEGIN                    => reduce 0 tokens to label_opt 14.1
+   IDENTIFIER               => shift and goto state 2 14.0
+   default                  => ERROR
+
+   sequence_of_statements   goto state 15
+   label_opt                goto state 4
+   block_statement          goto state 5
+   parallel_block_statement goto state 6
+   statement                goto state 7
+
+   Minimal_Complete_Actions => (IDENTIFIER 14.0)
+
+State 14:
+     13.1:sequence_of_statements <= sequence_of_statements ^ statement
+     13.2:sequence_of_statements <= sequence_of_statements ^ sequence_of_statements
+     16.0:parallel_block_statement <= PARALLEL DO sequence_of_statements ^ AND statement END DO SEMICOLON
+
+   AND                      => shift and goto state 16 16.0
+   PARALLEL                 => shift and goto state 1 16.0
+   BEGIN                    => reduce 0 tokens to label_opt 14.1
+   IDENTIFIER               => shift and goto state 2 14.0
+   default                  => ERROR
+
+   sequence_of_statements   goto state 11
+   label_opt                goto state 4
+   block_statement          goto state 5
+   parallel_block_statement goto state 6
+   statement                goto state 12
+
+   Minimal_Complete_Actions => (AND 16.0)
+
+State 15:
+     13.1:sequence_of_statements <= sequence_of_statements ^ statement
+     13.2:sequence_of_statements <= sequence_of_statements ^ sequence_of_statements
+     15.0:block_statement <= label_opt BEGIN sequence_of_statements ^ END SEMICOLON
+
+   PARALLEL                 => shift and goto state 1 16.0
+   END                      => shift and goto state 17 15.0
+   BEGIN                    => reduce 0 tokens to label_opt 14.1
+   IDENTIFIER               => shift and goto state 2 14.0
+   default                  => ERROR
+
+   sequence_of_statements   goto state 11
+   label_opt                goto state 4
+   block_statement          goto state 5
+   parallel_block_statement goto state 6
+   statement                goto state 12
+
+   Minimal_Complete_Actions => (END 15.0)
+
+State 16:
+     16.0:parallel_block_statement <= PARALLEL DO sequence_of_statements AND ^ statement END DO SEMICOLON
+
+   PARALLEL                 => shift and goto state 1 16.0
+   BEGIN                    => reduce 0 tokens to label_opt 14.1
+   IDENTIFIER               => shift and goto state 2 14.0
+   default                  => ERROR
+
+   label_opt                goto state 4
+   block_statement          goto state 5
+   parallel_block_statement goto state 6
+   statement                goto state 18
+
+   Minimal_Complete_Actions => (IDENTIFIER 14.0)
+
+State 17:
+     15.0:block_statement <= label_opt BEGIN sequence_of_statements END ^ SEMICOLON
+
+   SEMICOLON                => shift and goto state 19 15.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (SEMICOLON 15.0)
+
+State 18:
+     16.0:parallel_block_statement <= PARALLEL DO sequence_of_statements AND statement ^ END DO SEMICOLON
+
+   END                      => shift and goto state 20 16.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (END 16.0)
+
+State 19:
+     15.0:block_statement <= label_opt BEGIN sequence_of_statements END SEMICOLON ^
+
+   AND                      => reduce 5 tokens to block_statement 15.0
+   PARALLEL                 => reduce 5 tokens to block_statement 15.0
+   END                      => reduce 5 tokens to block_statement 15.0
+   BEGIN                    => reduce 5 tokens to block_statement 15.0
+   IDENTIFIER               => reduce 5 tokens to block_statement 15.0
+   Wisi_EOI                 => reduce 5 tokens to block_statement 15.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (5 block_statement 15.0)
+
+State 20:
+     16.0:parallel_block_statement <= PARALLEL DO sequence_of_statements AND statement END ^ DO SEMICOLON
+
+   DO                       => shift and goto state 21 16.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (DO 16.0)
+
+State 21:
+     16.0:parallel_block_statement <= PARALLEL DO sequence_of_statements AND statement END DO ^ SEMICOLON
+
+   SEMICOLON                => shift and goto state 22 16.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (SEMICOLON 16.0)
+
+State 22:
+     16.0:parallel_block_statement <= PARALLEL DO sequence_of_statements AND statement END DO SEMICOLON ^
+
+   AND                      => reduce 8 tokens to parallel_block_statement 16.0
+   PARALLEL                 => reduce 8 tokens to parallel_block_statement 16.0
+   END                      => reduce 8 tokens to parallel_block_statement 16.0
+   BEGIN                    => reduce 8 tokens to parallel_block_statement 16.0
+   IDENTIFIER               => reduce 8 tokens to parallel_block_statement 16.0
+   Wisi_EOI                 => reduce 8 tokens to parallel_block_statement 16.0
+   default                  => ERROR
+
+   Minimal_Complete_Actions => (8 parallel_block_statement 16.0)
+
+21 states with minimal_complete_actions; 23 total minimal_complete_actions.
+
+ 5 rules, 0 user actions, 0 checks, 23 states

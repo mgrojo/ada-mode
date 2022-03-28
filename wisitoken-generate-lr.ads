@@ -116,32 +116,35 @@ package WisiToken.Generate.LR is
    --  Build parse table
 
    procedure Add_Action
-     (Symbol           : in     Token_ID;
-      Action           : in     Parse_Action_Rec;
-      Action_List      : in out Action_Arrays.Vector;
-      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor       : in     WisiToken.Descriptor;
-      File_Name        : in     String;
-      Ignore_Conflicts : in     Boolean);
+     (Symbol            : in     Token_ID;
+      Action            : in     Parse_Action_Rec;
+      Action_List       : in out Action_Arrays.Vector;
+      Grammar           : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor        : in     WisiToken.Descriptor;
+      First_Nonterm_Set : in     WisiToken.Token_Array_Token_Set;
+      File_Name         : in     String;
+      Ignore_Conflicts  : in     Boolean);
    --  Add (Symbol, Action) to Action_List. Other args are for conflict
    --  detection and error reporting.
 
    procedure Add_Actions
-     (Closure          : in     LR1_Items.Item_Set;
-      Table            : in out Parse_Table;
-      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor       : in     WisiToken.Descriptor;
-      File_Name        : in     String;
-      Ignore_Conflicts : in     Boolean);
+     (Closure           : in     LR1_Items.Item_Set;
+      Table             : in out Parse_Table;
+      Grammar           : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor        : in     WisiToken.Descriptor;
+      First_Nonterm_Set : in     WisiToken.Token_Array_Token_Set;
+      File_Name         : in     String;
+      Ignore_Conflicts  : in     Boolean);
    --  Add actions in Closure to Table.
 
    procedure Add_Lookahead_Actions
-     (Item             : in     LR1_Items.Item;
-      Action_List      : in out Action_Arrays.Vector;
-      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor       : in     WisiToken.Descriptor;
-      File_Name        : in     String;
-      Ignore_Conflicts : in     Boolean);
+     (Item              : in     LR1_Items.Item;
+      Action_List       : in out Action_Arrays.Vector;
+      Grammar           : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor        : in     WisiToken.Descriptor;
+      First_Nonterm_Set : in     WisiToken.Token_Array_Token_Set;
+      File_Name         : in     String;
+      Ignore_Conflicts  : in     Boolean);
    --  Add actions for Item.Lookaheads to Action_List
    --  Closure must be from the item set containing Item.
 

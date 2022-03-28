@@ -812,17 +812,18 @@ package body WisiToken.Generate.LR.LR1_Generate is
    end LR1_Item_Sets_Parallel;
 
    procedure Add_Actions
-     (Item_Sets        : in     LR1_Items.Item_Set_List;
-      Table            : in out Parse_Table;
-      Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor       : in     WisiToken.Descriptor;
-      File_Name        : in     String;
-      Ignore_Conflicts : in     Boolean)
+     (Item_Sets         : in     LR1_Items.Item_Set_List;
+      Table             : in out Parse_Table;
+      Grammar           : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor        : in     WisiToken.Descriptor;
+      First_Nonterm_Set : in     WisiToken.Token_Array_Token_Set;
+      File_Name         : in     String;
+      Ignore_Conflicts  : in     Boolean)
    is
       --  Add actions for all Item_Sets to Table.
    begin
       for Item_Set of Item_Sets loop
-         Add_Actions (Item_Set, Table, Grammar, Descriptor, File_Name, Ignore_Conflicts);
+         Add_Actions (Item_Set, Table, Grammar, Descriptor, First_Nonterm_Set, File_Name, Ignore_Conflicts);
       end loop;
 
       if Trace_Generate_Table > Outline then
@@ -951,7 +952,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
       Table.Max_Parallel := Max_Parallel;
 
-      Add_Actions (Item_Sets, Table.all, Grammar, Descriptor, Grammar_File_Name, Ignore_Conflicts);
+      Add_Actions (Item_Sets, Table.all, Grammar, Descriptor, First_Nonterm_Set, Grammar_File_Name, Ignore_Conflicts);
 
       if Trace_Time then
          Add_Actions_Time := Ada.Calendar.Clock;

@@ -75,7 +75,7 @@ gen_EBNF :: java_types_ch19_re2c.c
 gen_EBNF :: java_types_ch19_lr1_t8_run.ads
 gen_EBNF :: lalr_generator_bug_01_re2c.c
 gen_EBNF :: nested_ebnf_optional_re2c.c
-gen_EBNF :: optimized_conflict_01.wy # not a valid grammar
+gen_EBNF :: optimized_conflict_01_re2c.c
 gen_EBNF :: optimized_conflict_02_re2c.c
 gen_EBNF :: optimized_conflict_03_re2c.c
 gen_EBNF :: optimized_conflict_04_re2c.c
