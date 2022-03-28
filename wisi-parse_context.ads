@@ -18,6 +18,7 @@ with Ada.Unchecked_Deallocation;
 with Wisi;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Syntax_Trees;
 package Wisi.Parse_Context is
 
    Not_Found : exception;
@@ -26,8 +27,7 @@ package Wisi.Parse_Context is
       Descriptor              : WisiToken.Descriptor_Access_Constant;
       Lexer                   : WisiToken.Lexer.Handle;
       Table                   : WisiToken.Parse.LR.Parse_Table_Ptr;
-      In_Parse_Actions        : WisiToken.Parse.In_Parse_Action_Trees.Vector;
-      Post_Parse_Actions      : WisiToken.Parse.Post_Parse_Action_Trees.Vector;
+      Productions             : WisiToken.Syntax_Trees.Production_Info_Trees.Vector;
       Partial_Parse_Active    : access Boolean;
       Partial_Parse_Byte_Goal : access WisiToken.Buffer_Pos;
       Fixes                   : WisiToken.Parse.LR.Parser.Language_Fixes_Access;

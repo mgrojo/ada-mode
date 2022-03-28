@@ -24,7 +24,6 @@ with Ada.Text_IO;
 with SAL;
 with System.Address_To_Access_Conversions;
 with System.Storage_Elements;
-with WisiToken.In_Parse_Actions;
 with WisiToken.Lexer;
 package body Wisi is
    use WisiToken;
@@ -2094,7 +2093,7 @@ package body Wisi is
 
       procedure Handle_Error
         (Err        : in Syntax_Trees.Error_Data'Class;
-         Error_Node : in WisiToken.Syntax_Trees.Valid_Node_Access)
+         Error_Node : in Syntax_Trees.Valid_Node_Access)
       is begin
          Error_Present := True;
 
@@ -2113,21 +2112,22 @@ package body Wisi is
 
          elsif Err in WisiToken.Parse.In_Parse_Action_Error then
             declare
+               use all type WisiToken.Syntax_Trees.In_Parse_Actions.Status_Label;
                Item : WisiToken.Parse.In_Parse_Action_Error renames WisiToken.Parse.In_Parse_Action_Error
                  (Err);
             begin
                Put_Line
                  ('[' & In_Parse_Action_Error_Code & Integer'Image
-                    (In_Parse_Actions.Status_Label'Pos (Item.Status.Label)) &
+                    (Syntax_Trees.In_Parse_Actions.Status_Label'Pos (Item.Status.Label)) &
                     (case Item.Status.Label is
-                     when WisiToken.In_Parse_Actions.Ok => "",
-                     when WisiToken.In_Parse_Actions.Error =>
+                     when WisiToken.Syntax_Trees.In_Parse_Actions.Ok => "",
+                     when WisiToken.Syntax_Trees.In_Parse_Actions.Error =>
                         Safe_Pos (Tree.Child (Error_Node, Item.Status.Begin_Name))'Image &
                           Safe_Pos (Tree.Child (Error_Node, Item.Status.End_Name))'Image & " """ &
-                          (case WisiToken.In_Parse_Actions.Error'(Item.Status.Label) is
-                           when WisiToken.In_Parse_Actions.Missing_Name_Error => "missing",
-                           when WisiToken.In_Parse_Actions.Extra_Name_Error => "extra",
-                           when WisiToken.In_Parse_Actions.Match_Names_Error => "match") &
+                          (case WisiToken.Syntax_Trees.In_Parse_Actions.Error'(Item.Status.Label) is
+                           when Missing_Name_Error => "missing",
+                           when Extra_Name_Error => "extra",
+                           when Match_Names_Error => "match") &
                           " name error""]"));
             end;
 
