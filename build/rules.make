@@ -52,6 +52,7 @@ gen_BNF :: conflict_name_re2c.c
 gen_BNF :: dragon_4_43_re2c.c
 gen_BNF :: empty_production_1_re2c.c
 gen_BNF :: empty_production_2_re2c.c
+gen_BNF :: empty_production_2_optimized_list_re2c.c
 gen_BNF :: empty_production_3_re2c.c
 gen_BNF :: empty_production_4_re2c.c
 gen_BNF :: empty_production_5_re2c.c

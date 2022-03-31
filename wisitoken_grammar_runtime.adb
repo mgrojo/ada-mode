@@ -685,20 +685,6 @@ package body WisiToken_Grammar_Runtime is
                   --  matching '%if' specified current lexer.
                   null;
 
-               elsif Kind = "optimized_list" then
-                  declare
-                     use WisiToken.BNF.Rule_Lists;
-                     Nonterm_Name : constant String := Get_Text (Data, Tree, Tree.Child (Nonterm, 3));
-                     Nonterm_Decl : constant Cursor := WisiToken.BNF.Find (Data.Tokens.Rules, Nonterm_Name);
-                  begin
-                     if Nonterm_Decl = No_Element then
-                        raise Grammar_Error with Tree.Error_Message
-                          (Tree.Child (Nonterm, 3), "nonterm '" & Nonterm_Name & "' not found.");
-                     end if;
-
-                     Data.Tokens.Rules (Nonterm_Decl).Optimized_List := True;
-                  end;
-
                elsif Kind = "elisp_face" then
                   Data.Tokens.Faces.Append (Get_Text (Data, Tree, Tree.Child (Nonterm, 3), Strip_Quotes => True));
 

@@ -8,9 +8,7 @@
 %mckenzie_zombie_limit 3
 %mckenzie_cost_default 4 4 4 2
 
-%start compilation
-
-%keyword PRAGMA 'pragma'
+%start declarations
 
 %token <punctuation> COLON ":"
 %token <punctuation> SEMICOLON ";"
@@ -30,30 +28,6 @@ declarations
   : declaration
   | declarations declaration
   | declarations declarations
-  ;
-
-statement
-  : IDENTIFIER SEMICOLON
-  ;
-
-pragma_g
-  : PRAGMA IDENTIFIER SEMICOLON
-  ;
-
-statement_list
-  ;; This is not automatically recognized as an optimized list; the
-  ;; %optimized_list declaration makes it one.
-  : pragma_g
-  | statement
-  | statement_list statement
-  | statement_list pragma_g
-  | statement_list statement_list
-  ;
-%optimized_list statement_list
-
-compilation
-  : declarations
-  | declarations statement_list
   ;
 
 ;;; end of file

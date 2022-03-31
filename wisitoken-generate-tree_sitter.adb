@@ -573,7 +573,7 @@ package body WisiToken.Generate.Tree_Sitter is
                   Nodes_To_Check.Append (Node);
 
                   Tree.Set_Children
-                    (Node_Var, (+rhs_multiple_item_ID, 5), (Tree.Child (Node, 1), Tree.Add_Terminal (+PLUS_ID)));
+                    (Node_Var, (+rhs_multiple_item_ID, 5), (Tree.Child (Node, 1), Tree.Add_Terminal (+STAR_ID)));
 
                when 5 =>
                   --  already optional

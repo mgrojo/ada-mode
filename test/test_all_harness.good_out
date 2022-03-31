@@ -12,6 +12,7 @@ OK bnf_wy_test.adb conflict_name : Run_Test
 OK bnf_wy_test.adb dragon_4_43 : Run_Test
 OK bnf_wy_test.adb empty_production_1 : Run_Test
 OK bnf_wy_test.adb empty_production_2 : Run_Test
+OK bnf_wy_test.adb empty_production_2_optimized_list : Run_Test
 OK bnf_wy_test.adb empty_production_3 : Run_Test
 OK bnf_wy_test.adb empty_production_4 : Run_Test
 OK bnf_wy_test.adb empty_production_5 : Run_Test
@@ -112,6 +113,11 @@ OK test_incremental.adb : Recover_01
 OK test_incremental.adb : Recover_02
 OK test_incremental.adb : Recover_03
 OK test_incremental.adb : Recover_04
+OK test_incremental.adb : Recover_05a
+OK test_incremental.adb : Recover_05b
+OK test_incremental.adb : Recover_05c
+OK test_incremental.adb : Recover_05d
+OK test_incremental.adb : Recover_05e
 OK test_incremental.adb : Lexer_Errors_01
 OK test_incremental.adb : Preserve_Parse_Errors_1
 OK test_incremental.adb : Preserve_Parse_Errors_2
@@ -276,7 +282,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   276
-Successful Tests:  276
+Total Tests Run:   282
+Successful Tests:  282
 Failed Assertions: 0
 Unexpected Errors: 0

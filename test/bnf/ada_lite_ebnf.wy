@@ -6,7 +6,7 @@
 ;; See ada_lite_ebnf_bnf.wy for translation to BNF for parser generator.
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -47,7 +47,7 @@
 
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
-%generate Tree_Sitter Ada tree_sitter
+;; %generate Tree_Sitter Ada tree_sitter FIXME: tree-sitter broke when change sequence_of_statements to statement+
 
 %meta_syntax EBNF
 
@@ -189,7 +189,8 @@
 %mckenzie_cost_delete STRING_LITERAL 2
 
 ;; Prefer insert these over everything; lets us finish a
-;; statement.
+;; statement, or insert a minimal statement in an empty block.
+%mckenzie_cost_insert EXIT 1
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
 
@@ -496,7 +497,7 @@ selected_component
   ;
 
 sequence_of_statements
-  : {statement}
+  : statement+
   ;
 
 simple_expression

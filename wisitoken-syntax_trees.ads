@@ -1443,6 +1443,9 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Access)
      return Augmented_Class_Access_Constant;
 
+   procedure Clear_Augmented (Tree : in Syntax_Trees.Tree);
+   --  Free all Augmented in Tree.
+
    function Find_Ancestor
      (Tree       : in Syntax_Trees.Tree;
       Node       : in Valid_Node_Access;

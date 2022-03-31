@@ -44,15 +44,13 @@ declaration
   | ;; empty
   ;
 
-;; This list is not in canonical form, so it is not automatically
-;; recognized as an optimized_list. It is also both left and right
+;; This list is an optimized_list; it is both left and right
 ;; recursive, so packrat doesn't support it.
 declarations
-  : declarations declaration
-  | declaration
+  : declaration
+  | declarations declaration
   | declarations declarations
   ;
-%optimized_list declarations
 
 body
   : IS declarations BEGIN SEMICOLON

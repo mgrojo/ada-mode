@@ -31,6 +31,9 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+need conflict resolution for ada_annex_p pragma in declarations and statements
+    add to ada_lite_ebnf.wy
+
 reviewing ada_annex_p conflicts; see notes in o.e.a.s-2
     need wisitoken-followed_by
 
@@ -47,8 +50,7 @@ bad fontify
         file is out of sync with actual edit, but reproduces anyway
         first face region is too large
 
-followed_by to
-    improve to show expansion that gives the conflict for optimized_conflict_02.wy
+followed_by: improve to show expansion that gives the conflict for optimized_conflict_02.wy
         (no optimized_list)
         add option --no_optimized_list for _01.wy (turn off error recover? )
         also for ada_annex_p
@@ -77,25 +79,7 @@ label_opt parallel for procedural_iterator loop ...
 
 document this process in wisitoken user guide; don't need code.
     unless automating helps review all conflicts
-
-
         could continue with minimal_action to get terminal token sequence.
-
-
-optimize syntax tree structure for lists
-    editing wisitoken-syntax_trees.adb to add Tree.Line_region;
-    slow, even with "fast parser" settings in develop_settings.el
-    (setq wisi-parser-verbosity "time=1")
-;; 2022-02-27 11:47:11.47 start
-;; 2022-02-27 11:47:11.51 post edit tree
-;; 2022-02-27 11:47:11.91 pre-recover 2 active
-    faster if at end of file editing Sequential_Index_Cleared:
-;; 2022-02-27 11:50:21.46 start
-;; 2022-02-27 11:50:21.48 post edit tree
-;; 2022-02-27 11:50:21.48 pre-recover 1 active
-
-    time Ada
-
 
 typed \ in an Ada file
     got Programmer_Error: lexer error in non_grammar

@@ -2513,6 +2513,7 @@ package body WisiToken.Parse is
             Parser.Tree.Validate_Tree (Parser.User_Data.all, Error_Reported, Node_Index_Order => False);
             if Error_Reported.Count /= 0 then
                if Trace_Incremental_Parse > Outline then
+                  Tree.Lexer.Trace.Put_Line ("edit_tree: validate_tree failed");
                   Tree.Print_Tree (Non_Grammar => True);
                end if;
                raise WisiToken.Parse_Error with "edit_tree: validate_tree failed";
