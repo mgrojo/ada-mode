@@ -7,7 +7,7 @@
 --  run part of the tests in the Ada code for the actions, and check
 --  the results after parsing.
 --
---  Copyright (C) 2017, 2018 Stephen Leake. All Rights Reserved.
+--  Copyright (C) 2017, 2018, 2022 Stephen Leake. All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -35,5 +35,5 @@ package Test_Skip_To is
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
    overriding procedure Set_Up_Case (T : in out Test_Case);
-
+   overriding procedure Set_Up (T : in out Test_Case);
 end Test_Skip_To;

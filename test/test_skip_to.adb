@@ -36,15 +36,16 @@ package body Test_Skip_To is
    ----------
    --  Test procedures
 
-   procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Dos_Line_Endings (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       use AUnit.Checks;
       use AUnit.Checks.Containers;
 
-      File_Name : constant String := "../test/bnf/skip_to_grammar.input";
+      File_Name : constant String := "../test/bnf/skip_to_grammar.input"; -- DOS line endings
    begin
-      Test_Skip_To_Aux.Enable := True;
+      Test_Skip_To_Aux.Enable           := True;
+      Test_Skip_To_Aux.DOS_Line_Endings := True;
 
       Test_Skip_To_Aux.Parser.Tree.Lexer.Reset_With_File (File_Name);
       Test_Skip_To_Aux.Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
@@ -53,6 +54,8 @@ package body Test_Skip_To is
       Check ("errors", Test_Skip_To_Aux.Parser.Tree.Error_Count, 0);
 
       Test_Skip_To_Aux.Parser.Execute_Actions;
+
+      Check ("tests pass", Test_Skip_To_Aux.Test_Pass_Count, 6);
    exception
    when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>
       declare
@@ -66,7 +69,42 @@ package body Test_Skip_To is
          end if;
       end;
       AUnit.Assertions.Assert (False, "exception");
-   end Nominal;
+   end Dos_Line_Endings;
+
+   procedure Unix_Line_Endings (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Checks;
+      use AUnit.Checks.Containers;
+
+      File_Name : constant String := "../test/bnf/skip_to_grammar_unix.input"; -- Unix line endings
+   begin
+      Test_Skip_To_Aux.Enable           := True;
+      Test_Skip_To_Aux.DOS_Line_Endings := False;
+
+      Test_Skip_To_Aux.Parser.Tree.Lexer.Reset_With_File (File_Name);
+      Test_Skip_To_Aux.Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
+      Test_Skip_To_Aux.Parser.Parse (Log_File);
+
+      Check ("errors", Test_Skip_To_Aux.Parser.Tree.Error_Count, 0);
+
+      Test_Skip_To_Aux.Parser.Execute_Actions;
+
+      Check ("tests pass", Test_Skip_To_Aux.Test_Pass_Count, 6);
+   exception
+   when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>
+      declare
+         use Ada.Exceptions;
+      begin
+         Ada.Text_IO.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
+         if Test_Skip_To_Aux.Parser.Tree.Editable then
+            Test_Skip_To_Aux.Parser.Put_Errors;
+         else
+            Test_Skip_To_Aux.Parser.Put_Errors (Test_Skip_To_Aux.Parser.Tree.First_Parse_Stream);
+         end if;
+      end;
+      AUnit.Assertions.Assert (False, "exception");
+   end Unix_Line_Endings;
 
    ----------
    --  Public subprograms
@@ -82,7 +120,8 @@ package body Test_Skip_To is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      Register_Routine (T, Nominal'Access, "Nominal");
+      Register_Routine (T, Dos_Line_Endings'Access, "Dos_Line_Endings");
+      Register_Routine (T, Unix_Line_Endings'Access, "Unix_Line_Endings");
    end Register_Tests;
 
    overriding procedure Set_Up_Case (T : in out Test_Case)
@@ -93,8 +132,15 @@ package body Test_Skip_To is
         (Test_Skip_To_Aux.Parser,
          Skip_To_Grammar_LALR_Main.Create_Lexer (Trace'Access),
          Skip_To_Grammar_LALR_Main.Create_Parse_Table ("skip_to_grammar_lalr_parse_table.txt"),
-         WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
+         Skip_To_Grammar_LALR_Main.Create_Productions,
          User_Data'Access);
    end Set_Up_Case;
+
+   overriding procedure Set_Up (T : in out Test_Case)
+   is
+      pragma Unreferenced (T);
+   begin
+      Test_Skip_To_Aux.Reset;
+   end Set_Up;
 
 end Test_Skip_To;

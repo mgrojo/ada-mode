@@ -1055,7 +1055,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("        if (0 == target[i])");
          Indent_Line ("          {");
          Indent_Line ("            for (j = 0; j< i; j++)");
-         Indent_Line ("               skip(lexer, 0);");
+         Indent_Line ("               skip(lexer, 1);");
          Indent_Line ("            break;");
          Indent_Line ("          }");
          Indent_Line ("      }");
