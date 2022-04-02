@@ -1,4 +1,4 @@
- 19 tokens lexed
+ 20 tokens lexed
  0: 0: 1:(PREAMBLE, (1 . 22)) : shift and goto state 2
  0: 2: 2:(PERCENT, (46 . 46)) : reduce 1 tokens to compilation_unit
 (compilation_unit, (1 . 22) <= (1:(PREAMBLE, (1 . 22))))
@@ -107,12 +107,19 @@
 (compilation_unit_list, (1 . 185) <= ((compilation_unit_list, (1 . 138)), (compilation_unit, (167 . 185))))
  ... goto state 5
  0: 5: 18:(PREAMBLE, (212 . 285)) : shift and goto state 2
- 0: 2: 19:(Wisi_EOI, (342 . 341)) : reduce 1 tokens to compilation_unit
+ 0: 2: 19:(PREAMBLE, (318 . 343)) : reduce 1 tokens to compilation_unit
 (compilation_unit, (212 . 285) <= (18:(PREAMBLE, (212 . 285))))
  ... goto state 7
- 0: 7: 19:(Wisi_EOI, (342 . 341)) : reduce 2 tokens to compilation_unit_list
+ 0: 7: 19:(PREAMBLE, (318 . 343)) : reduce 2 tokens to compilation_unit_list
 (compilation_unit_list, (1 . 285) <= ((compilation_unit_list, (1 . 185)), (compilation_unit, (212 . 285))))
  ... goto state 5
- 0: 5: 19:(Wisi_EOI, (342 . 341)) : accept it
-(wisitoken_accept, (1 . 285) <= ((compilation_unit_list, (1 . 285))))
+ 0: 5: 19:(PREAMBLE, (318 . 343)) : shift and goto state 2
+ 0: 2: 20:(Wisi_EOI, (404 . 403)) : reduce 1 tokens to compilation_unit
+(compilation_unit, (318 . 343) <= (19:(PREAMBLE, (318 . 343))))
+ ... goto state 7
+ 0: 7: 20:(Wisi_EOI, (404 . 403)) : reduce 2 tokens to compilation_unit_list
+(compilation_unit_list, (1 . 343) <= ((compilation_unit_list, (1 . 285)), (compilation_unit, (318 . 343))))
+ ... goto state 5
+ 0: 5: 20:(Wisi_EOI, (404 . 403)) : accept it
+(wisitoken_accept, (1 . 343) <= ((compilation_unit_list, (1 . 343))))
  0: succeed

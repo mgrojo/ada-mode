@@ -118,6 +118,11 @@ OK test_incremental.adb : Recover_05b
 OK test_incremental.adb : Recover_05c
 OK test_incremental.adb : Recover_05d
 OK test_incremental.adb : Recover_05e
+OK test_incremental.adb : Recover_06a
+OK test_incremental.adb : Recover_06b
+OK test_incremental.adb : Recover_06c
+OK test_incremental.adb : Recover_06d
+OK test_incremental.adb : Recover_06e
 OK test_incremental.adb : Lexer_Errors_01
 OK test_incremental.adb : Preserve_Parse_Errors_1
 OK test_incremental.adb : Preserve_Parse_Errors_2
@@ -268,7 +273,8 @@ OK test_mckenzie_recover.adb LR1 : Move_Non_Grammar
 OK test_mckenzie_recover.adb LR1 : Lexer_Error_01
 OK test_partial_parse.adb : Plain_String
 OK test_partial_parse.adb : File_String_Access
-OK test_skip_to.adb : Nominal
+OK test_skip_to.adb : Dos_Line_Endings
+OK test_skip_to.adb : Unix_Line_Endings
 OK test_syntax_trees.adb : Left_Breakdown_1
 OK test_syntax_trees.adb : Find_New_Line_1
 OK test_syntax_trees.adb : Byte_Region_1
@@ -282,7 +288,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   282
-Successful Tests:  282
+Total Tests Run:   288
+Successful Tests:  288
 Failed Assertions: 0
 Unexpected Errors: 0

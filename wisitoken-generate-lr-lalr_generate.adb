@@ -582,8 +582,12 @@ package body WisiToken.Generate.LR.LALR_Generate is
             Check_Limit                 => Default_McKenzie_Param.Check_Limit,
             Check_Delta_Limit           => Default_McKenzie_Param.Check_Delta_Limit,
             Enqueue_Limit               => Default_McKenzie_Param.Enqueue_Limit);
+
+         Table.Error_Recover_Enabled := False;
+
       else
-         Table.McKenzie_Param := McKenzie_Param;
+         Table.McKenzie_Param        := McKenzie_Param;
+         Table.Error_Recover_Enabled := True;
       end if;
 
       Table.Max_Parallel := Max_Parallel;

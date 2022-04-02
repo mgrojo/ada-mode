@@ -55,7 +55,7 @@ package body Test_Skip_To is
 
       Test_Skip_To_Aux.Parser.Execute_Actions;
 
-      Check ("tests pass", Test_Skip_To_Aux.Test_Pass_Count, 6);
+      Check ("tests pass", Test_Skip_To_Aux.Test_Pass_Count, 7);
    exception
    when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>
       declare
@@ -90,7 +90,7 @@ package body Test_Skip_To is
 
       Test_Skip_To_Aux.Parser.Execute_Actions;
 
-      Check ("tests pass", Test_Skip_To_Aux.Test_Pass_Count, 6);
+      Check ("tests pass", Test_Skip_To_Aux.Test_Pass_Count, 7);
    exception
    when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>
       declare

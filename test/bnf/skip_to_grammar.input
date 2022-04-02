@@ -17,4 +17,6 @@ to test line_begin_char
 
 { placeholder theta θ }
 
+%{ single line preamble }%
+
 ;; end of file comment; this file has DOS line endings

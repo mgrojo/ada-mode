@@ -158,14 +158,20 @@ package body Test_Skip_To_Aux is
                --  Second delimited text, with non-ascii.
                Test_1 (Label, Nonterm, (12, 16), (196, 264), 5, 6);
 
-               Check (Label & ".non_grammar.length", Non_Grammar.Length, 6);
+               Check (Label & ".non_grammar.length", Non_Grammar.Length, 5);
                Test_Comment (Label & ".comment 1", Non_Grammar (3), (18, 18), (267, 289), 6, 7); -- placeholder
+
+            when 3 =>
+               --  3rd delimited text, single line
+               Test_1 (Label, Nonterm, (20, 20), (292, 317), 7, 7);
+
+               Check (Label & ".non_grammar.length", Non_Grammar.Length, 3);
 
                --  End of file comment is slightly different between the two files.
                if DOS_Line_Endings then
-                  Test_Comment (Label & ".comment 2", Non_Grammar (6), (20, 21), (292, 346), 7, 7);
+                  Test_Comment (Label & ".comment 1", Non_Grammar (3), (22, 23), (320, 374), 7, 7);
                else
-                  Test_Comment (Label & ".comment 2", Non_Grammar (6), (20, 21), (292, 347), 7, 7);
+                  Test_Comment (Label & ".comment 1", Non_Grammar (3), (22, 23), (320, 375), 7, 7);
                end if;
             when others =>
                raise Fatal_Error;

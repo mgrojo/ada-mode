@@ -992,10 +992,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("#define YYPEEK() (lexer->cursor <= lexer->buffer_last) ? *lexer->cursor : 4");
       New_Line;
 
-      --  skip() only counts new_lines when used for delimited_text tokens.
-      --  Making it always count new_lines would mean that new_line tokens
-      --  require special handling anyway.
-      Indent_Line ("static void skip(wisi_lexer* lexer, int count_lines)");
+      Indent_Line ("static void skip(wisi_lexer* lexer)");
       Indent_Line ("{");
       Indent := Indent + 3;
       Indent_Line ("if (lexer->cursor <= lexer->buffer_last)");
@@ -1004,10 +1001,6 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("++lexer->cursor;");
       Indent_Line ("if (lexer->cursor <= lexer->buffer_last)");
       Indent_Line ("{");
-      Indent_Line ("   if (count_lines && *lexer->cursor == 0x0A)");
-      Indent_Line ("   {");
-      Indent_Line ("     lexer->line++;");
-      Indent_Line ("   }");
       Indent_Line ("   /* UFT-8 encoding: https://en.wikipedia.org/wiki/UTF-8#Description */");
       Indent_Line ("   if (*lexer->cursor == 0x0A && lexer->cursor > lexer->buffer && *(lexer->cursor - 1) == 0x0D)");
       Indent_Line ("     {/* second byte of DOS line ending */");
@@ -1023,7 +1016,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("}");
       Indent := Indent - 3;
       Indent_Line ("}");
-      Indent_Start ("#define YYSKIP() skip(lexer, 0)");
+      Indent_Start ("#define YYSKIP() skip(lexer)");
       New_Line;
 
       Indent_Line ("#define YYBACKUP() lexer->marker = lexer->cursor; lexer->marker_pos = lexer->char_pos;" &
@@ -1041,8 +1034,15 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("{");
          Indent_Line ("  int i, j;");
          New_Line;
+         Indent_Line ("  // Count all new-lines contained in the skip region. Caller has ");
+         Indent_Line ("  // skipped the start delimiter; if lexer->cursor is a new-line it");
+         Indent_Line ("  // has not yet been counted. Start and end delimiters do not contain new-line.");
          Indent_Line ("  while (lexer->cursor <= lexer->buffer_last)");
          Indent_Line ("    {");
+         Indent_Line ("      if (*lexer->cursor == 0x0A)");
+         Indent_Line ("      {");
+         Indent_Line ("        lexer->line++;");
+         Indent_Line ("      }");
          Indent_Line ("      if (*lexer->cursor == target[0])");
          Indent_Line ("      {");
          Indent_Line ("        i = 0;");
@@ -1054,12 +1054,12 @@ package body WisiToken.BNF.Output_Ada_Common is
          New_Line;
          Indent_Line ("        if (0 == target[i])");
          Indent_Line ("          {");
-         Indent_Line ("            for (j = 0; j< i; j++)");
-         Indent_Line ("               skip(lexer, 1);");
+         Indent_Line ("            for (j = 0; j < i; j++)");
+         Indent_Line ("               skip(lexer);");
          Indent_Line ("            break;");
          Indent_Line ("          }");
          Indent_Line ("      }");
-         Indent_Line ("      skip(lexer, 1);");
+         Indent_Line ("      skip(lexer);");
          Indent_Line ("    };");
          Indent_Line ("}");
          New_Line;
