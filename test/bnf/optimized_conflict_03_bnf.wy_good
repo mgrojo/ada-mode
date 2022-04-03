@@ -22,8 +22,8 @@
 
 %token <symbol> IDENTIFIER %[ [a-zA-Z]+ ]%
 
-%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token MINUS (30)
-%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token PLUS (30)
+%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token MINUS
+%conflict SHIFT binary_adding_operator | REDUCE subtype_indication on token PLUS
 
 subtype_indication
   : IDENTIFIER RANGE simple_expression DOT_DOT simple_expression

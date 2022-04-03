@@ -115,6 +115,15 @@ package WisiToken.Parse.LR is
       Actions : Parse_Action_Node_Ptr;
    end record;
 
+   procedure Delete
+     (Container : in out Action_Node;
+      Prev      : in     Parse_Action_Node_Ptr;
+      Current   : in out Parse_Action_Node_Ptr);
+   --  Delete Current from an action list. Container.Actions is the
+   --  root of the list; updated as needed. Prev is the previous element
+   --  in the list; null if none. Prev.Next is updated to
+   --  Current.Next. Current is updated to Current.Next.
+
    function To_Key (Item : in Action_Node) return Token_ID is (Item.Symbol);
 
    function Compare (Left, Right : in Token_ID) return SAL.Compare_Result

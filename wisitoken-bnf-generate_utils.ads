@@ -3,7 +3,7 @@
 --  Utilities for translating input file structures to WisiToken
 --  structures needed for LALR.Generate.
 --
---  Copyright (C) 2014, 2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2014, 2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -76,17 +76,19 @@ package WisiToken.BNF.Generate_Utils is
       Ignore_Conflicts   : in     Boolean)
      return Generate_Data;
 
-   function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID;
-
-   type Token_Container (Data : not null access constant Generate_Data) is tagged null record
+   type Token_Container
+     (Tokens     : not null access constant WisiToken.BNF.Tokens;
+      Descriptor : WisiToken.Descriptor_Access_Constant)
+     is tagged null record
    with
      Constant_Indexing => Constant_Reference,
      Default_Iterator  => Iterate,
      Iterator_Element  => Ada.Strings.Unbounded.Unbounded_String;
-   --  We need a container type to define an iterator; the actual data is
-   --  in Data.Tokens. The Iterator_Element is given by Token_Name below.
+   --  The Iterator_Element is given by Token_Name below.
 
    function All_Tokens (Data : aliased in Generate_Data) return Token_Container;
+
+   function Find_Token_ID (Data : in Generate_Data; Token : in String) return Token_ID;
 
    type Token_Constant_Reference_Type
      (Element : not null access constant Ada.Strings.Unbounded.Unbounded_String)
@@ -116,10 +118,10 @@ package WisiToken.BNF.Generate_Utils is
    function Has_Element (Cursor : in Token_Cursor) return Boolean is (not Is_Done (Cursor));
    package Iterator_Interfaces is new Ada.Iterator_Interfaces (Token_Cursor, Has_Element);
    function Iterate
-     (Container    : in Token_Container;
-      Non_Grammar  : in Boolean := True;
-      Nonterminals : in Boolean := True;
-      Include_SOI  : in Boolean := True)
+     (Container    : aliased in Token_Container;
+      Non_Grammar  :         in Boolean := True;
+      Nonterminals :         in Boolean := True;
+      Include_SOI  :         in Boolean := True)
      return Iterator_Interfaces.Forward_Iterator'Class;
 
    function First
@@ -159,13 +161,6 @@ package WisiToken.BNF.Generate_Utils is
    --  Keywords: empty string
    --  Tokens  : Tokens (i).Tokens (j).Repair_Image
    --  Rules   : empty string
-
-   function To_Conflicts
-     (Data             : aliased in out Generate_Data;
-      Conflicts        :         in     WisiToken.BNF.Conflict_Lists.List;
-      Source_File_Name :         in     String)
-     return WisiToken.Generate.LR.Conflict_Lists.Tree;
-   --  Not included in Initialize.
 
    function To_Nonterminal_ID_Set
      (Data : aliased in Generate_Data;

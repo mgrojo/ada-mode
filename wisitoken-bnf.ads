@@ -285,6 +285,8 @@ package WisiToken.BNF is
       Items       : String_Pair_Lists.List;
       --  Item (I).Name = action, .Value = lhs
       On          : Ada.Strings.Unbounded.Unbounded_String;
+      Resolution  : Ada.Strings.Unbounded.Unbounded_String;
+      --  Resolution is not empty if this is from %conflict_resolution.
    end record;
 
    package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);

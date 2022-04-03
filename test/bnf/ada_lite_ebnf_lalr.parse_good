@@ -1,0 +1,110 @@
+ 14 tokens lexed
+ 0: 0: (-1, 1:(PROCEDURE, (126 . 134))) : shift and goto state 9
+ 0: 9: (-1, 2:(IDENTIFIER, (136 . 136))) : shift and goto state 53
+ 0: 53: (-1, 3:(SEMICOLON, (137 . 137))) : reduce 1 tokens to name
+(name_2, (136 . 136) <= (2:(IDENTIFIER, (136 . 136))))
+in_parse_action OK
+ ... goto state 77
+ 0: 77: (-1, 3:(SEMICOLON, (137 . 137))) : reduce 0 tokens to parameter_profile
+(parameter_profile_1 <= ())
+ ... goto state 139
+ 0: 139: (-1, 3:(SEMICOLON, (137 . 137))) : reduce 3 tokens to procedure_specification
+(procedure_specification_0, (126 . 136) <= (1:(PROCEDURE, (126 . 134)), (name_2, (136 . 136)), (parameter_profile_1)))
+in_parse_action OK
+ ... goto state 36
+ 0: 36: (-1, 3:(SEMICOLON, (137 . 137))) : reduce 1 tokens to subprogram_specification
+(subprogram_specification_0, (126 . 136) <= ((procedure_specification_0, (126 . 136))))
+in_parse_action OK
+ ... goto state 45
+ 0: 45: (-1, 3:(SEMICOLON, (137 . 137))) : shift and goto state 94
+ 0: 94: (-1, 4:(IDENTIFIER, (139 . 139))) : reduce 2 tokens to subprogram_declaration
+(subprogram_declaration_0, (126 . 137) <= ((subprogram_specification_0, (126 . 136)), 3:(SEMICOLON, (137 . 137))))
+ ... goto state 44
+ 0: 44: (-1, 4:(IDENTIFIER, (139 . 139))) : reduce 1 tokens to declaration
+(declaration_4, (126 . 137) <= ((subprogram_declaration_0, (126 . 137))))
+ ... goto state 22
+ 0: 22: (-1, 4:(IDENTIFIER, (139 . 139))) : reduce 1 tokens to compilation_unit
+(compilation_unit_0, (126 . 137) <= ((declaration_4, (126 . 137))))
+ ... goto state 19
+ 0: 19: (-1, 4:(IDENTIFIER, (139 . 139))) : reduce 1 tokens to compilation_unit_list
+(compilation_unit_list_0, (126 . 137) <= ((compilation_unit_0, (126 . 137))))
+in_parse_action OK
+ ... goto state 20
+ 0: 20: (-1, 4:(IDENTIFIER, (139 . 139))) : shift and goto state 12
+ 0: 12: (-1, 5:(COLON, (141 . 141))) : shift and goto state 82
+ 0: 82: (-1, 6:(IDENTIFIER, (143 . 149))) : shift and goto state 53
+ 0: 53: (-1, 7:(SEMICOLON, (150 . 150))) : reduce 1 tokens to name
+(name_2, (143 . 149) <= (6:(IDENTIFIER, (143 . 149))))
+in_parse_action OK
+ ... goto state 144
+ 0: 144: (-1, 7:(SEMICOLON, (150 . 150))) : reduce 1 tokens to subtype_indication
+(subtype_indication_1, (143 . 149) <= ((name_2, (143 . 149))))
+ ... goto state 145
+ 0: 145: (-1, 7:(SEMICOLON, (150 . 150))) : shift and goto state 213
+ 0: 213: (-1, 8:(PRAGMA, (152 . 157))) : reduce 4 tokens to object_declaration
+(object_declaration_1, (139 . 150) <= (4:(IDENTIFIER, (139 . 139)), 5:(COLON, (141 . 141)), (subtype_indication_1, (143 . 149)), 7:(SEMICOLON, (150 . 150))))
+ ... goto state 32
+ 0: 32: (-1, 8:(PRAGMA, (152 . 157))) : reduce 1 tokens to declaration
+(declaration_2, (139 . 150) <= ((object_declaration_1, (139 . 150))))
+ ... goto state 22
+ 0: 22: (-1, 8:(PRAGMA, (152 . 157))) : reduce 1 tokens to compilation_unit
+(compilation_unit_0, (139 . 150) <= ((declaration_2, (139 . 150))))
+ ... goto state 85
+ 0: 85: (-1, 8:(PRAGMA, (152 . 157))) : reduce 2 tokens to compilation_unit_list
+(compilation_unit_list_1, (126 . 150) <= ((compilation_unit_list_0, (126 . 137)), (compilation_unit_0, (139 . 150))))
+ ... goto state 20
+ 0: 20: (-1, 8:(PRAGMA, (152 . 157))) : shift and goto state 1
+ 0: 1: (-1, 9:(IDENTIFIER, (159 . 170))) : shift and goto state 47
+ 0: 47: (-1, 10:(LEFT_PAREN, (172 . 172))) : shift and goto state 96
+ 0: 96: (-1, 11:(IDENTIFIER, (173 . 173))) : shift and goto state 154
+ 0: 154: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to name
+(name_2, (173 . 173) <= (11:(IDENTIFIER, (173 . 173))))
+in_parse_action OK
+ ... goto state 57
+ 0: 57: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to primary
+(primary_2, (173 . 173) <= ((name_2, (173 . 173))))
+ ... goto state 59
+ 0: 59: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to factor
+(factor_0, (173 . 173) <= ((primary_2, (173 . 173))))
+ ... goto state 56
+ 0: 56: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to term
+(term_0, (173 . 173) <= ((factor_0, (173 . 173))))
+ ... goto state 62
+ 0: 62: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to term_binary_adding_operator_list
+(term_binary_adding_operator_list_0, (173 . 173) <= ((term_0, (173 . 173))))
+ ... goto state 64
+ 0: 64: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to simple_expression
+(simple_expression_1, (173 . 173) <= ((term_binary_adding_operator_list_0, (173 . 173))))
+ ... goto state 61
+ 0: 61: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to relation
+(relation_1, (173 . 173) <= ((simple_expression_1, (173 . 173))))
+ ... goto state 60
+ 0: 60: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to expression
+(expression_0, (173 . 173) <= ((relation_1, (173 . 173))))
+ ... goto state 157
+ 0: 157: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to association
+(association_1, (173 . 173) <= ((expression_0, (173 . 173))))
+ ... goto state 155
+ 0: 155: (-1, 12:(RIGHT_PAREN, (174 . 174))) : reduce 1 tokens to association_list
+(association_list_0, (173 . 173) <= ((association_1, (173 . 173))))
+ ... goto state 156
+ 0: 156: (-1, 12:(RIGHT_PAREN, (174 . 174))) : shift and goto state 222
+ 0: 222: (-1, 13:(SEMICOLON, (175 . 175))) : reduce 3 tokens to actual_parameter_part
+(actual_parameter_part_0, (172 . 174) <= (10:(LEFT_PAREN, (172 . 172)), (association_list_0, (173 . 173)), 12:(RIGHT_PAREN, (174 . 174))))
+ ... goto state 97
+ 0: 97: (-1, 13:(SEMICOLON, (175 . 175))) : shift and goto state 167
+ 0: 167: (-1, 14:(Wisi_EOI, (177 . 176))) : reduce 4 tokens to pragma_g
+(pragma_g_0, (152 . 175) <= (8:(PRAGMA, (152 . 157)), 9:(IDENTIFIER, (159 . 170)), (actual_parameter_part_0, (172 . 174)), 13:(SEMICOLON, (175 . 175))))
+ ... goto state 34
+ 0: 34: (-1, 14:(Wisi_EOI, (177 . 176))) : reduce 1 tokens to statement
+(statement_2, (152 . 175) <= ((pragma_g_0, (152 . 175))))
+ ... goto state 41
+ 0: 41: (-1, 14:(Wisi_EOI, (177 . 176))) : reduce 1 tokens to compilation_unit
+(compilation_unit_1, (152 . 175) <= ((statement_2, (152 . 175))))
+ ... goto state 85
+ 0: 85: (-1, 14:(Wisi_EOI, (177 . 176))) : reduce 2 tokens to compilation_unit_list
+(compilation_unit_list_1, (126 . 175) <= ((compilation_unit_list_1, (126 . 150)), (compilation_unit_1, (152 . 175))))
+ ... goto state 20
+ 0: 20: (-1, 14:(Wisi_EOI, (177 . 176))) : accept it
+(wisitoken_accept_0, (126 . 175) <= ((compilation_unit_list_1, (126 . 175))))
+ 0: succeed

@@ -812,18 +812,22 @@ package body WisiToken.Generate.LR.LR1_Generate is
    end LR1_Item_Sets_Parallel;
 
    procedure Add_Actions
-     (Item_Sets         : in     LR1_Items.Item_Set_List;
-      Table             : in out Parse_Table;
-      Grammar           : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor        : in     WisiToken.Descriptor;
-      First_Nonterm_Set : in     WisiToken.Token_Array_Token_Set;
-      File_Name         : in     String;
-      Ignore_Conflicts  : in     Boolean)
+     (Item_Sets          : in     LR1_Items.Item_Set_List;
+      Table              : in out Parse_Table;
+      Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor         : in     WisiToken.Descriptor;
+      Declared_Conflicts : in out WisiToken.Generate.LR.Conflict_Lists.Tree;
+      Unknown_Conflicts  : in out WisiToken.Generate.LR.Conflict_Lists.Tree;
+      First_Nonterm_Set  : in     WisiToken.Token_Array_Token_Set;
+      File_Name          : in     String;
+      Ignore_Conflicts   : in     Boolean)
    is
       --  Add actions for all Item_Sets to Table.
    begin
       for Item_Set of Item_Sets loop
-         Add_Actions (Item_Set, Table, Grammar, Descriptor, First_Nonterm_Set, File_Name, Ignore_Conflicts);
+         Add_Actions
+           (Item_Set, Table, Grammar, Descriptor, Declared_Conflicts, Unknown_Conflicts, First_Nonterm_Set, File_Name,
+            Ignore_Conflicts);
       end loop;
 
       if Trace_Generate_Table > Outline then
@@ -886,7 +890,6 @@ package body WisiToken.Generate.LR.LR1_Generate is
            (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor, Task_Count,
             Hash_Table_Size));
 
-      Conflict_Counts      : Conflict_Count_Lists.Vector;
       Unknown_Conflicts    : Conflict_Lists.Tree;
       Known_Conflicts_Edit : Conflict_Lists.Tree := Known_Conflicts;
 
@@ -952,7 +955,9 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
       Table.Max_Parallel := Max_Parallel;
 
-      Add_Actions (Item_Sets, Table.all, Grammar, Descriptor, First_Nonterm_Set, Grammar_File_Name, Ignore_Conflicts);
+      Add_Actions
+        (Item_Sets, Table.all, Grammar, Descriptor, Known_Conflicts_Edit, Unknown_Conflicts, First_Nonterm_Set,
+         Grammar_File_Name, Ignore_Conflicts);
 
       if Trace_Time then
          Add_Actions_Time := Ada.Calendar.Clock;
@@ -977,8 +982,6 @@ package body WisiToken.Generate.LR.LR1_Generate is
               (Ada.Calendar."-" (Minimal_Actions_Time, Add_Actions_Time)));
       end if;
 
-      Collect_Conflicts (Table.all, Unknown_Conflicts, Conflict_Counts);
-
       if Trace_Time then
          Collect_Conflict_Time := Ada.Calendar.Clock;
          Ada.Text_IO.Put_Line
@@ -988,8 +991,8 @@ package body WisiToken.Generate.LR.LR1_Generate is
 
       if Parse_Table_File_Name /= "" then
          WisiToken.Generate.LR.Put_Parse_Table
-           (Table, Parse_Table_File_Name, "LR1", Grammar, Recursions, Item_Sets, Conflict_Counts, Descriptor,
-            Include_Extra);
+           (Table, Parse_Table_File_Name, "LR1", Grammar, Recursions, Item_Sets, Known_Conflicts_Edit,
+            Unknown_Conflicts, Descriptor, Include_Extra);
       end if;
 
       if Trace_Generate_Table > Detail then

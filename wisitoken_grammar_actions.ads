@@ -26,27 +26,33 @@ package Wisitoken_Grammar_Actions is
 
    Descriptor : aliased constant WisiToken.Descriptor :=
      (First_Terminal    => 3,
-      Last_Terminal       => 38,
-      First_Nonterminal   => 39,
-      Last_Nonterminal    => 59,
-      SOI_ID              => 60,
-      EOI_ID              => 38,
-      Accept_ID           => 39,
+      Last_Terminal       => 42,
+      First_Nonterminal   => 43,
+      Last_Nonterminal    => 65,
+      SOI_ID              => 66,
+      EOI_ID              => 42,
+      Accept_ID           => 43,
       Case_Insensitive    => False,
       New_Line_ID         => 1,
-      String_1_ID         => 37,
-      String_2_ID         => 36,
+      String_1_ID         => 41,
+      String_2_ID         => 40,
       Image               =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
          new String'("COMMENT"),
+         new String'("ACCEPT_IT"),
          new String'("CODE"),
+         new String'("CONFLICT"),
+         new String'("CONFLICT_RESOLUTION"),
          new String'("END"),
          new String'("ELSIF"),
          new String'("IF"),
          new String'("IN"),
          new String'("KEYWORD"),
          new String'("NON_GRAMMAR"),
+         new String'("ON"),
+         new String'("REDUCE"),
+         new String'("SHIFT"),
          new String'("TOKEN"),
          new String'("RAW_CODE"),
          new String'("REGEXP"),
@@ -54,7 +60,6 @@ package Wisitoken_Grammar_Actions is
          new String'("BAR"),
          new String'("COLON"),
          new String'("COLON_COLON_EQUAL"),
-         new String'("COMMA"),
          new String'("EQUAL"),
          new String'("GREATER"),
          new String'("LEFT_BRACE"),
@@ -69,7 +74,6 @@ package Wisitoken_Grammar_Actions is
          new String'("RIGHT_BRACKET"),
          new String'("RIGHT_PAREN"),
          new String'("SEMICOLON"),
-         new String'("SLASH"),
          new String'("STAR"),
          new String'("NUMERIC_LITERAL"),
          new String'("IDENTIFIER"),
@@ -77,12 +81,14 @@ package Wisitoken_Grammar_Actions is
          new String'("STRING_LITERAL_2"),
          new String'("Wisi_EOI"),
          new String'("wisitoken_accept"),
+         new String'("regexp_string"),
+         new String'("conflict_item"),
+         new String'("conflict_item_list"),
          new String'("declaration"),
-         new String'("token_keyword_non_grammar"),
          new String'("identifier_list"),
          new String'("IDENTIFIER_BAR_list"),
-         new String'("declaration_item_list"),
          new String'("declaration_item"),
+         new String'("declaration_item_list"),
          new String'("nonterminal"),
          new String'("semicolon_opt"),
          new String'("rhs_list"),
@@ -98,21 +104,27 @@ package Wisitoken_Grammar_Actions is
          new String'("compilation_unit"),
          new String'("compilation_unit_list"),
          new String'("Wisi_SOI")),
-      Terminal_Image_Width => 17,
-      Image_Width          => 25,
-      Last_Lookahead       => 39);
+      Terminal_Image_Width => 19,
+      Image_Width          => 21,
+      Last_Lookahead       => 43);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,
       NEW_LINE_ID,
       COMMENT_ID,
+      ACCEPT_IT_ID,
       CODE_ID,
+      CONFLICT_ID,
+      CONFLICT_RESOLUTION_ID,
       END_ID,
       ELSIF_ID,
       IF_ID,
       IN_ID,
       KEYWORD_ID,
       NON_GRAMMAR_ID,
+      ON_ID,
+      REDUCE_ID,
+      SHIFT_ID,
       TOKEN_ID,
       RAW_CODE_ID,
       REGEXP_ID,
@@ -120,7 +132,6 @@ package Wisitoken_Grammar_Actions is
       BAR_ID,
       COLON_ID,
       COLON_COLON_EQUAL_ID,
-      COMMA_ID,
       EQUAL_ID,
       GREATER_ID,
       LEFT_BRACE_ID,
@@ -135,7 +146,6 @@ package Wisitoken_Grammar_Actions is
       RIGHT_BRACKET_ID,
       RIGHT_PAREN_ID,
       SEMICOLON_ID,
-      SLASH_ID,
       STAR_ID,
       NUMERIC_LITERAL_ID,
       IDENTIFIER_ID,
@@ -143,12 +153,14 @@ package Wisitoken_Grammar_Actions is
       STRING_LITERAL_2_ID,
       Wisi_EOI_ID,
       wisitoken_accept_ID,
+      regexp_string_ID,
+      conflict_item_ID,
+      conflict_item_list_ID,
       declaration_ID,
-      token_keyword_non_grammar_ID,
       identifier_list_ID,
       IDENTIFIER_BAR_list_ID,
-      declaration_item_list_ID,
       declaration_item_ID,
+      declaration_item_list_ID,
       nonterminal_ID,
       semicolon_opt_ID,
       rhs_list_ID,
@@ -210,6 +222,30 @@ package Wisitoken_Grammar_Actions is
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
    procedure declaration_9
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure declaration_10
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure declaration_11
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure declaration_12
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure declaration_13
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure declaration_14
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in out WisiToken.Syntax_Trees.Tree;
+      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);
+   procedure declaration_15
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access);

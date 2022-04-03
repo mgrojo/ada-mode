@@ -519,7 +519,13 @@ Example conflict declaration:
 The conflict description is output by @code{wisitoken-bnf-generate}
 when an undeclared conflict is detected. If the user decides to not
 fix the conflict, the description can be copied into the grammar
-source file, so it will be ignored next time around.
+source file, so it will be ignored next time around. Or it can be
+converted to a @code{%conflict_resolution}; see the next item.
+
+If a conflict has more than two branches, it must be declared more
+than once, first with two branches, then with one more, etc. This is
+due to the way conflicts are found during the parse table generation
+process.
 
 Resolving conflicts in the grammar can be difficult, but leaving them
 in can increase parse time and cause ambiguous parses.
@@ -529,6 +535,23 @@ In Emacs, @code{wisitoken-parse_table-mode} provides a command
 in the parse table file, which has more information that might help
 resolve the conflict. @code{wisitoken-grammar-mode} binds that command
 to @key{^c .}.
+
+@item %conflict_resolution <conflict description> : <resolution>
+Declare a conflict resolution. The conflict description is the same as
+in a @code{%conflict} declaration; the resolution says which branch of
+the conflict to take.
+
+Only one kind of resolution is supported: a token name, which must
+match one of the token names in the conflict description; the branch
+that contains that token is taken.
+
+Example conflict resolution declaration:
+@verbatim
+%conflict REDUCE abstract_limited_opt
+ | REDUCE abstract_limited_synchronized_opt on token NEW
+ : abstract_limited_opt
+@end verbatim
+This says to always reduce to @code{abstract_limited_opt}.
 
 @item %elisp_face <name>
 Declare a name for an elisp face constant.

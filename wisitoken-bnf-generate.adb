@@ -354,7 +354,7 @@ begin
 
          if Trace_Action > Outline then
             Trace.New_Line;
-            Trace.Put_Line ("grammar syntax tree:");
+            Trace.Put_Line (Parser'Image & " " & Lexer'Image & " grammar syntax tree:");
             Grammar_Parser.Tree.Print_Tree;
          end if;
          Grammar_Parser.Execute_Actions;
@@ -533,7 +533,7 @@ begin
                     (if Input_Data.If_Lexer_Present
                      then "_" & Lexer_Image (Input_Data.User_Lexer).all
                      else "") &
-                     ".parse_table"
+                    ".parse_table"
                   else "");
 
                procedure Parse_Table_Append_Stats
@@ -576,8 +576,7 @@ begin
                        (Generate_Data.Grammar,
                         Generate_Data.Descriptor.all,
                         Grammar_Parser.Tree.Lexer.File_Name,
-                        Generate_Utils.To_Conflicts
-                          (Generate_Data, Input_Data.Conflicts, Grammar_Parser.Tree.Lexer.File_Name),
+                        Generate_Data.Conflicts,
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                         Input_Data.Max_Parallel,
                         Parse_Table_File_Name,
@@ -614,8 +613,7 @@ begin
                        (Generate_Data.Grammar,
                         Generate_Data.Descriptor.all,
                         Grammar_Parser.Tree.Lexer.File_Name,
-                        Generate_Utils.To_Conflicts
-                          (Generate_Data, Input_Data.Conflicts, Grammar_Parser.Tree.Lexer.File_Name),
+                        Generate_Data.Conflicts,
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                         Input_Data.Max_Parallel,
                         Parse_Table_File_Name,

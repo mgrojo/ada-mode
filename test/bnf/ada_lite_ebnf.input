@@ -1,0 +1,5 @@
+-- 'pragma' as last compilation_unit; can be either declaration or
+-- statement. Demonstrate that conflict resolution works.
+procedure A;
+B : Integer;
+pragma Unreferenced (B);

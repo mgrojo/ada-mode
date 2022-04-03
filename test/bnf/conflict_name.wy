@@ -2,7 +2,7 @@
 ;;; sets, so conflicts have the same name in LALR and LR1 parsers.
 ;;
 %code copyright_license %{
---  Copyright (C) 2013, 2015, 2017, 2018, 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2015, 2017, 2018, 2021, 2022 Stephen Leake.  All Rights Reserved.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -33,7 +33,7 @@
 
 %start name
 
-%conflict SHIFT/REDUCE in state attribute_reference, attribute_designator on token TICK
+%conflict SHIFT attribute_reference | REDUCE attribute_designator on token TICK
 
 aggregate
   : LEFT_PAREN name RIGHT_PAREN

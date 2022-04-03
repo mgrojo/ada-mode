@@ -315,7 +315,7 @@ package body WisiToken_Grammar_Editing is
       declare
          use all type SAL.Base_Peek_Type;
          Children  : constant Node_Access_Array := Tree.Children (Node);
-         RHS_Index : constant Natural          := Tree.RHS_Index (Node);
+         RHS_Index : constant Natural           := Tree.RHS_Index (Node);
       begin
          if (for some Child of Children => Child = null) then
             Put_Error ("deleted child");
@@ -346,6 +346,7 @@ package body WisiToken_Grammar_Editing is
                end if;
 
             when others =>
+               --  The reset are for %if .. %endif, which are supposed to be translated before now.
                Put_Error ("unexpected RHS_Index");
             end case;
 
@@ -1353,16 +1354,17 @@ package body WisiToken_Grammar_Editing is
             List      : in LR_Utils.Constant_List'Class;
             Comp_Unit : in Valid_Node_Access)
            return Boolean
+         --  Compare Target to list item kind token.
          is
             pragma Unreferenced (List);
             Decl : constant Valid_Node_Access := Tree.Child (Comp_Unit, 1);
          begin
             return Tree.ID (Decl) = +declaration_ID and then Target =
-              (case Tree.RHS_Index (Decl) is
-               when 0      => Get_Text (Data, Tree, Tree.Child (Decl, 3)),
-               when 1      => Get_Text (Data, Tree, Tree.Child (Decl, 6)),
-               when 3 | 4  => Get_Text (Data, Tree, Tree.Child (Decl, 2)),
-               when others => "");
+              (case To_Token_Enum (Tree.ID (Tree.Child (Decl, 2))) is
+               when Wisitoken_Grammar_Actions.TOKEN_ID
+                 | NON_GRAMMAR_ID              => Get_Text (Data, Tree, Tree.Child (Decl, 4)),
+               when KEYWORD_ID | IDENTIFIER_ID => Get_Text (Data, Tree, Tree.Child (Decl, 2)),
+               when others                     => "");
          end Equal;
 
       begin
@@ -2699,21 +2701,39 @@ package body WisiToken_Grammar_Editing is
          is
             pragma Unreferenced (List);
          begin
-            if Tree.Production_ID (Tree.Child (N, 1)) = (+declaration_ID, 0) then
+            if To_Token_Enum (Tree.ID (Tree.Child (N, 1))) = declaration_ID then
                declare
-                  Decl       : constant Node_Access       := Tree.Child (N, 1);
-                  Value_Node : constant Valid_Node_Access := Tree.Child (Tree.Child (Decl, 4), 1);
+                  Decl : constant Node_Access := Tree.Child (N, 1);
+
+                  Name_Node : constant Node_Access :=
+                    (case To_Token_Enum (Tree.ID (Tree.Child (Decl, 2))) is
+                     when Wisitoken_Grammar_Actions.TOKEN_ID | NON_GRAMMAR_ID => Tree.Child (Decl, 6),
+                     when KEYWORD_ID => Tree.Child (Decl, 3),
+                     when others => Invalid_Node_Access);
+
+                  Regexp_String_Node : constant Node_Access :=
+                    (case To_Token_Enum (Tree.ID (Tree.Child (Decl, 2))) is
+                     when Wisitoken_Grammar_Actions.TOKEN_ID | NON_GRAMMAR_ID => Tree.Child (Decl, 7),
+                     when KEYWORD_ID => Tree.Child (Decl, 4),
+                     when others => Invalid_Node_Access);
+
+                  Value_Node : constant Node_Access :=
+                    (if Regexp_String_Node = Invalid_Node_Access
+                     then Invalid_Node_Access
+                     else Tree.Child (Regexp_String_Node, 1));
                begin
-                  if Tree.ID (Value_Node) = +declaration_item_ID and then
-                    Tree.ID (Tree.Child (Value_Node, 1)) in
-                    +IDENTIFIER_ID | +STRING_LITERAL_1_ID | +STRING_LITERAL_2_ID and then
-                    Target = Get_Text (Data, Tree, Tree.Child (Value_Node, 1), Strip_Quotes => True)
+                  if Value_Node = Invalid_Node_Access then
+                     return False;
+
+                  elsif To_Token_Enum (Tree.ID (Value_Node)) in
+                    IDENTIFIER_ID | REGEXP_ID | STRING_LITERAL_1_ID | STRING_LITERAL_2_ID and then
+                    Target = Get_Text (Data, Tree, Value_Node, Strip_Quotes => True)
                   then
-                     case Tree.Label (Tree.Child (Decl, 3)) is
+                     case Tree.Label (Name_Node) is
                      when Source_Terminal =>
-                        Name_Ident := New_Identifier (Get_Text (Data, Tree, Tree.Child (Decl, 3)));
+                        Name_Ident := New_Identifier (Get_Text (Data, Tree, Name_Node));
                      when Virtual_Identifier =>
-                        Name_Ident := Tree.Identifier (Tree.Child (Decl, 3));
+                        Name_Ident := Tree.Identifier (Name_Node);
                      when others =>
                         raise SAL.Programmer_Error;
                      end case;
@@ -2773,26 +2793,18 @@ package body WisiToken_Grammar_Editing is
 
          --  Declare token for keyword string literal
          declare
-            Keyword        : constant Valid_Node_Access := Tree.Add_Identifier (+KEYWORD_ID, Keyword_Ident);
-            Kind           : constant Valid_Node_Access := Tree.Add_Nonterm
-              ((+token_keyword_non_grammar_ID, 0),
-               (1 => Keyword),
-               Clear_Parents => False);
-            Value_Literal  : constant Valid_Node_Access := Tree.Add_Identifier
+            Keyword       : constant Valid_Node_Access := Tree.Add_Identifier (+KEYWORD_ID, Keyword_Ident);
+            Value_Literal : constant Valid_Node_Access := Tree.Add_Identifier
               (+STRING_LITERAL_1_ID, New_Identifier ('"' & Value & '"'));
-            Decl_Item      : constant Valid_Node_Access := Tree.Add_Nonterm
-              ((+declaration_item_ID, 1),
-               (1 => Value_Literal),
-               Clear_Parents => False);
-            Decl_Item_List : constant Valid_Node_Access := Tree.Add_Nonterm
-              ((+declaration_item_list_ID, 0),
-               (1 => Decl_Item),
+            Regexp_String : constant Valid_Node_Access := Tree.Add_Nonterm
+              ((+regexp_string_ID, 1),
+               (1            => Value_Literal),
                Clear_Parents => False);
 
             Percent : constant Valid_Node_Access := Tree.Add_Identifier (+PERCENT_ID, Percent_Ident);
             Name    : constant Valid_Node_Access := Tree.Add_Identifier (+IDENTIFIER_ID, Name_Ident);
             Decl    : constant Valid_Node_Access := Tree.Add_Nonterm
-              ((+declaration_ID, 0), (Percent, Kind, Name, Decl_Item_List),
+              ((+declaration_ID, 0), (Percent, Keyword, Name, Regexp_String),
                Clear_Parents => False);
          begin
             Add_Compilation_Unit ("literal token", Decl, Prepend => True);
@@ -3109,7 +3121,7 @@ package body WisiToken_Grammar_Editing is
          end if;
          declare
             use all type Ada.Containers.Count_Type;
-            Last_Term   : constant Node_Access              := Tree.Last_Terminal (Node);
+            Last_Term   : constant Node_Access               := Tree.Last_Terminal (Node);
             Non_Grammar : constant Lexer.Token_Arrays.Vector :=
               (if Last_Term = Invalid_Node_Access
                then Lexer.Token_Arrays.Empty_Vector
@@ -3140,17 +3152,33 @@ package body WisiToken_Grammar_Editing is
          end;
       end Put_Comments;
 
-      procedure Put_Declaration_Item (Node : in Valid_Node_Access)
+      procedure Put_Regexp_String (Node : in Valid_Node_Access)
       is
          Children : constant Node_Access_Array := Tree.Children (Node);
       begin
+         pragma Assert (Children'Length = 1);
          case To_Token_Enum (Tree.ID (Children (1))) is
-         when IDENTIFIER_ID | NUMERIC_LITERAL_ID | STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
+         when STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
             Put (File, ' ' & Get_Text (Data, Tree, Children (1)));
          when REGEXP_ID =>
             Put (File, " %[" & Get_Text (Data, Tree, Children (1)) & "]%");
          when others =>
-            Put (File, Image (Tree.ID (Children (1)), Wisitoken_Grammar_Actions.Descriptor));
+            raise SAL.Programmer_Error;
+         end case;
+      end Put_Regexp_String;
+
+      procedure Put_Declaration_Item (Node : in Valid_Node_Access)
+      is
+         Children : constant Node_Access_Array := Tree.Children (Node);
+      begin
+         pragma Assert (Children'Length = 1);
+         case To_Token_Enum (Tree.ID (Children (1))) is
+         when IDENTIFIER_ID | NUMERIC_LITERAL_ID =>
+            Put (File, ' ' & Get_Text (Data, Tree, Children (1)));
+         when regexp_string_ID =>
+            Put_Regexp_String (Children (1));
+         when others =>
+            raise SAL.Programmer_Error;
          end case;
       end Put_Declaration_Item;
 
@@ -3352,80 +3380,81 @@ package body WisiToken_Grammar_Editing is
 
          when declaration_ID =>
             declare
+               use all type SAL.Base_Peek_Type;
+
                Children : constant Node_Access_Array := Tree.Children (Node);
             begin
-               case Tree.RHS_Index (Node) is
-               when 0 =>
-                  case Tree.RHS_Index (Children (2)) is
-                  when 0 =>
-                     Put (File, "%keyword");
-                  when 1 =>
-                     Put (File, "%non_grammar <" & Get_Text (Data, Tree, Tree.Child (Children (2), 3)) & ">");
-                  when 2 =>
-                     Put (File, "%token <" & Get_Text (Data, Tree, Tree.Child (Children (2), 3)) & ">");
-                  when others =>
-                     raise SAL.Programmer_Error;
-                  end case;
+               case To_Token_Enum (Tree.ID (Children (2))) is
+               when Wisitoken_Grammar_Actions.TOKEN_ID | NON_GRAMMAR_ID =>
+                  Put (File,
+                       (if To_Token_Enum (Tree.ID (Children (2))) = Wisitoken_Grammar_Actions.TOKEN_ID
+                        then "%token <"
+                        else "%non_grammar <"));
 
-                  Put (File, " " & Get_Text (Data, Tree, Children (3)));
-                  Put_Declaration_Item_List (Children (4));
+                  Put (File, Get_Text (Data, Tree, Children (4)) & "> " & Get_Text (Data, Tree, Children (6)));
+
+                  if Children'Last >= 7 then
+                     Put_Regexp_String (Children (7));
+                  end if;
+
+                  if Children'Last = 8 then
+                     Put_Regexp_String (Children (8));
+                  end if;
+                  Put_Comments (Node, Force_New_Line => True);
+
+               when KEYWORD_ID =>
+                  Put (File, "%keyword " & Get_Text (Data, Tree, Children (3)));
+                  Put_Regexp_String (Children (4));
                   Put_Comments (Children (4), Force_New_Line => True);
 
-               when 1 =>
-                  Put (File, "%non_grammar <" & Get_Text (Data, Tree, Children (4)) & ">");
-                  Put (File, " " & Get_Text (Data, Tree, Children (6)));
-                  Put_Comments (Children (6), Force_New_Line => True);
-
-               when 2 =>
+               when CODE_ID =>
                   Put (File, "%code ");
                   Put_Identifier_List (Children (3));
                   Put (File, " %{" & Get_Text (Data, Tree, Children (4)) & "}%"); -- RAW_CODE
                   Put_Comments (Node);
 
-               when 3 =>
-                  declare
-                     Key : constant String := Get_Text (Data, Tree, Children (2));
-                  begin
-                     if Key = "conflict" then
-                        Put (File, Tree.Lexer.Buffer_Text (Tree.Byte_Region (Node)));
-                     else
-                        Put (File, "%" & Key);
-                        Put_Declaration_Item_List (Children (3));
-                     end if;
-                  end;
-                  Put_Comments (Children (3));
+               when CONFLICT_ID | CONFLICT_RESOLUTION_ID =>
+                  Put (File,
+                       (if To_Token_Enum (Tree.ID (Children (2))) = CONFLICT_ID
+                        then "%conflict "
+                        else "%conflict_resolution "));
+                  Put (File, Get_Text (Data, Tree, Children (3))); -- conflict_item_list
+                  Put (File, " on token " & Get_Text (Data, Tree, Children (6)));
+                  if Children'Last = 8 then
+                     Put (File, " : " & Get_Text (Data, Tree, Children (8)));
+                     Put_Comments (Children (8), Force_New_Line => True);
+                  else
+                     Put_Comments (Children (6), Force_New_Line => True);
+                  end if;
 
-               when 4 =>
+               when IDENTIFIER_ID =>
                   Put (File, "%" & Get_Text (Data, Tree, Children (2)));
-                  Put_Comments (Children (2));
-
-               when 5 =>
-                  Put
-                    (File, "%if " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text
-                       (Data, Tree, Children (5)));
+                  if Children'Last = 3 then
+                     Put_Declaration_Item_List (Children (3));
+                  end if;
                   Put_Comments (Node);
 
-               when 6 =>
+               when IF_ID =>
+                  Put (File,
+                       "%if " &
+                         Get_Text (Data, Tree, Children (3)) &
+                         (if To_Token_Enum (Tree.ID (Children (4))) = EQUAL_ID
+                          then " = "
+                          else " in ") &
+                         Get_Text (Data, Tree, Children (5)));
+                  Put_Comments (Children (5));
+
+               when ELSIF_ID =>
                   Put
-                    (File, "%if " & Get_Text (Data, Tree, Children (3)) & " in " & Get_Text
-                       (Data, Tree, Children (5)));
+                    (File, "%elsif " & Get_Text (Data, Tree, Children (3)) &
+                       (if To_Token_Enum (Tree.ID (Children (4))) = EQUAL_ID
+                        then " = "
+                        else " in ") &
+                       Get_Text
+                         (Data, Tree, Children (5)));
                   Put_Comments (Node);
 
-               when 7 =>
-                  Put
-                    (File,
-                     "%elsif " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text
-                       (Data, Tree, Children (5)));
-                  Put_Comments (Node);
-
-               when 8 =>
-                  Put
-                    (File,
-                     "%elsif " & Get_Text (Data, Tree, Children (3)) & " in " & Get_Text
-                       (Data, Tree, Children (5)));
-                  Put_Comments (Node);
-
-               when 9 =>
+               when END_ID =>
                   Put (File, "%end if");
                   Put_Comments (Node);
 

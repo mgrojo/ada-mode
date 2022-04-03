@@ -26,8 +26,8 @@
 %non_grammar <comment-new-line> COMMENT "--"
 
 ;; These are grammar conflicts, not optimized_list conflicts.
-%conflict SHIFT statement | REDUCE term on token SEMICOLON (6, 22)
-%conflict SHIFT declaration | REDUCE rhs_item on token SEMICOLON (28)
+%conflict SHIFT statement | REDUCE term on token SEMICOLON
+%conflict SHIFT declaration | REDUCE rhs_item on token SEMICOLON
 
 declaration
   : IDENTIFIER COLON IDENTIFIER SEMICOLON

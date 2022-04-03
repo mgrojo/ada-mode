@@ -76,7 +76,7 @@ package body Wisitoken_Grammar_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
    begin
-      Start_If (User_Data, Tree, Nonterm);
+      Add_Declaration (User_Data, Tree, Nonterm);
    end declaration_5;
 
    procedure declaration_6
@@ -85,7 +85,7 @@ package body Wisitoken_Grammar_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
    begin
-      Start_If (User_Data, Tree, Nonterm);
+      Add_Declaration (User_Data, Tree, Nonterm);
    end declaration_6;
 
    procedure declaration_7
@@ -94,7 +94,7 @@ package body Wisitoken_Grammar_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
    begin
-      Start_If (User_Data, Tree, Nonterm);
+      Add_Declaration (User_Data, Tree, Nonterm);
    end declaration_7;
 
    procedure declaration_8
@@ -103,7 +103,7 @@ package body Wisitoken_Grammar_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
    begin
-      Start_If (User_Data, Tree, Nonterm);
+      Add_Declaration (User_Data, Tree, Nonterm);
    end declaration_8;
 
    procedure declaration_9
@@ -111,10 +111,64 @@ package body Wisitoken_Grammar_Actions is
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
+   begin
+      Add_Declaration (User_Data, Tree, Nonterm);
+   end declaration_9;
+
+   procedure declaration_10
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+   begin
+      Add_Declaration (User_Data, Tree, Nonterm);
+   end declaration_10;
+
+   procedure declaration_11
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+   begin
+      Start_If (User_Data, Tree, Nonterm);
+   end declaration_11;
+
+   procedure declaration_12
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+   begin
+      Start_If (User_Data, Tree, Nonterm);
+   end declaration_12;
+
+   procedure declaration_13
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+   begin
+      Start_If (User_Data, Tree, Nonterm);
+   end declaration_13;
+
+   procedure declaration_14
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
+   begin
+      Start_If (User_Data, Tree, Nonterm);
+   end declaration_14;
+
+   procedure declaration_15
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+   is
       pragma Unreferenced (Tree, Nonterm);
    begin
       End_If (User_Data);
-   end declaration_9;
+   end declaration_15;
 
    procedure nonterminal_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;

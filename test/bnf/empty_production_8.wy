@@ -19,7 +19,7 @@
 
 %start object_declaration_list
 
-%conflict SHIFT constant_opt | REDUCE aliased_opt on token CONSTANT (1)
+%conflict SHIFT constant_opt | REDUCE aliased_opt on token CONSTANT
 
 object_declaration_list
   : object_declaration_list object_declaration

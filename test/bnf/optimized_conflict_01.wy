@@ -8,7 +8,7 @@
 ;; Compare to optimized_conflict_02.wy, which is the same grammar, but
 ;; without error correction, so it has no generated optimized_lists;
 ;; all the conflicts there are from the grammar. The grammar conflicts
-;; says this input can be parsed in at least three ways:
+;; say this input can be parsed in at least three ways:
 ;;
 ;; Integer range z .. new name range y .. a + b * x
 ;;

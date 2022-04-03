@@ -31,9 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-need conflict resolution for ada_annex_p pragma in declarations and statements
-    add to ada_lite_ebnf.wy
-
 reviewing ada_annex_p conflicts; see notes in o.e.a.s-2
     need wisitoken-followed_by
 
