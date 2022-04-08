@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -488,8 +488,8 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       if Container.Length = 0 then
          return False;
       else
-         for It of Container.Elements.all loop
-            if It = Element then
+         for I in To_Peek_Type (Container.First) .. To_Peek_Type (Container.Last) loop
+            if Container.Elements (I) = Element then
                return True;
             end if;
          end loop;
