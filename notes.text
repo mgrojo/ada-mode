@@ -50,7 +50,62 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+run tests
+    partial parse: done
+    incremental parse:
+c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_04.adb:25: test (progn (end-of-line -1)(newline-and-indent)(insert "null;")) ... signaled
+... error: (error: nil indent for line 24)
+
+
+
+
+benchmark for optimized_list
+    benchmark.el
+        gnatcoll-xref.adb
+            with debug=1, in Edit_Tree on first incremental parse edit:
+gnatcoll-xref.adb:1:1: 9774:(IDENTIFIER, (84081 . 84085))
+gnatcoll-xref.adb:1:1: ... invalid_tree: byte_region out of order
+gnatcoll-xref.adb:1:1: -65877:(statement)
+gnatcoll-xref.adb:1:1: ... invalid_tree: parent null expecting set
+...
+    then it loads debug.el!?
+
+    debug.el wisitoken-syntax_tree.adb
+    parse 1 "c:/Projects/org.wisitoken.stephe-1/wisitoken-syntax_trees.adb" "debug=1" -1 -1 -1 ((6654 6654 6655 6655 0 0 " ") (103814 103814 103814 103814 16 16 "")) "3 2 0 0 -3 3 2 0 2 3 2 2 1"
+16:34:23.064:
+;; exception: CONSTRAINT_ERROR: wisitoken.adb:426 range check failed
+;; [c:\Projects\org.emacs.ada-mode.stephe-2\ada_mode_wisi_lr1_parse.exe]
+;; 0x4311ed Ada_Mode_Wisi_Lr1_Parse at wisitoken.adb:426
+;; 0x458057 Ada_Mode_Wisi_Lr1_Parse at wisitoken-syntax_trees.adb:7686
+;; 0x4d58be Ada_Mode_Wisi_Lr1_Parse at wisitoken-parse.adb:1169
+;; 0x58fe48 Ada_Mode_Wisi_Lr1_Parse at wisitoken-parse-lr-parser-parse.adb:59
+;; 0x5b10f9 Ada_Mode_Wisi_Lr1_Parse at emacs_wisi_common_parse.adb:478
+
+
+propagate to main
+
+
+parse 1 "c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-incremental_recover_02.adb" "debug=1" -1 -1 -1 nil "3 2 0 0 -3 3 2 0 2 3 2 2 1"
+04:12:08.494:
+protocol error at 110: expecting ’(’ found ’n’
+    from 'none in EMACSCMD; need to quote '?!
+    for now, define wisi-parse-incrmental-none in wisi-run-test
+
+
 review conflicts to see if we can fix them in the grammar
+    see aggregate change saved in d297ef2de845f172ea62a47152ccad1f7d54c8a9
+        caused parser explosion in ada_mode-parens; allows
+p_a_list, name (dis_rng ^ ,
+p_a_list, name (dis_rng, ^ "or"
+
+;;  5: 520: (-1, 23:(COMMA, (234 . 234))) : reduce 1 tokens to discrete_range
+;; (discrete_range_0, (222 . 233) <= ((subtype_indication_3, (222 . 233))))
+;;  ... goto state 944
+;;  5: 944: (-1, 23:(COMMA, (234 . 234))) : shift and goto state 1343
+main errors on comma; slice can't be 2D
+
+
+
 %conflict REDUCE subtype_indication | REDUCE iterator_specification on token EQUAL_GREATER
 %conflict REDUCE subtype_indication | REDUCE iterator_specification on token USE
 
@@ -206,11 +261,6 @@ test/ada_mode-interactive_2.adb
         but wisi-repair-error puts it on the next line
         position in error message is wrong
             because set before Insert_Token changed it?
-
-change set_parents to be incremental
-    benchmark current
-    descend tree; if find a parent link, no need to descend that branch
-    insert_token also needs to set parents?
 
 delete elpa branches, push o.e.*
     so users can test elpa-devel packages

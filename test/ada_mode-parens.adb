@@ -2,7 +2,7 @@ with Ada.Strings.Maps;
 package body Ada_Mode.Parens is
 
    --  This used to cause exponential explosion of parallel parsers;
-   --  now it's linear.
+   --  now it's finite.
    No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
      Ada.Strings.Maps."or"
        (Ada.Strings.Maps.To_Set (' '),
@@ -547,5 +547,6 @@ end Ada_Mode.Parens;
 --  Local Variables:
 --  wisi-process-time-out: 10.0
 --  ada-indent-comment-gnat: t
+--  compare-tree-text: nil
 --  ada-end-name-optional: t
 --  End:

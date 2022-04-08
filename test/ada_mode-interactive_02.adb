@@ -186,4 +186,5 @@ begin
 end Ada_Mode.Interactive_02;
 -- Local Variables:
 -- ada-end-name-optional: nil
+-- compare-tree-text: nil
 -- End:

@@ -10,11 +10,14 @@
 
 (set-default 'wisi-size-threshold most-positive-fixnum); before open buffer
 (setq-default wisi-incremental-parse-enable nil)
+(setq-default wisi-process-time-out 60.0);; should not be this slow, but this allows better debugging
 
 (setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lr1_parse.exe" ada-mode-dir))
-(let ((parser (ada-parse-require-process)))
+(message "creating parser ...")
+(let ((parser (ada-parse-require-process :wait t)))
   (wisi-parse-enable-memory-report parser)
   (wisi-parse-memory-report parser)) ;; 0
+(message "... done")
 
 (setq-default wisi-incremental-parse-enable nil)
 (find-file benchmark-source-file) ;; does not do initial parse, since incremental not enabled

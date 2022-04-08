@@ -118,8 +118,8 @@
 
 %end_names_optional_option End_Names_Optional
 
-%conflict SHIFT term | REDUCE identifier_opt on token RIGHT_PAREN (8, 34, 132, 229)
-%conflict SHIFT case_item | REDUCE case_items on token WHEN (120, 266)
+%conflict SHIFT term | REDUCE identifier_opt on token RIGHT_PAREN
+%conflict SHIFT case_item | REDUCE case_items on token WHEN
 
 ;; grammar rules, non-terminal alphabetical order
 

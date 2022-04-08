@@ -55,7 +55,8 @@
 		   (xref-backend-identifier-at-point (xref-find-backend))))))
     ))
 
-;;; Settings for all tests; can be overridden on make command line via ELISP
+;;; Settings for all tests; can be overridden on make command line via
+;;; ELISP, or in file via EMACSCMD or Local Variables.
 (setq debug-on-error nil)
 (setq-default wisi-parser-verbosity "debug=1")
 (setq-default compare-tree-text t)

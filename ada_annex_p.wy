@@ -267,8 +267,16 @@ tick : TICK_1 | TICK_2 ;
 
 %end_names_optional_option End_Names_Optional
 
-%conflict REDUCE defining_identifier_list | REDUCE direct_name on token COMMA
+;; This is the first step in a 3 branch conflict below.
+%conflict REDUCE defining_identifier_list | REDUCE direct_name on token COLON
 
+%conflict REDUCE defining_identifier_list | REDUCE direct_name on token COMMA
+%conflict REDUCE discrete_choice | REDUCE selector_name on token BAR
+%conflict REDUCE discrete_choice | REDUCE selector_name on token EQUAL_GREATER
+%conflict REDUCE name | REDUCE selector_name on token BAR
+%conflict REDUCE name | REDUCE selector_name on token EQUAL_GREATER
+%conflict REDUCE record_component_association | REDUCE expression_list on token COMMA
+%conflict REDUCE record_component_association | REDUCE expression_list on token RIGHT_PAREN
 %conflict REDUCE subtype_indication | REDUCE iterator_specification on token EQUAL_GREATER
 %conflict REDUCE subtype_indication | REDUCE iterator_specification on token LOOP
 %conflict REDUCE subtype_indication | REDUCE iterator_specification on token USE
@@ -733,21 +741,17 @@ incomplete_type_declaration
                                ada-indent-broken]))%
   ;
 
-;; pragma_g is not a 'declarative_item' in ARM, but it must be in the
-;; grammar. We don't include it in 'declaration_item', to avoid conflicts
-;; with 'pragma_g' in statements via compilation_unit.
-declarative_item_list ;;:new for pragma_g
-  : pragma_g
-  | declarative_item
-  | declarative_item_list declarative_item
-  | declarative_item_list pragma_g
-  | declarative_item_list declarative_item_list
-  ;
-%optimized_list declarative_item_list
-
-declarative_part : [declarative_item_list] ;
-
 declarative_item : basic_declarative_item | proper_body | body_stub ;
+
+;; declarative_item is in compilation_unit, as is statement. statement
+;; contains pragma_g, so declarative_item can't. But pragma_g must be in the
+;; grammar for declarative_part, so we include it here.
+declarative_item_pragma
+  : declarative_item
+  | pragma_g
+  ;
+
+declarative_part : [declarative_item_pragma+] ;
 
 basic_declarative_item : basic_declaration | aspect_clause | use_clause ;
 
@@ -845,10 +849,10 @@ range_attribute_designator
 ;; generalized_indexing ::= name actual_parameter_part - redundant with function_call
 
 aggregate
-  ;; : record_aggregate ;;deleted; subset of array_aggregate
-  : extension_aggregate
+  : record_aggregate
+  | extension_aggregate
   | array_aggregate
-  | array_delta_aggregate ;; redundant with record_delta_aggregate
+  | delta_aggregate
   ;; container_aggregate ;; redundant with array_aggregate
 
   ;; ARM 4.5.7(7), ARM 4.5.8(4), ARM 4.5.9(4) allow
@@ -862,34 +866,34 @@ aggregate
     %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
   ;
 
-;; record_aggregate ;; subset of array_aggregate
-;;   : '(' record_component_association_list ')'
-;;     %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
-;;   ;
+record_aggregate
+  : '(' record_component_association_list ')'
+    %((wisi-indent-action [nil [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))%
+  ;
 
-;; record_component_association_list ::=
-;;     record_component_association {',' record_component_association}
-;;   | 'null' 'record'
+record_component_association_list ::=
+    record_component_association {',' record_component_association}
+  | 'null' 'record'
 
-;; record_component_association
-;;   : component_choice_list assoc_expression ;;:edited:; [] inlined for action
-;;     %((wisi-indent-action [nil ada-indent-broken]))%
-;;   | expression ;;new:; [] inlined for action
-;;     %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
-;;   ;; | component_choice_list '=>' '<>' ;;:redundant with expanded assoc_expression
-;;   ;
+record_component_association
+  : component_choice_list assoc_expression ;;:edited:; [] inlined for action
+    %((wisi-indent-action [nil ada-indent-broken]))%
+  | expression ;;new:; [] inlined for action
+    %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
+  ;; | component_choice_list '=>' '<>' ;;:redundant with expanded assoc_expression
+  ;
 
-;; component_choice_list
-;;   : selector_name
-;;   | component_choice_list '|' selector_name
-;;     ;; This indent is not consistent with discrete_choice_list in
-;;     ;; case_statement, but it is backward-compatible.
-;;     %((wisi-indent-action [nil nil ada-indent-broken]))%
-;;   ;; | 'others' ;;:redundant with expanded selector_name
-;;   ;
+component_choice_list
+  : selector_name
+  | component_choice_list '|' selector_name
+    ;; This indent is not consistent with discrete_choice_list in
+    ;; case_statement, but it is backward-compatible.
+    %((wisi-indent-action [nil nil ada-indent-broken]))%
+  ;; | 'others' ;;:redundant with expanded selector_name
+  ;
 
 extension_aggregate
-  : '(' expression 'with' array_component_association_list ')' ;; edited; record_component_association_list redundant with array_component_association_list
+  : '(' expression 'with' record_component_association_list ')'
     %((wisi-indent-action [nil
                            (wisi-hanging (wisi-anchored 1 1)
                                          (wisi-anchored 1 (+ 1 ada-indent-broken)))
@@ -961,18 +965,18 @@ array_component_association
 ;;   | 'for' iterator_specification '=>' expression
 ;;   ;
 
-;; delta_aggregate ::= array_delta_aggregate
+delta_aggregate ::= record_delta_aggregate | array_delta_aggregate
 
-;; record_delta_aggregate ;; deleted; redundant with array_delta_aggregate
-;;   : '(' expression 'with' 'delta' array_component_association_list ')' ;; edited; record_component_association_list redundant with array_component_association_list
-;;     %((wisi-indent-action [nil
-;;                            (wisi-hanging (wisi-anchored 1 1)
-;;                                          (wisi-anchored 1 (+ 1 ada-indent-broken)))
-;;                            (wisi-anchored 1 1)
-;;                            (wisi-anchored 1 1)
-;;                            [(wisi-anchored 1 1) (wisi-anchored 1 1)]
-;;                            (wisi-anchored 1 0)]))%
-;;   ;
+record_delta_aggregate
+  : '(' expression 'with' 'delta' record_component_association_list ')'
+    %((wisi-indent-action [nil
+                           (wisi-hanging (wisi-anchored 1 1)
+                                         (wisi-anchored 1 (+ 1 ada-indent-broken)))
+                           (wisi-anchored 1 1)
+                           (wisi-anchored 1 1)
+                           [(wisi-anchored 1 1) (wisi-anchored 1 1)]
+                           (wisi-anchored 1 0)]))%
+  ;
 
 array_delta_aggregate
   : '(' expression 'with' 'delta' array_component_association_list ')'
@@ -1683,7 +1687,7 @@ assoc_expression ;;:new; split out from *_association for indent
   ;
 
 parameter_association
-  : discrete_choice_list assoc_expression ;;:inlined for action, expanded to discrete_choice_list to reduce conflicts
+  : component_choice_list assoc_expression ;;:inlined for action, expanded to component_choice_list to reduce conflicts
     %((wisi-indent-action [nil ada-indent-broken ada-indent-broken]))%
   | expression ;;:inlined for action
     %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
@@ -1749,12 +1753,14 @@ package_declaration
       (wisi-motion-action [1 2]))%
   ;
 
-;; see comment on declarative_item_list for pragma_g
+;; See comment at declarative_item_pragma for pragma_g
+basic_declarative_item_pragma
+  : basic_declarative_item
+  | pragma_g
+  ;
+
 basic_declarative_item_list ;;:new for action in package_specification
-  : pragma_g
-  | basic_declarative_item
-  | basic_declarative_item_list basic_declarative_item
-  | basic_declarative_item_list pragma_g
+  : basic_declarative_item_pragma+
   ;
 
 ;; replace "[[name '.' ] IDENTIFIER" with "name_opt" for consistency and for actions
