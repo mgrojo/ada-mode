@@ -2146,12 +2146,16 @@ package body Wisi is
             Tree.Lexer.Trace.Put_Line ("empty tree");
          end if;
 
-      elsif Tree.Parents_Set then
+      elsif Tree.Editable then
          for Err_Ref in Tree.Error_Iterate loop
             Handle_Error (Syntax_Trees.Error (Err_Ref), Tree.Error_Node (Err_Ref));
          end loop;
       else
-         for Err_Cur in Tree.Stream_Error_Iterate (Tree.First_Parse_Stream) loop
+         for Err_Cur in Tree.Stream_Error_Iterate
+           ((if Tree.Stream_Count >= 2
+             then Tree.First_Parse_Stream
+             else Tree.Shared_Stream))
+         loop
             declare
                Stream_Err_Ref : constant Syntax_Trees.Stream_Error_Ref := Syntax_Trees.Error (Err_Cur);
             begin
