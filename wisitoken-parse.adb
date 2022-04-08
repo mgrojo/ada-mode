@@ -677,7 +677,7 @@ package body WisiToken.Parse is
             end if;
             if Trace_Incremental_Parse > Extra then
                Tree.Lexer.Trace.Put_Line
-                 ("... result " & Tree.Image (Stream));
+                 ("... result " & Tree.Image (Stream, Children => Trace_Incremental_Parse > Extra + 1));
             end if;
          end if;
       end Breakdown;

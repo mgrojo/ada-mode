@@ -271,7 +271,7 @@ package WisiToken.Parse.LR is
       --  Cost of operations on config stack, input.
 
       Minimal_Complete_Cost_Delta : Integer;
-      --  Reduction in cost due to using Minimal_Complete_Action.
+      --  Added to cost when using Minimal_Complete_Action; typically negative.
 
       Matching_Begin : Integer;
       --  Cost of Matching_Begin strategy (applied once, independent of

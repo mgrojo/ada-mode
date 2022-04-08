@@ -31,9 +31,12 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-reviewing ada_annex_p conflicts; see notes in o.e.a.s-2
-    need wisitoken-followed_by
-
+entire declarative_part is labeled recover_conflict, so it is all broken down to terminals!
+    not incremental!
+    happens whenever there is more than one parser after recover
+    don't breakdown until encounter error
+        then let breakdown_recover_conflict be one error recovery strategy
+        benchmark set verbosity debug=1, Edit_Tree output terminal count from recover_conflict
 
 redundant minimal_complete_actions:
     in ada_annex_p parse_table:
@@ -55,28 +58,28 @@ followed_by: improve to show expansion that gives the conflict for optimized_con
         need to actually expand nonterms to show token sequence
     when can 'label_opt' be followed by 'parallel'?
 
-parallel occurs in :
-value_sequence : '[' ['parallel' ['(' chunk_specification ')']] iterated_element_association ']' ;
-iteration_scheme
-  | ['parallel'] 'for' procedural_iterator
-  | 'parallel' [ '(' chunk_specification ')' ] 'for' loop_parameter_specification
-  | 'parallel' [ '(' chunk_specification ')' ] 'for' iterator_specification
-parallel_block_statement
-  : 'parallel' 'do' handled_sequence_of_statements 'and' statement_AND_list 'end' 'do' ';'
+    parallel occurs in :
+    value_sequence : '[' ['parallel' ['(' chunk_specification ')']] iterated_element_association ']' ;
+    iteration_scheme
+      | ['parallel'] 'for' procedural_iterator
+      | 'parallel' [ '(' chunk_specification ')' ] 'for' loop_parameter_specification
+      | 'parallel' [ '(' chunk_specification ')' ] 'for' iterator_specification
+    parallel_block_statement
+      : 'parallel' 'do' handled_sequence_of_statements 'and' statement_AND_list 'end' 'do' ';'
 
-label_opt occurs in :
-loop_statement
-  : label_opt [iteration_scheme] 'loop' sequence_of_statements 'end' 'loop' identifier_opt ';'
-block_statement
-  : label_opt ['declare' declarative_part] 'begin' handled_sequence_of_statements
-    'end' identifier_opt ';'
+    label_opt occurs in :
+    loop_statement
+      : label_opt [iteration_scheme] 'loop' sequence_of_statements 'end' 'loop' identifier_opt ';'
+    block_statement
+      : label_opt ['declare' declarative_part] 'begin' handled_sequence_of_statements
+        'end' identifier_opt ';'
 
-expand iteration_scheme in loop_statement:
-label_opt parallel for procedural_iterator loop ...
+    expand iteration_scheme in loop_statement:
+    label_opt parallel for procedural_iterator loop ...
 
-document this process in wisitoken user guide; don't need code.
-    unless automating helps review all conflicts
-        could continue with minimal_action to get terminal token sequence.
+    document this process in wisitoken user guide; don't need code.
+        unless automating helps review all conflicts
+            could continue with minimal_action to get terminal token sequence.
 
 typed \ in an Ada file
     got Programmer_Error: lexer error in non_grammar
@@ -85,13 +88,13 @@ typed \ in an Ada file
     need a better test; turn it into a syntax_error
 
 add general conflict resolution mechanism?
-    solve Ada expression problem
-    and java
+    solve Java expression problem
 
 Find_matching_name compares large amounts of text
     Name_Region (sequence_of_statements) returns the whole sequence
     should return invalid_region
     declare IDENTIFIER as name
+    or compare one char at a time, fail on first diff
 
 packrat left recursion
     copy from libadalang

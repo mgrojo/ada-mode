@@ -605,6 +605,10 @@ package body WisiToken.Syntax_Trees is
       --  Parents from Target to Cur. Inverted_Parents.Peek (1) is
       --  Ref.Ref.Element.Node, and Inverted_Parents.Peek
       --  (Inverted_Parents.Depth) is Target parent.
+      --
+      --  As Breakdown proceeds, Inverted_Parents is popped;
+      --  Inverted_Parents.Peek (1) is always the stream node that is the
+      --  ancestor of Target.
 
       procedure Move_Errors
       --  Move errors on To_Delete.Element.Node to first terminal. Update
@@ -706,8 +710,8 @@ package body WisiToken.Syntax_Trees is
                --  <prev_stream_element>
                --
                --  -32:declarations_1
-               --  | -30:declarations_1         Split_Node_Parent_2
-               --  | | -28:declarations_1       Split_Node_Parent_1
+               --  | -30:declarations_1         Split_Node parent 2
+               --  | | -28:declarations_1       Split_Node parent 1
                --  | | | -26:declarations_1
                --  | | | | -24:declarations_0
                --  | | | | | -23:declaration_0
@@ -726,16 +730,21 @@ package body WisiToken.Syntax_Trees is
                --  Stream_Node is node -32; the top declarations node with RHS_Index
                --  1.
                --
-               --  Note that if this list has been edited before, it will have top
+               --  Note that if this list has been edited before, it may have top
                --  nodes with RHS_Index 2; each of those declarations node has two
                --  declarations children, and are already optimized, so they are
-               --  broken down the same as non-list nodes.
+               --  broken down the same as non-list nodes. Other cases leave
+               --  RHS_Index 2 in lower nodes; test_incremental.adb Recover_08*.
                declare
                   List_ID          : constant Token_ID  := Stream_Node.ID;
-                  Target_Anc_Index : SAL.Base_Peek_Type := Inverted_Parents.Depth;
+                  Target_Anc_Index : SAL.Base_Peek_Type := 1;
                   Split_Node       : Node_Access;
 
-                  Insert_Before : constant Stream_Element_Lists.Cursor := Next (Cur);
+                  Insert_Following : constant Stream_Element_Lists.Cursor := Next (Cur);
+                  --  Insert nodes following Split_Node before this.
+
+                  Insert_Leading : Stream_Element_Lists.Cursor := Cur;
+                  --  Insert nodes preceding Split_node before this.
 
                   procedure Find_Target_Element
                   --  Update Cur to stream element at or after Cur containing Target
@@ -754,7 +763,7 @@ package body WisiToken.Syntax_Trees is
 
                   procedure Insert_Children (Node : in Valid_Node_Access)
                   --  Insert Node.Children (2 .. Node.Child_Count) into Stream before
-                  --  Insert_Before. If Update_Cur, ui
+                  --  Insert_Following.
                   --
                   --  There is more than one child when the list has a separator
                   --  (optimized_list_ebnf term, ada_annex_p
@@ -763,24 +772,36 @@ package body WisiToken.Syntax_Trees is
                   --  (ada_lite_ebnf case_statement_alternative).
                   is begin
                      for I in 2 .. Node.Child_Count loop
-                        Stream.Elements.Insert (Insert_Before, (Node.Children (I), Unknown_State));
+                        if I = 2 then
+                           Insert_Leading :=
+                             Stream.Elements.Insert (Insert_Following, (Node.Children (I), Unknown_State));
+                        else
+                           Stream.Elements.Insert (Insert_Following, (Node.Children (I), Unknown_State));
+                        end if;
                         Node.Children (I).Parent := Invalid_Node_Access;
                      end loop;
                   end Insert_Children;
                begin
                   --  Find Split_Node, the first ancestor of Target that is a
-                  --  declarations.
-                  loop
-                     exit when Inverted_Parents.Peek (Target_Anc_Index).ID = List_ID;
-                     Target_Anc_Index := @ - 1;
-                  end loop;
+                  --  declarations. Start from the tree root, to handle nested lists;
+                  --  test_incremental.adb Recover_07.
+                  declare
+                     Temp : SAL.Base_Peek_Type := 2;
+                  begin
+                     loop
+                        exit when Temp > Inverted_Parents.Depth;
+                        exit when Inverted_Parents.Peek (Temp).ID /= List_ID;
+                        Target_Anc_Index := Temp;
+                        Temp := @ + 1;
+                     end loop;
+                  end;
                   Split_Node := Inverted_Parents.Peek (Target_Anc_Index);
 
                   --  Bring Split_Node to the stream, with previous and following list
                   --  nodes each under a single stream element.
                   --
-                  --  Suppose Split_Node is node -27 (Breakdown_Optimized_List_01 case
-                  --  "c"). The desired stream is:
+                  --  Suppose Split_Node is node -27 (test_syntax_trees.adb
+                  --  Breakdown_Optimized_List_01 case "c"). The desired stream is:
                   --
                   --  <prev_stream_element>
                   --
@@ -842,6 +863,10 @@ package body WisiToken.Syntax_Trees is
                   elsif Target_Anc_Index - 1 = 1 then
                      --  There is only one list element following Split_Node
                      --  test_syntax_trees.adb Breakdown_Optimized_List_01 case d1
+                     --
+                     --  Or Deleting_Node is an RHS_Index = 2 node, and all of the list
+                     --  elements following Split_Node are already under an RHS_Index = 1
+                     --  node; test_incremental.adb Recover_08a.
                      declare
                         Deleting_Node : constant Valid_Node_Access := Inverted_Parents.Pop;
                      begin
@@ -858,14 +883,19 @@ package body WisiToken.Syntax_Trees is
 
                   else
                      --  Multiple list elements following Split_Node
+                     --
+                     --  Split_Node children are now in the stream. Build a new list node
+                     --  with content of following nodes, insert it before Insert_Following.
                      declare
                         Following_Node : Node_Access := Invalid_Node_Access;
+                        --  The root of the new list.
                      begin
                         for I in reverse 1 .. Target_Anc_Index - 1 loop
                            declare
                               Deleting_Node : constant Valid_Node_Access := Inverted_Parents.Peek (I);
                            begin
-                              pragma Assert (Deleting_Node.ID = Stream_Node.ID and Deleting_Node.RHS_Index = 1);
+                              pragma Assert (Deleting_Node.ID = Stream_Node.ID and Deleting_Node.RHS_Index in 1 | 2);
+                              --  test_incremental.adb Recover_08a, b have RHS_Index = 2 here.
 
                               if Deleting_Node.Error_List /= null then
                                  --  FIXME: Move errors. need test case
@@ -876,10 +906,74 @@ package body WisiToken.Syntax_Trees is
                                  Child.Parent := Invalid_Node_Access;
                               end loop;
 
-                              if Following_Node = Invalid_Node_Access then
-                                 pragma Assert (Deleting_Node.Children (1).ID = List_ID);
-                                 --  Deleting_Node.Children (1).RHS_Index is either 0 or 1, depending
-                                 --  on how many nodes were before Split_Node.
+                              if Deleting_Node.RHS_Index = 2 then
+                                 pragma Assert
+                                   (Deleting_Node.Children'Length = 2 and
+                                      Insert_Leading /= Insert_Following);
+
+                                 pragma Assert (I /= 1);
+                                 --  If I = 1 here, Deleting_Node would be Stream_Node, and would be
+                                 --  handled by the not optimizing_list branch of Undo_Reduce_Loop.
+
+                                 if Inverted_Parents.Peek (I + 1) = Deleting_Node.Children (1) then
+                                    pragma Assert (Following_Node = null);
+                                    --  Split_Node is under Deleting_Node.Children (1).
+                                    --  test_incremental.adb Recover_08c.
+
+                                    --  Example tree from test_incremental.adb Recover_08c step 3
+                                    --
+                                    --  125:declaration_list_1       ; Inverted_Parents.Peek (Target_Anc_Index - 1)
+                                    --  | 118:declaration_list_2     ; Deleting_Node
+                                    --  | | 117:declaration_list_1
+                                    --  | | | 105:declaration_list_0 ; Split_Node
+                                    --  | | | | 48 declaration
+                                    --  | | | | | <a>
+                                    --  | | | 116:declaration
+                                    --  | | | | <b>               ; b contains by the deleted ';'
+                                    --  | | 103:declaration_list_1   ;
+                                    --  | | | 102:declaration_list_0 ; Split_Node
+                                    --  | | | | <c d>                ; Insert_Leading
+                                    --
+                                    --  105:Split_Node children are on the stream, 103 goes in
+                                    --  Following_Node. Other children of 118 are handled in the
+                                    --  next iteration of this loop.
+
+                                    Following_Node := Add_Nonterm_1
+                                      (Tree, (List_ID, 0),
+                                       Children         => (1 => Deleting_Node.Children (2)),
+                                       Clear_Parents    => False,
+                                       Recover_Conflict => False);
+
+                                 else
+                                    pragma Assert (Following_Node /= null);
+                                    --  Split_Node is under Deleting_Node.Children (2).
+
+                                    --  Example tree from test_incremental.adb Recover_08d step 3
+                                    --
+                                    --  118:declaration_list_1       ; Inverted_Parents.Peek (Target_Anc_Index - 1)
+                                    --  | 111:declaration_list_2     ; Deleting_Node
+                                    --  | | 110:declaration_list_1   ;
+                                    --  | | |   <a b c>              ; c is followed by the deleted ';'
+                                    --  | | 103:declaration_list_1   ;
+                                    --  | | | 102:declaration_list_0 ; Split_Node
+                                    --  | | | | <d>                  ; Insert_Leading
+                                    --
+                                    --  102:Split_Node children are on the stream, rest of children of 103
+                                    --  are in Following_Node. 110 goes before Insert_Leading; nothing is
+                                    --  added to Following_Node. Other children of 118 are handled in the
+                                    --  next iteration of this loop.
+                                    Insert_Leading := Stream.Elements.Insert
+                                      (Insert_Leading, (Deleting_Node.Children (1), Unknown_State));
+                                 end if;
+
+                              elsif Following_Node = Invalid_Node_Access then
+                                 pragma Assert
+                                   (I = Target_Anc_Index - 1 and
+                                      Deleting_Node.Children (1).ID = List_ID and
+                                      Deleting_Node.RHS_Index in 0 | 1);
+                                 --  Deleting_Node.Children (1).RHS_Index any of 0 .. 2, depending on
+                                 --  how many nodes were before Split_Node and whether that sublist was
+                                 --  edited.
 
                                  declare
                                     New_Children : Valid_Node_Access_Array (1 .. Deleting_Node.Child_Count - 1) :=
@@ -898,8 +992,9 @@ package body WisiToken.Syntax_Trees is
 
                               else
                                  pragma Assert
-                                   (Deleting_Node.Children (1).ID = List_ID and
-                                      Deleting_Node.Children (1).RHS_Index = 1);
+                                   (Deleting_Node.RHS_Index = 1 and
+                                      Deleting_Node.Children (1).ID = List_ID and
+                                      Deleting_Node.Children (1).RHS_Index in 1 | 2);
 
                                  declare
                                     New_Children : Valid_Node_Access_Array (1 .. Deleting_Node.Child_Count) :=
@@ -921,7 +1016,7 @@ package body WisiToken.Syntax_Trees is
                         end loop;
                         Inverted_Parents.Pop (Target_Anc_Index - 1);
 
-                        Stream.Elements.Insert (Insert_Before, (Following_Node, Unknown_State));
+                        Stream.Elements.Insert (Insert_Following, (Following_Node, Unknown_State));
                      end;
                   end if;
                   Inverted_Parents.Pop; --  Split_Node
@@ -1812,6 +1907,7 @@ package body WisiToken.Syntax_Trees is
                User_Data     => User_Data,
                Copy_Children => False);
             Temp.Children (Child_Index) := New_Child;
+            Old_Child.Parent := Invalid_Node_Access;
             if Tree.Parents_Set then
                New_Child.Parent := Temp;
             end if;

@@ -1711,6 +1711,351 @@ package body Test_Incremental is
          Incr_Errors    => 0);
    end Recover_06e;
 
+   procedure Recover_07 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Edit an optimized_list that is nested in another, with intervening
+      --  non-list nodes; from ada_mode-interactive_02.adb
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial => "package body AMIR1 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a;" & ASCII.LF &
+           --      |30
+           "procedure b is a : int; begin null; end b;" & ASCII.LF &
+           --   |40       |50       |60       |70
+           "procedure c;" & ASCII.LF &
+           --     |85
+           "procedure d is a : int; begin null; end d;" & ASCII.LF &
+           --       |100      |110
+           "procedure e;" & ASCII.LF &
+           "end AMIR1;",
+         Edit_At        => 52,
+         Delete         => "",
+         Insert         => "1",
+         Initial_Errors => 0,
+         Incr_Errors    => 0,
+         Optimized_List => True);
+   end Recover_07;
+
+   procedure Recover_08a (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Ada_Lite_Ebnf_Actions;
+   begin
+      --  Recover_08? cover all cases where Breakdown optimized_list
+      --  encounters an RHS_Index = 2 node.
+
+      --  The first edit and breakdown leaves a parse stream like this:
+      --  ... procedure ..., error token, ), ;, declaration_list ...
+      --
+      --  Parsing that produces a tree like:
+      --  ...
+      --  | declarative_part_0
+      --  | | declarations_list_2
+      --  | | | declarations_list_0
+      --  | | | | ... deleted error token ...
+      --  | | | declarations_list_1
+      --  | | | | ...
+
+      --  Make (insert 'end') expensive so error recovery chooses (delete ';').
+      Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param.Insert (+END_ID)        := 4;
+      Ada_Lite_EBNF.Incremental_Parser.Table.McKenzie_Param.Insert (+END_ID) := 4;
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Label   => "1",
+         Initial => "package body AMI3 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a (p1 : int);" & ASCII.LF &
+           --       |30       |40
+           "procedure b;" & ASCII.LF &
+           --   |50
+           "procedure c (p1 : int);" & ASCII.LF &
+           --          |70       |80
+           "procedure d;" & ASCII.LF &
+           --      |90
+           "procedure e;" & ASCII.LF &
+           --   |100
+           "type f is (C1);" & ASCII.LF &
+           --          |120
+           "end AMI3;",
+         Edit_At        => 43, -- extra ; after int in a
+         Delete         => "",
+         Insert         => ";",
+         Initial_Errors => 0,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      --  We now have the declarations_list_2 tree.
+      --
+      --  The edit we do next is not important; the declarations_list_2 node
+      --  is encountered when restoring the deleted ';' in a, which does
+      --  Breakdown with Target = ) in a. This is handled by the not
+      --  optimized_list branch in Breakdown.
+      Parse_Text
+        (Label   => "2",
+         Initial => "",
+         Edit_At        => 123, -- edit f enum literal again
+         Delete         => "",
+         Insert         => "3",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+   end Recover_08a;
+
+   procedure Recover_08b (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Ada_Lite_Ebnf_Actions;
+   begin
+      --  Recover_08? cover all cases where Breakdown optimized_list
+      --  encounters an RHS_Index = 2 node.
+
+      --  The first few edits and breakdown leave a parse stream like this:
+      --  ... declaration, error token, declaration_list, declaration, ...
+      --
+      --  Parsing that produces a tree like:
+      --  ...
+      --  | declarations_list_1
+      --  | | declarations_list_2
+      --  | | | declarations_list_0
+      --  | | | | ... deleted error token
+      --  | | | declarations_list_1
+      --  | | | | ...
+
+      --  Make (insert 'end') expensive so error recovery chooses (delete ';').
+      Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param.Insert (+END_ID)        := 4;
+      Ada_Lite_EBNF.Incremental_Parser.Table.McKenzie_Param.Insert (+END_ID) := 4;
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Label   => "1",
+         Initial => "package body AMI3 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a;" & ASCII.LF &
+           --       |30
+           "procedure b (p1 : int);" & ASCII.LF &
+           --    |40       |50
+           "procedure c (p1 : int);" & ASCII.LF &
+           --          |70       |80
+           "procedure d;" & ASCII.LF &
+           --      |90
+           "procedure e;" & ASCII.LF &
+           --   |100
+           "type f is (C1);" & ASCII.LF &
+           --          |120
+           "end AMI3;",
+         Edit_At        => 33, -- extra ; after a
+         Delete         => "",
+         Insert         => ";",
+         Initial_Errors => 0,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      Parse_Text
+        (Label   => "2",
+         Initial => "",
+         Edit_At        => 122, -- edit f enum literal
+         Delete         => "",
+         Insert         => "2",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      --  We now have a tree like:
+      --  ...
+      --  | declarations_list_1
+      --  | | declarations_list_2
+      --  | | | declarations_list_0
+      --  | | | | a. deleted ;
+      --  | | | declarations_list_1
+      --  | | | | b c d e
+      --  ...
+
+      --  The edit we do next is not important; the declarations_list_2 node
+      --  is encountered when restoring the deleted ';' after a, which does
+      --  Breakdown with Target = first terminal of b, which is in the
+      --  second child of the declarations_list_2
+      Parse_Text
+        (Label   => "3",
+         Initial => "",
+         Edit_At        => 123, -- edit f enum literal again
+         Delete         => "",
+         Insert         => "3",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+   end Recover_08b;
+
+   procedure Recover_08c (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Ada_Lite_Ebnf_Actions;
+   begin
+      --  Recover_08? cover all cases where Breakdown optimized_list
+      --  encounters an RHS_Index = 2 node.
+
+      --  Make (insert 'end') expensive so error recovery chooses (delete ';').
+      Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param.Insert (+END_ID)        := 4;
+      Ada_Lite_EBNF.Incremental_Parser.Table.McKenzie_Param.Insert (+END_ID) := 4;
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Label   => "1",
+         Initial => "package body AMI3 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a;" & ASCII.LF &
+           --       |30
+           "procedure b (p1 : int);" & ASCII.LF &
+           --    |40       |50
+           "procedure c (p1 : int);" & ASCII.LF &
+           --          |70       |80
+           "procedure d;" & ASCII.LF &
+           --      |90
+           "procedure e;" & ASCII.LF &
+           --   |100
+           "type f is (C1);" & ASCII.LF &
+           --          |120
+           "end AMI3;",
+         Edit_At        => 56, -- extra ; in b param_list
+         Delete         => "",
+         Insert         => ";",
+         Initial_Errors => 0,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      Parse_Text
+        (Label   => "2",
+         Initial => "",
+         Edit_At        => 122, -- edit f enum literal
+         Delete         => "",
+         Insert         => "2",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      --  We now have a tree like:
+      --  ...
+      --  | declarations_list_1
+      --  | | declarations_list_2
+      --  | | | declarations_list_1
+      --  | | | | a b deleted ;)
+      --  | | | declarations_list_1
+      --  | | | | c d e
+      --  ...
+
+      --  The breakdown target is the closing paren in b, which is in the
+      --  first child of the declarations_list_2 node.
+      Parse_Text
+        (Label   => "3",
+         Initial => "",
+         Edit_At        => 123, -- edit f enum literal again
+         Delete         => "",
+         Insert         => "3",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+   end Recover_08c;
+
+   procedure Recover_08d (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Ada_Lite_Ebnf_Actions;
+   begin
+      --  Recover_08? cover all cases where Breakdown optimized_list
+      --  encounters an RHS_Index = 2 node.
+
+      --  The first few edits and breakdown leave a parse stream like this:
+      --  ... declaration_list, error token, declaration_list, declaration, ...
+      --
+      --  Parsing that produces a tree like:
+      --  ...
+      --  | declarations_list_1
+      --  | | declarations_list_2
+      --  | | | declarations_list_1
+      --  | | | | ... deleted error token
+      --  | | | declarations_list_1
+      --  | | | | ...
+
+      --  Make (insert 'end') expensive so error recovery chooses (delete ';').
+      Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param.Insert (+END_ID)        := 4;
+      Ada_Lite_EBNF.Incremental_Parser.Table.McKenzie_Param.Insert (+END_ID) := 4;
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Label   => "1",
+         Initial => "package body AMI3 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a;" & ASCII.LF &
+           --       |30
+           "procedure b (p1 : int);" & ASCII.LF &
+           --    |40       |50
+           "procedure c (p1 : int);" & ASCII.LF &
+           --          |70       |80
+           "procedure d;" & ASCII.LF &
+           --      |90
+           "procedure e;" & ASCII.LF &
+           --   |100
+           "type f is (C1);" & ASCII.LF &
+           --          |120
+           "end AMI3;",
+         Edit_At        => 81, -- extra ; after c
+         Delete         => "",
+         Insert         => ";",
+         Initial_Errors => 0,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      Parse_Text
+        (Label   => "2",
+         Initial => "",
+         Edit_At        => 122, -- edit f enum literal
+         Delete         => "",
+         Insert         => "2",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      --  We now have a tree like:
+      --  ...
+      --  | declarations_list_1
+      --  | | declarations_list_2
+      --  | | | declarations_list_1
+      --  | | | | a b c, deleted ;
+      --  | | | declarations_list_1
+      --  | | | | d e
+      --  ...
+
+      --  This is essentially the same as Recover_08b, and is handled by the
+      --  same branch in Breakdown.
+      Parse_Text
+        (Label   => "3",
+         Initial => "",
+         Edit_At        => 123, -- edit f enum literal again
+         Delete         => "",
+         Insert         => "3",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+   end Recover_08d;
+
    procedure Lexer_Errors_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -2255,6 +2600,11 @@ package body Test_Incremental is
       Register_Routine (T, Recover_06c'Access, "Recover_06c");
       Register_Routine (T, Recover_06d'Access, "Recover_06d");
       Register_Routine (T, Recover_06e'Access, "Recover_06e");
+      Register_Routine (T, Recover_07'Access, "Recover_07");
+      Register_Routine (T, Recover_08a'Access, "Recover_08a");
+      Register_Routine (T, Recover_08b'Access, "Recover_08b");
+      Register_Routine (T, Recover_08c'Access, "Recover_08c");
+      Register_Routine (T, Recover_08d'Access, "Recover_08d");
       Register_Routine (T, Lexer_Errors_01'Access, "Lexer_Errors_01");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
