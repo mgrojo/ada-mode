@@ -179,6 +179,13 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
       (message "saving parser transaction log '%s' to '%s'" (buffer-name) save-parser-log)
       (write-region nil nil save-parser-log))))
 
+(defun wisi-parse-incremental-none ()
+  "Force an incremental parse.
+Signals an error if `wisi-incremental-parse-enable' is nil."
+  (unless wisi-incremental-parse-enable
+    (user-error "wisi-parse-incremental-none with wisi-incremental-parse-enable nil"))
+  (wisi-parse-incremental wisi--parser 'none))
+
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."
   (interactive)

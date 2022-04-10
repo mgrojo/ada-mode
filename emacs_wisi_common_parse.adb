@@ -372,7 +372,7 @@ package body Emacs_Wisi_Common_Parse is
                --  Response:
                --  (message "memory ...)
                --  prompt
-               Report_Memory (Trace.all);
+               Report_Memory (Trace.all, Prefix => False);
 
             elsif Match ("parse") then
                --  Args: see wisi-process-parse.el wisi-process-parse--send-parse,

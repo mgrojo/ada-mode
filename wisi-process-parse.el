@@ -184,7 +184,7 @@ Otherwise add PARSER to `wisi-process--alist', return it."
       (with-current-buffer (wisi-process--parser-buffer parser)
 	(erase-buffer));; delete any previous messages, prompt
 
-      (unless nowait
+      (when (or (not nowait) (>= wisi-debug 2))
 	(message "starting parser ..."))
       (wisi-parse-log-message parser "create process")
 
@@ -330,12 +330,24 @@ complete."
   ;; For now, we define "long" by the command length character count
   ;; limit set by `wisi-process-parse--add-cmd-length'. For 4
   ;; characters, this is hit by
-  ;; test/ada_mode-conditional_expressions.adb.
+  ;; ada_mode-conditional_expressions.adb.
   (let ((changes
 	 ;; wisi--changes is in reverse time order.
 	 (prin1-to-string (nreverse wisi--changes))))
     (when (> (length changes) 9999)
       (setq full t))
+
+    (unless (equal -1 (wisi-parser-all-changes parser))
+      (cond
+       (full
+	(setf (wisi-parser-all-changes parser) nil)
+	(when (buffer-file-name)
+	  (write-region (point-min) (point-max) (concat (buffer-file-name) "-wisi-change-start"))))
+
+	(t
+	 (setf (wisi-parser-all-changes parser)
+	      (append wisi--changes (wisi-parser-all-changes parser))))
+	))
 
     ;; Must match "incremental parse" command arguments read by
     ;; emacs_wisi_common_parse.adb Get_Parse_Params.
@@ -1236,6 +1248,70 @@ PARSER will respond with one or more Query messages."
      :no-text t)
     ))
 
+(defun wisi-process-all-changes-to-cmd (&optional cmd-buffer-name)
+  "Convert wisi-parser-all-changes in current buffer to command file
+in CMD-BUFFER-NAME."
+  (interactive)
+  (unless cmd-buffer-name
+    (setq cmd-buffer-name "debug.cmd"))
+  (let ((changes (nreverse (copy-sequence (wisi-parser-all-changes wisi--parser))))
+	(cmd-buffer (get-buffer-create cmd-buffer-name))
+	(source-file (buffer-file-name))
+	(verbosity wisi-parser-verbosity)
+	(mckenzie_zombie_limit wisi-mckenzie-zombie-limit)
+	(mckenzie_enqueue_limit wisi-mckenzie-enqueue-limit)
+	(language_options (wisi-parse-format-language-options wisi--parser))
+	edit begin end)
+    (set-buffer cmd-buffer)
+    (erase-buffer)
+
+    (setq-local comment-start "-- ")
+
+    (insert "-- -*- comment-start: \"" comment-start "\" -*-" "\n")
+
+    (insert "file " source-file "-wisi-change-start\n")
+
+    (when (not (string-equal verbosity ""))
+      (insert "verbosity " verbosity "\n"))
+
+    (insert "save_text_auto debug_edited\n")
+    (insert "compare_tree_text_auto\n")
+
+    (when (or mckenzie_zombie_limit mckenzie_enqueue_limit)
+      (insert "mckenzie_options ")
+
+      (when mckenzie_zombie_limit
+	(insert (format "zombie_limit=%d " mckenzie_zombie_limit)))
+
+      (when mckenzie_enqueue_limit
+	(insert (format "enqueue_limit=%d " mckenzie_enqueue_limit)))
+
+      ;; parse-max-parallel is not specified by a file command,
+      ;; only by a command line option.
+      (insert "\n"))
+
+    (insert "language_params " language_options "\n\n")
+
+    (insert "parse_full\n\n")
+
+    (dolist (change changes)
+	(insert "parse_incremental (")
+	(setq begin (point))
+	(prin1 change cmd-buffer)
+	(insert ")")
+	(setq end (copy-marker (point) t))
+	(goto-char begin)
+	(while (search-forward "\n" end t)
+	  (delete-char -1)
+	  (insert "\\n"))
+	(goto-char (point-max))
+	(insert "\n\n")
+      )
+    (with-current-buffer cmd-buffer
+      (if (buffer-file-name)
+	  (save-buffer)
+	(write-file cmd-buffer-name)))))
+
 (defun wisi-process-log-to-cmd (&optional cmd-buffer-name)
   "Convert parser log in current buffer to command file in CMD-BUFFER-NAME."
   (interactive)
@@ -1283,7 +1359,9 @@ PARSER will respond with one or more Query messages."
 	   (insert "verbosity " verbosity "\n"))
 
 	 (insert "save_text_auto debug_edited\n")
-	 (insert "compare_tree_text_auto\n")
+
+	 ;; FIXME: only turn on if actually on in log; can alter tree!?
+	 ;; (insert "compare_tree_text_auto\n")
 
 	 (when (or (not (string-equal mckenzie_zombie_limit "-1"))
 		   (not (string-equal mckenzie_enqueue_limit "-1")))
@@ -1440,58 +1518,6 @@ PARSER will respond with one or more Query messages."
 		  (when (not (string-equal "" language_param)) (format "--lang_params \"%s\" " language_param))
 		  ))
     (kill-new cmd)))
-
-;; (defun wisi-process-log-to-kbd (&optional cmd-buffer-name)
-;;   "Convert parser log in current buffer to kbd macro."
-;;   (interactive)
-;;   (unless cmd-buffer-name
-;;     (setq cmd-buffer-name "debug.macro"))
-;;   (let ((log-buffer (current-buffer))
-;; 	(log-buffer-point (point))
-;; 	(cmd-buffer (get-buffer-create cmd-buffer-name))
-;; 	edit changes begin end)
-;;     (set-buffer cmd-buffer)
-;;     (erase-buffer)
-
-;;     (set-buffer log-buffer)
-;;     (goto-char (point-min))
-
-;;     (goto-char (point-min))
-;;     (while (search-forward-regexp "^parse 1 \"\\([^\"]+\\)\"" nil t)
-;;       (search-forward-regexp "((")
-;;       (goto-char (match-beginning 0))
-;;       (setq changes (car (read-from-string (buffer-substring-no-properties (point) (scan-sexps (point) 1)))))
-;;       (setq edit (car (car changes)))
-;;       (insert "(goto-char " edit ")")
-
-;;       (set-buffer cmd-buffer)
-;;       (goto-char (point-max))
-;;       (dolist (change changes)
-;; 	;; CHANGE is (byte-begin char-begin byte-end char-end delete-bytes delete-chars insert)
-;; 	;; see docstring of `wisi--changes'.
-;; 	(if (= char-begin edit)
-;; 	(cond
-;; 	 ((0 = (nth 4 change))
-
-
-;;       (set-buffer log-buffer)
-;;       (setq end (copy-marker (point) t))
-;;       (goto-char begin)
-;;       (while (search-forward "\n" end t)
-;; 	  (delete-char -1)
-;; 	  (insert "\\n"))
-;; 	(goto-char (point-max))
-;; 	(insert "\n\n")
-
-;; 	(set-buffer log-buffer))
-
-
-;;       )
-;;     (with-current-buffer cmd-buffer
-;;       (if (buffer-file-name)
-;; 	  (save-buffer)
-;; 	(write-file cmd-buffer-name)))
-;;    (goto-char log-buffer-point)))
 
 (cl-defun wisi-time (func count &key report-wait-time)
   "call FUNC COUNT times, show total time"

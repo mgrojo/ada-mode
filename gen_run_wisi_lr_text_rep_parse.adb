@@ -43,7 +43,7 @@ begin
         (Ada.Directories.Containing_Directory (Ada.Command_Line.Command_Name) & "/" & Text_Rep_File_Name);
    begin
       Trace.Put_Line ("parse table created");
-      WisiToken.Report_Memory (Trace);
+      WisiToken.Report_Memory (Trace, Prefix => True);
 
       Run_Wisi_Common_Parse.Parse_File
         ((Descriptor, Lexer, Parse_Table, Create_In_Parse_Actions, Create_Post_Parse_Actions, Partial_Parse_Active,

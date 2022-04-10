@@ -332,7 +332,7 @@ package body Run_Wisi_Common_Parse is
             if Trace_Memory > 0 then
                GNATCOLL.Memory.Configure
                  (Activate_Monitor      => True,
-                  Stack_Trace_Depth     => 0,
+                  Stack_Trace_Depth     => 10, -- gets to "new <type>"
                   Reset_Content_On_Free => False);
             end if;
 
@@ -470,7 +470,7 @@ package body Run_Wisi_Common_Parse is
             Read_Source_File (Source_File_Name, Parse_Context);
             if Trace_Memory > Detail then
                Ada.Text_IO.Put_Line ("file read");
-               Report_Memory (Trace.all);
+               Report_Memory (Trace.all, Prefix => False);
             end if;
             Get_File_Size (Parse_Context);
             Wisi.Parse_Context.Set_File (Source_File_Name, Parse_Context);
@@ -503,7 +503,7 @@ package body Run_Wisi_Common_Parse is
          Ada.Text_IO.Put_Line ("(message ""memory report reset"")");
 
       when Memory_Report =>
-         Report_Memory (Trace.all);
+         Report_Memory (Trace.all, Prefix => False);
 
       when Parse_Full =>
          --  Force a dispatching call.
@@ -594,7 +594,7 @@ package body Run_Wisi_Common_Parse is
 
             if Trace_Memory > Detail then
                Trace.Put_Line ("post_parse action done");
-               Report_Memory (Trace.all);
+               Report_Memory (Trace.all, Prefix => False);
             end if;
 
             Wisi.Parse_Data_Type'Class (Parse_Context.Parser.User_Data.all).Put (Parse_Context.Parser);
@@ -676,7 +676,7 @@ package body Run_Wisi_Common_Parse is
          if Trace_Memory > 0 then
             GNATCOLL.Memory.Configure
               (Activate_Monitor      => True,
-               Stack_Trace_Depth     => 0,
+               Stack_Trace_Depth     => 10, -- gets to "new <type>"
                Reset_Content_On_Free => False);
          end if;
 
@@ -793,7 +793,7 @@ package body Run_Wisi_Common_Parse is
                            Parser.Tree);
 
                         if Trace_Memory > 0 then
-                           Report_Memory (Trace.all);
+                           Report_Memory (Trace.all, Prefix => False);
                         end if;
                      end if;
                   end if;
@@ -842,7 +842,7 @@ package body Run_Wisi_Common_Parse is
                   Parser.Tree);
                if Trace_Memory > 0 then
                   Put ("initial full parse ");
-                  Report_Memory (Trace.all);
+                  Report_Memory (Trace.all, Prefix => False);
                end if;
 
             exception
@@ -903,7 +903,7 @@ package body Run_Wisi_Common_Parse is
 
                   if Trace_Memory > 0 then
                      Put ("incremental parse ");
-                     Report_Memory (Trace.all);
+                     Report_Memory (Trace.all, Prefix => False);
                   end if;
 
                exception

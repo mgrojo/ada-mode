@@ -71,7 +71,7 @@ package body Wisi.Parse_Context is
               ("parse_context (no file) created, language " & Ada.Tags.Expanded_Name
                  (Language.Parse_Data_Template.all'Tag));
             if Trace_Memory > Outline then
-               Report_Memory (Trace.all);
+               Report_Memory (Trace.all, Prefix => True);
             end if;
          end if;
       end return;
@@ -156,7 +156,7 @@ package body Wisi.Parse_Context is
                Trace.Put_Line
                  ("parse_context created, language " & Ada.Tags.Expanded_Name (Language.Parse_Data_Template.all'Tag));
                if Trace_Memory > Outline then
-                  Report_Memory (Trace.all);
+                  Report_Memory (Trace.all, Prefix => True);
                end if;
             end if;
          end return;

@@ -36,6 +36,16 @@ and parse the whole buffer."
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-partial-parse-threshold)
 
+(defcustom wisi-save-all-changes nil
+  "When non-nil, save all changes sent to the parser for each
+buffer, to aid in reproducing bugs. Also writes a copy of the
+buffer to a file at each full parse, to give the starting point
+for the changes. The filename is the visited file name with
+\"-wisi-change-start\"' appended."
+  :type 'boolean
+  :group 'wisi
+  :safe 'booleanp)
+
 (cl-defstruct (wisi--lexer-error)
   pos ;; position (integer) in buffer where error was detected.
   message  ;; string error message
@@ -75,12 +85,20 @@ and parse the whole buffer."
   ;; alist of (TOKEN-ID . STRING); used by repair error
 
   transaction-log-buffer
-  ;; Buffer holding history of communications with parser
+  ;; Buffer holding history of communications with parser; one log per
+  ;; parser instance.
 
   (transaction-log-buffer-size wisi-parser-transaction-log-buffer-size-default)
   ;; Max character count to retain in transaction-log-buffer. Set to 0
   ;; to disable log. Default is large enough for all transactions in
   ;; test/ada_mode-incremental_parse.adb with lots of verbosity.
+
+  (all-changes -1)
+  ;; List of all changes sent to parser for the current buffer since
+  ;; the last full parse for that buffer (last change at head of
+  ;; list). Used to reproduce bugs. Value of -1 means keeping this
+  ;; list is disabled; it can easily get huge if enabled. See
+  ;; `wisi-save-all-changes', `wisi-process-all-changes-to-cmd'.
 )
 
 (cl-defgeneric wisi-parser-transaction-log-buffer-name ((parser wisi-parser))
@@ -551,14 +569,11 @@ Normally set from a language-specific option.")
 
 (defun wisi-replay-kbd-macro (macro)
   "Replay keyboard macro MACRO into current buffer,
-with delay between each key event."
+with incremental parse after each key event."
   (let ((i 0))
-    ;; We force a delay between each event in the macro, to better
-    ;; mimic actual typing. This lets font-lock run, which can affect
-    ;; results due to error correction and bugs.
     (while (< i  (length macro))
       (execute-kbd-macro (make-vector 1 (aref macro i)))
-      (sit-for 0.1)
+      (wisi-parse-incremental wisi--parser 'none)
       (setq i (1+ i)))))
 
 (defun wisi-replay-kbd-macro-file (file-name)

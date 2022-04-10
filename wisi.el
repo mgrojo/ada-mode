@@ -1868,6 +1868,9 @@ where the car is a list (FILE LINE COL)."
     (jit-lock-register #'wisi-fontify-region))
 
   (when wisi-incremental-parse-enable
+    (when wisi-save-all-changes
+      (setf (wisi-parser-all-changes wisi--parser) nil))
+
     ;; We don't wait for this to complete here, so users can scroll
     ;; around while the initial parse runs. font-lock will not work
     ;; during that time (the parser is busy, the buffer is read-only).

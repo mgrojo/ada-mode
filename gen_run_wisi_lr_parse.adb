@@ -27,11 +27,11 @@ is
    Parse_Data_Template : aliased Parse_Data_Type;
 begin
    --  FIXME: report memory during lexer, parser create
-   --  WisiToken.Trace_Memory            := 1;
+   --  WisiToken.Trace_Memory            := 2;
    --  WisiToken.Trace_Incremental_Parse := 1;
    GNATCOLL.Memory.Configure
      (Activate_Monitor      => True,
-      Stack_Trace_Depth     => 0,
+      Stack_Trace_Depth     => 10,
       Reset_Content_On_Free => False);
 
    declare
@@ -40,7 +40,7 @@ begin
       Parse_Table : constant WisiToken.Parse.LR.Parse_Table_Ptr := Create_Parse_Table;
    begin
       Trace.Put_Line ("parse table created");
-      WisiToken.Report_Memory (Trace);
+      WisiToken.Report_Memory (Trace, Prefix => True);
 
       Run_Wisi_Common_Parse.Parse_File
         ((Descriptor, Lexer, Parse_Table, Create_In_Parse_Actions, Create_Post_Parse_Actions, Partial_Parse_Active,
