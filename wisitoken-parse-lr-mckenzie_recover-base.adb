@@ -364,11 +364,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
             "enqueue:" & SAL.Base_Peek_Type'Image (Configs_Count) &
               "/" & SAL.Base_Peek_Type'Image (Data.Config_Heap.Count) &
               "/" & Trimmed_Image (Super.Total_Enqueue_Count) &
-              "/" & Trimmed_Image (Data.Check_Count) &
-              ", min cost:" &
-              (if Data.Config_Heap.Count > 0
-               then Integer'Image (Data.Config_Heap.Min_Key)
-               else " ? "));
+              "/" & Trimmed_Image (Data.Check_Count));
       end if;
    end Put;
 

@@ -1,0 +1,59 @@
+;;; Same as empty_production_2.wy, but enables error correction, and
+;;; declares an optimized_list. This explores corner cases in the
+;;; optimized_list conflict resolution algorithm.
+
+;; This grammar is ambiguous. Consider the following statements:
+;;
+;; 1) is <empty declaration> begin ;
+;; 2) is is <empty declaration> begin ; begin ;
+;; 3) is <empty declaration> is <empty declaration> begin ; begin ;
+;;
+;; In LR parsing 3), the second 'is' causes a shift/reduce conflict;
+;; shift to start the nested declaration (as in 2), reduce to the
+;; empty declaration. Both are correct according to the grammar; this
+;; is reported as shift/reduce conflicts when compiling the grammar.
+;;
+;; In the actual LALR parse of empty_production_2.input, an infinite
+;; number of parsers are spawned, terminating with an error when the
+;; parallel parse limit is reached.
+
+%generate LALR Ada re2c
+
+%keyword BEGIN "begin"
+%keyword IS "is"
+
+%token <punctuation> SEMICOLON ";"
+
+;; Since we define a <comment-new-line> token, those lines are
+;; counted; so we must also define a new-line token to get consistent
+;; line numbers.
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <comment-new-line> COMMENT %[ "--" ]%
+%non_grammar <new-line> NEW_LINE
+
+%start declarations
+
+%mckenzie_cost_default 4 3 2 2
+
+%conflict SHIFT body | REDUCE declaration on token BEGIN
+%conflict SHIFT body | REDUCE declaration on token IS
+%conflict REDUCE declaration | ACCEPT_IT wisitoken_accept on token Wisi_EOI
+
+declaration
+  : body
+  | ;; empty
+  ;
+
+;; This list is an optimized_list; it is both left and right
+;; recursive, so packrat doesn't support it.
+declarations
+  : declaration
+  | declarations declaration
+  | declarations declarations
+  ;
+
+body
+  : IS declarations BEGIN SEMICOLON
+    %(null; -- wisi-statement-action [1 block-middle 3 block-middle 4 statement-end])%
+  ;
+;;; end of file

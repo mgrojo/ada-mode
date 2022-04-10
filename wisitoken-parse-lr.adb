@@ -111,6 +111,22 @@ package body WisiToken.Parse.LR is
       return False;
    end Is_In;
 
+   procedure Delete
+     (Container : in out Action_Node;
+      Prev      : in     Parse_Action_Node_Ptr;
+      Current   : in out Parse_Action_Node_Ptr)
+   is
+      To_Delete : Parse_Action_Node_Ptr := Current;
+   begin
+      Current := Current.Next;
+      if Container.Actions = To_Delete then
+         Container.Actions := Current;
+      else
+         Prev.Next := Current;
+      end if;
+      Free (To_Delete);
+   end Delete;
+
    procedure Add
      (List   : in out Action_Arrays.Vector;
       Symbol : in     Token_ID;

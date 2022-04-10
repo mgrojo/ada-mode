@@ -1,7 +1,7 @@
 ;;  wisitoken grammar for Red Dragon Book example 4.43.
 
 %code copyright_license %{
-;;  Copyright (C) 2018, 2020, 2021 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2018, 2020, 2021, 2022 Stephen Leake.  All Rights Reserved.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -20,7 +20,7 @@
 %generate Packrat_Gen Ada re2c
 %generate LALR Ada re2c
 %generate Packrat_Proc Ada re2c
-%generate Tree_Sitter Ada tree_sitter
+;; %generate Tree_Sitter Ada tree_sitter FIXME: tree-sitter broke when changed wisitoken_grammar.wy declaration
 
 %keyword LOWER_C "c"
 %keyword LOWER_D "d"

@@ -41,7 +41,6 @@ with SAL.Gen_Bounded_Definite_Stacks.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
-with WisiToken.In_Parse_Actions;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
    use all type WisiToken.Syntax_Trees.Base_Sequential_Index;
@@ -51,6 +50,7 @@ package WisiToken.Parse.LR is
    type All_Parse_Action_Verbs is (Pause, Shift, Reduce, Accept_It, Error);
    subtype Parse_Action_Verbs is All_Parse_Action_Verbs range Shift .. Error;
    subtype Minimal_Verbs is All_Parse_Action_Verbs range Shift .. Reduce;
+   subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
    --  Pause is only used for error recovery, to allow parallel parsers
    --  to re-sync on the same input terminal.
 
@@ -114,6 +114,15 @@ package WisiToken.Parse.LR is
       Symbol  : Token_ID := Invalid_Token_ID; -- ignored if Action is Error
       Actions : Parse_Action_Node_Ptr;
    end record;
+
+   procedure Delete
+     (Container : in out Action_Node;
+      Prev      : in     Parse_Action_Node_Ptr;
+      Current   : in out Parse_Action_Node_Ptr);
+   --  Delete Current from an action list. Container.Actions is the
+   --  root of the list; updated as needed. Prev is the previous element
+   --  in the list; null if none. Prev.Next is updated to
+   --  Current.Next. Current is updated to Current.Next.
 
    function To_Key (Item : in Action_Node) return Token_ID is (Item.Symbol);
 
@@ -262,7 +271,7 @@ package WisiToken.Parse.LR is
       --  Cost of operations on config stack, input.
 
       Minimal_Complete_Cost_Delta : Integer;
-      --  Reduction in cost due to using Minimal_Complete_Action.
+      --  Added to cost when using Minimal_Complete_Action; typically negative.
 
       Matching_Begin : Integer;
       --  Cost of Matching_Begin strategy (applied once, independent of
@@ -549,7 +558,7 @@ package WisiToken.Parse.LR is
 
       Error_Token                 : Syntax_Trees.Recover_Token;
       In_Parse_Action_Token_Count : SAL.Base_Peek_Type := 0;
-      In_Parse_Action_Status      : In_Parse_Actions.Status;
+      In_Parse_Action_Status      : Syntax_Trees.In_Parse_Actions.Status;
       --  If parsing this config ended with a parse error, Error_Token is
       --  the token that failed to shift, Check_Status.Label is Ok.
       --

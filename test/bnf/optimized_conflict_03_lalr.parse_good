@@ -1,0 +1,94 @@
+ 13 tokens lexed
+ 0: 0: 1:(IDENTIFIER, (77 . 83)) : shift and goto state 1
+ 0: 1: 2:(RANGE, (85 . 89)) : shift and goto state 3
+ 0: 3: 3:(IDENTIFIER, (91 . 91)) : shift and goto state 5
+ 0: 5: 4:(DOT_DOT, (93 . 94)) : reduce 1 tokens to primary
+(primary, (91 . 91) <= (3:(IDENTIFIER, (91 . 91))))
+ ... goto state 7
+ 0: 7: 4:(DOT_DOT, (93 . 94)) : reduce 1 tokens to simple_expression
+(simple_expression, (91 . 91) <= ((primary, (91 . 91))))
+ ... goto state 6
+ 0: 6: 4:(DOT_DOT, (93 . 94)) : shift and goto state 10
+ 0: 10: 5:(NEW, (96 . 98)) : shift and goto state 4
+ 0: 4: 6:(IDENTIFIER, (102 . 105)) : shift and goto state 1
+ 0: 1: 7:(RANGE, (107 . 111)) : shift and goto state 3
+ 0: 3: 8:(IDENTIFIER, (113 . 113)) : shift and goto state 5
+ 0: 5: 9:(DOT_DOT, (115 . 116)) : reduce 1 tokens to primary
+(primary, (113 . 113) <= (8:(IDENTIFIER, (113 . 113))))
+ ... goto state 7
+ 0: 7: 9:(DOT_DOT, (115 . 116)) : reduce 1 tokens to simple_expression
+(simple_expression, (113 . 113) <= ((primary, (113 . 113))))
+ ... goto state 6
+ 0: 6: 9:(DOT_DOT, (115 . 116)) : shift and goto state 10
+ 0: 10: 10:(IDENTIFIER, (118 . 118)) : shift and goto state 5
+ 0: 5: 11:(PLUS, (120 . 120)) : reduce 1 tokens to primary
+(primary, (118 . 118) <= (10:(IDENTIFIER, (118 . 118))))
+ ... goto state 7
+ 0: 7: 11:(PLUS, (120 . 120)) : reduce 1 tokens to simple_expression
+(simple_expression, (118 . 118) <= ((primary, (118 . 118))))
+ ... goto state 14
+ 0: 14: 11:(PLUS, (120 . 120)) : spawn 1, (2 active)
+ 1: 14: 11:(PLUS, (120 . 120)) : reduce 5 tokens to subtype_indication
+(subtype_indication, (102 . 118) <= (6:(IDENTIFIER, (102 . 105)), 7:(RANGE, (107 . 111)), (simple_expression, (113 . 113)), 9:(DOT_DOT, (115 . 116)), (simple_expression, (118 . 118))))
+ ... goto state 9
+ 0: 14: 11:(PLUS, (120 . 120)) : shift and goto state 12
+ 1: 9: 11:(PLUS, (120 . 120)) : reduce 2 tokens to allocator
+(allocator, (96 . 118) <= (5:(NEW, (96 . 98)), (subtype_indication, (102 . 118))))
+ ... goto state 8
+ 1: 8: 11:(PLUS, (120 . 120)) : reduce 1 tokens to primary
+(primary, (96 . 118) <= ((allocator, (96 . 118))))
+ ... goto state 7
+ 1: 7: 11:(PLUS, (120 . 120)) : reduce 1 tokens to simple_expression
+(simple_expression, (96 . 118) <= ((primary, (96 . 118))))
+ ... goto state 14
+ 1: 14: 11:(PLUS, (120 . 120)) : spawn 2, (3 active)
+ 2: 14: 11:(PLUS, (120 . 120)) : reduce 5 tokens to subtype_indication
+(subtype_indication, (77 . 118) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression, (96 . 118))))
+ ... goto state 2
+ 1: 14: 11:(PLUS, (120 . 120)) : shift and goto state 12
+ 2: 2: 11:(PLUS, (120 . 120)) : ERROR
+ 2: expecting: Wisi_EOI
+ 2: terminate (2 active):  (2, 14:(PLUS, (120 . 120) ERROR))
+ 1: 12: 12:(IDENTIFIER, (122 . 122)) : reduce 1 tokens to binary_adding_operator
+(binary_adding_operator, (120 . 120) <= (11:(PLUS, (120 . 120))))
+ ... goto state 13
+ 0: 12: 12:(IDENTIFIER, (122 . 122)) : reduce 1 tokens to binary_adding_operator
+(binary_adding_operator, (120 . 120) <= (11:(PLUS, (120 . 120))))
+ ... goto state 13
+ 1: 13: 12:(IDENTIFIER, (122 . 122)) : shift and goto state 5
+ 0: 13: 12:(IDENTIFIER, (122 . 122)) : shift and goto state 5
+ 1: 5: 13:(Wisi_EOI, (125 . 124)) : reduce 1 tokens to primary
+(primary, (122 . 122) <= (12:(IDENTIFIER, (122 . 122))))
+ ... goto state 15
+ 0: 5: 13:(Wisi_EOI, (125 . 124)) : reduce 1 tokens to primary
+(primary, (122 . 122) <= (12:(IDENTIFIER, (122 . 122))))
+ ... goto state 15
+ 1: 15: 13:(Wisi_EOI, (125 . 124)) : reduce 3 tokens to simple_expression
+(simple_expression, (96 . 122) <= ((simple_expression, (96 . 118)), (binary_adding_operator, (120 . 120)), (primary, (122 . 122))))
+ ... goto state 14
+ 0: 15: 13:(Wisi_EOI, (125 . 124)) : reduce 3 tokens to simple_expression
+(simple_expression, (118 . 122) <= ((simple_expression, (118 . 118)), (binary_adding_operator, (120 . 120)), (primary, (122 . 122))))
+ ... goto state 14
+ 1: 14: 13:(Wisi_EOI, (125 . 124)) : reduce 5 tokens to subtype_indication
+(subtype_indication, (77 . 122) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression, (96 . 122))))
+ ... goto state 2
+ 0: 14: 13:(Wisi_EOI, (125 . 124)) : reduce 5 tokens to subtype_indication
+(subtype_indication, (102 . 122) <= (6:(IDENTIFIER, (102 . 105)), 7:(RANGE, (107 . 111)), (simple_expression, (113 . 113)), 9:(DOT_DOT, (115 . 116)), (simple_expression, (118 . 122))))
+ ... goto state 9
+ 1: 2: 13:(Wisi_EOI, (125 . 124)) : accept it
+(wisitoken_accept, (77 . 122) <= ((subtype_indication, (77 . 122))))
+ 0: 9: 13:(Wisi_EOI, (125 . 124)) : reduce 2 tokens to allocator
+(allocator, (96 . 122) <= (5:(NEW, (96 . 98)), (subtype_indication, (102 . 122))))
+ ... goto state 8
+ 0: 8: 13:(Wisi_EOI, (125 . 124)) : reduce 1 tokens to primary
+(primary, (96 . 122) <= ((allocator, (96 . 122))))
+ ... goto state 7
+ 0: 7: 13:(Wisi_EOI, (125 . 124)) : reduce 1 tokens to simple_expression
+(simple_expression, (96 . 122) <= ((primary, (96 . 122))))
+ ... goto state 14
+ 0: 14: 13:(Wisi_EOI, (125 . 124)) : reduce 5 tokens to subtype_indication
+(subtype_indication, (77 . 122) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression, (96 . 122))))
+ ... goto state 2
+ 0: 2: 13:(Wisi_EOI, (125 . 124)) : accept it
+(wisitoken_accept, (77 . 122) <= ((subtype_indication, (77 . 122))))
+optimized_conflict_03.input:3:1: Ambiguous parse: 2 parsers active.

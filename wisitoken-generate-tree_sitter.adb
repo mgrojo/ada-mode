@@ -17,7 +17,6 @@
 
 pragma License (GPL);
 
-with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.BNF.Output_Ada_Common;
@@ -163,8 +162,8 @@ package body WisiToken.Generate.Tree_Sitter is
             case To_Token_Enum (Tree.ID (Node)) is
             when declaration_ID =>
                --  Contained in a compilation_unit that is already marked for deletion
-               case Tree.RHS_Index (Node) is
-               when 6 | 7 =>
+               case To_Token_Enum (Tree.ID (Tree.Child (Node, 2))) is
+               when ELSIF_ID =>
                   --  | PERCENT ELSIF IDENTIFIER EQUAL IDENTIFIER
                   --  | PERCENT ELSIF IDENTIFIER IN IDENTIFIER_BAR_LIST
                   declare
@@ -189,7 +188,7 @@ package body WisiToken.Generate.Tree_Sitter is
                      end if;
                   end;
 
-               when 8 =>
+               when END_ID =>
                   --  | PERCENT END IF
                   Ignore_Lines := False;
                   if Trace_Generate_EBNF > Outline then
@@ -255,8 +254,8 @@ package body WisiToken.Generate.Tree_Sitter is
             end;
 
          when declaration_ID =>
-            case Tree.RHS_Index (Node) is
-            when 5 .. 8 =>
+            case To_Token_Enum (Tree.ID (Tree.Child (Node, 2))) is
+            when IF_ID | ELSIF_ID =>
                --  | PERCENT (IF | ELSIF) IDENTIFIER (EQUAL IDENTIFIER | IN IDENTIFIER_BAR_list)
                Nodes_To_Delete.Append (Node);
                declare
@@ -282,7 +281,7 @@ package body WisiToken.Generate.Tree_Sitter is
 
                end;
 
-            when 9 =>
+            when END_ID =>
                --  %end if
                Nodes_To_Delete.Append (Node);
 
@@ -573,7 +572,7 @@ package body WisiToken.Generate.Tree_Sitter is
                   Nodes_To_Check.Append (Node);
 
                   Tree.Set_Children
-                    (Node_Var, (+rhs_multiple_item_ID, 5), (Tree.Child (Node, 1), Tree.Add_Terminal (+PLUS_ID)));
+                    (Node_Var, (+rhs_multiple_item_ID, 5), (Tree.Child (Node, 1), Tree.Add_Terminal (+STAR_ID)));
 
                when 5 =>
                   --  already optional
@@ -1097,117 +1096,118 @@ package body WisiToken.Generate.Tree_Sitter is
             end;
 
          when declaration_ID =>
-            case Tree.RHS_Index (Node) is
-            when 0 =>
-               --  We need tokens with 'regexp' values because they are not defined
-               --  elsewhere, 'punctuation' tokens for consistent names, and
-               --  'line-comment' to allow comments. tree-sitter default 'extras'
-               --  handles whitespace and newline, but if we define 'comment', we
-               --  also need 'new-line' and 'whitespace'.
-               declare
-                  use Ada.Strings;
-                  use Ada.Strings.Fixed;
-                  use WisiToken.Syntax_Trees.LR_Utils;
-                  Name  : constant String        := Get_Text (Tree.Child (Node, 3));
-                  Class : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Tree.Child (Tree.Child (Node, 2), 1)));
-                  Kind  : constant String        :=
-                    (if Class in NON_GRAMMAR_ID | Wisitoken_Grammar_Actions.TOKEN_ID
-                     then Get_Text (Tree.Child (Tree.Child (Node, 2), 3))
-                     else "keyword");
-                  List  : constant Constant_List    := Creators.Create_List
-                    (Tree, Tree.Child (Node, 4), +declaration_item_list_ID, +declaration_item_ID);
-                  Value : constant Valid_Node_Access := Tree.Child (Element (List.First), 1);
-                  --  We are ignoring any repair image
-               begin
-                  if Class = NON_GRAMMAR_ID then
-                     if Kind = "line-comment" then
-                        --  WORKAROUND: tree-sitter 0.16.6 treats rule "token(seq('--',
-                        --  /.*/))" correctly for an Ada comment, but not extra "/--.*/". See
-                        --  github tree-sitter issue 651 - closed without resolving this
-                        --  question, but it does provide a workaround.
-                        Put_Line (File, Name & ": $ => token(seq(" & Get_Text (Value) & ", /.*/)),");
-                        Extras.Append ("$." & Name);
-                     else
-                        Extras.Append ("/" & Trim (Get_Text (Value), Both) & "/");
-                     end if;
+            raise SAL.Not_Implemented with "FIXME: match current wisitoken_grammar.wy";
+            --  case To_Token_Enum (Tree.ID (Tree.Child (Node, 2))) is
+            --  when Wisitoken_Grammar_Actions.TOKEN_ID | NON_GRAMMAR_ID =>
+            --     --  We need tokens with 'regexp' values because they are not defined
+            --     --  elsewhere, 'punctuation' tokens for consistent names, and
+            --     --  'line-comment' to allow comments. tree-sitter default 'extras'
+            --     --  handles whitespace and newline, but if we define 'comment', we
+            --     --  also need 'new-line' and 'whitespace'.
+            --     declare
+            --        use Ada.Strings;
+            --        use Ada.Strings.Fixed;
+            --        use WisiToken.Syntax_Trees.LR_Utils;
+            --        Name  : constant String        := Get_Text (Tree.Child (Node, 3));
+            --        Class : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Tree.Child (Tree.Child (Node, 2), 1)));
+            --        Kind  : constant String        :=
+            --          (if Class in NON_GRAMMAR_ID | Wisitoken_Grammar_Actions.TOKEN_ID
+            --           then Get_Text (Tree.Child (Tree.Child (Node, 2), 3))
+            --           else "keyword");
+            --        List  : constant Constant_List    := Creators.Create_List
+            --          (Tree, Tree.Child (Node, 4), +declaration_item_list_ID, +declaration_item_ID);
+            --        Value : constant Valid_Node_Access := Tree.Child (Element (List.First), 1);
+            --        --  We are ignoring any repair image
+            --     begin
+            --        if Class = NON_GRAMMAR_ID then
+            --           if Kind = "line-comment" then
+            --              --  WORKAROUND: tree-sitter 0.16.6 treats rule "token(seq('--',
+            --              --  /.*/))" correctly for an Ada comment, but not extra "/--.*/". See
+            --              --  github tree-sitter issue 651 - closed without resolving this
+            --              --  question, but it does provide a workaround.
+            --              Put_Line (File, Name & ": $ => token(seq(" & Get_Text (Value) & ", /.*/)),");
+            --              Extras.Append ("$." & Name);
+            --           else
+            --              Extras.Append ("/" & Trim (Get_Text (Value), Both) & "/");
+            --           end if;
 
-                  elsif Kind = "punctuation" then
-                     Put_Line (File, Name & ": $ => " & Get_Text (Value) & ",");
+            --        elsif Kind = "punctuation" then
+            --           Put_Line (File, Name & ": $ => " & Get_Text (Value) & ",");
 
-                  elsif To_Token_Enum (Tree.ID (Value)) = REGEXP_ID then
-                     Put_Line (File, Name & ": $ => /" & Trim (Get_Text (Value), Both) & "/,");
+            --        elsif To_Token_Enum (Tree.ID (Value)) = REGEXP_ID then
+            --           Put_Line (File, Name & ": $ => /" & Trim (Get_Text (Value), Both) & "/,");
 
-                  end if;
-               end;
+            --        end if;
+            --     end;
 
-            when 1 =>
-               --  new-line with no regexp; tree-sitter defaults to DOS, Unix newline.
-               null;
+            --  when 1 =>
+            --     --  new-line with no regexp; tree-sitter defaults to DOS, Unix newline.
+            --     null;
 
-            when 2 =>
-               --  FIXME tree-sitter: CODE copyright_license
-               null;
+            --  when 2 =>
+            --     --  FIXME tree-sitter: CODE copyright_license
+            --     null;
 
-            when 3 =>
-               declare
-                  Kind : constant String := Get_Text (Tree.Child (Node, 2));
-               begin
-                  --  FIXME tree-sitter: lexer_regexp
-                  if Kind = "conflict" then
-                     --  .wy LR format:
-                     --  %conflict action LHS [| action LHS]* 'on token' on
-                     --            I      I+1
-                     --
-                     --  .wy Tree_Sitter format:
-                     --  %conflict LHS (LHS)*
-                     --
-                     --  .js format:
-                     --  [$.LHS, $.LHS, ...]
+            --  when 3 =>
+            --     declare
+            --        Kind : constant String := Get_Text (Tree.Child (Node, 2));
+            --     begin
+            --        --  FIXME tree-sitter: lexer_regexp
+            --        if Kind = "conflict" then
+            --           --  .wy LR format:
+            --           --  %conflict action LHS [| action LHS]* 'on token' on
+            --           --            I      I+1
+            --           --
+            --           --  .wy Tree_Sitter format:
+            --           --  %conflict LHS (LHS)*
+            --           --
+            --           --  .js format:
+            --           --  [$.LHS, $.LHS, ...]
 
-                     declare
-                        use Ada.Strings.Unbounded;
+            --           declare
+            --              use Ada.Strings.Unbounded;
 
-                        Tree_Indices : constant Valid_Node_Access_Array := Tree.Get_Terminals (Tree.Child (Node, 3));
-                        Result       : Unbounded_String                := +"[";
-                     begin
-                        if Tree_Indices'Length < 3 or else Tree.ID (Tree_Indices (3)) /= +BAR_ID then
-                           --  Tree_Sitter format
-                           for LHS of Tree_Indices loop
-                              Result := @ & "$." & Get_Text (LHS) & ", ";
-                           end loop;
+            --            Tree_Indices : constant Valid_Node_Access_Array := Tree.Get_Terminals (Tree.Child (Node, 3));
+            --              Result       : Unbounded_String                := +"[";
+            --           begin
+            --              if Tree_Indices'Length < 3 or else Tree.ID (Tree_Indices (3)) /= +BAR_ID then
+            --                 --  Tree_Sitter format
+            --                 for LHS of Tree_Indices loop
+            --                    Result := @ & "$." & Get_Text (LHS) & ", ";
+            --                 end loop;
 
-                        else
-                           --  LR format
-                           declare
-                              use all type SAL.Base_Peek_Type;
-                              I : SAL.Peek_Type := Tree_Indices'First;
-                           begin
-                              loop
-                                 Result := @ & "$." & Get_Text (Tree_Indices (I + 1)) & ", ";
+            --              else
+            --                 --  LR format
+            --                 declare
+            --                    use all type SAL.Base_Peek_Type;
+            --                    I : SAL.Peek_Type := Tree_Indices'First;
+            --                 begin
+            --                    loop
+            --                       Result := @ & "$." & Get_Text (Tree_Indices (I + 1)) & ", ";
 
-                                 I := I + 2;
-                                 exit when Tree.ID (Tree_Indices (I)) /= +BAR_ID;
-                                 I := I + 1;
-                              end loop;
-                           end;
-                        end if;
-                        Conflicts.Append (-Result & ']');
-                     end;
-                  end if;
-               end;
+            --                       I := I + 2;
+            --                       exit when Tree.ID (Tree_Indices (I)) /= +BAR_ID;
+            --                       I := I + 1;
+            --                    end loop;
+            --                 end;
+            --              end if;
+            --              Conflicts.Append (-Result & ']');
+            --           end;
+            --        end if;
+            --     end;
 
-            when 4 =>
-               --  %case_insensitive
-               null;
+            --  when 4 =>
+            --     --  %case_insensitive
+            --     null;
 
-            when 5 .. 9 =>
-               --  Should have been eliminated by Eliminate_Empty_Productions
-               raise SAL.Programmer_Error with "Print_Tree_Sitter declaration %if " &
-                 Tree.Image (Node, Node_Numbers => True);
+            --  when 5 .. 9 =>
+            --     --  Should have been eliminated by Eliminate_Empty_Productions
+            --     raise SAL.Programmer_Error with "Print_Tree_Sitter declaration %if " &
+            --       Tree.Image (Node, Node_Numbers => True);
 
-            when others =>
-               raise SAL.Programmer_Error;
-            end case;
+            --  when others =>
+            --     raise SAL.Programmer_Error;
+            --  end case;
 
          when nonterminal_ID =>
             declare

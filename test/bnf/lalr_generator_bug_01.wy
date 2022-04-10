@@ -1,6 +1,6 @@
 ;;; demonstrating a bug in the LALR generator
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -55,7 +55,7 @@
 
 %no_language_runtime
 
-%conflict SHIFT association | REDUCE unary_adding_operator_opt on token IDENTIFIER (10, 28)
+%conflict SHIFT association | REDUCE unary_adding_operator_opt on token IDENTIFIER
 
 ;;;; grammar rules
 

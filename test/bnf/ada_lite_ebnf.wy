@@ -6,7 +6,7 @@
 ;; See ada_lite_ebnf_bnf.wy for translation to BNF for parser generator.
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -47,7 +47,8 @@
 
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
-%generate Tree_Sitter Ada tree_sitter
+;; %generate Tree_Sitter Ada tree_sitter FIXME: tree-sitter broke when change sequence_of_statements to statement+
+;; and more broke when changed wisitoken_grammar.wy declaration
 
 %meta_syntax EBNF
 
@@ -189,12 +190,31 @@
 %mckenzie_cost_delete STRING_LITERAL 2
 
 ;; Prefer insert these over everything; lets us finish a
-;; statement.
+;; statement, or insert a minimal statement in an empty block.
+%mckenzie_cost_insert EXIT 1
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
 
 %conflict REDUCE primary | REDUCE subtype_indication on token RIGHT_PAREN
 %conflict REDUCE discrete_subtype_definition | REDUCE range_list on token RIGHT_PAREN
+
+;; These are from having pragma in both statement and declaration, as
+;; is required in ada_annex_p.
+%conflict REDUCE declaration | REDUCE statement on token PRAGMA
+%conflict_resolution REDUCE declaration | REDUCE statement on token BEGIN      : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token CASE       : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token DECLARE    : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token EXIT       : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token FOR        : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token FUNCTION   : declaration
+%conflict_resolution REDUCE declaration | REDUCE statement on token IF         : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token LOOP       : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token PACKAGE    : declaration
+%conflict_resolution REDUCE declaration | REDUCE statement on token PROCEDURE  : declaration
+%conflict_resolution REDUCE declaration | REDUCE statement on token RETURN     : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token TYPE       : declaration
+%conflict_resolution REDUCE declaration | REDUCE statement on token IDENTIFIER : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token Wisi_EOI   : statement
 
 %if parser = LALR
 ;; tree-sitter and wisitoken have different naming
@@ -271,10 +291,7 @@ case_statement_alternative
 ;; We don't allow an empty compilation unit; that causes too many
 ;; ambiguities.
 compilation_unit
-  : package_body
-  | subprogram_declaration
-  | subprogram_body
-  | generic_instantiation
+  : declaration
   | statement
   ;
 
@@ -300,7 +317,9 @@ constraint
 
 declaration
   : body_g
+  | generic_instantiation
   | object_declaration
+  | pragma_g
   | subprogram_declaration
   | type_declaration
   ;
@@ -449,6 +468,10 @@ paren_expression
   : LEFT_PAREN expression RIGHT_PAREN
   ;
 
+pragma_g
+  : 'pragma' IDENTIFIER actual_parameter_part SEMICOLON
+  ;
+
 primary
   : NUMERIC_LITERAL
   | STRING_LITERAL
@@ -496,7 +519,7 @@ selected_component
   ;
 
 sequence_of_statements
-  : {statement}
+  : statement+
   ;
 
 simple_expression
@@ -517,6 +540,7 @@ simple_statement
 statement
   : simple_statement
   | compound_statement
+  | pragma_g
   ;
 
 subprogram_body

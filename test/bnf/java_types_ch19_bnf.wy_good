@@ -62,6 +62,7 @@ TypeArguments
 TypeArgumentList
   : TypeArgument
   | TypeArgumentList COMMA TypeArgument
+  | TypeArgumentList COMMA TypeArgumentList
   ;
 
 TypeArgument
@@ -102,4 +103,5 @@ AnnotationList_LEFT_SQUARE_BRACKET
 AnnotationList_LEFT_SQUARE_BRACKET_list
   : AnnotationList_LEFT_SQUARE_BRACKET
   | AnnotationList_LEFT_SQUARE_BRACKET_list AnnotationList_LEFT_SQUARE_BRACKET
+  | AnnotationList_LEFT_SQUARE_BRACKET_list AnnotationList_LEFT_SQUARE_BRACKET_list
   ;

@@ -52,13 +52,13 @@ package WisiToken_Grammar_Runtime is
       EBNF_Ok : Boolean := False;
       --  Set True when don't need to translate to EBNF.
 
-      Meta_Syntax      : WisiToken_Grammar_Runtime.Meta_Syntax := Unknown;
-      Raw_Code         : WisiToken.BNF.Raw_Code;
-      Language_Params  : WisiToken.BNF.Language_Param_Type;
-      Tokens           : aliased WisiToken.BNF.Tokens;
-      Conflicts        : WisiToken.BNF.Conflict_Lists.List;
-      McKenzie_Recover : WisiToken.BNF.McKenzie_Recover_Param_Type;
-      Max_Parallel     : SAL.Base_Peek_Type                    := 15;
+      Meta_Syntax          : WisiToken_Grammar_Runtime.Meta_Syntax := Unknown;
+      Raw_Code             : WisiToken.BNF.Raw_Code;
+      Language_Params      : WisiToken.BNF.Language_Param_Type;
+      Tokens               : aliased WisiToken.BNF.Tokens;
+      Conflicts            : WisiToken.BNF.Conflict_Lists.List;
+      McKenzie_Recover     : WisiToken.BNF.McKenzie_Recover_Param_Type;
+      Max_Parallel         : SAL.Base_Peek_Type                    := 15;
 
       Rule_Count   : Integer                   := 0;
       Action_Count : Integer                   := 0;

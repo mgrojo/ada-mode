@@ -54,7 +54,7 @@ is
    begin
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
         (Parser, Create_Lexer (Trace'Unchecked_Access), Create_Parse_Table (Text_Rep_File_Name),
-         Create_In_Parse_Actions, Create_Post_Parse_Actions, User_Data'Unchecked_Access);
+         Create_Productions, User_Data'Unchecked_Access);
 
       Parser.Tree.Lexer.Reset_With_File (-File_Name);
       Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);

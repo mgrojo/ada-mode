@@ -16,12 +16,16 @@ Productions:
 8.0: wisitoken_accept <= EnumBody Wisi_EOI
 9.0: EnumConstantList <= EnumConstant
 9.1: EnumConstantList <= EnumConstantList COMMA EnumConstant ; (1 => Direct_Left)
+9.2: EnumConstantList <= EnumConstantList COMMA EnumConstantList ; (1 => Direct_Left, 3 => Direct_Right)
 10.0: EnumConstant <= IDENTIFIER
 11.0: EnumBody <= LEFT_CURLY_BRACKET EnumConstantList COMMA RIGHT_CURLY_BRACKET
 11.1: EnumBody <= LEFT_CURLY_BRACKET COMMA RIGHT_CURLY_BRACKET
 
+Optimized_Lists:
+ EnumConstantList
+
 Recursions:
-1 => (9 (1.1) -> )
+1 => (9 (1.1, 2.1, 2.3) -> )
 
 McKenzie:
 (Insert =>
@@ -109,6 +113,7 @@ State 4:
 
 State 5:
       9.1:EnumConstantList <= EnumConstantList ^ COMMA EnumConstant
+      9.2:EnumConstantList <= EnumConstantList ^ COMMA EnumConstantList
      11.0:EnumBody <= LEFT_CURLY_BRACKET EnumConstantList ^ COMMA RIGHT_CURLY_BRACKET
 
    COMMA               => shift and goto state 8 9.1
@@ -134,13 +139,15 @@ State 7:
 
 State 8:
       9.1:EnumConstantList <= EnumConstantList COMMA ^ EnumConstant
+      9.2:EnumConstantList <= EnumConstantList COMMA ^ EnumConstantList
      11.0:EnumBody <= LEFT_CURLY_BRACKET EnumConstantList COMMA ^ RIGHT_CURLY_BRACKET
 
    RIGHT_CURLY_BRACKET => shift and goto state 9 11.0
    IDENTIFIER          => shift and goto state 4 10.0
    default             => ERROR
 
-   EnumConstant        goto state 10
+   EnumConstantList    goto state 10
+   EnumConstant        goto state 11
 
    Minimal_Complete_Actions => (RIGHT_CURLY_BRACKET 11.0)
 
@@ -153,15 +160,36 @@ State 9:
    Minimal_Complete_Actions => (4 EnumBody 11.0)
 
 State 10:
+      9.1:EnumConstantList <= EnumConstantList ^ COMMA EnumConstant
+      9.2:EnumConstantList <= EnumConstantList COMMA EnumConstantList ^
+      9.2:EnumConstantList <= EnumConstantList ^ COMMA EnumConstantList
+
+   COMMA               => reduce 3 tokens to EnumConstantList 9.2
+   default             => ERROR
+
+   Minimal_Complete_Actions => (3 EnumConstantList 9.2)
+
+State 11:
+      9.0:EnumConstantList <= EnumConstant ^
       9.1:EnumConstantList <= EnumConstantList COMMA EnumConstant ^
 
    COMMA               => reduce 3 tokens to EnumConstantList 9.1
    default             => ERROR
 
-   Minimal_Complete_Actions => (3 EnumConstantList 9.1)
+   Minimal_Complete_Actions => ((1 EnumConstantList 9.0), (3 EnumConstantList 9.1))
 
-9 states with minimal_complete_actions; 9 total minimal_complete_actions.
+State 12:
+      9.1:EnumConstantList <= EnumConstantList COMMA ^ EnumConstant
+      9.2:EnumConstantList <= EnumConstantList COMMA ^ EnumConstantList
 
- 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
+   IDENTIFIER          => shift and goto state 4 10.0
+   default             => ERROR
 
- 3 rules, 0 user actions, 0 checks, 11 states
+   EnumConstantList    goto state 10
+   EnumConstant        goto state 11
+
+   Minimal_Complete_Actions => 
+
+10 states with minimal_complete_actions; 11 total minimal_complete_actions.
+
+ 3 rules, 0 user actions, 0 checks, 13 states

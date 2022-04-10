@@ -27,6 +27,11 @@ package body WisiToken.Syntax_Trees.LR_Utils is
         (Node,
          Message => Label & ": " &
            Tree.Image (Node, Children => True, RHS_Index => True, Node_Numbers => True));
+   exception
+   when others =>
+      --  From Tree.Image; mangled tree
+      raise SAL.Programmer_Error with Label & ": " & Trimmed_Image (Tree.Get_Node_Index (Node)) & ":" &
+        Image (Tree.ID (Node), Tree.Lexer.Descriptor.all);
    end Raise_Programmer_Error;
 
    function Count (Container : Constant_List) return Ada.Containers.Count_Type

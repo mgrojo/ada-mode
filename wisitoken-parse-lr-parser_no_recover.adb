@@ -204,26 +204,25 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    end Finalize;
 
    procedure New_Parser
-     (Parser             :    out LR.Parser_No_Recover.Parser;
-      Lexer              : in     WisiToken.Lexer.Handle;
-      Table              : in     Parse_Table_Ptr;
-      In_Parse_Actions   : in     In_Parse_Action_Trees.Vector;
-      Post_Parse_Actions : in     Post_Parse_Action_Trees.Vector;
-      User_Data          : in     WisiToken.Syntax_Trees.User_Data_Access)
+     (Parser      :    out LR.Parser_No_Recover.Parser;
+      Lexer       : in     WisiToken.Lexer.Handle;
+      Table       : in     Parse_Table_Ptr;
+      Productions : in     Syntax_Trees.Production_Info_Trees.Vector;
+      User_Data   : in     Syntax_Trees.User_Data_Access)
    is begin
-      Parser.Tree.Lexer         := Lexer;
-      Parser.Table              := Table;
-      Parser.In_Parse_Actions   := In_Parse_Actions;
-      Parser.Post_Parse_Actions := Post_Parse_Actions;
-      Parser.User_Data          := User_Data;
+      Parser.Tree.Lexer  := Lexer;
+      Parser.Table       := Table;
+      Parser.Productions := Productions;
+      Parser.User_Data   := User_Data;
    end New_Parser;
 
    overriding procedure Parse
      (Shared_Parser : in out Parser;
       Log_File      : in     Ada.Text_IO.File_Type;
-      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List)
+      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List;
+      Pre_Edited    : in     Boolean        := False)
    is
-      pragma Unreferenced (Log_File);
+      pragma Unreferenced (Log_File, Pre_Edited);
 
       use all type KMN_Lists.List;
       use all type WisiToken.Syntax_Trees.Terminal_Ref;

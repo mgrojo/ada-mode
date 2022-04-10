@@ -59,8 +59,7 @@ is
       Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
    begin
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Parser, Create_Lexer (Trace'Unchecked_Access), Create_Parse_Table, Create_In_Parse_Actions,
-         Create_Post_Parse_Actions, User_Data => null);
+        (Parser, Create_Lexer (Trace'Unchecked_Access), Create_Parse_Table, Create_Productions, User_Data => null);
 
       Parser.Tree.Lexer.Reset_With_File (-File_Name);
       Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
@@ -73,7 +72,11 @@ is
    exception
    when WisiToken.Syntax_Error =>
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
-      Parser.Put_Errors;
+      if Parser.Tree.Editable then
+         Parser.Put_Errors;
+      else
+         Parser.Put_Errors (Parser.Tree.First_Parse_Stream);
+      end if;
 
    when E : WisiToken.Parse_Error =>
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);

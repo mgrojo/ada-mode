@@ -18,6 +18,10 @@
 
 pragma License (GPL);
 
+with Grammar_Grammar_01_Actions;
+with Grammar_Grammar_01_LR1_T1_Main;
+with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf;
+with WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01;
 with AUnit.Assertions;
 with AUnit.Checks.Containers;
 with Ada.Containers;
@@ -25,6 +29,8 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
+with Ada_Lite_Ebnf_Actions;
+with Ada_Lite_Ebnf_LALR_Main;
 with Ada_Lite_LR1_T1_Main;
 with GNAT.Traceback.Symbolic;
 with WisiToken.AUnit;
@@ -38,17 +44,44 @@ package body Test_Incremental is
    Log_File  : Ada.Text_IO.File_Type;
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
-   Incremental_Parser : WisiToken.Parse.LR.Parser.Parser;
-   Full_Parser        : WisiToken.Parse.LR.Parser.Parser;
+   package Ada_Lite is
+      Incremental_Parser : aliased WisiToken.Parse.LR.Parser.Parser;
+      Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser;
 
-   Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
-     (Ada_Lite_Actions.Descriptor.First_Terminal,
-      Ada_Lite_Actions.Descriptor.Last_Terminal,
-      Ada_Lite_Actions.Descriptor.First_Nonterminal,
-      Ada_Lite_Actions.Descriptor.Last_Nonterminal);
+      Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
+        (Ada_Lite_Actions.Descriptor.First_Terminal,
+         Ada_Lite_Actions.Descriptor.Last_Terminal,
+         Ada_Lite_Actions.Descriptor.First_Nonterminal,
+         Ada_Lite_Actions.Descriptor.Last_Nonterminal);
+   end Ada_Lite;
+
+   package Ada_Lite_EBNF is
+      Incremental_Parser : aliased WisiToken.Parse.LR.Parser.Parser;
+      Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser;
+
+      Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
+        (Ada_Lite_Ebnf_Actions.Descriptor.First_Terminal,
+         Ada_Lite_Ebnf_Actions.Descriptor.Last_Terminal,
+         Ada_Lite_Ebnf_Actions.Descriptor.First_Nonterminal,
+         Ada_Lite_Ebnf_Actions.Descriptor.Last_Nonterminal);
+   end Ada_Lite_EBNF;
+
+   package Grammar is
+      Incremental_Parser : aliased WisiToken.Parse.LR.Parser.Parser;
+      Full_Parser        : aliased WisiToken.Parse.LR.Parser.Parser;
+
+      Orig_McKenzie_Param : WisiToken.Parse.LR.McKenzie_Param_Type
+        (Grammar_Grammar_01_Actions.Descriptor.First_Terminal,
+         Grammar_Grammar_01_Actions.Descriptor.Last_Terminal,
+         Grammar_Grammar_01_Actions.Descriptor.First_Nonterminal,
+         Grammar_Grammar_01_Actions.Descriptor.Last_Nonterminal);
+   end Grammar;
 
    Initial_Buffer : Ada.Strings.Unbounded.Unbounded_String;
    Edited_Buffer  : Ada.Strings.Unbounded.Unbounded_String;
+
+   Incremental_Parser : access WisiToken.Parse.LR.Parser.Parser := Ada_Lite.Incremental_Parser'Access;
+   Full_Parser        : access WisiToken.Parse.LR.Parser.Parser := Ada_Lite.Full_Parser'Access;
 
    procedure Parse_Text
      (Initial        : in String;
@@ -60,9 +93,10 @@ package body Test_Incremental is
       Insert_2       : in String                    := "";
       Initial_Errors : in Ada.Containers.Count_Type := 0;
       Incr_Errors    : in Ada.Containers.Count_Type := 0;
+      Optimized_List : in Boolean                   := False;
       Label          : in String                    := "")
    with Pre => Edit_2_At = 0 or Edit_2_At >= Edit_At
-   --  If Initial is "", start from existing tree.
+   --  If Initial is "", start from previous edited text and existing tree.
    is
       use Ada.Text_IO;
       use AUnit.Checks;
@@ -209,7 +243,7 @@ package body Test_Incremental is
       begin
          Full_Parser.Parse (Log_File);
          if WisiToken.Trace_Tests > WisiToken.Detail then
-            Put_Tree (Full_Parser);
+            Put_Tree (Full_Parser.all);
          end if;
          Check (Label_Dot & "edited full parse errors", Full_Parser.Tree.Error_Count, Incr_Errors);
       exception
@@ -233,7 +267,7 @@ package body Test_Incremental is
          begin
             Incremental_Parser.Parse (Log_File);
             if WisiToken.Trace_Tests > WisiToken.Detail then
-               Put_Tree (Incremental_Parser);
+               Put_Tree (Incremental_Parser.all);
             end if;
          exception
          when WisiToken.Syntax_Error =>
@@ -281,13 +315,32 @@ package body Test_Incremental is
       if WisiToken.Trace_Tests > WisiToken.Detail then
          New_Line;
          Put_Line (Label_Dot & "incremental parse result:");
-         Put_Tree (Incremental_Parser);
+         Put_Tree (Incremental_Parser.all);
       end if;
 
       Check (Label_Dot & "incr errors", Incremental_Parser.Tree.Error_Count, Incr_Errors);
-      Check (Label_Dot & "tree", Incremental_Parser.Tree, Edited_Source_Full_Parse_Tree,
-             Shared_Stream         => False,
-             Terminal_Node_Numbers => False);
+
+      declare
+         Error_Reported : WisiToken.Syntax_Trees.Node_Sets.Set;
+      begin
+         Incremental_Parser.Tree.Validate_Tree
+           (User_Data, Error_Reported,
+            Node_Index_Order => False,
+            Validate_Node    => WisiToken.Syntax_Trees.Mark_In_Tree'Access);
+         Incremental_Parser.Tree.Free_Augmented;
+         if Error_Reported.Count > 0 then
+            AUnit.Assertions.Assert (False, "incr invalid tree");
+         end if;
+      end;
+
+      if not Optimized_List then
+         --  Incremental parse can leave an optimized_list node in the tree;
+         --  full parse does not. So we can't compare them
+         Check (Label_Dot & "tree", Incremental_Parser.Tree, Edited_Source_Full_Parse_Tree,
+                Shared_Stream         => False,
+                Terminal_Node_Numbers => False);
+      end if;
+
    exception
    when AUnit.Assertions.Assertion_Error =>
       raise;
@@ -295,7 +348,7 @@ package body Test_Incremental is
    when WisiToken.Syntax_Error =>
       if WisiToken.Trace_Tests > WisiToken.Detail then
          Put_Line (Label_Dot & "(syntax_error) incremental parse result:");
-         Put_Tree (Incremental_Parser);
+         Put_Tree (Incremental_Parser.all);
       end if;
 
       Check ("syntax_error", True, False);
@@ -1251,7 +1304,7 @@ package body Test_Incremental is
          use WisiToken.Syntax_Trees;
          use Ada_Lite_Actions;
          use AUnit.Checks;
-         Tree : WisiToken.Syntax_Trees.Tree renames Incremental_Parser.Tree;
+         Tree : WisiToken.Syntax_Trees.Tree renames Ada_Lite.Incremental_Parser.Tree;
          Begin_Name_Node : constant Valid_Node_Access := Tree.Find_Descendant (Tree.Root, +subprogram_specification_ID);
          End_Name_Node   : constant Valid_Node_Access := Tree.Find_Descendant (Tree.Root, +name_opt_ID);
       begin
@@ -1338,6 +1391,693 @@ package body Test_Incremental is
          Initial_Errors => 1,
          Incr_Errors    => 1);
    end Recover_03;
+
+   procedure Recover_04 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  This encountered a bug in recover Left_Breakdown. From
+      --  wisitoken_grammar_mode recover_01.wy.
+
+      Incremental_Parser := Grammar.Incremental_Parser'Access;
+      Full_Parser        := Grammar.Full_Parser'Access;
+
+      Parse_Text
+        (Label   => "1",
+         Initial =>
+           "range_attribute_designator : 'range' '(' expression ')' ;" & ASCII.LF &
+             --      |10       |20       |30       |40       |50         |58
+             "aggregate : record_aggregate" & ASCII.LF &
+             --  |62     |70       |80
+             " | extension_aggregate ;" & ASCII.LF &
+             --  |91      |100      |110
+             "record_aggregate : '(' record_component_association_list ')' ;",
+         --   |113
+
+         Edit_At        => 113,
+         Delete         => "",
+         Insert         => ";; ",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+
+      Parse_Text
+        (Label          => "2",
+         Initial        => "",
+         Edit_At        => 69,
+         Delete         => "",
+         Insert         => ";",
+         Initial_Errors => 1,
+         Incr_Errors    => 1);
+
+      Parse_Text
+        (Label          => "3",
+         Initial        => "",
+         Edit_At        => 70,
+         Delete         => "",
+         Insert         => ";",
+         Initial_Errors => 1,
+         Incr_Errors    => 1);
+
+      Parse_Text
+        (Label          => "4",
+         Initial        => "",
+         Edit_At        => 71,
+         Delete         => "",
+         Insert         => " ",
+         Initial_Errors => 1,
+         Incr_Errors    => 1);
+   end Recover_04;
+
+   procedure Recover_05a (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Recover_05a .. Recover_05e test all cases of n items in
+      --  optimized_list before/after edit point; list has a separator.
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial => "procedure a (p1 : Int; p2 : int; p3 : int; p4 : int; p5 : int); procedure B; procedure C;",
+         --                   |10       |20
+         Edit_At        => 14,
+         Delete         => "",
+         Insert         => "  ",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Recover_05a;
+
+   procedure Recover_05b (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Recover_05a .. Recover_05e test all cases of n items in
+      --  optimized_list before/after edit point; list has a separator.
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial => "procedure a (p1 : Int; p2 : int; p3 : int; p4 : int; p5 : int); procedure B; procedure C;",
+         --                   |10       |20
+         Edit_At        => 24,
+         Delete         => "",
+         Insert         => "  ",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Recover_05b;
+
+   procedure Recover_05c (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Recover_05a .. Recover_05e test all cases of n items in
+      --  optimized_list before/after edit point; list has a separator.
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial => "procedure a (p1 : Int; p2 : int; p3 : int; p4 : int; p5 : int); procedure B; procedure C;",
+         --                   |10       |20       |30
+         Edit_At        => 34,
+         Delete         => "",
+         Insert         => "  ",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Recover_05c;
+
+   procedure Recover_05d (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Recover_05a .. Recover_05e test all cases of n items in
+      --  optimized_list before/after edit point; list has a separator.
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial => "procedure a (p1 : Int; p2 : int; p3 : int; p4 : int; p5 : int); procedure B; procedure C;",
+         --                   |10       |20       |30       |40
+         Edit_At        => 44,
+         Delete         => "",
+         Insert         => "  ",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+
+   end Recover_05d;
+
+   procedure Recover_05e (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Recover_05a .. Recover_05e test all cases of n items in
+      --  optimized_list before/after edit point when list has a separator.
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial => "procedure a (p1 : Int; p2 : int; p3 : int; p4 : int; p5 : int); procedure B; procedure C;",
+         --                   |10       |20       |30       |40       |50
+         Edit_At        => 54,
+         Delete         => "",
+         Insert         => "  ",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+   end Recover_05e;
+
+   procedure Recover_06a (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Recover_06a .. Recover_06e test all cases of n items in
+      --  optimized_list before/after edit point when breakdown target ID
+      --  is the list ID.
+      --
+      --  The missing statement in the procedure bodies labels the
+      --  subprogram body declaration node a "recover_conflict", so
+      --  Edit_Tree calls Breakdown with that node as the target;
+      --  declarations are an optimized list.
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial => "package body AMIR1 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a is begin end a;" & ASCII.LF &
+           --      |30
+           "procedure b;" & ASCII.LF &
+           "procedure c;" & ASCII.LF &
+           "procedure d;" & ASCII.LF &
+           "procedure e;" & ASCII.LF &
+           "end AMIR1;",
+
+         Edit_At        => 34,
+         Delete         => " is begin end a;",
+         Insert         => ";",
+         Initial_Errors => 1,
+         Incr_Errors    => 0,
+         Optimized_List => True);
+   end Recover_06a;
+
+   procedure Recover_06b (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Recover_06a .. Recover_06e test all cases of n items in
+      --  optimized_list before/after edit point when breakdown target ID
+      --  is the list ID.
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial => "package body AMIR1 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a;" & ASCII.LF &
+           --      |30
+           "procedure b is begin end b;" & ASCII.LF &
+           --   |40
+           "procedure c;" & ASCII.LF &
+           "procedure d;" & ASCII.LF &
+           "procedure e;" & ASCII.LF &
+           "end AMIR1;",
+
+         Edit_At        => 47,
+         Delete         => " is begin end b;",
+         Insert         => ";",
+         Initial_Errors => 1,
+         Incr_Errors    => 0,
+         Optimized_List => True);
+   end Recover_06b;
+
+   procedure Recover_06c (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Recover_06a .. Recover_06e test all cases of n items in
+      --  optimized_list before/after edit point when breakdown target ID
+      --  is the list ID.
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial => "package body AMIR1 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a;" & ASCII.LF &
+           --      |30
+           "procedure b;" & ASCII.LF &
+           --   |40
+           "procedure c is begin end c;" & ASCII.LF &
+           --          |60
+           "procedure d;" & ASCII.LF &
+           "procedure e;" & ASCII.LF &
+           "end AMIR1;",
+
+         Edit_At        => 60,
+         Delete         => " is begin end c;",
+         Insert         => ";",
+         Initial_Errors => 1,
+         Incr_Errors    => 0);
+   end Recover_06c;
+
+   procedure Recover_06d (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Recover_06a .. Recover_06e test all cases of n items in
+      --  optimized_list before/after edit point when breakdown target ID
+      --  is the list ID.
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial => "package body AMIR1 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a;" & ASCII.LF &
+           --      |30
+           "procedure b;" & ASCII.LF &
+           --   |40
+           "procedure c;" & ASCII.LF &
+           --          |60
+           "procedure d is begin end d;" & ASCII.LF &
+           --       |70
+           "procedure e;" & ASCII.LF &
+           "end AMIR1;",
+
+         Edit_At        => 73,
+         Delete         => " is begin end d;",
+         Insert         => ";",
+         Initial_Errors => 1,
+         Incr_Errors    => 0);
+   end Recover_06d;
+
+   procedure Recover_06e (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Recover_06a .. Recover_06e test all cases of n items in
+      --  optimized_list before/after edit point when breakdown target ID
+      --  is the list ID.
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial => "package body AMIR1 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a;" & ASCII.LF &
+           --      |30
+           "procedure b;" & ASCII.LF &
+           --   |40
+           "procedure c;" & ASCII.LF &
+           --          |60
+           "procedure d;" & ASCII.LF &
+           --       |70
+           "procedure e is begin end e;" & ASCII.LF &
+           --    |80
+           "end AMIR1;",
+
+         Edit_At        => 86,
+         Delete         => " is begin end e;",
+         Insert         => ";",
+         Initial_Errors => 1,
+         Incr_Errors    => 0);
+   end Recover_06e;
+
+   procedure Recover_07 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Edit an optimized_list that is nested in another, with intervening
+      --  non-list nodes; from ada_mode-interactive_02.adb
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial => "package body AMIR1 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a;" & ASCII.LF &
+           --      |30
+           "procedure b is a : int; begin null; end b;" & ASCII.LF &
+           --   |40       |50       |60       |70
+           "procedure c;" & ASCII.LF &
+           --     |85
+           "procedure d is a : int; begin null; end d;" & ASCII.LF &
+           --       |100      |110
+           "procedure e;" & ASCII.LF &
+           "end AMIR1;",
+         Edit_At        => 52,
+         Delete         => "",
+         Insert         => "1",
+         Initial_Errors => 0,
+         Incr_Errors    => 0,
+         Optimized_List => True);
+   end Recover_07;
+
+   procedure Recover_08a (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Ada_Lite_Ebnf_Actions;
+   begin
+      --  Recover_08? cover all cases where Breakdown optimized_list
+      --  encounters an RHS_Index = 2 node.
+
+      --  The first edit and breakdown leaves a parse stream like this:
+      --  ... procedure ..., error token, ), ;, declaration_list ...
+      --
+      --  Parsing that produces a tree like:
+      --  ...
+      --  | declarative_part_0
+      --  | | declarations_list_2
+      --  | | | declarations_list_0
+      --  | | | | ... deleted error token ...
+      --  | | | declarations_list_1
+      --  | | | | ...
+
+      --  Make (insert 'end') expensive so error recovery chooses (delete ';').
+      Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param.Insert (+END_ID)        := 4;
+      Ada_Lite_EBNF.Incremental_Parser.Table.McKenzie_Param.Insert (+END_ID) := 4;
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Label   => "1",
+         Initial => "package body AMI3 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a (p1 : int);" & ASCII.LF &
+           --       |30       |40
+           "procedure b;" & ASCII.LF &
+           --   |50
+           "procedure c (p1 : int);" & ASCII.LF &
+           --          |70       |80
+           "procedure d;" & ASCII.LF &
+           --      |90
+           "procedure e;" & ASCII.LF &
+           --   |100
+           "type f is (C1);" & ASCII.LF &
+           --          |120
+           "end AMI3;",
+         Edit_At        => 43, -- extra ; after int in a
+         Delete         => "",
+         Insert         => ";",
+         Initial_Errors => 0,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      --  We now have the declarations_list_2 tree.
+      --
+      --  The edit we do next is not important; the declarations_list_2 node
+      --  is encountered when restoring the deleted ';' in a, which does
+      --  Breakdown with Target = ) in a. This is handled by the not
+      --  optimized_list branch in Breakdown.
+      Parse_Text
+        (Label   => "2",
+         Initial => "",
+         Edit_At        => 123, -- edit f enum literal again
+         Delete         => "",
+         Insert         => "3",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+   end Recover_08a;
+
+   procedure Recover_08b (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Ada_Lite_Ebnf_Actions;
+   begin
+      --  Recover_08? cover all cases where Breakdown optimized_list
+      --  encounters an RHS_Index = 2 node.
+
+      --  The first few edits and breakdown leave a parse stream like this:
+      --  ... declaration, error token, declaration_list, declaration, ...
+      --
+      --  Parsing that produces a tree like:
+      --  ...
+      --  | declarations_list_1
+      --  | | declarations_list_2
+      --  | | | declarations_list_0
+      --  | | | | ... deleted error token
+      --  | | | declarations_list_1
+      --  | | | | ...
+
+      --  Make (insert 'end') expensive so error recovery chooses (delete ';').
+      Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param.Insert (+END_ID)        := 4;
+      Ada_Lite_EBNF.Incremental_Parser.Table.McKenzie_Param.Insert (+END_ID) := 4;
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Label   => "1",
+         Initial => "package body AMI3 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a;" & ASCII.LF &
+           --       |30
+           "procedure b (p1 : int);" & ASCII.LF &
+           --    |40       |50
+           "procedure c (p1 : int);" & ASCII.LF &
+           --          |70       |80
+           "procedure d;" & ASCII.LF &
+           --      |90
+           "procedure e;" & ASCII.LF &
+           --   |100
+           "type f is (C1);" & ASCII.LF &
+           --          |120
+           "end AMI3;",
+         Edit_At        => 33, -- extra ; after a
+         Delete         => "",
+         Insert         => ";",
+         Initial_Errors => 0,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      Parse_Text
+        (Label   => "2",
+         Initial => "",
+         Edit_At        => 122, -- edit f enum literal
+         Delete         => "",
+         Insert         => "2",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      --  We now have a tree like:
+      --  ...
+      --  | declarations_list_1
+      --  | | declarations_list_2
+      --  | | | declarations_list_0
+      --  | | | | a. deleted ;
+      --  | | | declarations_list_1
+      --  | | | | b c d e
+      --  ...
+
+      --  The edit we do next is not important; the declarations_list_2 node
+      --  is encountered when restoring the deleted ';' after a, which does
+      --  Breakdown with Target = first terminal of b, which is in the
+      --  second child of the declarations_list_2
+      Parse_Text
+        (Label   => "3",
+         Initial => "",
+         Edit_At        => 123, -- edit f enum literal again
+         Delete         => "",
+         Insert         => "3",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+   end Recover_08b;
+
+   procedure Recover_08c (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Ada_Lite_Ebnf_Actions;
+   begin
+      --  Recover_08? cover all cases where Breakdown optimized_list
+      --  encounters an RHS_Index = 2 node.
+
+      --  Make (insert 'end') expensive so error recovery chooses (delete ';').
+      Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param.Insert (+END_ID)        := 4;
+      Ada_Lite_EBNF.Incremental_Parser.Table.McKenzie_Param.Insert (+END_ID) := 4;
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Label   => "1",
+         Initial => "package body AMI3 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a;" & ASCII.LF &
+           --       |30
+           "procedure b (p1 : int);" & ASCII.LF &
+           --    |40       |50
+           "procedure c (p1 : int);" & ASCII.LF &
+           --          |70       |80
+           "procedure d;" & ASCII.LF &
+           --      |90
+           "procedure e;" & ASCII.LF &
+           --   |100
+           "type f is (C1);" & ASCII.LF &
+           --          |120
+           "end AMI3;",
+         Edit_At        => 56, -- extra ; in b param_list
+         Delete         => "",
+         Insert         => ";",
+         Initial_Errors => 0,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      Parse_Text
+        (Label   => "2",
+         Initial => "",
+         Edit_At        => 122, -- edit f enum literal
+         Delete         => "",
+         Insert         => "2",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      --  We now have a tree like:
+      --  ...
+      --  | declarations_list_1
+      --  | | declarations_list_2
+      --  | | | declarations_list_1
+      --  | | | | a b deleted ;)
+      --  | | | declarations_list_1
+      --  | | | | c d e
+      --  ...
+
+      --  The breakdown target is the closing paren in b, which is in the
+      --  first child of the declarations_list_2 node.
+      Parse_Text
+        (Label   => "3",
+         Initial => "",
+         Edit_At        => 123, -- edit f enum literal again
+         Delete         => "",
+         Insert         => "3",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+   end Recover_08c;
+
+   procedure Recover_08d (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Ada_Lite_Ebnf_Actions;
+   begin
+      --  Recover_08? cover all cases where Breakdown optimized_list
+      --  encounters an RHS_Index = 2 node.
+
+      --  The first few edits and breakdown leave a parse stream like this:
+      --  ... declaration_list, error token, declaration_list, declaration, ...
+      --
+      --  Parsing that produces a tree like:
+      --  ...
+      --  | declarations_list_1
+      --  | | declarations_list_2
+      --  | | | declarations_list_1
+      --  | | | | ... deleted error token
+      --  | | | declarations_list_1
+      --  | | | | ...
+
+      --  Make (insert 'end') expensive so error recovery chooses (delete ';').
+      Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param.Insert (+END_ID)        := 4;
+      Ada_Lite_EBNF.Incremental_Parser.Table.McKenzie_Param.Insert (+END_ID) := 4;
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Label   => "1",
+         Initial => "package body AMI3 is" & ASCII.LF &
+           --                 |10       |20
+           "procedure a;" & ASCII.LF &
+           --       |30
+           "procedure b (p1 : int);" & ASCII.LF &
+           --    |40       |50
+           "procedure c (p1 : int);" & ASCII.LF &
+           --          |70       |80
+           "procedure d;" & ASCII.LF &
+           --      |90
+           "procedure e;" & ASCII.LF &
+           --   |100
+           "type f is (C1);" & ASCII.LF &
+           --          |120
+           "end AMI3;",
+         Edit_At        => 81, -- extra ; after c
+         Delete         => "",
+         Insert         => ";",
+         Initial_Errors => 0,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      Parse_Text
+        (Label   => "2",
+         Initial => "",
+         Edit_At        => 122, -- edit f enum literal
+         Delete         => "",
+         Insert         => "2",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+      --  We now have a tree like:
+      --  ...
+      --  | declarations_list_1
+      --  | | declarations_list_2
+      --  | | | declarations_list_1
+      --  | | | | a b c, deleted ;
+      --  | | | declarations_list_1
+      --  | | | | d e
+      --  ...
+
+      --  This is essentially the same as Recover_08b, and is handled by the
+      --  same branch in Breakdown.
+      Parse_Text
+        (Label   => "3",
+         Initial => "",
+         Edit_At        => 123, -- edit f enum literal again
+         Delete         => "",
+         Insert         => "3",
+         Initial_Errors => 1,
+         Incr_Errors    => 1,
+         Optimized_List => True);
+
+   end Recover_08d;
+
+   procedure Recover_09 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-recover_align_1.adb. Breakdown an optimized_list with
+      --  separator, twice before parsing.
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial        => "procedure b (p1 : int; p2 : int; p3 : int; p4 : int; p : int) is begin null; end b;",
+         --                          |10       |20       |30       |40       |50       |60
+         Edit_At        => 37,
+         Delete         => ":",
+         Insert         => "",
+         Edit_2_At      => 56,
+         Delete_2       => ":",
+         Insert_2       => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 2);
+   end Recover_09;
 
    procedure Lexer_Errors_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1427,7 +2167,7 @@ package body Test_Incremental is
          use WisiToken;
          use WisiToken.Syntax_Trees;
          use AUnit.Checks;
-         Tree : Syntax_Trees.Tree renames Incremental_Parser.Tree;
+         Tree : Syntax_Trees.Tree renames Ada_Lite.Incremental_Parser.Tree;
          Deleted : Node_Access := Tree.First_Terminal (Tree.Root);
       begin
          loop
@@ -1872,6 +2612,23 @@ package body Test_Incremental is
       Register_Routine (T, Recover_01'Access, "Recover_01");
       Register_Routine (T, Recover_02'Access, "Recover_02");
       Register_Routine (T, Recover_03'Access, "Recover_03");
+      Register_Routine (T, Recover_04'Access, "Recover_04");
+      Register_Routine (T, Recover_05a'Access, "Recover_05a");
+      Register_Routine (T, Recover_05b'Access, "Recover_05b");
+      Register_Routine (T, Recover_05c'Access, "Recover_05c");
+      Register_Routine (T, Recover_05d'Access, "Recover_05d");
+      Register_Routine (T, Recover_05e'Access, "Recover_05e");
+      Register_Routine (T, Recover_06a'Access, "Recover_06a");
+      Register_Routine (T, Recover_06b'Access, "Recover_06b");
+      Register_Routine (T, Recover_06c'Access, "Recover_06c");
+      Register_Routine (T, Recover_06d'Access, "Recover_06d");
+      Register_Routine (T, Recover_06e'Access, "Recover_06e");
+      Register_Routine (T, Recover_07'Access, "Recover_07");
+      Register_Routine (T, Recover_08a'Access, "Recover_08a");
+      Register_Routine (T, Recover_08b'Access, "Recover_08b");
+      Register_Routine (T, Recover_08c'Access, "Recover_08c");
+      Register_Routine (T, Recover_08d'Access, "Recover_08d");
+      Register_Routine (T, Recover_09'Access, "Recover_09");
       Register_Routine (T, Lexer_Errors_01'Access, "Lexer_Errors_01");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
@@ -1904,12 +2661,11 @@ package body Test_Incremental is
    is begin
       --  Run before Register_Tests
       WisiToken.Parse.LR.Parser.New_Parser
-        (Full_Parser,
+        (Ada_Lite.Full_Parser,
          Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
          Ada_Lite_LR1_T1_Main.Create_Parse_Table
            (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
-         Ada_Lite_LR1_T1_Main.Create_In_Parse_Actions,
-         Ada_Lite_LR1_T1_Main.Create_Post_Parse_Actions,
+         Ada_Lite_LR1_T1_Main.Create_Productions,
          Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
          Language_Matching_Begin_Tokens =>
            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
@@ -1917,12 +2673,11 @@ package body Test_Incremental is
          User_Data                      => User_Data'Access);
 
       WisiToken.Parse.LR.Parser.New_Parser
-        (Incremental_Parser,
+        (Ada_Lite.Incremental_Parser,
          Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
          Ada_Lite_LR1_T1_Main.Create_Parse_Table
            (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
-         Ada_Lite_LR1_T1_Main.Create_In_Parse_Actions,
-         Ada_Lite_LR1_T1_Main.Create_Post_Parse_Actions,
+         Ada_Lite_LR1_T1_Main.Create_Productions,
          Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
          Language_Matching_Begin_Tokens =>
            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
@@ -1930,19 +2685,92 @@ package body Test_Incremental is
          User_Data                      => User_Data'Access);
 
       if T.McKenzie_Config /= null then
-         WisiToken.Parse.LR.Set_McKenzie_Options (Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
-         WisiToken.Parse.LR.Set_McKenzie_Options (Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+         WisiToken.Parse.LR.Set_McKenzie_Options
+           (Ada_Lite.Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+         WisiToken.Parse.LR.Set_McKenzie_Options (Ada_Lite.Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
       end if;
 
-      Orig_McKenzie_Param := Full_Parser.Table.McKenzie_Param;
+      Ada_Lite.Orig_McKenzie_Param := Ada_Lite.Full_Parser.Table.McKenzie_Param;
+
+      WisiToken.Parse.LR.Parser.New_Parser
+        (Ada_Lite_EBNF.Full_Parser,
+         Ada_Lite_Ebnf_LALR_Main.Create_Lexer (Trace'Access),
+         Ada_Lite_Ebnf_LALR_Main.Create_Parse_Table,
+         Ada_Lite_Ebnf_LALR_Main.Create_Productions,
+         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Fixes'Access,
+         Language_Matching_Begin_Tokens =>
+           WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Matching_Begin_Tokens'Access,
+         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.String_ID_Set'Access,
+         User_Data                      => User_Data'Access);
+
+      WisiToken.Parse.LR.Parser.New_Parser
+        (Ada_Lite_EBNF.Incremental_Parser,
+         Ada_Lite_Ebnf_LALR_Main.Create_Lexer (Trace'Access),
+         Ada_Lite_Ebnf_LALR_Main.Create_Parse_Table,
+         Ada_Lite_Ebnf_LALR_Main.Create_Productions,
+         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Fixes'Access,
+         Language_Matching_Begin_Tokens =>
+           WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.Matching_Begin_Tokens'Access,
+         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite_Ebnf.String_ID_Set'Access,
+         User_Data                      => User_Data'Access);
+
+      if T.McKenzie_Config /= null then
+         WisiToken.Parse.LR.Set_McKenzie_Options
+           (Ada_Lite_EBNF.Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+         WisiToken.Parse.LR.Set_McKenzie_Options
+           (Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+      end if;
+
+      Ada_Lite_EBNF.Orig_McKenzie_Param := Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param;
+
+      WisiToken.Parse.LR.Parser.New_Parser
+        (Grammar.Full_Parser,
+         Grammar_Grammar_01_LR1_T1_Main.Create_Lexer (Trace'Access),
+         Grammar_Grammar_01_LR1_T1_Main.Create_Parse_Table,
+         Grammar_Grammar_01_LR1_T1_Main.Create_Productions,
+         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Fixes'Access,
+         Language_Matching_Begin_Tokens =>
+           WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Matching_Begin_Tokens'Access,
+         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.String_ID_Set'Access,
+         User_Data                      => User_Data'Access);
+
+      WisiToken.Parse.LR.Parser.New_Parser
+        (Grammar.Incremental_Parser,
+         Grammar_Grammar_01_LR1_T1_Main.Create_Lexer (Trace'Access),
+         Grammar_Grammar_01_LR1_T1_Main.Create_Parse_Table,
+         Grammar_Grammar_01_LR1_T1_Main.Create_Productions,
+         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Fixes'Access,
+         Language_Matching_Begin_Tokens =>
+           WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.Matching_Begin_Tokens'Access,
+         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Grammar_Grammar_01.String_ID_Set'Access,
+         User_Data                      => User_Data'Access);
+
+      if T.McKenzie_Config /= null then
+         WisiToken.Parse.LR.Set_McKenzie_Options
+           (Grammar.Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+         WisiToken.Parse.LR.Set_McKenzie_Options (Grammar.Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+      end if;
+
+      Grammar.Orig_McKenzie_Param := Grammar.Full_Parser.Table.McKenzie_Param;
+
    end Set_Up_Case;
 
    overriding procedure Set_Up (T : in out Test_Case)
    is begin
       --  Run before each test in Register_Tests
-      Ada_Lite_Actions.End_Name_Optional      := True;
-      Full_Parser.Table.McKenzie_Param        := Orig_McKenzie_Param;
-      Incremental_Parser.Table.McKenzie_Param := Orig_McKenzie_Param;
+      Incremental_Parser := Ada_Lite.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite.Full_Parser'Access;
+
+      Ada_Lite_Actions.End_Name_Optional               := True;
+      Ada_Lite.Full_Parser.Table.McKenzie_Param        := Ada_Lite.Orig_McKenzie_Param;
+      Ada_Lite.Incremental_Parser.Table.McKenzie_Param := Ada_Lite.Orig_McKenzie_Param;
+
+      Ada_Lite_Ebnf_Actions.End_Name_Optional               := True;
+      Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param        := Ada_Lite_EBNF.Orig_McKenzie_Param;
+      Ada_Lite_EBNF.Incremental_Parser.Table.McKenzie_Param := Ada_Lite_EBNF.Orig_McKenzie_Param;
+
+      Grammar.Full_Parser.Table.McKenzie_Param        := Grammar.Orig_McKenzie_Param;
+      Grammar.Incremental_Parser.Table.McKenzie_Param := Grammar.Orig_McKenzie_Param;
    end Set_Up;
 
 end Test_Incremental;

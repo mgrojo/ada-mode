@@ -519,7 +519,13 @@ Example conflict declaration:
 The conflict description is output by @code{wisitoken-bnf-generate}
 when an undeclared conflict is detected. If the user decides to not
 fix the conflict, the description can be copied into the grammar
-source file, so it will be ignored next time around.
+source file, so it will be ignored next time around. Or it can be
+converted to a @code{%conflict_resolution}; see the next item.
+
+If a conflict has more than two branches, it must be declared more
+than once, first with two branches, then with one more, etc. This is
+due to the way conflicts are found during the parse table generation
+process.
 
 Resolving conflicts in the grammar can be difficult, but leaving them
 in can increase parse time and cause ambiguous parses.
@@ -529,6 +535,23 @@ In Emacs, @code{wisitoken-parse_table-mode} provides a command
 in the parse table file, which has more information that might help
 resolve the conflict. @code{wisitoken-grammar-mode} binds that command
 to @key{^c .}.
+
+@item %conflict_resolution <conflict description> : <resolution>
+Declare a conflict resolution. The conflict description is the same as
+in a @code{%conflict} declaration; the resolution says which branch of
+the conflict to take.
+
+Only one kind of resolution is supported: a token name, which must
+match one of the token names in the conflict description; the branch
+that contains that token is taken.
+
+Example conflict resolution declaration:
+@verbatim
+%conflict REDUCE abstract_limited_opt
+ | REDUCE abstract_limited_synchronized_opt on token NEW
+ : abstract_limited_opt
+@end verbatim
+This says to always reduce to @code{abstract_limited_opt}.
 
 @item %elisp_face <name>
 Declare a name for an elisp face constant.
@@ -811,6 +834,38 @@ the current lexer or parser is not the one specified in the @code{%if,
 @c FIXME: overview of error correction, and its role in parsing,
 @c consequences for indent, etc. Clean up error correction paper, add
 @c to elpa :docs, reference here.
+
+@node Optimized lists
+@section Optimized lists
+A list of tokens is often specified as:
+@example
+declarations
+  : declaration
+  | declarations declaration
+  ;
+@end example
+If the input syntax consists of a single long list of declarations,
+the resulting syntax tree is a linear list at the top level. This
+causes performance problems in incremental parse; editing the syntax
+tree requires breaking down then entire list, taking time proportional
+to the input text length.
+
+This is improved by recognizing the following construct:
+@example
+declarations
+  : declaration
+  | declarations declaration
+  | declarations declarations
+  ;
+@end example
+This is called an ``optimized list''. It has conflicts, which are
+resolved by choosing to reduce to declarations; they do not need to be
+declared in the grammar file. In a batch parse, this produces the same
+syntax tree as the first definition of ``declarations''. However, when
+the tree is edited for incremental parse, the list is broken into two
+sublists, rather than breaking down the entire list.
+
+The various EBNF repeats all produce optimized lists.
 
 @node Language-specific parser runtime functions
 @chapter Language-specific parser runtime functions

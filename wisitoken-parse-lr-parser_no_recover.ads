@@ -39,29 +39,19 @@ package WisiToken.Parse.LR.Parser_No_Recover is
    --  Deep free Object.Table.
 
    procedure New_Parser
-     (Parser             :    out LR.Parser_No_Recover.Parser;
-      Lexer              : in     WisiToken.Lexer.Handle;
-      Table              : in     Parse_Table_Ptr;
-      In_Parse_Actions   : in     In_Parse_Action_Trees.Vector;
-      Post_Parse_Actions : in     Post_Parse_Action_Trees.Vector;
-      User_Data          : in     Syntax_Trees.User_Data_Access);
+     (Parser      :    out LR.Parser_No_Recover.Parser;
+      Lexer       : in     WisiToken.Lexer.Handle;
+      Table       : in     Parse_Table_Ptr;
+      Productions : in     Syntax_Trees.Production_Info_Trees.Vector;
+      User_Data   : in     Syntax_Trees.User_Data_Access);
 
    overriding procedure Parse
      (Shared_Parser : in out LR.Parser_No_Recover.Parser;
       Log_File      : in     Ada.Text_IO.File_Type;
-      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List);
-   --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
-   --  input setting Shared_Parser.Terminals, then parses tokens.
-   --
-   --  If a parse error is encountered, raises Syntax_Error.
-   --  Parser.Lexer_Errors and Parsers(*).Errors contain information
-   --  about the errors.
-   --
-   --  For other errors, raises Parse_Error with an appropriate error
-   --  message.
-   --
-   --  Raises SAL.Programmer_Error if Edits is not empty. Log_File is
-   --  ignored.
+      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List;
+      Pre_Edited    : in     Boolean        := False);
+   --  Raises SAL.Programmer_Error if Edits is not empty. Pre_Edited and
+   --  Log_File are ignored.
 
    overriding procedure Execute_Actions
      (Parser              : in out LR.Parser_No_Recover.Parser;

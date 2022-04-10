@@ -52,18 +52,21 @@ gen_BNF :: conflict_name_re2c.c
 gen_BNF :: dragon_4_43_re2c.c
 gen_BNF :: empty_production_1_re2c.c
 gen_BNF :: empty_production_2_re2c.c
+gen_BNF :: empty_production_2_optimized_list_re2c.c
 gen_BNF :: empty_production_3_re2c.c
 gen_BNF :: empty_production_4_re2c.c
 gen_BNF :: empty_production_5_re2c.c
 gen_BNF :: empty_production_6_re2c.c
 gen_BNF :: empty_production_7_re2c.c
 gen_BNF :: empty_production_8_re2c.c
+gen_BNF :: optimized_list_re2c.c
 gen_BNF :: range_conflict_re2c.c
 gen_BNF :: skip_to_grammar_re2c.c
 gen_BNF :: warth_left_recurse_expr_1_re2c.c
 
 gen_EBNF :: ada_ebnf_bnf.wy # not a valid grammar
 gen_EBNF :: ada_lite_ebnf_re2c.c
+gen_EBNF :: grammar_grammar_01_re2c.c
 gen_EBNF :: identifier_list_name_conflict_re2c.c
 gen_EBNF :: java_ebnf_bnf.wy # not a valid grammar
 gen_EBNF :: java_enum_ch19_re2c.c
@@ -73,6 +76,11 @@ gen_EBNF :: java_types_ch19_re2c.c
 gen_EBNF :: java_types_ch19_lr1_t8_run.ads
 gen_EBNF :: lalr_generator_bug_01_re2c.c
 gen_EBNF :: nested_ebnf_optional_re2c.c
+gen_EBNF :: optimized_conflict_01_re2c.c
+gen_EBNF :: optimized_conflict_02_re2c.c
+gen_EBNF :: optimized_conflict_03_re2c.c
+gen_EBNF :: optimized_conflict_04_re2c.c
+gen_EBNF :: optimized_list_ebnf_re2c.c
 gen_EBNF :: python_ebnf_bnf.wy # not a valid grammar
 gen_EBNF :: subprograms_re2c.c
 gen_EBNF :: three_action_conflict_re2c.c

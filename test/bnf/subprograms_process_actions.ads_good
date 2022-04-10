@@ -18,7 +18,6 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Syntax_Trees;
-with WisiToken.In_Parse_Actions;
 package Subprograms_Process_Actions is
 
    Descriptor : aliased constant WisiToken.Descriptor :=
@@ -237,29 +236,29 @@ package Subprograms_Process_Actions is
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.In_Parse_Actions.Status;
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
    function block_2_check
     (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.In_Parse_Actions.Status;
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
    function compilation_unit_0_check
     (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.In_Parse_Actions.Status;
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
    function name_0_check
     (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.In_Parse_Actions.Status;
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
    function name_1_check
     (Tree           : in     WisiToken.Syntax_Trees.Tree;
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.In_Parse_Actions.Status;
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status;
 end Subprograms_Process_Actions;

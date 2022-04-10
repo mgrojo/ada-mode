@@ -5,7 +5,7 @@
 ;; Also tests wisi rules parser
 
 %code copyright_license %{
-;;  Copyright (C) 2013, 2017 - 2020 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2013, 2017 - 2020, 2022 Stephen Leake.  All Rights Reserved.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -55,7 +55,7 @@
 %conflict SHIFT generic_instantiation | REDUCE parameter_list on token IS
 %end if
 %if parser = LR1
-%conflict SHIFT generic_instantiation | REDUCE parameter_list on token IS ( 7, 17)
+%conflict SHIFT generic_instantiation | REDUCE parameter_list on token IS
 %end if
 
 compilation_unit

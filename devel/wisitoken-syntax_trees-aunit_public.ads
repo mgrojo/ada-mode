@@ -2,7 +2,7 @@
 --
 --  Public AUnit checks for parent
 --
---  Copyright (C) 2018, 2020 - 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2020 - 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -29,6 +29,13 @@ package WisiToken.Syntax_Trees.AUnit_Public is
 
    procedure Check (Label : in String; Computed, Expected : in Recover_Token);
    --  Not all components checked.
+
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (In_Parse_Actions.Status_Label);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in In_Parse_Actions.In_Parse_Action;
+      Expected : in In_Parse_Actions.In_Parse_Action);
 
    procedure Check
      (Label    : in String;

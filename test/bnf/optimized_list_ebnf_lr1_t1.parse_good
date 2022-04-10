@@ -1,0 +1,158 @@
+ 18 tokens lexed
+ 0: 0: (-1, 1:(IDENTIFIER, (17 . 17))) : shift and goto state 1
+ 0: 1: (-1, 2:(COLON, (19 . 19))) : shift and goto state 5
+ 0: 5: (-1, 3:(IDENTIFIER, (21 . 21))) : shift and goto state 14
+ 0: 14: (-1, 4:(SEMICOLON, (22 . 22))) : shift and goto state 27
+ 0: 27: (-1, 5:(IDENTIFIER, (24 . 24))) : reduce 4 tokens to declaration
+(declaration_0, (17 . 22) <= (1:(IDENTIFIER, (17 . 17)), 2:(COLON, (19 . 19)), 3:(IDENTIFIER, (21 . 21)), 4:(SEMICOLON, (22 . 22))))
+ ... goto state 2
+ 0: 2: (-1, 5:(IDENTIFIER, (24 . 24))) : reduce 1 tokens to declarations
+(declarations_0, (17 . 22) <= ((declaration_0, (17 . 22))))
+ ... goto state 3
+ 0: 3: (-1, 5:(IDENTIFIER, (24 . 24))) : shift and goto state 6
+ 0: 6: (-1, 6:(COLON, (26 . 26))) : shift and goto state 15
+ 0: 15: (-1, 7:(IDENTIFIER, (28 . 28))) : shift and goto state 28
+ 0: 28: (-1, 8:(SEMICOLON, (29 . 29))) : spawn 1, (2 active)
+tree size:  21
+ 1: 28: (-1, 8:(SEMICOLON, (29 . 29))) : reduce 1 tokens to rhs_item
+(rhs_item_0, (28 . 28) <= (7:(IDENTIFIER, (28 . 28))))
+ ... goto state 29
+ 0: 28: (-1, 8:(SEMICOLON, (29 . 29))) : shift and goto state 27
+ 1: 29: (-1, 8:(SEMICOLON, (29 . 29))) : reduce 1 tokens to rhs_item_list
+(rhs_item_list_0, (28 . 28) <= ((rhs_item_0, (28 . 28))))
+ ... goto state 31
+ 1: 31: (-1, 8:(SEMICOLON, (29 . 29))) : reduce 1 tokens to rhs
+(rhs_1, (28 . 28) <= ((rhs_item_list_0, (28 . 28))))
+ ... goto state 30
+ 1: 30: (-1, 8:(SEMICOLON, (29 . 29))) : shift and goto state 38
+ 1: 38: (-1, 9:(IDENTIFIER, (47 . 47))) : reduce 4 tokens to nonterminal
+(nonterminal_0, (24 . 29) <= (5:(IDENTIFIER, (24 . 24)), 6:(COLON, (26 . 26)), (rhs_1, (28 . 28)), 8:(SEMICOLON, (29 . 29))))
+ ... goto state 11
+ 0: 27: (-1, 9:(IDENTIFIER, (47 . 47))) : reduce 4 tokens to declaration
+(declaration_0, (24 . 29) <= (5:(IDENTIFIER, (24 . 24)), 6:(COLON, (26 . 26)), 7:(IDENTIFIER, (28 . 28)), 8:(SEMICOLON, (29 . 29))))
+ ... goto state 7
+ 1: 11: (-1, 9:(IDENTIFIER, (47 . 47))) : reduce 1 tokens to statement
+(statement_2, (24 . 29) <= ((nonterminal_0, (24 . 29))))
+ ... goto state 12
+ 0: 7: (-1, 9:(IDENTIFIER, (47 . 47))) : reduce 2 tokens to declarations
+(declarations_1, (17 . 29) <= ((declarations_0, (17 . 22)), (declaration_0, (24 . 29))))
+ ... goto state 3
+ 1: 12: (-1, 9:(IDENTIFIER, (47 . 47))) : reduce 1 tokens to statement_statement_list
+(statement_statement_list_0, (24 . 29) <= ((statement_2, (24 . 29))))
+ ... goto state 13
+ 0: 3: (-1, 9:(IDENTIFIER, (47 . 47))) : shift and goto state 6
+ 1: 13: (-1, 9:(IDENTIFIER, (47 . 47))) : shift and goto state 22
+ 1: 22: (-1, 10:(SEMICOLON, (48 . 48))) : spawn 2, (3 active)
+tree size:  29
+ 2: 22: (-1, 10:(SEMICOLON, (48 . 48))) : reduce 1 tokens to term
+(term_0, (47 . 47) <= (9:(IDENTIFIER, (47 . 47))))
+ ... goto state 10
+ 1: 22: (-1, 10:(SEMICOLON, (48 . 48))) : shift and goto state 16
+ 0: 6: (-1, 10:(SEMICOLON, (48 . 48))) : spawn 3, (4 active)
+tree size:  30
+ 3: 6: (-1, 10:(SEMICOLON, (48 . 48))) : reduce 1 tokens to term
+(term_0, (47 . 47) <= (9:(IDENTIFIER, (47 . 47))))
+ ... goto state 10
+ 0: 6: (-1, 10:(SEMICOLON, (48 . 48))) : shift and goto state 16
+ 3: 10: (-1, 10:(SEMICOLON, (48 . 48))) : shift and goto state 17
+ 2: 10: (-1, 10:(SEMICOLON, (48 . 48))) : shift and goto state 17
+ 3: 17: (-1, 11:(IDENTIFIER, (50 . 50))) : reduce 2 tokens to statement
+(statement_1, (47 . 48) <= ((term_0, (47 . 47)), 10:(SEMICOLON, (48 . 48))))
+ ... goto state 12
+ 2: 17: (-1, 11:(IDENTIFIER, (50 . 50))) : reduce 2 tokens to statement
+(statement_1, (47 . 48) <= ((term_0, (47 . 47)), 10:(SEMICOLON, (48 . 48))))
+ ... goto state 24
+ 1: 16: (-1, 11:(IDENTIFIER, (50 . 50))) : reduce 2 tokens to statement
+(statement_0, (47 . 48) <= (9:(IDENTIFIER, (47 . 47)), 10:(SEMICOLON, (48 . 48))))
+ ... goto state 24
+ 0: 16: (-1, 11:(IDENTIFIER, (50 . 50))) : reduce 2 tokens to statement
+(statement_0, (47 . 48) <= (9:(IDENTIFIER, (47 . 47)), 10:(SEMICOLON, (48 . 48))))
+ ... goto state 12
+ 3: 12: (-1, 11:(IDENTIFIER, (50 . 50))) : reduce 1 tokens to statement_statement_list
+(statement_statement_list_0, (47 . 48) <= ((statement_1, (47 . 48))))
+ ... goto state 13
+ 2: 24: (-1, 11:(IDENTIFIER, (50 . 50))) : reduce 2 tokens to statement_statement_list
+(statement_statement_list_1, (24 . 48) <= ((statement_statement_list_0, (24 . 29)), (statement_1, (47 . 48))))
+ ... goto state 13
+ 1: 24: (-1, 11:(IDENTIFIER, (50 . 50))) : reduce 2 tokens to statement_statement_list
+(statement_statement_list_1, (24 . 48) <= ((statement_statement_list_0, (24 . 29)), (statement_0, (47 . 48))))
+ ... goto state 13
+ 0: 12: (-1, 11:(IDENTIFIER, (50 . 50))) : reduce 1 tokens to statement_statement_list
+(statement_statement_list_0, (47 . 48) <= ((statement_0, (47 . 48))))
+ ... goto state 13
+ 3: 13: (-1, 11:(IDENTIFIER, (50 . 50))) : shift and goto state 22
+ 2: 13: (-1, 11:(IDENTIFIER, (50 . 50))) : shift and goto state 22
+ 1: 13: (-1, 11:(IDENTIFIER, (50 . 50))) : shift and goto state 22
+ 0: 13: (-1, 11:(IDENTIFIER, (50 . 50))) : shift and goto state 22
+ 2: terminate (3 active): duplicate state with 3: random (-1, 12:(SEMICOLON, (51 . 51)))
+ 3: 22: (-1, 12:(SEMICOLON, (51 . 51))) : spawn 4, (4 active)
+tree size:  39
+ 4: 22: (-1, 12:(SEMICOLON, (51 . 51))) : reduce 1 tokens to term
+(term_0, (50 . 50) <= (11:(IDENTIFIER, (50 . 50))))
+ ... goto state 10
+ 3: 22: (-1, 12:(SEMICOLON, (51 . 51))) : shift and goto state 16
+ 0: terminate (3 active): duplicate state with 1: random (-1, 12:(SEMICOLON, (51 . 51)))
+ 1: 22: (-1, 12:(SEMICOLON, (51 . 51))) : spawn 5, (4 active)
+tree size:  40
+ 5: 22: (-1, 12:(SEMICOLON, (51 . 51))) : reduce 1 tokens to term
+(term_0, (50 . 50) <= (11:(IDENTIFIER, (50 . 50))))
+ ... goto state 10
+ 1: 22: (-1, 12:(SEMICOLON, (51 . 51))) : shift and goto state 16
+ 5: 10: (-1, 12:(SEMICOLON, (51 . 51))) : shift and goto state 17
+ 4: 10: (-1, 12:(SEMICOLON, (51 . 51))) : shift and goto state 17
+ 4: terminate (3 active): duplicate state with 5: random (-1, 13:(IDENTIFIER, (53 . 53)))
+ 5: 17: (-1, 13:(IDENTIFIER, (53 . 53))) : reduce 2 tokens to statement
+(statement_1, (50 . 51) <= ((term_0, (50 . 50)), 12:(SEMICOLON, (51 . 51))))
+ ... goto state 24
+ 1: terminate (2 active): duplicate state with 3: random (-1, 13:(IDENTIFIER, (53 . 53)))
+ 3: 16: (-1, 13:(IDENTIFIER, (53 . 53))) : reduce 2 tokens to statement
+(statement_0, (50 . 51) <= (11:(IDENTIFIER, (50 . 50)), 12:(SEMICOLON, (51 . 51))))
+ ... goto state 24
+ 5: 24: (-1, 13:(IDENTIFIER, (53 . 53))) : reduce 2 tokens to statement_statement_list
+(statement_statement_list_1, (24 . 51) <= ((statement_statement_list_1, (24 . 48)), (statement_1, (50 . 51))))
+ ... goto state 13
+ 3: 24: (-1, 13:(IDENTIFIER, (53 . 53))) : reduce 2 tokens to statement_statement_list
+(statement_statement_list_1, (47 . 51) <= ((statement_statement_list_0, (47 . 48)), (statement_0, (50 . 51))))
+ ... goto state 13
+ 5: 13: (-1, 13:(IDENTIFIER, (53 . 53))) : shift and goto state 22
+ 3: 13: (-1, 13:(IDENTIFIER, (53 . 53))) : shift and goto state 22
+ 3: terminate (1 active): duplicate state with 5: random (-1, 14:(SEMICOLON, (54 . 54)))
+ 5: 22: (-1, 14:(SEMICOLON, (54 . 54))) : spawn 6, (2 active)
+tree size:  45
+ 6: 22: (-1, 14:(SEMICOLON, (54 . 54))) : reduce 1 tokens to term
+(term_0, (53 . 53) <= (13:(IDENTIFIER, (53 . 53))))
+ ... goto state 10
+ 5: 22: (-1, 14:(SEMICOLON, (54 . 54))) : shift and goto state 16
+ 6: 10: (-1, 14:(SEMICOLON, (54 . 54))) : shift and goto state 17
+ 6: 17: (-1, 15:(LESS_LESS, (56 . 57))) : reduce 2 tokens to statement
+(statement_1, (53 . 54) <= ((term_0, (53 . 53)), 14:(SEMICOLON, (54 . 54))))
+ ... goto state 24
+ 5: 16: (-1, 15:(LESS_LESS, (56 . 57))) : reduce 2 tokens to statement
+(statement_0, (53 . 54) <= (13:(IDENTIFIER, (53 . 53)), 14:(SEMICOLON, (54 . 54))))
+ ... goto state 24
+ 6: 24: (-1, 15:(LESS_LESS, (56 . 57))) : reduce 2 tokens to statement_statement_list
+(statement_statement_list_1, (24 . 54) <= ((statement_statement_list_1, (24 . 51)), (statement_1, (53 . 54))))
+ ... goto state 13
+ 5: 24: (-1, 15:(LESS_LESS, (56 . 57))) : reduce 2 tokens to statement_statement_list
+(statement_statement_list_1, (24 . 54) <= ((statement_statement_list_1, (24 . 51)), (statement_0, (53 . 54))))
+ ... goto state 13
+ 6: 13: (-1, 15:(LESS_LESS, (56 . 57))) : shift and goto state 21
+ 5: 13: (-1, 15:(LESS_LESS, (56 . 57))) : shift and goto state 21
+ 5: terminate (1 active): duplicate state with 6: random (-1, 16:(IDENTIFIER, (58 . 60)))
+ 6: 21: (-1, 16:(IDENTIFIER, (58 . 60))) : shift and goto state 34
+ 6: 34: (-1, 17:(GREATER_GREATER, (61 . 62))) : shift and goto state 42
+ 6: 42: (-1, 18:(Wisi_EOI, (65 . 64))) : reduce 3 tokens to label
+(label_0, (56 . 62) <= (15:(LESS_LESS, (56 . 57)), 16:(IDENTIFIER, (58 . 60)), 17:(GREATER_GREATER, (61 . 62))))
+ ... goto state 23
+ 6: 23: (-1, 18:(Wisi_EOI, (65 . 64))) : reduce 1 tokens to label_list
+(label_list_0, (56 . 62) <= ((label_0, (56 . 62))))
+ ... goto state 26
+ 6: 26: (-1, 18:(Wisi_EOI, (65 . 64))) : reduce 2 tokens to sequence_of_statements
+(sequence_of_statements_0, (24 . 62) <= ((statement_statement_list_1, (24 . 54)), (label_list_0, (56 . 62))))
+ ... goto state 9
+ 6: 9: (-1, 18:(Wisi_EOI, (65 . 64))) : reduce 2 tokens to compilation
+(compilation_0, (17 . 62) <= ((declarations_0, (17 . 22)), (sequence_of_statements_0, (24 . 62))))
+ ... goto state 4
+ 6: 4: (-1, 18:(Wisi_EOI, (65 . 64))) : accept it
+(wisitoken_accept_0, (17 . 62) <= ((compilation_0, (17 . 62))))
+ 6: succeed

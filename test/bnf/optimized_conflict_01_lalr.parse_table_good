@@ -1,0 +1,436 @@
+Tokens:
+ 0 => WHITESPACE
+ 1 => NEW_LINE
+ 2 => COMMENT
+ 3 => NEW
+ 4 => RANGE
+ 5 => AMPERSAND
+ 6 => DOT_DOT
+ 7 => MINUS
+ 8 => PLUS
+ 9 => SLASH
+ 10 => STAR
+ 11 => IDENTIFIER
+ 12 => Wisi_EOI
+ 13 => wisitoken_accept
+ 14 => subtype_indication
+ 15 => simple_expression
+ 16 => term
+ 17 => primary
+ 18 => binary_adding_operator
+ 19 => multiplying_operator
+ 20 => allocator
+
+Productions:
+13.0: wisitoken_accept <= subtype_indication Wisi_EOI
+14.0: subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT simple_expression ; (3 => Other, 5 => Other_Right)
+15.0: simple_expression <= term ; (1 => Other_Left)
+15.1: simple_expression <= simple_expression binary_adding_operator term ; (1 => Direct_Left, 3 => Other_Right)
+15.2: simple_expression <= simple_expression binary_adding_operator simple_expression ; (1 => Direct_Left, 3 => Direct_Right)
+16.0: term <= primary ; (1 => Other_Left)
+16.1: term <= term multiplying_operator primary ; (1 => Direct_Left, 3 => Other_Right)
+16.2: term <= term multiplying_operator term ; (1 => Direct_Left, 3 => Direct_Right)
+17.0: primary <= IDENTIFIER
+17.1: primary <= allocator ; (1 => Other_Left)
+18.0: binary_adding_operator <= PLUS
+18.1: binary_adding_operator <= MINUS
+18.2: binary_adding_operator <= AMPERSAND
+19.0: multiplying_operator <= STAR
+19.1: multiplying_operator <= SLASH
+20.0: allocator <= NEW subtype_indication ; (2 => Other_Right)
+
+Optimized_Lists:
+ simple_expression term
+
+Recursions:
+1 => (14 (0.3, 0.5) -> 15 (0.1, 1.3) -> 16 (0.1, 1.3) -> 17 (1.1) -> 20 (0.2) -> )
+2 => (15 (1.1, 2.1, 2.3) -> )
+3 => (16 (1.1, 2.1, 2.3) -> )
+
+McKenzie:
+(Insert =>
+ NEW        => 4,
+ RANGE      => 4,
+ AMPERSAND  => 4,
+ DOT_DOT    => 4,
+ MINUS      => 4,
+ PLUS       => 4,
+ SLASH      => 4,
+ STAR       => 4,
+ IDENTIFIER => 4,
+ Wisi_EOI   => 4)
+(Delete =>
+ NEW        => 3,
+ RANGE      => 3,
+ AMPERSAND  => 3,
+ DOT_DOT    => 3,
+ MINUS      => 3,
+ PLUS       => 3,
+ SLASH      => 3,
+ STAR       => 3,
+ IDENTIFIER => 3,
+ Wisi_EOI   => 3)
+(Push_Back =>
+ NEW        => 2,
+ RANGE      => 2,
+ AMPERSAND  => 2,
+ DOT_DOT    => 2,
+ MINUS      => 2,
+ PLUS       => 2,
+ SLASH      => 2,
+ STAR       => 2,
+ IDENTIFIER => 2,
+ Wisi_EOI   => 2,
+ wisitoken_accept       => 2,
+ subtype_indication     => 2,
+ simple_expression      => 2,
+ term                   => 2,
+ primary                => 2,
+ binary_adding_operator => 2,
+ multiplying_operator   => 2,
+ allocator              => 2)
+(Undo_Reduce =>
+ wisitoken_accept       => 2,
+ subtype_indication     => 2,
+ simple_expression      => 2,
+ term                   => 2,
+ primary                => 2,
+ binary_adding_operator => 2,
+ multiplying_operator   => 2,
+ allocator              => 2)
+Minimal_Complete_Cost_Delta => -1
+Fast_Forward      =>  0
+Matching_Begin    =>  0
+Ignore_Check_Fail => 2
+Check_Limit       => 1
+Check_Delta_Limit => 2147483647
+Enqueue_Limit     => 2147483647
+
+LALR Parse Table:
+State 0:
+     13.0:wisitoken_accept <= ^ subtype_indication Wisi_EOI
+
+   IDENTIFIER             => shift and goto state 1 14.0
+   default                => ERROR
+
+   subtype_indication     goto state 2
+
+   Minimal_Complete_Actions => 
+
+State 1:
+     14.0:subtype_indication <= IDENTIFIER ^ RANGE simple_expression DOT_DOT simple_expression
+
+   RANGE                  => shift and goto state 3 14.0
+   default                => ERROR
+
+   Minimal_Complete_Actions => (RANGE 14.0)
+
+State 2:
+     13.0:wisitoken_accept <= subtype_indication ^ Wisi_EOI
+
+   Wisi_EOI               => accept it 13.0
+   default                => ERROR
+
+   Minimal_Complete_Actions => 
+
+State 3:
+     14.0:subtype_indication <= IDENTIFIER RANGE ^ simple_expression DOT_DOT simple_expression
+
+   NEW                    => shift and goto state 4 20.0
+   IDENTIFIER             => shift and goto state 5 17.0
+   default                => ERROR
+
+   simple_expression      goto state 6
+   term                   goto state 7
+   primary                goto state 8
+   allocator              goto state 9
+
+   Minimal_Complete_Actions => (IDENTIFIER 17.0)
+
+State 4:
+     20.0:allocator <= NEW ^ subtype_indication
+
+   IDENTIFIER             => shift and goto state 1 14.0
+   default                => ERROR
+
+   subtype_indication     goto state 10
+
+   Minimal_Complete_Actions => (IDENTIFIER 14.0)
+
+State 5:
+     17.0:primary <= IDENTIFIER ^
+
+   AMPERSAND              => reduce 1 tokens to primary 17.0
+   DOT_DOT                => reduce 1 tokens to primary 17.0
+   MINUS                  => reduce 1 tokens to primary 17.0
+   PLUS                   => reduce 1 tokens to primary 17.0
+   SLASH                  => reduce 1 tokens to primary 17.0
+   STAR                   => reduce 1 tokens to primary 17.0
+   Wisi_EOI               => reduce 1 tokens to primary 17.0
+   default                => ERROR
+
+   Minimal_Complete_Actions => (1 primary 17.0)
+
+State 6:
+     14.0:subtype_indication <= IDENTIFIER RANGE simple_expression ^ DOT_DOT simple_expression
+     15.1:simple_expression <= simple_expression ^ binary_adding_operator term
+     15.2:simple_expression <= simple_expression ^ binary_adding_operator simple_expression
+
+   AMPERSAND              => shift and goto state 11 18.2
+   DOT_DOT                => shift and goto state 12 14.0
+   MINUS                  => shift and goto state 13 18.1
+   PLUS                   => shift and goto state 14 18.0
+   default                => ERROR
+
+   binary_adding_operator goto state 15
+
+   Minimal_Complete_Actions => (DOT_DOT 14.0)
+
+State 7:
+     15.0:simple_expression <= term ^
+     16.1:term <= term ^ multiplying_operator primary
+     16.2:term <= term ^ multiplying_operator term
+
+   AMPERSAND              => reduce 1 tokens to simple_expression 15.0
+   DOT_DOT                => reduce 1 tokens to simple_expression 15.0
+   MINUS                  => reduce 1 tokens to simple_expression 15.0
+   PLUS                   => reduce 1 tokens to simple_expression 15.0
+   SLASH                  => shift and goto state 16 19.1,
+                             reduce 1 tokens to simple_expression 15.0
+   STAR                   => shift and goto state 17 19.0,
+                             reduce 1 tokens to simple_expression 15.0
+   Wisi_EOI               => reduce 1 tokens to simple_expression 15.0
+   default                => ERROR
+
+   multiplying_operator   goto state 18
+
+   Minimal_Complete_Actions => (1 simple_expression 15.0)
+
+State 8:
+     16.0:term <= primary ^
+
+   AMPERSAND              => reduce 1 tokens to term 16.0
+   DOT_DOT                => reduce 1 tokens to term 16.0
+   MINUS                  => reduce 1 tokens to term 16.0
+   PLUS                   => reduce 1 tokens to term 16.0
+   SLASH                  => reduce 1 tokens to term 16.0
+   STAR                   => reduce 1 tokens to term 16.0
+   Wisi_EOI               => reduce 1 tokens to term 16.0
+   default                => ERROR
+
+   Minimal_Complete_Actions => (1 term 16.0)
+
+State 9:
+     17.1:primary <= allocator ^
+
+   AMPERSAND              => reduce 1 tokens to primary 17.1
+   DOT_DOT                => reduce 1 tokens to primary 17.1
+   MINUS                  => reduce 1 tokens to primary 17.1
+   PLUS                   => reduce 1 tokens to primary 17.1
+   SLASH                  => reduce 1 tokens to primary 17.1
+   STAR                   => reduce 1 tokens to primary 17.1
+   Wisi_EOI               => reduce 1 tokens to primary 17.1
+   default                => ERROR
+
+   Minimal_Complete_Actions => (1 primary 17.1)
+
+State 10:
+     20.0:allocator <= NEW subtype_indication ^
+
+   AMPERSAND              => reduce 2 tokens to allocator 20.0
+   DOT_DOT                => reduce 2 tokens to allocator 20.0
+   MINUS                  => reduce 2 tokens to allocator 20.0
+   PLUS                   => reduce 2 tokens to allocator 20.0
+   SLASH                  => reduce 2 tokens to allocator 20.0
+   STAR                   => reduce 2 tokens to allocator 20.0
+   Wisi_EOI               => reduce 2 tokens to allocator 20.0
+   default                => ERROR
+
+   Minimal_Complete_Actions => (2 allocator 20.0)
+
+State 11:
+     18.2:binary_adding_operator <= AMPERSAND ^
+
+   NEW                    => reduce 1 tokens to binary_adding_operator 18.2
+   IDENTIFIER             => reduce 1 tokens to binary_adding_operator 18.2
+   default                => ERROR
+
+   Minimal_Complete_Actions => (1 binary_adding_operator 18.2)
+
+State 12:
+     14.0:subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT ^ simple_expression
+
+   NEW                    => shift and goto state 4 20.0
+   IDENTIFIER             => shift and goto state 5 17.0
+   default                => ERROR
+
+   simple_expression      goto state 19
+   term                   goto state 7
+   primary                goto state 8
+   allocator              goto state 9
+
+   Minimal_Complete_Actions => (IDENTIFIER 17.0)
+
+State 13:
+     18.1:binary_adding_operator <= MINUS ^
+
+   NEW                    => reduce 1 tokens to binary_adding_operator 18.1
+   IDENTIFIER             => reduce 1 tokens to binary_adding_operator 18.1
+   default                => ERROR
+
+   Minimal_Complete_Actions => (1 binary_adding_operator 18.1)
+
+State 14:
+     18.0:binary_adding_operator <= PLUS ^
+
+   NEW                    => reduce 1 tokens to binary_adding_operator 18.0
+   IDENTIFIER             => reduce 1 tokens to binary_adding_operator 18.0
+   default                => ERROR
+
+   Minimal_Complete_Actions => (1 binary_adding_operator 18.0)
+
+State 15:
+     15.1:simple_expression <= simple_expression binary_adding_operator ^ term
+     15.2:simple_expression <= simple_expression binary_adding_operator ^ simple_expression
+
+   NEW                    => shift and goto state 4 20.0
+   IDENTIFIER             => shift and goto state 5 17.0
+   default                => ERROR
+
+   simple_expression      goto state 20
+   term                   goto state 21
+   primary                goto state 8
+   allocator              goto state 9
+
+   Minimal_Complete_Actions => 
+
+State 16:
+     19.1:multiplying_operator <= SLASH ^
+
+   NEW                    => reduce 1 tokens to multiplying_operator 19.1
+   IDENTIFIER             => reduce 1 tokens to multiplying_operator 19.1
+   default                => ERROR
+
+   Minimal_Complete_Actions => (1 multiplying_operator 19.1)
+
+State 17:
+     19.0:multiplying_operator <= STAR ^
+
+   NEW                    => reduce 1 tokens to multiplying_operator 19.0
+   IDENTIFIER             => reduce 1 tokens to multiplying_operator 19.0
+   default                => ERROR
+
+   Minimal_Complete_Actions => (1 multiplying_operator 19.0)
+
+State 18:
+     16.1:term <= term multiplying_operator ^ primary
+     16.2:term <= term multiplying_operator ^ term
+
+   NEW                    => shift and goto state 4 20.0
+   IDENTIFIER             => shift and goto state 5 17.0
+   default                => ERROR
+
+   term                   goto state 22
+   primary                goto state 23
+   allocator              goto state 9
+
+   Minimal_Complete_Actions => 
+
+State 19:
+     14.0:subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT simple_expression ^
+     15.1:simple_expression <= simple_expression ^ binary_adding_operator term
+     15.2:simple_expression <= simple_expression ^ binary_adding_operator simple_expression
+
+   AMPERSAND              => shift and goto state 11 18.2,
+                             reduce 5 tokens to subtype_indication 14.0
+   DOT_DOT                => reduce 5 tokens to subtype_indication 14.0
+   MINUS                  => shift and goto state 13 18.1,
+                             reduce 5 tokens to subtype_indication 14.0
+   PLUS                   => shift and goto state 14 18.0,
+                             reduce 5 tokens to subtype_indication 14.0
+   SLASH                  => reduce 5 tokens to subtype_indication 14.0
+   STAR                   => reduce 5 tokens to subtype_indication 14.0
+   Wisi_EOI               => reduce 5 tokens to subtype_indication 14.0
+   default                => ERROR
+
+   binary_adding_operator goto state 15
+
+   Minimal_Complete_Actions => (5 subtype_indication 14.0)
+
+State 20:
+     15.1:simple_expression <= simple_expression ^ binary_adding_operator term
+     15.2:simple_expression <= simple_expression binary_adding_operator simple_expression ^
+     15.2:simple_expression <= simple_expression ^ binary_adding_operator simple_expression
+
+   AMPERSAND              => reduce 3 tokens to simple_expression 15.2
+   DOT_DOT                => reduce 3 tokens to simple_expression 15.2
+   MINUS                  => reduce 3 tokens to simple_expression 15.2
+   PLUS                   => reduce 3 tokens to simple_expression 15.2
+   SLASH                  => reduce 3 tokens to simple_expression 15.2
+   STAR                   => reduce 3 tokens to simple_expression 15.2
+   Wisi_EOI               => reduce 3 tokens to simple_expression 15.2
+   default                => ERROR
+
+   binary_adding_operator goto state 15
+
+   Minimal_Complete_Actions => (3 simple_expression 15.2)
+
+State 21:
+     15.0:simple_expression <= term ^
+     15.1:simple_expression <= simple_expression binary_adding_operator term ^
+     16.1:term <= term ^ multiplying_operator primary
+     16.2:term <= term ^ multiplying_operator term
+
+   AMPERSAND              => reduce 3 tokens to simple_expression 15.1
+   DOT_DOT                => reduce 3 tokens to simple_expression 15.1
+   MINUS                  => reduce 3 tokens to simple_expression 15.1
+   PLUS                   => reduce 3 tokens to simple_expression 15.1
+   SLASH                  => shift and goto state 16 19.1,
+                             reduce 3 tokens to simple_expression 15.1
+   STAR                   => shift and goto state 17 19.0,
+                             reduce 3 tokens to simple_expression 15.1
+   Wisi_EOI               => reduce 3 tokens to simple_expression 15.1
+   default                => ERROR
+
+   multiplying_operator   goto state 18
+
+   Minimal_Complete_Actions => ((1 simple_expression 15.0), (3 simple_expression 15.1))
+
+State 22:
+     16.1:term <= term ^ multiplying_operator primary
+     16.2:term <= term multiplying_operator term ^
+     16.2:term <= term ^ multiplying_operator term
+
+   AMPERSAND              => reduce 3 tokens to term 16.2
+   DOT_DOT                => reduce 3 tokens to term 16.2
+   MINUS                  => reduce 3 tokens to term 16.2
+   PLUS                   => reduce 3 tokens to term 16.2
+   SLASH                  => reduce 3 tokens to term 16.2
+   STAR                   => reduce 3 tokens to term 16.2
+   Wisi_EOI               => reduce 3 tokens to term 16.2
+   default                => ERROR
+
+   multiplying_operator   goto state 18
+
+   Minimal_Complete_Actions => (3 term 16.2)
+
+State 23:
+     16.0:term <= primary ^
+     16.1:term <= term multiplying_operator primary ^
+
+   AMPERSAND              => reduce 3 tokens to term 16.1
+   DOT_DOT                => reduce 3 tokens to term 16.1
+   MINUS                  => reduce 3 tokens to term 16.1
+   PLUS                   => reduce 3 tokens to term 16.1
+   SLASH                  => reduce 3 tokens to term 16.1
+   STAR                   => reduce 3 tokens to term 16.1
+   Wisi_EOI               => reduce 3 tokens to term 16.1
+   default                => ERROR
+
+   Minimal_Complete_Actions => ((1 term 16.0), (3 term 16.1))
+
+20 states with minimal_complete_actions; 22 total minimal_complete_actions.
+
+3 states with conflicts: 7 19 21
+
+ 7 rules, 0 user actions, 0 checks, 24 states

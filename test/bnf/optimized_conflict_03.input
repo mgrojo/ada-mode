@@ -1,0 +1,2 @@
+-- This is legal by the grammar, but illegal in Ada (not to mention weird!)
+Integer range z .. new   name range y .. a + b 

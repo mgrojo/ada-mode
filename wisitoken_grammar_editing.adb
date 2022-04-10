@@ -100,7 +100,7 @@ package body WisiToken_Grammar_Editing is
               (ID          => ID (Tree, Item),
                Byte_Region => Tree.Byte_Region (Item.Node),
                Char_Region => Tree.Char_Region (Item.Node),
-               Line_Region => Tree.Line_Region (Item.Node)),
+               Line_Region => Null_Line_Region), --  Line_Region ignored for Source_Terminal
             Error => Syntax_Trees.No_Error);
 
       when Virtual_Terminal =>
@@ -315,7 +315,7 @@ package body WisiToken_Grammar_Editing is
       declare
          use all type SAL.Base_Peek_Type;
          Children  : constant Node_Access_Array := Tree.Children (Node);
-         RHS_Index : constant Natural          := Tree.RHS_Index (Node);
+         RHS_Index : constant Natural           := Tree.RHS_Index (Node);
       begin
          if (for some Child of Children => Child = null) then
             Put_Error ("deleted child");
@@ -346,6 +346,7 @@ package body WisiToken_Grammar_Editing is
                end if;
 
             when others =>
+               --  The reset are for %if .. %endif, which are supposed to be translated before now.
                Put_Error ("unexpected RHS_Index");
             end case;
 
@@ -1050,7 +1051,7 @@ package body WisiToken_Grammar_Editing is
          --  B is an optional item in an rhs_item_list:
          --  | A B? C
          --
-         --  or B is a rhs_multiple_item that is allowed to be empty:
+         --  or B is an rhs_multiple_item that is allowed to be empty:
          --  | A B* C
          --
          --  or B is a virtual identifier naming the new nonterm replacing the
@@ -1353,16 +1354,17 @@ package body WisiToken_Grammar_Editing is
             List      : in LR_Utils.Constant_List'Class;
             Comp_Unit : in Valid_Node_Access)
            return Boolean
+         --  Compare Target to list item kind token.
          is
             pragma Unreferenced (List);
             Decl : constant Valid_Node_Access := Tree.Child (Comp_Unit, 1);
          begin
             return Tree.ID (Decl) = +declaration_ID and then Target =
-              (case Tree.RHS_Index (Decl) is
-               when 0      => Get_Text (Data, Tree, Tree.Child (Decl, 3)),
-               when 1      => Get_Text (Data, Tree, Tree.Child (Decl, 6)),
-               when 3 | 4  => Get_Text (Data, Tree, Tree.Child (Decl, 2)),
-               when others => "");
+              (case To_Token_Enum (Tree.ID (Tree.Child (Decl, 2))) is
+               when Wisitoken_Grammar_Actions.TOKEN_ID
+                 | NON_GRAMMAR_ID              => Get_Text (Data, Tree, Tree.Child (Decl, 4)),
+               when KEYWORD_ID | IDENTIFIER_ID => Get_Text (Data, Tree, Tree.Child (Decl, 2)),
+               when others                     => "");
          end Equal;
 
       begin
@@ -1548,6 +1550,43 @@ package body WisiToken_Grammar_Editing is
          Add_Compilation_Unit (Label & New_Identifier'Image, New_Nonterm);
       end New_Nonterminal;
 
+      procedure Maybe_Optimized_List
+        (RHS_List          : in out LR_Utils.List;
+         List_Name         : in     Identifier_Token;
+         Separator         : in     Identifier_Token;
+         Auto_Token_Labels : in     Boolean;
+         Label             : in     Identifier_Token := Invalid_Identifier_Token)
+      is
+         use LR_Utils;
+
+         RHS_Item_List_3 : List := Empty_RHS_Item_List (Tree);
+      begin
+         if Data.Language_Params.Error_Recover then
+            --  FIXME: these should have different labels? need test case
+            RHS_Item_List_3.Append
+              (Add_RHS_Element (Tree, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, List_Name)), Label));
+
+            if Separator /= Invalid_Identifier_Token then
+               RHS_Item_List_3.Append
+                 (Add_RHS_Element
+                    (Tree, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, Separator)), Label));
+            end if;
+
+            RHS_Item_List_3.Append
+              (Add_RHS_Element (Tree, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, List_Name)), Label));
+
+            RHS_List.Append
+              (Add_RHS
+                 (Tree,
+                  RHS_Item_List_3.Root,
+                  Auto_Token_Labels => Auto_Token_Labels,
+                  Edited_Token_List => True,
+                  Post_Parse_Action => Invalid_Node_Access,
+                  In_Parse_Action   => Invalid_Node_Access));
+         end if;
+
+      end Maybe_Optimized_List;
+
       procedure New_Nonterminal_List
         (List_Nonterm         : in Identifier_Token;
          RHS_Item_List_1_Root : in Valid_Node_Access;
@@ -1579,6 +1618,8 @@ package body WisiToken_Grammar_Editing is
 
          RHS_List.Append (Add_RHS (Tree, RHS_Item_List_1.Root, Auto_Token_Labels, Edited_Token_List => True));
          RHS_List.Append (Add_RHS (Tree, RHS_Item_List_2.Root, Auto_Token_Labels, Edited_Token_List => True));
+
+         Maybe_Optimized_List (RHS_List, List_Nonterm, Separator, Auto_Token_Labels);
 
          Add_Compilation_Unit
            ("canonical list",
@@ -1621,7 +1662,8 @@ package body WisiToken_Grammar_Editing is
         return Node_Access
       with Pre => Element_Content'Length > 0
       --  Return True if the declaration at N is a nonterminal for a
-      --  canonical list matching Separator_Content, Element_Content.
+      --  canonical list matching Separator_Content, Element_Content,
+      --  possibly optimized.
       is
          use LR_Utils;
       begin
@@ -1632,6 +1674,7 @@ package body WisiToken_Grammar_Editing is
                --  list_nonterm
                --     : element
                --     | list_nonterm separator? element
+               --     | list_nonterm list_nonterm
                --
                --  nonterminal: N
                --  | IDENTIFIER : Name_Node
@@ -1646,17 +1689,30 @@ package body WisiToken_Grammar_Editing is
                Name_Node : constant Node_Access    := Tree.Child (N, 1);
                RHS_List  : constant Constant_List := Creators.Create_List
                  (Tree, Tree.Child (N, 3), +rhs_list_ID, +rhs_ID);
+               Iter : constant Constant_Iterator := RHS_List.Iterate_Constant;
             begin
-               if RHS_List.Count = 2 then
+               if RHS_List.Count in 2 | 3 then
                   declare
+                     List_Name : constant String := Get_Text (Data, Tree, Name_Node);
                      RHS_1 : constant String := Get_Text (Data, Tree, Element (RHS_List.First));
-                     RHS_2 : constant String := Get_Text (Data, Tree, Element (RHS_List.Last));
-                     Expected_RHS_2 : constant String := Get_Text (Data, Tree, Name_Node) & " " &
+                     RHS_2 : constant String := Get_Text (Data, Tree, Element (Iter.Next (RHS_List.First)));
+                     Expected_RHS_2 : constant String := List_Name & " " &
                        Separator_Content & (if Separator_Content = "" then "" else " ") & Element_Content;
                   begin
                      if Element_Content = RHS_1 and RHS_2 = Expected_RHS_2 then
-                        --  Found a match.
-                        return Name_Node;
+                        if RHS_List.Count = 3 then
+                           declare
+                              RHS_3 : constant String := Get_Text (Data, Tree, Element (RHS_List.Last));
+                              Expected_RHS_3 : constant String := List_Name & " " &
+                                Separator_Content & (if Separator_Content = "" then "" else " ") & List_Name;
+                           begin
+                              if RHS_3 = Expected_RHS_3 then
+                                 return Name_Node;
+                              end if;
+                           end;
+                        else
+                           return Name_Node;
+                        end if;
                      end if;
                   end;
                end if;
@@ -1865,6 +1921,10 @@ package body WisiToken_Grammar_Editing is
          --  nonterminal_nnn_list
          --  : b
          --  | nonterminal_nnn_list b
+         --  | nonterminal_nnn_list nonterminal_nnn_list
+         --
+         --  where the third option makes it an optimized list; only done if
+         --  error recover is enabled.
          --
          --  and a second RHS if it can be empty:
          --  | a c
@@ -1891,10 +1951,14 @@ package body WisiToken_Grammar_Editing is
          use LR_Utils;
          use LR_Utils.Creators;
 
-         Canonical_List    : Boolean                := False;
-         Done              : Boolean                := False;
-         Parent_RHS_Item   : Valid_Node_Access      := Tree.Parent (B);
-         List_Nonterm_Name : Identifier_Token := Invalid_Identifier_Token;
+         Canonical_List    : Boolean           := False;
+         Done              : Boolean           := False;
+         Simple_Named      : Boolean           := False;
+         Has_Separator     : Boolean           := False;
+         Separator_Node    : Node_Access       := Invalid_Node_Access;
+         Separator_Token   : Identifier_Token  := Invalid_Identifier_Token;
+         Parent_RHS_Item   : Valid_Node_Access := Tree.Parent (B);
+         List_Nonterm_Name : Identifier_Token  := Invalid_Identifier_Token;
 
          B_Alt_List_List : constant Constant_List :=
            (case Tree.RHS_Index (B) is
@@ -1970,7 +2034,7 @@ package body WisiToken_Grammar_Editing is
                else Element (RHS_Item_List_Iter.Previous (Element_2)));
             --  The rhs_element containing the first list element
 
-            Can_Be_Empty : constant Boolean := Element_1 = Invalid_Node_Access and Tree.RHS_Index (B) in 0 | 3;
+            Can_Be_Empty : constant Boolean := Element_1 = Invalid_Node_Access and Tree.RHS_Index (B) in 0 | 3 | 5;
 
             procedure Do_Simple_Named (List_Elements : in Valid_Node_Access)
             with Pre => To_Token_Enum (Tree.ID (List_Elements)) in rhs_element_ID | rhs_item_list_ID | IDENTIFIER_ID
@@ -2001,6 +2065,7 @@ package body WisiToken_Grammar_Editing is
                --          %( action? )%
                --        | list_name separator list_element
                --          %( action? )%
+               --        | list_name separator list_name
                --        ;
                --
                --  If 2a) can be empty, rewrite to:
@@ -2010,6 +2075,7 @@ package body WisiToken_Grammar_Editing is
                --          %( action? )%
                --        | list_element_list list_element
                --          %( action? )%
+               --        | list_element_list list_element_list
                --        ;
                --
                --      nonterm_name
@@ -2018,7 +2084,7 @@ package body WisiToken_Grammar_Editing is
                --        | empty
                --        ;
                --
-               --  If instead we do the shortcut:
+               --  If instead we did the shortcut:
                --      list_element_list
                --        : list_element
                --        | list_element_list list_element
@@ -2027,7 +2093,9 @@ package body WisiToken_Grammar_Editing is
                --  and list_element starts with a nullable nonterm, then there is a
                --  conflict between reducing 0 tokens to an empty list_element_list
                --  or to the nullable nonterm; see ada_lite_ebnf.wy declarative_part.
-               --  We have not computed Nullable yet, so we assume it is true.
+               --  We have not computed Nullable yet, so we assume it is true, and
+               --  don't use this shortcut. This would also complicate recognizing
+               --  this as an optimzed list.
                --
                --  otherwise rewrite to:
                --
@@ -2036,6 +2104,7 @@ package body WisiToken_Grammar_Editing is
                --          %( action? )%
                --        | nonterm_name list_element
                --          %( action? )%
+               --        | nonterm_name nonterm_name
                --        ;
                --
                --  3a is similar to 2a.
@@ -2104,6 +2173,11 @@ package body WisiToken_Grammar_Editing is
                      Post_Parse_Action => Tree.Copy_Subtree (Post_Parse_Action, Data_Access),
                      In_Parse_Action   => Tree.Copy_Subtree (In_Parse_Action, Data_Access)));
 
+               Maybe_Optimized_List
+                 (New_RHS_List, List_Name, Separator_Token,
+                  Auto_Token_Labels => Get_RHS_Auto_Token_Labels (B),
+                  Label             => Label);
+
                if Can_Be_Empty then
                   Add_Compilation_Unit
                     ("canonical list",
@@ -2127,6 +2201,7 @@ package body WisiToken_Grammar_Editing is
                      Old_Child            => Element (Element_2),
                      Old_Child_New_Parent => Invalid_Node_Access);
 
+                  --  This goes on RHS_List, _not_ New_RHS_List.
                   RHS_List.Append (Empty_RHS (Tree));
 
                else
@@ -2147,8 +2222,6 @@ package body WisiToken_Grammar_Editing is
                end if;
             end Do_Simple_Named;
 
-            Simple_Named  : Boolean := False;
-            Has_Separator : Boolean := False;
          begin
             if Trace_Generate_EBNF > Detail then
                Ada.Text_IO.Put_Line ("Check_Canonical_List start RHS: " & Get_Text (Data, Tree, RHS_List.Root));
@@ -2170,6 +2243,10 @@ package body WisiToken_Grammar_Editing is
                  Get_Item_Text (Data, Tree, Element (B_Alt_List_Item_List.Last))
                then
                   Has_Separator := B_Alt_List_Item_List.Count = 2;
+                  if Has_Separator then
+                     Separator_Node  := Element (B_Alt_List_Item_List.First);
+                     Separator_Token := To_Identifier_Token (Tree.Find_Descendant (Separator_Node, +rhs_item_ID), Tree);
+                  end if;
                else
                   return;
                end if;
@@ -2236,11 +2313,6 @@ package body WisiToken_Grammar_Editing is
             end if;
 
             declare
-               Separator : constant Node_Access :=
-                 (if Has_Separator
-                  then Element (B_Alt_List_Item_List.First)
-                  else Invalid_Node_Access);
-
                pragma Assert
                  (Element_1 = Invalid_Node_Access or else Tree.ID
                     (case Tree.RHS_Index (Element_1) is
@@ -2254,7 +2326,7 @@ package body WisiToken_Grammar_Editing is
 
                List_Nonterm_String : constant String :=
                  (if Has_Separator
-                  then Get_Item_Text (Data, Tree, Element_1) & "_" & Get_Item_Text (Data, Tree, Separator)
+                  then Get_Item_Text (Data, Tree, Element_1) & "_" & Get_Item_Text (Data, Tree, Separator_Node)
                   elsif Element_1 /= Invalid_Node_Access
                   then Get_Item_Text (Data, Tree, Element_1) & "_" &
                      Get_Item_Text (Data, Tree, Element (B_Alt_List_Item_List.First))
@@ -2271,7 +2343,7 @@ package body WisiToken_Grammar_Editing is
                     (if Element_1 /= Invalid_Node_Access
                      then Tree.Find_Descendant (Element_1, +rhs_item_ID)
                      else B_Alt_List_Item_List.Root),
-                  Separator         => Separator,
+                  Separator         => Separator_Node,
                   Auto_Token_Labels => Get_RHS_Auto_Token_Labels (B));
 
                if Element_1 /= Invalid_Node_Access then
@@ -2629,21 +2701,39 @@ package body WisiToken_Grammar_Editing is
          is
             pragma Unreferenced (List);
          begin
-            if Tree.Production_ID (Tree.Child (N, 1)) = (+declaration_ID, 0) then
+            if To_Token_Enum (Tree.ID (Tree.Child (N, 1))) = declaration_ID then
                declare
-                  Decl       : constant Node_Access       := Tree.Child (N, 1);
-                  Value_Node : constant Valid_Node_Access := Tree.Child (Tree.Child (Decl, 4), 1);
+                  Decl : constant Node_Access := Tree.Child (N, 1);
+
+                  Name_Node : constant Node_Access :=
+                    (case To_Token_Enum (Tree.ID (Tree.Child (Decl, 2))) is
+                     when Wisitoken_Grammar_Actions.TOKEN_ID | NON_GRAMMAR_ID => Tree.Child (Decl, 6),
+                     when KEYWORD_ID => Tree.Child (Decl, 3),
+                     when others => Invalid_Node_Access);
+
+                  Regexp_String_Node : constant Node_Access :=
+                    (case To_Token_Enum (Tree.ID (Tree.Child (Decl, 2))) is
+                     when Wisitoken_Grammar_Actions.TOKEN_ID | NON_GRAMMAR_ID => Tree.Child (Decl, 7),
+                     when KEYWORD_ID => Tree.Child (Decl, 4),
+                     when others => Invalid_Node_Access);
+
+                  Value_Node : constant Node_Access :=
+                    (if Regexp_String_Node = Invalid_Node_Access
+                     then Invalid_Node_Access
+                     else Tree.Child (Regexp_String_Node, 1));
                begin
-                  if Tree.ID (Value_Node) = +declaration_item_ID and then
-                    Tree.ID (Tree.Child (Value_Node, 1)) in
-                    +IDENTIFIER_ID | +STRING_LITERAL_1_ID | +STRING_LITERAL_2_ID and then
-                    Target = Get_Text (Data, Tree, Tree.Child (Value_Node, 1), Strip_Quotes => True)
+                  if Value_Node = Invalid_Node_Access then
+                     return False;
+
+                  elsif To_Token_Enum (Tree.ID (Value_Node)) in
+                    IDENTIFIER_ID | REGEXP_ID | STRING_LITERAL_1_ID | STRING_LITERAL_2_ID and then
+                    Target = Get_Text (Data, Tree, Value_Node, Strip_Quotes => True)
                   then
-                     case Tree.Label (Tree.Child (Decl, 3)) is
+                     case Tree.Label (Name_Node) is
                      when Source_Terminal =>
-                        Name_Ident := New_Identifier (Get_Text (Data, Tree, Tree.Child (Decl, 3)));
+                        Name_Ident := New_Identifier (Get_Text (Data, Tree, Name_Node));
                      when Virtual_Identifier =>
-                        Name_Ident := Tree.Identifier (Tree.Child (Decl, 3));
+                        Name_Ident := Tree.Identifier (Name_Node);
                      when others =>
                         raise SAL.Programmer_Error;
                      end case;
@@ -2703,26 +2793,18 @@ package body WisiToken_Grammar_Editing is
 
          --  Declare token for keyword string literal
          declare
-            Keyword        : constant Valid_Node_Access := Tree.Add_Identifier (+KEYWORD_ID, Keyword_Ident);
-            Kind           : constant Valid_Node_Access := Tree.Add_Nonterm
-              ((+token_keyword_non_grammar_ID, 0),
-               (1 => Keyword),
-               Clear_Parents => False);
-            Value_Literal  : constant Valid_Node_Access := Tree.Add_Identifier
+            Keyword       : constant Valid_Node_Access := Tree.Add_Identifier (+KEYWORD_ID, Keyword_Ident);
+            Value_Literal : constant Valid_Node_Access := Tree.Add_Identifier
               (+STRING_LITERAL_1_ID, New_Identifier ('"' & Value & '"'));
-            Decl_Item      : constant Valid_Node_Access := Tree.Add_Nonterm
-              ((+declaration_item_ID, 1),
-               (1 => Value_Literal),
-               Clear_Parents => False);
-            Decl_Item_List : constant Valid_Node_Access := Tree.Add_Nonterm
-              ((+declaration_item_list_ID, 0),
-               (1 => Decl_Item),
+            Regexp_String : constant Valid_Node_Access := Tree.Add_Nonterm
+              ((+regexp_string_ID, 1),
+               (1            => Value_Literal),
                Clear_Parents => False);
 
             Percent : constant Valid_Node_Access := Tree.Add_Identifier (+PERCENT_ID, Percent_Ident);
             Name    : constant Valid_Node_Access := Tree.Add_Identifier (+IDENTIFIER_ID, Name_Ident);
             Decl    : constant Valid_Node_Access := Tree.Add_Nonterm
-              ((+declaration_ID, 0), (Percent, Kind, Name, Decl_Item_List),
+              ((+declaration_ID, 0), (Percent, Keyword, Name, Regexp_String),
                Clear_Parents => False);
          begin
             Add_Compilation_Unit ("literal token", Decl, Prepend => True);
@@ -2864,12 +2946,14 @@ package body WisiToken_Grammar_Editing is
 
       if Debug_Mode then
          --  We've edited the tree, creating new nodes, so Node_Index_Order is
-         --  no longer valid.
+         --  no longer valid. We've reused name tokens, so byte_region_order is
+         --  not valid.
          Tree.Validate_Tree
            (Data, Data.Error_Reported,
-            Root             => Tree.Root,
-            Validate_Node    => Validate_Node'Access,
-            Node_Index_Order => False);
+            Root              => Tree.Root,
+            Validate_Node     => Validate_Node'Access,
+            Node_Index_Order  => False,
+            Byte_Region_Order => False);
          Check_Original_EBNF;
          Check_Copied_EBNF;
       end if;
@@ -2909,9 +2993,10 @@ package body WisiToken_Grammar_Editing is
                if Debug_Mode then
                   Tree.Validate_Tree
                     (Data, Data.Error_Reported,
-                     Root             => Tree.Root,
-                     Validate_Node    => Validate_Node'Access,
-                     Node_Index_Order => False);
+                     Root              => Tree.Root,
+                     Validate_Node     => Validate_Node'Access,
+                     Node_Index_Order  => False,
+                     Byte_Region_Order => False);
                   Check_Original_EBNF;
                   Check_Copied_EBNF;
                end if;
@@ -2966,9 +3051,10 @@ package body WisiToken_Grammar_Editing is
                   if Debug_Mode then
                      Tree.Validate_Tree
                        (Data, Data.Error_Reported,
-                        Root             => Tree.Root,
-                        Validate_Node    => Validate_Node'Access,
-                        Node_Index_Order => False);
+                        Root              => Tree.Root,
+                        Validate_Node     => Validate_Node'Access,
+                        Node_Index_Order  => False,
+                        Byte_Region_Order => False);
                      Check_Copied_EBNF;
                   end if;
                end if;
@@ -2997,9 +3083,10 @@ package body WisiToken_Grammar_Editing is
       if Debug_Mode then
          Tree.Validate_Tree
            (Data, Data.Error_Reported,
-            Root             => Tree.Root,
-            Validate_Node    => Validate_Node'Access,
-            Node_Index_Order => False);
+            Root              => Tree.Root,
+            Validate_Node     => Validate_Node'Access,
+            Node_Index_Order  => False,
+            Byte_Region_Order => False);
       end if;
       Data.Meta_Syntax := BNF_Syntax;
 
@@ -3034,7 +3121,7 @@ package body WisiToken_Grammar_Editing is
          end if;
          declare
             use all type Ada.Containers.Count_Type;
-            Last_Term   : constant Node_Access              := Tree.Last_Terminal (Node);
+            Last_Term   : constant Node_Access               := Tree.Last_Terminal (Node);
             Non_Grammar : constant Lexer.Token_Arrays.Vector :=
               (if Last_Term = Invalid_Node_Access
                then Lexer.Token_Arrays.Empty_Vector
@@ -3065,17 +3152,33 @@ package body WisiToken_Grammar_Editing is
          end;
       end Put_Comments;
 
-      procedure Put_Declaration_Item (Node : in Valid_Node_Access)
+      procedure Put_Regexp_String (Node : in Valid_Node_Access)
       is
          Children : constant Node_Access_Array := Tree.Children (Node);
       begin
+         pragma Assert (Children'Length = 1);
          case To_Token_Enum (Tree.ID (Children (1))) is
-         when IDENTIFIER_ID | NUMERIC_LITERAL_ID | STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
+         when STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
             Put (File, ' ' & Get_Text (Data, Tree, Children (1)));
          when REGEXP_ID =>
             Put (File, " %[" & Get_Text (Data, Tree, Children (1)) & "]%");
          when others =>
-            Put (File, Image (Tree.ID (Children (1)), Wisitoken_Grammar_Actions.Descriptor));
+            raise SAL.Programmer_Error;
+         end case;
+      end Put_Regexp_String;
+
+      procedure Put_Declaration_Item (Node : in Valid_Node_Access)
+      is
+         Children : constant Node_Access_Array := Tree.Children (Node);
+      begin
+         pragma Assert (Children'Length = 1);
+         case To_Token_Enum (Tree.ID (Children (1))) is
+         when IDENTIFIER_ID | NUMERIC_LITERAL_ID =>
+            Put (File, ' ' & Get_Text (Data, Tree, Children (1)));
+         when regexp_string_ID =>
+            Put_Regexp_String (Children (1));
+         when others =>
+            raise SAL.Programmer_Error;
          end case;
       end Put_Declaration_Item;
 
@@ -3277,80 +3380,81 @@ package body WisiToken_Grammar_Editing is
 
          when declaration_ID =>
             declare
+               use all type SAL.Base_Peek_Type;
+
                Children : constant Node_Access_Array := Tree.Children (Node);
             begin
-               case Tree.RHS_Index (Node) is
-               when 0 =>
-                  case Tree.RHS_Index (Children (2)) is
-                  when 0 =>
-                     Put (File, "%keyword");
-                  when 1 =>
-                     Put (File, "%non_grammar <" & Get_Text (Data, Tree, Tree.Child (Children (2), 3)) & ">");
-                  when 2 =>
-                     Put (File, "%token <" & Get_Text (Data, Tree, Tree.Child (Children (2), 3)) & ">");
-                  when others =>
-                     raise SAL.Programmer_Error;
-                  end case;
+               case To_Token_Enum (Tree.ID (Children (2))) is
+               when Wisitoken_Grammar_Actions.TOKEN_ID | NON_GRAMMAR_ID =>
+                  Put (File,
+                       (if To_Token_Enum (Tree.ID (Children (2))) = Wisitoken_Grammar_Actions.TOKEN_ID
+                        then "%token <"
+                        else "%non_grammar <"));
 
-                  Put (File, " " & Get_Text (Data, Tree, Children (3)));
-                  Put_Declaration_Item_List (Children (4));
+                  Put (File, Get_Text (Data, Tree, Children (4)) & "> " & Get_Text (Data, Tree, Children (6)));
+
+                  if Children'Last >= 7 then
+                     Put_Regexp_String (Children (7));
+                  end if;
+
+                  if Children'Last = 8 then
+                     Put_Regexp_String (Children (8));
+                  end if;
+                  Put_Comments (Node, Force_New_Line => True);
+
+               when KEYWORD_ID =>
+                  Put (File, "%keyword " & Get_Text (Data, Tree, Children (3)));
+                  Put_Regexp_String (Children (4));
                   Put_Comments (Children (4), Force_New_Line => True);
 
-               when 1 =>
-                  Put (File, "%non_grammar <" & Get_Text (Data, Tree, Children (4)) & ">");
-                  Put (File, " " & Get_Text (Data, Tree, Children (6)));
-                  Put_Comments (Children (6), Force_New_Line => True);
-
-               when 2 =>
+               when CODE_ID =>
                   Put (File, "%code ");
                   Put_Identifier_List (Children (3));
                   Put (File, " %{" & Get_Text (Data, Tree, Children (4)) & "}%"); -- RAW_CODE
                   Put_Comments (Node);
 
-               when 3 =>
-                  declare
-                     Key : constant String := Get_Text (Data, Tree, Children (2));
-                  begin
-                     if Key = "conflict" then
-                        Put (File, Tree.Lexer.Buffer_Text (Tree.Byte_Region (Node)));
-                     else
-                        Put (File, "%" & Key);
-                        Put_Declaration_Item_List (Children (3));
-                     end if;
-                  end;
-                  Put_Comments (Children (3));
+               when CONFLICT_ID | CONFLICT_RESOLUTION_ID =>
+                  Put (File,
+                       (if To_Token_Enum (Tree.ID (Children (2))) = CONFLICT_ID
+                        then "%conflict "
+                        else "%conflict_resolution "));
+                  Put (File, Get_Text (Data, Tree, Children (3))); -- conflict_item_list
+                  Put (File, " on token " & Get_Text (Data, Tree, Children (6)));
+                  if Children'Last = 8 then
+                     Put (File, " : " & Get_Text (Data, Tree, Children (8)));
+                     Put_Comments (Children (8), Force_New_Line => True);
+                  else
+                     Put_Comments (Children (6), Force_New_Line => True);
+                  end if;
 
-               when 4 =>
+               when IDENTIFIER_ID =>
                   Put (File, "%" & Get_Text (Data, Tree, Children (2)));
-                  Put_Comments (Children (2));
-
-               when 5 =>
-                  Put
-                    (File, "%if " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text
-                       (Data, Tree, Children (5)));
+                  if Children'Last = 3 then
+                     Put_Declaration_Item_List (Children (3));
+                  end if;
                   Put_Comments (Node);
 
-               when 6 =>
+               when IF_ID =>
+                  Put (File,
+                       "%if " &
+                         Get_Text (Data, Tree, Children (3)) &
+                         (if To_Token_Enum (Tree.ID (Children (4))) = EQUAL_ID
+                          then " = "
+                          else " in ") &
+                         Get_Text (Data, Tree, Children (5)));
+                  Put_Comments (Children (5));
+
+               when ELSIF_ID =>
                   Put
-                    (File, "%if " & Get_Text (Data, Tree, Children (3)) & " in " & Get_Text
-                       (Data, Tree, Children (5)));
+                    (File, "%elsif " & Get_Text (Data, Tree, Children (3)) &
+                       (if To_Token_Enum (Tree.ID (Children (4))) = EQUAL_ID
+                        then " = "
+                        else " in ") &
+                       Get_Text
+                         (Data, Tree, Children (5)));
                   Put_Comments (Node);
 
-               when 7 =>
-                  Put
-                    (File,
-                     "%elsif " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text
-                       (Data, Tree, Children (5)));
-                  Put_Comments (Node);
-
-               when 8 =>
-                  Put
-                    (File,
-                     "%elsif " & Get_Text (Data, Tree, Children (3)) & " in " & Get_Text
-                       (Data, Tree, Children (5)));
-                  Put_Comments (Node);
-
-               when 9 =>
+               when END_ID =>
                   Put (File, "%end if");
                   Put_Comments (Node);
 

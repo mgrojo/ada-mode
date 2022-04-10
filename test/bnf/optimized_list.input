@@ -1,2 +1,7 @@
+--declarations
+
 a : B;
 c : D;
+
+-- test error recover handle optimized list conflict
+e

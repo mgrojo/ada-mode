@@ -30,6 +30,7 @@
 EnumConstantList
   : EnumConstant
   | EnumConstantList COMMA EnumConstant
+  | EnumConstantList COMMA EnumConstantList
   ;
 
 EnumConstant

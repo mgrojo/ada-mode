@@ -1,0 +1,33 @@
+;;; Testing "optimized list" for incremental parse
+
+%generate LR1 Ada re2c
+
+;; only the error recover parser recognizes optimized lists.
+%mckenzie_enqueue_limit 1000
+%mckenzie_check_limit 3
+%mckenzie_zombie_limit 3
+%mckenzie_cost_default 4 4 4 2
+
+%start declarations
+
+%token <punctuation> COLON ":"
+%token <punctuation> SEMICOLON ";"
+
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE
+%non_grammar <comment-new-line> COMMENT "--"
+
+declaration
+  : IDENTIFIER COLON IDENTIFIER SEMICOLON
+  ;
+
+declarations
+  ;; This is recognized as an optimized list.
+  : declaration
+  | declarations declaration
+  | declarations declarations
+  ;
+
+;;; end of file

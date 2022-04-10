@@ -17,6 +17,7 @@
 
 pragma License (Modified_GPL);
 
+with WisiToken.In_Parse_Actions;
 package body WisiToken.Parse is
 
    --  Body subprograms
@@ -153,7 +154,7 @@ package body WisiToken.Parse is
          return False;
       else
          declare
-            use all type WisiToken.In_Parse_Actions.Status;
+            use all type WisiToken.Syntax_Trees.In_Parse_Actions.Status;
             Right_In_Parse : In_Parse_Action_Error renames In_Parse_Action_Error (Right);
          begin
             --  Allow updating recover info after error recovery.
@@ -183,7 +184,7 @@ package body WisiToken.Parse is
 
       Result : Unbounded_String;
    begin
-      Result := +"in_parse_action_error: " & In_Parse_Actions.Image (Data.Status, Tree, Error_Node);
+      Result := +"in_parse_action_error: " & WisiToken.In_Parse_Actions.Image (Data.Status, Tree, Error_Node);
 
       if Recover_Op_Arrays.Length (Data.Recover_Ops) /= 0 then
          Append (Result, ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree.Lexer.Descriptor.all));
@@ -316,12 +317,14 @@ package body WisiToken.Parse is
    function Get_In_Parse_Action
      (Parser : in Base_Parser;
       ID     : in Production_ID)
-     return In_Parse_Actions.In_Parse_Action
+     return Syntax_Trees.In_Parse_Actions.In_Parse_Action
    is begin
-      if Parser.In_Parse_Actions.Is_Empty or else Parser.In_Parse_Actions (ID.LHS).Is_Empty then
+      if Parser.Productions.Is_Empty then
+         return null;
+      elsif Parser.Productions (ID.LHS).RHSs.Is_Empty then
          return null;
       else
-         return Parser.In_Parse_Actions (ID.LHS)(ID.RHS);
+         return Parser.Productions (ID.LHS).RHSs (ID.RHS).In_Parse_Action;
       end if;
    end Get_In_Parse_Action;
 
@@ -330,10 +333,12 @@ package body WisiToken.Parse is
       ID     : in Production_ID)
      return Syntax_Trees.Post_Parse_Action
    is begin
-      if Parser.Post_Parse_Actions.Is_Empty or else Parser.Post_Parse_Actions (ID.LHS).Is_Empty then
+      if Parser.Productions.Is_Empty then
+         return null;
+      elsif Parser.Productions (ID.LHS).RHSs.Is_Empty then
          return null;
       else
-         return Parser.Post_Parse_Actions (ID.LHS)(ID.RHS);
+         return Parser.Productions (ID.LHS).RHSs (ID.RHS).Post_Parse_Action;
       end if;
    end Get_Post_Parse_Action;
 
@@ -668,15 +673,20 @@ package body WisiToken.Parse is
                  ("breakdown " & (if To_Single then "single " else "") & Tree.Image
                     (Tree.Get_Node (Terminal.Stream, Terminal.Element), Node_Numbers => True) &
                     " target " & Tree.Image (Terminal.Node, Node_Numbers => True));
+               if Trace_Incremental_Parse > Extra + 1 then
+                  Tree.Lexer.Trace.Put_Line ("... before:");
+                  Tree.Lexer.Trace.Put_Line (Tree.Image (Stream, Children => True));
+                  Tree.Lexer.Trace.New_Line;
+               end if;
             end if;
-            Tree.Breakdown (Terminal, Parser.User_Data, First_Terminal => True);
+            Tree.Breakdown (Terminal, Parser.Productions, Parser.User_Data, First_Terminal => True);
 
             if To_Single and then Tree.Label (Terminal.Element) = Nonterm then
                Tree.Left_Breakdown (Terminal, Parser.User_Data);
             end if;
             if Trace_Incremental_Parse > Extra then
                Tree.Lexer.Trace.Put_Line
-                 ("... result " & Tree.Image (Stream));
+                 ("... result " & Tree.Image (Stream, Children => Trace_Incremental_Parse > Extra + 1));
             end if;
          end if;
       end Breakdown;
@@ -715,7 +725,7 @@ package body WisiToken.Parse is
                end if;
 
                if Get_Node (Ref.Element) /= Ref.Node then
-                  Tree.Breakdown (Ref, Parser.User_Data, First_Terminal => False);
+                  Tree.Breakdown (Ref, Parser.Productions, Parser.User_Data, First_Terminal => False);
                end if;
 
                declare
@@ -731,7 +741,7 @@ package body WisiToken.Parse is
                     ("breakdown recover_conflict node " & Tree.Image (Ref, Node_Numbers => True));
                end if;
 
-               Tree.Breakdown (Ref, Parser.User_Data, First_Terminal => False);
+               Tree.Breakdown (Ref, Parser.Productions, Parser.User_Data, First_Terminal => False);
                To_Breakdown := Ref;
                Tree.First_Terminal (To_Breakdown);
                Tree.Stream_Next (Ref, Rooted => True);
@@ -2512,6 +2522,7 @@ package body WisiToken.Parse is
             Parser.Tree.Validate_Tree (Parser.User_Data.all, Error_Reported, Node_Index_Order => False);
             if Error_Reported.Count /= 0 then
                if Trace_Incremental_Parse > Outline then
+                  Tree.Lexer.Trace.Put_Line ("edit_tree: validate_tree failed");
                   Tree.Print_Tree (Non_Grammar => True);
                end if;
                raise WisiToken.Parse_Error with "edit_tree: validate_tree failed";

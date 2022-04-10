@@ -55,8 +55,8 @@ package WisiToken.Parse.LR.Parser is
       Shared_Parser           :         in out Parser;
       Tokens                  :         in     Token_ID_Array_1_3;
       Config                  : aliased in     Configuration;
-      Matching_Tokens         :            out Token_ID_Arrays.Vector;
-      Forbid_Minimal_Complete :            out Boolean);
+      Matching_Tokens         :         in out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :         in out Boolean);
    --  Tokens (1) is the current token; Tokens (2 .. 3) are the following
    --  tokens (Invalid_Token_ID if none). Set Matching_Tokens to a
    --  terminal token sequence that starts a production matching Tokens.
@@ -108,8 +108,7 @@ package WisiToken.Parse.LR.Parser is
      (Parser                         :    out LR.Parser.Parser;
       Lexer                          : in     WisiToken.Lexer.Handle;
       Table                          : in     Parse_Table_Ptr;
-      In_Parse_Actions               : in     In_Parse_Action_Trees.Vector;
-      Post_Parse_Actions             : in     Post_Parse_Action_Trees.Vector;
+      Productions                    : in     Syntax_Trees.Production_Info_Trees.Vector;
       Language_Fixes                 : in     Language_Fixes_Access;
       Language_Matching_Begin_Tokens : in     Language_Matching_Begin_Tokens_Access;
       Language_String_ID_Set         : in     Language_String_ID_Set_Access;
@@ -118,17 +117,8 @@ package WisiToken.Parse.LR.Parser is
    overriding procedure Parse
      (Shared_Parser    : in out LR.Parser.Parser;
       Recover_Log_File : in     Ada.Text_IO.File_Type;
-      Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List);
-   --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
-   --  input setting Shared_Parser.Terminals, then parses tokens.
-   --
-   --  If an error is encountered, Parser.Lexer_Errors and
-   --  Parsers(*).Errors contain information about the errors. If a
-   --  recover strategy succeeds, no exception is raised. If recover does
-   --  not succeed, raises Syntax_Error.
-   --
-   --  For errors where no recovery is possible, raises Parse_Error with
-   --  an appropriate error message.
+      Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List;
+      Pre_Edited       : in     Boolean        := False);
 
    overriding procedure Execute_Actions
      (Parser              : in out LR.Parser.Parser;

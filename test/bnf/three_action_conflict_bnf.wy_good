@@ -12,7 +12,11 @@
 %mckenzie_cost_default 4 4 4 4
 %no_language_runtime
 
-%conflict SHIFT lambdaParameters | REDUCE classOrInterfaceType | REDUCE expression on token RPAREN (11)
+;; These are actually the same conflict; the partial one is detected
+;; separately first. IMPROVEME: search for a partial match to avoid
+;; this.
+%conflict REDUCE classOrInterfaceType | REDUCE expression on token RPAREN
+%conflict SHIFT lambdaParameters | REDUCE classOrInterfaceType | REDUCE expression on token RPAREN
 
 %token <punctuation> LPAREN '('
 %token <punctuation> RPAREN ')'
@@ -58,4 +62,5 @@ lambdaParameters
 statement_list
   : statement
   | statement_list statement
+  | statement_list statement_list
   ;

@@ -1,5 +1,6 @@
 ASCII
 GNATCOLL
+LHSs
 RHSs
 VI_Non_Grammar
 Wisitoken_Grammar_Actions
@@ -8,6 +9,7 @@ Wisitoken_Grammar_Actions
 *BNF
 *CPU
 *CR
+*DOS
 *EBNF
 *EOF
 *EOI

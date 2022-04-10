@@ -17,7 +17,8 @@ separate (WisiToken.Parse.LR.Parser)
 overriding procedure Parse
   (Shared_Parser    : in out LR.Parser.Parser;
    Recover_Log_File : in     Ada.Text_IO.File_Type;
-   Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List)
+   Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List;
+   Pre_Edited       : in     Boolean        := False)
 is
    use Syntax_Trees;
    use all type KMN_Lists.List;
@@ -77,8 +78,8 @@ begin
          Trace.New_Line;
       end if;
 
-      if Shared_Parser.Tree.Stream_Length (Shared_Parser.Tree.Shared_Stream) = 3 and then
-        Shared_Parser.Tree.ID (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream).Node) =
+      if Shared_Parser.Tree.Stream_Length (Shared_Parser.Tree.Shared_Stream) = 3 and then Shared_Parser.Tree.ID
+        (Shared_Parser.Tree.Stream_First (Shared_Parser.Tree.Shared_Stream, Skip_SOI => True).Node) =
         Shared_Parser.Tree.Lexer.Descriptor.Accept_ID
       then
          if Trace_Parse > Outline then
@@ -89,7 +90,14 @@ begin
          return;
       end if;
 
+   elsif Pre_Edited then
+      --  Unit test providing an edited stream; see test_syntax_trees.adb
+      --  Breakdown_Optimized_List_01. We assume this is the same as a tree
+      --  resulting from Edit_Tree.
+      null;
+
    else
+      --  Normal initial parse
       Shared_Parser.Tree.Clear;
       Shared_Parser.Lex_All;
       if Trace_Memory > Detail then
@@ -393,7 +401,7 @@ begin
                               Children => Trace_Parse > Detail));
                         Trace.Put_Line
                           ("    Current_Token: " & Shared_Parser.Tree.Image
-                               (Shared_Parser.Tree.Current_Token (Parser_State.Stream), Terminal_Node_Numbers => True));
+                             (Shared_Parser.Tree.Current_Token (Parser_State.Stream), Terminal_Node_Numbers => True));
                         Trace.Put_Line
                           ("    Shared_Token: " & Shared_Parser.Tree.Image
                              (Shared_Parser.Tree.Shared_Token (Parser_State.Stream), Terminal_Node_Numbers => True));
@@ -440,8 +448,6 @@ begin
       --  changing the parser list.
       declare
          Current_Parser : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
-         Action_Cur     : Parse_Action_Node_Ptr;
-         Action         : Parse_Action_Rec;
       begin
          Action_Loop :
          loop
@@ -501,104 +507,111 @@ begin
 
             elsif Current_Parser.Verb = Current_Verb then
 
-               LR.Parser.Get_Action (Shared_Parser, Current_Parser.State_Ref, Action_Cur, Action);
-
                declare
-                  Conflict : Parse_Action_Node_Ptr := (if Action_Cur = null then null else Action_Cur.Next);
+                  Action_Cur : Parse_Action_Node_Ptr;
+                  Action     : Parse_Action_Rec;
+                  Conflict   : Parse_Action_Node_Ptr;
                begin
-                  loop
-                     exit when Conflict = null;
-                     --  Spawn a new parser (before modifying Current_Parser stack).
+                  LR.Parser.Get_Action (Shared_Parser, Current_Parser.State_Ref, Action_Cur, Action);
 
-                     Current_Parser.State_Ref.Conflict_During_Resume := Current_Parser.State_Ref.Resume_Active;
+                  Conflict := (if Action_Cur = null then null else Action_Cur.Next);
 
-                     if Shared_Parser.Parsers.Count = Shared_Parser.Table.Max_Parallel then
-                        --  If errors were recovered, terminate a parser that used the
-                        --  highest cost solution.
-                        declare
-                           use all type WisiToken.Parse.LR.Parser_Lists.Cursor;
-                           Max_Recover_Cost : Integer             := 0;
-                           Cur              : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
-                           Max_Parser       : Parser_Lists.Cursor := Cur;
-                        begin
-                           loop
-                              exit when Cur.Is_Done;
-                              if Cur.State_Ref.Total_Recover_Cost > Max_Recover_Cost then
-                                 Max_Parser       := Cur;
-                                 Max_Recover_Cost := Cur.State_Ref.Total_Recover_Cost;
-                              end if;
-                              Cur.Next;
-                           end loop;
+                  if Conflict /= null then
+                     loop
+                        exit when Conflict = null;
+                        --  Spawn a new parser (before modifying Current_Parser stack).
 
-                           if Max_Recover_Cost > 0 then
-                              if Max_Parser = Current_Parser then
-                                 Current_Parser.Next;
+                        Current_Parser.State_Ref.Conflict_During_Resume := Current_Parser.State_Ref.Resume_Active;
 
-                                 Shared_Parser.Parsers.Terminate_Parser
-                                   (Max_Parser, Shared_Parser.Tree, "too many parsers; max error repair cost",
-                                    Trace);
-
-                                 --  We changed Current_Parser, so start over
-                                 goto Continue_Action_Loop;
-                              else
-                                 Shared_Parser.Parsers.Terminate_Parser
-                                   (Max_Parser, Shared_Parser.Tree, "too many parsers; max error repair cost",
-                                    Trace);
-                              end if;
-                           end if;
-                        end;
-                     end if;
-
-                     if Shared_Parser.Parsers.Count = Shared_Parser.Table.Max_Parallel then
-                        declare
-                           Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
-                        begin
-                           raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
-                             (Shared_Parser.Tree.Shared_Token (Parser_State.Stream),
-                              "too many parallel parsers required in grammar state" &
-                                Shared_Parser.Tree.State (Current_Parser.Stream)'Image &
-                                "; simplify grammar, or increase max-parallel (" &
-                                SAL.Base_Peek_Type'Image (Shared_Parser.Table.Max_Parallel) & ")");
-                        end;
-
-                     else
-                        if Trace_Parse > Outline then
+                        if Shared_Parser.Parsers.Count = Shared_Parser.Table.Max_Parallel then
+                           --  If errors were recovered, terminate a parser that used the
+                           --  highest cost solution.
                            declare
-                              Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
+                              use all type WisiToken.Parse.LR.Parser_Lists.Cursor;
+                              Max_Recover_Cost : Integer             := 0;
+                              Cur              : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
+                              Max_Parser       : Parser_Lists.Cursor := Cur;
                            begin
-                              Trace.Put_Line
-                                (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
-                                   (if Trace_Parse_No_State_Numbers
-                                    then "--"
-                                    else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream))) & ": " &
-                                   Shared_Parser.Tree.Image
-                                     (Shared_Parser.Tree.Current_Token (Parser_State.Stream),
-                                      Terminal_Node_Numbers => True) & " : " &
-                                   "spawn " & Shared_Parser.Tree.Next_Stream_ID_Trimmed_Image & ", (" &
-                                   Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
-                              if Debug_Mode then
-                                 Trace.Put_Line ("tree size: " & Shared_Parser.Tree.Tree_Size_Image);
+                              loop
+                                 exit when Cur.Is_Done;
+                                 if Cur.State_Ref.Total_Recover_Cost > Max_Recover_Cost then
+                                    Max_Parser       := Cur;
+                                    Max_Recover_Cost := Cur.State_Ref.Total_Recover_Cost;
+                                 end if;
+                                 Cur.Next;
+                              end loop;
+
+                              if Max_Recover_Cost > 0 then
+                                 if Max_Parser = Current_Parser then
+                                    Current_Parser.Next;
+
+                                    Shared_Parser.Parsers.Terminate_Parser
+                                      (Max_Parser, Shared_Parser.Tree, "too many parsers; max error repair cost",
+                                       Trace);
+
+                                    --  We changed Current_Parser, so start over
+                                    goto Continue_Action_Loop;
+                                 else
+                                    Shared_Parser.Parsers.Terminate_Parser
+                                      (Max_Parser, Shared_Parser.Tree, "too many parsers; max error repair cost",
+                                       Trace);
+                                 end if;
                               end if;
                            end;
                         end if;
 
-                        Shared_Parser.Parsers.Prepend_Copy
-                          (Current_Parser, Shared_Parser.Tree, Shared_Parser.User_Data, Trace);
-                        Do_Action (Conflict.Item, Shared_Parser.Parsers.First, Shared_Parser);
+                        if Shared_Parser.Parsers.Count = Shared_Parser.Table.Max_Parallel then
+                           declare
+                              Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
+                           begin
+                              raise WisiToken.Parse_Error with Shared_Parser.Tree.Error_Message
+                                (Shared_Parser.Tree.Shared_Token (Parser_State.Stream),
+                                 "too many parallel parsers required in grammar state" &
+                                   Shared_Parser.Tree.State (Current_Parser.Stream)'Image &
+                                   "; simplify grammar, or increase max-parallel (" &
+                                   SAL.Base_Peek_Type'Image (Shared_Parser.Table.Max_Parallel) & ")");
+                           end;
 
-                        --  We must terminate error parsers immediately in order to avoid
-                        --  zombie parsers during recovery.
-                        declare
-                           Temp : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
-                        begin
-                           Check_Error (Shared_Parser, Temp);
-                        end;
-                     end if;
+                        else
+                           if Trace_Parse > Outline then
+                              declare
+                                 Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
+                              begin
+                                 Trace.Put_Line
+                                   (" " & Shared_Parser.Tree.Trimmed_Image (Current_Parser.Stream) & ": " &
+                                      (if Trace_Parse_No_State_Numbers
+                                       then "--"
+                                       else Trimmed_Image (Shared_Parser.Tree.State (Parser_State.Stream))) & ": " &
+                                      Shared_Parser.Tree.Image
+                                        (Shared_Parser.Tree.Current_Token (Parser_State.Stream),
+                                         Terminal_Node_Numbers => True) & " : " &
+                                      "spawn " & Shared_Parser.Tree.Next_Stream_ID_Trimmed_Image & ", (" &
+                                      Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
+                                 if Debug_Mode then
+                                    Trace.Put_Line ("tree size: " & Shared_Parser.Tree.Tree_Size_Image);
+                                 end if;
+                              end;
+                           end if;
 
-                     Conflict := Conflict.Next;
-                  end loop;
+                           Shared_Parser.Parsers.Prepend_Copy
+                             (Current_Parser, Shared_Parser.Tree, Shared_Parser.User_Data, Trace);
+                           Do_Action (Conflict.Item, Shared_Parser.Parsers.First, Shared_Parser);
+
+                           --  We must terminate error parsers immediately in order to avoid
+                           --  zombie parsers during recovery.
+                           declare
+                              Temp : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
+                           begin
+                              Check_Error (Shared_Parser, Temp);
+                           end;
+                        end if;
+
+                        Conflict := Conflict.Next;
+                     end loop;
+                  end if;
+
+                  Do_Action (Action, Current_Parser, Shared_Parser);
                end;
-               Do_Action (Action, Current_Parser, Shared_Parser);
                Check_Error (Shared_Parser, Current_Parser);
 
             else

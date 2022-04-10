@@ -1,0 +1,33 @@
+;; Subset of wisitoken grammar for unit tests
+
+%meta_syntax EBNF
+%generate LR1 Ada re2c
+%start compilation_unit_list
+
+%token <punctuation> BAR "|"
+%token <punctuation> COLON ":"
+%token <punctuation> SEMICOLON ";"
+
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][-0-9a-zA-Z_\x80-\U0010FFFF]* ]% "bogus"
+%token <string-single-one-line> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]% "''"
+
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+%non_grammar <comment-new-line> COMMENT %[ ";;"[^\x0a\x04]* ]%
+
+%mckenzie_cost_default 2 2 2 2
+
+nonterminal : IDENTIFIER ':' rhs ('|' rhs)* ';' ;
+
+;; We don't use "rhs_item*", because that puts the empty rhs last. If
+;; it's first (as in wisitoken-grammar-mode), it encountered a bug in
+;; error recover Left_Breakdown.
+rhs
+  : ;; empty
+  | rhs_item+ ;
+
+rhs_item : IDENTIFIER | STRING_LITERAL_2 ;
+
+compilation_unit_list : nonterminal+ ;
+
+;; end of file

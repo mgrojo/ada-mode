@@ -408,7 +408,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Kernels                 : in out LR1_Items.Item_Set_List;
       Descriptor              : in     WisiToken.Descriptor)
    is
-      Closure : LR1_Items.Item_Set;
+      Closure      : LR1_Items.Item_Set;
       Propagations : Propagation_Lists.List;
    begin
       for Kernel of Kernels loop
@@ -448,8 +448,13 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Grammar                 : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production    : in     Token_ID_Set;
       First_Terminal_Sequence : in     Token_Sequence_Arrays.Vector;
+      First_Nonterm_Set       : in     Token_Array_Token_Set;
       Table                   : in out Parse_Table;
-      Descriptor              : in     WisiToken.Descriptor)
+      Descriptor              : in     WisiToken.Descriptor;
+      Declared_Conflicts      : in out WisiToken.Generate.LR.Conflict_Lists.Tree;
+      Unknown_Conflicts       : in out WisiToken.Generate.LR.Conflict_Lists.Tree;
+      File_Name               : in     String;
+      Ignore_Conflicts        : in     Boolean := False)
    --  Add actions for all Kernels to Table.
    is
       Closure : LR1_Items.Item_Set;
@@ -460,7 +465,9 @@ package body WisiToken.Generate.LR.LALR_Generate is
          --  LALR_Goto_Transitions, Fill_In_Lookaheads, and here.
          Closure := LR1_Items.Closure (Kernel, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
-         Add_Actions (Closure, Table, Grammar, Descriptor);
+         Add_Actions
+           (Closure, Table, Grammar, Descriptor, Declared_Conflicts, Unknown_Conflicts, First_Nonterm_Set, File_Name,
+            Ignore_Conflicts);
       end loop;
 
       if Trace_Generate_Table > Detail then
@@ -512,7 +519,6 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
       Kernels : LR1_Items.Item_Set_List := LALR_Kernels (Grammar, First_Nonterm_Set, Descriptor);
 
-      Conflict_Counts      : Conflict_Count_Lists.Vector;
       Unknown_Conflicts    : Conflict_Lists.Tree;
       Known_Conflicts_Edit : Conflict_Lists.Tree := Known_Conflicts;
 
@@ -579,13 +585,19 @@ package body WisiToken.Generate.LR.LALR_Generate is
             Check_Limit                 => Default_McKenzie_Param.Check_Limit,
             Check_Delta_Limit           => Default_McKenzie_Param.Check_Delta_Limit,
             Enqueue_Limit               => Default_McKenzie_Param.Enqueue_Limit);
+
+         Table.Error_Recover_Enabled := False;
+
       else
-         Table.McKenzie_Param := McKenzie_Param;
+         Table.McKenzie_Param        := McKenzie_Param;
+         Table.Error_Recover_Enabled := True;
       end if;
 
       Table.Max_Parallel := Max_Parallel;
 
-      Add_Actions (Kernels, Grammar, Has_Empty_Production, First_Terminal_Sequence, Table.all, Descriptor);
+      Add_Actions
+        (Kernels, Grammar, Has_Empty_Production, First_Terminal_Sequence, First_Nonterm_Set, Table.all,
+         Descriptor, Known_Conflicts_Edit, Unknown_Conflicts, Grammar_File_Name, Ignore_Conflicts);
 
       if Trace_Time then
          Table_Time := Ada.Calendar.Clock;
@@ -609,12 +621,10 @@ package body WisiToken.Generate.LR.LALR_Generate is
               (Ada.Calendar."-" (Minimal_Actions_Time, Table_Time)));
       end if;
 
-      Collect_Conflicts (Table.all, Unknown_Conflicts, Conflict_Counts);
-
       if Parse_Table_File_Name /= "" then
          WisiToken.Generate.LR.Put_Parse_Table
-           (Table, Parse_Table_File_Name, "LALR", Grammar, Recursions, Kernels, Conflict_Counts, Descriptor,
-            Include_Extra);
+           (Table, Parse_Table_File_Name, "LALR", Grammar, Recursions, Kernels, Known_Conflicts_Edit, Unknown_Conflicts,
+            Descriptor, Include_Extra);
       end if;
 
       Check_Conflicts

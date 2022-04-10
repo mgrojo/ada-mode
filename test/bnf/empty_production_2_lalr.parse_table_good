@@ -134,6 +134,4 @@ State 8:
 
 4 states with conflicts: 0 1 3 5
 
- 1 accept/reduce conflicts, 5 shift/reduce conflicts, 0 reduce/reduce conflicts
-
  3 rules, 1 user actions, 0 checks, 9 states

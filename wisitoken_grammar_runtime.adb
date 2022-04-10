@@ -261,7 +261,8 @@ package body WisiToken_Grammar_Runtime is
       Data.Raw_Code          := (others => <>);
       Data.Language_Params   :=
         (Case_Insensitive => Data.Language_Params.Case_Insensitive,
-         others => <>);
+         Error_Recover    => Data.Language_Params.Error_Recover,
+         others           => <>);
       Data.Tokens            :=
         (Virtual_Identifiers => Data.Tokens.Virtual_Identifiers,
          others => <>);
@@ -355,8 +356,9 @@ package body WisiToken_Grammar_Runtime is
       Tree      : in out WisiToken.Syntax_Trees.Tree;
       Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
    is
-      use all type WisiToken.Syntax_Trees.Node_Label;
       use all type Ada.Strings.Unbounded.Unbounded_String;
+      use all type SAL.Base_Peek_Type;
+      use all type WisiToken.Syntax_Trees.Node_Label;
 
       Data : User_Data_Type renames User_Data_Type (User_Data);
 
@@ -389,7 +391,6 @@ package body WisiToken_Grammar_Runtime is
 
                   elsif Kind = "generate" then
                      declare
-                        use all type SAL.Base_Peek_Type;
                         Children : constant Syntax_Trees.Valid_Node_Access_Array := Tree.Get_Terminals
                           (Tree.Child (Nonterm, 3));
                         Tuple    : WisiToken.BNF.Generate_Tuple;
@@ -420,6 +421,9 @@ package body WisiToken_Grammar_Runtime is
                         end loop;
                         WisiToken.BNF.Add (Data.Generate_Set, Tuple);
                      end;
+
+                  elsif Kind'Length > 8 and then Kind (Kind'First .. Kind'First + 7) = "mckenzie" then
+                     Data.Language_Params.Error_Recover := True;
 
                   elsif Kind = "meta_syntax" then
                      if Data.Meta_Syntax = Unknown then
@@ -455,417 +459,365 @@ package body WisiToken_Grammar_Runtime is
          return;
       end if;
 
-      case Tree.Label (Tree.Child (Nonterm, 2)) is
-      when Syntax_Trees.Nonterm =>
-         --  must be token_keyword_non_grammar
+      case Enum_ID (2) is
+      --  Same order as declaration rhs_list in wisitoken_grammar.wy
+      when Wisitoken_Grammar_Actions.TOKEN_ID | NON_GRAMMAR_ID =>
          declare
-            use all type SAL.Base_Peek_Type;
-            Children_2 : constant Syntax_Trees.Node_Access_Array := Tree.Children (Tree.Child (Nonterm, 2));
-            Child_1_ID : constant Token_Enum_ID := To_Token_Enum (Tree.ID (Children_2 (1)));
+            --  % TOKEN < kind > name value [repair_image]
+            --  1 2     3 4    5 6    7      8
+            Kind  : constant String := Get_Text (Data, Tree, Tree.Child (Nonterm, 4));
+            Name  : constant String := Get_Text (Data, Tree, Tree.Child (Nonterm, 6));
+            Value : constant String :=
+              (if Tree.Child_Count (Nonterm) >= 7 then Get_Text (Data, Tree, Tree.Child (Nonterm, 7)) else "");
+
+            Repair_Image : constant String :=
+              (if Tree.Child_Count (Nonterm) = 8 then Get_Text (Data, Tree, Tree.Child (Nonterm, 8)) else "");
          begin
-            case Child_1_ID is
-            when Wisitoken_Grammar_Actions.TOKEN_ID =>
-               declare
-                  Children_4 : constant Syntax_Trees.Node_Access_Array := Tree.Children (Tree.Child (Nonterm, 4));
+            if Kind = "delimited_text" or
+              Kind = "comment-one-line"
+            then
+               if Value = Repair_Image then
+                  raise Grammar_Error with
+                    Tree.Error_Message (Nonterm, "start, end delimiters must be different");
+               end if;
+            end if;
 
-                  Kind  : constant String := Get_Text (Data, Tree, Children_2 (3));
-                  Name  : constant String := Get_Text (Data, Tree, Tree.Child (Nonterm, 3));
-                  Value : constant String := Get_Text (Data, Tree, Children_4 (1));
-                  Repair_Image : constant String :=
-                    (if Children_4'Length = 1 then "" else Get_Text (Data, Tree, Children_4 (2)));
-               begin
-                  if Kind = "delimited_text" or
-                    Kind = "comment-one-line"
-                  then
-                     if Value = Repair_Image then
-                        raise Grammar_Error with
-                          Tree.Error_Message (Nonterm, "start, end delimiters must be different");
-                     end if;
-                  end if;
-
-                  WisiToken.BNF.Add_Token
-                    (Data.Tokens.Tokens,
-                     Kind         => Kind,
-                     Name         => Name,
-                     Value        => Value,
-                     Repair_Image => Repair_Image);
-               end;
-
-            when KEYWORD_ID =>
-
-               Data.Tokens.Keywords.Append
-                 ((Name  => +Get_Text (Data, Tree, Tree.Child (Nonterm, 3)),
-                   Value => +Get_Text (Data, Tree, Tree.Child (Nonterm, 4))));
-
-            when NON_GRAMMAR_ID =>
-               declare
-                  Children_4 : constant Syntax_Trees.Node_Access_Array := Tree.Children (Tree.Child (Nonterm, 4));
-               begin
-                  WisiToken.BNF.Add_Token
-                    (Data.Tokens.Non_Grammar,
-                     Kind         => Get_Text (Data, Tree, Children_2 (3)),
-                     Name         => Get_Text (Data, Tree, Tree.Child (Nonterm, 3)),
-                     Value        => Get_Text (Data, Tree, Children_4 (1)),
-                     Repair_Image =>
-                       (if Children_4'Length = 1 then "" else Get_Text (Data, Tree, Children_4 (2))));
-               end;
-
-            when others =>
-               raise SAL.Programmer_Error;
-            end case;
+            if Enum_ID (2) = Wisitoken_Grammar_Actions.TOKEN_ID then
+               WisiToken.BNF.Add_Token
+                 (Data.Tokens.Tokens,
+                  Kind         => Kind,
+                  Name         => Name,
+                  Value        => Value,
+                  Repair_Image => Repair_Image);
+            else
+               WisiToken.BNF.Add_Token
+                 (Data.Tokens.Non_Grammar,
+                  Kind         => Kind,
+                  Name         => Name,
+                  Value        => Value,
+                  Repair_Image => Repair_Image);
+            end if;
          end;
 
-      when Syntax_Trees.Source_Terminal =>
-         case Enum_ID (2) is
-         when CODE_ID =>
-            declare
-               Location : WisiToken.BNF.Raw_Code_Location;
+      when KEYWORD_ID =>
+         --  % TOKEN name value
+         --  1 2     3    4
+         Data.Tokens.Keywords.Append
+           ((Name  => +Get_Text (Data, Tree, Tree.Child (Nonterm, 3)),
+             Value => +Get_Text (Data, Tree, Tree.Child (Nonterm, 4))));
 
-               --  % code identifier_list raw_code
-               --  1 2    3               4
-               --
-               --  identifier_list = "action spec context"
-               --  identifier_list children = identifier_list IDENTIFIER_ID
-               --  children = identifier_list IDENTIFIER_ID
-               --  children = IDENTIFIER_ID
-               function Get_Loc_List return Syntax_Trees.Valid_Node_Access_Array
-               with Pre => Tree.ID (Tree.Child (Nonterm, 3)) = +identifier_list_ID
-               is
-                  use all type SAL.Base_Peek_Type;
-                  use WisiToken.Syntax_Trees;
-                  Node   : Valid_Node_Access := Tree.Child (Nonterm, 3);
-                  Result : Valid_Node_Access_Array (1 .. 3) := (others => Dummy_Node);
-                  First  : SAL.Peek_Type    := Result'Last + 1;
+      when CODE_ID =>
+         declare
+            Location : WisiToken.BNF.Raw_Code_Location;
+
+            --  % CODE identifier_list RAW_CODE
+            --  1 2    3               4
+            --
+            --  identifier_list = "action spec context"
+            --  identifier_list children = identifier_list IDENTIFIER_ID
+            --  children = identifier_list IDENTIFIER_ID
+            --  children = IDENTIFIER_ID
+            function Get_Loc_List return Syntax_Trees.Valid_Node_Access_Array
+            with Pre => Tree.ID (Tree.Child (Nonterm, 3)) = +identifier_list_ID
+            is
+               use WisiToken.Syntax_Trees;
+               Node   : Valid_Node_Access := Tree.Child (Nonterm, 3);
+               Result : Valid_Node_Access_Array (1 .. 3) := (others => Dummy_Node);
+               First  : SAL.Peek_Type    := Result'Last + 1;
+            begin
+               loop
+                  pragma Assert (Tree.ID (Node) = +identifier_list_ID);
+                  exit when not Tree.Has_Children (Node);
+                  declare
+                     Children : constant Node_Access_Array := Tree.Children (Node);
+                  begin
+                     if Children'Length = 1 then
+                        --  identifier_list : IDENTIFIER
+                        First := First - 1;
+                        Result (First) := Children (1);
+                        exit;
+
+                     elsif Children'Length = 2 then
+                        --  identifier_list : identifier_list IDENTIFIER
+                        First := First - 1;
+                        Result (First) := Children (2);
+
+                        Node := Children (1);
+                     else
+                        raise SAL.Programmer_Error;
+                     end if;
+                  end;
+               end loop;
+               return Result (First .. Result'Last);
+            end Get_Loc_List;
+
+            Loc_List : constant Syntax_Trees.Valid_Node_Access_Array := Get_Loc_List;
+
+            function Get_Loc (Index : in SAL.Peek_Type) return String
+            is (Tree.Lexer.Buffer_Text (Tree.Byte_Region (Loc_List (Index))));
+
+         begin
+            if Get_Loc (Loc_List'First) = "actions" then
+               Location :=
+                 (if Get_Loc (2) = "spec" then
+                    (if Get_Loc (3) = "context" then WisiToken.BNF.Actions_Spec_Context
+                     elsif Get_Loc (3) = "pre" then WisiToken.BNF.Actions_Spec_Pre
+                     elsif Get_Loc (3) = "post" then WisiToken.BNF.Actions_Spec_Post
+                     else raise Grammar_Error with
+                       Tree.Error_Message (Loc_List (2), "expecting {context | pre | post}"))
+
+                  elsif Get_Loc (2) = "body" then
+                    (if Get_Loc (3) = "context" then WisiToken.BNF.Actions_Body_Context
+                     elsif Get_Loc (3) = "pre" then WisiToken.BNF.Actions_Body_Pre
+                     elsif Get_Loc (3) = "post" then WisiToken.BNF.Actions_Body_Post
+                     else raise Grammar_Error with
+                       Tree.Error_Message (Loc_List (2), "expecting {context | pre | post}"))
+
+                  else raise Grammar_Error);
+
+            elsif Get_Loc (Loc_List'First) = "copyright_license" then
+               Location := WisiToken.BNF.Copyright_License;
+
+            else
+               raise Grammar_Error with
+                 Tree.Error_Message (Loc_List (Loc_List'First), "expecting {actions | copyright_license}");
+            end if;
+
+            Data.Raw_Code (Location) := WisiToken.BNF.Split_Lines (Get_Text (Data, Tree, Tree.Child (Nonterm, 4)));
+         exception
+         when Grammar_Error =>
+            Put_Error
+              (Tree.Error_Message
+                 (Tree.Child (Nonterm, 2),
+                  "invalid raw code location; actions {spec | body} {context | pre | post}"));
+         end;
+
+      when CONFLICT_ID | CONFLICT_RESOLUTION_ID =>
+         declare
+            --  % CONFLICT conflict_item_list ON TOKEN on_symbol [: resolution]
+            --  1 2        3                  4  5     6          7 8
+            --
+            --  conflict_item_list : [action] LHS (| [action] LHS)*
+
+            Conflict_Items : constant Syntax_Trees.Valid_Node_Access_Array := Tree.Get_Terminals
+              (Tree.Child (Nonterm, 3));
+
+            Conflict : BNF.Conflict;
+         begin
+            Conflict.Source_Line := Tree.Line_Region (Nonterm).First;
+
+            if Conflict_Items'Length < 3 or else
+              Tree.ID (Conflict_Items (3)) /= +BAR_ID
+            then
+               --  Tree_Sitter format
+               for LHS of Conflict_Items loop
+                  Conflict.Items.Append
+                    ((Name  => +"",
+                      Value => +Get_Text (Data, Tree, LHS)));
+               end loop;
+
+            else
+               --  wisi format
+               declare
+                  I : SAL.Peek_Type := 1;
                begin
                   loop
-                     pragma Assert (Tree.ID (Node) = +identifier_list_ID);
-                     exit when not Tree.Has_Children (Node);
-                     declare
-                        Children : constant Node_Access_Array := Tree.Children (Node);
-                     begin
-                        if Children'Length = 1 then
-                           --  identifier_list : IDENTIFIER
-                           First := First - 1;
-                           Result (First) := Children (1);
-                           exit;
+                     Conflict.Items.Append
+                       ((Name  => +Get_Text (Data, Tree, Conflict_Items (I)),
+                         Value => +Get_Text (Data, Tree, Conflict_Items (I + 1))));
 
-                        elsif Children'Length = 2 then
-                           --  identifier_list : identifier_list IDENTIFIER
-                           First := First - 1;
-                           Result (First) := Children (2);
-
-                           Node := Children (1);
-                        else
-                           raise SAL.Programmer_Error;
-                        end if;
-                     end;
+                     I := I + 2;
+                     exit when I > Conflict_Items'Last;
+                     I := I + 1;
                   end loop;
-                  return Result (First .. Result'Last);
-               end Get_Loc_List;
+               end;
 
-               Loc_List : constant Syntax_Trees.Valid_Node_Access_Array := Get_Loc_List;
+               Conflict.On := +Get_Text (Data, Tree, Tree.Child (Nonterm, 6));
+            end if;
 
-               function Get_Loc (Index : in SAL.Peek_Type) return String
-               is (Tree.Lexer.Buffer_Text (Tree.Byte_Region (Loc_List (Index))));
+            if Tree.Child_Count (Nonterm) = 8 then
+               Conflict.Resolution := +Get_Text (Data, Tree, Tree.Child (Nonterm, 8));
+            end if;
+            Data.Conflicts.Append (Conflict);
+         end;
 
-            begin
-               if Get_Loc (Loc_List'First) = "actions" then
-                  Location :=
-                    (if Get_Loc (2) = "spec" then
-                       (if Get_Loc (3) = "context" then WisiToken.BNF.Actions_Spec_Context
-                        elsif Get_Loc (3) = "pre" then WisiToken.BNF.Actions_Spec_Pre
-                        elsif Get_Loc (3) = "post" then WisiToken.BNF.Actions_Spec_Post
-                        else raise Grammar_Error with
-                          Tree.Error_Message (Loc_List (2), "expecting {context | pre | post}"))
+      when IDENTIFIER_ID =>
+         declare
+            Kind : constant String := Tree.Lexer.Buffer_Text (Token_Byte_Region (2));
+         begin
+            --  Alphabetical by Kind
 
-                     elsif Get_Loc (2) = "body" then
-                       (if Get_Loc (3) = "context" then WisiToken.BNF.Actions_Body_Context
-                        elsif Get_Loc (3) = "pre" then WisiToken.BNF.Actions_Body_Pre
-                        elsif Get_Loc (3) = "post" then WisiToken.BNF.Actions_Body_Post
-                        else raise Grammar_Error with
-                          Tree.Error_Message (Loc_List (2), "expecting {context | pre | post}"))
+            if Kind = "case_insensitive" then
+               --  Not in phase Other
+               null;
 
-                     else raise Grammar_Error);
+            elsif Kind = "end" then
+               --  matching '%if' specified current lexer.
+               null;
 
-               elsif Get_Loc (Loc_List'First) = "copyright_license" then
-                  Location := WisiToken.BNF.Copyright_License;
+            elsif Kind = "elisp_face" then
+               Data.Tokens.Faces.Append (Get_Text (Data, Tree, Tree.Child (Nonterm, 3), Strip_Quotes => True));
 
-               else
-                  raise Grammar_Error with
-                    Tree.Error_Message (Loc_List (Loc_List'First), "expecting {actions | copyright_license}");
-               end if;
+            elsif Kind = "elisp_indent" then
+               declare
+                  use WisiToken.Syntax_Trees.LR_Utils;
 
-               Data.Raw_Code (Location) := WisiToken.BNF.Split_Lines (Get_Text (Data, Tree, Tree.Child (Nonterm, 4)));
-            exception
-            when Grammar_Error =>
-               Put_Error
-                 (Tree.Error_Message
-                    (Tree.Child (Nonterm, 2),
-                     "invalid raw code location; actions {spec | body} {context | pre | post}"));
-            end;
-
-         when IDENTIFIER_ID =>
-            declare
-               Kind : constant String := Tree.Lexer.Buffer_Text (Token_Byte_Region (2));
-            begin
-               --  Alphabetical by Kind
-
-               if Kind = "case_insensitive" then
-                  --  Not in phase Other
-                  null;
-
-               elsif Kind = "conflict" then
+                  Items : constant Constant_List := Creators.Create_List
+                    (Tree, Tree.Child (Nonterm, 3), +declaration_item_list_ID, +declaration_item_ID);
+                  Iter : constant Constant_Iterator := Iterate_Constant (Items);
+                  Item : Cursor := Items.First;
+                  Elisp_Name : constant String := Get_Text (Data, Tree, Items (Item), Strip_Quotes => True);
+               begin
+                  Item := Iter.Next (Item);
                   declare
-                     Tree_Indices : constant Syntax_Trees.Valid_Node_Access_Array := Tree.Get_Terminals
-                       (Tree.Child (Nonterm, 3));
-
-                     --  Old LR1, LALR format:
-                     --   %conflict <action_a>/<action_b> in state <LHS_A>, <LHS_B> on token <on>
-                     --              1        2 3         4  5      6     7  8      9  10     11
-
-                     --  New LR1, LALR format:
-                     --  %conflict action LHS (| action LHS)* 'on token' on
-                     --            1      2
-                     --
-                     --  Tree_Sitter format:
-                     --  %conflict LHS (LHS)*
-
-                     Conflict : BNF.Conflict;
-                  begin
-                     Conflict.Source_Line := Tree.Line_Region (Tree_Indices (1)).First;
-
-                     if Tree_Indices'Length < 3 or else
-                       (Tree.ID (Tree_Indices (3)) /= +BAR_ID and
-                          Tree.ID (Tree_Indices (2)) /= +SLASH_ID)
-                     then
-                        --  Tree_Sitter format
-                        for LHS of Tree_Indices loop
-                           Conflict.Items.Append
-                             ((Name  => +"",
-                               Value => +Get_Text (Data, Tree, LHS)));
-                        end loop;
-
-                     elsif Tree.ID (Tree_Indices (2)) = +SLASH_ID then
-                        --  old format
-                        Conflict.Items.Append
-                          ((Name  => +Get_Text (Data, Tree, Tree_Indices (1)),
-                            Value => +Get_Text (Data, Tree, Tree_Indices (6))));
-
-                        Conflict.Items.Append
-                          ((Name  => +Get_Text (Data, Tree, Tree_Indices (3)),
-                            Value => +Get_Text (Data, Tree, Tree_Indices (8))));
-
-                        Conflict.On := +Get_Text (Data, Tree, Tree_Indices (11));
-                     else
-                        --  new format
-                        declare
-                           use all type SAL.Base_Peek_Type;
-                           I : SAL.Peek_Type := 1;
-                        begin
-                           loop
-                              Conflict.Items.Append
-                                ((Name  => +Get_Text (Data, Tree, Tree_Indices (I)),
-                                  Value => +Get_Text (Data, Tree, Tree_Indices (I + 1))));
-
-                              I := I + 2;
-                              exit when Tree.ID (Tree_Indices (I)) /= +BAR_ID;
-                              I := I + 1;
-                           end loop;
-                           Conflict.On := +Get_Text (Data, Tree, Tree_Indices (I + 2));
-                        end;
-                     end if;
-                     Data.Conflicts.Append (Conflict);
-                  end;
-
-               elsif Kind = "end" then
-                  --  matching '%if' specified current lexer.
-                  null;
-
-               elsif Kind = "elisp_face" then
-                  Data.Tokens.Faces.Append (Get_Text (Data, Tree, Tree.Child (Nonterm, 3), Strip_Quotes => True));
-
-               elsif Kind = "elisp_indent" then
-                  declare
-                     use WisiToken.Syntax_Trees.LR_Utils;
-
-                     Items : constant Constant_List := Creators.Create_List
-                       (Tree, Tree.Child (Nonterm, 3), +declaration_item_list_ID, +declaration_item_ID);
-                     Iter : constant Constant_Iterator := Iterate_Constant (Items);
-                     Item : Cursor := Items.First;
-                     Elisp_Name : constant String := Get_Text (Data, Tree, Items (Item), Strip_Quotes => True);
+                     Ada_Name             : constant String := Get_Text (Data, Tree, Items (Item));
+                     Function_Args_Region : Buffer_Region   := Null_Buffer_Region;
                   begin
                      Item := Iter.Next (Item);
-                     declare
-                        Ada_Name             : constant String := Get_Text (Data, Tree, Items (Item));
-                        Function_Args_Region : Buffer_Region   := Null_Buffer_Region;
-                     begin
-                        Item := Iter.Next (Item);
-                        if Has_Element (Item) then
-                           Function_Args_Region := Tree.Byte_Region (Items (Item));
-                           loop
-                              Item := Iter.Next (Item);
-                              exit when not Has_Element (Item);
+                     if Has_Element (Item) then
+                        Function_Args_Region := Tree.Byte_Region (Items (Item));
+                        loop
+                           Item := Iter.Next (Item);
+                           exit when not Has_Element (Item);
 
-                              Function_Args_Region.Last := Tree.Byte_Region (Items (Item)).Last;
-                           end loop;
-                        end if;
+                           Function_Args_Region.Last := Tree.Byte_Region (Items (Item)).Last;
+                        end loop;
+                     end if;
 
-                        Data.Tokens.Indents.Insert
-                          (Key      => +Elisp_Name,
-                           New_Item =>
-                             (Name  => +Ada_Name,
-                              Value =>
-                                +(if Function_Args_Region = Null_Buffer_Region
-                                  then ""
-                                  else Tree.Lexer.Buffer_Text (Function_Args_Region))));
-                     end;
+                     Data.Tokens.Indents.Insert
+                       (Key      => +Elisp_Name,
+                        New_Item =>
+                          (Name  => +Ada_Name,
+                           Value =>
+                             +(if Function_Args_Region = Null_Buffer_Region
+                               then ""
+                               else Tree.Lexer.Buffer_Text (Function_Args_Region))));
                   end;
+               end;
 
-               elsif Kind = "elisp_action" then
-                  Data.Tokens.Actions.Insert
-                    (Key      => +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2),
-                     New_Item =>
-                       (Name  => +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),   -- post-parse action
-                        Value => +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 3))); -- Ada name
+            elsif Kind = "elisp_action" then
+               Data.Tokens.Actions.Insert
+                 (Key      => +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2),
+                  New_Item =>
+                    (Name  => +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),   -- post-parse action
+                     Value => +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 3))); -- Ada name
 
-               elsif Kind = "end_names_optional_option" then
-                  Data.Language_Params.End_Names_Optional_Option := +Get_Text (Data, Tree, Tree.Child (Nonterm, 3));
+            elsif Kind = "end_names_optional_option" then
+               Data.Language_Params.End_Names_Optional_Option := +Get_Text (Data, Tree, Tree.Child (Nonterm, 3));
 
-               elsif Kind = "generate" then
-                  --  Not in Other phase
-                  null;
+            elsif Kind = "generate" then
+               --  Not in Other phase
+               null;
 
-               elsif Kind = "language_runtime" then
-                  Data.Language_Params.Language_Runtime_Name :=
-                    +Get_Text (Data, Tree, Tree.Child (Nonterm, 3), Strip_Quotes => True);
+            elsif Kind = "language_runtime" then
+               Data.Language_Params.Language_Runtime_Name :=
+                 +Get_Text (Data, Tree, Tree.Child (Nonterm, 3), Strip_Quotes => True);
 
-               elsif Kind = "lr1_hash_table_size" then
-                  Data.Language_Params.LR1_Hash_Table_Size :=
-                    Positive'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3), Strip_Quotes => True));
+            elsif Kind = "lr1_hash_table_size" then
+               Data.Language_Params.LR1_Hash_Table_Size :=
+                 Positive'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3), Strip_Quotes => True));
 
-               elsif Kind = "max_parallel" then
-                  Data.Max_Parallel := SAL.Base_Peek_Type'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
+            elsif Kind = "max_parallel" then
+               Data.Max_Parallel := SAL.Base_Peek_Type'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
-               elsif Kind = "mckenzie_check_limit" then
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Check_Limit := Syntax_Trees.Sequential_Index'Value
-                    (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
+            elsif Kind = "mckenzie_check_limit" then
+               Data.McKenzie_Recover.Check_Limit := Syntax_Trees.Sequential_Index'Value
+                 (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
-               elsif Kind = "mckenzie_check_delta_limit" then
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Check_Delta_Limit := Integer'Value
-                    (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
+            elsif Kind = "mckenzie_check_delta_limit" then
+               Data.McKenzie_Recover.Check_Delta_Limit := Integer'Value
+                 (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
 
-               elsif Kind = "mckenzie_cost_default" then
-                  if Tree.Get_Terminals (Tree.Child (Nonterm, 3))'Length /= 4 then
-                     raise Grammar_Error with
-                       Tree.Error_Message
-                         (Tree.Child (Nonterm, 3),
-                          "too " & (if Tree.Get_Terminals (Tree.Child (Nonterm, 3))'Length > 4 then "many" else "few") &
-                            " default costs; should be 'insert, delete, push back, ignore check fail'.");
-                  end if;
-
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Default_Insert          := Natural'Value
-                    (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1));
-                  Data.McKenzie_Recover.Default_Delete_Terminal := Natural'Value
-                    (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2));
-                  Data.McKenzie_Recover.Default_Push_Back       := Natural'Value
-                    (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 3));
-                  Data.McKenzie_Recover.Ignore_Check_Fail       := Natural'Value
-                    (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 4));
-
-               elsif Kind = "mckenzie_cost_delete" then
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Delete.Append
-                    ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
-                      +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
-
-               elsif Kind = "mckenzie_cost_fast_forward" then
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Fast_Forward :=
-                    Integer'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
-
-               elsif Kind = "mckenzie_cost_insert" then
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Insert.Append
-                    ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
-                      +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
-
-               elsif Kind = "mckenzie_cost_matching_begin" then
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Matching_Begin :=
-                    Integer'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
-
-               elsif Kind = "mckenzie_cost_push_back" then
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Push_Back.Append
-                    ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
-                      +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
-
-               elsif Kind = "mckenzie_cost_undo_reduce" then
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Undo_Reduce.Append
-                    ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
-                      +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
-
-               elsif Kind = "mckenzie_enqueue_limit" then
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Enqueue_Limit := Natural'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
-
-               elsif Kind = "mckenzie_minimal_complete_cost_delta" then
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Minimal_Complete_Cost_Delta :=
-                    Integer'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
-
-               elsif Kind = "mckenzie_zombie_limit" then
-                  Data.Language_Params.Error_Recover := True;
-                  Data.McKenzie_Recover.Zombie_Limit := Integer'Value
-                    (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
-
-               elsif Kind = "meta_syntax" then
-                  --  not in Other phase
-                  null;
-
-               elsif Kind = "no_enum" then
-                  Data.Language_Params.Declare_Enums := False;
-
-               elsif Kind = "no_language_runtime" then
-                  Data.Language_Params.Use_Language_Runtime := False;
-
-               elsif Kind = "no_error_recover" then
-                  Data.Language_Params.Error_Recover := False;
-
-               elsif Kind = "partial_recursion" then
-                  Data.Language_Params.Partial_Recursion := True;
-
-               elsif Kind = "start" then
-                  Data.Language_Params.Start_Token := +Get_Text (Data, Tree, Tree.Child (Nonterm, 3));
-
-               elsif Kind = "lexer_regexp" then
-                  Data.Tokens.Lexer_Regexps.Append
-                    ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
-                      +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
-
-               else
-                  raise Grammar_Error with Tree.Error_Message (Tree.Child (Nonterm, 2), "unexpected syntax");
+            elsif Kind = "mckenzie_cost_default" then
+               if Tree.Get_Terminals (Tree.Child (Nonterm, 3))'Length /= 4 then
+                  raise Grammar_Error with
+                    Tree.Error_Message
+                      (Tree.Child (Nonterm, 3),
+                       "too " & (if Tree.Get_Terminals (Tree.Child (Nonterm, 3))'Length > 4 then "many" else "few") &
+                         " default costs; should be 'insert, delete, push back, ignore check fail'.");
                end if;
-            end;
 
-         when NON_GRAMMAR_ID =>
-            WisiToken.BNF.Add_Token
-              (Data.Tokens.Non_Grammar,
-               Kind  => Get_Text (Data, Tree, Tree.Child (Nonterm, 4)),
-               Name  => Get_Text (Data, Tree, Tree.Child (Nonterm, 6)),
-               Value => "");
+               Data.McKenzie_Recover.Default_Insert          := Natural'Value
+                 (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1));
+               Data.McKenzie_Recover.Default_Delete_Terminal := Natural'Value
+                 (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2));
+               Data.McKenzie_Recover.Default_Push_Back       := Natural'Value
+                 (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 3));
+               Data.McKenzie_Recover.Ignore_Check_Fail       := Natural'Value
+                 (Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 4));
 
-         when others =>
-            raise Grammar_Error with Tree.Error_Message (Tree.Child (Nonterm, 2), "unexpected syntax");
-         end case;
+            elsif Kind = "mckenzie_cost_delete" then
+               Data.McKenzie_Recover.Delete.Append
+                 ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
+                   +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
 
-      when Syntax_Trees.Virtual_Terminal | Syntax_Trees.Virtual_Identifier =>
-         raise SAL.Programmer_Error;
+            elsif Kind = "mckenzie_cost_fast_forward" then
+               Data.McKenzie_Recover.Fast_Forward :=
+                 Integer'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
+
+            elsif Kind = "mckenzie_cost_insert" then
+               Data.McKenzie_Recover.Insert.Append
+                 ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
+                   +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
+
+            elsif Kind = "mckenzie_cost_matching_begin" then
+               Data.McKenzie_Recover.Matching_Begin :=
+                 Integer'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
+
+            elsif Kind = "mckenzie_cost_push_back" then
+               Data.McKenzie_Recover.Push_Back.Append
+                 ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
+                   +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
+
+            elsif Kind = "mckenzie_cost_undo_reduce" then
+               Data.McKenzie_Recover.Undo_Reduce.Append
+                 ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
+                   +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
+
+            elsif Kind = "mckenzie_enqueue_limit" then
+               Data.McKenzie_Recover.Enqueue_Limit := Natural'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
+
+            elsif Kind = "mckenzie_minimal_complete_cost_delta" then
+               Data.McKenzie_Recover.Minimal_Complete_Cost_Delta :=
+                 Integer'Value (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
+
+            elsif Kind = "mckenzie_zombie_limit" then
+               Data.McKenzie_Recover.Zombie_Limit := Integer'Value
+                 (Get_Text (Data, Tree, Tree.Child (Nonterm, 3)));
+
+            elsif Kind = "meta_syntax" then
+               --  not in Other phase
+               null;
+
+            elsif Kind = "no_enum" then
+               Data.Language_Params.Declare_Enums := False;
+
+            elsif Kind = "no_language_runtime" then
+               Data.Language_Params.Use_Language_Runtime := False;
+
+            elsif Kind = "no_error_recover" then
+               Data.Language_Params.Error_Recover := False;
+
+            elsif Kind = "partial_recursion" then
+               Data.Language_Params.Partial_Recursion := True;
+
+            elsif Kind = "start" then
+               Data.Language_Params.Start_Token := +Get_Text (Data, Tree, Tree.Child (Nonterm, 3));
+
+            elsif Kind = "lexer_regexp" then
+               Data.Tokens.Lexer_Regexps.Append
+                 ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
+                   +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2)));
+
+            else
+               raise Grammar_Error with Tree.Error_Message (Tree.Child (Nonterm, 2), "unexpected syntax");
+            end if;
+         end;
+
+      when others =>
+         raise Grammar_Error with Tree.Error_Message (Tree.Child (Nonterm, 2), "unexpected syntax");
       end case;
+
    end Add_Declaration;
 
    procedure Add_Nonterminal
@@ -879,10 +831,129 @@ package body WisiToken_Grammar_Runtime is
       Data : User_Data_Type renames User_Data_Type (User_Data);
 
       LHS_Node   : constant Valid_Node_Access := Tree.Child (Nonterm, 1);
-      LHS_String : constant String           := Get_Text (Data, Tree, LHS_Node);
+      LHS_String : constant String            := Get_Text (Data, Tree, LHS_Node);
 
       Right_Hand_Sides : WisiToken.BNF.RHS_Lists.List;
       Labels           : WisiToken.BNF.String_Arrays.Vector;
+
+      function Is_Optimized_List return Boolean
+      is begin
+         --  From optimized_list.wy:
+         --  declarations
+         --  : declaration
+         --  | declarations declaration
+         --  | declarations declarations
+         --  ;
+         --
+         --  From ada_lite_ebnf_bnf.wy
+         --
+         --  optimized list with separator:
+         --  term
+         --    : factor
+         --    | term multiplying_operator factor
+         --    | term multiplying_operator term
+         --    ;
+         --
+         --  AND_relation_list
+         --    : AND relation
+         --    | AND_relation_list AND relation
+         --    | AND_relation_list AND_relation_list
+         --    ;
+         --
+         --  ELSIF_expression_list
+         --    : ELSIF expression THEN sequence_of_statements
+         --    | ELSIF_expression_list ELSIF expression THEN sequence_of_statements
+         --    | ELSIF_expression_list ELSIF_expression_list
+         --    ;
+
+         if Right_Hand_Sides.Length /= 3 then
+            return False;
+         end if;
+
+         declare
+            use Ada.Containers;
+            use Ada.Strings.Unbounded;
+            use WisiToken.BNF.RHS_Lists;
+
+            RHS                 : Cursor     := Right_Hand_Sides.First;
+            Element             : Unbounded_String;
+            Element_Token_Count : Count_Type := 0;
+            Has_Separator       : Boolean    := False;
+            Separator           : Unbounded_String;
+         begin
+            for Tok of Right_Hand_Sides (RHS).Tokens loop
+               Append (Element, Tok.Identifier);
+               Element_Token_Count := @ + 1;
+            end loop;
+
+            Next (RHS);
+            if -Right_Hand_Sides (RHS).Tokens (1).Identifier /= LHS_String then
+               return False;
+            end if;
+
+            if Element_Token_Count = 1 then
+               case Right_Hand_Sides (RHS).Tokens.Length is
+               when 2 =>
+                  null;
+
+               when 3 =>
+                  Has_Separator := True;
+                  Separator     := Right_Hand_Sides (RHS).Tokens (2).Identifier;
+
+               when others =>
+                  return False;
+               end case;
+
+               if Has_Separator and then Right_Hand_Sides (RHS).Tokens (2).Identifier /= Separator then
+                  return False;
+               end if;
+               if Right_Hand_Sides (RHS).Tokens (Right_Hand_Sides (RHS).Tokens.Last_Index).Identifier /= Element
+               then
+                  return False;
+               end if;
+            else
+               if Right_Hand_Sides (RHS).Tokens.Length /= 1 + Element_Token_Count then
+                  return False;
+               end if;
+
+               declare
+                  Temp             : Unbounded_String;
+                  Temp_Token_Count : Count_Type := 0;
+               begin
+                  for I in 2 .. Positive_Index_Type (Right_Hand_Sides (RHS).Tokens.Length) loop
+                     Append (Temp, Right_Hand_Sides (RHS).Tokens (I).Identifier);
+                     Temp_Token_Count := @ + 1;
+                  end loop;
+
+                  if Temp /= Element or Temp_Token_Count /= Element_Token_Count then
+                     return False;
+                  end if;
+               end;
+            end if;
+
+            Next (RHS);
+            if Right_Hand_Sides (RHS).Tokens.Length /= (if Has_Separator then 3 else 2) then
+               return False;
+            end if;
+            if -Right_Hand_Sides (RHS).Tokens (1).Identifier /= LHS_String then
+               return False;
+            end if;
+            if Has_Separator then
+               if Right_Hand_Sides (RHS).Tokens (2).Identifier /= Separator then
+                  return False;
+               end if;
+               if Right_Hand_Sides (RHS).Tokens (3).Identifier /= LHS_String then
+                  return False;
+               end if;
+            else
+               if Right_Hand_Sides (RHS).Tokens (2).Identifier /= LHS_String then
+                  return False;
+               end if;
+            end if;
+            return True;
+         end;
+      end Is_Optimized_List;
+
    begin
       if Data.Phase = Meta or Data.Ignore_Lines then
          return;
@@ -909,7 +980,8 @@ package body WisiToken_Grammar_Runtime is
 
          Data.Tokens.Rules.Append
            ((+LHS_String, Right_Hand_Sides, Labels,
-             Source_Line =>
+             Optimized_List => Is_Optimized_List,
+             Source_Line    =>
                (case Tree.Label (LHS_Node) is
                 when Source_Terminal    => Tree.Line_Region (LHS_Node).First,
                 when Virtual_Identifier => Line_Number_Type'First, -- IMPROVEME: get line from Right_Hand_Sides
@@ -1010,3 +1082,6 @@ package body WisiToken_Grammar_Runtime is
    end Get_Text;
 
 end WisiToken_Grammar_Runtime;
+--  Local Variables:
+--  ada-case-strict: nil
+--  End:

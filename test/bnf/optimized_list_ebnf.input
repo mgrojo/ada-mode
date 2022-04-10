@@ -1,0 +1,10 @@
+-- Declarations
+a : B;
+c : D;
+
+-- Statements
+
+x;
+y;
+z;
+<<end>> 

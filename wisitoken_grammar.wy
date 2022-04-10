@@ -50,13 +50,19 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %generate LALR Ada re2c
 %start compilation_unit_list
 
+%keyword ACCEPT_IT 'accept_it'
 %keyword CODE "code"
+%keyword CONFLICT "conflict"
+%keyword CONFLICT_RESOLUTION "conflict_resolution"
 %keyword END "end"
 %keyword ELSIF "elsif"
 %keyword IF "if"
 %keyword IN "in"
 %keyword KEYWORD "keyword"
 %keyword NON_GRAMMAR "non_grammar"
+%keyword ON "on"
+%keyword REDUCE 'reduce'
+%keyword SHIFT 'shift'
 %keyword TOKEN "token"
 
 %token <delimited-text> RAW_CODE "%{" "}%"
@@ -66,7 +72,6 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %token <punctuation> BAR "|"
 %token <punctuation> COLON ":"
 %token <punctuation> COLON_COLON_EQUAL "::="
-%token <punctuation> COMMA ","
 %token <punctuation> EQUAL "="
 %token <punctuation> GREATER ">"
 %token <punctuation> LEFT_BRACE "{"
@@ -81,7 +86,6 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %token <punctuation> RIGHT_BRACKET "]"
 %token <punctuation> RIGHT_PAREN ")"
 %token <punctuation> SEMICOLON ";"
-%token <punctuation> SLASH "/"
 %token <punctuation> STAR "*" ;; for ()* same as {}
 
 %token <number> NUMERIC_LITERAL %[ [0-9-][0-9_]* ]% "1234567890"
@@ -115,24 +119,57 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 ;; mckenzie_recover, to simplify working on mckenzie_recover.
 
 %conflict SHIFT IDENTIFIER_BAR_list | REDUCE rhs_list on token BAR
-%conflict SHIFT declaration | REDUCE token_keyword_non_grammar on token IDENTIFIER (90)
-%conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER
+%conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER (37)
 %conflict SHIFT rhs_element | REDUCE rhs on token IDENTIFIER
 %conflict SHIFT rhs_list | REDUCE semicolon_opt on token PERCENT
 
 ;;;; grammar rules, no particular order
 
+regexp_string
+  : REGEXP
+  | STRING_LITERAL_1
+  | STRING_LITERAL_2
+  ;
+
+conflict_item
+  : SHIFT IDENTIFIER
+  | REDUCE IDENTIFIER
+  | ACCEPT_IT IDENTIFIER
+  | IDENTIFIER
+  ;
+
+conflict_item_list
+  : conflict_item
+  | conflict_item_list BAR conflict_item
+  ;
+
 declaration
-  : PERCENT token_keyword_non_grammar IDENTIFIER declaration_item_list
+  : PERCENT TOKEN LESS IDENTIFIER GREATER IDENTIFIER regexp_string regexp_string
+    %(Add_Declaration (User_Data, Tree, Nonterm);)%
+  | PERCENT TOKEN LESS IDENTIFIER GREATER IDENTIFIER regexp_string
+    %(Add_Declaration (User_Data, Tree, Nonterm);)%
+  | PERCENT NON_GRAMMAR LESS IDENTIFIER GREATER IDENTIFIER regexp_string regexp_string
+    %(Add_Declaration (User_Data, Tree, Nonterm);)%
+  | PERCENT NON_GRAMMAR LESS IDENTIFIER GREATER IDENTIFIER regexp_string
     %(Add_Declaration (User_Data, Tree, Nonterm);)%
   | PERCENT NON_GRAMMAR LESS IDENTIFIER GREATER IDENTIFIER
     %(Add_Declaration (User_Data, Tree, Nonterm);)%
+  | PERCENT KEYWORD IDENTIFIER regexp_string
+    %(Add_Declaration (User_Data, Tree, Nonterm);)%
   | PERCENT CODE identifier_list RAW_CODE
     %(Add_Declaration (User_Data, Tree, Nonterm);)%
+  | PERCENT CONFLICT conflict_item_list ON TOKEN IDENTIFIER
+    %(Add_Declaration (User_Data, Tree, Nonterm);)%
+  | PERCENT CONFLICT_RESOLUTION conflict_item_list ON TOKEN IDENTIFIER COLON IDENTIFIER
+    %(Add_Declaration (User_Data, Tree, Nonterm);)%
+
+  ;; %start, %mckenzie*, etc.
   | PERCENT IDENTIFIER declaration_item_list
     %(Add_Declaration (User_Data, Tree, Nonterm);)%
+  ;; %case_insensitive etc
   | PERCENT IDENTIFIER
     %(Add_Declaration (User_Data, Tree, Nonterm);)%
+
   | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
     %(Start_If (User_Data, Tree, Nonterm);)%
   | PERCENT IF IDENTIFIER IN IDENTIFIER_BAR_list
@@ -145,12 +182,6 @@ declaration
     %(End_If (User_Data);)%
   ;
 
-token_keyword_non_grammar
-  : KEYWORD
-  | NON_GRAMMAR LESS IDENTIFIER GREATER
-  | TOKEN LESS IDENTIFIER GREATER
-  ;
-
 identifier_list
   : IDENTIFIER
   | identifier_list IDENTIFIER
@@ -161,26 +192,15 @@ IDENTIFIER_BAR_list
   | IDENTIFIER_BAR_list BAR IDENTIFIER
   ;
 
+declaration_item
+  : IDENTIFIER
+  | NUMERIC_LITERAL
+  | regexp_string
+  ;
+
 declaration_item_list
   : declaration_item
   | declaration_item_list declaration_item
-  ;
-
-declaration_item
-  : BAR
-  | COMMA
-  | IDENTIFIER
-  | IN
-  | EQUAL
-  | LEFT_PAREN
-  | NUMERIC_LITERAL
-  | REGEXP
-  | RIGHT_PAREN
-  | SLASH
-  | STRING_LITERAL_1
-  | STRING_LITERAL_2
-  | TOKEN
-  ;; "|", ",", "token", "/", "(", ")", "in" appear in %conflict declarations
   ;
 
 nonterminal

@@ -20,9 +20,10 @@
 with SAL;
 with Wisi; use Wisi;
 with Wisi.Subprograms; use Wisi.Subprograms;
+with WisiToken.In_Parse_Actions; use WisiToken.In_Parse_Actions;
 package body Subprograms_Process_Actions is
 
-   use WisiToken.In_Parse_Actions;
+   use WisiToken.Syntax_Trees.In_Parse_Actions;
    use all type Motion_Param_Array;
 
    procedure block_0
@@ -60,7 +61,7 @@ package body Subprograms_Process_Actions is
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.In_Parse_Actions.Status
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status
    is
       pragma Unreferenced (Nonterm, Recover_Active);
       T1 : constant SAL.Peek_Type := 1;
@@ -127,7 +128,7 @@ package body Subprograms_Process_Actions is
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.In_Parse_Actions.Status
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status
    is
       pragma Unreferenced (Nonterm, Recover_Active);
       T1 : constant SAL.Peek_Type := 1;
@@ -260,7 +261,7 @@ package body Subprograms_Process_Actions is
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.In_Parse_Actions.Status
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status
    is
       pragma Unreferenced (Tokens);
    begin
@@ -311,7 +312,7 @@ package body Subprograms_Process_Actions is
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.In_Parse_Actions.Status
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status
    is
       pragma Unreferenced (Recover_Active);
       pre : constant SAL.Peek_Type := 1;
@@ -343,7 +344,7 @@ package body Subprograms_Process_Actions is
      Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;
      Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;
      Recover_Active : in     Boolean)
-    return WisiToken.In_Parse_Actions.Status
+    return WisiToken.Syntax_Trees.In_Parse_Actions.Status
    is
       pragma Unreferenced (Recover_Active);
       suf : constant SAL.Peek_Type := 1;

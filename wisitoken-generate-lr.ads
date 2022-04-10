@@ -25,16 +25,15 @@ with WisiToken.Productions;
 package WisiToken.Generate.LR is
    use WisiToken.Parse.LR;
 
-   subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
    type Conflict_Item is record
-      Action : Conflict_Parse_Actions := Conflict_Parse_Actions'First;
-      LHS    : Token_ID := Invalid_Token_ID;
+      Verb : Conflict_Parse_Actions := Conflict_Parse_Actions'First;
+      LHS  : Token_ID               := Invalid_Token_ID;
    end record;
 
    function Conflict_Item_Compare (Left, Right : in Conflict_Item) return SAL.Compare_Result
-   is (if Left.Action > Right.Action
+   is (if Left.Verb > Right.Verb
        then SAL.Greater
-       elsif Left.Action < Right.Action
+       elsif Left.Verb < Right.Verb
        then SAL.Less
        else
          (if Left.LHS > Right.LHS
@@ -74,6 +73,15 @@ package WisiToken.Generate.LR is
       On     : Token_ID := Invalid_Token_ID;
       Items  : Conflict_Item_Lists.Vector;
       States : State_Index_Arrays.Vector;
+
+      Resolution : Token_ID := Invalid_Token_ID;
+      --  The resolution specified by %conflict_resolution.
+
+      Resolution_Used : Boolean := False;
+      --  True if actually used when generating the parse table.
+
+      Conflict_Seen : Boolean := False;
+      --  True if encountered in parse table.
    end record;
 
    function Image (Conflict : in LR.Conflict; Descriptor : in WisiToken.Descriptor) return String;
@@ -105,42 +113,47 @@ package WisiToken.Generate.LR is
    --  Compare Found and Known Conflicts. If they differ, and
    --  Ignore_Conflicts is false, output appropriate error messages.
 
-   type Conflict_Count is record
-      Accept_Reduce : Integer := 0;
-      Shift_Reduce  : Integer := 0;
-      Reduce_Reduce : Integer := 0;
-   end record;
-
-   package Conflict_Count_Lists is new SAL.Gen_Unbounded_Definite_Vectors
-     (State_Index, Conflict_Count, Default_Element => (others => <>));
-
-   procedure Collect_Conflicts
-     (Table           : in Parse_Table;
-      Conflicts       : in out Conflict_Lists.Tree;
-      Conflict_Counts : in out Conflict_Count_Lists.Vector);
-
    ----------
    --  Build parse table
 
    procedure Add_Action
-     (Symbol      : in     Token_ID;
-      Action      : in     Parse_Action_Rec;
-      Action_List : in out Action_Arrays.Vector;
-      Descriptor  : in     WisiToken.Descriptor);
-   --  Add (Symbol, Action) to Action_List
+     (State              : in     State_Index;
+      Symbol             : in     Token_ID;
+      Action             : in     Parse_Action_Rec;
+      Action_List        : in out Action_Arrays.Vector;
+      Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor         : in     WisiToken.Descriptor;
+      Declared_Conflicts : in out WisiToken.Generate.LR.Conflict_Lists.Tree;
+      Unknown_Conflicts  : in out WisiToken.Generate.LR.Conflict_Lists.Tree;
+      First_Nonterm_Set  : in     WisiToken.Token_Array_Token_Set;
+      File_Name          : in     String;
+      Ignore_Conflicts   : in     Boolean);
+   --  Add (Symbol, Action) to Action_List. Other args are for conflict
+   --  detection, resolution, and error reporting.
 
    procedure Add_Actions
-     (Closure    : in     LR1_Items.Item_Set;
-      Table      : in out Parse_Table;
-      Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in     WisiToken.Descriptor);
+     (Closure            : in     LR1_Items.Item_Set;
+      Table              : in out Parse_Table;
+      Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor         : in     WisiToken.Descriptor;
+      Declared_Conflicts : in out WisiToken.Generate.LR.Conflict_Lists.Tree;
+      Unknown_Conflicts  : in out WisiToken.Generate.LR.Conflict_Lists.Tree;
+      First_Nonterm_Set  : in     WisiToken.Token_Array_Token_Set;
+      File_Name          : in     String;
+      Ignore_Conflicts   : in     Boolean);
    --  Add actions in Closure to Table.
 
    procedure Add_Lookahead_Actions
-     (Item        : in     LR1_Items.Item;
-      Action_List : in out Action_Arrays.Vector;
-      Grammar     : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor  : in     WisiToken.Descriptor);
+     (State              : in     State_Index;
+      Item               : in     LR1_Items.Item;
+      Action_List        : in out Action_Arrays.Vector;
+      Grammar            : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor         : in     WisiToken.Descriptor;
+      Declared_Conflicts : in out WisiToken.Generate.LR.Conflict_Lists.Tree;
+      Unknown_Conflicts  : in out WisiToken.Generate.LR.Conflict_Lists.Tree;
+      First_Nonterm_Set  : in     WisiToken.Token_Array_Token_Set;
+      File_Name          : in     String;
+      Ignore_Conflicts   : in     Boolean);
    --  Add actions for Item.Lookaheads to Action_List
    --  Closure must be from the item set containing Item.
 
@@ -222,16 +235,29 @@ package WisiToken.Generate.LR is
    procedure Put (Descriptor : in WisiToken.Descriptor; State : in Parse_State);
    --  Put Item to Ada.Text_IO.Current_Output in parse table format.
 
+   function Image
+     (Item       : in Parse_Action_Rec;
+      Descriptor : in WisiToken.Descriptor)
+      return String;
+   --  Ada aggregate format.
+
+   procedure Put
+     (File       : in Ada.Text_IO.File_Type;
+      Action     : in Parse_Action_Node_Ptr;
+      Descriptor : in WisiToken.Descriptor);
+   --  Put Action to File in error message format.
+
    procedure Put_Parse_Table
-     (Table                 : in Parse_Table_Ptr;
-      Parse_Table_File_Name : in String;
-      Title                 : in String;
-      Grammar               : in WisiToken.Productions.Prod_Arrays.Vector;
-      Recursions            : in Generate.Recursions;
-      Kernels               : in LR1_Items.Item_Set_List;
-      Conflicts             : in Conflict_Count_Lists.Vector;
-      Descriptor            : in WisiToken.Descriptor;
-      Include_Extra         : in Boolean := False);
+     (Table                 : in     Parse_Table_Ptr;
+      Parse_Table_File_Name : in     String;
+      Title                 : in     String;
+      Grammar               : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Recursions            : in     Generate.Recursions;
+      Kernels               : in     LR1_Items.Item_Set_List;
+      Declared_Conflicts    : in out WisiToken.Generate.LR.Conflict_Lists.Tree;
+      Unknown_Conflicts     : in out WisiToken.Generate.LR.Conflict_Lists.Tree;
+      Descriptor            : in     WisiToken.Descriptor;
+      Include_Extra         : in     Boolean := False);
    --  "Extra" is recursions.
 
 end WisiToken.Generate.LR;

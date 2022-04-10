@@ -304,6 +304,4 @@ State 22:
 
 1 states with conflicts: 17
 
- 0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts
-
  5 rules, 0 user actions, 0 checks, 23 states

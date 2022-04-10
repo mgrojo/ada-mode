@@ -19,7 +19,7 @@ incremental_parse-pre-config.input_stream o.w.s-2
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-2")))
+  (xgit . "/Projects/org.wisitoken.stephe-1")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
@@ -31,59 +31,74 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-optimize syntax tree structure for lists
-    editing wisitoken-syntax_trees.adb to add Tree.Line_region;
-    slow, even with "fast parser" settings in develop_settings.el
-    (setq wisi-parser-verbosity "time=1")
-;; 2022-02-27 11:47:11.47 start
-;; 2022-02-27 11:47:11.51 post edit tree
-;; 2022-02-27 11:47:11.91 pre-recover 2 active
-    faster if at end of file editing Sequential_Index_Cleared:
-;; 2022-02-27 11:50:21.46 start
-;; 2022-02-27 11:50:21.48 post edit tree
-;; 2022-02-27 11:50:21.48 pre-recover 1 active
+entire declarative_part is labeled recover_conflict, so it is all broken down to terminals!
+    not incremental!
+    happens whenever there is more than one parser after recover
+    don't breakdown until encounter error
+        then let breakdown_recover_conflict be one error recovery strategy
+        benchmark set verbosity debug=1, Edit_Tree output terminal count from recover_conflict
 
-    improve time benchmark; edit near beginning of file, near end of file.
+redundant minimal_complete_actions:
+    in ada_annex_p parse_table:
+    state 12 minimal_compelete_actions:
+        ((1 sequence_of_statements 17.0), (2 sequence_of_statements 17.1))
+        redundant, because optimized_list
 
-    lots of subprograms; parse is slow building declarations list.
-    optimize syntax tree list structure
-        breakdown to node in middle just split list in two at node
-        parse that node splice the lists
-        key idea briefly described in Wagner, Graham 1998
-            that references Gafter 1990 Parallel Incremental Compilation
-            given a canonical list:
-                list : element | list element ;
-            ebnf * is optimized list
-            batch parser does not change; list nodes have one or two children, one is an element, other is a list
-            Edit_Tree Breakdown rearranges that into a tree: both children can be list nodes
-                then split top node into two list nodes, breakdown right node to expose the edit
-            incremental parse must allow a list where an element is expected:
-                list : element | list element | list list ;
-                Wagner, Graham 1998 treats this as a special case of conflict resolution.
-                produces an unbalanced tree
-            list is only rebalanced in Breakdown
-                in error recover?
+bad fontify
+    editing test_bnf_suite.adb
+    captured in o.e.a/debug.cmd; reproduces!
+        file is out of sync with actual edit, but reproduces anyway
+        first face region is too large
 
-    WisiToken design
-        "optimized list" is recognized in grammar as:
-        list : element | list element | list list ;
-        that gives conflicts:
-%conflict SHIFT declaration | REDUCE declarations on token IDENTIFIER (6)
-%conflict REDUCE declarations | REDUCE declarations on token IDENTIFIER (5)
-%conflict REDUCE declarations | REDUCE declarations on token Wisi_EOI (5)
+followed_by: improve to show expansion that gives the conflict for optimized_conflict_02.wy
+        (no optimized_list)
+        add option --no_optimized_list for _01.wy (turn off error recover? )
+        also for ada_annex_p
 
-        those conflicts are handled specially
-            if production LHS is an optimized list, choose reduce two lists to a single list.
-        conflicts still have to be declared
+        need to actually expand nonterms to show token sequence
+    when can 'label_opt' be followed by 'parallel'?
 
+    parallel occurs in :
+    value_sequence : '[' ['parallel' ['(' chunk_specification ')']] iterated_element_association ']' ;
+    iteration_scheme
+      | ['parallel'] 'for' procedural_iterator
+      | 'parallel' [ '(' chunk_specification ')' ] 'for' loop_parameter_specification
+      | 'parallel' [ '(' chunk_specification ')' ] 'for' iterator_specification
+    parallel_block_statement
+      : 'parallel' 'do' handled_sequence_of_statements 'and' statement_AND_list 'end' 'do' ';'
+
+    label_opt occurs in :
+    loop_statement
+      : label_opt [iteration_scheme] 'loop' sequence_of_statements 'end' 'loop' identifier_opt ';'
+    block_statement
+      : label_opt ['declare' declarative_part] 'begin' handled_sequence_of_statements
+        'end' identifier_opt ';'
+
+    expand iteration_scheme in loop_statement:
+    label_opt parallel for procedural_iterator loop ...
+
+    document this process in wisitoken user guide; don't need code.
+        unless automating helps review all conflicts
+            could continue with minimal_action to get terminal token sequence.
+
+typed \ in an Ada file
+    got Programmer_Error: lexer error in non_grammar
+    from wisitoken-parse.adb Next_Grammar_Token
+    supposedly tested in test_mckenzie_recover.adb Lexer_Error_01
+    need a better test; turn it into a syntax_error
+
+add general conflict resolution mechanism?
+    solve Java expression problem
 
 Find_matching_name compares large amounts of text
     Name_Region (sequence_of_statements) returns the whole sequence
     should return invalid_region
     declare IDENTIFIER as name
+    or compare one char at a time, fail on first diff
 
 packrat left recursion
     copy from libadalang
+    add packrat to optimized_list*.wy, ada_lite*.wy
 
 Do LR incremental, error recover on tree from packrat parse?
     batch = packrat, incremental = LR

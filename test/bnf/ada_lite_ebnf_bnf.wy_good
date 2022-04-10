@@ -8,7 +8,7 @@
 ;; See ada_lite_ebnf_bnf.wy for translation to BNF for parser generator.
 
 %code copyright_license %{
-;;  Copyright (C) 2017 - 2021 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -49,10 +49,12 @@
 
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
-%generate Tree_Sitter Ada tree_sitter
+;; %generate Tree_Sitter Ada tree_sitter FIXME: tree-sitter broke when change sequence_of_statements to statement+
+;; and more broke when changed wisitoken_grammar.wy declaration
 
 %meta_syntax BNF
 
+%keyword PRAGMA "pragma"
 %keyword AND "and"
 %keyword BEGIN "begin"
 %keyword BODY "body"
@@ -191,12 +193,31 @@
 %mckenzie_cost_delete STRING_LITERAL 2
 
 ;; Prefer insert these over everything; lets us finish a
-;; statement.
+;; statement, or insert a minimal statement in an empty block.
+%mckenzie_cost_insert EXIT 1
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
 
 %conflict REDUCE primary | REDUCE subtype_indication on token RIGHT_PAREN
 %conflict REDUCE discrete_subtype_definition | REDUCE range_list on token RIGHT_PAREN
+
+;; These are from having pragma in both statement and declaration, as
+;; is required in ada_annex_p.
+%conflict REDUCE declaration | REDUCE statement on token PRAGMA
+%conflict_resolution REDUCE declaration | REDUCE statement on token BEGIN : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token CASE : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token DECLARE : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token EXIT : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token FOR : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token FUNCTION : declaration
+%conflict_resolution REDUCE declaration | REDUCE statement on token IF : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token LOOP : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token PACKAGE : declaration
+%conflict_resolution REDUCE declaration | REDUCE statement on token PROCEDURE : declaration
+%conflict_resolution REDUCE declaration | REDUCE statement on token RETURN : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token TYPE : declaration
+%conflict_resolution REDUCE declaration | REDUCE statement on token IDENTIFIER : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token Wisi_EOI : statement
 
 %if parser = LALR
 ;; tree-sitter and wisitoken have different naming
@@ -231,6 +252,7 @@ association
 association_list
   : association
   | association_list COMMA association
+  | association_list COMMA association_list
   ;
 
 binary_adding_operator
@@ -278,10 +300,7 @@ case_statement_alternative
 ;; We don't allow an empty compilation unit; that causes too many
 ;; ambiguities.
 compilation_unit
-  : package_body
-  | subprogram_declaration
-  | subprogram_body
-  | generic_instantiation
+  : declaration
   | statement
   ;
 
@@ -307,7 +326,9 @@ constraint
 
 declaration
   : body_g
+  | generic_instantiation
   | object_declaration
+  | pragma_g
   | subprogram_declaration
   | type_declaration
   ;
@@ -478,6 +499,10 @@ paren_expression
   : LEFT_PAREN expression RIGHT_PAREN
   ;
 
+pragma_g
+  : PRAGMA IDENTIFIER actual_parameter_part SEMICOLON
+  ;
+
 primary
   : NUMERIC_LITERAL
   | STRING_LITERAL
@@ -531,8 +556,9 @@ selected_component
   ;
 
 sequence_of_statements
-  : statement_list
-  | ;; empty
+  : statement
+  | sequence_of_statements statement
+  | sequence_of_statements sequence_of_statements
   ;
 
 simple_expression
@@ -554,6 +580,7 @@ simple_statement
 statement
   : simple_statement
   | compound_statement
+  | pragma_g
   ;
 
 subprogram_body
@@ -590,6 +617,7 @@ subtype_indication
 term
   : factor
   | term multiplying_operator factor
+  | term multiplying_operator term
   ;
 
 type_declaration
@@ -609,44 +637,50 @@ unary_adding_operator
 case_statement_alternative_list
   : case_statement_alternative
   | case_statement_alternative_list case_statement_alternative
+  | case_statement_alternative_list case_statement_alternative_list
   ;
 declaration_list
   : declaration
   | declaration_list declaration
+  | declaration_list declaration_list
   ;
 IDENTIFIER_COMMA_list
   : IDENTIFIER
   | IDENTIFIER_COMMA_list COMMA IDENTIFIER
+  | IDENTIFIER_COMMA_list COMMA IDENTIFIER_COMMA_list
   ;
 AND_relation_list
   : AND relation
   | AND_relation_list AND relation
+  | AND_relation_list AND_relation_list
   ;
 OR_relation_list
   : OR relation
   | OR_relation_list OR relation
+  | OR_relation_list OR_relation_list
   ;
 XOR_relation_list
   : XOR relation
   | XOR_relation_list XOR relation
+  | XOR_relation_list XOR_relation_list
   ;
 parameter_specification_SEMICOLON_list
   : parameter_specification
   | parameter_specification_SEMICOLON_list SEMICOLON parameter_specification
+  | parameter_specification_SEMICOLON_list SEMICOLON parameter_specification_SEMICOLON_list
   ;
 exception_handler_list
   : exception_handler
   | exception_handler_list exception_handler
+  | exception_handler_list exception_handler_list
   ;
 ELSIF_expression_list
   : ELSIF expression THEN sequence_of_statements
   | ELSIF_expression_list ELSIF expression THEN sequence_of_statements
-  ;
-statement_list
-  : statement
-  | statement_list statement
+  | ELSIF_expression_list ELSIF_expression_list
   ;
 term_binary_adding_operator_list
   : term
   | term_binary_adding_operator_list binary_adding_operator term
+  | term_binary_adding_operator_list binary_adding_operator term_binary_adding_operator_list
   ;

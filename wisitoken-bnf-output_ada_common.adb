@@ -116,9 +116,6 @@ package body WisiToken.BNF.Output_Ada_Common is
       if Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0 then
          Put_Line ("with WisiToken.Syntax_Trees;");
       end if;
-      if Input_Data.Check_Count > 0 then
-         Put_Line ("with WisiToken.In_Parse_Actions;");
-      end if;
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Spec_Context));
       Put_Line ("package " & Package_Name & " is");
       Indent := Indent + 3;
@@ -225,7 +222,7 @@ package body WisiToken.BNF.Output_Ada_Common is
                   Indent_Line ("  Nonterm        : in out WisiToken.Syntax_Trees.Recover_Token;");
                   Indent_Line ("  Tokens         : in     WisiToken.Syntax_Trees.Recover_Token_Array;");
                   Indent_Line ("  Recover_Active : in     Boolean)");
-                  Indent_Line (" return WisiToken.In_Parse_Actions.Status;");
+                  Indent_Line (" return WisiToken.Syntax_Trees.In_Parse_Actions.Status;");
                end if;
             end loop;
          end if;
@@ -257,9 +254,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          end if;
          Indent_Line ("  return WisiToken.Parse.LR.Parse_Table_Ptr;");
          New_Line;
-         Indent_Line ("function Create_In_Parse_Actions return WisiToken.Parse.In_Parse_Action_Trees.Vector;");
-         New_Line;
-         Indent_Line ("function Create_Post_Parse_Actions return WisiToken.Parse.Post_Parse_Action_Trees.Vector;");
+         Indent_Line ("function Create_Productions return WisiToken.Syntax_Trees.Production_Info_Trees.Vector;");
          New_Line;
          Indent_Line ("function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;");
       end LR_Process;
@@ -289,6 +284,8 @@ package body WisiToken.BNF.Output_Ada_Common is
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
+      Put_Line ("with WisiToken.Syntax_Trees;");
+
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
          Put_Line ("with WisiToken.Lexer;");
@@ -296,7 +293,6 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       when Packrat_Generate_Algorithm =>
          Put_Line ("with WisiToken.Parse;");
-         Put_Line ("with WisiToken.Syntax_Trees;");
 
       when External | Tree_Sitter =>
          null;
@@ -701,8 +697,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("return Parser : WisiToken.Parse.Packrat.Generated.Parser do");
          Indent := Indent + 3;
          Indent_Line ("Parser.Tree.Lexer := Lexer.New_Lexer (Trace, " & Actions_Package_Name & ".Descriptor'Access);");
-         Indent_Line ("Parser.In_Parse_Actions := Create_In_Parse_Actions;");
-         Indent_Line ("Parser.Post_Parse_Actions := Create_Post_Parse_Actions;");
+         Indent_Line ("Parser.Productions := Create_Productions;");
          Indent_Line ("Parser.User_Data := User_Data;");
          Indent_Line ("Parser.Parse_WisiToken_Accept := Parse_wisitoken_accept_1'Access;");
          Indent := Indent - 3;
@@ -748,7 +743,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("  (Grammar, Direct_Left_Recursive, " & Trimmed_Image (Generate_Data.Descriptor.Accept_ID) &
                         ", Lexer.New_Lexer");
          Indent_Line ("     (Trace, " & Actions_Package_Name & ".Descriptor'Access),");
-         Indent_Line ("   Create_In_Parse_Actions, Create_Post_Parse_Actions, User_Data);");
+         Indent_Line ("   Create_Productions, User_Data);");
       end case;
       Indent := Indent - 3;
       Indent_Line ("end Create_Parser;");
@@ -773,20 +768,20 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("end Create_Grammar;");
    end External_Create_Create_Grammar;
 
-   procedure Create_Create_Actions
+   procedure Create_Create_Productions
      (Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data)
    is
       subtype Nonterminal_ID is Token_ID range Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index;
 
       Actions_Present : Boolean := False;
    begin
-      Indent_Line ("function Create_In_Parse_Actions return WisiToken.Parse.In_Parse_Action_Trees.Vector");
+      Indent_Line ("function Create_Productions return WisiToken.Syntax_Trees.Production_Info_Trees.Vector");
       Indent_Line ("is begin");
       Indent := Indent + 3;
-      Indent_Line ("return Acts : WisiToken.Parse.In_Parse_Action_Trees.Vector do");
+      Indent_Line ("return Result : WisiToken.Syntax_Trees.Production_Info_Trees.Vector do");
       Indent := Indent + 3;
       Indent_Line
-        ("Acts.Set_First_Last (" &
+        ("Result.Set_First_Last (" &
            Trimmed_Image (Generate_Data.Grammar.First_Index) & ", " &
            Trimmed_Image (Generate_Data.Grammar.Last_Index) & ");");
 
@@ -794,65 +789,41 @@ package body WisiToken.BNF.Output_Ada_Common is
          declare
             P : Productions.Instance renames Generate_Data.Grammar (I);
          begin
-            if Generate_Data.Check_Names (P.LHS) /= null then
+            if P.Optimized_List then
+               Indent_Line ("Result (" & Trimmed_Image (P.LHS) & ").Optimized_List := True;");
+               Actions_Present := True;
+            end if;
+
+            if Generate_Data.Check_Names (P.LHS) /= null or
+              Generate_Data.Action_Names (P.LHS) /= null
+            then
                Indent_Line
-                 ("Acts (" & Trimmed_Image (P.LHS) & ").Set_First_Last (" &
+                 ("Result (" & Trimmed_Image (P.LHS) & ").RHSs.Set_First_Last (" &
                     Trimmed_Image (P.RHSs.First_Index) & ", " &
                     Trimmed_Image (P.RHSs.Last_Index) & ");");
 
                for J in P.RHSs.First_Index .. P.RHSs.Last_Index loop
                   if Generate_Data.Check_Names (P.LHS) = null then
-                     Indent_Line ("Acts (" & Trimmed_Image (P.LHS) & ")(" & Trimmed_Image (J) & ") := null;");
+                     Indent_Line
+                       ("Result (" & Trimmed_Image (P.LHS) & ").RHSs (" & Trimmed_Image (J) &
+                          ").In_Parse_Action := null;");
                   else
                      Actions_Present := True;
                      Indent_Line
-                       ("Acts (" & Trimmed_Image (P.LHS) & ")(" & Trimmed_Image (J) & ") := " &
+                       ("Result (" & Trimmed_Image (P.LHS) & ").RHSs (" & Trimmed_Image (J) & ").In_Parse_Action := " &
                           (if Generate_Data.Check_Names (P.LHS)(J) = null then "null"
                            else Generate_Data.Check_Names (P.LHS)(J).all & "'Access") &
                           ";");
                   end if;
-               end loop;
-            end if;
-         end;
-      end loop;
-      if not Actions_Present then
-         Indent_Line ("null;");
-      end if;
-
-      Indent := Indent - 3;
-      Indent_Line ("end return;");
-      Indent := Indent - 3;
-      Indent_Line ("end Create_In_Parse_Actions;");
-      New_Line;
-
-      Actions_Present := False;
-      Indent_Line ("function Create_Post_Parse_Actions return WisiToken.Parse.Post_Parse_Action_Trees.Vector");
-      Indent_Line ("is begin");
-      Indent := Indent + 3;
-      Indent_Line ("return Acts : WisiToken.Parse.Post_Parse_Action_Trees.Vector do");
-      Indent := Indent + 3;
-      Indent_Line
-        ("Acts.Set_First_Last (" &
-           Trimmed_Image (Generate_Data.Grammar.First_Index) & ", " &
-           Trimmed_Image (Generate_Data.Grammar.Last_Index) & ");");
-
-      for I in Nonterminal_ID loop
-         declare
-            P : Productions.Instance renames Generate_Data.Grammar (I);
-         begin
-            if Generate_Data.Action_Names (P.LHS) /= null then
-               Indent_Line
-                 ("Acts (" & Trimmed_Image (P.LHS) & ").Set_First_Last (" &
-                    Trimmed_Image (P.RHSs.First_Index) & ", " &
-                    Trimmed_Image (P.RHSs.Last_Index) & ");");
-
-               for J in P.RHSs.First_Index .. P.RHSs.Last_Index loop
                   if Generate_Data.Action_Names (P.LHS) = null then
-                     Indent_Line ("Acts (" & Trimmed_Image (P.LHS) & ")(" & Trimmed_Image (J) & ") := null;");
+                     Indent_Line
+                       ("Result (" & Trimmed_Image (P.LHS) & ").RHSs (" & Trimmed_Image (J) &
+                          ").Post_Parse_Action := null;");
                   else
                      Actions_Present := True;
                      Indent_Line
-                       ("Acts (" & Trimmed_Image (P.LHS) & ")(" & Trimmed_Image (J) & ") := " &
+                       ("Result (" & Trimmed_Image (P.LHS) & ").RHSs (" & Trimmed_Image (J) &
+                          ").Post_Parse_Action := " &
                           (if Generate_Data.Action_Names (P.LHS)(J) = null then "null"
                            else Generate_Data.Action_Names (P.LHS)(J).all & "'Access") &
                           ";");
@@ -868,9 +839,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent := Indent - 3;
       Indent_Line ("end return;");
       Indent := Indent - 3;
-      Indent_Line ("end Create_Post_Parse_Actions;");
+      Indent_Line ("end Create_Productions;");
       New_Line;
-   end Create_Create_Actions;
+   end Create_Create_Productions;
 
    procedure Create_re2c_File
      (Input_Data            :         in WisiToken_Grammar_Runtime.User_Data_Type;
@@ -1021,20 +992,15 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("#define YYPEEK() (lexer->cursor <= lexer->buffer_last) ? *lexer->cursor : 4");
       New_Line;
 
-      --  skip() only counts new_lines when used for delimited_text tokens.
-      --  Making it always count new_lines would mean that new_line tokens
-      --  require special handling anyway.
-      Indent_Line ("static void skip(wisi_lexer* lexer, int count_lines)");
+      Indent_Line ("static void skip(wisi_lexer* lexer)");
       Indent_Line ("{");
       Indent := Indent + 3;
       Indent_Line ("if (lexer->cursor <= lexer->buffer_last)");
-      Indent_Line ("   ++lexer->cursor;");
+      Indent_Line ("{");
+      Indent := Indent + 3;
+      Indent_Line ("++lexer->cursor;");
       Indent_Line ("if (lexer->cursor <= lexer->buffer_last)");
       Indent_Line ("{");
-      Indent_Line ("   if (count_lines && *lexer->cursor == 0x0A)");
-      Indent_Line ("   {");
-      Indent_Line ("     lexer->line++;");
-      Indent_Line ("   }");
       Indent_Line ("   /* UFT-8 encoding: https://en.wikipedia.org/wiki/UTF-8#Description */");
       Indent_Line ("   if (*lexer->cursor == 0x0A && lexer->cursor > lexer->buffer && *(lexer->cursor - 1) == 0x0D)");
       Indent_Line ("     {/* second byte of DOS line ending */");
@@ -1048,7 +1014,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("   lexer->char_pos++;");
       Indent := Indent - 3;
       Indent_Line ("}");
-      Indent_Start ("#define YYSKIP() skip(lexer, 0)");
+      Indent := Indent - 3;
+      Indent_Line ("}");
+      Indent_Start ("#define YYSKIP() skip(lexer)");
       New_Line;
 
       Indent_Line ("#define YYBACKUP() lexer->marker = lexer->cursor; lexer->marker_pos = lexer->char_pos;" &
@@ -1066,8 +1034,15 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("{");
          Indent_Line ("  int i, j;");
          New_Line;
+         Indent_Line ("  // Count all new-lines contained in the skip region. Caller has ");
+         Indent_Line ("  // skipped the start delimiter; if lexer->cursor is a new-line it");
+         Indent_Line ("  // has not yet been counted. Start and end delimiters do not contain new-line.");
          Indent_Line ("  while (lexer->cursor <= lexer->buffer_last)");
          Indent_Line ("    {");
+         Indent_Line ("      if (*lexer->cursor == 0x0A)");
+         Indent_Line ("      {");
+         Indent_Line ("        lexer->line++;");
+         Indent_Line ("      }");
          Indent_Line ("      if (*lexer->cursor == target[0])");
          Indent_Line ("      {");
          Indent_Line ("        i = 0;");
@@ -1079,12 +1054,12 @@ package body WisiToken.BNF.Output_Ada_Common is
          New_Line;
          Indent_Line ("        if (0 == target[i])");
          Indent_Line ("          {");
-         Indent_Line ("            for (j = 0; j< i; j++)");
-         Indent_Line ("               skip(lexer, 0);");
+         Indent_Line ("            for (j = 0; j < i; j++)");
+         Indent_Line ("               skip(lexer);");
          Indent_Line ("            break;");
          Indent_Line ("          }");
          Indent_Line ("      }");
-         Indent_Line ("      skip(lexer, 1);");
+         Indent_Line ("      skip(lexer);");
          Indent_Line ("    };");
          Indent_Line ("}");
          New_Line;

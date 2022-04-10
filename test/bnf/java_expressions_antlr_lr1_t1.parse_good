@@ -57,13 +57,13 @@ recover: succeed, parser count 2
  1: 57: (1, 2;5:(Wisi_EOI, (59 . 58) ERROR)) : reduce 3 tokens to primary
 (primary_0, (55 . 56) <= (0;1:(LPAREN, (55 . 55)), (expression_0, (56 . 56)), -7:(RPAREN)))
  ... goto state 17
- 0: 56: (0, -12:(RPAREN)) : shift and goto state 110
+ 0: 56: (0, -12:(RPAREN)) : shift and goto state 111
  1: 17: (1, 2;5:(Wisi_EOI, (59 . 58) ERROR)) : reduce 1 tokens to expression
 (expression_0, (55 . 56) <= ((primary_0, (55 . 56))))
  ... goto state 16
  1: 16: (1, 2;5:(Wisi_EOI, (59 . 58) ERROR)) : accept it
 (wisitoken_accept_0, (55 . 56) <= ((expression_0, (55 . 56))))
- 0: 110: (0, -16:(RPAREN)) : reduce 3 tokens to methodCall
+ 0: 111: (0, -16:(RPAREN)) : reduce 3 tokens to methodCall
 (methodCall_1, (56 . 56) <= (1;2:(IDENTIFIER, (56 . 56)), -9:(LPAREN), -12:(RPAREN)))
  ... goto state 31
  0: 31: (0, -16:(RPAREN)) : reduce 1 tokens to expression

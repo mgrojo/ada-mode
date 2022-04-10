@@ -153,8 +153,8 @@ is
 
       WisiToken.Parse.LR.Parser_No_Recover.New_Parser
         (Grammar_Parser, Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
-         Wisitoken_Grammar_Main.Create_Parse_Table, Wisitoken_Grammar_Main.Create_In_Parse_Actions,
-         Wisitoken_Grammar_Main.Create_Post_Parse_Actions, Input_Data'Unchecked_Access);
+         Wisitoken_Grammar_Main.Create_Parse_Table, Wisitoken_Grammar_Main.Create_Productions,
+         Input_Data'Unchecked_Access);
 
       Grammar_Parser.Tree.Lexer.Reset_With_File (File_Name);
 
@@ -351,6 +351,12 @@ begin
          Input_Data.Reset; -- only resets Other data
 
          Input_Data.Phase := Phase;
+
+         if Trace_Action > Outline then
+            Trace.New_Line;
+            Trace.Put_Line (Parser'Image & " " & Lexer'Image & " grammar syntax tree:");
+            Grammar_Parser.Tree.Print_Tree;
+         end if;
          Grammar_Parser.Execute_Actions;
 
          case Phase is
@@ -519,7 +525,7 @@ begin
                   Generate_Data.Descriptor.Last_Nonterminal);
 
                Parse_Table_File_Name : constant String :=
-                 (if WisiToken.Trace_Generate_Table = 0 and Tuple.Gen_Alg in LALR .. Packrat_Proc
+                 (if Tuple.Gen_Alg in LALR .. Packrat_Proc
                   then -Output_File_Name_Root & "_" & To_Lower (Tuple.Gen_Alg'Image) &
                     (if Tuple.Gen_Alg = LR1 and Test_Main
                      then "_t" & Ada.Strings.Fixed.Trim (Generate_Task_Count'Image, Ada.Strings.Both)
@@ -527,7 +533,7 @@ begin
                     (if Input_Data.If_Lexer_Present
                      then "_" & Lexer_Image (Input_Data.User_Lexer).all
                      else "") &
-                     ".parse_table"
+                    ".parse_table"
                   else "");
 
                procedure Parse_Table_Append_Stats
@@ -570,8 +576,7 @@ begin
                        (Generate_Data.Grammar,
                         Generate_Data.Descriptor.all,
                         Grammar_Parser.Tree.Lexer.File_Name,
-                        Generate_Utils.To_Conflicts
-                          (Generate_Data, Input_Data.Conflicts, Grammar_Parser.Tree.Lexer.File_Name),
+                        Generate_Data.Conflicts,
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                         Input_Data.Max_Parallel,
                         Parse_Table_File_Name,
@@ -608,8 +613,7 @@ begin
                        (Generate_Data.Grammar,
                         Generate_Data.Descriptor.all,
                         Grammar_Parser.Tree.Lexer.File_Name,
-                        Generate_Utils.To_Conflicts
-                          (Generate_Data, Input_Data.Conflicts, Grammar_Parser.Tree.Lexer.File_Name),
+                        Generate_Data.Conflicts,
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                         Input_Data.Max_Parallel,
                         Parse_Table_File_Name,
