@@ -32,8 +32,8 @@ package WisiToken.Parse.LR.McKenzie_Recover.Ada is
       Shared_Parser           :         in out Parser.Parser;
       Tokens                  :         in     Token_ID_Array_1_3;
       Config                  : aliased in     Configuration;
-      Matching_Tokens         :            out Token_ID_Arrays.Vector;
-      Forbid_Minimal_Complete :            out Boolean);
+      Matching_Tokens         :         in out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :         in out Boolean);
    --  See wisitoken-parse-lr-parser.ads Language_Matching_Begin_Tokens_Access
    --  for description.
 

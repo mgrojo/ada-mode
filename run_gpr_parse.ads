@@ -32,5 +32,4 @@ procedure Run_Gpr_Parse is new Gen_Run_Wisi_LR_Parse
    null,
    Gpr_Process_Main.Create_Lexer,
    Gpr_Process_Main.Create_Parse_Table,
-   Gpr_Process_Main.Create_In_Parse_Actions,
-   Gpr_Process_Main.Create_Post_Parse_Actions);
+   Gpr_Process_Main.Create_Productions);

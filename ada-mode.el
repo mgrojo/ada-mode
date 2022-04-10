@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1994, 1995, 1997 - 2021  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2022  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -1589,9 +1589,9 @@ Prompts with completion, defaults to filename at point."
 (defvar which-func-non-auto-modes) ;; ""
 
 ;;;###autoload
-(defun ada-parse-require-process ()
+(cl-defun ada-parse-require-process (&key wait)
   "Start the Ada parser in an external process, if not already started.
-Does not wait for parser to respond. Returns the parser object."
+Unless WAIT, does not wait for parser to respond. Returns the parser object."
   (interactive)
   (let ((parser (wisi-process-parse-get
 		 (make-ada-wisi-parser
@@ -1602,7 +1602,7 @@ Does not wait for parser to respond. Returns the parser object."
 		  :face-table ada_annex_p-process-face-table
 		  :token-table ada_annex_p-process-token-table
 		  :repair-image ada_annex_p-process-repair-image))))
-    (wisi-parse-require-process parser :nowait t)
+    (wisi-parse-require-process parser :nowait (not wait))
     parser))
 
 ;;;###autoload

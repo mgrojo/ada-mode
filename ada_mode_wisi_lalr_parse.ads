@@ -35,5 +35,4 @@ procedure Ada_Mode_Wisi_LALR_Parse is new Gen_Emacs_Wisi_LR_Parse
    Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
    Create_Lexer                   => Ada_Annex_P_Process_LALR_Main.Create_Lexer,
    Create_Parse_Table             => Ada_Annex_P_Process_LALR_Main.Create_Parse_Table,
-   Create_In_Parse_Actions        => Ada_Annex_P_Process_LALR_Main.Create_In_Parse_Actions,
-   Create_Post_Parse_Actions      => Ada_Annex_P_Process_LALR_Main.Create_Post_Parse_Actions);
+   Create_Productions             => Ada_Annex_P_Process_LALR_Main.Create_Productions);

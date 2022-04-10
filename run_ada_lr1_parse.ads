@@ -34,5 +34,4 @@ procedure Run_Ada_LR1_Parse is new Gen_Run_Wisi_LR_Text_Rep_Parse
    "ada_annex_p_lr1_parse_table.txt",
    Ada_Annex_P_Process_LR1_Main.Create_Lexer,
    Ada_Annex_P_Process_LR1_Main.Create_Parse_Table,
-   Ada_Annex_P_Process_LR1_Main.Create_In_Parse_Actions,
-   Ada_Annex_P_Process_LR1_Main.Create_Post_Parse_Actions);
+   Ada_Annex_P_Process_LR1_Main.Create_Productions);
