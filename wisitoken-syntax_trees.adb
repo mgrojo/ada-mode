@@ -444,7 +444,7 @@ package body WisiToken.Syntax_Trees is
                   Other_Parent.Children (Child_Index) := Invalid_Node_Access;
                end;
             else
-               pragma Assert (False, "attempt to use children with existing parents");
+               raise SAL.Programmer_Error with "attempt to use children with existing parents";
             end if;
          end if;
 
@@ -607,7 +607,7 @@ package body WisiToken.Syntax_Trees is
          if Node.Error_List = null or else Node.Error_List.Length = 0 then
             return;
          else
-            for Err of Tree.Error_List (Node) loop
+            for Err of Node.Error_List.all loop
                New_Errors.Append (To_Message (Err, Tree, Node));
             end loop;
 
@@ -1347,6 +1347,8 @@ package body WisiToken.Syntax_Trees is
             Tree.SOI := SOI;
             Tree.EOI := EOI;
 
+            Tree.Root.Children := (others => Invalid_Node_Access);
+
             Tree.Root := new Node'
               (Label       => Nonterm,
                Child_Count => Tree.Root.Child_Count + 2,
@@ -1401,6 +1403,11 @@ package body WisiToken.Syntax_Trees is
            Node /= Tree.EOI and then
            not (for some N of Keep_Nodes => N = (Node))
          then
+            --  It is tempting to try to enforce that all deleted nonterms have
+            --  Children = (others => Invalid_Node_Access) here. However, that is
+            --  not true when Breakdown is called by the main parser;
+            --  Tree.Parents_Set is false, indicating there might be multiple
+            --  streams, so Breakdown does not clear children.
             Free (Node);
          end if;
       end loop;
@@ -2813,9 +2820,7 @@ package body WisiToken.Syntax_Trees is
                return Invalid_Node_Access;
 
             elsif Line - 1 in Node_Line_Region.First .. Node_Line_Region.Last then
-               if Node_Line_Region.First = Node_Line_Region.Last or
-                 Line - 1 = Node_Line_Region.Last
-               then
+               if Line - 1 = Node_Line_Region.Last then
                   --  Faster to check last child first.
                   for I in reverse Node.Children'Range loop
                      declare
@@ -4811,40 +4816,51 @@ package body WisiToken.Syntax_Trees is
             Next_I := First_Child;
          else
             --  Node.Children (First_Child) is an empty nonterm; it has not
-            --  been added to stream. First non_empty is in Node.Children
-            --  (Next_I); delete leading empty nonterms that were added to the
-            --  stream.
-            for I in First_Child + 1 .. Next_I - 1 loop
-               declare
-                  To_Delete_2 : Cursor := Cur;
-               begin
-                  Next (Cur);
-                  --  We do not set errors on empty nonterms.
-                  pragma Assert (Stream_Element_Lists.Element (To_Delete_2).Node.Error_List = null);
-                  Parse_Stream.Elements.Delete (To_Delete_2);
-               end;
-            end loop;
-            pragma Assert (Element (Cur).Node = Node.Children (Next_I));
+            --  been added to stream.
+            if Next_I = Positive_Index_Type'Last then
+               --  Node is an empty nonterm; move to first sibling below.
+               null;
+            else
+               --  First non_empty is in Node.Children (Next_I); delete leading empty
+               --  nonterms that were added to the stream.
+               for I in First_Child + 1 .. Next_I - 1 loop
+                  declare
+                     To_Delete_2 : Cursor := Cur;
+                  begin
+                     Next (Cur);
+                     --  We do not set errors on empty nonterms.
+                     pragma Assert (Stream_Element_Lists.Element (To_Delete_2).Node.Error_List = null);
+                     Parse_Stream.Elements.Delete (To_Delete_2);
+                  end;
+               end loop;
+               pragma Assert (Element (Cur).Node = Node.Children (Next_I));
 
-            --  Delete the nonterm that we were breaking down, and record the one
-            --  we are now breaking down for deletion.
-            declare
-               Node : constant Valid_Node_Access := Stream_Element_Lists.Element (To_Delete).Node;
-            begin
-               if Node.Error_List /= null then
-                  for Err of Tree.Error_List (Node) loop
-                     New_Errors.Append (To_Message (Err, Tree, Node));
-                  end loop;
-               end if;
-            end;
-            Parse_Stream.Elements.Delete (To_Delete);
-            To_Delete := Cur;
+               --  Delete the nonterm that we were breaking down, and record the one
+               --  we are now breaking down for deletion.
+               declare
+                  Node : constant Valid_Node_Access := Stream_Element_Lists.Element (To_Delete).Node;
+               begin
+                  if Node.Error_List /= null then
+                     for Err of Tree.Error_List (Node) loop
+                        New_Errors.Append (To_Message (Err, Tree, Node));
+                     end loop;
+                  end if;
+               end;
+               Parse_Stream.Elements.Delete (To_Delete);
+               To_Delete := Cur;
+            end if;
          end if;
 
          declare
             Temp : constant Node_Access := Node;
          begin
-            Node := Node.Children (Next_I);
+            if Next_I = Positive_Index_Type'Last then
+               --  Node is an empty nonterm; move to first sibling. Possibly similar
+               --  to test_incremental.adb Recover_04.
+               raise SAL.Not_Implemented with "FIXME: Syntax_Trees.Left_Breakdown move to next sibling.";
+            else
+               Node := Node.Children (Next_I);
+            end if;
 
             --  Now we can clear the children of Temp (was Node).
             if Tree.Parents_Set then

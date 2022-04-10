@@ -109,10 +109,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       --  Derived from Syntax_Trees.Left_Breakdown. We do not delete virtual
       --  terminals, to allow insert before, delete.
 
-      Cur       : Cursor            := Stream.First;
-      To_Delete : Cursor            := Cur;
-      Node      : Valid_Node_Access := Stream (Cur);
-      Next_I    : Positive_Index_Type;
+      Cur          : Cursor            := Stream.First;
+      To_Delete    : Cursor            := Cur;
+      Node         : Valid_Node_Access := Stream (Cur);
+      Next_I       : Positive_Index_Type;
+      Next_Sibling : Cursor            := No_Element;
    begin
       loop
          Next_I := Positive_Index_Type'Last;
@@ -127,35 +128,60 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
                Cur := Stream.Insert (Element => Child, Before => Cur);
 
+               Next_Sibling := Cur;
+
                --  We don't do Tree.Clear_Parent (Child) here, because we are not
                --  editing the syntax tree. If this config succeeds,
                --  Tree.Left_Breakdown will be called.
             end;
          end loop;
 
-         declare
-            Child_1 : constant Valid_Node_Access := Tree.Child (Node, 1);
-         begin
-            if Tree.Child_Count (Child_1) > 0 or Tree.Label (Child_1) in Terminal_Label then
-               Next_I := 1;
-            else
-               --  Node is an empty nonterm. First non_empty is in Node.Children (Next_I);
-               if Next_I > 2 then
-                  --  Delete other empty nonterms that were added to the stream.
-                  for I in 2 .. Next_I - 1 loop
-                     declare
-                        To_Delete : Cursor := Cur;
-                     begin
-                        Stream.Next (Cur);
-                        Stream.Delete (To_Delete);
-                     end;
-                  end loop;
-               end if;
-               pragma Assert (Stream.Element (Cur) = Tree.Child (Node, Next_I));
-            end if;
-         end;
+         if Tree.Child_Count (Tree.Child (Node, 1)) > 0 or Tree.Label (Tree.Child (Node, 1)) in Terminal_Label then
+            Next_I := 1;
+         else
+            --  Tree.Child (Node, 1) is an empty nonterm.
+            if Next_I = Positive_Index_Type'Last then
+               --  Node is an empty nonterm; move to first sibling below.
+               null;
 
-         Node := Tree.Child (Node, Next_I);
+            elsif Next_I > 2 then
+               --  First non_empty is in Node.Children (Next_I); delete other empty
+               --  nonterms that were added to the stream.
+               for I in 2 .. Next_I - 1 loop
+                  declare
+                     To_Delete_2 : Cursor := Cur;
+                  begin
+                     Stream.Next (Cur);
+                     Stream.Delete (To_Delete_2);
+                  end;
+               end loop;
+               pragma Assert (Stream.Element (Cur) = Tree.Child (Node, Next_I));
+
+               --  Delete the nonterm that we were breaking down, and record the one
+               --  we are now breaking down for deletion.
+               raise SAL.Not_Implemented with "found test case for Next_I > 2";
+               --  Stream.Delete (To_Delete);
+               --  To_Delete := Cur;
+            end if;
+         end if;
+
+         if Next_I = Positive_Index_Type'Last then
+            --  Node is an empty nonterm; move to next sibling, which was pushed
+            --  on Stream in an earlier loop. test_incremental.adb Recover_04.
+            pragma Assert (Next_Sibling /= No_Element);
+            Cur  := Next_Sibling;
+            Node := Stream (Cur);
+            if Tree.Label (Node) in Terminal_Label or Cur = To_Delete then
+               null;
+            else
+               --  Delete the nonterm that we were breaking down, and record the one
+               --  we are now breaking down for deletion.
+               Stream.Delete (To_Delete);
+               To_Delete := Cur;
+            end if;
+         else
+            Node := Tree.Child (Node, Next_I);
+         end if;
 
          if Tree.Label (Node) in Terminal_Label then
             if Next_I = 1 then
