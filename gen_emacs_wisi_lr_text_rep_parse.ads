@@ -26,6 +26,7 @@ pragma License (GPL);
 with Wisi;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Syntax_Trees;
 generic
    type Parse_Data_Type  is new Wisi.Parse_Data_Type with private;
 
@@ -41,7 +42,6 @@ generic
 
    with function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;
    with function Create_Parse_Table (Text_Rep_File_Name : in String) return WisiToken.Parse.LR.Parse_Table_Ptr;
-   with function Create_In_Parse_Actions return WisiToken.Parse.In_Parse_Action_Trees.Vector;
-   with function Create_Post_Parse_Actions return WisiToken.Parse.Post_Parse_Action_Trees.Vector;
+   with function Create_Productions return WisiToken.Syntax_Trees.Production_Info_Trees.Vector;
 
 procedure Gen_Emacs_Wisi_LR_Text_Rep_Parse;

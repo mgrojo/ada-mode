@@ -13,16 +13,12 @@
 
 pragma License (GPL);
 
-with AUnit.Assertions;
-with AUnit.Test_Results;
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Finalization;
 with Ada.Tags;
-with Ada.Text_IO;
 with GNAT.OS_Lib;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
-with WisiToken.Syntax_Trees.AUnit_Public;
 package body Wisi.Parse_Context is
 
    function Source_File_Name (Item : in Parse_Context_Access) return String
@@ -53,8 +49,7 @@ package body Wisi.Parse_Context is
               (Ada.Finalization.Limited_Controlled with
                User_Data                      => Wisi.New_User_Data (Language.Parse_Data_Template.all),
                Table                          => Language.Table,
-               In_Parse_Actions               => Language.In_Parse_Actions,
-               Post_Parse_Actions             => Language.Post_Parse_Actions,
+               Productions                    => Language.Productions,
                Language_Fixes                 => Language.Fixes,
                Language_Matching_Begin_Tokens => Language.Matching_Begin_Tokens,
                Language_String_ID_Set         => Language.String_ID_Set,
@@ -62,8 +57,7 @@ package body Wisi.Parse_Context is
                Partial_Parse_Byte_Goal        => Language.Partial_Parse_Byte_Goal,
                others                         => <>),
             Root_Save_Edited_Name             => <>,
-            Save_Edited_Count                 => <>,
-            Compare_Tree_Text_Auto            => <>))
+            Save_Edited_Count                 => <>))
       do
          Result.Parser.Tree.Lexer := Language.Lexer;
          if Trace_Incremental_Parse > Outline then
@@ -138,8 +132,7 @@ package body Wisi.Parse_Context is
                  (Ada.Finalization.Limited_Controlled with
                   User_Data                      => Wisi.New_User_Data (Language.Parse_Data_Template.all),
                   Table                          => Language.Table,
-                  In_Parse_Actions               => Language.In_Parse_Actions,
-                  Post_Parse_Actions             => Language.Post_Parse_Actions,
+                  Productions                    => Language.Productions,
                   Language_Fixes                 => Language.Fixes,
                   Language_Matching_Begin_Tokens => Language.Matching_Begin_Tokens,
                   Language_String_ID_Set         => Language.String_ID_Set,
@@ -147,8 +140,7 @@ package body Wisi.Parse_Context is
                   Partial_Parse_Byte_Goal        => Language.Partial_Parse_Byte_Goal,
                   others                         => <>),
                Root_Save_Edited_Name             => <>,
-               Save_Edited_Count                 => <>,
-               Compare_Tree_Text_Auto            => <>))
+               Save_Edited_Count                 => <>))
          do
             Result.Parser.Tree.Lexer := Language.Lexer;
             Map.Insert (Result);
@@ -792,53 +784,5 @@ package body Wisi.Parse_Context is
          Save_Text (Context, Save_File_Name);
       end;
    end Save_Text_Auto;
-
-   procedure Compare_Tree_Text (Context : in out Parse_Context)
-   is
-      Parser     : WisiToken.Parse.LR.Parser.Parser renames Context.Parser;
-      Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
-      Saved_Tree : WisiToken.Syntax_Trees.Tree;
-      Log_File   : Ada.Text_IO.File_Type; -- for Parse recover log; unused
-   begin
-      Parser.Tree.Copy_Tree (Saved_Tree, Parser.User_Data);
-      Parse_Data.Initialize;
-      Parse_Data.Reset;
-      Parser.Tree.Lexer.Reset;
-      Parser.Parse (Log_File);
-      if Parser.Tree.Has_Errors then
-         --  Compare can easily fail due to different error recover result
-         --  between full and incremental parse; assume it's ok.
-         return;
-      else
-         if Saved_Tree.Has_Errors then
-            Ada.Text_IO.Put_Line ("(error ""compare tree/text fail; incremental tree has errors"")");
-         else
-            WisiToken.Syntax_Trees.AUnit_Public.Check
-              ("", Saved_Tree, Parser.Tree,
-               Shared_Stream         => False,
-               Terminal_Node_Numbers => False);
-            Parser.Tree.Lexer.Trace.Put_Line ("compare tree/text pass");
-         end if;
-      end if;
-   exception
-   when AUnit.Assertions.Assertion_Error =>
-      declare
-         use AUnit.Assertions;
-         type Dummy_Test is new Test with null record;
-         T : Dummy_Test;
-         Failure : constant AUnit.Test_Results.Test_Failure := Get_Failure (First_Failure (T));
-      begin
-         Ada.Text_IO.Put_Line ("(error ""compare tree/text fail " & Failure.Message.all & """)");
-         if WisiToken.Trace_Incremental_Parse > WisiToken.Outline then
-            Parser.Tree.Lexer.Trace.New_Line;
-            Parser.Tree.Lexer.Trace.Put_Line ("incremental tree:");
-            Saved_Tree.Print_Tree (Line_Numbers => True, Non_Grammar => True);
-            Parser.Tree.Lexer.Trace.New_Line;
-            Parser.Tree.Lexer.Trace.Put_Line ("full tree:");
-            Parser.Tree.Print_Tree (Line_Numbers => True, Non_Grammar => True);
-         end if;
-         Clear_Failures (T);
-      end;
-   end Compare_Tree_Text;
 
 end Wisi.Parse_Context;

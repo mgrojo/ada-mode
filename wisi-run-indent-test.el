@@ -34,10 +34,6 @@
   "If non-nil, a file name telling where to save wisi parser edited
 text, after each edit in an incremental parse, and before each partial parse.")
 
-(defvar compare-tree-text nil
-  "If non-nil, after each incremental parse, compare tree to fresh full parse.")
-(put 'compare-tree-text 'safe-local-variable 'booleanp)
-
 (defun test-in-comment-p ()
   (nth 4 (syntax-ppss)))
 
@@ -200,10 +196,6 @@ Signals an error if `wisi-incremental-parse-enable' is nil."
 
 	(when (stringp save-edited-text)
 	  (wisi-process-parse-save-text wisi--parser save-edited-text t))
-
-	(when (and compare-tree-text
-		   wisi-incremental-parse-enable)
-	  (wisi-process-parse-compare-tree-text wisi--parser))
 
 	(let ((error-count 0)
 	      (pass-count 0)
@@ -404,7 +396,7 @@ Signals an error if `wisi-incremental-parse-enable' is nil."
        (cons 'height 71) ;; characters
        (cons 'left 0) ;; pixels
        (cons 'top 0))))
-(define-key global-map "\C-cp" 'large-screen)
+(define-key global-map "\C-cp" 'large-frame)
 
 (defun run-test (file-name)
   "Run an indentation and casing test on FILE-NAME."

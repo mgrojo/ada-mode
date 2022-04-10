@@ -18,6 +18,7 @@ with Ada.Unchecked_Deallocation;
 with Wisi;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Syntax_Trees;
 package Wisi.Parse_Context is
 
    Not_Found : exception;
@@ -26,8 +27,7 @@ package Wisi.Parse_Context is
       Descriptor              : WisiToken.Descriptor_Access_Constant;
       Lexer                   : WisiToken.Lexer.Handle;
       Table                   : WisiToken.Parse.LR.Parse_Table_Ptr;
-      In_Parse_Actions        : WisiToken.Parse.In_Parse_Action_Trees.Vector;
-      Post_Parse_Actions      : WisiToken.Parse.Post_Parse_Action_Trees.Vector;
+      Productions             : WisiToken.Syntax_Trees.Production_Info_Trees.Vector;
       Partial_Parse_Active    : access Boolean;
       Partial_Parse_Byte_Goal : access WisiToken.Buffer_Pos;
       Fixes                   : WisiToken.Parse.LR.Parser.Language_Fixes_Access;
@@ -58,10 +58,6 @@ package Wisi.Parse_Context is
       --  increments.
 
       Save_Edited_Count : Integer := 0;
-
-      Compare_Tree_Text_Auto : Boolean := False;
-      --  If True, after each incremental parse, compare the syntax tree to
-      --  a fresh full parse.
    end record;
    type Parse_Context_Access is access all Parse_Context;
 
@@ -141,14 +137,6 @@ package Wisi.Parse_Context is
    --  Write Context.Text_Buffer to File_Name.
 
    procedure Save_Text_Auto (Context : in out Parse_Context);
-
-   procedure Compare_Tree_Text (Context : in out Parse_Context);
-   --  Save a copy of Context.Parser.Tree, do a new full parse of
-   --  Context.Text_Buffer, storing result in Context.Parser.Tree.
-   --  Compare trees, output an error message for first difference.
-   --
-   --  Raises WisiToken.Syntax_Error or WisiToken.Parse_Error if the
-   --  full parse fails.
 
    procedure Free is new Ada.Unchecked_Deallocation (Parse_Context, Parse_Context_Access);
    --  Declared last to avoid freezing rules.
