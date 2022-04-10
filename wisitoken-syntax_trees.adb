@@ -828,20 +828,22 @@ package body WisiToken.Syntax_Trees is
                   --  cases where Split_Node is near or at the beginning or end of the
                   --  list.
 
-                  if Target.ID = List_ID then
+                  if Target.ID = List_ID or
                      --  The target is a list node in the list we are breaking down.
                      --  test_incremental.adb Recover_06a .. e.
+
+                    Split_Node.RHS_Index = 0
+                     --  There are no list elements preceding Split_Node; handle separator,
+                     --  multi-element list element. test_incremental.adb Edit_Code_18
+                  then
                      Replace_Element (Cur, (Split_Node.Children (1), Unknown_State));
                      Insert_Children (Split_Node);
                      Find_Target_Element;
 
-                  elsif Split_Node.RHS_Index = 0 then
-                     --  There are no list elements preceding Split_Node
-                     Replace_Element (Cur, (Split_Node.Children (1), Unknown_State));
-
                   elsif Split_Node.Children (1).RHS_Index = 0 then
                      --  There is one list element preceding Split_Node
                      Replace_Element (Cur, (Split_Node.Children (1).Children (1), Unknown_State));
+                     Insert_Children (Split_Node.Children (1));
                      Split_Node.Children (1).Children (1).Parent := Invalid_Node_Access;
                      Insert_Children (Split_Node);
                      Find_Target_Element;
@@ -980,6 +982,11 @@ package body WisiToken.Syntax_Trees is
                                       (others => Dummy_Node);
                                  begin
                                     for I in New_Children'Range loop
+                                       --  If the list has a separator, it should go on the stream, not in
+                                       --  Following. But we can't distinguish that from a multi-item list
+                                       --  element. And the parser handles both by breaking this down and
+                                       --  shifting the items individually. test_incremental.adb
+                                       --  Edit_Code_18.
                                        New_Children (I) := Deleting_Node.Children (I + 1);
                                     end loop;
 

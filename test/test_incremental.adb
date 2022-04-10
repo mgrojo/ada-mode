@@ -2056,6 +2056,29 @@ package body Test_Incremental is
 
    end Recover_08d;
 
+   procedure Recover_09 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-recover_align_1.adb. Breakdown an optimized_list with
+      --  separator, twice before parsing.
+
+      Incremental_Parser := Ada_Lite_EBNF.Incremental_Parser'Access;
+      Full_Parser        := Ada_Lite_EBNF.Full_Parser'Access;
+
+      Parse_Text
+        (Initial        => "procedure b (p1 : int; p2 : int; p3 : int; p4 : int; p : int) is begin null; end b;",
+         --                          |10       |20       |30       |40       |50       |60
+         Edit_At        => 37,
+         Delete         => ":",
+         Insert         => "",
+         Edit_2_At      => 56,
+         Delete_2       => ":",
+         Insert_2       => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 2);
+   end Recover_09;
+
    procedure Lexer_Errors_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -2605,6 +2628,7 @@ package body Test_Incremental is
       Register_Routine (T, Recover_08b'Access, "Recover_08b");
       Register_Routine (T, Recover_08c'Access, "Recover_08c");
       Register_Routine (T, Recover_08d'Access, "Recover_08d");
+      Register_Routine (T, Recover_09'Access, "Recover_09");
       Register_Routine (T, Lexer_Errors_01'Access, "Lexer_Errors_01");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");

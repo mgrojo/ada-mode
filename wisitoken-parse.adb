@@ -669,6 +669,11 @@ package body WisiToken.Parse is
                  ("breakdown " & (if To_Single then "single " else "") & Tree.Image
                     (Tree.Get_Node (Terminal.Stream, Terminal.Element), Node_Numbers => True) &
                     " target " & Tree.Image (Terminal.Node, Node_Numbers => True));
+               if Trace_Incremental_Parse > Extra + 1 then
+                  Tree.Lexer.Trace.Put_Line ("... before:");
+                  Tree.Lexer.Trace.Put_Line (Tree.Image (Stream, Children => True));
+                  Tree.Lexer.Trace.New_Line;
+               end if;
             end if;
             Tree.Breakdown (Terminal, Parser.Productions, Parser.User_Data, First_Terminal => True);
 
