@@ -50,15 +50,6 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-run tests
-    partial parse: done
-    incremental parse:
-c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_04.adb:25: test (progn (end-of-line -1)(newline-and-indent)(insert "null;")) ... signaled
-... error: (error: nil indent for line 24)
-
-
-
-
 benchmark for optimized_list
     benchmark.el
         gnatcoll-xref.adb
@@ -84,6 +75,7 @@ gnatcoll-xref.adb:1:1: ... invalid_tree: parent null expecting set
 
 propagate to main
 
+run all tests with partial recursion?
 
 parse 1 "c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-incremental_recover_02.adb" "debug=1" -1 -1 -1 nil "3 2 0 0 -3 3 2 0 2 3 2 2 1"
 04:12:08.494:

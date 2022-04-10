@@ -2,7 +2,6 @@
 
 --EMACS_SKIP_UNLESS: wisi-incremental-parse-enable
 --EMACSCMD:(setq skip-reindent-test t)
---EMACSCMD:(wisi-process-parse-compare-tree-text wisi--parser :disable t) ;; only incremental creates optimized_list
 package body WisiToken.Syntax_Trees is
 
    function Subtree_Image

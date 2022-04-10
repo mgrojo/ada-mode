@@ -26,5 +26,4 @@ begin
 end Ada_Mode.Incremental_03;
 -- Local Variables:
 -- ada-end-name-optional: nil
--- compare-tree-text: nil
 -- End:

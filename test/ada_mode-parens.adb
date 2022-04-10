@@ -547,6 +547,5 @@ end Ada_Mode.Parens;
 --  Local Variables:
 --  wisi-process-time-out: 10.0
 --  ada-indent-comment-gnat: t
---  compare-tree-text: nil
 --  ada-end-name-optional: t
 --  End:

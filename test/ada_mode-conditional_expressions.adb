@@ -172,5 +172,4 @@ begin
 end Ada_Mode.Conditional_Expressions;
 --  Local Variables:
 --  ada-indent-comment-gnat: t
---  compare-tree-text: nil
 --  End:
