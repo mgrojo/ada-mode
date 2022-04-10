@@ -1216,26 +1216,6 @@ PARSER will respond with one or more Query messages."
     (process-send-string process (wisi-process-parse--add-cmd-length cmd))
     (wisi-process-parse--handle-messages parser)))
 
-(cl-defun wisi-process-parse-compare-tree-text (parser &key disable)
-  (wisi-process-parse--prepare parser 'debug)
-  (let ((cmd
-	 (format "compare_tree_text_auto \"%s\" %d"
-		 (if (buffer-file-name) (buffer-file-name) (buffer-name))
-		 (if disable 0 1)))
-	(process (wisi-process--parser-process parser)))
-    (with-current-buffer (wisi-process--parser-buffer parser)
-      (erase-buffer))
-
-    (wisi-process-parse--handle-messages-file-not-found
-     parser
-     (lambda ()
-       (with-current-buffer (wisi-process--parser-buffer parser)
-	 (erase-buffer))
-       (wisi-parse-log-message parser cmd)
-       (process-send-string process (wisi-process-parse--add-cmd-length cmd)))
-     :no-text t)
-    ))
-
 (defun wisi-process-log-to-cmd (&optional cmd-buffer-name)
   "Convert parser log in current buffer to command file in CMD-BUFFER-NAME."
   (interactive)
@@ -1283,7 +1263,6 @@ PARSER will respond with one or more Query messages."
 	   (insert "verbosity " verbosity "\n"))
 
 	 (insert "save_text_auto debug_edited\n")
-	 (insert "compare_tree_text_auto\n")
 
 	 (when (or (not (string-equal mckenzie_zombie_limit "-1"))
 		   (not (string-equal mckenzie_enqueue_limit "-1")))

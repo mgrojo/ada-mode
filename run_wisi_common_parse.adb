@@ -429,9 +429,8 @@ package body Run_Wisi_Common_Parse is
       use all type WisiToken.Lexer.Handle;
 
       type File_Command_Type is
-        (Compare_Tree_Text_Auto, File, Kill_Context, Language_Params, McKenzie_Options, Memory_Report_Reset,
-         Memory_Report, Parse_Full, Parse_Incremental, Post_Parse, Refactor, Query_Tree, Save_Text, Save_Text_Auto,
-         Verbosity);
+        (File, Kill_Context, Language_Params, McKenzie_Options, Memory_Report_Reset, Memory_Report, Parse_Full,
+         Parse_Incremental, Post_Parse, Refactor, Query_Tree, Save_Text, Save_Text_Auto, Verbosity);
 
       Last  : Integer := Index (Line, " ");
       First : Integer;
@@ -455,9 +454,6 @@ package body Run_Wisi_Common_Parse is
       Command : constant File_Command_Type := Get_Command;
    begin
       case Command is
-      when Compare_Tree_Text_Auto =>
-         Parse_Context.Compare_Tree_Text_Auto := True;
-
       when File =>
          if Ada.Strings.Unbounded.Length (Parse_Context.File_Name) > 0 then
             --  Changing files
@@ -554,10 +550,6 @@ package body Run_Wisi_Common_Parse is
                Wisi.Parse_Data_Type'Class (Parse_Context.Parser.User_Data.all).Put
                  (Parse_Context.Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
                   Parse_Context.Parser.Tree);
-            end if;
-
-            if Parse_Context.Compare_Tree_Text_Auto then
-               Parse_Context.Compare_Tree_Text;
             end if;
          exception
          when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>
