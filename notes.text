@@ -192,6 +192,13 @@ read Kate's book on culture/persuasion.
  after incremental
 review this file!
 
+it should be easier to change the skeleton inserted in a newly created
+file
+    from Tony Brown on ada-mode-users
+
+auto-insert.el references old ada-mode stuff
+    from Tony Brown on ada-mode-users
+
 move string, placeholder face to parser
     syntax-table processing does not respect new-line
 

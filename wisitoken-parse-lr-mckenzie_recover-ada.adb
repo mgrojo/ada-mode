@@ -571,8 +571,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          declare
             New_Config : Configuration := Config;
          begin
-            New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
-            New_Config.In_Parse_Action_Status   := (Label => Ok);
+            New_Config.Error_Token            := (True, Invalid_Token_ID, others => <>);
+            New_Config.In_Parse_Action_Status := (Label                          => Ok);
 
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
@@ -612,6 +612,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                when others =>
                   raise SAL.Programmer_Error with "code does not match grammar";
                end case;
+
+            when subprogram_body_ID =>
+               Push_Back_Check
+                 (Super, Shared_Parser, New_Config,
+                  (+SEMICOLON_ID, +name_opt_ID, +END_ID),
+                  Push_Back_Undo_Reduce => True);
 
             when others =>
                raise Bad_Config with "Language_Fixes Extra_Name_Error 2: unrecognized Error_Token " &

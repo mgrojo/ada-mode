@@ -481,7 +481,7 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
         0.740031671, 0.774715889
         memory: high 399_692_760 current 401_034_832
 
- navigate, face, indent
+ navigate, face, indent, incremental
     make -r benchmark RUN_ARGS="c:/eurocontrol/gnatcoll-xref.adb"
     make -r benchmark RUN_ARGS="c:/Projects/org.emacs.ada-mode/test/ada_mode.ads"
         copy per iteration values here
@@ -709,6 +709,15 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
                 memory: high 87_514_036 current 28_482_164
 
 
+            recover near start of file 0.012778 seconds 0 gcs 2 responses 0.007807 wait
+            recover near end of file   0.096483 seconds 0 gcs 2 responses 0.001505 wait
+
+        syntax_trees optimized list; first try:
+            recover near start of file 0.013533 seconds 0 gcs 2 responses 0.008375 wait
+            recover near end of file   0.106429 seconds 0 gcs 2 responses 0.001987 wait
+            no help.
+
+;; FIXME: add wisitoken-syntax_trees.adb; initial parse slower than gnatcoll-xref.adb
 ;; FIXME: find a fontified word, time re-fontify
 
  just parse, compare to libadalang
