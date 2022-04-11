@@ -64,7 +64,7 @@ Called by `syntax-propertize', which is called by font-lock in
       (while (not (and query-result
 		       ;; package specs have no declarative_item
 		       (memq (wisi-tree-node-id query-result) '(declarative_item wisitoken_accept))))
-	(setq query-result (wisi-parse-tree-query wisi--parser 'containing-statement pos))
+	(setq query-result (wisi-parse-tree-query wisi-parser-shared 'containing-statement pos))
 	(setq pos (car (wisi-tree-node-char-region query-result))))
 
       (wisi-validate-cache (car (wisi-tree-node-char-region query-result))
@@ -234,7 +234,7 @@ is the package spec.")
   "Perform refactor action ACTION at point."
   (unless wisi-incremental-parse-enable
    (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate))
-  (wisi-refactor wisi--parser action (point)))
+  (wisi-refactor wisi-parser-shared action (point)))
 
 (defun ada-refactor-1 ()
   "Refactor Method (Object) => Object.Method.
@@ -315,10 +315,10 @@ PARSE-RESULT must be the result of `syntax-ppss'."
     ;; In parens.
     (cond
      (wisi-incremental-parse-enable
-      (let ((node (wisi-parse-tree-query wisi--parser 'node (nth 1 parse-result))))
+      (let ((node (wisi-parse-tree-query wisi-parser-shared 'node (nth 1 parse-result))))
 	(eq 'formal_part
 	    (wisi-tree-node-id
-	     (wisi-parse-tree-query wisi--parser 'parent (wisi-tree-node-address node) 1)))))
+	     (wisi-parse-tree-query wisi-parser-shared 'parent (wisi-tree-node-address node) 1)))))
 
      (t ;; not incremental parse
 
