@@ -111,10 +111,10 @@ Otherwise add PARSER to `wisi-process--alist', return it."
 	(forward-line -1)
 	(while (re-search-forward wisi-process-parse-prompt (point-max) t)
 	  (cond
-	   ((not (wisi-process--parser-version-checked wisi--parser))
+	   ((not (wisi-process--parser-version-checked wisi-parser-shared))
 	    (when (< 1 wisi-debug)
               (wisi-parse-log-message
-               wisi--parser
+               wisi-parser-shared
                (format "parse--filter found prompt - protocol; wisi-parse-full-active %s" wisi-parse-full-active)))
 	    (save-excursion
 	      ;; The process has just started; the first non-comment line in the
@@ -125,28 +125,29 @@ Otherwise add PARSER to `wisi-process--alist', return it."
 			       (string-equal (match-string 1) wisi-process-parse-protocol-version)
 			       (match-string 2)
 			       (string-equal (match-string 2)
-					     (wisi-process--parser-language-protocol-version wisi--parser)))
-		    (wisi-parse-kill wisi--parser)
+					     (wisi-process--parser-language-protocol-version wisi-parser-shared)))
+		    (wisi-parse-kill wisi-parser-shared)
 		    (error "%s parser process protocol version mismatch: elisp %s %s, process %s %s"
-			   (wisi-process--parser-label wisi--parser)
+			   (wisi-process--parser-label wisi-parser-shared)
 			   wisi-process-parse-protocol-version
-			   (wisi-process--parser-language-protocol-version wisi--parser)
+			   (wisi-process--parser-language-protocol-version wisi-parser-shared)
 			   (match-string 1) (match-string 2)))
 		;; Search failed
 		(error "%s parser process protocol version message not found"
-		       (wisi-process--parser-label wisi--parser))))
+		       (wisi-process--parser-label wisi-parser-shared))))
 
 	    (delete-region (point-min) (point))
             (set-marker (process-mark process) (point-min))
-	    (setf (wisi-process--parser-version-checked wisi--parser) t)
+	    (setf (wisi-process--parser-version-checked wisi-parser-shared) t)
 	    (unless wisi-parse-full-active
 	      ;; if active, filter must handle second prompt as well
 	      (set-process-filter process nil)
-	      (setf (wisi-process--parser-busy wisi--parser) nil)))
+	      (setf (wisi-process--parser-busy wisi-parser-shared) nil)))
 
-	   ((and (wisi-process--parser-version-checked wisi--parser)
+	   ((and (wisi-process--parser-version-checked wisi-parser-shared)
 		 wisi-parse-full-active)
-	    (when (< 1 wisi-debug) (wisi-parse-log-message wisi--parser "parse--filter found prompt - initial full"))
+	    (when (< 1 wisi-debug)
+	      (wisi-parse-log-message wisi-parser-shared "parse--filter found prompt - initial full"))
 	    (with-current-buffer (car wisi-parse-full-active)
 	      (read-only-mode -1)
 	      (let ((region (cdr wisi-parse-full-active)))
@@ -159,7 +160,7 @@ Otherwise add PARSER to `wisi-process--alist', return it."
               (set-marker (process-mark process) (point-min))
 	      (condition-case err
 		  (progn
-		    (wisi-process-parse--handle-messages wisi--parser)
+		    (wisi-process-parse--handle-messages wisi-parser-shared)
 		    (setq wisi-parse-full-active nil))
 		(error
 		 (setq wisi-parse-full-active nil)
@@ -178,7 +179,7 @@ Otherwise add PARSER to `wisi-process--alist', return it."
 	      (get-buffer-create process-name))
 	(with-current-buffer (wisi-process--parser-buffer parser)
 	  (emacs-lisp-mode) ;; for comment syntax
-	  (setq wisi--parser parser) ;; for process filter
+	  (setq wisi-parser-shared parser) ;; for process filter
 	  ))
 
       (with-current-buffer (wisi-process--parser-buffer parser)
@@ -337,16 +338,16 @@ complete."
     (when (> (length changes) 9999)
       (setq full t))
 
-    (unless (equal -1 (wisi-parser-all-changes parser))
+    (unless (equal -1 (wisi-parser-local-all-changes wisi-parser-local))
       (cond
        (full
-	(setf (wisi-parser-all-changes parser) nil)
+	(setf (wisi-parser-local-all-changes wisi-parser-local) nil)
 	(when (buffer-file-name)
 	  (write-region (point-min) (point-max) (concat (buffer-file-name) "-wisi-change-start"))))
 
 	(t
-	 (setf (wisi-parser-all-changes parser)
-	      (append wisi--changes (wisi-parser-all-changes parser))))
+	 (setf (wisi-parser-local-all-changes wisi-parser-local)
+	      (append wisi--changes (wisi-parser-local-all-changes wisi-parser-local))))
 	))
 
     ;; Must match "incremental parse" command arguments read by
@@ -550,7 +551,7 @@ PARSER will respond with one or more Query messages."
 		   (aref sexp 2))
 	   :inserted (when (= 4 (length sexp)) (aref sexp 3))))
 
-    (push err (wisi-parser-lexer-errors parser))
+    (push err (wisi-parser-local-lexer-errors wisi-parser-local))
     ))
 
 (defun wisi-process-parse--Parser_Error (parser sexp)
@@ -579,7 +580,7 @@ PARSER will respond with one or more Query messages."
 		     (1+ (current-column))
 		     (aref sexp 2)))))
 
-    (push err (wisi-parser-parse-errors parser))
+    (push err (wisi-parser-local-parse-errors wisi-parser-local))
     ))
 
 (defun wisi-process-parse--In_Parse_Action_Error (parser sexp)
@@ -609,7 +610,7 @@ PARSER will respond with one or more Query messages."
 	    (aref sexp 4)
 	    (when (> 0 name-2-pos)
 	      file-name (line-number-at-pos name-2-pos) (funcall column-at-pos name-2-pos))))
-	  (wisi-parser-parse-errors parser))
+	  (wisi-parser-local-parse-errors wisi-parser-local))
     ))
 
 (defun wisi-process-parse--find-err (pos errors)
@@ -630,7 +631,7 @@ PARSER will respond with one or more Query messages."
       (cl-do ((i 1 (1+ i))) ((= i (length sexp)))
 	(let* ((error-pos (aref (aref sexp i) 0))
 	       (edit-pos (aref (aref sexp i) 1))
-	       (err (wisi-process-parse--find-err error-pos (wisi-parser-parse-errors parser))))
+	       (err (wisi-process-parse--find-err error-pos (wisi-parser-local-parse-errors wisi-parser-local))))
           (when err
 	    (cl-nsubst
 	     (push
@@ -641,7 +642,7 @@ PARSER will respond with one or more Query messages."
 	       :deleted-region (aref (aref sexp i) 4))
 	      (wisi--parse-error-repair err)) ;; new
 	     err ;; old
-	     (wisi-parser-parse-errors parser) ;; tree
+	     (wisi-parser-local-parse-errors wisi-parser-local) ;; tree
 	     :test (lambda (old el) (= (wisi--parse-error-pos old) (wisi--parse-error-pos err)))))
 	   )))
     ))
@@ -682,7 +683,8 @@ PARSER will respond with one or more Query messages."
     ))
 
 (defun wisi-process-parse--execute (parser sexp)
-  "Execute encoded SEXP sent from external process."
+  "Execute encoded SEXP sent from external process.
+Source buffer is current."
   ;; sexp is [action arg ...]; an encoded instruction that we need to execute
   ;;
   ;; Actions:
@@ -949,9 +951,10 @@ PARSER will respond with one or more Query messages."
 
 		     ((equal 'parse_error (car response))
 		      ;; Parse failed for some reason, so signal it, and report it in error list.
-		      (push
-		       (make-wisi--parse-error :pos 0 :message (cadr response))
-		       (wisi-parser-parse-errors parser))
+		      (with-current-buffer source-buffer
+			(push
+			 (make-wisi--parse-error :pos 0 :message (cadr response))
+			 (wisi-parser-local-parse-errors wisi-parser-local)))
 		      (signal 'wisi-parse-error (cadr response)))
 
 		     ((and (eq 'error (car response))
@@ -970,10 +973,11 @@ PARSER will respond with one or more Query messages."
 			  (eval response)
 			(error
 			 (wisi-parse-log-message parser (cadr err))
-			 (push (make-wisi--parse-error
-				:pos (point)
-				:message (cadr err))
-			       (wisi-parser-parse-errors parser))
+			 (with-current-buffer source-buffer
+			   (push (make-wisi--parse-error
+				  :pos (point)
+				  :message (cadr err))
+				 (wisi-parser-local-parse-errors wisi-parser-local)))
 			 (signal (car err) (cdr err)))))
 		     ))
 
@@ -1123,15 +1127,15 @@ PARSER will respond with one or more Query messages."
 
 (cl-defmethod wisi-parse-current ((parser wisi-process--parser) parse-action begin send-end parse-end)
   (wisi-process-parse--prepare parser parse-action)
-  (setf (wisi-parser-lexer-errors parser) nil)
-  (setf (wisi-parser-parse-errors parser) nil)
+  (setf (wisi-parser-local-lexer-errors wisi-parser-local) nil)
+  (setf (wisi-parser-local-parse-errors wisi-parser-local) nil)
   (wisi-process-parse--send-parse parser parse-action begin send-end parse-end)
   (wisi-process-parse--handle-messages parser)
   (cons begin (wisi-process--parser-end-pos parser))
   )
 
 (cl-defmethod wisi-parse-incremental ((parser wisi-process--parser) parse-action &key full nowait)
-  (when (and full nowait (not (wisi-process--parser-version-checked wisi--parser)))
+  (when (and full nowait (not (wisi-process--parser-version-checked wisi-parser-shared)))
     ;; The parser process has not finished starting up, or has not yet
     ;; been started. If this is the very first Ada file in the current
     ;; project, and there is more text in the file than the process
@@ -1140,8 +1144,8 @@ PARSER will respond with one or more Query messages."
     ;; which can take noticeable time for Ada.
     (message "starting parser ..."))
   (wisi-process-parse--prepare parser parse-action :nowait nowait)
-  (setf (wisi-parser-lexer-errors parser) nil)
-  (setf (wisi-parser-parse-errors parser) nil)
+  (setf (wisi-parser-local-lexer-errors wisi-parser-local) nil)
+  (setf (wisi-parser-local-parse-errors wisi-parser-local) nil)
   (cond
    ((and full nowait)
     (set-process-filter (wisi-process--parser-process parser) #'wisi-process-parse--filter)
@@ -1229,18 +1233,18 @@ PARSER will respond with one or more Query messages."
     (wisi-process-parse--handle-messages parser)))
 
 (defun wisi-process-all-changes-to-cmd (&optional cmd-buffer-name)
-  "Convert wisi-parser-all-changes in current buffer to command file
+  "Convert wisi-parser-local-all-changes in current buffer to command file
 in CMD-BUFFER-NAME."
   (interactive)
   (unless cmd-buffer-name
     (setq cmd-buffer-name "debug.cmd"))
-  (let ((changes (nreverse (copy-sequence (wisi-parser-all-changes wisi--parser))))
+  (let ((changes (nreverse (copy-sequence (wisi-parser-local-all-changes wisi-parser-local))))
 	(cmd-buffer (get-buffer-create cmd-buffer-name))
 	(source-file (buffer-file-name))
 	(verbosity wisi-parser-verbosity)
 	(mckenzie_zombie_limit wisi-mckenzie-zombie-limit)
 	(mckenzie_enqueue_limit wisi-mckenzie-enqueue-limit)
-	(language_options (wisi-parse-format-language-options wisi--parser))
+	(language_options (wisi-parse-format-language-options wisi-parser-shared))
 	edit begin end)
     (set-buffer cmd-buffer)
     (erase-buffer)
@@ -1510,7 +1514,7 @@ in CMD-BUFFER-NAME."
       (save-excursion
         (funcall func))
       (when report-wait-time
-	(setq cum-wait-time (+ cum-wait-time (wisi-process--parser-total-wait-time wisi--parser)))))
+	(setq cum-wait-time (+ cum-wait-time (wisi-process--parser-total-wait-time wisi-parser-shared)))))
     (setq diff-time (- (float-time) start-time))
     (setq diff-gcs (- gcs-done start-gcs))
     (if report-wait-time
@@ -1520,7 +1524,7 @@ in CMD-BUFFER-NAME."
 		   diff-gcs
 		   (/ diff-time count)
 		   (/ (float diff-gcs) count)
-		   (wisi-process--parser-response-count wisi--parser)
+		   (wisi-process--parser-response-count wisi-parser-shared)
 		   (/ cum-wait-time count)))
 
       (message "Total %f seconds, %d gcs; per iteration %f seconds %d gcs"
@@ -1540,8 +1544,8 @@ in CMD-BUFFER-NAME."
        (wisi-set-parse-try t 'indent)
        (wisi-invalidate-cache 'indent (point-min))
        (wisi-indent-line)
-       (when (wisi-process--parser-p wisi--parser)
-	 (setq cum-wait-time (+ cum-wait-time (wisi-process--parser-total-wait-time wisi--parser)))))
+       (when (wisi-process--parser-p wisi-parser-shared)
+	 (setq cum-wait-time (+ cum-wait-time (wisi-process--parser-total-wait-time wisi-parser-shared)))))
      count
      report-wait-time)
     ))

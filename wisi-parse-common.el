@@ -71,15 +71,9 @@ for the changes. The filename is the visited file name with
 (defconst wisi-parser-transaction-log-buffer-size-default 300000)
 
 (cl-defstruct wisi-parser
-  ;; Separate lists for lexer and parse errors, because lexer errors
-  ;; must be repaired first, before parse errors can be repaired. And
-  ;; they have different structures.
-  lexer-errors
-  ;; list of wisi--lexer-errors from last parse.  Can be more than one if
-  ;; lexer supports error recovery.
-  parse-errors
-  ;; List of wisi--parse-errors from last parse. Can be more than one if
-  ;; parser supports error recovery.
+  ;; Per-language values for a wisi parser. Also holds transient
+  ;; values set by the current parse, that must be used before the
+  ;; next parse starts.
 
   repair-image
   ;; alist of (TOKEN-ID . STRING); used by repair error
@@ -92,6 +86,21 @@ for the changes. The filename is the visited file name with
   ;; Max character count to retain in transaction-log-buffer. Set to 0
   ;; to disable log. Default is large enough for all transactions in
   ;; test/ada_mode-incremental_parse.adb with lots of verbosity.
+)
+
+(cl-defstruct wisi-parser-local
+  ;; Per-buffer values set by the wisi parser, that must persist past
+  ;; the current parse.
+
+  ;; Separate lists for lexer and parse errors, because lexer errors
+  ;; must be repaired first, before parse errors can be repaired. And
+  ;; they have different structures.
+  lexer-errors
+  ;; list of wisi--lexer-errors from last parse.  Can be more than one if
+  ;; lexer supports error recovery.
+  parse-errors
+  ;; List of wisi--parse-errors from last parse. Can be more than one if
+  ;; parser supports error recovery.
 
   (all-changes -1)
   ;; List of all changes sent to parser for the current buffer since
@@ -137,11 +146,13 @@ region BEGIN END that starts and ends at points the parser can
 handle gracefully."
   (cons begin end))
 
-(defvar-local wisi--parser nil
-  ;; This has "--" in the name, even though clients muse use it
-  ;; occasionally (for example, to call wisi-parse-tree-query). It
-  ;; must be a different name than the wisi-parser cl-defstruct.
-  "The current wisi parser; a ‘wisi-parser’ object.")
+(defvar-local wisi-parser-shared nil
+  "The current shared wisi parser; a ‘wisi-parser-shared’ object.
+There is one parser object per language; `wisi-parser-shared' is a
+buffer-local reference to that shared object.")
+
+(defvar-local wisi-parser-local nil
+  "Buffer-local values used by the wisi parser; a ‘wisi-parser-local’ object.")
 
 (defconst wisi-post-parse-actions '(navigate face indent none refactor query debug)
   "Actions that the parser can perform after parsing.
@@ -174,7 +185,7 @@ Return nil if no match found before eob."
 (defun wisi-show-expanded-region ()
   "For debugging. Expand currently selected region."
   (interactive)
-  (let ((region (wisi-parse-expand-region wisi--parser (region-beginning) (region-end))))
+  (let ((region (wisi-parse-expand-region wisi-parser-shared (region-beginning) (region-end))))
     (message "pre (%d . %d) post %s" (region-beginning) (region-end) region)
     (set-mark (car region))
     (goto-char (cdr region))
@@ -276,8 +287,8 @@ Called by `wisi-parse-kill-buf'.")
 (defun wisi-parse-kill-buf ()
   "Tell parser the current buffer is being deleted.
 For `kill-buffer-hook'."
-  (when wisi--parser
-    (wisi-parse-kill-buffer wisi--parser)))
+  (when wisi-parser-shared
+    (wisi-parse-kill-buffer wisi-parser-shared)))
 
 (cl-defgeneric wisi-parse-reset ((parser wisi-parser))
   "Ensure parser is ready to process a new parse.")
@@ -573,7 +584,7 @@ with incremental parse after each key event."
   (let ((i 0))
     (while (< i  (length macro))
       (execute-kbd-macro (make-vector 1 (aref macro i)))
-      (wisi-parse-incremental wisi--parser 'none)
+      (wisi-parse-incremental wisi-parser-shared 'none)
       (setq i (1+ i)))))
 
 (defun wisi-replay-kbd-macro-file (file-name)

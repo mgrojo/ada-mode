@@ -153,7 +153,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	   inverse-action
 	   (copy-marker edit-begin nil))
 	  test-refactor-markers)
-    (wisi-refactor wisi--parser action edit-begin)
+    (wisi-refactor wisi-parser-shared action edit-begin)
     ))
 
 (defun test-refactor-inverse ()
@@ -162,7 +162,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
   (wisi-validate-cache (line-end-position -7) (line-end-position 7) t 'navigate)
   (save-excursion
     (dolist (item test-refactor-markers)
-      (wisi-refactor wisi--parser
+      (wisi-refactor wisi-parser-shared
 		     (nth 0 item)
 		     (marker-position (nth 1 item))))
     (setq test-refactor-markers nil)))
@@ -170,8 +170,8 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 (defun wisi-test-save-log ()
   (interactive)
   (when (and (stringp save-parser-log)
-	     (buffer-live-p (wisi-parser-transaction-log-buffer wisi--parser)))
-    (with-current-buffer (wisi-parser-transaction-log-buffer wisi--parser)
+	     (buffer-live-p (wisi-parser-transaction-log-buffer wisi-parser-shared)))
+    (with-current-buffer (wisi-parser-transaction-log-buffer wisi-parser-shared)
       (message "saving parser transaction log '%s' to '%s'" (buffer-name) save-parser-log)
       (write-region nil nil save-parser-log))))
 
@@ -180,7 +180,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 Signals an error if `wisi-incremental-parse-enable' is nil."
   (unless wisi-incremental-parse-enable
     (user-error "wisi-parse-incremental-none with wisi-incremental-parse-enable nil"))
-  (wisi-parse-incremental wisi--parser 'none))
+  (wisi-parse-incremental wisi-parser-shared 'none))
 
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."
@@ -195,7 +195,7 @@ Signals an error if `wisi-incremental-parse-enable' is nil."
 	(setq xref-backend-functions (list #'wisi-prj-xref-backend))
 
 	(when (stringp save-edited-text)
-	  (wisi-process-parse-save-text wisi--parser save-edited-text t))
+	  (wisi-process-parse-save-text wisi-parser-shared save-edited-text t))
 
 	(let ((error-count 0)
 	      (pass-count 0)
@@ -233,7 +233,7 @@ Signals an error if `wisi-incremental-parse-enable' is nil."
 	      (setq cmd-line (line-number-at-pos)
 		    last-cmd (match-string 0))
 	      (let ((msg (format "%s:%d: test %s" (buffer-file-name) cmd-line last-cmd)))
-		(wisi-parse-log-message wisi--parser msg)
+		(wisi-parse-log-message wisi-parser-shared msg)
 		(message msg)
 		(save-excursion
 		  (setq last-result
@@ -242,16 +242,16 @@ Signals an error if `wisi-incremental-parse-enable' is nil."
 			      (eval (car (read-from-string last-cmd)))
 			      (when (> wisi-debug 1)
 			        (setq msg (concat msg " ... done"))
-                                (wisi-parse-log-message wisi--parser msg)
+                                (wisi-parse-log-message wisi-parser-shared msg)
                                 (message msg)))
 			  ((error wisi-parse-error)
 			   (setq error-count (1+ error-count))
 			   (setq msg (concat msg " ... signaled"))
 			   (setq force-fail t)
-			   (wisi-parse-log-message wisi--parser msg)
+			   (wisi-parse-log-message wisi-parser-shared msg)
 			   (message msg)
 			   (setq msg (format "... %s: %s" (car err) (cdr err)))
-			   (wisi-parse-log-message wisi--parser msg)
+			   (wisi-parse-log-message wisi-parser-shared msg)
 			   (message msg)
 			   nil)))
 		  ))
@@ -268,7 +268,7 @@ Signals an error if `wisi-incremental-parse-enable' is nil."
 		      (equal expected-result last-result))
 		  (let ((msg (format "test passes %s:%d:\n" (buffer-file-name) (line-number-at-pos))))
 		    (setq pass-count (1+ pass-count))
-		    (wisi-parse-log-message wisi--parser msg)
+		    (wisi-parse-log-message wisi-parser-shared msg)
 		    (message msg))
 
 		(setq error-count (1+ error-count))
@@ -281,7 +281,7 @@ Signals an error if `wisi-incremental-parse-enable' is nil."
 				      last-cmd
 				      last-result
 				      expected-result)))))
-		  (wisi-parse-log-message wisi--parser msg)
+		  (wisi-parse-log-message wisi-parser-shared msg)
 		  (message msg))
 		(setq force-fail nil)))
 
@@ -348,7 +348,7 @@ Signals an error if `wisi-incremental-parse-enable' is nil."
 
 	  (let ((msg (format "%s:%d tests passed %d"
 			     (buffer-file-name) (line-number-at-pos (point)) pass-count)))
-	    (wisi-parse-log-message wisi--parser msg)
+	    (wisi-parse-log-message wisi-parser-shared msg)
 	    (message msg))
 
 	  (when (> error-count 0)

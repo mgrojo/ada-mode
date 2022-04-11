@@ -734,6 +734,6 @@ private
    End_Code                   : constant String := "8";
    Name_Property_Code         : constant String := "9";
    Edit_Action_Code           : constant String := "10";
-   Language_Action_Code       : constant String := "11 ";
+   Language_Action_Code       : constant String := "11 "; -- used by wisitoken_grammar for Check_Parens
    Query_Tree_Code            : constant String := "12";
 end Wisi;
