@@ -453,8 +453,9 @@ include Makefile.conf
 $(WISI)/wisi.gpr : force
 	$(MAKE) -C $(WISI)/build ../wisi.gpr
 
+# RUN_ARG is a list of addresses from a stack dump
 trace :
-	addr2line -e ../exec_pro/run_ada_parser.exe 0x79c027 0x7715ff3f 0x7715ff11 0x7716068d 0x758a42 0x402903 0x7afce0 0x4013db 0x74927c02 0x7717ad2d 0x7717acf8
+	addr2line -e ../run_ada_lalr_parse.exe $(RUN_ARG)
 
 $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
