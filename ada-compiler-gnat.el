@@ -2,7 +2,7 @@
 ;;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2021  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2022  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -439,7 +439,7 @@ Prompt user if more than one."
 	     (pop-to-buffer source-buffer)
 	     (if (looking-at "'Access")
 		 (kill-word 1)
-	       (forward-word 1)
+	       (forward-symbol 1)
 	       (insert ".all"))
 	     t)
 	    ((looking-at "found type .*_Access_Type")

@@ -10,11 +10,14 @@
 
 (set-default 'wisi-size-threshold most-positive-fixnum); before open buffer
 (setq-default wisi-incremental-parse-enable nil)
+(setq-default wisi-process-time-out 60.0);; should not be this slow, but this allows better debugging
 
 (setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lr1_parse.exe" ada-mode-dir))
-(let ((parser (ada-parse-require-process)))
+(message "creating parser ...")
+(let ((parser (ada-parse-require-process :wait t)))
   (wisi-parse-enable-memory-report parser)
   (wisi-parse-memory-report parser)) ;; 0
+(message "... done")
 
 (setq-default wisi-incremental-parse-enable nil)
 (find-file benchmark-source-file) ;; does not do initial parse, since incremental not enabled
@@ -65,13 +68,23 @@
 (wisi-time (lambda () (indent-rigidly (point)(line-beginning-position 2) -1)(indent-for-tab-command)) 4 :report-wait-time t)
 (wisi-parse-memory-report wisi--parser)
 
-(message "recover")
-(goto-char (/ (point-max) 2))
-(goto-char (line-beginning-position))
-(forward-comment (point-max))
-(kill-line 2)
-(wisi-time 'indent-for-tab-command 4 :report-wait-time t)
-(undo)
+(defun time-recover ()
+  (goto-char (line-beginning-position))
+  (forward-comment (point-max))
+  (kill-line 2)
+  (wisi-time 'indent-for-tab-command 4 :report-wait-time t)
+  (undo)
+  (indent-for-tab-command);; parse with no errors for next test
+  )
+
+(message "recover near start of file")
+(goto-char (+ (point-min) 10000))
+(time-recover)
+
+(message "recover near end of file")
+(goto-char (- (point-max) 10000))
+(time-recover)
+
 (wisi-parse-memory-report wisi--parser)
 
 (split-window-vertically)

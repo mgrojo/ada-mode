@@ -481,7 +481,7 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
         0.740031671, 0.774715889
         memory: high 399_692_760 current 401_034_832
 
- navigate, face, indent
+ navigate, face, indent, incremental
     make -r benchmark RUN_ARGS="c:/eurocontrol/gnatcoll-xref.adb"
     make -r benchmark RUN_ARGS="c:/Projects/org.emacs.ada-mode/test/ada_mode.ads"
         copy per iteration values here
@@ -638,7 +638,7 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
 
     18 Jan 2022 syntax_trees stream_element_lists ref_count; all tests passing
         gnatcoll-xref.adb:
-            memory: delta high 19072116 current 16729224 abs high 19072116 current 16729224
+            memory: delta high 19_072_116 current 16_729_224 abs high 19_072_116 current 16_729_224
             partial parse:
                 navigate    1.794680 seconds 7 gcs 6240 responses 0.834100 wait
                 face        1.779701 seconds 6 gcs 2149 responses 0.841272 wait
@@ -649,14 +649,76 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
 
             incremental parse:
                 initial     1.273012 seconds 0 gcs 0 responses 0.662294 wait
-                memory: delta high 2118284 current 15966300 abs high 32266996 current 29549220
+                memory: delta high 2_118_284 current 15_966_300 abs high 32_266_996 current 29_549_220
                 re-indent   0.048352 seconds 0 gcs 2 responses 0.004485 wait
-                memory: delta high 0 current 1480 abs high 32266996 current 29550700
+                memory: delta high 0 current 1_480 abs high 32_266_996 current 29_550_700
                 recover     0.035123 seconds 0 gcs 2 responses 0.003822 wait
 
+    1 Mar 2022 before move In_Parse_Actions, Post_Parse_Actions
+        ada_annex_p_lr1_parse_table.txt: 190_485_234
+        lr1 table in memory : 423_149_272
+        lalr table in memory: 2_696_896
 
+        gnatcoll-xref.adb:
+            partial parse:
+            navigate    1.662802 seconds 7 gcs 6240 responses 0.645426 wait
+            face        1.668305 seconds 6 gcs 2149 responses 0.597061 wait
+            indent      3.422935 seconds 6 gcs 7252 responses 1.980147 wait
+                memory: high 27_998_900 current 26_210_492
+            re-indent   0.019327 seconds 0 gcs 12 responses 0.013292 wait
+                memory: high 27_998_900 current 12_530_564
+            recover     0.021572 seconds 0 gcs 25 responses 0.082908 wait
+                memory: high 27_998_900 current 12_530_564
+
+            reset parser
+                memory: high 29_120_080 current 10_432_656
+
+            incremental parse:
+            initial     1.367831 seconds 0 gcs 0 responses 0.429245 wait
+                memory: high 31_136_396 current 28_504_148
+            re-indent   0.049569 seconds 0 gcs 2 responses 0.004366 wait
+                memory: high 31_136_396 current 28_621_668
+            recover     0.032869 seconds 0 gcs 2 responses 0.003020 wait
+                memory: high 51_767_620 current 28_693_524
+
+    10 Mar 2022 after move In_Parse_Actions, Post_Parse_Actions out of syntax_tree
+        ada_annex_p_lr1_parse_table.txt: 144_609_840
+        lr1 table in memory: 303_341_680
+        lalr table in memory: 1_933_124
+
+        gnatcoll-xref.adb:
+            partial parse:
+            navigate    1.859617 seconds 7 gcs 6240 responses 0.588331 wait
+            face        1.825216 seconds 6 gcs 2149 responses 0.562483 wait
+            indent      3.172862 seconds 6 gcs 7252 responses 1.759580 wait
+                memory: high 27_190_852 current 25_523_476
+            re-indent   0.021456 seconds 0 gcs 12 responses 0.014698 wait
+                memory: high 27_190_852 current 12_558_764
+            recover     0.022769 seconds 0 gcs 25 responses 0.086806 wait
+                memory: high 29_148_888 current 12_582_608
+
+            reset parser
+                high 29_148_888 current 10_432_656
+
+            incremental parse:
+            initial     1.164575 seconds 0 gcs 0 responses 0.421712 wait
+                memory: high 30_330_800 current 27_819_584
+            re-indent   0.044641 seconds 0 gcs 2 responses 0.004551 wait
+                memory: high 30_330_800 current 27_937_292
+            recover     0.049705 seconds 0 gcs 2 responses 0.010892 wait
+                memory: high 87_514_036 current 28_482_164
+
+
+            recover near start of file 0.012778 seconds 0 gcs 2 responses 0.007807 wait
+            recover near end of file   0.096483 seconds 0 gcs 2 responses 0.001505 wait
+
+        syntax_trees optimized list; first try:
+            recover near start of file 0.013533 seconds 0 gcs 2 responses 0.008375 wait
+            recover near end of file   0.106429 seconds 0 gcs 2 responses 0.001987 wait
+            no help.
+
+;; FIXME: add wisitoken-syntax_trees.adb; initial parse slower than gnatcoll-xref.adb
 ;; FIXME: find a fontified word, time re-fontify
-;; FIXME: measure edit_tree time
 
  just parse, compare to libadalang
 ./run_ada_lr1_parse.exe vs ./run_libadalang.exe

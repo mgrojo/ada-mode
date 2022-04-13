@@ -21,8 +21,11 @@ project Ada_Mode_Compile is
       -- parents are not pure
       "ada_mode-generic_parent_instantiation.ads",
 
+      "ada_mode-indent_02.adb",
+
       -- These have incomplete code deliberately; used for interactive editing test (via EMACSCMD)
       "ada_mode-incremental_recover_01.adb",
+      "ada_mode-incremental_recover_02.adb",
       "ada_mode-interactive_case_statement.adb",
       "ada_mode-interactive_01.adb",
       "ada_mode-interactive_02.adb",
@@ -95,6 +98,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_44.adb",
       "ada_mode-recover_45.adb",
       "ada_mode-recover_46.adb",
+      "ada_mode-recover_48.adb",
       "ada_mode-recover_align_1.adb",
       "ada_mode-recover_ambiguous_parse.adb",
       "ada_mode-recover_bad_char.adb",
@@ -111,6 +115,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_extra_declare.adb",
       "ada_mode-recover_extra_end_loop.adb",
       "ada_mode-recover_format_paramlist.adb",
+      "ada_mode-recover_incremental_02.adb",
       "ada_mode-recover_indent_1.adb",
       "ada_mode-recover_indent_2.adb",
       "ada_mode-recover_indent_3.adb",
@@ -148,6 +153,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_string_quote_2.adb",
       "ada_mode-recover_string_quote_3.adb",
       "ada_mode-recover_string_quote_4.adb",
+      "ada_mode-recover_string_quote_5.adb",
       "ada_mode-recover_sync_01.adb",
       "ada_mode-recover_type_1.ads",
       "ada_mode-recover_virtual_renames.adb",

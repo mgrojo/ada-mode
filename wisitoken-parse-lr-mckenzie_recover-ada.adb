@@ -23,7 +23,7 @@ with WisiToken.Parse.LR.McKenzie_Recover.Parse;
 package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
    use Ada_Annex_P_Process_Actions; -- token names, To_Token_Enum
-   use all type In_Parse_Actions.Status_Label;
+   use all type Syntax_Trees.In_Parse_Actions.Status_Label;
 
    Descriptor : WisiToken.Descriptor renames Ada_Annex_P_Process_Actions.Descriptor;
 
@@ -77,7 +77,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
       procedure Put (Message : in String; Config : in Configuration)
       is begin
-         Put (Message, Shared_Parser.Trace.all, Tree, Parser_Label, Config);
+         Put (Message, Tree, Parser_Label, Config);
       end Put;
 
       End_Name_Token   : constant Recover_Token := Recover_Stacks.Peek
@@ -571,8 +571,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          declare
             New_Config : Configuration := Config;
          begin
-            New_Config.Error_Token := (True, Invalid_Token_ID, others => <>);
-            New_Config.In_Parse_Action_Status   := (Label => Ok);
+            New_Config.Error_Token            := (True, Invalid_Token_ID, others => <>);
+            New_Config.In_Parse_Action_Status := (Label                          => Ok);
 
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
@@ -612,6 +612,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                when others =>
                   raise SAL.Programmer_Error with "code does not match grammar";
                end case;
+
+            when subprogram_body_ID =>
+               Push_Back_Check
+                 (Super, Shared_Parser, New_Config,
+                  (+SEMICOLON_ID, +name_opt_ID, +END_ID),
+                  Push_Back_Undo_Reduce => True);
 
             when others =>
                raise Bad_Config with "Language_Fixes Extra_Name_Error 2: unrecognized Error_Token " &
@@ -739,7 +745,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       if Debug_Mode then
          raise;
       elsif Trace_McKenzie > Outline then
-         Shared_Parser.Trace.Put_Line ("Language_Fixes Handle_In_Parse_Action_Fail Bad_Config");
+         Tree.Lexer.Trace.Put_Line ("Language_Fixes Handle_In_Parse_Action_Fail Bad_Config");
       end if;
    end Handle_In_Parse_Action_Fail;
 
@@ -758,7 +764,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
       procedure Put (Message : in String; Config : in Configuration)
       is begin
-         Put (Message, Shared_Parser.Trace.all, Tree, Parser_Label, Config);
+         Put (Message, Tree, Parser_Label, Config);
       end Put;
    begin
       if (Tree.Element_ID (Config.Error_Token) = +COLON_ID and
@@ -1196,7 +1202,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                         Delete_Check (Super, Shared_Parser, New_Config, Peek_State, Error_Token_ID);
                         if +SEMICOLON_ID = Tree.ID
                           (WisiToken.Parse.LR.McKenzie_Recover.Parse.Peek_Current_First_Sequential_Terminal
-                             (Super, Shared_Parser, Config, Following_Element => False))
+                             (Super, Shared_Parser, Config))
                         then
                            --  Might not be there while typing code; ada_mode-interactive_09.adb
                            Delete_Check (Super, Shared_Parser, New_Config, Peek_State, +SEMICOLON_ID);
@@ -1431,7 +1437,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       if Debug_Mode then
          raise;
       elsif Trace_McKenzie > Outline then
-         Shared_Parser.Trace.Put_Line ("Language_Fixes Handle_Parse_Error Bad_Config");
+         Tree.Lexer.Trace.Put_Line ("Language_Fixes Handle_Parse_Error Bad_Config");
       end if;
    end Handle_Parse_Error;
 
@@ -1446,8 +1452,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       Config            : in     Configuration)
    is begin
       if Trace_McKenzie > Extra then
-         Put ("Language_Fixes", Shared_Parser.Trace.all, Shared_Parser.Tree, Super.Stream (Parser_Index), Config);
-         Put_Line (Shared_Parser.Trace.all, Shared_Parser.Tree, Super.Stream (Parser_Index),
+         Put ("Language_Fixes", Shared_Parser.Tree, Super.Stream (Parser_Index), Config);
+         Put_Line (Shared_Parser.Tree, Super.Stream (Parser_Index),
                    "config stack: " & Image (Config.Stack, Shared_Parser.Tree));
       end if;
 
@@ -1465,8 +1471,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       Shared_Parser           :         in out Parser.Parser;
       Tokens                  :         in     Token_ID_Array_1_3;
       Config                  : aliased in     Configuration;
-      Matching_Tokens         :            out Token_ID_Arrays.Vector;
-      Forbid_Minimal_Complete :            out Boolean)
+      Matching_Tokens         :         in out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :         in out Boolean)
    is
       use Token_ID_Arrays;
 
