@@ -775,18 +775,18 @@ FILE is from gpr-query."
   ;; WORKAROUND: xref 1.3.2 xref-location changed from defclass to
   ;; cl-defstruct. If drop emacs 26, use 'with-suppressed-warnings'.
   (with-no-warnings ;; "unknown slot"
-    (let ((summary (if (functionp 'xref-item-summary) (xref-item-summary item) (oref item :summary)))
-	  (location (if (functionp 'xref-item-location) (xref-item-location item) (oref item :location)))
+    (let ((summary (if (functionp 'xref-item-summary) (xref-item-summary item) (oref item summary)))
+	  (location (if (functionp 'xref-item-location) (xref-item-location item) (oref item location)))
 	  (eieio-skip-typecheck t)) ;; 'location' may have line, column nil
       (let ((file (if (functionp 'xref-file-location-file)
 		      (xref-file-location-file location)
-		    (oref location :file)))
+		    (oref location file)))
 	    (line (if (functionp 'xref-file-location-line)
 		      (xref-file-location-line location)
-		    (oref location :line)))
+		    (oref location line)))
 	    (column (if (functionp 'xref-file-location-column)
 			(xref-file-location-column location)
-		      (oref location :column))))
+		      (oref location column))))
 
 	(when (eq ?\" (aref summary 0))
 	  ;; gpr_query wants the quotes stripped
