@@ -89,6 +89,12 @@ push to elpa
     advertize alpha testing on comp.lang.ada, ada-mode mailing list
     doc how to use elpa HEAD
 
+visiting large files pauses emacs for longer than expected
+    not due to debug settings
+    d:/Apps/GNAT-gpl_2021/include/libadalang/libadalang-implementation.adb
+    buffer not shown until source sent to process
+        move that to background when :nowait?
+
 ada-mode-hook runs before initial parse
     because we want to allow it to set debug etc that affect initial parse
     if user puts a function on ada-mode-hook that requires parse, it signals file-not-found

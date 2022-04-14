@@ -17,6 +17,7 @@ project Ada_Mode_Compile is
 
       "ada_mode-ada2020_more.adb", -- not supported by gnat community 2019 -gnatX
       "ada_mode-ascii_control_chars.adb",
+      "ada_mode-bad_duplicate_state.adb",
 
       -- parents are not pure
       "ada_mode-generic_parent_instantiation.ads",
