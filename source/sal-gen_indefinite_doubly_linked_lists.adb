@@ -203,10 +203,10 @@ package body SAL.Gen_Indefinite_Doubly_Linked_Lists is
       Container.Count := Container.Count - 1;
    end Delete;
 
-   function Persistent_Ref (Position : in Cursor) return access Element_Type
+   function Unchecked_Ref (Position : in Cursor) return access Element_Type
    is begin
       return Position.Ptr.Element;
-   end Persistent_Ref;
+   end Unchecked_Ref;
 
    function Constant_Ref (Position : in Cursor) return Constant_Reference_Type
    is begin

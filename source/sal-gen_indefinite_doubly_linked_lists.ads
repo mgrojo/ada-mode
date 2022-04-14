@@ -1,7 +1,6 @@
 --  Abstract :
 --
---  A generic doubly linked list with indefinite elements, allowing
---  permanent references to elements.
+--  A generic doubly linked list with indefinite elements.
 --
 --  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
 --
@@ -73,8 +72,9 @@ package SAL.Gen_Indefinite_Doubly_Linked_Lists is
    procedure Delete (Container : in out List; Position : in out Cursor)
    with Pre => Has_Element (Position);
 
-   function Persistent_Ref (Position : in Cursor) return access Element_Type
+   function Unchecked_Ref (Position : in Cursor) return access Element_Type
    with Pre => Has_Element (Position);
+   --  For use in building higher-level containers.
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is private with
      Implicit_Dereference => Element;
