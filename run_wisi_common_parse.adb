@@ -768,6 +768,14 @@ package body Run_Wisi_Common_Parse is
                   Parser.Parse (Log_File);
                   --  Raises Parse_Error for ambiguous parse and similar errors.
 
+                  Parse_Data.Put
+                    (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
+                     Parser.Tree);
+
+                  if Trace_Memory > 0 then
+                     Report_Memory (Trace.all, Prefix => False);
+                  end if;
+
                   if Cl_Params.Partial_Post_Parse_Action /= None then
                      Parse_Data.Reset_Post_Parse
                        (Parser.Tree,
@@ -780,13 +788,6 @@ package body Run_Wisi_Common_Parse is
 
                      if Cl_Params.Repeat_Count = 1 then
                         Parse_Data.Put (Parser);
-                        Parse_Data.Put
-                          (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-                           Parser.Tree);
-
-                        if Trace_Memory > 0 then
-                           Report_Memory (Trace.all, Prefix => False);
-                        end if;
                      end if;
                   end if;
                exception
