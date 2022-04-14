@@ -15,7 +15,6 @@ pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
-with Wisi;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Syntax_Trees;

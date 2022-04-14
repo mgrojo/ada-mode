@@ -168,7 +168,6 @@ package body Wisi.Parse_Context is
       declare
          use File_Parse_Context_Maps;
          use WisiToken;
-         use all type WisiToken.Descriptor_Access_Constant;
          use all type Ada.Strings.Unbounded.String_Access;
 
          Found : constant Cursor := Map.Find (File_Name);
