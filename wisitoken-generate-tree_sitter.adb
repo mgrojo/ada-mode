@@ -20,7 +20,6 @@ pragma License (GPL);
 with Ada.Text_IO; use Ada.Text_IO;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.BNF.Output_Ada_Common;
-with WisiToken.Generate;
 with WisiToken.Syntax_Trees.LR_Utils;
 with WisiToken_Grammar_Editing;
 with Wisitoken_Grammar_Actions; use Wisitoken_Grammar_Actions;

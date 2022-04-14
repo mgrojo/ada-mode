@@ -25,7 +25,6 @@ pragma License (Modified_GPL);
 
 with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Lexer;
-with WisiToken.Parse;
 with WisiToken.Syntax_Trees;
 limited with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package WisiToken.Parse.LR.Parser is

@@ -22,7 +22,6 @@ overriding procedure Parse
 is
    use Syntax_Trees;
    use all type KMN_Lists.List;
-   use all type Syntax_Trees.User_Data_Access;
    use all type Ada.Containers.Count_Type;
 
    Trace : WisiToken.Trace'Class renames Shared_Parser.Tree.Lexer.Trace.all;
@@ -136,7 +135,6 @@ begin
 
                declare
                   use Recover_Op_Nodes_Arrays;
-                  use all type Syntax_Trees.Stream_Node_Ref;
 
                   Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
                begin

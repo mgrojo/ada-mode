@@ -454,7 +454,6 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          Parser.User_Data.Reduce (Tree, Node);
 
          declare
-            use all type Syntax_Trees.Post_Parse_Action;
             Action : constant Syntax_Trees.Post_Parse_Action := Parser.Get_Post_Parse_Action
               (Tree.Production_ID (Node));
          begin

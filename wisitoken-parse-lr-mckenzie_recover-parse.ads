@@ -120,7 +120,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    type Parse_Item is record
       Config      : aliased Configuration;
-      Action      : Parse_Action_Node_Ptr;
+      Action      : Parse_Action_Node_Ptr := null;
       Parsed      : Boolean := False;
       Shift_Count : Natural := 0;
 

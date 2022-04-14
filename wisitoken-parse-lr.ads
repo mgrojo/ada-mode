@@ -112,7 +112,7 @@ package WisiToken.Parse.LR is
 
    type Action_Node is record
       Symbol  : Token_ID := Invalid_Token_ID; -- ignored if Action is Error
-      Actions : Parse_Action_Node_Ptr;
+      Actions : Parse_Action_Node_Ptr := null;
    end record;
 
    procedure Delete

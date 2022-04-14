@@ -227,7 +227,7 @@ package WisiToken.Parse.LR.Parser_Lists is
      return State_Reference;
    pragma Inline (Reference);
 
-   function Persistent_State_Ref (Position : in Parser_Node_Access) return State_Access;
+   function Unchecked_State_Ref (Position : in Parser_Node_Access) return State_Access;
 
    function Has_Element (Iterator : in Parser_Node_Access) return Boolean;
 

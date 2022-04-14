@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2015, 2017 - 2020 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017 - 2020, 2022 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -38,7 +38,6 @@ package body Test_Generate_Errors is
 
       Success     : Boolean;
       Return_Code : Integer;
-      pragma Unreferenced (Return_Code);
 
       WY_File : constant String_Access := new String'(Test.Root_Name.all & ".wy");
 

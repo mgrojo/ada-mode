@@ -639,8 +639,8 @@ package WisiToken.Syntax_Trees is
    end In_Parse_Actions;
 
    type RHS_Info is record
-      In_Parse_Action   : In_Parse_Actions.In_Parse_Action;
-      Post_Parse_Action : Syntax_Trees.Post_Parse_Action;
+      In_Parse_Action   : In_Parse_Actions.In_Parse_Action := null;
+      Post_Parse_Action : Syntax_Trees.Post_Parse_Action   := null;
    end record;
 
    package RHS_Info_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
