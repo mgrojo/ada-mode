@@ -1475,7 +1475,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          String_Literal : Config_Stream_Parents (Config.Input_Stream'Access);
 
          Max_Deleted : Base_Sequential_Index;
-         pragma Unreferenced (Max_Deleted);
       begin
          --  Mark the current start of Config.Input_Stream, so we can search
          --  new pushed_back tokens below. test_mckenzie_recover.adb

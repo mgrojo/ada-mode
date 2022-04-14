@@ -25,7 +25,6 @@ with Ada.Containers;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with System.Address_To_Access_Conversions;
-with WisiToken.Generate;
 package body WisiToken.Generate.LR.LR1_Generate is
 
    function LR1_Goto_Transitions

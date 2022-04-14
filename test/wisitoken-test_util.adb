@@ -27,7 +27,6 @@ package body WisiToken.Test_Util is
       Exe         : constant String_Access := Locate_Exec_On_Path (Program);
       Success     : Boolean;
       Return_Code : Integer;
-      pragma Unreferenced (Return_Code);
    begin
       if Exe = null then
          AUnit.Assertions.Assert (False, "'" & Program & "' not found on path");
@@ -70,9 +69,8 @@ package body WisiToken.Test_Util is
    begin
       if GNAT.OS_Lib.Directory_Separator = '\' then
          declare
-            Exe : constant String_Access := Locate_Exec_On_Path ("dos2unix.exe");
+            Exe     : constant String_Access := Locate_Exec_On_Path ("dos2unix.exe");
             Success : Boolean;
-            pragma Unreferenced (Success);
          begin
             Spawn
               (Program_Name => Exe.all,

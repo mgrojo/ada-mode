@@ -19,7 +19,6 @@ pragma License (GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
-with WisiToken.Generate;
 with WisiToken.Syntax_Trees;
 with SAL.Unix_Text_IO;
 package body WisiToken.Generate.LR is

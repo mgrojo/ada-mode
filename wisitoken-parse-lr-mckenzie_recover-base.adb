@@ -40,7 +40,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
             Super.Parser_Status (Index) :=
               (Recover_State  => Active,
-               Parser_State   => Parser_Lists.Persistent_State_Ref (Cur),
+               Parser_State   => Parser_Lists.Unchecked_State_Ref (Cur),
                Fail_Mode      => Success);
 
             declare

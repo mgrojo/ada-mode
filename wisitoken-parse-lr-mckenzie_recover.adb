@@ -413,7 +413,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                      for I in First_Index (Result.Ops) .. Last_Index (Result.Ops) loop
                         declare
-                           use all type WisiToken.Syntax_Trees.Node_Label;
                            Op : Recover_Op renames Constant_Ref (Result.Ops, I);
 
                            Pre_FF_Index : Base_Sequential_Index := Invalid_Sequential_Index;

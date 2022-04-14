@@ -275,17 +275,17 @@ package body WisiToken.Parse.LR.Parser_Lists is
 
    function State_Ref (Position : in Cursor) return State_Reference
    is begin
-      return (Element => Parser_State_Lists.Constant_Ref (Position.Ptr).Element);
+      return (Element => Parser_State_Lists.Unchecked_Ref (Position.Ptr));
    end State_Ref;
 
    function First_State_Ref (List : in Parser_Lists.List'Class) return State_Reference
    is begin
-      return (Element => Parser_State_Lists.Constant_Ref (List.Elements.First).Element);
+      return (Element => Parser_State_Lists.Unchecked_Ref (List.Elements.First));
    end First_State_Ref;
 
    function First_Constant_State_Ref (List : in Parser_Lists.List'Class) return Constant_State_Reference
    is begin
-      return (Element => Parser_State_Lists.Constant_Ref (List.Elements.First).Element);
+      return (Element => Parser_State_Lists.Unchecked_Ref (List.Elements.First));
    end First_Constant_State_Ref;
 
    procedure Prepend_Copy
@@ -348,7 +348,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
    is
       pragma Unreferenced (Container);
    begin
-      return (Element => Parser_State_Lists.Constant_Ref (Position.Ptr).Element);
+      return (Element => Parser_State_Lists.Unchecked_Ref (Position.Ptr));
    end Constant_Reference;
 
    function Reference
@@ -358,13 +358,13 @@ package body WisiToken.Parse.LR.Parser_Lists is
    is
       pragma Unreferenced (Container);
    begin
-      return (Element => Parser_State_Lists.Variable_Ref (Position.Ptr).Element);
+      return (Element => Parser_State_Lists.Unchecked_Ref (Position.Ptr));
    end Reference;
 
-   function Persistent_State_Ref (Position : in Parser_Node_Access) return State_Access
+   function Unchecked_State_Ref (Position : in Parser_Node_Access) return State_Access
    is begin
-      return State_Access (Parser_State_Lists.Persistent_Ref (Position.Ptr));
-   end Persistent_State_Ref;
+      return State_Access (Parser_State_Lists.Unchecked_Ref (Position.Ptr));
+   end Unchecked_State_Ref;
 
    type Iterator (Elements : access Parser_State_Lists.List) is new Iterator_Interfaces.Forward_Iterator
      with null record;
