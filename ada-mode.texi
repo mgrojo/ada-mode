@@ -2,7 +2,7 @@
 @settitle Ada Mode
 
 @copying
-Copyright @copyright{} 1999 - 2021  Free Software Foundation, Inc.
+Copyright @copyright{} 1999 - 2022  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -260,20 +260,18 @@ changes, to force a complete rebuild.
 @node Building GNATCOLL
 @subsection Building GNATCOLL
 
-Download gnatcoll-db from
+If you are using GNAT Community, download gnatcoll-db from
 @url{https://github.com/AdaCore/gnatcoll-db}; select the latest
 release branch (or the one that matches your compiler), click on the
 ``clone or download'' button, select ``Download ZIP''.
-@c FIXME: or adacore gnatpro gnatstudio sources
 
-@c branch nn-sustained?
+If you are using GNAT Pro, download @file{gnatcoll-db.tar.gz} from the
+GNAT Studio sources in GNAT Tracker.
 
-Similarly, download gnatcoll-bindings from
-@url{https://github.com/AdaCore/gnatcoll-bindings/tree/20.2} (for
-gnatcoll-iconv; not needed for GNAT Community 2020 on Windows).
+Similarly, if needed for your OS, download gnatcoll-bindings from the
+GNAT Community sources. This is for gnatcoll-iconv; not needed on
+Windows.
 
-@c FIXME: gnatcoll-bindings is in community download Sources
-@c FIXME: table of os/gnat version that need/don't need iconv;
 @c debian/comm-2020 requires gnatcoll-iconv
 @c debian/pro-21.1 requires gnatcoll-iconv
 
@@ -281,17 +279,20 @@ Then unpack, build, and install the required components. If you are
 unsure whether you need to install iconv, skip that step; a later step
 will complain if it is needed.
 
-@c FIXME: ada-mode uses -gnat2020, which makes one expression in
-@c gnatcoll-sql ambiguous. Change that, and specify -gnat2020 in .gpr
+If @code{./setup.py} complains it can't find @code{python}, try
+@code{python3 setup.py ...}.
+
+For github gnatcoll-db version 21.2, apply gnatcoll-2021-sql.diff.
+
 @example
-unzip ~/Downloads/gnatcoll-bindings-20.2.zip
-cd gnatcoll-bindings-20.2
+unzip ~/Downloads/gnatcoll-bindings-22.2.zip
+cd gnatcoll-bindings-22.2
 cd iconv
 ./setup.py build
 ./setup.py install
 
-unzip ~/Downloads/gnatcoll-db-20.2.zip
-cd gnatcoll-db-20.2
+unzip ~/Downloads/gnatcoll-db-22.2.zip
+cd gnatcoll-db-22.2
 make -C sql
 make -C sql install
 make -C sqlite
@@ -299,9 +300,6 @@ make -C sqlite install
 make -C xref
 make -C xref install
 @end example
-
-If @code{./setup.py} complains it can't find @code{python}, try
-@code{python3 setup.py ...}.
 
 @c To build gnatcoll-core with debug, edit the corresponding gpr file
 @c to delete @code{-gnatwe} (there are lots of warnings about license
@@ -388,8 +386,7 @@ No edits required.
 @item Community 2021
 Requires ada-mode version 7.1.6 or later.
 
-Apply @file{gnatcoll-2021-sql.patch} (found in
-@file{~/.elpa.d/elpa/ada-mode-i.j.k}) to gnatcoll-db.
+gnatcoll requires a patch; see FIXME: gnatcoll build section.
 
 @item Pro 20.2
 Requires ada-mode version 7.1.6 or later.
@@ -397,6 +394,9 @@ Requires ada-mode version 7.1.6 or later.
 No edits required.
 
 @item Pro 21.2
+FIXME:
+
+@item Pro 22.2
 FIXME:
 
 @item FSF 11.1.0
