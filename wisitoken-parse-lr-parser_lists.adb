@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014 - 2021  All Rights Reserved.
+--  Copyright (C) 2014 - 2022  All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -187,9 +187,35 @@ package body WisiToken.Parse.LR.Parser_Lists is
          Stack_2 : in Syntax_Trees.Stream_ID)
         return Boolean
       --  True if equal
-      is begin
+      is
+         function Same_Last_Terminal return Boolean
+         is
+            use Syntax_Trees;
+            Ref_1 : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+              (Tree.To_Rooted_Ref (Stack_1, Tree.Peek (Stack_1)));
+            Ref_2 : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+              (Tree.To_Rooted_Ref (Stack_2, Tree.Peek (Stack_2)));
+         begin
+            loop
+               Tree.Last_Terminal (Ref_1, Stack_1);
+               exit when Tree.Label (Ref_1.Ref.Node) = Source_Terminal;
+            end loop;
+            loop
+               Tree.Last_Terminal (Ref_2, Stack_2);
+               exit when Tree.Label (Ref_1.Ref.Node) = Source_Terminal;
+            end loop;
+            return Tree.Byte_Region (Ref_1.Ref.Node) = Tree.Byte_Region (Ref_2.Ref.Node);
+         end Same_Last_Terminal;
+
+      begin
          if Tree.Stack_Depth (Stack_1) /= Tree.Stack_Depth (Stack_2) then
             return False;
+
+         elsif not Same_Last_Terminal then
+            --  ada_mode-bad_duplicate_state.adb requires this check; otherwise it
+            --  reports a syntax_error on 'renames'.
+            return False;
+
          else
             for I in reverse 1 .. Tree.Stack_Depth (Stack_1) - 1 loop
                --  Assume they differ near the top; no point in comparing bottom

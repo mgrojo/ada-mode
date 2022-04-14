@@ -31,24 +31,31 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-entire declarative_part is labeled recover_conflict, so it is all broken down to terminals!
-    not incremental!
-    happens whenever there is more than one parser after recover
-    don't breakdown until encounter error
-        then let breakdown_recover_conflict be one error recovery strategy
-        benchmark set verbosity debug=1, Edit_Tree output terminal count from recover_conflict
+packrat left recursion
+    copy from libadalang
+        parser in libadalang-parsers.adb Parse
+        too hard to figure out
+
+    use langkit to generate warth_left_recurse_expr_1.wy
+        on debian
+
+
+add packrat to optimized_list*.wy, ada_lite*.wy
+
+Do LR incremental, error recover on tree from packrat parse?
+    batch = packrat, incremental = LR
+    adacore packrat 100 times faster than wisitoken LR
+    no error recover in packrat
+    need left_recursion in packrat
+        copy from adacore
+
+    LR states added to parse stream by Undo_Reduce
 
 redundant minimal_complete_actions:
     in ada_annex_p parse_table:
     state 12 minimal_compelete_actions:
         ((1 sequence_of_statements 17.0), (2 sequence_of_statements 17.1))
         redundant, because optimized_list
-
-bad fontify
-    editing test_bnf_suite.adb
-    captured in o.e.a/debug.cmd; reproduces!
-        file is out of sync with actual edit, but reproduces anyway
-        first face region is too large
 
 followed_by: improve to show expansion that gives the conflict for optimized_conflict_02.wy
         (no optimized_list)
@@ -81,12 +88,6 @@ followed_by: improve to show expansion that gives the conflict for optimized_con
         unless automating helps review all conflicts
             could continue with minimal_action to get terminal token sequence.
 
-typed \ in an Ada file
-    got Programmer_Error: lexer error in non_grammar
-    from wisitoken-parse.adb Next_Grammar_Token
-    supposedly tested in test_mckenzie_recover.adb Lexer_Error_01
-    need a better test; turn it into a syntax_error
-
 add general conflict resolution mechanism?
     solve Java expression problem
 
@@ -95,19 +96,6 @@ Find_matching_name compares large amounts of text
     should return invalid_region
     declare IDENTIFIER as name
     or compare one char at a time, fail on first diff
-
-packrat left recursion
-    copy from libadalang
-    add packrat to optimized_list*.wy, ada_lite*.wy
-
-Do LR incremental, error recover on tree from packrat parse?
-    batch = packrat, incremental = LR
-    adacore packrat 100 times faster than wisitoken LR
-    no error recover in packrat
-    need left_recursion in packrat
-        copy from adacore
-
-    LR states added to parse stream by Undo_Reduce
 
 terminate duplicate_state missed one
     convert_if_to_case.ada_lite
@@ -138,9 +126,13 @@ delete descriptor.case_insensitive?
     used in regexp lexer?
     move to lexer?
 
-in wisitoken-bnf-generate_utils
-    delete Token_Container
-    move iterator aspects to Data
+entire declarative_part is labeled recover_conflict, so it is all broken down to terminals!
+    not incremental!
+    happens whenever there is more than one parser after recover
+    don't breakdown until encounter error
+        then let breakdown_recover_conflict be one error recovery strategy
+        benchmark set verbosity debug=1, Edit_Tree output terminal count from recover_conflict
+    wait to see if this is a problem
 
 wisitoken_grammar_1.wy
     nonterminal

@@ -2397,9 +2397,10 @@ package body Test_McKenzie_Recover is
 
       Parse_Text ("procedure A is B : Character := 'ab'; begin null; end A;");
 
-      --  ''' is not recognized by the ada_lite lexer, and there are no parse errors.
+      --  ''' is not recognized by the ada_lite lexer outside of a comment,
+      --  and there are no parse errors.
 
-      Check ("error count", Parser.Tree.Error_Count, 2);
+      Check ("error count", Parser.Tree.Error_Count, 2); -- 2 ' chars.
       declare
          Error_Ref : WisiToken.Syntax_Trees.Error_Ref := Parser.Tree.First_Error;
       begin
@@ -2422,7 +2423,6 @@ package body Test_McKenzie_Recover is
             Parser.Tree.Next_Error (Error_Ref);
          end loop;
       end;
-
    end Lexer_Error_01;
 
    ----------

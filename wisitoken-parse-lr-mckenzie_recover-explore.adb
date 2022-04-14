@@ -1225,10 +1225,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             end loop;
          end;
       end;
-   exception
-   when SAL.Container_Full =>
-      --  From config_ops_sorted
-      Super.Config_Full (Shared, "Minimal_Complete_Actions 3", Parser_Index);
    end Insert_Matching_Begin;
 
    procedure Try_Insert_Terminal
@@ -1475,7 +1471,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          String_Literal : Config_Stream_Parents (Config.Input_Stream'Access);
 
          Max_Deleted : Base_Sequential_Index;
-         pragma Unreferenced (Max_Deleted);
       begin
          --  Mark the current start of Config.Input_Stream, so we can search
          --  new pushed_back tokens below. test_mckenzie_recover.adb

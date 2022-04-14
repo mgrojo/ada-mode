@@ -1842,6 +1842,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          else
             Prev_State := Goto_For (Table, Prev_State, Tree.ID (C));
          end if;
+         if Stack.Is_Full then
+            raise Bad_Config;
+         end if;
          Stack.Push ((Prev_State, Tree.Get_Recover_Token (C)));
       end loop;
 
@@ -1855,9 +1858,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
         (Config.Ops,
          (Undo_Reduce, Tree.ID (Nonterm_Item.Token.Element_Node), Children'Length,
          Tree.Get_Sequential_Index (First_Terminal)));
-   exception
-   when SAL.Container_Full =>
-      raise Bad_Config;
    end Unchecked_Undo_Reduce;
 
    procedure Undo_Reduce_Check
