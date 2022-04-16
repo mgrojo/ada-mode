@@ -1,6 +1,6 @@
 ;;; wisitoken-grammar-mode.el --- Major mode for editing WisiToken grammar files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017 - 2021  Free Software Foundation, Inc.
+;; Copyright (C) 2017 - 2022  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -117,7 +117,7 @@
 		  ;; file-name can be nil during vc-resolve-conflict
 		  (line-number-at-pos start)
 		  start stop))
-	 (wisi-parser-parse-errors wisi--parser))
+	 (wisi-parser-local-parse-errors wisi-parser-local))
 
 	;; As of mmm version 0.5.7, mmm-parse-region calls
 	;; font-lock-ensure, which calls us. So we can't do
@@ -213,7 +213,7 @@
     (goto-char (point-min))
     (while (search-forward "%conflict" nil t)
       (goto-char (line-end-position))
-      (when (looking-back "(\\(:?[0-9]+, \\)*[0-9]+)" (line-beginning-position))
+      (when (looking-back "(\\(:? *[0-9]+, \\)*[0-9]+)" (line-beginning-position))
 	(delete-region (match-beginning 0) (match-end 0))))))
 
 (defun wisitoken-grammar-tree-sitter-conflict ()

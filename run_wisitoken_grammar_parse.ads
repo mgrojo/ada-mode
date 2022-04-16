@@ -30,5 +30,4 @@ procedure Run_WisiToken_Grammar_Parse is new Gen_Run_Wisi_LR_Parse
    null, null, null,
    Wisitoken_Grammar_1_Process_Main.Create_Lexer,
    Wisitoken_Grammar_1_Process_Main.Create_Parse_Table,
-   Wisitoken_Grammar_1_Process_Main.Create_In_Parse_Actions,
-   Wisitoken_Grammar_1_Process_Main.Create_Post_Parse_Actions);
+   Wisitoken_Grammar_1_Process_Main.Create_Productions);
