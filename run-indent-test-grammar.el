@@ -7,6 +7,8 @@
 (package-initialize)
 (require 'mmm-mode)
 (setq wisi-incremental-parse-enable t)
+(setq debug-on-error nil)
+(setq-default wisi-parser-verbosity "debug=1")
 
 ;; WORKAROUND: if we rely on mmm-global-mode, mmm is enabled by
 ;; post-command-hook, which is run after ’run-test’ (the command).

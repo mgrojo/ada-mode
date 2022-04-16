@@ -1,4 +1,4 @@
-set args parse indent test/debug.wy --debug_mode --task_count 1 --verbosity 1 1 0
+set args command_file debug.cmd
 
 catch exception
 set varsize-limit 0
@@ -11,10 +11,23 @@ end
 # node
 define show_node 
   print $arg0.all
+  show_id $arg0.id
 end
 
 define show_children
   print $arg0.children.elements.all
+end
+
+# stream_index
+define show_element
+  show_node $arg0.cur.ptr.element.node
+end
+
+# stream_node_ref
+define show_ref
+  p $arg0.stream.cur.ptr.element.label
+  show_element $arg0.element
+  show_node    $arg0.node
 end
 
 # unbounded_string_object

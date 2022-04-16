@@ -103,7 +103,7 @@
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
-%non_grammar <comment> COMMENT %[ ";;"[^\x0a\x04]* ]%
+%non_grammar <comment-new-line> COMMENT %[ ";;"[^\x0a\x04]* ]%
 
 %elisp_face font-lock-constant-face
 %elisp_face font-lock-function-name-face

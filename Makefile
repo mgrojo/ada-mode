@@ -30,10 +30,10 @@ one :: one-clean
 one :: build_executables
 one :: byte-compile
 one :: RUNTEST := run-indent-test-grammar.el
-#one :: $(ONE_TEST_FILE).diff
-one :: $(ONE_TEST_FILE).debug
+one :: $(ONE_TEST_FILE).diff
+#one :: $(ONE_TEST_FILE).debug
 
-two :: RUN_ARGS ?= parse indent test/debug.wy --debug_mode --verbosity 0 0 2
+two :: RUN_ARGS ?= command_file debug.cmd > debug.log
 two :: build_executables
 	./run_wisitoken_grammar_parse.exe $(RUN_ARGS)
 
@@ -75,10 +75,10 @@ TEST_FILES := $(shell cd test; ls *.wy)
 	-diff -u $< $*.tmp > $*.diff
 
 %.tmp : %
-	$(EMACS_EXE) -Q -L . -L $(WISI) $(MMM_MODE) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) -Q -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) -l $(RUNTEST) --eval '(progn $(ELISP)(run-test "$<")(kill-emacs))'
 
 %.debug : %
-	$(EMACS_EXE) -Q -L . -L $(WISI) $(MMM_MODE) -l $(RUNTEST) --eval '(progn (package-initialize)(setq debug-on-error t))' $<
+	$(EMACS_EXE) -Q -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) -l $(RUNTEST) --eval '(progn (package-initialize)(setq debug-on-error t))' $<
 
 test-wisitoken_grammar : RUNTEST := run-indent-test-grammar.el
 test-wisitoken_grammar : $(addsuffix .diff, $(TEST_FILES))
