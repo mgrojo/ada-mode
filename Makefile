@@ -30,8 +30,11 @@ one :: one-clean
 one :: build_executables
 one :: byte-compile
 one :: RUNTEST := run-indent-test-grammar.el
-#one :: $(ONE_TEST_FILE).diff
-one :: $(ONE_TEST_FILE).debug
+one :: $(ONE_TEST_FILE).diff
+
+one-debug :: RUNTEST := run-indent-test-grammar.el
+one-debug :: force
+	$(EMACS_EXE) -Q -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) -l $(RUNTEST) --eval '(progn $(ELISP))'
 
 two :: RUN_ARGS ?= parse indent test/debug.wy --debug_mode --verbosity 0 0 2
 two :: build_executables
@@ -56,6 +59,7 @@ two_pro : build_executables
 # is all we need after a CM update. Doing byte-compile-clean
 # first avoids errors caused by loading new source on old .elc.
 byte-compile : byte-compile-clean
+	$(MAKE) -C $(WISI)/build byte-compile
 	$(EMACS_EXE) -Q -batch -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) --eval "(progn (package-initialize)(batch-byte-compile))" *.el
 
 byte-compile-clean :
@@ -75,10 +79,10 @@ TEST_FILES := $(shell cd test; ls *.wy)
 	-diff -u $< $*.tmp > $*.diff
 
 %.tmp : %
-	$(EMACS_EXE) -Q -L . -L $(WISI) $(MMM_MODE) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) -Q -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) -l $(RUNTEST) --eval '(progn $(ELISP)(run-test "$<")(kill-emacs))'
 
 %.debug : %
-	$(EMACS_EXE) -Q -L . -L $(WISI) $(MMM_MODE) -l $(RUNTEST) --eval '(progn (package-initialize)(setq debug-on-error t))' $<
+	$(EMACS_EXE) -Q -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) -l $(RUNTEST) --eval '(progn (package-initialize)(setq debug-on-error t))' $<
 
 test-wisitoken_grammar : RUNTEST := run-indent-test-grammar.el
 test-wisitoken_grammar : $(addsuffix .diff, $(TEST_FILES))

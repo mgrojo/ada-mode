@@ -1,4 +1,11 @@
-set args parse indent test/debug.wy --debug_mode --task_count 1 --verbosity 1 1 0
+# run_parse parse_partial
+#set args parse_partial none test/debug.wy --debug_mode --task_count 1 --verbosity 1 1 0
+
+# run_parse command_file
+set args command_file debug.cmd
+
+# Process_Command verbosity
+break run_wisi_common_parse.adb:651
 
 catch exception
 set varsize-limit 0
