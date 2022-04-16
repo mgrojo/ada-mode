@@ -31,7 +31,10 @@ one :: build_executables
 one :: byte-compile
 one :: RUNTEST := run-indent-test-grammar.el
 one :: $(ONE_TEST_FILE).diff
-#one :: $(ONE_TEST_FILE).debug
+
+one-debug :: RUNTEST := run-indent-test-grammar.el
+one-debug :: force
+	$(EMACS_EXE) -Q -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) -l $(RUNTEST) --eval '(progn $(ELISP))'
 
 two :: RUN_ARGS ?= command_file debug.cmd > debug.log
 two :: build_executables
@@ -56,6 +59,7 @@ two_pro : build_executables
 # is all we need after a CM update. Doing byte-compile-clean
 # first avoids errors caused by loading new source on old .elc.
 byte-compile : byte-compile-clean
+	$(MAKE) -C $(WISI)/build byte-compile
 	$(EMACS_EXE) -Q -batch -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) --eval "(progn (package-initialize)(batch-byte-compile))" *.el
 
 byte-compile-clean :

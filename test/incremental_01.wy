@@ -1,0 +1,14 @@
+;;; Used to get a bogus syntax_error
+
+association_list : association_opt ;
+
+;;EMACSCMD:(progn (forward-line 3)(wisi-replay-kbd-macro ": term\r;\r")(length (wisi-parser-local-parse-errors wisi-parser-local)))
+;;EMACSRESULT:0
+expression
+  : NUMERIC_LITERAL
+  | STRING_LITERAL
+  | name
+  ;
+
+
+;;; end of file

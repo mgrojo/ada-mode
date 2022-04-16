@@ -10,7 +10,7 @@ Makefile
   (xgit . "c:/Projects/org.wisitoken")
   (xgit . "c:/Projects/org.emacs.ada-mode") ;; aka wisi
   (xgit . "c:/Projects/org.wisitoken.grammar_mode")
-  (xgit . "c:/Projects/elpa-externals/wisitoken-grammar-mode")))
+  ))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"        . "../org.stephe_leake.sal.stephe-1")
@@ -27,6 +27,20 @@ Makefile
 (wisitoken-grammar-set-exec (expand-file-name "wisitoken_grammar_mode_parse.exe"))
 (setq wisi-disable-face t)
 
+test/incremental_01.wy
+    error remains after insert ';'
+    before insert ';', no error, because "expression :" is a complete nonterm
+        empty rhs_list, empty semicolon_opt
+        this is why tree-sitter doesn't allow empty nonterms!
+        edit_tree could break that down, but they are before a source_terminal; how many push_backs?
+        could improve error recover to do that, and delete the error
+        simpler to improve the grammar to not allow empty rhs_list
+            except can't; empty rhs is allowed
+            would have to require at least one non-empty rhs
+            could force empty to be last; required for packrat anyway
+            o.w.g_m.s-1
+
+        doc in wisitoken user guide
 
  release process
 (dvc-pull "/Projects/elpa")
