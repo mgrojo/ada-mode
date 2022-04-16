@@ -2,13 +2,13 @@
 
 association_list : association_opt ;
 
-;;EMACSCMD:(progn (forward-line 3)(wisi-replay-kbd-macro ": term\r;\r")(length (wisi-parser-local-parse-errors wisi-parser-local)))
+;;EMACSCMD:(progn (forward-line 3)(wisi-replay-kbd-macro ": primary\r;\r primary\r")(length (wisi-parser-local-parse-errors wisi-parser-local)))
 ;;EMACSRESULT:0
 expression
   : NUMERIC_LITERAL
   | STRING_LITERAL
   | name
   ;
-
+;;EMACSCMD:(delete-region (line-beginning-position -3)(line-beginning-position -6))
 
 ;;; end of file
