@@ -1036,16 +1036,22 @@ is
                end loop;
 
                if (not RHS.Edited_Token_List or Prod_ID.RHS = 0) and then
-                     (Token_I /= RHS.Tokens.Last_Index + 1 or Has_Element (Param_Cur))
+                 (Token_I /= RHS.Tokens.Last_Index + 1 or Has_Element (Param_Cur))
                then
                   --  We don't check 'Has_Element (Param_Cur)' when edited_token_list
                   --  and RHS_Index /= 0, because we expect to have more params than
                   --  tokens. RHS_Index = 0 always has all optional tokens.
-                  Put_Error
-                    (Error_Message
-                       (Grammar_File_Name, RHS.Source_Line, Image (Prod_ID, Generate_Data.Descriptor.all) &
-                          ": indent parameter/token label mismatch"
-                       & (if RHS.Auto_Token_Labels then "" else " all tokens must be labeled if any are")));
+                  if RHS.Auto_Token_Labels then
+                     Put_Error
+                       (Error_Message
+                          (Grammar_File_Name, RHS.Source_Line, Image (Prod_ID, Generate_Data.Descriptor.all)) &
+                          (if Token_I <= RHS.Tokens.Last_Index then " missing" else " extra") & " indent parameters");
+                  else
+                     Put_Error
+                       (Error_Message
+                          (Grammar_File_Name, RHS.Source_Line, Image (Prod_ID, Generate_Data.Descriptor.all) &
+                             ": missing or extra indent parameter, or missing token label"));
+                  end if;
                end if;
             end;
 

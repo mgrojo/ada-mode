@@ -81,128 +81,72 @@ The WisiToken makefile assumes the executable @code{re2c} is in
 @node Common grammar problems
 @chapter Common grammar problems
 
-LALR grammars are tricky. Here we describe some common problems people
+LR grammars can be tricky. Here we describe some common problems people
 run into.
 
 @menu
-* Empty choice in list::
+* Too many empty nonterms::
 @end menu
 
-@node Empty choice in list
-@section Empty choice in list
+@node Too many empty nonterms
+@section Too many empty nonterms
+If there are too many possibly empty nonterms in a right hand side,
+incremental parse can get confused.
 
-Many programming languages have lists in the grammar. For example, Ada
-has lists of declarations:
-
+For example, in the original grammar for Emacs wisitoken grammar mode,
+a nonterminal declaration had the syntax:
 @example
-package_body
-  : PACKAGE name IS declaration_list BEGIN statement_list END SEMICOLON
-  ;
-
-declaration_list
-  : declaration
-  | declaration_list declaration
-  ;
-
-declaration
-  : object_declaration
-  | subprogram_declaration
-  ;; ...
+nonterminal : IDENTIFIER ':' rhs_list [';']
+@end example
+where @code{rhs_list} can be empty, because @code{rhs} can be
+empty. However, suppose we have a declaration in our language grammar
+file:
+@example
+expression
+  : IDENTIFIER
+  | NUMBER
   ;
 @end example
-
-Note that the above grammar fragment does not allow an empty
-declaration_list. But Ada does, so the question is how can we add that
-to the grammar.
-
-There are four choices:
-
-@enumerate
-@item
-Add an empty declaration choice to declaration_list:
-
+and we want to insert an intermediate new nonterminal 'primary'. So we
+start typing:
 @example
-declaration_list
-  : ;; empty list
-  | declaration
-  | declaration_list declaration
+expression
+  : primary
+  : IDENTIFIER
+  | NUMBER
   ;
 @end example
-This is now redundant; since declaration_list can be empty, the second
-choice is not needed:
+At this point, this is parsed as ``nonterminal nonterminal'', where
+the @code{rhs_list} in the first nonterminal is empty, and the
+semicolon is absent. There is no syntax error. Now we type ``;'':
 @example
-declaration_list
-  : ;; empty list
-  | declaration_list declaration
+expression
+  : primary
+  ;
+  : IDENTIFIER
+  | NUMBER
   ;
 @end example
+Emacs wisitoken grammar mode uses incremental parse; the first step in
+parsing this is to edit the syntax tree to insert the new ``;''. That
+leaves the token stream ``nonterminal IDENTIFIER SEMICOLON
+nonterminal'', which is a syntax error.
 
+One solution is to improve the edit step to delete the empty nonterms,
+which would allow the parser to replace them with the intended
+text. However, the empty nonterms are not adjacent to the edit point;
+they are before ``primary'', the edit point is after. So this would
+require deleting all empty nonterms in the entire tree, or guessing
+about what range to delete. The first option is not incremental, the
+second will fail mysteriously on a minor change to a complex grammar.
 
-@item
-Add an empty declaration choice to declaration:
-
+Instead, we improved the wisitoken grammar to avoid the empty
+@code{rhs_list}, since there is no point to one anyway:
 @example
-declaration
-  : ;; empty declaration
-  | object_declaration
-  | subprogram_declaration
-  ;; ...
-  ;
+nonterminal : IDENTIFIER ':' rhs_list [empty_rhs] [';']
 @end example
-
-@item
-Add another rule with the empty production:
-
-@example
-package_body
-  : PACKAGE name IS declarative_part BEGIN statement_list END SEMICOLON
-  ;
-
-declarative_part
-  : ;; empty
-  | declaration_list
-  ;
-
-declaration_list
-  : declaration
-  | declaration_list declaration
-  ;
-
-declaration
-  : object_declaration
-  | subprogram_declaration
-  ;; ...
-  ;
-@end example
-
-@item
-Add another choice in package_body that leaves out declaration_list:
-@example
-package_body
-  : PACKAGE name IS declaration_list BEGIN statement_list END SEMICOLON
-  | PACKAGE name IS BEGIN statement_list END SEMICOLON
-  ;
-@end example
-@end enumerate
-
-Choice 1 is redundant, giving parse errors at parse time.
-Consider the following statements, where "<empty>" is used to indicate
-an empty declaration:
-
-1) package One is <empty> begin end ;
-2) package One is package One is <empty> begin end ; begin end ;
-3) package One is <empty> package One is <empty declaration> begin end ; begin end ;
-
-In parsing 3), the second 'package' causes a shift/reduce conflict;
-shift to start the nested declaration (as in 2), reduce to the empty
-declaration. Both are correct according to the grammar.
-
-Choice 2 leads to a shift/reduce conflict in the production for
-package_body; implementing the wisi parser as a generalized LALR parser
-allows it to handle this option.
-
-Choice 2 is the preferred choice for Ada, since it involves the least
-modifications to the original Ada grammar in the Ada reference manual.
+and @code{rhs_list} cannot be empty. Now incremental parse does not
+get confused.
 
 @node Grammar File Syntax
 @chapter Grammar File Syntax
