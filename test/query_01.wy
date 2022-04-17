@@ -1,0 +1,20 @@
+;;;  query used to return nil.
+
+association_list
+  : association_list COMMA association_opt
+  | association_opt
+  ;
+
+expression
+  : term_list
+  ;
+
+;;EMACSCMD:(delete-region (line-beginning-position 5)(line-beginning-position 6))
+;;EMACSCMD:(progn (end-of-line 3)(wisitoken-grammar-new-line))
+term_list
+  : term_list binary_adding_operator primary
+  |
+  ;
+
+
+;;; end of file

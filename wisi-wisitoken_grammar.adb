@@ -30,6 +30,12 @@ package body Wisi.WisiToken_Grammar is
       Wisi.Initialize (Wisi.Parse_Data_Type (Data));
 
       Data.First_Comment_ID := +COMMENT_ID;
+
+      Data.Statement_IDs.Append (+compilation_unit_list_ID);
+      Data.Statement_IDs.Append (+compilation_unit_ID);
+      Data.Statement_IDs.Append (+declaration_ID);
+      Data.Statement_IDs.Append (+nonterminal_ID);
+
    end Initialize;
 
    overriding
