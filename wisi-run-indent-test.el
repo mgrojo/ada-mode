@@ -175,13 +175,6 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
       (message "saving parser transaction log '%s' to '%s'" (buffer-name) save-parser-log)
       (write-region nil nil save-parser-log))))
 
-(defun wisi-parse-incremental-none ()
-  "Force an incremental parse.
-Signals an error if `wisi-incremental-parse-enable' is nil."
-  (unless wisi-incremental-parse-enable
-    (user-error "wisi-parse-incremental-none with wisi-incremental-parse-enable nil"))
-  (wisi-parse-incremental wisi-parser-shared 'none))
-
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."
   (interactive)
@@ -264,8 +257,8 @@ Signals an error if `wisi-incremental-parse-enable' is nil."
 	     ((string= (match-string 1) "RESULT")
 	      (looking-at ".*$")
 	      (setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
-	      (if (or (not force-fail)
-		      (equal expected-result last-result))
+	      (if (and (not force-fail)
+		       (equal expected-result last-result))
 		  (let ((msg (format "test passes %s:%d:\n" (buffer-file-name) (line-number-at-pos))))
 		    (setq pass-count (1+ pass-count))
 		    (wisi-parse-log-message wisi-parser-shared msg)

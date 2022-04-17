@@ -334,7 +334,9 @@ complete."
   ;; ada_mode-conditional_expressions.adb.
   (let ((changes
 	 ;; wisi--changes is in reverse time order.
-	 (prin1-to-string (nreverse wisi--changes))))
+	 (if wisi--changes
+	     (prin1-to-string (nreverse wisi--changes))
+	   "()")))
     (when (> (length changes) 9999)
       (setq full t))
 
@@ -506,10 +508,15 @@ PARSER will respond with one or more Query messages."
   (let ((first (aref sexp 1))
 	(last (1+ (aref sexp 2))))
 
-    (when (or (< 0 wisi-debug)
-	      (and
+    (when (< 0 wisi-debug)
+      (unless (and
 	       (<= (point-min) first (point-max))
-	       (<= (point-min) last (point-max))))
+	       (<= (point-min) last (point-max)))
+	(message "Face_Property out of buffer bounds: %s" sexp)))
+
+    (when (and
+	   (<= (point-min) first (point-max))
+	   (<= (point-min) last (point-max)))
       (with-silent-modifications
 	(add-text-properties
 	 first
@@ -755,20 +762,25 @@ Source buffer is current."
   ;;
   ;; Numeric action codes are given in the case expression below
 
-  (cl-ecase (aref sexp 0)
-    (1  (wisi-process-parse--Navigate_Cache parser sexp))
-    (2  (wisi-process-parse--Face_Property parser sexp))
-    (3  (wisi-process-parse--Indent parser sexp))
-    (4  (wisi-process-parse--Lexer_Error parser sexp))
-    (5  (wisi-process-parse--Parser_Error parser sexp))
-    (6  (wisi-process-parse--In_Parse_Action_Error parser sexp))
-    (7  (wisi-process-parse--Recover parser sexp))
-    (8  (wisi-process-parse--End parser sexp))
-    (9  (wisi-process-parse--Name_Property parser sexp))
-    (10 (wisi-process-parse--Edit parser sexp))
-    (11 (wisi-process-parse--Language parser sexp))
-    (12 (wisi-process-parse--Query parser sexp))
-    ))
+  (condition-case err
+      (cl-ecase (aref sexp 0)
+	(1  (wisi-process-parse--Navigate_Cache parser sexp))
+	(2  (wisi-process-parse--Face_Property parser sexp))
+	(3  (wisi-process-parse--Indent parser sexp))
+	(4  (wisi-process-parse--Lexer_Error parser sexp))
+	(5  (wisi-process-parse--Parser_Error parser sexp))
+	(6  (wisi-process-parse--In_Parse_Action_Error parser sexp))
+	(7  (wisi-process-parse--Recover parser sexp))
+	(8  (wisi-process-parse--End parser sexp))
+	(9  (wisi-process-parse--Name_Property parser sexp))
+	(10 (wisi-process-parse--Edit parser sexp))
+	(11 (wisi-process-parse--Language parser sexp))
+	(12 (wisi-process-parse--Query parser sexp))
+	)
+    (error
+     (when (< 0 wisi-debug)
+       (message "wi-pr-pa-Execute '%s' error: %s" sexp err))
+     (signal (car err) (cdr err)))))
 
 ;;;;; main
 
@@ -1259,7 +1271,6 @@ in CMD-BUFFER-NAME."
       (insert "verbosity " verbosity "\n"))
 
     (insert "save_text_auto debug_edited\n")
-    (insert "compare_tree_text_auto\n")
 
     (when (or mckenzie_zombie_limit mckenzie_enqueue_limit)
       (insert "mckenzie_options ")

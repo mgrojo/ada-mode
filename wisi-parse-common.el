@@ -578,6 +578,13 @@ Normally set from a language-specific option.")
     (write-file file-name))
   (message "keyboard macro saved to file '%s'" file-name))
 
+(defun wisi-parse-incremental-none ()
+  "Force an incremental parse.
+Signals an error if `wisi-incremental-parse-enable' is nil."
+  (unless wisi-incremental-parse-enable
+    (user-error "wisi-parse-incremental-none with wisi-incremental-parse-enable nil"))
+  (wisi-parse-incremental wisi-parser-shared 'none))
+
 (defun wisi-replay-kbd-macro (macro)
   "Replay keyboard macro MACRO into current buffer,
 with incremental parse after each key event."
