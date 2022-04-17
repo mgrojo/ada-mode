@@ -1,0 +1,12 @@
+;;; Used to get a bogus syntax_error
+
+association_list : association_opt ;
+
+;;EMACSCMD:(progn (end-of-line 4)(wisitoken-grammar-new-line)(wisi-parse-incremental-none)(wisi-replay-kbd-macro "primary")(length (wisi-parser-local-parse-errors wisi-parser-local)))
+;;EMACSRESULT:0
+term_list
+  : term_list binary_adding_operator primary
+  ;
+;;EMACSCMD:(delete-region (line-beginning-position 0)(line-beginning-position -1))
+
+;;; end of file
