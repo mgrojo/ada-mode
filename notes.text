@@ -31,25 +31,32 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-packrat left recursion
-    copy from libadalang
-        parser in libadalang-parsers.adb Parse
-        too hard to figure out
+commit, propagate
 
-    use langkit to generate warth_left_recurse_expr_1.wy
-        on debian
+add packrat to subprograms.wy
+    capture known good generated packrat code.
+subprograms.wy:1:1: 'declaration_list' is both left and right recursive; not supported.
+    because ebnf=>bnf converts this to optimized_list
+        should make it a packrat_list; breakdown split at appropriate child
+    generate_packrat should use EBNF, with only %if processed.
+        %if processed by wisitoken_grammar_runtime?
+
+ada_lite_ebnf packrat
+ada_lite_ebnf.wy:249:1: 'association_list' is both left and right recursive; not supported.
 
 
-add packrat to optimized_list*.wy, ada_lite*.wy
+ada_annex_p packrat
+
 
 Do LR incremental, error recover on tree from packrat parse?
     batch = packrat, incremental = LR
-    adacore packrat 100 times faster than wisitoken LR
-    no error recover in packrat
-    need left_recursion in packrat
-        copy from adacore
 
     LR states added to parse stream by Undo_Reduce
+
+packrat indirect left recursion
+    conflict_name has indirect left recursion
+    implement that in langkit, stack overflow at parse time. Submitted ticket V415-028
+        wisitoken reports indirect left recursion at generate time; good enough for now.
 
 redundant minimal_complete_actions:
     in ada_annex_p parse_table:

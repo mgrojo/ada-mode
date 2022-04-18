@@ -34,11 +34,12 @@
 }%
 
 ;; Declare all variants tested by wisi_wy_test.adb
-%generate LALR Ada re2c
-%generate LR1 Ada re2c text_rep
-;; %generate Tree_Sitter Ada tree_sitter FIXME: tree-sitter broke when changed wisitoken_grammar.wy declaration
+%generate LALR         Ada re2c
+%generate LR1          Ada re2c text_rep
+%generate Packrat_Proc Ada re2c
+%generate Packrat_Gen  Ada re2c
 
-;; IMPROVEME: support indirect left recursion, add Packrat_Gen, Packrat_Proc
+;; %generate Tree_Sitter Ada tree_sitter FIXME: tree-sitter broke when changed wisitoken_grammar.wy declaration
 
 ;; We don't actually need this for speed here, but we do need to test it.
 %lr1_hash_table_size 200
@@ -309,8 +310,8 @@ declarative_part
   ;
 
 defining_identifier_list
-  : IDENTIFIER
-  | defining_identifier_list COMMA IDENTIFIER
+  : defining_identifier_list COMMA IDENTIFIER
+  | IDENTIFIER
   ;
 
 discrete_subtype_definition : subtype_indication | range_g ;
@@ -429,11 +430,11 @@ multiplying_operator : STAR | SLASH ;
 
 name
   : name LEFT_PAREN range_list RIGHT_PAREN ;; slice or constraint
+  | name DOT selector_name     ;; selected_component; inlined for direct left recursion
+    %()%
+    %(return Merge_Names (Tree, Nonterm, Tokens, 1, 3);)%
   | name actual_parameter_part ;; function_call, procedure call.
   | IDENTIFIER
-    %()%
-    %(return Propagate_Name (Tree, Nonterm, Tokens, 1);)%
-  | selected_component
     %()%
     %(return Propagate_Name (Tree, Nonterm, Tokens, 1);)%
   ;
@@ -548,12 +549,6 @@ relation
 relational_operator
   : EQUAL | SLASH_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL
   ;;  =   | /=          | <    |  <=        | >       | >=
-  ;
-
-selected_component
-  : name DOT selector_name
-    %()%
-    %(return Merge_Names (Tree, Nonterm, Tokens, 1, 3);)%
   ;
 
 selector_name

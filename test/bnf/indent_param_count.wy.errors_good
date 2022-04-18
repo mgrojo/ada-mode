@@ -1,2 +1,2 @@
-indent_param_count.wy:14:1: parameter_specification_0: indent parameter/token label mismatch
+indent_param_count.wy:14:1: parameter_specification_0 extra indent parameters
 errors: aborting
