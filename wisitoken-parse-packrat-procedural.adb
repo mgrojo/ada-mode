@@ -27,10 +27,9 @@ package body WisiToken.Parse.Packrat.Procedural is
    with Post => Apply_Rule'Result.State in Failure .. Success;
 
    function Eval
-     (Parser    : in out Procedural.Parser;
-      R         : in     Token_ID;
-      Last_Pos  : in     Syntax_Trees.Stream_Index;
-      Recursing : in     Boolean)
+     (Parser   : in out Procedural.Parser;
+      R        : in     Token_ID;
+      Last_Pos : in     Syntax_Trees.Stream_Index)
      return Memo_Entry
    with Post => Eval'Result.State in Failure .. Success;
 
@@ -38,10 +37,9 @@ package body WisiToken.Parse.Packrat.Procedural is
    --  bodies
 
    function Eval
-     (Parser    : in out Procedural.Parser;
-      R         : in     Token_ID;
-      Last_Pos  : in     Syntax_Trees.Stream_Index;
-      Recursing : in     Boolean)
+     (Parser   : in out Procedural.Parser;
+      R        : in     Token_ID;
+      Last_Pos : in     Syntax_Trees.Stream_Index)
      return Memo_Entry
    is
       use all type WisiToken.Syntax_Trees.Stream_Index;
@@ -118,12 +116,6 @@ package body WisiToken.Parse.Packrat.Procedural is
                   end return;
 
                   <<Fail_RHS>>
-                  if Recursing then
-                     --  Only try the first RHS to extend recursion. Otherwise creates
-                     --  second syntax tree node containing first terminal, which deletes
-                     --  the first terminal from the previously memoized result.
-                     exit;
-                  end if;
                   Pos := Last_Pos;
                   Next_Pos := Tree.Stream_Next (Tree.Shared_Stream, Pos);
                end;
@@ -154,7 +146,6 @@ package body WisiToken.Parse.Packrat.Procedural is
         (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos));
 
       Pos_Recurse_Last : Syntax_Trees.Stream_Index := Last_Pos;
-      Recursing        : Boolean                   := False;
       Result_Recurse   : Memo_Entry;
    begin
       case Memo.State is
@@ -169,7 +160,7 @@ package body WisiToken.Parse.Packrat.Procedural is
             Parser.Derivs (R).Replace_Element
               (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos), (State => Failure));
          else
-            Memo := Eval (Parser, R, Last_Pos, Recursing => False);
+            Memo := Eval (Parser, R, Last_Pos);
 
             if (Trace_Parse > Detail and Memo.State = Success) or Trace_Parse > Extra then
                case Memo.State is
@@ -196,7 +187,7 @@ package body WisiToken.Parse.Packrat.Procedural is
          --  'element' does not match the remaining input.
          Pos := Last_Pos;
 
-         Result_Recurse := Eval (Parser, R, Pos, Recursing);
+         Result_Recurse := Eval (Parser, R, Pos);
 
          if Result_Recurse.State = Success then
             if Tree.Get_Node_Index (Tree.Shared_Stream, Result_Recurse.Last_Pos) >
@@ -206,7 +197,6 @@ package body WisiToken.Parse.Packrat.Procedural is
                  (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos), Result_Recurse);
                Pos              := Result_Recurse.Last_Pos;
                Pos_Recurse_Last := Pos;
-               Recursing        := True;
 
                if WisiToken.Trace_Parse > Detail then
                   Parser.Tree.Lexer.Trace.Put_Line

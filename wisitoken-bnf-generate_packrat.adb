@@ -93,18 +93,12 @@ is
 
       if Data.Direct_Left_Recursive (Prod.LHS) then
          Indent_Line ("Pos_Recurse_Last : Syntax_Trees.Stream_Index := Last_Pos;");
-         Indent_Line ("Recursing        : Boolean                   := False;");
          Indent_Line ("Result_Recurse   : Memo_Entry;");
       end if;
 
       Indent := Indent - 3;
       Indent_Line ("begin");
       Indent := Indent + 3;
-
-      Indent_Line ("if Trace_Parse > Extra then");
-      Indent_Line ("   Tree.Lexer.Trace.Put_Line (""" & Parser_Name (Prod.LHS) & " enter ref_counts:"");");
-      Indent_Line ("   Tree.Print_Ref_Counts;");
-      Indent_Line ("end if;");
 
       Indent_Line ("if Next_Pos = Syntax_Trees.Invalid_Stream_Index then");
       Indent_Line ("   return (State => Failure);");
@@ -116,10 +110,6 @@ is
       Indent := Indent + 3;
       Indent_Line ("case Memo.State is");
       Indent_Line ("when Success =>");
-      Indent_Line ("   if Trace_Parse > Extra then");
-      Indent_Line ("      Tree.Lexer.Trace.Put_Line (""" & Parser_Name (Prod.LHS) & " success ref_counts:"");");
-      Indent_Line ("      Tree.Print_Ref_Counts;");
-      Indent_Line ("   end if;");
       Indent_Line ("   return Parser.Derivs (" & Result_ID & ")(Start_Pos_Index);");
       Indent_Line ("when Failure =>");
 
@@ -266,11 +256,6 @@ is
             end if;
 
             Indent_Line ("<<RHS_" & Trimmed_Image (RHS_Index) & "_Fail>>");
-            if Data.Direct_Left_Recursive (Prod.LHS) and RHS_Index = Prod.RHSs.First_Index then
-               Indent_Line ("if Recursing then");
-               Indent_Line ("   return Parser.Derivs (" & Result_ID & ")(Start_Pos_Index);");
-               Indent_Line ("end if;");
-            end if;
             New_Line;
          end;
       end loop;
@@ -299,7 +284,6 @@ is
          Indent_Line ("     (Parser.Tree.Image (Result_Recurse.Result,");
          Indent_Line ("      Children => True, Terminal_Node_Numbers => True));");
          Indent_Line ("end if;");
-         Indent_Line ("Recursing := True;");
          Indent_Line ("goto Recurse_Start;");
          Indent := Indent - 3;
          Indent_Line

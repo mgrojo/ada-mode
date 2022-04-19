@@ -407,7 +407,9 @@ is
 
       Put_Line ("with " & Generic_Package_Name & ";");
       Put_Line ("with " & Main_Package_Name & ";");
-      if Input_Data.Language_Params.Error_Recover and
+
+      if Common_Data.Generate_Algorithm in LR_Generate_Algorithm and
+          Input_Data.Language_Params.Error_Recover and
         Input_Data.Language_Params.Use_Language_Runtime
       then
          declare
