@@ -50,7 +50,7 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %generate LALR Ada re2c
 %start compilation_unit_list
 
-%keyword ACCEPT_IT 'accept_it'
+%keyword ACCEPT_I 'accept_it'
 %keyword CODE "code"
 %keyword CONFLICT "conflict"
 %keyword CONFLICT_RESOLUTION "conflict_resolution"
@@ -61,8 +61,8 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %keyword KEYWORD "keyword"
 %keyword NON_GRAMMAR "non_grammar"
 %keyword ON "on"
-%keyword REDUCE 'reduce'
-%keyword SHIFT 'shift'
+%keyword REDUCE_I 'reduce'
+%keyword SHIFT_I 'shift'
 %keyword TOKEN "token"
 
 %token <delimited-text> RAW_CODE "%{" "}%"
@@ -119,7 +119,7 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 ;; mckenzie_recover, to simplify working on mckenzie_recover.
 
 %conflict SHIFT IDENTIFIER_BAR_list | REDUCE rhs_list on token BAR
-%conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER (37)
+%conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER
 %conflict SHIFT rhs_element | REDUCE rhs on token IDENTIFIER
 %conflict SHIFT rhs_list | REDUCE semicolon_opt on token PERCENT
 
@@ -132,9 +132,9 @@ regexp_string
   ;
 
 conflict_item
-  : SHIFT IDENTIFIER
-  | REDUCE IDENTIFIER
-  | ACCEPT_IT IDENTIFIER
+  : SHIFT_I IDENTIFIER
+  | REDUCE_I IDENTIFIER
+  | ACCEPT_I IDENTIFIER
   | IDENTIFIER
   ;
 
