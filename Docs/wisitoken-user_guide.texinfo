@@ -143,7 +143,7 @@ second will fail mysteriously on a minor change to a complex grammar.
 Instead, we improved the wisitoken grammar to avoid the empty
 @code{rhs_list}, since there is no point to one anyway:
 @example
-nonterminal : IDENTIFIER ':' rhs_list [empty_rhs] [';']
+nonterminal : IDENTIFIER ':' rhs_list ['|'] [';']
 @end example
 and @code{rhs_list} cannot be empty. Now incremental parse does not
 get confused.
