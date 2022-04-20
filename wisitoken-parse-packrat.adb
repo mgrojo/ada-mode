@@ -37,7 +37,7 @@ package body WisiToken.Parse.Packrat is
          use all type WisiToken.Syntax_Trees.Node_Access;
       begin
          if Tree.Label (Node) /= Nonterm or else
-           not Overlaps (Tree.Byte_Region (Node), Action_Region_Bytes)
+           not Overlaps (Tree.Byte_Region (Node, Trailing_Non_Grammar => False), Action_Region_Bytes)
          then
             return;
          end if;
@@ -48,7 +48,9 @@ package body WisiToken.Parse.Packrat is
               (Tree.Production_ID (Node));
          begin
             for Child of Tree_Children loop
-               if Child /= null and then Overlaps (Tree.Byte_Region (Child), Action_Region_Bytes) then
+               if Child /= null and then Overlaps
+                 (Tree.Byte_Region (Child, Trailing_Non_Grammar => False), Action_Region_Bytes)
+               then
                   Process_Node (Tree, Child);
                end if;
             end loop;

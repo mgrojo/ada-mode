@@ -204,7 +204,8 @@ package body WisiToken.Parse.LR.Parser_Lists is
                Tree.Last_Terminal (Ref_2, Stack_2);
                exit when Tree.Label (Ref_1.Ref.Node) = Source_Terminal;
             end loop;
-            return Tree.Byte_Region (Ref_1.Ref.Node) = Tree.Byte_Region (Ref_2.Ref.Node);
+            return Tree.Byte_Region (Ref_1.Ref.Node, Trailing_Non_Grammar => False) =
+              Tree.Byte_Region (Ref_2.Ref.Node, Trailing_Non_Grammar => False);
          end Same_Last_Terminal;
 
       begin

@@ -1275,7 +1275,7 @@ package WisiToken.Syntax_Trees is
    function Byte_Region
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
-      Trailing_Non_Grammar : in Boolean := False)
+      Trailing_Non_Grammar : in Boolean)
      return WisiToken.Buffer_Region;
    --  If Trailing_Non_Grammar, any non_grammar attached to last terminal
    --  in Node is included in region.
@@ -1325,7 +1325,7 @@ package WisiToken.Syntax_Trees is
    function Char_Region
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
-      Trailing_Non_Grammar : in Boolean := False)
+      Trailing_Non_Grammar : in Boolean)
      return WisiToken.Buffer_Region;
    --  Similar to Byte_Region.
 

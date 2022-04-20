@@ -1733,7 +1733,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       begin
          Super.Extend_Sequential_Index (Shared, Next_Line_Begin_Token, Positive => True);
 
-         if Tree.Byte_Region (Lexer_Error_Node).First = Tree.Byte_Region (Config.Error_Token).First then
+         if Tree.Byte_Region (Lexer_Error_Node, Trailing_Non_Grammar => False).First =
+           Tree.Byte_Region (Config.Error_Token).First
+         then
             --  The parse error token is the string literal at the lexer error.
             --
             --  case a: Insert the balancing quote somewhere before the error
@@ -1762,7 +1764,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             --  string literal would be legal here.
 
          elsif Tree.Element_ID (Config.Error_Token) = Invalid_Token_ID or else
-           (Tree.Byte_Region (Lexer_Error_Node).First < Tree.Byte_Region (Config.Error_Token).First and
+           (Tree.Byte_Region (Lexer_Error_Node, Trailing_Non_Grammar => False).First <
+              Tree.Byte_Region (Config.Error_Token).First and
               Tree.Get_Sequential_Index (Next_Line_Begin_Token) /= Invalid_Sequential_Index)
          then
             --  case b: the unbalanced quote is before the parse error token; see

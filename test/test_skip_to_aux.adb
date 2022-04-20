@@ -55,8 +55,8 @@ package body Test_Skip_To_Aux is
       Check
         (Label,
          Lines             => Parser.Tree.Line_Region (Nonterm, Trailing_Non_Grammar => False),
-         Chars             => Parser.Tree.Char_Region (Nonterm),
-         Bytes             => Parser.Tree.Byte_Region (Nonterm),
+         Chars             => Parser.Tree.Char_Region (Nonterm, Trailing_Non_Grammar => False),
+         Bytes             => Parser.Tree.Byte_Region (Nonterm, Trailing_Non_Grammar => False),
          Expected_Lines    => Expected_Lines,
          Expected_Chars    => Expected_Chars,
          Non_Ascii_Offset_First => Non_Ascii_Offset_First,

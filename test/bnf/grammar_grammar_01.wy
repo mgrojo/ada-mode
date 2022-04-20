@@ -13,15 +13,15 @@
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
-%non_grammar <comment-new-line> COMMENT %[ ";;"[^\x0a\x04]* ]%
+%non_grammar <comment-new-line> COMMENT ";;"
 
 %mckenzie_cost_default 2 2 2 2
 
 nonterminal : IDENTIFIER ':' rhs ('|' rhs)* ';' ;
 
 ;; We don't use "rhs_item*", because that puts the empty rhs last. If
-;; it's first (as in wisitoken-grammar-mode), it encountered a bug in
-;; error recover Left_Breakdown.
+;; it's first (as it used to be in wisitoken-grammar-mode), it
+;; encountered a bug in error recover Left_Breakdown.
 rhs
   : ;; empty
   | rhs_item+ ;

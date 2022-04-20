@@ -38,7 +38,7 @@ package WisiToken_Grammar_Runtime is
       --  used now in '%if lexer' statements.
 
       User_Parser : WisiToken.BNF.Generate_Algorithm := WisiToken.BNF.None;
-      --  Used to generate the user parser; used now in '%if parser'
+      --  Used to read the user language file; used now in '%if parser'
       --  statements.
 
       Generate_Set : WisiToken.BNF.Generate_Set_Access;

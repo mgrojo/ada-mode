@@ -345,7 +345,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Error_Node : constant Valid_Node_Access := Parser_State.Current_Error_Node (Tree).Ref.Node;
                      Error : constant Error_Data'Class := Find_Parse_In_Parse_Action_Error (Tree, Error_Node);
 
-                     Error_Pos : constant Buffer_Pos := Tree.Char_Region (Error_Node).First;
+                     Error_Pos : constant Buffer_Pos := Tree.Char_Region
+                       (Error_Node, Trailing_Non_Grammar => False).First;
 
                      Stack_Matches_Ops : Boolean := True;
                      First_Insert      : Boolean := True;

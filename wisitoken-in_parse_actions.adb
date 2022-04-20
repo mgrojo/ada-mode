@@ -38,8 +38,10 @@ package body WisiToken.In_Parse_Actions is
             End_Node   : constant Valid_Node_Access := Tree.Child (Error_Node, Item.End_Name);
          begin
             return '(' & Syntax_Trees.In_Parse_Actions.Status_Label'Image (Item.Label) & ", " &
-              Tree.Image (Begin_Node) & "'" & Tree.Lexer.Buffer_Text (Tree.Byte_Region (Begin_Node)) & "'," &
-              Tree.Image (End_Node) & "'" & Tree.Lexer.Buffer_Text (Tree.Byte_Region (End_Node)) & "')";
+              Tree.Image (Begin_Node) & "'" & Tree.Lexer.Buffer_Text
+                (Tree.Byte_Region (Begin_Node, Trailing_Non_Grammar => False)) & "'," &
+              Tree.Image (End_Node) & "'" & Tree.Lexer.Buffer_Text
+                (Tree.Byte_Region (End_Node, Trailing_Non_Grammar => False)) & "')";
          end;
       end case;
    end Image;
