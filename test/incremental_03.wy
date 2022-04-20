@@ -1,0 +1,13 @@
+;; Edit comment left syntax error
+
+;;EMACSCMD:(progn (forward-line 3)(wisi-replay-kbd-macro ";;"))
+;;EMACSCMD:(progn (forward-line 3)(wisi-replay-kbd-macro ";;"))
+;;EMACSCMD:(progn (forward-line 1)(wisi-replay-kbd-macro "\C-d\C-d")(length (wisi-parser-local-parse-errors wisi-parser-local)))
+%generate LALR Ada re2c
+%generate Packrat_gen Ada re2c
+;;EMACSRESULT:0
+;;EMACSCMD:(progn (forward-line -2)(delete-char 2))
+
+nonterm : rhs ;
+
+;; end of file

@@ -70,7 +70,7 @@ package body Wisi.WisiToken_Grammar is
       for Index of Args loop
          declare
             Char_Region : constant Buffer_Region := Tree.Char_Region
-              (Tree.First_Terminal (Tree.Child (Nonterm, Index)));
+              (Tree.First_Terminal (Tree.Child (Nonterm, Index)), Trailing_Non_Grammar => False);
          begin
             Data.Put_Language_Action
               (Check_Parens_Action_Index & Buffer_Pos'Image (Char_Region.First) &
