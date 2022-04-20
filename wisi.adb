@@ -200,7 +200,7 @@ package body Wisi is
    begin
       loop
          declare
-            Tok_Char_Region : constant Buffer_Region := Tree.Char_Region (I);
+            Tok_Char_Region : constant Buffer_Region := Tree.Char_Region (I, Trailing_Non_Grammar => False);
          begin
             if Tree.ID (I) = Left_Paren_ID then
                Paren_Count := Paren_Count + 1;
@@ -443,7 +443,7 @@ package body Wisi is
                State := Inserted;
 
             when Delete =>
-               Deleted_Region := Deleted_Region and Tree.Char_Region (Op.Del_Node);
+               Deleted_Region := Deleted_Region and Tree.Char_Region (Op.Del_Node, Trailing_Non_Grammar => False);
                declare
                   Skip : Boolean := False;
                begin
@@ -463,8 +463,10 @@ package body Wisi is
                              Op.Del_ID = Descriptor.String_2_ID))
                      then
                         declare
-                           Tok_1_Char_Region : constant Buffer_Region := Tree.Char_Region (Last_Deleted.Del_Node);
-                           Tok_2_Char_Region : constant Buffer_Region := Tree.Char_Region (Op.Del_Node);
+                           Tok_1_Char_Region : constant Buffer_Region := Tree.Char_Region
+                             (Last_Deleted.Del_Node, Trailing_Non_Grammar => False);
+                           Tok_2_Char_Region : constant Buffer_Region := Tree.Char_Region
+                             (Op.Del_Node, Trailing_Non_Grammar => False);
                         begin
                            if Tok_1_Char_Region.Last + 1 = Tok_2_Char_Region.First then
                               --  Buffer text was '"""', lexer repair changed it to '""""'. The
@@ -1076,7 +1078,10 @@ package body Wisi is
                  " token index" & SAL.Peek_Type'Image (Pair.Index) &
                  " not in tokens range (1 .." & Tree.Child_Count (Nonterm)'Image & "); bad grammar action.");
 
-         elsif Overlaps (Tree.Char_Region (Tree.Child (Nonterm, Pair.Index)), Data.Action_Region_Chars) then
+         elsif Overlaps
+           (Tree.Char_Region (Tree.Child (Nonterm, Pair.Index), Trailing_Non_Grammar => False),
+            Data.Action_Region_Chars)
+         then
             declare
                use all type Syntax_Trees.Node_Label;
                Token  : constant Syntax_Trees.Node_Access :=
@@ -1085,7 +1090,7 @@ package body Wisi is
                   then Tree.Last_Terminal (Tree.Child (Nonterm, Pair.Index))
                   else Tree.Child (Nonterm, Pair.Index));
 
-               Cache_Pos : constant Buffer_Pos         := Tree.Char_Region (Token).First;
+               Cache_Pos : constant Buffer_Pos         := Tree.Char_Region (Token, Trailing_Non_Grammar => False).First;
                Cursor    : Navigate_Cache_Trees.Cursor := Navigate_Cache_Trees.Find
                  (Data.Navigate_Caches.Iterate, Cache_Pos,
                   Direction => Navigate_Cache_Trees.Unknown);
@@ -1120,7 +1125,7 @@ package body Wisi is
                     ((Pos            => Cache_Pos,
                       Statement_ID   => Tree.ID (Nonterm),
                       ID             => Tree.ID (Token),
-                      Length         => Length (Tree.Char_Region (Token)),
+                      Length         => Length (Tree.Char_Region (Token, Trailing_Non_Grammar => False)),
                       Class          =>
                         (if Override_Start_Set then Statement_Start
                          else
@@ -1148,14 +1153,15 @@ package body Wisi is
                   First_Item := False;
                   if Override_Start_Set or Pair.Class in Statement_Start | Statement_Override then
                      Override_Start_Set := False;
-                     Containing_Pos     := (True, Tree.Char_Region (Token).First);
+                     Containing_Pos     := (True, Tree.Char_Region (Token, Trailing_Non_Grammar => False).First);
 
                      --  Set containing on all contained caches
                      declare
                         use Navigate_Cache_Trees;
                         Iterator : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
 
-                        Nonterm_Char_Region : constant Buffer_Region := Tree.Char_Region (Nonterm);
+                        Nonterm_Char_Region : constant Buffer_Region := Tree.Char_Region
+                          (Nonterm, Trailing_Non_Grammar => False);
 
                         Cursor : Navigate_Cache_Trees.Cursor :=
                           (if Length (Nonterm_Char_Region) = 0
@@ -1216,11 +1222,13 @@ package body Wisi is
               Tree.Child_Count (Nonterm)'Image & "); bad grammar action.");
       end if;
 
-      if Length (Tree.Char_Region (Tree.Child (Nonterm, Name))) = 0 then
+      if Length (Tree.Char_Region (Tree.Child (Nonterm, Name), Trailing_Non_Grammar => False)) = 0 then
          --  Token is virtual; it does not appear in the actual buffer, so we
          --  can't set a text property on it.
          return;
-      elsif not Overlaps (Tree.Char_Region (Tree.Child (Nonterm, Name)), Data.Action_Region_Chars) then
+      elsif not Overlaps
+        (Tree.Char_Region (Tree.Child (Nonterm, Name), Trailing_Non_Grammar => False), Data.Action_Region_Chars)
+      then
          return;
       end if;
 
@@ -1228,7 +1236,8 @@ package body Wisi is
 
       declare
          use Name_Cache_Trees;
-         Name_Char_Region : constant Buffer_Region := Tree.Char_Region (Tree.Child (Nonterm, Name));
+         Name_Char_Region : constant Buffer_Region := Tree.Char_Region
+           (Tree.Child (Nonterm, Name), Trailing_Non_Grammar => False);
          Cursor     : constant Name_Cache_Trees.Cursor := Find
            (Data.Name_Caches.Iterate, Name_Char_Region.First,
             Direction => Name_Cache_Trees.Unknown);
@@ -1274,14 +1283,17 @@ package body Wisi is
       if Trace_Action > Outline then
          Tree.Lexer.Trace.Put_Line
            ("Motion_Action " & Image (Tree.ID (Nonterm), Descriptor) & " " &
-              Image (Tree.Byte_Region (Nonterm)));
+              Image (Tree.Byte_Region (Nonterm, Trailing_Non_Grammar => False)));
       end if;
       for Param of Params loop
-         if Overlaps (Tree.Char_Region (Tree.Child (Nonterm, Param.Index)), Data.Action_Region_Chars) then
+         if Overlaps
+           (Tree.Char_Region (Tree.Child (Nonterm, Param.Index), Trailing_Non_Grammar => False),
+            Data.Action_Region_Chars)
+         then
             declare
                use all type Syntax_Trees.Node_Label;
                Token     : constant Syntax_Trees.Valid_Node_Access := Tree.Child (Nonterm, Param.Index);
-               Region    : constant Buffer_Region := Tree.Char_Region (Token);
+               Region    : constant Buffer_Region := Tree.Char_Region (Token, Trailing_Non_Grammar => False);
                Cache_Cur : Cursor;
                Skip      : Boolean;
                Done      : Boolean := False;
@@ -1403,15 +1415,20 @@ package body Wisi is
       Suffix_Cur : Cursor;
    begin
       for Param of Params loop
-         if Overlaps (Tree.Char_Region (Tree.Child (Nonterm, Param.Index)), Data.Action_Region_Chars) then
+         if Overlaps
+           (Tree.Char_Region (Tree.Child (Nonterm, Param.Index), Trailing_Non_Grammar => False),
+            Data.Action_Region_Chars)
+         then
             if Trace_Action > Outline then
                Tree.Lexer.Trace.Put_Line
-                 ("face_apply_action: " & Image (Tree.Char_Region (Tree.Child (Nonterm, Param.Index))) &
+                 ("face_apply_action: " & Image
+                    (Tree.Char_Region (Tree.Child (Nonterm, Param.Index), Trailing_Non_Grammar => False)) &
                     " " & Param.Prefix_Face'Image & " " & Param.Suffix_Face'Image);
             end if;
 
             declare
-               Token_Char_Region : constant Buffer_Region := Tree.Char_Region (Tree.Child (Nonterm, Param.Index));
+               Token_Char_Region : constant Buffer_Region := Tree.Char_Region
+                 (Tree.Child (Nonterm, Param.Index), Trailing_Non_Grammar => False);
             begin
                Cache_Cur := Find (Iter, Token_Char_Region.First, Direction => Ascending);
                if Has_Element (Cache_Cur) then
@@ -1460,9 +1477,13 @@ package body Wisi is
       Cache_Cur : Cursor;
    begin
       for Param of Params loop
-         if Overlaps (Tree.Char_Region (Tree.Child (Nonterm, Param.Index)), Data.Action_Region_Chars) then
+         if Overlaps
+           (Tree.Char_Region (Tree.Child (Nonterm, Param.Index), Trailing_Non_Grammar => False),
+            Data.Action_Region_Chars)
+         then
             declare
-               Token_Char_Region : constant Buffer_Region := Tree.Char_Region (Tree.Child (Nonterm, Param.Index));
+               Token_Char_Region : constant Buffer_Region := Tree.Char_Region
+                 (Tree.Child (Nonterm, Param.Index), Trailing_Non_Grammar => False);
             begin
                Cache_Cur := Find_In_Range (Iter, Ascending, Token_Char_Region.First, Token_Char_Region.Last);
                loop
@@ -1498,9 +1519,13 @@ package body Wisi is
       Cache_Cur : Cursor;
    begin
       for Param of Params loop
-         if Overlaps (Tree.Char_Region (Tree.Child (Nonterm, Param.Index)), Data.Action_Region_Chars) then
+         if Overlaps
+           (Tree.Char_Region (Tree.Child (Nonterm, Param.Index), Trailing_Non_Grammar => False),
+            Data.Action_Region_Chars)
+         then
             declare
-               Token_Char_Region : constant Buffer_Region := Tree.Char_Region (Tree.Child (Nonterm, Param.Index));
+               Token_Char_Region : constant Buffer_Region := Tree.Char_Region
+                 (Tree.Child (Nonterm, Param.Index), Trailing_Non_Grammar => False);
             begin
                Cache_Cur := Find (Iter, Token_Char_Region.First, Direction => Ascending);
                if Has_Element (Cache_Cur) then
@@ -1544,9 +1569,12 @@ package body Wisi is
       Cache_Cur : Cursor;
    begin
       for I of Params loop
-         if Overlaps (Tree.Char_Region (Tree.Child (Nonterm, I)), Data.Action_Region_Chars) then
+         if Overlaps
+           (Tree.Char_Region (Tree.Child (Nonterm, I), Trailing_Non_Grammar => False), Data.Action_Region_Chars)
+         then
             declare
-               Token_Char_Region : constant Buffer_Region := Tree.Char_Region (Tree.Child (Nonterm, I));
+               Token_Char_Region : constant Buffer_Region := Tree.Char_Region
+                 (Tree.Child (Nonterm, I), Trailing_Non_Grammar => False);
                To_Delete : Buffer_Pos_Lists.List;
             begin
                Cache_Cur := Find_In_Range (Iter, Ascending, Token_Char_Region.First, Token_Char_Region.Last);
@@ -2012,7 +2040,8 @@ package body Wisi is
       Tree : WisiToken.Syntax_Trees.Tree renames Parser.Tree;
    begin
       --  +1 to match Emacs region
-      Ada.Text_IO.Put_Line ('[' & End_Code & Buffer_Pos'Image (Tree.Char_Region (Tree.EOI).Last + 1) & ']');
+      Ada.Text_IO.Put_Line
+        ('[' & End_Code & Buffer_Pos'Image (Tree.Char_Region (Tree.EOI, Trailing_Non_Grammar => False).Last + 1) & ']');
 
       --  Caches are populated by Execute_Actions.
       case Data.Post_Parse_Action is
@@ -2078,7 +2107,7 @@ package body Wisi is
             return Buffer_Pos'First;
          else
             declare
-               Result : constant Buffer_Region := Tree.Char_Region (Token);
+               Result : constant Buffer_Region := Tree.Char_Region (Token, Trailing_Non_Grammar => False);
             begin
                if Result = Null_Buffer_Region then
                   return Buffer_Pos'First;
@@ -2371,10 +2400,10 @@ package body Wisi is
         (Tree.Line_Region (Anchor_Token).First);
    begin
       return Offset + Integer
-        (Tree.Char_Region (Anchor_Token).First -
+        (Tree.Char_Region (Anchor_Token, Trailing_Non_Grammar => False).First -
            (if Line_Begin_Token = WisiToken.Syntax_Trees.Invalid_Node_Access
             then 0
-            else Tree.Char_Region (Line_Begin_Token).First));
+            else Tree.Char_Region (Line_Begin_Token, Trailing_Non_Grammar => False).First));
    end Current_Indent_Offset;
 
    function Get_Text
@@ -2387,7 +2416,7 @@ package body Wisi is
    begin
       case Tree.Label (Tree_Index) is
       when Source_Terminal | Nonterm =>
-         return Tree.Lexer.Buffer_Text (Tree.Byte_Region (Tree_Index));
+         return Tree.Lexer.Buffer_Text (Tree.Byte_Region (Tree_Index, Trailing_Non_Grammar => False));
 
       when Virtual_Terminal | Virtual_Identifier =>
          raise SAL.Programmer_Error;

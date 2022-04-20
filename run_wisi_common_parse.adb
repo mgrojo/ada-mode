@@ -741,8 +741,10 @@ package body Run_Wisi_Common_Parse is
             if Cl_Params.Inc_Begin_Byte_Pos = WisiToken.Invalid_Buffer_Pos then
                Cl_Params.Inc_Begin_Byte_Pos := WisiToken.Buffer_Pos'First;
                Cl_Params.Inc_Begin_Char_Pos := WisiToken.Buffer_Pos'First;
-               Cl_Params.Inc_End_Byte_Pos   := Parser.Tree.Byte_Region (Parser.Tree.EOI).Last;
-               Cl_Params.Inc_End_Char_Pos   := Parser.Tree.Char_Region (Parser.Tree.EOI).Last;
+               Cl_Params.Inc_End_Byte_Pos   := Parser.Tree.Byte_Region
+                 (Parser.Tree.EOI, Trailing_Non_Grammar => False).Last;
+               Cl_Params.Inc_End_Char_Pos   := Parser.Tree.Char_Region
+                 (Parser.Tree.EOI, Trailing_Non_Grammar => False).Last;
             end if;
          when Refactor | Command_File =>
             null;
