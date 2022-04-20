@@ -753,7 +753,7 @@ package body WisiToken.Generate.Tree_Sitter is
       is
          function Strip_Delimiters (Tree_Index : in Valid_Node_Access) return String
          is
-            Region : Buffer_Region renames Tree.Byte_Region (Tree_Index);
+            Region : Buffer_Region renames Tree.Byte_Region (Tree_Index, Trailing_Non_Grammar => False);
          begin
             if -Tree.ID (Tree_Index) in RAW_CODE_ID | REGEXP_ID | ACTION_ID then
                --  Strip delimiters. We don't strip leading/trailing spaces to preserve indent.

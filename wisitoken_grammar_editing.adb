@@ -24,6 +24,7 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with GNAT.Regexp;
 with SAL.Generic_Decimal_Image;
+with WisiToken.BNF;
 with WisiToken.Generate;
 with WisiToken.Lexer;
 package body WisiToken_Grammar_Editing is
@@ -98,8 +99,8 @@ package body WisiToken_Grammar_Editing is
          return Tree.Add_Terminal
            (WisiToken.Lexer.Token'
               (ID          => ID (Tree, Item),
-               Byte_Region => Tree.Byte_Region (Item.Node),
-               Char_Region => Tree.Char_Region (Item.Node),
+               Byte_Region => Tree.Byte_Region (Item.Node, Trailing_Non_Grammar => False),
+               Char_Region => Tree.Char_Region (Item.Node, Trailing_Non_Grammar => False),
                Line_Region => Null_Line_Region), --  Line_Region ignored for Source_Terminal
             Error => Syntax_Trees.No_Error);
 
@@ -1561,7 +1562,7 @@ package body WisiToken_Grammar_Editing is
 
          RHS_Item_List_3 : List := Empty_RHS_Item_List (Tree);
       begin
-         if Data.Language_Params.Error_Recover then
+         if Data.User_Parser in WisiToken.BNF.LR_Generate_Algorithm and Data.Language_Params.Error_Recover then
             --  FIXME: these should have different labels? need test case
             RHS_Item_List_3.Append
               (Add_RHS_Element (Tree, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, List_Name)), Label));

@@ -383,7 +383,7 @@ begin
 
       Cached_Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
-      --  Get the the input file quads
+      --  Get the generate tuples
       Parse_Check (None, None, WisiToken_Grammar_Runtime.Meta);
 
       if Command_Generate_Set = null then

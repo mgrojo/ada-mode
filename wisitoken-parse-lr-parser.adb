@@ -391,9 +391,9 @@ package body WisiToken.Parse.LR.Parser is
                         then
                            declare
                               Last_Token_Byte_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Byte_Region
-                                (Current_Token.Node).Last;
+                                (Current_Token.Node, Trailing_Non_Grammar => False).Last;
                               Last_Token_Char_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Char_Region
-                                (Current_Token.Node).Last;
+                                (Current_Token.Node, Trailing_Non_Grammar => False).Last;
                               Last_Token_Line_Region_Last : constant Line_Number_Type := Shared_Parser.Tree.Line_Region
                                 (Current_Token).Last;
 
@@ -671,7 +671,8 @@ package body WisiToken.Parse.LR.Parser is
                     (Shared_Parser.Tree.Get_Node (Parser_State.Stream, Shared_Parser.Tree.Peek (Parser_State.Stream)));
                begin
                   if Last_Term /= Invalid_Node_Access then
-                     Max_Byte_Last := Buffer_Pos'Max (@, Shared_Parser.Tree.Byte_Region (Last_Term).Last);
+                     Max_Byte_Last := Buffer_Pos'Max
+                       (@, Shared_Parser.Tree.Byte_Region (Last_Term, Trailing_Non_Grammar => False).Last);
                   end if;
                end;
             end if;
@@ -790,7 +791,8 @@ package body WisiToken.Parse.LR.Parser is
 
                         if Shared_Parser.Tree.Label (First_Terminal) = Source_Terminal then
                            declare
-                              Region : constant Buffer_Region := Shared_Parser.Tree.Byte_Region (First_Terminal);
+                              Region : constant Buffer_Region := Shared_Parser.Tree.Byte_Region
+                                (First_Terminal, Trailing_Non_Grammar => False);
                            begin
                               --  Max_Byte_Last is last byte of farthest token on stack top; parsers
                               --  whose Current_Token are within that token are not paused, so they

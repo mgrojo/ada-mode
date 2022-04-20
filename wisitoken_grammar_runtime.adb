@@ -367,11 +367,12 @@ package body WisiToken_Grammar_Runtime is
          Child : constant Syntax_Trees.Valid_Node_Access := Tree.Child (Nonterm, Index);
       begin
          if Tree.Label (Child) /= WisiToken.Syntax_Trees.Source_Terminal then
-            raise SAL.Programmer_Error with "token at " & Image (Tree.Byte_Region (Child)) &
+            raise SAL.Programmer_Error with "token at " & Image
+              (Tree.Byte_Region (Child, Trailing_Non_Grammar => False)) &
               " is a " & WisiToken.Syntax_Trees.Node_Label'Image (Tree.Label (Child)) &
               ", expecting Source_Terminal";
          else
-            return Tree.Byte_Region (Child);
+            return Tree.Byte_Region (Child, Trailing_Non_Grammar => False);
          end if;
       end Token_Byte_Region;
 
@@ -554,7 +555,7 @@ package body WisiToken_Grammar_Runtime is
             Loc_List : constant Syntax_Trees.Valid_Node_Access_Array := Get_Loc_List;
 
             function Get_Loc (Index : in SAL.Peek_Type) return String
-            is (Tree.Lexer.Buffer_Text (Tree.Byte_Region (Loc_List (Index))));
+            is (Tree.Lexer.Buffer_Text (Tree.Byte_Region (Loc_List (Index), Trailing_Non_Grammar => False)));
 
          begin
             if Get_Loc (Loc_List'First) = "actions" then
@@ -675,12 +676,13 @@ package body WisiToken_Grammar_Runtime is
                   begin
                      Item := Iter.Next (Item);
                      if Has_Element (Item) then
-                        Function_Args_Region := Tree.Byte_Region (Items (Item));
+                        Function_Args_Region := Tree.Byte_Region (Items (Item), Trailing_Non_Grammar => False);
                         loop
                            Item := Iter.Next (Item);
                            exit when not Has_Element (Item);
 
-                           Function_Args_Region.Last := Tree.Byte_Region (Items (Item)).Last;
+                           Function_Args_Region.Last := Tree.Byte_Region
+                             (Items (Item), Trailing_Non_Grammar => False).Last;
                         end loop;
                      end if;
 
@@ -838,6 +840,9 @@ package body WisiToken_Grammar_Runtime is
 
       function Is_Optimized_List return Boolean
       is begin
+         if Data.User_Parser not in WisiToken.BNF.LR_Generate_Algorithm then
+            return False;
+         end if;
          --  From optimized_list.wy:
          --  declarations
          --  : declaration
@@ -1026,7 +1031,7 @@ package body WisiToken_Grammar_Runtime is
 
       function Strip_Delimiters (Tree_Index : in Syntax_Trees.Valid_Node_Access) return String
       is
-         Region : Buffer_Region renames Tree.Byte_Region (Tree_Index);
+         Region : Buffer_Region renames Tree.Byte_Region (Tree_Index, Trailing_Non_Grammar => False);
       begin
          if -Tree.ID (Tree_Index) in RAW_CODE_ID | REGEXP_ID | ACTION_ID then
             --  Strip delimiters. We don't strip leading/trailing spaces to preserve indent.

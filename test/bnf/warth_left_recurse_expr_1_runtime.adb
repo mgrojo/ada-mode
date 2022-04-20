@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018, 2020, 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2020 - 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -31,7 +31,8 @@ package body Warth_Left_Recurse_Expr_1_Runtime is
       Arg_Index : in     WisiToken.Positive_Index_Type)
    is
       Data   : User_Data_Type renames User_Data_Type (User_Data);
-      Region : constant WisiToken.Buffer_Region := Tree.Byte_Region (Tree.Child (Nonterm, Arg_Index));
+      Region : constant WisiToken.Buffer_Region := Tree.Byte_Region
+        (Tree.Child (Nonterm, Arg_Index), Trailing_Non_Grammar => False);
    begin
       Data.Stack.Push (Integer'Value (Tree.Lexer.Buffer_Text (Region)));
    end Push;

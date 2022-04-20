@@ -130,10 +130,10 @@ package body Test_Incremental is
          Edited (1 .. Length (Edited_Buffer)) := To_String (Edited_Buffer);
 
          if Delete'Length > 0 then
-            if Initial (Edit_At .. Edit_At + Delete'Length - 1) /= Delete then
+            if Edited (Edit_At .. Edit_At + Delete'Length - 1) /= Delete then
                AUnit.Assertions.Assert
                  (False, "invalid delete: '" & Delete & "' /= '" &
-                    Initial (Edit_At .. Edit_At + Delete'Length - 1) & "'");
+                    Edited (Edit_At .. Edit_At + Delete'Length - 1) & "'");
             end if;
             Edited (Edit_At .. Edited'Last - Delete'Length) := Edited (Edit_At + Delete'Length .. Edited'Last);
             Edited (Edited'Last - Delete'Length + 1 .. Edited'Last) := (others => ' ');
@@ -622,6 +622,7 @@ package body Test_Incremental is
              "   -- comment 3" & ASCII.LF &
              --   |40       |50
              "   procedure C; end A;",
+         --           |60
 
          Edit_At   => 33,
          Insert    => "",
@@ -732,6 +733,43 @@ package body Test_Incremental is
          Initial_Errors => 0,
          Incr_Errors    => 0);
    end Edit_Comment_15;
+
+   procedure Edit_Comment_16 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Uncomment a comment in other comments. From wisitoken-grammar_mode
+      --  incremental_03.wy.
+      Incremental_Parser := Grammar.Incremental_Parser'Access;
+      Full_Parser        := Grammar.Full_Parser'Access;
+
+      Parse_Text
+        (Label => "1",
+         Initial   =>
+           ";; comment_1" & ASCII.LF &
+             --      |10
+             ";; comment_2" & ASCII.LF &
+             --     |20
+             ";;nonterm_1 : rhs_1 ;" & ASCII.LF &
+             --  |30       |40
+             ";;nonterm_2 : rhs_2 ;" & ASCII.LF &
+             "nonterm_3 : rhs_3 ;" & ASCII.LF,
+
+         Edit_At        => 27,
+         Insert         => "",
+         Delete         => ";",
+         Initial_Errors => 0,
+         Incr_Errors    => 1);
+
+      Parse_Text
+        (Label          => "2",
+         Initial        => "",
+         Edit_At        => 27,
+         Insert         => "",
+         Delete         => ";",
+         Initial_Errors => 1,
+         Incr_Errors    => 0);
+   end Edit_Comment_16;
 
    procedure Edit_Whitespace_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1246,9 +1284,9 @@ package body Test_Incremental is
          Initial => "A := B_1 + " & ASCII.LF &
            --        |1       |10
            "-- comment" & ASCII.LF &
-           --  |15        |22
+           --  |16        |23
            "-- + ada_identifier;" & ASCII.LF &
-           --      |30
+           --     |30       |40
            "C;",
 
          Edit_At        => 7,
@@ -1261,6 +1299,33 @@ package body Test_Incremental is
       --  "A := B + ada_identifier;" & ASCII.LF & "C;"
       --   |1       |10       |20      |25
    end Delete_Comment_Start_05;
+
+   procedure Delete_Comment_Start_06 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Similar to Delete_Comment_Start_05. but does not modify the
+      --  preceding grammar token; delete starts in whitespace.
+      Parse_Text
+        (Label   => "3",
+         Initial => "A := B_1  + " & ASCII.LF &
+           --        |1       |10
+           "-- comment" & ASCII.LF &
+           --  |16        |23
+           "-- + ada_identifier;" & ASCII.LF &
+           --     |30       |40
+           "C;",
+
+         Edit_At        => 10,
+         Delete         => " + " & ASCII.LF & "-- comment" & ASCII.LF & "--",
+         Insert         => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+
+      --  Edited source:
+      --  "A := B_1 + ada_identifier;" & ASCII.LF & "C;"
+      --   |1       |10       |20      |25
+   end Delete_Comment_Start_06;
 
    procedure Insert_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -2577,6 +2642,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment_13'Access, "Edit_Comment_13");
       Register_Routine (T, Edit_Comment_14'Access, "Edit_Comment_14");
       Register_Routine (T, Edit_Comment_15'Access, "Edit_Comment_15");
+      Register_Routine (T, Edit_Comment_16'Access, "Edit_Comment_16");
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Whitespace_3'Access, "Edit_Whitespace_3");
@@ -2605,6 +2671,7 @@ package body Test_Incremental is
       Register_Routine (T, Delete_Comment_Start_03'Access, "Delete_Comment_Start_03");
       Register_Routine (T, Delete_Comment_Start_04'Access, "Delete_Comment_Start_04");
       Register_Routine (T, Delete_Comment_Start_05'Access, "Delete_Comment_Start_05");
+      Register_Routine (T, Delete_Comment_Start_06'Access, "Delete_Comment_Start_06");
       Register_Routine (T, Insert_New_Line'Access, "Insert_New_Line");
       Register_Routine (T, Insert_Comment_Start_01'Access, "Insert_Comment_Start_01");
       Register_Routine (T, Names'Access, "Names");

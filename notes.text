@@ -2,8 +2,8 @@ build/Makefile
 
 branches:
 org.wisitoken/o.s_l.sal                   - main, used by o.e.a
-org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - work, used by o.e.a-2
-org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - delete error recover multi-tasking
+org.wisitoken.stephe-1/o.s_l.sal.stephe-1 - work, used by o.e.a-2; fix bugs in main
+org.wisitoken.stephe-2/o.s_l.sal.stephe-1 - packrat use mckenzie error recover; o.e.a-4
 org.wisitoken.stephe-3/o.s_l.sal.stephe-1 -
 
 possible branch tags:
@@ -31,27 +31,39 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-commit, propagate
-
-add packrat to subprograms.wy
-    capture known good generated packrat code.
-subprograms.wy:1:1: 'declaration_list' is both left and right recursive; not supported.
-    because ebnf=>bnf converts this to optimized_list
-        should make it a packrat_list; breakdown split at appropriate child
-    generate_packrat should use EBNF, with only %if processed.
-        %if processed by wisitoken_grammar_runtime?
+editing test_incremental.adb Edit_Comment_16 to add "label => "1","
+;; exception: SAL.INVALID_OPERATION: ref_count  32
+;; [c:\Projects\org.emacs.ada-mode\ada_mode_wisi_lr1_parse.exe]
+;; 0x44a3c5 Ada_Mode_Wisi_Lr1_Parse at sal-gen_definite_doubly_linked_lists_ref_count.adb:94
+;; 0x498036 Ada_Mode_Wisi_Lr1_Parse at wisitoken-syntax_trees.adb:1619
+;; 0x589930 Ada_Mode_Wisi_Lr1_Parse at wisitoken-parse-lr-parser-parse.adb:100
+;; 0x5a613b Ada_Mode_Wisi_Lr1_Parse at emacs_wisi_common_parse.adb:464
+;; 0x401a2e Ada_Mode_Wisi_Lr1_Parse at gen_emacs_wisi_lr_text_rep_parse.adb:32
 
 ada_lite_ebnf packrat
-ada_lite_ebnf.wy:249:1: 'association_list' is both left and right recursive; not supported.
+    t_one
+
+packrat error recover
+    use parse stream
+    on enter recover, add LR states to parse streams
+        mckenzie_recover unchanged.
+    if more than one parse stream after recover:
+        order streams as multiple stream accept would
+        execute each one in turn until it gets to accept or error
+            if accept, return
+            if all error, keep those within check_limit of the one that made the farthest progress, enter error recover
+
+
+add packrat_list; breakdown split at appropriate child
+    generate packrat use EBNF, with only %if processed.
+        %if processed by wisitoken_grammar_runtime
+    wisitoken-bnf-generate calls Packrat_Data.Check_All; that's where packrat_list could be set.
+
+    to parse list, keep stream_index pointer to first child, reduce when see list terminator
 
 
 ada_annex_p packrat
 
-
-Do LR incremental, error recover on tree from packrat parse?
-    batch = packrat, incremental = LR
-
-    LR states added to parse stream by Undo_Reduce
 
 packrat indirect left recursion
     conflict_name has indirect left recursion
