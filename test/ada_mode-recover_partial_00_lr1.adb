@@ -8,7 +8,7 @@
 -- are indented to zero. Now there is one error and the indentation is
 -- better.
 
---EMACSCMD:(progn (wisi-parse-buffer 'indent)(length (wisi-parser-parse-errors wisi--parser)))
+--EMACSCMD:(progn (wisi-parse-buffer 'indent)(length (wisi-parser-local-parse-errors wisi-parser-local)))
 --EMACSRESULT:1
 if Foo then
    Bar;

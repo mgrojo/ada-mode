@@ -3,7 +3,7 @@ package body Test_Edit_Source is
    --EMACSCMD:(setq skip-recase-test t)
 
    --EMACSCMD:(progn (goto-char (point-min))(wisi-replay-kbd-macro "-- Comment\r"))
-   --EMACSCMD:(progn (wisi-replay-undo 11)(wisi-parser-parse-errors wisi--parser))
+   --EMACSCMD:(progn (wisi-replay-undo 11)(wisi-parser-local-parse-errors wisi-parser-local))
    --EMACSRESULT:0
 
    procedure Non_Ascii (T : in out AUnit.Test_Cases.Test_Case'Class)

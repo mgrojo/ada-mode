@@ -6,7 +6,7 @@
 --EMACSCMD:(setq wisi-debug 0)
 
 -- Test the buffer does parse initially
---EMACSCMD:(progn (wisi-parse-buffer 'face) (length (wisi-parser-parse-errors wisi--parser)))
+--EMACSCMD:(progn (wisi-parse-buffer 'face) (length (wisi-parser-local-parse-errors wisi-parser-local)))
 --EMACSRESULT:0
 
 procedure Ada_Mode.Interactive_Case_Statement
