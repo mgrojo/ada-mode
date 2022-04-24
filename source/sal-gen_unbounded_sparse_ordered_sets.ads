@@ -2,7 +2,7 @@
 --
 --  Unbounded sparse sets.
 --
---  Copyright (C) 2020 - 2021 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2020 - 2022 Free Software Foundation All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -34,8 +34,6 @@ package SAL.Gen_Unbounded_Sparse_Ordered_Sets is
    --  use 'if Set (Item) then'. But then the default iterator would
    --  always return True, instead of Index_Type; we can't specify a
    --  different Constant_Indexing function for the default iterator.
-
-   Empty_Set : constant Set;
 
    procedure Clear (Set : in out Pkg.Set);
    --  Set Set to empty.
