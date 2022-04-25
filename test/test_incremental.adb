@@ -744,8 +744,8 @@ package body Test_Incremental is
       Full_Parser        := Grammar.Full_Parser'Access;
 
       Parse_Text
-        (Label => "1",
-         Initial   =>
+        (Label   => "1",
+         Initial =>
            ";; comment_1" & ASCII.LF &
              --      |10
              ";; comment_2" & ASCII.LF &
@@ -770,6 +770,44 @@ package body Test_Incremental is
          Initial_Errors => 1,
          Incr_Errors    => 0);
    end Edit_Comment_16;
+
+   procedure Edit_Comment_17 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Modify an end delimiter
+      Incremental_Parser := Grammar.Incremental_Parser'Access;
+      Full_Parser        := Grammar.Full_Parser'Access;
+
+      Parse_Text
+        (Label   => "1",
+         Initial => "A : B C; %{ comment }% D : E;",
+         --          |1       |10       |20
+         Edit_At => 21,
+         Delete  => "}",
+         Insert  => "");
+
+      --  Insert a start delimiter.
+      Parse_Text
+        (Label   => "2",
+         Initial => "A : B C; %{ D : E; %{ }% ",
+         --          |1       |10       |20
+         Edit_At => 13,
+         Delete  => "",
+         Insert  => "%{");
+
+      --  Insert an end delimiter.
+      Parse_Text
+        (Label   => "3",
+         Initial => "A : B C; %{ D : E; %{ }% ",
+         --          |1       |10       |20
+         Edit_At => 13,
+         Delete  => "",
+         Insert  => "}% ");
+
+      --  Edited: "A : B C; %{ }% D : E; %{ }% ",
+      --           |1       |10       |20
+   end Edit_Comment_17;
 
    procedure Edit_Whitespace_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1147,6 +1185,25 @@ package body Test_Incremental is
          Insert_2  => ASCII.LF & "  B_Type");
    end Edit_Code_17;
 
+   procedure Edit_Code_18 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-incremental_04.adb; refining boundary conditions in
+      --  Edit_Tree.
+      Parse_Text
+        (Initial   =>
+           "procedure C is begin A" & ASCII.LF &
+             --      |10       |20
+             "(B => ""1""," & ASCII.LF &
+             --     |30
+             "D => 2); end C;",
+         --   |35
+         Edit_At   => 25,
+         Delete    => "B => ""1""," & ASCII.LF,
+         Insert    => "");
+   end Edit_Code_18;
+
    procedure Delete_New_Line (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -1234,8 +1291,7 @@ package body Test_Incremental is
       pragma Unreferenced (T);
    begin
       --  This one modifies a comment start, which is the same as deleting
-      --  it. Full parse of edited source finds different error recover
-      --  solution from incremental parse unless we tweak things.
+      --  it.
 
       Parse_Text
         (Label   => "3",
@@ -2150,13 +2206,16 @@ package body Test_Incremental is
    begin
       --  Missing string quote. Initial full parse recovers from it,
       --  incremental edit does not fix it.
+      --
+      --  See other Lexer_Errors_nn for various similar cases; also
+      --  Edit_String_nn.
 
       Parse_Text
         (Initial          =>
            "A := 2;" & ASCII.LF &
              --  |6
-             "B := ""A string" & ASCII.LF & -- missing '";'; lexer error at 14
-                                             --  |12      |20
+             "B := ""A string" & ASCII.LF &
+             --  |12      |20
              "C := 1;",
          --   |23
          Edit_At      => 6,
@@ -2165,6 +2224,50 @@ package body Test_Incremental is
          Initial_Errors => 2,  --  Lexer + parser.
          Incr_Errors => 2); --  Errors are still in tree
    end Lexer_Errors_01;
+
+   procedure Lexer_Errors_02 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-interactive_14.adb. Insert text between two lexer
+      --  errors.
+
+      Parse_Text
+        (Initial          =>
+           "A (P_1 => 2," & ASCII.LF &
+             --  |6
+             "   P_2 => ""," & ASCII.LF &
+             --  |17           |26
+             """); " & ASCII.LF,
+         --   |27
+         Edit_At      => 27,
+         Delete       => "",
+         Insert       => "   ",
+         Initial_Errors => 2,  --  2 Lexer + 0 parser.
+         Incr_Errors => 2); --  Errors are still in tree
+   end Lexer_Errors_02;
+
+   procedure Lexer_Errors_03 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Similar to Lexer_Errors_02, but exposed a bug in computing
+      --  Scan_End.
+
+      Parse_Text
+        (Initial          =>
+           "A (P_1 => 2," & ASCII.LF &
+             --  |6
+             "   P_2 => ""," & ASCII.LF &
+             --  |17           |26
+             """); " & ASCII.LF,
+         --   |27
+         Edit_At      => 27,
+         Delete       => "",
+         Insert       => " " & ASCII.LF & " "" ",
+         Initial_Errors => 2,  --  2 Lexer + 0 parser.
+         Incr_Errors => 1);
+   end Lexer_Errors_03;
 
    procedure Preserve_Parse_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -2406,7 +2509,7 @@ package body Test_Incremental is
          Incr_Errors    => 0);
    end Undo_Conflict_01;
 
-   --  See also Lexer_Error_01 for an additional string case.
+   --  See also Lexer_Errors_01 for an additional string case.
    procedure Edit_String_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -2643,6 +2746,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Comment_14'Access, "Edit_Comment_14");
       Register_Routine (T, Edit_Comment_15'Access, "Edit_Comment_15");
       Register_Routine (T, Edit_Comment_16'Access, "Edit_Comment_16");
+      Register_Routine (T, Edit_Comment_17'Access, "Edit_Comment_17");
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Whitespace_3'Access, "Edit_Whitespace_3");
@@ -2664,6 +2768,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Code_15'Access, "Edit_Code_15");
       Register_Routine (T, Edit_Code_16'Access, "Edit_Code_16");
       Register_Routine (T, Edit_Code_17'Access, "Edit_Code_17");
+      Register_Routine (T, Edit_Code_18'Access, "Edit_Code_18");
       Register_Routine (T, Delete_New_Line'Access, "Delete_New_Line");
       Register_Routine (T, Delete_Comment_End'Access, "Delete_Comment_End");
       Register_Routine (T, Delete_Comment_Start_01'Access, "Delete_Comment_Start_01");
@@ -2697,6 +2802,8 @@ package body Test_Incremental is
       Register_Routine (T, Recover_08d'Access, "Recover_08d");
       Register_Routine (T, Recover_09'Access, "Recover_09");
       Register_Routine (T, Lexer_Errors_01'Access, "Lexer_Errors_01");
+      Register_Routine (T, Lexer_Errors_02'Access, "Lexer_Errors_02");
+      Register_Routine (T, Lexer_Errors_03'Access, "Lexer_Errors_03");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
       Register_Routine (T, Modify_Deleted_Node'Access, "Modify_Deleted_Node");

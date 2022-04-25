@@ -141,7 +141,7 @@ package body Test_Syntax_Trees is
          Node : constant WisiToken.Syntax_Trees.Node_Access := Tree.Find_Descendant
            (Tree.Root, +parameter_profile_opt_ID);
       begin
-         Check ("1 byte_region", Tree.Byte_Region (Node), (12, 11));
+         Check ("1 byte_region", Tree.Byte_Region (Node, Trailing_Non_Grammar => False), (12, 11));
       end;
    end Byte_Region_1;
 
@@ -214,7 +214,9 @@ package body Test_Syntax_Trees is
 
          else
             Check (Label & ".id", Tree.ID (Node), Expected_ID);
-            Check (Label & ".char_first", Tree.Char_Region (Node).First, Expected_Token_Char_First);
+            Check (Label & ".char_first",
+                   Tree.Char_Region (Node, Trailing_Non_Grammar => False).First,
+                   Expected_Token_Char_First);
          end if;
       end Test_1;
    begin

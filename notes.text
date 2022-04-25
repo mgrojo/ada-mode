@@ -31,39 +31,22 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-editing test_incremental.adb Edit_Comment_16 to add "label => "1","
-;; exception: SAL.INVALID_OPERATION: ref_count  32
-;; [c:\Projects\org.emacs.ada-mode\ada_mode_wisi_lr1_parse.exe]
-;; 0x44a3c5 Ada_Mode_Wisi_Lr1_Parse at sal-gen_definite_doubly_linked_lists_ref_count.adb:94
-;; 0x498036 Ada_Mode_Wisi_Lr1_Parse at wisitoken-syntax_trees.adb:1619
-;; 0x589930 Ada_Mode_Wisi_Lr1_Parse at wisitoken-parse-lr-parser-parse.adb:100
-;; 0x5a613b Ada_Mode_Wisi_Lr1_Parse at emacs_wisi_common_parse.adb:464
-;; 0x401a2e Ada_Mode_Wisi_Lr1_Parse at gen_emacs_wisi_lr_text_rep_parse.adb:32
+run all ada-mode tests
+
+editing wisitoken_grammar_editing.adb to add "EBNF              => False," in Aug
+    (parse_error "wisitoken_grammar_editing.adb:3595:1: Ambiguous parse: 2 parsers active.")
+    still a bug in duplicate_states?
+
+
+ediff of *.wy hangs
+    mmm-mode vs wisi-parse-incremental :wait nil
+
 
 ada_lite_ebnf packrat
-    t_one
-
-packrat error recover
-    use parse stream
-    on enter recover, add LR states to parse streams
-        mckenzie_recover unchanged.
-    if more than one parse stream after recover:
-        order streams as multiple stream accept would
-        execute each one in turn until it gets to accept or error
-            if accept, return
-            if all error, keep those within check_limit of the one that made the farthest progress, enter error recover
-
-
-add packrat_list; breakdown split at appropriate child
-    generate packrat use EBNF, with only %if processed.
-        %if processed by wisitoken_grammar_runtime
-    wisitoken-bnf-generate calls Packrat_Data.Check_All; that's where packrat_list could be set.
-
-    to parse list, keep stream_index pointer to first child, reduce when see list terminator
-
+    in o.w.s-2
 
 ada_annex_p packrat
-
+    in o.e.a-m.s-6
 
 packrat indirect left recursion
     conflict_name has indirect left recursion

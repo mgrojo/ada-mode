@@ -58,4 +58,11 @@ package WisiToken.Parse.LR.Parser_No_Recover is
       Action_Region_Bytes : in     WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region);
    --  Action_Region_Bytes is ignored (all nodes always processed).
 
+   procedure Execute_Actions
+     (Tree        : in out Syntax_Trees.Tree;
+      Productions : in     Syntax_Trees.Production_Info_Trees.Vector;
+      User_Data   : in     Syntax_Trees.User_Data_Access);
+   --  Implements Execute_Actions, allows specifying different tree
+   --  (needed by wisitoken-bnf-generate).
+
 end WisiToken.Parse.LR.Parser_No_Recover;

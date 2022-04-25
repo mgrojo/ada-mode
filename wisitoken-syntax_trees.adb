@@ -1795,7 +1795,8 @@ package body WisiToken.Syntax_Trees is
          return 0;
       else
          declare
-            Begin_Char_Pos : constant Buffer_Pos := Line_Begin_Char_Pos (Tree, Tree.Line_Region (Node).First);
+            Begin_Char_Pos : constant Buffer_Pos := Line_Begin_Char_Pos
+              (Tree, Line_Region (Tree, Node, Trailing_Non_Grammar => True).First);
          begin
             return
               (if Begin_Char_Pos = Invalid_Buffer_Pos
@@ -1817,7 +1818,8 @@ package body WisiToken.Syntax_Trees is
          return 0;
       else
          declare
-            Begin_Char_Pos : constant Buffer_Pos := Line_Begin_Char_Pos (Tree, Tree.Line_Region (Node).First, Stream);
+            Begin_Char_Pos : constant Buffer_Pos := Line_Begin_Char_Pos
+              (Tree, Tree.Line_Region (Node, Trailing_Non_Grammar => True).First, Stream);
          begin
             return
               (if Begin_Char_Pos = Invalid_Buffer_Pos
@@ -4496,8 +4498,10 @@ package body WisiToken.Syntax_Trees is
                Append (Result, ", " & Image (Node_Byte_Region));
             end if;
 
-            if (Line_Numbers and Tree.Editable) and then Tree.Line_Region (Node) /= Null_Line_Region then
-               Append (Result, ", " & Image (Tree.Line_Region (Node)));
+            if (Line_Numbers and Tree.Editable) and then Tree.Line_Region (Node, Trailing_Non_Grammar => True) /=
+              Null_Line_Region
+            then
+               Append (Result, ", " & Image (Tree.Line_Region (Node, Trailing_Non_Grammar => True)));
             end if;
 
             if Children and Node.Label = Nonterm then
@@ -5421,9 +5425,9 @@ package body WisiToken.Syntax_Trees is
             return Invalid_Node_Access;
          end if;
 
-         if Line = Tree.Line_Region (Node).First then
+         if Line = Tree.Line_Region (Node, Trailing_Non_Grammar => True).First then
             return Node;
-         elsif Line < Tree.Line_Region (Node).First then
+         elsif Line < Tree.Line_Region (Node, Trailing_Non_Grammar => True).First then
             return Invalid_Node_Access;
          end if;
       end;
@@ -5578,7 +5582,7 @@ package body WisiToken.Syntax_Trees is
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
-      Trailing_Non_Grammar : in Boolean := True)
+      Trailing_Non_Grammar : in Boolean)
      return WisiToken.Line_Region
    is
       Prev_Non_Grammar     : constant Node_Access := Tree.Prev_Non_Grammar (Node);
@@ -5599,7 +5603,7 @@ package body WisiToken.Syntax_Trees is
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;
       Ref                  : in Stream_Node_Ref;
-      Trailing_Non_Grammar : in Boolean := True)
+      Trailing_Non_Grammar : in Boolean)
      return WisiToken.Line_Region
    is begin
       if Tree.Parents_Set then

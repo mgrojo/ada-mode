@@ -90,9 +90,9 @@ package body Wisitoken_Grammar_Main is
       return
         (case To_Token_Enum (ID) is
          when COMMENT_ID => WisiToken.Lexer.Find_New_Line (Source, Token_Start),
-         when RAW_CODE_ID => WisiToken.Lexer.Find_String (Source, Token_Start, "%{"),
-         when REGEXP_ID => WisiToken.Lexer.Find_String (Source, Token_Start, "%["),
-         when ACTION_ID => WisiToken.Lexer.Find_String (Source, Token_Start, "%("),
+         when RAW_CODE_ID => WisiToken.Lexer.Find_String (Source, Token_Start, "}%"),
+         when REGEXP_ID => WisiToken.Lexer.Find_String (Source, Token_Start, "]%"),
+         when ACTION_ID => WisiToken.Lexer.Find_String (Source, Token_Start, ")%"),
          when STRING_LITERAL_1_ID => WisiToken.Lexer.Find_String_Or_New_Line (Source, Token_Start, """"),
          when STRING_LITERAL_2_ID => WisiToken.Lexer.Find_String_Or_New_Line (Source, Token_Start, """"),
          when others => raise SAL.Programmer_Error);
@@ -111,18 +111,21 @@ package body Wisitoken_Grammar_Main is
       return
         (case To_Token_Enum (ID) is
          when COMMENT_ID =>
-         (if Inserted then (if Start then Lexer.Find_New_Line (Source, Region.Last) else Region.Last)
+         (if Inserted then Region.Last
           elsif Start then Region.Last
           else Lexer.Find_New_Line (Source, Region.Last)),
          when RAW_CODE_ID =>
-           (if Start then Region.Last
-            else Lexer.Find_String (Source, Region.First, "%{")),
+         (if Inserted then Region.Last
+          elsif Start then Region.Last
+          else Lexer.Find_String (Source, Region.First, "}%")),
          when REGEXP_ID =>
-           (if Start then Region.Last
-            else Lexer.Find_String (Source, Region.First, "%[")),
+         (if Inserted then Region.Last
+          elsif Start then Region.Last
+          else Lexer.Find_String (Source, Region.First, "]%")),
          when ACTION_ID =>
-           (if Start then Region.Last
-            else Lexer.Find_String (Source, Region.First, "%(")),
+         (if Inserted then Region.Last
+          elsif Start then Region.Last
+          else Lexer.Find_String (Source, Region.First, ")%")),
          when STRING_LITERAL_1_ID => Lexer.Find_New_Line (Source, Region.Last),
          when STRING_LITERAL_2_ID => Lexer.Find_New_Line (Source, Region.Last),
          when others => raise SAL.Programmer_Error);
@@ -139,9 +142,9 @@ package body Wisitoken_Grammar_Main is
       return
         (case To_Token_Enum (ID) is
          when COMMENT_ID => Lexer.Find_New_Line (Source, Region),
-         when RAW_CODE_ID => Lexer.Find_String_Or_New_Line (Source, Region, "%{"),
-         when REGEXP_ID => Lexer.Find_String_Or_New_Line (Source, Region, "%["),
-         when ACTION_ID => Lexer.Find_String_Or_New_Line (Source, Region, "%("),
+         when RAW_CODE_ID => Lexer.Find_String_Or_New_Line (Source, Region, "}%"),
+         when REGEXP_ID => Lexer.Find_String_Or_New_Line (Source, Region, "]%"),
+         when ACTION_ID => Lexer.Find_String_Or_New_Line (Source, Region, ")%"),
          when STRING_LITERAL_1_ID => Lexer.Find_String_Or_New_Line (Source, Region, """"),
          when STRING_LITERAL_2_ID => Lexer.Find_String_Or_New_Line (Source, Region, "'"),
          when others => raise SAL.Programmer_Error);

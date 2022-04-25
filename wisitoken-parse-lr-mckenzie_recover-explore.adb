@@ -1910,7 +1910,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
               (if Config.Input_Stream.First = No_Element
                then
                  (if Config.Current_Shared_Token.Node /= Invalid_Node_Access
-                  then Tree.Line_Region (Config.Current_Shared_Token).First
+                  then Tree.Line_Region (Config.Current_Shared_Token, Trailing_Non_Grammar => True).First
                   else Invalid_Line_Number)
                elsif not Config.Error_Token.Virtual and then
                  Config.Error_Token.Node = Config.Input_Stream (Config.Input_Stream.First)

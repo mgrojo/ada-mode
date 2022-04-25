@@ -22,13 +22,12 @@
 %meta_syntax BNF
 
 %generate LALR Ada_Emacs re2c Process
+;; We don't do packrat here; that would require too many changes to
+;; the grammar, breaking what this is testing.
+
 %start compilation_unit
 
 %max_parallel 10
-
-;; FIXME packrat: implement *, ? directly in packrat
-;; %generate Packrat_Gen  Ada_Emacs re2c Process
-;; %generate Packrat_Proc Ada_Emacs re2c Process
 
 %keyword BEGIN "begin"
 %keyword END "end"

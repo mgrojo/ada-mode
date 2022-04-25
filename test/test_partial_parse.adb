@@ -72,13 +72,19 @@ package body Test_Partial_Parse is
             Node := Parser.Tree.Children (Node)(1);
             Check (Label & ".action ID", Parser.Tree.ID (Node), Action_ID);
 
-            Check (Label & ".parse begin byte", Parser.Tree.Byte_Region (Node).First, Begin_Byte_Pos);
-            Check (Label & ".parse begin char", Parser.Tree.Char_Region (Node).First, Begin_Char_Pos);
-            Check (Label & ".parse begin line", Parser.Tree.Line_Region (Node).First, Begin_Line);
+            Check (Label & ".parse begin byte",
+                   Parser.Tree.Byte_Region (Node, Trailing_Non_Grammar => False).First,
+                   Begin_Byte_Pos);
+            Check (Label & ".parse begin char",
+                   Parser.Tree.Char_Region (Node, Trailing_Non_Grammar => False).First,
+                   Begin_Char_Pos);
+            Check (Label & ".parse begin line",
+                   Parser.Tree.Line_Region (Node, Trailing_Non_Grammar => True).First,
+                   Begin_Line);
 
             Check
               (Label & ".parse end byte",
-               Parser.Tree.Byte_Region (Parser.Tree.Last_Terminal (Node)).Last,
+               Parser.Tree.Byte_Region (Parser.Tree.Last_Terminal (Node), Trailing_Non_Grammar => False).Last,
                Parse_End_Byte_Pos);
          end if;
 

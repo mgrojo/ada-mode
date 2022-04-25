@@ -1029,7 +1029,9 @@ package body WisiToken.BNF.Output_Ada_Common is
                      "lexer->line = lexer->context_line");
       New_Line;
 
-      if Is_In (Input_Data.Tokens.Tokens, "delimited-text") then
+      if Is_In (Input_Data.Tokens.Tokens, "delimited-text") or
+        Is_In (Input_Data.Tokens.Non_Grammar, "delimited-text")
+      then
          Indent_Line ("static void skip_to(wisi_lexer* lexer, char* target)");
          Indent_Line ("{");
          Indent_Line ("  int i, j;");
@@ -1559,8 +1561,8 @@ package body WisiToken.BNF.Output_Ada_Common is
                Indent_Line
                  ("when " & Name (Generate_Data, I) &
                     "_ID => WisiToken.Lexer.Find_String (Source, Token_Start, " &
-                    --  Value includes quotes.
-                    Value (Generate_Data, I) & "),");
+                    --  Repair_Image includes quotes.
+                    Repair_Image (Generate_Data, I) & "),");
             end if;
          end loop;
       end if;
@@ -1594,7 +1596,9 @@ package body WisiToken.BNF.Output_Ada_Common is
               (Non_Grammar  => True,
                Nonterminals => False,
                Include_SOI  => False)
-              => Kind (Generate_Data, I) = "comment-new-line");
+              => Kind (Generate_Data, I) = "comment-new-line" or
+                Kind (Generate_Data, I) = "comment-one-line" or
+                Kind (Generate_Data, I) = "delimited-text");
 
          Need_Start : constant Boolean :=
            (for some I in All_Tokens (Generate_Data).Iterate
@@ -1634,29 +1638,57 @@ package body WisiToken.BNF.Output_Ada_Common is
             Nonterminals => False,
             Include_SOI  => False)
          loop
+            --  Inserted : a start or end delimiter was inserted
+            --  Start    : start delimeter
+            --  Return position where lex can end
+            --  start delimiter in Value, end delimiter in Repair_Image
             if Kind (Generate_Data, I) = "comment-new-line" then
+               --  If Inserted, Start; a comment start was inserted in an existing
+               --  comment; just scan the existing comment.
+               --
+               --  If Inserted, not Start; a comment end was inserted in an existing
+               --  comment; scan to the previous comment end.
+               --
+               --  If not inserted, Start; a comment start was deleted; scan to the
+               --  previous comment end.
+               --
+               --  If not inserted, not Start; a comment end was deleted; find a new
+               --  comment end.
                Indent_Line ("when " & Name (Generate_Data, I) & "_ID =>");
-               Indent_Line
-                 ("(if Inserted then (if Start then Lexer.Find_New_Line (Source, Region.Last) else Region.Last)");
+               Indent_Line ("(if Inserted then Region.Last");
                Indent_Line (" elsif Start then Region.Last");
                Indent_Line (" else Lexer.Find_New_Line (Source, Region.Last)),");
 
             elsif Kind (Generate_Data, I) = "string-double-one-line" or
               Kind (Generate_Data, I) = "string-single-one-line"
             then
+               --  Delimiters are the same, so all delimiters flip state; terminated
+               --  by new_line.
                Indent_Line ("when " & Name (Generate_Data, I) & "_ID => Lexer.Find_New_Line (Source, Region.Last),");
 
             elsif Kind (Generate_Data, I) = "string-double" or
               Kind (Generate_Data, I) = "string-single"
             then
+               --  Delimiters are the same, so all delimiters flip state; terminated
+               --  by EOI.
                Indent_Line ("when " & Name (Generate_Data, I) & "_ID => Lexer.Buffer_Region_Byte (Source).Last,");
 
-            elsif Kind (Generate_Data, I) = "comment-one-line" or
-              Kind (Generate_Data, I) = "delimited-text"
-            then
+            elsif Kind (Generate_Data, I) = "comment-one-line" then
+               --  Similar to comment-new-line, terminated by either end delimiter or new_line
                Indent_Line ("when " & Name (Generate_Data, I) & "_ID =>");
-               Indent_Line ("  (if Start then Region.Last");
-               Indent_Line ("   else Lexer.Find_String (Source, Region.First, " & Value (Generate_Data, I) & ")),");
+               Indent_Line ("(if Inserted then Region.Last");
+               Indent_Line (" elsif Start then Region.Last");
+               Indent_Line (" else Lexer.Find_String_Or_New_Line (Source, Region.Last, " &
+                              Value (Generate_Data, I) & ")),");
+
+            elsif Kind (Generate_Data, I) = "delimited-text"
+            then
+               --  Similar to comment-new-line, terminated by either end delimiter or EOI
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID =>");
+               Indent_Line ("(if Inserted then Region.Last");
+               Indent_Line (" elsif Start then Region.Last");
+               Indent_Line (" else Lexer.Find_String (Source, Region.First, " &
+                              Repair_Image (Generate_Data, I) & ")),");
             end if;
          end loop;
       end if;
@@ -1722,8 +1754,8 @@ package body WisiToken.BNF.Output_Ada_Common is
                Indent_Line
                  ("when " & Name (Generate_Data, I) &
                     "_ID => Lexer.Find_String_Or_New_Line (Source, Region, " &
-                    --  Value includes quotes.
-                    Value (Generate_Data, I) & "),");
+                    --  Repair_Image includes quotes.
+                    Repair_Image (Generate_Data, I) & "),");
             end if;
          end loop;
       end if;

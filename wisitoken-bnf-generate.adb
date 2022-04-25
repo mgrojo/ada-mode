@@ -299,7 +299,7 @@ begin
    end;
 
    begin
-      Grammar_Parser.Parse (Log_File);
+      Grammar_Parser.Parse (Log_File); -- Execute_Actions only does meta phase
    exception
    when WisiToken.Syntax_Error =>
       if Grammar_Parser.Tree.Parents_Set then
@@ -325,7 +325,7 @@ begin
 
       Lexer_Done : Lexer_Set := (others => False);
 
-      Saved_EBNF_Tree : Syntax_Trees.Tree;
+      BNF_Tree : Syntax_Trees.Tree; --  Only filled when source is EBNF, alg is LR
 
       --  In general, all of the data in Generate_Utils.Generate_Data
       --  depends on the generate tuple parameters. However, if
@@ -352,15 +352,10 @@ begin
 
          Input_Data.Phase := Phase;
 
-         if Trace_Action > Outline then
-            Trace.New_Line;
-            Trace.Put_Line (Parser'Image & " " & Lexer'Image & " grammar syntax tree:");
-            Grammar_Parser.Tree.Print_Tree;
-         end if;
-         Grammar_Parser.Execute_Actions;
-
          case Phase is
          when Meta =>
+            Grammar_Parser.Execute_Actions;
+
             case Input_Data.Meta_Syntax is
             when Unknown =>
                Input_Data.Meta_Syntax := BNF_Syntax;
@@ -370,6 +365,25 @@ begin
             end case;
 
          when Other =>
+            case Valid_Generate_Algorithm'(Parser) is
+            when LR_Generate_Algorithm =>
+               if BNF_Tree.Is_Empty then
+                  Grammar_Parser.Execute_Actions;
+               else
+                  WisiToken.Parse.LR.Parser_No_Recover.Execute_Actions
+                    (BNF_Tree, Grammar_Parser.Productions, Input_Data'Unchecked_Access);
+               end if;
+
+            when Packrat_Generate_Algorithm =>
+               Grammar_Parser.Execute_Actions;
+
+            when External =>
+               null;
+
+            when Tree_Sitter =>
+               null;
+            end case;
+
             if Input_Data.Rule_Count = 0 or Input_Data.Tokens.Rules.Length = 0 then
                raise WisiToken.Grammar_Error with "no rules";
             end if;
@@ -380,6 +394,49 @@ begin
          Grammar_Parser.Put_Errors;
          raise;
       end Parse_Check;
+
+      procedure Translate_To_BNF
+      is begin
+         if Trace_Generate_EBNF > Outline then
+            Ada.Text_IO.Put_Line ("Translate EBNF tree to BNF");
+         end if;
+
+         declare
+            Time_Start : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+            Tree       : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Tree;
+         begin
+            Syntax_Trees.Copy_Tree
+              (Source      => Tree,
+               Destination => BNF_Tree,
+               User_Data   => Input_Data'Unchecked_Access);
+
+            if Trace_Generate_EBNF > Detail then
+               Ada.Text_IO.Put_Line ("EBNF tree:");
+               BNF_Tree.Print_Tree;
+            end if;
+
+            WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (BNF_Tree, Input_Data);
+
+            if Trace_Generate_EBNF > Detail then
+               Ada.Text_IO.New_Line;
+               Ada.Text_IO.Put_Line ("BNF tree:");
+               BNF_Tree.Print_Tree;
+            end if;
+
+            if Output_BNF then
+               WisiToken_Grammar_Editing.Print_Source (-Output_File_Name_Root & "_bnf.wy", BNF_Tree, Input_Data);
+            end if;
+
+            if Trace_Time then
+               Ada.Text_IO.Put_Line
+                 ("translate to bnf time:" & Duration'Image (Ada.Calendar."-" (Ada.Calendar.Clock, Time_Start)));
+            end if;
+
+            if WisiToken.Generate.Error then
+               raise WisiToken.Grammar_Error with "errors during translating EBNF to BNF: aborting";
+            end if;
+         end;
+      end Translate_To_BNF;
 
       Cached_Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
@@ -404,65 +461,17 @@ begin
         (if Input_Data.Generate_Set = null then False else Input_Data.Generate_Set'Length > 1) or
            (if Command_Generate_Set = null then False else Command_Generate_Set'Length > 1);
 
-      if Input_Data.Meta_Syntax = EBNF_Syntax and (for some Tup of Generate_Set.all => Tup.Gen_Alg /= Tree_Sitter) then
-         if Trace_Generate_EBNF > Outline then
-            Ada.Text_IO.Put_Line ("Translate EBNF tree to BNF");
-         end if;
-
-         declare
-            Time_Start : constant Ada.Calendar.Time := Ada.Calendar.Clock;
-            Tree       : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Tree;
-         begin
-            Syntax_Trees.Copy_Tree
-              (Source      => Tree,
-               Destination => Saved_EBNF_Tree,
-               User_Data   => Input_Data'Unchecked_Access);
-
-            if Trace_Generate_EBNF > Detail then
-               Ada.Text_IO.Put_Line ("EBNF tree:");
-               Tree.Print_Tree;
-            end if;
-
-            WisiToken_Grammar_Editing.Translate_EBNF_To_BNF (Tree, Input_Data);
-
-            if Trace_Generate_EBNF > Detail then
-               Ada.Text_IO.New_Line;
-               Ada.Text_IO.Put_Line ("BNF tree:");
-               Tree.Print_Tree;
-            end if;
-
-            if Output_BNF then
-               WisiToken_Grammar_Editing.Print_Source (-Output_File_Name_Root & "_bnf.wy", Tree, Input_Data);
-            end if;
-
-            if Trace_Time then
-               Ada.Text_IO.Put_Line
-                 ("translate to bnf time:" & Duration'Image (Ada.Calendar."-" (Ada.Calendar.Clock, Time_Start)));
-            end if;
-
-            if WisiToken.Generate.Error then
-               raise WisiToken.Grammar_Error with "errors during translating EBNF to BNF: aborting";
-            end if;
-         end;
-
-      else
-         if Trace_Generate_EBNF > Outline then
-            Ada.Text_IO.Put_Line ("not translating to BNF");
-         end if;
-         Input_Data.EBNF_Ok := True;
-      end if;
-
       for Tuple of Generate_Set.all loop
-         Parse_Check
-           (Lexer  => Tuple.Lexer,
-            Parser => Tuple.Gen_Alg,
-            Phase  => WisiToken_Grammar_Runtime.Other);
-
          case Tuple.Gen_Alg is
          when None | External =>
             null;
 
          when Tree_Sitter =>
+            Parse_Check
+              (Lexer  => Tuple.Lexer,
+               Parser => Tuple.Gen_Alg,
+               Phase  => WisiToken_Grammar_Runtime.Other);
+
             declare
                use WisiToken.Generate.Tree_Sitter;
 
@@ -478,7 +487,7 @@ begin
                   Print_Tree_Sitter
                     (Input_Data,
                      Tree,
-                     Grammar_Parser.Tree.Lexer,
+                     Tree.Lexer,
                      Output_File_Name => -Output_File_Name_Root & ".js",
                      Language_Name    => -Language_Name);
 
@@ -488,16 +497,28 @@ begin
                end Translate;
             begin
 
-               if Saved_EBNF_Tree.Is_Empty then
-                  Translate (Grammar_Parser.Tree);
-               else
-                  Translate (Saved_EBNF_Tree);
-               end if;
+               Translate (Grammar_Parser.Tree);
 
                Create_Test_Main (-Output_File_Name_Root);
             end;
 
          when LR_Packrat_Generate_Algorithm =>
+            Parse_Check
+              (Lexer  => Tuple.Lexer,
+               Parser => Tuple.Gen_Alg,
+               Phase  => WisiToken_Grammar_Runtime.Other);
+
+            if Input_Data.Meta_Syntax = EBNF_Syntax and BNF_Tree.Is_Empty then
+               Translate_To_BNF;
+
+               Input_Data.Reset; -- only resets Other data
+
+               WisiToken.Parse.LR.Parser_No_Recover.Execute_Actions
+                 (BNF_Tree, Grammar_Parser.Productions, Input_Data'Unchecked_Access);
+               if WisiToken.Generate.Error then
+                  raise WisiToken.Grammar_Error with "errors during grammar generation: aborting";
+               end if;
+            end if;
 
             if Input_Data.Language_Params.LR1_Hash_Table_Size /=
               WisiToken.Generate.LR1_Items.Item_Set_Trees.Default_Rows and

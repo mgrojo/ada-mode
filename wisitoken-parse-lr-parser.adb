@@ -395,7 +395,7 @@ package body WisiToken.Parse.LR.Parser is
                               Last_Token_Char_Region_Last : constant Buffer_Pos := Shared_Parser.Tree.Char_Region
                                 (Current_Token.Node, Trailing_Non_Grammar => False).Last;
                               Last_Token_Line_Region_Last : constant Line_Number_Type := Shared_Parser.Tree.Line_Region
-                                (Current_Token).Last;
+                                (Current_Token, Trailing_Non_Grammar => True).Last;
 
                               EOI_Token : constant Lexer.Token :=
                                 (ID          => Shared_Parser.Tree.Lexer.Descriptor.EOI_ID,
