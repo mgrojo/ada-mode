@@ -14,6 +14,7 @@
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 %non_grammar <comment-new-line> COMMENT ";;"
+%non_grammar <delimited-text> RAW_CODE "%{" "}%"
 
 %mckenzie_cost_default 2 2 2 2
 

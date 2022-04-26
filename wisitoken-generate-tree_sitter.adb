@@ -183,7 +183,7 @@ package body WisiToken.Generate.Tree_Sitter is
                      if Trace_Generate_EBNF > Outline then
                         Ada.Text_IO.Put_Line
                           ("ignore lines " & Ignore_Lines'Image & " line" &
-                             Tree.Line_Region (Tree.Child (Node, 1)).First'Image);
+                             Tree.Line_Region (Tree.Child (Node, 1), Trailing_Non_Grammar => True).First'Image);
                      end if;
                   end;
 
@@ -193,7 +193,7 @@ package body WisiToken.Generate.Tree_Sitter is
                   if Trace_Generate_EBNF > Outline then
                      Ada.Text_IO.Put_Line
                        ("ignore lines false line" &
-                          Tree.Line_Region (Tree.Child (Node, 1)).First'Image);
+                          Tree.Line_Region (Tree.Child (Node, 1), Trailing_Non_Grammar => True).First'Image);
                   end if;
 
                when others =>
@@ -275,7 +275,7 @@ package body WisiToken.Generate.Tree_Sitter is
                   if Ignore_Lines and Trace_Generate_EBNF > Outline then
                      Ada.Text_IO.Put_Line
                        ("ignore lines true line" &
-                          Tree.Line_Region (Tree.Child (Node, 1)).First'Image);
+                          Tree.Line_Region (Tree.Child (Node, 1), Trailing_Non_Grammar => True).First'Image);
                   end if;
 
                end;
@@ -629,7 +629,6 @@ package body WisiToken.Generate.Tree_Sitter is
          Delete_Node (Node);
       end loop;
 
-      Data.EBNF_Allowed := True;
       Data.Error_Reported.Clear;
 
       Tree.Validate_Tree

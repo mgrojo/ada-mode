@@ -191,7 +191,8 @@ package body WisiToken_Grammar_Editing is
      return Valid_Node_Access
    is
       Aug : constant Augmented_Access := new WisiToken_Grammar_Runtime.Augmented'
-        (Auto_Token_Labels => Auto_Token_Labels,
+        (EBNF              => False,
+         Auto_Token_Labels => Auto_Token_Labels,
          Edited_Token_List => Edited_Token_List);
 
       RHS : constant Valid_Node_Access :=
@@ -267,6 +268,7 @@ package body WisiToken_Grammar_Editing is
       return Invalid_Node_Access;
    end Find_Declaration;
 
+   EBNF_Allowed : Boolean := True;
    procedure Validate_Node
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
@@ -303,7 +305,7 @@ package body WisiToken_Grammar_Editing is
 
       procedure Check_EBNF_Allowed
       is begin
-         if not Data.EBNF_Allowed then
+         if not EBNF_Allowed then
             Put_Error ("no EBNF allowed");
          end if;
       end Check_EBNF_Allowed;
@@ -631,9 +633,11 @@ package body WisiToken_Grammar_Editing is
    is
       use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
+      use all type Node_Sets.Set;
 
       Data_Access : constant Syntax_Trees.User_Data_Access := Data'Unchecked_Access;
 
+      EBNF_Nodes        : Node_Sets.Set;
       Copied_EBNF_Nodes : Node_Sets.Set;
 
       Symbol_Regexp : constant GNAT.Regexp.Regexp := GNAT.Regexp.Compile
@@ -644,11 +648,11 @@ package body WisiToken_Grammar_Editing is
 
       procedure Clear_EBNF_Node (Node : in Valid_Node_Access)
       is begin
-         if Data.EBNF_Nodes.Contains (Node) then
+         if EBNF_Nodes.Contains (Node) then
             if Trace_Generate_EBNF > Outline then
                Ada.Text_IO.Put_Line ("clear translated EBNF node " & Trimmed_Image (Get_Node_Index (Node)));
             end if;
-            Data.EBNF_Nodes.Delete (Node);
+            EBNF_Nodes.Delete (Node);
          else
             Copied_EBNF_Nodes.Delete (Node);
          end if;
@@ -693,7 +697,7 @@ package body WisiToken_Grammar_Editing is
             Has_Manual_Label := Has_Manual_Label or
               (Tree.ID (Node) = +rhs_element_ID and then Tree.RHS_Index (Node) = 1);
 
-            Has_EBNF := Has_EBNF or Data.EBNF_Nodes.Contains (Node);
+            Has_EBNF := Has_EBNF or EBNF_Nodes.Contains (Node);
          end Any_EBNF_Manual_Label;
 
       begin
@@ -972,7 +976,8 @@ package body WisiToken_Grammar_Editing is
             Clear_Parents  => True);
 
          Aug : constant Augmented_Access := new WisiToken_Grammar_Runtime.Augmented'
-           (Auto_Token_Labels => Auto_Token_Labels,
+           (EBNF              => False,
+            Auto_Token_Labels => Auto_Token_Labels,
             Edited_Token_List => True);
       begin
          Tree.Set_Augmented (RHS, WisiToken.Syntax_Trees.Augmented_Class_Access (Aug));
@@ -1018,12 +1023,12 @@ package body WisiToken_Grammar_Editing is
               rhs_attribute_ID |
               STRING_LITERAL_2_ID
             then
-               if Data.EBNF_Nodes.Contains (Node) then
+               if EBNF_Nodes.Contains (Node) then
                   --  Node is original, not copied
                   if Trace_Generate_EBNF > Outline then
                      Ada.Text_IO.Put_Line ("erase original deleted EBNF node" & Trimmed_Image (Get_Node_Index (Node)));
                   end if;
-                  Data.EBNF_Nodes.Delete (Node);
+                  EBNF_Nodes.Delete (Node);
                else
                   Copied_EBNF_Nodes.Delete (Node);
                end if;
@@ -1294,7 +1299,8 @@ package body WisiToken_Grammar_Editing is
                      After : Valid_Node_Access := B;
 
                      Aug : constant Augmented_Access := new WisiToken_Grammar_Runtime.Augmented'
-                       (Auto_Token_Labels => Get_RHS_Auto_Token_Labels (B),
+                       (EBNF              => False,
+                        Auto_Token_Labels => Get_RHS_Auto_Token_Labels (B),
                         Edited_Token_List => True);
                   begin
                      loop
@@ -1315,7 +1321,10 @@ package body WisiToken_Grammar_Editing is
                Ada.Text_IO.New_Line;
                if Is_Duplicate then
                   Ada.Text_IO.Put_Line
-                    ("Insert_Optional_RHS duplicate '" & Get_Text (Data, Tree, New_RHS_AC) & "'");
+                    ("Insert_Optional_RHS duplicate '" &
+                       (if New_RHS_AC = null
+                        then "<empty>"
+                        else Get_Text (Data, Tree, New_RHS_AC)) & "'");
                else
                   if Container_ID = +rhs_ID then
                      Ada.Text_IO.Put_Line
@@ -2750,9 +2759,11 @@ package body WisiToken_Grammar_Editing is
 
          Value : constant String      := Get_Text (Data, Tree, Node, Strip_Quotes => True);
          Found : constant Node_Access := Find_Nonterminal (Value, Equal'Unrestricted_Access);
+         --  Found declares a name for the literal
       begin
          if Found = Invalid_Node_Access then
             if GNAT.Regexp.Match (Value, Symbol_Regexp) then
+               --  Don't need to declare keywords.
                Name_Ident := New_Identifier (Ada.Characters.Handling.To_Upper (Value));
             else
                WisiToken.Generate.Put_Error
@@ -2878,38 +2889,73 @@ package body WisiToken_Grammar_Editing is
          end if;
       end Process_Node;
 
-      procedure Check_Original_EBNF
+      procedure Check_Original_Copied_EBNF
       is
          use Ada.Text_IO;
-         Subtree_Root : Node_Access;
+         Subtree_Root  : Node_Access;
+         Error_Present : Boolean := False;
       begin
-         for N of Data.EBNF_Nodes loop
+         for N of EBNF_Nodes loop
             Subtree_Root := Tree.Subtree_Root (N);
             if Subtree_Root /= Tree.Root then
                Put_Line (Current_Error, Tree.Error_Message (N, Tree.Image (N, Node_Numbers => True)));
-               Put_Line (Current_Error, "... not in tree; in root " & Trimmed_Image (Get_Node_Index (Subtree_Root)));
+               Put_Line
+                 (Current_Error,
+                  "... Original_EBNF not in tree; in root " & Trimmed_Image (Get_Node_Index (Subtree_Root)));
                WisiToken.Generate.Error := True;
+               Error_Present := True;
             end if;
          end loop;
-      end Check_Original_EBNF;
-
-      procedure Check_Copied_EBNF
-      is
-         use Ada.Text_IO;
-         Subtree_Root : Node_Access;
-      begin
          for N of Copied_EBNF_Nodes loop
             Subtree_Root := Tree.Subtree_Root (N);
             if Subtree_Root /= Tree.Root then
                Put_Line (Current_Error, Tree.Error_Message (N, Tree.Image (N, Node_Numbers      => True)));
-               Put_Line (Current_Error, "... not in tree; in root" & Trimmed_Image (Get_Node_Index (Subtree_Root)));
+               Put_Line
+                 (Current_Error,
+                  "... Copied_EBNF not in tree; in root" & Trimmed_Image (Get_Node_Index (Subtree_Root)));
                WisiToken.Generate.Error := True;
+               Error_Present := True;
             end if;
          end loop;
-      end Check_Copied_EBNF;
-
+         if Error_Present then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("tree:");
+            Tree.Print_Tree;
+         end if;
+      end Check_Original_Copied_EBNF;
    begin
-      --  First apply labels if needed, so they are consistent in copied RHS
+      EBNF_Allowed := True;
+
+      if Debug_Mode then
+         Tree.Validate_Tree
+           (Data, Data.Error_Reported,
+            Root              => Tree.Root,
+            Validate_Node     => Validate_Node'Access,
+            Node_Index_Order  => True,
+            Byte_Region_Order => True);
+
+         if Data.Error_Reported.Count > 0 then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("initial invalid tree:");
+            Tree.Print_Tree;
+         end if;
+      end if;
+
+      --  Set EBNF_Nodes
+      declare
+         procedure Process_Node (Tree : in out Syntax_Trees.Tree; Node : in Valid_Node_Access)
+         is begin
+            if Tree.Augmented (Node) = null then
+               null;
+            elsif Augmented_Access (Tree.Augmented (Node)).EBNF then
+               EBNF_Nodes.Insert (Node);
+            end if;
+         end Process_Node;
+      begin
+         Tree.Process_Tree (Process_Node'Access);
+      end;
+
+      --  Apply labels if needed, so they are consistent in copied RHS
       declare
          use LR_Utils;
          use LR_Utils.Creators;
@@ -2940,11 +2986,6 @@ package body WisiToken_Grammar_Editing is
          end loop;
       end;
 
-      if Trace_Generate_EBNF > Outline then
-         Ada.Text_IO.New_Line;
-         Ada.Text_IO.Put_Line ("after Add_Token_Labels:");
-      end if;
-
       if Debug_Mode then
          --  We've edited the tree, creating new nodes, so Node_Index_Order is
          --  no longer valid. We've reused name tokens, so byte_region_order is
@@ -2955,31 +2996,34 @@ package body WisiToken_Grammar_Editing is
             Validate_Node     => Validate_Node'Access,
             Node_Index_Order  => False,
             Byte_Region_Order => False);
-         Check_Original_EBNF;
-         Check_Copied_EBNF;
+         if Data.Error_Reported.Count /= 0 then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("invalid tree after Add_Token_Labels:");
+            Tree.Print_Tree;
+         end if;
       end if;
 
       --  Process nodes in node increasing order, so contained items are
       --  translated first, so duplicates of the containing item can be found.
       --
-      --  Process_Node calls Data.EBNF_Nodes.Delete, which is invalid when
+      --  Process_Node calls EBNF_Nodes.Delete, which is invalid when
       --  an iterator is active. So first we extract the list of nodes to
       --  process.
       declare
-         Nodes_To_Process : Valid_Node_Access_Array (1 .. SAL.Base_Peek_Type (Data.EBNF_Nodes.Count)) :=
+         Nodes_To_Process : Valid_Node_Access_Array (1 .. SAL.Base_Peek_Type (EBNF_Nodes.Count)) :=
            --  WORKAROUND: GNAT Community 2020 -ada2020 doesn't support 'of' iterator here
-           --  (for Node of Data.EBNF_Nodes => Node);
+           --  (for Node of EBNF_Nodes => Node);
            (others => Syntax_Trees.Dummy_Node);
          I : SAL.Base_Peek_Type := 1;
       begin
-         for Node of Data.EBNF_Nodes loop
+         for Node of EBNF_Nodes loop
             Nodes_To_Process (I) := Node;
             I := I + 1;
          end loop;
 
          for Node of Nodes_To_Process loop
-            --  Node may have been deleted from Data.EBNF_Nodes
-            if Data.EBNF_Nodes.Contains (Node) then
+            --  Node may have been deleted from EBNF_Nodes
+            if EBNF_Nodes.Contains (Node) then
                if Trace_Generate_EBNF > Outline then
                   Ada.Text_IO.New_Line;
                   Ada.Text_IO.Put_Line
@@ -2998,8 +3042,12 @@ package body WisiToken_Grammar_Editing is
                      Validate_Node     => Validate_Node'Access,
                      Node_Index_Order  => False,
                      Byte_Region_Order => False);
-                  Check_Original_EBNF;
-                  Check_Copied_EBNF;
+                  if Data.Error_Reported.Count /= 0 then
+                     Ada.Text_IO.New_Line;
+                     Ada.Text_IO.Put_Line ("invalid tree after translate one node:");
+                     Tree.Print_Tree;
+                  end if;
+                  Check_Original_Copied_EBNF;
                end if;
             end if;
          end loop;
@@ -3008,7 +3056,7 @@ package body WisiToken_Grammar_Editing is
       declare
          use Ada.Text_IO;
       begin
-         for Node of Data.EBNF_Nodes loop
+         for Node of EBNF_Nodes loop
             Put_Line
               (Current_Error,
                Tree.Error_Message
@@ -3056,7 +3104,12 @@ package body WisiToken_Grammar_Editing is
                         Validate_Node     => Validate_Node'Access,
                         Node_Index_Order  => False,
                         Byte_Region_Order => False);
-                     Check_Copied_EBNF;
+                     if Data.Error_Reported.Count /= 0 then
+                        Ada.Text_IO.New_Line;
+                        Ada.Text_IO.Put_Line ("invalid tree after translate copied node:");
+                        Tree.Print_Tree;
+                     end if;
+                     Check_Original_Copied_EBNF;
                   end if;
                end if;
             end loop;
@@ -3080,7 +3133,7 @@ package body WisiToken_Grammar_Editing is
          end loop;
       end;
 
-      Data.EBNF_Allowed := False;
+      EBNF_Allowed := False;
       if Debug_Mode then
          Tree.Validate_Tree
            (Data, Data.Error_Reported,
@@ -3088,6 +3141,11 @@ package body WisiToken_Grammar_Editing is
             Validate_Node     => Validate_Node'Access,
             Node_Index_Order  => False,
             Byte_Region_Order => False);
+         if Data.Error_Reported.Count /= 0 then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("invalid tree after Data.EBNF_Allowed False:");
+            Tree.Print_Tree;
+         end if;
       end if;
       Data.Meta_Syntax := BNF_Syntax;
 

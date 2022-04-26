@@ -298,16 +298,14 @@ package WisiToken.Lexer is
      return Buffer_Pos
    is abstract
    with Pre'Class => Is_Block_Delimited (Lexer, ID);
-   --  If Inserted, a delimiter for ID was inserted at Byte_Region.First,
-   --  and Byte_Region.Last is the previous end of the token, shifted to
-   --  match the current edited text. If Start, a start delimiter for ID.
-   --  If not Start, an end delimeter was inserted.
+   --  If Inserted, a delimiter for ID (if Start, a start delimiter, else
+   --  an end delimeter) was inserted at Byte_Region.First, and
+   --  Byte_Region.Last is the previous end of the token, shifted to
+   --  match the current edited text. .
    --
-   --  If not Inserted, a delimeter was deleted, and Byte_Region is the
-   --  token region before the deletion, shifted to match the current
-   --  edited text. If Start, a start delimiter for ID was deleted at
-   --  Byte_Region.First. If not Start, an end delimeter was deleted at
-   --  Byte_Region.Last.
+   --  If not Inserted, a delimeter was deleted. If Start, Byte_Region is
+   --  where in the current text to start searching for a start delmiter
+   --  (nominally the old start position). If not Start,
    --
    --  Text was either hidden in the new token, or exposed as code;
    --  return the end of the buffer region that must be scanned by the

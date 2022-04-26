@@ -197,7 +197,8 @@ package body Test_McKenzie_Recover is
       if Error_Node /= Invalid_Node_Access then
          Check_ID (Label_I & ".Error.TOKEN_ID", Parser.Tree.ID (Error_Node), Error_Token_ID);
          Check
-           (Label_I & ".Error_Token.Byte_Region", Parser.Tree.Byte_Region (Error_Node),
+           (Label_I & ".Error_Token.Byte_Region",
+            Parser.Tree.Byte_Region (Error_Node, Trailing_Non_Grammar => False),
             Error_Token_Byte_Region);
 
          declare
@@ -2373,7 +2374,7 @@ package body Test_McKenzie_Recover is
            "begin C; end A;"
         );
 
-      Check ("line_region", Parser.Tree.Line_Region (Parser.Tree.Root), (1, 2));
+      Check ("line_region", Parser.Tree.Line_Region (Parser.Tree.Root, Trailing_Non_Grammar => True), (1, 2));
 
       Check_Recover
         (Label                   => "1",
@@ -2412,11 +2413,11 @@ package body Test_McKenzie_Recover is
                case I is
                when 1 =>
                   Check ("error 1 type", Error in WisiToken.Parse.Lexer_Error, True);
-                  Check ("error 1 pos", Parser.Tree.Byte_Region (Error_Node), (34, 35));
+                  Check ("error 1 pos", Parser.Tree.Byte_Region (Error_Node, Trailing_Non_Grammar => False), (34, 35));
 
                when 2 =>
                   Check ("error 3 type", Error in WisiToken.Parse.Lexer_Error, True);
-                  Check ("error 3 pos", Parser.Tree.Byte_Region (Error_Node), (37, 37));
+                  Check ("error 3 pos", Parser.Tree.Byte_Region (Error_Node, Trailing_Non_Grammar => False), (37, 37));
                end case;
             end;
 

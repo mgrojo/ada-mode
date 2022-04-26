@@ -278,6 +278,11 @@ package WisiToken.Parse is
      return Syntax_Trees.In_Parse_Actions.In_Parse_Action;
 
    function Get_Post_Parse_Action
+     (Productions : in Syntax_Trees.Production_Info_Trees.Vector;
+      ID          : in Production_ID)
+     return Syntax_Trees.Post_Parse_Action;
+
+   function Get_Post_Parse_Action
      (Parser : in Base_Parser;
       ID     : in Production_ID)
      return Syntax_Trees.Post_Parse_Action;

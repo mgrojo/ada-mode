@@ -1345,7 +1345,7 @@ package WisiToken.Syntax_Trees is
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
-      Trailing_Non_Grammar : in Boolean := True)
+      Trailing_Non_Grammar : in Boolean)
      return WisiToken.Line_Region
    with Pre => Tree.Editable;
    --  Lines of tokens in Node. First is the line started by the first
@@ -1359,7 +1359,7 @@ package WisiToken.Syntax_Trees is
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;
       Ref                  : in Stream_Node_Ref;
-      Trailing_Non_Grammar : in Boolean := True)
+      Trailing_Non_Grammar : in Boolean)
      return WisiToken.Line_Region
    with Pre => Tree.Valid_Stream_Node (Ref) and
                (Tree.Parents_Set or Rooted (Ref) or Ref.Node = Tree.First_Terminal (Get_Node (Ref.Element)));
@@ -2310,7 +2310,7 @@ package WisiToken.Syntax_Trees is
    --  We use a precondition on Children, rather than
    --  Valid_Node_Access_Array, so constructs like:
    --
-   --     Tree.Set_Children (node, new_id, tree.childrend())
+   --     Tree.Set_Children (node, new_id, tree.children ())
    --
    --  are legal.
    --
