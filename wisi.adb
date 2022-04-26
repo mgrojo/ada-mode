@@ -190,7 +190,7 @@ package body Wisi is
       Right_Paren_ID : Token_ID renames Data.Right_Paren_ID;
 
       Begin_Token : constant Syntax_Trees.Valid_Node_Access := Tree.Line_Begin_Token
-        (Tree.Line_Region (Anchor_Token).First);
+        (Tree.Line_Region (Anchor_Token, Trailing_Non_Grammar => True).First);
 
       I : Syntax_Trees.Node_Access := Tree.First_Terminal (Anchor_Token);
 
@@ -824,7 +824,7 @@ package body Wisi is
          --  We need more lines in Indents than in Action_Region, for nonterms
          --  that extend outside the action region.
          declare
-            Tree_Line_Region : constant Line_Region := Tree.Line_Region (Tree.Root);
+            Tree_Line_Region : constant Line_Region := Tree.Line_Region (Tree.Root, Trailing_Non_Grammar => True);
          begin
             Data.Indents.Set_First_Last
               (First => Tree_Line_Region.First,
@@ -893,7 +893,8 @@ package body Wisi is
 
       Inserted_Before : constant Valid_Node_Access := Tree.Next_Terminal (Inserted_Token);
 
-      First_Token : constant Node_Access := Tree.Line_Begin_Token (Tree.Line_Region (Inserted_Before).First);
+      First_Token : constant Node_Access := Tree.Line_Begin_Token
+        (Tree.Line_Region (Inserted_Before, Trailing_Non_Grammar => True).First);
 
       Insert_Location : WisiToken.Insert_Location := Before_Next;
    begin
@@ -1733,7 +1734,7 @@ package body Wisi is
    begin
       if Trace_Action > Outline then
          Tree.Lexer.Trace.Put_Line
-           ("indent_action_0: " & Tree.Image
+           ("indent_action_0 " & Tree.Image
               (Nonterm, RHS_Index => True, Node_Numbers => True, Augmented => True, Line_Numbers => True));
       end if;
 
@@ -1763,7 +1764,7 @@ package body Wisi is
             begin
                if Trace_Action > Detail then
                   Tree.Lexer.Trace.Put_Line
-                    ("indent_action_0 code: " & Tree.Image
+                    ("...    code " & Tree.Image
                        (Child,
                         Node_Numbers => Trace_Action > Extra,
                         Line_Numbers => True) & ": " &
@@ -1793,7 +1794,7 @@ package body Wisi is
                   if Comment_Param_Set then
                      if Trace_Action > Detail then
                         Tree.Lexer.Trace.Put_Line
-                          ("indent_action_0 comment: " & Tree.Image
+                          ("... comment " & Tree.Image
                              (Controlling_Token,
                               Node_Numbers => Trace_Action > Extra,
                               Line_Numbers => True) & ": " &
@@ -1816,10 +1817,10 @@ package body Wisi is
                                    (if Params (I).Comment_Present
                                     then -- ada_mode-conditional_expressions.adb case expression for K, if
                                        --  expression blank line.
-                                       Tree.Line_Region (Controlling_Token).Last
+                                       Tree.Line_Region (Controlling_Token, Trailing_Non_Grammar => True).Last
 
                                     else --  ada_mode-conditional_expressions.adb case expression for K.
-                                       Tree.Line_Region (Controlling_Token).First))),
+                                       Tree.Line_Region (Controlling_Token, Trailing_Non_Grammar => True).First))),
                            Indenting_Comment => (if Params (I).Comment_Present then Trailing else Leading));
                      end if;
                   end if;
@@ -1840,7 +1841,8 @@ package body Wisi is
       Label             : in     Hanging_Label)
      return Delta_Type
    is
-      Indenting_Line_Region : constant WisiToken.Line_Region := Tree.Line_Region (Indenting_Token);
+      Indenting_Line_Region : constant WisiToken.Line_Region := Tree.Line_Region
+        (Indenting_Token, Trailing_Non_Grammar => True);
 
       Indenting : constant Wisi.Indenting := Compute_Indenting (Data, Tree, Indenting_Token);
 
@@ -2397,7 +2399,7 @@ package body Wisi is
      return Integer
    is
       Line_Begin_Token : constant Syntax_Trees.Node_Access := Tree.Line_Begin_Token
-        (Tree.Line_Region (Anchor_Token).First);
+        (Tree.Line_Region (Anchor_Token, Trailing_Non_Grammar => True).First);
    begin
       return Offset + Integer
         (Tree.Char_Region (Anchor_Token, Trailing_Non_Grammar => False).First -
@@ -2449,11 +2451,12 @@ package body Wisi is
       Offset            : in Integer)
      return Delta_Type
    is
-      Anchor_Line    : constant Line_Number_Type := Tree.Line_Region (Anchor_Token).First;
+      Anchor_Line    : constant Line_Number_Type := Tree.Line_Region
+        (Anchor_Token, Trailing_Non_Grammar => True).First;
       Indenting_Line : constant Line_Number_Type :=
         (if Indenting_Comment
          then Compute_Indenting (Data, Tree, Indenting_Token).Comment.First
-         else Tree.Line_Region (Indenting_Token).Last);
+         else Tree.Line_Region (Indenting_Token, Trailing_Non_Grammar => True).Last);
    begin
       if Anchor_Line = Indenting_Line then
          --  test/ada_mode-interactive_1.adb:
@@ -2495,7 +2498,11 @@ package body Wisi is
             return (Simple, (Int, Invalid_Line_Number, Param.Param.Int_Delta));
 
          when Int =>
-            return (Simple, (Int, Tree.Line_Region (Indenting_Token).First, Param.Param.Int_Delta));
+            return
+              (Simple,
+               (Int,
+                Tree.Line_Region (Indenting_Token, Trailing_Non_Grammar => True).First,
+                Param.Param.Int_Delta));
 
          when Simple_Param_Anchored =>
             --  [2] wisi-anchored, wisi-anchored%

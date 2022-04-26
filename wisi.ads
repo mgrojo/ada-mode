@@ -659,7 +659,7 @@ private
       Tree : in WisiToken.Syntax_Trees.Tree;
       Node : in WisiToken.Syntax_Trees.Valid_Node_Access)
      return Wisi.Indenting
-   with Pre => Tree.Line_Region (Node) /= WisiToken.Null_Line_Region and
+   with Pre => Tree.Line_Region (Node, Trailing_Non_Grammar => False) /= WisiToken.Null_Line_Region and
                Tree.SOI /= Node and Tree.EOI /= Node;
    --  Return Node.Augmented.Indenting, computing it first if needed.
 
