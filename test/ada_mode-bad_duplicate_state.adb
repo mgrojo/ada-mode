@@ -5,7 +5,7 @@ procedure Ada_Mode.Bad_Duplicate_State
 is
    use Children_Vectors;
    Ret_Vec : Vector;
-   TDH     : Token_Data_Handler renames Node;
+   Tdh     : Token_Data_Handler renames Node;
 begin
    null;
 end Ada_Mode.Bad_Duplicate_State;

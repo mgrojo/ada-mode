@@ -9,7 +9,7 @@
 -- better.
 
 --EMACSCMD:(progn (wisi-parse-buffer 'indent)(length (wisi-parser-local-parse-errors wisi-parser-local)))
---EMACSRESULT:1
+--EMACSRESULT:2
 if Foo then
    Bar;
 end if;

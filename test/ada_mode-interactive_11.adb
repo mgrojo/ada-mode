@@ -1,4 +1,5 @@
 -- From a real editing session. With incremental parse, error did not go away.
+--EMACS_SKIP_UNLESS:wisi-incremental-parse-enable
 --EMACSCMD:(setq skip_recase_test t)
 package Ada_Mode.Interactive_11 is
    --EMACSCMD:(progn (end-of-line 4)(kill-region (point) (progn (forward-symbol 3)(point)))(delete-char 1))

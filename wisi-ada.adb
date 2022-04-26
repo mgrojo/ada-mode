@@ -63,8 +63,10 @@ package body Wisi.Ada is
          --  Indenting comment after 'record', other comment, component or 'end'
          --
          --  Ensure line containing 'record' is anchored to Anchor_Token.
-         if Data.Indents (Tree.Line_Region (Record_Token).First).Label /= Anchored then
-            if Tree.Line_Region (Anchor_Token).First /= Tree.Line_Region (Record_Token).First then
+         if Data.Indents (Tree.Line_Region (Record_Token, Trailing_Non_Grammar => True).First).Label /= Anchored then
+            if Tree.Line_Region (Anchor_Token, Trailing_Non_Grammar => True).First /=
+              Tree.Line_Region (Record_Token, Trailing_Non_Grammar => True).First
+            then
                --  We don't pass Indenting_Comment here, because 'record' is code.
                Indent_Token_1
                  (Data,
@@ -81,7 +83,8 @@ package body Wisi.Ada is
          return Indent_Anchored_2
            (Data, Tree, Anchor_Token, Indenting_Token, Indenting_Comment, Current_Indent_Offset
               (Tree, Anchor_Token,
-               (if Tree.Line_Region (Anchor_Token).First = Tree.Line_Region (Record_Token).First
+               (if Tree.Line_Region (Anchor_Token, Trailing_Non_Grammar => True).First =
+                  Tree.Line_Region (Record_Token, Trailing_Non_Grammar => True).First
                 then Offset
                 else Offset + Ada_Indent_Record_Rel_Type)));
       end if;
@@ -152,7 +155,7 @@ package body Wisi.Ada is
       Association_List := Tree.Child (Actual_Parameter_Part, 2);
       pragma Assert (Tree.ID (Association_List) = +parameter_association_list_ID);
 
-      Edit_End := Tree.Byte_Region (Call).Last;
+      Edit_End := Tree.Byte_Region (Call, Trailing_Non_Grammar => False).Last;
 
       Method := Tree.Child (Tree.Child (Call, 1), 1);
 
@@ -260,7 +263,7 @@ package body Wisi.Ada is
          Call := Tree.Child (Tree.Child (Call, 1), 1);
       end if;
 
-      Edit_End      := Tree.Byte_Region (Call).Last;
+      Edit_End      := Tree.Byte_Region (Call, Trailing_Non_Grammar => False).Last;
       Object_Method := Tree.Child (Call, 1);
       loop
          case To_Token_Enum (Tree.ID (Object_Method)) is
@@ -329,7 +332,7 @@ package body Wisi.Ada is
       Association_List := Tree.Child (Tree.Child (Call, 2), 2);
       pragma Assert (Tree.ID (Association_List) = +parameter_association_list_ID);
 
-      Edit_End := Tree.Byte_Region (Call).Last;
+      Edit_End := Tree.Byte_Region (Call, Trailing_Non_Grammar => False).Last;
 
       if Tree.RHS_Index (Association_List) /= 1 then
          Unrecognized ("two args", Tree, Data, Association_List);
@@ -391,7 +394,7 @@ package body Wisi.Ada is
       Association_List := Tree.Child (Tree.Child (Call, 2), 2);
       pragma Assert (Tree.ID (Association_List) = +parameter_association_list_ID);
 
-      Edit_End := Tree.Byte_Region (Call).Last;
+      Edit_End := Tree.Byte_Region (Call, Trailing_Non_Grammar => False).Last;
 
       if Tree.RHS_Index (Association_List) /= 0 then
          Unrecognized ("one arg", Tree, Data, Association_List);
@@ -896,7 +899,7 @@ package body Wisi.Ada is
       Indenting    : constant Wisi.Indenting                 := Compute_Indenting (Data, Tree, Indenting_Token);
       Anchor_Token : constant Syntax_Trees.Valid_Node_Access := Tree.Child (Tree.Parent (Indenting_Token), 2);
    begin
-      if Tree.Line_Region (Indenting_Token).First = Indenting.Code.First then
+      if Tree.Line_Region (Indenting_Token, Trailing_Non_Grammar => True).First = Indenting.Code.First then
          --  aspect_definition starts a line; anchor the aspect_definition to
          --  the line containing '=>' with offset ada_indent_broken.
          return Indent_Anchored_2 (Data, Tree, Anchor_Token, Indenting_Token, Indenting_Comment, Ada_Indent_Broken);
@@ -958,7 +961,7 @@ package body Wisi.Ada is
 
       Indenting : constant Wisi.Indenting := Compute_Indenting (Data, Tree, Indenting_Token);
    begin
-      if Tree.Line_Region (Indenting_Token).First = Indenting.Code.First then
+      if Tree.Line_Region (Indenting_Token, Trailing_Non_Grammar => True).First = Indenting.Code.First then
          if Ada_Indent_Return <= 0 then
             declare
                Anchor_Token : constant Syntax_Trees.Valid_Node_Access :=
@@ -996,7 +999,7 @@ package body Wisi.Ada is
       return Indent_Record
         (Parse_Data_Type (Data),
          Tree,
-         Tree.Line_Region (Nonterm).First,
+         Tree.Line_Region (Nonterm, Trailing_Non_Grammar => True).First,
          Anchor_Token      => Tree.Child (Nonterm, Positive_Index_Type (Integer'(Args (1)))),
          Record_Token      => Tree.Child (Nonterm, Positive_Index_Type (Integer'(Args (2)))),
          Indenting_Token   => Indenting_Token,
@@ -1042,7 +1045,7 @@ package body Wisi.Ada is
       return Indent_Record
         (Parse_Data_Type (Data),
          Tree,
-         Tree.Line_Region (Nonterm).First,
+         Tree.Line_Region (Nonterm, Trailing_Non_Grammar => True).First,
          Anchor_Token      => Tree_Anchor,
          Record_Token      => Tree.First_Terminal (Record_Token),
          Indenting_Token   => Indenting_Token,

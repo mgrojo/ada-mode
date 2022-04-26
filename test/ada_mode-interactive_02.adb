@@ -70,14 +70,14 @@ is
    -- subprogram_body as desired, but others delete 'begin' and complete
    -- a subprogram_body_stub, or delete 'is begin' and complete a
    -- subprogram_specification. Each of those solutions result in
-   -- different indentations (6, 5, 3). They all eventuallly lead to
+   -- different indentations (6, 5, 3). They all eventually lead to
    -- identical parser stacks, where one is arbitrarily dropped.
    --
    -- After 'end Function_Access_1;' is inserted, there is no error, so
    -- there is only one possible indentation for 'null;'.
 
    --EMACSCMD:(progn (end-of-line 7)(delete-char -2)(newline-and-indent))
-   --EMACSCMD:(progn (end-of-line 6)(execute-kbd-macro "is begin\rnull;\rend Function_Access_1;\r")(current-indentation))
+   --EMACSCMD:(progn (end-of-line 6)(execute-kbd-macro "is begin\rnull;\rend Function_Access_1;\r")(wisi-indent-statement)(current-indentation))
    --EMACSRESULT:3
    function Function_Access_1
      (A_Param : in Float)

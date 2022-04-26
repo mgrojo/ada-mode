@@ -2,7 +2,7 @@
 --
 --
 --
---  Copyright (C) 2019 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2019 - 2022 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -92,7 +92,7 @@ begin
             Children : constant Node_Access_Array := Tree.Children (Element (Param_Cur));
          begin
             for Ident of Creators.Create_List (Tree, Children (1), +defining_identifier_list_ID, +IDENTIFIER_ID) loop
-               Param.Identifiers.Append (Tree.Byte_Region (Ident));
+               Param.Identifiers.Append (Tree.Byte_Region (Ident, Trailing_Non_Grammar => False));
             end loop;
 
             for I in 3 .. Children'Last loop
@@ -114,7 +114,7 @@ begin
                   Param.Not_Null_P := True;
 
                when name_ID =>
-                  Param.Type_Region := Tree.Byte_Region (Children (I));
+                  Param.Type_Region := Tree.Byte_Region (Children (I), Trailing_Non_Grammar => False);
 
                when access_definition_ID =>
                   declare
@@ -140,12 +140,12 @@ begin
                      end if;
 
                      Param.Type_Region :=
-                       (Tree.Byte_Region (Access_Children (Last_Child)).First,
-                        Tree.Byte_Region (Children (I)).Last);
+                       (Tree.Byte_Region (Access_Children (Last_Child), Trailing_Non_Grammar => False).First,
+                        Tree.Byte_Region (Children (I), Trailing_Non_Grammar => False).Last);
                   end;
 
                when assign_value_ID =>
-                  Param.Default_Exp := Tree.Byte_Region (Tree.Child (Children (I), 2));
+                  Param.Default_Exp := Tree.Byte_Region (Tree.Child (Children (I), 2), Trailing_Non_Grammar => False);
 
                when others =>
                   Raise_Programmer_Error ("unknown format_parameter_list token id", Tree, Children (I));
@@ -160,7 +160,8 @@ begin
          Result     : Unbounded_String := +"(";
          Line_End   : Integer          := 0;     --  Index of last LF char in Result.
          Multi_Line : constant Boolean :=
-           Tree.Line_Region (First_Param_Node).First < Tree.Line_Region (Last_Param_Node).First;
+           Tree.Line_Region (First_Param_Node, Trailing_Non_Grammar => False).First <
+           Tree.Line_Region (Last_Param_Node, Trailing_Non_Grammar => False).First;
          Ident_Len  : Integer          := 0;     -- Maximum over all params, includes commas
          Type_Len   : Integer          := 0;
          Aliased_P  : Boolean          := False; -- "_P" for "present"

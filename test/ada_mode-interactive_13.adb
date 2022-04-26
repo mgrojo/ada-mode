@@ -1,9 +1,11 @@
-package body Test_Edit_Source is
+package body Ada_Mode.Interactive_13 is
    -- No header comment; part of test. From a real editing session.
+
+   --EMACS_SKIP_UNLESS:wisi-incremental-parse-enable
    --EMACSCMD:(setq skip-recase-test t)
 
    --EMACSCMD:(progn (goto-char (point-min))(wisi-replay-kbd-macro "-- Comment\r"))
-   --EMACSCMD:(progn (wisi-replay-undo 11)(wisi-parser-local-parse-errors wisi-parser-local))
+   --EMACSCMD:(progn (wisi-replay-undo 11)(length (wisi-parser-local-parse-errors wisi-parser-local)))
    --EMACSRESULT:0
 
    procedure Non_Ascii (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -37,4 +39,4 @@ package body Test_Edit_Source is
         ("1", Initial_Source, Initial_Source'Last, Changes, Expected_Source, Expected_Source'Last, Expected_KMN_List);
    end Non_Ascii;
 
-end Test_Edit_Source;
+end Ada_Mode.Interactive_13;
