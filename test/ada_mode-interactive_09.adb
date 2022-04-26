@@ -14,7 +14,7 @@ procedure Ada_Mode.Interactive_09 is
       end loop;
    end Code_Point_Length;
 
-   --EMACSCMD:(length (wisi-parser-parse-errors wisi--parser))
+   --EMACSCMD:(length (wisi-parser-local-parse-errors wisi-parser-local))
    --EMACSRESULT: 0
 begin
    null;

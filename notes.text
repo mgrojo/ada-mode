@@ -50,6 +50,10 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+try packrat
+
+time %lr1_hash_table_size
+
 review FIXMEs
     (grep-find "find c:/Projects/org.emacs.wisi.stephe-1 -type f -print | \"xargs\" grep  -nH --null FIXME:")
     c:/Projects/org.emacs.wisi.stephe-1/build/Makefile
@@ -114,6 +118,8 @@ first parser operation after opening a large file is slow
     meanwhile separate thread does full parse
     wait until get user requests for it
 
+    or maybe packrat is faster?
+
  Negotiate with Eurocontrol:
     ask AdaCore:
         old issues: SA31-041 Oct 31, 2019 GNAT Studio using libadalang for format? (closed)
@@ -146,6 +152,9 @@ read Kate's book on culture/persuasion.
 
  after incremental
 review this file!
+
+classify errors as local/long distance
+    in Edit_Tree, only undo long distance if not affected by a change.
 
 trying to copy c:/Projects/org.wisitoken.stephe-1/test/test_incremental.adb:623 Edit_Comment_14
     wisi-validate-cache-current-statement cancels active region highlight

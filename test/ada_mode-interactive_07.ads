@@ -4,7 +4,7 @@ package Ada_Mode.Interactive_07 is
 
    --EMACSCMD:(progn (forward-line 1)(search-forward "--  1. ")(execute-kbd-macro "foo bar")(indent-new-comment-line))
    --EMACSCMD:(progn (undo 3)(indent-for-tab-command))
-   --EMACSCMD:(length (wisi-parser-parse-errors wisi--parser))
+   --EMACSCMD:(length (wisi-parser-local-parse-errors wisi-parser-local))
    --EMACSRESULT:0
    function Find_New_Line
      (Tree : in Syntax_Trees.Tree;

@@ -27,6 +27,8 @@ project Ada_Mode_Compile is
       -- These have incomplete code deliberately; used for interactive editing test (via EMACSCMD)
       "ada_mode-incremental_recover_01.adb",
       "ada_mode-incremental_recover_02.adb",
+      "ada_mode-incremental_03.adb",
+      "ada_mode-incremental_04.adb",
       "ada_mode-interactive_case_statement.adb",
       "ada_mode-interactive_01.adb",
       "ada_mode-interactive_02.adb",
@@ -100,6 +102,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_45.adb",
       "ada_mode-recover_46.adb",
       "ada_mode-recover_48.adb",
+      "ada_mode-recover_49.adb",
       "ada_mode-recover_align_1.adb",
       "ada_mode-recover_ambiguous_parse.adb",
       "ada_mode-recover_bad_char.adb",

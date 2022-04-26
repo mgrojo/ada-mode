@@ -1245,7 +1245,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                               exit when -Tree.ID (Peek_Sequential_Terminal (Peek_State)) not in
                                 IDENTIFIER_ID | DOT_ID;
                               Result := Result & Tree.Lexer.Buffer_Text
-                                (Tree.Byte_Region (Peek_Sequential_Terminal (Peek_State)));
+                                (Tree.Byte_Region
+                                   (Peek_Sequential_Terminal (Peek_State), Trailing_Non_Grammar => False));
                            end loop;
                         end;
                      end if;
@@ -1508,7 +1509,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                            exit when -Tree.ID (Peek_Sequential_Terminal (Peek_State)) not in
                              IDENTIFIER_ID | DOT_ID;
                            Result := Result & Tree.Lexer.Buffer_Text
-                             (Tree.Byte_Region (Peek_Sequential_Terminal (Peek_State)));
+                             (Tree.Byte_Region (Peek_Sequential_Terminal (Peek_State), Trailing_Non_Grammar => False));
                         end loop;
                         return -Result;
                      end Get_End_Name;

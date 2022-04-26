@@ -16,7 +16,7 @@ is
 
    -- There should be no syntax errors at this point. Note that in
    -- incremental parse, there are still virtual tokens in the tree.
-   --EMACSCMD:(length (wisi-parser-parse-errors wisi--parser))
+   --EMACSCMD:(length (wisi-parser-local-parse-errors wisi-parser-local))
    --EMACSRESULT: 0
 begin
    null;
