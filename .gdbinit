@@ -7,11 +7,11 @@
 # run_*_parse parse_partial etc
 set args parse_partial indent test/gpr/debug.gpr --verbosity "debug=1 action=3"
 
-# Process_Command verbosity
-break run_wisi_common_parse.adb:651
-
 # gpr_query
 #set args -P test/ada_mode.gpr --db=c:/tmp/gpr_query.db --tracefile=gpr_query.trace
+
+# Process_Command verbosity
+break run_wisi_common_parse.adb:651
 
 #catch excep
 catch excep ADA.ASSERTIONS.ASSERTION_ERROR
