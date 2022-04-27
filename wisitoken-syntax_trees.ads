@@ -1569,8 +1569,8 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Access)
      return Valid_Node_Access
    with Pre => Tree.Parents_Set;
-   --  Return first node after Node that has a non-empty Non_Grammar.
-   --  If Node = Tree.Root or Tree.EOI, return Tree.EOI.
+   --  Return first node after Last_Terminal (Node) that has a non-empty
+   --  Non_Grammar. If Node = Tree.Root or Tree.EOI, return Tree.EOI.
 
    procedure Next_Non_Grammar
      (Tree : in     Syntax_Trees.Tree;

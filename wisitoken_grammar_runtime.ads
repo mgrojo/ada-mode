@@ -56,6 +56,10 @@ package WisiToken_Grammar_Runtime is
       Raw_Code             : WisiToken.BNF.Raw_Code;
       Language_Params      : WisiToken.BNF.Language_Param_Type;
       Tokens               : aliased WisiToken.BNF.Tokens;
+
+      Suppress : WisiToken.BNF.String_Pair_Lists.List;
+      --  Declaration name, warning label; suppress warnings.
+
       Conflicts            : WisiToken.BNF.Conflict_Lists.List;
       McKenzie_Recover     : WisiToken.BNF.McKenzie_Recover_Param_Type;
       Max_Parallel         : SAL.Base_Peek_Type                    := 15;

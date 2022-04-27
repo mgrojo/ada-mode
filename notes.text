@@ -31,17 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-run all ada-mode tests
-
-editing wisitoken_grammar_editing.adb to add "EBNF              => False," in Aug
-    (parse_error "wisitoken_grammar_editing.adb:3595:1: Ambiguous parse: 2 parsers active.")
-    still a bug in duplicate_states?
-
-
-ediff of *.wy hangs
-    mmm-mode vs wisi-parse-incremental :wait nil
-
-
 ada_lite_ebnf packrat
     in o.w.s-2
 

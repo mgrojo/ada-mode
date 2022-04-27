@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -25,7 +25,8 @@ package body WisiToken.Generate is
    function Error_Message
      (File_Name : in String;
       File_Line : in Line_Number_Type;
-      Message   : in String)
+      Message   : in String;
+      Warning   : in Boolean := False)
      return String
    is
       use Ada.Directories;
@@ -33,8 +34,11 @@ package body WisiToken.Generate is
       use Ada.Strings;
    begin
       return Simple_Name (File_Name) & ":" &
-        Trim (Line_Number_Type'Image (File_Line), Left) & ":1: " & Message;
+        Trim (Line_Number_Type'Image (File_Line), Left) & ":1: " &
+        (if Warning then "warning: " else "error: ") &
+        Message;
       --  Column number is 1 origin in Gnu error messages [gnu_coding]
+      --  warning/error is not in [gnu_coding], but is consistent with gcc.
    end Error_Message;
 
    procedure Put_Error (Message : in String)
@@ -42,6 +46,12 @@ package body WisiToken.Generate is
       Error := True;
       Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, Message);
    end Put_Error;
+
+   procedure Put_Warning (Message : in String)
+   is begin
+      Warning := True;
+      Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, Message);
+   end Put_Warning;
 
    procedure Check_Consistent
      (Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;

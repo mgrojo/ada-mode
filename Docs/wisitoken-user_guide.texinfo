@@ -670,6 +670,15 @@ recovery, but it will still be robust.
 @item %start <nontermininal>
 The start token for the grammar.
 
+@item %suppress <nontermininal> <warning label>
+Suppress the indicated warning for the nonterminal.
+
+@code{<warning label>} is a copy of part of the text of the warning
+message. The supported warnings are:
+@itemize
+@item may never match; it shares a prefix
+@end itemize
+
 @item %lexer_regexp <name> <value>
 Declare a named regular expression with name and current lexer
 syntax. The name may then occur in another lexer regular expression.
