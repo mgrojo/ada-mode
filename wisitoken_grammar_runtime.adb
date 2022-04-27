@@ -281,6 +281,7 @@ package body WisiToken_Grammar_Runtime is
       Data.Tokens            :=
         (Virtual_Identifiers => Data.Tokens.Virtual_Identifiers,
          others => <>);
+      Data.Suppress.Clear;
       Data.Conflicts.Clear;
       Data.McKenzie_Recover  := (others => <>);
       Data.Rule_Count        := 0;
@@ -816,6 +817,11 @@ package body WisiToken_Grammar_Runtime is
             elsif Kind = "start" then
                Data.Language_Params.Start_Token := +Get_Text (Data, Tree, Tree.Child (Nonterm, 3));
 
+            elsif Kind = "suppress" then
+               Data.Suppress.Append
+                 ((Name  => +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
+                   Value => +Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 2, Strip_Quotes => True)));
+
             elsif Kind = "lexer_regexp" then
                Data.Tokens.Lexer_Regexps.Append
                  ((+Get_Child_Text (Data, Tree, Tree.Child (Nonterm, 3), 1),
@@ -1021,8 +1027,8 @@ package body WisiToken_Grammar_Runtime is
          raise Grammar_Error with Tree.Error_Message
            (Tree.Child (Nonterm, Token), "EBNF syntax used, but BNF specified; set '%meta_syntax EBNF'");
       when Other =>
-         WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
-           ("untranslated EBNF node", Tree, Tree.Parent (Tree.Child (Nonterm, Token)));
+         Put_Error (Tree.Error_Message (Tree.Child (Nonterm, Token), "untranslated EBNF node"));
+         raise SAL.Programmer_Error;
       end case;
    end Check_EBNF;
 

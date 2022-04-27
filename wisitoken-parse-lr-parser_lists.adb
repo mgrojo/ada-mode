@@ -196,13 +196,16 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Ref_2 : Stream_Node_Parents := Tree.To_Stream_Node_Parents
               (Tree.To_Rooted_Ref (Stack_2, Tree.Peek (Stack_2)));
          begin
+            Tree.Last_Terminal (Ref_1, Stack_1);
             loop
-               Tree.Last_Terminal (Ref_1, Stack_1);
                exit when Tree.Label (Ref_1.Ref.Node) = Source_Terminal;
+               Tree.Prev_Terminal (Ref_1, Stack_1);
             end loop;
+
+            Tree.Last_Terminal (Ref_2, Stack_2);
             loop
-               Tree.Last_Terminal (Ref_2, Stack_2);
                exit when Tree.Label (Ref_1.Ref.Node) = Source_Terminal;
+               Tree.Prev_Terminal (Ref_2, Stack_2);
             end loop;
             return Tree.Byte_Region (Ref_1.Ref.Node, Trailing_Non_Grammar => False) =
               Tree.Byte_Region (Ref_2.Ref.Node, Trailing_Non_Grammar => False);

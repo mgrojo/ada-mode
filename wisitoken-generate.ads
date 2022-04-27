@@ -33,17 +33,22 @@ with SAL.Gen_Graphs;
 with WisiToken.Productions;
 package WisiToken.Generate is
 
-   Error : Boolean := False;
-   --  Set True by errors during grammar generation
+   Error   : Boolean := False;
+   Warning : Boolean := False;
+   --  Set True by errors/warnings during grammar generation
 
    function Error_Message
      (File_Name : in String;
       File_Line : in WisiToken.Line_Number_Type;
-      Message   : in String)
+      Message   : in String;
+      Warning   : in Boolean := False)
      return String;
 
    procedure Put_Error (Message : in String);
    --  Set Error True, output Message to Standard_Error
+
+   procedure Put_Warning (Message : in String);
+   --  Set Warning True, output Message to Standard_Error
 
    procedure Check_Consistent
      (Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;

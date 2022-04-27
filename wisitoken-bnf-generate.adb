@@ -492,6 +492,7 @@ begin
                      Language_Name    => -Language_Name);
 
                   if WisiToken.Generate.Error then
+                     --  FIXME: support --warning=error
                      raise WisiToken.Grammar_Error with "errors during translating grammar to tree-sitter: aborting";
                   end if;
                end Translate;
@@ -684,8 +685,11 @@ begin
                      end;
                   end if;
 
-                  Packrat_Data.Check_All (Generate_Data.Descriptor.all);
+                  Packrat_Data.Check_All (Generate_Data.Descriptor.all, Input_Data.Suppress);
 
+                  if WisiToken.Generate.Warning then
+                     WisiToken.Generate.Put_Warning ("warnings during packrat generation");
+                  end if;
                end case;
 
                if WisiToken.Generate.Error then
