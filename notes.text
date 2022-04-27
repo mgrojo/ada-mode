@@ -27,6 +27,18 @@ Makefile
 (wisitoken-grammar-set-exec (expand-file-name "wisitoken_grammar_mode_parse.exe"))
 (setq wisi-disable-face t)
 
+update to match o.w/wisitoken_grammar.wy
+    in o.w_g.s-1
+
+edit rhs leaves bogus syntax error
+    debug.cmd reproduces
+    add test/incremental_04.wy; reproduces
+    Edit_Tree is ok; parse needs to right_breakdown rhs_list, rhs_item_list
+        it doesn't try, because IDENTIFIER is not an error there; it looks like the start of a nonterm.
+        so recover should try that, and then erase the error because no insert/delete?
+            push_back not tried because push_back is cost 2, insert ':' is minimal_complete cost 1
+
+
  release process
 (dvc-pull "/Projects/elpa")
 (dvc-sync-review "/Projects/elpa")
