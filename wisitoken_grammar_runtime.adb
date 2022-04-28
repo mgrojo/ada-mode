@@ -1027,7 +1027,11 @@ package body WisiToken_Grammar_Runtime is
          raise Grammar_Error with Tree.Error_Message
            (Tree.Child (Nonterm, Token), "EBNF syntax used, but BNF specified; set '%meta_syntax EBNF'");
       when Other =>
-         Put_Error (Tree.Error_Message (Tree.Child (Nonterm, Token), "untranslated EBNF node"));
+         Put_Error
+           (Tree.Error_Message (Tree.Child (Nonterm, Token), "untranslated EBNF node") &
+              (if Debug_Mode
+               then " " & Tree.Image (Tree.Child (Nonterm, Token), Node_Numbers => True, RHS_Index => True)
+               else ""));
          raise SAL.Programmer_Error;
       end case;
    end Check_EBNF;

@@ -461,7 +461,8 @@ package body WisiToken is
 
             Value : constant Integer := Get_Value;
          begin
-            --  Trace var alphabetical order
+            --  Trace var alphabetical order. When modify this, also modify
+            --  Enable_Trace_Help.
             if Name = "debug" then
                Debug_Mode := Value > 0;
             elsif Name = "action" then
@@ -470,6 +471,8 @@ package body WisiToken is
                Trace_Generate_Conflicts := Value;
             elsif Name = "ebnf" or Name = "generate_ebnf" then
                Trace_Generate_EBNF := Value;
+            elsif Name = "generate" then
+               Trace_Generate := Value;
             elsif Name = "minimal_complete" or Name = "generate_minimal_complete" then
                Trace_Generate_Minimal_Complete := Value;
             elsif Name = "table" or Name = "generate_table" then
@@ -502,17 +505,18 @@ package body WisiToken is
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("debug=0|1 - show stack trace on exception, other debug settings");
-      Put_Line ("action=n - verbosity during parse actions");
-      Put_Line ("ebnf=n generate_ebnf=n - verbosity during translate EBNF to BNF");
-      Put_Line ("minimal_complete=n generate_minimal_complete=n - verbosity during minimal_complete");
-      Put_Line ("table=n generate_table=n - verbosity during generate parse table");
-      Put_Line ("incremental=n incremental_parse=n - verbosity during edit_tree");
-      Put_Line ("lexer=n - verbosity during lexing");
-      Put_Line ("mckenzie=n - verbosity during error recover");
-      Put_Line ("parse=n - verbosity during parsing");
-      Put_Line ("test=n - verbosity during unit tests");
-      Put_Line ("time=n - output times of various operations");
+      Put_Line (Current_Error, "debug=0|1 - show stack trace on exception, other debug settings");
+      Put_Line (Current_Error, "action=n - verbosity during parse actions");
+      Put_Line (Current_Error, "ebnf=n generate_ebnf=n - verbosity during translate EBNF to BNF");
+      Put_Line (Current_Error, "generate=n - top level verbosity during grammar generation");
+      Put_Line (Current_Error, "minimal_complete=n generate_minimal_complete=n - verbosity during minimal_complete");
+      Put_Line (Current_Error, "table=n generate_table=n - verbosity during generate parse table");
+      Put_Line (Current_Error, "incremental=n incremental_parse=n - verbosity during edit_tree");
+      Put_Line (Current_Error, "lexer=n - verbosity during lexing");
+      Put_Line (Current_Error, "mckenzie=n - verbosity during error recover");
+      Put_Line (Current_Error, "parse=n - verbosity during parsing");
+      Put_Line (Current_Error, "test=n - verbosity during unit tests");
+      Put_Line (Current_Error, "time=n - output times of various operations");
    end Enable_Trace_Help;
 
 end WisiToken;

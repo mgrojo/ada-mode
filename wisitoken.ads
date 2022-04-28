@@ -426,6 +426,7 @@ package WisiToken is
    Trace_Tests : Integer := 0;
    --  Output during unit tests
 
+   Trace_Generate                  : Integer := 0;
    Trace_Generate_EBNF             : Integer := 0;
    Trace_Generate_Table            : Integer := 0;
    Trace_Generate_Conflicts        : Integer := 0;
@@ -457,7 +458,7 @@ package WisiToken is
    --  In addition, the name "debug" sets Debug_Mode.
 
    procedure Enable_Trace_Help;
-   --  Output to Text_IO.Current_Output a message describing available
+   --  Output to Text_IO.Current_Error a message describing available
    --  options for Enable_Trace.
 
    type Trace is abstract tagged limited null record;

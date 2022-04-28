@@ -118,6 +118,8 @@ package WisiToken.BNF is
       Text_Rep       : Boolean            := False;
    end record;
 
+   function Image (Item : in Generate_Tuple) return String;
+
    type Generate_Set is array (Natural range <>) of Generate_Tuple;
    type Generate_Set_Access is access Generate_Set;
    procedure Free is new Ada.Unchecked_Deallocation (Generate_Set, Generate_Set_Access);

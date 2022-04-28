@@ -48,6 +48,16 @@ package body WisiToken.BNF is
       Free (Prev);
    end Add;
 
+   function Image (Item : in Generate_Tuple) return String
+   is begin
+      return "(" & Generate_Algorithm_Image (Item.Gen_Alg).all & ", " &
+        Output_Language_Image (Item.Out_Lang).all & ", " &
+        Lexer_Image (Item.Lexer).all &
+        (if Item.Interface_Kind = None then "" else ", " & Interface_Image (Item.Interface_Kind).all) &
+        (if Item.Text_Rep then ", text_rep" else "") &
+        ")";
+   end Image;
+
    function To_Generate_Algorithm (Item : in String) return Generate_Algorithm
    is begin
       for I in Generate_Algorithm loop
