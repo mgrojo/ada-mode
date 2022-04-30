@@ -7,7 +7,7 @@
 (declaration_0, (17 . 22) <= (1:(IDENTIFIER, (17 . 17)), 2:(COLON, (19 . 19)), 3:(IDENTIFIER, (21 . 21)), 4:(SEMICOLON, (22 . 22))))
  ... goto state 2
  0: 2: (-1, 5:(IDENTIFIER, (24 . 24))) : reduce 1 tokens to declarations
-(declarations_0, (17 . 22) <= ((declaration_0, (17 . 22))))
+(declarations_2, (17 . 22) <= ((declaration_0, (17 . 22))))
  ... goto state 3
  0: 3: (-1, 5:(IDENTIFIER, (24 . 24))) : shift and goto state 1
  0: 1: (-1, 6:(COLON, (26 . 26))) : shift and goto state 4
@@ -17,7 +17,7 @@
 (declaration_0, (24 . 29) <= (5:(IDENTIFIER, (24 . 24)), 6:(COLON, (26 . 26)), 7:(IDENTIFIER, (28 . 28)), 8:(SEMICOLON, (29 . 29))))
  ... goto state 5
  0: 5: (-1, 9:(IDENTIFIER, (85 . 85))) : reduce 2 tokens to declarations
-(declarations_1, (17 . 29) <= ((declarations_0, (17 . 22)), (declaration_0, (24 . 29))))
+(declarations_1, (17 . 29) <= ((declarations_2, (17 . 22)), (declaration_0, (24 . 29))))
  ... goto state 3
  0: 3: (-1, 9:(IDENTIFIER, (85 . 85))) : shift and goto state 1
  0: 1: (-1, 10:(Wisi_EOI, (87 . 86))) : ERROR
@@ -37,7 +37,7 @@ recover: succeed, parser count 1
 -8;0:(Wisi_SOI, (1 . 1))),
 ^(3, 
 -20:(declarations_1, (17 . 29))
-| -13:(declarations_0, (17 . 22))
+| -13:(declarations_2, (17 . 22))
 | | -12:(declaration_0, (17 . 22))
 | | | -7;1:(IDENTIFIER, (17 . 17))
 | | | -6;2:(COLON, (19 . 19))

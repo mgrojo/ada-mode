@@ -38,19 +38,19 @@ rhs_item
   ;
 
 compilation_unit_list
-  : nonterminal
+  : compilation_unit_list compilation_unit_list
   | compilation_unit_list nonterminal
-  | compilation_unit_list compilation_unit_list
+  | nonterminal
   ;
 
 ;; end of file
 rhs_BAR_list
-  : rhs
+  : rhs_BAR_list BAR rhs_BAR_list
   | rhs_BAR_list BAR rhs
-  | rhs_BAR_list BAR rhs_BAR_list
+  | rhs
   ;
 rhs_item_list
-  : rhs_item
+  : rhs_item_list rhs_item_list
   | rhs_item_list rhs_item
-  | rhs_item_list rhs_item_list
+  | rhs_item
   ;

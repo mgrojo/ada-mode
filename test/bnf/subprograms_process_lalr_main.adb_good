@@ -235,9 +235,9 @@ package body Subprograms_Process_LALR_Main is
             Table.States (4).Action_List.Set_Capacity (1);
             Add_Action (Table.States (4), 21, Accept_It, (22, 0),  1);
             Table.States (5).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (5), (8, 11, 13, 21), (33, 0),  1);
-            Table.States (5).Kernel := To_Vector ((0 => ((33, 0),  25,  0, (33, 0),  1)));
-            Table.States (5).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (33, 0),  1)));
+            Add_Action (Table.States (5), (8, 11, 13, 21), (33, 2),  1);
+            Table.States (5).Kernel := To_Vector ((0 => ((33, 2),  25,  0, (33, 2),  1)));
+            Table.States (5).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (33, 2),  1)));
             Table.States (6).Action_List.Set_Capacity (4);
             Add_Action (Table.States (6), (8, 11, 13, 21), (25, 0),  1);
             Table.States (6).Kernel := To_Vector ((0 => ((25, 0),  30,  0, (25, 0),  1)));
@@ -256,8 +256,8 @@ package body Subprograms_Process_LALR_Main is
             Add_Goto (Table.States (8), 30, 6);
             Add_Goto (Table.States (8), 32, 7);
             Add_Goto (Table.States (8), 33, 22);
-            Table.States (8).Kernel := To_Vector ((((24, 0),  33,  0, (24, 0),  1), ((33, 1),  33,  2, (32767, 0),  0),
-            ((33, 2),  33,  2, (32767, 0),  0)));
+            Table.States (8).Kernel := To_Vector ((((24, 0),  33,  0, (24, 0),  1), ((33, 0),  33,  2, (32767, 0),  0),
+            ((33, 1),  33,  2, (32767, 0),  0)));
             Table.States (8).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (24, 0),  1)));
             Table.States (9).Action_List.Set_Capacity (1);
             Add_Action (Table.States (9), 7, (26, 0), 23);
@@ -345,18 +345,18 @@ package body Subprograms_Process_LALR_Main is
             Table.States (20).Minimal_Complete_Actions := To_Vector ((0 => (Shift, (32, 0),  19, 38)));
             Table.States (21).Action_List.Set_Capacity (4);
             Add_Action (Table.States (21), (8, 11, 13, 21), (33, 1),  2);
-            Table.States (21).Kernel := To_Vector ((((33, 0),  25,  0, (33, 0),  1), ((33, 1),  25,  0, (33, 1),  2)));
-            Table.States (21).Minimal_Complete_Actions := To_Vector (((Reduce, (33, 0),  1), (Reduce, (33, 1),  2)));
+            Table.States (21).Kernel := To_Vector ((((33, 1),  25,  0, (33, 1),  2), ((33, 2),  25,  0, (33, 2),  1)));
+            Table.States (21).Minimal_Complete_Actions := To_Vector (((Reduce, (33, 1),  2), (Reduce, (33, 2),  1)));
             Table.States (22).Action_List.Set_Capacity (4);
-            Add_Action (Table.States (22), (8, 11, 13, 21), (33, 2),  2);
+            Add_Action (Table.States (22), (8, 11, 13, 21), (33, 0),  2);
             Table.States (22).Goto_List.Set_Capacity (4);
             Add_Goto (Table.States (22), 25, 21);
             Add_Goto (Table.States (22), 30, 6);
             Add_Goto (Table.States (22), 32, 7);
             Add_Goto (Table.States (22), 33, 22);
-            Table.States (22).Kernel := To_Vector ((((33, 1),  33,  2, (32767, 0),  0), ((33, 2),  33,  0, (33, 2),
-            2), ((33, 2),  33,  2, (32767, 0),  0)));
-            Table.States (22).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (33, 2),  2)));
+            Table.States (22).Kernel := To_Vector ((((33, 0),  33,  0, (33, 0),  2), ((33, 0),  33,  2, (32767, 0),
+            0), ((33, 1),  33,  2, (32767, 0),  0)));
+            Table.States (22).Minimal_Complete_Actions := To_Vector ((0 => (Reduce, (33, 0),  2)));
             Table.States (23).Action_List.Set_Capacity (1);
             Add_Action (Table.States (23), 20, (26, 0), 39);
             Table.States (23).Kernel := To_Vector ((0 => ((26, 0),  7,  5, (32767, 0),  0)));

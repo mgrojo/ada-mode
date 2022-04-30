@@ -155,11 +155,11 @@ recover: succeed, parser count 2
 (Expression_1, (123 . 123) <= ((AssignmentExpression_0, (123 . 123))))
  ... goto state 23
  1: 23: (1, -28:(RIGHT_PAREN)) : reduce 1 tokens to ArgumentList
-(ArgumentList_0, (123 . 123) <= ((Expression_1, (123 . 123))))
+(ArgumentList_2, (123 . 123) <= ((Expression_1, (123 . 123))))
  ... goto state 85
  1: 85: (1, -28:(RIGHT_PAREN)) : shift and goto state 95
  1: 95: (1, 2;25:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)) : reduce 4 tokens to MethodInvocation
-(MethodInvocation_0, (111 . 123) <= (-1;4:(Identifier, (111 . 120)), 0;5:(LEFT_PAREN, (122 . 122)), (ArgumentList_0, (123 . 123)), -28:(RIGHT_PAREN)))
+(MethodInvocation_0, (111 . 123) <= (-1;4:(Identifier, (111 . 120)), 0;5:(LEFT_PAREN, (122 . 122)), (ArgumentList_2, (123 . 123)), -28:(RIGHT_PAREN)))
  ... goto state 47
  0: 51: (0, -38:(Identifier)) : shift and goto state 74
  1: 47: (1, 2;25:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)) : reduce 1 tokens to PostfixExpression
@@ -188,19 +188,19 @@ recover: succeed, parser count 2
 (LambdaExpression_0, (123 . 123) <= (1;6:(Identifier, (123 . 123)), -30:(MINUS_GREATER), -38:(Identifier)))
  ... goto state 24
  1: 3: (-1, 3;8:(LEFT_CURLY_BRACKET, (264 . 264))) : reduce 1 tokens to CompilationUnit
-(CompilationUnit_0, (105 . 125) <= ((Statement_0, (105 . 125))))
+(CompilationUnit_2, (105 . 125) <= ((Statement_0, (105 . 125))))
  ... goto state 2
  0: 24: (0, -46:(RIGHT_PAREN)) : reduce 1 tokens to Expression
 (Expression_0, (123 . 123) <= ((LambdaExpression_0, (123 . 123))))
  ... goto state 23
  1: 2: (-1, 3;8:(LEFT_CURLY_BRACKET, (264 . 264))) : shift and goto state 1
  0: 23: (0, -46:(RIGHT_PAREN)) : reduce 1 tokens to ArgumentList
-(ArgumentList_0, (123 . 123) <= ((Expression_0, (123 . 123))))
+(ArgumentList_2, (123 . 123) <= ((Expression_0, (123 . 123))))
  ... goto state 85
  0: 85: (0, -46:(RIGHT_PAREN)) : shift and goto state 95
  1: 1: (-1, 4;9:(Identifier, (266 . 275))) : shift and goto state 4
  0: 95: (0, 2;26:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)) : reduce 4 tokens to MethodInvocation
-(MethodInvocation_0, (111 . 123) <= (-1;4:(Identifier, (111 . 120)), 0;5:(LEFT_PAREN, (122 . 122)), (ArgumentList_0, (123 . 123)), -46:(RIGHT_PAREN)))
+(MethodInvocation_0, (111 . 123) <= (-1;4:(Identifier, (111 . 120)), 0;5:(LEFT_PAREN, (122 . 122)), (ArgumentList_2, (123 . 123)), -46:(RIGHT_PAREN)))
  ... goto state 47
  0: 47: (0, 2;26:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)) : reduce 1 tokens to PostfixExpression
 (PostfixExpression_1, (111 . 123) <= ((MethodInvocation_0, (111 . 123))))
@@ -226,7 +226,7 @@ recover: succeed, parser count 2
 (Statement_0, (105 . 125) <= (-4;1:(LEFT_CURLY_BRACKET, (105 . 105)), (Assignment_0, (107 . 123)), 2;26:(RIGHT_CURLY_BRACKET, (125 . 125) ERROR)))
  ... goto state 3
  0: 3: (-1, 3;8:(LEFT_CURLY_BRACKET, (264 . 264))) : reduce 1 tokens to CompilationUnit
-(CompilationUnit_0, (105 . 125) <= ((Statement_0, (105 . 125))))
+(CompilationUnit_2, (105 . 125) <= ((Statement_0, (105 . 125))))
  ... goto state 2
  0: 2: (-1, 3;8:(LEFT_CURLY_BRACKET, (264 . 264))) : shift and goto state 1
  1: 15: (-1, 6;11:(Identifier, (278 . 278))) : shift and goto state 22
@@ -257,7 +257,7 @@ recover: succeed, parser count 2
 (Expression_1, (278 . 278) <= ((AssignmentExpression_0, (278 . 278))))
  ... goto state 23
  1: 23: (-1, 12:(RIGHT_PAREN, (279 . 279))) : reduce 1 tokens to ArgumentList
-(ArgumentList_0, (278 . 278) <= ((Expression_1, (278 . 278))))
+(ArgumentList_2, (278 . 278) <= ((Expression_1, (278 . 278))))
  ... goto state 35
  1: 35: (-1, 12:(RIGHT_PAREN, (279 . 279))) : shift and goto state 62
  1: 62: (-1, 13:(RIGHT_CURLY_BRACKET, (281 . 281))) : ERROR
@@ -278,7 +278,7 @@ recover: succeed, parser count 2
 (2, (0, 
 0:(Wisi_SOI, (1 . 1))),
 (2, 
--49:(CompilationUnit_0, (105 . 125) recover_conflict)
+-49:(CompilationUnit_2, (105 . 125) recover_conflict)
 | -47:(Statement_0, (105 . 125) recover_conflict)
 | | 1:(LEFT_CURLY_BRACKET, (105 . 105))
 | | -45:(Assignment_0, (107 . 123) recover_conflict)
@@ -293,7 +293,7 @@ recover: succeed, parser count 2
 | | | | | | | | -39:(MethodInvocation_0, (111 . 123) recover_conflict)
 | | | | | | | | | -8;4:(Identifier, (111 . 120))
 | | | | | | | | | -7;5:(LEFT_PAREN, (122 . 122))
-| | | | | | | | | -37:(ArgumentList_0, (123 . 123) recover_conflict)
+| | | | | | | | | -37:(ArgumentList_2, (123 . 123) recover_conflict)
 | | | | | | | | | | -36:(Expression_1, (123 . 123) recover_conflict)
 | | | | | | | | | | | -35:(AssignmentExpression_0, (123 . 123) recover_conflict)
 | | | | | | | | | | | | -34:(AdditiveExpression_0, (123 . 123) recover_conflict)
@@ -310,7 +310,7 @@ recover: succeed, parser count 2
 (15, 
 -1;10:(LEFT_PAREN, (277 . 277))),
 (35, 
--67:(ArgumentList_0, (278 . 278))
+-67:(ArgumentList_2, (278 . 278))
 | -66:(Expression_1, (278 . 278))
 | | -65:(AssignmentExpression_0, (278 . 278))
 | | | -64:(AdditiveExpression_0, (278 . 278))
@@ -352,7 +352,7 @@ recover: succeed, parser count 2
 (1, (0, 
 0:(Wisi_SOI, (1 . 1))),
 (2, 
--49:(CompilationUnit_0, (105 . 125) recover_conflict)
+-49:(CompilationUnit_2, (105 . 125) recover_conflict)
 | -47:(Statement_0, (105 . 125) recover_conflict)
 | | 1:(LEFT_CURLY_BRACKET, (105 . 105))
 | | -45:(Assignment_0, (107 . 123) recover_conflict)
@@ -367,7 +367,7 @@ recover: succeed, parser count 2
 | | | | | | | | -39:(MethodInvocation_0, (111 . 123) recover_conflict)
 | | | | | | | | | -8;4:(Identifier, (111 . 120))
 | | | | | | | | | -7;5:(LEFT_PAREN, (122 . 122))
-| | | | | | | | | -37:(ArgumentList_0, (123 . 123) recover_conflict)
+| | | | | | | | | -37:(ArgumentList_2, (123 . 123) recover_conflict)
 | | | | | | | | | | -36:(Expression_1, (123 . 123) recover_conflict)
 | | | | | | | | | | | -35:(AssignmentExpression_0, (123 . 123) recover_conflict)
 | | | | | | | | | | | | -34:(AdditiveExpression_0, (123 . 123) recover_conflict)
@@ -384,7 +384,7 @@ recover: succeed, parser count 2
 (15, 
 -1;10:(LEFT_PAREN, (277 . 277))),
 (35, 
--67:(ArgumentList_0, (278 . 278))
+-67:(ArgumentList_2, (278 . 278))
 | -66:(Expression_1, (278 . 278))
 | | -65:(AssignmentExpression_0, (278 . 278))
 | | | -64:(AdditiveExpression_0, (278 . 278))
@@ -424,10 +424,10 @@ recover: succeed, parser count 2
     resume_active: True, token goal 6
 
  2: 62: (2, -70:(MINUS_MINUS)) : reduce 4 tokens to MethodInvocation
-(MethodInvocation_0, (266 . 279) <= (-2;9:(Identifier, (266 . 275)), -1;10:(LEFT_PAREN, (277 . 277)), (ArgumentList_0, (278 . 278)), 1;12:(RIGHT_PAREN, (279 . 279))))
+(MethodInvocation_0, (266 . 279) <= (-2;9:(Identifier, (266 . 275)), -1;10:(LEFT_PAREN, (277 . 277)), (ArgumentList_2, (278 . 278)), 1;12:(RIGHT_PAREN, (279 . 279))))
  ... goto state 11
  1: 62: (1, -72:(PLUS_PLUS)) : reduce 4 tokens to MethodInvocation
-(MethodInvocation_0, (266 . 279) <= (-2;9:(Identifier, (266 . 275)), -1;10:(LEFT_PAREN, (277 . 277)), (ArgumentList_0, (278 . 278)), 1;12:(RIGHT_PAREN, (279 . 279))))
+(MethodInvocation_0, (266 . 279) <= (-2;9:(Identifier, (266 . 275)), -1;10:(LEFT_PAREN, (277 . 277)), (ArgumentList_2, (278 . 278)), 1;12:(RIGHT_PAREN, (279 . 279))))
  ... goto state 11
  2: 11: (2, -70:(MINUS_MINUS)) : reduce 1 tokens to PostfixExpression
 (PostfixExpression_1, (266 . 279) <= ((MethodInvocation_0, (266 . 279))))
@@ -460,10 +460,10 @@ recover: succeed, parser count 2
 (Statement_1, (264 . 281) <= (-3;8:(LEFT_CURLY_BRACKET, (264 . 264)), (StatementExpression_0, (266 . 279)), -78:(SEMICOLON), 2;29:(RIGHT_CURLY_BRACKET, (281 . 281) ERROR)))
  ... goto state 14
  2: 14: (-1, 3;14:(LEFT_CURLY_BRACKET, (343 . 343))) : reduce 2 tokens to CompilationUnit
-(CompilationUnit_1, (105 . 281) <= ((CompilationUnit_0, (105 . 125)), (Statement_1, (264 . 281))))
+(CompilationUnit_1, (105 . 281) <= ((CompilationUnit_2, (105 . 125)), (Statement_1, (264 . 281))))
  ... goto state 2
  1: 14: (-1, 3;14:(LEFT_CURLY_BRACKET, (343 . 343))) : reduce 2 tokens to CompilationUnit
-(CompilationUnit_1, (105 . 281) <= ((CompilationUnit_0, (105 . 125)), (Statement_1, (264 . 281))))
+(CompilationUnit_1, (105 . 281) <= ((CompilationUnit_2, (105 . 125)), (Statement_1, (264 . 281))))
  ... goto state 2
  2: 2: (-1, 3;14:(LEFT_CURLY_BRACKET, (343 . 343))) : shift and goto state 1
  1: 2: (-1, 3;14:(LEFT_CURLY_BRACKET, (343 . 343))) : shift and goto state 1
@@ -531,7 +531,7 @@ recover: succeed, parser count 1
 (2, 
 -96:(CompilationUnit_1, (105 . 349))
 | -85:(CompilationUnit_1, (105 . 281) recover_conflict)
-| | -49:(CompilationUnit_0, (105 . 125) recover_conflict)
+| | -49:(CompilationUnit_2, (105 . 125) recover_conflict)
 | | | -47:(Statement_0, (105 . 125) recover_conflict)
 | | | | 1:(LEFT_CURLY_BRACKET, (105 . 105))
 | | | | -45:(Assignment_0, (107 . 123) recover_conflict)
@@ -546,7 +546,7 @@ recover: succeed, parser count 1
 | | | | | | | | | | -39:(MethodInvocation_0, (111 . 123) recover_conflict)
 | | | | | | | | | | | 4:(Identifier, (111 . 120))
 | | | | | | | | | | | 5:(LEFT_PAREN, (122 . 122))
-| | | | | | | | | | | -37:(ArgumentList_0, (123 . 123) recover_conflict)
+| | | | | | | | | | | -37:(ArgumentList_2, (123 . 123) recover_conflict)
 | | | | | | | | | | | | -36:(Expression_1, (123 . 123) recover_conflict)
 | | | | | | | | | | | | | -35:(AssignmentExpression_0, (123 . 123) recover_conflict)
 | | | | | | | | | | | | | | -34:(AdditiveExpression_0, (123 . 123) recover_conflict)
@@ -564,7 +564,7 @@ recover: succeed, parser count 1
 | | | | | | -73:(MethodInvocation_0, (266 . 279) recover_conflict)
 | | | | | | | 9:(Identifier, (266 . 275))
 | | | | | | | 10:(LEFT_PAREN, (277 . 277))
-| | | | | | | -67:(ArgumentList_0, (278 . 278))
+| | | | | | | -67:(ArgumentList_2, (278 . 278))
 | | | | | | | | -66:(Expression_1, (278 . 278))
 | | | | | | | | | -65:(AssignmentExpression_0, (278 . 278))
 | | | | | | | | | | -64:(AdditiveExpression_0, (278 . 278))

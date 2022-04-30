@@ -35,8 +35,6 @@ with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Main;
 package body BNF_WY_Test is
 
-   function BNF_File_Name (Root_Name : in String) return String is (Root_Name & "_bnf.wy");
-
    procedure Get_Gen_Set
      (Root_Name        : in     String;
       Generate_Set     :    out WisiToken.BNF.Generate_Set_Access;
@@ -255,7 +253,6 @@ package body BNF_WY_Test is
 
    procedure Run_Test (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use all type WisiToken.BNF.Generate_Algorithm;
       use all type WisiToken.BNF.Generate_Set_Access;
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
 
@@ -272,14 +269,17 @@ package body BNF_WY_Test is
 
       Get_Gen_Set (Simple_Name, Gen_Set, If_Lexer_Present, McKenzie_Recover, Meta_Syntax);
 
-      if Meta_Syntax = EBNF_Syntax and
-        (Gen_Set /= null and then (for some Gen of Gen_Set.all => Gen.Gen_Alg /= Tree_Sitter))
-      then
-         Diff_One (BNF_File_Name (Simple_Name));
-      end if;
-
       if Gen_Set /= null then
          for Tuple of Gen_Set.all loop
+            if Meta_Syntax = EBNF_Syntax then
+               Diff_One
+                 (WisiToken.BNF.BNF_File_Name
+                    (File_Name_Root   => Simple_Name,
+                     Tuple            => Tuple,
+                     Multiple_Tuples  => Gen_Set'Length > 1,
+                     If_Lexer_Present => If_Lexer_Present));
+            end if;
+
             case Tuple.Out_Lang is
             when WisiToken.BNF.Ada_Lang =>
                Execute_Parse

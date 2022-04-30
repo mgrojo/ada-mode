@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018, 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2021, 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -142,41 +142,26 @@ package body WisiToken.Generate.Packrat is
             declare
                Cur : Token_ID_Arrays.Vector renames Prod.RHSs (I).Tokens;
             begin
-               --  Shared prefix; longer must be first. Sometimes this is a useful
-               --  message, for example:
+               --  Prefix equals a previous RHS; longer must be first. For example:
                --
                --  NAME
                --    : IDENTIFIER
                --    | IDENTIFIER TICK IDENTIFIER
                --
-               --  The second will never get a chance to match. Other times it is
-               --  wrong, because other tokens distinguish the RHSs:
-               --
-               --  Object_Decl
-               --    : IDENTIFIER ':' IDENTIFIER ';'
-               --    | IDENTIFIER ':' IDENTIFIER := expression ';'
-               --
-               --  So we make it a warning, and provide %suppress.
-               --  See test/bnf/object_declaration for a working example.
+               --  The second will never get a chance to match.
 
                for J in Prod.RHSs.First_Index .. I - 1 loop
                   declare
                      Prev : Token_ID_Arrays.Vector renames Prod.RHSs (J).Tokens;
                      K    : constant Natural := Shared_Prefix (Prev, Cur);
                   begin
-                     if K > 0 and Prev.Length < Cur.Length then
-                        if not Suppress.Contains
-                          ((Name => +Descriptor.Image (Prod.LHS).all,
-                            Value => +"may never match; it shares a prefix"))
-                        then
-                           Put_Warning
-                             (Error_Message
-                                (-Data.Source_File_Name, Data.Source_Line_Map (Prod.LHS).RHS_Map (I),
-                                 "right hand side" & Integer'Image (I) & " in " & Image (Prod.LHS, Descriptor) &
-                                   " may never match; it shares a prefix with a shorter previous rhs" &
-                                   Integer'Image (J) & ".",
-                                 Warning => True));
-                        end if;
+                     if K > 0 and K = Natural (Prev.Length) then
+                        Put_Error
+                          (Error_Message
+                             (-Data.Source_File_Name, Data.Source_Line_Map (Prod.LHS).RHS_Map (I),
+                              "right hand side" & Integer'Image (I) & " in " & Image (Prod.LHS, Descriptor) &
+                                " will never match; its prefix is the same as shorter previous rhs" &
+                                Integer'Image (J) & "."));
                      end if;
                   end;
                end loop;

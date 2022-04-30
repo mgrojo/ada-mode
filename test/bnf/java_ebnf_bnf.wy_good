@@ -107,8 +107,8 @@ forControl
 
 ;; no labels in canonical list
 argumentList
-  : argument
-  | argumentList COMMA argument
+  : argumentList COMMA argument
+  | argument
   ;
 
 ;; labels in canonical list
@@ -136,8 +136,8 @@ TypeParameterModifier
 
 ;; This is an AnnotationList
 AnnotationList
-  : Annotation
-  | AnnotationList Annotation
+  : AnnotationList Annotation
+  | Annotation
   ;
 ;; End test of previous bug in searching for list nonterm.
 
@@ -189,8 +189,8 @@ typeParameter
 
 ;; Recognize this as a canonical list
 SwitchLabels
-  : SwitchLabel
-  | SwitchLabels SwitchLabel
+  : SwitchLabels SwitchLabel
+  | SwitchLabel
   ;
 
 ;; The first list was identified incorrectly
@@ -203,16 +203,16 @@ BadList_1
 
 ;; end of file
 importDeclaration_list
-  : importDeclaration
-  | importDeclaration_list importDeclaration
+  : importDeclaration_list importDeclaration
+  | importDeclaration
   ;
 typeDeclaration_list
-  : typeDeclaration
-  | typeDeclaration_list typeDeclaration
+  : typeDeclaration_list typeDeclaration
+  | typeDeclaration
   ;
 catchClause_list
-  : catchClause
-  | catchClause_list catchClause
+  : catchClause_list catchClause
+  | catchClause
   ;
 nonterminal_054
   : T3=catchClause_list T4=finallyBlock
@@ -220,16 +220,16 @@ nonterminal_054
   | T5=finallyBlock
   ;
 switchBlockStatementGroup_list
-  : switchBlockStatementGroup
-  | switchBlockStatementGroup_list switchBlockStatementGroup
+  : switchBlockStatementGroup_list switchBlockStatementGroup
+  | switchBlockStatementGroup
   ;
 switchLabel_list
-  : switchLabel
-  | switchLabel_list switchLabel
+  : switchLabel_list switchLabel
+  | switchLabel
   ;
 expression_COMMA_list
-  : expression
-  | expression_COMMA_list COMMA expression
+  : expression_COMMA_list COMMA expression
+  | expression
   ;
 nonterminal_059
   : THIS
@@ -257,16 +257,16 @@ nonterminal_061
   | MOD_ASSIGN
   ;
 RBRACK_LBRACK_list
-  : RBRACK
-  | RBRACK_LBRACK_list LBRACK RBRACK
+  : RBRACK_LBRACK_list LBRACK RBRACK
+  | RBRACK
   ;
 LBRACK_expression_list
-  : LBRACK expression RBRACK
-  | LBRACK_expression_list LBRACK expression RBRACK
+  : LBRACK_expression_list LBRACK expression RBRACK
+  | LBRACK expression RBRACK
   ;
 LBRACK_RBRACK_list
-  : LBRACK RBRACK
-  | LBRACK_RBRACK_list LBRACK RBRACK
+  : LBRACK_RBRACK_list LBRACK RBRACK
+  | LBRACK RBRACK
   ;
 nonterminal_065
   : RBRACK_LBRACK_list arrayInitializer
@@ -275,12 +275,12 @@ nonterminal_065
   | expression RBRACK_LBRACK_list
   ;
 interfaceMethodModifier_list
-  : interfaceMethodModifier
-  | interfaceMethodModifier_list interfaceMethodModifier
+  : interfaceMethodModifier_list interfaceMethodModifier
+  | interfaceMethodModifier
   ;
 annotation_list
-  : annotation
-  | annotation_list annotation
+  : annotation_list annotation
+  | annotation
   ;
 nonterminal_068
   : typeTypeOrVoid

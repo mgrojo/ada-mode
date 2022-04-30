@@ -47,9 +47,9 @@ declaration
 ;; This list is an optimized_list; it is both left and right
 ;; recursive, so packrat doesn't support it.
 declarations
-  : declaration
+  : declarations declarations
   | declarations declaration
-  | declarations declarations
+  | declaration
   ;
 
 body

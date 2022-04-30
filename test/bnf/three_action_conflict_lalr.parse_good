@@ -9,7 +9,7 @@
 (statement_0, (3 . 6) <= ((expression_1, (3 . 5)), 3:(SEMI, (6 . 6))))
  ... goto state 6
  0: 6: (-1, 4:(LPAREN, (73 . 73))) : reduce 1 tokens to statement_list
-(statement_list_0, (3 . 6) <= ((statement_0, (3 . 6))))
+(statement_list_2, (3 . 6) <= ((statement_0, (3 . 6))))
  ... goto state 10
  0: 10: (-1, 4:(LPAREN, (73 . 73))) : shift and goto state 3
  0: 3: (-1, 5:(IDENTIFIER, (74 . 76))) : shift and goto state 11
@@ -53,7 +53,7 @@ tree size:  32
  0: zombie
  2: zombie
  1: 17: (-1, 9:(LPAREN, (84 . 84))) : reduce 2 tokens to statement_list
-(statement_list_1, (3 . 82) <= ((statement_list_0, (3 . 6)), (statement_0, (73 . 82))))
+(statement_list_1, (3 . 82) <= ((statement_list_2, (3 . 6)), (statement_0, (73 . 82))))
  ... goto state 10
  0: zombie
  2: zombie
@@ -103,11 +103,11 @@ tree size:  40
 (statement_0, (92 . 95) <= ((expression_1, (92 . 94)), 15:(SEMI, (95 . 95))))
  ... goto state 6
  1: 6: (-1, 16:(RBRACE, (96 . 96))) : reduce 1 tokens to statement_list
-(statement_list_0, (92 . 95) <= ((statement_0, (92 . 95))))
+(statement_list_2, (92 . 95) <= ((statement_0, (92 . 95))))
  ... goto state 10
  1: 10: (-1, 16:(RBRACE, (96 . 96))) : shift and goto state 16
  1: 16: (-1, 17:(SEMI, (97 . 97))) : reduce 3 tokens to block
-(block_0, (91 . 96) <= (13:(LBRACE, (91 . 91)), (statement_list_0, (92 . 95)), 16:(RBRACE, (96 . 96))))
+(block_0, (91 . 96) <= (13:(LBRACE, (91 . 91)), (statement_list_2, (92 . 95)), 16:(RBRACE, (96 . 96))))
  ... goto state 22
  1: 22: (-1, 17:(SEMI, (97 . 97))) : reduce 3 tokens to lambdaExpression
 (lambdaExpression_0, (84 . 96) <= ((lambdaParameters_0, (84 . 88)), 12:(ARROW, (89 . 90)), (block_0, (91 . 96))))
@@ -181,7 +181,7 @@ recover: succeed, parser count 3
 (10, 
 -52:(statement_list_1, (3 . 97))
 | -39:(statement_list_1, (3 . 82))
-| | -31:(statement_list_0, (3 . 6))
+| | -31:(statement_list_2, (3 . 6))
 | | | -30:(statement_0, (3 . 6))
 | | | | -29:(expression_1, (3 . 5))
 | | | | | -17;2:(IDENTIFIER, (3 . 5))
@@ -205,7 +205,7 @@ recover: succeed, parser count 3
 | | | | -7;12:(ARROW, (89 . 90))
 | | | | -48:(block_0, (91 . 96))
 | | | | | -6;13:(LBRACE, (91 . 91))
-| | | | | -47:(statement_list_0, (92 . 95))
+| | | | | -47:(statement_list_2, (92 . 95))
 | | | | | | -46:(statement_0, (92 . 95))
 | | | | | | | -45:(expression_1, (92 . 94))
 | | | | | | | | -5;14:(IDENTIFIER, (92 . 94))
@@ -245,7 +245,7 @@ recover: succeed, parser count 3
 (10, 
 -52:(statement_list_1, (3 . 97))
 | -39:(statement_list_1, (3 . 82))
-| | -31:(statement_list_0, (3 . 6))
+| | -31:(statement_list_2, (3 . 6))
 | | | -30:(statement_0, (3 . 6))
 | | | | -29:(expression_1, (3 . 5))
 | | | | | -17;2:(IDENTIFIER, (3 . 5))
@@ -269,7 +269,7 @@ recover: succeed, parser count 3
 | | | | -7;12:(ARROW, (89 . 90))
 | | | | -48:(block_0, (91 . 96))
 | | | | | -6;13:(LBRACE, (91 . 91))
-| | | | | -47:(statement_list_0, (92 . 95))
+| | | | | -47:(statement_list_2, (92 . 95))
 | | | | | | -46:(statement_0, (92 . 95))
 | | | | | | | -45:(expression_1, (92 . 94))
 | | | | | | | | -5;14:(IDENTIFIER, (92 . 94))
@@ -307,7 +307,7 @@ recover: succeed, parser count 3
 (10, 
 -52:(statement_list_1, (3 . 97))
 | -39:(statement_list_1, (3 . 82))
-| | -31:(statement_list_0, (3 . 6))
+| | -31:(statement_list_2, (3 . 6))
 | | | -30:(statement_0, (3 . 6))
 | | | | -29:(expression_1, (3 . 5))
 | | | | | -17;2:(IDENTIFIER, (3 . 5))
@@ -331,7 +331,7 @@ recover: succeed, parser count 3
 | | | | -7;12:(ARROW, (89 . 90))
 | | | | -48:(block_0, (91 . 96))
 | | | | | -6;13:(LBRACE, (91 . 91))
-| | | | | -47:(statement_list_0, (92 . 95))
+| | | | | -47:(statement_list_2, (92 . 95))
 | | | | | | -46:(statement_0, (92 . 95))
 | | | | | | | -45:(expression_1, (92 . 94))
 | | | | | | | | -5;14:(IDENTIFIER, (92 . 94))
@@ -415,7 +415,7 @@ recover: succeed, parser count 3
  5: 2: (-1, 8;27:(Wisi_EOI, (160 . 159))) : accept it
 (wisitoken_accept_0, (1 . 154) <= ((block_0, (1 . 154))))
  1: 6: (-1, 5;24:(RBRACE, (154 . 154))) : reduce 1 tokens to statement_list
-(statement_list_0, (150 . 153) <= ((statement_0, (150 . 153))))
+(statement_list_2, (150 . 153) <= ((statement_0, (150 . 153))))
  ... goto state 10
  6: 10: (-1, 5;24:(RBRACE, (154 . 154))) : shift and goto state 16
  1: 10: (-1, 5;24:(RBRACE, (154 . 154))) : shift and goto state 16
@@ -423,7 +423,7 @@ recover: succeed, parser count 3
 (block_0, (1 . 154) <= (-18;1:(LBRACE, (1 . 1)), (statement_list_1, (3 . 153)), 5;43:(RBRACE, (154 . 154) deleted: (6;25:(SEMI, (155 . 155)), 7;26:(RBRACE, (158 . 158))))))
  ... goto state 2
  1: 16: (-1, 6;25:(SEMI, (155 . 155))) : reduce 3 tokens to block
-(block_0, (150 . 154) <= (-65:(LBRACE), (statement_list_0, (150 . 153)), 5;24:(RBRACE, (154 . 154))))
+(block_0, (150 . 154) <= (-65:(LBRACE), (statement_list_2, (150 . 153)), 5;24:(RBRACE, (154 . 154))))
  ... goto state 22
  6: 2: (-1, 8;27:(Wisi_EOI, (160 . 159))) : accept it
 (wisitoken_accept_0, (1 . 154) <= ((block_0, (1 . 154))))

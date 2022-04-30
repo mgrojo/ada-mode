@@ -28,9 +28,9 @@
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
 
 EnumConstantList
-  : EnumConstant
+  : EnumConstantList COMMA EnumConstantList
   | EnumConstantList COMMA EnumConstant
-  | EnumConstantList COMMA EnumConstantList
+  | EnumConstant
   ;
 
 EnumConstant

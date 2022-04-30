@@ -92,8 +92,8 @@ TypeParameterModifier: Annotation;
 
 ;; This is an AnnotationList
 AnnotationList
-  : Annotation
-  | AnnotationList Annotation
+  : AnnotationList Annotation
+  | Annotation
   ;
 ;; End test of previous bug in searching for list nonterm.
 

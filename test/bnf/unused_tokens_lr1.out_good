@@ -4,4 +4,4 @@ UNUSED_TERMINAL_2
 UNUSED_TERMINAL_3
 unused_nonterm_1
 unused_nonterm_2
-errors: aborting
+unused_tokens.wy:1:1: error: errors: aborting

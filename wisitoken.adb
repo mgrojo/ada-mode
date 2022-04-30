@@ -507,6 +507,7 @@ package body WisiToken is
    begin
       Put_Line (Current_Error, "debug=0|1 - show stack trace on exception, other debug settings");
       Put_Line (Current_Error, "action=n - verbosity during parse actions");
+      Put_Line (Current_Error, "conflicts=n generate_conflicts=n - verbosity during conflict resolution");
       Put_Line (Current_Error, "ebnf=n generate_ebnf=n - verbosity during translate EBNF to BNF");
       Put_Line (Current_Error, "generate=n - top level verbosity during grammar generation");
       Put_Line (Current_Error, "minimal_complete=n generate_minimal_complete=n - verbosity during minimal_complete");
@@ -514,8 +515,9 @@ package body WisiToken is
       Put_Line (Current_Error, "incremental=n incremental_parse=n - verbosity during edit_tree");
       Put_Line (Current_Error, "lexer=n - verbosity during lexing");
       Put_Line (Current_Error, "mckenzie=n - verbosity during error recover");
+      Put_Line (Current_Error, "memory=n - memory use during generation");
       Put_Line (Current_Error, "parse=n - verbosity during parsing");
-      Put_Line (Current_Error, "test=n - verbosity during unit tests");
+      Put_Line (Current_Error, "test=n tests=n - verbosity during unit tests");
       Put_Line (Current_Error, "time=n - output times of various operations");
    end Enable_Trace_Help;
 

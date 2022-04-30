@@ -30,8 +30,8 @@ subtype_indication
   ;
 
 simple_expression
-  : primary
-  | simple_expression binary_adding_operator primary
+  : simple_expression binary_adding_operator primary
+  | primary
   ;
 
 primary

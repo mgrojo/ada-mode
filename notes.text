@@ -31,12 +31,11 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-ada_lite_ebnf packrat
-    enumeration_literal_list
-        handle EBNF list
-            for now, keep bnf tree, but generate longer RHS first; we have manually created lists with that pattern.
-            that breaks a lot of hard-coded 0, 1, 2 rhs_index
-            run all wisitoken tests
+ada_lite-packrat_gen-ada_lite.parse
+    at char 272, tries to parse parameter_specifiction_list as an aggregate first; why?
+
+apply conflict resolution to minimal actions
+    optimized_conflict_01 state 23
 
 packrat error recover
     use parse stream

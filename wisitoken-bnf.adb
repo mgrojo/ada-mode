@@ -48,6 +48,28 @@ package body WisiToken.BNF is
       Free (Prev);
    end Add;
 
+   function BNF_File_Name
+     (File_Name_Root   : in String;
+      Tuple            : in Generate_Tuple;
+      Multiple_Tuples  : in Boolean;
+      If_Lexer_Present : in Boolean)
+     return String
+   is
+      function Tuple_File_Name return String
+      is begin
+         return Ada.Characters.Handling.To_Lower (Generate_Algorithm_Image (Tuple.Gen_Alg).all) &
+         (if If_Lexer_Present
+          then "_" & Lexer_Image (Tuple.Lexer).all
+          else "");
+      end Tuple_File_Name;
+   begin
+      return File_Name_Root &
+        (if Multiple_Tuples
+         then "_" & Tuple_File_Name
+         else "") &
+        "_bnf.wy";
+   end BNF_File_Name;
+
    function Image (Item : in Generate_Tuple) return String
    is begin
       return "(" & Generate_Algorithm_Image (Item.Gen_Alg).all & ", " &

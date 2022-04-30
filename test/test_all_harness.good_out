@@ -28,6 +28,7 @@ OK bnf_wy_test.adb java_expressions_ch19 : Run_Test
 OK bnf_wy_test.adb java_types_ch19 : Run_Test
 OK bnf_wy_test.adb lalr_generator_bug_01 : Run_Test
 OK bnf_wy_test.adb nested_ebnf_optional : Run_Test
+OK bnf_wy_test.adb object_declaration : Run_Test
 OK bnf_wy_test.adb optimized_conflict_01 : Run_Test
 OK bnf_wy_test.adb optimized_conflict_02 : Run_Test
 OK bnf_wy_test.adb optimized_conflict_03 : Run_Test
@@ -134,6 +135,8 @@ OK test_incremental.adb : Recover_08c
 OK test_incremental.adb : Recover_08d
 OK test_incremental.adb : Recover_09
 OK test_incremental.adb : Lexer_Errors_01
+OK test_incremental.adb : Lexer_Errors_02
+OK test_incremental.adb : Lexer_Errors_03
 OK test_incremental.adb : Preserve_Parse_Errors_1
 OK test_incremental.adb : Preserve_Parse_Errors_2
 OK test_incremental.adb : Modify_Deleted_Node
@@ -298,7 +301,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   298
-Successful Tests:  298
+Total Tests Run:   301
+Successful Tests:  301
 Failed Assertions: 0
 Unexpected Errors: 0

@@ -1566,6 +1566,8 @@ package body WisiToken_Grammar_Editing is
          Separator         : in     Identifier_Token;
          Auto_Token_Labels : in     Boolean;
          Label             : in     Identifier_Token := Invalid_Identifier_Token)
+      --  If the grammar being translated supports optimized_lists, prepend
+      --  a list_name [separator] list_name RHS to RHS_List.
       is
          use LR_Utils;
 
@@ -1585,7 +1587,7 @@ package body WisiToken_Grammar_Editing is
             RHS_Item_List_3.Append
               (Add_RHS_Element (Tree, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, List_Name)), Label));
 
-            RHS_List.Append
+            RHS_List.Prepend
               (Add_RHS
                  (Tree,
                   RHS_Item_List_3.Root,
@@ -1594,36 +1596,42 @@ package body WisiToken_Grammar_Editing is
                   Post_Parse_Action => Invalid_Node_Access,
                   In_Parse_Action   => Invalid_Node_Access));
          end if;
-
       end Maybe_Optimized_List;
 
       procedure New_Nonterminal_List
-        (List_Nonterm         : in Identifier_Token;
-         RHS_Item_List_1_Root : in Valid_Node_Access;
-         Separator            : in Identifier_Token;
-         Auto_Token_Labels    : in Boolean)
-      with Pre => Tree.ID (RHS_Item_List_1_Root) = +rhs_item_list_ID
+        (List_Nonterm      : in Identifier_Token;
+         List_Element_Root : in Valid_Node_Access;
+         Separator         : in Identifier_Token;
+         Auto_Token_Labels : in Boolean)
+      with Pre => Tree.ID (List_Element_Root) = +rhs_item_list_ID
+      --  Create a new nonterminal defining a canonical list.
+      --  List_Element_Root is the list element.
+      --
+      --  foo_list                      ;; List_Nonterm
+      --  : foo_list separator foo_list ;; List_Nonterm Separator List_Element if optimized
+      --  | foo_list separator foo      ;; List_Nonterm Separator List_Element
+      --  | foo                         ;; List_Element
       is
          use LR_Utils;
 
-         RHS_Item_List_1 : constant Constant_List := Creators.Create_List
-           (Tree, RHS_Item_List_1_Root, +rhs_item_list_ID, +rhs_element_ID);
+         RHS_Item_List_2 : constant Constant_List := Creators.Create_List
+           (Tree, List_Element_Root, +rhs_item_list_ID, +rhs_element_ID);
 
-         RHS_Item_List_2 : List := Empty_RHS_Item_List (Tree);
+         RHS_Item_List_1 : List := Empty_RHS_Item_List (Tree);
          RHS_List        : List := Empty_RHS_List (Tree);
       begin
-         RHS_Item_List_2.Append
+         RHS_Item_List_1.Append
            (Add_RHS_Element
               (Tree, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, List_Nonterm))));
 
          if Separator /= Invalid_Identifier_Token then
-            RHS_Item_List_2.Append
+            RHS_Item_List_1.Append
               (Add_RHS_Element
                  (Tree, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, Separator))));
          end if;
 
-         for Element of RHS_Item_List_1 loop
-            RHS_Item_List_2.Append (Tree.Copy_Subtree (Element, Data_Access));
+         for Element of RHS_Item_List_2 loop
+            RHS_Item_List_1.Append (Tree.Copy_Subtree (Element, Data_Access));
          end loop;
 
          RHS_List.Append (Add_RHS (Tree, RHS_Item_List_1.Root, Auto_Token_Labels, Edited_Token_List => True));
@@ -1650,11 +1658,6 @@ package body WisiToken_Grammar_Editing is
          Auto_Token_Labels : in Boolean)
       is
          --  Add a nonterminal declaration for a canonical list:
-         --
-         --  foo_list ;; List_Nonterm
-         --  : foo ;; List_Element
-         --  | foo_list separator foo ;; List_Nonterm Separator List_Element
-
          use LR_Utils;
 
          RHS_Item_List_1 : List := Empty_RHS_Item_List (Tree);
@@ -1681,20 +1684,21 @@ package body WisiToken_Grammar_Editing is
             declare
                --  Target List_Nonterm is:
                --
+               --  grammar:
                --  list_nonterm
-               --     : element
+               --     : list_nonterm list_nonterm ;; if optimized
                --     | list_nonterm separator? element
-               --     | list_nonterm list_nonterm
+               --     | element
                --
+               --  Tree: (optimized not included)
                --  nonterminal: N
                --  | IDENTIFIER : Name_Node
                --  | COLON
                --  | rhs_list: RHS_List
                --  | | rhs_list:
-               --  | | | rhs
-               --  | | | | ... list_element
+               --  | | | rhs ... list_element separator? list_element
                --  | | BAR
-               --  | | rhs: ... list_nonterm separator? list_element
+               --  | | rhs: ... list_nonterm
 
                Name_Node : constant Node_Access    := Tree.Child (N, 1);
                RHS_List  : constant Constant_List := Creators.Create_List
@@ -1704,23 +1708,36 @@ package body WisiToken_Grammar_Editing is
                if RHS_List.Count in 2 | 3 then
                   declare
                      List_Name : constant String := Get_Text (Data, Tree, Name_Node);
-                     RHS_1 : constant String := Get_Text (Data, Tree, Element (RHS_List.First));
-                     RHS_2 : constant String := Get_Text (Data, Tree, Element (Iter.Next (RHS_List.First)));
-                     Expected_RHS_2 : constant String := List_Name & " " &
+                     RHS_1     : constant String := Get_Text (Data, Tree, Element (RHS_List.First));
+                     RHS_2     : constant String := Get_Text (Data, Tree, Element (Iter.Next (RHS_List.First)));
+                     RHS_3     : constant String :=
+                       (if RHS_List.Count = 3
+                        then Get_Text (Data, Tree, Element (RHS_List.Last))
+                        else "");
+
+                     RHS_List_Sep_Element : constant String := List_Name & " " &
                        Separator_Content & (if Separator_Content = "" then "" else " ") & Element_Content;
+
+                     RHS_List_Sep_List : constant String :=
+                       (if RHS_List.Count = 3
+                        then List_Name & " " &
+                          (if Separator_Content = "" then "" else Separator_Content & " ") &
+                          List_Name
+                        else "");
                   begin
-                     if Element_Content = RHS_1 and RHS_2 = Expected_RHS_2 then
-                        if RHS_List.Count = 3 then
-                           declare
-                              RHS_3 : constant String := Get_Text (Data, Tree, Element (RHS_List.Last));
-                              Expected_RHS_3 : constant String := List_Name & " " &
-                                Separator_Content & (if Separator_Content = "" then "" else " ") & List_Name;
-                           begin
-                              if RHS_3 = Expected_RHS_3 then
-                                 return Name_Node;
-                              end if;
-                           end;
-                        else
+                     if RHS_List.Count = 3 then
+                        --  optimized
+                        if RHS_1 = RHS_List_Sep_List and
+                          RHS_2 = RHS_List_Sep_Element and
+                          RHS_3 = Element_Content
+                        then
+                           return Name_Node;
+                        end if;
+                     else
+                        --  Not optimzied.
+                        if RHS_1 = RHS_List_Sep_Element and
+                          RHS_2 = Element_Content
+                        then
                            return Name_Node;
                         end if;
                      end if;
@@ -1827,7 +1844,7 @@ package body WisiToken_Grammar_Editing is
                         Auto_Token_Labels => Auto_Token_Labels);
 
                   when others =>
-                     raise SAL.Programmer_Error with "unexpected case in Maybe_New_List_Nonterminal: " &
+                     raise SAL.Programmer_Error with "unexpected case in Maybe_New_Nonterminal_List: " &
                        Tree.Image (Element);
                   end case;
                end if;
@@ -1925,18 +1942,18 @@ package body WisiToken_Grammar_Editing is
          --  | a b+ c
          --  | a b* c
          --
-         --  where a and/or c can be empty. Replace it with a new canonical
+         --  where a and/or c can be missing. Replace it with a new canonical
          --  list nonterminal:
          --
          --  nonterminal_nnn_list
-         --  : b
+         --  : nonterminal_nnn_list nonterminal_nnn_list
          --  | nonterminal_nnn_list b
-         --  | nonterminal_nnn_list nonterminal_nnn_list
+         --  | b
          --
-         --  where the third option makes it an optimized list; only done if
-         --  error recover is enabled.
+         --  where the first RHS makes it an optimized list; only done if
+         --  supported by the generate algorithm and error recover options.
          --
-         --  and a second RHS if it can be empty:
+         --  and a second RHS if b can be empty:
          --  | a c
 
          --  Current tree:
@@ -2046,8 +2063,7 @@ package body WisiToken_Grammar_Editing is
 
             Can_Be_Empty : constant Boolean := Element_1 = Invalid_Node_Access and Tree.RHS_Index (B) in 0 | 3 | 5;
 
-            procedure Do_Simple_Named (List_Elements : in Valid_Node_Access)
-            with Pre => To_Token_Enum (Tree.ID (List_Elements)) in rhs_element_ID | rhs_item_list_ID | IDENTIFIER_ID
+            procedure Do_Simple_Named
             is
                pragma Assert (Tree.ID (RHS) = +rhs_ID);
 
@@ -2071,21 +2087,21 @@ package body WisiToken_Grammar_Editing is
                --  Rewrite 1a) to:
                --
                --  1b) list_name
-               --        : list_element
-               --          %( action? )%
+               --        : list_name separator list_name ;; if optimized
                --        | list_name separator list_element
                --          %( action? )%
-               --        | list_name separator list_name
+               --        | list_element
+               --          %( action? )%
                --        ;
                --
                --  If 2a) can be empty, rewrite to:
                --
                --  2b) list_element_list
-               --        : list_element
-               --          %( action? )%
+               --        : list_element_list list_element_list
                --        | list_element_list list_element
                --          %( action? )%
-               --        | list_element_list list_element_list
+               --        | list_element
+               --          %( action? )%
                --        ;
                --
                --      nonterm_name
@@ -2094,32 +2110,28 @@ package body WisiToken_Grammar_Editing is
                --        | empty
                --        ;
                --
-               --  If instead we did the shortcut:
-               --      list_element_list
-               --        : list_element
-               --        | list_element_list list_element
-               --        | empty
-               --        ;
-               --  and list_element starts with a nullable nonterm, then there is a
-               --  conflict between reducing 0 tokens to an empty list_element_list
-               --  or to the nullable nonterm; see ada_lite_ebnf.wy declarative_part.
-               --  We have not computed Nullable yet, so we assume it is true, and
-               --  don't use this shortcut. This would also complicate recognizing
-               --  this as an optimzed list.
-               --
                --  otherwise rewrite to:
                --
                --  2c) nonterm_name
-               --        : list_element
-               --          %( action? )%
+               --        : nonterm_name nonterm_name
                --        | nonterm_name list_element
                --          %( action? )%
-               --        | nonterm_name nonterm_name
+               --        | list_element
+               --          %( action? )%
                --        ;
                --
                --  3a is similar to 2a.
 
-               RHS_Item_List_1 : List :=
+               List_Elements : constant Node_Access :=
+                 (if Element_1 = Invalid_Node_Access
+                  then (if B_Alt_List_Item_List.Is_Invalid
+                        then Tree.Child (B, 1)
+                        else Tree.Copy_Subtree (B_Alt_List_Item_List.Root, Data_Access))
+                  else Element_1);
+               pragma Assert
+                 (To_Token_Enum (Tree.ID (List_Elements)) in rhs_element_ID | rhs_item_list_ID | IDENTIFIER_ID);
+
+               RHS_Item_List_2 : List := -- list_element
                  (case To_Token_Enum (Tree.ID (List_Elements)) is
                   when rhs_element_ID   => To_RHS_Item_List (Tree, List_Elements),
                   when rhs_item_list_ID => Creators.Create_List
@@ -2127,7 +2139,7 @@ package body WisiToken_Grammar_Editing is
                   when IDENTIFIER_ID    => Empty_List (Tree, +rhs_item_list_ID, 1, +rhs_element_ID, Invalid_Token_ID),
                   when others           => raise SAL.Programmer_Error);
 
-               RHS_Item_List_2 : List :=
+               RHS_Item_List_1 : List := -- nonterm_name list_element
                  (if B_Alt_List_Item_List.Is_Invalid
                   then Empty_List (Tree, +rhs_item_list_ID, 1, +rhs_element_ID, Invalid_Token_ID)
                   else B_Alt_List_Item_List);
@@ -2136,7 +2148,7 @@ package body WisiToken_Grammar_Editing is
 
                Post_Parse_Action : constant Node_Access := Tree.Child (RHS, 2); --  deleted by first Add_RHS
                In_Parse_Action   : constant Node_Access := Tree.Child (RHS, 3);
-               Auto_Token_Labels : constant Boolean    := Get_RHS_Auto_Token_Labels (RHS);
+               Auto_Token_Labels : constant Boolean     := Get_RHS_Auto_Token_Labels (RHS);
 
                Label : constant Identifier_Token :=
                  (if Auto_Token_Labels
@@ -2156,12 +2168,15 @@ package body WisiToken_Grammar_Editing is
                   else To_Identifier_Token (Tree.Child (List_Nonterm_Decl, 1), Tree));
             begin
                if Tree.ID (List_Elements) = +IDENTIFIER_ID then
-                  RHS_Item_List_1.Append
+                  RHS_Item_List_2.Append
                     (Add_RHS_Element
                        (Tree, Add_RHS_Item (Tree, Tree.Copy_Subtree (List_Elements, Data_Access)), Label));
 
-                  RHS_Item_List_2.Append (Add_RHS_Element (Tree, Add_RHS_Item (Tree, List_Elements)));
+                  RHS_Item_List_1.Append (Add_RHS_Element (Tree, Add_RHS_Item (Tree, List_Elements)));
                end if;
+
+               RHS_Item_List_1.Prepend
+                 (Add_RHS_Element (Tree, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, List_Name)), Label));
 
                New_RHS_List.Append
                  (Add_RHS
@@ -2170,9 +2185,6 @@ package body WisiToken_Grammar_Editing is
                      Edited_Token_List => True,
                      Post_Parse_Action => Post_Parse_Action,
                      In_Parse_Action   => In_Parse_Action));
-
-               RHS_Item_List_2.Prepend
-                 (Add_RHS_Element (Tree, Add_RHS_Item (Tree, Add_Identifier_Token (Tree, List_Name)), Label));
 
                New_RHS_List.Append
                  (Add_RHS
@@ -2230,6 +2242,11 @@ package body WisiToken_Grammar_Editing is
                   Ada.Text_IO.Put_Line ("Simple_Named Canonical_List edited nonterm:");
                   Tree.Print_Tree (List_Nonterm_Decl);
                end if;
+
+               if Element_1 = Invalid_Node_Access then
+                  Record_Copied_EBNF_Nodes (List_Elements);
+               end if;
+               Done := True;
             end Do_Simple_Named;
 
          begin
@@ -2299,22 +2316,9 @@ package body WisiToken_Grammar_Editing is
             end if;
 
             if Simple_Named then
-               declare
-                  List_Elements : constant Node_Access :=
-                    (if Element_1 = Invalid_Node_Access
-                     then (if B_Alt_List_Item_List.Is_Invalid
-                           then Tree.Child (B, 1)
-                           else Tree.Copy_Subtree (B_Alt_List_Item_List.Root, Data_Access))
-                     else Element_1);
-               begin
-                  Do_Simple_Named (List_Elements);
+               Do_Simple_Named;
+               return;
 
-                  if Element_1 = Invalid_Node_Access then
-                     Record_Copied_EBNF_Nodes (List_Elements);
-                  end if;
-                  Done := True;
-                  return;
-               end;
             elsif Can_Be_Empty then
                --  use cases for this Insert_Optional_RHS:
                --  yes: java_types_ch19.wy Dims
@@ -3147,7 +3151,6 @@ package body WisiToken_Grammar_Editing is
             Tree.Print_Tree;
          end if;
       end if;
-      Data.Meta_Syntax := BNF_Syntax;
 
       if Trace_Generate_EBNF > Detail then
          Ada.Text_IO.New_Line;

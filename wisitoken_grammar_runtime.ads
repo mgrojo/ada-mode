@@ -49,9 +49,6 @@ package WisiToken_Grammar_Runtime is
       --  Meta  - meta declarations, like %meta_syntax, %if, %generate
       --  Other - everything else
 
-      EBNF_Ok : Boolean := False;
-      --  Set True when don't need to translate EBNF to BNF.
-
       Meta_Syntax          : WisiToken_Grammar_Runtime.Meta_Syntax := Unknown;
       Raw_Code             : WisiToken.BNF.Raw_Code;
       Language_Params      : WisiToken.BNF.Language_Param_Type;

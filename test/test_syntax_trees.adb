@@ -272,7 +272,7 @@ package body Test_Syntax_Trees is
          Node_Expected  : in Expected;
          Prev_Expected  : in Expected;
          Last_Expected  : in Expected;
-         Declarations_2 : in Boolean := True)
+         Declarations_0 : in Boolean := True)
       is
          use SAL.AUnit;
          use AUnit.Checks;
@@ -406,10 +406,10 @@ package body Test_Syntax_Trees is
             end if;
          end;
 
-         if Declarations_2 then
+         if Declarations_0 then
             Check
-              (Label & ".declarations_2", Tree.RHS_Index (Tree.Child (Tree.Root, 2)),
-               2);
+              (Label & ".declarations_0 rhs_index", Tree.RHS_Index (Tree.Child (Tree.Root, 2)),
+               0);
          end if;
       end Test_1;
    begin
@@ -456,7 +456,7 @@ package body Test_Syntax_Trees is
          Node_Expected  => (-33, 7), -- a
          Prev_Expected  => (0, 0),   -- SOI
          Last_Expected  => (-33, 3), -- e
-         Declarations_2 => False);
+         Declarations_0 => False);
 
       --  "a2" result stream
       --  0:(Wisi_SOI, (1 . 1))
@@ -711,7 +711,7 @@ package body Test_Syntax_Trees is
          Node_Expected  => (-29, 1), -- d
          Prev_Expected  => (-28, 2), -- c
          Last_Expected  => (-31, 1), -- e
-         Declarations_2 => False);
+         Declarations_0 => False);
 
       --  "d2" result stream:
       --  0:(Wisi_SOI, (1 . 1))
@@ -755,7 +755,7 @@ package body Test_Syntax_Trees is
          Node_Expected => (14, 0),   -- :
          Prev_Expected => (13, 0),   -- d
          Last_Expected => (-31, 1), -- e
-         Declarations_2 => False);
+         Declarations_0 => False);
 
       --  "e1" result stream:
       --  0:(Wisi_SOI, (1 . 1))
@@ -799,7 +799,7 @@ package body Test_Syntax_Trees is
          Node_Expected  => (-31, 1), -- e
          Prev_Expected  => (-30, 2), -- d
          Last_Expected  => (-31, 1), -- e
-         Declarations_2 => False);
+         Declarations_0 => False);
 
       --  "e2" result stream:
       --  0:(Wisi_SOI, (1 . 1))
@@ -845,7 +845,7 @@ package body Test_Syntax_Trees is
          Node_Expected  => (18, 0), -- :
          Prev_Expected  => (17, 0), -- e
          Last_Expected  => (20, 0), -- ;
-         Declarations_2 => False);
+         Declarations_0 => False);
    end Breakdown_Optimized_List_01;
 
    procedure Breakdown_Optimized_List_02 (T : in out AUnit.Test_Cases.Test_Case'Class)

@@ -10,6 +10,9 @@
 
 %generate None
 
+;; Enable optimized_lists.
+%mckenzie_cost_default 4 4 4 4
+
 generic_formal_part ::= 'generic' {generic_formal_parameter_declaration | use_clause}
 
 ;; end of file

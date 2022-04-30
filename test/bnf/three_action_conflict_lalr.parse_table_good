@@ -31,17 +31,17 @@ Productions:
 15.3: expression <= lambdaExpression ; (1 => Other_Left)
 16.0: lambdaExpression <= lambdaParameters ARROW block ; (3 => Other_Right)
 17.0: lambdaParameters <= LPAREN IDENTIFIER RPAREN
-18.0: statement_list <= statement ; (1 => Other_Left)
+18.0: statement_list <= statement_list statement_list ; (1 => Direct_Left, 2 => Direct_Right)
 18.1: statement_list <= statement_list statement ; (1 => Direct_Left, 2 => Other_Right)
-18.2: statement_list <= statement_list statement_list ; (1 => Direct_Left, 2 => Direct_Right)
+18.2: statement_list <= statement ; (1 => Other_Left)
 
 Optimized_Lists:
  statement_list
 
 Recursions:
-1 => (13 (0.2) -> 18 (0.1, 1.2) -> 14 (0.1) -> 15 (3.1) -> 16 (0.3) -> )
+1 => (13 (0.2) -> 18 (1.2, 2.1) -> 14 (0.1) -> 15 (3.1) -> 16 (0.3) -> )
 2 => (15 (0.2, 2.4) -> )
-3 => (18 (1.1, 2.1, 2.2) -> )
+3 => (18 (0.1, 0.2, 1.1) -> )
 
 McKenzie:
 (Insert =>
@@ -168,14 +168,14 @@ State 5:
    Minimal_Complete_Actions => (1 expression 15.1)
 
 State 6:
-     18.0:statement_list <= statement ^
+     18.2:statement_list <= statement ^
 
-   LPAREN               => reduce 1 tokens to statement_list 18.0
-   RBRACE               => reduce 1 tokens to statement_list 18.0
-   IDENTIFIER           => reduce 1 tokens to statement_list 18.0
+   LPAREN               => reduce 1 tokens to statement_list 18.2
+   RBRACE               => reduce 1 tokens to statement_list 18.2
+   IDENTIFIER           => reduce 1 tokens to statement_list 18.2
    default              => ERROR
 
-   Minimal_Complete_Actions => (1 statement_list 18.0)
+   Minimal_Complete_Actions => (1 statement_list 18.2)
 
 State 7:
      14.0:statement <= expression ^ SEMI
@@ -204,8 +204,8 @@ State 9:
 
 State 10:
      13.0:block <= LBRACE statement_list ^ RBRACE
+     18.0:statement_list <= statement_list ^ statement_list
      18.1:statement_list <= statement_list ^ statement
-     18.2:statement_list <= statement_list ^ statement_list
 
    LPAREN               => shift and goto state 3 15.0
    RBRACE               => shift and goto state 16 13.0
@@ -279,24 +279,24 @@ State 16:
    Minimal_Complete_Actions => (3 block 13.0)
 
 State 17:
-     18.0:statement_list <= statement ^
      18.1:statement_list <= statement_list statement ^
+     18.2:statement_list <= statement ^
 
    LPAREN               => reduce 2 tokens to statement_list 18.1
    RBRACE               => reduce 2 tokens to statement_list 18.1
    IDENTIFIER           => reduce 2 tokens to statement_list 18.1
    default              => ERROR
 
-   Minimal_Complete_Actions => ((1 statement_list 18.0), (2 statement_list 18.1))
+   Minimal_Complete_Actions => ((2 statement_list 18.1), (1 statement_list 18.2))
 
 State 18:
+     18.0:statement_list <= statement_list statement_list ^
+     18.0:statement_list <= statement_list ^ statement_list
      18.1:statement_list <= statement_list ^ statement
-     18.2:statement_list <= statement_list statement_list ^
-     18.2:statement_list <= statement_list ^ statement_list
 
-   LPAREN               => reduce 2 tokens to statement_list 18.2
-   RBRACE               => reduce 2 tokens to statement_list 18.2
-   IDENTIFIER           => reduce 2 tokens to statement_list 18.2
+   LPAREN               => reduce 2 tokens to statement_list 18.0
+   RBRACE               => reduce 2 tokens to statement_list 18.0
+   IDENTIFIER           => reduce 2 tokens to statement_list 18.0
    default              => ERROR
 
    statement            goto state 17
@@ -305,7 +305,7 @@ State 18:
    lambdaParameters     goto state 9
    statement_list       goto state 18
 
-   Minimal_Complete_Actions => (2 statement_list 18.2)
+   Minimal_Complete_Actions => (2 statement_list 18.0)
 
 State 19:
      17.0:lambdaParameters <= LPAREN IDENTIFIER RPAREN ^

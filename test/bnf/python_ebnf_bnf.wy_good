@@ -68,8 +68,8 @@ file_input
   | ;; empty
   ;
 decorators
-  : decorator
-  | decorators decorator
+  : decorators decorator
+  | decorator
   ;
 
 ;; end of file
@@ -78,8 +78,8 @@ nonterminal_023
   | star_expr
   ;
 COMMA_nonterminal_023_list
-  : COMMA nonterminal_023
-  | COMMA_nonterminal_023_list COMMA nonterminal_023
+  : COMMA_nonterminal_023_list COMMA nonterminal_023
+  | COMMA nonterminal_023
   ;
 nonterminal_025
   : comp_for
@@ -93,8 +93,8 @@ nonterminal_026
   | STAR_STAR expr
   ;
 COMMA_nonterminal_026_list
-  : COMMA nonterminal_026
-  | COMMA_nonterminal_026_list COMMA nonterminal_026
+  : COMMA_nonterminal_026_list COMMA nonterminal_026
+  | COMMA nonterminal_026
   ;
 nonterminal_028
   : comp_for
@@ -119,8 +119,8 @@ nonterminal_033
   | testlist_star_expr
   ;
 EQUAL_nonterminal_033_list
-  : EQUAL nonterminal_033
-  | EQUAL_nonterminal_033_list EQUAL nonterminal_033
+  : EQUAL_nonterminal_033_list EQUAL nonterminal_033
+  | EQUAL nonterminal_033
   ;
 nonterminal_035
   : annassign
@@ -128,21 +128,21 @@ nonterminal_035
   | EQUAL_nonterminal_033_list
   ;
 yield_expr_list
-  : yield_expr
-  | yield_expr_list yield_expr
+  : yield_expr_list yield_expr
+  | yield_expr
   ;
 nonterminal_037
   : yield_expr_list
   ;
 NAME_COMMA_list
-  : NAME
-  | NAME_COMMA_list COMMA NAME
+  : NAME_COMMA_list COMMA NAME
+  | NAME
   ;
 NEWLINE_stmt
   : NEWLINE
   | stmt
   ;
 NEWLINE_stmt_list
-  : NEWLINE_stmt
-  | NEWLINE_stmt_list NEWLINE_stmt
+  : NEWLINE_stmt_list NEWLINE_stmt
+  | NEWLINE_stmt
   ;

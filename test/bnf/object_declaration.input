@@ -1,0 +1,2 @@
+a : B range 1 .. 5 := 1;
+c : constant access D; 

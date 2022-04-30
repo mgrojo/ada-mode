@@ -37,9 +37,9 @@ declaration
 
 declarations
 ;; This generates an optimized list.
-  : declaration
+  : declarations declarations
   | declarations declaration
-  | declarations declarations
+  | declaration
   ;
 
 label
@@ -60,9 +60,9 @@ multiplying_operator
   ;
 
 term
-  : IDENTIFIER
+  : term multiplying_operator term
   | term multiplying_operator IDENTIFIER
-  | term multiplying_operator term
+  | IDENTIFIER
   ;
 
 rhs_item
@@ -90,17 +90,17 @@ compilation
 
 ;;; end of file
 statement_statement_list
-  : statement
+  : statement_statement_list statement_statement_list
   | statement_statement_list statement
-  | statement_statement_list statement_statement_list
+  | statement
   ;
 label_list
-  : label
+  : label_list label_list
   | label_list label
-  | label_list label_list
+  | label
   ;
 rhs_item_list
-  : rhs_item
+  : rhs_item_list rhs_item_list
   | rhs_item_list rhs_item
-  | rhs_item_list rhs_item_list
+  | rhs_item
   ;

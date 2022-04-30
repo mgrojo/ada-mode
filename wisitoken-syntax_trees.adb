@@ -713,16 +713,16 @@ package body WisiToken.Syntax_Trees is
                --  | -30:declarations_1         Split_Node parent 2
                --  | | -28:declarations_1       Split_Node parent 1
                --  | | | -26:declarations_1
-               --  | | | | -24:declarations_0
-               --  | | | | | -23:declaration_0
+               --  | | | | -24:declarations_2
+               --  | | | | | -23:declaration_2
                --  | | | | | | <a : A;>
-               --  | | | | -25:declaration_0
+               --  | | | | -25:declaration_2
                --  | | | | | <b : B;>
-               --  | | | -27:declaration_0      Split_Node
+               --  | | | -27:declaration_2      Split_Node
                --  | | | | <c : C;>
-               --  | | -29:declaration_0
+               --  | | -29:declaration_2
                --  | | | <d : D;>
-               --  | -31:declaration_0
+               --  | -31:declaration_2
                --  | | <e : E;>
                --
                --  <next_stream_element>
@@ -731,10 +731,10 @@ package body WisiToken.Syntax_Trees is
                --  1.
                --
                --  Note that if this list has been edited before, it may have top
-               --  nodes with RHS_Index 2; each of those declarations node has two
+               --  nodes with RHS_Index 0; each of those declarations node has two
                --  declarations children, and are already optimized, so they are
                --  broken down the same as non-list nodes. Other cases leave
-               --  RHS_Index 2 in lower nodes; test_incremental.adb Recover_08*.
+               --  RHS_Index 0 in lower nodes; test_incremental.adb Recover_08*.
                declare
                   List_ID          : constant Token_ID  := Stream_Node.ID;
                   Target_Anc_Index : SAL.Base_Peek_Type := 1;
@@ -806,20 +806,20 @@ package body WisiToken.Syntax_Trees is
                   --  <prev_stream_element>
                   --
                   --  -26:declarations_1
-                  --  | -24:declarations_0
-                  --  | | -23:declaration_0
+                  --  | -24:declarations_2
+                  --  | | -23:declaration_2
                   --  | | | <a : A;>
-                  --  | -25:declaration_0
+                  --  | -25:declaration_2
                   --  | | <b : B;>
                   --
-                  --  -27:declaration_0       Split_Node
+                  --  -27:declaration_2       Split_Node
                   --  | <c : C;>
                   --
                   --  -35:declarations_1      New node
-                  --  | -34:declarations_0    New node
-                  --  | | | -29:declaration_0
+                  --  | -34:declarations_2    New node
+                  --  | | | -29:declaration_2
                   --  | | | | <d : D;>
-                  --  | | -31:declaration_0
+                  --  | | -31:declaration_2
                   --  | | | <e : E;>
                   --
                   --  <next_stream_element>
@@ -832,7 +832,7 @@ package body WisiToken.Syntax_Trees is
                      --  The target is a list node in the list we are breaking down.
                      --  test_incremental.adb Recover_06a .. e.
 
-                    Split_Node.RHS_Index = 0
+                    Split_Node.RHS_Index = 2
                      --  There are no list elements preceding Split_Node; handle separator,
                      --  multi-element list element. test_incremental.adb Edit_Code_18
                   then
@@ -840,7 +840,7 @@ package body WisiToken.Syntax_Trees is
                      Insert_Children (Split_Node);
                      Find_Target_Element;
 
-                  elsif Split_Node.Children (1).RHS_Index = 0 then
+                  elsif Split_Node.Children (1).RHS_Index = 2 then
                      --  There is one list element preceding Split_Node
                      Replace_Element (Cur, (Split_Node.Children (1).Children (1), Unknown_State));
                      Insert_Children (Split_Node.Children (1));
@@ -896,8 +896,8 @@ package body WisiToken.Syntax_Trees is
                            declare
                               Deleting_Node : constant Valid_Node_Access := Inverted_Parents.Peek (I);
                            begin
-                              pragma Assert (Deleting_Node.ID = Stream_Node.ID and Deleting_Node.RHS_Index in 1 | 2);
-                              --  test_incremental.adb Recover_08a, b have RHS_Index = 2 here.
+                              pragma Assert (Deleting_Node.ID = Stream_Node.ID and Deleting_Node.RHS_Index in 0 | 1);
+                              --  test_incremental.adb Recover_08a, b have RHS_Index = 0 here.
 
                               if Deleting_Node.Error_List /= null then
                                  --  FIXME: Move errors. need test case
@@ -908,7 +908,7 @@ package body WisiToken.Syntax_Trees is
                                  Child.Parent := Invalid_Node_Access;
                               end loop;
 
-                              if Deleting_Node.RHS_Index = 2 then
+                              if Deleting_Node.RHS_Index = 0 then
                                  pragma Assert
                                    (Deleting_Node.Children'Length = 2 and
                                       Insert_Leading /= Insert_Following);
@@ -925,15 +925,15 @@ package body WisiToken.Syntax_Trees is
                                     --  Example tree from test_incremental.adb Recover_08c step 3
                                     --
                                     --  125:declaration_list_1       ; Inverted_Parents.Peek (Target_Anc_Index - 1)
-                                    --  | 118:declaration_list_2     ; Deleting_Node
+                                    --  | 118:declaration_list_0     ; Deleting_Node
                                     --  | | 117:declaration_list_1
-                                    --  | | | 105:declaration_list_0 ; Split_Node
+                                    --  | | | 105:declaration_list_2 ; Split_Node
                                     --  | | | | 48 declaration
                                     --  | | | | | <a>
                                     --  | | | 116:declaration
                                     --  | | | | <b>               ; b contains by the deleted ';'
                                     --  | | 103:declaration_list_1   ;
-                                    --  | | | 102:declaration_list_0 ; Split_Node
+                                    --  | | | 102:declaration_list_2 ; Split_Node
                                     --  | | | | <c d>                ; Insert_Leading
                                     --
                                     --  105:Split_Node children are on the stream, 103 goes in
@@ -941,7 +941,7 @@ package body WisiToken.Syntax_Trees is
                                     --  next iteration of this loop.
 
                                     Following_Node := Add_Nonterm_1
-                                      (Tree, (List_ID, 0),
+                                      (Tree, (List_ID, RHS => 2),
                                        Children         => (1 => Deleting_Node.Children (2)),
                                        Clear_Parents    => False,
                                        Recover_Conflict => False);
@@ -953,11 +953,11 @@ package body WisiToken.Syntax_Trees is
                                     --  Example tree from test_incremental.adb Recover_08d step 3
                                     --
                                     --  118:declaration_list_1       ; Inverted_Parents.Peek (Target_Anc_Index - 1)
-                                    --  | 111:declaration_list_2     ; Deleting_Node
+                                    --  | 111:declaration_list_0     ; Deleting_Node
                                     --  | | 110:declaration_list_1   ;
                                     --  | | |   <a b c>              ; c is followed by the deleted ';'
                                     --  | | 103:declaration_list_1   ;
-                                    --  | | | 102:declaration_list_0 ; Split_Node
+                                    --  | | | 102:declaration_list_2 ; Split_Node
                                     --  | | | | <d>                  ; Insert_Leading
                                     --
                                     --  102:Split_Node children are on the stream, rest of children of 103
@@ -972,7 +972,7 @@ package body WisiToken.Syntax_Trees is
                                  pragma Assert
                                    (I = Target_Anc_Index - 1 and
                                       Deleting_Node.Children (1).ID = List_ID and
-                                      Deleting_Node.RHS_Index in 0 | 1);
+                                      Deleting_Node.RHS_Index in 1 | 2);
                                  --  Deleting_Node.Children (1).RHS_Index any of 0 .. 2, depending on
                                  --  how many nodes were before Split_Node and whether that sublist was
                                  --  edited.
@@ -991,7 +991,7 @@ package body WisiToken.Syntax_Trees is
                                     end loop;
 
                                     Following_Node := Add_Nonterm_1
-                                      (Tree, (List_ID, 0),
+                                      (Tree, (List_ID, RHS => 2),
                                        Children         => New_Children,
                                        Clear_Parents    => False,
                                        Recover_Conflict => False);
@@ -1001,7 +1001,7 @@ package body WisiToken.Syntax_Trees is
                                  pragma Assert
                                    (Deleting_Node.RHS_Index = 1 and
                                       Deleting_Node.Children (1).ID = List_ID and
-                                      Deleting_Node.Children (1).RHS_Index in 1 | 2);
+                                      Deleting_Node.Children (1).RHS_Index in 0 | 1);
 
                                  declare
                                     New_Children : Valid_Node_Access_Array (1 .. Deleting_Node.Child_Count) :=
@@ -1013,7 +1013,7 @@ package body WisiToken.Syntax_Trees is
                                     end loop;
 
                                     Following_Node := Add_Nonterm_1
-                                      (Tree, (List_ID, 1),
+                                      (Tree, (List_ID, RHS => 1),
                                        Children         => New_Children,
                                        Clear_Parents    => False,
                                        Recover_Conflict => False);

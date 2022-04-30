@@ -32,9 +32,11 @@ CompilationUnit
   : ClassType
   ;
 
+;; Explicitly declared list; must be in canonical order to be
+;; recognized as {Annotation} in productions.
 AnnotationList
-  : Annotation
-  | AnnotationList Annotation
+  : AnnotationList Annotation
+  | Annotation
   ;
 
 Annotation: '@' ClassType ;

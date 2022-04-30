@@ -39,9 +39,11 @@ CompilationUnit
   : ClassType
   ;
 
+;; Explicitly declared list; must be in canonical order to be
+;; recognized as {Annotation} in productions.
 AnnotationList
-  : Annotation
-  | AnnotationList Annotation
+  : AnnotationList Annotation
+  | Annotation
   ;
 
 Annotation
@@ -60,9 +62,9 @@ TypeArguments
   ;
 
 TypeArgumentList
-  : TypeArgument
+  : TypeArgumentList COMMA TypeArgumentList
   | TypeArgumentList COMMA TypeArgument
-  | TypeArgumentList COMMA TypeArgumentList
+  | TypeArgument
   ;
 
 TypeArgument
@@ -101,7 +103,7 @@ AnnotationList_LEFT_SQUARE_BRACKET
   | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
   ;
 AnnotationList_LEFT_SQUARE_BRACKET_list
-  : AnnotationList_LEFT_SQUARE_BRACKET
+  : AnnotationList_LEFT_SQUARE_BRACKET_list AnnotationList_LEFT_SQUARE_BRACKET_list
   | AnnotationList_LEFT_SQUARE_BRACKET_list AnnotationList_LEFT_SQUARE_BRACKET
-  | AnnotationList_LEFT_SQUARE_BRACKET_list AnnotationList_LEFT_SQUARE_BRACKET_list
+  | AnnotationList_LEFT_SQUARE_BRACKET
   ;

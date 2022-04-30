@@ -116,9 +116,9 @@ literal
   ;
 
 expressionList
-  : expression
+  : expressionList COMMA expressionList
   | expressionList COMMA expression
-  | expressionList COMMA expressionList
+  | expression
   ;
 
 methodCall
@@ -181,7 +181,7 @@ nonterminal_032
   | SUB
   ;
 LBRACK_RBRACK_list
-  : LBRACK RBRACK
+  : LBRACK_RBRACK_list LBRACK_RBRACK_list
   | LBRACK_RBRACK_list LBRACK RBRACK
-  | LBRACK_RBRACK_list LBRACK_RBRACK_list
+  | LBRACK RBRACK
   ;

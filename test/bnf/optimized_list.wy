@@ -25,9 +25,9 @@ declaration
 
 declarations
   ;; This is recognized as an optimized list.
-  : declaration
+  : declarations declarations
   | declarations declaration
-  | declarations declarations
+  | declaration
   ;
 
 ;;; end of file

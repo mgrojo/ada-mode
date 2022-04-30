@@ -29,17 +29,17 @@ Tokens:
 Productions:
 11.0: wisitoken_accept <= compilation Wisi_EOI
 12.0: declaration <= IDENTIFIER COLON IDENTIFIER SEMICOLON
-13.0: declarations <= declaration
+13.0: declarations <= declarations declarations ; (1 => Direct_Left, 2 => Direct_Right)
 13.1: declarations <= declarations declaration ; (1 => Direct_Left)
-13.2: declarations <= declarations declarations ; (1 => Direct_Left, 2 => Direct_Right)
+13.2: declarations <= declaration
 14.0: label <= LESS_LESS IDENTIFIER GREATER_GREATER
 15.0: sequence_of_statements <= statement_statement_list label_list
 15.1: sequence_of_statements <= statement_statement_list
 16.0: multiplying_operator <= STAR
 16.1: multiplying_operator <= SLASH
-17.0: term <= IDENTIFIER
+17.0: term <= term multiplying_operator term ; (1 => Direct_Left, 3 => Direct_Right)
 17.1: term <= term multiplying_operator IDENTIFIER ; (1 => Direct_Left)
-17.2: term <= term multiplying_operator term ; (1 => Direct_Left, 3 => Direct_Right)
+17.2: term <= IDENTIFIER
 18.0: rhs_item <= IDENTIFIER
 19.0: rhs <=
 19.1: rhs <= rhs_item_list
@@ -48,25 +48,25 @@ Productions:
 21.1: statement <= term SEMICOLON
 21.2: statement <= nonterminal
 22.0: compilation <= declarations sequence_of_statements
-23.0: statement_statement_list <= statement
+23.0: statement_statement_list <= statement_statement_list statement_statement_list ; (1 => Direct_Left, 2 => Direct_Right)
 23.1: statement_statement_list <= statement_statement_list statement ; (1 => Direct_Left)
-23.2: statement_statement_list <= statement_statement_list statement_statement_list ; (1 => Direct_Left, 2 => Direct_Right)
-24.0: label_list <= label
+23.2: statement_statement_list <= statement
+24.0: label_list <= label_list label_list ; (1 => Direct_Left, 2 => Direct_Right)
 24.1: label_list <= label_list label ; (1 => Direct_Left)
-24.2: label_list <= label_list label_list ; (1 => Direct_Left, 2 => Direct_Right)
-25.0: rhs_item_list <= rhs_item
+24.2: label_list <= label
+25.0: rhs_item_list <= rhs_item_list rhs_item_list ; (1 => Direct_Left, 2 => Direct_Right)
 25.1: rhs_item_list <= rhs_item_list rhs_item ; (1 => Direct_Left)
-25.2: rhs_item_list <= rhs_item_list rhs_item_list ; (1 => Direct_Left, 2 => Direct_Right)
+25.2: rhs_item_list <= rhs_item
 
 Optimized_Lists:
  declarations term statement_statement_list label_list rhs_item_list
 
 Recursions:
-1 => (13 (1.1, 2.1, 2.2) -> )
-2 => (17 (1.1, 2.1, 2.3) -> )
-3 => (23 (1.1, 2.1, 2.2) -> )
-4 => (24 (1.1, 2.1, 2.2) -> )
-5 => (25 (1.1, 2.1, 2.2) -> )
+1 => (13 (0.1, 0.2, 1.1) -> )
+2 => (17 (0.1, 0.3, 1.1) -> )
+3 => (23 (0.1, 0.2, 1.1) -> )
+4 => (24 (0.1, 0.2, 1.1) -> )
+5 => (25 (0.1, 0.2, 1.1) -> )
 
 McKenzie:
 (Insert =>
@@ -157,16 +157,16 @@ State 1:
    Minimal_Complete_Actions => (COLON 12.0)
 
 State 2:
-     13.0:declarations <= declaration ^
+     13.2:declarations <= declaration ^
 
-   IDENTIFIER               => reduce 1 tokens to declarations 13.0
+   IDENTIFIER               => reduce 1 tokens to declarations 13.2
    default                  => ERROR
 
-   Minimal_Complete_Actions => (1 declarations 13.0)
+   Minimal_Complete_Actions => (1 declarations 13.2)
 
 State 3:
+     13.0:declarations <= declarations ^ declarations
      13.1:declarations <= declarations ^ declaration
-     13.2:declarations <= declarations ^ declarations
      22.0:compilation <= declarations ^ sequence_of_statements
 
    IDENTIFIER               => shift and goto state 6 12.0
@@ -200,40 +200,40 @@ State 5:
 
 State 6:
      12.0:declaration <= IDENTIFIER ^ COLON IDENTIFIER SEMICOLON
-     17.0:term <= IDENTIFIER ^
+     17.2:term <= IDENTIFIER ^
      20.0:nonterminal <= IDENTIFIER ^ COLON rhs SEMICOLON
      21.0:statement <= IDENTIFIER ^ SEMICOLON
 
    COLON                    => shift and goto state 15 12.0
    SEMICOLON                => shift and goto state 16 21.0,
-                               reduce 1 tokens to term 17.0
-   SLASH                    => reduce 1 tokens to term 17.0
-   STAR                     => reduce 1 tokens to term 17.0
+                               reduce 1 tokens to term 17.2
+   SLASH                    => reduce 1 tokens to term 17.2
+   STAR                     => reduce 1 tokens to term 17.2
    default                  => ERROR
 
-   Minimal_Complete_Actions => ((1 term 17.0), (SEMICOLON 21.0))
+   Minimal_Complete_Actions => ((1 term 17.2), (SEMICOLON 21.0))
 
 State 7:
-     13.0:declarations <= declaration ^
      13.1:declarations <= declarations declaration ^
+     13.2:declarations <= declaration ^
 
    IDENTIFIER               => reduce 2 tokens to declarations 13.1
    default                  => ERROR
 
-   Minimal_Complete_Actions => ((1 declarations 13.0), (2 declarations 13.1))
+   Minimal_Complete_Actions => ((2 declarations 13.1), (1 declarations 13.2))
 
 State 8:
+     13.0:declarations <= declarations declarations ^
+     13.0:declarations <= declarations ^ declarations
      13.1:declarations <= declarations ^ declaration
-     13.2:declarations <= declarations declarations ^
-     13.2:declarations <= declarations ^ declarations
 
-   IDENTIFIER               => reduce 2 tokens to declarations 13.2
+   IDENTIFIER               => reduce 2 tokens to declarations 13.0
    default                  => ERROR
 
    declaration              goto state 7
    declarations             goto state 8
 
-   Minimal_Complete_Actions => (2 declarations 13.2)
+   Minimal_Complete_Actions => (2 declarations 13.0)
 
 State 9:
      22.0:compilation <= declarations sequence_of_statements ^
@@ -244,8 +244,8 @@ State 9:
    Minimal_Complete_Actions => (2 compilation 22.0)
 
 State 10:
+     17.0:term <= term ^ multiplying_operator term
      17.1:term <= term ^ multiplying_operator IDENTIFIER
-     17.2:term <= term ^ multiplying_operator term
      21.1:statement <= term ^ SEMICOLON
 
    SEMICOLON                => shift and goto state 17 21.1
@@ -268,23 +268,23 @@ State 11:
    Minimal_Complete_Actions => (1 statement 21.2)
 
 State 12:
-     23.0:statement_statement_list <= statement ^
+     23.2:statement_statement_list <= statement ^
 
-   LESS_LESS                => reduce 1 tokens to statement_statement_list 23.0
-   IDENTIFIER               => reduce 1 tokens to statement_statement_list 23.0
-   Wisi_EOI                 => reduce 1 tokens to statement_statement_list 23.0
+   LESS_LESS                => reduce 1 tokens to statement_statement_list 23.2
+   IDENTIFIER               => reduce 1 tokens to statement_statement_list 23.2
+   Wisi_EOI                 => reduce 1 tokens to statement_statement_list 23.2
    default                  => ERROR
 
-   Minimal_Complete_Actions => (1 statement_statement_list 23.0)
+   Minimal_Complete_Actions => (1 statement_statement_list 23.2)
 
 State 13:
      15.0:sequence_of_statements <= statement_statement_list ^ label_list
      15.1:sequence_of_statements <= statement_statement_list ^
+     23.0:statement_statement_list <= statement_statement_list ^ statement_statement_list
      23.1:statement_statement_list <= statement_statement_list ^ statement
-     23.2:statement_statement_list <= statement_statement_list ^ statement_statement_list
 
    LESS_LESS                => shift and goto state 21 14.0
-   IDENTIFIER               => shift and goto state 22 17.0
+   IDENTIFIER               => shift and goto state 22 17.2
    Wisi_EOI                 => reduce 1 tokens to sequence_of_statements 15.1
    default                  => ERROR
 
@@ -356,10 +356,10 @@ State 19:
    Minimal_Complete_Actions => (1 multiplying_operator 16.0)
 
 State 20:
+     17.0:term <= term multiplying_operator ^ term
      17.1:term <= term multiplying_operator ^ IDENTIFIER
-     17.2:term <= term multiplying_operator ^ term
 
-   IDENTIFIER               => shift and goto state 32 17.0
+   IDENTIFIER               => shift and goto state 32 17.1
    default                  => ERROR
 
    term                     goto state 33
@@ -375,47 +375,47 @@ State 21:
    Minimal_Complete_Actions => (IDENTIFIER 14.0)
 
 State 22:
-     17.0:term <= IDENTIFIER ^
+     17.2:term <= IDENTIFIER ^
      20.0:nonterminal <= IDENTIFIER ^ COLON rhs SEMICOLON
      21.0:statement <= IDENTIFIER ^ SEMICOLON
 
    COLON                    => shift and goto state 35 20.0
    SEMICOLON                => shift and goto state 16 21.0,
-                               reduce 1 tokens to term 17.0
-   SLASH                    => reduce 1 tokens to term 17.0
-   STAR                     => reduce 1 tokens to term 17.0
+                               reduce 1 tokens to term 17.2
+   SLASH                    => reduce 1 tokens to term 17.2
+   STAR                     => reduce 1 tokens to term 17.2
    default                  => ERROR
 
-   Minimal_Complete_Actions => ((1 term 17.0), (SEMICOLON 21.0))
+   Minimal_Complete_Actions => ((1 term 17.2), (SEMICOLON 21.0))
 
 State 23:
-     24.0:label_list <= label ^
+     24.2:label_list <= label ^
 
-   LESS_LESS                => reduce 1 tokens to label_list 24.0
-   Wisi_EOI                 => reduce 1 tokens to label_list 24.0
+   LESS_LESS                => reduce 1 tokens to label_list 24.2
+   Wisi_EOI                 => reduce 1 tokens to label_list 24.2
    default                  => ERROR
 
-   Minimal_Complete_Actions => (1 label_list 24.0)
+   Minimal_Complete_Actions => (1 label_list 24.2)
 
 State 24:
-     23.0:statement_statement_list <= statement ^
      23.1:statement_statement_list <= statement_statement_list statement ^
+     23.2:statement_statement_list <= statement ^
 
    LESS_LESS                => reduce 2 tokens to statement_statement_list 23.1
    IDENTIFIER               => reduce 2 tokens to statement_statement_list 23.1
    Wisi_EOI                 => reduce 2 tokens to statement_statement_list 23.1
    default                  => ERROR
 
-   Minimal_Complete_Actions => ((1 statement_statement_list 23.0), (2 statement_statement_list 23.1))
+   Minimal_Complete_Actions => ((2 statement_statement_list 23.1), (1 statement_statement_list 23.2))
 
 State 25:
+     23.0:statement_statement_list <= statement_statement_list statement_statement_list ^
+     23.0:statement_statement_list <= statement_statement_list ^ statement_statement_list
      23.1:statement_statement_list <= statement_statement_list ^ statement
-     23.2:statement_statement_list <= statement_statement_list statement_statement_list ^
-     23.2:statement_statement_list <= statement_statement_list ^ statement_statement_list
 
-   LESS_LESS                => reduce 2 tokens to statement_statement_list 23.2
-   IDENTIFIER               => reduce 2 tokens to statement_statement_list 23.2
-   Wisi_EOI                 => reduce 2 tokens to statement_statement_list 23.2
+   LESS_LESS                => reduce 2 tokens to statement_statement_list 23.0
+   IDENTIFIER               => reduce 2 tokens to statement_statement_list 23.0
+   Wisi_EOI                 => reduce 2 tokens to statement_statement_list 23.0
    default                  => ERROR
 
    term                     goto state 10
@@ -423,12 +423,12 @@ State 25:
    statement                goto state 24
    statement_statement_list goto state 25
 
-   Minimal_Complete_Actions => (2 statement_statement_list 23.2)
+   Minimal_Complete_Actions => (2 statement_statement_list 23.0)
 
 State 26:
      15.0:sequence_of_statements <= statement_statement_list label_list ^
+     24.0:label_list <= label_list ^ label_list
      24.1:label_list <= label_list ^ label
-     24.2:label_list <= label_list ^ label_list
 
    LESS_LESS                => shift and goto state 21 14.0
    Wisi_EOI                 => reduce 2 tokens to sequence_of_statements 15.0
@@ -459,13 +459,13 @@ State 28:
    Minimal_Complete_Actions => ((SEMICOLON 12.0), (1 rhs_item 18.0))
 
 State 29:
-     25.0:rhs_item_list <= rhs_item ^
+     25.2:rhs_item_list <= rhs_item ^
 
-   SEMICOLON                => reduce 1 tokens to rhs_item_list 25.0
-   IDENTIFIER               => reduce 1 tokens to rhs_item_list 25.0
+   SEMICOLON                => reduce 1 tokens to rhs_item_list 25.2
+   IDENTIFIER               => reduce 1 tokens to rhs_item_list 25.2
    default                  => ERROR
 
-   Minimal_Complete_Actions => (1 rhs_item_list 25.0)
+   Minimal_Complete_Actions => (1 rhs_item_list 25.2)
 
 State 30:
      20.0:nonterminal <= IDENTIFIER COLON rhs ^ SEMICOLON
@@ -477,8 +477,8 @@ State 30:
 
 State 31:
      19.1:rhs <= rhs_item_list ^
+     25.0:rhs_item_list <= rhs_item_list ^ rhs_item_list
      25.1:rhs_item_list <= rhs_item_list ^ rhs_item
-     25.2:rhs_item_list <= rhs_item_list ^ rhs_item_list
 
    SEMICOLON                => reduce 1 tokens to rhs 19.1
    IDENTIFIER               => shift and goto state 39 18.0
@@ -490,29 +490,29 @@ State 31:
    Minimal_Complete_Actions => (1 rhs 19.1)
 
 State 32:
-     17.0:term <= IDENTIFIER ^
      17.1:term <= term multiplying_operator IDENTIFIER ^
+     17.2:term <= IDENTIFIER ^
 
    SEMICOLON                => reduce 3 tokens to term 17.1
    SLASH                    => reduce 3 tokens to term 17.1
    STAR                     => reduce 3 tokens to term 17.1
    default                  => ERROR
 
-   Minimal_Complete_Actions => ((1 term 17.0), (3 term 17.1))
+   Minimal_Complete_Actions => ((3 term 17.1), (1 term 17.2))
 
 State 33:
+     17.0:term <= term multiplying_operator term ^
+     17.0:term <= term ^ multiplying_operator term
      17.1:term <= term ^ multiplying_operator IDENTIFIER
-     17.2:term <= term multiplying_operator term ^
-     17.2:term <= term ^ multiplying_operator term
 
-   SEMICOLON                => reduce 3 tokens to term 17.2
-   SLASH                    => reduce 3 tokens to term 17.2
-   STAR                     => reduce 3 tokens to term 17.2
+   SEMICOLON                => reduce 3 tokens to term 17.0
+   SLASH                    => reduce 3 tokens to term 17.0
+   STAR                     => reduce 3 tokens to term 17.0
    default                  => ERROR
 
    multiplying_operator     goto state 20
 
-   Minimal_Complete_Actions => (3 term 17.2)
+   Minimal_Complete_Actions => (3 term 17.0)
 
 State 34:
      14.0:label <= LESS_LESS IDENTIFIER ^ GREATER_GREATER
@@ -536,28 +536,28 @@ State 35:
    Minimal_Complete_Actions => (0 rhs 19.0)
 
 State 36:
-     24.0:label_list <= label ^
      24.1:label_list <= label_list label ^
+     24.2:label_list <= label ^
 
    LESS_LESS                => reduce 2 tokens to label_list 24.1
    Wisi_EOI                 => reduce 2 tokens to label_list 24.1
    default                  => ERROR
 
-   Minimal_Complete_Actions => ((1 label_list 24.0), (2 label_list 24.1))
+   Minimal_Complete_Actions => ((2 label_list 24.1), (1 label_list 24.2))
 
 State 37:
+     24.0:label_list <= label_list label_list ^
+     24.0:label_list <= label_list ^ label_list
      24.1:label_list <= label_list ^ label
-     24.2:label_list <= label_list label_list ^
-     24.2:label_list <= label_list ^ label_list
 
-   LESS_LESS                => reduce 2 tokens to label_list 24.2
-   Wisi_EOI                 => reduce 2 tokens to label_list 24.2
+   LESS_LESS                => reduce 2 tokens to label_list 24.0
+   Wisi_EOI                 => reduce 2 tokens to label_list 24.0
    default                  => ERROR
 
    label                    goto state 36
    label_list               goto state 37
 
-   Minimal_Complete_Actions => (2 label_list 24.2)
+   Minimal_Complete_Actions => (2 label_list 24.0)
 
 State 38:
      20.0:nonterminal <= IDENTIFIER COLON rhs SEMICOLON ^
@@ -579,28 +579,28 @@ State 39:
    Minimal_Complete_Actions => (1 rhs_item 18.0)
 
 State 40:
-     25.0:rhs_item_list <= rhs_item ^
      25.1:rhs_item_list <= rhs_item_list rhs_item ^
+     25.2:rhs_item_list <= rhs_item ^
 
    SEMICOLON                => reduce 2 tokens to rhs_item_list 25.1
    IDENTIFIER               => reduce 2 tokens to rhs_item_list 25.1
    default                  => ERROR
 
-   Minimal_Complete_Actions => ((1 rhs_item_list 25.0), (2 rhs_item_list 25.1))
+   Minimal_Complete_Actions => ((2 rhs_item_list 25.1), (1 rhs_item_list 25.2))
 
 State 41:
+     25.0:rhs_item_list <= rhs_item_list rhs_item_list ^
+     25.0:rhs_item_list <= rhs_item_list ^ rhs_item_list
      25.1:rhs_item_list <= rhs_item_list ^ rhs_item
-     25.2:rhs_item_list <= rhs_item_list rhs_item_list ^
-     25.2:rhs_item_list <= rhs_item_list ^ rhs_item_list
 
-   SEMICOLON                => reduce 2 tokens to rhs_item_list 25.2
-   IDENTIFIER               => reduce 2 tokens to rhs_item_list 25.2
+   SEMICOLON                => reduce 2 tokens to rhs_item_list 25.0
+   IDENTIFIER               => reduce 2 tokens to rhs_item_list 25.0
    default                  => ERROR
 
    rhs_item                 goto state 40
    rhs_item_list            goto state 41
 
-   Minimal_Complete_Actions => (2 rhs_item_list 25.2)
+   Minimal_Complete_Actions => (2 rhs_item_list 25.0)
 
 State 42:
      14.0:label <= LESS_LESS IDENTIFIER GREATER_GREATER ^

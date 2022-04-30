@@ -1,2 +1,2 @@
 same_delimiters.wy:3:1: start, end delimiters must be different
-errors during initializing grammar: aborting
+same_delimiters.wy:1:1: error: errors during initializing grammar: aborting

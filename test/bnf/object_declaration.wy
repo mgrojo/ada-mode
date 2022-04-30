@@ -1,0 +1,53 @@
+;; Small grammar to explore warning about "shares prefix with shorter RHS"
+
+%meta_syntax EBNF
+
+%generate Packrat_Proc Ada re2c
+%start compilation
+
+%token <punctuation> COLON ":"
+%token <punctuation> COLON_EQUAL ":="
+%token <punctuation> DOT_DOT ".."
+%token <punctuation> SEMICOLON ";"
+%token <punctuation> SLASH "/"
+%token <punctuation> STAR "*"
+
+%token <string-double-one-line> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+%token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
+%non_grammar <comment-new-line> COMMENT "--"
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE
+
+compilation : compilation object_declaration | object_declaration ;
+
+object_declaration
+  : IDENTIFIER ':' ['aliased'] ['constant'] subtype_indication [assign_value] ';'
+  | IDENTIFIER ':' ['aliased'] ['constant'] access_definition  [assign_value] ';'
+%suppress object_declaration "may never match; it shares a prefix"
+
+subtype_indication : name [constraint] ;
+
+constraint ::= 'range' expression '..' expression ;
+
+access_definition : 'access' ['constant'] name ;
+
+assign_value : ':=' expression ;
+
+expression
+  : expression multiplying_operator primary
+  | primary
+  ;
+
+primary
+  : NUMERIC_LITERAL
+  | 'null'
+  | name
+  ;
+
+name : IDENTIFIER | STRING_LITERAL;
+
+multiplying_operator : '*' | '/' ;
+
+
+;; end of file

@@ -9,7 +9,7 @@
 --  requires mode 'aliased in' for First, Last, which is not
 --  conformant with Ada.Iterator_Interfaces.
 --
---  Copyright (C) 2019, 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019, 2020, 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -37,7 +37,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    ----------
    --  List functions
    --
-   --  A list has one of the following grammar forms:
+   --  An LR list has one of the following canonical grammar forms:
    --
    --  list : list element | element ;
    --  list : element | list element ;

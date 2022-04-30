@@ -41,15 +41,15 @@ subtype_indication_no_constraint
   ;
 
 simple_expression
-  : term
+  : simple_expression binary_adding_operator simple_expression
   | simple_expression binary_adding_operator term
-  | simple_expression binary_adding_operator simple_expression
+  | term
   ;
 
 term
-  : primary
+  : term multiplying_operator term
   | term multiplying_operator primary
-  | term multiplying_operator term
+  | primary
   ;
 
 primary

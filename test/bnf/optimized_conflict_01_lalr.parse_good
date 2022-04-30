@@ -6,10 +6,10 @@
 (primary_0, (91 . 91) <= (3:(IDENTIFIER, (91 . 91))))
  ... goto state 8
  0: 8: (-1, 4:(DOT_DOT, (93 . 94))) : reduce 1 tokens to term
-(term_0, (91 . 91) <= ((primary_0, (91 . 91))))
+(term_2, (91 . 91) <= ((primary_0, (91 . 91))))
  ... goto state 7
  0: 7: (-1, 4:(DOT_DOT, (93 . 94))) : reduce 1 tokens to simple_expression
-(simple_expression_0, (91 . 91) <= ((term_0, (91 . 91))))
+(simple_expression_2, (91 . 91) <= ((term_2, (91 . 91))))
  ... goto state 6
  0: 6: (-1, 4:(DOT_DOT, (93 . 94))) : shift and goto state 12
  0: 12: (-1, 5:(NEW, (96 . 98))) : shift and goto state 4
@@ -20,10 +20,10 @@
 (primary_0, (113 . 113) <= (8:(IDENTIFIER, (113 . 113))))
  ... goto state 8
  0: 8: (-1, 9:(DOT_DOT, (115 . 116))) : reduce 1 tokens to term
-(term_0, (113 . 113) <= ((primary_0, (113 . 113))))
+(term_2, (113 . 113) <= ((primary_0, (113 . 113))))
  ... goto state 7
  0: 7: (-1, 9:(DOT_DOT, (115 . 116))) : reduce 1 tokens to simple_expression
-(simple_expression_0, (113 . 113) <= ((term_0, (113 . 113))))
+(simple_expression_2, (113 . 113) <= ((term_2, (113 . 113))))
  ... goto state 6
  0: 6: (-1, 9:(DOT_DOT, (115 . 116))) : shift and goto state 12
  0: 12: (-1, 10:(IDENTIFIER, (118 . 118))) : shift and goto state 5
@@ -31,15 +31,15 @@
 (primary_0, (118 . 118) <= (10:(IDENTIFIER, (118 . 118))))
  ... goto state 8
  0: 8: (-1, 11:(PLUS, (120 . 120))) : reduce 1 tokens to term
-(term_0, (118 . 118) <= ((primary_0, (118 . 118))))
+(term_2, (118 . 118) <= ((primary_0, (118 . 118))))
  ... goto state 7
  0: 7: (-1, 11:(PLUS, (120 . 120))) : reduce 1 tokens to simple_expression
-(simple_expression_0, (118 . 118) <= ((term_0, (118 . 118))))
+(simple_expression_2, (118 . 118) <= ((term_2, (118 . 118))))
  ... goto state 19
  0: 19: (-1, 11:(PLUS, (120 . 120))) : spawn 1, (2 active)
 tree size:  25
  1: 19: (-1, 11:(PLUS, (120 . 120))) : reduce 5 tokens to subtype_indication
-(subtype_indication_0, (102 . 118) <= (6:(IDENTIFIER, (102 . 105)), 7:(RANGE, (107 . 111)), (simple_expression_0, (113 . 113)), 9:(DOT_DOT, (115 . 116)), (simple_expression_0, (118 . 118))))
+(subtype_indication_0, (102 . 118) <= (6:(IDENTIFIER, (102 . 105)), 7:(RANGE, (107 . 111)), (simple_expression_2, (113 . 113)), 9:(DOT_DOT, (115 . 116)), (simple_expression_2, (118 . 118))))
  ... goto state 10
  0: 19: (-1, 11:(PLUS, (120 . 120))) : shift and goto state 14
  1: 10: (-1, 11:(PLUS, (120 . 120))) : reduce 2 tokens to allocator
@@ -49,15 +49,15 @@ tree size:  25
 (primary_1, (96 . 118) <= ((allocator_0, (96 . 118))))
  ... goto state 8
  1: 8: (-1, 11:(PLUS, (120 . 120))) : reduce 1 tokens to term
-(term_0, (96 . 118) <= ((primary_1, (96 . 118))))
+(term_2, (96 . 118) <= ((primary_1, (96 . 118))))
  ... goto state 7
  1: 7: (-1, 11:(PLUS, (120 . 120))) : reduce 1 tokens to simple_expression
-(simple_expression_0, (96 . 118) <= ((term_0, (96 . 118))))
+(simple_expression_2, (96 . 118) <= ((term_2, (96 . 118))))
  ... goto state 19
  1: 19: (-1, 11:(PLUS, (120 . 120))) : spawn 2, (3 active)
 tree size:  30
  2: 19: (-1, 11:(PLUS, (120 . 120))) : reduce 5 tokens to subtype_indication
-(subtype_indication_0, (77 . 118) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression_0, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression_0, (96 . 118))))
+(subtype_indication_0, (77 . 118) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression_2, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression_2, (96 . 118))))
  ... goto state 2
  1: 19: (-1, 11:(PLUS, (120 . 120))) : shift and goto state 14
  2: 2: (-1, 11:(PLUS, (120 . 120))) : ERROR
@@ -82,29 +82,29 @@ tree size:  30
  ... goto state 8
  2: zombie
  1: 8: (-1, 13:(STAR, (126 . 126))) : reduce 1 tokens to term
-(term_0, (122 . 122) <= ((primary_0, (122 . 122))))
+(term_2, (122 . 122) <= ((primary_0, (122 . 122))))
  ... goto state 21
  0: 8: (-1, 13:(STAR, (126 . 126))) : reduce 1 tokens to term
-(term_0, (122 . 122) <= ((primary_0, (122 . 122))))
+(term_2, (122 . 122) <= ((primary_0, (122 . 122))))
  ... goto state 21
  2: zombie
  1: 21: (-1, 13:(STAR, (126 . 126))) : spawn 3, (4 active)
 tree size:  38
  3: 21: (-1, 13:(STAR, (126 . 126))) : reduce 3 tokens to simple_expression
-(simple_expression_1, (96 . 122) <= ((simple_expression_0, (96 . 118)), (binary_adding_operator_0, (120 . 120)), (term_0, (122 . 122))))
+(simple_expression_1, (96 . 122) <= ((simple_expression_2, (96 . 118)), (binary_adding_operator_0, (120 . 120)), (term_2, (122 . 122))))
  ... goto state 19
  1: 21: (-1, 13:(STAR, (126 . 126))) : shift and goto state 17
  0: 21: (-1, 13:(STAR, (126 . 126))) : spawn 4, (5 active)
 tree size:  39
  4: 21: (-1, 13:(STAR, (126 . 126))) : reduce 3 tokens to simple_expression
-(simple_expression_1, (118 . 122) <= ((simple_expression_0, (118 . 118)), (binary_adding_operator_0, (120 . 120)), (term_0, (122 . 122))))
+(simple_expression_1, (118 . 122) <= ((simple_expression_2, (118 . 118)), (binary_adding_operator_0, (120 . 120)), (term_2, (122 . 122))))
  ... goto state 19
  0: 21: (-1, 13:(STAR, (126 . 126))) : shift and goto state 17
  4: 19: (-1, 13:(STAR, (126 . 126))) : reduce 5 tokens to subtype_indication
-(subtype_indication_0, (102 . 122) <= (6:(IDENTIFIER, (102 . 105)), 7:(RANGE, (107 . 111)), (simple_expression_0, (113 . 113)), 9:(DOT_DOT, (115 . 116)), (simple_expression_1, (118 . 122))))
+(subtype_indication_0, (102 . 122) <= (6:(IDENTIFIER, (102 . 105)), 7:(RANGE, (107 . 111)), (simple_expression_2, (113 . 113)), 9:(DOT_DOT, (115 . 116)), (simple_expression_1, (118 . 122))))
  ... goto state 10
  3: 19: (-1, 13:(STAR, (126 . 126))) : reduce 5 tokens to subtype_indication
-(subtype_indication_0, (77 . 122) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression_0, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression_1, (96 . 122))))
+(subtype_indication_0, (77 . 122) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression_2, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression_1, (96 . 122))))
  ... goto state 2
  2: zombie
  4: 10: (-1, 13:(STAR, (126 . 126))) : reduce 2 tokens to allocator
@@ -120,20 +120,20 @@ tree size:  39
  3: zombie
  2: zombie
  4: 8: (-1, 13:(STAR, (126 . 126))) : reduce 1 tokens to term
-(term_0, (96 . 122) <= ((primary_1, (96 . 122))))
+(term_2, (96 . 122) <= ((primary_1, (96 . 122))))
  ... goto state 7
  3: zombie
  2: zombie
  4: 7: (-1, 13:(STAR, (126 . 126))) : spawn 5, (6 active)
 tree size:  46
  5: 7: (-1, 13:(STAR, (126 . 126))) : reduce 1 tokens to simple_expression
-(simple_expression_0, (96 . 122) <= ((term_0, (96 . 122))))
+(simple_expression_2, (96 . 122) <= ((term_2, (96 . 122))))
  ... goto state 19
  4: 7: (-1, 13:(STAR, (126 . 126))) : shift and goto state 17
  3: zombie
  2: zombie
  5: 19: (-1, 13:(STAR, (126 . 126))) : reduce 5 tokens to subtype_indication
-(subtype_indication_0, (77 . 122) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression_0, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression_0, (96 . 122))))
+(subtype_indication_0, (77 . 122) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression_2, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression_2, (96 . 122))))
  ... goto state 2
  3: zombie
  2: zombie
@@ -174,36 +174,36 @@ tree size:  46
  ... goto state 23
  5: zombie
  4: 23: (-1, 15:(Wisi_EOI, (131 . 130))) : reduce 3 tokens to term
-(term_1, (96 . 128) <= ((term_0, (96 . 122)), (multiplying_operator_0, (126 . 126)), (primary_0, (128 . 128))))
+(term_1, (96 . 128) <= ((term_2, (96 . 122)), (multiplying_operator_0, (126 . 126)), (primary_0, (128 . 128))))
  ... goto state 7
  3: zombie
  1: 23: (-1, 15:(Wisi_EOI, (131 . 130))) : reduce 3 tokens to term
-(term_1, (122 . 128) <= ((term_0, (122 . 122)), (multiplying_operator_0, (126 . 126)), (primary_0, (128 . 128))))
+(term_1, (122 . 128) <= ((term_2, (122 . 122)), (multiplying_operator_0, (126 . 126)), (primary_0, (128 . 128))))
  ... goto state 21
  0: 23: (-1, 15:(Wisi_EOI, (131 . 130))) : reduce 3 tokens to term
-(term_1, (122 . 128) <= ((term_0, (122 . 122)), (multiplying_operator_0, (126 . 126)), (primary_0, (128 . 128))))
+(term_1, (122 . 128) <= ((term_2, (122 . 122)), (multiplying_operator_0, (126 . 126)), (primary_0, (128 . 128))))
  ... goto state 21
  5: zombie
  4: 7: (-1, 15:(Wisi_EOI, (131 . 130))) : reduce 1 tokens to simple_expression
-(simple_expression_0, (96 . 128) <= ((term_1, (96 . 128))))
+(simple_expression_2, (96 . 128) <= ((term_1, (96 . 128))))
  ... goto state 19
  3: zombie
  1: 21: (-1, 15:(Wisi_EOI, (131 . 130))) : reduce 3 tokens to simple_expression
-(simple_expression_1, (96 . 128) <= ((simple_expression_0, (96 . 118)), (binary_adding_operator_0, (120 . 120)), (term_1, (122 . 128))))
+(simple_expression_1, (96 . 128) <= ((simple_expression_2, (96 . 118)), (binary_adding_operator_0, (120 . 120)), (term_1, (122 . 128))))
  ... goto state 19
  0: 21: (-1, 15:(Wisi_EOI, (131 . 130))) : reduce 3 tokens to simple_expression
-(simple_expression_1, (118 . 128) <= ((simple_expression_0, (118 . 118)), (binary_adding_operator_0, (120 . 120)), (term_1, (122 . 128))))
+(simple_expression_1, (118 . 128) <= ((simple_expression_2, (118 . 118)), (binary_adding_operator_0, (120 . 120)), (term_1, (122 . 128))))
  ... goto state 19
  5: zombie
  4: 19: (-1, 15:(Wisi_EOI, (131 . 130))) : reduce 5 tokens to subtype_indication
-(subtype_indication_0, (77 . 128) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression_0, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression_0, (96 . 128))))
+(subtype_indication_0, (77 . 128) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression_2, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression_2, (96 . 128))))
  ... goto state 2
  3: zombie
  1: 19: (-1, 15:(Wisi_EOI, (131 . 130))) : reduce 5 tokens to subtype_indication
-(subtype_indication_0, (77 . 128) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression_0, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression_1, (96 . 128))))
+(subtype_indication_0, (77 . 128) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression_2, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression_1, (96 . 128))))
  ... goto state 2
  0: 19: (-1, 15:(Wisi_EOI, (131 . 130))) : reduce 5 tokens to subtype_indication
-(subtype_indication_0, (102 . 128) <= (6:(IDENTIFIER, (102 . 105)), 7:(RANGE, (107 . 111)), (simple_expression_0, (113 . 113)), 9:(DOT_DOT, (115 . 116)), (simple_expression_1, (118 . 128))))
+(subtype_indication_0, (102 . 128) <= (6:(IDENTIFIER, (102 . 105)), 7:(RANGE, (107 . 111)), (simple_expression_2, (113 . 113)), 9:(DOT_DOT, (115 . 116)), (simple_expression_1, (118 . 128))))
  ... goto state 10
  5: zombie
  4: 2: (-1, 15:(Wisi_EOI, (131 . 130))) : accept it
@@ -222,17 +222,17 @@ tree size:  46
  5: zombie
  3: zombie
  0: 8: (-1, 15:(Wisi_EOI, (131 . 130))) : reduce 1 tokens to term
-(term_0, (96 . 128) <= ((primary_1, (96 . 128))))
+(term_2, (96 . 128) <= ((primary_1, (96 . 128))))
  ... goto state 7
  5: zombie
  3: zombie
  0: 7: (-1, 15:(Wisi_EOI, (131 . 130))) : reduce 1 tokens to simple_expression
-(simple_expression_0, (96 . 128) <= ((term_0, (96 . 128))))
+(simple_expression_2, (96 . 128) <= ((term_2, (96 . 128))))
  ... goto state 19
  5: zombie
  3: zombie
  0: 19: (-1, 15:(Wisi_EOI, (131 . 130))) : reduce 5 tokens to subtype_indication
-(subtype_indication_0, (77 . 128) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression_0, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression_0, (96 . 128))))
+(subtype_indication_0, (77 . 128) <= (1:(IDENTIFIER, (77 . 83)), 2:(RANGE, (85 . 89)), (simple_expression_2, (91 . 91)), 4:(DOT_DOT, (93 . 94)), (simple_expression_2, (96 . 128))))
  ... goto state 2
  5: zombie
  3: zombie

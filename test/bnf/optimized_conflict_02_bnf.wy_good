@@ -36,13 +36,13 @@ subtype_indication
   ;
 
 simple_expression
-  : term
-  | simple_expression binary_adding_operator term
+  : simple_expression binary_adding_operator term
+  | term
   ;
 
 term
-  : primary
-  | term multiplying_operator primary
+  : term multiplying_operator primary
+  | primary
   ;
 
 primary

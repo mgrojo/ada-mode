@@ -13,6 +13,9 @@
 %keyword GENERIC "generic"
 %generate None
 
+;; Enable optimized_lists.
+%mckenzie_cost_default 4 4 4 4
+
 generic_formal_part
   : GENERIC generic_formal_parameter_declaration_use_clause_list
   | GENERIC
@@ -22,6 +25,7 @@ generic_formal_parameter_declaration_use_clause
   | use_clause
   ;
 generic_formal_parameter_declaration_use_clause_list
-  : generic_formal_parameter_declaration_use_clause
+  : generic_formal_parameter_declaration_use_clause_list generic_formal_parameter_declaration_use_clause_list
   | generic_formal_parameter_declaration_use_clause_list generic_formal_parameter_declaration_use_clause
+  | generic_formal_parameter_declaration_use_clause
   ;

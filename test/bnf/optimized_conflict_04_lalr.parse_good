@@ -6,10 +6,10 @@
 (primary_0, (47 . 47) <= (3:(IDENTIFIER, (47 . 47))))
  ... goto state 8
  0: 8: (-1, 4:(DOT_DOT, (49 . 50))) : reduce 1 tokens to term
-(term_0, (47 . 47) <= ((primary_0, (47 . 47))))
+(term_2, (47 . 47) <= ((primary_0, (47 . 47))))
  ... goto state 7
  0: 7: (-1, 4:(DOT_DOT, (49 . 50))) : reduce 1 tokens to simple_expression
-(simple_expression_0, (47 . 47) <= ((term_0, (47 . 47))))
+(simple_expression_2, (47 . 47) <= ((term_2, (47 . 47))))
  ... goto state 6
  0: 6: (-1, 4:(DOT_DOT, (49 . 50))) : shift and goto state 13
  0: 13: (-1, 5:(NEW, (52 . 54))) : shift and goto state 4
@@ -24,7 +24,7 @@
 (primary_1, (52 . 59) <= ((allocator_0, (52 . 59))))
  ... goto state 8
  0: 8: (-1, 7:(STAR, (61 . 61))) : reduce 1 tokens to term
-(term_0, (52 . 59) <= ((primary_1, (52 . 59))))
+(term_2, (52 . 59) <= ((primary_1, (52 . 59))))
  ... goto state 7
  0: 7: (-1, 7:(STAR, (61 . 61))) : shift and goto state 18
  0: 18: (-1, 8:(IDENTIFIER, (63 . 63))) : reduce 1 tokens to multiplying_operator
@@ -35,13 +35,13 @@
 (primary_0, (63 . 63) <= (8:(IDENTIFIER, (63 . 63))))
  ... goto state 24
  0: 24: (-1, 9:(Wisi_EOI, (66 . 65))) : reduce 3 tokens to term
-(term_1, (52 . 63) <= ((term_0, (52 . 59)), (multiplying_operator_0, (61 . 61)), (primary_0, (63 . 63))))
+(term_1, (52 . 63) <= ((term_2, (52 . 59)), (multiplying_operator_0, (61 . 61)), (primary_0, (63 . 63))))
  ... goto state 7
  0: 7: (-1, 9:(Wisi_EOI, (66 . 65))) : reduce 1 tokens to simple_expression
-(simple_expression_0, (52 . 63) <= ((term_1, (52 . 63))))
+(simple_expression_2, (52 . 63) <= ((term_1, (52 . 63))))
  ... goto state 20
  0: 20: (-1, 9:(Wisi_EOI, (66 . 65))) : reduce 5 tokens to subtype_indication
-(subtype_indication_0, (33 . 63) <= (1:(IDENTIFIER, (33 . 39)), 2:(RANGE, (41 . 45)), (simple_expression_0, (47 . 47)), 4:(DOT_DOT, (49 . 50)), (simple_expression_0, (52 . 63))))
+(subtype_indication_0, (33 . 63) <= (1:(IDENTIFIER, (33 . 39)), 2:(RANGE, (41 . 45)), (simple_expression_2, (47 . 47)), 4:(DOT_DOT, (49 . 50)), (simple_expression_2, (52 . 63))))
  ... goto state 2
  0: 2: (-1, 9:(Wisi_EOI, (66 . 65))) : accept it
 (wisitoken_accept_0, (33 . 63) <= ((subtype_indication_0, (33 . 63))))

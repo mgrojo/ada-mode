@@ -128,6 +128,13 @@ package WisiToken.BNF is
      (Set   : in out Generate_Set_Access;
       Tuple : in     Generate_Tuple);
 
+   function BNF_File_Name
+     (File_Name_Root   : in String;
+      Tuple            : in Generate_Tuple;
+      Multiple_Tuples  : in Boolean;
+      If_Lexer_Present : in Boolean)
+     return String;
+
    function Text_Rep_File_Name
      (File_Name_Root      : in String;
       Tuple               : in Generate_Tuple;

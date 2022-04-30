@@ -55,9 +55,9 @@
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%
 
 CompilationUnit
-  : Statement
+  : CompilationUnit CompilationUnit
   | CompilationUnit Statement
-  | CompilationUnit CompilationUnit
+  | Statement
   ;
 
 Statement
@@ -125,9 +125,9 @@ MethodInvocation
   ;
 
 ArgumentList
-  : Expression
+  : ArgumentList COMMA ArgumentList
   | ArgumentList COMMA Expression
-  | ArgumentList COMMA ArgumentList
+  | Expression
   ;
 
 StatementExpression

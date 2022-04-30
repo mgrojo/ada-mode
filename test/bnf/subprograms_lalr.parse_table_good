@@ -69,9 +69,9 @@ Productions:
 30.10: subprogram <= FUNCTION name parameter_list SEMICOLON
 31.0: subtype <= name
 32.0: use_clause <= USE nonterminal_014 SEMICOLON
-33.0: declaration_list <= declaration
+33.0: declaration_list <= declaration_list declaration_list ; (1 => Direct_Left, 2 => Direct_Right)
 33.1: declaration_list <= declaration_list declaration ; (1 => Direct_Left)
-33.2: declaration_list <= declaration_list declaration_list ; (1 => Direct_Left, 2 => Direct_Right)
+33.2: declaration_list <= declaration
 34.0: nonterminal_014 <= name_list
 
 Optimized_Lists:
@@ -80,7 +80,7 @@ Optimized_Lists:
 Recursions:
 1 => (27 (0.1) -> )
 2 => (28 (1.1) -> )
-3 => (33 (1.1, 2.1, 2.2) -> )
+3 => (33 (0.1, 0.2, 1.1) -> )
 
 McKenzie:
 (Insert =>
@@ -248,15 +248,15 @@ State 4:
    Minimal_Complete_Actions => 
 
 State 5:
-     33.0:declaration_list <= declaration ^
+     33.2:declaration_list <= declaration ^
 
-   FUNCTION         => reduce 1 tokens to declaration_list 33.0
-   PROCEDURE        => reduce 1 tokens to declaration_list 33.0
-   USE              => reduce 1 tokens to declaration_list 33.0
-   Wisi_EOI         => reduce 1 tokens to declaration_list 33.0
+   FUNCTION         => reduce 1 tokens to declaration_list 33.2
+   PROCEDURE        => reduce 1 tokens to declaration_list 33.2
+   USE              => reduce 1 tokens to declaration_list 33.2
+   Wisi_EOI         => reduce 1 tokens to declaration_list 33.2
    default          => ERROR
 
-   Minimal_Complete_Actions => (1 declaration_list 33.0)
+   Minimal_Complete_Actions => (1 declaration_list 33.2)
 
 State 6:
      25.0:declaration <= subprogram ^
@@ -282,8 +282,8 @@ State 7:
 
 State 8:
      24.0:compilation_unit <= declaration_list ^
+     33.0:declaration_list <= declaration_list ^ declaration_list
      33.1:declaration_list <= declaration_list ^ declaration
-     33.2:declaration_list <= declaration_list ^ declaration_list
 
    FUNCTION         => shift and goto state 1 30.0
    PROCEDURE        => shift and goto state 2 30.8
@@ -446,8 +446,8 @@ State 20:
    Minimal_Complete_Actions => (SEMICOLON 32.0)
 
 State 21:
-     33.0:declaration_list <= declaration ^
      33.1:declaration_list <= declaration_list declaration ^
+     33.2:declaration_list <= declaration ^
 
    FUNCTION         => reduce 2 tokens to declaration_list 33.1
    PROCEDURE        => reduce 2 tokens to declaration_list 33.1
@@ -455,17 +455,17 @@ State 21:
    Wisi_EOI         => reduce 2 tokens to declaration_list 33.1
    default          => ERROR
 
-   Minimal_Complete_Actions => ((1 declaration_list 33.0), (2 declaration_list 33.1))
+   Minimal_Complete_Actions => ((2 declaration_list 33.1), (1 declaration_list 33.2))
 
 State 22:
+     33.0:declaration_list <= declaration_list declaration_list ^
+     33.0:declaration_list <= declaration_list ^ declaration_list
      33.1:declaration_list <= declaration_list ^ declaration
-     33.2:declaration_list <= declaration_list declaration_list ^
-     33.2:declaration_list <= declaration_list ^ declaration_list
 
-   FUNCTION         => reduce 2 tokens to declaration_list 33.2
-   PROCEDURE        => reduce 2 tokens to declaration_list 33.2
-   USE              => reduce 2 tokens to declaration_list 33.2
-   Wisi_EOI         => reduce 2 tokens to declaration_list 33.2
+   FUNCTION         => reduce 2 tokens to declaration_list 33.0
+   PROCEDURE        => reduce 2 tokens to declaration_list 33.0
+   USE              => reduce 2 tokens to declaration_list 33.0
+   Wisi_EOI         => reduce 2 tokens to declaration_list 33.0
    default          => ERROR
 
    declaration      goto state 21
@@ -473,7 +473,7 @@ State 22:
    use_clause       goto state 7
    declaration_list goto state 22
 
-   Minimal_Complete_Actions => (2 declaration_list 33.2)
+   Minimal_Complete_Actions => (2 declaration_list 33.0)
 
 State 23:
      26.0:loop_statement <= FOR ^ SYMBOL IN subtype LOOP SEMICOLON

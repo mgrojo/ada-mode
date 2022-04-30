@@ -283,9 +283,9 @@ use_clause
 
 ;; end of file
 declaration_list
-  : declaration
+  : declaration_list declaration_list
   | declaration_list declaration
-  | declaration_list declaration_list
+  | declaration
   ;
 nonterminal_014
   : T2=name_list

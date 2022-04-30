@@ -46,9 +46,9 @@ Productions:
 26.1: BOOL_LITERAL <= FALSE
 27.0: literal <= DECIMAL_LITERAL
 27.1: literal <= BOOL_LITERAL
-28.0: expressionList <= expression ; (1 => Other_Left)
+28.0: expressionList <= expressionList COMMA expressionList ; (1 => Direct_Left, 3 => Direct_Right)
 28.1: expressionList <= expressionList COMMA expression ; (1 => Direct_Left, 3 => Other_Right)
-28.2: expressionList <= expressionList COMMA expressionList ; (1 => Direct_Left, 3 => Direct_Right)
+28.2: expressionList <= expression ; (1 => Other_Left)
 29.0: methodCall <= IDENTIFIER LPAREN expressionList RPAREN ; (3 => Other)
 29.1: methodCall <= IDENTIFIER LPAREN RPAREN
 30.0: expression <= primary ; (1 => Other_Left)
@@ -83,16 +83,16 @@ Productions:
 37.2: nonterminal_031 <= MOD
 38.0: nonterminal_032 <= ADD
 38.1: nonterminal_032 <= SUB
-39.0: LBRACK_RBRACK_list <= LBRACK RBRACK
+39.0: LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK_RBRACK_list ; (1 => Direct_Left, 2 => Direct_Right)
 39.1: LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK RBRACK ; (1 => Direct_Left)
-39.2: LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK_RBRACK_list ; (1 => Direct_Left, 2 => Direct_Right)
+39.2: LBRACK_RBRACK_list <= LBRACK RBRACK
 
 Optimized_Lists:
  expressionList LBRACK_RBRACK_list
 
 Partial recursions:
-1 => (28 (0.3) -> 29 (1.1) -> 34 (0.2, 2.1, 4.1) -> 31 (0.1, 1.1, 1.3, 2.1, 2.3, 3.1, 4.2, 4.4, 5.1, 5.2, 6.1, 6.2, 7.1, 7.2, 7.3, 8.1, 8.2, 8.3) -> 30 (0.1, 1.1, 1.3, 2.1, 2.3) -> )
-2 => (28 (0.1, 1.1, 1.3, 2.1, 2.3, 3.1, 4.2, 4.4, 5.1, 5.2, 6.1, 6.2, 7.1, 7.2, 7.3, 8.1, 8.2, 8.3) -> 30 (1.1, 2.1, 2.2) -> 39 (0.1, 1.1, 1.3, 2.1, 2.3) -> )
+1 => (28 (0.3) -> 29 (1.1) -> 34 (0.2, 2.1, 4.1) -> 31 (0.1, 1.1, 1.3, 2.1, 2.3, 3.1, 4.2, 4.4, 5.1, 5.2, 6.1, 6.2, 7.1, 7.2, 7.3, 8.1, 8.2, 8.3) -> 30 (0.1, 0.3, 1.1, 1.3, 2.1) -> )
+2 => (28 (0.1, 1.1, 1.3, 2.1, 2.3, 3.1, 4.2, 4.4, 5.1, 5.2, 6.1, 6.2, 7.1, 7.2, 7.3, 8.1, 8.2, 8.3) -> 30 (0.1, 0.2, 1.1) -> 39 (0.1, 0.3, 1.1, 1.3, 2.1) -> )
 
 McKenzie:
 (Insert =>
@@ -549,13 +549,13 @@ State 19:
      32.0:typeType <= primitiveType ^ LBRACK_RBRACK_list
      32.1:typeType <= primitiveType ^
 
-   LBRACK             => shift and goto state 51 39.0
+   LBRACK             => shift and goto state 51 39.2
    DOT                => reduce 1 tokens to typeType 32.1
    default            => ERROR
 
    LBRACK_RBRACK_list goto state 52
 
-   Minimal_Complete_Actions => ((LBRACK 39.0), (1 typeType 32.1))
+   Minimal_Complete_Actions => ((LBRACK 39.2), (1 typeType 32.1))
 
 State 20:
      30.6:expression <= nonterminal_030 ^ expression
@@ -831,13 +831,13 @@ State 35:
      32.1:typeType <= primitiveType ^
 
    RPAREN             => reduce 1 tokens to typeType 32.1
-   LBRACK             => shift and goto state 67 39.0
+   LBRACK             => shift and goto state 67 39.2
    DOT                => reduce 1 tokens to typeType 32.1
    default            => ERROR
 
    LBRACK_RBRACK_list goto state 68
 
-   Minimal_Complete_Actions => ((LBRACK 39.0), (1 typeType 32.1))
+   Minimal_Complete_Actions => ((LBRACK 39.2), (1 typeType 32.1))
 
 State 36:
      30.6:expression <= nonterminal_030 ^ expression
@@ -1149,19 +1149,19 @@ State 50:
    Minimal_Complete_Actions => (CLASS 31.4)
 
 State 51:
-     39.0:LBRACK_RBRACK_list <= LBRACK ^ RBRACK
+     39.2:LBRACK_RBRACK_list <= LBRACK ^ RBRACK
 
-   RBRACK             => shift and goto state 106 39.0
+   RBRACK             => shift and goto state 106 39.2
    default            => ERROR
 
-   Minimal_Complete_Actions => (RBRACK 39.0)
+   Minimal_Complete_Actions => (RBRACK 39.2)
 
 State 52:
      32.0:typeType <= primitiveType LBRACK_RBRACK_list ^
+     39.0:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK_RBRACK_list
      39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK RBRACK
-     39.2:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK_RBRACK_list
 
-   LBRACK             => shift and goto state 107 39.0
+   LBRACK             => shift and goto state 107 39.1
    DOT                => reduce 2 tokens to typeType 32.0
    default            => ERROR
 
@@ -1472,20 +1472,20 @@ State 66:
    Minimal_Complete_Actions => (CLASS 31.4)
 
 State 67:
-     39.0:LBRACK_RBRACK_list <= LBRACK ^ RBRACK
+     39.2:LBRACK_RBRACK_list <= LBRACK ^ RBRACK
 
-   RBRACK             => shift and goto state 122 39.0
+   RBRACK             => shift and goto state 122 39.2
    default            => ERROR
 
-   Minimal_Complete_Actions => (RBRACK 39.0)
+   Minimal_Complete_Actions => (RBRACK 39.2)
 
 State 68:
      32.0:typeType <= primitiveType LBRACK_RBRACK_list ^
+     39.0:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK_RBRACK_list
      39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK RBRACK
-     39.2:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK_RBRACK_list
 
    RPAREN             => reduce 2 tokens to typeType 32.0
-   LBRACK             => shift and goto state 123 39.0
+   LBRACK             => shift and goto state 123 39.1
    DOT                => reduce 2 tokens to typeType 32.0
    default            => ERROR
 
@@ -1712,12 +1712,12 @@ State 79:
    Minimal_Complete_Actions => (1 primary 31.2)
 
 State 80:
+     28.0:expressionList <= expressionList ^ COMMA expressionList
      28.1:expressionList <= expressionList ^ COMMA expression
-     28.2:expressionList <= expressionList ^ COMMA expressionList
      29.0:methodCall <= IDENTIFIER LPAREN expressionList ^ RPAREN
 
    RPAREN             => shift and goto state 128 29.0
-   COMMA              => shift and goto state 129 28.1
+   COMMA              => shift and goto state 129 28.0
    default            => ERROR
 
    Minimal_Complete_Actions => (RPAREN 29.0)
@@ -1741,16 +1741,16 @@ State 81:
    Minimal_Complete_Actions => (1 expression 30.3)
 
 State 82:
-     28.0:expressionList <= expression ^
+     28.2:expressionList <= expression ^
      30.1:expression <= expression ^ DOT nonterminal_028
      30.2:expression <= expression ^ LBRACK expression RBRACK
      30.5:expression <= expression ^ nonterminal_029
      30.7:expression <= expression ^ nonterminal_031 expression
      30.8:expression <= expression ^ nonterminal_032 expression
 
-   RPAREN             => reduce 1 tokens to expressionList 28.0
+   RPAREN             => reduce 1 tokens to expressionList 28.2
    LBRACK             => shift and goto state 130 30.2
-   COMMA              => reduce 1 tokens to expressionList 28.0
+   COMMA              => reduce 1 tokens to expressionList 28.2
    DOT                => shift and goto state 131 30.1
    INC                => shift and goto state 132 35.0
    DEC                => shift and goto state 133 35.1
@@ -1765,7 +1765,7 @@ State 82:
    nonterminal_031    goto state 135
    nonterminal_032    goto state 136
 
-   Minimal_Complete_Actions => (1 expressionList 28.0)
+   Minimal_Complete_Actions => (1 expressionList 28.2)
 
 State 83:
      30.0:expression <= primary ^
@@ -2227,35 +2227,35 @@ State 105:
    Minimal_Complete_Actions => (3 primary 31.4)
 
 State 106:
-     39.0:LBRACK_RBRACK_list <= LBRACK RBRACK ^
-
-   LBRACK             => reduce 2 tokens to LBRACK_RBRACK_list 39.0
-   DOT                => reduce 2 tokens to LBRACK_RBRACK_list 39.0
-   default            => ERROR
-
-   Minimal_Complete_Actions => (2 LBRACK_RBRACK_list 39.0)
-
-State 107:
-     39.0:LBRACK_RBRACK_list <= LBRACK ^ RBRACK
-     39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK ^ RBRACK
-
-   RBRACK             => shift and goto state 152 39.0
-   default            => ERROR
-
-   Minimal_Complete_Actions => (RBRACK 39.0)
-
-State 108:
-     39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK RBRACK
-     39.2:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK_RBRACK_list ^
-     39.2:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK_RBRACK_list
+     39.2:LBRACK_RBRACK_list <= LBRACK RBRACK ^
 
    LBRACK             => reduce 2 tokens to LBRACK_RBRACK_list 39.2
    DOT                => reduce 2 tokens to LBRACK_RBRACK_list 39.2
    default            => ERROR
 
+   Minimal_Complete_Actions => (2 LBRACK_RBRACK_list 39.2)
+
+State 107:
+     39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK ^ RBRACK
+     39.2:LBRACK_RBRACK_list <= LBRACK ^ RBRACK
+
+   RBRACK             => shift and goto state 152 39.1
+   default            => ERROR
+
+   Minimal_Complete_Actions => (RBRACK 39.1)
+
+State 108:
+     39.0:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK_RBRACK_list ^
+     39.0:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK_RBRACK_list
+     39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK RBRACK
+
+   LBRACK             => reduce 2 tokens to LBRACK_RBRACK_list 39.0
+   DOT                => reduce 2 tokens to LBRACK_RBRACK_list 39.0
+   default            => ERROR
+
    LBRACK_RBRACK_list goto state 108
 
-   Minimal_Complete_Actions => (2 LBRACK_RBRACK_list 39.2)
+   Minimal_Complete_Actions => (2 LBRACK_RBRACK_list 39.0)
 
 State 109:
      31.0:primary <= LPAREN expression RPAREN ^
@@ -2320,12 +2320,12 @@ State 111:
    Minimal_Complete_Actions => (3 methodCall 29.1)
 
 State 112:
+     28.0:expressionList <= expressionList ^ COMMA expressionList
      28.1:expressionList <= expressionList ^ COMMA expression
-     28.2:expressionList <= expressionList ^ COMMA expressionList
      29.0:methodCall <= IDENTIFIER LPAREN expressionList ^ RPAREN
 
    RPAREN             => shift and goto state 154 29.0
-   COMMA              => shift and goto state 129 28.1
+   COMMA              => shift and goto state 129 28.0
    default            => ERROR
 
    Minimal_Complete_Actions => (RPAREN 29.0)
@@ -2550,37 +2550,37 @@ State 121:
    Minimal_Complete_Actions => (3 primary 31.4)
 
 State 122:
-     39.0:LBRACK_RBRACK_list <= LBRACK RBRACK ^
-
-   RPAREN             => reduce 2 tokens to LBRACK_RBRACK_list 39.0
-   LBRACK             => reduce 2 tokens to LBRACK_RBRACK_list 39.0
-   DOT                => reduce 2 tokens to LBRACK_RBRACK_list 39.0
-   default            => ERROR
-
-   Minimal_Complete_Actions => (2 LBRACK_RBRACK_list 39.0)
-
-State 123:
-     39.0:LBRACK_RBRACK_list <= LBRACK ^ RBRACK
-     39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK ^ RBRACK
-
-   RBRACK             => shift and goto state 156 39.0
-   default            => ERROR
-
-   Minimal_Complete_Actions => (RBRACK 39.0)
-
-State 124:
-     39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK RBRACK
-     39.2:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK_RBRACK_list ^
-     39.2:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK_RBRACK_list
+     39.2:LBRACK_RBRACK_list <= LBRACK RBRACK ^
 
    RPAREN             => reduce 2 tokens to LBRACK_RBRACK_list 39.2
    LBRACK             => reduce 2 tokens to LBRACK_RBRACK_list 39.2
    DOT                => reduce 2 tokens to LBRACK_RBRACK_list 39.2
    default            => ERROR
 
+   Minimal_Complete_Actions => (2 LBRACK_RBRACK_list 39.2)
+
+State 123:
+     39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK ^ RBRACK
+     39.2:LBRACK_RBRACK_list <= LBRACK ^ RBRACK
+
+   RBRACK             => shift and goto state 156 39.1
+   default            => ERROR
+
+   Minimal_Complete_Actions => (RBRACK 39.1)
+
+State 124:
+     39.0:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK_RBRACK_list ^
+     39.0:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK_RBRACK_list
+     39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list ^ LBRACK RBRACK
+
+   RPAREN             => reduce 2 tokens to LBRACK_RBRACK_list 39.0
+   LBRACK             => reduce 2 tokens to LBRACK_RBRACK_list 39.0
+   DOT                => reduce 2 tokens to LBRACK_RBRACK_list 39.0
+   default            => ERROR
+
    LBRACK_RBRACK_list goto state 124
 
-   Minimal_Complete_Actions => (2 LBRACK_RBRACK_list 39.2)
+   Minimal_Complete_Actions => (2 LBRACK_RBRACK_list 39.0)
 
 State 125:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -2667,8 +2667,8 @@ State 128:
    Minimal_Complete_Actions => (4 methodCall 29.0)
 
 State 129:
+     28.0:expressionList <= expressionList COMMA ^ expressionList
      28.1:expressionList <= expressionList COMMA ^ expression
-     28.2:expressionList <= expressionList COMMA ^ expressionList
 
    BOOLEAN            => shift and goto state 1 33.0
    INT                => shift and goto state 2 33.1
@@ -3165,14 +3165,14 @@ State 151:
    Minimal_Complete_Actions => (2 expression 30.6)
 
 State 152:
-     39.0:LBRACK_RBRACK_list <= LBRACK RBRACK ^
      39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK RBRACK ^
+     39.2:LBRACK_RBRACK_list <= LBRACK RBRACK ^
 
    LBRACK             => reduce 3 tokens to LBRACK_RBRACK_list 39.1
    DOT                => reduce 3 tokens to LBRACK_RBRACK_list 39.1
    default            => ERROR
 
-   Minimal_Complete_Actions => ((2 LBRACK_RBRACK_list 39.0), (3 LBRACK_RBRACK_list 39.1))
+   Minimal_Complete_Actions => ((3 LBRACK_RBRACK_list 39.1), (2 LBRACK_RBRACK_list 39.2))
 
 State 153:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -3244,15 +3244,15 @@ State 155:
    Minimal_Complete_Actions => (4 expression 30.2)
 
 State 156:
-     39.0:LBRACK_RBRACK_list <= LBRACK RBRACK ^
      39.1:LBRACK_RBRACK_list <= LBRACK_RBRACK_list LBRACK RBRACK ^
+     39.2:LBRACK_RBRACK_list <= LBRACK RBRACK ^
 
    RPAREN             => reduce 3 tokens to LBRACK_RBRACK_list 39.1
    LBRACK             => reduce 3 tokens to LBRACK_RBRACK_list 39.1
    DOT                => reduce 3 tokens to LBRACK_RBRACK_list 39.1
    default            => ERROR
 
-   Minimal_Complete_Actions => ((2 LBRACK_RBRACK_list 39.0), (3 LBRACK_RBRACK_list 39.1))
+   Minimal_Complete_Actions => ((3 LBRACK_RBRACK_list 39.1), (2 LBRACK_RBRACK_list 39.2))
 
 State 157:
      31.0:primary <= LPAREN expression RPAREN ^
@@ -3319,30 +3319,30 @@ State 159:
    Minimal_Complete_Actions => (3 methodCall 29.1)
 
 State 160:
+     28.0:expressionList <= expressionList ^ COMMA expressionList
      28.1:expressionList <= expressionList ^ COMMA expression
-     28.2:expressionList <= expressionList ^ COMMA expressionList
      29.0:methodCall <= IDENTIFIER LPAREN expressionList ^ RPAREN
 
    RPAREN             => shift and goto state 184 29.0
-   COMMA              => shift and goto state 129 28.1
+   COMMA              => shift and goto state 129 28.0
    default            => ERROR
 
    Minimal_Complete_Actions => (RPAREN 29.0)
 
 State 161:
+     28.0:expressionList <= expressionList COMMA expressionList ^
+     28.0:expressionList <= expressionList ^ COMMA expressionList
      28.1:expressionList <= expressionList ^ COMMA expression
-     28.2:expressionList <= expressionList COMMA expressionList ^
-     28.2:expressionList <= expressionList ^ COMMA expressionList
 
-   RPAREN             => reduce 3 tokens to expressionList 28.2
-   COMMA              => reduce 3 tokens to expressionList 28.2
+   RPAREN             => reduce 3 tokens to expressionList 28.0
+   COMMA              => reduce 3 tokens to expressionList 28.0
    default            => ERROR
 
-   Minimal_Complete_Actions => (3 expressionList 28.2)
+   Minimal_Complete_Actions => (3 expressionList 28.0)
 
 State 162:
-     28.0:expressionList <= expression ^
      28.1:expressionList <= expressionList COMMA expression ^
+     28.2:expressionList <= expression ^
      30.1:expression <= expression ^ DOT nonterminal_028
      30.2:expression <= expression ^ LBRACK expression RBRACK
      30.5:expression <= expression ^ nonterminal_029
@@ -3366,7 +3366,7 @@ State 162:
    nonterminal_031    goto state 135
    nonterminal_032    goto state 136
 
-   Minimal_Complete_Actions => ((1 expressionList 28.0), (3 expressionList 28.1))
+   Minimal_Complete_Actions => ((3 expressionList 28.1), (1 expressionList 28.2))
 
 State 163:
      30.1:expression <= expression ^ DOT nonterminal_028
@@ -3622,12 +3622,12 @@ State 173:
    Minimal_Complete_Actions => (3 methodCall 29.1)
 
 State 174:
+     28.0:expressionList <= expressionList ^ COMMA expressionList
      28.1:expressionList <= expressionList ^ COMMA expression
-     28.2:expressionList <= expressionList ^ COMMA expressionList
      29.0:methodCall <= IDENTIFIER LPAREN expressionList ^ RPAREN
 
    RPAREN             => shift and goto state 187 29.0
-   COMMA              => shift and goto state 129 28.1
+   COMMA              => shift and goto state 129 28.0
    default            => ERROR
 
    Minimal_Complete_Actions => (RPAREN 29.0)

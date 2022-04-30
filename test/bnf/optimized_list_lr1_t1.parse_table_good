@@ -13,15 +13,15 @@ Tokens:
 Productions:
 7.0: wisitoken_accept <= declarations Wisi_EOI
 8.0: declaration <= IDENTIFIER COLON IDENTIFIER SEMICOLON
-9.0: declarations <= declaration
+9.0: declarations <= declarations declarations ; (1 => Direct_Left, 2 => Direct_Right)
 9.1: declarations <= declarations declaration ; (1 => Direct_Left)
-9.2: declarations <= declarations declarations ; (1 => Direct_Left, 2 => Direct_Right)
+9.2: declarations <= declaration
 
 Optimized_Lists:
  declarations
 
 Recursions:
-1 => (9 (1.1, 2.1, 2.2) -> )
+1 => (9 (0.1, 0.2, 1.1) -> )
 
 McKenzie:
 (Insert =>
@@ -75,18 +75,18 @@ State 1:
    Minimal_Complete_Actions => (COLON 8.0)
 
 State 2:
-      9.0:declarations <= declaration ^
+      9.2:declarations <= declaration ^
 
-   IDENTIFIER       => reduce 1 tokens to declarations 9.0
-   Wisi_EOI         => reduce 1 tokens to declarations 9.0
+   IDENTIFIER       => reduce 1 tokens to declarations 9.2
+   Wisi_EOI         => reduce 1 tokens to declarations 9.2
    default          => ERROR
 
-   Minimal_Complete_Actions => (1 declarations 9.0)
+   Minimal_Complete_Actions => (1 declarations 9.2)
 
 State 3:
       7.0:wisitoken_accept <= declarations ^ Wisi_EOI
+      9.0:declarations <= declarations ^ declarations
       9.1:declarations <= declarations ^ declaration
-      9.2:declarations <= declarations ^ declarations
 
    IDENTIFIER       => shift and goto state 1 8.0
    Wisi_EOI         => accept it 7.0
@@ -106,28 +106,28 @@ State 4:
    Minimal_Complete_Actions => (IDENTIFIER 8.0)
 
 State 5:
-      9.0:declarations <= declaration ^
       9.1:declarations <= declarations declaration ^
+      9.2:declarations <= declaration ^
 
    IDENTIFIER       => reduce 2 tokens to declarations 9.1
    Wisi_EOI         => reduce 2 tokens to declarations 9.1
    default          => ERROR
 
-   Minimal_Complete_Actions => ((1 declarations 9.0), (2 declarations 9.1))
+   Minimal_Complete_Actions => ((2 declarations 9.1), (1 declarations 9.2))
 
 State 6:
+      9.0:declarations <= declarations declarations ^
+      9.0:declarations <= declarations ^ declarations
       9.1:declarations <= declarations ^ declaration
-      9.2:declarations <= declarations declarations ^
-      9.2:declarations <= declarations ^ declarations
 
-   IDENTIFIER       => reduce 2 tokens to declarations 9.2
-   Wisi_EOI         => reduce 2 tokens to declarations 9.2
+   IDENTIFIER       => reduce 2 tokens to declarations 9.0
+   Wisi_EOI         => reduce 2 tokens to declarations 9.0
    default          => ERROR
 
    declaration      goto state 5
    declarations     goto state 6
 
-   Minimal_Complete_Actions => (2 declarations 9.2)
+   Minimal_Complete_Actions => (2 declarations 9.0)
 
 State 7:
       8.0:declaration <= IDENTIFIER COLON IDENTIFIER ^ SEMICOLON

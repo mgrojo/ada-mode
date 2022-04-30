@@ -26,12 +26,12 @@ Productions:
 13.0: wisitoken_accept <= subtype_indication Wisi_EOI
 14.0: subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT simple_expression
 15.0: subtype_indication_no_constraint <= IDENTIFIER
-16.0: simple_expression <= term
+16.0: simple_expression <= simple_expression binary_adding_operator simple_expression ; (1 => Direct_Left, 3 => Direct_Right)
 16.1: simple_expression <= simple_expression binary_adding_operator term ; (1 => Direct_Left)
-16.2: simple_expression <= simple_expression binary_adding_operator simple_expression ; (1 => Direct_Left, 3 => Direct_Right)
-17.0: term <= primary
+16.2: simple_expression <= term
+17.0: term <= term multiplying_operator term ; (1 => Direct_Left, 3 => Direct_Right)
 17.1: term <= term multiplying_operator primary ; (1 => Direct_Left)
-17.2: term <= term multiplying_operator term ; (1 => Direct_Left, 3 => Direct_Right)
+17.2: term <= primary
 18.0: primary <= IDENTIFIER
 18.1: primary <= allocator
 19.0: binary_adding_operator <= PLUS
@@ -45,8 +45,8 @@ Optimized_Lists:
  simple_expression term
 
 Recursions:
-1 => (16 (1.1, 2.1, 2.3) -> )
-2 => (17 (1.1, 2.1, 2.3) -> )
+1 => (16 (0.1, 0.3, 1.1) -> )
+2 => (17 (0.1, 0.3, 1.1) -> )
 
 McKenzie:
 (Insert =>
@@ -176,8 +176,8 @@ State 5:
 
 State 6:
      14.0:subtype_indication <= IDENTIFIER RANGE simple_expression ^ DOT_DOT simple_expression
+     16.0:simple_expression <= simple_expression ^ binary_adding_operator simple_expression
      16.1:simple_expression <= simple_expression ^ binary_adding_operator term
-     16.2:simple_expression <= simple_expression ^ binary_adding_operator simple_expression
 
    AMPERSAND                        => shift and goto state 12 19.2
    DOT_DOT                          => shift and goto state 13 14.0
@@ -190,36 +190,36 @@ State 6:
    Minimal_Complete_Actions => (DOT_DOT 14.0)
 
 State 7:
-     16.0:simple_expression <= term ^
+     16.2:simple_expression <= term ^
+     17.0:term <= term ^ multiplying_operator term
      17.1:term <= term ^ multiplying_operator primary
-     17.2:term <= term ^ multiplying_operator term
 
-   AMPERSAND                        => reduce 1 tokens to simple_expression 16.0
-   DOT_DOT                          => reduce 1 tokens to simple_expression 16.0
-   MINUS                            => reduce 1 tokens to simple_expression 16.0
-   PLUS                             => reduce 1 tokens to simple_expression 16.0
+   AMPERSAND                        => reduce 1 tokens to simple_expression 16.2
+   DOT_DOT                          => reduce 1 tokens to simple_expression 16.2
+   MINUS                            => reduce 1 tokens to simple_expression 16.2
+   PLUS                             => reduce 1 tokens to simple_expression 16.2
    SLASH                            => shift and goto state 17 20.1
    STAR                             => shift and goto state 18 20.0
-   Wisi_EOI                         => reduce 1 tokens to simple_expression 16.0
+   Wisi_EOI                         => reduce 1 tokens to simple_expression 16.2
    default                          => ERROR
 
    multiplying_operator             goto state 19
 
-   Minimal_Complete_Actions => (1 simple_expression 16.0)
+   Minimal_Complete_Actions => (1 simple_expression 16.2)
 
 State 8:
-     17.0:term <= primary ^
+     17.2:term <= primary ^
 
-   AMPERSAND                        => reduce 1 tokens to term 17.0
-   DOT_DOT                          => reduce 1 tokens to term 17.0
-   MINUS                            => reduce 1 tokens to term 17.0
-   PLUS                             => reduce 1 tokens to term 17.0
-   SLASH                            => reduce 1 tokens to term 17.0
-   STAR                             => reduce 1 tokens to term 17.0
-   Wisi_EOI                         => reduce 1 tokens to term 17.0
+   AMPERSAND                        => reduce 1 tokens to term 17.2
+   DOT_DOT                          => reduce 1 tokens to term 17.2
+   MINUS                            => reduce 1 tokens to term 17.2
+   PLUS                             => reduce 1 tokens to term 17.2
+   SLASH                            => reduce 1 tokens to term 17.2
+   STAR                             => reduce 1 tokens to term 17.2
+   Wisi_EOI                         => reduce 1 tokens to term 17.2
    default                          => ERROR
 
-   Minimal_Complete_Actions => (1 term 17.0)
+   Minimal_Complete_Actions => (1 term 17.2)
 
 State 9:
      18.1:primary <= allocator ^
@@ -305,8 +305,8 @@ State 15:
    Minimal_Complete_Actions => (1 binary_adding_operator 19.0)
 
 State 16:
+     16.0:simple_expression <= simple_expression binary_adding_operator ^ simple_expression
      16.1:simple_expression <= simple_expression binary_adding_operator ^ term
-     16.2:simple_expression <= simple_expression binary_adding_operator ^ simple_expression
 
    NEW                              => shift and goto state 4 21.0
    IDENTIFIER                       => shift and goto state 5 18.0
@@ -338,8 +338,8 @@ State 18:
    Minimal_Complete_Actions => (1 multiplying_operator 20.0)
 
 State 19:
+     17.0:term <= term multiplying_operator ^ term
      17.1:term <= term multiplying_operator ^ primary
-     17.2:term <= term multiplying_operator ^ term
 
    NEW                              => shift and goto state 4 21.0
    IDENTIFIER                       => shift and goto state 5 18.0
@@ -353,8 +353,8 @@ State 19:
 
 State 20:
      14.0:subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT simple_expression ^
+     16.0:simple_expression <= simple_expression ^ binary_adding_operator simple_expression
      16.1:simple_expression <= simple_expression ^ binary_adding_operator term
-     16.2:simple_expression <= simple_expression ^ binary_adding_operator simple_expression
 
    AMPERSAND                        => shift and goto state 12 19.2
    MINUS                            => shift and goto state 14 19.1
@@ -367,26 +367,26 @@ State 20:
    Minimal_Complete_Actions => (5 subtype_indication 14.0)
 
 State 21:
+     16.0:simple_expression <= simple_expression binary_adding_operator simple_expression ^
+     16.0:simple_expression <= simple_expression ^ binary_adding_operator simple_expression
      16.1:simple_expression <= simple_expression ^ binary_adding_operator term
-     16.2:simple_expression <= simple_expression binary_adding_operator simple_expression ^
-     16.2:simple_expression <= simple_expression ^ binary_adding_operator simple_expression
 
-   AMPERSAND                        => reduce 3 tokens to simple_expression 16.2
-   DOT_DOT                          => reduce 3 tokens to simple_expression 16.2
-   MINUS                            => reduce 3 tokens to simple_expression 16.2
-   PLUS                             => reduce 3 tokens to simple_expression 16.2
-   Wisi_EOI                         => reduce 3 tokens to simple_expression 16.2
+   AMPERSAND                        => reduce 3 tokens to simple_expression 16.0
+   DOT_DOT                          => reduce 3 tokens to simple_expression 16.0
+   MINUS                            => reduce 3 tokens to simple_expression 16.0
+   PLUS                             => reduce 3 tokens to simple_expression 16.0
+   Wisi_EOI                         => reduce 3 tokens to simple_expression 16.0
    default                          => ERROR
 
    binary_adding_operator           goto state 16
 
-   Minimal_Complete_Actions => (3 simple_expression 16.2)
+   Minimal_Complete_Actions => (3 simple_expression 16.0)
 
 State 22:
-     16.0:simple_expression <= term ^
      16.1:simple_expression <= simple_expression binary_adding_operator term ^
+     16.2:simple_expression <= term ^
+     17.0:term <= term ^ multiplying_operator term
      17.1:term <= term ^ multiplying_operator primary
-     17.2:term <= term ^ multiplying_operator term
 
    AMPERSAND                        => reduce 3 tokens to simple_expression 16.1
    DOT_DOT                          => reduce 3 tokens to simple_expression 16.1
@@ -399,29 +399,29 @@ State 22:
 
    multiplying_operator             goto state 19
 
-   Minimal_Complete_Actions => ((1 simple_expression 16.0), (3 simple_expression 16.1))
+   Minimal_Complete_Actions => ((3 simple_expression 16.1), (1 simple_expression 16.2))
 
 State 23:
+     17.0:term <= term multiplying_operator term ^
+     17.0:term <= term ^ multiplying_operator term
      17.1:term <= term ^ multiplying_operator primary
-     17.2:term <= term multiplying_operator term ^
-     17.2:term <= term ^ multiplying_operator term
 
-   AMPERSAND                        => reduce 3 tokens to term 17.2
-   DOT_DOT                          => reduce 3 tokens to term 17.2
-   MINUS                            => reduce 3 tokens to term 17.2
-   PLUS                             => reduce 3 tokens to term 17.2
-   SLASH                            => reduce 3 tokens to term 17.2
-   STAR                             => reduce 3 tokens to term 17.2
-   Wisi_EOI                         => reduce 3 tokens to term 17.2
+   AMPERSAND                        => reduce 3 tokens to term 17.0
+   DOT_DOT                          => reduce 3 tokens to term 17.0
+   MINUS                            => reduce 3 tokens to term 17.0
+   PLUS                             => reduce 3 tokens to term 17.0
+   SLASH                            => reduce 3 tokens to term 17.0
+   STAR                             => reduce 3 tokens to term 17.0
+   Wisi_EOI                         => reduce 3 tokens to term 17.0
    default                          => ERROR
 
    multiplying_operator             goto state 19
 
-   Minimal_Complete_Actions => (3 term 17.2)
+   Minimal_Complete_Actions => (3 term 17.0)
 
 State 24:
-     17.0:term <= primary ^
      17.1:term <= term multiplying_operator primary ^
+     17.2:term <= primary ^
 
    AMPERSAND                        => reduce 3 tokens to term 17.1
    DOT_DOT                          => reduce 3 tokens to term 17.1
@@ -432,7 +432,7 @@ State 24:
    Wisi_EOI                         => reduce 3 tokens to term 17.1
    default                          => ERROR
 
-   Minimal_Complete_Actions => ((1 term 17.0), (3 term 17.1))
+   Minimal_Complete_Actions => ((3 term 17.1), (1 term 17.2))
 
 21 states with minimal_complete_actions; 23 total minimal_complete_actions.
 

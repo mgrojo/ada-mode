@@ -15,17 +15,17 @@ Productions:
 7.0: wisitoken_accept <= declarations Wisi_EOI
 8.0: declaration <= body ; (1 => Other_Left)
 8.1: declaration <=
-9.0: declarations <= declaration ; (1 => Other_Left)
+9.0: declarations <= declarations declarations ; (1 => Direct_Left, 2 => Direct_Right)
 9.1: declarations <= declarations declaration ; (1 => Direct_Left, 2 => Other_Right)
-9.2: declarations <= declarations declarations ; (1 => Direct_Left, 2 => Direct_Right)
+9.2: declarations <= declaration ; (1 => Other_Left)
 10.0: body <= IS declarations BEGIN SEMICOLON ; (2 => Other)
 
 Optimized_Lists:
  declarations
 
 Recursions:
-1 => (8 (0.1) -> 10 (0.2) -> 9 (0.1, 1.2) -> )
-2 => (9 (1.1, 2.1, 2.2) -> )
+1 => (8 (0.1) -> 10 (0.2) -> 9 (1.2, 2.1) -> )
+2 => (9 (0.1, 0.2, 1.1) -> )
 
 LALR Parse Table:
 State 0:
@@ -57,19 +57,19 @@ State 1:
    Minimal_Complete_Actions => (0 declarations 9.0)
 
 State 2:
-      9.0:declarations <= declaration ^
+      9.2:declarations <= declaration ^
 
-   BEGIN            => reduce 1 tokens to declarations 9.0
-   IS               => reduce 1 tokens to declarations 9.0
-   Wisi_EOI         => reduce 1 tokens to declarations 9.0
+   BEGIN            => reduce 1 tokens to declarations 9.2
+   IS               => reduce 1 tokens to declarations 9.2
+   Wisi_EOI         => reduce 1 tokens to declarations 9.2
    default          => ERROR
 
-   Minimal_Complete_Actions => (1 declarations 9.0)
+   Minimal_Complete_Actions => (1 declarations 9.2)
 
 State 3:
       7.0:wisitoken_accept <= declarations ^ Wisi_EOI
+      9.0:declarations <= declarations ^ declarations
       9.1:declarations <= declarations ^ declaration
-      9.2:declarations <= declarations ^ declarations
 
    IS               => shift and goto state 1 10.0,
                        reduce 0 tokens to declaration 8.1
@@ -94,8 +94,8 @@ State 4:
    Minimal_Complete_Actions => (1 declaration 8.0)
 
 State 5:
+      9.0:declarations <= declarations ^ declarations
       9.1:declarations <= declarations ^ declaration
-      9.2:declarations <= declarations ^ declarations
      10.0:body <= IS declarations ^ BEGIN SEMICOLON
 
    BEGIN            => shift and goto state 8 10.0,
@@ -111,31 +111,31 @@ State 5:
    Minimal_Complete_Actions => (BEGIN 10.0)
 
 State 6:
-      9.0:declarations <= declaration ^
       9.1:declarations <= declarations declaration ^
+      9.2:declarations <= declaration ^
 
    BEGIN            => reduce 2 tokens to declarations 9.1
    IS               => reduce 2 tokens to declarations 9.1
    Wisi_EOI         => reduce 2 tokens to declarations 9.1
    default          => ERROR
 
-   Minimal_Complete_Actions => ((1 declarations 9.0), (2 declarations 9.1))
+   Minimal_Complete_Actions => ((2 declarations 9.1), (1 declarations 9.2))
 
 State 7:
+      9.0:declarations <= declarations declarations ^
+      9.0:declarations <= declarations ^ declarations
       9.1:declarations <= declarations ^ declaration
-      9.2:declarations <= declarations declarations ^
-      9.2:declarations <= declarations ^ declarations
 
-   BEGIN            => reduce 2 tokens to declarations 9.2
-   IS               => reduce 2 tokens to declarations 9.2
-   Wisi_EOI         => reduce 2 tokens to declarations 9.2
+   BEGIN            => reduce 2 tokens to declarations 9.0
+   IS               => reduce 2 tokens to declarations 9.0
+   Wisi_EOI         => reduce 2 tokens to declarations 9.0
    default          => ERROR
 
    declaration      goto state 6
    declarations     goto state 7
    body             goto state 4
 
-   Minimal_Complete_Actions => (2 declarations 9.2)
+   Minimal_Complete_Actions => (2 declarations 9.0)
 
 State 8:
      10.0:body <= IS declarations BEGIN ^ SEMICOLON

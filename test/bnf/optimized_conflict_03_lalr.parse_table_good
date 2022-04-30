@@ -19,8 +19,8 @@ Tokens:
 Productions:
 10.0: wisitoken_accept <= subtype_indication Wisi_EOI
 11.0: subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT simple_expression ; (3 => Other, 5 => Other_Right)
-12.0: simple_expression <= primary ; (1 => Other_Left)
-12.1: simple_expression <= simple_expression binary_adding_operator primary ; (1 => Direct_Left, 3 => Other_Right)
+12.0: simple_expression <= simple_expression binary_adding_operator primary ; (1 => Direct_Left, 3 => Other_Right)
+12.1: simple_expression <= primary ; (1 => Other_Left)
 13.0: primary <= IDENTIFIER
 13.1: primary <= allocator ; (1 => Other_Left)
 14.0: binary_adding_operator <= PLUS
@@ -28,8 +28,8 @@ Productions:
 15.0: allocator <= NEW subtype_indication ; (2 => Other_Right)
 
 Recursions:
-1 => (11 (0.3, 0.5) -> 12 (0.1, 1.3) -> 13 (1.1) -> 15 (0.2) -> )
-2 => (12 (1.1) -> )
+1 => (11 (0.3, 0.5) -> 12 (0.3, 1.1) -> 13 (1.1) -> 15 (0.2) -> )
+2 => (12 (0.1) -> )
 
 LALR Parse Table:
 State 0:
@@ -94,7 +94,7 @@ State 5:
 
 State 6:
      11.0:subtype_indication <= IDENTIFIER RANGE simple_expression ^ DOT_DOT simple_expression
-     12.1:simple_expression <= simple_expression ^ binary_adding_operator primary
+     12.0:simple_expression <= simple_expression ^ binary_adding_operator primary
 
    DOT_DOT                => shift and goto state 10 11.0
    MINUS                  => shift and goto state 11 14.1
@@ -106,15 +106,15 @@ State 6:
    Minimal_Complete_Actions => (DOT_DOT 11.0)
 
 State 7:
-     12.0:simple_expression <= primary ^
+     12.1:simple_expression <= primary ^
 
-   DOT_DOT                => reduce 1 tokens to simple_expression 12.0
-   MINUS                  => reduce 1 tokens to simple_expression 12.0
-   PLUS                   => reduce 1 tokens to simple_expression 12.0
-   Wisi_EOI               => reduce 1 tokens to simple_expression 12.0
+   DOT_DOT                => reduce 1 tokens to simple_expression 12.1
+   MINUS                  => reduce 1 tokens to simple_expression 12.1
+   PLUS                   => reduce 1 tokens to simple_expression 12.1
+   Wisi_EOI               => reduce 1 tokens to simple_expression 12.1
    default                => ERROR
 
-   Minimal_Complete_Actions => (1 simple_expression 12.0)
+   Minimal_Complete_Actions => (1 simple_expression 12.1)
 
 State 8:
      13.1:primary <= allocator ^
@@ -170,7 +170,7 @@ State 12:
    Minimal_Complete_Actions => (1 binary_adding_operator 14.0)
 
 State 13:
-     12.1:simple_expression <= simple_expression binary_adding_operator ^ primary
+     12.0:simple_expression <= simple_expression binary_adding_operator ^ primary
 
    NEW                    => shift and goto state 4 15.0
    IDENTIFIER             => shift and goto state 5 13.0
@@ -183,7 +183,7 @@ State 13:
 
 State 14:
      11.0:subtype_indication <= IDENTIFIER RANGE simple_expression DOT_DOT simple_expression ^
-     12.1:simple_expression <= simple_expression ^ binary_adding_operator primary
+     12.0:simple_expression <= simple_expression ^ binary_adding_operator primary
 
    DOT_DOT                => reduce 5 tokens to subtype_indication 11.0
    MINUS                  => shift and goto state 11 14.1,
@@ -198,15 +198,15 @@ State 14:
    Minimal_Complete_Actions => (5 subtype_indication 11.0)
 
 State 15:
-     12.1:simple_expression <= simple_expression binary_adding_operator primary ^
+     12.0:simple_expression <= simple_expression binary_adding_operator primary ^
 
-   DOT_DOT                => reduce 3 tokens to simple_expression 12.1
-   MINUS                  => reduce 3 tokens to simple_expression 12.1
-   PLUS                   => reduce 3 tokens to simple_expression 12.1
-   Wisi_EOI               => reduce 3 tokens to simple_expression 12.1
+   DOT_DOT                => reduce 3 tokens to simple_expression 12.0
+   MINUS                  => reduce 3 tokens to simple_expression 12.0
+   PLUS                   => reduce 3 tokens to simple_expression 12.0
+   Wisi_EOI               => reduce 3 tokens to simple_expression 12.0
    default                => ERROR
 
-   Minimal_Complete_Actions => (3 simple_expression 12.1)
+   Minimal_Complete_Actions => (3 simple_expression 12.0)
 
 14 states with minimal_complete_actions; 14 total minimal_complete_actions.
 

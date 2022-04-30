@@ -288,8 +288,8 @@ package body WisiToken_Grammar_Runtime is
       Data.Action_Count      := 0;
       Data.Check_Count       := 0;
       Data.Label_Count       := 0;
-      Data.If_Lexer_Present  := False;
-      Data.If_Parser_Present := False;
+      --  Preserve If_Lexer_Present
+      --  Preserve If_Parser_Present
       Data.Ignore_Lines      := False;
    end Reset;
 
@@ -861,30 +861,30 @@ package body WisiToken_Grammar_Runtime is
          end if;
          --  From optimized_list.wy:
          --  declarations
-         --  : declaration
+         --  : declarations declarations
          --  | declarations declaration
-         --  | declarations declarations
+         --  | declaration
          --  ;
          --
          --  From ada_lite_ebnf_bnf.wy
          --
          --  optimized list with separator:
          --  term
-         --    : factor
+         --    : term multiplying_operator term
          --    | term multiplying_operator factor
-         --    | term multiplying_operator term
+         --    | factor
          --    ;
          --
          --  AND_relation_list
-         --    : AND relation
+         --    : AND_relation_list AND_relation_list
          --    | AND_relation_list AND relation
-         --    | AND_relation_list AND_relation_list
+         --    | AND relation
          --    ;
          --
          --  ELSIF_expression_list
-         --    : ELSIF expression THEN sequence_of_statements
+         --    : ELSIF_expression_list ELSIF_expression_list
          --    | ELSIF_expression_list ELSIF expression THEN sequence_of_statements
-         --    | ELSIF_expression_list ELSIF_expression_list
+         --    | ELSIF expression THEN sequence_of_statements
          --    ;
 
          if Right_Hand_Sides.Length /= 3 then
@@ -896,7 +896,7 @@ package body WisiToken_Grammar_Runtime is
             use Ada.Strings.Unbounded;
             use WisiToken.BNF.RHS_Lists;
 
-            RHS                 : Cursor     := Right_Hand_Sides.First;
+            RHS                 : Cursor     := Right_Hand_Sides.Last;
             Element             : Unbounded_String;
             Element_Token_Count : Count_Type := 0;
             Has_Separator       : Boolean    := False;
@@ -907,7 +907,7 @@ package body WisiToken_Grammar_Runtime is
                Element_Token_Count := @ + 1;
             end loop;
 
-            Next (RHS);
+            Previous (RHS);
             if -Right_Hand_Sides (RHS).Tokens (1).Identifier /= LHS_String then
                return False;
             end if;
@@ -952,7 +952,7 @@ package body WisiToken_Grammar_Runtime is
                end;
             end if;
 
-            Next (RHS);
+            Previous (RHS);
             if Right_Hand_Sides (RHS).Tokens.Length /= (if Has_Separator then 3 else 2) then
                return False;
             end if;

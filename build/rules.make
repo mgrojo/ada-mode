@@ -76,6 +76,7 @@ gen_EBNF :: java_types_ch19_re2c.c
 gen_EBNF :: java_types_ch19_lr1_t8_run.ads
 gen_EBNF :: lalr_generator_bug_01_re2c.c
 gen_EBNF :: nested_ebnf_optional_re2c.c
+gen_EBNF :: object_declaration_re2c.c
 gen_EBNF :: optimized_conflict_01_re2c.c
 gen_EBNF :: optimized_conflict_02_re2c.c
 gen_EBNF :: optimized_conflict_03_re2c.c
@@ -134,7 +135,7 @@ test-clean :
 # wisitoken-bnf-generate.exe in the dependencies here, to allow
 # bootstrapping.
 ../wisitoken_grammar.re2c : ../wisitoken_grammar.wy
-	cd ../; $(CURDIR)/wisitoken-bnf-generate.exe wisitoken_grammar.wy
+	cd ../; $(CURDIR)/wisitoken-bnf-generate.exe --warning=error wisitoken_grammar.wy
 	dos2unix -q ../wisitoken_grammar*
 
 ../wisitoken_grammar_re2c.c : ../wisitoken_grammar.re2c
@@ -188,8 +189,8 @@ DIFF_OPT := -u -w
 # task_count 1 for repeatable results when comparing .parse_table_good etc.
 # task_count 0 is tested in test_lr1_parallel.adb via test_bnf_suite.adb
 %.re2c : %.wy wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --task_count 1 --output_bnf --test_main $(GENERATE_ARGS) $<
-	dos2unix -q $**_actions.adb $**_actions.ads $*.js $*_bnf.wy $**_main.adb $**.parse_table
+	./wisitoken-bnf-generate.exe --warning=error --task_count 1 --output_bnf --test_main $(GENERATE_ARGS) $<
+	dos2unix -q $**_actions.adb $**_actions.ads $*.js $**_bnf.wy $**_main.adb $**.parse_table
 
 %_lr1_t8_run.ads : %.wy wisitoken-bnf-generate.exe
 	./wisitoken-bnf-generate.exe --task_count 8 --generate LR1 Ada re2c --test_main $(GENERATE_ARGS) $<
@@ -206,7 +207,7 @@ ada_lite_lr1_t8_run.ads : ada_lite.wy wisitoken-bnf-generate.exe
 	re2c --location-format gnu --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 	dos2unix $*_re2c.c
 
-%_tree_sitter.c : %.re2c wisitoken-bnf-generate.exe
+%_tree_sitter.c : %.re2c
 	tree-sitter generate ./$*.js
 	mv src/parser.c $*_tree_sitter.c
 

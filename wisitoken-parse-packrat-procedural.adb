@@ -166,7 +166,8 @@ package body WisiToken.Parse.Packrat.Procedural is
                case Memo.State is
                when Success =>
                   Parser.Tree.Lexer.Trace.Put_Line
-                    (Parser.Tree.Image (Memo.Result, Children => True, Terminal_Node_Numbers => True));
+                    (Parser.Tree.Image
+                       (Memo.Result, Children => True, Terminal_Node_Numbers => True, RHS_Index => True));
                when Failure =>
                   Parser.Tree.Lexer.Trace.Put_Line
                     (Image (R, Descriptor) & " failed at pos " & Image_Pos (Tree, Tree.Shared_Stream, Last_Pos));
@@ -201,7 +202,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                if WisiToken.Trace_Parse > Detail then
                   Parser.Tree.Lexer.Trace.Put_Line
                     (Parser.Tree.Image
-                       (Result_Recurse.Result, Children => True, Terminal_Node_Numbers => True));
+                       (Result_Recurse.Result, Children => True, Terminal_Node_Numbers => True, RHS_Index => True));
                end if;
                --  continue looping
 
