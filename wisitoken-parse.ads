@@ -176,6 +176,8 @@ package WisiToken.Parse is
       Error_Node : in Syntax_Trees.Valid_Node_Access)
      return String;
 
+   overriding function Class_Image (Data : in Lexer_Error) return String is ("lexer");
+
    type Parse_Error
      (First_Terminal : Token_ID;
       Last_Terminal  : Token_ID)
@@ -197,6 +199,8 @@ package WisiToken.Parse is
       Tree       : in Syntax_Trees.Tree'Class;
       Error_Node : in Syntax_Trees.Valid_Node_Access)
      return String;
+
+   overriding function Class_Image (Data : in Parse_Error) return String is ("parser");
 
    type In_Parse_Action_Error is new Syntax_Trees.Error_Data with record
       Status       : WisiToken.Syntax_Trees.In_Parse_Actions.Status;
@@ -220,6 +224,8 @@ package WisiToken.Parse is
       Error_Node : in Syntax_Trees.Valid_Node_Access)
      return String;
 
+   overriding function Class_Image (Data : in In_Parse_Action_Error) return String is ("in_parse_action");
+
    type Error_Message is new Syntax_Trees.Error_Data with record
       Msg          : Ada.Strings.Unbounded.Unbounded_String;
       Recover_Ops  : Recover_Op_Arrays.Vector;
@@ -241,6 +247,8 @@ package WisiToken.Parse is
       Tree       : in Syntax_Trees.Tree'Class;
       Error_Node : in Syntax_Trees.Valid_Node_Access)
      return String;
+
+   overriding function Class_Image (Data : in Error_Message) return String is ("message");
 
    function Error_Pred_Parse (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
    --  Return True if Cur is a Parse_Error; for

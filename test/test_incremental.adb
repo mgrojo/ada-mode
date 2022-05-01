@@ -2269,6 +2269,70 @@ package body Test_Incremental is
          Incr_Errors => 1);
    end Lexer_Errors_03;
 
+   procedure Lexer_Errors_04 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada-mode test gpr_incremental_01.gpr; Edit_Tree scans a lexer
+      --  error on a non_grammar.
+
+      Incremental_Parser := Grammar.Incremental_Parser'Access;
+      Full_Parser        := Grammar.Full_Parser'Access;
+
+      Parse_Text
+        (Label          => "1",
+         Initial        =>
+           "A : B;" & ASCII.LF & ASCII.LF &
+             --  |4                |8
+             "C : D;",
+         --   |8
+         Edit_At        => 8,
+         Delete         => "",
+         Insert         => "-",
+         Initial_Errors => 0,
+         Incr_Errors    => 1); -- lexer
+
+      Parse_Text
+        (Label          => "2",
+         Initial        => "",
+         Edit_At        => 9,
+         Delete         => "",
+         Insert         => "- FI",
+         Initial_Errors => 1,
+         Incr_Errors    => 0);
+   end Lexer_Errors_04;
+
+   procedure Lexer_Errors_05 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  More from ada-mode test gpr_incremental_01.gpr; test was broken
+      --  causing this input pattern. Requires handling more than one lexer
+      --  error per lexer token.
+
+      Incremental_Parser := Grammar.Incremental_Parser'Access;
+      Full_Parser        := Grammar.Full_Parser'Access;
+
+      Parse_Text
+        (Label          => "1",
+         Initial        =>
+           "A : B;" & ASCII.LF &
+             --  |4
+             " - -" & ASCII.LF &
+             --  |11
+             "C : D;",
+         --   |8
+         Edit_At        => 11,
+         Delete         => "",
+         Insert         => "f",
+         Initial_Errors => 2, -- lexer
+         Incr_Errors    => 3); -- lexer, parser
+
+   end Lexer_Errors_05;
+
+   --  FIXME: There can be several lexer errors on one token, if there
+   --  are several unrecognized chars.
+
    procedure Preserve_Parse_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -2804,6 +2868,8 @@ package body Test_Incremental is
       Register_Routine (T, Lexer_Errors_01'Access, "Lexer_Errors_01");
       Register_Routine (T, Lexer_Errors_02'Access, "Lexer_Errors_02");
       Register_Routine (T, Lexer_Errors_03'Access, "Lexer_Errors_03");
+      Register_Routine (T, Lexer_Errors_04'Access, "Lexer_Errors_04");
+      Register_Routine (T, Lexer_Errors_05'Access, "Lexer_Errors_05");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
       Register_Routine (T, Modify_Deleted_Node'Access, "Modify_Deleted_Node");

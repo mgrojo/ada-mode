@@ -239,6 +239,21 @@ package body WisiToken.Syntax_Trees is
       --  editing the shared stream. That is done in Finish_Parse.
    end Add_Deleted;
 
+   procedure Add_Error
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Node   : in     Valid_Node_Access;
+      Data   : in     Error_Data'Class)
+   is
+      pragma Unreferenced (Stream); --  Only used in precondition.
+   begin
+      if Node.Error_List = null then
+         Node.Error_List := new Error_Data_Lists.List'(Error_Data_Lists.To_List (Data));
+      else
+         Node.Error_List.Append (Data);
+      end if;
+   end Add_Error;
+
    function Add_Error
      (Tree      : in out Syntax_Trees.Tree;
       Node      : in     Valid_Node_Access;
@@ -4535,11 +4550,9 @@ package body WisiToken.Syntax_Trees is
                      Append (Result, ASCII.LF & "   ERROR: " & Err.Image (Tree, Node));
                   end loop;
                else
-                  Append
-                    (Result, " ERROR" &
-                       (if Node.Error_List.Length = 1
-                        then ""
-                        else "S(" & Trimmed_Image (Node.Error_List.Length) & ")"));
+                  for Err of Node.Error_List.all loop
+                     Append (Result, ", " & Err.Class_Image & " ERROR");
+                  end loop;
                end if;
             end if;
 

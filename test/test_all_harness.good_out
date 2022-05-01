@@ -134,6 +134,9 @@ OK test_incremental.adb : Recover_08c
 OK test_incremental.adb : Recover_08d
 OK test_incremental.adb : Recover_09
 OK test_incremental.adb : Lexer_Errors_01
+OK test_incremental.adb : Lexer_Errors_02
+OK test_incremental.adb : Lexer_Errors_03
+OK test_incremental.adb : Lexer_Errors_04
 OK test_incremental.adb : Preserve_Parse_Errors_1
 OK test_incremental.adb : Preserve_Parse_Errors_2
 OK test_incremental.adb : Modify_Deleted_Node
@@ -298,7 +301,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   298
-Successful Tests:  298
+Total Tests Run:   301
+Successful Tests:  301
 Failed Assertions: 0
 Unexpected Errors: 0

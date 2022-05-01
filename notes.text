@@ -31,16 +31,35 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+ada-mode gpr_incremental_01.gpr
+    test broken, and encounters empty stream element
+    test_incremental.adb Lexer_Errors_05
+        does not yet reproduce
+
+editing wisitoken-parse.adb loop that sets scan_end in lexer_errors
+    adding non-delimited_text case
+    error in resume
+    try to reproduce
+
+
+wisitoken.grammar_mode.stephe-1 test/nominal.wy failing
+    bug in line_begin_char_pos for delimited-text
+        also bug in mmm-mode, but fixing that later.
+    add wisitoken test
+
 ada_lite_ebnf packrat
     in o.w.s-2
 
 ada_annex_p packrat
     in o.e.a-m.s-6
 
-packrat indirect left recursion
-    conflict_name has indirect left recursion
-    implement that in langkit, stack overflow at parse time. Submitted ticket V415-028
-        wisitoken reports indirect left recursion at generate time; good enough for now.
+Not doing packrat indirect left recursion
+    ticket V415-028; AdaCore says they don't need it for Ada
+    doc in wisitoken user guide
+
+wisitoken test/incremental_04.wy
+    see FIXME: new error correction feature.
+    try tree-sitter, ask Max Brunsfeld
 
 redundant minimal_complete_actions:
     in ada_annex_p parse_table:

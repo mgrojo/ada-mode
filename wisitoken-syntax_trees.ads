@@ -216,6 +216,10 @@ package WisiToken.Syntax_Trees is
    --  Should not include file name, line number; a higher level will add
    --  that if desired.
 
+   function Class_Image (Data : in Error_Data) return String
+   is abstract;
+   --  Return image of Data'Class; ie "parser" or "lexer". For Tree.Image (Node).
+
    type Null_Error_Data is new Error_Data with null record;
    --  For Error_Data parameters when there is no error.
 
@@ -236,7 +240,8 @@ package WisiToken.Syntax_Trees is
       Tree       : in Syntax_Trees.Tree'Class;
       Error_Node : in Valid_Node_Access)
      return String
-   is ("");
+   is ("null");
+   overriding function Class_Image (Data : in Null_Error_Data) return String is ("null");
 
    pragma Warnings (Off, """others"" choice is redundant");
    No_Error : constant Null_Error_Data := (others => <>);
@@ -2352,6 +2357,18 @@ package WisiToken.Syntax_Trees is
       Data       : in Error_Data'Class)
      return Boolean;
    --  True if Error_Node's error list contains an element matching Data.
+
+   procedure Add_Error
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Node   : in     Valid_Node_Access;
+      Data   : in     Error_Data'Class)
+   with Pre => Stream = Tree.Shared_Stream and Tree.Label (Node) = Source_Terminal;
+   --  Add Data to Node; Node is not copied first.
+   --
+   --  This should only be used when lexing new text, Data is a lexer
+   --  error which occurred while lexing a non_grammar token, and Node is
+   --  the previously lexed grammar token.
 
    procedure Add_Error_To_Input
      (Tree      : in out Syntax_Trees.Tree;
