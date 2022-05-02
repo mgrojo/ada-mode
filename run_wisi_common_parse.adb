@@ -148,11 +148,11 @@ package body Run_Wisi_Common_Parse is
       use all type WisiToken.Token_ID;
 
       Token       : WisiToken.Lexer.Token;
-      Lexer_Error : Boolean;
-      pragma Unreferenced (Lexer_Error);
+      Error_Count : Natural;
+      pragma Unreferenced (Error_Count);
    begin
       loop
-         Lexer_Error := Parse_Context.Parser.Tree.Lexer.Find_Next (Token);
+         Error_Count := Parse_Context.Parser.Tree.Lexer.Find_Next (Token);
          exit when Token.ID = Parse_Context.Parser.Tree.Lexer.Descriptor.EOI_ID;
       end loop;
 
