@@ -165,7 +165,7 @@ tree size:  46
 (primary_0, (128 . 128) <= (14:(IDENTIFIER, (128 . 128))))
  ... goto state 23
  3: zombie
- 2: terminate (5 active): zombie (2, 16:(PLUS, (120 . 120) ERROR))
+ 2: terminate (5 active): zombie (2, 16:(PLUS, (120 . 120), parser ERROR))
  1: 5: (-1, 15:(Wisi_EOI, (131 . 130))) : reduce 1 tokens to primary
 (primary_0, (128 . 128) <= (14:(IDENTIFIER, (128 . 128))))
  ... goto state 23
@@ -238,6 +238,6 @@ tree size:  46
  3: zombie
  0: 2: (-1, 15:(Wisi_EOI, (131 . 130))) : accept it
 (wisitoken_accept_0, (77 . 128) <= ((subtype_indication_0, (77 . 128))))
- 5: terminate (4 active): zombie (5, 18:(STAR, (126 . 126) ERROR))
- 3: terminate (3 active): zombie (3, 17:(STAR, (126 . 126) ERROR))
+ 5: terminate (4 active): zombie (5, 18:(STAR, (126 . 126), parser ERROR))
+ 3: terminate (3 active): zombie (3, 17:(STAR, (126 . 126), parser ERROR))
 optimized_conflict_01.input:optimized_conflict_01.input:3:1: Ambiguous parse: 5 parsers active.

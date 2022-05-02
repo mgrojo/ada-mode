@@ -359,52 +359,62 @@ package body WisiToken.Parse is
 
       Tree  : Syntax_Trees.Tree renames Parser.Tree;
       Lexer : WisiToken.Lexer.Handle renames Parser.Tree.Lexer;
-
-      Token : WisiToken.Lexer.Token;
-      Error : Boolean;
-      Ref   : Terminal_Ref;
    begin
       loop
-         Error := Lexer.Find_Next (Token);
+         declare
+            Token        : WisiToken.Lexer.Token;
+            Error_Count  : constant Natural := Lexer.Find_Next (Token);
+            Lexer_Errors : Error_Data_Lists.List;
+         begin
 
-         if Trace_Lexer > Outline then
-            Tree.Lexer.Trace.Put_Line (WisiToken.Lexer.Full_Image (Token, Tree.Lexer.Descriptor.all));
-         end if;
-
-         if Token.ID >= Lexer.Descriptor.First_Terminal then
-            Ref := Tree.Add_Terminal
-              (Parser.Tree.Shared_Stream, Token,
-               Error =>
-                 (if Error
-                  then Lexer_Error'(Error => Lexer.Errors (Lexer.Errors.Last))
-                  else No_Error));
-
-            Process_Grammar_Token (Parser, Token, Ref.Node);
-            Last_Grammar_Node := Ref.Node;
-            if Error and Trace_Lexer > Detail then
-               Tree.Lexer.Trace.Put_Line ("lexer error in " & Parser.Tree.Image (Last_Grammar_Node));
+            if Trace_Lexer > Outline then
+               Tree.Lexer.Trace.Put_Line (WisiToken.Lexer.Full_Image (Token, Tree.Lexer.Descriptor.all));
             end if;
-         else
-            if Trace_Lexer > Detail then
-               Tree.Lexer.Trace.Put_Line ("non-grammar in " & Parser.Tree.Image (Last_Grammar_Node));
+
+            if Error_Count > 0 then
+               declare
+                  Cur : WisiToken.Lexer.Error_Lists.Cursor := Lexer.Errors.Last;
+               begin
+                  for I in 1 .. Error_Count - 1 loop
+                     WisiToken.Lexer.Error_Lists.Previous (Cur);
+                  end loop;
+                  for I in 1 .. Error_Count loop
+                     Lexer_Errors.Append (Lexer_Error'(Error => Lexer.Errors (Cur)));
+                     WisiToken.Lexer.Error_Lists.Next (Cur);
+                  end loop;
+               end;
             end if;
-            if Error then
-               --  test_incremental.adb Lexer_Errors_04
-               Tree.Add_Error
-                 (Tree.Shared_Stream, Last_Grammar_Node, Lexer_Error'(Error => Lexer.Errors (Lexer.Errors.Last)));
+
+            if Token.ID >= Lexer.Descriptor.First_Terminal then
+               declare
+                  Ref : constant Terminal_Ref := Tree.Add_Terminal (Parser.Tree.Shared_Stream, Token, Lexer_Errors);
+               begin
+                  Process_Grammar_Token (Parser, Token, Ref.Node);
+                  Last_Grammar_Node := Ref.Node;
+               end;
+            else
                if Trace_Lexer > Detail then
-                  Tree.Lexer.Trace.Put_Line ("lexer error in " & Parser.Tree.Image (Last_Grammar_Node));
+                  Tree.Lexer.Trace.Put_Line ("non-grammar in " & Parser.Tree.Image (Last_Grammar_Node));
                end if;
+               if Error_Count > 0 then
+                  --  test_incremental.adb Lexer_Errors_04, _05
+                  Tree.Add_Errors (Tree.Shared_Stream, Last_Grammar_Node, Lexer_Errors);
+               end if;
+
+               Process_Non_Grammar_Token (Parser, Last_Grammar_Node, Token);
             end if;
 
-            Process_Non_Grammar_Token (Parser, Last_Grammar_Node, Token);
-            Ref := Invalid_Stream_Node_Ref;
-         end if;
+            if Error_Count > 0 and Trace_Lexer > Detail then
+               Tree.Lexer.Trace.Put_Line
+                 ("lexer error" & (if Error_Count > 1 then "s" else "") &
+                    " in " & Parser.Tree.Image (Last_Grammar_Node));
+            end if;
 
-         exit when Token.ID >= Lexer.Descriptor.First_Terminal;
+            if Token.ID >= Lexer.Descriptor.First_Terminal then
+               return Token.ID;
+            end if;
+         end;
       end loop;
-
-      return Token.ID;
    end Next_Grammar_Token;
 
    procedure Lex_All (Parser : in out Base_Parser'Class)
@@ -671,6 +681,31 @@ package body WisiToken.Parse is
 
       Terminal_Non_Grammar_Next : Lexer.Token_Arrays.Extended_Index := Lexer.Token_Arrays.No_Index;
       --  Next non_grammar in Terminal to be shifted or deleted.
+
+      procedure Maybe_Delete_Lexer_Errors (Node : in Valid_Node_Access)
+      is begin
+         if Invalid_Error_Ref /= Tree.Has_Error_Class (Node, Lexer_Error'(others => <>)) then
+            --  Delete from Lexer_Errors. test_incremental.adb Edit_String_09
+            declare
+               use Lexer_Error_Data_Lists;
+               Cur : Cursor := Lexer_Errors.First;
+            begin
+               loop
+                  exit when Cur = No_Element;
+
+                  if Lexer_Errors (Cur).Node = Node then
+                     declare
+                        To_Delete_1 : Cursor := Cur;
+                     begin
+                        Next (Cur);
+                        Lexer_Errors.Delete (To_Delete_1);
+                     end;
+                  end if;
+                  Next (Cur);
+               end loop;
+            end;
+         end if;
+      end Maybe_Delete_Lexer_Errors;
 
       procedure Breakdown (Terminal : in out Terminal_Ref; To_Single : in Boolean := False)
       with Pre => Terminal /= Invalid_Stream_Node_Ref
@@ -1605,27 +1640,7 @@ package body WisiToken.Parse is
                                 Tree.Image (To_Delete.Element, Terminal_Node_Numbers => True, Non_Grammar => False));
                         end if;
 
-                        if Invalid_Error_Ref /= Tree.Has_Error_Class (To_Delete.Node, Lexer_Error'(others => <>)) then
-                           --  Delete from Lexer_Errors. test_incremental.adb Edit_String_09
-                           declare
-                              use Lexer_Error_Data_Lists;
-                              Cur : Cursor := Lexer_Errors.First;
-                           begin
-                              loop
-                                 exit when Cur = No_Element;
-
-                                 if Lexer_Errors (Cur).Node = To_Delete.Node then
-                                    declare
-                                       To_Delete_1 : Cursor := Cur;
-                                    begin
-                                       Next (Cur);
-                                       Lexer_Errors.Delete (To_Delete_1);
-                                    end;
-                                 end if;
-                                 Next (Cur);
-                              end loop;
-                           end;
-                        end if;
+                        Maybe_Delete_Lexer_Errors (To_Delete.Node);
 
                         if Tree.Lexer.Is_Block_Delimited (Tree.ID (To_Delete.Node)) then
                            Check_Scan_End (To_Delete.Node);
@@ -2314,24 +2329,39 @@ package body WisiToken.Parse is
                   Scan_Changed_Loop :
                   loop
                      declare
-                        Token : Lexer.Token;
-                        Error : constant Boolean := Tree.Lexer.Find_Next (Token);
-                        Ref   : Terminal_Ref;
+                        Token       : Lexer.Token;
+                        Error_Count : constant Natural := Tree.Lexer.Find_Next (Token);
+                        Ref         : Terminal_Ref;
+                        Scan_Errors : Error_Data_Lists.List;
                      begin
                         if Trace_Lexer > Outline then
-                           Tree.Lexer.Trace.Put_Line
-                             ("lex: " & Lexer.Image (Token, Parser.Tree.Lexer.Descriptor.all));
-                           if Error then
-                              declare
-                                 Error : Lexer.Error renames Tree.Lexer.Errors (Tree.Lexer.Errors.Last);
-                              begin
-                                 Tree.Lexer.Trace.Put_Line
-                                   (" ... error: " & Error.Char_Pos'Image &
-                                      (if Error.Recover_Char (1) /= ASCII.NUL
-                                       then "'" & Error.Recover_Char (1) & "'"
-                                       else ""));
-                              end;
-                           end if;
+                           Tree.Lexer.Trace.Put_Line ("lex: " & Lexer.Image (Token, Parser.Tree.Lexer.Descriptor.all));
+                        end if;
+
+                        if Error_Count > 0 then
+                           declare
+                              Cur : WisiToken.Lexer.Error_Lists.Cursor := Tree.Lexer.Errors.Last;
+                           begin
+                              for I in 1 .. Error_Count - 1 loop
+                                 WisiToken.Lexer.Error_Lists.Previous (Cur);
+                              end loop;
+                              for I in 1 .. Error_Count loop
+                                 declare
+                                    Error : Lexer.Error renames Tree.Lexer.Errors (Cur);
+                                 begin
+                                    Scan_Errors.Append (Lexer_Error'(Error => Error));
+
+                                    if Trace_Lexer > Outline then
+                                       Tree.Lexer.Trace.Put_Line
+                                         (" ... error: " & Error.Char_Pos'Image &
+                                            (if Error.Recover_Char (1) /= ASCII.NUL
+                                             then "'" & Error.Recover_Char (1) & "'"
+                                             else ""));
+                                    end if;
+                                 end;
+                                 WisiToken.Lexer.Error_Lists.Next (Cur);
+                              end loop;
+                           end;
                         end if;
 
                         exit Scan_Changed_Loop when Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID;
@@ -2374,10 +2404,7 @@ package body WisiToken.Parse is
                            Ref := Tree.Insert_Source_Terminal
                              (Stream, Token,
                               Before => Terminal.Element,
-                              Error =>
-                                (if Error
-                                 then Lexer_Error'(Error => Tree.Lexer.Errors (Tree.Lexer.Errors.Last))
-                                 else No_Error));
+                              Errors => Scan_Errors);
 
                            Process_Grammar_Token (Parser, Token, Ref.Node);
                            Last_Grammar := Ref;
@@ -2393,12 +2420,9 @@ package body WisiToken.Parse is
                                 ("scan new " & Lexer.Full_Image (Token, Parser.Tree.Lexer.Descriptor.all));
                            end if;
 
-                           if Error then
+                           if Error_Count > 0 then
                               --  test_incremental.adb Lexer_Errors_04
-                              Tree.Add_Error
-                                (Tree.Shared_Stream,
-                                 Last_Grammar.Node,
-                                 Lexer_Error'(Error => Tree.Lexer.Errors (Tree.Lexer.Errors.Last)));
+                              Tree.Add_Errors (Tree.Shared_Stream, Last_Grammar.Node, Scan_Errors);
                            end if;
                            Process_Non_Grammar_Token (Parser, Last_Grammar.Node, Token);
                            Shift_Lines := @ + New_Line_Count (Token.Line_Region);
@@ -2499,6 +2523,7 @@ package body WisiToken.Parse is
 
                            pragma Assert (To_Delete.Node /= Tree.SOI and To_Delete.Node /= Tree.EOI);
                            Tree.Stream_Delete (Stream, To_Delete.Element);
+                           Maybe_Delete_Lexer_Errors (To_Delete.Node);
                         end;
                      end if;
                   end loop Delete_Scanned_Loop;

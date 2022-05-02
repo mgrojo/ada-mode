@@ -190,7 +190,7 @@ package WisiToken.Lexer.re2c is
    function Find_Next
      (Lexer : in out Instance;
       Token :    out WisiToken.Lexer.Token)
-     return Boolean;
+     return Natural;
 
    overriding function File_Name (Lexer : in Instance) return String;
 

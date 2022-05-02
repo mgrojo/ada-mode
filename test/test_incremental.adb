@@ -2308,7 +2308,7 @@ package body Test_Incremental is
    begin
       --  More from ada-mode test gpr_incremental_01.gpr; test was broken
       --  causing this input pattern. Requires handling more than one lexer
-      --  error per lexer token.
+      --  error per grammar token.
 
       Incremental_Parser := Grammar.Incremental_Parser'Access;
       Full_Parser        := Grammar.Full_Parser'Access;
@@ -2317,11 +2317,11 @@ package body Test_Incremental is
         (Label          => "1",
          Initial        =>
            "A : B;" & ASCII.LF &
-             --  |4
+             --  |6
              " - -" & ASCII.LF &
              --  |11
              "C : D;",
-         --   |8
+         --   |13
          Edit_At        => 11,
          Delete         => "",
          Insert         => "f",
@@ -2330,8 +2330,30 @@ package body Test_Incremental is
 
    end Lexer_Errors_05;
 
-   --  FIXME: There can be several lexer errors on one token, if there
-   --  are several unrecognized chars.
+   procedure Lexer_Errors_06 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Handle more than one lexer error per lexer token.
+
+      Incremental_Parser := Grammar.Incremental_Parser'Access;
+      Full_Parser        := Grammar.Full_Parser'Access;
+
+      Parse_Text
+        (Label          => "1",
+         Initial        =>
+           "A : B;" & ASCII.LF &
+             --  |6
+             " &&" & ASCII.LF &
+             --      |11
+             "C : D;",
+         Edit_At        => 9,
+         Delete         => "&&",
+         Insert         => "-- f",
+         Initial_Errors => 2, -- lexer
+         Incr_Errors    => 0);
+
+   end Lexer_Errors_06;
 
    procedure Preserve_Parse_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -2870,6 +2892,7 @@ package body Test_Incremental is
       Register_Routine (T, Lexer_Errors_03'Access, "Lexer_Errors_03");
       Register_Routine (T, Lexer_Errors_04'Access, "Lexer_Errors_04");
       Register_Routine (T, Lexer_Errors_05'Access, "Lexer_Errors_05");
+      Register_Routine (T, Lexer_Errors_06'Access, "Lexer_Errors_06");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
       Register_Routine (T, Modify_Deleted_Node'Access, "Modify_Deleted_Node");

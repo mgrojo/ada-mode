@@ -250,6 +250,7 @@ package WisiToken.Syntax_Trees is
    No_Error_Classwide : constant Error_Data'Class := Error_Data'Class (No_Error);
 
    package Error_Data_Lists is new SAL.Gen_Indefinite_Doubly_Linked_Lists (Error_Data'Class);
+   Null_Error_List : Error_Data_Lists.List renames Error_Data_Lists.Empty_List;
    type Error_Data_List_Ref (List : not null access constant Error_Data_Lists.List) is private
    with Implicit_Dereference => List;
 
@@ -1091,7 +1092,7 @@ package WisiToken.Syntax_Trees is
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
       Terminal : in     Lexer.Token;
-      Error    : in     Error_Data'Class)
+      Errors   : in     Error_Data_Lists.List)
      return Single_Terminal_Ref
    with Pre => not Tree.Traversing and Stream = Tree.Shared_Stream,
      Post => Tree.Label (Add_Terminal'Result.Node) = Source_Terminal;
@@ -1127,7 +1128,7 @@ package WisiToken.Syntax_Trees is
       Stream   : in     Stream_ID;
       Terminal : in     Lexer.Token;
       Before   : in     Stream_Index;
-      Error    : in     Error_Data'Class)
+      Errors   : in     Error_Data_Lists.List)
    with Pre => not Tree.Traversing and (Before = Invalid_Stream_Index or else Tree.Contains (Stream, Before));
    --  Insert a new Source_Terminal element on Stream, before Before.
 
@@ -1136,7 +1137,7 @@ package WisiToken.Syntax_Trees is
       Stream   : in     Stream_ID;
       Terminal : in     Lexer.Token;
       Before   : in     Stream_Index;
-      Error    : in     Error_Data'Class)
+      Errors   : in     Error_Data_Lists.List)
      return Single_Terminal_Ref
    with Pre => not Tree.Traversing and (Before = Invalid_Stream_Index or else Tree.Contains (Stream, Before)),
      Post => Tree.Label (Insert_Source_Terminal'Result.Node) = Source_Terminal;
@@ -2208,7 +2209,7 @@ package WisiToken.Syntax_Trees is
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Lexer.Token;
-      Error    : in     Error_Data'Class)
+      Errors   : in     Error_Data_Lists.List)
      return Valid_Node_Access
    with Pre => not Tree.Traversing and Tree.Editable;
    --  Add a new Terminal node with no parent, on no stream. Result
@@ -2358,16 +2359,16 @@ package WisiToken.Syntax_Trees is
      return Boolean;
    --  True if Error_Node's error list contains an element matching Data.
 
-   procedure Add_Error
+   procedure Add_Errors
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID;
       Node   : in     Valid_Node_Access;
-      Data   : in     Error_Data'Class)
+      Errors : in     Error_Data_Lists.List)
    with Pre => Stream = Tree.Shared_Stream and Tree.Label (Node) = Source_Terminal;
-   --  Add Data to Node; Node is not copied first.
+   --  Add Errors to Node; Node is not copied first.
    --
-   --  This should only be used when lexing new text, Data is a lexer
-   --  error which occurred while lexing a non_grammar token, and Node is
+   --  This should only be used when lexing new text, Errors are lexer
+   --  errors which occurred while lexing a non_grammar token, and Node is
    --  the previously lexed grammar token.
 
    procedure Add_Error_To_Input

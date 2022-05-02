@@ -43,6 +43,7 @@ with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
+   use all type WisiToken.Syntax_Trees.Node_Access;
    use all type WisiToken.Syntax_Trees.Base_Sequential_Index;
    use all type WisiToken.Syntax_Trees.Stream_ID;
    use all type SAL.Base_Peek_Type;
@@ -448,7 +449,8 @@ package WisiToken.Parse.LR is
       Op           : in out Delete_Op_Nodes;
       Deleted_Node : in     Syntax_Trees.Valid_Node_Access;
       User_Data    : in     Syntax_Trees.User_Data_Access)
-   with Pre => Op.Del_Index = Tree.Get_Sequential_Index (Deleted_Node);
+   with Pre => Op.Del_Index = Tree.Get_Sequential_Index (Deleted_Node) and
+               Deleted_Node = Tree.First_Terminal (Tree.Current_Token (Stream)).Node;
    --  Perform Delete operation on Stream, set Op.Del_Node to Deleted_Node.
 
    type Recover_Stack_Item is record

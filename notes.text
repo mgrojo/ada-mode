@@ -31,16 +31,19 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-ada-mode gpr_incremental_01.gpr
-    test broken, and encounters empty stream element
-    test_incremental.adb Lexer_Errors_05
-        does not yet reproduce
-
 editing wisitoken-parse.adb loop that sets scan_end in lexer_errors
     adding non-delimited_text case
     error in resume
     try to reproduce
 
+editing syntax_trees.adb add_source_terminal_1
+    change Error to Errors
+    font lock wrong; everything green
+    wisi-reset-parser cleared it briefly,then it came back.
+
+editing syntax_trees.ads to add null_error_list;
+    leaves syntax error.
+    typed half of statement before package decl, then moved it, finished it.
 
 wisitoken.grammar_mode.stephe-1 test/nominal.wy failing
     bug in line_begin_char_pos for delimited-text

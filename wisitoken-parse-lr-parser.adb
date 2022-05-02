@@ -411,7 +411,7 @@ package body WisiToken.Parse.LR.Parser is
                                 (Shared_Parser.Tree.Shared_Stream,
                                  Terminal => EOI_Token,
                                  Before   => Shared_Parser.Tree.Stream_Next (Current_Token).Element,
-                                 Error    => Syntax_Trees.No_Error);
+                                 Errors   => Syntax_Trees.Null_Error_List);
                            end;
                         end if;
                      end;
@@ -1068,7 +1068,6 @@ package body WisiToken.Parse.LR.Parser is
      (Parser              : in out LR.Parser.Parser;
       Action_Region_Bytes : in     WisiToken.Buffer_Region)
    is
-      use all type Syntax_Trees.Node_Access;
       use all type Syntax_Trees.Post_Parse_Action;
       use all type Syntax_Trees.User_Data_Access;
 

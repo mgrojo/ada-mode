@@ -239,20 +239,22 @@ package body WisiToken.Syntax_Trees is
       --  editing the shared stream. That is done in Finish_Parse.
    end Add_Deleted;
 
-   procedure Add_Error
+   procedure Add_Errors
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID;
       Node   : in     Valid_Node_Access;
-      Data   : in     Error_Data'Class)
+      Errors : in     Error_Data_Lists.List)
    is
       pragma Unreferenced (Stream); --  Only used in precondition.
    begin
       if Node.Error_List = null then
-         Node.Error_List := new Error_Data_Lists.List'(Error_Data_Lists.To_List (Data));
+         Node.Error_List := new Error_Data_Lists.List'(Errors);
       else
-         Node.Error_List.Append (Data);
+         for Err of Errors loop
+            Node.Error_List.Append (Err);
+         end loop;
       end if;
-   end Add_Error;
+   end Add_Errors;
 
    function Add_Error
      (Tree      : in out Syntax_Trees.Tree;
@@ -490,7 +492,7 @@ package body WisiToken.Syntax_Trees is
      (Tree             : in out Syntax_Trees.Tree;
       Terminal         : in     WisiToken.Lexer.Token;
       In_Shared_Stream : in     Boolean;
-      Error            : in     Error_Data'Class)
+      Errors           : in     Error_Data_Lists.List)
      return Valid_Node_Access
    is begin
       return Result : constant Valid_Node_Access := new Node'
@@ -506,9 +508,9 @@ package body WisiToken.Syntax_Trees is
          Byte_Region => Terminal.Byte_Region,
          Char_Region => Terminal.Char_Region,
          Error_List  =>
-           (if Error = No_Error_Classwide
+           (if Errors.Length = 0
             then null
-            else new Error_Data_Lists.List'(Error_Data_Lists.To_List (Error))),
+            else new Error_Data_Lists.List'(Errors)),
          others      => <>)
       do
          if Terminal.ID = Tree.Lexer.Descriptor.EOI_ID then
@@ -527,7 +529,7 @@ package body WisiToken.Syntax_Trees is
      (Tree     : in out Syntax_Trees.Tree;
       Stream   : in     Stream_ID;
       Terminal : in     WisiToken.Lexer.Token;
-      Error    : in     Error_Data'Class)
+      Errors   : in     Error_Data_Lists.List)
      return Single_Terminal_Ref
    is begin
       return Append_Stream_Element
@@ -535,17 +537,17 @@ package body WisiToken.Syntax_Trees is
          Add_Source_Terminal_1
            (Tree, Terminal,
             In_Shared_Stream => Stream = Tree.Shared_Stream,
-            Error            => Error),
+            Errors           => Errors),
          State               => Unknown_State);
    end Add_Terminal;
 
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     WisiToken.Lexer.Token;
-      Error    : in     Error_Data'Class)
+      Errors   : in     Error_Data_Lists.List)
      return Valid_Node_Access
    is begin
-      return Add_Source_Terminal_1 (Tree, Terminal, In_Shared_Stream => False, Error => Error);
+      return Add_Source_Terminal_1 (Tree, Terminal, In_Shared_Stream => False, Errors => Errors);
    end Add_Terminal;
 
    function Add_Terminal
@@ -4713,12 +4715,12 @@ package body WisiToken.Syntax_Trees is
       Stream   : in     Stream_ID;
       Terminal : in     WisiToken.Lexer.Token;
       Before   : in     Stream_Index;
-      Error    : in     Error_Data'Class)
+      Errors   : in     Error_Data_Lists.List)
    is
       New_Node : constant Valid_Node_Access := Add_Source_Terminal_1
         (Tree, Terminal,
          In_Shared_Stream => Stream = Tree.Shared_Stream,
-         Error => Error);
+         Errors => Errors);
    begin
       Insert_Stream_Element (Tree, Stream, New_Node, Before => Before.Cur);
    end Insert_Source_Terminal;
@@ -4728,13 +4730,13 @@ package body WisiToken.Syntax_Trees is
       Stream   : in     Stream_ID;
       Terminal : in     WisiToken.Lexer.Token;
       Before   : in     Stream_Index;
-      Error    : in     Error_Data'Class)
+      Errors   : in     Error_Data_Lists.List)
      return Single_Terminal_Ref
    is
       New_Node : constant Valid_Node_Access := Add_Source_Terminal_1
         (Tree, Terminal,
          In_Shared_Stream => Stream = Tree.Shared_Stream,
-         Error => Error);
+         Errors => Errors);
    begin
       return Insert_Stream_Element (Tree, Stream, New_Node, Before => Before.Cur);
    end Insert_Source_Terminal;
