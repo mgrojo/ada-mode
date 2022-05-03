@@ -31,10 +31,10 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-editing wisitoken-parse.adb loop that sets scan_end in lexer_errors
-    adding non-delimited_text case
-    error in resume
-    try to reproduce
+editing c:/Projects/org.adaic.arm_form/build/arm_info.gpr
+    apply Leading_Switches patch from Nicolas
+    leaves lexer error
+
 
 editing syntax_trees.adb add_source_terminal_1
     change Error to Errors

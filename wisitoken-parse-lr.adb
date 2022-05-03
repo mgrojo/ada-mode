@@ -779,8 +779,6 @@ package body WisiToken.Parse.LR is
       Prev_Terminal : Stream_Node_Parents := Tree.To_Stream_Node_Parents
         (Tree.To_Rooted_Ref (Stream, Tree.Peek (Stream)));
    begin
-      Op.Del_Node := Deleted_Node;
-
       Tree.Last_Terminal (Prev_Terminal, Stream);
       if Tree.Label (Prev_Terminal.Ref.Node) /= Source_Terminal then
          Tree.Prev_Source_Terminal
@@ -802,6 +800,8 @@ package body WisiToken.Parse.LR is
                  (Deleted_Node  => Current_Token.Node,
                   Prev_Terminal => Prev_Terminal,
                   User_Data     => User_Data);
+
+               Op.Del_Node := Current_Token.Node;
 
                Current_Token := Invalid_Stream_Node_Ref; -- allow delete Current_Token.Element
                Tree.Delete_Current_Token (Stream);

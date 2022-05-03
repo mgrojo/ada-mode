@@ -2200,6 +2200,28 @@ package body Test_Incremental is
          Incr_Errors    => 2);
    end Recover_09;
 
+   procedure Recover_10 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Ada_Lite_Actions;
+   begin
+      --  From ada_mode-incremental_recover_03.adb. Error on final name_opt,
+      --  solution is delete the identifier; had op.del_node wrong because
+      --  error message moved to first_terminal.
+
+      Ada_Lite.Incremental_Parser.Table.McKenzie_Param.Delete (+IDENTIFIER_ID) := 2;
+      Ada_Lite.Full_Parser.Table.McKenzie_Param.Delete (+IDENTIFIER_ID) := 2;
+
+      Parse_Text
+        (Initial => "procedure Debug is begin loop A; B; C; end loop; end Debug;",
+         --                   |10       |20       |30       |40
+         Edit_At        => 40,
+         Delete         => "",
+         Insert         => "end; ",
+         Initial_Errors => 0,
+         Incr_Errors    => 2);
+   end Recover_10;
+
    procedure Lexer_Errors_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -2887,6 +2909,7 @@ package body Test_Incremental is
       Register_Routine (T, Recover_08c'Access, "Recover_08c");
       Register_Routine (T, Recover_08d'Access, "Recover_08d");
       Register_Routine (T, Recover_09'Access, "Recover_09");
+      Register_Routine (T, Recover_10'Access, "Recover_10");
       Register_Routine (T, Lexer_Errors_01'Access, "Lexer_Errors_01");
       Register_Routine (T, Lexer_Errors_02'Access, "Lexer_Errors_02");
       Register_Routine (T, Lexer_Errors_03'Access, "Lexer_Errors_03");
