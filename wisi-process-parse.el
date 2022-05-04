@@ -148,23 +148,28 @@ Otherwise add PARSER to `wisi-process--alist', return it."
 		 wisi-parse-full-active)
 	    (when (< 1 wisi-debug)
 	      (wisi-parse-log-message wisi-parser-shared "parse--filter found prompt - initial full"))
-	    (with-current-buffer (car wisi-parse-full-active)
-	      (read-only-mode -1)
-	      (let ((region (cdr wisi-parse-full-active)))
-		(when (>= (cdr region) (car region))
-		  (font-lock-flush (car region) (cdr region))))
+	    (if (buffer-live-p (car wisi-parse-full-active))
+		(with-current-buffer (car wisi-parse-full-active)
+		  (read-only-mode -1)
+		  (let ((region (cdr wisi-parse-full-active)))
+		    (when (and (>= (cdr region) (car region))
+			       (>= (cdr region) (point-min))
+			       (<= (car region) (point-max)))
+		      (font-lock-flush (car region) (cdr region))))
 
-	      (set-process-filter process nil)
+		  (set-process-filter process nil)
 
-	      ;; handle syntax error messages from full parse
-              (set-marker (process-mark process) (point-min))
-	      (condition-case err
-		  (progn
-		    (wisi-process-parse--handle-messages wisi-parser-shared)
-		    (setq wisi-parse-full-active nil))
-		(error
-		 (setq wisi-parse-full-active nil)
-		 (signal (car err) (cdr err))))
+		  ;; handle syntax error messages from full parse
+		  (set-marker (process-mark process) (point-min))
+		  (condition-case err
+		      (progn
+			(wisi-process-parse--handle-messages wisi-parser-shared)
+			(setq wisi-parse-full-active nil))
+		    (error
+		     (setq wisi-parse-full-active nil)
+		     (signal (car err) (cdr err))))
+		  )
+	      (setq wisi-parse-full-active nil)
 	      ))))
 	  ))))
 
@@ -399,6 +404,14 @@ Does not wait for command to complete."
 		      (if (buffer-file-name) (buffer-file-name) (buffer-name))
 		      ))
 	 (process (wisi-process--parser-process parser)))
+
+    ;; We can get here from an mmm-mode buffer; then the
+    ;; current-buffer is "mmm-temp-buffer", but we are still waiting
+    ;; for the main buffer to finish the initial parse.
+    (when (and wisi-parse-full-active
+	       (equal (car wisi-parse-full-active)
+		      (current-buffer)))
+      (setq wisi-parse-full-active nil))
 
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
@@ -801,7 +814,8 @@ Source buffer is current."
     ;; executable is not reading command input.
 
     ;; Don't let font-lock start a parse for face while waiting for
-    ;; the process to die.
+    ;; the process to die. FIXME: that just means font-lock will
+    ;; restart the process immediately; tell font-lock not to do that?
     (setf (wisi-process--parser-busy parser) t)
     (wisi-parse-log-message parser "kill process")
     (kill-process (wisi-process--parser-process parser)))
@@ -835,7 +849,7 @@ Source buffer is current."
 	      (format "parse %s in %s waiting for full parse of %s to complete ..."
 		      parse-action
 		      (current-buffer)
-		      (wisi-process--parser-source-buffer parser)))
+		      (car wisi-parse-full-active)))
 	     (wisi-process-parse--wait parser)
 	     nil)
 
@@ -917,7 +931,7 @@ Source buffer is current."
 		    (setq done t)
 		  (if wisi-parse-full-active
 		      ;; Messages are probably from a parse command
-		      ;; send from the mode hook, before the full
+		      ;; sent from the mode hook, before the full
 		      ;; parse was started.
 		      nil
 		    (wisi-parse-log-message
@@ -1307,12 +1321,14 @@ in CMD-BUFFER-NAME."
 	  (save-buffer)
 	(write-file cmd-buffer-name)))))
 
-(defun wisi-process-log-to-cmd (&optional cmd-buffer-name)
+(defun wisi-process-log-to-cmd (&optional prompt)
   "Convert parser log in current buffer to command file in CMD-BUFFER-NAME."
-  (interactive)
-  (unless cmd-buffer-name
-    (setq cmd-buffer-name "debug.cmd"))
-  (let ((log-buffer (current-buffer))
+  (interactive "p")
+  (let* ((cmd-buffer-name
+	 (if prompt
+	     (read-string "command file name: " "debug.cmd")
+	   "debug.cmd"))
+	(log-buffer (current-buffer))
 	(log-buffer-point (point))
 	(cmd-buffer (get-buffer-create cmd-buffer-name))
 	edit begin end source-file)
