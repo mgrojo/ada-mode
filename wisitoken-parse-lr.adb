@@ -771,6 +771,7 @@ package body WisiToken.Parse.LR is
       Deleted_Node : in     Syntax_Trees.Valid_Node_Access;
       User_Data    : in     Syntax_Trees.User_Data_Access)
    is
+      pragma Unreferenced (Deleted_Node); -- only used in precondition.
       use Syntax_Trees;
       --  We don't want a deleted node as Op.Del_After_Node;
       --  ada_mode-recover_extra_end_loop.adb deletes "end loop ;". So we
