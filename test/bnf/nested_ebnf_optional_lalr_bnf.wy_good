@@ -3,7 +3,7 @@
 ;; Test nested EBNF optional items
 
 %code copyright_license %{
---  Copyright (C) 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019, 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -20,6 +20,8 @@
 }%
 
 %meta_syntax BNF
+%keyword OUT "out"
+%keyword IN "in"
 %keyword TRUE "True"
 %keyword GOTO "goto"
 %keyword END "end"
@@ -30,6 +32,7 @@
 %case_insensitive
 
 %generate LALR Ada re2c
+%generate Packrat_proc Ada re2c
 %no_language_runtime
 
 %start if_statement
@@ -52,7 +55,15 @@ statement
 
 expression
   : TRUE
+  | mode;; just include it in the grammar somewhere.
+  ;
+
+;; User must ensure that the empty RHS is last, for packrat.
+mode
+  : IN OUT
+  | OUT
+  | IN
+  | ;; empty
   ;
 
 ;; end of file
-

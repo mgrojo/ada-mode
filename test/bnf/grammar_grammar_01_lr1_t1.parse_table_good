@@ -2,51 +2,52 @@ Tokens:
  0 => WHITESPACE
  1 => NEW_LINE
  2 => COMMENT
- 3 => RAW_CODE
- 4 => BAR
- 5 => COLON
- 6 => SEMICOLON
- 7 => IDENTIFIER
- 8 => STRING_LITERAL_2
- 9 => Wisi_EOI
- 10 => wisitoken_accept
- 11 => nonterminal
- 12 => rhs
- 13 => rhs_item
- 14 => compilation_unit_list
- 15 => rhs_BAR_list
- 16 => rhs_item_list
+ 3 => COMMENT2
+ 4 => RAW_CODE
+ 5 => BAR
+ 6 => COLON
+ 7 => SEMICOLON
+ 8 => IDENTIFIER
+ 9 => STRING_LITERAL_2
+ 10 => Wisi_EOI
+ 11 => wisitoken_accept
+ 12 => nonterminal
+ 13 => rhs
+ 14 => rhs_item
+ 15 => compilation_unit_list
+ 16 => rhs_BAR_list
+ 17 => rhs_item_list
 
 Productions:
-10.0: wisitoken_accept <= compilation_unit_list Wisi_EOI
-11.0: nonterminal <= IDENTIFIER COLON rhs_BAR_list SEMICOLON
-12.0: rhs <=
-12.1: rhs <= rhs_item_list
-13.0: rhs_item <= IDENTIFIER
-13.1: rhs_item <= STRING_LITERAL_2
-14.0: compilation_unit_list <= compilation_unit_list compilation_unit_list ; (1 => Direct_Left, 2 => Direct_Right)
-14.1: compilation_unit_list <= compilation_unit_list nonterminal ; (1 => Direct_Left)
-14.2: compilation_unit_list <= nonterminal
-15.0: rhs_BAR_list <= rhs_BAR_list BAR rhs_BAR_list ; (1 => Direct_Left, 3 => Direct_Right)
-15.1: rhs_BAR_list <= rhs_BAR_list BAR rhs ; (1 => Direct_Left)
-15.2: rhs_BAR_list <= rhs
-16.0: rhs_item_list <= rhs_item_list rhs_item_list ; (1 => Direct_Left, 2 => Direct_Right)
-16.1: rhs_item_list <= rhs_item_list rhs_item ; (1 => Direct_Left)
-16.2: rhs_item_list <= rhs_item
+11.0: wisitoken_accept <= compilation_unit_list Wisi_EOI
+12.0: nonterminal <= IDENTIFIER COLON rhs_BAR_list SEMICOLON
+13.0: rhs <=
+13.1: rhs <= rhs_item_list
+14.0: rhs_item <= IDENTIFIER
+14.1: rhs_item <= STRING_LITERAL_2
+15.0: compilation_unit_list <= compilation_unit_list compilation_unit_list ; (1 => Direct_Left, 2 => Direct_Right)
+15.1: compilation_unit_list <= compilation_unit_list nonterminal ; (1 => Direct_Left)
+15.2: compilation_unit_list <= nonterminal
+16.0: rhs_BAR_list <= rhs_BAR_list BAR rhs_BAR_list ; (1 => Direct_Left, 3 => Direct_Right)
+16.1: rhs_BAR_list <= rhs_BAR_list BAR rhs ; (1 => Direct_Left)
+16.2: rhs_BAR_list <= rhs
+17.0: rhs_item_list <= rhs_item_list rhs_item_list ; (1 => Direct_Left, 2 => Direct_Right)
+17.1: rhs_item_list <= rhs_item_list rhs_item ; (1 => Direct_Left)
+17.2: rhs_item_list <= rhs_item
 
 Optimized_Lists:
  compilation_unit_list rhs_BAR_list rhs_item_list
 
 Recursions:
-1 => (14 (0.1, 0.2, 1.1) -> )
-2 => (15 (0.1, 0.3, 1.1) -> )
-3 => (16 (0.1, 0.2, 1.1) -> )
+1 => (15 (0.1, 0.2, 1.1) -> )
+2 => (16 (0.1, 0.3, 1.1) -> )
+3 => (17 (0.1, 0.2, 1.1) -> )
 
 LR1 Parse Table:
 State 0:
-     10.0:wisitoken_accept <= ^ compilation_unit_list Wisi_EOI
+     11.0:wisitoken_accept <= ^ compilation_unit_list Wisi_EOI
 
-   IDENTIFIER            => shift and goto state 1 11.0
+   IDENTIFIER            => shift and goto state 1 12.0
    default               => ERROR
 
    nonterminal           goto state 2
@@ -55,29 +56,29 @@ State 0:
    Minimal_Complete_Actions => 
 
 State 1:
-     11.0:nonterminal <= IDENTIFIER ^ COLON rhs_BAR_list SEMICOLON
+     12.0:nonterminal <= IDENTIFIER ^ COLON rhs_BAR_list SEMICOLON
 
-   COLON                 => shift and goto state 4 11.0
+   COLON                 => shift and goto state 4 12.0
    default               => ERROR
 
-   Minimal_Complete_Actions => (COLON 11.0)
+   Minimal_Complete_Actions => (COLON 12.0)
 
 State 2:
-     14.2:compilation_unit_list <= nonterminal ^
+     15.2:compilation_unit_list <= nonterminal ^
 
-   IDENTIFIER            => reduce 1 tokens to compilation_unit_list 14.2
-   Wisi_EOI              => reduce 1 tokens to compilation_unit_list 14.2
+   IDENTIFIER            => reduce 1 tokens to compilation_unit_list 15.2
+   Wisi_EOI              => reduce 1 tokens to compilation_unit_list 15.2
    default               => ERROR
 
-   Minimal_Complete_Actions => (1 compilation_unit_list 14.2)
+   Minimal_Complete_Actions => (1 compilation_unit_list 15.2)
 
 State 3:
-     10.0:wisitoken_accept <= compilation_unit_list ^ Wisi_EOI
-     14.0:compilation_unit_list <= compilation_unit_list ^ compilation_unit_list
-     14.1:compilation_unit_list <= compilation_unit_list ^ nonterminal
+     11.0:wisitoken_accept <= compilation_unit_list ^ Wisi_EOI
+     15.0:compilation_unit_list <= compilation_unit_list ^ compilation_unit_list
+     15.1:compilation_unit_list <= compilation_unit_list ^ nonterminal
 
-   IDENTIFIER            => shift and goto state 1 11.0
-   Wisi_EOI              => accept it 10.0
+   IDENTIFIER            => shift and goto state 1 12.0
+   Wisi_EOI              => accept it 11.0
    default               => ERROR
 
    nonterminal           goto state 5
@@ -86,12 +87,12 @@ State 3:
    Minimal_Complete_Actions => 
 
 State 4:
-     11.0:nonterminal <= IDENTIFIER COLON ^ rhs_BAR_list SEMICOLON
+     12.0:nonterminal <= IDENTIFIER COLON ^ rhs_BAR_list SEMICOLON
 
-   BAR                   => reduce 0 tokens to rhs 12.0
-   SEMICOLON             => reduce 0 tokens to rhs 12.0
-   IDENTIFIER            => shift and goto state 7 13.0
-   STRING_LITERAL_2      => shift and goto state 8 13.1
+   BAR                   => reduce 0 tokens to rhs 13.0
+   SEMICOLON             => reduce 0 tokens to rhs 13.0
+   IDENTIFIER            => shift and goto state 7 14.0
+   STRING_LITERAL_2      => shift and goto state 8 14.1
    default               => ERROR
 
    rhs                   goto state 9
@@ -99,109 +100,109 @@ State 4:
    rhs_BAR_list          goto state 11
    rhs_item_list         goto state 12
 
-   Minimal_Complete_Actions => (0 rhs_BAR_list 15.2)
+   Minimal_Complete_Actions => (0 rhs_BAR_list 16.2)
 
 State 5:
-     14.1:compilation_unit_list <= compilation_unit_list nonterminal ^
-     14.2:compilation_unit_list <= nonterminal ^
+     15.1:compilation_unit_list <= compilation_unit_list nonterminal ^
+     15.2:compilation_unit_list <= nonterminal ^
 
-   IDENTIFIER            => reduce 2 tokens to compilation_unit_list 14.1
-   Wisi_EOI              => reduce 2 tokens to compilation_unit_list 14.1
+   IDENTIFIER            => reduce 2 tokens to compilation_unit_list 15.1
+   Wisi_EOI              => reduce 2 tokens to compilation_unit_list 15.1
    default               => ERROR
 
-   Minimal_Complete_Actions => ((2 compilation_unit_list 14.1), (1 compilation_unit_list 14.2))
+   Minimal_Complete_Actions => ((2 compilation_unit_list 15.1), (1 compilation_unit_list 15.2))
 
 State 6:
-     14.0:compilation_unit_list <= compilation_unit_list compilation_unit_list ^
-     14.0:compilation_unit_list <= compilation_unit_list ^ compilation_unit_list
-     14.1:compilation_unit_list <= compilation_unit_list ^ nonterminal
+     15.0:compilation_unit_list <= compilation_unit_list compilation_unit_list ^
+     15.0:compilation_unit_list <= compilation_unit_list ^ compilation_unit_list
+     15.1:compilation_unit_list <= compilation_unit_list ^ nonterminal
 
-   IDENTIFIER            => reduce 2 tokens to compilation_unit_list 14.0
-   Wisi_EOI              => reduce 2 tokens to compilation_unit_list 14.0
+   IDENTIFIER            => reduce 2 tokens to compilation_unit_list 15.0
+   Wisi_EOI              => reduce 2 tokens to compilation_unit_list 15.0
    default               => ERROR
 
    nonterminal           goto state 5
    compilation_unit_list goto state 6
 
-   Minimal_Complete_Actions => (2 compilation_unit_list 14.0)
+   Minimal_Complete_Actions => (2 compilation_unit_list 15.0)
 
 State 7:
-     13.0:rhs_item <= IDENTIFIER ^
+     14.0:rhs_item <= IDENTIFIER ^
 
-   BAR                   => reduce 1 tokens to rhs_item 13.0
-   SEMICOLON             => reduce 1 tokens to rhs_item 13.0
-   IDENTIFIER            => reduce 1 tokens to rhs_item 13.0
-   STRING_LITERAL_2      => reduce 1 tokens to rhs_item 13.0
+   BAR                   => reduce 1 tokens to rhs_item 14.0
+   SEMICOLON             => reduce 1 tokens to rhs_item 14.0
+   IDENTIFIER            => reduce 1 tokens to rhs_item 14.0
+   STRING_LITERAL_2      => reduce 1 tokens to rhs_item 14.0
    default               => ERROR
 
-   Minimal_Complete_Actions => (1 rhs_item 13.0)
+   Minimal_Complete_Actions => (1 rhs_item 14.0)
 
 State 8:
-     13.1:rhs_item <= STRING_LITERAL_2 ^
+     14.1:rhs_item <= STRING_LITERAL_2 ^
 
-   BAR                   => reduce 1 tokens to rhs_item 13.1
-   SEMICOLON             => reduce 1 tokens to rhs_item 13.1
-   IDENTIFIER            => reduce 1 tokens to rhs_item 13.1
-   STRING_LITERAL_2      => reduce 1 tokens to rhs_item 13.1
+   BAR                   => reduce 1 tokens to rhs_item 14.1
+   SEMICOLON             => reduce 1 tokens to rhs_item 14.1
+   IDENTIFIER            => reduce 1 tokens to rhs_item 14.1
+   STRING_LITERAL_2      => reduce 1 tokens to rhs_item 14.1
    default               => ERROR
 
-   Minimal_Complete_Actions => (1 rhs_item 13.1)
+   Minimal_Complete_Actions => (1 rhs_item 14.1)
 
 State 9:
-     15.2:rhs_BAR_list <= rhs ^
+     16.2:rhs_BAR_list <= rhs ^
 
-   BAR                   => reduce 1 tokens to rhs_BAR_list 15.2
-   SEMICOLON             => reduce 1 tokens to rhs_BAR_list 15.2
+   BAR                   => reduce 1 tokens to rhs_BAR_list 16.2
+   SEMICOLON             => reduce 1 tokens to rhs_BAR_list 16.2
    default               => ERROR
 
-   Minimal_Complete_Actions => (1 rhs_BAR_list 15.2)
+   Minimal_Complete_Actions => (1 rhs_BAR_list 16.2)
 
 State 10:
-     16.2:rhs_item_list <= rhs_item ^
+     17.2:rhs_item_list <= rhs_item ^
 
-   BAR                   => reduce 1 tokens to rhs_item_list 16.2
-   SEMICOLON             => reduce 1 tokens to rhs_item_list 16.2
-   IDENTIFIER            => reduce 1 tokens to rhs_item_list 16.2
-   STRING_LITERAL_2      => reduce 1 tokens to rhs_item_list 16.2
+   BAR                   => reduce 1 tokens to rhs_item_list 17.2
+   SEMICOLON             => reduce 1 tokens to rhs_item_list 17.2
+   IDENTIFIER            => reduce 1 tokens to rhs_item_list 17.2
+   STRING_LITERAL_2      => reduce 1 tokens to rhs_item_list 17.2
    default               => ERROR
 
-   Minimal_Complete_Actions => (1 rhs_item_list 16.2)
+   Minimal_Complete_Actions => (1 rhs_item_list 17.2)
 
 State 11:
-     11.0:nonterminal <= IDENTIFIER COLON rhs_BAR_list ^ SEMICOLON
-     15.0:rhs_BAR_list <= rhs_BAR_list ^ BAR rhs_BAR_list
-     15.1:rhs_BAR_list <= rhs_BAR_list ^ BAR rhs
+     12.0:nonterminal <= IDENTIFIER COLON rhs_BAR_list ^ SEMICOLON
+     16.0:rhs_BAR_list <= rhs_BAR_list ^ BAR rhs_BAR_list
+     16.1:rhs_BAR_list <= rhs_BAR_list ^ BAR rhs
 
-   BAR                   => shift and goto state 13 15.0
-   SEMICOLON             => shift and goto state 14 11.0
+   BAR                   => shift and goto state 13 16.0
+   SEMICOLON             => shift and goto state 14 12.0
    default               => ERROR
 
-   Minimal_Complete_Actions => (SEMICOLON 11.0)
+   Minimal_Complete_Actions => (SEMICOLON 12.0)
 
 State 12:
-     12.1:rhs <= rhs_item_list ^
-     16.0:rhs_item_list <= rhs_item_list ^ rhs_item_list
-     16.1:rhs_item_list <= rhs_item_list ^ rhs_item
+     13.1:rhs <= rhs_item_list ^
+     17.0:rhs_item_list <= rhs_item_list ^ rhs_item_list
+     17.1:rhs_item_list <= rhs_item_list ^ rhs_item
 
-   BAR                   => reduce 1 tokens to rhs 12.1
-   SEMICOLON             => reduce 1 tokens to rhs 12.1
-   IDENTIFIER            => shift and goto state 7 13.0
-   STRING_LITERAL_2      => shift and goto state 8 13.1
+   BAR                   => reduce 1 tokens to rhs 13.1
+   SEMICOLON             => reduce 1 tokens to rhs 13.1
+   IDENTIFIER            => shift and goto state 7 14.0
+   STRING_LITERAL_2      => shift and goto state 8 14.1
    default               => ERROR
 
    rhs_item              goto state 15
    rhs_item_list         goto state 16
 
-   Minimal_Complete_Actions => (1 rhs 12.1)
+   Minimal_Complete_Actions => (1 rhs 13.1)
 
 State 13:
-     15.0:rhs_BAR_list <= rhs_BAR_list BAR ^ rhs_BAR_list
-     15.1:rhs_BAR_list <= rhs_BAR_list BAR ^ rhs
+     16.0:rhs_BAR_list <= rhs_BAR_list BAR ^ rhs_BAR_list
+     16.1:rhs_BAR_list <= rhs_BAR_list BAR ^ rhs
 
-   BAR                   => reduce 0 tokens to rhs 12.0
-   SEMICOLON             => reduce 0 tokens to rhs 12.0
-   IDENTIFIER            => shift and goto state 7 13.0
-   STRING_LITERAL_2      => shift and goto state 8 13.1
+   BAR                   => reduce 0 tokens to rhs 13.0
+   SEMICOLON             => reduce 0 tokens to rhs 13.0
+   IDENTIFIER            => shift and goto state 7 14.0
+   STRING_LITERAL_2      => shift and goto state 8 14.1
    default               => ERROR
 
    rhs                   goto state 17
@@ -212,62 +213,62 @@ State 13:
    Minimal_Complete_Actions => 
 
 State 14:
-     11.0:nonterminal <= IDENTIFIER COLON rhs_BAR_list SEMICOLON ^
+     12.0:nonterminal <= IDENTIFIER COLON rhs_BAR_list SEMICOLON ^
 
-   IDENTIFIER            => reduce 4 tokens to nonterminal 11.0
-   Wisi_EOI              => reduce 4 tokens to nonterminal 11.0
+   IDENTIFIER            => reduce 4 tokens to nonterminal 12.0
+   Wisi_EOI              => reduce 4 tokens to nonterminal 12.0
    default               => ERROR
 
-   Minimal_Complete_Actions => (4 nonterminal 11.0)
+   Minimal_Complete_Actions => (4 nonterminal 12.0)
 
 State 15:
-     16.1:rhs_item_list <= rhs_item_list rhs_item ^
-     16.2:rhs_item_list <= rhs_item ^
+     17.1:rhs_item_list <= rhs_item_list rhs_item ^
+     17.2:rhs_item_list <= rhs_item ^
 
-   BAR                   => reduce 2 tokens to rhs_item_list 16.1
-   SEMICOLON             => reduce 2 tokens to rhs_item_list 16.1
-   IDENTIFIER            => reduce 2 tokens to rhs_item_list 16.1
-   STRING_LITERAL_2      => reduce 2 tokens to rhs_item_list 16.1
+   BAR                   => reduce 2 tokens to rhs_item_list 17.1
+   SEMICOLON             => reduce 2 tokens to rhs_item_list 17.1
+   IDENTIFIER            => reduce 2 tokens to rhs_item_list 17.1
+   STRING_LITERAL_2      => reduce 2 tokens to rhs_item_list 17.1
    default               => ERROR
 
-   Minimal_Complete_Actions => ((2 rhs_item_list 16.1), (1 rhs_item_list 16.2))
+   Minimal_Complete_Actions => ((2 rhs_item_list 17.1), (1 rhs_item_list 17.2))
 
 State 16:
-     16.0:rhs_item_list <= rhs_item_list rhs_item_list ^
-     16.0:rhs_item_list <= rhs_item_list ^ rhs_item_list
-     16.1:rhs_item_list <= rhs_item_list ^ rhs_item
+     17.0:rhs_item_list <= rhs_item_list rhs_item_list ^
+     17.0:rhs_item_list <= rhs_item_list ^ rhs_item_list
+     17.1:rhs_item_list <= rhs_item_list ^ rhs_item
 
-   BAR                   => reduce 2 tokens to rhs_item_list 16.0
-   SEMICOLON             => reduce 2 tokens to rhs_item_list 16.0
-   IDENTIFIER            => reduce 2 tokens to rhs_item_list 16.0
-   STRING_LITERAL_2      => reduce 2 tokens to rhs_item_list 16.0
+   BAR                   => reduce 2 tokens to rhs_item_list 17.0
+   SEMICOLON             => reduce 2 tokens to rhs_item_list 17.0
+   IDENTIFIER            => reduce 2 tokens to rhs_item_list 17.0
+   STRING_LITERAL_2      => reduce 2 tokens to rhs_item_list 17.0
    default               => ERROR
 
    rhs_item              goto state 15
    rhs_item_list         goto state 16
 
-   Minimal_Complete_Actions => (2 rhs_item_list 16.0)
+   Minimal_Complete_Actions => (2 rhs_item_list 17.0)
 
 State 17:
-     15.1:rhs_BAR_list <= rhs_BAR_list BAR rhs ^
-     15.2:rhs_BAR_list <= rhs ^
+     16.1:rhs_BAR_list <= rhs_BAR_list BAR rhs ^
+     16.2:rhs_BAR_list <= rhs ^
 
-   BAR                   => reduce 3 tokens to rhs_BAR_list 15.1
-   SEMICOLON             => reduce 3 tokens to rhs_BAR_list 15.1
+   BAR                   => reduce 3 tokens to rhs_BAR_list 16.1
+   SEMICOLON             => reduce 3 tokens to rhs_BAR_list 16.1
    default               => ERROR
 
-   Minimal_Complete_Actions => ((3 rhs_BAR_list 15.1), (1 rhs_BAR_list 15.2))
+   Minimal_Complete_Actions => ((3 rhs_BAR_list 16.1), (1 rhs_BAR_list 16.2))
 
 State 18:
-     15.0:rhs_BAR_list <= rhs_BAR_list BAR rhs_BAR_list ^
-     15.0:rhs_BAR_list <= rhs_BAR_list ^ BAR rhs_BAR_list
-     15.1:rhs_BAR_list <= rhs_BAR_list ^ BAR rhs
+     16.0:rhs_BAR_list <= rhs_BAR_list BAR rhs_BAR_list ^
+     16.0:rhs_BAR_list <= rhs_BAR_list ^ BAR rhs_BAR_list
+     16.1:rhs_BAR_list <= rhs_BAR_list ^ BAR rhs
 
-   BAR                   => reduce 3 tokens to rhs_BAR_list 15.0
-   SEMICOLON             => reduce 3 tokens to rhs_BAR_list 15.0
+   BAR                   => reduce 3 tokens to rhs_BAR_list 16.0
+   SEMICOLON             => reduce 3 tokens to rhs_BAR_list 16.0
    default               => ERROR
 
-   Minimal_Complete_Actions => (3 rhs_BAR_list 15.0)
+   Minimal_Complete_Actions => (3 rhs_BAR_list 16.0)
 
 16 states with minimal_complete_actions; 19 total minimal_complete_actions.
 

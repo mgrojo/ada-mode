@@ -28,7 +28,6 @@ OK bnf_wy_test.adb java_expressions_ch19 : Run_Test
 OK bnf_wy_test.adb java_types_ch19 : Run_Test
 OK bnf_wy_test.adb lalr_generator_bug_01 : Run_Test
 OK bnf_wy_test.adb nested_ebnf_optional : Run_Test
-OK bnf_wy_test.adb object_declaration : Run_Test
 OK bnf_wy_test.adb optimized_conflict_01 : Run_Test
 OK bnf_wy_test.adb optimized_conflict_02 : Run_Test
 OK bnf_wy_test.adb optimized_conflict_03 : Run_Test

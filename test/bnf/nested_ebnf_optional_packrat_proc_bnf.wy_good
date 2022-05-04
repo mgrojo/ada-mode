@@ -1,3 +1,5 @@
+;;; generated from nested_ebnf_optional.wy -*- buffer-read-only:t -*-
+;;;
 ;; Test nested EBNF optional items
 
 %code copyright_license %{
@@ -17,7 +19,16 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
-%meta_syntax EBNF
+%meta_syntax BNF
+%keyword OUT "out"
+%keyword IN "in"
+%keyword TRUE "True"
+%keyword GOTO "goto"
+%keyword END "end"
+%keyword ELSE "else"
+%keyword ELSIF "elsif"
+%keyword THEN "then"
+%keyword IF "if"
 %case_insensitive
 
 %generate LALR Ada re2c
@@ -32,19 +43,27 @@
 %token <punctuation> SEMICOLON ";"
 
 if_statement
-  : 'if' expression 'then' statement ['elsif' statement ['elsif' statement ['else' statement]]] 'end' 'if' ';'
+  : IF expression THEN statement ELSIF statement ELSIF statement ELSE statement END IF SEMICOLON
+  | IF expression THEN statement ELSIF statement ELSIF statement END IF SEMICOLON
+  | IF expression THEN statement ELSIF statement END IF SEMICOLON
+  | IF expression THEN statement END IF SEMICOLON
   ;
 
 statement
-  : 'goto' ';'
+  : GOTO SEMICOLON
   ;
 
 expression
-  : 'True'
-  | mode ;; just include it in the grammar somewhere.
+  : TRUE
+  | mode;; just include it in the grammar somewhere.
   ;
 
 ;; User must ensure that the empty RHS is last, for packrat.
-mode : 'in' 'out' | 'out' | ['in'] ;
+mode
+  : IN OUT
+  | OUT
+  | IN
+  | ;; empty
+  ;
 
 ;; end of file

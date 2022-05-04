@@ -40,7 +40,7 @@ recover: succeed, parser count 1
  ... goto state 4
  0: 4: (0, -7:(Identifier)) : shift and goto state 12
  0: 12: (0, 2;5:(Wisi_EOI, (67 . 66), parser ERROR)) : reduce 2 tokens to ClassType
-(ClassType_1, (42 . 48) <= ((AnnotationList_0, (42 . 48)), -7:(Identifier)))
+(ClassType_1, (42 . 48) <= ((AnnotationList_1, (42 . 48)), -7:(Identifier)))
  ... goto state 6
  0: 6: (0, 2;5:(Wisi_EOI, (67 . 66), parser ERROR)) : reduce 1 tokens to CompilationUnit
 (CompilationUnit_0, (42 . 48) <= ((ClassType_1, (42 . 48))))

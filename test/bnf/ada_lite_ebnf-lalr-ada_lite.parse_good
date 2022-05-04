@@ -63,7 +63,7 @@ in_parse_action OK
 (name_3, (209 . 215) <= (9:(IDENTIFIER, (209 . 215))))
 in_parse_action OK
  ... goto state 143
- 0: terminate (1 active): zombie (0, 165:(IDENTIFIER, (205 . 205) ERROR))
+ 0: terminate (1 active): zombie (0, 165:(IDENTIFIER, (205 . 205), parser ERROR))
  1: 143: (-1, 10:(COLON_EQUAL, (217 . 218))) : reduce 1 tokens to subtype_indication
 (subtype_indication_1, (209 . 215) <= ((name_3, (209 . 215))))
  ... goto state 144
@@ -478,7 +478,7 @@ in_parse_action OK
 (name_3, (465 . 471) <= (70:(IDENTIFIER, (465 . 471))))
 in_parse_action OK
  ... goto state 143
- 1: terminate (1 active): zombie (1, 166:(IDENTIFIER, (461 . 461) ERROR))
+ 1: terminate (1 active): zombie (1, 166:(IDENTIFIER, (461 . 461), parser ERROR))
  2: 143: (-1, 71:(SEMICOLON, (472 . 472))) : reduce 1 tokens to subtype_indication
 (subtype_indication_1, (465 . 471) <= ((name_3, (465 . 471))))
  ... goto state 144
@@ -894,7 +894,7 @@ in_parse_action OK
 (name_3, (689 . 695) <= (120:(IDENTIFIER, (689 . 695))))
 in_parse_action OK
  ... goto state 143
- 2: terminate (1 active): zombie (2, 167:(IDENTIFIER, (685 . 685) ERROR))
+ 2: terminate (1 active): zombie (2, 167:(IDENTIFIER, (685 . 685), parser ERROR))
  3: 143: (-1, 121:(SEMICOLON, (696 . 696))) : reduce 1 tokens to subtype_indication
 (subtype_indication_1, (689 . 695) <= ((name_3, (689 . 695))))
  ... goto state 144

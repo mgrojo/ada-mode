@@ -1,0 +1,6 @@
+ 12 tokens lexed
+(expression_0, (4 . 7) <= (2:(TRUE, (4 . 7))))
+(statement_0, (14 . 18) <= (4:(GOTO, (14 . 17)), 5:(SEMICOLON, (18 . 18))))
+(statement_0, (26 . 30) <= (7:(GOTO, (26 . 29)), 8:(SEMICOLON, (30 . 30))))
+(if_statement_2, (1 . 38) <= (1:(IF, (1 . 2)), (expression_0, (4 . 7)), 3:(THEN, (9 . 12)), (statement_0, (14 . 18)), 6:(ELSIF, (20 . 24)), (statement_0, (26 . 30)), 9:(END, (32 . 34)), 10:(IF, (36 . 37)), 11:(SEMICOLON, (38 . 38))))
+(wisitoken_accept_0, (1 . 39) <= ((if_statement_2, (1 . 38)), 12:(Wisi_EOI, (40 . 39))))
