@@ -48,7 +48,7 @@
  1: 14: 11:(PLUS, (120 . 120)) : shift and goto state 12
  2: 2: 11:(PLUS, (120 . 120)) : ERROR
  2: expecting: Wisi_EOI
- 2: terminate (2 active):  (2, 14:(PLUS, (120 . 120) ERROR))
+ 2: terminate (2 active):  (2, 14:(PLUS, (120 . 120), parser ERROR))
  1: 12: 12:(IDENTIFIER, (122 . 122)) : reduce 1 tokens to binary_adding_operator
 (binary_adding_operator, (120 . 120) <= (11:(PLUS, (120 . 120))))
  ... goto state 13

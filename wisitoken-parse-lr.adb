@@ -779,17 +779,11 @@ package body WisiToken.Parse.LR is
       Prev_Terminal : Stream_Node_Parents := Tree.To_Stream_Node_Parents
         (Tree.To_Rooted_Ref (Stream, Tree.Peek (Stream)));
    begin
-      Op.Del_Node := Deleted_Node;
-
       Tree.Last_Terminal (Prev_Terminal, Stream);
       if Tree.Label (Prev_Terminal.Ref.Node) /= Source_Terminal then
          Tree.Prev_Source_Terminal
            (Prev_Terminal, Stream, Trailing_Non_Grammar => False);
       end if;
-      Tree.Add_Deleted
-        (Deleted_Node  => Deleted_Node,
-         Prev_Terminal => Prev_Terminal,
-         User_Data     => User_Data);
 
       loop
          --  Delete empty nonterms, breakdown non-empty nonterms, delete next terminal.
@@ -799,6 +793,16 @@ package body WisiToken.Parse.LR is
             case Tree.Label (Current_Token.Node) is
             when Terminal_Label =>
                pragma Assert (Op.Del_Index = Tree.Get_Sequential_Index (Current_Token.Node));
+
+               --  Left_Breakdown may have moved an error to Deleted_Node, copying
+               --  it. test_incremental.adb Lexer_Errors_05.
+               Tree.Add_Deleted
+                 (Deleted_Node  => Current_Token.Node,
+                  Prev_Terminal => Prev_Terminal,
+                  User_Data     => User_Data);
+
+               Op.Del_Node := Current_Token.Node;
+
                Current_Token := Invalid_Stream_Node_Ref; -- allow delete Current_Token.Element
                Tree.Delete_Current_Token (Stream);
                exit;

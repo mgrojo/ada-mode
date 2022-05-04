@@ -102,7 +102,7 @@ package body WisiToken_Grammar_Editing is
                Byte_Region => Tree.Byte_Region (Item.Node, Trailing_Non_Grammar => False),
                Char_Region => Tree.Char_Region (Item.Node, Trailing_Non_Grammar => False),
                Line_Region => Null_Line_Region), --  Line_Region ignored for Source_Terminal
-            Error => Syntax_Trees.No_Error);
+            Errors => Syntax_Trees.Null_Error_List);
 
       when Virtual_Terminal =>
          return Tree.Add_Terminal (ID (Tree, Item));

@@ -193,30 +193,26 @@ package WisiToken.Lexer is
    function Find_Next
      (Lexer : in out Instance;
       Token :    out WisiToken.Lexer.Token)
-     return Boolean is abstract;
-   --  Set Token to the next token from the input stream.
+     return Natural is abstract;
+   --  Set Token to the next token from the input stream, return number
+   --  of lexer errors encountered.
    --
-   --  If there is a recovered error, adds an entry to Lexer.Errors (with
-   --  Recover_Token invalid). Unrecognized characters are skipped;
-   --  missing quotes are inserted at the found quote. There can be more
-   --  than one error entry for one call to Find_Next, if several
-   --  unrecognized characters are skipped. If the recovery inserted a
-   --  missing quote, it is the last entry in Errors, the returned token
-   --  is an empty string literal, and Find_Next returns True.
-   --
-   --  If there is a non-recoverable error, raises Fatal_Error with an
-   --  appropriate message.
-   --
-   --  Otherwise returns False.
+   --  For each lexer error, adds an entry to Lexer.Errors. Unrecognized
+   --  characters are skipped; missing quotes are inserted at the found
+   --  quote. If the recovery inserted a missing quote, it is the last
+   --  entry in Errors, the returned token is an empty string literal.
    --
    --  Token.Char_Region, Token.Byte_Region are the character and byte
-   --  position of the start and end of token, in the internal buffer,
+   --  position of the start and end of Token, in the internal buffer,
    --  1-indexed. Char_Region and Byte_Region differ when text is UTF-8
    --  or other multi-byte encoding, and when line endings are two byte.
    --
-   --  Token.Line is the line number in which recent token starts.
+   --  Token.Line_Region is the line number at the start and end of the token.
    --  If the underlying text feeder does not support the notion of
-   --  'line', returns Invalid_Line_Number.
+   --  'line', this is Null_Line_Region.
+   --
+   --  test_incremental.adb Lexer_Errors_05 has multiple lexer errors on
+   --  one token.
 
    function File_Name (Lexer : in Instance) return String is abstract;
    --  Return input file name; empty string if there is no file.
