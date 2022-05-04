@@ -2200,6 +2200,28 @@ package body Test_Incremental is
          Incr_Errors    => 2);
    end Recover_09;
 
+   procedure Recover_10 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Ada_Lite_Actions;
+   begin
+      --  From ada_mode-incremental_recover_03.adb. Error on final name_opt,
+      --  solution is delete the identifier; had op.del_node wrong because
+      --  error message moved to first_terminal.
+
+      Ada_Lite.Incremental_Parser.Table.McKenzie_Param.Delete (+IDENTIFIER_ID) := 2;
+      Ada_Lite.Full_Parser.Table.McKenzie_Param.Delete (+IDENTIFIER_ID) := 2;
+
+      Parse_Text
+        (Initial => "procedure Debug is begin loop A; B; C; end loop; end Debug;",
+         --                   |10       |20       |30       |40
+         Edit_At        => 40,
+         Delete         => "",
+         Insert         => "end; ",
+         Initial_Errors => 0,
+         Incr_Errors    => 2);
+   end Recover_10;
+
    procedure Lexer_Errors_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -2268,6 +2290,123 @@ package body Test_Incremental is
          Initial_Errors => 2,  --  2 Lexer + 0 parser.
          Incr_Errors => 1);
    end Lexer_Errors_03;
+
+   procedure Lexer_Errors_04 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada-mode test gpr_incremental_01.gpr; Edit_Tree scans a lexer
+      --  error on a non_grammar.
+
+      Incremental_Parser := Grammar.Incremental_Parser'Access;
+      Full_Parser        := Grammar.Full_Parser'Access;
+
+      Parse_Text
+        (Label          => "1",
+         Initial        =>
+           "A : B;" & ASCII.LF & ASCII.LF &
+             --  |4                |8
+             "C : D;",
+         --   |8
+         Edit_At        => 8,
+         Delete         => "",
+         Insert         => "-",
+         Initial_Errors => 0,
+         Incr_Errors    => 1); -- lexer
+
+      Parse_Text
+        (Label          => "2",
+         Initial        => "",
+         Edit_At        => 9,
+         Delete         => "",
+         Insert         => "- FI",
+         Initial_Errors => 1,
+         Incr_Errors    => 0);
+   end Lexer_Errors_04;
+
+   procedure Lexer_Errors_05 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  More from ada-mode test gpr_incremental_01.gpr; test was broken
+      --  causing this input pattern. Requires handling more than one lexer
+      --  error per grammar token.
+
+      Incremental_Parser := Grammar.Incremental_Parser'Access;
+      Full_Parser        := Grammar.Full_Parser'Access;
+
+      Parse_Text
+        (Label          => "1",
+         Initial        =>
+           "A : B;" & ASCII.LF &
+             --  |6
+             " - -" & ASCII.LF &
+             --  |11
+             "C : D;",
+         --   |13
+         Edit_At        => 11,
+         Delete         => "",
+         Insert         => "f",
+         Initial_Errors => 2, -- lexer
+         Incr_Errors    => 3); -- lexer, parser
+
+   end Lexer_Errors_05;
+
+   procedure Lexer_Errors_06 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Handle more than one lexer error per lexer token.
+
+      Incremental_Parser := Grammar.Incremental_Parser'Access;
+      Full_Parser        := Grammar.Full_Parser'Access;
+
+      Parse_Text
+        (Label          => "1",
+         Initial        =>
+           "A : B;" & ASCII.LF &
+             --  |6
+             " &&" & ASCII.LF &
+             --      |11
+             "C : D;",
+         Edit_At        => 9,
+         Delete         => "&&",
+         Insert         => "-- f",
+         Initial_Errors => 2, -- lexer
+         Incr_Errors    => 0);
+
+   end Lexer_Errors_06;
+
+   procedure Lexer_Errors_07 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From gpr_incremental_02.gpr.
+
+      Incremental_Parser := Grammar.Incremental_Parser'Access;
+      Full_Parser        := Grammar.Full_Parser'Access;
+
+      Parse_Text
+        (Label          => "1",
+         Initial        =>
+           "A : B;" & ASCII.LF &
+             --  |6
+             "  C : D;",
+         Edit_At        => 10,
+         Delete         => "",
+         Insert         => "& ",
+         Initial_Errors => 0,
+         Incr_Errors    => 1);  -- lexer
+
+      Parse_Text
+        (Label          => "2",
+         Initial        => "",
+         Edit_At        => 10,
+         Delete         => "& ",
+         Insert         => "",
+         Initial_Errors => 1,
+         Incr_Errors    => 0);
+   end Lexer_Errors_07;
 
    procedure Preserve_Parse_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -2801,9 +2940,14 @@ package body Test_Incremental is
       Register_Routine (T, Recover_08c'Access, "Recover_08c");
       Register_Routine (T, Recover_08d'Access, "Recover_08d");
       Register_Routine (T, Recover_09'Access, "Recover_09");
+      Register_Routine (T, Recover_10'Access, "Recover_10");
       Register_Routine (T, Lexer_Errors_01'Access, "Lexer_Errors_01");
       Register_Routine (T, Lexer_Errors_02'Access, "Lexer_Errors_02");
       Register_Routine (T, Lexer_Errors_03'Access, "Lexer_Errors_03");
+      Register_Routine (T, Lexer_Errors_04'Access, "Lexer_Errors_04");
+      Register_Routine (T, Lexer_Errors_05'Access, "Lexer_Errors_05");
+      Register_Routine (T, Lexer_Errors_06'Access, "Lexer_Errors_06");
+      Register_Routine (T, Lexer_Errors_07'Access, "Lexer_Errors_07");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
       Register_Routine (T, Modify_Deleted_Node'Access, "Modify_Deleted_Node");

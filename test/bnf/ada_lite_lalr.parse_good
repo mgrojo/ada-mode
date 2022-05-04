@@ -75,7 +75,7 @@ in_parse_action OK
 (name_3, (209 . 215) <= (9:(IDENTIFIER, (209 . 215))))
 in_parse_action OK
  ... goto state 191
- 0: terminate (2 active): zombie (0, 165:(IDENTIFIER, (205 . 205) ERROR))
+ 0: terminate (2 active): zombie (0, 165:(IDENTIFIER, (205 . 205), parser ERROR))
  2: 191: (-1, 10:(COLON_EQUAL, (217 . 218))) : reduce 1 tokens to subtype_indication
 (subtype_indication_1, (209 . 215) <= ((name_3, (209 . 215))))
  ... goto state 242
@@ -105,7 +105,7 @@ in_parse_action OK
  2: 98: (-1, 13:(NUMERIC_LITERAL, (225 . 225))) : reduce 1 tokens to multiplying_operator
 (multiplying_operator_1, (223 . 223) <= (12:(SLASH, (223 . 223))))
  ... goto state 100
- 1: terminate (1 active): zombie (1, 166:(COLON_EQUAL, (217 . 218) ERROR))
+ 1: terminate (1 active): zombie (1, 166:(COLON_EQUAL, (217 . 218), parser ERROR))
  2: 100: (-1, 13:(NUMERIC_LITERAL, (225 . 225))) : shift and goto state 42
  2: 42: (-1, 14:(SEMICOLON, (226 . 226))) : reduce 1 tokens to primary
 (primary_0, (225 . 225) <= (13:(NUMERIC_LITERAL, (225 . 225))))
@@ -499,7 +499,7 @@ in_parse_action OK
 (name_3, (465 . 471) <= (70:(IDENTIFIER, (465 . 471))))
 in_parse_action OK
  ... goto state 191
- 2: terminate (2 active): zombie (2, 167:(IDENTIFIER, (461 . 461) ERROR))
+ 2: terminate (2 active): zombie (2, 167:(IDENTIFIER, (461 . 461), parser ERROR))
  4: 191: (-1, 71:(SEMICOLON, (472 . 472))) : reduce 1 tokens to subtype_indication
 (subtype_indication_1, (465 . 471) <= ((name_3, (465 . 471))))
  ... goto state 242
@@ -535,7 +535,7 @@ tree size:  296
  3: zombie
  5: 200: (-1, 74:(IDENTIFIER, (481 . 487))) : shift and goto state 41
  4: 197: (-1, 74:(IDENTIFIER, (481 . 487))) : shift and goto state 41
- 3: terminate (2 active): zombie (3, 168:(SEMICOLON, (472 . 472) ERROR))
+ 3: terminate (2 active): zombie (3, 168:(SEMICOLON, (472 . 472), parser ERROR))
  5: 41: (-1, 75:(SEMICOLON, (488 . 488))) : reduce 1 tokens to name
 (name_3, (481 . 487) <= (74:(IDENTIFIER, (481 . 487))))
 in_parse_action OK
@@ -575,7 +575,7 @@ in_parse_action OK
  5: 250: (-1, 77:(LOOP, (499 . 502))) : shift and goto state 6
  4: zombie
  5: 6: (-1, 78:(EXIT, (507 . 510))) : shift and goto state 2
- 4: terminate (1 active): zombie (4, 169:(SEMICOLON, (488 . 488) ERROR))
+ 4: terminate (1 active): zombie (4, 169:(SEMICOLON, (488 . 488), parser ERROR))
  5: 2: (-1, 79:(WHEN, (512 . 515))) : reduce 0 tokens to identifier_opt
 (identifier_opt_1 <= ())
  ... goto state 57
@@ -964,7 +964,7 @@ in_parse_action OK
 (name_3, (689 . 695) <= (120:(IDENTIFIER, (689 . 695))))
 in_parse_action OK
  ... goto state 191
- 5: terminate (2 active): zombie (5, 170:(IDENTIFIER, (685 . 685) ERROR))
+ 5: terminate (2 active): zombie (5, 170:(IDENTIFIER, (685 . 685), parser ERROR))
  7: 191: (-1, 121:(SEMICOLON, (696 . 696))) : reduce 1 tokens to subtype_indication
 (subtype_indication_1, (689 . 695) <= ((name_3, (689 . 695))))
  ... goto state 242
@@ -1000,7 +1000,7 @@ tree size:  420
  6: zombie
  8: 200: (-1, 124:(IDENTIFIER, (705 . 711))) : shift and goto state 41
  7: 197: (-1, 124:(IDENTIFIER, (705 . 711))) : shift and goto state 41
- 6: terminate (2 active): zombie (6, 171:(SEMICOLON, (696 . 696) ERROR))
+ 6: terminate (2 active): zombie (6, 171:(SEMICOLON, (696 . 696), parser ERROR))
  8: 41: (-1, 125:(SEMICOLON, (712 . 712))) : reduce 1 tokens to name
 (name_3, (705 . 711) <= (124:(IDENTIFIER, (705 . 711))))
 in_parse_action OK
@@ -1040,7 +1040,7 @@ in_parse_action OK
  8: 250: (-1, 127:(CASE, (723 . 726))) : shift and goto state 1
  7: zombie
  8: 1: (-1, 128:(IDENTIFIER, (728 . 728))) : shift and goto state 41
- 7: terminate (1 active): zombie (7, 172:(SEMICOLON, (712 . 712) ERROR))
+ 7: terminate (1 active): zombie (7, 172:(SEMICOLON, (712 . 712), parser ERROR))
  8: 41: (-1, 129:(IS, (730 . 731))) : reduce 1 tokens to name
 (name_3, (728 . 728) <= (128:(IDENTIFIER, (728 . 728))))
 in_parse_action OK

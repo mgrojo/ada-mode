@@ -60,7 +60,7 @@
  1: 18: 11:(PLUS, (120 . 120)) : shift and goto state 13
  2: 2: 11:(PLUS, (120 . 120)) : ERROR
  2: expecting: Wisi_EOI
- 2: terminate (2 active):  (2, 16:(PLUS, (120 . 120) ERROR))
+ 2: terminate (2 active):  (2, 16:(PLUS, (120 . 120), parser ERROR))
  1: 13: 12:(IDENTIFIER, (122 . 122)) : reduce 1 tokens to binary_adding_operator
 (binary_adding_operator, (120 . 120) <= (11:(PLUS, (120 . 120))))
  ... goto state 14
@@ -102,7 +102,7 @@
  ... goto state 9
  3: 2: 13:(STAR, (126 . 126)) : ERROR
  3: expecting: Wisi_EOI
- 3: terminate (3 active):  (3, 17:(STAR, (126 . 126) ERROR))
+ 3: terminate (3 active):  (3, 17:(STAR, (126 . 126), parser ERROR))
  4: 9: 13:(STAR, (126 . 126)) : reduce 1 tokens to primary
 (primary, (96 . 122) <= ((allocator, (96 . 122))))
  ... goto state 8
@@ -119,7 +119,7 @@
  ... goto state 2
  5: 2: 13:(STAR, (126 . 126)) : ERROR
  5: expecting: Wisi_EOI
- 5: terminate (3 active):  (5, 18:(STAR, (126 . 126) ERROR))
+ 5: terminate (3 active):  (5, 18:(STAR, (126 . 126), parser ERROR))
  4: 16: 14:(IDENTIFIER, (128 . 128)) : reduce 1 tokens to multiplying_operator
 (multiplying_operator, (126 . 126) <= (13:(STAR, (126 . 126))))
  ... goto state 17

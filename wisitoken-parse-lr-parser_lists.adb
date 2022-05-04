@@ -57,9 +57,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
      (Parser_State : in Parser_Lists.Parser_State;
       Tree         : in Syntax_Trees.Tree)
      return Syntax_Trees.Stream_Node_Parents
-   is
-      use all type WisiToken.Syntax_Trees.Node_Access;
-   begin
+   is begin
       return Ref : Syntax_Trees.Stream_Node_Parents := Tree.To_Stream_Node_Parents
         (Tree.Current_Token (Parser_State.Stream))
       do

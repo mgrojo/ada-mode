@@ -78,7 +78,6 @@ begin
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"java_types_ch19", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"lalr_generator_bug_01", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"nested_ebnf_optional", null)));
-   Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"object_declaration", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"optimized_conflict_01", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"optimized_conflict_02", null)));
    Add_Test (Suite, Test_Case_Access'(new BNF_WY_Test.Test_Case (+"optimized_conflict_03", null)));

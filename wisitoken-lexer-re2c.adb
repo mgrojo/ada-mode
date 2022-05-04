@@ -201,7 +201,7 @@ package body WisiToken.Lexer.re2c is
    overriding function Find_Next
      (Lexer : in out Instance;
       Token :    out WisiToken.Lexer.Token)
-     return Boolean
+     return Natural
    is
       use Interfaces.C;
 
@@ -212,7 +212,7 @@ package body WisiToken.Lexer.re2c is
       Char_Length   : Natural;
       Line_Start    : Line_Number_Type;
       Line_Length   : Base_Line_Number_Type;
-      Result        : Boolean := False; -- default to no lexer error.
+      Error_Count   : Integer := 0;
 
       procedure Build_Token
       is begin
@@ -259,13 +259,13 @@ package body WisiToken.Lexer.re2c is
             case Status is
             when 0 =>
                Build_Token;
-               return Result;
+               return Error_Count;
 
             when 1 =>
                --  Unrecognized character from lexer. Handle missing quotes by
                --  inserting a virtual quote at the existing quote, and telling the
                --  lexer to skip the char.
-               Result := True;
+               Error_Count := @ + 1;
                declare
                   Buffer : constant GNATCOLL.Mmap.Str_Access := WisiToken.Lexer.Buffer (Lexer.Source);
                begin
@@ -283,7 +283,7 @@ package body WisiToken.Lexer.re2c is
 
                      ID := Lexer.Descriptor.String_1_ID;
                      Build_Token;
-                     return True;
+                     return Error_Count;
 
                   elsif Lexer.Descriptor.String_2_ID /= Invalid_Token_ID and Buffer (Byte_Position) = '"' then
                      --  Lexer has read to next new-line (or eof), then backtracked to next
@@ -294,7 +294,7 @@ package body WisiToken.Lexer.re2c is
 
                      ID := Lexer.Descriptor.String_2_ID;
                      Build_Token;
-                     return True;
+                     return Error_Count;
 
                   else
                      --  Just skip the character; call Next_Token again.

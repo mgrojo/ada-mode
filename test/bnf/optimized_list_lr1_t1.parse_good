@@ -26,10 +26,10 @@
 
  McKenzie error recovery
 
-parser 0: State 1 Current_Token (0, 2;11:(Wisi_EOI, (87 . 86) ERROR))
+parser 0: State 1 Current_Token (0, 2;11:(Wisi_EOI, (87 . 86), parser ERROR))
 Parser_Action
  0: succeed 1, enqueue 7, check  4, cost:  4
- 0:  4, ( 0 0 0 0 1 0 0 1 0), (3 : (-15:(declarations, (17 . 29))))\2;11:(Wisi_EOI, (87 . 86) ERROR)\((PUSH_BACK, IDENTIFIER, 1), (DELETE, IDENTIFIER, 1))
+ 0:  4, ( 0 0 0 0 1 0 0 1 0), (3 : (-15:(declarations, (17 . 29))))\2;11:(Wisi_EOI, (87 . 86), parser ERROR)\((PUSH_BACK, IDENTIFIER, 1), (DELETE, IDENTIFIER, 1))
 
 recover: succeed, parser count 1
  0: stack/stream:
@@ -49,13 +49,13 @@ recover: succeed, parser count 1
 | | -1;7:(IDENTIFIER, (28 . 28))
 | | 0;13:(SEMICOLON, (29 . 29) deleted: (1;9:(IDENTIFIER, (85 . 85))))),
 (-1, 
-2;12:(Wisi_EOI, (87 . 86) ERROR)))
-    Current_Token: (0, 2;12:(Wisi_EOI, (87 . 86) ERROR))
+2;12:(Wisi_EOI, (87 . 86), parser ERROR)))
+    Current_Token: (0, 2;12:(Wisi_EOI, (87 . 86), parser ERROR))
     Shared_Token: ()
     recover_insert_delete:
     resume_active: True, token goal 5
 
- 0: 3: (0, 2;12:(Wisi_EOI, (87 . 86) ERROR)) : accept it
+ 0: 3: (0, 2;12:(Wisi_EOI, (87 . 86), parser ERROR)) : accept it
 (wisitoken_accept_0, (17 . 29) <= ((declarations_1, (17 . 29))))
  0: succeed
 optimized_list.input:8:1: syntax_error: expecting COLON, found ''

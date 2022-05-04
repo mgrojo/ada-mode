@@ -237,6 +237,15 @@ package body WisiToken.Parse is
          else False);
    end Error_Pred_Parse;
 
+   function Error_Pred_Lexer (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
+   is
+      use Syntax_Trees.Error_Data_Lists;
+   begin
+      return
+        (if Element (Cur) in Lexer_Error then True
+         else False);
+   end Error_Pred_Lexer;
+
    function Error_Pred_Lexer_Parse_Message (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
    is
       use Syntax_Trees.Error_Data_Lists;
@@ -359,48 +368,62 @@ package body WisiToken.Parse is
 
       Tree  : Syntax_Trees.Tree renames Parser.Tree;
       Lexer : WisiToken.Lexer.Handle renames Parser.Tree.Lexer;
-
-      Token : WisiToken.Lexer.Token;
-      Error : Boolean;
-      Ref   : Terminal_Ref;
    begin
       loop
-         Error := Lexer.Find_Next (Token);
+         declare
+            Token        : WisiToken.Lexer.Token;
+            Error_Count  : constant Natural := Lexer.Find_Next (Token);
+            Lexer_Errors : Error_Data_Lists.List;
+         begin
 
-         if Trace_Lexer > Outline then
-            Tree.Lexer.Trace.Put_Line (WisiToken.Lexer.Full_Image (Token, Tree.Lexer.Descriptor.all));
-         end if;
-
-         if Token.ID >= Lexer.Descriptor.First_Terminal then
-            Ref := Tree.Add_Terminal
-              (Parser.Tree.Shared_Stream, Token,
-               Error =>
-                 (if Error
-                  then Lexer_Error'(Error => Lexer.Errors (Lexer.Errors.Last))
-                  else No_Error));
-
-            Process_Grammar_Token (Parser, Token, Ref.Node);
-            Last_Grammar_Node := Ref.Node;
-         else
-            if Trace_Lexer > Detail then
-               Tree.Lexer.Trace.Put_Line ("non-grammar in " & Parser.Tree.Image (Last_Grammar_Node));
-            end if;
-            if Error then
-               raise SAL.Programmer_Error with WisiToken.Error_Message
-                 (File_Name => Lexer.File_Name,
-                  Line      => 1,
-                  Column    => Ada.Text_IO.Count (Token.Char_Region.First),
-                  Message   => "lexer error in non_grammar");
+            if Trace_Lexer > Outline then
+               Tree.Lexer.Trace.Put_Line (WisiToken.Lexer.Full_Image (Token, Tree.Lexer.Descriptor.all));
             end if;
 
-            Process_Non_Grammar_Token (Parser, Last_Grammar_Node, Token);
-            Ref := Invalid_Stream_Node_Ref;
-         end if;
+            if Error_Count > 0 then
+               declare
+                  Cur : WisiToken.Lexer.Error_Lists.Cursor := Lexer.Errors.Last;
+               begin
+                  for I in 1 .. Error_Count - 1 loop
+                     WisiToken.Lexer.Error_Lists.Previous (Cur);
+                  end loop;
+                  for I in 1 .. Error_Count loop
+                     Lexer_Errors.Append (Lexer_Error'(Error => Lexer.Errors (Cur)));
+                     WisiToken.Lexer.Error_Lists.Next (Cur);
+                  end loop;
+               end;
+            end if;
 
-         exit when Token.ID >= Lexer.Descriptor.First_Terminal;
+            if Token.ID >= Lexer.Descriptor.First_Terminal then
+               declare
+                  Ref : constant Terminal_Ref := Tree.Add_Terminal (Parser.Tree.Shared_Stream, Token, Lexer_Errors);
+               begin
+                  Process_Grammar_Token (Parser, Token, Ref.Node);
+                  Last_Grammar_Node := Ref.Node;
+               end;
+            else
+               if Trace_Lexer > Detail then
+                  Tree.Lexer.Trace.Put_Line ("non-grammar in " & Parser.Tree.Image (Last_Grammar_Node));
+               end if;
+               if Error_Count > 0 then
+                  --  test_incremental.adb Lexer_Errors_04, _05
+                  Tree.Add_Errors (Tree.Shared_Stream, Last_Grammar_Node, Lexer_Errors);
+               end if;
+
+               Process_Non_Grammar_Token (Parser, Last_Grammar_Node, Token);
+            end if;
+
+            if Error_Count > 0 and Trace_Lexer > Detail then
+               Tree.Lexer.Trace.Put_Line
+                 ("lexer error" & (if Error_Count > 1 then "s" else "") &
+                    " in " & Parser.Tree.Image (Last_Grammar_Node));
+            end if;
+
+            if Token.ID >= Lexer.Descriptor.First_Terminal then
+               return Token.ID;
+            end if;
+         end;
       end loop;
-
-      return Token.ID;
    end Next_Grammar_Token;
 
    procedure Lex_All (Parser : in out Base_Parser'Class)
@@ -419,7 +442,6 @@ package body WisiToken.Parse is
       if Trace_Parse > Outline then
          Parser.Tree.Lexer.Trace.Put_Line (Syntax_Trees.Get_Node_Index (Last_Grammar_Node)'Image & " tokens lexed");
       end if;
-
    end Lex_All;
 
    function Equal (Left : in Recover_Op; Right : in Insert_Op) return Boolean
@@ -653,14 +675,11 @@ package body WisiToken.Parse is
       package Lexer_Error_Data_Lists is new Ada.Containers.Doubly_Linked_Lists (Lexer_Error_Data);
 
       Lexer_Errors : Lexer_Error_Data_Lists.List;
-      --  If a lexer_error is on a delimited token, this list records the
-      --  scan region for that token; Node.Byte_Region.First .. Scan_End.
-      --  Then if an edit occurs in the scan region, the scan for the edit
-      --  covers that region. That lets an edit fix the lexer error.
-      --  test_incremental.adb Edit_String_06.
-      --
-      --  Other lexer errors are fixed by editing the region containing the
-      --  error.
+      --  This list records the scan region for lexer errors, depending on
+      --  where they occur. Then if an edit might affect the lexer error,
+      --  the scan for the edit covers that region. That lets an edit fix
+      --  the lexer error. test_incremental.adb Edit_String_06,
+      --  Lexer_Errors_04.
 
       Stream : Syntax_Trees.Stream_ID; -- Tree.Shared_Stream that we are editing.
 
@@ -671,6 +690,31 @@ package body WisiToken.Parse is
 
       Terminal_Non_Grammar_Next : Lexer.Token_Arrays.Extended_Index := Lexer.Token_Arrays.No_Index;
       --  Next non_grammar in Terminal to be shifted or deleted.
+
+      procedure Maybe_Delete_Lexer_Errors (Node : in Valid_Node_Access)
+      is begin
+         if Invalid_Error_Ref /= Tree.Has_Error_Class (Node, Lexer_Error'(others => <>)) then
+            --  Delete from Lexer_Errors. test_incremental.adb Edit_String_09
+            declare
+               use Lexer_Error_Data_Lists;
+               Cur : Cursor := Lexer_Errors.First;
+            begin
+               loop
+                  exit when Cur = No_Element;
+
+                  if Lexer_Errors (Cur).Node = Node then
+                     declare
+                        To_Delete_1 : Cursor := Cur;
+                     begin
+                        Next (Cur);
+                        Lexer_Errors.Delete (To_Delete_1);
+                     end;
+                  end if;
+                  Next (Cur);
+               end loop;
+            end;
+         end if;
+      end Maybe_Delete_Lexer_Errors;
 
       procedure Breakdown (Terminal : in out Terminal_Ref; To_Single : in Boolean := False)
       with Pre => Terminal /= Invalid_Stream_Node_Ref
@@ -994,10 +1038,8 @@ package body WisiToken.Parse is
                Error_Ref : constant Stream_Node_Ref  := Tree.Error_Node (Err_Ref);
             begin
                if Err in Lexer_Error then
-                  if Tree.Lexer.Is_Block_Delimited (Tree.ID (Error_Ref.Node)) then
-                     --  We don't know Shift_Bytes yet, so we can't find Scan_End.
-                     Lexer_Errors.Append ((Error_Ref.Node, Scan_End => Invalid_Buffer_Pos));
-                  end if;
+                  --  We don't know Shift_Bytes yet, so we can't find Scan_End.
+                  Lexer_Errors.Append ((Error_Ref.Node, Scan_End => Invalid_Buffer_Pos));
                   Tree.Next_Error (Err_Ref);
                else
                   if Trace_Incremental_Parse > Detail then
@@ -1106,20 +1148,34 @@ package body WisiToken.Parse is
                     Stable_Region.First .. Next_KMN_Stable_First
                   then
                      --  Now we know Shift for this lexer error.
-                     --  test_incremental.adb Edit_String_09, Lexer_Errors_03.
                      declare
                         Node : constant Valid_Node_Access := Lexer_Errors (Cur).Node;
-                        Node_Byte_Region : constant Buffer_Region := Tree.Byte_Region
-                          (Node, Trailing_Non_Grammar => False);
                      begin
                         --  Node has not yet been shifted.
-                        Lexer_Errors (Cur).Scan_End := Tree.Lexer.Find_Scan_End
-                          (Tree.ID (Node), Node_Byte_Region + Shift_Bytes +
-                             (if Node_Byte_Region.First > Stable_Region.Last
-                              then 0
-                              else KMN.Inserted_Bytes),
-                           Inserted  => True,
-                           Start     => True);
+                        if Tree.Lexer.Is_Block_Delimited (Tree.ID (Node)) then
+                           --  test_incremental.adb Edit_String_09, Lexer_Errors_03.
+                           declare
+                              Node_Byte_Region : constant Buffer_Region := Tree.Byte_Region
+                                (Node, Trailing_Non_Grammar => False);
+                           begin
+                              Lexer_Errors (Cur).Scan_End := Tree.Lexer.Find_Scan_End
+                                (Tree.ID (Node), Node_Byte_Region + Shift_Bytes +
+                                   (if Node_Byte_Region.First > Stable_Region.Last
+                                    then 0
+                                    else KMN.Inserted_Bytes),
+                                 Inserted  => True,
+                                 Start     => True);
+                           end;
+                        else
+                           --  The lexer error occurred while scanning the token or one of the
+                           --  following non_grammars. test_incremental.adb Lexer_Errors_04.
+                           declare
+                              Node_Byte_Region : constant Buffer_Region := Tree.Byte_Region
+                                (Node, Trailing_Non_Grammar => True);
+                           begin
+                              Lexer_Errors (Cur).Scan_End := Node_Byte_Region.Last;
+                           end;
+                        end if;
                      end;
 
                      if Lexer_Errors (Cur).Scan_End <= Stable_Region.Last + Shift_Bytes then
@@ -1132,6 +1188,15 @@ package body WisiToken.Parse is
                         end;
                      else
                         --  We must scan from this lexer error to find out if it is fixed.
+                        if Trace_Lexer > Outline then
+                           declare
+                              Data : Lexer_Error_Data renames Lexer_Errors (Cur).Element.all;
+                           begin
+                              Tree.Lexer.Trace.Put_Line
+                                ("lexer error on " & Tree.Image (Data.Node, Node_Numbers => True) &
+                                   " possibly fixed by this KMN; scan end" & Data.Scan_End'Image);
+                           end;
+                        end if;
                         Next (Cur);
                      end if;
                   else
@@ -1584,27 +1649,7 @@ package body WisiToken.Parse is
                                 Tree.Image (To_Delete.Element, Terminal_Node_Numbers => True, Non_Grammar => False));
                         end if;
 
-                        if Invalid_Error_Ref /= Tree.Has_Error_Class (To_Delete.Node, Lexer_Error'(others => <>)) then
-                           --  Delete from Lexer_Errors. test_incremental.adb Edit_String_09
-                           declare
-                              use Lexer_Error_Data_Lists;
-                              Cur : Cursor := Lexer_Errors.First;
-                           begin
-                              loop
-                                 exit when Cur = No_Element;
-
-                                 if Lexer_Errors (Cur).Node = To_Delete.Node then
-                                    declare
-                                       To_Delete_1 : Cursor := Cur;
-                                    begin
-                                       Next (Cur);
-                                       Lexer_Errors.Delete (To_Delete_1);
-                                    end;
-                                 end if;
-                                 Next (Cur);
-                              end loop;
-                           end;
-                        end if;
+                        Maybe_Delete_Lexer_Errors (To_Delete.Node);
 
                         if Tree.Lexer.Is_Block_Delimited (Tree.ID (To_Delete.Node)) then
                            Check_Scan_End (To_Delete.Node);
@@ -1644,15 +1689,7 @@ package body WisiToken.Parse is
                      exit Delete_Deleted_Loop when Tree.ID (Check_Deleted.Node) = Parser.Tree.Lexer.Descriptor.EOI_ID;
                      --  FIXME: exit when check_deleted outside KMN?
 
-                     if Tree.ID (Check_Deleted.Node) = Tree.Lexer.Descriptor.SOI_ID then
-                        --  FIXME: can't get here with terminal_non_grammar_next = no_index;
-                        --  why Handle_Non_Grammar twice? need test case.
-                        raise SAL.Programmer_Error with "found test case";
-                        --  Handle_Non_Grammar
-                        --    (Tree.Non_Grammar_Var (Check_Deleted.Node), Delete_Grammar => False, Floating => False);
-                        --  Tree.Next_Terminal (Check_Deleted);
-
-                     elsif Tree.Byte_Region (Check_Deleted.Node, Trailing_Non_Grammar => False).First >
+                     if Tree.Byte_Region (Check_Deleted.Node, Trailing_Non_Grammar => False).First >
                        Deleted_Region.Last + 1
                      then
                         --  Check_Deleted is not deleted or modified
@@ -1773,19 +1810,34 @@ package body WisiToken.Parse is
                  Lexer_Errors (Lexer_Errors.First).Scan_End /= Invalid_Buffer_Pos
                then
                   --  Lexer_Errors is set above to contain lexer errors that may be
-                  --  fixed by this KMN. test_incremental.adb Edit_String_06
+                  --  fixed by this KMN. test_incremental.adb Edit_String_06,
+                  --  Lexer_Errors_nn.
                   declare
                      Data : Lexer_Error_Data renames Lexer_Errors (Lexer_Errors.First);
                      Ref  : Stream_Node_Ref;
                   begin
-                     --  Data.Node is now shifted.
-
                      if Data.Node = Terminal.Node then
-                        Do_Scan        := True;
-                        Lex_Start_Byte := Tree.Byte_Region (Data.Node, Trailing_Non_Grammar => False).First;
-                        Lex_Start_Char := Tree.Char_Region (Data.Node, Trailing_Non_Grammar => False).First;
-                        Lex_Start_Line := Tree.Line_Region (Terminal, Trailing_Non_Grammar => False).First;
-                        Scan_End       := Data.Scan_End;
+                        --  Data.Node is not shifted, and Err may be before or after
+                        --  Terminal.Byte_Region.
+                        declare
+                           Terminal_Byte_Region : constant Buffer_Region := Tree.Byte_Region
+                             (Data.Node, Trailing_Non_Grammar => False);
+                        begin
+                           if Inserted_Region.First < Terminal_Byte_Region.First then
+                              --  test_incremental.adb Lexer_Errors_07
+                              Do_Scan        := True;
+                              Lex_Start_Byte := Inserted_Region.First;
+                              Lex_Start_Char := Inserted_Region_Chars.First;
+                              Lex_Start_Line := Tree.Line_Region (Terminal, Trailing_Non_Grammar => False).First;
+                              Scan_End       := Data.Scan_End;
+                           else
+                              Do_Scan        := True;
+                              Lex_Start_Byte := Terminal_Byte_Region.First;
+                              Lex_Start_Char := Tree.Char_Region (Data.Node, Trailing_Non_Grammar => False).First;
+                              Lex_Start_Line := Tree.Line_Region (Terminal, Trailing_Non_Grammar => False).First;
+                              Scan_End       := Data.Scan_End;
+                           end if;
+                        end;
 
                         if Terminal_Non_Grammar_Next /= Lexer.Token_Arrays.No_Index then
                            Terminal_Non_Grammar_Next := Lexer.Token_Arrays.No_Index;
@@ -1794,6 +1846,8 @@ package body WisiToken.Parse is
                      elsif Tree.Byte_Region (Data.Node, Trailing_Non_Grammar => False).First <
                        Tree.Byte_Region (Terminal.Node, Trailing_Non_Grammar => False).First
                      then
+                        --  Data.Node is shifted.
+                        --
                         --  Delete terminals Data thru prev (Terminal); normally scanned tokens get
                         --  deleted in Delete_Scanned_Loop below, but that only deletes tokens
                         --  Terminal and after.
@@ -2301,24 +2355,39 @@ package body WisiToken.Parse is
                   Scan_Changed_Loop :
                   loop
                      declare
-                        Token : Lexer.Token;
-                        Error : constant Boolean := Tree.Lexer.Find_Next (Token);
-                        Ref   : Terminal_Ref;
+                        Token       : Lexer.Token;
+                        Error_Count : constant Natural := Tree.Lexer.Find_Next (Token);
+                        Ref         : Terminal_Ref;
+                        Scan_Errors : Error_Data_Lists.List;
                      begin
                         if Trace_Lexer > Outline then
-                           Tree.Lexer.Trace.Put_Line
-                             ("lex: " & Lexer.Image (Token, Parser.Tree.Lexer.Descriptor.all));
-                           if Error then
-                              declare
-                                 Error : Lexer.Error renames Tree.Lexer.Errors (Tree.Lexer.Errors.Last);
-                              begin
-                                 Tree.Lexer.Trace.Put_Line
-                                   (" ... error: " & Error.Char_Pos'Image &
-                                      (if Error.Recover_Char (1) /= ASCII.NUL
-                                       then "'" & Error.Recover_Char (1) & "'"
-                                       else ""));
-                              end;
-                           end if;
+                           Tree.Lexer.Trace.Put_Line ("lex: " & Lexer.Image (Token, Parser.Tree.Lexer.Descriptor.all));
+                        end if;
+
+                        if Error_Count > 0 then
+                           declare
+                              Cur : WisiToken.Lexer.Error_Lists.Cursor := Tree.Lexer.Errors.Last;
+                           begin
+                              for I in 1 .. Error_Count - 1 loop
+                                 WisiToken.Lexer.Error_Lists.Previous (Cur);
+                              end loop;
+                              for I in 1 .. Error_Count loop
+                                 declare
+                                    Error : Lexer.Error renames Tree.Lexer.Errors (Cur);
+                                 begin
+                                    Scan_Errors.Append (Lexer_Error'(Error => Error));
+
+                                    if Trace_Lexer > Outline then
+                                       Tree.Lexer.Trace.Put_Line
+                                         (" ... error: " & Error.Char_Pos'Image &
+                                            (if Error.Recover_Char (1) /= ASCII.NUL
+                                             then "'" & Error.Recover_Char (1) & "'"
+                                             else ""));
+                                    end if;
+                                 end;
+                                 WisiToken.Lexer.Error_Lists.Next (Cur);
+                              end loop;
+                           end;
                         end if;
 
                         exit Scan_Changed_Loop when Token.ID = Parser.Tree.Lexer.Descriptor.EOI_ID;
@@ -2361,10 +2430,7 @@ package body WisiToken.Parse is
                            Ref := Tree.Insert_Source_Terminal
                              (Stream, Token,
                               Before => Terminal.Element,
-                              Error =>
-                                (if Error
-                                 then Lexer_Error'(Error => Tree.Lexer.Errors (Tree.Lexer.Errors.Last))
-                                 else No_Error));
+                              Errors => Scan_Errors);
 
                            Process_Grammar_Token (Parser, Token, Ref.Node);
                            Last_Grammar := Ref;
@@ -2380,6 +2446,10 @@ package body WisiToken.Parse is
                                 ("scan new " & Lexer.Full_Image (Token, Parser.Tree.Lexer.Descriptor.all));
                            end if;
 
+                           if Error_Count > 0 then
+                              --  test_incremental.adb Lexer_Errors_04
+                              Tree.Add_Errors (Tree.Shared_Stream, Last_Grammar.Node, Scan_Errors);
+                           end if;
                            Process_Non_Grammar_Token (Parser, Last_Grammar.Node, Token);
                            Shift_Lines := @ + New_Line_Count (Token.Line_Region);
                         end if;
@@ -2479,6 +2549,7 @@ package body WisiToken.Parse is
 
                            pragma Assert (To_Delete.Node /= Tree.SOI and To_Delete.Node /= Tree.EOI);
                            Tree.Stream_Delete (Stream, To_Delete.Element);
+                           Maybe_Delete_Lexer_Errors (To_Delete.Node);
                         end;
                      end if;
                   end loop Delete_Scanned_Loop;

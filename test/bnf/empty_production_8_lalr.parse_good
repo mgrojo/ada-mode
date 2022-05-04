@@ -29,7 +29,7 @@
  1: 9: 5:(SEMICOLON, (26 . 26)) : shift and goto state 11
  0: 7: 5:(SEMICOLON, (26 . 26)) : ERROR
  0: expecting: COLON_EQUAL
- 0: terminate (1 active):  (0, 21:(SEMICOLON, (26 . 26) ERROR))
+ 0: terminate (1 active):  (0, 21:(SEMICOLON, (26 . 26), parser ERROR))
  1: 11: 6:(IDENTIFIER, (28 . 34)) : reduce 4 tokens to object_declaration
 (object_declaration, (10 . 26) <= (3:(IDENTIFIER, (10 . 16)), (aliased_opt), (constant_opt, (18 . 25)), 5:(SEMICOLON, (26 . 26))))
  ... goto state 8
@@ -94,7 +94,7 @@
  ... goto state 7
  2: 9: 18:(COLON_EQUAL, (101 . 102)) : ERROR
  2: expecting: SEMICOLON
- 2: terminate (1 active):  (2, 22:(COLON_EQUAL, (101 . 102) ERROR))
+ 2: terminate (1 active):  (2, 22:(COLON_EQUAL, (101 . 102), parser ERROR))
  1: 7: 18:(COLON_EQUAL, (101 . 102)) : shift and goto state 10
  1: 10: 19:(SEMICOLON, (104 . 104)) : shift and goto state 12
  1: 12: 20:(Wisi_EOI, (106 . 105)) : reduce 4 tokens to object_declaration

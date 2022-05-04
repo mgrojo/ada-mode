@@ -236,7 +236,7 @@ package body WisiToken.Lexer.Regexp is
    overriding function Find_Next
      (Lexer : in out Instance;
       Token :    out WisiToken.Lexer.Token)
-     return Boolean
+     return Natural
    is begin
       loop
          if not Find_Best_Match (Lexer) then
@@ -257,7 +257,7 @@ package body WisiToken.Lexer.Regexp is
          Char_Region => (Buffer_Pos (Lexer.Lexeme_Head), Buffer_Pos (Lexer.Lexeme_Tail)),
          Line_Region => Null_Line_Region);
 
-      return False;
+      return 0;
    end Find_Next;
 
    overriding function Buffer_Region_Byte (Lexer : in Instance) return Buffer_Region
