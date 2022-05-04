@@ -237,6 +237,15 @@ package body WisiToken.Parse is
          else False);
    end Error_Pred_Parse;
 
+   function Error_Pred_Lexer (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
+   is
+      use Syntax_Trees.Error_Data_Lists;
+   begin
+      return
+        (if Element (Cur) in Lexer_Error then True
+         else False);
+   end Error_Pred_Lexer;
+
    function Error_Pred_Lexer_Parse_Message (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
    is
       use Syntax_Trees.Error_Data_Lists;
@@ -1801,19 +1810,34 @@ package body WisiToken.Parse is
                  Lexer_Errors (Lexer_Errors.First).Scan_End /= Invalid_Buffer_Pos
                then
                   --  Lexer_Errors is set above to contain lexer errors that may be
-                  --  fixed by this KMN. test_incremental.adb Edit_String_06
+                  --  fixed by this KMN. test_incremental.adb Edit_String_06,
+                  --  Lexer_Errors_nn.
                   declare
                      Data : Lexer_Error_Data renames Lexer_Errors (Lexer_Errors.First);
                      Ref  : Stream_Node_Ref;
                   begin
-                     --  Data.Node is now shifted.
-
                      if Data.Node = Terminal.Node then
-                        Do_Scan        := True;
-                        Lex_Start_Byte := Tree.Byte_Region (Data.Node, Trailing_Non_Grammar => False).First;
-                        Lex_Start_Char := Tree.Char_Region (Data.Node, Trailing_Non_Grammar => False).First;
-                        Lex_Start_Line := Tree.Line_Region (Terminal, Trailing_Non_Grammar => False).First;
-                        Scan_End       := Data.Scan_End;
+                        --  Data.Node is not shifted, and Err may be before or after
+                        --  Terminal.Byte_Region.
+                        declare
+                           Terminal_Byte_Region : constant Buffer_Region := Tree.Byte_Region
+                             (Data.Node, Trailing_Non_Grammar => False);
+                        begin
+                           if Inserted_Region.First < Terminal_Byte_Region.First then
+                              --  test_incremental.adb Lexer_Errors_07
+                              Do_Scan        := True;
+                              Lex_Start_Byte := Inserted_Region.First;
+                              Lex_Start_Char := Inserted_Region_Chars.First;
+                              Lex_Start_Line := Tree.Line_Region (Terminal, Trailing_Non_Grammar => False).First;
+                              Scan_End       := Data.Scan_End;
+                           else
+                              Do_Scan        := True;
+                              Lex_Start_Byte := Terminal_Byte_Region.First;
+                              Lex_Start_Char := Tree.Char_Region (Data.Node, Trailing_Non_Grammar => False).First;
+                              Lex_Start_Line := Tree.Line_Region (Terminal, Trailing_Non_Grammar => False).First;
+                              Scan_End       := Data.Scan_End;
+                           end if;
+                        end;
 
                         if Terminal_Non_Grammar_Next /= Lexer.Token_Arrays.No_Index then
                            Terminal_Non_Grammar_Next := Lexer.Token_Arrays.No_Index;
@@ -1822,6 +1846,8 @@ package body WisiToken.Parse is
                      elsif Tree.Byte_Region (Data.Node, Trailing_Non_Grammar => False).First <
                        Tree.Byte_Region (Terminal.Node, Trailing_Non_Grammar => False).First
                      then
+                        --  Data.Node is shifted.
+                        --
                         --  Delete terminals Data thru prev (Terminal); normally scanned tokens get
                         --  deleted in Delete_Scanned_Loop below, but that only deletes tokens
                         --  Terminal and after.

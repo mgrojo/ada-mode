@@ -31,20 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-editing c:/Projects/org.adaic.arm_form/build/arm_info.gpr
-    apply Leading_Switches patch from Nicolas
-    leaves lexer error
-
-
-editing syntax_trees.adb add_source_terminal_1
-    change Error to Errors
-    font lock wrong; everything green
-    wisi-reset-parser cleared it briefly,then it came back.
-
-editing syntax_trees.ads to add null_error_list;
-    leaves syntax error.
-    typed half of statement before package decl, then moved it, finished it.
-
 wisitoken.grammar_mode.stephe-1 test/nominal.wy failing
     bug in line_begin_char_pos for delimited-text
         also bug in mmm-mode, but fixing that later.

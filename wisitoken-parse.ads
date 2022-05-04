@@ -254,6 +254,10 @@ package WisiToken.Parse is
    --  Return True if Cur is a Parse_Error; for
    --  Syntax_Trees.Error_Predicate.
 
+   function Error_Pred_Lexer (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
+   --  Return True if Cur is a Lexer_Error; for
+   --  Syntax_Trees.Error_Predicate.
+
    function Error_Pred_Lexer_Parse_Message (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
    --  Return True if Cur is one of Lexer_Error, Parse_Error, or
    --  Error_Message; for Syntax_Trees.Error_Predicate.

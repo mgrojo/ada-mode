@@ -2377,6 +2377,37 @@ package body Test_Incremental is
 
    end Lexer_Errors_06;
 
+   procedure Lexer_Errors_07 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From gpr_incremental_02.gpr.
+
+      Incremental_Parser := Grammar.Incremental_Parser'Access;
+      Full_Parser        := Grammar.Full_Parser'Access;
+
+      Parse_Text
+        (Label          => "1",
+         Initial        =>
+           "A : B;" & ASCII.LF &
+             --  |6
+             "  C : D;",
+         Edit_At        => 10,
+         Delete         => "",
+         Insert         => "& ",
+         Initial_Errors => 0,
+         Incr_Errors    => 1);  -- lexer
+
+      Parse_Text
+        (Label          => "2",
+         Initial        => "",
+         Edit_At        => 10,
+         Delete         => "& ",
+         Insert         => "",
+         Initial_Errors => 1,
+         Incr_Errors    => 0);
+   end Lexer_Errors_07;
+
    procedure Preserve_Parse_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -2916,6 +2947,7 @@ package body Test_Incremental is
       Register_Routine (T, Lexer_Errors_04'Access, "Lexer_Errors_04");
       Register_Routine (T, Lexer_Errors_05'Access, "Lexer_Errors_05");
       Register_Routine (T, Lexer_Errors_06'Access, "Lexer_Errors_06");
+      Register_Routine (T, Lexer_Errors_07'Access, "Lexer_Errors_07");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
       Register_Routine (T, Modify_Deleted_Node'Access, "Modify_Deleted_Node");
