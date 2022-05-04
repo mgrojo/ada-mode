@@ -130,8 +130,8 @@ oneb :: one-clean
 oneb :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 oneb :: $(addsuffix .diff, $(ONE_TEST_FILES))
 
-#two : RUN_ARGS ?= command_file debug.cmd test/debug.adb
-two : RUN_ARGS ?= parse_partial face test/debug.adb --verbosity "debug=1 mckenzie=1 parse=1" --mckenzie_enqueue_limit 60000 --lang_params "3 2 0 1 0 0 2 0 2 0 2 0 0" > debug.log
+two : RUN_ARGS ?= command_file debug.cmd > debug.log 2>&1
+#two : RUN_ARGS ?= parse_partial face test/debug.adb --verbosity "debug=1 mckenzie=1 parse=1" --mckenzie_enqueue_limit 60000 --lang_params "3 2 0 1 0 0 2 0 2 0 2 0 0" > debug.log
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 two : ../run_ada_lalr_parse.exe
 	cd ../; ./run_ada_lalr_parse.exe $(RUN_ARGS)
