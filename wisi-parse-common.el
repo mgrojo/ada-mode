@@ -583,7 +583,7 @@ Normally set from a language-specific option.")
 Signals an error if `wisi-incremental-parse-enable' is nil."
   (unless wisi-incremental-parse-enable
     (user-error "wisi-parse-incremental-none with wisi-incremental-parse-enable nil"))
-  (wisi-parse-incremental wisi-parser-shared 'none))
+  (save-excursion (wisi-parse-incremental wisi-parser-shared 'none)))
 
 (defun wisi-replay-kbd-macro (macro)
   "Replay keyboard macro MACRO into current buffer,
@@ -591,7 +591,7 @@ with incremental parse after each key event."
   (let ((i 0))
     (while (< i  (length macro))
       (execute-kbd-macro (make-vector 1 (aref macro i)))
-      (wisi-parse-incremental wisi-parser-shared 'none)
+      (save-excursion (wisi-parse-incremental wisi-parser-shared 'none))
       (setq i (1+ i)))))
 
 (defun wisi-replay-kbd-macro-file (file-name)
