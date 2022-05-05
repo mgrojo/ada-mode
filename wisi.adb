@@ -1422,8 +1422,8 @@ package body Wisi is
          then
             if Trace_Action > Outline then
                Tree.Lexer.Trace.Put_Line
-                 ("face_apply_action: " & Image
-                    (Tree.Char_Region (Tree.Child (Nonterm, Param.Index), Trailing_Non_Grammar => False)) &
+                 ("face_apply_action: " & Tree.Image
+                    (Tree.Child (Nonterm, Param.Index), Node_Numbers => True) &
                     " " & Param.Prefix_Face'Image & " " & Param.Suffix_Face'Image);
             end if;
 
