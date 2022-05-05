@@ -1264,7 +1264,6 @@ allocator
   ;
 subtype_indication_paren_constraint
   : [null_exclusion] name ;; includes discriminant_constraint; redundant with subprogram_call
-    %((wisi-face-apply-action [2 font-lock-function-name-face font-lock-type-face]))%
   | [null_exclusion] name index_constraint
     %((wisi-face-apply-action [2 font-lock-function-name-face font-lock-type-face]))%
   ;
