@@ -1323,7 +1323,7 @@ in CMD-BUFFER-NAME."
 
 (defun wisi-process-log-to-cmd (&optional prompt)
   "Convert parser log in current buffer to command file in CMD-BUFFER-NAME."
-  (interactive "p")
+  (interactive "P")
   (let* ((cmd-buffer-name
 	 (if prompt
 	     (read-string "command file name: " "debug.cmd")
