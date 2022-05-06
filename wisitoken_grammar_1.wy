@@ -12,6 +12,7 @@
 ;;
 ;;  - the Python grammar file given at
 ;;    https://docs.python.org/3.8/reference/grammar.html
+;;    except that we require terminal semicolons
 ;;
 ;;  - the Java grammar file given at
 ;;    https://github.com/antlr/grammars-v4/tree/master/java
@@ -117,23 +118,11 @@
 %mckenzie_cost_default 2 2 2 2
 %mckenzie_cost_insert SEMICOLON 1
 %mckenzie_enqueue_limit 10_000
-
-;; Because of conflicts, a new parser is spawned for every identifier
-;; in an rhs or declaration_item_list; one parser becomes a zombie
-;; immediately on "=" or identifier, and on "| ; ( { [". However, they
-;; are not terminated until after %mckenzie_zombie_limit more tokens,
-;; by which time more have been spawned. We need the parser count to
-;; get to 1 periodically to keep the copied syntax trees in each
-;; parser small. This sets a max size on zombie_limit.
-%mckenzie_zombie_limit 1
-
+%mckenzie_zombie_limit 3
 %mckenzie_check_limit 4
 
 %conflict SHIFT IDENTIFIER_BAR_list | REDUCE rhs_list on token BAR
 %conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER
-%conflict SHIFT rhs_element | REDUCE nonterminal on token IDENTIFIER
-%conflict SHIFT rhs_element | REDUCE rhs on token IDENTIFIER
-%conflict SHIFT rhs_list | REDUCE nonterminal on token PERCENT
 
 ;;;; grammar rules, no particular order
 
@@ -216,20 +205,18 @@ declaration_item
 
 nonterm_colon : COLON | COLON_COLON_EQUAL ; ;; split out for action
 
-;; We force at least one non-empty rhs, to improve error correction.
-;; Consider: exp : term : foo ; We are editing 'exp : foo ;' to insert
-;; a 'term' intermediary. If rhs_list can be empty, this parses as
-;; "nonterminal nonterminal", with an empty rhs_list in "exp", and no
-;; error. Then when we insert "; term :" to complete the edit, that
-;; empty rhs_list is not reparsed, so we are left with an error.
-;; test/incremental_01.wy. This also forces any empty rhs to be last,
-;; which is not required by the LR generator, but is required by
+;; We require terminal semicolons, and force at least one non-empty
+;; rhs, to improve error correction. Consider: exp : term : foo ; We
+;; are editing 'exp : foo ;' to insert a 'term' intermediary. If
+;; rhs_list can be empty and we don't require a terminal semicolon,
+;; this parses as "nonterminal nonterminal", with an empty rhs_list in
+;; "exp", and no error. Then when we insert "; term :" to complete the
+;; edit, that empty rhs_list is not reparsed, so we are left with an
+;; error. test/incremental_01.wy. This also forces any empty rhs to be
+;; last, which is not required by the LR generator, but is required by
 ;; packrat.
-;;
-;; Terminating semicolon optional for Python grammar syntax (see
-;; header comments).
 nonterminal
-  : IDENTIFIER nonterm_colon rhs_list ['|'] [SEMICOLON]
+  : IDENTIFIER nonterm_colon rhs_list ['|'] SEMICOLON
     %((wisi-statement-action [1 statement-start 5 statement-end])
       (wisi-motion-action [1 [3 rhs] 5])
       (wisi-name-action 1)

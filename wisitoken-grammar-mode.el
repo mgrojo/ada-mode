@@ -409,8 +409,14 @@ For `add-log-current-defun-function'."
     (string-match wisi-names-regexp identifier)
     (list (xref-make
 	 (match-string 1 identifier)
-	 (xref-make-file-location
-	  (buffer-file-name) (string-to-number (match-string 2 identifier)) 0)))
+	 (if (buffer-file-name)
+	     (xref-make-file-location
+	      (buffer-file-name) (string-to-number (match-string 2 identifier)) 0)
+	   ;; no file-name in a file version fetched from CM
+	   (xref-make-buffer-location
+	      (current-buffer)
+	      (save-excursion (goto-line (string-to-number (match-string 2 identifier))) (point)))
+	   )))
     ))
 
 ;;; debug

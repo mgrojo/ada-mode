@@ -23,7 +23,8 @@ update-install : update install
 
 test : test-wisitoken_grammar.stamp
 
-ONE_TEST_FILE := debug.wy
+ONE_TEST_FILE ?= debug.wy
+one :: ELISP ?= (setq save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
 one-clean :: force
 	for file in $(ONE_TEST_FILE) ; do rm -f $$file.* ; done
 one :: one-clean
