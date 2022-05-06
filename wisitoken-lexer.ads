@@ -246,6 +246,15 @@ package WisiToken.Lexer is
    --  True if Is_Block_Delimited (ID) and the start and end delimiters
    --  are the same (typically true for strings, false for comments).
 
+   function Escape_Delimiter_Doubled
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean
+   is abstract
+   with Pre'Class => Lexer.Is_Block_Delimited (ID) and Lexer.Same_Block_Delimiters (ID);
+   --  True if a delimiter embedded in the token is escaped by doubling
+   --  it (like Ada strings).
+
    function Start_Delimiter_Length
      (Lexer : in Instance;
       ID    : in Token_ID)

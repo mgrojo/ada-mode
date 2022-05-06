@@ -718,6 +718,10 @@ package body WisiToken_Grammar_Runtime is
             elsif Kind = "end_names_optional_option" then
                Data.Language_Params.End_Names_Optional_Option := +Get_Text (Data, Tree, Tree.Child (Nonterm, 3));
 
+            elsif Kind = "escape_delimiter_doubled" then
+               Data.Tokens.Escape_Delimiter_Doubled.Append
+                 (Get_Text (Data, Tree, Tree.Child (Nonterm, 3), Strip_Quotes => True));
+
             elsif Kind = "generate" then
                --  Not in Other phase
                null;

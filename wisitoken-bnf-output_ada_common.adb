@@ -1425,6 +1425,28 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("end Same_Block_Delimiters;");
       New_Line;
 
+      Indent_Line ("function Escape_Delimiter_Doubled (ID : in WisiToken.Token_ID) return Boolean");
+      Indent_Line ("is begin");
+      Indent := @ + 3;
+      Indent_Line ("case To_Token_Enum (ID) is");
+      if Block_Count > 0 then
+         for I in All_Tokens (Generate_Data).Iterate
+           (Non_Grammar  => True,
+            Nonterminals => False,
+            Include_SOI  => False)
+         loop
+            if Generate_Data.Tokens.Escape_Delimiter_Doubled.Contains (Name (Generate_Data, I)) then
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => return True;");
+            end if;
+         end loop;
+      end if;
+
+      Indent_Line ("when others => return False;");
+      Indent_Line ("end case;");
+      Indent := @ - 3;
+      Indent_Line ("end Escape_Delimiter_Doubled;");
+      New_Line;
+
       Indent_Line ("function Start_Delimiter_Length (ID : in WisiToken.Token_ID) return Integer");
       Indent_Line ("is begin");
       Indent := @ + 3;
@@ -1881,6 +1903,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token,");
       Indent_Line ("   Is_Block_Delimited,");
       Indent_Line ("   Same_Block_Delimiters,");
+      Indent_Line ("   Escape_Delimiter_Doubled,");
       Indent_Line ("   Start_Delimiter_Length,");
       Indent_Line ("   End_Delimiter_Length,");
       Indent_Line ("   Find_End_Delimiter,");
