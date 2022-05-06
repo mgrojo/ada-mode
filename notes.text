@@ -27,17 +27,59 @@ Makefile
 (wisitoken-grammar-set-exec (expand-file-name "wisitoken_grammar_mode_parse.exe"))
 (setq wisi-disable-face t)
 
-update to match o.w/wisitoken_grammar.wy
-    in o.w_g.s-1
+run all tests
+    test/nominal.wy fails
+        in post-parse indent 177 .. 484 error: SAL.PROGRAMMER_ERROR : Line_Begin_Char_Pos = Invalid_Buffer_Pos, line 28
+        but no stack trace
+        debug.cmd reproduces, gives stack trace for unhandled exception
+        in action; only elisp can indent that.
+        line 28 is outside requested line region!
+            because mmm did the right thing.
+            bug in wisi.adb
+            or bug in line_begin_char_pos for delimited-text
+            data.action_region_lines is wrong?
+;; action_region_bytes: (177 . 483)
+    includes first byte of action
+    mmm-mode should subract length of submode delimiter?
+        mmm-mode highlight excludes % in delimiter; some mmm config?
+        yep, so lisp-indent-region sees the () as containing parens
+        include % works just as well in an elisp buffer, but trailing one is fontified red; try that in grammar_mode
+            in mmm-add-classes, change :front-offset, :back-offset to 0
+            => indent in action gives : mmm-indent-line: Symbol’s function definition is void: nil
+                need to set submode indent to elisp?
+            in main, indent in action gives above PROGRAMMER_ERROR.
+                in ada_lite.wy, with action mode = ada-mode, calls wrong wisi parser, elisp action throws an error.
+                nominal.wy action mode is ada-mode, but never started ada parser.
 
-edit rhs leaves bogus syntax error
-    debug.cmd reproduces
-    add test/incremental_04.wy; reproduces
-    Edit_Tree is ok; parse needs to right_breakdown rhs_list, rhs_item_list
-        it doesn't try, because IDENTIFIER is not an error there; it looks like the start of a nonterm.
-        so recover should try that, and then erase the error because no insert/delete?
-            push_back not tried because push_back is cost 2, insert ':' is minimal_complete cost 1
+;; action_region_lines: (8, 33)
+                includes all of (ACTION, (483 . 718), (27, 33))
 
+hangs in ediff
+first ediff:
+    Reading file wisitoken_grammar_1.wy ...
+    Reading file ../org.wisitoken/wisitoken_grammar.wy ...
+    start initial full parse in wisitoken_grammar.wy
+    Wrote c:/Projects/org.wisitoken/wisitoken_grammar.wy-wisi-change-start
+    Buffer A: Processing difference region 0 of 50
+    Buffer A: Processing difference region 10 of 50
+    Buffer A: Processing difference region 20 of 50
+    Buffer A: Processing difference region 30 of 50
+    Buffer A: Processing difference region 40 of 50
+    Buffer B: Processing difference region 0 of 50
+    Buffer B: Processing difference region 10 of 50
+    Buffer B: Processing difference region 20 of 50
+    Buffer B: Processing difference region 30 of 50
+    Buffer B: Processing difference region 40 of 50
+    Processing difference regions ... done
+    error in process filter: jit-lock-refontify: Args out of range: 1, 11509
+    error in process filter: Args out of range: 1, 11509
+    #<buffer *Ediff Control Panel*>
+    error in process filter: jit-lock-refontify: Args out of range: 1, 11509
+    error in process filter: Args out of range: 1, 11509
+
+second ediff:
+    hangs with error in process filter: Args out of range: 1, 11509
+    must be from mmm-mode code
 
  release process
 (dvc-pull "/Projects/elpa")
