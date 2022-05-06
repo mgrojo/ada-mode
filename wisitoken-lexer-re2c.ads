@@ -87,6 +87,9 @@ generic
    with function Same_Block_Delimiters (ID : in Token_ID) return Boolean;
    --  Implements WisiToken.Lexer.Same_Block_Delimiters.
 
+   with function Escape_Delimiter_Doubled (ID : in Token_ID) return Boolean;
+   --  Implements WisiToken.Lexer.Escape_Delimiter_Doubled.
+
    with function Start_Delimiter_Length (ID : in Token_ID) return Integer;
    --  Implements WisiToken.Lexer.Start_Delimiter_Length.
 
@@ -209,6 +212,12 @@ package WisiToken.Lexer.re2c is
 
    overriding
    function Same_Block_Delimiters
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean;
+
+   overriding
+   function Escape_Delimiter_Doubled
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Boolean;

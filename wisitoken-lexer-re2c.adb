@@ -374,6 +374,15 @@ package body WisiToken.Lexer.re2c is
    end Same_Block_Delimiters;
 
    overriding
+   function Escape_Delimiter_Doubled
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean
+   is begin
+      return Escape_Delimiter_Doubled (ID);
+   end Escape_Delimiter_Doubled;
+
+   overriding
    function Start_Delimiter_Length
      (Lexer : in Instance;
       ID    : in Token_ID)

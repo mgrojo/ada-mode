@@ -249,6 +249,9 @@ affected only thru the following new-line. Without this restriction,
 when a string quote is inserted/deleted, the entire following text
 must be scanned by the lexer, and parsed.
 
+If an embedded quote is escaped by doubling it (as for Ada strings),
+include the declaration @code{%escape_delimiter_doubled <token_name>}.
+
 @item <string-single-one-line>
 @verbatim
 %token <string-single-one-line> CHARACTER_LITERAL %[ ... ]%
@@ -560,6 +563,10 @@ end loop Get_Inputs;
 These names are optional in the Ada standard. Making them required
 improves error recovery; the recovery algorithm can use matching names
 to isolate the error.
+
+@item %escape_delimiter_doubled <token_name>
+The named token escapes embedded delimiters by doubling them, as for
+Ada strings. This is used by incremental parse when editing such tokens.
 
 @item %generate <generate_algorithm> <output_language>
 

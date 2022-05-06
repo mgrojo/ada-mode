@@ -54,6 +54,13 @@ package body Wisitoken_Grammar_Main is
       end case;
    end Same_Block_Delimiters;
 
+   function Escape_Delimiter_Doubled (ID : in WisiToken.Token_ID) return Boolean
+   is begin
+      case To_Token_Enum (ID) is
+      when others => return False;
+      end case;
+   end Escape_Delimiter_Doubled;
+
    function Start_Delimiter_Length (ID : in WisiToken.Token_ID) return Integer
    is begin
       case To_Token_Enum (ID) is
@@ -188,6 +195,7 @@ package body Wisitoken_Grammar_Main is
       wisitoken_grammar_re2c_c.Next_Token,
       Is_Block_Delimited,
       Same_Block_Delimiters,
+      Escape_Delimiter_Doubled,
       Start_Delimiter_Length,
       End_Delimiter_Length,
       Find_End_Delimiter,

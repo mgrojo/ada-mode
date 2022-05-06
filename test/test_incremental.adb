@@ -2861,6 +2861,37 @@ package body Test_Incremental is
          Incr_Errors    => 2);
    end Edit_String_11;
 
+   procedure Edit_String_12 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-incremental_string_quote_01. Second edit creates two
+      --  adjacent string literals, which should be lexed as one string
+      --  literal with an embedded escaped quote.
+
+      Parse_Text
+        (Label => "1",
+         Initial => "procedure A is begin Put (""Foo"");" & ASCII.LF & "end A;",
+         --                   |10       |20        |30                  |35
+         Edit_At        => 32,
+         Delete         => "",
+         Insert         => """bar",
+         Initial_Errors => 0,
+         Incr_Errors    => 2);
+
+      --  Edited text:
+      --  "procedure A is begin Put (""Foo""""bar);" & ASCII.LF & "end A;"
+      --            |10       |20        |30    |35
+      Parse_Text
+        (Label          => "2",
+         Initial        => "",
+         Edit_At        => 36,
+         Delete         => "",
+         Insert         => """",
+         Initial_Errors => 2,
+         Incr_Errors    => 0);
+   end Edit_String_12;
+
    ----------
    --  Public subprograms
 
@@ -2968,6 +2999,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_String_09'Access, "Edit_String_09");
       Register_Routine (T, Edit_String_10'Access, "Edit_String_10");
       Register_Routine (T, Edit_String_11'Access, "Edit_String_11");
+      Register_Routine (T, Edit_String_12'Access, "Edit_String_12");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

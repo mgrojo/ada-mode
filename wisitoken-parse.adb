@@ -668,8 +668,9 @@ package body WisiToken.Parse is
       --  new-line or EOI be scanned.
 
       type Lexer_Error_Data is record
-         Node     : Node_Access;
-         Scan_End : Base_Buffer_Pos;
+         Node            : Node_Access;
+         Scan_End        : Base_Buffer_Pos := Invalid_Buffer_Pos;
+         Scan_Start_Node : Node_Access     := Invalid_Node_Access;
       end record;
 
       package Lexer_Error_Data_Lists is new Ada.Containers.Doubly_Linked_Lists (Lexer_Error_Data);
@@ -1039,7 +1040,7 @@ package body WisiToken.Parse is
             begin
                if Err in Lexer_Error then
                   --  We don't know Shift_Bytes yet, so we can't find Scan_End.
-                  Lexer_Errors.Append ((Error_Ref.Node, Scan_End => Invalid_Buffer_Pos));
+                  Lexer_Errors.Append ((Error_Ref.Node, others => <>));
                   Tree.Next_Error (Err_Ref);
                else
                   if Trace_Incremental_Parse > Detail then
@@ -1149,22 +1150,41 @@ package body WisiToken.Parse is
                   then
                      --  Now we know Shift for this lexer error.
                      declare
-                        Node : constant Valid_Node_Access := Lexer_Errors (Cur).Node;
+                        Node    : constant Valid_Node_Access := Lexer_Errors (Cur).Node;
+                        Node_ID : constant Token_ID          := Tree.ID (Node);
                      begin
                         --  Node has not yet been shifted.
-                        if Tree.Lexer.Is_Block_Delimited (Tree.ID (Node)) then
+                        if Tree.Lexer.Is_Block_Delimited (Node_ID) then
                            --  test_incremental.adb Edit_String_09, Lexer_Errors_03.
                            declare
                               Node_Byte_Region : constant Buffer_Region := Tree.Byte_Region
                                 (Node, Trailing_Non_Grammar => False);
+
+                              Prev_Terminal : constant Stream_Node_Ref :=
+                                Tree.Prev_Terminal (Tree.To_Stream_Node_Ref (Stream, Node));
+                              Data : Lexer_Error_Data renames Lexer_Errors (Cur);
                            begin
-                              Lexer_Errors (Cur).Scan_End := Tree.Lexer.Find_Scan_End
+                              Data.Scan_End := Tree.Lexer.Find_Scan_End
                                 (Tree.ID (Node), Node_Byte_Region + Shift_Bytes +
                                    (if Node_Byte_Region.First > Stable_Region.Last
                                     then 0
                                     else KMN.Inserted_Bytes),
                                  Inserted  => True,
                                  Start     => True);
+
+                              if Tree.ID (Prev_Terminal) = Tree.ID (Node) and then
+                                Tree.Byte_Region (Prev_Terminal, Trailing_Non_Grammar => False).Last + 1 =
+                                Node_Byte_Region.First and then
+                                Tree.Lexer.Same_Block_Delimiters (Node_ID) and then
+                                Tree.Lexer.Escape_Delimiter_Doubled (Node_ID)
+                              then
+                                 --  Prev, Node look like:
+                                 --
+                                 --   "foo""bar"
+                                 --
+                                 --  Need to scan both. test_incremental.adb Edit_String_12
+                                 Data.Scan_Start_Node := Prev_Terminal.Node;
+                              end if;
                            end;
                         else
                            --  The lexer error occurred while scanning the token or one of the
@@ -1810,13 +1830,43 @@ package body WisiToken.Parse is
                  Lexer_Errors (Lexer_Errors.First).Scan_End /= Invalid_Buffer_Pos
                then
                   --  Lexer_Errors is set above to contain lexer errors that may be
-                  --  fixed by this KMN. test_incremental.adb Edit_String_06,
+                  --  affected by this KMN. test_incremental.adb Edit_String_06,
                   --  Lexer_Errors_nn.
                   declare
                      Data : Lexer_Error_Data renames Lexer_Errors (Lexer_Errors.First);
-                     Ref  : Stream_Node_Ref;
+                     Ref : Stream_Node_Ref;
+
+                     procedure Delete_Node_To_Terminal
+                     --  Delete terminals Ref thru prev (Terminal); normally scanned
+                     --  tokens get deleted in Delete_Scanned_Loop below, but that only
+                     --  deletes tokens Terminal and after.
+                     is begin
+                        loop
+                           Breakdown (Ref, To_Single => True);
+                           declare
+                              To_Delete : Stream_Node_Ref := Ref;
+                           begin
+                              Tree.Next_Terminal (Ref);
+                              Tree.Stream_Delete (Stream, To_Delete.Element);
+                           end;
+                           exit when Ref.Node = Terminal.Node;
+                        end loop;
+                     end Delete_Node_To_Terminal;
+
                   begin
-                     if Data.Node = Terminal.Node then
+                     if Data.Scan_Start_Node /= Invalid_Node_Access then
+                        --  Breakdown Terminal so we can delete terminals before Terminal.
+                        Breakdown (Terminal);
+                        Ref := Tree.To_Stream_Node_Ref (Stream, Data.Scan_Start_Node);
+                        Delete_Node_To_Terminal;
+
+                        Do_Scan        := True;
+                        Lex_Start_Byte := Tree.Byte_Region (Data.Scan_Start_Node, Trailing_Non_Grammar => False).First;
+                        Lex_Start_Char := Tree.Char_Region (Data.Scan_Start_Node, Trailing_Non_Grammar => False).First;
+                        Lex_Start_Line := Tree.Line_Region (Ref, Trailing_Non_Grammar => False).First;
+                        Scan_End       := Data.Scan_End;
+
+                     elsif Data.Node = Terminal.Node then
                         --  Data.Node is not shifted, and Err may be before or after
                         --  Terminal.Byte_Region.
                         declare
@@ -1847,25 +1897,13 @@ package body WisiToken.Parse is
                        Tree.Byte_Region (Terminal.Node, Trailing_Non_Grammar => False).First
                      then
                         --  Data.Node is shifted.
-                        --
-                        --  Delete terminals Data thru prev (Terminal); normally scanned tokens get
-                        --  deleted in Delete_Scanned_Loop below, but that only deletes tokens
-                        --  Terminal and after.
-                        --
-                        --  Breakdown Terminal so it does not share a stream element with Ref,
-                        --  and we can delete terminals before Terminal.
+
+                        --  Breakdown Terminal so it does not share a stream element with
+                        --  elements being deleted, and we can delete terminals before
+                        --  Terminal.
                         Breakdown (Terminal);
                         Ref := Tree.To_Stream_Node_Ref (Stream, Data.Node);
-                        loop
-                           Breakdown (Ref, To_Single => True);
-                           declare
-                              To_Delete : Stream_Node_Ref := Ref;
-                           begin
-                              Tree.Next_Terminal (Ref);
-                              Tree.Stream_Delete (Stream, To_Delete.Element);
-                           end;
-                           exit when Ref.Node = Terminal.Node;
-                        end loop;
+                        Delete_Node_To_Terminal;
 
                         Do_Scan        := True;
                         Lex_Start_Byte := Tree.Byte_Region (Data.Node, Trailing_Non_Grammar => False).First;

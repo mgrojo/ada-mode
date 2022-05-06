@@ -345,6 +345,8 @@ package WisiToken.BNF is
       Lexer_Regexps : String_Pair_Lists.List; -- %lexer_regexp
       Faces         : String_Lists.List;      -- %elisp_face
 
+      Escape_Delimiter_Doubled : String_Lists.List; -- %escape_delimiter_doubled
+
       Indents : String_Pair_Maps.Map;
       --  %elisp_indent; variables or functions used in wisi-indent-action.
       --  Map key => elisp_name
