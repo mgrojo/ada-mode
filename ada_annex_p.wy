@@ -154,6 +154,7 @@ tick : TICK_1 | TICK_2 ;
 ;; \x22 is "
 %token <string-double-one-line> STRING_LITERAL
     %[ (["]([\x20-\x21\x23-\U0010FFFF]|GNAT_Char_Coding)*["])+ ]% '""'
+%escape_delimiter_doubled STRING_LITERAL
 
 %token <string-single-one-line> CHARACTER_LITERAL %[ "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]% "' '"
 
