@@ -360,11 +360,11 @@ For `add-log-current-defun-function'."
     :front "%("
     :include-front t ;; for lisp-indent-region; treat %() as containing parens
     :front-match 0
-    :front-offset 1
+    :front-offset 0
     :back ")%"
     :include-back t
     :back-match 0
-    :back-offset -1
+    :back-offset 0
     :insert ((?a wisi-action nil @ "%(" @ "" _ "" @ ")%" @)))
    (wisi-code
     :match-submode wisitoken-grammar-mmm-code

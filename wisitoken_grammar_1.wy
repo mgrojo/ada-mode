@@ -56,14 +56,19 @@
 
 %language_runtime "Wisi.WisiToken_Grammar"
 
+%keyword ACCEPT_I "accept_it"
 %keyword CODE "code"
 %keyword CONFLICT "conflict"
+%keyword CONFLICT_RESOLUTION "conflict_resolution"
 %keyword END "end"
 %keyword ELSIF "elsif"
 %keyword IF "if"
 %keyword IN "in"
 %keyword KEYWORD "keyword"
 %keyword NON_GRAMMAR "non_grammar"
+%keyword ON "on"
+%keyword REDUCE_I "reduce"
+%keyword SHIFT_I "shift"
 %keyword TOKEN "token"
 
 %token <delimited-text> RAW_CODE "%{" "}%"
@@ -73,7 +78,6 @@
 %token <punctuation> BAR "|"
 %token <punctuation> COLON ":"
 %token <punctuation> COLON_COLON_EQUAL "::="
-%token <punctuation> COMMA ","
 %token <punctuation> EQUAL "="
 %token <punctuation> GREATER ">"
 %token <punctuation> LEFT_BRACE "{"
@@ -88,22 +92,26 @@
 %token <punctuation> RIGHT_BRACKET "]"
 %token <punctuation> RIGHT_PAREN ")"
 %token <punctuation> SEMICOLON ";"
-%token <punctuation> SLASH "/"
 %token <punctuation> STAR "*" ;; for ()* same as {}
 
 %token <number> NUMERIC_LITERAL %[ [0-9-][0-9_]* ]% "1234567890"
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][-0-9a-zA-Z_\x80-\U0010FFFF]* ]% "bogus"
 
-;; Handling ':
+;; In re2c regexps, '...' indicates a case-insensitive match, "..." a
+;; case-sensitive match.
+;;
+;; In nonterminals, '...' indicates a literal, which we translate to a
+;; token; case-sensitive is then determined by the 'case_insensitive'
+;; declaration.
 ;;
 ;; 0x22 = "
-;; 0x27 = \'
+;; 0x27 = '
 %token <string-double-one-line> STRING_LITERAL_1 %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]% '""'
 %token <string-single-one-line> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]% "''"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
-%non_grammar <comment-new-line> COMMENT %[ ";;"[^\x0a\x04]* ]%
+%non_grammar <comment-new-line> COMMENT ";;"
 
 %elisp_face font-lock-constant-face
 %elisp_face font-lock-function-name-face
@@ -137,24 +145,53 @@
 
 ;;;; grammar rules, no particular order
 
+regexp_string
+  : REGEXP
+  | STRING_LITERAL_1
+  | STRING_LITERAL_2
+  ;
+
+conflict_item
+  : SHIFT_I IDENTIFIER
+  | REDUCE_I IDENTIFIER
+  | ACCEPT_I IDENTIFIER
+  | IDENTIFIER
+  ;
+
+conflict_item_list
+  : conflict_item
+  | conflict_item_list BAR conflict_item
+  ;
+
+token_keyword_non_grammar
+  : KEYWORD
+  | NON_GRAMMAR LESS IDENTIFIER GREATER
+    %((wisi-face-apply-action [3 nil font-lock-type-face]))%
+  | TOKEN LESS IDENTIFIER GREATER
+    %((wisi-face-apply-action [3 nil font-lock-type-face]))%
+  ;
+
 declaration
-  : PERCENT token_keyword_non_grammar IDENTIFIER [declaration_item_list]
+  : PERCENT token_keyword_non_grammar IDENTIFIER regexp_string [regexp_string]
     %((wisi-statement-action [1 statement-start])
       (wisi-name-action 3)
       (wisi-face-apply-action
        [1 nil font-lock-constant-face
           2 nil font-lock-keyword-face
           3 nil font-lock-function-name-face])
-      (wisi-indent-action [nil nil nil (wisi-hanging 4 2)]))%
-  | PERCENT CONFLICT declaration_item_list
-    %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
+      (wisi-indent-action [nil nil nil (wisi-hanging 4 2) (wisi-hanging 4 2)]))%
   | PERCENT CODE identifier_list RAW_CODE
     %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
-  | PERCENT IDENTIFIER declaration_item_list
+  | PERCENT CONFLICT conflict_item_list ON TOKEN IDENTIFIER
+    %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
+  | PERCENT CONFLICT_RESOLUTION conflict_item_list ON TOKEN IDENTIFIER
+    %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
+
+  ;; %start, %mckenzie*, etc.
+  | PERCENT IDENTIFIER [declaration_item_list]
     %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face])
       (wisi-indent-action [nil nil (wisi-hanging 4 2)]))%
-  | PERCENT IDENTIFIER
-    %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
+
   | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
     %((wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT IF IDENTIFIER IN IDENTIFIER_BAR_list
@@ -171,14 +208,6 @@ declaration
                                  3 nil font-lock-keyword-face]) )%
   ;
 
-token_keyword_non_grammar
-  : KEYWORD
-  | NON_GRAMMAR LESS IDENTIFIER GREATER
-    %((wisi-face-apply-action [3 nil font-lock-type-face]))%
-  | TOKEN LESS IDENTIFIER GREATER
-    %((wisi-face-apply-action [3 nil font-lock-type-face]))%
-  ;
-
 identifier_list
   : IDENTIFIER
   | identifier_list IDENTIFIER
@@ -189,29 +218,15 @@ IDENTIFIER_BAR_list
   | IDENTIFIER_BAR_list BAR IDENTIFIER
   ;
 
+declaration_item
+  : IDENTIFIER
+  | NUMERIC_LITERAL
+  | regexp_string
+  ;
+
 declaration_item_list
   : declaration_item
   | declaration_item_list declaration_item
-  ;
-
-declaration_item
-  : BAR
-  | COMMA
-  | IDENTIFIER
-  | IN
-  | EQUAL
-  | LEFT_PAREN
-  | NUMERIC_LITERAL
-  | REGEXP
-    %((wisi-face-apply-action [1 nil font-lock-string-face]))%
-  | RIGHT_PAREN
-  | SLASH
-  | STRING_LITERAL_1
-    %((wisi-face-apply-action [1 nil font-lock-string-face]))%
-  | STRING_LITERAL_2
-    %((wisi-face-apply-action [1 nil font-lock-string-face]))%
-  | TOKEN
-  ;; "|", ",", "token", "/", "(", ")", "in" appear in %conflict declarations
   ;
 
 nonterm_colon : COLON | COLON_COLON_EQUAL ; ;; split out for action
@@ -262,9 +277,11 @@ rhs
   : rhs_item_list
     %((wisi-indent-action [[(wisi-hanging nil 2) nil]]))%
   | rhs_item_list ACTION
-    %((wisi-check-parens [2]))%
+    %((wisi-check-parens [2])
+      (wisi-indent-action [(wisi-hanging nil 2) 2]))%
   | rhs_item_list ACTION ACTION
-    %((wisi-check-parens [2 3]))%
+    %((wisi-check-parens [2 3])
+      (wisi-indent-action [(wisi-hanging nil 2) 2 2]))%
   ;
 
 rhs_attribute

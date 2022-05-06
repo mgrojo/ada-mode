@@ -9,7 +9,7 @@
 %mckenzie_minimal_complete_cost_delta -3
 
 Literal : ;; not empty
-  ;; another comment line
+    ;; another comment line
     IntegerLiteral
   | Long RHS Split
       Over Two Lines
@@ -18,8 +18,8 @@ Literal : ;; not empty
   ;
 
 Literal
-  : ;; empty
-  | IntegerLiteral
+  : IntegerLiteral
+  | ;; empty
   ;
 
 extension_aggregate
@@ -36,6 +36,7 @@ extension_aggregate
 
   ;; comment 1 (no preceding ';')
   ;; comment 2
+  ;
 
 declaration
   : PERCENT IDENTIFIER

@@ -27,16 +27,16 @@ pragma_argument_association
 compilation
   : compilation_unit_list
   | ;; empty
-  ;; no terminating ; on some nonterms, to see what effect that has on the parser.
+;; no terminating ; on some nonterms, to see what effect that has on the parser.
 
 compilation_unit
   : with_clause
   | PRIVATE declarative_item
   | declarative_item
   | statement
-;;  | library_item ;; All are in declarative_item
+  ;;  | library_item ;; All are in declarative_item
   | subunit
-  
+
 
 task_body_stub
   : TASK BODY IDENTIFIER IS SEPARATE aspect_specification SEMICOLON

@@ -1,7 +1,8 @@
-;;  From a real editing session
+;;  From a real editing session.
 
 ;;EMACSCMD:(progn (end-of-line 4)(delete-char -10)(wisi-parse-incremental-none)(wisi-replay-kbd-macro "IDENTIFIER")(length (wisi-parser-local-parse-errors wisi-parser-local)))
-;;EMACSRESULT: 0
+;;EMACSRESULT: 1
 association
   : [IDENTIFIER EQUAL_GREATER] expression
   ;
+;;EMACSCMD:(progn (end-of-line -1)(delete-char -10)(insert "expression"))
