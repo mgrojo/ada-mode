@@ -227,7 +227,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 		    last-cmd (match-string 0))
 	      (let ((msg (format "%s:%d: test %s" (buffer-file-name) cmd-line last-cmd)))
 		(wisi-parse-log-message wisi-parser-shared msg)
-		(message msg)
+		(message "%s" msg)
 		(save-excursion
 		  (setq last-result
 			(condition-case-unless-debug err
@@ -275,7 +275,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 				      last-result
 				      expected-result)))))
 		  (wisi-parse-log-message wisi-parser-shared msg)
-		  (message msg))
+		  (message "%s" msg))
 		(setq force-fail nil)))
 
 	     ((string= (match-string 1) "RESULT_START")
