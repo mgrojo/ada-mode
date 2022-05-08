@@ -33,6 +33,7 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Maps;
 with Ada.Text_IO;
 with GNATCOLL.Mmap;
+with WisiToken.Parse.LR.McKenzie_Recover;
 package body WisiToken.Parse.LR is
 
    ----------
@@ -310,7 +311,7 @@ package body WisiToken.Parse.LR is
 
             Value : constant Integer := Get_Value;
          begin
-            --  Trace var alphabetical order
+            --  param alphabetical order
             if Name = "check_delta_limit" or
               Name = "check_delta"
             then
@@ -321,6 +322,12 @@ package body WisiToken.Parse.LR is
 
             elsif Name = "enqueue_limit" then
                Param.Enqueue_Limit := Value;
+
+            elsif Name = "full_explore" then
+               WisiToken.Parse.LR.McKenzie_Recover.Force_Full_Explore := Value = 1;
+
+            elsif Name = "high_cost" then
+               WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions := Value = 1;
 
             elsif Name = "zombie_limit" then
                Param.Zombie_Limit := Value;
@@ -334,6 +341,19 @@ package body WisiToken.Parse.LR is
          exit when Name_First > Config'Last;
       end loop;
    end Set_McKenzie_Options;
+
+   procedure Set_McKenzie_Help
+   is
+      use Ada.Text_IO;
+   begin
+      --  param alphabetical order
+      Put_Line ("check_delta_limit|check_delta");
+      Put_Line ("check_limit");
+      Put_Line ("enqueue_limit");
+      Put_Line ("full_explore");
+      Put_Line ("high_cost");
+      Put_Line ("zombie_limit");
+   end Set_McKenzie_Help;
 
    function Goto_For
      (Table : in Parse_Table;

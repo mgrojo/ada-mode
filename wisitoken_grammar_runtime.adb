@@ -293,13 +293,6 @@ package body WisiToken_Grammar_Runtime is
       Data.Ignore_Lines      := False;
    end Reset;
 
-   overriding procedure Initialize_Actions
-     (Data : in out User_Data_Type;
-      Tree : in     WisiToken.Syntax_Trees.Tree'Class)
-   is begin
-      null;
-   end Initialize_Actions;
-
    function Get_Lexer_Set
      (User_Data : in out User_Data_Type;
       Tree      : in out WisiToken.Syntax_Trees.Tree;

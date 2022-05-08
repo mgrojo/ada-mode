@@ -412,7 +412,7 @@ begin
                Trace.Put_Line ("post-parse grammar file META");
             end if;
 
-            Grammar_Parser.Execute_Actions;
+            WisiToken.Parse.Execute_Actions (Grammar_Parser);
 
             case Input_Data.Meta_Syntax is
             when Unknown =>
@@ -438,7 +438,7 @@ begin
                         Trace.Put_Line ("post-parse grammar file OTHER, bnf tree");
                      end if;
 
-                     WisiToken.Parse.LR.Parser_No_Recover.Execute_Actions
+                     WisiToken.Parse.Execute_Actions
                        (BNF_Tree, Grammar_Parser.Productions, Input_Data'Unchecked_Access);
                   end;
                else

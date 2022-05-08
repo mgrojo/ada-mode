@@ -28,7 +28,6 @@ with Warth_Left_Recurse_Expr_1_Packrat_Gen_Main;
 with Warth_Left_Recurse_Expr_1_Packrat_Proc_Main;
 with Warth_Left_Recurse_Expr_1_Runtime;
 with WisiToken.AUnit;
-with WisiToken.Parse.Packrat.Generated;
 with WisiToken.Parse.Packrat.Procedural;
 with WisiToken.Text_IO_Trace;
 package body Warth_Left_Recurse_Expr_1 is
@@ -44,14 +43,14 @@ package body Warth_Left_Recurse_Expr_1 is
    is
       pragma Unreferenced (T);
 
-      use WisiToken.Parse.Packrat.Generated;
+      use WisiToken.Parse.Packrat;
 
       Parser : aliased WisiToken.Parse.Base_Parser'Class := Warth_Left_Recurse_Expr_1_Packrat_Gen_Main.Create_Parser
         (Trace'Access, User_Data'Access);
 
       procedure Execute_Parse
         (Input           : in String;
-         Expected_State  : in WisiToken.Parse.Packrat.Generated.Result_States;
+         Expected_State  : in WisiToken.Parse.Packrat.Result_States;
          Expected_Result : in Integer)
       is
          use AUnit.Checks;
@@ -96,7 +95,7 @@ package body Warth_Left_Recurse_Expr_1 is
       pragma Unreferenced (T);
       use Warth_Left_Recurse_Expr_1_Actions;
       use WisiToken.AUnit;
-      use all type WisiToken.Parse.Packrat.Procedural.Result_States;
+      use all type WisiToken.Parse.Packrat.Result_States;
 
       Parser : aliased WisiToken.Parse.Base_Parser'Class :=
         Warth_Left_Recurse_Expr_1_Packrat_Proc_Main.Create_Parser
@@ -104,7 +103,7 @@ package body Warth_Left_Recurse_Expr_1 is
 
       procedure Execute_Parse
         (Input           : in String;
-         Expected_State  : in WisiToken.Parse.Packrat.Procedural.Result_States;
+         Expected_State  : in WisiToken.Parse.Packrat.Result_States;
          Expected_Result : in Integer)
       is
          use AUnit.Checks;

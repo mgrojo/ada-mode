@@ -347,7 +347,8 @@ package WisiToken.Syntax_Trees is
      (Tree    : in Syntax_Trees.Tree;
       Stream  : in Stream_ID;
       Element : in Stream_Index)
-     return Rooted_Ref;
+     return Rooted_Ref
+   with Pre => Element /= Invalid_Stream_Index;
 
    type Stream_Node_Parents is record
       Ref     : Stream_Node_Ref;
@@ -499,10 +500,6 @@ package WisiToken.Syntax_Trees is
    --  to null.
 
    type User_Data_Access is access all User_Data_Type'Class;
-
-   function New_User_Data (Template : in User_Data_Type) return User_Data_Access
-   is (null);
-   --  Return a new empty object with the same type as Template.
 
    procedure Reset (User_Data : in out User_Data_Type) is null;
    --  Reset to start a new parse.
@@ -1963,7 +1960,7 @@ package WisiToken.Syntax_Trees is
    --  zero streams, so these subprograms have no stream argument.
    --
    --  Some of these are also used for Packrat parsing, and don't have a
-   --  precondition of Fully_Parsed.
+   --  precondition.
 
    function Cleared (Tree : in Syntax_Trees.Tree) return Boolean;
    --  True if there are no streams and no nodes.
@@ -1976,9 +1973,11 @@ package WisiToken.Syntax_Trees is
    --  Shared_Stream holds a lexed or edited stream.
 
    function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean;
-   --  True if there is only one parse stream, and it has only two
-   --  elements; SOI with the start state and the tree root (EOI is only
-   --  in the shared stream).
+   --  True if Tree.Root is valid; a parse succeeded.
+   --
+   --  LR parse leaves a parse stream containing SOI and root; Packrat
+   --  parse does not use a parse stream, it just creates nonterminal
+   --  nodes.
 
    function Editable (Tree : in Syntax_Trees.Tree) return Boolean;
    --  True if Clear_Parse_Streams and Set_Parents have been called; the
@@ -2007,8 +2006,7 @@ package WisiToken.Syntax_Trees is
    procedure Clear_Parse_Streams
      (Tree       : in out Syntax_Trees.Tree;
       Keep_Nodes : in     Valid_Node_Access_Lists.List := Valid_Node_Access_Lists.Empty_List)
-   with Pre => Tree.Fully_Parsed or Tree.Stream_Count = 1,
-     Post => Tree.Editable;
+   with Post => Tree.Editable;
    --  If Tree.Root is not set, set it to the root of the single
    --  remaining parse stream. Delete the parse stream and shared stream.
    --  Delete all nodes not reachable from the root, and not Tree.SOI,
@@ -2042,12 +2040,10 @@ package WisiToken.Syntax_Trees is
    --  parsing to succeed.
 
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; New_Root : in Valid_Node_Access)
-   with Pre => (Tree.Parseable and Tree.Label (New_Root) = Nonterm) and then Tree.Child_Count (New_Root) > 0;
+   with Pre => Tree.Label (New_Root) = Nonterm and then Tree.Child_Count (New_Root) > 0;
    --  Set Tree.Root to Root. If New_Root.Children does not start with
    --  Tree.SOI, prepend it. If New_Root.Children does not end with
    --  Tree.EOI, append it.
-   --
-   --  Precondition matches Packrat parser conditions at end of parse.
 
    function SOI (Tree : in Syntax_Trees.Tree) return Node_Access;
    --  Return node representing start of input in the shared stream. It
@@ -2489,7 +2485,7 @@ package WisiToken.Syntax_Trees is
    with Pre => Valid_Error_Ref (Error);
 
    function First_Error (Tree : in Syntax_Trees.Tree) return Error_Ref
-   with Pre => Tree.Editable;
+   with Pre => Tree.Fully_Parsed;
    --  Return first error node in Tree.
 
    function First_Error (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Stream_Error_Ref;
@@ -2682,8 +2678,7 @@ package WisiToken.Syntax_Trees is
      (Tree    : in Syntax_Trees.Tree;
       Node    : in Valid_Node_Access;
       Message : in String)
-     return String
-   with Pre => Tree.Parents_Set;
+     return String;
    --  File_Name from Tree.Lexer, line, column from Node
 
    function Error_Message

@@ -281,6 +281,10 @@ package WisiToken.Parse is
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 
+   type Parser_Access is access all Base_Parser'Class;
+
+   type Factory is access function return Parser_Access;
+
    function Source_File_Name (Item : in Base_Parser'Class) return String
    is (Item.Tree.Lexer.File_Name);
 
@@ -396,16 +400,23 @@ package WisiToken.Parse is
    --  message.
 
    procedure Put_Errors (Parser : in Base_Parser'Class)
-   with Pre => Parser.Tree.Editable;
+   with Pre => Parser.Tree.Fully_Parsed;
    --  Output Parser.Tree errors to Ada.Text_IO.Current_Error.
 
    procedure Put_Errors (Parser : in Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID);
    --  Output Parser.Tree.Stream errors to Ada.Text_IO.Current_Error.
 
    procedure Execute_Actions
-     (Parser              : in out Base_Parser;
-      Action_Region_Bytes : in     WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region)
-   is abstract;
+     (Tree                : in out Syntax_Trees.Tree;
+      Productions         : in     Syntax_Trees.Production_Info_Trees.Vector;
+      User_Data           : in     Syntax_Trees.User_Data_Access;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region);
+   --  Implements Execute_Actions, allows specifying different tree
+   --  (needed by wisitoken-bnf-generate).
+
+   procedure Execute_Actions
+     (Parser              : in out Base_Parser'Class;
+      Action_Region_Bytes : in     WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region);
    --  Execute all actions in Parser.Tree nodes that overlap
    --  Action_Region_Bytes; all nodes if Action_Region_Bytes =
    --  Null_Buffer_Region. See wisitoken-syntax_trees.ads for other

@@ -231,17 +231,26 @@ package body WisiToken.Lexer is
       Index_Pos : constant Integer := To_Buffer_Index (Source, Byte_Pos);
       Found_Line : Base_Line_Number_Type := First_Line;
    begin
-      for I in To_Buffer_Index (Source, Byte_Region.First) ..
-        To_Buffer_Index (Source, Byte_Region.Last)
-      loop
-         if I = Index_Pos then
-            return Found_Line;
-         end if;
+      case Source.Label is
+      when String_Label =>
+         for I in To_Buffer_Index (Source, Byte_Region.First) ..
+           To_Buffer_Index (Source, Byte_Region.Last)
+         loop
+            if I = Index_Pos then
+               return Found_Line;
+            end if;
 
-         if Source.Buffer (I) = ASCII.LF then
-            Found_Line := @ + 1;
-         end if;
-      end loop;
+            if Source.Buffer (I) = ASCII.LF then
+               Found_Line := @ + 1;
+            end if;
+         end loop;
+
+      when File_Label =>
+         --  FIXME: need to read a char from the mapped region; gnatcoll.mmap
+         --  doesn't have a simple function for that. This is enough for most
+         --  testing.
+         return Found_Line;
+      end case;
       raise SAL.Programmer_Error; -- precondition false.
    end Line_At_Byte_Pos;
 

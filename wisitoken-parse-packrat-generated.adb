@@ -47,8 +47,6 @@ package body WisiToken.Parse.Packrat.Generated is
          end loop;
       end loop;
 
-      Parser.Derivs.Set_First_Last (Descriptor.First_Nonterminal, Descriptor.Last_Nonterminal);
-
       Parser.Tree.Clear;
 
       if Parser.User_Data /= null then
@@ -56,8 +54,7 @@ package body WisiToken.Parse.Packrat.Generated is
       end if;
       Parser.Lex_All; -- Creates Tree.Shared_Stream
 
-      --  WORKAROUND: there appears to be a bug in GNAT Community 2021 that makes
-      --  ref_count fail in this usage. May be related to AdaCore ticket V107-045.
+      --  FIXME: ref_count fails in this usage; works in procedural.
       Parser.Tree.Enable_Ref_Count_Check (Parser.Tree.Shared_Stream, Enable => False);
 
       for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
@@ -72,16 +69,41 @@ package body WisiToken.Parse.Packrat.Generated is
       Result := Parser.Parse_WisiToken_Accept
         (Parser, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream, Skip_SOI => False));
 
-      if Result.State /= Success then
-         if Trace_Parse > Outline then
-            Parser.Tree.Lexer.Trace.Put_Line ("parse failed");
+      --  Clear copies of Stream_Index so Clear_Parse_Streams can run.
+      for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
+         Parser.Derivs (Nonterm).Clear (Free_Memory => True);
+      end loop;
+
+      declare
+         use WisiToken.Syntax_Trees;
+
+         Max_Examined_Node : constant Valid_Node_Access :=
+           (case Result.State is
+            when No_Result =>
+               Parser.Tree.SOI,
+            when Packrat.Success =>
+               Parser.Tree.EOI,
+            when Failure =>
+              (if Result.Max_Examined_Pos = Invalid_Stream_Index
+               then Parser.Tree.EOI
+               else Parser.Tree.Get_Node (Parser.Tree.Shared_Stream, Result.Max_Examined_Pos)));
+
+      begin
+         if Result.State = Packrat.Success then
+            --  Do this before Clear_Parse_Streams so the root node is not deleted.
+            Parser.Tree.Set_Root (Result.Result);
+            Result := (No_Result, False);
+            Parser.Tree.Clear_Parse_Streams; -- also frees excess tree nodes created by backtracking.
+
+         else
+            if Trace_Parse > Outline then
+               Parser.Tree.Lexer.Trace.Put_Line ("parse failed");
+            end if;
+
+            raise Syntax_Error with Parser.Tree.Error_Message (Max_Examined_Node, "parse failed");
+            --  FIXME packrat: add "expecting: ..." based on last nonterm?
          end if;
-
-         raise Syntax_Error with "parse failed"; --  FIXME packrat: need better error message!
-      else
-         Parser.Tree.Set_Root (Result.Result);
-      end if;
-
+      end;
    end Parse;
 
 end WisiToken.Parse.Packrat.Generated;

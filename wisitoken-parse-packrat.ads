@@ -14,7 +14,7 @@
 --  [warth 2008]  Warth, A., Douglass, J.R. and Millstein, T.D., 2008. Packrat
 --                parsers can support left recursion. PEPM, 8, pp.103-110.
 --
---  Copyright (C) 2018, 2020 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2020 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -49,11 +49,6 @@ package WisiToken.Parse.Packrat is
 
    type Parser is abstract new Base_Parser with null record;
 
-   overriding
-   procedure Execute_Actions
-     (Parser              : in out Packrat.Parser;
-      Action_Region_Bytes : in     WisiToken.Buffer_Region := WisiToken.Null_Buffer_Region);
-
    function Image_Pos
      (Tree    : in Syntax_Trees.Tree;
       Stream  : in Syntax_Trees.Stream_ID;
@@ -61,5 +56,32 @@ package WisiToken.Parse.Packrat is
      return String
    with Pre => Tree.Contains (Stream, Element);
    --  "0" for Invalid_Stream_Index, Node_Index'Image otherwise.
+
+   type Memo_State is (No_Result, Failure, Success);
+   subtype Result_States is Memo_State range Failure .. Success;
+
+   type Memo_Entry (State : Memo_State := No_Result) is record
+      case State is
+      when No_Result =>
+         Recursive : Boolean := False;
+
+      when Failure =>
+         Max_Examined_Pos : Syntax_Trees.Stream_Index;
+         --  For error message.
+
+      when Success =>
+         Result   : Syntax_Trees.Node_Access;
+         Last_Pos : Syntax_Trees.Stream_Index;
+
+      end case;
+   end record;
+
+   subtype Positive_Node_Index is Syntax_Trees.Node_Index range 1 .. Syntax_Trees.Node_Index'Last;
+   package Memos is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive_Node_Index, Memo_Entry, Default_Element => (others => <>));
+   --  Memos is indexed by Node_Index of terminals in Shared_Stream
+   --  (incremental parse is not supported).
+
+   type Derivs is array (Token_ID range <>) of Memos.Vector;
 
 end WisiToken.Parse.Packrat;

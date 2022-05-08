@@ -101,7 +101,7 @@ is
       Indent := Indent + 3;
 
       Indent_Line ("if Next_Pos = Syntax_Trees.Invalid_Stream_Index then");
-      Indent_Line ("   return (State => Failure);");
+      Indent_Line ("   return (State => Failure, Max_Examined_Pos => Next_Pos);");
       Indent_Line ("end if;");
       Indent_Line ("declare");
       Indent_Line
@@ -128,7 +128,9 @@ is
 
       if Data.Direct_Left_Recursive (Prod.LHS) then
          --  This is the top of the 'while' loop in [warth 2008] figure 3 Grow-LR.
-         Indent_Line ("Parser.Derivs (" & Result_ID & ").Replace_Element (Start_Pos_Index, (State => Failure));");
+         Indent_Line
+           ("Parser.Derivs (" & Result_ID &
+              ").Replace_Element (Start_Pos_Index, (State => Failure, Max_Examined_Pos => Next_Pos));");
          Indent_Line ("<<Recurse_Start>>");
       end if;
 
@@ -262,9 +264,11 @@ is
 
       --  We get here if the last alternative fails.
       if Data.Direct_Left_Recursive (Prod.LHS) then
-         Indent_Line ("Result_Recurse := (State => Failure);");
+         Indent_Line ("Result_Recurse := (State => Failure, Max_Examined_Pos => Next_Pos);");
       else
-         Indent_Line ("Parser.Derivs (" & Result_ID & ").Replace_Element (Start_Pos_Index, (State => Failure));");
+         Indent_Line
+           ("Parser.Derivs (" & Result_ID &
+              ").Replace_Element (Start_Pos_Index, (State => Failure, Max_Examined_Pos => Next_Pos));");
          Indent_Line ("return Parser.Derivs (" & Result_ID & ")(Start_Pos_Index);");
       end if;
 
@@ -331,14 +335,5 @@ begin
    for Prod of Data.Grammar loop
       Generate_Parser_Body (Prod);
    end loop;
-
-   Indent_Line ("function Parse_wisitoken_accept_1");
-   --  WORKAROUND: using Parse.Packrat.Parser'Class here generates GNAT bug box with GPL 2018
-   Indent_Line ("  (Parser   : in out WisiToken.Parse.Base_Parser'Class;");
-   Indent_Line ("   Last_Pos : in Syntax_Trees.Stream_Index) return Result_Type");
-   Indent_Line ("is begin");
-   Indent_Line ("   return Parse_wisitoken_accept (Generated.Parser (Parser), Last_Pos);");
-   Indent_Line ("end Parse_wisitoken_accept_1;");
-   New_Line;
 
 end WisiToken.BNF.Generate_Packrat;

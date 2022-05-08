@@ -321,6 +321,10 @@ package WisiToken.Parse.LR is
    --  Set options from Config. Config contains space-separated name=value
    --  pairs. See body for exact names.
 
+   procedure Set_McKenzie_Help;
+   --  Output to Ada.Text_IO.Current_Output the list of keys for
+   --  Set_Mckenzie_Options.
+
    type Parse_Table
      (State_First       : State_Index;
       State_Last        : State_Index;

@@ -259,14 +259,23 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;");
       end LR_Process;
 
-      procedure Packrat_Process
+      procedure Packrat_Proc_Process
       is begin
          Indent_Line ("function Create_Parser");
          Indent_Line ("  (Trace      : in WisiToken.Trace_Access;");
          Indent_Line ("   User_Data  : in WisiToken.Syntax_Trees.User_Data_Access)");
-         Indent_Line ("  return WisiToken.Parse.Base_Parser'Class;");
+         Indent_Line ("  return WisiToken.Parse.Packrat.Procedural.Parser;");
          New_Line;
-      end Packrat_Process;
+      end Packrat_Proc_Process;
+
+      procedure Packrat_Gen_Process
+      is begin
+         Indent_Line ("function Create_Parser");
+         Indent_Line ("  (Trace      : in WisiToken.Trace_Access;");
+         Indent_Line ("   User_Data  : in WisiToken.Syntax_Trees.User_Data_Access)");
+         Indent_Line ("  return WisiToken.Parse.Packrat.Generated.Parser;");
+         New_Line;
+      end Packrat_Gen_Process;
 
    begin
       if Common_Data.Generate_Algorithm = External then
@@ -291,8 +300,11 @@ package body WisiToken.BNF.Output_Ada_Common is
          Put_Line ("with WisiToken.Lexer;");
          Put_Line ("with WisiToken.Parse.LR;");
 
-      when Packrat_Generate_Algorithm =>
-         Put_Line ("with WisiToken.Parse;");
+      when Packrat_Proc =>
+         Put_Line ("with WisiToken.Parse.Packrat.Procedural;");
+
+      when Packrat_Gen =>
+         Put_Line ("with WisiToken.Parse.Packrat.Generated;");
 
       when External | Tree_Sitter =>
          null;
@@ -307,8 +319,10 @@ package body WisiToken.BNF.Output_Ada_Common is
          case Common_Data.Generate_Algorithm is
          when LR_Generate_Algorithm =>
             LR_Process;
-         when Packrat_Generate_Algorithm =>
-            Packrat_Process;
+         when Packrat_Proc =>
+            Packrat_Proc_Process;
+         when Packrat_Gen =>
+               Packrat_Gen_Process;
          when External | Tree_Sitter =>
             null;
          end case;
@@ -319,8 +333,10 @@ package body WisiToken.BNF.Output_Ada_Common is
             case Common_Data.Generate_Algorithm is
             when LR_Generate_Algorithm =>
                LR_Process;
-            when Packrat_Generate_Algorithm =>
-               Packrat_Process;
+            when Packrat_Proc =>
+               Packrat_Proc_Process;
+            when Packrat_Gen =>
+               Packrat_Gen_Process;
             when External | Tree_Sitter =>
                null;
             end case;
@@ -610,10 +626,9 @@ package body WisiToken.BNF.Output_Ada_Common is
    end Create_LR_Parser_Table;
 
    procedure LR_Create_Create_Parse_Table
-     (Input_Data           :         in     WisiToken_Grammar_Runtime.User_Data_Type;
-      Common_Data          :         in out Output_Ada_Common.Common_Data;
-      Generate_Data        : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data;
-      Actions_Package_Name :         in     String)
+     (Input_Data    :         in     WisiToken_Grammar_Runtime.User_Data_Type;
+      Common_Data   :         in out Output_Ada_Common.Common_Data;
+      Generate_Data : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data)
    is
       Table : WisiToken.Parse.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
    begin
@@ -666,12 +681,6 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent := Indent - 3;
       Indent_Line ("end Create_Parse_Table;");
       New_Line;
-
-      Indent_Line ("function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle");
-      Indent_Line ("is begin");
-      Indent_Line ("   return Lexer.New_Lexer (Trace, " & Actions_Package_Name & ".Descriptor'Access);");
-      Indent_Line ("end Create_Lexer;");
-      New_Line;
    end LR_Create_Create_Parse_Table;
 
    procedure Packrat_Create_Create_Parser
@@ -682,28 +691,34 @@ package body WisiToken.BNF.Output_Ada_Common is
    is
       use Ada.Strings.Unbounded;
 
+      Descriptor : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
+
       Text     : Unbounded_String;
       Need_Bar : Boolean := True;
    begin
       Indent_Line ("function Create_Parser");
       Indent_Line ("  (Trace      : in WisiToken.Trace_Access;");
       Indent_Line ("   User_Data  : in WisiToken.Syntax_Trees.User_Data_Access)");
-      Indent_Line ("  return WisiToken.Parse.Base_Parser'Class");
 
       case Packrat_Generate_Algorithm'(Common_Data.Generate_Algorithm) is
       when Packrat_Gen =>
+         Indent_Line ("  return WisiToken.Parse.Packrat.Generated.Parser");
          Indent_Line ("is begin");
          Indent := Indent + 3;
-         Indent_Line ("return Parser : WisiToken.Parse.Packrat.Generated.Parser do");
+         Indent_Line
+           ("return Parser : WisiToken.Parse.Packrat.Generated.Parser (" &
+              Trimmed_Image (Descriptor.First_Nonterminal) & ", " &
+              Trimmed_Image (Descriptor.Last_Nonterminal) & ") do");
          Indent := Indent + 3;
          Indent_Line ("Parser.Tree.Lexer := Lexer.New_Lexer (Trace, " & Actions_Package_Name & ".Descriptor'Access);");
          Indent_Line ("Parser.Productions := Create_Productions;");
          Indent_Line ("Parser.User_Data := User_Data;");
-         Indent_Line ("Parser.Parse_WisiToken_Accept := Parse_wisitoken_accept_1'Access;");
+         Indent_Line ("Parser.Parse_WisiToken_Accept := Parse_wisitoken_accept'Access;");
          Indent := Indent - 3;
          Indent_Line ("end return;");
 
       when Packrat_Proc =>
+         Indent_Line ("  return WisiToken.Parse.Packrat.Procedural.Parser");
          Indent_Line ("is");
          Indent := Indent + 3;
          Indent_Line ("use WisiToken;");
@@ -767,6 +782,15 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent := Indent - 3;
       Indent_Line ("end Create_Grammar;");
    end External_Create_Create_Grammar;
+
+   procedure Create_Create_Lexer (Actions_Package_Name : in String)
+   is begin
+      Indent_Line ("function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle");
+      Indent_Line ("is begin");
+      Indent_Line ("   return Lexer.New_Lexer (Trace, " & Actions_Package_Name & ".Descriptor'Access);");
+      Indent_Line ("end Create_Lexer;");
+      New_Line;
+   end Create_Create_Lexer;
 
    procedure Create_Create_Productions
      (Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data)

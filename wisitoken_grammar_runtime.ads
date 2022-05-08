@@ -106,11 +106,6 @@ package WisiToken_Grammar_Runtime is
 
    overriding procedure Reset (Data : in out User_Data_Type);
 
-   overriding
-   procedure Initialize_Actions
-     (Data : in out User_Data_Type;
-      Tree : in WisiToken.Syntax_Trees.Tree'Class);
-
    function Get_Lexer_Set
      (User_Data     : in out User_Data_Type;
       Tree          : in out WisiToken.Syntax_Trees.Tree;

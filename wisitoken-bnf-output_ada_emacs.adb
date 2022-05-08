@@ -1678,8 +1678,13 @@ is
       when LR_Generate_Algorithm =>
          null;
 
-      when Packrat_Generate_Algorithm =>
+      when Packrat_Gen =>
+         Put_Line ("with WisiToken.Lexer;");
          Put_Line ("with WisiToken.Parse;");
+
+      when Packrat_Proc =>
+         Put_Line ("with WisiToken.Parse;");
+         Put_Line ("with WisiToken.Productions;");
 
       when External | Tree_Sitter =>
          null;
@@ -1699,7 +1704,8 @@ is
 
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
-         LR_Create_Create_Parse_Table (Input_Data, Common_Data, Generate_Data, Actions_Package_Name);
+         LR_Create_Create_Parse_Table (Input_Data, Common_Data, Generate_Data);
+         Create_Create_Lexer (Actions_Package_Name);
          Create_Create_Productions (Generate_Data);
 
       when Packrat_Gen =>

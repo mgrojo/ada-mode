@@ -27,8 +27,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with WisiToken.Parse;
 with WisiToken.Syntax_Trees;
-with WisiToken.Text_IO_Trace;
-procedure Gen_Packrat_Parser_Run
+procedure Parser_Run_Common (Parser : in out WisiToken.Parse.Base_Parser'Class)
 is
    procedure Put_Usage
    is begin
@@ -43,9 +42,6 @@ is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace;
-
-   Parser : WisiToken.Parse.Base_Parser'Class := Create_Parser (Trace'Unchecked_Access, User_Data => null);
    Log_File : Ada.Text_IO.File_Type; -- not used
 begin
    declare
@@ -77,7 +73,6 @@ begin
 
    Parser.Tree.Lexer.Reset_With_File (-File_Name);
    Parser.Parse (Log_File);
-   Parser.Tree.Clear_Parse_Streams;
 
    --  No user data, so no point in Execute_Actions
 
@@ -103,4 +98,4 @@ when E : others =>
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-end Gen_Packrat_Parser_Run;
+end Parser_Run_Common;

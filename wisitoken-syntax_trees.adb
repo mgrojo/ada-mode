@@ -1753,10 +1753,10 @@ package body WisiToken.Syntax_Trees is
          Stream.Shared_Link := Stream_Element_Lists.No_Element;
       end loop;
 
+      Tree.Shared_Stream.Cur := Parse_Stream_Lists.No_Element;
+
       Tree.Streams.Clear;
       Tree.Next_Stream_Label := Shared_Stream_Label + 1;
-
-      Tree.Shared_Stream.Cur := Parse_Stream_Lists.No_Element;
 
       if not Tree.Parents_Set then
          Set_Parents (Tree);
@@ -2698,14 +2698,17 @@ package body WisiToken.Syntax_Trees is
       Non_Grammar : Node_Access := Invalid_Node_Access;
       Null_Non_Grammar : WisiToken.Lexer.Token_Arrays.Vector;
    begin
-      begin
-         --  Tolerate broken trees where Prev_Non_Grammar doesn't find SOI, or
-         --  raises an exception.
-         Non_Grammar := Tree.Prev_Non_Grammar (Node);
-      exception
-      when others =>
-         null;
-      end;
+      if Tree.Parents_Set then
+         begin
+            --  Tolerate broken trees where Prev_Non_Grammar doesn't find SOI, or
+            --  raises an exception.
+            Non_Grammar := Tree.Prev_Non_Grammar (Node);
+         exception
+         when others =>
+            null;
+         end;
+      end if;
+
       return Error_Message_1
         (Tree,
          (if Non_Grammar = Invalid_Node_Access then Null_Non_Grammar else Non_Grammar.Non_Grammar),
@@ -3541,16 +3544,17 @@ package body WisiToken.Syntax_Trees is
 
    function First_Error (Tree : in Syntax_Trees.Tree; Stream : in Stream_ID) return Stream_Error_Ref
    is begin
-      return Result : Stream_Error_Ref :=
-        (Ref     => Tree.To_Stream_Node_Parents
-           (Tree.To_Rooted_Ref (Stream, Tree.Stream_First (Stream, Skip_SOI => True))),
-         Deleted => Valid_Node_Access_Lists.No_Element,
-         Error   => Error_Data_Lists.No_Element)
+      return Result : Stream_Error_Ref := Invalid_Stream_Error_Ref
       do
-         if Result.Ref.Ref.Node.Label = Source_Terminal then
-            Result.Deleted := Result.Ref.Ref.Node.Following_Deleted.First;
+         if Tree.Streams (Stream.Cur).Elements.Length > 1 then
+            Result.Ref := Tree.To_Stream_Node_Parents
+              (Tree.To_Rooted_Ref (Stream, Tree.Stream_First (Stream, Skip_SOI => True)));
+
+            if Result.Ref.Ref.Node.Label = Source_Terminal then
+               Result.Deleted := Result.Ref.Ref.Node.Following_Deleted.First;
+            end if;
+            First_Error (Tree, Result);
          end if;
-         First_Error (Tree, Result);
       end return;
    end First_Error;
 
@@ -3916,7 +3920,7 @@ package body WisiToken.Syntax_Trees is
 
    function Fully_Parsed (Tree : in Syntax_Trees.Tree) return Boolean
    is begin
-      return Tree.Streams.Length = 2 and then Tree.Stream_Length ((Cur => Tree.Streams.Last)) in 2 .. 3;
+      return Tree.Root /= Invalid_Node_Access;
    end Fully_Parsed;
 
    procedure Get_IDs
