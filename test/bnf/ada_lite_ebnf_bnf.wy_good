@@ -109,6 +109,8 @@
 
 %if lexer = re2c
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
+%escape_delimiter_doubled STRING_LITERAL
+
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 %non_grammar <comment-new-line> COMMENT %[ "--" ]%
 

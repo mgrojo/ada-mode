@@ -307,6 +307,19 @@ package body WisiToken.Lexer.Regexp is
    end Same_Block_Delimiters;
 
    overriding
+   function Escape_Delimiter_Doubled
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean
+   is
+      pragma Unreferenced (Lexer, ID);
+   begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return True;
+   end Escape_Delimiter_Doubled;
+
+   overriding
    function Start_Delimiter_Length
      (Lexer : in Instance;
       ID    : in Token_ID)

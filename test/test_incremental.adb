@@ -870,6 +870,28 @@ package body Test_Incremental is
          Insert    => "   ");
    end Edit_Whitespace_3;
 
+   procedure Edit_Whitespace_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Insert whitespace before leading non_grammar; found a bug in
+      --  Prev_Non_Grammar.
+      Parse_Text
+        (Initial   => "-- Leading" & ASCII.LF &
+           --          |1       |10
+           "procedure Test is begin null; end Test;",
+         --         |20       |30
+         Edit_At   => 1,
+         Delete    => "",
+         Insert    => "   ");
+
+      Parse_Text
+        (Initial   => "",
+         Edit_At   => 1,
+         Delete    => "   ",
+         Insert    => "");
+   end Edit_Whitespace_4;
+
    procedure Edit_Leading_Non_Grammar (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -2920,6 +2942,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_Whitespace_1'Access, "Edit_Whitespace_1");
       Register_Routine (T, Edit_Whitespace_2'Access, "Edit_Whitespace_2");
       Register_Routine (T, Edit_Whitespace_3'Access, "Edit_Whitespace_3");
+      Register_Routine (T, Edit_Whitespace_4'Access, "Edit_Whitespace_4");
       Register_Routine (T, Edit_Leading_Non_Grammar'Access, "Edit_Leading_Non_Grammar");
       Register_Routine (T, Edit_Code_01'Access, "Edit_Code_01");
       Register_Routine (T, Edit_Code_02'Access, "Edit_Code_02");
