@@ -1,243 +1,8 @@
---  Abstract :
---
---  see spec.
---
---  Copyright (C) 2017 - 2022 Free Software Foundation, Inc.
---
---  This library is free software;  you can redistribute it and/or modify it
---  under terms of the  GNU General Public License  as published by the Free
---  Software  Foundation;  either version 3,  or (at your  option) any later
---  version. This library is distributed in the hope that it will be useful,
---  but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN-
---  TABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+--  From a real editing session. Used to get Bad_Config in recover,
+--  from an in-parse-error language fix.
 
-pragma License (GPL);
-
-with Ada.Exceptions;
-with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
-with Ada.Text_IO;
-with Ada_Annex_P_Process_Actions; --  token_enum_id
-with GNAT.Traceback.Symbolic;
-package body Wisi.Ada is
-   use WisiToken;
-
-   ----------
-   --  body local subprograms
-
-   function Indent_Record
-     (Data                   : in out Parse_Data_Type;
-      Tree                   : in     Syntax_Trees.Tree;
-      Controlling_Token_Line : in     Line_Number_Type;
-      Anchor_Token           : in     Syntax_Trees.Valid_Node_Access;
-      Record_Token           : in     Syntax_Trees.Valid_Node_Access;
-      Indenting_Token        : in     Syntax_Trees.Valid_Node_Access;
-      Indenting_Comment      : in     Boolean;
-      Offset                 : in     Integer)
-     return Wisi.Delta_Type
-   is
-      use Ada_Annex_P_Process_Actions;
-   begin
-      if not Indenting_Comment and Tree.ID (Indenting_Token) = +RECORD_ID then
-         --  Indenting 'record'
-         return Indent_Anchored_2
-           (Data, Tree, Anchor_Token, Indenting_Token, Indenting_Comment, Ada_Indent_Record_Rel_Type);
-
-      elsif Indenting_Comment and Tree.ID (Indenting_Token) = +WITH_ID then
-         --  comment before 'record'. test/ada_mode-nominal-child.ads Child_Type_1
-         return Indent_Anchored_2
-           (Data, Tree, Anchor_Token, Indenting_Token, Indenting_Comment, Ada_Indent_Record_Rel_Type);
-
-      elsif Indenting_Comment and Tree.ID (Indenting_Token) = +IS_ID then
-         --  comment after 'is'
-         if Tree.ID (Record_Token) = +RECORD_ID then
-            --  before 'record'. test/ada_mode-nominal.ads Record_Type_1
-            return Indent_Anchored_2
-              (Data, Tree, Anchor_Token, Indenting_Token, Indenting_Comment, Ada_Indent_Record_Rel_Type);
-         else
-            --  not before 'record'. test/ada_mode-nominal-child.ads Child_Type_1
-            return (Simple, (Int, Controlling_Token_Line, Offset));
-         end if;
-
-      else
-         --  Indenting comment after 'record', other comment, component or 'end'
-         --
-         --  Ensure line containing 'record' is anchored to Anchor_Token.
-         if Data.Indents (Tree.Line_Region (Record_Token, Trailing_Non_Grammar => True).First).Label /= Anchored then
-            if Tree.Line_Region (Anchor_Token, Trailing_Non_Grammar => True).First /=
-              Tree.Line_Region (Record_Token, Trailing_Non_Grammar => True).First
-            then
-               --  We don't pass Indenting_Comment here, because 'record' is code.
-               Indent_Token_1
-                 (Data,
-                  Tree,
-                  Line_Region          => Tree.Line_Region (Record_Token, Trailing_Non_Grammar => False),
-                  Delta_Indent         => Indent_Anchored_2
-                    (Data, Tree, Anchor_Token, Record_Token,
-                     Indenting_Comment => False,
-                     Offset            => Ada_Indent_Record_Rel_Type),
-                  Indenting_Comment    => None);
-            end if;
-         end if;
-
-         return Indent_Anchored_2
-           (Data, Tree, Anchor_Token, Indenting_Token, Indenting_Comment, Current_Indent_Offset
-              (Tree, Anchor_Token,
-               (if Tree.Line_Region (Anchor_Token, Trailing_Non_Grammar => True).First =
-                  Tree.Line_Region (Record_Token, Trailing_Non_Grammar => True).First
-                then Offset
-                else Offset + Ada_Indent_Record_Rel_Type)));
-      end if;
-   end Indent_Record;
-
-   ----------
-   --  Refactor body subprograms
-
-   function Find_ID_Containing
-     (Tree            : in WisiToken.Syntax_Trees.Tree;
-      IDs             : in Token_ID_Array;
-      Edit_Begin_Char : in WisiToken.Buffer_Pos)
-     return WisiToken.Syntax_Trees.Node_Access
-   is
-      use Syntax_Trees;
-      Terminal : constant Node_Access := Tree.Find_Char_Pos
-        (Edit_Begin_Char, After => True, Trailing_Non_Grammar => True);
-   begin
-      return Tree.Find_Ancestor (Terminal, IDs);
-   end Find_ID_Containing;
-
-   procedure Unrecognized
-     (Expecting : in     String;
-      Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Data      : in out Parse_Data_Type;
-      Found     : in     WisiToken.Syntax_Trees.Valid_Node_Access)
-   with No_Return
-   is begin
-      raise SAL.Parameter_Error with "expecting '" & Expecting & "'; found " &
-        Tree.Image (Found, Node_Numbers => True) & " '" & Elisp_Escape_Quotes (Data.Get_Text (Tree, Found)) & "'";
-   end Unrecognized;
-
-   procedure No_Call_Found (Edit_Begin_Char : in WisiToken.Buffer_Pos)
-   is begin
-      raise SAL.Parameter_Error with "no subprogram call found at byte_pos" & Edit_Begin_Char'Image;
-   end No_Call_Found;
-
-   procedure Method_Object_To_Object_Method
-     (Tree            : in     WisiToken.Syntax_Trees.Tree;
-      Data            : in out Parse_Data_Type;
-      Edit_Begin_Char : in     WisiToken.Buffer_Pos)
-   --  Convert a subprogram call from Prefix.Method (Object, ...) to
-   --  Object.Method (...). Edit_Begin_Char is in Prefix.Method.
-   is
-      use all type SAL.Base_Peek_Type;
-      use Ada_Annex_P_Process_Actions;
-      use Standard.Ada.Strings.Unbounded;
-      use Standard.Ada.Text_IO;
-      use WisiToken.Syntax_Trees;
-
-      Call : Node_Access := Find_ID_Containing
-        (Tree, (+primary_ID, +procedure_call_statement_ID), Edit_Begin_Char);
-
-      Edit_End              : WisiToken.Buffer_Pos;
-      Actual_Parameter_Part : Node_Access;
-      Association_List      : Node_Access;
-      Method                : Node_Access;
-   begin
-      if Call = Invalid_Node_Access then
-         --  Most likely the edit point is wrong.
-         No_Call_Found (Edit_Begin_Char);
-      end if;
-      Call := Tree.Child (Call, 1);
-
-      if not (Tree.Child_Count (Call) = 2 and then Tree.ID (Tree.Child (Call, 2)) = +actual_parameter_part_ID) then
-         Unrecognized ("Method (Object ...)", Tree, Data, Call);
-      end if;
-
-      Method                := Tree.Child (Call, 1);
-      Actual_Parameter_Part := Tree.Child (Call, 2);
-
-      Association_List := Tree.Child (Actual_Parameter_Part, 2);
-      if Tree.ID (Association_List) /= +parameter_association_list_ID then
-         --  We raise SAL.Programmer_Error for cases that are inconsistent with
-         --  the grammar (if we get here, the grammar has changed).
-         raise SAL.Programmer_Error;
-      end if;
-
-      if Trace_Action > Detail then
-         Tree.Lexer.Trace.Put_Line
-           ("refactoring node " & Tree.Image (Call, Node_Numbers => True) & " '" & Data.Get_Text (Tree, Call) & "'");
-      end if;
-
-      Edit_End := Tree.Byte_Region (Call, Trailing_Non_Grammar => False).Last;
-
-      --  Find the method name; an IDENTIFIER or STRING_LITERAL. It's the
-      --  last node in a selected_component; the first terminal in Call
-      --  otherwise.
-      loop
-         case To_Token_Enum (Tree.ID (Method)) is
-         when name_ID =>
-            case Tree.Child_Count (Method) is
-            when 1 =>
-               Method := Tree.Child (Method, 1);
-
-            when 3 =>
-               case To_Token_Enum (Tree.ID (Tree.Child (Method, 2))) is
-               when DOT_ID =>
-                  case To_Token_Enum (Tree.ID (Tree.Child (Method, 3))) is
-                  when ALL_ID =>
-                     Method := Tree.Child (Method, 1);
-
-                  when selector_name_ID =>
-                     Method := Tree.Child (Method, 3);
-
-                  when others =>
-                     raise SAL.Programmer_Error;
-                  end case;
-               when others =>
-                  raise SAL.Programmer_Error;
-               end case;
-            when others =>
-               raise SAL.Programmer_Error;
-            end case;
-
-         when direct_name_ID =>
-            Method := Tree.Child (Method, 1);
-
-         when others =>
-            raise SAL.Programmer_Error with "code does not match grammar";
-         end case;
-
-         exit when To_Token_Enum (Tree.ID (Method)) in IDENTIFIER_ID | STRING_LITERAL_ID;
-      end loop;
-
-      declare
-         Object : constant Node_Access := Tree.Find_Descendant (Association_List, +expression_ID);
-         Result : Unbounded_String;
-      begin
-         if Object = Invalid_Node_Access then
-            Unrecognized ("expression", Tree, Data, Association_List);
-         end if;
-
-         --  Build remaining arg list in Result.
-         loop
-            if Tree.RHS_Index (Association_List) = 1 then
-               Result := Get_Text (Data, Tree, Tree.Child (Association_List, 3)) &
-                 (if Length (Result) = 0 then "" else ", ") &
-                 Result;
-               Association_List := Tree.Child (Association_List, 1);
-            else
-               --  The remaining element in Association_List is the first one, which is Object.
-               if Length (Result) > 0 then
-                  Result := " (" & Result & ")";
-               end if;
-               exit;
-            end if;
-         end loop;
-         Result := (Get_Text (Data, Tree, Object) & "." & Get_Text (Data, Tree, Method)) & Result;
-         Put_Line ("[" & Edit_Action_Code & Edit_Begin_Char'Image & Edit_End'Image & " """ &
-                     Elisp_Escape_Quotes (To_String (Result)) & """]");
-      end;
-   end Method_Object_To_Object_Method;
+--EMACSCMD:(setq skip-reindent-test t skip-recase-test t)
+package body Ada_Mode.Recover_50 is
 
    procedure Object_Method_To_Method_Object
      (Tree       : in     WisiToken.Syntax_Trees.Tree;
@@ -320,8 +85,9 @@ package body Wisi.Ada is
          Object_Method := Tree.Child (Call, 1);
 
       when others =>
-         if Tree.Child_Count (Call) /= 2 and then
-Tree.ID (Call) /= +parameter_association_list_ID then
+         --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 1)(wisi-replay-kbd-macro "Tree.Child_Count (Call) /= 2 and then\r"))
+         if Tree.ID (Call) /= +parameter_association_list_ID then
+            --EMACSCMD:(progn (forward-line -2)(forward-word 1)(kill-line)(delete-char 11))
             Unrecognized ("parameter_association_list", Tree, Data, Args);
          end if;
 
@@ -500,19 +266,6 @@ Tree.ID (Call) /= +parameter_association_list_ID then
              ("Element (" & Get_Text (Data, Tree, Object) & ", " & Get_Text (Data, Tree, Index) & ")") &
            """]");
    end Object_Index_To_Element_Object;
-
-   procedure Format_Parameter_List
-     (Tree            : in out WisiToken.Syntax_Trees.Tree;
-      Edit_Begin_Char : in     WisiToken.Buffer_Pos)
-   is separate;
-   --  Tree contains a subprogram declaration or body; Edit_Begin_Char is
-   --  the character position at the start of the parameter list. Format
-   --  the parameter list.
-   --
-   --  Handle virtual tokens as much as possible; at least closing paren.
-
-   ----------
-   --  Public subprograms, declaration order
 
    overriding
    procedure Initialize (Data  : in out Parse_Data_Type)
@@ -1140,7 +893,7 @@ Tree.ID (Call) /= +parameter_association_list_ID then
          Offset            => Args (3));
    end Ada_Indent_Record_1;
 
-end Wisi.Ada;
+end Ada_Mode.Recover_50;
 --  Local Variables:
 --  ada-case-strict: nil
 --  End:

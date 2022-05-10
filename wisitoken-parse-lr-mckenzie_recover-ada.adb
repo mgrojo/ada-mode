@@ -589,18 +589,39 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID),
                   Push_Back_Undo_Reduce => True);
 
-            when package_specification_ID =>
+            when package_specification_ID | package_body_ID =>
                --  ada_mode-recover_string_quote_1.adb
+               if Tree.Element_ID (New_Config.Stack.Peek.Token) = +SEMICOLON_ID then
+                  --  ada_mode-recover_50.adb
+                  Push_Back
+                    (Super, Shared_Parser, New_Config,
+                     Push_Back_Undo_Reduce => True);
+               end if;
+
                Push_Back_Check
                  (Super, Shared_Parser, New_Config,
                   (+name_opt_ID, +END_ID),
                   Push_Back_Undo_Reduce => True);
 
-            when single_protected_declaration_ID =>
+            when protected_body_ID =>
+               --  ada_mode-recover_50.adb
+               if Tree.Element_ID (New_Config.Stack.Peek.Token) = +SEMICOLON_ID then
+                  Push_Back
+                    (Super, Shared_Parser, New_Config,
+                     Push_Back_Undo_Reduce => True);
+               end if;
+
+               Push_Back_Check
+                 (Super, Shared_Parser, New_Config,
+                  (+identifier_opt_ID, +END_ID),
+                  Push_Back_Undo_Reduce => True);
+
+            when protected_type_declaration_ID | single_protected_declaration_ID | single_task_declaration_ID =>
+               --  ada_mode-recover_50.adb
                Push_Back_Check (Super, Shared_Parser, New_Config, +SEMICOLON_ID, Push_Back_Undo_Reduce => True);
 
                case To_Token_Enum (Tree.Element_ID (New_Config.Stack.Peek.Token)) is
-               when protected_definition_ID =>
+               when protected_definition_ID | task_definition_ID =>
                   raise Invalid_Case;
 
                when identifier_opt_ID =>
