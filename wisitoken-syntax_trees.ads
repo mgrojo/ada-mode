@@ -1492,15 +1492,15 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Access;
       ID   : in Token_ID)
      return Node_Access;
-   --  Return the descendant of Node (may be Node) whose ID is ID, or
-   --  Invalid_Node_Access if none match.
+   --  Return the descendant of Node (may be Node; depth first search)
+   --  whose ID is ID, or Invalid_Node_Access if none match.
 
    function Find_Descendant
      (Tree      : in     Syntax_Trees.Tree;
       Node      : in     Valid_Node_Access;
       Predicate : access function (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean)
      return Node_Access;
-   --  Return the first descendant of Node (may be Node; breadth first
+   --  Return the first descendant of Node (may be Node; depth first
    --  search) for which Predicate returns True, or Invalid_Node_Access
    --  if none do.
 

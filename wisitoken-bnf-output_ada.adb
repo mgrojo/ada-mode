@@ -441,7 +441,7 @@ is
          Put_Line ("   " & Main_Package_Name & ".Create_Productions,");
          Put_Line ("   " & Main_Package_Name & ".Create_Lexer);");
 
-      when Packrat_Proc | Packrat_Gen | Tree_Sitter =>
+      when Packrat_Generate_Algorithm | Tree_Sitter =>
          Put_Line ("   " & Main_Package_Name & ".Create_Parser);");
 
       when External =>
