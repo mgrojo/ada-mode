@@ -1478,7 +1478,10 @@ package body WisiToken.Parse is
                            Token  : Lexer.Token renames Non_Grammar (I);
                            Action : Action_Type := Keep;
                         begin
-                           if Token.Byte_Region.First >= Deleted_Region.First and
+                           if Token.ID in Tree.Lexer.Descriptor.SOI_ID | Tree.Lexer.Descriptor.EOI_ID then
+                              null;
+
+                           elsif Token.Byte_Region.First >= Deleted_Region.First and
                              Token.Byte_Region.Last <= Deleted_Region.Last
                            then
                               --  Token is deleted.

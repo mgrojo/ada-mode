@@ -1365,7 +1365,9 @@ package WisiToken.Syntax_Trees is
       Trailing_Non_Grammar : in Boolean)
      return WisiToken.Line_Region
    with Pre => Tree.Valid_Stream_Node (Ref) and
-               (Tree.Parents_Set or Rooted (Ref) or Ref.Node = Tree.First_Terminal (Get_Node (Ref.Element)));
+               (Tree.Parents_Set or else
+                  Rooted (Ref) or else
+                  Ref.Node = Tree.First_Terminal (Get_Node (Ref.Element)));
    --  Same as Line_Region (Ref.Node), using Ref.Stream to find
    --  prev/next non_grammar.
    --
