@@ -22,17 +22,17 @@ o.e.a.stephe-6 (o.e.w.s-2/o.w.s-2/o.s_l.sal.stephe-1): packrat
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"         . "../org.wisitoken.stephe-1")
-   ("../org.emacs.wisi"        . "../org.emacs.wisi.stephe-1")
-   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-2")))
+   ("../org.wisitoken"         . "../org.wisitoken.stephe-2")
+   ("../org.emacs.wisi"        . "../org.emacs.wisi.stephe-2")
+   ("../org.emacs.ada-mode"    . "../org.emacs.ada-mode.stephe-6")))
 
 (dvc-state-multiple
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-1")
-  (xgit . "/Projects/org.emacs.wisi.stephe-1")
-  (xgit . "/Projects/org.emacs.ada-mode.stephe-2")))
+  (xgit . "/Projects/org.wisitoken.stephe-2")
+  (xgit . "/Projects/org.emacs.wisi.stephe-2")
+  (xgit . "/Projects/org.emacs.ada-mode.stephe-6")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
@@ -50,8 +50,27 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+sometimes all-changes is wrong
+    when save buffer, diff against parser text
+        test that wisi.parse_context.edit_source is correct
+        but save-text-auto has never shown such a problem
+
+
+run all tests
+    wisitoken done
+    ada-mode partial
+        test/ada_mode-refactor_object_method_to_method_object.adb failing
+
+
 try packrat
-    o.e.a.s-6/o.e.w.s-2
+    see fixme in gen_run_wisi_lr
+
+    time packrat_gen parse
+
+    mckenzie error recover
+    packrat lists
+
+update wisitoken.grammar/wisitoken_grammar_01.wy to match
 
 time %lr1_hash_table_size
 

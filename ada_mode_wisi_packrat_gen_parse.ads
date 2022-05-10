@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Run the Ada LALR parser standalone. Useful for debugging grammar issues.
+--  External process parser for Ada mode
 --
 --  Copyright (C) 2017 - 2020, 2022 Free Software Foundation, Inc.
 --
@@ -18,18 +18,11 @@
 
 pragma License (GPL);
 
-with Ada_Annex_P_Process_Actions;
-with Ada_Annex_P_Process_LALR_Main;
-with Gen_Run_Wisi_LR_Parse;
-with WisiToken.Parse.LR.McKenzie_Recover.Ada;
+with Gen_Emacs_Wisi_Packrat_Gen_Parse;
+with Ada_Annex_P_Process_Packrat_Gen_Main;
 with Wisi.Ada;
-procedure Run_Ada_LALR_Parse is new Gen_Run_Wisi_LR_Parse
-  (Wisi.Ada.Parse_Data_Type,
-   Ada_Annex_P_Process_Actions.Partial_Parse_Active'Access,
-   Ada_Annex_P_Process_Actions.Partial_Parse_Byte_Goal'Access,
-   WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
-   WisiToken.Parse.LR.McKenzie_Recover.Ada.Matching_Begin_Tokens'Access,
-   WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
-   Ada_Annex_P_Process_LALR_Main.Create_Lexer,
-   Ada_Annex_P_Process_LALR_Main.Create_Parse_Table,
-   Ada_Annex_P_Process_LALR_Main.Create_Productions);
+procedure Ada_Mode_Wisi_Packrat_Gen_Parse is new Gen_Emacs_Wisi_Packrat_Gen_Parse
+  (Parse_Data_Type           => Wisi.Ada.Parse_Data_Type,
+   Name                      => "Ada packrat",
+   Language_Protocol_Version => Wisi.Ada.Language_Protocol_Version,
+   Create_Parser             => Ada_Annex_P_Process_Packrat_Gen_Main.Create_Parser);

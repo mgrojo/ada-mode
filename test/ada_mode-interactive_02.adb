@@ -43,12 +43,12 @@ is
 
 
    -- New parameter in a subpgrogram. See comment in ada_mode-parens.adb
-   -- Local_10 on hanging paren indent; this is indented as code,
-   -- because error recover inserts the missing parameter spec.
+   -- Local_10 on hanging paren indent; this is indented as a closing paren,
+   -- because error recover deletes the previous extra semicolon.
    --
    --EMACSCMD:(progn (end-of-line 2)(forward-char -2)(execute-kbd-macro ";\r")(current-column))
    procedure Local_Proc_1 (Param_1 : in Float);
-   --EMACSRESULT:27
+   --EMACSRESULT:26
 
    -- We do _not_ clean up the syntax error; parser must tolerate errors
    -- like this and still give good results.

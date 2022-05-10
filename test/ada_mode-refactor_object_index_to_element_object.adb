@@ -1,6 +1,5 @@
 --  Test refactor 3, 4
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 package body Ada_Mode.Refactor_Object_Index_To_Element_Object is
 
@@ -13,12 +12,13 @@ package body Ada_Mode.Refactor_Object_Index_To_Element_Object is
    --EMACSCMD:(test-refactor-inverse)
 
 begin
+   -- Call a parameterless procedure thru a pointer in an array
    --EMACSCMD:(test-oieo nil "Err.Recover.Op (I)")
-   Err.Recover.Op (I);
+   Err.Recover.Op (I).all;
    --EMACSCMD:(test-refactor-inverse)
 
    --EMACSCMD:(test-oieo nil "Item.Config.Ops (")
-   Item.Config.Ops (Item.Config.Ops.Last_Index).Op;
+   Item.Config.Ops (Item.Config.Ops.Last_Index).Op.all;
    --EMACSCMD:(test-refactor-inverse)
 
 end Ada_Mode.Refactor_Object_Index_To_Element_Object;

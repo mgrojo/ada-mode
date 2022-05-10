@@ -27,7 +27,6 @@ procedure Ada_Mode_Wisi_LR1_Parse is new Gen_Emacs_Wisi_LR_Text_Rep_Parse
   (Parse_Data_Type                => Wisi.Ada.Parse_Data_Type,
    Name                           => "Ada_mode_wisi_lr1_parse",
    Language_Protocol_Version      => Wisi.Ada.Language_Protocol_Version,
-   Descriptor                     => Ada_Annex_P_Process_Actions.Descriptor'Access,
    Partial_Parse_Active           => Ada_Annex_P_Process_Actions.Partial_Parse_Active'Access,
    Partial_Parse_Byte_Goal        => Ada_Annex_P_Process_Actions.Partial_Parse_Byte_Goal'Access,
    Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,

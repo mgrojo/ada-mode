@@ -25,11 +25,13 @@ project Ada_Mode_Compile is
       "ada_mode-indent_02.adb",
 
       -- These have incomplete code deliberately; used for interactive editing test (via EMACSCMD)
+      "ada_mode-incremental_03.adb",
+      "ada_mode-incremental_04.adb",
       "ada_mode-incremental_recover_01.adb",
       "ada_mode-incremental_recover_02.adb",
       "ada_mode-incremental_recover_03.adb",
-      "ada_mode-incremental_03.adb",
-      "ada_mode-incremental_04.adb",
+      "ada_mode-incremental_recover_04.adb",
+      "ada_mode-incremental_string_quote_01.adb",
       "ada_mode-interactive_case_statement.adb",
       "ada_mode-interactive_01.adb",
       "ada_mode-interactive_02.adb",

@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  External process parser for gpr mode
+--  Run the gpr LR1 parser standalone. Useful for debugging grammar issues.
 --
 --  Copyright (C) 2017 - 2020, 2022 Free Software Foundation, Inc.
 --
@@ -18,20 +18,17 @@
 
 pragma License (GPL);
 
-with Gen_Emacs_Wisi_LR_Parse;
+with Gen_Run_Wisi_LR_Parse;
 with Gpr_Process_Actions;
-with Gpr_Process_Main;
+with Gpr_Process_LR1_Main;
 with Wisi.Gpr;
-procedure Gpr_Mode_Wisi_Parse is new Gen_Emacs_Wisi_LR_Parse
+procedure Run_Gpr_LR1_Parse is new Gen_Run_Wisi_LR_Parse
   (Parse_Data_Type                => Wisi.Gpr.Parse_Data_Type,
-   Name                           => "gpr_mode_wisi_parse",
-   Language_Protocol_Version      => Wisi.Gpr.Language_Protocol_Version,
-   Descriptor                     => Gpr_Process_Actions.Descriptor'Access,
    Partial_Parse_Active           => Gpr_Process_Actions.Partial_Parse_Active'Access,
    Partial_Parse_Byte_Goal        => Gpr_Process_Actions.Partial_Parse_Byte_Goal'Access,
    Language_Fixes                 => null,
    Language_Matching_Begin_Tokens => null,
    Language_String_ID_Set         => null,
-   Create_Lexer                   => Gpr_Process_Main.Create_Lexer,
-   Create_Parse_Table             => Gpr_Process_Main.Create_Parse_Table,
-   Create_Productions             => Gpr_Process_Main.Create_Productions);
+   Create_Lexer                   => Gpr_Process_LR1_Main.Create_Lexer,
+   Create_Parse_Table             => Gpr_Process_LR1_Main.Create_Parse_Table,
+   Create_Productions             => Gpr_Process_LR1_Main.Create_Productions);
