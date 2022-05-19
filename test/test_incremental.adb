@@ -2344,6 +2344,14 @@ package body Test_Incremental is
          Insert         => "- FI",
          Initial_Errors => 1,
          Incr_Errors    => 0);
+      --  Edited source:
+      --
+      --  A : B;
+      --  |1
+      --  -- FI
+      --  |8
+      --  C : D;
+      --  |14
    end Lexer_Errors_04;
 
    procedure Lexer_Errors_05 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -2414,9 +2422,10 @@ package body Test_Incremental is
            "A : B;" & ASCII.LF &
              --  |6
              "  C : D;",
+         --     |10
          Edit_At        => 10,
          Delete         => "",
-         Insert         => "& ",
+         Insert         => "& ", -- unrecognized char, not block delimiter, not recovered.
          Initial_Errors => 0,
          Incr_Errors    => 1);  -- lexer
 
@@ -2914,6 +2923,51 @@ package body Test_Incremental is
          Incr_Errors    => 0);
    end Edit_String_12;
 
+   procedure Edit_String_13 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-recover_incremental_03.adb. Motivates
+      --  Lexer_Error.Edit_Region.
+
+      Parse_Text
+        (Label => "1",
+         Initial => "Put_Line (""Update (A, "" & B, C_"" & Suf & "".bar);"");" & ASCII.LF & "B;",
+         --                   |10        |20        |30        |40
+         Edit_At        => 28,
+         Delete         => "",
+         Insert         => " & """,
+         Initial_Errors => 2,
+         Incr_Errors    => 0);
+   end Edit_String_13;
+
+   procedure Edit_String_14 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Same as Edit_String_)13, but with two edits in the lexer error
+      --  edit region.
+
+      Parse_Text
+        (Label          => "1",
+         Initial        => "Put_Line (""Update (A, "" & B, C_"" & Suf & "".bar);"");" & ASCII.LF & "B;",
+         --                          |10        |20        |30        |40
+         Edit_At        => 28,
+         Delete         => "",
+         Insert         => " & """, --  Fixes the lexer error
+         Edit_2_At      => 38,
+         Delete_2       => "f",
+         Insert_2       => "g",     --  Edits "Suf", which is outside a string in the edited text.
+         Initial_Errors => 2,
+         Incr_Errors    => 0);
+
+      --  Edited source:
+      --
+      --  Put_Line ("Update (A, " & B & ", C_" & Sug & ".bar);");
+      --  |1       |10       |20       |30       |40       |50
+      --  B;
+   end Edit_String_14;
+
    ----------
    --  Public subprograms
 
@@ -3023,6 +3077,8 @@ package body Test_Incremental is
       Register_Routine (T, Edit_String_10'Access, "Edit_String_10");
       Register_Routine (T, Edit_String_11'Access, "Edit_String_11");
       Register_Routine (T, Edit_String_12'Access, "Edit_String_12");
+      Register_Routine (T, Edit_String_13'Access, "Edit_String_13");
+      Register_Routine (T, Edit_String_14'Access, "Edit_String_14");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

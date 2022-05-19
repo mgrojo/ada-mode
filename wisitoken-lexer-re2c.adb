@@ -401,6 +401,15 @@ package body WisiToken.Lexer.re2c is
    end End_Delimiter_Length;
 
    overriding
+   function New_Line_Is_End_Delimiter
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean
+   is begin
+      return New_Line_Is_End_Delimiter (ID);
+   end New_Line_Is_End_Delimiter;
+
+   overriding
    function Find_End_Delimiter
      (Lexer       : in Instance;
       ID          : in Token_ID;

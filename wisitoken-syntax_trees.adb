@@ -4574,10 +4574,10 @@ package body WisiToken.Syntax_Trees is
    when E : others =>
       --  Tolerate corrupt tree, for debugging.
       if Debug_Mode then
-         Ada.Text_IO.Put_Line
+         Tree.Lexer.Trace.Put_Line
            ("corrupt tree; " & Ada.Exceptions.Exception_Name (E) & ":" &
               Ada.Exceptions.Exception_Message (E));
-         Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+         Tree.Lexer.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
       end if;
       return Node.Node_Index'Image & ": corrupt tree; " & Ada.Exceptions.Exception_Name (E) & ":" &
         Ada.Exceptions.Exception_Message (E);
@@ -5533,13 +5533,14 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Line_Begin_Token;
 
-   function Line_Region_Internal
-     (Tree                 : in Syntax_Trees.Tree;
-      Node                 : in Node_Access;
-      Prev_Non_Grammar     : in Valid_Node_Access;
-      Next_Non_Grammar     : in Valid_Node_Access;
-      Trailing_Non_Grammar : in Boolean)
-     return WisiToken.Line_Region
+   procedure  Line_Region_Internal_1
+     (Tree                    : in     Syntax_Trees.Tree;
+      Node                    : in     Node_Access;
+      Prev_Non_Grammar        : in     Valid_Node_Access;
+      Next_Non_Grammar        : in     Valid_Node_Access;
+      Trailing_Non_Grammar    : in     Boolean;
+      First_Non_Grammar_Token :    out WisiToken.Lexer.Token;
+      Last_Non_Grammar_Token  :    out WisiToken.Lexer.Token)
    is
       --  Since all non_grammar have line_region, we don't have to look for
       --  a new_line, just any non_grammar.
@@ -5567,25 +5568,64 @@ package body WisiToken.Syntax_Trees is
          then Last_Non_Grammar
          else Next_Non_Grammar);
    begin
-      return Result : constant WisiToken.Line_Region :=
-        (First =>
-           (if (Node = Tree.Root and Prev_Non_Grammar.ID = Tree.Lexer.Descriptor.SOI_ID)
-              --  We are finding the line_region of wisi_accept in an Editable
-              --  tree; we want to include the leading non_grammar in SOI.
-              or Node.ID = Tree.Lexer.Descriptor.SOI_ID
-              --  We are finding the line_region of SOI.
-            then
-               Prev_Non_Grammar.Non_Grammar (Prev_Non_Grammar.Non_Grammar.First_Index).Line_Region.First
-            else
-               --  We are finding the line_region of a leading non_terminal; we don't
-               --  want to include the leading non_grammar in SOI.
-               Prev_Non_Grammar.Non_Grammar (Prev_Non_Grammar.Non_Grammar.Last_Index).Line_Region.Last),
+      First_Non_Grammar_Token :=
+        (if (Node = Tree.Root and Prev_Non_Grammar.ID = Tree.Lexer.Descriptor.SOI_ID)
+           --  We are finding the line_region of wisi_accept in an Editable
+           --  tree; we want to include the leading non_grammar in SOI.
+           or Node.ID = Tree.Lexer.Descriptor.SOI_ID
+           --  We are finding the line_region of SOI.
+         then
+            Prev_Non_Grammar.Non_Grammar (Prev_Non_Grammar.Non_Grammar.First_Index)
+         else
+            --  We are finding the line_region of a leading non_terminal; we don't
+            --  want to include the leading non_grammar in SOI.
+            Prev_Non_Grammar.Non_Grammar (Prev_Non_Grammar.Non_Grammar.Last_Index));
 
-         Last => Actual_Last_Non_Grammar.Non_Grammar
-           (if Trailing_Non_Grammar and Actual_Last_Non_Grammar = Last_Non_Grammar
-            then Actual_Last_Non_Grammar.Non_Grammar.Last_Index
-            else Actual_Last_Non_Grammar.Non_Grammar.First_Index).Line_Region.First);
+      Last_Non_Grammar_Token := Actual_Last_Non_Grammar.Non_Grammar
+        (if Trailing_Non_Grammar and Actual_Last_Non_Grammar = Last_Non_Grammar
+         then Actual_Last_Non_Grammar.Non_Grammar.Last_Index
+         else Actual_Last_Non_Grammar.Non_Grammar.First_Index);
+   end Line_Region_Internal_1;
+
+   function Line_Region_Internal
+     (Tree                 : in Syntax_Trees.Tree;
+      Node                 : in Node_Access;
+      Prev_Non_Grammar     : in Valid_Node_Access;
+      Next_Non_Grammar     : in Valid_Node_Access;
+      Trailing_Non_Grammar : in Boolean)
+     return WisiToken.Line_Region
+   is
+      First_Non_Grammar_Token : WisiToken.Lexer.Token;
+      Last_Non_Grammar_Token  : WisiToken.Lexer.Token;
+   begin
+      Line_Region_Internal_1
+        (Tree, Node, Prev_Non_Grammar, Next_Non_Grammar, Trailing_Non_Grammar,
+         First_Non_Grammar_Token, Last_Non_Grammar_Token);
+
+      return
+        (First => First_Non_Grammar_Token.Line_Region.Last,
+         Last => Last_Non_Grammar_Token.Line_Region.First);
    end Line_Region_Internal;
+
+   function Byte_Region_Of_Line_Region_Internal
+     (Tree                : in Syntax_Trees.Tree;
+      Node                 : in Node_Access;
+      Prev_Non_Grammar     : in Valid_Node_Access;
+      Next_Non_Grammar     : in Valid_Node_Access;
+      Trailing_Non_Grammar : in     Boolean)
+     return WisiToken.Buffer_Region
+   is
+      First_Non_Grammar_Token : WisiToken.Lexer.Token;
+      Last_Non_Grammar_Token  : WisiToken.Lexer.Token;
+   begin
+      Line_Region_Internal_1
+        (Tree, Node, Prev_Non_Grammar, Next_Non_Grammar, Trailing_Non_Grammar,
+         First_Non_Grammar_Token, Last_Non_Grammar_Token);
+
+      return
+        (First => First_Non_Grammar_Token.Byte_Region.Last,
+         Last => Last_Non_Grammar_Token.Byte_Region.First);
+   end Byte_Region_Of_Line_Region_Internal;
 
    function Line_Region (Tree : in Syntax_Trees.Tree) return WisiToken.Line_Region
    is begin
@@ -5636,6 +5676,20 @@ package body WisiToken.Syntax_Trees is
          return Line_Region (Tree, To_Stream_Node_Parents (Tree, Ref), Ref.Stream, Trailing_Non_Grammar);
       end if;
    end Line_Region;
+
+   function Byte_Region_Of_Line_Region
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
+     return WisiToken.Buffer_Region
+   is
+      Prev_Non_Grammar : Stream_Node_Ref := Ref;
+      Next_Non_Grammar : Stream_Node_Ref := Ref;
+   begin
+      Tree.Prev_Non_Grammar (Prev_Non_Grammar);
+      Tree.Next_Non_Grammar (Next_Non_Grammar);
+      return Byte_Region_Of_Line_Region_Internal
+        (Tree, Ref.Node, Prev_Non_Grammar.Node, Next_Non_Grammar.Node, Trailing_Non_Grammar => True);
+   end Byte_Region_Of_Line_Region;
 
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;
@@ -8541,8 +8595,6 @@ package body WisiToken.Syntax_Trees is
         (Tree : in out Syntax_Trees.Tree;
          Node : in     Valid_Node_Access)
       is
-         use Ada.Text_IO;
-
          Node_Image_Output : Boolean := False;
 
          procedure Put_Error (Msg : in String)
@@ -8554,9 +8606,8 @@ package body WisiToken.Syntax_Trees is
             Error_Reported.Insert (Node);
 
             if not Node_Image_Output then
-               Put_Line
-                 (Current_Error,
-                  Tree.Error_Message
+               Tree.Lexer.Trace.Put_Line
+                 (Tree.Error_Message
                     (Node,
                      Image (Tree, Node,
                             Children     => False,
@@ -8564,7 +8615,7 @@ package body WisiToken.Syntax_Trees is
                Node_Image_Output := True;
             end if;
 
-            Put_Line (Current_Error, Tree.Error_Message (Node, "... invalid_tree: " & Msg));
+            Tree.Lexer.Trace.Put_Line (Tree.Error_Message (Node, "... invalid_tree: " & Msg));
          end Put_Error;
 
       begin
@@ -8644,8 +8695,8 @@ package body WisiToken.Syntax_Trees is
       else
          if Tree.Streams.Length = 0 then
             if Tree.Root = Invalid_Node_Access then
-               Ada.Text_IO.Put_Line
-                 (Ada.Text_IO.Current_Error, Error_Message
+               Tree.Lexer.Trace.Put_Line
+                 (Error_Message
                     (Tree.Lexer.File_Name, 1, 1, "... invalid_tree: Tree.Root not set"));
             else
                Real_Root := Tree.Root;
@@ -8656,15 +8707,14 @@ package body WisiToken.Syntax_Trees is
                      if Node.Augmented = null then
                         Error_Reported.Insert (Node);
 
-                        Ada.Text_IO.Put_Line
-                          (Ada.Text_IO.Current_Error,
-                           Tree.Error_Message
+                        Tree.Lexer.Trace.Put_Line
+                          (Tree.Error_Message
                              (Node,
                               Image (Tree, Node,
                                      Children     => False,
                                      Node_Numbers => True)));
-                        Ada.Text_IO.Put_Line
-                          (Ada.Text_IO.Current_Error, Tree.Error_Message (Node, "... invalid_tree: node not in tree"));
+                        Tree.Lexer.Trace.Put_Line
+                          (Tree.Error_Message (Node, "... invalid_tree: node not in tree"));
                      end if;
                   end loop;
                end if;

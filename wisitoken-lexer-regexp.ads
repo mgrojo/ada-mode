@@ -139,6 +139,12 @@ package WisiToken.Lexer.Regexp is
      return Integer;
 
    overriding
+   function New_Line_Is_End_Delimiter
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean;
+
+   overriding
    function Find_End_Delimiter
      (Lexer         : in Instance;
       ID            : in Token_ID;

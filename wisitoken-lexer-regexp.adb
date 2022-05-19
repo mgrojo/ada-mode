@@ -346,6 +346,19 @@ package body WisiToken.Lexer.Regexp is
    end End_Delimiter_Length;
 
    overriding
+   function New_Line_Is_End_Delimiter
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean
+   is
+      pragma Unreferenced (Lexer, ID);
+   begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return True;
+   end New_Line_Is_End_Delimiter;
+
+   overriding
    function Find_End_Delimiter
      (Lexer         : in Instance;
       ID            : in Token_ID;

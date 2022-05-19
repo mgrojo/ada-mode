@@ -1361,6 +1361,9 @@ package WisiToken.Syntax_Trees is
    --  Node, or EOI (end of input); if not Trailing_Non_Grammar, Last is
    --  the line ended by the first New_Line or EOI after the last
    --  terminal of Node.
+   --
+   --  Trailing_Non_Grammar => False is used to get the line_region of a
+   --  multi-line token.
 
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;
@@ -1376,6 +1379,12 @@ package WisiToken.Syntax_Trees is
    --
    --  If not Tree.Parents_Set, constructs a Stream_Node_Parents
    --  internally.
+
+   function Byte_Region_Of_Line_Region
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
+     return WisiToken.Buffer_Region
+   with Pre => Tree.Valid_Stream_Node (Ref) and Tree.Parents_Set;
 
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;

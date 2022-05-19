@@ -173,7 +173,7 @@ package body WisiToken.Lexer is
    begin
       for I in To_Buffer_Index (Source, Region.First) .. Index_Last loop
          if Source.Buffer (I) = ASCII.LF or
-           ((I + Item'Length <= Index_Last) and then
+           ((I + Item'Length - 1 <= Index_Last) and then
               Source.Buffer (I .. I + Item'Length - 1) = Item)
          then
             return From_Buffer_Index (Source, I);
@@ -238,9 +238,16 @@ package body WisiToken.Lexer is
             return Found_Line;
          end if;
 
-         if Source.Buffer (I) = ASCII.LF then
-            Found_Line := @ + 1;
-         end if;
+         declare
+            Char : constant Character :=
+              (case Source.Label is
+               when String_Label => Source.Buffer (I),
+               when File_Label => GNATCOLL.Mmap.Data (Source.Region)(I));
+         begin
+            if Char = ASCII.LF then
+               Found_Line := @ + 1;
+            end if;
+         end;
       end loop;
       raise SAL.Programmer_Error; -- precondition false.
    end Line_At_Byte_Pos;

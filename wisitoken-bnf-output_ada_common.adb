@@ -1534,6 +1534,39 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("end End_Delimiter_Length;");
       New_Line;
 
+      Indent_Line ("function New_Line_Is_End_Delimiter (ID : in WisiToken.Token_ID) return Boolean");
+      Indent_Line ("is begin");
+      Indent := @ + 3;
+      Indent_Line ("return");
+      Indent_Line ("  (case To_Token_Enum (ID) is");
+      Indent := @ + 3;
+      if Block_Count > 0 then
+         for I in All_Tokens (Generate_Data).Iterate
+           (Non_Grammar  => True,
+            Nonterminals => False,
+            Include_SOI  => False)
+         loop
+            if Kind (Generate_Data, I) = "comment-new-line" or
+              Kind (Generate_Data, I) = "comment-one-line" or
+              Kind (Generate_Data, I) = "string-double-one-line" or
+              Kind (Generate_Data, I) = "string-single-one-line"
+            then
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => True,");
+
+            elsif Kind (Generate_Data, I) = "string-double" or
+              Kind (Generate_Data, I) = "string-single" or
+              Kind (Generate_Data, I) = "delimited-text"
+            then
+               Indent_Line ("when " & Name (Generate_Data, I) & "_ID => False,");
+            end if;
+         end loop;
+      end if;
+
+      Indent_Line ("when others => raise SAL.Programmer_Error);");
+      Indent := @ - 6;
+      Indent_Line ("end New_Line_Is_End_Delimiter;");
+      New_Line;
+
       Indent_Line ("function Find_End_Delimiter");
       Indent_Line ("  (Source      : in WisiToken.Lexer.Source;");
       Indent_Line ("   ID          : in WisiToken.Token_ID;");
@@ -1906,6 +1939,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("   Escape_Delimiter_Doubled,");
       Indent_Line ("   Start_Delimiter_Length,");
       Indent_Line ("   End_Delimiter_Length,");
+      Indent_Line ("   New_Line_Is_End_Delimiter,");
       Indent_Line ("   Find_End_Delimiter,");
       Indent_Line ("   Contains_End_Delimiter,");
       Indent_Line ("   Find_Scan_End,");

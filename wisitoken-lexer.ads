@@ -271,6 +271,13 @@ package WisiToken.Lexer is
    with Pre'Class => Lexer.Is_Block_Delimited (ID);
    --  Return length in bytes of the characters in the end delimiter character sequence.
 
+   function New_Line_Is_End_Delimiter
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean
+   is abstract
+   with Pre'Class => Is_Block_Delimited (Lexer, ID);
+
    function Find_End_Delimiter
      (Lexer       : in Instance;
       ID          : in Token_ID;
@@ -290,8 +297,8 @@ package WisiToken.Lexer is
      return Base_Buffer_Pos
    is abstract
    with Pre'Class => Is_Block_Delimited (Lexer, ID);
-   --  If Region contains an end delimiter for ID, returns the buffer
-   --  position of the start of that delimiter. Otherwise returns
+   --  If Region contains an end delimiter for ID, return the buffer
+   --  position of the start of that delimiter. Otherwise return
    --  Invalid_Buffer_Pos. Does not check for matching or nested start.
 
    function Find_Scan_End

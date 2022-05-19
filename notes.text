@@ -31,6 +31,15 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+commit
+
+ada_mode-recover_incremental_03.adb
+    encounters "FIXME: need test case".
+
+editing Edit_Tree to add lexer_error.edit_region
+    fix fail_enqueue_limit
+    ada_mode-recover_51.adb
+
 wisitoken.grammar_mode.stephe-1 test/nominal.wy failing
     bug in line_begin_char_pos for delimited-text
         also bug in mmm-mode, but fixing that later.

@@ -96,6 +96,9 @@ generic
    with function End_Delimiter_Length (ID : in Token_ID) return Integer;
    --  Implements WisiToken.Lexer.End_Delimiter_Length.
 
+   with function New_Line_Is_End_Delimiter (ID : in Token_ID) return Boolean;
+   --  Implements WisiToken.Lexer.New_Line_Is_End_Delimiter.
+
    with function Find_End_Delimiter
      (Source      : in WisiToken.Lexer.Source;
       ID          : in Token_ID;
@@ -233,6 +236,12 @@ package WisiToken.Lexer.re2c is
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Integer;
+
+   overriding
+   function New_Line_Is_End_Delimiter
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean;
 
    overriding
    function Find_End_Delimiter

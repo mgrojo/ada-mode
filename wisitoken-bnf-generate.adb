@@ -487,7 +487,11 @@ begin
 
          case Tuple.Gen_Alg is
          when None | External =>
-            null;
+            if Input_Data.Meta_Syntax = EBNF_Syntax and BNF_Tree.Is_Empty then
+               --  'none' is used in unit tests to test bnf translation.
+               Translate_To_BNF;
+            end if;
+
 
          when Tree_Sitter =>
             Parse_Check
