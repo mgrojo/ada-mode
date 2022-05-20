@@ -50,10 +50,21 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+test/ada_mode-recover_incremental_03.adb
+    validate_tree fails byte_order after recover edit
+        scanned ';)' not deleted
+        only deletes thru scan_end
+            but scan_end = new_line
+            delete adds shift_bytes wrong
+
 try packrat
     o.e.a.s-6/o.e.w.s-2
 
 time %lr1_hash_table_size
+
+need test for ada-find-file
+    it is currently broken
+    also broken in ada-mode 7.2.0 with latest projects.el from ELPA
 
 review FIXMEs
     (grep-find "find c:/Projects/org.emacs.wisi.stephe-1 -type f -print | \"xargs\" grep  -nH --null FIXME:")
@@ -121,37 +132,15 @@ first parser operation after opening a large file is slow
 
     or maybe packrat is faster?
 
- Negotiate with Eurocontrol:
-    ask AdaCore:
-        old issues: SA31-041 Oct 31, 2019 GNAT Studio using libadalang for format? (closed)
-            short answer: wait for ada_language_server (estimated 2020, ie now)
-            so this is just a ping
-
-        submitted UB18-067 18 Nov:
-            What is the plan to improve error correction and
-            formatting to allow indent/format one line while editing?
-
-            documentation on the format of the custom format template file?
-
-For the near future, we still need the WisiToken parser to support
-indent while editing, which means we need incremental parse to make it
-faster and more accurate/reliable. It will also most likely make sense
-to implement a libadalang xref backend, or something else to replace
-gpr_query.
-
-acknowledge that previous work was not really worth it, because
-gnatstudio indent was not adaptable to Eurocontrol style.
-
-Research Eurocontrol - what is their area of business, what location/culture are they - linked in etc.
-read Kate's book on culture/persuasion.
-
-        - currently doing incremental (making progress. ready for beta test?)
-        - send money to speed up
-        - send money to integrate libadalang xref backend
-        - find another volunteer to speed up
-        - pay someone in-house to work on this - I will mentor
-
  after incremental
+mmm-mode
+    need one parse_context per region
+    other use case; one parse_context for each submode, with contiguous text from each region
+        text is in a "rope", not a flat buffer.
+        elisp can handle the rope aspect.
+
+language specific function for name face?
+
 review this file!
 
 classify errors as local/long distance
