@@ -591,7 +591,13 @@ with incremental parse after each key event."
   (let ((i 0))
     (while (< i  (length macro))
       (execute-kbd-macro (make-vector 1 (aref macro i)))
-      (save-excursion (wisi-parse-incremental wisi-parser-shared 'none))
+      (save-excursion
+	(condition-case err
+	    (wisi-parse-incremental wisi-parser-shared 'none)
+	  (wisi-parse-error
+	   (when (< 0 wisi-debug)
+	     ;; allow continuing when parser throws parse-error
+	     (signal (car err) (cdr err))))))
       (setq i (1+ i)))))
 
 (defun wisi-replay-kbd-macro-file (file-name)

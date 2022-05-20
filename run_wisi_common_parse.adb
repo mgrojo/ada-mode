@@ -543,7 +543,13 @@ package body Run_Wisi_Common_Parse is
                Parse_Context.Text_Buffer_Byte_Last,
                +Parse_Context.Parser.Tree.Lexer.File_Name);
 
-            Parse_Context.Parser.Parse (Log_File, KMN_List);
+            --  Same logic as emacs_wisi_common_parse.adb
+            if Parse_Context.Parser.Tree.Editable then
+               Parse_Context.Parser.Parse (Log_File, KMN_List);
+            else
+               --  Last parse failed; can't edit tree, so do full parse.
+               Parse_Context.Parser.Parse (Log_File, Parse.KMN_Lists.Empty_List);
+            end if;
 
             if Parse_Context.Parser.Parsers.Count > 0 then
                --  else edits did not require parse
