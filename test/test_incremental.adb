@@ -219,6 +219,9 @@ package body Test_Incremental is
 
       --  Allow inserting after last char in Initial
       if Edit_At in 1 .. Length (Edited_Buffer) + 1 then
+         --  This editing appears out of order, but it assumes that Edit_2_At >
+         --  Edit_At. It means Edit_2_Delete sees initial_text, not edited
+         --  text.
          if Edit_2_At in 1 .. Length (Edited_Buffer) + 1 then
             Edit_Text (Edit_2_At, Delete_2, Insert_2);
          end if;
@@ -2439,6 +2442,36 @@ package body Test_Incremental is
          Incr_Errors    => 0);
    end Lexer_Errors_07;
 
+   procedure Lexer_Errors_08 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Similar to Edit_String_13, but editing an identifier, not fixing
+      --  the lexer error. From ada_mode-recover_incremental_03.adb.
+
+      Parse_Text
+        (Label          => "1",
+         Initial        => "Put_Line (""Update (A, "" & ID, C_"" & Suf & "".bar);"");" & ASCII.LF & "B;",
+         --                          |10        |20        |30        |40        |50
+         Edit_At        => 27,
+         Delete         => "ID",
+         Insert         => "id",
+         Initial_Errors => 2,
+         Incr_Errors    => 2);
+
+      Parse_Text
+        (Label          => "1",
+         Initial        => "",
+         Edit_At        => 27,
+         Delete         => "i",
+         Insert         => "I",
+         Initial_Errors => 2,
+         Incr_Errors    => 2);
+
+   end Lexer_Errors_08;
+
+   --  FIXME: lexer error in non_grammar
+
    procedure Preserve_Parse_Errors_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -2945,7 +2978,7 @@ package body Test_Incremental is
    is
       pragma Unreferenced (T);
    begin
-      --  Same as Edit_String_)13, but with two edits in the lexer error
+      --  Same as Edit_String_13, but with two edits in the lexer error
       --  edit region.
 
       Parse_Text
@@ -2967,6 +3000,32 @@ package body Test_Incremental is
       --  |1       |10       |20       |30       |40       |50
       --  B;
    end Edit_String_14;
+
+   procedure Edit_String_15 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Undo Edit_String_13.
+
+      Parse_Text
+        (Label          => "1",
+         Initial        => "Put_Line (""Update (A, "" & B & "", C_"" & Suf & "".bar);"");" & ASCII.LF & "B;",
+         --                          |10        |20        |30        |40
+         Edit_At        => 23,
+         Delete         => """ & ",
+         Insert         => "",
+         Edit_2_At      => 28,
+         Delete_2       => " & """,
+         Insert_2       => "",
+         Initial_Errors => 0,
+         Incr_Errors    => 0);
+
+      --  Edited source:
+      --
+      --  Put_Line ("Update (A, B, C_" & Suf & ".bar);");
+      --  |1       |10       |20       |30       |40
+      --  B;
+   end Edit_String_15;
 
    ----------
    --  Public subprograms
@@ -3056,6 +3115,7 @@ package body Test_Incremental is
       Register_Routine (T, Lexer_Errors_05'Access, "Lexer_Errors_05");
       Register_Routine (T, Lexer_Errors_06'Access, "Lexer_Errors_06");
       Register_Routine (T, Lexer_Errors_07'Access, "Lexer_Errors_07");
+      Register_Routine (T, Lexer_Errors_08'Access, "Lexer_Errors_08");
       Register_Routine (T, Preserve_Parse_Errors_1'Access, "Preserve_Parse_Errors_1");
       Register_Routine (T, Preserve_Parse_Errors_2'Access, "Preserve_Parse_Errors_2");
       Register_Routine (T, Modify_Deleted_Node'Access, "Modify_Deleted_Node");
@@ -3079,6 +3139,7 @@ package body Test_Incremental is
       Register_Routine (T, Edit_String_12'Access, "Edit_String_12");
       Register_Routine (T, Edit_String_13'Access, "Edit_String_13");
       Register_Routine (T, Edit_String_14'Access, "Edit_String_14");
+      Register_Routine (T, Edit_String_15'Access, "Edit_String_15");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

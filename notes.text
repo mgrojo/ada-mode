@@ -31,11 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-commit
-
-ada_mode-recover_incremental_03.adb
-    encounters "FIXME: need test case".
-
 editing Edit_Tree to add lexer_error.edit_region
     fix fail_enqueue_limit
     ada_mode-recover_51.adb

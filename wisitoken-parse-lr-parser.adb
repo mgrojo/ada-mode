@@ -1118,7 +1118,8 @@ package body WisiToken.Parse.LR.Parser is
       --  delete an end delimiter, so it is not possible to compute the
       --  correct scan end when handling the first edit. So the scan is
       --  delayed. If Delayed_Floating_Index /= 'Last, the token is a
-      --  non_grammar.
+      --  non_grammar. We also get delayed scans when inserting/deleting a
+      --  block delimeter sets Scan_End past the next KMN.
 
       Scan_End : Base_Buffer_Pos := Invalid_Buffer_Pos;
       --  If Scan_End /= Invalid_Buffer_Pos, an edit exposed text as
@@ -1725,6 +1726,9 @@ package body WisiToken.Parse.LR.Parser is
                            if KMN.Deleted_Bytes > 0 then
                               if Overlaps (Node_Byte_Region, Deleted_Region) then
                                  --  test_incremental.adb Edit_String_09
+                                 if Lexer_Errors (Cur).Scan_End /= Invalid_Buffer_Pos then
+                                    raise SAL.Not_Implemented with "FIXME: insert and delete both set scan_end";
+                                 end if;
                                  Lexer_Errors (Cur).Scan_End := Tree.Lexer.Find_Scan_End
                                    (Tree.ID (Node), Node_Byte_Region + Shift_Bytes +
                                       (if Node_Byte_Region.First > Stable_Region.Last
@@ -1732,9 +1736,6 @@ package body WisiToken.Parse.LR.Parser is
                                        else KMN.Inserted_Bytes),
                                     Inserted  => True,
                                     Start     => True);
-
-                              else
-                                 raise SAL.Not_Implemented with "FIXME: need test cases";
                               end if;
                            end if;
                         end;
@@ -2424,6 +2425,8 @@ package body WisiToken.Parse.LR.Parser is
                      end Delete_Node_To_Terminal;
 
                   begin
+                     --  FIXME: handle lexer error in non_grammar
+
                      if Data.Scan_Start_Node /= Invalid_Node_Access then
                         --  Breakdown Terminal so we can delete terminals before Terminal.
                         Breakdown (Terminal);
@@ -2915,25 +2918,30 @@ package body WisiToken.Parse.LR.Parser is
                         end if;
                      end;
                   end if;
+               end if;
 
-                  if Do_Scan and not Delayed_Scan then
-                     if (Next_KMN.Deleted_Bytes > 0 or Next_KMN.Inserted_Bytes > 0) and then
-                       Next_KMN_Stable_Last < Terminal_Byte_Region.Last
-                     then
-                        --  Next change is an actual change (not just last placeholder KMN),
-                        --  and it also overlaps this token. It may insert or delete a delimiter
-                        --  end, so we don't know when to end a scan; handle it then.
-                        --  test_incremental.adb Edit_String_07.
-                        Do_Scan                := False;
-                        Delayed_Scan           := True;
-                        Delayed_Floating_Index := Positive_Index_Type'Last;
-                        Delayed_Lex_Start_Byte := Lex_Start_Byte;
-                        Delayed_Lex_Start_Char := Lex_Start_Char;
-                        Delayed_Lex_Start_Line := Lex_Start_Line;
+               if Do_Scan then
+                  if (Next_KMN.Deleted_Bytes > 0 or Next_KMN.Inserted_Bytes > 0) and then
+                    (Next_KMN_Stable_Last < Terminal_Byte_Region.Last or
+                       (Scan_End /= Invalid_Buffer_Pos and Next_KMN_Stable_Last + Shift_Bytes < Scan_End))
+                  then
+                     --  Next change is an actual change (not just last placeholder KMN),
+                     --  and it also overlaps this token. It may insert or delete a delimiter
+                     --  end, so we don't know when to end a scan; handle it then.
+                     --  test_incremental.adb Edit_String_07.
+                     --
+                     --  Or Scan_End is past next KMN, so we don't know shift_bytes for
+                     --  Delete_Scanned_Loop. test_incremental.adb Edit_String_15,
+                     --  ada_mode-recover_incremental_03.adb
+                     Do_Scan                := False;
+                     Delayed_Scan           := True;
+                     Delayed_Floating_Index := Positive_Index_Type'Last;
+                     Delayed_Lex_Start_Byte := Lex_Start_Byte;
+                     Delayed_Lex_Start_Char := Lex_Start_Char;
+                     Delayed_Lex_Start_Line := Lex_Start_Line;
 
-                        if Trace_Incremental_Parse > Detail then
-                           Tree.Lexer.Trace.Put_Line ("scan delayed");
-                        end if;
+                     if Trace_Incremental_Parse > Detail then
+                        Tree.Lexer.Trace.Put_Line ("scan delayed");
                      end if;
                   end if;
                end if;
