@@ -24,6 +24,7 @@ with Ada.Containers;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
+with Grammar_Grammar_01_LR1_T1_Main;
 with Optimized_List_LR1_T1_Main;
 with SAL.AUnit;
 with Skip_To_Grammar_LALR_Main;
@@ -42,8 +43,9 @@ package body Test_Syntax_Trees is
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
    Ada_Lite_Parser       : WisiToken.Parse.LR.Parser.Parser;
-   Skip_To_Parser        : WisiToken.Parse.LR.Parser.Parser;
+   Grammar_Parser        : WisiToken.Parse.LR.Parser.Parser;
    Optimized_List_Parser : WisiToken.Parse.LR.Parser.Parser;
+   Skip_To_Parser        : WisiToken.Parse.LR.Parser.Parser;
 
    function Parse_Text (Parser : in out WisiToken.Parse.LR.Parser.Parser; Text : in String) return Stream_Node_Ref
    --  return wisitoken_accept in parse_stream.
@@ -182,6 +184,53 @@ package body Test_Syntax_Trees is
       Check ("2", Skip_To_Parser.Tree.Line_At_Byte_Pos (21), 2);
       Check ("3", Skip_To_Parser.Tree.Line_At_Byte_Pos (41), 3);
    end Line_At_Byte_Pos_2;
+
+   procedure Line_At_Byte_Pos_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use WisiToken.AUnit;
+
+      --  From wisitoken.grammar_mode nominal.wy
+      Text : constant String :=
+        "%mckenzie_cost_default 2 2 2 2" & ASCII.LF & -- 1
+        --        |10       |20       |30
+        "extension_aggregate" & ASCII.LF & -- 2
+        --       |40       |50
+        "  : '(' expression 'with' record ')'" & ASCII.LF & -- 3
+        --       |60       |70       |80
+        "    %(" & ASCII.LF & -- 4
+        --   |93
+        "      (wisi-indent-action [nil" & ASCII.LF & -- 5
+        --   |100      |110      |120
+        "                           (wisi-anchored 1 0)])" & ASCII.LF & -- 6
+        --  |130      |140      |150      |160      |170
+        "      )%" & ASCII.LF & -- 7
+        --   |180
+        "  ;"; -- 8
+      --   |187
+   begin
+      Grammar_Parser.Tree.Lexer.Reset_With_String (Text);
+
+      Grammar_Parser.Parse (Log_File);
+
+      if Trace_Tests > Detail then
+         Grammar_Parser.Tree.Print_Tree (Non_Grammar => True);
+         Grammar_Parser.Put_Errors;
+      end if;
+
+      Check ("1", Grammar_Parser.Tree.Line_At_Byte_Pos (1), 1);
+      Check ("2", Grammar_Parser.Tree.Line_At_Byte_Pos (10), 1);
+      Check ("3", Grammar_Parser.Tree.Line_At_Byte_Pos (31), 1);
+      Check ("4", Grammar_Parser.Tree.Line_At_Byte_Pos (32), 2);
+      Check ("5", Grammar_Parser.Tree.Line_At_Byte_Pos (90), 4);
+      Check ("6", Grammar_Parser.Tree.Line_At_Byte_Pos (93), 4);
+      Check ("7", Grammar_Parser.Tree.Line_At_Byte_Pos (100), 5);
+      Check ("8", Grammar_Parser.Tree.Line_At_Byte_Pos (160), 6);
+      Check ("9", Grammar_Parser.Tree.Line_At_Byte_Pos (180), 7);
+      Check ("10", Grammar_Parser.Tree.Line_At_Byte_Pos (185), 8);
+      Check ("11", Grammar_Parser.Tree.Line_At_Byte_Pos (187), 8);
+      Check ("12", Grammar_Parser.Tree.Line_At_Byte_Pos (188), Invalid_Line_Number);
+   end Line_At_Byte_Pos_3;
 
    procedure Find_Char_Pos_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -998,6 +1047,7 @@ package body Test_Syntax_Trees is
       Register_Routine (T, Byte_Region_1'Access, "Byte_Region_1");
       Register_Routine (T, Line_At_Byte_Pos_1'Access, "Line_At_Byte_Pos_1");
       Register_Routine (T, Line_At_Byte_Pos_2'Access, "Line_At_Byte_Pos_2");
+      Register_Routine (T, Line_At_Byte_Pos_3'Access, "Line_At_Byte_Pos_3");
       Register_Routine (T, Find_Char_Pos_1'Access, "Find_Char_Pos_1");
       Register_Routine (T, Breakdown_Optimized_List_01'Access, "Breakdown_Optimized_List_01");
       Register_Routine (T, Breakdown_Optimized_List_02'Access, "Breakdown_Optimized_List_02");
@@ -1024,10 +1074,10 @@ package body Test_Syntax_Trees is
          User_Data                      => User_Data'Access);
 
       WisiToken.Parse.LR.Parser.New_Parser
-        (Skip_To_Parser,
-         Skip_To_Grammar_LALR_Main.Create_Lexer (Trace'Access),
-         Skip_To_Grammar_LALR_Main.Create_Parse_Table ("skip_to_grammar_lalr_parse_table.txt"),
-         Skip_To_Grammar_LALR_Main.Create_Productions,
+        (Grammar_Parser,
+         Grammar_Grammar_01_LR1_T1_Main.Create_Lexer (Trace'Access),
+         Grammar_Grammar_01_LR1_T1_Main.Create_Parse_Table,
+         Grammar_Grammar_01_LR1_T1_Main.Create_Productions,
          Language_Fixes                 => null,
          Language_Matching_Begin_Tokens => null,
          Language_String_ID_Set         => null,
@@ -1043,6 +1093,17 @@ package body Test_Syntax_Trees is
            WisiToken.Parse.LR.McKenzie_Recover.Optimized_List.Matching_Begin_Tokens'Access,
          Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Optimized_List.String_ID_Set'Access,
          User_Data                      => null);
+
+      WisiToken.Parse.LR.Parser.New_Parser
+        (Skip_To_Parser,
+         Skip_To_Grammar_LALR_Main.Create_Lexer (Trace'Access),
+         Skip_To_Grammar_LALR_Main.Create_Parse_Table ("skip_to_grammar_lalr_parse_table.txt"),
+         Skip_To_Grammar_LALR_Main.Create_Productions,
+         Language_Fixes                 => null,
+         Language_Matching_Begin_Tokens => null,
+         Language_String_ID_Set         => null,
+         User_Data                      => null);
+
    end Set_Up_Case;
 
 end Test_Syntax_Trees;

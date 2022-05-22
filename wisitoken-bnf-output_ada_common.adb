@@ -1902,6 +1902,30 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("end Line_Begin_Char_Pos;");
       New_Line;
 
+      Indent_Line ("function Can_Contain_New_Line (ID : in WisiToken.Token_ID) return Boolean");
+      Indent_Line ("is begin");
+      Indent := @ + 3;
+      Indent_Line ("case To_Token_Enum (ID) is");
+
+      for I in All_Tokens (Generate_Data).Iterate
+        (Non_Grammar  => True,
+         Nonterminals => False,
+         Include_SOI  => False)
+      loop
+         if Kind (Generate_Data, I) = "new-line" or
+           Kind (Generate_Data, I) = "comment-new-line" or
+           Kind (Generate_Data, I) = "delimited-text"
+         then
+            Indent_Line ("when " & Name (Generate_Data, I) & "_ID => return True;");
+         end if;
+      end loop;
+
+      Indent_Line ("when others => return False;");
+      Indent_Line ("end case;");
+      Indent := @ - 3;
+      Indent_Line ("end Can_Contain_New_Line;");
+      New_Line;
+
       Indent_Line ("function Terminated_By_New_Line (ID : in WisiToken.Token_ID) return Boolean");
       Indent_Line ("is begin");
       Indent := @ + 3;
@@ -1944,6 +1968,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("   Contains_End_Delimiter,");
       Indent_Line ("   Find_Scan_End,");
       Indent_Line ("   Line_Begin_Char_Pos,");
+      Indent_Line ("   Can_Contain_New_Line,");
       Indent_Line ("   Terminated_By_New_Line);");
       New_Line;
    end Create_re2c_Lexer;

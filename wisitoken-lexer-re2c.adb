@@ -59,11 +59,6 @@ package body WisiToken.Lexer.re2c is
       return Handle (Result);
    end New_Lexer;
 
-   overriding function Has_Source (Lexer : access constant Instance) return Boolean
-   is begin
-      return Has_Source (Lexer.Source);
-   end Has_Source;
-
    overriding procedure Set_Verbosity
      (Lexer     : in Instance;
       Verbosity : in Integer)
@@ -325,37 +320,6 @@ package body WisiToken.Lexer.re2c is
    end Set_Position;
 
    overriding
-   function Buffer_Region_Byte (Lexer : in Instance) return WisiToken.Buffer_Region
-   is begin
-      return Buffer_Region_Byte (Lexer.Source);
-   end Buffer_Region_Byte;
-
-   overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in WisiToken.Buffer_Region) return String
-   is
-      First : constant Integer := Integer
-        (Byte_Bounds.First - Lexer.Source.Buffer_Nominal_First_Byte + Buffer_Pos'First);
-      Last  : constant Integer := Integer
-        (Byte_Bounds.Last - Lexer.Source.Buffer_Nominal_First_Byte + Buffer_Pos'First);
-   begin
-      return String (Buffer (Lexer.Source) (First .. Last));
-   end Buffer_Text;
-
-   overriding function File_Name (Lexer : in Instance) return String
-   is begin
-      return File_Name (Lexer.Source);
-   end File_Name;
-
-   overriding
-   procedure Begin_Pos
-     (Lexer      : in     Instance;
-      Begin_Byte :    out Buffer_Pos;
-      Begin_Char :    out Buffer_Pos;
-      Begin_Line :    out Line_Number_Type)
-   is begin
-      Begin_Pos (Lexer.Source, Begin_Byte, Begin_Char, Begin_Line);
-   end Begin_Pos;
-
-   overriding
    function Is_Block_Delimited
      (Lexer : in Instance;
       ID    : in Token_ID)
@@ -463,22 +427,13 @@ package body WisiToken.Lexer.re2c is
    end Line_At_Byte_Pos;
 
    overriding
-   function Contains_New_Line
-     (Lexer       : in Instance;
-      Byte_Region : in Buffer_Region)
+   function Can_Contain_New_Line
+     (Lexer : in Instance;
+      ID    : in Token_ID)
      return Boolean
    is begin
-      return Contains_New_Line (Lexer.Source, Byte_Region);
-   end Contains_New_Line;
-
-   overriding
-   function New_Line_Count
-     (Lexer       : in Instance;
-      Byte_Region : in Buffer_Region)
-     return Base_Line_Number_Type
-   is begin
-      return New_Line_Count (Lexer.Source, Byte_Region);
-   end New_Line_Count;
+      return Can_Contain_New_Line (ID);
+   end Can_Contain_New_Line;
 
    overriding
    function Terminated_By_New_Line

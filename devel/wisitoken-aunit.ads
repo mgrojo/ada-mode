@@ -2,7 +2,7 @@
 --
 --  AUnit Checks for parent
 --
---  Copyright (C) 2017 - 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -37,7 +37,7 @@ package WisiToken.AUnit is
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Base_Buffer_Pos);
 
    procedure Check_Valid is new Standard.AUnit.Checks.Gen_Check_Valid (Line_Number_Type);
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Line_Number_Type);
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Base_Line_Number_Type);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Unconstrained_Array
      (Item_Type   => Boolean,

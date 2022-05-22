@@ -31,14 +31,9 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-editing Edit_Tree to add lexer_error.edit_region
-    fix fail_enqueue_limit
-    ada_mode-recover_51.adb
-
-wisitoken.grammar_mode.stephe-1 test/nominal.wy failing
-    bug in line_begin_char_pos for delimited-text
-        also bug in mmm-mode, but fixing that later.
-    add wisitoken test
+syntax_trees.adb Line_At_Byte_Pos
+    don't need Next_New_Line; just Byte_region.last.
+    then also don't need New_line_Count.
 
 ada_lite_ebnf packrat
     enumeration_literal_list

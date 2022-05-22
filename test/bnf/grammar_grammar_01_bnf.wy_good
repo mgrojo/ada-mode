@@ -6,12 +6,16 @@
 %generate LR1 Ada re2c
 %start compilation_unit_list
 
+%token <delimited-text> ACTION "%(" ")%"
+
 %token <punctuation> BAR "|"
 %token <punctuation> COLON ":"
+%token <punctuation> PERCENT "%"
 %token <punctuation> SEMICOLON ";"
 
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]% "bogus"
 %token <string-single-one-line> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]% "''"
+%token <number> NUMERIC_LITERAL %[ [-][0-9][0-9_]* ]% "1234567890"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
@@ -20,6 +24,18 @@
 %non_grammar <delimited-text> RAW_CODE "%{" "}%"
 
 %mckenzie_cost_default 2 2 2 2
+
+%conflict SHIFT declaration_item | REDUCE declaration on token IDENTIFIER
+
+declaration_item
+  : IDENTIFIER
+  | NUMERIC_LITERAL
+  ;
+
+declaration
+  : PERCENT IDENTIFIER declaration_item_list
+  | PERCENT IDENTIFIER
+  ;
 
 nonterminal
   : IDENTIFIER COLON rhs_BAR_list SEMICOLON
@@ -31,6 +47,7 @@ nonterminal
 rhs
   : ;; empty
   | rhs_item_list
+  | rhs_item_list ACTION
   ;
 
 rhs_item
@@ -38,13 +55,23 @@ rhs_item
   | STRING_LITERAL_2
   ;
 
+compilation_unit
+  : declaration
+  | nonterminal
+  ;
+
 compilation_unit_list
-  : nonterminal
-  | compilation_unit_list nonterminal
+  : compilation_unit
+  | compilation_unit_list compilation_unit
   | compilation_unit_list compilation_unit_list
   ;
 
 ;; end of file
+declaration_item_list
+  : declaration_item
+  | declaration_item_list declaration_item
+  | declaration_item_list declaration_item_list
+  ;
 rhs_BAR_list
   : rhs
   | rhs_BAR_list BAR rhs

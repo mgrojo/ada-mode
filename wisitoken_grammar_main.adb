@@ -188,6 +188,18 @@ package body Wisitoken_Grammar_Main is
       end case;
    end Line_Begin_Char_Pos;
 
+   function Can_Contain_New_Line (ID : in WisiToken.Token_ID) return Boolean
+   is begin
+      case To_Token_Enum (ID) is
+      when NEW_LINE_ID => return True;
+      when COMMENT_ID => return True;
+      when RAW_CODE_ID => return True;
+      when REGEXP_ID => return True;
+      when ACTION_ID => return True;
+      when others => return False;
+      end case;
+   end Can_Contain_New_Line;
+
    function Terminated_By_New_Line (ID : in WisiToken.Token_ID) return Boolean
    is begin
       case To_Token_Enum (ID) is
@@ -216,6 +228,7 @@ package body Wisitoken_Grammar_Main is
       Contains_End_Delimiter,
       Find_Scan_End,
       Line_Begin_Char_Pos,
+      Can_Contain_New_Line,
       Terminated_By_New_Line);
 
    function Create_Parse_Table
