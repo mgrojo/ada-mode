@@ -295,6 +295,17 @@ package body WisiToken.Lexer is
       return Invalid_Buffer_Pos;
    end Line_Begin_Char_Pos;
 
+   function Get_Byte
+     (Source : in WisiToken.Lexer.Source;
+      Pos    : in Integer)
+     return Character
+   is begin
+      return
+        (case Source.Label is
+         when String_Label => Source.Buffer (Pos),
+         when File_Label => GNATCOLL.Mmap.Data (Source.Region)(Pos));
+   end Get_Byte;
+
    function Line_At_Byte_Pos
      (Source      : in WisiToken.Lexer.Source;
       Byte_Region : in WisiToken.Buffer_Region;
@@ -308,16 +319,9 @@ package body WisiToken.Lexer is
       for I in To_Buffer_Index (Source, Byte_Region.First) ..
         To_Buffer_Index (Source, Byte_Region.Last)
       loop
-         declare
-            Char : constant Character :=
-              (case Source.Label is
-               when String_Label => Source.Buffer (I),
-               when File_Label => GNATCOLL.Mmap.Data (Source.Region)(I));
-         begin
-            if Char = ASCII.LF then
-               Found_Line := @ + 1;
-            end if;
-         end;
+         if Get_Byte (Source, I) = ASCII.LF then
+            Found_Line := @ + 1;
+         end if;
 
          if I = Index_Pos then
             return Found_Line;
@@ -336,13 +340,13 @@ package body WisiToken.Lexer is
    begin
       if First then
          for I in First_Index .. To_Buffer_Index (Source, Byte_Region.Last) loop
-            if Source.Buffer (I) = ASCII.LF then
+            if Get_Byte (Source, I) = ASCII.LF then
                return Byte_Region.First + Base_Buffer_Pos (I - First_Index);
             end if;
          end loop;
       else
          for I in reverse First_Index .. To_Buffer_Index (Source, Byte_Region.Last) loop
-            if Source.Buffer (I) = ASCII.LF then
+            if Get_Byte (Source, I) = ASCII.LF then
                return Byte_Region.First + Base_Buffer_Pos (I - First_Index);
             end if;
          end loop;
@@ -359,7 +363,7 @@ package body WisiToken.Lexer is
          for I in To_Buffer_Index (Source, Byte_Region.First) ..
            To_Buffer_Index (Source, Byte_Region.Last)
          loop
-            if Source.Buffer (I) = ASCII.LF then
+            if Get_Byte (Source, I) = ASCII.LF then
                Count := @ + 1;
             end if;
          end loop;

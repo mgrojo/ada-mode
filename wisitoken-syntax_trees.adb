@@ -1989,7 +1989,6 @@ package body WisiToken.Syntax_Trees is
             Node_Index  => Tree.Next_Terminal_Node_Index,
             Byte_Region => Node.Byte_Region,
             Char_Region => Node.Char_Region,
-            New_Line_Count => Node.New_Line_Count,
             Parent      => Parent,
             Augmented   =>
               (if Node.Augmented = null or User_Data = null
@@ -2150,7 +2149,6 @@ package body WisiToken.Syntax_Trees is
                Error_List        => Copy_Errors,
                Byte_Region       => Source_Node.Byte_Region,
                Char_Region       => Source_Node.Char_Region,
-               New_Line_Count    => Source_Node.New_Line_Count,
                Non_Grammar       => Source_Node.Non_Grammar,
                Sequential_Index  => Source_Node.Sequential_Index,
                Following_Deleted => Valid_Node_Access_Lists.Empty_List);
@@ -5289,15 +5287,12 @@ package body WisiToken.Syntax_Trees is
          when Terminal_Label =>
             declare
                Prev_New_Line : constant New_Line_Ref := Tree.Prev_New_Line (Node, Start_Line);
-               Next_New_Line : constant New_Line_Ref := Tree.Next_New_Line
-                 (Node, Start_Line => Start_Line + Node.New_Line_Count + Tree.Lexer.New_Line_Count (Node.Non_Grammar));
 
                Check_Region : constant Buffer_Region :=
                  (First => Prev_New_Line.Pos,
-                  Last  => Next_New_Line.Pos);
+                  Last  => Tree.Byte_Region (Node, Trailing_Non_Grammar => True).Last);
             begin
                pragma Assert (Prev_New_Line.Pos /= Invalid_Buffer_Pos); --  SOI if nothing else
-               pragma Assert (Next_New_Line.Pos /= Invalid_Buffer_Pos); --  EOI if nothing else
 
                if not Contains (Check_Region, Byte_Pos) then
                   return Invalid_Line_Number;
@@ -5331,7 +5326,7 @@ package body WisiToken.Syntax_Trees is
                         end loop;
                         raise SAL.Programmer_Error;
                      else
-                        return Invalid_Line_Number;
+                        raise SAL.Programmer_Error;
                      end if;
                   end case;
                end if;
@@ -8162,7 +8157,6 @@ package body WisiToken.Syntax_Trees is
             Sequential_Index  => Invalid_Sequential_Index,
             Byte_Region       => Token.Byte_Region,
             Char_Region       => Token.Char_Region,
-            New_Line_Count    => New_Line_Count (Token.Line_Region),
             Following_Deleted => Valid_Node_Access_Lists.Empty_List);
 
          Tree.Shared_Stream :=

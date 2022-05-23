@@ -31,9 +31,14 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-syntax_trees.adb Line_At_Byte_Pos
-    don't need Next_New_Line; just Byte_region.last.
-    then also don't need New_line_Count.
+wisitoken nominal.wy indent wrong
+    syntax_trees.find_new_line (line_begin_char_Pos) fails inside multi-line token
+    return token, use lexer.line_begin_char_pos (byte_region)
+    also return flag indicating whether new_line is in token or non_grammar
+    change wisi.adb to match
+
+    test_syntax_trees.adb Find_New_Line_2
+
 
 ada_lite_ebnf packrat
     enumeration_literal_list

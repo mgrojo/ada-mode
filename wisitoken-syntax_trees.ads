@@ -2885,15 +2885,13 @@ private
 
          case Label is
          when Source_Terminal =>
-            Byte_Region    : Buffer_Region         := Null_Buffer_Region;
-            Char_Region    : Buffer_Region         := Null_Buffer_Region;
-            New_Line_Count : Base_Line_Number_Type := 0;
+            Byte_Region : Buffer_Region := Null_Buffer_Region;
+            Char_Region : Buffer_Region := Null_Buffer_Region;
             --  Data from lexer. We store the absolute buffer region here to avoid
             --  storing all whitespace in the tree. Edit_Tree shifts these for
             --  incremental parse. We don't store Line_Region here, because it
             --  changes when Insert_Terminal moves Non_Grammar; Non_Grammars all
-            --  store Line_Region. We store New_Line_Count to allow computing line
-            --  numbers from previous or following Non_Grammar.
+            --  store Line_Region.
 
             Following_Deleted : aliased Valid_Node_Access_Lists.List;
             --  Nodes that follow this terminal that were deleted by error
