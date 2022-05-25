@@ -278,10 +278,10 @@ rhs
     %((wisi-indent-action [[(wisi-hanging nil 2) nil]]))%
   | rhs_item_list ACTION
     %((wisi-check-parens [2])
-      (wisi-indent-action [(wisi-hanging nil 2) 2]))%
+      (wisi-indent-action [(wisi-hanging nil 2) nil]))%
   | rhs_item_list ACTION ACTION
     %((wisi-check-parens [2 3])
-      (wisi-indent-action [(wisi-hanging nil 2) 2 2]))%
+      (wisi-indent-action [(wisi-hanging nil 2) nil nil]))%
   ;
 
 rhs_attribute

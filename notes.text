@@ -8,7 +8,7 @@ Makefile
 '((xgit . "c:/Projects/org.stephe_leake.makerules")
   (xgit . "c:/Projects/org.stephe_leake.sal")
   (xgit . "c:/Projects/org.wisitoken")
-  (xgit . "c:/Projects/org.emacs.ada-mode") ;; aka wisi
+  (xgit . "c:/Projects/org.emacs.wisi")
   (xgit . "c:/Projects/org.wisitoken.grammar_mode")
   ))
 
@@ -17,6 +17,14 @@ Makefile
    ("../org.wisitoken"               . "../org.wisitoken.stephe-1")
    ("../org.emacs.wisi"              . "../org.emacs.wisi.stephe-1")
    ("../org.wisitoken.grammar_mode"  . "../org.wisitoken.grammar_mode.stephe-1")))
+
+(dvc-state-multiple
+'((xgit . "c:/Projects/org.stephe_leake.makerules")
+  (xgit . "c:/Projects/org.stephe_leake.sal.stephe-1")
+  (xgit . "c:/Projects/org.wisitoken.stephe-1")
+  (xgit . "c:/Projects/org.emacs.wisi.stephe-1")
+  (xgit . "c:/Projects/org.wisitoken.grammar_mode.stephe-1")
+  ))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1"       . "../org.stephe_leake.sal")
@@ -28,31 +36,13 @@ Makefile
 (setq wisi-disable-face t)
 
 run all tests
-    test/nominal.wy fails
-        in post-parse indent 177 .. 484 error: SAL.PROGRAMMER_ERROR : Line_Begin_Char_Pos = Invalid_Buffer_Pos, line 28
-        but no stack trace
-        debug.cmd reproduces, gives stack trace for unhandled exception
-        in action; only elisp can indent that.
-        line 28 is outside requested line region!
-            because mmm did the right thing.
-            bug in wisi.adb
-            or bug in line_begin_char_pos for delimited-text
-            data.action_region_lines is wrong?
-;; action_region_bytes: (177 . 483)
-    includes first byte of action
-    mmm-mode should subract length of submode delimiter?
-        mmm-mode highlight excludes % in delimiter; some mmm config?
-        yep, so lisp-indent-region sees the () as containing parens
-        include % works just as well in an elisp buffer, but trailing one is fontified red; try that in grammar_mode
-            in mmm-add-classes, change :front-offset, :back-offset to 0
-            => indent in action gives : mmm-indent-line: Symbol’s function definition is void: nil
-                need to set submode indent to elisp?
-            in main, indent in action gives above PROGRAMMER_ERROR.
-                in ada_lite.wy, with action mode = ada-mode, calls wrong wisi parser, elisp action throws an error.
-                nominal.wy action mode is ada-mode, but never started ada parser.
+    test/incremental_04.wy fails "format specifier doesn't match"
 
-;; action_region_lines: (8, 33)
-                includes all of (ACTION, (483 . 718), (27, 33))
+
+
+trailing % is red
+        from elisp; garbage after close paren
+        turn that off
 
 hangs in ediff
 first ediff:

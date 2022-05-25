@@ -30,6 +30,7 @@
 
 (require 'cl-lib)
 (require 'mmm-mode)
+(require 'simple-indent-mode)
 (require 'xref)
 (require 'wisi)
 (require 'wisitoken_grammar_1-process)
@@ -338,12 +339,14 @@ For `add-log-current-defun-function'."
 	  (setq wisitoken-grammar-code-mode nil))
 
 	 ((string-equal (match-string 2) "Ada_Emacs")
+	  ;; We don't use ada-mode for these regions, because the wisi
+	  ;; parser does not work in a sub-mode.
 	  (setq wisitoken-grammar-action-mode 'emacs-lisp-mode)
-	  (setq wisitoken-grammar-code-mode 'ada-mode))
+	  (setq wisitoken-grammar-code-mode 'simple-indent-mode))
 
 	 ((string-equal (match-string 2) "Ada")
-	  (setq wisitoken-grammar-action-mode 'ada-mode)
-	  (setq wisitoken-grammar-code-mode 'ada-mode))
+	  (setq wisitoken-grammar-action-mode 'simple-indent-mode)
+	  (setq wisitoken-grammar-code-mode 'simple-indent-mode))
 
 	 (t
 	  (error "unrecognized output language %s" (match-string 2)))
@@ -375,7 +378,6 @@ For `add-log-current-defun-function'."
    ))
 
 (put 'emacs-lisp-mode 'mmm-indent-narrow nil) ;; syntax-ppss is only valid on the entire buffer
-(put 'ada-mode 'mmm-indent-narrow t)          ;; expects Ada code before and after the indent region.
 
 (add-to-list 'mmm-mode-ext-classes-alist '(wisitoken-grammar-mode nil wisi-action))
 (add-to-list 'mmm-mode-ext-classes-alist '(wisitoken-grammar-mode nil wisi-code))
@@ -438,8 +440,6 @@ For `add-log-current-defun-function'."
   (set (make-local-variable 'add-log-current-defun-function)
        #'wisitoken-grammar-add-log-current-function)
 
-  (wisitoken-grammar-set-submodes)
-
   (add-hook 'xref-backend-functions #'wisitoken-grammar--xref-backend
 	    nil ;; append
 	    t)
@@ -463,6 +463,13 @@ For `add-log-current-defun-function'."
 	'(nil ;; keywords
 	  nil ;; keywords-only
 	  ))
+
+  ;; This must be after all local variables are set, so mmm-mode
+  ;; restores them properly. The submodes must not use incremental
+  ;; parse, since each region is independent of the others.
+  (let ((wisi-incremental-parse-enable nil))
+    (wisitoken-grammar-set-submodes))
+
   )
 
 ;;;###autoload
