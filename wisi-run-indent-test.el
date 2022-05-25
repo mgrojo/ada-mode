@@ -167,13 +167,22 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 		     (marker-position (nth 1 item))))
     (setq test-refactor-markers nil)))
 
+(defun wisi-test-save-log-1 (buffer log-file-name)
+    (with-current-buffer buffer
+      (message "saving parser transaction log '%s' to '%s'" (buffer-name) log-file-name)
+      (write-region nil nil log-file-name)))
+
 (defun wisi-test-save-log ()
   (interactive)
-  (when (and (stringp save-parser-log)
-	     (buffer-live-p (wisi-parser-transaction-log-buffer wisi-parser-shared)))
-    (with-current-buffer (wisi-parser-transaction-log-buffer wisi-parser-shared)
-      (message "saving parser transaction log '%s' to '%s'" (buffer-name) save-parser-log)
-      (write-region nil nil save-parser-log))))
+  (cond
+   ((stringp save-parser-log)
+    (when (buffer-live-p (wisi-parser-transaction-log-buffer wisi-parser-shared))
+      (wisi-test-save-log-1 (wisi-parser-transaction-log-buffer wisi-parser-shared) save-parser-log)))
+
+   (t ;; save-parser-log is a list of (LOG-BUFFER-NAME LOG-FILE-NAME)
+    (dolist (item save-parser-log)
+      (wisi-test-save-log-1 (get-buffer (nth 0 item)) (nth 1 item))))
+    ))
 
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."

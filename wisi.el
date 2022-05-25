@@ -232,8 +232,6 @@ If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
   (forward-char 1)
   (funcall indent-line-function))
 
-;;;; token info cache
-
 (defvar-local wisi-parse-failed nil
   "Non-nil when last parse failed - cleared when parse succeeds.")
 
@@ -465,7 +463,6 @@ For debugging."
   (setq wisi--change-end nil)
   (setq wisi--deleted-syntax nil)
   (setq wisi-indenting-p nil)
-  (setq wisi--last-parse-action nil)
 
   (setq wisi--cached-regions ;; necessary instead of wisi-invalidate after ediff-regions
 	(list
@@ -514,9 +511,6 @@ Set by `wisi-before-change', used and reset by `wisi--post-change'.")
 (defvar-local wisi-indenting-p nil
   "Non-nil when `wisi-indent-region' is actively indenting.
 Used to ignore whitespace changes in before/after change hooks.")
-
-(defvar-local wisi--last-parse-action nil
-  "Value of parse-action when `wisi-validate-cache' was last run.")
 
 (defvar-local wisi--changes nil
   "Cached list of args to wisi-after-change, for incremental parse.
@@ -818,9 +812,6 @@ deleted range.")
 	(next-error))
       ))
 
-   ((wisi-parse-try wisi--last-parse-action)
-    (message "need parse"))
-
    (t
     (message "parse succeeded"))
    ))
@@ -833,10 +824,16 @@ Useful if the parser appears to be hung."
   (wisi-force-parse))
 
 (defun wisi-partial-parse-p (begin end)
-  (and (not wisi-incremental-parse-enable)
-       (not (and (= begin (point-min))
-		 (= end (point-max))))
-       (>= (point-max) wisi-partial-parse-threshold)))
+  (or (buffer-narrowed-p)
+      ;; If narrowed, we are in a submode of mmm-mode, or the user has
+      ;; narrowed for some other reason. We must use partial parse,
+      ;; not incremental, because we can't trust the saved
+      ;; parse_context.
+
+      (and (not wisi-incremental-parse-enable)
+	   (not (and (= begin (point-min))
+		     (= end (point-max))))
+	   (>= (point-max) wisi-partial-parse-threshold))))
 
 (defun wisi--run-parse (parse-action begin parse-end)
   "Run post-parse actions on region BEGIN PARSE-END.
@@ -869,7 +866,6 @@ Run the parser first if needed."
       (when msg
 	(message msg))
 
-      (setq wisi--last-parse-action parse-action)
       (wisi-set-last-parse-region begin parse-end parse-action)
 
       (unless (eq parse-action 'face)
