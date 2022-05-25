@@ -1525,6 +1525,31 @@ package body WisiToken.Syntax_Trees is
       end case;
    end Char_Region;
 
+   function Check_Multi_Line
+     (Tree       : in     Syntax_Trees.Tree;
+      Node       : in     Valid_Node_Access;
+      Line       : in     Line_Number_Type;
+      Char_Pos   : in out Buffer_Pos;
+      Start_Line : in     Line_Number_Type)
+     return Boolean
+   with Pre => Node.Label in Terminal_Label and Tree.Lexer.Can_Contain_New_Line (Node.ID)
+   --  Return True if Node contains the new_line that ends Line - 1; set
+   --  Char_Pos to the character position following the New_Line.
+   --  Start_Line must be the line number at the first char of Node.
+   is
+      Temp : Base_Buffer_Pos := Node.Byte_Region.First;
+   begin
+      for I in Start_Line + 1 .. Line loop
+         Temp := Tree.Lexer.Find_New_Line ((Temp, Node.Byte_Region.Last));
+         if Temp = Invalid_Buffer_Pos then
+            return False;
+         end if;
+         Temp := @ + 1;
+      end loop;
+      Char_Pos := Temp;
+      return True;
+   end Check_Multi_Line;
+
    function Check_Non_Grammar
      (Tree     : in     Syntax_Trees.Tree;
       Node     : in     Valid_Node_Access;
@@ -1535,10 +1560,10 @@ package body WisiToken.Syntax_Trees is
    --  Return True if Node contains non_grammar that ends Line - 1; set
    --  Char_Pos to the character position following the New_Line.
    is begin
-      for Tok of Node.Non_Grammar loop
-         if Contains (Tok.Line_Region, Line) and New_Line_Count (Tok.Line_Region) > 0 then
+      for Token of Node.Non_Grammar loop
+         if Token.Line_Region.First <= Line - 1 and Token.Line_Region.Last >= Line then
             declare
-               Temp : constant Base_Buffer_Pos := Tree.Lexer.Line_Begin_Char_Pos (Tok, Line);
+               Temp : constant Base_Buffer_Pos := Tree.Lexer.Line_Begin_Char_Pos (Token, Line);
             begin
                if Temp /= Invalid_Buffer_Pos then
                   Char_Pos := Temp;
@@ -1983,14 +2008,15 @@ package body WisiToken.Syntax_Trees is
       case Node.Label is
       when Source_Terminal =>
          New_Node := new Syntax_Trees.Node'
-           (Label       => Source_Terminal,
-            Child_Count => 0,
-            ID          => Node.ID,
-            Node_Index  => Tree.Next_Terminal_Node_Index,
-            Byte_Region => Node.Byte_Region,
-            Char_Region => Node.Char_Region,
-            Parent      => Parent,
-            Augmented   =>
+           (Label          => Source_Terminal,
+            Child_Count    => 0,
+            ID             => Node.ID,
+            Node_Index     => Tree.Next_Terminal_Node_Index,
+            Byte_Region    => Node.Byte_Region,
+            Char_Region    => Node.Char_Region,
+            New_Line_Count => Node.New_Line_Count,
+            Parent         => Parent,
+            Augmented      =>
               (if Node.Augmented = null or User_Data = null
                then null
                else Copy_Augmented (User_Data.all, Node.Augmented)),
@@ -2149,6 +2175,7 @@ package body WisiToken.Syntax_Trees is
                Error_List        => Copy_Errors,
                Byte_Region       => Source_Node.Byte_Region,
                Char_Region       => Source_Node.Char_Region,
+               New_Line_Count    => Source_Node.New_Line_Count,
                Non_Grammar       => Source_Node.Non_Grammar,
                Sequential_Index  => Source_Node.Sequential_Index,
                Following_Deleted => Valid_Node_Access_Lists.Empty_List);
@@ -3176,8 +3203,15 @@ package body WisiToken.Syntax_Trees is
          then
             Char_Pos := Node.Char_Region.First;
             return Node;
+
          elsif Check_Non_Grammar (Tree, Node, Line, Char_Pos) then
             return Node;
+
+         elsif Tree.Lexer.Can_Contain_New_Line (Node.ID) and then
+           Check_Multi_Line (Tree, Node, Line, Char_Pos, Start_Line => Tree.Prev_New_Line (Node).Line)
+         then
+            return Node;
+
          else
             return Invalid_Node_Access;
          end if;
@@ -6905,10 +6939,12 @@ package body WisiToken.Syntax_Trees is
    function Prev_New_Line
      (Tree       : in Syntax_Trees.Tree;
       Node       : in Valid_Node_Access;
-      Start_Line : in Line_Number_Type)
+      Start_Line : in Base_Line_Number_Type := Invalid_Line_Number)
      return New_Line_Ref
    is
-      Prev : Node_Access := Tree.Prev_Terminal (Node);
+      Prev              : Node_Access           := Tree.Prev_Terminal (Node);
+      Actual_Start_Line : Line_Number_Type;
+      New_Line_Count    : Base_Line_Number_Type := 0;
 
       function SOI_New_Line_Ref return New_Line_Ref
       is begin
@@ -6921,6 +6957,23 @@ package body WisiToken.Syntax_Trees is
       end SOI_New_Line_Ref;
 
    begin
+      if Start_Line = Invalid_Line_Number then
+         if Prev = Invalid_Node_Access then
+            return SOI_New_Line_Ref;
+         end if;
+
+         loop
+            exit when Prev.Non_Grammar.Length > 0;
+            New_Line_Count := @ + Prev.New_Line_Count;
+            Prev_Terminal (Tree, Prev);
+         end loop;
+
+         Actual_Start_Line := Prev.Non_Grammar (Prev.Non_Grammar.Last_Index).Line_Region.Last + New_Line_Count;
+         Prev              := Tree.Prev_Terminal (Node);
+      else
+         Actual_Start_Line := Start_Line;
+      end if;
+
       loop
          if Prev = Invalid_Node_Access then
             return SOI_New_Line_Ref;
@@ -6933,7 +6986,7 @@ package body WisiToken.Syntax_Trees is
                      Non_Grammar_Index => I,
                      Pos               => Prev.Non_Grammar (I).Byte_Region.First,
                      First             => True,
-                     Line              => Start_Line);
+                     Line              => Actual_Start_Line);
                end if;
             end loop;
             return SOI_New_Line_Ref;
@@ -6965,7 +7018,7 @@ package body WisiToken.Syntax_Trees is
                      if Result.Pos /= Invalid_Buffer_Pos then
                         Result.Node  := Prev;
                         Result.First := True;
-                        Result.Line  := Start_Line;
+                        Result.Line  := Actual_Start_Line;
                         return Result;
 
                      else
@@ -8157,6 +8210,7 @@ package body WisiToken.Syntax_Trees is
             Sequential_Index  => Invalid_Sequential_Index,
             Byte_Region       => Token.Byte_Region,
             Char_Region       => Token.Char_Region,
+            New_Line_Count    => New_Line_Count (Token.Line_Region),
             Following_Deleted => Valid_Node_Access_Lists.Empty_List);
 
          Tree.Shared_Stream :=

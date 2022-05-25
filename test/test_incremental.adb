@@ -132,7 +132,7 @@ package body Test_Incremental is
          if Delete'Length > 0 then
             if Edited (Edit_At .. Edit_At + Delete'Length - 1) /= Delete then
                AUnit.Assertions.Assert
-                 (False, "invalid delete: '" & Delete & "' /= '" &
+                 (False, Label_Dot & "invalid delete: '" & Delete & "' /= '" &
                     Edited (Edit_At .. Edit_At + Delete'Length - 1) & "'");
             end if;
             Edited (Edit_At .. Edited'Last - Delete'Length) := Edited (Edit_At + Delete'Length .. Edited'Last);
@@ -778,22 +778,24 @@ package body Test_Incremental is
    is
       pragma Unreferenced (T);
    begin
-      --  Modify an end delimiter
+      --  Modify an end delimiter; the RAW_CODE token is then terminated by
+      --  EOF, which is not reported as a lexer error.
       Incremental_Parser := Grammar.Incremental_Parser'Access;
       Full_Parser        := Grammar.Full_Parser'Access;
 
       Parse_Text
-        (Label   => "1",
-         Initial => "A : B C; %{ comment }% D : E;",
-         --          |1       |10       |20
-         Edit_At => 21,
-         Delete  => "}",
-         Insert  => "");
+        (Label       => "1",
+         Initial     => "%code A %{ code }% D : E;",
+         --              |1       |10       |20
+         Edit_At     => 17,
+         Delete      => "}",
+         Insert      => "",
+         Incr_Errors => 0);
 
       --  Insert a start delimiter.
       Parse_Text
         (Label   => "2",
-         Initial => "A : B C; %{ D : E; %{ }% ",
+         Initial => "%code A  %{ D : E; %{ }% ",
          --          |1       |10       |20
          Edit_At => 13,
          Delete  => "",
@@ -802,14 +804,11 @@ package body Test_Incremental is
       --  Insert an end delimiter.
       Parse_Text
         (Label   => "3",
-         Initial => "A : B C; %{ D : E; %{ }% ",
+         Initial => "%code A  %{ %code B %{ }% ",
          --          |1       |10       |20
          Edit_At => 13,
          Delete  => "",
          Insert  => "}% ");
-
-      --  Edited: "A : B C; %{ }% D : E; %{ }% ",
-      --           |1       |10       |20
    end Edit_Comment_17;
 
    procedure Edit_Whitespace_1 (T : in out AUnit.Test_Cases.Test_Case'Class)

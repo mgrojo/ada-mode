@@ -138,6 +138,14 @@ package body WisiToken.Lexer is
         (Instance'Class (Lexer), Token.Byte_Region, Byte_Pos, First_Line => Token.Line_Region.First);
    end Line_At_Byte_Pos;
 
+   function Find_New_Line
+     (Lexer  : in Instance;
+      Region : in Buffer_Region)
+     return Base_Buffer_Pos
+   is begin
+      return Find_New_Line (Lexer.Source, Region);
+   end Find_New_Line;
+
    function Contains_New_Line
      (Lexer       : in Instance;
       Byte_Region : in Buffer_Region;
@@ -288,7 +296,7 @@ package body WisiToken.Lexer is
          if Source.Buffer (I) = ASCII.LF then
             Found_Line := @ + 1;
             if Found_Line = Line then
-               return Base_Buffer_Pos (I);
+               return Base_Buffer_Pos (I) + 1;
             end if;
          end if;
       end loop;

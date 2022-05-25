@@ -3,10 +3,12 @@
 ;; Subset of wisitoken grammar for unit tests
 
 %meta_syntax BNF
+%keyword CODE "code"
 %generate LR1 Ada re2c
 %start compilation_unit_list
 
 %token <delimited-text> ACTION "%(" ")%"
+%token <delimited-text> RAW_CODE "%{" "}%"
 
 %token <punctuation> BAR "|"
 %token <punctuation> COLON ":"
@@ -21,7 +23,6 @@
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 %non_grammar <comment-new-line> COMMENT ";;"
 %non_grammar <comment-new-line> COMMENT2 "--"
-%non_grammar <delimited-text> RAW_CODE "%{" "}%"
 
 %mckenzie_cost_default 2 2 2 2
 
@@ -35,6 +36,7 @@ declaration_item
 declaration
   : PERCENT IDENTIFIER declaration_item_list
   | PERCENT IDENTIFIER
+  | PERCENT CODE IDENTIFIER_list RAW_CODE
   ;
 
 nonterminal
@@ -71,6 +73,11 @@ declaration_item_list
   : declaration_item
   | declaration_item_list declaration_item
   | declaration_item_list declaration_item_list
+  ;
+IDENTIFIER_list
+  : IDENTIFIER
+  | IDENTIFIER_list IDENTIFIER
+  | IDENTIFIER_list IDENTIFIER_list
   ;
 rhs_BAR_list
   : rhs

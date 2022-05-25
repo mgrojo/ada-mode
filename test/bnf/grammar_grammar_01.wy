@@ -4,7 +4,8 @@
 %generate LR1 Ada re2c
 %start compilation_unit_list
 
-%token <delimited-text> ACTION "%(" ")%"
+%token <delimited-text> ACTION   "%(" ")%"
+%token <delimited-text> RAW_CODE "%{" "}%"
 
 %token <punctuation> BAR "|"
 %token <punctuation> COLON ":"
@@ -19,7 +20,6 @@
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 %non_grammar <comment-new-line> COMMENT ";;"
 %non_grammar <comment-new-line> COMMENT2 "--"
-%non_grammar <delimited-text> RAW_CODE "%{" "}%"
 
 %mckenzie_cost_default 2 2 2 2
 
@@ -32,6 +32,7 @@ declaration_item
 
 declaration
   : '%' IDENTIFIER {declaration_item}
+  | '%' 'code' IDENTIFIER+ RAW_CODE
   ;
 
 nonterminal : IDENTIFIER ':' rhs ('|' rhs)* ';' ;

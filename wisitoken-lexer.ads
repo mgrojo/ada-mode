@@ -326,13 +326,19 @@ package WisiToken.Lexer is
    --  return the end of the buffer region that must be scanned by the
    --  lexer.
 
+   function Find_New_Line
+     (Lexer  : in Instance;
+      Region : in Buffer_Region)
+     return Base_Buffer_Pos;
+   --  Returns Invalid_Bufer_Pos if not found in Region.
+
    function Line_Begin_Char_Pos
      (Lexer : in Instance;
       Token : in WisiToken.Lexer.Token;
       Line  : in Line_Number_Type)
      return Base_Buffer_Pos
    is abstract
-   with Pre'Class => Contains (Token.Line_Region, Line) and New_Line_Count (Token.Line_Region) > 0;
+   with Pre'Class => Token.Line_Region.First <=  Line - 1 and Token.Line_Region.Last >= Line;
    --  Return first char position on Line; Invalid_Buffer_Pos if Token
    --  does not contain the new-line that starts Line.
 
@@ -401,6 +407,12 @@ package WisiToken.Lexer is
       Start  : in Buffer_Pos)
      return Buffer_Pos;
 
+   function Find_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Region : in Buffer_Region)
+     return Base_Buffer_Pos;
+   --  Returns Invalid_Bufer_Pos if not found in Region.
+
    function Find_String_Or_New_Line
      (Source : in WisiToken.Lexer.Source;
       Start  : in Buffer_Pos;
@@ -416,12 +428,6 @@ package WisiToken.Lexer is
      return Buffer_Pos;
    --  Returns last byte in Source if not found, for an implicit delimiter
    --  at EOI.
-
-   function Find_New_Line
-     (Source : in WisiToken.Lexer.Source;
-      Region : in Buffer_Region)
-     return Base_Buffer_Pos;
-   --  Returns Invalid_Bufer_Pos if not found in Region.
 
    function Find_String_Or_New_Line
      (Source : in WisiToken.Lexer.Source;

@@ -24,6 +24,7 @@ with Ada.Containers;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LR1_T1_Main;
+with Grammar_Grammar_01_Actions;
 with Grammar_Grammar_01_LR1_T1_Main;
 with Optimized_List_LR1_T1_Main;
 with SAL.AUnit;
@@ -121,6 +122,58 @@ package body Test_Syntax_Trees is
          Check ("1 begin_char_pos", Begin_Char_Pos, 15);
       end;
    end Find_New_Line_1;
+
+   procedure Find_New_Line_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use WisiToken.AUnit;
+      use Grammar_Grammar_01_Actions;
+
+      Text : constant String :=
+        "%generate LALR Ada_Emacs re2c" & ASCII.LF & -- 1
+        --        |10       |20           |30
+        "%code actions spec post" & ASCII.LF & -- 2
+        --        |40       |50
+        "%{" & ASCII.LF & -- 3
+        --     |57
+        "   Active : Boolean;" & ASCII.LF & -- 4
+        --  |61      |70
+        "   Goal   : Buffer_Pos;" & ASCII.LF & -- 5
+        --     |85  |90       |100
+        "}%" & ASCII.LF & -- 6
+        --     |105
+        "%mckenzie_minimal_complete_cost_delta -3" & ASCII.LF; -- 7
+
+      procedure One
+        (Label                   : in String;
+         Line                    : in WisiToken.Line_Number_Type;
+         Expected_ID             : in WisiToken.Token_ID;
+         Expected_Begin_Char_Pos : in WisiToken.Buffer_Pos)
+      is
+         Begin_Char_Pos : WisiToken.Buffer_Pos;
+         Tree           : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Tree;
+         Node           : constant WisiToken.Syntax_Trees.Node_Access := Tree.Find_New_Line
+           (Line, Line_Begin_Char_Pos => Begin_Char_Pos);
+      begin
+         Check (Label & ".node", Tree.ID (Node), Expected_ID);
+         Check (Label & ".begin_char_pos", Begin_Char_Pos, Expected_Begin_Char_Pos);
+      end One;
+
+   begin
+      Grammar_Parser.Tree.Lexer.Reset_With_String (Text);
+
+      Grammar_Parser.Parse (Log_File);
+
+      if Trace_Tests > Detail then
+         Ada.Text_IO.Put_Line ("tree:");
+         Grammar_Parser.Tree.Print_Tree (Non_Grammar => True);
+      end if;
+
+      One ("1", 2, +IDENTIFIER_ID, 31);
+      One ("2", 4, +RAW_CODE_ID, 58);
+      One ("3", 6, +RAW_CODE_ID, 103);
+      One ("4", 7, +RAW_CODE_ID, 106);
+   end Find_New_Line_2;
 
    procedure Byte_Region_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1044,6 +1097,7 @@ package body Test_Syntax_Trees is
    begin
       Register_Routine (T, Left_Breakdown_1'Access, "Left_Breakdown_1");
       Register_Routine (T, Find_New_Line_1'Access, "Find_New_Line_1");
+      Register_Routine (T, Find_New_Line_2'Access, "Find_New_Line_2");
       Register_Routine (T, Byte_Region_1'Access, "Byte_Region_1");
       Register_Routine (T, Line_At_Byte_Pos_1'Access, "Line_At_Byte_Pos_1");
       Register_Routine (T, Line_At_Byte_Pos_2'Access, "Line_At_Byte_Pos_2");
