@@ -50,15 +50,17 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-test/ada_mode-recover_incremental_03.adb
-    validate_tree fails byte_order after recover edit
-        scanned ';)' not deleted
-        only deletes thru scan_end
-            but scan_end = new_line
-            delete adds shift_bytes wrong
+editing syntax_Trees.adb line_at_byte_pos
+    no parse errors, fresh reset; new_line on 'if child_regions' => 0 indent.
+
+    new_line at end of line before 'end if;' => wrong indent
+
 
 try packrat
     o.e.a.s-6/o.e.w.s-2
+
+generate tree-sitter parse table
+    see if tree-sitter error recover is good enough
 
 time %lr1_hash_table_size
 
@@ -133,6 +135,18 @@ first parser operation after opening a large file is slow
     or maybe packrat is faster?
 
  after incremental
+test/ada_mode-recover_51.adb
+    error is on "=>"; tree.others is an expression  (could be tree.foo)
+    Desired solution: (Undo_Reduce, undo_reduce ..., push_back 'others', push_back '.', delete '.')
+    fails after first undo_reduce, doesn't try a second.
+        not clear why
+
+    other solution: delete '=> <>' cost 6
+        that's interrupted by minimal_complete; ((DELETE, EQUAL_GREATER, 2), (INSERT, RIGHT_PAREN, 3)) cost 3
+            that keeps going, inserting more right_parens; bug
+        cost 6 not dequeued in 10_000 enqueue
+        need separate minimal_complete queue.
+
 mmm-mode
     need one parse_context per region
     other use case; one parse_context for each submode, with contiguous text from each region
