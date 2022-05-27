@@ -1,5 +1,5 @@
 --  Test for incremental parser with error recovery.
-
+--EMACS_SKIP_UNLESS:wisi-incremental-parse-enable
 procedure Ada_Mode.Recover_Incremental_01 is
 
    --EMACSCMD:(progn (end-of-line 4)(delete-char -5)(wisi-indent-statement))
@@ -12,6 +12,3 @@ procedure Ada_Mode.Recover_Incremental_01 is
 begin
    null;
 end Ada_Mode.Recover_Incremental_01;
--- Local Variables:
--- wisi-incremental-parse-enable: t
--- End:

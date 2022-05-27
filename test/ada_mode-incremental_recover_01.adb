@@ -15,6 +15,3 @@ is
 begin
    null;
 end Ada_Mode.Incremental_Recover_01;
--- Local Variables:
--- wisi-incremental-parse-enable: t
--- End:

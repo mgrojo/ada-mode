@@ -29,6 +29,3 @@ is
 begin
    null;
 end Ada_Mode.Incremental_Parse;
--- Local Variables:
--- wisi-incremental-parse-enable: t
--- End:

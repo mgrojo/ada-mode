@@ -1,4 +1,5 @@
 --  Froma a real editing session. Used to encounter an Assertion_Error in recover.
+--EMACSCMD:(setq skip-recase-test t)
 
 package body Ada_Mode.Incremental_Recover_05 is
 
@@ -71,15 +72,15 @@ package body Ada_Mode.Incremental_Recover_05 is
                      else
                         Memo := Apply_Rule (Parser, RHS.Tokens (I), Pos);
                         case Memo.State is
-                        when Success =>
-                           Children (SAL.Base_Peek_Type (I)) := Memo.Result;
-                           Pos := Memo.Last_Pos;
-                           Next_Pos := Tree.Stream_Next (Tree.Shared_Stream, Pos);
+                           when Success =>
+                              Children (SAL.Base_Peek_Type (I)) := Memo.Result;
+                              Pos := Memo.Last_Pos;
+                              Next_Pos := Tree.Stream_Next (Tree.Shared_Stream, Pos);
 
-                        when Failure =>
-                           goto Fail_RHS;
-                        when No_Result =>
-                           raise SAL.Programmer_Error;
+                           when Failure =>
+                              goto Fail_RHS;
+                           when No_Result =>
+                              raise SAL.Programmer_Error;
                         end case;
                      end if;
                   end loop;
@@ -100,7 +101,7 @@ package body Ada_Mode.Incremental_Recover_05 is
                      end if;
                   end return;
 
-                  <<Fail_RHS>>
+               <<Fail_RHS>>
                   if Tree.Byte_Region
                     (Tree.Get_Node (Tree.Shared_Stream, Next_Pos), Trailing_Non_Grammar => False).First >
                     Tree.Byte_Region
@@ -141,32 +142,32 @@ package body Ada_Mode.Incremental_Recover_05 is
       Result_Recurse   : Memo_Entry;
    begin
       case Memo.State is
-      when Success | Failure =>
-         return Memo;
-
-      when No_Result =>
-         if Parser.Direct_Left_Recursive (R) then
-            Parser.Derivs (R).Replace_Element
-              (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos), (Failure, Last_Pos));
-         else
-            Memo := Eval (Parser, R, Last_Pos);
-
-            if (Trace_Parse > Detail and Memo.State = Success) or Trace_Parse > Extra then
-               case Memo.State is
-               when Success =>
-                  Parser.Tree.Lexer.Trace.Put_Line
-                    (Parser.Tree.Image
-                       (Memo.Result, Children => True, Terminal_Node_Numbers => True, RHS_Index => True));
-               when Failure =>
-                  Parser.Tree.Lexer.Trace.Put_Line
-                    (Image (R, Descriptor) & " failed at pos " & Image_Pos (Tree, Tree.Shared_Stream, Last_Pos));
-               when No_Result =>
-                  raise SAL.Programmer_Error;
-               end case;
-            end if;
-            Parser.Derivs (R).Replace_Element (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos), Memo);
+         when Success | Failure =>
             return Memo;
-         end if;
+
+         when No_Result =>
+            if Parser.Direct_Left_Recursive (R) then
+               Parser.Derivs (R).Replace_Element
+                 (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos), (Failure, Last_Pos));
+            else
+               Memo := Eval (Parser, R, Last_Pos);
+
+               if (Trace_Parse > Detail and Memo.State = Success) or Trace_Parse > Extra then
+                  case Memo.State is
+                     when Success =>
+                        Parser.Tree.Lexer.Trace.Put_Line
+                          (Parser.Tree.Image
+                             (Memo.Result, Children => True, Terminal_Node_Numbers => True, RHS_Index => True));
+                     when Failure =>
+                        Parser.Tree.Lexer.Trace.Put_Line
+                          (Image (R, Descriptor) & " failed at pos " & Image_Pos (Tree, Tree.Shared_Stream, Last_Pos));
+                     when No_Result =>
+                        raise SAL.Programmer_Error;
+                  end case;
+               end if;
+               Parser.Derivs (R).Replace_Element (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos), Memo);
+               return Memo;
+            end if;
       end case;
 
       loop
@@ -288,6 +289,7 @@ package body Ada_Mode.Incremental_Recover_05 is
            (if Result.Max_Examined_Pos = Invalid_Stream_Index
             then Parser.Tree.EOI
             else Parser.Tree.Get_Node (Parser.Tree.Shared_Stream, Result.Max_Examined_Pos));
+         --EMACSCMD:(delete-region (line-beginning-position -4)(+ 5 (line-beginning-position -2)))
 
          Root_Node : constant Node_Access := (if Success then Result.Result else Invalid_Node_Access);
       begin
