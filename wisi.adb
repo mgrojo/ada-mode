@@ -2554,21 +2554,31 @@ package body Wisi is
          if Data.Indent_Comment_Col_0 then
             Indent := True;
             declare
+               use all type Ada.Containers.Count_Type;
                use all type Ada.Text_IO.Count;
                Line_Begin_Char_Pos : Buffer_Pos;
 
                Containing : constant Syntax_Trees.Valid_Node_Access := Tree.Find_New_Line
                  (Line, Line_Begin_Char_Pos);
+               --  Line_Begin_Char_Pos is either in a multi-line grammar token, or a
+               --  non_grammar token.
+
+               Non_Grammar : WisiToken.Lexer.Token_Arrays.Vector renames Tree.Non_Grammar_Const (Containing);
             begin
-               for Tok of Tree.Non_Grammar_Const (Containing) loop
-                  if Tok.Line_Region.First = Line and then
-                    Tok.ID in Data.First_Comment_ID .. Data.Last_Comment_ID and then
-                    Lexer.Column (Tok, Line_Begin_Char_Pos) = 0
-                  then
-                     Indent := False;
-                     exit;
-                  end if;
-               end loop;
+               if Non_Grammar.Length > 0 and then Line_Begin_Char_Pos in
+                 Non_Grammar (Non_Grammar.First_Index).Byte_Region.First ..
+                   Non_Grammar (Non_Grammar.Last_Index).Byte_Region.Last
+               then
+                  for Tok of Non_Grammar loop
+                     if Tok.Line_Region.First = Line and then
+                       Tok.ID in Data.First_Comment_ID .. Data.Last_Comment_ID and then
+                       Lexer.Column (Tok, Line_Begin_Char_Pos) = 0
+                     then
+                        Indent := False;
+                        exit;
+                     end if;
+                  end loop;
+               end if;
 
                if not Indent then
                   Indent_Line

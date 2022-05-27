@@ -281,7 +281,7 @@ complete. PARSE-END is end of desired parse region."
 		      (position-bytes (min (point-max) parse-end))
 		      begin ;; begin_char_pos
 		      send-end ;; end_char_pos
-		      (line-number-at-pos begin)
+		      (line-number-at-pos begin t)
 
 		      ;; begin_indent. Example:
 		      ;;
@@ -566,7 +566,7 @@ PARSER will respond with one or more Query messages."
 	   (format "%s:%d:%d: %s"
 		   (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
 		   ;; file-name can be nil during vc-resolve-conflict
-		   (line-number-at-pos pos)
+		   (line-number-at-pos pos t)
 		   (current-column)
 		   (aref sexp 2))
 	   :inserted (when (= 4 (length sexp)) (aref sexp 3))))
@@ -596,7 +596,7 @@ PARSER will respond with one or more Query messages."
 	     (format "%s:%d:%d: %s"
 		     (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
 		     ;; file-name can be nil during vc-resolve-conflict
-		     (line-number-at-pos pos)
+		     (line-number-at-pos pos t)
 		     (1+ (current-column))
 		     (aref sexp 2)))))
 
@@ -626,10 +626,10 @@ PARSER will respond with one or more Query messages."
 	   (format
 	    (concat "%s:%d:%d: %s"
 		    (when (> 0 name-2-pos) " %s:%d:%d"))
-	    file-name (line-number-at-pos name-1-pos) (funcall column-at-pos name-1-pos)
+	    file-name (line-number-at-pos name-1-pos t) (funcall column-at-pos name-1-pos)
 	    (aref sexp 4)
 	    (when (> 0 name-2-pos)
-	      file-name (line-number-at-pos name-2-pos) (funcall column-at-pos name-2-pos))))
+	      file-name (line-number-at-pos name-2-pos t) (funcall column-at-pos name-2-pos))))
 	  (wisi-parser-local-parse-errors wisi-parser-local))
     ))
 
