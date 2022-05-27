@@ -15,16 +15,21 @@ export GENERATE := BNF_EBNF
 # test_all_harness.adb
 #
 #t_one :: one-clean
-t_one :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
 t_one :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
+t_one :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
+t_one :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.ads
+t_one :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.adb
 t_one :: ada_lite_re2c.c
+t_one :: ada_lite_ebnf_re2c.c
+t_one :: grammar_grammar_01_re2c.c
+t_one :: optimized_list_re2c.c
+t_one :: skip_to_grammar_re2c.c
 t_one :: test_one_harness.run
 
 t_all :: wisitoken_test.gpr
 t_all :: wisitoken-bnf-generate.exe gen test-executables
 t_all :: test_all_harness.run
 
-t_bnf :: RUN_ARGS=1 "" 1 1
 t_bnf :: wisitoken-bnf-generate.exe
 t_bnf :: gen test-executables
 t_bnf :: test_bnf_harness.run
@@ -36,34 +41,35 @@ t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
 t_mck :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 t_mck :: test_mckenzie_harness.run
 
+GRAMMAR := object_declaration
+
 one-clean :
-	rm -rf ada_lite*
+	rm -rf $(GRAMMAR)*
 
 #one :: one-clean
-one :: VERBOSITY := debug=1 lexer=1 action=3
-one :: GRAMMAR := ada_ebnf
 one :: wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe --test_main --output_bnf --generate None --verbosity "$(VERBOSITY)" ../test/bnf/$(GRAMMAR).wy > debug.log
-
+one :: VERBOSITY := debug=1 parse=2
+one :: $(GRAMMAR)_re2c.c
+#one :: $(GRAMMAR)_lalr_run.exe
+one :: $(GRAMMAR)_packrat_proc_run.exe
+#one :: $(GRAMMAR)_packrat_gen_run.exe
+	./$^  --verbosity "$(VERBOSITY)" ../test/bnf/$(GRAMMAR).input > $(GRAMMAR).parse
 
 two-clean :
-	rm -rf debug*
+	rm -rf $(GRAMMAR)*
 
-#two :: VERBOSITY := 1 0 0
-#two :: two-clean
+two :: VERBOSITY := debug=1
+two :: two-clean
 two :: wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe -v 0 0 0 --generate LALR Ada re2c ../test/bnf/ada_lite.wy
+	./wisitoken-bnf-generate.exe --output_bnf --verbosity "$(VERBOSITY)" $(GENERATE_ARGS) ../test/bnf/$(GRAMMAR).wy
 
-three :: GENERATE_ARGS := -v 1 0 0
-three :: one-clean
-three :: ada_lite_ebnf.re2c
-three :: ada_lite_ebnf/parser.c
+three : wisitoken-followed_by.exe
+	./wisitoken-followed_by.exe ../test/bnf/optimized_conflict_03.wy subtype_indication PLUS 2
 
-four :: GRAMMAR := dragon_4_43
-#four :: gen
-four :: test-executables
-#	./$(GRAMMAR)_tree_sitter_run.exe -v 1 ../test/bnf/$(GRAMMAR).input
-	./$(GRAMMAR)_tree_sitter_run.exe -v 1 foo
+four : wisitoken_grammar-clean
+	cd ../; c:/Projects/org.wisitoken.stephe-2/build/wisitoken-bnf-generate.exe wisitoken_grammar.wy
+	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o ../wisitoken_grammar_re2c.c ../wisitoken_grammar.re2c
+	dos2unix -q ../wisitoken_grammar*
 
 # rule copied from gprbuild_rules.make; that rule gets overridden by
 # %.exe rules in rules.make

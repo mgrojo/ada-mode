@@ -31,8 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-some wisitoken-grammar-mode tests failing
-
 ada_lite_ebnf packrat
     enumeration_literal_list
         handle EBNF list

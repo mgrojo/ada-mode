@@ -206,14 +206,25 @@ package body Test_Syntax_Trees is
       use WisiToken.AUnit;
 
       Text : constant String :=
+        "-- comment" & ASCII.LF &
+        --        |10
         "procedure A" & ASCII.LF & "is begin" & ASCII.LF & "   null;" & ASCII.LF & " end A;";
-      --          |10               |13         |21                     |30
+      --         |20                |24         |32                |40
    begin
       Ada_Lite_Parser.Tree.Lexer.Reset_With_String (Text);
 
       Ada_Lite_Parser.Parse (Log_File);
 
-      Check ("1", Ada_Lite_Parser.Tree.Line_At_Byte_Pos (13), 2);
+      if Trace_Tests > Detail then
+         Ada_Lite_Parser.Tree.Print_Tree (Non_Grammar => True);
+         Ada_Lite_Parser.Put_Errors;
+      end if;
+
+      Check ("1", Ada_Lite_Parser.Tree.Line_At_Byte_Pos (24), 3);
+      Check ("2", Ada_Lite_Parser.Tree.Line_At_Byte_Pos (34), 4); --  in whitespace outside non_grammar
+      Check ("3", Ada_Lite_Parser.Tree.Line_At_Byte_Pos (1), 1);  --  SOI with leading non_grammar
+      Check ("4", Ada_Lite_Parser.Tree.Line_At_Byte_Pos (9), 1);  --  in leading non_grammar
+      Check ("5", Ada_Lite_Parser.Tree.Line_At_Byte_Pos (49), 5);  --  EOI
    end Line_At_Byte_Pos_1;
 
    procedure Line_At_Byte_Pos_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -282,7 +293,8 @@ package body Test_Syntax_Trees is
       Check ("9", Grammar_Parser.Tree.Line_At_Byte_Pos (180), 7);
       Check ("10", Grammar_Parser.Tree.Line_At_Byte_Pos (185), 8);
       Check ("11", Grammar_Parser.Tree.Line_At_Byte_Pos (187), 8);
-      Check ("12", Grammar_Parser.Tree.Line_At_Byte_Pos (188), Invalid_Line_Number);
+      Check ("12", Grammar_Parser.Tree.Line_At_Byte_Pos (188), 8); -- at EOI
+      Check ("13", Grammar_Parser.Tree.Line_At_Byte_Pos (189), Invalid_Line_Number); -- after EOI
    end Line_At_Byte_Pos_3;
 
    procedure Find_Char_Pos_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1088,6 +1100,69 @@ package body Test_Syntax_Trees is
       Test_1 ("b, c", 5, 9);
    end Breakdown_Optimized_List_02;
 
+   procedure Prev_New_Line_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use WisiToken.Syntax_Trees.AUnit_Public;
+
+      Text : constant String :=
+        "-- leading comment" & ASCII.LF &
+        --        |10          |19
+        "%code C %{" & ASCII.LF &
+        --             |30
+        "  code"  & ASCII.LF &
+        --          |37
+        "}% a : A; -- comment 1" & ASCII.LF & ASCII.LF &
+        -- |40       |50           |60
+        "b : B; -- trailing comment" & ASCII.LF;
+      --         |70       |80         |88
+
+      Parser : WisiToken.Parse.Base_Parser'Class renames WisiToken.Parse.Base_Parser'Class (Grammar_Parser);
+
+      procedure Test_1
+        (Label                  : in String;
+         Node_Pos               : in Buffer_Pos;
+         Expected_Prev_Node_Pos : in Buffer_Pos;
+         Expected_Index         : in SAL.Base_Peek_Type;
+         Expected_Pos           : in Buffer_Pos;
+         Expected_Line          : in Line_Number_Type)
+      is
+         use SAL.AUnit;
+         use WisiToken.AUnit;
+
+         This_Node          : constant Valid_Node_Access := Parser.Tree.Find_Byte_Pos (Node_Pos, True);
+         Expected_Prev_Node : constant Valid_Node_Access := Parser.Tree.Find_Byte_Pos
+           (Expected_Prev_Node_Pos, True);
+         Computed_Prev      : constant New_Line_Ref      := Parser.Tree.Prev_New_Line (This_Node);
+      begin
+         if Trace_Tests > Extra then
+            Parser.Tree.Lexer.Trace.Put_Line (Label & ".this_node: " & Parser.Tree.Image (This_Node));
+            Parser.Tree.Lexer.Trace.Put_Line (Label & ".computed_prev_node: " & Parser.Tree.Image (Computed_Prev.Node));
+            Parser.Tree.Lexer.Trace.Put_Line (Label & ".expected_prev_node: " & Parser.Tree.Image (Expected_Prev_Node));
+         end if;
+         Check_Address (Label & ".node", Computed_Prev.Node, Expected_Prev_Node);
+         Check (Label & ".index", Computed_Prev.Non_Grammar_Index, Expected_Index);
+         Check (Label & ".pos", Computed_Prev.Pos, Expected_Pos);
+         Check (Label & ".line", Computed_Prev.Line, Expected_Line);
+      end Test_1;
+
+   begin
+      Parser.Tree.Lexer.Reset_With_String (Text);
+
+      Parser.Parse (Log_File);
+
+      if Trace_Tests > Detail then
+         Parser.Tree.Print_Tree (Non_Grammar => True);
+         Parser.Put_Errors;
+      end if;
+
+      Test_1 ("1a", 1, 1, 1, 1, 1);
+      Test_1 ("2", 20, 1, 2, 19, 2);
+      Test_1 ("4", 40, 28, 0, 37, 4);
+      Test_1 ("6", 62, 46, 2, 61, 6);
+      Test_1 ("7", 89, 67, 1, 88, 7);
+   end Prev_New_Line_01;
+
    ----------
    --  Public subprograms
 
@@ -1105,6 +1180,7 @@ package body Test_Syntax_Trees is
       Register_Routine (T, Find_Char_Pos_1'Access, "Find_Char_Pos_1");
       Register_Routine (T, Breakdown_Optimized_List_01'Access, "Breakdown_Optimized_List_01");
       Register_Routine (T, Breakdown_Optimized_List_02'Access, "Breakdown_Optimized_List_02");
+      Register_Routine (T, Prev_New_Line_01'Access, "Prev_New_Line_01");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

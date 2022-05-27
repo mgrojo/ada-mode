@@ -14,7 +14,7 @@
 
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]% "bogus"
 %token <string-single-one-line> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]% "''"
-%token <number> NUMERIC_LITERAL %[ [-][0-9][0-9_]* ]% "1234567890"
+%token <number> NUMERIC_LITERAL %[ [-]?[0-9][0-9_]* ]% "1234567890"
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%

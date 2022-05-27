@@ -1636,31 +1636,6 @@ package WisiToken.Syntax_Trees is
    --  giving a line number, computes Start_Line, and continues as
    --  above.
 
-   function This_New_Line
-     (Tree       : in Syntax_Trees.Tree;
-      Node       : in Valid_Node_Access;
-      First      : in Boolean;
-      Start_Line : in Line_Number_Type)
-     return New_Line_Ref
-   with Pre => Tree.Label (Node) = Source_Terminal;
-   --  Return a reference to the first or last new_line in Node, if any,
-   --  including in Node.Non_Grammar. If First, Start_Line must be the
-   --  line number at the start of Node; if not First, at the end of
-   --  Node. If Node is SOI, returns Invalid_New_Line_Ref unless SOI has
-   --  non_grammar with an explicit new_line. If Node is EOI, returns
-   --  Invalid_New_Line_Ref.
-
-   function Next_New_Line
-     (Tree       : in Syntax_Trees.Tree;
-      Node       : in Valid_Node_Access;
-      Start_Line : in Line_Number_Type)
-     return New_Line_Ref
-   with Pre => Tree.Parents_Set;
-   --  If Node is EOI, returns reference to EOI.Non_Grammar (1).
-   --  Otherwise, return a reference to the first new_line following the
-   --  last byte in Node or Node.Non_Grammar if it has Non_Grammar.
-   --  Start_Line must be the line number at the end of Node.
-
    function First_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
