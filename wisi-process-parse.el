@@ -1262,6 +1262,8 @@ Source buffer is current."
   "Convert wisi-parser-local-all-changes in current buffer to command file
 in CMD-BUFFER-NAME."
   (interactive)
+  (when (equal -1 (wisi-parser-local-all-changes wisi-parser-local))
+    (user-error "saving all changes is disabled"))
   (unless cmd-buffer-name
     (setq cmd-buffer-name "debug.cmd"))
   (let ((changes (nreverse (copy-sequence (wisi-parser-local-all-changes wisi-parser-local))))
