@@ -244,6 +244,7 @@ package body WisiToken.Lexer is
                Found_Line := @ + 1;
             end if;
          end loop;
+         raise SAL.Programmer_Error; -- precondition false.
 
       when File_Label =>
          --  FIXME: need to read a char from the mapped region; gnatcoll.mmap
@@ -251,7 +252,6 @@ package body WisiToken.Lexer is
          --  testing.
          return Found_Line;
       end case;
-      raise SAL.Programmer_Error; -- precondition false.
    end Line_At_Byte_Pos;
 
    function Contains_New_Line

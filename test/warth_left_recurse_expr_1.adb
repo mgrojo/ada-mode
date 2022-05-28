@@ -62,15 +62,15 @@ package body Warth_Left_Recurse_Expr_1 is
 
          Parser.Parse (Log_File);
 
-         AUnit.Assertions.Assert (Expected_State = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
+         AUnit.Assertions.Assert (Expected_State = Success, "'" & Input & "': expected fail; did not get Parse_Error");
 
          Parser.Execute_Actions
            (Action_Region_Bytes => (WisiToken.Buffer_Pos (Input'First), WisiToken.Buffer_Pos (Input'Last)));
          Check ("result", User_Data.Stack.Pop, Expected_Result);
 
       exception
-      when WisiToken.Syntax_Error =>
-         AUnit.Assertions.Assert (Expected_State = Failure, "'" & Input & "': expected success; got Syntax_Error");
+      when WisiToken.Parse_Error =>
+         AUnit.Assertions.Assert (Expected_State = Failure, "'" & Input & "': expected success; got Parse_Error");
 
       when AUnit.Assertions.Assertion_Error =>
          raise;
@@ -116,7 +116,7 @@ package body Warth_Left_Recurse_Expr_1 is
          Parser.Parse (Log_File);
 
          AUnit.Assertions.Assert
-           (Expected_State = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
+           (Expected_State = Success, "'" & Input & "': expected fail; did not get Parse_Error");
 
          if WisiToken.Trace_Tests > WisiToken.Detail then
             Ada.Text_IO.New_Line;
@@ -130,8 +130,8 @@ package body Warth_Left_Recurse_Expr_1 is
            (Action_Region_Bytes => (WisiToken.Buffer_Pos (Input'First), WisiToken.Buffer_Pos (Input'Last)));
          Check ("result", User_Data.Stack.Pop, Expected_Result);
       exception
-      when WisiToken.Syntax_Error =>
-         AUnit.Assertions.Assert (Expected_State = Failure, "'" & Input & "': expected success; got Syntax_Error");
+      when WisiToken.Parse_Error =>
+         AUnit.Assertions.Assert (Expected_State = Failure, "'" & Input & "': expected success; got Parse_Error");
 
       when AUnit.Assertions.Assertion_Error =>
          raise;

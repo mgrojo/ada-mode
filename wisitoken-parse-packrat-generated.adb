@@ -29,23 +29,17 @@ package body WisiToken.Parse.Packrat.Generated is
       use all type WisiToken.Syntax_Trees.User_Data_Access;
       use all type Ada.Containers.Count_Type;
       Descriptor : WisiToken.Descriptor renames Parser.Tree.Lexer.Descriptor.all;
+      Trace      : WisiToken.Trace'Class renames Parser.Tree.Lexer.Trace.all;
 
       Result : Memo_Entry;
    begin
+      if Trace_Time then
+         Trace.Put_Clock ("start");
+      end if;
+
       if Edits.Length > 0 then
          raise WisiToken.Parse_Error;
       end if;
-
-      for Deriv of Parser.Derivs loop
-         for Memo of Deriv loop
-            case Memo.State is
-            when No_Result | Failure =>
-               null;
-            when Success =>
-               Memo.Last_Pos := Syntax_Trees.Invalid_Stream_Index;
-            end case;
-         end loop;
-      end loop;
 
       Parser.Tree.Clear;
 
@@ -69,41 +63,33 @@ package body WisiToken.Parse.Packrat.Generated is
       Result := Parser.Parse_WisiToken_Accept
         (Parser, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream, Skip_SOI => False));
 
-      --  Clear copies of Stream_Index so Clear_Parse_Streams can run.
-      for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
-         Parser.Derivs (Nonterm).Clear (Free_Memory => True);
-      end loop;
-
-      declare
-         use WisiToken.Syntax_Trees;
-
-         Max_Examined_Node : constant Valid_Node_Access :=
-           (case Result.State is
-            when No_Result =>
-               Parser.Tree.SOI,
-            when Packrat.Success =>
-               Parser.Tree.EOI,
-            when Failure =>
-              (if Result.Max_Examined_Pos = Invalid_Stream_Index
-               then Parser.Tree.EOI
-               else Parser.Tree.Get_Node (Parser.Tree.Shared_Stream, Result.Max_Examined_Pos)));
-
-      begin
-         if Result.State = Packrat.Success then
-            --  Do this before Clear_Parse_Streams so the root node is not deleted.
-            Parser.Tree.Set_Root (Result.Result);
-            Result := (No_Result, False);
-            Parser.Tree.Clear_Parse_Streams; -- also frees excess tree nodes created by backtracking.
-
-         else
-            if Trace_Parse > Outline then
-               Parser.Tree.Lexer.Trace.Put_Line ("parse failed");
-            end if;
-
-            raise Syntax_Error with Parser.Tree.Error_Message (Max_Examined_Node, "parse failed");
-            --  FIXME packrat: add "expecting: ..." based on last nonterm?
+      --  FIXME: debugging error message
+      if Result.State /= Packrat.Success then
+         if Trace_Parse > Detail then
+            Trace.New_Line;
+            Trace.Put_Line
+              ("max_examined_pos: " & Parser.Tree.Image
+                 (Parser.Tree.Get_Node (Parser.Tree.Shared_Stream, Result.Max_Examined_Pos), Node_Numbers => True));
+            Trace.Put_Line ("derivs:");
+            for ID in Parser.Derivs'Range loop
+               declare
+                  Deriv : Memos.Vector renames Parser.Derivs (ID);
+               begin
+                  for Pos in Deriv.First_Index .. Deriv.Last_Index loop
+                     if Deriv (Pos).State /= No_Result then
+                        Trace.Put_Line
+                          (Image (ID, Parser.Tree.Lexer.Descriptor.all) & ": " &
+                             Image (Parser.Tree, Deriv (Pos)));
+                        exit;
+                     end if;
+                  end loop;
+               end;
+            end loop;
          end if;
-      end;
+      end if;
+
+      Parser.Finish_Parse (Result);
+
    end Parse;
 
 end WisiToken.Parse.Packrat.Generated;

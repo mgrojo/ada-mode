@@ -47,7 +47,26 @@ pragma License (Modified_GPL);
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.Packrat is
 
-   type Parser is abstract new Base_Parser with null record;
+   type Memo_State is (No_Result, Failure, Success);
+   subtype Result_States is Memo_State range Failure .. Success;
+
+   type Memo_Entry (State : Memo_State := No_Result) is record
+      Max_Examined_Pos : Syntax_Trees.Stream_Index;
+      --  For error message.
+
+      case State is
+      when No_Result =>
+         Recursive : Boolean := False;
+
+      when Failure =>
+         null;
+
+      when Success =>
+         Result   : Syntax_Trees.Node_Access;
+         Last_Pos : Syntax_Trees.Stream_Index; -- Last terminal in Result
+
+      end case;
+   end record;
 
    function Image_Pos
      (Tree    : in Syntax_Trees.Tree;
@@ -57,24 +76,7 @@ package WisiToken.Parse.Packrat is
    with Pre => Tree.Contains (Stream, Element);
    --  "0" for Invalid_Stream_Index, Node_Index'Image otherwise.
 
-   type Memo_State is (No_Result, Failure, Success);
-   subtype Result_States is Memo_State range Failure .. Success;
-
-   type Memo_Entry (State : Memo_State := No_Result) is record
-      case State is
-      when No_Result =>
-         Recursive : Boolean := False;
-
-      when Failure =>
-         Max_Examined_Pos : Syntax_Trees.Stream_Index;
-         --  For error message.
-
-      when Success =>
-         Result   : Syntax_Trees.Node_Access;
-         Last_Pos : Syntax_Trees.Stream_Index;
-
-      end case;
-   end record;
+   function Image (Tree : in Syntax_Trees.Tree; Item : in Memo_Entry) return String;
 
    subtype Positive_Node_Index is Syntax_Trees.Node_Index range 1 .. Syntax_Trees.Node_Index'Last;
    package Memos is new SAL.Gen_Unbounded_Definite_Vectors
@@ -83,5 +85,14 @@ package WisiToken.Parse.Packrat is
    --  (incremental parse is not supported).
 
    type Derivs is array (Token_ID range <>) of Memos.Vector;
+
+   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is abstract new Base_Parser
+     with record
+      Derivs : Packrat.Derivs (First_Nonterminal .. Last_Nonterminal);
+   end record;
+
+   procedure Finish_Parse (Parser : in out Packrat.Parser; Result : in out Memo_Entry);
+   --  Call Tree.Set_Root, Clear_Parse_Streams; raise Parse_Error with an
+   --  error message if the parse did not succeed.
 
 end WisiToken.Parse.Packrat;

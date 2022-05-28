@@ -34,4 +34,56 @@ package body WisiToken.Parse.Packrat is
       end if;
    end Image_Pos;
 
+   function Image (Tree : in Syntax_Trees.Tree; Item : in Memo_Entry) return String
+   is begin
+      return
+        (case Item.State is
+         when No_Result => "",
+         when Failure => "fail " & Tree.Image
+           (Tree.Get_Node (Tree.Shared_Stream, Item.Max_Examined_Pos), Node_Numbers => True),
+         when Success => "success " & Tree.Image (Item.Result, Node_Numbers => True));
+   end Image;
+
+   procedure Finish_Parse (Parser : in out Packrat.Parser; Result : in out Memo_Entry)
+   is
+      use WisiToken.Syntax_Trees;
+      Tree       : Syntax_Trees.Tree renames Parser.Tree;
+      Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
+      Trace      : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
+   begin
+      --  Clear copies of Stream_Index so Clear_Parse_Streams can run.
+      for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
+         Parser.Derivs (Nonterm).Clear (Free_Memory => True);
+      end loop;
+
+      if Trace_Time then
+         Trace.Put_Clock ("finish parse");
+      end if;
+
+      if Result.State = Packrat.Success then
+         --  Do this before Clear_Parse_Streams so the root node is not deleted.
+         Tree.Set_Root (Result.Result);
+         Result := (State => No_Result, Max_Examined_Pos => Invalid_Stream_Index, Recursive => False);
+         Tree.Clear_Parse_Streams; -- also frees excess tree nodes created by backtracking.
+
+      else
+         declare
+            Msg : constant String := Tree.Error_Message
+              (Ref     => (Tree.Shared_Stream,
+                           Result.Max_Examined_Pos,
+                           Tree.Get_Node (Tree.Shared_Stream, Result.Max_Examined_Pos)),
+               Message => "parse failed");
+         begin
+            if Trace_Parse > Outline then
+               Tree.Lexer.Trace.Put_Line (Msg);
+            end if;
+
+            --  If we raise Syntax_Error, the caller assumes syntax error
+            --  information is in the tree; not true for packrat (yet).
+            raise WisiToken.Parse_Error with Msg;
+            --  FIXME packrat: add "expecting: ..." based on last nonterm?
+         end;
+      end if;
+   end Finish_Parse;
+
 end WisiToken.Parse.Packrat;

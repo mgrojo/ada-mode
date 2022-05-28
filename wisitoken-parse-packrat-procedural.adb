@@ -53,6 +53,22 @@ package body WisiToken.Parse.Packrat.Procedural is
       Next_Pos : Syntax_Trees.Stream_Index := Tree.Stream_Next (Tree.Shared_Stream, Pos);
 
       Max_Examined_Pos : Syntax_Trees.Stream_Index := Last_Pos;
+
+      procedure Update_Max_Examined_Pos (New_Pos : in Syntax_Trees.Stream_Index)
+      is begin
+         if Tree.Byte_Region
+           (Tree.Get_Node (Tree.Shared_Stream, New_Pos), Trailing_Non_Grammar => False).First >
+           Tree.Byte_Region
+             (Tree.Get_Node (Tree.Shared_Stream, Max_Examined_Pos), Trailing_Non_Grammar => False).First
+         then
+            Max_Examined_Pos := New_Pos;
+         end if;
+         if Trace_Parse > Extra then
+            Parser.Tree.Lexer.Trace.Put_Line
+              (Image (R, Descriptor) & ": max_examined_pos " & Image_Pos (Tree, Tree.Shared_Stream, Max_Examined_Pos));
+         end if;
+      end Update_Max_Examined_Pos;
+
    begin
       for RHS_Index in Parser.Grammar (R).RHSs.First_Index .. Parser.Grammar (R).RHSs.Last_Index loop
          declare
@@ -63,6 +79,7 @@ package body WisiToken.Parse.Packrat.Procedural is
             if RHS.Tokens.Length = 0 then
                return
                  (State            => Success,
+                  Max_Examined_Pos => Max_Examined_Pos,
                   Result           => Tree.Add_Nonterm
                     (Production    => (R, RHS_Index),
                      Children      => (1 .. 0 => Syntax_Trees.Invalid_Node_Access),
@@ -70,12 +87,15 @@ package body WisiToken.Parse.Packrat.Procedural is
                   Last_Pos         => Pos);
             else
                declare
+                  use all type WisiToken.Syntax_Trees.Node_Access;
                   Children : Syntax_Trees.Node_Access_Array
                     (SAL.Base_Peek_Type (RHS.Tokens.First_Index) .. SAL.Base_Peek_Type (RHS.Tokens.Last_Index));
                begin
                   for I in RHS.Tokens.First_Index .. RHS.Tokens.Last_Index loop
                      if RHS.Tokens (I) in Terminal then
                         if Next_Pos = Syntax_Trees.Invalid_Stream_Index then
+                           --  We don't update Max_Examined_Pos here; it must already be EOI
+                           pragma Assert (Tree.Get_Node (Tree.Shared_Stream, Max_Examined_Pos) = Tree.EOI);
                            goto Fail_RHS;
 
                         elsif Tree.ID (Tree.Shared_Stream, Next_Pos) = RHS.Tokens (I) then
@@ -83,10 +103,13 @@ package body WisiToken.Parse.Packrat.Procedural is
                            Next_Pos := Tree.Stream_Next (Tree.Shared_Stream, Pos);
                            Children (SAL.Base_Peek_Type (I)) := Tree.Get_Node (Tree.Shared_Stream, Pos);
                         else
+                           Update_Max_Examined_Pos (Next_Pos);
                            goto Fail_RHS;
                         end if;
                      else
                         Memo := Apply_Rule (Parser, RHS.Tokens (I), Pos);
+                        Update_Max_Examined_Pos (Memo.Max_Examined_Pos);
+
                         case Memo.State is
                         when Success =>
                            Children (SAL.Base_Peek_Type (I)) := Memo.Result;
@@ -95,6 +118,7 @@ package body WisiToken.Parse.Packrat.Procedural is
 
                         when Failure =>
                            goto Fail_RHS;
+
                         when No_Result =>
                            raise SAL.Programmer_Error;
                         end case;
@@ -102,14 +126,15 @@ package body WisiToken.Parse.Packrat.Procedural is
                   end loop;
 
                   return Result : constant Memo_Entry :=
-                    (State              => Success,
-                     Result             => Parser.Tree.Add_Nonterm
-                       (Production      => (R, RHS_Index),
-                        Children        => Syntax_Trees.To_Valid_Node_Access (Children),
-                        Clear_Parents   => True),
+                    (State            => Success,
+                     Max_Examined_Pos => Max_Examined_Pos,
+                     Result           => Parser.Tree.Add_Nonterm
+                       (Production    => (R, RHS_Index),
+                        Children      => Syntax_Trees.To_Valid_Node_Access (Children),
+                        Clear_Parents => True),
                      --  We must be able to steal nodes from failed nonterms;
                      --  body_instantiation_conflict.wy.
-                     Last_Pos           => Pos)
+                     Last_Pos         => Pos)
                   do
                      if Trace_Parse > Extra then
                         Parser.Tree.Lexer.Trace.Put_Line
@@ -118,13 +143,6 @@ package body WisiToken.Parse.Packrat.Procedural is
                   end return;
 
                   <<Fail_RHS>>
-                  if Tree.Byte_Region
-                    (Tree.Get_Node (Tree.Shared_Stream, Next_Pos), Trailing_Non_Grammar => False).First >
-                    Tree.Byte_Region
-                      (Tree.Get_Node (Tree.Shared_Stream, Max_Examined_Pos), Trailing_Non_Grammar => False).First
-                  then
-                     Max_Examined_Pos := Next_Pos;
-                  end if;
                   Pos := Last_Pos;
                   Next_Pos := Tree.Stream_Next (Tree.Shared_Stream, Pos);
                end;
@@ -226,7 +244,12 @@ package body WisiToken.Parse.Packrat.Procedural is
             exit;
          end if;
       end loop;
-      return Parser.Derivs (R)(Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos));
+      declare
+         Result : Memo_Entry renames Parser.Derivs (R)(Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos));
+      begin
+         Result.Max_Examined_Pos := Result_Recurse.Max_Examined_Pos;
+         return Result;
+      end;
    end Apply_Rule;
 
    ----------
@@ -262,16 +285,19 @@ package body WisiToken.Parse.Packrat.Procedural is
       use all type WisiToken.Syntax_Trees.User_Data_Access;
 
       Descriptor : WisiToken.Descriptor renames Parser.Tree.Lexer.Descriptor.all;
+      Trace      : WisiToken.Trace'Class renames Parser.Tree.Lexer.Trace.all;
 
       Result : Memo_Entry;
    begin
+      if Trace_Time then
+         Trace.Put_Clock ("start");
+      end if;
+
       if Edits.Length > 0 then
          raise WisiToken.Parse_Error;
       end if;
 
       Parser.Tree.Clear;
-      --  Creates Shared_Stream, but no parse stream; packrat does not
-      --  use a parse stream.
 
       if Parser.User_Data /= null then
          Parser.User_Data.Reset;
@@ -290,41 +316,8 @@ package body WisiToken.Parse.Packrat.Procedural is
       Result := Apply_Rule
         (Parser, Parser.Start_ID,  Parser.Tree.Stream_First (Parser.Tree.Shared_Stream, Skip_SOI => False));
 
-      --  Clear copies of Stream_Index so Clear_Parse_Streams can run.
-      for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
-         Parser.Derivs (Nonterm).Clear (Free_Memory => True);
-      end loop;
+      Parser.Finish_Parse (Result);
 
-      declare
-         use WisiToken.Syntax_Trees;
-
-         Max_Examined_Node : constant Valid_Node_Access :=
-           (case Result.State is
-            when No_Result =>
-               Parser.Tree.SOI,
-            when Packrat.Success =>
-               Parser.Tree.EOI,
-            when Failure =>
-              (if Result.Max_Examined_Pos = Invalid_Stream_Index
-               then Parser.Tree.EOI
-               else Parser.Tree.Get_Node (Parser.Tree.Shared_Stream, Result.Max_Examined_Pos)));
-      begin
-         if Result.State = Packrat.Success then
-            --  Do this before Clear_Parse_Streams so the root node is not deleted.
-            Parser.Tree.Set_Root (Result.Result);
-
-            Result := (No_Result, False);
-            Parser.Tree.Clear_Parse_Streams; -- also frees excess tree nodes created by backtracking.
-
-         else
-            if Trace_Parse > Outline then
-               Parser.Tree.Lexer.Trace.Put_Line ("parse failed");
-            end if;
-
-            raise Syntax_Error with Parser.Tree.Error_Message (Max_Examined_Node, "parse failed");
-            --  FIXME packrat: add "expecting: ..." based on last nonterm?
-         end if;
-      end;
    end Parse;
 
 end WisiToken.Parse.Packrat.Procedural;

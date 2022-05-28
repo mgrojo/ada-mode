@@ -31,8 +31,7 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-ada_lite-packrat_gen-ada_lite.parse
-    at char 272, tries to parse parameter_specifiction_list as an aggregate first; why?
+packrat_gen error message test
 
 wisitoken.grammar_mode.stephe-1 test/nominal.wy failing
     bug in line_begin_char_pos for delimited-text
@@ -64,6 +63,9 @@ add packrat_list; breakdown split at appropriate child
 
 ada_annex_p packrat
     in o.e.a-m.s-6
+
+improve packrat memo storage
+    use sparse list for derivs?
 
 Not doing packrat indirect left recursion
     ticket V415-028; AdaCore says they don't need it for Ada

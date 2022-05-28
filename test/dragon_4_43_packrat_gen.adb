@@ -56,8 +56,8 @@ package body Dragon_4_43_Packrat_Gen is
          AUnit.Assertions.Assert (Expected = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
 
       exception
-      when WisiToken.Syntax_Error =>
-         AUnit.Assertions.Assert (Expected = Failure, "'" & Input & "': expected success; got Syntax_Error");
+      when WisiToken.Parse_Error =>
+         AUnit.Assertions.Assert (Expected = Failure, "'" & Input & "': expected success; got Parse_Error");
 
       when AUnit.Assertions.Assertion_Error =>
          raise;

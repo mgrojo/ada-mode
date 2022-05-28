@@ -36,9 +36,11 @@ package WisiToken.Parse.Packrat.Generated is
    type Parse_WisiToken_Accept is access
      function (Parser : in out Generated.Parser; Last_Pos : in Syntax_Trees.Stream_Index) return Result_Type;
 
-   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new Packrat.Parser with
-   record
-      Derivs                 : WisiToken.Parse.Packrat.Derivs (First_Nonterminal .. Last_Nonterminal);
+   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new Packrat.Parser
+     (First_Nonterminal => First_Nonterminal,
+      Last_Nonterminal  => Last_Nonterminal)
+   with record
+
       Parse_WisiToken_Accept : Generated.Parse_WisiToken_Accept;
    end record;
    type Parser_Access is access Parser;

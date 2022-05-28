@@ -28,11 +28,13 @@ with WisiToken.Productions;
 package WisiToken.Parse.Packrat.Procedural is
 
    type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new Packrat.Parser
+     (First_Nonterminal => First_Nonterminal,
+      Last_Nonterminal  => Last_Nonterminal)
    with record
+
       Grammar               : WisiToken.Productions.Prod_Arrays.Vector;
       Start_ID              : Token_ID;
       Direct_Left_Recursive : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
-      Derivs                : Packrat.Derivs (First_Nonterminal .. Last_Nonterminal);
    end record;
    type Parser_Access is access Parser;
 
