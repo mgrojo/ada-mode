@@ -101,7 +101,8 @@ project ARM_Info is
    end Builder;
 
   package Linker is
-     for Default_Switches ("Ada") use External_As_List ("LDFLAGS", " ");
+     --  Settings like --as-needed should go before objects.
+     for Leading_Switches ("Ada") use External_As_List ("LDFLAGS", " ");
   end Linker;
 
 end ARM_Info;

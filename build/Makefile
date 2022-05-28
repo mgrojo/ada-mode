@@ -38,8 +38,8 @@ FORMATS   := $(filter-out pdf texinfo, $(AVAILABLE_FORMATS))
 
 # Debian standard build flags for Ada projects
 BUILDER_OPTIONS := -k
-ADAFLAGS        :=
-LDFLAGS         :=
+ADAFLAGS        ?=
+LDFLAGS         ?=
 # arm_info.gpr sets its own flags, then appends these variables so
 # that they take precedence.  The intent is that you may configure the
 # build with a simple variable override.
