@@ -794,7 +794,7 @@ is -- target 0
    --EMACSCMD:(test-face "new" 'font-lock-keyword-face)
    --EMACSCMD:(test-face-1 ", 1," "new" 'font-lock-keyword-face))
    --EMACSCMD:(test-face "Record_Type_3" 'font-lock-type-face)
-   --EMACSCMD:(test-face-1 ":= new" "Record_Type_3" 'nil) ;; can't distinquish type name from function call
+   --EMACSCMD:(test-face-1 ":= new" "Record_Type_3" nil) ;; can't distinguish type name from rest of name.
    --EMACSCMD:(test-face "1234" 'font-lock-constant-face)
    --EMACSCMD:(test-face-1 "(1234)" "1" 'font-lock-constant-face)
    --EMACSCMD:(test-face "1.234" 'font-lock-constant-face)

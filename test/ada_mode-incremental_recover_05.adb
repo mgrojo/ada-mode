@@ -1,4 +1,5 @@
 --  Froma a real editing session. Used to encounter an Assertion_Error in recover.
+--EMACSCMD:(setq skip-recase-test t)
 
 --EMACSCMD:(setq skip-recase-test t skip-reindent-test t)
 package body Ada_Mode.Incremental_Recover_05 is
@@ -289,6 +290,7 @@ package body Ada_Mode.Incremental_Recover_05 is
            (if Result.Max_Examined_Pos = Invalid_Stream_Index
             then Parser.Tree.EOI
             else Parser.Tree.Get_Node (Parser.Tree.Shared_Stream, Result.Max_Examined_Pos));
+         --EMACSCMD:(delete-region (line-beginning-position -4)(+ 5 (line-beginning-position -2)))
 
          Root_Node : constant Node_Access := (if Success then Result.Result else Invalid_Node_Access);
       begin

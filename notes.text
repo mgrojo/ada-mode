@@ -50,12 +50,6 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-sometimes all-changes is wrong
-    when save buffer, diff against parser text
-        test that wisi.parse_context.edit_source is correct
-        but save-text-auto has never shown such a problem
-
-
 run all tests
     wisitoken done
     ada-mode partial review build/test.log
@@ -88,7 +82,14 @@ maybe on line 1265:          Lines.Lines (Tmp'Range) := Tmp.all;
 
 update wisitoken.grammar/wisitoken_grammar_01.wy to match
 
+generate tree-sitter parse table
+    see if tree-sitter error recover is good enough
+
 time %lr1_hash_table_size
+
+need test for ada-find-file
+    it is currently broken
+    also broken in ada-mode 7.2.0 with latest projects.el from ELPA
 
 review FIXMEs
     (grep-find "find c:/Projects/org.emacs.wisi.stephe-1 -type f -print | \"xargs\" grep  -nH --null FIXME:")
@@ -156,37 +157,27 @@ first parser operation after opening a large file is slow
 
     or maybe packrat is faster?
 
- Negotiate with Eurocontrol:
-    ask AdaCore:
-        old issues: SA31-041 Oct 31, 2019 GNAT Studio using libadalang for format? (closed)
-            short answer: wait for ada_language_server (estimated 2020, ie now)
-            so this is just a ping
-
-        submitted UB18-067 18 Nov:
-            What is the plan to improve error correction and
-            formatting to allow indent/format one line while editing?
-
-            documentation on the format of the custom format template file?
-
-For the near future, we still need the WisiToken parser to support
-indent while editing, which means we need incremental parse to make it
-faster and more accurate/reliable. It will also most likely make sense
-to implement a libadalang xref backend, or something else to replace
-gpr_query.
-
-acknowledge that previous work was not really worth it, because
-gnatstudio indent was not adaptable to Eurocontrol style.
-
-Research Eurocontrol - what is their area of business, what location/culture are they - linked in etc.
-read Kate's book on culture/persuasion.
-
-        - currently doing incremental (making progress. ready for beta test?)
-        - send money to speed up
-        - send money to integrate libadalang xref backend
-        - find another volunteer to speed up
-        - pay someone in-house to work on this - I will mentor
-
  after incremental
+test/ada_mode-recover_51.adb
+    error is on "=>"; tree.others is an expression  (could be tree.foo)
+    Desired solution: (Undo_Reduce, undo_reduce ..., push_back 'others', push_back '.', delete '.')
+    fails after first undo_reduce, doesn't try a second.
+        not clear why
+
+    other solution: delete '=> <>' cost 6
+        that's interrupted by minimal_complete; ((DELETE, EQUAL_GREATER, 2), (INSERT, RIGHT_PAREN, 3)) cost 3
+            that keeps going, inserting more right_parens; bug
+        cost 6 not dequeued in 10_000 enqueue
+        need separate minimal_complete queue.
+
+mmm-mode
+    need one parse_context per region
+    other use case; one parse_context for each submode, with contiguous text from each region
+        text is in a "rope", not a flat buffer.
+        elisp can handle the rope aspect.
+
+language specific function for name face?
+
 review this file!
 
 classify errors as local/long distance
@@ -1648,7 +1639,8 @@ mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     http://debbugs.gnu.org/Developer.html
     email to nnn-close@debbugs.gnu.org
-        subject: closed by ada-mode version 7.1.6
+        subject: copy from bug report
+        body: closed by ada-mode version 7.2.1
         don't include Version: header; that's an Emacs version
     debbugs updates ada-mode summary page within half an hour; no emails
 

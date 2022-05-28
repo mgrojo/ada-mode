@@ -9,7 +9,7 @@ project Gpr_Incremental_02 is
    --EMACSCMD:(progn (forward-line 3)(back-to-indentation)(delete-char 2)(wisi-parse-incremental-none)(length (wisi-parser-local-lexer-errors wisi-parser-local)))
    --EMACSRESULT: 0
    package Linker is
-      for Default_Switches ("Ada") use External_As_List ("LDFLAGS", " ");
+      for Default_Switches ("Ada") use external_as_list ("LDFLAGS", " ");
    end Linker;
    -- EMACSCMD:(progn (forward-line -2)(forward-word 1)(forward-char 1)(delete-char 7)(insert "Default"))
 
