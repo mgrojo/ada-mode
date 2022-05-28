@@ -58,17 +58,33 @@ sometimes all-changes is wrong
 
 run all tests
     wisitoken done
-    ada-mode partial
-        test/ada_mode-refactor_object_method_to_method_object.adb failing
-
+    ada-mode partial review build/test.log
+        test/ada_mode-recover_09.adb
+          recover found a different solution to the second error
+            simplify in debug.adb
 
 try packrat
     see fixme in gen_run_wisi_lr
 
     time packrat_gen parse
+        gnatcoll-xref.adb: gnatcoll-xref.adb:40:1: parse failed
+            but verbosity parse=3 says it gets much further, and doesn't say why it fails!
+
+maybe on line 1265:          Lines.Lines (Tmp'Range) := Tmp.all;
+
+            packrat_proc says gnatcoll-xref.adb:1265:27: parse failed
+                so packrat_gen is not updating max_examined_pos properly
+                add wisitoken test
+                add verbosity in update.
+
+        copies lots of stream_index; all ref counted.
 
     mckenzie error recover
     packrat lists
+        optimizes query time, not parse time?
+
+    optimize rhs order; most common first
+
 
 update wisitoken.grammar/wisitoken_grammar_01.wy to match
 

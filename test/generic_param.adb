@@ -38,7 +38,7 @@ procedure Generic_Param is
       type Rte_Item_Ptr_T is access all Rte_Item_T;
    end Route_Item;
 
-   --EMACSCMD:(test-face "Generic_List_Unbounded_Double" 'font-lock-function-name-face)
+   --EMACSCMD:(test-face "Generic_List_Unbounded_Double" nil) ;; can't distinguish function name
    package Route_Item_List is new Generic_List_Unbounded_Double
      (Route_Item.Rte_Item_T, Route_Item.Rte_Item_Ptr_T, Integer);
 

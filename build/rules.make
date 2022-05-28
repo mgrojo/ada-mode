@@ -42,7 +42,10 @@ gpr-skel.gpr.tmp :
 ../run_ada_lr1_parse.exe : ../run_ada_lr1_parse.ads ../ada_annex_p_re2c.c force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
 
-../run_ada_packrat_parse.exe : ../run_ada_packrat_parse.ads force
+../run_ada_packrat_gen_parse.exe : ../run_ada_packrat_gen_parse.ads force
+	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
+
+../run_ada_packrat_proc_parse.exe : ../run_ada_packrat_proc_parse.ads force
 	gprbuild -p -j8 ../ada_mode_wisi_parse.gpr $(<F)
 
 ../run_gpr_lr1_parse.exe : ../run_gpr_lr1_parse.ads ../gpr_re2c.c force

@@ -149,6 +149,25 @@ package body Wisi.Ada is
       end if;
       Call := Tree.Child (Call, 1);
 
+      loop
+         case Tree.Child_Count (Call) is
+         when 3 =>
+            case To_Token_Enum (Tree.ID (Tree.Child (Call, 3))) is
+            when ALL_ID | attribute_designator_ID =>
+               --  Code looks like: Container.Length'Old. We only want to edit
+               --  'Container.Length', keeping the trailing 'Old.
+               --
+               --  Similarly for .all.
+               Call := Tree.Child (Call, 1);
+
+            when others =>
+               exit;
+            end case;
+         when others =>
+            exit;
+         end case;
+      end loop;
+
       if not (Tree.Child_Count (Call) = 2 and then Tree.ID (Tree.Child (Call, 2)) = +actual_parameter_part_ID) then
          Unrecognized ("Method (Object ...)", Tree, Data, Call);
       end if;
@@ -275,8 +294,6 @@ package body Wisi.Ada is
       Call := Tree.Child (Call, 1);
       pragma Assert (Tree.ID (Call) = +name_ID);
 
-      Edit_End := Tree.Byte_Region (Call, Trailing_Non_Grammar => False).Last;
-
       --  Find Object_Method and Args. Object_Method is the name before the
       --  args, which must be a selected_component object.method; args is
       --  the actual_parameter_part, which may be missing if this is a
@@ -291,7 +308,7 @@ package body Wisi.Ada is
                --  'Container.Length', keeping the trailing 'Old.
                --
                --  Similarly for .all.
-               Call := Tree.Child (Tree.Child (Call, 1), 1);
+               Call := Tree.Child (Call, 1);
 
             when others =>
                exit;
@@ -301,11 +318,9 @@ package body Wisi.Ada is
          end case;
       end loop;
 
-      case Tree.Child_Count (Call) is
-      when 1 =>
-         Args          := Invalid_Node_Access;
-         Object_Method := Call;
+      Edit_End := Tree.Byte_Region (Call, Trailing_Non_Grammar => False).Last;
 
+      case Tree.Child_Count (Call) is
       when 2 =>
          Args := Tree.Child (Call, 2);
          if Tree.ID (Args) /= +actual_parameter_part_ID then
@@ -319,14 +334,12 @@ package body Wisi.Ada is
 
          Object_Method := Tree.Child (Call, 1);
 
-      when others =>
-         if Tree.Child_Count (Call) /= 2 and then
-Tree.ID (Call) /= +parameter_association_list_ID then
-            Unrecognized ("parameter_association_list", Tree, Data, Args);
-         end if;
-
-         Args := Invalid_Node_Access;
+      when 3 =>
+         Args          := Invalid_Node_Access;
          Object_Method := Call;
+
+      when others =>
+         Unrecognized ("Object.Name", Tree, Data, Call);
       end case;
 
       if not (Tree.ID (Object_Method) = +name_ID and then
@@ -953,9 +966,10 @@ Tree.ID (Call) /= +parameter_association_list_ID then
          --  value expression in case_expression-alternative is indented by
          --  ada-indent. But this aggregate does not start the value expression.
          declare
+            use all type SAL.Base_Peek_Type;
             List : constant Node_Access := Tree.Find_Ancestor (Indenting_Token, +term_binary_adding_operator_list_ID);
          begin
-            if Tree.RHS_Index (List) = 0 then
+            if Tree.Child_Count (List) = 1 then
                --  Aggregate starts expression
                return (Simple, (Int, Invalid_Line_Number, Ada_Indent_Broken - Ada_Indent));
             else
