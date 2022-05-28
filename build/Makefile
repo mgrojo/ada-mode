@@ -15,10 +15,10 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION       := 7.1.5
+export ADA_MODE_VERSION       := 7.2.1
 export ADA_REF_MAN_VERSION    := 2012.5
-export WISI_VERSION           := 3.1.3
-export UNIQUIFY_FILES_VERSION := 1.0.2
+export WISI_VERSION           := 3.1.8
+export UNIQUIFY_FILES_VERSION := 1.0.4
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
@@ -103,22 +103,22 @@ benchmark : RUN_ARGS ?= c:/eurocontrol/gnatcoll-xref.adb
 benchmark :
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l benchmark.el $(RUN_ARGS)
 
-#ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
-#ONE_TEST_FILES := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
-ONE_TEST_FILES ?= ada_mode-incremental_delete_lines.adb
+#ONE_TEST_FILE ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
+#ONE_TEST_FILE := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
+ONE_TEST_FILE ?= ada_mode-incremental_delete_lines.adb
 one :: IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 one :: build_executables
 one :: byte-compile autoloads
 #one :: compile-ada-test
 one :: one-clean
 one-clean :: force
-	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
+	for file in $(ONE_TEST_FILE) ; do rm -f $$file.* ; done
 #	rm -f ../test/gpr_query.db*
 one :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
-#one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
-one :: $(addsuffix .diff, $(ONE_TEST_FILES))
+#one :: $(addsuffix .diff-run, $(ONE_TEST_FILE))
+one :: $(addsuffix .diff, $(ONE_TEST_FILE))
 
 one-debug :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
 one-debug :: force
@@ -128,7 +128,7 @@ one-debug :: force
 oneb :: one-clean
 #oneb :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
 oneb :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
-oneb :: $(addsuffix .diff, $(ONE_TEST_FILES))
+oneb :: $(addsuffix .diff, $(ONE_TEST_FILE))
 
 two : RUN_ARGS ?= command_file debug.cmd > debug.log 2>&1
 #two : RUN_ARGS ?= parse_partial face test/debug.adb --verbosity "debug=1 mckenzie=1 parse=1" --mckenzie_enqueue_limit 60000 --lang_params "3 2 0 1 0 0 2 0 2 0 2 0 0" > debug.log

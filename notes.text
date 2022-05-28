@@ -1616,7 +1616,8 @@ mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     http://debbugs.gnu.org/Developer.html
     email to nnn-close@debbugs.gnu.org
-        subject: closed by ada-mode version 7.1.6
+        subject: copy from bug report
+        body: closed by ada-mode version 7.2.1
         don't include Version: header; that's an Emacs version
     debbugs updates ada-mode summary page within half an hour; no emails
 

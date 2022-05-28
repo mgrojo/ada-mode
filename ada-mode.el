@@ -1527,24 +1527,24 @@ For `wisi-indent-calculate-functions'.
   "Find a file in the current project.
 Prompts with completion, defaults to filename at point."
   (interactive)
-  ;; In emacs 27, we can just call 'project-find-file;
-  ;; project-read-file-name-function handles the uniquify-files alist
+  ;; In emacs 27, we can set project-read-file-name-function to
+  ;; tell 'project-find-file to use the uniquify-files alist
   ;; completion table. In emacs 26, we must do that ourselves.
-  (cl-ecase emacs-major-version
-    (27
-     (project-find-file))
+  (require 'project)
+  (if (boundp 'project-read-file-name-function)
+      (let ((project-read-file-name-function #'uniq-file-read))
+        (project-find-file))
 
-    (26
-     (let* ((def (thing-at-point 'filename))
-	    (project (project-current))
-	    (all-files (project-files project nil))
-	    (alist (uniq-file-uniquify all-files))
-	    (table (apply-partially #'uniq-file-completion-table alist))
-            (file (project--completing-read-strict
-                   "Find file" table nil nil def)))
-       (if (string= file "")
-           (user-error "You didn't specify the file")
-	 (find-file (cdr (assoc file alist))))))
+    (let* ((def (thing-at-point 'filename))
+	   (project (project-current))
+	   (all-files (project-files project nil))
+	   (alist (uniq-file-uniquify all-files))
+	   (table (apply-partially #'uniq-file-completion-table alist))
+           (file (project--completing-read-strict
+                  "Find file" table nil nil def)))
+      (if (string= file "")
+          (user-error "You didn't specify the file")
+	(find-file (cdr (assoc file alist)))))
     ))
 
 ;;;; compatibility with previous ada-mode versions
