@@ -57,7 +57,6 @@ package WisiToken.Lexer.Regexp is
       Syntax     : in WisiToken.Lexer.Regexp.Syntax)
      return WisiToken.Lexer.Handle;
 
-   overriding function Has_Source (Lexer : access constant Instance) return Boolean;
    overriding procedure Finalize (Object : in out Instance);
    overriding procedure Reset_With_String
      (Lexer      : in out Instance;
@@ -87,10 +86,6 @@ package WisiToken.Lexer.Regexp is
       Token :    out WisiToken.Lexer.Token)
      return Natural;
 
-   overriding function Buffer_Region_Byte (Lexer : in Instance) return Buffer_Region;
-
-   overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String;
-
    overriding
    procedure Set_Position
      (Lexer         : in out Instance;
@@ -98,15 +93,6 @@ package WisiToken.Lexer.Regexp is
       Char_Position : in     Buffer_Pos;
       Line          : in     Line_Number_Type)
      is null;
-
-   overriding function File_Name (Lexer : in Instance) return String is ("");
-
-   overriding
-   procedure Begin_Pos
-     (Lexer      : in     Instance;
-      Begin_Byte :    out Buffer_Pos;
-      Begin_Char :    out Buffer_Pos;
-      Begin_Line :    out Line_Number_Type);
 
    overriding
    function Is_Block_Delimited
@@ -137,6 +123,12 @@ package WisiToken.Lexer.Regexp is
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Integer;
+
+   overriding
+   function New_Line_Is_End_Delimiter
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean;
 
    overriding
    function Find_End_Delimiter
@@ -177,16 +169,10 @@ package WisiToken.Lexer.Regexp is
      return Line_Number_Type;
 
    overriding
-   function Contains_New_Line
-     (Lexer       : in Instance;
-      Byte_Region : in Buffer_Region)
+   function Can_Contain_New_Line
+     (Lexer : in Instance;
+      ID    : in Token_ID)
      return Boolean;
-
-   overriding
-   function New_Line_Count
-     (Lexer       : in Instance;
-      Byte_Region : in Buffer_Region)
-     return Base_Line_Number_Type;
 
    overriding
    function Terminated_By_New_Line
@@ -203,7 +189,6 @@ private
    record
       ID          : Token_ID; --  last token read by find_next
       Syntax      : WisiToken.Lexer.Regexp.Syntax (Token_ID'First .. Last_Terminal);
-      Source      : Lexer.Source;
       Buffer_Head : Integer;
       Lexeme_Head : Integer;
       Lexeme_Tail : Integer;

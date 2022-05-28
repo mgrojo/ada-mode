@@ -109,19 +109,23 @@ package WisiToken.Lexer is
 
    package Error_Lists is new Ada.Containers.Doubly_Linked_Lists (Error);
 
+   type Source_Labels is (String_Label, File_Label);
+
+   type Source (Label : Source_Labels := Source_Labels'First) is private;
+
    type Instance
    is abstract new Ada.Finalization.Limited_Controlled with record
       Trace      : WisiToken.Trace_Access;
       Descriptor : WisiToken.Descriptor_Access_Constant;
       Errors     : Error_Lists.List;
+      Source     : Lexer.Source;
    end record;
 
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
 
-   function Has_Source (Lexer : access constant Instance) return Boolean
-   is (False);
+   function Has_Source (Lexer : access constant Instance) return Boolean;
    --  True if one of Reset_* has been called; lexer has source to process.
 
    procedure Set_Verbosity
@@ -175,9 +179,9 @@ package WisiToken.Lexer is
    --  If reading input from a stream, abort reading (or force it to
    --  complete); Find_Next will not be called before another Reset.
 
-   function Buffer_Region_Byte (Lexer : in Instance) return Buffer_Region is abstract;
+   function Buffer_Region_Byte (Lexer : in Instance) return Buffer_Region;
 
-   function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String is abstract;
+   function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String;
    --  Return text from internal buffer, given region in byte position.
 
    procedure Set_Position
@@ -214,7 +218,7 @@ package WisiToken.Lexer is
    --  test_incremental.adb Lexer_Errors_05 has multiple lexer errors on
    --  one token.
 
-   function File_Name (Lexer : in Instance) return String is abstract;
+   function File_Name (Lexer : in Instance) return String;
    --  Return input file name; empty string if there is no file.
 
    procedure Begin_Pos
@@ -222,8 +226,7 @@ package WisiToken.Lexer is
       Begin_Byte :    out Buffer_Pos;
       Begin_Char :    out Buffer_Pos;
       Begin_Line :    out Line_Number_Type)
-   is abstract
-   with Pre'Class => Lexer.Has_Source;
+   with Pre => Lexer.Has_Source;
    --  Return values from Reset*.
 
    function Is_Block_Delimited
@@ -271,6 +274,13 @@ package WisiToken.Lexer is
    with Pre'Class => Lexer.Is_Block_Delimited (ID);
    --  Return length in bytes of the characters in the end delimiter character sequence.
 
+   function New_Line_Is_End_Delimiter
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean
+   is abstract
+   with Pre'Class => Is_Block_Delimited (Lexer, ID);
+
    function Find_End_Delimiter
      (Lexer       : in Instance;
       ID          : in Token_ID;
@@ -290,8 +300,8 @@ package WisiToken.Lexer is
      return Base_Buffer_Pos
    is abstract
    with Pre'Class => Is_Block_Delimited (Lexer, ID);
-   --  If Region contains an end delimiter for ID, returns the buffer
-   --  position of the start of that delimiter. Otherwise returns
+   --  If Region contains an end delimiter for ID, return the buffer
+   --  position of the start of that delimiter. Otherwise return
    --  Invalid_Buffer_Pos. Does not check for matching or nested start.
 
    function Find_Scan_End
@@ -316,13 +326,19 @@ package WisiToken.Lexer is
    --  return the end of the buffer region that must be scanned by the
    --  lexer.
 
+   function Find_New_Line
+     (Lexer  : in Instance;
+      Region : in Buffer_Region)
+     return Base_Buffer_Pos;
+   --  Returns Invalid_Bufer_Pos if not found in Region.
+
    function Line_Begin_Char_Pos
      (Lexer : in Instance;
       Token : in WisiToken.Lexer.Token;
       Line  : in Line_Number_Type)
      return Base_Buffer_Pos
    is abstract
-   with Pre'Class => Contains (Token.Line_Region, Line) and New_Line_Count (Token.Line_Region) > 0;
+   with Pre'Class => Token.Line_Region.First <=  Line - 1 and Token.Line_Region.Last >= Line;
    --  Return first char position on Line; Invalid_Buffer_Pos if Token
    --  does not contain the new-line that starts Line.
 
@@ -347,15 +363,33 @@ package WisiToken.Lexer is
    --  Return line that contains Byte_Pos. If Byte_Pos is on a New_Line,
    --  result is the line that the character ends.
 
-   function Contains_New_Line
-     (Lexer       : in Instance;
-      Byte_Region : in Buffer_Region)
+   function Can_Contain_New_Line
+     (Lexer : in Instance;
+      ID    : in Token_ID)
      return Boolean is abstract;
 
-   function New_Line_Count
+   function Contains_New_Line
      (Lexer       : in Instance;
-      Byte_Region : in Buffer_Region)
-     return Base_Line_Number_Type is abstract;
+      Byte_Region : in Buffer_Region;
+      First       : in Boolean)
+     return Base_Buffer_Pos;
+   --  Returns the first or last new_line in Byte_Region;
+   --  Invalid_Buffer_Pos if none.
+
+   function Contains_New_Line
+     (Lexer       : in Instance;
+      ID          : in Token_ID;
+      Byte_Region : in Buffer_Region;
+      First       : in Boolean)
+     return Base_Buffer_Pos;
+   --  If ID cannot contain a new_line, returns Invalid_Buffer_Pos.
+   --  Otherwise, finds the first or last new_line in Byte_Region (which
+   --  must be the token byte_region); Invalid_Buffer_Pos if none.
+
+   function New_Line_Count
+     (Lexer : in Instance;
+      Item  : in Token_Arrays.Vector)
+     return Base_Line_Number_Type;
 
    function Terminated_By_New_Line
      (Lexer : in Instance;
@@ -366,14 +400,18 @@ package WisiToken.Lexer is
    --  Returns false for comment-one-line; terminating that by a new_line
    --  is actually an error.
 
-   type Source (<>) is private;
-
    function Buffer_Region_Byte (Object : in Source) return Buffer_Region;
 
    function Find_New_Line
      (Source : in WisiToken.Lexer.Source;
       Start  : in Buffer_Pos)
      return Buffer_Pos;
+
+   function Find_New_Line
+     (Source : in WisiToken.Lexer.Source;
+      Region : in Buffer_Region)
+     return Base_Buffer_Pos;
+   --  Returns Invalid_Bufer_Pos if not found in Region.
 
    function Find_String_Or_New_Line
      (Source : in WisiToken.Lexer.Source;
@@ -390,12 +428,6 @@ package WisiToken.Lexer is
      return Buffer_Pos;
    --  Returns last byte in Source if not found, for an implicit delimiter
    --  at EOI.
-
-   function Find_New_Line
-     (Source : in WisiToken.Lexer.Source;
-      Region : in Buffer_Region)
-     return Base_Buffer_Pos;
-   --  Returns Invalid_Bufer_Pos if not found in Region.
 
    function Find_String_Or_New_Line
      (Source : in WisiToken.Lexer.Source;
@@ -428,8 +460,9 @@ package WisiToken.Lexer is
 
    function Contains_New_Line
      (Source      : in WisiToken.Lexer.Source;
-      Byte_Region : in Buffer_Region)
-     return Boolean;
+      Byte_Region : in Buffer_Region;
+      First       : in Boolean)
+     return Base_Buffer_Pos;
 
    function New_Line_Count
      (Source      : in WisiToken.Lexer.Source;
@@ -437,8 +470,6 @@ package WisiToken.Lexer is
      return Base_Line_Number_Type;
 
 private
-
-   type Source_Labels is (String_Label, File_Label);
 
    type Source (Label : Source_Labels := Source_Labels'First) is record
       File_Name : Ada.Strings.Unbounded.Unbounded_String;

@@ -96,6 +96,9 @@ generic
    with function End_Delimiter_Length (ID : in Token_ID) return Integer;
    --  Implements WisiToken.Lexer.End_Delimiter_Length.
 
+   with function New_Line_Is_End_Delimiter (ID : in Token_ID) return Boolean;
+   --  Implements WisiToken.Lexer.New_Line_Is_End_Delimiter.
+
    with function Find_End_Delimiter
      (Source      : in WisiToken.Lexer.Source;
       ID          : in Token_ID;
@@ -126,6 +129,8 @@ generic
    --  Implements WisiToken.Lexer.Line_Begin_Char_Pos, so that
    --  precondition applies.
 
+   with function Can_Contain_New_Line (ID : in Token_ID) return Boolean;
+
    with function Terminated_By_New_Line (ID : in Token_ID) return Boolean;
    --  Implements WisiToken.Lexer.Terminated_By_New_Line;
 
@@ -147,8 +152,6 @@ package WisiToken.Lexer.re2c is
    overriding procedure Set_Verbosity
      (Lexer     : in Instance;
       Verbosity : in Integer);
-
-   overriding function Has_Source (Lexer : access constant Instance) return Boolean;
 
    overriding procedure Reset_With_String
      (Lexer      : in out Instance;
@@ -178,10 +181,6 @@ package WisiToken.Lexer.re2c is
 
    overriding procedure Reset (Lexer : in out Instance);
 
-   overriding function Buffer_Region_Byte (Lexer : in Instance) return WisiToken.Buffer_Region;
-
-   overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in WisiToken.Buffer_Region) return String;
-
    overriding
    procedure Set_Position
      (Lexer         : in out Instance;
@@ -194,15 +193,6 @@ package WisiToken.Lexer.re2c is
      (Lexer : in out Instance;
       Token :    out WisiToken.Lexer.Token)
      return Natural;
-
-   overriding function File_Name (Lexer : in Instance) return String;
-
-   overriding
-   procedure Begin_Pos
-     (Lexer      : in     Instance;
-      Begin_Byte :    out Buffer_Pos;
-      Begin_Char :    out Buffer_Pos;
-      Begin_Line :    out Line_Number_Type);
 
    overriding
    function Is_Block_Delimited
@@ -233,6 +223,12 @@ package WisiToken.Lexer.re2c is
      (Lexer : in Instance;
       ID    : in Token_ID)
      return Integer;
+
+   overriding
+   function New_Line_Is_End_Delimiter
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean;
 
    overriding
    function Find_End_Delimiter
@@ -273,16 +269,10 @@ package WisiToken.Lexer.re2c is
      return Line_Number_Type;
 
    overriding
-   function Contains_New_Line
-     (Lexer       : in Instance;
-      Byte_Region : in Buffer_Region)
+   function Can_Contain_New_Line
+     (Lexer : in Instance;
+      ID    : in Token_ID)
      return Boolean;
-
-   overriding
-   function New_Line_Count
-     (Lexer       : in Instance;
-      Byte_Region : in Buffer_Region)
-     return Base_Line_Number_Type;
 
    overriding
    function Terminated_By_New_Line
@@ -295,7 +285,6 @@ private
    type Instance is new WisiToken.Lexer.Instance with
    record
       Lexer  : System.Address := System.Null_Address;
-      Source : WisiToken.Lexer.Source;
    end record;
 
 end WisiToken.Lexer.re2c;

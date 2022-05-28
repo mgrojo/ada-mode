@@ -114,6 +114,16 @@ package WisiToken.Parse.LR.Parser is
       Language_String_ID_Set         : in     Language_String_ID_Set_Access;
       User_Data                      : in     WisiToken.Syntax_Trees.User_Data_Access);
 
+   procedure Edit_Tree
+     (Parser : in out LR.Parser.Parser;
+      Edits  : in     KMN_Lists.List)
+   with Pre => Parser.Tree.Editable,
+     Post => Parser.Tree.Stream_Count = 1;
+   --  Assumes Parser.Lexer.Source has changed in a way reflected in
+   --  Edits. Uses Edits to direct editing Parser.Tree to reflect lexing
+   --  the changed source, in preparation for Incremental_Parse; result
+   --  is in Tree.Shared_Stream.
+
    overriding procedure Parse
      (Shared_Parser    : in out LR.Parser.Parser;
       Recover_Log_File : in     Ada.Text_IO.File_Type;

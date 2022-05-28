@@ -142,6 +142,7 @@ OK test_incremental.adb : Lexer_Errors_04
 OK test_incremental.adb : Lexer_Errors_05
 OK test_incremental.adb : Lexer_Errors_06
 OK test_incremental.adb : Lexer_Errors_07
+OK test_incremental.adb : Lexer_Errors_08
 OK test_incremental.adb : Preserve_Parse_Errors_1
 OK test_incremental.adb : Preserve_Parse_Errors_2
 OK test_incremental.adb : Modify_Deleted_Node
@@ -163,6 +164,9 @@ OK test_incremental.adb : Edit_String_09
 OK test_incremental.adb : Edit_String_10
 OK test_incremental.adb : Edit_String_11
 OK test_incremental.adb : Edit_String_12
+OK test_incremental.adb : Edit_String_13
+OK test_incremental.adb : Edit_String_14
+OK test_incremental.adb : Edit_String_15
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
 OK test_mckenzie_recover.adb LALR : No_Error
 OK test_mckenzie_recover.adb LALR : Empty_Comments
@@ -299,6 +303,7 @@ OK test_syntax_trees.adb : Find_New_Line_1
 OK test_syntax_trees.adb : Byte_Region_1
 OK test_syntax_trees.adb : Line_At_Byte_Pos_1
 OK test_syntax_trees.adb : Line_At_Byte_Pos_2
+OK test_syntax_trees.adb : Line_At_Byte_Pos_3
 OK test_syntax_trees.adb : Find_Char_Pos_1
 OK test_syntax_trees.adb : Breakdown_Optimized_List_01
 OK test_syntax_trees.adb : Breakdown_Optimized_List_02
@@ -307,7 +312,7 @@ OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   307
-Successful Tests:  307
+Total Tests Run:   312
+Successful Tests:  312
 Failed Assertions: 0
 Unexpected Errors: 0

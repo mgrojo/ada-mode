@@ -88,6 +88,19 @@ package body Wisitoken_Grammar_Main is
       end case;
    end End_Delimiter_Length;
 
+   function New_Line_Is_End_Delimiter (ID : in WisiToken.Token_ID) return Boolean
+   is begin
+      return
+        (case To_Token_Enum (ID) is
+         when COMMENT_ID => True,
+         when RAW_CODE_ID => False,
+         when REGEXP_ID => False,
+         when ACTION_ID => False,
+         when STRING_LITERAL_1_ID => True,
+         when STRING_LITERAL_2_ID => True,
+         when others => raise SAL.Programmer_Error);
+   end New_Line_Is_End_Delimiter;
+
    function Find_End_Delimiter
      (Source      : in WisiToken.Lexer.Source;
       ID          : in WisiToken.Token_ID;
@@ -175,6 +188,18 @@ package body Wisitoken_Grammar_Main is
       end case;
    end Line_Begin_Char_Pos;
 
+   function Can_Contain_New_Line (ID : in WisiToken.Token_ID) return Boolean
+   is begin
+      case To_Token_Enum (ID) is
+      when NEW_LINE_ID => return True;
+      when COMMENT_ID => return True;
+      when RAW_CODE_ID => return True;
+      when REGEXP_ID => return True;
+      when ACTION_ID => return True;
+      when others => return False;
+      end case;
+   end Can_Contain_New_Line;
+
    function Terminated_By_New_Line (ID : in WisiToken.Token_ID) return Boolean
    is begin
       case To_Token_Enum (ID) is
@@ -198,10 +223,12 @@ package body Wisitoken_Grammar_Main is
       Escape_Delimiter_Doubled,
       Start_Delimiter_Length,
       End_Delimiter_Length,
+      New_Line_Is_End_Delimiter,
       Find_End_Delimiter,
       Contains_End_Delimiter,
       Find_Scan_End,
       Line_Begin_Char_Pos,
+      Can_Contain_New_Line,
       Terminated_By_New_Line);
 
    function Create_Parse_Table

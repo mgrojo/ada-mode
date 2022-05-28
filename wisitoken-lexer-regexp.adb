@@ -155,11 +155,6 @@ package body WisiToken.Lexer.Regexp is
       return Handle (New_Lexer);
    end New_Lexer;
 
-   overriding function Has_Source (Lexer : access constant Instance) return Boolean
-   is begin
-      return Has_Source (Lexer.Source);
-   end Has_Source;
-
    overriding procedure Finalize (Object : in out Instance)
    is begin
       Finalize (Object.Source);
@@ -260,26 +255,6 @@ package body WisiToken.Lexer.Regexp is
       return 0;
    end Find_Next;
 
-   overriding function Buffer_Region_Byte (Lexer : in Instance) return Buffer_Region
-   is begin
-      return Buffer_Region_Byte (Lexer.Source);
-   end Buffer_Region_Byte;
-
-   overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String
-   is begin
-      return Lexer.Source.Buffer (Integer (Byte_Region.First) .. Integer (Byte_Region.Last));
-   end Buffer_Text;
-
-   overriding
-   procedure Begin_Pos
-     (Lexer      : in     Instance;
-      Begin_Byte :    out Buffer_Pos;
-      Begin_Char :    out Buffer_Pos;
-      Begin_Line :    out Line_Number_Type)
-   is begin
-      Begin_Pos (Lexer.Source, Begin_Byte, Begin_Char, Begin_Line);
-   end Begin_Pos;
-
    overriding
    function Is_Block_Delimited
      (Lexer : in Instance;
@@ -344,6 +319,19 @@ package body WisiToken.Lexer.Regexp is
       raise SAL.Not_Implemented;
       return Integer'Last;
    end End_Delimiter_Length;
+
+   overriding
+   function New_Line_Is_End_Delimiter
+     (Lexer : in Instance;
+      ID    : in Token_ID)
+     return Boolean
+   is
+      pragma Unreferenced (Lexer, ID);
+   begin
+      --  regexp lexer only used in unit tests
+      raise SAL.Not_Implemented;
+      return True;
+   end New_Line_Is_End_Delimiter;
 
    overriding
    function Find_End_Delimiter
@@ -415,25 +403,17 @@ package body WisiToken.Lexer.Regexp is
    end Line_At_Byte_Pos;
 
    overriding
-   function Contains_New_Line
-     (Lexer       : in Instance;
-      Byte_Region : in Buffer_Region)
+   function Can_Contain_New_Line
+     (Lexer : in Instance;
+      ID    : in Token_ID)
      return Boolean
-   is begin
-      return Contains_New_Line (Lexer.Source, Byte_Region);
-   end Contains_New_Line;
-
-   overriding
-   function New_Line_Count
-     (Lexer       : in Instance;
-      Byte_Region : in Buffer_Region)
-     return Base_Line_Number_Type
    is
-      pragma Unreferenced (Lexer, Byte_Region);
+      pragma Unreferenced (Lexer, ID);
    begin
+      --  regexp lexer only used in unit tests
       raise SAL.Not_Implemented;
-      return Base_Line_Number_Type'First;
-   end New_Line_Count;
+      return False;
+   end Can_Contain_New_Line;
 
    overriding
    function Terminated_By_New_Line

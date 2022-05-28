@@ -94,6 +94,40 @@ package body WisiToken.Lexer is
       Begin_Line := Object.Line_Nominal_First;
    end Begin_Pos;
 
+   function Has_Source (Lexer : access constant Instance) return Boolean
+   is begin
+      return Has_Source (Lexer.Source);
+   end Has_Source;
+
+   function Buffer_Text (Lexer : in Instance; Byte_Region : in WisiToken.Buffer_Region) return String
+   is
+      First : constant Integer := Integer
+        (Byte_Region.First - Lexer.Source.Buffer_Nominal_First_Byte + Buffer_Pos'First);
+      Last  : constant Integer := Integer
+        (Byte_Region.Last - Lexer.Source.Buffer_Nominal_First_Byte + Buffer_Pos'First);
+   begin
+      return String (Buffer (Lexer.Source) (First .. Last));
+   end Buffer_Text;
+
+   function Buffer_Region_Byte (Lexer : in Instance) return WisiToken.Buffer_Region
+   is begin
+      return Buffer_Region_Byte (Lexer.Source);
+   end Buffer_Region_Byte;
+
+   function File_Name (Lexer : in Instance) return String
+   is begin
+      return File_Name (Lexer.Source);
+   end File_Name;
+
+   procedure Begin_Pos
+     (Lexer      : in     Instance;
+      Begin_Byte :    out Buffer_Pos;
+      Begin_Char :    out Buffer_Pos;
+      Begin_Line :    out Line_Number_Type)
+   is begin
+      Begin_Pos (Lexer.Source, Begin_Byte, Begin_Char, Begin_Line);
+   end Begin_Pos;
+
    function Line_At_Byte_Pos
      (Lexer    : in Instance;
       Token    : in WisiToken.Lexer.Token;
@@ -103,6 +137,54 @@ package body WisiToken.Lexer is
       return Line_At_Byte_Pos
         (Instance'Class (Lexer), Token.Byte_Region, Byte_Pos, First_Line => Token.Line_Region.First);
    end Line_At_Byte_Pos;
+
+   function Find_New_Line
+     (Lexer  : in Instance;
+      Region : in Buffer_Region)
+     return Base_Buffer_Pos
+   is begin
+      return Find_New_Line (Lexer.Source, Region);
+   end Find_New_Line;
+
+   function Contains_New_Line
+     (Lexer       : in Instance;
+      Byte_Region : in Buffer_Region;
+      First       : in Boolean)
+     return Base_Buffer_Pos
+   is begin
+      return Contains_New_Line (Lexer.Source, Byte_Region, First);
+   end Contains_New_Line;
+
+   function Contains_New_Line
+     (Lexer       : in Instance;
+      ID          : in Token_ID;
+      Byte_Region : in Buffer_Region;
+      First       : in Boolean)
+     return Base_Buffer_Pos
+   is begin
+      if Instance'Class (Lexer).Can_Contain_New_Line (ID) then
+         return Contains_New_Line (Lexer.Source, Byte_Region, First);
+      else
+         return Invalid_Buffer_Pos;
+      end if;
+   end Contains_New_Line;
+
+   function New_Line_Count
+     (Lexer : in Instance;
+      Item  : in Token_Arrays.Vector)
+     return Base_Line_Number_Type
+   is
+      Result : Base_Line_Number_Type := 0;
+      Pos    : Base_Buffer_Pos;
+   begin
+      for Token of Item loop
+         Pos := Lexer.Contains_New_Line (Token.ID, Token.Byte_Region, First => True);
+         if Pos /= Invalid_Buffer_Pos then
+            Result := @ + New_Line_Count (Lexer.Source, Token.Byte_Region);
+         end if;
+      end loop;
+      return Result;
+   end New_Line_Count;
 
    function Find_New_Line
      (Source : in WisiToken.Lexer.Source;
@@ -173,7 +255,7 @@ package body WisiToken.Lexer is
    begin
       for I in To_Buffer_Index (Source, Region.First) .. Index_Last loop
          if Source.Buffer (I) = ASCII.LF or
-           ((I + Item'Length <= Index_Last) and then
+           ((I + Item'Length - 1 <= Index_Last) and then
               Source.Buffer (I .. I + Item'Length - 1) = Item)
          then
             return From_Buffer_Index (Source, I);
@@ -214,12 +296,23 @@ package body WisiToken.Lexer is
          if Source.Buffer (I) = ASCII.LF then
             Found_Line := @ + 1;
             if Found_Line = Line then
-               return Base_Buffer_Pos (I);
+               return Base_Buffer_Pos (I) + 1;
             end if;
          end if;
       end loop;
       return Invalid_Buffer_Pos;
    end Line_Begin_Char_Pos;
+
+   function Get_Byte
+     (Source : in WisiToken.Lexer.Source;
+      Pos    : in Integer)
+     return Character
+   is begin
+      return
+        (case Source.Label is
+         when String_Label => Source.Buffer (Pos),
+         when File_Label => GNATCOLL.Mmap.Data (Source.Region)(Pos));
+   end Get_Byte;
 
    function Line_At_Byte_Pos
      (Source      : in WisiToken.Lexer.Source;
@@ -231,42 +324,42 @@ package body WisiToken.Lexer is
       Index_Pos : constant Integer := To_Buffer_Index (Source, Byte_Pos);
       Found_Line : Base_Line_Number_Type := First_Line;
    begin
-      case Source.Label is
-      when String_Label =>
-         for I in To_Buffer_Index (Source, Byte_Region.First) ..
-           To_Buffer_Index (Source, Byte_Region.Last)
-         loop
-            if I = Index_Pos then
-               return Found_Line;
-            end if;
+      for I in To_Buffer_Index (Source, Byte_Region.First) ..
+        To_Buffer_Index (Source, Byte_Region.Last)
+      loop
+         if Get_Byte (Source, I) = ASCII.LF then
+            Found_Line := @ + 1;
+         end if;
 
-            if Source.Buffer (I) = ASCII.LF then
-               Found_Line := @ + 1;
-            end if;
-         end loop;
-         raise SAL.Programmer_Error; -- precondition false.
-
-      when File_Label =>
-         --  FIXME: need to read a char from the mapped region; gnatcoll.mmap
-         --  doesn't have a simple function for that. This is enough for most
-         --  testing.
-         return Found_Line;
-      end case;
+         if I = Index_Pos then
+            return Found_Line;
+         end if;
+      end loop;
+      raise SAL.Programmer_Error; -- precondition false.
    end Line_At_Byte_Pos;
 
    function Contains_New_Line
      (Source      : in WisiToken.Lexer.Source;
-      Byte_Region : in Buffer_Region)
-     return Boolean
-   is begin
-      for I in To_Buffer_Index (Source, Byte_Region.First) ..
-        To_Buffer_Index (Source, Byte_Region.Last)
-      loop
-         if Source.Buffer (I) = ASCII.LF then
-            return True;
-         end if;
-      end loop;
-      return False;
+      Byte_Region : in Buffer_Region;
+      First       : in Boolean)
+     return Base_Buffer_Pos
+   is
+      First_Index : constant Integer := To_Buffer_Index (Source, Byte_Region.First);
+   begin
+      if First then
+         for I in First_Index .. To_Buffer_Index (Source, Byte_Region.Last) loop
+            if Get_Byte (Source, I) = ASCII.LF then
+               return Byte_Region.First + Base_Buffer_Pos (I - First_Index);
+            end if;
+         end loop;
+      else
+         for I in reverse First_Index .. To_Buffer_Index (Source, Byte_Region.Last) loop
+            if Get_Byte (Source, I) = ASCII.LF then
+               return Byte_Region.First + Base_Buffer_Pos (I - First_Index);
+            end if;
+         end loop;
+      end if;
+      return Invalid_Buffer_Pos;
    end Contains_New_Line;
 
    function New_Line_Count
@@ -278,7 +371,7 @@ package body WisiToken.Lexer is
          for I in To_Buffer_Index (Source, Byte_Region.First) ..
            To_Buffer_Index (Source, Byte_Region.Last)
          loop
-            if Source.Buffer (I) = ASCII.LF then
+            if Get_Byte (Source, I) = ASCII.LF then
                Count := @ + 1;
             end if;
          end loop;

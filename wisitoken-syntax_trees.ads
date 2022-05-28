@@ -1358,6 +1358,9 @@ package WisiToken.Syntax_Trees is
    --  Node, or EOI (end of input); if not Trailing_Non_Grammar, Last is
    --  the line ended by the first New_Line or EOI after the last
    --  terminal of Node.
+   --
+   --  Trailing_Non_Grammar => False is used to get the line_region of a
+   --  multi-line token.
 
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;
@@ -1373,6 +1376,12 @@ package WisiToken.Syntax_Trees is
    --
    --  If not Tree.Parents_Set, constructs a Stream_Node_Parents
    --  internally.
+
+   function Byte_Region_Of_Line_Region
+     (Tree : in Syntax_Trees.Tree;
+      Ref  : in Stream_Node_Ref)
+     return WisiToken.Buffer_Region
+   with Pre => Tree.Valid_Stream_Node (Ref) and Tree.Parents_Set;
 
    function Line_Region
      (Tree                 : in Syntax_Trees.Tree;
@@ -1583,6 +1592,47 @@ package WisiToken.Syntax_Trees is
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Tree.Correct_Stream_Node (Ref.Ref) and Parents_Valid (Ref);
 
+   type New_Line_Ref is record
+      Node : Node_Access;
+      --  Node is Invalid_Node_Access, or Node.Label is in Source_Terminal |
+      --  Virtual_Terminal.
+
+      Non_Grammar_Index : SAL.Base_Peek_Type := 0;
+      --  If Node is Invalid_Node_Access, then there is no new_line. If
+      --  Non_Grammar_Index is 0, Node is a Source_Terminal containing at
+      --  least one new_line. Otherwise Non_Gramamr_Index is the index in
+      --  Node.Non_Grammar containing a new_line.
+
+      First : Boolean := True;
+      --  If First, the new_line is the first in the token or
+      --  non_grammar; it was found by Next_New_Line. If not First, the
+      --  new_line is the last; it was found by Prev_New_Line;
+
+      Pos : Base_Buffer_Pos := Invalid_Buffer_Pos;
+      --  The buffer position of the new_line.
+
+      Line : Base_Line_Number_Type := Invalid_Line_Number;
+      --  The line number after the new_line.
+   end record;
+
+   Invalid_New_Line_Ref : constant New_Line_Ref := (others => <>);
+
+   function Prev_New_Line
+     (Tree       : in Syntax_Trees.Tree;
+      Node       : in Valid_Node_Access;
+      Start_Line : in Base_Line_Number_Type := Invalid_Line_Number)
+     return New_Line_Ref
+   with Pre => Tree.Parents_Set;
+   --  If Node is SOI, returns reference to SOI.Non_Grammar (1).
+   --  Otherwise, return a reference to the first New_Line preceding
+   --  First_Terminal (Node).Byte_Region.First.
+   --
+   --  If Start_Line is not Invalid_Line_Number, it must be the line
+   --  number at the beginning of Node. If Start_Line is
+   --  Invalid_Line_Number, first searches towards SOI for a non_grammar
+   --  giving a line number, computes Start_Line, and continues as
+   --  above.
+
    function First_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
@@ -1749,6 +1799,11 @@ package WisiToken.Syntax_Trees is
      Post => Parents_Valid (Ref);
    --  Update Ref to last terminal of Ref.Ref.Element.Node or preceding
    --  element.
+
+   procedure Prev_Terminal (Tree : in Syntax_Trees.Tree; Node : in out Node_Access)
+   with Pre => Tree.Parents_Set,
+     Post => Node = Invalid_Node_Access or else
+             Tree.Label (Node) in Terminal_Label;
 
    function Prev_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Access
    with Pre => Tree.Parents_Set,
@@ -2122,8 +2177,9 @@ package WisiToken.Syntax_Trees is
      Post => Find_New_Line'Result = Invalid_Node_Access or else
              (Tree.Is_Terminal (Find_New_Line'Result));
    --  Return the terminal node containing a non_grammar that ends Line -
-   --  1. Result is Invalid_Node_Access if Line is outside range spanned
-   --  by Tree.
+   --  1, or the multi-line terminal node that contains the new_line that
+   --  ends Line - 1. Result is Invalid_Node_Access if Line is outside
+   --  range spanned by Tree.
 
    function Find_New_Line
      (Tree                : in     Syntax_Trees.Tree;
@@ -2769,8 +2825,8 @@ private
    type Node
      (Label       : Node_Label;
       Child_Count : SAL.Base_Peek_Type)
-      --  Descriminants have no default because allocated nodes are
-      --  constrained anyway (ARM 4.8 6/3).
+   --  Descriminants have no default because allocated nodes are
+   --  constrained anyway (ARM 4.8 6/3).
    is record
       ID : WisiToken.Token_ID := Invalid_Token_ID;
 
@@ -2805,13 +2861,16 @@ private
 
          case Label is
          when Source_Terminal =>
-            Byte_Region : Buffer_Region := Null_Buffer_Region;
-            Char_Region : Buffer_Region := Null_Buffer_Region;
+            Byte_Region    : Buffer_Region         := Null_Buffer_Region;
+            Char_Region    : Buffer_Region         := Null_Buffer_Region;
+            New_Line_Count : Base_Line_Number_Type := 0;
             --  Data from lexer. We store the absolute buffer region here to avoid
             --  storing all whitespace in the tree. Edit_Tree shifts these for
-            --  incremental parse. We don't store Line_Region here, to save space,
-            --  to simplify Edit_Tree, and because it changes when Insert_Terminal
-            --  moves Non_Grammar.
+            --  incremental parse. We don't store Line_Region here, because it
+            --  changes when Insert_Terminal moves Non_Grammar; Non_Grammars all
+            --  store Line_Region. We store New_Line_Count to allow computing line
+            --  numbers from previous or following Non_Grammar across multi-line
+            --  tokens.
 
             Following_Deleted : aliased Valid_Node_Access_Lists.List;
             --  Nodes that follow this terminal that were deleted by error

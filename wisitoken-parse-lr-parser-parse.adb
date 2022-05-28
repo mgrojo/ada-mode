@@ -43,7 +43,7 @@ begin
    Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
 
    if Edits /= KMN_Lists.Empty_List then
-      if not (Shared_Parser.Tree.Fully_Parsed or Shared_Parser.Tree.Editable) then
+      if not Shared_Parser.Tree.Editable then
          --  previous parse failed, left tree in uncertain state
          raise WisiToken.Parse_Error with "previous parse failed, can't edit tree";
       end if;

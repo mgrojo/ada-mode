@@ -33,13 +33,15 @@ update-wisitoken_grammar
  current work
 packrat_gen error message test
 
-wisitoken.grammar_mode.stephe-1 test/nominal.wy failing
-    bug in line_begin_char_pos for delimited-text
-        also bug in mmm-mode, but fixing that later.
-    add wisitoken test
-
 apply conflict resolution to minimal actions
     optimized_conflict_01 state 23
+
+ada_lite_ebnf packrat
+    enumeration_literal_list
+        handle EBNF list
+            for now, keep bnf tree, but generate longer RHS first; we have manually created lists with that pattern.
+            that breaks a lot of hard-coded 0, 1, 2 rhs_index?
+            run all wisitoken tests
 
 packrat error recover
     use parse stream

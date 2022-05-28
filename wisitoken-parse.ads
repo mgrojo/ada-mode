@@ -366,16 +366,6 @@ package WisiToken.Parse is
       Edited_Text_Byte_Region  : in Buffer_Region;
       Edited_Text_Char_Region  : in Buffer_Region);
 
-   procedure Edit_Tree
-     (Parser : in out Base_Parser'Class;
-      Edits  : in     KMN_Lists.List)
-   with Pre => Parser.Tree.Editable,
-     Post => Parser.Tree.Stream_Count = 1;
-   --  Assumes Parser.Lexer.Source has changed in a way reflected in
-   --  Edits. Uses Edits to direct editing Parser.Tree to reflect lexing
-   --  the changed source, in preparation for Incremental_Parse; result
-   --  is in Tree.Shared_Stream.
-
    procedure Parse
      (Parser     : in out Base_Parser;
       Log_File   : in     Ada.Text_IO.File_Type;
@@ -421,5 +411,18 @@ package WisiToken.Parse is
    --  Action_Region_Bytes; all nodes if Action_Region_Bytes =
    --  Null_Buffer_Region. See wisitoken-syntax_trees.ads for other
    --  actions performed by Execute_Actions.
+
+private
+--  Visible for child packages
+
+   procedure Process_Grammar_Token
+     (Parser : in out Base_Parser'Class;
+      Token  : in     Lexer.Token;
+      Node   : in     Syntax_Trees.Valid_Node_Access);
+
+   procedure Process_Non_Grammar_Token
+     (Parser       : in out Base_Parser'Class;
+      Grammar_Node : in     Syntax_Trees.Valid_Node_Access;
+      Token        : in     Lexer.Token);
 
 end WisiToken.Parse;
