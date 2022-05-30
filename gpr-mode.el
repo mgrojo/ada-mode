@@ -1,6 +1,6 @@
 ;; gpr-mode --- Major mode for editing GNAT project files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004, 2007, 2008, 2012-2015, 2017 - 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007, 2008, 2012-2015, 2017 - 2020, 2022  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -349,7 +349,7 @@ Otherwise, allow UPPERCASE for identifiers."
   "Defines language-specific parser parameters.
 Must match wisi-gpr.ads Language_Protocol_Version.")
 
-(defcustom gpr-process-parse-exec "gpr_mode_wisi_parse"
+(defcustom gpr-process-parse-exec "gpr_mode_wisi_lr1_parse"
   "Name of executable to use for external process gpr parser,"
   :type 'string
   :group 'gpr)

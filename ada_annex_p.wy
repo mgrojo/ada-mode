@@ -344,7 +344,6 @@ pragma_g
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken (wisi-anchored 3 1) (wisi-anchored 3 0)
                                ada-indent-broken]))%
   ;
-%suppress pragma_g "may never match; it shares a prefix"
 
 pragma_argument_association
   ;; [ IDENTIFIER '=>' ] name ;;:redundant with expression
@@ -492,7 +491,6 @@ number_declaration
 
 derived_type_definition
   : ['abstract'] ['limited'] 'new' subtype_indication [['and' interface_list] record_extension_part] ;
-%suppress derived_type_definition "may never match; it shares a prefix"
 
 range_constraint ::= 'range' range_g ;
 

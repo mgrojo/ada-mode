@@ -11,7 +11,7 @@ procedure Ada_Mode.Recover_19 is
    use Interfaces.C.Strings;
 
    C_File_Name :
-   B : Integer;
+     B : Integer;
 begin
    if 0 /= AV_Format_Open_Input (Context, Name
 end Ada_Mode.Recover_19;

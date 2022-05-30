@@ -50,13 +50,6 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-run all tests
-    wisitoken done
-    ada-mode partial review build/test.log
-        test/ada_mode-recover_09.adb
-          recover found a different solution to the second error
-            simplify in debug.adb
-
 try packrat
     see fixme in gen_run_wisi_lr
 

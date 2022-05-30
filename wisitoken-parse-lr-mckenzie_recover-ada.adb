@@ -577,6 +577,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
             case To_Token_Enum (Tree.Element_ID (Config.Error_Token)) is
+            when accept_statement_ID =>
+               Push_Back_Check
+                 (Super, Shared_Parser, New_Config,
+                  (+SEMICOLON_ID, +identifier_opt_ID, +END_ID),
+                  Push_Back_Undo_Reduce => True);
+
             when block_statement_ID =>
                Push_Back_Check
                  (Super, Shared_Parser, New_Config,

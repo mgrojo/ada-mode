@@ -5,6 +5,8 @@
 (require 'wisi-run-indent-test)
 
 (defun switch-to-lr1 ()
+  ;; WORKAROUND: wait for lalr startup to complete.
+  (sit-for 0.2)
   (setq ada-process-parse-exec (expand-file-name "ada_mode_wisi_lr1_parse" ada-mode-dir))
   (setq wisi-process--alist nil)
   (ada-mode))
