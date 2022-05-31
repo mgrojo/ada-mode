@@ -51,22 +51,23 @@ package body WisiToken.Parse.Packrat is
       Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
       Trace      : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
    begin
-      --  Clear copies of Stream_Index so Clear_Parse_Streams can run.
-      for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
-         Parser.Derivs (Nonterm).Clear (Free_Memory => True);
-      end loop;
-
       if Trace_Time then
          Trace.Put_Clock ("finish parse");
       end if;
 
       if Result.State = Packrat.Success then
+         --  Clear copies of Stream_Index so Clear_Parse_Streams can run.
+         for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
+            Parser.Derivs (Nonterm).Clear (Free_Memory => True);
+         end loop;
+
          --  Do this before Clear_Parse_Streams so the root node is not deleted.
          Tree.Set_Root (Result.Result);
          Result := (State => No_Result, Max_Examined_Pos => Invalid_Stream_Index, Recursive => False);
          Tree.Clear_Parse_Streams; -- also frees excess tree nodes created by backtracking.
 
       else
+         --  preserve Deriv for experimenting with error recover
          declare
             Msg : constant String := Tree.Error_Message
               (Ref     => (Tree.Shared_Stream,

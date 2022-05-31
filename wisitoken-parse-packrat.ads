@@ -41,7 +41,7 @@
 --
 --  [langkit] also applies a memory optimization; it only saves the
 --  last 16 results for each nonterminal. We don't do that yet, so we
---  can get some data on how well that works.
+--  can experiment with error recovery.
 
 pragma License (Modified_GPL);
 with WisiToken.Syntax_Trees;

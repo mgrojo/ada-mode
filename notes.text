@@ -31,6 +31,23 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+packrat error recover
+    debug_packrat_to_lr.adb
+        two empty nonterms at pos 3: parameter_profile_opt, aspect_specification_opt
+        multiple non-empty nonterms => spawn streams
+
+        stream looks ok; run mckenzie.
+
+    if more than one parse stream after recover:
+        order streams as multiple stream accept would
+        execute each one in turn until it gets to accept or error
+            if accept, return
+            if all error, keep those within check_limit of the one that made the farthest progress, enter error recover
+
+        or just more entries in derivs?
+            do lr parse until resume done, then enter all streams in derivs, resume packrat parse
+
+
 packrat_gen error message test
 
 apply conflict resolution to minimal actions
@@ -42,16 +59,6 @@ ada_lite_ebnf packrat
             for now, keep bnf tree, but generate longer RHS first; we have manually created lists with that pattern.
             that breaks a lot of hard-coded 0, 1, 2 rhs_index?
             run all wisitoken tests
-
-packrat error recover
-    use parse stream
-    on enter recover, add LR states to parse streams
-        mckenzie_recover unchanged.
-    if more than one parse stream after recover:
-        order streams as multiple stream accept would
-        execute each one in turn until it gets to accept or error
-            if accept, return
-            if all error, keep those within check_limit of the one that made the farthest progress, enter error recover
 
 ediff of *.wy hangs
     mmm-mode vs wisi-parse-incremental :wait nil
