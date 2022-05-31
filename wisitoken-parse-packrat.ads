@@ -45,6 +45,7 @@
 
 pragma License (Modified_GPL);
 with WisiToken.Syntax_Trees;
+limited with WisiToken.Parse.Parser;
 package WisiToken.Parse.Packrat is
 
    type Memo_State is (No_Result, Failure, Success);
@@ -86,12 +87,7 @@ package WisiToken.Parse.Packrat is
 
    type Derivs is array (Token_ID range <>) of Memos.Vector;
 
-   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is abstract new Base_Parser
-     with record
-      Derivs : Packrat.Derivs (First_Nonterminal .. Last_Nonterminal);
-   end record;
-
-   procedure Finish_Parse (Parser : in out Packrat.Parser; Result : in out Memo_Entry);
+   procedure Finish_Parse (Parser : in out WisiToken.Parse.Parser.Parser'Class; Result : in out Memo_Entry);
    --  Call Tree.Set_Root, Clear_Parse_Streams; raise Parse_Error with an
    --  error message if the parse did not succeed.
 

@@ -17,6 +17,7 @@
 
 pragma License (Modified_GPL);
 
+with WisiToken.Parse.Parser;
 package body WisiToken.Parse.Packrat is
 
    function Image_Pos
@@ -44,7 +45,7 @@ package body WisiToken.Parse.Packrat is
          when Success => "success " & Tree.Image (Item.Result, Node_Numbers => True));
    end Image;
 
-   procedure Finish_Parse (Parser : in out Packrat.Parser; Result : in out Memo_Entry)
+   procedure Finish_Parse (Parser : in out WisiToken.Parse.Parser.Parser'Class; Result : in out Memo_Entry)
    is
       use WisiToken.Syntax_Trees;
       Tree       : Syntax_Trees.Tree renames Parser.Tree;
@@ -67,7 +68,7 @@ package body WisiToken.Parse.Packrat is
          Tree.Clear_Parse_Streams; -- also frees excess tree nodes created by backtracking.
 
       else
-         --  preserve Deriv for experimenting with error recover
+         --  preserve Derivs for experimenting with error recover
          declare
             Msg : constant String := Tree.Error_Message
               (Ref     => (Tree.Shared_Stream,

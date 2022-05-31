@@ -42,6 +42,7 @@ with SAL.Gen_Bounded_Definite_Vectors;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
 with WisiToken.Syntax_Trees;
+limited with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package WisiToken.Parse.LR is
    use all type WisiToken.Syntax_Trees.Node_Access;
    use all type WisiToken.Syntax_Trees.Base_Sequential_Index;
@@ -617,5 +618,55 @@ package WisiToken.Parse.LR is
 
    procedure Accumulate (Data : in McKenzie_Data; Counts : in out Strategy_Counts);
    --  Sum Results.Strategy_Counts.
+
+   type Language_Fixes_Access is access procedure
+     (Super             : in out Base.Supervisor;
+      Tree              : in out Syntax_Trees.Tree;
+      Table             : in     Parse_Table_Ptr;
+      Parser_Index      : in     SAL.Peek_Type;
+      Local_Config_Heap : in out Config_Heaps.Heap_Type;
+      Config            : in     Configuration);
+   --  Config encountered a parse table Error action, or failed a
+   --  semantic check; attempt to provide a language-specific fix,
+   --  enqueuing new configs on Local_Config_Heap.
+   --
+   --  For a failed semantic check, Config.Stack is in the pre-reduce
+   --  state, Config.Error_Token gives the nonterm token,
+   --  Config.Check_Token_Count the token count for the reduce. May be
+   --  called with Nonterm.Virtual = True or Tree.Valid_Indices (stack
+   --  top token_count items) false.
+   --
+   --  For an Error action, Config.Error_Token gives the terminal that
+   --  caused the error.
+
+   type Language_Matching_Begin_Tokens_Access is access procedure
+     (Super                   :         in out Base.Supervisor;
+      Tree                    :         in out Syntax_Trees.Tree;
+      Table                   :         in     Parse_Table_Ptr;
+      Tokens                  :         in     Token_ID_Array_1_3;
+      Config                  : aliased in     Configuration;
+      Matching_Tokens         :         in out Token_ID_Arrays.Vector;
+      Forbid_Minimal_Complete :         in out Boolean);
+   --  Tokens (1) is the current token; Tokens (2 .. 3) are the following
+   --  tokens (Invalid_Token_ID if none). Set Matching_Tokens to a
+   --  terminal token sequence that starts a production matching Tokens.
+   --  If Minimal_Complete would produce a bad solution at this error
+   --  point, set Forbid_Minimal_Complete True.
+   --
+   --  For example, if Tokens is a block end, return tokens that are the
+   --  corresponding block begin. If the error point is inside a
+   --  multi-token 'end' (ie 'end if;', or 'end <name>;'), set
+   --  Forbid_Minimal_Complete True.
+   --
+   --  ada-mode uses Peek_Sequential_Start in this subprogram, so it
+   --  requires Super, Shared_Parser, aliased Config.
+
+   type Language_String_ID_Set_Access is access function
+     (Descriptor        : in WisiToken.Descriptor;
+      String_Literal_ID : in Token_ID)
+     return Token_ID_Set;
+   --  Return a Token_ID_Set containing String_Literal_ID and
+   --  nonterminals that can contain String_Literal_ID as part of an
+   --  expression. Used in placing a missing string quote.
 
 end WisiToken.Parse.LR;

@@ -28,6 +28,7 @@ pragma License (Modified_GPL);
 
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Parse.LR.Parser_Lists;
+with WisiToken.Parse.Parser;
 limited with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package WisiToken.Parse.LR.McKenzie_Recover is
    use all type WisiToken.Syntax_Trees.Stream_Index;
@@ -46,7 +47,7 @@ package WisiToken.Parse.LR.McKenzie_Recover is
 
    type Recover_Status is (Fail_Check_Delta, Fail_Enqueue_Limit, Fail_No_Configs_Left, Fail_Programmer_Error, Success);
 
-   function Recover (Shared_Parser : in out WisiToken.Parse.LR.Parser.Parser) return Recover_Status;
+   function Recover (Shared_Parser : in out WisiToken.Parse.Parser.Parser) return Recover_Status;
    --  Attempt to modify Parser.Parsers state and Parser.Lookahead to
    --  allow recovering from an error state.
 
@@ -59,7 +60,7 @@ package WisiToken.Parse.LR.McKenzie_Recover is
    --  Similarly, setting this true keeps all solutions that are found,
    --  and forces at least three.
 
-   procedure Clear_Sequential_Index (Shared_Parser : in out WisiToken.Parse.LR.Parser.Parser);
+   procedure Clear_Sequential_Index (Shared_Parser : in out WisiToken.Parse.Parser.Parser);
    --  Reset nodes set by Set_Sequential_Index.
 
 private
@@ -97,7 +98,7 @@ private
 
    procedure Delete_Check
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Config        : in out Configuration;
       ID            : in     Token_ID);
    --  Check that the next input token in Config has ID. Append a Delete op
@@ -113,7 +114,7 @@ private
 
    procedure Delete_Check
      (Super         :         in out Base.Supervisor;
-      Shared_Parser :         in out LR.Parser.Parser;
+      Shared_Parser :         in out WisiToken.Parse.Parser.Parser;
       Config        : aliased in out Configuration;
       IDs           :         in     Token_ID_Array);
    --  Call Delete_Check for each ID in IDs, incrementing to the next
@@ -121,7 +122,7 @@ private
 
    procedure Delete_Check
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Config        : in out Configuration;
       Peek_State    : in out Peek_Sequential_State;
       ID            : in     Token_ID);
@@ -203,7 +204,7 @@ private
 
    procedure Insert
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Config        : in out Configuration;
       ID            : in     Token_ID);
    --  Append an Insert before Config.Current_Shared_Token or
@@ -212,14 +213,14 @@ private
 
    procedure Insert
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Config        : in out Configuration;
       IDs           : in     Token_ID_Array);
    --  Call Insert for each item in IDs.
 
    procedure Insert
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Config        : in out Configuration;
       Before        : in     Syntax_Trees.Valid_Node_Access;
       ID            : in     Token_ID);
@@ -227,7 +228,7 @@ private
 
    function Peek_Sequential_Start
      (Super         :         in out Base.Supervisor;
-      Shared_Parser :         in out LR.Parser.Parser;
+      Shared_Parser :         in out WisiToken.Parse.Parser.Parser;
       Config        : aliased in     Configuration)
      return Peek_Sequential_State;
 
@@ -302,7 +303,7 @@ private
 
    function Push_Back_Valid
      (Super                 : in out Base.Supervisor;
-      Shared_Parser :         in out LR.Parser.Parser;
+      Shared_Parser :         in out WisiToken.Parse.Parser.Parser;
       Config                : in     Configuration;
       Push_Back_Undo_Reduce : in     Boolean)
      return Boolean;
@@ -314,7 +315,7 @@ private
 
    procedure Push_Back
      (Super                 : in out Base.Supervisor;
-      Shared_Parser         : in out LR.Parser.Parser;
+      Shared_Parser         : in out WisiToken.Parse.Parser.Parser;
       Config                : in out Configuration;
       Push_Back_Undo_Reduce : in     Boolean);
    --  If not Push_Back_Valid, raise Invalid_Case. Otherwise do
@@ -326,7 +327,7 @@ private
 
    procedure Push_Back_Check
      (Super                 : in out Base.Supervisor;
-      Shared_Parser         : in out LR.Parser.Parser;
+      Shared_Parser         : in out WisiToken.Parse.Parser.Parser;
       Config                : in out Configuration;
       Expected_ID           : in     Token_ID;
       Push_Back_Undo_Reduce : in     Boolean);
@@ -335,7 +336,7 @@ private
 
    procedure Push_Back_Check
      (Super                 : in out Base.Supervisor;
-      Shared_Parser         : in out LR.Parser.Parser;
+      Shared_Parser         : in out WisiToken.Parse.Parser.Parser;
       Config                : in out Configuration;
       Expected              : in     Token_ID_Array;
       Push_Back_Undo_Reduce : in     Boolean);
@@ -357,20 +358,20 @@ private
 
    function Undo_Reduce_Valid
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Config        : in out Configuration)
      return Boolean;
    --  True if Undo_Reduce is valid for Config.
 
    procedure Unchecked_Undo_Reduce
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Config        : in out Configuration);
    --  Undo the reduction that produced the top stack item, append op.
 
    procedure Undo_Reduce_Check
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Config        : in out Configuration;
       Expected      : in     Token_ID)
    with Inline => True;
@@ -380,7 +381,7 @@ private
 
    procedure Undo_Reduce_Check
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Config        : in out Configuration;
       Expected      : in     Token_ID_Array);
    --  Call Undo_Reduce_Check for each item in Expected.

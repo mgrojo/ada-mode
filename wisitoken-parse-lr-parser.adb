@@ -3389,11 +3389,4 @@ package body WisiToken.Parse.LR.Parser is
       end if;
    end Edit_Tree;
 
-   overriding procedure Parse
-     (Shared_Parser    : in out LR.Parser.Parser;
-      Recover_Log_File : in     Ada.Text_IO.File_Type;
-      Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List;
-      Pre_Edited       : in     Boolean        := False)
-   is separate;
-
 end WisiToken.Parse.LR.Parser;

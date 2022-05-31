@@ -32,6 +32,18 @@ update-wisitoken_grammar
 
  current work
 packrat error recover
+    lr_parser should share Tree with Packrat_Parser
+        need one merged parser type, with both packrat and lr components.
+            move all to base_parser in wisitoken-parse-parser.ads
+            language_* access procedure takes LR_Parser param
+                could be some base_parser type?
+                Ada uses: Tree, Table
+                pass those instead, move declarations to w.parse.lr
+
+
+
+
+
     debug_packrat_to_lr.adb
         two empty nonterms at pos 3: parameter_profile_opt, aspect_specification_opt
         multiple non-empty nonterms => spawn streams
@@ -39,26 +51,23 @@ packrat error recover
         stream looks ok; run mckenzie.
 
     if more than one parse stream after recover:
-        order streams as multiple stream accept would
-        execute each one in turn until it gets to accept or error
-            if accept, return
-            if all error, keep those within check_limit of the one that made the farthest progress, enter error recover
-
-        or just more entries in derivs?
+        just more entries in derivs
             do lr parse until resume done, then enter all streams in derivs, resume packrat parse
+            need lr_to_packrat
+                handle optimized_list
 
+    optimize packrat_to_lr:
+        order nonterms by production top-down
+            compilation_list
+            compilation_unit
+            ...
+
+        call set_parents on first found, delete all derivs that are children of that
 
 packrat_gen error message test
 
 apply conflict resolution to minimal actions
     optimized_conflict_01 state 23
-
-ada_lite_ebnf packrat
-    enumeration_literal_list
-        handle EBNF list
-            for now, keep bnf tree, but generate longer RHS first; we have manually created lists with that pattern.
-            that breaks a lot of hard-coded 0, 1, 2 rhs_index?
-            run all wisitoken tests
 
 ediff of *.wy hangs
     mmm-mode vs wisi-parse-incremental :wait nil

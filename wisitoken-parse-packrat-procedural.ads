@@ -25,9 +25,10 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Productions;
+with WisiToken.Parse.Parser;
 package WisiToken.Parse.Packrat.Procedural is
 
-   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new Packrat.Parser
+   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new WisiToken.Parse.Parser.Parser
      (First_Nonterminal => First_Nonterminal,
       Last_Nonterminal  => Last_Nonterminal)
    with record
@@ -47,11 +48,6 @@ package WisiToken.Parse.Packrat.Procedural is
       User_Data             : in WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser;
 
-   overriding procedure Parse
-     (Parser     : in out Procedural.Parser;
-      Log_File   : in     Ada.Text_IO.File_Type;
-      Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
-      Pre_Edited : in     Boolean        := False);
-   --  Raises Parse_Error if Edits is not empty.
+   procedure Packrat_Parse_No_Recover (Parser : in out Procedural.Parser);
 
 end WisiToken.Parse.Packrat.Procedural;

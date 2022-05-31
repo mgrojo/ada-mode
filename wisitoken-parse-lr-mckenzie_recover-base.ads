@@ -36,11 +36,11 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Initialize
      (Super         : in out Supervisor;
-      Shared_Parser : in out WisiToken.Parse.LR.Parser.Parser);
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser);
 
    procedure Get
      (Super         : in out Supervisor;
-      Shared_Parser : in     Parser.Parser;
+      Shared_Parser : in     WisiToken.Parse.Parser.Parser;
       Parser_Index  :    out SAL.Base_Peek_Type;
       Config        :    out Configuration);
    --  Get a new configuration to check. If Parser_Index =
@@ -49,7 +49,7 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Success
      (Super         : in out Supervisor;
-      Shared_Parser : in     Parser.Parser;
+      Shared_Parser : in     WisiToken.Parse.Parser.Parser;
       Parser_Index  : in     SAL.Peek_Type;
       Config        : in     Configuration;
       Configs       : in out Config_Heaps.Heap_Type);
@@ -58,14 +58,14 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Put
      (Super         : in out Supervisor;
-      Shared_Parser : in     Parser.Parser;
+      Shared_Parser : in     WisiToken.Parse.Parser.Parser;
       Parser_Index  : in     SAL.Peek_Type;
       Configs       : in out Config_Heaps.Heap_Type);
    --  Add Configs to the McKenzie_Data Config_Heap for Parser_Label
 
    procedure Config_Full
      (Super         : in out Supervisor;
-      Shared_Parser : in     Parser.Parser;
+      Shared_Parser : in     WisiToken.Parse.Parser.Parser;
       Prefix        : in     String;
       Parser_Index  : in     SAL.Peek_Type);
    --  Report that a config.ops was full when trying to add another op.
@@ -78,7 +78,7 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Finish
      (Super         : in out Supervisor;
-      Shared_Parser : in out Parser.Parser);
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser);
 
    function Parser_State
      (Super        : in Supervisor;
@@ -89,7 +89,7 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Extend_Sequential_Index
      (Super         : in out Supervisor;
-      Shared_Parser : in out Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Thru          : in     Syntax_Trees.Valid_Node_Access;
       Positive      : in     Boolean)
    with Pre => Shared_Parser.Tree.Is_Terminal (Thru),
@@ -101,13 +101,13 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Extend_Sequential_Index
      (Super         : in out Supervisor;
-      Shared_Parser : in out Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Thru          : in     Syntax_Trees.Sequential_Index);
    --  Ensure Sequential_Index range includes Thru, or SOI/EOI.
 
    procedure Put
      (Super         : in Supervisor;
-      Shared_Parser : in Parser.Parser;
+      Shared_Parser : in WisiToken.Parse.Parser.Parser;
       Message       : in String;
       Parser_Index  : in SAL.Peek_Type;
       Config        : in Configuration);

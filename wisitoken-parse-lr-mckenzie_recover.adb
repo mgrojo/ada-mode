@@ -18,8 +18,6 @@
 pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
-with Ada.Exceptions;
-with GNAT.Traceback.Symbolic;
 with GNATCOLL.Memory;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
@@ -70,11 +68,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Recover_Init
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Parser_State  : in out Parser_Lists.Parser_State)
    is
       use Recover_Op_Arrays;
-      use all type WisiToken.Parse.LR.Parser.Language_Fixes_Access;
+      use all type WisiToken.Parse.Parser.Language_Fixes_Access;
 
       Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
       Trace  : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
@@ -194,7 +192,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Parser_State.Recover.Config_Heap.Add (Config);
    end Recover_Init;
 
-   function Recover (Shared_Parser : in out LR.Parser.Parser) return Recover_Status
+   function Recover (Shared_Parser : in out WisiToken.Parse.Parser.Parser) return Recover_Status
    is
       Tree    : Syntax_Trees.Tree renames Shared_Parser.Tree;
       Trace   : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
@@ -745,7 +743,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    function Peek_Sequential_Start
      (Super         :         in out Base.Supervisor;
-      Shared_Parser :         in out LR.Parser.Parser;
+      Shared_Parser :         in out WisiToken.Parse.Parser.Parser;
       Config        : aliased in     Configuration)
      return Peek_Sequential_State
    is
@@ -812,7 +810,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Delete_Check
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Config        : in out Configuration;
       Node          : in     Syntax_Trees.Valid_Node_Access;
       Expected_ID   : in     Token_ID)
@@ -841,7 +839,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Delete_Check
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Config        : in out Configuration;
       ID            : in     Token_ID)
    is
@@ -852,7 +850,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Delete_Check
      (Super         :         in out Base.Supervisor;
-      Shared_Parser :         in out LR.Parser.Parser;
+      Shared_Parser :         in out WisiToken.Parse.Parser.Parser;
       Config        : aliased in out Configuration;
       IDs           :         in     Token_ID_Array)
    is
@@ -866,7 +864,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Delete_Check
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
       Config        : in out Configuration;
       Peek_State    : in out Peek_Sequential_State;
       ID            : in     Token_ID)
@@ -1223,7 +1221,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end loop;
    end Extend_Sequential_Index;
 
-   procedure Clear_Sequential_Index (Shared_Parser : in out WisiToken.Parse.LR.Parser.Parser)
+   procedure Clear_Sequential_Index (Shared_Parser : in out WisiToken.Parse.Parser.Parser)
    is
       Streams       : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Parsers.Count + 1);
       Min_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Parsers.Count + 1);
