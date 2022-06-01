@@ -22,7 +22,58 @@ pragma License (Modified_GPL);
 
 with WisiToken.Lexer;
 with WisiToken.Parse.Parser;
+with WisiToken.Parse.LR.Parser_Lists;
 package WisiToken.Parse.LR.Parser is
+
+   procedure Get_Action
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
+      Parser_State  : in out Parser_Lists.Parser_State;
+      Action_Cur    :    out Parse_Action_Node_Ptr;
+      Action        :    out Parse_Action_Rec);
+
+   procedure Do_Action
+     (Action         : in     Parse_Action_Rec;
+      Current_Parser : in     WisiToken.Parse.LR.Parser_Lists.Cursor;
+      Shared_Parser  : in out WisiToken.Parse.Parser.Parser'Class);
+   --  Apply Action to Current_Parser; sets Current_Parser.Verb.
+
+   procedure Parse_Verb
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
+      Verb          :    out All_Parse_Action_Verbs;
+      Zombie_Count  :    out SAL.Base_Peek_Type);
+   --  Verb: the type of parser cycle to execute;
+   --
+   --     Accept_It : all Parsers.Verb return Accept - done parsing.
+   --
+   --     Shift : some Parsers.Verb return Shift.
+   --
+   --     Pause : Resume is active, and this parser has reached
+   --  Resume_Goal, so it is waiting for the others to catch up. Or
+   --  resume is not active, and this parser has shifted a nonterminal,
+   --  while some other parser has broken down that nonterminal; it is
+   --  waiting for the others to catch up. This ensures parsers are
+   --  within Mckenzie_Param.Zombie_Limit of the same terminal when they
+   --  enter error recovery.
+   --
+   --     Reduce : some Parsers.Verb return Reduce.
+   --
+   --     Error : all Parsers.Verb return Error.
+   --
+   --  Zombie_Count: count of parsers in Error state
+
+   procedure Recover_To_Log
+     (Shared_Parser            : in out WisiToken.Parse.Parser.Parser'Class;
+      Recover_Log_File         : in     Ada.Text_IO.File_Type;
+      Recover_Result           : in     McKenzie_Recover.Recover_Status;
+      Pre_Recover_Parser_Count : in     SAL.Base_Peek_Type);
+
+   procedure Check_Error
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
+      Check_Parser  : in out WisiToken.Parse.LR.Parser_Lists.Cursor);
+
+   procedure Finish_Parse (Parser : in out WisiToken.Parse.Parser.Parser'Class);
+   --  Final actions after LR accept state reached; call
+   --  User_Data.Insert_Token, Delete_Token.
 
    procedure New_Parser
      (Parser                         : in out WisiToken.Parse.Parser.Parser'Class;
@@ -36,7 +87,7 @@ package WisiToken.Parse.LR.Parser is
    --  Populate LR and error recover components of Parser.
 
    procedure Edit_Tree
-     (Parser : in out WisiToken.Parse.Parser.Parser;
+     (Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Edits  : in     KMN_Lists.List)
    with Pre => Parser.Tree.Editable,
      Post => Parser.Tree.Stream_Count = 1;

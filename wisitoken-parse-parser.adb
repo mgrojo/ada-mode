@@ -10,15 +10,22 @@
 --  version. This library is distributed in the hope that it will be useful,
 --  but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN-
 --  TABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+--
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
 
-pragma License (GPL);
+pragma License (Modified_GPL);
 
+with Ada.Exceptions;
+with GNAT.Traceback.Symbolic;
 package body WisiToken.Parse.Parser is
 
-   --  Body subprograms
+   ----------
+   --  Package public subprograms, declaration order
 
    procedure Process_Grammar_Token
-     (Parser : in out Base_Parser'Class;
+     (Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Token  : in     Lexer.Token;
       Node   : in     Syntax_Trees.Valid_Node_Access)
    is
@@ -30,7 +37,7 @@ package body WisiToken.Parse.Parser is
    end Process_Grammar_Token;
 
    procedure Process_Non_Grammar_Token
-     (Parser       : in out Base_Parser'Class;
+     (Parser       : in out WisiToken.Parse.Parser.Parser'Class;
       Grammar_Node : in     Syntax_Trees.Valid_Node_Access;
       Token        : in     Lexer.Token)
    is
@@ -42,9 +49,6 @@ package body WisiToken.Parse.Parser is
          Parser.User_Data.Lexer_To_Augmented (Parser.Tree, Token, Grammar_Node);
       end if;
    end Process_Non_Grammar_Token;
-
-   ----------
-   --  Package public subprograms, declaration order
 
    function Next_Grammar_Token
      (Parser            : in out WisiToken.Parse.Parser.Parser'Class;
@@ -132,7 +136,7 @@ package body WisiToken.Parse.Parser is
    end Lex_All;
 
    procedure LR_Parse
-     (Parser     : in out LR.Parser.Parser;
+     (Parser     : in out WisiToken.Parse.Parser.Parser'Class;
       Log_File   : in     Ada.Text_IO.File_Type;
       Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
       Pre_Edited : in     Boolean        := False)

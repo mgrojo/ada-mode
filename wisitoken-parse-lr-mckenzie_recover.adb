@@ -18,6 +18,8 @@
 pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
+with Ada.Exceptions;
+with GNAT.Traceback.Symbolic;
 with GNATCOLL.Memory;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
@@ -68,17 +70,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Recover_Init
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Parser_State  : in out Parser_Lists.Parser_State)
    is
       use Recover_Op_Arrays;
-      use all type WisiToken.Parse.Parser.Language_Fixes_Access;
 
-      Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
-      Trace  : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
-      Config : Configuration;
+      Tree       : Syntax_Trees.Tree renames Shared_Parser.Tree;
+      Trace      : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
+      Config     : Configuration;
       Error_Node : constant Syntax_Trees.Valid_Node_Access := Parser_State.Current_Error_Node (Tree).Ref.Node;
-      Error : constant Syntax_Trees.Error_Data'Class := Find_Parse_In_Parse_Action_Error (Tree, Error_Node);
+      Error      : constant Syntax_Trees.Error_Data'Class  := Find_Parse_In_Parse_Action_Error (Tree, Error_Node);
    begin
       Parser_State.Recover.Enqueue_Count := @ + 1;
 
@@ -192,7 +193,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Parser_State.Recover.Config_Heap.Add (Config);
    end Recover_Init;
 
-   function Recover (Shared_Parser : in out WisiToken.Parse.Parser.Parser) return Recover_Status
+   function Recover (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class) return Recover_Status
    is
       Tree    : Syntax_Trees.Tree renames Shared_Parser.Tree;
       Trace   : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
@@ -743,7 +744,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    function Peek_Sequential_Start
      (Super         :         in out Base.Supervisor;
-      Shared_Parser :         in out WisiToken.Parse.Parser.Parser;
+      Shared_Parser :         in out WisiToken.Parse.Parser.Parser'Class;
       Config        : aliased in     Configuration)
      return Peek_Sequential_State
    is
@@ -810,7 +811,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Delete_Check
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Config        : in out Configuration;
       Node          : in     Syntax_Trees.Valid_Node_Access;
       Expected_ID   : in     Token_ID)
@@ -839,7 +840,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Delete_Check
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Config        : in out Configuration;
       ID            : in     Token_ID)
    is
@@ -850,7 +851,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Delete_Check
      (Super         :         in out Base.Supervisor;
-      Shared_Parser :         in out WisiToken.Parse.Parser.Parser;
+      Shared_Parser :         in out WisiToken.Parse.Parser.Parser'Class;
       Config        : aliased in out Configuration;
       IDs           :         in     Token_ID_Array)
    is
@@ -864,7 +865,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Delete_Check
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out WisiToken.Parse.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Config        : in out Configuration;
       Peek_State    : in out Peek_Sequential_State;
       ID            : in     Token_ID)
@@ -1221,7 +1222,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end loop;
    end Extend_Sequential_Index;
 
-   procedure Clear_Sequential_Index (Shared_Parser : in out WisiToken.Parse.Parser.Parser)
+   procedure Clear_Sequential_Index (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class)
    is
       Streams       : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Parsers.Count + 1);
       Min_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Parsers.Count + 1);
@@ -1388,7 +1389,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Insert
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Config        : in out Configuration;
       ID            : in     Token_ID)
    is begin
@@ -1398,7 +1399,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Insert
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Config        : in out Configuration;
       IDs           : in     Token_ID_Array)
    is begin
@@ -1409,7 +1410,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Insert
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Config        : in out Configuration;
       Before        : in     Syntax_Trees.Valid_Node_Access;
       ID            : in     Token_ID)
@@ -1459,7 +1460,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    function Push_Back_Undo_Reduce_Valid
      (Super                 : in out Base.Supervisor;
-      Shared_Parser :         in out LR.Parser.Parser;
+      Shared_Parser :         in out WisiToken.Parse.Parser.Parser'Class;
       Target_Op             : in     Recover_Op_Label;
       Target_Node           : in     Syntax_Trees.Node_Access;
       Ops                   : in     Recover_Op_Arrays.Vector;
@@ -1623,7 +1624,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    function Push_Back_Valid
      (Super                 : in out Base.Supervisor;
-      Shared_Parser :         in out LR.Parser.Parser;
+      Shared_Parser :         in out WisiToken.Parse.Parser.Parser'Class;
       Config                : in     Configuration;
       Push_Back_Undo_Reduce : in     Boolean)
      return Boolean
@@ -1673,7 +1674,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Push_Back
      (Super                 : in out Base.Supervisor;
-      Shared_Parser         : in out LR.Parser.Parser;
+      Shared_Parser         : in out WisiToken.Parse.Parser.Parser'Class;
       Config                : in out Configuration;
       Push_Back_Undo_Reduce : in     Boolean)
    is begin
@@ -1688,7 +1689,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Push_Back_Check
      (Super                 : in out Base.Supervisor;
-      Shared_Parser         : in out LR.Parser.Parser;
+      Shared_Parser         : in out WisiToken.Parse.Parser.Parser'Class;
       Config                : in out Configuration;
       Expected_ID           : in     Token_ID;
       Push_Back_Undo_Reduce : in     Boolean)
@@ -1702,7 +1703,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Push_Back_Check
      (Super                 : in out Base.Supervisor;
-      Shared_Parser         : in out LR.Parser.Parser;
+      Shared_Parser         : in out WisiToken.Parse.Parser.Parser'Class;
       Config                : in out Configuration;
       Expected              : in     Token_ID_Array;
       Push_Back_Undo_Reduce : in     Boolean)
@@ -1775,7 +1776,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    function Undo_Reduce_Valid
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Config        : in out Configuration)
      return Boolean
    is
@@ -1814,7 +1815,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Unchecked_Undo_Reduce
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Config        : in out Configuration)
    is
       Table        : Parse_Table renames Shared_Parser.Table.all;
@@ -1860,7 +1861,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Undo_Reduce_Check
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Config        : in out Configuration;
       Expected      : in     Token_ID)
    is begin
@@ -1875,7 +1876,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Undo_Reduce_Check
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Config        : in out Configuration;
       Expected      : in     Token_ID_Array)
    is begin

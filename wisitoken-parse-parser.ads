@@ -15,8 +15,13 @@
 --  version. This library is distributed in the hope that it will be useful,
 --  but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN-
 --  TABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+--
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
 
-pragma License (GPL);
+pragma License (Modified_GPL);
+
 with Ada.Finalization;
 with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Parse.Packrat;
@@ -60,6 +65,16 @@ package WisiToken.Parse.Parser is
    function Source_File_Name (Item : in Parser'Class) return String
    is (Item.Tree.Lexer.File_Name);
 
+   procedure Process_Grammar_Token
+     (Parser : in out WisiToken.Parse.Parser.Parser'Class;
+      Token  : in     Lexer.Token;
+      Node   : in     Syntax_Trees.Valid_Node_Access);
+
+   procedure Process_Non_Grammar_Token
+     (Parser       : in out WisiToken.Parse.Parser.Parser'Class;
+      Grammar_Node : in     Syntax_Trees.Valid_Node_Access;
+      Token        : in     Lexer.Token);
+
    function Get_In_Parse_Action
      (Parser : in WisiToken.Parse.Parser.Parser;
       ID     : in Production_ID)
@@ -97,7 +112,7 @@ package WisiToken.Parse.Parser is
    --  The user must first call Lexer.Reset_* to set the input text.
 
    procedure LR_Parse
-     (Parser     : in out WisiToken.Parse.Parser.Parser;
+     (Parser     : in out WisiToken.Parse.Parser.Parser'Class;
       Log_File   : in     Ada.Text_IO.File_Type;
       Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
       Pre_Edited : in     Boolean        := False);
@@ -144,18 +159,5 @@ package WisiToken.Parse.Parser is
    --  Action_Region_Bytes; all nodes if Action_Region_Bytes =
    --  Null_Buffer_Region. See wisitoken-syntax_trees.ads for other
    --  actions performed by Execute_Actions.
-
-private
---  Visible for child packages
-
-   procedure Process_Grammar_Token
-     (Parser : in out WisiToken.Parse.Parser.Parser'Class;
-      Token  : in     Lexer.Token;
-      Node   : in     Syntax_Trees.Valid_Node_Access);
-
-   procedure Process_Non_Grammar_Token
-     (Parser       : in out WisiToken.Parse.Parser.Parser'Class;
-      Grammar_Node : in     Syntax_Trees.Valid_Node_Access;
-      Token        : in     Lexer.Token);
 
 end WisiToken.Parse.Parser;

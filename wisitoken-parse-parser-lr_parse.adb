@@ -10,21 +10,32 @@
 --  version. This library is distributed in the hope that it will be useful,
 --  but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN-
 --  TABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+--
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
 
 pragma License (Modified_GPL);
 
-separate (WisiToken.Parse.LR.Parser)
-overriding procedure Parse
-  (Shared_Parser    : in out LR.Parser.Parser;
-   Recover_Log_File : in     Ada.Text_IO.File_Type;
-   Edits            : in     KMN_Lists.List := KMN_Lists.Empty_List;
-   Pre_Edited       : in     Boolean        := False)
+with Ada.Calendar;
+with WisiToken.Parse.LR.McKenzie_Recover;
+with WisiToken.Parse.LR.Parser;
+separate (WisiToken.Parse.Parser)
+procedure LR_Parse
+  (Parser     : in out WisiToken.Parse.Parser.Parser'Class;
+   Log_File   : in     Ada.Text_IO.File_Type;
+   Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
+   Pre_Edited : in     Boolean        := False)
 is
-   use Syntax_Trees;
-   use all type KMN_Lists.List;
+   use WisiToken.Parse.LR.Parser;
+   use WisiToken.Parse.LR;
+   use WisiToken.Syntax_Trees;
    use all type Ada.Containers.Count_Type;
+   use all type KMN_Lists.List;
+   use all type SAL.Base_Peek_Type;
 
-   Trace : WisiToken.Trace'Class renames Shared_Parser.Tree.Lexer.Trace.all;
+   Shared_Parser : WisiToken.Parse.Parser.Parser renames WisiToken.Parse.Parser.Parser (Parser);
+   Trace         : WisiToken.Trace'Class renames Shared_Parser.Tree.Lexer.Trace.all;
 
    Current_Verb : All_Parse_Action_Verbs;
    Zombie_Count : SAL.Base_Peek_Type;
@@ -365,8 +376,8 @@ begin
                   end if;
                end if;
 
-               if Ada.Text_IO.Is_Open (Recover_Log_File) then
-                  Recover_To_Log (Shared_Parser, Recover_Log_File, Recover_Result, Pre_Recover_Parser_Count);
+               if Ada.Text_IO.Is_Open (Log_File) then
+                  Recover_To_Log (Shared_Parser, Log_File, Recover_Result, Pre_Recover_Parser_Count);
                end if;
             end if;
 
@@ -510,7 +521,7 @@ begin
                   Action     : Parse_Action_Rec;
                   Conflict   : Parse_Action_Node_Ptr;
                begin
-                  LR.Parser.Get_Action (Shared_Parser, Current_Parser.State_Ref, Action_Cur, Action);
+                  Get_Action (Shared_Parser, Current_Parser.State_Ref, Action_Cur, Action);
 
                   Conflict := (if Action_Cur = null then null else Action_Cur.Next);
 
@@ -661,4 +672,4 @@ when E : others =>
       --  Emacs displays the exception message in the echo area; easy to miss
       raise WisiToken.Parse_Error with Msg;
    end;
-end Parse;
+end LR_Parse;

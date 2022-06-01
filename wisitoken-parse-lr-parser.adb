@@ -18,25 +18,20 @@
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
---  As a special exception, if other files instantiate generics from
---  this unit, or you link this unit with other files to produce an
---  executable, this unit does not by itself cause the resulting
---  executable to be covered by the GNU General Public License. This
---  exception does not however invalidate any other reasons why the
---  executable file might be covered by the GNU Public License.
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
 
 pragma License (Modified_GPL);
 
 with Ada.Calendar.Formatting;
-with Ada.Exceptions;
-with GNAT.Traceback.Symbolic;
 with WisiToken.In_Parse_Actions;
 with WisiToken.Parse.LR.McKenzie_Recover;
 package body WisiToken.Parse.LR.Parser is
 
    function Reduce_Stack_1
-     (Shared_Parser  : in out Parser;
-      Current_Parser : in     Parser_Lists.Cursor;
+     (Shared_Parser  : in out WisiToken.Parse.Parser.Parser'Class;
+      Current_Parser : in     WisiToken.Parse.LR.Parser_Lists.Cursor;
       Action         : in     Reduce_Action_Rec;
       New_State      : in     State_Index)
      return Syntax_Trees.In_Parse_Actions.Status_Label
@@ -48,7 +43,7 @@ package body WisiToken.Parse.LR.Parser is
       use all type Syntax_Trees.In_Parse_Actions.Status_Label;
       use all type Syntax_Trees.In_Parse_Actions.In_Parse_Action;
 
-      Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
+      Parser_State : WisiToken.Parse.LR.Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
 
       Nonterm : constant Syntax_Trees.Rooted_Ref := Shared_Parser.Tree.Reduce
         (Parser_State.Stream, Action.Production, Action.Token_Count, New_State,
@@ -114,7 +109,7 @@ package body WisiToken.Parse.LR.Parser is
    end Reduce_Stack_1;
 
    procedure Get_Action
-     (Shared_Parser : in out LR.Parser.Parser;
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Parser_State  : in out Parser_Lists.Parser_State;
       Action_Cur    :    out Parse_Action_Node_Ptr;
       Action        :    out Parse_Action_Rec)
@@ -304,9 +299,8 @@ package body WisiToken.Parse.LR.Parser is
 
    procedure Do_Action
      (Action         : in     Parse_Action_Rec;
-      Current_Parser : in     Parser_Lists.Cursor;
-      Shared_Parser  : in out LR.Parser.Parser)
-   --  Apply Action to Current_Parser; sets Current_Parser.Verb.
+      Current_Parser : in     WisiToken.Parse.LR.Parser_Lists.Cursor;
+      Shared_Parser  : in out WisiToken.Parse.Parser.Parser'Class)
    is
       use all type Syntax_Trees.In_Parse_Actions.Status_Label;
 
@@ -506,7 +500,7 @@ package body WisiToken.Parse.LR.Parser is
    end Do_Action;
 
    procedure Do_Deletes
-     (Shared_Parser : in out LR.Parser.Parser;
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Parser_State  : in out Parser_Lists.Parser_State)
    is
       use Recover_Op_Nodes_Arrays;
@@ -553,28 +547,9 @@ package body WisiToken.Parse.LR.Parser is
    end Do_Deletes;
 
    procedure Parse_Verb
-     (Shared_Parser : in out LR.Parser.Parser;
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Verb          :    out All_Parse_Action_Verbs;
       Zombie_Count  :    out SAL.Base_Peek_Type)
-   --  Verb: the type of parser cycle to execute;
-   --
-   --     Accept_It : all Parsers.Verb return Accept - done parsing.
-   --
-   --     Shift : some Parsers.Verb return Shift.
-   --
-   --     Pause : Resume is active, and this parser has reached
-   --  Resume_Goal, so it is waiting for the others to catch up. Or
-   --  resume is not active, and this parser has shifted a nonterminal,
-   --  while some other parser has broken down that nonterminal; it is
-   --  waiting for the others to catch up. This ensures parsers are
-   --  within Mckenzie_Param.Zombie_Limit of the same terminal when they
-   --  enter error recovery.
-   --
-   --     Reduce : some Parsers.Verb return Reduce.
-   --
-   --     Error : all Parsers.Verb return Error.
-   --
-   --  Zombie_Count: count of parsers in Error state
    is
       use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
 
@@ -843,7 +818,7 @@ package body WisiToken.Parse.LR.Parser is
    end Parse_Verb;
 
    procedure Recover_To_Log
-     (Shared_Parser            : in out LR.Parser.Parser;
+     (Shared_Parser            : in out WisiToken.Parse.Parser.Parser'Class;
       Recover_Log_File         : in     Ada.Text_IO.File_Type;
       Recover_Result           : in     McKenzie_Recover.Recover_Status;
       Pre_Recover_Parser_Count : in     SAL.Base_Peek_Type)
@@ -881,8 +856,8 @@ package body WisiToken.Parse.LR.Parser is
    end Recover_To_Log;
 
    procedure Check_Error
-     (Shared_Parser : in out LR.Parser.Parser;
-      Check_Parser  : in out Parser_Lists.Cursor)
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
+      Check_Parser  : in out WisiToken.Parse.LR.Parser_Lists.Cursor)
    is
       procedure Report_Error
       is
@@ -937,9 +912,7 @@ package body WisiToken.Parse.LR.Parser is
       end if;
    end Check_Error;
 
-   procedure Finish_Parse (Parser : in out LR.Parser.Parser)
-   --  Final actions after LR accept state reached; call
-   --  User_Data.Insert_Token, Delete_Token.
+   procedure Finish_Parse (Parser : in out WisiToken.Parse.Parser.Parser'Class)
    is
       use WisiToken.Syntax_Trees;
       use all type Ada.Containers.Count_Type;
@@ -1029,11 +1002,8 @@ package body WisiToken.Parse.LR.Parser is
       end if;
    end Finish_Parse;
 
-   ----------
-   --  Public subprograms, declaration order
-
    procedure New_Parser
-     (Parser                         :    out LR.Parser.Parser;
+     (Parser                         : in out WisiToken.Parse.Parser.Parser'Class;
       Lexer                          : in     WisiToken.Lexer.Handle;
       Table                          : in     Parse_Table_Ptr;
       Productions                    : in     Syntax_Trees.Production_Info_Trees.Vector;
@@ -1058,7 +1028,7 @@ package body WisiToken.Parse.LR.Parser is
    end New_Parser;
 
    procedure Edit_Tree
-     (Parser : in out LR.Parser.Parser;
+     (Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Edits  : in     KMN_Lists.List)
    is
       --  Similar to [Lahav 2004] Algorithms 3, 4. That assumes creating a
@@ -3050,7 +3020,7 @@ package body WisiToken.Parse.LR.Parser is
                               Before => Terminal.Element,
                               Errors => Scan_Errors);
 
-                           Process_Grammar_Token (Parser, Token, Ref.Node);
+                           WisiToken.Parse.Parser.Process_Grammar_Token (Parser, Token, Ref.Node);
                            Last_Grammar := Ref;
 
                            if Trace_Incremental_Parse > Detail then
@@ -3068,7 +3038,7 @@ package body WisiToken.Parse.LR.Parser is
                               --  test_incremental.adb Lexer_Errors_04
                               Tree.Add_Errors (Tree.Shared_Stream, Last_Grammar.Node, Scan_Errors);
                            end if;
-                           Process_Non_Grammar_Token (Parser, Last_Grammar.Node, Token);
+                           WisiToken.Parse.Parser.Process_Non_Grammar_Token (Parser, Last_Grammar.Node, Token);
                            Shift_Lines := @ + New_Line_Count (Token.Line_Region);
                         end if;
 

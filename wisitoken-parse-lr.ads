@@ -43,6 +43,7 @@ with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
 with WisiToken.Syntax_Trees;
 limited with WisiToken.Parse.LR.McKenzie_Recover.Base;
+limited with WisiToken.Parse.Parser;
 package WisiToken.Parse.LR is
    use all type WisiToken.Syntax_Trees.Node_Access;
    use all type WisiToken.Syntax_Trees.Base_Sequential_Index;
@@ -621,8 +622,7 @@ package WisiToken.Parse.LR is
 
    type Language_Fixes_Access is access procedure
      (Super             : in out Base.Supervisor;
-      Tree              : in out Syntax_Trees.Tree;
-      Table             : in     Parse_Table_Ptr;
+      Shared_Parser     : in out WisiToken.Parse.Parser.Parser'Class;
       Parser_Index      : in     SAL.Peek_Type;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration);
@@ -641,8 +641,7 @@ package WisiToken.Parse.LR is
 
    type Language_Matching_Begin_Tokens_Access is access procedure
      (Super                   :         in out Base.Supervisor;
-      Tree                    :         in out Syntax_Trees.Tree;
-      Table                   :         in     Parse_Table_Ptr;
+      Shared_Parser           :         in out WisiToken.Parse.Parser.Parser'Class;
       Tokens                  :         in     Token_ID_Array_1_3;
       Config                  : aliased in     Configuration;
       Matching_Tokens         :         in out Token_ID_Arrays.Vector;

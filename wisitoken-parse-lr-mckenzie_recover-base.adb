@@ -24,7 +24,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Initialize
      (Super         : in out Supervisor;
-      Shared_Parser : in out Parser.Parser)
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class)
    is
       Tree : WisiToken.Syntax_Trees.Tree renames Shared_Parser.Tree;
    begin
@@ -134,7 +134,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Get
      (Super         : in out Supervisor;
-      Shared_Parser : in     Parser.Parser;
+      Shared_Parser : in     WisiToken.Parse.Parser.Parser'Class;
       Parser_Index  :    out SAL.Base_Peek_Type;
       Config        :    out Configuration)
    is
@@ -279,7 +279,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Success
      (Super         : in out Supervisor;
-      Shared_Parser : in     Parser.Parser;
+      Shared_Parser : in     WisiToken.Parse.Parser.Parser'Class;
       Parser_Index  : in     SAL.Peek_Type;
       Config        : in     Configuration;
       Configs       : in out Config_Heaps.Heap_Type)
@@ -341,7 +341,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Put
      (Super         : in out Supervisor;
-      Shared_Parser : in     Parser.Parser;
+      Shared_Parser : in     WisiToken.Parse.Parser.Parser'Class;
       Parser_Index  : in     SAL.Peek_Type;
       Configs       : in out Config_Heaps.Heap_Type)
    is
@@ -370,7 +370,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Config_Full
      (Super         : in out Supervisor;
-      Shared_Parser : in     Parser.Parser;
+      Shared_Parser : in     WisiToken.Parse.Parser.Parser'Class;
       Prefix        : in     String;
       Parser_Index  : in     SAL.Peek_Type)
    is
@@ -412,7 +412,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    function Min_Sequential_Index
      (Super         : in Supervisor;
-      Shared_Parser : in Parser.Parser)
+      Shared_Parser : in WisiToken.Parse.Parser.Parser'Class)
      return Syntax_Trees.Sequential_Index
    is
       use WisiToken.Syntax_Trees;
@@ -427,7 +427,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    function Max_Sequential_Index
      (Super         : in Supervisor;
-      Shared_Parser : in Parser.Parser)
+      Shared_Parser : in WisiToken.Parse.Parser.Parser'Class)
      return Syntax_Trees.Sequential_Index
    is
       use Syntax_Trees;
@@ -442,7 +442,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Finish
      (Super         : in out Supervisor;
-      Shared_Parser : in out Parser.Parser)
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class)
    is begin
       --  Allow streams to be terminated.
       Shared_Parser.Min_Sequential_Index   := Super.Min_Sequential_Index (Shared_Parser);
@@ -474,7 +474,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    function Min_Sequential_Index_All_SOI
      (Super         : in Supervisor;
-      Shared_Parser : in Parser.Parser)
+      Shared_Parser : in WisiToken.Parse.Parser.Parser'Class)
      return Boolean
    is begin
       for I in Super.Min_Sequential_Indices'Range loop
@@ -489,7 +489,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    function Max_Sequential_Index_All_EOI
      (Super         : in Supervisor;
-      Shared_Parser : in Parser.Parser)
+      Shared_Parser : in WisiToken.Parse.Parser.Parser'Class)
      return Boolean
    is begin
       for I in 1 .. Super.Parser_Count loop
@@ -504,7 +504,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Extend_Sequential_Index
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Thru          : in     Syntax_Trees.Valid_Node_Access;
       Positive      : in     Boolean)
    is begin
@@ -555,7 +555,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Extend_Sequential_Index
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Thru          : in     Syntax_Trees.Sequential_Index)
    is
       use Syntax_Trees;
@@ -596,7 +596,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    procedure Put
      (Super         : in Supervisor;
-      Shared_Parser : in Parser.Parser;
+      Shared_Parser : in WisiToken.Parse.Parser.Parser'Class;
       Message       : in String;
       Parser_Index  : in SAL.Peek_Type;
       Config        : in Configuration)

@@ -60,7 +60,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    end Compute_Nonterm;
 
    function Reduce_Stack
-     (Shared_Parser : in out LR.Parser.Parser;
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Stack         : in out Recover_Stacks.Stack;
       Action        : in     Reduce_Action_Rec;
       Nonterm       :    out Syntax_Trees.Recover_Token)
@@ -205,7 +205,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    procedure Current_Token_ID_Peek_3
      (Super         :         in out Base.Supervisor;
-      Shared_Parser :         in out LR.Parser.Parser;
+      Shared_Parser :         in out WisiToken.Parse.Parser.Parser'Class;
       Config        : aliased in     Configuration;
       Tokens        :            out Token_ID_Array_1_3)
    --  Return the current token from Config in Tokens (1). Return the two
@@ -317,7 +317,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    function Peek_Current_First_Sequential_Terminal
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Config        : in     Configuration)
      return Syntax_Trees.Valid_Node_Access
    is
@@ -330,7 +330,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    procedure First_Sequential_Terminal
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Ref           :    out Config_Stream_Parents)
    is
       use Bounded_Streams;
@@ -401,7 +401,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    procedure Last_Sequential_Terminal
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Ref           : in out Config_Stream_Parents)
    is
       use Bounded_Streams;
@@ -507,7 +507,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    function Get_Current_Token
      (Super                   : in out Base.Supervisor;
-      Shared_Parser           : in out LR.Parser.Parser;
+      Shared_Parser           : in out WisiToken.Parse.Parser.Parser'Class;
       Config                  : in out Configuration;
       Inc_Shared_Stream_Token :    out Boolean;
       Inc_Input_Stream_Token  :    out Boolean)
@@ -576,7 +576,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    procedure Next_Token
      (Super                   :         in out Base.Supervisor;
-      Shared_Parser           :         in out LR.Parser.Parser;
+      Shared_Parser           :         in out WisiToken.Parse.Parser.Parser'Class;
       Config                  : aliased in out Configuration;
       Inc_Shared_Stream_Token :         in     Boolean;
       Inc_Input_Stream_Token  :         in     Boolean)
@@ -620,7 +620,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    function Parse_One_Item
      (Super             :         in out Base.Supervisor;
-      Shared_Parser     :         in out LR.Parser.Parser;
+      Shared_Parser     :         in out WisiToken.Parse.Parser.Parser'Class;
       Parser_Index      :         in     SAL.Peek_Type;
       Parse_Items       : aliased in out Parse_Item_Arrays.Vector;
       Parse_Item_Index  :         in     Positive;
@@ -888,7 +888,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    function Parse
      (Super             :         in out Base.Supervisor;
-      Shared_Parser     :         in out LR.Parser.Parser;
+      Shared_Parser     :         in out WisiToken.Parse.Parser.Parser'Class;
       Parser_Index      :         in     SAL.Peek_Type;
       Parse_Items       : aliased    out Parse_Item_Arrays.Vector;
       Config            :         in     Configuration;

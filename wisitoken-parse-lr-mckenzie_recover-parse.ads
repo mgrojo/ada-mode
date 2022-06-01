@@ -23,7 +23,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    use all type WisiToken.Syntax_Trees.Node_Label;
 
    function Reduce_Stack
-     (Shared_Parser : in out LR.Parser.Parser;
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Stack         : in out Recover_Stacks.Stack;
       Action        : in     Reduce_Action_Rec;
       Nonterm       :    out Syntax_Trees.Recover_Token)
@@ -32,7 +32,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    procedure Current_Token_ID_Peek_3
      (Super         :         in out Base.Supervisor;
-      Shared_Parser :         in out LR.Parser.Parser;
+      Shared_Parser :         in out WisiToken.Parse.Parser.Parser'Class;
       Config        : aliased in     Configuration;
       Tokens        :            out Token_ID_Array_1_3)
    with Post =>
@@ -58,7 +58,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    function Peek_Current_First_Sequential_Terminal
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Config        : in     Configuration)
      return Syntax_Trees.Valid_Node_Access;
    --  Calls Peek_Current_First_Terminal, then
@@ -76,13 +76,13 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    procedure First_Sequential_Terminal
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Ref           :    out Config_Stream_Parents);
    --  Calls Extend_Sequential_Terminal as needed.
 
    procedure Last_Sequential_Terminal
      (Super         : in out Base.Supervisor;
-      Shared_Parser : in out LR.Parser.Parser;
+      Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Ref           : in out Config_Stream_Parents);
    --  Calls Extend_Sequential_Terminal as needed.
 
@@ -146,7 +146,7 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    function Parse
      (Super             :         in out Base.Supervisor;
-      Shared_Parser     :         in out WisiToken.Parse.LR.Parser.Parser;
+      Shared_Parser     :         in out WisiToken.Parse.Parser.Parser'Class;
       Parser_Index      :         in     SAL.Peek_Type;
       Parse_Items       : aliased    out Parse_Item_Arrays.Vector;
       Config            :         in     Configuration;

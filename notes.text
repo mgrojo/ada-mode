@@ -32,22 +32,7 @@ update-wisitoken_grammar
 
  current work
 packrat error recover
-    lr_parser should share Tree with Packrat_Parser
-        need one merged parser type, with both packrat and lr components.
-            move all to base_parser in wisitoken-parse-parser.ads
-            language_* access procedure takes LR_Parser param
-                could be some base_parser type?
-                Ada uses: Tree, Table
-                pass those instead, move declarations to w.parse.lr
-
-
-
-
-
     debug_packrat_to_lr.adb
-        two empty nonterms at pos 3: parameter_profile_opt, aspect_specification_opt
-        multiple non-empty nonterms => spawn streams
-
         stream looks ok; run mckenzie.
 
     if more than one parse stream after recover:
@@ -56,7 +41,7 @@ packrat error recover
             need lr_to_packrat
                 handle optimized_list
 
-    optimize packrat_to_lr:
+    packrat_to_lr find all parse streams:
         order nonterms by production top-down
             compilation_list
             compilation_unit
