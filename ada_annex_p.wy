@@ -323,10 +323,10 @@ conditional_quantified_expression
   ;
 
 pragma_argument_association_list ;;:new; split out from pragma_g for action
-  : pragma_argument_association
-    %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
-  | pragma_argument_association_list ',' pragma_argument_association
+  : pragma_argument_association_list ',' pragma_argument_association
     %((wisi-indent-action [nil nil (wisi-hanging nil ada-indent-broken)]))%
+  | pragma_argument_association
+    %((wisi-indent-action [(wisi-hanging nil ada-indent-broken)]))%
   ;
 
 pragma_g
@@ -336,7 +336,7 @@ pragma_g
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken (wisi-anchored 3 1) (wisi-anchored 3 0)
                                ada-indent-broken]))%
   ;; ARM 4.5.7(7), ARM 4.5.8(4) allow "( conditional|quantified_expression )" instead of "(( ... ))"
-  | 'pragma' IDENTIFIER ['(' conditional_quantified_expression ')'] ';'
+  | 'pragma' IDENTIFIER '(' conditional_quantified_expression ')' ';'
     %((wisi-statement-action [1 statement-start 6 statement-end])
       (wisi-face-apply-action [2 nil font-lock-function-name-face])
       (wisi-indent-action [nil ada-indent-broken ada-indent-broken (wisi-anchored 3 1) (wisi-anchored 3 0)
@@ -471,11 +471,11 @@ object_declaration
   ;
 
 defining_identifier_list
-  : IDENTIFIER
-    %((wisi-name-action 1))%
-  | defining_identifier_list ',' IDENTIFIER
+  : defining_identifier_list ',' IDENTIFIER
     %((wisi-name-action 3)
       (wisi-indent-action [nil nil ada-indent-broken]))%
+  | IDENTIFIER
+    %((wisi-name-action 1))%
   ;
 
 number_declaration
@@ -638,9 +638,9 @@ component_declaration
   ;
 
 variant_list ;;:new; split out from variant_part for action
-  : variant
-  | variant_list variant
+  : variant_list variant
     %((wisi-motion-action [1 2]))%
+  | variant
   ;
 
 variant_part
@@ -659,8 +659,8 @@ variant
   ;
 
 discrete_choice_list
-  : discrete_choice
-  | discrete_choice_list '|' discrete_choice
+  : discrete_choice_list '|' discrete_choice
+  | discrete_choice
   ;
 
 discrete_choice
@@ -691,10 +691,10 @@ interface_type_definition
   ;
 
 interface_list
-  : name ;;:new; explicit list for action
-    %((wisi-face-apply-action [1 font-lock-function-name-face font-lock-type-face]))%
-  | interface_list AND name ;;:new explicit list for action
+  : interface_list AND name ;;:new explicit list for action
     %((wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face]))%
+  | name ;;:new; explicit list for action
+    %((wisi-face-apply-action [1 font-lock-function-name-face font-lock-type-face]))%
   ;
 
 access_type_definition
@@ -889,11 +889,11 @@ record_component_association
   ;
 
 component_choice_list
-  : selector_name
-  | component_choice_list '|' selector_name
+  : component_choice_list '|' selector_name
     ;; This indent is not consistent with discrete_choice_list in
     ;; case_statement, but it is backward-compatible.
     %((wisi-indent-action [nil nil ada-indent-broken]))%
+  | selector_name
   ;; | 'others' ;;:redundant with expanded selector_name
   ;
 
@@ -912,10 +912,10 @@ extension_aggregate
 array_aggregate ::= positional_array_aggregate | null_array_aggregate | named_array_aggregate ;
 
 expression_list ;; new to support actions
-  : expression
-    %((wisi-indent-action [[(wisi-hanging nil ada-indent-broken) (wisi-hanging nil ada-indent-broken)]]))%
-  | expression_list ',' expression
+  : expression_list ',' expression
     %((wisi-indent-action [nil nil [(wisi-hanging nil ada-indent-broken) (wisi-hanging nil ada-indent-broken)]]))%
+  | expression
+    %((wisi-indent-action [[(wisi-hanging nil ada-indent-broken) (wisi-hanging nil ada-indent-broken)]]))%
   ;
 
 positional_array_aggregate
@@ -1036,39 +1036,14 @@ iterated_element_association
                                ada-indent-broken]))%
   ;
 
-AND_relation_list ;;:new, split out from expression for action. FIXME: put back
-  : 'and' relation
-  | AND_relation_list 'and' relation
-  ;
-
-AND_THEN_relation_list
-  : 'and' THEN relation
-  | AND_THEN_relation_list 'and' THEN relation
-  ;
-
-OR_relation_list
-  : 'or' relation
-  | OR_relation_list 'or' relation
-  ;
-
-OR_ELSE_relation_list
-  : 'or' ELSE relation
-  | OR_ELSE_relation_list 'or' ELSE relation
-  ;
-
-XOR_relation_list
-  : 'xor' relation
-  | XOR_relation_list 'xor' relation
-  ;
-
 expression
   ;; containing productions should apply hanging indent
-  : relation ;;:new to reduce conflicts
-  | relation AND_relation_list
-  | relation AND_THEN_relation_list
-  | relation OR_relation_list
-  | relation OR_ELSE_relation_list
-  | relation XOR_relation_list
+  : relation ('and' relation)+
+  | relation ('and' 'then' relation)+
+  | relation ('or' relation)+
+  | relation ('or' 'else' relation)+
+  | relation ('xor' relation)+
+  | relation ;;:new to reduce conflicts
   ;
 
 ;; choice_expression ;;:deleted; mostly redundant with expression, delete to reduce conflicts
@@ -1139,9 +1114,9 @@ elsif_expression_item ;;:new for action
   ;
 
 elsif_expression_list ;;:new for action
-  : elsif_expression_item
-  | elsif_expression_list elsif_expression_item
+  : elsif_expression_list elsif_expression_item
     %((wisi-motion-action [1 2]))%
+  | elsif_expression_item
   ;
 
 if_expression
@@ -1167,9 +1142,9 @@ if_expression
 condition : expression ;
 
 case_expression_alternative_list ;;:new for action
-  : case_expression_alternative
-  | case_expression_alternative_list ',' case_expression_alternative
+  : case_expression_alternative_list ',' case_expression_alternative
     %((wisi-motion-action [1 3]))%
+  | case_expression_alternative
   ;
 
 case_expression
@@ -1344,8 +1319,8 @@ elsif_statement_item ;;:new for action
   ;
 
 elsif_statement_list ;;:new for action
-  : elsif_statement_item
-  | elsif_statement_list elsif_statement_item
+  : elsif_statement_list elsif_statement_item
+  | elsif_statement_item
   ;
 
 if_statement
@@ -1360,8 +1335,8 @@ if_statement
   ;
 
 case_statement_alternative_list ;;:new for action
-  : case_statement_alternative
-  | case_statement_alternative_list case_statement_alternative
+  : case_statement_alternative_list case_statement_alternative
+  | case_statement_alternative
   ;
 
 case_statement
@@ -1477,9 +1452,9 @@ block_statement
   ;
 
 statement_AND_list
-  : handled_sequence_of_statements
-  | statement_AND_list 'and' handled_sequence_of_statements
+  : statement_AND_list 'and' handled_sequence_of_statements
     %((wisi-indent-action [nil (- ada-indent) nil]))%
+  | handled_sequence_of_statements
   ;
 
 parallel_block_statement
@@ -1658,8 +1633,7 @@ function_call
   ;
 
 parameter_association_list ;; new to support actions
-  : parameter_association
-  | parameter_association_list ',' parameter_association
+  : parameter_association {',' parameter_association}
   ;
 
 actual_parameter_part
@@ -1829,8 +1803,7 @@ overriding_indicator
 use_clause : use_package_clause | use_type_clause ;
 
 name_list ;;:new; split out from use_package_clause for action
-  : name
-  | name_list ',' name
+  : name {',' name}
   ;
 
 use_package_clause
@@ -1972,8 +1945,7 @@ single_task_declaration
   ;
 
 task_item_list ;;:new; split out from task_definition for action
-  : task_item
-  | task_item_list task_item
+  : (task_item)+
   ;
 
 task_definition
@@ -2023,13 +1995,11 @@ single_protected_declaration
   ;
 
 protected_operation_declaration_list ;;:new; split out from protected_definition for actions
-  : protected_operation_declaration
-  | protected_operation_declaration_list protected_operation_declaration
+  : (protected_operation_declaration)+
   ;
 
 protected_element_declaration_list ;;:new; split out from protected_definition for actions
-  : protected_element_declaration
-  | protected_element_declaration_list protected_element_declaration
+  : (protected_element_declaration)+
   ;
 
 protected_definition
@@ -2050,8 +2020,7 @@ protected_operation_declaration
 protected_element_declaration ::= protected_operation_declaration | component_declaration ;
 
 protected_operation_item_list ;;:new; split out from protected_body for actions
-  : protected_operation_item
-  | protected_operation_item_list protected_operation_item
+  : (protected_operation_item)+
   ;
 
 protected_body
@@ -2174,11 +2143,11 @@ guard_select ;;:new; split out from selective_accept for actions
   ;
 
 select_alternative_list ;;:new; split out from selective_accept for actions
-  : guard_select
-  | select_alternative_list 'or' guard_select
+  : select_alternative_list 'or' guard_select
     %((wisi-statement-action [2 motion])
       (wisi-motion-action [[1 OR] 2])
       (wisi-indent-action [nil (- ada-indent) nil]))%
+  | guard_select
   ;
 
 selective_accept
@@ -2260,11 +2229,11 @@ abort_statement
 
 ;; Compute indent for trailing comments.
 compilation
-  : compilation_unit
+  : compilation compilation_unit
+    %((wisi-indent-action [0 [0 0]]))%
+  | compilation_unit
     %((wisi-indent-action [[0 0]]))%
     %((wisi-terminate-partial-parse))%
-  | compilation compilation_unit
-    %((wisi-indent-action [0 [0 0]]))%
   ;
 
 ;; extended for partial parse, fragment parse
@@ -2365,10 +2334,10 @@ exception_declaration
   ;
 
 exception_handler_list ;;:new for pragma, action
-  : exception_handler
-  | pragma_g ;;:new for pragma
-  | exception_handler_list exception_handler
+  : exception_handler_list exception_handler
     %((wisi-motion-action [1 2]))%
+  | exception_handler
+  | pragma_g ;;:new for pragma
   ;
 
 handled_sequence_of_statements
@@ -2639,8 +2608,7 @@ aspect_association ;;:new for wisi-ada.adb code.
   ;
 
 aspect_mark_list
-  : aspect_association
-  | aspect_mark_list ',' aspect_association
+  : aspect_association {',' aspect_association}
   ;
 
 aspect_specification
