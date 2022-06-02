@@ -31,17 +31,11 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-run all tests
-
 packrat error recover
     debug_packrat_to_lr.adb
-        stream looks ok; run mckenzie.
-
-    if more than one parse stream after recover:
-        just more entries in derivs
-            do lr parse until resume done, then enter all streams in derivs, resume packrat parse
-            need lr_to_packrat
-                handle optimized_list
+        mckenzie recover, resume ok
+        need lr_to_packrat
+           handle optimized_list
 
     packrat_to_lr find all parse streams:
         order nonterms by production top-down
@@ -50,6 +44,10 @@ packrat error recover
             ...
 
         call set_parents on first found, delete all derivs that are children of that
+            repeat
+
+        then create parse streams
+
 
 packrat_gen error message test
 

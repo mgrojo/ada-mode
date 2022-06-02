@@ -140,6 +140,17 @@ package WisiToken.Parse.Parser is
    --  wisitoken-parse-packrat-procedural.ads and
    --  wisitoken-parse-packrat-generated.ads
 
+   procedure LR_Core_Parse
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
+      Log_File      : in     Ada.Text_IO.File_Type;
+      Recover_Only  : in     Boolean);
+   --  Run the core LR parse algorithm starting from the current state of
+   --  Parser. If Recover_Only, exit when resume after error recover is
+   --  done.
+   --
+   --  Used by LR_Parse to run parser, and by packrat parse to run error
+   --  recover.
+
    procedure Put_Errors (Parser : in WisiToken.Parse.Parser.Parser'Class)
    with Pre => Parser.Tree.Fully_Parsed;
    --  Output Parser.Tree errors to Ada.Text_IO.Current_Error.

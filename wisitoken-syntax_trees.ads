@@ -941,6 +941,18 @@ package WisiToken.Syntax_Trees is
      return Stream_Index
    with Pre => Tree.Is_Valid (Stream);
 
+   function Shared_Link
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID)
+     return Stream_Index
+   with Pre => Tree.Is_Valid (Stream);
+
+   procedure Set_Shared_Link
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Link   : in     Stream_Index)
+   with Pre => Tree.Is_Valid (Stream) and Tree.Contains (Tree.Shared_Stream, Link);
+
    function Has_Input
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID)

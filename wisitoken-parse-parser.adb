@@ -147,6 +147,12 @@ package body WisiToken.Parse.Parser is
       Pre_Edited : in     Boolean        := False)
    is separate;
 
+   procedure LR_Core_Parse
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
+      Log_File      : in     Ada.Text_IO.File_Type;
+      Recover_Only  : in     Boolean)
+   is separate;
+
    function Get_In_Parse_Action
      (Parser : in WisiToken.Parse.Parser.Parser;
       ID     : in Production_ID)

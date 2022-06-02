@@ -31,8 +31,9 @@ is
    use WisiToken;
    use WisiToken.Syntax_Trees;
 
-   Trace  : aliased WisiToken.Text_IO_Trace.Trace;
-   Parser : WisiToken.Parse.Parser.Parser'Class := Ada_Lite_Packrat_Proc_Main.Create_Parser
+   Trace         : aliased WisiToken.Text_IO_Trace.Trace;
+   Log_File      : Ada.Text_IO.File_Type;
+   Shared_Parser : WisiToken.Parse.Parser.Parser'Class := Ada_Lite_Packrat_Proc_Main.Create_Parser
      (Trace'Unrestricted_Access, null);
 
    Text : constant String := "procedure A is b : int; begin null end A  ;";
@@ -47,8 +48,9 @@ is
 
    package Node_Range_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Node_Range);
 
-   Possible_Elements : Node_Range_Lists.List;
-   Max_Examined_Pos  : Node_Index := 0;
+   Possible_Elements         : Node_Range_Lists.List;
+   Max_Examined_Pos          : Node_Index := 0;
+   Max_Examined_Stream_Index : Stream_Index;
 
    procedure Find_Nodes
      (Pos                 : in     Node_Index;
@@ -57,16 +59,16 @@ is
       Nonterm_Nodes       : in out Valid_Node_Access_Lists.List)
    is
       use all type WisiToken.Parse.Packrat.Memo_State;
-      Tree                     : Syntax_Trees.Tree renames Parser.Tree;
+      Tree                     : Syntax_Trees.Tree renames Shared_Parser.Tree;
       Found_Nonterm_Node_Index : Node_Index := 0;
       Found_Nonterm            : Token_ID   := Invalid_Token_ID;
    begin
-      for Nonterm in Parser.Derivs'Range loop
-         if Pos in Parser.Derivs (Nonterm).First_Index .. Parser.Derivs (Nonterm).Last_Index and then
-           Parser.Derivs (Nonterm)(Pos).State = Parse.Packrat.Success
+      for Nonterm in Shared_Parser.Derivs'Range loop
+         if Pos in Shared_Parser.Derivs (Nonterm).First_Index .. Shared_Parser.Derivs (Nonterm).Last_Index and then
+           Shared_Parser.Derivs (Nonterm)(Pos).State = Parse.Packrat.Success
          then
             declare
-               Node  : constant Valid_Node_Access := Parser.Derivs (Nonterm)(Pos).Result;
+               Node  : constant Valid_Node_Access := Shared_Parser.Derivs (Nonterm)(Pos).Result;
                Index : constant Node_Index        := Tree.Get_Node_Index (Node);
             begin
                if Tree.Is_Empty_Nonterm (Node) then
@@ -86,7 +88,7 @@ is
       end loop;
 
       if Found_Nonterm /= Invalid_Token_ID then
-         Nonterm_Nodes.Append (Parser.Derivs (Found_Nonterm)(Pos).Result);
+         Nonterm_Nodes.Append (Shared_Parser.Derivs (Found_Nonterm)(Pos).Result);
          return;
       end if;
 
@@ -103,62 +105,80 @@ is
       end;
    end Find_Nodes;
 
+   procedure Print_Tree (Label : in String)
+   is
+      Stream : Stream_ID := Shared_Parser.Tree.First_Parse_Stream;
+   begin
+      Ada.Text_IO.New_Line;
+      Ada.Text_IO.Put_Line (Label);
+      Shared_Parser.Tree.Print_Streams (Children => True);
+      loop
+         Shared_Parser.Put_Errors (Stream);
+         Shared_Parser.Tree.Next_Parse_Stream (Stream);
+         exit when Stream = Invalid_Stream_ID;
+      end loop;
+   end Print_Tree;
+
 begin
-   WisiToken.Trace_Parse := 2;
+   WisiToken.Trace_Parse    := 2;
+   WisiToken.Trace_McKenzie := 1;
+   WisiToken.Debug_Mode     := True;
+
    WisiToken.Parse.LR.Parser.New_Parser
-     (Parser, Ada_Lite_LALR_Main.Create_Lexer (Trace'Unchecked_Access), Ada_Lite_LALR_Main.Create_Parse_Table,
+     (Shared_Parser, Ada_Lite_LALR_Main.Create_Lexer (Trace'Unchecked_Access), Ada_Lite_LALR_Main.Create_Parse_Table,
       Ada_Lite_LALR_Main.Create_Productions,
       WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
       WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
       WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
       null);
 
-   Parser.Tree.Lexer.Reset_With_String (Text);
+   Shared_Parser.Tree.Lexer.Reset_With_String (Text);
 
    begin
       WisiToken.Parse.Packrat.Procedural.Packrat_Parse_No_Recover
-        (WisiToken.Parse.Packrat.Procedural.Parser (Parser));
+        (WisiToken.Parse.Packrat.Procedural.Parser (Shared_Parser));
    exception
    when Parse_Error =>
       null;
    end;
 
-   Parser.Parsers := WisiToken.Parse.LR.Parser_Lists.New_List (Parser.Tree);
+   Shared_Parser.Parsers := WisiToken.Parse.LR.Parser_Lists.New_List (Shared_Parser.Tree);
 
-   Parser.Tree.Start_Parse (Parser.Parsers.First.State_Ref.Stream, Parser.Table.State_First);
+   Shared_Parser.Tree.Start_Parse (Shared_Parser.Parsers.First.State_Ref.Stream, Shared_Parser.Table.State_First);
 
    --  Find Max_Examined_Pos. Also, just for visualization, find all the
-   --  top-level nonterms in Parser.Derivs; they are the possible parse
+   --  top-level nonterms in Shared_Parser.Derivs; they are the possible parse
    --  stream elements.
-   for Nonterm in Parser.Derivs'Range loop
-      for Pos in Parser.Derivs (Nonterm).First_Index .. Parser.Derivs (Nonterm).Last_Index loop
+   for Nonterm in Shared_Parser.Derivs'Range loop
+      for Pos in Shared_Parser.Derivs (Nonterm).First_Index .. Shared_Parser.Derivs (Nonterm).Last_Index loop
 
-         case Parser.Derivs (Nonterm)(Pos).State is
+         case Shared_Parser.Derivs (Nonterm)(Pos).State is
          when Parse.Packrat.No_Result =>
             null;
 
          when Parse.Packrat.Failure | Parse.Packrat.Success =>
             declare
-               Max_Pos : constant Node_Index := Parser.Tree.Get_Node_Index
-                 (Parser.Tree.Get_Node
-                    (Parser.Tree.Shared_Stream, Parser.Derivs (Nonterm)(Pos).Max_Examined_Pos));
+               Max_Node : constant Valid_Node_Access := Shared_Parser.Tree.Get_Node
+                    (Shared_Parser.Tree.Shared_Stream, Shared_Parser.Derivs (Nonterm)(Pos).Max_Examined_Pos);
+               Max_Pos : constant Node_Index := Shared_Parser.Tree.Get_Node_Index (Max_Node);
             begin
                if Max_Examined_Pos < Max_Pos then
-                  Max_Examined_Pos := Max_Pos;
+                  Max_Examined_Pos  := Max_Pos;
+                  Max_Examined_Stream_Index := Shared_Parser.Derivs (Nonterm)(Pos).Max_Examined_Pos;
                end if;
             end;
          end case;
 
-         case Parser.Derivs (Nonterm)(Pos).State is
+         case Shared_Parser.Derivs (Nonterm)(Pos).State is
          when Parse.Packrat.No_Result | Parse.Packrat.Failure =>
             null;
 
          when Parse.Packrat.Success =>
             declare
-               Tree : Syntax_Trees.Tree renames Parser.Tree;
-               Node : constant Valid_Node_Access := Parser.Derivs (Nonterm)(Pos).Result;
+               Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
+               Node : constant Valid_Node_Access := Shared_Parser.Derivs (Nonterm)(Pos).Result;
             begin
-               if Parser.Tree.Is_Empty_Nonterm (Node) then
+               if Shared_Parser.Tree.Is_Empty_Nonterm (Node) then
                   Possible_Elements.Append
                     ((Node      => Node,
                       Pos_First => Pos,
@@ -178,7 +198,7 @@ begin
    Ada.Text_IO.Put_Line ("possible elements:");
    for El of Possible_Elements loop
       Ada.Text_IO.Put_Line
-        (Parser.Tree.Image (El.Node, Node_Numbers => True) & El.Pos_First'Image & " .." & El.Pos_Last'Image);
+        (Shared_Parser.Tree.Image (El.Node, Node_Numbers => True) & El.Pos_First'Image & " .." & El.Pos_Last'Image);
    end loop;
 
    --  Build the parse stream from Derivs
@@ -192,15 +212,15 @@ begin
          declare
             use all type Ada.Containers.Count_Type;
             use WisiToken.Parse.LR;
-            Tree   : Syntax_Trees.Tree renames Parser.Tree;
-            Stream : Syntax_Trees.Stream_ID renames Parser.Parsers.First.State_Ref.Stream;
+            Tree   : Syntax_Trees.Tree renames Shared_Parser.Tree;
+            Stream : Syntax_Trees.Stream_ID renames Shared_Parser.Parsers.First.State_Ref.Stream;
 
             Terminal_Node       : Node_Access;
             Empty_Nonterm_Nodes : Valid_Node_Access_Lists.List;
             Nonterm_Nodes       : Valid_Node_Access_Lists.List;
             Prev_State          : State_Index := Tree.State (Stream);
             State               : Unknown_State_Index;
-            Table               : Parse.LR.Parse_Table renames Parser.Table.all;
+            Table               : Parse.LR.Parse_Table renames Shared_Parser.Table.all;
          begin
             Find_Nodes (Pos, Terminal_Node, Empty_Nonterm_Nodes, Nonterm_Nodes);
 
@@ -294,13 +314,31 @@ begin
       end loop;
    end;
 
-   Ada.Text_IO.Put_Line ("parse streams:");
-   Parser.Tree.Print_Streams (Children => True);
+   --  Run LR_Core_Parse to do error recover thru Resume done.
+   --  First ensure LR_Core_Parse immediately enters recover.
+   Shared_Parser.Resume_Active := True;
+   for Parser_State of Shared_Parser.Parsers loop
+      Parser_State.Set_Verb (WisiToken.Parse.LR.Error);
+      --  FIXME: parsers may not all have the same error token.
+      Shared_Parser.Tree.Set_Shared_Link (Parser_State.Stream, Max_Examined_Stream_Index);
+      Shared_Parser.Tree.Add_Error_To_Input
+        (Parser_State.Stream,
+         WisiToken.Parse.Parse_Error' --  FIXME: build expecting?
+           (First_Terminal => 1,
+            Last_Terminal  => 0,
+            Expecting      => (1 .. 0 => False),
+            Recover_Ops    => WisiToken.Parse.Recover_Op_Arrays.Empty_Vector,
+            Recover_Cost   => 0),
+         Shared_Parser.User_Data);
+   end loop;
 
-   --  declare
-   --     Recover_Result : McKenzie_Recover.Recover_Status := McKenzie_Recover.Recover (Parser);
-   --  begin
-   --  end;
+   Print_Tree ("pre-recover parse streams:");
+
+   WisiToken.Parse.Parser.LR_Core_Parse (Shared_Parser, Log_File, Recover_Only => True);
+
+   Print_Tree ("post-recover parse streams:");
+
+   --  Convert LR Parse_Streams to Packrat Derivs
 
 exception
 when E : others =>

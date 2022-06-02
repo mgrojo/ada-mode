@@ -7968,6 +7968,22 @@ package body WisiToken.Syntax_Trees is
       Node.Sequential_Index := Index;
    end Set_Sequential_Index;
 
+   procedure Set_Shared_Link
+     (Tree   : in out Syntax_Trees.Tree;
+      Stream : in     Stream_ID;
+      Link   : in     Stream_Index)
+   is begin
+      Tree.Streams (Stream.Cur).Shared_Link := Link.Cur;
+   end Set_Shared_Link;
+
+   function Shared_Link
+     (Tree   : in Syntax_Trees.Tree;
+      Stream : in Stream_ID)
+     return Stream_Index
+   is begin
+      return (Cur => Tree.Streams (Stream.Cur).Shared_Link);
+   end Shared_Link;
+
    function Shared_Stream (Tree : in Syntax_Trees.Tree) return Stream_ID
    is begin
       return Tree.Shared_Stream;
