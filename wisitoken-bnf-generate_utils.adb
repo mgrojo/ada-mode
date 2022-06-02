@@ -336,7 +336,8 @@ package body WisiToken.BNF.Generate_Utils is
      return Generate_Data
    is
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
-      Grammar_Parser : WisiToken.Parse.Parser.Parser'Class := Wisitoken_Grammar_Main.Create_Parser (Trace, null);
+      Grammar_Parser : WisiToken.Parse.Parser.Parser'Class := Wisitoken_Grammar_Main.Create_Parser
+        (Trace, Syntax_Trees.User_Data_Access (Input_Data));
    begin
       Grammar_Parser.Tree.Lexer.Reset_With_File (Grammar_File_Name);
 

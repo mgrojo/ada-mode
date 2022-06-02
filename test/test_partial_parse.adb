@@ -23,7 +23,6 @@ with Ada_Lite_Actions;   use Ada_Lite_Actions;
 with Ada_Lite_LALR_Main;
 with GNATCOLL.Mmap;
 with WisiToken.AUnit;
-with WisiToken.Parse.LR.Parser;
 with WisiToken.Parse.Parser;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
@@ -33,15 +32,12 @@ package body Test_Partial_Parse is
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
    Log_File : Ada.Text_IO.File_Type;
 
-   Parser : WisiToken.Parse.Parser.Parser'Class :=
-     WisiToken.Parse.LR.Parser.New_Parser
-       (Ada_Lite_LALR_Main.Create_Lexer (Trace'Access),
-        Ada_Lite_LALR_Main.Create_Parse_Table,
-        Ada_Lite_LALR_Main.Create_Productions,
-        Language_Fixes                 => null,
-        Language_Matching_Begin_Tokens => null,
-        Language_String_ID_Set         => null,
-        User_Data                      => User_Data'Access);
+   Parser : WisiToken.Parse.Parser.Parser'Class := Ada_Lite_LALR_Main.Create_Parser
+     (Trace'Access,
+      Language_Fixes                 => null,
+      Language_Matching_Begin_Tokens => null,
+      Language_String_ID_Set         => null,
+      User_Data                      => User_Data'Access);
 
    procedure Run_Parse
      (Label              : in String;
