@@ -24,6 +24,11 @@ package body WisiToken.Parse.Parser is
    ----------
    --  Package public subprograms, declaration order
 
+   overriding procedure Finalize (Object : in out Parser)
+   is begin
+      WisiToken.Parse.LR.Free_Table (Object.Table);
+   end Finalize;
+
    procedure Process_Grammar_Token
      (Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Token  : in     Lexer.Token;

@@ -60,6 +60,9 @@ package WisiToken.Parse.Parser is
 
    type Parser_Access is access all Parser'Class;
 
+   overriding procedure Finalize (Object : in out Parser);
+   --  Deep free Object.Table.
+
    type Factory is access function return Parser_Access;
 
    function Source_File_Name (Item : in Parser'Class) return String

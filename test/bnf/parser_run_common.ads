@@ -20,5 +20,5 @@
 
 pragma License (GPL);
 
-with WisiToken.Parse;
-procedure Parser_Run_Common (Parser : in out WisiToken.Parse.Base_Parser'Class);
+with WisiToken.Parse.Parser;
+procedure Parser_Run_Common (Parser : in out WisiToken.Parse.Parser.Parser'Class);

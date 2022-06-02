@@ -1022,4 +1022,20 @@ package body Wisitoken_Grammar_Main is
       end return;
    end Create_Productions;
 
+   function Create_Parser
+     (Trace     : in WisiToken.Trace_Access;
+      User_Data : in WisiToken.Syntax_Trees.User_Data_Access)
+     return WisiToken.Parse.Parser.Parser'Class
+   is begin
+      return Parser         : WisiToken.Parse.Parser.Parser
+        (Wisitoken_Grammar_Actions.Descriptor.First_Nonterminal,
+         Wisitoken_Grammar_Actions.Descriptor.Last_Nonterminal)
+      do
+         Parser.Tree.Lexer  := Lexer.New_Lexer (Trace, Wisitoken_Grammar_Actions.Descriptor'Access);
+         Parser.Productions := Create_Productions;
+         Parser.User_Data   := User_Data;
+         Parser.Table       := Create_Parse_Table;
+      end return;
+   end Create_Parser;
+
 end Wisitoken_Grammar_Main;

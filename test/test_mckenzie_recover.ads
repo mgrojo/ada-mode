@@ -2,7 +2,7 @@
 --
 --  Test McKenzie error recovery.
 --
---  Copyright (C) 2017 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,7 +23,7 @@ with WisiToken.BNF;
 package Test_McKenzie_Recover is
 
    type Test_Case
-     (Alg                       : WisiToken.BNF.LR_Generate_Algorithm;
+     (Alg                       : WisiToken.BNF.LR_Packrat_Generate_Algorithm;
       Enqueue_Limit             : Natural;
       Force_Full_Explore        : Boolean;
       Force_High_Cost_Solutions : Boolean)

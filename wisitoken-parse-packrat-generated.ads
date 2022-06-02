@@ -22,6 +22,7 @@
 
 pragma License (Modified_GPL);
 with WisiToken.Syntax_Trees;
+with WisiToken.Parse.Parser;
 package WisiToken.Parse.Packrat.Generated is
 
    Recursive : exception;
@@ -36,7 +37,7 @@ package WisiToken.Parse.Packrat.Generated is
    type Parse_WisiToken_Accept is access
      function (Parser : in out Generated.Parser; Last_Pos : in Syntax_Trees.Stream_Index) return Result_Type;
 
-   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new Packrat.Parser
+   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new WisiToken.Parse.Parser.Parser
      (First_Nonterminal => First_Nonterminal,
       Last_Nonterminal  => Last_Nonterminal)
    with record
@@ -45,11 +46,6 @@ package WisiToken.Parse.Packrat.Generated is
    end record;
    type Parser_Access is access Parser;
 
-   overriding procedure Parse
-     (Parser     : in out Generated.Parser;
-      Log_File   : in     Ada.Text_IO.File_Type;
-      Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
-      Pre_Edited : in     Boolean        := False);
-   --  Raises Parse_Error if Edits is not empty. Log_File, Pre_Edited are ignored.
+   procedure Packrat_Parse_No_Recover (Parser : in out Generated.Parser);
 
 end WisiToken.Parse.Packrat.Generated;

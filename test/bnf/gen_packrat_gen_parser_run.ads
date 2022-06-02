@@ -21,7 +21,6 @@
 pragma License (GPL);
 
 with WisiToken.Parse.Packrat.Generated;
-with WisiToken.Parse;
 with WisiToken.Syntax_Trees;
 generic
    with function Create_Parser

@@ -24,6 +24,7 @@ with Ada_Lite_LALR_Main;
 with GNATCOLL.Mmap;
 with WisiToken.AUnit;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Parse.Parser;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 package body Test_Partial_Parse is
@@ -32,7 +33,15 @@ package body Test_Partial_Parse is
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
    Log_File : Ada.Text_IO.File_Type;
 
-   Parser : WisiToken.Parse.LR.Parser.Parser;
+   Parser : WisiToken.Parse.Parser.Parser'Class :=
+     WisiToken.Parse.LR.Parser.New_Parser
+       (Ada_Lite_LALR_Main.Create_Lexer (Trace'Access),
+        Ada_Lite_LALR_Main.Create_Parse_Table,
+        Ada_Lite_LALR_Main.Create_Productions,
+        Language_Fixes                 => null,
+        Language_Matching_Begin_Tokens => null,
+        Language_String_ID_Set         => null,
+        User_Data                      => User_Data'Access);
 
    procedure Run_Parse
      (Label              : in String;
@@ -97,7 +106,7 @@ package body Test_Partial_Parse is
       Partial_Parse_Active    := True;
       Partial_Parse_Byte_Goal := Goal_Byte_Pos;
 
-      Parser.Parse (Log_File);
+      Parser.LR_Parse (Log_File);
 
       --  If the partial parse reaches the end of the input, a normal Accept
       --  occurs; no Partial_Parse exception.
@@ -277,22 +286,6 @@ package body Test_Partial_Parse is
    begin
       return new String'("test_partial_parse.adb");
    end Name;
-
-   overriding procedure Set_Up_Case (T : in out Test_Case)
-   is
-      pragma Unreferenced (T);
-   begin
-      --  Run before all tests in register
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Parser,
-         Ada_Lite_LALR_Main.Create_Lexer (Trace'Access),
-         Ada_Lite_LALR_Main.Create_Parse_Table,
-         Ada_Lite_LALR_Main.Create_Productions,
-         Language_Fixes                 => null,
-         Language_Matching_Begin_Tokens => null,
-         Language_String_ID_Set         => null,
-         User_Data                      => User_Data'Access);
-   end Set_Up_Case;
 
    overriding procedure Tear_Down_Case (T : in out Test_Case)
    is

@@ -26,31 +26,23 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Lexer;
-with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR.Parser_No_Recover is
 
-   type Parser is new WisiToken.Parse.Base_Parser with record
-      Table   : Parse_Table_Ptr;
-      Parsers : aliased Parser_Lists.List;
-   end record;
-
-   overriding procedure Finalize (Object : in out LR.Parser_No_Recover.Parser);
-   --  Deep free Object.Table.
-
    procedure New_Parser
-     (Parser      :    out LR.Parser_No_Recover.Parser;
+     (Parser      : in out WisiToken.Parse.Parser.Parser'Class;
       Lexer       : in     WisiToken.Lexer.Handle;
       Table       : in     Parse_Table_Ptr;
       Productions : in     Syntax_Trees.Production_Info_Trees.Vector;
       User_Data   : in     Syntax_Trees.User_Data_Access);
 
-   overriding procedure Parse
-     (Shared_Parser : in out LR.Parser_No_Recover.Parser;
-      Log_File      : in     Ada.Text_IO.File_Type;
-      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List;
-      Pre_Edited    : in     Boolean        := False);
-   --  Raises SAL.Programmer_Error if Edits is not empty. Pre_Edited and
-   --  Log_File are ignored.
+   function New_Parser
+     (Lexer       : in     WisiToken.Lexer.Handle;
+      Table       : in     Parse_Table_Ptr;
+      Productions : in     Syntax_Trees.Production_Info_Trees.Vector;
+      User_Data   : in     Syntax_Trees.User_Data_Access)
+     return WisiToken.Parse.Parser.Parser'Class;
+
+   procedure LR_Parse_No_Recover (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class);
 
 end WisiToken.Parse.LR.Parser_No_Recover;

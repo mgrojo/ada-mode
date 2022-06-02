@@ -57,14 +57,12 @@ is
 
    procedure Parse
    is
-      Parser : WisiToken.Parse.LR.Parser.Parser;
-   begin
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Parser, Create_Lexer (Trace'Unchecked_Access), Create_Parse_Table, Create_Productions,
+      Parser : WisiToken.Parse.Parser.Parser'Class := Create_Parser
+      (Trace'Unchecked_Access, null,
          (if Disable_Fixes then null else Language_Fixes),
          (if Disable_Match_Begin then null else Language_Matching_Begin_Tokens),
-         Language_String_ID_Set,
-         User_Data => null);
+         Language_String_ID_Set);
+   begin
 
       if Minimal_Complete_Delta /= Integer'First then
          Parser.Table.McKenzie_Param.Minimal_Complete_Cost_Delta := Minimal_Complete_Delta;
@@ -76,7 +74,7 @@ is
 
       Parser.Tree.Lexer.Reset_With_File (-File_Name);
       Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
-      Parser.Parse (Log_File);
+      Parser.LR_Parse (Log_File);
 
       --  No user data, so no point in calling Execute_Actions
 

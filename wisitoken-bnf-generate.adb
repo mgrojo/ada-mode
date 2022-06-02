@@ -39,13 +39,15 @@ with WisiToken.Generate.LR.LALR_Generate;
 with WisiToken.Generate.LR.LR1_Generate;
 with WisiToken.Generate.LR1_Items;
 with WisiToken.Generate.Packrat;
+with WisiToken.Generate.Tree_Sitter;
 with WisiToken.Parse.LR.Parser_No_Recover; -- for reading BNF file
+with WisiToken.Parse.Parser;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
-with WisiToken.Generate.Tree_Sitter;
 with WisiToken_Grammar_Editing;
 with WisiToken_Grammar_Runtime;
+with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
 procedure WisiToken.BNF.Generate
 is
@@ -143,8 +145,9 @@ is
 
    Trace          : aliased WisiToken.Text_IO_Trace.Trace;
    Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-   Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
-   Log_File       : Ada.Text_IO.File_Type; -- not used
+   Grammar_Parser : WisiToken.Parse.Parser.Parser
+     (First_Nonterminal => Wisitoken_Grammar_Actions.Descriptor.First_Nonterminal,
+      Last_Nonterminal  => Wisitoken_Grammar_Actions.Descriptor.Last_Nonterminal);
 
    procedure Use_Input_File (File_Name : in String)
    is
@@ -305,7 +308,8 @@ begin
    end if;
 
    begin
-      Grammar_Parser.Parse (Log_File); -- Execute_Actions only does meta phase
+      WisiToken.Parse.LR.Parser_No_Recover.LR_Parse_No_Recover (Grammar_Parser);
+      --  Execute_Actions only does meta phase
    exception
    when WisiToken.Syntax_Error =>
       if Grammar_Parser.Tree.Parents_Set then
@@ -412,7 +416,7 @@ begin
                Trace.Put_Line ("post-parse grammar file META");
             end if;
 
-            WisiToken.Parse.Execute_Actions (Grammar_Parser);
+            Grammar_Parser.Execute_Actions;
 
             case Input_Data.Meta_Syntax is
             when Unknown =>
@@ -438,7 +442,7 @@ begin
                         Trace.Put_Line ("post-parse grammar file OTHER, bnf tree");
                      end if;
 
-                     WisiToken.Parse.Execute_Actions
+                     WisiToken.Parse.Parser.Execute_Actions
                        (BNF_Tree, Grammar_Parser.Productions, Input_Data'Unchecked_Access);
                   end;
                else
@@ -633,6 +637,7 @@ begin
                        (Generate_Data.Grammar,
                         Generate_Data.Descriptor.all,
                         Grammar_Parser.Tree.Lexer.File_Name,
+                        Input_Data.Language_Params.Error_Recover,
                         Generate_Data.Conflicts,
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                         Input_Data.Max_Parallel,
@@ -674,6 +679,7 @@ begin
                        (Generate_Data.Grammar,
                         Generate_Data.Descriptor.all,
                         Grammar_Parser.Tree.Lexer.File_Name,
+                        Input_Data.Language_Params.Error_Recover,
                         Generate_Data.Conflicts,
                         Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                         Input_Data.Max_Parallel,

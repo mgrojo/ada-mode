@@ -19,15 +19,9 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Parse.Packrat.Generated is
 
-   overriding procedure Parse
-     (Parser     : in out Generated.Parser;
-      Log_File   : in     Ada.Text_IO.File_Type;
-      Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
-      Pre_Edited : in     Boolean        := False)
+   procedure Packrat_Parse_No_Recover (Parser : in out Generated.Parser)
    is
-      pragma Unreferenced (Log_File, Pre_Edited);
       use all type WisiToken.Syntax_Trees.User_Data_Access;
-      use all type Ada.Containers.Count_Type;
       Descriptor : WisiToken.Descriptor renames Parser.Tree.Lexer.Descriptor.all;
       Trace      : WisiToken.Trace'Class renames Parser.Tree.Lexer.Trace.all;
 
@@ -35,10 +29,6 @@ package body WisiToken.Parse.Packrat.Generated is
    begin
       if Trace_Time then
          Trace.Put_Clock ("start");
-      end if;
-
-      if Edits.Length > 0 then
-         raise WisiToken.Parse_Error;
       end if;
 
       Parser.Tree.Clear;
@@ -88,8 +78,8 @@ package body WisiToken.Parse.Packrat.Generated is
          end if;
       end if;
 
-      Parser.Finish_Parse (Result);
+      Finish_Parse (Parser, Result);
 
-   end Parse;
+   end Packrat_Parse_No_Recover;
 
 end WisiToken.Parse.Packrat.Generated;

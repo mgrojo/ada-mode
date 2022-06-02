@@ -479,6 +479,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
      (Grammar               : in out WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor            : in     WisiToken.Descriptor;
       Grammar_File_Name     : in     String;
+      Error_Recover_Enabled : in     Boolean;
       Known_Conflicts       : in     Conflict_Lists.Tree := Conflict_Lists.Empty_Tree;
       McKenzie_Param        : in     McKenzie_Param_Type := Default_McKenzie_Param;
       Max_Parallel          : in     SAL.Base_Peek_Type  := 15;
@@ -566,7 +567,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
          First_Nonterminal => Descriptor.First_Nonterminal,
          Last_Nonterminal  => Descriptor.Last_Nonterminal);
 
-      if McKenzie_Param = Default_McKenzie_Param then
+      if not Error_Recover_Enabled then
          --  Descriminants in Default are wrong
          Table.McKenzie_Param :=
            (First_Terminal              => Descriptor.First_Terminal,

@@ -21,16 +21,14 @@ pragma License (GPL);
 with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
-with GNAT.Traceback.Symbolic;
 with Dragon_4_43_Packrat_Gen_Main;
-with WisiToken.Parse.Packrat;
+with GNAT.Traceback.Symbolic;
+with WisiToken.Parse.Packrat.Generated;
 with WisiToken.Text_IO_Trace;
 package body Dragon_4_43_Packrat_Gen is
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace;
-   Log_File : Ada.Text_IO.File_Type;
-
-   Parser : aliased WisiToken.Parse.Base_Parser'Class := Dragon_4_43_Packrat_Gen_Main.Create_Parser
+   Trace  : aliased WisiToken.Text_IO_Trace.Trace;
+   Parser : aliased WisiToken.Parse.Packrat.Generated.Parser := Dragon_4_43_Packrat_Gen_Main.Create_Parser
      (Trace'Access, User_Data => null);
 
    ----------
@@ -47,12 +45,8 @@ package body Dragon_4_43_Packrat_Gen is
          Expected : in Result_States)
       is begin
          Parser.Tree.Lexer.Reset_With_String (Input);
-         Parser.Parse (Log_File);
+         Parser.Packrat_Parse_No_Recover;
 
-         if WisiToken.Trace_Tests > WisiToken.Detail then
-            Trace.Put_Line ("ref_counts:");
-            Parser.Tree.Print_Ref_Counts;
-         end if;
          AUnit.Assertions.Assert (Expected = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
 
       exception

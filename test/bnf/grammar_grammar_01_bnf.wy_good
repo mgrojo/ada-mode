@@ -70,14 +70,14 @@ compilation_unit_list
 
 ;; end of file
 declaration_item_list
-  : declaration_item
+  : declaration_item_list declaration_item_list
   | declaration_item_list declaration_item
-  | declaration_item_list declaration_item_list
+  | declaration_item
   ;
 IDENTIFIER_list
-  : IDENTIFIER
+  : IDENTIFIER_list IDENTIFIER_list
   | IDENTIFIER_list IDENTIFIER
-  | IDENTIFIER_list IDENTIFIER_list
+  | IDENTIFIER
   ;
 rhs_BAR_list
   : rhs_BAR_list BAR rhs_BAR_list

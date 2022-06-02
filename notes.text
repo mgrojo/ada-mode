@@ -31,6 +31,8 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+run all tests
+
 packrat error recover
     debug_packrat_to_lr.adb
         stream looks ok; run mckenzie.

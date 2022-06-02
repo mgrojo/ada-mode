@@ -3,7 +3,7 @@
 --  Test some operations on syntax_trees. See also ada-mode
 --  test_syntax_trees for tests with full Ada language.
 --
---  Copyright (C) 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2021, 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -30,6 +30,5 @@ package Test_Syntax_Trees is
    overriding procedure Register_Tests (T : in out Test_Case);
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
-   overriding procedure Set_Up_Case (T : in out Test_Case);
 
 end Test_Syntax_Trees;

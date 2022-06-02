@@ -27,10 +27,12 @@
 
 pragma License (Modified_GPL);
 
+with WisiToken.Parse.LR.Parser_Lists;
+with WisiToken.Parse.Parser;
 package body WisiToken.Parse.LR.Parser_No_Recover is
 
    procedure Reduce_Stack_1
-     (Shared_Parser  : in out Parser;
+     (Shared_Parser  : in out WisiToken.Parse.Parser.Parser'Class;
       Current_Parser : in     Parser_Lists.Cursor;
       Action         : in     Reduce_Action_Rec;
       New_State      : in     State_Index;
@@ -51,7 +53,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    procedure Do_Action
      (Action         : in     Parse_Action_Rec;
       Current_Parser : in     Parser_Lists.Cursor;
-      Shared_Parser  : in out Parser)
+      Shared_Parser  : in out WisiToken.Parse.Parser.Parser'Class)
    is
       use Syntax_Trees;
       use all type Ada.Containers.Count_Type;
@@ -142,7 +144,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    end Do_Action;
 
    procedure Parse_Verb
-     (Shared_Parser : in out Parser;
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Verb          :    out All_Parse_Action_Verbs)
    --  Return the type of parser cycle to execute.
    --
@@ -196,13 +198,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    ----------
    --  Public subprograms, declaration order
 
-   overriding procedure Finalize (Object : in out Parser)
-   is begin
-      Free_Table (Object.Table);
-   end Finalize;
-
    procedure New_Parser
-     (Parser      :    out LR.Parser_No_Recover.Parser;
+     (Parser      : in out WisiToken.Parse.Parser.Parser'Class;
       Lexer       : in     WisiToken.Lexer.Handle;
       Table       : in     Parse_Table_Ptr;
       Productions : in     Syntax_Trees.Production_Info_Trees.Vector;
@@ -214,15 +211,22 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       Parser.User_Data   := User_Data;
    end New_Parser;
 
-   overriding procedure Parse
-     (Shared_Parser : in out Parser;
-      Log_File      : in     Ada.Text_IO.File_Type;
-      Edits         : in     KMN_Lists.List := KMN_Lists.Empty_List;
-      Pre_Edited    : in     Boolean        := False)
-   is
-      pragma Unreferenced (Log_File, Pre_Edited);
+   function New_Parser
+     (Lexer       : in     WisiToken.Lexer.Handle;
+      Table       : in     Parse_Table_Ptr;
+      Productions : in     Syntax_Trees.Production_Info_Trees.Vector;
+      User_Data   : in     Syntax_Trees.User_Data_Access)
+     return WisiToken.Parse.Parser.Parser'Class
+   is begin
+      return Parser : WisiToken.Parse.Parser.Parser
+        (Lexer.Descriptor.First_Nonterminal, Lexer.Descriptor.Last_Nonterminal)
+      do
+         New_Parser (Parser, Lexer, Table, Productions, User_Data);
+      end return;
+   end New_Parser;
 
-      use all type KMN_Lists.List;
+   procedure LR_Parse_No_Recover (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class)
+   is
       use all type WisiToken.Syntax_Trees.Terminal_Ref;
       use all type Syntax_Trees.User_Data_Access;
 
@@ -249,10 +253,6 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       end Check_Error;
 
    begin
-      if Edits /= KMN_Lists.Empty_List then
-         raise SAL.Programmer_Error;
-      end if;
-
       if Shared_Parser.User_Data /= null then
          Shared_Parser.User_Data.Reset;
       end if;
@@ -430,6 +430,6 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       --  We don't raise Syntax_Error for lexer errors, since they are all
       --  recovered, either by inserting a quote, or by ignoring the
       --  character.
-   end Parse;
+   end LR_Parse_No_Recover;
 
 end WisiToken.Parse.LR.Parser_No_Recover;

@@ -28,6 +28,7 @@ with GNAT.OS_Lib;
 with WisiToken.BNF;
 with WisiToken.Generate;
 with WisiToken.Parse.LR.Parser_No_Recover;
+with WisiToken.Parse.Parser;
 with WisiToken.Test_Util;
 with WisiToken.Text_IO_Trace;
 with WisiToken_Grammar_Editing;
@@ -48,9 +49,13 @@ package body BNF_WY_Test is
       Gen_Alg_Set : constant WisiToken.BNF.Generate_Algorithm_Set := WisiToken.BNF.From_Generate_Env_Var;
 
       Trace          : aliased WisiToken.Text_IO_Trace.Trace;
-      Log_File       : Ada.Text_IO.File_Type;
       Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-      Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+      Grammar_Parser : WisiToken.Parse.Parser.Parser'Class :=
+        WisiToken.Parse.LR.Parser_No_Recover.New_Parser
+          (Lexer       => Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
+           Table       => Wisitoken_Grammar_Main.Create_Parse_Table,
+           Productions => Wisitoken_Grammar_Main.Create_Productions,
+           User_Data   => Input_Data'Unchecked_Access);
 
       Save_Trace_Parse : constant Integer := WisiToken.Trace_Parse;
    begin
@@ -58,15 +63,8 @@ package body BNF_WY_Test is
 
       WisiToken.Generate.Error := False;
 
-      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Parser      => Grammar_Parser,
-         Lexer       => Wisitoken_Grammar_Main.Create_Lexer (Trace'Unchecked_Access),
-         Table       => Wisitoken_Grammar_Main.Create_Parse_Table,
-         Productions => Wisitoken_Grammar_Main.Create_Productions,
-         User_Data   => Input_Data'Unchecked_Access);
-
       Grammar_Parser.Tree.Lexer.Reset_With_File ("../test/bnf/" & Root_Name & ".wy");
-      Grammar_Parser.Parse (Log_File);
+      WisiToken.Parse.LR.Parser_No_Recover.LR_Parse_No_Recover (Grammar_Parser);
       Input_Data.Phase := WisiToken_Grammar_Runtime.Meta;
       Grammar_Parser.Execute_Actions;
 

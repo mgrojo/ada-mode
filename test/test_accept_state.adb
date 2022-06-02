@@ -26,6 +26,7 @@ with WisiToken.Gen_Token_Enum;
 with WisiToken.Generate.LR.LALR_Generate;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Parse.Parser;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
@@ -82,9 +83,20 @@ package body Test_Accept_State is
      Parse_Sequence_ID <= Statement_ID & EOI_ID + Null_Action and
      Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + Null_Action;
 
-   Parser : WisiToken.Parse.LR.Parser.Parser;
-
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
+   Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
+   Parser : WisiToken.Parse.Parser.Parser'Class :=
+      WisiToken.Parse.LR.Parser.New_Parser
+        (Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
+         WisiToken.Generate.LR.LALR_Generate.Generate
+          (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions,
+           Error_Recover_Enabled => False),
+         WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
+         User_Data                      => null,
+         Language_Fixes                 => null,
+         Language_Matching_Begin_Tokens => null,
+         Language_String_ID_Set         => null);
+
    Log_File : Ada.Text_IO.File_Type;
 
    ----------
@@ -93,25 +105,11 @@ package body Test_Accept_State is
    procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-
-      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
       --  The test is that there are no exceptions.
-
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Parser,
-         Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
-         WisiToken.Generate.LR.LALR_Generate.Generate
-           (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
-         WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
-         User_Data                      => null,
-         Language_Fixes                 => null,
-         Language_Matching_Begin_Tokens => null,
-         Language_String_ID_Set         => null);
-
       Parser.Tree.Lexer.Reset_With_String ("set A = 2");
 
-      Parser.Parse (Log_File);
+      Parser.LR_Parse (Log_File);
 
    exception
    when E : others =>

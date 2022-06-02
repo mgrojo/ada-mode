@@ -315,11 +315,14 @@ is
       end case;
 
       case Common_Data.Generate_Algorithm is
-      when LR_Generate_Algorithm | Packrat_Gen | External | Tree_Sitter =>
+      when LR_Generate_Algorithm | External | Tree_Sitter =>
          null;
 
       when Packrat_Proc =>
          Put_Line ("with WisiToken.Productions;");
+
+      when Packrat_Gen =>
+         null;
       end case;
 
       Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
@@ -341,6 +344,7 @@ is
          LR_Create_Create_Parse_Table (Input_Data, Common_Data, Generate_Data);
          Create_Create_Lexer (Actions_Package_Name);
          Create_Create_Productions (Generate_Data);
+         LR_Create_Create_Parser (Actions_Package_Name, Common_Data, Generate_Data);
 
       when Packrat_Gen =>
          WisiToken.BNF.Generate_Packrat (Packrat_Data, Generate_Data);
@@ -437,9 +441,7 @@ is
                Put_Line ("   null, null, null,");
             end if;
          end if;
-         Put_Line ("   " & Main_Package_Name & ".Create_Parse_Table,");
-         Put_Line ("   " & Main_Package_Name & ".Create_Productions,");
-         Put_Line ("   " & Main_Package_Name & ".Create_Lexer);");
+         Put_Line ("   " & Main_Package_Name & ".Create_Parser);");
 
       when Packrat_Generate_Algorithm | Tree_Sitter =>
          Put_Line ("   " & Main_Package_Name & ".Create_Parser);");

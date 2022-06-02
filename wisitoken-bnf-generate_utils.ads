@@ -21,8 +21,7 @@ pragma License (Modified_GPL);
 
 with Ada.Iterator_Interfaces;
 with WisiToken.Generate.LR;
-with WisiToken.Parse.LR;
-with WisiToken.Parse.LR.Parser_No_Recover;
+with WisiToken.Parse.Parser;
 with WisiToken.Productions;
 with WisiToken_Grammar_Runtime;
 package WisiToken.BNF.Generate_Utils is
@@ -64,16 +63,16 @@ package WisiToken.BNF.Generate_Utils is
      return Generate_Data;
 
    procedure Parse_Grammar_File
-     (Grammar_Parser    : in out WisiToken.Parse.LR.Parser_No_Recover.Parser;
+     (Grammar_Parser    : in out WisiToken.Parse.Parser.Parser'Class;
       Grammar_File_Name : in     String);
 
    function Parse_Grammar_File
-     (Grammar_File_Name  : in     String;
-      Input_Data         : in     WisiToken_Grammar_Runtime.User_Data_Access;
-      Generate_Algorithm : in     WisiToken.BNF.Generate_Algorithm;
-      Lexer              : in     WisiToken.BNF.Lexer_Type;
-      Trace              : in out WisiToken.Trace'Class;
-      Ignore_Conflicts   : in     Boolean)
+     (Grammar_File_Name  : in String;
+      Input_Data         : in WisiToken_Grammar_Runtime.User_Data_Access;
+      Generate_Algorithm : in WisiToken.BNF.Generate_Algorithm;
+      Lexer              : in WisiToken.BNF.Lexer_Type;
+      Trace              : in WisiToken.Trace_Access;
+      Ignore_Conflicts   : in Boolean)
      return Generate_Data;
 
    type Token_Container

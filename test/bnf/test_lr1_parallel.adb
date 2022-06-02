@@ -149,11 +149,12 @@ package body Test_LR1_Parallel is
 
          Grammar_File_Name : constant String := "../test/bnf/" & Test.Root_Name.all & ".wy";
 
-         Trace : WisiToken.Text_IO_Trace.Trace;
+         Trace : aliased WisiToken.Text_IO_Trace.Trace;
          Input_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
          Generate_Data : aliased WisiToken.BNF.Generate_Utils.Generate_Data :=
            WisiToken.BNF.Generate_Utils.Parse_Grammar_File
-             (Grammar_File_Name, Input_Data'Unchecked_Access, WisiToken.BNF.LR1, WisiToken.BNF.re2c_Lexer, Trace,
+             (Grammar_File_Name, Input_Data'Unchecked_Access, WisiToken.BNF.LR1, WisiToken.BNF.re2c_Lexer,
+              Trace'Unchecked_Access,
               Ignore_Conflicts => True);
          --  Builds Generate_Data.Descriptor, Generate_Data.Grammar
       begin

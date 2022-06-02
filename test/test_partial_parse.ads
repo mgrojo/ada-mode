@@ -2,7 +2,7 @@
 --
 --  Test partial parse
 --
---  Copyright (C) 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019, 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -28,8 +28,6 @@ package Test_Partial_Parse is
    overriding procedure Register_Tests (T : in out Test_Case);
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
-
-   overriding procedure Set_Up_Case (T : in out Test_Case);
 
    overriding procedure Tear_Down_Case (T : in out Test_Case);
 

@@ -30,6 +30,7 @@ with WisiToken.Generate.LR1_Items;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Parse.LR.AUnit;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Parse.Parser;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
@@ -190,7 +191,7 @@ package body Dragon_4_45_LALR_Test is
       Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
 
       Computed : constant Parse_Table_Ptr := WisiToken.Generate.LR.LALR_Generate.Generate
-        (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions);
+        (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions, Error_Recover_Enabled => False);
 
       Expected : Parse_Table
         (State_First       => 0,
@@ -234,32 +235,31 @@ package body Dragon_4_45_LALR_Test is
    is
       pragma Unreferenced (T);
 
-      Parser : WisiToken.Parse.LR.Parser.Parser;
+      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
+
+      Parser : WisiToken.Parse.Parser.Parser'Class :=
+        WisiToken.Parse.LR.Parser.New_Parser
+          (Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
+           WisiToken.Generate.LR.LALR_Generate.Generate
+             (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions,
+              Error_Recover_Enabled => False),
+           WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
+           User_Data                      => null,
+           Language_Fixes                 => null,
+           Language_Matching_Begin_Tokens => null,
+           Language_String_ID_Set         => null);
 
       procedure Execute_Command (Command : in String)
       is
          use Ada.Exceptions;
       begin
          Parser.Tree.Lexer.Reset_With_String (Command);
-         Parser.Parse (Log_File);
+         Parser.LR_Parse (Log_File);
       exception
       when E : others =>
          AUnit.Assertions.Assert (False, "'" & Command & "': " & Exception_Name (E) & ": " & Exception_Message (E));
       end Execute_Command;
-
-      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Parser,
-         Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
-         WisiToken.Generate.LR.LALR_Generate.Generate
-           (Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
-         WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
-         User_Data                      => null,
-         Language_Fixes                 => null,
-         Language_Matching_Begin_Tokens => null,
-         Language_String_ID_Set         => null);
-
       Execute_Command ("cdcd");
    end Test_Parse;
 

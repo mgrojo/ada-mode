@@ -33,6 +33,7 @@ with WisiToken.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.McKenzie_Recover.Optimized_List;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Parse.Parser;
 with WisiToken.Syntax_Trees.AUnit_Public;
 with WisiToken.Text_IO_Trace;
 package body Test_Syntax_Trees is
@@ -43,17 +44,55 @@ package body Test_Syntax_Trees is
    Log_File  : Ada.Text_IO.File_Type;
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
-   Ada_Lite_Parser       : WisiToken.Parse.LR.Parser.Parser;
-   Grammar_Parser        : WisiToken.Parse.LR.Parser.Parser;
-   Optimized_List_Parser : WisiToken.Parse.LR.Parser.Parser;
-   Skip_To_Parser        : WisiToken.Parse.LR.Parser.Parser;
+   Ada_Lite_Parser       : WisiToken.Parse.Parser.Parser'Class :=
+     WisiToken.Parse.LR.Parser.New_Parser
+       (Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
+        Ada_Lite_LR1_T1_Main.Create_Parse_Table
+          (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
+        Ada_Lite_LR1_T1_Main.Create_Productions,
+        Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+        Language_Matching_Begin_Tokens =>
+          WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
+        Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
+        User_Data                      => User_Data'Access);
 
-   function Parse_Text (Parser : in out WisiToken.Parse.LR.Parser.Parser; Text : in String) return Stream_Node_Ref
+   Grammar_Parser        : WisiToken.Parse.Parser.Parser'Class :=
+      WisiToken.Parse.LR.Parser.New_Parser
+        (Grammar_Grammar_01_LR1_T1_Main.Create_Lexer (Trace'Access),
+         Grammar_Grammar_01_LR1_T1_Main.Create_Parse_Table,
+         Grammar_Grammar_01_LR1_T1_Main.Create_Productions,
+         Language_Fixes                 => null,
+         Language_Matching_Begin_Tokens => null,
+         Language_String_ID_Set         => null,
+         User_Data                      => null);
+
+   Optimized_List_Parser : WisiToken.Parse.Parser.Parser'Class :=
+      WisiToken.Parse.LR.Parser.New_Parser
+        (Optimized_List_LR1_T1_Main.Create_Lexer (Trace'Access),
+         Optimized_List_LR1_T1_Main.Create_Parse_Table,
+         Optimized_List_LR1_T1_Main.Create_Productions,
+         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Optimized_List.Fixes'Access,
+         Language_Matching_Begin_Tokens =>
+           WisiToken.Parse.LR.McKenzie_Recover.Optimized_List.Matching_Begin_Tokens'Access,
+         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Optimized_List.String_ID_Set'Access,
+         User_Data                      => null);
+
+   Skip_To_Parser        : WisiToken.Parse.Parser.Parser'Class :=
+      WisiToken.Parse.LR.Parser.New_Parser
+        (Skip_To_Grammar_LALR_Main.Create_Lexer (Trace'Access),
+         Skip_To_Grammar_LALR_Main.Create_Parse_Table ("skip_to_grammar_lalr_parse_table.txt"),
+         Skip_To_Grammar_LALR_Main.Create_Productions,
+         Language_Fixes                 => null,
+         Language_Matching_Begin_Tokens => null,
+         Language_String_ID_Set         => null,
+         User_Data                      => null);
+
+   function Parse_Text (Parser : in out WisiToken.Parse.Parser.Parser'Class; Text : in String) return Stream_Node_Ref
    --  return wisitoken_accept in parse_stream.
    is begin
       Parser.Tree.Lexer.Reset_With_String (Text);
 
-      Parser.Parse (Log_File);
+      Parser.LR_Parse (Log_File);
       Parser.Tree.Start_Edit;
 
       if WisiToken.Trace_Tests > WisiToken.Detail then
@@ -106,7 +145,7 @@ package body Test_Syntax_Trees is
    begin
       Ada_Lite_Parser.Tree.Lexer.Reset_With_String (Text);
 
-      Ada_Lite_Parser.Parse (Log_File);
+      Ada_Lite_Parser.LR_Parse (Log_File);
 
       if Trace_Tests > Detail then
          Ada.Text_IO.Put_Line ("tree:");
@@ -162,7 +201,7 @@ package body Test_Syntax_Trees is
    begin
       Grammar_Parser.Tree.Lexer.Reset_With_String (Text);
 
-      Grammar_Parser.Parse (Log_File);
+      Grammar_Parser.LR_Parse (Log_File);
 
       if Trace_Tests > Detail then
          Ada.Text_IO.Put_Line ("tree:");
@@ -189,7 +228,7 @@ package body Test_Syntax_Trees is
    begin
       Ada_Lite_Parser.Tree.Lexer.Reset_With_String (Text);
 
-      Ada_Lite_Parser.Parse (Log_File);
+      Ada_Lite_Parser.LR_Parse (Log_File);
 
       declare
          Tree : WisiToken.Syntax_Trees.Tree renames Ada_Lite_Parser.Tree;
@@ -213,7 +252,7 @@ package body Test_Syntax_Trees is
    begin
       Ada_Lite_Parser.Tree.Lexer.Reset_With_String (Text);
 
-      Ada_Lite_Parser.Parse (Log_File);
+      Ada_Lite_Parser.LR_Parse (Log_File);
 
       if Trace_Tests > Detail then
          Ada_Lite_Parser.Tree.Print_Tree (Non_Grammar => True);
@@ -238,7 +277,7 @@ package body Test_Syntax_Trees is
    begin
       Skip_To_Parser.Tree.Lexer.Reset_With_String (Text);
 
-      Skip_To_Parser.Parse (Log_File);
+      Skip_To_Parser.LR_Parse (Log_File);
 
       if Trace_Tests > Detail then
          Skip_To_Parser.Tree.Print_Tree (Non_Grammar => True);
@@ -275,7 +314,7 @@ package body Test_Syntax_Trees is
    begin
       Grammar_Parser.Tree.Lexer.Reset_With_String (Text);
 
-      Grammar_Parser.Parse (Log_File);
+      Grammar_Parser.LR_Parse (Log_File);
 
       if Trace_Tests > Detail then
          Grammar_Parser.Tree.Print_Tree (Non_Grammar => True);
@@ -336,7 +375,7 @@ package body Test_Syntax_Trees is
    begin
       Ada_Lite_Parser.Tree.Lexer.Reset_With_String (Text);
 
-      Ada_Lite_Parser.Parse (Log_File);
+      Ada_Lite_Parser.LR_Parse (Log_File);
 
       --  IMPROVEME: set lexer buffer start after actual text buffer start, test before text.
 
@@ -397,7 +436,7 @@ package body Test_Syntax_Trees is
          end if;
 
          Optimized_List_Parser.Tree.Lexer.Reset_With_String (Text);
-         Optimized_List_Parser.Parse (Log_File);
+         Optimized_List_Parser.LR_Parse (Log_File);
 
          Tree.Start_Edit;
 
@@ -501,7 +540,7 @@ package body Test_Syntax_Trees is
          if Trace_Tests > Detail then
             Ada.Text_IO.Put_Line (Label & " parse edited stream");
          end if;
-         Optimized_List_Parser.Parse (Log_File, Pre_Edited => True);
+         Optimized_List_Parser.LR_Parse (Log_File, Pre_Edited => True);
 
          if Trace_Tests > Detail then
             Ada.Text_IO.Put_Line (Label & " tree:");
@@ -983,7 +1022,7 @@ package body Test_Syntax_Trees is
          end if;
 
          Optimized_List_Parser.Tree.Lexer.Reset_With_String (Text);
-         Optimized_List_Parser.Parse (Log_File);
+         Optimized_List_Parser.LR_Parse (Log_File);
 
          Tree.Start_Edit;
 
@@ -1006,7 +1045,7 @@ package body Test_Syntax_Trees is
             if Trace_Tests > Detail then
                Ada.Text_IO.Put_Line (Label & " parse edited stream 1");
             end if;
-            Optimized_List_Parser.Parse (Log_File, Pre_Edited => True);
+            Optimized_List_Parser.LR_Parse (Log_File, Pre_Edited => True);
 
             if Trace_Tests > Detail then
                Ada.Text_IO.Put_Line (Label & " parsed tree 1:");
@@ -1077,7 +1116,7 @@ package body Test_Syntax_Trees is
          if Trace_Tests > Detail then
             Ada.Text_IO.Put_Line (Label & " parse edited stream 2");
          end if;
-         Optimized_List_Parser.Parse (Log_File, Pre_Edited => True);
+         Optimized_List_Parser.LR_Parse (Log_File, Pre_Edited => True);
 
          if Trace_Tests > Detail then
             Ada.Text_IO.Put_Line (Label & " parsed tree 2:");
@@ -1117,7 +1156,7 @@ package body Test_Syntax_Trees is
         "b : B; -- trailing comment" & ASCII.LF;
       --         |70       |80         |88
 
-      Parser : WisiToken.Parse.Base_Parser'Class renames WisiToken.Parse.Base_Parser'Class (Grammar_Parser);
+      Parser : WisiToken.Parse.Parser.Parser'Class renames Grammar_Parser;
 
       procedure Test_1
         (Label                  : in String;
@@ -1149,7 +1188,7 @@ package body Test_Syntax_Trees is
    begin
       Parser.Tree.Lexer.Reset_With_String (Text);
 
-      Parser.Parse (Log_File);
+      Parser.LR_Parse (Log_File);
 
       if Trace_Tests > Detail then
          Parser.Tree.Print_Tree (Non_Grammar => True);
@@ -1187,54 +1226,6 @@ package body Test_Syntax_Trees is
    is begin
       return new String'("test_syntax_trees.adb");
    end Name;
-
-   overriding procedure Set_Up_Case (T : in out Test_Case)
-   is begin
-      --  Run before all tests in register
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Ada_Lite_Parser,
-         Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
-         Ada_Lite_LR1_T1_Main.Create_Parse_Table
-           (Text_Rep_File_Name          => "ada_lite_lr1_t1_re2c_parse_table.txt"),
-         Ada_Lite_LR1_T1_Main.Create_Productions,
-         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
-         Language_Matching_Begin_Tokens =>
-           WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
-         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-         User_Data                      => User_Data'Access);
-
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Grammar_Parser,
-         Grammar_Grammar_01_LR1_T1_Main.Create_Lexer (Trace'Access),
-         Grammar_Grammar_01_LR1_T1_Main.Create_Parse_Table,
-         Grammar_Grammar_01_LR1_T1_Main.Create_Productions,
-         Language_Fixes                 => null,
-         Language_Matching_Begin_Tokens => null,
-         Language_String_ID_Set         => null,
-         User_Data                      => null);
-
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Optimized_List_Parser,
-         Optimized_List_LR1_T1_Main.Create_Lexer (Trace'Access),
-         Optimized_List_LR1_T1_Main.Create_Parse_Table,
-         Optimized_List_LR1_T1_Main.Create_Productions,
-         Language_Fixes                 => WisiToken.Parse.LR.McKenzie_Recover.Optimized_List.Fixes'Access,
-         Language_Matching_Begin_Tokens =>
-           WisiToken.Parse.LR.McKenzie_Recover.Optimized_List.Matching_Begin_Tokens'Access,
-         Language_String_ID_Set         => WisiToken.Parse.LR.McKenzie_Recover.Optimized_List.String_ID_Set'Access,
-         User_Data                      => null);
-
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Skip_To_Parser,
-         Skip_To_Grammar_LALR_Main.Create_Lexer (Trace'Access),
-         Skip_To_Grammar_LALR_Main.Create_Parse_Table ("skip_to_grammar_lalr_parse_table.txt"),
-         Skip_To_Grammar_LALR_Main.Create_Productions,
-         Language_Fixes                 => null,
-         Language_Matching_Begin_Tokens => null,
-         Language_String_ID_Set         => null,
-         User_Data                      => null);
-
-   end Set_Up_Case;
 
 end Test_Syntax_Trees;
 --  Local Variables:

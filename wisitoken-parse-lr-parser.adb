@@ -1016,15 +1016,34 @@ package body WisiToken.Parse.LR.Parser is
       Parser.Productions := Productions;
       Parser.User_Data   := User_Data;
 
-      --  In Base_Parser; Tree, Line_Begin_Token, Last_Grammar_Node are default initialized.
+      --  Tree, Line_Begin_Token, Last_Grammar_Node are default initialized.
 
       Parser.Table                          := Table;
       Parser.Language_Fixes                 := Language_Fixes;
       Parser.Language_Matching_Begin_Tokens := Language_Matching_Begin_Tokens;
       Parser.Language_String_ID_Set         := Language_String_ID_Set;
 
-      --  In Parser; String_Quote_Checked, Post_Recover, Parsers are default
+      --  String_Quote_Checked, Post_Recover, Parsers are default
       --  initialized. Partial_Parse_Active is set by user after this.
+   end New_Parser;
+
+   function New_Parser
+     (Lexer                          : in     WisiToken.Lexer.Handle;
+      Table                          : in     Parse_Table_Ptr;
+      Productions                    : in     Syntax_Trees.Production_Info_Trees.Vector;
+      Language_Fixes                 : in     Language_Fixes_Access;
+      Language_Matching_Begin_Tokens : in     Language_Matching_Begin_Tokens_Access;
+      Language_String_ID_Set         : in     Language_String_ID_Set_Access;
+      User_Data                      : in     WisiToken.Syntax_Trees.User_Data_Access)
+     return WisiToken.Parse.Parser.Parser
+   is begin
+      return Parser : WisiToken.Parse.Parser.Parser
+        (Lexer.Descriptor.First_Nonterminal, Lexer.Descriptor.Last_Nonterminal)
+      do
+         New_Parser
+           (Parser, Lexer, Table, Productions, Language_Fixes, Language_Matching_Begin_Tokens,
+            Language_String_ID_Set, User_Data);
+      end return;
    end New_Parser;
 
    procedure Edit_Tree

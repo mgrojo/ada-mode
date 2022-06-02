@@ -37,4 +37,3 @@ build/*.ps
 build/*.errors
 build/devel_obj/
 build/Makefile.conf
-build/wisitoken_test.gpr

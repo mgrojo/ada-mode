@@ -13,7 +13,7 @@
 
 pragma License (GPL);
 
-with WisiToken.Parse.LR.Parser_No_Recover;
+with WisiToken.Parse.Parser;
 with WisiToken.Syntax_Trees;
 package Test_Skip_To_Aux is
 
@@ -25,7 +25,7 @@ package Test_Skip_To_Aux is
 
    Test_Pass_Count : Integer := 0;
 
-   Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+   Parser : WisiToken.Parse.Parser.Parser_Access;
 
    procedure Reset;
    --  Reset Test_Pass_Count and internal counts to 0, ready to test

@@ -25,9 +25,11 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
+with WisiToken.Parse.Packrat.Generated;
+with WisiToken.Parse.Packrat.Procedural;
 with WisiToken.Parse;
 with WisiToken.Syntax_Trees;
-procedure Parser_Run_Common (Parser : in out WisiToken.Parse.Base_Parser'Class)
+procedure Parser_Run_Common (Parser : in out WisiToken.Parse.Parser.Parser'Class)
 is
    procedure Put_Usage
    is begin
@@ -72,7 +74,16 @@ begin
    end;
 
    Parser.Tree.Lexer.Reset_With_File (-File_Name);
-   Parser.Parse (Log_File);
+
+   if Parser in WisiToken.Parse.Packrat.Procedural.Parser then
+      WisiToken.Parse.Packrat.Procedural.Parser (Parser).Packrat_Parse_No_Recover;
+
+   elsif Parser in WisiToken.Parse.Packrat.Generated.Parser then
+      WisiToken.Parse.Packrat.Generated.Parser (Parser).Packrat_Parse_No_Recover;
+
+   else
+      Parser.LR_Parse (Log_File);
+   end if;
 
    --  No user data, so no point in Execute_Actions
 

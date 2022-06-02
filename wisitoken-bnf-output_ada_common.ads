@@ -72,6 +72,11 @@ package WisiToken.BNF.Output_Ada_Common is
    --  source. Otherwise, includes call to LR.Get_Text_Rep; caller must
    --  call Put_Text_Rep to create file.
 
+   procedure LR_Create_Create_Parser
+     (Actions_Package_Name :         in     String;
+      Common_Data          :         in out Output_Ada_Common.Common_Data;
+      Generate_Data        : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data);
+
    procedure Packrat_Create_Create_Parser
      (Actions_Package_Name :         in     String;
       Common_Data          :         in out Output_Ada_Common.Common_Data;

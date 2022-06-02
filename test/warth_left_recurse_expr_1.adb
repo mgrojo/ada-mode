@@ -28,13 +28,14 @@ with Warth_Left_Recurse_Expr_1_Packrat_Gen_Main;
 with Warth_Left_Recurse_Expr_1_Packrat_Proc_Main;
 with Warth_Left_Recurse_Expr_1_Runtime;
 with WisiToken.AUnit;
+with WisiToken.Parse.Packrat.Generated;
 with WisiToken.Parse.Packrat.Procedural;
+with WisiToken.Parse.Parser;
 with WisiToken.Text_IO_Trace;
 package body Warth_Left_Recurse_Expr_1 is
 
    User_Data : aliased Warth_Left_Recurse_Expr_1_Runtime.User_Data_Type;
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
-   Log_File : Ada.Text_IO.File_Type;
 
    ----------
    --  Test procedures
@@ -45,8 +46,8 @@ package body Warth_Left_Recurse_Expr_1 is
 
       use WisiToken.Parse.Packrat;
 
-      Parser : aliased WisiToken.Parse.Base_Parser'Class := Warth_Left_Recurse_Expr_1_Packrat_Gen_Main.Create_Parser
-        (Trace'Access, User_Data'Access);
+      Parser : aliased WisiToken.Parse.Packrat.Generated.Parser'Class :=
+        Warth_Left_Recurse_Expr_1_Packrat_Gen_Main.Create_Parser (Trace'Access, User_Data'Access);
 
       procedure Execute_Parse
         (Input           : in String;
@@ -60,7 +61,7 @@ package body Warth_Left_Recurse_Expr_1 is
             Ada.Text_IO.Put_Line ("input: '" & Input & "'");
          end if;
 
-         Parser.Parse (Log_File);
+         Parser.Packrat_Parse_No_Recover;
 
          AUnit.Assertions.Assert (Expected_State = Success, "'" & Input & "': expected fail; did not get Parse_Error");
 
@@ -97,9 +98,8 @@ package body Warth_Left_Recurse_Expr_1 is
       use WisiToken.AUnit;
       use all type WisiToken.Parse.Packrat.Result_States;
 
-      Parser : aliased WisiToken.Parse.Base_Parser'Class :=
-        Warth_Left_Recurse_Expr_1_Packrat_Proc_Main.Create_Parser
-          (Trace'Access, User_Data'Access);
+      Parser : aliased WisiToken.Parse.Packrat.Procedural.Parser :=
+        Warth_Left_Recurse_Expr_1_Packrat_Proc_Main.Create_Parser (Trace'Access, User_Data'Access);
 
       procedure Execute_Parse
         (Input           : in String;
@@ -113,7 +113,7 @@ package body Warth_Left_Recurse_Expr_1 is
             Ada.Text_IO.Put_Line ("input: '" & Input & "'");
          end if;
 
-         Parser.Parse (Log_File);
+         Parser.Packrat_Parse_No_Recover;
 
          AUnit.Assertions.Assert
            (Expected_State = Success, "'" & Input & "': expected fail; did not get Parse_Error");
@@ -150,9 +150,7 @@ package body Warth_Left_Recurse_Expr_1 is
       begin
          Expected (+expr_ID) := True;
 
-         Check ("direct_left_recursive",
-                WisiToken.Parse.Packrat.Procedural.Parser (Parser).Direct_Left_Recursive,
-                Expected);
+         Check ("direct_left_recursive", Parser.Direct_Left_Recursive, Expected);
       end;
 
       Execute_Parse ("1 - 3", Success, -2);

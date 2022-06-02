@@ -29,11 +29,12 @@ with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LALR_Main;
 with Ada_Lite_LR1_T1_Main;
+with SAL;
 with WisiToken.AUnit;
 with WisiToken.Parse.LR.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
-with WisiToken.Parse.LR.Parser;
 with WisiToken.Parse.LR.Parser_Lists;
+with WisiToken.Parse.Parser;
 with WisiToken.Syntax_Trees.AUnit_Public;
 with WisiToken.Text_IO_Trace;
 package body Test_McKenzie_Recover is
@@ -51,7 +52,7 @@ package body Test_McKenzie_Recover is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
-   Parser   : WisiToken.Parse.LR.Parser.Parser;
+   Parser   : WisiToken.Parse.Parser.Parser_Access;
    Log_File : Ada.Text_IO.File_Type; -- not used
 
    Orig_Params : WisiToken.Parse.LR.McKenzie_Param_Type
@@ -85,7 +86,7 @@ package body Test_McKenzie_Recover is
 
       Parser.Tree.Lexer.Reset_With_String (Text);
 
-      Parser.Parse (Log_File);
+      Parser.LR_Parse (Log_File);
 
       --  We don't run Parser.Execute_Actions, so Error.Recover.Ops
       --  Stream_Index values are still valid.
@@ -119,10 +120,11 @@ package body Test_McKenzie_Recover is
       Ops : in WisiToken.Parse.LR.AUnit.Test_Recover_Op_Arrays.Vector :=
         WisiToken.Parse.LR.AUnit.Test_Recover_Op_Arrays.Empty_Vector;
 
-      Enqueue_Count : in Integer                                 := 0;
-      Check_Count   : in Integer                                 := 0;
+      Enqueue_Count : in Integer                := 0;
+      Check_Count   : in Integer                := 0;
       Cost          : in Integer;
-      Expecting     : in WisiToken.Token_ID_Set                  := Empty_Token_ID_Set;
+      Expecting     : in WisiToken.Token_ID_Set := Empty_Token_ID_Set;
+
       Code          : in WisiToken.Syntax_Trees.In_Parse_Actions.Status_Label :=
         WisiToken.Syntax_Trees.In_Parse_Actions.Ok)
    is
@@ -138,8 +140,6 @@ package body Test_McKenzie_Recover is
       use all type WisiToken.Token_ID_Set;
 
       Label_I : constant String := Label & "." & Ada.Containers.Count_Type'Image (Checking_Error);
-
-      Parser_State : WisiToken.Parse.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
 
       Error_Node  : Node_Access :=  Invalid_Node_Access;
       Error_Cursor : Error_Data_Lists.Cursor := Error_Data_Lists.No_Element;
@@ -219,7 +219,7 @@ package body Test_McKenzie_Recover is
 
                else
                   Assert (False, Label_I & ".Code expecting Parse_Error, got " &
-                       Image (Error_Classwide, Parser.Tree, Error_Node));
+                            Image (Error_Classwide, Parser.Tree, Error_Node));
                end if;
 
             else
@@ -260,13 +260,18 @@ package body Test_McKenzie_Recover is
       --  There is only one Parser_State.Recover, so it stores counts from
       --  the last error in parse order. Since tree order can be different
       --  from parse order, we can't check that here.
-      if Enqueue_Count = 0 then
-         --  Not checking enqueue or check counts
-         null;
-      else
-         Check (Label_I & ".Enqueue_Count", Parser_State.Recover.Enqueue_Count, Enqueue_Count);
-         Check (Label_I & ".Check_Count", Parser_State.Recover.Check_Count, Check_Count);
-      end if;
+      declare
+         Parser_State : WisiToken.Parse.LR.Parser_Lists.Parser_State renames
+           Parser.Parsers.First.State_Ref.Element.all;
+      begin
+         if Enqueue_Count = 0 then
+            --  Not checking enqueue or check counts
+            null;
+         else
+            Check (Label_I & ".Enqueue_Count", Parser_State.Recover.Enqueue_Count, Enqueue_Count);
+            Check (Label_I & ".Check_Count", Parser_State.Recover.Check_Count, Check_Count);
+         end if;
+      end;
    end Check_Recover;
 
    ----------
@@ -281,7 +286,7 @@ package body Test_McKenzie_Recover is
       --  The test is that there is no exception and no errors.
 
       Parser.Tree.Lexer.Reset_With_File (File_Name);
-      Parser.Parse (Log_File);
+      Parser.LR_Parse (Log_File);
       Check ("errors length", Parser.Tree.Error_Count, 0);
    end No_Error;
 
@@ -444,7 +449,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +Wisi_EOI_ID,
          Error_Token_Byte_Region => (28, 27),
          Ops                     => +(Insert, +END_ID, 2) & (Insert, +SEMICOLON_ID, 2),
-         Enqueue_Count             => (case Test.Alg is when LALR => 19, when LR1 => 18),
+         Enqueue_Count             => (case Test.Alg is when LALR => 19, when LR1 => 18,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Check_Count               => 4,
          Cost                    => 2);
    end Check_Accept;
@@ -555,7 +561,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (83, 85),
          Ops                     => +(Insert, +SEMICOLON_ID, 2),
-         Enqueue_Count             => (case Test.Alg is when LALR => 7, when LR1 => 7),
+         Enqueue_Count             => (case Test.Alg is when LALR => 7, when LR1 => 7,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Check_Count               => 2,
          Cost                    => 1);
    end Conflict_2;
@@ -578,7 +585,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +IS_ID,
          Error_Token_Byte_Region => (69, 70),
          Ops                     => +(Insert, +RETURN_ID, 2) & (Insert, +IDENTIFIER_ID, 2),
-         Enqueue_Count             => (case Test.Alg is when LALR => 6, when LR1 => 5),
+         Enqueue_Count             => (case Test.Alg is when LALR => 6, when LR1 => 5,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Check_Count               => 3,
          Cost                    => 2);
    end Missing_Return;
@@ -683,7 +691,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (44, 44),
          Ops                     => +(Insert, +IF_ID, 2) & (Insert, +SEMICOLON_ID, 2) & (Insert, +END_ID, 2),
-         Enqueue_Count             => (case Test.Alg is when LALR => 334, when LR1 => 336),
+         Enqueue_Count             => (case Test.Alg is when LALR => 334, when LR1 => 336,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Check_Count               => 49,
          Cost                    => 3);
 
@@ -701,7 +710,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (52, 52),
          Ops                     => +(Insert, +LOOP_ID, 2) & (Insert, +SEMICOLON_ID, 2) & (Insert, +END_ID, 2),
-         Enqueue_Count             => (case Test.Alg is when LALR => 389, when LR1 => 391),
+         Enqueue_Count             => (case Test.Alg is when LALR => 389, when LR1 => 391,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Check_Count               => 62,
          Cost                    => 3);
    end Pattern_1;
@@ -1191,6 +1201,8 @@ package body Test_McKenzie_Recover is
             Enqueue_Count             => 18,
             Check_Count               => 4,
             Cost                    => 1);
+
+      when Packrat_Gen | Packrat_Proc => raise SAL.Not_Implemented;
       end case;
    end Block_Match_Names_1;
 
@@ -1366,7 +1378,8 @@ package body Test_McKenzie_Recover is
              (Push_Back, +SEMICOLON_ID, 1) & (Push_Back, +identifier_opt_ID, 0) & (Push_Back, +END_ID, -1) &
              (Push_Back, +handled_sequence_of_statements_ID, -3) & (Push_Back, +BEGIN_ID, -4) &
              (Push_Back, +block_label_opt_ID, Invalid) & (Insert, +END_ID, -4) & (Insert, +SEMICOLON_ID, -4),
-         Enqueue_Count             => (case Test.Alg is when LALR => 26, when LR1 => 39),
+         Enqueue_Count             => (case Test.Alg is when LALR => 26, when LR1 => 39,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Check_Count               => 9,
          Cost                    => 3,
          Code                    => Extra_Name_Error);
@@ -1402,7 +1415,8 @@ package body Test_McKenzie_Recover is
              (Push_Back, +handled_sequence_of_statements_ID, -2) & (Push_Back, +BEGIN_ID, -3) &
              (Push_Back, +block_label_opt_ID, Invalid) & (Insert, +END_ID, -3) & (Insert, +IDENTIFIER_ID, -3) &
              (Insert, +SEMICOLON_ID, -3),
-         Enqueue_Count             => (case Test.Alg is when LALR => 23, when LR1 => 35),
+         Enqueue_Count             => (case Test.Alg is when LALR => 23, when LR1 => 35,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Check_Count               => 8,
          Cost                    => 0);
    end Match_Selected_Component_1;
@@ -1456,7 +1470,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +RIGHT_PAREN_ID, 2) & (Insert, +THEN_ID, 2) &
            (Insert, +EXIT_ID, 2) & (Insert, +SEMICOLON_ID, 2) & (Fast_Forward, 2, 3) & (Push_Back, +END_ID, 2) &
            (Insert, +END_ID, 2) & (Insert, +IF_ID, 2) & (Insert, +SEMICOLON_ID, 2),
-      Enqueue_Count                => (case Test.Alg is when LALR => 179, when LR1 => 181),
+      Enqueue_Count                => (case Test.Alg is when LALR => 179, when LR1 => 181,
+                                     when Packrat_Gen | Packrat_Proc => 1),
       Check_Count                  => 19,
       Cost                       => 2);
    end Actual_Parameter_Part_1;
@@ -1566,7 +1581,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Delete, +SLASH_ID, 2) & (Delete, +BODY_ID, 3) & (Delete, +GREATER_ID, 4) &
            (Delete, +LESS_ID, 5) & (Delete, +SLASH_ID, 6) & (Delete, +IDENTIFIER_ID, 7) & (Delete, +GREATER_ID, 8) &
            (Fast_Forward, 9, 9),
-         Enqueue_Count             => (case Test.Alg is when LALR => 40, when LR1 => 40),
+         Enqueue_Count             => (case Test.Alg is when LALR => 40, when LR1 => 40,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Check_Count               => 6,
          Cost                    => 1);
    end String_Quote_1;
@@ -1604,7 +1620,8 @@ package body Test_McKenzie_Recover is
            (Delete, +GREATER_ID, 8) & (Delete, +LESS_ID, 9) & (Delete, +SLASH_ID, 10) & (Delete, +IDENTIFIER_ID, 11) &
            (Delete, +GREATER_ID, 12) & (Delete, +SEMICOLON_ID, 13) & (Fast_Forward, 14, 14) &
            (Insert, +SEMICOLON_ID, 14),
-         Enqueue_Count     => (case Test.Alg is when LALR => 61, when LR1 => 69),
+         Enqueue_Count     => (case Test.Alg is when LALR => 61, when LR1 => 69,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Check_Count       => 7,
          Cost            => 2);
    end String_Quote_2;
@@ -1670,7 +1687,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 1) & (Delete, +IDENTIFIER_ID, 1) &
            (Delete, +STRING_LITERAL_ID, 2) & (Delete, +IDENTIFIER_ID, 3) & (Fast_Forward, 4, 4),
          Enqueue_Count             => 75,
-         Check_Count               => (case Test.Alg is when LALR => 6, when LR1 => 6),
+         Check_Count               => (case Test.Alg is when LALR => 6, when LR1 => 6,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Cost                    => 1);
    end String_Quote_4;
 
@@ -1703,7 +1721,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (33, 33),
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 1) & (Delete, +IDENTIFIER_ID, 1) &
            (Fast_Forward, 2, 4) & (Insert, +END_ID, 4) & (Insert, +SEMICOLON_ID, 4),
-         Enqueue_Count             => (case Test.Alg is when LALR => 197, when LR1 => 198),
+         Enqueue_Count             => (case Test.Alg is when LALR => 197, when LR1 => 198,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Check_Count               => 21,
          Cost                    => 3);
    end String_Quote_5;
@@ -1816,7 +1835,8 @@ package body Test_McKenzie_Recover is
            (case Test.Alg is
             when LALR => +(Undo_Reduce, +statement_ID, 1, 0) & (Insert, +BEGIN_ID, 2) & (Insert, +EXIT_ID, 2) &
               (Insert, +SEMICOLON_ID, 2),
-            when LR1 => +(Insert, +BEGIN_ID, 2) & (Insert, +EXIT_ID, 2) & (Insert, +SEMICOLON_ID, 2)),
+            when LR1 => +(Insert, +BEGIN_ID, 2) & (Insert, +EXIT_ID, 2) & (Insert, +SEMICOLON_ID, 2),
+            when Packrat_Gen | Packrat_Proc => raise SAL.Not_Implemented),
          Cost                    => 2);
 
       Check_Recover
@@ -1853,8 +1873,10 @@ package body Test_McKenzie_Recover is
                  (Insert, +EXIT_ID, 2) & (Insert, +SEMICOLON_ID, 2),
             when LR1 =>
                +(Insert, +IF_ID, 2) & (Insert, +NUMERIC_LITERAL_ID, 2) & (Insert, +THEN_ID, 2) &
-                 (Insert, +EXIT_ID, 2) & (Insert, +SEMICOLON_ID, 2)),
-         Enqueue_Count             => (case Test.Alg is when LALR => 71, when LR1 => 70),
+                 (Insert, +EXIT_ID, 2) & (Insert, +SEMICOLON_ID, 2),
+            when Packrat_Gen | Packrat_Proc => raise SAL.Not_Implemented),
+         Enqueue_Count             => (case Test.Alg is when LALR => 71, when LR1 => 70,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Check_Count               => 8,
          Cost                    => 2);
    end Minimal_Complete_Full_Reduce_2;
@@ -1982,7 +2004,7 @@ package body Test_McKenzie_Recover is
       Parser.Table.McKenzie_Param.Check_Limit := 4;
 
       Parse_Text ("Check_Recover (Enqueue_Count => A()84, Cost => 1);");
-      --                    |10       |20       |30
+
       Check_Recover
         (Errors_Length           => 1,
          Error_Token_ID          => +NUMERIC_LITERAL_ID,
@@ -2033,8 +2055,10 @@ package body Test_McKenzie_Recover is
                +(Undo_Reduce, +subprogram_declaration_ID, 2, -1) &
                 (Insert, +PACKAGE_ID, 2) & (Insert, +IDENTIFIER_ID, 2) & (Insert, +IS_ID, 2),
             when LR1 =>
-               +(Insert, +PACKAGE_ID, 2) & (Insert, +IDENTIFIER_ID, 2) & (Insert, +IS_ID, 2)),
-         Enqueue_Count             => (case Test.Alg is when LALR => 19, when LR1 => 18),
+               +(Insert, +PACKAGE_ID, 2) & (Insert, +IDENTIFIER_ID, 2) & (Insert, +IS_ID, 2),
+            when Packrat_Gen | Packrat_Proc => raise SAL.Not_Implemented),
+         Enqueue_Count             => (case Test.Alg is when LALR => 19, when LR1 => 18,
+            when Packrat_Gen | Packrat_Proc => raise SAL.Not_Implemented),
          Check_Count               => 3,
          Cost                    => 0);
    end Minimal_Complete_Finish_1;
@@ -2143,8 +2167,10 @@ package body Test_McKenzie_Recover is
            +(Delete, +RIGHT_PAREN_ID, 2) & (Insert, +SEMICOLON_ID, 3) & (Insert, +IF_ID, 3) &
              (Insert, +NUMERIC_LITERAL_ID, 3) & (Insert, +THEN_ID, 3) & (Insert, +EXIT_ID, 3) &
            (Insert, +SEMICOLON_ID, 3),
-         Enqueue_Count             => (case Test.Alg is when LALR => 306, when LR1 => 279),
-         Check_Count               => (case Test.Alg is when LALR => 54, when LR1 => 47),
+         Enqueue_Count             => (case Test.Alg is when LALR => 306, when LR1 => 279,
+                                     when Packrat_Gen | Packrat_Proc => 1),
+         Check_Count               => (case Test.Alg is when LALR => 54, when LR1 => 47,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Cost                    => 5);
    end Do_Delete_First;
 
@@ -2213,8 +2239,10 @@ package body Test_McKenzie_Recover is
                +(Undo_Reduce, +subprogram_declaration_ID, 2, -1) &
                 (Insert, +PACKAGE_ID, 2) & (Insert, +IDENTIFIER_ID, 2) & (Insert, +IS_ID, 2),
             when LR1 =>
-               +(Insert, +PACKAGE_ID, 2) & (Insert, +IDENTIFIER_ID, 2) & (Insert, +IS_ID, 2)),
-         Enqueue_Count             => (case Test.Alg is when LALR => 19, when LR1 => 18),
+               +(Insert, +PACKAGE_ID, 2) & (Insert, +IDENTIFIER_ID, 2) & (Insert, +IS_ID, 2),
+            when Packrat_Gen | Packrat_Proc => raise SAL.Not_Implemented),
+         Enqueue_Count             => (case Test.Alg is when LALR => 19, when LR1 => 18,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Check_Count               => 3,
          Cost                    => 0);
    end Matching_Begin_Parse_All_Conflicts;
@@ -2265,8 +2293,10 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (16, 46),
          --  This starts with fast_forward because it ignores the error.
          Ops                     => +(Fast_Forward, 2, 3) & (Insert, +EXIT_ID, 3) & (Insert, +SEMICOLON_ID, 3),
-         Enqueue_Count             => (case Test.Alg is when LALR => 136, when LR1 => 184),
-         Check_Count               => (case Test.Alg is when LALR => 31, when LR1 => 35),
+         Enqueue_Count             => (case Test.Alg is when LALR => 136, when LR1 => 184,
+                                     when Packrat_Gen | Packrat_Proc => 1),
+         Check_Count               => (case Test.Alg is when LALR => 31, when LR1 => 35,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Cost                    => 2);
    end Check_Multiple_Delete_For_Insert;
 
@@ -2298,8 +2328,10 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (46, 46),
          Ops                     => +(Push_Back, +END_ID, 1) & (Insert, +END_ID, 1) & (Insert, +LOOP_ID, 1) &
            (Insert, +SEMICOLON_ID, 1),
-         Enqueue_Count             => (case Test.Alg is when LALR => 395, when LR1 => 308),
-         Check_Count               => (case Test.Alg is when LALR => 72, when LR1 => 60),
+         Enqueue_Count             => (case Test.Alg is when LALR => 395, when LR1 => 308,
+                                     when Packrat_Gen | Packrat_Proc => 1),
+         Check_Count               => (case Test.Alg is when LALR => 72, when LR1 => 60,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Cost                    => 0);
    end Pushback_Nonterm_1;
 
@@ -2340,8 +2372,10 @@ package body Test_McKenzie_Recover is
            (Push_Back, +name_opt_ID, 0) & (Push_Back, +END_ID, -1) & (Insert, +END_ID, -1) &
            (Insert, +IDENTIFIER_ID, -1) & (Insert, +SEMICOLON_ID, -1) & (Insert, +BEGIN_ID, -1) &
            (Insert, +EXIT_ID, -1) & (Insert, +SEMICOLON_ID, -1),
-         Enqueue_Count             => (case Test.Alg is when LALR => 71, when LR1 => 69),
-         Check_Count               => (case Test.Alg is when LALR => 20, when LR1 => 16),
+         Enqueue_Count             => (case Test.Alg is when LALR => 71, when LR1 => 69,
+                                     when Packrat_Gen | Packrat_Proc => 1),
+         Check_Count               => (case Test.Alg is when LALR => 20, when LR1 => 16,
+                                     when Packrat_Gen | Packrat_Proc => 1),
          Cost                    => 2);
    end Multiple_Errors_On_One_Token;
 
@@ -2365,8 +2399,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +ELSE_ID,
          Error_Token_Byte_Region => (29, 32),
          Ops                     => +(Delete, +ELSE_ID, 2),
-         Enqueue_Count           => 61,
-         Check_Count             => 15,
+         Enqueue_Count             => 61,
+         Check_Count               => 15,
          Cost                    => 4);
 
    end Move_Non_Grammar;
@@ -2487,28 +2521,37 @@ package body Test_McKenzie_Recover is
    end Name;
 
    overriding procedure Set_Up_Case (T : in out Test_Case)
-   is begin
+   is
+      use WisiToken.BNF;
+   begin
       --  Run before all tests in register
       case T.Alg is
-      when WisiToken.BNF.LALR =>
-         WisiToken.Parse.LR.Parser.New_Parser
-           (Parser, Ada_Lite_LALR_Main.Create_Lexer (Trace'Access), Ada_Lite_LALR_Main.Create_Parse_Table,
-            Ada_Lite_LALR_Main.Create_Productions,
-            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
-            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
-            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-            User_Data'Access);
+      when LALR =>
+         Parser := new WisiToken.Parse.Parser.Parser'
+           (Ada_Lite_LALR_Main.Create_Parser
+              (Trace'Access,
+               User_Data'Access,
+               WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+               WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
+               WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access));
 
-      when WisiToken.BNF.LR1 =>
-         WisiToken.Parse.LR.Parser.New_Parser
-           (Parser, Ada_Lite_LR1_T1_Main.Create_Lexer (Trace'Access),
-            Ada_Lite_LR1_T1_Main.Create_Parse_Table
-              (Text_Rep_File_Name => "ada_lite_lr1_t1_re2c_parse_table.txt"),
-            Ada_Lite_LR1_T1_Main.Create_Productions,
-            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
-            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
-            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
-            User_Data'Access);
+      when LR1 =>
+         Parser := new WisiToken.Parse.Parser.Parser'
+           (Ada_Lite_LR1_T1_Main.Create_Parser
+              (Trace'Access,
+               User_Data'Access,
+               WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+               WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
+               WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
+               Text_Rep_File_Name => "ada_lite_lr1_t1_re2c_parse_table.txt"));
+
+      when Packrat_Gen =>
+         raise SAL.Not_Implemented;
+         --  Parser := Ada_Lite_Packrat_Gen_Main.Create_Parser (Trace'Access, User_Data'Access);
+
+      when Packrat_Proc =>
+         raise SAL.Not_Implemented;
+         --  Parser := Ada_Lite_Packrat_Proc_Main.Create_Parser (Trace'Access, User_Data'Access);
       end case;
 
       if T.Enqueue_Limit > 0 then

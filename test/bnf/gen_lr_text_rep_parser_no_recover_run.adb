@@ -43,22 +43,19 @@ is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
-   Trace    : aliased WisiToken.Text_IO_Trace.Trace;
-   Log_File : Ada.Text_IO.File_Type;
+   Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
    procedure Parse
    is
-      Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
-   begin
-      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Parser, Create_Lexer (Trace'Unchecked_Access), Create_Parse_Table (Text_Rep_File_Name),
-         Create_Productions, User_Data'Unchecked_Access);
+      Parser : WisiToken.Parse.Parser.Parser'Class := Create_Parser
+        (Trace'Unchecked_Access, User_Data'Unchecked_Access, Text_Rep_File_Name);
 
+   begin
       Parser.Tree.Lexer.Reset_With_File (-File_Name);
       Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
-      Parser.Parse (Log_File);
+      WisiToken.Parse.LR.Parser_No_Recover.LR_Parse_No_Recover (Parser);
       Parser.Execute_Actions;
       Parser.Put_Errors;
 

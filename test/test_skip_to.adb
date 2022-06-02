@@ -25,12 +25,12 @@ with Ada.Text_IO;
 with Skip_To_Grammar_LALR_Main;
 with Test_Skip_To_Aux;
 with WisiToken.Parse.LR.Parser_No_Recover;
+with WisiToken.Parse.Parser;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 package body Test_Skip_To is
 
    Trace     : aliased WisiToken.Text_IO_Trace.Trace;
-   Log_File  : Ada.Text_IO.File_Type;
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
    ----------
@@ -49,7 +49,7 @@ package body Test_Skip_To is
 
       Test_Skip_To_Aux.Parser.Tree.Lexer.Reset_With_File (File_Name);
       Test_Skip_To_Aux.Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
-      Test_Skip_To_Aux.Parser.Parse (Log_File);
+      WisiToken.Parse.LR.Parser_No_Recover.LR_Parse_No_Recover (Test_Skip_To_Aux.Parser.all);
 
       Check ("errors", Test_Skip_To_Aux.Parser.Tree.Error_Count, 0);
 
@@ -84,7 +84,7 @@ package body Test_Skip_To is
 
       Test_Skip_To_Aux.Parser.Tree.Lexer.Reset_With_File (File_Name);
       Test_Skip_To_Aux.Parser.Tree.Lexer.Set_Verbosity (WisiToken.Trace_Lexer - 1);
-      Test_Skip_To_Aux.Parser.Parse (Log_File);
+      WisiToken.Parse.LR.Parser_No_Recover.LR_Parse_No_Recover (Test_Skip_To_Aux.Parser.all);
 
       Check ("errors", Test_Skip_To_Aux.Parser.Tree.Error_Count, 0);
 
@@ -128,12 +128,9 @@ package body Test_Skip_To is
    is
       pragma Unreferenced (T);
    begin
-      WisiToken.Parse.LR.Parser_No_Recover.New_Parser
-        (Test_Skip_To_Aux.Parser,
-         Skip_To_Grammar_LALR_Main.Create_Lexer (Trace'Access),
-         Skip_To_Grammar_LALR_Main.Create_Parse_Table ("skip_to_grammar_lalr_parse_table.txt"),
-         Skip_To_Grammar_LALR_Main.Create_Productions,
-         User_Data'Access);
+      Test_Skip_To_Aux.Parser := new WisiToken.Parse.Parser.Parser'
+        (Skip_To_Grammar_LALR_Main.Create_Parser
+           (Trace'Access, User_Data'Access, "skip_to_grammar_lalr_parse_table.txt"));
    end Set_Up_Case;
 
    overriding procedure Set_Up (T : in out Test_Case)

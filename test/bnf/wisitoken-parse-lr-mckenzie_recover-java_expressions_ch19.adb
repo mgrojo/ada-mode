@@ -35,7 +35,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Java_Expressions_Ch19 is
 
    procedure Matching_Begin_Tokens
      (Super                    :         in out Base.Supervisor;
-      Shared_Parser            :         in out Parser.Parser;
+      Shared_Parser            :         in out WisiToken.Parse.Parser.Parser'Class;
       Tokens                   :         in     Token_ID_Array_1_3;
       Config                   : aliased in     Configuration;
       Matching_Begin_Tokens    :         in out Token_ID_Arrays.Vector;

@@ -26,6 +26,7 @@ with WisiToken.Gen_Token_Enum;
 with WisiToken.Generate.LR.LALR_Generate;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Parse.Parser;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
@@ -120,10 +121,22 @@ package body Test_LR_Expecting_Terminal_Sequence is
            Verify_Statement.Grammar;
       end Top_Level;
 
-      Parser : WisiToken.Parse.LR.Parser.Parser;
-
       Trace : aliased WisiToken.Text_IO_Trace.Trace;
       Log_File : Ada.Text_IO.File_Type;
+
+      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
+
+      Parser : WisiToken.Parse.Parser.Parser'Class :=
+        WisiToken.Parse.LR.Parser.New_Parser
+          (Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
+           WisiToken.Generate.LR.LALR_Generate.Generate
+             (Top_Level.Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions,
+              Error_Recover_Enabled => False),
+           WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
+           User_Data                      => null,
+           Language_Fixes                 => null,
+           Language_Matching_Begin_Tokens => null,
+           Language_String_ID_Set         => null);
 
       procedure Execute
         (Command  : in String;
@@ -136,7 +149,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
          Expected : in WisiToken.Token_ID_Set)
       is begin
          Parser.Tree.Lexer.Reset_With_String (Command);
-         Parser.Parse (Log_File);
+         Parser.LR_Parse (Log_File);
          AUnit.Assertions.Assert (False, "'" & Command & "'; no exception");
       exception
       when WisiToken.Parse_Error =>
@@ -167,20 +180,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
 
       First : WisiToken.Token_ID renames LR1_Descriptor.First_Terminal;
       Last  : WisiToken.Token_ID renames LR1_Descriptor.Last_Terminal;
-
-      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Parser,
-         Lexer.New_Lexer (Trace'Access, LALR_Descriptor'Access, Syntax),
-         WisiToken.Generate.LR.LALR_Generate.Generate
-           (Top_Level.Grammar, LALR_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
-         WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
-         User_Data                      => null,
-         Language_Fixes                 => null,
-         Language_Matching_Begin_Tokens => null,
-         Language_String_ID_Set         => null);
-
       Execute
         ("set A = 2",
          WisiToken.To_Token_ID_Set (First, Last, (1 => +Semicolon_ID)));

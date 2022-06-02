@@ -23,16 +23,17 @@ with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
+with WisiToken.Generate.LR.LR1_Generate;
+with WisiToken.Generate.LR1_Items.AUnit;
+with WisiToken.Generate.LR1_Items;
 with WisiToken.Generate;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Generate.LR.LR1_Generate;
-with WisiToken.Generate.LR1_Items;
 with WisiToken.Parse.LR.Parser;
+with WisiToken.Parse.Parser;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
-with WisiToken.Generate.LR1_Items.AUnit;
 package body Grune_9_30 is
 
    type Token_ID is
@@ -144,30 +145,29 @@ package body Grune_9_30 is
    is
       pragma Unreferenced (T);
 
-      Parser : WisiToken.Parse.LR.Parser.Parser;
+      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
+      Parser : WisiToken.Parse.Parser.Parser'Class :=
+        WisiToken.Parse.LR.Parser.New_Parser
+          (Lexer.New_Lexer (Trace'Access, Token_Enum.LR1_Descriptor'Access, Syntax),
+           WisiToken.Generate.LR.LR1_Generate.Generate
+             (Grammar, LR1_Descriptor, Grammar_File_Name => "", Recursions => Recursions,
+              Error_Recover_Enabled => False),
+           WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
+           User_Data                      => null,
+           Language_Fixes                 => null,
+           Language_Matching_Begin_Tokens => null,
+           Language_String_ID_Set         => null);
 
       procedure Execute_Command (Command : in String)
       is begin
          Parser.Tree.Lexer.Reset_With_String (Command);
-         Parser.Parse (Log_File);
+         Parser.LR_Parse (Log_File);
       exception
       when E : others =>
          AUnit.Assertions.Assert (False, "'" & Command & "': " & Ada.Exceptions.Exception_Message (E));
       end Execute_Command;
 
-      Recursions : WisiToken.Generate.Recursions := WisiToken.Generate.Empty_Recursions;
    begin
-      WisiToken.Parse.LR.Parser.New_Parser
-        (Parser,
-         Lexer.New_Lexer (Trace'Access, Token_Enum.LR1_Descriptor'Access, Syntax),
-         WisiToken.Generate.LR.LR1_Generate.Generate
-           (Grammar, LR1_Descriptor, Grammar_File_Name => "", Recursions => Recursions),
-         WisiToken.Syntax_Trees.Production_Info_Trees.Empty_Vector,
-         User_Data                      => null,
-         Language_Fixes                 => null,
-         Language_Matching_Begin_Tokens => null,
-         Language_String_ID_Set         => null);
-
       Execute_Command ("abc");
       Execute_Command ("ac");
    end Test_Parse;

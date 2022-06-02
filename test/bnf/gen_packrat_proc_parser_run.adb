@@ -20,6 +20,7 @@
 
 pragma License (GPL);
 with Parser_Run_Common;
+with WisiToken.Parse.Parser;
 with WisiToken.Parse;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
@@ -27,7 +28,7 @@ procedure Gen_Packrat_Proc_Parser_Run
 is
    Trace : aliased WisiToken.Text_IO_Trace.Trace;
 
-   Parser : WisiToken.Parse.Packrat.Procedural.Parser := Create_Parser (Trace'Unrestricted_Access, null);
+   Parser : WisiToken.Parse.Parser.Parser'Class := Create_Parser (Trace'Unrestricted_Access, null);
 begin
    Parser_Run_Common (Parser);
 end Gen_Packrat_Proc_Parser_Run;
