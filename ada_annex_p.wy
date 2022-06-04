@@ -418,7 +418,6 @@ subtype_declaration
 
 subtype_indication
   : [null_exclusion] name [constraint] ;;:edited; subtype_mark inlined
-    %((wisi-face-apply-action [2 font-lock-function-name-face font-lock-type-face]))%
   ;
 
 ;; subtype_mark  ;;:inlined
