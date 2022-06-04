@@ -1231,6 +1231,7 @@ Source buffer is current."
 
 (cl-defmethod wisi-parse-tree-query ((parser wisi-process--parser) query &rest args)
   (cl-assert wisi-incremental-parse-enable)
+  (cl-assert (assoc query wisi-parse-tree-queries))
   (when wisi--changes
     (wisi-parse-incremental parser 'query))
 

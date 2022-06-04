@@ -1,6 +1,6 @@
 ;;; wisi-prj.el --- project integration -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2019 - 2021  Free Software Foundation, Inc.
+;; Copyright (C) 2019 - 2022  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -1155,32 +1155,24 @@ strings as code, and treat `wisi-case-strict' as t in code."
 		     (funcall wisi-case-adjust-p-function typed-char))
 		 ))
 
-      ;; We used to set (inhibit-modification-hooks t) here, because
-      ;; know we don't need to reparse for this change (assuming the
-      ;; user has not abused case exceptions!). However, if
-      ;; incremental parse is active, that causes the server copy of
-      ;; the source text to diverge from the Emacs copy, if only in
-      ;; character case.
-      (let ((inhibit-modification-hooks (not wisi-incremental-parse-enable)))
-	(cond
-	 ;; Some attributes are also keywords, but captialized as
-	 ;; attributes. So check for attribute first.
-	 ((and
-	   (not in-comment)
-	   (save-excursion
-	     (skip-syntax-backward "w_")
-	     (eq (char-before) ?')))
-	  (wisi-case-adjust-identifier in-comment))
+      (cond
+       ;; Some attributes are also keywords, but capitalized as
+       ;; attributes. So check for attribute first.
+       ((and
+	 (not in-comment)
+	 (save-excursion
+	   (skip-syntax-backward "w_")
+	   (eq (char-before) ?')))
+	(wisi-case-adjust-identifier in-comment))
 
-	 ((and
-	   (not in-comment)
-	   (not (eq typed-char ?_))
-	   (wisi-after-keyword-p))
-	  (wisi-case-adjust-keyword))
+       ((and
+	 (not in-comment)
+	 (not (eq typed-char ?_))
+	 (wisi-after-keyword-p))
+	(wisi-case-adjust-keyword))
 
-	 (t (wisi-case-adjust-identifier in-comment))
-	 ))
-      )))
+       (t (wisi-case-adjust-identifier in-comment))
+       ))))
 
 (defun wisi-case-adjust-at-point (&optional in-comment)
   "If ’wisi-auto-case’ is non-nil, adjust case of symbol at point.
