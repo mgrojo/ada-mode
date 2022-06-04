@@ -4,7 +4,6 @@
 *.info
 *.parse_table
 *.re2c
-ada_annex_p-bnf.wy
 ada_annex_p-process.el
 ada_annex_p.txt
 ada_annex_p_bnf.wy
@@ -35,6 +34,7 @@ build/wisitoken-tokens/
 dump_libadalang_corrected
 dump_wisitoken_corrected
 gpr-process.el
+gpr_bnf.wy
 gpr_mode_wisi_parse
 gpr_process_actions.adb
 gpr_process_actions.ads
@@ -48,6 +48,7 @@ obj_pro/
 run_ada_lalr_parse
 run_ada_lr1_parse
 run_gpr_parse
+run_libadalang
 sum_diff_lengths
 test/*.ali
 test/*.o
@@ -69,4 +70,3 @@ test/gpr_query.db
 test/gpr_query.db-shm
 test/gpr_query.db-wal
 test/subdir/gpr_query.db
-run_libadalang
