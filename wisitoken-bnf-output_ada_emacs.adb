@@ -1705,7 +1705,6 @@ is
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
          LR_Create_Create_Parse_Table (Input_Data, Common_Data, Generate_Data);
-         Create_Create_Lexer (Actions_Package_Name);
          Create_Create_Productions (Generate_Data);
 
       when Packrat_Gen =>

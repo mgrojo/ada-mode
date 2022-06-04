@@ -252,6 +252,28 @@ package body WisiToken.Parse.Packrat.Procedural is
       end;
    end Apply_Rule;
 
+   procedure Parse_Init (Parser : in out Procedural.Parser)
+   is
+      use all type WisiToken.Syntax_Trees.User_Data_Access;
+      Descriptor : WisiToken.Descriptor renames Parser.Tree.Lexer.Descriptor.all;
+   begin
+      Parser.Tree.Clear;
+
+      if Parser.User_Data /= null then
+         Parser.User_Data.Reset;
+      end if;
+      Parser.Lex_All;
+
+      for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
+         Parser.Derivs (Nonterm).Clear (Free_Memory => True);
+         Parser.Derivs (Nonterm).Set_First_Last
+           (Parser.Tree.Get_Node_Index
+              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream, Skip_SOI => True)),
+            Parser.Tree.Get_Node_Index
+              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_Last (Parser.Tree.Shared_Stream, Skip_EOI => False)));
+      end loop;
+   end Parse_Init;
+
    ----------
    --  Public subprograms
 
@@ -274,34 +296,22 @@ package body WisiToken.Parse.Packrat.Procedural is
       end return;
    end Create;
 
-   procedure Packrat_Parse_No_Recover (Parser : in out Procedural.Parser)
+   overriding
+   procedure Packrat_Parse_No_Recover
+     (Parser : in out Procedural.Parser;
+      Resume : in     Boolean)
    is
-      use all type WisiToken.Syntax_Trees.User_Data_Access;
-
-      Descriptor : WisiToken.Descriptor renames Parser.Tree.Lexer.Descriptor.all;
-      Trace      : WisiToken.Trace'Class renames Parser.Tree.Lexer.Trace.all;
+      Trace : WisiToken.Trace'Class renames Parser.Tree.Lexer.Trace.all;
 
       Result : Memo_Entry;
    begin
-      if Trace_Time then
-         Trace.Put_Clock ("start");
+      if not Resume then
+         if Trace_Time then
+            Trace.Put_Clock ("start");
+         end if;
+
+         Parse_Init (Parser);
       end if;
-
-      Parser.Tree.Clear;
-
-      if Parser.User_Data /= null then
-         Parser.User_Data.Reset;
-      end if;
-      Parser.Lex_All;
-
-      for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
-         Parser.Derivs (Nonterm).Clear (Free_Memory => True);
-         Parser.Derivs (Nonterm).Set_First_Last
-           (Parser.Tree.Get_Node_Index
-              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream, Skip_SOI => True)),
-            Parser.Tree.Get_Node_Index
-              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_Last (Parser.Tree.Shared_Stream, Skip_EOI => False)));
-      end loop;
 
       Result := Apply_Rule
         (Parser, Parser.Start_ID,  Parser.Tree.Stream_First (Parser.Tree.Shared_Stream, Skip_SOI => False));

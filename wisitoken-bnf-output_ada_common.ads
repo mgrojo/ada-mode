@@ -86,8 +86,6 @@ package WisiToken.BNF.Output_Ada_Common is
    procedure External_Create_Create_Grammar
      (Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data);
 
-   procedure Create_Create_Lexer (Actions_Package_Name : in String);
-
    procedure Create_Create_Productions
      (Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data);
 

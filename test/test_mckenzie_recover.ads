@@ -19,16 +19,15 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
+with Ada.Strings.Unbounded;
 with WisiToken.BNF;
 package Test_McKenzie_Recover is
 
    type Test_Case
-     (Alg                       : WisiToken.BNF.LR_Packrat_Generate_Algorithm;
-      Enqueue_Limit             : Natural;
-      Force_Full_Explore        : Boolean;
-      Force_High_Cost_Solutions : Boolean)
+     (Alg              : WisiToken.BNF.LR_Packrat_Generate_Algorithm;
+      McKenzie_Options : Ada.Strings.Unbounded.String_Access)
      is new AUnit.Test_Cases.Test_Case with null record;
-   --  Caller sets Trace_Parse, Trace_McKenzie.
+   --  Caller sets Trace_*.
 
    type Test_Case_Access is access all Test_Case;
 

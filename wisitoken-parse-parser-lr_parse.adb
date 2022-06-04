@@ -20,7 +20,7 @@ pragma License (Modified_GPL);
 with WisiToken.Parse.LR.Parser;
 separate (WisiToken.Parse.Parser)
 procedure LR_Parse
-  (Parser     : in out WisiToken.Parse.Parser.Parser'Class;
+  (Parser     : in out WisiToken.Parse.Parser.Parser;
    Log_File   : in     Ada.Text_IO.File_Type;
    Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
    Pre_Edited : in     Boolean        := False)
@@ -31,7 +31,7 @@ is
    use all type KMN_Lists.List;
    use all type SAL.Base_Peek_Type;
 
-   Shared_Parser : WisiToken.Parse.Parser.Parser renames WisiToken.Parse.Parser.Parser (Parser);
+   Shared_Parser : WisiToken.Parse.Parser.Parser renames Parser;
    Trace         : WisiToken.Trace'Class renames Shared_Parser.Tree.Lexer.Trace.all;
 
 begin
@@ -89,7 +89,7 @@ begin
          if Trace_Parse > Outline then
             Trace.Put_Line ("edited tree does not need parse; no or only non_grammar changes");
          end if;
-         Shared_Parser.Tree.Clear_Parse_Streams;
+         Shared_Parser.Tree.Finish_Parse;
          Shared_Parser.Parsers.Clear;
          return;
       end if;
@@ -117,7 +117,8 @@ begin
    LR_Core_Parse (Shared_Parser, Log_File, Recover_Only => False);
 
    if Trace_Parse > Outline then
-      Trace.Put_Line (" " & Shared_Parser.Tree.Trimmed_Image (Shared_Parser.Parsers.First.Stream) & ": succeed");
+      Trace.Put_Line
+        (" " & Shared_Parser.Tree.Trimmed_Image (Shared_Parser.Parsers.First.Stream) & ": LR parse succeed");
    end if;
 
    Finish_Parse (Shared_Parser);

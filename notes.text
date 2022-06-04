@@ -31,11 +31,10 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-packrat error recover
-    debug_packrat_to_lr.adb
-        mckenzie recover, resume ok
-        need lr_to_packrat
-           handle optimized_list
+make -r t_mck RUN_ARGS="Packrat_Proc \"No_Error\" \"debug=1 test=2 parse=1 mckenzie=1\""
+    No_Error: ok
+    Empty_Comments: Derivs_To_Parse_Streams not_implemented; doesn't handle no tokens.
+
 
     packrat_to_lr find all parse streams:
         order nonterms by production top-down
@@ -43,13 +42,23 @@ packrat error recover
             compilation_unit
             ...
 
-        call set_parents on first found, delete all derivs that are children of that
-            repeat
+        delete all derivs that are children of that
+            nope, children might be shared
 
         then create parse streams
 
+restructure Derivs?
+    red_black_tree with key (nonterm, pos)
+    much faster to iterate when there are only a few.
+    can easily limit size?
 
-packrat_gen error message test
+add packrat_gen to test_mckenzie_recover
+
+libadalang doesn't keep all derivs
+    early parse stack entries are in tree and implicit on processor call stack
+        build parse stream in parse_error exception handler?
+
+    implement limited derivs store
 
 apply conflict resolution to minimal actions
     optimized_conflict_01 state 23

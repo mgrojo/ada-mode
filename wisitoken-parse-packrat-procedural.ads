@@ -48,6 +48,9 @@ package WisiToken.Parse.Packrat.Procedural is
       User_Data             : in WisiToken.Syntax_Trees.User_Data_Access)
      return Procedural.Parser;
 
-   procedure Packrat_Parse_No_Recover (Parser : in out Procedural.Parser);
+   overriding
+   procedure Packrat_Parse_No_Recover
+     (Parser : in out Procedural.Parser;
+      Resume : in     Boolean);
 
 end WisiToken.Parse.Packrat.Procedural;

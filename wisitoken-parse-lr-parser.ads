@@ -75,15 +75,12 @@ package WisiToken.Parse.LR.Parser is
    --  Final actions after LR accept state reached; call
    --  User_Data.Insert_Token, Delete_Token.
 
-   procedure New_Parser
+   procedure Add_Parser
      (Parser                         : in out WisiToken.Parse.Parser.Parser'Class;
-      Lexer                          : in     WisiToken.Lexer.Handle;
       Table                          : in     Parse_Table_Ptr;
-      Productions                    : in     Syntax_Trees.Production_Info_Trees.Vector;
       Language_Fixes                 : in     Language_Fixes_Access;
       Language_Matching_Begin_Tokens : in     Language_Matching_Begin_Tokens_Access;
-      Language_String_ID_Set         : in     Language_String_ID_Set_Access;
-      User_Data                      : in     WisiToken.Syntax_Trees.User_Data_Access);
+      Language_String_ID_Set         : in     Language_String_ID_Set_Access);
    --  Populate LR and error recover components of Parser.
 
    function New_Parser

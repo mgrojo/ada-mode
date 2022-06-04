@@ -415,7 +415,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          end;
       end loop Main_Loop;
 
-      Shared_Parser.Tree.Clear_Parse_Streams;
+      Shared_Parser.Tree.Finish_Parse;
 
       if Trace_Action > Extra then
          Trace.Put_Line

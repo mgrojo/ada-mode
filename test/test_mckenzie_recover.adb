@@ -29,11 +29,14 @@ with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LALR_Main;
 with Ada_Lite_LR1_T1_Main;
+with Ada_Lite_Packrat_Proc_Main;
 with SAL;
 with WisiToken.AUnit;
 with WisiToken.Parse.LR.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.Parse.LR.Parser_Lists;
+with WisiToken.Parse.Packrat.Procedural;
+with WisiToken.Parse.Packrat;
 with WisiToken.Parse.Parser;
 with WisiToken.Syntax_Trees.AUnit_Public;
 with WisiToken.Text_IO_Trace;
@@ -61,7 +64,9 @@ package body Test_McKenzie_Recover is
       First_Nonterminal => Descriptor.First_Nonterminal,
       Last_Nonterminal  => Descriptor.Last_Nonterminal);
 
-   Orig_End_Name_Optional : Boolean;
+   Orig_Force_Full_Explore        : Boolean;
+   Orig_Force_High_Cost_Solutions : Boolean;
+   Orig_End_Name_Optional         : Boolean;
 
    Empty_Token_ID_Set : constant WisiToken.Token_ID_Set :=
      WisiToken.To_Token_ID_Set
@@ -86,7 +91,7 @@ package body Test_McKenzie_Recover is
 
       Parser.Tree.Lexer.Reset_With_String (Text);
 
-      Parser.LR_Parse (Log_File);
+      Parser.Parse (Log_File);
 
       --  We don't run Parser.Execute_Actions, so Error.Recover.Ops
       --  Stream_Index values are still valid.
@@ -279,14 +284,23 @@ package body Test_McKenzie_Recover is
 
    procedure No_Error (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
+      Test : Test_Case renames Test_Case (T);
 
       File_Name : constant String := "../test/bnf/ada_lite.input";
    begin
       --  The test is that there is no exception and no errors.
 
       Parser.Tree.Lexer.Reset_With_File (File_Name);
-      Parser.LR_Parse (Log_File);
+
+      --  We don't use Parser.Parse here to check that we actually have the
+      --  requested parser.
+      case Test.Alg is
+      when WisiToken.BNF.LR_Generate_Algorithm =>
+         Parser.LR_Parse (Log_File);
+      when WisiToken.BNF.Packrat_Generate_Algorithm =>
+         Parser.Packrat_Parse (Log_File);
+      end case;
+
       Check ("errors length", Parser.Tree.Error_Count, 0);
    end No_Error;
 
@@ -2522,6 +2536,7 @@ package body Test_McKenzie_Recover is
 
    overriding procedure Set_Up_Case (T : in out Test_Case)
    is
+      use all type Ada.Strings.Unbounded.String_Access;
       use WisiToken.BNF;
    begin
       --  Run before all tests in register
@@ -2550,15 +2565,24 @@ package body Test_McKenzie_Recover is
          --  Parser := Ada_Lite_Packrat_Gen_Main.Create_Parser (Trace'Access, User_Data'Access);
 
       when Packrat_Proc =>
-         raise SAL.Not_Implemented;
-         --  Parser := Ada_Lite_Packrat_Proc_Main.Create_Parser (Trace'Access, User_Data'Access);
+         Parser := new WisiToken.Parse.Packrat.Procedural.Parser'
+           (Ada_Lite_Packrat_Proc_Main.Create_Parser (Trace'Access, User_Data'Access));
+
+         Ada_Lite_LR1_T1_Main.Add_Parser
+           (Parser.all,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Matching_Begin_Tokens'Access,
+            WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
+            Text_Rep_File_Name => "ada_lite_lr1_t1_re2c_parse_table.txt");
       end case;
 
-      if T.Enqueue_Limit > 0 then
-         Parser.Table.McKenzie_Param.Enqueue_Limit := T.Enqueue_Limit;
+      if T.McKenzie_Options /= null then
+         WisiToken.Parse.LR.Set_McKenzie_Options (Parser.Table.McKenzie_Param, T.McKenzie_Options.all);
       end if;
 
       Orig_Params := Parser.Table.McKenzie_Param;
+      Orign_Force_Full_Explore := WisiToken.Parse.LR.McKenzie_Recover.Force_Full_Explore;
+      Orig_Force_High_Cost_Solutions := WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions;
 
       Orig_End_Name_Optional := End_Name_Optional;
    end Set_Up_Case;
@@ -2570,8 +2594,8 @@ package body Test_McKenzie_Recover is
 
       Parser.Table.McKenzie_Param := Orig_Params;
 
-      WisiToken.Parse.LR.McKenzie_Recover.Force_Full_Explore := T.Force_Full_Explore;
-      WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions := T.Force_High_Cost_Solutions;
+      WisiToken.Parse.LR.McKenzie_Recover.Force_Full_Explore := Orign_Force_Full_Explore;
+      WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions := Orig_Force_High_Cost_Solutions;
    end Set_Up;
 
 end Test_McKenzie_Recover;

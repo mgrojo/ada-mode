@@ -69,6 +69,8 @@ package WisiToken.Parse.Packrat is
       end case;
    end record;
 
+   No_Result_Memo : constant Memo_Entry := (No_Result, WisiToken.Syntax_Trees.Invalid_Stream_Index, False);
+
    function Image_Pos
      (Tree    : in Syntax_Trees.Tree;
       Stream  : in Syntax_Trees.Stream_ID;
@@ -86,6 +88,9 @@ package WisiToken.Parse.Packrat is
    --  (incremental parse is not supported).
 
    type Derivs is array (Token_ID range <>) of Memos.Vector;
+
+   procedure Clear (Derivs : in out Packrat.Derivs);
+   --  Free memory allocated by Derivs; set all to Empty_Vector.
 
    procedure Finish_Parse (Parser : in out WisiToken.Parse.Parser.Parser'Class; Result : in out Memo_Entry);
    --  Call Tree.Set_Root, Clear_Parse_Streams; raise Parse_Error with an

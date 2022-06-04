@@ -248,16 +248,6 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       procedure LR_Process
       is begin
-         Indent_Line ("function Create_Parse_Table");
-         if Common_Data.Text_Rep then
-            Indent_Line ("  (Text_Rep_File_Name : in String)");
-         end if;
-         Indent_Line ("  return WisiToken.Parse.LR.Parse_Table_Ptr;");
-         New_Line;
-         Indent_Line ("function Create_Productions return WisiToken.Syntax_Trees.Production_Info_Trees.Vector;");
-         New_Line;
-         Indent_Line ("function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle;");
-         New_Line;
          Indent_Line ("function Create_Parser");
          Indent_Line ("  (Trace      : in WisiToken.Trace_Access;");
          Indent_Start   ("   User_Data  : in WisiToken.Syntax_Trees.User_Data_Access");
@@ -276,6 +266,24 @@ package body WisiToken.BNF.Output_Ada_Common is
          end if;
          Put_Line (")");
          Indent_Line ("  return WisiToken.Parse.Parser.Parser;");
+         New_Line;
+
+         Indent_Line ("procedure Add_Parser");
+         Indent_Start   ("  (Parser : in out WisiToken.Parse.Parser.Parser'Class");
+         if Input_Data.Language_Params.Error_Recover then
+            Put_Line (";");
+            Indent_Line ("   Language_Fixes                 : in WisiToken.Parse.LR.Language_Fixes_Access;");
+            Indent_Line
+              ("   Language_Matching_Begin_Tokens : in " &
+                 "WisiToken.Parse.LR.Language_Matching_Begin_Tokens_Access;");
+            Indent_Start
+              ("   Language_String_ID_Set         : in WisiToken.Parse.LR.Language_String_ID_Set_Access");
+         end if;
+         if Common_Data.Text_Rep then
+            Put_Line (";");
+            Indent_Start ("   Text_Rep_File_Name : in String");
+         end if;
+         Put_Line (");");
          New_Line;
       end LR_Process;
 
@@ -317,7 +325,6 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
-         Put_Line ("with WisiToken.Lexer;");
          Put_Line ("with WisiToken.Parse.LR;");
          Put_Line ("with WisiToken.Parse.Parser;");
 
@@ -752,6 +759,37 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("end return;");
       Indent := Indent - 3;
       Indent_Line ("end Create_Parser;");
+
+      New_Line;
+      Indent_Line ("procedure Add_Parser");
+      Indent_Start ("  (Parser : in out WisiToken.Parse.Parser.Parser'Class");
+      if Generate_Data.LR_Parse_Table.Error_Recover_Enabled then
+         Put_Line (";");
+         Indent_Line ("   Language_Fixes                 : in WisiToken.Parse.LR.Language_Fixes_Access;");
+         Indent_Line
+           ("   Language_Matching_Begin_Tokens : in WisiToken.Parse.LR.Language_Matching_Begin_Tokens_Access;");
+         Indent_Start ("   Language_String_ID_Set         : in WisiToken.Parse.LR.Language_String_ID_Set_Access");
+      end if;
+      if Common_Data.Text_Rep then
+         Put_Line (";");
+         Indent_Start ("   Text_Rep_File_Name : in String");
+      end if;
+      Put_Line (")");
+
+      Indent_Line ("is begin");
+      Indent := Indent + 3;
+      if Common_Data.Text_Rep then
+         Indent_Line ("Parser.Table := Create_Parse_Table (Text_Rep_File_Name);");
+      else
+         Indent_Line ("Parser.Table := Create_Parse_Table;");
+      end if;
+      if Generate_Data.LR_Parse_Table.Error_Recover_Enabled then
+         Indent_Line ("Parser.Language_Fixes                 := Language_Fixes;");
+         Indent_Line ("Parser.Language_Matching_Begin_Tokens := Language_Matching_Begin_Tokens;");
+         Indent_Line ("Parser.Language_String_ID_Set         := Language_String_ID_Set;");
+      end if;
+      Indent := Indent - 3;
+      Indent_Line ("end Add_Parser;");
       New_Line;
    end LR_Create_Create_Parser;
 
@@ -861,15 +899,6 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent := Indent - 3;
       Indent_Line ("end Create_Grammar;");
    end External_Create_Create_Grammar;
-
-   procedure Create_Create_Lexer (Actions_Package_Name : in String)
-   is begin
-      Indent_Line ("function Create_Lexer (Trace : in WisiToken.Trace_Access) return WisiToken.Lexer.Handle");
-      Indent_Line ("is begin");
-      Indent_Line ("   return Lexer.New_Lexer (Trace, " & Actions_Package_Name & ".Descriptor'Access);");
-      Indent_Line ("end Create_Lexer;");
-      New_Line;
-   end Create_Create_Lexer;
 
    procedure Create_Create_Productions
      (Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data)

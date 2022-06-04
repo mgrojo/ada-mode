@@ -997,6 +997,16 @@ package WisiToken.Syntax_Trees is
    with Pre => Element = Invalid_Stream_Index or else
                (Tree.Contains (Stream, Element) or Tree.Contains (Tree.Shared_Stream, Element));
    --  If Element is Invalid_Stream_Index, result is Stream_First (= SOI).
+   --  Does not follow Stream.Shared_Link
+
+   procedure Stream_Next
+     (Tree    : in     Syntax_Trees.Tree;
+      Stream  : in     Stream_ID;
+      Element : in out Stream_Index)
+   with Pre => Element = Invalid_Stream_Index or else
+               (Tree.Contains (Stream, Element) or Tree.Contains (Tree.Shared_Stream, Element));
+   --  If Element is Invalid_Stream_Index, result is Stream_First (= SOI).
+   --  Does not follow Stream.Shared_Link
 
    function Stream_Next
      (Tree : in Syntax_Trees.Tree;
@@ -2072,21 +2082,16 @@ package WisiToken.Syntax_Trees is
    --  All references are deep copied; Source may be finalized after this
    --  operation.
 
-   procedure Clear_Parse_Streams
-     (Tree       : in out Syntax_Trees.Tree;
-      Keep_Nodes : in     Valid_Node_Access_Lists.List := Valid_Node_Access_Lists.Empty_List)
+   procedure Clear_Parse_Streams (Tree : in out Syntax_Trees.Tree);
+   --  Delete the parse streams, but not the nodes they referenced.
+
+   procedure Finish_Parse (Tree : in out Syntax_Trees.Tree)
    with Post => Tree.Editable;
-   --  If Tree.Root is not set, set it to the root of the single
-   --  remaining parse stream. Delete the parse stream and shared stream.
-   --  Delete all nodes not reachable from the root, and not Tree.SOI,
-   --  Tree.EOI, or in Keep_Nodes. Also call Set_Parents if not
-   --  Tree.Parents_Set.
-   --
-   --  Keep_Nodes should be set to nodes that occur in errors, or are
-   --  deleted by error recovery; they may be referenced by post-parse
-   --  actions.
-   --
-   --  No precondition for Packrat parser.
+   --  If Tree.Root is not set, set it to the root of the first remaining
+   --  parse stream. Delete the parse streams and shared stream. If
+   --  Tree.Root does not have Tree.SOI, Tree.EOI as children, add them.
+   --  Delete all nodes not reachable from the root. Call Set_Parents if
+   --  not Tree.Parents_Set.
 
    function Parents_Set (Tree : in Syntax_Trees.Tree) return Boolean;
 

@@ -45,30 +45,37 @@ package body WisiToken.Parse.Packrat is
          when Success => "success " & Tree.Image (Item.Result, Node_Numbers => True));
    end Image;
 
+   procedure Clear (Derivs : in out Packrat.Derivs)
+   is begin
+      for D of Derivs loop
+         D.Clear (Free_Memory => True);
+      end loop;
+   end Clear;
+
    procedure Finish_Parse (Parser : in out WisiToken.Parse.Parser.Parser'Class; Result : in out Memo_Entry)
    is
       use WisiToken.Syntax_Trees;
-      Tree       : Syntax_Trees.Tree renames Parser.Tree;
-      Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
-      Trace      : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
+      Tree  : Syntax_Trees.Tree renames Parser.Tree;
+      Trace : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
    begin
       if Trace_Time then
          Trace.Put_Clock ("finish parse");
       end if;
 
       if Result.State = Packrat.Success then
-         --  Clear copies of Stream_Index so Clear_Parse_Streams can run.
-         for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
-            Parser.Derivs (Nonterm).Clear (Free_Memory => True);
-         end loop;
+         if Trace_Parse > Outline then
+            Trace.Put_Line ("packrat parse succeed");
+         end if;
 
-         --  Do this before Clear_Parse_Streams so the root node is not deleted.
+         --  Clear copies of Stream_Index so Finish_Parse can clear the parse streams.
+         Clear (Parser.Derivs);
+
          Tree.Set_Root (Result.Result);
          Result := (State => No_Result, Max_Examined_Pos => Invalid_Stream_Index, Recursive => False);
-         Tree.Clear_Parse_Streams; -- also frees excess tree nodes created by backtracking.
+         Tree.Finish_Parse;
 
       else
-         --  preserve Derivs for experimenting with error recover
+         --  preserve Derivs for error recover
          declare
             Msg : constant String := Tree.Error_Message
               (Ref     => (Tree.Shared_Stream,

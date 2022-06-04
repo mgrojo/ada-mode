@@ -921,7 +921,7 @@ package body WisiToken.Parse.LR.Parser is
       Last_Deleted_Node_Parent : Node_Access;
    begin
       --  We need parents set in the following code.
-      Parser.Tree.Clear_Parse_Streams;
+      Parser.Tree.Finish_Parse;
       Parser_State.Clear_Stream;
 
       if Trace_Parse > Extra and then Parser_State.Recover_Insert_Delete.Length > 0 then
@@ -1002,30 +1002,18 @@ package body WisiToken.Parse.LR.Parser is
       end if;
    end Finish_Parse;
 
-   procedure New_Parser
+   procedure Add_Parser
      (Parser                         : in out WisiToken.Parse.Parser.Parser'Class;
-      Lexer                          : in     WisiToken.Lexer.Handle;
       Table                          : in     Parse_Table_Ptr;
-      Productions                    : in     Syntax_Trees.Production_Info_Trees.Vector;
       Language_Fixes                 : in     Language_Fixes_Access;
       Language_Matching_Begin_Tokens : in     Language_Matching_Begin_Tokens_Access;
-      Language_String_ID_Set         : in     Language_String_ID_Set_Access;
-      User_Data                      : in     Syntax_Trees.User_Data_Access)
+      Language_String_ID_Set         : in     Language_String_ID_Set_Access)
    is begin
-      Parser.Tree.Lexer  := Lexer;
-      Parser.Productions := Productions;
-      Parser.User_Data   := User_Data;
-
-      --  Tree, Line_Begin_Token, Last_Grammar_Node are default initialized.
-
       Parser.Table                          := Table;
       Parser.Language_Fixes                 := Language_Fixes;
       Parser.Language_Matching_Begin_Tokens := Language_Matching_Begin_Tokens;
       Parser.Language_String_ID_Set         := Language_String_ID_Set;
-
-      --  String_Quote_Checked, Post_Recover, Parsers are default
-      --  initialized. Partial_Parse_Active is set by user after this.
-   end New_Parser;
+   end Add_Parser;
 
    function New_Parser
      (Lexer                          : in     WisiToken.Lexer.Handle;
@@ -1040,9 +1028,19 @@ package body WisiToken.Parse.LR.Parser is
       return Parser : WisiToken.Parse.Parser.Parser
         (Lexer.Descriptor.First_Nonterminal, Lexer.Descriptor.Last_Nonterminal)
       do
-         New_Parser
-           (Parser, Lexer, Table, Productions, Language_Fixes, Language_Matching_Begin_Tokens,
-            Language_String_ID_Set, User_Data);
+         Parser.Tree.Lexer  := Lexer;
+         Parser.Productions := Productions;
+         Parser.User_Data   := User_Data;
+
+         --  Tree, Line_Begin_Token, Last_Grammar_Node are default initialized.
+
+         Parser.Table                          := Table;
+         Parser.Language_Fixes                 := Language_Fixes;
+         Parser.Language_Matching_Begin_Tokens := Language_Matching_Begin_Tokens;
+         Parser.Language_String_ID_Set         := Language_String_ID_Set;
+
+         --  String_Quote_Checked, Post_Recover, Parsers are default
+         --  initialized. Partial_Parse_Active is set by user after this.
       end return;
    end New_Parser;
 

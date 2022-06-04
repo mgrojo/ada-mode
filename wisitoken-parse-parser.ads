@@ -37,6 +37,9 @@ package WisiToken.Parse.Parser is
       --  Packrat components
       Derivs : Packrat.Derivs (First_Nonterminal .. Last_Nonterminal);
 
+      --  Packrat error recover components
+      Nonterms_Top_Down : Token_ID_Arrays.Vector; --  FIXME: not used yet.
+
       --  LR components
       Table                   : WisiToken.Parse.LR.Parse_Table_Ptr;
       Parsers                 : aliased WisiToken.Parse.LR.Parser_Lists.List;
@@ -44,7 +47,7 @@ package WisiToken.Parse.Parser is
       Partial_Parse_Byte_Goal : access WisiToken.Buffer_Pos;
       --  Used by In_Parse_Actions to terminate Partial_Parse.
 
-      --  Error recover components
+      --  LR Error recover components
       Language_Fixes                 : WisiToken.Parse.LR.Language_Fixes_Access;
       Language_Matching_Begin_Tokens : WisiToken.Parse.LR.Language_Matching_Begin_Tokens_Access;
       Language_String_ID_Set         : WisiToken.Parse.LR.Language_String_ID_Set_Access;
@@ -61,7 +64,8 @@ package WisiToken.Parse.Parser is
    type Parser_Access is access all Parser'Class;
 
    overriding procedure Finalize (Object : in out Parser);
-   --  Deep free Object.Table.
+   --  Free all allocated memory. Object.User_Data is not freed; caller
+   --  is responsible for that.
 
    type Factory is access function return Parser_Access;
 
@@ -115,7 +119,7 @@ package WisiToken.Parse.Parser is
    --  The user must first call Lexer.Reset_* to set the input text.
 
    procedure LR_Parse
-     (Parser     : in out WisiToken.Parse.Parser.Parser'Class;
+     (Parser     : in out WisiToken.Parse.Parser.Parser;
       Log_File   : in     Ada.Text_IO.File_Type;
       Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
       Pre_Edited : in     Boolean        := False);
@@ -123,40 +127,59 @@ package WisiToken.Parse.Parser is
    --  Edits is empty, call Lex_All; if Edits is not empty, call
    --  Edit_Tree.
    --
-   --  Then execute parse algorithm to parse the new tokens,
-   --  storing the result in Parser.Tree for Execute_Actions.
+   --  Then execute the LR parse algorithm to parse the shared stream
+   --  tokens, storing the result in Parser.Tree for Execute_Actions.
    --
    --  If Log_File is open, write information about each error recover
    --  session to it. See implementation for format.
    --
    --  If a non-recoverable parse error is encountered, raises
-   --  Syntax_Error. Parser.Lexer_Errors and Parser contain information
-   --  about the errors.
+   --  Syntax_Error. Error information is stored in the tree.
    --
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
 
-   --  Packrat_Parse is declared in
+   procedure Packrat_Parse
+     (Shared_Parser : in out Parser;
+      Log_File      : in     Ada.Text_IO.File_Type);
+   --  Shared_Parser must be a packrat parser; see
    --  wisitoken-parse-packrat-procedural.ads and
-   --  wisitoken-parse-packrat-generated.ads
-
-   procedure LR_Core_Parse
-     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
-      Log_File      : in     Ada.Text_IO.File_Type;
-      Recover_Only  : in     Boolean);
-   --  Run the core LR parse algorithm starting from the current state of
-   --  Parser. If Recover_Only, exit when resume after error recover is
-   --  done.
+   --  wisitoken-parse-packrat-generated.ads. The LR components must also
+   --  be present.
    --
-   --  Used by LR_Parse to run parser, and by packrat parse to run error
+   --  Call Lex_All, then run the packrat parse algorithm.
+   --  If it fails, run the LR error recover algorithm thru resume done,
+   --  then resume packrat parse. Errors are reported as in LR_Parse.
+
+   procedure Parse
+     (Parser   : in out WisiToken.Parse.Parser.Parser'Class;
+      Log_File : in     Ada.Text_IO.File_Type);
+   --  Call LR_Parse (Edits is empty) or Packrat_Parse, depending on the
+   --  class of Parser.
+
+   procedure Packrat_Parse_No_Recover
+     (Parser : in out WisiToken.Parse.Parser.Parser;
+      Resume : in     Boolean);
+   --  Parser must be a packrat parser; see
+   --  wisitoken-parse-packrat-procedural.ads and
+   --  wisitoken-parse-packrat-generated.ads.
+   --
+   --  If not Resume, call Lex_All, initialize Parser.
+   --
+   --  Then run the packrat parse algorithm, with no error recover.
+   --
+   --  Raise Parse_Error for a parse error; leave Parser.Derivs intact
+   --  for error recover.
+   --
+   --  Resume => True is for resuming packrat parsing after LR error
    --  recover.
 
    procedure Put_Errors (Parser : in WisiToken.Parse.Parser.Parser'Class)
    with Pre => Parser.Tree.Fully_Parsed;
-   --  Output Parser.Tree errors to Ada.Text_IO.Current_Error.
+   --  Output Parser.Tree errors to Ada.Text_IO.Current_Output.
 
    procedure Put_Errors (Parser : in WisiToken.Parse.Parser.Parser'Class; Stream : in Syntax_Trees.Stream_ID);
-   --  Output Parser.Tree.Stream errors to Ada.Text_IO.Current_Error.
+   --  Output Parser.Tree.Stream errors to Ada.Text_IO.Current_Output.
 
    procedure Execute_Actions
      (Tree                : in out Syntax_Trees.Tree;

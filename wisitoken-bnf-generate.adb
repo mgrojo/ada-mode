@@ -60,7 +60,7 @@ is
       Put_Line (Standard_Error, "wisitoken-bnf-generate [options] {wisi grammar file}");
       Put_Line (Standard_Error, "Generate source code implementing a parser for the grammar.");
       New_Line (Standard_Error);
-      Put_Line (Standard_Error, "The following grammar file directives control parser generation:");
+      Put_Line (Standard_Error, "The following grammar file directive controls parser generation:");
       Put_Line (Standard_Error,
                 "%generate <algorithm> <output language> [<lexer>] [<interface>] [text_rep]");
       Put_Line (Standard_Error, "   specify one of each generate parameter. May be repeated.");

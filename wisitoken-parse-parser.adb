@@ -19,14 +19,35 @@ pragma License (Modified_GPL);
 
 with Ada.Exceptions;
 with GNAT.Traceback.Symbolic;
+with WisiToken.Parse.Packrat.Generated;
+with WisiToken.Parse.Packrat.Procedural;
 package body WisiToken.Parse.Parser is
+
+   procedure LR_Core_Parse
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
+      Log_File      : in     Ada.Text_IO.File_Type;
+      Recover_Only  : in     Boolean)
+   is separate;
+   --  Run the core LR parse algorithm starting from the current state of
+   --  Parser, with error recover. If Recover_Only, exit when resume
+   --  after error recover is done.
+   --
+   --  Used by LR_Parse to run parser, and by packrat parse to run error
+   --  recover.
 
    ----------
    --  Package public subprograms, declaration order
 
    overriding procedure Finalize (Object : in out Parser)
    is begin
+      --  Derivs holds references to Tree, so Derivs must be cleared before
+      --  Tree is finalized.
+      WisiToken.Parse.Packrat.Clear (Object.Derivs);
+
       WisiToken.Parse.LR.Free_Table (Object.Table);
+
+      --  The rest of Object is finalized in an arbitrary order; see LRM
+      --  7.6.1 (9).
    end Finalize;
 
    procedure Process_Grammar_Token
@@ -141,17 +162,36 @@ package body WisiToken.Parse.Parser is
    end Lex_All;
 
    procedure LR_Parse
-     (Parser     : in out WisiToken.Parse.Parser.Parser'Class;
+     (Parser     : in out WisiToken.Parse.Parser.Parser;
       Log_File   : in     Ada.Text_IO.File_Type;
       Edits      : in     KMN_Lists.List := KMN_Lists.Empty_List;
       Pre_Edited : in     Boolean        := False)
    is separate;
 
-   procedure LR_Core_Parse
-     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
-      Log_File      : in     Ada.Text_IO.File_Type;
-      Recover_Only  : in     Boolean)
+   procedure Packrat_Parse
+     (Shared_Parser : in out Parser;
+      Log_File      : in     Ada.Text_IO.File_Type)
    is separate;
+
+   procedure Parse
+     (Parser   : in out WisiToken.Parse.Parser.Parser'Class;
+      Log_File : in     Ada.Text_IO.File_Type)
+   is begin
+      if Parser in WisiToken.Parse.Packrat.Procedural.Parser'Class |
+        WisiToken.Parse.Packrat.Generated.Parser'Class
+      then
+         Packrat_Parse (Parser, Log_File);
+      else
+         LR_Parse (Parser, Log_File);
+      end if;
+   end Parse;
+
+   procedure Packrat_Parse_No_Recover
+     (Parser : in out WisiToken.Parse.Parser.Parser;
+      Resume : in     Boolean)
+   is begin
+      raise SAL.Programmer_Error with "not a packrat parser";
+   end Packrat_Parse_No_Recover;
 
    function Get_In_Parse_Action
      (Parser : in WisiToken.Parse.Parser.Parser;

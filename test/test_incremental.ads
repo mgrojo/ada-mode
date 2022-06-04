@@ -22,9 +22,9 @@ with AUnit.Test_Cases;
 with Ada.Strings.Unbounded;
 package Test_Incremental is
 
-   type Test_Case (McKenzie_Config : Ada.Strings.Unbounded.String_Access)
+   type Test_Case (McKenzie_Options : Ada.Strings.Unbounded.String_Access)
      is new AUnit.Test_Cases.Test_Case with null record;
-   --  Caller sets Trace_Parse, Trace_Incremental.
+   --  Caller sets Trace_*.
 
    type Test_Case_Access is access all Test_Case;
 
