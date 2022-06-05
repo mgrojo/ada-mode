@@ -416,6 +416,8 @@ package WisiToken is
    --  Detail  - add each error recovery configuration
    --  Extra   - add error recovery parse actions
 
+   Trace_Packrat_McKenzie : Integer := 0;
+
    Trace_Lexer : Integer := 0;
 
    Trace_Incremental_Parse : Integer := 0;

@@ -31,12 +31,29 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-make -r t_mck RUN_ARGS="Packrat_Proc \"No_Error\" \"debug=1 test=2 parse=1 mckenzie=1\""
-    No_Error: ok
-    Empty_Comments: Derivs_To_Parse_Streams not_implemented; doesn't handle no tokens.
+make -r t_mck RUN_ARGS="Packrat_Proc \"Empty_Comments\" \"debug=1 test=2 parse=1 mckenzie=1 packrat_mckenzie=1\""
+    pass thru Error_1
+    error_2 Programmer_Error; error token in derivs_to_parse_streams
+    some recursion loop does:
+ 5; -50:(block_statement_1, (25 . 46) <= (-39:(block_label_opt_0, (25 . 32)), 7:(BEGIN, (34 . 38)), -48:(handled_sequence_of_statements_1, (40 . 41)), 10:(END, (43 . 45)), -49:(identifier_opt_1), 11:(SEMICOLON, (46 . 46))))
+ 5; -51:(compound_statement_3, (25 . 46) <= (-50:(block_statement_1, (25 . 46))))
+ 5; -52:(statement_1, (25 . 46) <= (-51:(compound_statement_3, (25 . 46))))
+ 5; -53:(sequence_of_statements_1, (25 . 46) <= (-52:(statement_1, (25 . 46))))
+ ... attempt to parse next statement, fail
+ 5; -83:(handled_sequence_of_statements_1, (25 . 46) <= (-53:(sequence_of_statements_1, (25 . 46))))
+    lr parser would do undo_reduce, so do that.
+
+        normal parse of ada_lite.input via No_Errors in no_error.parse:
+ 16; -220:(assignment_statement_0, (237 . 247) <= (-203:(name_3, (237 . 237)), 17:(COLON_EQUAL, (239 . 240)), -219:(expression_0, (242 . 246)), 21:(SEMICOLON, (247 . 247))))
+ 16; -221:(simple_statement_0, (237 . 247) <= (-220:(assignment_statement_0, (237 . 247))))
+ 16; -222:(statement_0, (237 . 247) <= (-221:(simple_statement_0, (237 . 247))))
+ 16; -223:(sequence_of_statements_1, (237 . 247) <= (-222:(statement_0, (237 . 247))))
+ 22; -224:(block_label_opt_1 <= ())
+ 16; -226:(handled_sequence_of_statements_1, (237 . 247) <= (-223:(sequence_of_statements_1, (237 . 247))))
 
 
-    packrat_to_lr find all parse streams:
+
+packrat_to_lr find all parse streams?
         order nonterms by production top-down
             compilation_list
             compilation_unit

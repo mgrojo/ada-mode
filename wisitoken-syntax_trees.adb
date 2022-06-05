@@ -92,12 +92,6 @@ package body WisiToken.Syntax_Trees is
       ID          : in Token_ID)
      return Boolean;
 
-   function Last_Source_Terminal
-     (Tree                 : in Syntax_Trees.Tree;
-      Node                 : in Valid_Node_Access;
-      Trailing_Non_Grammar : in Boolean)
-     return Node_Access;
-
    procedure Last_Source_Terminal
      (Tree                 : in     Syntax_Trees.Tree;
       Ref                  : in out Stream_Node_Parents;
@@ -236,7 +230,7 @@ package body WisiToken.Syntax_Trees is
       Prev_Terminal.Ref.Node.Non_Grammar.Append (Deleted_Node.Non_Grammar);
 
       --  We don't do Deleted_Node.Non_Grammar.Clear here; we are not
-      --  editing the shared stream. That is done in Finish_Parse.
+      --  editing the shared stream. That is done in LR.Parser.Finish_Parse.
    end Add_Deleted;
 
    procedure Add_Errors
@@ -1716,6 +1710,7 @@ package body WisiToken.Syntax_Trees is
       loop
          declare
             Stream : Parse_Stream renames Tree.Streams (Cur);
+            To_Delete : Cursor := Cur;
          begin
             --  Clear saved element list cursors in parse streams before freeing
             --  the element lists, so they don't try to decrement reference counts
@@ -1724,8 +1719,11 @@ package body WisiToken.Syntax_Trees is
             Stream.Shared_Link := Stream_Element_Lists.No_Element;
 
             Stream.Elements.Finalize;
+
+            Next (Cur);
+            Tree.Streams.Delete (To_Delete);
          end;
-         Next (Cur);
+
          exit when Cur = No_Element;
       end loop;
 
@@ -3713,6 +3711,28 @@ package body WisiToken.Syntax_Trees is
          end if;
       end loop;
       return Result;
+   end First_Source_Terminal;
+
+   function First_Source_Terminal
+     (Tree                 : in Syntax_Trees.Tree;
+      Stream               : in Stream_ID;
+      Element              : in Stream_Index;
+      Trailing_Non_Grammar : in Boolean)
+     return Stream_Node_Ref
+   is
+      Result : Stream_Node_Parents := To_Stream_Node_Parents
+        (Tree, (Stream, Element, Stream_Element_Lists.Element (Element.Cur).Node));
+   begin
+      First_Terminal (Tree, Result, Following => True);
+      loop
+         exit when Result.Ref.Node /= Invalid_Node_Access and then Result.Ref.Node.Label = Source_Terminal;
+         if Trailing_Non_Grammar then
+            exit when Result.Ref.Node.Non_Grammar.Length > 0;
+         end if;
+
+         Next_Terminal (Tree, Result);
+      end loop;
+      return Result.Ref;
    end First_Source_Terminal;
 
    procedure First_Source_Terminal
@@ -8146,7 +8166,7 @@ package body WisiToken.Syntax_Trees is
 
       Tree.SOI.Parent := Invalid_Node_Access;
 
-      --  Delete SOI, EOI from root children (added in Clear_Parse_Streams)
+      --  Delete SOI, EOI from root children (added in Finish_Parse)
       declare
          New_Children : Node_Access_Array (1 .. Tree.Root.Child_Count - 2);
       begin
@@ -8643,6 +8663,15 @@ package body WisiToken.Syntax_Trees is
         (Stream  => Stream,
          Element => (Cur => Cur),
          Node    => Node);
+   end To_Stream_Node_Ref;
+
+   function To_Stream_Node_Ref
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Stream_Node_Ref
+   is begin
+      return (Stream, Element, Stream_Element_Lists.Element (Element.Cur).Node);
    end To_Stream_Node_Ref;
 
    function To_Stream_Node_Parents (Tree : in Syntax_Trees.Tree; Ref : in Stream_Node_Ref) return Stream_Node_Parents

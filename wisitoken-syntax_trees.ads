@@ -309,6 +309,15 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Parents_Set,
      Post => Tree.Valid_Stream_Node (To_Stream_Node_Ref'Result);
 
+   function To_Stream_Node_Ref
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Stream_Node_Ref
+   with Pre => Tree.Contains (Stream, Element),
+     Post => Tree.Valid_Stream_Node (To_Stream_Node_Ref'Result) and
+             Rooted (To_Stream_Node_Ref'Result);
+
    subtype Terminal_Ref is Stream_Node_Ref
    with Dynamic_Predicate =>
      Terminal_Ref.Node = Invalid_Node_Access or else
@@ -1671,6 +1680,34 @@ package WisiToken.Syntax_Trees is
    --  If Following, return a matching terminal following Node if none
    --  found in Node.
 
+   function First_Source_Terminal
+     (Tree                 : in Syntax_Trees.Tree;
+      Stream               : in Stream_ID;
+      Element              : in Stream_Index;
+      Trailing_Non_Grammar : in Boolean)
+     return Stream_Node_Ref
+   with Pre => Tree.Contains (Stream, Element),
+     Post => Tree.Valid_Stream_Node (First_Source_Terminal'Result);
+   --  Return a terminal node that can give byte or char pos.
+   --
+   --  If Trailing_Non_Grammar, return first terminal in Element.Node or
+   --  a following stream element that is a Source_Terminal, or a virtual
+   --  terminal with non-empty non_grammar. If not Trailing_Non_Grammar,
+   --  only return a Source_Terminal.
+   --
+   --  Will always find EOI.
+
+   function Last_Source_Terminal
+     (Tree                 : in Syntax_Trees.Tree;
+      Node                 : in Valid_Node_Access;
+      Trailing_Non_Grammar : in Boolean)
+     return Node_Access;
+   --  Return a terminal node that can give byte or char pos.
+   --
+   --  If Trailing_Non_Grammar, return last terminal in Node that is a
+   --  Source_Terminal, or a virtual terminal with non-empty non_grammar.
+   --  If not Trailing_Non_Grammar, only return a Source_Terminal.
+
    function Next_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
@@ -2440,7 +2477,7 @@ package WisiToken.Syntax_Trees is
    --
    --  This should only be used when lexing new text, Errors are lexer
    --  errors which occurred while lexing a non_grammar token, and Node is
-   --  the previously lexed grammar token.
+   --  the previously lexed grammar token. Or by packrat.
 
    procedure Add_Error_To_Input
      (Tree      : in out Syntax_Trees.Tree;

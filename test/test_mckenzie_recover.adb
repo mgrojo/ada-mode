@@ -102,7 +102,11 @@ package body Test_McKenzie_Recover is
             Ada.Text_IO.Put_Line ("parse result:");
             Parser.Tree.Print_Tree (Non_Grammar => True);
          end if;
-         Parser.Put_Errors;
+         if Parser.Tree.Fully_Parsed then
+            Parser.Put_Errors;
+         else
+            Parser.Put_Errors (Parser.Tree.First_Parse_Stream);
+         end if;
       end if;
 
       Check ("exception", False, Expect_Exception);
@@ -372,6 +376,8 @@ package body Test_McKenzie_Recover is
       Parse_Text
         ("procedure Proc is begin Block_1: begin B; end; if A = 2 then B; end Block_2; end if; end Proc; ");
       --  |1       |10       |20       |30       |40       |50       |60       |70       |80       |90
+      --  1         2    3  4     5      6 7     8  10   12 13  15     17 19  20     21    23  25  26  27
+      --                                          9    11     14  16    18             22    24
 
       --  Missing "begin" for Block_2.
       --
@@ -2580,8 +2586,8 @@ package body Test_McKenzie_Recover is
          WisiToken.Parse.LR.Set_McKenzie_Options (Parser.Table.McKenzie_Param, T.McKenzie_Options.all);
       end if;
 
-      Orig_Params := Parser.Table.McKenzie_Param;
-      Orign_Force_Full_Explore := WisiToken.Parse.LR.McKenzie_Recover.Force_Full_Explore;
+      Orig_Params                    := Parser.Table.McKenzie_Param;
+      Orig_Force_Full_Explore        := WisiToken.Parse.LR.McKenzie_Recover.Force_Full_Explore;
       Orig_Force_High_Cost_Solutions := WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions;
 
       Orig_End_Name_Optional := End_Name_Optional;
@@ -2594,7 +2600,7 @@ package body Test_McKenzie_Recover is
 
       Parser.Table.McKenzie_Param := Orig_Params;
 
-      WisiToken.Parse.LR.McKenzie_Recover.Force_Full_Explore := Orign_Force_Full_Explore;
+      WisiToken.Parse.LR.McKenzie_Recover.Force_Full_Explore        := Orig_Force_Full_Explore;
       WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions := Orig_Force_High_Cost_Solutions;
    end Set_Up;
 

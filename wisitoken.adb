@@ -485,6 +485,8 @@ package body WisiToken is
                Trace_McKenzie := Value;
             elsif Name = "memory" then
                Trace_Memory := Value;
+            elsif Name = "packrat_mckenzie" then
+               Trace_Packrat_McKenzie := Value;
             elsif Name = "parse" then
                Trace_Parse := Value;
             elsif Name = "tests" or Name = "test" then
@@ -514,8 +516,9 @@ package body WisiToken is
       Put_Line (Current_Error, "table=n generate_table=n - verbosity during generate parse table");
       Put_Line (Current_Error, "incremental=n incremental_parse=n - verbosity during edit_tree");
       Put_Line (Current_Error, "lexer=n - verbosity during lexing");
-      Put_Line (Current_Error, "mckenzie=n - verbosity during error recover");
+      Put_Line (Current_Error, "mckenzie=n - verbosity during LR error recover");
       Put_Line (Current_Error, "memory=n - memory use during generation");
+      Put_Line (Current_Error, "packrat_mckenzie=n - verbosity during converting packrat to/from LR for mckenzie");
       Put_Line (Current_Error, "parse=n - verbosity during parsing");
       Put_Line (Current_Error, "test=n tests=n - verbosity during unit tests");
       Put_Line (Current_Error, "time=n - output times of various operations");

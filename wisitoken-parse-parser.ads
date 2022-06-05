@@ -197,4 +197,10 @@ package WisiToken.Parse.Parser is
    --  Null_Buffer_Region. See wisitoken-syntax_trees.ads for other
    --  actions performed by Execute_Actions.
 
+   ----------
+   --  Debugging
+
+   procedure Print_Derivs (Parser : in WisiToken.Parse.Parser.Parser);
+   --  Print Parser.Derivs to Parser.Tree.Lexer.Trace.
+
 end WisiToken.Parse.Parser;

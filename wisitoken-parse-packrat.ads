@@ -92,6 +92,13 @@ package WisiToken.Parse.Packrat is
    procedure Clear (Derivs : in out Packrat.Derivs);
    --  Free memory allocated by Derivs; set all to Empty_Vector.
 
+   procedure Set_Deriv
+     (Derivs  : in out Packrat.Derivs;
+      Nonterm : in     Token_ID;
+      Pos     : in     Positive_Node_Index;
+      Memo    : in     Memo_Entry);
+   --  Add or replace Derivs (Nonterm)(Pos).
+
    procedure Finish_Parse (Parser : in out WisiToken.Parse.Parser.Parser'Class; Result : in out Memo_Entry);
    --  Call Tree.Set_Root, Clear_Parse_Streams; raise Parse_Error with an
    --  error message if the parse did not succeed.

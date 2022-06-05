@@ -359,4 +359,32 @@ package body WisiToken.Parse.Parser is
       Execute_Actions (Parser.Tree, Parser.Productions, Parser.User_Data, Action_Region_Bytes);
    end Execute_Actions;
 
+   procedure Print_Derivs (Parser : in WisiToken.Parse.Parser.Parser)
+   is
+      use all type WisiToken.Parse.Packrat.Memo_State;
+      Tree   : Syntax_Trees.Tree renames Parser.Tree;
+      Derivs : WisiToken.Parse.Packrat.Derivs renames Parser.Derivs;
+      Trace  : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
+      Count  : Integer := 0;
+   begin
+      for Nonterm in Derivs'Range loop
+         for Pos in Derivs (Nonterm).First_Index .. Derivs (Nonterm).Last_Index loop
+
+            case Derivs (Nonterm)(Pos).State is
+            when No_Result =>
+               null;
+
+            when Failure =>
+               Count := @ + 1;
+
+            when Success =>
+               Count := @ + 1;
+               Trace.Put_Line
+                 (Pos'Image & ": " & Tree.Image (Derivs (Nonterm)(Pos).Result, Node_Numbers => True));
+            end case;
+         end loop;
+      end loop;
+      Trace.Put_Line ("... failed + success count:" & Count'Image);
+   end Print_Derivs;
+
 end WisiToken.Parse.Parser;

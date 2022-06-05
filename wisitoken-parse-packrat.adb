@@ -52,6 +52,24 @@ package body WisiToken.Parse.Packrat is
       end loop;
    end Clear;
 
+   procedure Set_Deriv
+     (Derivs  : in out Packrat.Derivs;
+      Nonterm : in     Token_ID;
+      Pos     : in     Positive_Node_Index;
+      Memo    : in     Memo_Entry)
+   is
+      use all type WisiToken.Syntax_Trees.Node_Index;
+   begin
+      if Pos < Derivs (Nonterm).First_Index then
+         Derivs (Nonterm).Set_First_Last (Pos, Derivs (Nonterm).Last_Index);
+
+      elsif Pos > Derivs (Nonterm).Last_Index then
+         Derivs (Nonterm).Set_First_Last (Derivs (Nonterm).First_Index, Pos);
+      end if;
+
+      Derivs (Nonterm).Replace_Element (Pos, Memo);
+   end Set_Deriv;
+
    procedure Finish_Parse (Parser : in out WisiToken.Parse.Parser.Parser'Class; Result : in out Memo_Entry)
    is
       use WisiToken.Syntax_Trees;
