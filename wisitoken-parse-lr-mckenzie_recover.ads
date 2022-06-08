@@ -250,18 +250,20 @@ private
       Streams    : in out Syntax_Trees.Stream_ID_Array;
       Terminals  : in out Syntax_Trees.Stream_Node_Parents_Array;
       Initialize : in     Boolean)
-   with Pre => Terminals'First = 1 and Terminals'Last = (if Initialize then Parsers.Count else Parsers.Count + 1) and
+   with Pre => Terminals'First = 1 and Terminals'Last = Tree.Stream_Count and
                Streams'First = Terminals'First and Streams'Last = Terminals'Last,
      Post => (for all Term of Terminals =>
                 (if Initialize
                  then Tree.Get_Sequential_Index (Term.Ref.Node) /= Syntax_Trees.Invalid_Sequential_Index
                  else Tree.Get_Sequential_Index (Term.Ref.Node) = Syntax_Trees.Invalid_Sequential_Index));
    --  If Initialize, prepare for setting sequential_index in the parse
-   --  streams for error recover. If not Initialize, prepare for clearing
-   --  sequential_index after recover is done. Terminals'Last is the
-   --  shared stream (see body for rationale).
+   --  streams for error recover.
    --
-   --  Set Terminals to a common starting point for
+   --  If not Initialize, prepare for clearing sequential_index after
+   --  recover is done.
+   --
+   --  For each parser and the shared stream I, set Streams (I) to the
+   --  Stream_ID and Terminals (I) to a common starting point for
    --  Extend_Sequential_Index, nominally parser Current_Token for
    --  Initialize, stack top for not Initialize. If Initialize, set
    --  Sequential_Index in all Terminals nodes to 1; if not Initialize,
@@ -275,6 +277,9 @@ private
       Positive  : in     Boolean;
       Clear     : in     Boolean)
    with Pre =>
+     Terminals'First = 1 and Terminals'Last = Tree.Stream_Count and
+     Streams'First = Terminals'First and Streams'Last = Terminals'Last  and
+     Streams (Streams'Last) = Tree.Shared_Stream and
      (if Clear
       then (for all Term of Terminals =>
               Tree.Get_Sequential_Index (Term.Ref.Node) = Syntax_Trees.Invalid_Sequential_Index)
@@ -284,12 +289,12 @@ private
            and then
           (for some Term of Terminals =>
              Tree.ID (Term.Ref.Node) /=
-             (if Positive
-              then Tree.Lexer.Descriptor.EOI_ID
-              else Tree.Lexer.Descriptor.SOI_ID) and
-             (if Positive
-              then Tree.Get_Sequential_Index (Term.Ref.Node) < Target
-              else Tree.Get_Sequential_Index (Term.Ref.Node) > Target))),
+               (if Positive
+                then Tree.Lexer.Descriptor.EOI_ID
+                else Tree.Lexer.Descriptor.SOI_ID) and
+               (if Positive
+                then Tree.Get_Sequential_Index (Term.Ref.Node) < Target
+                else Tree.Get_Sequential_Index (Term.Ref.Node) > Target))),
      Post =>
        (for all Term of Terminals =>
           (if Clear
@@ -297,8 +302,8 @@ private
            else Tree.Get_Sequential_Index (Term.Ref.Node) /= Syntax_Trees.Invalid_Sequential_Index));
    --  If Target = Invalid_Sequential_Index, clear all Sequential_Index,
    --  starting at Terminals, and moving in Positive direction.
-   --  Otherwise, Set Sequential_Index in Tree nodes before/after
-   --  Terminals, thru Target.
+   --  Otherwise, set incrementing/decrementing Sequential_Index in Tree
+   --  nodes before/after Terminals, thru Target.
 
    function Push_Back_Valid
      (Super                 : in out Base.Supervisor;

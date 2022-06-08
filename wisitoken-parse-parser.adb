@@ -374,13 +374,10 @@ package body WisiToken.Parse.Parser is
             when No_Result =>
                null;
 
-            when Failure =>
+            when Failure | Success =>
                Count := @ + 1;
+               Trace.Put_Line (Packrat.Image (Derivs (Nonterm)(Pos), Nonterm, Pos, Tree));
 
-            when Success =>
-               Count := @ + 1;
-               Trace.Put_Line
-                 (Pos'Image & ": " & Tree.Image (Derivs (Nonterm)(Pos).Result, Node_Numbers => True));
             end case;
          end loop;
       end loop;

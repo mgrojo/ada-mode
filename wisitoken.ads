@@ -204,6 +204,7 @@ package WisiToken is
 
    type Token_ID_Set is array (Token_ID range <>) of Boolean;
    type Token_ID_Set_Access is access Token_ID_Set;
+   type Token_ID_Array_Token_ID_Set_Access is array (Token_ID range <>) of Token_ID_Set_Access;
 
    function "&" (Left : in Token_ID_Set; Right : in Token_ID) return Token_ID_Set;
    --  Include Left and Right in result.

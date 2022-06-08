@@ -35,14 +35,45 @@ package body WisiToken.Parse.Packrat is
       end if;
    end Image_Pos;
 
-   function Image (Tree : in Syntax_Trees.Tree; Item : in Memo_Entry) return String
+   function Image (Item : in Memo_Entry; Tree : in Syntax_Trees.Tree) return String
    is begin
       return
         (case Item.State is
          when No_Result => "",
-         when Failure => "fail " & Tree.Image
-           (Tree.Get_Node (Tree.Shared_Stream, Item.Max_Examined_Pos), Node_Numbers => True),
-         when Success => "success " & Tree.Image (Item.Result, Node_Numbers => True));
+         when Failure => "fail @" & Image_Pos (Tree, Tree.Shared_Stream, Item.Max_Examined_Pos),
+         when Success => Tree.Image (Item.Result, Node_Numbers => True) &
+           " @" & Image_Pos (Tree, Tree.Shared_Stream, Item.Max_Examined_Pos) &
+           "," & Image_Pos (Tree, Tree.Shared_Stream, Item.Last_Pos));
+   end Image;
+
+   function Image
+     (Item    : in Memo_Entry;
+      Nonterm : in Token_ID;
+      Pos     : in Syntax_Trees.Node_Index;
+      Tree    : in Syntax_Trees.Tree)
+     return String
+   is
+      Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
+   begin
+      return
+        Pos'Image & ", " &
+        (case Item.State is
+         when No_Result => "",
+         when Failure => Image (Nonterm, Descriptor) & " fail @" &
+           Image_Pos (Tree, Tree.Shared_Stream, Item.Max_Examined_Pos),
+         when Success => Tree.Image (Item.Result, Node_Numbers => True) &
+           "," & Image_Pos (Tree, Tree.Shared_Stream, Item.Max_Examined_Pos) &
+           "," & Image_Pos (Tree, Tree.Shared_Stream, Item.Last_Pos));
+   end Image;
+
+   function Image
+     (Item    : in Memo_Entry;
+      Nonterm : in Token_ID;
+      Pos     : in Syntax_Trees.Stream_Index;
+      Tree    : in Syntax_Trees.Tree)
+     return String
+   is begin
+      return Image (Item, Nonterm, Tree.Get_Node_Index (Tree.Shared_Stream, Pos), Tree);
    end Image;
 
    procedure Clear (Derivs : in out Packrat.Derivs)

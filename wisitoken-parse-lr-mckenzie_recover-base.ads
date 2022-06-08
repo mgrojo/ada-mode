@@ -31,7 +31,7 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    type Parser_Status_Array is array (SAL.Peek_Type range <>) of Parser_Status;
 
-   type Supervisor (Parser_Count : SAL.Peek_Type) is tagged limited private;
+   type Supervisor (Parser_Count : SAL.Peek_Type; Stream_Count : SAL.Peek_Type) is tagged limited private;
 
    procedure Initialize
      (Super         : in out Supervisor;
@@ -113,7 +113,7 @@ package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
 private
 
-   type Supervisor (Parser_Count : SAL.Peek_Type) is tagged limited
+   type Supervisor (Parser_Count : SAL.Peek_Type; Stream_Count : SAL.Peek_Type) is tagged limited
    record
       All_Parsers_Done        : Boolean                     := False;
       Success_Counter         : Natural                     := 0;
@@ -124,8 +124,8 @@ private
       Error_Message           : Ada.Strings.Unbounded.Unbounded_String;
       Parser_Status           : Parser_Status_Array (1 .. Parser_Count);
 
-      Min_Sequential_Indices : Syntax_Trees.Stream_Node_Parents_Array (1 .. Parser_Count);
-      Max_Sequential_Indices : Syntax_Trees.Stream_Node_Parents_Array (1 .. Parser_Count);
+      Min_Sequential_Indices : Syntax_Trees.Stream_Node_Parents_Array (1 .. Stream_Count);
+      Max_Sequential_Indices : Syntax_Trees.Stream_Node_Parents_Array (1 .. Stream_Count);
    end record;
 
    function Min_Sequential_Index (Super : in Supervisor) return Syntax_Trees.Stream_Node_Parents_Array

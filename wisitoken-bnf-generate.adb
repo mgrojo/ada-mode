@@ -51,6 +51,8 @@ with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
 procedure WisiToken.BNF.Generate
 is
+   use all type SAL.Base_Peek_Type;
+
    procedure Put_Usage
    is
       use Ada.Text_IO;
@@ -711,8 +713,7 @@ begin
                   --  in Initialize; not worth timing.
 
                   Packrat_Data := WisiToken.Generate.Packrat.Initialize
-                    (Grammar_Parser.Tree.Lexer.File_Name, Generate_Data.Grammar, Generate_Data.Source_Line_Map,
-                     Generate_Data.Descriptor.First_Terminal);
+                    (Grammar_Parser.Tree.Lexer.File_Name, Generate_Data);
 
                   if Parse_Table_File_Name /= "" then
                      declare

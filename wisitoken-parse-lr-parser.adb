@@ -548,6 +548,7 @@ package body WisiToken.Parse.LR.Parser is
 
    procedure Parse_Verb
      (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
+      Recover_Only  : in     Boolean;
       Verb          :    out All_Parse_Action_Verbs;
       Zombie_Count  :    out SAL.Base_Peek_Type)
    is
@@ -729,7 +730,9 @@ package body WisiToken.Parse.LR.Parser is
 
          if Shared_Parser.Resume_Active and not Some_Paused then
             Shared_Parser.Resume_Active := False;
-            McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
+            if not Recover_Only then
+               McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
+            end if;
          end if;
 
       elsif Shared_Parser.Parsers.Count > 1 then
@@ -1690,7 +1693,7 @@ package body WisiToken.Parse.LR.Parser is
                                           Inserted  => True,
                                           Start     => True);
 
-                                       if Tree.ID (Prev_Terminal) = Tree.ID (Node) and then
+                                       if Tree.ID (Prev_Terminal.Node) = Tree.ID (Node) and then
                                          Tree.Byte_Region (Prev_Terminal, Trailing_Non_Grammar => False).Last + 1 =
                                          Node_Byte_Region.First and then
                                          Tree.Lexer.Escape_Delimiter_Doubled (Node_ID)
@@ -1809,7 +1812,7 @@ package body WisiToken.Parse.LR.Parser is
                      --  partly past or adjacent to Stable_Region.Last. Also exit when last
                      --  KMN is done.
                      exit Unchanged_Loop when
-                       Tree.ID (Terminal) /= Tree.Lexer.Descriptor.SOI_ID and then
+                       Tree.ID (Terminal.Node) /= Tree.Lexer.Descriptor.SOI_ID and then
                        (if Length (Inserted_Region) = 0 and Length (Deleted_Region) = 0
                         then Tree.Byte_Region (Terminal.Node, Trailing_Non_Grammar => False).Last >
                           Stable_Region.Last -- Last KMN
@@ -3115,7 +3118,7 @@ package body WisiToken.Parse.LR.Parser is
                        (if Tree.Byte_Region (Terminal.Node, Trailing_Non_Grammar => False).First <= Stable_Region.Last
                         then -KMN.Deleted_Bytes + KMN.Inserted_Bytes else 0) > Scanned_Byte_Pos;
 
-                     if Tree.ID (Terminal) = Tree.Lexer.Descriptor.SOI_ID then
+                     if Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.SOI_ID then
                         Tree.Next_Terminal (Terminal);
 
                      else
@@ -3199,7 +3202,7 @@ package body WisiToken.Parse.LR.Parser is
                   begin
                      loop
                         if Searching_Back then
-                           if Tree.ID (Terminal) = Tree.Lexer.Descriptor.SOI_ID then
+                           if Tree.ID (Terminal.Node) = Tree.Lexer.Descriptor.SOI_ID then
                               return Terminal;
                            end if;
 

@@ -799,12 +799,45 @@ package body WisiToken.BNF.Output_Ada_Common is
       Generate_Data        : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data;
       Packrat_Data         :         in     WisiToken.Generate.Packrat.Data)
    is
-      use Ada.Strings.Unbounded;
-
       Descriptor : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
 
-      Text     : Unbounded_String;
-      Need_Bar : Boolean := True;
+      procedure Put_Direct_Left_Recursive
+      is begin
+         Indent_Line ("function Direct_Left_Recursive return WisiToken.Token_ID_Array_Token_ID_Set_Access");
+         Indent_Line ("is");
+         Indent_Line ("   Terminal_Set : Token_ID_Set (" &
+              Trimmed_Image (Descriptor.First_Terminal) & " .. " &
+              Trimmed_Image (Descriptor.Last_Terminal) & ") := (others => False);");
+         Indent_Line ("begin");
+         Indent := Indent + 3;
+         Indent_Line
+           ("return Result : WisiToken.Token_ID_Array_Token_ID_Set_Access (" &
+              Trimmed_Image (Generate_Data.Grammar.First_Index) & " .. " &
+              Trimmed_Image (Generate_Data.Grammar.Last_Index) & ") := (others => null) do");
+
+         Indent := Indent + 3;
+
+         if (for some Set of Packrat_Data.Direct_Left_Recursive => Set /= null) then
+            for I in Packrat_Data.Direct_Left_Recursive'Range loop
+               if Packrat_Data.Direct_Left_Recursive (I) /= null then
+                  for J in Descriptor.First_Terminal .. Descriptor.Last_Terminal loop
+                     if Packrat_Data.Direct_Left_Recursive (I)(J) then
+                        Indent_Line ("Terminal_Set (" & Trimmed_Image (J) & ") := True;");
+                     end if;
+                  end loop;
+                  Indent_Line ("Result (" & Trimmed_Image (I) & ") := new Token_ID_Set'(Terminal_Set);");
+                  Indent_Line ("Terminal_Set := (others => False);");
+               end if;
+            end loop;
+         else
+            Indent_Line ("null;");
+         end if;
+         Indent := Indent - 3;
+         Indent_Line ("end return;");
+         Indent := Indent - 3;
+         Indent_Line ("end Direct_Left_Recursive;");
+      end Put_Direct_Left_Recursive;
+
    begin
       Indent_Line ("function Create_Parser");
       Indent_Line ("  (Trace      : in WisiToken.Trace_Access;");
@@ -813,7 +846,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       case Packrat_Generate_Algorithm'(Common_Data.Generate_Algorithm) is
       when Packrat_Gen =>
          Indent_Line ("  return WisiToken.Parse.Packrat.Generated.Parser");
-         Indent_Line ("is begin");
+         Indent_Line ("is");
+         Put_Direct_Left_Recursive;
+         Indent_Line ("begin");
          Indent := Indent + 3;
          Indent_Line
            ("return Parser : WisiToken.Parse.Packrat.Generated.Parser (" &
@@ -822,6 +857,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent := Indent + 3;
          Indent_Line ("Parser.Tree.Lexer := Lexer.New_Lexer (Trace, " & Actions_Package_Name & ".Descriptor'Access);");
          Indent_Line ("Parser.Productions := Create_Productions;");
+         Indent_Line ("Parser.Direct_Left_Recursive := Direct_Left_Recursive;");
          Indent_Line ("Parser.User_Data := User_Data;");
          Indent_Line ("Parser.Parse_WisiToken_Accept := Parse_wisitoken_accept'Access;");
          Indent := Indent - 3;
@@ -834,31 +870,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("use WisiToken;");
          Indent_Line ("use WisiToken.Productions;");
          Indent_Line ("Grammar               : Prod_Arrays.Vector;");
-         Indent_Line
-           ("Direct_Left_Recursive : constant WisiToken.Token_ID_Set (" &
-              Trimmed_Image (Generate_Data.Grammar.First_Index) & " .. " &
-              Trimmed_Image (Generate_Data.Grammar.Last_Index) & ") :=");
-
-         Need_Bar := False;
-         if Any (Packrat_Data.Direct_Left_Recursive) then
-            for I in Packrat_Data.Direct_Left_Recursive'Range loop
-               if Packrat_Data.Direct_Left_Recursive (I) then
-                  if Need_Bar then
-                     Text := Text & " | ";
-                  else
-                     Need_Bar := True;
-                  end if;
-                  Text := Text & Trimmed_Image (I);
-               end if;
-            end loop;
-            Indent_Start ("  (");
-            Indent := Indent + 3;
-            Indent_Wrap (-Text & " => True,");
-            Indent_Line ("others => False);");
-            Indent := Indent - 3;
-         else
-            Indent_Line ("  (others => False);");
-         end if;
+         Put_Direct_Left_Recursive;
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;

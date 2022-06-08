@@ -93,7 +93,7 @@ is
          end;
       end loop;
 
-      if Data.Direct_Left_Recursive (Prod.LHS) then
+      if Data.Direct_Left_Recursive (Prod.LHS) /= null then
          Indent_Line ("Pos_Recurse_Last : Syntax_Trees.Stream_Index := Last_Pos;");
          Indent_Line ("Result_Recurse   : Memo_Entry;");
       end if;
@@ -128,7 +128,7 @@ is
       Indent_Line ("end;");
       New_Line;
 
-      if Data.Direct_Left_Recursive (Prod.LHS) then
+      if Data.Direct_Left_Recursive (Prod.LHS) /= null then
          --  This is the top of the 'while' loop in [warth 2008] figure 3 Grow-LR.
          Indent_Line
            ("Parser.Derivs (" & Result_ID &
@@ -143,7 +143,7 @@ is
             procedure Finish
             is
             begin
-               if Data.Direct_Left_Recursive (Prod.LHS) then
+               if Data.Direct_Left_Recursive (Prod.LHS) /= null then
                   Indent_Line ("Result_Recurse :=");
                   Indent := Indent + 2;
                else
@@ -201,7 +201,7 @@ is
 
                Indent := Indent - 3;
                Indent_Start (" Last_Pos         => Pos)");
-               if Data.Direct_Left_Recursive (Prod.LHS) then
+               if Data.Direct_Left_Recursive (Prod.LHS) /= null then
                   Put_Line (";");
                   Indent := Indent - 2;
                else
@@ -209,7 +209,7 @@ is
                   Indent := Indent - 3;
                end if;
 
-               if Data.Direct_Left_Recursive (Prod.LHS) then
+               if Data.Direct_Left_Recursive (Prod.LHS) /= null then
                   Indent_Line ("goto Finish;");
                else
                   Indent_Line ("goto Succeed;");
@@ -275,7 +275,7 @@ is
       end loop;
 
       --  We get here if the last alternative fails.
-      if Data.Direct_Left_Recursive (Prod.LHS) then
+      if Data.Direct_Left_Recursive (Prod.LHS) /= null then
          Indent_Line ("Result_Recurse := (State => Failure, Max_Examined_Pos => Max_Examined_Pos);");
       else
          Indent_Line
@@ -284,7 +284,7 @@ is
          Indent_Line ("return Parser.Derivs (" & Result_ID & ")(Start_Pos_Index);");
       end if;
 
-      if Data.Direct_Left_Recursive (Prod.LHS) then
+      if Data.Direct_Left_Recursive (Prod.LHS) /= null then
          Indent_Line ("<<Finish>>");
          Indent_Line ("if Result_Recurse.State = Success then");
          Indent := Indent + 3;
@@ -314,7 +314,7 @@ is
       end if;
       New_Line;
 
-      if not Data.Direct_Left_Recursive (Prod.LHS) then
+      if Data.Direct_Left_Recursive (Prod.LHS) = null then
          Indent_Line ("<<Succeed>>");
          Indent_Line ("if WisiToken.Trace_Parse > Detail then");
          Indent := Indent + 3;

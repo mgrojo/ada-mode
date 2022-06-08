@@ -138,8 +138,9 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Shared_Stream         : in Boolean;
       Terminal_Node_Numbers : in Boolean)
    is
-      use Standard.AUnit.Checks;
       use Parse_Stream_Lists;
+      use SAL.AUnit;
+      use Standard.AUnit.Checks;
 
       Computed_Stream : Parse_Stream_Lists.Cursor := Computed.Streams.First;
       Expected_Stream : Parse_Stream_Lists.Cursor := Expected.Streams.First;

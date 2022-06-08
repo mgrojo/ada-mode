@@ -33,15 +33,14 @@ package WisiToken.Parse.Packrat.Procedural is
       Last_Nonterminal  => Last_Nonterminal)
    with record
 
-      Grammar               : WisiToken.Productions.Prod_Arrays.Vector;
-      Start_ID              : Token_ID;
-      Direct_Left_Recursive : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
+      Grammar  : WisiToken.Productions.Prod_Arrays.Vector;
+      Start_ID : Token_ID;
    end record;
    type Parser_Access is access Parser;
 
    function Create
      (Grammar               : in WisiToken.Productions.Prod_Arrays.Vector;
-      Direct_Left_Recursive : in Token_ID_Set;
+      Direct_Left_Recursive : in Token_ID_Array_Token_ID_Set_Access;
       Start_ID              : in Token_ID;
       Lexer                 : in WisiToken.Lexer.Handle;
       Productions           : in WisiToken.Syntax_Trees.Production_Info_Trees.Vector;

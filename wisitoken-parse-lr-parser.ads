@@ -39,8 +39,12 @@ package WisiToken.Parse.LR.Parser is
 
    procedure Parse_Verb
      (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
+      Recover_Only  : in     Boolean;
       Verb          :    out All_Parse_Action_Verbs;
       Zombie_Count  :    out SAL.Base_Peek_Type);
+   --  Recover_Only is true when the LR parser is called from the Packrat
+   --  parser for error recover.
+   --
    --  Verb: the type of parser cycle to execute;
    --
    --     Accept_It : all Parsers.Verb return Accept - done parsing.

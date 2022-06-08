@@ -62,13 +62,6 @@ package body WisiToken.Syntax_Trees is
    --  If Set_Error_List is False, new node has copy of Node.Error_List.
    --  Otherwise, new node has New_Error_List.
 
-   procedure First_Source_Terminal
-     (Tree                 : in     Syntax_Trees.Tree;
-      Ref                  : in out Stream_Node_Parents;
-      Trailing_Non_Grammar : in     Boolean)
-   with Pre => Rooted (Ref.Ref) and Ref.Parents.Depth = 0;
-   --  Update Ref to first source terminal in Ref.Node, initialize Ref.Parents.
-
    procedure Insert_Stream_Element
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID;
@@ -91,13 +84,6 @@ package body WisiToken.Syntax_Trees is
      (Productions : in Production_Info_Trees.Vector;
       ID          : in Token_ID)
      return Boolean;
-
-   procedure Last_Source_Terminal
-     (Tree                 : in     Syntax_Trees.Tree;
-      Ref                  : in out Stream_Node_Parents;
-      Trailing_Non_Grammar : in     Boolean)
-   with Pre => Rooted (Ref.Ref) and Ref.Parents.Depth = 0;
-   --  Update Ref to last source terminal in Ref.Node, initialize Ref.Parents.
 
    procedure Move_Element
      (Tree      : in out Syntax_Trees.Tree;
@@ -1316,7 +1302,7 @@ package body WisiToken.Syntax_Trees is
          Prev_Source_Terminal := Ref;
          Tree.First_Source_Terminal (Prev_Source_Terminal, Trailing_Non_Grammar);
          Next_Source_Terminal := Ref;
-         Tree.Last_Source_Terminal (Next_Source_Terminal, Trailing_Non_Grammar);
+         Tree.Last_Source_Terminal (Next_Source_Terminal, Trailing_Non_Grammar, Parse_Stream);
 
          if Prev_Source_Terminal.Ref.Node = Invalid_Node_Access then
             Tree.Prev_Source_Terminal (Prev_Source_Terminal, Parse_Stream, Trailing_Non_Grammar);
@@ -3742,8 +3728,7 @@ package body WisiToken.Syntax_Trees is
    is begin
       Ref.Ref.Node := First_Terminal (Tree, Ref.Ref.Node, Ref.Parents);
       loop
-         exit when Ref.Ref.Node = Invalid_Node_Access;
-         exit when
+         exit when Ref.Ref.Node /= Invalid_Node_Access and then
            (if Trailing_Non_Grammar
             then (case Terminal_Label'(Ref.Ref.Node.Label) is
                   when Source_Terminal => True,
@@ -3751,7 +3736,7 @@ package body WisiToken.Syntax_Trees is
                   when Virtual_Identifier => Ref.Ref.Node.Non_Grammar.Length > 0)
             else Ref.Ref.Node.Label = Source_Terminal);
 
-         Next_Terminal (Tree, Ref.Ref.Node, Ref.Parents);
+         Next_Terminal (Tree, Ref);
       end loop;
    end First_Source_Terminal;
 
@@ -4315,41 +4300,18 @@ package body WisiToken.Syntax_Trees is
       return Child.Parent /= Invalid_Node_Access;
    end Has_Parent;
 
-   function ID
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Access)
-     return Token_ID
+   function ID (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Token_ID
    is
       pragma Unreferenced (Tree);
    begin
       return Node.ID;
    end ID;
 
-   function ID
-     (Tree    : in Syntax_Trees.Tree;
-      Stream  : in Stream_ID;
-      Element : in Stream_Index)
-     return Token_ID
-   is
-      pragma Unreferenced (Tree, Stream);
-   begin
-      return Stream_Element_Lists.Element (Element.Cur).Node.ID;
-   end ID;
-
-   function ID
-     (Tree : in Syntax_Trees.Tree;
-      Ref  : in Stream_Node_Ref)
-     return WisiToken.Token_ID
+   function ID (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Token_ID
    is
       pragma Unreferenced (Tree);
    begin
-      if Ref.Node /= Invalid_Node_Access then
-         return Ref.Node.ID;
-      elsif Ref.Element /= Invalid_Stream_Index then
-         return Stream_Element_Lists.Element (Ref.Element.Cur).Node.ID;
-      else
-         return Invalid_Token_ID;
-      end if;
+      return Stream_Element_Lists.Element (Element.Cur).Node.ID;
    end ID;
 
    function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Base_Identifier_Index
@@ -5105,15 +5067,37 @@ package body WisiToken.Syntax_Trees is
       return Result;
    end Last_Source_Terminal;
 
+   function Last_Source_Terminal
+     (Tree                 : in Syntax_Trees.Tree;
+      Stream               : in Stream_ID;
+      Element              : in Stream_Index;
+      Trailing_Non_Grammar : in Boolean)
+     return Stream_Node_Ref
+   is
+      Result : Stream_Node_Parents := To_Stream_Node_Parents
+        (Tree, (Stream, Element, Stream_Element_Lists.Element (Element.Cur).Node));
+   begin
+      Last_Terminal (Tree, Result, Parse_Stream => Stream);
+      loop
+         exit when Result.Ref.Node /= Invalid_Node_Access and then Result.Ref.Node.Label = Source_Terminal;
+         if Trailing_Non_Grammar then
+            exit when Result.Ref.Node.Non_Grammar.Length > 0;
+         end if;
+
+         Prev_Terminal (Tree, Result, Parse_Stream => Stream);
+      end loop;
+      return Result.Ref;
+   end Last_Source_Terminal;
+
    procedure Last_Source_Terminal
      (Tree                 : in     Syntax_Trees.Tree;
       Ref                  : in out Stream_Node_Parents;
-      Trailing_Non_Grammar : in     Boolean)
+      Trailing_Non_Grammar : in     Boolean;
+      Parse_Stream         : in     Stream_ID)
    is begin
       Ref.Ref.Node := Last_Terminal (Tree, Ref.Ref.Node, Ref.Parents);
       loop
-         exit when Ref.Ref.Node = Invalid_Node_Access;
-         exit when
+         exit when Ref.Ref.Node /= Invalid_Node_Access and then
            (if Trailing_Non_Grammar
             then (case Terminal_Label'(Ref.Ref.Node.Label) is
                   when Source_Terminal => True,
@@ -5121,7 +5105,7 @@ package body WisiToken.Syntax_Trees is
                   when Virtual_Identifier => Ref.Ref.Node.Non_Grammar.Length > 0)
             else Ref.Ref.Node.Label = Source_Terminal);
 
-         Prev_Terminal (Tree, Ref.Ref.Node, Ref.Parents);
+         Prev_Terminal (Tree, Ref, Parse_Stream);
       end loop;
    end Last_Source_Terminal;
 
@@ -7434,11 +7418,16 @@ package body WisiToken.Syntax_Trees is
       Children    : in     Boolean := False;
       Non_Grammar : in     Boolean := False)
    is begin
-      for Stream of Tree.Streams loop
-         Tree.Lexer.Trace.Put_Line
-           (Tree.Image
-              (Stream, Shared => True, Children => Children, Node_Numbers => True, Non_Grammar => Non_Grammar));
-         Tree.Lexer.Trace.New_Line;
+      for Cur in Tree.Streams.Iterate loop
+         declare
+            Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Cur);
+         begin
+            Tree.Lexer.Trace.Put_Line
+              (Tree.Image
+                 (Stream, Shared => True, Children => Children and Cur /= Tree.Shared_Stream.Cur,
+                  Node_Numbers => True, Non_Grammar => Non_Grammar));
+            Tree.Lexer.Trace.New_Line;
+         end;
       end loop;
    end Print_Streams;
 
@@ -8291,9 +8280,9 @@ package body WisiToken.Syntax_Trees is
       return Stream_Element_Lists.Element (Tree.Streams (Stream.Cur).Stack_Top).State;
    end State;
 
-   function Stream_Count (Tree : in Syntax_Trees.Tree) return Natural
+   function Stream_Count (Tree : in Syntax_Trees.Tree) return SAL.Base_Peek_Type
    is begin
-      return Natural (Tree.Streams.Length);
+      return SAL.Base_Peek_Type (Tree.Streams.Length);
    end Stream_Count;
 
    procedure Stream_Delete

@@ -110,6 +110,7 @@ with SAL.Gen_Unbounded_Sparse_Ordered_Sets;
 with SAL.Generic_Decimal_Image;
 with WisiToken.Lexer;
 package WisiToken.Syntax_Trees is
+   use all type Ada.Containers.Count_Type;
    use all type SAL.Base_Peek_Type;
 
    type Node (<>) is private;
@@ -682,8 +683,8 @@ package WisiToken.Syntax_Trees is
      Post => Tree.Is_Valid (New_Stream'Result);
    --  Create a new parse stream, initially copied from Old_Stream.
 
-   function Stream_Count (Tree : in Syntax_Trees.Tree) return Natural;
-   --  Number of active streams.
+   function Stream_Count (Tree : in Syntax_Trees.Tree) return SAL.Base_Peek_Type;
+   --  Number of parse streams plus the shared stream.
 
    function First_Parse_Stream (Tree : in Syntax_Trees.Tree) return Stream_ID
    with Pre => Tree.Stream_Count >= 2;
@@ -1212,17 +1213,6 @@ package WisiToken.Syntax_Trees is
    --  Delete Element from Stream. If Element = Stream.Stack_Top,
    --  Stack_Top is set to Invalid_Stream_Index.
 
-   function ID
-     (Tree    : in Syntax_Trees.Tree;
-      Stream  : in Stream_ID;
-      Element : in Stream_Index)
-     return Token_ID
-   with Pre => Tree.Contains (Stream, Element) or Tree.Contains (Tree.Shared_Stream, Element);
-   --  The precondition allows either stream; Current_Token is
-   --  either a Source_Terminal from Shared_Stream or a Virtual_Terminal
-   --  in Stream input from error recovery; in incremental parse, it
-   --  could be a Source_Terminal in Stream input from push_back.
-
    function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Label;
    function Label (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Node_Label
    with Pre => Element /= Invalid_Stream_Index;
@@ -1286,16 +1276,8 @@ package WisiToken.Syntax_Trees is
       Region : in Buffer_Region)
    with Pre => Tree.Is_Nonterm (Node);
 
-   function ID
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Access)
-     return WisiToken.Token_ID;
-
-   function ID
-     (Tree : in Syntax_Trees.Tree;
-      Ref  : in Stream_Node_Ref)
-     return WisiToken.Token_ID;
-   --  One of Ref.Node.ID, Ref.Element.Node.ID, Invalid_Token_ID
+   function ID (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return WisiToken.Token_ID;
+   function ID (Tree : in Syntax_Trees.Tree; Element : in Stream_Index) return Token_ID;
 
    function Production_ID
      (Tree : in Syntax_Trees.Tree;
@@ -1670,7 +1652,12 @@ package WisiToken.Syntax_Trees is
       Trailing_Non_Grammar : in Boolean;
       Following            : in Boolean := False)
      return Node_Access
-   with Pre => (if Following then Tree.Parents_Set else True);
+   with Pre => (if Following then Tree.Parents_Set else True),
+    Post =>
+       (if Following
+        then First_Source_Terminal'Result /= Invalid_Node_Access and then
+         (Tree.Label (First_Source_Terminal'Result) = Source_Terminal or
+            Tree.Non_Grammar_Const (First_Source_Terminal'Result).Length > 0));
    --  Return a terminal node that can give byte or char pos.
    --
    --  If Trailing_Non_Grammar, return first terminal in Node that is a
@@ -1678,7 +1665,8 @@ package WisiToken.Syntax_Trees is
    --  If not Trailing_Non_Grammar, only return a Source_Terminal.
    --
    --  If Following, return a matching terminal following Node if none
-   --  found in Node.
+   --  found in Node. If not following, return Invalid_Node_Access if
+   --  none found in Node.
 
    function First_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
@@ -1687,15 +1675,42 @@ package WisiToken.Syntax_Trees is
       Trailing_Non_Grammar : in Boolean)
      return Stream_Node_Ref
    with Pre => Tree.Contains (Stream, Element),
-     Post => Tree.Valid_Stream_Node (First_Source_Terminal'Result);
+     Post =>
+       Tree.Valid_Stream_Node (First_Source_Terminal'Result) and
+       (First_Source_Terminal'Result.Node /= Invalid_Node_Access and then
+          (Tree.Label (First_Source_Terminal'Result.Node) = Source_Terminal or
+             Tree.Non_Grammar_Const (First_Source_Terminal'Result.Node).Length > 0));
+   --  FIXME: delete if not used
    --  Return a terminal node that can give byte or char pos.
    --
-   --  If Trailing_Non_Grammar, return first terminal in Element.Node or
-   --  a following stream element that is a Source_Terminal, or a virtual
-   --  terminal with non-empty non_grammar. If not Trailing_Non_Grammar,
-   --  only return a Source_Terminal.
+   --  If Trailing_Non_Grammar, return first terminal in Element.Node
+   --  that is a Source_Terminal, or a virtual terminal with non-empty
+   --  non_grammar. If not Trailing_Non_Grammar, only return a
+   --  Source_Terminal.
    --
-   --  Will always find EOI.
+   --  If none found in Element, continue searching in following stream
+   --  elements (will always find EOI).
+
+   procedure First_Source_Terminal
+     (Tree                 : in     Syntax_Trees.Tree;
+      Ref                  : in out Stream_Node_Parents;
+      Trailing_Non_Grammar : in     Boolean)
+   with Pre => Tree.Valid_Stream_Node (Ref.Ref) and Parents_Valid (Ref),
+     Post =>
+       Tree.Valid_Stream_Node (Ref.Ref) and
+       (Ref.Ref.Node /= Invalid_Node_Access and then
+          (Tree.Label (Ref.Ref.Node) = Source_Terminal or
+             Tree.Non_Grammar_Const (Ref.Ref.Node).Length > 0)) and
+       Parents_Valid (Ref);
+   --  Update Ref to a terminal node.
+   --
+   --  If Trailing_Non_Grammar, result is first terminal in Ref.Ref.Node
+   --  that is a Source_Terminal, or a virtual terminal with non-empty
+   --  non_grammar. If not Trailing_Non_Grammar, only return a
+   --  Source_Terminal.
+   --
+   --  If none found in Ref.Ref.Node, continue searching in following
+   --  nodes and stream elements (will always find EOI).
 
    function Last_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
@@ -1707,6 +1722,54 @@ package WisiToken.Syntax_Trees is
    --  If Trailing_Non_Grammar, return last terminal in Node that is a
    --  Source_Terminal, or a virtual terminal with non-empty non_grammar.
    --  If not Trailing_Non_Grammar, only return a Source_Terminal.
+   --
+   --  Invalid_Node_Access if none found in Node.
+
+   function Last_Source_Terminal
+     (Tree                 : in Syntax_Trees.Tree;
+      Stream               : in Stream_ID;
+      Element              : in Stream_Index;
+      Trailing_Non_Grammar : in Boolean)
+     return Stream_Node_Ref
+   with Pre => Tree.Contains (Stream, Element),
+     Post =>
+       (declare Ref : Stream_Node_Ref renames Last_Source_Terminal'Result;
+        begin
+           Tree.Valid_Stream_Node (Ref) and
+             (Ref.Node /= Invalid_Node_Access and then
+                (Tree.Label (Ref.Node) = Source_Terminal or
+                   Tree.Non_Grammar_Const (Ref.Node).Length > 0)));
+   --  Return a terminal node that can give byte or char pos.
+   --
+   --  If Trailing_Non_Grammar, return last terminal in Element.Node
+   --  that is a Source_Terminal, or a virtual terminal with non-empty
+   --  non_grammar. If not Trailing_Non_Grammar, only return a
+   --  Source_Terminal.
+   --
+   --  If none found in Element, continue searching in preceding stream
+   --  elements (will always find SOI).
+
+   procedure Last_Source_Terminal
+     (Tree                 : in     Syntax_Trees.Tree;
+      Ref                  : in out Stream_Node_Parents;
+      Trailing_Non_Grammar : in     Boolean;
+      Parse_Stream         : in     Stream_ID)
+   with Pre => Tree.Valid_Stream_Node (Ref.Ref) and Parents_Valid (Ref),
+     Post =>
+       Tree.Valid_Stream_Node (Ref.Ref) and
+       (Ref.Ref.Node /= Invalid_Node_Access and then
+          (Tree.Label (Ref.Ref.Node) = Source_Terminal or
+             Tree.Non_Grammar_Const (Ref.Ref.Node).Length > 0)) and
+       Parents_Valid (Ref);
+   --  Update Ref to a terminal node.
+   --
+   --  If Trailing_Non_Grammar, result is last terminal in Ref.Ref.Node
+   --  that is a Source_Terminal, or a virtual terminal with non-empty
+   --  non_grammar. If not Trailing_Non_Grammar, only return a
+   --  Source_Terminal.
+   --
+   --  If none found in Ref.Ref.Node, continue searching in preceding
+   --  nodes and stream elements (will always find SOI).
 
    function Next_Source_Terminal
      (Tree                 : in Syntax_Trees.Tree;
@@ -1775,16 +1838,8 @@ package WisiToken.Syntax_Trees is
       Node    : in     Valid_Node_Access;
       Parents : in out Node_Stacks.Stack)
      return Node_Access;
-   --  Same as First_Terminal (Tree, Node), also initializes Parents to
-   --  store path from Node to the first terminal, for Next_Terminal in
-   --  nodes that have unset parent links, or to limit Next_Terminal to
-   --  descendants of Node.
-   --
-   --  We don't have "Pre => Parents.Is_Empty" or "Post => Parents_Valid
-   --  (Parents, First_Terminal'Result)", because we call this function
-   --  recursively to create Parents.
-   --
-   --  Visible for use with error recovery Configuration input stream.
+   --  Same as First_Terminal (Tree, Node), also updates Parents to
+   --  store path from Node to the first terminal.
 
    procedure First_Terminal
      (Tree : in     Syntax_Trees.Tree;
@@ -2870,7 +2925,6 @@ package WisiToken.Syntax_Trees is
    procedure Print_Ref_Counts (Tree : in Syntax_Trees.Tree);
 
 private
-   use all type Ada.Containers.Count_Type;
    use all type Valid_Node_Access_Lists.Cursor;
 
    type Error_List_Access is access all Error_Data_Lists.List;

@@ -35,10 +35,8 @@ package WisiToken.Parse.Parser is
       User_Data   : Syntax_Trees.User_Data_Access;
 
       --  Packrat components
-      Derivs : Packrat.Derivs (First_Nonterminal .. Last_Nonterminal);
-
-      --  Packrat error recover components
-      Nonterms_Top_Down : Token_ID_Arrays.Vector; --  FIXME: not used yet.
+      Derivs                : Packrat.Derivs (First_Nonterminal .. Last_Nonterminal);
+      Direct_Left_Recursive : Token_ID_Array_Token_ID_Set_Access (First_Nonterminal .. Last_Nonterminal);
 
       --  LR components
       Table                   : WisiToken.Parse.LR.Parse_Table_Ptr;

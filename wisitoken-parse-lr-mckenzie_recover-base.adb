@@ -63,7 +63,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       --  EOI.
       declare
          use Syntax_Trees;
-         Streams     : Stream_ID_Array (1 .. Shared_Parser.Parsers.Count);
+         Streams     : Stream_ID_Array (1 .. Shared_Parser.Parsers.Count + 1);
          First_Nodes : Valid_Node_Access_Array (1 .. Super.Parser_Count) := (others => Dummy_Node);
          Last_Nodes  : Valid_Node_Access_Array (1 .. Super.Parser_Count) := (others => Dummy_Node);
 
@@ -513,7 +513,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       end if;
 
       declare
-         Streams : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Parsers.Count);
+         Streams : Syntax_Trees.Stream_ID_Array (1 .. Super.Stream_Count);
 
          function Min_Target_Index return Syntax_Trees.Sequential_Index
          is begin
@@ -529,6 +529,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          for I in Super.Parser_Status'Range loop
             Streams (I) := Super.Parser_Status (I).Parser_State.Stream;
          end loop;
+         Streams (Streams'Last) := Shared_Parser.Tree.Shared_Stream;
 
          loop
             exit when Shared_Parser.Tree.Get_Sequential_Index (Thru) /= Syntax_Trees.Invalid_Sequential_Index;

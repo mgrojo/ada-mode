@@ -67,23 +67,31 @@ package body WisiToken.Generate.Packrat is
 
    function Initialize
      (Source_File_Name : in String;
-      Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
-      Source_Line_Map  : in Productions.Source_Line_Maps.Vector;
-      First_Terminal   : in Token_ID)
+      Generate_Data    : in WisiToken.BNF.Generate_Utils.Generate_Data)
      return Packrat.Data
    is
+      Grammar         : WisiToken.Productions.Prod_Arrays.Vector renames Generate_Data.Grammar;
+      Source_Line_Map : Productions.Source_Line_Maps.Vector renames Generate_Data.Source_Line_Map;
+
       Empty : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
+
+      First_Nonterm_Set : constant Token_Array_Token_Set := WisiToken.Generate.First
+        (Grammar, Empty, Generate_Data.Descriptor.First_Terminal);
+
+      First_Terminal_Sequence : constant Token_Sequence_Arrays.Vector :=
+        WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Generate_Data.Descriptor.all);
    begin
       return Result : Packrat.Data :=
-        (First_Terminal        => First_Terminal,
+        (First_Terminal        => Generate_Data.Descriptor.First_Terminal,
          First_Nonterminal     => Grammar.First_Index,
          Last_Nonterminal      => Grammar.Last_Index,
          Source_File_Name      => +Source_File_Name,
          Grammar               => Grammar,
          Source_Line_Map       => Source_Line_Map,
          Empty                 => Empty,
-         Direct_Left_Recursive => Potential_Direct_Left_Recursive (Grammar, Empty),
-         First                 => WisiToken.Generate.First (Grammar, Empty, First_Terminal => First_Terminal),
+         Direct_Left_Recursive => Packrat.Direct_Left_Recursive
+           (Grammar, Generate_Data.Descriptor.all, First_Terminal_Sequence),
+         First                 => First_Nonterm_Set,
          Involved              => (others => (others => False)))
       do
          Indirect_Left_Recursive (Result);
@@ -95,7 +103,7 @@ package body WisiToken.Generate.Packrat is
       Right_Recursive : constant Token_ID_Set := Potential_Direct_Right_Recursive (Data.Grammar, Data.Empty);
    begin
       for Prod of Data.Grammar loop
-         if Data.Direct_Left_Recursive (Prod.LHS) and Right_Recursive (Prod.LHS) then
+         if Data.Direct_Left_Recursive (Prod.LHS) /= null and Right_Recursive (Prod.LHS) then
             --  We only implement the simplest left recursion solution ([warth
             --  2008] figure 3); [tratt 2010] section 6.3 gives this condition for
             --  that to be valid.
@@ -228,33 +236,39 @@ package body WisiToken.Generate.Packrat is
       Check_RHS_Order (Data, Descriptor, Suppress);
    end Check_All;
 
-   function Potential_Direct_Left_Recursive
-     (Grammar : in WisiToken.Productions.Prod_Arrays.Vector;
-      Empty   : in Token_ID_Set)
-     return Token_ID_Set
+   function Direct_Left_Recursive
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor;
+      First      : in Token_Sequence_Arrays.Vector)
+     return Token_ID_Array_Token_ID_Set_Access
    is
-      subtype Nonterminal is Token_ID range Grammar.First_Index .. Grammar.Last_Index;
+      use all type Ada.Containers.Count_Type;
    begin
-      --  FIXME packrat: this duplicates the computation of Data.First; if keep Data.First,
-      --  change this to use it.
-      return Result : Token_ID_Set (Nonterminal) := (others => False) do
+      return Result : Token_ID_Array_Token_ID_Set_Access (Grammar.First_Index .. Grammar.Last_Index)
+      do
          for Prod of Grammar loop
-            RHS_Loop :
-            for RHS of Prod.RHSs loop
-               ID_Loop :
-               for ID of RHS.Tokens loop
-                  if ID = Prod.LHS then
-                     Result (ID) := True;
-                     exit RHS_Loop;
-                  elsif not (ID in Nonterminal) then
-                     exit ID_Loop;
-                  elsif not Empty (ID) then
-                     exit ID_Loop;
+            declare
+               Terminal_Set : Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal) := (others => False);
+               Recursive    : Boolean := False;
+            begin
+               for RHS of Prod.RHSs loop
+                  if RHS.Tokens.Length > 1 and then RHS.Tokens (1) = Prod.LHS then
+                     Recursive := True;
+                     if Is_Terminal (RHS.Tokens (2), Descriptor) then
+                        Terminal_Set (RHS.Tokens (2)) := True;
+                     else
+                        for ID of First (RHS.Tokens (2)) loop
+                           Terminal_Set (ID) := True;
+                        end loop;
+                     end if;
                   end if;
-               end loop ID_Loop;
-            end loop RHS_Loop;
+               end loop;
+               if Recursive then
+                  Result (Prod.LHS) := new Token_ID_Set'(Terminal_Set);
+               end if;
+            end;
          end loop;
       end return;
-   end Potential_Direct_Left_Recursive;
+   end Direct_Left_Recursive;
 
 end WisiToken.Generate.Packrat;

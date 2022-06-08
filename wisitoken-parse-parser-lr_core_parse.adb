@@ -43,7 +43,7 @@ begin
       --  exit on Accept_It action, or Resume_Active false if Recover_Only,
       --  or unrecovered syntax error.
 
-      Parse_Verb (Shared_Parser, Current_Verb, Zombie_Count);
+      Parse_Verb (Shared_Parser, Recover_Only, Current_Verb, Zombie_Count);
 
       exit Main_Loop when Recover_Only and then not Shared_Parser.Resume_Active;
 
@@ -306,6 +306,11 @@ begin
             if Recover_Result = Success then
                Shared_Parser.Resume_Active := True;
 
+               if Trace_Packrat_McKenzie > Detail then
+                  Trace.Put_Line (" shared_stream:");
+                  Trace.Put_Line (Shared_Parser.Tree.Image (Shared_Parser.Tree.Shared_Stream, Node_Numbers => True));
+               end if;
+
                for Parser_State of Shared_Parser.Parsers loop
                   Parser_State.Resume_Active          := True;
                   Parser_State.Conflict_During_Resume := False;
@@ -322,7 +327,7 @@ begin
 
                   when Shift =>
                      Parser_State.Zombie_Token_Count := 0;
-                     if Trace_Parse > Detail and Trace_McKenzie <= Extra then
+                     if (Trace_Parse > Detail and Trace_McKenzie <= Extra) or Trace_Packrat_McKenzie > Detail then
                         Trace.Put_Line
                           (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": stack/stream:");
                         Trace.Put_Line
@@ -355,7 +360,7 @@ begin
                   end case;
                end loop;
 
-               if Trace_Parse > Detail then
+               if Trace_Parse > Detail or Trace_Packrat_McKenzie > Detail then
                   Trace.New_Line;
                end if;
 

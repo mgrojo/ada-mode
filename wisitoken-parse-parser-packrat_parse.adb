@@ -16,6 +16,7 @@
 --  version 3.1, as published by the Free Software Foundation.
 
 pragma License (Modified_GPL);
+with WisiToken.Parse.LR.McKenzie_Recover;
 with WisiToken.Parse.LR.Parser;
 separate (WisiToken.Parse.Parser)
 procedure Packrat_Parse
@@ -23,11 +24,18 @@ procedure Packrat_Parse
    Log_File      : in     Ada.Text_IO.File_Type)
 is
    use WisiToken.Syntax_Trees;
-   Derivs : WisiToken.Parse.Packrat.Derivs renames Shared_Parser.Derivs;
-   Tree   : Syntax_Trees.Tree renames Shared_Parser.Tree;
-   Trace  : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
+   Derivs     : WisiToken.Parse.Packrat.Derivs renames Shared_Parser.Derivs;
+   Tree       : Syntax_Trees.Tree renames Shared_Parser.Tree;
+   Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
+   Trace      : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
 
-   Recovered : Boolean := False;
+   Recovered        : Boolean    := False;
+   Max_Examined_Pos : Node_Index := 0;
+
+   function To_Node_Index (Pos : in Stream_Index) return Node_Index
+   is begin
+      return Tree.Get_Node_Index (Tree.Shared_Stream, Pos);
+   end To_Node_Index;
 
    function To_Stream_Index (Pos : in Node_Index) return Stream_Index
    is
@@ -47,6 +55,8 @@ is
 
    function Find_Shared_Stream_Index (Node : in Valid_Node_Access) return Stream_Index
    with Post => Tree.Contains (Tree.Shared_Stream, Find_Shared_Stream_Index'Result)
+     --  Same as To_Stream_Index, but handles terminals copied to add
+     --  errors.
    is
       --  FIXME: use node_index map to do binary search.
       I : Stream_Index := Tree.Stream_First (Tree.Shared_Stream, Skip_SOI => True);
@@ -60,11 +70,82 @@ is
       return I;
    end Find_Shared_Stream_Index;
 
-   procedure Derivs_To_Parse_Streams (Max_Examined_Stream_Index : in out Stream_Index)
+   Min_Seq_Stream_Index : Stream_Index;
+   Max_Seq_Stream_Index : Stream_Index;
+   --  Pos in Shared_Stream occupied by Parser.Min/Max_Sequential_Index after LR recover.
+
+   procedure Set_Min_Max_Seq_Stream_Index
+   is
+      I : Stream_Index := Tree.Stream_First (Tree.Shared_Stream, Skip_SOI => True);
+   begin
+      --  FIXME: use node_index map to do binary search.
+      loop
+         declare
+            Node : constant Valid_Node_Access := Tree.Get_Node (Tree.Shared_Stream, I);
+            Node_Seq_Index : constant Base_Sequential_Index := Tree.Get_Sequential_Index (Node);
+         begin
+            if Node_Seq_Index /= Invalid_Sequential_Index and then
+              Node_Seq_Index > Shared_Parser.Min_Sequential_Index
+            then
+               Min_Seq_Stream_Index := I;
+               exit;
+            end if;
+         end;
+
+         Tree.Stream_Next (Tree.Shared_Stream, I);
+      end loop;
+
+      loop
+         Tree.Stream_Next (Tree.Shared_Stream, I);
+         declare
+            Node : constant Valid_Node_Access := Tree.Get_Node (Tree.Shared_Stream, I);
+            Node_Seq_Index : constant Base_Sequential_Index := Tree.Get_Sequential_Index (Node);
+         begin
+            if Node = Tree.EOI then
+               Max_Seq_Stream_Index := I;
+               exit;
+
+            elsif Node_Seq_Index = Invalid_Sequential_Index then
+               Max_Seq_Stream_Index := Tree.Stream_Prev (Tree.Shared_Stream, I);
+               exit;
+
+            elsif Node_Seq_Index > Shared_Parser.Max_Sequential_Index then
+               Max_Seq_Stream_Index := I;
+               exit;
+            end if;
+         end;
+      end loop;
+   end Set_Min_Max_Seq_Stream_Index;
+
+   function Find_Node_Index (Seq_Index : in Sequential_Index) return Node_Index
+   is
+      I : Stream_Index := Min_Seq_Stream_Index;
+   begin
+      --  FIXME: use node_index map to do binary search.
+      loop
+         declare
+            Node : constant Valid_Node_Access := Tree.Get_Node (Tree.Shared_Stream, I);
+            Node_Seq_Index : constant Base_Sequential_Index := Tree.Get_Sequential_Index (Node);
+         begin
+            --  Seq_Index is not guarranteed to be in the Shared_Stream; it might
+            --  be on a virtual terminal inserted by a previous error recover
+            --  session.
+            if Node_Seq_Index /= Invalid_Sequential_Index and then
+              Node_Seq_Index > Seq_Index
+            then
+               return Tree.Get_Node_Index (Node);
+            end if;
+         end;
+         Tree.Stream_Next (Tree.Shared_Stream, I);
+      end loop;
+   end Find_Node_Index;
+
+   procedure Derivs_To_Parse_Streams
+     (Max_Examined_Pos : in out Node_Index;
+      Max_Examined_Stream_Index : in out Stream_Index)
    --  Build Tree parse streams from Derivs
    is
-      Pos              : Node_Index := 1;
-      Max_Examined_Pos : Node_Index := 0;
+      Pos : Node_Index := 1;
 
       procedure Find_Nodes
         (Pos                 : in     Node_Index;
@@ -110,7 +191,8 @@ is
          Terminal_Node := Tree.Get_Node (Tree.Shared_Stream, To_Stream_Index (Pos));
       end Find_Nodes;
    begin
-         --  Find Max_Examined_Pos.
+      --  Find Max_Examined_Pos.
+      Max_Examined_Pos := 0;
       for Nonterm in Derivs'Range loop
          for Pos in Derivs (Nonterm).First_Index .. Derivs (Nonterm).Last_Index loop
 
@@ -147,6 +229,7 @@ is
       end if;
 
       loop
+         --  Exit when reach Max_Examined_Pos.
          if Trace_Packrat_McKenzie > Outline then
             Trace.Put_Line ("pos:" & Pos'Image);
          end if;
@@ -174,7 +257,7 @@ is
                   Tree.Push (Stream, Nonterm_Node, State);
 
                   Ada.Text_IO.Put_Line
-                    ("state " & Prev_State'Image & " push " & Tree.Image (Nonterm_Node, Node_Numbers => True));
+                    ("state" & Prev_State'Image & " push " & Tree.Image (Nonterm_Node, Node_Numbers => True));
 
                   Pos := Tree.Get_Node_Index (Tree.Last_Terminal (Nonterm_Node)) + 1;
                end;
@@ -197,7 +280,7 @@ is
                         Tree.Push (Stream, Terminal_Node, State);
 
                         Ada.Text_IO.Put_Line
-                          ("state " & Prev_State'Image & " push " & Tree.Image (Terminal_Node, Node_Numbers => True));
+                          ("state" & Prev_State'Image & " push " & Tree.Image (Terminal_Node, Node_Numbers => True));
 
                         Pos := @ + 1;
                         exit;
@@ -223,7 +306,7 @@ is
                                        Tree.Push (Stream, Empty_Nonterm_Node, State);
                                        Shift_Count := @ + 1;
                                        Ada.Text_IO.Put_Line
-                                         ("state " & Prev_State'Image & " push " &
+                                         ("state" & Prev_State'Image & " push " &
                                             Tree.Image (Empty_Nonterm_Node, Node_Numbers => True));
                                        Prev_State := State;
 
@@ -244,8 +327,31 @@ is
                         end if;
 
                      when Error =>
-                        --  This is the error token; we're not supposed to get here.
-                        raise SAL.Programmer_Error;
+                        --  This is from look-ahead after a completed nonterm; see
+                        --  test_mckenzie_recover.adb Error_2. The parser is trying to
+                        --  complete a handled_sequence_of_statements for the body of Proc;
+                        --  'block_1 ... end;' is in a sequence_of_statements, but 'if ... end
+                        --  Block_2;' fails. sequence_of_statements is recursive, so the
+                        --  parser is in a recursion loop; it finishes by completing
+                        --  handled_sequence_of_statements containing just 'block_1 ... end;'
+                        --  (it assumes the following tokens are 'end Proc;' or equivalent).
+                        --
+                        --  Terminal_Node is 'if'; the solution is to Undo_Reduce to a point
+                        --  where the LR parser can shift 'if'.
+                        if Trace_Packrat_McKenzie > Detail then
+                           Trace.Put_Line
+                             ("state" & Prev_State'Image & ": " & Tree.Image (Terminal_Node) &
+                                " error; undo_reduce");
+                           Trace.Put (" ... " & Tree.Image (Tree.Peek (Stream), State => True));
+                        end if;
+                        Undo_Reduce (Tree, Table, Stream, Shared_Parser.User_Data);
+                        Prev_State := Tree.State (Stream);
+
+                        if Trace_Packrat_McKenzie > Detail then
+                           Trace.Put (" => " & Tree.Image (Tree.Peek (Stream), State => True),
+                                      Prefix => False);
+                           Trace.New_Line;
+                        end if;
 
                      when others =>
                         raise SAL.Not_Implemented with "FIXME: action " & Action.Item.Verb'Image;
@@ -261,86 +367,203 @@ is
 
    procedure Parse_Streams_To_Derivs
    is
-      EOI_Node_Index : constant Node_Index := Tree.Get_Node_Index (Tree.EOI);
-
-      Stream : Stream_ID := Tree.First_Parse_Stream;
+      use all type WisiToken.Parse.Packrat.Memo_State;
+      Stream        : Stream_ID  := Tree.First_Parse_Stream;
+      Last_Edit_Pos : Node_Index := 0;
    begin
-      loop
-         declare
-            El : Stream_Index := Tree.Stream_First (Stream, Skip_SOI => True);
-         begin
-            loop
-               case Tree.Label (Tree.Get_Node (Stream, El)) is
-               when Source_Terminal =>
-                  --  Packrat_Parse does not expect terminals in Derivs; all terminals
-                  --  must be in Shared_Stream. Copy any errors back to Shared_Stream
-                  if Tree.Has_Error (Tree.Get_Node (Stream, El)) then
-                     declare
-                        Node                : constant Valid_Node_Access := Tree.Get_Node (Stream, El);
-                        Shared_Stream_Index : constant Stream_Index      := Find_Shared_Stream_Index (Node);
-                        Shared_Node         : constant Valid_Node_Access := Tree.Get_Node
-                          (Tree.Shared_Stream, Shared_Stream_Index);
-                     begin
-                        Tree.Add_Errors (Tree.Shared_Stream, Shared_Node, Tree.Error_List (Node));
-                     end;
+      --  Clear Derivs that are affected by the recover ops.
+      Set_Min_Max_Seq_Stream_Index;
+
+      for Parser_State of Shared_Parser.Parsers loop
+         if Trace_Packrat_McKenzie > Detail then
+            Trace.Put_Line
+              (Tree.Trimmed_Image (Parser_State.Stream) & ": recover_insert_delete: " & WisiToken.Parse.LR.Image
+                 (Parser_State.Recover_Insert_Delete, Tree));
+         end if;
+
+         --  First pass to clear left-recursive Derivs that can be
+         --  extended; they may be fixed by this edit.
+         for Nonterm in Derivs'Range loop
+            if Shared_Parser.Direct_Left_Recursive (Nonterm) /= null then
+               for Pos in Derivs (Nonterm).First_Index .. Derivs (Nonterm).Last_Index loop
+                  declare
+                     Memo  : WisiToken.Parse.Packrat.Memo_Entry renames Derivs (Nonterm)(Pos);
+                     Clear : Boolean := False;
+                  begin
+                     case Memo.State is
+                     when No_Result | Failure =>
+                        null;
+
+                     when Success =>
+                        if Shared_Parser.Direct_Left_Recursive (Nonterm)
+                          (Tree.ID (Tree.Stream_Next (Tree.Shared_Stream, Memo.Last_Pos)))
+                        then
+                           --  The recursive nonterm can be extended. IMPROVEME: that means it
+                           --  failed because of some error; maybe not this one!
+                           Clear := True;
+                        end if;
+                     end case;
+
+                     if Clear then
+                        if Trace_Packrat_McKenzie > Detail then
+                           Trace.Put_Line
+                             ("clear recursive deriv" & Packrat.Image (Memo, Nonterm, Pos, Tree));
+                        end if;
+
+                        Derivs (Nonterm).Replace_Element (Pos, WisiToken.Parse.Packrat.No_Result_Memo);
+                     end if;
+                  end;
+               end loop;
+            end if;
+         end loop;
+
+         --  Second pass to clear all Derivs affected by the edits in this
+         --  error recover.
+         for Op of Parser_State.Recover_Insert_Delete loop
+            declare
+               Edit_Pos : constant Node_Index :=
+                 (case Op.Op is
+                  when Insert => Find_Node_Index (Op.Ins_Before),
+                  when Delete =>
+                     --  FIXME: if Op.Del_Node was copied to add an error, this is wrong.
+                     --  Need test case.
+                     Tree.Get_Node_Index (Op.Del_Node));
+            begin
+               if Edit_Pos /= Last_Edit_Pos then
+                  Last_Edit_Pos := Edit_Pos;
+
+                  if Trace_Packrat_McKenzie > Detail then
+                     Trace.Put_Line ("edit_pos:" & Edit_Pos'Image);
                   end if;
 
-               when Virtual_Terminal =>
-                     --  This is a bug in error recover; all inserted virtual terminals
-                     --  should be consumed by a nonterm, not left in the parse stream.
-                     if Debug_Mode then
-                        raise SAL.Programmer_Error with "virtual_terminal in parse stream";
-                     else
-                        raise WisiToken.Parse_Error  with "virtual_terminal in parse stream";
-                     end if;
+                  --  IMPROVEME: use red_black tree sorted on max_examined_pos to
+                  --  make this more efficient?
 
-               when Virtual_Identifier =>
-                  raise SAL.Programmer_Error;
 
-               when Nonterm =>
+                  for Nonterm in Derivs'Range loop
+                     for Pos in Derivs (Nonterm).First_Index .. Derivs (Nonterm).Last_Index loop
+                        declare
+                           Memo  : WisiToken.Parse.Packrat.Memo_Entry renames Derivs (Nonterm)(Pos);
+                           Clear : Boolean := False;
+                        begin
+                           case Memo.State is
+                           when No_Result =>
+                              null;
+
+                           when Failure =>
+                              if Edit_Pos <= To_Node_Index (Memo.Max_Examined_Pos) then
+                                 Clear := True;
+                              end if;
+
+                           when Success =>
+                              if Edit_Pos in Tree.Get_Node_Index (Tree.First_Terminal (Memo.Result)) ..
+                                To_Node_Index (Memo.Max_Examined_Pos)
+                              then
+                                 Clear := True;
+                              end if;
+                           end case;
+
+                           if Clear then
+                              if Trace_Packrat_McKenzie > Detail then
+                                 Trace.Put_Line ("clear deriv" & Packrat.Image (Memo, Nonterm, Pos, Tree));
+                              end if;
+
+                              Derivs (Nonterm).Replace_Element (Pos, WisiToken.Parse.Packrat.No_Result_Memo);
+                           end if;
+                        end;
+                     end loop;
+                  end loop;
+               end if;
+            end;
+         end loop;
+      end loop;
+      WisiToken.Parse.LR.McKenzie_Recover.Clear_Sequential_Index (Shared_Parser);
+
+      --  Enter each Stream element into Derivs. We process the stack top
+      --  first, and pop the stack to get the next element, to allow doing
+      --  Undo_Reduce for recursive productions.
+      loop
+         loop
+            case Tree.Label (Tree.Peek (Stream)) is
+            when Source_Terminal =>
+               --  Packrat_Parse does not expect terminals in Derivs; all terminals
+               --  must be in Shared_Stream. Copy any errors back to Shared_Stream
+               if Tree.Has_Error (Tree.Get_Node (Stream, Tree.Peek (Stream))) then
                   declare
-                     Result_Node    : constant Valid_Node_Access := Tree.Get_Node (Stream, El);
-                     First_Term_Ref : Stream_Node_Ref            := Tree.First_Source_Terminal
-                       (Stream, El, Trailing_Non_Grammar => False);
-
-                     Last_Node : constant Node_Access := Tree.Last_Source_Terminal
-                       (Result_Node, Trailing_Non_Grammar => False);
-
-                     Last_Pos : constant Stream_Index :=
-                       (if Last_Node = Invalid_Node_Access then
-                          (if First_Term_Ref.Stream /= Tree.Shared_Stream
-                           --  First_Term_Ref was copied to add an error.
-                           then Find_Shared_Stream_Index (First_Term_Ref.Node)
-                           else First_Term_Ref.Element)
-                        else
-                          (if Tree.Get_Node_Index (Last_Node) > EOI_Node_Index
-                           --  Last_Node was copied to add an error.
-                           then Find_Shared_Stream_Index (Last_Node)
-                           else To_Stream_Index (Tree.Get_Node_Index (Last_Node))));
+                     Node : constant Valid_Node_Access := Tree.Get_Node (Stream, Tree.Peek (Stream));
+                     Shared_Stream_Index : constant Stream_Index      := Find_Shared_Stream_Index (Node);
+                     Shared_Node         : constant Valid_Node_Access := Tree.Get_Node
+                       (Tree.Shared_Stream, Shared_Stream_Index);
                   begin
-                     pragma Assert (Tree.Contains (Tree.Shared_Stream, Last_Pos));
+                     Tree.Add_Errors (Tree.Shared_Stream, Shared_Node, Tree.Error_List (Node));
+                  end;
+               end if;
+
+            when Virtual_Terminal =>
+               --  This is a bug in error recover; all inserted virtual terminals
+               --  should be consumed by a nonterm, not left in the parse stream.
+               if Debug_Mode then
+                  raise SAL.Programmer_Error with "virtual_terminal in parse stream";
+               else
+                  raise WisiToken.Parse_Error  with "virtual_terminal in parse stream";
+               end if;
+
+            when Virtual_Identifier =>
+               raise SAL.Programmer_Error;
+
+            when Nonterm =>
+               if Shared_Parser.Direct_Left_Recursive (Tree.ID (Tree.Peek (Stream))) /= null then
+                  declare
+                     Next_Terminal : constant Valid_Node_Access := Tree.First_Terminal
+                       (Tree.To_Rooted_Ref (Stream, Tree.Stream_Next (Stream, Tree.Peek (Stream)))).Node;
+                  begin
+                     if Shared_Parser.Direct_Left_Recursive (Tree.ID (Tree.Peek (Stream))) (Tree.ID (Next_Terminal))
+                     then
+                        --  The next token extends the recursion in Nonterm. The packrat
+                        --  parser will not extend this recursive production (because it first
+                        --  just checks if Nonterm succeeds), so add the contents instead.
+                        --  test_mckenzie_recover.adb Error_2.
+                        LR.Undo_Reduce (Tree, Shared_Parser.Table.all, Stream, Shared_Parser.User_Data);
+                     end if;
+                  end;
+               end if;
+
+               declare
+                  Result_Node : constant Valid_Node_Access := Tree.Get_Node (Stream, Tree.Peek (Stream));
+                  First_Term  : Stream_Node_Parents        := Tree.To_Stream_Node_Parents
+                    ((Stream, Tree.Peek (Stream), Result_Node));
+                  Last_Term   : Stream_Node_Parents        := First_Term;
+               begin
+                  Tree.First_Source_Terminal (First_Term, Trailing_Non_Grammar => False);
+                  Tree.Last_Source_Terminal (Last_Term, Trailing_Non_Grammar => False, Parse_Stream => Stream);
+
+                  declare
+                     Last_Pos : constant Stream_Index := Find_Shared_Stream_Index (Last_Term.Ref.Node);
+                     Pos      : constant Node_Index   := To_Node_Index
+                       (Find_Shared_Stream_Index (First_Term.Ref.Node));
+
+                     Memo     : constant Packrat.Memo_Entry :=
+                       (WisiToken.Parse.Packrat.Success,
+                        Max_Examined_Pos => Last_Pos,
+                        Result           => Result_Node,
+                        Last_Pos         => Last_Pos);
+                  begin
+                     if Trace_Packrat_McKenzie > Detail then
+                        Trace.Put_Line ("set deriv" & Packrat.Image (Memo, Tree.ID (Result_Node), Pos, Tree));
+                     end if;
 
                      WisiToken.Parse.Packrat.Set_Deriv
                        (Derivs,
-                        Nonterm             => Tree.ID (Stream, El),
-                        Pos                 => Tree.Get_Node_Index
-                          (if First_Term_Ref.Stream /= Tree.Shared_Stream
-                           --  First_Term_Ref was copied to add an error.
-                           then Tree.Get_Node (Tree.Shared_Stream, Find_Shared_Stream_Index (First_Term_Ref.Node))
-                           else First_Term_Ref.Node),
-                        Memo                =>
-                          (WisiToken.Parse.Packrat.Success,
-                           Max_Examined_Pos => Last_Pos,
-                           Result           => Result_Node,
-                           Last_Pos         => Last_Pos));
+                        Nonterm => Tree.ID (Result_Node),
+                        Pos     => Pos,
+                        Memo    => Memo);
                   end;
+               end;
+            end case;
 
-               end case;
-
-               Tree.Stream_Next (Stream, El);
-               exit when El = Invalid_Stream_Index;
-            end loop;
-         end;
+            Tree.Push_Back (Stream);
+            exit when Tree.ID (Tree.Peek (Stream)) = Descriptor.SOI_ID;
+         end loop;
 
          Tree.Next_Parse_Stream (Stream);
          exit when Stream = Invalid_Stream_ID;
@@ -352,13 +575,18 @@ is
 begin
    loop -- One error recover session per loop
       begin
+         if Trace_Packrat_McKenzie > Outline then
+            Trace.Put_Line ("packrat parse" & (if Recovered then " resume:" else ":"));
+         end if;
          WisiToken.Parse.Parser.Parser'Class (Shared_Parser).Packrat_Parse_No_Recover (Resume => Recovered);
          Recovered := False;
       exception
       when WisiToken.Parse_Error =>
          if Trace_Packrat_McKenzie > Outline then
+            Trace.New_Line;
             Trace.Put_Line ("pre recover derivs:");
             Shared_Parser.Print_Derivs;
+            Trace.New_Line;
          end if;
 
          Shared_Parser.Parsers := WisiToken.Parse.LR.Parser_Lists.New_List (Tree);
@@ -366,9 +594,17 @@ begin
          Tree.Start_Parse (Shared_Parser.Parsers.First.State_Ref.Stream, Shared_Parser.Table.State_First);
 
          declare
-            Max_Examined_Stream_Index : Stream_Index := Invalid_Stream_Index;
+            Max_Examined_Stream_Index : Stream_Index        := Invalid_Stream_Index;
+            Last_Max_Examined_Pos     : constant Node_Index := Max_Examined_Pos;
          begin
-            Derivs_To_Parse_Streams (Max_Examined_Stream_Index);
+            if Trace_Packrat_McKenzie > Outline then
+               Trace.Put_Line ("derivs to parse stream:");
+            end if;
+            Derivs_To_Parse_Streams (Max_Examined_Pos, Max_Examined_Stream_Index);
+
+            if Max_Examined_Pos <= Last_Max_Examined_Pos then
+               raise WisiToken.Parse_Error with "error recover failed to make progress";
+            end if;
 
             --  Ensure LR_Core_Parse immediately enters recover.
             Shared_Parser.Resume_Active := True;
@@ -391,20 +627,29 @@ begin
             end loop;
          end;
 
+         if Trace_Packrat_McKenzie > Outline then
+            Trace.New_Line;
+            Trace.Put_Line ("LR parse recover:");
+         end if;
+
          Shared_Parser.LR_Core_Parse (Log_File, Recover_Only => True);
          --  Raises Parse_Error if recover fails.
          Recovered := True;
 
          if Trace_Packrat_McKenzie > Outline then
-            Trace.Put_Line ("post recover parse streams:");
-            Tree.Print_Streams;
+            Trace.New_Line;
+            Trace.Put_Line ("post recover streams:");
+            Tree.Print_Streams (Children => Trace_Packrat_McKenzie > Detail);
+            Trace.Put_Line ("parse streams to derivs:");
          end if;
 
          Parse_Streams_To_Derivs;
 
          if Trace_Packrat_McKenzie > Outline then
+            Trace.New_Line;
             Trace.Put_Line ("post recover derivs:");
             Shared_Parser.Print_Derivs;
+            Trace.New_Line;
          end if;
       end;
 

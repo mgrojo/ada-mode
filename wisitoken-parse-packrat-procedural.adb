@@ -36,7 +36,7 @@ package body WisiToken.Parse.Packrat.Procedural is
    procedure Trace_Deriv_Success
      (Parser : in out Procedural.Parser;
       Pos    : in     WisiToken.Syntax_Trees.Stream_Index;
-      Node   : in     WisiToken.Syntax_Trees.Valid_Node_Access)
+      Memo   : in     Success_Memo_Entry)
    is
       use Syntax_Trees;
       Tree : Syntax_Trees.Tree renames Parser.Tree;
@@ -47,11 +47,15 @@ package body WisiToken.Parse.Packrat.Procedural is
           then Node_Index'Image (Tree.Get_Node_Index (Tree.Shared_Stream, Pos)) & "; "
           else "") &
            Tree.Image
-             (Node,
+             (Memo.Result,
               Children              => True,
               Node_Numbers          => Trace_Packrat_McKenzie > Outline,
               Terminal_Node_Numbers => True,
-              RHS_Index             => True));
+              RHS_Index             => True) &
+           (if Trace_Packrat_McKenzie > Outline
+            then " last_pos" & Node_Index'Image (Tree.Get_Node_Index (Tree.Shared_Stream, Memo.Last_Pos)) &
+              " max_ex_pos" & Node_Index'Image (Tree.Get_Node_Index (Tree.Shared_Stream, Memo.Max_Examined_Pos))
+            else ""));
    end Trace_Deriv_Success;
 
    ----------
@@ -84,10 +88,6 @@ package body WisiToken.Parse.Packrat.Procedural is
          then
             Max_Examined_Pos := New_Pos;
          end if;
-         if Trace_Parse > Extra then
-            Parser.Tree.Lexer.Trace.Put_Line
-              (Image (R, Descriptor) & ": max_examined_pos " & Image_Pos (Tree, Tree.Shared_Stream, Max_Examined_Pos));
-         end if;
       end Update_Max_Examined_Pos;
 
    begin
@@ -98,14 +98,19 @@ package body WisiToken.Parse.Packrat.Procedural is
             Memo : Memo_Entry; --  for temporary or intermediate results
          begin
             if RHS.Tokens.Length = 0 then
-               return
+               return Result : constant Memo_Entry :=
                  (State            => Success,
                   Max_Examined_Pos => Max_Examined_Pos,
                   Result           => Tree.Add_Nonterm
                     (Production    => (R, RHS_Index),
                      Children      => (1 .. 0 => Syntax_Trees.Invalid_Node_Access),
                      Clear_Parents => False),
-                  Last_Pos         => Pos);
+                  Last_Pos         => Pos)
+               do
+                  if Trace_Parse > Extra then
+                     Parser.Tree.Lexer.Trace.Put_Line ("eval: " & Image (Result, R, Pos, Tree));
+                  end if;
+               end return;
             else
                declare
                   use all type WisiToken.Syntax_Trees.Node_Access;
@@ -119,7 +124,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                            pragma Assert (Tree.Get_Node (Tree.Shared_Stream, Max_Examined_Pos) = Tree.EOI);
                            goto Fail_RHS;
 
-                        elsif Tree.ID (Tree.Shared_Stream, Next_Pos) = RHS.Tokens (I) then
+                        elsif Tree.ID (Next_Pos) = RHS.Tokens (I) then
                            Pos := Next_Pos;
                            Next_Pos := Tree.Stream_Next (Tree.Shared_Stream, Pos);
                            Children (SAL.Base_Peek_Type (I)) := Tree.Get_Node (Tree.Shared_Stream, Pos);
@@ -158,8 +163,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                      Last_Pos         => Pos)
                   do
                      if Trace_Parse > Extra then
-                        Parser.Tree.Lexer.Trace.Put_Line
-                          ("eval: " & Parser.Tree.Image (Root => Result.Result, Children => True));
+                        Parser.Tree.Lexer.Trace.Put_Line ("eval: " & Image (Result, R, Pos, Tree));
                      end if;
                   end return;
 
@@ -198,31 +202,33 @@ package body WisiToken.Parse.Packrat.Procedural is
    begin
       case Memo.State is
       when Success | Failure =>
+         if Trace_Parse > Extra then
+            Parser.Tree.Lexer.Trace.Put_Line ("apply memo:" & Image (Memo, R, Start_Pos, Tree));
+         end if;
          return Memo;
 
       when No_Result =>
-         if Parser.Direct_Left_Recursive (R) then
+         if Parser.Direct_Left_Recursive (R) /= null then
             Parser.Derivs (R).Replace_Element
               (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos), (Failure, Last_Pos));
          else
             Memo := Eval (Parser, R, Last_Pos);
 
-            if (Trace_Parse > Detail and Memo.State = Success) or Trace_Parse > Extra then
-               case Memo.State is
-               when Success =>
-                  Trace_Deriv_Success (Parser, Start_Pos, Memo.Result);
+            if Trace_Parse > Extra then
+               Parser.Tree.Lexer.Trace.Put_Line ("apply memo:" & Image (Memo, R, Start_Pos, Tree));
 
-               when Failure =>
-                  Parser.Tree.Lexer.Trace.Put_Line
-                    (Image (R, Descriptor) & " failed at pos " & Image_Pos (Tree, Tree.Shared_Stream, Last_Pos));
-               when No_Result =>
-                  raise SAL.Programmer_Error;
-               end case;
+            elsif Trace_Parse > Detail and Memo.State = Success then
+               --  Match LR parse trace detail
+               Trace_Deriv_Success (Parser, Start_Pos, Memo);
             end if;
             Parser.Derivs (R).Replace_Element (Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos), Memo);
             return Memo;
          end if;
       end case;
+
+      if Trace_Parse > Extra then
+         Parser.Tree.Lexer.Trace.Put_Line ("apply recursive " & Image (R, Descriptor));
+      end if;
 
       loop
          --  Production is like: list : list element | element
@@ -244,7 +250,10 @@ package body WisiToken.Parse.Packrat.Procedural is
                Pos_Recurse_Last := Pos;
 
                if WisiToken.Trace_Parse > Detail then
-                  Trace_Deriv_Success (Parser, Start_Pos, Result_Recurse.Result);
+                  Trace_Deriv_Success (Parser, Start_Pos, Result_Recurse);
+                  if Trace_Parse > Extra then
+                     Parser.Tree.Lexer.Trace.Put_Line ("apply recursive continue");
+                  end if;
                end if;
                --  continue looping
 
@@ -262,10 +271,16 @@ package body WisiToken.Parse.Packrat.Procedural is
             exit;
          end if;
       end loop;
+
       declare
          Result : Memo_Entry renames Parser.Derivs (R)(Tree.Get_Node_Index (Tree.Shared_Stream, Start_Pos));
       begin
          Result.Max_Examined_Pos := Result_Recurse.Max_Examined_Pos;
+         if Trace_Parse > Extra then
+            Parser.Tree.Lexer.Trace.Put_Line
+              ("apply recursive " & Image (R, Descriptor) & " end: " & Image (Result, R, Pos, Tree));
+         end if;
+
          return Result;
       end;
    end Apply_Rule;
@@ -298,7 +313,7 @@ package body WisiToken.Parse.Packrat.Procedural is
 
    function Create
      (Grammar               : in WisiToken.Productions.Prod_Arrays.Vector;
-      Direct_Left_Recursive : in Token_ID_Set;
+      Direct_Left_Recursive : in Token_ID_Array_Token_ID_Set_Access;
       Start_ID              : in Token_ID;
       Lexer                 : in WisiToken.Lexer.Handle;
       Productions           : in WisiToken.Syntax_Trees.Production_Info_Trees.Vector;

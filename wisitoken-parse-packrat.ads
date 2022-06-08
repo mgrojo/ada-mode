@@ -68,6 +68,7 @@ package WisiToken.Parse.Packrat is
 
       end case;
    end record;
+   subtype Success_Memo_Entry is Memo_Entry (Success);
 
    No_Result_Memo : constant Memo_Entry := (No_Result, WisiToken.Syntax_Trees.Invalid_Stream_Index, False);
 
@@ -79,7 +80,21 @@ package WisiToken.Parse.Packrat is
    with Pre => Tree.Contains (Stream, Element);
    --  "0" for Invalid_Stream_Index, Node_Index'Image otherwise.
 
-   function Image (Tree : in Syntax_Trees.Tree; Item : in Memo_Entry) return String;
+   function Image (Item : in Memo_Entry; Tree : in Syntax_Trees.Tree) return String;
+
+   function Image
+     (Item    : in Memo_Entry;
+      Nonterm : in Token_ID;
+      Pos     : in Syntax_Trees.Node_Index;
+      Tree    : in Syntax_Trees.Tree)
+     return String;
+
+   function Image
+     (Item    : in Memo_Entry;
+      Nonterm : in Token_ID;
+      Pos     : in Syntax_Trees.Stream_Index;
+      Tree    : in Syntax_Trees.Tree)
+     return String;
 
    subtype Positive_Node_Index is Syntax_Trees.Node_Index range 1 .. Syntax_Trees.Node_Index'Last;
    package Memos is new SAL.Gen_Unbounded_Definite_Vectors

@@ -61,23 +61,9 @@ package body WisiToken.Parse.Packrat.Generated is
               ("max_examined_pos: " & Parser.Tree.Image
                  (Parser.Tree.Get_Node (Parser.Tree.Shared_Stream, Result.Max_Examined_Pos), Node_Numbers => True));
             Trace.Put_Line ("derivs:");
-            for ID in Parser.Derivs'Range loop
-               declare
-                  Deriv : Memos.Vector renames Parser.Derivs (ID);
-               begin
-                  for Pos in Deriv.First_Index .. Deriv.Last_Index loop
-                     if Deriv (Pos).State /= No_Result then
-                        Trace.Put_Line
-                          (Image (ID, Parser.Tree.Lexer.Descriptor.all) & ": " &
-                             Image (Parser.Tree, Deriv (Pos)));
-                        exit;
-                     end if;
-                  end loop;
-               end;
-            end loop;
+            Parser.Print_Derivs;
          end if;
       end if;
-
       Finish_Parse (Parser, Result);
 
    end Packrat_Parse_No_Recover;

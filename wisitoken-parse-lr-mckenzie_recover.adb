@@ -203,7 +203,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       Skip_Next : Boolean := False;
 
-      Super : Base.Supervisor (Parser_Count => Shared_Parser.Parsers.Count);
+      Super : Base.Supervisor
+        (Parser_Count => Parsers.Count,
+         Stream_Count => Tree.Stream_Count);
 
    begin
       if Trace_McKenzie > Outline then
@@ -520,7 +522,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  Config stack, not a parser stack. So we duplicate part of it.
                               if Stack_Matches_Ops then
                                  if not (Nonterm = Tree.Label (Tree.Peek (Stack)) and
-                                           Op.Nonterm = Tree.ID (Parser_State.Stream, Tree.Peek (Stack)))
+                                           Op.Nonterm = Tree.ID (Tree.Peek (Stack)))
                                  then
                                     Raise_Bad_Config ("Undo_Reduce does not match stack top in apply config");
                                  end if;
@@ -538,7 +540,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  encounter an error; test_mckenzie_recover.adb Error_3.
 
                               if Stack_Matches_Ops then
-                                 if not (Op.PB_ID = Tree.ID (Parser_State.Stream, Tree.Peek (Stack))) then
+                                 if not (Op.PB_ID = Tree.ID (Tree.Peek (Stack))) then
                                     Raise_Bad_Config
                                       ("Push_Back does not match stack top in apply config: " &
                                          Image (Op, Tree.Lexer.Descriptor.all));
@@ -905,7 +907,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    procedure Set_Initial_Sequential_Index
      (Parsers    : in out Parser_Lists.List;
       Tree       : in     Syntax_Trees.Tree;
-      Streams    : in out     Syntax_Trees.Stream_ID_Array;
+      Streams    : in out Syntax_Trees.Stream_ID_Array;
       Terminals  : in out Syntax_Trees.Stream_Node_Parents_Array;
       Initialize : in     Boolean)
    is
@@ -937,9 +939,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       I := 1; --  first parse stream
 
-      if not Initialize then
-         Streams (Streams'Last) := Tree.Shared_Stream;
-      end if;
+      Streams (Streams'Last) := Tree.Shared_Stream;
 
       for Parser_State of Parsers loop
          Streams (I) := Parser_State.Stream;
@@ -991,6 +991,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Tree.Last_Terminal (Terminals (I), Streams (I));
          I := @ + 1;
       end loop;
+
+      Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
+        (Tree.To_Stream_Node_Ref (Tree.Shared_Stream, Tree.Shared_Link (Streams (1))));
 
       --  Get all Terminals to the same node. Terminals (1) is the
       --  "reference" terminal.

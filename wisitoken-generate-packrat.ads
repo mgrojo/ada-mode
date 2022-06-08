@@ -25,7 +25,7 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.BNF;
+with WisiToken.BNF.Generate_Utils;
 package WisiToken.Generate.Packrat is
 
    type Data (First_Terminal, First_Nonterminal, Last_Nonterminal : Token_ID) is tagged
@@ -33,11 +33,15 @@ package WisiToken.Generate.Packrat is
       --  Data needed to check a grammar and generate code. Tagged to allow
       --  Object.Method syntax. Descriptor not included to avoid duplicating
       --  lots of discriminants.
-      Source_File_Name      : Ada.Strings.Unbounded.Unbounded_String;
-      Grammar               : WisiToken.Productions.Prod_Arrays.Vector;
-      Source_Line_Map       : Productions.Source_Line_Maps.Vector;
-      Empty                 : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
-      Direct_Left_Recursive : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
+      Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
+      Grammar          : WisiToken.Productions.Prod_Arrays.Vector;
+      Source_Line_Map  : Productions.Source_Line_Maps.Vector;
+      Empty            : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
+
+      Direct_Left_Recursive : Token_ID_Array_Token_ID_Set_Access (First_Nonterminal .. Last_Nonterminal);
+      --  Null if nonterm is not direct_left_recursive; union of First
+      --  (RHS.Tokens (2)) for recursive RHSs if it is.
+
       First                 : Token_Array_Token_Set
         (First_Nonterminal .. Last_Nonterminal, First_Terminal .. Last_Nonterminal);
       Involved              : Token_Array_Token_Set
@@ -46,9 +50,7 @@ package WisiToken.Generate.Packrat is
 
    function Initialize
      (Source_File_Name : in String;
-      Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
-      Source_Line_Map  : in Productions.Source_Line_Maps.Vector;
-      First_Terminal   : in Token_ID)
+      Generate_Data    : in WisiToken.BNF.Generate_Utils.Generate_Data)
      return Packrat.Data;
 
    procedure Check_Recursion (Data : in Packrat.Data; Descriptor : in WisiToken.Descriptor);
@@ -76,9 +78,12 @@ package WisiToken.Generate.Packrat is
    --  Note that WisiToken.Generate.Check_Consistent is run in
    --  wisi-gen_generate_utils.To_Grammar.
 
-   function Potential_Direct_Left_Recursive
-     (Grammar : in WisiToken.Productions.Prod_Arrays.Vector;
-      Empty   : in Token_ID_Set)
-     return Token_ID_Set;
+   function Direct_Left_Recursive
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor;
+      First      : in Token_Sequence_Arrays.Vector)
+     return Token_ID_Array_Token_ID_Set_Access;
+--  Result (nonterm) is nul if nonterm is not direct left recursive;
+--  union of First (second token) in all recursive RHSs if it is.
 
 end WisiToken.Generate.Packrat;
