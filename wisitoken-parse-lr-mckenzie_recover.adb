@@ -930,17 +930,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Seq_Index : constant Base_Sequential_Index := (if Initialize then 1 else Invalid_Sequential_Index);
       I : Positive_Index_Type := 1; --  first parse stream
    begin
-      for Parser_State of Parsers loop
-         Streams (I) := Parser_State.Stream;
-         I := @ + 1;
-      end loop;
-
       --  First set starting point.
-
-      I := 1; --  first parse stream
-
-      Streams (Streams'Last) := Tree.Shared_Stream;
-
       for Parser_State of Parsers loop
          Streams (I) := Parser_State.Stream;
 
@@ -992,8 +982,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          I := @ + 1;
       end loop;
 
+      Streams (Streams'Last) := Tree.Shared_Stream;
+
       Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
-        (Tree.To_Stream_Node_Ref (Tree.Shared_Stream, Tree.Shared_Link (Streams (1))));
+        (Tree.To_Stream_Node_Ref
+           (Tree.Shared_Stream,
+            (if Tree.Shared_Link (Streams (1)) = Invalid_Stream_Index
+               --  Invalid when shared_link was EOI, but EOI was copied to add an error.
+               --  test_mckenzie_recover.adb Empty_Comment.
+             then Tree.Stream_Last (Tree.Shared_Stream, Skip_EOI => False)
+             else Tree.Shared_Link (Streams (1)))));
 
       --  Get all Terminals to the same node. Terminals (1) is the
       --  "reference" terminal.

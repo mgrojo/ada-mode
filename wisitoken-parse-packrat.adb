@@ -120,7 +120,7 @@ package body WisiToken.Parse.Packrat is
          Clear (Parser.Derivs);
 
          Tree.Set_Root (Result.Result);
-         Result := (State => No_Result, Max_Examined_Pos => Invalid_Stream_Index, Recursive => False);
+         Result := No_Result_Memo;
          Tree.Finish_Parse;
 
       else
