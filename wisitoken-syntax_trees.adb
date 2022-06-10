@@ -1602,13 +1602,10 @@ package body WisiToken.Syntax_Trees is
    end Children;
 
    function Children_Recover_Tokens
-     (Tree    : in Syntax_Trees.Tree;
-      Stream  : in Stream_ID;
-      Element : in Stream_Index)
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access)
      return Recover_Token_Array
-   is
-      Node : constant Node_Access := Stream_Element_Lists.Element (Element.Cur).Node;
-   begin
+   is begin
       --  WORKAROUND: GNAT Community 2020 doesn't support 'of' here, and it
       --  hangs if there are any errors in the statement with 'in'.
       --  return (for I in Node.Children'Range => Tree.Get_Recover_Token (Node.Children (I)));
@@ -1617,6 +1614,17 @@ package body WisiToken.Syntax_Trees is
             Result (I) := Tree.Get_Recover_Token (Node.Children (I));
          end loop;
       end return;
+   end Children_Recover_Tokens;
+
+   function Children_Recover_Tokens
+     (Tree    : in Syntax_Trees.Tree;
+      Stream  : in Stream_ID;
+      Element : in Stream_Index)
+     return Recover_Token_Array
+   is
+      Node : constant Node_Access := Stream_Element_Lists.Element (Element.Cur).Node;
+   begin
+      return Children_Recover_Tokens (Tree, Node);
    end Children_Recover_Tokens;
 
    procedure Clear
@@ -6798,6 +6806,22 @@ package body WisiToken.Syntax_Trees is
          end;
       end if;
    end New_Stream;
+
+   function New_Virtual_Terminal
+     (Tree : in out Syntax_Trees.Tree;
+      ID   : in     Token_ID)
+     return Valid_Node_Access
+   is
+      New_Node : constant Node_Access := new Node'
+        (Label       => Virtual_Terminal,
+         Child_Count => 0,
+         ID          => ID,
+         Node_Index  => -(Tree.Nodes.Last_Index + 1),
+         others      => <>);
+   begin
+      Tree.Nodes.Append (New_Node);
+      return New_Node;
+   end New_Virtual_Terminal;
 
    function Node_Access_Compare (Left, Right : in Node_Access) return SAL.Compare_Result
    is

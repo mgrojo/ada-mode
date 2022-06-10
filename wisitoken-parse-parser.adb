@@ -19,31 +19,14 @@ pragma License (Modified_GPL);
 
 with Ada.Exceptions;
 with GNAT.Traceback.Symbolic;
-with WisiToken.Parse.Packrat.Generated;
-with WisiToken.Parse.Packrat.Procedural;
+with WisiToken.Parse.Packrat.Parser;
 package body WisiToken.Parse.Parser is
-
-   procedure LR_Core_Parse
-     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
-      Log_File      : in     Ada.Text_IO.File_Type;
-      Recover_Only  : in     Boolean)
-   is separate;
-   --  Run the core LR parse algorithm starting from the current state of
-   --  Parser, with error recover. If Recover_Only, exit when resume
-   --  after error recover is done.
-   --
-   --  Used by LR_Parse to run parser, and by packrat parse to run error
-   --  recover.
 
    ----------
    --  Package public subprograms, declaration order
 
    overriding procedure Finalize (Object : in out Parser)
    is begin
-      --  Derivs holds references to Tree, so Derivs must be cleared before
-      --  Tree is finalized.
-      WisiToken.Parse.Packrat.Clear (Object.Derivs);
-
       WisiToken.Parse.LR.Free_Table (Object.Table);
 
       --  The rest of Object is finalized in an arbitrary order; see LRM
@@ -168,30 +151,22 @@ package body WisiToken.Parse.Parser is
       Pre_Edited : in     Boolean        := False)
    is separate;
 
-   procedure Packrat_Parse
-     (Shared_Parser : in out Parser;
-      Log_File      : in     Ada.Text_IO.File_Type)
+   procedure LR_Core_Parse
+     (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
+      Log_File      : in     Ada.Text_IO.File_Type;
+      Recover_Only  : in     Boolean)
    is separate;
 
    procedure Parse
      (Parser   : in out WisiToken.Parse.Parser.Parser'Class;
       Log_File : in     Ada.Text_IO.File_Type)
    is begin
-      if Parser in WisiToken.Parse.Packrat.Procedural.Parser'Class |
-        WisiToken.Parse.Packrat.Generated.Parser'Class
-      then
-         Packrat_Parse (Parser, Log_File);
+      if Parser in WisiToken.Parse.Packrat.Parser.Parser'Class then
+         WisiToken.Parse.Packrat.Parser.Packrat_Parse (WisiToken.Parse.Packrat.Parser.Parser (Parser), Log_File);
       else
          LR_Parse (Parser, Log_File);
       end if;
    end Parse;
-
-   procedure Packrat_Parse_No_Recover
-     (Parser : in out WisiToken.Parse.Parser.Parser;
-      Resume : in     Boolean)
-   is begin
-      raise SAL.Programmer_Error with "not a packrat parser";
-   end Packrat_Parse_No_Recover;
 
    function Get_In_Parse_Action
      (Parser : in WisiToken.Parse.Parser.Parser;
@@ -358,30 +333,5 @@ package body WisiToken.Parse.Parser is
    is begin
       Execute_Actions (Parser.Tree, Parser.Productions, Parser.User_Data, Action_Region_Bytes);
    end Execute_Actions;
-
-   procedure Print_Derivs (Parser : in WisiToken.Parse.Parser.Parser)
-   is
-      use all type WisiToken.Parse.Packrat.Memo_State;
-      Tree   : Syntax_Trees.Tree renames Parser.Tree;
-      Derivs : WisiToken.Parse.Packrat.Derivs renames Parser.Derivs;
-      Trace  : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
-      Count  : Integer := 0;
-   begin
-      for Nonterm in Derivs'Range loop
-         for Pos in Derivs (Nonterm).First_Index .. Derivs (Nonterm).Last_Index loop
-
-            case Derivs (Nonterm)(Pos).State is
-            when No_Result =>
-               null;
-
-            when Failure | Success =>
-               Count := @ + 1;
-               Trace.Put_Line (Packrat.Image (Derivs (Nonterm)(Pos), Nonterm, Pos, Tree));
-
-            end case;
-         end loop;
-      end loop;
-      Trace.Put_Line ("... failed + success count:" & Count'Image);
-   end Print_Derivs;
 
 end WisiToken.Parse.Parser;

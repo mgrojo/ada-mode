@@ -22,7 +22,7 @@
 
 pragma License (Modified_GPL);
 with WisiToken.Syntax_Trees;
-with WisiToken.Parse.Parser;
+with WisiToken.Parse.Packrat.Parser;
 package WisiToken.Parse.Packrat.Generated is
 
    Recursive : exception;
@@ -37,7 +37,7 @@ package WisiToken.Parse.Packrat.Generated is
    type Parse_WisiToken_Accept is access
      function (Parser : in out Generated.Parser; Last_Pos : in Syntax_Trees.Stream_Index) return Result_Type;
 
-   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new WisiToken.Parse.Parser.Parser
+   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new WisiToken.Parse.Packrat.Parser.Parser
      (First_Nonterminal => First_Nonterminal,
       Last_Nonterminal  => Last_Nonterminal)
    with record

@@ -31,12 +31,18 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-make -r t_mck RUN_ARGS="Packrat_Proc \"Empty_Comments\" \"debug=1 test=2 parse=1 mckenzie=1 packrat_mckenzie=3\""
-    pass thru Error_2
+make -r t_mck RUN_ARGS="Packrat_Proc \"Error_3\" \"debug=1 test=2 parse=1 mckenzie=1 packrat_mckenzie=3\""
+    pass thru Error_1
 
-ERROR test_mckenzie_recover.adb Packrat_Proc : Error_3
-    SAL.PROGRAMMER_ERROR
-    Exception Message: virtual_terminal in parse stream
+    error_3 pass
+
+    error_2: 1.Ops.Last_Index got  7 expecting  2
+        prefered solution is in parser 1
+        don't combine delete/insert from two parsers into single delete/insert!
+        need parallel packrat.
+
+    hangs in Match_Selected_Component_1
+
 
 packrat_to_lr find all parse streams?
         order nonterms by production top-down

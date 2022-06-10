@@ -45,7 +45,6 @@
 
 pragma License (Modified_GPL);
 with WisiToken.Syntax_Trees;
-limited with WisiToken.Parse.Parser;
 package WisiToken.Parse.Packrat is
 
    type Memo_State is (No_Result, Failure, Success);
@@ -74,10 +73,8 @@ package WisiToken.Parse.Packrat is
 
    function Image_Pos
      (Tree    : in Syntax_Trees.Tree;
-      Stream  : in Syntax_Trees.Stream_ID;
       Element : in Syntax_Trees.Stream_Index)
-     return String
-   with Pre => Tree.Contains (Stream, Element);
+     return String;
    --  "0" for Invalid_Stream_Index, Node_Index'Image otherwise.
 
    function Image (Item : in Memo_Entry; Tree : in Syntax_Trees.Tree) return String;
@@ -113,9 +110,5 @@ package WisiToken.Parse.Packrat is
       Pos     : in     Positive_Node_Index;
       Memo    : in     Memo_Entry);
    --  Add or replace Derivs (Nonterm)(Pos).
-
-   procedure Finish_Parse (Parser : in out WisiToken.Parse.Parser.Parser'Class; Result : in out Memo_Entry);
-   --  Call Tree.Set_Root, Clear_Parse_Streams; raise Parse_Error with an
-   --  error message if the parse did not succeed.
 
 end WisiToken.Parse.Packrat;

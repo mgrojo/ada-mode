@@ -18,10 +18,11 @@
 --  a mix of terminal and nonterminal tokens from Parse.Edit_Tree in
 --  incremental parse.
 --
---  Node_Index is used only for debugging. Node_Index on nonterms is
---  negative. Node_Index on terminal nodes created by the lexer in the
---  shared stream is positive; Node_Index on virtual nodes inserted by
---  error recover is negative.
+--  Node_Index is used by the packrat parser, which does not support
+--  incremental parse; and for debugging during incremental LR parse.
+--  Node_Index on nonterms is negative. Node_Index on terminal nodes
+--  created by the lexer in the shared stream is positive; Node_Index
+--  on virtual nodes inserted by error recover is negative.
 --
 --  During a batch parse, Node_Index on terminals is sequential, as a
 --  consequence of lexing the source code first; Node_Index on
@@ -1184,6 +1185,14 @@ package WisiToken.Syntax_Trees is
    --  Insert a new Virtual_Terminal element into Stream, after
    --  Stack_Top. Result refers to the added node.
 
+   function New_Virtual_Terminal
+     (Tree : in out Syntax_Trees.Tree;
+      ID   : in     Token_ID)
+     return Valid_Node_Access;
+   --  Create a new Virtual_Terminal node, not in any stream.
+   --
+   --  Used by Packrat parser.
+
    procedure Shift
      (Tree             : in     Syntax_Trees.Tree;
       Node             : in     Valid_Node_Access;
@@ -1445,6 +1454,12 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Access)
      return Recover_Token;
    --  Treat Node as a stream element.
+
+   function Children_Recover_Tokens
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Access)
+     return Recover_Token_Array
+   with Pre => Tree.Label (Node) = Nonterm;
 
    function Children_Recover_Tokens
      (Tree    : in Syntax_Trees.Tree;

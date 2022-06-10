@@ -55,9 +55,9 @@ package WisiToken.Parse is
        when Delete       => "DELETE");
 
    type Recover_Op (Op : Recover_Op_Label := Fast_Forward) is record
-      --  We store enough information to perform the operation on the main
-      --  parser stack and input stream when the config is the result
-      --  of a successful recover.
+      --  An error recover operation. We store enough information to perform
+      --  the operation on the main parser stack and input stream when error
+      --  recover succeeds.
 
       case Op is
       when Fast_Forward =>

@@ -17,12 +17,10 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.Parse.Parser;
 package body WisiToken.Parse.Packrat is
 
    function Image_Pos
      (Tree    : in Syntax_Trees.Tree;
-      Stream  : in Syntax_Trees.Stream_ID;
       Element : in Syntax_Trees.Stream_Index)
      return String
    is
@@ -31,7 +29,7 @@ package body WisiToken.Parse.Packrat is
       if Element = Invalid_Stream_Index then
          return "0";
       else
-         return Tree.Get_Node_Index (Stream, Element)'Image;
+         return Tree.Get_Node_Index (Tree.Shared_Stream, Element)'Image;
       end if;
    end Image_Pos;
 
@@ -40,10 +38,10 @@ package body WisiToken.Parse.Packrat is
       return
         (case Item.State is
          when No_Result => "",
-         when Failure => "fail @" & Image_Pos (Tree, Tree.Shared_Stream, Item.Max_Examined_Pos),
+         when Failure => "fail @" & Image_Pos (Tree, Item.Max_Examined_Pos),
          when Success => Tree.Image (Item.Result, Node_Numbers => True) &
-           " @" & Image_Pos (Tree, Tree.Shared_Stream, Item.Max_Examined_Pos) &
-           "," & Image_Pos (Tree, Tree.Shared_Stream, Item.Last_Pos));
+           " @" & Image_Pos (Tree, Item.Max_Examined_Pos) &
+           "," & Image_Pos (Tree, Item.Last_Pos));
    end Image;
 
    function Image
@@ -60,10 +58,10 @@ package body WisiToken.Parse.Packrat is
         (case Item.State is
          when No_Result => "",
          when Failure => Image (Nonterm, Descriptor) & " fail @" &
-           Image_Pos (Tree, Tree.Shared_Stream, Item.Max_Examined_Pos),
+           Image_Pos (Tree, Item.Max_Examined_Pos),
          when Success => Tree.Image (Item.Result, Node_Numbers => True) &
-           "," & Image_Pos (Tree, Tree.Shared_Stream, Item.Max_Examined_Pos) &
-           "," & Image_Pos (Tree, Tree.Shared_Stream, Item.Last_Pos));
+           "," & Image_Pos (Tree, Item.Max_Examined_Pos) &
+           "," & Image_Pos (Tree, Item.Last_Pos));
    end Image;
 
    function Image
@@ -100,48 +98,5 @@ package body WisiToken.Parse.Packrat is
 
       Derivs (Nonterm).Replace_Element (Pos, Memo);
    end Set_Deriv;
-
-   procedure Finish_Parse (Parser : in out WisiToken.Parse.Parser.Parser'Class; Result : in out Memo_Entry)
-   is
-      use WisiToken.Syntax_Trees;
-      Tree  : Syntax_Trees.Tree renames Parser.Tree;
-      Trace : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
-   begin
-      if Trace_Time then
-         Trace.Put_Clock ("finish parse");
-      end if;
-
-      if Result.State = Packrat.Success then
-         if Trace_Parse > Outline then
-            Trace.Put_Line ("packrat parse succeed");
-         end if;
-
-         --  Clear copies of Stream_Index so Finish_Parse can clear the parse streams.
-         Clear (Parser.Derivs);
-
-         Tree.Set_Root (Result.Result);
-         Result := No_Result_Memo;
-         Tree.Finish_Parse;
-
-      else
-         --  preserve Derivs for error recover
-         declare
-            Msg : constant String := Tree.Error_Message
-              (Ref     => (Tree.Shared_Stream,
-                           Result.Max_Examined_Pos,
-                           Tree.Get_Node (Tree.Shared_Stream, Result.Max_Examined_Pos)),
-               Message => "parse failed");
-         begin
-            if Trace_Parse > Outline then
-               Tree.Lexer.Trace.Put_Line (Msg);
-            end if;
-
-            --  If we raise Syntax_Error, the caller assumes syntax error
-            --  information is in the tree; not true for packrat (yet).
-            raise WisiToken.Parse_Error with Msg;
-            --  FIXME packrat: add "expecting: ..." based on last nonterm?
-         end;
-      end if;
-   end Finish_Parse;
 
 end WisiToken.Parse.Packrat;

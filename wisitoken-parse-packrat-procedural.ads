@@ -25,10 +25,10 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Productions;
-with WisiToken.Parse.Parser;
+with WisiToken.Parse.Packrat.Parser;
 package WisiToken.Parse.Packrat.Procedural is
 
-   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new WisiToken.Parse.Parser.Parser
+   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is new WisiToken.Parse.Packrat.Parser.Parser
      (First_Nonterminal => First_Nonterminal,
       Last_Nonterminal  => Last_Nonterminal)
    with record

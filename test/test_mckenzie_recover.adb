@@ -46,7 +46,7 @@ package body Test_McKenzie_Recover is
    use AUnit.Checks.Containers;
    use WisiToken.Parse.LR.AUnit.Test_Recover_Op_Arrays;
    use WisiToken.AUnit;
-   use all type WisiToken.BNF.LR_Generate_Algorithm;
+   use all type WisiToken.BNF.LR_Packrat_Generate_Algorithm;
    use all type WisiToken.Parse.Recover_Op_Label;
    use all type WisiToken.Syntax_Trees.In_Parse_Actions.Status_Label;
    use all type WisiToken.Syntax_Trees.Sequential_Index;
@@ -288,7 +288,7 @@ package body Test_McKenzie_Recover is
 
    procedure No_Error (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
 
       File_Name : constant String := "../test/bnf/ada_lite.input";
    begin
@@ -296,14 +296,7 @@ package body Test_McKenzie_Recover is
 
       Parser.Tree.Lexer.Reset_With_File (File_Name);
 
-      --  We don't use Parser.Parse here to check that we actually have the
-      --  requested parser.
-      case Test.Alg is
-      when WisiToken.BNF.LR_Generate_Algorithm =>
-         Parser.LR_Parse (Log_File);
-      when WisiToken.BNF.Packrat_Generate_Algorithm =>
-         Parser.Packrat_Parse (Log_File);
-      end case;
+      Parser.Parse (Log_File);
 
       Check ("errors length", Parser.Tree.Error_Count, 0);
    end No_Error;
@@ -401,17 +394,19 @@ package body Test_McKenzie_Recover is
 
    procedure Error_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
+      Test : Test_Case renames Test_Case (T);
    begin
       Parse_Text
         ("procedure Water is begin loop begin D; if A then if B then D; end if; exit when C; end; end loop; end Water; "
          --        |10       |20       |30       |40       |50       |60       |70       |80       |90       |100
+         --  1      2     3  4     5    6     7  9  10 11  12 13 14  15 17  18  20   21   22 24 25    27  28    30   31
+         --                                    8                      16      19           23     26        29
          --  error 1 sequential_index:                                                     0 1  2 3   4   5
          --  error 2 sequential_index:                                                                 -1 0 1   2
         );
       --  Missing "end if" at byte 67, before token 18.
       --
-      --  Enters error recovery on 23:';' expecting 'if'. Finds the solution
+      --  Enters error recovery on 25:';' expecting 'if'. Finds the solution
       --  below. That encounters a second error at 'Water' 103.
 
       Check_Recover
@@ -422,10 +417,13 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +IF_ID, 2) & (Fast_Forward, 2, 4) &
            (Insert, +SEMICOLON_ID, 4) & (Fast_Forward, 4, 5) & (Insert, +EXIT_ID, 5),
          Cost                    => 1,
-         Expecting               => WisiToken.To_Token_ID_Set
-           (Descriptor.First_Terminal,
-            Descriptor.Last_Terminal,
-            (1                   => +IF_ID)));
+         Expecting               =>
+           (case Test.Alg is
+            when Packrat_Gen | Packrat_Proc => Empty_Token_ID_Set,
+            when LALR | LR1 => WisiToken.To_Token_ID_Set
+              (Descriptor.First_Terminal,
+               Descriptor.Last_Terminal,
+               (1                   => +IF_ID))));
 
       Check_Recover
         (Errors_Length           => 2,
@@ -438,10 +436,13 @@ package body Test_McKenzie_Recover is
          Enqueue_Count             => 31,
          Check_Count               => 7,
          Cost                    => 0,
-         Expecting               => WisiToken.To_Token_ID_Set
-           (Descriptor.First_Terminal,
-            Descriptor.Last_Terminal,
-            (1                   => +LOOP_ID)));
+         Expecting               =>
+           (case Test.Alg is
+            when Packrat_Gen | Packrat_Proc => Empty_Token_ID_Set,
+            when LALR | LR1 => WisiToken.To_Token_ID_Set
+              (Descriptor.First_Terminal,
+               Descriptor.Last_Terminal,
+               (1                   => +LOOP_ID))));
    end Error_3;
 
    procedure Error_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -470,7 +471,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (28, 27),
          Ops                     => +(Insert, +END_ID, 2) & (Insert, +SEMICOLON_ID, 2),
          Enqueue_Count             => (case Test.Alg is when LALR => 19, when LR1 => 18,
-                                     when Packrat_Gen | Packrat_Proc => 1),
+                                       when Packrat_Gen | Packrat_Proc => 1),
          Check_Count               => 4,
          Cost                    => 2);
    end Check_Accept;

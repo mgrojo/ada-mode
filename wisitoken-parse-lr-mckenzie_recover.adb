@@ -106,6 +106,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   Children    => Trace_McKenzie > Extra,
                   Shared      => True,
                   Non_Grammar => True));
+            if Trace_McKenzie > Extra then
+               Trace.New_Line;
+            end if;
          end if;
       end if;
 

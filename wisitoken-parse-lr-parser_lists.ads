@@ -2,7 +2,7 @@
 --
 --  Generalized LR parser state.
 --
---  Copyright (C) 2014-2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2014-2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -49,9 +49,8 @@ package WisiToken.Parse.LR.Parser_Lists is
       --  The parse stack is in Shared_Parser.Tree (Parser_State.Stream).
 
       Recover_Insert_Delete : aliased Recover_Op_Nodes_Arrays.Vector;
-      --  Tokens that were inserted or deleted during error recovery.
-      --  Contains only Insert and Delete ops. Filled by error recover, used
-      --  by main parse and Execute_Actions.
+      --  Tokens that were inserted or deleted during error recovery. Filled
+      --  by error recover, used by main parse and Execute_Actions.
       --
       --  Not emptied between error recovery sessions, so Execute_Actions
       --  knows about all insert/delete.
