@@ -31,41 +31,17 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-ada_lite_ebnf packrat
-    enumeration_literal_list
-        handle EBNF list
-            for now, keep bnf tree, but generate longer RHS first; we have manually created lists with that pattern.
-            that breaks a lot of hard-coded 0, 1, 2 rhs_index
-            run all wisitoken tests
-
 packrat error recover
-    use parse stream
-    on enter recover, add LR states to parse streams
-        mckenzie_recover unchanged.
-    if more than one parse stream after recover:
-        order streams as multiple stream accept would
-        execute each one in turn until it gets to accept or error
-            if accept, return
-            if all error, keep those within check_limit of the one that made the farthest progress, enter error recover
+    in o.w.s-2
 
 ediff of *.wy hangs
     mmm-mode vs wisi-parse-incremental :wait nil
-
-add packrat_list; breakdown split at appropriate child
-    generate packrat use EBNF, with only %if processed.
-        %if processed by wisitoken_grammar_runtime
-    wisitoken-bnf-generate calls Packrat_Data.Check_All; that's where packrat_list could be set.
-
-    to parse list, keep stream_index pointer to first child, reduce when see list terminator
-
-ada_annex_p packrat
-    in o.e.a-m.s-6
 
 Not doing packrat indirect left recursion
     ticket V415-028; AdaCore says they don't need it for Ada
     doc in wisitoken user guide
 
-wisitoken test/incremental_04.wy
+wisitoken-grammar-mode test/incremental_04.wy
     see FIXME: new error correction feature.
     try tree-sitter, ask Max Brunsfeld
 

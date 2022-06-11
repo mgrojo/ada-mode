@@ -76,11 +76,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       use Recover_Op_Arrays;
       use all type WisiToken.Parse.LR.Parser.Language_Fixes_Access;
 
-      Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
-      Trace  : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
-      Config : Configuration;
+      Tree       : Syntax_Trees.Tree renames Shared_Parser.Tree;
+      Trace      : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
+      Config     : Configuration;
       Error_Node : constant Syntax_Trees.Valid_Node_Access := Parser_State.Current_Error_Node (Tree).Ref.Node;
-      Error : constant Syntax_Trees.Error_Data'Class := Find_Parse_In_Parse_Action_Error (Tree, Error_Node);
+      Error      : constant Syntax_Trees.Error_Data'Class  := Find_Parse_In_Parse_Action_Error (Tree, Error_Node);
    begin
       Parser_State.Recover.Enqueue_Count := @ + 1;
 
@@ -107,6 +107,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   Children    => Trace_McKenzie > Extra,
                   Shared      => True,
                   Non_Grammar => True));
+         end if;
+         if Trace_McKenzie > Extra then
+            Trace.New_Line;
          end if;
       end if;
 
@@ -929,19 +932,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Seq_Index : constant Base_Sequential_Index := (if Initialize then 1 else Invalid_Sequential_Index);
       I : Positive_Index_Type := 1; --  first parse stream
    begin
-      for Parser_State of Parsers loop
-         Streams (I) := Parser_State.Stream;
-         I := @ + 1;
-      end loop;
-
       --  First set starting point.
-
-      I := 1; --  first parse stream
-
-      if not Initialize then
-         Streams (Streams'Last) := Tree.Shared_Stream;
-      end if;
-
       for Parser_State of Parsers loop
          Streams (I) := Parser_State.Stream;
 
@@ -992,6 +983,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Tree.Last_Terminal (Terminals (I), Streams (I));
          I := @ + 1;
       end loop;
+
+      if not Initialize then
+         Streams (Streams'Last) := Tree.Shared_Stream;
+      end if;
 
       --  Get all Terminals to the same node. Terminals (1) is the
       --  "reference" terminal.

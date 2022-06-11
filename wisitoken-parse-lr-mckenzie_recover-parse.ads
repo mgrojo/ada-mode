@@ -119,10 +119,11 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
    --  Delete Config Current_Token. Does not append to Config.Ops.
 
    type Parse_Item is record
-      Config      : aliased Configuration;
-      Action      : Parse_Action_Node_Ptr := null;
-      Parsed      : Boolean := False;
-      Shift_Count : Natural := 0;
+      Config       : aliased Configuration;
+      Action       : Parse_Action_Node_Ptr := null;
+      Parsed       : Boolean               := False;
+      Shift_Count  : Natural               := 0;
+      Reduce_Count : Natural               := 0;
 
       --  On return from Parse, if Parsed = False, this item was queued by a
       --  conflict, but not parsed; it should be ignored.

@@ -194,6 +194,7 @@ OK test_mckenzie_recover.adb LALR : Missing_Name_2
 OK test_mckenzie_recover.adb LALR : Missing_Name_3
 OK test_mckenzie_recover.adb LALR : Missing_Name_4
 OK test_mckenzie_recover.adb LALR : Missing_Name_5
+OK test_mckenzie_recover.adb LALR : Missing_Name_6
 OK test_mckenzie_recover.adb LALR : Block_Match_Names_1
 OK test_mckenzie_recover.adb LALR : Two_Parsers_1
 OK test_mckenzie_recover.adb LALR : Extra_Name_1
@@ -257,6 +258,7 @@ OK test_mckenzie_recover.adb LR1 : Missing_Name_2
 OK test_mckenzie_recover.adb LR1 : Missing_Name_3
 OK test_mckenzie_recover.adb LR1 : Missing_Name_4
 OK test_mckenzie_recover.adb LR1 : Missing_Name_5
+OK test_mckenzie_recover.adb LR1 : Missing_Name_6
 OK test_mckenzie_recover.adb LR1 : Block_Match_Names_1
 OK test_mckenzie_recover.adb LR1 : Two_Parsers_1
 OK test_mckenzie_recover.adb LR1 : Extra_Name_1
@@ -300,6 +302,7 @@ OK test_skip_to.adb : Dos_Line_Endings
 OK test_skip_to.adb : Unix_Line_Endings
 OK test_syntax_trees.adb : Left_Breakdown_1
 OK test_syntax_trees.adb : Find_New_Line_1
+OK test_syntax_trees.adb : Find_New_Line_2
 OK test_syntax_trees.adb : Byte_Region_1
 OK test_syntax_trees.adb : Line_At_Byte_Pos_1
 OK test_syntax_trees.adb : Line_At_Byte_Pos_2
@@ -307,12 +310,13 @@ OK test_syntax_trees.adb : Line_At_Byte_Pos_3
 OK test_syntax_trees.adb : Find_Char_Pos_1
 OK test_syntax_trees.adb : Breakdown_Optimized_List_01
 OK test_syntax_trees.adb : Breakdown_Optimized_List_02
+OK test_syntax_trees.adb : Prev_New_Line_01
 OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   312
-Successful Tests:  312
+Total Tests Run:   316
+Successful Tests:  316
 Failed Assertions: 0
 Unexpected Errors: 0

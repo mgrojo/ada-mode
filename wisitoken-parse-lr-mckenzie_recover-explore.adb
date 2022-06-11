@@ -440,15 +440,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                Config.In_Parse_Action_Status := Item.Config.In_Parse_Action_Status;
                Config.Error_Token            := Item.Config.Error_Token;
 
-               if Item.Shift_Count > 0 then
-                  --  Progress was made, so let Language_Fixes try again on the new Config.
+               if Item.Shift_Count > 0 or Item.Reduce_Count > 0 then
+                  --  Progress was made, so let Language_Fixes try again on the new
+                  --  Config. Checking Reduce_Count > 0 is required for
+                  --  test_mckenzie_recover.adb Missing_Name_6.
                   Enqueue (Item);
                end if;
 
-               --  Explore cannot fix a check fail; only
-               --  Language_Fixes can, which was already done. The "ignore error"
-               --  case is handled immediately on return from Language_Fixes in
-               --  Process_One, below.
+               --  Explore cannot fix an In_Parse_Action fail; only Language_Fixes.
+               --  The "ignore error" case is handled immediately on return from
+               --  Language_Fixes in Process_One, below.
                return Abandon;
 
             else
@@ -2187,8 +2188,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             null;
 
          else
-            --  Assume "ignore check error" is a viable solution. But give it a
-            --  cost, so a solution provided by Language_Fixes is preferred.
+            --  Assume "ignore in_parse_action error" is a viable solution. But
+            --  give it a cost, so a solution provided by Language_Fixes is
+            --  preferred.
 
             declare
                New_State : Unknown_State_Index;
@@ -2234,7 +2236,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                --  them, and sets them as appropriate.
 
                if Trace_McKenzie > Detail then
-                  Super.Put (Shared, "ignore check error and continue", Parser_Index, Config);
+                  Super.Put (Shared, "ignore in_parse_action error and continue", Parser_Index, Config);
                end if;
             end;
          end if;
