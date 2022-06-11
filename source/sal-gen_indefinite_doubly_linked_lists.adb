@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -182,6 +182,12 @@ package body SAL.Gen_Indefinite_Doubly_Linked_Lists is
    is begin
       return Position.Ptr.Element.all;
    end Element;
+
+   function Append (Container : in out List; Element : in Element_Type) return Cursor
+   is begin
+      Append (Container, Element);
+      return (Ptr => Container.Tail);
+   end Append;
 
    procedure Delete (Container : in out List; Position : in out Cursor)
    is

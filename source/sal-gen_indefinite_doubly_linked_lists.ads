@@ -2,7 +2,7 @@
 --
 --  A generic doubly linked list with indefinite elements.
 --
---  Copyright (C) 2018 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2022 Free Software Foundation, Inc.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -68,6 +68,8 @@ package SAL.Gen_Indefinite_Doubly_Linked_Lists is
 
    function Element (Position : in Cursor) return Element_Type
    with Pre => Has_Element (Position);
+
+   function Append (Container : in out List; Element : in Element_Type) return Cursor;
 
    procedure Delete (Container : in out List; Position : in out Cursor)
    with Pre => Has_Element (Position);
