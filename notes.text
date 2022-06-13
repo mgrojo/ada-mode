@@ -50,6 +50,10 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
+GNAT Community going away
+    https://blog.adacore.com/a-new-era-for-ada-spark-open-source-community
+    get gnat fsf from alire https://alire.ada.dev/
+
 editing syntax_Trees.adb line_at_byte_pos
     no parse errors, fresh reset; new_line on 'if child_regions' => 0 indent.
 

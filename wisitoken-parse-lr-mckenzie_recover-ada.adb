@@ -398,8 +398,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                            (+handled_sequence_of_statements_ID,
                             +sequence_of_statements_ID));
                      else
-                        raise Bad_Config with "Language_Fixes unimplemented nonterm for Missing_Name_Error " &
-                          Image (Tree.Element_ID (Config.Error_Token), Descriptor);
+                        if Debug_Mode then
+                           raise Bad_Config with "Language_Fixes unimplemented nonterm for Missing_Name_Error " &
+                             Image (Tree.Element_ID (Config.Error_Token), Descriptor);
+                        else
+                           raise Invalid_Case;
+                        end if;
                      end if;
                   else
                      raise Invalid_Case;
