@@ -667,8 +667,7 @@ package WisiToken.Syntax_Trees is
 
    function New_Stream
      (Tree       : in out Syntax_Trees.Tree;
-      Old_Stream : in     Stream_ID;
-      User_Data  : in     User_Data_Access)
+      Old_Stream : in     Stream_ID)
      return Stream_ID
    with
      Pre => Old_Stream = Invalid_Stream_ID or else

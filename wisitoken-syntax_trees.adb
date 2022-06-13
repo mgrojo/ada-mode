@@ -6718,12 +6718,9 @@ package body WisiToken.Syntax_Trees is
 
    function New_Stream
      (Tree       : in out Syntax_Trees.Tree;
-      Old_Stream : in     Stream_ID;
-      User_Data  : in     User_Data_Access)
+      Old_Stream : in     Stream_ID)
      return Stream_ID
-   is
-      pragma Unreferenced (User_Data);
-   begin
+   is begin
       if Old_Stream = Invalid_Stream_ID then
          return New_Stream (Tree);
       else
@@ -8614,12 +8611,12 @@ package body WisiToken.Syntax_Trees is
          else
             declare
                use Stream_Element_Lists;
-               Terminal : constant Node_Access := Tree.First_Terminal
-                 (Element (Ref.Element.Cur).Node, Result.Parents);
             begin
-               if Terminal /= Ref.Node then
-                  raise SAL.Programmer_Error with "unsupported To_Stream_Node_Parents case";
-               end if;
+               Result.Ref.Node := Tree.First_Terminal (Element (Ref.Element.Cur).Node, Result.Parents);
+               loop
+                  exit when Result.Ref.Node = Ref.Node;
+                  Tree.Next_Terminal (Result);
+               end loop;
             end;
          end if;
       end return;

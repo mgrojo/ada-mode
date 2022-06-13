@@ -95,7 +95,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return Result : List
       do
          Result.Elements.Append
-           ((Stream => Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID, null),
+           ((Stream => Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID),
              others => <>));
       end return;
    end New_List;
@@ -349,7 +349,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Conflict_During_Resume  => Item.Conflict_During_Resume,
             Zombie_Token_Count      => 0,
             Last_Action             => Item.Last_Action,
-            Stream                  => Tree.New_Stream (Item.Stream, User_Data),
+            Stream                  => Tree.New_Stream (Item.Stream),
             Verb                    => Item.Verb);
       end;
 
