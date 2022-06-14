@@ -398,8 +398,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                            (+handled_sequence_of_statements_ID,
                             +sequence_of_statements_ID));
                      else
-                        raise Bad_Config with "Language_Fixes unimplemented nonterm for Missing_Name_Error " &
-                          Image (Tree.Element_ID (Config.Error_Token), Descriptor);
+                        if Debug_Mode then
+                           raise Bad_Config with "Language_Fixes unimplemented nonterm for Missing_Name_Error " &
+                             Image (Tree.Element_ID (Config.Error_Token), Descriptor);
+                        else
+                           raise Invalid_Case;
+                        end if;
                      end if;
                   else
                      raise Invalid_Case;
@@ -1389,10 +1393,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          end;
 
       elsif Tree.Element_ID (Config.Error_Token) = +TICK_1_ID and Config.Error_Token.Virtual = False then
-         --  Editing "Put ('|');" => "Put ('|-');"; need to change ' to ".
+         --  Maybe editing "Put ('|');" => "Put ('|-');"; need to change ' to ".
+         --  ada_mode-recover_string_quote_6.adb is not doing this.
 
          declare
             New_Config : aliased Configuration := Config;
+            Token_Count : Integer := 0;
          begin
             New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
@@ -1400,20 +1406,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Peek_State : Peek_Sequential_State := Peek_Sequential_Start (Super, Shared_Parser, New_Config);
                pragma Assert
                  (Tree.Element_ID (New_Config.Error_Token) = Tree.ID (Peek_Sequential_Terminal (Peek_State)));
-
-               --  FIXME: we used to use Tree.Line_Region to check if this pattern
-               --  actually applies. But we can't compute Line_Region from a
-               --  Recover_Token, so we need a different way to check. Could
-               --  implement Line_Region (Config_Stream_Parents)?
             begin
                Delete_Check (Super, Shared_Parser, New_Config, Peek_State, +TICK_1_ID); -- increments Peek_State
                loop
-                  if Peek_Sequential_Terminal (Peek_State) = Invalid_Node_Access then
-                     --  ada_mode-interactive_01.adb
+                  Delete_Check (Super, Shared_Parser, New_Config, Peek_State, Invalid_Token_ID);
+                  Token_Count := @ + 1;
+                  if Peek_Sequential_Terminal (Peek_State) = Invalid_Node_Access or
+                     --  ada_mode-interactive_01.adb, ada_mode-recover_string_quote_6.adb
+                    Token_Count > 9
+                  then
                      raise Invalid_Case;
                   end if;
                   exit when Tree.ID (Peek_Sequential_Terminal (Peek_State)) = +TICK_1_ID;
-                  Delete_Check (Super, Shared_Parser, New_Config, Peek_State, Invalid_Token_ID);
                end loop;
                Delete_Check (Super, Shared_Parser, New_Config, Peek_State, +TICK_1_ID);
                Insert (Super, Shared_Parser, New_Config, Peek_Sequential_Terminal (Peek_State), +STRING_LITERAL_ID);

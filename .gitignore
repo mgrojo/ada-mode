@@ -45,6 +45,7 @@ obj_pro/
 run_ada_lalr_parse
 run_ada_lr1_parse
 run_gpr_parse
+run_libadalang
 sum_diff_lengths
 test/*.ali
 test/*.o

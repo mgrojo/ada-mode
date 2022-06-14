@@ -134,6 +134,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_indent_3.adb",
       "ada_mode-recover_match_names.adb",
       "ada_mode-recover_match_names_02.adb",
+      "ada_mode-recover_match_names_03.adb",
       "ada_mode-recover_new_generic.ads",
       "ada_mode-recover_partial_00_lr1.adb",
       "ada_mode-recover_partial_01.adb",

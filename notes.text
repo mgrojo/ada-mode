@@ -80,6 +80,13 @@ generate tree-sitter parse table
 
 time %lr1_hash_table_size
 
+GNAT Community going away
+    https://blog.adacore.com/a-new-era-for-ada-spark-open-source-community
+    get gnat fsf from alire https://alire.ada.dev/
+
+editing syntax_Trees.adb line_at_byte_pos
+    no parse errors, fresh reset; new_line on 'if child_regions' => 0 indent.
+
 need test for ada-find-file
     it is currently broken
     also broken in ada-mode 7.2.0 with latest projects.el from ELPA
