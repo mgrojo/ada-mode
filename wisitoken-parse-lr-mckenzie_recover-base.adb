@@ -390,19 +390,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       Temp : Recover_Status := Recover_Status'First;
    begin
       for S of Super.Parser_Status loop
-         Temp := Recover_Status'Max (Temp, S.Fail_Mode);
-      end loop;
-      if Temp = Fail_Check_Delta then
-         if Super.Success_Counter > 0 then
-            --  The parser that stopped checking due to Check_Delta_Limit was also
-            --  the parser that succeeded previously. ada_mode-recover_32.adb
-            return Success;
+         if S.Parser_State.Recover.Success then
+            --  Can succeed while also exceeding max_enqueue_limit;
+            --  test_mckenzie.adb Missing_Name_6 LR1, or while exceeding
+            --  Check_Delta_Limit; ada_mode-recover_32.adb.
+            Temp := Success;
          else
-            return Temp;
+            Temp := Recover_Status'Max (Temp, S.Fail_Mode);
          end if;
-      else
-         return Temp;
-      end if;
+      end loop;
+      return Temp;
    end Recover_Result;
 
    function Done (Super : in Supervisor) return Boolean

@@ -110,6 +110,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                Trace.New_Line;
             end if;
          end if;
+         if Trace_McKenzie > Extra then
+            Trace.New_Line;
+         end if;
       end if;
 
       declare
@@ -356,6 +359,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      First_Insert      : Boolean := True;
 
                      Last_Recover_Node_Index : Sequential_Index := Sequential_Index'First;
+
+                     Pre_FF_Index : Base_Sequential_Index := Invalid_Sequential_Index;
+                     --  The current token sequential_index before a fast_forward, when
+                     --  Stack_Matches_Ops is true before the Fast_Forward.
+
                   begin
                      --  The verb will be reset by the main parser; just indicate the
                      --  parser recovered from the error.
@@ -419,10 +427,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      for I in First_Index (Result.Ops) .. Last_Index (Result.Ops) loop
                         declare
                            Op : Recover_Op renames Constant_Ref (Result.Ops, I);
-
-                           Pre_FF_Index : Base_Sequential_Index := Invalid_Sequential_Index;
-                           --  The current token sequential_index before a fast_forward, when
-                           --  Stack_Matches_Ops is true before the Fast_Forward.
 
                            --  We don't declare Current_Token here, because Delete may need to
                            --  delete it.
@@ -563,6 +567,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                        Stack_Matches_Ops := True;
                                     end if;
                                  end;
+                                 Pre_FF_Index := Invalid_Sequential_Index;
                               end if;
 
                            when Insert =>

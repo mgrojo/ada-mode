@@ -83,8 +83,6 @@ add packrat_list; breakdown split at appropriate child
 
     to parse list, keep stream_index pointer to first child, reduce when see list terminator
 
-ada_annex_p packrat
-    in o.e.a-m.s-6
 
 improve packrat memo storage
     use sparse list for derivs?
@@ -93,7 +91,7 @@ Not doing packrat indirect left recursion
     ticket V415-028; AdaCore says they don't need it for Ada
     doc in wisitoken user guide
 
-wisitoken test/incremental_04.wy
+wisitoken-grammar-mode test/incremental_04.wy
     see FIXME: new error correction feature.
     try tree-sitter, ask Max Brunsfeld
 

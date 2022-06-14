@@ -144,9 +144,6 @@
 ;; -2 is too expensive; hits enqueue_limit before finding solutions.
 %mckenzie_minimal_complete_cost_delta -3
 
-;; We don't reduce the cost of inserting any tokens; Minimal_Complete
-;; reduces some appropriately.
-
 ;; We often have an extra 'begin' while moving stuff around. Deleting
 ;; that requires popping it and the corresponding nonterm off the
 ;; parse stack. Similarly, we often have an extra 'end'. But pushing

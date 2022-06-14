@@ -801,7 +801,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                           Image (Conflict.Item, Descriptor));
                   end if;
 
-                  Append (Parse_Items, (Config, Conflict, Parsed => False, Shift_Count => Item.Shift_Count));
+                  Append
+                    (Parse_Items,
+                     (Config, Conflict,
+                      Parsed       => False,
+                      Shift_Count  => Item.Shift_Count,
+                      Reduce_Count => Item.Reduce_Count));
                end if;
             end if;
          end;
@@ -828,6 +833,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
               (Super, Shared_Parser, Config, Inc_Shared_Stream_Token, Inc_Input_Stream_Token);
 
          when Reduce =>
+            Item.Reduce_Count := @ + 1;
             declare
                Nonterm : Syntax_Trees.Recover_Token;
             begin
@@ -859,6 +865,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                   Config.Error_Token                 := Nonterm;
                   Config.In_Parse_Action_Token_Count := SAL.Base_Peek_Type (Action.Token_Count);
                   Success                            := False;
+
+                  if Trace_McKenzie > Extra then
+                     Put_Line
+                       (Tree, Super.Stream (Parser_Index), Trace_Prefix & ": in_parse_action fail " &
+                          Config.In_Parse_Action_Status.Label'Image);
+                  end if;
                end case;
             end;
 
@@ -902,7 +914,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Success     : Boolean;
    begin
       Clear (Parse_Items);
-      Append (Parse_Items, (Config, Action => null, Parsed => False, Shift_Count => 0));
+      Append (Parse_Items, (Config, Action => null, Parsed => False, Shift_Count => 0, Reduce_Count => 0));
 
       --  Clear any errors; so they reflect the parse result.
       declare

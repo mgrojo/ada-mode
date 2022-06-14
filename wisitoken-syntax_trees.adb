@@ -8716,12 +8716,12 @@ package body WisiToken.Syntax_Trees is
          else
             declare
                use Stream_Element_Lists;
-               Terminal : constant Node_Access := Tree.First_Terminal
-                 (Element (Ref.Element.Cur).Node, Result.Parents);
             begin
-               if Terminal /= Ref.Node then
-                  raise SAL.Programmer_Error with "unsupported To_Stream_Node_Parents case";
-               end if;
+               Result.Ref.Node := Tree.First_Terminal (Element (Ref.Element.Cur).Node, Result.Parents);
+               loop
+                  exit when Result.Ref.Node = Ref.Node;
+                  Tree.Next_Terminal (Result);
+               end loop;
             end;
          end if;
       end return;

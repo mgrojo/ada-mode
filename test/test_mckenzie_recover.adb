@@ -1177,6 +1177,48 @@ package body Test_McKenzie_Recover is
          Cost                    => 1);
    end Missing_Name_5;
 
+   procedure Missing_Name_6 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+   begin
+      End_Name_Optional := False; -- Triggers Missing_Name_Error.
+
+      --  From ada_mode-recover_match_names_03.adb. We have to mess with
+      --  mckenzie costs to duplicate the full Ada behavior.
+      Parser.Table.McKenzie_Param.Insert (+IS_ID) := 1;
+      Parser.Table.McKenzie_Param.Minimal_Complete_Cost_Delta := -2;
+
+      Parse_Text
+        ("procedure Proc_1 is" & ASCII.LF &
+           "procedure Proc_2 (A : Int" & ASCII.LF &
+           "procedure Proc_3 is B : integer; begin null; end Proc_3;" & ASCII.LF &
+           "begin null; end Proc_1;");
+
+      --  Missing 'Proc_2' the rest of Proc_2. Minimal_Complete inserts
+      --  "identifier;) is", which leads to another error at EOI.
+      --  Minimal_Complete inserts "begin identifier; end;", which raises
+      --  Missing_Name_Error during check, which should be ignored.
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 1,
+         Error_Token_ID          => +PROCEDURE_ID,
+         Error_Token_Byte_Region => (47, 55),
+         Ops                     => +(Insert, +RIGHT_PAREN_ID, 2) & (Insert, +IS_ID, 2),
+         Cost                    => 3);
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 2,
+         Error_Token_ID          => +Wisi_EOI_ID,
+         Error_Token_Byte_Region => (127, 126),
+         Ops                     => +(Insert, +BEGIN_ID, 2) & (Insert, +EXIT_ID, 2) & (Insert, +SEMICOLON_ID, 2) &
+           (Insert, +END_ID, 2) & (Insert, +SEMICOLON_ID, 2) & (Fast_Forward, 2, 2),
+         Enqueue_Count           => (case Test.Alg is when LALR => 985, when LR1 => 1010),
+         Check_Count             => (case Test.Alg is when LALR => 172, when LR1 => 177),
+         Cost                    => 10);
+   end Missing_Name_6;
+
    procedure Block_Match_Names_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
@@ -1797,10 +1839,10 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +STRING_LITERAL_ID,
          Error_Token_Byte_Region => (86, 86),
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 1) & (Delete, +IDENTIFIER_ID, 1) &
-           (Fast_Forward, 2, 2) & (Delete, +STRING_LITERAL_ID, 2) & (Fast_Forward, 3, 5),
-         Enqueue_Count             => 132,
-         Check_Count               => 30,
-         Cost                    => 5);
+           (Fast_Forward, 2, 3) & (Insert, +SEMICOLON_ID, 3) & (Fast_Forward, 3, 3),
+         Enqueue_Count           => 90,
+         Check_Count             => 20,
+         Cost                    => 4);
    end String_Quote_7;
 
    procedure Enqueue_Limit (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -2493,6 +2535,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Missing_Name_3'Access, "Missing_Name_3");
       Register_Routine (T, Missing_Name_4'Access, "Missing_Name_4");
       Register_Routine (T, Missing_Name_5'Access, "Missing_Name_5");
+      Register_Routine (T, Missing_Name_6'Access, "Missing_Name_6");
       Register_Routine (T, Block_Match_Names_1'Access, "Block_Match_Names_1");
       Register_Routine (T, Two_Parsers_1'Access, "Two_Parsers_1");
       Register_Routine (T, Extra_Name_1'Access, "Extra_Name_1");
