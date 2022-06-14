@@ -81,6 +81,19 @@ package body WisiToken.Parse.Packrat is
       end loop;
    end Clear;
 
+   function Get_Deriv
+     (Derivs  : in out Packrat.Derivs;
+      Nonterm : in     Token_ID;
+      Pos     : in     Positive_Node_Index)
+     return Memo_Entry
+   is begin
+      if Pos in Derivs (Nonterm).First_Index .. Derivs (Nonterm).Last_Index then
+         return Derivs (Nonterm)(Pos);
+      else
+         return No_Result_Memo;
+      end if;
+   end Get_Deriv;
+
    procedure Set_Deriv
      (Derivs  : in out Packrat.Derivs;
       Nonterm : in     Token_ID;

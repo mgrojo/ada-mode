@@ -45,10 +45,11 @@ package WisiToken.Parse.Parser is
       String_Quote_Checked : Base_Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
-      Resume_Active : Boolean := False;
-      Min_Sequential_Index : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'Last;
-      Max_Sequential_Index : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'First;
-
+      Resume_Active         : Boolean                       := False;
+      Min_Sequential_Index  : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'Last;
+      Max_Sequential_Index  : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'First;
+      Recover_Enqueue_Count : Integer                       := 0;
+      Recover_Check_Count   : Integer                       := 0;
    end record;
 
    type Parser_Access is access all Parser'Class;

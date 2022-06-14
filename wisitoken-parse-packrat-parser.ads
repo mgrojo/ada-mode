@@ -23,9 +23,12 @@
 
 pragma License (Modified_GPL);
 
+with SAL.Gen_Indefinite_Doubly_Linked_Lists;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
+with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Parse.Parser;
 package WisiToken.Parse.Packrat.Parser is
+   use all type WisiToken.Syntax_Trees.Stream_Label;
    use all type WisiToken.Syntax_Trees.Node_Index;
 
    type Recover_Op_Nodes is record
@@ -69,25 +72,79 @@ package WisiToken.Parse.Packrat.Parser is
 
    function Image (Item : in Recover_Op_Nodes; Tree : in Syntax_Trees.Tree) return String;
 
-   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is abstract new WisiToken.Parse.Parser.Parser
-     (First_Nonterminal => First_Nonterminal,
-      Last_Nonterminal  => Last_Nonterminal)
-   with record
-      Direct_Left_Recursive : Token_ID_Array_Token_ID_Set_Access (First_Nonterminal .. Last_Nonterminal);
+   type Parser_Label is range -1 .. Integer'Last;
+   Invalid_Parser_Label : constant Parser_Label := -1;
 
-      Derivs                : Packrat.Derivs (First_Nonterminal .. Last_Nonterminal);
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Parser_Label);
+
+   type Parser_State (First_Nonterminal, Last_Nonterminal : Token_ID) is
+   record
+      Packrat_Label : Parser.Parser_Label := Invalid_Parser_Label;
+
+      LR_Stream_Label : Syntax_Trees.Stream_Label := Syntax_Trees.Invalid_Stream_Label;
+
+      Derivs : Packrat.Derivs (First_Nonterminal .. Last_Nonterminal);
+
       Insert_Delete : aliased Recover_Op_Nodes_Trees.Tree;
       --  Recover_Insert_Delete is not emptied between error recovery
       --  sessions, because later parse operations can examine the same
       --  inputs.
+
+      Result           : Memo_Entry;
+      Max_Examined_Pos : Syntax_Trees.Node_Index := 0;
+
+      Recover_Enqueue_Count : Integer := 0;
+      Recover_Check_Count   : Integer := 0;
+   end record;
+
+   package Parser_State_Lists is new SAL.Gen_Indefinite_Doubly_Linked_Lists (Parser_State);
+
+   type Parser (First_Nonterminal, Last_Nonterminal : Token_ID) is abstract new WisiToken.Parse.Parser.Parser
+     (First_Nonterminal => First_Nonterminal,
+      Last_Nonterminal  => Last_Nonterminal)
+     with
+   record
+      Direct_Left_Recursive : Token_ID_Array_Token_ID_Set_Access (First_Nonterminal .. Last_Nonterminal);
+
+      Packrat_Parsers : Parser_State_Lists.List;
+      --  When no error recover, there is only one parser. After LR error
+      --  recover, there is one packrat parser per LR parse stream.
+
+      Next_Packrat_Label : Parser_Label := Invalid_Parser_Label + 1;
    end record;
 
    overriding procedure Finalize (Object : in out Parser);
 
-   function Delete_Valid (Parser : in Packrat.Parser.Parser; Pos : in Syntax_Trees.Stream_Index) return Boolean;
-   --  Return True if Pos in Tree.Shared_Stream should be skipped.
+   function Packrat_Parser
+     (Parser       : in out Packrat.Parser.Parser;
+      LR_Stream_ID : in     Syntax_Trees.Stream_ID)
+     return Parser_State_Lists.Cursor;
+   --  Return the packrat parser that corresponds to LR_Stream_ID. If a
+   --  matching parser does not currently exist, one is created (with
+   --  Derivs all No_Result).
+   --
+   --  IMPROVEME: It's probably worth copying some derivs from an earlier
+   --  state, but we'd need to know the origin of the LR parser to get it
+   --  right.
 
-   function Has_Input (Parser : in Packrat.Parser.Parser; Pos : in Syntax_Trees.Stream_Index) return Boolean;
+   function LR_Parser
+     (Parser          : in out Packrat.Parser.Parser;
+      LR_Stream_Label : in     Syntax_Trees.Stream_Label)
+     return WisiToken.Parse.LR.Parser_Lists.Parser_Node_Access;
+
+   function Delete_Valid
+     (Parser       : in Packrat.Parser.Parser;
+      Parser_State : in Packrat.Parser.Parser_State;
+      Pos          : in Syntax_Trees.Stream_Index)
+     return Boolean;
+   --  Return True if Pos in Tree.Shared_Stream should be skipped by
+   --  Parser_State.
+
+   function Has_Input
+     (Parser       : in Packrat.Parser.Parser;
+      Parser_State : in Packrat.Parser.Parser_State;
+      Pos          : in Syntax_Trees.Stream_Index)
+     return Boolean;
    --  Return True if there are virtual terminals inserted before Pos.
 
    type ID_Node_Type is record
@@ -96,17 +153,21 @@ package WisiToken.Parse.Packrat.Parser is
    end record;
 
    function Input_Op
-     (Parser    : in Packrat.Parser.Parser;
-      Pos       : in Syntax_Trees.Stream_Index;
-      Prev_Node : in Syntax_Trees.Node_Access)
+     (Parser       : in Packrat.Parser.Parser;
+      Parser_State : in Packrat.Parser.Parser_State;
+      Pos          : in Syntax_Trees.Stream_Index;
+      Prev_Node    : in Syntax_Trees.Node_Access)
      return ID_Node_Type
-   with Pre => Parser.Has_Input (Pos);
+   with Pre => Parser.Has_Input (Parser_State, Pos);
    --  Prev_Node is the terminal before the production terminal being
    --  tested; invalid_node_Access if the production terminal is the
    --  first terminal in a production. This determines which of several
    --  inserts at pos is returned. Result.ID is Invalid_Token_ID if no
    --  inserted virtual is after Prev_Node; Pos is the input token to
    --  test.
+
+   function Max_Examined_Pos (Shared_Parser : in out Parser) return Syntax_Trees.Node_Index;
+   --  If source text is empty, returns SOI.
 
    procedure Packrat_Parse
      (Shared_Parser : in out Parser;
@@ -127,12 +188,17 @@ package WisiToken.Parse.Packrat.Parser is
    --  for error recover.
    --
    --  Resume => True is for resuming packrat parsing after LR error
-   --  recover.
+   --  recover. Then the calling code has set up one packrat parser for
+   --  each LR parse stream. Each packrat parser is run until it fails or
+   --  reaches EOI. If any reached EOI, one of them is declared
+   --  successful. Otherwise, Parse_Error is raised.
 
-   procedure Finish_Parse (Parser : in out Packrat.Parser.Parser'Class; Result : in out Memo_Entry);
-   --  Call Tree.Set_Root, Clear_Parse_Streams, Tree.Insert/Delete_Token;
-   --  raise Parse_Error with an error message if the parse did not
-   --  succeed.
+   procedure Finish_Parse (Parser : in out Packrat.Parser.Parser'Class);
+   --  If the parse succeeded, call Tree.Set_Root, Clear_Parse_Streams,
+   --  Tree.Insert/Delete_Token.
+   --
+   --  If the parse did not succeed, raise Parse_Error with an error
+   --  message.
 
    ----------
    --  Debugging

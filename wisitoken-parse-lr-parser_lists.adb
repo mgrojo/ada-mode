@@ -95,7 +95,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return Result : List
       do
          Result.Elements.Append
-           ((Stream => Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID, null),
+           ((Stream => Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID),
              others => <>));
       end return;
    end New_List;
@@ -124,7 +124,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
    is
       use Parser_State_Lists;
    begin
-      return Cursor.Ptr = No_Element;
+      return Cursor.Ptr = Parser_State_Lists.No_Element;
    end Is_Done;
 
    function Stream (Cursor : in Parser_Lists.Cursor) return Syntax_Trees.Stream_ID
@@ -317,11 +317,9 @@ package body WisiToken.Parse.LR.Parser_Lists is
    end First_Constant_State_Ref;
 
    procedure Prepend_Copy
-     (List      : in out Parser_Lists.List;
-      Cursor    : in     Parser_Lists.Cursor'Class;
-      Tree      : in out Syntax_Trees.Tree;
-      User_Data : in     Syntax_Trees.User_Data_Access;
-      Trace     : in out WisiToken.Trace'Class)
+     (List   : in out Parser_Lists.List;
+      Cursor : in     Parser_Lists.Cursor'Class;
+      Tree   : in out Syntax_Trees.Tree)
    is
       New_Item : Parser_State;
    begin
@@ -338,7 +336,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Recover_Insert_Delete_Current => Item.Recover_Insert_Delete_Current,
             Recover                 =>
               (Enqueue_Count        => Item.Recover.Enqueue_Count,
-               Config_Full_Count    => Item.Recover.Config_Full_Count,
                Check_Count          => Item.Recover.Check_Count,
                others               => <>),
             Total_Recover_Cost      => Item.Total_Recover_Cost,
@@ -349,12 +346,21 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Conflict_During_Resume  => Item.Conflict_During_Resume,
             Zombie_Token_Count      => 0,
             Last_Action             => Item.Last_Action,
-            Stream                  => Tree.New_Stream (Item.Stream, User_Data),
+            Stream                  => Tree.New_Stream (Item.Stream),
             Verb                    => Item.Verb);
       end;
 
       List.Elements.Prepend (New_Item);
    end Prepend_Copy;
+
+   procedure Prepend_Empty
+     (List : in out Parser_Lists.List;
+      Tree : in out Syntax_Trees.Tree)
+   is begin
+      List.Elements.Prepend
+        ((Stream => Tree.New_Stream (Syntax_Trees.Invalid_Stream_ID),
+          others => <>));
+   end Prepend_Empty;
 
    ----------
    --  stuff for iterators

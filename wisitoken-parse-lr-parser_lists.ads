@@ -168,15 +168,19 @@ package WisiToken.Parse.LR.Parser_Lists is
    --  Direct access to visible components of first parser's Parser_State
 
    procedure Prepend_Copy
-     (List      : in out Parser_Lists.List;
-      Cursor    : in     Parser_Lists.Cursor'Class;
-      Tree      : in out Syntax_Trees.Tree;
-      User_Data : in     Syntax_Trees.User_Data_Access;
-      Trace     : in out WisiToken.Trace'Class);
+     (List   : in out Parser_Lists.List;
+      Cursor : in     Parser_Lists.Cursor'Class;
+      Tree   : in out Syntax_Trees.Tree);
    --  Copy parser at Cursor, prepend to current list. New copy will not
    --  appear in Cursor.Next ...; it is accessible as First (List).
    --
    --  Copy.Recover is set to default.
+
+   procedure Prepend_Empty
+     (List : in out Parser_Lists.List;
+      Tree : in out Syntax_Trees.Tree);
+   --  Prepend a new parser_state to List, all default initialized except
+   --  Stream, which is a new parse stream in Tree.
 
    ----------
    --  Stuff for iterators, to allow
@@ -207,6 +211,8 @@ package WisiToken.Parse.LR.Parser_Lists is
    --  end loop;
 
    type Parser_Node_Access (<>) is private;
+
+   No_Element : constant Parser_Node_Access;
 
    function To_Cursor (Ptr : in Parser_Node_Access) return Cursor;
    function To_Parser_Node_Access (Cur : in Cursor) return Parser_Node_Access;
@@ -262,5 +268,7 @@ private
    type Parser_Node_Access is record
       Ptr : Parser_State_Lists.Cursor;
    end record;
+
+   No_Element : constant Parser_Node_Access := (Ptr => Parser_State_Lists.No_Element);
 
 end WisiToken.Parse.LR.Parser_Lists;

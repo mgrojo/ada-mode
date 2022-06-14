@@ -923,6 +923,10 @@ package body WisiToken.Parse.LR.Parser is
 
       Last_Deleted_Node_Parent : Node_Access;
    begin
+      --  Copy recover counts for unit test.
+      Parser.Recover_Enqueue_Count := Parser_State.Recover.Enqueue_Count;
+      Parser.Recover_Check_Count   := Parser_State.Recover.Check_Count;
+
       --  We need parents set in the following code.
       Parser.Tree.Finish_Parse;
       Parser_State.Clear_Stream;

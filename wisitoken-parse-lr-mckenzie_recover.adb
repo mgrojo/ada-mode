@@ -286,7 +286,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                   if Data.Results.Count > 1 then
                      for I in 1 .. SAL.Base_Peek_Type'Min (Spawn_Limit, Data.Results.Count - 1) loop
-                        Parsers.Prepend_Copy (Cur, Tree, Shared_Parser.User_Data, Trace);
+                        Parsers.Prepend_Copy (Cur, Tree);
                         --  Does not copy recover.
 
                         if Trace_McKenzie > Outline or Trace_Parse > Outline then
@@ -1228,9 +1228,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    procedure Clear_Sequential_Index (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class)
    is
-      Streams       : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Parsers.Count + 1);
-      Min_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Parsers.Count + 1);
-      Max_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Parsers.Count + 1);
+      Streams       : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Tree.Stream_Count);
+      Min_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Tree.Stream_Count);
+      Max_Terminals : Syntax_Trees.Stream_Node_Parents_Array (1 .. Shared_Parser.Tree.Stream_Count);
    begin
       if Shared_Parser.Parsers.Count = 0 then
          --  We get here when recover fails by terminating all parsers.

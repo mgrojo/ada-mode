@@ -136,6 +136,18 @@ package WisiToken.Syntax_Trees is
 
    type Stream_ID_Array is array (Positive_Index_Type range <>) of Stream_ID;
 
+   type Stream_Label is range -2 .. Integer'Last;
+   --  First parser has label 0, for compatibility with tests, and for
+   --  general sanity. There is no practical upper limit; parsing a large
+   --  file spawns and terminates thousands of parsers.
+
+   Invalid_Stream_Label : constant Stream_Label := -2;
+   Shared_Stream_Label  : constant Stream_Label := -1;
+
+   function Label (Stream : in Stream_ID) return Stream_Label;
+
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Stream_Label);
+
    type Stream_Index is private;
    Invalid_Stream_Index : constant Stream_Index;
 
@@ -675,8 +687,7 @@ package WisiToken.Syntax_Trees is
 
    function New_Stream
      (Tree       : in out Syntax_Trees.Tree;
-      Old_Stream : in     Stream_ID;
-      User_Data  : in     User_Data_Access)
+      Old_Stream : in     Stream_ID)
      return Stream_ID
    with
      Pre => Old_Stream = Invalid_Stream_ID or else
@@ -3048,16 +3059,6 @@ private
          --  child, to preserve child indices while editing the tree.
       end case;
    end record;
-
-   type Stream_Label is range -2 .. Integer'Last;
-   --  First parser has label 0, for compatibility with tests, and for
-   --  general sanity. There is no practical upper limit; parsing a large
-   --  file spawns and terminates thousands of parsers.
-
-   Invalid_Stream_Label : constant Stream_Label := -2;
-   Shared_Stream_Label  : constant Stream_Label := -1;
-
-   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Stream_Label);
 
    type Stream_Element is record
       --  We use separate stream pointers, rather than reusing the nonterm

@@ -43,8 +43,6 @@ begin
       Shared_Parser.User_Data.Reset;
    end if;
 
-   Shared_Parser.Tree.Lexer.Errors.Clear;
-
    Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
 
    if Edits /= KMN_Lists.Empty_List then

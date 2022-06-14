@@ -4970,6 +4970,11 @@ package body WisiToken.Syntax_Trees is
       return Node.Label;
    end Label;
 
+   function Label (Stream : in Stream_ID) return Stream_Label
+   is begin
+      return Parse_Stream_Lists.Constant_Ref (Stream.Cur).Label;
+   end Label;
+
    function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Node_Label
    is
       pragma Unreferenced (Tree);
@@ -6756,12 +6761,9 @@ package body WisiToken.Syntax_Trees is
 
    function New_Stream
      (Tree       : in out Syntax_Trees.Tree;
-      Old_Stream : in     Stream_ID;
-      User_Data  : in     User_Data_Access)
+      Old_Stream : in     Stream_ID)
      return Stream_ID
-   is
-      pragma Unreferenced (User_Data);
-   begin
+   is begin
       if Old_Stream = Invalid_Stream_ID then
          return New_Stream (Tree);
       else
@@ -7450,7 +7452,9 @@ package body WisiToken.Syntax_Trees is
               (Tree.Image
                  (Stream, Shared => True, Children => Children and Cur /= Tree.Shared_Stream.Cur,
                   Node_Numbers => True, Non_Grammar => Non_Grammar));
-            Tree.Lexer.Trace.New_Line;
+            if Children then
+               Tree.Lexer.Trace.New_Line;
+            end if;
          end;
       end loop;
    end Print_Streams;
@@ -8230,6 +8234,8 @@ package body WisiToken.Syntax_Trees is
       Begin_Char_Pos : Buffer_Pos;
       Begin_Line     : Line_Number_Type;
    begin
+      Tree.Lexer.Errors.Clear;
+
       Tree.Lexer.Begin_Pos (Begin_Byte_Pos, Begin_Char_Pos, Begin_Line);
       declare
          Token : constant Lexer.Token :=

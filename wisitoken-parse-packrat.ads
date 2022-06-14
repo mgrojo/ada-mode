@@ -104,6 +104,13 @@ package WisiToken.Parse.Packrat is
    procedure Clear (Derivs : in out Packrat.Derivs);
    --  Free memory allocated by Derivs; set all to Empty_Vector.
 
+   function Get_Deriv
+     (Derivs  : in out Packrat.Derivs;
+      Nonterm : in     Token_ID;
+      Pos     : in     Positive_Node_Index)
+     return Memo_Entry;
+   --  Return Derivs (Nonterm)(Pos) if present; No_Result_Memo if not.
+
    procedure Set_Deriv
      (Derivs  : in out Packrat.Derivs;
       Nonterm : in     Token_ID;

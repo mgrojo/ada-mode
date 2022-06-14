@@ -25,6 +25,7 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks.Containers;
 with Ada.Containers;
+with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LALR_Main;
@@ -34,7 +35,6 @@ with SAL;
 with WisiToken.AUnit;
 with WisiToken.Parse.LR.AUnit;
 with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
-with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Parse.Packrat.Procedural;
 with WisiToken.Parse.Packrat;
 with WisiToken.Parse.Parser;
@@ -111,7 +111,8 @@ package body Test_McKenzie_Recover is
 
       Check ("exception", False, Expect_Exception);
    exception
-   when WisiToken.Parse_Error =>
+   when E : WisiToken.Parse_Error =>
+      Ada.Text_IO.Put_Line ("Parse_Error: " & Ada.Exceptions.Exception_Message (E));
       if WisiToken.Trace_Tests > WisiToken.Detail then
          Parser.Put_Errors (Parser.Tree.First_Parse_Stream);
       end if;
@@ -269,18 +270,13 @@ package body Test_McKenzie_Recover is
       --  There is only one Parser_State.Recover, so it stores counts from
       --  the last error in parse order. Since tree order can be different
       --  from parse order, we can't check that here.
-      declare
-         Parser_State : WisiToken.Parse.LR.Parser_Lists.Parser_State renames
-           Parser.Parsers.First.State_Ref.Element.all;
-      begin
-         if Enqueue_Count = 0 then
-            --  Not checking enqueue or check counts
-            null;
-         else
-            Check (Label_I & ".Enqueue_Count", Parser_State.Recover.Enqueue_Count, Enqueue_Count);
-            Check (Label_I & ".Check_Count", Parser_State.Recover.Check_Count, Check_Count);
-         end if;
-      end;
+      if Enqueue_Count = 0 then
+         --  Not checking enqueue or check counts
+         null;
+      else
+         Check (Label_I & ".Enqueue_Count", Parser.Recover_Enqueue_Count, Enqueue_Count);
+         Check (Label_I & ".Check_Count", Parser.Recover_Check_Count, Check_Count);
+      end if;
    end Check_Recover;
 
    ----------
