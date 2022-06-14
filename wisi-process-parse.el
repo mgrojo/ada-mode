@@ -1483,54 +1483,71 @@ prompt for it."
     (goto-char log-buffer-point)))
 
 (defun wisi-process-log-to-cmd-1 ()
-  "Convert parse_partial process command at point to run_* command line."
+  "Convert parse command at point to run_* command line in clipboard."
   (interactive)
   (forward-line 0)
-  (unless (looking-at "parse 0 \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\"")
-    (user-error "not on partial_parse command"))
+  (cond
+   ((looking-at "parse 0 \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\"")
+    (let ((parse-action (string-to-number (match-string 1)))
+	  (source-file (match-string 2))
+	  (begin-byte-pos (match-string 3))
+	  (end-byte-pos (match-string 4))
+	  (goal-byte-pos (match-string 5))
+	  (begin-char-pos (match-string 6))
+	  (end-char-pos (match-string 7))
+	  (begin-line (match-string 8))
+	  (begin-indent (match-string 9))
+	  (_partial-parse-active (match-string 10))
+	  (verbosity (match-string 11))
+	  (mckenzie_zombie_limit (string-to-number (match-string 12)))
+	  (mckenzie_enqueue_limit (string-to-number (match-string 13)))
+	  (parse_max_parallel (string-to-number (match-string 14)))
+	  (_byte-count (match-string 15))
+	  (language_param (match-string 16))
+	  cmd)
 
-  (let ((parse-action (string-to-number (match-string 1)))
-	(source-file (match-string 2))
-	(begin-byte-pos (match-string 3))
-	(end-byte-pos (match-string 4))
-	(goal-byte-pos (match-string 5))
-	(begin-char-pos (match-string 6))
-	(end-char-pos (match-string 7))
-	(begin-line (match-string 8))
-	(begin-indent (match-string 9))
-	(_partial-parse-active (match-string 10))
-	(verbosity (match-string 11))
-	(mckenzie_zombie_limit (string-to-number (match-string 12)))
-	(mckenzie_enqueue_limit (string-to-number (match-string 13)))
-	(parse_max_parallel (string-to-number (match-string 14)))
-	(_byte-count (match-string 15))
-	(language_param (match-string 16))
-	cmd)
+      (setq cmd
+	    (concat "parse_partial "
+		    (cl-ecase parse-action
+		      (0 "navigate ")
+		      (1 "face ")
+		      (2 "indent "))
+		    source-file " "
+		    begin-byte-pos " "
+		    end-byte-pos " "
+		    goal-byte-pos " "
+		    begin-char-pos " "
+		    end-char-pos " "
+		    begin-line " "
+		    begin-indent " "
+		    (when (not (string-equal "" verbosity)) (format "--verbosity \"%s\" " verbosity))
+		    (when (not (= -1 mckenzie_zombie_limit)) (format "--mckenzie_zombie_limit %d" mckenzie_zombie_limit))
+		    " "
+		    (when (not (= -1 mckenzie_enqueue_limit))
+		      (format "--mckenzie_enqueue_limit %d" mckenzie_enqueue_limit))
+		    " "
+		    (when (not (= -1 parse_max_parallel)) (format "--parse_max_parallel %d" parse_max_parallel)) " "
+		    (when (not (string-equal "" language_param)) (format "--lang_params \"%s\" " language_param))
+		    ))
+      (kill-new cmd)))
 
-    (setq cmd
-	  (concat "parse_partial "
-		  (cl-ecase parse-action
-		    (0 "navigate ")
-		    (1 "face ")
-		    (2 "indent "))
-		  source-file " "
-		  begin-byte-pos " "
-		  end-byte-pos " "
-		  goal-byte-pos " "
-		  begin-char-pos " "
-		  end-char-pos " "
-		  begin-line " "
-		  begin-indent " "
-		  (when (not (string-equal "" verbosity)) (format "--verbosity \"%s\" " verbosity))
-		  (when (not (= -1 mckenzie_zombie_limit)) (format "--mckenzie_zombie_limit %d" mckenzie_zombie_limit))
-		  " "
-		  (when (not (= -1 mckenzie_enqueue_limit))
-		    (format "--mckenzie_enqueue_limit %d" mckenzie_enqueue_limit))
-		  " "
-		  (when (not (= -1 parse_max_parallel)) (format "--parse_max_parallel %d" parse_max_parallel)) " "
-		  (when (not (string-equal "" language_param)) (format "--lang_params \"%s\" " language_param))
-		  ))
-    (kill-new cmd)))
+   ((looking-at "parse 2 \"\\([^\"]*\\)\" \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) [-0-9]+ [-0-9]+ \"\\([^\"]*\\)\"")
+    (let ((source-file (match-string 1))
+	  (verbosity (match-string 2))
+	  (mckenzie_zombie_limit (match-string 3))
+	  (mckenzie_enqueue_limit (match-string 4))
+	  (parse_max_parallel (match-string 5))
+	  (language_param (match-string 6))
+	  cmd)
+
+      (setq cmd
+	    (concat "parse_partial none "
+		    source-file " "
+		    (when (not (string-equal "" verbosity)) (format "--verbosity \"%s\" " verbosity))
+		    (when (not (string-equal "" language_param)) (format "--lang_params \"%s\" " language_param))
+		    ))
+      (kill-new cmd)))
+   ))
 
 (cl-defun wisi-time (func count &key report-wait-time)
   "call FUNC COUNT times, show total time"
