@@ -19,7 +19,7 @@ incremental_parse-pre-config.input_stream o.w.s-2
 '((xgit . "/Projects/org.stephe_leake.makerules")
   (xgit . "/Projects/org.stephe_leake.aunit_ext")
   (xgit . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xgit . "/Projects/org.wisitoken.stephe-1")))
+  (xgit . "/Projects/org.wisitoken.stephe-2")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
@@ -34,13 +34,7 @@ update-wisitoken_grammar
 merge wisitoken-parse-packrat-parser back into wisitoken-parse-packrat?
 
 make -r t_mck RUN_ARGS="Packrat_Proc \"Error_2\" \"debug=1 test=2 parse=1 mckenzie=1 packrat_mckenzie=3\""
-    pass thru Error_1
 
-    error_3 pass
-
-    error_2: assertion error
-
-    hangs in Match_Selected_Component_1
 
 
 packrat_to_lr find all parse streams?

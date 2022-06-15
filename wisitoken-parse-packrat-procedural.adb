@@ -438,6 +438,7 @@ package body WisiToken.Parse.Packrat.Procedural is
 
       for Parser_State of Parser.Packrat_Parsers loop
          if Trace_Parse > Outline then
+            Parser.Tree.Lexer.Trace.New_Line;
             Parser.Tree.Lexer.Trace.Put_Line ("packrat parser" & Parser_State.Packrat_Label'Image);
          end if;
 

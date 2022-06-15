@@ -1214,8 +1214,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (127, 126),
          Ops                     => +(Insert, +BEGIN_ID, 2) & (Insert, +EXIT_ID, 2) & (Insert, +SEMICOLON_ID, 2) &
            (Insert, +END_ID, 2) & (Insert, +SEMICOLON_ID, 2) & (Fast_Forward, 2, 2),
-         Enqueue_Count           => (case Test.Alg is when LALR => 985, when LR1 => 1010),
-         Check_Count             => (case Test.Alg is when LALR => 172, when LR1 => 177),
+         Enqueue_Count           => (case Test.Alg is when LALR => 985, when LR1 | Packrat_Proc | Packrat_Gen => 1010),
+         Check_Count             => (case Test.Alg is when LALR => 172, when LR1 | Packrat_Proc | Packrat_Gen => 177),
          Cost                    => 10);
    end Missing_Name_6;
 

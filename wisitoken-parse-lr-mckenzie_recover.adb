@@ -739,7 +739,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    exception
    when E : others =>
-      Clear_Sequential_Index (Shared_Parser);
       if Debug_Mode then
          Trace.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
          Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix

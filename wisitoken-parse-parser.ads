@@ -45,6 +45,9 @@ package WisiToken.Parse.Parser is
       String_Quote_Checked : Base_Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
+      Error : Boolean := False;
+      --  True if any error occured during parsing.
+
       Resume_Active         : Boolean                       := False;
       Min_Sequential_Index  : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'Last;
       Max_Sequential_Index  : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'First;

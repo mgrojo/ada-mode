@@ -128,6 +128,7 @@ package body WisiToken.Parse.Parser is
 
    procedure Lex_All (Parser : in out WisiToken.Parse.Parser.Parser'Class)
    is
+      use all type Ada.Containers.Count_Type;
       EOI_ID : constant Token_ID := Parser.Tree.Lexer.Descriptor.EOI_ID;
 
       Last_Grammar_Node : WisiToken.Syntax_Trees.Node_Access;
@@ -142,6 +143,8 @@ package body WisiToken.Parse.Parser is
       if Trace_Parse > Outline then
          Parser.Tree.Lexer.Trace.Put_Line (Syntax_Trees.Get_Node_Index (Last_Grammar_Node)'Image & " tokens lexed");
       end if;
+      Parser.Error := Parser.Tree.Lexer.Errors.Length > 0;
+
    end Lex_All;
 
    procedure LR_Parse

@@ -3380,56 +3380,59 @@ package body WisiToken.Syntax_Trees is
       --  Prev/Next_Non_Grammar can find them.
       declare
          Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Tree.Streams.Last);
-         SOI : constant Valid_Node_Access := Stream_Element_Lists.Element (Parse_Stream.Elements.First).Node;
+         Descriptor   : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
+         SOI          : constant Valid_Node_Access := Stream_Element_Lists.Element (Parse_Stream.Elements.First).Node;
 
          Last_Node : constant Valid_Node_Access := Stream_Element_Lists.Element (Parse_Stream.Elements.Last).Node;
 
-         EOI : constant Valid_Node_Access :=
-           (if Tree.ID (Last_Node) = Tree.Lexer.Descriptor.EOI_ID
+         Packrat_Parse : constant Boolean := Last_Node.ID = Tree.Lexer.Descriptor.Accept_ID and then
+           Last_Node.Children (Last_Node.Child_Count).ID = Descriptor.EOI_ID;
+
+         EOI : constant Node_Access :=
+           (if Last_Node.ID = Tree.Lexer.Descriptor.EOI_ID
             then Last_Node
+            elsif Packrat_Parse
+            then Last_Node.Children (Last_Node.Child_Count)
             else Tree.EOI);
 
-         New_Children : Node_Access_Array (1 .. Tree.Root.Child_Count + 2);
+         New_Children : Node_Access_Array (1 .. 3);
       begin
-         if Tree.Streams.Last = Tree.Shared_Stream.Cur and Tree.Root.Child_Count = 3 then
-            --  This is a packrat parse; SOI, EOI already in tree
-            pragma Assert (Tree.Root.Children (1) = Tree.SOI and Tree.Root.Children (3) = EOI);
-         else
-            --  There is a parse stream, or this is an incremental parse where the
-            --  edit did not require a parse.
-            New_Children (1) := SOI;
-            New_Children (2 .. New_Children'Last - 1) := Tree.Root.Children;
-            New_Children (New_Children'Last) := EOI;
+         pragma Assert
+           (Tree.Root.ID = Descriptor.Accept_ID and
+              Tree.Root.Child_Count = (if Packrat_Parse then 2 else 1));
 
-            Tree.SOI := SOI;
-            Tree.EOI := EOI;
+         New_Children (1) := SOI;
+         New_Children (2) := Tree.Root.Children (1);
+         New_Children (3) := EOI;
 
-            Tree.Root.Children := (others => Invalid_Node_Access);
+         Tree.SOI := SOI;
+         Tree.EOI := EOI;
 
-            Tree.Root := new Node'
-              (Label       => Nonterm,
-               Child_Count => Tree.Root.Child_Count + 2,
-               ID          => Tree.Root.ID,
-               Node_Index  => Tree.Root.Node_Index,
-               Parent      => null,
-               Augmented   => Tree.Root.Augmented,
-               Error_List  =>
-                 (if Tree.Root.Error_List = null
-                  then null
-                  else new Error_Data_Lists.List'(Tree.Root.Error_List.all)),
-               Virtual          => Tree.Root.Virtual,
-               Recover_Conflict => False,
-               RHS_Index        => Tree.Root.RHS_Index,
-               Name_Offset      => Tree.Root.Name_Offset,
-               Name_Length      => Tree.Root.Name_Length,
-               Children         => New_Children);
+         Tree.Root.Children := (others => Invalid_Node_Access);
 
-            for Child of New_Children loop
-               Child.Parent := Tree.Root;
-            end loop;
+         Tree.Root := new Node'
+           (Label       => Nonterm,
+            Child_Count => 3,
+            ID          => Tree.Root.ID,
+            Node_Index  => Tree.Root.Node_Index,
+            Parent      => null,
+            Augmented   => Tree.Root.Augmented,
+            Error_List  =>
+              (if Tree.Root.Error_List = null
+               then null
+               else new Error_Data_Lists.List'(Tree.Root.Error_List.all)),
+            Virtual          => Tree.Root.Virtual,
+            Recover_Conflict => Tree.Root.Recover_Conflict,
+            RHS_Index        => Tree.Root.RHS_Index,
+            Name_Offset      => Tree.Root.Name_Offset,
+            Name_Length      => Tree.Root.Name_Length,
+            Children         => New_Children);
 
-            Tree.Nodes.Append (Tree.Root);
-         end if;
+         for Child of New_Children loop
+            Child.Parent := Tree.Root;
+         end loop;
+
+         Tree.Nodes.Append (Tree.Root);
       end;
 
       --  Clear saved element list cursors in parse streams before freeing

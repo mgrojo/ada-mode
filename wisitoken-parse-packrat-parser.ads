@@ -93,8 +93,13 @@ package WisiToken.Parse.Packrat.Parser is
       Result           : Memo_Entry;
       Max_Examined_Pos : Syntax_Trees.Node_Index := 0;
 
-      Recover_Enqueue_Count : Integer := 0;
-      Recover_Check_Count   : Integer := 0;
+      --  Recover info for picking one of several successful parsers.
+      Total_Recover_Cost     : Integer                   := 0;
+      Max_Recover_Ops_Length : Ada.Containers.Count_Type := 0;
+
+      --  Recover info for test_mckenzie_recover.adb Packrat
+      Last_Recover_Enqueue_Count : Integer := 0;
+      Last_Recover_Check_Count   : Integer := 0;
    end record;
 
    package Parser_State_Lists is new SAL.Gen_Indefinite_Doubly_Linked_Lists (Parser_State);
@@ -194,16 +199,19 @@ package WisiToken.Parse.Packrat.Parser is
    --  successful. Otherwise, Parse_Error is raised.
 
    procedure Finish_Parse (Parser : in out Packrat.Parser.Parser'Class);
-   --  If the parse succeeded, call Tree.Set_Root, Clear_Parse_Streams,
-   --  Tree.Insert/Delete_Token.
+   --  If a single parser succeeded, leaves Parser.Tree in
+   --  Fully_Parsed state.
+   --
+   --  If there were recovered errors, the error information is in
+   --  Parser.Tree.
    --
    --  If the parse did not succeed, raise Parse_Error with an error
-   --  message.
+   --  message, and Parser.Parsers is left intact for error recover.
 
    ----------
    --  Debugging
 
    procedure Print_Derivs (Parser : in WisiToken.Parse.Packrat.Parser.Parser);
-   --  Print Parser.Derivs to Parser.Tree.Lexer.Trace.
+   --  Print Parser.Parsers.Derivs. .Insert_Delete to Parser.Tree.Lexer.Trace.
 
 end WisiToken.Parse.Packrat.Parser;
