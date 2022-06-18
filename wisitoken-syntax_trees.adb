@@ -3370,70 +3370,74 @@ package body WisiToken.Syntax_Trees is
    end Find_Sibling;
 
    procedure Finish_Parse (Tree : in out Syntax_Trees.Tree)
-   is begin
+   is
+      Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Tree.Streams.Last);
+
+      Last_Node : constant Valid_Node_Access := Stream_Element_Lists.Element (Parse_Stream.Elements.Last).Node;
+
+      Packrat_Parse : constant Boolean := Last_Node.ID = Tree.Lexer.Descriptor.Accept_ID and then
+        Last_Node.Children (Last_Node.Child_Count).ID = Descriptor.EOI_ID;
+   begin
       if Tree.Root = Invalid_Node_Access then
          Tree.Root := Syntax_Trees.Root (Tree);
       end if;
 
-      --  Add SOI, EOI (from the parse stream, to include any
-      --  Following_Deleted and Error_Data) to Root children, so
-      --  Prev/Next_Non_Grammar can find them.
-      declare
-         Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Tree.Streams.Last);
-         Descriptor   : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
-         SOI          : constant Valid_Node_Access := Stream_Element_Lists.Element (Parse_Stream.Elements.First).Node;
+      pragma Assert (Tree.Root.ID = Descriptor.Accept_ID);
+      if Tree.Root.Child_Count = (if Packrat_Parse then 2 else 1) then
+         --  Grammar is from wisitoken-bnf-generate, or is compatible.
+         --  Add SOI, EOI (from the parse stream, to include any
+         --  Following_Deleted and Error_Data) to Root children, so
+         --  Prev/Next_Non_Grammar can find them.
+         declare
+            SOI : constant Valid_Node_Access := Stream_Element_Lists.Element (Parse_Stream.Elements.First).Node;
 
-         Last_Node : constant Valid_Node_Access := Stream_Element_Lists.Element (Parse_Stream.Elements.Last).Node;
+            EOI : constant Node_Access :=
+              (if Last_Node.ID = Tree.Lexer.Descriptor.EOI_ID
+               then Last_Node
+               elsif Packrat_Parse
+               then Last_Node.Children (Last_Node.Child_Count)
+               else Tree.EOI);
 
-         Packrat_Parse : constant Boolean := Last_Node.ID = Tree.Lexer.Descriptor.Accept_ID and then
-           Last_Node.Children (Last_Node.Child_Count).ID = Descriptor.EOI_ID;
+            New_Children : Node_Access_Array (1 .. 3);
+         begin
+            New_Children (1) := SOI;
+            New_Children (2) := Tree.Root.Children (1);
+            New_Children (3) := EOI;
 
-         EOI : constant Node_Access :=
-           (if Last_Node.ID = Tree.Lexer.Descriptor.EOI_ID
-            then Last_Node
-            elsif Packrat_Parse
-            then Last_Node.Children (Last_Node.Child_Count)
-            else Tree.EOI);
+            Tree.SOI := SOI;
+            Tree.EOI := EOI;
 
-         New_Children : Node_Access_Array (1 .. 3);
-      begin
-         pragma Assert
-           (Tree.Root.ID = Descriptor.Accept_ID and
-              Tree.Root.Child_Count = (if Packrat_Parse then 2 else 1));
+            Tree.Root.Children := (others => Invalid_Node_Access);
 
-         New_Children (1) := SOI;
-         New_Children (2) := Tree.Root.Children (1);
-         New_Children (3) := EOI;
+            Tree.Root := new Node'
+              (Label       => Nonterm,
+               Child_Count => 3,
+               ID          => Tree.Root.ID,
+               Node_Index  => Tree.Root.Node_Index,
+               Parent      => null,
+               Augmented   => Tree.Root.Augmented,
+               Error_List  =>
+                 (if Tree.Root.Error_List = null
+                  then null
+                  else new Error_Data_Lists.List'(Tree.Root.Error_List.all)),
+               Virtual          => Tree.Root.Virtual,
+               Recover_Conflict => Tree.Root.Recover_Conflict,
+               RHS_Index        => Tree.Root.RHS_Index,
+               Name_Offset      => Tree.Root.Name_Offset,
+               Name_Length      => Tree.Root.Name_Length,
+               Children         => New_Children);
 
-         Tree.SOI := SOI;
-         Tree.EOI := EOI;
+            for Child of New_Children loop
+               Child.Parent := Tree.Root;
+            end loop;
 
-         Tree.Root.Children := (others => Invalid_Node_Access);
-
-         Tree.Root := new Node'
-           (Label       => Nonterm,
-            Child_Count => 3,
-            ID          => Tree.Root.ID,
-            Node_Index  => Tree.Root.Node_Index,
-            Parent      => null,
-            Augmented   => Tree.Root.Augmented,
-            Error_List  =>
-              (if Tree.Root.Error_List = null
-               then null
-               else new Error_Data_Lists.List'(Tree.Root.Error_List.all)),
-            Virtual          => Tree.Root.Virtual,
-            Recover_Conflict => Tree.Root.Recover_Conflict,
-            RHS_Index        => Tree.Root.RHS_Index,
-            Name_Offset      => Tree.Root.Name_Offset,
-            Name_Length      => Tree.Root.Name_Length,
-            Children         => New_Children);
-
-         for Child of New_Children loop
-            Child.Parent := Tree.Root;
-         end loop;
-
-         Tree.Nodes.Append (Tree.Root);
-      end;
+            Tree.Nodes.Append (Tree.Root);
+         end;
+      else
+         --  Grammar is constructed in Ada, most likely in a wisitoken unit test. Don't add SOI, EOI.
+         null;
+      end if;
 
       --  Clear saved element list cursors in parse streams before freeing
       --  the element lists, so they don't try to decrement reference counts

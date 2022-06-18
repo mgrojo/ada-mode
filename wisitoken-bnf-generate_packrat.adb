@@ -46,8 +46,10 @@ is
    procedure Put_Parser_Spec (Name : in String)
    is begin
       Indent_Line ("function " & Name);
-      Indent_Start
-        ("  (Parser : in out Generated.Parser; Last_Pos : in Syntax_Trees.Stream_Index) return Result_Type");
+      Indent_Line ("  (Parser       : in out Generated.Parser;");
+      Indent_Line ("   Parser_State : in out WisiToken.Parse.Packrat.Parser.Parser_State;");
+      Indent_Line ("   Last_Pos     : in     Syntax_Trees.Stream_Index)");
+      Indent_Start ("  return Result_Type");
    end Put_Parser_Spec;
 
    function Var_Suffix (I, J : in Integer) return String
@@ -107,12 +109,12 @@ is
       Indent_Line ("end if;");
       Indent_Line ("declare");
       Indent_Line
-        ("   Memo : Memo_Entry renames Parser.Derivs (" & Result_ID & ")(Start_Pos_Index);");
+        ("   Memo : Memo_Entry := Get_Deriv (Parser_State.Derivs, " & Result_ID & ", Start_Pos_Index);");
       Indent_Line ("begin");
       Indent := Indent + 3;
       Indent_Line ("case Memo.State is");
       Indent_Line ("when Success =>");
-      Indent_Line ("   return Parser.Derivs (" & Result_ID & ")(Start_Pos_Index);");
+      Indent_Line ("   return Parser_State.Derivs (" & Result_ID & ")(Start_Pos_Index);");
       Indent_Line ("when Failure =>");
 
       Indent_Line ("   goto RHS_" & Trimmed_Image (Prod.RHSs.Last_Index) & "_Fail;");
@@ -131,8 +133,8 @@ is
       if Data.Direct_Left_Recursive (Prod.LHS) /= null then
          --  This is the top of the 'while' loop in [warth 2008] figure 3 Grow-LR.
          Indent_Line
-           ("Parser.Derivs (" & Result_ID &
-              ").Replace_Element (Start_Pos_Index, (State => Failure, Max_Examined_Pos => Next_Pos));");
+           ("Set_Deriv (Parser_State.Derivs, " & Result_ID &
+              ", Start_Pos_Index, (State => Failure, Max_Examined_Pos => Next_Pos));");
          Indent_Line ("<<Recurse_Start>>");
       end if;
 
@@ -147,8 +149,8 @@ is
                   Indent_Line ("Result_Recurse :=");
                   Indent := Indent + 2;
                else
-                  Indent_Line ("Parser.Derivs (" & Result_ID & ").Replace_Element");
-                  Indent_Line ("  (Start_Pos_Index,");
+                  Indent_Line ("Set_Deriv");
+                  Indent_Line ("  (Parser_State.Derivs, " & Result_ID & ", Start_Pos_Index,");
                   Indent := Indent + 3;
                end if;
                Indent_Line ("(State            => Success,");
@@ -232,7 +234,7 @@ is
                   begin
                      if RHS.Tokens (Token_Index) in Terminal then
                         Indent_Line ("Update (Parser, """ & ID_Name & """, Next_Pos, Max_Examined_Pos);");
-                        Indent_Line ("if Tree.ID (Tree.Shared_Stream, Next_Pos) = " & ID & " then");
+                        Indent_Line ("if Tree.ID (Next_Pos) = " & ID & " then");
                         Indent := Indent + 3;
                         Indent_Line ("Pos := Next_Pos;");
                         Indent_Line ("Next_Pos := Tree.Stream_Next (Tree.Shared_Stream, Pos);");
@@ -248,7 +250,7 @@ is
                      else -- nonterminal
                         Indent_Line
                           ("Memo_" & Var_Suf & " := Parse_" & Image (RHS.Tokens (Token_Index), Descriptor) &
-                             " (Parser, Pos);");
+                             " (Parser, Parser_State, Pos);");
                         Indent_Line
                           ("Update (Parser, """ & ID_Name & """, Memo_" & Var_Suf &
                              ".Max_Examined_Pos, Max_Examined_Pos);");
@@ -278,10 +280,10 @@ is
       if Data.Direct_Left_Recursive (Prod.LHS) /= null then
          Indent_Line ("Result_Recurse := (State => Failure, Max_Examined_Pos => Max_Examined_Pos);");
       else
-         Indent_Line
-           ("Parser.Derivs (" & Result_ID &
-              ").Replace_Element (Start_Pos_Index, (State => Failure, Max_Examined_Pos => Max_Examined_Pos));");
-         Indent_Line ("return Parser.Derivs (" & Result_ID & ")(Start_Pos_Index);");
+         Indent_Line ("Set_Deriv");
+         Indent_Line ("   (Parser_State.Derivs, " & Result_ID & ", Start_Pos_Index,");
+         Indent_Line ("    (State => Failure, Max_Examined_Pos => Max_Examined_Pos));");
+         Indent_Line ("return Parser_State.Derivs (" & Result_ID & ")(Start_Pos_Index);");
       end if;
 
       if Data.Direct_Left_Recursive (Prod.LHS) /= null then
@@ -293,7 +295,7 @@ is
          Indent_Line ("then");
          --  made progress, try again
          Indent := Indent + 3;
-         Indent_Line ("Parser.Derivs (" & Result_ID & ").Replace_Element (Start_Pos_Index, Result_Recurse);");
+         Indent_Line ("Set_Deriv (Parser_State.Derivs, " & Result_ID & ", Start_Pos_Index, Result_Recurse);");
          Indent_Line ("Pos_Recurse_Last := Pos;");
          Indent_Line ("if WisiToken.Trace_Parse > Detail then");
          Indent_Line ("   Tree.Lexer.Trace.Put_Line");
@@ -307,7 +309,7 @@ is
               "Parser.Tree.Is_Empty_Nonterm (Result_Recurse.Result) then");
          --  Parse succeeded producing an empty nonterm; don't try again. This
          --  special case is not in [warth 2008].
-         Indent_Line ("   Parser.Derivs (" & Result_ID & ").Replace_Element (Start_Pos_Index, Result_Recurse);");
+         Indent_Line ("   Set_Deriv (Parser_State.Derivs, " & Result_ID & ", Start_Pos_Index, Result_Recurse);");
          Indent_Line ("end if;");
          Indent := Indent - 3;
          Indent_Line ("end if;");
@@ -320,13 +322,13 @@ is
          Indent := Indent + 3;
          Indent_Line ("Tree.Lexer.Trace.Put_Line");
          Indent_Line ("  (Parser.Tree.Image");
-         Indent_Line ("    (Parser.Derivs (" & Result_ID & ")(Start_Pos_Index).Result,");
+         Indent_Line ("    (Parser_State.Derivs (" & Result_ID & ")(Start_Pos_Index).Result,");
          Indent_Line ("     Children => True, Terminal_Node_Numbers => True, RHS_Index => True));");
          Indent := Indent - 3;
          Indent_Line ("end if;");
       end if;
 
-      Indent_Line ("return Parser.Derivs (" & Result_ID & ")(Start_Pos_Index);");
+      Indent_Line ("return Parser_State.Derivs (" & Result_ID & ")(Start_Pos_Index);");
       Indent := Indent - 3;
       Indent_Line ("end " & Parser_Name (Prod.LHS) & ";");
       New_Line;

@@ -232,7 +232,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                            Status         : constant Syntax_Trees.In_Parse_Actions.Status := In_Parse_Action
                              (Parser.Tree, Nonterm_Token, Children_Token, Recover_Active => False);
                         begin
-                           if Trace_Parse > Detail then
+                           if Trace_Parse > Extra then
                               Trace.Put_Line
                                 ("in_parse_action " & In_Parse_Actions.Image (Status, Tree, Result.Result));
                            end if;
@@ -437,7 +437,7 @@ package body WisiToken.Parse.Packrat.Procedural is
       end if;
 
       for Parser_State of Parser.Packrat_Parsers loop
-         if Trace_Parse > Outline then
+         if Trace_Packrat_McKenzie > Outline then
             Parser.Tree.Lexer.Trace.New_Line;
             Parser.Tree.Lexer.Trace.Put_Line ("packrat parser" & Parser_State.Packrat_Label'Image);
          end if;

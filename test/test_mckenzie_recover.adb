@@ -112,8 +112,8 @@ package body Test_McKenzie_Recover is
       Check ("exception", False, Expect_Exception);
    exception
    when E : WisiToken.Parse_Error =>
-      Ada.Text_IO.Put_Line ("Parse_Error: " & Ada.Exceptions.Exception_Message (E));
       if WisiToken.Trace_Tests > WisiToken.Detail then
+         Ada.Text_IO.Put_Line ("Parse_Error: " & Ada.Exceptions.Exception_Message (E));
          Parser.Put_Errors (Parser.Tree.First_Parse_Stream);
       end if;
 
@@ -1850,9 +1850,6 @@ package body Test_McKenzie_Recover is
       pragma Unreferenced (T);
    begin
       --  Test fail on Enqueue_Limit. Same input as Loop_Bounds above.
-      --
-      --  When Enqueue_Limit is hit, worker tasks stop dequeing configs, but
-      --  any active workers will finish enqueuing new ones.
 
       Parser.Table.McKenzie_Param.Enqueue_Limit := 20;
 

@@ -19,19 +19,28 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Parse.Packrat.Generated is
 
-   procedure Packrat_Parse_No_Recover (Parser : in out Generated.Parser)
+   overriding
+   procedure Packrat_Parse_No_Recover
+     (Parser : in out Generated.Parser;
+      Resume : in     Boolean)
    is
+      use all type WisiToken.Parse.Packrat.Parser.Parser_Label;
       use all type WisiToken.Syntax_Trees.User_Data_Access;
       Descriptor : WisiToken.Descriptor renames Parser.Tree.Lexer.Descriptor.all;
       Trace      : WisiToken.Trace'Class renames Parser.Tree.Lexer.Trace.all;
-
-      Result : Memo_Entry;
    begin
+      if Resume then raise SAL.Not_Implemented; end if;
+
       if Trace_Time then
          Trace.Put_Clock ("start");
       end if;
 
+      for Parser_State of Parser.Packrat_Parsers loop
+         Clear (Parser_State.Derivs);
+         Parser_State.Result := No_Result_Memo;
+      end loop;
       Parser.Tree.Clear;
+      Parser.Packrat_Parsers.Finalize;
 
       if Parser.User_Data /= null then
          Parser.User_Data.Reset;
@@ -41,30 +50,26 @@ package body WisiToken.Parse.Packrat.Generated is
       --  FIXME: ref_count fails in this usage; works in procedural.
       Parser.Tree.Enable_Ref_Count_Check (Parser.Tree.Shared_Stream, Enable => False);
 
-      for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
-         Parser.Derivs (Nonterm).Clear (Free_Memory => True);
-         Parser.Derivs (Nonterm).Set_First_Last
-           (Parser.Tree.Get_Node_Index
-              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream, Skip_SOI => True)),
-            Parser.Tree.Get_Node_Index
-              (Parser.Tree.Shared_Stream, Parser.Tree.Stream_Last (Parser.Tree.Shared_Stream, Skip_EOI => False)));
+      Parser.Next_Packrat_Label := Packrat.Parser.Invalid_Parser_Label + 1;
+      Parser.Packrat_Parsers.Append
+        (Packrat.Parser.Parser_State'
+           (First_Nonterminal => Descriptor.First_Nonterminal,
+            Last_Nonterminal  => Descriptor.Last_Nonterminal,
+            Packrat_Label     => Parser.Next_Packrat_Label,
+            others            => <>));
+      Parser.Next_Packrat_Label := @ + 1;
+
+      for Parser_State of Parser.Packrat_Parsers loop
+         if Trace_Packrat_McKenzie > Outline then
+            Parser.Tree.Lexer.Trace.New_Line;
+            Parser.Tree.Lexer.Trace.Put_Line ("packrat parser" & Parser_State.Packrat_Label'Image);
+         end if;
+
+         Parser_State.Result := Parser.Parse_WisiToken_Accept
+           (Parser, Parser_State, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream, Skip_SOI => False));
       end loop;
 
-      Result := Parser.Parse_WisiToken_Accept
-        (Parser, Parser.Tree.Stream_First (Parser.Tree.Shared_Stream, Skip_SOI => False));
-
-      --  FIXME: debugging error message
-      if Result.State /= Packrat.Success then
-         if Trace_Parse > Detail then
-            Trace.New_Line;
-            Trace.Put_Line
-              ("max_examined_pos: " & Parser.Tree.Image
-                 (Parser.Tree.Get_Node (Parser.Tree.Shared_Stream, Result.Max_Examined_Pos), Node_Numbers => True));
-            Trace.Put_Line ("derivs:");
-            Parser.Print_Derivs;
-         end if;
-      end if;
-      Finish_Parse (Parser, Result);
+      Parser.Finish_Parse;
 
    end Packrat_Parse_No_Recover;
 

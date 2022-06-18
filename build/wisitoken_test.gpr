@@ -107,6 +107,7 @@ project WisiToken_Test is
    Gen_EBNF :=
      (
       "ada_lite_ebnf_lalr_run.ads",
+      "ada_lite_ebnf_packrat_gen_run.ads",
       "identifier_list_name_conflict_lalr_run.ads",
       "identifier_list_name_conflict_packrat_gen_run.ads",
       "identifier_list_name_conflict_packrat_proc_run.ads",

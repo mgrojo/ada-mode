@@ -110,7 +110,7 @@ package body Test_Syntax_Trees is
          Put_Line ("tree:");
          Put_Line (Tree.Image (Ref.Stream, Stack => True, Input => True, Shared => True, Children => True));
       end if;
-      Check ("1 el", Tree.ID (Ref.Stream, Ref.Element), +BEGIN_ID);
+      Check ("1 el", Tree.ID (Ref.Element), +BEGIN_ID);
       Check ("1 node", Tree.ID (Ref.Node), +BEGIN_ID);
       Check_Address ("1 el = node", Tree.Get_Node (Ref.Stream, Ref.Element), Ref.Node);
    end Left_Breakdown_1;

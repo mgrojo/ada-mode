@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 - 2021 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -31,6 +31,14 @@ package body WisiToken.AUnit is
    is begin
       Check (Label & ".nonterm", Computed.LHS, Expected.LHS);
       Standard.AUnit.Checks.Check (Label & ".rhs", Computed.RHS, Expected.RHS);
+   end Check;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Token_ID_Set_Access;
+      Expected : in Token_ID_Set_Access)
+   is begin
+      Check (Label, Computed.all, Expected.all);
    end Check;
 
    procedure Check

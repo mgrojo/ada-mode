@@ -3190,27 +3190,27 @@ package body Test_Incremental is
    is begin
       --  Run before Register_Tests
 
-      if T.McKenzie_Config /= null then
+      if T.McKenzie_Options /= null then
          WisiToken.Parse.LR.Set_McKenzie_Options
-           (Ada_Lite.Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
-         WisiToken.Parse.LR.Set_McKenzie_Options (Ada_Lite.Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+           (Ada_Lite.Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Options.all);
+         WisiToken.Parse.LR.Set_McKenzie_Options (Ada_Lite.Full_Parser.Table.McKenzie_Param, T.McKenzie_Options.all);
       end if;
 
       Ada_Lite.Orig_McKenzie_Param := Ada_Lite.Full_Parser.Table.McKenzie_Param;
 
-      if T.McKenzie_Config /= null then
+      if T.McKenzie_Options /= null then
          WisiToken.Parse.LR.Set_McKenzie_Options
-           (Ada_Lite_EBNF.Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+           (Ada_Lite_EBNF.Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Options.all);
          WisiToken.Parse.LR.Set_McKenzie_Options
-           (Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+           (Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param, T.McKenzie_Options.all);
       end if;
 
       Ada_Lite_EBNF.Orig_McKenzie_Param := Ada_Lite_EBNF.Full_Parser.Table.McKenzie_Param;
 
-      if T.McKenzie_Config /= null then
+      if T.McKenzie_Options /= null then
          WisiToken.Parse.LR.Set_McKenzie_Options
-           (Grammar.Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
-         WisiToken.Parse.LR.Set_McKenzie_Options (Grammar.Full_Parser.Table.McKenzie_Param, T.McKenzie_Config.all);
+           (Grammar.Incremental_Parser.Table.McKenzie_Param, T.McKenzie_Options.all);
+         WisiToken.Parse.LR.Set_McKenzie_Options (Grammar.Full_Parser.Table.McKenzie_Param, T.McKenzie_Options.all);
       end if;
 
       Grammar.Orig_McKenzie_Param := Grammar.Full_Parser.Table.McKenzie_Param;

@@ -325,7 +325,9 @@ package body WisiToken.BNF.Output_Ada_Common is
 
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
-         Put_Line ("with WisiToken.Parse.LR;");
+         if Input_Data.Language_Params.Error_Recover then
+            Put_Line ("with WisiToken.Parse.LR;");
+         end if;
          Put_Line ("with WisiToken.Parse.Parser;");
 
       when Packrat_Proc =>
@@ -805,19 +807,21 @@ package body WisiToken.BNF.Output_Ada_Common is
       is begin
          Indent_Line ("function Direct_Left_Recursive return WisiToken.Token_ID_Array_Token_ID_Set_Access");
          Indent_Line ("is");
-         Indent_Line ("   Terminal_Set : Token_ID_Set (" &
-              Trimmed_Image (Descriptor.First_Terminal) & " .. " &
-              Trimmed_Image (Descriptor.Last_Terminal) & ") := (others => False);");
+         if (for some Set of Packrat_Data.Direct_Left_Recursive => Set /= null) then
+            Indent_Line ("   Terminal_Set : Token_ID_Set (" &
+                           Trimmed_Image (Descriptor.First_Terminal) & " .. " &
+                           Trimmed_Image (Descriptor.Last_Terminal) & ") := (others => False);");
+         end if;
          Indent_Line ("begin");
          Indent := Indent + 3;
-         Indent_Line
-           ("return Result : WisiToken.Token_ID_Array_Token_ID_Set_Access (" &
-              Trimmed_Image (Generate_Data.Grammar.First_Index) & " .. " &
-              Trimmed_Image (Generate_Data.Grammar.Last_Index) & ") := (others => null) do");
-
-         Indent := Indent + 3;
-
          if (for some Set of Packrat_Data.Direct_Left_Recursive => Set /= null) then
+            Indent_Line
+              ("return Result : WisiToken.Token_ID_Array_Token_ID_Set_Access (" &
+                 Trimmed_Image (Generate_Data.Grammar.First_Index) & " .. " &
+                 Trimmed_Image (Generate_Data.Grammar.Last_Index) & ") := (others => null) do");
+
+            Indent := Indent + 3;
+
             for I in Packrat_Data.Direct_Left_Recursive'Range loop
                if Packrat_Data.Direct_Left_Recursive (I) /= null then
                   for J in Descriptor.First_Terminal .. Descriptor.Last_Terminal loop
@@ -829,11 +833,14 @@ package body WisiToken.BNF.Output_Ada_Common is
                   Indent_Line ("Terminal_Set := (others => False);");
                end if;
             end loop;
+            Indent := Indent - 3;
+            Indent_Line ("end return;");
          else
-            Indent_Line ("null;");
+            Indent_Line
+              ("return WisiToken.Token_ID_Array_Token_ID_Set_Access'(" &
+                 Trimmed_Image (Generate_Data.Grammar.First_Index) & " .. " &
+                 Trimmed_Image (Generate_Data.Grammar.Last_Index) & " => null);");
          end if;
-         Indent := Indent - 3;
-         Indent_Line ("end return;");
          Indent := Indent - 3;
          Indent_Line ("end Direct_Left_Recursive;");
       end Put_Direct_Left_Recursive;
@@ -847,7 +854,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       when Packrat_Gen =>
          Indent_Line ("  return WisiToken.Parse.Packrat.Generated.Parser");
          Indent_Line ("is");
+         Indent := @ + 3;
          Put_Direct_Left_Recursive;
+         Indent := @ - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
          Indent_Line

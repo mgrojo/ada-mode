@@ -557,18 +557,20 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
       Thru          : in     Syntax_Trees.Sequential_Index)
    is
       use Syntax_Trees;
+      Streams : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Tree.Stream_Count);
    begin
+      for I in Super.Parser_Status'Range loop
+         Streams (I) := Super.Parser_Status (I).Parser_State.Stream;
+      end loop;
+
+      Streams (Streams'Last) := Shared_Parser.Tree.Shared_Stream;
+
       loop
          declare
             Min     : constant Sequential_Index := Super.Min_Sequential_Index (Shared_Parser);
             Max     : constant Sequential_Index := Super.Max_Sequential_Index (Shared_Parser);
-            Streams : Syntax_Trees.Stream_ID_Array (1 .. Shared_Parser.Parsers.Count);
          begin
             exit when Thru in Min .. Max;
-
-            for I in Super.Parser_Status'Range loop
-               Streams (I) := Super.Parser_Status (I).Parser_State.Stream;
-            end loop;
 
             if Thru < Min then
                exit when Super.Min_Sequential_Index_All_SOI (Shared_Parser);

@@ -61,7 +61,7 @@ package body Warth_Left_Recurse_Expr_1 is
             Ada.Text_IO.Put_Line ("input: '" & Input & "'");
          end if;
 
-         Parser.Packrat_Parse_No_Recover;
+         Parser.Packrat_Parse_No_Recover (Resume => False);
 
          AUnit.Assertions.Assert (Expected_State = Success, "'" & Input & "': expected fail; did not get Parse_Error");
 
@@ -113,7 +113,7 @@ package body Warth_Left_Recurse_Expr_1 is
             Ada.Text_IO.Put_Line ("input: '" & Input & "'");
          end if;
 
-         Parser.Packrat_Parse_No_Recover;
+         Parser.Packrat_Parse_No_Recover (Resume => False);
 
          AUnit.Assertions.Assert
            (Expected_State = Success, "'" & Input & "': expected fail; did not get Parse_Error");
@@ -146,9 +146,11 @@ package body Warth_Left_Recurse_Expr_1 is
 
    begin
       declare
-         Expected : WisiToken.Token_ID_Set (+wisitoken_accept_ID .. +expr_ID) := (others => False);
+         Expected : WisiToken.Token_ID_Array_Token_ID_Set_Access (+wisitoken_accept_ID .. +expr_ID) := (others => null);
       begin
-         Expected (+expr_ID) := True;
+         Expected (+expr_ID) := new WisiToken.Token_ID_Set (+wisitoken_accept_ID .. +expr_ID);
+         Expected (+expr_ID)(+wisitoken_accept_ID) := False;
+         Expected (+expr_ID)(+expr_ID) := True;
 
          Check ("direct_left_recursive", Parser.Direct_Left_Recursive, Expected);
       end;

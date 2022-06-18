@@ -25,9 +25,7 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with WisiToken.Parse.Packrat.Generated;
-with WisiToken.Parse.Packrat.Procedural;
-with WisiToken.Parse;
+with WisiToken.Parse.Packrat.Parser;
 with WisiToken.Syntax_Trees;
 procedure Parser_Run_Common (Parser : in out WisiToken.Parse.Parser.Parser'Class)
 is
@@ -75,11 +73,8 @@ begin
 
    Parser.Tree.Lexer.Reset_With_File (-File_Name);
 
-   if Parser in WisiToken.Parse.Packrat.Procedural.Parser then
-      WisiToken.Parse.Packrat.Procedural.Parser (Parser).Packrat_Parse_No_Recover;
-
-   elsif Parser in WisiToken.Parse.Packrat.Generated.Parser then
-      WisiToken.Parse.Packrat.Generated.Parser (Parser).Packrat_Parse_No_Recover;
+   if Parser in WisiToken.Parse.Packrat.Parser.Parser'Class then
+      WisiToken.Parse.Packrat.Parser.Parser'Class (Parser).Packrat_Parse_No_Recover (Resume => False);
 
    else
       Parser.LR_Parse (Log_File);

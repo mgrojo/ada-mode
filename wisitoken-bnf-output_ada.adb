@@ -287,7 +287,8 @@ is
 
    procedure Create_Ada_Main_Body
      (Actions_Package_Name : in String;
-      Main_Package_Name    : in String)
+      Main_Package_Name    : in String;
+      Input_Data           : in WisiToken_Grammar_Runtime.User_Data_Type)
    is
       use WisiToken.Generate;
 
@@ -315,14 +316,20 @@ is
       end case;
 
       case Common_Data.Generate_Algorithm is
-      when LR_Generate_Algorithm | External | Tree_Sitter =>
-         null;
+      when LR_Generate_Algorithm =>
+         if not Input_Data.Language_Params.Error_Recover then
+            Put_Line ("with WisiToken.Parse.LR;");
+         end if;
 
       when Packrat_Proc =>
          Put_Line ("with WisiToken.Productions;");
 
       when Packrat_Gen =>
+         Put_Line ("with WisiToken.Parse.Packrat.Parser;");
+
+      when External | Tree_Sitter =>
          null;
+
       end case;
 
       Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
@@ -477,9 +484,9 @@ begin
 
       if Tuple.Gen_Alg = External then
          Create_External_Main_Spec (Main_Package_Name, Tuple, Input_Data);
-         Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name);
+         Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name, Input_Data);
       else
-         Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name);
+         Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name, Input_Data);
 
          Create_Ada_Main_Spec (To_Lower (Main_Package_Name) & ".ads", Main_Package_Name, Input_Data, Common_Data);
 

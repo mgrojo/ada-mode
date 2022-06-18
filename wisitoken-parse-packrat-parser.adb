@@ -187,10 +187,16 @@ package body WisiToken.Parse.Packrat.Parser is
       end if;
 
       declare
+         use all type WisiToken.Parse.LR.Parse_Table_Ptr;
          Stream : constant Syntax_Trees.Stream_ID := Shared_Parser.Parsers.First.State_Ref.Stream;
       begin
          Packrat_Parser_State.LR_Stream_Label := Syntax_Trees.Label (Stream);
-         Shared_Parser.Tree.Start_Parse (Stream, Shared_Parser.Table.State_First);
+         Shared_Parser.Tree.Start_Parse
+           (Stream,
+            State =>
+              (if Shared_Parser.Table = null
+               then State_Index'First
+               else Shared_Parser.Table.State_First));
       end;
    end New_LR_Parse_Stream;
 
@@ -328,7 +334,6 @@ package body WisiToken.Parse.Packrat.Parser is
             Nonterm_Nodes       : Valid_Node_Access_Lists.List;
             Prev_State          : State_Index := Tree.State (Stream);
             State               : Unknown_State_Index;
-            Table               : Parse.LR.Parse_Table renames Shared_Parser.Table.all;
          begin
             Find_Nodes (Pos, Terminal_Node, Empty_Nonterm_Nodes, Nonterm_Nodes);
 
@@ -342,7 +347,7 @@ package body WisiToken.Parse.Packrat.Parser is
                      Tree.Push (Stream, Nonterm_Node, Accept_State);
                      Set_Error := False;
                   else
-                     State := Goto_For (Table, Prev_State, Tree.ID (Nonterm_Node));
+                     State := Goto_For (Shared_Parser.Table.all, Prev_State, Tree.ID (Nonterm_Node));
                      Tree.Push (Stream, Nonterm_Node, State);
                   end if;
 
@@ -361,7 +366,7 @@ package body WisiToken.Parse.Packrat.Parser is
 
                   declare
                      Action : constant Parse_Action_Node_Ptr := Action_For
-                       (Table, Prev_State, Tree.ID (Terminal_Node));
+                       (Shared_Parser.Table.all, Prev_State, Tree.ID (Terminal_Node));
                   begin
                      if Action.Next /= null then
                         --  FIXME: spawn parser
@@ -394,7 +399,8 @@ package body WisiToken.Parse.Packrat.Parser is
                                  declare
                                     Empty_Nonterm_Node : constant Valid_Node_Access := Empty_Nonterm_Nodes (Cur);
                                  begin
-                                    State := Goto_For (Table, Prev_State, Tree.ID (Empty_Nonterm_Node));
+                                    State := Goto_For
+                                      (Shared_Parser.Table.all, Prev_State, Tree.ID (Empty_Nonterm_Node));
                                     if State /= Unknown_State then
                                        To_Delete := Cur;
                                        Valid_Node_Access_Lists.Next (Cur);
@@ -444,7 +450,7 @@ package body WisiToken.Parse.Packrat.Parser is
                                    " error; undo_reduce");
                               Trace.Put (" ... " & Tree.Image (Tree.Peek (Stream), State => True));
                            end if;
-                           Undo_Reduce (Tree, Table, Stream, Shared_Parser.User_Data);
+                           Undo_Reduce (Tree, Shared_Parser.Table.all, Stream, Shared_Parser.User_Data);
                            Prev_State := Tree.State (Stream);
 
                            if Trace_Packrat_McKenzie > Detail then
@@ -557,7 +563,7 @@ package body WisiToken.Parse.Packrat.Parser is
 
          Tree.Finish_Parse;
 
-         if Trace_Parse > Outline then
+         if Trace_Packrat_McKenzie > Outline then
             Trace.Put_Line (Parser_State.Packrat_Label'Image & ": packrat parse succeed");
          end if;
       end Succeed_Parser;
@@ -571,7 +577,7 @@ package body WisiToken.Parse.Packrat.Parser is
          end if;
       end loop;
 
-      if Trace_Parse > Outline then
+      if Trace_Packrat_McKenzie > Outline then
          Trace.New_Line;
          Trace.Put_Line
            ("succeed:" & Success_Count'Image & " error:" &

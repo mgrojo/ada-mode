@@ -118,10 +118,9 @@ begin
    Add_Test (Suite, Test_Case_Access'(new Test_Follow.Test_Case (Debug => False)));
    Add_Test (Suite, Test_Case_Access'(new Test_Incremental.Test_Case (null)));
    Add_Test (Suite, Test_Case_Access'(new Test_LR_Expecting_Terminal_Sequence.Test_Case));
-   Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, 0, False, False)));
-   Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LR1, 0, False, False)));
-   Add_Test (Suite, Test_Case_Access'
-               (new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.Packrat_Proc, 0, False, False)));
+   Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LALR, null)));
+   Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.LR1, null)));
+   Add_Test (Suite, Test_Case_Access'(new Test_McKenzie_Recover.Test_Case (WisiToken.BNF.Packrat_Proc, null)));
    --  FIXME: packrat_gen; use loop.
    Add_Test (Suite, Test_Case_Access'(new Test_Partial_Parse.Test_Case));
    Add_Test (Suite, Test_Case_Access'(new Test_Skip_To.Test_Case));

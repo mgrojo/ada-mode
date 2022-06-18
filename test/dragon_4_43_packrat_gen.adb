@@ -45,7 +45,7 @@ package body Dragon_4_43_Packrat_Gen is
          Expected : in Result_States)
       is begin
          Parser.Tree.Lexer.Reset_With_String (Input);
-         Parser.Packrat_Parse_No_Recover;
+         Parser.Packrat_Parse_No_Recover (Resume => False);
 
          AUnit.Assertions.Assert (Expected = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
 

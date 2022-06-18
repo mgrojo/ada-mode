@@ -65,6 +65,18 @@ package WisiToken.AUnit is
 
    procedure Check
      (Label    : in String;
+      Computed : in Token_ID_Set_Access;
+      Expected : in Token_ID_Set_Access);
+
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Unconstrained_Array
+     (Item_Type   => Token_ID_Set_Access,
+      Index_Type  => Token_ID,
+      Array_Type  => Token_ID_Array_Token_ID_Set_Access,
+      Check_Index => WisiToken.AUnit.Check,
+      Check_Item  => Check);
+
+   procedure Check
+     (Label    : in String;
       Computed : in Buffer_Region;
       Expected : in Buffer_Region);
 
