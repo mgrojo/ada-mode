@@ -20,6 +20,7 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with AUnit.Checks.Containers;
+with Ada.Assertions;
 with SAL.Gen_Definite_Doubly_Linked_Lists_Ref_Count.Gen_Validate;
 package body Test_Definite_Doubly_Linked_Lists_Ref_Count is
 
@@ -276,7 +277,9 @@ package body Test_Definite_Doubly_Linked_Lists_Ref_Count is
          List.Delete (To_Delete);
          AUnit.Assertions.Assert (False, "1c exception not raised");
       exception
-      when SAL.Invalid_Operation =>
+      when SAL.Invalid_Operation | Ada.Assertions.Assertion_Error =>
+         --  We get Assertion_Error from the precondition on Delete if
+         --  assertions are enabled.
          Check ("1d", Element (Cur_2), 2);
          Integer_Val.Check_Ref_Counts ("1e ref_counts", List, (2, 1, 0, 0));
       end;

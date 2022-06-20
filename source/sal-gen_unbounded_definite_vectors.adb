@@ -471,6 +471,23 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       Set_Last (Container, Last);
    end Set_First_Last;
 
+   procedure Extend
+     (Container : in out Vector;
+      Index     : in     Index_Type)
+   is begin
+      if Container.First = No_Index then
+         Set_First (Container, Index);
+         Set_Last (Container, Index);
+
+      elsif Index < Container.First then
+         Set_First (Container, Index);
+
+      elsif Index > Container.Last then
+         Set_Last (Container, Index);
+
+      end if;
+   end Extend;
+
    procedure Delete (Container : in out Vector; Index : in Index_Type)
    is
       J : constant Peek_Type := To_Peek_Type (Index);

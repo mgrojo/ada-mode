@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2019, 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,6 +19,7 @@
 pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
+with Ada.Assertions;
 with SAL.AUnit;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci.Gen_Test;
 package body Test_Min_Heaps_Fibonacci is
@@ -155,7 +156,8 @@ package body Test_Min_Heaps_Fibonacci is
          Junk := Min_Heap.Remove;
          AUnit.Assertions.Assert (False, "9 did not get exception");
       exception
-      when SAL.Container_Empty =>
+      when SAL.Container_Empty | Ada.Assertions.Assertion_Error =>
+         --  Assertion error from precondition if assertions enabled.
          null;
       end;
 
