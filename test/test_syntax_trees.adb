@@ -1163,6 +1163,47 @@ package body Test_Syntax_Trees is
       Test_1 ("7", 89, 67, 1, 88, 7);
    end Prev_New_Line_01;
 
+   procedure Put_Get_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use WisiToken.Syntax_Trees.AUnit_Public;
+
+      Text : constant String :=
+        "-- leading comment" & ASCII.LF &
+        --        |10          |19
+        "%code C %{" & ASCII.LF &
+        --             |30
+        "  code"  & ASCII.LF &
+        --          |37
+        "}% a : A; -- comment 1" & ASCII.LF & ASCII.LF &
+        -- |40       |50           |60
+        "b : B; -- trailing comment" & ASCII.LF;
+      --         |70       |80         |88
+
+      Text_File_Name : constant String := "put_get_01.tree_text";
+
+      Parser : WisiToken.Parse.Base_Parser'Class renames WisiToken.Parse.Base_Parser'Class (Grammar_Parser);
+   begin
+      Parser.Tree.Lexer.Reset_With_String (Text);
+
+      Parser.Parse (Log_File);
+
+      if Trace_Tests > Detail then
+         Parser.Tree.Print_Tree (Non_Grammar => True);
+         Parser.Put_Errors;
+      end if;
+
+      Parser.Tree.Put_Tree (Text_File_Name);
+
+      declare
+         Tree_2 : Syntax_Trees.Tree;
+      begin
+         Tree_2.Lexer := Parser.Tree.Lexer;
+         Tree_2.Get_Tree (Text_File_Name);
+         Check ("1", Tree_2, Parser.Tree, Shared_Stream => False, Terminal_Node_Numbers => True);
+      end;
+   end Put_Get_01;
+
    ----------
    --  Public subprograms
 
@@ -1181,6 +1222,7 @@ package body Test_Syntax_Trees is
       Register_Routine (T, Breakdown_Optimized_List_01'Access, "Breakdown_Optimized_List_01");
       Register_Routine (T, Breakdown_Optimized_List_02'Access, "Breakdown_Optimized_List_02");
       Register_Routine (T, Prev_New_Line_01'Access, "Prev_New_Line_01");
+      Register_Routine (T, Put_Get_01'Access, "Put_Get_01");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

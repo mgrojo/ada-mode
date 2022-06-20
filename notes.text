@@ -31,6 +31,10 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+Dump tree to create ada-mode test case
+    test_syntax_Trees.adb put_get_nn
+        _01 passes; need more test cases
+
 packrat error recover
     in o.w.s-2
 

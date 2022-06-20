@@ -137,9 +137,9 @@ package WisiToken.Syntax_Trees is
    type Stream_Index is private;
    Invalid_Stream_Index : constant Stream_Index;
 
-   type Node_Index is new Integer;
-   subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
-   Invalid_Node_Index : constant Node_Index := 0;
+   type Node_Index is new Integer range Integer'First + 1 .. Integer'Last;
+   subtype Positive_Node_Index is Node_Index range 1 .. Node_Index'Last;
+   Invalid_Node_Index : constant Node_Index := Node_Index'Last;
 
    type Base_Sequential_Index is new Integer;
    Invalid_Sequential_Index : constant Base_Sequential_Index := Base_Sequential_Index'Last;
@@ -2061,6 +2061,25 @@ package WisiToken.Syntax_Trees is
    --  All references are deep copied; Source may be finalized after this
    --  operation.
 
+   procedure Put_Tree
+     (Tree      : in Syntax_Trees.Tree;
+      File_Name : in String);
+   --  Output to File_Name a text representation of Tree that can be read
+   --  by Get_Tree.
+   --
+   --  File_Name must not exist.
+   --
+   --  The representation uses Node_Index to identify each node; it must
+   --  be unique. Non-unique Node_Index is detected, and raises
+   --  Programmer_Error. If Tree has non-unique Node_Index because of
+   --  editing or incremental parse, use Copy_Tree first to normalize
+   --  Node_Index.
+
+   procedure Get_Tree
+     (Tree      : in out Syntax_Trees.Tree;
+      File_Name : in     String);
+   --  Read the output of Put_Tree from File_Name, populate Tree.
+
    procedure Clear_Parse_Streams
      (Tree       : in out Syntax_Trees.Tree;
       Keep_Nodes : in     Valid_Node_Access_Lists.List := Valid_Node_Access_Lists.Empty_List)
@@ -2099,7 +2118,7 @@ package WisiToken.Syntax_Trees is
    --  parsing to succeed.
 
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; New_Root : in Valid_Node_Access)
-   with Pre => (Tree.Parseable and Tree.Label (New_Root) = Nonterm) and then Tree.Child_Count (New_Root) > 0;
+   with Pre => Tree.Label (New_Root) = Nonterm and then Tree.Child_Count (New_Root) > 0;
    --  Set Tree.Root to Root. If New_Root.Children does not start with
    --  Tree.SOI, prepend it. If New_Root.Children does not end with
    --  Tree.EOI, append it.
@@ -2835,7 +2854,7 @@ private
    is record
       ID : WisiToken.Token_ID := Invalid_Token_ID;
 
-      Node_Index : Syntax_Trees.Node_Index := 0;
+      Node_Index : Syntax_Trees.Node_Index := Invalid_Node_Index;
       --  Used only for debugging. If Terminal_Label, positive, and
       --  corresponds to text order after initial lex. If Nonterm, negative,
       --  arbitrary. After a batch parse, node indices are unique within the
@@ -3001,7 +3020,7 @@ private
 
    Invalid_Stream_Node_Parents : constant Stream_Node_Parents := (Invalid_Stream_Node_Ref, Parents => <>);
 
-   package Node_Access_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node_Access, null);
+   package Node_Access_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive_Node_Index, Node_Access, null);
 
    type Tree is new Base_Tree with record
       Next_Stream_Label : Stream_Label := Shared_Stream_Label + 1;
