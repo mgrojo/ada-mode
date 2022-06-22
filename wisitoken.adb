@@ -27,6 +27,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Characters.Handling;
+with Ada.Streams.Stream_IO;
 with Ada.Strings.Fixed;
 package body WisiToken is
 
@@ -518,5 +519,33 @@ package body WisiToken is
       Put_Line (Current_Error, "test=n - verbosity during unit tests");
       Put_Line (Current_Error, "time=n - output times of various operations");
    end Enable_Trace_Help;
+
+   function Next_Value
+     (Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+      Delims : in              Ada.Strings.Maps.Character_Set)
+     return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String;
+      Char   : Character;
+   begin
+      loop
+         Character'Read (Stream, Char);
+         exit when not Ada.Strings.Maps.Is_In (Char, Delims);
+      end loop;
+      Append (Result, Char);
+
+      loop
+         Character'Read (Stream, Char);
+         if Ada.Strings.Maps.Is_In (Char, Delims) then
+            return To_String (Result);
+         else
+            Append (Result, Char);
+         end if;
+      end loop;
+   exception
+   when Ada.Streams.Stream_IO.End_Error =>
+      return To_String (Result);
+   end Next_Value;
 
 end WisiToken;

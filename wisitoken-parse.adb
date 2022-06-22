@@ -20,7 +20,101 @@ pragma License (Modified_GPL);
 with WisiToken.In_Parse_Actions;
 package body WisiToken.Parse is
 
+   Delims : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" (),");
+   --  For Error_Data'Input.
+
    --  Body subprograms
+
+   function Input_Op
+     (Stream : not null access Ada.Streams.Root_Stream_Type'Class)
+     return Recover_Op
+   is begin
+      return Result : Recover_Op (Recover_Op_Label'Value (Next_Value (Stream, Delims))) do
+         case Result.Op is
+         when Fast_Forward =>
+            Result.FF_First_Index := Syntax_Trees.Sequential_Index'Value (Next_Value (Stream, Delims));
+            Result.FF_Next_Index := Syntax_Trees.Sequential_Index'Value (Next_Value (Stream, Delims));
+
+         when Undo_Reduce =>
+            Result.Nonterm        := Token_ID'Value (Next_Value (Stream, Delims));
+            Result.Token_Count    := SAL.Base_Peek_Type'Value (Next_Value (Stream, Delims));
+            Result.UR_Token_Index := Syntax_Trees.Base_Sequential_Index'Value
+              (Next_Value (Stream, Delims));
+
+         when Push_Back =>
+            Result.PB_ID := Token_ID'Value (Next_Value (Stream, Delims));
+            Result.PB_Token_Index := Syntax_Trees.Base_Sequential_Index'Value
+              (Next_Value (Stream, Delims));
+
+         when Insert =>
+            Result.Ins_ID := Token_ID'Value (Next_Value (Stream, Delims));
+            Result.Ins_Before := Syntax_Trees.Sequential_Index'Value (Next_Value (Stream, Delims));
+
+         when Delete =>
+            Result.Del_ID := Token_ID'Value (Next_Value (Stream, Delims));
+            Result.Del_Token_Index := Syntax_Trees.Sequential_Index'Value (Next_Value (Stream, Delims));
+         end case;
+
+      end return;
+   end Input_Op;
+
+   function Input_Recover_Ops
+     (Stream : not null access Ada.Streams.Root_Stream_Type'Class)
+     return Recover_Op_Arrays.Vector
+   is
+      Length : constant Positive_Index_Type := Positive_Index_Type'Value (Next_Value (Stream, Delims));
+   begin
+      return Result : Recover_Op_Arrays.Vector do
+         for I in 1 .. Length loop
+            Recover_Op_Arrays.Append (Result, Input_Op (Stream));
+         end loop;
+      end return;
+   end Input_Recover_Ops;
+
+   procedure Output_Recover_Op
+     (Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+      Item   : in              Recover_Op)
+   is begin
+      Character'Write (Stream, '(');
+      String'Write (Stream, Item.Op'Image);
+      case Item.Op is
+      when Fast_Forward =>
+         String'Write (Stream, Item.FF_First_Index'Image);
+         String'Write (Stream, Item.FF_Next_Index'Image);
+
+      when Undo_Reduce =>
+         String'Write (Stream, Item.Nonterm'Image);
+         String'Write (Stream, Item.Token_Count'Image);
+         String'Write (Stream, Item.UR_Token_Index'Image);
+
+      when Push_Back =>
+         String'Write (Stream, Item.PB_ID'Image);
+         String'Write (Stream, Item.PB_Token_Index'Image);
+
+      when Insert =>
+         String'Write (Stream, Item.Ins_ID'Image);
+         String'Write (Stream, Item.Ins_Before'Image);
+
+      when Delete =>
+         String'Write (Stream, Item.Del_ID'Image);
+         String'Write (Stream, Item.Del_Token_Index'Image);
+      end case;
+      Character'Write (Stream, ')');
+   end Output_Recover_Op;
+
+   procedure Output_Recover_Ops
+     (Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+      Item   : in              Recover_Op_Arrays.Vector)
+   is
+      use Recover_Op_Arrays;
+   begin
+      String'Write (Stream, Recover_Op_Arrays.Length (Item)'Image);
+      Character'Write (Stream, '(');
+      for I in First_Index (Item) .. Last_Index (Item) loop
+         Output_Recover_Op (Stream, Element (Item, I));
+      end loop;
+      Character'Write (Stream, ')');
+   end Output_Recover_Ops;
 
    procedure Process_Grammar_Token
      (Parser : in out Base_Parser'Class;
@@ -89,6 +183,36 @@ package body WisiToken.Parse is
       return To_String (Result);
    end Image;
 
+   function Input_Lexer_Error (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return Lexer_Error
+   is begin
+      declare
+         Recover_Char_Count : constant Integer := Integer'Value (Next_Value (Stream, Delims));
+      begin
+         return Result : Lexer_Error do
+            Result.Error.Char_Pos := Buffer_Pos'Value (Next_Value (Stream, Delims));
+            for I in 1 .. Recover_Char_Count loop
+               Character'Read (Stream, Result.Error.Recover_Char (I));
+            end loop;
+         end return;
+      end;
+   end Input_Lexer_Error;
+
+   procedure Output_Lexer_Error (Stream : not null access Ada.Streams.Root_Stream_Type'Class; Item : in Lexer_Error)
+   is
+      Recover_Char_Count : Integer := 0;
+   begin
+      for Char of Item.Error.Recover_Char loop
+         if Char /= ASCII.NUL then
+            Recover_Char_Count := @ + 1;
+         end if;
+      end loop;
+      String'Write (Stream, "(" & Trimmed_Image (Item.Error.Char_Pos) & Recover_Char_Count'Image);
+      for I in 1 .. Recover_Char_Count loop
+         Character'Write (Stream, Item.Error.Recover_Char (I));
+      end loop;
+      Character'Write (Stream, ')');
+   end Output_Lexer_Error;
+
    overriding function Dispatch_Equal (Left : in Parse_Error; Right : in Syntax_Trees.Error_Data'Class) return Boolean
    is begin
       if not (Right in Parse_Error) then
@@ -145,6 +269,40 @@ package body WisiToken.Parse is
       end if;
    end Image;
 
+   function Input_Parse_Error (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return Parse_Error
+   is begin
+      declare
+         First_Terminal : constant Token_ID := Token_ID'Value (Next_Value (Stream, Delims));
+         Last_Terminal  : constant Token_ID := Token_ID'Value (Next_Value (Stream, Delims));
+
+         procedure Get_Token_ID_Set (Item : in out Token_ID_Set)
+         is begin
+            for I in Item'Range loop
+               Item (I) := Boolean'Value (Next_Value (Stream, Delims));
+            end loop;
+         end Get_Token_ID_Set;
+
+      begin
+         return Result : Parse_Error (First_Terminal, Last_Terminal)
+         do
+            Get_Token_ID_Set (Result.Expecting);
+            Result.Recover_Ops  := Input_Recover_Ops (Stream);
+            Result.Recover_Cost := Natural'Value (Next_Value (Stream, Delims));
+         end return;
+      end;
+   end Input_Parse_Error;
+
+   procedure Output_Parse_Error (Stream : not null access Ada.Streams.Root_Stream_Type'Class; Item : in Parse_Error)
+   is begin
+      String'Write (Stream, "(" & Trimmed_Image (Item.First_Terminal) & Item.Last_Terminal'Image);
+      for B of Item.Expecting loop
+         String'Write (Stream, " " & B'Image);
+      end loop;
+      Output_Recover_Ops (Stream, Item.Recover_Ops);
+      String'Write (Stream, Trimmed_Image (Item.Recover_Cost));
+      Character'Write (Stream, ')');
+   end Output_Parse_Error;
+
    overriding function Dispatch_Equal
      (Left  : in In_Parse_Action_Error;
       Right : in Syntax_Trees.Error_Data'Class)
@@ -193,6 +351,55 @@ package body WisiToken.Parse is
       return -Result;
    end Image;
 
+   function Input_In_Parse_Action_Error
+     (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return In_Parse_Action_Error
+   is begin
+      declare
+         use Syntax_Trees.In_Parse_Actions;
+         Label       : constant Status_Label := Status_Label'Value (Next_Value (Stream, Delims));
+      begin
+         return Result : In_Parse_Action_Error
+         do
+            case Label is
+            when Ok =>
+               Result.Status := (Label => Ok);
+            when Error =>
+               case Error'(Label) is
+               when Missing_Name_Error =>
+                  Result.Status := (Label => Missing_Name_Error, others => 1);
+               when Extra_Name_Error =>
+                  Result.Status := (Label => Extra_Name_Error, others => 1);
+               when Match_Names_Error =>
+                  Result.Status := (Label => Match_Names_Error, others => 1);
+               end case;
+
+               Result.Status.Begin_Name := Positive_Index_Type'Value (Next_Value (Stream, Delims));
+               Result.Status.End_Name   := Positive_Index_Type'Value (Next_Value (Stream, Delims));
+            end case;
+            Result.Recover_Ops  := Input_Recover_Ops (Stream);
+            Result.Recover_Cost := Natural'Value (Next_Value (Stream, Delims));
+         end return;
+      end;
+   end Input_In_Parse_Action_Error;
+
+   procedure Output_In_Parse_Action_Error
+     (Stream : not null access Ada.Streams.Root_Stream_Type'Class; Item : in In_Parse_Action_Error)
+   is
+      use Syntax_Trees.In_Parse_Actions;
+   begin
+      String'Write (Stream, "((" & Item.Status.Label'Image);
+      case Item.Status.Label is
+      when Ok =>
+         Character'Write (Stream, ')');
+      when Error =>
+         String'Write (Stream, Item.Status.Begin_Name'Image & Item.Status.End_Name'Image & ")");
+      end case;
+
+      Output_Recover_Ops (Stream, Item.Recover_Ops);
+      String'Write (Stream, Trimmed_Image (Item.Recover_Cost));
+      Character'Write (Stream, ')');
+   end Output_In_Parse_Action_Error;
+
    overriding function Dispatch_Equal (Left : in Error_Message; Right : in Syntax_Trees.Error_Data'Class) return Boolean
    is begin
       if not (Right in Error_Message) then
@@ -227,6 +434,33 @@ package body WisiToken.Parse is
    is begin
       return "message: " & (-Data.Msg);
    end Image;
+
+   function Input_Error_Message (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return Error_Message
+   is
+      Msg_Length : constant Integer := Integer'Value (Next_Value (Stream, Delims));
+      Msg : String (1 .. Msg_Length);
+   begin
+      String'Read (Stream, Msg);
+      return Result : Error_Message
+      do
+         Result.Msg          := Ada.Strings.Unbounded.To_Unbounded_String (Msg);
+         Result.Recover_Ops  := Input_Recover_Ops (Stream);
+         Result.Recover_Cost := Natural'Value (Next_Value (Stream, Delims));
+      end return;
+   end Input_Error_Message;
+
+   procedure Output_Error_Message
+     (Stream : not null access Ada.Streams.Root_Stream_Type'Class; Item : in Error_Message)
+   is begin
+      String'Write (Stream, "(");
+      String'Write (Stream, Ada.Strings.Unbounded.Length (Item.Msg)'Image);
+      Character'Write (Stream, '"');
+      String'Write (Stream, Ada.Strings.Unbounded.To_String (Item.Msg));
+      Character'Write (Stream, '"');
+      Output_Recover_Ops (Stream, Item.Recover_Ops);
+      String'Write (Stream, Trimmed_Image (Item.Recover_Cost));
+      Character'Write (Stream, ')');
+   end Output_Error_Message;
 
    function Error_Pred_Parse (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
    is

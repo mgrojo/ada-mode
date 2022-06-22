@@ -19,10 +19,9 @@ pragma License (Modified_GPL);
 
 with Ada.Containers;
 with Ada.Exceptions;
-with Ada.Strings.Fixed;
+with Ada.Streams.Stream_IO;
 with Ada.Strings.Maps;
 with Ada.Tags;
-with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 package body WisiToken.Syntax_Trees is
 
@@ -4136,11 +4135,12 @@ package body WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       File_Name : in     String)
    is
-      use Ada.Text_IO;
+      use Ada.Streams.Stream_IO;
 
-      Delims : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" (),");
+      Delims : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" ()," & ASCII.LF);
 
-      File : File_Type;
+      File   : File_Type;
+      Stream : Stream_Access;
 
       --  See comment in Put_Tree about Half_Node_Index
       subtype Half_Node_Index is Node_Index range Node_Index'First / 2 .. Node_Index'Last / 2;
@@ -4149,86 +4149,57 @@ package body WisiToken.Syntax_Trees is
 
       Node_Index_Map : Node_Index_Array_Node_Access.Vector;
 
-      Last : Integer;
-
-      function Next_Value (Line : in String) return String
-      is
-         --  First few components of Node look like:
-         --  (SOURCE_TERMINAL 0 27  0
-         --
-         --  Label, child_count, ID, Node_Index.
-         --
-         --  Node_Index can be negative, so it can be preceded by one or two
-         --  spaces.
-
-         Next : Integer := Ada.Strings.Fixed.Index (Line, Delims, Last + 1);
-      begin
-         if Next = 0 then
-            Next := Line'Last + 1;
-         else
-            loop
-               exit when Next > Last + 1;
-               --  Last + 1 is a delim.
-               Last := @ + 1;
-               Next := Ada.Strings.Fixed.Index (Line, Delims, Last + 1);
-            end loop;
-         end if;
-
-         return Result : constant String := Line (Last + 1 .. Next - 1) do
-            Last := Next - 1;
-         end return;
+      function Next_Value return String
+      is begin
+         return WisiToken.Next_Value (Stream, Delims);
       end Next_Value;
 
-      function Get_Buffer_Region (Line : in String) return Buffer_Region
+      function Input_Buffer_Region return Buffer_Region
       is begin
          return Result : Buffer_Region do
 
-            Last         := @ + 1; -- (
-            Result.First := Base_Buffer_Pos'Value (Next_Value (Line));
-            Result.Last  := Base_Buffer_Pos'Value (Next_Value (Line));
-            Last         := @ + 1; -- )
+            Result.First := Base_Buffer_Pos'Value (Next_Value);
+            Result.Last  := Base_Buffer_Pos'Value (Next_Value);
          end return;
-      end Get_Buffer_Region;
+      end Input_Buffer_Region;
 
-      function Get_Line_Region (Line : in String) return WisiToken.Line_Region
+      function Input_Line_Region return WisiToken.Line_Region
       is begin
          return Result : WisiToken.Line_Region do
 
-            Last         := @ + 1; -- (
-            Result.First := Line_Number_Type'Value (Next_Value (Line));
-            Result.Last  := Line_Number_Type'Value (Next_Value (Line));
-            Last         := @ + 1; -- )
+            Result.First := Line_Number_Type'Value (Next_Value);
+            Result.Last  := Line_Number_Type'Value (Next_Value);
          end return;
-      end Get_Line_Region;
+      end Input_Line_Region;
 
-      function Get_Token (Line : in String) return WisiToken.Lexer.Token
+      function Input_Token return WisiToken.Lexer.Token
       is begin
          return Result : WisiToken.Lexer.Token do
 
-            Last               := @ + 1; -- (
-            Result.ID          := Token_ID'Value (Next_Value (Line));
-            Result.Byte_Region := Get_Buffer_Region (Line);
-            Result.Char_Region := Get_Buffer_Region (Line);
-            Result.Line_Region := Get_Line_Region (Line);
-            Last               := @ + 1; -- )
+            Result.ID          := Token_ID'Value (Next_Value);
+            Result.Byte_Region := Input_Buffer_Region;
+            Result.Char_Region := Input_Buffer_Region;
+            Result.Line_Region := Input_Line_Region;
          end return;
-      end Get_Token;
+      end Input_Token;
 
-      function Get_Non_Grammar (Line : in String) return WisiToken.Lexer.Token_Arrays.Vector
-      is begin
-         Last := @ + 1; -- (
-         return Result : WisiToken.Lexer.Token_Arrays.Vector do
-            loop
-               exit when Line (Last + 1) = ')';
-               Result.Append (Get_Token (Line));
-            end loop;
-            Last := @ + 1;
-         end return;
-      end Get_Non_Grammar;
-
-      function Get_Node_Access (Line : in String) return Node_Access
+      function Input_Non_Grammar return WisiToken.Lexer.Token_Arrays.Vector
       is
-         Index : constant Node_Index := Node_Index'Value (Next_Value (Line));
+         Length : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type'Value (Next_Value);
+      begin
+         return Result : WisiToken.Lexer.Token_Arrays.Vector do
+            if Length > 0 then
+               Result.Set_First_Last (1, Length);
+               for I in 1 .. Length loop
+                  Result (I) := Input_Token;
+               end loop;
+            end if;
+         end return;
+      end Input_Non_Grammar;
+
+      function Get_Node_Access return Node_Access
+      is
+         Index : constant Node_Index := Node_Index'Value (Next_Value);
       begin
          if Index = Invalid_Node_Index then
             return Invalid_Node_Access;
@@ -4241,185 +4212,185 @@ package body WisiToken.Syntax_Trees is
          end if;
       end Get_Node_Access;
 
-      function Get_Error_List (Line : in String) return Error_List_Access
-      is begin
-         if Line (Last + 1 .. Last + 2) = "()" then
-            Last := @ + 2;
+      function Input_Error_List return Error_List_Access
+      is
+         Length : constant Ada.Containers.Count_Type := Ada.Containers.Count_Type'Value (Next_Value);
+      begin
+         if Length = 0 then
             return null;
          else
-            raise SAL.Not_Implemented with "FIXME: get_tree error_list";
+            return Result : constant Error_List_Access := new Error_Data_Lists.List do
+               for I in 1 .. Length loop
+                  Result.Append (Error_Data'Class'Input (Stream));
+               end loop;
+            end return;
          end if;
-      end Get_Error_List;
+      end Input_Error_List;
 
-      function Get_Following_Deleted (Line : in String) return Valid_Node_Access_Lists.List
-      is begin
-         if Line (Last + 1 .. Last + 2) = "()" then
-            Last := @ + 2;
+      function Input_Following_Deleted return Valid_Node_Access_Lists.List
+      is
+         Length : constant Ada.Containers.Count_Type := Ada.Containers.Count_Type'Value (Next_Value);
+      begin
+         if Length = 0 then
             return Valid_Node_Access_Lists.Empty_List;
          else
             --  Following nodes have not been created yet. Need to read node_index
             --  list, cache it somewhere, finish this after they are read.
             raise SAL.Not_Implemented with "FIXME: get_tree following_deleted";
          end if;
-      end Get_Following_Deleted;
+      end Input_Following_Deleted;
 
-      function Get_Children (Line : in String; Child_Count : in SAL.Base_Peek_Type) return Node_Access_Array
+      function Input_Children (Child_Count : in SAL.Base_Peek_Type) return Node_Access_Array
       is begin
          --  Child nodes are always created before parent nodes, so
          --  Get_Node_Access will succeed.
          return Result : Node_Access_Array (1 .. Child_Count) do
-            Last := @ + 1; -- (
             for I in Result'Range loop
-               Result (I) := Get_Node_Access (Line);
+               Result (I) := Get_Node_Access;
             end loop;
-            Last := @ + 1; -- )
          end return;
-      end Get_Children;
+      end Input_Children;
 
-      procedure Get_Node (Line : in String)
-      --  Read one node from Line
-      is
-         Label       : constant Node_Label              := Node_Label'Value (Next_Value (Line));
-         Child_Count : constant SAL.Base_Peek_Type      := SAL.Base_Peek_Type'Value (Next_Value (Line));
-         ID          : constant Token_ID                := Token_ID'Value (Next_Value (Line));
-         Node_Index  : constant Syntax_Trees.Node_Index := Syntax_Trees.Node_Index'Value (Next_Value (Line));
-         Error_List  : constant Error_List_Access       := Get_Error_List (Line);
-      begin
-         case Label is
-         when Terminal_Label =>
-            declare
-               Non_Grammar : constant Lexer.Token_Arrays.Vector := Get_Non_Grammar (Line);
-            begin
-               case Terminal_Label'(Label) is
-               when Source_Terminal =>
-                  pragma Assert
-                    (Child_Count = 0 and
-                       (Node_Index > 0 or else ID = Tree.Lexer.Descriptor.SOI_ID));
-                  declare
-                     Byte_Region    : constant Buffer_Region         := Get_Buffer_Region (Line);
-                     Char_Region    : constant Buffer_Region         := Get_Buffer_Region (Line);
-                     New_Line_Count : constant Base_Line_Number_Type := Base_Line_Number_Type'Value
-                       (Next_Value (Line));
+      procedure Input_Node
+      --  Read one node from Stream
+      is begin
+         declare
+            Label       : constant Node_Label              := Node_Label'Value (Next_Value);
+            Child_Count : constant SAL.Base_Peek_Type      := SAL.Base_Peek_Type'Value (Next_Value);
+            ID          : constant Token_ID                := Token_ID'Value (Next_Value);
+            Node_Index  : constant Syntax_Trees.Node_Index := Syntax_Trees.Node_Index'Value (Next_Value);
+            Error_List  : constant Error_List_Access       := Input_Error_List;
+         begin
+            case Label is
+            when Terminal_Label =>
+               declare
+                  Non_Grammar      : constant Lexer.Token_Arrays.Vector := Input_Non_Grammar;
+                  Sequential_Index : constant Base_Sequential_Index     := Base_Sequential_Index'Value (Next_Value);
+               begin
+                  case Terminal_Label'(Label) is
+                  when Source_Terminal =>
+                     pragma Assert
+                       (Child_Count = 0 and
+                          (Node_Index > 0 or else ID = Tree.Lexer.Descriptor.SOI_ID));
+                     declare
+                        Byte_Region    : constant Buffer_Region         := Input_Buffer_Region;
+                        Char_Region    : constant Buffer_Region         := Input_Buffer_Region;
+                        New_Line_Count : constant Base_Line_Number_Type := Base_Line_Number_Type'Value
+                          (Next_Value);
 
-                     Following_Deleted : constant Valid_Node_Access_Lists.List := Get_Following_Deleted (Line);
+                        Following_Deleted : constant Valid_Node_Access_Lists.List := Input_Following_Deleted;
 
-                     New_Node : constant Valid_Node_Access := new Node'
-                       (Label             => Source_Terminal,
-                        Parent            => Invalid_Node_Access,
-                        Augmented         => null,
-                        Child_Count       => 0,
-                        ID                => ID,
-                        Node_Index        => Node_Index,
-                        Error_List        => Error_List,
-                        Non_Grammar       => Non_Grammar,
-                        Sequential_Index  => Invalid_Sequential_Index,
-                        Byte_Region       => Byte_Region,
-                        Char_Region       => Char_Region,
-                        New_Line_Count    => New_Line_Count,
-                        Following_Deleted => Following_Deleted);
-                  begin
-                     Tree.Nodes.Append (New_Node);
-                     Node_Index_Map.Extend (Node_Index);
-                     Node_Index_Map (Node_Index) := New_Node;
-                     if New_Node.ID = Tree.Lexer.Descriptor.EOI_ID then
-                        Tree.EOI := New_Node;
-                     elsif New_Node.ID = Tree.Lexer.Descriptor.SOI_ID then
-                        Tree.SOI := New_Node;
-                     end if;
-                  end;
+                        New_Node : constant Valid_Node_Access := new Node'
+                          (Label             => Source_Terminal,
+                           Parent            => Invalid_Node_Access,
+                           Augmented         => null,
+                           Child_Count       => 0,
+                           ID                => ID,
+                           Node_Index        => Node_Index,
+                           Error_List        => Error_List,
+                           Non_Grammar       => Non_Grammar,
+                           Sequential_Index  => Sequential_Index,
+                           Byte_Region       => Byte_Region,
+                           Char_Region       => Char_Region,
+                           New_Line_Count    => New_Line_Count,
+                           Following_Deleted => Following_Deleted);
+                     begin
+                        Tree.Nodes.Append (New_Node);
+                        Node_Index_Map.Extend (Node_Index);
+                        Node_Index_Map (Node_Index) := New_Node;
+                        if New_Node.ID = Tree.Lexer.Descriptor.EOI_ID then
+                           Tree.EOI := New_Node;
+                        elsif New_Node.ID = Tree.Lexer.Descriptor.SOI_ID then
+                           Tree.SOI := New_Node;
+                        end if;
+                     end;
 
-               when Virtual_Terminal =>
-                  pragma Assert (Child_Count = 0 and Node_Index < 0);
-                  declare
-                     Insert_Location : constant WisiToken.Insert_Location := WisiToken.Insert_Location'Value
-                       (Next_Value (Line));
-                     New_Node        : constant Valid_Node_Access         := new Node'
-                       (Label            => Virtual_Terminal,
-                        Child_Count      => 0,
-                        ID               => ID,
-                        Node_Index       => Node_Index,
-                        Parent           => Invalid_Node_Access,
-                        Augmented        => null,
-                        Error_List       => Error_List,
-                        Non_Grammar      => Non_Grammar,
-                        Sequential_Index => Invalid_Sequential_Index,
-                        Insert_Location  => Insert_Location);
-                  begin
-                     Tree.Nodes.Append (New_Node);
-                     Node_Index_Map.Extend (Node_Index);
-                     Node_Index_Map (Node_Index) := New_Node;
-                  end;
+                  when Virtual_Terminal =>
+                     pragma Assert (Child_Count = 0 and Node_Index < 0);
+                     declare
+                        Insert_Location : constant WisiToken.Insert_Location := WisiToken.Insert_Location'Value
+                          (Next_Value);
+                        New_Node        : constant Valid_Node_Access         := new Node'
+                          (Label            => Virtual_Terminal,
+                           Child_Count      => 0,
+                           ID               => ID,
+                           Node_Index       => Node_Index,
+                           Parent           => Invalid_Node_Access,
+                           Augmented        => null,
+                           Error_List       => Error_List,
+                           Non_Grammar      => Non_Grammar,
+                           Sequential_Index => Sequential_Index,
+                           Insert_Location  => Insert_Location);
+                     begin
+                        Tree.Nodes.Append (New_Node);
+                        Node_Index_Map.Extend (Node_Index);
+                        Node_Index_Map (Node_Index) := New_Node;
+                     end;
 
-               when Virtual_Identifier =>
-                  raise SAL.Programmer_Error;
+                  when Virtual_Identifier =>
+                     raise SAL.Programmer_Error;
 
-               end case;
-            end;
+                  end case;
+               end;
 
-         when Nonterm =>
-            pragma Assert (Node_Index < 0);
-            declare
-               Virtual          : constant Boolean           := Boolean'Value (Next_Value (Line));
-               Recover_Conflict : constant Boolean           := Boolean'Value (Next_Value (Line));
-               RHS_Index        : constant Natural           := Natural'Value (Next_Value (Line));
-               Name_Offset      : constant Base_Buffer_Pos   := Base_Buffer_Pos'Value (Next_Value (Line));
-               Name_Length      : constant Base_Buffer_Pos   := Base_Buffer_Pos'Value (Next_Value (Line));
-               Children         : constant Node_Access_Array := Get_Children (Line, Child_Count);
-               New_Node         : constant Valid_Node_Access := new Node'
-                 (Label            => Nonterm,
-                  Child_Count      => Child_Count,
-                  ID               => ID,
-                  Node_Index       => Node_Index,
-                  Parent           => Invalid_Node_Access,
-                  Augmented        => null,
-                  Error_List       => Error_List,
-                  Virtual          => Virtual,
-                  Recover_Conflict => Recover_Conflict,
-                  RHS_Index        => RHS_Index,
-                  Name_Offset      => Name_Offset,
-                  Name_Length      => Name_Length,
-                  Children         => Children);
-            begin
-               Tree.Nodes.Append (New_Node);
-               Node_Index_Map.Extend (Node_Index);
-               Node_Index_Map (Node_Index) := New_Node;
+            when Nonterm =>
+               pragma Assert (Node_Index < 0);
+               declare
+                  Virtual          : constant Boolean           := Boolean'Value (Next_Value);
+                  Recover_Conflict : constant Boolean           := Boolean'Value (Next_Value);
+                  RHS_Index        : constant Natural           := Natural'Value (Next_Value);
+                  Name_Offset      : constant Base_Buffer_Pos   := Base_Buffer_Pos'Value (Next_Value);
+                  Name_Length      : constant Base_Buffer_Pos   := Base_Buffer_Pos'Value (Next_Value);
+                  Children         : constant Node_Access_Array := Input_Children (Child_Count);
+                  New_Node         : constant Valid_Node_Access := new Node'
+                    (Label            => Nonterm,
+                     Child_Count      => Child_Count,
+                     ID               => ID,
+                     Node_Index       => Node_Index,
+                     Parent           => Invalid_Node_Access,
+                     Augmented        => null,
+                     Error_List       => Error_List,
+                     Virtual          => Virtual,
+                     Recover_Conflict => Recover_Conflict,
+                     RHS_Index        => RHS_Index,
+                     Name_Offset      => Name_Offset,
+                     Name_Length      => Name_Length,
+                     Children         => Children);
+               begin
+                  Tree.Nodes.Append (New_Node);
+                  Node_Index_Map.Extend (Node_Index);
+                  Node_Index_Map (Node_Index) := New_Node;
 
-               for Child of Children loop
-                  Child.Parent := New_Node;
-               end loop;
-            end;
-         end case;
-      end Get_Node;
+                  for Child of Children loop
+                     Child.Parent := New_Node;
+                  end loop;
+               end;
+            end case;
+         end;
+      end Input_Node;
 
    begin
       Open (File, In_File, File_Name);
-      loop
-         declare
-            Line : constant String := Get_Line (File); -- one node per line
-         begin
-            exit when Line = "streams";
-            Last := Line'First; -- '('
-            Get_Node (Line);
-         end;
-      end loop;
+      Stream := Ada.Streams.Stream_IO.Stream (File);
 
-      loop
-         declare
-            Line : constant String := Get_Line (File);
-         begin
-            exit when Line = "root";
-            --  FIXME: streams
-         end;
-      end loop;
+      declare
+         Node_Count : constant Positive_Node_Index := Positive_Node_Index'Value (Next_Value);
+      begin
+         for I in 1 .. Node_Count loop
+            Input_Node;
+         end loop;
+      end;
 
-      if not End_Of_File (File) then
-         declare
-            Line : constant String := Get_Line (File); -- just root node_index
-         begin
-            Last := Line'First - 1;
-            Tree.Set_Root (Get_Node_Access (Line));
-         end;
-      end if;
+      declare
+         Streams_Length : constant Ada.Containers.Count_Type := Ada.Containers.Count_Type'Value (Next_Value);
+      begin
+         for I in 1 .. Streams_Length loop
+            raise SAL.Not_Implemented with "get_tree: streams";
+         end loop;
+      end;
+
+      Tree.Set_Root (Get_Node_Access);
+
       Close (File);
    end Get_Tree;
 
@@ -7883,11 +7854,11 @@ package body WisiToken.Syntax_Trees is
      (Tree      : in Syntax_Trees.Tree;
       File_Name : in String)
    is
-      --  The format uses parens and spaces; no commas except when the image
-      --  is generated by a SAL package. One node per line, then one stream
-      --  per line.
-      use Ada.Text_IO;
-      File : File_Type;
+      --  The format uses parens and spaces; no commas. One node per line,
+      --  then one stream per line.
+      use Ada.Streams.Stream_IO;
+      File   : File_Type;
+      Stream : Stream_Access;
 
       --  SAL.SAL.Gen_Unbounded_Definite_Vectors uses SAL.Peek_Type
       --  internally to index the vector; that has a range 1 ..
@@ -7917,33 +7888,43 @@ package body WisiToken.Syntax_Trees is
          Node_Index_Seen (I) := True;
       end Seen;
 
-      procedure Put_Error_List (Error_List : in not null Error_List_Access)
+      procedure Put_Error_List (Error_List : in Error_List_Access)
       is begin
-         raise SAL.Not_Implemented with "put_tree error_list";
+         if Error_List = null then
+            String'Write (Stream, " 0()");
+         else
+            String'Write (Stream, Error_List.Length'Image & '(');
+            for Error of Error_List.all loop
+               Error_Data'Class'Output (Stream, Error);
+            end loop;
+            Character'Write (Stream, ')');
+         end if;
       end Put_Error_List;
 
-      function Put_Image (Region : in Buffer_Region) return String
+      function Buffer_Region_Image (Region : in Buffer_Region) return String
       is begin
          return "(" & Trimmed_Image (Region.First) & Region.Last'Image & ")";
-      end Put_Image;
+      end Buffer_Region_Image;
 
-      function Put_Image (Region : in WisiToken.Line_Region) return String
+      function Line_Region_Image (Region : in WisiToken.Line_Region) return String
       is begin
          return "(" & Trimmed_Image (Region.First) & Region.Last'Image & ")";
-      end Put_Image;
+      end Line_Region_Image;
 
       function Token_Image (Token : in WisiToken.Lexer.Token) return String
       is begin
-         return "(" & Trimmed_Image (Token.ID) & Put_Image (Token.Byte_Region) & Put_Image (Token.Char_Region) &
-           Put_Image (Token.Line_Region) & ")";
+         return "(" & Trimmed_Image (Token.ID) &
+           Buffer_Region_Image (Token.Byte_Region) &
+           Buffer_Region_Image (Token.Char_Region) &
+           Line_Region_Image (Token.Line_Region) & ")";
       end Token_Image;
 
       function Token_Array_Image is new WisiToken.Lexer.Token_Arrays.Gen_Image (Token_Image);
 
       procedure Put_Node (Node : in Valid_Node_Access)
       is begin
-         Put
-           (File,
+         String'Write
+           (Stream,
             "(" & Node.Label'Image &
               Node.Child_Count'Image &
               Node.ID'Image & " " &
@@ -7955,63 +7936,65 @@ package body WisiToken.Syntax_Trees is
             raise SAL.Not_Implemented with "put_tree augmented";
          end if;
 
-         if Node.Error_List = null then
-            Put (File, "()");
-         else
-            Put_Error_List (Node.Error_List);
-         end if;
+         Put_Error_List (Node.Error_List);
 
          case Node.Label is
          when Terminal_Label =>
-            Put (File, Token_Array_Image (Node.Non_Grammar));
-            --  We don't output Sequential_Index; not meaningful outside error recover.
+
+            String'Write (Stream, Node.Non_Grammar.Length'Image & Token_Array_Image (Node.Non_Grammar));
+            String'Write (Stream, Node.Sequential_Index'Image);
 
             case Terminal_Label'(Node.Label) is
             when Source_Terminal =>
-               Put (File, Put_Image (Node.Byte_Region) & Put_Image (Node.Char_Region) & Node.New_Line_Count'Image);
-               Put (File, "(");
+               String'Write
+                 (Stream,
+                  Buffer_Region_Image (Node.Byte_Region) & Buffer_Region_Image (Node.Char_Region) &
+                    Node.New_Line_Count'Image);
+               String'Write (Stream, Node.Following_Deleted.Length'Image & "(");
                for Del of Node.Following_Deleted loop
-                  Put (File, " " & Del.Node_Index'Image);
+                  String'Write (Stream, Del.Node_Index'Image);
                end loop;
-               Put (File, ")");
+               String'Write (Stream, ")");
 
             when Virtual_Terminal =>
-               Put (File, " " & Node.Insert_Location'Image);
+               String'Write (Stream, " " & Node.Insert_Location'Image);
 
             when Virtual_Identifier =>
                raise SAL.Not_Implemented with "put_tree virtual_identifier";
             end case;
 
          when Nonterm =>
-            Put (File, " " & Node.Virtual'Image & " " & Node.Recover_Conflict'Image & Node.RHS_Index'Image &
-                   Node.Name_Offset'Image & Node.Name_Length'Image);
-            Put (File, "(");
+            String'Write
+              (Stream, " " & Node.Virtual'Image & " " & Node.Recover_Conflict'Image & Node.RHS_Index'Image &
+                 Node.Name_Offset'Image & Node.Name_Length'Image);
+            String'Write (Stream, "(");
             for Child of Node.Children loop
                if Child = Invalid_Node_Access then
-                  Put (File, Invalid_Node_Index'Image);
+                  String'Write (Stream, Invalid_Node_Index'Image);
                else
-                  Put (File, " " & Child.Node_Index'Image);
+                  String'Write (Stream, " " & Child.Node_Index'Image);
                end if;
             end loop;
-            Put (File, ")");
+            String'Write (Stream, ")");
          end case;
-         Put_Line (File, ")");
+         String'Write (Stream, ")" & ASCII.LF);
       end Put_Node;
 
    begin
       Create (File, Out_File, File_Name);
+      Stream := Ada.Streams.Stream_IO.Stream (File);
+      String'Write (Stream, Tree.Nodes.Last_Index'Image & ASCII.LF);
       for Node of Tree.Nodes loop
          Seen (Node.Node_Index);
          Put_Node (Node);
       end loop;
 
-      Put_Line (File, "streams");
+      String'Write (Stream, Tree.Streams.Length'Image & ASCII.LF);
       for Stream of Tree.Streams loop
          raise SAL.Not_Implemented with "put_tree stream";
       end loop;
-      Put_Line (File, "root");
       if Tree.Root /= Invalid_Node_Access then
-         Put_Line (File, Tree.Root.Node_Index'Image);
+         String'Write (Stream, Tree.Root.Node_Index'Image);
       end if;
       Close (File);
    end Put_Tree;
@@ -8245,8 +8228,14 @@ package body WisiToken.Syntax_Trees is
       First_Terminal : constant Node_Access := Tree.First_Terminal (Node);
       Byte_First     : constant Buffer_Pos  := Tree.Byte_Region (First_Terminal, Trailing_Non_Grammar => False).First;
    begin
-      Node.Name_Offset := Region.First - Byte_First;
-      Node.Name_Length := Region.Last - Region.First + 1;
+      if Region = Null_Buffer_Region or else -- Not a valid name
+        (First_Terminal.Label = Virtual_Terminal and not Tree.Parents_Set) --  Can't trust Byte_First
+      then
+         null;
+      else
+         Node.Name_Offset := Region.First - Byte_First;
+         Node.Name_Length := Region.Last - Region.First + 1;
+      end if;
    end Set_Name;
 
    procedure Set_Node_Index
