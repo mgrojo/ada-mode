@@ -16,8 +16,6 @@
 --  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
 --  MA 02110-1335, USA.
 
---EMACS_SKIP_UNLESS:(eq ada-parser 'process)
-
 -- emulate font-lock (disabled below for debugging); parse in 500 byte chunks
 --EMACSCMD:(wisi-validate-cache 1 501 t 'face)
 --EMACSCMD:(wisi-validate-cache 501 1001 t 'face)
