@@ -76,6 +76,7 @@ package Emacs_Wisi_Common_Parse is
    type Parse_Kind is (Partial, Incremental, Full);
 
    type Parse_Params (Kind : Parse_Kind) is record
+      --  See Get_Parse_Params in body for what elisp this must match.
 
       Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
 
@@ -104,8 +105,8 @@ package Emacs_Wisi_Common_Parse is
 
          Begin_Char_Pos : WisiToken.Buffer_Pos;
          End_Char_Pos   : WisiToken.Base_Buffer_Pos;
-         --  Char positions of first, last char sent. End_Char_Pos is 0 if
-         --  buffer empty.
+         Goal_Char_Pos  : WisiToken.Buffer_Pos;
+         --  Corresponding char positions; end is 0 if buffer empty.
 
          Begin_Line : WisiToken.Line_Number_Type;
          --  Line containing Begin_Byte_Pos

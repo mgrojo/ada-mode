@@ -87,6 +87,7 @@ package Wisi is
 
    type Parse_Data_Type is abstract new WisiToken.Syntax_Trees.User_Data_Type with private;
    type Parse_Data_Access is access all Parse_Data_Type'Class;
+   type Parse_Data_Access_Constant is access constant Parse_Data_Type'Class;
 
    procedure Initialize (Data : in out Parse_Data_Type)
    is null;
@@ -384,7 +385,7 @@ package Wisi is
       Action     : in     Refactor_Action;
       Edit_Begin : in     WisiToken.Buffer_Pos) is null;
 
-   type Query_Label is (Node, Containing_Statement, Ancestor, Parent, Child, Print);
+   type Query_Label is (Node, Containing_Statement, Ancestor, Parent, Child, Print, Dump);
    --  Must match wisi-parse-common.el wisi-parse-tree-queries
 
    subtype Point_Query is Query_Label range Node .. Ancestor;
@@ -409,6 +410,9 @@ package Wisi is
 
       when Print =>
          null;
+
+      when Dump =>
+         File_Name : Ada.Strings.Unbounded.Unbounded_String;
       end case;
    end record;
 
@@ -418,14 +422,18 @@ package Wisi is
    function To_Node_Access (Item : in String) return WisiToken.Syntax_Trees.Valid_Node_Access;
 
    function Get_Token_IDs
-     (User_Data           : in out Parse_Data_Type;
-      Command_Line : in String;
-      Last : in out Integer)
+     (User_Data    : in     Parse_Data_Type;
+      Command_Line : in     String;
+      Last         : in out Integer)
      return WisiToken.Token_ID_Arrays.Vector
    is abstract;
+   --  Read an aggregate of Token_Enum_IDs from Command_Line.
+   --
+   --  Dispatching on User_Data because Token_Enum_IDs is
+   --  language-specific.
 
    procedure Query_Tree
-     (Data  : in Parse_Data_Type;
+     (Data  : in Parse_Data_Access_Constant;
       Tree  : in WisiToken.Syntax_Trees.Tree;
       Query : in Wisi.Query);
 

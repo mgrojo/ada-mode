@@ -150,6 +150,7 @@ package body Emacs_Wisi_Common_Parse is
             Result.Goal_Byte_Pos        := Get_Integer (Command_Line, Last);
             Result.Begin_Char_Pos       := Buffer_Pos (Get_Integer (Command_Line, Last));
             Result.End_Char_Pos         := Buffer_Pos (Get_Integer (Command_Line, Last)) - 1;
+            Result.Goal_Char_Pos        := Base_Buffer_Pos (Get_Integer (Command_Line, Last));
             Result.Begin_Line           := Line_Number_Type (Get_Integer (Command_Line, Last));
             Result.Begin_Indent         := Get_Integer (Command_Line, Last);
             Result.Partial_Parse_Active := 1 = Get_Integer (Command_Line, Last);
@@ -420,8 +421,8 @@ package body Emacs_Wisi_Common_Parse is
                      Parse_Data.Reset_Post_Parse
                        (Parser.Tree, Params.Post_Parse_Action,
                         Action_Region_Bytes =>
-                          (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.End_Byte_Pos)),
-                        Action_Region_Chars => (Params.Begin_Char_Pos, Params.End_Char_Pos),
+                          (Base_Buffer_Pos (Params.Begin_Byte_Pos), Base_Buffer_Pos (Params.Goal_Byte_Pos)),
+                        Action_Region_Chars => (Params.Begin_Char_Pos, Params.Goal_Char_Pos),
                         Begin_Indent        => Params.Begin_Indent);
 
                      Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);
@@ -592,8 +593,8 @@ package body Emacs_Wisi_Common_Parse is
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
                     (-Source_File_Name, Language);
 
-                  Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class
-                    (Parse_Context.Parser.User_Data.all);
+                  Parse_Data : constant Wisi.Parse_Data_Access_Constant :=
+                    Wisi.Parse_Data_Access_Constant (Parse_Context.Parser.User_Data);
                begin
                   case Label is
                   when Point_Query =>
@@ -603,7 +604,7 @@ package body Emacs_Wisi_Common_Parse is
                         IDs : constant WisiToken.Token_ID_Arrays.Vector :=
                           (case Point_Query'(Label) is
                            when Node | Containing_Statement => WisiToken.Token_ID_Arrays.Empty_Vector,
-                           when Ancestor => Wisi.Get_Token_IDs (Parse_Data, Command_Line, Last));
+                           when Ancestor => Wisi.Get_Token_IDs (Parse_Data.all, Command_Line, Last));
                         Query : constant Wisi.Query :=
                           (case Point_Query'(Label) is
                            when Node => (Node, Point),
@@ -630,6 +631,18 @@ package body Emacs_Wisi_Common_Parse is
                      Check_Command_Length (Command_Length, Last);
 
                      Wisi.Query_Tree (Parse_Data, Parse_Context.Parser.Tree, (Label => Print));
+
+                  when Dump =>
+                     declare
+                        File_Name : constant String := Wisi.Get_String (Command_Line, Last);
+                     begin
+                        Check_Command_Length (Command_Length, Last);
+
+                        Wisi.Query_Tree
+                          (Parse_Data, Parse_Context.Parser.Tree,
+                           (Label     => Dump,
+                            File_Name => +File_Name));
+                     end;
                   end case;
                end;
 
