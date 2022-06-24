@@ -240,6 +240,7 @@ have been previously parsed by `wisi-parse-current' or
     (parent		    .	3)
     (child		    .	4)
     (print		    .	5)
+    (dump		    .	6)
     )
   "Query values for `wisi-parse-tree-query'.")
 
@@ -274,6 +275,10 @@ have been previously parsed by `wisi-parse-current' or
   nth child of the node, or nil if no such child.
 
 - print: ARGS ignored. Output parse tree to trace log. Returns t.
+
+- dump: ARGS are (file-name). Dump text representation of parse
+  tree to file file-name, overwriting any existing
+  file. Returns t.
 
 'terminal at pos' means pos is in the region defined by the
 terminal token text plus following non_grammar and whitespace."

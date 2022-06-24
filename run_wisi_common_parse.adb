@@ -42,6 +42,7 @@ package body Run_Wisi_Common_Parse is
    type Command_Type is (Parse_Partial, Parse_Incremental, Refactor, Command_File);
 
    type Command_Line_Params (Command : Command_Type) is record
+      --  Similar to emacs_wisi_common_parse.ads Parse_Params
 
       Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
       Language_Params  : Ada.Strings.Unbounded.Unbounded_String;
@@ -53,8 +54,9 @@ package body Run_Wisi_Common_Parse is
          Partial_Begin_Byte_Pos    : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
          Partial_End_Byte_Pos      : WisiToken.Base_Buffer_Pos  := WisiToken.Invalid_Buffer_Pos;
          Partial_Goal_Byte_Pos     : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
-         Partial_Begin_Char_Pos    : WisiToken.Buffer_Pos       := WisiToken.Buffer_Pos'First;
+         Partial_Begin_Char_Pos    : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
          Partial_End_Char_Pos      : WisiToken.Base_Buffer_Pos  := WisiToken.Invalid_Buffer_Pos;
+         Partial_Goal_Char_Pos     : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
          Partial_Begin_Line        : WisiToken.Line_Number_Type := WisiToken.Line_Number_Type'First;
          Partial_Begin_Indent      : Integer                    := 0;
 
@@ -270,9 +272,10 @@ package body Run_Wisi_Common_Parse is
             Params.Partial_Goal_Byte_Pos  := WisiToken.Buffer_Pos'Value (Argument (6));
             Params.Partial_Begin_Char_Pos := WisiToken.Buffer_Pos'Value (Argument (7));
             Params.Partial_End_Char_Pos   := WisiToken.Buffer_Pos'Value (Argument (8));
-            Params.Partial_Begin_Line     := WisiToken.Line_Number_Type'Value (Argument (9));
-            Params.Partial_Begin_Indent   := Integer'Value (Argument (10));
-            Arg                           := 11;
+            Params.Partial_Goal_Char_Pos  := WisiToken.Buffer_Pos'Value (Argument (9));
+            Params.Partial_Begin_Line     := WisiToken.Line_Number_Type'Value (Argument (10));
+            Params.Partial_Begin_Indent   := Integer'Value (Argument (11));
+            Arg                           := 12;
          else
             Params.Partial_Begin_Byte_Pos := WisiToken.Invalid_Buffer_Pos;
             Params.Partial_End_Byte_Pos   := WisiToken.Invalid_Buffer_Pos;
@@ -430,7 +433,7 @@ package body Run_Wisi_Common_Parse is
 
       type File_Command_Type is
         (File, Kill_Context, Language_Params, McKenzie_Options, Memory_Report_Reset, Memory_Report, Parse_Full,
-         Parse_Incremental, Post_Parse, Refactor, Query_Tree, Save_Text, Save_Text_Auto, Verbosity);
+         Parse_Incremental, Post_Parse, Read_Tree, Refactor, Query_Tree, Save_Text, Save_Text_Auto, Verbosity);
 
       Last  : Integer := Index (Line, " ");
       First : Integer;
@@ -598,6 +601,14 @@ package body Run_Wisi_Common_Parse is
             Wisi.Parse_Data_Type'Class (Parse_Context.Parser.User_Data.all).Put (Parse_Context.Parser);
          end;
 
+      when Read_Tree =>
+         declare
+            Dump_File : constant String := Line (Last + 1 .. Line'Last);
+         begin
+            --  We assume a corresponding File command is also present.
+            Parse_Context.Parser.Tree.Get_Tree (Dump_File);
+         end;
+
       when Refactor =>
          declare
             Action     : constant Wisi.Refactor_Action := Wisi.Parse_Data_Type'Class
@@ -612,6 +623,9 @@ package body Run_Wisi_Common_Parse is
          declare
             use Wisi;
             Label : constant Wisi.Query_Label := Wisi.Query_Label'Value (Wisi.Get_Enum (Line, Last));
+
+            Parse_Data : constant Wisi.Parse_Data_Access_Constant :=
+              Wisi.Parse_Data_Access_Constant (Parse_Context.Parser.User_Data);
          begin
             case Label is
             when Point_Query =>
@@ -620,16 +634,14 @@ package body Run_Wisi_Common_Parse is
                   IDs : constant WisiToken.Token_ID_Arrays.Vector :=
                     (case Point_Query'(Label) is
                      when Node | Containing_Statement => WisiToken.Token_ID_Arrays.Empty_Vector,
-                     when Ancestor => Wisi.Get_Token_IDs
-                       (Wisi.Parse_Data_Type'Class (Parse_Context.Parser.User_Data.all), Line, Last));
+                     when Ancestor => Wisi.Get_Token_IDs (Parse_Data.all, Line, Last));
                   Query : constant Wisi.Query :=
                     (case Point_Query'(Label) is
                      when Node => (Node, Point),
                      when Containing_Statement => (Containing_Statement, Point),
                      when Ancestor => (Ancestor, Point, IDs));
                begin
-                  Wisi.Query_Tree
-                    (Wisi.Parse_Data_Type'Class (Parse_Context.Parser.User_Data.all), Parse_Context.Parser.Tree, Query);
+                  Wisi.Query_Tree (Parse_Data, Parse_Context.Parser.Tree, Query);
                end;
 
             when Parent | Child =>
@@ -638,15 +650,22 @@ package body Run_Wisi_Common_Parse is
                   Node    : constant WisiToken.Syntax_Trees.Valid_Node_Access := Wisi.To_Node_Access (Address);
                   N       : constant Integer := Wisi.Get_Integer (Line, Last);
                begin
-                  Wisi.Query_Tree
-                    (Wisi.Parse_Data_Type'Class (Parse_Context.Parser.User_Data.all),
-                     Parse_Context.Parser.Tree, (Node_Query'(Label), Node, N));
+                  Wisi.Query_Tree (Parse_Data, Parse_Context.Parser.Tree, (Node_Query'(Label), Node, N));
                end;
 
             when Print =>
-               Wisi.Query_Tree
-                 (Wisi.Parse_Data_Type'Class (Parse_Context.Parser.User_Data.all),
-                  Parse_Context.Parser.Tree, (Label => Print));
+               Wisi.Query_Tree (Parse_Data, Parse_Context.Parser.Tree, (Label => Print));
+
+            when Dump =>
+               declare
+                  File_Name : constant String := Line (Last + 1 .. Line'Last);
+               begin
+                  Wisi.Query_Tree
+                    (Parse_Data,
+                     Parse_Context.Parser.Tree,
+                     (Label     => Dump,
+                      File_Name => +File_Name));
+               end;
             end case;
          end;
 
@@ -788,8 +807,8 @@ package body Run_Wisi_Common_Parse is
                      Parse_Data.Reset_Post_Parse
                        (Parser.Tree,
                         Post_Parse_Action   => Cl_Params.Partial_Post_Parse_Action,
-                        Action_Region_Bytes => (Cl_Params.Partial_Begin_Byte_Pos, Cl_Params.Partial_End_Byte_Pos),
-                        Action_Region_Chars => (Cl_Params.Partial_Begin_Char_Pos, Cl_Params.Partial_End_Char_Pos),
+                        Action_Region_Bytes => (Cl_Params.Partial_Begin_Byte_Pos, Cl_Params.Partial_Goal_Byte_Pos),
+                        Action_Region_Chars => (Cl_Params.Partial_Begin_Char_Pos, Cl_Params.Partial_Goal_Char_Pos),
                         Begin_Indent        => Cl_Params.Partial_Begin_Indent);
 
                      Parser.Execute_Actions (Action_Region_Bytes => Parse_Data.Action_Region_Bytes);

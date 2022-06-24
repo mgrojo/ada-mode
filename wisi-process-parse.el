@@ -270,7 +270,7 @@ complete. PARSE-END is end of desired parse region."
   ;; Must match "full/partial parse" command arguments read by
   ;; emacs_wisi_common_parse.adb Get_Parse_Params.
   ;; Parse_Kind is always Partial here; that really means "legacy".
-  (let* ((cmd (format "parse 0 %d \"%s\" %d %d %d %d %d %d %d %d \"%s\" %d %d %d %d \"%s\""
+  (let* ((cmd (format "parse 0 %d \"%s\" %d %d %d %d %d %d %d %d %d \"%s\" %d %d %d %d \"%s\""
 		      (cl-ecase parse-action
 			(navigate 0)
 			(face 1)
@@ -278,9 +278,11 @@ complete. PARSE-END is end of desired parse region."
 		      (or (buffer-file-name) (buffer-name))
 		      (position-bytes begin)
 		      (position-bytes send-end)
-		      (position-bytes (min (point-max) parse-end))
+		      (position-bytes (min (point-max) parse-end)) ;; goal_byte_pos
 		      begin ;; begin_char_pos
 		      send-end ;; end_char_pos
+		      (min (point-max) parse-end) ;; goal_char_pos
+
 		      (line-number-at-pos begin t)
 
 		      ;; begin_indent. Example:
@@ -463,17 +465,21 @@ PARSER will respond with one or more Query messages."
 	      (query-point (if (= (point-max) arg) (point-min) arg)))
 	 (setq cmd (concat cmd (format " %d" query-point)))))
 
-     (ancestor
-      (setq cmd
-	    (concat cmd
-		    (format " %d (%s_id )"
-			    (nth 0 args)
-			    (mapconcat (lambda (s) (symbol-name s)) (nth 1 args) "_id ")))))
+      (ancestor
+       (setq cmd
+	     (concat cmd
+		     (format " %d (%s_id )"
+			     (nth 0 args)
+			     (mapconcat (lambda (s) (symbol-name s)) (nth 1 args) "_id ")))))
 
-     ((parent child)
-      (setq cmd (concat cmd (format " \"%s\" %d" (car args) (nth 1 args)))))
+      ((parent child)
+       (setq cmd (concat cmd (format " \"%s\" %d" (car args) (nth 1 args)))))
 
-     (print nil))
+      (print nil)
+
+      (dump
+       (setq cmd (concat cmd (format " \"%s\"" (car args)))))
+      )
 
     (with-current-buffer (wisi-process--parser-buffer parser)
       (erase-buffer))
@@ -1231,6 +1237,7 @@ Source buffer is current."
 
 (cl-defmethod wisi-parse-tree-query ((parser wisi-process--parser) query &rest args)
   (cl-assert wisi-incremental-parse-enable)
+  (cl-assert (assoc query wisi-parse-tree-queries))
   (when wisi--changes
     (wisi-parse-incremental parser 'query))
 
@@ -1257,6 +1264,24 @@ Source buffer is current."
     (wisi-parse-log-message parser cmd)
     (process-send-string process (wisi-process-parse--add-cmd-length cmd))
     (wisi-process-parse--handle-messages parser)))
+
+(defun wisi-process-parse-dump-tree (parser save-file-root)
+  (wisi-process-parse--prepare parser 'debug)
+  ;; Also save the source text, so we have a complete test case
+  ;; starting point.
+  (let* ((cmd
+	  (format (concat "save_text" " \"%s\" \"%s\"")
+		  (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		  (concat save-file-root ".source")))
+	 (process (wisi-process--parser-process parser)))
+    (with-current-buffer (wisi-process--parser-buffer parser)
+      (erase-buffer))
+
+    (wisi-parse-log-message parser cmd)
+    (process-send-string process (wisi-process-parse--add-cmd-length cmd))
+    (wisi-process-parse--handle-messages parser))
+
+  (wisi-parse-tree-query parser 'dump (concat save-file-root ".tree_text")))
 
 (defun wisi-process-all-changes-to-cmd (&optional cmd-buffer-name)
   "Convert wisi-parser-local-all-changes in current buffer to command file
@@ -1483,7 +1508,7 @@ in CMD-BUFFER-NAME."
   "Convert parse_partial process command at point to run_* command line."
   (interactive)
   (forward-line 0)
-  (unless (looking-at "parse 0 \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\"")
+  (unless (looking-at "parse 0 \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\"")
     (user-error "not on partial_parse command"))
 
   (let ((parse-action (string-to-number (match-string 1)))
@@ -1493,15 +1518,16 @@ in CMD-BUFFER-NAME."
 	(goal-byte-pos (match-string 5))
 	(begin-char-pos (match-string 6))
 	(end-char-pos (match-string 7))
-	(begin-line (match-string 8))
-	(begin-indent (match-string 9))
-	(_partial-parse-active (match-string 10))
-	(verbosity (match-string 11))
-	(mckenzie_zombie_limit (string-to-number (match-string 12)))
-	(mckenzie_enqueue_limit (string-to-number (match-string 13)))
-	(parse_max_parallel (string-to-number (match-string 14)))
-	(_byte-count (match-string 15))
-	(language_param (match-string 16))
+	(goal-char-pos (match-string 8))
+	(begin-line (match-string 9))
+	(begin-indent (match-string 10))
+	(_partial-parse-active (match-string 11))
+	(verbosity (match-string 12))
+	(mckenzie_zombie_limit (string-to-number (match-string 13)))
+	(mckenzie_enqueue_limit (string-to-number (match-string 14)))
+	(parse_max_parallel (string-to-number (match-string 15)))
+	(_byte-count (match-string 16))
+	(language_param (match-string 17))
 	cmd)
 
     (setq cmd
@@ -1516,6 +1542,7 @@ in CMD-BUFFER-NAME."
 		  goal-byte-pos " "
 		  begin-char-pos " "
 		  end-char-pos " "
+		  goal-char-pos " "
 		  begin-line " "
 		  begin-indent " "
 		  (when (not (string-equal "" verbosity)) (format "--verbosity \"%s\" " verbosity))

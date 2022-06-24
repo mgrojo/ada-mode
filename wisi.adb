@@ -17,6 +17,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Directories;
 with Ada.Strings.Bounded;
 with Ada.Strings.Fixed;
 with Ada.Strings.Maps;
@@ -504,9 +505,6 @@ package body Wisi is
       Tree : in     Syntax_Trees.Tree)
    is
       Begin_Indent : Integer renames Data.Begin_Indent;
-
-      SOI_Lines : constant Line_Region := Tree.Line_Region (Tree.SOI, Trailing_Non_Grammar => True);
-      EOI_Lines : constant Line_Region := Tree.Line_Region (Tree.EOI, Trailing_Non_Grammar => True);
    begin
       if Trace_Action > Outline then
          Tree.Lexer.Trace.New_Line;
@@ -523,9 +521,10 @@ package body Wisi is
          begin
             case Indent.Label is
             when Not_Set =>
-               if Contains (SOI_Lines, Line) or Contains (EOI_Lines, Line) then
-                  Data.Indents.Replace_Element (Line, (Int, Invalid_Line_Number, Data.Begin_Indent));
-               end if;
+               --  We get here in partial_parse when there is no action to set indent
+               --  for the first few lines; they are comments or low-level statements
+               --  or declarations. ada_mode-recover_partial_28.adb
+               Data.Indents.Replace_Element (Line, (Int, Invalid_Line_Number, Data.Begin_Indent));
 
             when Int =>
                Data.Indents.Replace_Element (Line, (Int, Invalid_Line_Number, Indent.Int_Indent + Begin_Indent));
@@ -533,6 +532,7 @@ package body Wisi is
             when Anchored =>
                declare
                   Anchor_Line_Indent : Indent_Type renames Data.Indents (Indent.Anchor_Line);
+                  Anchor_Indent : Integer;
                begin
                   case Anchor_Line_Indent.Label is
                   when Not_Set | Anchored =>
@@ -540,10 +540,14 @@ package body Wisi is
                        "indent line" & Line'Image &
                        " uses anchor line" & Indent.Anchor_Line'Image &
                        " which has non-int anchor";
+
                   when Int =>
-                     Data.Indents.Replace_Element
-                       (Line, (Int, Invalid_Line_Number, Anchor_Line_Indent.Int_Indent + Indent.Anchor_Delta));
+                     Anchor_Indent := Anchor_Line_Indent.Int_Indent;
+
                   end case;
+
+                  Data.Indents.Replace_Element
+                    (Line, (Int, Invalid_Line_Number, Anchor_Indent + Indent.Anchor_Delta));
                end;
 
             end case;
@@ -1816,7 +1820,7 @@ package body Wisi is
                                 (Line_Number_Type'
                                    (if Params (I).Comment_Present
                                     then -- ada_mode-conditional_expressions.adb case expression for K, if
-                                       --  expression blank line.
+                                          --  expression blank line.
                                        Tree.Line_Region (Controlling_Token, Trailing_Non_Grammar => True).Last
 
                                     else --  ada_mode-conditional_expressions.adb case expression for K.
@@ -1923,7 +1927,7 @@ package body Wisi is
    end To_Node_Access;
 
    procedure Query_Tree
-     (Data  : in Parse_Data_Type;
+     (Data  : in Parse_Data_Access_Constant;
       Tree  : in WisiToken.Syntax_Trees.Tree;
       Query : in Wisi.Query)
    is
@@ -2025,6 +2029,23 @@ package body Wisi is
 
       when Print =>
          Tree.Print_Tree (Line_Numbers => True, Non_Grammar => True);
+
+      when Dump =>
+         declare
+            use Ada.Directories;
+            File_Name : constant String := -Query.File_Name;
+            Normalized_Tree : WisiToken.Syntax_Trees.Tree;
+         begin
+            if Exists (File_Name) then
+               Delete_File (File_Name);
+            end if;
+
+            WisiToken.Syntax_Trees.Copy_Tree
+              (Source      => Tree,
+               Destination => Normalized_Tree,
+               User_Data   => Syntax_Trees.User_Data_Access_Constant (Data));
+            Normalized_Tree.Put_Tree (-Query.File_Name);
+         end;
       end case;
    end Query_Tree;
 
@@ -2347,7 +2368,7 @@ package body Wisi is
                         end if;
 
                         Result.Comment.Last :=
-                           Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region.First;
+                          Trailing_Non_Grammar (Trailing_Non_Grammar.Last_Index).Line_Region.First;
                      end if;
                   end;
                end if;

@@ -4,6 +4,7 @@
 *.info
 *.parse_table
 *.re2c
+*-wisi-change-start
 .gdbinit
 ada_annex_p-bnf.wy
 ada_annex_p-process.el
