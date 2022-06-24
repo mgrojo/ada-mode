@@ -130,7 +130,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                   Expecting      => Expecting,
                   Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
                   Recover_Cost   => 0),
-               User_Data         => Shared_Parser.User_Data);
+               User_Data         => Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
 
             if Trace_Parse > Outline then
                Put
@@ -392,7 +392,9 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                            end if;
 
                            Shared_Parser.Parsers.Prepend_Copy
-                             (Current_Parser, Shared_Parser.Tree, Shared_Parser.User_Data, Trace);
+                             (Current_Parser, Shared_Parser.Tree,
+                              Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data),
+                              Trace);
                            Do_Action (Conflict.Item, Shared_Parser.Parsers.First, Shared_Parser);
 
                            declare

@@ -51,6 +51,8 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Streams;
+with Ada.Strings.Maps;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNATCOLL.Memory;
@@ -517,5 +519,13 @@ package WisiToken is
    type Names_Array_Access is access Names_Array;
    type Names_Array_Array is array (WisiToken.Token_ID range <>) of Names_Array_Access;
    type Names_Array_Array_Access is access Names_Array_Array;
+
+   function Next_Value
+     (Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+      Delims : in              Ada.Strings.Maps.Character_Set)
+     return String;
+   --  Return a string from Stream, ending at a member of Delims or EOI
+   --  (ending delim is read from the stream but not included in result).
+   --  Leading Delims are skipped.
 
 end WisiToken;

@@ -9,7 +9,7 @@
 --  requires mode 'aliased in' for First, Last, which is not
 --  conformant with Ada.Iterator_Interfaces.
 --
---  Copyright (C) 2019, 2020 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2019, 2020, 2022 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -309,7 +309,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
       Source_First : in     Cursor := No_Element;
       Source_Last  : in     Cursor := No_Element;
       Dest_List    : in out List'Class;
-      User_Data    : in     User_Data_Access)
+      User_Data    : in     User_Data_Access_Constant)
    with Pre => Compatible (Source_List, Dest_List);
    --  Deep copy slice of Source_List, appending to Dest_List.
    --
@@ -392,7 +392,7 @@ package WisiToken.Syntax_Trees.LR_Utils is
    function Copy_Skip_Nested
      (Skip_List :         in     Skip_Info;
       Tree      : aliased in out Syntax_Trees.Tree;
-      User_Data :         in     User_Data_Access)
+      User_Data :         in     User_Data_Access_Constant)
      return Node_Access
    with Pre => Tree.Editable and
                (Skip_List.Start_List_ID /= Invalid_Token_ID and then

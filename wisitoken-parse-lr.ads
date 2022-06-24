@@ -362,7 +362,7 @@ package WisiToken.Parse.LR is
      (Tree      : in out Syntax_Trees.Tree;
       Table     : in     Parse_Table;
       Stream    : in     Syntax_Trees.Stream_ID;
-      User_Data : in     Syntax_Trees.User_Data_Access)
+      User_Data : in     Syntax_Trees.User_Data_Access_Constant)
    with Pre => Tree.Parents_Set or Stream /= Tree.Shared_Stream;
    --  Undo reduction of nonterm at Stream.Stack_Top; Stack_Top is then
    --  the last Child of the nonterm.
@@ -448,7 +448,7 @@ package WisiToken.Parse.LR is
       Stream       : in     Syntax_Trees.Stream_ID;
       Op           : in out Delete_Op_Nodes;
       Deleted_Node : in     Syntax_Trees.Valid_Node_Access;
-      User_Data    : in     Syntax_Trees.User_Data_Access)
+      User_Data    : in     Syntax_Trees.User_Data_Access_Constant)
    with Pre => Op.Del_Index = Tree.Get_Sequential_Index (Deleted_Node) and
                Deleted_Node = Tree.First_Terminal (Tree.Current_Token (Stream)).Node;
    --  Perform Delete operation on Stream, set Op.Del_Node to Deleted_Node.

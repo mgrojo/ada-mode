@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Finalization;
+with Ada.Streams;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image;
@@ -178,12 +179,19 @@ package WisiToken.Parse is
 
    overriding function Class_Image (Data : in Lexer_Error) return String is ("lexer");
 
+   function Input_Lexer_Error (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return Lexer_Error;
+   --  Raises ada.streams.stream_IO.End_Error when first stream element read is ')'
+   procedure Output_Lexer_Error (Stream : not null access Ada.Streams.Root_Stream_Type'Class; Item : in Lexer_Error);
+   for Lexer_Error'Input use Input_Lexer_Error;
+   for Lexer_Error'Output use Output_Lexer_Error;
+
    type Parse_Error
      (First_Terminal : Token_ID;
       Last_Terminal  : Token_ID)
    is new Syntax_Trees.Error_Data with record
       Expecting    : Token_ID_Set (First_Terminal .. Last_Terminal);
       Recover_Ops  : Recover_Op_Arrays.Vector;
+      --  FIXME: parse_Error does not need recover_op, just insert/delete?
       Recover_Cost : Natural := 0;
    end record;
 
@@ -201,6 +209,13 @@ package WisiToken.Parse is
      return String;
 
    overriding function Class_Image (Data : in Parse_Error) return String is ("parser");
+
+   function Input_Parse_Error (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return Parse_Error;
+   --  Raises ada.streams.stream_IO.End_Error when first stream element read is ')'
+
+   procedure Output_Parse_Error (Stream : not null access Ada.Streams.Root_Stream_Type'Class; Item : in Parse_Error);
+   for Parse_Error'Input use Input_Parse_Error;
+   for Parse_Error'Output use Output_Parse_Error;
 
    type In_Parse_Action_Error is new Syntax_Trees.Error_Data with record
       Status       : WisiToken.Syntax_Trees.In_Parse_Actions.Status;
@@ -226,6 +241,14 @@ package WisiToken.Parse is
 
    overriding function Class_Image (Data : in In_Parse_Action_Error) return String is ("in_parse_action");
 
+   function Input_In_Parse_Action_Error
+     (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return In_Parse_Action_Error;
+   --  Raises ada.streams.stream_IO.End_Error when first stream element read is ')'
+   procedure Output_In_Parse_Action_Error
+     (Stream : not null access Ada.Streams.Root_Stream_Type'Class; Item : in In_Parse_Action_Error);
+   for In_Parse_Action_Error'Input use Input_In_Parse_Action_Error;
+   for In_Parse_Action_Error'Output use Output_In_Parse_Action_Error;
+
    type Error_Message is new Syntax_Trees.Error_Data with record
       Msg          : Ada.Strings.Unbounded.Unbounded_String;
       Recover_Ops  : Recover_Op_Arrays.Vector;
@@ -249,6 +272,13 @@ package WisiToken.Parse is
      return String;
 
    overriding function Class_Image (Data : in Error_Message) return String is ("message");
+
+   function Input_Error_Message (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return Error_Message;
+   --  Raises ada.streams.stream_IO.End_Error when first stream element read is ')'
+   procedure Output_Error_Message
+     (Stream : not null access Ada.Streams.Root_Stream_Type'Class; Item : in Error_Message);
+   for Error_Message'Input use Input_Error_Message;
+   for Error_Message'Output use Output_Error_Message;
 
    function Error_Pred_Parse (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
    --  Return True if Cur is a Parse_Error; for
