@@ -376,7 +376,7 @@ package body WisiToken.Parse.LR is
      (Tree      : in out Syntax_Trees.Tree;
       Table     : in     Parse_Table;
       Stream    : in     Syntax_Trees.Stream_ID;
-      User_Data : in     Syntax_Trees.User_Data_Access)
+      User_Data : in     Syntax_Trees.User_Data_Access_Constant)
    is
       --  We can't move this into Syntax_Trees, because we need Table to set
       --  the stream element states.
@@ -769,7 +769,7 @@ package body WisiToken.Parse.LR is
       Stream       : in     Syntax_Trees.Stream_ID;
       Op           : in out Delete_Op_Nodes;
       Deleted_Node : in     Syntax_Trees.Valid_Node_Access;
-      User_Data    : in     Syntax_Trees.User_Data_Access)
+      User_Data    : in     Syntax_Trees.User_Data_Access_Constant)
    is
       pragma Unreferenced (Deleted_Node); -- only used in precondition.
       use Syntax_Trees;

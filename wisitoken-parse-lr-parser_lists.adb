@@ -320,7 +320,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
      (List      : in out Parser_Lists.List;
       Cursor    : in     Parser_Lists.Cursor'Class;
       Tree      : in out Syntax_Trees.Tree;
-      User_Data : in     Syntax_Trees.User_Data_Access;
+      User_Data : in     Syntax_Trees.User_Data_Access_Constant;
       Trace     : in out WisiToken.Trace'Class)
    is
       New_Item : Parser_State;

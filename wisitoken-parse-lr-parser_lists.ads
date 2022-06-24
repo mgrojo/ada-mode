@@ -2,7 +2,7 @@
 --
 --  Generalized LR parser state.
 --
---  Copyright (C) 2014-2015, 2017 - 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2014-2015, 2017 - 2022 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -172,7 +172,7 @@ package WisiToken.Parse.LR.Parser_Lists is
      (List      : in out Parser_Lists.List;
       Cursor    : in     Parser_Lists.Cursor'Class;
       Tree      : in out Syntax_Trees.Tree;
-      User_Data : in     Syntax_Trees.User_Data_Access;
+      User_Data : in     Syntax_Trees.User_Data_Access_Constant;
       Trace     : in out WisiToken.Trace'Class);
    --  Copy parser at Cursor, prepend to current list. New copy will not
    --  appear in Cursor.Next ...; it is accessible as First (List).

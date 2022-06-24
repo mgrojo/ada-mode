@@ -499,6 +499,7 @@ package WisiToken.Syntax_Trees is
    --  to null.
 
    type User_Data_Access is access all User_Data_Type'Class;
+   type User_Data_Access_Constant is access constant User_Data_Type'Class;
 
    function New_User_Data (Template : in User_Data_Type) return User_Data_Access
    is (null);
@@ -668,7 +669,7 @@ package WisiToken.Syntax_Trees is
    function New_Stream
      (Tree       : in out Syntax_Trees.Tree;
       Old_Stream : in     Stream_ID;
-      User_Data  : in     User_Data_Access)
+      User_Data  : in     User_Data_Access_Constant)
      return Stream_ID
    with
      Pre => Old_Stream = Invalid_Stream_ID or else
@@ -834,7 +835,7 @@ package WisiToken.Syntax_Trees is
      (Tree           : in out Syntax_Trees.Tree;
       Ref            : in out Stream_Node_Parents;
       Productions    : in     Production_Info_Trees.Vector;
-      User_Data      : in     Syntax_Trees.User_Data_Access;
+      User_Data      : in     Syntax_Trees.User_Data_Access_Constant;
       First_Terminal : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref) and
                Tree.Label (Ref.Ref.Element) = Nonterm and
@@ -874,7 +875,7 @@ package WisiToken.Syntax_Trees is
      (Tree           : in out Syntax_Trees.Tree;
       Ref            : in out Stream_Node_Ref;
       Productions    : in     Production_Info_Trees.Vector;
-      User_Data      : in     User_Data_Access;
+      User_Data      : in     User_Data_Access_Constant;
       First_Terminal : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref) and Tree.Label (Ref.Element) = Nonterm and
                (if First_Terminal
@@ -888,7 +889,7 @@ package WisiToken.Syntax_Trees is
    procedure Left_Breakdown
      (Tree      : in out Syntax_Trees.Tree;
       Ref       : in out Stream_Node_Ref;
-      User_Data : in     Syntax_Trees.User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
    with Pre =>
      Valid_Stream_Node (Tree, Ref) and then
      (Tree.Label (Ref.Element) = Nonterm and
@@ -2044,7 +2045,7 @@ package WisiToken.Syntax_Trees is
    function Copy_Subtree
      (Tree      : in out Syntax_Trees.Tree;
       Root      : in     Node_Access;
-      User_Data : in     User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
      return Node_Access
    with Pre => Editable (Tree);
    --  Deep copy (into Tree) subtree of Tree rooted at Root. Return root
@@ -2055,7 +2056,7 @@ package WisiToken.Syntax_Trees is
    procedure Copy_Tree
      (Source      : in     Tree;
       Destination :    out Tree;
-      User_Data   : in     User_Data_Access)
+      User_Data   : in     User_Data_Access_Constant)
    with Pre => Editable (Source);
    --  The subtree at Tree.Root is copied. Destination parents are set.
    --  All references are deep copied; Source may be finalized after this
@@ -2304,7 +2305,7 @@ package WisiToken.Syntax_Trees is
      (Tree          : in out Syntax_Trees.Tree;
       Deleted_Node  : in     Valid_Node_Access;
       Prev_Terminal : in out Stream_Node_Parents;
-      User_Data     : in     User_Data_Access)
+      User_Data     : in     User_Data_Access_Constant)
    with Pre =>
      Tree.Label (Deleted_Node) in Terminal_Label and
      Tree.Valid_Stream_Node (Prev_Terminal.Ref) and
@@ -2452,21 +2453,21 @@ package WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
       Data      : in     Error_Data'Class;
-      User_Data : in     User_Data_Access);
+      User_Data : in     User_Data_Access_Constant);
    --  Copy Stream.Shared_Link.Node to Stream, add Data to its error list.
 
    procedure Add_Error_To_Stack_Top
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
       Data      : in     Error_Data'Class;
-      User_Data : in     User_Data_Access);
+      User_Data : in     User_Data_Access_Constant);
    --  Copy Stream.Stack_Top.Node, add Data to its error list.
 
    procedure Add_Errors
      (Tree      : in out Syntax_Trees.Tree;
       Error_Ref : in out Stream_Node_Parents;
       Errors    : in     Error_Data_Lists.List;
-      User_Data : in     User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
    with Pre => Parents_Valid (Error_Ref) and
      (for all Err of Errors => not Tree.Contains_Error (Error_Ref.Ref.Node, Err));
    --  Copy Error_Ref.Node and parents, add Errors to its error list.
@@ -2478,7 +2479,7 @@ package WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
       Predicate : in     Error_Predicate;
-      User_Data : in     User_Data_Access);
+      User_Data : in     User_Data_Access_Constant);
    --  Delete errors in Current_Token where Predicate returns True.
    --
    --  If Current_Token is a nonterm, deletes errors from the entire
@@ -2497,7 +2498,7 @@ package WisiToken.Syntax_Trees is
       Stream    : in     Stream_ID;
       Error_Ref : in out Stream_Node_Parents;
       Data      : in     Error_Data'Class;
-      User_Data : in     User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
    with Pre => Tree.Contains_Error (Error_Ref.Ref.Node, Data),
      Post => Tree.Contains_Error (Error_Ref.Ref.Node, Data);
    --  Move Error_Ref to Stream, update error list element matching Data,

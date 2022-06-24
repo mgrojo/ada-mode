@@ -46,7 +46,7 @@ package body WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Ref       : in out Stream_Node_Parents;
       New_Node  : in     Valid_Node_Access;
-      User_Data : in     User_Data_Access);
+      User_Data : in     User_Data_Access_Constant);
    --  New_Node is a copy of Ref.Ref.Node; copy all ancestors, updating
    --  child links.
 
@@ -54,7 +54,7 @@ package body WisiToken.Syntax_Trees is
      (Tree           : in out Syntax_Trees.Tree;
       Node           : in     Valid_Node_Access;
       Parent         : in     Node_Access;
-      User_Data      : in     User_Data_Access;
+      User_Data      : in     User_Data_Access_Constant;
       Copy_Children  : in     Boolean;
       New_Error_List : in     Error_List_Access := null;
       Set_Error_List : in     Boolean := False)
@@ -111,7 +111,7 @@ package body WisiToken.Syntax_Trees is
       Stream    : in     Stream_ID;
       Ref       : in out Stream_Node_Parents;
       New_Node  : in     Valid_Node_Access;
-      User_Data : in     User_Data_Access);
+      User_Data : in     User_Data_Access_Constant);
    --  Move Ref to Stream, replacing Ref.Node with New_Node,
    --  copying all ancestors. Update Ref to point to new stream element
    --  with copied nodes.
@@ -187,7 +187,7 @@ package body WisiToken.Syntax_Trees is
      (Tree          : in out Syntax_Trees.Tree;
       Deleted_Node  : in     Valid_Node_Access;
       Prev_Terminal : in out Stream_Node_Parents;
-      User_Data     : in     User_Data_Access)
+      User_Data     : in     User_Data_Access_Constant)
    is
       --  We need to copy Prev_Terminal.Node, and replace any links to it.
       --  It is tempting to attempt to optimize this; if no parsers have
@@ -261,7 +261,7 @@ package body WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Node      : in     Valid_Node_Access;
       Data      : in     Error_Data'Class;
-      User_Data : in     User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
      return Valid_Node_Access
    --  Copy Node, adding Data to its error list. Return new node.
    is
@@ -293,7 +293,7 @@ package body WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Node      : in     Valid_Node_Access;
       Errors    : in     Error_Data_Lists.List;
-      User_Data : in     User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
      return Valid_Node_Access
    --  Copy Node, adding Errors to its error list. Return new node.
    is
@@ -327,7 +327,7 @@ package body WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
       Data      : in     Error_Data'Class;
-      User_Data : in     User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
    is
       use Stream_Element_Lists;
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
@@ -359,7 +359,7 @@ package body WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
       Data      : in     Error_Data'Class;
-      User_Data : in     User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
    is
       use Stream_Element_Lists;
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
@@ -374,7 +374,7 @@ package body WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Error_Ref : in out Stream_Node_Parents;
       Errors    : in     Error_Data_Lists.List;
-      User_Data : in     User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
    is
       function Copy_Errors return Error_List_Access
       is begin
@@ -610,7 +610,7 @@ package body WisiToken.Syntax_Trees is
      (Tree           : in out Syntax_Trees.Tree;
       Ref            : in out Stream_Node_Parents;
       Productions    : in     Production_Info_Trees.Vector;
-      User_Data      : in     Syntax_Trees.User_Data_Access;
+      User_Data      : in     Syntax_Trees.User_Data_Access_Constant;
       First_Terminal : in     Boolean)
    is
       use Stream_Element_Lists;
@@ -1095,7 +1095,7 @@ package body WisiToken.Syntax_Trees is
      (Tree           : in out Syntax_Trees.Tree;
       Ref            : in out Stream_Node_Ref;
       Productions    : in     Production_Info_Trees.Vector;
-      User_Data      : in     Syntax_Trees.User_Data_Access;
+      User_Data      : in     Syntax_Trees.User_Data_Access_Constant;
       First_Terminal : in     Boolean)
    is
       Ref_Parents : Stream_Node_Parents := Tree.To_Stream_Node_Parents (Ref);
@@ -1931,7 +1931,7 @@ package body WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Ref       : in out Stream_Node_Parents;
       New_Node  : in     Valid_Node_Access;
-      User_Data : in     User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
    --  Replace Ref.Node with New_Node, copying all parents thru
    --  Ref.Element, updating Ref.Element and Ref.Parents to match.
    is
@@ -1998,7 +1998,7 @@ package body WisiToken.Syntax_Trees is
      (Tree           : in out Syntax_Trees.Tree;
       Node           : in     Valid_Node_Access;
       Parent         : in     Node_Access;
-      User_Data      : in     User_Data_Access;
+      User_Data      : in     User_Data_Access_Constant;
       Copy_Children  : in     Boolean;
       New_Error_List : in     Error_List_Access := null;
       Set_Error_List : in     Boolean           := False)
@@ -2133,7 +2133,7 @@ package body WisiToken.Syntax_Trees is
    function Copy_Subtree
      (Tree      : in out Syntax_Trees.Tree;
       Root      : in     Node_Access;
-      User_Data : in     User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
      return Node_Access
    is begin
       if Root = Invalid_Node_Access then
@@ -2146,7 +2146,7 @@ package body WisiToken.Syntax_Trees is
    procedure Copy_Tree
      (Source      : in     Tree;
       Destination :    out Tree;
-      User_Data   : in     User_Data_Access)
+      User_Data   : in     User_Data_Access_Constant)
    is
       function Copy_Node
         (Source_Node : in Valid_Node_Access;
@@ -2419,7 +2419,7 @@ package body WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
       Predicate : in     Error_Predicate;
-      User_Data : in     User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
    is
       use Stream_Element_Lists;
 
@@ -5423,7 +5423,7 @@ package body WisiToken.Syntax_Trees is
    procedure Left_Breakdown
      (Tree      : in out Syntax_Trees.Tree;
       Ref       : in out Stream_Node_Ref;
-      User_Data : in     Syntax_Trees.User_Data_Access)
+      User_Data : in     Syntax_Trees.User_Data_Access_Constant)
    is
       --  [Wagner Graham 1998] doesn't modify the tree structure for
       --  Left_Breakdown; it just moves the Current_Token pointer around.
@@ -5604,6 +5604,26 @@ package body WisiToken.Syntax_Trees is
                     (if Node = Tree.EOI
                      then Node.Non_Grammar (1).Byte_Region.First
                      else Tree.Byte_Region (Node, Trailing_Non_Grammar => True).Last));
+
+               function Check_Non_Grammar return Base_Line_Number_Type
+               --  Return Invalid_Line_Number if Byte_Pos not in Node.Non_Grammar
+               is begin
+                  if Node.Non_Grammar.Length > 0 and then
+                    Byte_Pos <= Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last
+                  then
+                     for Token of Node.Non_Grammar loop
+                        if Byte_Pos <= Token.Byte_Region.First then
+                           return Token.Line_Region.First;
+
+                        elsif Byte_Pos <= Token.Byte_Region.Last then
+                           return Tree.Lexer.Line_At_Byte_Pos (Token, Byte_Pos);
+
+                        end if;
+                     end loop;
+                  end if;
+                  return Invalid_Line_Number;
+               end Check_Non_Grammar;
+
             begin
                pragma Assert (Prev_New_Line.Pos /= Invalid_Buffer_Pos); --  SOI if nothing else
 
@@ -5613,7 +5633,16 @@ package body WisiToken.Syntax_Trees is
                else
                   case Terminal_Label'(Node.Label) is
                   when Virtual_Identifier | Virtual_Terminal =>
-                     return Prev_New_Line.Line;
+                     --  ada_mode-partial_parse.adb
+                     declare
+                        Temp : constant Base_Line_Number_Type := Check_Non_Grammar;
+                     begin
+                        if Temp = Invalid_Line_Number then
+                           return Prev_New_Line.Line;
+                        else
+                           return Temp;
+                        end if;
+                     end;
 
                   when Source_Terminal =>
                      if Node = Tree.EOI then
@@ -5628,21 +5657,16 @@ package body WisiToken.Syntax_Trees is
                           (Node.Byte_Region, Byte_Pos,
                            First_Line => Prev_New_Line.Line);
 
-                     elsif Node.Non_Grammar.Length > 0 and then
-                       Byte_Pos <= Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last
-                     then
-                        for Token of Node.Non_Grammar loop
-                           if Byte_Pos <= Token.Byte_Region.First then
-                              return Token.Line_Region.First;
-
-                           elsif Byte_Pos <= Token.Byte_Region.Last then
-                              return Tree.Lexer.Line_At_Byte_Pos (Token, Byte_Pos);
-
-                           end if;
-                        end loop;
-                        raise SAL.Programmer_Error;
                      else
-                        raise SAL.Programmer_Error;
+                        declare
+                           Temp : constant Base_Line_Number_Type := Check_Non_Grammar;
+                        begin
+                           if Temp = Invalid_Line_Number then
+                              raise SAL.Programmer_Error;
+                           else
+                              return Temp;
+                           end if;
+                        end;
                      end if;
                   end case;
                end if;
@@ -6107,7 +6131,7 @@ package body WisiToken.Syntax_Trees is
       Stream    : in     Stream_ID;
       Ref       : in out Stream_Node_Parents;
       New_Node  : in     Valid_Node_Access;
-      User_Data : in     User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
    --  Move Ref to Stream, replacing Ref.Node with New_Node,
    --  copying all ancestors. Update Ref to point to new stream element
    --  with copied nodes.
@@ -6983,7 +7007,7 @@ package body WisiToken.Syntax_Trees is
    function New_Stream
      (Tree       : in out Syntax_Trees.Tree;
       Old_Stream : in     Stream_ID;
-      User_Data  : in     User_Data_Access)
+      User_Data  : in     User_Data_Access_Constant)
      return Stream_ID
    is
       pragma Unreferenced (User_Data);
@@ -9085,7 +9109,7 @@ package body WisiToken.Syntax_Trees is
       Stream    : in     Stream_ID;
       Error_Ref : in out Stream_Node_Parents;
       Data      : in     Error_Data'Class;
-      User_Data : in     User_Data_Access)
+      User_Data : in     User_Data_Access_Constant)
    is
       use Error_Data_Lists;
       New_Error_List : constant Error_List_Access := new List'(Error_Ref.Ref.Node.Error_List.all);
