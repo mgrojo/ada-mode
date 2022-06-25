@@ -75,6 +75,8 @@ maybe on line 1265:          Lines.Lines (Tmp'Range) := Tmp.all;
 
 update wisitoken.grammar/wisitoken_grammar_01.wy to match
 
+run parser on ACATS
+
 generate tree-sitter parse table
     see if tree-sitter error recover is good enough
 
@@ -1576,6 +1578,8 @@ List in FSF/UNESCO free software directory?
 publish on Alire?
     https://alire.ada.dev/
     https://blog.adacore.com/announcing-the-first-ada-spark-crate-of-the-year-award
+
+create release branches
 
 checkout reference copy in c:/Projects/ada-mode-releases
     cd c:/Projects/ada-mode-releases

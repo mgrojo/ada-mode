@@ -117,9 +117,9 @@ package Wisi.Ada is
 
    overriding
    function Get_Token_IDs
-     (User_Data           : in out Parse_Data_Type;
-      Command_Line : in String;
-      Last : in out Integer)
+     (User_Data    : in     Parse_Data_Type;
+      Command_Line : in     String;
+      Last         : in out Integer)
      return WisiToken.Token_ID_Arrays.Vector;
 
    ----------
