@@ -635,7 +635,7 @@ package body WisiToken_Grammar_Editing is
       use all type SAL.Base_Peek_Type;
       use all type Node_Sets.Set;
 
-      Data_Access : constant Syntax_Trees.User_Data_Access := Data'Unchecked_Access;
+      Data_Access : constant Syntax_Trees.User_Data_Access_Constant := Data'Unchecked_Access;
 
       EBNF_Nodes        : Node_Sets.Set;
       Copied_EBNF_Nodes : Node_Sets.Set;

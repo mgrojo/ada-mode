@@ -119,11 +119,7 @@ package body WisiToken.Wisi_Ada is
    function "and" (Left : in Prod_Arrays.Vector; Right : in Instance) return Prod_Arrays.Vector
    is begin
       return Result : Prod_Arrays.Vector := Left do
-         if Right.LHS < Result.First_Index then
-            Result.Set_First_Last (Right.LHS, Result.Last_Index);
-         elsif Right.LHS > Result.Last_Index then
-            Result.Set_First_Last (Result.First_Index, Right.LHS);
-         end if;
+         Result.Extend (Right.LHS);
 
          if Result (Right.LHS).LHS = Invalid_Token_ID then
             Result (Right.LHS) := Right;
@@ -136,16 +132,8 @@ package body WisiToken.Wisi_Ada is
    function "and" (Left : in Prod_Arrays.Vector; Right : in Prod_Arrays.Vector) return Prod_Arrays.Vector
    is begin
       return Result : Prod_Arrays.Vector := Left do
-         if Right.First_Index < Result.First_Index then
-            Result.Set_First_Last (Right.First_Index, Result.Last_Index);
-         elsif Right.First_Index > Result.Last_Index then
-            Result.Set_First_Last (Result.First_Index, Right.First_Index);
-         end if;
-         if Right.Last_Index < Result.First_Index then
-            Result.Set_First_Last (Right.Last_Index, Result.Last_Index);
-         elsif Right.Last_Index > Result.Last_Index then
-            Result.Set_First_Last (Result.First_Index, Right.Last_Index);
-         end if;
+         Result.Extend (Right.First_Index);
+         Result.Extend (Right.Last_Index);
 
          for P of Right loop
             if Result (P.LHS).LHS = Invalid_Token_ID then

@@ -99,7 +99,7 @@ package body WisiToken.Parse.LR.Parser is
                        (Status       => Status,
                         Recover_Ops  => Recover_Op_Arrays.Empty_Vector,
                         Recover_Cost => 0),
-                     Shared_Parser.User_Data);
+                     Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
 
                   return Status.Label;
                end if;
@@ -155,7 +155,9 @@ package body WisiToken.Parse.LR.Parser is
                      Shared_Parser.Tree.Lexer.Trace.Put
                        (" ... " & Tree.Image (Tree.Peek (Parser_State.Stream), State => True));
                   end if;
-                  Undo_Reduce (Tree, Table, Parser_State.Stream, Shared_Parser.User_Data);
+                  Undo_Reduce
+                    (Tree, Table, Parser_State.Stream, Syntax_Trees.User_Data_Access_Constant
+                       (Shared_Parser.User_Data));
 
                   if Trace_Parse > Detail then
                      Shared_Parser.Tree.Lexer.Trace.Put
@@ -263,7 +265,8 @@ package body WisiToken.Parse.LR.Parser is
                                          ": left_breakdown " &
                                          Tree.Image (Current_Token, First_Terminal => True));
                                  end if;
-                                 Tree.Left_Breakdown (Current_Token, Shared_Parser.User_Data);
+                                 Tree.Left_Breakdown
+                                   (Current_Token, Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
 
                                  if Trace_Parse > Extra then
                                     Shared_Parser.Tree.Lexer.Trace.Put_Line
@@ -353,7 +356,7 @@ package body WisiToken.Parse.LR.Parser is
                      Expecting      => (1 .. 0 => False),
                      Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
                      Recover_Cost   => 0),
-                  Shared_Parser.User_Data);
+                  Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
 
                if Trace_Parse > Detail then
                   Trace.Put_Line (" ... error unknown state");
@@ -478,12 +481,12 @@ package body WisiToken.Parse.LR.Parser is
                Tree.Delete_Errors_In_Input
                  (Parser_State.Stream,
                   Error_Pred_Parse'Access,
-                  Shared_Parser.User_Data);
+                  Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
 
                Tree.Add_Error_To_Input
                  (Stream    => Parser_State.Stream,
                   Data      => New_Error,
-                  User_Data => Shared_Parser.User_Data);
+                  User_Data => Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
 
             end if;
 
@@ -522,7 +525,9 @@ package body WisiToken.Parse.LR.Parser is
                     (Tree.Current_Token (Parser_State.Stream)).Node;
                begin
                   if Op.Del_Index = Tree.Get_Sequential_Index (Terminal_Node) then
-                     Do_Delete (Tree, Parser_State.Stream, Op, Terminal_Node, Shared_Parser.User_Data);
+                     Do_Delete
+                       (Tree, Parser_State.Stream, Op, Terminal_Node,
+                        Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
 
                      if Trace_Parse > Extra  then
                         Shared_Parser.Tree.Lexer.Trace.Put_Line
@@ -1213,10 +1218,12 @@ package body WisiToken.Parse.LR.Parser is
                   Tree.Lexer.Trace.New_Line;
                end if;
             end if;
-            Tree.Breakdown (Terminal, Parser.Productions, Parser.User_Data, First_Terminal => True);
+            Tree.Breakdown
+              (Terminal, Parser.Productions,
+               Syntax_Trees.User_Data_Access_Constant (Parser.User_Data), First_Terminal => True);
 
             if To_Single and then Tree.Label (Terminal.Element) = Nonterm then
-               Tree.Left_Breakdown (Terminal, Parser.User_Data);
+               Tree.Left_Breakdown (Terminal, Syntax_Trees.User_Data_Access_Constant (Parser.User_Data));
             end if;
             if Trace_Incremental_Parse > Extra then
                Tree.Lexer.Trace.Put_Line
@@ -1259,7 +1266,9 @@ package body WisiToken.Parse.LR.Parser is
                end if;
 
                if Get_Node (Ref.Element) /= Ref.Node then
-                  Tree.Breakdown (Ref, Parser.Productions, Parser.User_Data, First_Terminal => False);
+                  Tree.Breakdown
+                    (Ref, Parser.Productions,
+                     Syntax_Trees.User_Data_Access_Constant (Parser.User_Data), First_Terminal => False);
                end if;
 
                declare
@@ -1275,7 +1284,10 @@ package body WisiToken.Parse.LR.Parser is
                     ("breakdown recover_conflict node " & Tree.Image (Ref, Node_Numbers => True));
                end if;
 
-               Tree.Breakdown (Ref, Parser.Productions, Parser.User_Data, First_Terminal => False);
+               Tree.Breakdown
+                 (Ref, Parser.Productions,
+                  Syntax_Trees.User_Data_Access_Constant (Parser.User_Data),
+                  First_Terminal => False);
                To_Breakdown := Ref;
                Tree.First_Terminal (To_Breakdown);
                Tree.Stream_Next (Ref, Rooted => True);
@@ -1296,7 +1308,7 @@ package body WisiToken.Parse.LR.Parser is
                            Tree.Stream_Delete (Stream, To_Delete);
                         end;
                      else
-                        Tree.Left_Breakdown (To_Breakdown, Parser.User_Data);
+                        Tree.Left_Breakdown (To_Breakdown, Syntax_Trees.User_Data_Access_Constant (Parser.User_Data));
                         Tree.Stream_Next (To_Breakdown, Rooted => False);
                      end if;
                      if Trace_Incremental_Parse > Extra then
