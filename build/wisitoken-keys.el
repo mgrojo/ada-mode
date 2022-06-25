@@ -130,7 +130,7 @@
 		(search-forward-regexp (concat "Checking_Error +=> " error-number)))
 	      (when (and field (search-forward field end))
 		(if (search-forward "(case Test.Alg" (line-end-position) t)
-		    (progn (search-forward (concat "when " alg))
+		    (progn (search-forward alg)
 			   (forward-word 1))
 		  (end-of-line)
 		  (forward-char -1))))

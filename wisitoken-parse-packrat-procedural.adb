@@ -122,7 +122,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                   Last_Pos         => Pos)
                do
                   if Trace_Parse > Extra then
-                     Trace.Put_Line ("eval: " & Image (Result, R, Pos, Tree));
+                     Trace.Put_Line (Image (Result, R, RHS_Index, Pos, Tree));
                   end if;
                end return;
             else
@@ -136,6 +136,10 @@ package body WisiToken.Parse.Packrat.Procedural is
                     Parser.Get_In_Parse_Action ((R, RHS_Index));
                begin
                   for I in RHS.Tokens.First_Index .. RHS.Tokens.Last_Index loop
+                     if Trace_Parse > Extra then
+                        Trace.Put (Image (Production_ID'(R, RHS_Index), Descriptor) & "," & I'Image & ": ");
+                     end if;
+
                      if RHS.Tokens (I) in Terminal then
                         if Next_Pos = Syntax_Trees.Invalid_Stream_Index then
                            --  We don't update Max_Examined_Pos here; it must already be EOI
@@ -161,7 +165,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                                     pragma Assert (Input.Node /= Syntax_Trees.Invalid_Node_Access);
                                     Children (SAL.Base_Peek_Type (I)) := Input.Node;
                                     if Trace_Parse > Extra then
-                                       Trace.Put_Line ("eval: " & Tree.Image (Input.Node, Node_Numbers => True));
+                                       Trace.Put_Line (Tree.Image (Input.Node, Node_Numbers => True));
                                     end if;
                                  end if;
                               end;
@@ -176,7 +180,7 @@ package body WisiToken.Parse.Packrat.Procedural is
 
                                  if Trace_Parse > Extra then
                                     Trace.Put_Line
-                                      ("eval: " & Tree.Image (Children (SAL.Base_Peek_Type (I)), Node_Numbers => True));
+                                      (Tree.Image (Children (SAL.Base_Peek_Type (I)), Node_Numbers => True));
                                  end if;
 
                               else
@@ -192,6 +196,11 @@ package body WisiToken.Parse.Packrat.Procedural is
 
                         case Memo.State is
                         when Success =>
+                           if Trace_Parse > Extra then
+                              Trace.Put_Line
+                                (Image (Production_ID'(R, RHS_Index), Descriptor) & "," & I'Image & ": " &
+                                   Tree.Image (Memo.Result, Node_Numbers => True, RHS_Index => True));
+                           end if;
                            Children (SAL.Base_Peek_Type (I)) := Memo.Result;
                            Pos := Memo.Last_Pos;
                            Next_Pos := Tree.Stream_Next (Tree.Shared_Stream, Pos);
@@ -217,7 +226,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                      Last_Pos         => Pos)
                   do
                      if Trace_Parse > Extra then
-                        Trace.Put_Line ("eval: " & Image (Result, R, Pos, Tree));
+                        Trace.Put_Line (Image (Result, R, RHS_Index, Pos, Tree));
                      end if;
 
                      if In_Parse_Action = null then
@@ -257,6 +266,11 @@ package body WisiToken.Parse.Packrat.Procedural is
                   end return;
 
                   <<Fail_RHS>>
+                  if Trace_Parse > Extra then
+                     Trace.Put_Line
+                       (Image (Production_ID'(R, RHS_Index), Descriptor) & " @" &
+                          Image_Pos (Tree, Next_Pos) & ": fail");
+                  end if;
                   Pos := Last_Pos;
                   Next_Pos := Tree.Stream_Next (Tree.Shared_Stream, Pos);
                end;

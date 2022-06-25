@@ -45,10 +45,31 @@ package body WisiToken.Parse.Packrat is
    end Image;
 
    function Image
-     (Item    : in Memo_Entry;
-      Nonterm : in Token_ID;
-      Pos     : in Syntax_Trees.Node_Index;
-      Tree    : in Syntax_Trees.Tree)
+     (Item      : in Memo_Entry;
+      Nonterm   : in Token_ID;
+      Pos       : in Syntax_Trees.Node_Index;
+      Tree      : in Syntax_Trees.Tree)
+     return String
+   is
+      Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
+   begin
+      return
+        Syntax_Trees.Trimmed_Image (Pos) & ", " &
+        (case Item.State is
+         when No_Result => "",
+         when Failure => Image (Nonterm, Descriptor) & " fail @" &
+           Image_Pos (Tree, Item.Max_Examined_Pos),
+         when Success => Tree.Image (Item.Result, Node_Numbers => True, RHS_Index => True) &
+           "," & Image_Pos (Tree, Item.Max_Examined_Pos) &
+           "," & Image_Pos (Tree, Item.Last_Pos));
+   end Image;
+
+   function Image
+     (Item      : in Memo_Entry;
+      Nonterm   : in Token_ID;
+      RHS_Index : in Natural;
+      Pos       : in Syntax_Trees.Node_Index;
+      Tree      : in Syntax_Trees.Tree)
      return String
    is
       Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
@@ -57,21 +78,32 @@ package body WisiToken.Parse.Packrat is
         Pos'Image & ", " &
         (case Item.State is
          when No_Result => "",
-         when Failure => Image (Nonterm, Descriptor) & " fail @" &
+         when Failure => Image (Production_ID'(Nonterm, RHS_Index), Descriptor) & " fail @" &
            Image_Pos (Tree, Item.Max_Examined_Pos),
-         when Success => Tree.Image (Item.Result, Node_Numbers => True) &
+         when Success => Tree.Image (Item.Result, Node_Numbers => True, RHS_Index => True) &
            "," & Image_Pos (Tree, Item.Max_Examined_Pos) &
            "," & Image_Pos (Tree, Item.Last_Pos));
    end Image;
 
    function Image
-     (Item    : in Memo_Entry;
-      Nonterm : in Token_ID;
-      Pos     : in Syntax_Trees.Stream_Index;
-      Tree    : in Syntax_Trees.Tree)
+     (Item      : in Memo_Entry;
+      Nonterm   : in Token_ID;
+      Pos       : in Syntax_Trees.Stream_Index;
+      Tree      : in Syntax_Trees.Tree)
      return String
    is begin
       return Image (Item, Nonterm, Tree.Get_Node_Index (Tree.Shared_Stream, Pos), Tree);
+   end Image;
+
+   function Image
+     (Item      : in Memo_Entry;
+      Nonterm   : in Token_ID;
+      RHS_Index : in Natural;
+      Pos       : in Syntax_Trees.Stream_Index;
+      Tree      : in Syntax_Trees.Tree)
+     return String
+   is begin
+      return Image (Item, Nonterm, RHS_Index, Tree.Get_Node_Index (Tree.Shared_Stream, Pos), Tree);
    end Image;
 
    procedure Clear (Derivs : in out Packrat.Derivs)

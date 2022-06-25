@@ -466,10 +466,18 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +Wisi_EOI_ID,
          Error_Token_Byte_Region => (28, 27),
          Ops                     => +(Insert, +END_ID, 2) & (Insert, +SEMICOLON_ID, 2),
-         Enqueue_Count             => (case Test.Alg is when LALR => 19, when LR1 => 18,
-                                       when Packrat_Gen | Packrat_Proc => 1),
-         Check_Count               => 4,
-         Cost                    => 2);
+         Enqueue_Count           =>
+           (case Test.Alg is
+            when LALR      => 19,
+            when LR1       => 18,
+            when Packrat_Gen |
+              Packrat_Proc => 60),
+         Check_Count       =>
+           (case Test.Alg is
+            when LALR | LR1 => 4,
+            when Packrat_Gen |
+              Packrat_Proc  => 13),
+         Cost              => 2);
    end Check_Accept;
 
    procedure Extra_Begin (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -568,6 +576,8 @@ package body Test_McKenzie_Recover is
       Parse_Text
         ("function Find_Path return Path is begin return Result : Path (1 .. Result_Length) end Find_Path; "
          --        |10       |20       |30       |40       |50       |60       |70       |80
+         --  1     2         3      4    5  6     7      8      9 10   11 13 14           15    17       18
+         --                                                             12                  16
         );
       --  Syntax error (missing ';' (and rest of extended return) at
       --  82) while two parsers are sorting out a conflict.
@@ -578,10 +588,14 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (83, 85),
          Ops                     => +(Insert, +SEMICOLON_ID, 2),
-         Enqueue_Count             => (case Test.Alg is when LALR => 7, when LR1 => 7,
-                                     when Packrat_Gen | Packrat_Proc => 1),
-         Check_Count               => 2,
-         Cost                    => 1);
+         Enqueue_Count           =>
+           (case Test.Alg is
+            when LALR      => 7,
+            when LR1       => 7,
+            when Packrat_Gen |
+              Packrat_Proc => 7),
+         Check_Count       => 2,
+         Cost              => 1);
    end Conflict_2;
 
    procedure Missing_Return (T : in out AUnit.Test_Cases.Test_Case'Class)

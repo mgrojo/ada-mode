@@ -80,17 +80,33 @@ package WisiToken.Parse.Packrat is
    function Image (Item : in Memo_Entry; Tree : in Syntax_Trees.Tree) return String;
 
    function Image
-     (Item    : in Memo_Entry;
-      Nonterm : in Token_ID;
-      Pos     : in Syntax_Trees.Node_Index;
-      Tree    : in Syntax_Trees.Tree)
+     (Item      : in Memo_Entry;
+      Nonterm   : in Token_ID;
+      Pos       : in Syntax_Trees.Node_Index;
+      Tree      : in Syntax_Trees.Tree)
      return String;
 
    function Image
-     (Item    : in Memo_Entry;
-      Nonterm : in Token_ID;
-      Pos     : in Syntax_Trees.Stream_Index;
-      Tree    : in Syntax_Trees.Tree)
+     (Item      : in Memo_Entry;
+      Nonterm   : in Token_ID;
+      RHS_Index : in Natural;
+      Pos       : in Syntax_Trees.Node_Index;
+      Tree      : in Syntax_Trees.Tree)
+     return String;
+
+   function Image
+     (Item      : in Memo_Entry;
+      Nonterm   : in Token_ID;
+      Pos       : in Syntax_Trees.Stream_Index;
+      Tree      : in Syntax_Trees.Tree)
+     return String;
+
+   function Image
+     (Item      : in Memo_Entry;
+      Nonterm   : in Token_ID;
+      RHS_Index : in Natural;
+      Pos       : in Syntax_Trees.Stream_Index;
+      Tree      : in Syntax_Trees.Tree)
      return String;
 
    subtype Positive_Node_Index is Syntax_Trees.Node_Index range 1 .. Syntax_Trees.Node_Index'Last;

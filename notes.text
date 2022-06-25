@@ -31,16 +31,52 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-Dump tree to create ada-mode test case
-    copy tree first to normalize node_index
-    dump tree.nodes, with children as node_index
-        include deleted and errors
+make -r t_mck RUN_ARGS="Packrat_Proc \"Conflict_2\" \"debug=1 test=2 parse=3 mckenzie=1 packrat_mckenzie=3\" > debug_packrat.log"
+    lr1 has two parsers going
+100.0:index_constraint <= LEFT_PAREN discrete_subtype_definition RIGHT_PAREN ^
+104.0:name <= name LEFT_PAREN range_list RIGHT_PAREN ^
+
+    packrat did not report not_implemented.
+    are the two parsers visible in Derivs?
+        completes range_list, name_0
+
+extended_return_statement @ 7
+extended_return_statement : RETURN extended_return_object_declaration SEMICOLON
+extended_return_statement_0, 1: 7:(RETURN, (41 . 46))
+extended_return_object_declaration @ 8
+extended_return_object_declaration_0, 1: 8:(IDENTIFIER, (48 . 53))
+extended_return_object_declaration_0, 2: 9:(COLON, (55 . 55))
+extended_return_object_declaration_0, 3: eval: subtype_indication @ 10
+subtype_indication_0, 1: apply recursive name
+name_0, 2: 11:(LEFT_PAREN, (62 . 62))
+name_0, 3: (range_list, (63 . 80))
+name_0, 4: 15:(RIGHT_PAREN, (81 . 81))
+subtype_indication_0, 1: (name_0, (57 . 81))
+subtype_indication_0, 2: eval: constraint @ 16 ... fail
+subtype_indication_0: fail
+subtype_indication_1, 1: -60:(name_0, (57 . 81))
+extended_return_object_declaration_0, 3: (subtype_indication, (57 . 81))
+extended_return_statement_0, 3: extended_return_statement_0: fail
+
+    that's the LR1 range_list branch
+
+    LR1 index_constraint branch would be from
+extended_return_statement @ 7 : RETURN extended_return_object_declaration SEMICOLON
+extended_return_object_declaration @ 8 : IDENTIFIER COLON subtype_indication ;
+subtype_indication_0 @ 10 : name constraint
+name_3 @ 10 : IDENTIFIER
+    doesn't try name_3 @ 10 because name_0 @ 10 already succeeded.
+    must eliminate that redundancy/conflict from the packrat grammar!
+        it's not in ada LRM annex_p, nor ada_annex_p.wy
+        ignore for now; ada_annex_p has other conflicts that may be problematic.
+
+constraint_1 : index_constraint @ 11
+extended_return_statement_0, 3: extended_return_statement_0: fail
+
+
+
 
 merge wisitoken-parse-packrat-parser back into wisitoken-parse-packrat?
-
-make -r t_mck RUN_ARGS="Packrat_Proc \"Error_2\" \"debug=1 test=2 parse=1 mckenzie=1 packrat_mckenzie=3\""
-
-
 
 packrat_to_lr find all parse streams?
         order nonterms by production top-down

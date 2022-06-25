@@ -347,13 +347,17 @@ package body WisiToken.Parse.Packrat.Parser is
                      Tree.Push (Stream, Nonterm_Node, Accept_State);
                      Set_Error := False;
                   else
+                     --  IMPROVEME: if Nonterm_Node is recursive, undo_reduce it first so
+                     --  recover doesn't have to? or to match LR1 parse entering error
+                     --  recover? test_mckenzie_recover.adb Check_Accept.
                      State := Goto_For (Shared_Parser.Table.all, Prev_State, Tree.ID (Nonterm_Node));
                      Tree.Push (Stream, Nonterm_Node, State);
                   end if;
 
                   if Trace_Packrat_McKenzie > Detail then
                      Trace.Put_Line
-                       ("state" & Prev_State'Image & " push " & Tree.Image (Nonterm_Node, Node_Numbers => True));
+                       ("state" & Prev_State'Image & " push " & State'Image & ", " & Tree.Image
+                          (Nonterm_Node, Node_Numbers => True));
                   end if;
 
                   Pos := Tree.Get_Node_Index
@@ -381,7 +385,7 @@ package body WisiToken.Parse.Packrat.Parser is
                         if Trace_Packrat_McKenzie > Detail then
                            Trace.Put_Line
                              ("state" & Prev_State'Image & " push " &
-                                Tree.Image (Terminal_Node, Node_Numbers => True));
+                                State'Image & ", " & Tree.Image (Terminal_Node, Node_Numbers => True));
                         end if;
 
                         Pos := @ + 1;
@@ -411,7 +415,8 @@ package body WisiToken.Parse.Packrat.Parser is
                                        if Trace_Packrat_McKenzie > Detail then
                                           Trace.Put_Line
                                             ("state" & Prev_State'Image & " push " &
-                                               Tree.Image (Empty_Nonterm_Node, Node_Numbers => True));
+                                               State'Image & ", " & Tree.Image
+                                                 (Empty_Nonterm_Node, Node_Numbers => True));
                                        end if;
                                        Prev_State := State;
 
