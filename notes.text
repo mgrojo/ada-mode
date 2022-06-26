@@ -31,6 +31,13 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+change wisitoken_grammar_runtime to support punctuation tokens in literal terminals
+    for translating libadalang grammar.py to .wy
+    also in %mckenzie_*, %conflict
+    ada_lite_ebnf.wy
+    diff _bnf.wy_good
+    run all tests
+
 packrat error recover
     in o.w.s-2
 

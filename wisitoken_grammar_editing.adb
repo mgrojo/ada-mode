@@ -698,6 +698,8 @@ package body WisiToken_Grammar_Editing is
               (Tree.ID (Node) = +rhs_element_ID and then Tree.RHS_Index (Node) = 1);
 
             Has_EBNF := Has_EBNF or EBNF_Nodes.Contains (Node);
+            --  Not every ebnf node requires auto-labels (ie literal tokens), but
+            --  it's not easy to tell from here.
          end Any_EBNF_Manual_Label;
 
       begin
@@ -1409,7 +1411,7 @@ package body WisiToken_Grammar_Editing is
          In_Parse_Action   : in Node_Access := Invalid_Node_Access)
         return Valid_Node_Access
       with Pre => Tree.ID (RHS_Element) = +rhs_element_ID
-      --  Add an RHS containing RHS_Element..
+      --  Add an RHS containing RHS_Element.
       --
       --  Post_Parse_Action, _2 are not copied.
       is
