@@ -2148,6 +2148,8 @@ package body WisiToken.Syntax_Trees is
       Destination :    out Tree;
       User_Data   : in     User_Data_Access_Constant)
    is
+      Next_Terminal_Node_Index : Node_Index := 0;
+
       function Copy_Node
         (Source_Node : in Valid_Node_Access;
          Dest_Parent : in Node_Access)
@@ -2164,11 +2166,16 @@ package body WisiToken.Syntax_Trees is
          case Source_Node.Label is
          when Source_Terminal =>
 
+            if Next_Terminal_Node_Index = 0 and Source_Node.ID /= Source.Lexer.Descriptor.SOI_ID then
+               --  SOI is normally the first terminal seen.
+               Next_Terminal_Node_Index := @ + 1;
+            end if;
+
             New_Dest_Node := new Syntax_Trees.Node'
               (Label       => Source_Terminal,
                Child_Count => 0,
                ID          => Source_Node.ID,
-               Node_Index  => Source_Node.Node_Index,
+               Node_Index  => Next_Terminal_Node_Index,
                Parent      => Dest_Parent,
                Augmented   =>
                  (if Source_Node.Augmented = null or User_Data = null
@@ -2182,6 +2189,14 @@ package body WisiToken.Syntax_Trees is
                Sequential_Index  => Source_Node.Sequential_Index,
                Following_Deleted => Valid_Node_Access_Lists.Empty_List);
 
+            Next_Terminal_Node_Index := @ + 1;
+
+            if New_Dest_Node.ID = Source.Lexer.Descriptor.SOI_ID then
+               Destination.SOI := New_Dest_Node;
+            elsif New_Dest_Node.ID = Source.Lexer.Descriptor.EOI_ID then
+               Destination.EOI  := New_Dest_Node;
+            end if;
+
             for Deleted of Source_Node.Following_Deleted loop
                New_Dest_Node.Following_Deleted.Append (Copy_Node (Deleted, New_Dest_Node));
             end loop;
@@ -2192,10 +2207,7 @@ package body WisiToken.Syntax_Trees is
               (Label       => Virtual_Terminal,
                Child_Count => 0,
                ID          => Source_Node.ID,
-               Node_Index  =>
-                 (if Source_Node.Node_Index > 0
-                  then Source_Node.Node_Index -- from Shared_Stream
-                  else -(Destination.Nodes.Last_Index + 1)),
+               Node_Index  => -(Destination.Nodes.Last_Index + 1),
                Parent      => Dest_Parent,
                Augmented   =>
                  (if Source_Node.Augmented = null or User_Data = null
@@ -2212,10 +2224,7 @@ package body WisiToken.Syntax_Trees is
               (Label       => Virtual_Identifier,
                Child_Count => 0,
                ID          => Source_Node.ID,
-               Node_Index  =>
-                 (if Source_Node.Node_Index > 0
-                  then Source_Node.Node_Index -- from Shared_Stream
-                  else -(Destination.Nodes.Last_Index + 1)),
+               Node_Index  => -(Destination.Nodes.Last_Index + 1),
                Parent      => Dest_Parent,
                Augmented   =>
                  (if Source_Node.Augmented = null or User_Data = null
@@ -2271,8 +2280,6 @@ package body WisiToken.Syntax_Trees is
       Destination.Parents_Set              := True;
 
       Destination.Root := Copy_Node (Source.Root, Invalid_Node_Access);
-      Destination.SOI  := Copy_Node (Source.SOI, Invalid_Node_Access);
-      Destination.EOI  := Copy_Node (Source.EOI, Invalid_Node_Access);
    end Copy_Tree;
 
    function Correct_Stream_Node
@@ -4392,6 +4399,8 @@ package body WisiToken.Syntax_Trees is
       Tree.Set_Root (Get_Node_Access);
 
       Close (File);
+
+      Tree.Set_Parents;
    end Get_Tree;
 
    function Has_Child
@@ -7903,7 +7912,7 @@ package body WisiToken.Syntax_Trees is
 
          else
             if Node_Index_Seen (I) then
-               raise SAL.Programmer_Error;
+               raise SAL.Programmer_Error with "duplicate node_index; use Copy_Tree first";
             end if;
          end if;
          Node_Index_Seen (I) := True;
