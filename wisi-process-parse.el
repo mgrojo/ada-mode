@@ -1265,23 +1265,25 @@ Source buffer is current."
     (process-send-string process (wisi-process-parse--add-cmd-length cmd))
     (wisi-process-parse--handle-messages parser)))
 
-(defun wisi-process-parse-dump-tree (parser save-file-root)
-  (wisi-process-parse--prepare parser 'debug)
-  ;; Also save the source text, so we have a complete test case
-  ;; starting point.
-  (let* ((cmd
-	  (format (concat "save_text" " \"%s\" \"%s\"")
-		  (if (buffer-file-name) (buffer-file-name) (buffer-name))
-		  (concat save-file-root ".source")))
-	 (process (wisi-process--parser-process parser)))
-    (with-current-buffer (wisi-process--parser-buffer parser)
-      (erase-buffer))
+(defun wisi-process-parse-dump-tree (save-file-root)
+  (interactive "Fsave-file-root: ")
+  (let ((parser wisi-parser-shared))
+    (wisi-process-parse--prepare parser 'debug)
+    ;; Also save the source text, so we have a complete test case
+    ;; starting point.
+    (let* ((cmd
+	    (format (concat "save_text" " \"%s\" \"%s\"")
+		    (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		    (concat save-file-root ".source")))
+	   (process (wisi-process--parser-process parser)))
+      (with-current-buffer (wisi-process--parser-buffer parser)
+	(erase-buffer))
 
-    (wisi-parse-log-message parser cmd)
-    (process-send-string process (wisi-process-parse--add-cmd-length cmd))
-    (wisi-process-parse--handle-messages parser))
+      (wisi-parse-log-message parser cmd)
+      (process-send-string process (wisi-process-parse--add-cmd-length cmd))
+      (wisi-process-parse--handle-messages parser))
 
-  (wisi-parse-tree-query parser 'dump (concat save-file-root ".tree_text")))
+    (wisi-parse-tree-query parser 'dump (concat save-file-root ".tree_text"))))
 
 (defun wisi-process-all-changes-to-cmd (&optional cmd-buffer-name)
   "Convert wisi-parser-local-all-changes in current buffer to command file
@@ -1507,7 +1509,8 @@ prompt for it."
     (goto-char log-buffer-point)))
 
 (defun wisi-process-log-to-cmd-1 ()
-  "Convert parse command at point to run_* command line in clipboard."
+  "Convert parser command at point to a run_* command line or
+command_file command in the kill ring."
   (interactive)
   (forward-line 0)
   (cond
@@ -1573,6 +1576,29 @@ prompt for it."
 		    (when (not (string-equal "" language_param)) (format "--lang_params \"%s\" " language_param))
 		    ))
       (kill-new cmd)))
+
+   ((looking-at "post-parse \"\\([^\"]*\\)\" \"\\([^\"]*\\)\" \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \\([-0-9]+\\) \"\\([^\"]*\\)\"")
+    ;; see wisi-process-parse--send-action above
+    (let* ((source-file (match-string 1))
+	   (verbosity (match-string 2))
+	   (action (string-to-number (match-string 3)))
+	   (begin-bytes (match-string 4))
+	   (begin-chars (match-string 5))
+	   (end-bytes (match-string 6))
+	   (end-chars (match-string 7))
+	   (language-opts (match-string 8))
+	   (cmd
+	    (concat "post_parse "
+		    (cl-ecase action (0 "Navigate") (1 "Face") (2 "Indent") (3 "None")) " "
+		    begin-bytes " "
+		    begin-chars " "
+		    end-bytes " "
+		    end-chars
+		    )))
+      (kill-new cmd)))
+
+   (t
+    (user-error "unrecognized parser command"))
    ))
 
 (cl-defun wisi-time (func count &key report-wait-time)

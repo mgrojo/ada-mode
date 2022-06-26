@@ -530,7 +530,7 @@ package body Emacs_Wisi_Common_Parse is
                end;
 
             elsif Match ("post-parse") then
-               --  Args: see wisi-process-parse.el wisi-process-parse--send-action
+               --  Args: see wisi-process-parse.el wisi-post-parse
                --  Input: none
                --  Response:
                --  [response elisp vector]...
@@ -701,11 +701,12 @@ package body Emacs_Wisi_Common_Parse is
             Put_Line ("(file_not_found)");
 
          when E : Syntax_Error | Parse_Error =>
-            Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Message (E) & """)");
+            Put_Line ("(parse_error """ & Wisi.Elisp_Escape_Quotes (Ada.Exceptions.Exception_Message (E)) & """)");
 
          when E : Wisi.Protocol_Error =>
             --  don't exit the loop; allow debugging bad elisp
-            Put_Line ("(error ""protocol error " & Ada.Exceptions.Exception_Message (E) & """)");
+            Put_Line
+              ("(error ""protocol error " & Wisi.Elisp_Escape_Quotes (Ada.Exceptions.Exception_Message (E)) & """)");
 
          when E : others => -- includes Fatal_Error
             if WisiToken.Debug_Mode then
@@ -713,7 +714,7 @@ package body Emacs_Wisi_Common_Parse is
             end if;
             Put_Line
               ("(error ""error: " & Ada.Exceptions.Exception_Name (E) & " : " &
-                 Ada.Exceptions.Exception_Message (E) & """)");
+                 Wisi.Elisp_Escape_Quotes (Ada.Exceptions.Exception_Message (E)) & """)");
          end;
       end loop;
       Cleanup;

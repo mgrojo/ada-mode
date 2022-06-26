@@ -80,6 +80,9 @@ package Wisi is
    function Image_Action (Action : in WisiToken.Syntax_Trees.Post_Parse_Action) return String;
    --  For Image_Action in Syntax_Trees.Image
 
+   function Elisp_Escape_Quotes (Item : in String) return String;
+   --  Prefix any '"' in Item with '\' for elisp.
+
    type Base_Post_Parse_Action_Type is (Navigate, Face, Indent, None);
    --  Must match first few items in wisi-parse-common.el wisi-post-parse-actions.
 
@@ -686,9 +689,6 @@ private
      return String;
    --  Return text contained by Tree_Index token in source file
    --  (lexer.buffer).
-
-   function Elisp_Escape_Quotes (Item : in String) return String;
-   --  Prefix any '"' in Item with '\' for elisp.
 
    function Indent_Anchored_2
      (Data              : in Parse_Data_Type'Class;
