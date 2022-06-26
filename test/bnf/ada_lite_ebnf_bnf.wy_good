@@ -54,40 +54,38 @@
 
 %meta_syntax BNF
 
+;; All tokens that consist of characters with punctuation syntax; we
+;; need an Ada identifier compatible name.
+%keyword SEPARATE "separate"
 %keyword PRAGMA "pragma"
-%keyword AND "and"
-%keyword BEGIN "begin"
 %keyword BODY "body"
-%keyword CASE "case"
-%keyword DECLARE "declare"
+%keyword LOOP "loop"
+%keyword IN "in"
+%keyword FOR "for"
 %keyword ELSE "else"
 %keyword ELSIF "elsif"
-%keyword END "end"
-%keyword EXIT "exit"
-%keyword EXCEPTION "exception"
-%keyword FOR "for"
-%keyword FUNCTION "function"
-%keyword IF "if"
-%keyword IN "in"
-%keyword IS "is"
-%keyword LEFT_PAREN "("
-%keyword LOOP "loop"
-%keyword NEW "new"
-%keyword NOT "not"
-%keyword OR "or"
-%keyword PACKAGE "package"
-%keyword PROCEDURE "procedure"
-%keyword RANGE "range"
-%keyword RETURN "return"
-%keyword RIGHT_PAREN ")"
-%keyword SEPARATE "separate"
 %keyword THEN "then"
+%keyword IF "if"
+%keyword EXCEPTION "exception"
+%keyword PROCEDURE "procedure"
+%keyword NEW "new"
+%keyword PACKAGE "package"
+%keyword FUNCTION "function"
 %keyword TYPE "type"
-%keyword WHEN "when"
-%keyword WITH "with"
+%keyword NOT "not"
+%keyword RETURN "return"
 %keyword XOR "xor"
-
-;; all tokens that consist of characters with punctuation syntax
+%keyword OR "or"
+%keyword AND "and"
+%keyword EXIT "exit"
+%keyword RANGE "range"
+%keyword WHEN "when"
+%keyword IS "is"
+%keyword CASE "case"
+%keyword END "end"
+%keyword BEGIN "begin"
+%keyword DECLARE "declare"
+%keyword WITH "with"
 %token <punctuation> AMPERSAND "&"
 %token <punctuation> COLON ":"
 %token <punctuation> COLON_EQUAL ":="
@@ -98,10 +96,12 @@
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> GREATER ">"
 %token <punctuation> GREATER_EQUAL ">="
+%token <punctuation> LEFT_PAREN "("
 %token <punctuation> LESS "<"
 %token <punctuation> LESS_EQUAL "<="
 %token <punctuation> MINUS "-"
 %token <punctuation> PLUS "+"
+%token <punctuation> RIGHT_PAREN ")"
 %token <punctuation> SEMICOLON ";"
 %token <punctuation> SLASH "/"
 %token <punctuation> SLASH_EQUAL "/="
@@ -151,41 +151,41 @@
 ;; Prefer inserting keywords over identifiers and operators to take
 ;; advantage of empty expressions.
 ;;
-;; LEFT_PAREN is _not_ here, because inserting that turns a missing
+;; '(' is _not_ here, because inserting that turns a missing
 ;; 'then' into a function call; not a likely error.
 ;;
 ;; IDENTIFIER is here, so if we are inserting an expression, it is
 ;; prefered over "null".
-%mckenzie_cost_insert BEGIN 3
-%mckenzie_cost_insert CASE 3
-%mckenzie_cost_insert DECLARE 3
-%mckenzie_cost_insert ELSE 3
-%mckenzie_cost_insert ELSIF 3
-%mckenzie_cost_insert EXIT 3
-%mckenzie_cost_insert FUNCTION 3
-%mckenzie_cost_insert IS 3
+%mckenzie_cost_insert 'begin' 3
+%mckenzie_cost_insert 'case' 3
+%mckenzie_cost_insert 'declare' 3
+%mckenzie_cost_insert 'else' 3
+%mckenzie_cost_insert 'elsif' 3
+%mckenzie_cost_insert 'exit' 3
+%mckenzie_cost_insert 'function' 3
+%mckenzie_cost_insert 'is' 3
 %mckenzie_cost_insert IDENTIFIER 3
-%mckenzie_cost_insert NEW 3
-%mckenzie_cost_insert PROCEDURE 3
-%mckenzie_cost_insert RETURN 3
-%mckenzie_cost_insert RIGHT_PAREN 3
-%mckenzie_cost_insert THEN 3
-%mckenzie_cost_insert WHEN 3
+%mckenzie_cost_insert 'new' 3
+%mckenzie_cost_insert 'procedure' 3
+%mckenzie_cost_insert 'return' 3
+%mckenzie_cost_insert ')' 3
+%mckenzie_cost_insert 'then' 3
+%mckenzie_cost_insert 'when' 3
 
 ;; These can follow 'end', or start new statements
-%mckenzie_cost_insert IF 2
-%mckenzie_cost_insert LOOP 2
+%mckenzie_cost_insert 'if' 2
+%mckenzie_cost_insert 'loop' 2
 
 ;; We often have an extra 'begin' while moving stuff around. Deleting
 ;; that requires popping it and the corresponding nonterm off the
 ;; parse stack. Similarly, we often have an extra 'end'; deleting that
 ;; is simple.
-%mckenzie_cost_push_back BEGIN 1
-%mckenzie_cost_delete BEGIN 1
+%mckenzie_cost_push_back 'begin' 1
+%mckenzie_cost_delete 'begin' 1
 %mckenzie_cost_push_back declarative_part 1
-%mckenzie_cost_push_back END 1
-%mckenzie_cost_delete END 1
-%mckenzie_cost_delete SEMICOLON 2
+%mckenzie_cost_push_back 'end' 1
+%mckenzie_cost_delete 'end' 1
+%mckenzie_cost_delete ';' 2
 
 ;; Recovering from a missing quote yields a STRING_LITERAL, but the
 ;; editing that lead to the missing quote may also lead to a grammar
@@ -196,28 +196,28 @@
 
 ;; Prefer insert these over everything; lets us finish a
 ;; statement, or insert a minimal statement in an empty block.
-%mckenzie_cost_insert EXIT 1
-%mckenzie_cost_insert END 1
-%mckenzie_cost_insert SEMICOLON 1
+%mckenzie_cost_insert 'exit' 1
+%mckenzie_cost_insert 'end' 1
+%mckenzie_cost_insert ';' 1
 
-%conflict REDUCE primary | REDUCE subtype_indication on token RIGHT_PAREN
-%conflict REDUCE discrete_subtype_definition | REDUCE range_list on token RIGHT_PAREN
+%conflict REDUCE primary | REDUCE subtype_indication on token ')'
+%conflict REDUCE discrete_subtype_definition | REDUCE range_list on token ')'
 
 ;; These are from having pragma in both statement and declaration, as
 ;; is required in ada_annex_p.
 %conflict REDUCE declaration | REDUCE statement on token PRAGMA
-%conflict_resolution REDUCE declaration | REDUCE statement on token BEGIN : statement
-%conflict_resolution REDUCE declaration | REDUCE statement on token CASE : statement
-%conflict_resolution REDUCE declaration | REDUCE statement on token DECLARE : statement
-%conflict_resolution REDUCE declaration | REDUCE statement on token EXIT : statement
-%conflict_resolution REDUCE declaration | REDUCE statement on token FOR : statement
-%conflict_resolution REDUCE declaration | REDUCE statement on token FUNCTION : declaration
-%conflict_resolution REDUCE declaration | REDUCE statement on token IF : statement
-%conflict_resolution REDUCE declaration | REDUCE statement on token LOOP : statement
-%conflict_resolution REDUCE declaration | REDUCE statement on token PACKAGE : declaration
-%conflict_resolution REDUCE declaration | REDUCE statement on token PROCEDURE : declaration
-%conflict_resolution REDUCE declaration | REDUCE statement on token RETURN : statement
-%conflict_resolution REDUCE declaration | REDUCE statement on token TYPE : declaration
+%conflict_resolution REDUCE declaration | REDUCE statement on token 'begin' : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token 'case' : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token 'declare' : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token 'exit' : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token 'for' : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token 'function' : declaration
+%conflict_resolution REDUCE declaration | REDUCE statement on token 'if' : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token 'loop' : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token 'package' : declaration
+%conflict_resolution REDUCE declaration | REDUCE statement on token 'procedure' : declaration
+%conflict_resolution REDUCE declaration | REDUCE statement on token 'return' : statement
+%conflict_resolution REDUCE declaration | REDUCE statement on token 'type' : declaration
 %conflict_resolution REDUCE declaration | REDUCE statement on token IDENTIFIER : statement
 %conflict_resolution REDUCE declaration | REDUCE statement on token Wisi_EOI : statement
 
@@ -226,10 +226,10 @@
 ;; conventions for shift/reduce conflicts that reduce 0 tokens in LALR
 ;; (because reduce 0 tokens is forbidden in tree-sitter).
 
-%conflict SHIFT generic_instantiation | REDUCE parameter_profile on token IS
+%conflict SHIFT generic_instantiation | REDUCE parameter_profile on token 'is'
 
 %elsif parser = Tree_Sitter
-%conflict SHIFT generic_instantiation | REDUCE procedure_specification on token IS
+%conflict SHIFT generic_instantiation | REDUCE procedure_specification on token 'is'
 %end if
 
 ;;;; grammar rules
@@ -265,7 +265,7 @@ binary_adding_operator
 
 ;; Explicit _opt for check
 block_label_opt
-  : IDENTIFIER COLON
+  : T1=IDENTIFIER T2=COLON
     %()%
     %(return Propagate_Name (Tree, Nonterm, Tokens, 1);)%
   | ;; empty
@@ -393,7 +393,7 @@ full_type_declaration
   ;
 
 function_specification
-  : FUNCTION name parameter_and_result_profile
+  : T1=FUNCTION T2=name T3=parameter_and_result_profile
     %()%
     %(return Propagate_Name (Tree, Nonterm, Tokens, 2);)%
   ;
@@ -517,7 +517,7 @@ procedure_call_statement
   ;
 
 procedure_specification
-  : PROCEDURE name parameter_profile
+  : T1=PROCEDURE T2=name T3=parameter_profile
     %()%
     %(return Propagate_Name (Tree, Nonterm, Tokens, 2);)%
   ;
@@ -548,11 +548,10 @@ relational_operator
   | LESS_EQUAL
   | GREATER
   | GREATER_EQUAL
-;;  =   | /=          | <    |  <=        | >       | >=
   ;
 
 selected_component
-  : name DOT IDENTIFIER
+  : T1=name T2=DOT T3=IDENTIFIER
     %()%
     %(return Merge_Names (Tree, Nonterm, Tokens, 1, 3);)%
   ;

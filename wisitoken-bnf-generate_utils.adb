@@ -38,6 +38,8 @@ package body WisiToken.BNF.Generate_Utils is
    function Kind (Container : in Token_Container; Cursor : in Token_Cursor) return String;
 
    function Find_Token_ID (Container : in Token_Container; Token : in String) return Token_ID;
+   --  Token may be a %keyword name, or a string literal giving the
+   --  actual keyword.
 
    function First
      (Container    : in Token_Container;
@@ -59,6 +61,8 @@ package body WisiToken.BNF.Generate_Utils is
       Conflicts        : in WisiToken.BNF.Conflict_Lists.List;
       Source_File_Name : in String)
      return WisiToken.Generate.LR.Conflict_Lists.Tree;
+
+   function Value (Container : in Token_Container; Cursor : in Token_Cursor) return String;
 
    ----------
    --  Body subprograms
@@ -388,12 +392,26 @@ package body WisiToken.BNF.Generate_Utils is
 
    function Find_Token_ID (Container : in Token_Container; Token : in String) return Token_ID
    is begin
-      for Cursor in Container.Iterate loop
-         if Name (Container, Cursor) = Token then
-            return ID (Cursor);
-         end if;
-      end loop;
-      raise Not_Found with "token '" & Token & "' not found";
+      if Token (Token'First) = ''' then
+         --  Token is a literal; the keyword itself.
+         declare
+            Value_String : constant String := """" & Token (Token'First + 1 .. Token'Last - 1) & """";
+         begin
+            for Cursor in Container.Iterate loop
+               if Value (Container, Cursor) = Value_String then
+                  return ID (Cursor);
+               end if;
+            end loop;
+            raise Not_Found with "token value " & Token & " not found";
+         end;
+      else
+         for Cursor in Container.Iterate loop
+            if Name (Container, Cursor) = Token then
+               return ID (Cursor);
+            end if;
+         end loop;
+         raise Not_Found with "token '" & Token & "' not found";
+      end if;
    end Find_Token_ID;
 
    function All_Tokens (Data : aliased in Generate_Data) return Token_Container
@@ -776,16 +794,23 @@ package body WisiToken.BNF.Generate_Utils is
    end Kind;
 
    function Value (Data : in Generate_Data; Cursor : in Token_Cursor) return String
+   is
+      Container : Token_Container (Data.Tokens, Descriptor_Access_Constant (Data.Descriptor));
+   begin
+      return Value (Container, Cursor);
+   end Value;
+
+   function Value (Container : in Token_Container; Cursor : in Token_Cursor) return String
    is begin
       case Cursor.Kind is
       when Non_Grammar_Kind =>
-         return -Data.Tokens.Non_Grammar (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Value;
+         return -Container.Tokens.Non_Grammar (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Value;
 
       when Terminals_Keywords =>
-         return -Data.Tokens.Keywords (Cursor.Keyword).Value;
+         return -Container.Tokens.Keywords (Cursor.Keyword).Value;
 
       when Terminals_Others =>
-         return -Data.Tokens.Tokens (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Value;
+         return -Container.Tokens.Tokens (Cursor.Token_Kind).Tokens (Cursor.Token_Item).Value;
 
       when EOI | SOI | WisiToken_Accept | Nonterminal =>
             return "";
