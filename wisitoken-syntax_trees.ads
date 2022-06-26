@@ -2200,6 +2200,9 @@ package WisiToken.Syntax_Trees is
    --  The subtree at Tree.Root is copied. Destination parents are set.
    --  All references are deep copied; Source may be finalized after this
    --  operation.
+   --
+   --  All Node_Index values in Destination are reset to be sequential;
+   --  useful for Put_Tree.
 
 
    procedure Put_Tree

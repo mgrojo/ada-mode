@@ -698,6 +698,8 @@ package body WisiToken_Grammar_Editing is
               (Tree.ID (Node) = +rhs_element_ID and then Tree.RHS_Index (Node) = 1);
 
             Has_EBNF := Has_EBNF or EBNF_Nodes.Contains (Node);
+            --  Not every ebnf node requires auto-labels (ie literal tokens), but
+            --  it's not easy to tell from here.
          end Any_EBNF_Manual_Label;
 
       begin
@@ -1409,7 +1411,7 @@ package body WisiToken_Grammar_Editing is
          In_Parse_Action   : in Node_Access := Invalid_Node_Access)
         return Valid_Node_Access
       with Pre => Tree.ID (RHS_Element) = +rhs_element_ID
-      --  Add an RHS containing RHS_Element..
+      --  Add an RHS containing RHS_Element.
       --
       --  Post_Parse_Action, _2 are not copied.
       is
@@ -2780,26 +2782,27 @@ package body WisiToken_Grammar_Editing is
 
          --  Replace string literal in rhs_item
          declare
-            Parent : Valid_Node_Access := Tree.Parent (Node);
+            Parent    : Valid_Node_Access := Tree.Parent (Node);
+            New_Child : constant Valid_Node_Access := Tree.Add_Identifier (+IDENTIFIER_ID, Name_Ident);
          begin
             case To_Token_Enum (Tree.ID (Parent)) is
             when rhs_item_ID =>
                Tree.Set_Children
                  (Parent,
                   (+rhs_item_ID, 0),
-                  (1 => Tree.Add_Identifier (+IDENTIFIER_ID, Name_Ident)));
+                  (1 => New_Child));
 
             when rhs_optional_item_ID =>
                Tree.Set_Children
                  (Parent,
                   (+rhs_optional_item_ID, 2),
-                  (Tree.Add_Identifier (+IDENTIFIER_ID, Name_Ident),
-                   Tree.Child (Parent, 2)));
+                  (New_Child, Tree.Child (Parent, 2)));
 
             when others =>
                WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
                  ("translate_ebnf_to_bnf string_literal_2 unimplemented", Tree, Node);
             end case;
+            Copy_Non_Grammar (Node, New_Child);
          end;
 
          Clear_EBNF_Node (Node);
