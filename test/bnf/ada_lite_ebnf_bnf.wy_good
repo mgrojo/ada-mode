@@ -151,7 +151,7 @@
 ;; Prefer inserting keywords over identifiers and operators to take
 ;; advantage of empty expressions.
 ;;
-;; LEFT_PAREN is _not_ here, because inserting that turns a missing
+;; '(' is _not_ here, because inserting that turns a missing
 ;; 'then' into a function call; not a likely error.
 ;;
 ;; IDENTIFIER is here, so if we are inserting an expression, it is
@@ -168,7 +168,7 @@
 %mckenzie_cost_insert 'new' 3
 %mckenzie_cost_insert 'procedure' 3
 %mckenzie_cost_insert 'return' 3
-%mckenzie_cost_insert RIGHT_PAREN 3
+%mckenzie_cost_insert ')' 3
 %mckenzie_cost_insert 'then' 3
 %mckenzie_cost_insert 'when' 3
 
@@ -185,7 +185,7 @@
 %mckenzie_cost_push_back declarative_part 1
 %mckenzie_cost_push_back 'end' 1
 %mckenzie_cost_delete 'end' 1
-%mckenzie_cost_delete SEMICOLON 2
+%mckenzie_cost_delete ';' 2
 
 ;; Recovering from a missing quote yields a STRING_LITERAL, but the
 ;; editing that lead to the missing quote may also lead to a grammar
@@ -198,10 +198,10 @@
 ;; statement, or insert a minimal statement in an empty block.
 %mckenzie_cost_insert 'exit' 1
 %mckenzie_cost_insert 'end' 1
-%mckenzie_cost_insert SEMICOLON 1
+%mckenzie_cost_insert ';' 1
 
-%conflict REDUCE primary | REDUCE subtype_indication on token RIGHT_PAREN
-%conflict REDUCE discrete_subtype_definition | REDUCE range_list on token RIGHT_PAREN
+%conflict REDUCE primary | REDUCE subtype_indication on token ')'
+%conflict REDUCE discrete_subtype_definition | REDUCE range_list on token ')'
 
 ;; These are from having pragma in both statement and declaration, as
 ;; is required in ada_annex_p.
@@ -265,7 +265,7 @@ binary_adding_operator
 
 ;; Explicit _opt for check
 block_label_opt
-  : IDENTIFIER COLON
+  : T1=IDENTIFIER T2=COLON
     %()%
     %(return Propagate_Name (Tree, Nonterm, Tokens, 1);)%
   | ;; empty
@@ -548,11 +548,10 @@ relational_operator
   | LESS_EQUAL
   | GREATER
   | GREATER_EQUAL
-;;  =   | /=          | <    |  <=        | >       | >=
   ;
 
 selected_component
-  : name DOT IDENTIFIER
+  : T1=name T2=DOT T3=IDENTIFIER
     %()%
     %(return Merge_Names (Tree, Nonterm, Tokens, 1, 3);)%
   ;

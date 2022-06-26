@@ -228,7 +228,7 @@ rhs_list
   ;
 
 rhs
- : ;; empty
+  : ;; empty
   | rhs_item_list
   | rhs_item_list ACTION
   | rhs_item_list ACTION ACTION

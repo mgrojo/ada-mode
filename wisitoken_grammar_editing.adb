@@ -2778,26 +2778,27 @@ package body WisiToken_Grammar_Editing is
 
          --  Replace string literal in rhs_item
          declare
-            Parent : Valid_Node_Access := Tree.Parent (Node);
+            Parent    : Valid_Node_Access := Tree.Parent (Node);
+            New_Child : constant Valid_Node_Access := Tree.Add_Identifier (+IDENTIFIER_ID, Name_Ident);
          begin
             case To_Token_Enum (Tree.ID (Parent)) is
             when rhs_item_ID =>
                Tree.Set_Children
                  (Parent,
                   (+rhs_item_ID, 0),
-                  (1 => Tree.Add_Identifier (+IDENTIFIER_ID, Name_Ident)));
+                  (1 => New_Child));
 
             when rhs_optional_item_ID =>
                Tree.Set_Children
                  (Parent,
                   (+rhs_optional_item_ID, 2),
-                  (Tree.Add_Identifier (+IDENTIFIER_ID, Name_Ident),
-                   Tree.Child (Parent, 2)));
+                  (New_Child, Tree.Child (Parent, 2)));
 
             when others =>
                WisiToken.Syntax_Trees.LR_Utils.Raise_Programmer_Error
                  ("translate_ebnf_to_bnf string_literal_2 unimplemented", Tree, Node);
             end case;
+            Copy_Non_Grammar (Node, New_Child);
          end;
 
          Clear_EBNF_Node (Node);
