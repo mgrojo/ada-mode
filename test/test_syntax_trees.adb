@@ -1206,7 +1206,7 @@ package body Test_Syntax_Trees is
 
       Text_File_Name : constant String := "put_get_01.tree_text";
 
-      Parser : WisiToken.Parse.Base_Parser'Class renames WisiToken.Parse.Base_Parser'Class (Grammar_Parser);
+      Parser : WisiToken.Parse.Parser.Parser'Class renames Grammar_Parser;
    begin
       Parser.Tree.Lexer.Reset_With_String (Text);
 
@@ -1238,7 +1238,7 @@ package body Test_Syntax_Trees is
 
       Text_File_Name : constant String := "put_get_02.tree_text";
 
-      Parser : WisiToken.Parse.Base_Parser'Class renames WisiToken.Parse.Base_Parser'Class (Ada_Lite_Parser);
+      Parser : WisiToken.Parse.Parser.Parser'Class renames Grammar_Parser;
    begin
       Parser.Tree.Lexer.Reset_With_String (Text);
 

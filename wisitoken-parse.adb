@@ -116,32 +116,6 @@ package body WisiToken.Parse is
       Character'Write (Stream, ')');
    end Output_Recover_Ops;
 
-   procedure Process_Grammar_Token
-     (Parser : in out Base_Parser'Class;
-      Token  : in     Lexer.Token;
-      Node   : in     Syntax_Trees.Valid_Node_Access)
-   is
-      use all type Syntax_Trees.User_Data_Access;
-   begin
-      if Parser.User_Data /= null then
-         Parser.User_Data.Lexer_To_Augmented (Parser.Tree, Token, Node);
-      end if;
-   end Process_Grammar_Token;
-
-   procedure Process_Non_Grammar_Token
-     (Parser       : in out Base_Parser'Class;
-      Grammar_Node : in     Syntax_Trees.Valid_Node_Access;
-      Token        : in     Lexer.Token)
-   is
-      use all type Syntax_Trees.Node_Access;
-      use all type Syntax_Trees.User_Data_Access;
-   begin
-      Parser.Tree.Non_Grammar_Var (Grammar_Node).Append (Token);
-      if Parser.User_Data /= null then
-         Parser.User_Data.Lexer_To_Augmented (Parser.Tree, Token, Grammar_Node);
-      end if;
-   end Process_Non_Grammar_Token;
-
    ----------
    --  Package public subprograms, declaration order
 

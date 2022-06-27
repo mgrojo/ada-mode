@@ -621,7 +621,7 @@ package WisiToken.Parse.LR is
    --  Sum Results.Strategy_Counts.
 
    type Language_Fixes_Access is access procedure
-     (Super             : in out Base.Supervisor;
+     (Super             : in out WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
       Shared_Parser     : in out WisiToken.Parse.Parser.Parser'Class;
       Parser_Index      : in     SAL.Peek_Type;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
@@ -640,7 +640,7 @@ package WisiToken.Parse.LR is
    --  caused the error.
 
    type Language_Matching_Begin_Tokens_Access is access procedure
-     (Super                   :         in out Base.Supervisor;
+     (Super                   :         in out WisiToken.Parse.LR.McKenzie_Recover.Base.Supervisor;
       Shared_Parser           :         in out WisiToken.Parse.Parser.Parser'Class;
       Tokens                  :         in     Token_ID_Array_1_3;
       Config                  : aliased in     Configuration;

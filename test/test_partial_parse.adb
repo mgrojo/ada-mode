@@ -62,16 +62,20 @@ package body Test_Partial_Parse is
 
          Parser.Execute_Actions (Action_Region_Bytes => (Begin_Byte_Pos, Parse_End_Byte_Pos));
 
+         Check (Label & ".root", Parser.Tree.ID (Node), Descriptor.Accept_ID);
+
          if Action_ID = WisiToken.Invalid_Token_ID then
             --  Only parsed comments, no user compilation units. Recover provided
             --  code to reduce to Accept.
 
-            Check (Label & ".root", Parser.Tree.ID (Node), Descriptor.Accept_ID);
+            null;
 
          else
+            Node := Parser.Tree.Children (Node)(2); -- First child is SOI, second is compilation_unit_list
+
             Check (Label & ".root", Parser.Tree.ID (Node), +compilation_unit_list_ID);
 
-            Node := Parser.Tree.Children (Node)(2); -- First child is SOI, second is compilation_unit
+            Node := Parser.Tree.Children (Node)(1);
             Check (Label & ".compilation_unit", Parser.Tree.ID (Node), +compilation_unit_ID);
 
             Node := Parser.Tree.Children (Node)(1);

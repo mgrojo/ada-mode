@@ -228,6 +228,9 @@ package body WisiToken.BNF.Output_Ada_Common is
          end if;
       end loop;
 
+      Indent_Line ("Partial_Parse_Active    : aliased Boolean := False;");
+      Indent_Line ("Partial_Parse_Byte_Goal : aliased WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;");
+
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Spec_Post));
 
       Put_Line ("end " & Package_Name & ";");
@@ -747,6 +750,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("Parser.Tree.Lexer := Lexer.New_Lexer (Trace, " & Actions_Package_Name & ".Descriptor'Access);");
       Indent_Line ("Parser.Productions := Create_Productions;");
       Indent_Line ("Parser.User_Data := User_Data;");
+      Indent_Line ("Parser.Partial_Parse_Active := " & Actions_Package_Name & ".Partial_Parse_Active'Access;");
+      Indent_Line ("Parser.Partial_Parse_Byte_Goal := " & Actions_Package_Name & ".Partial_Parse_Byte_Goal'Access;");
+
       if Common_Data.Text_Rep then
          Indent_Line ("Parser.Table := Create_Parse_Table (Text_Rep_File_Name);");
       else

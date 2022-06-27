@@ -21,7 +21,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Finalization;
 with Ada.Streams;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;

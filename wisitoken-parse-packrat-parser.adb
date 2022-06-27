@@ -455,7 +455,9 @@ package body WisiToken.Parse.Packrat.Parser is
                                    " error; undo_reduce");
                               Trace.Put (" ... " & Tree.Image (Tree.Peek (Stream), State => True));
                            end if;
-                           Undo_Reduce (Tree, Shared_Parser.Table.all, Stream, Shared_Parser.User_Data);
+                           Undo_Reduce
+                             (Tree, Shared_Parser.Table.all, Stream,
+                              Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
                            Prev_State := Tree.State (Stream);
 
                            if Trace_Packrat_McKenzie > Detail then
@@ -502,7 +504,7 @@ package body WisiToken.Parse.Packrat.Parser is
                Expecting      => (1 .. 0 => False),
                Recover_Ops    => WisiToken.Parse.Recover_Op_Arrays.Empty_Vector,
                Recover_Cost   => 0),
-            Shared_Parser.User_Data);
+            Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
       end if;
    end Derivs_To_Parse_Streams;
 

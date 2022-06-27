@@ -405,7 +405,8 @@ is
                            --  just checks if Nonterm succeeds), so add the contents instead.
                            --  test_mckenzie_recover.adb Error_2.
                            LR.Undo_Reduce
-                             (Tree, Shared_Parser.Table.all, LR_Parser_State.Stream, Shared_Parser.User_Data);
+                             (Tree, Shared_Parser.Table.all, LR_Parser_State.Stream,
+                              Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
                         end if;
                      end;
                   end if;

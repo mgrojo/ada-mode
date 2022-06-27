@@ -3386,17 +3386,22 @@ package body WisiToken.Syntax_Trees is
 
       Packrat_Parse : constant Boolean := Last_Node.ID = Tree.Lexer.Descriptor.Accept_ID and then
         Last_Node.Children (Last_Node.Child_Count).ID = Descriptor.EOI_ID;
+
    begin
       if Tree.Root = Invalid_Node_Access then
          Tree.Root := Syntax_Trees.Root (Tree);
       end if;
 
-      pragma Assert (Tree.Root.ID = Descriptor.Accept_ID);
-      if Tree.Root.Child_Count = (if Packrat_Parse then 2 else 1) then
+      if Tree.Root.ID /= Descriptor.Accept_ID or else
+         --  From Partial_Parse; add new Accept_ID node.
+
+        Tree.Root.Child_Count = (if Packrat_Parse then 2 else 1)
+      then
          --  Grammar is from wisitoken-bnf-generate, or is compatible.
          --  Add SOI, EOI (from the parse stream, to include any
          --  Following_Deleted and Error_Data) to Root children, so
          --  Prev/Next_Non_Grammar can find them.
+
          declare
             SOI : constant Valid_Node_Access := Stream_Element_Lists.Element (Parse_Stream.Elements.First).Node;
 
@@ -3409,31 +3414,38 @@ package body WisiToken.Syntax_Trees is
 
             New_Children : Node_Access_Array (1 .. 3);
          begin
-            New_Children (1) := SOI;
-            New_Children (2) := Tree.Root.Children (1);
-            New_Children (3) := EOI;
-
             Tree.SOI := SOI;
             Tree.EOI := EOI;
 
-            Tree.Root.Children := (others => Invalid_Node_Access);
+            New_Children (1) := SOI;
+            New_Children (3) := EOI;
+
+            if Tree.Root.ID = Descriptor.Accept_ID then
+               New_Children (2)   := Tree.Root.Children (1);
+               Tree.Root.Children := (others => Invalid_Node_Access);
+            else
+               New_Children (2) := Tree.Root;
+            end if;
 
             Tree.Root := new Node'
               (Label       => Nonterm,
                Child_Count => 3,
-               ID          => Tree.Root.ID,
-               Node_Index  => Tree.Root.Node_Index,
+               ID          => Descriptor.Accept_ID,
+               Node_Index  => -(Tree.Nodes.Last_Index + 1),
                Parent      => null,
-               Augmented   => Tree.Root.Augmented,
+               Augmented   =>
+                 (if Tree.Root.ID = Descriptor.Accept_ID
+                  then Tree.Root.Augmented
+                  else null),
                Error_List  =>
                  (if Tree.Root.Error_List = null
                   then null
                   else new Error_Data_Lists.List'(Tree.Root.Error_List.all)),
                Virtual          => Tree.Root.Virtual,
                Recover_Conflict => Tree.Root.Recover_Conflict,
-               RHS_Index        => Tree.Root.RHS_Index,
-               Name_Offset      => Tree.Root.Name_Offset,
-               Name_Length      => Tree.Root.Name_Length,
+               RHS_Index        => 1,
+               Name_Offset      => 0,
+               Name_Length      => 0,
                Children         => New_Children);
 
             for Child of New_Children loop
@@ -3442,6 +3454,7 @@ package body WisiToken.Syntax_Trees is
 
             Tree.Nodes.Append (Tree.Root);
          end;
+
       else
          --  Grammar is constructed in Ada, most likely in a wisitoken unit test. Don't add SOI, EOI.
          null;
