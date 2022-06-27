@@ -57,6 +57,7 @@
 
 %language_runtime "Wisi.WisiToken_Grammar"
 
+%case_insensitive
 %keyword ACCEPT_I "accept_it"
 %keyword CODE "code"
 %keyword CONFLICT "conflict"
@@ -148,8 +149,7 @@ conflict_item
   ;
 
 conflict_item_list
-  : conflict_item
-  | conflict_item_list BAR conflict_item
+  : conflict_item {BAR conflict_item}
   ;
 
 token_keyword_non_grammar
@@ -161,7 +161,7 @@ token_keyword_non_grammar
   ;
 
 declaration
-  : PERCENT token_keyword_non_grammar IDENTIFIER regexp_string [regexp_string]
+  : PERCENT token_keyword_non_grammar IDENTIFIER [regexp_string [regexp_string]]
     %((wisi-statement-action [1 statement-start])
       (wisi-name-action 3)
       (wisi-face-apply-action

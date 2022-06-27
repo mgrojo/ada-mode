@@ -415,7 +415,9 @@ For `add-log-current-defun-function'."
 	   ;; no file-name in a file version fetched from CM
 	   (xref-make-buffer-location
 	      (current-buffer)
-	      (save-excursion (goto-line (string-to-number (match-string 2 identifier))) (point)))
+	      (save-excursion (goto-char (point-min))
+			      (forward-line (string-to-number (match-string 2 identifier)))
+			      (point)))
 	   )))
     ))
 
