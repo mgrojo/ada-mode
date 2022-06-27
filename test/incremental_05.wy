@@ -1,11 +1,11 @@
-;; Used to leave a syntax error.
+;; Used to leave a syntax error. FIXME: still does.
 
 ;;EMACSCMD: (progn (end-of-line 4)(wisi-replay-kbd-macro "\r\%escape_delimiter_doubled STRING_LITERAL"))
 ;;EMACSCMD: (length (wisi-parser-local-parse-errors wisi-parser-local))
 ;;EMACSRESULT: 0
-%escape_delimiter_doubled STRING_LITERAL
+%non_grammar <new-line> NEW_LINE
 
 %non_grammar <comment-new-line> COMMENT "--"
-;;EMACSCMD: (delete-region (line-beginning-position -3)(line-beginning-position -2))
+;;EMACSCMD: (delete-region (line-beginning-position -2)(line-beginning-position -1))
 
 ;; end of file.

@@ -1,12 +1,21 @@
 %generate LALR Ada_Emacs re2c
 
-%code actions spec post
-%{
-   Partial_Parse_Active    : Boolean := False;
-   Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
-}%
+;; FIXME: indenting this is broken; wisitoken can't find the new-line
+;; before the close delimiter in the tree.
+;; %code actions spec post
+;; %{
+;;    Partial_Parse_Active    : Boolean := False;
+;;    Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
+;; }%
+
+%non_grammar <new-line> NEW_LINE
+
+%non_grammar <comment-new-line> COMMENT "--"
 
 %mckenzie_minimal_complete_cost_delta -3
+
+%conflict SHIFT term | REDUCE identifier_opt on token RIGHT_PAREN
+%conflict SHIFT case_item | REDUCE case_items on token WHEN
 
 Literal : ;; not empty
     ;; another comment line
