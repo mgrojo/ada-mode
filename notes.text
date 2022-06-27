@@ -35,16 +35,7 @@ Makefile
 (wisitoken-grammar-set-exec (expand-file-name "wisitoken_grammar_mode_parse.exe"))
 (setq wisi-disable-face t)
 
-run all tests
-    test/incremental_04.wy fails "format specifier doesn't match"
-
-
-
-trailing % is red
-        from elisp; garbage after close paren
-        turn that off
-
-hangs in ediff
+hangs in ediff?
 first ediff:
     Reading file wisitoken_grammar_1.wy ...
     Reading file ../org.wisitoken/wisitoken_grammar.wy ...

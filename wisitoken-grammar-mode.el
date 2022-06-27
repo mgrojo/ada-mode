@@ -363,11 +363,11 @@ For `add-log-current-defun-function'."
     :front "%("
     :include-front t ;; for lisp-indent-region; treat %() as containing parens
     :front-match 0
-    :front-offset 0
+    :front-offset 1
     :back ")%"
     :include-back t
     :back-match 0
-    :back-offset 0
+    :back-offset -1 ;; so the trailing % is not red
     :insert ((?a wisi-action nil @ "%(" @ "" _ "" @ ")%" @)))
    (wisi-code
     :match-submode wisitoken-grammar-mmm-code
@@ -465,11 +465,8 @@ For `add-log-current-defun-function'."
 	  ))
 
   ;; This must be after all local variables are set, so mmm-mode
-  ;; restores them properly. The submodes must not use incremental
-  ;; parse, since each region is independent of the others.
-  (let ((wisi-incremental-parse-enable nil))
-    (wisitoken-grammar-set-submodes))
-
+  ;; restores them properly.
+  (wisitoken-grammar-set-submodes)
   )
 
 ;;;###autoload

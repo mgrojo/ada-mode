@@ -38,6 +38,7 @@
   :type 'integer
   :group 'simple-indent)
 
+(defvar mmm-save-local-variables)
 (add-to-list 'mmm-save-local-variables (list 'simple-indent 'buffer (list 'simple-indent-mode)))
 
 (defun simple-indent-region (begin end)
