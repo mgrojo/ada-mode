@@ -25,7 +25,7 @@ package body WisiToken.Parse is
 
    --  Body subprograms
 
-   function Input_Op
+   function Input_Recover_Op
      (Stream : not null access Ada.Streams.Root_Stream_Type'Class)
      return Recover_Op
    is begin
@@ -56,7 +56,7 @@ package body WisiToken.Parse is
          end case;
 
       end return;
-   end Input_Op;
+   end Input_Recover_Op;
 
    function Input_Recover_Ops
      (Stream : not null access Ada.Streams.Root_Stream_Type'Class)
@@ -186,10 +186,11 @@ package body WisiToken.Parse is
    function Input_Lexer_Error (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return Lexer_Error
    is begin
       declare
-         Recover_Char_Count : constant Integer := Integer'Value (Next_Value (Stream, Delims));
+         Recover_Char_Count : Integer;
       begin
          return Result : Lexer_Error do
             Result.Error.Char_Pos := Buffer_Pos'Value (Next_Value (Stream, Delims));
+            Recover_Char_Count := Integer'Value (Next_Value (Stream, Delims));
             for I in 1 .. Recover_Char_Count loop
                Character'Read (Stream, Result.Error.Recover_Char (I));
             end loop;
@@ -821,26 +822,30 @@ package body WisiToken.Parse is
       end if;
    end Validate_KMN;
 
-   procedure Put_Errors (Parser : in Base_Parser'Class)
+   procedure Put_Errors (Tree : in Syntax_Trees.Tree)
    is
+      --  FIXME: move to Syntax_Trees?
       use WisiToken.Syntax_Trees;
-      Tree : Syntax_Trees.Tree renames Parser.Tree;
    begin
       for Err in Tree.Error_Iterate loop
          declare
             Error_Node : constant Valid_Node_Access := Tree.Error_Node (Err);
          begin
-            Ada.Text_IO.Put_Line
+            Tree.Lexer.Trace.Put_Line
               (Tree.Error_Message
-               (Error_Node, Error (Err).Image (Tree, Error_Node)));
+                 (Error_Node, Error (Err).Image (Tree, Error_Node)));
          end;
       end loop;
    end Put_Errors;
 
-   procedure Put_Errors (Parser : in Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID)
+   procedure Put_Errors (Parser : in Base_Parser'Class)
+   is begin
+      Put_Errors (Parser.Tree);
+   end Put_Errors;
+
+   procedure Put_Errors (Tree : Syntax_Trees.Tree; Stream : in Syntax_Trees.Stream_ID)
    is
       use WisiToken.Syntax_Trees;
-      Tree : Syntax_Trees.Tree renames Parser.Tree;
    begin
       for Cur in Tree.Stream_Error_Iterate (Stream) loop
          declare
@@ -848,13 +853,18 @@ package body WisiToken.Parse is
             Error_Node : constant Valid_Node_Access := Tree.Error_Node (Error_Ref).Node;
          begin
             for Err of Tree.Error_List (Error_Node) loop
-               Ada.Text_IO.Put_Line
+               Tree.Lexer.Trace.Put_Line
                  (Tree.Error_Message
                     (Ref     => Error_Ref.Ref.Ref, -- For line, column
                      Message => Err.Image (Tree, Error_Node)));
             end loop;
          end;
       end loop;
+   end Put_Errors;
+
+   procedure Put_Errors (Parser : in Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID)
+   is begin
+      Put_Errors (Parser.Tree, Stream);
    end Put_Errors;
 
 end WisiToken.Parse;

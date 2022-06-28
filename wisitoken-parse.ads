@@ -53,9 +53,10 @@ package WisiToken.Parse is
        when Delete       => "DELETE");
 
    type Recover_Op (Op : Recover_Op_Label := Fast_Forward) is record
-      --  We store enough information to perform the operation on the main
-      --  parser stack and input stream when the config is the result
-      --  of a successful recover.
+      --  Stores recover operations during error recovery. We store enough
+      --  information to perform the operation on the main parser stack and
+      --  input stream when the config is the result of a successful
+      --  recover.
 
       case Op is
       when Fast_Forward =>
@@ -415,12 +416,15 @@ package WisiToken.Parse is
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
 
+   procedure Put_Errors (Tree : in Syntax_Trees.Tree)
+   with Pre => Tree.Editable;
    procedure Put_Errors (Parser : in Base_Parser'Class)
    with Pre => Parser.Tree.Editable;
-   --  Output Parser.Tree errors to Ada.Text_IO.Current_Error.
+   --  Output Parser.Tree errors to Tree.Lexer.Trace.
 
+   procedure Put_Errors (Tree : Syntax_Trees.Tree; Stream : in Syntax_Trees.Stream_ID);
    procedure Put_Errors (Parser : in Base_Parser'Class; Stream : in Syntax_Trees.Stream_ID);
-   --  Output Parser.Tree.Stream errors to Ada.Text_IO.Current_Error.
+   --  Output Parser.Tree.Stream errors to Tree.Lexer.Trace.
 
    procedure Execute_Actions
      (Parser              : in out Base_Parser;

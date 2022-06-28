@@ -4156,6 +4156,19 @@ package body WisiToken.Syntax_Trees is
 
       Node_Index_Map : Node_Index_Array_Node_Access.Vector;
 
+      package Node_Index_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists
+        (Node_Index);
+
+      type Delayed_Following_Deleted_Type is record
+         Prev_Terminal : Node_Access;
+         List : Node_Index_Lists.List;
+      end record;
+
+      package Delayed_Following_Deleted_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists
+        (Delayed_Following_Deleted_Type);
+
+      Delayed_Following_Deleted : Delayed_Following_Deleted_Lists.List;
+
       function Next_Value return String
       is begin
          return WisiToken.Next_Value (Stream, Delims);
@@ -4234,16 +4247,23 @@ package body WisiToken.Syntax_Trees is
          end if;
       end Input_Error_List;
 
-      function Input_Following_Deleted return Valid_Node_Access_Lists.List
+      procedure Input_Following_Deleted (Node : in Valid_Node_Access)
       is
          Length : constant Ada.Containers.Count_Type := Ada.Containers.Count_Type'Value (Next_Value);
       begin
          if Length = 0 then
-            return Valid_Node_Access_Lists.Empty_List;
+            return;
          else
             --  Following nodes have not been created yet. Need to read node_index
             --  list, cache it somewhere, finish this after they are read.
-            raise SAL.Not_Implemented with "FIXME: get_tree following_deleted";
+            declare
+               Item : Delayed_Following_Deleted_Type;
+            begin
+               Item.Prev_Terminal := Node;
+               for I in 1 .. Length loop
+                  Item.List.Append (Node_Index'Value (Next_Value));
+               end loop;
+            end;
          end if;
       end Input_Following_Deleted;
 
@@ -4285,8 +4305,6 @@ package body WisiToken.Syntax_Trees is
                         New_Line_Count : constant Base_Line_Number_Type := Base_Line_Number_Type'Value
                           (Next_Value);
 
-                        Following_Deleted : constant Valid_Node_Access_Lists.List := Input_Following_Deleted;
-
                         New_Node : constant Valid_Node_Access := new Node'
                           (Label             => Source_Terminal,
                            Parent            => Invalid_Node_Access,
@@ -4300,8 +4318,10 @@ package body WisiToken.Syntax_Trees is
                            Byte_Region       => Byte_Region,
                            Char_Region       => Char_Region,
                            New_Line_Count    => New_Line_Count,
-                           Following_Deleted => Following_Deleted);
+                           Following_Deleted => Valid_Node_Access_Lists.Empty_List);
                      begin
+                        Input_Following_Deleted (New_Node);
+
                         Tree.Nodes.Append (New_Node);
                         Node_Index_Map.Extend (Node_Index);
                         Node_Index_Map (Node_Index) := New_Node;
@@ -4387,6 +4407,12 @@ package body WisiToken.Syntax_Trees is
             Input_Node;
          end loop;
       end;
+
+      for Item of Delayed_Following_Deleted loop
+         for Index of Item.List loop
+            Item.Prev_Terminal.Following_Deleted.Append (Node_Index_Map (Index));
+         end loop;
+      end loop;
 
       declare
          Streams_Length : constant Ada.Containers.Count_Type := Ada.Containers.Count_Type'Value (Next_Value);

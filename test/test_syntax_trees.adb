@@ -1208,14 +1208,17 @@ package body Test_Syntax_Trees is
    is
       pragma Unreferenced (T);
       use WisiToken.Syntax_Trees.AUnit_Public;
+      use Ada_Lite_Actions;
 
       --  Tree has an error and a deleted terminal
-      Text : constant String := "procedure A is b begin C; end A;";
+      Text : constant String := "procedure A is ; begin C; end A;";
 
       Text_File_Name : constant String := "put_get_02.tree_text";
 
       Parser : WisiToken.Parse.Base_Parser'Class renames WisiToken.Parse.Base_Parser'Class (Ada_Lite_Parser);
    begin
+      Ada_Lite_Parser.Table.McKenzie_Param.Delete (+SEMICOLON_ID) := 1;
+
       Parser.Tree.Lexer.Reset_With_String (Text);
 
       Parser.Parse (Log_File);
