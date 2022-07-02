@@ -23,98 +23,111 @@ package body WisiToken.Parse is
    Delims : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" (),");
    --  For Error_Data'Input.
 
-   --  Body subprograms
+   --  Body subprograms, alphabetical
+
+   procedure Adjust_Copy (Item : in out Recover_Op_Nodes_Arrays.Vector)
+   is
+      use Syntax_Trees;
+   begin
+      for Op of Item loop
+         case Op.Op is
+         when Insert =>
+            if Op.Ins_Node /= Invalid_Node_Access then
+               Op.Ins_Node := Copied_Node (Op.Ins_Node);
+            end if;
+
+         when Delete =>
+            if Op.Del_Node /= Invalid_Node_Access then
+               Op.Del_Node := Copied_Node (Op.Del_Node);
+            end if;
+         end case;
+      end loop;
+   end Adjust_Copy;
 
    function Input_Recover_Op
      (Stream : not null access Ada.Streams.Root_Stream_Type'Class)
-     return Recover_Op
+     return Recover_Op_Nodes
    is begin
-      return Result : Recover_Op (Recover_Op_Label'Value (Next_Value (Stream, Delims))) do
+      return Result : Recover_Op_Nodes (Insert_Delete_Op_Label'Value (Next_Value (Stream, Delims))) do
          case Result.Op is
-         when Fast_Forward =>
-            Result.FF_First_Index := Syntax_Trees.Sequential_Index'Value (Next_Value (Stream, Delims));
-            Result.FF_Next_Index := Syntax_Trees.Sequential_Index'Value (Next_Value (Stream, Delims));
-
-         when Undo_Reduce =>
-            Result.Nonterm        := Token_ID'Value (Next_Value (Stream, Delims));
-            Result.Token_Count    := SAL.Base_Peek_Type'Value (Next_Value (Stream, Delims));
-            Result.UR_Token_Index := Syntax_Trees.Base_Sequential_Index'Value
-              (Next_Value (Stream, Delims));
-
-         when Push_Back =>
-            Result.PB_ID := Token_ID'Value (Next_Value (Stream, Delims));
-            Result.PB_Token_Index := Syntax_Trees.Base_Sequential_Index'Value
-              (Next_Value (Stream, Delims));
-
          when Insert =>
-            Result.Ins_ID := Token_ID'Value (Next_Value (Stream, Delims));
-            Result.Ins_Before := Syntax_Trees.Sequential_Index'Value (Next_Value (Stream, Delims));
+            Result.Ins_ID           := Token_ID'Value (Next_Value (Stream, Delims));
+            Result.Input_Node_Index := Syntax_Trees.Node_Index'Value (Next_Value (Stream, Delims));
 
          when Delete =>
-            Result.Del_ID := Token_ID'Value (Next_Value (Stream, Delims));
-            Result.Del_Token_Index := Syntax_Trees.Sequential_Index'Value (Next_Value (Stream, Delims));
+            Result.Del_ID           := Token_ID'Value (Next_Value (Stream, Delims));
+            Result.Input_Node_Index := Syntax_Trees.Node_Index'Value (Next_Value (Stream, Delims));
          end case;
-
       end return;
    end Input_Recover_Op;
 
    function Input_Recover_Ops
      (Stream : not null access Ada.Streams.Root_Stream_Type'Class)
-     return Recover_Op_Arrays.Vector
+     return Recover_Op_Nodes_Arrays.Vector
    is
       Length : constant Positive_Index_Type := Positive_Index_Type'Value (Next_Value (Stream, Delims));
    begin
-      return Result : Recover_Op_Arrays.Vector do
+      return Result : Recover_Op_Nodes_Arrays.Vector do
          for I in 1 .. Length loop
-            Recover_Op_Arrays.Append (Result, Input_Op (Stream));
+            Result.Append (Input_Recover_Op (Stream));
          end loop;
       end return;
    end Input_Recover_Ops;
 
    procedure Output_Recover_Op
      (Stream : not null access Ada.Streams.Root_Stream_Type'Class;
-      Item   : in              Recover_Op)
+      Item   : in              Recover_Op_Nodes)
    is begin
       Character'Write (Stream, '(');
       String'Write (Stream, Item.Op'Image);
+      --  Ignore Input_Node_Index
       case Item.Op is
-      when Fast_Forward =>
-         String'Write (Stream, Item.FF_First_Index'Image);
-         String'Write (Stream, Item.FF_Next_Index'Image);
-
-      when Undo_Reduce =>
-         String'Write (Stream, Item.Nonterm'Image);
-         String'Write (Stream, Item.Token_Count'Image);
-         String'Write (Stream, Item.UR_Token_Index'Image);
-
-      when Push_Back =>
-         String'Write (Stream, Item.PB_ID'Image);
-         String'Write (Stream, Item.PB_Token_Index'Image);
-
       when Insert =>
          String'Write (Stream, Item.Ins_ID'Image);
-         String'Write (Stream, Item.Ins_Before'Image);
+         --  Ignore Ins_Before.
+         String'Write (Stream, Syntax_Trees.Get_Node_Index (Item.Ins_Node)'Image);
 
       when Delete =>
          String'Write (Stream, Item.Del_ID'Image);
-         String'Write (Stream, Item.Del_Token_Index'Image);
+         --  Ignore Del_Index.
+         String'Write (Stream, Syntax_Trees.Get_Node_Index (Item.Del_Node)'Image);
+
       end case;
       Character'Write (Stream, ')');
    end Output_Recover_Op;
 
    procedure Output_Recover_Ops
      (Stream : not null access Ada.Streams.Root_Stream_Type'Class;
-      Item   : in              Recover_Op_Arrays.Vector)
-   is
-      use Recover_Op_Arrays;
-   begin
-      String'Write (Stream, Recover_Op_Arrays.Length (Item)'Image);
+      Item   : in              Recover_Op_Nodes_Arrays.Vector)
+   is begin
+      String'Write (Stream,  Item.Length'Image);
       Character'Write (Stream, '(');
-      for I in First_Index (Item) .. Last_Index (Item) loop
-         Output_Recover_Op (Stream, Element (Item, I));
+      for Op of Item loop
+         Output_Recover_Op (Stream, Op);
       end loop;
       Character'Write (Stream, ')');
    end Output_Recover_Ops;
+
+   procedure Set_Node_Access
+     (Item           : in out Recover_Op_Nodes_Arrays.Vector;
+      Node_Index_Map : in     Syntax_Trees.Node_Index_Array_Node_Access.Vector)
+   is
+      use Syntax_Trees;
+   begin
+      for Op of Item loop
+         if Op.Input_Node_Index /= Invalid_Node_Index then
+            case Op.Op is
+            when Insert =>
+               Op.Ins_Node := Node_Index_Map (Op.Input_Node_Index);
+
+            when Delete =>
+               Op.Del_Node := Node_Index_Map (Op.Input_Node_Index);
+            end case;
+
+            Op.Input_Node_Index := Invalid_Node_Index;
+         end if;
+      end loop;
+   end Set_Node_Access;
 
    procedure Process_Grammar_Token
      (Parser : in out Base_Parser'Class;
@@ -145,6 +158,62 @@ package body WisiToken.Parse is
    ----------
    --  Package public subprograms, declaration order
 
+   function Image (Item : in Recover_Op_Nodes; Tree : in Syntax_Trees.Tree'Class) return String
+   is
+      use Syntax_Trees;
+   begin
+      return
+        "(" & Image (Item.Op) & ", " &
+        (case Item.Op is
+         when Insert =>
+           (if Item.Ins_Node = Invalid_Node_Access
+            then Image (Item.Ins_ID, Tree.Lexer.Descriptor.all)
+            else Tree.Image (Item.Ins_Node)) &
+              "," & Item.Ins_Before'Image,
+         when Delete =>
+           (if Item.Del_Node = Invalid_Node_Access
+            then Image (Item.Del_ID, Tree.Lexer.Descriptor.all)
+            else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)) &
+              "," & Item.Del_Index'Image)
+        & ")";
+   end Image;
+
+   function To_Recover_Op_Nodes (Item : in Recover_Op_Arrays.Vector) return Recover_Op_Nodes_Arrays.Vector
+   is
+      use Recover_Op_Arrays;
+   begin
+      return Result : Recover_Op_Nodes_Arrays.Vector do
+         for I in First_Index (Item) .. Last_Index (Item) loop
+            declare
+               Op : Recover_Op renames Element (Item, I);
+            begin
+               case Op.Op is
+               when Insert =>
+
+                  Result.Append
+                    ((Insert,
+                      Input_Node_Index => Syntax_Trees.Invalid_Node_Index,
+                      Ins_ID           => Op.Ins_ID,
+                      Ins_Before       => Op.Ins_Before,
+                      Ins_Node         => Syntax_Trees.Invalid_Node_Access));
+
+               when Delete =>
+
+                  Result.Append
+                    ((Delete,
+                      Input_Node_Index => Syntax_Trees.Invalid_Node_Index,
+                      Del_ID           => Op.Del_ID,
+                      Del_Index        => Op.Del_Token_Index,
+                      Del_Node         => Syntax_Trees.Invalid_Node_Access));
+
+               when others =>
+                  null;
+               end case;
+            end;
+         end loop;
+      end return;
+   end To_Recover_Op_Nodes;
+
    overriding function Dispatch_Equal (Left : in Lexer_Error; Right : in Syntax_Trees.Error_Data'Class) return Boolean
    is
       use all type WisiToken.Lexer.Error;
@@ -161,7 +230,7 @@ package body WisiToken.Parse is
       return Error_Message'
         (+Image (Data, Tree, Error_Node),
          Recover_Ops  => <>,
-         Recover_Cost => 0);
+         Recover_Test => null);
    end To_Message;
 
    overriding function Image
@@ -214,6 +283,11 @@ package body WisiToken.Parse is
       Character'Write (Stream, ')');
    end Output_Lexer_Error;
 
+   overriding procedure Adjust_Copy (Data : in out Parse_Error)
+   is begin
+      Adjust_Copy (Data.Recover_Ops);
+   end Adjust_Copy;
+
    overriding function Dispatch_Equal (Left : in Parse_Error; Right : in Syntax_Trees.Error_Data'Class) return Boolean
    is begin
       if not (Right in Parse_Error) then
@@ -237,7 +311,7 @@ package body WisiToken.Parse is
      return Syntax_Trees.Error_Data'Class
    is begin
       return Error_Message'
-        (+Image (Data, Tree, Error_Node), Data.Recover_Ops, Data.Recover_Cost);
+        (+Image (Data, Tree, Error_Node), Data.Recover_Ops, Data.Recover_Test);
    end To_Message;
 
    overriding function Image
@@ -263,8 +337,8 @@ package body WisiToken.Parse is
          then "empty nonterm " & Image (Tree.ID (Error_Node), Tree.Lexer.Descriptor.all)
          else "'" & Tree.Lexer.Buffer_Text (Item_Byte_Region) & "'");
    begin
-      if Recover_Op_Arrays.Length (Data.Recover_Ops) /= 0 then
-         return Msg & ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree.Lexer.Descriptor.all);
+      if Data.Recover_Ops.Length /= 0 then
+         return Msg & ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree);
       else
          return Msg;
       end if;
@@ -288,7 +362,6 @@ package body WisiToken.Parse is
          do
             Get_Token_ID_Set (Result.Expecting);
             Result.Recover_Ops  := Input_Recover_Ops (Stream);
-            Result.Recover_Cost := Natural'Value (Next_Value (Stream, Delims));
          end return;
       end;
    end Input_Parse_Error;
@@ -300,9 +373,21 @@ package body WisiToken.Parse is
          String'Write (Stream, " " & B'Image);
       end loop;
       Output_Recover_Ops (Stream, Item.Recover_Ops);
-      String'Write (Stream, Trimmed_Image (Item.Recover_Cost));
       Character'Write (Stream, ')');
    end Output_Parse_Error;
+
+   overriding
+   procedure Set_Node_Access
+     (Data           : in out Parse_Error;
+      Node_Index_Map : in     Syntax_Trees.Node_Index_Array_Node_Access.Vector)
+   is begin
+      Set_Node_Access (Data.Recover_Ops, Node_Index_Map);
+   end Set_Node_Access;
+
+   overriding procedure Adjust_Copy (Data : in out In_Parse_Action_Error)
+   is begin
+      Adjust_Copy (Data.Recover_Ops);
+   end Adjust_Copy;
 
    overriding function Dispatch_Equal
      (Left  : in In_Parse_Action_Error;
@@ -329,7 +414,7 @@ package body WisiToken.Parse is
      return Syntax_Trees.Error_Data'Class
    is begin
       return Error_Message'
-        (+Image (Data, Tree, Error_Node), Data.Recover_Ops, Data.Recover_Cost);
+        (+Image (Data, Tree, Error_Node), Data.Recover_Ops, Data.Recover_Test);
    end To_Message;
 
    overriding function Image
@@ -345,8 +430,8 @@ package body WisiToken.Parse is
    begin
       Result := +"in_parse_action_error: " & WisiToken.In_Parse_Actions.Image (Data.Status, Tree, Error_Node);
 
-      if Recover_Op_Arrays.Length (Data.Recover_Ops) /= 0 then
-         Append (Result, ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree.Lexer.Descriptor.all));
+      if Data.Recover_Ops.Length /= 0 then
+         Append (Result, ASCII.LF & "   recovered: " & Image (Data.Recover_Ops, Tree));
       end if;
 
       return -Result;
@@ -378,7 +463,6 @@ package body WisiToken.Parse is
                Result.Status.End_Name   := Positive_Index_Type'Value (Next_Value (Stream, Delims));
             end case;
             Result.Recover_Ops  := Input_Recover_Ops (Stream);
-            Result.Recover_Cost := Natural'Value (Next_Value (Stream, Delims));
          end return;
       end;
    end Input_In_Parse_Action_Error;
@@ -397,9 +481,21 @@ package body WisiToken.Parse is
       end case;
 
       Output_Recover_Ops (Stream, Item.Recover_Ops);
-      String'Write (Stream, Trimmed_Image (Item.Recover_Cost));
       Character'Write (Stream, ')');
    end Output_In_Parse_Action_Error;
+
+   overriding
+   procedure Set_Node_Access
+     (Data           : in out In_Parse_Action_Error;
+      Node_Index_Map : in     Syntax_Trees.Node_Index_Array_Node_Access.Vector)
+   is begin
+      Set_Node_Access (Data.Recover_Ops, Node_Index_Map);
+   end Set_Node_Access;
+
+   overriding procedure Adjust_Copy (Data : in out Error_Message)
+   is begin
+      Adjust_Copy (Data.Recover_Ops);
+   end Adjust_Copy;
 
    overriding function Dispatch_Equal (Left : in Error_Message; Right : in Syntax_Trees.Error_Data'Class) return Boolean
    is begin
@@ -436,6 +532,108 @@ package body WisiToken.Parse is
       return "message: " & (-Data.Msg);
    end Image;
 
+   function Recover_Op_Array_Const_Ref_From_Cursor
+     (Item : in Syntax_Trees.Error_Data_Lists.Cursor)
+     return Recover_Op_Array_Const_Ref_Type
+   is
+      Err : Syntax_Trees.Error_Data'Class renames Syntax_Trees.Error_Data_Lists.Unchecked_Ref (Item).all;
+   begin
+      if Err in Parse_Error then
+         return (Element => Parse_Error (Err).Recover_Ops'Access, Dummy => 1);
+
+      elsif Err in In_Parse_Action_Error then
+         return (Element => In_Parse_Action_Error (Err).Recover_Ops'Access, Dummy => 1);
+
+      elsif Err in Error_Message then
+         return (Element => Error_Message (Err).Recover_Ops'Access, Dummy => 1);
+
+      else
+         raise SAL.Programmer_Error;
+      end if;
+   end Recover_Op_Array_Const_Ref_From_Cursor;
+
+   function Recover_Op_Array_Const_Ref
+     (Error : aliased in Syntax_Trees.Error_Data'Class)
+     return Recover_Op_Array_Const_Ref_Type
+   is begin
+      if Error in Parse_Error then
+         return (Element => Parse_Error (Error).Recover_Ops'Access, Dummy => 1);
+
+      elsif Error in In_Parse_Action_Error then
+         return (Element => In_Parse_Action_Error (Error).Recover_Ops'Access, Dummy => 1);
+
+      elsif Error in Error_Message then
+         return (Element => Error_Message (Error).Recover_Ops'Access, Dummy => 1);
+
+      else
+         raise SAL.Programmer_Error;
+      end if;
+   end Recover_Op_Array_Const_Ref;
+
+   function Recover_Op_Array_Var_Ref
+     (Error : aliased in out Syntax_Trees.Error_Data'Class)
+     return Recover_Op_Array_Var_Ref_Type
+   is begin
+      if Error in Parse_Error then
+         return (Element => Parse_Error (Error).Recover_Ops'Access, Dummy => 1);
+
+      elsif Error in In_Parse_Action_Error then
+         return (Element => In_Parse_Action_Error (Error).Recover_Ops'Access, Dummy => 1);
+
+      elsif Error in Error_Message then
+         return (Element => Error_Message (Error).Recover_Ops'Access, Dummy => 1);
+
+      else
+         raise SAL.Programmer_Error;
+      end if;
+   end Recover_Op_Array_Var_Ref;
+
+   function Recover_Test_Const_Ref
+     (Item : in Syntax_Trees.Error_Data_Lists.Cursor)
+     return Recover_Test_Const_Ref_Type
+   is
+      Err : Syntax_Trees.Error_Data'Class renames Syntax_Trees.Error_Data_Lists.Constant_Ref (Item);
+   begin
+      if Err in Parse_Error then
+         return (Element => Parse_Error (Err).Recover_Test, Dummy => 1);
+
+      elsif Err in In_Parse_Action_Error then
+         return (Element => In_Parse_Action_Error (Err).Recover_Test, Dummy => 1);
+
+      elsif Err in Error_Message then
+         return (Element => Error_Message (Err).Recover_Test, Dummy => 1);
+
+      else
+         raise SAL.Programmer_Error;
+      end if;
+   end Recover_Test_Const_Ref;
+
+   function Recover_Test_Var_Ref
+     (Error : aliased in out Syntax_Trees.Error_Data'Class)
+     return Recover_Test_Var_Ref_Type
+   is begin
+      if Error in Parse_Error then
+         return (Element => Parse_Error (Error).Recover_Test'Access, Dummy => 1);
+
+      elsif Error in In_Parse_Action_Error then
+         return (Element => In_Parse_Action_Error (Error).Recover_Test'Access, Dummy => 1);
+
+      elsif Error in Error_Message then
+         return (Element => Error_Message (Error).Recover_Test'Access, Dummy => 1);
+
+      else
+         raise SAL.Programmer_Error;
+      end if;
+   end Recover_Test_Var_Ref;
+
+   function Recover_Image
+     (Error : in Syntax_Trees.Error_Data'Class;
+      Tree  : in Syntax_Trees.Tree)
+     return String
+   is begin
+      return Image (Recover_Op_Array_Const_Ref (Error), Tree);
+   end Recover_Image;
+
    function Input_Error_Message (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return Error_Message
    is
       Msg_Length : constant Integer := Integer'Value (Next_Value (Stream, Delims));
@@ -444,9 +642,8 @@ package body WisiToken.Parse is
       String'Read (Stream, Msg);
       return Result : Error_Message
       do
-         Result.Msg          := Ada.Strings.Unbounded.To_Unbounded_String (Msg);
-         Result.Recover_Ops  := Input_Recover_Ops (Stream);
-         Result.Recover_Cost := Natural'Value (Next_Value (Stream, Delims));
+         Result.Msg         := Ada.Strings.Unbounded.To_Unbounded_String (Msg);
+         Result.Recover_Ops := Input_Recover_Ops (Stream);
       end return;
    end Input_Error_Message;
 
@@ -459,9 +656,16 @@ package body WisiToken.Parse is
       String'Write (Stream, Ada.Strings.Unbounded.To_String (Item.Msg));
       Character'Write (Stream, '"');
       Output_Recover_Ops (Stream, Item.Recover_Ops);
-      String'Write (Stream, Trimmed_Image (Item.Recover_Cost));
       Character'Write (Stream, ')');
    end Output_Error_Message;
+
+   overriding
+   procedure Set_Node_Access
+     (Data           : in out Error_Message;
+      Node_Index_Map : in     Syntax_Trees.Node_Index_Array_Node_Access.Vector)
+   is begin
+      Set_Node_Access (Data.Recover_Ops, Node_Index_Map);
+   end Set_Node_Access;
 
    function Error_Pred_Parse (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
    is
@@ -855,7 +1059,7 @@ package body WisiToken.Parse is
             for Err of Tree.Error_List (Error_Node) loop
                Tree.Lexer.Trace.Put_Line
                  (Tree.Error_Message
-                    (Ref     => Error_Ref.Ref.Ref, -- For line, column
+                    (Ref     => Get_Stream_Node_Ref (Error_Ref), -- For line, column
                      Message => Err.Image (Tree, Error_Node)));
             end loop;
          end;

@@ -346,11 +346,24 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Stack  : Stream_ID renames Parser_State.Stream;
                      Result : Configuration renames Parser_State.Recover.Results.Peek;
 
-                     Error_Node : constant Valid_Node_Access := Parser_State.Current_Error_Node (Tree).Ref.Node;
-                     Error : constant Error_Data'Class := Find_Parse_In_Parse_Action_Error (Tree, Error_Node);
+                     Error_Ref  : constant Stream_Node_Parents := Parser_State.Current_Error_Node (Tree);
+                     Error_Node : constant Valid_Node_Access   := Error_Ref.Ref.Node;
 
-                     Error_Pos : constant Buffer_Pos := Tree.Char_Region
-                       (Error_Node, Trailing_Non_Grammar => False).First;
+                     --  We have to use Tree.Update_Error to set components of Err, because
+                     --  different parsers can set different data in the same error.
+                     Err      : Error_Data'Class   := Find_Parse_In_Parse_Action_Error (Tree, Error_Node);
+                     Op_Index : SAL.Base_Peek_Type := No_Insert_Delete;
+                     --  Current op in Err.Recover_Ops, for setting Ins_Node, Del_Node.
+
+                     Insert_Delete_Inc : Natural := 0;
+                     --  Number of Insert/Delete ops performed here.
+
+                     Insert_Delete_Matches_Ops : Boolean := True;
+                     --  True if all insert/delete ops are performed here;
+                     --  Parser_State.Recover_Insert_Delete_Current is left at No_Element.
+
+                     Prev_Insert_Delete_Current : constant Recover_Op_Ref :=
+                       Parser_State.Last_Recover_Insert_Delete (Tree);
 
                      Stack_Matches_Ops : Boolean := True;
                      First_Insert      : Boolean := True;
@@ -365,33 +378,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      --  The verb will be reset by the main parser; just indicate the
                      --  parser recovered from the error.
                      Parser_State.Set_Verb (Shift);
+                     Parser_State.Recover_Insert_Delete.Append (Error_Ref.Ref);
 
-                     if Error in Parse_Error then
-                        declare
-                           Error_Ref : Stream_Node_Parents := Parser_State.Current_Error_Node (Tree);
-                           Data : Parse_Error := Parse_Error (Error);
-                        begin
-                           Data.Recover_Ops  := Result.Ops;
-                           Data.Recover_Cost := Result.Cost;
-                           Tree.Update_Error
-                             (Parser_State.Stream, Error_Ref, Data,
-                              Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
-                        end;
+                     Recover_Op_Array_Var_Ref (Err) := To_Recover_Op_Nodes (Result.Ops);
 
-                     elsif Error in In_Parse_Action_Error then
-                        declare
-                           Error_Ref : Stream_Node_Parents := Parser_State.Current_Error_Node (Tree);
-                           Data : In_Parse_Action_Error := In_Parse_Action_Error (Error);
-                        begin
-                           Data.Recover_Ops  := Result.Ops;
-                           Data.Recover_Cost := Result.Cost;
-                           Tree.Update_Error
-                             (Parser_State.Stream, Error_Ref, Data,
-                              Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
-                        end;
-
-                     else
-                        raise SAL.Programmer_Error;
+                     if Test_McKenzie_Recover then
+                        Recover_Test_Var_Ref (Err) := new Recover_Test_Info'
+                          (Ops           => Result.Ops,
+                           Cost          => Result.Cost,
+                           Enqueue_Count => Parser_State.Recover.Enqueue_Count,
+                           Check_Count   => Parser_State.Recover.Check_Count);
                      end if;
 
                      Parser_State.Total_Recover_Cost := @ + Result.Cost;
@@ -575,13 +571,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               end if;
 
                            when Insert =>
-
-                              Parser_State.Recover_Insert_Delete.Append
-                                ((Op         => Insert,
-                                  Error_Pos  => Error_Pos,
-                                  Ins_ID     => Op.Ins_ID,
-                                  Ins_Before => Op.Ins_Before,
-                                  Ins_Node   => Invalid_Node_Access));
+                              Op_Index := @ + 1;
 
                               if First_Insert and Op.Ins_Before = Tree.Get_Sequential_Index
                                 (Tree.First_Sequential_Terminal (Tree.Current_Token (Parser_State.Stream)).Node)
@@ -593,37 +583,27 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                                  First_Insert := False;
 
-                                 Parser_State.Recover_Insert_Delete.Variable_Ref
-                                   (Parser_State.Recover_Insert_Delete.Last_Index).Ins_Node :=
+                                 Recover_Op_Array_Var_Ref (Err)(Op_Index).Ins_Node :=
                                    Tree.Insert_Virtual_Terminal (Parser_State.Stream, Op.Ins_ID).Node;
                                  --  Modifies Tree.Current_Token
+
+                                 Insert_Delete_Inc := @ + 1;
 
                                  --  Normally Insert is completed by Stack.Push; we let the main parser
                                  --  do that.
                                  Stack_Matches_Ops := False;
 
-                                 pragma Assert (Parser_State.Recover_Insert_Delete_Current = No_Index);
                               else
-                                 --  Let main parser handle it
-                                 if Parser_State.Recover_Insert_Delete_Current = No_Index then
-                                    Parser_State.Recover_Insert_Delete_Current :=
-                                      Recover_Op_Nodes_Arrays.Last_Index (Parser_State.Recover_Insert_Delete);
-                                 end if;
+                                 Insert_Delete_Matches_Ops := False;
                               end if;
 
                            when Delete =>
+                              Op_Index := @ + 1;
+
                               if Op.Del_Token_Index < Last_Recover_Node_Index then
                                  Raise_Bad_Config ("Delete is out of order");
                               end if;
                               Last_Recover_Node_Index := Op.Del_Token_Index;
-
-                              Recover_Op_Nodes_Arrays.Append
-                                (Parser_State.Recover_Insert_Delete,
-                                 (Op        => Delete,
-                                  Error_Pos => Error_Pos,
-                                  Del_ID    => Op.Del_ID,
-                                  Del_Index => Op.Del_Token_Index,
-                                  Del_Node  => Invalid_Node_Access));
 
                               --  We have to apply more than one delete here if they are
                               --  consecutive (for example, ada_mode-recover_extra_end_loop.adb
@@ -633,26 +613,34 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               declare
                                  Deleted_Node : constant Valid_Node_Access := Tree.First_Sequential_Terminal
                                    (Tree.Current_Token (Parser_State.Stream)).Node;
-                                 Op_Nodes : Recover_Op_Nodes renames Parser_State.Recover_Insert_Delete.Variable_Ref
-                                   (Parser_State.Recover_Insert_Delete.Last_Index);
                               begin
-                                 if Stack_Matches_Ops and Parser_State.Recover_Insert_Delete_Current = No_Index and
+                                 if Stack_Matches_Ops and Insert_Delete_Matches_Ops and
                                    Op.Del_Token_Index = Tree.Get_Sequential_Index (Deleted_Node)
                                  then
+                                    Insert_Delete_Inc := @ + 1;
                                     Do_Delete
-                                      (Tree, Parser_State.Stream, Op_Nodes, Deleted_Node,
-                                       Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
-
+                                      (Tree, Parser_State.Stream, Recover_Op_Array_Var_Ref (Err)(Op_Index),
+                                       Deleted_Node, Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
                                  else
-                                    if Parser_State.Recover_Insert_Delete_Current = No_Index then
-                                       Parser_State.Recover_Insert_Delete_Current :=
-                                         Recover_Op_Nodes_Arrays.Last_Index (Parser_State.Recover_Insert_Delete);
-                                    end if;
+                                    Insert_Delete_Matches_Ops := False;
                                  end if;
                               end;
                            end case;
                         end;
                      end loop;
+
+                     Parser_State.Recover_Op_Ref_Update
+                       (Tree, Err, User_Data_Access_Constant (Shared_Parser.User_Data));
+
+                     if Insert_Delete_Matches_Ops then
+                        pragma Assert (Parser_State.Recover_Insert_Delete_Current = No_Element);
+                     else
+                        Parser_State.Recover_Insert_Delete_Current := Prev_Insert_Delete_Current;
+                        Parser_State.Next_Recover_Op_Ref (Tree);
+                        for I in 1 .. Insert_Delete_Inc loop
+                           Parser_State.Next_Recover_Op_Ref (Tree);
+                        end loop;
+                     end if;
 
                      if Trace_McKenzie > Extra then
                         Put_Line (Tree, Parser_State.Stream, "after Ops applied:");
@@ -663,9 +651,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                           ("   Shared_Token  " & Tree.Image (Tree.Shared_Token (Parser_State.Stream)));
                         Trace.Put_Line
                           ("   Current_Token " & Tree.Image (Tree.Current_Token (Parser_State.Stream)));
-                        Trace.Put_Line ("   recover_insert_delete " & Image
-                                          (Parser_State.Recover_Insert_Delete, Tree,
-                                           First => Parser_State.Recover_Insert_Delete_Current));
+                        Trace.Put_Line
+                          ("   remaining recover_insert_delete " & Parser_State.Recover_Image
+                             (Tree, First => Parser_State.Recover_Insert_Delete_Current));
                         Trace.Put_Line ("   resume_token_goal" & Parser_State.Resume_Token_Goal'Image);
                      end if;
 
@@ -713,8 +701,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      declare
                         Data : Parse_Error := Parse_Error (Error);
                      begin
-                        Data.Recover_Ops  := Recover_Op_Arrays.Empty_Vector;
-                        Data.Recover_Cost := 0;
+                        Data.Recover_Ops  := Recover_Op_Nodes_Arrays.Empty_Vector;
                         Tree.Update_Error
                           (Parser_State.Stream, Error_Node, Data,
                            Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
@@ -724,8 +711,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      declare
                         Data : In_Parse_Action_Error := In_Parse_Action_Error (Error);
                      begin
-                        Data.Recover_Ops  := Recover_Op_Arrays.Empty_Vector;
-                        Data.Recover_Cost := 0;
+                        Data.Recover_Ops := Recover_Op_Nodes_Arrays.Empty_Vector;
                         Tree.Update_Error
                           (Parser_State.Stream, Error_Node, Data,
                            Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));

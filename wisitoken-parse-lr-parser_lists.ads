@@ -42,23 +42,37 @@ package WisiToken.Parse.LR.Parser_Lists is
       Depth : in SAL.Base_Peek_Type := 0)
      return String renames Parser_Stack_Image;
 
+   type Recover_Op_Ref is private;
+
+   No_Element : constant Recover_Op_Ref;
+
+   function Constant_Ref (Ref  : in Recover_Op_Ref) return Recover_Op_Nodes_Arrays.Constant_Reference_Type
+   with Pre => Ref /= No_Element;
+
+   procedure Next_Op (Ref : in out Recover_Op_Ref)
+   with Pre => Ref /= No_Element;
+   --  Only increments thru ops in one Error.
+
+   package Stream_Node_Ref_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Syntax_Trees.Stream_Node_Ref);
+
    type Base_Parser_State is tagged
    record
       --  Visible components for direct access
       --
       --  The parse stack is in Shared_Parser.Tree (Parser_State.Stream).
 
-      Recover_Insert_Delete : aliased Recover_Op_Nodes_Arrays.Vector;
-      --  Tokens that were inserted or deleted during error recovery.
-      --  Contains only Insert and Delete ops. Filled by error recover, used
-      --  by main parse and Execute_Actions.
+      Recover_Insert_Delete : aliased Stream_Node_Ref_Lists.List;
+      --  List of nodes containing errors that contain recover operations;
+      --  tokens that were inserted or deleted during error recovery. Filled
+      --  by error recover, used by main parse to implement Insert/Delete,
+      --  and by Execute_Actions for User_Data.Insert_Token, .Delete_Token.
       --
       --  Not emptied between error recovery sessions, so Execute_Actions
       --  knows about all insert/delete.
 
-      Recover_Insert_Delete_Current : Recover_Op_Nodes_Arrays.Extended_Index := Recover_Op_Arrays.No_Index;
+      Recover_Insert_Delete_Current : Recover_Op_Ref;
       --  Next item in Recover_Insert_Delete to be processed by main parse;
-      --  No_Index if all done.
+      --  No_Element if all done.
 
       Recover : aliased LR.McKenzie_Data := (others => <>);
 
@@ -83,6 +97,48 @@ package WisiToken.Parse.LR.Parser_Lists is
 
    type Parser_State is new Base_Parser_State with private;
    type State_Access is access all Parser_State;
+
+   function Recover_Image
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in     Syntax_Trees.Tree;
+      First        : in     Recover_Op_Ref := No_Element)
+     return String;
+
+   function Last_Recover_Insert_Delete
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in     Syntax_Trees.Tree)
+     return Recover_Op_Ref;
+   --  Return reference to last element in Parser_State.Recover_Insert_Delete.
+
+   procedure Next_Recover_Op_Ref
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in     Syntax_Trees.Tree);
+   --  Increment Parser_Data.Recover_Insert_Delete_Currnet. Next
+   --  (No_Element) => first.
+
+   procedure Next_Recover_Op_Ref
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in     Syntax_Trees.Tree;
+      Ref          : in out Recover_Op_Ref);
+   --  Increment Ref.
+
+   procedure Recover_Op_Ref_Update
+     (Parser_State    : in out Parser_Lists.Parser_State;
+      Tree            : in out Syntax_Trees.Tree;
+      Error           : in     Syntax_Trees.Error_Data'Class;
+      User_Data       : in     Syntax_Trees.User_Data_Access_Constant);
+   --  Call Tree.Update_Error for Parser_State.Recover_Insert_Delete.Last
+   --  with Error, and update refs in Parser_State.Recover_Insert_Delete.
+
+   function Current_Insert_Delete_Error
+     (Parser_State : in Parser_Lists.Parser_State)
+     return Syntax_Trees.Error_Data'Class;
+   --  Return error from Parser_State.Recover_Insert_Delete_Current.
+
+   function Current_Insert_Delete_Op_Index
+     (Parser_State : in Parser_Lists.Parser_State)
+     return SAL.Base_Peek_Type;
+   --  Return Op_Index from Parser_State.Recover_Insert_Delete_Current.
 
    function Current_Error_Node
      (Parser_State : in Parser_Lists.Parser_State;
@@ -238,11 +294,22 @@ package WisiToken.Parse.LR.Parser_Lists is
    --  Access to private Parser_State components
 
    function Stream (State : in Parser_State) return Syntax_Trees.Stream_ID;
-   procedure Clear_Stream (State : in out Parser_State);
    procedure Set_Verb (State : in out Parser_State; Verb : in All_Parse_Action_Verbs);
    function Verb (State : in Parser_State) return All_Parse_Action_Verbs;
 
+   procedure Clear_Stream (State : in out Parser_State);
+   --  Clear all references to Syntax_Tree streams, so the tree can be
+   --  finalized.
+
 private
+
+   type Recover_Op_Ref is record
+      Ref_Cur  : Stream_Node_Ref_Lists.Cursor         := Stream_Node_Ref_Lists.No_Element;
+      Err_Cur  : Syntax_Trees.Error_Data_Lists.Cursor := Syntax_Trees.Error_Data_Lists.No_Element;
+      Op_Index : SAL.Base_Peek_Type                   := No_Insert_Delete;
+   end record;
+
+   No_Element : constant Recover_Op_Ref := (others => <>);
 
    type Parser_State is new Base_Parser_State with record
       Stream : Syntax_Trees.Stream_ID;

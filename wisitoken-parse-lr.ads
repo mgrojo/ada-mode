@@ -38,7 +38,6 @@ with Ada.Unchecked_Deallocation;
 with SAL.Gen_Array_Image;
 with SAL.Gen_Bounded_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Stacks.Gen_Image_Aux;
-with SAL.Gen_Bounded_Definite_Vectors;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Vectors_Sorted;
 with WisiToken.Syntax_Trees;
@@ -387,62 +386,6 @@ package WisiToken.Parse.LR is
    --  Undo_Reduce, which is only done on nonterms reduced by the main
    --  parser, not virtual nonterms produced by recover.
 
-   package Fast_Token_ID_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (SAL.Peek_Type, Token_ID, Default_Element => Invalid_Token_ID, Capacity => 20);
-
-   No_Insert_Delete : constant SAL.Base_Peek_Type := 0;
-
-   function Image
-     (Index      : in SAL.Peek_Type;
-      Tokens     : in Fast_Token_ID_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor)
-     return String
-     is (SAL.Peek_Type'Image (Index) & ":" & SAL.Peek_Type'Image (Fast_Token_ID_Arrays.Last_Index (Tokens)) & ":" &
-           Image (Fast_Token_ID_Arrays.Element (Tokens, Index), Descriptor));
-
-   type Recover_Op_Nodes (Op : Insert_Delete_Op_Label := Insert) is record
-
-      Error_Pos : Buffer_Pos := Invalid_Buffer_Pos;
-      --  Position of the error that is repaired by this op. Used by the
-      --  editor to identify sets of recover ops, and compute presentation
-      --  order.
-
-      case Op is
-      when Insert =>
-         Ins_ID : Token_ID := Invalid_Token_ID;
-         --  The token ID inserted.
-
-         Ins_Before : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'First;
-         --  Ins_ID is inserted before Ins_Before in the Shared_Stream.
-
-         Ins_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
-         --  The parse stream node holding the inserted token.
-
-      when Delete =>
-         Del_ID : Token_ID := Invalid_Token_ID;
-         --  The token ID deleted; a terminal token.
-
-         Del_Index : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'First;
-         --  Token at Del_Index is deleted; used by parser to skip the token.
-
-         Del_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
-         --  Del_Node is deleted; used by post-parse actions to adjust for the
-         --  deleted token. Del_Node.Parent is the previous non-deleted terminal.
-      end case;
-   end record;
-
-   subtype Delete_Op_Nodes is Recover_Op_Nodes (Delete);
-
-   package Recover_Op_Nodes_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Positive_Index_Type, Recover_Op_Nodes, Default_Element => (others => <>));
-
-   function Image (Item : in Recover_Op_Nodes; Tree : in Syntax_Trees.Tree) return String;
-
-   function Image is new Recover_Op_Nodes_Arrays.Gen_Image_Aux
-     (Syntax_Trees.Tree,
-      Index_Trimmed_Image => Trimmed_Image,
-      Element_Image       => Image);
-
    procedure Do_Delete
      (Tree         : in out Syntax_Trees.Tree;
       Stream       : in     Syntax_Trees.Stream_ID;
@@ -506,6 +449,8 @@ package WisiToken.Parse.LR is
    function Image is new SAL.Gen_Array_Image (Strategies, Natural, Strategy_Counts, Trimmed_Image);
 
    type Minimal_Complete_State is (None, Active, Done);
+
+   No_Insert_Delete : constant SAL.Base_Peek_Type := 0;
 
    type Configuration is record
       Stack : Recover_Stacks.Stack (90);

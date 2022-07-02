@@ -447,6 +447,10 @@ package WisiToken is
    --  If True, output stack traces, propagate exceptions to top level.
    --  Otherwise, be robust to errors, so user does not notice them.
 
+   Test_McKenzie_Recover : Boolean := False;
+   --  True when running test_mckenzie_recover.adb; error recover stores
+   --  extra info for test.
+
    procedure Enable_Trace (Config : in String);
    --  Config has the format:
    --

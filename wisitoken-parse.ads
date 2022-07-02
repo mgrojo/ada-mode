@@ -22,6 +22,7 @@ with Ada.Streams;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Refs;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image;
+with SAL.Gen_Indefinite_Doubly_Linked_Lists.Gen_Image_Aux;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse is
@@ -161,10 +162,74 @@ package WisiToken.Parse is
    --  True if Ops contains no Op after the last Fast_Forward (or ops.first, if
    --  no Fast_Forward).
 
+   type Recover_Op_Nodes (Op : Insert_Delete_Op_Label := Insert) is record
+      --  Stores recover operation data used by the main parser to implement
+      --  insert, delete; and by the client editor to implement auto
+      --  corrections.
+      --
+      --  We can't compute buffer positions until after
+      --  User_Data.Insert_Tokens runs, after parse completes; it can move
+      --  non_grammar around, which affects buffer positions.
+
+      Input_Node_Index : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+      --  Used by Get_Tree to store the node_index for Ins_Node or Del_Node
+      --  read from the input file; converted to Node_Access by Set_Node_Access.
+
+      case Op is
+      when Insert =>
+         Ins_ID : Token_ID := Invalid_Token_ID;
+         --  The token ID inserted.
+
+         Ins_Before : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'First;
+         --  Ins_ID is inserted before Ins_Before in the Shared_Stream.
+
+         Ins_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
+         --  The parse stream node holding the inserted token.
+
+      when Delete =>
+         Del_ID : Token_ID := Invalid_Token_ID;
+         --  The token ID deleted; a terminal token.
+
+         Del_Index : Syntax_Trees.Sequential_Index := Syntax_Trees.Sequential_Index'First;
+         --  Token at Del_Index is deleted; used by parser to skip the token.
+
+         Del_Node : Syntax_Trees.Node_Access := Syntax_Trees.Invalid_Node_Access;
+         --  Del_Node is deleted; used by post-parse actions to adjust for the
+         --  deleted token. Del_Node.Parent is the previous non-deleted terminal.
+      end case;
+   end record;
+
+   subtype Delete_Op_Nodes is Recover_Op_Nodes (Delete);
+
+   package Recover_Op_Nodes_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive_Index_Type, Recover_Op_Nodes, Default_Element => (others => <>));
+
+   function Image (Item : in Recover_Op_Nodes; Tree : in Syntax_Trees.Tree'Class) return String;
+
+   function Image is new Recover_Op_Nodes_Arrays.Gen_Image_Aux
+     (Aux_Data            => Syntax_Trees.Tree'Class,
+      Index_Trimmed_Image => Trimmed_Image,
+      Element_Image       => Image);
+
+   function To_Recover_Op_Nodes (Item : in Recover_Op_Arrays.Vector) return Recover_Op_Nodes_Arrays.Vector;
+
+   type Recover_Test_Info is record
+      --  Used by test_mckenzie_recover.adb
+      Ops           : Recover_Op_Arrays.Vector;
+      Cost          : Natural;
+      Enqueue_Count : Natural;
+      Check_Count   : Natural;
+   end record;
+   type Recover_Test_Info_Access is access Recover_Test_Info;
+   --  No "Free" declared for Recover_Test_Info_Access; it is only used
+   --  in test_mckenzie_recover.adb, so we don't care about recovering
+   --  the memory. This allows us to copy these access values freely.
+
    type Lexer_Error is new Syntax_Trees.Error_Data with record
       Error : WisiToken.Lexer.Error;
    end record;
 
+   overriding procedure Adjust_Copy (Data : in out Lexer_Error) is null;
    overriding function Dispatch_Equal (Left : in Lexer_Error; Right : in Syntax_Trees.Error_Data'Class) return Boolean;
    overriding function To_Message
      (Data       : in Lexer_Error;
@@ -186,16 +251,23 @@ package WisiToken.Parse is
    for Lexer_Error'Input use Input_Lexer_Error;
    for Lexer_Error'Output use Output_Lexer_Error;
 
+   overriding
+   procedure Set_Node_Access
+     (Data           : in out Lexer_Error;
+      Node_Index_Map : in     Syntax_Trees.Node_Index_Array_Node_Access.Vector)
+   is null;
+
    type Parse_Error
      (First_Terminal : Token_ID;
       Last_Terminal  : Token_ID)
    is new Syntax_Trees.Error_Data with record
-      Expecting    : Token_ID_Set (First_Terminal .. Last_Terminal);
-      Recover_Ops  : Recover_Op_Arrays.Vector;
-      --  FIXME: parse_Error does not need recover_op, just insert/delete?
-      Recover_Cost : Natural := 0;
+      Expecting   : Token_ID_Set (First_Terminal .. Last_Terminal);
+      Recover_Ops : aliased Recover_Op_Nodes_Arrays.Vector;
+
+      Recover_Test : aliased Recover_Test_Info_Access; -- only set when running test_mckenzie_recover.adb.
    end record;
 
+   overriding procedure Adjust_Copy (Data : in out Parse_Error);
    overriding function Dispatch_Equal (Left : in Parse_Error; Right : in Syntax_Trees.Error_Data'Class) return Boolean;
    overriding function To_Message
      (Data       : in Parse_Error;
@@ -218,12 +290,19 @@ package WisiToken.Parse is
    for Parse_Error'Input use Input_Parse_Error;
    for Parse_Error'Output use Output_Parse_Error;
 
+   overriding
+   procedure Set_Node_Access
+     (Data           : in out Parse_Error;
+      Node_Index_Map : in     Syntax_Trees.Node_Index_Array_Node_Access.Vector);
+
    type In_Parse_Action_Error is new Syntax_Trees.Error_Data with record
-      Status       : WisiToken.Syntax_Trees.In_Parse_Actions.Status;
-      Recover_Ops  : Recover_Op_Arrays.Vector;
-      Recover_Cost : Natural := 0;
+      Status      : WisiToken.Syntax_Trees.In_Parse_Actions.Status;
+      Recover_Ops : aliased Recover_Op_Nodes_Arrays.Vector;
+
+      Recover_Test : aliased Recover_Test_Info_Access; -- only set when running test_mckenzie_recover.adb.
    end record;
 
+   overriding procedure Adjust_Copy (Data : in out In_Parse_Action_Error);
    overriding function Dispatch_Equal
      (Left  : in In_Parse_Action_Error;
       Right : in Syntax_Trees.Error_Data'Class)
@@ -250,12 +329,19 @@ package WisiToken.Parse is
    for In_Parse_Action_Error'Input use Input_In_Parse_Action_Error;
    for In_Parse_Action_Error'Output use Output_In_Parse_Action_Error;
 
+   overriding
+   procedure Set_Node_Access
+     (Data           : in out In_Parse_Action_Error;
+      Node_Index_Map : in     Syntax_Trees.Node_Index_Array_Node_Access.Vector);
+
    type Error_Message is new Syntax_Trees.Error_Data with record
-      Msg          : Ada.Strings.Unbounded.Unbounded_String;
-      Recover_Ops  : Recover_Op_Arrays.Vector;
-      Recover_Cost : Natural := 0;
+      Msg         : Ada.Strings.Unbounded.Unbounded_String;
+      Recover_Ops : aliased Recover_Op_Nodes_Arrays.Vector;
+
+      Recover_Test : aliased Recover_Test_Info_Access; -- only set when running test_mckenzie_recover.adb.
    end record;
 
+   overriding procedure Adjust_Copy (Data : in out Error_Message);
    overriding function Dispatch_Equal
      (Left  : in Error_Message;
       Right : in Syntax_Trees.Error_Data'Class)
@@ -274,12 +360,68 @@ package WisiToken.Parse is
 
    overriding function Class_Image (Data : in Error_Message) return String is ("message");
 
+   type Recover_Op_Array_Const_Ref_Type (Element : not null access constant Recover_Op_Nodes_Arrays.Vector) is private
+   with Implicit_Dereference => Element;
+
+   --  WORKAROUND: if Recover_Op_Array_Const_Ref_From_Cursor is named
+   --  Recover_Op_Array_Const_Ref, GNAT Community 2021 confuses it with
+   --  the other Recover_Op_Array_Const_Ref.
+   function Recover_Op_Array_Const_Ref_From_Cursor
+     (Item : in Syntax_Trees.Error_Data_Lists.Cursor)
+     return Recover_Op_Array_Const_Ref_Type
+   with Pre => Syntax_Trees.Error_Data_Lists.Has_Element (Item) and then
+               not (Syntax_Trees.Error_Data_Lists.Element (Item) in Lexer_Error);
+
+   function Recover_Op_Array_Const_Ref
+     (Error : aliased in Syntax_Trees.Error_Data'Class)
+     return Recover_Op_Array_Const_Ref_Type
+   with Pre => not (Error in Lexer_Error);
+
+   type Recover_Op_Array_Var_Ref_Type (Element : not null access Recover_Op_Nodes_Arrays.Vector) is private
+   with Implicit_Dereference => Element;
+
+   function Recover_Op_Array_Var_Ref
+     (Error : aliased in out Syntax_Trees.Error_Data'Class)
+     return Recover_Op_Array_Var_Ref_Type
+   with Pre => not (Error in Lexer_Error);
+
+   type Recover_Test_Const_Ref_Type (Element : not null access constant Recover_Test_Info) is private
+   with Implicit_Dereference => Element;
+
+   function Recover_Test_Const_Ref
+     (Item : in Syntax_Trees.Error_Data_Lists.Cursor)
+     return Recover_Test_Const_Ref_Type
+   with Pre => Syntax_Trees.Error_Data_Lists.Has_Element (Item) and then
+               not (Syntax_Trees.Error_Data_Lists.Element (Item) in Lexer_Error);
+
+   type Recover_Test_Var_Ref_Type (Element : not null access Recover_Test_Info_Access) is private
+   with Implicit_Dereference => Element;
+
+   function Recover_Test_Var_Ref
+     (Error : aliased in out Syntax_Trees.Error_Data'Class)
+     return Recover_Test_Var_Ref_Type
+   with Pre => not (Error in Lexer_Error);
+
+   function Recover_Image
+     (Error : in Syntax_Trees.Error_Data'Class;
+      Tree  : in Syntax_Trees.Tree)
+     return String
+   with Pre => not (Error in Lexer_Error);
+   --  Aggregate image of Error.Recover_Ops.
+
+   function Recover_Image is new Syntax_Trees.Error_Data_Lists.Gen_Image_Aux (Syntax_Trees.Tree, Recover_Image);
+
    function Input_Error_Message (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return Error_Message;
    --  Raises ada.streams.stream_IO.End_Error when first stream element read is ')'
    procedure Output_Error_Message
      (Stream : not null access Ada.Streams.Root_Stream_Type'Class; Item : in Error_Message);
    for Error_Message'Input use Input_Error_Message;
    for Error_Message'Output use Output_Error_Message;
+
+   overriding
+   procedure Set_Node_Access
+     (Data           : in out Error_Message;
+      Node_Index_Map : in     Syntax_Trees.Node_Index_Array_Node_Access.Vector);
 
    function Error_Pred_Parse (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
    --  Return True if Cur is a Parse_Error; for
@@ -297,7 +439,11 @@ package WisiToken.Parse is
      (Tree : in Syntax_Trees.Tree;
       Node : in Syntax_Trees.Valid_Node_Access)
      return Syntax_Trees.Error_Data'Class;
-   --  Return a Parse_Error or In_Parse_Action_Error from Node.
+   --  Return the first Parse_Error or In_Parse_Action_Error from Node.
+   --
+   --  This does not return a reference, because any update to an error
+   --  requires copying the error node; see note at declaration of
+   --  Syntax_Trees.Error_Data.
 
    function Find_Non_Lexer_Error
      (Tree : in Syntax_Trees.Tree;
@@ -436,7 +582,24 @@ package WisiToken.Parse is
    --  actions performed by Execute_Actions.
 
 private
---  Visible for child packages
+
+   type Recover_Op_Array_Const_Ref_Type (Element : not null access constant Recover_Op_Nodes_Arrays.Vector) is record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Recover_Op_Array_Var_Ref_Type (Element : not null access Recover_Op_Nodes_Arrays.Vector) is record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Recover_Test_Const_Ref_Type (Element : not null access constant Recover_Test_Info) is record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Recover_Test_Var_Ref_Type (Element : not null access Recover_Test_Info_Access) is record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   --  Visible for child packages
 
    procedure Process_Grammar_Token
      (Parser : in out Base_Parser'Class;

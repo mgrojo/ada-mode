@@ -26,13 +26,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
      (Super         : in out Supervisor;
       Shared_Parser : in out Parser.Parser)
    is
+      use all type Parser_Lists.Recover_Op_Ref;
       Tree : WisiToken.Syntax_Trees.Tree renames Shared_Parser.Tree;
    begin
       declare
          Index : SAL.Peek_Type := 1;
       begin
          for Cur in Shared_Parser.Parsers.Iterate loop
-            if Shared_Parser.Parsers (Cur).Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
+            if Shared_Parser.Parsers (Cur).Recover_Insert_Delete_Current /= Parser_Lists.No_Element then
                --  Previous error recovery resume not finished; this is supposed to
                --  be checked in Parser.
                raise SAL.Programmer_Error;

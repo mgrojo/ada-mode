@@ -744,26 +744,6 @@ package body WisiToken.Parse.LR is
          Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    end Get_Text_Rep;
 
-   function Image (Item : in Recover_Op_Nodes; Tree : in Syntax_Trees.Tree) return String
-   is
-      use Syntax_Trees;
-   begin
-      return
-        "(" & Image (Item.Op) & ", " &
-        (case Item.Op is
-         when Insert =>
-           (if Item.Ins_Node = Invalid_Node_Access
-            then Image (Item.Ins_ID, Tree.Lexer.Descriptor.all)
-            else Tree.Image (Item.Ins_Node)) &
-              "," & Item.Ins_Before'Image,
-         when Delete =>
-           (if Item.Del_Node = Invalid_Node_Access
-            then Image (Item.Del_ID, Tree.Lexer.Descriptor.all)
-            else Tree.Image (Item.Del_Node, Terminal_Node_Numbers => True)) &
-              "," & Item.Del_Index'Image)
-        & ")";
-   end Image;
-
    procedure Do_Delete
      (Tree         : in out Syntax_Trees.Tree;
       Stream       : in     Syntax_Trees.Stream_ID;

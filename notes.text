@@ -32,23 +32,17 @@ update-wisitoken_grammar
 
  current work
 fix error recover reporting to emacs
-    get recover info from tree.node.error, not parser_state
+    Parser_State.Recover_Insert_Delete
+        current must be stream_node_ref[_parents] for Update_Error
+            but then reduce that error_node fails due to stream ref.
+            so when all ops done, clear stream_node_ref, append current to prev_list
+                reduce may happen before all ops done; worry about that when we have a test case.
 
-    need three recover_op types:
-        recover_op in config
-            used during error recover
 
-        recover_op_nodes in parser_state.recover_insert_delete
-            used by main parser to implement insert/delete
-            used by finish_parse user_data insert/delete to adjust position of non_gramamr
-            also stored in node.error_list when debug=1 for test_mckenzie_recover.adb
-                could add enqueue_count, dequeue_count
+        prev can be valid_node_Access_List; no stream ref
 
-        recover_op_edit in node.error_list
-            used by emacs to implement auto-fix
-          --  [error-pos edit-pos [inserted token-ids] [deleted token-ids] deleted-region]
 
-    use tree.error_iterate!
+Put_tree put language, get-tree check it
 
 packrat error recover
     in o.w.s-2

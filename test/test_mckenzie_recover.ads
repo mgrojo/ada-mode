@@ -2,7 +2,7 @@
 --
 --  Test McKenzie error recovery.
 --
---  Copyright (C) 2017 - 2021 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2022 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -38,5 +38,6 @@ package Test_McKenzie_Recover is
 
    overriding procedure Set_Up (T : in out Test_Case);
    overriding procedure Set_Up_Case (T : in out Test_Case);
+   overriding procedure Tear_Down_Case (T : in out Test_Case);
 
 end Test_McKenzie_Recover;

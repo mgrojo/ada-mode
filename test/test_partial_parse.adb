@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-with Ada_Lite_Actions;
+with Ada_Lite_Actions; use Ada_Lite_Actions;
 with Ada_Lite_LALR_Main;
 with GNATCOLL.Mmap;
 with WisiToken.AUnit;
@@ -292,13 +292,10 @@ package body Test_Partial_Parse is
          Language_Matching_Begin_Tokens => null,
          Language_String_ID_Set         => null,
          User_Data                      => User_Data'Access);
-   end Set_Up_Case;
 
-   overriding procedure Tear_Down_Case (T : in out Test_Case)
-   is
-      pragma Unreferenced (T);
-   begin
-      Partial_Parse_Active := False;
-   end Tear_Down_Case;
+      --  FIXME: should be done in Ada_Lite_LALR_Main.Create_Parser.
+      Parser.Partial_Parse_Active    := Ada_Lite_Actions.Partial_Parse_Active'Access;
+      Parser.Partial_Parse_Byte_Goal := Ada_Lite_Actions.Partial_Parse_Byte_Goal'Access;
+   end Set_Up_Case;
 
 end Test_Partial_Parse;

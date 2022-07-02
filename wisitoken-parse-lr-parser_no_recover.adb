@@ -128,8 +128,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                  (First_Terminal => Shared_Parser.Tree.Lexer.Descriptor.First_Terminal,
                   Last_Terminal  => Shared_Parser.Tree.Lexer.Descriptor.Last_Terminal,
                   Expecting      => Expecting,
-                  Recover_Ops    => Recover_Op_Arrays.Empty_Vector,
-                  Recover_Cost   => 0),
+                  Recover_Ops    => Recover_Op_Nodes_Arrays.Empty_Vector,
+                  Recover_Test   => null),
                User_Data         => Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
 
             if Trace_Parse > Outline then
