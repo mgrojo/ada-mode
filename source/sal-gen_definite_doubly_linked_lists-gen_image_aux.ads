@@ -2,7 +2,7 @@
 --
 --  Image with auxiliary data for instantiations of parent.
 --
---  Copyright (C) 2021 Free Software Foundation, Inc.
+--  Copyright (C) 2021, 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -20,4 +20,10 @@ pragma License (Modified_GPL);
 generic
    type Aux_Data (<>) is limited private;
    with function Element_Image (Item : in Element_Type; Aux : in Aux_Data) return String;
-function SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux (Item : in List; Aux : in Aux_Data) return String;
+function SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux
+  (Item  : in List;
+   Aux   : in Aux_Data;
+   First : in Cursor := No_Element)
+  return String;
+--  If First /= No_Element, include First .. Item.Last. Otherwise
+--  include Item.First .. Item.Last.

@@ -18,7 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
-function SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux
+function SAL.Gen_Indefinite_Doubly_Linked_Lists.Gen_Image_Aux
   (Item  : in List;
    Aux   : in Aux_Data;
    First : in Cursor := No_Element)
@@ -33,7 +33,7 @@ is
 begin
    if Node /= null then
       loop
-         Append (Result, Element_Image (Node.Element, Aux));
+         Append (Result, Element_Image (Node.Element.all, Aux));
 
          Node := Node.Next;
 
@@ -44,4 +44,4 @@ begin
    end if;
    Append (Result, ")");
    return To_String (Result);
-end SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
+end SAL.Gen_Indefinite_Doubly_Linked_Lists.Gen_Image_Aux;

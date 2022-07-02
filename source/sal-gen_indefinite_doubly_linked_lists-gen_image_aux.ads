@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  See spec.
+--  Image with auxiliary data for instantiations of parent.
 --
---  Copyright (C) 2021, 2022 Free Software Foundation, Inc.
+--  Copyright (C) 2022 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,31 +17,13 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Strings.Unbounded;
-function SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux
+generic
+   type Aux_Data (<>) is limited private;
+   with function Element_Image (Item : in Element_Type; Aux : in Aux_Data) return String;
+function SAL.Gen_Indefinite_Doubly_Linked_Lists.Gen_Image_Aux
   (Item  : in List;
    Aux   : in Aux_Data;
    First : in Cursor := No_Element)
-  return String
-is
-   use Ada.Strings.Unbounded;
-   Result : Unbounded_String := To_Unbounded_String ("(");
-   Node   : Node_Access      :=
-     (if First = No_Element
-      then Item.Head
-      else First.Ptr);
-begin
-   if Node /= null then
-      loop
-         Append (Result, Element_Image (Node.Element, Aux));
-
-         Node := Node.Next;
-
-         exit when Node = null;
-
-         Append (Result, ", ");
-      end loop;
-   end if;
-   Append (Result, ")");
-   return To_String (Result);
-end SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
+  return String;
+--  If First /= No_Element, include First .. Item.Last. Otherwise
+--  include Item.First .. Item.Last.
