@@ -518,41 +518,41 @@ package body WisiToken.Parse.LR.Parser is
 
       Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
    begin
-      if Parser_State.Recover_Insert_Delete_Current = Parser_Lists.No_Element then
+      if Parser_State.Current_Recover_Op = No_Insert_Delete then
          return;
       end if;
 
       declare
-         --  Resume only processes one error. If it also fixes a following
-         --  error, that error has no recover.
-         Err          : Error_Data'Class := Parser_State.Current_Insert_Delete_Error;
+         --  Resume only processes recover_ops in one error; the current error.
+         --  If it also fixes a following error, that error has no recover.
+         Err          : Error_Data'Class := Error (Parser_State.Current_Error_Ref (Tree));
+         Recover_Ops  : Recover_Op_Nodes_Arrays.Vector renames Recover_Op_Array_Var_Ref (Err);
          Err_Modified : Boolean          := False;
       begin
          One_Error :
          loop
             declare
-               Op  : Recover_Op_Nodes renames Recover_Op_Array_Var_Ref (Err)
-                 (Parser_State.Current_Insert_Delete_Op_Index);
+               Op  : Recover_Op_Nodes renames Recover_Ops (Parser_State.Current_Recover_Op);
             begin
                if Op.Op = Delete then
                   declare
-                     Terminal_Node : constant Valid_Node_Access := Tree.First_Sequential_Terminal
+                     Deleted_Node : constant Valid_Node_Access := Tree.First_Terminal
                        (Tree.Current_Token (Parser_State.Stream)).Node;
                   begin
-                     if Op.Del_Index = Tree.Get_Sequential_Index (Terminal_Node) then
+                     if Op.Del_Index = Tree.Get_Sequential_Index (Deleted_Node) then
                         Err_Modified := True;
 
-                        Do_Delete
-                          (Tree, Parser_State.Stream, Op, Terminal_Node,
-                           Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
+                        Parser_State.Do_Delete
+                          (Tree, Op, User_Data_Access_Constant (Shared_Parser.User_Data));
 
                         if Trace_Parse > Extra  then
-                           Shared_Parser.Tree.Lexer.Trace.Put_Line
-                             (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": delete " &
-                                Op.Del_Index'Image);
+                           Tree.Lexer.Trace.Put_Line
+                             (" " & Tree.Trimmed_Image (Parser_State.Stream) & ": delete " & Op.Del_Index'Image);
                         end if;
 
-                        Parser_State.Next_Recover_Op_Ref (Tree);
+                        Parser_State.Next_Recover_Op (Tree);
+
+                        exit One_Error when Parser_State.Current_Recover_Op = No_Insert_Delete;
 
                      else
                         exit One_Error;
@@ -565,8 +565,9 @@ package body WisiToken.Parse.LR.Parser is
          end loop One_Error;
 
          if Err_Modified then
-            Parser_State.Recover_Op_Ref_Update
-              (Tree, Err, Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
+            Tree.Update_Error
+              (Parser_State.Stream, Parser_State.Current_Error_Ref (Tree), Err,
+               User_Data_Access_Constant (Shared_Parser.User_Data));
          end if;
       end;
    end Do_Deletes;
@@ -626,7 +627,6 @@ package body WisiToken.Parse.LR.Parser is
                --  Nonterm_Resume_01.
                declare
                   use WisiToken.Syntax_Trees;
-                  use all type WisiToken.Parse.LR.Parser_Lists.Recover_Op_Ref;
 
                   function Get_Terminal return Node_Access
                   is
@@ -648,14 +648,15 @@ package body WisiToken.Parse.LR.Parser is
                     --  goal; ada_mode-interactive_02.adb.
                     or else
                     (Parser_State.Resume_Token_Goal <= Terminal_Index and
-                       Parser_State.Recover_Insert_Delete_Current = Parser_Lists.No_Element)
-                       --  Parser_State.Recover_Insert_Delete_Current can be No_Index here
+                       Parser_State.Current_Recover_Op = No_Insert_Delete)
+                       --  Parser_State.Current_Recover_Op can be No_Insert_Delete here
                        --  when Current_Token is a nonterm that needs to be broken down
                        --  before the remaining ops can be performed.
                        --  ada_mode-interactive_01.adb
                   then
                      Parser_State.Resume_Active := False;
                      Parser_State.Resume_Token_Goal := Syntax_Trees.Invalid_Sequential_Index;
+                     Parser_State.Clear_Current_Error_Features;
                      if Trace_Parse > Detail then
                         Shared_Parser.Tree.Lexer.Trace.Put_Line
                           (" " & Shared_Parser.Tree.Trimmed_Image (Parser_State.Stream) & ": resume_active: False");
@@ -958,7 +959,9 @@ package body WisiToken.Parse.LR.Parser is
       end if;
    end Check_Error;
 
-   procedure Finish_Parse (Parser : in out LR.Parser.Parser)
+   procedure Finish_Parse
+     (Parser            : in out LR.Parser.Parser;
+      Incremental_Parse : in     Boolean)
    --  Final actions after LR accept state reached; call
    --  User_Data.Insert_Token, Delete_Token.
    is
@@ -992,8 +995,8 @@ package body WisiToken.Parse.LR.Parser is
          --  order. Other use cases would benefit from calling all Delete
          --  first, or all Insert first, but we use this order as the least
          --  surprising.
-         for Ref of Parser_State.Recover_Insert_Delete loop
-            for Err of Parser.Tree.Error_List (Ref.Node) loop
+         for Node of Parser_State.Recover_Insert_Delete loop
+            for Err of Parser.Tree.Error_List (Node) loop
                if not (Err in Lexer_Error) then
                   for Op of Recover_Op_Array_Const_Ref (Err) loop
                      case Op.Op is
@@ -1043,7 +1046,10 @@ package body WisiToken.Parse.LR.Parser is
                declare
                   Dummy : User_Data_Type;
                begin
-                  Parser.Tree.Validate_Tree (Dummy, Error_Reported, Node_Index_Order => False);
+                  Parser.Tree.Validate_Tree
+                    (Dummy, Error_Reported,
+                     Node_Index_Order => not Incremental_Parse,
+                     Validate_Node    => Syntax_Trees.Mark_In_Tree'Access);
                end;
             else
                Parser.Tree.Validate_Tree (Parser.User_Data.all, Error_Reported, Node_Index_Order => False);
@@ -1552,13 +1558,12 @@ package body WisiToken.Parse.LR.Parser is
       --  Edit_String_05.
       declare
          Err_Ref : Stream_Error_Ref := Tree.First_Error (Stream);
-
       begin
          loop
             exit when not Has_Error (Err_Ref);
             declare
                Err       : constant Error_Data'Class := Error (Err_Ref);
-               Error_Ref : constant Stream_Node_Ref  := Tree.Error_Node (Err_Ref);
+               Error_Ref : constant Stream_Node_Ref  := Tree.Error_Stream_Node_Ref (Err_Ref);
 
                function Find_Edit_Region return Buffer_Region
                is

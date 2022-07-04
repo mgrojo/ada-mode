@@ -31,15 +31,32 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-fix error recover reporting to emacs
-    Parser_State.Recover_Insert_Delete
-        current must be stream_node_ref[_parents] for Update_Error
-            but then reduce that error_node fails due to stream ref.
-            so when all ops done, clear stream_node_ref, append current to prev_list
-                reduce may happen before all ops done; worry about that when we have a test case.
+still fixing error recover info in tree
+    parser_state always call Tree.Current_Error_Ref to get current error
+        avoids a copy that needs to updated when parser does reduce
+
+    t_mck Check_Multiple_Delete_For_Insert second test first error recover
+        parser 3 can't find error
+            it's an in_parse_error on a nonterm that has been reduced into a higher nonterm
+                first_terminal.seq_index is correct, but error_list is on a child
+                need arbitrary search
+                do commit first
+
+    update_error when error is in following_deleted =>
+        recover_op.del_node that refered to that deleted_node is now wrong
+            if deleted_node was deleted in a previous error session, it cannot contain the current error, and will not be updated/copied. => recover_op.del_node is in error that is being updated => use copied_node/Adjust_copy
+                copy_node does not currently set copied_node
+                need to clear it after call adjust_copy
+
+        or set all ins_node, del_node after resume is finished, before clear sequential_index
+                in reverse order, to copy deleted_following before capturing containing node
+                => less copying of error nodes
 
 
-        prev can be valid_node_Access_List; no stream ref
+report mckenzie_recover.adb Error_Recover_Ops workarounds
+
+do_deletes called way more times than it needs to be
+    move out of parse_verb
 
 
 Put_tree put language, get-tree check it

@@ -51,17 +51,23 @@ package body WisiToken.Syntax_Trees is
    --  child links.
 
    function Copy_Node
-     (Tree           : in out Syntax_Trees.Tree;
-      Node           : in     Valid_Node_Access;
-      Parent         : in     Node_Access;
-      User_Data      : in     User_Data_Access_Constant;
-      Copy_Children  : in     Boolean;
-      New_Error_List : in     Error_List_Access := null;
-      Set_Error_List : in     Boolean := False)
+     (Tree                   : in out Syntax_Trees.Tree;
+      Node                   : in     Valid_Node_Access;
+      Parent                 : in     Node_Access;
+      User_Data              : in     User_Data_Access_Constant;
+      Copy_Children          : in     Boolean;
+      Copy_Following_Deleted : in     Boolean;
+      New_Error_List         : in     Error_List_Access := null;
+      Set_Error_List         : in     Boolean           := False)
      return Valid_Node_Access
    with Pre => (if Copy_Children then Tree.Parents_Set);
    --  If Set_Error_List is False, new node has copy of Node.Error_List.
    --  Otherwise, new node has New_Error_List.
+
+   function Find_Match
+     (Error_List : in Error_List_Access;
+      Predicate  : in Error_Predicate)
+     return Error_Data_Lists.Cursor;
 
    procedure First_Source_Terminal
      (Tree                 : in     Syntax_Trees.Tree;
@@ -202,8 +208,9 @@ package body WisiToken.Syntax_Trees is
            (if Tree.Parents_Set
             then Prev_Terminal.Ref.Node
             else Invalid_Node_Access),
-         User_Data     => User_Data,
-         Copy_Children => False);
+         User_Data              => User_Data,
+         Copy_Children          => False,
+         Copy_Following_Deleted => True);
    begin
       if Prev_Terminal.Parents.Depth = 0 then
          pragma Assert (Rooted (Prev_Terminal.Ref));
@@ -283,10 +290,11 @@ package body WisiToken.Syntax_Trees is
            (if Tree.Parents_Set
             then Node.Parent
             else Invalid_Node_Access),
-         User_Data      => User_Data,
-         Copy_Children  => False,
-         New_Error_List => Copy_Errors,
-         Set_Error_List => True);
+         User_Data              => User_Data,
+         Copy_Children          => False,
+         Copy_Following_Deleted => True,
+         New_Error_List         => Copy_Errors,
+         Set_Error_List         => True);
    end Add_Error;
 
    function Add_Errors
@@ -317,10 +325,11 @@ package body WisiToken.Syntax_Trees is
            (if Tree.Parents_Set
             then Node.Parent
             else Invalid_Node_Access),
-         User_Data      => User_Data,
-         Copy_Children  => False,
-         New_Error_List => Copy_Errors,
-         Set_Error_List => True);
+         User_Data              => User_Data,
+         Copy_Children          => False,
+         Copy_Following_Deleted => True,
+         New_Error_List         => Copy_Errors,
+         Set_Error_List         => True);
    end Add_Errors;
 
    procedure Add_Error_To_Input
@@ -396,10 +405,11 @@ package body WisiToken.Syntax_Trees is
            (if Tree.Parents_Set
             then Error_Ref.Ref.Node.Parent
             else Invalid_Node_Access),
-         User_Data      => User_Data,
-         Copy_Children  => False,
-         New_Error_List => Copy_Errors,
-         Set_Error_List => True);
+         User_Data              => User_Data,
+         Copy_Children          => False,
+         New_Error_List         => Copy_Errors,
+         Copy_Following_Deleted => True,
+         Set_Error_List         => True);
    begin
       Copy_Ancestors (Tree, Error_Ref, New_Node, User_Data);
    end Add_Errors;
@@ -1963,10 +1973,11 @@ package body WisiToken.Syntax_Trees is
                  (if Tree.Parents_Set
                   then Old_Parent.Parent
                   else Invalid_Node_Access),
-               User_Data     => User_Data,
-               Copy_Children => False);
+               User_Data              => User_Data,
+               Copy_Children          => False,
+               Copy_Following_Deleted => True);
             Temp.Children (Child_Index) := New_Child;
-            Old_Child.Parent := Invalid_Node_Access;
+            Old_Child.Parent            := Invalid_Node_Access;
             if Tree.Parents_Set then
                New_Child.Parent := Temp;
             end if;
@@ -2001,13 +2012,14 @@ package body WisiToken.Syntax_Trees is
    end Copy_Augmented;
 
    function Copy_Node
-     (Tree           : in out Syntax_Trees.Tree;
-      Node           : in     Valid_Node_Access;
-      Parent         : in     Node_Access;
-      User_Data      : in     User_Data_Access_Constant;
-      Copy_Children  : in     Boolean;
-      New_Error_List : in     Error_List_Access := null;
-      Set_Error_List : in     Boolean           := False)
+     (Tree                   : in out Syntax_Trees.Tree;
+      Node                   : in     Valid_Node_Access;
+      Parent                 : in     Node_Access;
+      User_Data              : in     User_Data_Access_Constant;
+      Copy_Children          : in     Boolean;
+      Copy_Following_Deleted : in     Boolean;
+      New_Error_List         : in     Error_List_Access := null;
+      Set_Error_List         : in     Boolean           := False)
      return Valid_Node_Access
    is
       use all type Error_Data_Lists.List;
@@ -2040,13 +2052,16 @@ package body WisiToken.Syntax_Trees is
             Sequential_Index  => Node.Sequential_Index,
             Following_Deleted => Valid_Node_Access_Lists.Empty_List);
 
-         if Copy_Children then
-            for Deleted_Node of Node.Following_Deleted loop
-               New_Node.Following_Deleted.Append
-                 (Copy_Node (Tree, Deleted_Node, New_Node, User_Data, Copy_Children => False));
-            end loop;
-         else
-            New_Node.Following_Deleted := Node.Following_Deleted;
+         if Copy_Following_Deleted then
+            if Copy_Children then
+               for Deleted_Node of Node.Following_Deleted loop
+                  New_Node.Following_Deleted.Append
+                    (Copy_Node (Tree, Deleted_Node, New_Node, User_Data, Copy_Children => False,
+                                Copy_Following_Deleted => False));
+               end loop;
+            else
+               New_Node.Following_Deleted := Node.Following_Deleted;
+            end if;
          end if;
 
          Tree.Next_Terminal_Node_Index := @ + 1;
@@ -2095,7 +2110,8 @@ package body WisiToken.Syntax_Trees is
             if Copy_Children then
                for I in New_Children'Range loop
                   New_Children (I) := Copy_Node
-                    (Tree, Node.Children (I), Invalid_Node_Access, User_Data, Copy_Children);
+                    (Tree, Node.Children (I), Invalid_Node_Access, User_Data, Copy_Children,
+                     Copy_Following_Deleted => True);
                end loop;
             else
                New_Children := Node.Children;
@@ -2149,7 +2165,8 @@ package body WisiToken.Syntax_Trees is
       if Root = Invalid_Node_Access then
          return Invalid_Node_Access;
       else
-         return Copy_Node (Tree, Root, Invalid_Node_Access, User_Data, Copy_Children => True);
+         return Copy_Node (Tree, Root, Invalid_Node_Access, User_Data, Copy_Children => True,
+                           Copy_Following_Deleted => True);
       end if;
    end Copy_Subtree;
 
@@ -2363,6 +2380,262 @@ package body WisiToken.Syntax_Trees is
       end case;
    end Count_Terminals;
 
+   function Current_Error_Ref_No_Search
+     (Tree             : in Syntax_Trees.Tree;
+      Stream           : in Stream_ID;
+      Terminal_Predicate  : in Error_Predicate;
+      Nonterm_Predicate : in Error_Predicate)
+     return Stream_Error_Ref
+   is
+      --  IMPROVEME: move Parse_Error etc into syntax_trees so we don't have
+      --  to pass predicates here.
+
+      use Stream_Element_Lists;
+      use all type Error_Data_Lists.Cursor;
+
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+   begin
+      return Result : Stream_Error_Ref do
+
+         --  First look in Parse_Stream input.
+         Result.Ref.Ref.Stream  := Stream;
+         Result.Ref.Ref.Element := (Cur => Next (Parse_Stream.Stack_Top));
+
+         if Result.Ref.Ref.Element.Cur /= No_Element then
+            Result.Ref.Ref.Node := Element (Result.Ref.Ref.Element.Cur).Node;
+            if Result.Ref.Ref.Node.Label = Nonterm then
+               Tree.First_Terminal (Result.Ref, Following => False);
+            end if;
+            Result.Error := Find_Match (Result.Ref.Ref.Node.Error_List, Terminal_Predicate);
+         end if;
+
+         if Result.Error = Error_Data_Lists.No_Element then
+            --  Try Shared_Stream
+            Result.Ref.Ref :=
+              (Stream  => Tree.Shared_Stream,
+               Element => (Cur => Parse_Stream.Shared_Link),
+               Node    => Element (Parse_Stream.Shared_Link).Node);
+
+            if Result.Ref.Ref.Node.Label = Nonterm then
+               Tree.First_Terminal (Result.Ref, Following => False);
+            end if;
+            Result.Error := Find_Match (Result.Ref.Ref.Node.Error_List, Terminal_Predicate);
+         end if;
+
+         if Result.Error = Error_Data_Lists.No_Element then
+            --  Must be an In_Parse_Error on the last reduce.
+            Result.Ref.Ref := (Stream, (Cur => Parse_Stream.Stack_Top), Element (Parse_Stream.Stack_Top).Node);
+
+            if Result.Ref.Ref.Node /= Syntax_Trees.Invalid_Node_Access then
+               Result.Error := Find_Match (Result.Ref.Ref.Node.Error_List, Nonterm_Predicate);
+            end if;
+         end if;
+
+         if Result.Error = Error_Data_Lists.No_Element then
+            raise SAL.Programmer_Error with "current_error_ref: no matching error found";
+         end if;
+      end return;
+   end Current_Error_Ref_No_Search;
+
+   function Current_Error_Ref
+     (Tree                : in Syntax_Trees.Tree;
+      Stream              : in Stream_ID;
+      Terminal_Predicate  : in Error_Predicate;
+      Nonterm_Predicate   : in Error_Predicate;
+      Error_Node_Features : in Syntax_Trees.Error_Node_Features := (others => <>))
+     return Stream_Error_Ref
+   is
+      --  IMPROVEME: move Parse_Error etc into syntax_trees so we don't have
+      --  to pass predicates here.
+
+      use Stream_Element_Lists;
+      use all type Error_Data_Lists.Cursor;
+
+      Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+
+      El : Stream_Element_Lists.Cursor;
+      --  Current search position
+
+      Terminal : Stream_Node_Parents;
+      --  Some terminal related to the current search position
+
+      function Handle_Deleted (Result : in out Stream_Error_Ref) return Boolean
+      is begin
+         if Result.Ref.Ref.Node.Label = Source_Terminal and
+           Result.Ref.Ref.Node.Sequential_Index = Error_Node_Features.Prev_Term_Seq_Index
+         then
+            for Cur in Result.Ref.Ref.Node.Following_Deleted.Iterate loop
+               declare
+                  Node : Valid_Node_Access renames Result.Ref.Ref.Node.Following_Deleted (Cur);
+               begin
+                  if Node.Sequential_Index = Error_Node_Features.Seq_Index then
+                     Result.Error   := Find_Match (Node.Error_List, Terminal_Predicate);
+                     Result.Deleted := Cur;
+                     return True;
+                  end if;
+               end;
+            end loop;
+            return True;
+         else
+            return False;
+         end if;
+      end Handle_Deleted;
+
+   begin
+      if Error_Node_Features.Seq_Index = Invalid_Sequential_Index then
+         return Current_Error_Ref_No_Search (Tree, Stream, Terminal_Predicate, Nonterm_Predicate);
+      end if;
+
+      return Result : Stream_Error_Ref do
+         Terminal.Ref := (Stream, (Cur => Parse_Stream.Stack_Top), Element (Parse_Stream.Stack_Top).Node);
+         Tree.Last_Sequential_Terminal (Terminal, Stream);
+
+         if Terminal.Ref.Node.Sequential_Index <
+           (if Error_Node_Features.Deleted
+            then Error_Node_Features.Prev_Term_Seq_Index
+            else Error_Node_Features.Seq_Index)
+         then
+            --  Search Parse_Stream input.
+            El := Next (Parse_Stream.Stack_Top);
+            loop
+               exit when El = No_Element;
+               declare
+                  Term : constant Node_Access := Tree.First_Terminal (Element (El).Node);
+               begin
+                  exit when Term /= Invalid_Node_Access and then Term.Sequential_Index =
+                    (if Error_Node_Features.Deleted
+                     then Error_Node_Features.Prev_Term_Seq_Index
+                     else Error_Node_Features.Seq_Index);
+               end;
+               Next (El);
+            end loop;
+            if El /= No_Element then
+               Result.Ref.Ref := (Stream, (Cur => El), Element (El).Node);
+               if Result.Ref.Ref.Node.Label = Nonterm then
+                  Tree.First_Terminal (Result.Ref, Following => False);
+               end if;
+
+               if Error_Node_Features.Deleted then
+                  if Handle_Deleted (Result) then
+                     null;
+                  end if;
+               else
+                  Result.Error := Find_Match (Result.Ref.Ref.Node.Error_List, Terminal_Predicate);
+               end if;
+
+            else
+               --  Try Shared_Stream
+               Result.Ref.Ref :=
+                 (Stream  => Tree.Shared_Stream,
+                  Element => (Cur => Parse_Stream.Shared_Link),
+                  Node    => Element (Parse_Stream.Shared_Link).Node);
+
+               if Result.Ref.Ref.Node.Label = Nonterm and Error_Node_Features.Label in Terminal_Label then
+                  Tree.First_Terminal (Result.Ref, Following => False);
+               end if;
+
+               pragma Assert
+                 (Result.Ref.Ref.Node.Sequential_Index =
+                    (if Error_Node_Features.Deleted
+                     then Error_Node_Features.Prev_Term_Seq_Index
+                     else Error_Node_Features.Seq_Index));
+
+               if Error_Node_Features.Deleted then
+                  if Handle_Deleted (Result) then
+                     null;
+                  end if;
+               else
+                  Result.Error := Find_Match (Result.Ref.Ref.Node.Error_List, Terminal_Predicate);
+               end if;
+            end if;
+
+         else
+            --  Search Parse_Stream stack
+            El := Parse_Stream.Stack_Top;
+
+            Search_Stack :
+            loop
+               exit Search_Stack when El = No_Element;
+               Result.Ref :=
+                 (Ref     => (Stream, (Cur => El), Element (El).Node),
+                  Parents => Node_Stacks.Empty_Stack);
+
+               case Error_Node_Features.Label is
+               when Terminal_Label =>
+                  if Result.Ref.Ref.Node.Label = Nonterm then
+                     --  We start searching from First_Terminal because the error may be an
+                     --  In_Parse_Action_Error that was moved to the first terminal.
+                     --
+                     --  IMPROVEME: Error node can easily be the last terminal in Node;
+                     --  test_mckenzie_recover.adb Error_2. Descend tree, picking nonterm
+                     --  that contains target. That works for nonterm search as well.
+
+                     Tree.First_Sequential_Terminal (Result.Ref, Following => False);
+                     if Result.Ref.Ref.Node /= Invalid_Node_Access and then
+                       Result.Ref.Ref.Node.Sequential_Index <= Error_Node_Features.Seq_Index
+                     then
+                        Search_Nonterm :
+                        loop
+                           exit Search_Nonterm when Result.Ref.Ref.Node = Invalid_Node_Access;
+                           if Error_Node_Features.Deleted then
+                              if Handle_Deleted (Result) then
+                                 exit Search_Stack;
+                              end if;
+
+                           elsif Result.Ref.Ref.Node.Sequential_Index = Error_Node_Features.Seq_Index then
+                              Result.Error := Find_Match (Result.Ref.Ref.Node.Error_List, Terminal_Predicate);
+                              exit Search_Stack;
+                           end if;
+
+                           Tree.Next_Sequential_Terminal (Result.Ref, Following => False);
+                        end loop Search_Nonterm;
+                     end if;
+
+                  else -- Stack element is in Terminal_Label
+                     if Error_Node_Features.Deleted then
+                        if Handle_Deleted (Result) then
+                           exit Search_Stack;
+                        end if;
+
+                     elsif Result.Ref.Ref.Node.Sequential_Index = Error_Node_Features.Seq_Index then
+                        Result.Error := Find_Match (Result.Ref.Ref.Node.Error_List, Terminal_Predicate);
+                        exit Search_Stack;
+                     end if;
+                  end if;
+
+               when Nonterm =>
+                  pragma Assert (not Error_Node_Features.Deleted); -- nonterms can't be deleted.
+
+                  Terminal := Result.Ref;
+                  Tree.First_Sequential_Terminal (Terminal, Following => False);
+
+                  if Terminal.Ref.Node /= Invalid_Node_Access then
+                     if Terminal.Ref.Node.Sequential_Index = Error_Node_Features.Seq_Index then
+
+                        Result.Error := Find_Match
+                          (Element (Result.Ref.Ref.Element.Cur).Node.Error_List, Nonterm_Predicate);
+
+                        --
+                        exit Search_Stack;
+
+                     elsif Terminal.Ref.Node.Sequential_Index < Error_Node_Features.Seq_Index then
+                        --  Search this subtree. FIXME: combine with terminal search.
+                        raise SAL.Not_Implemented with "current_error_ref: FIXME: search subtree for nonterm";
+                     end if;
+                  end if;
+               end case;
+
+               El := Previous (El);
+               exit Search_Stack when El = No_Element;
+            end loop Search_Stack;
+         end if;
+
+         if Result.Error = Error_Data_Lists.No_Element then
+            raise SAL.Programmer_Error with "current_error_ref: no matching error found";
+         end if;
+      end return;
+   end Current_Error_Ref;
+
    function Current_Token
      (Tree   : in Syntax_Trees.Tree;
       Stream : in Stream_ID)
@@ -2502,10 +2775,11 @@ package body WisiToken.Syntax_Trees is
                     (if Tree.Parents_Set
                      then Error_Ref.Ref.Node.Parent
                      else Invalid_Node_Access),
-                  User_Data      => User_Data,
-                  Copy_Children  => False,
-                  New_Error_List => Edit_Error_List,
-                  Set_Error_List => True);
+                  User_Data              => User_Data,
+                  Copy_Children          => False,
+                  Copy_Following_Deleted => True,
+                  New_Error_List         => Edit_Error_List,
+                  Set_Error_List         => True);
             begin
                Move_Element (Tree, Stream, Error_Ref, New_Node, User_Data);
             end;
@@ -2692,6 +2966,11 @@ package body WisiToken.Syntax_Trees is
       end return;
    end Error_Count;
 
+   function Error_Deleted (Error : in Stream_Error_Ref) return Valid_Node_Access_Lists.Cursor
+   is begin
+      return Error.Deleted;
+   end Error_Deleted;
+
    function Error_Iterate
      (Tree : aliased in Syntax_Trees.Tree)
      return Error_Iterator_Interfaces.Forward_Iterator'Class
@@ -2812,7 +3091,7 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Error_Message;
 
-   function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Error_Ref) return Valid_Node_Access
+   function Error_Node (Error : in Error_Ref) return Valid_Node_Access
    is begin
       if Valid_Node_Access_Lists.Has_Element (Error.Deleted) then
          pragma Assert (Error.Node.Label = Source_Terminal);
@@ -2823,7 +3102,30 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Error_Node;
 
-   function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Stream_Error_Ref) return Stream_Node_Ref
+   function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Error_Ref) return Valid_Node_Access
+   is
+      pragma Unreferenced (Tree);
+   begin
+      return Error_Node (Error);
+   end Error_Node;
+
+   function Error_Node (Error : in Stream_Error_Ref) return Valid_Node_Access
+   is begin
+      return Error_Node
+        (Error_Ref'
+           (Node    => Error.Ref.Ref.Node,
+            Deleted => Error.Deleted,
+            Error   => Error.Error));
+   end Error_Node;
+
+   function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Stream_Error_Ref) return Valid_Node_Access
+   is
+      pragma Unreferenced (Tree);
+   begin
+      return Error_Node (Error);
+   end Error_Node;
+
+   function Error_Stream_Node_Ref (Tree : in Syntax_Trees.Tree; Error : in Stream_Error_Ref) return Stream_Node_Ref
    is begin
       return
         (Stream        => Error.Ref.Ref.Stream,
@@ -2833,7 +3135,7 @@ package body WisiToken.Syntax_Trees is
               (Node    => Error.Ref.Ref.Node,
                Deleted => Error.Deleted,
                Error   => Error.Error)));
-   end Error_Node;
+   end Error_Stream_Node_Ref;
 
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree)
    is begin
@@ -3196,6 +3498,26 @@ package body WisiToken.Syntax_Trees is
       return Found;
    end Find_Descendant;
 
+   function Find_Match
+     (Error_List : in Error_List_Access;
+      Predicate  : in Error_Predicate)
+     return Error_Data_Lists.Cursor
+   is
+      use Error_Data_Lists;
+   begin
+      if Error_List = null then
+         return No_Element;
+      else
+         return Result : Cursor := Error_List.First do
+            loop
+               exit when Result = No_Element;
+               exit when Predicate (Result);
+               Next (Result);
+            end loop;
+         end return;
+      end if;
+   end Find_Match;
+
    function Find_New_Line
      (Tree     : in     Syntax_Trees.Tree;
       Line     : in     Line_Number_Type;
@@ -3461,39 +3783,6 @@ package body WisiToken.Syntax_Trees is
          end if;
       end loop;
    end Find_New_Line;
-
-   function Find_Sequential_Index
-     (Tree         : in Syntax_Trees.Tree;
-      Seq_Index    : in Sequential_Index;
-      Start        : in Stream_Node_Parents;
-      Parse_Stream : in Stream_ID)
-     return Node_Access
-   is
-      Term : Stream_Node_Parents := Start;
-      Start_Seq_Index : constant Sequential_Index := Start.Ref.Node.Sequential_Index;
-   begin
-      if Seq_Index = Start_Seq_Index then
-         return Start.Ref.Node;
-      end if;
-
-      loop
-         if Term.Ref.Node.Sequential_Index = Invalid_Sequential_Index or else
-           ((Seq_Index > Start_Seq_Index and then Term.Ref.Node.Sequential_Index > Seq_Index) or
-              (Seq_Index < Start_Seq_Index and then Term.Ref.Node.Sequential_Index < Seq_Index))
-         then
-            return Invalid_Node_Access;
-
-         elsif Term.Ref.Node.Sequential_Index = Seq_Index then
-            return Term.Ref.Node;
-         end if;
-
-         if Seq_Index > Start_Seq_Index then
-            Tree.Next_Sequential_Terminal (Term);
-         else
-            Tree.Prev_Sequential_Terminal (Term, Parse_Stream);
-         end if;
-      end loop;
-   end Find_Sequential_Index;
 
    function Find_Sibling
      (Tree : in Syntax_Trees.Tree;
@@ -3877,7 +4166,7 @@ package body WisiToken.Syntax_Trees is
       if Following then
          loop
             exit when Ref.Ref.Node /= Invalid_Node_Access;
-            Next_Terminal (Tree, Ref);
+            Next_Terminal (Tree, Ref, Following);
             exit when not Has_Element (Ref.Ref.Element.Cur);
          end loop;
       end if;
@@ -3897,12 +4186,13 @@ package body WisiToken.Syntax_Trees is
          Result.Ref.Node := First_Terminal (Tree, Element (Result.Ref.Element.Cur).Node, Result.Parents);
          loop
             exit when Result.Ref.Node /= Invalid_Node_Access;
-            Next_Terminal (Tree, Result);
+            Next_Terminal (Tree, Result, Following => True);
             exit when not Has_Element (Result.Ref.Element.Cur);
          end loop;
       end return;
    end First_Terminal;
 
+   --  FIXME: alphabetize these.
    procedure First_Sequential_Terminal
      (Tree    : in     Syntax_Trees.Tree;
       Node    : in out Node_Access;
@@ -3965,22 +4255,23 @@ package body WisiToken.Syntax_Trees is
    is
       Ref_Parents : Stream_Node_Parents := (Ref, Parents => <>);
    begin
-      Tree.First_Sequential_Terminal (Ref_Parents);
+      Tree.First_Sequential_Terminal (Ref_Parents, Following => True);
       return Ref_Parents.Ref;
    end First_Sequential_Terminal;
 
    procedure First_Sequential_Terminal
-     (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Syntax_Trees.Stream_Node_Parents)
+     (Tree      : in     Syntax_Trees.Tree;
+      Ref       : in out Syntax_Trees.Stream_Node_Parents;
+      Following : in     Boolean := True)
    is begin
-      Tree.First_Terminal (Ref, Following => True);
+      Tree.First_Terminal (Ref, Following);
       loop
          exit when Ref.Ref = Invalid_Stream_Node_Ref;
 
          exit when Ref.Ref.Node /= Invalid_Node_Access and then
            Tree.Get_Sequential_Index (Ref.Ref.Node) /= Invalid_Sequential_Index;
 
-         Tree.Next_Terminal (Ref);
+         Tree.Next_Terminal (Ref, Following);
       end loop;
    end First_Sequential_Terminal;
 
@@ -4119,11 +4410,6 @@ package body WisiToken.Syntax_Trees is
          then Invalid_Sequential_Index
          else Node.Sequential_Index);
    end Get_Sequential_Index;
-
-   function Get_Stream_Node_Ref (Ref : in Stream_Error_Ref) return Stream_Node_Ref
-   is begin
-      return Ref.Ref.Ref;
-   end Get_Stream_Node_Ref;
 
    procedure Get_Terminals
      (Tree   : in     Syntax_Trees.Tree;
@@ -4484,6 +4770,14 @@ package body WisiToken.Syntax_Trees is
          end loop;
       end if;
    end Get_Tree;
+
+   function In_Tree
+     (Tree  : in Syntax_Trees.Tree;
+      Node  : in Valid_Node_Access)
+     return Boolean
+   is begin
+      return (for some N of Tree.Nodes => N = Node);
+   end In_Tree;
 
    function Has_Child
      (Tree  : in Syntax_Trees.Tree;
@@ -5950,7 +6244,7 @@ package body WisiToken.Syntax_Trees is
                return Invalid_Node_Access;
             end if;
          else
-            Next_Terminal (Tree, Ref);
+            Next_Terminal (Tree, Ref, Following => True);
             return Ref.Ref.Node;
          end if;
       end if;
@@ -6193,26 +6487,24 @@ package body WisiToken.Syntax_Trees is
    end Make_Rooted;
 
    type Augmented_In_Tree is new Base_Augmented with record I : Integer; end record;
-   In_Tree : constant Augmented_In_Tree := (Base_Augmented with 1);
+   Aug_In_Tree : constant Augmented_In_Tree := (Base_Augmented with 1);
 
    procedure Mark_In_Tree
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
       Data                : in out User_Data_Type'Class;
-      Node_Image_Output   : in out Boolean;
       Node_Error_Reported : in out Boolean)
    is
-      pragma Unreferenced (Node_Error_Reported);
-      pragma Unreferenced (Node_Image_Output);
+      pragma Unreferenced (Data, Tree, Node_Error_Reported);
    begin
       if Node.Augmented /= null then
          raise SAL.Programmer_Error with "Mark_In_Tree called with Augmented already set.";
       end if;
-      Node.Augmented := new Augmented_In_Tree'(In_Tree);
+      Node.Augmented := new Augmented_In_Tree'(Aug_In_Tree);
 
       if Node.Label = Source_Terminal then
          for N of Node.Following_Deleted loop
-            N.Augmented := new Augmented_In_Tree'(In_Tree);
+            N.Augmented := new Augmented_In_Tree'(Aug_In_Tree);
          end loop;
       end if;
    end Mark_In_Tree;
@@ -6243,9 +6535,10 @@ package body WisiToken.Syntax_Trees is
                        then New_Node
                        else Copy_Node
                          (Tree, Orig_Element_Node,
-                          Parent        => Invalid_Node_Access,
-                          User_Data     => User_Data,
-                          Copy_Children => False)),
+                          Parent                 => Invalid_Node_Access,
+                          User_Data              => User_Data,
+                          Copy_Children          => False,
+                          Copy_Following_Deleted => True)),
 
                     State => Unknown_State),
                  Before   => Stream_Element_Lists.Next (Parse_Stream.Stack_Top));
@@ -6669,7 +6962,7 @@ package body WisiToken.Syntax_Trees is
          return;
       end if;
       loop
-         Next_Terminal (Tree, Ref);
+         Next_Terminal (Tree, Ref, Following => True);
          exit when Ref.Ref.Node = Invalid_Node_Access;
          exit when Ref.Ref.Node.Non_Grammar.Length > 0;
       end loop;
@@ -6769,11 +7062,12 @@ package body WisiToken.Syntax_Trees is
    end Next_Sequential_Terminal;
 
    procedure Next_Sequential_Terminal
-     (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Syntax_Trees.Stream_Node_Parents)
+     (Tree      : in     Syntax_Trees.Tree;
+      Ref       : in out Syntax_Trees.Stream_Node_Parents;
+      Following : in     Boolean := True)
    is begin
       loop
-         Next_Terminal (Tree, Ref);
+         Next_Terminal (Tree, Ref, Following);
          exit when Ref.Ref.Node = Invalid_Node_Access;
          exit when Ref.Ref.Node.Sequential_Index /= Invalid_Sequential_Index;
       end loop;
@@ -6848,7 +7142,7 @@ package body WisiToken.Syntax_Trees is
       Trailing_Non_Grammar : in     Boolean)
    is begin
       loop
-         Next_Terminal (Tree, Ref);
+         Next_Terminal (Tree, Ref, Following => True);
          exit when Ref.Ref = Invalid_Stream_Node_Ref;
          exit when
            (if Trailing_Non_Grammar
@@ -7054,8 +7348,9 @@ package body WisiToken.Syntax_Trees is
    end Next_Terminal;
 
    procedure Next_Terminal
-     (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Stream_Node_Parents)
+     (Tree      : in     Syntax_Trees.Tree;
+      Ref       : in out Stream_Node_Parents;
+      Following : in     Boolean := True)
    is
       use Stream_Element_Lists;
    begin
@@ -7068,7 +7363,12 @@ package body WisiToken.Syntax_Trees is
            --  The previous loop reached the end of an element node.
 
          then
-            Stream_Next (Tree, Ref, Rooted => False);
+            if Following then
+               Stream_Next (Tree, Ref, Rooted => False);
+            else
+               Ref := Invalid_Stream_Node_Parents;
+               exit;
+            end if;
 
             exit when Ref.Ref.Element = Invalid_Stream_Index; -- end of stream
 
@@ -9153,7 +9453,7 @@ package body WisiToken.Syntax_Trees is
                Result.Ref.Node := Tree.First_Terminal (Element (Ref.Element.Cur).Node, Result.Parents);
                loop
                   exit when Result.Ref.Node = Ref.Node;
-                  Tree.Next_Terminal (Result);
+                  Tree.Next_Terminal (Result, Following => True);
                end loop;
             end;
          end if;
@@ -9199,12 +9499,16 @@ package body WisiToken.Syntax_Trees is
    procedure Update_Error
      (Tree      : in out Syntax_Trees.Tree;
       Stream    : in     Stream_ID;
-      Error_Ref : in out Stream_Node_Parents;
+      Error_Ref : in     Stream_Error_Ref;
       Data      : in     Error_Data'Class;
       User_Data : in     User_Data_Access_Constant)
-   is             use Error_Data_Lists;
-      New_Error_List : constant Error_List_Access := new List'(Error_Ref.Ref.Node.Error_List.all);
-      Cur : Cursor := New_Error_List.First;
+   is
+      use Error_Data_Lists;
+      Error_Node : constant Valid_Node_Access := Syntax_Trees.Error_Node (Error_Ref);
+
+      New_Error_List : constant Error_List_Access := new List'(Error_Node.Error_List.all);
+      Cur            : Cursor                     := New_Error_List.First;
+      Moved_Ref      : Stream_Node_Parents        := Error_Ref.Ref;
    begin
       loop
          exit when Dispatch_Equal (Data, New_Error_List (Cur));
@@ -9213,19 +9517,65 @@ package body WisiToken.Syntax_Trees is
 
       New_Error_List (Cur) := Data;
 
-      Move_Element
-        (Tree, Stream, Error_Ref,
-         New_Node => Copy_Node
-           (Tree, Error_Ref.Ref.Node,
-            Parent =>
-              (if Tree.Parents_Set
-               then Error_Ref.Ref.Node.Parent
-               else Invalid_Node_Access),
-            Copy_Children  => False,
-            New_Error_List => New_Error_List,
-            Set_Error_List => True,
-            User_Data => User_Data),
-         User_Data => User_Data);
+      if Error_Ref.Deleted /= Valid_Node_Access_Lists.No_Element then
+         declare
+            Old_Following_Deleted : Valid_Node_Access_Lists.List renames Error_Ref.Ref.Ref.Node.Following_Deleted;
+
+            pragma Assert (Error_Node.Following_Deleted.Length = 0);
+
+            New_Error_Node : constant Valid_Node_Access := Copy_Node
+              (Tree, Error_Node,
+               Parent                 => Invalid_Node_Access,
+               Copy_Children          => False,
+               Copy_Following_Deleted => False,
+               User_Data              => User_Data,
+               New_Error_List         => New_Error_List,
+               Set_Error_List         => True);
+
+         begin
+
+            Move_Element
+              (Tree, Stream, Moved_Ref,
+               New_Node => Copy_Node
+                 (Tree, Error_Ref.Ref.Ref.Node,
+                  Parent =>
+                    (if Tree.Parents_Set
+                     then Error_Ref.Ref.Ref.Node.Parent
+                     else Invalid_Node_Access),
+                  Copy_Children          => False,
+                  Copy_Following_Deleted => False,
+                  User_Data              => User_Data),
+               User_Data                 => User_Data);
+
+            for Cur in Old_Following_Deleted.Iterate loop
+               Moved_Ref.Ref.Node.Following_Deleted.Append
+                 ((if Cur = Error_Ref.Deleted
+                   then New_Error_Node
+                   else Copy_Node
+                     (Tree, Old_Following_Deleted (Cur),
+                      Parent                 => Moved_Ref.Ref.Node,
+                      User_Data              => User_Data,
+                      Copy_Children          => False,
+                      Copy_Following_Deleted => False)));
+            end loop;
+         end;
+
+      else
+         Move_Element
+           (Tree, Stream, Moved_Ref,
+            New_Node => Copy_Node
+              (Tree, Error_Ref.Ref.Ref.Node,
+               Parent =>
+                 (if Tree.Parents_Set
+                  then Error_Ref.Ref.Ref.Node.Parent
+                  else Invalid_Node_Access),
+               Copy_Children          => False,
+               Copy_Following_Deleted => True,
+               New_Error_List         => New_Error_List,
+               Set_Error_List         => True,
+               User_Data              => User_Data),
+            User_Data                 => User_Data);
+      end if;
    end Update_Error;
 
    function Valid_Root (Tree : in Syntax_Trees.Tree) return Boolean
@@ -9269,10 +9619,8 @@ package body WisiToken.Syntax_Trees is
 
          procedure Put_Error (Msg : in String)
          is begin
-            if Error_Reported.Contains (Node) then
-               return;
-            end if;
-
+            --  Tell the caller that some error happened, even if not
+            --  Node_Index_Order.
             Error_Reported.Insert (Node);
 
             if not Node_Image_Output then
@@ -9282,6 +9630,7 @@ package body WisiToken.Syntax_Trees is
                      Image (Tree, Node,
                             Children     => False,
                             Node_Numbers => True)));
+
                Node_Image_Output := True;
             end if;
 
@@ -9289,12 +9638,36 @@ package body WisiToken.Syntax_Trees is
          end Put_Error;
 
       begin
+         --  Node_Index checked in Nonterm below; no check needed for
+         --  Source_Terminal since that is set by lexer. Node_Index on Virtual
+         --  terminals not checked.
+
          if Node = Real_Root then
             if Node.Parent /= null then
                Put_Error ("root parent set expecting null");
             end if;
          elsif Node.Parent = null then
             Put_Error ("parent null expecting set");
+            --  Node in Parent.Children checked below.
+         end if;
+
+         --  Augmented handled by Validate_Node below.
+
+         if Node.Error_List /= null then
+            for Err of Node.Error_List.all loop
+               declare
+                  Node_Error_Reported : Boolean :=
+                    (if Node_Index_Order
+                     then Error_Reported.Contains (Node)
+                     else False);
+               begin
+                  Validate_Error (Err, Tree, Node, Node_Error_Reported);
+                  if Node_Error_Reported then
+                     Error_Reported.Insert (Node);
+                     Node_Image_Output := True;
+                  end if;
+               end;
+            end loop;
          end if;
 
          case Node.Label is
@@ -9312,6 +9685,34 @@ package body WisiToken.Syntax_Trees is
                else
                   Last_Source_Terminal_Pos := Node.Byte_Region.Last;
                end if;
+
+               for Deleted of Node.Following_Deleted loop
+                  if Deleted.Parent /= Node then
+                     Put_Error ("deleted.parent wrong");
+                  end if;
+                  if not Tree.In_Tree (Deleted) then
+                     Put_Error ("deleted not in tree");
+                  end if;
+                  if Deleted.Error_List /= null then
+                     for Err of Node.Error_List.all loop
+                        declare
+                           Node_Error_Reported : Boolean :=
+                             (if Node_Index_Order
+                              then Error_Reported.Contains (Node)
+                              else False);
+                        begin
+                           Validate_Error (Err, Tree, Node, Node_Error_Reported);
+                           if Node_Error_Reported then
+                              Error_Reported.Insert (Node);
+                              Node_Image_Output := True;
+                           end if;
+                        end;
+                     end loop;
+                  end if;
+                  if Deleted.Following_Deleted.Length > 0 then
+                     Put_Error ("deleted has following_deleted");
+                  end if;
+               end loop;
 
             when Virtual_Terminal | Virtual_Identifier =>
                if Node.Non_Grammar.Length > 0 then
@@ -9348,11 +9749,15 @@ package body WisiToken.Syntax_Trees is
 
          if Validate_Node /= null then
             declare
-               Node_Error_Reported : Boolean := Error_Reported.Contains (Node);
+               Node_Error_Reported : Boolean :=
+                 (if Node_Index_Order
+                  then Error_Reported.Contains (Node)
+                  else False);
             begin
-               Validate_Node (Tree, Node, User_Data, Node_Image_Output, Node_Error_Reported);
-               if Node_Error_Reported and then not Error_Reported.Contains (Node) then
+               Validate_Node (Tree, Node, User_Data, Node_Error_Reported);
+               if Node_Error_Reported then
                   Error_Reported.Insert (Node);
+                  Node_Image_Output := True;
                end if;
             end;
          end if;
@@ -9420,7 +9825,7 @@ package body WisiToken.Syntax_Trees is
                if Terminal.Ref.Node.Sequential_Index /= Invalid_Sequential_Index then
                   raise SAL.Programmer_Error with "sequential_index not cleared: " & Tree.Image (Terminal.Ref);
                end if;
-               Tree.Next_Terminal (Terminal);
+               Tree.Next_Terminal (Terminal, Following => True);
                exit when Terminal.Ref = Invalid_Stream_Node_Ref;
             end loop;
          end;

@@ -21,22 +21,6 @@ pragma License (Modified_GPL);
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Image_Aux;
 package body WisiToken.Parse.LR.Parser_Lists is
 
-   --  Body subprograms, alphabetical
-
-   function Get_List_Cursor
-     (List  : in Syntax_Trees.Error_Data_Lists.List;
-      Index : in SAL.Base_Peek_Type)
-     return Syntax_Trees.Error_Data_Lists.Cursor
-   is
-      use Syntax_Trees.Error_Data_Lists;
-   begin
-      return Result : Syntax_Trees.Error_Data_Lists.Cursor := List.First do
-         for I in 1 .. Index loop
-            Next (Result);
-         end loop;
-      end return;
-   end Get_List_Cursor;
-
    ----------
    --  Spec public subprogams, declaration order.
 
@@ -73,199 +57,252 @@ package body WisiToken.Parse.LR.Parser_Lists is
       return To_String (Result & ")");
    end Parser_Stack_Image;
 
-   function Constant_Ref (Ref : in Recover_Op_Ref) return Recover_Op_Nodes_Arrays.Constant_Reference_Type
-   is
-      Ops : Recover_Op_Nodes_Arrays.Vector renames Recover_Op_Array_Const_Ref_From_Cursor (Ref.Err_Cur);
-   begin
-      return Ops.Constant_Ref (Ref.Op_Index);
-   end Constant_Ref;
-
-   procedure Next_Op (Ref : in out Recover_Op_Ref)
+   function Recover_Image (Item : in Syntax_Trees.Valid_Node_Access; Tree : in Syntax_Trees.Tree) return String
    is begin
-      if Ref.Op_Index < Recover_Op_Array_Const_Ref_From_Cursor (Item => Ref.Err_Cur).Last_Index then
-         Ref.Op_Index := @ + 1;
-      else
-         Ref := No_Element;
-      end if;
-   end Next_Op;
-
-   function Recover_Image (Item : in Syntax_Trees.Stream_Node_Ref; Tree : in Syntax_Trees.Tree) return String
-   is begin
-      return Recover_Image (Tree.Error_List (Item.Node), Tree);
+      return Recover_Image (Tree.Error_List (Item), Tree);
    end Recover_Image;
 
    function Recover_Image
      (Parser_State : in out Parser_Lists.Parser_State;
       Tree         : in     Syntax_Trees.Tree;
-      First        : in     Recover_Op_Ref := No_Element)
+      Current_Only : in     Boolean := False)
      return String
    is
       use Ada.Strings.Unbounded;
-      Ref : constant Recover_Op_Ref := First;
+      use Syntax_Trees;
+
+      function Recover_Image is new Valid_Node_Access_Lists.Gen_Image_Aux (Syntax_Trees.Tree, Recover_Image);
+
    begin
-      if First = No_Element then
-         declare
-            function Recover_Image is new Stream_Node_Ref_Lists.Gen_Image_Aux (Syntax_Trees.Tree, Recover_Image);
-         begin
+      if not Current_Only then
+         if Parser_State.Current_Recover_Op = No_Insert_Delete then
             return Recover_Image (Parser_State.Recover_Insert_Delete, Tree);
-         end;
+         else
+            declare
+               List : Valid_Node_Access_Lists.List := Parser_State.Recover_Insert_Delete;
+            begin
+               List.Append (Error_Node (Parser_State.Current_Error_Ref (Tree)));
+               return Recover_Image (List, Tree);
+            end;
+         end if;
       end if;
 
-      --  First is always in the last error, which is the active error.
       declare
          Result : Unbounded_String := +"(";
-         Ops : Recover_Op_Nodes_Arrays.Vector renames Recover_Op_Array_Const_Ref_From_Cursor (Ref.Err_Cur);
+         Ops : Recover_Op_Nodes_Arrays.Vector renames Recover_Op_Array_Const_Ref
+           (Error (Parser_State.Current_Error_Ref (Tree)));
       begin
-         for I in Ref.Op_Index .. Ops.Last_Index loop
-            Append (Result, Image (Ops (I), Tree));
-         end loop;
+         if Parser_State.Current_Recover_Op /= No_Insert_Delete then
+            for I in Parser_State.Current_Recover_Op .. Ops.Last_Index loop
+               Append (Result, Image (Ops (I), Tree));
+            end loop;
+         end if;
          return -Result & ")";
       end;
    end Recover_Image;
 
-   function Last_Recover_Insert_Delete
-     (Parser_State : in out Parser_Lists.Parser_State;
-      Tree         : in     Syntax_Trees.Tree)
-     return Recover_Op_Ref
-   is
-      use all type Ada.Containers.Count_Type;
-   begin
-      if Parser_State.Recover_Insert_Delete.Length = 0 then
-         return No_Element;
-      end if;
+   function Current_Recover_Op (Parser_State : in Parser_Lists.Parser_State) return SAL.Base_Peek_Type
+   is begin
+      return Parser_State.Current_Recover_Op;
+   end Current_Recover_Op;
 
-      return Result      : Recover_Op_Ref do
-         Result.Ref_Cur  := Parser_State.Recover_Insert_Delete.Last;
-         Result.Err_Cur  := Tree.Error_List (Parser_State.Recover_Insert_Delete (Result.Ref_Cur).Node).Last;
-         Result.Op_Index := 1;
-      end return;
-   end Last_Recover_Insert_Delete;
-
-   procedure Next_Recover_Op_Ref
+   procedure Set_Current_Error_Features
      (Parser_State : in out Parser_Lists.Parser_State;
       Tree         : in     Syntax_Trees.Tree)
    is begin
-      Next_Recover_Op_Ref (Parser_State, Tree, Parser_State.Recover_Insert_Delete_Current);
-   end Next_Recover_Op_Ref;
+      Parser_State.Current_Error_Features := (others => <>);
 
-   procedure Next_Recover_Op_Ref
-     (Parser_State : in out Parser_Lists.Parser_State;
-      Tree         : in     Syntax_Trees.Tree;
-      Ref          : in out Recover_Op_Ref)
-   is
-      use Syntax_Trees;
-      use all type Stream_Node_Ref_Lists.Cursor;
-      use all type Error_Data_Lists.Cursor;
-
-      procedure First_Error
-      is
-         Error_List : Error_Data_Lists.List renames Tree.Error_List
-           (Parser_State.Recover_Insert_Delete (Ref.Ref_Cur).Node);
+      declare
+         Error_Ref  : constant Syntax_Trees.Stream_Error_Ref  := Parser_State.Current_Error_Ref (Tree);
+         Error_Node : constant Syntax_Trees.Valid_Node_Access := Tree.Error_Node (Error_Ref);
+         Error      : Syntax_Trees.Error_Data'Class renames Syntax_Trees.Error (Error_Ref);
       begin
-         Ref.Err_Cur := Error_List.First;
+         Parser_State.Current_Error_Features :=
+           (Label => Tree.Label (Error_Node),
+            Seq_Index =>
+              (case Tree.Label (Error_Node) is
+               when Syntax_Trees.Terminal_Label => Tree.Get_Sequential_Index (Error_Node),
+               when Syntax_Trees.Nonterm => Tree.Get_Sequential_Index (Tree.First_Terminal (Error_Node))),
+            Terminal_Predicate =>
+              (if Error in Parse_Error
+               then Error_Pred_Parse'Access
+               elsif Error in In_Parse_Action_Error
+               then null
+               elsif Error in Error_Message
+               then Error_Pred_Message'Access
+              else raise SAL.Programmer_Error),
+            Deleted                      => False,
+            Prev_Term_Seq_Index          => Syntax_Trees.Invalid_Sequential_Index);
+      end;
+   end Set_Current_Error_Features;
 
-         if Error_Data_Lists.Constant_Ref (Ref.Err_Cur) in Lexer_Error then
-            Error_Data_Lists.Next (Ref.Err_Cur);
-            --  There can be only one lexer error per node.
-         end if;
-
-         if Ref.Err_Cur /= Error_List.Last then
-            raise SAL.Programmer_Error with "parser_lists: more than one error on a node";
-         end if;
-         Ref.Op_Index := 1;
-      end First_Error;
-
-   begin
-      if Ref.Ref_Cur = Stream_Node_Ref_Lists.No_Element then
-         Ref.Ref_Cur := Parser_State.Recover_Insert_Delete.First;
-         First_Error;
-
-      else
-         if Ref.Op_Index < Recover_Op_Array_Const_Ref_From_Cursor (Ref.Err_Cur).Last_Index then
-            Ref.Op_Index := @ + 1;
-
-         else
-            Error_Data_Lists.Next (Ref.Err_Cur);
-            if Error_Data_Lists.Has_Element (Ref.Err_Cur) then
-               pragma Assert (not (Error_Data_Lists.Constant_Ref (Ref.Err_Cur) in Lexer_Error));
-               Ref.Op_Index := 1;
-
-            else
-               Stream_Node_Ref_Lists.Next (Ref.Ref_Cur);
-               if Stream_Node_Ref_Lists.Has_Element (Ref.Ref_Cur) then
-                  First_Error;
-               else
-                  Ref.Op_Index := 0;
-               end if;
-            end if;
-         end if;
-      end if;
-   end Next_Recover_Op_Ref;
-
-   procedure Recover_Op_Ref_Update
-     (Parser_State    : in out Parser_Lists.Parser_State;
-      Tree            : in out Syntax_Trees.Tree;
-      Error           : in     Syntax_Trees.Error_Data'Class;
-      User_Data       : in     Syntax_Trees.User_Data_Access_Constant)
-   is
-      use all type Stream_Node_Ref_Lists.Cursor;
-
-      Update_Current : constant Boolean :=
-        Parser_State.Recover_Insert_Delete_Current.Ref_Cur = Parser_State.Recover_Insert_Delete.Last;
-
-      Ref_Parents : Syntax_Trees.Stream_Node_Parents := Tree.To_Stream_Node_Parents
-        (Parser_State.Recover_Insert_Delete (Parser_State.Recover_Insert_Delete.Last));
-
-      --  FIXME: this assumes there is only one parse or in_parse_action
-      --  error on the error node, after any lexer error.
-      Err_Cur_Index : constant SAL.Base_Peek_Type := Tree.Error_List (Ref_Parents.Ref.Node).Length;
-   begin
-      Tree.Update_Error (Parser_State.Stream, Ref_Parents, Error, User_Data);
-      Parser_State.Recover_Insert_Delete (Parser_State.Recover_Insert_Delete.Last) := Ref_Parents.Ref;
-
-      if Update_Current then
-         Parser_State.Recover_Insert_Delete_Current.Err_Cur := Get_List_Cursor
-           (Tree.Error_List (Ref_Parents.Ref.Node), Err_Cur_Index);
-      end if;
-   end Recover_Op_Ref_Update;
-
-   function Current_Insert_Delete_Error
-     (Parser_State : in Parser_Lists.Parser_State)
-     return Syntax_Trees.Error_Data'Class
+   procedure Clear_Current_Error_Features
+     (Parser_State : in out Parser_Lists.Parser_State)
    is begin
-      return Syntax_Trees.Error_Data_Lists.Element (Parser_State.Recover_Insert_Delete_Current.Err_Cur);
-   end Current_Insert_Delete_Error;
+      Parser_State.Current_Error_Features := (others => <>);
+   end Clear_Current_Error_Features;
 
-   function Current_Insert_Delete_Op_Index
-     (Parser_State : in Parser_Lists.Parser_State)
-     return SAL.Base_Peek_Type
-   is begin
-      return Parser_State.Recover_Insert_Delete_Current.Op_Index;
-   end Current_Insert_Delete_Op_Index;
-
-   function Current_Error_Node
+   function Current_Error_Ref
      (Parser_State : in Parser_Lists.Parser_State;
       Tree         : in Syntax_Trees.Tree)
-     return Syntax_Trees.Stream_Node_Parents
+     return Syntax_Trees.Stream_Error_Ref
    is begin
-      return Ref : Syntax_Trees.Stream_Node_Parents := Tree.To_Stream_Node_Parents
-        (Tree.Current_Token (Parser_State.Stream))
-      do
-         if Tree.Has_Error (Ref.Ref.Node) then
-            null;
-         else
-            --  Error on shifting a nonterm. test_incremental.adb Lexer_Errors_1.
+      return Tree.Current_Error_Ref
+        (Parser_State.Stream,
+         Terminal_Predicate  =>
+           (if Parser_State.Current_Error_Features.Seq_Index = Syntax_Trees.Invalid_Sequential_Index
+            then Error_Pred_Parse_Message'Access
+            else Parser_State.Current_Error_Features.Terminal_Predicate),
+         Nonterm_Predicate   => Error_Pred_In_Parse_Action'Access,
+         Error_Node_Features => Parser_State.Current_Error_Features);
+   end Current_Error_Ref;
+
+   procedure Do_Delete
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in out Syntax_Trees.Tree;
+      Op           : in out Delete_Op_Nodes;
+      User_Data    : in     Syntax_Trees.User_Data_Access_Constant)
+   is
+      use Syntax_Trees;
+      Error_Node : constant Valid_Node_Access := Syntax_Trees.Error_Node (Parser_State.Current_Error_Ref (Tree));
+
+      --  We don't want a deleted node as Op.Del_After_Node;
+      --  ada_mode-recover_extra_end_loop.adb deletes "end loop ;". So we
+      --  don't use 'Tree.Prev_Terminal (Terminal, Parser_State.Stream);'.
+      --  The previous terminal is on the parse stack.
+      Prev_Terminal : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+        (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Peek (Parser_State.Stream)));
+   begin
+      Tree.Last_Terminal (Prev_Terminal, Parser_State.Stream);
+
+      if Tree.Label (Prev_Terminal.Ref.Node) /= Source_Terminal then
+         Tree.Prev_Source_Terminal
+           (Prev_Terminal, Parser_State.Stream, Trailing_Non_Grammar => False);
+      end if;
+
+      loop
+         --  Delete empty nonterms, breakdown non-empty nonterms, delete next terminal.
+         declare
+            Current_Token : Stream_Node_Ref := Tree.Current_Token (Parser_State.Stream);
+         begin
+            case Tree.Label (Current_Token.Node) is
+            when Terminal_Label =>
+               pragma Assert (Op.Del_Index = Tree.Get_Sequential_Index (Current_Token.Node));
+
+               if Current_Token.Node = Error_Node then
+                  Parser_State.Current_Error_Features.Deleted := True;
+                  Parser_State.Current_Error_Features.Prev_Term_Seq_Index := Tree.Get_Sequential_Index
+                    (Prev_Terminal.Ref.Node);
+               end if;
+
+               Tree.Add_Deleted
+                 (Deleted_Node  => Current_Token.Node,
+                  Prev_Terminal => Prev_Terminal,
+                  User_Data     => User_Data);
+
+               Op.Del_Node := Current_Token.Node;
+
+               Current_Token := Invalid_Stream_Node_Ref; -- allow delete Current_Token.Element
+               Tree.Delete_Current_Token (Parser_State.Stream);
+               exit;
+
+            when Nonterm =>
+               if Tree.Is_Empty_Nonterm (Current_Token.Node) then
+                  --  Delete an empty nonterm preceding the target terminal.
+                  --  test_mckenzie_recover.adb Missing_Name_2
+
+                  Current_Token := Invalid_Stream_Node_Ref; -- allow delete Current_Token.Element
+
+                  Tree.Delete_Current_Token (Parser_State.Stream);
+               else
+                  --  Error recover only supports Delete for terminals.
+                  --  test_mckenzie_recover.adb String_Quote_1 case 3
+                  if Current_Token.Stream /= Parser_State.Stream then
+                     Tree.Move_Shared_To_Input (Parser_State.Stream);
+                     Current_Token := Tree.Current_Token (Parser_State.Stream);
+                  end if;
+
+                  Tree.Left_Breakdown (Current_Token, User_Data);
+               end if;
+            end case;
+         end;
+      end loop;
+   end Do_Delete;
+
+   procedure Undo_Reduce
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in out Syntax_Trees.Tree;
+      Table        : in     Parse_Table;
+      User_Data    : in     Syntax_Trees.User_Data_Access_Constant)
+   is
+      use Syntax_Trees;
+   begin
+      if Tree.Has_Error (Tree.Get_Node (Parser_State.Stream, Tree.Peek (Parser_State.Stream))) then
+         --  Move the errors to the first terminal, so they are not lost.
+         declare
+            Current_Error_Ref : constant Stream_Error_Ref := Parser_State.Current_Error_Ref (Tree);
+            Current_Error_Node : constant Valid_Node_Access := Syntax_Trees.Error_Node
+              (Current_Error_Ref);
+
+            Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+              (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Peek (Parser_State.Stream)));
+
+            Nonterm    : constant Valid_Node_Access := Ref.Ref.Node;
+            New_Errors : Error_Data_Lists.List;
+         begin
+            for Err of Tree.Error_List (Ref.Ref.Node) loop
+               New_Errors.Append (To_Message (Err, Tree, Ref.Ref.Node));
+            end loop;
+
             Tree.First_Terminal (Ref, Following => False);
-            if Ref.Ref.Node /= Syntax_Trees.Invalid_Node_Access and then Tree.Has_Error (Ref.Ref.Node) then
-               null;
-            else
-               Ref := Tree.To_Stream_Node_Parents
-                 (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Peek (Parser_State.Stream)));
-               pragma Assert (Tree.Has_Error (Ref.Ref.Node));
+            if Ref.Ref.Node = Invalid_Node_Access then
+               --  So far, we never put an error on an empty nonterm; we just delete
+               --  it.
+               raise SAL.Programmer_Error with "undo_reduce error on empty nonterm";
             end if;
-         end if;
-      end return;
-   end Current_Error_Node;
+            Tree.Add_Errors (Ref, New_Errors, User_Data);
+
+            if Nonterm = Current_Error_Node then
+               Parser_State.Current_Error_Features.Label              := Tree.Label (Ref.Ref.Node);
+               Parser_State.Current_Error_Features.Seq_Index          := Tree.Get_Sequential_Index (Ref.Ref.Node);
+               Parser_State.Current_Error_Features.Terminal_Predicate := Error_Pred_Message'Access;
+            end if;
+         end;
+      end if;
+
+      declare
+         Nonterm    : constant Node_Access := Tree.Pop (Parser_State.Stream);
+         Prev_State : State_Index          := Tree.State (Parser_State.Stream);
+      begin
+         for Child of Tree.Children (Nonterm) loop
+            Tree.Clear_Parent (Child, Clear_Children => Parser_State.Stream = Tree.Shared_Stream);
+
+            if Is_Terminal (Tree.ID (Child), Tree.Lexer.Descriptor.all) then
+               Prev_State := Shift_State (Action_For (Table, Prev_State, Tree.ID (Child)));
+            else
+               Prev_State := Goto_For (Table, Prev_State, Tree.ID (Child));
+            end if;
+            Tree.Push (Parser_State.Stream, Child, Prev_State);
+         end loop;
+      end;
+   end Undo_Reduce;
+
+   procedure Next_Recover_Op
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in     Syntax_Trees.Tree)
+   is
+      Error_Ref : constant Syntax_Trees.Stream_Error_Ref := Parser_State.Current_Error_Ref (Tree);
+      Error     : Syntax_Trees.Error_Data'Class renames Syntax_Trees.Error (Error_Ref);
+      Ops       : Recover_Op_Nodes_Arrays.Vector renames Recover_Op_Array_Const_Ref (Error);
+   begin
+      if Parser_State.Current_Recover_Op < Ops.Last_Index then
+         Parser_State.Current_Recover_Op := @ + 1;
+
+      else
+         Parser_State.Current_Recover_Op := No_Insert_Delete;
+         Parser_State.Recover_Insert_Delete.Append (Syntax_Trees.Error_Node (Error_Ref));
+      end if;
+   end Next_Recover_Op;
 
    function Peek_Current_Sequential_Terminal
      (Parser_State : in Parser_Lists.Parser_State;
@@ -525,22 +562,23 @@ package body WisiToken.Parse.LR.Parser_Lists is
          --  override a few, to avoid copying large items like Recover.
          --  We copy Recover.Enqueue_Count, Check_Count for test_mckenzie_recover.adb.
          New_Item :=
-           (Recover_Insert_Delete         => Item.Recover_Insert_Delete,
-            Recover_Insert_Delete_Current => Item.Recover_Insert_Delete_Current,
-            Recover                 =>
-              (Enqueue_Count        => Item.Recover.Enqueue_Count,
-               Check_Count          => Item.Recover.Check_Count,
-               others               => <>),
-            Total_Recover_Cost      => Item.Total_Recover_Cost,
-            Max_Recover_Ops_Length  => Item.Max_Recover_Ops_Length,
-            Error_Count             => Item.Error_Count,
-            Resume_Active           => Item.Resume_Active,
-            Resume_Token_Goal       => Item.Resume_Token_Goal,
-            Conflict_During_Resume  => Item.Conflict_During_Resume,
-            Zombie_Token_Count      => 0,
-            Last_Action             => Item.Last_Action,
-            Stream                  => Tree.New_Stream (Item.Stream),
-            Verb                    => Item.Verb);
+           (Recover                =>
+              (Enqueue_Count       => Item.Recover.Enqueue_Count,
+               Check_Count         => Item.Recover.Check_Count,
+               others              => <>),
+            Recover_Insert_Delete  => Item.Recover_Insert_Delete,
+            Total_Recover_Cost     => Item.Total_Recover_Cost,
+            Max_Recover_Ops_Length => Item.Max_Recover_Ops_Length,
+            Error_Count            => Item.Error_Count,
+            Resume_Active          => Item.Resume_Active,
+            Resume_Token_Goal      => Item.Resume_Token_Goal,
+            Conflict_During_Resume => Item.Conflict_During_Resume,
+            Zombie_Token_Count     => 0,
+            Last_Action            => Item.Last_Action,
+            Current_Recover_Op     => Item.Current_Recover_Op,
+            Current_Error_Features => Item.Current_Error_Features,
+            Stream                 => Tree.New_Stream (Item.Stream),
+            Verb                   => Item.Verb);
       end;
 
       List.Elements.Prepend (New_Item);
@@ -625,9 +663,8 @@ package body WisiToken.Parse.LR.Parser_Lists is
 
    procedure Clear_Stream (State : in out Parser_State)
    is begin
-      State.Stream := WisiToken.Syntax_Trees.Invalid_Stream_ID;
+      State.Stream := Syntax_Trees.Invalid_Stream_ID;
       State.Recover_Insert_Delete.Clear;
-      State.Recover_Insert_Delete_Current := No_Element;
    end Clear_Stream;
 
    function Verb (State : in Parser_State) return All_Parse_Action_Verbs

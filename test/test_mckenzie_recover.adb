@@ -188,7 +188,7 @@ package body Test_McKenzie_Recover is
             Error_Node : constant Valid_Node_Access :=
               (if Parser.Tree.Parents_Set
                then Parser.Tree.Error_Node (Error_Ref)
-               else Parser.Tree.Error_Node (Stream_Error_Ref).Node);
+               else Parser.Tree.Error_Node (Stream_Error_Ref));
 
             Error_Classwide : constant Error_Data'Class :=
               (if Parser.Tree.Parents_Set

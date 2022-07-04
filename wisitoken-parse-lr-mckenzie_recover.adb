@@ -79,8 +79,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Tree       : Syntax_Trees.Tree renames Shared_Parser.Tree;
       Trace      : WisiToken.Trace'Class renames Tree.Lexer.Trace.all;
       Config     : Configuration;
-      Error_Node : constant Syntax_Trees.Valid_Node_Access := Parser_State.Current_Error_Node (Tree).Ref.Node;
-      Error      : constant Syntax_Trees.Error_Data'Class  := Find_Parse_In_Parse_Action_Error (Tree, Error_Node);
+      Error_Ref  : constant Syntax_Trees.Stream_Error_Ref  := Parser_State.Current_Error_Ref (Tree);
+      Error      : constant Syntax_Trees.Error_Data'Class  := Syntax_Trees.Error (Error_Ref);
+      Error_Node : constant Syntax_Trees.Valid_Node_Access := Syntax_Trees.Error_Node (Error_Ref);
    begin
       Parser_State.Recover.Enqueue_Count := @ + 1;
 
@@ -346,14 +347,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Stack  : Stream_ID renames Parser_State.Stream;
                      Result : Configuration renames Parser_State.Recover.Results.Peek;
 
-                     Error_Ref  : constant Stream_Node_Parents := Parser_State.Current_Error_Node (Tree);
-                     Error_Node : constant Valid_Node_Access   := Error_Ref.Ref.Node;
+                     --  We have to use Tree.Update_Error to set components of the current
+                     --  error, because different parsers can set different data in the
+                     --  same error. We can't save a copy of the current error, because
+                     --  Undo_Reduce changes an In_Parse_Action_Error to a Message_Error.
+                     --  We keep a local recover_op_nodes here to accumulate ops until
+                     --  we've applied all of Result.Ops, to avoid copying the error node
+                     --  for each op.
+                     Error_Recover_Ops : Recover_Op_Nodes_Arrays.Vector := To_Recover_Op_Nodes (Result.Ops);
+                     --  WORKAROUND: GNAT Community 2021 is confused about this being constant
+                     pragma Warnings (Off, Error_Recover_Ops);
 
-                     --  We have to use Tree.Update_Error to set components of Err, because
-                     --  different parsers can set different data in the same error.
-                     Err      : Error_Data'Class   := Find_Parse_In_Parse_Action_Error (Tree, Error_Node);
                      Op_Index : SAL.Base_Peek_Type := No_Insert_Delete;
-                     --  Current op in Err.Recover_Ops, for setting Ins_Node, Del_Node.
+                     --  Current op in Error_Recover_Ops, for setting Ins_Node, Del_Node.
 
                      Insert_Delete_Inc : Natural := 0;
                      --  Number of Insert/Delete ops performed here.
@@ -361,9 +367,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Insert_Delete_Matches_Ops : Boolean := True;
                      --  True if all insert/delete ops are performed here;
                      --  Parser_State.Recover_Insert_Delete_Current is left at No_Element.
-
-                     Prev_Insert_Delete_Current : constant Recover_Op_Ref :=
-                       Parser_State.Last_Recover_Insert_Delete (Tree);
 
                      Stack_Matches_Ops : Boolean := True;
                      First_Insert      : Boolean := True;
@@ -378,17 +381,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      --  The verb will be reset by the main parser; just indicate the
                      --  parser recovered from the error.
                      Parser_State.Set_Verb (Shift);
-                     Parser_State.Recover_Insert_Delete.Append (Error_Ref.Ref);
+                     Parser_State.Set_Current_Error_Features (Tree);
 
-                     Recover_Op_Array_Var_Ref (Err) := To_Recover_Op_Nodes (Result.Ops);
-
-                     if Test_McKenzie_Recover then
-                        Recover_Test_Var_Ref (Err) := new Recover_Test_Info'
-                          (Ops           => Result.Ops,
-                           Cost          => Result.Cost,
-                           Enqueue_Count => Parser_State.Recover.Enqueue_Count,
-                           Check_Count   => Parser_State.Recover.Check_Count);
-                     end if;
+                     pragma Assert (Parser_State.Current_Recover_Op = No_Insert_Delete);
 
                      Parser_State.Total_Recover_Cost := @ + Result.Cost;
                      Parser_State.Max_Recover_Ops_Length := Ada.Containers.Count_Type'Max
@@ -412,11 +407,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      --  can be conflicts; we let the main parser handle that. We can apply
                      --  all ops up to the first insert.
                      --
-                     --  Other than Add_Terminal, there's no need to modify
-                     --  Shared_Parser.Tree. Any tree nodes created by the failed parse that
-                     --  are pushed back are useful for error repair, and will just be
-                     --  ignored in future parsing. This also avoids enlarging a
-                     --  non-flushed branched tree, which saves time and space.
+                     --  Other than Add_Terminal, there's no need to modify Tree. Any tree
+                     --  nodes created by the failed parse that are pushed back are useful
+                     --  for error repair, and will just be ignored in future parsing. This
+                     --  also avoids enlarging a non-flushed branched tree, which saves
+                     --  time and space.
                      --
                      --  Language_Fixes may abuse the rules about adding Ops, so we check
                      --  that as much as is reasonable here.
@@ -534,8 +529,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               end if;
 
                               if Stack_Matches_Ops then
-                                 Undo_Reduce
-                                   (Tree, Shared_Parser.Table.all, Stack,
+                                 Parser_State.Undo_Reduce
+                                   (Tree, Shared_Parser.Table.all,
                                     Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
                               end if;
 
@@ -583,7 +578,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                                  First_Insert := False;
 
-                                 Recover_Op_Array_Var_Ref (Err)(Op_Index).Ins_Node :=
+                                 Error_Recover_Ops (Op_Index).Ins_Node :=
                                    Tree.Insert_Virtual_Terminal (Parser_State.Stream, Op.Ins_ID).Node;
                                  --  Modifies Tree.Current_Token
 
@@ -611,16 +606,24 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               --  Current_Token to be correct before checking for
                               --  Delete on return from Recover.
                               declare
-                                 Deleted_Node : constant Valid_Node_Access := Tree.First_Sequential_Terminal
+                                 Deleted_Node : constant Valid_Node_Access := Tree.First_Terminal
                                    (Tree.Current_Token (Parser_State.Stream)).Node;
                               begin
                                  if Stack_Matches_Ops and Insert_Delete_Matches_Ops and
                                    Op.Del_Token_Index = Tree.Get_Sequential_Index (Deleted_Node)
                                  then
                                     Insert_Delete_Inc := @ + 1;
-                                    Do_Delete
-                                      (Tree, Parser_State.Stream, Recover_Op_Array_Var_Ref (Err)(Op_Index),
-                                       Deleted_Node, Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
+
+                                    declare
+                                       --  WORKAROUND: GNAT Community 2021 reports "'Op' must be a variable"
+                                       --  if we use this expression for the Op parameter.
+                                       Op : Recover_Op_Nodes renames Error_Recover_Ops (Op_Index);
+                                    begin
+                                       Parser_State.Do_Delete
+                                         (Tree, Op,
+                                          User_Data_Access_Constant (Shared_Parser.User_Data));
+                                    end;
+
                                  else
                                     Insert_Delete_Matches_Ops := False;
                                  end if;
@@ -629,16 +632,29 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                         end;
                      end loop;
 
-                     Parser_State.Recover_Op_Ref_Update
-                       (Tree, Err, User_Data_Access_Constant (Shared_Parser.User_Data));
+                     declare
+                        Error_Ref : constant Stream_Error_Ref := Parser_State.Current_Error_Ref (Tree);
+                        Err       : Error_Data'Class := Syntax_Trees.Error (Error_Ref);
+                     begin
+                        Recover_Op_Array_Var_Ref (Err) := Error_Recover_Ops;
 
-                     if Insert_Delete_Matches_Ops then
-                        pragma Assert (Parser_State.Recover_Insert_Delete_Current = No_Element);
-                     else
-                        Parser_State.Recover_Insert_Delete_Current := Prev_Insert_Delete_Current;
-                        Parser_State.Next_Recover_Op_Ref (Tree);
+                        if Test_McKenzie_Recover then
+                           Recover_Test_Var_Ref (Err) := new Recover_Test_Info'
+                             (Ops           => Result.Ops,
+                              Cost          => Result.Cost,
+                              Enqueue_Count => Parser_State.Recover.Enqueue_Count,
+                              Check_Count   => Parser_State.Recover.Check_Count);
+                        end if;
+
+                        Tree.Update_Error
+                          (Parser_State.Stream, Error_Ref, Err,
+                           User_Data_Access_Constant (Shared_Parser.User_Data));
+                     end;
+
+                     if not Insert_Delete_Matches_Ops then
+                        Parser_State.Next_Recover_Op (Tree);
                         for I in 1 .. Insert_Delete_Inc loop
-                           Parser_State.Next_Recover_Op_Ref (Tree);
+                           Parser_State.Next_Recover_Op (Tree);
                         end loop;
                      end if;
 
@@ -653,7 +669,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                           ("   Current_Token " & Tree.Image (Tree.Current_Token (Parser_State.Stream)));
                         Trace.Put_Line
                           ("   remaining recover_insert_delete " & Parser_State.Recover_Image
-                             (Tree, First => Parser_State.Recover_Insert_Delete_Current));
+                             (Tree, Current_Only => True));
                         Trace.Put_Line ("   resume_token_goal" & Parser_State.Resume_Token_Goal'Image);
                      end if;
 
@@ -662,7 +678,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   end;
                exception
                when Invalid_Case =>
-                  Parsers.Terminate_Parser (Current_Parser, Shared_Parser.Tree, "invalid config in recover", Trace);
+                  Parsers.Terminate_Parser (Current_Parser, Tree, "invalid config in recover", Trace);
                   --  Terminate advances Current_Parser
                   Skip_Next := True;
 
@@ -676,7 +692,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E)); -- includes Prefix
                   end if;
 
-                  Parsers.Terminate_Parser (Current_Parser, Shared_Parser.Tree, "bad config in recover", Trace);
+                  Parsers.Terminate_Parser (Current_Parser, Tree, "bad config in recover", Trace);
                   --  Terminate advances Current_Parser
                   Skip_Next := True;
 
@@ -692,34 +708,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                declare
                   use Syntax_Trees;
                   Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
-                  Error_Node : Stream_Node_Parents := Parser_State.Current_Error_Node (Tree);
-                  Error : constant Error_Data'Class := Find_Parse_In_Parse_Action_Error (Tree, Error_Node.Ref.Node);
+                  Error_Ref    : constant Stream_Error_Ref := Parser_State.Current_Error_Ref (Tree);
+                  Error        : Error_Data'Class := Syntax_Trees.Error (Error_Ref);
+                  Recover_Ops  : Recover_Op_Nodes_Arrays.Vector renames Recover_Op_Array_Var_Ref (Error);
                begin
                   Parser_State.Recover.Results.Clear;
-
-                  if Error in Parse_Error then
-                     declare
-                        Data : Parse_Error := Parse_Error (Error);
-                     begin
-                        Data.Recover_Ops  := Recover_Op_Nodes_Arrays.Empty_Vector;
-                        Tree.Update_Error
-                          (Parser_State.Stream, Error_Node, Data,
-                           Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
-                     end;
-
-                  elsif Error in In_Parse_Action_Error then
-                     declare
-                        Data : In_Parse_Action_Error := In_Parse_Action_Error (Error);
-                     begin
-                        Data.Recover_Ops := Recover_Op_Nodes_Arrays.Empty_Vector;
-                        Tree.Update_Error
-                          (Parser_State.Stream, Error_Node, Data,
-                           Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
-                     end;
-
-                  else
-                     raise SAL.Programmer_Error;
-                  end if;
+                  Recover_Ops := Recover_Op_Nodes_Arrays.Empty_Vector;
+                  Tree.Update_Error
+                    (Parser_State.Stream, Error_Ref, Error,
+                     User_Data_Access_Constant (Shared_Parser.User_Data));
                end;
             end if;
             if Skip_Next then

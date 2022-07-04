@@ -134,14 +134,13 @@ begin
                --  otherwise, Tree.Current_Token is correct.
 
                declare
-                  use all type WisiToken.Parse.LR.Parser_Lists.Recover_Op_Ref;
                   Tree : Syntax_Trees.Tree renames Shared_Parser.Tree;
                begin
-                  if Parser_State.Recover_Insert_Delete_Current /= Parser_Lists.No_Element then
+                  if Parser_State.Current_Recover_Op /= No_Insert_Delete then
                      declare
-                        Err : Error_Data'Class := Parser_State.Current_Insert_Delete_Error;
-                        Op  : Recover_Op_Nodes renames Recover_Op_Array_Var_Ref (Err)
-                          (Parser_State.Current_Insert_Delete_Op_Index);
+                        Error_Ref : constant Syntax_Trees.Stream_Error_Ref := Parser_State.Current_Error_Ref (Tree);
+                        Err : Error_Data'Class := Syntax_Trees.Error (Error_Ref);
+                        Op  : Recover_Op_Nodes renames Recover_Op_Array_Var_Ref (Err)(Parser_State.Current_Recover_Op);
                      begin
                         if Op.Op = Insert then
                            declare
@@ -155,9 +154,10 @@ begin
                                  --  order to shift the previous terminals.
                                  Op.Ins_Node := Tree.Insert_Virtual_Terminal (Parser_State.Stream, Op.Ins_ID).Node;
 
-                                 Parser_State.Next_Recover_Op_Ref (Tree);
-                                 Parser_State.Recover_Op_Ref_Update
-                                   (Tree, Err, Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
+                                 Parser_State.Next_Recover_Op (Tree);
+                                 Tree.Update_Error
+                                   (Parser_State.Stream, Error_Ref, Err,
+                                    Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
                               end if;
                            end;
                         end if;
@@ -175,11 +175,9 @@ begin
                         Trace.Put_Line
                           ("    stream input " & Tree.Image (Parser_State.Stream, Stack => False, Input => True));
                      end if;
-                     if Parser_State.Recover_Insert_Delete_Current /= Parser_Lists.No_Element then
+                     if Parser_State.Current_Recover_Op /= No_Insert_Delete then
                         Trace.Put_Line
-                          ("    recover_insert_delete:" & Parser_State.Recover_Image
-                             (Tree,
-                              First => Parser_State.Recover_Insert_Delete_Current));
+                          ("    recover_insert_delete:" & Parser_State.Recover_Image (Tree, Current_Only => True));
                      end if;
                   end if;
                end;
@@ -317,7 +315,6 @@ begin
       when Error =>
          --  All parsers errored; attempt recovery
          declare
-            use all type WisiToken.Parse.LR.Parser_Lists.Recover_Op_Ref;
             use all type McKenzie_Recover.Recover_Status;
 
             Recover_Result : McKenzie_Recover.Recover_Status := Fail_Check_Delta;
@@ -404,11 +401,9 @@ begin
                              (Shared_Parser.Tree.Shared_Token (Parser_State.Stream), Terminal_Node_Numbers => True));
                         Trace.Put_Line
                           ("    recover_insert_delete:" &
-                             (if Parser_State.Recover_Insert_Delete_Current = Parser_Lists.No_Element
+                             (if Parser_State.Current_Recover_Op = No_Insert_Delete
                               then ""
-                              else Parser_State.Recover_Image
-                                (Shared_Parser.Tree,
-                                 First => Parser_State.Recover_Insert_Delete_Current)));
+                              else Parser_State.Recover_Image (Shared_Parser.Tree, Current_Only => True)));
 
                         if Trace_Parse > Detail then
                            Trace.Put_Line
@@ -463,7 +458,6 @@ begin
 
             if Trace_Parse > Extra then
                declare
-                  use all type WisiToken.Parse.LR.Parser_Lists.Recover_Op_Ref;
                   Parser_State : Parser_Lists.Parser_State renames Shared_Parser.Parsers
                     (Parser_Lists.To_Parser_Node_Access (Current_Parser));
                begin
@@ -475,11 +469,10 @@ begin
                        Shared_Parser.Tree.Image
                          (Parser_State.Stream, Stack => True, Input => True, Shared => True, Children => False,
                           State_Numbers => not Trace_Parse_No_State_Numbers));
-                  if Parser_State.Recover_Insert_Delete_Current /= Parser_Lists.No_Element then
+                  if Parser_State.Current_Recover_Op /= No_Insert_Delete then
                      Trace.Put_Line
                        (" ... recover_insert_delete:" & Parser_State.Recover_Image
-                          (Shared_Parser.Tree,
-                           First => Parser_State.Recover_Insert_Delete_Current));
+                          (Shared_Parser.Tree, Current_Only => True));
                   end if;
                end;
             end if;
@@ -626,7 +619,7 @@ begin
       Trace.Put_Line (" " & Shared_Parser.Tree.Trimmed_Image (Shared_Parser.Parsers.First.Stream) & ": succeed");
    end if;
 
-   Finish_Parse (Shared_Parser);
+   Finish_Parse (Shared_Parser, Incremental_Parse => Edits /= KMN_Lists.Empty_List);
 
    if Trace_Time then
       Trace.Put_Clock ("finish parse");
@@ -637,7 +630,7 @@ begin
    --  character.
 exception
 when Partial_Parse =>
-   Finish_Parse (Shared_Parser);
+   Finish_Parse (Shared_Parser, Incremental_Parse => False);
    if Trace_Time then
       Trace.Put_Clock ("finish partial parse");
    end if;

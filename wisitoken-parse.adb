@@ -129,6 +129,58 @@ package body WisiToken.Parse is
       end loop;
    end Set_Node_Access;
 
+   procedure Validate_Ops
+     (Item                : in     Recover_Op_Nodes_Arrays.Vector;
+      Tree                : in     Syntax_Trees.Tree'Class;
+      Error_Node          : in     Syntax_Trees.Valid_Node_Access;
+      Node_Error_Reported : in out Boolean)
+   is
+      use Syntax_Trees;
+
+      Node_Image_Output : Boolean := Node_Error_Reported;
+
+      procedure Report_Error (Msg : in String)
+      is begin
+         Node_Error_Reported := True;
+
+         if not Node_Image_Output then
+            Tree.Lexer.Trace.Put_Line
+              (Tree.Error_Message
+                 (Error_Node,
+                  Tree.Image
+                    (Error_Node,
+                     Children     => False,
+                     Node_Numbers => True)));
+            Node_Image_Output := True;
+         end if;
+
+         Tree.Lexer.Trace.Put_Line (Tree.Error_Message (Error_Node, "... invalid_tree: " & Msg));
+      end Report_Error;
+
+   begin
+      for Op of Item loop
+         case Op.Op is
+         when Insert =>
+            if Op.Ins_Node /= Invalid_Node_Access then
+               if not Tree.In_Tree (Op.Ins_Node) then
+                  Report_Error ("op.ins_node not in tree");
+               end if;
+            end if;
+
+         when Delete =>
+            if Op.Del_Node /= Invalid_Node_Access then
+               if not Tree.In_Tree (Op.Del_Node) then
+                  Report_Error ("op.del_node not in tree");
+               else
+                  if Tree.Parent (Op.Del_Node) /= Error_Node then
+                     Report_Error ("op.del_node.parent not error node");
+                  end if;
+               end if;
+            end if;
+         end case;
+      end loop;
+   end Validate_Ops;
+
    procedure Process_Grammar_Token
      (Parser : in out Base_Parser'Class;
       Token  : in     Lexer.Token;
@@ -384,6 +436,16 @@ package body WisiToken.Parse is
       Set_Node_Access (Data.Recover_Ops, Node_Index_Map);
    end Set_Node_Access;
 
+   overriding
+   procedure Validate_Error
+     (Data                : in     Parse_Error;
+      Tree                : in     Syntax_Trees.Tree'Class;
+      Error_Node          : in     Syntax_Trees.Valid_Node_Access;
+      Node_Error_Reported : in out Boolean)
+   is begin
+      Validate_Ops (Data.Recover_Ops, Tree, Error_Node, Node_Error_Reported);
+   end Validate_Error;
+
    overriding procedure Adjust_Copy (Data : in out In_Parse_Action_Error)
    is begin
       Adjust_Copy (Data.Recover_Ops);
@@ -491,6 +553,16 @@ package body WisiToken.Parse is
    is begin
       Set_Node_Access (Data.Recover_Ops, Node_Index_Map);
    end Set_Node_Access;
+
+   overriding
+   procedure Validate_Error
+     (Data                : in     In_Parse_Action_Error;
+      Tree                : in     Syntax_Trees.Tree'Class;
+      Error_Node          : in     Syntax_Trees.Valid_Node_Access;
+      Node_Error_Reported : in out Boolean)
+   is begin
+      Validate_Ops (Data.Recover_Ops, Tree, Error_Node, Node_Error_Reported);
+   end Validate_Error;
 
    overriding procedure Adjust_Copy (Data : in out Error_Message)
    is begin
@@ -667,14 +739,15 @@ package body WisiToken.Parse is
       Set_Node_Access (Data.Recover_Ops, Node_Index_Map);
    end Set_Node_Access;
 
-   function Error_Pred_Parse (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
-   is
-      use Syntax_Trees.Error_Data_Lists;
-   begin
-      return
-        (if Element (Cur) in Parse_Error then True
-         else False);
-   end Error_Pred_Parse;
+   overriding
+   procedure Validate_Error
+     (Data                : in     Error_Message;
+      Tree                : in     Syntax_Trees.Tree'Class;
+      Error_Node          : in     Syntax_Trees.Valid_Node_Access;
+      Node_Error_Reported : in out Boolean)
+   is begin
+      Validate_Ops (Data.Recover_Ops, Tree, Error_Node, Node_Error_Reported);
+   end Validate_Error;
 
    function Error_Pred_Lexer (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
    is
@@ -684,6 +757,43 @@ package body WisiToken.Parse is
         (if Element (Cur) in Lexer_Error then True
          else False);
    end Error_Pred_Lexer;
+
+   function Error_Pred_Parse (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
+   is
+      use Syntax_Trees.Error_Data_Lists;
+   begin
+      return
+        (if Element (Cur) in Parse_Error then True
+         else False);
+   end Error_Pred_Parse;
+
+   function Error_Pred_In_Parse_Action (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
+   is
+      use Syntax_Trees.Error_Data_Lists;
+   begin
+      return
+        (if Element (Cur) in In_Parse_Action_Error then True
+         else False);
+   end Error_Pred_In_Parse_Action;
+
+   function Error_Pred_Message (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
+   is
+      use Syntax_Trees.Error_Data_Lists;
+   begin
+      return
+        (if Element (Cur) in Error_Message then True
+         else False);
+   end Error_Pred_Message;
+
+   function Error_Pred_Parse_Message (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
+   is
+      use Syntax_Trees.Error_Data_Lists;
+   begin
+      return
+        (if Element (Cur) in Parse_Error then True
+         elsif Element (Cur) in Error_Message then True
+         else False);
+   end Error_Pred_Parse_Message;
 
    function Error_Pred_Lexer_Parse_Message (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean
    is
@@ -1054,12 +1164,12 @@ package body WisiToken.Parse is
       for Cur in Tree.Stream_Error_Iterate (Stream) loop
          declare
             Error_Ref  : constant Stream_Error_Ref  := Error (Cur);
-            Error_Node : constant Valid_Node_Access := Tree.Error_Node (Error_Ref).Node;
+            Error_Node : constant Valid_Node_Access := Syntax_Trees.Error_Node (Error_Ref);
          begin
             for Err of Tree.Error_List (Error_Node) loop
                Tree.Lexer.Trace.Put_Line
                  (Tree.Error_Message
-                    (Ref     => Get_Stream_Node_Ref (Error_Ref), -- For line, column
+                    (Ref     => Tree.Error_Stream_Node_Ref (Error_Ref), -- For line, column
                      Message => Err.Image (Tree, Error_Node)));
             end loop;
          end;

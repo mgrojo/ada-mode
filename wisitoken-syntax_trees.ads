@@ -127,6 +127,8 @@ package WisiToken.Syntax_Trees is
    function To_Valid_Node_Access (Item : in Node_Access_Array) return Valid_Node_Access_Array;
 
    package Valid_Node_Access_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Valid_Node_Access);
+   use all type Valid_Node_Access_Lists.Cursor;
+
    package Node_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Valid_Node_Access);
 
    type Stream_ID is private;
@@ -245,6 +247,17 @@ package WisiToken.Syntax_Trees is
    --  Called from Get_Tree to convert Data.Input_Node_Index to *_Node.
    --  Required because some errors reference later nodes.
 
+   procedure Validate_Error
+     (Data                : in     Error_Data;
+      Tree                : in     Syntax_Trees.Tree'Class;
+      Error_Node          : in     Valid_Node_Access;
+      Node_Error_Reported : in out Boolean)
+   is abstract;
+   --  Called by Validate_Tree for each error; validate that any node
+   --  links are in Tree.Nodes, and anything else that needs validating.
+   --  Node_Error_Reported is described in the
+   --  comment for Validate_Node below.
+
    type Null_Error_Data is new Error_Data with null record;
    --  For Error_Data parameters when there is no error.
 
@@ -273,6 +286,14 @@ package WisiToken.Syntax_Trees is
    overriding procedure Set_Node_Access
      (Data           : in out Null_Error_Data;
       Node_Index_Map : in     Node_Index_Array_Node_Access.Vector)
+   is null;
+
+   overriding
+   procedure Validate_Error
+     (Data                : in     Null_Error_Data;
+      Tree                : in     Syntax_Trees.Tree'Class;
+      Error_Node          : in     Valid_Node_Access;
+      Node_Error_Reported : in out Boolean)
    is null;
 
    pragma Warnings (Off, """others"" choice is redundant");
@@ -1898,12 +1919,14 @@ package WisiToken.Syntax_Trees is
    --  Invalid_Stream_Node_Ref if Ref.Node is EOI.
 
    procedure Next_Terminal
-     (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Stream_Node_Parents)
+     (Tree      : in     Syntax_Trees.Tree;
+      Ref       : in out Stream_Node_Parents;
+      Following : in     Boolean := True)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
    --  Same as Next_Terminal (Tree, Ref), using Ref.Parents for parent
-   --  links. Ref.Parents is initialized by First_Terminal.
+   --  links. Ref.Parents is initialized by First_Terminal. If not
+   --  Following, do not step out of Ref.Ref.Element.
 
    function Next_Terminal
      (Tree : in Syntax_Trees.Tree;
@@ -1926,6 +1949,9 @@ package WisiToken.Syntax_Trees is
    with Pre => Node = Invalid_Node_Access or else Tree.Label (Node) in Terminal_Label;
    --  For convenience, returns Invalid_Sequential_Index if Node =
    --  Invalid_Node_Access.
+   --
+   --  Not named "Sequential_Index" becasue that conflicts with the
+   --  subtype.
 
    procedure Set_Sequential_Index
      (Tree  : in Syntax_Trees.Tree;
@@ -1949,20 +1975,21 @@ package WisiToken.Syntax_Trees is
    --  Parents.
 
    procedure First_Sequential_Terminal
-     (Tree    : in     Syntax_Trees.Tree;
-      Node    : in out Node_Access;
-      Parents : in out Node_Stacks.Stack);
+     (Tree      : in     Syntax_Trees.Tree;
+      Node      : in out Node_Access;
+      Parents   : in out Node_Stacks.Stack);
    --  Update Node to first terminal with valid Sequential_Index in Node;
    --  Invalid_Node_Access if none. Also initialize Parents.
 
    procedure First_Sequential_Terminal
-     (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Syntax_Trees.Stream_Node_Parents)
+     (Tree      : in     Syntax_Trees.Tree;
+      Ref       : in out Syntax_Trees.Stream_Node_Parents;
+      Following : in     Boolean := True)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
-   --  Return first terminal with valid Sequential_Index in Ref.Node or a
-   --  following stream element; continues search in Tree.Shared_Stream.
-   --  Invalid_Node_Access if none found.
+   --  Return first terminal with valid Sequential_Index in Ref.Node or,
+   --  if Following, a following stream element; continues search in
+   --  Tree.Shared_Stream. Invalid_Stream_Node_Parents if none found.
 
    procedure First_Sequential_Terminal
      (Tree : in     Syntax_Trees.Tree;
@@ -2022,12 +2049,14 @@ package WisiToken.Syntax_Trees is
      Post => Correct_Stream_Node (Tree, Ref);
 
    procedure Next_Sequential_Terminal
-     (Tree : in     Syntax_Trees.Tree;
-      Ref  : in out Syntax_Trees.Stream_Node_Parents)
+     (Tree      : in     Syntax_Trees.Tree;
+      Ref       : in out Syntax_Trees.Stream_Node_Parents;
+      Following : in     Boolean := True)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
    --  Update Node to the first terminal with valid Sequential_Index
-   --  succeeding Node. Can step past EOI.
+   --  succeeding Node. Can step past EOI. If not Following, do not step
+   --  out of Ref.Ref.Element.
 
    procedure Prev_Sequential_Terminal
      (Tree    : in     Syntax_Trees.Tree;
@@ -2190,23 +2219,6 @@ package WisiToken.Syntax_Trees is
      return Node_Access
    with Pre => Tree.Parents_Set;
    --  Return Count parent of Node.
-
-   function Find_Sequential_Index
-     (Tree         : in Syntax_Trees.Tree;
-      Seq_Index    : in Sequential_Index;
-      Start        : in Stream_Node_Parents;
-      Parse_Stream : in Stream_ID)
-     return Node_Access
-   with Pre => (Parents_Valid (Start) and Start.Ref.Node /= Invalid_Node_Access) and then
-               Tree.Label (Start.Ref.Node) in Terminal_Label and then
-               Tree.Get_Sequential_Index (Start.Ref.Node) /= Invalid_Sequential_Index,
-     Post => Find_Sequential_Index'Result = Invalid_Node_Access or else
-             Tree.Get_Sequential_Index (Find_Sequential_Index'Result) /= Invalid_Sequential_Index;
-   --  Return the node that has Seq_Index; Invalid_Node_Access if there
-   --  is no such node.
-   --
-   --  Start gives a starting terminal for the search; Parse_Stream is
-   --  the stream to move into if moving towards SOI.
 
    function Find_Byte_Pos
      (Tree                 : in Syntax_Trees.Tree;
@@ -2552,19 +2564,6 @@ package WisiToken.Syntax_Trees is
    --  Return True if Data matches (according to Dispatching_Equal) an
    --  error on the current input node.
 
-   procedure Update_Error
-     (Tree      : in out Syntax_Trees.Tree;
-      Stream    : in     Stream_ID;
-      Error_Ref : in out Stream_Node_Parents;
-      Data      : in     Error_Data'Class;
-      User_Data : in     User_Data_Access_Constant)
-   with Pre => Tree.Contains_Error (Error_Ref.Ref.Node, Data),
-     Post => Tree.Contains_Error (Error_Ref.Ref.Node, Data);
-   --  Update error list element matching Data.
-   --
-   --  First copy Error_Ref.Node and all ancestors; Update Error_Ref to
-   --  point to new stream element with copied nodes.
-
    function Error_List (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Error_Data_List_Const_Ref;
    --  To change the error data, use Update_Error; see note at
    --  declaration of Error_Data.
@@ -2589,8 +2588,42 @@ package WisiToken.Syntax_Trees is
 
    Invalid_Stream_Error_Ref : constant Stream_Error_Ref;
 
-   function Get_Stream_Node_Ref (Ref : in Stream_Error_Ref) return Stream_Node_Ref;
-   --  Return a reference to the error node.
+   type Error_Node_Features is record
+      Label     : Node_Label       := Node_Label'First;
+      --  Also determines which predicate applies.
+
+      Seq_Index : Base_Sequential_Index := Invalid_Sequential_Index;
+      --  of First_Terminal
+
+      Terminal_Predicate  : Error_Predicate := null;
+      --  Either Parse_Error or Error_Message.
+
+      Deleted : Boolean := False;
+      --  Node is deleted by an error recover op; Label must be in Terminal_Label.
+
+      Prev_Term_Seq_Index : Base_Sequential_Index := Invalid_Sequential_Index;
+      --  When Deleted; sequential index of terminal containing error node
+      --  in Following_Deleted.
+   end record;
+
+   function Current_Error_Ref
+     (Tree                : in Syntax_Trees.Tree;
+      Stream              : in Stream_ID;
+      Terminal_Predicate  : in Error_Predicate;
+      Nonterm_Predicate   : in Error_Predicate;
+      Error_Node_Features : in Syntax_Trees.Error_Node_Features := (others => <>))
+     return Stream_Error_Ref
+   with Post => Has_Error (Current_Error_Ref'Result);
+   --  Return error matching Predicate from Stream input or stack.
+   --
+   --  If First_Term_Seq_Index is Invalid_Term_Seq_Index, looks only in
+   --  First_Terminal (Current_Token (Stream)) with Terminal_Predicate and
+   --  Peek (Stream) with Nonterm_Predicate.
+   --
+   --  Otherwise, Error_Node_Features gives information needed to find
+   --  the error node in Stream input and stack; error recover may have
+   --  pushed elements before the error node in the input, or after the
+   --  error node on the stack, and the error node may have been deleted.
 
    procedure Delete_Error
      (Tree  : in out Syntax_Trees.Tree;
@@ -2599,9 +2632,24 @@ package WisiToken.Syntax_Trees is
    --  Delete Error from its containing node. Error is updated to next
    --  error (Invalid_Stream_Error_Ref if none).
 
+   procedure Update_Error
+     (Tree      : in out Syntax_Trees.Tree;
+      Stream    : in     Stream_ID;
+      Error_Ref : in     Stream_Error_Ref;
+      Data      : in     Error_Data'Class;
+      User_Data : in     User_Data_Access_Constant)
+   with
+     Pre => Tree.Contains_Error (Error_Node (Error_Ref), Data),
+     Post => Tree.Contains_Error (Error_Node (Error_Ref), Data);
+   --  Update error list element matching Data.
+   --
+   --  First copy Error_Ref.Node and all ancestors; Update Error_Ref to
+   --  point to new stream element with copied nodes.
+
    type Stream_Error_Cursor is private;
-   --  We need an extra layer of indirection for this type because
-   --  Stream_ID used in Stream_Node_Parents is private.
+   --  We need an extra layer of indirection for Stream_Error_Ref
+   --  iterators because Stream_ID used in Stream_Node_Parents is
+   --  private.
 
    function Error (Item : in Stream_Error_Cursor) return Stream_Error_Ref;
 
@@ -2611,8 +2659,16 @@ package WisiToken.Syntax_Trees is
    function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Error_Ref) return Valid_Node_Access
    with Pre => Error /= Invalid_Error_Ref;
 
-   function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Stream_Error_Ref) return Stream_Node_Ref
+   function Error_Node (Error : in Stream_Error_Ref) return Valid_Node_Access
    with Pre => Error /= Invalid_Stream_Error_Ref;
+
+   function Error_Node (Tree : in Syntax_Trees.Tree; Error : in Stream_Error_Ref) return Valid_Node_Access
+   with Pre => Error /= Invalid_Stream_Error_Ref;
+
+   function Error_Stream_Node_Ref (Tree : in Syntax_Trees.Tree; Error : in Stream_Error_Ref) return Stream_Node_Ref
+   with Pre => Error_Deleted (Error) = Valid_Node_Access_Lists.No_Element;
+
+   function Error_Deleted (Error : in Stream_Error_Ref) return Valid_Node_Access_Lists.Cursor;
 
    function First_Error (Tree : in Syntax_Trees.Tree) return Error_Ref
    with Pre => Tree.Editable;
@@ -2817,28 +2873,29 @@ package WisiToken.Syntax_Trees is
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
       Data                : in out User_Data_Type'Class;
-      Node_Image_Output   : in out Boolean;
       Node_Error_Reported : in out Boolean);
    --  Called by Validate_Tree for each node visited; perform checks
-   --  other than parent/child, output to Text_IO.Current_Error.
+   --  other than parent/child, output error messages to
+   --  Tree.Lexer.Trace.
    --
-   --  Don't report errors if Node_Error_Reported is already True.
    --  Set Node_Error_Reported True if any errors are reported.
    --
-   --  If Node_Image_Output is False, output Image (Tree, Node,
-   --  Node_Numbers => True) once before any error messages.
+   --  Unless Node_Error_Reported already true on entry, output Image
+   --  (Tree, Node, Node_Numbers => True) once before any error messages.
 
    procedure Mark_In_Tree
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
       Data                : in out User_Data_Type'Class;
-      Node_Image_Output   : in out Boolean;
       Node_Error_Reported : in out Boolean);
    --  Mark Node as being "in tree".
    --
    --  If this is provided to Validate_Tree as the Validate_Node
    --  argument, Validate_Tree will check that all nodes in Tree.Nodes
    --  are marked as "in tree".
+
+   function In_Tree (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access) return Boolean;
+   --  True if Node is in Tree.Nodes. Useful for Validate_Node, Validate_Error.
 
    procedure Validate_Tree
      (Tree              : in out Syntax_Trees.Tree;
@@ -2884,7 +2941,6 @@ package WisiToken.Syntax_Trees is
 
 private
    use all type Ada.Containers.Count_Type;
-   use all type Valid_Node_Access_Lists.Cursor;
 
    type Error_List_Access is access all Error_Data_Lists.List;
    procedure Free is new Ada.Unchecked_Deallocation (Error_Data_Lists.List, Error_List_Access);
@@ -3165,8 +3221,13 @@ private
    type Stream_Error_Ref is record
       --  Used while parsing
       Ref     : Stream_Node_Parents;
+      --  Same meaning as Node in Error_Ref.
+
       Deleted : Valid_Node_Access_Lists.Cursor;
+      --  Same as Deleted in Error_Ref.
+
       Error   : Error_Data_Lists.Cursor;
+      --  Same as Error in Error_Ref.
    end record;
 
    Invalid_Stream_Error_Ref : constant Stream_Error_Ref :=

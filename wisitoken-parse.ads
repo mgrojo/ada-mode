@@ -245,6 +245,14 @@ package WisiToken.Parse is
 
    overriding function Class_Image (Data : in Lexer_Error) return String is ("lexer");
 
+   overriding
+   procedure Validate_Error
+     (Data                : in     Lexer_Error;
+      Tree                : in     Syntax_Trees.Tree'Class;
+      Error_Node          : in     Syntax_Trees.Valid_Node_Access;
+      Node_Error_Reported : in out Boolean)
+   is null;
+
    function Input_Lexer_Error (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return Lexer_Error;
    --  Raises ada.streams.stream_IO.End_Error when first stream element read is ')'
    procedure Output_Lexer_Error (Stream : not null access Ada.Streams.Root_Stream_Type'Class; Item : in Lexer_Error);
@@ -282,6 +290,13 @@ package WisiToken.Parse is
      return String;
 
    overriding function Class_Image (Data : in Parse_Error) return String is ("parser");
+
+   overriding
+   procedure Validate_Error
+     (Data                : in     Parse_Error;
+      Tree                : in     Syntax_Trees.Tree'Class;
+      Error_Node          : in     Syntax_Trees.Valid_Node_Access;
+      Node_Error_Reported : in out Boolean);
 
    function Input_Parse_Error (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return Parse_Error;
    --  Raises ada.streams.stream_IO.End_Error when first stream element read is ')'
@@ -321,6 +336,13 @@ package WisiToken.Parse is
 
    overriding function Class_Image (Data : in In_Parse_Action_Error) return String is ("in_parse_action");
 
+   overriding
+   procedure Validate_Error
+     (Data                : in     In_Parse_Action_Error;
+      Tree                : in     Syntax_Trees.Tree'Class;
+      Error_Node          : in     Syntax_Trees.Valid_Node_Access;
+      Node_Error_Reported : in out Boolean);
+
    function Input_In_Parse_Action_Error
      (Stream : not null access Ada.Streams.Root_Stream_Type'Class) return In_Parse_Action_Error;
    --  Raises ada.streams.stream_IO.End_Error when first stream element read is ')'
@@ -359,6 +381,13 @@ package WisiToken.Parse is
      return String;
 
    overriding function Class_Image (Data : in Error_Message) return String is ("message");
+
+   overriding
+   procedure Validate_Error
+     (Data                : in     Error_Message;
+      Tree                : in     Syntax_Trees.Tree'Class;
+      Error_Node          : in     Syntax_Trees.Valid_Node_Access;
+      Node_Error_Reported : in out Boolean);
 
    type Recover_Op_Array_Const_Ref_Type (Element : not null access constant Recover_Op_Nodes_Arrays.Vector) is private
    with Implicit_Dereference => Element;
@@ -423,12 +452,24 @@ package WisiToken.Parse is
      (Data           : in out Error_Message;
       Node_Index_Map : in     Syntax_Trees.Node_Index_Array_Node_Access.Vector);
 
+   function Error_Pred_Lexer (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
+   --  Return True if Cur is a Lexer_Error; for
+   --  Syntax_Trees.Error_Predicate.
+
    function Error_Pred_Parse (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
    --  Return True if Cur is a Parse_Error; for
    --  Syntax_Trees.Error_Predicate.
 
-   function Error_Pred_Lexer (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
-   --  Return True if Cur is a Lexer_Error; for
+   function Error_Pred_In_Parse_Action (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
+   --  Return True if Cur is In_Parse_Action_Error;
+   --  for Syntax_Trees.Error_Predicate.
+
+   function Error_Pred_Message (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
+   --  Return True if Cur is an Error_Message; for
+   --  Syntax_Trees.Error_Predicate.
+
+   function Error_Pred_Parse_Message (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
+   --  Return True if Cur is one of Parse_Error or Error_Message; for
    --  Syntax_Trees.Error_Predicate.
 
    function Error_Pred_Lexer_Parse_Message (Cur : in Syntax_Trees.Error_Data_Lists.Cursor) return Boolean;
@@ -444,11 +485,13 @@ package WisiToken.Parse is
    --  This does not return a reference, because any update to an error
    --  requires copying the error node; see note at declaration of
    --  Syntax_Trees.Error_Data.
+   --  FIXME: delete if not used.
 
    function Find_Non_Lexer_Error
      (Tree : in Syntax_Trees.Tree;
       Node : in Syntax_Trees.Valid_Node_Access)
      return Syntax_Trees.Error_Data'Class;
+   --  FIXME: delete if not used.
 
    type Base_Parser is abstract new Ada.Finalization.Limited_Controlled
    with record

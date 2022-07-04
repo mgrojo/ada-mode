@@ -146,14 +146,12 @@ package WisiToken_Grammar_Editing is
      (Tree                : in     WisiToken.Syntax_Trees.Tree;
       Node                : in     WisiToken.Syntax_Trees.Valid_Node_Access;
       User_Data           : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-      Node_Image_Output   : in out Boolean;
       Node_Error_Reported : in out Boolean);
    --  Verify that all nodes match wisitoken_grammar.wy. Data must be of
    --  type WisiToken_Grammar_Runtime.User_Data_Type. Uses
-   --  Data.EBNF_Allowed, Data.Error_Reported.
+   --  Data.EBNF_Allowed.
    --
-   --  For use with Syntax_Trees.Validate_Tree; User_Data must be of type
-   --  Wisitoken_Grammar_Runtime.User_Data_Type.
+   --  For use with Syntax_Trees.Validate_Tree.
 
    procedure Translate_EBNF_To_BNF
      (Tree : in out WisiToken.Syntax_Trees.Tree;
