@@ -1697,7 +1697,7 @@ package WisiToken.Syntax_Trees is
      (Tree                 : in Syntax_Trees.Tree;
       Node                 : in Valid_Node_Access;
       Trailing_Non_Grammar : in Boolean;
-      Following            : in Boolean := False)
+      Following            : in Boolean)
      return Node_Access
    with Pre => (if Following then Tree.Parents_Set else True);
    --  Return a terminal node that can give byte or char pos.
@@ -1854,11 +1854,12 @@ package WisiToken.Syntax_Trees is
    procedure Last_Terminal
      (Tree         : in     Syntax_Trees.Tree;
       Ref          : in out Stream_Node_Parents;
-      Parse_Stream : in     Stream_ID)
-   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Ref.Parents.Is_Empty,
+      Parse_Stream : in     Stream_ID;
+      Preceding    : in     Boolean)
+   with Pre => Valid_Stream_Node (Tree, Ref.Ref),
      Post => Parents_Valid (Ref);
-   --  Update Ref to last terminal of Ref.Ref.Element.Node or preceding
-   --  element.
+   --  Update Ref to last terminal of Ref.Ref.Element.Node or, if
+   --  Preceding, preceding element.
 
    procedure Prev_Terminal (Tree : in Syntax_Trees.Tree; Node : in out Node_Access)
    with Pre => Tree.Parents_Set,
@@ -1889,12 +1890,15 @@ package WisiToken.Syntax_Trees is
    procedure Prev_Terminal
      (Tree         : in     Syntax_Trees.Tree;
       Ref          : in out Stream_Node_Parents;
-      Parse_Stream : in     Stream_ID)
-   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
+      Parse_Stream : in     Stream_ID;
+      Preceding    : in     Boolean)
+   with Pre => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Tree.Correct_Stream_Node (Ref.Ref) and Parents_Valid (Ref);
    --  If Parse_Stream is not Invalid_Stream_ID and Ref.Stream is
    --  Shared_Stream, switches from Shared_Stream to Parse_Stream at
-   --  Parse_Stream.Shared_Link.
+   --  Parse_Stream.Shared_Link. If not Preceeding and there is no
+   --  previous terminal in Ref.Ref.Element, set ref.Ref.Node to
+   --  invalid_Node_Access.
 
    procedure Next_Terminal (Tree : in Syntax_Trees.Tree; Node : in out Node_Access)
    with Pre => Tree.Parents_Set,
@@ -1921,12 +1925,14 @@ package WisiToken.Syntax_Trees is
    procedure Next_Terminal
      (Tree      : in     Syntax_Trees.Tree;
       Ref       : in out Stream_Node_Parents;
-      Following : in     Boolean := True)
-   with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
+      Following : in     Boolean)
+   with Pre => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
    --  Same as Next_Terminal (Tree, Ref), using Ref.Parents for parent
    --  links. Ref.Parents is initialized by First_Terminal. If not
-   --  Following, do not step out of Ref.Ref.Element.
+   --  Following, do not step out of Ref.Ref.Element; set Ref.Ref.Node to
+   --  Invalid_Node_Access if there is no next terminal in
+   --  Ref.Ref.Element.
 
    function Next_Terminal
      (Tree : in Syntax_Trees.Tree;
@@ -1984,7 +1990,7 @@ package WisiToken.Syntax_Trees is
    procedure First_Sequential_Terminal
      (Tree      : in     Syntax_Trees.Tree;
       Ref       : in out Syntax_Trees.Stream_Node_Parents;
-      Following : in     Boolean := True)
+      Following : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
    --  Return first terminal with valid Sequential_Index in Ref.Node or,
@@ -2026,12 +2032,13 @@ package WisiToken.Syntax_Trees is
    procedure Last_Sequential_Terminal
      (Tree         : in     Syntax_Trees.Tree;
       Ref          : in out Syntax_Trees.Stream_Node_Parents;
-      Parse_Stream : in     Stream_ID)
+      Parse_Stream : in     Stream_ID;
+      Preceding    : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
    --  Update Ref to last terminal with valid Sequential_Index in
-   --  Ref.Node or a preceding stream element; if Ref.Stream is
-   --  Tree.Shared_Stream, switches to Parse_Stream at
+   --  Ref.Node or, if Preceding, a preceding stream element; if
+   --  Ref.Stream is Tree.Shared_Stream, switches to Parse_Stream at
    --  Parse_Stream.Shared_Link. Invalid_Node_Access if none found.
 
    procedure Next_Sequential_Terminal
@@ -2051,7 +2058,7 @@ package WisiToken.Syntax_Trees is
    procedure Next_Sequential_Terminal
      (Tree      : in     Syntax_Trees.Tree;
       Ref       : in out Syntax_Trees.Stream_Node_Parents;
-      Following : in     Boolean := True)
+      Following : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
    --  Update Node to the first terminal with valid Sequential_Index
@@ -2059,9 +2066,9 @@ package WisiToken.Syntax_Trees is
    --  out of Ref.Ref.Element.
 
    procedure Prev_Sequential_Terminal
-     (Tree    : in     Syntax_Trees.Tree;
-      Node    : in out Node_Access;
-      Parents : in out Node_Stacks.Stack)
+     (Tree      : in     Syntax_Trees.Tree;
+      Node      : in out Node_Access;
+      Parents   : in out Node_Stacks.Stack)
    with Pre => Tree.Label (Node) in Terminal_Label;
    --  Update Node to the last terminal with valid Sequential_Index
    --  preceding Node. Can step past SOI.
@@ -2069,7 +2076,8 @@ package WisiToken.Syntax_Trees is
    procedure Prev_Sequential_Terminal
      (Tree         : in     Syntax_Trees.Tree;
       Ref          : in out Stream_Node_Parents;
-      Parse_Stream : in     Stream_ID)
+      Parse_Stream : in     Stream_ID;
+      Preceding    : in     Boolean)
    with Pre => Valid_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref),
      Post => Correct_Stream_Node (Tree, Ref.Ref) and Parents_Valid (Ref);
 

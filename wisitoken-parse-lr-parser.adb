@@ -634,7 +634,7 @@ package body WisiToken.Parse.LR.Parser is
                        (Shared_Parser.Tree.To_Rooted_Ref
                           (Parser_State.Stream, Shared_Parser.Tree.Peek (Parser_State.Stream)));
                   begin
-                     Shared_Parser.Tree.Last_Sequential_Terminal (Ref, Parser_State.Stream);
+                     Shared_Parser.Tree.Last_Sequential_Terminal (Ref, Parser_State.Stream, Preceding => True);
                      return Ref.Ref.Node;
                   end Get_Terminal;
 

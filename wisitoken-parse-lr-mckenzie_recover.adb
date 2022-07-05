@@ -456,11 +456,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                              procedure Find_FF_Target (Ref : in Stream_Node_Ref)
                                              is begin
                                                 Target := Tree.To_Stream_Node_Parents (Ref);
-                                                Tree.First_Sequential_Terminal (Target);
+                                                Tree.First_Sequential_Terminal (Target, Following => True);
                                                 loop
                                                    exit when Tree.Get_Sequential_Index (Target.Ref.Node) =
                                                      Op.FF_Next_Index;
-                                                   Tree.Next_Sequential_Terminal (Target);
+                                                   Tree.Next_Sequential_Terminal (Target, Following => True);
                                                 end loop;
                                              end Find_FF_Target;
 
@@ -770,7 +770,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                Tree.First_Terminal (State.Sequential_Terminal, Following => True);
                Super.Extend_Sequential_Index
                  (Shared_Parser, Thru => State.Sequential_Terminal.Ref.Node, Positive => True);
-               Tree.First_Sequential_Terminal (State.Sequential_Terminal);
+               Tree.First_Sequential_Terminal (State.Sequential_Terminal, Following => True);
                pragma Assert (State.Sequential_Terminal.Ref /= Syntax_Trees.Invalid_Stream_Node_Ref);
             end if;
          end if;
@@ -794,7 +794,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       use Syntax_Trees;
    begin
       if State.Input_Terminal.Node = Invalid_Node_Access then
-         Tree.Next_Sequential_Terminal (State.Sequential_Terminal);
+         Tree.Next_Sequential_Terminal (State.Sequential_Terminal, Following => True);
 
       else
          Parse.Next_Sequential_Terminal (Tree, State.Input_Terminal);
@@ -958,7 +958,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
                        (Tree.To_Rooted_Ref
                           (Parser_State.Stream, Tree.Stream_Last (Parser_State.Stream, Skip_EOI => False)));
-                     Tree.Next_Terminal (Terminals (Terminals'Last));
+                     Tree.Next_Terminal (Terminals (Terminals'Last), Following => True);
                      if Terminals (Terminals'Last).Ref = Invalid_Stream_Node_Ref then
                         --  EOI was in stream input
                         Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents
@@ -972,13 +972,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                   else
                      Terminals (Terminals'Last) := Tree.To_Stream_Node_Parents (Current_Token);
-                     Tree.Last_Terminal (Terminals (Terminals'Last), Streams (Terminals'Last));
+                     Tree.Last_Terminal (Terminals (Terminals'Last), Streams (Terminals'Last), Preceding => True);
                   end if;
                end if;
             end;
          end if;
 
-         Tree.Last_Terminal (Terminals (I), Streams (I));
+         Tree.Last_Terminal (Terminals (I), Streams (I), Preceding => True);
          I := @ + 1;
       end loop;
 
@@ -1021,7 +1021,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                            Tree.Set_Sequential_Index (Terminals (I).Ref.Node, Seq_Index);
                            exit;
                         else
-                           Tree.Prev_Terminal (Terminals (I), Streams (I));
+                           Tree.Prev_Terminal (Terminals (I), Streams (I), Preceding => True);
 
                            Byte_Pos := Tree.Byte_Region
                              (Terminals (I), Parse_Stream => Streams (I), Trailing_Non_Grammar => True).First;
@@ -1033,7 +1033,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                            Tree.Set_Sequential_Index (Terminals (I).Ref.Node, Seq_Index);
                            exit;
                         else
-                           Tree.Next_Terminal (Terminals (I));
+                           Tree.Next_Terminal (Terminals (I), Following => True);
                            Byte_Pos := Tree.Byte_Region
                              (Terminals (I), Parse_Stream => Streams (I), Trailing_Non_Grammar => True).First;
                            exit when Ref_Byte_Pos < Byte_Pos; -- case 3.
@@ -1078,7 +1078,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                if Tree.ID (Terminals (1).Ref.Node) = Tree.Lexer.Descriptor.EOI_ID then
                   Target_Seen (1) := True;
                else
-                  Tree.Next_Terminal (Terminals (1));
+                  Tree.Next_Terminal (Terminals (1), Following => True);
                   if Tree.Get_Sequential_Index (Terminals (1).Ref.Node) /= Invalid_Sequential_Index and
                     Tree.Get_Sequential_Index (Terminals (1).Ref.Node) >= Target
                   then
@@ -1089,7 +1089,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                if Tree.ID (Terminals (1).Ref.Node) = Tree.Lexer.Descriptor.SOI_ID then
                   Target_Seen (1) := True;
                else
-                  Tree.Prev_Terminal (Terminals (1), Streams (1));
+                  Tree.Prev_Terminal (Terminals (1), Streams (1), Preceding => True);
                   if Tree.Get_Sequential_Index (Terminals (1).Ref.Node) /= Invalid_Sequential_Index and
                     Tree.Get_Sequential_Index (Terminals (1).Ref.Node) <= Target
                   then
@@ -1119,7 +1119,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      if Tree.ID (Terminals (I).Ref.Node) = Tree.Lexer.Descriptor.EOI_ID then
                         Target_Seen (I) := True;
                      else
-                        Tree.Next_Terminal (Terminals (I));
+                        Tree.Next_Terminal (Terminals (I), Following => True);
                         if Tree.Get_Sequential_Index (Terminals (I).Ref.Node) >= Target then
                            Target_Seen (I) := True;
                         end if;
@@ -1128,7 +1128,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      if Tree.ID (Terminals (I).Ref.Node) = Tree.Lexer.Descriptor.SOI_ID then
                         Target_Seen (I) := True;
                      else
-                        Tree.Prev_Terminal (Terminals (I), Streams (I));
+                        Tree.Prev_Terminal (Terminals (I), Streams (I), Preceding => True);
                         if Tree.Get_Sequential_Index (Terminals (I).Ref.Node) <= Target then
                            Target_Seen (I) := True;
                         end if;
@@ -1818,7 +1818,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Nonterm_Item : constant Recover_Stack_Item := Recover_Stacks.Pop (Stack);
 
       First_Terminal : constant Syntax_Trees.Node_Access := Tree.First_Source_Terminal
-        (Nonterm_Item.Token.Element_Node, Trailing_Non_Grammar => False);
+        (Nonterm_Item.Token.Element_Node, Trailing_Non_Grammar => False, Following => False);
       --  If First_Terminal (element) is virtual, it might be from current
       --  error recovery, not the shared_stream, so extend_sequential_index
       --  would not give it an index.

@@ -25,6 +25,7 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks.Containers;
 with Ada.Containers;
+with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LALR_Main;
@@ -100,12 +101,16 @@ package body Test_McKenzie_Recover is
 
       Check ("exception", False, Expect_Exception);
    exception
-   when WisiToken.Parse_Error =>
+   when E : WisiToken.Parse_Error =>
       if WisiToken.Trace_Tests > WisiToken.Detail then
-         Parser.Put_Errors (Parser.Tree.First_Parse_Stream);
+         if Parser.Tree.Stream_Count >= 2 then
+            Parser.Put_Errors (Parser.Tree.First_Parse_Stream);
+         else
+            Parser.Put_Errors;
+         end if;
       end if;
 
-      Check ("parse_error", True, Expect_Exception);
+      Check ("parse_error: " & Ada.Exceptions.Exception_Message (E), True, Expect_Exception);
    end Parse_Text;
 
    procedure Check_Recover

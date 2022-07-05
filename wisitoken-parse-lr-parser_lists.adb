@@ -173,7 +173,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       Prev_Terminal : Stream_Node_Parents := Tree.To_Stream_Node_Parents
         (Tree.To_Rooted_Ref (Parser_State.Stream, Tree.Peek (Parser_State.Stream)));
    begin
-      Tree.Last_Terminal (Prev_Terminal, Parser_State.Stream);
+      Tree.Last_Terminal (Prev_Terminal, Parser_State.Stream, Preceding => True);
 
       if Tree.Label (Prev_Terminal.Ref.Node) /= Source_Terminal then
          Tree.Prev_Source_Terminal
@@ -313,7 +313,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
       Result : Stream_Node_Parents := Tree.To_Stream_Node_Parents
         (Tree.Current_Token (Parser_State.Stream));
    begin
-      Tree.First_Sequential_Terminal (Result);
+      Tree.First_Sequential_Terminal (Result, Following => True);
       return Result.Ref;
    end Peek_Current_Sequential_Terminal;
 
@@ -422,16 +422,16 @@ package body WisiToken.Parse.LR.Parser_Lists is
             Ref_2 : Stream_Node_Parents := Tree.To_Stream_Node_Parents
               (Tree.To_Rooted_Ref (Stack_2, Tree.Peek (Stack_2)));
          begin
-            Tree.Last_Terminal (Ref_1, Stack_1);
+            Tree.Last_Terminal (Ref_1, Stack_1, Preceding => True);
             loop
                exit when Tree.Label (Ref_1.Ref.Node) = Source_Terminal;
-               Tree.Prev_Terminal (Ref_1, Stack_1);
+               Tree.Prev_Terminal (Ref_1, Stack_1, Preceding => True);
             end loop;
 
-            Tree.Last_Terminal (Ref_2, Stack_2);
+            Tree.Last_Terminal (Ref_2, Stack_2, Preceding => True);
             loop
                exit when Tree.Label (Ref_1.Ref.Node) = Source_Terminal;
-               Tree.Prev_Terminal (Ref_2, Stack_2);
+               Tree.Prev_Terminal (Ref_2, Stack_2, Preceding => True);
             end loop;
             return Tree.Byte_Region (Ref_1.Ref.Node, Trailing_Non_Grammar => False) =
               Tree.Byte_Region (Ref_2.Ref.Node, Trailing_Non_Grammar => False);

@@ -1589,7 +1589,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             elsif First < Tree.Get_Sequential_Index (Ref.Ref.Node) then
                loop
                   exit when Tree.Get_Sequential_Index (Ref.Ref.Node) = First;
-                  Tree.Prev_Sequential_Terminal (Ref, Parse_Stream => Invalid_Stream_ID);
+                  Tree.Prev_Sequential_Terminal (Ref, Parse_Stream => Invalid_Stream_ID, Preceding => True);
                end loop;
 
             else
@@ -1619,7 +1619,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                (Delete, Shared.Tree.ID (Ref.Ref.Node),
                 Tree.Get_Sequential_Index (Ref.Ref.Node)));
 
-            Tree.Next_Sequential_Terminal (Ref);
+            Tree.Next_Sequential_Terminal (Ref, Following => True);
          end loop;
          Config.Current_Shared_Token := Ref.Ref;
       end Delete_Shared_Stream;
@@ -1965,9 +1965,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      exit when Tree.Line_Region (Term, Super.Stream (Parser_Index)).First /= Current_Line;
 
                      if Forward then
-                        Tree.Next_Terminal (Term);
+                        Tree.Next_Terminal (Term, Following => True);
                      else
-                        Tree.Prev_Terminal (Term, Super.Stream (Parser_Index));
+                        Tree.Prev_Terminal (Term, Super.Stream (Parser_Index), Preceding => True);
                      end if;
                   end loop;
                end Search;
@@ -1975,13 +1975,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             begin
                if Term.Ref.Node = Invalid_Node_Access then
                   --  Invalid when Current_Shared_Token is an empty nonterm.
-                  Tree.Next_Terminal (Term);
+                  Tree.Next_Terminal (Term, Following => True);
                end if;
 
                Search (Forward => True);
                if not Found then
                   Term := Tree.To_Stream_Node_Parents (Config.Current_Shared_Token);
-                  Tree.Prev_Terminal (Term, Super.Stream (Parser_Index));
+                  Tree.Prev_Terminal (Term, Super.Stream (Parser_Index), Preceding => True);
                   Search (Forward => False);
                end if;
 
