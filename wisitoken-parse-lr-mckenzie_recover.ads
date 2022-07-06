@@ -295,9 +295,9 @@ private
           (if Clear
            then Tree.Get_Sequential_Index (Term.Ref.Node) = Syntax_Trees.Invalid_Sequential_Index
            else Tree.Get_Sequential_Index (Term.Ref.Node) /= Syntax_Trees.Invalid_Sequential_Index));
-   --  If Target = Invalid_Sequential_Index, clear all Sequential_Index,
+   --  If Clear, clear all Sequential_Index,
    --  starting at Terminals, and moving in Positive direction.
-   --  Otherwise, Set Sequential_Index in Tree nodes before/after
+   --  Otherwise, set Sequential_Index in Tree nodes before/after
    --  Terminals, thru Target.
 
    function Push_Back_Valid

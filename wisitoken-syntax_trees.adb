@@ -58,7 +58,8 @@ package body WisiToken.Syntax_Trees is
       Copy_Children          : in     Boolean;
       Copy_Following_Deleted : in     Boolean;
       New_Error_List         : in     Error_List_Access := null;
-      Set_Error_List         : in     Boolean           := False)
+      Set_Error_List         : in     Boolean           := False;
+      Set_Copied_Node        : in     Boolean           := False)
      return Valid_Node_Access
    with Pre => (if Copy_Children then Tree.Parents_Set);
    --  If Set_Error_List is False, new node has copy of Node.Error_List.
@@ -174,7 +175,8 @@ package body WisiToken.Syntax_Trees is
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
       Parent   : in out Valid_Node_Access;
-      Children : in     Node_Access_Array);
+      Children : in     Node_Access_Array)
+   with Pre => Tree.Parents_Set;
 
    function Subtree_Image
      (Tree         : in Syntax_Trees.Tree;
@@ -1715,7 +1717,7 @@ package body WisiToken.Syntax_Trees is
             Tree.Root := Node;
          end if;
       end if;
-      Node.Parent := null;
+      Node.Parent := Invalid_Node_Access;
    end Clear_Parent;
 
    procedure Clear_Parse_Streams
@@ -1810,7 +1812,7 @@ package body WisiToken.Syntax_Trees is
            Node /= Tree.Root and then
            Node /= Tree.SOI and then
            Node /= Tree.EOI and then
-           not (for some N of Keep_Nodes => N = (Node))
+           not (for some N of Keep_Nodes => N = Node)
          then
             --  It is tempting to try to enforce that all deleted nonterms have
             --  Children = (others => Invalid_Node_Access) here. However, that is
@@ -1940,7 +1942,7 @@ package body WisiToken.Syntax_Trees is
          when Nonterm => Node.Virtual);
    end Contains_Virtual_Terminal;
 
-   function Copied_Node (Node : in Valid_Node_Access) return Valid_Node_Access
+   function Copied_Node (Node : in Valid_Node_Access) return Node_Access
    is begin
       return Node.Copied_Node;
    end Copied_Node;
@@ -2021,7 +2023,8 @@ package body WisiToken.Syntax_Trees is
       Copy_Children          : in     Boolean;
       Copy_Following_Deleted : in     Boolean;
       New_Error_List         : in     Error_List_Access := null;
-      Set_Error_List         : in     Boolean           := False)
+      Set_Error_List         : in     Boolean           := False;
+      Set_Copied_Node        : in     Boolean           := False)
      return Valid_Node_Access
    is
       use all type Error_Data_Lists.List;
@@ -2155,6 +2158,11 @@ package body WisiToken.Syntax_Trees is
       end case;
 
       Tree.Nodes.Append (New_Node);
+
+      if Set_Copied_Node then
+         Node.Copied_Node := New_Node;
+      end if;
+
       return New_Node;
    end Copy_Node;
 
@@ -8078,9 +8086,13 @@ package body WisiToken.Syntax_Trees is
                   P_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Parse_Stream.Cur);
                begin
                   if Ref.Ref.Element.Cur = P_Stream.Shared_Link then
-                     Ref := (Ref     => (Parse_Stream, (Cur => P_Stream.Elements.Last), Invalid_Node_Access),
-                             Parents => <>);
-                     Tree.Last_Terminal (Ref, Parse_Stream, Preceding);
+                     Ref :=
+                       (Ref     =>
+                          (Parse_Stream,
+                           (Cur => P_Stream.Elements.Last),
+                           Element (P_Stream.Elements.Last).Node),
+                        Parents => <>);
+                     Tree.Last_Terminal (Ref, Parse_Stream, Preceding => False);
                   else
                      Stream_Prev (Tree, Ref, Rooted => False);
                   end if;
@@ -9586,10 +9598,10 @@ package body WisiToken.Syntax_Trees is
                Copy_Following_Deleted => False,
                User_Data              => User_Data,
                New_Error_List         => New_Error_List,
-               Set_Error_List         => True);
+               Set_Error_List         => True,
+               Set_Copied_Node        => True);
 
          begin
-
             Move_Element
               (Tree, Stream, Moved_Ref,
                New_Node => Copy_Node
@@ -9612,7 +9624,14 @@ package body WisiToken.Syntax_Trees is
                       Parent                 => Moved_Ref.Ref.Node,
                       User_Data              => User_Data,
                       Copy_Children          => False,
-                      Copy_Following_Deleted => False)));
+                      Copy_Following_Deleted => False,
+                      Set_Copied_Node        => True)));
+            end loop;
+
+            New_Error_List (Cur).Adjust_Copy;
+            New_Error_Node.Copied_Node := Invalid_Node_Access;
+            for Cur in Old_Following_Deleted.Iterate loop
+               Old_Following_Deleted (Cur).Copied_Node := Invalid_Node_Access;
             end loop;
          end;
 
@@ -9747,7 +9766,7 @@ package body WisiToken.Syntax_Trees is
                      Put_Error ("deleted.parent wrong");
                   end if;
                   if not Tree.In_Tree (Deleted) then
-                     Put_Error ("deleted not in tree");
+                     Put_Error ("deleted not in Tree.Nodes");
                   end if;
                   if Deleted.Error_List /= null then
                      for Err of Deleted.Error_List.all loop
@@ -9844,7 +9863,14 @@ package body WisiToken.Syntax_Trees is
                                      Children     => False,
                                      Node_Numbers => True)));
                         Tree.Lexer.Trace.Put_Line
-                          (Tree.Error_Message (Node, "... invalid_tree: node not in tree"));
+                          (Tree.Error_Message
+                             (Node, "... invalid_tree: node in Tree.Nodes but not in tree (has parent, should not)"));
+                        Tree.Lexer.Trace.Put_Line
+                          (Tree.Error_Message
+                             (Node, "... parent: " &
+                                (if Tree.In_Tree (Node.Parent)
+                                 then Image (Tree, Node, Children => False, Node_Numbers => True)
+                                 else "not in tree")));
                      end if;
                   end loop;
                end if;

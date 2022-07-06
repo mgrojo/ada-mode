@@ -91,11 +91,9 @@ package body Test_McKenzie_Recover is
       --  Stream_Index values are still valid.
 
       if WisiToken.Trace_Tests > WisiToken.Detail then
-         if WisiToken.Trace_Tests > WisiToken.Detail then
-            Ada.Text_IO.New_Line;
-            Ada.Text_IO.Put_Line ("parse result:");
-            Parser.Tree.Print_Tree (Non_Grammar => True);
-         end if;
+         Ada.Text_IO.New_Line;
+         Ada.Text_IO.Put_Line ("parse result:");
+         Parser.Tree.Print_Tree (Non_Grammar => True);
          Parser.Put_Errors;
       end if;
 
@@ -103,9 +101,12 @@ package body Test_McKenzie_Recover is
    exception
    when E : WisiToken.Parse_Error =>
       if WisiToken.Trace_Tests > WisiToken.Detail then
+         Ada.Text_IO.Put_Line ("parse_error: " & Ada.Exceptions.Exception_Message (E));
          if Parser.Tree.Stream_Count >= 2 then
+            Parser.Tree.Print_Streams (Children => True, Non_Grammar => True);
             Parser.Put_Errors (Parser.Tree.First_Parse_Stream);
          else
+            Parser.Tree.Print_Tree (Non_Grammar => True);
             Parser.Put_Errors;
          end if;
       end if;

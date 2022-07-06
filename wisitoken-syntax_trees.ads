@@ -203,8 +203,8 @@ package WisiToken.Syntax_Trees is
 
    procedure Adjust_Copy (Data : in out Error_Data)
    is abstract;
-   --  Data has been copied by Copy_Tree; update any Node_Access values
-   --  using Copied_Node.
+   --  Some or all of Data has been copied by Copy_Tree or Copy_Node;
+   --  update any Node_Access values using Copied_Node.
 
    function Dispatch_Equal (Left : in Error_Data; Right : in Error_Data'Class) return Boolean
    is abstract;
@@ -2137,7 +2137,7 @@ package WisiToken.Syntax_Trees is
    --  All Node_Index values in Destination are reset to be sequential;
    --  useful for Put_Tree.
 
-   function Copied_Node (Node : in Valid_Node_Access) return Valid_Node_Access;
+   function Copied_Node (Node : in Valid_Node_Access) return Node_Access;
    --  Only valid during Copy_Tree; Tree must be the original tree.
    --  Returns the copy of Node in the copied tree.
 

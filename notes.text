@@ -32,19 +32,15 @@ update-wisitoken_grammar
 
  current work
 still fixing error recover info in tree
-    t_mck Conflict_1
-        invalid_tree: op.del_node not in tree
+    t_mck all pass
+    t_all
 
-    update_error when error is in following_deleted =>
-        recover_op.del_node that refered to that deleted_node is now wrong
-            if deleted_node was deleted in a previous error session, it cannot contain the current error, and will not be updated/copied. => recover_op.del_node is in error that is being updated => use copied_node/Adjust_copy
-                copy_node does not currently set copied_node
-                need to clear it after call adjust_copy
-
-        or set all ins_node, del_node after resume is finished, before clear sequential_index
-                in reverse order, to copy deleted_following before capturing containing node
-                => less copying of error nodes
-
+test_incremntal.adb Recover_04 last edit incremental parse; no matching error found
+    parse_error on nonterm; incremental parse!
+        supposed to be on first terminal?
+            could change syntax_trees.add_error_to_input to do that.
+            also Tree.Input_Has_Matching_Error, Delete_Errors_In_Input
+            do commit first
 
 report mckenzie_recover.adb Error_Recover_Ops workarounds
 
@@ -54,6 +50,7 @@ wisitoken-syntax_Trees.adb Current_Error_Ref
 
 do_deletes called way more times than it needs to be
     move out of parse_verb
+    or only do if result verb is shift
 
 
 Put_tree put language, get-tree check it

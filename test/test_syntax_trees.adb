@@ -410,7 +410,7 @@ package body Test_Syntax_Trees is
          begin
             Tree.First_Terminal (Ref, Following => False);
             for I in 1 .. Index - 1 loop
-               Tree.Next_Terminal (Ref);
+               Tree.Next_Terminal (Ref, Following => True);
             end loop;
             Check (Label & ".node_index", Tree.Get_Node_Index (Ref.Ref.Node), Index);
 
@@ -470,8 +470,8 @@ package body Test_Syntax_Trees is
                  (Tree.Stream_Last (Tree.Shared_Stream, Skip_EOI => True));
                Prev : Stream_Node_Parents := Ref;
             begin
-               Tree.Last_Terminal (Last, Tree.Shared_Stream);
-               Tree.Prev_Terminal (Prev, Tree.Shared_Stream);
+               Tree.Last_Terminal (Last, Tree.Shared_Stream, Preceding => False);
+               Tree.Prev_Terminal (Prev, Tree.Shared_Stream, Preceding => True);
 
                if Trace_Tests > Detail then
                   Ada.Text_IO.Put_Line (Label & " prev: " & Tree.Image (Prev.Ref, Node_Numbers => True));
@@ -996,7 +996,7 @@ package body Test_Syntax_Trees is
          begin
             Tree.First_Terminal (Ref, Following => False);
             for I in 1 .. Index_1 - 1 loop
-               Tree.Next_Terminal (Ref);
+               Tree.Next_Terminal (Ref, Following => True);
             end loop;
             Check (Label & ".node_index_1", Tree.Get_Node_Index (Ref.Ref.Node), Index_1);
 
@@ -1017,7 +1017,7 @@ package body Test_Syntax_Trees is
             Ref := Tree.To_Stream_Node_Parents (Tree.Stream_First (Tree.Shared_Stream, Skip_SOI => True));
             Tree.First_Terminal (Ref, Following => False);
             for I in 1 .. Index_2 - 1 loop
-               Tree.Next_Terminal (Ref);
+               Tree.Next_Terminal (Ref, Following => True);
             end loop;
 
             Check (Label & ".node_index_2", Tree.Get_Node_Index (Ref.Ref.Node), Index_2);

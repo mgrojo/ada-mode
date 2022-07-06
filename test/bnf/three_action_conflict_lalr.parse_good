@@ -218,9 +218,9 @@ recover: succeed, parser count 3
 -54:(expression_1, (143 . 145))
 | 0;19:(IDENTIFIER, (143 . 145))),
 ^(21, 
-1;36:(RPAREN, (146 . 146) deleted: (2;35:(ARROW, (147 . 148), parser ERROR)))),
+1;37:(RPAREN, (146 . 146) deleted: (2;36:(ARROW, (147 . 148), parser ERROR)))),
 (-1, 
--61:(SEMI))/,
+-60:(SEMI))/,
 (-1, 
 3;22:(IDENTIFIER, (150 . 152))),
 (-1, 
@@ -233,7 +233,7 @@ recover: succeed, parser count 3
 7;26:(RBRACE, (158 . 158))),
 (-1, 
 8;27:(Wisi_EOI, (160 . 159))))
-    Current_Token: (6, -61:(SEMI))
+    Current_Token: (6, -60:(SEMI))
     Shared_Token: (-1, 3;22:(IDENTIFIER, (150 . 152)))
     recover_insert_delete:((DELETE, SEMI, 6), (DELETE, RBRACE, 7))
     resume_active: True, token goal 11
@@ -282,7 +282,7 @@ recover: succeed, parser count 3
 -53:(classOrInterfaceType_0, (143 . 145))
 | 0;19:(IDENTIFIER, (143 . 145))),
 ^(20, 
-1;38:(RPAREN, (146 . 146) deleted: (2;37:(ARROW, (147 . 148), parser ERROR))))/,
+1;40:(RPAREN, (146 . 146) deleted: (2;39:(ARROW, (147 . 148), parser ERROR))))/,
 (-1, 
 3;22:(IDENTIFIER, (150 . 152))),
 (-1, 
@@ -346,9 +346,9 @@ recover: succeed, parser count 3
 ^(15, 
 2;21:(ARROW, (147 . 148))),
 (-1, 
--65:(LBRACE)),
+-66:(LBRACE)),
 (-1, 
-3;39:(IDENTIFIER, (150 . 152), parser ERROR))/,
+3;41:(IDENTIFIER, (150 . 152), parser ERROR))/,
 (-1, 
 4;23:(SEMI, (153 . 153))),
 (-1, 
@@ -359,29 +359,29 @@ recover: succeed, parser count 3
 7;26:(RBRACE, (158 . 158))),
 (-1, 
 8;27:(Wisi_EOI, (160 . 159))))
-    Current_Token: (1, -65:(LBRACE))
+    Current_Token: (1, -66:(LBRACE))
     Shared_Token: (-1, 4;23:(SEMI, (153 . 153)))
     recover_insert_delete:
     resume_active: True, token goal 6
 
- 6: 21: (6, -61:(SEMI)) : reduce 3 tokens to expression
-(expression_0, (142 . 146) <= (-1;18:(LPAREN, (142 . 142)), (expression_1, (143 . 145)), 1;36:(RPAREN, (146 . 146) deleted: (2;35:(ARROW, (147 . 148), parser ERROR)))))
+ 6: 21: (6, -60:(SEMI)) : reduce 3 tokens to expression
+(expression_0, (142 . 146) <= (-1;18:(LPAREN, (142 . 142)), (expression_1, (143 . 145)), 1;37:(RPAREN, (146 . 146) deleted: (2;36:(ARROW, (147 . 148), parser ERROR)))))
  ... goto state 7
  5: 20: (-1, 3;22:(IDENTIFIER, (150 . 152))) : shift and goto state 5
- 1: 15: (1, -65:(LBRACE)) : shift and goto state 1
- 6: 7: (6, -61:(SEMI)) : shift and goto state 14
+ 1: 15: (1, -66:(LBRACE)) : shift and goto state 1
+ 6: 7: (6, -60:(SEMI)) : shift and goto state 14
  6: 14: (-1, 3;22:(IDENTIFIER, (150 . 152))) : reduce 2 tokens to statement
-(statement_0, (142 . 146) <= ((expression_0, (142 . 146)), -61:(SEMI)))
+(statement_0, (142 . 146) <= ((expression_0, (142 . 146)), -60:(SEMI)))
  ... goto state 17
  5: 5: (-1, 4;23:(SEMI, (153 . 153))) : reduce 1 tokens to expression
 (expression_1, (150 . 152) <= (3;22:(IDENTIFIER, (150 . 152))))
  ... goto state 23
- 1: 1: (1, 3;39:(IDENTIFIER, (150 . 152), parser ERROR)) : shift and goto state 5
+ 1: 1: (1, 3;41:(IDENTIFIER, (150 . 152), parser ERROR)) : shift and goto state 5
  6: 17: (-1, 3;22:(IDENTIFIER, (150 . 152))) : reduce 2 tokens to statement_list
 (statement_list_1, (3 . 146) <= ((statement_list_1, (3 . 97)), (statement_0, (142 . 146))))
  ... goto state 10
  5: 23: (-1, 4;23:(SEMI, (153 . 153))) : reduce 4 tokens to expression
-(expression_2, (142 . 152) <= (-1;18:(LPAREN, (142 . 142)), (classOrInterfaceType_0, (143 . 145)), 1;38:(RPAREN, (146 . 146) deleted: (2;37:(ARROW, (147 . 148), parser ERROR))), (expression_1, (150 . 152))))
+(expression_2, (142 . 152) <= (-1;18:(LPAREN, (142 . 142)), (classOrInterfaceType_0, (143 . 145)), 1;40:(RPAREN, (146 . 146) deleted: (2;39:(ARROW, (147 . 148), parser ERROR))), (expression_1, (150 . 152))))
  ... goto state 7
  6: 10: (-1, 3;22:(IDENTIFIER, (150 . 152))) : shift and goto state 5
  5: 7: (-1, 4;23:(SEMI, (153 . 153))) : shift and goto state 14
@@ -392,7 +392,7 @@ recover: succeed, parser count 3
 (statement_0, (142 . 153) <= ((expression_2, (142 . 152)), 4;23:(SEMI, (153 . 153))))
  ... goto state 17
  1: 5: (-1, 4;23:(SEMI, (153 . 153))) : reduce 1 tokens to expression
-(expression_1, (150 . 152) <= (3;39:(IDENTIFIER, (150 . 152), parser ERROR)))
+(expression_1, (150 . 152) <= (3;41:(IDENTIFIER, (150 . 152), parser ERROR)))
  ... goto state 7
  6: 7: (-1, 4;23:(SEMI, (153 . 153))) : shift and goto state 14
  5: 17: (-1, 5;24:(RBRACE, (154 . 154))) : reduce 2 tokens to statement_list
@@ -404,7 +404,7 @@ recover: succeed, parser count 3
 (statement_0, (150 . 153) <= ((expression_1, (150 . 152)), 4;23:(SEMI, (153 . 153))))
  ... goto state 17
  5: 16: (-1, 8;27:(Wisi_EOI, (160 . 159))) : reduce 3 tokens to block
-(block_0, (1 . 154) <= (-18;1:(LBRACE, (1 . 1)), (statement_list_1, (3 . 153)), 5;41:(RBRACE, (154 . 154) deleted: (6;25:(SEMI, (155 . 155)), 7;26:(RBRACE, (158 . 158))))))
+(block_0, (1 . 154) <= (-18;1:(LBRACE, (1 . 1)), (statement_list_1, (3 . 153)), 5;43:(RBRACE, (154 . 154) deleted: (6;25:(SEMI, (155 . 155)), 7;26:(RBRACE, (158 . 158))))))
  ... goto state 2
  1: 14: (-1, 5;24:(RBRACE, (154 . 154))) : reduce 2 tokens to statement
 (statement_0, (150 . 153) <= ((expression_1, (150 . 152)), 4;23:(SEMI, (153 . 153))))
@@ -420,10 +420,10 @@ recover: succeed, parser count 3
  6: 10: (-1, 5;24:(RBRACE, (154 . 154))) : shift and goto state 16
  1: 10: (-1, 5;24:(RBRACE, (154 . 154))) : shift and goto state 16
  6: 16: (-1, 8;27:(Wisi_EOI, (160 . 159))) : reduce 3 tokens to block
-(block_0, (1 . 154) <= (-18;1:(LBRACE, (1 . 1)), (statement_list_1, (3 . 153)), 5;43:(RBRACE, (154 . 154) deleted: (6;25:(SEMI, (155 . 155)), 7;26:(RBRACE, (158 . 158))))))
+(block_0, (1 . 154) <= (-18;1:(LBRACE, (1 . 1)), (statement_list_1, (3 . 153)), 5;47:(RBRACE, (154 . 154) deleted: (6;25:(SEMI, (155 . 155)), 7;26:(RBRACE, (158 . 158))))))
  ... goto state 2
  1: 16: (-1, 6;25:(SEMI, (155 . 155))) : reduce 3 tokens to block
-(block_0, (150 . 154) <= (-65:(LBRACE), (statement_list_0, (150 . 153)), 5;24:(RBRACE, (154 . 154))))
+(block_0, (150 . 154) <= (-66:(LBRACE), (statement_list_0, (150 . 153)), 5;24:(RBRACE, (154 . 154))))
  ... goto state 22
  6: 2: (-1, 8;27:(Wisi_EOI, (160 . 159))) : accept it
 (wisitoken_accept_0, (1 . 154) <= ((block_0, (1 . 154))))
@@ -451,4 +451,4 @@ recover: succeed, parser count 3
  5: terminate (1 active): recover cost/min length (-1, 27:(Wisi_EOI, (160 . 159)))
  1: succeed
 three_action_conflict.input:9:9: syntax_error: expecting LBRACE, found 'foo'
-   recovered: ((INSERT, LBRACE, 3))
+   recovered: ((INSERT, (LBRACE, (150 . 149)), 3))

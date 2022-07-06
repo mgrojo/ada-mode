@@ -91,9 +91,15 @@ package body WisiToken.Parse.LR.Parser_Lists is
          Result : Unbounded_String := +"(";
          Ops : Recover_Op_Nodes_Arrays.Vector renames Recover_Op_Array_Const_Ref
            (Error (Parser_State.Current_Error_Ref (Tree)));
+         Need_Comma : Boolean := False;
       begin
          if Parser_State.Current_Recover_Op /= No_Insert_Delete then
             for I in Parser_State.Current_Recover_Op .. Ops.Last_Index loop
+               if Need_Comma then
+                  Append (Result, ", ");
+               else
+                  Need_Comma := True;
+               end if;
                Append (Result, Image (Ops (I), Tree));
             end loop;
          end if;

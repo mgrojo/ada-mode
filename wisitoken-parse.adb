@@ -32,12 +32,12 @@ package body WisiToken.Parse is
       for Op of Item loop
          case Op.Op is
          when Insert =>
-            if Op.Ins_Node /= Invalid_Node_Access then
+            if Op.Ins_Node /= Invalid_Node_Access and then Copied_Node (Op.Ins_Node) /= Invalid_Node_Access then
                Op.Ins_Node := Copied_Node (Op.Ins_Node);
             end if;
 
          when Delete =>
-            if Op.Del_Node /= Invalid_Node_Access then
+            if Op.Del_Node /= Invalid_Node_Access and then Copied_Node (Op.Del_Node) /= Invalid_Node_Access  then
                Op.Del_Node := Copied_Node (Op.Del_Node);
             end if;
          end case;
@@ -171,10 +171,6 @@ package body WisiToken.Parse is
             if Op.Del_Node /= Invalid_Node_Access then
                if not Tree.In_Tree (Op.Del_Node) then
                   Report_Error ("op.del_node not in tree");
-               else
-                  if Tree.Parent (Op.Del_Node) /= Error_Node then
-                     Report_Error ("op.del_node.parent not error node");
-                  end if;
                end if;
             end if;
          end case;
