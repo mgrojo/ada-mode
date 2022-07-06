@@ -1124,7 +1124,8 @@ package WisiToken.Syntax_Trees is
       Node   : in     Valid_Node_Access;
       Before : in     Stream_Index)
    with Pre => Tree.Contains (Stream, Before);
-   --  Insert a new stream element on Stream containing Node, before Before.
+   --  Insert a new stream element on Stream containing Node, before
+   --  Before. Clears Node.Parent.
 
    function Stream_Insert
      (Tree   : in out Syntax_Trees.Tree;
@@ -2533,7 +2534,9 @@ package WisiToken.Syntax_Trees is
       Stream    : in     Stream_ID;
       Data      : in     Error_Data'Class;
       User_Data : in     User_Data_Access_Constant);
-   --  Copy Stream.Shared_Link.Node to Stream, add Data to its error list.
+   --  Add Data to the error list of the First_Terminal of the current
+   --  input token. If the current input is in Shared_Stream, copy to
+   --  Stream first.
 
    procedure Add_Error_To_Stack_Top
      (Tree      : in out Syntax_Trees.Tree;
@@ -2647,7 +2650,7 @@ package WisiToken.Syntax_Trees is
       Data      : in     Error_Data'Class;
       User_Data : in     User_Data_Access_Constant)
    with
-     Pre => Tree.Contains_Error (Error_Node (Error_Ref), Data),
+     Pre => not Tree.Parents_Set and Tree.Contains_Error (Error_Node (Error_Ref), Data),
      Post => Tree.Contains_Error (Error_Node (Error_Ref), Data);
    --  Update error list element matching Data.
    --
@@ -2798,8 +2801,11 @@ package WisiToken.Syntax_Trees is
       Line_Numbers          : in Boolean := False;
       Non_Grammar           : in Boolean := False;
       Augmented             : in Boolean := False;
-      Expecting             : in Boolean := False)
+      Expecting             : in Boolean := False;
+      Safe_Only             : in Boolean := False)
      return String;
+   --  If Safe_Only, assume Node is not in tree, so can't use Prev_/Next_ anything.
+
    function Image
      (Tree                  : in Syntax_Trees.Tree;
       Nodes                 : in Node_Access_Array;
@@ -2946,6 +2952,10 @@ package WisiToken.Syntax_Trees is
    --  For debugging; node counts.
 
    procedure Print_Ref_Counts (Tree : in Syntax_Trees.Tree);
+
+   procedure Find_Node (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access);
+   --  Print to tree.lexer.trace the index of Node in Tree.Nodes; useful
+   --  in debugger for a stable way to access Node.
 
 private
    use all type Ada.Containers.Count_Type;

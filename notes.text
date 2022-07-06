@@ -31,16 +31,14 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-still fixing error recover info in tree
-    t_mck all pass
-    t_all
+fixed error recover info in tree
+    run wisitoken_grammar_mode tests
 
-test_incremntal.adb Recover_04 last edit incremental parse; no matching error found
-    parse_error on nonterm; incremental parse!
-        supposed to be on first terminal?
-            could change syntax_trees.add_error_to_input to do that.
-            also Tree.Input_Has_Matching_Error, Delete_Errors_In_Input
-            do commit first
+    run ada_mode tests
+
+propagate to main
+
+release ada-mode
 
 report mckenzie_recover.adb Error_Recover_Ops workarounds
 

@@ -507,18 +507,22 @@ package body Test_Syntax_Trees is
             Ada.Text_IO.Put_Line (Label & " tree:");
             Tree.Print_Tree;
          end if;
-         declare
-            use all type Ada.Containers.Count_Type;
-            Error_Reported : Node_Sets.Set;
-         begin
-            Tree.Validate_Tree
-              (User_Data, Error_Reported,
-               Node_Index_Order => True,
-               Validate_Node    => Mark_In_Tree'Access);
-            if Error_Reported.Count > 0 then
-               AUnit.Assertions.Assert (False, "invalid tree");
-            end if;
-         end;
+
+         if not Debug_Mode then
+            --  parse runs validate_tree in debug_mode.
+            declare
+               use all type Ada.Containers.Count_Type;
+               Error_Reported : Node_Sets.Set;
+            begin
+               Tree.Validate_Tree
+                 (User_Data, Error_Reported,
+                  Node_Index_Order => True,
+                  Validate_Node    => Mark_In_Tree'Access);
+               if Error_Reported.Count > 0 then
+                  AUnit.Assertions.Assert (False, "invalid tree");
+               end if;
+            end;
+         end if;
 
          if Declarations_2 then
             Check
@@ -1083,18 +1087,20 @@ package body Test_Syntax_Trees is
             Ada.Text_IO.Put_Line (Label & " parsed tree 2:");
             Tree.Print_Tree;
          end if;
-         declare
-            use all type Ada.Containers.Count_Type;
-            Error_Reported : Node_Sets.Set;
-         begin
-            Tree.Validate_Tree
-              (User_Data, Error_Reported,
-               Node_Index_Order => False,
-               Validate_Node    => Mark_In_Tree'Access);
-            if Error_Reported.Count > 0 then
-               AUnit.Assertions.Assert (False, "invalid tree");
-            end if;
-         end;
+         if not Debug_Mode then
+            declare
+               use all type Ada.Containers.Count_Type;
+               Error_Reported : Node_Sets.Set;
+            begin
+               Tree.Validate_Tree
+                 (User_Data, Error_Reported,
+                  Node_Index_Order => False,
+                  Validate_Node    => Mark_In_Tree'Access);
+               if Error_Reported.Count > 0 then
+                  AUnit.Assertions.Assert (False, "invalid tree");
+               end if;
+            end;
+         end if;
       end Test_1;
    begin
       Test_1 ("b, c", 5, 9);

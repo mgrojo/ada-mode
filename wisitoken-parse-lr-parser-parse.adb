@@ -155,9 +155,11 @@ begin
                                  Op.Ins_Node := Tree.Insert_Virtual_Terminal (Parser_State.Stream, Op.Ins_ID).Node;
 
                                  Parser_State.Next_Recover_Op (Tree);
-                                 Tree.Update_Error
-                                   (Parser_State.Stream, Error_Ref, Err,
+
+                                 Parser_State.Update_Error
+                                   (Tree, Err,
                                     Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
+
                               end if;
                            end;
                         end if;
@@ -619,7 +621,7 @@ begin
       Trace.Put_Line (" " & Shared_Parser.Tree.Trimmed_Image (Shared_Parser.Parsers.First.Stream) & ": succeed");
    end if;
 
-   Finish_Parse (Shared_Parser, Incremental_Parse => Edits /= KMN_Lists.Empty_List);
+   Finish_Parse (Shared_Parser, Incremental_Parse => Pre_Edited or Edits /= KMN_Lists.Empty_List);
 
    if Trace_Time then
       Trace.Put_Clock ("finish parse");

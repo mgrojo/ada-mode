@@ -565,9 +565,7 @@ package body WisiToken.Parse.LR.Parser is
          end loop One_Error;
 
          if Err_Modified then
-            Tree.Update_Error
-              (Parser_State.Stream, Parser_State.Current_Error_Ref (Tree), Err,
-               User_Data_Access_Constant (Shared_Parser.User_Data));
+            Parser_State.Update_Error (Tree, Err, User_Data_Access_Constant (Shared_Parser.User_Data));
          end if;
       end;
    end Do_Deletes;
@@ -989,36 +987,37 @@ package body WisiToken.Parse.LR.Parser is
          Parser.Tree.Lexer.Trace.New_Line;
       end if;
 
-      if Parser.User_Data /= null then
-         --  ada-mode-recover_33.adb requires calling Insert_Token,
-         --  Delete_Token in lexical order, which is Recover_Insert_Delete
-         --  order. Other use cases would benefit from calling all Delete
-         --  first, or all Insert first, but we use this order as the least
-         --  surprising.
-         for Node of Parser_State.Recover_Insert_Delete loop
-            for Err of Parser.Tree.Error_List (Node) loop
-               if not (Err in Lexer_Error) then
-                  for Op of Recover_Op_Array_Const_Ref (Err) loop
-                     case Op.Op is
-                     when Insert =>
+      --  ada-mode-recover_33.adb requires calling Insert_Token,
+      --  Delete_Token in lexical order, which is Recover_Insert_Delete
+      --  order. Other use cases would benefit from calling all Delete
+      --  first, or all Insert first, but we use this order as the least
+      --  surprising.
+      for Node of Parser_State.Recover_Insert_Delete loop
+         for Err of Parser.Tree.Error_List (Node) loop
+            if not (Err in Lexer_Error) then
+               for Op of Recover_Op_Array_Const_Ref (Err) loop
+                  case Op.Op is
+                  when Insert =>
+                     if Parser.User_Data /= null then
                         Parser.User_Data.Insert_Token (Parser.Tree, Op.Ins_Node);
+                     end if;
+                  when Delete =>
+                     --  Op.Del_Node.Non_Grammar were previously moved to
+                     --  Op.Del_Node.Parent in Syntax_Tree.Add_Deleted; now we can edit the
+                     --  shared stream, so we can clear them.
+                     Parser.Tree.Non_Grammar_Var (Op.Del_Node).Clear;
 
-                     when Delete =>
-                        --  Op.Del_Node.Non_Grammar were previously moved to
-                        --  Op.Del_Node.Parent in Syntax_Tree.Add_Deleted; now we can edit the
-                        --  shared stream, so we can clear them.
-                        Parser.Tree.Non_Grammar_Var (Op.Del_Node).Clear;
-
-                        if Parser.Tree.Parent (Op.Del_Node) /= Last_Deleted_Node_Parent then
-                           Last_Deleted_Node_Parent := Parser.Tree.Parent (Op.Del_Node);
+                     if Parser.Tree.Parent (Op.Del_Node) /= Last_Deleted_Node_Parent then
+                        Last_Deleted_Node_Parent := Parser.Tree.Parent (Op.Del_Node);
+                        if Parser.User_Data /= null then
                            Parser.User_Data.Delete_Tokens (Parser.Tree, Last_Deleted_Node_Parent);
                         end if;
-                     end case;
-                  end loop;
-               end if;
-            end loop;
+                     end if;
+                  end case;
+               end loop;
+            end if;
          end loop;
-      end if;
+      end loop;
 
       if Trace_Parse > Extra or Trace_Action > Extra then
          Parser.Tree.Lexer.Trace.Put_Line ("post-parse tree:");
@@ -1051,6 +1050,7 @@ package body WisiToken.Parse.LR.Parser is
                      Node_Index_Order => not Incremental_Parse,
                      Validate_Node    => Syntax_Trees.Mark_In_Tree'Access);
                end;
+               Parser.Tree.Clear_Augmented;
             else
                Parser.Tree.Validate_Tree (Parser.User_Data.all, Error_Reported, Node_Index_Order => False);
             end if;

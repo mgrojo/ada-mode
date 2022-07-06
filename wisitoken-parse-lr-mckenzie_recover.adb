@@ -361,9 +361,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Op_Index : SAL.Base_Peek_Type := No_Insert_Delete;
                      --  Current op in Error_Recover_Ops, for setting Ins_Node, Del_Node.
 
-                     Insert_Delete_Inc : Natural := 0;
-                     --  Number of Insert/Delete ops performed here.
-
                      Insert_Delete_Matches_Ops : Boolean := True;
                      --  True if all insert/delete ops are performed here;
                      --  Parser_State.Recover_Insert_Delete_Current is left at No_Element.
@@ -381,6 +378,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      --  The verb will be reset by the main parser; just indicate the
                      --  parser recovered from the error.
                      Parser_State.Set_Verb (Shift);
+
                      Parser_State.Set_Current_Error_Features (Tree);
 
                      pragma Assert (Parser_State.Current_Recover_Op = No_Insert_Delete);
@@ -567,6 +565,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                            when Insert =>
                               Op_Index := @ + 1;
+                              if Parser_State.Current_Recover_Op = No_Insert_Delete then
+                                 Parser_State.First_Recover_Op;
+                              end if;
 
                               if First_Insert and Op.Ins_Before = Tree.Get_Sequential_Index
                                 (Tree.First_Sequential_Terminal (Tree.Current_Token (Parser_State.Stream)).Node)
@@ -582,7 +583,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                    Tree.Insert_Virtual_Terminal (Parser_State.Stream, Op.Ins_ID).Node;
                                  --  Modifies Tree.Current_Token
 
-                                 Insert_Delete_Inc := @ + 1;
+                                 Parser_State.Next_Recover_Op (Tree);
 
                                  --  Normally Insert is completed by Stack.Push; we let the main parser
                                  --  do that.
@@ -594,6 +595,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                            when Delete =>
                               Op_Index := @ + 1;
+                              if Parser_State.Current_Recover_Op = No_Insert_Delete then
+                                 Parser_State.First_Recover_Op;
+                              end if;
 
                               if Op.Del_Token_Index < Last_Recover_Node_Index then
                                  Raise_Bad_Config ("Delete is out of order");
@@ -612,7 +616,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                  if Stack_Matches_Ops and Insert_Delete_Matches_Ops and
                                    Op.Del_Token_Index = Tree.Get_Sequential_Index (Deleted_Node)
                                  then
-                                    Insert_Delete_Inc := @ + 1;
+                                    Parser_State.Next_Recover_Op (Tree);
 
                                     declare
                                        --  WORKAROUND: GNAT Community 2021 reports "'Op' must be a variable"
@@ -633,8 +637,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      end loop;
 
                      declare
-                        Error_Ref : constant Stream_Error_Ref := Parser_State.Current_Error_Ref (Tree);
-                        Err       : Error_Data'Class := Syntax_Trees.Error (Error_Ref);
+                        Err : Error_Data'Class := Syntax_Trees.Error (Parser_State.Current_Error_Ref (Tree));
                      begin
                         Recover_Op_Array_Var_Ref (Err) := Error_Recover_Ops;
 
@@ -646,17 +649,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                               Check_Count   => Parser_State.Recover.Check_Count);
                         end if;
 
-                        Tree.Update_Error
-                          (Parser_State.Stream, Error_Ref, Err,
-                           User_Data_Access_Constant (Shared_Parser.User_Data));
+                        Parser_State.Update_Error (Tree, Err, User_Data_Access_Constant (Shared_Parser.User_Data));
                      end;
-
-                     if not Insert_Delete_Matches_Ops then
-                        Parser_State.Next_Recover_Op (Tree);
-                        for I in 1 .. Insert_Delete_Inc loop
-                           Parser_State.Next_Recover_Op (Tree);
-                        end loop;
-                     end if;
 
                      if Trace_McKenzie > Extra then
                         Put_Line (Tree, Parser_State.Stream, "after Ops applied:");

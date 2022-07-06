@@ -137,13 +137,24 @@ package WisiToken.Parse.LR.Parser_Lists is
    --  Duplicates LR.Undo_Reduce; that is used by Edit_Tree, when there
    --  is no Parser_State.
 
+   procedure First_Recover_Op (Parser_State : in out Parser_Lists.Parser_State);
+   --  Set Parser_State.Current_Recover_Op to 1, indicating that there
+   --  are insert/delete operations in the current error.
+
    procedure Next_Recover_Op
      (Parser_State : in out Parser_Lists.Parser_State;
       Tree         : in     Syntax_Trees.Tree);
-   --  Increment current error Op_Index. If increments past last op in
-   --  current error, appends the current error node to
-   --  Parser_State.Recover_Insert_Delete, and clears recorded
-   --  Error_Node_Features.
+   --  Increment Parser_State.Current_Recover_Op.
+
+   procedure Update_Error
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in out Syntax_Trees.Tree;
+      Data         : in     Syntax_Trees.Error_Data'Class;
+      User_Data    : in     Syntax_Trees.User_Data_Access_Constant);
+   --  Update current error with Data. If Parser_State.Current_Recover_Op
+   --  is the last op in the current error, append the current error node
+   --  to Parser_State.Recover_Insert_Delete, and reset
+   --  Parser_State.Current_Recover_Op.
 
    function Peek_Current_Sequential_Terminal
      (Parser_State : in Parser_Lists.Parser_State;

@@ -293,22 +293,48 @@ package body WisiToken.Parse.LR.Parser_Lists is
       end;
    end Undo_Reduce;
 
+   procedure First_Recover_Op (Parser_State : in out Parser_Lists.Parser_State)
+   is begin
+      Parser_State.Current_Recover_Op := 1;
+   end First_Recover_Op;
+
    procedure Next_Recover_Op
      (Parser_State : in out Parser_Lists.Parser_State;
       Tree         : in     Syntax_Trees.Tree)
    is
-      Error_Ref : constant Syntax_Trees.Stream_Error_Ref := Parser_State.Current_Error_Ref (Tree);
-      Error     : Syntax_Trees.Error_Data'Class renames Syntax_Trees.Error (Error_Ref);
-      Ops       : Recover_Op_Nodes_Arrays.Vector renames Recover_Op_Array_Const_Ref (Error);
+      Recover_Ops : Recover_Op_Nodes_Arrays.Vector renames Recover_Op_Array_Const_Ref
+        (Syntax_Trees.Error (Parser_State.Current_Error_Ref (Tree)));
    begin
-      if Parser_State.Current_Recover_Op < Ops.Last_Index then
-         Parser_State.Current_Recover_Op := @ + 1;
-
-      else
+      if Parser_State.Current_Recover_Op = Recover_Ops.Last_Index then
          Parser_State.Current_Recover_Op := No_Insert_Delete;
-         Parser_State.Recover_Insert_Delete.Append (Syntax_Trees.Error_Node (Error_Ref));
+      else
+         Parser_State.Current_Recover_Op := @ + 1;
       end if;
    end Next_Recover_Op;
+
+   procedure Update_Error
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in out Syntax_Trees.Tree;
+      Data         : in     Syntax_Trees.Error_Data'Class;
+      User_Data    : in     Syntax_Trees.User_Data_Access_Constant)
+   is begin
+      Tree.Update_Error (Parser_State.Stream, Parser_State.Current_Error_Ref (Tree), Data, User_Data);
+
+      declare
+         Err_Ref : constant Syntax_Trees.Stream_Error_Ref := Parser_State.Current_Error_Ref (Tree);
+         Recover_Ops : Recover_Op_Nodes_Arrays.Vector renames Recover_Op_Array_Const_Ref
+           (Syntax_Trees.Error (Err_Ref));
+      begin
+         if Parser_State.Current_Recover_Op = Recover_Ops.Last_Index + 1 then
+            --  This happens in recover, when apply ops to parser does all insert/delete ops.
+            Parser_State.Current_Recover_Op := No_Insert_Delete;
+         end if;
+
+         if Parser_State.Current_Recover_Op = No_Insert_Delete then
+            Parser_State.Recover_Insert_Delete.Append (Syntax_Trees.Error_Node (Err_Ref));
+         end if;
+      end;
+   end Update_Error;
 
    function Peek_Current_Sequential_Terminal
      (Parser_State : in Parser_Lists.Parser_State;
@@ -670,7 +696,6 @@ package body WisiToken.Parse.LR.Parser_Lists is
    procedure Clear_Stream (State : in out Parser_State)
    is begin
       State.Stream := Syntax_Trees.Invalid_Stream_ID;
-      State.Recover_Insert_Delete.Clear;
    end Clear_Stream;
 
    function Verb (State : in Parser_State) return All_Parse_Action_Verbs

@@ -342,27 +342,22 @@ package body WisiToken.Syntax_Trees is
    is
       use Stream_Element_Lists;
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
+      Error_Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents
+        (if Parse_Stream.Stack_Top = Parse_Stream.Elements.Last
+         then (Tree.Shared_Stream,
+               (Cur => Parse_Stream.Shared_Link),
+               Element (Parse_Stream.Shared_Link).Node)
+         else (Stream,
+               (Cur => Next (Parse_Stream.Stack_Top)),
+               Element (Next (Parse_Stream.Stack_Top)).Node));
    begin
+      Tree.First_Terminal (Error_Ref, Following => False);
+
+      Move_Element
+        (Tree, Stream, Error_Ref, Add_Error (Tree, Error_Ref.Ref.Node, Data, User_Data), User_Data);
+
       if Parse_Stream.Elements.Last = Parse_Stream.Stack_Top then
-         --  Input token is Parse_Stream.Shared_Link. We don't use
-         --  Move_Shared_To_Input, because that doesn't copy the node.
-
-         Parse_Stream.Elements.Insert
-           (Element  =>
-              (Node  => Add_Error
-                 (Tree, Element (Parse_Stream.Shared_Link).Node, Data, User_Data),
-               State => Unknown_State),
-            Before   => Next (Parse_Stream.Stack_Top));
-
          Next (Parse_Stream.Shared_Link);
-      else
-         declare
-            El   : constant Cursor := Next (Parse_Stream.Stack_Top);
-            Orig : Stream_Element  := Element (El);
-         begin
-            Orig.Node := Add_Error (Tree, Orig.Node, Data, User_Data);
-            Replace_Element (El, Orig);
-         end;
       end if;
    end Add_Error_To_Input;
 
@@ -3821,6 +3816,16 @@ package body WisiToken.Syntax_Trees is
       end loop;
    end Find_New_Line;
 
+   procedure Find_Node (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Access)
+   is begin
+      for I in Tree.Nodes.First_Index .. Tree.Nodes.Last_Index loop
+         if Tree.Nodes (I) = Node then
+            Tree.Lexer.Trace.Put_Line (I'Image);
+            exit;
+         end if;
+      end loop;
+   end Find_Node;
+
    function Find_Sibling
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Access;
@@ -5206,7 +5211,8 @@ package body WisiToken.Syntax_Trees is
       Line_Numbers          : in Boolean := False;
       Non_Grammar           : in Boolean := False;
       Augmented             : in Boolean := False;
-      Expecting             : in Boolean := False)
+      Expecting             : in Boolean := False;
+      Safe_Only             : in Boolean := False)
      return String
    is
       use Ada.Strings.Unbounded;
@@ -5216,7 +5222,10 @@ package body WisiToken.Syntax_Trees is
       else
          declare
             Result : Unbounded_String;
-            Node_Byte_Region : constant Buffer_Region := Tree.Byte_Region (Node, Trailing_Non_Grammar => False);
+            Node_Byte_Region : constant Buffer_Region :=
+              (if Safe_Only
+               then Null_Buffer_Region
+               else Tree.Byte_Region (Node, Trailing_Non_Grammar => False));
          begin
             if Node.Label in Terminal_Label and then Node.Sequential_Index /= Invalid_Sequential_Index then
                Append (Result, Trimmed_Image (Node.Sequential_Index) & ";");
@@ -5242,13 +5251,14 @@ package body WisiToken.Syntax_Trees is
                Append (Result, ", " & Image (Node_Byte_Region));
             end if;
 
-            if (Line_Numbers and Tree.Editable) and then Tree.Line_Region (Node, Trailing_Non_Grammar => True) /=
+            if (Line_Numbers and Tree.Editable and not Safe_Only) and then
+              Tree.Line_Region (Node, Trailing_Non_Grammar => True) /=
               Null_Line_Region
             then
                Append (Result, ", " & Image (Tree.Line_Region (Node, Trailing_Non_Grammar => True)));
             end if;
 
-            if Children and Node.Label = Nonterm then
+            if not Safe_Only and Children and Node.Label = Nonterm then
                Result := @ & " <= " & Image
                  (Tree, Node.Children, RHS_Index, Node_Numbers, Terminal_Node_Numbers, Non_Grammar, Augmented);
             end if;
@@ -5411,15 +5421,26 @@ package body WisiToken.Syntax_Trees is
       use Stream_Element_Lists;
 
       Parse_Stream : Syntax_Trees.Parse_Stream renames Tree.Streams (Stream.Cur);
-      Error_Node : constant Valid_Node_Access :=
+      Error_Ref : Stream_Node_Parents := Tree.To_Stream_Node_Parents
         (if Parse_Stream.Stack_Top = Parse_Stream.Elements.Last
-         then Element (Parse_Stream.Shared_Link).Node
-         else Element (Next (Parse_Stream.Stack_Top)).Node);
+         then (Tree.Shared_Stream,
+               (Cur => Parse_Stream.Shared_Link),
+               Element (Parse_Stream.Shared_Link).Node)
+         else (Stream,
+               (Cur => Next (Parse_Stream.Stack_Top)),
+               Element (Next (Parse_Stream.Stack_Top)).Node));
    begin
-      if Error_Node.Error_List = null then
+      Tree.First_Terminal (Error_Ref, Following => False);
+
+      if Error_Ref.Ref.Node = Invalid_Node_Access then
+         --  Empty nonterm
+         return False;
+      end if;
+
+      if Error_Ref.Ref.Node.Error_List = null then
          return False;
       else
-         return (for some Err of Error_Node.Error_List.all => Dispatch_Equal (Err, Data));
+         return (for some Err of Error_Ref.Ref.Node.Error_List.all => Dispatch_Equal (Err, Data));
       end if;
    end Input_Has_Matching_Error;
 
@@ -6550,10 +6571,13 @@ package body WisiToken.Syntax_Trees is
       Data                : in out User_Data_Type'Class;
       Node_Error_Reported : in out Boolean)
    is
-      pragma Unreferenced (Data, Tree, Node_Error_Reported);
+      pragma Unreferenced (Data, Node_Error_Reported);
    begin
       if Node.Augmented /= null then
-         raise SAL.Programmer_Error with "Mark_In_Tree called with Augmented already set.";
+         raise SAL.Programmer_Error with
+           (if Node.Augmented.all in Augmented_In_Tree
+            then "Mark_In_Tree called twice on node " & Tree.Image (Node, Node_Numbers => True)
+            else "Mark_In_Tree called with Augmented already set");
       end if;
       Node.Augmented := new Augmented_In_Tree'(Aug_In_Tree);
 
@@ -9621,7 +9645,7 @@ package body WisiToken.Syntax_Trees is
                    then New_Error_Node
                    else Copy_Node
                      (Tree, Old_Following_Deleted (Cur),
-                      Parent                 => Moved_Ref.Ref.Node,
+                      Parent                 => Invalid_Node_Access,
                       User_Data              => User_Data,
                       Copy_Children          => False,
                       Copy_Following_Deleted => False,
@@ -9638,12 +9662,9 @@ package body WisiToken.Syntax_Trees is
       else
          Move_Element
            (Tree, Stream, Moved_Ref,
-            New_Node => Copy_Node
+            New_Node                  => Copy_Node
               (Tree, Error_Ref.Ref.Ref.Node,
-               Parent =>
-                 (if Tree.Parents_Set
-                  then Error_Ref.Ref.Ref.Node.Parent
-                  else Invalid_Node_Access),
+               Parent                 => Invalid_Node_Access,
                Copy_Children          => False,
                Copy_Following_Deleted => True,
                New_Error_List         => New_Error_List,
@@ -9856,21 +9877,15 @@ package body WisiToken.Syntax_Trees is
                      if Node.Augmented = null then
                         Error_Reported.Insert (Node);
 
+                        --  Node is not in tree, so can't use Tree.Error_Message
                         Tree.Lexer.Trace.Put_Line
-                          (Tree.Error_Message
-                             (Node,
-                              Image (Tree, Node,
-                                     Children     => False,
-                                     Node_Numbers => True)));
+                          (Image
+                             (Tree, Node,
+                              Children     => False,
+                              Node_Numbers => True,
+                              Safe_Only    => True));
                         Tree.Lexer.Trace.Put_Line
-                          (Tree.Error_Message
-                             (Node, "... invalid_tree: node in Tree.Nodes but not in tree (has parent, should not)"));
-                        Tree.Lexer.Trace.Put_Line
-                          (Tree.Error_Message
-                             (Node, "... parent: " &
-                                (if Tree.In_Tree (Node.Parent)
-                                 then Image (Tree, Node, Children => False, Node_Numbers => True)
-                                 else "not in tree")));
+                          ("... invalid_tree: node in Tree.Nodes but not in tree (has parent, should not)");
                      end if;
                   end loop;
                end if;
