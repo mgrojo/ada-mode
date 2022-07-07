@@ -31,12 +31,7 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-fixed error recover info in tree
-    run wisitoken_grammar_mode tests
-
-    run ada_mode tests
-
-propagate to main
+propagate wisitoken.grammar_mode to main
 
 release ada-mode
 

@@ -159,7 +159,6 @@ begin
                                  Parser_State.Update_Error
                                    (Tree, Err,
                                     Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
-
                               end if;
                            end;
                         end if;
