@@ -18,6 +18,19 @@ package body Ada_Mode.Ada2020 is
               --  Comment in expression
               4);
 
+   --  Declare expression with constant in precondition.
+   procedure Absolute_Difference
+     (X, Y :     Integer;
+      Diff : out Integer)
+   with Post =>
+     (declare
+         Min : constant Integer := Integer'Min (X, Y);
+         Max : constant Integer := Integer'Max (X, Y);
+      begin Diff = Max - Min)
+    is begin
+       Diff := abs X - Y;
+    end Absolute_Difference;
+
    type Task_Array is array (Worker_Indexes) of Worker;
 
    --  [1] ai12-0061-1.txt

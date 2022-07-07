@@ -1623,6 +1623,9 @@ mark fixed bugs
         don't include Version: header; that's an Emacs version
     debbugs updates ada-mode summary page within half an hour; no emails
 
+not found by search:
+    https://debbugs.gnu.org/cgi/bugreport.cgi?bug=56236
+
 check https://www.emacswiki.org/emacs/AdaMode
     https://www.emacswiki.org/emacs/StephenLeake
 
