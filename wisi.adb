@@ -329,14 +329,13 @@ package body Wisi is
    end Put;
 
    procedure Put
-     (Item : in Parse.LR.Recover_Op_Nodes_Arrays.Vector;
-      Data : in Parse_Data_Type;
-      Tree : in Syntax_Trees.Tree)
+     (Item      : in Parse.Recover_Op_Nodes_Arrays.Vector;
+      Error_Pos : in Buffer_Pos;
+      Tree      : in Syntax_Trees.Tree)
    is
       use Ada.Strings.Unbounded;
       use WisiToken.Parse;
-      use WisiToken.Parse.LR;
-      use WisiToken.Parse.LR.Recover_Op_Nodes_Arrays;
+      use WisiToken.Parse.Recover_Op_Nodes_Arrays;
       use all type Ada.Containers.Count_Type;
 
       Descriptor : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
@@ -356,11 +355,11 @@ package body Wisi is
       Line           : Unbounded_String := To_Unbounded_String ("[");
       Deleted_Region : Buffer_Region    := Null_Buffer_Region;
       Last_Deleted   : Recover_Op_Nodes :=
-        (Op        => Delete,
-         Error_Pos => Invalid_Buffer_Pos,
-         Del_ID    => Invalid_Token_ID,
-         Del_Index => Syntax_Trees.Sequential_Index'Last,
-         Del_Node  => Syntax_Trees.Invalid_Node_Access);
+        (Op               => Delete,
+         Input_Node_Index => Syntax_Trees.Invalid_Node_Index,
+         Del_ID           => Invalid_Token_ID,
+         Del_Index        => Syntax_Trees.Sequential_Index'Last,
+         Del_Node         => Syntax_Trees.Invalid_Node_Access);
 
       procedure Start_Edit_Region (Error_Pos, Edit_Pos : in Buffer_Pos)
       is begin
@@ -387,7 +386,7 @@ package body Wisi is
       end Terminate_Edit_Region;
    begin
       if Trace_Action > Outline then
-         Tree.Lexer.Trace.Put_Line ("recover: " & WisiToken.Parse.LR.Image (Item, Tree));
+         Tree.Lexer.Trace.Put_Line ("recover: " & WisiToken.Parse.Image (Item, Tree));
       end if;
 
       if Item.Length = 0 or not Tree.Parents_Set then
@@ -430,14 +429,14 @@ package body Wisi is
             when Insert =>
                case State is
                when None =>
-                  Start_Edit_Region (Op.Error_Pos, Edit_Pos);
+                  Start_Edit_Region (Error_Pos, Edit_Pos);
 
                when Inserted =>
                   null;
 
                when Deleted =>
                   Terminate_Edit_Region;
-                  Start_Edit_Region (Op.Error_Pos, Edit_Pos);
+                  Start_Edit_Region (Error_Pos, Edit_Pos);
 
                end case;
                Append (Line, Token_ID'Image (Op.Ins_ID));
@@ -450,14 +449,14 @@ package body Wisi is
                begin
                   case State is
                   when None =>
-                     Start_Edit_Region (Op.Error_Pos, Edit_Pos);
+                     Start_Edit_Region (Error_Pos, Edit_Pos);
                      Append (Line, "][");
 
                   when Inserted =>
                      Append (Line, "][");
 
                   when Deleted =>
-                     if Data.Embedded_Quote_Escape_Doubled and then
+                     if Tree.Lexer.Escape_Delimiter_Doubled (Last_Deleted.Del_ID) and then
                        ((Last_Deleted.Del_ID = Descriptor.String_1_ID and
                            Op.Del_ID = Descriptor.String_1_ID) or
                           (Last_Deleted.Del_ID = Descriptor.String_2_ID and
@@ -532,7 +531,6 @@ package body Wisi is
             when Anchored =>
                declare
                   Anchor_Line_Indent : Indent_Type renames Data.Indents (Indent.Anchor_Line);
-                  Anchor_Indent : Integer;
                begin
                   case Anchor_Line_Indent.Label is
                   when Not_Set | Anchored =>
@@ -542,12 +540,9 @@ package body Wisi is
                        " which has non-int anchor";
 
                   when Int =>
-                     Anchor_Indent := Anchor_Line_Indent.Int_Indent;
-
+                     Data.Indents.Replace_Element
+                       (Line, (Int, Invalid_Line_Number, Anchor_Line_Indent.Int_Indent + Indent.Anchor_Delta));
                   end case;
-
-                  Data.Indents.Replace_Element
-                    (Line, (Int, Invalid_Line_Number, Anchor_Indent + Indent.Anchor_Delta));
                end;
 
             end case;
@@ -828,7 +823,8 @@ package body Wisi is
          --  We need more lines in Indents than in Action_Region, for nonterms
          --  that extend outside the action region.
          declare
-            Tree_Line_Region : constant Line_Region := Tree.Line_Region (Tree.Root, Trailing_Non_Grammar => True);
+            Tree_Line_Region : constant WisiToken.Line_Region := Tree.Line_Region
+              (Tree.Root, Trailing_Non_Grammar => True);
          begin
             Data.Indents.Set_First_Last
               (First => Tree_Line_Region.First,
@@ -1015,7 +1011,7 @@ package body Wisi is
                   if Trace_Action > WisiToken.Outline then
                      Tree.Lexer.Trace.Put_Line
                        ("insert token " & Tree.Image (Inserted_Token, Node_Numbers => True, Non_Grammar => True) &
-                          " on line" & Insert_Line'Image & "; move non_grammar from" &
+                          " on line" & Insert_Line'Image & "; move some non_grammar from " &
                           Tree.Image (Prev_Terminal, Node_Numbers => True, Non_Grammar => True));
                   end if;
                end;
@@ -2029,6 +2025,19 @@ package body Wisi is
 
       when Print =>
          Tree.Print_Tree (Line_Numbers => True, Non_Grammar => True);
+         if Tree.Editable then
+            WisiToken.Parse.Put_Errors (Tree);
+         else
+            declare
+               Stream : Stream_ID := Tree.First_Parse_Stream;
+            begin
+               loop
+                  exit when Stream = Invalid_Stream_ID;
+                  WisiToken.Parse.Put_Errors (Tree, Stream);
+                  Tree.Next_Parse_Stream (Stream);
+               end loop;
+            end;
+         end if;
 
       when Dump =>
          declare
@@ -2116,10 +2125,7 @@ package body Wisi is
       end if;
    end Put;
 
-   procedure Put
-     (Data    : in Parse_Data_Type;
-      Recover : in Parse.LR.Recover_Op_Nodes_Arrays.Vector;
-      Tree    : in Syntax_Trees.Tree)
+   procedure Put_Errors (Tree : in Syntax_Trees.Tree)
    is
       use Ada.Text_IO;
       Descriptor  : WisiToken.Descriptor renames Tree.Lexer.Descriptor.all;
@@ -2141,14 +2147,21 @@ package body Wisi is
          end if;
       end Safe_Pos;
 
-      Error_Present : Boolean := False;
-
       procedure Handle_Error
         (Err        : in Syntax_Trees.Error_Data'Class;
          Error_Node : in Syntax_Trees.Valid_Node_Access)
-      is begin
-         Error_Present := True;
+      is
+         Error_Pos : constant Buffer_Pos := Tree.Char_Region (Error_Node, Trailing_Non_Grammar => False).First;
 
+         procedure Put_Recover (Item : in WisiToken.Parse.Recover_Op_Nodes_Arrays.Vector)
+         is begin
+            Put (Item, Error_Pos, Tree);
+            if Trace_Action > Outline  or WisiToken.Debug_Mode then
+               Tree.Lexer.Trace.Put_Line ("recover: " & Parse.Image (Item, Tree));
+            end if;
+         end Put_Recover;
+
+      begin
          if Err in WisiToken.Parse.Lexer_Error then
             Put (WisiToken.Parse.Lexer_Error (Err));
 
@@ -2160,6 +2173,7 @@ package body Wisi is
                  ('[' & Parser_Error_Code & Base_Buffer_Pos'Image (Safe_Pos (Error_Node)) &
                     " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                     ", found '" & Image (Tree.ID (Error_Node), Descriptor) & "'""]");
+               Put_Recover (Item.Recover_Ops);
             end;
 
          elsif Err in WisiToken.Parse.In_Parse_Action_Error then
@@ -2181,13 +2195,19 @@ package body Wisi is
                            when Extra_Name_Error => "extra",
                            when Match_Names_Error => "match") &
                           " name error""]"));
+               Put_Recover (Item.Recover_Ops);
             end;
 
          elsif Err in WisiToken.Parse.Error_Message then
             --  FIXME: convert moved In_Parse_Action_Error to In_Parse_Action_Error_Code?
-            Put_Line
-              ('[' & Parser_Error_Code & Buffer_Pos'Image (Buffer_Pos'First) &
-                 " """ & (-WisiToken.Parse.Error_Message (Err).Msg) & """]");
+            declare
+               Item : WisiToken.Parse.Error_Message renames WisiToken.Parse.Error_Message (Err);
+            begin
+               Put_Line
+                 ('[' & Parser_Error_Code & Buffer_Pos'Image (Buffer_Pos'First) &
+                    " """ & (-Item.Msg) & """]");
+               Put_Recover (Item.Recover_Ops);
+            end;
          end if;
       end Handle_Error;
 
@@ -2211,16 +2231,11 @@ package body Wisi is
             declare
                Stream_Err_Ref : constant Syntax_Trees.Stream_Error_Ref := Syntax_Trees.Error (Err_Cur);
             begin
-               Handle_Error (Syntax_Trees.Error (Stream_Err_Ref), Tree.Error_Node (Stream_Err_Ref).Node);
+               Handle_Error (Syntax_Trees.Error (Stream_Err_Ref), Tree.Error_Node (Stream_Err_Ref));
             end;
          end loop;
       end if;
-
-      Put (Recover, Data, Tree);
-      if WisiToken.Debug_Mode and Error_Present then
-         Tree.Lexer.Trace.Put_Line ("recover: " & Parse.LR.Image (Recover, Tree));
-      end if;
-   end Put;
+   end Put_Errors;
 
    procedure Put_Error
      (Tree        : in Syntax_Trees.Tree;

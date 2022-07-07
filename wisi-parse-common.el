@@ -274,7 +274,8 @@ have been previously parsed by `wisi-parse-current' or
 - child: ARGS are (node-address n). Return wisi-tree-node for the
   nth child of the node, or nil if no such child.
 
-- print: ARGS ignored. Output parse tree to trace log. Returns t.
+- print: ARGS ignored. Output parse tree and any errors in the
+  tree to the trace log. Returns t.
 
 - dump: ARGS are (file-name). Dump text representation of parse
   tree to file file-name, overwriting any existing

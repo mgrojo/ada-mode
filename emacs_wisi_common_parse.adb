@@ -363,8 +363,6 @@ package body Emacs_Wisi_Common_Parse is
                --  [elisp error form]...
                --  prompt
                declare
-                  use all type SAL.Base_Peek_Type;
-
                   Params : constant Parse_Params := Get_Parse_Params (Command_Line, Last);
 
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access :=
@@ -497,31 +495,14 @@ package body Emacs_Wisi_Common_Parse is
                      end;
                   end case;
 
-                  if Parser.Parsers.Count > 0 then
-                     --  else edits did not require parse
-                     Parse_Data.Put
-                       (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-                        Parser.Tree);
-                  end if;
+                  Wisi.Put_Errors (Parser.Tree);
 
                exception
                when Wisi.Parse_Context.Not_Found =>
                   raise;
 
                when WisiToken.Syntax_Error | WisiToken.Parse_Error =>
-                  if Parser.Parsers.Count > 0 then
-                     --  Else last parser terminated
-                     Parse_Data.Put
-                       (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-                        Parser.Tree);
-                  end if;
-
-                  if Parser.Tree.Stream_Count >= 2 then
-                     WisiToken.Parse.Put_Errors (Parser, Parser.Tree.First_Parse_Stream);
-                  else
-                     --  Probably an error in Edit_Tree
-                     Parser.Put_Errors (Parser.Tree.Shared_Stream);
-                  end if;
+                  Wisi.Put_Errors (Parser.Tree);
                   raise;
 
                when others =>

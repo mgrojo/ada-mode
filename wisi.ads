@@ -31,7 +31,7 @@ with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with SAL.Generic_Decimal_Image;
-with WisiToken.Parse.LR;
+with WisiToken.Parse;
 with WisiToken.Syntax_Trees;
 package Wisi is
    use all type WisiToken.Syntax_Trees.Node_Access;
@@ -452,20 +452,16 @@ package Wisi is
    --  Ada.Text_IO.Current_Output, as encoded responses as defined in [3]
    --  wisi-process-parse--execute.
 
-   procedure Put
-     (Data         : in Parse_Data_Type;
-      Recover      : in WisiToken.Parse.LR.Recover_Op_Nodes_Arrays.Vector;
-      Tree         : in WisiToken.Syntax_Trees.Tree);
-   --  Put errors in Tree, and Recover to Ada.Text_IO.Current_Output,
-   --  as encoded error responses as defined in [3]
+   procedure Put_Errors (Tree : in WisiToken.Syntax_Trees.Tree);
+   --  Put errors in Tree to Ada.Text_IO.Current_Output,
+   --  as encoded error and recover responses as defined in [3]
    --  wisi-process-parse--execute.
-   --  FIXME: change parse_errors to store recover_op_nodes_Array, delete Recover here.
 
    procedure Put_Error
      (Tree        : in WisiToken.Syntax_Trees.Tree;
       Line_Number : in WisiToken.Line_Number_Type;
       Message     : in String);
-   --  Put an error elisp form to Ada.Text_IO.Standard_Output.
+   --  Put an error elisp form to Ada.Text_IO.Current_Output.
 
    function Integer_Filled_Image is new SAL.Generic_Decimal_Image (Integer);
 
@@ -587,8 +583,6 @@ private
 
       Statement_IDs : WisiToken.Token_ID_Arrays.Vector;
       --  Nonterms returned by containing_statement query.
-
-      Embedded_Quote_Escape_Doubled : Boolean := False;
 
       --  Data for post-parse actions
 
