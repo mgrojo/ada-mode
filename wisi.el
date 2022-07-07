@@ -527,40 +527,42 @@ deleted range.")
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
   ;; begin . (1- end) is range of text being deleted
-  (when wisi-incremental-parse-enable
-    (setq wisi--affected-text (buffer-substring-no-properties begin end)))
+  (with-demoted-errors "wisi-before-change signaled: %s"
+    (when wisi-incremental-parse-enable
+      (setq wisi--affected-text (buffer-substring-no-properties begin end)))
 
-  (unless wisi-indenting-p
-    ;; We set wisi--change-beg, -end even if only inserting, so we
-    ;; don't have to do it again in wisi-after-change.
-    (setq wisi--change-beg (min wisi--change-beg begin))
+    (unless wisi-indenting-p
+      ;; We set wisi--change-beg, -end even if only inserting, so we
+      ;; don't have to do it again in wisi-after-change.
+      (setq wisi--change-beg (min wisi--change-beg begin))
 
-    ;; `buffer-base-buffer' deals with edits in indirect buffers
-    ;; created by ediff-regions-*
+      ;; `buffer-base-buffer' deals with edits in indirect buffers
+      ;; created by ediff-regions-*
 
-    (cond
-     ((null wisi--change-end)
-      (setq wisi--change-end (make-marker))
-      (set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
-
-     ((> end wisi--change-end)
-      (set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
-     )
-
-    (unless (= begin end)
       (cond
-       ((or (null wisi--deleted-syntax)
-	    (= 0 wisi--deleted-syntax))
-	(save-excursion
-	  (if (or (nth 4 (syntax-ppss begin)) ; in comment, moves point to begin
-		  (= end (skip-syntax-forward " " end)));; whitespace
-	      (setq wisi--deleted-syntax 0)
-	    (setq wisi--deleted-syntax 2))))
+       ((null wisi--change-end)
+	(setq wisi--change-end (make-marker))
+	(set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
 
-       (t
-	;; wisi--deleted-syntax is 2; no change.
-	)
-       ))))
+       ((> end wisi--change-end)
+	(set-marker wisi--change-end end (or (buffer-base-buffer) (current-buffer))))
+       )
+
+      (unless (= begin end)
+	(cond
+	 ((or (null wisi--deleted-syntax)
+	      (= 0 wisi--deleted-syntax))
+	  (save-excursion
+	    (if (or (nth 4 (syntax-ppss begin)) ; in comment, moves point to begin
+		    (= end (skip-syntax-forward " " end)));; whitespace
+		(setq wisi--deleted-syntax 0)
+	      (setq wisi--deleted-syntax 2))))
+
+	 (t
+	  ;; wisi--deleted-syntax is 2; no change.
+	  )
+	 )))
+    ))
 
 (defun wisi-after-change (begin end length)
   "For `after-change-functions'"
@@ -574,39 +576,41 @@ deleted range.")
   ;; remove fontification from the entire word, so it is all
   ;; refontified consistently.
 
-  (when wisi-incremental-parse-enable
-    ;; Sometimes length disagrees with (begin end) passed to
-    ;; wisi-before-change. For example, for 'downcase-word applied to
-    ;; "First", before-change (begin end) is entire word, but
-    ;; after-change length is 1, because only the F is actually
-    ;; replaced.
-    (let ((deleted (substring wisi--affected-text 0 length)))
-      (push
-       (list (position-bytes begin) begin (position-bytes end) end
-	     (string-bytes deleted) length
-	     (buffer-substring-no-properties begin end))
-       wisi--changes)))
+  (with-demoted-errors "wisi-after-change signaled: %s"
+    (when wisi-incremental-parse-enable
+      ;; Sometimes length disagrees with (begin end) passed to
+      ;; wisi-before-change. For example, for 'downcase-word applied to
+      ;; "First", before-change (begin end) is entire word, but
+      ;; after-change length is 1, because only the F is actually
+      ;; replaced.
+      (let ((deleted (substring wisi--affected-text 0 length)))
+	(push
+	 (list (position-bytes begin) begin (position-bytes end) end
+	       (string-bytes deleted) length
+	       (buffer-substring-no-properties begin end))
+	 wisi--changes)))
 
-  (let (word-begin word-end)
-    (save-excursion
-      (goto-char end)
-      (skip-syntax-forward "w_")
-      (setq word-end (point))
-      (goto-char begin)
-      (skip-syntax-backward "w_")
-      (setq word-begin (point)))
-    (if (get-text-property word-begin 'font-lock-face)
+    (let (word-begin word-end)
+      (save-excursion
+	(goto-char end)
+	(skip-syntax-forward "w_")
+	(setq word-end (point))
+	(goto-char begin)
+	(skip-syntax-backward "w_")
+	(setq word-begin (point)))
+      (if (get-text-property word-begin 'font-lock-face)
+	  (with-silent-modifications
+	    (remove-text-properties
+	     word-begin word-end
+	     '(font-lock-face nil wisi-cache nil wisi-indent nil fontified nil)))
+
+	;; No point in removing
+	;; 'fontified here; that's already handled by jit-lock.
 	(with-silent-modifications
 	  (remove-text-properties
-	   word-begin word-end
-	   '(font-lock-face nil wisi-cache nil wisi-indent nil fontified nil)))
-
-      ;; No point in removing
-      ;; 'fontified here; that's already handled by jit-lock.
-      (with-silent-modifications
-	(remove-text-properties
-	 begin end
-	 '(font-lock-face nil wisi-cache nil wisi-indent nil))))
+	   begin end
+	   '(font-lock-face nil wisi-cache nil wisi-indent nil))))
+      )
     ))
 
 (defun wisi--post-change (begin end)
