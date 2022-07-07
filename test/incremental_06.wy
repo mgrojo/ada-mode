@@ -1,0 +1,21 @@
+;;  From a real editing session.
+;;
+;;  The "." is a lexer error; it was deleted incorrectly by unrelated editing.
+
+;;EMACSCMD:(length (wisi-parser-local-lexer-errors wisi-parser-local))
+;;EMACSRESULT: 1
+
+;; This edit used to delete the lexer error.
+;;EMACSCMD:(progn (forward-line 1)(wisi-replay-kbd-macro  ";; just a comment"))
+
+;;EMACSCMD:(length (wisi-parser-local-lexer-errors wisi-parser-local))
+;;EMACSRESULT: 1
+;;EMACSCMD:(progn (forward-line -3)(kill-line))
+
+;;EMACSCMD:(progn (forward-line 3)(forward-symbol 2)(forward-char 1)(wisi-replay-kbd-macro "\C-d\C-d"))
+;;EMACSCMD:(length (wisi-parser-local-lexer-errors wisi-parser-local))
+;;EMACSRESULT: 0
+component_clause : identifier A.'at' simple_expr range_spec ';' ;
+;;EMACSCMD:(progn (forward-line -1)(forward-symbol 2)(forward-char 1)(insert "A."))
+
+;; end of file

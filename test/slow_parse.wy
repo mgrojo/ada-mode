@@ -1,7 +1,11 @@
-;; This grammar causes the parser to always have more than one parser
-;; running for the entire file, causing really slow parsing (due to
-;; copying the entire syntax tree) in larger grammars like
-;; ada_annex_p_bnf.wy
+;; This grammar used to cause the parser to always have more than one
+;; parser running for the entire file, causing really slow parsing
+;; (due to copying the entire syntax tree) in larger grammars like
+;; ada_annex_p_bnf.wy. It was the motivation for requiring terminating
+;; semicolons on nonterminal declarations.
+;;
+;; Now it is faster, and is just a test that things don't slow down
+;; again, and of indentation when the semicolons are missing.
 
 ;; translate to BNF ensures there's a terminating ";" on every nonterminal
 %meta_syntax EBNF
@@ -15,8 +19,9 @@
 pragma_g
   : PRAGMA IDENTIFIER LEFT_PAREN pragma_argument_association_COMMA_list RIGHT_PAREN SEMICOLON
   | PRAGMA IDENTIFIER SEMICOLON
-pragma_argument_association
-  : IDENTIFIER EQUAL_GREATER name
+
+      pragma_argument_association
+      : IDENTIFIER EQUAL_GREATER name
   | name
   | IDENTIFIER EQUAL_GREATER expression
   | expression
@@ -27,10 +32,10 @@ pragma_argument_association
 compilation
   : compilation_unit_list
   | ;; empty
-;; no terminating ; on some nonterms, to see what effect that has on the parser.
+    ;; no terminating ; on some nonterms, to see what effect that has on the parser.
 
-compilation_unit
-  : with_clause
+    compilation_unit
+      : with_clause
   | PRIVATE declarative_item
   | declarative_item
   | statement
@@ -38,8 +43,8 @@ compilation_unit
   | subunit
 
 
-task_body_stub
-  : TASK BODY IDENTIFIER IS SEPARATE aspect_specification SEMICOLON
+      task_body_stub
+      : TASK BODY IDENTIFIER IS SEPARATE aspect_specification SEMICOLON
   | TASK BODY IDENTIFIER IS SEPARATE SEMICOLON
   ;
 

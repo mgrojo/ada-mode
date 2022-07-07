@@ -35,32 +35,12 @@ Makefile
 (wisitoken-grammar-set-exec (expand-file-name "wisitoken_grammar_mode_parse.exe"))
 (setq wisi-disable-face t)
 
-hangs in ediff?
-first ediff:
-    Reading file wisitoken_grammar_1.wy ...
-    Reading file ../org.wisitoken/wisitoken_grammar.wy ...
-    start initial full parse in wisitoken_grammar.wy
-    Wrote c:/Projects/org.wisitoken/wisitoken_grammar.wy-wisi-change-start
-    Buffer A: Processing difference region 0 of 50
-    Buffer A: Processing difference region 10 of 50
-    Buffer A: Processing difference region 20 of 50
-    Buffer A: Processing difference region 30 of 50
-    Buffer A: Processing difference region 40 of 50
-    Buffer B: Processing difference region 0 of 50
-    Buffer B: Processing difference region 10 of 50
-    Buffer B: Processing difference region 20 of 50
-    Buffer B: Processing difference region 30 of 50
-    Buffer B: Processing difference region 40 of 50
-    Processing difference regions ... done
-    error in process filter: jit-lock-refontify: Args out of range: 1, 11509
-    error in process filter: Args out of range: 1, 11509
-    #<buffer *Ediff Control Panel*>
-    error in process filter: jit-lock-refontify: Args out of range: 1, 11509
-    error in process filter: Args out of range: 1, 11509
+test/incremental_05.wy fails; just documented for now
+        try this in tree-sitter.
 
-second ediff:
-    hangs with error in process filter: Args out of range: 1, 11509
-    must be from mmm-mode code
+editing ada_lite.wy
+    add comment in %code actions spec post
+        syntax errors, rest of file has comment face
 
  release process
 (dvc-pull "/Projects/elpa")
