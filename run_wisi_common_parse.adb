@@ -512,9 +512,7 @@ package body Run_Wisi_Common_Parse is
          Parse_Context.Parser.Tree.Lexer.Reset;
          begin
             Parse_Context.Parser.Parse (Log_File);
-            Wisi.Parse_Data_Type'Class (Parse_Context.Parser.User_Data.all).Put
-              (Parse_Context.Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-               Parse_Context.Parser.Tree);
+            Wisi.Put_Errors (Parse_Context.Parser.Tree);
          exception
          when WisiToken.Syntax_Error =>
             Put_Errors (Parse_Context.Parser);
@@ -529,8 +527,6 @@ package body Run_Wisi_Common_Parse is
 
       when Parse_Incremental =>
          declare
-            use all type SAL.Base_Peek_Type;
-
             Changes  : constant Wisi.Parse_Context.Change_Lists.List :=
               Wisi.Parse_Context.Get_Emacs_Change_List (Line, Last);
             KMN_List : WisiToken.Parse.KMN_Lists.List;
@@ -554,12 +550,7 @@ package body Run_Wisi_Common_Parse is
                Parse_Context.Parser.Parse (Log_File, Parse.KMN_Lists.Empty_List);
             end if;
 
-            if Parse_Context.Parser.Parsers.Count > 0 then
-               --  else edits did not require parse
-               Wisi.Parse_Data_Type'Class (Parse_Context.Parser.User_Data.all).Put
-                 (Parse_Context.Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-                  Parse_Context.Parser.Tree);
-            end if;
+            Wisi.Put_Errors (Parse_Context.Parser.Tree);
          exception
          when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>
             Put_Errors (Parse_Context.Parser);
@@ -795,9 +786,7 @@ package body Run_Wisi_Common_Parse is
                   Parser.Parse (Log_File);
                   --  Raises Parse_Error for ambiguous parse and similar errors.
 
-                  Parse_Data.Put
-                    (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-                     Parser.Tree);
+                  Wisi.Put_Errors (Parser.Tree);
 
                   if Trace_Memory > 0 then
                      Report_Memory (Trace.all, Prefix => False);
@@ -857,9 +846,7 @@ package body Run_Wisi_Common_Parse is
                Parse_Data.Initialize;
                Parser.Tree.Lexer.Reset;
                Parser.Parse (Log_File);
-               Parse_Data.Put
-                 (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-                  Parser.Tree);
+               Wisi.Put_Errors (Parse_Context.Parser.Tree);
                if Trace_Memory > 0 then
                   Put ("initial full parse ");
                   Report_Memory (Trace.all, Prefix => False);
@@ -903,10 +890,7 @@ package body Run_Wisi_Common_Parse is
                     (Parse_Context.Text_Buffer, Parse_Context.Text_Buffer_Byte_Last, Cl_Params.Source_File_Name);
 
                   Parser.Parse (Log_File, KMN_List);
-
-                  Parse_Data.Put
-                    (Parser.Parsers.First.State_Ref.Recover_Insert_Delete,
-                     Parser.Tree);
+                  Wisi.Put_Errors (Parse_Context.Parser.Tree);
 
                   if Cl_Params.Inc_Post_Parse_Action /= None then
                      Parse_Data.Reset_Post_Parse
