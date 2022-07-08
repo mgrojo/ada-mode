@@ -18,7 +18,6 @@ with "sal_devel";
 with "wisitoken";
 with "wisitoken_devel";
 with "standard_common";
-with "tree_sitter"; -- tree-sitter utils installed
 project WisiToken_Test is
 
    type Generate_Type is ("BNF_EBNF_Tree_Sitter", "BNF_EBNF", "BNF", "EBNF", "Tree_Sitter");
@@ -32,6 +31,11 @@ project WisiToken_Test is
       ".",
       "../test",
       "../test/bnf"
+     );
+
+   for Excluded_Source_Files use
+     (
+      "wisitoken_tree_sitter.c"
      );
 
    for Languages use ("Ada", "C");

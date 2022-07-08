@@ -31,10 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-propagate wisitoken.grammar_mode to main
-
-release ada-mode
-
 report mckenzie_recover.adb Error_Recover_Ops workarounds
 
 wisitoken-syntax_Trees.adb Current_Error_Ref
