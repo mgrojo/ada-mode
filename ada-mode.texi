@@ -101,6 +101,10 @@ Project files
 * Project file overview::
 * Project file variables::
 
+Indentation
+
+* Ada-specific indent functions::
+
 Developer overview
 
 * Directory structure::
@@ -1874,6 +1878,10 @@ In rare cases, the parser gets confused; it can be reset by invoking
 menu @key{Ada | Misc | Restart parser}. Please report such cases as a
 bug.
 
+@menu
+* Ada-specific indent functions::
+@end menu
+
 @node Ada-specific indent functions
 @section Ada-specific indent functions
 The following indent functions are defined by the ada-mode grammar
@@ -2316,6 +2324,7 @@ ssh read/write git access to savannah ada-mode:
 git clone stephen_leake@@git.sv.gnu.org:/srv/git/ada-mode.git \
     -b org.emacs.ada-mode org.emacs.ada-mode
 cd ada-mode
+git worktree add -b org.emacs.wisi ../org.emacs.wisi origin/org.emacs.wisi
 git worktree add -b org.wisitoken ../org.wisitoken origin/org.wisitoken
 git worktree add -b org.stephe_leake.sal ../org.stephe_leake.sal origin/org.stephe_leake.sal
 git worktree add -b org.stephe_leake.aunit_ext ../org.stephe_leake.aunit_ext origin/org.stephe_leake.aunit_ext
