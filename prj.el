@@ -8,10 +8,12 @@
   (cl-ecase system-type
     (gnu/linux
      (list
+      "MMM_MODE=/Projects/mmm-mode"
       "WISITOKEN=/Projects/org.wisitoken"
       "WISI=/Projects/org.emacs.wisi"))
     (windows-nt
      (list
+      "MMM_MODE=c:/Projects/mmm-mode"
       "WISITOKEN=c:/Projects/org.wisitoken"
       "WISI=c:/Projects/org.emacs.wisi"))
     ))

@@ -5,7 +5,7 @@
 # variables below.
 
 #export Standard_Common_Build := Debug
-export MMM_MODE := -L c:/Projects/mmm-mode
+export MMM_MODE ?= -L c:/Projects/mmm-mode
 
 export WISITOKEN_GRAMMAR_MODE_VERSION := 1.2.0
 
@@ -96,7 +96,10 @@ test-wisitoken_grammar.stamp : test-clean
 test-clean : force
 	rm -f *.diff *.tmp *.log
 
-build_executables : wisitoken_grammar_1_re2c.c wisitoken_grammar.gpr force
+$(WISI)/wisi.gpr : force
+	$(MAKE) -C $(WISI)/build ../wisi.gpr
+
+build_executables : $(WISI)/wisi.gpr wisitoken_grammar_1_re2c.c wisitoken_grammar.gpr force
 	gprbuild -p wisitoken_grammar.gpr
 
 install : build_executables
