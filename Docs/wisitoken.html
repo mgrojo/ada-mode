@@ -47,14 +47,12 @@ projects.
 for recursive-descent, adding syntax error correction in the parser,
 and adding support for simple Packrat parsers.
 
-<h1>current version: 2.1</h1>
-
 <p><a href="http://www.nongnu.org/ada-mode/wisitoken-user_guide.html">User guide</a>
 
 <p>WisiToken may be obtained in two ways:
 <ul>
-  <li><a href="http://download.savannah.gnu.org/releases/ada-mode/wisitoken-2.1.tar.bz2">source
-  Gnu tar bzip2 wisitoken-2.1.tar.bz2</a>, from
+  <li><a href="http://download.savannah.gnu.org/releases/ada-mode/wisitoken-3.0.tar.bz2">source
+  Gnu tar bzip2 wisitoken-3.0.tar.bz2</a>, from
   the <a href="http://download.savannah.gnu.org/releases/ada-mode/">Gnu
   savannah ada-mode download page</a>.
     <li><a href="http://download.savannah.gnu.org/releases/ada-mode/org.stephe_leake.sal-3.4.tar.bz2">SAL library, used by wisitoken</a>.
@@ -65,9 +63,10 @@ and adding support for simple Packrat parsers.
     <li><a href="http://re2c.org/">re2c lexer</a>.
   </ul>
 
-<p>WisiToken has been tested with AdaCore GNAT Community Edition 2019.
-It uses Ada 2012 containers, so it requires an Ada 2012 compiler. It
-also uses some gnatcoll packages, so it may only work with GNAT.
+<p>WisiToken has been tested with AdaCore GNAT Community Edition 2021,
+and Pro 22. It uses Ada 2012 containers, so it requires an Ada 2012
+compiler. It also uses some gnatcoll packages, so it may only work
+with GNAT.
 
 <p>Some packages have SPARK annotations, and can be proven by SPARK.
 
@@ -82,6 +81,9 @@ Ada mode mailing list</a>.
 
 <h3>Version 3.0 </h3>
 <ul>
+  <li>8 Jul 2022
+  <li>Implement incremental parse; still has a few problems.
+  <li>Fix problems reported by GNAT pro 22.0w, 23.0w.
   <li>Change syntax tree to use individual node allocation, rather
     than array of nodes. Add Streams, in preparation for incremental
     parse.
@@ -189,6 +191,6 @@ Ada mode mailing list</a>.
 <p><script src="/common/footer.js"></script>
 <a href="http://www.adaic.org/">
 <img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Wed Sep  2 11:28:23 Pacific Daylight Time 2020 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Fri Jul  8 14:28:21 Pacific Daylight Time 2022 <!-- hhmts end -->
 </body>
 </html>

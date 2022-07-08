@@ -32,6 +32,7 @@ update-wisitoken_grammar
 
  current work
 report mckenzie_recover.adb Error_Recover_Ops workarounds
+    ticket V707-027
 
 wisitoken-syntax_Trees.adb Current_Error_Ref
     if assert Result = (full aggregate), requires more than 20 parallel parsers.
