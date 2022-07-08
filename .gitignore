@@ -70,3 +70,4 @@ test/gpr_query.db
 test/gpr_query.db-shm
 test/gpr_query.db-wal
 test/subdir/gpr_query.db
+dir-ada-mode

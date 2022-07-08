@@ -264,6 +264,20 @@ changes, to force a complete rebuild.
 @node Building GNATCOLL
 @subsection Building GNATCOLL
 
+The GNAT Community and GNAT pro binary installs have some of the
+GNATCOLL packages we need, but we need to install others from source.
+
+Debian 11 provides binary packages for the GNATCOLL packages we need;
+@table
+@item libgnatcoll-db-bin
+@item libgnatcoll-iconv20-dev
+@item libgnatcoll-sql4-dev
+@item libgnatcoll-sqlite20-dev
+@item libgnatcoll-xref21-dev
+@end table
+
+Debian does not provide a binary for gnatstub.
+
 If you are using GNAT Community, download gnatcoll-db from
 @url{https://github.com/AdaCore/gnatcoll-db}; select the latest
 release branch (or the one that matches your compiler), click on the

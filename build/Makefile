@@ -469,6 +469,16 @@ build_executables : $(WISI)/wisi.gpr ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ..
 install_executables : build_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
 
+switch_compiler : force
+	rm -rf ../obj
+	rm -rf $(WISI)/obj
+	rm -rf ../../org.stephe_leake.aunit_ext/build/objects
+	rm -rf ../../org.stephe_leake.sal/build/obj
+	rm -rf ../../org.stephe_leake.sal/build/devel_obj
+	rm -rf ../../org.wisitoken/build/obj
+	rm -rf ../../org.wisitoken/build/devel_obj
+	rm -rf ../../org.wisitoken.grammar_mode/obj
+
 ../ada_annex_p_txt.wy : ../ada_annex_p.txt annex_p_to_wy.exe
 	../annex_p_to_wy.exe ../ada_annex_p.txt ../ada_annex_p_txt.wy
 	dos2unix -q ../ada_annex_p_txt.wy
