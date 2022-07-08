@@ -53,7 +53,7 @@ package body Ada_Mode.Nested_Packages is
          --EMACSCMD:(test-face "array" font-lock-keyword-face)
          --EMACSCMD:(test-face "1" font-lock-constant-face)
          --EMACSCMD:(test-face "of" font-lock-keyword-face)
-         --EMACSCMD:(test-face "Boolean" font-lock-type-face)
+         --EMACSCMD:(test-face "Boolean" nil);; can't distinguish type in name
          Cache : array (1 .. 10) of Boolean := (True, False, others => False);
          --EMACSCMD:(test-face "1" font-lock-constant-face)
          --EMACSCMD:(test-face ".." nil)

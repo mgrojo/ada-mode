@@ -14,10 +14,8 @@ package Non_ASCII is
 
    X1_Non : Wide_String    := "in ‰"; -- per mille sign
 
-   --EMACSCMD:(test-face "Wide_String" font-lock-type-face)
    X2_Non : Wide_String    := "in €"; -- Euro sign
 
-   --EMACSCMD:(test-face "Wide_Character" font-lock-type-face)
    X3_Non : Wide_Character := 'θ';    -- theta
 
    --  ensure we have the right file character encoding here (UTF-8).

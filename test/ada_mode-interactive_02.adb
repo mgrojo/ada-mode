@@ -4,6 +4,7 @@
 -- It doesn't compile; missing bodies, undefined vars.
 
 -- It also doesn't pass the reindent and diff test, since we are deliberately adding code
+--EMACS_SKIP_UNLESS: wisi-incremental-parse-enable
 --EMACSCMD:(setq skip-reindent-test t)
 
 -- We don't disable the casing test; that is important during interactive editing.
@@ -11,11 +12,6 @@
 -- Test the buffer does parse
 --EMACSCMD:(progn (wisi-parse-buffer 'face) (length (wisi-parser-local-parse-errors wisi-parser-local)))
 --EMACSRESULT:0
-
--- FIXME: At EOB, insert token that is deleted by error recovery, then
--- extended by next edit; special case at EOB.
-
-
 procedure Ada_Mode.Interactive_02
 is
    -- Newline before a blank line
@@ -34,10 +30,10 @@ is
    -- handled by Edit_Tree.
    --
    --EMACSCMD:(progn (end-of-line 2)(newline-and-indent))
-   --EMACSCMD:(progn (end-of-line 2)(execute-kbd-macro "-")(indent-for-tab-command)(length (wisi-parser-local-parse-errors wisi-parser-local)))
+   --EMACSCMD:(progn (end-of-line 2)(wisi-replay-kbd-macro "-")(indent-for-tab-command)(length (wisi-parser-local-parse-errors wisi-parser-local)))
 
    --EMACSRESULT: 1
-   --EMACSCMD:(progn (end-of-line -2)(execute-kbd-macro "-")(indent-for-tab-command)(length (wisi-parser-local-parse-errors wisi-parser-local)))
+   --EMACSCMD:(progn (end-of-line -2)(wisi-replay-kbd-macro "-")(indent-for-tab-command)(length (wisi-parser-local-parse-errors wisi-parser-local)))
    --EMACSRESULT: 0
    --EMACSCMD:(progn (beginning-of-line -4)(kill-line 1))
 
@@ -46,7 +42,7 @@ is
    -- Local_10 on hanging paren indent; this is indented as code,
    -- because error recover inserts the missing parameter spec.
    --
-   --EMACSCMD:(progn (end-of-line 2)(forward-char -2)(execute-kbd-macro ";\r")(current-column))
+   --EMACSCMD:(progn (end-of-line 2)(forward-char -2)(wisi-replay-kbd-macro ";\r")(current-column))
    procedure Local_Proc_1 (Param_1 : in Float);
    --EMACSRESULT:27
 
@@ -77,7 +73,7 @@ is
    -- there is only one possible indentation for 'null;'.
 
    --EMACSCMD:(progn (end-of-line 7)(delete-char -2)(newline-and-indent))
-   --EMACSCMD:(progn (end-of-line 6)(execute-kbd-macro "is begin\rnull;\rend Function_Access_1;\r")(wisi-indent-statement)(current-indentation))
+   --EMACSCMD:(progn (end-of-line 6)(wisi-replay-kbd-macro "is begin\rnull;\rend Function_Access_1;\r")(wisi-indent-statement)(current-indentation))
    --EMACSRESULT:3
    function Function_Access_1
      (A_Param : in Float)
@@ -105,7 +101,7 @@ is
    is begin
       null;
    end Function_Access_2;
-   --EMACSCMD:(progn (forward-line -2)(execute-kbd-macro "null;")(indent-for-tab-command))
+   --EMACSCMD:(progn (forward-line -2)(wisi-replay-kbd-macro "null;")(indent-for-tab-command))
 
    -- New_Line before 'end case', for 'end if;'
    --EMACSCMD:(progn (forward-line 8)(delete-char 19)(indent-for-tab-command)(current-column))
@@ -119,10 +115,10 @@ is
             end if;
       end case;
    end New_Line_2;
-   --EMACSCMD:(progn (forward-line -3)(execute-kbd-macro "end if;")(indent-for-tab-command))
+   --EMACSCMD:(progn (forward-line -3)(wisi-replay-kbd-macro "end if;")(indent-for-tab-command))
 
    -- add an enumeration value in parens
-   --EMACSCMD:(progn (end-of-line 4)(backward-char 2) (execute-kbd-macro ",\rWrite_Success")(indent-for-tab-command)(current-indentation))
+   --EMACSCMD:(progn (end-of-line 4)(backward-char 2) (wisi-replay-kbd-macro ",\rWrite_Success")(indent-for-tab-command)(current-indentation))
    --EMACSRESULT:6
    type Wait_Return is
      (Read_Success);
@@ -130,13 +126,13 @@ is
    -- Typing a new type declaration; indent on new blank line should be
    -- correct for component.
    --
-   --EMACSCMD:(progn (end-of-line 2)(kill-line 3)(execute-kbd-macro "\r")(current-indentation))
+   --EMACSCMD:(progn (end-of-line 2)(kill-line 3)(wisi-replay-kbd-macro "\r")(current-indentation))
    type Record_1 is record
       Component_1 : Integer;
    end record;
 
    --EMACSRESULT:6
-   --EMACSCMD:(progn (end-of-line -1)(execute-kbd-macro "Component_1 : Integer;\r end record;\r"))
+   --EMACSCMD:(progn (end-of-line -1)(wisi-replay-kbd-macro "Component_1 : Integer;\r end record;\r"))
 
 begin
    --  extending block; no errors
@@ -148,7 +144,7 @@ begin
 
    -- Typing code after missing semicolon.
    --
-   --EMACSCMD:(progn (end-of-line 2)(kill-word 1)(delete-char 1)(execute-kbd-macro "\r+ C;")(current-indentation))
+   --EMACSCMD:(progn (end-of-line 2)(kill-word 1)(delete-char 1)(wisi-replay-kbd-macro "\r+ C;")(current-indentation))
    A := B
      + C;
 
@@ -159,7 +155,7 @@ begin
    --
    --EMACSCMD:(progn (forward-line 3)(forward-word 1)(forward-char 1)(delete-char 1))
    --EMACSCMD:(progn (forward-line 3)(kill-line 2))
-   --EMACSCMD:(progn (end-of-line 2)(execute-kbd-macro "\r-- Comment 1")(current-indentation))
+   --EMACSCMD:(progn (end-of-line 2)(wisi-replay-kbd-macro "\r-- Comment 1")(current-indentation))
    if (A and B
          -- Comment 1
       )
@@ -169,15 +165,15 @@ begin
       null;
    end if;
    --EMACSRESULT:3
-   --EMACSCMD:(progn (forward-line -8)(forward-word 1)(forward-char 1)(execute-kbd-macro "(")(end-of-line 2)(execute-kbd-macro "\r)")(indent-for-tab-command))
+   --EMACSCMD:(progn (forward-line -8)(forward-word 1)(forward-char 1)(wisi-replay-kbd-macro "(")(end-of-line 2)(wisi-replay-kbd-macro "\r)")(indent-for-tab-command))
 
    -- Start comment on code line; transient error on next line should
    -- disappear when comment is finished. Note there is still one error
    -- from earlier in the file.
    --
-   --EMACSCMD:(progn (forward-line 4)(execute-kbd-macro "-- ")(indent-for-tab-command)(length (wisi-parser-local-parse-errors wisi-parser-local)))
+   --EMACSCMD:(progn (forward-line 4)(wisi-replay-kbd-macro "-- ")(indent-for-tab-command)(length (wisi-parser-local-parse-errors wisi-parser-local)))
    --EMACSRESULT:2
-   --EMACSCMD:(progn (forward-line 2)(search-forward "-- ")(execute-kbd-macro "comment\r")(indent-for-tab-command)(length (wisi-parser-local-parse-errors wisi-parser-local)))
+   --EMACSCMD:(progn (forward-line 2)(search-forward "-- ")(wisi-replay-kbd-macro "comment\r")(indent-for-tab-command)(length (wisi-parser-local-parse-errors wisi-parser-local)))
    --EMACSRESULT:1
       for I in 1 .. 10 loop
       null;

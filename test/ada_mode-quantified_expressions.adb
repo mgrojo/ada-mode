@@ -52,7 +52,7 @@ begin
       package Float_Vectors is new Ada.Containers.Vectors (Positive, Float);
       Board : Float_Vectors.Vector;
    begin
-      --EMACSCMD:(test-face "Float" 'font-lock-type-face)
+      --EMACSCMD:(test-face "Float" nil)
       --EMACSCMD:(test-face "reverse" 'font-lock-keyword-face)
       --EMACSCMD:(test-face "Board" '(nil default))
       for Element : Float of reverse Board

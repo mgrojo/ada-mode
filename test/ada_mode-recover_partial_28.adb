@@ -1,5 +1,6 @@
 --  From a real editing session. Encountered several problems in partial_parse.
 
+--EMACS_SKIP_UNLESS: wisi-incremental-parse-enable
 --EMACSCMD:(setq skip-recase-test t)
 package body Ada_Mode.Recover_Partial_28 is
 

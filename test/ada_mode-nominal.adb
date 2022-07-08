@@ -128,7 +128,7 @@ is -- target 0
          is -- target 3
             --EMACSCMD:(test-face "exception" font-lock-keyword-face)
             Bad_Thing : exception;
-            --EMACSCMD:(test-face "Boolean" font-lock-type-face)
+            --EMACSCMD:(test-face "Boolean" nil);; can't distinquish type name in name
             Dummy : Boolean;
             Dummy_2 : Boolean;
          begin

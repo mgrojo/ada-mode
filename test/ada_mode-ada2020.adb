@@ -27,9 +27,9 @@ package body Ada_Mode.Ada2020 is
          Min : constant Integer := Integer'Min (X, Y);
          Max : constant Integer := Integer'Max (X, Y);
       begin Diff = Max - Min)
-    is begin
-       Diff := abs X - Y;
-    end Absolute_Difference;
+   is begin
+      Diff := abs X - Y;
+   end Absolute_Difference;
 
    type Task_Array is array (Worker_Indexes) of Worker;
 
