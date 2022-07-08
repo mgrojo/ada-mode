@@ -8,7 +8,7 @@
 %.diff-run : % %.tmp
 	-diff -u $< $(*F).tmp
 
-../test_all_harness.exe : ../test_all_harness.adb force
+../test_all_harness$(EXE_EXT) : ../test_all_harness.adb force
 	gprbuild -p -j8 ../wisi.gpr $(<F)
 
 elisp-clean :

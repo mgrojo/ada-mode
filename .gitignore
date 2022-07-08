@@ -74,3 +74,4 @@ test/gpr_query.db-shm
 test/gpr_query.db-wal
 test/subdir/gpr_query.db
 wisi.gpr
+test_all_harness

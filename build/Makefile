@@ -37,21 +37,24 @@ test : test_all_harness.run
 # interaction with gpr project files.
 ifeq ($(shell uname),Linux)
 export WISITOKEN ?= /Projects/org.wisitoken
+EXE_EXT :=
 
 else ifeq ($(shell uname),Darwin)
 export WISITOKEN ?= /home/Projects/wisitoken/org.wisitoken
+EXE_EXT :=
 
 else
 # windows
 export WISITOKEN ?= c:/Projects/org.wisitoken
+EXE_EXT := .exe
 
 endif
 
 # 'include' must be after env vars are set.
 include rules.make
 
-test_all_harness.run : ../test_all_harness.exe force
-	../test_all_harness.exe $(RUN_ARGS)
+test_all_harness.run : ../test_all_harness$(EXE_EXT) force
+	../test_all_harness$(EXE_EXT) $(RUN_ARGS)
 
 BRANCH := $(notdir $(shell cd ..; pwd))
 
