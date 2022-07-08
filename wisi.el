@@ -598,18 +598,10 @@ deleted range.")
 	(goto-char begin)
 	(skip-syntax-backward "w_")
 	(setq word-begin (point)))
-      (if (get-text-property word-begin 'font-lock-face)
-	  (with-silent-modifications
+      (with-silent-modifications
 	    (remove-text-properties
 	     word-begin word-end
 	     '(font-lock-face nil wisi-cache nil wisi-indent nil fontified nil)))
-
-	;; No point in removing
-	;; 'fontified here; that's already handled by jit-lock.
-	(with-silent-modifications
-	  (remove-text-properties
-	   begin end
-	   '(font-lock-face nil wisi-cache nil wisi-indent nil))))
       )
     ))
 
