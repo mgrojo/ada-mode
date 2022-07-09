@@ -92,9 +92,11 @@ html : $(addsuffix .html, $(MANUALS))
 
 VPATH := ..
 
+# ELPA builds .info from .texinfo; if add new here, add to ../../elpa/elpa-packages
 pub-wisi : force
 # FIXME: add git push o.e.w -> elpa git
 	make -C $(WISITOKEN)/build doc
+	cp $(WISITOKEN)/Docs/wisitoken-user_guide.texinfo $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/*.ad? $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/wisitoken_grammar_re2c.c  $(ELPA_ROOT)/packages/wisi
 	rm $(ELPA_ROOT)/packages/wisi/wisitoken-regexp.ad?
