@@ -1223,9 +1223,6 @@ find info cross reference checker; ref to wisi from ada-mode was wrong.
 
 (dvc-status ".")
 
-# uninstall elpa packages before change version
-build/Makefile uninstall-elpa
-
 check for ELPA patches by others
     (dvc-status "/Projects/elpa")
     (dvc-state-multiple "/Projects/elpa/packages")
@@ -1284,19 +1281,23 @@ run all tests without elpa:
 compare:
     build stuff to compare with previous release in elpa:
         build/Makefile pub
+        ../org.emacs.wisi/build/Makefile pub
+
+    ~/.emacs.d/early-init.el
+        reset package-load-list to '(all) to allow installing ada-mode
 
     (list-packages)
         install previous ada-mode, wisi, ada-ref-man from public ELPA for diffs
         change versions in compares below to match installed versions.
 
-    (ediff-directories "~/.emacs.d/elpa/wisi-3.1.1" "/Projects/elpa/packages/wisi" nil)
-        NEWS-wisi.text
+    (ediff-directories "~/.emacs.d/elpa/wisi-3.1.7" "/Projects/elpa/packages/wisi" nil)
+        ../org.emacs.wisi/NEWS
             copyright date
             add release date
             add new features
 
-    (ediff-directories "~/.emacs.d/elpa/ada-mode-7.1.2" "/Projects/elpa/packages/ada-mode" nil)
-        NEWS-ada-mode.text
+    (ediff-directories "~/.emacs.d/elpa/ada-mode-7.2.0" "/Projects/elpa/packages/ada-mode" nil)
+        NEWS
             add release date
             add new features
             list fixed bugs
@@ -1305,10 +1306,17 @@ compare:
         /Projects/org.adaic.arm_form/NEWS
             add release date, new features
 
+build in elpa; elpa/package/ada-mode/Makefile
+
+test elpa locally
+
 commit elpa, ask for beta testers (I'm the alpha tester)
     put "beta" or something in ada-mode-version?
     devel version: (add-to-list 'package-archives (cons "gnu-devel" "https://elpa.gnu.org/devel"))
         shows in list-packages as version 7.1.4.0.20201130.221942
+
+# uninstall elpa packages before change version
+build/Makefile uninstall-elpa
 
 bump versions
     Gnu ELPA requires single digits between dots in versions

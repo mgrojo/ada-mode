@@ -48,7 +48,7 @@ all : byte-compile-clean compile-ada-test-clean update compile-ada-test test-cle
 
 # 'pub' does not do install, because 'build-elpa' uses the last
 # commit, not the current workspace.
-pub : docs pub-ada pub-wisi pub-ada-ref-man
+pub : docs pub-ada
 # (dvc-state-multiple "c:/Projects/elpa/packages")
 pub-install: clean-elpa build-elpa uninstall-elpa
 
@@ -389,29 +389,23 @@ VPATH := ..
 pub-ada : force
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode
 	rm -rf $(ELPA_ROOT)/packages/ada-mode/*
-	cp ../ada*.el ../ada-mode.texi ../ada-mode.info  ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
-	rm $(ELPA_ROOT)/packages/ada-mode/ada-ref-man.el
+	cp ../*.el ../ada-mode.texi ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
 	cp ../build.sh ../install.sh $(ELPA_ROOT)/packages/ada-mode/
-	cp ../dir-ada-mode $(ELPA_ROOT)/packages/ada-mode/dir
-	cp ../NEWS-ada-mode.text $(ELPA_ROOT)/packages/ada-mode/NEWS
-	cp ../README-ada-mode $(ELPA_ROOT)/packages/ada-mode/README
-	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
-	cp ../gpr*.el ../gpr-mode.texi ../gpr-mode.info $(ELPA_ROOT)/packages/ada-mode
+	cp ../NEWS $(ELPA_ROOT)/packages/ada-mode/NEWS
+	cp ../README $(ELPA_ROOT)/packages/ada-mode/README
+	cp ../gpr*.el ../gpr-mode.texi $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.wy ../ada*.ad? ../gpr*.ad? ../run_ada*.ad? ../run_gpr*.ad? ../wisi-ada*.ad? ../wisi-gpr.ad?  $(ELPA_ROOT)/packages/ada-mode
-	cp ../ada_lr1_parse_table.txt $(ELPA_ROOT)/packages/ada-mode
-	gzip $(ELPA_ROOT)/packages/ada-mode/ada_lr1_parse_table.txt
 	cp ../wisitoken-*-ada.ad? $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.c $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
-	cp ../config.pragmas $(ELPA_ROOT)/packages/ada-mode
 
 # copy files to ELPA ada-ref-man package
 pub-ada-ref-man: ARM_INFO ?= c:/Projects/org.adaic.arm_form
 pub-ada-ref-man : force
+	rm $(ELPA_ROOT)/packages/ada-mode/ada-ref-man.el
 	rm -f $(ARM_INFO)/build/*2005.info
 	make -C $(ARM_INFO)/build create-dir
 	cp ../ada-ref-man.el $(ELPA_ROOT)/packages/ada-ref-man/
-	cp ../README-ada-ref-man $(ELPA_ROOT)/packages/ada-ref-man/README
 	cp $(ARM_INFO)/NEWS $(ELPA_ROOT)/packages/ada-ref-man
 	cp $(ARM_INFO)/build/dir $(ELPA_ROOT)/packages/ada-ref-man
 	cp $(ARM_INFO)/build/arm2012.info $(ELPA_ROOT)/packages/ada-ref-man

@@ -268,7 +268,7 @@ The GNAT Community and GNAT pro binary installs have some of the
 GNATCOLL packages we need, but we need to install others from source.
 
 Debian 11 provides binary packages for the GNATCOLL packages we need;
-@table
+@table @samp
 @item libgnatcoll-db-bin
 @item libgnatcoll-iconv20-dev
 @item libgnatcoll-sql4-dev
@@ -404,7 +404,7 @@ No edits required.
 @item Community 2021
 Requires ada-mode version 7.1.6 or later.
 
-gnatcoll requires a patch; see FIXME: gnatcoll build section.
+gnatcoll requires a patch; @xref{Building GNATCOLL}.
 
 @item Pro 20.2
 Requires ada-mode version 7.1.6 or later.
@@ -412,10 +412,10 @@ Requires ada-mode version 7.1.6 or later.
 No edits required.
 
 @item Pro 21.2
-FIXME:
+No edits required.
 
 @item Pro 22.2
-FIXME:
+No edits required.
 
 @item FSF 11.1.0
 @end table
