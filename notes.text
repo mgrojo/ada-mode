@@ -53,6 +53,8 @@ for ada_mode_wisi_parse.gpr:
 GNAT Community going away
     https://blog.adacore.com/a-new-era-for-ada-spark-open-source-community
     get gnat fsf from alire https://alire.ada.dev/
+    simplest way is to package ada-mode code as Alire crates
+    use tarball on savannah
 
 try packrat
     o.e.a.s-6/o.e.w.s-2
@@ -1214,15 +1216,8 @@ do wisitoken release ../org.wisitoken/build/release_process.text
 
 update benchmark_results.text
 
-generate ada.wy LR1 with --task_count 1 in build.sh; not in git
-
-https://en.wikipedia.org/wiki/Comparison_of_parser_generators
-
 add wisitoken grammar doc to wisi package
     doc Ada grammar actions
-
-provide wisitoken_rules.make
-    for %.re2c etc
 
 find info cross reference checker; ref to wisi from ada-mode was wrong.
 
@@ -1230,9 +1225,6 @@ find info cross reference checker; ref to wisi from ada-mode was wrong.
 
 # uninstall elpa packages before change version
 build/Makefile uninstall-elpa
-
-elpa builds info; don't check them into .git
-    specify .texi files in elpa-packages
 
 check for ELPA patches by others
     (dvc-status "/Projects/elpa")
@@ -1242,11 +1234,11 @@ check for ELPA patches by others
     (dvc-sync-review "/Projects/elpa")
         update
         clean, quit sync
-    cd c:/Projects/elpa
-    git log -2 -- packages/wisi
-    git log -2 -- packages/ada-mode
-    git log -2 -- packages/ada-ref-man
-    git log -2 -- packages/uniquify-files
+    cd c:/Projects/elpa/ada-mode
+    git log -2
+    cd ../wisi; git log -2
+    cd ../ada-ref-man; git log -2
+    cd ../uniquify-files; git log -2
     if changes:
         (dvc-log "/Projects/elpa/packages/<dir>/<file>")
         apply changes to current
@@ -1262,14 +1254,21 @@ check emacs buglist
 check for latest Emacs release
     http://ftp.gnu.org/gnu/emacs/windows/
 
+update to current emacs master
+    (dvc-pull "/Projects/emacs/master")
+    (dvc-sync-review "/Projects/emacs/master")
+    exit emacs; in mingw shell:
+        cd /c/Projects/emacs/master
+        make
+
 run all tests without elpa:
-    build/Makefile elisp
-    build/Makefile byte-compile-clean
+    build/Makefile byte-compile test byte-compile-clean
 
     - Windows Emacs master, current gnat
     - Windows Emacs 25.3, current gnat
     - Windows Emacs 26.1, current gnat
-    - mingw64 gnat
+    - Windows Emacs 27.1, current gnat
+    - Windows Emacs 28.1, current gnat
 
     #dvc-state-multiple above
     (dvc-push)
@@ -1306,7 +1305,8 @@ compare:
         /Projects/org.adaic.arm_form/NEWS
             add release date, new features
 
-commit elpa, ask for alpha testers
+commit elpa, ask for beta testers (I'm the alpha tester)
+    put "beta" or something in ada-mode-version?
     devel version: (add-to-list 'package-archives (cons "gnu-devel" "https://elpa.gnu.org/devel"))
         shows in list-packages as version 7.1.4.0.20201130.221942
 
@@ -1333,7 +1333,7 @@ bump versions
 
             wisi:
             - 3 project.el integration
-            - future: restructure git to match elpa? incremental parse?
+            - 4 incremental parse
 
     o.e.ada-mode/emacs_wisi_common_parse.ads
         (should have been changed already, but verify)

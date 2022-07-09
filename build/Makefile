@@ -103,9 +103,8 @@ benchmark : RUN_ARGS ?= c:/eurocontrol/gnatcoll-xref.adb
 benchmark :
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l benchmark.el $(RUN_ARGS)
 
-#ONE_TEST_FILE ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
-#ONE_TEST_FILE := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
-ONE_TEST_FILE ?= ada_mode-incremental_delete_lines.adb
+ONE_TEST_FILE ?= debug.adb
+one :: ELISP ?= (setq-default wisi-parser-verbosity "debug=1" save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
 one :: IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 one :: build_executables
 one :: byte-compile autoloads
@@ -114,8 +113,8 @@ one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILE) ; do rm -f $$file.* ; done
 #	rm -f ../test/gpr_query.db*
-one :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
-#one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
+#one :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
+one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILE))
 one :: $(addsuffix .diff, $(ONE_TEST_FILE))
@@ -130,11 +129,12 @@ oneb :: one-clean
 oneb :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 oneb :: $(addsuffix .diff, $(ONE_TEST_FILE))
 
-two : RUN_ARGS ?= command_file debug.cmd > debug.log 2>&1
+two : RUN_ARGS ?= command_file debug.cmd
+two : LOG_ARGS ?= > debug.log 2>&1
 #two : RUN_ARGS ?= parse_partial face test/debug.adb --verbosity "debug=1 mckenzie=1 parse=1" --mckenzie_enqueue_limit 60000 --lang_params "3 2 0 1 0 0 2 0 2 0 2 0 0" > debug.log
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 two : ../run_ada_lalr_parse.exe
-	cd ../; ./run_ada_lalr_parse.exe $(RUN_ARGS)
+	cd ../; ./run_ada_lalr_parse.exe $(RUN_ARGS) $(LOG_ARGS)
 
 two-lr1 : RUN_ARGS ?= parse_partial face test/debug.adb --verbosity "debug=1 mckenzie=1 parse=1" --mckenzie_enqueue_limit 60000 --lang_params "3 2 0 1 0 0 2 0 2 0 2 0 0"
 two-lr1 : ../run_ada_lr1_parse.exe
