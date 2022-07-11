@@ -44,11 +44,11 @@ endif
 # export Standard_Common_Build := Debug
 # export Standard_Common_Assertions := Off
 
-all : byte-compile-clean compile-ada-test-clean update compile-ada-test test-clean test
+all : byte-compile-clean compile-ada-test-clean update compile-ada-test test-clean test docs
 
 # 'pub' does not do install, because 'build-elpa' uses the last
 # commit, not the current workspace.
-pub : docs pub-ada
+pub : pub-ada
 # (dvc-state-multiple "c:/Projects/elpa/packages")
 pub-install: clean-elpa build-elpa uninstall-elpa
 
@@ -74,8 +74,7 @@ update-install : docs
 
 install : install_executables
 
-# *-elisp.el are in monotone, so this is all we need after a monotone
-# update. Doing byte-compile-clean first avoids errors caused by
+# Doing byte-compile-clean first avoids errors caused by
 # loading new source on old .elc.
 #
 # 'package-initialize' is required for 'uniquify-files'.
@@ -389,8 +388,12 @@ VPATH := ..
 pub-ada : force
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode
 	rm -rf $(ELPA_ROOT)/packages/ada-mode/*
-	cp ../*.el ../ada-mode.texi ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
+	cp ../*.el ../*.texi ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
+	cd $(ELPA_ROOT)/packages/ada-mode; rm ada-ref-man.el ada_annex_p_bnf.wy *.parse_table
+	cd $(ELPA_ROOT)/packages/ada-mode; rm ada_annex_p_lr1_parse_table.txt ada_annex_p_txt.wy autoloads.el
 	cp ../build.sh ../install.sh $(ELPA_ROOT)/packages/ada-mode/
+	cp ../Makefile ../Makefile.conf ../create_makefile_conf.sh $(ELPA_ROOT)/packages/ada-mode/
+	cp ../ada_mode.prj ../prj.el $(ELPA_ROOT)/packages/ada-mode/
 	cp ../NEWS $(ELPA_ROOT)/packages/ada-mode/NEWS
 	cp ../README $(ELPA_ROOT)/packages/ada-mode/README
 	cp ../gpr*.el ../gpr-mode.texi $(ELPA_ROOT)/packages/ada-mode
@@ -402,7 +405,7 @@ pub-ada : force
 # copy files to ELPA ada-ref-man package
 pub-ada-ref-man: ARM_INFO ?= c:/Projects/org.adaic.arm_form
 pub-ada-ref-man : force
-	rm $(ELPA_ROOT)/packages/ada-mode/ada-ref-man.el
+	rm -rf $(ELPA_ROOT)/packages/ada-ref-man/*
 	rm -f $(ARM_INFO)/build/*2005.info
 	make -C $(ARM_INFO)/build create-dir
 	cp ../ada-ref-man.el $(ELPA_ROOT)/packages/ada-ref-man/
@@ -422,8 +425,9 @@ pub-ada-ref-man : force
 	cp $(ARM_INFO)/build/emacs_case_exceptions $(ELPA_ROOT)/packages/ada-ref-man/build
 
 
-# builds $(ELPA_ROOT)/archive-devel/*, from the last commit, _not_ the current workspace
-# Also checks copyright; run elpa/GNUMakefile check/<pkg> first if added files.
+# builds $(ELPA_ROOT)/archive-devel/* and archive/* from the last
+# commit, _not_ the current workspace Also checks copyright; run
+# elpa/GNUMakefile check/<pkg> first if added files.
 build-elpa : force
 	rm -rf $(ELPA_ROOT)/archive-devel
 	make -C $(ELPA_ROOT)/ build/ada-mode build/wisi
