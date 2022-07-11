@@ -35,18 +35,8 @@ Makefile
 (wisitoken-grammar-set-exec (expand-file-name "wisitoken_grammar_mode_parse.exe"))
 (setq wisi-disable-face t)
 
-propagate from main
-
-test/incremental_07.wy
-    fringe overlay update
-
-    change is out of sync with parse
-        one parse with null change list
-        next parse only did post-parse
-
 editing anywhere in a comment causes comments in rest of window to flicker color.
-    restore wisi-after-change bug
-    find a better fix
+    not in Ada; probably due to mmm-mode.
 
 
 test/incremental_05.wy fails; just documented for now

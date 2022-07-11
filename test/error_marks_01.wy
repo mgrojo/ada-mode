@@ -1,0 +1,28 @@
+;; From a real editing session. Fringe mark was not updated properly.
+
+;; wisi-fringe-display-errors is called when the initial parse is
+;; done, but apparently the buffer is not mapped to the window by
+;; then, so the fringe mark is not set. Force a reparse.
+;;EMACSCMD:(wisi-parse-incremental wisi-parser-shared 'none :full t)
+;;
+;; Check that we have a lexer error and fringe mark
+;;EMACSCMD:(test-left-fringe-mark "task_body_stub :" t)
+;;EMACSCMD: (length (wisi-parser-local-lexer-errors wisi-parser-local))
+;;EMACSRESULT: 1
+
+;; test inserting a line before the fringe mark.
+;;EMACSCMD:(progn (forward-line 2)(wisi-replay-kbd-macro "\r"))
+;;EMACSCMD:(test-left-fringe-mark "task_body_stub" t)
+
+;;EMACSCMD: (progn (forward-line -1)(wisi-replay-kbd-macro "\C-d"))
+
+;; now test fixing the lexer error.
+;;EMACSCMD: (progn (forward-line 3)(forward-symbol 3)(forward-char 1)(wisi-replay-kbd-macro "\C-d"))
+;;EMACSCMD: (length (wisi-parser-local-lexer-errors wisi-parser-local))
+;;EMACSRESULT: 0
+task_body_stub : 'task' 'body', defining_name 'is' 'separate' aspect_spec ;
+;;EMACSCMD:(progn (forward-line -2)(test-left-fringe-mark "task_body_stub" nil))
+;;EMACSCMD:(progn (forward-line -2)(forward-symbol 3)(forward-char 1)(insert ","))
+
+
+;; end of file.
