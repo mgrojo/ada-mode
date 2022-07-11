@@ -400,7 +400,7 @@ complete."
       )))
 
 (defun wisi-process--kill-context (parser)
-  "Send a 'kill-context' command for the current buffer to PARSER.
+  "Send a \"kill-context\" command for the current buffer to PARSER.
 Does not wait for command to complete."
   (let* ((cmd (format "kill-context \"%s\""
 		      (if (buffer-file-name) (buffer-file-name) (buffer-name))

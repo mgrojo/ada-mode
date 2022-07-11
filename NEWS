@@ -1,25 +1,32 @@
 GNU Emacs wisi NEWS -- history of user-visible changes.
 
-Copyright (C) 2014 - 2020 Free Software Foundation, Inc.
+Copyright (C) 2014 - 2022 Free Software Foundation, Inc.
 
 Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
-* wisi 4.0.0
-?
+* wisi 4.0.beta
+9 Jul 2022 beta testing
 
-** parser process protocol version 6
-    add zombie_limit
-    add error-pos in Recover
-    replace debug-mode, trace-mckenzie, trace-action with verbosity string
-    delete wisi-mckenzie-disable, -check-limit
-    add incremental parse
-    increase command length to 4 digits
-    add query_tree command
+** Major redesign to support incremental parse.
 
 ** New user custom variable wisi-incremental-parse-enable; when
    non-nil, wisi uses incremental parse.
+
+** There is now a log buffer showing all interactions with the parser
+   process. The buffer name is given by
+   (wisi-parser-transaction-log-buffer-name parser); for Ada it is
+   "*Ada-wisi-parser-log*".
+
+** The buffer-local variable containing the wisi parser object is
+   split and renamed from wisi--parser to wisi-parser-shared, and
+   wisi-parser-local. wisi-parser-shared points to a per-language
+   structure; wisi-parser-local contains parser state that is buffer
+   local, such as error messages.
+
+** The new command wisi-parse-tree-query allows querying the stored
+   parse tree for various things.
 
 ** Redesign how indents add, and what some indent functions mean; see
    wisi.info for details. In general, it is easier to arrange indent
@@ -27,25 +34,10 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
    indent action changes; most likely add 'wisi-block' in block
    statements.
 
-** Match WisiToken 3.0 changes; this results in some user visible
-   changes in wisi.ads:
-
-    - WisiToken.Valid_Node_Index_Array renamed to
-      WisiToken.Syntax_Trees.Valid_Node_Access_Array
-
-    - Some Descriptor replaced by Descriptor_Access_Constant,
-      requiring 'Access in user code
-
-    - Wisi.Initialize no longer has a Base_Terminals parameter
-
-    - Wisi.Get_Aug_Token_Const, Wisi.Get_Aug_Token_Const_1 are
-      replaced by either Syntax_Trees Tree.Base_Token or
-      Wisi.Get_Augmented_Token
-
 ** The algorithm for naming conflicts is now more accurate, and the
    format of the %conflict declaration has changed. The old format is
    still supported. Some conflicts have the same name, but others will
-   need to be need to be updated.
+   need to be updated.
 
 ** wisitoken-parse_table-mode now provides a command
    wisitoken-parse_table-conflict-goto that will find a conflict in
@@ -58,7 +50,14 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
    "\C-c.", either in global-key-map, or in modes that typically have
    nonterminals or states.
 
-** wisi-parse-max-parallel is now buffer-local by default
+** parser process protocol version 6
+    add zombie_limit
+    add error-pos in Recover
+    replace debug-mode, trace-mckenzie, trace-action with verbosity string
+    delete wisi-mckenzie-disable, -check-limit
+    add incremental parse
+    increase command length to 4 digits
+    add query_tree command
 
 * wisi 3.1.3
 5 Jun 2020

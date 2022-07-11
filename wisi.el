@@ -7,7 +7,7 @@
 ;; Keywords: parser
 ;;  indentation
 ;;  navigation
-;; Version: 3.1.3
+;; Version: 4.0.beta
 ;; package-requires: ((emacs "25.3") (seq "2.20"))
 ;; URL: http://stephe-leake.org/ada/wisitoken.html
 ;;
@@ -1649,7 +1649,7 @@ If non-nil, only repair errors in BEG END region."
       ident)))
 
 (defun wisi-next-name-region ()
-  "Return the next region at or after point with text property 'wisi-name'."
+  "Return the next region at or after point with text property wisi-name."
   (let* ((begin
 	  (if (get-text-property (point) 'wisi-name)
 	      (point)
@@ -1658,7 +1658,7 @@ If non-nil, only repair errors in BEG END region."
     (cons begin end)))
 
 (defun wisi-prev-name-region ()
-  "Return the prev region at or before point with text property 'wisi-name'."
+  "Return the prev region at or before point with text property wisi-name."
   (let* ((end
 	  (if (get-text-property (point) 'wisi-name)
 	      (point)
@@ -1667,12 +1667,12 @@ If non-nil, only repair errors in BEG END region."
     (cons begin end)))
 
 (defun wisi-next-name ()
-  "Return the text at or after point with text property 'wisi-name'."
+  "Return the text at or after point with text property wisi-name."
   (let ((region (wisi-next-name-region)))
     (buffer-substring-no-properties (car region) (cdr region))))
 
 (defun wisi-prev-name ()
-  "Return the text at or before point with text property 'wisi-name'."
+  "Return the text at or before point with text property wisi-name."
   (let ((region (wisi-prev-name-region)))
     (buffer-substring-no-properties (car region) (cdr region))))
 
@@ -1680,7 +1680,7 @@ If non-nil, only repair errors in BEG END region."
   "Match line number encoded into identifier by `wisi-names'.")
 
 (defun wisi-names (append-lines alist)
-  "List of names; each is text from one 'wisi-name property in current buffer.
+  "List of names; each is text from one wisi-name property in current buffer.
 If APPEND-LINES is non-nil, each name has the line number it
 occurs on appended. If ALIST is non-nil, the result is an alist
 where the car is a list (FILE LINE COL)."

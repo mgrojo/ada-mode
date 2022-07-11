@@ -7,7 +7,7 @@ export WISI_VERSION := 3.1.3
 
 all : byte-compile-clean update test-clean test
 
-pub : docs
+pub : pub-wisi
 
 docs : info html
 
@@ -92,47 +92,67 @@ html : $(addsuffix .html, $(MANUALS))
 
 VPATH := ..
 
+ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
+
 # ELPA builds .info from .texinfo; if add new here, add to ../../elpa/elpa-packages
 pub-wisi : force
 # FIXME: add git push o.e.w -> elpa git
 	make -C $(WISITOKEN)/build doc
+	rm -rf $(ELPA_ROOT)/packages/wisi/*
+	cp ../NEWS $(ELPA_ROOT)/packages/wisi/NEWS
+	cp ../README $(ELPA_ROOT)/packages/wisi/README
+	cp ../*.ad? ../*.el ../*.sh ../*.texi ../wisi.gpr.gp $(ELPA_ROOT)/packages/wisi
+	rm $(ELPA_ROOT)/packages/wisi/autoloads.el
+	rm $(ELPA_ROOT)/packages/wisi/*libadalang*
+	cp ../build-wisitoken-bnf-generate.sh $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/Docs/wisitoken-user_guide.texinfo $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/*.ad? $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/wisitoken_grammar_re2c.c  $(ELPA_ROOT)/packages/wisi
-	rm $(ELPA_ROOT)/packages/wisi/wisitoken-regexp.ad?
-# FIXME: delete more files not used by wisi
+	rm $(ELPA_ROOT)/packages/wisi/wisitoken-lexer-regexp.ad?
+	rm $(ELPA_ROOT)/packages/wisi/recover_stats.adb
+	rm $(ELPA_ROOT)/packages/wisi/wisitoken-followed_by.adb
+	rm $(ELPA_ROOT)/packages/wisi/wisitoken-gen_token_enum.ad?
+	rm $(ELPA_ROOT)/packages/wisi/wisitoken-tree_sitter.ad?
+	rm $(ELPA_ROOT)/packages/wisi/wisitoken-utf_8.ad?
 	cp ../../org.stephe_leake.makerules/standard_common.gpr $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-unix_text_io.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/long_float_elementary_functions.ads $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-ada_containers* $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_array_image.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_doubly_linked_lists.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_doubly_linked_lists-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_queues.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_stacks*.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_refs.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_image*.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors_sorted*.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists-gen_image.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists_ref_count.ad? $(ELPA_ROOT)/packages/wisi
+#	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists_sorted-gen_image.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists_sorted.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists_sorted-gen_image.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_graphs.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_indefinite_doubly_linked_lists-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_indefinite_doubly_linked_lists.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_trimmed_image.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_hash_tables.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_min_heaps_fibonacci.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_queues-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
+#	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_queues-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_queues.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_red_black_trees.ad? $(ELPA_ROOT)/packages/wisi
+#	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_stacks-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_stacks.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_stacks-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors-gen_comparable.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors-gen_image*.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors_sorted.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unconstrained_array_image.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_sparse_ordered_sets.ad? $(ELPA_ROOT)/packages/wisi
+#	cp ../../org.stephe_leake.sal/source/sal-gen_unconstrained_array_image.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unconstrained_array_image_aux.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-generic_decimal_image.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal.ad? $(ELPA_ROOT)/packages/wisi
-# for wisitoken-bnf-generate:
-	cp ../build-wisitoken-bnf-generate.sh $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors-gen_comparable.ad? $(ELPA_ROOT)/packages/wisi
-	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists.ad?  $(ELPA_ROOT)/packages/wisi
 
 ../wisi.gpr : ../wisi.gpr.gp
 	gnatprep -DELPA="no" $< $@

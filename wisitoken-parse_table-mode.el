@@ -1,6 +1,6 @@
 ;; wisitoken-parse_table-mode.el --- For navigating in a parse table as output by wisitoken-bnf-generate. -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2017 - 2021  Free Software Foundation, Inc.
+;; Copyright (C) 2017 - 2022  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -31,7 +31,7 @@
 
 (defun wisitoken-parse_table--xref-backend () 'wisitoken-parse_table)
 
-(cl-defgeneric xref-backend-identifier-completion-table ((_backend (eql wisitoken-parse_table)))
+(cl-defgeneric xref-backend-identifier-completion-table (_backend)
   (let ((names nil))
     (save-excursion
       (goto-char (point-min))
@@ -69,7 +69,7 @@
    (t
     (thing-at-point 'symbol))))
 
-(cl-defgeneric xref-backend-definitions ((_backend (eql wisitoken-parse_table)) identifier)
+(cl-defgeneric xref-backend-definitions (_backend identifier)
   ;; IDENTIFIER is from xref-back-identifier-at-point; a state number or a nonterminal
   (setq wisitoken-parse_table-last-buffer (current-buffer))
   (let ((state-p (string-match "\\`[0-9]+\\'" identifier))

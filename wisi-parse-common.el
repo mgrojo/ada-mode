@@ -110,7 +110,7 @@ for the changes. The filename is the visited file name with
   ;; `wisi-save-all-changes', `wisi-process-all-changes-to-cmd'.
 )
 
-(cl-defgeneric wisi-parser-transaction-log-buffer-name ((parser wisi-parser))
+(cl-defgeneric wisi-parser-transaction-log-buffer-name (parser)
   "Return a buffer name for the transaction log buffer.")
 
 (defun wisi-parse-log-message (parser message)
@@ -136,11 +136,11 @@ Text properties on MESSAGE are preserved,"
 	      (forward-line -1)
 	      (delete-region (point-min) (point)))))))))
 
-(cl-defgeneric wisi-parse-format-language-options ((parser wisi-parser))
+(cl-defgeneric wisi-parse-format-language-options (parser)
   "Return a string to be sent to the parser, containing settings
 for the language-specific parser options.")
 
-(cl-defgeneric wisi-parse-expand-region ((_parser wisi-parser) begin end)
+(cl-defgeneric wisi-parse-expand-region (_parser begin end)
   "Return a cons SEND-BEGIN . SEND-END that is an expansion of
 region BEGIN END that starts and ends at points the parser can
 handle gracefully."
@@ -191,15 +191,15 @@ Return nil if no match found before eob."
     (goto-char (cdr region))
     ))
 
-(cl-defgeneric wisi-parse-adjust-indent ((_parser wisi-parser) indent _repair)
+(cl-defgeneric wisi-parse-adjust-indent (_parser indent _repair)
   "Adjust INDENT for REPAIR (a wisi--parse-error-repair struct). Return new indent."
   indent)
 
-(cl-defgeneric wisi-parse-require-process ((parser wisi-parser) &key nowait)
+(cl-defgeneric wisi-parse-require-process (parser &key nowait)
     "If PARSER uses an external process, start the process for PARSER.
 If NOWAIT is non-nil, does not wait for the process to respond.")
 
-(cl-defgeneric wisi-parse-current ((parser wisi-parser) parse-action begin send-end parse-end)
+(cl-defgeneric wisi-parse-current (parser parse-action begin send-end parse-end)
   "Parse current buffer starting at BEGIN, continuing at least thru PARSE-END.
 Send the parser BEGIN thru SEND-END, which does a full or partial
 parse, and performs post-parse action PARSE-ACTION (one of
@@ -214,7 +214,7 @@ The value is a list (source-buffer (font-lock-begin
 region font-lock attempted to fontify while the parser was
 busy.")
 
-(cl-defgeneric wisi-parse-incremental ((parser wisi-parser) parser-action &key full nowait)
+(cl-defgeneric wisi-parse-incremental (parser parser-action &key full nowait)
   "Incrementally parse current buffer.
 PARSER-ACTION (one of `wisi-post-parse-actions') is used to
 decide whether to wait if parser is busy.  If FULL, do initial
@@ -223,13 +223,13 @@ complete; buffer is read-only until full parse completes.  Text
 changes for incremental parse are stored in `wisi--changes',
 created by `wisi-after-change'.")
 
-(cl-defgeneric wisi-post-parse ((parser wisi-parser) parse-action begin end)
+(cl-defgeneric wisi-post-parse (parser parse-action begin end)
   "Perform PARSE-ACTION on region BEGIN END.
 PARSE-ACTION is one of `wisi-post-parse-actions'. Buffer must
 have been previously parsed by `wisi-parse-current' or
 `wisi-parse-incremental'");
 
-(cl-defgeneric wisi-refactor ((parser wisi-parser) refactor-action pos)
+(cl-defgeneric wisi-refactor (parser refactor-action pos)
   "Perform REFACTOR-ACTION at point POS")
 
 (defconst wisi-parse-tree-queries
@@ -251,7 +251,7 @@ have been previously parsed by `wisi-parse-current' or
   char-region ;; cons (start_pos . end_pos)
   )
 
-(cl-defgeneric wisi-parse-tree-query ((parser wisi-parser) query &rest args)
+(cl-defgeneric wisi-parse-tree-query (parser query &rest args)
   "Return result of parse tree query QUERY with ARGS:
 
 - node: ARGS is a buffer position. Return the wisi-tree-node for
@@ -260,7 +260,7 @@ have been previously parsed by `wisi-parse-current' or
 
 - containing-statement: ARGS is a buffer position. Return the
   wisi-tree-node for the statement ancestor of the terminal at
-  ARGS, or nil if no such ancestor. A 'statement' is one of the
+  ARGS, or nil if no such ancestor. A \"statement\" is one of the
   statement ids declared by the language-specific grammar
   backend.
 
@@ -281,12 +281,12 @@ have been previously parsed by `wisi-parse-current' or
   tree to file file-name, overwriting any existing
   file. Returns t.
 
-'terminal at pos' means pos is in the region defined by the
+\"terminal at pos\" means pos is in the region defined by the
 terminal token text plus following non_grammar and whitespace."
   ;; wisi-indent-statement requires this definition of 'terminal at pos'.
   )
 
-(cl-defgeneric wisi-parse-kill-buffer ((parser wisi-parser))
+(cl-defgeneric wisi-parse-kill-buffer (parser)
   "Tell parser the current buffer is being deleted.
 Called by `wisi-parse-kill-buf'.")
 
@@ -296,19 +296,19 @@ For `kill-buffer-hook'."
   (when wisi-parser-shared
     (wisi-parse-kill-buffer wisi-parser-shared)))
 
-(cl-defgeneric wisi-parse-reset ((parser wisi-parser))
+(cl-defgeneric wisi-parse-reset (parser)
   "Ensure parser is ready to process a new parse.")
 
-(cl-defgeneric wisi-parse-kill ((parser wisi-parser))
+(cl-defgeneric wisi-parse-kill (parser)
   "Kill any external process associated with parser.")
 
-(cl-defgeneric wisi-parse-enable-memory-report ((parser wisi-parser))
+(cl-defgeneric wisi-parse-enable-memory-report (parser)
   "Configure parser to report memory use.")
 
-(cl-defgeneric wisi-parse-memory-report-reset ((parser wisi-parser))
+(cl-defgeneric wisi-parse-memory-report-reset (parser)
   "Reset memory report base.")
 
-(cl-defgeneric wisi-parse-memory-report ((parser wisi-parser))
+(cl-defgeneric wisi-parse-memory-report (parser)
   "Display memory use since last reset.")
 
 (cl-defstruct
