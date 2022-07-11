@@ -1393,6 +1393,9 @@ bump versions
     build.sh
         if -d ../wisi-, WISI_DIR (twice)
 
+    install.sh
+        if -d ../wisi-, WISI_DIR (twice)
+
     ada-ref-man.el
         Version:
 

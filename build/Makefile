@@ -425,9 +425,9 @@ pub-ada-ref-man : force
 	cp $(ARM_INFO)/build/emacs_case_exceptions $(ELPA_ROOT)/packages/ada-ref-man/build
 
 
-# builds $(ELPA_ROOT)/archive-devel/* and archive/* from the last
-# commit, _not_ the current workspace Also checks copyright; run
-# elpa/GNUMakefile check/<pkg> first if added files.
+# builds $(ELPA_ROOT)/archive-devel/*, from the last commit, _not_ the
+# current workspace Also checks copyright; run elpa/GNUMakefile
+# check/<pkg> first if added files.
 build-elpa : force
 	rm -rf $(ELPA_ROOT)/archive-devel
 	make -C $(ELPA_ROOT)/ build/ada-mode build/wisi
