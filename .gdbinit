@@ -1,11 +1,11 @@
 # run_parse parse_partial
-#set args parse_partial none test/debug.wy --debug_mode --task_count 1 --verbosity 1 1 0
+#set args parse_partial indent test/nominal.wy --verbosity "debug=1 action=3"
 
 # run_parse command_file
 set args command_file debug.cmd
 
 # Process_Command verbosity
-break run_wisi_common_parse.adb:651
+break run_wisi_common_parse.adb:680
 
 catch exception
 set varsize-limit 0

@@ -4,7 +4,7 @@
 # variable, that is set in wisitoken_grammar.prj loaded in the file local
 # variables below.
 
-#export Standard_Common_Build := Debug
+export Standard_Common_Build := Debug
 export MMM_MODE ?= -L c:/Projects/mmm-mode
 
 export WISITOKEN_GRAMMAR_MODE_VERSION := 1.2.0
@@ -24,7 +24,7 @@ update-install : update install
 test : test-wisitoken_grammar.stamp
 
 ONE_TEST_FILE ?= debug.wy
-one :: ELISP ?= (setq save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
+one :: ELISP ?= (setq-default wisi-parser-verbosity "debug=1" save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
 one-clean :: force
 	for file in $(ONE_TEST_FILE) ; do rm -f $$file.* ; done
 one :: one-clean
@@ -37,15 +37,9 @@ one-debug :: RUNTEST := run-indent-test-grammar.el
 one-debug :: force
 	$(EMACS_EXE) -Q -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) -l $(RUNTEST) --eval '(progn $(ELISP))'
 
-two :: RUN_ARGS ?= command_file debug.cmd > debug.log
+two :: RUN_ARGS ?= command_file debug.cmd > debug.log 2>&1
 two :: build_executables
 	./run_wisitoken_grammar_parse.exe $(RUN_ARGS)
-
-two_pro : GRAMMAR := ada_annex_p_bnf
-two_pro : export Standard_Common_Profile := On
-two_pro : build_executables
-	./exec_pro/run_wisitoken_grammar_parse.exe Parse navigate ../org.emacs.ada-mode/$(GRAMMAR).wy
-	gprof ./exec_pro/run_wisitoken_grammar_parse.exe > $(GRAMMAR).profile
 
 %.re2c : %.wy $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 	$(WISITOKEN)/build/wisitoken-bnf-generate.exe --output_bnf --task_count 1 $(<F)
@@ -80,7 +74,7 @@ TEST_FILES := $(shell cd test; ls *.wy)
 	-diff -u $< $*.tmp > $*.diff
 
 %.tmp : %
-	$(EMACS_EXE) -Q -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) -l $(RUNTEST) --eval '(progn $(ELISP)(run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) --debug-init -Q -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) -l $(RUNTEST) --eval '(progn $(ELISP)(run-test "$<")(kill-emacs))'
 
 %.debug : %
 	$(EMACS_EXE) -Q -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) -l $(RUNTEST) --eval '(progn (package-initialize)(setq debug-on-error t))' $<

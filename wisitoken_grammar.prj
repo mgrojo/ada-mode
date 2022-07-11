@@ -1,12 +1,12 @@
 gpr_project_path=$WISI
 gpr_project_path=$WISITOKEN/build
+gpr_project_path=$SAL/build
 gpr_project_path=../org.stephe_leake.aunit_ext/build
-gpr_project_path=../org.stephe_leake.sal/build
 gpr_project_path=../org.stephe_leake.makerules
 
 gpr_file=wisitoken_grammar.gpr
 
 casing=$WISITOKEN/build/emacs_case_exceptions
-casing=../org.stephe_leake.sal/build/sal.casing
+casing=$SAL/build/sal.casing
 
 -- end of file
