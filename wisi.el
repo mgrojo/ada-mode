@@ -928,12 +928,6 @@ Run the parser first if needed."
 	 (signal (car err) (cdr err)))
 	)
 
-      (unless partial-parse-p
-	(wisi-fringe-display-errors
-	 (append
-	  (seq-map (lambda (err) (wisi--lexer-error-pos err)) (wisi-parser-local-lexer-errors wisi-parser-local))
-	  (seq-map (lambda (err) (wisi--parse-error-pos err)) (wisi-parser-local-parse-errors wisi-parser-local)))))
-
       (when (> wisi-debug 2)
 	(if (or (wisi-parser-local-lexer-errors wisi-parser-local)
 		(wisi-parser-local-parse-errors wisi-parser-local))
