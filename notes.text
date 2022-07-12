@@ -31,9 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-make -r t_mck RUN_ARGS="Packrat_Proc \"Conflict_2\" \"debug=1 test=2 parse=3 mckenzie=1 packrat_mckenzie=3\" > debug_packrat.log"
-
-
 doc restrictions on grammar for packrat + lr error recover
     must eliminate some lr conflicts for packrat to be correct
         ada_lite.wy; test_mckenzie.adb conflict_2
@@ -41,7 +38,22 @@ doc restrictions on grammar for packrat + lr error recover
 
     translating libadalang grammar.wy to wisitoken grammar; o.e.a.s-6
 
+make -r t_mck RUN_ARGS="Packrat_Proc \"Conflict_2\" \"debug=1 test=2 parse=3 mckenzie=1 packrat_mckenzie=3\" > debug_packrat.log"
+
+report mckenzie_recover.adb Error_Recover_Ops workarounds
+    ticket V707-027
+
+wisitoken-syntax_Trees.adb Current_Error_Ref
+    if assert Result = (full aggregate), requires more than 20 parallel parsers.
+    need better error message?
+
+do_deletes called way more times than it needs to be
+    move out of parse_verb
+    or only do if result verb is shift
+
 merge wisitoken-parse-packrat-parser back into wisitoken-parse-packrat?
+
+Put_tree put language, get-tree check it
 
 packrat_to_lr find all parse streams?
         order nonterms by production top-down

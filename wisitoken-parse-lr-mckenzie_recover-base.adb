@@ -32,11 +32,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Base is
          Index : SAL.Peek_Type := 1;
       begin
          for Cur in Shared_Parser.Parsers.Iterate loop
-            if Shared_Parser.Parsers (Cur).Recover_Insert_Delete_Current /= Recover_Op_Arrays.No_Index then
-               --  Previous error recovery resume not finished; this is supposed to
-               --  be checked in Parser.
-               raise SAL.Programmer_Error;
-            end if;
+            pragma Assert (Shared_Parser.Parsers (Cur).Current_Recover_Op = No_Insert_Delete);
+            --  Otherwise previous error recovery resume not finished; this is supposed to
+            --  be checked in Parser.
 
             Super.Parser_Status (Index) :=
               (Recover_State  => Active,

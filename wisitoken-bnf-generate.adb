@@ -58,7 +58,7 @@ is
       use Ada.Text_IO;
       First : Boolean := True;
    begin
-      Put_Line (Standard_Error, "version 2.1"); -- matches release version in Docs/wisitoken.html
+      Put_Line (Standard_Error, "version 3.0"); -- matches release version in Docs/wisitoken.html
       Put_Line (Standard_Error, "wisitoken-bnf-generate [options] {wisi grammar file}");
       Put_Line (Standard_Error, "Generate source code implementing a parser for the grammar.");
       New_Line (Standard_Error);

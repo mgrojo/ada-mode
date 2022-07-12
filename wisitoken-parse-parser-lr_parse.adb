@@ -115,11 +115,10 @@ begin
    LR_Core_Parse (Shared_Parser, Log_File, Recover_Only => False);
 
    if Trace_Parse > Outline then
-      Trace.Put_Line
-        (" " & Shared_Parser.Tree.Trimmed_Image (Shared_Parser.Parsers.First.Stream) & ": succeed");
+      Trace.Put_Line (" " & Shared_Parser.Tree.Trimmed_Image (Shared_Parser.Parsers.First.Stream) & ": succeed");
    end if;
 
-   Finish_Parse (Shared_Parser);
+   Finish_Parse (Shared_Parser, Incremental_Parse => Pre_Edited or Edits /= KMN_Lists.Empty_List);
 
    if Trace_Time then
       Trace.Put_Clock ("finish parse");
@@ -130,7 +129,7 @@ begin
    --  character.
 exception
 when Partial_Parse =>
-   Finish_Parse (Shared_Parser);
+   Finish_Parse (Shared_Parser, Incremental_Parse => False);
    if Trace_Time then
       Trace.Put_Clock ("finish partial parse");
    end if;

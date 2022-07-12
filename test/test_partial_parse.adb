@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-with Ada_Lite_Actions;   use Ada_Lite_Actions;
+with Ada_Lite_Actions; use Ada_Lite_Actions;
 with Ada_Lite_LALR_Main;
 with GNATCOLL.Mmap;
 with WisiToken.AUnit;
@@ -103,8 +103,8 @@ package body Test_Partial_Parse is
       end Finish;
 
    begin
-      Partial_Parse_Active    := True;
-      Partial_Parse_Byte_Goal := Goal_Byte_Pos;
+      Parser.Partial_Parse_Active.all    := True;
+      Parser.Partial_Parse_Byte_Goal.all := Goal_Byte_Pos;
 
       Parser.LR_Parse (Log_File);
 
@@ -293,5 +293,4 @@ package body Test_Partial_Parse is
    begin
       Partial_Parse_Active := False;
    end Tear_Down_Case;
-
 end Test_Partial_Parse;

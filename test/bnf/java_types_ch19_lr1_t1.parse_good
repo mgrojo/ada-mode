@@ -21,26 +21,26 @@ recover: succeed, parser count 1
 ^(7, 
 1;2:(Identifier, (43 . 48))),
 (-1, 
--7:(Identifier)),
+-6:(Identifier)),
 (-1, 
 2;5:(Wisi_EOI, (67 . 66), parser ERROR)))
-    Current_Token: (0, -7:(Identifier))
+    Current_Token: (0, -6:(Identifier))
     Shared_Token: ()
     recover_insert_delete:
     resume_active: True, token goal 6
 
- 0: 7: (0, -7:(Identifier)) : reduce 1 tokens to ClassType
+ 0: 7: (0, -6:(Identifier)) : reduce 1 tokens to ClassType
 (ClassType_3, (43 . 48) <= (1;2:(Identifier, (43 . 48))))
  ... goto state 9
- 0: 9: (0, -7:(Identifier)) : reduce 2 tokens to Annotation
+ 0: 9: (0, -6:(Identifier)) : reduce 2 tokens to Annotation
 (Annotation_0, (42 . 48) <= (0;1:(AT, (42 . 42)), (ClassType_3, (43 . 48))))
  ... goto state 5
- 0: 5: (0, -7:(Identifier)) : reduce 1 tokens to AnnotationList
-(AnnotationList_1, (42 . 48) <= ((Annotation_0, (42 . 48))))
+ 0: 5: (0, -6:(Identifier)) : reduce 1 tokens to AnnotationList
+(AnnotationList_0, (42 . 48) <= ((Annotation_0, (42 . 48))))
  ... goto state 4
- 0: 4: (0, -7:(Identifier)) : shift and goto state 12
+ 0: 4: (0, -6:(Identifier)) : shift and goto state 12
  0: 12: (0, 2;5:(Wisi_EOI, (67 . 66), parser ERROR)) : reduce 2 tokens to ClassType
-(ClassType_1, (42 . 48) <= ((AnnotationList_1, (42 . 48)), -7:(Identifier)))
+(ClassType_1, (42 . 48) <= ((AnnotationList_0, (42 . 48)), -6:(Identifier)))
  ... goto state 6
  0: 6: (0, 2;5:(Wisi_EOI, (67 . 66), parser ERROR)) : reduce 1 tokens to CompilationUnit
 (CompilationUnit_0, (42 . 48) <= ((ClassType_1, (42 . 48))))
@@ -49,4 +49,4 @@ recover: succeed, parser count 1
 (wisitoken_accept_0, (42 . 48) <= ((CompilationUnit_0, (42 . 48))))
  0: succeed
 java_types_ch19.input:5:1: syntax_error: expecting AT, LESS, Identifier, found ''
-   recovered: ((INSERT, Identifier, 2))
+   recovered: ((INSERT, (Identifier, (67 . 66)), 2))

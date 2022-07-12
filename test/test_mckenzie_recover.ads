@@ -37,5 +37,6 @@ package Test_McKenzie_Recover is
 
    overriding procedure Set_Up (T : in out Test_Case);
    overriding procedure Set_Up_Case (T : in out Test_Case);
+   overriding procedure Tear_Down_Case (T : in out Test_Case);
 
 end Test_McKenzie_Recover;

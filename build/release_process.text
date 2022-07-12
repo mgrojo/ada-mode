@@ -21,7 +21,7 @@ bump version
         wisitoken-*.tar.bz2
 
     ../Docs/wisitoken-user_guide.texinfo
-        version in @title
+        version in @node Top
 
     Makefile
         ZIP_VERSION

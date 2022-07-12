@@ -33,7 +33,7 @@ section entitled "GNU Free Documentation License".
 @contents
 
 @node Top
-@top WisiToken User Guide version 2.1
+@top WisiToken User Guide version 3.0
 
 @ifnottex
 @insertcopying
@@ -166,6 +166,7 @@ Comments are started by @code{;;} and terminated by end of line.
 * Declarations::
 * Nonterminals::
 * Conditional code::
+* Optimized lists::
 @end menu
 
 @node Declarations

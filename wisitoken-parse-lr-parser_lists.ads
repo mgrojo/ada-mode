@@ -24,7 +24,8 @@ with Ada.Iterator_Interfaces;
 with SAL.Gen_Indefinite_Doubly_Linked_Lists;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR.Parser_Lists is
-   use all type WisiToken.Syntax_Trees.Stream_Node_Ref;
+   use all type WisiToken.Syntax_Trees.Stream_ID;
+   use all type WisiToken.Syntax_Trees.Stream_Error_Ref;
 
    function Parser_Stack_Image
      (Stack : in Syntax_Trees.Stream_ID;
@@ -48,18 +49,14 @@ package WisiToken.Parse.LR.Parser_Lists is
       --
       --  The parse stack is in Shared_Parser.Tree (Parser_State.Stream).
 
-      Recover_Insert_Delete : aliased Recover_Op_Nodes_Arrays.Vector;
-      --  Tokens that were inserted or deleted during error recovery. Filled
-      --  by error recover, used by main parse and Execute_Actions.
+      Recover_Insert_Delete : aliased Syntax_Trees.Valid_Node_Access_Lists.List;
+      --  List of nodes containing errors that contain recover operations;
+      --  tokens that were inserted or deleted during error recovery. Filled
+      --  by error recover, used by Execute_Actions for
+      --  User_Data.Insert_Token, .Delete_Token.
       --
       --  Not emptied between error recovery sessions, so Execute_Actions
       --  knows about all insert/delete.
-
-      Recover_Insert_Delete_Current : Recover_Op_Nodes_Arrays.Extended_Index := Recover_Op_Arrays.No_Index;
-      --  Next item in Recover_Insert_Delete to be processed by main parse;
-      --  No_Index if all done.
-
-      Recover : aliased LR.McKenzie_Data := (others => <>);
 
       Total_Recover_Cost     : Integer                   := 0;
       Max_Recover_Ops_Length : Ada.Containers.Count_Type := 0;
@@ -83,15 +80,79 @@ package WisiToken.Parse.LR.Parser_Lists is
    type Parser_State is new Base_Parser_State with private;
    type State_Access is access all Parser_State;
 
-   function Current_Error_Node
+   function Recover_Image
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in     Syntax_Trees.Tree;
+      Current_Only : in     Boolean := False)
+     return String;
+
+   function Current_Recover_Op (Parser_State : in Parser_Lists.Parser_State) return SAL.Base_Peek_Type;
+   --  Index into Parser_State.Current_Error_Ref recover_ops;
+   --  No_Insert_Delete if no current error (all ops done).
+
+   procedure Set_Current_Error_Features
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in     Syntax_Trees.Tree);
+   --  Record Syntax_Trees.Error_Node_Features of
+   --  Parser_State.Current_Error_Ref (called with default Features) to
+   --  enable Current_Error_Ref to find it again while recover ops are
+   --  processed.
+
+   procedure Clear_Current_Error_Features
+     (Parser_State : in out Parser_Lists.Parser_State);
+   --  Reset to default, ready for a new error recover session.
+
+   function Current_Error_Ref
      (Parser_State : in Parser_Lists.Parser_State;
       Tree         : in Syntax_Trees.Tree)
-     return Syntax_Trees.Stream_Node_Parents
-   with Post => Tree.Has_Error (Current_Error_Node'Result.Ref.Node);
-   --  Must only be called when Parser_State has an error; result is
-   --  either Parser_State.Current_Token or First_Terminal (.First_Input)
-   --  (if a Parse_Error), or Parser_State.Stream.Peek (if an
-   --  In_Parse_Action_Error).
+     return Syntax_Trees.Stream_Error_Ref
+   with Post => Current_Error_Ref'Result /= Syntax_Trees.Invalid_Stream_Error_Ref;
+   --  Must only be called when Parser_State has an error; return current
+   --  error node. If Set_Current_Error_Features has been called, uses the
+   --  recorded Error_Node_Features.
+
+   procedure Do_Delete
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in out Syntax_Trees.Tree;
+      Op           : in out Delete_Op_Nodes;
+      User_Data    : in     Syntax_Trees.User_Data_Access_Constant);
+   --  Perform Delete operation on Stream, set Op.Del_Node to
+   --  deleted node. Update Parser_State.Current_Error_Features if deleted node =
+   --  error node.
+
+   procedure Undo_Reduce
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in out Syntax_Trees.Tree;
+      Table        : in     Parse_Table;
+      User_Data    : in     Syntax_Trees.User_Data_Access_Constant);
+   --  Undo reduction of nonterm at Parser_State.Stream.Stack_Top; Stack_Top is then
+   --  the last Child of the nonterm.
+   --
+   --  If Stream.Stack_Top has an error, it is moved to the first
+   --  terminal; if that error is the current error, update
+   --  Parser_State.Current_Error_Features.
+   --
+   --  Duplicates LR.Undo_Reduce; that is used by Edit_Tree, when there
+   --  is no Parser_State.
+
+   procedure First_Recover_Op (Parser_State : in out Parser_Lists.Parser_State);
+   --  Set Parser_State.Current_Recover_Op to 1, indicating that there
+   --  are insert/delete operations in the current error.
+
+   procedure Next_Recover_Op
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in     Syntax_Trees.Tree);
+   --  Increment Parser_State.Current_Recover_Op.
+
+   procedure Update_Error
+     (Parser_State : in out Parser_Lists.Parser_State;
+      Tree         : in out Syntax_Trees.Tree;
+      Data         : in     Syntax_Trees.Error_Data'Class;
+      User_Data    : in     Syntax_Trees.User_Data_Access_Constant);
+   --  Update current error with Data. If Parser_State.Current_Recover_Op
+   --  is the last op in the current error, append the current error node
+   --  to Parser_State.Recover_Insert_Delete, and reset
+   --  Parser_State.Current_Recover_Op.
 
    function Peek_Current_Sequential_Terminal
      (Parser_State : in Parser_Lists.Parser_State;
@@ -243,13 +304,26 @@ package WisiToken.Parse.LR.Parser_Lists is
    --  Access to private Parser_State components
 
    function Stream (State : in Parser_State) return Syntax_Trees.Stream_ID;
-   procedure Clear_Stream (State : in out Parser_State);
    procedure Set_Verb (State : in out Parser_State; Verb : in All_Parse_Action_Verbs);
    function Verb (State : in Parser_State) return All_Parse_Action_Verbs;
+
+   procedure Clear_Stream (State : in out Parser_State);
+   --  Clear all references to Syntax_Tree streams, so the tree can be
+   --  finalized.
 
 private
 
    type Parser_State is new Base_Parser_State with record
+
+      Current_Recover_Op : SAL.Base_Peek_Type := No_Insert_Delete;
+      --  Next op in Parser_State.Current_Error_Ref.Error.Recover_Ops to be
+      --  processed by main parse; No_Insert_Delete if all done.
+      --
+      --  We do not keep a copy of Parser_State.Current_Error_Ref, because
+      --  the main parser can change the Stream_Node_Ref by shift or reduce.
+
+      Current_Error_Features : Syntax_Trees.Error_Node_Features;
+
       Stream : Syntax_Trees.Stream_ID;
 
       Verb : All_Parse_Action_Verbs := Shift; -- current action to perform

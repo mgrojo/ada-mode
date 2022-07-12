@@ -311,12 +311,14 @@ OK test_syntax_trees.adb : Find_Char_Pos_1
 OK test_syntax_trees.adb : Breakdown_Optimized_List_01
 OK test_syntax_trees.adb : Breakdown_Optimized_List_02
 OK test_syntax_trees.adb : Prev_New_Line_01
+OK test_syntax_trees.adb : Put_Get_01
+OK test_syntax_trees.adb : Put_Get_02
 OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
 OK warth_left_recurse_expr_1.adb : Test_Parse_Gen
 OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
-Total Tests Run:   316
-Successful Tests:  316
+Total Tests Run:   318
+Successful Tests:  318
 Failed Assertions: 0
 Unexpected Errors: 0

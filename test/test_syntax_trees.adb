@@ -434,7 +434,7 @@ package body Test_Syntax_Trees is
          begin
             Tree.First_Terminal (Ref, Following => False);
             for I in 1 .. Index - 1 loop
-               Tree.Next_Terminal (Ref);
+               Tree.Next_Terminal (Ref, Following => True);
             end loop;
             Check (Label & ".node_index", Tree.Get_Node_Index (Ref.Ref.Node), Index);
 
@@ -494,8 +494,8 @@ package body Test_Syntax_Trees is
                  (Tree.Stream_Last (Tree.Shared_Stream, Skip_EOI => True));
                Prev : Stream_Node_Parents := Ref;
             begin
-               Tree.Last_Terminal (Last, Tree.Shared_Stream);
-               Tree.Prev_Terminal (Prev, Tree.Shared_Stream);
+               Tree.Last_Terminal (Last, Tree.Shared_Stream, Preceding => False);
+               Tree.Prev_Terminal (Prev, Tree.Shared_Stream, Preceding => True);
 
                if Trace_Tests > Detail then
                   Ada.Text_IO.Put_Line (Label & " prev: " & Tree.Image (Prev.Ref, Node_Numbers => True));
@@ -531,18 +531,22 @@ package body Test_Syntax_Trees is
             Ada.Text_IO.Put_Line (Label & " tree:");
             Tree.Print_Tree;
          end if;
-         declare
-            use all type Ada.Containers.Count_Type;
-            Error_Reported : Node_Sets.Set;
-         begin
-            Tree.Validate_Tree
-              (User_Data, Error_Reported,
-               Node_Index_Order => True,
-               Validate_Node    => Mark_In_Tree'Access);
-            if Error_Reported.Count > 0 then
-               AUnit.Assertions.Assert (False, "invalid tree");
-            end if;
-         end;
+
+         if not Debug_Mode then
+            --  parse runs validate_tree in debug_mode.
+            declare
+               use all type Ada.Containers.Count_Type;
+               Error_Reported : Node_Sets.Set;
+            begin
+               Tree.Validate_Tree
+                 (User_Data, Error_Reported,
+                  Node_Index_Order => True,
+                  Validate_Node    => Mark_In_Tree'Access);
+               if Error_Reported.Count > 0 then
+                  AUnit.Assertions.Assert (False, "invalid tree");
+               end if;
+            end;
+         end if;
 
          if Declarations_0 then
             Check
@@ -1020,7 +1024,7 @@ package body Test_Syntax_Trees is
          begin
             Tree.First_Terminal (Ref, Following => False);
             for I in 1 .. Index_1 - 1 loop
-               Tree.Next_Terminal (Ref);
+               Tree.Next_Terminal (Ref, Following => True);
             end loop;
             Check (Label & ".node_index_1", Tree.Get_Node_Index (Ref.Ref.Node), Index_1);
 
@@ -1041,7 +1045,7 @@ package body Test_Syntax_Trees is
             Ref := Tree.To_Stream_Node_Parents (Tree.Stream_First (Tree.Shared_Stream, Skip_SOI => True));
             Tree.First_Terminal (Ref, Following => False);
             for I in 1 .. Index_2 - 1 loop
-               Tree.Next_Terminal (Ref);
+               Tree.Next_Terminal (Ref, Following => True);
             end loop;
 
             Check (Label & ".node_index_2", Tree.Get_Node_Index (Ref.Ref.Node), Index_2);
@@ -1107,18 +1111,20 @@ package body Test_Syntax_Trees is
             Ada.Text_IO.Put_Line (Label & " parsed tree 2:");
             Tree.Print_Tree;
          end if;
-         declare
-            use all type Ada.Containers.Count_Type;
-            Error_Reported : Node_Sets.Set;
-         begin
-            Tree.Validate_Tree
-              (User_Data, Error_Reported,
-               Node_Index_Order => False,
-               Validate_Node    => Mark_In_Tree'Access);
-            if Error_Reported.Count > 0 then
-               AUnit.Assertions.Assert (False, "invalid tree");
-            end if;
-         end;
+         if not Debug_Mode then
+            declare
+               use all type Ada.Containers.Count_Type;
+               Error_Reported : Node_Sets.Set;
+            begin
+               Tree.Validate_Tree
+                 (User_Data, Error_Reported,
+                  Node_Index_Order => False,
+                  Validate_Node    => Mark_In_Tree'Access);
+               if Error_Reported.Count > 0 then
+                  AUnit.Assertions.Assert (False, "invalid tree");
+               end if;
+            end;
+         end if;
       end Test_1;
    begin
       Test_1 ("b, c", 5, 9);
@@ -1232,14 +1238,17 @@ package body Test_Syntax_Trees is
    is
       pragma Unreferenced (T);
       use WisiToken.Syntax_Trees.AUnit_Public;
+      use Ada_Lite_Actions;
 
       --  Tree has an error and a deleted terminal
-      Text : constant String := "procedure A is b begin C; end A;";
+      Text : constant String := "procedure A is ; begin C; end A;";
 
       Text_File_Name : constant String := "put_get_02.tree_text";
 
       Parser : WisiToken.Parse.Parser.Parser'Class renames Grammar_Parser;
    begin
+      Ada_Lite_Parser.Table.McKenzie_Param.Delete (+SEMICOLON_ID) := 1;
+
       Parser.Tree.Lexer.Reset_With_String (Text);
 
       Parser.Parse (Log_File);

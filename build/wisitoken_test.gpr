@@ -18,7 +18,6 @@ with "sal_devel";
 with "wisitoken";
 with "wisitoken_devel";
 with "standard_common";
-with "tree_sitter"; -- tree-sitter utils installed
 project WisiToken_Test is
 
    type Generate_Type is ("BNF_EBNF_Tree_Sitter", "BNF_EBNF", "BNF", "EBNF", "Tree_Sitter");
@@ -32,6 +31,11 @@ project WisiToken_Test is
       ".",
       "../test",
       "../test/bnf"
+     );
+
+   for Excluded_Source_Files use
+     (
+      "wisitoken_tree_sitter.c"
      );
 
    for Languages use ("Ada", "C");
@@ -107,7 +111,6 @@ project WisiToken_Test is
    Gen_EBNF :=
      (
       "ada_lite_ebnf_lalr_run.ads",
-      "ada_lite_ebnf_packrat_gen_run.ads",
       "identifier_list_name_conflict_lalr_run.ads",
       "identifier_list_name_conflict_packrat_gen_run.ads",
       "identifier_list_name_conflict_packrat_proc_run.ads",

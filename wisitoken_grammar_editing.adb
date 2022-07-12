@@ -273,7 +273,6 @@ package body WisiToken_Grammar_Editing is
      (Tree                : in     Syntax_Trees.Tree;
       Node                : in     Valid_Node_Access;
       User_Data           : in out Syntax_Trees.User_Data_Type'Class;
-      Node_Image_Output   : in out Boolean;
       Node_Error_Reported : in out Boolean)
    is
       use Ada.Text_IO;
@@ -283,22 +282,20 @@ package body WisiToken_Grammar_Editing is
       procedure Put_Error (Msg : in String)
       is begin
          if Data.Error_Reported.Contains (Node) then
+            --  We only output one error per node, because we call Validate_Tree multiple times.
             return;
          end if;
 
          Node_Error_Reported := True;
 
-         if not Node_Image_Output then
-            Node_Image_Output := True;
-            Put_Line
-              (Current_Error,
-               Tree.Error_Message
-                 (Node, Tree.Image
-                    (Node,
-                     RHS_Index    => True,
-                     Children     => True,
-                     Node_Numbers => True)));
-         end if;
+         Put_Line
+           (Current_Error,
+            Tree.Error_Message
+              (Node, Tree.Image
+                 (Node,
+                  RHS_Index    => True,
+                  Children     => True,
+                  Node_Numbers => True)));
          Put_Line (Current_Error, Tree.Error_Message (Node, "... invalid tree: " & Msg));
          WisiToken.Generate.Error := True;
       end Put_Error;
