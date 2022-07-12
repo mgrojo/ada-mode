@@ -110,21 +110,17 @@ is -- target 0
    --EMACSCMD:(test-face "Object_Access_Type_0a" font-lock-type-face)
    --EMACSCMD:(test-face "is" font-lock-keyword-face)
    --EMACSCMD:(progn (end-of-line 3)(backward-word 2)(test-face "access" font-lock-keyword-face))
-   --EMACSCMD:(test-face "Float" font-lock-type-face)
+   --EMACSCMD:(test-face "Float" nil);; can't distinguish type name in name
    type Object_Access_Type_0a is access Float;
    --EMACSCMD:(test-face "all" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0b is access all Integer;
    --EMACSCMD:(test-face "not" font-lock-keyword-face)
    --EMACSCMD:(test-face "null" font-lock-keyword-face)
-   --EMACSCMD:(progn (end-of-line 4)(backward-word 3)(test-face "access" font-lock-keyword-face))
+   --EMACSCMD:(progn (end-of-line 3)(backward-word 3)(test-face "access" font-lock-keyword-face))
    --EMACSCMD:(test-face "all" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0c is not null access all Integer;
    --EMACSCMD:(test-face "constant" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0d is not null access constant Integer;
-   --EMACSCMD:(test-face "Integer" font-lock-type-face)
    type Object_Access_Type_0e is access constant Integer;
    type Object_Access_Type_0f is not null access constant Integer;
    type Object_Access_Type_1 is not null access all Integer
@@ -143,7 +139,6 @@ is -- target 0
      -- Comment between keywords
      constant Integer;
    type Object_Access_Type_4 is not null
-     --EMACSCMD:(test-face "Integer" font-lock-type-face)
      access all Integer; -- it no longer matters whether this is 'all' or 'constant'
 
    --EMACSCMD:(progn (forward-line 2)(forward-word 1)(downcase-word 4)(wisi-case-adjust))
@@ -282,7 +277,6 @@ is -- target 0
    --EMACSCMD:(test-face "Integer" '(nil default))
    --EMACSCMD:(test-face "range" font-lock-keyword-face)
    --EMACSCMD:(test-face "of" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Object_Access_Type_1" font-lock-type-face)
    type Unconstrained_Array_Type_1 is array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
    type Access_Unconstrained_Array_Type_1 is access Unconstrained_Array_Type_1 (1 .. 10, 'A' .. 'D');
    type Unconstrained_Array_Type_2 is array (Integer range <>, Standard.Character range <>) of
@@ -342,7 +336,7 @@ is -- target 0
      Private_Type_7 is abstract tagged limited null record;
 
    --EMACSCMD:(test-face "new" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Private_Type_1" font-lock-type-face)
+   --EMACSCMD:(test-face "Private_Type_1" nil)
    --EMACSCMD:(test-face "with" font-lock-keyword-face)
    --EMACSCMD:(test-face-1 "with" "private" font-lock-keyword-face)
    type Limited_Derived_Type_1 is abstract limited new Private_Type_1 with private;
@@ -479,7 +473,7 @@ is -- target 0
    type Signed_Integer_Type is range 10 .. 21;
 
    --EMACSCMD:(test-face "Subtype_1" font-lock-type-face)
-   --EMACSCMD:(test-face "Signed_Integer_Type" font-lock-type-face)
+   --EMACSCMD:(test-face "Signed_Integer_Type" nil)
    subtype Subtype_1 is Signed_Integer_Type range 10 .. 20;
    subtype Subtype_2 is Signed_Integer_Type range 10 ..
      20;
@@ -549,7 +543,6 @@ is -- target 0
 
       -- More than three objects, to be sure we are handling
       -- indefinite lists of objects properly
-      --EMACSCMD:(test-face "Integer" font-lock-type-face)
       Local_1 : Integer;
       Local_2 : Integer;
       Local_3 : Integer;
@@ -655,7 +648,7 @@ is -- target 0
       --EMACSRESULT:"Task_Type_1"
 
       --EMACSCMD:(test-face "Start" 'font-lock-function-name-face)
-      --EMACSCMD:(test-face "Discrete_Type_1" 'font-lock-type-face)
+      --EMACSCMD:(test-face "Discrete_Type_1" nil)
       entry Start (Discrete_Type_1) (Param_1 : in Integer);
       entry Middle_1 (Param_1 : in Integer);
       entry Middle_2 (Param_1 : in Integer);

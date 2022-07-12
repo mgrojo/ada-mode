@@ -101,6 +101,10 @@ Project files
 * Project file overview::
 * Project file variables::
 
+Indentation
+
+* Ada-specific indent functions::
+
 Developer overview
 
 * Directory structure::
@@ -260,6 +264,20 @@ changes, to force a complete rebuild.
 @node Building GNATCOLL
 @subsection Building GNATCOLL
 
+The GNAT Community and GNAT pro binary installs have some of the
+GNATCOLL packages we need, but we need to install others from source.
+
+Debian 11 provides binary packages for the GNATCOLL packages we need;
+@table @samp
+@item libgnatcoll-db-bin
+@item libgnatcoll-iconv20-dev
+@item libgnatcoll-sql4-dev
+@item libgnatcoll-sqlite20-dev
+@item libgnatcoll-xref21-dev
+@end table
+
+Debian does not provide a binary for gnatstub.
+
 If you are using GNAT Community, download gnatcoll-db from
 @url{https://github.com/AdaCore/gnatcoll-db}; select the latest
 release branch (or the one that matches your compiler), click on the
@@ -386,7 +404,7 @@ No edits required.
 @item Community 2021
 Requires ada-mode version 7.1.6 or later.
 
-gnatcoll requires a patch; see FIXME: gnatcoll build section.
+gnatcoll requires a patch; @xref{Building GNATCOLL}.
 
 @item Pro 20.2
 Requires ada-mode version 7.1.6 or later.
@@ -394,10 +412,10 @@ Requires ada-mode version 7.1.6 or later.
 No edits required.
 
 @item Pro 21.2
-FIXME:
+No edits required.
 
 @item Pro 22.2
-FIXME:
+No edits required.
 
 @item FSF 11.1.0
 @end table
@@ -1874,6 +1892,10 @@ In rare cases, the parser gets confused; it can be reset by invoking
 menu @key{Ada | Misc | Restart parser}. Please report such cases as a
 bug.
 
+@menu
+* Ada-specific indent functions::
+@end menu
+
 @node Ada-specific indent functions
 @section Ada-specific indent functions
 The following indent functions are defined by the ada-mode grammar
@@ -2316,6 +2338,7 @@ ssh read/write git access to savannah ada-mode:
 git clone stephen_leake@@git.sv.gnu.org:/srv/git/ada-mode.git \
     -b org.emacs.ada-mode org.emacs.ada-mode
 cd ada-mode
+git worktree add -b org.emacs.wisi ../org.emacs.wisi origin/org.emacs.wisi
 git worktree add -b org.wisitoken ../org.wisitoken origin/org.wisitoken
 git worktree add -b org.stephe_leake.sal ../org.stephe_leake.sal origin/org.stephe_leake.sal
 git worktree add -b org.stephe_leake.aunit_ext ../org.stephe_leake.aunit_ext origin/org.stephe_leake.aunit_ext

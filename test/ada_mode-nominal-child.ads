@@ -5,7 +5,7 @@ package Ada_Mode.Nominal.Child is
 
    --EMACSCMD:(test-face "is" font-lock-keyword-face)
    --EMACSCMD:(test-face "new" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Parent_Type_1" font-lock-type-face)
+   --EMACSCMD:(test-face "Parent_Type_1" nil)
    --EMACSCMD:(test-face "with" font-lock-keyword-face)
    type Child_Type_1 is
      -- comment after 'is', not before 'record'

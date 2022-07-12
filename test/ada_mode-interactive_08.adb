@@ -3,7 +3,7 @@
 
 procedure Ada_Mode.Interactive_08 is
 
-   --EMACSCMD:(progn (forward-line 1)(set-mark-command nil)(forward-line 67)(kill-region nil nil t))
+   --EMACSCMD:(kill-region (line-beginning-position 2)(line-beginning-position 69))
    function Get_Emacs_Change_List
      (Command_Line : in     String;
       Last         : in out Integer)

@@ -32,8 +32,11 @@
   (let ((xrefs (funcall generator))
 	result)
     (dolist (ref xrefs)
-	  (push (list (file-name-nondirectory (xref-file-location-file (xref-item-location ref)))
-		      (xref-item-summary ref))
+      (push (list (file-name-nondirectory
+		   (if (functionp 'xref-file-location-file)
+		       (xref-file-location-file (xref-item-location ref))
+		     (oref (xref-item-location ref) file)))
+		  (xref-item-summary ref))
 		result))
     (nreverse result)))
 

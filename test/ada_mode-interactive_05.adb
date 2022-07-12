@@ -15,7 +15,7 @@ is
    -- result verified by diff.
    procedure Proc_1
    is begin
-
+      null;
    end Proc_1;
 
    -- procedure, parameters on one line
@@ -23,7 +23,7 @@ is
    -- result verified by diff
    procedure Proc_2 (A : in Integer)
    is begin
-
+      null;
    end Proc_2;
 
    function Func_1 return Integer

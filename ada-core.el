@@ -548,7 +548,7 @@ extend a with_clause to include CHILD-NAME."
 	 (end (wisi-cache-end (wisi-get-cache (point))))
 	 (name (wisi-next-name)))
     (goto-char end)
-    (insert "\nis begin\n\nend ")
+    (insert "\nis begin\nnull;\nend ")
     (insert name)
     (forward-char 1)
 

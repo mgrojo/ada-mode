@@ -8,7 +8,7 @@ is
    -- result verified by diff.
    procedure Proc_2 (A : in Integer)
    is begin
-
+      null;
    end Proc_2;
 
    A : constant Integer := 1;

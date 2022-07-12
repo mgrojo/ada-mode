@@ -13,7 +13,7 @@ procedure Test_Select is
       --EMACSCMD:(test-face "E2" 'font-lock-function-name-face)
       entry E2 (X : in Integer);
       --EMACSCMD:(test-face "E3" 'font-lock-function-name-face)
-      --EMACSCMD:(test-face "Entry_Range" 'font-lock-type-face)
+      --EMACSCMD:(test-face "Entry_Range" nil)
       entry E3 (Entry_Range) (A,B : Integer);
    private
       entry E4;

@@ -55,7 +55,7 @@ is
    -- result verified by diff.
    procedure Proc_1
    is begin
-
+      null;
    end Proc_1;
 
    -- procedure, parameters on one line
@@ -63,11 +63,11 @@ is
    -- result verified by diff
    procedure Proc_2 (A : in Integer)
    is begin
-
+      null;
    end Proc_2;
 
    -- function, no parameters
-   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "return 0;"))
+   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(delete-char 4)(insert "return 0"))
    -- result verified by diff
    function Func_1 return Integer
    is begin
@@ -75,7 +75,7 @@ is
    end Func_1;
 
    -- function, parameters on separate line
-   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "return 0;"))
+   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(delete-char 4)(insert "return 0"))
    -- result verified by diff
    function Func_2
      (A : in Integer)
@@ -86,7 +86,7 @@ is
 
    -- Properly highlight keyword next to type identifier when insert/delete separating space
    --EMACSCMD:(progn (end-of-line 6)(backward-word 1)(backward-delete-char 1))
-   --EMACSCMD:(test-face "accessString" 'font-lock-type-face)
+   --EMACSCMD:(test-face "accessString" nil) ;; can't extract type name from name
    --EMACSCMD:(progn (end-of-line 4)(backward-char 7)(execute-kbd-macro " "))
    --EMACSCMD:(test-face "access" 'font-lock-keyword-face)
    --EMACSCMD:(test-face "String" 'font-lock-type-face)

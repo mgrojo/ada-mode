@@ -1,3 +1,5 @@
+
+--EMACS_SKIP_UNLESS: wisi-incremental-parse-enable
 procedure Ada_Mode.Recover_String_Quote_6
 is
 begin

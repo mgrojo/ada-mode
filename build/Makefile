@@ -44,11 +44,11 @@ endif
 # export Standard_Common_Build := Debug
 # export Standard_Common_Assertions := Off
 
-all : byte-compile-clean compile-ada-test-clean update compile-ada-test test-clean test
+all : byte-compile-clean compile-ada-test-clean update compile-ada-test test-clean test docs
 
 # 'pub' does not do install, because 'build-elpa' uses the last
 # commit, not the current workspace.
-pub : docs pub-ada pub-wisi pub-ada-ref-man
+pub : pub-ada
 # (dvc-state-multiple "c:/Projects/elpa/packages")
 pub-install: clean-elpa build-elpa uninstall-elpa
 
@@ -74,8 +74,7 @@ update-install : docs
 
 install : install_executables
 
-# *-elisp.el are in monotone, so this is all we need after a monotone
-# update. Doing byte-compile-clean first avoids errors caused by
+# Doing byte-compile-clean first avoids errors caused by
 # loading new source on old .elc.
 #
 # 'package-initialize' is required for 'uniquify-files'.
@@ -103,10 +102,8 @@ benchmark : RUN_ARGS ?= c:/eurocontrol/gnatcoll-xref.adb
 benchmark :
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l benchmark.el $(RUN_ARGS)
 
-#ONE_TEST_FILE ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
-#ONE_TEST_FILE := $(filter-out ada_mode-recover%, $(ADA_TEST_FILES))
-ONE_TEST_FILE ?= ada_mode-incremental_delete_lines.adb
-one :: ELISP ?= (setq save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
+ONE_TEST_FILE ?= debug.adb
+one :: ELISP ?= (setq-default wisi-parser-verbosity "debug=1" save-parser-log "../debug-1.log" save-edited-text "../debug_edited-1")
 one :: IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 one :: build_executables
 one :: byte-compile autoloads
@@ -115,8 +112,8 @@ one :: one-clean
 one-clean :: force
 	for file in $(ONE_TEST_FILE) ; do rm -f $$file.* ; done
 #	rm -f ../test/gpr_query.db*
-one :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
-#one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
+#one :: RUNTEST := run-indent-test-lalr-incremental-process-gpr_query.el
+one :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 #one :: RUNTEST := run-indent-test-lalr-process-gnatxref.el
 #one :: $(addsuffix .diff-run, $(ONE_TEST_FILE))
 one :: $(addsuffix .diff, $(ONE_TEST_FILE))
@@ -131,11 +128,12 @@ oneb :: one-clean
 oneb :: RUNTEST := run-indent-test-lalr-partial-process-gpr_query.el
 oneb :: $(addsuffix .diff, $(ONE_TEST_FILE))
 
-two : RUN_ARGS ?= command_file debug.cmd > debug.log 2>&1
+two : RUN_ARGS ?= command_file debug.cmd
+two : LOG_ARGS ?= > debug.log 2>&1
 #two : RUN_ARGS ?= parse_partial face test/debug.adb --verbosity "debug=1 mckenzie=1 parse=1" --mckenzie_enqueue_limit 60000 --lang_params "3 2 0 1 0 0 2 0 2 0 2 0 0" > debug.log
 two : IGNORE_CONFLICTS := --generate LALR Ada_Emacs Process re2c
 two : ../run_ada_lalr_parse.exe
-	cd ../; ./run_ada_lalr_parse.exe $(RUN_ARGS)
+	cd ../; ./run_ada_lalr_parse.exe $(RUN_ARGS) $(LOG_ARGS)
 
 two-lr1 : RUN_ARGS ?= parse_partial none test/debug.adb --verbosity "debug=1 mckenzie=1 parse=1" --lang_params "3 2 0 1 0 0 2 0 2 0 2 0 0"
 two-lr1 : ../run_ada_lr1_parse.exe
@@ -399,29 +397,27 @@ VPATH := ..
 pub-ada : force
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode
 	rm -rf $(ELPA_ROOT)/packages/ada-mode/*
-	cp ../ada*.el ../ada-mode.texi ../ada-mode.info  ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
-	rm $(ELPA_ROOT)/packages/ada-mode/ada-ref-man.el
+	cp ../*.el ../*.texi ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
+	cd $(ELPA_ROOT)/packages/ada-mode; rm ada-ref-man.el ada_annex_p_bnf.wy *.parse_table
+	cd $(ELPA_ROOT)/packages/ada-mode; rm ada_annex_p_lr1_parse_table.txt ada_annex_p_txt.wy autoloads.el
 	cp ../build.sh ../install.sh $(ELPA_ROOT)/packages/ada-mode/
-	cp ../dir-ada-mode $(ELPA_ROOT)/packages/ada-mode/dir
-	cp ../NEWS-ada-mode.text $(ELPA_ROOT)/packages/ada-mode/NEWS
-	cp ../README-ada-mode $(ELPA_ROOT)/packages/ada-mode/README
-	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
-	cp ../gpr*.el ../gpr-mode.texi ../gpr-mode.info $(ELPA_ROOT)/packages/ada-mode
+	cp ../Makefile ../Makefile.conf ../create_makefile_conf.sh $(ELPA_ROOT)/packages/ada-mode/
+	cp ../ada_mode.prj ../prj.el $(ELPA_ROOT)/packages/ada-mode/
+	cp ../NEWS $(ELPA_ROOT)/packages/ada-mode/NEWS
+	cp ../README $(ELPA_ROOT)/packages/ada-mode/README
+	cp ../gpr*.el ../gpr-mode.texi $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.wy ../ada*.ad? ../gpr*.ad? ../run_ada*.ad? ../run_gpr*.ad? ../wisi-ada*.ad? ../wisi-gpr.ad?  $(ELPA_ROOT)/packages/ada-mode
-	cp ../ada_lr1_parse_table.txt $(ELPA_ROOT)/packages/ada-mode
-	gzip $(ELPA_ROOT)/packages/ada-mode/ada_lr1_parse_table.txt
 	cp ../wisitoken-*-ada.ad? $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.c $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
-	cp ../config.pragmas $(ELPA_ROOT)/packages/ada-mode
 
 # copy files to ELPA ada-ref-man package
 pub-ada-ref-man: ARM_INFO ?= c:/Projects/org.adaic.arm_form
 pub-ada-ref-man : force
+	rm -rf $(ELPA_ROOT)/packages/ada-ref-man/*
 	rm -f $(ARM_INFO)/build/*2005.info
 	make -C $(ARM_INFO)/build create-dir
 	cp ../ada-ref-man.el $(ELPA_ROOT)/packages/ada-ref-man/
-	cp ../README-ada-ref-man $(ELPA_ROOT)/packages/ada-ref-man/README
 	cp $(ARM_INFO)/NEWS $(ELPA_ROOT)/packages/ada-ref-man
 	cp $(ARM_INFO)/build/dir $(ELPA_ROOT)/packages/ada-ref-man
 	cp $(ARM_INFO)/build/arm2012.info $(ELPA_ROOT)/packages/ada-ref-man
@@ -438,8 +434,9 @@ pub-ada-ref-man : force
 	cp $(ARM_INFO)/build/emacs_case_exceptions $(ELPA_ROOT)/packages/ada-ref-man/build
 
 
-# builds $(ELPA_ROOT)/archive-devel/*, from the last commit, _not_ the current workspace
-# Also checks copyright; run elpa/GNUMakefile check/<pkg> first if added files.
+# builds $(ELPA_ROOT)/archive-devel/*, from the last commit, _not_ the
+# current workspace Also checks copyright; run elpa/GNUMakefile
+# check/<pkg> first if added files.
 build-elpa : force
 	rm -rf $(ELPA_ROOT)/archive-devel
 	make -C $(ELPA_ROOT)/ build/ada-mode build/wisi
@@ -478,6 +475,16 @@ build_executables : $(WISI)/wisi.gpr ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ..
 
 install_executables : build_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
+
+switch_compiler : force
+	rm -rf ../obj
+	rm -rf $(WISI)/obj
+	rm -rf ../../org.stephe_leake.aunit_ext/build/objects
+	rm -rf ../../org.stephe_leake.sal/build/obj
+	rm -rf ../../org.stephe_leake.sal/build/devel_obj
+	rm -rf ../../org.wisitoken/build/obj
+	rm -rf ../../org.wisitoken/build/devel_obj
+	rm -rf ../../org.wisitoken.grammar_mode/obj
 
 ../ada_annex_p_txt.wy : ../ada_annex_p.txt annex_p_to_wy.exe
 	../annex_p_to_wy.exe ../ada_annex_p.txt ../ada_annex_p_txt.wy

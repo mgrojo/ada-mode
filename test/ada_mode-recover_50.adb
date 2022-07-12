@@ -1,6 +1,6 @@
 --  From a real editing session. Used to get Bad_Config in recover,
 --  from an in-parse-error language fix.
-
+--EMACS_SKIP_UNLESS: wisi-incremental-parse-enable
 --EMACSCMD:(setq skip-reindent-test t skip-recase-test t)
 package body Ada_Mode.Recover_50 is
 

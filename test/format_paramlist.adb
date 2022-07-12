@@ -74,7 +74,7 @@ package body Format_Paramlist is
 
    --EMACSCMD:(test-face "is" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 2)(forward-word 3)(test-face "access" 'font-lock-keyword-face))
-   --EMACSCMD:(progn (forward-line 1)(forward-word 3)(test-face "Z" 'font-lock-type-face))
+   --EMACSCMD:(progn (forward-line 1)(forward-word 3)(test-face "Z" nil))
    type Z_Access is access Z;
 
    --  Handle 'not null' without 'access'

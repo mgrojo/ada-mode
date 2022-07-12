@@ -22,7 +22,7 @@
 (setq-default wisi-incremental-parse-enable nil)
 (find-file benchmark-source-file) ;; does not do initial parse, since incremental not enabled
 (wisi-parse-buffer 'indent) ; time with warm caches.
-(wisi-parse-memory-report wisi--parser)
+(wisi-parse-memory-report wisi-parser-shared)
 
 (message "partial parse:")
 
@@ -34,13 +34,13 @@
 
 (message "indent")
 (wisi-time (lambda () (wisi-parse-buffer 'indent)) 4 :report-wait-time t)
-(wisi-parse-memory-report wisi--parser) ;; memory for post-parse caches
+(wisi-parse-memory-report wisi-parser-shared) ;; memory for post-parse caches
 
 (message "re-indent")
 (goto-char (/ (point-max) 3))
 (goto-char (line-beginning-position))
 (wisi-time (lambda () (indent-rigidly (point)(line-beginning-position 2) -1)(indent-for-tab-command)) 4 :report-wait-time t)
-(wisi-parse-memory-report wisi--parser)
+(wisi-parse-memory-report wisi-parser-shared)
 
 (message "recover")
 (goto-char (/ (point-max) 2))
@@ -49,24 +49,24 @@
 (kill-line 2)
 (wisi-time 'indent-for-tab-command 4 :report-wait-time t)
 (undo)
-(wisi-parse-memory-report wisi--parser)
+(wisi-parse-memory-report wisi-parser-shared)
 
 (message "reset parser")
 (wisi-reset-parser) ;; delete syntax tree before reset memory counts
-(wisi-parse-memory-report wisi--parser) ;; current should be near 0; just parse table
+(wisi-parse-memory-report wisi-parser-shared) ;; current should be near 0; just parse table
 
 (setq-default wisi-incremental-parse-enable t)
 (message "incremental parse:")
 
 (message "initial")
-(wisi-time (lambda () (wisi-parse-incremental wisi--parser 'none :full t)) 4 :report-wait-time t)
-(wisi-parse-memory-report wisi--parser)
+(wisi-time (lambda () (wisi-parse-incremental wisi-parser-shared 'none :full t)) 4 :report-wait-time t)
+(wisi-parse-memory-report wisi-parser-shared)
 
 (message "re-indent")
 (goto-char (/ (point-max) 3))
 (goto-char (line-beginning-position))
 (wisi-time (lambda () (indent-rigidly (point)(line-beginning-position 2) -1)(indent-for-tab-command)) 4 :report-wait-time t)
-(wisi-parse-memory-report wisi--parser)
+(wisi-parse-memory-report wisi-parser-shared)
 
 (defun time-recover ()
   (goto-char (line-beginning-position))
@@ -85,7 +85,7 @@
 (goto-char (- (point-max) 10000))
 (time-recover)
 
-(wisi-parse-memory-report wisi--parser)
+(wisi-parse-memory-report wisi-parser-shared)
 
 (split-window-vertically)
 (pop-to-buffer "*Messages*")

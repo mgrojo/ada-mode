@@ -548,8 +548,6 @@ package body Wisi.Ada is
       Data.Statement_IDs.Append (+basic_declarative_item_ID);
       Data.Statement_IDs.Append (+wisitoken_accept_ID);
       --  not entry_declaration; only needed with partial parse
-
-      Data.Embedded_Quote_Escape_Doubled := True;
    end Initialize;
 
    overriding

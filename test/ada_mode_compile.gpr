@@ -43,7 +43,6 @@ project Ada_Mode_Compile is
       "ada_mode-interactive_06.adb",
       "ada_mode-interactive_07.ads",
       "ada_mode-interactive_08.adb",
-      "ada_mode-interactive_09.adb",
       "ada_mode-interactive_10.adb",
       "ada_mode-interactive_11.adb",
       "ada_mode-interactive_12.adb",

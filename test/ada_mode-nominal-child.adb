@@ -3,7 +3,7 @@
 --EMACSCMD:(wisi-prj-select-cache (cl-ecase ada-xref-tool (gpr_query "subdir/ada_mode.adp") (gnat "subdir/ada_mode-gnatxref.prj")) (ada-prj-default))
 package body Ada_Mode.Nominal.Child is -- target 0
 
-   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "null;"))
+   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body))
    -- result verified by diff.
    overriding procedure Procedure_1a (Item  : in out Child_Type_1)
    is begin
@@ -21,7 +21,7 @@ package body Ada_Mode.Nominal.Child is -- target 0
       return 0.0;
    end Function_2a;
 
-   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "return 0.0;"))
+   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(delete-char 4)(insert "return 0.0"))
    -- result verified by diff.
    overriding
    function Function_2b (Param : in Child_Type_1) return

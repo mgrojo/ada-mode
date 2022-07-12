@@ -14,7 +14,8 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
     => storage_error
 
  wisitoken-bnf-generate
-    $WISITOKEN/build/wisitoken-bnf-generate.exe --time ada_annex_p.wy
+    time generate ada_annex_p.wy:
+        make generate-clean build_executables
 
     04 mar 2018
         o.e.a.s-2 12.919s
@@ -126,6 +127,19 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
         compute minimal actions time: 1.700950862
         compute conflicts time: 0.279152905
         LR1 re2c generate time: 89.548030332
+
+    08 Jul 2022 release (mainly for compiler compatiblility issues; incremental parse ready for beta testing)
+        translate to bnf time: 0.082791757
+        compute kernels, recursion time: 60.955123771
+        compute parse table time: 0.577794098
+        compute minimal actions time: 0.004192656
+        LALR re2c generate time: 61.596957077
+        compute kernels, recursion time: 40.282665267
+        initial item_sets time: 5.601665886
+        add_actions time: 6.227149567
+        compute minimal actions time: 0.614949555
+        compute conflicts time: 0.000011705
+        LR1 re2c generate time: 45.179747700
 
  mckenzie recover
     ./run_ada_lr1_parse.exe parse_partial none test/ada_mode-recover_partial_02_lr1.adb --mckenzie_enqueue_limit 500_000 --mckenzie_check_delta 100_000 --verbosity "debug=1 time=1 mckenzie=1 memory=1"
@@ -481,6 +495,26 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
         0.740031671, 0.774715889
         memory: high 399_692_760 current 401_034_832
 
+    08 Jul 2022 release (mainly for compiler compatiblility issues; incremental parse ready for beta testing)
+        parse table created; memory: high 120_523_508 current 120_523_508
+        ;; parser 2: State 17873 Current_Token (2, 2;65:(LEFT_PAREN, (1038 . 1038), parser ERROR))
+        ;; recover memory use: high 1_373_308 current 1_373_152
+        ;;  2: succeed 3, enqueue 183, check  20, cost:  2
+        ;; recover time: 0.005931417
+
+        ;; parser 6: State 3578 Current_Token (6, 2;69:(RIGHT_PAREN, (1085 . 1085), parser ERROR))
+        ;;  6: succeed 16, enqueue 8710, check  820, cost:  3
+        ;; parser 5: State 2460 Current_Token (5, 2;70:(RIGHT_PAREN, (1085 . 1085), parser ERROR))
+        ;;  5: succeed 1, enqueue 23024, check  1957, cost:  4
+        ;; parser 4: State 2457 Current_Token (4, 2;71:(RIGHT_PAREN, (1085 . 1085), parser ERROR))
+        ;;  4: succeed 1, enqueue 24021, check  2053, cost:  4
+        ;; parser 3: State 3577 Current_Token (3, 2;72:(RIGHT_PAREN, (1085 . 1085), parser ERROR))
+        ;;  3: succeed 16, enqueue 8707, check  820, cost:  3
+        ;; parser 2: State 4641 Current_Token (2, 2;73:(RIGHT_PAREN, (1085 . 1085), parser ERROR))
+        ;;  2: succeed 12, enqueue 5834, check  556, cost:  3
+        ;; recover memory use: high 529_182_160 current 530_532_992
+        ;; recover time: 1.580214390
+
  navigate, face, indent, incremental
     make -r benchmark RUN_ARGS="c:/eurocontrol/gnatcoll-xref.adb"
     make -r benchmark RUN_ARGS="c:/Projects/org.emacs.ada-mode/test/ada_mode.ads"
@@ -716,6 +750,33 @@ FIXME: also matreshka-internals-unicode-ucd-colls.ads
             recover near start of file 0.013533 seconds 0 gcs 2 responses 0.008375 wait
             recover near end of file   0.106429 seconds 0 gcs 2 responses 0.001987 wait
             no help.
+
+    08 Jul 2022 release (mainly for compiler compatiblility issues; incremental parse ready for beta testing)
+        ada_annex_p_lr1_parse_table.txt: 57_242_673
+        lr1 table in memory: 16_900_432
+
+        partial parse:
+        navigate    1.836974 seconds 7 gcs 6240 responses 0.628885 wait
+        face        1.786287 seconds 6 gcs 1736 responses 0.574107 wait
+        indent      3.946720 seconds 6 gcs 7253 responses 2.510014 wait
+            memory: high 20_624_360 current 18_779_244
+        re-indent   0.016995 seconds 0 gcs 11 responses 0.011787 wait
+            memory: high 20_624_360 current 4_334_380
+        recover     0.026558 seconds 0 gcs 25 responses 0.103164 wait
+            memory: high 42_960_776 current 4_623_568
+
+        reset parser
+            memory: high 42_960_776 current 2_478_736
+
+        incremental parse:
+        initial     1.388086 seconds 0 gcs 0 responses 0.445499 wait
+            memory: high 42_960_776 current 18_832_764
+        re-indent   0.047679 seconds 0 gcs 3 responses 0.005419 wait
+            memory: high 42_960_776 current 18_950_580
+
+        recover near start of file  0.012317 seconds 0 gcs 2 responses 0.001201 wait
+        recover near end of file    0.097379 seconds 0 gcs 2 responses 0.001345 wait
+            memory: high 42_960_776 current 20_347_732
 
 ;; FIXME: add wisitoken-syntax_trees.adb; initial parse slower than gnatcoll-xref.adb
 ;; FIXME: find a fontified word, time re-fontify

@@ -3,7 +3,7 @@
 ;; gpr-query supports Ada and any gcc language that supports the
 ;; AdaCore -fdump-xref switch (which includes C, C++).
 ;;
-;; Copyright (C) 2013 - 2021  Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2022  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -275,7 +275,7 @@ Must match gpr_query.adb Version.")
 	))))
 
 (defun gpr-query--start-process (session command-type)
-  "Start a session process running gpr_query. COMMAND-TYPE is 'xref or 'symbols."
+  "Start a session process running gpr_query. COMMAND-TYPE is xref or symbols."
   (unless (locate-file gpr-query-exec exec-path '("" ".exe"))
     (user-error "'%s' not found on PATH" gpr-query-exec))
 
@@ -373,7 +373,7 @@ If NO-SYMBOLS is non-nil, don't create the symbols process."
 
 (defun gpr-query-session-wait (session command-type)
   "Wait for the current COMMAND-TYPE command to complete.
-COMMAND-TYPE is one of 'xref or 'symbols."
+COMMAND-TYPE is one of xref or symbols."
   (when (and
 	 (eq command-type 'symbols)
 	 (null (gpr-query--session-symbols-process session)))

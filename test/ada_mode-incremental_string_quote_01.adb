@@ -1,4 +1,5 @@
 -- Used to leave a syntax error.
+--EMACS_SKIP_UNLESS: wisi-incremental-parse-enable
 procedure Ada_Mode.Incremental_String_Quote_01
 is
 begin
