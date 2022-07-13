@@ -355,7 +355,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      --  we've applied all of Result.Ops, to avoid copying the error node
                      --  for each op.
                      Error_Recover_Ops : Recover_Op_Nodes_Arrays.Vector := To_Recover_Op_Nodes (Result.Ops);
-                     --  WORKAROUND: GNAT Community 2021 is confused about this being constant
+                     --  WORKAROUND: GNAT Community 2021 is confused about this being
+                     --  constant. AdaCore Eurocontrol contract ticket V707-027.
                      pragma Warnings (Off, Error_Recover_Ops);
 
                      Op_Index : SAL.Base_Peek_Type := No_Insert_Delete;
@@ -620,7 +621,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                                     declare
                                        --  WORKAROUND: GNAT Community 2021 reports "'Op' must be a variable"
-                                       --  if we use this expression for the Op parameter.
+                                       --  if we use this expression for the Op parameter. AdaCore
+                                       --  Eurocontrol contract ticket V707-027.
                                        Op : Recover_Op_Nodes renames Error_Recover_Ops (Op_Index);
                                     begin
                                        Parser_State.Do_Delete
