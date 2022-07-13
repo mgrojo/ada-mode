@@ -31,9 +31,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-report mckenzie_recover.adb Error_Recover_Ops workarounds
-    ticket V707-027
-
 wisitoken-syntax_Trees.adb Current_Error_Ref
     if assert Result = (full aggregate), requires more than 20 parallel parsers.
     need better error message?
@@ -42,8 +39,6 @@ do_deletes called way more times than it needs to be
     move out of parse_verb
     or only do if result verb is shift
 
-
-Put_tree put language, get-tree check it
 
 packrat error recover
     in o.w.s-2
