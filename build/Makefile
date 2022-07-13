@@ -102,17 +102,16 @@ pub-wisi : force
 	cp ../NEWS $(ELPA_ROOT)/packages/wisi/NEWS
 	cp ../README $(ELPA_ROOT)/packages/wisi/README
 	cp ../*.ad? ../*.el ../*.sh ../*.texi ../wisi.gpr.gp $(ELPA_ROOT)/packages/wisi
-	rm $(ELPA_ROOT)/packages/wisi/autoloads.el
-	rm $(ELPA_ROOT)/packages/wisi/*libadalang*
-	cp ../build-wisitoken-bnf-generate.sh $(ELPA_ROOT)/packages/wisi
+	cd $(ELPA_ROOT)/packages/wisi; rm -f autoloads.el *libadalang* test*.ad?
 	cp $(WISITOKEN)/Docs/wisitoken-user_guide.texinfo $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/*.ad? $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/wisitoken_grammar_re2c.c  $(ELPA_ROOT)/packages/wisi
 	rm $(ELPA_ROOT)/packages/wisi/wisitoken-lexer-regexp.ad?
+	rm $(ELPA_ROOT)/packages/wisi/wisitoken-regexp.ad?
 	rm $(ELPA_ROOT)/packages/wisi/recover_stats.adb
 	rm $(ELPA_ROOT)/packages/wisi/wisitoken-followed_by.adb
 	rm $(ELPA_ROOT)/packages/wisi/wisitoken-gen_token_enum.ad?
-	rm $(ELPA_ROOT)/packages/wisi/wisitoken-tree_sitter.ad?
+	rm $(ELPA_ROOT)/packages/wisi/wisitoken-parse-tree_sitter.ad?
 	rm $(ELPA_ROOT)/packages/wisi/wisitoken-utf_8.ad?
 	cp ../../org.stephe_leake.makerules/standard_common.gpr $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-unix_text_io.ad? $(ELPA_ROOT)/packages/wisi
