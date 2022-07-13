@@ -4670,6 +4670,11 @@ package body WisiToken.Syntax_Trees is
                begin
                   case Terminal_Label'(Label) is
                   when Source_Terminal =>
+                     if Node_Index = 0 and ID /= Tree.Lexer.Descriptor.SOI_ID then
+                        raise WisiToken.User_Error with "source_terminal node_index 0 has id" & ID'Image &
+                          " /= SOI; probably wrong language.";
+                     end if;
+
                      pragma Assert
                        (Child_Count = 0 and
                           (Node_Index > 0 or else ID = Tree.Lexer.Descriptor.SOI_ID));
@@ -8436,9 +8441,7 @@ package body WisiToken.Syntax_Trees is
 
          --  We don't output Node.Parent; redundant with node.Children.
 
-         if Node.Augmented /= null then
-            raise SAL.Not_Implemented with "put_tree augmented";
-         end if;
+         --  FIXME: implement augmented
 
          Put_Error_List (Node.Error_List);
 
