@@ -320,8 +320,23 @@ package body Emacs_Wisi_Common_Parse is
             if Match ("create-context") then
                Wisi.Parse_Context.Create_No_Text (Wisi.Get_String (Command_Line, Last), Language, Trace);
 
-            elsif Match ("kill-context") then
-               Wisi.Parse_Context.Kill (File_Name => Wisi.Get_String (Command_Line, Last));
+            elsif Match ("dump_prev_tree") then
+               --  Args: source_file_name save_file_root
+               --  Input: <none>
+               --  Response:
+               --  (message "prev_tree dumped")
+               --  prompt
+               declare
+                  Source_File_Name : constant String := Wisi.Get_String (Command_Line, Last);
+                  Save_File_Name   : constant String := Wisi.Get_String (Command_Line, Last);
+
+                  Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
+                    (Source_File_Name, Language);
+               begin
+                  Check_Command_Length (Command_Length, Last);
+
+                  Parse_Context.Dump_Prev_Tree (Save_File_Name);
+               end;
 
             elsif Match ("enable_memory_report") then
                --  Args: <none>
@@ -333,6 +348,9 @@ package body Emacs_Wisi_Common_Parse is
                  (Activate_Monitor      => True,
                   Stack_Trace_Depth     => 0,
                   Reset_Content_On_Free => False);
+
+            elsif Match ("kill-context") then
+               Wisi.Parse_Context.Kill (File_Name => Wisi.Get_String (Command_Line, Last));
 
             elsif Match ("memory_report_reset") then
                --  Args: <none>
@@ -439,6 +457,12 @@ package body Emacs_Wisi_Common_Parse is
                      declare
                         KMN_List : Parse.KMN_Lists.List;
                      begin
+                        if Parse_Context.Save_Prev_Text_Tree then
+                           Parse_Context.Save_Text (-Parse_Context.File_Name & "-wisi-prev-text");
+                           Parser.Tree.Copy_Tree
+                             (Parse_Context.Prev_Tree, Syntax_Trees.User_Data_Access_Constant (Parser.User_Data));
+                        end if;
+
                         Wisi.Parse_Context.Edit_Source (Trace.all, Parse_Context.all, Params.Changes, KMN_List);
 
                         if Ada.Strings.Unbounded.Length (Parse_Context.Root_Save_Edited_Name) /= 0 then
@@ -625,6 +649,23 @@ package body Emacs_Wisi_Common_Parse is
                             File_Name => +File_Name));
                      end;
                   end case;
+               end;
+
+            elsif Match ("save_prev_auto") then
+               --  Args: source_file_name
+               --  Input: <none>
+               --  Response:
+               --  (message "save_prev_auto enabled")
+               --  prompt
+               declare
+                  Source_File_Name : constant String := Wisi.Get_String (Command_Line, Last);
+
+                  Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
+                    (Source_File_Name, Language);
+               begin
+                  Check_Command_Length (Command_Length, Last);
+
+                  Parse_Context.Save_Prev_Text_Tree := True;
                end;
 
             elsif Match ("save_text") then

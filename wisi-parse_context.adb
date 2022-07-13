@@ -56,6 +56,8 @@ package body Wisi.Parse_Context is
                Partial_Parse_Active           => Language.Partial_Parse_Active,
                Partial_Parse_Byte_Goal        => Language.Partial_Parse_Byte_Goal,
                others                         => <>),
+            Prev_Tree                         => <>,
+            Save_Prev_Text_Tree               => False,
             Root_Save_Edited_Name             => <>,
             Save_Edited_Count                 => <>))
       do
@@ -139,6 +141,8 @@ package body Wisi.Parse_Context is
                   Partial_Parse_Active           => Language.Partial_Parse_Active,
                   Partial_Parse_Byte_Goal        => Language.Partial_Parse_Byte_Goal,
                   others                         => <>),
+               Prev_Tree                         => <>,
+               Save_Prev_Text_Tree               => False,
                Root_Save_Edited_Name             => <>,
                Save_Edited_Count                 => <>))
          do
@@ -748,6 +752,13 @@ package body Wisi.Parse_Context is
          Source (Gap_First .. Source_Byte_Last) := Source (Gap_Last + 1 .. Source'Last);
       end if;
    end Edit_Source;
+
+   procedure Dump_Prev_Tree
+     (Context   : in Parse_Context;
+      File_Name : in String)
+   is begin
+      Context.Prev_Tree.Put_Tree (File_Name);
+   end Dump_Prev_Tree;
 
    procedure Save_Text
      (Context   : in Parse_Context;

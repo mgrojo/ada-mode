@@ -1277,12 +1277,24 @@ Source buffer is current."
     (process-send-string process (wisi-process-parse--add-cmd-length cmd))
     (wisi-process-parse--handle-messages parser)))
 
-(defun wisi-process-parse-dump-tree (save-file-root)
-  (interactive "Fsave-file-root: ")
+(defun wisi-process-parse-save-text-tree-auto (parser)
+  (wisi-process-parse--prepare parser 'debug)
+  (let* ((cmd
+	  (format "save_prev_auto \"%s\""
+		  (if (buffer-file-name) (buffer-file-name) (buffer-name))))
+	 (process (wisi-process--parser-process parser)))
+    (with-current-buffer (wisi-process--parser-buffer parser)
+      (erase-buffer))
+
+    (wisi-parse-log-message parser cmd)
+    (process-send-string process (wisi-process-parse--add-cmd-length cmd))
+    (wisi-process-parse--handle-messages parser)))
+
+(defun wisi-process-parse-dump-tree (save-file-root prev)
+  (interactive "Fsave-file-root: \nP")
   (let ((parser wisi-parser-shared))
     (wisi-process-parse--prepare parser 'debug)
-    ;; Also save the source text, so we have a complete test case
-    ;; starting point.
+    ;; Also save the source text, so we have a complete test case.
     (let* ((cmd
 	    (format (concat "save_text" " \"%s\" \"%s\"")
 		    (if (buffer-file-name) (buffer-file-name) (buffer-name))
@@ -1295,7 +1307,20 @@ Source buffer is current."
       (process-send-string process (wisi-process-parse--add-cmd-length cmd))
       (wisi-process-parse--handle-messages parser))
 
-    (wisi-parse-tree-query parser 'dump (concat save-file-root ".tree_text"))))
+    (if prev
+	(let ((cmd
+	       (format (concat "dump_prev_tree" " \"%s\" \"%s\"")
+		       (if (buffer-file-name) (buffer-file-name) (buffer-name))
+		      (concat save-file-root ".tree_text")))
+	     (process (wisi-process--parser-process parser)))
+	  (with-current-buffer (wisi-process--parser-buffer parser)
+	    (erase-buffer))
+
+	  (wisi-parse-log-message parser cmd)
+	  (process-send-string process (wisi-process-parse--add-cmd-length cmd))
+	  (wisi-process-parse--handle-messages parser))
+
+	(wisi-parse-tree-query parser 'dump (concat save-file-root ".tree_text")))))
 
 (defun wisi-process-all-changes-to-cmd (&optional cmd-buffer-name)
   "Convert wisi-parser-local-all-changes in current buffer to command file
