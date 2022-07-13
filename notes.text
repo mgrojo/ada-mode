@@ -1318,13 +1318,13 @@ bump versions
     add ".alpha" ".beta" ".rc" for devel version
         use .alpha for Debian testing
 
-        alpha test: add .alpha in elpa Version header only
+        alpha test: add .alpha in elpa Version header, ada-mode Makefile only
 
         beta test: add .beta everywhere
-            for follow-on, add/change n in elpa Version header only
+            for follow-on, add/change n in elpa Version header, ada-mode Makefile only
 
         release candidate; .rc everywhere
-            for follow-on, add/change n in elpa Version header only
+            for follow-on, add/change n in elpa Version header, ada-mode Makefile only
 
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features, no user-incompatible changes
@@ -1401,7 +1401,7 @@ bump versions
 
     build/Makefile
         run uninstall-elpa with old values before changing!
-        ADA_MODE_VERSION
+        ADA_MODE_VERSION       for beta, must include timestamp; copy from c:/Projects/elpa/archive-devel
         ADA_REF_MAN_VERSION
         WISI_VERSION
 
@@ -1426,8 +1426,13 @@ verify other metadata
     wisi.el
 
 if doing beta test:
-    (ediff-directories "/Projects/org.emacs.ada-mode" "/Projects/elpa/packages/ada-mode" nil)
-    (ediff-directories "/Projects/org.emacs.wisi" "/Projects/elpa/packages/wisi" nil)
+    (gpr-query-kill-all-sessions)
+    build/Makefile pub
+    ../org.emacs.wisi/build/Makefile pub
+
+    # sometimes this is useful
+    # (ediff-directories "/Projects/org.emacs.ada-mode" "/Projects/elpa/packages/ada-mode" nil)
+    # (ediff-directories "/Projects/org.emacs.wisi" "/Projects/elpa/packages/wisi" nil)
 
     (dvc-state-multiple "/Projects/elpa/packages" t)
     (dvc-push "/Projects/elpa")
@@ -1617,8 +1622,13 @@ ada-mode and wisi are now compatible with recent gnat versions. The
 grammar is updated to the proposed Ada 2022 version.
 
 Incremental parse is provided. It still has some bugs, so it is not
-enabled by default. To try it: (setq-default
-wisi-incremental-parse-enable t).
+enabled by default. To try it:
+
+(setq-default wisi-incremental-parse-enable t).
+
+Incremental parse often gets confused; to recover, use M-x
+wisi-reset-parser. That does a full parse of the entire buffer, which
+can be noticeably slow in large buffers.
 
 To access the beta version via Gnu ELPA, add the devel archive to
 package-archives:
@@ -1626,23 +1636,33 @@ package-archives:
 (add-to-list 'package-archives (cons "gnu-devel" "https://elpa.gnu.org/devel/"))
 
 Then M-x list-packages; the beta release shows as ada-mode version
-7.3beta0.20220710.165208, wisi version 4.0beta0.20220710.165321.
+7.3beta1.0.20220711.185004, wisi version 4.0beta1.0.20220711.185552.
 
-See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.3.beta and wisi-4.0.beta,
-or at http://www.nongnu.org/ada-mode/, for more details.
+See the NEWS files in ~/.emacs.d/elpa/ada-mode-7.3beta* and
+wisi-4.0beta*, or at https://elpa.gnu.org/packages/ada-mode.html, for
+more details.
+
+Please report success and issues to the Emacs ada-mode mailing list
+https://lists.nongnu.org/mailman/listinfo/ada-mode-users.
+
 
 The required Ada code requires a manual compile step, after the normal
 list-packages installation:
 
-cd ~/.emacs.d/elpa/ada-mode-7.3.beta
+cd ~/.emacs.d/elpa/ada-mode-7.3beta*
 ./build.sh
 ./install.sh
+
+There's a bug in install.sh; it looks for WISI_DIR with the old
+version. Copy the equivalent code from build.sh to fix it.
 
 This requires AdaCore gnatcoll packages which you may not have
 installed; see ada-mode.info Installation for help in installing them.
 
-build.sh will take longer than in previous releases; the ada-mode LR1
-parse table is now too big to store in ELPA, so build.sh generates it.
+build.sh will take longer than in previous releases, up to several
+minutes; the ada-mode LR1 parse table is now too big to store in ELPA,
+so build.sh generates it.
+
 -------------------
 
 

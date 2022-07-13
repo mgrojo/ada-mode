@@ -15,12 +15,10 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION       := 7.2.1
+export ADA_MODE_VERSION       := 7.3beta1.0.20220711.185004
 export ADA_REF_MAN_VERSION    := 2012.5
-export WISI_VERSION           := 3.1.8
+export WISI_VERSION           := 4.0beta1.0.20220711.185552
 export UNIQUIFY_FILES_VERSION := 1.0.4
-
-ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
 TEST_DIR ?= source
 
@@ -50,7 +48,7 @@ all : byte-compile-clean compile-ada-test-clean update compile-ada-test test-cle
 # commit, not the current workspace.
 pub : pub-ada
 # (dvc-state-multiple "c:/Projects/elpa/packages")
-pub-install: clean-elpa build-elpa uninstall-elpa
+pub-install: build-elpa install-elpa
 
 docs : info html
 
@@ -389,8 +387,6 @@ pub-ada : force
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode
 	rm -rf $(ELPA_ROOT)/packages/ada-mode/*
 	cp ../*.el ../*.texi ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
-	cd $(ELPA_ROOT)/packages/ada-mode; rm ada-ref-man.el ada_annex_p_bnf.wy *.parse_table
-	cd $(ELPA_ROOT)/packages/ada-mode; rm ada_annex_p_lr1_parse_table.txt ada_annex_p_txt.wy autoloads.el
 	cp ../build.sh ../install.sh $(ELPA_ROOT)/packages/ada-mode/
 	cp ../Makefile ../Makefile.conf ../create_makefile_conf.sh $(ELPA_ROOT)/packages/ada-mode/
 	cp ../ada_mode.prj ../prj.el $(ELPA_ROOT)/packages/ada-mode/
@@ -398,6 +394,7 @@ pub-ada : force
 	cp ../README $(ELPA_ROOT)/packages/ada-mode/README
 	cp ../gpr*.el ../gpr-mode.texi $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.wy ../ada*.ad? ../gpr*.ad? ../run_ada*.ad? ../run_gpr*.ad? ../wisi-ada*.ad? ../wisi-gpr.ad?  $(ELPA_ROOT)/packages/ada-mode
+	cd $(ELPA_ROOT)/packages/ada-mode; rm ada-ref-man.el ada_annex_p_bnf.wy ada_annex_p_txt.wy autoloads.el
 	cp ../wisitoken-*-ada.ad? $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.c $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
