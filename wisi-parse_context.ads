@@ -51,6 +51,12 @@ package Wisi.Parse_Context is
 
       Parser : WisiToken.Parse.LR.Parser.Parser;
 
+      Prev_Tree : WisiToken.Syntax_Trees.Tree;
+      --  Copy of Parser.Tree before edits applied; useful for debugging.
+
+      Save_Prev_Text_Tree : Boolean := False;
+      --  If true, save text and copy tree before each edit.
+
       Root_Save_Edited_Name : Ada.Strings.Unbounded.Unbounded_String;
       --  If not "", save source text after the edit in a parse_incremental command,
       --  to <root_save_edited_name_nnn>, where 'nnn' is a three-digit number that
@@ -129,6 +135,11 @@ package Wisi.Parse_Context is
       Changes       : in     Change_Lists.List;
       KMN_List      :    out WisiToken.Parse.KMN_Lists.List);
    --  Changes must be UTF-8.
+
+   procedure Dump_Prev_Tree
+     (Context   : in Parse_Context;
+      File_Name : in String);
+   --  Output Context.Prev_Tree text format to File_Name.
 
    procedure Save_Text
      (Context   : in Parse_Context;

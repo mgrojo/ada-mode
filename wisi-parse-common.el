@@ -46,6 +46,16 @@ for the changes. The filename is the visited file name with
   :group 'wisi
   :safe 'booleanp)
 
+(defcustom wisi-save-text nil
+  "When non-nil, save the parser's copy of the full text and the
+current parse tree before each change, to aid in reproducing
+bugs. The full text is written to a file whose name is the
+visited file name with \"-wisi-prev-text\"' appended. The tree
+can be dumped to a file via the tree query dump-prev."
+  :type 'boolean
+  :group 'wisi
+  :safe 'booleanp)
+
 (cl-defstruct (wisi--lexer-error)
   pos ;; position (integer) in buffer where error was detected.
   message  ;; string error message
@@ -240,7 +250,7 @@ have been previously parsed by `wisi-parse-current' or
     (parent		    .	3)
     (child		    .	4)
     (print		    .	5)
-    (dump		    .	6)
+    (dump		    .	6) ;; dump-prev is not here because it queries a different tree.
     )
   "Query values for `wisi-parse-tree-query'.")
 
@@ -279,6 +289,10 @@ have been previously parsed by `wisi-parse-current' or
 
 - dump: ARGS are (file-name). Dump text representation of parse
   tree to file file-name, overwriting any existing
+  file. Returns t.
+
+- dump-prev: ARGS are (file-name). Dump text representation of
+  previous parse tree to file file-name, overwriting any existing
   file. Returns t.
 
 \"terminal at pos\" means pos is in the region defined by the
