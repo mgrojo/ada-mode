@@ -531,9 +531,7 @@ deleted range.")
     (when wisi-incremental-parse-enable
       (setq wisi--affected-text (buffer-substring-no-properties begin end)))
 
-    (unless wisi-indenting-p
-      ;; We set wisi--change-beg, -end even if only inserting, so we
-      ;; don't have to do it again in wisi-after-change.
+    (unless wisi-indenting-p;; FIXME: delete this or justify it
       (setq wisi--change-beg (min wisi--change-beg begin))
 
       ;; `buffer-base-buffer' deals with edits in indirect buffers

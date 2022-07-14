@@ -389,6 +389,8 @@ complete."
 		    )))
 	   (process (wisi-process--parser-process parser)))
 
+      (setf (wisi-process--parser-update-fringe parser) t)
+
       (with-current-buffer (wisi-process--parser-buffer parser)
 	(erase-buffer))
 
