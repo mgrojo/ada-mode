@@ -8180,9 +8180,10 @@ package body WisiToken.Syntax_Trees is
          for I in 1 .. Level loop
             Tree.Lexer.Trace.Put ("| ", Prefix => False);
          end loop;
-         Tree.Lexer.Trace.Put (Image (Tree, Node, Children => False, RHS_Index => True, Node_Numbers => True,
-                           Line_Numbers => Line_Numbers, Non_Grammar => Non_Grammar),
-                    Prefix => False);
+         Tree.Lexer.Trace.Put
+           (Image (Tree, Node, Children => False, RHS_Index => True, Node_Numbers => True,
+                   Line_Numbers => Line_Numbers, Non_Grammar => Non_Grammar),
+            Prefix => False);
 
          if Node.Augmented /= null then
             Tree.Lexer.Trace.Put (Image_Augmented (Node.Augmented.all), Prefix => False);
