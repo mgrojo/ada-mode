@@ -9709,7 +9709,9 @@ package body WisiToken.Syntax_Trees is
 
       Real_Root : Node_Access;
 
-      Last_Source_Terminal_Pos : Base_Buffer_Pos := Buffer_Pos'First;
+      Last_Source_Terminal_Pos : Base_Buffer_Pos  := Buffer_Pos'First;
+      Last_Line                : Base_Line_Number_Type :=
+        Tree.SOI.Non_Grammar (1).Line_Region.First;
 
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
@@ -9782,6 +9784,14 @@ package body WisiToken.Syntax_Trees is
                end if;
                if Node.Non_Grammar.Length > 0 then
                   Last_Source_Terminal_Pos := Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last;
+                  if Byte_Region_Order then
+                     for Token of Node.Non_Grammar loop
+                        if Token.Line_Region.First /= Last_Line then
+                           Put_Error ("line_number missing/out of order");
+                        end if;
+                        Last_Line := Token.Line_Region.Last;
+                     end loop;
+                  end if;
                else
                   Last_Source_Terminal_Pos := Node.Byte_Region.Last;
                end if;
