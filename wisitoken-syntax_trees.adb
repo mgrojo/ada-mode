@@ -9780,12 +9780,14 @@ package body WisiToken.Syntax_Trees is
                end if;
                if Node.Non_Grammar.Length > 0 then
                   Last_Source_Terminal_Pos := Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last;
-                  for Token of Node.Non_Grammar loop
-                     if Token.Line_Region.First /= Last_Line then
-                        Put_Error ("line_number missing/out of order");
-                     end if;
-                     Last_Line := Token.Line_Region.Last;
-                  end loop;
+                  if Byte_Region_Order then
+                     for Token of Node.Non_Grammar loop
+                        if Token.Line_Region.First /= Last_Line then
+                           Put_Error ("line_number missing/out of order");
+                        end if;
+                        Last_Line := Token.Line_Region.Last;
+                     end loop;
+                  end if;
                else
                   Last_Source_Terminal_Pos := Node.Byte_Region.Last;
                end if;
