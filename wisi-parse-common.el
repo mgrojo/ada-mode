@@ -291,10 +291,6 @@ have been previously parsed by `wisi-parse-current' or
   tree to file file-name, overwriting any existing
   file. Returns t.
 
-- dump-prev: ARGS are (file-name). Dump text representation of
-  previous parse tree to file file-name, overwriting any existing
-  file. Returns t.
-
 \"terminal at pos\" means pos is in the region defined by the
 terminal token text plus following non_grammar and whitespace."
   ;; wisi-indent-statement requires this definition of 'terminal at pos'.
