@@ -1052,7 +1052,8 @@ package body WisiToken.Parse.LR.Parser is
                end;
                Parser.Tree.Clear_Augmented;
             else
-               Parser.Tree.Validate_Tree (Parser.User_Data.all, Error_Reported, Node_Index_Order => False);
+               Parser.Tree.Validate_Tree
+                 (Parser.User_Data.all, Error_Reported, Node_Index_Order => not Incremental_Parse);
             end if;
 
             if Error_Reported.Count /= 0 then
