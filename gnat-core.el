@@ -3,7 +3,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2022  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2022  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -22,6 +22,8 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Code:
 
 (require 'cl-lib)
 (require 'wisi-prj)
@@ -90,7 +92,7 @@ Throw an error if current project does not have a gnat-compiler."
     (cl-pushnew dir (gnat-compiler-project-path compiler) :test #'string-equal)
 
     (setenv "GPR_PROJECT_PATH"
-	    (mapconcat 'identity
+	    (mapconcat #'identity
 		       (gnat-compiler-project-path compiler) path-separator))
     (setf (wisi-prj-file-env project) (copy-sequence process-environment))
     ))
@@ -233,7 +235,7 @@ process status is not a member.
 
 Return process status.
 Assumes current buffer is (gnat-run-buffer)"
-  (set 'buffer-read-only nil)
+  (setq buffer-read-only nil)
   (erase-buffer)
 
   (setq command (cl-delete-if 'null command))
@@ -250,7 +252,7 @@ Assumes current buffer is (gnat-run-buffer)"
       (mapc (lambda (str) (insert (concat str " "))) command)
       (newline))
 
-    (setq status (apply 'call-process exec nil t nil command))
+    (setq status (apply #'call-process exec nil t nil command))
     (cond
      ((memq status (or expected-status '(0))); success
       nil)
@@ -290,7 +292,7 @@ Assumes current buffer is (gnat-run-buffer)"
   "Run \"gnat COMMAND\", with DIR as current directory.
 Return process status.  Process output goes to current buffer,
 which is displayed on error."
-  (set 'buffer-read-only nil)
+  (setq buffer-read-only nil)
   (erase-buffer)
 
   (when ada-gnat-debug-run
@@ -301,7 +303,7 @@ which is displayed on error."
   (let ((default-directory (or dir default-directory))
 	status)
 
-    (setq status (apply 'call-process "gnat" nil t nil command))
+    (setq status (apply #'call-process "gnat" nil t nil command))
     (cond
      ((= status 0); success
       nil)
@@ -484,4 +486,4 @@ list."
    "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
 
 (provide 'gnat-core)
-;; end of file
+;;; gnat-core.el ends here.

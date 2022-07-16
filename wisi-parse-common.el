@@ -22,6 +22,12 @@
 ;;; Code:
 (require 'cl-lib)
 
+(defcustom wisi-incremental-parse-enable nil
+  "If non-nil, use incremental parse when possible."
+  :type 'boolean
+  :group 'wisi
+  :safe #'booleanp)
+
 (defcustom wisi-partial-parse-threshold 100001
   "Minimum size that will be parsed by each call to the parser.
 A parse is always requested at a point (or on a region); the
@@ -33,7 +39,7 @@ is properly indented. Most navigate parses ignore this setting
 and parse the whole buffer."
   :type 'integer
   :group 'wisi
-  :safe 'integerp)
+  :safe #'integerp)
 (make-variable-buffer-local 'wisi-partial-parse-threshold)
 
 (defcustom wisi-save-all-changes nil
@@ -46,7 +52,7 @@ for the changes. The filename is the visited file name with
   :group 'wisi
   :safe 'booleanp)
 
-(defcustom wisi-save-text nil
+(defcustom wisi-save-text-tree nil
   "When non-nil, save the parser's copy of the full text and the
 current parse tree before each change, to aid in reproducing
 bugs. The full text is written to a file whose name is the
@@ -54,7 +60,7 @@ visited file name with \"-wisi-prev-text\"' appended. The tree
 can be dumped to a file via the tree query dump-prev."
   :type 'boolean
   :group 'wisi
-  :safe 'booleanp)
+  :safe #'booleanp)
 
 (cl-defstruct (wisi--lexer-error)
   pos ;; position (integer) in buffer where error was detected.
@@ -156,6 +162,9 @@ region BEGIN END that starts and ends at points the parser can
 handle gracefully."
   (cons begin end))
 
+(cl-defgeneric wisi-parse-save-text-tree-auto (parser enable)
+  "Implement `wisi-save-text-tree'.")
+
 (defvar-local wisi-parser-shared nil
   "The current shared wisi parser; a ‘wisi-parser-shared’ object.
 There is one parser object per language; `wisi-parser-shared' is a
@@ -163,6 +172,13 @@ buffer-local reference to that shared object.")
 
 (defvar-local wisi-parser-local nil
   "Buffer-local values used by the wisi parser; a ‘wisi-parser-local’ object.")
+
+(defvar-local wisi--changes nil
+  "Cached list of args to wisi-after-change, for incremental parse.
+Each element is
+(INSERT-BEGIN-BYTE-POS INSERT-BEGIN-CHAR-POS
+ INSERT-END-BYTE-POS INSERT-END-CHAR-POS
+ DELETED-BYTE-COUNT DELETED-CHAR-COUNT INSERTED-TEXT)")
 
 (defconst wisi-post-parse-actions '(navigate face indent none refactor query debug)
   "Actions that the parser can perform after parsing.
@@ -450,7 +466,7 @@ Assumes the buffer is fully parsed."
 1 : report parse errors (for running tests)"
   :type 'integer
   :group 'wisi
-  :safe 'integerp)
+  :safe #'integerp)
 
 ;; The following parameters are easily changeable for debugging.
 (defcustom wisi-parser-verbosity ""
@@ -460,7 +476,7 @@ Examples:
 debug=1 lexer=1 parse=2 action=3"
   :type 'string
   :group 'wisi
-  :safe 'stringp)
+  :safe #'stringp)
 (make-variable-buffer-local 'wisi-parser-verbosity)
 
 (defcustom wisi-mckenzie-zombie-limit nil
@@ -471,7 +487,7 @@ value gives better solutions, but may cause too many parsers to
 be active at once.  If nil, uses %mckenzie_zombie_limit value from grammar file."
   :type 'integer
   :group 'wisi
-  :safe 'integerp)
+  :safe #'integerp)
 (make-variable-buffer-local 'wisi-mckenzie-zombie-limit)
 
 (defcustom wisi-mckenzie-enqueue-limit nil
@@ -481,7 +497,7 @@ Higher value has more recover power, but will be slower to fail.
 If nil, uses %mckenzie_enqueue_limit value from grammar file."
   :type 'integer
   :group 'wisi
-  :safe 'integerp)
+  :safe #'integerp)
 (make-variable-buffer-local 'wisi-mckenzie-enqueue-limit)
 
 (defcustom wisi-parse-max-parallel nil
@@ -492,7 +508,7 @@ the grammar has excessive conflicts. If nil, uses %max_parallel
 value from grammar file (default 15)"
   :type 'integer
   :group 'wisi
-  :safe 'integerp)
+  :safe #'integerp)
 (make-variable-buffer-local 'wisi-parse-max-parallel)
 
 ;; end of easily changeable parameters
@@ -518,7 +534,7 @@ Normally set from a language-specific option.")
      "%s:%d:%d: %s"
        (buffer-name) ;; buffer-file-name is sometimes nil here!?
        line col
-       (apply 'format message args))))
+       (apply #'format message args))))
 
 (defvar wisi-parse-error nil)
 (put 'wisi-parse-error

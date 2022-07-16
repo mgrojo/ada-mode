@@ -127,14 +127,13 @@
   is no response from the parser after waiting this amount (in
   seconds)."
   :type 'float
-  :safe 'numberp)
+  :safe #'numberp)
 (make-variable-buffer-local 'wisi-process-time-out)
 
 (defcustom wisi-size-threshold most-positive-fixnum
   "Max size (in characters) for using wisi parser results for anything."
   :type 'integer
-  :group 'wisi
-  :safe 'integerp)
+  :safe #'integerp)
 (make-variable-buffer-local 'wisi-size-threshold)
 
 (defcustom wisi-indent-context-lines 0
@@ -142,27 +141,18 @@
 Increasing this will give better results when in the middle of a
 deeply nested statement, but worse in some situations."
   :type 'integer
-  :group 'wisi
-  :safe 'integerp)
+  :safe #'integerp)
 
 (defcustom wisi-disable-face nil
   "When non-nil, `wisi-setup' does not enable use of parser for font-lock.
 Useful when debugging parser or parser actions."
   :type 'boolean
-  :group 'wisi
-  :safe 'booleanp)
-
-(defcustom wisi-incremental-parse-enable nil
-  "If non-nil, use incremental parse when possible."
-  :type 'boolean
-  :group 'wisi
-  :safe 'booleanp)
+  :safe #'booleanp)
 
 (defcustom wisi-parse-full-background t
   "If non-nil, do initial full parse in background."
   :type 'boolean
-  :group 'wisi
-  :safe 'booleanp)
+  :safe #'booleanp)
 
 (defconst wisi-error-buffer-name "*wisi syntax errors*"
   "Name of buffer for displaying syntax errors.")
@@ -174,6 +164,33 @@ Useful when debugging parser or parser actions."
   "When non-nil, don't run the parser.
 Language code can set this non-nil when syntax is known to be
 invalid temporarily, or when making lots of changes.")
+
+;; wisi--change-* keep track of buffer modifications.
+;; If wisi--change-end comes before wisi--change-beg, it means there were
+;; no modifications.
+(defvar-local wisi--change-beg most-positive-fixnum
+  "First position where a change may have taken place.")
+
+(defvar-local wisi--change-end nil
+  "Marker pointing to the last position where a change may have taken place.")
+
+(defvar-local wisi--deleted-syntax nil
+  "Worst syntax class of characters deleted in changes.
+One of:
+nil - no deletions since reset
+0   - only whitespace or comment deleted
+2   - some other syntax deleted
+
+Set by `wisi-before-change', used and reset by `wisi--post-change'.")
+
+(defvar-local wisi-indenting-p nil
+  "Non-nil when `wisi-indent-region' is actively indenting.
+Used to ignore whitespace changes in before/after change hooks.")
+
+(defvar-local wisi--affected-text 0
+  "Cached text of range passed to `wisi-before-change',
+used by `wisi-after-change' to get byte count of actual
+deleted range.")
 
 (defun wisi-safe-marker-pos (pos)
   "Return an integer buffer position from POS, an integer or marker"
@@ -489,40 +506,6 @@ For debugging."
   (wisi-force-parse)
   (when wisi-parser-shared
     (wisi-parse-reset wisi-parser-shared)))
-
-;; wisi--change-* keep track of buffer modifications.
-;; If wisi--change-end comes before wisi--change-beg, it means there were
-;; no modifications.
-(defvar-local wisi--change-beg most-positive-fixnum
-  "First position where a change may have taken place.")
-
-(defvar-local wisi--change-end nil
-  "Marker pointing to the last position where a change may have taken place.")
-
-(defvar-local wisi--deleted-syntax nil
-  "Worst syntax class of characters deleted in changes.
-One of:
-nil - no deletions since reset
-0   - only whitespace or comment deleted
-2   - some other syntax deleted
-
-Set by `wisi-before-change', used and reset by `wisi--post-change'.")
-
-(defvar-local wisi-indenting-p nil
-  "Non-nil when `wisi-indent-region' is actively indenting.
-Used to ignore whitespace changes in before/after change hooks.")
-
-(defvar-local wisi--changes nil
-  "Cached list of args to wisi-after-change, for incremental parse.
-Each element is
-(INSERT-BEGIN-BYTE-POS INSERT-BEGIN-CHAR-POS
- INSERT-END-BYTE-POS INSERT-END-CHAR-POS
- DELETED-BYTE-COUNT DELETED-CHAR-COUNT INSERTED-TEXT)")
-
-(defvar-local wisi--affected-text 0
-  "Cached text of range passed to `wisi-before-change',
-used by `wisi-after-change' to get byte count of actual
-deleted range.")
 
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
@@ -1738,9 +1721,9 @@ where the car is a list (FILE LINE COL)."
 (defun wisi-debug-keys ()
   "Add debug key definitions to `global-map'."
   (interactive)
-  (define-key global-map "\M-h" 'wisi-show-containing-or-previous-cache)
-  (define-key global-map "\M-i" 'wisi-show-indent)
-  (define-key global-map "\M-j" 'wisi-show-cache)
+  (define-key global-map "\M-h" #'wisi-show-containing-or-previous-cache)
+  (define-key global-map "\M-i" #'wisi-show-indent)
+  (define-key global-map "\M-j" #'wisi-show-cache)
   )
 
 (defun wisi-parse-buffer (&optional parse-action begin end)
@@ -1836,13 +1819,13 @@ where the car is a list (FILE LINE COL)."
   (add-hook 'after-change-functions #'wisi-after-change nil t)
   (setq wisi--change-end (copy-marker (point-min) t))
 
-  (add-hook 'kill-buffer-hook 'wisi-parse-kill-buf 90 t)
+  (add-hook 'kill-buffer-hook #'wisi-parse-kill-buf 90 t)
 
-  (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
+  (set (make-local-variable 'comment-indent-function) #'wisi-comment-indent)
 
   (add-hook 'completion-at-point-functions #'wisi-completion-at-point -90 t)
 
-  (add-hook 'hack-local-variables-hook 'wisi-post-local-vars nil t)
+  (add-hook 'hack-local-variables-hook #'wisi-post-local-vars nil t)
   )
 
 (defun wisi-post-local-vars ()
@@ -1860,7 +1843,11 @@ where the car is a list (FILE LINE COL)."
     ;; around while the initial parse runs. font-lock will not work
     ;; during that time (the parser is busy, the buffer is read-only).
     (when (< 0 wisi-debug) (message "start initial full parse in %s" (current-buffer)))
-    (wisi-parse-incremental wisi-parser-shared 'none :full t :nowait wisi-parse-full-background)))
+    (wisi-parse-incremental wisi-parser-shared 'none :full t :nowait wisi-parse-full-background)
+
+    (when wisi-save-text-tree
+      (wisi-parse-save-text-tree-auto wisi-parser-shared t))
+    ))
 
 (provide 'wisi)
 ;;; wisi.el ends here

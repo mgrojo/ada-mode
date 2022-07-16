@@ -652,20 +652,21 @@ package body Emacs_Wisi_Common_Parse is
                end;
 
             elsif Match ("save_prev_auto") then
-               --  Args: source_file_name
+               --  Args: source_file_name enable
                --  Input: <none>
                --  Response:
                --  (message "save_prev_auto enabled")
                --  prompt
                declare
-                  Source_File_Name : constant String := Wisi.Get_String (Command_Line, Last);
+                  Source_File_Name : constant String  := Wisi.Get_String (Command_Line, Last);
+                  Enable           : constant Boolean := 1 = Wisi.Get_Integer (Command_Line, Last);
 
                   Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
                     (Source_File_Name, Language);
                begin
                   Check_Command_Length (Command_Length, Last);
 
-                  Parse_Context.Save_Prev_Text_Tree := True;
+                  Parse_Context.Save_Prev_Text_Tree := Enable;
                end;
 
             elsif Match ("save_text") then

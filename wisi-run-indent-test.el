@@ -1,4 +1,4 @@
-;;; wisi-run-indent-test.el --- utils for automating indentation and casing tests
+;;; wisi-run-indent-test.el --- utils for automating indentation and casing tests  -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2018 - 2022  Free Software Foundation, Inc.
 ;;
@@ -43,7 +43,7 @@ FACE may be a list."
     (when (test-in-comment-p)
       (beginning-of-line); forward-comment doesn't move if inside a comment!
       (forward-comment (point-max)))
-    (condition-case err
+    (condition-case nil
 	(search-forward token (line-end-position 5))
       (error
        (error "can't find '%s'" token)))
@@ -126,7 +126,7 @@ is not present."
     (wisi-validate-cache (line-beginning-position 0) (line-end-position 3) nil 'navigate)
     (beginning-of-line); forward-comment doesn't move if inside a comment!
     (forward-comment (point-max))
-    (condition-case err
+    (condition-case nil
 	(search-forward token (line-end-position 5))
       (error
        (error "can't find '%s'" token)))
@@ -260,7 +260,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 		  (setq last-result
 			(condition-case-unless-debug err
 			    (prog1
-			      (eval (car (read-from-string last-cmd)))
+			      (eval (car (read-from-string last-cmd)) t)
 			      (when (> wisi-debug 1)
 			        (setq msg (concat msg " ... done"))
                                 (wisi-parse-log-message wisi-parser-shared msg)
@@ -284,7 +284,10 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 
 	     ((string= (match-string 1) "RESULT")
 	      (looking-at ".*$")
-	      (setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
+	      (setq expected-result
+	            (save-excursion
+	              (end-of-line 1)
+	              (eval (car (read-from-string (match-string 0))) t)))
 	      (if (and (not force-fail)
 		       (equal expected-result last-result))
 		  (let ((msg (format "test passes %s:%d:\n" (buffer-file-name) (line-number-at-pos))))
@@ -309,12 +312,15 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 	     ((string= (match-string 1) "RESULT_START")
 	      (looking-at ".*$")
 	      (setq expected-result
-		    (list (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))))
+		    (list (save-excursion
+		            (end-of-line 1)
+		            (eval (car (read-from-string (match-string 0))) t)))))
 
 	     ((string= (match-string 1) "RESULT_ADD")
 	      (looking-at ".*$")
-	      (let ((val (save-excursion (end-of-line 1)
-					 (eval (car (read-from-string (match-string 0)))))))
+	      (let ((val (save-excursion
+			   (end-of-line 1)
+			   (eval (car (read-from-string (match-string 0))) t))))
 		(when val
 		  (setq expected-result (append expected-result (list val))))))
 
@@ -348,7 +354,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 
 	     ((string= (match-string 1) "_SKIP_UNLESS")
 	      (looking-at ".*$")
-	      (unless (eval (car (read-from-string (match-string 0))))
+	      (unless (eval (car (read-from-string (match-string 0))) t)
 		(setq skip-cmds t)
 		(setq skip-reindent-test t)
 		(setq skip-recase-test t)
@@ -361,7 +367,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
 		       (current-buffer)
 		       (line-number-at-pos)
 		       (save-excursion
-			 (eval (car (read-from-string (match-string 0)))))))
+			 (eval (car (read-from-string (match-string 0))) t))))
 
 	     (t
 	      (setq error-count (1+ error-count))
@@ -417,7 +423,7 @@ Each item is a list (ACTION PARSE-BEGIN PARSE-END EDIT-BEGIN)")
        (cons 'height 71) ;; characters
        (cons 'left 0) ;; pixels
        (cons 'top 0))))
-(define-key global-map "\C-cp" 'large-frame)
+(define-key global-map "\C-cp" #'large-frame)
 
 (defun run-test (file-name)
   "Run an indentation and casing test on FILE-NAME."

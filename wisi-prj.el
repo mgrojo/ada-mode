@@ -1252,13 +1252,13 @@ with \\[universal-argument]."
 (defun wisi-case-activate-keys (map)
   "Modify the key bindings for all the keys that should adjust casing."
   (mapc (function
-	 (lambda(key)
+	 (lambda (key)
 	   (define-key
 	     map
-	     (char-to-string key)
-	     'wisi-case-adjust-interactive)))
+	     (vector key)
+	     #'wisi-case-adjust-interactive)))
 	'( ?_ ?% ?& ?* ?\( ?\) ?- ?= ?+
-	      ?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
+	      ?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n ?\s ?\r ))
   )
 
 ;;;; xref backend
@@ -1620,7 +1620,7 @@ Menu displays cached wisi projects."
 	))
     ))
 
-(add-hook 'menu-bar-update-hook 'wisi-prj-menu-install)
+(add-hook 'menu-bar-update-hook #'wisi-prj-menu-install)
 
 (defun wisi-prj-completion-table ()
   "Return list of names of cached projects."
