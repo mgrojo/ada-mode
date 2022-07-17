@@ -413,7 +413,7 @@ package body WisiToken.Lexer.re2c is
      return Base_Buffer_Pos
    is begin
       if Token.ID = Lexer.Descriptor.New_Line_ID then
-         return Token.Byte_Region.First;
+         return Token.Char_Region.First + 1;
       else
          return Line_Begin_Char_Pos (Lexer.Source, Token, Line);
       end if;
