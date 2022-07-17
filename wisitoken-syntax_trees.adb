@@ -9782,9 +9782,10 @@ package body WisiToken.Syntax_Trees is
                if Byte_Region_Order and then Node.Byte_Region.First < Last_Source_Terminal_Pos then
                   Put_Error ("byte_region out of order");
                end if;
+               Last_Line := @ + Node.New_Line_Count;
                if Node.Non_Grammar.Length > 0 then
                   Last_Source_Terminal_Pos := Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last;
-                  if Byte_Region_Order then
+                  if Byte_Region_Order and Tree.Lexer.Descriptor.New_Line_ID /= Invalid_Token_ID then
                      for Token of Node.Non_Grammar loop
                         if Token.Line_Region.First /= Last_Line then
                            Put_Error ("line_number missing/out of order");

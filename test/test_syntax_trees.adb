@@ -1167,6 +1167,11 @@ package body Test_Syntax_Trees is
       Test_1 ("4", 40, 28, 0, 37, 4);
       Test_1 ("6", 62, 46, 2, 61, 6);
       Test_1 ("7", 89, 67, 1, 88, 7);
+   exception
+   when Parse_Error =>
+      --  Assume it's from validate_tree
+      Parser.Tree.Print_Tree (Line_Numbers => True, Non_Grammar => True);
+      AUnit.Assertions.Assert (False, "Parse_Error");
    end Prev_New_Line_01;
 
    procedure Put_Get_01 (T : in out AUnit.Test_Cases.Test_Case'Class)
