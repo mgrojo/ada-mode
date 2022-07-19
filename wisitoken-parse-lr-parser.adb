@@ -1057,7 +1057,7 @@ package body WisiToken.Parse.LR.Parser is
             end if;
 
             if Error_Reported.Count /= 0 then
-               raise WisiToken.Parse_Error with "parser: validate_tree failed";
+               raise WisiToken.Validate_Error with "parser: validate_tree failed";
             end if;
          end;
       end if;

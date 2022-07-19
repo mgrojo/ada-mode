@@ -78,6 +78,8 @@ package WisiToken is
 
    --  SAL.Programmer_Error : exception; -- a programming convention has been violated
 
+   Validate_Error : exception; -- A validation has failed.
+
    subtype Positive_Index_Type is SAL.Peek_Type;
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (SAL.Base_Peek_Type);
 
