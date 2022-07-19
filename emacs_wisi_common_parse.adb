@@ -393,6 +393,10 @@ package body Emacs_Wisi_Common_Parse is
                   Parser     : Parse.LR.Parser.Parser renames Parse_Context.Parser;
                   Parse_Data : Wisi.Parse_Data_Type'Class renames Wisi.Parse_Data_Type'Class (Parser.User_Data.all);
                begin
+                  if Parse_Context.Frozen then
+                     raise WisiToken.Parse_Error with "parse_context frozen";
+                  end if;
+
                   if Params.Zombie_Limit > 0 then
                      Parser.Table.McKenzie_Param.Zombie_Limit := Params.Zombie_Limit;
                   end if;
@@ -528,6 +532,12 @@ package body Emacs_Wisi_Common_Parse is
                when WisiToken.Syntax_Error | WisiToken.Parse_Error =>
                   Wisi.Put_Errors (Parser.Tree);
                   raise;
+
+               when WisiToken.Validate_Error =>
+                  Wisi.Put_Errors (Parser.Tree);
+                  --  Ensure we don't lose the debug state
+                  Parse_Context.Frozen := True;
+                  raise WisiToken.Parse_Error with "validate error; parse_context frozen";
 
                when others =>
                   Parser.Tree.Lexer.Discard_Rest_Of_Input;

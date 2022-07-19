@@ -505,7 +505,9 @@ For debugging."
   (interactive)
   (wisi-force-parse)
   (when wisi-parser-shared
-    (wisi-parse-reset wisi-parser-shared)))
+    (wisi-parse-reset wisi-parser-shared)
+    (when wisi-save-text-tree
+      (wisi-parse-save-text-tree-auto wisi-parser-shared t))))
 
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."

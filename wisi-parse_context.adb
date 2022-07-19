@@ -59,7 +59,8 @@ package body Wisi.Parse_Context is
             Prev_Tree                         => <>,
             Save_Prev_Text_Tree               => False,
             Root_Save_Edited_Name             => <>,
-            Save_Edited_Count                 => <>))
+            Save_Edited_Count                 => <>,
+            Frozen                            => False))
       do
          Result.Parser.Tree.Lexer := Language.Lexer;
          if Trace_Incremental_Parse > Outline then
@@ -144,7 +145,8 @@ package body Wisi.Parse_Context is
                Prev_Tree                         => <>,
                Save_Prev_Text_Tree               => False,
                Root_Save_Edited_Name             => <>,
-               Save_Edited_Count                 => <>))
+               Save_Edited_Count                 => <>,
+               Frozen                            => False))
          do
             Result.Parser.Tree.Lexer := Language.Lexer;
             Map.Insert (Result);

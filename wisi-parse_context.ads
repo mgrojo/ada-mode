@@ -63,6 +63,10 @@ package Wisi.Parse_Context is
       --  increments.
 
       Save_Edited_Count : Integer := 0;
+
+      Frozen : Boolean := False;
+      --  Used by emacs_wisi_common_parse.Parse_Stream to prevent any
+      --  operations on Parse_Context.
    end record;
    type Parse_Context_Access is access all Parse_Context;
 
