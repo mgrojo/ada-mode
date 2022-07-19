@@ -170,7 +170,7 @@ supports LSP.
 
 Ada mode requires Emacs 25.3 or greater. Compiling the Ada code for
 the external process parser requires GNAT GPL 2017 or later; tested
-with GNAT Community Edition 2021 and GNAT Pro 22.2 (@pxref{Known
+with GNAT Community Edition 2021, GNAT Pro 22.2 (@pxref{Known
 versions}).
 
 Ada mode is distributed in the Gnu ELPA package archive; it can be
@@ -367,6 +367,8 @@ number is the release year.
 This version is provided by AdaCore, but they do not support users
 using it.
 
+@c FIXME: replaced by Alire
+
 @item Pro
 Downloaded from AdaCore via a support subscription. The version number
 is the last two digits of the release year, followed by a patch
@@ -418,6 +420,10 @@ No edits required.
 No edits required.
 
 @item FSF 11.1.0
+
+@item FSF 12.1
+No edits required.
+
 @end table
 
 Compiler versions that fail:

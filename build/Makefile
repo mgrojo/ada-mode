@@ -22,6 +22,8 @@ export UNIQUIFY_FILES_VERSION := 1.0.4
 
 TEST_DIR ?= source
 
+ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
+
 # emacs to test with
 #
 # This can be overridden on the 'make' command line or by an external

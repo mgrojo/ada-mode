@@ -54,7 +54,7 @@ GNAT Community going away
     https://blog.adacore.com/a-new-era-for-ada-spark-open-source-community
     get gnat fsf from alire https://alire.ada.dev/
     simplest way is to package ada-mode code as Alire crates
-    use tarball on savannah
+    use tarball from savannah
 
 try packrat
     o.e.a.s-6/o.e.w.s-2
