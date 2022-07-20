@@ -636,7 +636,7 @@ when Partial_Parse =>
       Trace.Put_Clock ("finish partial parse");
    end if;
 
-when Syntax_Error | WisiToken.Parse_Error =>
+when Syntax_Error | WisiToken.Parse_Error | WisiToken.Validate_Error =>
    if Trace_Time then
       Trace.Put_Clock ("finish - error");
    end if;

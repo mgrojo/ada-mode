@@ -9779,24 +9779,25 @@ package body WisiToken.Syntax_Trees is
             end if;
             case Terminal_Label'(Node.Label) is
             when Source_Terminal =>
-               if Byte_Region_Order and then Node.Byte_Region.First < Last_Source_Terminal_Pos then
-                  Put_Error ("byte_region out of order");
-               end if;
-               Last_Line := @ + Node.New_Line_Count;
-               if Node.Non_Grammar.Length > 0 then
-                  Last_Source_Terminal_Pos := Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last;
-                  if Byte_Region_Order and Tree.Lexer.Descriptor.New_Line_ID /= Invalid_Token_ID then
-                     for Token of Node.Non_Grammar loop
-                        if Token.Line_Region.First /= Last_Line then
-                           Put_Error ("line_number missing/out of order");
-                        end if;
-                        Last_Line := Token.Line_Region.Last;
-                     end loop;
+               if Byte_Region_Order then
+                  if Node.Byte_Region.First < Last_Source_Terminal_Pos then
+                     Put_Error ("byte_region out of order");
                   end if;
-               else
-                  Last_Source_Terminal_Pos := Node.Byte_Region.Last;
+                  Last_Line := @ + Node.New_Line_Count;
+                  if Node.Non_Grammar.Length > 0 then
+                     Last_Source_Terminal_Pos := Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last;
+                     if Tree.Lexer.Descriptor.New_Line_ID /= Invalid_Token_ID then
+                        for Token of Node.Non_Grammar loop
+                           if Token.Line_Region.First /= Last_Line then
+                              Put_Error ("line_number missing/out of order");
+                           end if;
+                           Last_Line := Token.Line_Region.Last;
+                        end loop;
+                     end if;
+                  else
+                     Last_Source_Terminal_Pos := Node.Byte_Region.Last;
+                  end if;
                end if;
-
                for Deleted of Node.Following_Deleted loop
                   if Deleted.Parent /= Node then
                      Put_Error ("deleted.parent wrong");
@@ -9826,7 +9827,18 @@ package body WisiToken.Syntax_Trees is
 
             when Virtual_Terminal | Virtual_Identifier =>
                if Node.Non_Grammar.Length > 0 then
-                  Last_Source_Terminal_Pos := Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last;
+                  if Byte_Region_Order then
+                     Last_Source_Terminal_Pos := Node.Non_Grammar (Node.Non_Grammar.Last_Index).Byte_Region.Last;
+
+                     if Tree.Lexer.Descriptor.New_Line_ID /= Invalid_Token_ID then
+                        for Token of Node.Non_Grammar loop
+                           if Token.Line_Region.First /= Last_Line then
+                              Put_Error ("line_number missing/out of order");
+                           end if;
+                           Last_Line := Token.Line_Region.Last;
+                        end loop;
+                     end if;
+                  end if;
                end if;
             end case;
 
