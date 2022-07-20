@@ -557,6 +557,12 @@ package body Run_Wisi_Common_Parse is
             Ada.Text_IO.Put_Line
               ("(parse_error """ & Ada.Exceptions.Exception_Name (E) & " " &
                  Ada.Exceptions.Exception_Message (E) & """)");
+
+         when WisiToken.Validate_Error =>
+            Put_Errors (Parse_Context.Parser);
+            --  Ensure we don't lose the debug state
+            Parse_Context.Frozen := True;
+            raise WisiToken.Parse_Error with "validate error; parse_context frozen";
          end;
 
       when Post_Parse =>
