@@ -2040,21 +2040,23 @@ package body Wisi is
          end if;
 
       when Dump =>
-         declare
-            use Ada.Directories;
-            File_Name : constant String := -Query.File_Name;
-            Normalized_Tree : WisiToken.Syntax_Trees.Tree;
-         begin
-            if Exists (File_Name) then
-               Delete_File (File_Name);
-            end if;
+         if Tree.Parents_Set then
+            declare
+               use Ada.Directories;
+               File_Name : constant String := -Query.File_Name;
+               Normalized_Tree : WisiToken.Syntax_Trees.Tree;
+            begin
+               if Exists (File_Name) then
+                  Delete_File (File_Name);
+               end if;
 
-            WisiToken.Syntax_Trees.Copy_Tree
-              (Source      => Tree,
-               Destination => Normalized_Tree,
-               User_Data   => Syntax_Trees.User_Data_Access_Constant (Data));
-            Normalized_Tree.Put_Tree (-Query.File_Name);
-         end;
+               WisiToken.Syntax_Trees.Copy_Tree
+                 (Source      => Tree,
+                  Destination => Normalized_Tree,
+                  User_Data   => Syntax_Trees.User_Data_Access_Constant (Data));
+               Normalized_Tree.Put_Tree (-Query.File_Name);
+            end;
+         end if;
       end case;
    end Query_Tree;
 
