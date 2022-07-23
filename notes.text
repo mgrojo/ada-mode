@@ -50,10 +50,22 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-try packrat
-    see fixme in gen_run_wisi_lr
+copy some changes to main:
+    generate declare partial_parse_active in *-actions.ads
+    -- in .wy Ada code blocks
+    don't commit _bnf.wy
+    wisi.parse_context factory
+    generate declare create_parser
 
-    time packrat_gen parse
+translate libadalang_grammar.py to ada_adacore.wy
+
+
+packrat mckenzie error recover
+    in procedural first, to see if it can be done
+    o.w.s-2 ada_lite
+
+
+time packrat_gen parse
         gnatcoll-xref.adb: gnatcoll-xref.adb:40:1: parse failed
             but verbosity parse=3 says it gets much further, and doesn't say why it fails!
 
@@ -66,9 +78,9 @@ maybe on line 1265:          Lines.Lines (Tmp'Range) := Tmp.all;
 
         copies lots of stream_index; all ref counted.
 
-    mckenzie error recover
     packrat lists
-        optimizes query time, not parse time?
+        optimizes Undo_Reduce; used in error recover sometimes
+            always used in lr edit_tree.
 
     optimize rhs order; most common first
 

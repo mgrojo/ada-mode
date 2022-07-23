@@ -74,7 +74,7 @@ endif
 	cd ./$(<D); dos2unix -q $(*F)-process.el $(*F)_process* $(*F).re2c $(*F)_re2c_c.ads
 
 %_re2c.c : %.re2c
-	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	cd ./$(<D); re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $(@F) $(<F)
 	cd ./$(<D); dos2unix -q $(*F)_re2c.c
 
 followed-by : ARGS := ../ada_annex_p.wy term_list REM 1
