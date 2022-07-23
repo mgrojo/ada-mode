@@ -85,12 +85,12 @@ package body WisiToken.Parse is
       when Insert =>
          String'Write (Stream, Item.Ins_ID'Image);
          --  Ignore Ins_Before.
-         String'Write (Stream, Syntax_Trees.Get_Node_Index (Item.Ins_Node)'Image);
+         String'Write (Stream, " " & Syntax_Trees.Get_Node_Index (Item.Ins_Node)'Image);
 
       when Delete =>
          String'Write (Stream, Item.Del_ID'Image);
          --  Ignore Del_Index.
-         String'Write (Stream, Syntax_Trees.Get_Node_Index (Item.Del_Node)'Image);
+         String'Write (Stream, " " & Syntax_Trees.Get_Node_Index (Item.Del_Node)'Image);
 
       end case;
       Character'Write (Stream, ')');
