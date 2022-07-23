@@ -50,9 +50,6 @@ bump version
 
 build/Makefile zip tag
 
-d:/Web/stephe-leake/ada/
-    delete old *.bz2*
-
 upload to savannah for Emacs Ada mode:
     in Cygwin Console (for gpg prompts):
     cd /cygdrive/c/Projects/org.stephe_leake.sal/build/
