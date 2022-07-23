@@ -135,14 +135,6 @@ when Partial_Parse =>
    end if;
 
 when Syntax_Error | WisiToken.Parse_Error =>
-   declare
-      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref;
-   begin
-      --  Copy recover counts for unit test.
-      Parser.Recover_Enqueue_Count := Parser_State.Recover.Enqueue_Count;
-      Parser.Recover_Check_Count   := Parser_State.Recover.Check_Count;
-   end;
-
    if Trace_Time then
       Trace.Put_Clock ("finish - error");
    end if;

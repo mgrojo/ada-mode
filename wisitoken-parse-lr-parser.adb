@@ -936,7 +936,7 @@ package body WisiToken.Parse.LR.Parser is
    end Check_Error;
 
    procedure Finish_Parse
-     (Parser            : in out LR.Parser.Parser;
+     (Parser            : in out WisiToken.Parse.Parser.Parser'Class;
       Incremental_Parse : in     Boolean)
    --  Final actions after LR accept state reached; call
    --  User_Data.Insert_Token, Delete_Token.

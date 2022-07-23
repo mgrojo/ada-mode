@@ -26,8 +26,7 @@ package body WisiToken.Parse.Packrat.Parser is
       return
         "(" & Image (Item.Op) & ", " &
         Image (Item.ID, Tree.Lexer.Descriptor.all) & "," &
-        Item.Pos'Image & "," &
-        Item.Error_Pos'Image & ")";
+        Item.Pos'Image & ")";
    end Image;
 
    overriding procedure Finalize (Object : in out Parser)
@@ -502,8 +501,8 @@ package body WisiToken.Parse.Packrat.Parser is
               (First_Terminal => 1,
                Last_Terminal  => 0,
                Expecting      => (1 .. 0 => False),
-               Recover_Ops    => WisiToken.Parse.Recover_Op_Arrays.Empty_Vector,
-               Recover_Cost   => 0),
+               Recover_Ops    => WisiToken.Parse.Recover_Op_Nodes_Arrays.Empty_Vector,
+               Recover_Test   => null),
             Syntax_Trees.User_Data_Access_Constant (Shared_Parser.User_Data));
       end if;
    end Derivs_To_Parse_Streams;

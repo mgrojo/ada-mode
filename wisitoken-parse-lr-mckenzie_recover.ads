@@ -30,6 +30,7 @@ with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Parse.Parser;
 limited with WisiToken.Parse.LR.McKenzie_Recover.Base;
 package WisiToken.Parse.LR.McKenzie_Recover is
+   use all type WisiToken.Syntax_Trees.Stream_ID;
    use all type WisiToken.Syntax_Trees.Stream_Index;
    use all type Ada.Containers.Count_Type;
 

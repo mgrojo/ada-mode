@@ -617,7 +617,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (69, 70),
          Ops                     => +(Insert, +RETURN_ID, 2) & (Insert, +IDENTIFIER_ID, 2),
          Enqueue_Count             => (case Test.Alg is when LALR => 6, when LR1 => 5,
-                                     when Packrat_Gen | Packrat_Proc => 1),
+                                       when Packrat_Gen | Packrat_Proc => 6),
          Check_Count               => 3,
          Cost                    => 2);
    end Missing_Return;

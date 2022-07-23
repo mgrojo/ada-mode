@@ -3090,8 +3090,6 @@ package WisiToken.Syntax_Trees is
    --  in debugger for a stable way to access Node.
 
 private
-   use all type Valid_Node_Access_Lists.Cursor;
-   use all type Ada.Containers.Count_Type;
 
    type Error_List_Access is access all Error_Data_Lists.List;
    procedure Free is new Ada.Unchecked_Deallocation (Error_Data_Lists.List, Error_List_Access);

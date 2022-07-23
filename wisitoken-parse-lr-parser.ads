@@ -75,7 +75,9 @@ package WisiToken.Parse.LR.Parser is
      (Shared_Parser : in out WisiToken.Parse.Parser.Parser'Class;
       Check_Parser  : in out WisiToken.Parse.LR.Parser_Lists.Cursor);
 
-   procedure Finish_Parse (Parser : in out WisiToken.Parse.Parser.Parser'Class);
+   procedure Finish_Parse
+     (Parser            : in out WisiToken.Parse.Parser.Parser'Class;
+      Incremental_Parse : in     Boolean);
    --  Final actions after LR accept state reached; call
    --  User_Data.Insert_Token, Delete_Token.
 

@@ -48,10 +48,6 @@ package WisiToken.Parse.Packrat.Parser is
       --  For Insert, ID is inserted before Pos in the Shared_Stream.
       --  For Delete, the token at Pos is deleted.
 
-      Error_Pos : Buffer_Pos := Invalid_Buffer_Pos;
-      --  Position of the error that is repaired by this op. Used by the
-      --  editor to apply the op to the source text.
-
    end record;
 
    package Recover_Op_Nodes_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Recover_Op_Nodes);

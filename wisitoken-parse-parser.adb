@@ -207,40 +207,49 @@ package body WisiToken.Parse.Parser is
       return Get_Post_Parse_Action (Parser.Productions, ID);
    end Get_Post_Parse_Action;
 
-   procedure Put_Errors (Parser : in WisiToken.Parse.Parser.Parser'Class)
+   procedure Put_Errors (Tree : in Syntax_Trees.Tree)
    is
+      --  FIXME: move to Syntax_Trees?
       use WisiToken.Syntax_Trees;
-      Tree : Syntax_Trees.Tree renames Parser.Tree;
    begin
       for Err in Tree.Error_Iterate loop
          declare
             Error_Node : constant Valid_Node_Access := Tree.Error_Node (Err);
          begin
-            Ada.Text_IO.Put_Line
+            Tree.Lexer.Trace.Put_Line
               (Tree.Error_Message
                (Error_Node, Error (Err).Image (Tree, Error_Node)));
          end;
       end loop;
    end Put_Errors;
 
-   procedure Put_Errors (Parser : in WisiToken.Parse.Parser.Parser'Class; Stream : in Syntax_Trees.Stream_ID)
+   procedure Put_Errors (Parser : in WisiToken.Parse.Parser.Parser'Class)
+   is begin
+      Put_Errors (Parser.Tree);
+   end Put_Errors;
+
+   procedure Put_Errors (Tree : in Syntax_Trees.Tree; Stream : in Syntax_Trees.Stream_ID)
    is
       use WisiToken.Syntax_Trees;
-      Tree : Syntax_Trees.Tree renames Parser.Tree;
    begin
       for Cur in Tree.Stream_Error_Iterate (Stream) loop
          declare
             Error_Ref  : constant Stream_Error_Ref  := Error (Cur);
-            Error_Node : constant Valid_Node_Access := Tree.Error_Node (Error_Ref).Node;
+            Error_Node : constant Valid_Node_Access := Tree.Error_Node (Error_Ref);
          begin
             for Err of Tree.Error_List (Error_Node) loop
-               Ada.Text_IO.Put_Line
+               Tree.Lexer.Trace.Put_Line
                  (Tree.Error_Message
-                    (Ref     => Error_Ref.Ref.Ref, -- For line, column
+                    (Ref     => Tree.Error_Stream_Node_Ref (Error_Ref), -- For line, column
                      Message => Err.Image (Tree, Error_Node)));
             end loop;
          end;
       end loop;
+   end Put_Errors;
+
+   procedure Put_Errors (Parser : in WisiToken.Parse.Parser.Parser'Class; Stream : in Syntax_Trees.Stream_ID)
+   is begin
+      Put_Errors (Parser.Tree, Stream);
    end Put_Errors;
 
    procedure Execute_Actions

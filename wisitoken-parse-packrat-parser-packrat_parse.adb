@@ -218,98 +218,100 @@ is
                --  Second pass to clear all Derivs affected by the edits in this
                --  error recover. Also enter LR_Parser_State.Recover_Insert_Delete into
                --  Parser.Insert_Delete.
-               for Op of LR_Parser_State.Recover_Insert_Delete loop
-                  declare
-                     Edit_Pos : constant Node_Index :=
-                       (case Op.Op is
-                        when Insert => Find_Node_Index (Op.Ins_Before),
-                        when Delete =>
-                           --  FIXME: if Op.Del_Node was copied to add an error, this is wrong.
-                           --  Need test case.
-                           Tree.Get_Node_Index (Op.Del_Node));
-                  begin
-                     declare
-                        Op_Nodes : Recover_Op_Nodes :=
-                          (Op        => Op.Op,
-                           ID        => (case Op.Op is when Insert => Op.Ins_ID, when Delete => Op.Del_ID),
-                           Node      => (case Op.Op is when Insert => Op.Ins_Node, when Delete => Op.Del_Node),
-                           Pos       => Edit_Pos,
-                           Error_Pos => Op.Error_Pos);
-
-                        Cur : constant Recover_Op_Nodes_Trees.Cursor :=
-                          Packrat_Parser_State.Insert_Delete.Find (Edit_Pos);
-                     begin
-                        if Op.Op = Insert and then Op_Nodes.Node = Invalid_Node_Access then
-                           Op_Nodes.Node := Tree.New_Virtual_Terminal (Op_Nodes.ID);
-                        end if;
-
-                        if Recover_Op_Nodes_Trees.Has_Element (Cur) then
+               for Error_Node of LR_Parser_State.Recover_Insert_Delete loop
+                  for Error of Tree.Error_List (Error_Node) loop
+                     for Op of Recover_Op_Array_Const_Ref (Error) loop
+                        declare
+                           Edit_Pos : constant Node_Index :=
+                             (case Op.Op is
+                              when Insert => Find_Node_Index (Op.Ins_Before),
+                              when Delete => Tree.Get_Node_Index (Op.Del_Node));
+                        begin
                            declare
-                              Op_List : Recover_Op_Nodes_Lists.List renames
-                                Packrat_Parser_State.Insert_Delete.Variable_Ref (Cur);
+                              Packrat_Op : Packrat.Parser.Recover_Op_Nodes :=
+                                (Op        => Op.Op,
+                                 ID        => (case Op.Op is when Insert => Op.Ins_ID, when Delete => Op.Del_ID),
+                                 Node      => (case Op.Op is when Insert => Op.Ins_Node, when Delete => Op.Del_Node),
+                                 Pos       => Edit_Pos);
+
+                              Cur : constant Recover_Op_Nodes_Trees.Cursor :=
+                                Packrat_Parser_State.Insert_Delete.Find (Edit_Pos);
                            begin
-                              case Op.Op is
-                              when Insert      =>
-                                 Op_List.Append (Op_Nodes);
-                              when Delete =>
-                                 Op_List.Prepend (Op_Nodes);
-                              end case;
+                              if Op.Op = Insert and then Packrat_Op.Node = Invalid_Node_Access then
+                                 Packrat_Op.Node := Tree.New_Virtual_Terminal (Packrat_Op.ID);
+                              end if;
+
+                              if Recover_Op_Nodes_Trees.Has_Element (Cur) then
+                                 declare
+                                    Op_List : Recover_Op_Nodes_Lists.List renames
+                                      Packrat_Parser_State.Insert_Delete.Variable_Ref (Cur);
+                                 begin
+                                    case Op.Op is
+                                    when Insert      =>
+                                       Op_List.Append (Packrat_Op);
+                                    when Delete =>
+                                       Op_List.Prepend (Packrat_Op);
+                                    end case;
+                                 end;
+                              else
+                                 Packrat_Parser_State.Insert_Delete.Insert
+                                   (Recover_Op_Nodes_Lists.To_List (Packrat_Op));
+                              end if;
                            end;
-                        else
-                           Packrat_Parser_State.Insert_Delete.Insert (Recover_Op_Nodes_Lists.To_List (Op_Nodes));
-                        end if;
-                     end;
 
-                     if Edit_Pos /= Last_Edit_Pos then
-                        Last_Edit_Pos := Edit_Pos;
+                           if Edit_Pos /= Last_Edit_Pos then
+                              Last_Edit_Pos := Edit_Pos;
 
-                        if Trace_Packrat_McKenzie > Detail then
-                           Trace.Put_Line (Packrat_Label & " edit_pos:" & Edit_Pos'Image);
-                        end if;
+                              if Trace_Packrat_McKenzie > Detail then
+                                 Trace.Put_Line (Packrat_Label & " edit_pos:" & Edit_Pos'Image);
+                              end if;
 
-                        --  IMPROVEME: change Derivs to red_black tree sorted on
-                        --  max_examined_pos to make this more efficient?
+                              --  IMPROVEME: change Derivs to red_black tree sorted on
+                              --  max_examined_pos to make this more efficient?
 
-                        for Nonterm in Packrat_Parser_State.Derivs'Range loop
-                           for Pos in Packrat_Parser_State.Derivs (Nonterm).First_Index ..
-                             Packrat_Parser_State.Derivs (Nonterm).Last_Index
-                           loop
-                              declare
-                                 Memo  : WisiToken.Parse.Packrat.Memo_Entry renames
-                                   Packrat_Parser_State.Derivs (Nonterm)(Pos);
-                                 Clear : Boolean := False;
-                              begin
-                                 case Memo.State is
-                                 when No_Result =>
-                                    null;
+                              for Nonterm in Packrat_Parser_State.Derivs'Range loop
+                                 for Pos in Packrat_Parser_State.Derivs (Nonterm).First_Index ..
+                                   Packrat_Parser_State.Derivs (Nonterm).Last_Index
+                                 loop
+                                    declare
+                                       Memo  : WisiToken.Parse.Packrat.Memo_Entry renames
+                                         Packrat_Parser_State.Derivs (Nonterm)(Pos);
+                                       Clear : Boolean := False;
+                                    begin
+                                       case Memo.State is
+                                       when No_Result =>
+                                          null;
 
-                                 when Failure =>
-                                    if Edit_Pos <= To_Node_Index (Memo.Max_Examined_Pos) then
-                                       Clear := True;
-                                    end if;
+                                       when Failure =>
+                                          if Edit_Pos <= To_Node_Index (Memo.Max_Examined_Pos) then
+                                             Clear := True;
+                                          end if;
 
-                                 when Success =>
-                                    if Edit_Pos in Tree.Get_Node_Index (Tree.First_Terminal (Memo.Result)) ..
-                                      To_Node_Index (Memo.Max_Examined_Pos)
-                                    then
-                                       Clear := True;
-                                    end if;
-                                 end case;
+                                       when Success =>
+                                          if Edit_Pos in Tree.Get_Node_Index (Tree.First_Terminal (Memo.Result)) ..
+                                            To_Node_Index (Memo.Max_Examined_Pos)
+                                          then
+                                             Clear := True;
+                                          end if;
+                                       end case;
 
-                                 if Clear then
-                                    if Trace_Packrat_McKenzie > Detail then
-                                       Trace.Put_Line
-                                         (Packrat_Label & " clear deriv" & Packrat.Image (Memo, Nonterm, Pos, Tree));
-                                    end if;
+                                       if Clear then
+                                          if Trace_Packrat_McKenzie > Detail then
+                                             Trace.Put_Line
+                                               (Packrat_Label & " clear deriv" & Packrat.Image
+                                                  (Memo, Nonterm, Pos, Tree));
+                                          end if;
 
-                                    Packrat_Parser_State.Derivs (Nonterm).Replace_Element
-                                      (Pos, WisiToken.Parse.Packrat.No_Result_Memo);
-                                 end if;
-                              end;
-                           end loop;
-                        end loop;
-                     end if;
-                  end;
+                                          Packrat_Parser_State.Derivs (Nonterm).Replace_Element
+                                            (Pos, WisiToken.Parse.Packrat.No_Result_Memo);
+                                       end if;
+                                    end;
+                                 end loop;
+                              end loop;
+                           end if;
+                        end;
+                     end loop;
+                  end loop;
                end loop;
             end;
          end loop;

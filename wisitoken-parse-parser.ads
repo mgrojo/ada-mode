@@ -151,10 +151,13 @@ package WisiToken.Parse.Parser is
    --  WisiToken.Parse.Packrat.Parser.Packrat_Parse, depending on the
    --  class of Parser.
 
+   procedure Put_Errors (Tree : in Syntax_Trees.Tree)
+   with Pre => Tree.Fully_Parsed;
    procedure Put_Errors (Parser : in WisiToken.Parse.Parser.Parser'Class)
    with Pre => Parser.Tree.Fully_Parsed;
    --  Output Parser.Tree errors to Ada.Text_IO.Current_Output.
 
+   procedure Put_Errors (Tree : in Syntax_Trees.Tree; Stream : in Syntax_Trees.Stream_ID);
    procedure Put_Errors (Parser : in WisiToken.Parse.Parser.Parser'Class; Stream : in Syntax_Trees.Stream_ID);
    --  Output Parser.Tree.Stream errors to Ada.Text_IO.Current_Output.
 

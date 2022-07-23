@@ -70,13 +70,6 @@ package body WisiToken.Syntax_Trees is
       Predicate  : in Error_Predicate)
      return Error_Data_Lists.Cursor;
 
-   procedure First_Source_Terminal
-     (Tree                 : in     Syntax_Trees.Tree;
-      Ref                  : in out Stream_Node_Parents;
-      Trailing_Non_Grammar : in     Boolean)
-   with Pre => Rooted (Ref.Ref) and Ref.Parents.Depth = 0;
-   --  Update Ref to first source terminal in Ref.Node, initialize Ref.Parents.
-
    procedure Insert_Stream_Element
      (Tree   : in out Syntax_Trees.Tree;
       Stream : in     Stream_ID;
@@ -4132,7 +4125,7 @@ package body WisiToken.Syntax_Trees is
             exit when Result.Ref.Node.Non_Grammar.Length > 0;
          end if;
 
-         Next_Terminal (Tree, Result);
+         Next_Terminal (Tree, Result, Following => True);
       end loop;
       return Result.Ref;
    end First_Source_Terminal;
@@ -4152,7 +4145,7 @@ package body WisiToken.Syntax_Trees is
                   when Virtual_Identifier => Ref.Ref.Node.Non_Grammar.Length > 0)
             else Ref.Ref.Node.Label = Source_Terminal);
 
-         Next_Terminal (Tree, Ref);
+         Next_Terminal (Tree, Ref, Following => True);
       end loop;
    end First_Source_Terminal;
 
@@ -5830,14 +5823,14 @@ package body WisiToken.Syntax_Trees is
       Result : Stream_Node_Parents := To_Stream_Node_Parents
         (Tree, (Stream, Element, Stream_Element_Lists.Element (Element.Cur).Node));
    begin
-      Last_Terminal (Tree, Result, Parse_Stream => Stream);
+      Last_Terminal (Tree, Result, Parse_Stream => Stream, Preceding => True);
       loop
          exit when Result.Ref.Node /= Invalid_Node_Access and then Result.Ref.Node.Label = Source_Terminal;
          if Trailing_Non_Grammar then
             exit when Result.Ref.Node.Non_Grammar.Length > 0;
          end if;
 
-         Prev_Terminal (Tree, Result, Parse_Stream => Stream);
+         Prev_Terminal (Tree, Result, Parse_Stream => Stream, Preceding => True);
       end loop;
       return Result.Ref;
    end Last_Source_Terminal;
@@ -5858,7 +5851,7 @@ package body WisiToken.Syntax_Trees is
                   when Virtual_Identifier => Ref.Ref.Node.Non_Grammar.Length > 0)
             else Ref.Ref.Node.Label = Source_Terminal);
 
-         Prev_Terminal (Tree, Ref, Parse_Stream);
+         Prev_Terminal (Tree, Ref, Parse_Stream, Preceding => True);
       end loop;
    end Last_Source_Terminal;
 
@@ -8529,10 +8522,7 @@ package body WisiToken.Syntax_Trees is
 
          --  We don't output Node.Parent; redundant with node.Children.
 
-         if Node.Augmented /= null then
-            raise SAL.Not_Implemented with "put_tree augmented";
-         end if;
-
+         --  FIXME: implement augmented
          Put_Error_List (Node.Error_List);
 
          case Node.Label is

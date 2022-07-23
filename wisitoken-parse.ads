@@ -57,9 +57,10 @@ package WisiToken.Parse is
        when Delete       => "DELETE");
 
    type Recover_Op (Op : Recover_Op_Label := Fast_Forward) is record
-      --  An error recover operation. We store enough information to perform
-      --  the operation on the main parser stack and input stream when error
-      --  recover succeeds.
+      --  Stores recover operations during error recovery. We store enough
+      --  information to perform the operation on the main parser stack and
+      --  input stream when the config is the result of a successful
+      --  recover.
 
       case Op is
       when Fast_Forward =>
@@ -536,5 +537,23 @@ package WisiToken.Parse is
       Initial_Text_Char_Region : in Buffer_Region;
       Edited_Text_Byte_Region  : in Buffer_Region;
       Edited_Text_Char_Region  : in Buffer_Region);
+
+private
+
+   type Recover_Op_Array_Const_Ref_Type (Element : not null access constant Recover_Op_Nodes_Arrays.Vector) is record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Recover_Op_Array_Var_Ref_Type (Element : not null access Recover_Op_Nodes_Arrays.Vector) is record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Recover_Test_Const_Ref_Type (Element : not null access constant Recover_Test_Info) is record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Recover_Test_Var_Ref_Type (Element : not null access Recover_Test_Info_Access) is record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
 
 end WisiToken.Parse;

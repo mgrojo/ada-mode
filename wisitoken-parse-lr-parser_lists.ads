@@ -49,6 +49,8 @@ package WisiToken.Parse.LR.Parser_Lists is
       --
       --  The parse stack is in Shared_Parser.Tree (Parser_State.Stream).
 
+      Recover : aliased LR.McKenzie_Data := (others => <>);
+
       Recover_Insert_Delete : aliased Syntax_Trees.Valid_Node_Access_Lists.List;
       --  List of nodes containing errors that contain recover operations;
       --  tokens that were inserted or deleted during error recovery. Filled
