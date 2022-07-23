@@ -36,7 +36,10 @@ Makefile
 (setq wisi-disable-face t)
 
 editing anywhere in a comment causes comments in rest of window to flicker color.
-    not in Ada; probably due to mmm-mode.
+    not in Ada; must be mmm-mode?
+    same flicker in other faces?
+        which is why we change jit-lock-context-time in ~/develop_settings.el
+        why not set that to nil/0.0?
 
 
 test/incremental_05.wy fails; just documented for now

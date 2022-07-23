@@ -5,7 +5,7 @@
 # variables below.
 
 export Standard_Common_Build := Debug
-export MMM_MODE ?= -L c:/Projects/mmm-mode
+export MMM_MODE ?= c:/Projects/mmm-mode
 
 export WISITOKEN_GRAMMAR_MODE_VERSION := 1.2.0
 
@@ -35,7 +35,7 @@ one :: $(ONE_TEST_FILE).diff
 
 one-debug :: RUNTEST := run-indent-test-grammar.el
 one-debug :: force
-	$(EMACS_EXE) -Q -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) -l $(RUNTEST) --eval '(progn $(ELISP))'
+	$(EMACS_EXE) -Q -L . -L $(WISI) -l exclude-elpa.el -L $(MMM_MODE) -l $(RUNTEST) --eval '(progn $(ELISP))'
 
 two :: RUN_ARGS ?= command_file debug.cmd > debug.log 2>&1
 two :: build_executables
@@ -55,7 +55,7 @@ two :: build_executables
 # first avoids errors caused by loading new source on old .elc.
 byte-compile : byte-compile-clean
 	$(MAKE) -C $(WISI)/build byte-compile
-	$(EMACS_EXE) -Q -batch -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) --eval "(progn (package-initialize)(batch-byte-compile))" *.el
+	$(EMACS_EXE) -Q -batch -L . -L $(WISI) -l exclude-elpa.el -L $(MMM_MODE) --eval "(progn (package-initialize)(batch-byte-compile))" *.el
 
 byte-compile-clean :
 	rm -f *.elc
@@ -74,10 +74,10 @@ TEST_FILES := $(shell cd test; ls *.wy)
 	-diff -u $< $*.tmp > $*.diff
 
 %.tmp : %
-	$(EMACS_EXE) --debug-init -Q -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) -l $(RUNTEST) --eval '(progn $(ELISP)(run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) --debug-init -Q -L . -L $(WISI) -l exclude-elpa.el -L $(MMM_MODE) -l $(RUNTEST) --eval '(progn $(ELISP)(run-test "$<")(kill-emacs))'
 
 %.debug : %
-	$(EMACS_EXE) -Q -L . -L $(WISI) -l exclude-elpa.el $(MMM_MODE) -l $(RUNTEST) --eval '(progn (package-initialize)(setq debug-on-error t))' $<
+	$(EMACS_EXE) -Q -L . -L $(WISI) -l exclude-elpa.el -L $(MMM_MODE) -l $(RUNTEST) --eval '(progn (package-initialize)(setq debug-on-error t))' $<
 
 test-wisitoken_grammar : RUNTEST := run-indent-test-grammar.el
 test-wisitoken_grammar : $(addsuffix .diff, $(TEST_FILES))

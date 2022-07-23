@@ -76,7 +76,8 @@
     (define-key map "\C-c`"    'ada-show-secondary-error)
     (define-key map "\C-c."    'wisitoken-parse_table-conflict-goto)
     map
-  )  "Local keymap used for wisitoken-grammar mode.")
+  )
+  "Local keymap used for wisitoken-grammar mode.")
 
 (define-key emacs-lisp-mode-map "\C-c\C-m" 'wisitoken-grammar-mmm-parse)
 
