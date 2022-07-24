@@ -605,4 +605,35 @@ raise_expr
 
 if_expr : 'if' expr 'then' expr ('elsif' expr 'then' expr)* ['else' expr] ;
 
+conditional_expr : if_expr | case_expr | quantified_expr ;
+
+box_expr : '<>' ;
+
+others_designator : 'others' ;
+
+aggregate_assoc
+  ;; FIXME: libadalang has "'=>' (expr | discrete_range)" here; github libadalang issue #947
+  : 'for' for_loop_param_spec '=>' expr
+  | [choice_list '=>'] (box_expr | expr)
+  ;
+
+choice : discrete_range | discrete_subtype_indication | expr | others_designator ;
+
+rel_op : 'not' 'in' | 'in' ;
+
+membership_choice : discrete_range | discrete_subtype_indication | simple_expr ;
+
+membership_choice_list : membership_choice ('|' membership_choice)* ;
+
+relation
+  : relation ('=' | '/=' | '<' | '<=' | '>' | '>=') simple_expr
+  | relation rel_op membership_choice_list
+  | simple_expr
+  ;
+
+expr
+  : expr boolean_op relation
+  | relation
+  ;
+
 ;; end of file
