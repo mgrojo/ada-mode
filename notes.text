@@ -63,7 +63,7 @@ copy some changes to main:
     wisi.put_errors
 
 translate libadalang_grammar.py to ada_adacore.wy
-    done, compiling
+    make -r ../ada_adacore.re2c
 
 
 packrat mckenzie error recover

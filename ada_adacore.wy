@@ -9,6 +9,8 @@
 ;; https://raw.githubusercontent.com/AdaCore/libadalang/22.2/ada/grammar.py
 ;; https://raw.githubusercontent.com/AdaCore/libadalang/22.2/ada/lexer.py
 
+%meta_syntax EBNF
+
 %generate LR1 Ada_Emacs text_rep re2c Process
 ;; %generate Packrat_Gen Ada_Emacs re2c Process
 %generate Packrat_Proc Ada_Emacs re2c Process
@@ -617,9 +619,118 @@ aggregate_assoc
   | [choice_list '=>'] (box_expr | expr)
   ;
 
+regular_aggregate
+  : '(' [expr 'with'] 'null' 'record' ')'
+  | '(' expr 'with' 'delta' aggregate_assoc (',' aggregate_assoc)* ')'
+  | '(' [expr 'with'] aggregate_assoc (',' aggregate_assoc)* ')'
+;
+
+bracket_aggregate
+  : '[' expr 'with' 'delta' aggregate_assoc (',' aggregate_assoc)* ']'
+  | '[' [expr 'with'] [aggregate_assoc (',' aggregate_assoc)*] ']'
+  ;
+
+aggregate : regular_aggregate | bracket_aggregate ;
+
+direct_name : identifier | string_literal | char_literal ;
+
+param_assoc : [(identifier | others_designator | string_literal) '=>'] (expr | box_expr) ;
+
+call_suffix
+  ;; Slice via discrete subtype
+  : discrete_subtype_indication
+
+  ;; Regular slice
+  | discrete_range
+
+  ;; Regular parameter list
+  | param_assoc (',' param_assoc)*
+  ;
+
+qualified_name : qual_name_internal tick (paren_expr | aggregate) ;
+
+qual_name_internal
+  : qual_name_internal '.' direct_name
+  | qual_name_internal tick identifier
+  | direct_name
+  ;
+
+name
+  : name '(' call_suffix ')'
+  | name '.' 'all'
+  | name '.' direct_name
+  | name tick identifier '(' call_suffix ')'
+  | name tick identifier
+  | name tick (paren_expr | regular_aggregate)
+  | direct_name_or_target_name
+  ;
+
+defining_name : static_name ;
+
+direct_name_or_target_name : direct_name | target_name ;
+
+target_name : '@' ;
+
+update_attr_aggregate
+  : regular_aggregate
+  |'(' update_attr_content ')'
+  ;
+
+update_attr_content : multidim_array_assoc (',' multidim_array_assoc)* ;
+
+multidim_array_assoc : (aggregate ('|' aggregate)*) '=>' expr ;
+
+subtype_name
+  : subtype_name '.' direct_name
+  | subtype_name tick identifier ['(' call_suffix ')']
+  | direct_name
+  ;
+
+static_name
+  : static_name '.' direct_name
+  | direct_name
+  ;
+
+primary: num_literal | null_literal | name | allocator | conditional_expr | raise_expr | paren_expr |
+    declare_expr | aggregate ;
+
+paren_expr : '(' expr ')' ;
+
+declare_expr : 'declare' (object_decl)* 'begin' expr ;
+
+factor
+  : ('abs' | 'not') primary
+  | primary '**' primary
+  | primary
+  ;
+
+term
+  : term ('*' | '/' | 'mod' | 'rem') factor
+  | factor
+  ;
+
+unop_term
+  : ('+' | '-') term
+  | term
+  ;
+
+simple_expr
+  : simple_expr ('+' | '-' | '&') term
+  | unop_term
+  ;
+
+boolean_op : 'xor' | 'and' 'then' | 'and' | 'or' 'else' | 'or' ;
+
+discrete_range
+  : simple_expr '..' simple_expr
+  | name
+  ;
+
 choice : discrete_range | discrete_subtype_indication | expr | others_designator ;
 
 rel_op : 'not' 'in' | 'in' ;
+
+choice_list : choice ('|' choice)* ;
 
 membership_choice : discrete_range | discrete_subtype_indication | simple_expr ;
 

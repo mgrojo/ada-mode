@@ -5,9 +5,8 @@
 *.parse_table
 *.re2c
 ada_annex_p-process.el
-ada_annex_p.txt
-ada_annex_p_*_bnf.wy
-ada_annex_p_lr1_parse_table.txt
+ada_annex_p*.txt
+ada_annex_p*_bnf.wy
 ada_annex_p_process*
 ada_annex_p_re2c.c
 ada_annex_p_re2c_c.ads
@@ -31,6 +30,7 @@ build/tree_sitter-ada_lite-tokens/
 build/wisitoken-ada_annex_p-tokens/
 build/wisitoken-ada_lite-tokens/
 build/wisitoken-tokens/
+dir-ada-mode
 dump_libadalang_corrected
 dump_wisitoken_corrected
 gpr-process.el
@@ -67,4 +67,3 @@ test/gpr_query.db
 test/gpr_query.db-shm
 test/gpr_query.db-wal
 test/subdir/gpr_query.db
-dir-ada-mode
