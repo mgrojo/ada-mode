@@ -2367,7 +2367,8 @@ exception_handler_list ;;:new for pragma, action
   : exception_handler
   | pragma_g ;;:new for pragma
   | exception_handler_list exception_handler
-    %((wisi-motion-action [1 2]))%
+    %((wisi-statement-action [1 motion 2 motion])
+      (wisi-motion-action [1 2]))%
   ;
 
 handled_sequence_of_statements
