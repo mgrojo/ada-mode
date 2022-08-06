@@ -463,8 +463,10 @@ package body Emacs_Wisi_Common_Parse is
                      begin
                         if Parse_Context.Save_Prev_Text_Tree then
                            Parse_Context.Save_Text (-Parse_Context.File_Name & "-wisi-prev-text");
-                           Parser.Tree.Copy_Tree
-                             (Parse_Context.Prev_Tree, Syntax_Trees.User_Data_Access_Constant (Parser.User_Data));
+                           if Parser.Tree.Editable then
+                              Parser.Tree.Copy_Tree
+                                (Parse_Context.Prev_Tree, Syntax_Trees.User_Data_Access_Constant (Parser.User_Data));
+                           end if;
                         end if;
 
                         Wisi.Parse_Context.Edit_Source (Trace.all, Parse_Context.all, Params.Changes, KMN_List);
