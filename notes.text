@@ -56,8 +56,8 @@ GNAT Community going away
     simplest way is to package ada-mode code as Alire crates
     use tarball from savannah
 
-try packrat
-    o.e.a.s-6/o.e.w.s-2
+fix/use tree-sitter
+    o.e.a.s-7/o.e.w.s-1
 
 run parser on ACATS
 

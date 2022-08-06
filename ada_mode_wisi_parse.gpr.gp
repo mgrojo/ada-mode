@@ -2,7 +2,7 @@
 --
 --  build ada_mode_wisi_parse and other executables
 --
---  Copyright (C) 2014, 2018 - 2020 Free Software Foundation, Inc.
+--  Copyright (C) 2014, 2018 - 2020, 2022 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,9 +23,6 @@ with "gnatcoll_xref";
 #if HAVE_GNAT_UTIL="yes"
 with "gnat_util";
 #end if;
-#if HAVE_LIBADALANG="yes"
-with "libadalang";
-#end if;
 with "wisi";
 project Ada_Mode_Wisi_Parse is
 
@@ -34,12 +31,6 @@ project Ada_Mode_Wisi_Parse is
       "ada_mode_wisi_lr1_parse.ads",
       "run_ada_lalr_parse.ads",
       "run_ada_lr1_parse.ads",
--- #if ELPA="no"
---        #if HAVE_LIBADALANG="yes"
---          "dump_libadalang_corrected.adb",
---        #end if;
---       "dump_wisitoken_corrected.adb", FIXME: broken by wisitoken changes
--- #end if;
       "gpr_mode_wisi_parse.ads",
       "run_gpr_parse.ads",
       "gpr_query.adb"
@@ -91,7 +82,7 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Common_Switches &
            "-gnaty3abcefhiklnprtx" & -- not overrding -- Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Debug_Switches;
-           
+
       when "Normal" =>
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Common_Switches &
@@ -119,7 +110,7 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Common_Switches &
            "-gnaty3abcefhiklnprtx" & "-gnatyM120" & -- not overriding
            Standard_Common.Compiler.Release_Switches;
-           
+
          for Default_Switches ("C") use Standard_Common.Compiler.Release_Switches_C;
       end case;
 
