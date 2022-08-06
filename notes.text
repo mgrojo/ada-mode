@@ -50,21 +50,21 @@ for ada_mode_wisi_parse.gpr:
 
 (setq gpr-query-exec "c:/Projects/org.emacs.ada-mode/gpr_query")
  current work
-merge most of wisitoken.parse.parser back to wisitoken.parse
-    make merge to/from main better
-    packrat-error_recover derive from lr.parser?
+copy good changes to o.w.s-1:
+    canonical list rhs order match packrat
 
-copy some changes to main:
-    generate declare partial_parse_active in *-actions.ads
     -- in .wy Ada code blocks
     don't commit _bnf.wy
     wisi.parse_context factory
-    generate declare create_parser
     wisi.put_errors
 
 translate libadalang_grammar.py to ada_adacore.wy
     make -r ../ada_adacore.re2c
-
+        seems to hang
+        too much recursion, even with %partial_recursion?
+        to find other problems, try no error correction => no recursion compute.
+        in o.w.s-1/o.e.a.s-2
+        way too many states; 300_000 and counting when aborted.
 
 packrat mckenzie error recover
     requires eliminating conflicts in LR grammar

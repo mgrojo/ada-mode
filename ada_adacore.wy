@@ -10,6 +10,7 @@
 ;; https://raw.githubusercontent.com/AdaCore/libadalang/22.2/ada/lexer.py
 
 %meta_syntax EBNF
+%partial_recursion
 
 %generate LR1 Ada_Emacs text_rep re2c Process
 ;; %generate Packrat_Gen Ada_Emacs re2c Process
@@ -106,7 +107,6 @@
 %token <punctuation> Divide      "/"
 %token <punctuation> Tick        "'"
 %token <punctuation> Pipe        "|"
-%token <punctuation> Pipe        "!"
 %token <punctuation> LabelStart  "<<"
 %token <punctuation> LabelEnd    ">>"
 %token <punctuation> Target      "@"
@@ -158,7 +158,7 @@ interface_type_def : ['limited' | 'task' | 'protected' | 'synchronized'] 'interf
 
 unconstrained_index : subtype_indication 'range' Diamond ;
 
-array_type_def : '(' (unconstrained_index {',' unconstrained_index} | constraint_list) ')' 'of' component_def ;
+array_type_def : 'array' '(' (unconstrained_index {',' unconstrained_index} | constraint_list) ')' 'of' component_def ;
 
 discrete_subtype_definition : discrete_range | subtype_indication ;
 
@@ -303,6 +303,8 @@ basic_decls : {basic_decl} ;
 
 package_renaming_decl : 'package' defining_name renaming_clause aspect_spec ';' ;
 
+package_decl : 'package' defining_name aspect_spec 'is' basic_decls ['private' basic_decls] 'end' static_name ';' ;
+
 basic_decl
   : null_subp_decl
   | abstract_subp_decl
@@ -331,7 +333,7 @@ object_decl
   : sub_object_decl
   | single_task_decl
   | protected_decl
-  | number_dec
+  | number_decl
   ;
 
 sub_object_decl : defining_id_list ':' ['aliased'] ['constant'] [mode] type_expr [':=' expr] [renaming_clause]
@@ -401,13 +403,15 @@ subp_spec
         | 'return' type_expr
     ;
 
-expr_fn : [overriding] subp_spec 'is' (paren_expr | aggregate) ;
+expr_fn : overriding_indicator subp_spec 'is' (paren_expr | aggregate) ;
 
-null_subp_decl : [overriding] subp_spec 'is' 'null' ;
+null_subp_decl : overriding_indicator subp_spec 'is' 'null' ;
 
-subp_renaming_decl : [overriding] subp_spec renaming_clause ;
+abstract_subp_decl : overriding_indicator subp_spec 'is' 'abstract' ;
 
-simple_subp_decl : [overriding] subp_spec ;
+subp_renaming_decl : overriding_indicator subp_spec renaming_clause ;
+
+simple_subp_decl : overriding_indicator subp_spec ;
 
 subp_decl
   : null_subp_decl
@@ -432,6 +436,8 @@ discrete_subtype_indication    : ['not' 'null'] subtype_name range_constraint ;
 constrained_subtype_indication : ['not' 'null'] subtype_name constraint ;
 
 type_expr : anonymous_type | subtype_indication ;
+
+anonymous_type : anonymous_type_decl ;
 
 mode
     : 'in' 'out'
@@ -571,21 +577,21 @@ null_stmt : Null ';' ;
 
 assignment_stmt : name ':=' expr ';' ;
 
+goto_stmt : 'goto' static_name ';' ;
+
 exit_stmt : 'exit' [static_name] ['when' expr] ';' ;
 
 return_stmt : 'return' [expr] ';' ;
 
 requeue_stmt : 'requeue' name ['with' 'abort'] ';' ;
 
-identifier : Identifier ;
-char_literal : Char ;
-string_literal : String ;
+identifier : IDENTIFIER ;
+char_literal : CHARACTER_LITERAL ;
+string_literal : STRING ;
 
 defining_id : identifier ;
 
-dec_literal : Decimal ;
-int_literal : Integer ;
-num_literal : dec_literal | int_literal ;
+num_literal : NUMERIC_LITERAL ;
 
 null_literal : Null;
 
@@ -670,15 +676,6 @@ defining_name : static_name ;
 direct_name_or_target_name : direct_name | target_name ;
 
 target_name : '@' ;
-
-update_attr_aggregate
-  : regular_aggregate
-  |'(' update_attr_content ')'
-  ;
-
-update_attr_content : multidim_array_assoc (',' multidim_array_assoc)* ;
-
-multidim_array_assoc : (aggregate ('|' aggregate)*) '=>' expr ;
 
 subtype_name
   : subtype_name '.' direct_name
