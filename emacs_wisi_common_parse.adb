@@ -468,8 +468,10 @@ package body Emacs_Wisi_Common_Parse is
                      begin
                         if Parse_Context.Save_Prev_Text_Tree then
                            Parse_Context.Save_Text (-Parse_Context.File_Name & "-wisi-prev-text");
-                           Parser.Tree.Copy_Tree
-                             (Parse_Context.Prev_Tree, Syntax_Trees.User_Data_Access_Constant (Parser.User_Data));
+                           if Parser.Tree.Editable then
+                              Parser.Tree.Copy_Tree
+                                (Parse_Context.Prev_Tree, Syntax_Trees.User_Data_Access_Constant (Parser.User_Data));
+                           end if;
                         end if;
 
                         Wisi.Parse_Context.Edit_Source (Trace.all, Parse_Context.all, Params.Changes, KMN_List);
@@ -540,12 +542,18 @@ package body Emacs_Wisi_Common_Parse is
 
                when WisiToken.Validate_Error =>
                   Wisi.Put_Errors (Parser.Tree);
-                  --  Ensure we don't lose the debug state
-                  Parse_Context.Frozen := True;
+                  if WisiToken.Debug_Mode then
+                     --  Ensure we don't lose the debug state
+                     Parse_Context.Frozen := True;
+                  end if;
                   raise WisiToken.Parse_Error with "validate error; parse_context frozen";
 
                when others =>
                   Parser.Tree.Lexer.Discard_Rest_Of_Input;
+                  if WisiToken.Debug_Mode then
+                     --  Ensure we don't lose the debug state
+                     Parse_Context.Frozen := True;
+                  end if;
                   raise;
                end;
 
@@ -676,8 +684,10 @@ package body Emacs_Wisi_Common_Parse is
                   Source_File_Name : constant String  := Wisi.Get_String (Command_Line, Last);
                   Enable           : constant Boolean := 1 = Wisi.Get_Integer (Command_Line, Last);
 
-                  Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find
-                    (Source_File_Name);
+                  --  This command is often the first command for a source file, from
+                  --  wisi-reset-parser.
+                  Parse_Context : constant Wisi.Parse_Context.Parse_Context_Access := Wisi.Parse_Context.Find_Create
+                    (Source_File_Name, Trace);
                begin
                   Check_Command_Length (Command_Length, Last);
 

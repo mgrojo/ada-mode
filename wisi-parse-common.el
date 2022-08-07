@@ -627,7 +627,10 @@ with incremental parse after each key event."
       (execute-kbd-macro (make-vector 1 (aref macro i)))
       (save-excursion
 	(condition-case err
-	    (wisi-parse-incremental wisi-parser-shared 'none)
+	    (progn
+	      (wisi--check-change)
+	      (when wisi--changes
+		(wisi-parse-incremental wisi-parser-shared 'none)))
 	  (wisi-parse-error
 	   (when (< 0 wisi-debug)
 	     ;; allow continuing when parser throws parse-error

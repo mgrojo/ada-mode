@@ -1113,33 +1113,19 @@ Source buffer is current."
        (signal (car err) (cdr err)))
       )))
 
-(cl-defun wisi-process-parse--handle-messages-file-not-found (parser action &key no-text)
+(cl-defun wisi-process-parse--handle-messages-file-not-found (parser action)
   (funcall action)
   (condition-case _err
       (wisi-process-parse--handle-messages parser)
     ('wisi-file_not_found
-     (cond
-      (no-text
-       (let ((cmd (format "create-context \"%s\"" (if (buffer-file-name) (buffer-file-name) (buffer-name))))
-	     (process (wisi-process--parser-process parser)))
-	 (with-current-buffer (wisi-process--parser-buffer parser)
-	   (erase-buffer))
-	 (wisi-parse-log-message parser cmd)
-	 (process-send-string process (wisi-process-parse--add-cmd-length cmd)))
-       (wisi-process-parse--wait parser)
-       (wisi-process-parse--handle-messages parser)
-       (funcall action)
-       (wisi-process-parse--handle-messages parser)
-       )
-      (t
-       (message "parsing buffer ...")
-       (wisi-process-parse--send-incremental-parse parser t)
-       (wisi-process-parse--wait parser)
-       (wisi-process-parse--handle-messages parser)
-       (message "parsing buffer ... done")
-       (funcall action)
-       (wisi-process-parse--handle-messages parser)
-       )))))
+     (message "parsing buffer ...")
+     (wisi-process-parse--send-incremental-parse parser t) ;; creates parse context
+     (wisi-process-parse--wait parser)
+     (wisi-process-parse--handle-messages parser)
+     (message "parsing buffer ... done")
+     (funcall action)
+     (wisi-process-parse--handle-messages parser)
+     )))
 
 (cl-defmethod wisi-parse-enable-memory-report ((parser wisi-parser))
   (wisi-process-parse--prepare parser 'debug)
